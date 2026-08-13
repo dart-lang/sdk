@@ -1,0 +1,2864 @@
+# Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# This file contains error messages that are shared between the analyzer and the
+# front end.
+
+# See pkg/front_end/messages.yaml for documentation about this file.
+
+experimentNotEnabled:
+  type: syntacticError
+  parameters:
+    String featureName: The name of of the language feature.
+    String enabledVersion: The language version in which the language feature was enabled.
+  problemMessage: "This requires the '#featureName' language feature to be enabled."
+  correctionMessage: "Try updating your pubspec.yaml to set the minimum SDK constraint to #enabledVersion or higher, and running 'pub get'."
+  analyzerCode: experimentNotEnabled
+  hasPublishedDocs: false
+
+experimentNotEnabledOffByDefault:
+  type: syntacticError
+  parameters:
+    String featureName: The name of the language feature.
+  problemMessage: "This requires the experimental '#featureName' language feature to be enabled."
+  correctionMessage: "Try passing the '--enable-experiment=#featureName' command line option."
+  analyzerCode: experimentNotEnabledOffByDefault
+  hasPublishedDocs: false
+  script: |
+    // @dart=3.5
+    void foo() {
+      int i = 42_42_42_42;
+    }
+
+recordLiteralOnePositionalFieldNoTrailingComma:
+  type: syntacticError
+  parameters: none
+  problemMessage: "A record literal with exactly one positional field requires a trailing comma."
+  correctionMessage: "Try adding a trailing comma."
+  analyzerCode: recordLiteralOnePositionalNoTrailingComma
+  hasPublishedDocs: true
+  documentation: |-
+    #### Description
+
+    The analyzer produces this diagnostic when a record literal with a single
+    positional field doesn't have a trailing comma after the field.
+
+    In some locations a record literal with a single positional field could
+    also be a parenthesized expression. A trailing comma is required to
+    disambiguate these two valid interpretations.
+
+    #### Example
+
+    The following code produces this diagnostic because the record literal has
+    one positional field but doesn't have a trailing comma:
+
+    ```dart
+    var r = const (1[!)!];
+    ```
+
+    #### Common fixes
+
+    Add a trailing comma:
+
+    ```dart
+    var r = const (1,);
+    ```
+  script: |
+    main() {
+      var record = const (1);
+    }
+
+recordLiteralZeroFieldsWithTrailingComma:
+  type: syntacticError
+  parameters: none
+  problemMessage: "A record literal without fields can't have a trailing comma."
+  correctionMessage: "Try removing the trailing comma."
+  analyzerCode: emptyRecordLiteralWithComma
+  hasPublishedDocs: true
+  documentation: |-
+    #### Description
+
+    The analyzer produces this diagnostic when a record literal that has no
+    fields has a trailing comma. Empty record literals can't contain a comma.
+
+    #### Example
+
+    The following code produces this diagnostic because the empty record
+    literal has a trailing comma:
+
+    ```dart
+    var r = ([!,!]);
+    ```
+
+    #### Common fixes
+
+    If the record is intended to be empty, then remove the comma:
+
+    ```dart
+    var r = ();
+    ```
+
+    If the record is intended to have one or more fields, then add the
+    expressions used to compute the values of those fields:
+
+    ```dart
+    var r = (3, 4);
+    ```
+  script: |
+    main() {
+      var record = (,);
+    }
+
+emptyRecordTypeNamedFieldsList:
+  type: syntacticError
+  parameters: none
+  problemMessage: "The list of named fields in a record type can't be empty."
+  correctionMessage: "Try adding a named field to the list."
+  analyzerCode: emptyRecordTypeNamedFieldsList
+  hasPublishedDocs: true
+  documentation: |-
+    #### Description
+
+    The analyzer produces this diagnostic when a record type has an empty list
+    of named fields.
+
+    #### Example
+
+    The following code produces this diagnostic because the record type has an
+    empty list of named fields:
+
+    ```dart
+    void f((int, int, {[!}!]) r) {}
+    ```
+
+    #### Common fixes
+
+    If the record is intended to have named fields, then add the types and
+    names of the fields:
+
+    ```dart
+    void f((int, int, {int z}) r) {}
+    ```
+
+    If the record isn't intended to have named fields, then remove the curly
+    braces:
+
+    ```dart
+    void f((int, int) r) {}
+    ```
+  script: |
+    main() {
+      (int, int, {/*missing*/}) record = (1, 2,);
+    }
+
+recordTypeZeroFieldsButTrailingComma:
+  type: syntacticError
+  parameters: none
+  problemMessage: "A record type without fields can't have a trailing comma."
+  correctionMessage: "Try removing the trailing comma."
+  analyzerCode: emptyRecordTypeWithComma
+  hasPublishedDocs: true
+  documentation: |-
+    #### Description
+
+    The analyzer produces this diagnostic when a record type that has no
+    fields has a trailing comma. Empty record types can't contain a comma.
+
+    #### Example
+
+    The following code produces this diagnostic because the empty record type
+    has a trailing comma:
+
+    ```dart
+    void f(([!,!]) r) {}
+    ```
+
+    #### Common fixes
+
+    If the record type is intended to be empty, then remove the comma:
+
+    ```dart
+    void f(() r) {}
+    ```
+
+    If the record type is intended to have one or more fields, then add the
+    types of those fields:
+
+    ```dart
+    void f((int, int) r) {}
+    ```
+  script: |
+    main() {
+      (,) record = ();
+    }
+
+recordTypeOnePositionalFieldNoTrailingComma:
+  type: syntacticError
+  parameters: none
+  problemMessage: "A record type with exactly one positional field requires a trailing comma."
+  correctionMessage: "Try adding a trailing comma."
+  analyzerCode: recordTypeOnePositionalNoTrailingComma
+  hasPublishedDocs: true
+  documentation: |-
+    #### Description
+
+    The analyzer produces this diagnostic when a record type annotation with a
+    single positional field doesn't have a trailing comma after the field.
+
+    In some locations a record type with a single positional field could also
+    be a parenthesized expression. A trailing comma is required to
+    disambiguate these two valid interpretations.
+
+    #### Example
+
+    The following code produces this diagnostic because the record type has
+    one positional field, but doesn't have a trailing comma:
+
+    ```dart
+    void f((int[!)!] r) {}
+    ```
+
+    #### Common fixes
+
+    Add a trailing comma:
+
+    ```dart
+    void f((int,) r) {}
+    ```
+  script: |
+    main() {
+      (int /* missing trailing comma */) record = const (1, );
+    }
+
+expectedElseOrComma:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Expected 'else' or comma."
+  analyzerCode: expectedElseOrComma
+  hasPublishedDocs: false
+  script: |
+    void foo(int i) {
+      var x = [
+        if (i > 2) 2
+        2
+      ];
+    }
+
+expectedStatement:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Expected a statement."
+  analyzerCode: missingStatement
+  hasPublishedDocs: false
+  statement: "void;"
+
+expectedInstead:
+  type: syntacticError
+  parameters:
+    String expected: What was expected.
+  problemMessage: "Expected '#expected' instead of this."
+  # This is an alternative to ExpectedButGot when the last consumed token
+  # should be replaced with a different token.
+  #
+  # For example, this is ok...
+  #
+  #    mixin Foo extends Bar {
+  #              ^^^^^^^
+  #              Expected 'on' before this
+  #
+  # but this is easier for the user...
+  #
+  #    mixin Foo extends Bar {
+  #              ^^^^^^^
+  #              Expected 'on' instead of this
+  #
+  analyzerCode: expectedInstead
+  hasPublishedDocs: false
+  script:
+    - "class B {} mixin A extends B { }"
+
+multipleLibraryDirectives:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Only one library directive may be declared in a file."
+  correctionMessage: "Try removing all but one of the library directives."
+  analyzerCode: multipleLibraryDirectives
+  hasPublishedDocs: false
+  script:
+    library foo;
+    library bar;
+
+multipleExtends:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Each class definition can have at most one extends clause."
+  correctionMessage: "Try choosing one superclass and define your class to implement (or mix in) the others."
+  analyzerCode: multipleExtendsClauses
+  hasPublishedDocs: false
+  script:
+    - "class B{} class C{} class A extends B extends C {}"
+    - "class B{} class C{} class A extends B, C {}"
+
+multipleWith:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Each class definition can have at most one with clause."
+  correctionMessage: "Try combining all of the with clauses into a single clause."
+  analyzerCode: multipleWithClauses
+  hasPublishedDocs: false
+  script: "class A extends B with C, D with E {}"
+  exampleAllowOtherCodes: true
+
+withBeforeExtends:
+  type: syntacticError
+  parameters: none
+  problemMessage: "The extends clause must be before the with clause."
+  correctionMessage: "Try moving the extends clause before the with clause."
+  analyzerCode: withBeforeExtends
+  hasPublishedDocs: false
+  script: "mixin B {} class C {} class A with B extends C {}"
+
+implementsBeforeExtends:
+  type: syntacticError
+  parameters: none
+  problemMessage: "The extends clause must be before the implements clause."
+  correctionMessage: "Try moving the extends clause before the implements clause."
+  analyzerCode: implementsBeforeExtends
+  hasPublishedDocs: false
+  script: "class A implements B extends C {}"
+  exampleAllowOtherCodes: true
+
+implementsBeforeOn:
+  type: syntacticError
+  parameters: none
+  problemMessage: "The on clause must be before the implements clause."
+  correctionMessage: "Try moving the on clause before the implements clause."
+  analyzerCode: implementsBeforeOn
+  hasPublishedDocs: false
+  script: "mixin A implements B on C {}"
+  exampleAllowOtherCodes: true
+
+implementsBeforeWith:
+  type: syntacticError
+  parameters: none
+  problemMessage: "The with clause must be before the implements clause."
+  correctionMessage: "Try moving the with clause before the implements clause."
+  analyzerCode: implementsBeforeWith
+  hasPublishedDocs: false
+  script: "class A extends B implements C with D {}"
+  exampleAllowOtherCodes: true
+
+multipleClauses:
+  type: syntacticError
+  parameters:
+    String definitionKind: The kind of definition that has multiple clauses.
+    String clauseKind: The kind of clause of which there are multiple.
+  problemMessage: "Each '#definitionKind' definition can have at most one '#clauseKind' clause."
+  correctionMessage: "Try combining all of the '#clauseKind' clauses into a single clause."
+  analyzerCode: multipleClauses
+  hasPublishedDocs: false
+  script:
+    - "mixin B {} enum A implements B implements C, D { v; }"
+    - "mixin B {} enum A with B with C, D { v; }"
+
+outOfOrderClauses:
+  type: syntacticError
+  parameters:
+    String expectedEarlierClause: The kind of clause that must come earlier.
+    String expectedLaterClause: The kind of clause that must come later.
+  problemMessage: "The '#expectedEarlierClause' clause must come before the '#expectedLaterClause' clause."
+  correctionMessage: "Try moving the '#expectedEarlierClause' clause before the '#expectedLaterClause' clause."
+  analyzerCode: outOfOrderClauses
+  hasPublishedDocs: false
+  script: "class B {} class D {} enum A implements B with D { v; }"
+
+multipleOnClauses:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Each mixin definition can have at most one on clause."
+  correctionMessage: "Try combining all of the on clauses into a single clause."
+  analyzerCode: multipleOnClauses
+  hasPublishedDocs: false
+  script: "mixin A on B on C, D {}"
+  exampleAllowOtherCodes: true
+
+typedefAugmentation:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Type aliases can't be augmented."
+  analyzerCode: typedefAugmentation
+  hasPublishedDocs: false
+  experiments: augmentations
+  script: "augment typedef T = void Function();"
+
+mixinApplicationClassAugmentation:
+  type: syntacticError
+  parameters: none
+  problemMessage: "A mixin application class can't be augmented."
+  analyzerCode: mixinApplicationClassAugmentation
+  hasPublishedDocs: false
+  experiments: augmentations
+  script: "augment class A = B with M;"
+  exampleAllowOtherCodes: true
+
+mixinAugmentationHasOnClause:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Mixin augmentations can't have 'on' clauses."
+  correctionMessage: "Try removing the 'on' clause."
+  analyzerCode: mixinAugmentationHasOnClause
+  hasPublishedDocs: false
+  experiments: augmentations
+  script: "class A {} mixin M {} augment mixin M on A {}"
+
+mixinWithClause:
+  type: syntacticError
+  parameters: none
+  problemMessage: "A mixin can't have a with clause."
+  analyzerCode: mixinWithClause
+  hasPublishedDocs: false
+  script: "mixin M {} mixin N with M {}"
+
+expectedClassBody:
+  type: syntacticError
+  parameters: none
+  problemMessage: "A class declaration must have a body, even if it is empty."
+  correctionMessage: "Try adding an empty body."
+  analyzerCode: expectedClassBody
+  hasPublishedDocs: false
+  sharedName: expectedBody
+  script: |
+    class Class
+
+expectedMixinBody:
+  type: syntacticError
+  parameters: none
+  problemMessage: "A mixin declaration must have a body, even if it is empty."
+  correctionMessage: "Try adding an empty body."
+  analyzerCode: expectedMixinBody
+  hasPublishedDocs: false
+  sharedName: expectedBody
+  script: |
+    mixin Mixin
+
+expectedExtensionBody:
+  type: syntacticError
+  parameters: none
+  problemMessage: "An extension declaration must have a body, even if it is empty."
+  correctionMessage: "Try adding an empty body."
+  analyzerCode: expectedExtensionBody
+  hasPublishedDocs: false
+  sharedName: expectedBody
+  script: |
+    extension Extension on int
+
+expectedExtensionTypeBody:
+  type: syntacticError
+  parameters: none
+  problemMessage: "An extension type declaration must have a body, even if it is empty."
+  correctionMessage: "Try adding an empty body."
+  analyzerCode: expectedExtensionTypeBody
+  hasPublishedDocs: false
+  sharedName: expectedBody
+  script: |
+    extension type ExtensionType(int i)
+
+expectedTryStatementBody:
+  type: syntacticError
+  parameters: none
+  problemMessage: "A try statement must have a body, even if it is empty."
+  correctionMessage: "Try adding an empty body."
+  analyzerCode: expectedTryStatementBody
+  hasPublishedDocs: false
+  sharedName: expectedBody
+  script: |
+    method() {
+      try finally {}
+    }
+
+expectedCatchClauseBody:
+  type: syntacticError
+  parameters: none
+  problemMessage: "A catch clause must have a body, even if it is empty."
+  correctionMessage: "Try adding an empty body."
+  analyzerCode: expectedCatchClauseBody
+  hasPublishedDocs: false
+  sharedName: expectedBody
+  script: |
+    method() {
+      try {} catch (_);
+    }
+
+expectedFinallyClauseBody:
+  type: syntacticError
+  parameters: none
+  problemMessage: "A finally clause must have a body, even if it is empty."
+  correctionMessage: "Try adding an empty body."
+  analyzerCode: expectedFinallyClauseBody
+  hasPublishedDocs: false
+  sharedName: expectedBody
+  script: |
+    method() {
+      try {} finally;
+    }
+
+expectedSwitchExpressionBody:
+  type: syntacticError
+  parameters: none
+  problemMessage: "A switch expression must have a body, even if it is empty."
+  correctionMessage: "Try adding an empty body."
+  analyzerCode: expectedSwitchExpressionBody
+  hasPublishedDocs: false
+  sharedName: expectedBody
+  script: |
+    method(Never n) => switch (n);
+
+expectedSwitchStatementBody:
+  type: syntacticError
+  parameters: none
+  problemMessage: "A switch statement must have a body, even if it is empty."
+  correctionMessage: "Try adding an empty body."
+  analyzerCode: expectedSwitchStatementBody
+  hasPublishedDocs: false
+  sharedName: expectedBody
+  script: |
+    method(Never n) {
+      switch (n);
+    }
+
+expectedIdentifierButGotKeyword:
+  type: syntacticError
+  parameters:
+    Token lexeme: The token that was found.
+  problemMessage: "'#lexeme' can't be used as an identifier because it's a keyword."
+  correctionMessage: "Try renaming this to be an identifier that isn't a keyword."
+  analyzerCode: expectedIdentifierButGotKeyword
+  hasPublishedDocs: false
+  script: "var default = 42;"
+
+equalityCannotBeEqualityOperand:
+  type: syntacticError
+  parameters: none
+  problemMessage: "A comparison expression can't be an operand of another comparison expression."
+  correctionMessage: "Try putting parentheses around one of the comparisons."
+  analyzerCode: equalityCannotBeEqualityOperand
+  hasPublishedDocs: false
+  exampleAllowOtherCodes: true
+  script:
+    - "main() { var b = a < b < c; }"
+    - "main() { var b = a == b != c; }"
+
+varAsTypeName:
+  type: syntacticError
+  parameters: none
+  problemMessage: "The keyword 'var' can't be used as a type name."
+  analyzerCode: varAsTypeName
+  hasPublishedDocs: false
+  script:
+    - "class A { Map<String, var> m; }"
+  exampleAllowOtherCodes: true
+
+anonymousMethodWrongParameterList:
+  type: syntacticError
+  parameters: none
+  problemMessage: "An anonymous method with a parameter list must have exactly one required, positional parameter."
+  correctionMessage: "Try removing the parameter list, or changing it to have exactly one required positional parameter."
+  analyzerCode: anonymousMethodWrongParameterList
+  hasPublishedDocs: false
+  experiments: anonymous-methods
+  statement:
+    - "1.(a, b) => 1;"
+
+missingExpressionInThrow:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Missing expression after 'throw'."
+  correctionMessage: "Add an expression after 'throw' or use 'rethrow' to throw a caught exception"
+  analyzerCode: missingExpressionInThrow
+  hasPublishedDocs: false
+  statement:
+    - "throw;"
+
+missingConstFinalVarOrType:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Variables must be declared using the keywords 'const', 'final', 'var' or a type name."
+  correctionMessage: "Try adding the name of the type of the variable or the keyword 'var'."
+  analyzerCode: missingConstFinalVarOrType
+  hasPublishedDocs: false
+  script:
+    - "class C { static f; }"
+
+functionTypedParameterVar:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Function-typed parameters can't specify 'const', 'final' or 'var' in place of a return type."
+  correctionMessage: "Try replacing the keyword with a return type."
+  analyzerCode: functionTypedParameterVar
+  hasPublishedDocs: false
+  script:
+    - "void f(const x()) {}"
+    - "void f(final x()) {}"
+    - "void f(var x()) {}"
+  exampleAllowOtherCodes: true
+
+abstractClassMember:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Members of classes can't be declared to be 'abstract'."
+  correctionMessage: "Try removing the 'abstract' keyword. You can add the 'abstract' keyword before the class declaration."
+  analyzerCode: abstractClassMember
+  hasPublishedDocs: false
+  script:
+    - |
+      abstract class C {abstract C.c();}
+    - |
+      abstract class C {abstract m();}
+    - |
+      abstract class C {abstract get m;}
+    - |
+      abstract class C {abstract set m(int x);}
+
+abstractExternalField:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Fields can't be declared both 'abstract' and 'external'."
+  analyzerCode: abstractExternalField
+  hasPublishedDocs: false
+  correctionMessage: "Try removing the 'abstract' or 'external' keyword."
+  script:
+    - "abstract class C {abstract external var f;}"
+    - "abstract class C {external abstract var f;}"
+
+abstractStaticField:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Static fields can't be declared 'abstract'."
+  analyzerCode: abstractStaticField
+  hasPublishedDocs: false
+  correctionMessage: "Try removing the 'abstract' or 'static' keyword."
+  script:
+    - "abstract class C {abstract static var f;}"
+
+abstractLateField:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Abstract fields cannot be late."
+  analyzerCode: abstractLateField
+  hasPublishedDocs: false
+  correctionMessage: "Try removing the 'abstract' or 'late' keyword."
+  script:
+    - "abstract class C {abstract late var f;}"
+
+abstractFinalBaseClass:
+  type: syntacticError
+  parameters: none
+  problemMessage: "An 'abstract' class can't be declared as both 'final' and 'base'."
+  correctionMessage: "Try removing either the 'final' or 'base' keyword."
+  analyzerCode: abstractFinalBaseClass
+  hasPublishedDocs: false
+  script:
+    - "abstract final base class C {}"
+
+abstractFinalInterfaceClass:
+  type: syntacticError
+  parameters: none
+  problemMessage: "An 'abstract' class can't be declared as both 'final' and 'interface'."
+  correctionMessage: "Try removing either the 'final' or 'interface' keyword."
+  analyzerCode: abstractFinalInterfaceClass
+  hasPublishedDocs: false
+  script:
+    - "abstract final interface class C {}"
+
+abstractSealedClass:
+  type: syntacticError
+  parameters: none
+  problemMessage: "A 'sealed' class can't be marked 'abstract' because it's already implicitly abstract."
+  correctionMessage: "Try removing the 'abstract' keyword."
+  analyzerCode: abstractSealedClass
+  hasPublishedDocs: true
+  documentation: |-
+    #### Description
+
+    The analyzer produces this diagnostic when a class is declared using both
+    the modifier `abstract` and the modifier `sealed`. Sealed classes are
+    implicitly abstract, so explicitly using both modifiers is not allowed.
+
+    #### Example
+
+    The following code produces this diagnostic because the class `C` is
+    declared using both `abstract` and `sealed`:
+
+    ```dart
+    abstract [!sealed!] class C {}
+    ```
+
+    #### Common fixes
+
+    If the class should be abstract but not sealed, then remove the `sealed`
+    modifier:
+
+    ```dart
+    abstract class C {}
+    ```
+
+    If the class should be both abstract and sealed, then remove the
+    `abstract` modifier:
+
+    ```dart
+    sealed class C {}
+    ```
+  script:
+    - "sealed abstract class C {}"
+    - "abstract sealed class C {}"
+
+classInClass:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Classes can't be declared inside other classes."
+  correctionMessage: "Try moving the class to the top-level."
+  analyzerCode: classInClass
+  hasPublishedDocs: false
+  script:
+    - "class C { class B {} }"
+
+enumInClass:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Enums can't be declared inside classes."
+  correctionMessage: "Try moving the enum to the top-level."
+  analyzerCode: enumInClass
+  hasPublishedDocs: false
+  script:
+    - "class Foo { enum Bar { Bar1, Bar2, Bar3 } }"
+
+typedefInClass:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Typedefs can't be declared inside classes."
+  correctionMessage: "Try moving the typedef to the top-level."
+  analyzerCode: typedefInClass
+  hasPublishedDocs: false
+  script:
+    - "abstract class C { typedef int F(int x); }"
+
+covariantMember:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Getters, setters and methods can't be declared to be 'covariant'."
+  correctionMessage: "Try removing the 'covariant' keyword."
+  analyzerCode: covariantMember
+  hasPublishedDocs: false
+  script:
+    - "class A { covariant get x => 0; }"
+    - "class A { covariant int m() => 0; }"
+
+varReturnType:
+  type: syntacticError
+  parameters: none
+  problemMessage: "The return type can't be 'var'."
+  correctionMessage: "Try removing the keyword 'var', or replacing it with the name of the return type."
+  analyzerCode: varReturnType
+  hasPublishedDocs: false
+  script:
+    - "class C { var m() {} }"
+    - "class C { var C() {} }"
+
+constClass:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Classes can't be declared to be 'const'."
+  correctionMessage: "Try removing the 'const' keyword. If you're trying to indicate that instances of the class can be constants, place the 'const' keyword on  the class' constructor(s)."
+  analyzerCode: constClass
+  hasPublishedDocs: false
+  script: "const class C {}"
+
+constAndFinal:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Members can't be declared to be both 'const' and 'final'."
+  correctionMessage: "Try removing either the 'const' or 'final' keyword."
+  analyzerCode: constAndFinal
+  hasPublishedDocs: false
+  declaration:
+    - "class C { static const final int x = 5; }"
+    - "class C { static final const int x = 5; }"
+    - "const final int x = 5;"
+    - "final const int x = 5;"
+
+conflictingModifiers:
+  type: syntacticError
+  parameters:
+    String modifier: The problematic modifier.
+    String earlierModifier: The earlier modifier that conflicts.
+  problemMessage: "Members can't be declared to be both '#modifier' and '#earlierModifier'."
+  correctionMessage: "Try removing one of the keywords."
+  analyzerCode: conflictingModifiers
+  hasPublishedDocs: false
+  script:
+    - "class C { const var x; }"
+    - "class C { var const x; }"
+  exampleAllowOtherCodes: true
+
+constFactory:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Only redirecting factory constructors can be declared to be 'const'."
+  correctionMessage: "Try removing the 'const' keyword, or replacing the body with '=' followed by a valid target."
+  analyzerCode: constFactory
+  hasPublishedDocs: false
+  script: |
+    class C {
+      const factory C() => const C.internal();
+      const C.internal();
+    }
+
+modifierOutOfOrder:
+  type: syntacticError
+  parameters:
+    String modifier: The problematic modifier.
+    String expectedLaterModifier: The modifier that should come later.
+  problemMessage: "The modifier '#modifier' should be before the modifier '#expectedLaterModifier'."
+  correctionMessage: "Try re-ordering the modifiers."
+  analyzerCode: modifierOutOfOrder
+  hasPublishedDocs: false
+  script:
+    - "class C { factory const C() = prefix.B.foo; }"
+    - "class C { factory external C(); }"
+    - "class C { const external C(); }"
+    - "class C { static external f(); }"
+    - "class C { final static int f = 5; }"
+    - "class C { var static f; }"
+    - "var external foo; main(){}"
+  exampleAllowOtherCodes: true
+
+typeBeforeFactory:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Factory constructors cannot have a return type."
+  correctionMessage: "Try removing the type appearing before 'factory'."
+  analyzerCode: typeBeforeFactory
+  hasPublishedDocs: false
+  script: |
+    class C {
+      T factory C() { return new C.constructor(); }
+      C.constructor();
+    }
+
+constMethod:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Getters, setters and methods can't be declared to be 'const'."
+  correctionMessage: "Try removing the 'const' keyword."
+  analyzerCode: constMethod
+  hasPublishedDocs: false
+  script:
+    - "class C { const m() {} }"
+
+covariantAndStatic:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Members can't be declared to be both 'covariant' and 'static'."
+  correctionMessage: "Try removing either the 'covariant' or 'static' keyword."
+  analyzerCode: covariantAndStatic
+  hasPublishedDocs: false
+  script:
+    - "class A {} class C { covariant static A? f; }"
+    - "class A {} class C { static covariant A? f; }"
+
+duplicatedModifier:
+  type: syntacticError
+  parameters:
+    Token lexeme: THe token that was found.
+  problemMessage: "The modifier '#lexeme' was already specified."
+  correctionMessage: "Try removing all but one occurrence of the modifier."
+  analyzerCode: duplicatedModifier
+  hasPublishedDocs: false
+  comment: |-
+    Parameters:
+    0: the modifier that was duplicated
+  exampleAllowOtherCodes: true
+  script:
+    - "class C { const const m; }"
+    - "class C { external external f(); }"
+    - "class C { final final m = 5; }"
+    - "class C { static static var m; }"
+    - "class C { var var m; }"
+
+externalConstructorWithFieldInitializers:
+  type: syntacticError
+  parameters: none
+  problemMessage: "An external constructor can't initialize fields."
+  correctionMessage: "Try removing the field initializers, or removing the keyword 'external'."
+  analyzerCode: externalConstructorWithFieldInitializers
+  hasPublishedDocs: false
+  script: |
+    class Foo {
+      var x = -1;
+      external Foo.x(this.x);
+    }
+
+externalFactoryWithBody:
+  type: syntacticError
+  parameters: none
+  problemMessage: "External factories can't have a body."
+  correctionMessage: "Try removing the body of the factory, or removing the keyword 'external'."
+  analyzerCode: externalFactoryWithBody
+  hasPublishedDocs: false
+  script:
+    - "class C { external factory C() {} }"
+  exampleAllowOtherCodes: true
+
+externalLateField:
+  type: syntacticError
+  parameters: none
+  problemMessage: "External fields cannot be late."
+  analyzerCode: externalLateField
+  hasPublishedDocs: false
+  correctionMessage: "Try removing the 'external' or 'late' keyword."
+  script:
+    - "external late var f;"
+    - "abstract class C {external late var f;}"
+
+extraneousModifier:
+  type: syntacticError
+  parameters:
+    Token lexeme: The token that was found.
+  problemMessage: "Can't have modifier '#lexeme' here."
+  correctionMessage: "Try removing '#lexeme'."
+  analyzerCode: extraneousModifier
+  hasPublishedDocs: false
+  script:
+    - "var abstract foo; main(){}"
+    - "var static foo; main(){}"
+    - "abstract var foo; main(){}"
+    - "static var foo; main(){}"
+    - "abstract foo; main(){}"
+    - "static foo; main(){}"
+    - "abstract enum foo {bar}"
+    - "abstract void foo() {}"
+    - "static void foo() {}"
+    - "abstract typedef foo();"
+    - "static typedef foo();"
+  exampleAllowOtherCodes: true
+
+extraneousModifierInExtension:
+  type: syntacticError
+  parameters:
+    Token lexeme: The token that was found.
+  problemMessage: "Can't have modifier '#lexeme' in an extension."
+  correctionMessage: "Try removing '#lexeme'."
+  analyzerCode: invalidUseOfCovariantInExtension
+  hasPublishedDocs: true
+  comment: No parameters.
+  documentation: |-
+    #### Description
+
+    The analyzer produces this diagnostic when a member declared inside an
+    extension uses the keyword `covariant` in the declaration of a parameter.
+    Extensions aren't classes and don't have subclasses, so the keyword serves
+    no purpose.
+
+    #### Example
+
+    The following code produces this diagnostic because `i` is marked as being
+    covariant:
+
+    ```dart
+    extension E on String {
+      void a([!covariant!] int i) {}
+    }
+    ```
+
+    #### Common fixes
+
+    Remove the `covariant` keyword:
+
+    ```dart
+    extension E on String {
+      void a(int i) {}
+    }
+    ```
+  script:
+    - "extension on String { foo(covariant String child) {} }"
+
+extraneousModifierInExtensionType:
+  type: syntacticError
+  parameters:
+    Token lexeme: The token that was found.
+  problemMessage: "Can't have modifier '#lexeme' in an extension type."
+  correctionMessage: "Try removing '#lexeme'."
+  analyzerCode: extraneousModifierInExtensionType
+  hasPublishedDocs: false
+  script:
+    - "extension type ET(String i) { foo(covariant String child) {} }"
+
+extraneousModifierInPrimaryConstructor:
+  type: syntacticError
+  parameters:
+    Token lexeme: The token that was found.
+  problemMessage: "Can't have modifier '#lexeme' in a primary constructor."
+  correctionMessage: "Try removing '#lexeme'."
+  analyzerCode: extraneousModifierInPrimaryConstructor
+  hasPublishedDocs: false
+  script: |
+    // @dart=3.10
+    extension type ET(covariant String i) { }
+
+primaryConstructorBodyWithModifier:
+  type: syntacticError
+  parameters:
+    String modifier: The modifier found.
+  problemMessage: "A primary constructor body can't have the modifier '#modifier'."
+  correctionMessage: "Try removing the modifier."
+  analyzerCode: primaryConstructorBodyWithModifier
+  hasPublishedDocs: false
+  experiments: primary-constructors
+  exampleAllowOtherCodes: true
+  script:
+    - "class A() { this async {} }"
+
+invalidCovariantModifierInPrimaryConstructor:
+  type: syntacticError
+  parameters: none
+  problemMessage: "The 'covariant' modifier can only be used on non-final declaring parameters."
+  correctionMessage: "Try removing 'covariant'."
+  analyzerCode: invalidCovariantModifierInPrimaryConstructor
+  hasPublishedDocs: false
+  experiments: primary-constructors
+  script:
+    - "class C(covariant String i);"
+    - "class C(covariant final String i);"
+
+finalAndCovariant:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Members can't be declared to be both 'final' and 'covariant'."
+  correctionMessage: "Try removing either the 'final' or 'covariant' keyword."
+  analyzerCode: finalAndCovariant
+  hasPublishedDocs: false
+  script:
+    - "class C { covariant final f = 5; }"
+    - "class C { final covariant f = 5; }"
+  exampleAllowOtherCodes: true
+
+finalAndCovariantLateWithInitializer:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Members marked 'late' with an initializer can't be declared to be both 'final' and 'covariant'."
+  correctionMessage: "Try removing either the 'final' or 'covariant' keyword, or removing the initializer."
+  analyzerCode: finalAndCovariantLateWithInitializer
+  hasPublishedDocs: false
+  # Weak and strong doesn't matter in this instance.
+  script:
+    - "class C { covariant late final f = 5; }"
+
+finalAndVar:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Members can't be declared to be both 'final' and 'var'."
+  correctionMessage: "Try removing the keyword 'var'."
+  analyzerCode: finalAndVar
+  hasPublishedDocs: false
+  script:
+    - "class C { final var x = 5; }"
+    - "class C { var final x = 5; }"
+
+staticConstructor:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Constructors can't be static."
+  correctionMessage: "Try removing the keyword 'static'."
+  analyzerCode: staticConstructor
+  hasPublishedDocs: false
+  script:
+    - "class C { static C() {} }"
+    - "class C { static C.m() {} }"
+
+getterConstructor:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Constructors can't be a getter."
+  correctionMessage: "Try removing 'get'."
+  analyzerCode: getterConstructor
+  hasPublishedDocs: false
+  script:
+    - "class C { get C.m() {} }"
+
+setterConstructor:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Constructors can't be a setter."
+  correctionMessage: "Try removing 'set'."
+  analyzerCode: setterConstructor
+  hasPublishedDocs: false
+  script:
+    - "class C { set C.m(x) {} }"
+
+staticOperator:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Operators can't be static."
+  correctionMessage: "Try removing the keyword 'static'."
+  analyzerCode: staticOperator
+  hasPublishedDocs: false
+  script:
+    - "class C { static operator +(int x) => x + 1; }"
+
+breakOutsideOfLoop:
+  type: syntacticError
+  parameters: none
+  problemMessage: "A break statement can't be used outside of a loop or switch statement."
+  correctionMessage: "Try removing the break statement."
+  analyzerCode: breakOutsideOfLoop
+  hasPublishedDocs: false
+  script:
+    - "main() { break; }"
+
+continueOutsideOfLoop:
+  type: syntacticError
+  parameters: none
+  problemMessage: "A continue statement can't be used outside of a loop or switch statement."
+  correctionMessage: "Try removing the continue statement."
+  analyzerCode: continueOutsideOfLoop
+  hasPublishedDocs: false
+  script:
+    - "main() { continue; }"
+  exampleAllowOtherCodes: true
+
+continueWithoutLabelInCase:
+  type: syntacticError
+  parameters: none
+  problemMessage: "A continue statement in a switch statement must have a label as a target."
+  correctionMessage: "Try adding a label associated with one of the case clauses to the continue statement."
+  analyzerCode: continueWithoutLabelInCase
+  hasPublishedDocs: false
+  script:
+    - "main(List<String> x) { switch (x) {case 1: continue;} }"
+
+duplicateLabelInSwitchStatement:
+  type: syntacticError
+  parameters:
+    Name labelName: The name of the label that was already used.
+  problemMessage: "The label '#labelName' was already used in this switch statement."
+  correctionMessage: "Try choosing a different name for this label."
+  analyzerCode: duplicateLabelInSwitchStatement
+  hasPublishedDocs: false
+  comment: |-
+    Parameters:
+    0: the label that was duplicated
+  statement:
+    - "switch (0) {l1: case 0: break; l1: case 1: break;}"
+
+initializedVariableInForEach:
+  type: syntacticError
+  parameters: none
+  problemMessage: "The loop variable in a for-each loop can't be initialized."
+  correctionMessage: "Try removing the initializer, or using a different kind of loop."
+  analyzerCode: initializedVariableInForEach
+  hasPublishedDocs: false
+  statement:
+    - "for (int a = 0 in <int>[10]) {}"
+
+invalidAwaitFor:
+  type: syntacticError
+  parameters: none
+  problemMessage: "The keyword 'await' isn't allowed for a normal 'for' statement."
+  correctionMessage: "Try removing the keyword, or use a for-each statement."
+  analyzerCode: invalidAwaitInFor
+  hasPublishedDocs: false
+  script:
+    - "f() async {await for (int i = 0; i < 5; i++) {}}"
+
+voidWithTypeArguments:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Type 'void' can't have type arguments."
+  correctionMessage: "Try removing the type arguments."
+  analyzerCode: voidWithTypeArguments
+  hasPublishedDocs: false
+  script:
+    - "void<int> f() {}"
+
+# TODO(danrubel): Review where this error is generated and consider generating
+# FieldInitializedOutsideDeclaringClass instead of this in some situations.
+invalidInitializer:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Not a valid initializer."
+  correctionMessage: "To initialize a field, use the syntax 'name = value'."
+  analyzerCode: invalidInitializer
+  hasPublishedDocs: false
+  script: |
+    class A {
+      int a = 0;
+    }
+
+    class B extends A {
+      B() : super.a = 42;
+    }
+  exampleAllowOtherCodes: true
+
+fieldInitializedOutsideDeclaringClass:
+  type: syntacticError
+  parameters: none
+  problemMessage: "A field can only be initialized in its declaring class"
+  correctionMessage: "Try passing a value into the superclass constructor, or moving the initialization into the constructor body."
+  analyzerCode: fieldInitializedOutsideDeclaringClass
+  hasPublishedDocs: false
+  script:
+    - "class A { int a; } class C extends A { C() : super.a = 42; }"
+  exampleAllowOtherCodes: true
+
+stackOverflow:
+  type: syntacticError
+  parameters: none
+  problemMessage: "The file has too many nested expressions or statements."
+  correctionMessage: "Try simplifying the code."
+  analyzerCode: stackOverflow
+  hasPublishedDocs: false
+
+invalidHexEscape:
+  type: syntacticError
+  parameters: none
+  problemMessage: "An escape sequence starting with '\\x' must be followed by 2 hexadecimal digits."
+  analyzerCode: invalidHexEscape
+  hasPublishedDocs: false
+  expression:
+    - "'\\x0'"
+    - "'\\x0y'"
+
+invalidUnicodeEscapeUStarted:
+  type: syntacticError
+  parameters: none
+  problemMessage: "An escape sequence starting with '\\u' must be followed by 4 hexadecimal digits or from 1 to 6 digits between '{' and '}'."
+  analyzerCode: invalidUnicodeEscapeUStarted
+  hasPublishedDocs: false
+  expression:
+    - "'\\u'"
+
+invalidUnicodeEscapeUNoBracket:
+  type: syntacticError
+  parameters: none
+  problemMessage: "An escape sequence starting with '\\u' must be followed by 4 hexadecimal digits."
+  analyzerCode: invalidUnicodeEscapeUNoBracket
+  hasPublishedDocs: false
+  expression:
+    - "'\\u0F'"
+
+invalidUnicodeEscapeUBracket:
+  type: syntacticError
+  parameters: none
+  problemMessage: "An escape sequence starting with '\\u{' must be followed by 1 to 6 hexadecimal digits followed by a '}'."
+  analyzerCode: invalidUnicodeEscapeUBracket
+  hasPublishedDocs: false
+  expression:
+    - "'\\u{'"
+    - "'\\u{03'"
+    - "'\\u{0Z}'"
+    - "'\\u{0000003}'"
+
+invalidEscapeStarted:
+  type: syntacticError
+  parameters: none
+  problemMessage: "The string '\\' can't stand alone."
+  correctionMessage: "Try adding another backslash (\\) to escape the '\\'."
+  analyzerCode: invalidUnicodeEscapeStarted
+  hasPublishedDocs: false
+  exampleAllowOtherCodes: true
+  expression:
+    - |
+      print('Hello, World!\
+      ');
+
+unexpectedTokens:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Unexpected tokens."
+  analyzerCode: unexpectedTokens
+  hasPublishedDocs: false
+  script: "enum E w Foo { v; }"
+
+literalWithClassAndNew:
+  type: syntacticError
+  parameters:
+    String kind: The literal kind
+    Token lexeme: The lexeme between `new` and the literal.
+  problemMessage: "A #kind literal can't be prefixed by 'new #lexeme'."
+  correctionMessage: "Try removing 'new' and '#lexeme'"
+  analyzerCode: literalWithClassAndNew
+  hasPublishedDocs: false
+  script:
+    - "var x = new Map{};"
+    - "var x = new Set{};"
+    - "var x = new List[];"
+    - "var x = new Map{1: 2};"
+    - "var x = new Set{1};"
+    - "var x = new List[1];"
+
+literalWithClass:
+  type: syntacticError
+  parameters:
+    String kind: The literal kind.
+    Token lexeme: The lexeme between `new` and the literal.
+  problemMessage: "A #kind literal can't be prefixed by '#lexeme'."
+  correctionMessage: "Try removing '#lexeme'"
+  analyzerCode: literalWithClass
+  hasPublishedDocs: false
+  script:
+    - "var x = Map{};"
+    - "var x = Set{};"
+    - "var x = List<String>[];"
+    - "var x = Map{1: 2};"
+    - "var x = Set{1};"
+    - "var x = List<int>[1];"
+    - "var x = const Map{};"
+    - "var x = const Set{};"
+    - "var x = const List[];"
+    - "var x = const Map{1: 2};"
+    - "var x = const Set{1};"
+    - "var x = const List[1];"
+
+literalWithNew:
+  type: syntacticError
+  parameters: none
+  problemMessage: "A literal can't be prefixed by 'new'."
+  correctionMessage: "Try removing 'new'"
+  analyzerCode: literalWithNew
+  hasPublishedDocs: false
+  script:
+    - "var x = new <String, String>{};"
+    - "var x = new <String>{};"
+    - "var x = new {};"
+    - "var x = new [];"
+    - "var x = new <String, String>{'a': 'b'};"
+    - "var x = new <String>{'a'};"
+    - "var x = new {'a': 'b'};"
+    - "var x = new {'a'};"
+    - "var x = new ['a'];"
+
+onlyTry:
+  type: syntacticError
+  parameters: none
+  problemMessage: "A try block must be followed by an 'on', 'catch', or 'finally' clause."
+  correctionMessage: "Try adding either a catch or finally clause, or remove the try statement."
+  analyzerCode: missingCatchOrFinally
+  hasPublishedDocs: false
+  statement: "try {}"
+
+typeAfterVar:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Variables can't be declared using both 'var' and a type name."
+  correctionMessage: "Try removing 'var.'"
+  analyzerCode: varAndType
+  hasPublishedDocs: false
+  script:
+    - "var String foo; main(){}"
+  exampleAllowOtherCodes: true
+
+catchSyntax:
+  type: syntacticError
+  parameters: none
+  problemMessage: "'catch' must be followed by '(identifier)' or '(identifier, identifier)'."
+  correctionMessage: "No types are needed, the first is given by 'on', the second is always 'StackTrace'."
+  analyzerCode: catchSyntax
+  hasPublishedDocs: false
+  statement:
+    - "try {} catch {}"
+    - "try {} catch () {}"
+    - "try {} catch (e,) {}"
+
+catchSyntaxExtraParameters:
+  type: syntacticError
+  parameters: none
+  problemMessage: "'catch' must be followed by '(identifier)' or '(identifier, identifier)'."
+  correctionMessage: "No types are needed, the first is given by 'on', the second is always 'StackTrace'."
+  analyzerCode: catchSyntaxExtraParameters
+  hasPublishedDocs: false
+  statement:
+    - "try {} catch (e, s, x) {}"
+
+superNullAware:
+  type: syntacticError
+  parameters: none
+  problemMessage: "The operator '?.' cannot be used with 'super' because 'super' cannot be null."
+  correctionMessage: "Try replacing '?.' with '.'"
+  analyzerCode: invalidOperatorQuestionmarkPeriodForSuper
+  hasPublishedDocs: false
+  script: |
+    class Super {
+      Super.named();
+    }
+    class Class extends Super {
+      Class() : super?.named();
+    }
+  exampleAllowOtherCodes: true
+
+nullAwareCascadeOutOfOrder:
+  type: syntacticError
+  parameters: none
+  problemMessage: "The '?..' cascade operator must be first in the cascade sequence."
+  correctionMessage: "Try moving the '?..' operator to be the first cascade operator in the sequence."
+  analyzerCode: nullAwareCascadeOutOfOrder
+  hasPublishedDocs: false
+  script: |
+    void foo(int? x) {
+      x
+        ..hashCode
+        ?..isEven;
+    }
+  exampleAllowOtherCodes: true
+
+metadataTypeArguments:
+  type: syntacticError
+  parameters: none
+  problemMessage: "An annotation can't use type arguments."
+  analyzerCode: annotationWithTypeArguments
+  hasPublishedDocs: false
+  script: |
+    // @dart=2.12
+    class C<T> {
+      const C();
+    }
+    @C<int>() // Error
+    void foo() {}
+
+metadataTypeArgumentsUninstantiated:
+  type: syntacticError
+  parameters: none
+  problemMessage: "An annotation with type arguments must be followed by an argument list."
+  analyzerCode: annotationWithTypeArgumentsUninstantiated
+  hasPublishedDocs: false
+  script:
+    - "@deprecated<int> class C {}"
+
+metadataSpaceBeforeParenthesis:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Annotations can't have spaces or comments before the parenthesis."
+  correctionMessage: Remove any spaces or comments before the parenthesis.
+  analyzerCode: annotationSpaceBeforeParenthesis
+  hasPublishedDocs: false
+  script:
+    - >-
+      class Foo<T> {
+        const Foo();
+      }
+      @Foo<int> () var bar;
+    - >-
+      class Foo {
+        const Foo();
+      }
+      @Foo () class Bar {}
+
+constructorWithReturnType:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Constructors can't have a return type."
+  correctionMessage: "Try removing the return type."
+  analyzerCode: constructorWithReturnType
+  hasPublishedDocs: false
+  script:
+    - "class C { int C() {} }"
+    - "class C { void C.m() {} }"
+
+constructorWithTypeParameters:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Constructors can't have type parameters."
+  analyzerCode: typeParameterOnConstructor
+  hasPublishedDocs: false
+  correctionMessage: "Try removing the type parameters."
+  script:
+    - >-
+      class C { C<T>() {} }
+    - >-
+      class C { C.foo<T>() {} }
+    - >-
+      class C {
+        factory C<T>() => new C.internal();
+        C.internal();
+      }
+    - >-
+      class C {
+        factory C.foo<T>() => new C.internal();
+        C.internal();
+      }
+
+constructorWithTypeArguments:
+  type: syntacticError
+  parameters: none
+  problemMessage: "A constructor invocation can't have type arguments after the constructor name."
+  correctionMessage: "Try removing the type arguments or placing them after the class name."
+  analyzerCode: constructorWithTypeArguments
+  hasPublishedDocs: false
+  script:
+    - "class C<X> { C.foo(); } bar() { new C.foo<int>(); }"
+    - "class C<X> { C.foo(); } bar() { C.foo<int>(); }"
+
+constructorWithWrongName:
+  type: syntacticError
+  parameters: none
+  problemMessage: "The name of a constructor must match the name of the enclosing class."
+  analyzerCode: invalidConstructorName
+  hasPublishedDocs: false
+  script:
+    - |
+      class A { B.foo() {} }
+    - |
+      // @dart=3.11
+      class A {
+        factory B() => new A.internal();
+        A.internal();
+      }
+    - |
+      class A {
+        factory B.foo() => new A.internal();
+        A.internal();
+      }
+
+fieldInitializerOutsideConstructor:
+  type: compileTimeError
+  parameters: none
+  problemMessage: "Field formal parameters can only be used in a constructor."
+  correctionMessage: "Try removing 'this.'."
+  analyzerCode: fieldInitializerOutsideConstructor
+  hasPublishedDocs: true
+  documentation: |-
+    #### Description
+
+    The analyzer produces this diagnostic when an initializing formal
+    parameter is used in the parameter list for anything other than a
+    constructor.
+
+    #### Example
+
+    The following code produces this diagnostic because the initializing
+    formal parameter `this.x` is being used in the method `m`:
+
+    ```dart
+    class A {
+      int x = 0;
+
+      m([[!this!].x = 0]) {}
+    }
+    ```
+
+    #### Common fixes
+
+    Replace the initializing formal parameter with a normal parameter and
+    assign the field within the body of the method:
+
+    ```dart
+    class A {
+      int x = 0;
+
+      m([int x = 0]) {
+        this.x = x;
+      }
+    }
+    ```
+  script:
+    - "class C { void m(this.x); }"
+  exampleAllowOtherCodes: true
+
+nativeClauseShouldBeAnnotation:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Native clause in this form is deprecated."
+  correctionMessage: "Try removing this native clause and adding @native() or @native('native-name') before the declaration."
+  analyzerCode: nativeClauseShouldBeAnnotation
+  hasPublishedDocs: false
+
+missingPrefixInDeferredImport:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Deferred imports should have a prefix."
+  correctionMessage: "Try adding a prefix to the import by adding an 'as' clause."
+  analyzerCode: missingPrefixInDeferredImport
+  hasPublishedDocs: false
+  script:
+    main.dart: |
+      import 'lib.dart' deferred;
+    lib.dart: ""
+
+deferredAfterPrefix:
+  type: syntacticError
+  parameters: none
+  problemMessage: "The deferred keyword should come immediately before the prefix ('as' clause)."
+  correctionMessage: "Try moving the deferred keyword before the prefix."
+  analyzerCode: deferredAfterPrefix
+  hasPublishedDocs: false
+  script:
+    main.dart: |
+      import "lib.dart" as foo deferred;
+    lib.dart: ""
+
+duplicateDeferred:
+  type: syntacticError
+  parameters: none
+  problemMessage: "An import directive can only have one 'deferred' keyword."
+  correctionMessage: "Try removing all but one 'deferred' keyword."
+  analyzerCode: duplicateDeferred
+  hasPublishedDocs: false
+  script:
+    main.dart: |
+      import "lib.dart" deferred as foo deferred;
+    lib.dart: ""
+
+duplicatePrefix:
+  type: syntacticError
+  parameters: none
+  problemMessage: "An import directive can only have one prefix ('as' clause)."
+  correctionMessage: "Try removing all but one prefix."
+  analyzerCode: duplicatePrefix
+  hasPublishedDocs: false
+  script:
+    main.dart: |
+      import "lib.dart" as foo as bar;
+    lib.dart: ""
+
+prefixAfterCombinator:
+  type: syntacticError
+  parameters: none
+  problemMessage: "The prefix ('as' clause) should come before any show/hide combinators."
+  correctionMessage: "Try moving the prefix before the combinators."
+  analyzerCode: prefixAfterCombinator
+  hasPublishedDocs: false
+  script:
+    main.dart: |
+      import "lib.dart" show Foo hide Foo as Foo;
+    lib.dart: ""
+
+mixinDeclaresConstructor:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Mixins can't declare constructors."
+  analyzerCode: mixinDeclaresConstructor
+  hasPublishedDocs: false
+  script: |
+    mixin M {
+      const M();
+    }
+
+extensionDeclaresAbstractMember:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Extensions can't declare abstract members."
+  correctionMessage: "Try providing an implementation for the member."
+  script: |
+    // @dart=3.5
+    extension E on int {
+      void method();
+    }
+  analyzerCode: extensionDeclaresAbstractMember
+  comment: No parameters.
+  documentation: |-
+    #### Description
+
+    The analyzer produces this diagnostic when an abstract declaration is
+    declared in an extension. Extensions can declare only concrete members.
+
+    #### Example
+
+    The following code produces this diagnostic because the method `a` doesn't
+    have a body:
+
+    ```dart
+    %language=3.5
+    extension E on String {
+      int [!a!]();
+    }
+    ```
+
+    #### Common fixes
+
+    Either provide an implementation for the member or remove it.
+  hasPublishedDocs: true
+
+extensionDeclaresConstructor:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Extensions can't declare constructors."
+  correctionMessage: "Try removing the constructor declaration."
+  script: |
+    extension E on int {
+      E();
+    }
+  analyzerCode: extensionDeclaresConstructor
+  comment: No parameters.
+  documentation: |-
+    #### Description
+
+    The analyzer produces this diagnostic when a constructor declaration is
+    found in an extension. It isn't valid to define a constructor because
+    extensions aren't classes, and it isn't possible to create an instance of
+    an extension.
+
+    #### Example
+
+    The following code produces this diagnostic because there is a constructor
+    declaration in `E`:
+
+    ```dart
+    extension E on String {
+      [!E!]() : super();
+    }
+    ```
+
+    #### Common fixes
+
+    Remove the constructor or replace it with a static method.
+  hasPublishedDocs: true
+
+extensionAugmentationHasOnClause:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Extension augmentations can't have 'on' clauses."
+  correctionMessage: "Try removing the 'on' clause."
+  analyzerCode: extensionAugmentationHasOnClause
+  hasPublishedDocs: false
+  script: |
+    augment extension E on int {}
+  comment: No parameters.
+
+extensionTypeAugmentationSpecifiesRepresentationField:
+  type: syntacticError
+  parameters: none
+  problemMessage: "An extension type augmentation can't specify a representation field."
+  correctionMessage: "Try removing the representation field."
+  analyzerCode: extensionTypeAugmentationSpecifiesRepresentationField
+  hasPublishedDocs: false
+  experiments: augmentations
+  script: |
+    augment extension type E(int x) {}
+  comment: No parameters.
+
+annotationOnTypeArgument:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Type arguments can't have annotations because they aren't declarations."
+  analyzerCode: annotationOnTypeArgument
+  hasPublishedDocs: false
+  script:
+    - "class A<E> {} class C { m() => new A<@Object() C>(); }"
+
+externalClass:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Classes can't be declared to be 'external'."
+  correctionMessage: "Try removing the keyword 'external'."
+  analyzerCode: externalClass
+  hasPublishedDocs: false
+  script:
+    - "external class C {}"
+
+externalEnum:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Enums can't be declared to be 'external'."
+  correctionMessage: "Try removing the keyword 'external'."
+  analyzerCode: externalEnum
+  hasPublishedDocs: false
+  script:
+    - "external enum E {ONE}"
+
+externalMethodWithBody:
+  type: syntacticError
+  parameters: none
+  problemMessage: "An external or native method can't have a body."
+  analyzerCode: externalMethodWithBody
+  hasPublishedDocs: false
+  script:
+    - "class C {external foo() {}}"
+    - "class C {foo() native {}}"
+    - "class C {foo() native 'bar' {}}"
+
+externalConstructorWithInitializer:
+  type: syntacticError
+  parameters: none
+  problemMessage: "An external constructor can't have any initializers."
+  analyzerCode: externalConstructorWithInitializer
+  hasPublishedDocs: false
+  script:
+    - "class C { int? x; external C() : x = 1; }"
+    - "class C { int? x; external C.foo() : x = 1; }"
+
+externalTypedef:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Typedefs can't be declared to be 'external'."
+  correctionMessage: "Try removing the keyword 'external'."
+  analyzerCode: externalTypedef
+  hasPublishedDocs: false
+  script:
+    - "external typedef F();"
+
+operatorWithTypeParameters:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Types parameters aren't allowed when defining an operator."
+  correctionMessage: "Try removing the type parameters."
+  analyzerCode: typeParameterOnOperator
+  hasPublishedDocs: false
+  comment: |-
+    7.1.1 Operators: Type parameters are not syntactically supported on an
+    operator.
+  script:
+    - "class C { operator []<T>(T t) => null; }"
+
+libraryDirectiveNotFirst:
+  type: syntacticError
+  parameters: none
+  problemMessage: "The library directive must appear before all other directives."
+  correctionMessage: "Try moving the library directive before any other directives."
+  analyzerCode: libraryDirectiveNotFirst
+  hasPublishedDocs: false
+  script:
+    - "class Foo{} library l;"
+    - "import 'x.dart'; library l;"
+    - "part 'a.dart'; library l;"
+  exampleAllowOtherCodes: true
+
+importAfterPart:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Import directives must precede part directives."
+  correctionMessage: "Try moving the import directives before the part directives."
+  analyzerCode: importDirectiveAfterPartDirective
+  hasPublishedDocs: false
+  script:
+    - "part 'foo.dart'; import 'bar.dart';"
+  exampleAllowOtherCodes: true
+
+exportAfterPart:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Export directives must precede part directives."
+  correctionMessage: "Try moving the export directives before the part directives."
+  analyzerCode: exportDirectiveAfterPartDirective
+  hasPublishedDocs: false
+  exampleAllowOtherCodes: true
+  script:
+    - "part 'foo.dart'; export 'bar.dart';"
+
+directiveAfterDeclaration:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Directives must appear before any declarations."
+  correctionMessage: "Try moving the directive before any declarations."
+  analyzerCode: directiveAfterDeclaration
+  hasPublishedDocs: false
+  script:
+    - main.dart: |
+        class foo { }
+        import 'bar.dart';
+      bar.dart: ""
+    - main.dart: |
+        class foo { }
+        export 'bar.dart';
+      bar.dart: ""
+
+partOfTwice:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Only one part-of directive may be declared in a file."
+  correctionMessage: "Try removing all but one of the part-of directives."
+  analyzerCode: multiplePartOfDirectives
+  hasPublishedDocs: false
+  script:
+    - main.dart: |
+        part "part.dart";
+        main() {}
+      other.dart: ""
+      part.dart: |
+        part of "other.dart";
+        part of "main.dart";
+    - main.dart: |
+        part of "lib.dart";
+        part of "lib.dart";
+        main() {}
+      lib.dart: |
+        part "main.dart";
+    - main.dart: |
+        part "part.dart";
+      part.dart: |
+        part of "main.dart";
+        part of "main.dart";
+
+factoryTopLevelDeclaration:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Top-level declarations can't be declared to be 'factory'."
+  correctionMessage: "Try removing the keyword 'factory'."
+  analyzerCode: factoryTopLevelDeclaration
+  hasPublishedDocs: false
+  script:
+    - "factory class C {}"
+
+redirectionInNonFactory:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Only factory constructor can specify '=' redirection."
+  correctionMessage: "Try making this a factory constructor, or remove the redirection."
+  analyzerCode: redirectionInNonFactoryConstructor
+  hasPublishedDocs: false
+  script:
+    - "class C { C() = D; }"
+  exampleAllowOtherCodes: true
+
+topLevelOperator:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Operators must be declared within a class."
+  correctionMessage: "Try removing the operator, moving it to a class, or converting it to be a function."
+  analyzerCode: topLevelOperator
+  hasPublishedDocs: false
+  script:
+    - "operator +(bool x, bool y) => x | y;"
+    - "bool operator +(bool x, bool y) => x | y;"
+    - "void operator +(bool x, bool y) => x | y;"
+
+typeArgumentsOnTypeVariable:
+  type: syntacticError
+  parameters:
+    Name typeVariableName: The name of the type variable.
+  problemMessage: "Can't use type arguments with type variable '#typeVariableName'."
+  correctionMessage: "Try removing the type arguments."
+  analyzerCode: typeArgumentsOnTypeVariable
+  hasPublishedDocs: false
+  script:
+    - "void method<S>(S<int> a) {}"
+
+# Use this message when a duplicated declaration is introduced.  For example:
+#
+#    class C {} // First declaration (related information points here).
+#    class C {} // Duplicated declaration (error here).
+#    main() {
+#      new C(); // Use of duplicated declaration.
+#    }
+#
+# We follow the convention from C that a definition is the unique element that
+# provides the implementation of a name, and a declaration may not be unique
+# (for example, forward declaration). Using this terminology, one could argue
+# that a method that is abstract or external is a declaration, not a
+# definition. Similarly, imported names are declarations, not
+# definitions. Consequently, it is more convenient to use the word
+# "declaration" instead of "definition" as the former implies less.
+memberWithSameNameAsClass:
+  type: syntacticError
+  parameters: none
+  problemMessage: "A class member can't have the same name as the enclosing class."
+  correctionMessage: "Try renaming the member."
+  analyzerCode: memberWithClassName
+  hasPublishedDocs: false
+  script:
+    - "class C { get C {} }"
+    - "class C { get C => 42; }"
+    - "class C { set C(x) {} }"
+    - "class C { set C(x) => 42; }"
+    - "class C { int? C; }"
+    - "class C { int? A, B, C, D, E; }"
+
+missingOperatorKeyword:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Operator declarations must be preceded by the keyword 'operator'."
+  correctionMessage: "Try adding the keyword 'operator'."
+  analyzerCode: missingKeywordOperator
+  hasPublishedDocs: false
+  script:
+    - "class C { +(x) {} }"
+
+invalidOperator:
+  type: syntacticError
+  parameters:
+    Token lexeme: The token that was found.
+  problemMessage: "The string '#lexeme' isn't a user-definable operator."
+  analyzerCode: invalidOperator
+  hasPublishedDocs: false
+  comment: |-
+    Parameters:
+    0: the operator that is invalid
+  script:
+    - "class C { void operator %=(x) {} }"
+
+invalidSuperInInitializer:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Can only use 'super' in an initializer for calling the superclass constructor (e.g. 'super()' or 'super.namedConstructor()')"
+  analyzerCode: invalidSuperInInitializer
+  hasPublishedDocs: false
+
+invalidThisInInitializer:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Can only use 'this' in an initializer for field initialization (e.g. 'this.x = something') and constructor redirection (e.g. 'this()' or 'this.namedConstructor())"
+  analyzerCode: invalidThisInInitializer
+  hasPublishedDocs: false
+
+switchHasCaseAfterDefault:
+  type: syntacticError
+  parameters: none
+  problemMessage: "The default case should be the last case in a switch statement."
+  correctionMessage: "Try moving the default case after the other case clauses."
+  analyzerCode: switchHasCaseAfterDefaultCase
+  hasPublishedDocs: false
+  script:
+    - "class C { foo(int a) {switch (a) {default: return 0; case 1: return 1;}} }"
+
+switchHasMultipleDefaults:
+  type: syntacticError
+  parameters: none
+  problemMessage: "The 'default' case can only be declared once."
+  correctionMessage: "Try removing all but one default case."
+  analyzerCode: switchHasMultipleDefaultCases
+  hasPublishedDocs: false
+  script:
+    - "class C { foo(int a) {switch (a) {default: return 0; default: return 1;}} }"
+
+expectedAnInitializer:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Expected an initializer."
+  analyzerCode: missingInitializer
+  hasPublishedDocs: false
+  script:
+    - "class C { C() : {} }"
+
+missingAssignmentInInitializer:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Expected an assignment after the field name."
+  correctionMessage: "To initialize a field, use the syntax 'name = value'."
+  analyzerCode: missingAssignmentInInitializer
+  hasPublishedDocs: false
+  script:
+    - "class C { C() : x(3) {} }"
+  exampleAllowOtherCodes: true
+
+redirectingConstructorWithBody:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Redirecting constructors can't have a body."
+  correctionMessage: "Try removing the body, or not making this a redirecting constructor."
+  analyzerCode: redirectingConstructorWithBody
+  hasPublishedDocs: false
+  script:
+    - "class C { C() : this.x() {} }"
+  exampleAllowOtherCodes: true
+
+illegalAssignmentToNonAssignable:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Illegal assignment to non-assignable expression."
+  analyzerCode: illegalAssignmentToNonAssignable
+  hasPublishedDocs: false
+  script:
+    - "main(){ f()++; }"
+
+missingAssignableSelector:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Missing selector such as '.identifier' or '[0]'."
+  correctionMessage: "Try adding a selector."
+  analyzerCode: missingAssignableSelector
+  hasPublishedDocs: false
+  script:
+    - "main(){ ++f(); }"
+
+colonInPlaceOfIn:
+  type: syntacticError
+  parameters: none
+  problemMessage: "For-in loops use 'in' rather than a colon."
+  correctionMessage: "Try replacing the colon with the keyword 'in'."
+  analyzerCode: colonInPlaceOfIn
+  hasPublishedDocs: false
+  script: |
+    void foo() {
+      for(var x : []) {}
+    }
+
+binaryOperatorWrittenOut:
+  type: syntacticError
+  parameters:
+    String actualOperator: The binary operator that was seen.
+    String expectedOperator: The binary operator that was expected.
+  problemMessage: "Binary operator '#actualOperator' is written as '#expectedOperator' instead of the written out word."
+  correctionMessage: "Try replacing '#actualOperator' with '#expectedOperator'."
+  analyzerCode: binaryOperatorWrittenOut
+  hasPublishedDocs: false
+  script: |
+    int foo(int x, int y) => x xor y;
+
+externalFactoryRedirection:
+  type: syntacticError
+  parameters: none
+  problemMessage: "A redirecting factory can't be external."
+  correctionMessage: "Try removing the 'external' modifier."
+  analyzerCode: externalFactoryRedirection
+  hasPublishedDocs: false
+  script: |
+    class Foo {
+      Foo._(int i);
+      external factory Foo.x(int i) = Foo._;
+    }
+
+multipleVarianceModifiers:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Each type parameter can have at most one variance modifier."
+  correctionMessage: "Use at most one of the 'in', 'out', or 'inout' modifiers."
+  analyzerCode: multipleVarianceModifiers
+  hasPublishedDocs: false
+  experiments: variance
+  script: |
+    class C<in out X> {}
+
+
+baseEnum:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Enums can't be declared to be 'base'."
+  correctionMessage: "Try removing the keyword 'base'."
+  analyzerCode: baseEnum
+  hasPublishedDocs: false
+  script:
+    - "base enum E { v }"
+
+finalEnum:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Enums can't be declared to be 'final'."
+  correctionMessage: "Try removing the keyword 'final'."
+  analyzerCode: finalEnum
+  hasPublishedDocs: false
+  script:
+    - "final enum E { v }"
+
+interfaceEnum:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Enums can't be declared to be 'interface'."
+  correctionMessage: "Try removing the keyword 'interface'."
+  analyzerCode: interfaceEnum
+  hasPublishedDocs: false
+  script:
+    - "interface enum E { v }"
+
+sealedEnum:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Enums can't be declared to be 'sealed'."
+  correctionMessage: "Try removing the keyword 'sealed'."
+  analyzerCode: sealedEnum
+  hasPublishedDocs: false
+  script:
+    - "sealed enum E { v }"
+
+finalMixin:
+  type: syntacticError
+  parameters: none
+  problemMessage: "A mixin can't be declared 'final'."
+  correctionMessage: "Try removing the 'final' keyword."
+  analyzerCode: finalMixin
+  hasPublishedDocs: false
+  script:
+    - "final mixin M {}"
+
+interfaceMixin:
+  type: syntacticError
+  parameters: none
+  problemMessage: "A mixin can't be declared 'interface'."
+  correctionMessage: "Try removing the 'interface' keyword."
+  analyzerCode: interfaceMixin
+  hasPublishedDocs: false
+  script:
+    - "interface mixin M {}"
+
+sealedMixin:
+  type: syntacticError
+  parameters: none
+  problemMessage: "A mixin can't be declared 'sealed'."
+  correctionMessage: "Try removing the 'sealed' keyword."
+  analyzerCode: sealedMixin
+  hasPublishedDocs: false
+  script:
+    - "sealed mixin M {}"
+
+finalMixinClass:
+  type: syntacticError
+  parameters: none
+  problemMessage: "A mixin class can't be declared 'final'."
+  correctionMessage: "Try removing the 'final' keyword."
+  analyzerCode: finalMixinClass
+  hasPublishedDocs: false
+  script:
+    - "final mixin class C {}"
+
+interfaceMixinClass:
+  type: syntacticError
+  parameters: none
+  problemMessage: "A mixin class can't be declared 'interface'."
+  correctionMessage: "Try removing the 'interface' keyword."
+  analyzerCode: interfaceMixinClass
+  hasPublishedDocs: false
+  script:
+    - "interface mixin class C {}"
+
+sealedMixinClass:
+  type: syntacticError
+  parameters: none
+  problemMessage: "A mixin class can't be declared 'sealed'."
+  correctionMessage: "Try removing the 'sealed' keyword."
+  analyzerCode: sealedMixinClass
+  hasPublishedDocs: false
+  script:
+    - "sealed mixin class C {}"
+
+invalidConstantPatternNegation:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Only negation of a numeric literal is supported as a constant pattern."
+  correctionMessage: "Try wrapping the expression in 'const ( ... )'."
+  analyzerCode: invalidConstantPatternNegation
+  hasPublishedDocs: false
+  script: |
+    method(x) {
+      const y = 5;
+      if (x case -y) {}
+    }
+
+invalidConstantPatternUnary:
+  type: syntacticError
+  parameters:
+    Name operatorName: The name of the unsupported operator.
+  problemMessage: "The unary operator #operatorName is not supported as a constant pattern."
+  correctionMessage: "Try wrapping the expression in 'const ( ... )'."
+  analyzerCode: invalidConstantPatternUnary
+  hasPublishedDocs: false
+  script: |
+    method(x) {
+      const y = false;
+      if (x case !y) {}
+    }
+
+invalidConstantPatternDuplicateConst:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Duplicate 'const' keyword in constant expression."
+  correctionMessage: "Try removing one of the 'const' keywords."
+  analyzerCode: invalidConstantPatternDuplicateConst
+  hasPublishedDocs: false
+  script: |
+    method(x) {
+      if (x case const const []) {}
+    }
+
+invalidConstantPatternEmptyRecordLiteral:
+  type: syntacticError
+  parameters: none
+  problemMessage: "The empty record literal is not supported as a constant pattern."
+  analyzerCode: invalidConstantPatternEmptyRecordLiteral
+  hasPublishedDocs: false
+  script: |
+    method(x) {
+      if (x case const ()) {}
+    }
+
+invalidConstantPatternGeneric:
+  type: syntacticError
+  parameters: none
+  problemMessage: "This expression is not supported as a constant pattern."
+  correctionMessage: "Try wrapping the expression in 'const ( ... )'."
+  analyzerCode: invalidConstantPatternGeneric
+  hasPublishedDocs: false
+  script: |
+    method(x) {
+      if (x case List<int>) {}
+    }
+
+invalidConstantPatternConstPrefix:
+  type: syntacticError
+  parameters: none
+  problemMessage: "The expression can't be prefixed by 'const' to form a constant pattern."
+  correctionMessage: "Try wrapping the expression in 'const ( ... )' instead."
+  analyzerCode: invalidConstantConstPrefix
+  hasPublishedDocs: false
+  script: |
+    method(x) {
+      if (x case const 1) {}
+    }
+
+invalidConstantPatternBinary:
+  type: syntacticError
+  parameters:
+    Name operatorName: The name of the unsupported operator.
+  problemMessage: "The binary operator #operatorName is not supported as a constant pattern."
+  correctionMessage: "Try wrapping the expression in 'const ( ... )'."
+  analyzerCode: invalidConstantPatternBinary
+  hasPublishedDocs: false
+  script: |
+    method(x) {
+      if (x case 1 + 2) {}
+    }
+
+patternAssignmentDeclaresVariable:
+  type: syntacticError
+  parameters:
+    Name variableName: The name of the variable that was erroneously declared.
+  problemMessage: "Variable '#variableName' can't be declared in a pattern assignment."
+  correctionMessage: "Try using a preexisting variable or changing the assignment to a pattern variable declaration."
+  analyzerCode: patternAssignmentDeclaresVariable
+  hasPublishedDocs: false
+  script: |
+    method(x) {
+      var y;
+      [y, var z] = x;
+    }
+
+variablePatternKeywordInDeclarationContext:
+  type: syntacticError
+  parameters: none
+  problemMessage: Variable patterns in declaration context can't specify 'var' or 'final' keyword.
+  correctionMessage: Try removing the keyword.
+  analyzerCode: variablePatternKeywordInDeclarationContext
+  comment: No parameters.
+  hasPublishedDocs: true
+  script: |
+    void f((int, int) r) {
+      var (var x, y) = r;
+      print(x + y);
+    }
+  documentation: |-
+    #### Description
+
+    The analyzer produces this diagnostic when a variable pattern is used
+    within a declaration context.
+
+    #### Example
+
+    The following code produces this diagnostic because the variable patterns
+    in the record pattern are in a declaration context:
+
+    ```dart
+    void f((int, int) r) {
+      var ([!var!] x, y) = r;
+      print(x + y);
+    }
+    ```
+
+    #### Common fixes
+
+    Remove the `var` or `final` keyword(s) within the variable pattern:
+
+    ```dart
+    void f((int, int) r) {
+      var (x, y) = r;
+      print(x + y);
+    }
+    ```
+
+illegalPatternVariableName:
+  type: syntacticError
+  parameters:
+    Token variableName: The name that can't be used as a pattern variable name.
+  problemMessage: The variable declared by a variable pattern can't be named '#variableName'.
+  correctionMessage: Choose a different name.
+  analyzerCode: illegalPatternVariableName
+  hasPublishedDocs: false
+  comment: |-
+    Parameters:
+    0: the illegal name
+  script: |
+    void f(x) {
+      switch (x) {
+        case var when:
+      }
+    }
+
+illegalPatternAssignmentVariableName:
+  type: syntacticError
+  parameters:
+    Token variableName: The name that can't be used as the name of a variable assigned by a pattern assignment.
+  problemMessage: A variable assigned by a pattern assignment can't be named '#variableName'.
+  correctionMessage: Choose a different name.
+  analyzerCode: illegalPatternAssignmentVariableName
+  hasPublishedDocs: false
+  comment: |-
+    Parameters:
+    0: the illegal name
+  script: |
+    void f(x) {
+      dynamic when;
+      (when) = x;
+    }
+
+illegalPatternIdentifierName:
+  type: syntacticError
+  parameters:
+    Token identifier: The identifier that can't be referred to.
+  problemMessage: A pattern can't refer to an identifier named '#identifier'.
+  correctionMessage: Match the identifier using '== #identifier'.
+  analyzerCode: illegalPatternIdentifierName
+  hasPublishedDocs: false
+  comment: |-
+    Parameters:
+    0: the illegal name
+  script: |
+    void f(x) {
+      const when = 0;
+      switch (x) {
+        case when:
+      }
+    }
+
+invalidInsideUnaryPattern:
+  type: syntacticError
+  parameters: none
+  problemMessage: This pattern cannot appear inside a unary pattern (cast pattern, null check pattern, or null assert pattern) without parentheses.
+  correctionMessage: Try combining into a single pattern if possible, or enclose the inner pattern in parentheses.
+  analyzerCode: invalidInsideUnaryPattern
+  hasPublishedDocs: false
+  comment: No parameters.
+  script: |
+    void f(x) {
+      if (x case _ as int as num) {}
+    }
+
+latePatternVariableDeclaration:
+  type: syntacticError
+  parameters: none
+  problemMessage: A pattern variable declaration may not use the `late` keyword.
+  correctionMessage: Try removing the keyword `late`.
+  analyzerCode: latePatternVariableDeclaration
+  hasPublishedDocs: false
+  comment: No parameters.
+  script: |
+    void f(x) {
+      late var (y, z) = x;
+    }
+
+patternVariableDeclarationOutsideFunctionOrMethod:
+  type: syntacticError
+  parameters: none
+  problemMessage: A pattern variable declaration may not appear outside a function or method.
+  correctionMessage: Try declaring ordinary variables and assigning from within a function or method.
+  analyzerCode: patternVariableDeclarationOutsideFunctionOrMethod
+  hasPublishedDocs: false
+  comment: No parameters.
+  script: |
+    class C {
+      var (a, b) = (0, 1);
+    }
+
+defaultInSwitchExpression:
+  type: syntacticError
+  parameters: none
+  problemMessage: A switch expression may not use the `default` keyword.
+  correctionMessage: Try replacing `default` with `_`.
+  analyzerCode: defaultInSwitchExpression
+  hasPublishedDocs: false
+  comment: No parameters.
+  script: |
+    void f(x) => switch (x) {
+      1 => 'one',
+      default => 'other'
+    };
+
+missingPrimaryConstructor:
+  type: syntacticError
+  parameters: none
+  problemMessage: "An extension type declaration must have a primary constructor declaration."
+  correctionMessage: "Try adding a primary constructor to the extension type declaration."
+  analyzerCode: missingPrimaryConstructor
+  hasPublishedDocs: false
+  script: |
+    extension type E {}
+
+missingPrimaryConstructorParameters:
+  type: syntacticError
+  parameters: none
+  problemMessage: "A primary constructor declaration must have formal parameters."
+  correctionMessage: "Try adding formal parameters after the primary constructor name."
+  analyzerCode: missingPrimaryConstructorParameters
+  hasPublishedDocs: false
+  script: |
+    extension type E.name {}
+
+extensionTypeExtends:
+  type: syntacticError
+  parameters: none
+  problemMessage: "An extension type declaration can't have an 'extends' clause."
+  correctionMessage: "Try removing the 'extends' clause or replacing the 'extends' with 'implements'."
+  analyzerCode: extensionTypeExtends
+  hasPublishedDocs: false
+  script: |
+    extension type F(int i) {}
+    extension type E(int i) extends F {}
+
+extensionTypeWith:
+  type: syntacticError
+  parameters: none
+  problemMessage: "An extension type declaration can't have a 'with' clause."
+  correctionMessage: "Try removing the 'with' clause or replacing the 'with' with 'implements'."
+  analyzerCode: extensionTypeWith
+  hasPublishedDocs: false
+  script: |
+    extension type F(int i) {}
+    extension type E(int i) with F {}
+
+constWithoutPrimaryConstructor:
+  type: syntacticError
+  parameters: none
+  problemMessage: "'const' can only be used together with a primary constructor declaration."
+  correctionMessage: "Try removing the 'const' keyword or adding a primary constructor declaration."
+  analyzerCode: constWithoutPrimaryConstructor
+  hasPublishedDocs: false
+  experiments: primary-constructors
+  script: |
+    class const C {}
+
+newConstructorQualifiedName:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Constructors declared with the 'new' keyword can't have qualified names."
+  correctionMessage: "Try removing the class name prefix from the qualified name or removing the 'new' keyword."
+  analyzerCode: newConstructorQualifiedName
+  hasPublishedDocs: false
+  experiments: primary-constructors
+  script: |
+    class C {
+      new C.named();
+    }
+
+newConstructorNewName:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Constructors declared with the 'new' keyword can't be named 'new'."
+  correctionMessage: "Try removing the second 'new' or changing it to a different name."
+  analyzerCode: newConstructorNewName
+  hasPublishedDocs: false
+  experiments: primary-constructors
+  script: |
+    class C {
+      new new();
+    }
+
+factoryConstructorNewName:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Factory constructors can't be named 'new'."
+  correctionMessage: "Try removing the 'new' keyword or changing it to a different name."
+  analyzerCode: factoryConstructorNewName
+  hasPublishedDocs: false
+  experiments: primary-constructors
+  script: |
+    class C {
+      factory new() => throw '';
+    }
+
+newConstructorDotName:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Constructors declared with the 'new' keyword can't use '.' before the constructor name."
+  correctionMessage: "Try replacing the '.' with a space."
+  analyzerCode: newConstructorDotName
+  hasPublishedDocs: false
+  experiments: primary-constructors
+  script: |
+    class C {
+      new.name();
+    }
+
+nonRedirectingGenerativeConstructorWithPrimary:
+  type: compileTimeError
+  parameters: none
+  problemMessage: "Classes with primary constructors can't have non-redirecting generative constructors."
+  correctionMessage: "Try making the constructor redirect to the primary constructor, or remove the primary constructor."
+  analyzerCode: nonRedirectingGenerativeConstructorWithPrimary
+  hasPublishedDocs: false
+  experiments: primary-constructors
+  documentation: |-
+    #### Description
+
+    The analyzer produces this diagnostic when a class that declares a primary
+    constructor also has a non-redirecting generative constructor.
+
+    #### Example
+
+    The following code produces this diagnostic because the class `C` declares
+    both a primary constructor and a non-redirecting generative constructor:
+
+    ```dart
+    class C(final String f) {
+      [!new c!](Object p) : f = p.toString();
+    }
+    ```
+
+    #### Common fixes
+
+    If the generative constructor can redirect to the primary constructor, then
+    add the redirection:
+
+    ```dart
+    class C(final String f) {
+      new c(Object p) : this(p.toString());
+    }
+    ```
+
+    If the generative constructor can be a factory constructor that uses the
+    primary constructor to create the instance, then make it a factory
+    constructor:
+
+    ```dart
+    class C(final String f) {
+      factory c(Object p) => C(p.toString());
+    }
+    ```
+
+    Otherwise, remove the generative constructor or convert the primary
+    constructor into a generative in-body constructor.
+  script: |
+    class C() {
+      C.named();
+    }
+
+primaryConstructorBodyWithoutDeclaration:
+  type: compileTimeError
+  parameters: none
+  problemMessage: "A primary constructor body requires a primary constructor declaration."
+  correctionMessage: "Try adding the primary constructor declaration."
+  analyzerCode: primaryConstructorBodyWithoutDeclaration
+  hasPublishedDocs: false
+  experiments: primary-constructors
+  documentation: |-
+    #### Description
+
+    The analyzer produces this diagnostic when a class contains a primary
+    constructor body but doesn't declare a primary constructor.
+
+    #### Example
+
+    The following code produces this diagnostic because the class `C` contains
+    a primary constructor body but doesn't declare a primary constructor:
+
+    ```dart
+    %ignore=undefined_identifier
+    class C {
+      [!this!] : assert(x > 0);
+    }
+    ```
+
+    #### Common fixes
+
+    If the constructor is intended to be a primary constructor, then add
+    parameter declarations to the class header:
+
+    ```dart
+    class C(int x) {
+      this : assert(x > 0);
+    }
+    ```
+
+    If the constructor is intended to be an in-body constructor, then replace
+    the `this` with either the class name or `new` and declare the parameters in
+    the constructor declaration:
+
+    ```dart
+    class C {
+      new(int x) : assert(x > 0);
+    }
+    ```
+
+    If the constructor isn't needed, then remove the primary constructor body:
+
+    ```dart
+    class C {}
+    ```
+  script: |
+    class C {
+      this;
+    }
+
+multiplePrimaryConstructorBodyDeclarations:
+  type: compileTimeError
+  parameters: none
+  problemMessage: "Only one primary constructor body declaration is allowed."
+  correctionMessage: "Try removing all but one of the primary constructor body declarations."
+  analyzerCode: multiplePrimaryConstructorBodyDeclarations
+  hasPublishedDocs: false
+  experiments: primary-constructors
+  documentation: |-
+    #### Description
+
+    The analyzer produces this diagnostic when a class that declares a primary
+    constructor also has more than one primary constructor body.
+
+    #### Example
+
+    The following code produces this diagnostic because the class `C` has more
+    than one primary constructor body:
+
+    ```dart
+    class C(final int x) {
+      this : assert(x >= 0);
+
+      [!this!] : assert(x <= 0);
+    }
+    ```
+
+    #### Common fixes
+
+    Remove all but one of the primary constructor bodies, possibly by merging
+    them:
+
+    ```dart
+    class C(final int x) {
+      this : assert(x >= 0), assert(x <= 0);
+    }
+    ```
+  script: |
+    class C() {
+      this;
+      this : assert(true);
+    }
+
+assignmentToPrimaryConstructorParameter:
+  type: compileTimeError
+  parameters: none
+  problemMessage: "A primary constructor parameter can't be assigned to in an initializer."
+  correctionMessage: "Try removing the assignment."
+  hasPublishedDocs: false
+  analyzerCode: assignmentToPrimaryConstructorParameter
+  experiments: primary-constructors
+  script: |
+    class C(int x) {
+      int y = x++;
+    }
+
+fieldInitializedInDeclarationAndInitializerOfPrimaryConstructor:
+  type: compileTimeError
+  parameters: none
+  problemMessage: "Fields can't be initialized in both the primary constructor and at their declaration."
+  correctionMessage: Try removing one of the initializations.
+  hasPublishedDocs: false
+  analyzerCode: fieldInitializedInDeclarationAndInitializerOfPrimaryConstructor
+  experiments: primary-constructors
+  script: |
+    class C() {
+      int x = 0;
+      this : x = 1;
+    }
+
+fieldInitializedInDeclarationAndParameterOfPrimaryConstructor:
+  type: compileTimeError
+  parameters: none
+  problemMessage: "Fields can't be initialized in both the primary constructor parameter list and at their declaration."
+  correctionMessage: Try removing one of the initializations.
+  hasPublishedDocs: false
+  analyzerCode: fieldInitializedInDeclarationAndParameterOfPrimaryConstructor
+  experiments: primary-constructors
+  script: |
+    class C(this.x) {
+      int x = 0;
+    }
+
+redirectGenerativeToNonGenerativeConstructor:
+  type: compileTimeError
+  parameters: none
+  problemMessage: "Generative constructors can't redirect to a factory constructor."
+  correctionMessage: Try redirecting to a different constructor.
+  hasPublishedDocs: true
+  analyzerCode: redirectGenerativeToNonGenerativeConstructor
+  documentation: |-
+    #### Description
+
+    The analyzer produces this diagnostic when a generative constructor
+    redirects to a factory constructor.
+
+    #### Example
+
+    The following code produces this diagnostic because the generative
+    constructor `C.a` redirects to the factory constructor `C.b`:
+
+    ```dart
+    class C {
+      C.a() : [!this.b()!];
+      factory C.b() => C.a();
+    }
+    ```
+
+    #### Common fixes
+
+    If the generative constructor doesn't need to redirect to another
+    constructor, then remove the redirect.
+
+    ```dart
+    class C {
+      C.a();
+      factory C.b() => C.a();
+    }
+    ```
+
+    If the generative constructor must redirect to another constructor, then
+    make the other constructor be a generative (non-factory) constructor:
+
+    ```dart
+    class C {
+      C.a() : this.b();
+      C.b();
+    }
+    ```
+  script: |
+    class C {
+      factory C() => throw '';
+      C.named() : this();
+    }
+
+mixinPrimaryConstructor:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Mixins can't have primary constructors."
+  correctionMessage: "Try removing the primary constructor or changing the mixin to a class."
+  analyzerCode: mixinPrimaryConstructor
+  hasPublishedDocs: false
+  experiments: primary-constructors
+  script: |
+    mixin M() {}
+
+extensionPrimaryConstructor:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Extensions can't have primary constructors."
+  correctionMessage: "Try removing the primary constructor or changing the extension to an extension type."
+  analyzerCode: extensionPrimaryConstructor
+  hasPublishedDocs: false
+  experiments: primary-constructors
+  script: |
+    extension E() on int {}
+
+initializingDeclaringParameter:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Declaring parameters can't be initializing."
+  correctionMessage: "Try removing the `this.` prefix or making the parameter non-declaring."
+  analyzerCode: initializingDeclaringParameter
+  hasPublishedDocs: false
+  experiments: primary-constructors
+  script: |
+    class C(var this.x);
+
+superInitializingDeclaringParameter:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Declaring parameters can't be super parameters."
+  correctionMessage: "Try removing the `super.` prefix or making the parameter non-declaring."
+  analyzerCode: superInitializingDeclaringParameter
+  hasPublishedDocs: false
+  experiments: primary-constructors
+  script: |
+    class S(var x);
+    class C(var super.x) extends S;

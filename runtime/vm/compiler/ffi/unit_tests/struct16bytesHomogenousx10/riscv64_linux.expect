@@ -1,0 +1,15 @@
+M(a0 uint64, a1 uint64) Struct(size: 16)
+fa0 float
+M(a2 uint64, t3 uint64) Struct(size: 16)
+M(t4 uint64, t5 uint64) Struct(size: 16)
+M(a6 uint64, a7 uint64) Struct(size: 16)
+M(S+0 uint64, S+8 uint64) Struct(size: 16)
+M(S+16 uint64, S+24 uint64) Struct(size: 16)
+M(S+32 uint64, S+40 uint64) Struct(size: 16)
+M(S+48 uint64, S+56 uint64) Struct(size: 16)
+M(S+64 uint64, S+72 uint64) Struct(size: 16)
+fa1 float
+S+80 int64[int8]
+M(S+88 uint64, S+96 uint64) Struct(size: 16)
+=>
+M(a0 uint64, a1 uint64) Struct(size: 16)

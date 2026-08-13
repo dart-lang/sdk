@@ -1,0 +1,473 @@
+// Copyright (c) 2023, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:kernel/ast.dart';
+import 'package:kernel/type_algebra.dart';
+import 'package:kernel/type_environment.dart';
+
+import 'util.dart';
+
+/// Specializes Dart callbacks so they can be called from JS.
+class CallbackSpecializer {
+  final StatefulStaticTypeContext _staticTypeContext;
+  final CoreTypesUtil _util;
+  static int _trampolineCounter = 0;
+
+  CallbackSpecializer(this._staticTypeContext, this._util);
+
+  Statement _generateDispatchCase(
+    FunctionType instantiatedFunctionType,
+    Variable callbackVariable,
+    List<Variable> positionalParameters,
+    int requiredParameterCount, {
+    required bool boxExternRef,
+  }) {
+    List<Expression> callbackArguments = [];
+    for (int i = 0; i < requiredParameterCount; i++) {
+      DartType callbackParameterType =
+          instantiatedFunctionType.positionalParameters[i];
+      Expression expression;
+      VariableGet v = VariableGet(positionalParameters[i]);
+      if (_util.isJSValueType(callbackParameterType) && boxExternRef) {
+        expression = _createJSValue(v);
+        final nullability =
+            callbackParameterType.extensionTypeErasure.nullability;
+        // Null-check if we can tell the nullability. If we can't, the cast
+        // closure handles the cast.
+        if (nullability == Nullability.nonNullable) {
+          expression = NullCheck(expression);
+        }
+      } else {
+        expression = _util.convertAndCast(
+          callbackParameterType,
+          invokeOneArg(_util.dartifyRawTarget, v),
+        );
+      }
+      callbackArguments.add(expression);
+    }
+
+    final callExpr = FunctionInvocation(
+      FunctionAccessKind.FunctionType,
+      VariableGet(callbackVariable),
+      Arguments(callbackArguments),
+      functionType: instantiatedFunctionType,
+    );
+
+    final temp = SyntheticVariable(
+      initializer: callExpr,
+      type: callExpr.getStaticType(_staticTypeContext),
+    );
+
+    final jsified = jsifyValue(
+      temp,
+      _util.nullableWasmExternRefType,
+      _util,
+      _staticTypeContext.typeEnvironment,
+    );
+
+    return ReturnStatement(Let(temp, jsified));
+  }
+
+  /// Creates a callback trampoline for the given [function].
+  ///
+  /// This callback trampoline expects a Dart callback as its first argument,
+  /// then an integer value (as `WasmI32`) indicating the number of arguments
+  /// passed, then a "cast closure" if needed, followed by all of the arguments
+  /// to the Dart callback as JS objects. Depending on [boxExternRef], the
+  /// trampoline will `dartifyRaw` or box all incoming JS objects and then cast
+  /// them to their appropriate types, dispatch, and then `jsifyRaw` or box any
+  /// returned value. [node] is the conversion function that was called to
+  /// convert the callback.
+  ///
+  /// Returns the created trampoline [Procedure].
+  Procedure _createFunctionTrampoline(
+    Procedure node,
+    FunctionType function, {
+    required bool boxExternRef,
+    required int trampolineIndex,
+  }) {
+    // Create arguments for each positional parameter in the function. These
+    // arguments will be JS objects. The generated wrapper will cast each
+    // argument to the correct type.  The first argument to this function will
+    // be the Dart callback, which will be cast to the supplied [FunctionType]
+    // before being invoked. The second argument will be a `double` indicating
+    // the number of arguments passed. The third argument is a cast closure if
+    // needed.
+    final callbackVariable = PositionalParameter(
+      cosmeticName: 'callback',
+      type: _util.nonNullableWasmExternRefType,
+      isSynthesized: true,
+    );
+    final argumentsLengthWasmI32 = PositionalParameter(
+      cosmeticName: 'argumentsLengthWasmI32',
+      type: InterfaceType(_util.wasmI32Class, Nullability.nonNullable),
+      isSynthesized: true,
+    );
+    final castClosure = PositionalParameter(
+      cosmeticName: 'castClosure',
+      type: _util.nonNullableObjectType,
+      isSynthesized: true,
+    );
+
+    // Initialize variable declarations.
+    List<PositionalParameter> positionalParameters = [];
+    List<Expression> castClosureArguments = [];
+    final positionalParametersLength = function.positionalParameters.length;
+    for (int i = 0; i < positionalParametersLength; i++) {
+      final parameter = PositionalParameter(
+        cosmeticName: 'x${i + 1}',
+        type: _util.nullableWasmExternRefType,
+        isSynthesized: true,
+      );
+      positionalParameters.add(parameter);
+      if (_needCastClosure(function.positionalParameters[i])) {
+        castClosureArguments.add(_createJSValue(VariableGet(parameter)));
+      }
+    }
+
+    // Build the body of a function trampoline. To support default arguments, we
+    // find the last defined argument in JS, that is the last argument which was
+    // explicitly passed by the user, and then we dispatch to a Dart function
+    // with the right number of arguments.
+    List<Statement> body = [];
+
+    // Convert `WasmI32` argument to Dart `int`.
+    final argumentsLength = SyntheticVariable(
+      cosmeticName: 'argumentsLength',
+      type: _util.coreTypes.intNonNullableRawType,
+      initializer: InstanceInvocation(
+        InstanceAccessKind.Instance,
+        VariableGet(argumentsLengthWasmI32),
+        Name('toIntSigned'),
+        Arguments([]),
+        interfaceTarget: _util.wasmI32ToIntSigned,
+        functionType: _util.wasmI32ToIntSigned.computeSignatureOrFunctionType(),
+      ),
+      isSynthesized: false,
+    );
+
+    final instantiatedFunctionType =
+        const _InstantiateToBounds().substituteType(function) as FunctionType;
+
+    // Convert `WasmExternRef` argument  to Dart Function
+    final callbackFunctionVar = SyntheticVariable(
+      cosmeticName: 'callbackFunction',
+      type: instantiatedFunctionType,
+      initializer: StaticInvocation(
+        _util.unsafeCastOpaqueTarget,
+        Arguments(
+          [
+            StaticInvocation(
+              _util.wasmInternalizeNonNullable,
+              Arguments([VariableGet(callbackVariable)]),
+            ),
+          ],
+          types: [instantiatedFunctionType],
+        ),
+      ),
+      isSynthesized: false,
+    );
+    body.add(VariableStatement(VariableDeclaration(callbackFunctionVar)));
+
+    body.add(VariableStatement(VariableDeclaration(argumentsLength)));
+
+    if (castClosureArguments.isNotEmpty) {
+      // Call the cast closure, but only if the arity is okay. In the case where
+      // the arity is not sufficient, we end up coercing `undefined` to `null`,
+      // which may result in a type error in the cast closure rather than an
+      // arity error later.
+      body.add(
+        IfStatement(
+          _util.variableGreaterThanOrEqualToConstant(
+            argumentsLength,
+            IntConstant(function.requiredParameterCount),
+          ),
+          ExpressionStatement(
+            FunctionInvocation(
+              FunctionAccessKind.FunctionType,
+              VariableGet(castClosure),
+              Arguments(castClosureArguments),
+              functionType: null,
+            ),
+          ),
+          null,
+        ),
+      );
+    }
+    // If more arguments were passed than there are parameters, ignore the extra
+    // arguments.
+    body.add(
+      IfStatement(
+        _util.variableGreaterThanOrEqualToConstant(
+          argumentsLength,
+          IntConstant(positionalParametersLength),
+        ),
+        _generateDispatchCase(
+          instantiatedFunctionType,
+          callbackFunctionVar,
+          positionalParameters,
+          positionalParametersLength,
+          boxExternRef: boxExternRef,
+        ),
+        null,
+      ),
+    );
+    // TODO(srujzs): Consider using a switch instead.
+    for (
+      int i = positionalParametersLength - 1;
+      i >= function.requiredParameterCount;
+      i--
+    ) {
+      body.add(
+        IfStatement(
+          _util.variableCheckConstant(argumentsLength, IntConstant(i)),
+          _generateDispatchCase(
+            instantiatedFunctionType,
+            callbackFunctionVar,
+            positionalParameters,
+            i,
+            boxExternRef: boxExternRef,
+          ),
+          null,
+        ),
+      );
+    }
+
+    // Throw since we have too few arguments. Alternatively, we can continue
+    // checking lengths and try to call the callback, which will then throw, but
+    // that's unnecessary extra code. Note that we can't exclude this and assume
+    // the last dispatch case will catch this. Since arguments that are not
+    // passed are `undefined` and `undefined` gets converted to `null`, they may
+    // be treated as valid `null` arguments to the Dart function even though
+    // they were never passed.
+    body.add(
+      ExpressionStatement(
+        Throw(
+          StringConcatenation([
+            StringLiteral(
+              'Too few arguments passed. '
+              'Expected ${function.requiredParameterCount} or more, got ',
+            ),
+            VariableGet(argumentsLength),
+            StringLiteral(' instead.'),
+          ]),
+        ),
+      ),
+    );
+    Statement functionTrampolineBody = Block(body);
+
+    // Create a new procedure for the callback trampoline. This procedure will
+    // be exported from Wasm to JS so it can be called from JS. The argument
+    // returned from the supplied callback will be converted with `jsifyRaw` to
+    // a native JS value before being returned to JS.
+    final dartProcedure = makeInteropProcedure(
+      _staticTypeContext.enclosingLibrary,
+      '_JS_Trampoline_${node.name.text}_$trampolineIndex',
+      node.fileUri,
+      FunctionNode(
+        functionTrampolineBody,
+        positionalParameters: [
+          callbackVariable,
+          argumentsLengthWasmI32,
+          if (castClosureArguments.isNotEmpty) castClosure,
+          ...positionalParameters,
+        ],
+        returnType: _util.nullableWasmExternRefType,
+      )..fileOffset = node.fileOffset,
+      isExternal: false,
+    );
+    JsTrampolineData().applyToMember(dartProcedure, _util.coreTypes);
+    return dartProcedure;
+  }
+
+  /// Create a [Procedure] that will wrap a Dart callback in a JS wrapper.
+  ///
+  /// [node] is the conversion function that is called by the user (either
+  /// `Function.toJS` or `Function.toJSCaptureThis`). [type] is the static type
+  /// of the callback. [boxExternRef] determines if the trampoline should box
+  /// the arguments and return value or convert every value. [needsCastClosure]
+  /// determines if a cast closure is needed in order to validate the types of
+  /// some arguments. [captureThis] determines if `this` needs to be passed into
+  /// the trampoline from the JS wrapper.
+  ///
+  /// The procedure will call a JS method that will create a wrapper, cache the
+  /// callback, and call the trampoline function with the callback, the JS
+  /// function's arguments' length, the cast closure if needed, and the JS
+  /// function's arguments as arguments.
+  ///
+  /// Returns the created JS wrapper [Procedure] which will call out to JS
+  /// and the trampoline [Procedure] which will be invoked by the JS code.
+  (Procedure, Procedure) _getJSWrapperFunction(
+    Procedure node,
+    FunctionType type, {
+    required bool boxExternRef,
+    required bool needsCastClosure,
+    required bool captureThis,
+  }) {
+    final trampolineIndex = _trampolineCounter++;
+    final functionTrampoline = _createFunctionTrampoline(
+      node,
+      type,
+      boxExternRef: boxExternRef,
+      trampolineIndex: trampolineIndex,
+    );
+    var jsParametersLength = type.positionalParameters.length;
+    if (captureThis) jsParametersLength--;
+
+    // Create Dart procedure stub.
+    final jsMethodName = functionTrampoline.name.text;
+    final dartProcedure = makeInteropProcedure(
+      _staticTypeContext.enclosingLibrary,
+      '_JS_Wrapper_$jsMethodName',
+      node.fileUri,
+      FunctionNode(
+        null,
+        positionalParameters: [
+          PositionalParameter(
+            cosmeticName: 'wasmFunction',
+            type: _util.nonNullableWasmFuncRefType,
+            isSynthesized: true,
+          ),
+          PositionalParameter(
+            cosmeticName: 'dartFunction',
+            type: _util.nonNullableWasmExternRefType,
+            isSynthesized: true,
+          ),
+          if (needsCastClosure)
+            PositionalParameter(
+              cosmeticName: 'castClosure',
+              type: _util.nonNullableWasmExternRefType,
+              isSynthesized: true,
+            ),
+        ],
+        returnType: _util.nonNullableWasmExternRefType,
+      ),
+      isExternal: true,
+    );
+
+    JsTrampolineWrapperData(
+      numJsParameters: jsParametersLength,
+      captureThis: captureThis,
+      needsCastClosure: needsCastClosure,
+    ).applyToMember(dartProcedure, _util.coreTypes);
+
+    return (dartProcedure, functionTrampoline);
+  }
+
+  Expression _createJSValue(Expression value) =>
+      StaticInvocation(_util.jsValueBoxTarget, Arguments([value]));
+
+  /// Whether a closure is needed to capture [type] so that the arguments to the
+  /// callback can be casted to that [type].
+  ///
+  /// This includes the case where the parameters have type parameters for
+  /// types. The casts can't be done in the trampoline as the type parameters
+  /// aren't in scope.
+  bool _needCastClosure(DartType type) {
+    if (type is TypeParameterType || type is StructuralParameterType) {
+      assert(_util.isJSValueType(type));
+      return true;
+    }
+    return false;
+  }
+
+  /// Creates a cast closure given the callback's [functionType].
+  ///
+  /// The cast closure accepts the boxed parameters which need to be casted in
+  /// this closure, and then casts them to the captured types.
+  ///
+  /// Returns the cast closure if needed. Otherwise, returns `null`.
+  FunctionExpression? _createCastClosure(FunctionType functionType) {
+    final positionalParameters = functionType.positionalParameters;
+    List<PositionalParameter> castClosureParameters = [];
+    List<Statement> casts = [];
+    for (int i = 0; i < positionalParameters.length; i++) {
+      final type = positionalParameters[i];
+      if (_needCastClosure(type)) {
+        final parameter = PositionalParameter(
+          cosmeticName: 'x${i + 1}',
+          type: _util.nullableJSValueType,
+          isSynthesized: true,
+        );
+        castClosureParameters.add(parameter);
+        casts.add(
+          ExpressionStatement(AsExpression(VariableGet(parameter), type)),
+        );
+      }
+    }
+    return castClosureParameters.isEmpty
+        ? null
+        : FunctionExpression(
+            FunctionNode(
+              Block(casts),
+              positionalParameters: castClosureParameters,
+              returnType: VoidType(),
+            ),
+          );
+  }
+
+  /// Given an invocation of `Function.toJS`, returns an [Expression]
+  /// representing:
+  ///
+  ///     JSValue(jsWrapperFunction(<Function>))
+  ///
+  /// or if a cast closure is needed:
+  ///
+  ///     JSValue(jsWrapperFunction(<Function>, <CastClosure>))
+  ///
+  /// If [captureThis] is true, this is assumed to be an invocation of
+  /// `Function.toJSCaptureThis`.
+  Expression functionToJS(
+    StaticInvocation staticInvocation, {
+    bool captureThis = false,
+  }) {
+    final argument = staticInvocation.arguments.positional.single;
+    final type = argument.getStaticType(_staticTypeContext) as FunctionType;
+    final castClosure = _createCastClosure(type);
+    final (jsWrapperFunction, exportedFunction) = _getJSWrapperFunction(
+      staticInvocation.target,
+      type,
+      boxExternRef: true,
+      needsCastClosure: castClosure != null,
+      captureThis: captureThis,
+    );
+    return _createJSValue(
+      StaticInvocation(
+        jsWrapperFunction,
+        Arguments([
+          StaticInvocation(
+            _util.wasmFunctionFromFunction,
+            Arguments(
+              [ConstantExpression(StaticTearOffConstant(exportedFunction))],
+              types: [
+                exportedFunction.function.computeFunctionType(
+                  Nullability.nonNullable,
+                ),
+              ],
+            ),
+          ),
+          StaticInvocation(
+            _util.jsObjectFromDartObjectTarget,
+            Arguments([argument]),
+          ),
+          if (castClosure != null)
+            StaticInvocation(
+              _util.jsObjectFromDartObjectTarget,
+              Arguments([castClosure]),
+            ),
+        ]),
+      ),
+    );
+  }
+}
+
+class _InstantiateToBounds extends Substitution {
+  const _InstantiateToBounds();
+  @override
+  DartType? getSubstitute(TypeParameter parameter, bool upperBound) {
+    // Substitute to bound recursively in case a bound is itself a type
+    // parameter.
+    return substituteType(parameter.bound);
+  }
+}

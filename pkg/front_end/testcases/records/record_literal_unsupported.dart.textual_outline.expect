@@ -1,0 +1,9 @@
+// @dart = 2.12
+
+method() {}
+
+sorting() {}
+
+class Class {
+  method() {}
+}

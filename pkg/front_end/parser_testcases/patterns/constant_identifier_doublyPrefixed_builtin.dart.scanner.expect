@@ -1,0 +1,17 @@
+void f(x) {
+const y = abstract.as.get;
+switch (x) {
+case abstract.as.get:
+break;
+}
+}
+
+
+void[KeywordToken] f[StringToken]([BeginToken]x[StringToken])[SimpleToken] {[BeginToken]
+const[KeywordToken] y[StringToken] =[SimpleToken] abstract[KeywordToken].[SimpleToken]as[KeywordToken].[SimpleToken]get[KeywordToken];[SimpleToken]
+switch[KeywordToken] ([BeginToken]x[StringToken])[SimpleToken] {[BeginToken]
+case[KeywordToken] abstract[KeywordToken].[SimpleToken]as[KeywordToken].[SimpleToken]get[KeywordToken]:[SimpleToken]
+break[KeywordToken];[SimpleToken]
+}[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

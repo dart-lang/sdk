@@ -1,0 +1,35 @@
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+part of $LIBRARYNAME;
+
+$(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
+
+  List<TableCellElement> get cells =>
+      new _WrappedList<TableCellElement>(_cells);
+
+  TableCellElement addCell() {
+    return insertCell(-1);
+  }
+
+  TableCellElement insertCell(int index) =>
+      _insertCell(index) $#NULLSAFECAST(as TableCellElement);
+
+  DocumentFragment createFragment(String$NULLABLE html,
+      {NodeValidator$NULLABLE validator,
+       NodeTreeSanitizer$NULLABLE treeSanitizer}) {
+    if (Range.supportsCreateContextualFragment) {
+      return super.createFragment(
+          html, validator: validator, treeSanitizer: treeSanitizer);
+    }
+    // IE9 workaround which does not support innerHTML on Table elements.
+    var fragment = new DocumentFragment();
+    var section = new TableElement().createFragment(
+        html, validator: validator, treeSanitizer: treeSanitizer).nodes.single;
+    var row = section.nodes.single;
+    fragment.nodes.addAll(row.nodes);
+    return fragment;
+  }
+
+$!MEMBERS}

@@ -1,0 +1,7 @@
+import 'dart:isolate';
+
+var subscription;
+
+void onData(x) {}
+
+main() {}

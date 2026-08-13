@@ -1,0 +1,8 @@
+class A {
+  const A();
+}
+
+@A()
+extension Extension on int {}
+
+main() {}

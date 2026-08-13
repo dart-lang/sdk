@@ -1,0 +1,3 @@
+final mixin B {}
+
+final mixin class A {}

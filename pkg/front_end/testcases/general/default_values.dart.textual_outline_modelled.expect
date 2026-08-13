@@ -1,0 +1,3 @@
+main() {}
+
+topLevel([a = 42]) => a;

@@ -1,0 +1,22 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+extension EInt on (core::int) {
+  method call = self::EInt|call;
+  method tearoff call = self::EInt|get#call;
+}
+extension EIntIntCallInt on (core::int, core::int, {required call: (dynamic) → dynamic}) {
+  method call = self::EIntIntCallInt|call;
+  method tearoff call = self::EIntIntCallInt|get#call;
+}
+static extension-member method EInt|call(lowered final(core::int) #this, dynamic x) → dynamic
+  ;
+static extension-member method EInt|get#call(lowered final(core::int) #this) → (dynamic) → dynamic
+  return (dynamic x) → dynamic => self::EInt|call(#this, x);
+static extension-member method EIntIntCallInt|call(lowered final(core::int, core::int, {required call: (dynamic) → dynamic}) #this, dynamic x) → dynamic
+  ;
+static extension-member method EIntIntCallInt|get#call(lowered final(core::int, core::int, {required call: (dynamic) → dynamic}) #this) → (dynamic) → dynamic
+  return (dynamic x) → dynamic => self::EIntIntCallInt|call(#this, x);
+static method test<X1 extends (core::int), X2 extends (core::int, {required call: (dynamic) → dynamic}), X3 extends (core::int, core::int, {required call: (dynamic) → dynamic}), X4 extends (core::String)>((core::int) r1, (core::int, {required call: (dynamic) → dynamic}) r2, (core::int, core::int, {required call: (dynamic) → dynamic}) r3, (core::String) r4, self::test::X1 x1, self::test::X2 x2, self::test::X3 x3, self::test::X4 x4, self::test::X1? x1n, self::test::X2? x2n, self::test::X3? x3n, self::test::X4? x4n) → dynamic
+  ;

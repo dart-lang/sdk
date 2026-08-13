@@ -1,0 +1,12 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef A<unrelated T extends core::Object? = dynamic> = (core::String, core::int);
+typedef B<T extends core::Object? = dynamic> = (T%, core::int);
+typedef C<T extends core::Object? = dynamic> = ({required a: T%, required b: core::int});
+typedef D<T extends core::Object? = dynamic> = (T%, T%);
+typedef E<contravariant T extends core::Object? = dynamic> = ((T%) → void, core::int);
+typedef F<contravariant T extends core::Object? = dynamic> = ({required a: (T%) → void, required b: core::int});
+typedef G<invariant T extends core::Object? = dynamic> = ((T%) → void, T%);
+typedef H<invariant T extends core::Object? = dynamic> = ((T%) → void, {required b: T%});

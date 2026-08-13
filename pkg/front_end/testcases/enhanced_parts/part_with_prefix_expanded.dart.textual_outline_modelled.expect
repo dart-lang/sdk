@@ -1,0 +1,6 @@
+import 'part_with_prefix_expanded_lib1.dart' as bar;
+import 'part_with_prefix_expanded_lib1.dart' as foo;
+
+part 'part_with_prefix_expanded_part1.dart';
+
+method1() {}

@@ -1,0 +1,42 @@
+main = <No Member>;
+library from "org-dartlang-test:///lib.dart" as lib {
+
+  class C extends dart.core::Object {
+    synthetic constructor •() → lib::C
+      : super dart.core::Object::•()
+      ;
+    method b() → dart.core::int {
+      return 1;
+    }
+    method a() → dart.core::int {
+      return 2;
+    }
+  }
+  class B extends dart.core::Object {
+    synthetic constructor •() → lib::B
+      : super dart.core::Object::•()
+      ;
+    method b() → dart.core::int {
+      return 3;
+    }
+    method a() → dart.core::int {
+      return 4;
+    }
+  }
+}
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "org-dartlang-test:///lib.dart";
+
+  class A extends dart.core::Object {
+    synthetic constructor •() → main::A
+      : super dart.core::Object::•()
+      ;
+    method b() → dart.core::int {
+      return 42;
+    }
+    method a() → dart.core::int {
+      return 2;
+    }
+  }
+}

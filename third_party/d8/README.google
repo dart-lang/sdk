@@ -1,0 +1,12 @@
+Name: V8 command line javascript shell.
+Short Name: d8
+URL: https://chromium.googlesource.com/v8/v8/+/refs/tags/7.5.149
+Version: 7.5.149
+Revision: 804cfc5fb2ab8c49facc7a5f486c1555c2cbad63
+Date: March 31 2019
+License: BSD
+
+Description:
+This directory contains the d8 binaries for Windows, Mac and Linux.
+
+The binaries are used for testing dart code compiled to javascript.

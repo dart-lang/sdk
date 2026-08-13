@@ -1,0 +1,89 @@
+main = <No Member>;
+library from "org-dartlang-test:///after_layout.dart" as aft {
+
+  import "package:flutter/framework.dart";
+
+  abstract class AfterLayoutMixin<T extends fra::StatefulWidget> extends fra::State<aft::AfterLayoutMixin::T> /*isMixinDeclaration*/  {
+  }
+}
+library from "package:flutter/framework.dart" as fra {
+
+  abstract class Diagnosticable extends dart.core::Object /*isMixinDeclaration*/  {
+    method toString() → dart.core::String {
+      return "foo";
+    }
+  }
+  abstract class State<T extends fra::StatefulWidget> extends fra::_State&Object&Diagnosticable {
+    covariant-by-class field fra::State::T? _widget = null;
+    synthetic constructor •() → fra::State<fra::State::T>
+      : super fra::_State&Object&Diagnosticable::•()
+      ;
+  }
+  class State2 extends fra::State<fra::StatefulWidget> {
+    synthetic constructor •() → fra::State2
+      : super fra::State::•()
+      ;
+    static synthetic method _#new#tearOff() → fra::State2
+      return new fra::State2::•();
+  }
+  class StatefulWidget extends dart.core::Object {
+    synthetic constructor •() → fra::StatefulWidget
+      : super dart.core::Object::•()
+      ;
+    static synthetic method _#new#tearOff() → fra::StatefulWidget
+      return new fra::StatefulWidget::•();
+  }
+  class Widget extends dart.core::Object {
+    synthetic constructor •() → fra::Widget
+      : super dart.core::Object::•()
+      ;
+    static synthetic method _#new#tearOff() → fra::Widget
+      return new fra::Widget::•();
+  }
+  class BuildContext extends dart.core::Object {
+    synthetic constructor •() → fra::BuildContext
+      : super dart.core::Object::•()
+      ;
+    static synthetic method _#new#tearOff() → fra::BuildContext
+      return new fra::BuildContext::•();
+  }
+  abstract class _State&Object&Diagnosticable = dart.core::Object with fra::Diagnosticable /*isAnonymousMixin,hasConstConstructor*/  {
+    const synthetic constructor •() → fra::_State&Object&Diagnosticable
+      : super dart.core::Object::•()
+      ;
+    synthetic mixin-super-stub method toString() → dart.core::String
+      return super.{fra::Diagnosticable::toString}();
+  }
+  static final field fra::State<fra::StatefulWidget> state = new fra::State2::•();
+  static method foo() → void {
+    fra::state.{fra::State::_widget} = null;
+  }
+}
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "package:flutter/framework.dart";
+  import "org-dartlang-test:///after_layout.dart";
+
+  class _HotReloadIssueState extends main::__HotReloadIssueState&State&AfterLayoutMixin {
+    synthetic constructor •() → main::_HotReloadIssueState
+      : super main::__HotReloadIssueState&State&AfterLayoutMixin::•()
+      ;
+    method build(fra::BuildContext context) → fra::Widget
+      return throw "";
+    method afterFirstLayout(fra::BuildContext context) → void {}
+    static synthetic method _#new#tearOff() → main::_HotReloadIssueState
+      return new main::_HotReloadIssueState::•();
+  }
+  class HotReloadIssue extends fra::StatefulWidget {
+    synthetic constructor •() → main::HotReloadIssue
+      : super fra::StatefulWidget::•()
+      ;
+    static synthetic method _#new#tearOff() → main::HotReloadIssue
+      return new main::HotReloadIssue::•();
+  }
+  abstract class __HotReloadIssueState&State&AfterLayoutMixin = fra::State<main::HotReloadIssue> with aft::AfterLayoutMixin<main::HotReloadIssue> /*isAnonymousMixin*/  {
+    synthetic constructor •() → main::__HotReloadIssueState&State&AfterLayoutMixin
+      : super fra::State::•()
+      ;
+  }
+}

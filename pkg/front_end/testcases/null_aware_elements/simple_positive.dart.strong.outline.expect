@@ -1,0 +1,34 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method foo1(core::int? x) → dynamic
+  ;
+static method foo2(core::String? x) → dynamic
+  ;
+static method foo3(core::bool? x, core::num y) → dynamic
+  ;
+static method bar1(core::int? x) → dynamic
+  ;
+static method bar2(core::int? x, core::bool b) → dynamic
+  ;
+static method bar3(core::int? x, core::List<core::String> y) → dynamic
+  ;
+static method bar4(core::String x, core::bool? y) → dynamic
+  ;
+static method bar5(core::int? x, core::num y) → dynamic
+  ;
+static method bar6(core::Symbol? x, core::String? y) → dynamic
+  ;
+static method bar7(core::int? x, core::double? y, core::bool b) → dynamic
+  ;
+static method bar8(core::bool? x, core::Symbol? y, core::List<core::num> z) → dynamic
+  ;
+static method main() → dynamic
+  ;
+static method expectShallowEqualLists(core::List<dynamic> x, core::List<dynamic> y) → void
+  ;
+static method expectShallowEqualSets(core::Set<dynamic> x, core::Set<dynamic> y) → void
+  ;
+static method expectShallowEqualMaps(core::Map<dynamic, dynamic> x, core::Map<dynamic, dynamic> y) → void
+  ;

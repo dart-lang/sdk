@@ -1,0 +1,12 @@
+Errors: {
+  org-dartlang-debug:synthetic_debug_expression:1:17: Error: Undefined name 'y'.
+  () { return x + y; }
+                  ^
+  org-dartlang-debug:synthetic_debug_expression:1:13: Error: Undefined name 'x'.
+  () { return x + y; }
+              ^
+}
+static method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr() → dynamic
+  return () → invalid-type {
+    return invalid-expression "org-dartlang-debug:synthetic_debug_expression:1:13: Error: Undefined name 'x'.\n() { return x + y; }\n            ^"{<invalid>}.+(invalid-expression "org-dartlang-debug:synthetic_debug_expression:1:17: Error: Undefined name 'y'.\n() { return x + y; }\n                ^");
+  };

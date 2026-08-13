@@ -1,0 +1,30 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object /*hasConstConstructor*/  {
+  final field core::int bar;
+  const constructor •(initializing-formal core::int bar) → self::A
+    : self::A::bar = bar, super core::Object::•()
+    ;
+}
+class B extends core::Object /*hasConstConstructor*/  {
+  final field self::A baz;
+  const constructor •(initializing-formal self::A baz) → self::B
+    : self::B::baz = baz, super core::Object::•()
+    ;
+}
+class C extends core::Object {
+  synthetic constructor •() → self::C
+    ;
+  method fun() → dynamic
+    ;
+}
+static const field core::int foo = const core::int::fromEnvironment("fisk");
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: StaticInvocation @ org-dartlang-testcase:///nested_implicit_const_with_env_var.dart:5:23 -> IntConstant(0)
+Extra constant evaluation: evaluated: 3, effectively constant: 1

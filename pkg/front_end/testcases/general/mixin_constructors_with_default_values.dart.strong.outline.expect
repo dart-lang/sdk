@@ -1,0 +1,47 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/mixin_constructors_with_default_values.dart:9:17: Error: Type variables can't be used in static members.
+//   C({a = 0, b = T}) : trace = "a: $a, b: $b";
+//                 ^
+//
+import self as self;
+import "dart:core" as core;
+
+import "package:expect/expect.dart";
+
+class C<T extends core::Object? = dynamic> extends core::Object {
+  field core::String trace;
+  constructor •({dynamic a = 0, dynamic b = invalid-type}) → self::C<self::C::T%>
+    ;
+}
+abstract class M extends core::Object /*isMixinDeclaration*/  {
+}
+class D = self::C<core::String> with self::M {
+  synthetic constructor •({dynamic a = 0, dynamic b = invalid-type}) → self::D
+    : super self::C::•(a: a, b: b)
+    ;
+}
+class E extends self::D {
+  synthetic constructor •() → self::E
+    ;
+}
+class F extends self::_F&C&M {
+  synthetic constructor •() → self::F
+    ;
+}
+abstract class _F&C&M = self::C<core::int> with self::M /*isAnonymousMixin*/  {
+  synthetic constructor •({dynamic a = 0, dynamic b = invalid-type}) → self::_F&C&M
+    : super self::C::•(a: a, b: b)
+    ;
+}
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: TypeLiteral @ org-dartlang-testcase:///mixin_constructors_with_default_values.dart:9:17 -> TypeLiteralConstant(<invalid>)
+Evaluated: TypeLiteral @ org-dartlang-testcase:///mixin_constructors_with_default_values.dart:14:7 -> TypeLiteralConstant(<invalid>)
+Evaluated: TypeLiteral @ org-dartlang-testcase:///mixin_constructors_with_default_values.dart:18:7 -> TypeLiteralConstant(<invalid>)
+Extra constant evaluation: evaluated: 7, effectively constant: 3

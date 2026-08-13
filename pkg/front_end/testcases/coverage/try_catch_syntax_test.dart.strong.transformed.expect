@@ -1,0 +1,34 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/coverage/try_catch_syntax_test.dart:9:5: Error: 'rethrow' can only be used in catch clauses.
+//     rethrow; // Error
+//     ^^^^^^^
+//
+// pkg/front_end/testcases/coverage/try_catch_syntax_test.dart:14:5: Error: 'rethrow' can only be used in catch clauses.
+//     rethrow; // Error
+//     ^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+static method testIllegalRethrow() → dynamic {
+  try {
+    invalid-expression "pkg/front_end/testcases/coverage/try_catch_syntax_test.dart:9:5: Error: 'rethrow' can only be used in catch clauses.
+    rethrow; // Error
+    ^^^^^^^";
+  }
+  on core::Object catch(final core::Object e) {
+  }
+  try
+    try {
+    }
+    on core::Object catch(final core::Object e) {
+    }
+  finally {
+    invalid-expression "pkg/front_end/testcases/coverage/try_catch_syntax_test.dart:14:5: Error: 'rethrow' can only be used in catch clauses.
+    rethrow; // Error
+    ^^^^^^^";
+  }
+}

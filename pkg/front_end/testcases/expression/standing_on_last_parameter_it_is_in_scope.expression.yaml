@@ -1,0 +1,29 @@
+# Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Standing at the last parameter of a method, we pretend like it is in scope.
+
+sources: |
+  void main() {
+    foo(1, 2, 3);
+  }
+
+  void foo(int a, int b, int c) {
+    print("$a $b $c");
+  }
+
+definitions: ["a", "b", "c"]
+# We pretend to VM doesn't send over information so we can see a difference in
+# the output when we find the actual type (i.e. when we find it to be in scope).
+definition_types: ["null", "null", "null"]
+type_definitions: []
+type_bounds: []
+type_defaults: []
+position: ""
+method: "foo"
+static: false
+offset: 60 # on the "c" in the parameters.
+scriptUri: main.dart
+expression: |
+  () { return b.isEven && c.isEven; }()

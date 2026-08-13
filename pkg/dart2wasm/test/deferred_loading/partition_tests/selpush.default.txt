@@ -1,0 +1,160 @@
+Part 0
+  ImportSet
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart prefix: D1_3
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart prefix: D2_3
+  References
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart::@methods::d3
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart::Sub1::@getters::dynGetterD3
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart::Sub1::@getters::selGetterD3
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart::Sub1::@methods::callStatD1TearOffStatD2
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart::Sub1::@methods::dynMethodD3
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart::Sub1::@methods::mixedDynD1StatD3
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart::Sub1::@methods::mixedStatD1DynD3
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart::Sub1::@methods::selMethodD3
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart::Sub1::@methods::tearOffDynD3
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart::Sub1::@methods::tearOffStatD1CallStatD2
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart::Sub1::@methods::tearOffStatD3
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart::Sub1::@setters::dynSetterD3
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart::Sub1::@setters::selSetterD3
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart::Sub2::@getters::dynGetterD3
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart::Sub2::@getters::selGetterD3
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart::Sub2::@methods::callStatD1TearOffStatD2
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart::Sub2::@methods::dynMethodD3
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart::Sub2::@methods::mixedDynD1StatD3
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart::Sub2::@methods::mixedStatD1DynD3
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart::Sub2::@methods::selMethodD3
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart::Sub2::@methods::tearOffDynD3
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart::Sub2::@methods::tearOffStatD1CallStatD2
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart::Sub2::@methods::tearOffStatD3
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart::Sub2::@setters::dynGetterD3
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart::Sub2::@setters::dynSetterD3
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart::Sub2::@setters::selSetterD3
+  Constants
+     - StringConstant("Sub1.callStatD1TearOffStatD2")
+     - StringConstant("Sub1.dynMethodD3")
+     - StringConstant("Sub1.dynSetterD3")
+     - StringConstant("Sub1.mixedDynD1StatD3")
+     - StringConstant("Sub1.mixedStatD1DynD3")
+     - StringConstant("Sub1.selMethodD3")
+     - StringConstant("Sub1.selSetterD3")
+     - StringConstant("Sub1.tearOffDynD3")
+     - StringConstant("Sub1.tearOffStatD1CallStatD2")
+     - StringConstant("Sub1.tearOffStatD3")
+     - StringConstant("Sub2.callStatD1TearOffStatD2")
+     - StringConstant("Sub2.dynMethodD3")
+     - StringConstant("Sub2.mixedDynD1StatD3")
+     - StringConstant("Sub2.mixedStatD1DynD3")
+     - StringConstant("Sub2.selMethodD3")
+     - StringConstant("Sub2.tearOffDynD3")
+     - StringConstant("Sub2.tearOffStatD1CallStatD2")
+     - StringConstant("Sub2.tearOffStatD3")
+     - StringConstant("d3")
+
+Part 1
+  ImportSet
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart prefix: D0
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart prefix: D1
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart prefix: D1_3
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart prefix: D2
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart prefix: D2_3
+  References
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart::@methods::d0
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart::Base
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart::Base::@constructors::
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart::Sub1
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart::Sub1::@constructors::
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart::Sub2
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart::Sub2::@constructors::
+  Constants
+     - StringConstant("1")
+     - StringConstant("d0")
+
+Part 2
+  ImportSet
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart prefix: D2
+  References
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart::@methods::d2
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart::Sub1::@getters::selGetterD0
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart::Sub1::@methods::selMethodD0
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart::Sub1::@setters::selSetterD0
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart::Sub2::@getters::selGetterD0
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart::Sub2::@methods::selMethodD0
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart::Sub2::@setters::selSetterD0
+  Constants
+     - StringConstant("Sub1.selMethodD0")
+     - StringConstant("Sub1.selSetterD0")
+     - StringConstant("Sub2.selMethodD0")
+     - StringConstant("d2")
+
+Part 3
+  ImportSet
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart prefix: D1_3
+  References
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart::@methods::d13only
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart::Sub1::@getters::selGetterD1
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart::Sub1::@methods::dynMethodD1
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart::Sub1::@methods::mixedDynD1StatD1_3
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart::Sub1::@methods::mixedStatD1DynD1_3
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart::Sub1::@methods::selMethodD1
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart::Sub1::@methods::tearOffStatD1
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart::Sub1::@setters::selSetterD1
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart::Sub2::@getters::selGetterD1
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart::Sub2::@methods::dynMethodD1
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart::Sub2::@methods::mixedDynD1StatD1_3
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart::Sub2::@methods::mixedStatD1DynD1_3
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart::Sub2::@methods::selMethodD1
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart::Sub2::@methods::tearOffStatD1
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart::Sub2::@setters::selSetterD1
+  Constants
+     - StringConstant("Sub1.dynMethodD1")
+     - StringConstant("Sub1.mixedDynD1StatD1_3")
+     - StringConstant("Sub1.mixedStatD1DynD1_3")
+     - StringConstant("Sub1.selMethodD1")
+     - StringConstant("Sub1.selSetterD1")
+     - StringConstant("Sub1.tearOffStatD1")
+     - StringConstant("Sub2.dynMethodD1")
+     - StringConstant("Sub2.mixedDynD1StatD1_3")
+     - StringConstant("Sub2.mixedStatD1DynD1_3")
+     - StringConstant("Sub2.selMethodD1")
+     - StringConstant("Sub2.tearOffStatD1")
+     - StringConstant("d1_3_only")
+
+Part 4
+  ImportSet
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart prefix: D2_3
+  References
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart::Sub1::@getters::selGetterD2
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart::Sub1::@methods::dynMethodD2
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart::Sub1::@methods::selMethodD2
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart::Sub1::@methods::tearOffStatD2
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart::Sub1::@setters::selSetterD2
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart::Sub2::@getters::selGetterD2
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart::Sub2::@methods::dynMethodD2
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart::Sub2::@methods::selMethodD2
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart::Sub2::@methods::tearOffStatD2
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart::Sub2::@setters::selSetterD2
+  Constants
+     - StringConstant("Sub1.dynMethodD2")
+     - StringConstant("Sub1.selMethodD2")
+     - StringConstant("Sub1.selSetterD2")
+     - StringConstant("Sub1.tearOffStatD2")
+     - StringConstant("Sub2.dynMethodD2")
+     - StringConstant("Sub2.selMethodD2")
+     - StringConstant("Sub2.tearOffStatD2")
+
+Part 5
+  ImportSet
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart prefix: D1_3
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart prefix: D2
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart prefix: D2_3
+  References
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart::@methods::sink
+  Constants
+
+Part 6
+  ImportSet
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart prefix: D1
+  References
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/selpush.dart::@methods::d1
+  Constants
+     - StringConstant("d1")

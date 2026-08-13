@@ -1,0 +1,62 @@
+library unsupported_operators;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/coverage/operator_unsupported_test.dart:13:17: Error: The '===' operator is not supported.
+//     print(super === null); // Error
+//                 ^
+//
+// pkg/front_end/testcases/coverage/operator_unsupported_test.dart:14:17: Error: The '!==' operator is not supported.
+//     print(super !== null); // Error
+//                 ^
+//
+// pkg/front_end/testcases/coverage/operator_unsupported_test.dart:21:15: Error: The '===' operator is not supported.
+//   print("foo" === null); // Error
+//               ^
+//
+// pkg/front_end/testcases/coverage/operator_unsupported_test.dart:22:15: Error: The '!==' operator is not supported.
+//   print("foo" !== null); // Error
+//               ^
+//
+// pkg/front_end/testcases/coverage/operator_unsupported_test.dart:13:17: Error: The string '===' isn't a user-definable operator.
+//     print(super === null); // Error
+//                 ^^^
+//
+// pkg/front_end/testcases/coverage/operator_unsupported_test.dart:14:17: Error: The string '!==' isn't a user-definable operator.
+//     print(super !== null); // Error
+//                 ^^^
+//
+// pkg/front_end/testcases/coverage/operator_unsupported_test.dart:21:15: Error: The string '===' isn't a user-definable operator.
+//   print("foo" === null); // Error
+//               ^^^
+//
+// pkg/front_end/testcases/coverage/operator_unsupported_test.dart:22:15: Error: The string '!==' isn't a user-definable operator.
+//   print("foo" !== null); // Error
+//               ^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  synthetic constructor •() → self::C
+    : super core::Object::•()
+    ;
+  method m() → dynamic {
+    core::print(invalid-expression "pkg/front_end/testcases/coverage/operator_unsupported_test.dart:13:17: Error: The string '===' isn't a user-definable operator.
+    print(super === null); // Error
+                ^^^");
+    core::print(invalid-expression "pkg/front_end/testcases/coverage/operator_unsupported_test.dart:14:17: Error: The string '!==' isn't a user-definable operator.
+    print(super !== null); // Error
+                ^^^");
+  }
+}
+static method foo() → void {
+  new self::C::•().{self::C::m}(){() → dynamic};
+  new self::C::•().{self::C::m}(){() → dynamic};
+  core::print(invalid-expression "pkg/front_end/testcases/coverage/operator_unsupported_test.dart:21:15: Error: The string '===' isn't a user-definable operator.
+  print(\"foo\" === null); // Error
+              ^^^");
+  core::print(invalid-expression "pkg/front_end/testcases/coverage/operator_unsupported_test.dart:22:15: Error: The string '!==' isn't a user-definable operator.
+  print(\"foo\" !== null); // Error
+              ^^^");
+}

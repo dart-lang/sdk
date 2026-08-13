@@ -1,0 +1,47 @@
+void gftTests() {
+
+Function ((int, int) a, ({String foo}) b) x;
+
+
+int Function ((int, int) a) y1;
+
+
+int? Function ((int, int) a) y2;
+
+
+(int, int) Function ((int, int) a) z1;
+
+
+(int, int)? Function ((int, int) a) z2;
+
+
+(int, int) Function(bool) Function ((int, int) a) z3;
+
+
+(int, int)? Function(bool) Function ((int, int) a) z4;
+}
+
+
+void[KeywordToken] gftTests[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+
+Function[KeywordToken] ([BeginToken]([BeginToken]int[StringToken],[SimpleToken] int[StringToken])[SimpleToken] a[StringToken],[SimpleToken] ([BeginToken]{[BeginToken]String[StringToken] foo[StringToken]}[SimpleToken])[SimpleToken] b[StringToken])[SimpleToken] x[StringToken];[SimpleToken]
+
+
+int[StringToken] Function[KeywordToken] ([BeginToken]([BeginToken]int[StringToken],[SimpleToken] int[StringToken])[SimpleToken] a[StringToken])[SimpleToken] y1[StringToken];[SimpleToken]
+
+
+int[StringToken]?[SimpleToken] Function[KeywordToken] ([BeginToken]([BeginToken]int[StringToken],[SimpleToken] int[StringToken])[SimpleToken] a[StringToken])[SimpleToken] y2[StringToken];[SimpleToken]
+
+
+([BeginToken]int[StringToken],[SimpleToken] int[StringToken])[SimpleToken] Function[KeywordToken] ([BeginToken]([BeginToken]int[StringToken],[SimpleToken] int[StringToken])[SimpleToken] a[StringToken])[SimpleToken] z1[StringToken];[SimpleToken]
+
+
+([BeginToken]int[StringToken],[SimpleToken] int[StringToken])[SimpleToken]?[SimpleToken] Function[KeywordToken] ([BeginToken]([BeginToken]int[StringToken],[SimpleToken] int[StringToken])[SimpleToken] a[StringToken])[SimpleToken] z2[StringToken];[SimpleToken]
+
+
+([BeginToken]int[StringToken],[SimpleToken] int[StringToken])[SimpleToken] Function[KeywordToken]([BeginToken]bool[StringToken])[SimpleToken] Function[KeywordToken] ([BeginToken]([BeginToken]int[StringToken],[SimpleToken] int[StringToken])[SimpleToken] a[StringToken])[SimpleToken] z3[StringToken];[SimpleToken]
+
+
+([BeginToken]int[StringToken],[SimpleToken] int[StringToken])[SimpleToken]?[SimpleToken] Function[KeywordToken]([BeginToken]bool[StringToken])[SimpleToken] Function[KeywordToken] ([BeginToken]([BeginToken]int[StringToken],[SimpleToken] int[StringToken])[SimpleToken] a[StringToken])[SimpleToken] z4[StringToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

@@ -1,0 +1,141 @@
+------------ t1 ------------
+%a1 = _Parameter #0 [_T ANY?]
+%a2 = _Parameter #1 [_T ANY?]
+%a3 = _Parameter #2 [_T ANY?]
+t3* = _Call dynamic [foo1] (%a1)
+t4* = _Call dynamic [foo2] (%a2)
+t5* = _Call dynamic [+] (t3, t4)
+t6* = _Call dynamic [foo3] (%a3)
+t7* = _Call dynamic [+] (t5, t6)
+RESULT: t7
+------------ t2 ------------
+%a3 = _Parameter #0 [_T ANY?]
+%a2 = _Parameter #1 [_T ANY?]
+%a1 = _Parameter #2 [_T ANY?]
+t3* = _Call dynamic [foo1] (%a1)
+t4* = _Call dynamic [foo2] (%a2)
+t5* = _Call dynamic [+] (t3, t4)
+t6* = _Call dynamic [foo3] (%a3)
+t7* = _Call dynamic [+] (t5, t6)
+RESULT: t7
+------------ t3 ------------
+%a1 = _Parameter #0 [_T ANY?]
+%a2 = _Parameter #1 [_T ANY?]
+%a3 = _Parameter #2 [_T ANY?]
+%a4 = _Parameter #3 [_T ANY?]
+%a5 = _Parameter #4 [_T ANY?]
+%a6 = _Parameter #5 [_T ANY?]
+t6* = _Call dynamic [foo1] (%a1)
+t7* = _Call dynamic [foo2] (%a2)
+t8* = _Call dynamic [+] (t6, t7)
+t9* = _Call dynamic [foo3] (%a3)
+t10* = _Call dynamic [+] (t8, t9)
+t11* = _Call dynamic [foo4] (%a4)
+t12* = _Call dynamic [+] (t10, t11)
+t13* = _Call dynamic [foo5] (%a5)
+t14* = _Call dynamic [+] (t12, t13)
+t15* = _Call dynamic [foo6] (%a6)
+t16* = _Call dynamic [+] (t14, t15)
+RESULT: t16
+------------ t4 ------------
+%a1 = _Parameter #0 [_T ANY?]
+%a2 = _Parameter #1 [_T ANY?]
+%a3 = _Parameter #2 [_T ANY?]
+%a6 = _Parameter #3 [_T ANY?]
+%a5 = _Parameter #4 [_T ANY?]
+%a4 = _Parameter #5 [_T ANY?]
+t6* = _Call dynamic [foo1] (%a1)
+t7* = _Call dynamic [foo2] (%a2)
+t8* = _Call dynamic [+] (t6, t7)
+t9* = _Call dynamic [foo3] (%a3)
+t10* = _Call dynamic [+] (t8, t9)
+t11* = _Call dynamic [foo4] (%a4)
+t12* = _Call dynamic [+] (t10, t11)
+t13* = _Call dynamic [foo5] (%a5)
+t14* = _Call dynamic [+] (t12, t13)
+t15* = _Call dynamic [foo6] (%a6)
+t16* = _Call dynamic [+] (t14, t15)
+RESULT: t16
+------------ t5 ------------
+%a1 = _Parameter #0 [_T ANY?]
+%a2 = _Parameter #1 [_T ANY?]
+%a3 = _Parameter #2 [_T ANY?]
+%a4 = _Parameter #3 [_T ANY?]
+%a5 = _Parameter #4 [_T ANY?]
+%a6 = _Parameter #5 [_T ANY?]
+t6* = _Call dynamic [foo1] (%a1)
+t7* = _Call dynamic [foo2] (%a2)
+t8* = _Call dynamic [+] (t6, t7)
+t9* = _Call dynamic [foo3] (%a3)
+t10* = _Call dynamic [+] (t8, t9)
+t11* = _Call dynamic [foo4] (%a4)
+t12* = _Call dynamic [+] (t10, t11)
+t13* = _Call dynamic [foo5] (%a5)
+t14* = _Call dynamic [+] (t12, t13)
+t15* = _Call dynamic [foo6] (%a6)
+t16* = _Call dynamic [+] (t14, t15)
+RESULT: t16
+------------ t6 ------------
+%a1 = _Parameter #0 [_T ANY?]
+%a2 = _Parameter #1 [_T ANY?]
+%a3 = _Parameter #2 [_T ANY?]
+%a4 = _Parameter #3 [_T ANY?]
+%a5 = _Parameter #4 [_T ANY?]
+%a6 = _Parameter #5 [_T ANY?]
+t6* = _Call dynamic [foo1] (%a1)
+t7* = _Call dynamic [foo2] (%a2)
+t8* = _Call dynamic [+] (t6, t7)
+t9* = _Call dynamic [foo3] (%a3)
+t10* = _Call dynamic [+] (t8, t9)
+t11* = _Call dynamic [foo4] (%a4)
+t12* = _Call dynamic [+] (t10, t11)
+t13* = _Call dynamic [foo5] (%a5)
+t14* = _Call dynamic [+] (t12, t13)
+t15* = _Call dynamic [foo6] (%a6)
+t16* = _Call dynamic [+] (t14, t15)
+RESULT: t16
+------------ t7 ------------
+%a1 = _Parameter #0 [_T ANY?]
+%a2 = _Parameter #1 [_T ANY?]
+%a3 = _Parameter #2 [_T ANY?]
+%a4 = _Parameter #3 [_T ANY?]
+%a5 = _Parameter #4 [_T ANY?]
+%a6 = _Parameter #5 [_T ANY?]
+t6* = _Call dynamic [foo1] (%a1)
+t7* = _Call dynamic [foo2] (%a2)
+t8* = _Call dynamic [+] (t6, t7)
+t9* = _Call dynamic [foo3] (%a3)
+t10* = _Call dynamic [+] (t8, t9)
+t11* = _Call dynamic [foo4] (%a4)
+t12* = _Call dynamic [+] (t10, t11)
+t13* = _Call dynamic [foo5] (%a5)
+t14* = _Call dynamic [+] (t12, t13)
+t15* = _Call dynamic [foo6] (%a6)
+t16* = _Call dynamic [+] (t14, t15)
+RESULT: t16
+------------ calls ------------
+%x1 = _Parameter #0 [_T ANY?]
+%x2 = _Parameter #1 [_T ANY?]
+%x3 = _Parameter #2 [_T ANY?]
+%x4 = _Parameter #3 [_T ANY?]
+%x5 = _Parameter #4 [_T ANY?]
+%x6 = _Parameter #5 [_T ANY?]
+%x7 = _Parameter #6 [_T ANY?]
+%x8 = _Parameter #7 [_T ANY?]
+%x9 = _Parameter #8 [_T ANY?]
+t9 = _Call direct [#lib::t1] (%x1, %x2, %x3)
+t10 = _Call direct [#lib::t2] (%x1, %x2, %x3)
+t11 = _Call direct [#lib::t3] (%x1, %x2, %x3)
+t12 = _Call direct [#lib::t3] (%x1, %x2, %x3, %x4)
+t13 = _Call direct [#lib::t4] (%x1, %x2, %x3, %x4, %x5)
+t14 = _Call direct [#lib::t5] (%x1, %x2, %x3)
+t15 = _Call direct [#lib::t5] (%x1, %x2, %x3, a4: %x4)
+t16 = _Call direct [#lib::t5] (%x1, %x2, %x3, a5: %x4)
+t17 = _Call direct [#lib::t5] (%x1, %x2, %x3, a5: %x5, a6: %x4)
+t18 = _Call direct [#lib::t6] (%x1, %x2, %x3, a4: %x4, a6: %x5)
+t19 = _Call direct [#lib::t6] (%x1, %x2, %x3, a4: %x4, a5: %x5, a6: %x6)
+t20 = _Call direct [#lib::t7] (%x1, %x2, %x3, a4: %x4, a5: %x6, a6: %x5)
+RESULT: _T {}?
+------------ main ------------
+
+RESULT: _T {}?

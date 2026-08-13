@@ -1,0 +1,30 @@
+class A<X extends num> {}
+
+class B1 {
+  Sub get baz => throw '';
+  void hest(Super value) {}
+  void set bar(num? value) {}
+}
+
+class B2 extends B1 {
+  Super get baz => throw '';
+  num bar = 3.14;
+  void hest(Sub value) {}
+}
+
+class C1 {
+  factory C1() = C2<int?>;
+}
+
+class C2<X extends int> implements C1 {}
+
+class D {
+  D.foo(num x);
+  factory D.bar(num? x) = D.foo;
+}
+
+class Sub extends Super {}
+
+class Super {}
+
+main() {}

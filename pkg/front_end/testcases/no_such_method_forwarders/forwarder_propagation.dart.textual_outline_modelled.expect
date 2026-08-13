@@ -1,0 +1,19 @@
+import './forwarder_propagation_lib.dart';
+
+abstract class A {
+  int get bar;
+  void baz(int x, {String y, double z});
+  void set foo(int value);
+}
+
+class B implements A {
+  noSuchMethod(_) {}
+}
+
+class C extends B {}
+
+class E implements D {}
+
+class F extends E {}
+
+main() {}

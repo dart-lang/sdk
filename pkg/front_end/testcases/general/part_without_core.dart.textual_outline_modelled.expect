@@ -1,0 +1,5 @@
+import 'dart:core' as core;
+
+part 'part_without_core_part.dart';
+
+method1(core.Duration d) {}

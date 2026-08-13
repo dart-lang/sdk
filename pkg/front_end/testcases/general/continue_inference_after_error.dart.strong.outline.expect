@@ -1,0 +1,17 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///continue_inference_after_error_lib.dart" as lib;
+
+class C extends core::Object {
+  synthetic constructor •() → self::C
+    ;
+}
+static method test() → dynamic
+  ;
+static method main() → dynamic
+  ;
+
+library;
+import self as self2;

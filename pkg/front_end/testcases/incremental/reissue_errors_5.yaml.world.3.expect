@@ -1,0 +1,31 @@
+main = main::main;
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "package:mypackage/a.dart" as a;
+
+  static method main() → dynamic {
+    a::main();
+  }
+}
+library from "package:mypackage/a.dart" as a {
+
+  import "package:mypackage/b.dart";
+
+  static method main() → dynamic {
+    b::foo();
+    b::foo();
+  }
+}
+library from "package:mypackage/b.dart" as b {
+//
+// Problems in library:
+//
+// org-dartlang-test:///mypackage/b.dart:2:3: Error: Method not found: 'bar'.
+//   bar();
+//   ^^^
+//
+
+  static method foo() → dynamic {
+    invalid-expression "org-dartlang-test:///mypackage/b.dart:2:3: Error: Method not found: 'bar'.\n  bar();\n  ^^^";
+  }
+}

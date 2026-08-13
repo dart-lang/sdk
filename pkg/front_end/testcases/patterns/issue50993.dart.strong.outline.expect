@@ -1,0 +1,20 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method test1(core::int value) → core::String
+  ;
+static method test2(core::int value) → core::String
+  ;
+static method test3(core::int value) → core::String
+  ;
+static method test4(core::int value) → core::String
+  ;
+static method test5(core::int value) → core::String
+  ;
+static method test6(core::int value) → core::String
+  ;
+static method main() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;

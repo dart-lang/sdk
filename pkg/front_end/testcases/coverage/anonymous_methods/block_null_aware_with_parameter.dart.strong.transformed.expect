@@ -1,0 +1,76 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static field core::int? i = null;
+static method main() → void {
+  let core::int? #t1 = self::i in #t1 == null ?{Null} null : block {
+    core::int p = let core::int? #t2 = #t1 in #t2 == null ?{core::int} #t2 as core::int : #t2{core::int};
+    Null #t3;
+    #L1:
+    {
+      1;
+      {
+        #t3 = null;
+        break #L1;
+      }
+    }
+  } =>#t3;
+  let core::int? #t4 = self::i in #t4 == null ?{Null} null : block {
+    core::int p = let core::int? #t5 = #t4 in #t5 == null ?{core::int} #t5 as core::int : #t5{core::int};
+    Null #t6;
+    #L2:
+    {
+      p;
+      {
+        #t6 = null;
+        break #L2;
+      }
+    }
+  } =>#t6;
+  let core::int? #t7 = self::i in #t7 == null ?{Null} null : block {
+    core::int p = let core::int? #t8 = #t7 in #t8 == null ?{core::int} #t8 as core::int : #t8{core::int};
+    Null #t9;
+    #L3:
+    {
+      p.{core::int::isEven}{core::bool};
+      {
+        #t9 = null;
+        break #L3;
+      }
+    }
+  } =>#t9;
+  let core::int? #t10 = self::i in #t10 == null ?{core::int?} null : block {
+    core::int p = let core::int? #t11 = #t10 in #t11 == null ?{core::int} #t11 as core::int : #t11{core::int};
+    core::int #t12;
+    #L4:
+    {
+      {
+        #t12 = 1;
+        break #L4;
+      }
+    }
+  } =>#t12;
+  let core::int? #t13 = self::i in #t13 == null ?{core::int?} null : block {
+    core::int p = let core::int? #t14 = #t13 in #t14 == null ?{core::int} #t14 as core::int : #t14{core::int};
+    core::int #t15;
+    #L5:
+    {
+      {
+        #t15 = p;
+        break #L5;
+      }
+    }
+  } =>#t15;
+  let core::int? #t16 = self::i in #t16 == null ?{core::bool?} null : block {
+    core::int p = let core::int? #t17 = #t16 in #t17 == null ?{core::int} #t17 as core::int : #t17{core::int};
+    core::bool #t18;
+    #L6:
+    {
+      {
+        #t18 = p.{core::int::isEven}{core::bool};
+        break #L6;
+      }
+    }
+  } =>#t18;
+}

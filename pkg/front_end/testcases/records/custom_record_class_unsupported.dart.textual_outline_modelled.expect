@@ -1,0 +1,7 @@
+// @dart = 2.17
+
+abstract class Record {
+  Record create();
+}
+
+main() {}

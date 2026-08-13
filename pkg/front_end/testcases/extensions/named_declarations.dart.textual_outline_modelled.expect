@@ -1,0 +1,13 @@
+class A1 {}
+
+class B1<T> {}
+
+extension A2 on A1 {}
+
+extension B2<T> on B1<T> {}
+
+extension B3 on B1<A1> {}
+
+extension B4<T extends A1> on B1<T> {}
+
+main() {}

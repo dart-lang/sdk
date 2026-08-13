@@ -1,0 +1,15 @@
+class C {
+  const C();
+}
+
+const c1 = C();
+
+const c2 = C();
+
+String test1(Map map) {}
+
+void test2(Map map) {}
+
+void test3(Map map) {}
+
+test() {}

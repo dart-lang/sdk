@@ -1,0 +1,54 @@
+// Copyright (c) 2021, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:test_reflective_loader/test_reflective_loader.dart';
+
+import '../dart/resolution/context_collection_resolution.dart';
+
+main() {
+  defineReflectiveSuite(() {
+    defineReflectiveTests(ExtraSizeAnnotationArray);
+  });
+}
+
+@reflectiveTest
+class ExtraSizeAnnotationArray extends PubPackageResolutionTest {
+  test_const() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'dart:ffi';
+
+const EIGHT = 8;
+
+final class Struct8BytesInlineArrayInt extends Struct {
+  @Array(EIGHT)
+  external Array<Uint8> a0;
+}
+''');
+  }
+
+  test_one() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'dart:ffi';
+
+final class C extends Struct {
+  @Array(8)
+  external Array<Uint8> a0;
+}
+''');
+  }
+
+  test_two() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'dart:ffi';
+
+final class C extends Struct {
+  @Array(8)
+  @Array(8)
+//^^^^^^^^^
+// [diag.extraSizeAnnotationCarray] 'Array's must have exactly one 'Array' annotation.
+  external Array<Uint8> a0;
+}
+''');
+  }
+}

@@ -1,0 +1,13 @@
+import 'cache_lookups_lib.dart';
+
+int counter = 0;
+
+class Class {
+  int get field {}
+}
+
+test(o) {}
+
+main() {}
+
+expect(expected, actual) {}

@@ -1,0 +1,16 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C<X extends core::Object?, Y extends core::Object> extends core::Object {
+  synthetic constructor •() → self::C<self::C::X%, self::C::Y>
+    ;
+  method test(covariant-by-class self::C::X% x, covariant-by-class self::C::Y? y) → dynamic
+    ;
+}
+static method assertRightSubtype(dynamic x) → dynamic
+  ;
+static method assertLeftSubtype<X extends core::Object? = dynamic>(self::assertLeftSubtype::X% x) → dynamic
+  ;
+static method main() → dynamic
+  ;

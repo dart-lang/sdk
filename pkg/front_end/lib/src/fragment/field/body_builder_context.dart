@@ -1,0 +1,100 @@
+// Copyright (c) 2025, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+part of '../fragment.dart';
+
+class FieldFragmentBodyBuilderContext extends BodyBuilderContext {
+  final SourcePropertyBuilder _builder;
+  final FieldFragmentDeclaration _declaration;
+
+  @override
+  final bool isLateField;
+
+  @override
+  final bool isAbstractField;
+
+  @override
+  final bool isExternalField;
+
+  final int _nameOffset;
+
+  final int _nameLength;
+
+  final bool _isConst;
+
+  new(
+    this._builder,
+    this._declaration, {
+    required this.isLateField,
+    required this.isAbstractField,
+    required this.isExternalField,
+    required int nameOffset,
+    required int nameLength,
+    required bool isConst,
+  }) : this._nameOffset = nameOffset,
+       this._nameLength = nameLength,
+       this._isConst = isConst,
+       super(
+         _builder.libraryBuilder,
+         _builder.declarationBuilder,
+         isDeclarationInstanceMember: _builder.isDeclarationInstanceMember,
+       );
+
+  @override
+  bool get inPrimaryConstructorFieldInitializer {
+    DeclarationBuilder? declarationBuilder = _builder.declarationBuilder;
+    if (declarationBuilder is SourceClassBuilder &&
+        !_declaration.isStatic &&
+        !isLateField) {
+      return declarationBuilder.hasPrimaryConstructor;
+    }
+    return false;
+  }
+
+  @override
+  List<FormalParameterBuilder>?
+  get primaryConstructorInitializerScopeParameters {
+    DeclarationBuilder? declarationBuilder = _builder.declarationBuilder;
+    if (declarationBuilder is SourceClassBuilder &&
+        !_declaration.isStatic &&
+        !isLateField) {
+      return declarationBuilder.primaryConstructorInitializerScopeParameters;
+    }
+    return null;
+  }
+
+  @override
+  int get memberNameOffset => _nameOffset;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  int get memberNameLength => _nameLength;
+
+  @override
+  InstanceTypeParameterAccessState get instanceTypeParameterAccessState {
+    if (_builder.isExtensionMember && !isExternalField) {
+      return InstanceTypeParameterAccessState.Invalid;
+    } else {
+      return super.instanceTypeParameterAccessState;
+    }
+  }
+
+  @override
+  void registerSuperCall() {
+    _declaration.registerSuperCall();
+  }
+
+  @override
+  ConstantContext get constantContext {
+    return _isConst
+        ? ConstantContext.inferred
+        // TODO(johnniwinther): We should report something better when a
+        // final field in a class with a const constructor isn't initialized
+        // to a constant. Currently we just report 'Not a constant expression'
+        // on the initializer, as if the field was declared const itself.
+        : !_declaration.isStatic && declarationDeclaresConstConstructor
+        ? ConstantContext.required
+        : ConstantContext.none;
+  }
+}

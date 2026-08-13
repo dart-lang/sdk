@@ -1,0 +1,30 @@
+// Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+part of $LIBRARYNAME;
+
+$(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
+
+  Entry getAsEntry() {
+    Entry entry = _webkitGetAsEntry() $#NULLSAFECAST(as Entry);
+
+    if (entry.isFile$NULLASSERT) {
+      applyExtension('FileEntry', entry);
+      applyExtension('webkitFileSystemFileEntry', entry);
+      applyExtension('FileSystemFileEntry', entry);
+    } else if (entry.isDirectory$NULLASSERT) {
+      applyExtension('DirectoryEntry', entry);
+      applyExtension('webkitFileSystemDirectoryEntry', entry);
+      applyExtension('FileSystemDirectoryEntry', entry);
+    } else {
+      applyExtension('Entry', entry);
+      applyExtension('webkitFileSystemEntry', entry);
+      applyExtension('FileSystemEntry', entry);
+    }
+
+    return entry;
+  }
+
+$!MEMBERS
+}

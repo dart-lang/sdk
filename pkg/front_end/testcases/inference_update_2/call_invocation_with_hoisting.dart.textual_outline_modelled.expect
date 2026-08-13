@@ -1,0 +1,16 @@
+class A {
+  num call(int value) => 0;
+}
+
+class B extends A {
+  int call(num value) => 0;
+}
+
+class C {
+  C(this._a);
+  final A _a;
+}
+
+main() {}
+
+void test(C c, num n) {}

@@ -1,0 +1,25 @@
+(int hashCode,) foo1() => throw 0;
+
+(int runtimeType,) foo2() => throw 0;
+
+(int noSuchMethod,) foo3() => throw 0;
+
+(int toString,) foo4() => throw 0;
+
+({int hashCode}) foo5() => throw 0;
+
+({int runtimeType}) foo6() => throw 0;
+
+({int noSuchMethod}) foo7() => throw 0;
+
+({int toString}) foo8() => throw 0;
+
+foo9() => (hashCode: 1);
+
+foo10() => (runtimeType: 1);
+
+foo11() => (noSuchMethod: 1);
+
+foo12() => (toString: 1);
+
+main() {}

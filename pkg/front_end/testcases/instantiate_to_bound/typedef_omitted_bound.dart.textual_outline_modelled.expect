@@ -1,0 +1,9 @@
+A a = throw '';
+
+class C {
+  A foo() => throw '';
+}
+
+main() {}
+
+typedef A<T>(T p);

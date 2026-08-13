@@ -1,0 +1,31 @@
+main = main::main;
+library from "package:bar/bar.dart" as bar {
+//
+// Problems in library:
+//
+// org-dartlang-test:///bar/lib/bar.dart:1:1: Error: The language version 2.8 specified for the package 'bar' is too low. The lowest supported language version is 2.12.
+// // This file is in weak mode.
+// ^
+//
+// org-dartlang-test:///bar/lib/bar.dart:2:9: Error: A value of type 'Null' can't be assigned to a variable of type 'int'.
+// int y = null;
+//         ^
+//
+
+  static field dart.core::int y = invalid-expression "org-dartlang-test:///bar/lib/bar.dart:2:9: Error: A value of type 'Null' can't be assigned to a variable of type 'int'.\nint y = null;\n        ^" in let Null #t1 = null in #t1 == null ?{dart.core::int} #t1 as{TypeError} dart.core::int : #t1{dart.core::int};
+}
+library from "package:baz/main.dart" as main {
+
+  import "package:foo/foo.dart" as foo;
+  import "package:bar/bar.dart" as bar;
+
+  static method main() → dynamic {
+    dart.core::print(foo::x);
+    dart.core::print(bar::y);
+    dart.core::print("done");
+  }
+}
+library from "package:foo/foo.dart" as foo {
+
+  static field dart.core::int x = 42;
+}

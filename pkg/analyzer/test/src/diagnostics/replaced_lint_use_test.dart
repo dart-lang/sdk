@@ -1,0 +1,80 @@
+// Copyright (c) 2023, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
+import 'package:analyzer/analysis_rule/rule_state.dart';
+import 'package:analyzer/src/test_utilities/lint_registration_mixin.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
+
+import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
+
+main() {
+  defineReflectiveSuite(() {
+    defineReflectiveTests(ReplacedLintUseTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
+  });
+}
+
+@reflectiveTest
+class ReplacedLintUseTest extends PubPackageResolutionTest
+    with LintRegistrationMixin {
+  @override
+  void setUp() {
+    super.setUp();
+
+    // TODO(paulberry): remove as part of fixing
+    // https://github.com/dart-lang/sdk/issues/62040.
+    writeTestPackageAnalysisOptionsFile('''
+linter:
+  rules:
+    - unnecessary_ignore
+''');
+
+    registerLintRule(
+      RemovedAnalysisRule(
+        name: 'removed_lint',
+        since: dart3,
+        replacedBy: 'replacing_lint',
+        description: '',
+      ),
+    );
+    registerLintRule(
+      RemovedAnalysisRule(
+        name: 'replacing_lint',
+        since: dart3,
+        description: '',
+      ),
+    );
+  }
+
+  test_file() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// ignore_for_file: removed_lint
+//                  ^^^^^^^^^^^^
+// [diag.replacedLintUse] 'removed_lint' was replaced by 'replacing_lint' in Dart '3.0.0'.
+
+void f() { }
+''');
+  }
+
+  test_line() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// ignore: removed_lint
+//         ^^^^^^^^^^^^
+// [diag.replacedLintUse] 'removed_lint' was replaced by 'replacing_lint' in Dart '3.0.0'.
+void f() { }
+''');
+  }
+
+  test_messageText() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// ignore_for_file: removed_lint
+//                  ^^^^^^^^^^^^
+// [diag.replacedLintUse] 'removed_lint' was replaced by 'replacing_lint' in Dart '3.0.0'.
+
+void f() { }
+''');
+  }
+}

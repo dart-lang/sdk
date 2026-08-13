@@ -1,0 +1,24 @@
+# Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+include: analysis_options_no_lints.yaml
+
+linter:
+  rules:
+    - analyzer_public_api
+    - annotate_overrides
+    - collection_methods_unrelated_type
+    - curly_braces_in_flow_control_structures
+    - deprecated_member_use_from_same_package
+    - discarded_futures
+    - prefer_adjacent_string_concatenation
+    - unawaited_futures
+    - recursive_getters
+    - avoid_empty_else
+    - empty_statements
+    - valid_regexps
+    - lines_longer_than_80_chars
+    # - always_specify_types
+    - use_super_parameters
+    - comment_references

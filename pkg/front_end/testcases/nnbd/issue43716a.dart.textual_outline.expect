@@ -1,0 +1,9 @@
+bool b = true;
+
+class C<X extends C<X, X>?, Y extends C<Y, Y>?> {
+  X x;
+  C(this.x);
+  Object m(X x, Y y) {}
+}
+
+main() {}

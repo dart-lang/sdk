@@ -1,0 +1,5 @@
+class A {
+  Map<String, var>? m;
+}
+
+main() {}

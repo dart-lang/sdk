@@ -1,0 +1,14 @@
+main = main::main;
+library from "package:untitled/main.dart" as main {
+//
+// Problems in library:
+//
+// org-dartlang-test:///main.dart:2:3: Error: Undefined name 'asdf'.
+//   asdf;
+//   ^^^^
+//
+
+  static method main() → dynamic {
+    invalid-expression "org-dartlang-test:///main.dart:2:3: Error: Undefined name 'asdf'.\n  asdf;\n  ^^^^";
+  }
+}

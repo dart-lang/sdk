@@ -1,0 +1,60 @@
+//
+// Problems in component:
+//
+// sdk/lib/core/core.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/async/async.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/collection/collection.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/_internal/vm_shared/lib/compact_hash.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/concurrent/concurrent.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/convert/convert.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/developer/developer.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/ffi/ffi.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/internal/internal.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/isolate/isolate.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/math/math.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/mirrors/mirrors.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/typed_data/typed_data.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/_internal/vm/bin/vmservice_io.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/vmservice/vmservice.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/_internal/vm/bin/builtin.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/html/dartium/nativewrappers.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/io/io.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+// sdk/lib/cli/cli.dart: Error: Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.
+//
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/enhanced_parts/missing_part_file_part.dart:7:6: Error: Error when reading 'pkg/front_end/testcases/enhanced_parts/non_existing_part_file.dart': <os-message>
+// part 'non_existing_part_file.dart';
+//      ^
+//
+// pkg/front_end/testcases/enhanced_parts/missing_part_file_part.dart:7:6: Error: Can't use 'pkg/front_end/testcases/enhanced_parts/non_existing_part_file.dart' as a part, because it has no 'part of' declaration.
+// part 'non_existing_part_file.dart';
+//      ^
+//
+import self as self;
+
+part missing_part_file_part.dart;
+part non_existing_part_file.dart;
+
+library;
+import self as self2;

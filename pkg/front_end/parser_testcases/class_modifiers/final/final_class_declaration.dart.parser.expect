@@ -1,0 +1,15 @@
+final class A {}
+
+abstract final class B {}
+
+mixin M {}
+final class C = Object with M;
+
+
+final[KeywordToken] class[KeywordToken] A[StringToken] {[BeginToken]}[SimpleToken]
+
+abstract[KeywordToken] final[KeywordToken] class[KeywordToken] B[StringToken] {[BeginToken]}[SimpleToken]
+
+mixin[KeywordToken] M[StringToken] {[BeginToken]}[SimpleToken]
+final[KeywordToken] class[KeywordToken] C[StringToken] =[SimpleToken] Object[StringToken] with[KeywordToken] M[StringToken];[SimpleToken]
+[SimpleToken]

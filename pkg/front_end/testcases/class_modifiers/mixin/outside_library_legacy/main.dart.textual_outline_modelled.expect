@@ -1,0 +1,13 @@
+// @dart = 2.19
+
+import 'main_lib.dart';
+
+class AWith with A {}
+
+class BWith with B {}
+
+class CWith with C {}
+
+class MultipleWithAnotherClass with A, B {}
+
+class MultipleWithMixin with A, M {}

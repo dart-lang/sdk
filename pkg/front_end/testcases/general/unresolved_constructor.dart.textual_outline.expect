@@ -1,0 +1,28 @@
+import 'unresolved_constructor.dart' as lib;
+
+import 'unresolved_constructor_lib.dart' as lib;
+
+import 'unresolved_constructor_lib.dart';
+
+test() {}
+
+class Super {
+  Super.constructor();
+  Super.constructor1() : this();
+  Super.constructor2() : this.named();
+}
+
+class Class1 extends Super {
+  Class1() : super();
+  Class1.named() : super.named();
+}
+
+class Class2 extends Private {
+  Class2.named() : super._named();
+}
+
+mixin Mixin {}
+
+class Class3 extends Private with Mixin {
+  Class3.named() : super._named();
+}

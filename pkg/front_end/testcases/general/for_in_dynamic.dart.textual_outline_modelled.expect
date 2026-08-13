@@ -1,0 +1,7 @@
+List makeList(List list) => list;
+
+Stream makeStream(List list) async* {}
+
+main() async {}
+
+test() async {}

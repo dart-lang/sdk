@@ -1,0 +1,52 @@
+# Copyright (c) 2021, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Reproduces https://dartbug.com/46666.
+
+type: newworld
+worlds:
+  - entry: b.dart
+    sources:
+      a.dart: |
+        import 'dart:ffi';
+
+        final class StructA extends Struct {
+          external Pointer<Void> a1;
+          external Pointer<Void> a2;
+          external Pointer<Void> a3;
+          external NestedStruct blah;
+        }
+
+        final class NestedStruct extends Struct {
+          external Pointer<Void> n1;
+          external Pointer<Void> n2;
+          external Pointer<Void> n3;
+        }
+      b.dart: |
+        import 'dart:ffi';
+        import 'dart:isolate';
+        import 'dart:async';
+
+        import 'a.dart';
+
+        final class StructB extends Struct {
+          external StructA b1;
+        }
+
+        void periodic() {
+          print(sizeOf<StructB>());
+        }
+
+        void main() {
+          Timer.periodic(const Duration(seconds: 1), (_) => periodic());
+        }
+    expectedLibraryCount: 2
+
+  - entry: b.dart
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - b.dart
+    expectedLibraryCount: 2
+    advancedInvalidation: importsFfi

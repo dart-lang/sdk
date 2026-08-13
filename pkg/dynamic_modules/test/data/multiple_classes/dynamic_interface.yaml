@@ -1,0 +1,18 @@
+# Copyright (c) 2024, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+extendable:
+  - library: 'modules/common.dart'
+    class: 'A'
+
+callable:
+  - library: 'dart:core'
+  - library: 'modules/common.dart'
+    class: 'A'
+    member: 'getString'
+
+can-be-overridden:
+  - library: 'modules/common.dart'
+    class: 'A'
+    member: 'getString'

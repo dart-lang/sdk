@@ -1,0 +1,11 @@
+import 'main_lib.dart';
+
+class AWith with A {}
+
+class BWith with B {}
+
+class CWith with C {}
+
+class MultipleWithMixin with A, M {}
+
+class MultipleWithAnotherClass with A, B {}

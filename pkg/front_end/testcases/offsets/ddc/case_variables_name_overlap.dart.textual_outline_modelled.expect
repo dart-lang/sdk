@@ -1,0 +1,13 @@
+class X1 {
+  String? s;
+  double? d;
+  int? i;
+}
+
+class X2 {
+  String? s2;
+  double? d;
+  int? i;
+}
+
+void method(o) {}

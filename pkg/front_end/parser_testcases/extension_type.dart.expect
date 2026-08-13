@@ -1,0 +1,53 @@
+Problems reported:
+
+parser/extension_type:3:16: An extension type declaration must have a primary constructor declaration.
+extension type E on A {}
+               ^
+
+parser/extension_type:3:18: Expected 'extends' instead of this.
+extension type E on A {}
+                 ^^
+
+parser/extension_type:3:18: An extension type declaration can't have an 'extends' clause.
+extension type E on A {}
+                 ^^
+
+beginCompilationUnit(class)
+  beginMetadataStar(class)
+  endMetadataStar(0)
+  beginClassOrMixinOrNamedMixinApplicationPrelude(class)
+    handleIdentifier(A, classOrMixinDeclaration)
+    handleNoTypeVariables({)
+    beginClassDeclaration(class, null, null, null, null, null, null, null, A)
+      handleNoPrimaryConstructor(DeclarationKind.Class, A, null)
+      handleNoType(A)
+      handleClassExtends(null, 1)
+      handleClassNoWithClause()
+      handleImplements(null, 0)
+      handleClassHeader(class, class, null)
+      beginClassOrMixinOrExtensionBody(DeclarationKind.Class, {)
+      endClassOrMixinOrExtensionBody(DeclarationKind.Class, 0, {, })
+    endClassDeclaration(class, })
+  endTopLevelDeclaration(})
+  beginMetadataStar(extension)
+  endMetadataStar(0)
+  beginExtensionDeclarationPrelude(extension)
+    handleNoTypeVariables(on)
+    beginExtensionTypeDeclaration(null, extension, E)
+      handleRecoverableError(MissingPrimaryConstructor, E, E)
+      handleNoPrimaryConstructor(DeclarationKind.ExtensionType, E, null)
+      handleImplements(null, 0)
+      handleRecoverableError(Message[Template(ExpectedInstead), Expected 'extends' instead of this., null, {expected: extends}], on, on)
+      handleIdentifier(A, typeReference)
+      handleNoTypeArguments({)
+      handleType(A, null)
+      handleClassExtends(on, 1)
+      handleRecoverableError(ExtensionTypeExtends, on, on)
+      handleClassNoWithClause()
+      handleImplements(null, 0)
+      handleRecoverDeclarationHeader(DeclarationHeaderKind.ExtensionType)
+      beginClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, {)
+      endClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, 0, {, })
+    endExtensionTypeDeclaration(extension, null, extension, type, })
+  endTopLevelDeclaration(})
+endCompilationUnit(2, )

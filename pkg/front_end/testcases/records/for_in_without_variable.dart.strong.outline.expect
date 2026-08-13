@@ -1,0 +1,8 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method main() → void
+  ;
+static method left<A extends core::Object? = dynamic, B extends core::Object? = dynamic>(core::List<(self::left::A%, self::left::B%)> pairs) → core::List<self::left::A%>
+  ;

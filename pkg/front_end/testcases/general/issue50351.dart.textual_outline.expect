@@ -1,0 +1,14 @@
+class C {
+  var value = () {
+    var value = something();
+    if (value == null) {
+      throw '';
+    }
+    var result = value;
+    return result;
+  }();
+}
+
+String? something() => 'something';
+
+void main() {}

@@ -1,0 +1,10 @@
+// @dart = 2.12
+main() {
+print(#>>>);
+}
+
+
+main[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+print[StringToken]([BeginToken]#[SimpleToken]>>[SimpleToken]>[SimpleToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

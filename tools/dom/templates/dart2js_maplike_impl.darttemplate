@@ -1,0 +1,66 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+part of $LIBRARYNAME;
+
+$(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$MIXINS$IMPLEMENTS {
+$!MEMBERS
+
+  Map$NULLABLE _getItem($KEYTYPE key) =>
+      convertNativeToDart_Dictionary(JS('', '#.get(#)', this, key));
+
+  void addAll(Map<$KEYTYPE, $VALUETYPE> other) {
+    throw new UnsupportedError("Not supported");
+  }
+
+  bool containsValue($VALUETYPE value) => values.any((e) => e == value);
+
+  bool containsKey($VALUETYPE key) => _getItem(key) != null;
+
+  Map$NULLABLE operator []($VALUETYPE key) => _getItem(key);
+
+  void forEach(void f($KEYTYPE key, $VALUETYPE value)) {
+    var entries = JS('', '#.entries()', this);
+    while (true) {
+      var entry = JS('', '#.next()', entries);
+      if (JS('bool', '#.done', entry)) return;
+      f(JS('$KEYTYPE', '#.value[0]', entry),
+          convertNativeToDart_Dictionary(JS('', '#.value[1]', entry)));
+    }
+  }
+
+  Iterable<$KEYTYPE> get keys {
+    final keys = <$KEYTYPE>[];
+    forEach((k, v) => keys.add(k));
+    return keys;
+  }
+
+  Iterable<Map> get values {
+    final values = <Map>[];
+    forEach((k, v) => values.add(v));
+    return values;
+  }
+
+  int get length => JS('int', '#.size', this);
+
+  bool get isEmpty => length == 0;
+
+  bool get isNotEmpty => !isEmpty;
+
+  void operator []=($KEYTYPE key, $VALUETYPE value) {
+    throw new UnsupportedError("Not supported");
+  }
+
+  dynamic putIfAbsent($KEYTYPE key, $VALUETYPE ifAbsent()) {
+    throw new UnsupportedError("Not supported");
+  }
+
+  $KEYTYPE remove($VALUETYPE key) {
+    throw new UnsupportedError("Not supported");
+  }
+
+  void clear() {
+    throw new UnsupportedError("Not supported");
+  }
+}

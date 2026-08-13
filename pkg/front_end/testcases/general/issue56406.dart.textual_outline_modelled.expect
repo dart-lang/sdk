@@ -1,0 +1,23 @@
+class A {
+  A();
+}
+
+class B1 {
+  B1(super.foo);
+}
+
+class B2 {
+  B2({super.foo});
+}
+
+class B3 {
+  B3(super.foo, {super.bar});
+}
+
+class B4 {
+  B4(super.foo, super.bar);
+}
+
+class B5 {
+  B5({super.foo, super.bar});
+}

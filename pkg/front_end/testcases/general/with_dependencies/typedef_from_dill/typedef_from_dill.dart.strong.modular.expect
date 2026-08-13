@@ -1,0 +1,10 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///typedef_from_dill_lib.dart";
+
+typedef Bar = <R extends core::Object? = dynamic>(() → R%) → R%;
+static method main() → void {
+  core::print("hello");
+}

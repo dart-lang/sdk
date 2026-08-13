@@ -1,0 +1,27 @@
+# Copyright (c) 2024, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# `dart:typed_data` has to be marked special inside the CFE.
+# This checks it happens on compute delta too.
+
+type: newworld
+worlds:
+  - entry: main.dart
+    sources:
+      main.dart: |
+        // @dart=2.19
+        import 'dart:typed_data';
+        abstract class Foo {}
+    expectedLibraryCount: 1
+  - entry: main.dart
+    errors: true
+    invalidate:
+      - main.dart
+    sources:
+      main.dart: |
+        // @dart=2.19
+        import 'dart:typed_data';
+        abstract class Foo extends ByteBuffer {}
+    expectedLibraryCount: 1
+    advancedInvalidation: outlineChange

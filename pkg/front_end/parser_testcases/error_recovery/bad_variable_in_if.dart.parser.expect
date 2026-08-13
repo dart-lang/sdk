@@ -1,0 +1,13 @@
+NOTICE: Stream was rewritten by parser!
+
+foo() {
+if(true)
+final *synthetic*<int> f = [42];
+}
+
+
+foo[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+if[KeywordToken]([BeginToken]true[KeywordToken])[SimpleToken]
+final[KeywordToken] [SyntheticStringToken]<[BeginToken]int[StringToken]>[SimpleToken] f[StringToken] =[SimpleToken] [[BeginToken]42[StringToken]][SimpleToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

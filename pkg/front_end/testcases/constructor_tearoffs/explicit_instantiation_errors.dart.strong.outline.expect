@@ -1,0 +1,50 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/constructor_tearoffs/explicit_instantiation_errors.dart:25:11: Error: Too many type arguments: 1 allowed, but 2 found.
+// Try removing the extra type arguments.
+// var d = id<int, String>; // error - too many args
+//           ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/explicit_instantiation_errors.dart:26:15: Error: Too few type arguments: 2 required, 1 given.
+// Try adding the missing type arguments.
+// var e = method<int>; // error - too few args
+//               ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/explicit_instantiation_errors.dart:27:10: Error: The static type of the explicit instantiation operand must be a generic function type but is 'int'.
+// Try changing the operand or remove the type arguments.
+// var f = 0<int>; // error - non-function type operand
+//          ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/explicit_instantiation_errors.dart:28:13: Error: The static type of the explicit instantiation operand must be a generic function type but is 'dynamic Function()'.
+// Try changing the operand or remove the type arguments.
+// var g = main<int>; // error - non-generic function type operand
+//             ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/explicit_instantiation_errors.dart:29:22: Error: Type argument 'String' doesn't conform to the bound 'num' of the type variable 'X' on 'X Function<X extends num>(X)'.
+// Try changing type arguments so that they conform to the bounds.
+// var h = boundedMethod<String>; // error - invalid bound
+//                      ^
+//
+import self as self;
+import "dart:core" as core;
+
+static field <X extends core::Object? = dynamic>(X%) → X% a;
+static field (core::int) → core::int b;
+static field (core::int) → core::int c;
+static field invalid-type d;
+static field invalid-type e;
+static field invalid-type f;
+static field invalid-type g;
+static field (core::String) → core::String h;
+static method id<X extends core::Object? = dynamic>(self::id::X% x) → self::id::X%
+  ;
+static method method<X extends core::Object? = dynamic, Y extends core::Object? = dynamic>() → void
+  ;
+static method boundedMethod<X extends core::num>(self::boundedMethod::X x) → self::boundedMethod::X
+  ;
+static method test() → dynamic
+  ;
+static method main() → dynamic
+  ;

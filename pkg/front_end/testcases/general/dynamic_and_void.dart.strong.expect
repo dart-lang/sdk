@@ -1,0 +1,16 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/dynamic_and_void.dart:10:1: Error: Type 'dynamic' not found.
+// dynamic testDynamic() => 0;
+// ^^^^^^^
+//
+import self as self;
+
+import "dart:core" show int;
+
+static method testDynamic() → invalid-type
+  return 0;
+static method testVoid() → void {}
+static method main() → dynamic {}

@@ -1,0 +1,6 @@
+extension type Foo(String x) {
+  int bar1({int baz = x2}) => 42;
+  int bar2({int baz = x}) => 42;
+  int x2 = 42;
+  static const int x1 = 42;
+}

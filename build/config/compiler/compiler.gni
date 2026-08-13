@@ -1,0 +1,17 @@
+# Copyright 2016 The Dart project authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+# This is a bare-minimum needed to satisfy build requirements for various
+# chromium packages.
+# Original is https://chromium.googlesource.com/chromium/src/+/master/build/config/compiler/compiler.gni
+
+declare_args() {
+  build_with_chromium = false
+  use_libfuzzer = false
+  is_apple = is_ios || is_mac
+  use_thin_lto = false
+
+  # zlib uses this identifier
+  use_fuzzing_engine = false
+}

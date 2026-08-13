@@ -1,0 +1,109 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+static method method(final core::Iterable<core::int> iterable) → core::Iterable<core::int> sync* /* emittedValueType= core::int */ {
+  yield 1;
+  yield 2;
+  yield* iterable;
+}
+static method asyncMethod(final asy::Stream<core::int> stream) → asy::Stream<core::int> {
+  synthesized asy::Completer<void>? #paused;
+  synthesized asy::Completer<void>? #cancelCompleter;
+  synthesized core::bool #isDone = #C1;
+  final dynamic #onCancelCallback = () → FutureOr<void> {
+    if(#isDone)
+      return #C2;
+    if(#paused == null) {
+    }
+    else {
+      #paused.{asy::Completer::complete}(#C2){([FutureOr<void>?]) → void};
+      #paused = #C2;
+    }
+    if(#cancelCompleter == null)
+      #cancelCompleter = asy::Completer::sync<void>();
+    return #cancelCompleter.{asy::Completer::future}{asy::Future<void>};
+  };
+  final dynamic #onResumeCallback = () → void
+    if(#paused == null) {
+    }
+    else {
+      #paused.{asy::Completer::complete}(#C2){([FutureOr<void>?]) → void};
+      #paused = #C2;
+    }
+;
+  final synthesized asy::StreamController<core::int> #controller = asy::StreamController::•<core::int>(sync: #C3, onCancel: #onCancelCallback, onResume: #onResumeCallback);
+  final synthesized () → asy::Future<void> #body = () → asy::Future<void> async /* emittedValueType= void */ {
+    void :async_temporary_0;
+    void :async_temporary_1;
+    dynamic :async_temporary_2;
+    {
+      core::int #t1 = 0;
+      core::Object #t2;
+      core::StackTrace #t3;
+      try
+        try {
+          {
+            #controller.{asy::StreamController::add}(1){(core::Object?) → void};
+            if(#controller.{asy::StreamController::isPaused}{core::bool}) {
+              :async_temporary_0 = await(#paused = asy::Completer::•<void>()).{asy::Completer::future}{asy::Future<void>};
+              :async_temporary_0 as dynamic;
+            }
+            if(#controller.{asy::StreamController::hasListener}{core::bool}) {
+            }
+            else
+              return;
+          }
+          {
+            #controller.{asy::StreamController::add}(2){(core::Object?) → void};
+            if(#controller.{asy::StreamController::isPaused}{core::bool}) {
+              :async_temporary_1 = await(#paused = asy::Completer::•<void>()).{asy::Completer::future}{asy::Future<void>};
+              :async_temporary_1 as dynamic;
+            }
+            if(#controller.{asy::StreamController::hasListener}{core::bool}) {
+            }
+            else
+              return;
+          }
+          {
+            :async_temporary_2 = await #controller.{asy::StreamController::addStream}(stream){(asy::Stream<core::int>, {cancelOnError: core::bool?}) → asy::Future<dynamic>};
+            :async_temporary_2;
+            if(#controller.{asy::StreamController::hasListener}{core::bool}) {
+            }
+            else
+              return;
+          }
+        }
+        on dynamic catch(final synthesized dynamic #exception, final synthesized core::StackTrace #stackTrace) {
+          if(#cancelCompleter == null)
+            #controller.{asy::StreamController::addError}(#exception, #stackTrace){(core::Object, [core::StackTrace?]) → void};
+          else {
+            #cancelCompleter.{asy::Completer::completeError}(#exception, #stackTrace){(core::Object, [core::StackTrace?]) → void};
+            #cancelCompleter = #C2;
+          }
+          #exception;
+          #stackTrace;
+        }
+      finally {
+        #isDone = #C3;
+        #controller.{asy::StreamController::close}(){() → asy::Future<dynamic>};
+        if(!(#cancelCompleter == null))
+          #cancelCompleter.{asy::Completer::complete}(#C2){([FutureOr<void>?]) → void};
+        #t1;
+        #t2;
+        #t3;
+      }
+    }
+  };
+  #controller.{asy::StreamController::onListen} = () → dynamic
+    asy::scheduleMicrotask(#body);
+;
+  return #controller.{asy::StreamController::stream}{asy::Stream<core::int>};
+}
+
+constants  {
+  #C1 = false
+  #C2 = null
+  #C3 = true
+}

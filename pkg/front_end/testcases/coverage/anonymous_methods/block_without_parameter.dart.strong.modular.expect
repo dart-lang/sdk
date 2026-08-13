@@ -1,0 +1,98 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method main() → void {
+  {
+    final synthesized core::int anonymous#this = 1;
+    Null #t1;
+    #L1:
+    {
+      1;
+      {
+        #t1 = null;
+        break #L1;
+      }
+    }
+  }
+  {
+    final synthesized core::int anonymous#this = 1;
+    Null #t2;
+    #L2:
+    {
+      anonymous#this;
+      {
+        #t2 = null;
+        break #L2;
+      }
+    }
+  }
+  {
+    final synthesized core::int anonymous#this = 1;
+    Null #t3;
+    #L3:
+    {
+      anonymous#this.{core::int::isEven}{core::bool};
+      {
+        #t3 = null;
+        break #L3;
+      }
+    }
+  }
+  {
+    final synthesized core::int anonymous#this = 1;
+    Null #t4;
+    #L4:
+    {
+      anonymous#this.{core::int::isEven}{core::bool};
+      {
+        #t4 = null;
+        break #L4;
+      }
+    }
+  }
+  {
+    final synthesized core::int anonymous#this = 1;
+    core::int #t5;
+    #L5:
+    {
+      {
+        #t5 = 1;
+        break #L5;
+      }
+    }
+  }
+  {
+    final synthesized core::int anonymous#this = 1;
+    core::int #t6;
+    #L6:
+    {
+      {
+        #t6 = anonymous#this;
+        break #L6;
+      }
+    }
+  }
+  {
+    final synthesized core::int anonymous#this = 1;
+    core::bool #t7;
+    #L7:
+    {
+      {
+        #t7 = anonymous#this.{core::int::isEven}{core::bool};
+        break #L7;
+      }
+    }
+  }
+  {
+    final synthesized core::int anonymous#this = 1;
+    core::bool #t8;
+    #L8:
+    {
+      {
+        #t8 = anonymous#this.{core::int::isEven}{core::bool};
+        break #L8;
+      }
+    }
+  }
+}

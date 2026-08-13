@@ -1,0 +1,15 @@
+class A1 {}
+
+extension A2 on A1 {
+  A1 method1() {}
+  A1 method2<T>(T o) {}
+}
+
+class B1<T> {}
+
+extension B2<T> on B1<T> {
+  B1<T> method1() {}
+  B1<T> method2<S>(S o) {}
+}
+
+main() {}

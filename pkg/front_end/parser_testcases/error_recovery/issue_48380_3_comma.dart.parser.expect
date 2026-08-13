@@ -1,0 +1,19 @@
+NOTICE: Stream was rewritten by parser!
+
+enum E {
+v. *synthetic*(),
+v.foo();
+
+const E();
+const E.foo();
+}
+
+
+enum[KeywordToken] E[StringToken] {[BeginToken]
+v[StringToken].[SimpleToken] [SyntheticStringToken]([SyntheticBeginToken])[SyntheticToken],[SimpleToken]
+v[StringToken].[SimpleToken]foo[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+
+const[KeywordToken] E[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+const[KeywordToken] E[StringToken].[SimpleToken]foo[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

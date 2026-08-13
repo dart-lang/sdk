@@ -1,0 +1,7 @@
+library test;
+
+T f<T>() => throw '';
+
+main() {}
+
+void test() {}

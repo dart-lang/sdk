@@ -1,0 +1,18 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef T<X extends self::A> = X;
+class A extends core::Object {
+  constructor •() → self::A
+    ;
+  constructor named() → self::A
+    ;
+  static method staticMethod<X extends core::Object? = dynamic>() → void
+    ;
+}
+class C extends core::Object {
+  final field self::A v12;
+  constructor •() → self::C
+    ;
+}

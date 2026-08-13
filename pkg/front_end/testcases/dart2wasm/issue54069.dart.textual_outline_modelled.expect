@@ -1,0 +1,9 @@
+import 'dart:typed_data';
+
+Future<Uint8List> getBinaryTestProto() => readFileWeb("test.binary.pb");
+
+Future<Uint8List> readFileWeb(String path) async {}
+
+void main() async {}
+
+void runBench([Uint8List? data]) async {}

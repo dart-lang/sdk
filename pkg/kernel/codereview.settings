@@ -1,0 +1,7 @@
+# Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+CODE_REVIEW_SERVER: http://codereview.chromium.org
+VIEW_VC: https://github.com/dart-lang/kernel/commit/
+PROJECT: Dart Kernel
+CC_LIST: dart-kernel+reviews@google.com

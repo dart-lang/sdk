@@ -1,0 +1,429 @@
+// Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
+import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/source/source.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart'
+    show DiagnosticMessageImpl;
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/utilities/extensions/string.dart';
+import 'package:yaml/yaml.dart';
+
+typedef InvalidOverrideDiagnosticCode =
+    diag.DiagnosticWithArguments<
+      diag.LocatableDiagnostic Function({
+        required String memberName,
+        required String declaringInterfaceName,
+        required DartType typeInDeclaringInterface,
+        required String overriddenInterfaceName,
+        required DartType typeInOverriddenInterface,
+      })
+    >;
+
+/// A factory used to create diagnostics.
+class DiagnosticFactory {
+  /// Initialize a newly created diagnostic factory.
+  DiagnosticFactory();
+
+  /// Return a diagnostic indicating that [duplicate] uses the same [variable]
+  /// as a previous [original] node in a pattern assignment.
+  diag.LocatedDiagnostic duplicateAssignmentPatternVariable({
+    required Source source,
+    required PromotableElementImpl variable,
+    required AssignedVariablePatternImpl original,
+    required AssignedVariablePatternImpl duplicate,
+  }) {
+    return diag.duplicatePatternAssignmentVariable
+        .withArguments(name: variable.name!)
+        .withContextMessages([
+          DiagnosticMessageImpl(
+            filePath: source.fullName,
+            length: original.length,
+            message: 'The first assigned variable pattern.',
+            offset: original.offset,
+            url: source.uri.toString(),
+          ),
+        ])
+        .at(duplicate);
+  }
+
+  /// Return a diagnostic indicating that [duplicateFragment] reuses a name
+  /// already used by [originalElement].
+  diag.LocatedDiagnostic duplicateDefinition(
+    diag.LocatableDiagnostic locatableDiagnostic,
+    FragmentImpl duplicateFragment,
+    ElementImpl originalElement,
+  ) {
+    var originalFragment = originalElement.nonSynthetic.firstFragment;
+    return locatableDiagnostic
+        .withContextMessages([
+          DiagnosticMessageImpl(
+            filePath: originalFragment.libraryFragment!.source.fullName,
+            message: "The first definition of this name.",
+            offset: originalFragment.offset,
+            length: originalElement.nonSynthetic.name!.length,
+            url: null,
+          ),
+        ])
+        // TODO(paulberry): consider encapsulating this logic in an extension
+        // method, similar to `Element2Extension.diagnosticRange`.
+        .atOffset(
+          offset: duplicateFragment.nameOffset ?? -1,
+          length: duplicateFragment.name!.length,
+        );
+  }
+
+  /// Return a diagnostic indicating that [duplicateNode] reuses a name
+  /// already used by [originalNode].
+  diag.LocatedDiagnostic duplicateDefinitionForNodes(
+    Source source,
+    diag.LocatableDiagnostic locatableDiagnostic,
+    SyntacticEntity duplicateNode,
+    SyntacticEntity originalNode,
+  ) {
+    return locatableDiagnostic
+        .withContextMessages([
+          DiagnosticMessageImpl(
+            filePath: source.fullName,
+            message: "The first definition of this name.",
+            offset: originalNode.offset,
+            length: originalNode.length,
+            url: null,
+          ),
+        ])
+        .at(duplicateNode);
+  }
+
+  /// Return a diagnostic indicating that [duplicateField] reuses a name
+  /// already used by [originalField].
+  diag.LocatedDiagnostic duplicateFieldDefinitionInLiteral(
+    Source source,
+    RecordLiteralNamedField duplicateField,
+    RecordLiteralNamedField originalField,
+  ) {
+    var duplicateNode = duplicateField.name;
+    var duplicateName = duplicateNode.lexeme;
+    return diag.duplicateFieldName
+        .withArguments(name: duplicateName)
+        .withContextMessages([
+          DiagnosticMessageImpl(
+            filePath: source.fullName,
+            length: duplicateName.length,
+            message: 'The first ',
+            offset: originalField.name.offset,
+            url: source.uri.toString(),
+          ),
+        ])
+        .at(duplicateNode);
+  }
+
+  /// Return a diagnostic indicating that [duplicateField] reuses a name
+  /// already used by [originalField].
+  ///
+  /// This method requires that both the [duplicateField] and [originalField]
+  /// have a non-null `name`.
+  diag.LocatedDiagnostic duplicateFieldDefinitionInType(
+    Source source,
+    RecordTypeAnnotationField duplicateField,
+    RecordTypeAnnotationField originalField,
+  ) {
+    var duplicateNode = duplicateField.name!;
+    var duplicateName = duplicateNode.lexeme;
+    return diag.duplicateFieldName
+        .withArguments(name: duplicateName)
+        .withContextMessages([
+          DiagnosticMessageImpl(
+            filePath: source.fullName,
+            length: duplicateName.length,
+            message: 'The first ',
+            offset: originalField.name!.offset,
+            url: source.uri.toString(),
+          ),
+        ])
+        .at(duplicateNode);
+  }
+
+  /// Return a diagnostic indicating that [duplicateField] reuses a name
+  /// already used by [originalField].
+  diag.LocatedDiagnostic duplicatePatternField({
+    required Source source,
+    required String name,
+    required PatternField duplicateField,
+    required PatternField originalField,
+  }) {
+    var originalNode = originalField.name!;
+    var originalTarget = originalNode.name ?? originalNode.colon;
+    var duplicateNode = duplicateField.name!;
+    var duplicateTarget = duplicateNode.name ?? duplicateNode.colon;
+    return diag.duplicatePatternField
+        .withArguments(name: name)
+        .withContextMessages([
+          DiagnosticMessageImpl(
+            filePath: source.fullName,
+            length: originalTarget.length,
+            message: 'The first field.',
+            offset: originalTarget.offset,
+            url: source.uri.toString(),
+          ),
+        ])
+        .at(duplicateTarget);
+  }
+
+  /// Return a diagnostic indicating that [duplicateElement] reuses a name
+  /// already used by [originalElement].
+  diag.LocatedDiagnostic duplicateRestElementInPattern({
+    required Source source,
+    required RestPatternElement originalElement,
+    required RestPatternElement duplicateElement,
+  }) {
+    return diag.duplicateRestElementInPattern
+        .withContextMessages([
+          DiagnosticMessageImpl(
+            filePath: source.fullName,
+            length: originalElement.length,
+            message: 'The first rest element.',
+            offset: originalElement.offset,
+            url: source.uri.toString(),
+          ),
+        ])
+        .at(duplicateElement);
+  }
+
+  /// Return a diagnostic indicating that the [duplicateElement] (in a constant
+  /// set) is a duplicate of the [originalElement].
+  diag.LocatedDiagnostic equalElementsInConstSet(
+    Source source,
+    Expression duplicateElement,
+    Expression originalElement,
+  ) {
+    return diag.equalElementsInConstSet
+        .withContextMessages([
+          DiagnosticMessageImpl(
+            filePath: source.fullName,
+            message: "The first element with this value.",
+            offset: originalElement.offset,
+            length: originalElement.length,
+            url: null,
+          ),
+        ])
+        .at(duplicateElement);
+  }
+
+  /// Return a diagnostic indicating that the [duplicateKey] (in a constant map)
+  /// is a duplicate of the [originalKey].
+  diag.LocatedDiagnostic equalKeysInConstMap(
+    Source source,
+    Expression duplicateKey,
+    Expression originalKey,
+  ) {
+    return diag.equalKeysInConstMap
+        .withContextMessages([
+          DiagnosticMessageImpl(
+            filePath: source.fullName,
+            message: "The first key with this value.",
+            offset: originalKey.offset,
+            length: originalKey.length,
+            url: null,
+          ),
+        ])
+        .at(duplicateKey);
+  }
+
+  /// Return a diagnostic indicating that the [duplicateKey] (in a map pattern)
+  /// is a duplicate of the [originalKey].
+  diag.LocatedDiagnostic equalKeysInMapPattern(
+    Source source,
+    Expression duplicateKey,
+    Expression originalKey,
+  ) {
+    return diag.equalKeysInMapPattern
+        .withContextMessages([
+          DiagnosticMessageImpl(
+            filePath: source.fullName,
+            message: "The first key with this value.",
+            offset: originalKey.offset,
+            length: originalKey.length,
+            url: null,
+          ),
+        ])
+        .at(duplicateKey);
+  }
+
+  diag.LocatedDiagnostic incompatibleLint({
+    required Source source,
+    required YamlScalar reference,
+    required Map<String, YamlScalar> incompatibleRules,
+  }) {
+    assert(reference.value is String);
+    assert(incompatibleRules.values.every((node) => node.value is String));
+    return diag.incompatibleLint
+        .withArguments(
+          ruleName: reference.value as String,
+          incompatibleRules: incompatibleRules.values
+              .map((node) => node.value as String)
+              .quotedAndCommaSeparatedWithAnd,
+        )
+        .withContextMessages([
+          for (var MapEntry(key: file, value: incompatible)
+              in incompatibleRules.entries)
+            DiagnosticMessageImpl(
+              filePath: file,
+              message:
+                  "The rule '${incompatible.value.toString()}' is enabled here.",
+              offset: incompatible.span.start.offset,
+              length: incompatible.span.length,
+              url: file,
+            ),
+        ])
+        .atSourceSpan(reference.span);
+  }
+
+  /// Returns a diagnostic indicating that incompatible rules were found between
+  /// the current list and one or more of the included files.
+  diag.LocatedDiagnostic incompatibleLintFiles({
+    required Source source,
+    required YamlScalar reference,
+    required Map<String, YamlScalar> incompatibleRules,
+  }) {
+    assert(reference.value is String);
+    assert(incompatibleRules.values.every((node) => node.value is String));
+    return diag.incompatibleLintFiles
+        .withArguments(
+          ruleName: reference.value as String,
+          incompatibleRules: incompatibleRules.values
+              .map((node) => node.value as String)
+              .quotedAndCommaSeparatedWithAnd,
+        )
+        .withContextMessages([
+          for (var MapEntry(key: file, value: incompatible)
+              in incompatibleRules.entries)
+            DiagnosticMessageImpl(
+              filePath: file,
+              message:
+                  "The rule '${incompatible.value.toString()}' is enabled here "
+                  "in the file '$file'.",
+              offset: incompatible.span.start.offset,
+              length: incompatible.span.length,
+              url: file,
+            ),
+        ])
+        .atSourceSpan(reference.span);
+  }
+
+  /// Returns a diagnostic indicating that incompatible rules were found between
+  /// the included files.
+  diag.LocatedDiagnostic incompatibleLintIncluded({
+    required Source source,
+    required YamlScalar reference,
+    required Map<String, YamlScalar> incompatibleRules,
+    required int fileCount,
+  }) {
+    assert(fileCount > 0);
+    assert(reference.value is String);
+    assert(incompatibleRules.values.every((node) => node.value is String));
+    return diag.incompatibleLintIncluded
+        .withArguments(
+          ruleName: reference.value as String,
+          incompatibleRules: incompatibleRules.values
+              .map((node) => node.value as String)
+              .quotedAndCommaSeparatedWithAnd,
+          numIncludingFiles: fileCount,
+          pluralSuffix: fileCount == 1 ? '' : 's',
+        )
+        .withContextMessages([
+          for (var MapEntry(key: file, value: incompatible)
+              in incompatibleRules.entries)
+            DiagnosticMessageImpl(
+              filePath: file,
+              message:
+                  "The rule '${incompatible.value.toString()}' is enabled here.",
+              offset: incompatible.span.start.offset,
+              length: incompatible.span.length,
+              url: file,
+            ),
+        ])
+        .atSourceSpan(reference.span);
+  }
+
+  /// Return a diagnostic indicating that [member] is not a correct override of
+  /// [superMember].
+  diag.LocatedDiagnostic invalidOverride(
+    Source source,
+    InvalidOverrideDiagnosticCode code,
+    SyntacticEntity errorNode,
+    ExecutableElement member,
+    ExecutableElement superMember,
+    String memberName,
+  ) {
+    // Elements enclosing members that can participate in overrides are always
+    // named, so we can safely assume `_thisMember.enclosingElement3.name` and
+    // `superMember.enclosingElement3.name` are non-`null`.
+    var superElement = superMember.nonSynthetic.baseElement as ElementImpl;
+    var superLocation = superElement.firstFragmentLocation;
+    return code
+        .withArguments(
+          memberName: memberName,
+          declaringInterfaceName: member.enclosingElement!.name ?? '<unknown>',
+          typeInDeclaringInterface: member.type,
+          overriddenInterfaceName:
+              superMember.enclosingElement!.name ?? '<unknown>',
+          typeInOverriddenInterface: superMember.type,
+        )
+        .withContextMessages([
+          // Only include the context location for INVALID_OVERRIDE because for
+          // some other types this location is not ideal (for example
+          // INVALID_IMPLEMENTATION_OVERRIDE may provide the subclass as superMember
+          // if the subclass has an abstract member and the superclass has the
+          // concrete).
+          if (code == diag.invalidOverride)
+            DiagnosticMessageImpl(
+              filePath: superLocation.libraryFragment!.source.fullName,
+              message: "The member being overridden.",
+              offset: superLocation.nameOffset ?? -1,
+              length: superLocation.name!.length,
+              url: null,
+            ),
+          if (code == diag.invalidOverrideSetter)
+            DiagnosticMessageImpl(
+              filePath: superLocation.libraryFragment!.source.fullName,
+              message: "The setter being overridden.",
+              offset: superLocation.nameOffset ?? -1,
+              length: superLocation.name!.length,
+              url: null,
+            ),
+        ])
+        .at(errorNode);
+  }
+
+  /// Return a diagnostic indicating that the given [nameToken] was referenced
+  /// before it was declared.
+  diag.LocatedDiagnostic referencedBeforeDeclaration(
+    Source source, {
+    required Token nameToken,
+    required Element element2,
+  }) {
+    String name = nameToken.lexeme;
+    var locatableDiagnostic = diag.referencedBeforeDeclaration.withArguments(
+      name: name,
+    );
+    int declarationOffset = element2.firstFragment.nameOffset ?? -1;
+    if (declarationOffset >= 0) {
+      locatableDiagnostic = locatableDiagnostic.withContextMessages([
+        DiagnosticMessageImpl(
+          filePath: source.fullName,
+          message: "The declaration of '$name' is here.",
+          offset: declarationOffset,
+          length: name.length,
+          url: null,
+        ),
+      ]);
+    }
+    return locatableDiagnostic.at(nameToken);
+  }
+}

@@ -1,0 +1,24 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method exhaustiveBoundedTypeVariableByValue<T extends core::bool>(self::exhaustiveBoundedTypeVariableByValue::T x1, self::exhaustiveBoundedTypeVariableByValue::T x2) → dynamic
+  ;
+static method exhaustiveBoundedTypeVariableByType<T extends core::bool>(self::exhaustiveBoundedTypeVariableByType::T x1, self::exhaustiveBoundedTypeVariableByType::T x2) → dynamic
+  ;
+static method nonExhaustiveBoundedTypeVariable<T extends core::bool>(self::nonExhaustiveBoundedTypeVariable::T x1, self::nonExhaustiveBoundedTypeVariable::T x2) → dynamic
+  ;
+static method exhaustiveBoundedTypeVariableByBound<T extends core::bool>(self::exhaustiveBoundedTypeVariableByBound::T x1, self::exhaustiveBoundedTypeVariableByBound::T x2) → dynamic
+  ;
+static method nonExhaustiveBoundedTypeVariableByOtherType<T extends core::bool, S extends core::bool>(self::nonExhaustiveBoundedTypeVariableByOtherType::T x1, self::nonExhaustiveBoundedTypeVariableByOtherType::T x2) → dynamic
+  ;
+static method exhaustivePromotedTypeVariableByValue<T extends core::Object? = dynamic>(self::exhaustivePromotedTypeVariableByValue::T% x1, self::exhaustivePromotedTypeVariableByValue::T% x2) → dynamic
+  ;
+static method exhaustivePromotedTypeVariableByType<T extends core::Object? = dynamic>(self::exhaustivePromotedTypeVariableByType::T% x1, self::exhaustivePromotedTypeVariableByType::T% x2) → dynamic
+  ;
+static method nonExhaustivePromotedTypeVariable<T extends core::Object? = dynamic>(self::nonExhaustivePromotedTypeVariable::T% x1, self::nonExhaustivePromotedTypeVariable::T% x2) → dynamic
+  ;
+static method exhaustivePromotedTypeVariableByBound1<T extends core::Object? = dynamic>(self::exhaustivePromotedTypeVariableByBound1::T% x1, self::exhaustivePromotedTypeVariableByBound1::T% x2) → dynamic
+  ;
+static method nonExhaustivePromotedTypeVariableByOtherType<T extends core::Object? = dynamic, S extends core::bool>(self::nonExhaustivePromotedTypeVariableByOtherType::T% x1, self::nonExhaustivePromotedTypeVariableByOtherType::T% x2) → dynamic
+  ;

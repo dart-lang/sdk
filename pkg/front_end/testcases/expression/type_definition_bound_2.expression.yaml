@@ -1,0 +1,22 @@
+# Copyright (c) 2022, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+sources: |
+  void withBound<E extends String>(List<E> x) {
+    List<E> y = [];
+    List<String> z = [];
+    z.addAll(y);
+  }
+definitions: ["x"]
+# List<String>
+definition_types: ["dart:core", "List", "1", "1", "dart:core", "String", "1", "0"]
+type_definitions: ["E"]
+# String
+type_bounds: ["dart:core", "String", "1", "0"]
+# String
+type_defaults: ["dart:core", "String", "1", "0"]
+method: "withBound"
+# Can't add List<String> to List<E> :(
+expression: |
+  () { List<E> y = []; y.addAll(x); }

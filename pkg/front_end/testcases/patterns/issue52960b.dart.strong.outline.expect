@@ -1,0 +1,14 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef R6 = (core::int, core::int, core::int, core::int, core::int, core::int);
+typedef R6as3of2 = ((core::int, core::int), (core::int, core::int), (core::int, core::int));
+static method shuffle6a((core::int, core::int, core::int, core::int, core::int, core::int) r) → (core::int, core::int, core::int, core::int, core::int, core::int)
+  ;
+static method shuffle6b(((core::int, core::int), (core::int, core::int), (core::int, core::int)) r) → ((core::int, core::int), (core::int, core::int), (core::int, core::int))
+  ;
+static method main() → dynamic
+  ;
+static method sort4(core::int a0, core::int a1, core::int a2, core::int a3) → dynamic
+  ;

@@ -1,0 +1,14 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+import "dart:async";
+
+class Class<T extends core::Object? = dynamic> extends core::Object {
+  constructor •({required () → FutureOr<core::List<self::Class::T%>>a}) → self::Class<self::Class::T%>
+    ;
+}
+static method method() → dynamic
+  ;
+static method main() → dynamic
+  ;

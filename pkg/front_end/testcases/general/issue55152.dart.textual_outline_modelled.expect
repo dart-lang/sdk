@@ -1,0 +1,13 @@
+class A<X> {
+  const A();
+  const factory A.redir() = A;
+}
+
+enum E {
+  element(TA.redir());
+
+  final A<String> a;
+  const E(this.a);
+}
+
+typedef TA<Y> = A<Y>;

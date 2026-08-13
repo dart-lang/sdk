@@ -1,0 +1,7 @@
+f(dynamic x, dynamic i) {
+++x?[i];
+}
+
+f[StringToken]([BeginToken]dynamic[KeywordToken] x[StringToken],[SimpleToken] dynamic[KeywordToken] i[StringToken])[SimpleToken] {[BeginToken]
+++[SimpleToken]x[StringToken]?[SimpleToken][[BeginToken]i[StringToken]][SimpleToken];[SimpleToken]
+}[SimpleToken][SimpleToken]

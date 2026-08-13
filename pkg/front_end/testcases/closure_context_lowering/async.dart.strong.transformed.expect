@@ -1,0 +1,138 @@
+library;
+import self as self;
+import "dart:async" as asy;
+import "dart:core" as core;
+
+import "dart:async";
+
+static field (asy::Future<core::int>) → asy::Future<Null> asyncInFieldInitializer = (positional-parameter x) → asy::Future<Null> async /* emittedValueType= Null */ /* scope=[
+  #ctx1: not-captured VariableContext([
+    positional-parameter x;
+  ]),
+] */ {
+  await x;
+};
+static method foo() → asy::Future<core::int> async /* emittedValueType= core::int */ 
+  return 42;
+static method simpleAsyncAwait(positional-parameter a, positional-parameter b) → asy::Future<core::int> async /* emittedValueType= core::int */ /* scope=[
+  #ctx2: not-captured VariableContext([
+    positional-parameter a;
+    positional-parameter b;
+  ]),
+] */ {
+  return (await a).{core::num::+}(await b){(core::num) → core::int};
+}
+static method loops(positional-parameter list) → asy::Future<core::int> async /* emittedValueType= core::int */ /* scope=[
+  #ctx3: not-captured VariableContext([
+    positional-parameter list;
+  ]),
+] */ /* scope=[
+  #ctx4: not-captured VariableContext([
+    local-variable sum;
+  ]),
+] */ {
+  sum := 0;
+  for /* scope=[
+    #ctx5: not-captured VariableContext([
+      local-variable i;
+    ]),
+  ] */ (i := 0; i.{core::num::<}(10){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int}) {
+    {
+      :sync-for-iterator := list.{core::Iterable::iterator}{core::Iterator<core::int>};
+      for /* scope=[
+        #ctx6: not-captured VariableContext([
+          synthetic-variable synthesized :sync-for-iterator;
+        ]),
+      ] */ (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; )/* scope=[
+        #ctx7: not-captured VariableContext([
+          local-variable j;
+        ]),
+      ] */ {
+        j := :sync-for-iterator.{core::Iterator::current}{core::int};
+        {
+          sum = sum.{core::num::+}(i.{core::num::+}(j){(core::num) → core::int}.{core::num::+}(await self::foo()){(core::num) → core::int}){(core::num) → core::int};
+        }
+      }
+    }
+  }
+  for /* scope=[
+    #ctx8: not-captured VariableContext([
+      local-variable k;
+    ]),
+  ] */ (k := 0; k.{core::num::<}(10){(core::num) → core::bool}; k = k.{core::num::+}(1){(core::num) → core::int}) {
+    sum = sum.{core::num::+}(k){(core::num) → core::int};
+  }
+  return sum;
+}
+static method tryCatchRethrow(positional-parameter a, positional-parameter b, positional-parameter c) → asy::Future<core::int> async /* emittedValueType= core::int */ /* scope=[
+  #ctx9: not-captured VariableContext([
+    positional-parameter a;
+    positional-parameter b;
+    positional-parameter c;
+  ]),
+] */ /* scope=[
+  #ctx10: not-captured VariableContext([
+    local-variable x;
+  ]),
+] */ {
+  x := 1;
+  try
+    try {
+      x = x.{core::num::+}(await a){(core::num) → core::int};
+    }
+    on core::Object catch(catch-variable final e)/* scope=[
+      #ctx11: not-captured VariableContext([
+        catch-variable final e;
+      ]),
+    ] */ {
+      if(e is core::Error) {
+        return 42;
+      }
+      x = x.{core::num::+}(await b){(core::num) → core::int};
+      rethrow;
+    }
+  finally {
+    core::print("fin");
+    x = x.{core::num::+}(await c){(core::num) → core::int};
+    return x;
+  }
+}
+static method closure(positional-parameter a) → dynamic/* scope=[
+  #ctx12: direct-captured VariableContext([
+    positional-parameter a;
+  ]),
+] */ /* scope=[
+  #ctx13: direct-captured VariableContext([
+    local-variable x;
+  ]),
+  #ctx14: not-captured VariableContext([
+    local-function-variable final nested;
+  ]),
+] */ {
+  x := 3;
+  function nested() /* #ctx12 #ctx13 */ → asy::Future<core::int> async /* emittedValueType= core::int */ /* scope=[
+    #ctx15: not-captured VariableContext([
+      local-variable y;
+    ]),
+  ] */ {
+    y := 4;
+    try {
+      x = 5;
+      y = await a;
+      return x.{core::num::+}(y){(core::num) → core::int};
+    }
+    finally {
+      core::print("fin");
+    }
+  }
+  return nested;
+}
+static method testAssert(positional-parameter a) → asy::Future<core::int> async /* emittedValueType= core::int */ /* scope=[
+  #ctx16: not-captured VariableContext([
+    positional-parameter a;
+  ]),
+] */ {
+  assert(await a =={core::num::==}{(core::Object) → core::bool} 42);
+  return 7;
+}
+static method main() → dynamic {}

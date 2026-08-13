@@ -1,0 +1,9 @@
+class A {}
+
+class MA extends A with M {}
+
+mixin M on A {
+  M.baz();
+}
+
+test() {}

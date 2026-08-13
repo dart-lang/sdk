@@ -1,0 +1,49 @@
+main = main::main;
+library from "org-dartlang-test:///main.dart" as main {
+//
+// Problems in library:
+//
+// org-dartlang-test:///main.dart:4:11: Error: Expected ';' after this.
+//   final a kjsdf ksjdf ;
+//           ^^^^^
+//
+// org-dartlang-test:///main.dart:4:11: Error: Final field 'kjsdf' is not initialized.
+// Try to initialize the field in the declaration or in every constructor.
+//   final a kjsdf ksjdf ;
+//           ^^^^^
+//
+// org-dartlang-test:///main.dart:4:17: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+//   final a kjsdf ksjdf ;
+//                 ^^^^^
+//
+// org-dartlang-test:///main.dart:4:9: Error: 'a' isn't a type.
+//   final a kjsdf ksjdf ;
+//         ^
+//
+// org-dartlang-test:///main.dart:4:9: Error: Type 'a' not found.
+//   final a kjsdf ksjdf ;
+//         ^
+//
+// org-dartlang-test:///main.dart:5:12: Error: 'a' isn't an instance field of this class.
+//   Foo(this.a);
+//            ^
+//
+
+  abstract class BIterator extends dart.core::Object implements dart.core::Iterator<dynamic> {
+    synthetic constructor •() → main::BIterator
+      : super dart.core::Object::•()
+      ;
+  }
+  class Foo extends dart.core::Object {
+    final field invalid-type kjsdf = null;
+    field dynamic ksjdf = null;
+    constructor •(initializing-formal dynamic a) → main::Foo
+      : invalid-initializer "org-dartlang-test:///main.dart:5:12: Error: 'a' isn't an instance field of this class.\n  Foo(this.a);\n           ^"
+      ;
+  }
+  static method main() → dynamic {
+    new main::Foo::•(5);
+    return 2;
+  }
+}

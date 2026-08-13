@@ -1,0 +1,19 @@
+class ConcreteClass extends ConcreteSuper {
+  abstract int declaredAbstractExtendsAbstractField;
+  abstract int declaredAbstractExtendsConcreteField;
+  abstract int declaredAbstractField;
+  int declaredConcreteExtendsAbstractField = 0;
+  int declaredConcreteExtendsConcreteField = 0;
+  int declaredConcreteField = 0;
+}
+
+class ConcreteSuper {
+  abstract int declaredAbstractExtendsAbstractField;
+  abstract int declaredConcreteExtendsAbstractField;
+  abstract int extendedAbstractField;
+  int declaredAbstractExtendsConcreteField = 0;
+  int declaredConcreteExtendsConcreteField = 0;
+  int extendedConcreteField = 0;
+}
+
+main() {}

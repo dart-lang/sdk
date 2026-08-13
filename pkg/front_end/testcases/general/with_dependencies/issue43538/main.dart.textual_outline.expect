@@ -1,0 +1,7 @@
+import 'const_lib.dart';
+
+const crossModule = B();
+
+main() {}
+
+expect(expected, actual) {}

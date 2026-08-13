@@ -1,0 +1,19 @@
+extension type ET1 {}
+extension type ET2 implements Foo {}
+extension type ET3 implements Foo, Bar {}
+extension type ET4<T> {}
+extension type ET5<T> implements Foo {}
+extension type ET6<T> implements Foo, Bar {}
+extension type ET7<T>.name {}
+extension type ET8<T>.name implements Foo {}
+extension type ET9<T>.name implements Foo, Bar {}
+
+extension[KeywordToken] type[StringToken] ET1[StringToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] ET2[StringToken] implements[KeywordToken] Foo[StringToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] ET3[StringToken] implements[KeywordToken] Foo[StringToken],[SimpleToken] Bar[StringToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] ET4[StringToken]<[BeginToken]T[StringToken]>[SimpleToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] ET5[StringToken]<[BeginToken]T[StringToken]>[SimpleToken] implements[KeywordToken] Foo[StringToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] ET6[StringToken]<[BeginToken]T[StringToken]>[SimpleToken] implements[KeywordToken] Foo[StringToken],[SimpleToken] Bar[StringToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] ET7[StringToken]<[BeginToken]T[StringToken]>[SimpleToken].[SimpleToken]name[StringToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] ET8[StringToken]<[BeginToken]T[StringToken]>[SimpleToken].[SimpleToken]name[StringToken] implements[KeywordToken] Foo[StringToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] ET9[StringToken]<[BeginToken]T[StringToken]>[SimpleToken].[SimpleToken]name[StringToken] implements[KeywordToken] Foo[StringToken],[SimpleToken] Bar[StringToken] {[BeginToken]}[SimpleToken][SimpleToken]

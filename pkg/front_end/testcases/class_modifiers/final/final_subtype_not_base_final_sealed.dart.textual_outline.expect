@@ -1,0 +1,23 @@
+final class FinalClass {}
+
+base class BaseClass extends FinalClass {}
+
+sealed class SubtypeOfFinal extends FinalClass {}
+
+class RegularClass {}
+
+class Extends extends FinalClass {}
+
+class Implements implements FinalClass {}
+
+mixin MixinImplements implements FinalClass {}
+
+mixin MixinImplementsIndirect implements SubtypeOfFinal {}
+
+mixin On on FinalClass {}
+
+class ExtendsExtends extends Extends {}
+
+class Multiple extends RegularClass implements FinalClass {}
+
+class IndirectSubtype extends SubtypeOfFinal {}

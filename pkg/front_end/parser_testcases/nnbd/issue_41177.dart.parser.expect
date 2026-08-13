@@ -1,0 +1,17 @@
+main(List<int>? a, bool? b) {
+a![0];
+a?[0];
+a!?[0];
+(a!)?[0];
+b!?[0]:0;
+(b!)?[0]:0;
+}
+
+main[StringToken]([BeginToken]List[StringToken]<[BeginToken]int[StringToken]>[SimpleToken]?[SimpleToken] a[StringToken],[SimpleToken] bool[StringToken]?[SimpleToken] b[StringToken])[SimpleToken] {[BeginToken]
+a[StringToken]![SimpleToken][[BeginToken]0[StringToken]][SimpleToken];[SimpleToken]
+a[StringToken]?[SimpleToken][[BeginToken]0[StringToken]][SimpleToken];[SimpleToken]
+a[StringToken]![SimpleToken]?[SimpleToken][[BeginToken]0[StringToken]][SimpleToken];[SimpleToken]
+([BeginToken]a[StringToken]![SimpleToken])[SimpleToken]?[SimpleToken][[BeginToken]0[StringToken]][SimpleToken];[SimpleToken]
+b[StringToken]![SimpleToken]?[SimpleToken][[BeginToken]0[StringToken]][SimpleToken]:[SimpleToken]0[StringToken];[SimpleToken]
+([BeginToken]b[StringToken]![SimpleToken])[SimpleToken]?[SimpleToken][[BeginToken]0[StringToken]][SimpleToken]:[SimpleToken]0[StringToken];[SimpleToken]
+}[SimpleToken][SimpleToken]

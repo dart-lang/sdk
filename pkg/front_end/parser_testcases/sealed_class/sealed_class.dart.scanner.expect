@@ -1,0 +1,9 @@
+sealed class Class {}
+
+mixin M {}
+sealed class A = Object with M;
+
+sealed[KeywordToken] class[KeywordToken] Class[StringToken] {[BeginToken]}[SimpleToken]
+
+mixin[KeywordToken] M[StringToken] {[BeginToken]}[SimpleToken]
+sealed[KeywordToken] class[KeywordToken] A[StringToken] =[SimpleToken] Object[StringToken] with[KeywordToken] M[StringToken];[SimpleToken][SimpleToken]

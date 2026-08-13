@@ -1,0 +1,5 @@
+// @dart = 2.16
+
+enum T { t(); void test() { print("Success"); } }
+
+void main() {}

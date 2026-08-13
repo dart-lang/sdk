@@ -1,0 +1,30 @@
+# Copyright (c) 2025, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# https://github.com/flutter/flutter/issues/171963
+
+type: newworld
+worlds:
+  - entry: a.dart
+    sources:
+      a.dart: |
+        import 'b.dart';
+        abstract class MyClassA<C extends MyClassB> {}
+      b.dart: |
+        import 'a.dart';
+        abstract class MyClassB {}
+        class MyInstance<C extends MyClassB, A extends MyClassA> {
+          final C? myClassC;
+          final A? myClassA;
+          const MyInstance(this.myClassC, this.myClassA);
+        }
+    expectedLibraryCount: 2
+
+  - entry: a.dart
+    expectInitializeFromDill: false
+    worldType: updated
+    invalidate: [b.dart]
+    sources:
+    expectedLibraryCount: 2
+    advancedInvalidation: bodiesOnly

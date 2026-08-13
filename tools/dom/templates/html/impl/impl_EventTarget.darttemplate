@@ -1,0 +1,159 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+part of $LIBRARYNAME;
+
+/**
+ * Base class that supports listening for and dispatching browser events.
+ *
+ * Normally events are accessed via the Stream getter:
+ *
+ *     element.onMouseOver.listen((e) => print('Mouse over!'));
+ *
+ * To access bubbling events which are declared on one element, but may bubble
+ * up to another element type (common for MediaElement events):
+ *
+ *     MediaElement.pauseEvent.forTarget(document.body).listen(...);
+ *
+ * To useCapture on events:
+ *
+ *     Element.keyDownEvent.forTarget(element, useCapture: true).listen(...);
+ *
+ * Custom events can be declared as:
+ *
+ *     class DataGenerator {
+ *       static EventStreamProvider<Event> dataEvent =
+ *           new EventStreamProvider('data');
+ *     }
+ *
+ * Then listeners should access the event with:
+ *
+ *     DataGenerator.dataEvent.forTarget(element).listen(...);
+ *
+ * Custom events can also be accessed as:
+ *
+ *     element.on['some_event'].listen(...);
+ *
+ * This approach is generally discouraged as it loses the event typing and
+ * some DOM events may have multiple platform-dependent event names under the
+ * covers. By using the standard Stream getters you will get the platform
+ * specific event name automatically.
+ */
+class Events {
+  /* Raw event target. */
+  final EventTarget _ptr;
+
+  Events(this._ptr);
+
+  Stream<Event> operator [](String type) {
+    return new _EventStream(_ptr, type, false);
+  }
+}
+
+class ElementEvents extends Events {
+  static final webkitEvents = {
+    'animationend' : 'webkitAnimationEnd',
+    'animationiteration' : 'webkitAnimationIteration',
+    'animationstart' : 'webkitAnimationStart',
+    'fullscreenchange' : 'webkitfullscreenchange',
+    'fullscreenerror' : 'webkitfullscreenerror',
+    'keyadded' : 'webkitkeyadded',
+    'keyerror' : 'webkitkeyerror',
+    'keymessage' : 'webkitkeymessage',
+    'needkey' : 'webkitneedkey',
+    'pointerlockchange' : 'webkitpointerlockchange',
+    'pointerlockerror' : 'webkitpointerlockerror',
+    'resourcetimingbufferfull' : 'webkitresourcetimingbufferfull',
+    'transitionend': 'webkitTransitionEnd',
+    'speechchange' : 'webkitSpeechChange'
+  };
+
+  ElementEvents(Element ptr) : super(ptr);
+
+  Stream<Event> operator [](String type) {
+    if (webkitEvents.keys.contains(type.toLowerCase())) {
+      if (Device.isWebKit) {
+        return new _ElementEventStreamImpl(
+            _ptr, webkitEvents[type.toLowerCase()], false);
+      }
+    }
+    return new _ElementEventStreamImpl(_ptr, type, false);
+  }
+}
+
+/**
+ * Base class for all browser objects that support events.
+ *
+ * Use the [on] property to add, and remove events
+ * for compile-time type checks and a more concise API.
+ */
+$(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
+
+  // A private constructor to act as super-constructor for mixin-applications.
+  //
+  // The `dart:html` library predates the class modifiers feature, and it
+  // effectively seals many of its classes by using private and factory
+  // constructors. This allows the classes to be extended within the library,
+  // but seals them to code outside the SDK.
+  //
+  // Currently a mixin application on a class with no generative constructors
+  // will get a default constructor which tries to forward to the unnamed
+  // constructor of the superclass. That superclass constructor either doesn't
+  // exist or is not generative, so that's always an invalid default constructor.
+  //
+  // For now, this makes sure that the class has a private generative
+  // constructor that a mixin application *inside this library* can forward to,
+  // to avoid getting an invalid default constructor.
+  //
+  // Here is a simple example to illustrate the kind of error this constructor
+  // prevents:
+  // ```
+  //    class A { // Equivalent to `EventTarget` here
+  //      // Adding A._unused(); fixes the errors below
+  //      factory A._() => throw '';
+  //    }
+  //
+  //    abstract mixin class M {
+  //      get y;
+  //    }
+  //
+  //    abstract class B extends A with M {
+  //                // ^ Error because A&M's default constructor needs a
+  //                // superclass constructor to forward to.
+  //      factory B._() => throw '';
+  //
+  //      @override
+  //      get y => 3;
+  //    }
+  // ```
+  EventTarget._unused();
+
+  /**
+   * This is an ease-of-use accessor for event streams which should only be
+   * used when an explicit accessor is not available.
+   */
+  Events get on => new Events(this);
+
+  void addEventListener(String type, EventListener$NULLABLE listener,
+      [bool$NULLABLE useCapture]) {
+    // TODO(leafp): This check is avoid a bug in our dispatch code when
+    // listener is null.  The browser treats this call as a no-op in this
+    // case, so it's fine to short-circuit it, but we should not have to.
+    if (listener != null) {
+      _addEventListener(type, listener, useCapture);
+    }
+  }
+
+  void removeEventListener(String type, EventListener$NULLABLE listener,
+      [bool$NULLABLE useCapture]) {
+    // TODO(leafp): This check is avoid a bug in our dispatch code when
+    // listener is null.  The browser treats this call as a no-op in this
+    // case, so it's fine to short-circuit it, but we should not have to.
+    if (listener != null) {
+      _removeEventListener(type, listener, useCapture);
+    }
+  }
+
+$!MEMBERS
+}

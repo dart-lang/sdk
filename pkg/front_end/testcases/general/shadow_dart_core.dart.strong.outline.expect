@@ -1,0 +1,20 @@
+library;
+import self as self;
+import "shadow_dart_core_lib.dart" as sha;
+
+import "org-dartlang-testcase:///shadow_dart_core_lib.dart";
+
+part shadow_dart_core_part.dart;
+static method method1(sha::Duration d) → void
+  ;
+static method /* from org-dartlang-testcase:///shadow_dart_core_part.dart */ method2(sha::Duration d) → void
+  ;
+
+library;
+import self as sha;
+import "dart:core" as core;
+
+class Duration extends core::Object {
+  synthetic constructor •() → sha::Duration
+    ;
+}

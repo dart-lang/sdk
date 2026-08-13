@@ -1,0 +1,15 @@
+// @dart = 2.19
+
+import 'dart:ffi';
+
+class WithFinal with Double {}
+
+class ImplementsFinal implements Double {}
+
+class ExtendsFinal extends Double {}
+
+class ExtendsBase extends Opaque {}
+
+class ImplementsBase implements Opaque {}
+
+class ExtendsInterface extends Finalizable {}

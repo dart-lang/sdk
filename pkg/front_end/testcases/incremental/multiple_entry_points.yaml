@@ -1,0 +1,65 @@
+# Copyright (c) 2022, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Use multiple entry points, try for force the class hierarchy not to contain
+# all the entry point libraries, then try to force using it via expression
+# compilation. This used to crash.
+
+type: newworld
+worlds:
+  - entry:
+    - a.dart
+    - b.dart
+    sources:
+      a.dart: |
+        class A {
+          void foo() {}
+        }
+        class B extends A {
+          void foo() {
+            super.foo();
+          }
+        }
+      b.dart: |
+        class C {
+          void foo() {}
+        }
+        class D extends C {
+          void foo() {
+            super.foo();
+          }
+        }
+    expectedLibraryCount: 2
+
+  - entry:
+    - a.dart
+    - b.dart
+    expectInitializeFromDill: true
+    invalidate:
+      - a.dart
+    sources:
+      a.dart: |
+        class A {
+          void bar() {}
+        }
+        class B extends A {
+          void bar() {
+            super.bar();
+          }
+        }
+      b.dart: |
+        class C {
+          void foo() {}
+        }
+        class D extends C {
+          void foo() {
+            super.foo();
+          }
+        }
+    advancedInvalidation: outlineChange
+    expectedLibraryCount: 2
+    expressionCompilation:
+      uri: b.dart
+      expression: super.foo()
+      className: D

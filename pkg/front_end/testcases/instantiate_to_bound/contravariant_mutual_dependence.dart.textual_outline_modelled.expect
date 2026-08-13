@@ -1,0 +1,9 @@
+D d = throw '';
+
+E e = throw '';
+
+class D<X extends void Function(X, Y), Y extends void Function(X, Y)> {}
+
+class E<X extends void Function(X)> {}
+
+main() {}

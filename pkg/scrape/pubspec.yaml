@@ -1,0 +1,19 @@
+name: scrape
+description: Helper package for analyzing the syntax of Dart programs.
+# This package is not intended for consumption on pub.dev. DO NOT publish.
+publish_to: none
+
+environment:
+  sdk: '^3.13.0-0'
+
+resolution: workspace
+
+# Use 'any' constraints here; we get our versions from the DEPS file.
+dependencies:
+  analyzer: any
+  args: any
+  path: any
+
+# Use 'any' constraints here; we get our versions from the DEPS file.
+dev_dependencies:
+  dart_flutter_team_lints: any

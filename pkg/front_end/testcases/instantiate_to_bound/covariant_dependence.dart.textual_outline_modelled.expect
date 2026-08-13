@@ -1,0 +1,19 @@
+C c = throw '';
+
+D d = throw '';
+
+E e = throw '';
+
+F f = throw '';
+
+class A<X> {}
+
+class C<X, Y extends A<X>> {}
+
+class D<X extends num, Y extends A<X>> {}
+
+class E<X, Y extends X Function()> {}
+
+class F<X extends num, Y extends X Function()> {}
+
+main() {}

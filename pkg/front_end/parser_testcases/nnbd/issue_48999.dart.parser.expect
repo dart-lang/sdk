@@ -1,0 +1,13 @@
+void main() {
+dynamic i = 10;
+print('${i as int?}');
+print('${i is int?}');
+}
+
+
+void[KeywordToken] main[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+dynamic[KeywordToken] i[StringToken] =[SimpleToken] 10[StringToken];[SimpleToken]
+print[StringToken]([BeginToken]'[StringToken]${[BeginToken]i[StringToken] as[KeywordToken] int[StringToken]?[SimpleToken]}[SimpleToken]'[StringToken])[SimpleToken];[SimpleToken]
+print[StringToken]([BeginToken]'[StringToken]${[BeginToken]i[StringToken] is[KeywordToken] int[StringToken]?[SimpleToken]}[SimpleToken]'[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

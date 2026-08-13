@@ -1,0 +1,25 @@
+abstract class AbstractClass implements Interface1, Interface2 {
+  void set declareAbstractImplementMultipleSetter(int i);
+  void set declareConcreteImplementMultipleSetter(int i) {}
+}
+
+class ConcreteClass implements Interface1, Interface2 {
+  void set declareAbstractImplementMultipleSetter(int i);
+  void set declareConcreteImplementMultipleSetter(int i) {}
+}
+
+class ConcreteSub extends AbstractClass {}
+
+class Interface1 {
+  void set declareAbstractImplementMultipleSetter(int i) {}
+  void set declareConcreteImplementMultipleSetter(int i) {}
+  void set implementMultipleSetter(int i) {}
+}
+
+class Interface2 {
+  void set declareAbstractImplementMultipleSetter(int i) {}
+  void set declareConcreteImplementMultipleSetter(int i) {}
+  void set implementMultipleSetter(int i) {}
+}
+
+main() {}

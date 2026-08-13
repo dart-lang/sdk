@@ -1,0 +1,11 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static field core::int? i = null;
+static method main() → void {
+  let synthesized core::int? anonymous#receiver = self::i in anonymous#receiver == null ?{core::int?} null : let final synthesized core::int anonymous#this = anonymous#receiver as core::int in 1;
+  let synthesized core::int? anonymous#receiver = self::i in anonymous#receiver == null ?{core::int?} null : let final synthesized core::int anonymous#this = anonymous#receiver as core::int in anonymous#this{core::int};
+  let synthesized core::int? anonymous#receiver = self::i in anonymous#receiver == null ?{core::bool?} null : let final synthesized core::int anonymous#this = anonymous#receiver as core::int in anonymous#this{core::int}.{core::int::isEven}{core::bool};
+  let synthesized core::int? anonymous#receiver = self::i in anonymous#receiver == null ?{core::bool?} null : let final synthesized core::int anonymous#this = anonymous#receiver as core::int in anonymous#this{core::int}.{core::int::isEven}{core::bool};
+}

@@ -1,0 +1,64 @@
+# Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# This basically first compiles
+# tests/language_2/extension_methods/static_extension_prefix_double_import_test.dart
+# and then compiles
+# tests/language_2/extension_methods/static_extension_prefix_import_conflict_test.dart
+# as this has produced a wrong squigly-length on an error.
+
+type: newworld
+worlds:
+  - entry: main.dart
+    errors: true
+    sources:
+      main.dart: |
+        import "lib1.dart";
+        import "lib2.dart" as p;
+        main() {
+          Object o = 1;
+          o.onObject;
+        }
+      lib1.dart: |
+        extension OnObject on Object {
+          String get onObject => "object #1";
+        }
+      lib2.dart: |
+        extension AlsoOnObject on Object {
+          String get onObject => "object #2";
+        }
+    expectedLibraryCount: 3
+  - entry: main.dart
+    worldType: updated
+    expectInitializeFromDill: false
+    errors: false
+    invalidate:
+      - main.dart
+    sources:
+      main.dart: |
+        import "lib1.dart";
+        import "lib1.dart" as p;
+        main() {
+          Object o = 1;
+          o.onObject;
+        }
+    expectedLibraryCount: 2
+    advancedInvalidation: problemsInLibrary
+  - entry: main.dart
+    worldType: updated
+    expectInitializeFromDill: false
+    errors: true
+    expectSameErrorsAsWorld: 1
+    invalidate:
+      - main.dart
+    sources:
+      main.dart: |
+        import "lib1.dart";
+        import "lib2.dart" as p;
+        main() {
+          Object o = 1;
+          o.onObject;
+        }
+    expectedLibraryCount: 3
+    advancedInvalidation: outlineChange

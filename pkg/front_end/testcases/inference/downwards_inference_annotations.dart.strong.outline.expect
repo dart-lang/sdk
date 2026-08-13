@@ -1,0 +1,30 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class Foo extends core::Object /*hasConstConstructor*/  {
+  const constructor •(core::List<core::String> l) → self::Foo
+    : super core::Object::•()
+    ;
+  const constructor named(core::List<core::String> l) → self::Foo
+    : super core::Object::•()
+    ;
+}
+@self::Foo::•(const <core::String>[])
+class Bar extends core::Object {
+  synthetic constructor •() → self::Bar
+    ;
+}
+@self::Foo::named(const <core::String>[])
+class Baz extends core::Object {
+  synthetic constructor •() → self::Baz
+    ;
+}
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///downwards_inference_annotations.dart:12:2 -> InstanceConstant(const Foo{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///downwards_inference_annotations.dart:15:2 -> InstanceConstant(const Foo{})
+Extra constant evaluation: evaluated: 2, effectively constant: 2

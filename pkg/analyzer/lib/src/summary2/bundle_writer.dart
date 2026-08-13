@@ -1,0 +1,1266 @@
+// Copyright (c) 2020, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'dart:typed_data';
+
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
+import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
+import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/binary/binary_writer.dart';
+import 'package:analyzer/src/binary/string_table.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/field_name_non_promotability_info.dart';
+import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_algebra.dart';
+import 'package:analyzer/src/error/inference_error.dart';
+import 'package:analyzer/src/summary2/ast_binary_tag.dart';
+import 'package:analyzer/src/summary2/ast_binary_writer.dart';
+import 'package:analyzer/src/summary2/export.dart';
+import 'package:analyzer/src/summary2/reference.dart';
+
+class BundleWriter {
+  late final ReferenceTableWriter _references;
+
+  /// The declaration sink - any data that can be read without a need to
+  /// have any other elements to be available. For example declarations of
+  /// classes, methods, functions, etc. But not supertypes of classes, or
+  /// return types of methods - these might reference other classes that we
+  /// have not read yet. Such resolution data is stored into [_resolutionSink].
+  ///
+  /// Some resolution data is still written into this sink, if it does not
+  /// require any other declaration read it later. For example type inference
+  /// errors, or whether a parameter inherits `covariant`, or a class is
+  /// simply bounded.
+  late BinaryWriter _sink = BinaryWriter(
+    stringTableBuilder: _stringTableBuilder,
+  );
+
+  /// The resolution sink - any data that references elements, so can only
+  /// be read after elements are created and available via its [Reference]s.
+  late final ResolutionSink _resolutionSink = ResolutionSink(
+    stringTableBuilder: _stringTableBuilder,
+    references: _references,
+  );
+
+  /// We fill this map before writing the library.
+  ///
+  /// When we write getter / setter fragments, we write non-synthetic
+  /// fragments as full data objects. But for synthetic getter / setter
+  /// fragments we write only the ID of the non-synthetic variable fragment,
+  /// from this map.
+  ///
+  /// When we write property fragments, we write non-synthetic fragments as
+  /// full data objects. But for synthetic property fragments we write the
+  /// pair of getter / setter fragments IDs, from this map.
+  final Map<FragmentImpl, int> _fragmentIds = Map.identity();
+
+  final StringTableBuilder _stringTableBuilder = StringTableBuilder();
+
+  final List<_Library> _libraries = [];
+
+  BundleWriter() {
+    _references = ReferenceTableWriter();
+  }
+
+  BundleWriterResult finish() {
+    var baseResolutionOffset = _sink.offset;
+    _sink.writeBytes(_resolutionSink.takeBytes());
+
+    var librariesOffset = _sink.offset;
+    _sink.writeList<_Library>(_libraries, (library) {
+      _sink.writeStringReference(library.uriStr);
+      _sink.writeUint30(library.offset);
+    });
+
+    var referencesOffset = _sink.offset;
+    _references.write(_sink);
+
+    var stringTableOffset = _stringTableBuilder.write(_sink);
+
+    // Write as Uint32 so that we know where it is.
+    _sink.writeUint32(baseResolutionOffset);
+    _sink.writeUint32(librariesOffset);
+    _sink.writeUint32(referencesOffset);
+    _sink.writeUint32(stringTableOffset);
+
+    var bytes = _sink.takeBytes();
+    return BundleWriterResult(resolutionBytes: bytes);
+  }
+
+  void writeLibraryElement(LibraryElementImpl libraryElement) {
+    var libraryOffset = _sink.offset;
+
+    // Write non-resolution data for the library.
+    _sink.writeStringReference(libraryElement.name);
+    _writeFeatureSet(libraryElement.featureSet);
+    libraryElement.writeFlags(_sink);
+    _writeLanguageVersion(libraryElement.languageVersion);
+    _writeExportEntries(libraryElement.exportEntries);
+    _sink.writeUint30List(libraryElement.nameUnion.mask);
+    _writeLoadLibraryFunctionReferences(libraryElement);
+
+    // Write the library units.
+    // This will write also resolution data, e.g. for classes.
+    _writeLibraryFragment(libraryElement.firstFragment);
+
+    _writeClassElements(libraryElement.classes);
+    _writeEnumElements(libraryElement.enums);
+    _writeExtensionElements(libraryElement.extensions);
+    _writeExtensionTypeElements(libraryElement.extensionTypes);
+    _writeTopLevelFunctionElements(libraryElement.topLevelFunctions);
+    _writeMixinElements(libraryElement.mixins);
+    _writeTypeAliasElements(libraryElement.typeAliases);
+    _writeTopLevelVariableElements(libraryElement.topLevelVariables);
+    _writeGetterElements(libraryElement.getters);
+    _writeSetterElements(libraryElement.setters);
+    _writeVariableGetterSetterLinking(libraryElement.topLevelVariables);
+
+    // Write resolution data for the library.
+    _writeResolutionOffset();
+    _resolutionSink._writeMetadata(libraryElement.metadata);
+    _resolutionSink.writeElement(libraryElement.entryPoint);
+    _writeFieldNameNonPromotabilityInfo(
+      libraryElement.fieldNameNonPromotabilityInfo,
+    );
+
+    _libraries.add(
+      _Library(uriStr: '${libraryElement.uri}', offset: libraryOffset),
+    );
+  }
+
+  void _writeClassElements(List<ClassElementImpl> elements) {
+    _sink.writeList(elements, (element) {
+      _writeReference(element.reference);
+      _writeFragments(element.fragments);
+      _writeOptionalFragmentId(element.previousFragmentOfDifferentKind);
+      element.writeFlags(_sink);
+      _sink.writeBool(element.hasNonFinalField);
+
+      // We read members lazily.
+      _writeForLazyRead(() {
+        _resolutionSink.withTypeParameters(element.typeParameters, () {
+          _writeFieldElements(element.fields);
+          _writeGetterElements(element.getters);
+          _writeSetterElements(element.setters);
+          _writeVariableGetterSetterLinking(element.fields);
+          _writeMethodElements(element.methods);
+          if (!element.isMixinApplication) {
+            _writeConstructorElements(element.constructors);
+          }
+        });
+      });
+
+      _writeElementResolution(() {
+        _resolutionSink.withTypeParameters(element.typeParameters, () {
+          _writeTypeParameterElementResolutions(element.typeParameters);
+          _resolutionSink.writeType(element.supertype);
+          _resolutionSink._writeTypeList(element.mixins);
+          _resolutionSink._writeTypeList(element.interfaces);
+          _resolutionSink.writeOptionalElementList(element.interfaceCycle);
+        });
+      });
+    });
+  }
+
+  void _writeClassFragment(ClassFragmentImpl fragment) {
+    _writeTemplateFragment(fragment, () {
+      _sink.writeUint30(fragment.withClauseMixinStartIndex);
+      _resolutionSink.withTypeParameters(fragment.element.typeParameters, () {
+        _sink.writeList(fragment.typeParameters, _writeTypeParameterFragment);
+        _resolutionSink._writeMetadata(fragment.metadata);
+
+        _writeForLazyRead(() {
+          _sink.writeList(fragment.fields, _writeFieldFragment);
+          _sink.writeList(fragment.getters, _writeGetterFragment);
+          _sink.writeList(fragment.setters, _writeSetterFragment);
+          _sink.writeList(fragment.methods, _writeMethodFragment);
+          if (!fragment.isMixinApplication) {
+            _sink.writeList(fragment.constructors, _writeConstructorFragment);
+          }
+        });
+      });
+    });
+  }
+
+  void _writeConstructorElements(List<ConstructorElementImpl> elements) {
+    _sink.writeList(elements, (element) {
+      _writeReference(element.reference);
+      _writeFragments(element.fragments);
+      _writeFormalParameterElementFlags(element);
+      _writeOptionalFragmentId(element.previousFragmentOfDifferentKind);
+      element.writeFlags(_sink);
+      assert(element.typeParameters.isEmpty);
+
+      _writeElementResolution(() {
+        _writeFormalParameterElementResolutions(element);
+        _resolutionSink.writeType(element.returnType);
+        _resolutionSink.writeElement(element.superConstructor);
+        _resolutionSink.writeElement(element.redirectedConstructor);
+      });
+    });
+  }
+
+  void _writeConstructorFragment(ConstructorFragmentImpl fragment) {
+    _writeTemplateFragment(fragment, () {
+      _sink.writeOptionalStringReference(fragment.typeName);
+      assert(fragment.typeParameters.isEmpty);
+      _sink.writeList(fragment.formalParameters, _writeFormalParameterFragment);
+      _resolutionSink._writeMetadata(fragment.metadata);
+      _resolutionSink.writeList(
+        fragment.constantInitializers,
+        _resolutionSink._writeNode,
+      );
+    });
+  }
+
+  void _writeDirectiveUri(DirectiveUri element) {
+    void writeWithUriString(DirectiveUriWithRelativeUriString element) {
+      _sink.writeStringReference(element.relativeUriString);
+    }
+
+    void writeWithRelativeUri(DirectiveUriWithRelativeUri element) {
+      writeWithUriString(element);
+      _sink.writeStringReference('${element.relativeUri}');
+    }
+
+    void writeWithSource(DirectiveUriWithSource element) {
+      writeWithRelativeUri(element);
+      _sink.writeStringReference('${element.source.uri}');
+    }
+
+    if (element is DirectiveUriWithLibrary) {
+      _sink.writeByte(DirectiveUriKind.withLibrary.index);
+      writeWithSource(element);
+    } else if (element is DirectiveUriWithUnitImpl) {
+      _sink.writeByte(DirectiveUriKind.withUnit.index);
+      writeWithSource(element);
+      _writeLibraryFragment(element.libraryFragment);
+    } else if (element is DirectiveUriWithSource) {
+      _sink.writeByte(DirectiveUriKind.withSource.index);
+      writeWithSource(element);
+    } else if (element is DirectiveUriWithRelativeUri) {
+      _sink.writeByte(DirectiveUriKind.withRelativeUri.index);
+      writeWithRelativeUri(element);
+    } else if (element is DirectiveUriWithRelativeUriString) {
+      _sink.writeByte(DirectiveUriKind.withRelativeUriString.index);
+      writeWithUriString(element);
+    } else {
+      _sink.writeByte(DirectiveUriKind.withNothing.index);
+    }
+  }
+
+  void _writeElementResolution(void Function() operation) {
+    _writeResolutionOffset();
+    operation();
+  }
+
+  void _writeEnumElements(List<EnumElementImpl> elements) {
+    _sink.writeList(elements, (element) {
+      _writeReference(element.reference);
+      _writeFragments(element.fragments);
+      _writeOptionalFragmentId(element.previousFragmentOfDifferentKind);
+      element.writeFlags(_sink);
+      _sink.writeBool(element.hasNonFinalField);
+
+      _writeForLazyRead(() {
+        _resolutionSink.withTypeParameters(element.typeParameters, () {
+          _writeFieldElements(element.fields);
+          _writeGetterElements(element.getters);
+          _writeSetterElements(element.setters);
+          _writeVariableGetterSetterLinking(element.fields);
+          _writeConstructorElements(element.constructors);
+          _writeMethodElements(element.methods);
+        });
+      });
+
+      _writeElementResolution(() {
+        _resolutionSink.withTypeParameters(element.typeParameters, () {
+          _writeTypeParameterElementResolutions(element.typeParameters);
+          _resolutionSink.writeType(element.supertype);
+          _resolutionSink._writeTypeList(element.mixins);
+          _resolutionSink._writeTypeList(element.interfaces);
+          _resolutionSink.writeOptionalElementList(element.interfaceCycle);
+        });
+      });
+    });
+  }
+
+  void _writeEnumFragment(EnumFragmentImpl fragment) {
+    _writeTemplateFragment(fragment, () {
+      _sink.writeUint30(fragment.withClauseMixinStartIndex);
+      _resolutionSink.withTypeParameters(fragment.element.typeParameters, () {
+        _sink.writeList(fragment.typeParameters, _writeTypeParameterFragment);
+        _resolutionSink._writeMetadata(fragment.metadata);
+
+        _writeForLazyRead(() {
+          _sink.writeList(fragment.fields, _writeFieldFragment);
+          _sink.writeList(fragment.getters, _writeGetterFragment);
+          _sink.writeList(fragment.setters, _writeSetterFragment);
+          _sink.writeList(fragment.constructors, _writeConstructorFragment);
+          _sink.writeList(fragment.methods, _writeMethodFragment);
+        });
+      });
+    });
+  }
+
+  void _writeExportEntries(List<ExportEntry> elements) {
+    _sink.writeList(elements, (entry) {
+      _sink.writeStringReference(entry.name);
+      _references.writeReference(_sink, entry.reference);
+      _sink.writeList(entry.locations, _writeExportLocation);
+    });
+  }
+
+  void _writeExportLocation(ExportLocation location) {
+    _sink.writeUint30(location.fragmentIndex);
+    _sink.writeUint30(location.exportIndex);
+  }
+
+  void _writeExtensionElements(List<ExtensionElementImpl> elements) {
+    _sink.writeList(elements, (element) {
+      _writeReference(element.reference);
+      _writeFragments(element.fragments);
+      _writeOptionalFragmentId(element.previousFragmentOfDifferentKind);
+      element.writeFlags(_sink);
+
+      _writeForLazyRead(() {
+        _resolutionSink.withTypeParameters(element.typeParameters, () {
+          _writeFieldElements(element.fields);
+          _writeGetterElements(element.getters);
+          _writeSetterElements(element.setters);
+          _writeVariableGetterSetterLinking(element.fields);
+          _writeMethodElements(element.methods);
+        });
+      });
+
+      _writeElementResolution(() {
+        _resolutionSink.withTypeParameters(element.typeParameters, () {
+          _writeTypeParameterElementResolutions(element.typeParameters);
+          _resolutionSink.writeType(element.extendedType);
+        });
+      });
+    });
+  }
+
+  void _writeExtensionFragment(ExtensionFragmentImpl fragment) {
+    _writeTemplateFragment(fragment, () {
+      _resolutionSink.withTypeParameters(fragment.element.typeParameters, () {
+        _sink.writeList(fragment.typeParameters, _writeTypeParameterFragment);
+        _resolutionSink._writeMetadata(fragment.metadata);
+
+        _writeForLazyRead(() {
+          _sink.writeList(fragment.fields, _writeFieldFragment);
+          _sink.writeList(fragment.getters, _writeGetterFragment);
+          _sink.writeList(fragment.setters, _writeSetterFragment);
+          _sink.writeList(fragment.methods, _writeMethodFragment);
+        });
+      });
+    });
+  }
+
+  void _writeExtensionTypeElements(List<ExtensionTypeElementImpl> elements) {
+    _sink.writeList(elements, (element) {
+      _writeReference(element.reference);
+      _writeFragments(element.fragments);
+      _writeOptionalFragmentId(element.previousFragmentOfDifferentKind);
+      element.writeFlags(_sink);
+
+      // TODO(fshcheglov): Put these separate flags into modifiers
+      _sink.writeBool(element.hasRepresentationSelfReference);
+      _sink.writeBool(element.hasImplementsSelfReference);
+
+      _writeForLazyRead(() {
+        _resolutionSink.withTypeParameters(element.typeParameters, () {
+          _writeFieldElements(element.fields);
+          _writeGetterElements(element.getters);
+          _writeSetterElements(element.setters);
+          _writeVariableGetterSetterLinking(element.fields);
+          _writeConstructorElements(element.constructors);
+          _writeMethodElements(element.methods);
+        });
+      });
+
+      _writeElementResolution(() {
+        _resolutionSink.withTypeParameters(element.typeParameters, () {
+          _writeTypeParameterElementResolutions(element.typeParameters);
+          _resolutionSink.writeType(element.typeErasure);
+          _resolutionSink._writeTypeList(element.interfaces);
+          _resolutionSink.writeOptionalElementList(element.interfaceCycle);
+        });
+      });
+    });
+  }
+
+  void _writeExtensionTypeFragment(ExtensionTypeFragmentImpl fragment) {
+    _writeTemplateFragment(fragment, () {
+      _resolutionSink.withTypeParameters(fragment.element.typeParameters, () {
+        _sink.writeList(fragment.typeParameters, _writeTypeParameterFragment);
+        _resolutionSink._writeMetadata(fragment.metadata);
+
+        _writeForLazyRead(() {
+          _sink.writeList(fragment.fields, _writeFieldFragment);
+          _sink.writeList(fragment.getters, _writeGetterFragment);
+          _sink.writeList(fragment.setters, _writeSetterFragment);
+          _sink.writeList(fragment.constructors, _writeConstructorFragment);
+          _sink.writeList(fragment.methods, _writeMethodFragment);
+        });
+      });
+    });
+  }
+
+  void _writeFeatureSet(FeatureSet featureSet) {
+    var experimentStatus = featureSet as ExperimentStatus;
+    var encoded = experimentStatus.toStorage();
+    _sink.writeUint8List(encoded);
+  }
+
+  void _writeFieldElements(List<FieldElementImpl> elements) {
+    _sink.writeList(elements, (element) {
+      _writeReference(element.reference);
+      _writeFragments(element.fragments);
+      _writeOptionalFragmentId(element.previousFragmentOfDifferentKind);
+      element.writeFlags(_sink);
+      _sink._writeTopLevelInferenceError(element.typeInferenceError);
+
+      _writeElementResolution(() {
+        _resolutionSink.writeType(element.type);
+      });
+    });
+  }
+
+  void _writeFieldFragment(FieldFragmentImpl fragment) {
+    _writeTemplateFragment(fragment, () {
+      _resolutionSink._writeMetadata(fragment.metadata);
+      _resolutionSink._writeOptionalNode(fragment.constantInitializer);
+    });
+  }
+
+  void _writeFieldNameNonPromotabilityInfo(
+    Map<String, FieldNameNonPromotabilityInfo>? info,
+  ) {
+    _resolutionSink.writeOptionalObject(info, (info) {
+      _resolutionSink.writeMap(
+        info,
+        writeKey: (key) {
+          _resolutionSink.writeStringReference(key);
+        },
+        writeValue: (value) {
+          _resolutionSink._writeElementList(value.conflictingFields);
+          _resolutionSink._writeElementList(value.conflictingGetters);
+          _resolutionSink._writeElementList(value.conflictingNsmClasses);
+        },
+      );
+    });
+  }
+
+  /// Support for writing data that can be read lazily.
+  ///
+  /// Resulting state of [_sink].
+  ///   - length of data to read lazily
+  ///   - data to read lazily, written by [operation]
+  ///   - after return new data is written here
+  void _writeForLazyRead(void Function() operation) {
+    var newSink = _sink.clone();
+
+    var savedSink = _sink;
+    _sink = newSink;
+    operation();
+    _sink = savedSink;
+
+    var bytes = newSink.takeBytes();
+    _sink.writeUint30(bytes.length);
+    _sink.writeBytes(bytes);
+  }
+
+  void _writeFormalParameterElementFlags(ExecutableElementImpl executable) {
+    var elements = executable.formalParametersIncludingRecovery;
+    for (var element in elements) {
+      element.writeFlags(_sink);
+    }
+  }
+
+  void _writeFormalParameterElementResolutions(
+    ExecutableElementImpl executable,
+  ) {
+    var elements = executable.formalParametersIncludingRecovery;
+    for (var element in elements) {
+      _resolutionSink.writeType(element.type);
+      if (element is FieldFormalParameterElementImpl) {
+        _resolutionSink.writeElement(element.field);
+      }
+    }
+  }
+
+  /// Write a formal parameter fragment in the signature of a top-level
+  /// function, constructor, method, getter, or setter declaration.
+  // TODO(scheglov): Deduplicate parameter writing implementation.
+  void _writeFormalParameterFragment(FormalParameterFragmentImpl fragment) {
+    _writeFragmentId(fragment);
+    _writeFragmentName(fragment);
+    _sink.writeBool(fragment is FieldFormalParameterFragmentImpl);
+    _sink.writeBool(fragment is SuperFormalParameterFragmentImpl);
+    _sink._writeFormalParameterFragmentKind(fragment);
+
+    if (fragment is FieldFormalParameterFragmentImpl) {
+      _sink.writeOptionalStringReference(fragment.privateName);
+    }
+
+    fragment.writeFlags(_sink);
+
+    _resolutionSink._writeMetadata(fragment.metadata);
+    _resolutionSink._writeOptionalNode(fragment.constantInitializer);
+  }
+
+  void _writeFragmentId(FragmentImpl fragment) {
+    var id = _fragmentIds.getId(fragment);
+    _sink.writeUint30(id);
+  }
+
+  void _writeFragmentName(Fragment fragment) {
+    _sink.writeOptionalStringReference(fragment.name);
+  }
+
+  void _writeFragments(List<FragmentImpl> fragments) {
+    _sink.writeList(fragments, _writeFragmentId);
+  }
+
+  void _writeGetterElements(List<GetterElementImpl> elements) {
+    _sink.writeList(elements, (element) {
+      _writeReference(element.reference);
+      _writeFragments(element.fragments);
+      _writeFormalParameterElementFlags(element);
+      _writeOptionalFragmentId(element.previousFragmentOfDifferentKind);
+      element.writeFlags(_sink);
+      assert(element.typeParameters.isEmpty);
+
+      _writeElementResolution(() {
+        _writeFormalParameterElementResolutions(element);
+        _resolutionSink.writeType(element.returnType);
+      });
+    });
+  }
+
+  void _writeGetterFragment(GetterFragmentImpl fragment) {
+    _writeTemplateFragment(fragment, () {
+      assert(fragment.typeParameters.isEmpty);
+      _sink.writeList(fragment.formalParameters, _writeFormalParameterFragment);
+      _resolutionSink._writeMetadata(fragment.metadata);
+    });
+  }
+
+  void _writeLanguageVersion(LibraryLanguageVersion version) {
+    _sink.writeUint30(version.package.major);
+    _sink.writeUint30(version.package.minor);
+
+    var override = version.override;
+    if (override != null) {
+      _sink.writeBool(true);
+      _sink.writeUint30(override.major);
+      _sink.writeUint30(override.minor);
+    } else {
+      _sink.writeBool(false);
+    }
+  }
+
+  void _writeLibraryExport(LibraryExportImpl element) {
+    _resolutionSink._writeMetadata(element.metadata);
+    _sink.writeList(element.combinators, _writeNamespaceCombinator);
+    _writeDirectiveUri(element.uri);
+  }
+
+  void _writeLibraryFragment(LibraryFragmentImpl fragment) {
+    _writeResolutionOffset();
+    fragment.writeFlags(_sink);
+
+    _sink.writeList(fragment.libraryImports, _writeLibraryImport);
+    _sink.writeList(fragment.libraryExports, _writeLibraryExport);
+
+    // Write the metadata for parts here, even though we write parts below.
+    // The reason is that resolution data must be in a single chunk.
+    _writePartElementsMetadata(fragment);
+
+    _sink.writeList(fragment.classes, _writeClassFragment);
+    _sink.writeList(fragment.enums, _writeEnumFragment);
+    _sink.writeList(fragment.extensions, _writeExtensionFragment);
+    _sink.writeList(fragment.extensionTypes, _writeExtensionTypeFragment);
+    _sink.writeList(fragment.functions, _writeTopLevelFunctionFragment);
+    _sink.writeList(fragment.mixins, _writeMixinFragment);
+    _sink.writeList(fragment.typeAliases, _writeTypeAliasFragment);
+
+    _sink.writeList(fragment.topLevelVariables, _writeTopLevelVariableFragment);
+    _sink.writeList(fragment.getters, _writeGetterFragment);
+    _sink.writeList(fragment.setters, _writeSetterFragment);
+
+    // Write parts after this library fragment, so that when we read, we
+    // process fragments of declarations in the same order as we build them.
+    _sink.writeList(fragment.parts, _writePartInclude);
+  }
+
+  void _writeLibraryImport(LibraryImportImpl element) {
+    _resolutionSink._writeMetadata(element.metadata);
+    _sink.writeBool(element.isSynthetic);
+    _sink.writeList(element.combinators, _writeNamespaceCombinator);
+    _writeLibraryImportPrefixFragment(element.prefix);
+    _writeDirectiveUri(element.uri);
+  }
+
+  void _writeLibraryImportPrefixFragment(PrefixFragmentImpl? fragment) {
+    _sink.writeOptionalObject(fragment, (fragment) {
+      _writeFragmentName(fragment);
+      _sink.writeStringReference(fragment.element.localId);
+      _sink.writeBool(fragment.isDeferred);
+    });
+  }
+
+  void _writeLoadLibraryFunctionReferences(LibraryElementImpl library) {
+    var element = library.loadLibraryFunction;
+    _writeReference(element.reference);
+  }
+
+  void _writeMethodElements(List<MethodElementImpl> elements) {
+    _sink.writeList(elements, (element) {
+      _writeReference(element.reference);
+      _writeFragments(element.fragments);
+      _writeFormalParameterElementFlags(element);
+      _writeOptionalFragmentId(element.previousFragmentOfDifferentKind);
+      element.writeFlags(_sink);
+      _sink._writeTopLevelInferenceError(element.typeInferenceError);
+
+      _writeElementResolution(() {
+        _resolutionSink.withTypeParameters(element.typeParameters, () {
+          _writeTypeParameterElementResolutions(element.typeParameters);
+          _writeFormalParameterElementResolutions(element);
+          _resolutionSink.writeType(element.returnType);
+        });
+      });
+    });
+  }
+
+  void _writeMethodFragment(MethodFragmentImpl fragment) {
+    _writeTemplateFragment(fragment, () {
+      _resolutionSink.withTypeParameters(fragment.element.typeParameters, () {
+        _sink.writeList(fragment.typeParameters, _writeTypeParameterFragment);
+        _sink.writeList(
+          fragment.formalParameters,
+          _writeFormalParameterFragment,
+        );
+        _resolutionSink._writeMetadata(fragment.metadata);
+      });
+    });
+  }
+
+  void _writeMixinElements(List<MixinElementImpl> elements) {
+    _sink.writeList(elements, (element) {
+      _writeReference(element.reference);
+      _writeFragments(element.fragments);
+      _writeOptionalFragmentId(element.previousFragmentOfDifferentKind);
+      element.writeFlags(_sink);
+      _sink.writeBool(element.hasNonFinalField);
+
+      _writeForLazyRead(() {
+        _resolutionSink.withTypeParameters(element.typeParameters, () {
+          _writeFieldElements(element.fields);
+          _writeGetterElements(element.getters);
+          _writeSetterElements(element.setters);
+          _writeVariableGetterSetterLinking(element.fields);
+          _writeConstructorElements(element.constructors);
+          _writeMethodElements(element.methods);
+        });
+      });
+
+      _writeElementResolution(() {
+        _resolutionSink.withTypeParameters(element.typeParameters, () {
+          _writeTypeParameterElementResolutions(element.typeParameters);
+          _resolutionSink._writeTypeList(element.superclassConstraints);
+          _resolutionSink._writeTypeList(element.interfaces);
+          _resolutionSink.writeOptionalElementList(element.interfaceCycle);
+        });
+      });
+    });
+  }
+
+  void _writeMixinFragment(MixinFragmentImpl fragment) {
+    _writeTemplateFragment(fragment, () {
+      _sink.writeStringList(fragment.superInvokedNames);
+
+      _resolutionSink.withTypeParameters(fragment.element.typeParameters, () {
+        _sink.writeList(fragment.typeParameters, _writeTypeParameterFragment);
+        _resolutionSink._writeMetadata(fragment.metadata);
+
+        _writeForLazyRead(() {
+          _sink.writeList(fragment.fields, _writeFieldFragment);
+          _sink.writeList(fragment.getters, _writeGetterFragment);
+          _sink.writeList(fragment.setters, _writeSetterFragment);
+          _sink.writeList(fragment.constructors, _writeConstructorFragment);
+          _sink.writeList(fragment.methods, _writeMethodFragment);
+        });
+      });
+    });
+  }
+
+  void _writeNamespaceCombinator(NamespaceCombinator combinator) {
+    switch (combinator) {
+      case HideElementCombinator():
+        _sink.writeByte(Tag.HideCombinator);
+        _sink.writeList<String>(combinator.hiddenNames, (name) {
+          _sink.writeStringReference(name);
+        });
+      case ShowElementCombinator():
+        _sink.writeByte(Tag.ShowCombinator);
+        _sink.writeList<String>(combinator.shownNames, (name) {
+          _sink.writeStringReference(name);
+        });
+    }
+  }
+
+  void _writeOptionalFragmentId(FragmentImpl? fragment) {
+    _sink.writeOptionalObject(fragment, _writeFragmentId);
+  }
+
+  void _writeOptionalReference(Reference? reference) {
+    _sink.writeOptionalObject(reference, _writeReference);
+  }
+
+  /// We write metadata here, to keep it inside [libraryFragment] resolution
+  /// data, because [_writePartInclude] recursively writes included unit
+  /// elements. But the bundle reader wants all metadata for `parts`
+  /// sequentially.
+  void _writePartElementsMetadata(LibraryFragmentImpl libraryFragment) {
+    for (var element in libraryFragment.parts) {
+      _resolutionSink._writeMetadata(element.metadata);
+    }
+  }
+
+  void _writePartInclude(PartIncludeImpl element) {
+    _writeDirectiveUri(element.uri);
+  }
+
+  void _writeReference(Reference reference) {
+    _references.writeReference(_sink, reference);
+  }
+
+  /// Invoke this after writing enough information to create an element, but
+  /// before writing any resolution data.
+  void _writeResolutionOffset() {
+    _sink.writeUint30(_resolutionSink.offset);
+  }
+
+  void _writeSetterElements(List<SetterElementImpl> elements) {
+    _sink.writeList(elements, (element) {
+      _writeReference(element.reference);
+      _writeFragments(element.fragments);
+      _writeFormalParameterElementFlags(element);
+      _writeOptionalFragmentId(element.previousFragmentOfDifferentKind);
+      element.writeFlags(_sink);
+      assert(element.typeParameters.isEmpty);
+
+      _writeElementResolution(() {
+        _writeFormalParameterElementResolutions(element);
+        _resolutionSink.writeType(element.returnType);
+      });
+    });
+  }
+
+  void _writeSetterFragment(SetterFragmentImpl fragment) {
+    _writeTemplateFragment(fragment, () {
+      assert(fragment.typeParameters.isEmpty);
+      _sink.writeList(fragment.formalParameters, _writeFormalParameterFragment);
+      _resolutionSink._writeMetadata(fragment.metadata);
+    });
+  }
+
+  void _writeTemplateFragment<T extends FragmentImpl>(
+    T fragment,
+    void Function() writeFragmentBody,
+  ) {
+    _writeFragmentId(fragment);
+    _writeFragmentName(fragment);
+    _writeResolutionOffset();
+    fragment.writeFlags(_sink);
+    writeFragmentBody();
+  }
+
+  void _writeTopLevelFunctionElements(
+    List<TopLevelFunctionElementImpl> elements,
+  ) {
+    _sink.writeList(elements, (element) {
+      _writeReference(element.reference);
+      _writeFragments(element.fragments);
+      _writeFormalParameterElementFlags(element);
+      _writeOptionalFragmentId(element.previousFragmentOfDifferentKind);
+      element.writeFlags(_sink);
+
+      _writeElementResolution(() {
+        _resolutionSink.withTypeParameters(element.typeParameters, () {
+          _writeTypeParameterElementResolutions(element.typeParameters);
+          _writeFormalParameterElementResolutions(element);
+          _resolutionSink.writeType(element.returnType);
+        });
+      });
+    });
+  }
+
+  void _writeTopLevelFunctionFragment(TopLevelFunctionFragmentImpl fragment) {
+    _writeTemplateFragment(fragment, () {
+      _resolutionSink.withTypeParameters(fragment.element.typeParameters, () {
+        _sink.writeList(fragment.typeParameters, _writeTypeParameterFragment);
+        _sink.writeList(
+          fragment.formalParameters,
+          _writeFormalParameterFragment,
+        );
+        _resolutionSink._writeMetadata(fragment.metadata);
+      });
+    });
+  }
+
+  void _writeTopLevelVariableElements(
+    List<TopLevelVariableElementImpl> elements,
+  ) {
+    _sink.writeList(elements, (element) {
+      _writeReference(element.reference);
+      _writeFragments(element.fragments);
+      _writeOptionalFragmentId(element.previousFragmentOfDifferentKind);
+      element.writeFlags(_sink);
+      _sink._writeTopLevelInferenceError(element.typeInferenceError);
+      _writeElementResolution(() {
+        _resolutionSink.writeType(element.type);
+      });
+    });
+  }
+
+  void _writeTopLevelVariableFragment(TopLevelVariableFragmentImpl fragment) {
+    _writeTemplateFragment(fragment, () {
+      _resolutionSink._writeMetadata(fragment.metadata);
+      _resolutionSink._writeOptionalNode(fragment.constantInitializer);
+    });
+  }
+
+  void _writeTypeAliasElements(List<TypeAliasElementImpl> elements) {
+    _sink.writeList(elements, (element) {
+      _writeReference(element.reference);
+      _writeFragmentId(element.firstFragment);
+      element.writeFlags(_sink);
+
+      _writeElementResolution(() {
+        _resolutionSink.withTypeParameters(element.typeParameters, () {
+          _writeTypeParameterElementResolutions(element.typeParameters);
+          _resolutionSink.writeType(element.aliasedType);
+        });
+      });
+    });
+  }
+
+  void _writeTypeAliasFragment(TypeAliasFragmentImpl fragment) {
+    _writeTemplateFragment(fragment, () {
+      _resolutionSink.withTypeParameters(fragment.element.typeParameters, () {
+        _sink.writeList(fragment.typeParameters, _writeTypeParameterFragment);
+        _resolutionSink._writeMetadata(fragment.metadata);
+      });
+    });
+  }
+
+  void _writeTypeParameterElementResolutions(
+    List<TypeParameterElementImpl> elements,
+  ) {
+    for (var element in elements) {
+      _resolutionSink.writeByte(_encodeVariance(element).index);
+      _resolutionSink.writeType(element.bound);
+      _resolutionSink.writeType(element.defaultType);
+    }
+  }
+
+  void _writeTypeParameterFragment(TypeParameterFragmentImpl fragment) {
+    _writeFragmentName(fragment);
+    fragment.writeFlags(_sink);
+    _resolutionSink._writeMetadata(fragment.metadata);
+  }
+
+  void _writeVariableGetterSetterLinking(
+    List<PropertyInducingElementImpl> variables,
+  ) {
+    _sink.writeList(variables, (variable) {
+      _writeReference(variable.reference);
+      _writeOptionalReference(variable.getter?.reference);
+      _writeOptionalReference(variable.setter?.reference);
+      for (var fragment in variable.internal.fragments) {
+        _writeOptionalFragmentId(fragment.inducedGetter);
+        _writeOptionalFragmentId(fragment.inducedSetter);
+      }
+    });
+  }
+
+  static TypeParameterVarianceTag _encodeVariance(
+    TypeParameterElementImpl element,
+  ) {
+    if (element.isLegacyCovariant) {
+      return TypeParameterVarianceTag.legacy;
+    }
+
+    var variance = element.variance;
+    if (variance == Variance.unrelated) {
+      return TypeParameterVarianceTag.unrelated;
+    } else if (variance == Variance.covariant) {
+      return TypeParameterVarianceTag.covariant;
+    } else if (variance == Variance.contravariant) {
+      return TypeParameterVarianceTag.contravariant;
+    } else if (variance == Variance.invariant) {
+      return TypeParameterVarianceTag.invariant;
+    } else {
+      throw UnimplementedError('$variance');
+    }
+  }
+}
+
+class BundleWriterResult {
+  final Uint8List resolutionBytes;
+
+  BundleWriterResult({required this.resolutionBytes});
+}
+
+class ResolutionSink extends BinaryWriter {
+  final ReferenceTableWriter _references;
+  final _LocalElementIndexer localElements = _LocalElementIndexer();
+
+  ResolutionSink({
+    required super.stringTableBuilder,
+    required ReferenceTableWriter references,
+  }) : _references = references;
+
+  void withTypeParameters(
+    List<TypeParameterElementImpl> typeParameters,
+    void Function() operation,
+  ) {
+    localElements.withElements(typeParameters, operation);
+  }
+
+  void writeElement(Element? element) {
+    switch (element) {
+      case null:
+        writeEnum(ElementTag.null_);
+      case DynamicElementImpl():
+        writeEnum(ElementTag.dynamic_);
+      case NeverElementImpl():
+        writeEnum(ElementTag.never_);
+      case MultiplyDefinedElementImpl():
+        writeEnum(ElementTag.multiplyDefined);
+      case SubstitutedElementImpl element:
+        writeEnum(ElementTag.memberWithTypeArguments);
+
+        var baseElement = element.baseElement;
+        writeElement(baseElement);
+
+        var typeArguments = _enclosingClassTypeArguments(
+          baseElement,
+          element.substitution.map,
+        );
+        _writeTypeList(typeArguments);
+      case TypeParameterElementImpl():
+        writeEnum(ElementTag.typeParameter);
+        var localIndex = localElements[element];
+        writeUint30(localIndex);
+      case FormalParameterElementImpl():
+        writeEnum(ElementTag.formalParameter);
+        var enclosingElement = element.enclosingElement;
+        enclosingElement as ExecutableElementImpl;
+        writeElement(enclosingElement);
+        var index = enclosingElement.formalParametersIncludingRecovery.indexOf(
+          element,
+        );
+        assert(index >= 0);
+        writeUint30(index);
+      case PrefixElementImpl():
+        writeEnum(ElementTag.libraryImportPrefix);
+        writeUri(element.firstFragment.enclosingFragment.source.uri);
+        writeStringReference(element.localId);
+      case ElementImpl():
+        writeEnum(ElementTag.elementImpl);
+        var reference = element.reference!;
+        _references.writeReference(this, reference);
+      default:
+        throw StateError('${element.runtimeType}');
+    }
+  }
+
+  void writeOptionalElementList(List<Element>? elements) {
+    writeOptionalObject(elements, (it) => _writeElementList(it));
+  }
+
+  void writeOptionalTypeList(List<DartType>? types) {
+    if (types != null) {
+      writeBool(true);
+      _writeTypeList(types);
+    } else {
+      writeBool(false);
+    }
+  }
+
+  void writeType(DartType? type) {
+    if (type == null) {
+      writeEnum(TypeTag.NullType);
+    } else if (type is DynamicTypeImpl) {
+      writeEnum(TypeTag.DynamicType);
+      _writeTypeAliasElementArguments(type);
+    } else if (type is FunctionTypeImpl) {
+      _writeFunctionType(type);
+      _writeTypeAliasElementArguments(type);
+    } else if (type is InterfaceTypeImpl) {
+      var typeArguments = type.typeArguments;
+      var nullabilitySuffix = type.nullabilitySuffix;
+      if (typeArguments.isEmpty) {
+        if (nullabilitySuffix == NullabilitySuffix.none) {
+          writeEnum(TypeTag.InterfaceType_noTypeArguments_none);
+        } else if (nullabilitySuffix == NullabilitySuffix.question) {
+          writeEnum(TypeTag.InterfaceType_noTypeArguments_question);
+        }
+        // TODO(scheglov): Write raw
+        writeElement(type.element);
+      } else {
+        writeEnum(TypeTag.InterfaceType);
+        // TODO(scheglov): Write raw
+        writeElement(type.element);
+        _writeTypeList(typeArguments);
+        _writeNullabilitySuffix(nullabilitySuffix);
+      }
+      _writeTypeAliasElementArguments(type);
+    } else if (type is InvalidTypeImpl) {
+      writeEnum(TypeTag.InvalidType);
+      _writeTypeAliasElementArguments(type);
+    } else if (type is NeverTypeImpl) {
+      writeEnum(TypeTag.NeverType);
+      _writeNullabilitySuffix(type.nullabilitySuffix);
+      _writeTypeAliasElementArguments(type);
+    } else if (type is RecordTypeImpl) {
+      _writeRecordType(type);
+      _writeTypeAliasElementArguments(type);
+    } else if (type is TypeParameterTypeImpl) {
+      writeEnum(TypeTag.TypeParameterType);
+      writeElement(type.element);
+      _writeNullabilitySuffix(type.nullabilitySuffix);
+      _writeTypeAliasElementArguments(type);
+    } else if (type is VoidTypeImpl) {
+      writeEnum(TypeTag.VoidType);
+      _writeTypeAliasElementArguments(type);
+    } else {
+      throw UnimplementedError('${type.runtimeType}');
+    }
+  }
+
+  void _writeElementList(List<Element> elements) {
+    writeList(elements, writeElement);
+  }
+
+  void _writeElementName(Element element) {
+    writeOptionalStringReference(element.name);
+  }
+
+  /// Write the formal parameter list for a function type annotation.
+  void _writeFormalParameterElements(
+    List<InternalFormalParameterElement> elements,
+  ) {
+    writeList(elements, (element) {
+      _writeElementName(element);
+      _writeFormalParameterElementKind(element);
+      writeType(element.type);
+    });
+  }
+
+  void _writeFunctionType(FunctionTypeImpl type) {
+    type = _toSyntheticFunctionType(type);
+
+    writeEnum(TypeTag.FunctionType);
+
+    _writeTypeParameterElements(type.typeParameters, () {
+      writeType(type.returnType);
+      _writeFormalParameterElements(type.formalParameters);
+    }, withAnnotations: false);
+    _writeNullabilitySuffix(type.nullabilitySuffix);
+  }
+
+  void _writeMetadata(MetadataImpl metadata) {
+    writeList(metadata.annotations, (annotation) {
+      _writeNode(annotation.annotationAst);
+    });
+  }
+
+  void _writeNode(AstNode node) {
+    var astWriter = AstBinaryWriter(sink: this);
+    node.accept2(astWriter);
+  }
+
+  void _writeNullabilitySuffix(NullabilitySuffix suffix) {
+    writeByte(suffix.index);
+  }
+
+  void _writeOptionalNode(Expression? node) {
+    if (node != null) {
+      writeBool(true);
+      _writeNode(node);
+    } else {
+      writeBool(false);
+    }
+  }
+
+  void _writeRecordType(RecordTypeImpl type) {
+    writeEnum(TypeTag.RecordType);
+
+    writeList<RecordTypePositionalField>(type.positionalFields, (field) {
+      writeType(field.type);
+    });
+
+    writeList<RecordTypeNamedField>(type.namedFields, (field) {
+      writeStringReference(field.name);
+      writeType(field.type);
+    });
+
+    _writeNullabilitySuffix(type.nullabilitySuffix);
+  }
+
+  void _writeTypeAliasElementArguments(TypeImpl type) {
+    var alias = type.alias;
+    writeElement(alias?.element);
+    if (alias != null) {
+      _writeTypeList(alias.typeArguments);
+      _writeNullabilitySuffix(alias.nullabilitySuffix);
+    }
+  }
+
+  void _writeTypeList(List<DartType> types) {
+    writeList(types, writeType);
+  }
+
+  void _writeTypeParameterElements(
+    List<TypeParameterElementImpl> elements,
+    void Function() f, {
+    required bool withAnnotations,
+  }) {
+    localElements.withElements(elements, () {
+      writeList(elements, _writeElementName);
+      for (var element in elements) {
+        writeType(element.bound);
+        if (withAnnotations) {
+          _writeMetadata(element.metadata);
+        }
+      }
+      f();
+    });
+  }
+
+  static List<DartType> _enclosingClassTypeArguments(
+    Element declaration,
+    Map<TypeParameterElement, DartType> substitution,
+  ) {
+    // TODO(scheglov): Just keep it null in class Member?
+    if (substitution.isEmpty) {
+      return const [];
+    }
+
+    var enclosing = declaration.enclosingElement;
+    if (enclosing is InstanceElement) {
+      var typeParameters = enclosing.typeParameters;
+      if (typeParameters.isEmpty) {
+        return const <DartType>[];
+      }
+
+      return typeParameters
+          .map((typeParameter) => substitution[typeParameter])
+          .nonNulls
+          .toList(growable: false);
+    }
+
+    return const <DartType>[];
+  }
+
+  static FunctionTypeImpl _toSyntheticFunctionType(FunctionTypeImpl type) {
+    var typeParameters = type.typeParameters;
+    if (typeParameters.isEmpty) return type;
+
+    var fresh = getFreshTypeParameters(typeParameters);
+    return fresh.applyToFunctionType(type);
+  }
+}
+
+class UnitToWriteAst {
+  final CompilationUnit node;
+
+  UnitToWriteAst({required this.node});
+}
+
+class _Library {
+  final String uriStr;
+  final int offset;
+
+  _Library({required this.uriStr, required this.offset});
+}
+
+class _LocalElementIndexer {
+  final Map<ElementImpl, int> _index = Map.identity();
+  int _stackHeight = 0;
+
+  int operator [](ElementImpl element) {
+    return _index[element] ??
+        (throw ArgumentError('Unexpectedly not indexed: $element'));
+  }
+
+  void withElements(List<ElementImpl> elements, void Function() f) {
+    for (int i = 0; i < elements.length; i++) {
+      var element = elements[i];
+      _index[element] = _stackHeight++;
+    }
+
+    f();
+
+    _stackHeight -= elements.length;
+    for (int i = 0; i < elements.length; i++) {
+      var element = elements[i];
+      _index.remove(element);
+    }
+  }
+}
+
+extension on Map<FragmentImpl, int> {
+  int getId(FragmentImpl fragment) {
+    return this[fragment] ??= length;
+  }
+}
+
+extension _BinaryWriterExtension on BinaryWriter {
+  void _writeFormalParameterElementKind(InternalFormalParameterElement p) {
+    if (p.isRequiredPositional) {
+      writeByte(Tag.ParameterKindRequiredPositional);
+    } else if (p.isOptionalPositional) {
+      writeByte(Tag.ParameterKindOptionalPositional);
+    } else if (p.isRequiredNamed) {
+      writeByte(Tag.ParameterKindRequiredNamed);
+    } else if (p.isOptionalNamed) {
+      writeByte(Tag.ParameterKindOptionalNamed);
+    } else {
+      throw StateError('Unexpected parameter kind: $p');
+    }
+  }
+
+  void _writeFormalParameterFragmentKind(FormalParameterFragmentImpl p) {
+    if (p.isRequiredPositional) {
+      writeByte(Tag.ParameterKindRequiredPositional);
+    } else if (p.isOptionalPositional) {
+      writeByte(Tag.ParameterKindOptionalPositional);
+    } else if (p.isRequiredNamed) {
+      writeByte(Tag.ParameterKindRequiredNamed);
+    } else if (p.isOptionalNamed) {
+      writeByte(Tag.ParameterKindOptionalNamed);
+    } else {
+      throw StateError('Unexpected parameter kind: $p');
+    }
+  }
+
+  void _writeTopLevelInferenceError(TopLevelInferenceError? error) {
+    writeOptionalObject(error, (error) {
+      error.write(this);
+    });
+  }
+}

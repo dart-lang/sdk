@@ -1,0 +1,25 @@
+class A {
+  const A();
+  late final int foo = 42;
+}
+
+class B {
+  const B();
+  late final String bar = "foobar";
+  late final int foo = 42;
+}
+
+class C {
+  const C();
+  const C.another();
+  late final int foo = 42;
+}
+
+class D {
+  const D();
+  const D.another();
+  late final String bar = "foobar";
+  late final int foo = 42;
+}
+
+main() {}

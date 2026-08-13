@@ -1,0 +1,206 @@
+#!/usr/bin/env python3
+#
+# Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Generates an assembly source file the defines a symbol with the bytes from
+# a given file.
+
+import os
+import sys
+from optparse import OptionParser
+
+
+def Main():
+    parser = OptionParser()
+    parser.add_option(
+        "--output",
+        action="store",
+        type="string",
+        help="output assembly file name")
+    parser.add_option(
+        "--input", action="store", type="string", help="input binary blob file")
+    parser.add_option("--symbol_name", action="store", type="string")
+    parser.add_option("--executable", action="store_true", default=False)
+    parser.add_option("--target_os", action="store", type="string")
+    parser.add_option("--size_symbol_name", action="store", type="string")
+    parser.add_option("--target_arch", action="store", type="string")
+    parser.add_option("--incbin", action="store_true", default=False)
+
+    (options, args) = parser.parse_args()
+    if not options.output:
+        sys.stderr.write("--output not specified\n")
+        parser.print_help()
+        return -1
+    if not options.input:
+        sys.stderr.write("--input not specified\n")
+        parser.print_help()
+        return -1
+    if not os.path.isfile(options.input):
+        sys.stderr.write("input file does not exist: %s\n" % options.input)
+        parser.print_help()
+        return -1
+    if not options.symbol_name:
+        sys.stderr.write("--symbol_name not specified\n")
+        parser.print_help()
+        return -1
+    if not options.target_os:
+        sys.stderr.write("--target_os not specified\n")
+        parser.print_help()
+        return -1
+
+    with open(options.output, "w") as output_file:
+        if options.target_os in ["mac", "ios", "watchos"]:
+            if options.executable:
+                output_file.write(".text\n")
+            else:
+                output_file.write(".const\n")
+            output_file.write(".global _%s\n" % options.symbol_name)
+            output_file.write(".balign 64\n")
+            output_file.write("_%s:\n" % options.symbol_name)
+        elif options.target_os in ["win"]:
+            output_file.write("ifndef _ML64_X64\n")
+            output_file.write(".model flat, C\n")
+            output_file.write("endif\n")
+            if options.executable:
+                output_file.write(".code\n")
+            else:
+                output_file.write(".const\n")
+            output_file.write("public %s\n" % options.symbol_name)
+            output_file.write("%s label byte\n" % options.symbol_name)
+        elif options.target_os in ["win_gnu"]:
+            # Cross compilation from Linux to Windows.
+            if options.executable:
+                output_file.write(".text\n")
+            else:
+                output_file.write(".section .rodata\n")
+            output_file.write(".global %s\n" % options.symbol_name)
+            output_file.write(".balign 64\n")
+            output_file.write("%s:\n" % options.symbol_name)
+        else:
+            if options.executable:
+                output_file.write(".text\n")
+                output_file.write(".type %s STT_FUNC\n" % options.symbol_name)
+            else:
+                output_file.write(".section .rodata\n")
+                output_file.write(".type %s STT_OBJECT\n" % options.symbol_name)
+            output_file.write(".global %s\n" % options.symbol_name)
+            output_file.write(".balign 64\n")
+            output_file.write("%s:\n" % options.symbol_name)
+
+        size = os.path.getsize(options.input)
+        if options.incbin:
+            output_file.write(".incbin \"%s\"\n" % options.input)
+        else:
+            with open(options.input, "rb") as input_file:
+                if options.target_os in ["win"]:
+                    for byte in input_file.read():
+                        output_file.write("byte %d\n" % byte)
+                else:
+                    for byte in input_file.read():
+                        output_file.write(".byte %d\n" % byte)
+
+        if options.target_os not in ["mac", "ios", "watchos", "win", "win_gnu"]:
+            output_file.write(".size {0}, .-{0}\n".format(options.symbol_name))
+
+        is64bit = 0
+        if options.target_arch:
+            if options.target_arch in ["arm64", "arm64e", "x64", "riscv64"]:
+                is64bit = 1
+
+        if options.size_symbol_name:
+            if not options.target_arch:
+                sys.stderr.write("--target_arch not specified\n")
+                parser.print_help()
+                return -1
+
+            if options.target_os in ["win"]:
+                output_file.write("public %s\n" % options.size_symbol_name)
+                output_file.write("%s label byte\n" % options.size_symbol_name)
+                if (is64bit == 1):
+                    output_file.write("qword %d\n" % size)
+                else:
+                    output_file.write("dword %d\n" % size)
+            else:
+                if options.target_os in ["mac", "ios", "watchos"]:
+                    output_file.write(
+                        ".global _%s\n" % options.size_symbol_name)
+                    output_file.write("_%s:\n" % options.size_symbol_name)
+                else:
+                    output_file.write(".global %s\n" % options.size_symbol_name)
+                    output_file.write("%s:\n" % options.size_symbol_name)
+                if (is64bit == 1):
+                    output_file.write(".quad %d\n" % size)
+                else:
+                    output_file.write(".long %d\n" % size)
+
+        # For text symbols, with -g the assembler will generate the
+        # DW_TAG_subprogram/label (gcc/clang) for us.
+        if not options.executable and options.target_arch != None and options.target_os not in [
+                "mac", "ios", "watchos", "win", "win_gnu"
+        ]:
+            output_file.write(".section .debug_abbrev,\"\"\n")
+
+            output_file.write(".uleb128 1    // define abbreviation code\n")
+            output_file.write(".uleb128 0x11 // DW_TAG_compile_unit\n")
+            output_file.write(".byte 1       // DW_CHILDREN_yes\n")
+            output_file.write(".uleb128 0x3  // DW_AT_name\n")
+            output_file.write(".uleb128 0x8  // DW_FORM_string\n")
+            output_file.write(".uleb128 0x1b // DW_AT_comp_dir\n")
+            output_file.write(".uleb128 0x8  // DW_FORM_string\n")
+            output_file.write(".uleb128 0    // End of attributes\n")
+            output_file.write(".uleb128 0    // End of attributes\n")
+
+            output_file.write(".uleb128 2    // define abbreviation code\n")
+            output_file.write(".uleb128 0x34 // DW_TAG_variable\n")
+            output_file.write(".byte 0       // DW_CHILDREN_no\n")
+            output_file.write(".uleb128 0x3  // DW_AT_name\n")
+            output_file.write(".uleb128 0x8  // DW_FORM_STRING\n")
+            output_file.write(".uleb128 0x3f // DW_AT_external\n")
+            output_file.write(".uleb128 0xc  // DW_FORM_flag\n")
+            output_file.write(".uleb128 0x2  // DW_AT_location\n")
+            output_file.write(".uleb128 0x18 // DW_FORM_exprloc\n")
+            output_file.write(".uleb128 0    // End of attributes\n")
+            output_file.write(".uleb128 0    // End of attributes\n")
+
+            output_file.write(".uleb128 0    // End abbreviations\n")
+
+            output_file.write(".section .debug_info,\"\"\n")
+            output_file.write(".4byte .Ldebug_info_end - .Ldebug_info_start\n")
+            output_file.write(".Ldebug_info_start:\n")
+            output_file.write(".2byte 5 // DWARF version 5\n")
+            output_file.write(".byte 1  // DW_UT_compile\n")
+            output_file.write(".byte %s // address size\n" %
+                              (8 if (is64bit == 1) else 4))
+            output_file.write(".4byte .debug_abbrev // debug_abbr_offset\n")
+
+            output_file.write(".uleb128 1     // use abbreviation code\n")
+            output_file.write(".string \"%s\" // DW_AT_name\n" % options.output)
+            output_file.write(".string \"\"   // DW_AT_comp_dir\n")
+
+            output_file.write(".uleb128 2     // use abbreviation code\n")
+            output_file.write(".string \"%s\" // DW_AT_name\n" %
+                              options.symbol_name)
+            output_file.write(".byte 1        // DW_AT_external\n")
+            if (is64bit == 1):
+                output_file.write(".uleb128 9   // DW_AT_location\n")
+                output_file.write(".uleb128 0x3 // DW_OP_addr \n")
+                output_file.write(".8byte %s\n" % options.symbol_name)
+            else:
+                output_file.write(".uleb128 5   // DW_AT_location\n")
+                output_file.write(".uleb128 0x3 // DW_OP_addr \n")
+                output_file.write(".4byte %s\n" % options.symbol_name)
+
+            output_file.write(".uleb128 0 // end children\n")
+            output_file.write(".uleb128 0 // end entries\n")
+            output_file.write(".Ldebug_info_end:\n")
+
+        if options.target_os in ["win"]:
+            output_file.write("end\n")
+
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(Main())

@@ -1,0 +1,7 @@
+library test;
+
+void f() {}
+
+void g() {}
+
+main() {}

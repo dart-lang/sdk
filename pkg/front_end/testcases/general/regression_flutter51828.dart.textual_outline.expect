@@ -1,0 +1,9 @@
+class A {
+  Future<void> foo(x) async {}
+}
+
+class B {
+  Future<void> bar(x) async {}
+}
+
+main() async => [A().foo(await null), B().bar(await null)];

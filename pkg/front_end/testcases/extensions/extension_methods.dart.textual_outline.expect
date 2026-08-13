@@ -1,0 +1,11 @@
+import 'package:expect/expect.dart';
+
+class C {
+  int get one => 1;
+}
+
+extension E on C {
+  int get two => 2;
+}
+
+main() {}

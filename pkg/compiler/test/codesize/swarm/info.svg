@@ -1,0 +1,10 @@
+<svg width="40" height="40" xmlns="http://www.w3.org/2000/svg">
+  <g>
+    <circle fill="#fff" stroke-width="0" cx="20" cy="20" r="20"/>
+    <text fill="#000" stroke-width="0" x="20" y="33" font-size="41"
+        font-family='"Times New Roman", Gadget, serif' text-anchor="middle" font-weight="bold" font-style="italic">
+      i
+    </text>
+  </g>
+</svg>
+

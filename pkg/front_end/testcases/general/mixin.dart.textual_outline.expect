@@ -1,0 +1,23 @@
+class B extends Object with M1, M2 {
+  B(value);
+}
+
+mixin M1 {
+  m() => print("M1");
+}
+
+mixin M2 {
+  m() => print("M2");
+}
+
+class C extends Object with M1, M2 {
+  C(value);
+}
+
+mixin G1<T> {
+  m() => print(T);
+}
+
+class D<S> extends Object with G1<S> {}
+
+main() {}

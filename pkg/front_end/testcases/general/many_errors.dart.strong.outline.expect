@@ -1,0 +1,69 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/many_errors.dart:8:3: Error: A const constructor can't have a body.
+// Try removing either the 'const' keyword or the body.
+//   const A.named1() sync* {}
+//   ^^^^^
+//
+// pkg/front_end/testcases/general/many_errors.dart:15:1: Error: An external or native method can't have a body.
+// external foo(String x) {
+// ^^^^^^^^
+//
+// pkg/front_end/testcases/general/many_errors.dart:10:26: Error: New expression is not a constant expression.
+//   const A.named2() : x = new Object();
+//                          ^^^
+//
+// pkg/front_end/testcases/general/many_errors.dart:10:22: Error: 'x' is a final instance variable that was initialized at the declaration.
+//   const A.named2() : x = new Object();
+//                      ^
+// pkg/front_end/testcases/general/many_errors.dart:6:9: Context: 'x' was initialized here.
+//   final x = null;
+//         ^
+//
+// pkg/front_end/testcases/general/many_errors.dart:12:22: Error: 'x' is a final instance variable that was initialized at the declaration.
+//   const A.named3() : x = const Object();
+//                      ^
+// pkg/front_end/testcases/general/many_errors.dart:6:9: Context: 'x' was initialized here.
+//   final x = null;
+//         ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object /*hasConstConstructor*/  {
+  final field dynamic x = null;
+  const constructor named1() → self::A
+    : super core::Object::•()
+    ;
+  const constructor named2() → self::A
+    : invalid-initializer "pkg/front_end/testcases/general/many_errors.dart:10:22: Error: 'x' is a final instance variable that was initialized at the declaration.
+  const A.named2() : x = new Object();
+                     ^"
+    ;
+  const constructor named3() → self::A
+    : invalid-initializer "pkg/front_end/testcases/general/many_errors.dart:12:22: Error: 'x' is a final instance variable that was initialized at the declaration.
+  const A.named3() : x = const Object();
+                     ^"
+    ;
+}
+class B extends core::Object {
+  synthetic constructor •() → self::B
+    ;
+}
+class C extends core::Object {
+  late field self::B b;
+  synthetic constructor •() → self::C
+    ;
+}
+abstract class AbstractClass extends core::Object /*hasConstConstructor*/  {
+  const constructor id() → self::AbstractClass
+    : super core::Object::•()
+    ;
+}
+external static method foo(core::String x) → dynamic;
+static method m() → dynamic
+  ;
+static method main() → dynamic
+  ;

@@ -1,0 +1,12 @@
+//
+// Problems outside component:
+//
+// pkg/front_end/testcases/general/opt_out_by_package/opt_out/lib/opt_out_lib.dart:6:16: Error: The 'triple-shift' language feature is disabled for this library.
+// Try removing the package language version or setting the language version to 2.14 or higher.
+//   Foo operator >>>(_) => this;
+//                ^^^
+//
+library;
+import self as self;
+
+import "package:opt_out/opt_out_lib.dart";

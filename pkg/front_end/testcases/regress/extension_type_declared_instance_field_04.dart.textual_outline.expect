@@ -1,0 +1,4 @@
+extension type foo._(int _x) {
+  void bar() {}
+  int foo = 42;
+}

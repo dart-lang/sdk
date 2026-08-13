@@ -1,0 +1,48 @@
+@#C2
+library #lib;
+import self as self;
+import "dart:ffi" as ffi;
+import "dart:core" as core;
+
+import "dart:ffi";
+
+@#C7
+@#C9
+external static method malloc() → ffi::Pointer<ffi::Void>;
+@#C13
+@#C14
+external static method mallocInAsset() → ffi::Pointer<ffi::Void>;
+@#C17
+static get ptr() → ffi::Pointer<ffi::Void>
+  return ffi::_loadPointer<ffi::Void>(ffi::Native::_addressOf<ffi::Pointer<ffi::Void>>(#C16), #C18);
+@#C21
+static get ptrInAsset() → ffi::Pointer<ffi::Void>
+  return ffi::_loadPointer<ffi::Void>(ffi::Native::_addressOf<ffi::Pointer<ffi::Void>>(#C20), #C18);
+static method main() → void {
+  core::print(self::malloc());
+  core::print(self::mallocInAsset());
+  core::print(self::ptr);
+}
+constants  {
+  #C1 = "someAssetId"
+  #C2 = ffi::DefaultAsset {id:#C1}
+  #C3 = "cfe:ffi:native-marker"
+  #C4 = "malloc"
+  #C5 = false
+  #C6 = ffi::Native<() → ffi::Pointer<ffi::Void>> {symbol:#C4, assetId:#C1, isLeaf:#C5}
+  #C7 = core::pragma {name:#C3, options:#C6}
+  #C8 = "vm:ffi:native"
+  #C9 = core::pragma {name:#C8, options:#C6}
+  #C10 = "mallocInAsset"
+  #C11 = "anotherAsset"
+  #C12 = ffi::Native<() → ffi::Pointer<ffi::Void>> {symbol:#C10, assetId:#C11, isLeaf:#C5}
+  #C13 = core::pragma {name:#C3, options:#C12}
+  #C14 = core::pragma {name:#C8, options:#C12}
+  #C15 = "ptr"
+  #C16 = ffi::Native<ffi::Pointer<ffi::Void>> {symbol:#C15, assetId:#C1, isLeaf:#C5}
+  #C17 = core::pragma {name:#C3, options:#C16}
+  #C18 = 0
+  #C19 = "ptrInAsset"
+  #C20 = ffi::Native<ffi::Pointer<ffi::Void>> {symbol:#C19, assetId:#C11, isLeaf:#C5}
+  #C21 = core::pragma {name:#C3, options:#C20}
+}

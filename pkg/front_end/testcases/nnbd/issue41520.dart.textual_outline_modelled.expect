@@ -1,0 +1,7 @@
+void _takesObject(Object o) {}
+
+void _takesStackTrace(StackTrace o) {}
+
+void errors() {}
+
+void main() {}

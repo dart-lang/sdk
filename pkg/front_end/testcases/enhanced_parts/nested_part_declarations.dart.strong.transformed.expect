@@ -1,0 +1,30 @@
+library;
+import self as self;
+
+part nested_part_declarations_part1.dart;
+part nested_part_declarations_part3.dart;
+part nested_part_declarations_part2.dart;
+static method declaredInMain() → void {
+  self::declaredInMain();
+  self::declaredInPart1();
+  self::declaredInPart2();
+  self::declaredInPart3();
+}
+static method /* from org-dartlang-testcase:///nested_part_declarations_part1.dart */ declaredInPart1() → void {
+  self::declaredInMain();
+  self::declaredInPart1();
+  self::declaredInPart2();
+  self::declaredInPart3();
+}
+static method /* from org-dartlang-testcase:///nested_part_declarations_part2.dart */ declaredInPart2() → void {
+  self::declaredInMain();
+  self::declaredInPart1();
+  self::declaredInPart2();
+  self::declaredInPart3();
+}
+static method /* from org-dartlang-testcase:///nested_part_declarations_part3.dart */ declaredInPart3() → void {
+  self::declaredInMain();
+  self::declaredInPart1();
+  self::declaredInPart2();
+  self::declaredInPart3();
+}

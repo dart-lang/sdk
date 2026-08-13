@@ -1,0 +1,9 @@
+main() {}
+
+class A {
+  foo() {}
+}
+
+class B<T> {
+  int i;
+}

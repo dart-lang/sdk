@@ -1,0 +1,20 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic {
+  switch(0) /* core::int */ {
+    #L1:
+    case #C1:
+      {
+        continue #L2;
+      }
+    #L2:
+    default:
+      {}
+  }
+}
+
+constants  {
+  #C1 = 1
+}

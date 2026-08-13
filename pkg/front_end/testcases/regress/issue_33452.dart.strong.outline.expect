@@ -1,0 +1,10 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class ExistingClass extends core::Object {
+  constructor existingConstructor() → self::ExistingClass
+    ;
+}
+static method main() → dynamic
+  ;

@@ -1,0 +1,19 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_29942.dart:8:5: Error: Expected a function body or '=>'.
+// Try adding {}.
+// f() =
+//     ^
+//
+// pkg/front_end/testcases/regress/issue_29942.dart:10:1: Error: A function expression can't have a name.
+// h() => null;
+// ^
+//
+import self as self;
+
+static method main() → dynamic
+  ;
+static method f() → dynamic
+  ;

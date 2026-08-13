@@ -1,0 +1,17 @@
+B1<T> contextB1<T>(B1<T> x) => x;
+
+Iterable<T> contextIterable<T>(Iterable<T> x) => x;
+
+class A {}
+
+class B1<T> implements A {}
+
+class B2<T> implements A {}
+
+class C1<T> implements B1<T>, B2<T> {}
+
+class C2<T> implements B1<T>, B2<T> {}
+
+main() {}
+
+test(bool b) {}

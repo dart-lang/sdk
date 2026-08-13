@@ -1,0 +1,17 @@
+include: package:lints/recommended.yaml
+
+analyzer:
+  errors:
+    # Disable implementation_imports.
+    implementation_imports: ignore
+  language:
+    strict-raw-types: true
+
+linter:
+  rules:
+    - directives_ordering
+    - prefer_single_quotes
+    - sort_pub_dependencies
+
+formatter:
+  trailing_commas: preserve

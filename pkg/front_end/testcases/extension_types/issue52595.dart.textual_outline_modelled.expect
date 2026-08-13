@@ -1,0 +1,3 @@
+const c = const V<int>(0);
+
+extension type const V<T>(int id) {}

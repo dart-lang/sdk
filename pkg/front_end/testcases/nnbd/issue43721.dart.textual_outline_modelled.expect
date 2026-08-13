@@ -1,0 +1,7 @@
+import 'dart:async';
+
+bar(bool condition) {}
+
+foo(Object x) {}
+
+main() {}

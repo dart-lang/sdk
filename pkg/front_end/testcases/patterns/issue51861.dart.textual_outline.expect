@@ -1,0 +1,9 @@
+class A {
+  int foo;
+  int get bar => throw 'Bye';
+  A(this.foo);
+}
+
+void main() {}
+
+expect(expected, actual) {}

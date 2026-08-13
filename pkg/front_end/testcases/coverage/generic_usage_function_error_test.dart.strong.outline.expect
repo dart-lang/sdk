@@ -1,0 +1,10 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef T<unrelated X extends core::Object? = dynamic> = core::Function;
+abstract class C extends core::Object {
+  final field core::Function v7;
+  constructor •() → self::C
+    ;
+}

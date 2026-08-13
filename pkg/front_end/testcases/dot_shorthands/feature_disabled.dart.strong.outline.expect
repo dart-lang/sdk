@@ -1,0 +1,25 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Color extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::Color red = const self::Color::•(0, "red");
+  enum-element static const field self::Color blue = const self::Color::•(1, "blue");
+  enum-element static const field self::Color green = const self::Color::•(2, "green");
+  static const field core::List<self::Color> values = const <self::Color>[self::Color::red, self::Color::blue, self::Color::green];
+  const synthetic constructor •(core::int #index, core::String #name) → self::Color
+    : super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "Color.${this.{core::_Enum::_name}{core::String}}";
+}
+static method main() → void
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///feature_disabled.dart:7:14 -> InstanceConstant(const Color{_Enum.index: 0, _Enum._name: "red"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///feature_disabled.dart:7:19 -> InstanceConstant(const Color{_Enum.index: 1, _Enum._name: "blue"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///feature_disabled.dart:7:25 -> InstanceConstant(const Color{_Enum.index: 2, _Enum._name: "green"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///feature_disabled.dart:7:6 -> ListConstant(const <Color>[const Color{_Enum.index: 0, _Enum._name: "red"}, const Color{_Enum.index: 1, _Enum._name: "blue"}, const Color{_Enum.index: 2, _Enum._name: "green"}])
+Extra constant evaluation: evaluated: 9, effectively constant: 4

@@ -1,0 +1,24 @@
+main = a::main;
+library from "package:foo/a.dart" as a {
+//
+// Problems in library:
+//
+// org-dartlang-test:///foo/lib/a.dart:3:3: Error: The 'primary-constructors' language feature is disabled for this library.
+// Try removing the `@dart=` annotation or setting the language version to 3.13 or higher.
+//   new() {
+//   ^^^
+// org-dartlang-test:///foo/lib/a.dart:1:1: Context: This is the annotation that opts out this library from the 'primary-constructors' language feature.
+// // @dart=3.12
+// ^^^^^^^^^^^^^
+//
+
+  class A extends dart.core::Object {
+    constructor •() → a::A
+      : super dart.core::Object::•() {
+      dart.core::print("A");
+    }
+  }
+  static method main() → void {
+    new a::A::•();
+  }
+}

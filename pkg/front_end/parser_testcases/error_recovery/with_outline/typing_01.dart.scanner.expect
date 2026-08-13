@@ -1,0 +1,53 @@
+class Foo {
+void foo_method1() {
+if (1+1==2) {
+
+
+
+if (1 + 1 == 2) {
+
+}
+}}
+
+void foo_method2() {
+
+}
+}
+
+class Bar {
+void bar_method1() {
+
+}
+
+void bar_method2() {
+
+}
+}
+
+
+[UnmatchedToken]class[KeywordToken] Foo[StringToken] {[BeginToken]
+void[KeywordToken] foo_method1[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]1[StringToken]+[SimpleToken]1[StringToken]==[SimpleToken]2[StringToken])[SimpleToken] {[BeginToken]
+
+
+
+if[KeywordToken] ([BeginToken]1[StringToken] +[SimpleToken] 1[StringToken] ==[SimpleToken] 2[StringToken])[SimpleToken] {[BeginToken]
+
+}[SimpleToken]
+}[SyntheticToken]}[SimpleToken]
+
+void[KeywordToken] foo_method2[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+
+}[SimpleToken]
+}[SimpleToken]
+
+class[KeywordToken] Bar[StringToken] {[BeginToken]
+void[KeywordToken] bar_method1[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+
+}[SimpleToken]
+
+void[KeywordToken] bar_method2[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+
+}[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

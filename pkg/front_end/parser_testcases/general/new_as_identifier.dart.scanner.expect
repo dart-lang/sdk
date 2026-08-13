@@ -1,0 +1,81 @@
+class C {
+C.new();
+
+
+
+C.constructor_field_initializer() : this.new = null;
+}
+
+class D {
+factory D.new() => C();
+factory D.factory_redirection() = C.new;
+factory D.factory_redirection_generic() = C<int>.new;
+factory D.factory_redirection_prefixed() = prefix.C.new;
+factory D.factory_redirection_prefixed_generic() = prefix.C<int>.new;
+D.super_invocation() : super.new();
+D.this_redirection() : this.new();
+}
+
+var constructor_invocation_const = const C.new();
+var constructor_invocation_const_generic = const C<int>.new();
+var constructor_invocation_const_prefixed = const prefix.C.new();
+var constructor_invocation_const_prefixed_generic = const prefix.C<int>.new();
+var constructor_invocation_explicit = new C.new();
+var constructor_invocation_explicit_generic = new C<int>.new();
+var constructor_invocation_explicit_prefixed = new prefix.C.new();
+var constructor_invocation_explicit_prefixed_generic = new prefix.C<int>.new();
+var constructor_invocation_implicit = C.new();
+var constructor_invocation_implicit_generic = C<int>.new();
+var constructor_invocation_implicit_prefixed = prefix.C.new();
+var constructor_invocation_implicit_prefixed_generic = prefix.C<int>.new();
+var constructor_tearoff = C.new;
+var constructor_tearoff_generic = C<int>.new;
+var constructor_tearoff_generic_method_invocation = C<int>.new.toString();
+var constructor_tearoff_method_invocation = C.new.toString();
+var constructor_tearoff_prefixed = prefix.C.new;
+var constructor_tearoff_prefixed_generic = prefix.C<int>.new;
+var constructor_tearoff_prefixed_generic_method_invocation =
+prefix.C<int>.new.toString();
+var constructor_tearoff_prefixed_method_invocation = prefix.C.new.toString();
+
+
+class[KeywordToken] C[StringToken] {[BeginToken]
+C[StringToken].[SimpleToken]new[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+
+
+
+C[StringToken].[SimpleToken]constructor_field_initializer[StringToken]([BeginToken])[SimpleToken] :[SimpleToken] this[KeywordToken].[SimpleToken]new[KeywordToken] =[SimpleToken] null[KeywordToken];[SimpleToken]
+}[SimpleToken]
+
+class[KeywordToken] D[StringToken] {[BeginToken]
+factory[KeywordToken] D[StringToken].[SimpleToken]new[KeywordToken]([BeginToken])[SimpleToken] =>[SimpleToken] C[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+factory[KeywordToken] D[StringToken].[SimpleToken]factory_redirection[StringToken]([BeginToken])[SimpleToken] =[SimpleToken] C[StringToken].[SimpleToken]new[KeywordToken];[SimpleToken]
+factory[KeywordToken] D[StringToken].[SimpleToken]factory_redirection_generic[StringToken]([BeginToken])[SimpleToken] =[SimpleToken] C[StringToken]<[BeginToken]int[StringToken]>[SimpleToken].[SimpleToken]new[KeywordToken];[SimpleToken]
+factory[KeywordToken] D[StringToken].[SimpleToken]factory_redirection_prefixed[StringToken]([BeginToken])[SimpleToken] =[SimpleToken] prefix[StringToken].[SimpleToken]C[StringToken].[SimpleToken]new[KeywordToken];[SimpleToken]
+factory[KeywordToken] D[StringToken].[SimpleToken]factory_redirection_prefixed_generic[StringToken]([BeginToken])[SimpleToken] =[SimpleToken] prefix[StringToken].[SimpleToken]C[StringToken]<[BeginToken]int[StringToken]>[SimpleToken].[SimpleToken]new[KeywordToken];[SimpleToken]
+D[StringToken].[SimpleToken]super_invocation[StringToken]([BeginToken])[SimpleToken] :[SimpleToken] super[KeywordToken].[SimpleToken]new[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+D[StringToken].[SimpleToken]this_redirection[StringToken]([BeginToken])[SimpleToken] :[SimpleToken] this[KeywordToken].[SimpleToken]new[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+
+var[KeywordToken] constructor_invocation_const[StringToken] =[SimpleToken] const[KeywordToken] C[StringToken].[SimpleToken]new[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+var[KeywordToken] constructor_invocation_const_generic[StringToken] =[SimpleToken] const[KeywordToken] C[StringToken]<[BeginToken]int[StringToken]>[SimpleToken].[SimpleToken]new[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+var[KeywordToken] constructor_invocation_const_prefixed[StringToken] =[SimpleToken] const[KeywordToken] prefix[StringToken].[SimpleToken]C[StringToken].[SimpleToken]new[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+var[KeywordToken] constructor_invocation_const_prefixed_generic[StringToken] =[SimpleToken] const[KeywordToken] prefix[StringToken].[SimpleToken]C[StringToken]<[BeginToken]int[StringToken]>[SimpleToken].[SimpleToken]new[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+var[KeywordToken] constructor_invocation_explicit[StringToken] =[SimpleToken] new[KeywordToken] C[StringToken].[SimpleToken]new[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+var[KeywordToken] constructor_invocation_explicit_generic[StringToken] =[SimpleToken] new[KeywordToken] C[StringToken]<[BeginToken]int[StringToken]>[SimpleToken].[SimpleToken]new[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+var[KeywordToken] constructor_invocation_explicit_prefixed[StringToken] =[SimpleToken] new[KeywordToken] prefix[StringToken].[SimpleToken]C[StringToken].[SimpleToken]new[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+var[KeywordToken] constructor_invocation_explicit_prefixed_generic[StringToken] =[SimpleToken] new[KeywordToken] prefix[StringToken].[SimpleToken]C[StringToken]<[BeginToken]int[StringToken]>[SimpleToken].[SimpleToken]new[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+var[KeywordToken] constructor_invocation_implicit[StringToken] =[SimpleToken] C[StringToken].[SimpleToken]new[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+var[KeywordToken] constructor_invocation_implicit_generic[StringToken] =[SimpleToken] C[StringToken]<[BeginToken]int[StringToken]>[SimpleToken].[SimpleToken]new[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+var[KeywordToken] constructor_invocation_implicit_prefixed[StringToken] =[SimpleToken] prefix[StringToken].[SimpleToken]C[StringToken].[SimpleToken]new[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+var[KeywordToken] constructor_invocation_implicit_prefixed_generic[StringToken] =[SimpleToken] prefix[StringToken].[SimpleToken]C[StringToken]<[BeginToken]int[StringToken]>[SimpleToken].[SimpleToken]new[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+var[KeywordToken] constructor_tearoff[StringToken] =[SimpleToken] C[StringToken].[SimpleToken]new[KeywordToken];[SimpleToken]
+var[KeywordToken] constructor_tearoff_generic[StringToken] =[SimpleToken] C[StringToken]<[BeginToken]int[StringToken]>[SimpleToken].[SimpleToken]new[KeywordToken];[SimpleToken]
+var[KeywordToken] constructor_tearoff_generic_method_invocation[StringToken] =[SimpleToken] C[StringToken]<[BeginToken]int[StringToken]>[SimpleToken].[SimpleToken]new[KeywordToken].[SimpleToken]toString[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+var[KeywordToken] constructor_tearoff_method_invocation[StringToken] =[SimpleToken] C[StringToken].[SimpleToken]new[KeywordToken].[SimpleToken]toString[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+var[KeywordToken] constructor_tearoff_prefixed[StringToken] =[SimpleToken] prefix[StringToken].[SimpleToken]C[StringToken].[SimpleToken]new[KeywordToken];[SimpleToken]
+var[KeywordToken] constructor_tearoff_prefixed_generic[StringToken] =[SimpleToken] prefix[StringToken].[SimpleToken]C[StringToken]<[BeginToken]int[StringToken]>[SimpleToken].[SimpleToken]new[KeywordToken];[SimpleToken]
+var[KeywordToken] constructor_tearoff_prefixed_generic_method_invocation[StringToken] =[SimpleToken]
+prefix[StringToken].[SimpleToken]C[StringToken]<[BeginToken]int[StringToken]>[SimpleToken].[SimpleToken]new[KeywordToken].[SimpleToken]toString[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+var[KeywordToken] constructor_tearoff_prefixed_method_invocation[StringToken] =[SimpleToken] prefix[StringToken].[SimpleToken]C[StringToken].[SimpleToken]new[KeywordToken].[SimpleToken]toString[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+[SimpleToken]

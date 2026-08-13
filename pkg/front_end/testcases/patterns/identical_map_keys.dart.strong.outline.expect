@@ -1,0 +1,25 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::C
+    : super core::Object::•()
+    ;
+}
+static const field self::C c1 = const self::C::•();
+static const field self::C c2 = const self::C::•();
+static method test1(core::Map<dynamic, dynamic> map) → core::String
+  ;
+static method test2(core::Map<dynamic, dynamic> map) → void
+  ;
+static method test3(core::Map<dynamic, dynamic> map) → void
+  ;
+static method test() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///identical_map_keys.dart:11:12 -> InstanceConstant(const C{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///identical_map_keys.dart:12:12 -> InstanceConstant(const C{})
+Extra constant evaluation: evaluated: 2, effectively constant: 2

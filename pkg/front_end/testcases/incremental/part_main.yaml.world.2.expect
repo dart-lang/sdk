@@ -1,0 +1,15 @@
+main = fir::main;
+library first from "org-dartlang-test:///first.dart" as fir {
+
+  part second.dart;
+  static method main() → dynamic {
+    fir::method1();
+    fir::method2();
+  }
+  static method method1() → dynamic {
+    dart.core::print("method1");
+  }
+  static method /* from org-dartlang-test:///second.dart */ method2() → dynamic {
+    dart.core::print("method2");
+  }
+}

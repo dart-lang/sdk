@@ -1,0 +1,93 @@
+# Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+[ $compiler == dart2js ]
+convert/chunked_conversion_utf88_test: Slow, Pass
+convert/utf85_test: Slow, Pass
+developer/timeline_test: Skip # Not supported
+html/interactive_geolocation_test: Skip # Requires allowing geo location.
+html/isolates_test: SkipByDesign
+html/worker_api_test: SkipByDesign
+html/wrapping_collections_test: SkipByDesign # Testing an issue that is only relevant to Dartium
+html/xhr_test: Slow, Pass
+isolate/*: SkipByDesign # No support for dart:isolate in dart4web (http://dartbug.com/30538)
+mirrors/*: SkipByDesign # Mirrors not supported on web in Dart 2.0.
+typed_data/int64_list_load_store_test: SkipByDesign # No support for Int64List
+typed_data/typed_data_hierarchy_int64_test: SkipByDesign # No support for Int64List
+wasm/*: SkipByDesign # dart:_wasm not currently supported on web.
+
+[ $compiler != dart2js ]
+async/dart2js_uncaught_error_test: Skip # JS-integration only test
+
+[ $builder_tag == dart2js_production && $compiler == dart2js ]
+js/js_util/properties_implicit_checks_test: SkipByDesign # No implicit checks in production mode
+
+[ $compiler == dart2js && $runtime == chrome ]
+async/slow_consumer2_test: SkipSlow # Times out. Issue 22050
+convert/streamed_conversion_json_utf8_decode_test: SkipSlow # Times out. Issue 22050
+convert/streamed_conversion_json_utf8_encode_test: SkipSlow # Times out. Issue 22050
+convert/streamed_conversion_utf8_decode_test: SkipSlow # Times out. Issue 22050
+html/canvasrendering/draw_image_video_element_test: SkipByDesign # Issue #53985: video is not played on Chrome inactive tabs
+html/request_animation_frame_test: SkipByDesign # Issue #53985: requestAnimationFrame is not executed on Chrome inactive tabs
+html/transition_event_test: SkipByDesign # Issue #53985: css transitions are not executed on Chrome inactive tabs
+
+[ $compiler == dart2js && $runtime == chromeOnAndroid ]
+html/input_element_datetime_test: Slow, Pass # TODO(dart2js-team): Please triage this failure.
+
+[ $compiler == dart2js && $runtime == d8 ]
+html/*: SkipByDesign # Browser test
+
+[ $compiler == dart2js && $runtime == ff ]
+async/slow_consumer2_test: SkipSlow # Times out. Issue 22050
+convert/streamed_conversion_json_utf8_decode_test: SkipSlow # Times out. Issue 22050
+convert/streamed_conversion_json_utf8_encode_test: SkipSlow # Times out. Issue 22050
+convert/streamed_conversion_utf8_decode_test: SkipSlow # Times out. Issue 22050
+convert/utf85_test: Slow, Pass
+html/callback_list_test: SkipByDesign # FileSystem not supported in FireFox.
+html/dart_object_local_storage_test: Skip # sessionStorage NS_ERROR_DOM_NOT_SUPPORTED_ERR
+html/fileapi_supported_test: Skip # FileSystem not supported on FireFox.
+html/fileapi_supported_throws_test: Skip # FileSystem not supported on FireFox.
+html/history_test: Skip # Issue 22050
+html/mediadevices_test: SkipByDesign # Not supported on FF, likely requires user-interaction that causes timeout
+html/request_animation_frame_test: Skip # Async test hangs.
+
+[ $compiler == dart2js && $runtime == safari ]
+html/audiocontext_test: Skip # evades flake detection https://github.com/dart-lang/sdk/issues/50718
+html/callback_list_test: SkipByDesign # FileSystem not supported in Safari.
+html/fileapi_supported_throws_test: Skip # FileSystem not supported on Safari
+html/input_element_date_test: Skip # evades flake detection https://github.com/dart-lang/sdk/issues/50718
+html/input_element_datetime_test: Skip # evades flake detection https://github.com/dart-lang/sdk/issues/50718
+html/input_element_time_test: Skip # evades flake detection https://github.com/dart-lang/sdk/issues/50718
+html/interactive_media_test: SkipSlow
+html/mediasource_test: Skip # evades flake detection https://github.com/dart-lang/sdk/issues/50718
+js/js_util/bigint_test: Skip # evades flake detection https://github.com/dart-lang/sdk/issues/50718
+
+[ $compiler == dart2js && $checked ]
+convert/utf85_test: Slow, Pass # Issue 12029.
+html/js_function_getter_trust_types/function_test: Skip # --trust-type-annotations incompatible with --checked
+
+[ $compiler == dart2js && $csp && ($runtime == chrome || $runtime == chromeOnAndroid || $runtime == ff || $runtime == safari) ]
+html/event_customevent_test: SkipByDesign
+html/js_array_test: SkipByDesign
+html/js_dart_to_string_test: SkipByDesign
+html/js_function_getter_test: SkipByDesign
+html/js_function_getter_trust_types/function_test: SkipByDesign
+html/js_interop_1_test: SkipByDesign
+html/js_typed_interop_bind_this_test: SkipByDesign
+html/js_typed_interop_callable_object_test: SkipByDesign
+html/js_typed_interop_default_arg_test: SkipByDesign
+html/js_typed_interop_test: SkipByDesign
+html/js_typed_interop_type1_test: SkipByDesign
+html/js_typed_interop_type3_test: SkipByDesign
+html/js_typed_interop_type_test: SkipByDesign
+html/js_typed_interop_window_property_test: SkipByDesign
+html/js_util_test: SkipByDesign
+html/postmessage_structured_test: SkipByDesign
+js/js_util/dartify_test: SkipByDesign
+
+[ $compiler == dart2js && ($runtime == chrome || $runtime == ff) ]
+async/slow_consumer2_test: SkipSlow # Times out. Issue 22050
+convert/streamed_conversion_json_utf8_decode_test: SkipSlow # Times out. Issue 22050
+convert/streamed_conversion_json_utf8_encode_test: SkipSlow # Times out. Issue 22050
+convert/streamed_conversion_utf8_decode_test: SkipSlow # Times out. Issue 22050

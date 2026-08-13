@@ -1,0 +1,32 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method method1a<T extends (core::int, core::String)>(self::method1a::T t) → dynamic
+  ;
+static method method1b<T extends (core::int, core::String)>(self::method1b::T t) → dynamic
+  ;
+static method method1c<T extends (core::int, core::String)>(self::method1c::T t) → dynamic
+  ;
+static method method1d<T extends (core::int, core::String)>(self::method1d::T t) → dynamic
+  ;
+static method method2a<T extends (core::int, {required a: core::String})>(self::method2a::T t) → dynamic
+  ;
+static method method2b<T extends (core::int, {required a: core::String})>(self::method2b::T t) → dynamic
+  ;
+static method method2c<T extends (core::int, {required a: core::String})>(self::method2c::T t) → dynamic
+  ;
+static method method2d<T extends (core::int, {required a: core::String})>(self::method2d::T t) → dynamic
+  ;
+static method method3a<T extends (core::int, core::String), S extends self::method3a::T = (core::int, core::String)>(self::method3a::S t) → dynamic
+  ;
+static method method3b<T extends (core::int, core::String), S extends self::method3b::T = (core::int, core::String)>(self::method3b::S t) → dynamic
+  ;
+static method method3c<T extends (core::int, core::String), S extends self::method3c::T = (core::int, core::String)>(self::method3c::S t) → dynamic
+  ;
+static method method3d<T extends (core::int, core::String), S extends self::method3d::T = (core::int, core::String)>(self::method3d::S t) → dynamic
+  ;
+static method method1<T extends core::Object? = dynamic>(self::method1::T% t) → void
+  ;
+static method method2(core::Object t) → void
+  ;

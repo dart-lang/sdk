@@ -1,0 +1,21 @@
+class C {
+new new();
+const new new();
+new new() : this.x = 0;
+const new new() : this.x = 0;
+new new() {}
+const new new() {}
+new new() : this.x = 0 {}
+const new new() : this.x = 0 {}
+}
+
+class[KeywordToken] C[StringToken] {[BeginToken]
+new[KeywordToken] new[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+const[KeywordToken] new[KeywordToken] new[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+new[KeywordToken] new[KeywordToken]([BeginToken])[SimpleToken] :[SimpleToken] this[KeywordToken].[SimpleToken]x[StringToken] =[SimpleToken] 0[StringToken];[SimpleToken]
+const[KeywordToken] new[KeywordToken] new[KeywordToken]([BeginToken])[SimpleToken] :[SimpleToken] this[KeywordToken].[SimpleToken]x[StringToken] =[SimpleToken] 0[StringToken];[SimpleToken]
+new[KeywordToken] new[KeywordToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+const[KeywordToken] new[KeywordToken] new[KeywordToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+new[KeywordToken] new[KeywordToken]([BeginToken])[SimpleToken] :[SimpleToken] this[KeywordToken].[SimpleToken]x[StringToken] =[SimpleToken] 0[StringToken] {[BeginToken]}[SimpleToken]
+const[KeywordToken] new[KeywordToken] new[KeywordToken]([BeginToken])[SimpleToken] :[SimpleToken] this[KeywordToken].[SimpleToken]x[StringToken] =[SimpleToken] 0[StringToken] {[BeginToken]}[SimpleToken]
+}[SimpleToken][SimpleToken]

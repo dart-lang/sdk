@@ -1,0 +1,23 @@
+class Class<T> {
+  Class(this.field);
+  final T field;
+  instanceMethod(T value) {}
+  late T lateGenericField1 = field;
+  late T lateGenericField2 = field;
+  late int lateInstanceField = 16;
+  static late int lateStaticField1 = 87;
+  static late int lateStaticField2 = 42;
+  static staticMethod() {}
+}
+
+expect(expected, actual) {}
+
+extension Extension<T> on Class<T> {
+  static late int lateExtensionField1 = 87;
+  static late int lateExtensionField2 = 42;
+  static staticMethod() {}
+}
+
+late int lateTopLevelField1 = 123;
+
+main() {}

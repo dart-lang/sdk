@@ -1,0 +1,6 @@
+class Foo {
+  void Foo() : initializer = true {}
+  void Foo() {}
+  void Foo.x() : initializer = true {}
+  void Foo.x() {}
+}

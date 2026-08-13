@@ -1,0 +1,5 @@
+library test;
+
+void block_test(List<Object> Function() g) {}
+
+void arrow_test(List<Object> Function() g) {}

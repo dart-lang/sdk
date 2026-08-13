@@ -1,0 +1,17 @@
+library test;
+
+T f<T>() => throw '';
+
+class A {}
+
+A aTopLevel = throw '';
+
+void set aTopLevelSetter(A value) {}
+
+class C {
+  A aField = throw '';
+  void set aSetter(A value) {}
+  void test() {}
+}
+
+main() {}

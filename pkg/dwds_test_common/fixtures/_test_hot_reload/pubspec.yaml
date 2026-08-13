@@ -1,0 +1,7 @@
+name: _test_hot_reload
+version: 1.0.0
+description: >-
+  A fake package used for testing hot reload.
+publish_to: none
+environment:
+  sdk: ^3.10.0-0.0.dev

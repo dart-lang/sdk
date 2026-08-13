@@ -1,0 +1,3 @@
+import './aliased_checks_no_bodies_lib.dart';
+
+main() {}

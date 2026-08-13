@@ -1,0 +1,54 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+import "dart:ffi" as ffi;
+import "dart:_internal" as _in;
+
+import "dart:ffi";
+
+class Foo extends core::Object implements ffi::Finalizable {
+  synthetic constructor •() → self::Foo
+    : super core::Object::•()
+    ;
+}
+extension /* unnamed */ _extension#0 on ffi::Finalizable {
+  method bar = self::_extension#0|bar;
+  method tearoff bar = self::_extension#0|get#bar;
+}
+extension /* unnamed */ _extension#1 on core::Object {
+  method baz = self::_extension#1|baz;
+  method tearoff baz = self::_extension#1|get#baz;
+}
+static method main() → void {
+  final self::Foo foo = new self::Foo::•();
+  self::_extension#0|bar(foo);
+  self::_extension#1|baz(new core::Object::•(), foo);
+  _in::reachabilityFence(foo);
+}
+static extension-member method _extension#0|bar(lowered final ffi::Finalizable #this) → core::int {
+  core::print("123");
+  return block {
+    final synthesized core::int :expressionValueWrappedFinalizable = 4;
+    _in::reachabilityFence(#this);
+  } =>:expressionValueWrappedFinalizable;
+}
+static extension-member method _extension#0|get#bar(lowered final ffi::Finalizable #this) → () → core::int
+  return block {
+    final synthesized () → core::int :expressionValueWrappedFinalizable = () → core::int => block {
+      final synthesized core::int :expressionValueWrappedFinalizable = self::_extension#0|bar(#this);
+      _in::reachabilityFence(#this);
+    } =>:expressionValueWrappedFinalizable;
+    _in::reachabilityFence(#this);
+  } =>:expressionValueWrappedFinalizable;
+static extension-member method _extension#1|baz(lowered final core::Object #this, self::Foo foo) → core::int {
+  core::print("456");
+  return block {
+    final synthesized core::int :expressionValueWrappedFinalizable = 5;
+    _in::reachabilityFence(foo);
+  } =>:expressionValueWrappedFinalizable;
+}
+static extension-member method _extension#1|get#baz(lowered final core::Object #this) → (self::Foo) → core::int
+  return (self::Foo foo) → core::int => block {
+    final synthesized core::int :expressionValueWrappedFinalizable = self::_extension#1|baz(#this, foo);
+    _in::reachabilityFence(foo);
+  } =>:expressionValueWrappedFinalizable;

@@ -1,0 +1,9 @@
+library test;
+
+class A {
+  void set x() {}
+}
+
+main() {}
+
+void f(A a) {}

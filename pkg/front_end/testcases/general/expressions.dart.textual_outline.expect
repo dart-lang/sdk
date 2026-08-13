@@ -1,0 +1,5 @@
+foo({fisk}) {}
+
+caller(f) {}
+
+main() {}

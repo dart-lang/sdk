@@ -1,0 +1,7 @@
+f(dynamic a) {
+a?[0] + 1;
+}
+
+f[StringToken]([BeginToken]dynamic[KeywordToken] a[StringToken])[SimpleToken] {[BeginToken]
+a[StringToken]?[SimpleToken][[BeginToken]0[StringToken]][SimpleToken] +[SimpleToken] 1[StringToken];[SimpleToken]
+}[SimpleToken][SimpleToken]

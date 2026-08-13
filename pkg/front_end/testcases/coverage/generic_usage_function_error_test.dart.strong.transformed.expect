@@ -1,0 +1,18 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/coverage/generic_usage_function_error_test.dart:12:14: Error: The class 'Function' is abstract and can't be instantiated.
+//   C() : v7 = T(); // Error
+//              ^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+typedef T<unrelated X extends core::Object? = dynamic> = core::Function;
+abstract class C extends core::Object {
+  final field core::Function v7;
+  constructor •() → self::C
+    : self::C::v7 = invalid-expression "The class 'Function' is abstract and can't be instantiated.", super core::Object::•()
+    ;
+}

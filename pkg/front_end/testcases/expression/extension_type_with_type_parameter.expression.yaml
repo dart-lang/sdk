@@ -1,0 +1,43 @@
+# Copyright (c) 2025, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Definition, offset, method etc extracted by starting the VM with
+# `-DDFE_VERBOSE=true`, e.g.
+# ```
+# out/ReleaseX64/dart -DDFE_VERBOSE=true --enable-vm-service inputFile.dart
+# ```
+# and then issuing the expression compilation.
+#
+# Inside an extension type with type parameters - shouldn't crash on
+# serialization.
+
+sources:
+  main.dart: |
+    import "dart:developer";
+
+    extension type Foo<T extends Enum>(int foo) {
+      void bar(T constant) {
+        debugger();
+        print(constant.index);
+      }
+    }
+
+    enum Bar { bar, baz }
+
+    void main() {
+      var x = Foo<Bar>(0);
+      x.bar(Bar.bar);
+    }
+
+definitions: ["#this", "constant"]
+definition_types: ["dart:core", "_Smi", "1", "0", "file:///usr/local/google/home/jensj/code/dart-sdk/sdk/t.dart", "Bar", "1", "0"]
+type_definitions: ["T"]
+type_bounds: ["dart:core", "Enum", "1", "0"]
+type_defaults: ["dart:core", "Enum", "1", "0"]
+method: "Foo.bar"
+static: true
+offset: 105
+scriptUri: main.dart
+expression: |
+ constant.index

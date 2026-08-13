@@ -1,0 +1,13 @@
+NOTICE: Stream was rewritten by parser!
+
+void foo() {
+x
+a;<A<A<A<A<T, I>>>, A<T, I>>>, A<T, I>>();
+;}
+
+
+void[KeywordToken] foo[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+x[StringToken]
+a[StringToken];[SyntheticToken]<[BeginToken]A[StringToken]<[BeginToken]A[StringToken]<[BeginToken]A[StringToken]<[BeginToken]A[StringToken]<[BeginToken]T[StringToken],[SimpleToken] I[StringToken]>[SimpleToken]>[SimpleToken]>[SyntheticToken],[SimpleToken] A[StringToken]<[BeginToken]T[StringToken],[SimpleToken] I[StringToken]>>>[SimpleToken],[SimpleToken] A[StringToken]<[BeginToken]T[StringToken],[SimpleToken] I[StringToken]>>[SimpleToken]([BeginToken])[SimpleToken];[SimpleToken]
+;[SyntheticToken]}[SimpleToken]
+[SimpleToken]

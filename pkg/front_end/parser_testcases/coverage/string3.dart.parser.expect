@@ -1,0 +1,11 @@
+NOTICE: Stream was rewritten by parser!
+
+void foo() {
+return """
+æbler"""
+;}
+
+[UnterminatedString][UnmatchedToken]void[KeywordToken] foo[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+return[KeywordToken] """
+æbler"""[SyntheticStringToken]
+;[SyntheticToken]}[SyntheticToken][SimpleToken]

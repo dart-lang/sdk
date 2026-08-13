@@ -1,0 +1,107 @@
+// Copyright (c) 2020, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/error/listener.dart';
+
+/// Helper for verifying resolution of assignments, in form of explicit
+/// an [AssignmentExpression], or a [PrefixExpression] or [PostfixExpression]
+/// when the operator is an increment operator.
+class AssignmentVerifier {
+  final DiagnosticReporter _diagnosticReporter;
+
+  AssignmentVerifier(this._diagnosticReporter);
+
+  /// We resolved [node] and found that it references the [requested] element.
+  /// Verify that this element is actually writable.
+  ///
+  /// If the [requested] element is `null`, we might have the [recovery]
+  /// element, which is definitely not a valid write target. We want to report
+  /// a good error about this.
+  ///
+  /// When the [receiverType] is not `null`, we report
+  /// [diag.undefinedSetter] instead of a more generic
+  /// [diag.undefinedIdentifier].
+  void verify({
+    required SimpleIdentifier node,
+    required Element? requested,
+    required Element? recovery,
+    required DartType? receiverType,
+  }) {
+    if (requested != null) {
+      if (requested is VariableElement) {
+        if (requested.isConst) {
+          _diagnosticReporter.report(diag.assignmentToConst.at(node));
+        }
+      }
+      return;
+    }
+
+    if (recovery is DynamicElementImpl ||
+        recovery is InterfaceElement ||
+        recovery is TypeAliasElement ||
+        recovery is TypeParameterElement) {
+      _diagnosticReporter.report(diag.assignmentToType.at(node));
+    } else if (recovery is LocalFunctionElement ||
+        recovery is TopLevelFunctionElement) {
+      _diagnosticReporter.report(diag.assignmentToFunction.at(node));
+    } else if (recovery is MethodElement) {
+      _diagnosticReporter.report(diag.assignmentToMethod.at(node));
+    } else if (recovery is PrefixElement) {
+      if (recovery.name case var prefixName?) {
+        _diagnosticReporter.report(
+          diag.prefixIdentifierNotFollowedByDot
+              .withArguments(name: prefixName)
+              .at(node),
+        );
+      }
+    } else if (recovery is GetterElement) {
+      var variable = recovery.variable;
+      var variableName = variable.name;
+      if (variableName == null) {
+        return;
+      }
+
+      if (variable.isConst) {
+        _diagnosticReporter.report(diag.assignmentToConst.at(node));
+      } else if (variable is FieldElement && variable.isOriginGetterSetter) {
+        _diagnosticReporter.report(
+          diag.assignmentToFinalNoSetter
+              .withArguments(
+                variableName: variableName,
+                className: variable.enclosingElement.displayName,
+              )
+              .at(node),
+        );
+      } else {
+        _diagnosticReporter.report(
+          diag.assignmentToFinal
+              .withArguments(variableName: variableName)
+              .at(node),
+        );
+      }
+    } else if (recovery is MultiplyDefinedElementImpl) {
+      // Will be reported in ErrorVerifier.
+    } else {
+      if (node.isSynthetic) {
+        return;
+      }
+      if (receiverType != null) {
+        _diagnosticReporter.report(
+          diag.undefinedSetter
+              .withArguments(setterName: node.name, type: receiverType)
+              .at(node),
+        );
+      } else {
+        _diagnosticReporter.report(
+          diag.undefinedIdentifier.withArguments(name: node.name).at(node),
+        );
+      }
+    }
+  }
+}

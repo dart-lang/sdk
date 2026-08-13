@@ -1,0 +1,6 @@
+{
+  "expectedErrors": {
+    "1": "Error: Method not found: 'importedFunc'.",
+    "2": "Error: Method not found: 'importedIntFunc'."
+  }
+}

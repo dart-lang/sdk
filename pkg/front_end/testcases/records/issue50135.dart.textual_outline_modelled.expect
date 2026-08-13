@@ -1,0 +1,7 @@
+class Bar {
+  void call() {}
+}
+
+main() {}
+
+void foo() => print('foo');

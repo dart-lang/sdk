@@ -1,0 +1,15 @@
+main = main::main;
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "package:package1/lib1.dart";
+
+  static method main() → dynamic {
+    lib1::lib1();
+  }
+}
+library from "package:package1/lib1.dart" as lib1 {
+
+  static method lib1() → dynamic {
+    return 42;
+  }
+}

@@ -1,0 +1,9 @@
+import 'package:expect/expect.dart';
+
+class B {}
+
+class X<T extends B> {}
+
+class Y extends X {}
+
+void main() {}

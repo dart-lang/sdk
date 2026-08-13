@@ -1,0 +1,18 @@
+<compound name='flutter_elements'>
+  <compound name='reachableObjects'>
+    <count name='count' value='11852623'/>
+    <bytes name='size' value='986856319'/>
+  </compound>
+  <compound name='_SimpleUri'>
+    <count name='count' value='3117'/>
+    <bytes name='size(shallow)' value='249360'/>
+    <count name='duplicateCount' value='0'/>
+  </compound>
+  <compound name='InterfaceTypeImpl'>
+    <count name='count' value='157903'/>
+    <bytes name='size(shallow)' value='10105792'/>
+  </compound>
+  <compound name='LinkedData'>
+    <count name='count' value='0'/>
+  </compound>
+</compound>

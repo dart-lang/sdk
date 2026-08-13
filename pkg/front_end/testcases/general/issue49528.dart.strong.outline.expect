@@ -1,0 +1,9 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static field core::bool any_bool;
+static final field core::int foo;
+static final field core::int bar;
+static method main() → void
+  ;

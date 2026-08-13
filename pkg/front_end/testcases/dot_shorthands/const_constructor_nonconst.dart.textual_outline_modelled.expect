@@ -1,0 +1,6 @@
+class Color {
+  Color.red(this.x);
+  final int x;
+}
+
+void test() {}

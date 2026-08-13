@@ -1,0 +1,4 @@
+# Add this to your Git config to set the section header as function context for status files.
+# git config --add --local include.path ../.gitconfig
+[diff "status"]
+	xfuncname = "^\\[.*\\]$"

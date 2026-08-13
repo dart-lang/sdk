@@ -1,0 +1,9 @@
+abstract class Foo {
+  void _foo();
+}
+
+class Bar extends Foo {
+  dynamic noSuchMethod(Invocation invocation) => null;
+}
+
+main() {}

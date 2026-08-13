@@ -1,0 +1,37 @@
+class C {
+new.named();
+factory.named();
+}
+
+enum E {
+a;
+
+new.named();
+factory.named();
+}
+
+extension type ET(int i) {
+new.named();
+factory.named();
+}
+
+
+
+class[KeywordToken] C[StringToken] {[BeginToken]
+new[KeywordToken].[SimpleToken]named[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+factory[KeywordToken].[SimpleToken]named[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+
+enum[KeywordToken] E[StringToken] {[BeginToken]
+a[StringToken];[SimpleToken]
+
+new[KeywordToken].[SimpleToken]named[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+factory[KeywordToken].[SimpleToken]named[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+
+extension[KeywordToken] type[StringToken] ET[StringToken]([BeginToken]int[StringToken] i[StringToken])[SimpleToken] {[BeginToken]
+new[KeywordToken].[SimpleToken]named[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+factory[KeywordToken].[SimpleToken]named[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+
+[SimpleToken]

@@ -1,0 +1,5 @@
+import "package:expect/expect.dart" show Expect;
+
+test(f) {}
+
+main() {}

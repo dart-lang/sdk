@@ -1,0 +1,612 @@
+// Copyright (c) 2025, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+//
+// Tests IsolateGroup.runSync - what works, what doesn't.
+//
+// VMOptions=--experimental-shared-data
+// VMOptions=--experimental-shared-data --use-slow-path
+// VMOptions=--experimental-shared-data --use-slow-path --stacktrace-every=100
+// VMOptions=--experimental-shared-data --dwarf_stack_traces --no-retain_function_objects --no-retain_code_objects
+// VMOptions=--experimental-shared-data --test_il_serialization
+// VMOptions=--experimental-shared-data --profiler --profile_vm=true
+// VMOptions=--experimental-shared-data --profiler --profile_vm=false
+
+import 'package:dart_internal/isolate_group.dart' show IsolateGroup;
+import 'dart:convert';
+import 'dart:developer';
+import 'dart:io';
+import 'dart:isolate';
+import 'dart:math';
+import 'dart:typed_data';
+
+import "package:expect/expect.dart";
+
+import "run_isolate_group_run_test.dart" deferred as lib1;
+
+main(List<String> args) {
+  testUpdateSharedVar();
+  testReturnsConstant();
+  testReturnsList();
+  testReturnsNotSharedFinal();
+
+  testFailToAccessNotSharedVarWithInitializer();
+  testFailToAccessNotSharedVarWithoutInitializer();
+
+  testFailToCaptureLateFinalVar();
+  testCapturesFinalNotSharedVar();
+
+  testCyclesBetweenClosures();
+
+  testUpdateNotSharedStaticField();
+
+  testClosure();
+
+  testCapturesClassWithDeeplyImmutableClosure();
+  testFailToCaptureClassWithNonFinalCapturingClosure();
+  testCapturesClassWithFinalCapturingClosure();
+
+  testPrint();
+
+  testFailToIsolateGroupRunSyncThrows();
+  testIsolateCurrent();
+  testFailToIsolateExit();
+  testFailToIsolateSpawn();
+  testStringMethodTearoff();
+  testListMethodTearoff(args);
+
+  testFailToReceivePort();
+  testFailToDeferredLibrary();
+  testFailToEnvironment();
+
+  testUserTag();
+  testBase64Decoder();
+  testRandom();
+  testEncoding();
+  testRecursiveToString();
+  testBytesBuilder();
+  testRegExp();
+  testContentType();
+  testBigInt();
+
+  print("All tests completed :)");
+}
+
+///
+@pragma('vm:shared')
+final list_length = Uint8List(1);
+
+void testUpdateSharedVar() {
+  IsolateGroup.runSync(() {
+    final l = <int>[];
+    for (int i = 0; i < 100; i++) {
+      l.add(i);
+    }
+    list_length[0] = l.length;
+  });
+  Expect.equals(100, list_length[0]);
+}
+
+///
+@pragma('vm:shared')
+final foo_final = 1234;
+
+void testReturnsNotSharedFinal() {
+  Expect.equals(1234, IsolateGroup.runSync(() => foo_final));
+}
+
+///
+void testReturnsConstant() {
+  Expect.equals(42, IsolateGroup.runSync(() => 42));
+}
+
+///
+void testReturnsList() {
+  Expect.listEquals([1, 2, 3], IsolateGroup.runSync(() => [1, 2, 3]));
+}
+
+///
+var foo_no_initializer;
+
+@pragma('vm:never-inline')
+updateFooNoInitializer() {
+  foo_no_initializer = 78;
+}
+
+void testFailToAccessNotSharedVarWithoutInitializer() {
+  updateFooNoInitializer();
+  Expect.throws(
+    () {
+      IsolateGroup.runSync(() {
+        return foo_no_initializer;
+      });
+    },
+    (e) => e is Error && e.toString().contains("AccessError"),
+    'Expect error accessing',
+  );
+
+  Expect.throws(
+    () {
+      IsolateGroup.runSync(() {
+        foo_no_initializer = 456;
+      });
+    },
+    (e) => e is Error && e.toString().contains("AccessError"),
+    'Expect error accessing',
+  );
+  Expect.equals(78, foo_no_initializer);
+}
+
+///
+void testFailToCaptureLateFinalVar() {
+  late final int late_final_var;
+  late_final_var = 12;
+  Expect.throws(() {
+    IsolateGroup.runSync(() {
+      return late_final_var;
+    });
+  }, (e) => e is Error && e.toString().contains("Only final"));
+}
+
+///
+@pragma('vm:never-inline')
+calculateTwelve() => 12;
+
+void testCapturesFinalNotSharedVar() {
+  final int late_final_var = calculateTwelve();
+  Expect.equals(late_final_var, IsolateGroup.runSync(() => late_final_var));
+}
+
+///
+void testCyclesBetweenClosures() {
+  final int i = 0;
+  final void Function() func1 = () {
+    if (i > 0) {
+      throw i;
+    }
+  };
+  void func2() {
+    func1();
+  }
+
+  ;
+  IsolateGroup.runSync(func2);
+}
+
+///
+var foo = 42;
+
+@pragma('vm:never-inline')
+updateFoo() {
+  foo = 56;
+}
+
+void testFailToAccessNotSharedVarWithInitializer() {
+  updateFoo();
+  Expect.throws(
+    () {
+      IsolateGroup.runSync(() {
+        return foo;
+      });
+    },
+    (e) => e is Error && e.toString().contains("AccessError"),
+    'Expect error accessing',
+  );
+
+  Expect.throws(
+    () {
+      IsolateGroup.runSync(() {
+        foo = 123;
+      });
+    },
+    (e) => e is Error && e.toString().contains("AccessError"),
+    'Expect error accessing',
+  );
+  Expect.equals(56, foo);
+}
+
+///
+class Baz {
+  static late final foo;
+}
+
+@pragma('vm:never-inline')
+updateBazFoo() {
+  Baz.foo = 42;
+}
+
+void testUpdateNotSharedStaticField() {
+  updateBazFoo();
+  Expect.equals(42, Baz.foo);
+}
+
+///
+@pragma('vm:never-inline')
+@pragma('vm:shared')
+final closure = () {
+  return 42;
+};
+void testClosure() {
+  final result = IsolateGroup.runSync(() {
+    return closure();
+  });
+  Expect.equals(42, result);
+}
+
+///
+@pragma('vm:deeply-immutable')
+final class FooWithFunc {
+  final int Function() func;
+  final int kuka;
+
+  FooWithFunc(this.func, this.kuka);
+}
+
+void testCapturesClassWithDeeplyImmutableClosure() {
+  final foo = FooWithFunc(() => 42, 43);
+  final result = IsolateGroup.runSync(() {
+    return foo.func();
+  });
+  Expect.equals(42, result);
+}
+
+@pragma('vm:shared')
+final skipAccessAtRuntime = Uint8List(1);
+
+void testFailToCaptureClassWithNonFinalCapturingClosure() {
+  var closureValue = 42;
+
+  // Construction of this "deeply-immutable" object should actually fail at
+  // runtime due to closure closing over non-final [closureValue] variable.
+  Expect.throws(
+    () =>
+        FooWithFunc(() => skipAccessAtRuntime[0] == 1 ? -1 : closureValue, 43),
+    (e) => e is Error && e.toString().contains("Only final not-late"),
+  );
+}
+
+void testCapturesClassWithFinalCapturingClosure() {
+  final finalClosureValue = 43;
+  final foo = FooWithFunc(
+    () => skipAccessAtRuntime[0] == 1 ? -1 : finalClosureValue,
+    44,
+  );
+
+  skipAccessAtRuntime[0] = 1;
+  Expect.equals(
+    -1,
+    IsolateGroup.runSync(() {
+      return foo.func();
+    }),
+  );
+
+  skipAccessAtRuntime[0] = 0;
+  Expect.equals(
+    43,
+    IsolateGroup.runSync(() {
+      return foo.func();
+    }),
+  );
+}
+
+///
+void testPrint() {
+  IsolateGroup.runSync(() {
+    print('42');
+  });
+}
+
+///
+void testFailToIsolateGroupRunSyncThrows() {
+  Expect.throws(
+    () {
+      IsolateGroup.runSync(() {
+        throw "error";
+      });
+    },
+    (e) => e == "error",
+    'Expect thrown error',
+  );
+}
+
+///
+void testIsolateCurrent() {
+  Expect.notEquals(() {
+    IsolateGroup.runSync(() {
+      return Isolate.current;
+    });
+  }, Isolate.current);
+}
+
+///
+void testFailToIsolateExit() {
+  Expect.throws(() {
+    IsolateGroup.runSync(() {
+      Isolate.exit();
+    });
+  }, (e) => e.toString().contains("Attempt to access isolate static field"));
+}
+
+///
+void testFailToIsolateSpawn() {
+  Expect.throws(() {
+    IsolateGroup.runSync(() {
+      Isolate.spawn((_) {}, null);
+    });
+  }, (e) => e.toString().contains("Attempt to access isolate static field"));
+
+  Expect.throws(() {
+    IsolateGroup.runSync(() {
+      Isolate.spawnUri(Uri.parse("http://127.0.0.1"), [], (_) {});
+    });
+  }, (e) => e.toString().contains("Attempt to access isolate static field"));
+}
+
+///
+testStringMethodTearoff() {
+  @pragma('vm:shared')
+  final stringTearoff = "abc".toString;
+  IsolateGroup.runSync(() {
+    stringTearoff;
+  });
+}
+
+///
+testListMethodTearoff(List<String> args) {
+  final listTearoff = args.insert;
+  Expect.throws(
+    () {
+      IsolateGroup.runSync(() {
+        listTearoff;
+      });
+    },
+    (e) =>
+        e is ArgumentError && e.toString().contains("Only trivially-immutable"),
+  );
+}
+
+///
+void testFailToReceivePort() {
+  Expect.throws(
+    () {
+      IsolateGroup.runSync(() {
+        ReceivePort();
+      });
+    },
+    (e) =>
+        e is ArgumentError &&
+        e.toString().contains("Only available when running in context"),
+  );
+
+  final rp = ReceivePort();
+  Expect.throws(
+    () {
+      IsolateGroup.runSync(() {
+        print(rp.sendPort);
+      });
+    },
+    (e) =>
+        e is ArgumentError && e.toString().contains("Only trivially-immutable"),
+  );
+  rp.close();
+}
+
+///
+thefun() {}
+
+void testFailToDeferredLibrary() {
+  Expect.throws(() {
+    IsolateGroup.runSync(() {
+      lib1.thefun();
+    });
+  }, (e) => e is ArgumentError && e.toString().contains("Only available when"));
+}
+
+///
+void testFailToEnvironment() {
+  Expect.throws(() {
+    IsolateGroup.runSync(() {
+      new bool.hasEnvironment("Anything");
+    });
+  }, (e) => e is ArgumentError && e.toString().contains("Only available when"));
+}
+
+///
+@pragma('vm:shared')
+final default_tag = Uint8List(255);
+
+void testUserTag() {
+  IsolateGroup.runSync(() {
+    final data = utf8.encode(UserTag.defaultTag.toString());
+    for (int i = 0; i < data.length; i++) {
+      default_tag[i] = data[i];
+    }
+  });
+  Expect.notEquals("", utf8.decode(default_tag));
+}
+
+///
+void testBase64Decoder() {
+  Expect.listEquals(
+    "abcdefghijklmnopqrstuvwxyz".codeUnits,
+    IsolateGroup.runSync(() {
+      return Base64Decoder().convert("YWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXo=");
+    }),
+  );
+}
+
+///
+void testRandom() {
+  IsolateGroup.runSync(() {
+    Random().nextInt(10);
+  });
+}
+
+///
+void testEncoding() {
+  Expect.listEquals(
+    [0x31, 0x32, 0x33, 0x61, 0x62, 0x63],
+    IsolateGroup.runSync(
+      () => Encoding.getByName("us-ascii")!.encode("123abc"),
+    ),
+  );
+  Expect.identical(
+    ascii,
+    IsolateGroup.runSync(() => Encoding.getByName("us-ascii")),
+  );
+  Expect.identical(
+    utf8,
+    IsolateGroup.runSync(() => Encoding.getByName("utf-8")),
+  );
+}
+
+///
+void testRecursiveToString() {
+  Expect.equals(
+    "[foo, bar, [...], baz]",
+    IsolateGroup.runSync(() {
+      var l = <Object>["foo", "bar"];
+      l.add(l);
+      l.add("baz");
+      return l.toString();
+    }),
+  );
+}
+
+///
+void testBytesBuilder() {
+  IsolateGroup.runSync(() {
+    BytesBuilder builder = new BytesBuilder();
+    builder.add([1, 2, 3]);
+    Expect.listEquals([1, 2, 3], builder.toBytes());
+    builder.clear();
+    Expect.isTrue(builder.isEmpty);
+  });
+}
+
+///
+void testRegExp() {
+  IsolateGroup.runSync(() {
+    RegExp re = new RegExp("abc", multiLine: false, caseSensitive: true);
+    Match? m = re.firstMatch("defabcghi");
+    Expect.equals("abc", m?[0]);
+  });
+}
+
+///
+void testContentType() {
+  IsolateGroup.runSync(() {
+    Expect.isNotNull(ContentType.text);
+    Expect.equals("text/plain; charset=utf-8", ContentType.text.toString());
+    Expect.isNotNull(ContentType.html);
+    Expect.equals("text/html; charset=utf-8", ContentType.html.toString());
+    Expect.isNotNull(ContentType.json);
+    Expect.equals(
+      "application/json; charset=utf-8",
+      ContentType.json.toString(),
+    );
+  });
+}
+
+///
+expectSum(aString, bString, expectedString) {
+  BigInt a = BigInt.parse(aString, radix: 16);
+  BigInt b = BigInt.parse(bString, radix: 16);
+  BigInt expected = BigInt.parse(expectedString, radix: 16);
+  BigInt actual = a + b;
+  Expect.equals(expected, actual);
+}
+
+expectDifference(aString, bString, expectedString) {
+  BigInt a = BigInt.parse(aString, radix: 16);
+  BigInt b = BigInt.parse(bString, radix: 16);
+  BigInt expected = BigInt.parse(expectedString, radix: 16);
+  BigInt actual = a - b;
+  Expect.equals(expected, actual);
+}
+
+expectQuotient(aString, bString, expectedString) {
+  BigInt a = BigInt.parse(aString, radix: 16);
+  BigInt b = BigInt.parse(bString, radix: 16);
+  BigInt expected = BigInt.parse(expectedString, radix: 16);
+  BigInt actual = a ~/ b;
+  Expect.equals(expected, actual);
+}
+
+expectRemainder(aString, bString, expectedString) {
+  BigInt a = BigInt.parse(aString, radix: 16);
+  BigInt b = BigInt.parse(bString, radix: 16);
+  BigInt expected = BigInt.parse(expectedString, radix: 16);
+  BigInt actual = a % b;
+  Expect.equals(expected, actual);
+}
+
+expectShifted(aString, n, expectedString) {
+  BigInt a = BigInt.parse(aString, radix: 16);
+  BigInt expected = BigInt.parse(expectedString, radix: 16);
+  BigInt actual = a << n;
+  Expect.equals(expected, actual);
+}
+
+void testBigInt() {
+  IsolateGroup.runSync(() {
+    Expect.equals("${BigInt.zero}", "0");
+    Expect.equals("${BigInt.one}", "1");
+    Expect.equals("${BigInt.two}", "2");
+
+    expectSum(
+      "d87becaa3701c97b31b5b8084f2b5b34e7857092",
+      "d4cba13fac3ee22b996ff6856c27c1f6d88aef0e",
+      "1ad478de9e340aba6cb25ae8dbb531d2bc0105fa0",
+    );
+    expectSum(
+      "d4cba13fac3ee22b996ff6856c27c1f6d88aef0e",
+      "d87becaa3701c97b31b5b8084f2b5b34e7857092",
+      "1ad478de9e340aba6cb25ae8dbb531d2bc0105fa0",
+    );
+
+    expectDifference(
+      "d87becaa3701c97b31b5b8084f2b5b34e7857092",
+      "d4cba13fac3ee22b996ff6856c27c1f6d88aef0e",
+      "3b04b6a8ac2e74f9845c182e303993e0efa8184",
+    );
+    expectDifference(
+      "d4cba13fac3ee22b996ff6856c27c1f6d88aef0e",
+      "d87becaa3701c97b31b5b8084f2b5b34e7857092",
+      "-3b04b6a8ac2e74f9845c182e303993e0efa8184",
+    );
+
+    expectRemainder(
+      "d87becaa3701c97b31b5b8084f2b5b34e7857092",
+      "d4cba13fac3ee22b996ff6856c27c1f6d88aef0e",
+      "3b04b6a8ac2e74f9845c182e303993e0efa8184",
+    );
+    expectRemainder(
+      "d4cba13fac3ee22b996ff6856c27c1f6d88aef0e",
+      "d87becaa3701c97b31b5b8084f2b5b34e7857092",
+      "d4cba13fac3ee22b996ff6856c27c1f6d88aef0e",
+    );
+
+    expectQuotient(
+      "d87becaa3701c97b31b5b8084f2b5b34e7857092",
+      "d4cba13fac3ee22b996ff6856c27c1f6d88aef0e",
+      "1",
+    );
+    expectQuotient(
+      "d4cba13fac3ee22b996ff6856c27c1f6d88aef0e",
+      "d87becaa3701c97b31b5b8084f2b5b34e7857092",
+      "0",
+    );
+
+    expectShifted(
+      "d87becaa3701c97b31b5b8084f2b5b34e7857092",
+      0,
+      "d87becaa3701c97b31b5b8084f2b5b34e7857092",
+    );
+    expectShifted(
+      "d87becaa3701c97b31b5b8084f2b5b34e7857092",
+      1,
+      "1b0f7d9546e0392f6636b70109e56b669cf0ae124",
+    );
+  });
+}

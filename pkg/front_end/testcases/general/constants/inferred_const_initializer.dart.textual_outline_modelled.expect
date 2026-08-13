@@ -1,0 +1,19 @@
+class Class1 {
+  const Class1() : field = [];
+  final field;
+}
+
+class Class2 {
+  const Class2() : field = const [];
+  final field;
+}
+
+class Class3 {
+  const Class3() : field = Class2();
+  final field;
+}
+
+class Class4 {
+  const Class4() : field = const Class2();
+  final field;
+}

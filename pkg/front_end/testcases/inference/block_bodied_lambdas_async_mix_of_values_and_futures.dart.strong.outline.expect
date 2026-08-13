@@ -1,0 +1,10 @@
+library test;
+import self as self;
+
+import "dart:async";
+import "dart:math" show Random;
+
+static method test() → dynamic
+  ;
+static method main() → dynamic
+  ;

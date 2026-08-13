@@ -1,0 +1,220 @@
+# Copyright (c) 2022, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+import("../../sdk_args.gni")
+
+config("binaryen_flags") {
+  cflags = []
+  if (is_clang || !is_win) {
+    # Clang or GCC
+    cflags += [
+      "-Wno-deprecated-declarations",
+      "-Wno-pessimizing-move",
+      "-Wno-range-loop-construct",
+      "-Wno-sign-compare",
+      "-Wno-unused-function",
+    ]
+
+    if (is_clang) {
+      # Clang
+      cflags += [
+        "-Wno-deprecated-this-capture",
+        "-Wno-header-hygiene",
+        "-Wno-inconsistent-missing-override",
+        "-Wno-unknown-warning-option",
+        "-Wno-unused-private-field",
+      ]
+    } else {
+      # GCC
+      cflags += [
+        "-Wno-array-bounds",
+        "-Wno-dangling-pointer",
+        "-Wno-deprecated",
+        "-Wno-init-list-lifetime",
+
+        # Bug https://gcc.gnu.org/bugzilla/show_bug.cgi?id=86465#c16 triggered by
+        # https://github.com/WebAssembly/binaryen/blob/cdb7aeab40b4c522de20b242019f7e88641445d5/src/wasm/wasm-type.cpp#L530.
+        "-Wno-maybe-uninitialized",
+        "-Wno-redundant-move",
+      ]
+    }
+  }
+
+  if (is_clang && is_win) {
+    # Temporary workaround binaryen issue, see
+    # https://github.com/WebAssembly/binaryen/pull/6796#issuecomment-2285530122
+    #
+    # We forcefully `#include <intrin.h>` thereby ensuring the `_castu32_f32`
+    # function is available
+    cflags += [ "/FIintrin.h" ]
+  }
+
+  if (is_win) {
+    libs = [ "shell32.lib" ]
+  }
+}
+
+action("generate_needed_files") {
+  script = "generate_needed_files.py"
+
+  inputs = [
+    "src/src/passes/wasm-intrinsics.wat",
+    "src/src/passes/WasmIntrinsics.cpp.in",
+    "src/CMakeLists.txt",
+    "src/config.h.in",
+  ]
+
+  args = [
+    rebase_path("src/src/passes/wasm-intrinsics.wat", root_build_dir),
+    rebase_path("src/src/passes/WasmIntrinsics.cpp.in", root_build_dir),
+    rebase_path("$target_gen_dir/WasmIntrinsics.cpp", root_build_dir),
+
+    rebase_path("src/CMakeLists.txt", root_build_dir),
+    rebase_path("src/config.h.in", root_build_dir),
+    rebase_path("$target_gen_dir/config.h", root_build_dir),
+  ]
+  outputs = [
+    "$target_gen_dir/WasmIntrinsics.cpp",
+    "$target_gen_dir/config.h",
+  ]
+}
+
+source_set("binaryen_sources") {
+  src_dirs = [
+    "src/src/analysis",
+    "src/src/asmjs",
+    "src/src/cfg",
+    "src/src/emscripten-optimizer",
+    "src/src/ir",
+    "src/src/parser",
+    "src/src/passes",
+    "src/src/support",
+    "src/src/tools/fuzzing",
+    "src/src/wasm",
+    "src/third_party/llvm-project",
+  ]
+
+  # We avoid listing all sources manually, this means when updating
+  # binaryen in DEPS (or manually editing) one has to ensure to
+  # re-run GN in DEPS to ensure new dependencies are picked up.
+  # (this lowers the maintenance burden of GN build support for binaryen)
+  sources = []
+  foreach(src_dir, src_dirs) {
+    foreach(src_file,
+            exec_script("list_sources.py",
+                        [ rebase_path(src_dir, root_build_dir) ],
+                        "list lines",
+                        [ "../../DEPS" ])) {
+      sources += [ "$src_dir/$src_file" ]
+    }
+  }
+
+  include_dirs = [
+    "src/src",
+    "src/third_party/FP16/include",
+    "src/third_party/llvm-project/include",
+  ]
+
+  # Ensure WasmIntrinsics.cpp/config.h files are generated.
+  deps = [ ":generate_needed_files" ]
+
+  # Ensure generated WasmIntrinsics.cpp file is included in build.
+  sources += [ "$target_gen_dir/WasmIntrinsics.cpp" ]
+
+  # Ensure generated config.h file is include path.
+  include_dirs += [ "$target_gen_dir" ]
+
+  configs += [
+    "//build/config/compiler:cxx_version_20",
+    "//build/config/compiler:enable_exceptions",
+    ":binaryen_flags",
+  ]
+}
+
+template("wasm_tool") {
+  src_dir = ""
+  if (defined(invoker.is_subdir) && invoker.is_subdir) {
+    src_dir = rebase_path(string_join("",
+                                      [
+                                        "src/src/tools/",
+                                        target_name,
+                                      ]),
+                          root_build_dir)
+  }
+
+  executable(target_name) {
+    sources = []
+    if (src_dir != "") {
+      foreach(src_file,
+              exec_script("list_sources.py",
+                          [ src_dir ],
+                          "list lines",
+                          [ "../../DEPS" ])) {
+        sources += [ "$src_dir/$src_file" ]
+      }
+    } else {
+      sources += [ string_join("",
+                               [
+                                 "src/src/tools/",
+                                 target_name,
+                                 ".cpp",
+                               ]) ]
+    }
+    include_dirs = [
+      "src/src",
+      "src/third_party/FP16/include",
+    ]
+    deps = [ ":binaryen_sources" ]
+    forward_variables_from(invoker, "*")
+
+    configs += [
+      "//build/config/compiler:cxx_version_20",
+      "//build/config/compiler:enable_exceptions",
+      ":binaryen_flags",
+    ]
+  }
+}
+
+wasm_tool("wasm2js") {
+}
+wasm_tool("wasm-as") {
+}
+wasm_tool("wasm-ctor-eval") {
+}
+wasm_tool("wasm-dis") {
+}
+wasm_tool("wasm-emscripten-finalize") {
+}
+wasm_tool("wasm-fuzz-types") {
+}
+wasm_tool("wasm-merge") {
+}
+wasm_tool("wasm-metadce") {
+}
+wasm_tool("wasm-opt") {
+}
+wasm_tool("wasm-reduce") {
+}
+wasm_tool("wasm-shell") {
+}
+wasm_tool("wasm-split") {
+  is_subdir = true
+}
+
+group("binaryen_tools") {
+  deps = [
+    ":wasm-as",
+    ":wasm-ctor-eval",
+    ":wasm-dis",
+    ":wasm-emscripten-finalize",
+    ":wasm-fuzz-types",
+    ":wasm-merge",
+    ":wasm-metadce",
+    ":wasm-opt",
+    ":wasm-reduce",
+    ":wasm-shell",
+    ":wasm-split",
+    ":wasm2js",
+  ]
+}

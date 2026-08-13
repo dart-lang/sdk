@@ -1,0 +1,105 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef Exactly<invariant X extends core::Object? = dynamic> = (X%) → X%;
+extension E<X extends core::Object? = dynamic> on X% {
+  method expectStaticType = self::E|expectStaticType;
+  method tearoff expectStaticType = self::E|get#expectStaticType;
+}
+static method test1(core::String a, core::num x) → dynamic {
+  {
+    final core::Map<core::String, dynamic> #t1 = <core::String, dynamic>{};
+    final core::String? #t2 = a;
+    if(!(#t2 == null))
+      #t1.{core::Map::[]=}{Invariant}(#t2{core::String}, x as core::int){(core::String, dynamic) → void};
+  }
+  let final core::int #t3 = x{core::int} in block {
+    self::E|expectStaticType<core::int, (core::int) → core::int>(#t3);
+  } =>#t3;
+}
+static method test2(core::String? a, core::num x) → dynamic {
+  {
+    final core::Map<core::String, dynamic> #t4 = <core::String, dynamic>{};
+    final core::String? #t5 = a;
+    if(!(#t5 == null))
+      #t4.{core::Map::[]=}{Invariant}(#t5{core::String}, x as core::int){(core::String, dynamic) → void};
+  }
+  let final core::num #t6 = x in block {
+    self::E|expectStaticType<core::num, (core::num) → core::num>(#t6);
+  } =>#t6;
+}
+static method test3(core::String a, core::bool b, core::num x) → dynamic {
+  if(b) {
+    x as core::int;
+  }
+  else {
+    {
+      final core::Map<core::String, dynamic> #t7 = <core::String, dynamic>{};
+      final core::String? #t8 = a;
+      if(!(#t8 == null))
+        #t7.{core::Map::[]=}{Invariant}(#t8{core::String}, throw 0){(core::String, dynamic) → void};
+    }
+  }
+  let final core::int #t9 = x{core::int} in block {
+    self::E|expectStaticType<core::int, (core::int) → core::int>(#t9);
+  } =>#t9;
+}
+static method test4(core::String? a, core::bool b, core::num x) → dynamic {
+  if(b) {
+    x as core::int;
+  }
+  else {
+    {
+      final core::Map<core::String, dynamic> #t10 = <core::String, dynamic>{};
+      final core::String? #t11 = a;
+      if(!(#t11 == null))
+        #t10.{core::Map::[]=}{Invariant}(#t11{core::String}, throw 0){(core::String, dynamic) → void};
+    }
+  }
+  let final core::num #t12 = x in block {
+    self::E|expectStaticType<core::num, (core::num) → core::num>(#t12);
+  } =>#t12;
+}
+static method test5(core::String? a) → dynamic {
+  return block {
+    final core::Map<core::String, core::String> #t13 = <core::String, core::String>{};
+    final core::String? #t14 = a;
+    if(!(#t14 == null))
+      #t13.{core::Map::[]=}{Invariant}(#t14{core::String}, let final core::String #t15 = a{core::String} in block {
+        self::E|expectStaticType<core::String, (core::String) → core::String>(#t15);
+      } =>#t15){(core::String, core::String) → void};
+  } =>#t13;
+}
+static method test6(core::String? a) → dynamic {
+  return <core::String?, core::String?>{a: let final core::String? #t16 = a in block {
+    self::E|expectStaticType<core::String?, (core::String?) → core::String?>(#t16);
+  } =>#t16};
+}
+static extension-member method E|expectStaticType<X extends core::Object? = dynamic, Y extends (self::E|expectStaticType::X%) → self::E|expectStaticType::X% = (dynamic) → dynamic>(lowered final self::E|expectStaticType::X% #this) → void {}
+static extension-member method E|get#expectStaticType<X extends core::Object? = dynamic>(lowered final self::E|get#expectStaticType::X% #this) → <Y extends (self::E|get#expectStaticType::X%) → self::E|get#expectStaticType::X% = (dynamic) → dynamic>() → void
+  return <Y extends (self::E|get#expectStaticType::X%) → self::E|get#expectStaticType::X% = (dynamic) → dynamic>() → void => self::E|expectStaticType<self::E|get#expectStaticType::X%, Y>(#this);
+static method expectThrows(() → void f) → void {
+  core::bool hasThrown;
+  try {
+    f(){() → void};
+    hasThrown = false;
+  }
+  on core::Object catch(final core::Object e) {
+    hasThrown = true;
+  }
+  if(!hasThrown) {
+    throw "Expected the function to throw an exception.";
+  }
+}
+static method main() → dynamic {
+  self::test1("", 0);
+  self::test2("", 0);
+  self::test2(null, 0);
+  self::test3("", true, 0);
+  self::expectThrows(() → void => self::test3("", false, 0));
+  self::test4("", true, 0);
+  self::expectThrows(() → void => self::test4("", false, 0));
+  self::test4(null, true, 0);
+  self::test4(null, false, 0);
+}

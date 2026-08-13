@@ -1,0 +1,602 @@
+// Copyright (c) 2022, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:test/test.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
+
+import '../context_collection_resolution.dart';
+import '../node_text_expectations.dart';
+
+main() {
+  defineReflectiveSuite(() {
+    defineReflectiveTests(HorizontalInferenceEnabledTest);
+    defineReflectiveTests(HorizontalInferenceDisabledTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
+  });
+}
+
+@reflectiveTest
+class HorizontalInferenceDisabledTest extends PubPackageResolutionTest
+    with HorizontalInferenceTestCases {
+  @override
+  String get testPackageLanguageVersion => '2.17';
+
+  @override
+  bool get _isEnabled => false;
+}
+
+@reflectiveTest
+class HorizontalInferenceEnabledTest extends PubPackageResolutionTest
+    with HorizontalInferenceTestCases {
+  @override
+  bool get _isEnabled => true;
+
+  test_record_field_named() async {
+    // A round of horizontal inference should occur between the first argument
+    // and the second, so that `s.length` is properly resolved.
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void f<T>(({T x}) v, void Function(T) fn) {
+  fn(v.x);
+}
+test() {
+  f((x: ''), (s) { s.length; });
+}
+''');
+    assertType(result.findNode.simple('s.length'), 'String');
+  }
+
+  test_record_field_unnamed() async {
+    // A round of horizontal inference should occur between the first argument
+    // and the second, so that `s.length` is properly resolved.
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void f<T>((T,) v, void Function(T) fn) {
+  fn(v.$1);
+}
+test() {
+  f(('',), (s) { s.length; });
+}
+''');
+    assertType(result.findNode.simple('s.length'), 'String');
+  }
+}
+
+mixin HorizontalInferenceTestCases on PubPackageResolutionTest {
+  bool get _isEnabled;
+
+  test_closure_passed_to_dynamic() async {
+    await resolveTestCodeWithDiagnostics('''
+test(dynamic d) => d(() {});
+''');
+    // No further assertions; we just want to make sure the interaction with a
+    // dynamic receiver doesn't lead to a crash.
+  }
+
+  test_closure_passed_to_identical() async {
+    await resolveTestCodeWithDiagnostics('''
+test() => identical(() {}, () {});
+''');
+    // No further assertions; we just want to make sure the interaction between
+    // flow analysis for `identical` and deferred analysis of closures doesn't
+    // lead to a crash.
+  }
+
+  test_fold_inference() async {
+    if (_isEnabled) {
+      var result = await resolveTestCodeWithDiagnostics('''
+example(List<int> list) {
+  var a = list.fold(0, (x, y) => x + y);
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
+}
+''');
+      assertType(result.findElement.localVar('a').type, 'int');
+      assertType(result.findElement.parameter('x').type, 'int');
+      assertType(result.findElement.parameter('y').type, 'int');
+      expect(
+        result.findNode.binary('x + y').element!.enclosingElement!.name,
+        'num',
+      );
+    } else {
+      await resolveTestCodeWithDiagnostics('''
+example(List<int> list) {
+  var a = list.fold(0, (x, y) => x + y);
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
+//                                 ^
+// [diag.uncheckedOperatorInvocationOfNullableValue] The operator '+' can't be unconditionally invoked because the receiver can be 'null'.
+}
+''');
+    }
+  }
+
+  test_horizontal_inference_closure_as_parameter_type() async {
+    // Test the case where a closure is passed to a parameter whose declared
+    // type is not a function but instead a type parameter.  We should still
+    // pick up the appropriate dependencies.
+    late TestResolvedUnitResult result;
+    if (_isEnabled) {
+      result = await resolveTestCodeWithDiagnostics('''
+U f<T, U>(T t, U Function(T) g) => throw '';
+test() {
+  var a = f(() => 0, (h) => [h()]);
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
+}
+''');
+    } else {
+      result = await resolveTestCodeWithDiagnostics('''
+U f<T, U>(T t, U Function(T) g) => throw '';
+test() {
+  var a = f(() => 0, (h) => [h()]);
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
+//                           ^
+// [diag.uncheckedInvocationOfNullableValue] The function can't be unconditionally invoked because it can be 'null'.
+}
+''');
+    }
+    assertType(
+      result.findNode.methodInvocation('f(').typeArgumentTypes![0],
+      'int Function()',
+    );
+    assertType(
+      result.findNode.methodInvocation('f(').typeArgumentTypes![1],
+      _isEnabled ? 'List<int>' : 'List<InvalidType>',
+    );
+    assertType(
+      result.findNode.methodInvocation('f(').staticInvokeType,
+      _isEnabled
+          ? 'List<int> Function(int Function(), '
+                'List<int> Function(int Function()))'
+          : 'List<InvalidType> Function(int Function(), '
+                'List<InvalidType> Function(int Function()))',
+    );
+    assertType(
+      result.findNode
+          .regularFormalParameter('h)')
+          .declaredFragment!
+          .element
+          .type,
+      _isEnabled ? 'int Function()' : 'Object?',
+    );
+    assertType(
+      result.findNode.variableDeclaration('a =').declaredFragment!.element.type,
+      _isEnabled ? 'List<int>' : 'List<InvalidType>',
+    );
+  }
+
+  test_horizontal_inference_necessary_due_to_wrong_explicit_parameter_type() async {
+    // In this example, horizontal type inference is needed because although the
+    // type of `y` is explicit, it's actually `x` that would have needed to be
+    // explicit.
+    late TestResolvedUnitResult result;
+    if (_isEnabled) {
+      result = await resolveTestCodeWithDiagnostics('''
+test(List<int> list) {
+  var a = list.fold(0, (x, int y) => x + y);
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
+}
+''');
+    } else {
+      result = await resolveTestCodeWithDiagnostics('''
+test(List<int> list) {
+  var a = list.fold(0, (x, int y) => x + y);
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
+//                                     ^
+// [diag.uncheckedOperatorInvocationOfNullableValue] The operator '+' can't be unconditionally invoked because the receiver can be 'null'.
+}
+''');
+    }
+    assertType(
+      result.findElement.localVar('a').type,
+      _isEnabled ? 'int' : 'InvalidType',
+    );
+    assertType(
+      result.findElement.parameter('x').type,
+      _isEnabled ? 'int' : 'Object?',
+    );
+    assertType(result.findElement.parameter('y').type, 'int');
+    expect(
+      result.findNode.binary('+ y').element?.enclosingElement!.name,
+      _isEnabled ? 'num' : null,
+    );
+  }
+
+  test_horizontal_inference_propagate_to_earlier_closure() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+U f<T, U>(U Function(T) g, T Function() h) => throw '';
+test() {
+  var a = f((x) => [x], () => 0);
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
+}
+''');
+    assertType(
+      result.findNode.methodInvocation('f(').typeArgumentTypes![0],
+      'int',
+    );
+    assertType(
+      result.findNode.methodInvocation('f(').typeArgumentTypes![1],
+      _isEnabled ? 'List<int>' : 'List<Object?>',
+    );
+    assertType(
+      result.findNode.methodInvocation('f(').staticInvokeType,
+      _isEnabled
+          ? 'List<int> Function(List<int> Function(int), int Function())'
+          : 'List<Object?> Function(List<Object?> Function(int), int Function())',
+    );
+    assertType(
+      result.findNode
+          .regularFormalParameter('x)')
+          .declaredFragment!
+          .element
+          .type,
+      _isEnabled ? 'int' : 'Object?',
+    );
+    assertType(
+      result.findNode.variableDeclaration('a =').declaredFragment!.element.type,
+      _isEnabled ? 'List<int>' : 'List<Object?>',
+    );
+  }
+
+  test_horizontal_inference_propagate_to_later_closure() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+U f<T, U>(T Function() g, U Function(T) h) => throw '';
+test() {
+  var a = f(() => 0, (x) => [x]);
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
+}
+''');
+    assertType(
+      result.findNode.methodInvocation('f(').typeArgumentTypes![0],
+      'int',
+    );
+    assertType(
+      result.findNode.methodInvocation('f(').typeArgumentTypes![1],
+      _isEnabled ? 'List<int>' : 'List<Object?>',
+    );
+    assertType(
+      result.findNode.methodInvocation('f(').staticInvokeType,
+      _isEnabled
+          ? 'List<int> Function(int Function(), List<int> Function(int))'
+          : 'List<Object?> Function(int Function(), List<Object?> Function(int))',
+    );
+    assertType(
+      result.findNode
+          .regularFormalParameter('x)')
+          .declaredFragment!
+          .element
+          .type,
+      _isEnabled ? 'int' : 'Object?',
+    );
+    assertType(
+      result.findNode.variableDeclaration('a =').declaredFragment!.element.type,
+      _isEnabled ? 'List<int>' : 'List<Object?>',
+    );
+  }
+
+  test_horizontal_inference_propagate_to_return_type() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+U f<T, U>(T t, U Function(T) g) => throw '';
+test() {
+  var a = f(0, (x) => [x]);
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
+}
+''');
+    assertType(
+      result.findNode.methodInvocation('f(').typeArgumentTypes![0],
+      'int',
+    );
+    assertType(
+      result.findNode.methodInvocation('f(').typeArgumentTypes![1],
+      _isEnabled ? 'List<int>' : 'List<Object?>',
+    );
+    assertType(
+      result.findNode.methodInvocation('f(').staticInvokeType,
+      _isEnabled
+          ? 'List<int> Function(int, List<int> Function(int))'
+          : 'List<Object?> Function(int, List<Object?> Function(int))',
+    );
+    assertType(
+      result.findNode
+          .regularFormalParameter('x)')
+          .declaredFragment!
+          .element
+          .type,
+      _isEnabled ? 'int' : 'Object?',
+    );
+    assertType(
+      result.findNode.variableDeclaration('a =').declaredFragment!.element.type,
+      _isEnabled ? 'List<int>' : 'List<Object?>',
+    );
+  }
+
+  test_horizontal_inference_simple() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+void f<T>(T t, void Function(T) g) {}
+test() => f(0, (x) {});
+''');
+    assertType(
+      result.findNode.methodInvocation('f(').typeArgumentTypes!.single,
+      'int',
+    );
+    assertType(
+      result.findNode.methodInvocation('f(').staticInvokeType,
+      'void Function(int, void Function(int))',
+    );
+    assertType(
+      result.findNode
+          .regularFormalParameter('x')
+          .declaredFragment!
+          .element
+          .type,
+      _isEnabled ? 'int' : 'Object?',
+    );
+  }
+
+  test_horizontal_inference_simple_named() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+void f<T>({required T t, required void Function(T) g}) {}
+test() => f(t: 0, g: (x) {});
+''');
+    assertType(
+      result.findNode.methodInvocation('f(').typeArgumentTypes!.single,
+      'int',
+    );
+    assertType(
+      result.findNode.methodInvocation('f(').staticInvokeType,
+      'void Function({required void Function(int) g, required int t})',
+    );
+    assertType(
+      result.findNode
+          .regularFormalParameter('x')
+          .declaredFragment!
+          .element
+          .type,
+      _isEnabled ? 'int' : 'Object?',
+    );
+  }
+
+  test_horizontal_inference_simple_parenthesized() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+void f<T>(T t, void Function(T) g) {}
+test() => f(0, ((x) {}));
+''');
+    assertType(
+      result.findNode.methodInvocation('f(').typeArgumentTypes!.single,
+      'int',
+    );
+    assertType(
+      result.findNode.methodInvocation('f(').staticInvokeType,
+      'void Function(int, void Function(int))',
+    );
+    assertType(
+      result.findNode
+          .regularFormalParameter('x')
+          .declaredFragment!
+          .element
+          .type,
+      _isEnabled ? 'int' : 'Object?',
+    );
+  }
+
+  test_horizontal_inference_simple_parenthesized_named() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+void f<T>({required T t, required void Function(T) g}) {}
+test() => f(t: 0, g: ((x) {}));
+''');
+    assertType(
+      result.findNode.methodInvocation('f(').typeArgumentTypes!.single,
+      'int',
+    );
+    assertType(
+      result.findNode.methodInvocation('f(').staticInvokeType,
+      'void Function({required void Function(int) g, required int t})',
+    );
+    assertType(
+      result.findNode
+          .regularFormalParameter('x')
+          .declaredFragment!
+          .element
+          .type,
+      _isEnabled ? 'int' : 'Object?',
+    );
+  }
+
+  test_horizontal_inference_simple_parenthesized_twice() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+void f<T>(T t, void Function(T) g) {}
+test() => f(0, (((x) {})));
+''');
+    assertType(
+      result.findNode.methodInvocation('f(').typeArgumentTypes!.single,
+      'int',
+    );
+    assertType(
+      result.findNode.methodInvocation('f(').staticInvokeType,
+      'void Function(int, void Function(int))',
+    );
+    assertType(
+      result.findNode
+          .regularFormalParameter('x')
+          .declaredFragment!
+          .element
+          .type,
+      _isEnabled ? 'int' : 'Object?',
+    );
+  }
+
+  test_horizontal_inference_simple_parenthesized_twice_named() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+void f<T>({required T t, required void Function(T) g}) {}
+test() => f(t: 0, g: (((x) {})));
+''');
+    assertType(
+      result.findNode.methodInvocation('f(').typeArgumentTypes!.single,
+      'int',
+    );
+    assertType(
+      result.findNode.methodInvocation('f(').staticInvokeType,
+      'void Function({required void Function(int) g, required int t})',
+    );
+    assertType(
+      result.findNode
+          .regularFormalParameter('x')
+          .declaredFragment!
+          .element
+          .type,
+      _isEnabled ? 'int' : 'Object?',
+    );
+  }
+
+  test_horizontal_inference_unnecessary_due_to_explicit_parameter_type() async {
+    // In this example, there is no need for horizontal type inference because
+    // the type of `x` is explicit.
+    var result = await resolveTestCodeWithDiagnostics('''
+test(List<int> list) {
+  var a = list.fold(null, (int? x, y) => (x ?? 0) + y);
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
+}
+''');
+    assertType(result.findElement.localVar('a').type, 'int?');
+    assertType(result.findElement.parameter('x').type, 'int?');
+    assertType(result.findElement.parameter('y').type, 'int');
+    expect(
+      result.findNode.binary('+ y').element!.enclosingElement!.name,
+      'num',
+    );
+  }
+
+  test_horizontal_inference_unnecessary_due_to_explicit_parameter_type_named() async {
+    // In this example, there is no need for horizontal type inference because
+    // the type of `x` is explicit.
+    var result = await resolveTestCodeWithDiagnostics('''
+T f<T>(T a, T Function({required T x, required int y}) b) => throw '';
+test() {
+  var a = f(null, ({int? x, required y}) => (x ?? 0) + y);
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
+}
+''');
+    assertType(result.findElement.localVar('a').type, 'int?');
+    assertType(result.findElement.parameter('x').type, 'int?');
+    assertType(result.findElement.parameter('y').type, 'int');
+    expect(
+      result.findNode.binary('+ y').element!.enclosingElement!.name,
+      'num',
+    );
+  }
+
+  test_horizontal_inference_unnecessary_due_to_no_dependency() async {
+    // In this example, there is no dependency between the two parameters of
+    // `f`, so there should be no horizontal type inference between inferring
+    // `null` and inferring `() => 0`.  (If there were horizontal type inference
+    // between them, that would be a problem, because we would infer a type of
+    // `null` for `T`).
+    var result = await resolveTestCodeWithDiagnostics('''
+void f<T>(T Function() g, T t) {}
+test() => f(() => 0, null);
+''');
+    assertType(
+      result.findNode.methodInvocation('f(').typeArgumentTypes!.single,
+      'int?',
+    );
+    assertType(
+      result.findNode.methodInvocation('f(').staticInvokeType,
+      'void Function(int? Function(), int?)',
+    );
+  }
+
+  test_horizontal_inference_with_callback() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+test(void Function<T>(T, void Function(T)) f) {
+  f(0, (x) {
+    x;
+  });
+}
+''');
+    assertType(result.findNode.simple('x;'), _isEnabled ? 'int' : 'Object?');
+  }
+
+  test_write_capture_deferred() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+test(int? i) {
+  if (i != null) {
+    f(() { i = null; }, i); // (1)
+    i; // (2)
+  }
+}
+void f(void Function() g, Object? x) {}
+''');
+    // With the feature enabled, analysis of the closure is deferred until after
+    // all the other arguments to `f`, so the `i` at (1) is not yet write
+    // captured and retains its promoted value.  With the experiment disabled,
+    // it is write captured immediately.
+    assertType(
+      result.findNode.simple('i); // (1)'),
+      _isEnabled ? 'int' : 'int?',
+    );
+    // At (2), after the call to `f`, the write capture has taken place
+    // regardless of whether the experiment is enabled.
+    assertType(result.findNode.simple('i; // (2)'), 'int?');
+  }
+
+  test_write_capture_deferred_named() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+test(int? i) {
+  if (i != null) {
+    f(g: () { i = null; }, x: i); // (1)
+    i; // (2)
+  }
+}
+void f({required void Function() g, Object? x}) {}
+''');
+    // With the feature enabled, analysis of the closure is deferred until after
+    // all the other arguments to `f`, so the `i` at (1) is not yet write
+    // captured and retains its promoted value.  With the experiment disabled,
+    // it is write captured immediately.
+    assertType(
+      result.findNode.simple('i); // (1)'),
+      _isEnabled ? 'int' : 'int?',
+    );
+    // At (2), after the call to `f`, the write capture has taken place
+    // regardless of whether the experiment is enabled.
+    assertType(result.findNode.simple('i; // (2)'), 'int?');
+  }
+
+  test_write_capture_deferred_redirecting_constructor() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {
+  C(int? i) : this.other(i!, () { i = null; }, i);
+  C.other(Object? x, void Function() g, Object? y);
+}
+''');
+    // With the feature enabled, analysis of the closure is deferred until after
+    // all the other arguments to `this.other`, so the `i` passed to `y` is not
+    // yet write captured and retains its promoted value.  With the experiment
+    // disabled, it is write captured immediately.
+    assertType(result.findNode.simple('i);'), _isEnabled ? 'int' : 'int?');
+  }
+
+  test_write_capture_deferred_super_constructor() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class B {
+  B(Object? x, void Function() g, Object? y);
+}
+class C extends B {
+  C(int? i) : super(i!, () { i = null; }, i);
+}
+''');
+    // With the feature enabled, analysis of the closure is deferred until after
+    // all the other arguments to `this.other`, so the `i` passed to `y` is not
+    // yet write captured and retains its promoted value.  With the experiment
+    // disabled, it is write captured immediately.
+    assertType(result.findNode.simple('i);'), _isEnabled ? 'int' : 'int?');
+  }
+}

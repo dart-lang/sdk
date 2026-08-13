@@ -1,0 +1,7 @@
+class A<T extends num> {}
+
+class B {
+  foo() {}
+}
+
+main() {}

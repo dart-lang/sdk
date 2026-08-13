@@ -1,0 +1,7 @@
+files:
+  - issue_48380_1.dart
+  - issue_48380_1_ok.dart
+filters:
+  - ignoreListenerArguments
+ignored:
+  - handleRecoverableError

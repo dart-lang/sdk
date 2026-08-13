@@ -1,0 +1,26 @@
+# Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# When the entry is not given as a package-url, but is interpreted as one
+# the library should still be included in the output - even if there's no main.
+
+type: newworld
+worlds:
+  - entry: main.dart
+    sources:
+      main.dart: |
+        notMain() {}
+      .dart_tool/package_config.json: |
+        {
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "untitled",
+              "rootUri": "/"
+            }
+          ]
+        }
+    expectedLibraryCount: 1
+    errors: false
+    warnings: false

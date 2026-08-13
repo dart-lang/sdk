@@ -1,0 +1,41 @@
+library test;
+import self as self;
+import "dart:core" as core;
+import "infer_statics_transitively3_a.dart" as inf;
+
+import "org-dartlang-testcase:///infer_statics_transitively3_a.dart" show a1, A;
+import "org-dartlang-testcase:///infer_statics_transitively3_a.dart" as p show a2, A;
+
+static const field core::int t1 = 1;
+static const field core::int t2 = self::t1;
+static const field core::int t3 = inf::a1;
+static const field core::int t4 = inf::a2;
+static const field dynamic t5 = inf::A::a3;
+static const field dynamic t6 = inf::A::a3;
+static method foo() → dynamic
+  ;
+static method main() → dynamic
+  ;
+
+library;
+import self as inf;
+import "dart:core" as core;
+
+class A extends core::Object {
+  static const field dynamic a3 = null;
+  synthetic constructor •() → inf::A
+    ;
+}
+static const field core::int a1 = 3;
+static const field core::int a2 = 4;
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: StaticGet @ org-dartlang-testcase:///infer_statics_transitively3.dart:11:12 -> IntConstant(1)
+Evaluated: StaticGet @ org-dartlang-testcase:///infer_statics_transitively3.dart:12:12 -> IntConstant(3)
+Evaluated: StaticGet @ org-dartlang-testcase:///infer_statics_transitively3.dart:13:14 -> IntConstant(4)
+Evaluated: StaticGet @ org-dartlang-testcase:///infer_statics_transitively3.dart:14:14 -> NullConstant(null)
+Evaluated: StaticGet @ org-dartlang-testcase:///infer_statics_transitively3.dart:15:16 -> NullConstant(null)
+Extra constant evaluation: evaluated: 5, effectively constant: 5

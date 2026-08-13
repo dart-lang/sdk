@@ -1,0 +1,24 @@
+name: dart2native
+# This package is not intended for consumption on pub.dev. DO NOT publish.
+publish_to: none
+
+environment:
+  sdk: '^3.12.0-0'
+
+resolution: workspace
+
+# Add the bin/dart2native.dart script to the scripts pub installs.
+executables:
+  dart2native:
+
+# Use 'any' constraints here; we get our versions from the DEPS file.
+dependencies:
+  code_assets: any
+  collection: any
+  front_end: any
+  kernel: any
+  path: any
+
+# Use 'any' constraints here; we get our versions from the DEPS file.
+dev_dependencies:
+  dart_flutter_team_lints: any

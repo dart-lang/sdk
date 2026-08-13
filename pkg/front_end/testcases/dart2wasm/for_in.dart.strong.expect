@@ -1,0 +1,15 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+static method method(core::Iterable<core::int> iterable) → dynamic {
+  for (core::int i in iterable) {
+    core::print(i);
+  }
+}
+static method asyncMethod(asy::Stream<core::int> stream) → dynamic async /* emittedValueType= dynamic */ {
+  await for (core::int i in stream) {
+    core::print(i);
+  }
+}

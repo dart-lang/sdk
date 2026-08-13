@@ -1,0 +1,22 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Super extends core::Object {
+  synthetic constructor •() → self::Super
+    ;
+}
+class Class extends self::Super {
+  synthetic constructor •() → self::Class
+    ;
+  method method() → dynamic
+    ;
+  static method staticMethod() → dynamic
+    ;
+}
+abstract class Mixin extends self::Super /*isMixinDeclaration*/  {
+  method method() → dynamic
+    ;
+  static method staticMethod() → dynamic
+    ;
+}

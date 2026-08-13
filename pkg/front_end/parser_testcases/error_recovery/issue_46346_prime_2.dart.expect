@@ -1,0 +1,41 @@
+Problems reported:
+
+parser/error_recovery/issue_46346_prime_2:1:6: Expected an identifier, but got ''.
+class
+     ^...
+
+WARNING: Reporting at eof --- see below for details.
+
+parser/error_recovery/issue_46346_prime_2:1:6: A class declaration must have a body, even if it is empty.
+class
+     ^...
+
+WARNING: Reporting at eof --- see below for details.
+
+beginCompilationUnit(class)
+  beginMetadataStar(class)
+  endMetadataStar(0)
+  beginClassOrMixinOrNamedMixinApplicationPrelude(class)
+    handleRecoverableError(Message[Template(ExpectedIdentifier), Expected an identifier, but got ''., Try inserting an identifier before ''., {lexeme: }], , )
+    // WARNING: Reporting at eof for .
+    handleIdentifier(, classOrMixinDeclaration)
+    handleNoTypeVariables()
+    beginClassDeclaration(class, null, null, null, null, null, null, null, )
+      handleNoPrimaryConstructor(DeclarationKind.Class, , null)
+      handleNoType()
+      handleClassExtends(null, 1)
+      handleClassNoWithClause()
+      handleImplements(null, 0)
+      handleClassHeader(class, class, null)
+      handleNoType()
+      handleClassExtends(null, 1)
+      handleClassNoWithClause()
+      handleImplements(null, 0)
+      handleRecoverDeclarationHeader(DeclarationHeaderKind.Class)
+      handleRecoverableError(ExpectedClassBody, , )
+      // WARNING: Reporting at eof for .
+      beginClassOrMixinOrExtensionBody(DeclarationKind.Class, {)
+      endClassOrMixinOrExtensionBody(DeclarationKind.Class, 0, {, })
+    endClassDeclaration(class, })
+  endTopLevelDeclaration(})
+endCompilationUnit(1, )

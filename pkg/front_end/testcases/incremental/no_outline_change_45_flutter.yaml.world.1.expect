@@ -1,0 +1,10 @@
+main = <No Member>;
+library from "org-dartlang-test:///main.dart" as main {
+
+  class Foo extends dart.core::Object {
+    static factory bar() → main::Foo {
+      throw "";
+    }
+    method bar() → void {}
+  }
+}

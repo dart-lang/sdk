@@ -1,0 +1,5 @@
+library test;
+
+main() {}
+
+List<T> f<T>(T g()) => <T>[g()];

@@ -1,0 +1,32 @@
+library;
+import self as self;
+import "dart:ffi" as ffi;
+import "dart:core" as core;
+
+import "dart:ffi";
+import "package:ffi/ffi.dart";
+
+final class Coordinate extends ffi::Struct {
+  @ffi::Double::•()
+  external get x() → core::double;
+  @ffi::Double::•()
+  external set x(synthesized core::double #externalFieldValue) → void;
+  @ffi::Double::•()
+  external get y() → core::double;
+  @ffi::Double::•()
+  external set y(synthesized core::double #externalFieldValue) → void;
+  external get next() → ffi::Pointer<self::Coordinate>;
+  external set next(synthesized ffi::Pointer<self::Coordinate> #externalFieldValue) → void;
+  static factory allocate(ffi::Allocator allocator, core::double x, core::double y, ffi::Pointer<self::Coordinate> next) → self::Coordinate
+    ;
+}
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///ffi_sample.dart:13:4 -> InstanceConstant(const Double{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///ffi_sample.dart:13:4 -> InstanceConstant(const Double{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///ffi_sample.dart:16:4 -> InstanceConstant(const Double{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///ffi_sample.dart:16:4 -> InstanceConstant(const Double{})
+Extra constant evaluation: evaluated: 4, effectively constant: 4

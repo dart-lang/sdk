@@ -1,0 +1,3 @@
+import 'issue51823_lib.dart';
+
+const a = const bool.fromEnvironment('foo') ? E.a : E.b;

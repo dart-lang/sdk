@@ -1,0 +1,27 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Foo<T extends self::Foo<self::Foo::T> = self::Foo<dynamic>> extends core::Object {
+  synthetic constructor •() → self::Foo<self::Foo::T>
+    ;
+}
+abstract class Bar extends core::Object {
+  synthetic constructor •() → self::Bar
+    ;
+  abstract method fisk<S extends self::Foo<self::Bar::fisk::S> = self::Foo<dynamic>>() → void;
+}
+class Hest extends core::Object implements self::Bar {
+  synthetic constructor •() → self::Hest
+    ;
+  @core::override
+  method fisk<U extends self::Foo<self::Hest::fisk::U> = self::Foo<dynamic>>() → void
+    ;
+}
+static method main() → void
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: StaticGet @ org-dartlang-testcase:///override_check_generic_method_f_bounded.dart:15:4 -> InstanceConstant(const _Override{})
+Extra constant evaluation: evaluated: 1, effectively constant: 1

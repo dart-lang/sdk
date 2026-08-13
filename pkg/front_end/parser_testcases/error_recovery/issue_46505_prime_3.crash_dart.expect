@@ -1,0 +1,58 @@
+Problems reported:
+
+parser/error_recovery/issue_46505_prime_3.crash:2:19: Expected a type, but got '>>>'.
+  Stream<List<Set<>>>
+                  ^^^
+
+parser/error_recovery/issue_46505_prime_3.crash:3:1: Expected an identifier, but got '}'.
+}
+^
+
+parser/error_recovery/issue_46505_prime_3.crash:2:21: Expected ';' after this.
+  Stream<List<Set<>>>
+                    ^
+
+beginCompilationUnit(class)
+  beginMetadataStar(class)
+  endMetadataStar(0)
+  beginClassOrMixinOrNamedMixinApplicationPrelude(class)
+    handleIdentifier(A, classOrMixinDeclaration)
+    handleNoTypeVariables({)
+    beginClassDeclaration(class, null, null, null, null, null, null, null, A)
+      handleNoPrimaryConstructor(DeclarationKind.Class, A, null)
+      handleNoType(A)
+      handleClassExtends(null, 1)
+      handleClassNoWithClause()
+      handleImplements(null, 0)
+      handleClassHeader(class, class, null)
+      beginClassOrMixinOrExtensionBody(DeclarationKind.Class, {)
+        beginMetadataStar(Stream)
+        endMetadataStar(0)
+        beginMember()
+          beginFields(DeclarationKind.Class, null, null, null, null, null, null, null, {)
+            handleIdentifier(Stream, typeReference)
+            beginTypeArguments(<)
+              handleIdentifier(List, typeReference)
+              beginTypeArguments(<)
+                handleIdentifier(Set, typeReference)
+                beginTypeArguments(<)
+                  handleRecoverableError(Message[Template(ExpectedType), Expected a type, but got '>>>'., null, {lexeme: >>>}], >>>, >>>)
+                  handleIdentifier(, typeReference)
+                  handleNoTypeArguments(>>>)
+                  handleType(, null)
+                endTypeArguments(1, <, >)
+                handleType(Set, null)
+              endTypeArguments(1, <, >)
+              handleType(List, null)
+            endTypeArguments(1, <, >)
+            handleType(Stream, null)
+            handleRecoverableError(Message[Template(ExpectedIdentifier), Expected an identifier, but got '}'., Try inserting an identifier before '}'., {lexeme: }}], }, })
+            handleIdentifier(, fieldDeclaration)
+            handleNoFieldInitializer(})
+            handleRecoverableError(Message[Template(ExpectedAfterButGot), Expected ';' after this., null, {expected: ;}], >, >)
+          endFields(DeclarationKind.Class, null, null, null, null, null, null, null, 1, Stream, ;)
+        endMember()
+      endClassOrMixinOrExtensionBody(DeclarationKind.Class, 1, {, })
+    endClassDeclaration(class, })
+  endTopLevelDeclaration(})
+endCompilationUnit(1, )

@@ -1,0 +1,11 @@
+library test;
+
+C f() => throw '';
+
+class C {
+  bool g() => true;
+}
+
+main() {}
+
+var x = f().g();

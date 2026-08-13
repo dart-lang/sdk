@@ -1,0 +1,6 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+[217]static method [223] [357] method([229, -1] core::List<dynamic> list) → dynamic
+[-1]  ;

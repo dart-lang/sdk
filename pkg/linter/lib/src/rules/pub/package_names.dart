@@ -1,0 +1,33 @@
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
+import 'package:analyzer/analysis_rule/pubspec.dart';
+import 'package:analyzer/error/error.dart';
+
+import '../../analyzer.dart';
+import '../../diagnostic.dart' as diag;
+import '../../utils.dart';
+
+const _desc = r'Use `lowercase_with_underscores` for package names.';
+
+class PackageNames extends AnalysisRule {
+  new() : super(name: LintNames.package_names, description: _desc);
+
+  @override
+  DiagnosticCode get diagnosticCode => diag.packageNames;
+
+  @override
+  PubspecVisitor<void> get pubspecVisitor => _Visitor(this);
+}
+
+class _Visitor(final AnalysisRule rule) extends PubspecVisitor<void> {
+  @override
+  void visitPackageName(PubspecEntry name) {
+    var packageName = name.value.text;
+    if (packageName != null && !isValidPackageName(packageName)) {
+      rule.reportAtPubNode(name.value, arguments: [packageName]);
+    }
+  }
+}

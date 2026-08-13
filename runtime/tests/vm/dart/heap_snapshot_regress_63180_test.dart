@@ -1,0 +1,26 @@
+// Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'dart:collection';
+import 'dart:developer';
+
+import 'package:expect/expect.dart';
+import 'package:path/path.dart' as path;
+
+import 'heap_snapshot_test.dart';
+import 'use_flag_test_helper.dart';
+
+main() async {
+  if (const bool.fromEnvironment('dart.vm.product')) return;
+
+  await withTempDir('heap_snapshot_test', (String dir) async {
+    final file = path.join(dir, 'state1.heapsnapshot');
+    final map = LinkedHashMap(
+      equals: (a, b) => a == b,
+      hashCode: (a) => a.hashCode,
+    );
+    map[1] = 2;
+    NativeRuntime.writeHeapSnapshotToFile(file);
+  });
+}

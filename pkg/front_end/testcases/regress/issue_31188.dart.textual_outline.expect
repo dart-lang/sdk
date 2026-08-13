@@ -1,0 +1,5 @@
+// @dart = 2.14
+
+main() {}
+
+type T = Map<A, B> ;

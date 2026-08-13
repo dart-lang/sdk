@@ -1,0 +1,4 @@
+main_lib.dart
+package:js/js.dart
+package:meta/meta.dart
+package:meta/meta_meta.dart

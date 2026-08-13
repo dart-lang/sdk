@@ -1,0 +1,33 @@
+extension type E1(int x) {
+this {}
+}
+
+extension type E2(int x) {
+this : assert(1 > 2) {}
+}
+
+extension type E3(int x) {
+this;
+}
+
+extension type E4(int x) {
+this : assert(1 > 2);
+}
+
+
+extension[KeywordToken] type[StringToken] E1[StringToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+this[KeywordToken] {[BeginToken]}[SimpleToken]
+}[SimpleToken]
+
+extension[KeywordToken] type[StringToken] E2[StringToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+this[KeywordToken] :[SimpleToken] assert[KeywordToken]([BeginToken]1[StringToken] >[SimpleToken] 2[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+}[SimpleToken]
+
+extension[KeywordToken] type[StringToken] E3[StringToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+this[KeywordToken];[SimpleToken]
+}[SimpleToken]
+
+extension[KeywordToken] type[StringToken] E4[StringToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+this[KeywordToken] :[SimpleToken] assert[KeywordToken]([BeginToken]1[StringToken] >[SimpleToken] 2[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

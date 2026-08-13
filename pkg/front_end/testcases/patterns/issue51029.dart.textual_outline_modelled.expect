@@ -1,0 +1,15 @@
+String log = "";
+
+class Square {
+  const Square(this.length, [this.logFunction = null]);
+  double get area {}
+  final double length;
+  final void Function(String s)? logFunction;
+  void _log(String toLog) {}
+}
+
+expect(expected, actual) {}
+
+main() {}
+
+void logger(String s) {}

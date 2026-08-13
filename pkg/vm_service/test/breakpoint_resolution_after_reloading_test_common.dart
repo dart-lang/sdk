@@ -1,0 +1,141 @@
+// Copyright (c) 2025, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'dart:async';
+import 'dart:io' show Directory, File;
+
+import 'package:path/path.dart' show join;
+import 'package:test/test.dart';
+import 'package:vm_service/vm_service.dart';
+
+import 'common/service_test_common.dart';
+
+const _v1Contents = '''
+import 'dart:developer';
+
+void f() {
+  (() {
+    (() {
+      print('v1');
+    })();
+  })();
+}
+
+void main() {}
+''';
+
+const _v2Contents = '''
+import 'dart:developer';
+
+void f() {
+  (() {
+    print('v2.a');
+    (() {
+      print('v2.b');
+    })();
+  })();
+}
+
+void main() {}
+''';
+
+IsolateTestHarness createHarness(List<String> args) => IsolateTestHarness(
+      'breakpoint_resolution_after_reloading_lib.dart',
+      args,
+    )
+        .hasStoppedAtBreakpoint()
+        .stoppedAtLine('LINE_A')
+        .addCustomTest((VmService service, IsolateRef isolateRef) async {
+      final tempDir = Directory.systemTemp.createTempSync();
+      try {
+        // This test is a regression test against a bug caused by comparing script
+        // URLs instead of script pointers in the debugger. To produce a situation
+        // in which the bug used to occur, this test loads
+        // [spawnedIsolateRootLib], modifies [spawnedIsolateRootLib], and then
+        // reloads [spawnedIsolateRootLib].
+        final spawnedIsolateRootLib = File(join(tempDir.path, 'main.dart'));
+
+        // Find the spawned isolate.
+        final vm = await service.getVM();
+        final isolates = vm.isolates!;
+        final spawnedIsolateRef =
+            isolates.firstWhere((i) => i.name == 'Test Main');
+        final spawnedIsolateId = spawnedIsolateRef.id!;
+
+        // Wait for spawned isolate to hit its debugger()
+        await hasStoppedAtBreakpoint(service, spawnedIsolateRef);
+        // Resume it so it finishes main() and sits idle.
+        await resumeIsolate(service, spawnedIsolateRef);
+
+        // --- STEP 1: RELOAD V1 ---
+        spawnedIsolateRootLib.writeAsStringSync(_v1Contents);
+        await service.reloadSources(
+          spawnedIsolateId,
+          rootLibUri: spawnedIsolateRootLib.uri.toString(),
+          force: true,
+        );
+
+        Isolate spawnedIsolate = await service.getIsolate(spawnedIsolateId);
+        Library rootLib = await service.getObject(
+          spawnedIsolateId,
+          spawnedIsolate.rootLib!.id!,
+        ) as Library;
+        String scriptId = rootLib.scripts![0].id!;
+
+        // Add a breakpoint at `print('v1');` (line 6 of v1).
+        final Breakpoint bpt1 =
+            await service.addBreakpoint(spawnedIsolateId, scriptId, 6);
+
+        // Trigger f() in the reloaded code.
+        // This ensures a fresh entry into the reloaded f().
+        print('Invoking f() V1');
+        unawaited(service.invoke(spawnedIsolateId, rootLib.id!, 'f', []));
+
+        await hasStoppedAtBreakpoint(service, spawnedIsolateRef);
+        await stoppedAtLine(6)(service, spawnedIsolateRef);
+
+        // Remove the breakpoint before moving to V2.
+        await service.removeBreakpoint(spawnedIsolateId, bpt1.id!);
+        await resumeIsolate(service, spawnedIsolateRef);
+
+        // --- STEP 2: RELOAD V2 ---
+        spawnedIsolateRootLib.writeAsStringSync(_v2Contents);
+        await service.reloadSources(
+          spawnedIsolateId,
+          rootLibUri: spawnedIsolateRootLib.uri.toString(),
+          force: true,
+        );
+
+        spawnedIsolate = await service.getIsolate(spawnedIsolateId);
+        rootLib = await service.getObject(
+          spawnedIsolateId,
+          spawnedIsolate.rootLib!.id!,
+        ) as Library;
+        scriptId = rootLib.scripts![0].id!;
+
+        // Add a breakpoint at `print('v2.a');` (line 5 of v2).
+        final Breakpoint bpt2 =
+            await service.addBreakpoint(spawnedIsolateId, scriptId, 5);
+
+        print('Invoking f() V2');
+        unawaited(service.invoke(spawnedIsolateId, rootLib.id!, 'f', []));
+
+        await hasStoppedAtBreakpoint(service, spawnedIsolateRef);
+        await stoppedAtLine(5)(service, spawnedIsolateRef);
+
+        // Remove the breakpoint.
+        await service.removeBreakpoint(spawnedIsolateId, bpt2.id!);
+        await resumeIsolate(service, spawnedIsolateRef);
+
+        // Add a breakpoint at `print('v2.b');` (line 6 of v2).
+        final bpt = await service.addBreakpoint(spawnedIsolateId, scriptId, 6);
+        expect(bpt.resolved, true);
+
+        // No need for final resume as the isolate is already running and idle.
+        tempDir.deleteSync(recursive: true);
+      } catch (_) {
+        tempDir.deleteSync(recursive: true);
+        rethrow;
+      }
+    });

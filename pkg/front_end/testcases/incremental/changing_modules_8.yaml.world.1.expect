@@ -1,0 +1,38 @@
+main = com::main;
+library from "org-dartlang-test:///compileme.dart" as com {
+
+  import "package:module/lib1.dart";
+
+  static method main() → dynamic {
+    lib1::XSet history = new lib3::XIdentityHashSet::•();
+  }
+}
+library from "package:module/lib1.dart" as lib1 {
+
+  import "package:module/lib2.dart";
+
+  abstract class XSet extends dart.core::Object {
+    static factory identity() → lib1::XSet /* redirection-target: lib2::XLinkedHashSet::identity */
+      return lib2::XLinkedHashSet::identity();
+  }
+}
+library from "package:module/lib2.dart" as lib2 {
+
+  import "package:module/lib1.dart";
+  import "package:module/lib3.dart";
+
+  class XLinkedHashSet extends dart.core::Object implements lib1::XSet {
+    static factory identity() → lib2::XLinkedHashSet /* redirection-target: lib3::XIdentityHashSet::• */
+      return new lib3::XIdentityHashSet::•();
+  }
+}
+library from "package:module/lib3.dart" as lib3 {
+
+  import "package:module/lib2.dart";
+
+  class XIdentityHashSet extends dart.core::Object implements lib2::XLinkedHashSet {
+    constructor •() → lib3::XIdentityHashSet
+      : super dart.core::Object::•()
+      ;
+  }
+}

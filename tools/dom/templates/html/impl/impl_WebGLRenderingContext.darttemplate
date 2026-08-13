@@ -1,0 +1,81 @@
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+part of $LIBRARYNAME;
+
+$(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS implements CanvasRenderingContext {
+$!MEMBERS
+
+  void readPixels(int x, int y, int width, int height, int format, int type,
+          TypedData$NULLABLE pixels) {
+      _readPixels(x, y, width, height, format, type, pixels);
+  }
+
+  /**
+   * Sets the currently bound texture to [data].
+   *
+   * [data] can be either an [ImageElement], a
+   * [CanvasElement], a [VideoElement], [TypedData] or an [ImageData] object.
+   *
+   * This is deprecated in favor of [texImage2D].
+   */
+  @Deprecated("Use texImage2D")
+  void texImage2DUntyped(int targetTexture, int levelOfDetail,
+      int internalFormat, int format, int type, data) {
+    texImage2D(targetTexture, levelOfDetail, internalFormat, format, type, data);
+  }
+
+  /**
+   * Sets the currently bound texture to [data].
+   *
+   * This is deprecated in favour of [texImage2D].
+   */
+  @Deprecated("Use texImage2D")
+  void texImage2DTyped(int targetTexture, int levelOfDetail, int internalFormat,
+      int width, int height, int border, int format, int type, TypedData data) {
+    texImage2D(targetTexture, levelOfDetail, internalFormat,
+        width, height, border, format, type, data);
+  }
+
+  /**
+   * Updates a sub-rectangle of the currently bound texture to [data].
+   *
+   * [data] can be either an [ImageElement], a
+   * [CanvasElement], a [VideoElement], [TypedData] or an [ImageData] object.
+   *
+   */
+  @Deprecated("Use texSubImage2D")
+  void texSubImage2DUntyped(int targetTexture, int levelOfDetail,
+      int xOffset, int yOffset, int format, int type, data) {
+    texSubImage2D(targetTexture, levelOfDetail, xOffset, yOffset,
+        format, type, data);
+  }
+
+  /**
+   * Updates a sub-rectangle of the currently bound texture to [data].
+   */
+  @Deprecated("Use texSubImage2D")
+  void texSubImage2DTyped(int targetTexture, int levelOfDetail,
+      int xOffset, int yOffset, int width, int height, int border, int format,
+      int type, TypedData data) {
+    texSubImage2D(targetTexture, levelOfDetail, xOffset, yOffset,
+        width, height, format, type, data);
+  }
+
+  /**
+   * Set the bufferData to [data].
+   */
+  @Deprecated("Use bufferData")
+  void bufferDataTyped(int target, TypedData data, int usage) {
+    bufferData(target, data, usage);
+  }
+
+  /**
+   * Set the bufferSubData to [data].
+   */
+  @Deprecated("Use bufferSubData")
+  void bufferSubDataTyped(int target, int offset, TypedData data) {
+    bufferSubData(target, offset, data);
+  }
+}

@@ -1,0 +1,3 @@
+const annotation = const Object();
+
+extension type ExtensionType(@annotation int id) {}

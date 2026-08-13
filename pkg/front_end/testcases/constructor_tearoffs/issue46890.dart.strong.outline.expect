@@ -1,0 +1,16 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A<X extends core::Object? = dynamic> extends core::Object {
+  constructor foo() → self::A<self::A::X%>
+    ;
+  static factory bar<X extends core::Object? = dynamic>() → self::A<self::A::bar::X%>
+    ;
+  static factory baz<X extends core::Object? = dynamic>() → self::A<self::A::baz::X%> /* redirection-target: self::A::bar<self::A::baz::X%>*/
+    return self::A::bar<self::A::baz::X%>();
+}
+static method test() → dynamic
+  ;
+static method main() → dynamic
+  ;

@@ -1,0 +1,15 @@
+class Class1 {
+  Class1._();
+  factory Class1() = Class1._;
+  int field = 0;
+  int get getter => 0;
+}
+
+class Class2 extends Class1 {
+  Class2(this._c2) : super._() {}
+  final Class2 _c2;
+  int get call => 0;
+  method({a}) {}
+}
+
+main() {}

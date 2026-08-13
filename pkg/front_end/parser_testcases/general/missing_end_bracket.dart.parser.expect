@@ -1,0 +1,7 @@
+main() {
+print("Hello, World!");
+}
+
+[UnmatchedToken]main[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+print[StringToken]([BeginToken]"Hello, World!"[StringToken])[SimpleToken];[SimpleToken]
+}[SyntheticToken][SimpleToken]

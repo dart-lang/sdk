@@ -1,0 +1,52 @@
+# Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Compile an application with a package and use it.
+# Then remove the package from .dart_tool/package_config.json and remove any use
+# of it. The package is still included in the dill file we initialize from,
+# but shouldn't cause trouble, nor be included in the output.
+
+type: newworld
+worlds:
+  - entry: main.dart
+    sources:
+      main.dart: |
+        import "package:example/b.dart";
+        main() {
+          print("hello");
+          b();
+        }
+      pkg/example/b.dart: |
+        b() {
+          print("b");
+        }
+      .dart_tool/package_config.json: |
+        {
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "example",
+              "rootUri": "../pkg/example"
+            }
+          ]
+        }
+    expectedLibraryCount: 2
+  - entry: main.dart
+    # TODO(jensj): For now we don't initialize from dill when a package was
+    # changed.
+    #invalidate:
+    #  - main.dart
+    expectInitializeFromDill: false
+    sources:
+      main.dart: |
+        main() {
+          print("hello");
+        }
+      .dart_tool/package_config.json: |
+        {
+          "configVersion": 2,
+          "packages": []
+        }
+    expectedLibraryCount: 1
+    advancedInvalidation: noDirectlyInvalidated

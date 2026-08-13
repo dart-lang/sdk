@@ -1,0 +1,7 @@
+class A {
+  late int x;
+  A.foo(this.x);
+  A.bar();
+}
+
+main() {}

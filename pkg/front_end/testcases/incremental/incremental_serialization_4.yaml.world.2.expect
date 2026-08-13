@@ -1,0 +1,30 @@
+main = main::main;
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "package:package1/p1.dart";
+  import "package:package2/p2.dart";
+
+  static method main() → dynamic {
+    p1::p1();
+    p2::p2();
+  }
+}
+library from "package:package1/p1.dart" as p1 {
+
+  static method p1() → dynamic {
+    dart.core::print("Package 1 v2");
+    p1::p1_v2_Only();
+  }
+  static method p1_v2_Only() → dynamic {
+    dart.core::print("Package 1 v2 only!");
+  }
+}
+library from "package:package2/p2.dart" as p2 {
+
+  import "package:package1/p1.dart";
+
+  static method p2() → dynamic {
+    p1::p1();
+    dart.core::print("Package 2");
+  }
+}

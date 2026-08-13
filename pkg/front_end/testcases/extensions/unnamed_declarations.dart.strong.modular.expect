@@ -1,0 +1,50 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A1 extends core::Object {
+  synthetic constructor •() → self::A1
+    : super core::Object::•()
+    ;
+}
+class B1<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::B1<self::B1::T%>
+    : super core::Object::•()
+    ;
+}
+extension /* unnamed */ _extension#0 on self::A1 {
+  method method = self::_extension#0|method;
+  method tearoff method = self::_extension#0|get#method;
+}
+extension /* unnamed */ _extension#1 on self::A1 {
+  method method = self::_extension#1|method;
+  method tearoff method = self::_extension#1|get#method;
+}
+extension /* unnamed */ _extension#2<T extends core::Object? = dynamic> on self::B1<T%> {
+  method method = self::_extension#2|method;
+  method tearoff method = self::_extension#2|get#method;
+}
+extension /* unnamed */ _extension#3 on self::B1<self::A1> {
+  method method = self::_extension#3|method;
+  method tearoff method = self::_extension#3|get#method;
+}
+extension /* unnamed */ _extension#4<T extends self::A1> on self::B1<T> {
+  method method = self::_extension#4|method;
+  method tearoff method = self::_extension#4|get#method;
+}
+static extension-member method _extension#0|method(lowered final self::A1 #this) → dynamic {}
+static extension-member method _extension#0|get#method(lowered final self::A1 #this) → () → dynamic
+  return () → dynamic => self::_extension#0|method(#this);
+static extension-member method _extension#1|method(lowered final self::A1 #this) → dynamic {}
+static extension-member method _extension#1|get#method(lowered final self::A1 #this) → () → dynamic
+  return () → dynamic => self::_extension#1|method(#this);
+static extension-member method _extension#2|method<T extends core::Object? = dynamic>(lowered final self::B1<self::_extension#2|method::T%> #this) → dynamic {}
+static extension-member method _extension#2|get#method<T extends core::Object? = dynamic>(lowered final self::B1<self::_extension#2|get#method::T%> #this) → () → dynamic
+  return () → dynamic => self::_extension#2|method<self::_extension#2|get#method::T%>(#this);
+static extension-member method _extension#3|method(lowered final self::B1<self::A1> #this) → dynamic {}
+static extension-member method _extension#3|get#method(lowered final self::B1<self::A1> #this) → () → dynamic
+  return () → dynamic => self::_extension#3|method(#this);
+static extension-member method _extension#4|method<T extends self::A1>(lowered final self::B1<self::_extension#4|method::T> #this) → dynamic {}
+static extension-member method _extension#4|get#method<T extends self::A1>(lowered final self::B1<self::_extension#4|get#method::T> #this) → () → dynamic
+  return () → dynamic => self::_extension#4|method<self::_extension#4|get#method::T>(#this);
+static method main() → dynamic {}

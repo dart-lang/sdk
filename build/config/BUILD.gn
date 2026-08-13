@@ -1,0 +1,27 @@
+# Copyright (c) 2013 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+# Debug/release ----------------------------------------------------------------
+
+config("debug") {
+  defines = [ "DEBUG" ]
+}
+
+config("release") {
+  defines = [ "NDEBUG" ]
+}
+
+config("product") {
+  defines = [
+    "NDEBUG",
+    "PRODUCT",
+  ]
+}
+
+config("shared_library_config") {
+  if (current_os == "android" || current_os == "fuchsia" ||
+      current_os == "linux" || current_os == "mac") {
+    cflags = [ "-fPIC" ]
+  }
+}

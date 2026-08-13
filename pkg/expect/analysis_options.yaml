@@ -1,0 +1,11 @@
+include: package:lints/recommended.yaml
+
+analyzer:
+  errors:
+    unnecessary_library_name: ignore
+
+linter:
+  rules:
+    - lines_longer_than_80_chars
+    - unnecessary_const_in_enum_constructor
+    - unnecessary_type_name_in_constructor

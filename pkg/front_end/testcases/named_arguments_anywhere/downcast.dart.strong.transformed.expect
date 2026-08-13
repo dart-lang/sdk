@@ -1,0 +1,9 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method foo(core::String x, {required core::bool y, required core::num z}) → void {}
+static method main() → void {
+  final core::Map<core::String, dynamic> v = <core::String, dynamic>{"y": true, "x": "", "z": 1.0};
+  let final core::num #t1 = v.{core::Map::[]}("z"){(core::Object?) → dynamic} as{TypeError,ForDynamic} core::num in let final core::bool #t2 = v.{core::Map::[]}("y"){(core::Object?) → dynamic} as{TypeError,ForDynamic} core::bool in self::foo(v.{core::Map::[]}("x"){(core::Object?) → dynamic} as{TypeError,ForDynamic} core::String, z: #t1, y: #t2);
+}

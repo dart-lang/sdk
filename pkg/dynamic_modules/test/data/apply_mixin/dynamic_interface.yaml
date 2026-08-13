@@ -1,0 +1,21 @@
+# Copyright (c) 2024, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+extendable:
+  - library: 'shared/shared.dart'
+    class: 'A'
+  - library: 'shared/shared.dart'
+    class: 'M'
+
+callable:
+  - library: 'dart:core'
+  - library: 'shared/shared.dart'
+    class: 'M'
+  - library: 'shared/shared_old.dart'
+    class: 'M3'
+
+can-be-overridden:
+  - library: 'shared/shared.dart'
+    class: 'A'
+  - library: 'shared/shared.dart'
+    class: 'M'

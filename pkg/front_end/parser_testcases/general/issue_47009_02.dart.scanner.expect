@@ -1,0 +1,9 @@
+main() {
+a(b < c, d < e, as >> (1));
+}
+
+
+main[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+a[StringToken]([BeginToken]b[StringToken] <[BeginToken] c[StringToken],[SimpleToken] d[StringToken] <[BeginToken] e[StringToken],[SimpleToken] as[KeywordToken] >>[SimpleToken] ([BeginToken]1[StringToken])[SimpleToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

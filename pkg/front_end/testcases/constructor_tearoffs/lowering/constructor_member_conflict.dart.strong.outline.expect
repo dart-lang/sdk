@@ -1,0 +1,75 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  field dynamic constructorAndField;
+  field dynamic factoryAndField;
+  field dynamic redirectingFactoryAndField;
+  constructor constructorAndMethod() → self::Class
+    ;
+  constructor constructorAndField() → self::Class
+    ;
+  constructor constructorAndGetter() → self::Class
+    ;
+  constructor constructorAndSetter() → self::Class
+    ;
+  static synthetic method _#constructorAndMethod#tearOff() → self::Class
+    return new self::Class::constructorAndMethod();
+  method constructorAndMethod() → void
+    ;
+  static factory factoryAndMethod() → self::Class
+    ;
+  static synthetic method _#factoryAndMethod#tearOff() → self::Class
+    return self::Class::factoryAndMethod();
+  method factoryAndMethod() → void
+    ;
+  static factory redirectingFactoryAndMethod() → self::Class /* redirection-target: self::Class::constructorAndMethod */
+    return new self::Class::constructorAndMethod();
+  static synthetic method _#redirectingFactoryAndMethod#tearOff() → self::Class
+    return new self::Class::constructorAndMethod();
+  method redirectingFactoryAndMethod() → void
+    ;
+  static synthetic method _#constructorAndField#tearOff() → self::Class
+    return new self::Class::constructorAndField();
+  static factory factoryAndField() → self::Class
+    ;
+  static synthetic method _#factoryAndField#tearOff() → self::Class
+    return self::Class::factoryAndField();
+  static factory redirectingFactoryAndField() → self::Class /* redirection-target: self::Class::constructorAndField */
+    return new self::Class::constructorAndField();
+  static synthetic method _#redirectingFactoryAndField#tearOff() → self::Class
+    return new self::Class::constructorAndField();
+  static synthetic method _#constructorAndGetter#tearOff() → self::Class
+    return new self::Class::constructorAndGetter();
+  get constructorAndGetter() → dynamic
+    ;
+  static factory factoryAndGetter() → self::Class
+    ;
+  static synthetic method _#factoryAndGetter#tearOff() → self::Class
+    return self::Class::factoryAndGetter();
+  get factoryAndGetter() → dynamic
+    ;
+  static factory redirectingFactoryAndGetter() → self::Class /* redirection-target: self::Class::constructorAndGetter */
+    return new self::Class::constructorAndGetter();
+  static synthetic method _#redirectingFactoryAndGetter#tearOff() → self::Class
+    return new self::Class::constructorAndGetter();
+  get redirectingFactoryAndGetter() → dynamic
+    ;
+  static synthetic method _#constructorAndSetter#tearOff() → self::Class
+    return new self::Class::constructorAndSetter();
+  set constructorAndSetter(dynamic value) → void
+    ;
+  static factory factoryAndSetter() → self::Class
+    ;
+  static synthetic method _#factoryAndSetter#tearOff() → self::Class
+    return self::Class::factoryAndSetter();
+  set factoryAndSetter(dynamic value) → void
+    ;
+  static factory redirectingFactoryAndSetter() → self::Class /* redirection-target: self::Class::constructorAndSetter */
+    return new self::Class::constructorAndSetter();
+  static synthetic method _#redirectingFactoryAndSetter#tearOff() → self::Class
+    return new self::Class::constructorAndSetter();
+  set redirectingFactoryAndSetter(dynamic value) → void
+    ;
+}

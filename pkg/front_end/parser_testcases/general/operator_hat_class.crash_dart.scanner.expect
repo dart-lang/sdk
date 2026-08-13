@@ -1,0 +1,7 @@
+class operator {
+operator^(int x) {}
+}
+
+class[KeywordToken] operator[KeywordToken] {[BeginToken]
+operator[KeywordToken]^[SimpleToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+}[SimpleToken][SimpleToken]

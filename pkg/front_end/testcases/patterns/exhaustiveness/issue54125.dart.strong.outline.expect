@@ -1,0 +1,21 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+interface class Model extends core::Object {
+  synthetic constructor •() → self::Model
+    ;
+}
+class MyModelExpectingABoolean extends core::Object implements self::Model {
+  constructor •(core::bool value) → self::MyModelExpectingABoolean
+    ;
+}
+class MyModelExpectingAString extends core::Object implements self::Model {
+  constructor •(core::String value) → self::MyModelExpectingAString
+    ;
+}
+static final field core::Map<core::String, dynamic> json;
+static method test1() → void
+  ;
+static method test2() → void
+  ;

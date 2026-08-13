@@ -1,0 +1,414 @@
+@import url('https://rsms.me/inter/inter.css');
+@import url('https://rsms.me/inter/inter-display.css');
+
+@font-face {
+  font-named-instance:"Regular";font-family: jbmono;
+  font-style: normal;
+  font-weight: 100 800;
+  src: url(https://rsms.me/res/fonts/jbm/jetbrains-mono-wght.woff2) format("woff2")
+}
+
+@font-face {
+  font-named-instance:"Italic";font-family: jbmono;
+  font-style: italic;
+  font-weight: 100 800;
+  src: url(https://rsms.me/res/fonts/jbm/jetbrains-mono-italic_wght.woff2) format("woff2")
+}
+
+:root { font-family: 'Inter', sans-serif; }
+@supports (font-variation-settings: normal) {
+  :root { font-family: 'Inter var', sans-serif; font-weight: 460;}
+}
+
+$monospace: jbmono, 'IBM Plex Mono', Menlo, Consolas, monospace;
+
+a {
+  color: #C00;
+  text-decoration: none;
+  border-bottom: dashed 1px #C00;
+}
+
+a:visited {
+  color: #a30000;
+  border-bottom: dashed 1px #a30000;
+}
+
+a:hover {
+  color: #b70000;
+  border-bottom: dashed 1px #b70000;
+}
+
+$base-font-size: 16px;
+$base-line-height: 24px;
+$pre-font-size: 16px;
+$pre-line-height: 24px;
+$code-font-size: 16px;
+$code-line-height: 24px;
+$header-font-size: 16px;
+
+div.highlight {
+  font-size: $header-font-size;
+  margin: 0px -20px;
+  padding: 5px 20px;
+}
+
+h1 { font-size: $header-font-size * 2; }
+h2 { font-size: $header-font-size * 1.5; }
+h3 { font-size: $header-font-size * 1.17; }
+h4 { font-size: $header-font-size * 1.12; }
+h5 { font-size: $header-font-size * .83; }
+h6 { font-size: $header-font-size * .75; }
+
+p {
+  position: relative;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-size: $base-font-size;
+  line-height: $base-line-height;
+  text-align: left;
+  color: #112;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  letter-spacing: 0.01em;
+}
+
+h1, h2, h3, h4, h5 {
+  text-align: left;
+  position: relative;
+}
+
+.section-number {
+  position: absolute;
+  color: #C00;
+  text-align: right;
+  left: -70px;
+  width: 55px;
+  padding-right: 5px;
+}
+
+h1 .section-number {
+  color: white;
+  background: #C00;
+}
+
+h1 { color: #C00; }
+
+body.front-page {
+  background: whitesmoke;
+}
+
+p > img {
+  max-width: 90%;
+  height: auto;
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
+}
+
+.content {
+  padding-top: 20px;
+  width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.box {
+  width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 50px;
+  margin-bottom: 50px;
+  padding: 20px;
+}
+
+.box-centered {
+  text-align: center;
+}
+
+.box-white {
+  background: white;
+  border: 1px solid #ccc;
+  box-shadow: 2px 2px 8px #aaa;
+  border-radius: 5px;
+}
+
+.aside {
+  margin-right: -280px;
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 240px;
+  text-align: left;
+  font-size: .9em;
+}
+
+@media only screen and (max-width: 1200px) {
+  .box {
+    width: auto;
+    left: 0px;
+    right: 0px;
+    margin: 0px;
+  }
+
+  .box-white {
+    border: none;
+  }
+
+  .content {
+    width: auto;
+    left: 0px;
+    right: 0px;
+    margin: 0px;
+  }
+
+  .aside {
+    margin-right: 0px;
+    position: relative;
+    right: 0px;
+    width: auto;
+    text-align: left;
+    font-size: .8em;
+    line-height: 1.5em;
+    background-color: rgba(128,128,128,0.1);
+    display: block;
+    padding: .8em;
+  }
+
+  body {
+    font-size: 14px;
+    line-height: 18px;
+    padding: 5px;
+  }
+
+  div.highlight {
+    font-size: 10px;
+    line-height: 13px;
+    margin: 0px -5px;
+    padding: 5px 5px;
+  }
+}
+
+code {
+  font: normal #{$code-font-size}/#{$code-line-height} $monospace;
+  white-space: pre;
+}
+
+.aside {
+  code {
+    font: normal #{$code-font-size * .9}/#{$code-line-height * .9} $monospace !important;
+  }
+}
+
+pre {
+  font: normal #{$pre-font-size}/#{$pre-line-height} $monospace;
+}
+
+.centered {
+  display: block;
+  text-align: center;
+}
+
+.start-reading span {
+  color: white;
+  background-color: #C00;
+  border-radius: 10px;
+  display: inline-block;
+  padding: 10px;
+}
+
+.start-reading {
+  text-align: center;
+}
+
+// Pygments
+.highlight {
+  line-height: initial;
+
+  pre {
+    --bg: #fff;
+    --fg: #000;
+    --comment: #6a737d;
+    --punctuation: inherit;
+    --operator: inherit;
+    --entity: #6f42c1;
+    --keyword: #d73a49;
+    --variable: #e36209;
+    --string-constant: #032f62; /* strings etc */
+    --numeric-constant: #005cc5;
+
+    padding: 1em;
+    background: var(--bg);
+    color: var(--fg);
+
+    /* punctuation */
+    & .p { color: var(--punctuation); }
+
+    /* syntax error */
+    /*& .err { color: #ff0015; }*/
+
+    /* names / identifiers */
+    /*& .n ,*/ /* Name */
+    & .na, /* Name.Attribute */
+    & .nb, /* Name.Builtin */
+    & .nc, /* Name.Class */
+    & .no, /* Name.Constant */
+    & .nd, /* Name.Decorator */
+    & .ni, /* Name.Entity */
+    & .ne, /* Name.Exception */
+    & .nf, /* Name.Function */
+    & .nl, /* Name.Label */
+    & .nn, /* Name.Namespace */
+    & .nx,
+    & .py,
+    & .nt /* Name.Tag */ {
+      color: var(--entity);
+    }
+
+    & .vc,
+    & .vg,
+    & .vi,
+    & .nv {
+      color: var(--variable);
+    }
+
+    & .bp { /* Builtin.Pseudo */
+
+    }
+
+    & .o,
+    & .ow { color: var(--operator); }
+
+    & .c,
+    & .cm,
+    & .cp,
+    & .c1,
+    & .cs { color: var(--comment); font-style: italic; }
+
+    /* Keywords */
+    & .k,
+    & .kc,
+    & .kd,
+    & .kn,
+    & .kp,
+    & .kr,
+    & .kt { color: var(--keyword); font-weight: 500; }
+
+    /* strings */
+    & .s,
+    & .sb,
+    & .sd,
+    & .sc,
+    & .s2,
+    & .se,
+    & .sh,
+    & .si,
+    & .sx,
+    & .sr,
+    & .ss,
+    & .s1 { color: var(--string-constant); }
+
+    /* number */
+    & .m, & .mi, & .mf { color: var(--numeric-constant); }
+
+    & .gi /* Generic.Inserted */ {
+      color: #22863a;
+      background-color: #f0fff4;
+    }
+
+    & .gd /* Generic.Deleted */ {
+      color: #b31d28;
+      background-color: #ffeef0;
+    }
+
+    & .gp /* Generic.Prompt */ {
+      color: var(--keyword);
+      font-weight: bold;
+    }
+
+    & .go /* Generic.Output */ {
+      color: #003b7e;
+    }
+
+    /* ? */
+    /*& .l,
+    & .ld,
+    & .m,
+    & .mf,
+    & .mh,
+    & .mi,
+    & .mo,
+    & .nx,
+    & .il { color: #ff0000; }*/
+  }
+}
+
+div.epigraph {
+  blockquote {
+    margin-right: 0px;
+    float: right;
+    font-style: italic;
+
+    .footer {
+      font-style: normal;
+      text-align: right;
+    }
+  }
+}
+
+div.clear {
+  clear: both;
+}
+
+.admonition {
+  .admonition-title {
+    font-weight: bold;
+    margin-bottom: 0px;
+    margin-right: 5px;
+    float: left;
+  }
+
+  margin: 0 -20px;
+  padding: 5px 20px;
+}
+
+.admonition.warning {
+  background: #FBE9E7;
+  color: #a30000;
+  margin: 0 -20px;
+  padding: 5px 20px;
+}
+
+.admonition.sourcecode {
+  background: rgba(38, 139, 210, 0.1);
+}
+
+.admonition.tryit {
+  background: rgba(185, 246, 202, 1);
+
+  .highlight {
+    pre {
+      background-color: transparent;
+      color: inherit;
+      margin: 0px 0px;
+
+      .c { color: grey; }
+    }
+  }
+}
+
+
+table {
+  thead {
+    td {
+      padding: 6px 3px;
+    }
+  }
+
+  td {
+    padding: 6px 3px;
+  }
+}

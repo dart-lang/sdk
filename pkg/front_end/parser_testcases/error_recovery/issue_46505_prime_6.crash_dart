@@ -1,0 +1,6 @@
+class A {
+  // These are names and no return types...
+  stream<T extends List<T>>(T foo) {}
+  stream2<T extends List<>>(T foo) {}
+  stream3<T>(T foo) {}
+}

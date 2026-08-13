@@ -1,0 +1,14 @@
+main = <No Member>;
+library from "org-dartlang-test:///app/main.dart" as main {
+
+  import "package:flutter/src/widgets/framework.dart";
+
+}
+library from "package:flutter/src/widgets/framework.dart" as fra {
+
+  abstract class Widget extends dart.core::Object {
+    synthetic constructor •() → fra::Widget
+      : super dart.core::Object::•()
+      ;
+  }
+}

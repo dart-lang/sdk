@@ -1,0 +1,614 @@
+// Copyright (c) 2015, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+/// A stress test for the analysis server.
+library;
+
+import 'dart:io';
+import 'dart:math' as math;
+
+import 'package:analysis_server/protocol/protocol_generated.dart';
+import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer/src/dart/scanner/scanner.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer/src/util/glob.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:args/args.dart';
+import 'package:args/command_runner.dart';
+import 'package:path/path.dart' as path;
+
+import '../utilities/git.dart';
+import '../utilities/logger.dart';
+import '../utilities/server.dart';
+import 'operation.dart';
+
+/// Run the simulation based on the given command-line [arguments].
+Future<void> main(List<String> arguments) async {
+  var driver = Driver.fromArgs(arguments);
+  if (driver == null) return;
+  await driver.run();
+}
+
+/// The driver class that runs the simulation.
+class Driver {
+  /// The value of the [_overlayStyleOptionName] indicating that modifications
+  /// to a file should be represented by an add overlay, followed by zero or
+  /// more change overlays, followed by a remove overlay.
+  static const String _changeOverlayStyle = 'change';
+
+  /// The name of the command-line flag that will print help text.
+  static const String _helpFlagName = 'help';
+
+  /// The value of the [_overlayStyleOptionName] indicating that modifications
+  /// to a file should be represented by an add overlay, followed by zero or
+  /// more additional add overlays, followed by a remove overlay.
+  static const String _multipleAddOverlayStyle = 'multipleAdd';
+
+  /// The name of the command-line option used to specify the style of
+  /// interaction to use when making `analysis.updateContent` requests.
+  static const String _overlayStyleOptionName = 'overlay-style';
+
+  /// The name of the branch used to clean-up after making temporary changes.
+  // ignore: unused_field
+  static const String _tempBranchName = 'temp';
+
+  /// The name of the command-line flag that will cause verbose output to be
+  /// produced.
+  static const String _verboseFlagName = 'verbose';
+
+  /// Creates and returns a parser that can be used to parse the command-line
+  /// arguments.
+  static ArgParser get _argParser => ArgParser()
+    ..addFlag(
+      _helpFlagName,
+      abbr: 'h',
+      help: 'Print usage information',
+      negatable: false,
+    )
+    ..addOption(
+      _overlayStyleOptionName,
+      help:
+          'The style of interaction to use for analysis.updateContent requests',
+      allowed: [_changeOverlayStyle, _multipleAddOverlayStyle],
+      allowedHelp: {
+        _changeOverlayStyle: '<add> <change>* <remove>',
+        _multipleAddOverlayStyle: '<add>+ <remove>',
+      },
+      defaultsTo: 'change',
+    )
+    ..addFlag(
+      _verboseFlagName,
+      abbr: 'v',
+      help: 'Produce verbose output for debugging',
+      negatable: false,
+    );
+
+  /// The style of interaction to use for analysis.updateContent requests.
+  final OverlayStyle _overlayStyle;
+
+  /// The absolute path of the repository.
+  final String _repositoryPath;
+
+  /// The absolute paths to the analysis roots.
+  final List<String> _analysisRoots;
+
+  final GitRepository _repository;
+
+  /// The connection to the analysis server.
+  late Server server;
+
+  /// A list of the glob patterns used to identify the files being analyzed by
+  /// the server.
+  late List<Glob> fileGlobs;
+
+  /// An object gathering statistics about the simulation.
+  late final Statistics _statistics;
+
+  /// A flag indicating whether verbose output should be provided.
+  final bool _verbose;
+
+  /// The logger to which verbose logging data will be written.
+  late Logger _logger;
+
+  new _({
+    required this._overlayStyle,
+    required this._repositoryPath,
+    required this._analysisRoots,
+    required this._repository,
+    required this._verbose,
+  }) {
+    _statistics = Statistics(this);
+  }
+
+  /// Allow the output from the server to be read and processed.
+  Future<void> readServerOutput() async {
+    await Future.delayed(Duration(milliseconds: 2));
+  }
+
+  /// Runs the simulation.
+  Future<void> run() async {
+    if (_verbose) {
+      stdout.writeln();
+      stdout.writeln('-' * 80);
+      stdout.writeln();
+    }
+    //
+    // Simulate interactions with the server.
+    //
+    await _runSimulation();
+    //
+    // Print out statistics gathered while performing the simulation.
+    //
+    if (_verbose) {
+      stdout.writeln();
+      stdout.writeln('-' * 80);
+    }
+    stdout.writeln();
+    _statistics.print();
+    if (_verbose) {
+      stdout.writeln();
+      server.printStatistics();
+    }
+    exit(0);
+  }
+
+  /// Add source edits to the given [fileEdit] based on the given [blobDiff].
+  void _createSourceEdits(FileEdit fileEdit, BlobDiff blobDiff) {
+    var info = fileEdit.lineInfo;
+    for (var hunk in blobDiff.hunks) {
+      var srcStart = info.getOffsetOfLine(hunk.srcLine);
+      var srcEnd = info.getOffsetOfLine(
+        math.min(hunk.srcLine + hunk.removeLines.length, info.lineCount - 1),
+      );
+      var addedText = _join(hunk.addLines);
+      //
+      // Create the source edits.
+      //
+      var breakOffsets = _getBreakOffsets(addedText);
+      var breakCount = breakOffsets.length;
+      var sourceEdits = <SourceEdit>[];
+      if (breakCount == 0) {
+        sourceEdits.add(SourceEdit(srcStart, srcEnd - srcStart + 1, addedText));
+      } else {
+        var previousOffset = breakOffsets[0];
+        var string = addedText.substring(0, previousOffset);
+        sourceEdits.add(SourceEdit(srcStart, srcEnd - srcStart + 1, string));
+        var reconstruction = string;
+        for (var i = 1; i < breakCount; i++) {
+          var offset = breakOffsets[i];
+          string = addedText.substring(previousOffset, offset);
+          reconstruction += string;
+          sourceEdits.add(SourceEdit(srcStart + previousOffset, 0, string));
+          previousOffset = offset;
+        }
+        string = addedText.substring(previousOffset);
+        reconstruction += string;
+        sourceEdits.add(SourceEdit(srcStart + previousOffset, 0, string));
+        if (reconstruction != addedText) {
+          throw AssertionError();
+        }
+      }
+      fileEdit.addSourceEdits(sourceEdits);
+    }
+  }
+
+  /// Return the absolute paths of all of the pubspec files in all of the
+  /// analysis roots.
+  Iterable<String> _findPubspecsInAnalysisRoots() {
+    var pubspecFiles = <String>[];
+    for (var directoryPath in _analysisRoots) {
+      var directory = Directory(directoryPath);
+      var children = directory.listSync(recursive: true, followLinks: false);
+      for (var child in children) {
+        var filePath = child.path;
+        if (path.basename(filePath) == file_paths.pubspecYaml) {
+          pubspecFiles.add(filePath);
+        }
+      }
+    }
+    return pubspecFiles;
+  }
+
+  /// Return a list of offsets into the given [text] that represent good places
+  /// to break the text when building edits.
+  List<int> _getBreakOffsets(String text) {
+    var breakOffsets = <int>[];
+    var featureSet = FeatureSet.latestLanguageVersion();
+    var scanner = Scanner(inputText: text, reportError: (_) {})
+      ..configureFeatures(
+        featureSetForOverriding: featureSet,
+        featureSet: featureSet,
+      );
+    var token = scanner.tokenize();
+    // TODO(brianwilkerson): Randomize. Sometimes add zero (0) as a break point.
+    while (!token.isEof) {
+      // TODO(brianwilkerson): Break inside comments?
+      //      Token comment = token.precedingComments;
+      var offset = token.offset;
+      var length = token.length;
+      breakOffsets.add(offset);
+      if (token.type == TokenType.IDENTIFIER && length > 3) {
+        breakOffsets.add(offset + (length ~/ 2));
+      }
+      token = token.next!;
+    }
+    return breakOffsets;
+  }
+
+  /// Join the given [lines] into a single string.
+  String _join(List<String> lines) {
+    var buffer = StringBuffer();
+    for (var i = 0; i < lines.length; i++) {
+      buffer.writeln(lines[i]);
+    }
+    return buffer.toString();
+  }
+
+  /// Replay the changes in each commit.
+  Future<void> _replayChanges() async {
+    //
+    // Get the revision history of the repo.
+    //
+    var history = _repository.getCommitHistory();
+    _statistics.commitCount = history.commitIds.length;
+    var iterator = history.iterator();
+    try {
+      //
+      // Iterate over the history, applying changes.
+      //
+      var firstCheckout = true;
+      ErrorMap? expectedErrors;
+      late Iterable<String> changedPubspecs;
+      while (iterator.moveNext()) {
+        //
+        // Checkout the commit on which the changes are based.
+        //
+        var commit = iterator.srcCommit;
+        _repository.checkout(commit);
+        if (expectedErrors != null) {
+          //          ErrorMap actualErrors =
+          await server.computeErrorMap(server.analyzedDartFiles);
+          //          String difference = expectedErrors.expectErrorMap(actualErrors);
+          //          if (difference != null) {
+          //            stdout.write('Mismatched errors after commit ');
+          //            stdout.writeln(commit);
+          //            stdout.writeln();
+          //            stdout.writeln(difference);
+          //            return;
+          //          }
+        }
+        if (firstCheckout) {
+          changedPubspecs = _findPubspecsInAnalysisRoots();
+          server.sendAnalysisSetAnalysisRoots(_analysisRoots, []);
+          firstCheckout = false;
+        } else {
+          server.removeAllOverlays();
+        }
+        await readServerOutput();
+        expectedErrors = await server.computeErrorMap(server.analyzedDartFiles);
+        for (var filePath in changedPubspecs) {
+          _runPub(filePath);
+        }
+        //
+        // Apply the changes.
+        //
+        var commitDelta = iterator.next();
+        commitDelta.filterDiffs(_analysisRoots, fileGlobs);
+        if (commitDelta.hasDiffs) {
+          _statistics.commitsWithChangeInRootCount++;
+          await _replayDiff(commitDelta);
+        }
+        changedPubspecs = commitDelta.filesMatching(file_paths.pubspecYaml);
+      }
+    } finally {
+      // Ensure that the repository is left at the most recent commit.
+      if (history.commitIds.isNotEmpty) {
+        _repository.checkout(history.commitIds[0]);
+      }
+    }
+    server.removeAllOverlays();
+    await readServerOutput();
+    stdout.writeln();
+  }
+
+  /// Replay the changes between two commits, as represented by the given
+  /// [commitDelta].
+  Future<void> _replayDiff(CommitDelta commitDelta) async {
+    var editList = <FileEdit>[];
+    for (var record in commitDelta.diffRecords) {
+      var edit = FileEdit(_overlayStyle, record);
+      _createSourceEdits(edit, record.getBlobDiff());
+      editList.add(edit);
+    }
+    //
+    // TODO(brianwilkerson): Randomize.
+    // Randomly select operations from different files to simulate a user
+    // editing multiple files simultaneously.
+    //
+    for (var edit in editList) {
+      var currentFile = <String>[edit.filePath];
+      server.sendAnalysisSetPriorityFiles(currentFile);
+      server.sendAnalysisSetSubscriptions({
+        AnalysisService.FOLDING: currentFile,
+        AnalysisService.HIGHLIGHTS: currentFile,
+        AnalysisService.IMPLEMENTED: currentFile,
+        AnalysisService.NAVIGATION: currentFile,
+        AnalysisService.OCCURRENCES: currentFile,
+        AnalysisService.OUTLINE: currentFile,
+        AnalysisService.OVERRIDES: currentFile,
+      });
+      for (var operation in edit.getOperations()) {
+        _statistics.editCount++;
+        operation.perform(server);
+        await readServerOutput();
+      }
+    }
+  }
+
+  /// Run `pub` on the pubspec with the given [filePath].
+  void _runPub(String filePath) {
+    var directoryPath = path.dirname(filePath);
+    if (Directory(directoryPath).existsSync()) {
+      Process.runSync(Platform.resolvedExecutable, [
+        'pub',
+        'get',
+      ], workingDirectory: directoryPath);
+    }
+  }
+
+  /// Run the simulation by starting up a server and sending it requests.
+  Future<void> _runSimulation() async {
+    server = Server(logger: _logger);
+    var stopwatch = _statistics.stopwatch;
+    stopwatch.start();
+    await server.start();
+    server.sendServerSetSubscriptions([ServerService.STATUS]);
+    server.sendAnalysisSetGeneralSubscriptions([
+      GeneralAnalysisService.ANALYZED_FILES,
+    ]);
+    // TODO(brianwilkerson): Get the list of glob patterns from the server after
+    // an API for getting them has been implemented.
+    fileGlobs = <Glob>[
+      Glob(path.context.separator, '**.dart'),
+      Glob(path.context.separator, '**.html'),
+      Glob(path.context.separator, '**.htm'),
+      Glob(path.context.separator, '**/.analysisOptions'),
+    ];
+    try {
+      await _replayChanges();
+    } finally {
+      // TODO(brianwilkerson): This needs to be moved into a Zone in order to
+      // ensure that it is always run.
+      server.sendServerShutdown();
+      _repository.checkout('master');
+    }
+    stopwatch.stop();
+  }
+
+  /// Returns a [Driver] based on the given command-line arguments ([args]).
+  ///
+  /// Returns `null` if the args are erroneous (or if the `--help` flag is
+  /// given).
+  static Driver? fromArgs(List<String> args) {
+    var parser = _argParser;
+    ArgResults results;
+    try {
+      results = parser.parse(args);
+    } catch (exception) {
+      _showUsage(parser);
+      return null;
+    }
+
+    if (results.flag(_helpFlagName)) {
+      _showUsage(parser);
+      return null;
+    }
+
+    var overlayStyleValue = results.option(_overlayStyleOptionName);
+    var overlayStyle = switch (overlayStyleValue) {
+      _changeOverlayStyle => OverlayStyle.change,
+      _multipleAddOverlayStyle => OverlayStyle.multipleAdd,
+      _ => throw UsageException(
+        'Unexpected "$_overlayStyleOptionName" value',
+        parser.usage,
+      ),
+    };
+
+    var verbose = false;
+    Logger? logger;
+    if (results.flag(_verboseFlagName)) {
+      verbose = true;
+      logger = Logger(stdout);
+    }
+
+    var arguments = results.rest;
+    if (arguments.length < 2) {
+      _showUsage(parser);
+      return null;
+    }
+    var repositoryPath = path.normalize(arguments[0]);
+
+    var analysisRoots = arguments
+        .sublist(1)
+        .map((analysisRoot) => path.normalize(analysisRoot))
+        .toList();
+    for (var analysisRoot in analysisRoots) {
+      if (repositoryPath != analysisRoot &&
+          !path.isWithin(repositoryPath, analysisRoot)) {
+        _showUsage(
+          parser,
+          'Analysis roots must be contained within the repository: $analysisRoot',
+        );
+        return null;
+      }
+    }
+    return Driver._(
+      overlayStyle: overlayStyle,
+      repositoryPath: repositoryPath,
+      analysisRoots: analysisRoots,
+      repository: GitRepository(repositoryPath, logger: logger),
+      verbose: verbose,
+    );
+  }
+
+  /// Display usage information, preceded by the [errorMessage] if one is given.
+  static void _showUsage(ArgParser parser, [String? errorMessage]) {
+    if (errorMessage != null) {
+      stderr.writeln(errorMessage);
+      stderr.writeln();
+    }
+    stderr.writeln('''
+Usage: replay [options...] repositoryPath analysisRoot...
+
+Uses the commit history of the git repository at the given repository path to
+simulate the development of a code base while using the analysis server to
+analyze the code base.
+
+The repository path must be the absolute path of a directory containing a git
+repository.
+
+There must be at least one analysis root, and all of the analysis roots must be
+the absolute path of a directory contained within the repository directory. The
+analysis roots represent the portions of the repository that will be analyzed by
+the analysis server.
+
+OPTIONS:''');
+    stderr.writeln(parser.usage);
+  }
+}
+
+/// A representation of the edits to be applied to a single file.
+class FileEdit {
+  /// The style of interaction to use for analysis.updateContent requests.
+  OverlayStyle overlayStyle;
+
+  /// The absolute path of the file to be edited.
+  late String filePath;
+
+  /// The content of the file before any edits have been applied.
+  late String content;
+
+  /// The line info for the file before any edits have been applied.
+  late LineInfo lineInfo;
+
+  /// The lists of source edits, one list for each hunk being edited.
+  List<List<SourceEdit>> editLists = <List<SourceEdit>>[];
+
+  /// The current content of the file. This field is only used if the overlay
+  /// style is [OverlayStyle.multipleAdd].
+  late String currentContent;
+
+  /// Initialize a collection of edits to be associated with the file at the
+  /// given [filePath].
+  new(this.overlayStyle, DiffRecord record) {
+    filePath = record.srcPath!;
+    if (record.isAddition) {
+      content = '';
+      lineInfo = LineInfo(<int>[0]);
+    } else if (record.isCopy || record.isRename || record.isTypeChange) {
+      throw ArgumentError('Unhandled change of type ${record.status}');
+    } else {
+      content = File(filePath).readAsStringSync();
+      lineInfo = LineInfo.fromContent(content);
+    }
+    currentContent = content;
+  }
+
+  /// Add a list of source edits that, taken together, transform a single hunk
+  /// in the file.
+  void addSourceEdits(List<SourceEdit> sourceEdits) {
+    editLists.add(sourceEdits);
+  }
+
+  /// Return a list of operations to be sent to the server.
+  List<ServerOperation> getOperations() {
+    var operations = <ServerOperation>[];
+    void addUpdateContent(Object overlay) {
+      operations.add(Analysis_UpdateContent(filePath, overlay));
+    }
+
+    // TODO(brianwilkerson): Randomize.
+    // Make the order of edits random. Doing so will require updating the
+    // offsets of edits after the selected edit point.
+    addUpdateContent(AddContentOverlay(content));
+    for (var editList in editLists.reversed) {
+      for (var edit in editList.reversed) {
+        Object overlay;
+        if (overlayStyle == OverlayStyle.change) {
+          overlay = ChangeContentOverlay([edit]);
+        } else if (overlayStyle == OverlayStyle.multipleAdd) {
+          currentContent = edit.apply(currentContent);
+          overlay = AddContentOverlay(currentContent);
+        } else {
+          throw StateError('Failed to handle overlay style = $overlayStyle');
+        }
+        addUpdateContent(overlay);
+      }
+    }
+    addUpdateContent(RemoveContentOverlay());
+    return operations;
+  }
+}
+
+/// The possible styles of interaction to use for analysis.updateContent
+/// requests.
+enum OverlayStyle { change, multipleAdd }
+
+/// A set of statistics related to the execution of the simulation.
+class Statistics {
+  /// The driver driving the simulation.
+  final Driver driver;
+
+  /// The stopwatch being used to time the simulation.
+  Stopwatch stopwatch = Stopwatch();
+
+  /// The total number of commits in the repository.
+  int commitCount = 0;
+
+  /// The number of commits in the repository that touched one of the files in
+  /// one of the analysis roots.
+  int commitsWithChangeInRootCount = 0;
+
+  /// The total number of edits that were applied.
+  int editCount = 0;
+
+  /// Initialize a newly created set of statistics.
+  new(this.driver);
+
+  /// Print the statistics to [stdout].
+  void print() {
+    stdout.write('Replay commits in ');
+    stdout.writeln(driver._repositoryPath);
+    stdout.write('  replay took ');
+    stdout.writeln(_printTime(stopwatch.elapsedMilliseconds));
+    stdout.write('  analysis roots = ');
+    stdout.writeln(driver._analysisRoots);
+    stdout.write('  number of commits = ');
+    stdout.writeln(commitCount);
+    stdout.write('  number of commits with a change in an analysis root = ');
+    stdout.writeln(commitsWithChangeInRootCount);
+    stdout.write('  number of edits = ');
+    stdout.writeln(editCount);
+  }
+
+  /// Return a textual representation of the given duration, represented in
+  /// [milliseconds].
+  String _printTime(int milliseconds) {
+    var seconds = milliseconds ~/ 1000;
+    milliseconds -= seconds * 1000;
+    var minutes = seconds ~/ 60;
+    seconds -= minutes * 60;
+    var hours = minutes ~/ 60;
+    minutes -= hours * 60;
+
+    if (hours > 0) {
+      return '$hours:$minutes:$seconds.$milliseconds';
+    } else if (minutes > 0) {
+      return '$minutes:$seconds.$milliseconds';
+    }
+    return '$seconds.$milliseconds';
+  }
+}

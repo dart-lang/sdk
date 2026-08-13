@@ -1,0 +1,46 @@
+# Copyright (c) 2022, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Reproduce bad references which can crash the VM.
+
+type: newworld
+worlds:
+  - entry: test/a.dart
+    sources:
+      .dart_tool/package_config.json: |
+        {
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "foo",
+              "rootUri": "../",
+              "packageUri": "lib"
+            }
+          ]
+        }
+      test/a.dart: |
+        // Import same file twice.
+        import 'package:foo/foo.dart';
+        import '../lib/foo.dart';
+
+        void main() {}
+      lib/foo.dart: |
+        class Foo {
+          const Foo();
+        }
+        const foo = const Foo();
+    expectedLibraryCount: 3 # "foo.dart" is there twice.
+    checkConstantCoverageReferences: true
+
+  - entry: test/b.dart
+    worldType: updated
+    expectInitializeFromDill: false
+    sources:
+      test/b.dart: |
+        import '../lib/foo.dart';
+
+        void main() {}
+    expectedLibraryCount: 2
+    advancedInvalidation: noDirectlyInvalidated
+    checkConstantCoverageReferences: true

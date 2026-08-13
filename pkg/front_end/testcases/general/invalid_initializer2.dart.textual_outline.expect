@@ -1,0 +1,11 @@
+class Super {
+  Super.named();
+}
+
+class Sub extends Super {
+  Sub();
+}
+
+main() {}
+
+throws(void Function() f) {}

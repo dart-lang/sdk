@@ -1,0 +1,25 @@
+<!--
+Run this file in a browser to get the CSSStyleDeclaration properties
+available in that browser
+-->
+<body>
+<script>
+function emit(text) {
+  var e = document.createElement('div');
+  e.innerHTML = text;
+  document.body.appendChild(e);
+}
+emit('# ' + navigator.userAgent);
+var s = document.body.style;
+var a = [];
+for (var p in s) {
+  if (typeof s[p] != 'string') continue;
+  a.push(p);
+}
+a.sort();
+emit('# ' + a.length + ' properties')
+for (var i = 0; i < a.length; i++) {
+  emit(a[i]);
+}
+</script>
+</body>

@@ -1,0 +1,3 @@
+final bool inSoundMode = <int?>[] is! List<int>;
+
+main() {}

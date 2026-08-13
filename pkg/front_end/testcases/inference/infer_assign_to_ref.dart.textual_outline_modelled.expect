@@ -1,0 +1,11 @@
+library test;
+
+A a = new A();
+
+class A {
+  int f = 0;
+}
+
+main() {}
+
+var c = 0;

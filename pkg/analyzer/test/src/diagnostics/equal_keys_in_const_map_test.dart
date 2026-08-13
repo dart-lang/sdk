@@ -1,0 +1,166 @@
+// Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:test_reflective_loader/test_reflective_loader.dart';
+
+import '../dart/resolution/context_collection_resolution.dart';
+
+main() {
+  defineReflectiveSuite(() {
+    defineReflectiveTests(EqualKeysInConstMapTest);
+  });
+}
+
+@reflectiveTest
+class EqualKeysInConstMapTest extends PubPackageResolutionTest
+    with EqualKeysInConstMapTestCases {}
+
+mixin EqualKeysInConstMapTestCases on PubPackageResolutionTest {
+  test_const_entry() async {
+    await resolveTestCodeWithDiagnostics(r'''
+var c = const {1: null, 2: null, 1: null};
+//             ^
+// [context 1] The first key with this value.
+//                               ^
+// [diag.equalKeysInConstMap][context 1] Two keys in a constant map literal can't be equal.
+''');
+  }
+
+  test_const_entry_extensionType_typeValue() async {
+    await resolveTestCodeWithDiagnostics(r'''
+const x = {int: 0, E: 0};
+//         ^^^
+// [context 1] The first key with this value.
+//                 ^
+// [diag.equalKeysInConstMap][context 1] Two keys in a constant map literal can't be equal.
+extension type E(int it) {}
+''');
+  }
+
+  test_const_ifElement_thenElseFalse() async {
+    await resolveTestCodeWithDiagnostics(r'''
+var c = const {1: null, if (1 < 0) 2: null else 1: null};
+//             ^
+// [context 1] The first key with this value.
+//                                              ^
+// [diag.equalKeysInConstMap][context 1] Two keys in a constant map literal can't be equal.
+''');
+  }
+
+  test_const_ifElement_thenElseFalse_onlyElse() async {
+    await resolveTestCodeWithDiagnostics(r'''
+var c = const {if (0 < 1) 1: null else 1: null};
+''');
+  }
+
+  test_const_ifElement_thenElseTrue() async {
+    await resolveTestCodeWithDiagnostics(r'''
+var c = const {1: null, if (0 < 1) 2: null else 1: null};
+''');
+  }
+
+  test_const_ifElement_thenElseTrue_onlyThen() async {
+    await resolveTestCodeWithDiagnostics(r'''
+var c = const {if (0 < 1) 1: null else 1: null};
+''');
+  }
+
+  test_const_ifElement_thenFalse() async {
+    await resolveTestCodeWithDiagnostics(r'''
+var c = const {2: null, if (1 < 0) 2: 2};
+''');
+  }
+
+  test_const_ifElement_thenTrue() async {
+    await resolveTestCodeWithDiagnostics(r'''
+var c = const {1: null, if (0 < 1) 1: null};
+//             ^
+// [context 1] The first key with this value.
+//                                 ^
+// [diag.equalKeysInConstMap][context 1] Two keys in a constant map literal can't be equal.
+''');
+  }
+
+  test_const_instanceCreation_equalTypeArgs() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A<T> {
+  const A();
+}
+
+var c = const {const A<int>(): null, const A<int>(): null};
+//             ^^^^^^^^^^^^^^
+// [context 1] The first key with this value.
+//                                   ^^^^^^^^^^^^^^
+// [diag.equalKeysInConstMap][context 1] Two keys in a constant map literal can't be equal.
+''');
+  }
+
+  test_const_instanceCreation_notEqualTypeArgs() async {
+    // No error because A<int> and A<num> are different types.
+    await resolveTestCodeWithDiagnostics(r'''
+class A<T> {
+  const A();
+}
+
+var c = const {const A<int>(): null, const A<num>(): null};
+''');
+  }
+
+  test_const_list_hasEqual() async {
+    await resolveTestCodeWithDiagnostics(r'''
+const x = {[0]: null, [0]: null};
+//         ^^^
+// [context 1] The first key with this value.
+//                    ^^^
+// [diag.equalKeysInConstMap][context 1] Two keys in a constant map literal can't be equal.
+''');
+  }
+
+  test_const_list_noEqual() async {
+    await resolveTestCodeWithDiagnostics(r'''
+const x = {[0]: null, [1]: null};
+''');
+  }
+
+  test_const_record_hasEqual() async {
+    await resolveTestCodeWithDiagnostics(r'''
+const x = {(0, 1): null, (0, 1): null};
+//         ^^^^^^
+// [context 1] The first key with this value.
+//                       ^^^^^^
+// [diag.equalKeysInConstMap][context 1] Two keys in a constant map literal can't be equal.
+''');
+  }
+
+  test_const_record_noEqual() async {
+    await resolveTestCodeWithDiagnostics(r'''
+const x = {(0, 1): null, (0, 2): null};
+''');
+  }
+
+  test_const_spread__noDuplicate() async {
+    await resolveTestCodeWithDiagnostics(r'''
+var c = const {1: null, ...{2: null}};
+''');
+  }
+
+  test_const_spread_hasDuplicate() async {
+    await resolveTestCodeWithDiagnostics(r'''
+var c = const {1: null, ...{1: null}};
+//             ^
+// [context 1] The first key with this value.
+//                         ^^^^^^^^^
+// [diag.equalKeysInConstMap][context 1] Two keys in a constant map literal can't be equal.
+''');
+  }
+
+  test_nonConst_entry() async {
+    // No error, but there is a hint.
+    await resolveTestCodeWithDiagnostics(r'''
+var c = {1: null, 2: null, 1: null};
+//                         ^
+// [diag.equalKeysInMap] Two keys in a map literal shouldn't be equal.
+''');
+  }
+}

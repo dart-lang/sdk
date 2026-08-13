@@ -1,0 +1,42 @@
+# Copyright (c) 2021, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Reproduce a crash.
+
+type: newworld
+worlds:
+  - entry: app/main.dart
+    sources:
+      app/.dart_tool/package_config.json: |
+        {
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "flutter",
+              "rootUri": "../../flutter",
+              "languageVersion": "2.12"
+            }
+          ]
+        }
+      app/main.dart: |
+        import "package:flutter/lib1.dart";
+        class _Bar extends RestorableProperty {}
+      flutter/lib1.dart: |
+        import "lib2.dart";
+        abstract class RestorableProperty extends ChangeNotifier {
+          bool _debugAssertNotDisposed() { return true; }
+        }
+      flutter/lib2.dart: |
+        class ChangeNotifier {
+          bool _debugAssertNotDisposed() { return true; }
+        }
+    expectedLibraryCount: 3
+
+  - entry: app/main.dart
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - app/main.dart
+    expectedLibraryCount: 3
+    advancedInvalidation: bodiesOnly

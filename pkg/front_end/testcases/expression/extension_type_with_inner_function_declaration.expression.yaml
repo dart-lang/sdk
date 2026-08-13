@@ -1,0 +1,44 @@
+# Copyright (c) 2025, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Definition, offset, method etc extracted by starting the VM with
+# `-DDFE_VERBOSE=true`, e.g.
+# ```
+# out/ReleaseX64/dart -DDFE_VERBOSE=true --enable-vm-service \
+# --disable-service-auth-codes --pause_isolates_on_start inputFile.dart
+# ```
+# and then issuing the expression compilation.
+#
+# Paused inside a function declaration inside an extension type.
+
+sources: |
+  import 'dart:developer';
+
+  extension type Foo(int value) {
+    void foo() {
+      void bar() {
+        debugger();
+        if (value == 42) {
+          print("It's 42!");
+        }
+      }
+      bar();
+    }
+  }
+
+  void main(List<String> args) {
+    Foo foo = new Foo(args.length);
+    foo.foo();
+  }
+
+definitions: ["#this"]
+definition_types: ["dart:core", "_Smi", "1", "0"]
+type_definitions: []
+type_bounds: []
+type_defaults: []
+method: "bar"
+static: true
+offset: 96
+scriptUri: main.dart
+expression: "value"

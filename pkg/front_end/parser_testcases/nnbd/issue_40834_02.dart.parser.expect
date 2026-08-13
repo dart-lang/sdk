@@ -1,0 +1,15 @@
+class Foo {
+String? x;
+int y;
+
+Foo(Object? o) : x = o as String, y = 0;
+}
+
+
+class[KeywordToken] Foo[StringToken] {[BeginToken]
+String[StringToken]?[SimpleToken] x[StringToken];[SimpleToken]
+int[StringToken] y[StringToken];[SimpleToken]
+
+Foo[StringToken]([BeginToken]Object[StringToken]?[SimpleToken] o[StringToken])[SimpleToken] :[SimpleToken] x[StringToken] =[SimpleToken] o[StringToken] as[KeywordToken] String[StringToken],[SimpleToken] y[StringToken] =[SimpleToken] 0[StringToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

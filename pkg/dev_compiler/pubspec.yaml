@@ -1,0 +1,42 @@
+name: dev_compiler
+# This package is not intended for consumption on pub.dev. DO NOT publish.
+publish_to: none
+
+environment:
+  sdk: '^3.12.0-0'
+
+resolution: workspace
+
+# Use 'any' constraints here; we get our versions from the DEPS file.
+dependencies:
+  _fe_analyzer_shared: any
+  _js_interop_checks: any
+  args: any
+  async: any
+  bazel_worker: any
+  build_integration: any
+  collection: any
+  front_end: any
+  js_shared: any
+  kernel: any
+  package_config: any
+  path: any
+  shell_arg_splitter: any
+  source_maps: any
+  source_span: any
+
+# Use 'any' constraints here; we get our versions from the DEPS file.
+dev_dependencies:
+  browser_launcher: any
+  expect: any
+  http_multi_server: any
+  lints: any
+  modular_test: any
+  reload_test: any
+  shelf: any
+  sourcemap_testing: any
+  stack_trace: any
+  test: any
+  testing: any
+  vm_service: any
+  webkit_inspection_protocol: any

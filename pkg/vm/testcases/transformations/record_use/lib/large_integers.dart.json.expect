@@ -1,0 +1,168 @@
+{
+  "constants": [
+    {
+      "type": "int",
+      "value": -9223372036854775808
+    },
+    {
+      "type": "int",
+      "value": -9223372036854775807
+    },
+    {
+      "type": "int",
+      "value": -6148914691236517206
+    },
+    {
+      "type": "int",
+      "value": -81986143110479071
+    },
+    {
+      "type": "int",
+      "value": -1
+    },
+    {
+      "type": "int",
+      "value": 1152921504606846976
+    },
+    {
+      "type": "int",
+      "value": 1311768467294899695
+    },
+    {
+      "type": "int",
+      "value": 2305843009213693952
+    },
+    {
+      "type": "int",
+      "value": 4611686018427387904
+    },
+    {
+      "type": "int",
+      "value": 6148914691236517205
+    },
+    {
+      "type": "int",
+      "value": 9223372036854775806
+    },
+    {
+      "type": "int",
+      "value": 9223372036854775807
+    }
+  ],
+  "definitions": [
+    {
+      "path": [
+        {
+          "kind": "class",
+          "name": "SomeClass"
+        },
+        {
+          "disambiguators": [
+            "static"
+          ],
+          "kind": "method",
+          "name": "someStaticMethod"
+        }
+      ],
+      "uri": "package:record_use_test/large_integers.dart"
+    }
+  ],
+  "loading_units": [
+    {
+      "name": "1"
+    }
+  ],
+  "uses": {
+    "static_calls": [
+      {
+        "definition_index": 0,
+        "uses": [
+          {
+            "loading_unit_index": 0,
+            "positional": [
+              0
+            ],
+            "type": "with_arguments"
+          },
+          {
+            "loading_unit_index": 0,
+            "positional": [
+              1
+            ],
+            "type": "with_arguments"
+          },
+          {
+            "loading_unit_index": 0,
+            "positional": [
+              2
+            ],
+            "type": "with_arguments"
+          },
+          {
+            "loading_unit_index": 0,
+            "positional": [
+              3
+            ],
+            "type": "with_arguments"
+          },
+          {
+            "loading_unit_index": 0,
+            "positional": [
+              4
+            ],
+            "type": "with_arguments"
+          },
+          {
+            "loading_unit_index": 0,
+            "positional": [
+              5
+            ],
+            "type": "with_arguments"
+          },
+          {
+            "loading_unit_index": 0,
+            "positional": [
+              6
+            ],
+            "type": "with_arguments"
+          },
+          {
+            "loading_unit_index": 0,
+            "positional": [
+              7
+            ],
+            "type": "with_arguments"
+          },
+          {
+            "loading_unit_index": 0,
+            "positional": [
+              8
+            ],
+            "type": "with_arguments"
+          },
+          {
+            "loading_unit_index": 0,
+            "positional": [
+              9
+            ],
+            "type": "with_arguments"
+          },
+          {
+            "loading_unit_index": 0,
+            "positional": [
+              10
+            ],
+            "type": "with_arguments"
+          },
+          {
+            "loading_unit_index": 0,
+            "positional": [
+              11
+            ],
+            "type": "with_arguments"
+          }
+        ]
+      }
+    ]
+  }
+}

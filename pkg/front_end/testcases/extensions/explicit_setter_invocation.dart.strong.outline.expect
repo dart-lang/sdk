@@ -1,0 +1,19 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+extension E on core::int {
+  set g = self::E|set#g;
+  method m = self::E|m;
+  method tearoff m = self::E|get#m;
+}
+static extension-member method E|set#g(lowered final core::int #this, wildcard dynamic _#wc0#formal) → void
+  ;
+static extension-member method E|m(lowered final core::int #this) → dynamic
+  ;
+static extension-member method E|get#m(lowered final core::int #this) → () → dynamic
+  return () → dynamic => self::E|m(#this);
+static method test(core::int i1, core::int? i2) → dynamic
+  ;
+static method method() → dynamic
+  ;

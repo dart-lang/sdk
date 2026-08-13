@@ -1,0 +1,6 @@
+class D<X extends void Function()> {
+  D._() {}
+  factory D.foo() => new D._();
+}
+
+main() {}

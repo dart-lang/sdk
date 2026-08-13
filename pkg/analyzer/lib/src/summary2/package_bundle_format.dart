@@ -1,0 +1,123 @@
+// Copyright (c) 2020, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'dart:typed_data';
+
+import 'package:analyzer/src/binary/binary_reader.dart';
+import 'package:analyzer/src/binary/binary_writer.dart';
+import 'package:meta/meta.dart';
+
+class PackageBundleBuilder {
+  final List<PackageBundleLibrary> _libraries = [];
+
+  void addLibrary(String uriStr, List<String> unitUriStrList) {
+    _libraries.add(
+      PackageBundleLibrary(
+        uriStr,
+        unitUriStrList.map((e) => PackageBundleUnit(e)).toList(),
+      ),
+    );
+  }
+
+  Uint8List finish({
+    required Uint8List resolutionBytes,
+    PackageBundleSdk? sdk,
+  }) {
+    var writer = BinaryWriter();
+
+    if (sdk != null) {
+      writer.writeByte(1);
+      sdk._write(writer);
+    } else {
+      writer.writeByte(0);
+    }
+
+    writer.writeList(_libraries, (PackageBundleLibrary library) {
+      writer.writeStringUtf8(library.uriStr);
+      writer.writeList(
+        library.units,
+        (PackageBundleUnit unit) => writer.writeStringUtf8(unit.uriStr),
+      );
+    });
+
+    writer.writeUint8List(resolutionBytes);
+
+    return writer.takeBytes();
+  }
+}
+
+@internal
+class PackageBundleLibrary {
+  final String uriStr;
+  final List<PackageBundleUnit> units;
+
+  PackageBundleLibrary(this.uriStr, this.units);
+}
+
+class PackageBundleReader {
+  final List<PackageBundleLibrary> libraries = [];
+  late final PackageBundleSdk? _sdk;
+  late final Uint8List _resolutionBytes;
+
+  PackageBundleReader(Uint8List bytes) {
+    var reader = BinaryReader(bytes);
+
+    var hasSdk = reader.readByte() != 0;
+    if (hasSdk) {
+      _sdk = PackageBundleSdk._fromReader(reader);
+    }
+
+    var librariesLength = reader.readUint30();
+    for (var i = 0; i < librariesLength; i++) {
+      var uriStr = reader.readStringUtf8();
+      var unitsLength = reader.readUint30();
+      var units = List.generate(unitsLength, (_) {
+        var uriStr = reader.readStringUtf8();
+        return PackageBundleUnit(uriStr);
+      });
+      libraries.add(PackageBundleLibrary(uriStr, units));
+    }
+
+    _resolutionBytes = reader.readUint8List();
+  }
+
+  Uint8List get resolutionBytes => _resolutionBytes;
+
+  PackageBundleSdk? get sdk => _sdk;
+}
+
+class PackageBundleSdk {
+  final int languageVersionMajor;
+  final int languageVersionMinor;
+
+  /// The content of the `allowed_experiments.json` from SDK.
+  final String allowedExperimentsJson;
+
+  PackageBundleSdk({
+    required this.languageVersionMajor,
+    required this.languageVersionMinor,
+    required this.allowedExperimentsJson,
+  });
+
+  factory PackageBundleSdk._fromReader(BinaryReader reader) {
+    return PackageBundleSdk(
+      languageVersionMajor: reader.readUint30(),
+      languageVersionMinor: reader.readUint30(),
+      allowedExperimentsJson: reader.readStringUtf8(),
+    );
+  }
+
+  void _write(BinaryWriter writer) {
+    writer.writeUint30(languageVersionMajor);
+    writer.writeUint30(languageVersionMinor);
+    writer.writeStringUtf8(allowedExperimentsJson);
+  }
+}
+
+@internal
+class PackageBundleUnit {
+  final String uriStr;
+
+  PackageBundleUnit(this.uriStr);
+}

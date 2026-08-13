@@ -1,0 +1,152 @@
+// Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+#include "bin/exe_utils.h"
+
+#include "bin/directory.h"
+#include "bin/file.h"
+#include "bin/platform.h"
+#include "platform/utils.h"
+
+namespace dart {
+namespace bin {
+
+static bool StartsWithPathSeparator(const char* path,
+                                    const char* sep,
+                                    intptr_t sep_length) {
+  return (strncmp(path, sep, sep_length) == 0
+#if defined(DART_HOST_OS_WINDOWS)
+          // TODO(aam): GetExecutableName doesn't work reliably on Windows,
+          || *path == '/'
+#endif
+  );  // NOLINT
+}
+
+// Returns the directory portion of a given path.
+//
+// If dir is nullptr, the result must be freed by the caller. Otherwise, the
+// result is copied into dir.
+static char* GetDirectoryFromPath(const char* path, char* dir) {
+  const char* sep = File::PathSeparator();
+  const intptr_t sep_length = strlen(sep);
+  intptr_t path_len = strlen(path);
+
+  for (intptr_t i = path_len - 1; i >= 0; --i) {
+    const char* str = path + i;
+    if (StartsWithPathSeparator(str, sep, sep_length)) {
+      if (dir != nullptr) {
+        strncpy(dir, path, i);
+        dir[i] = '\0';
+        return dir;
+      } else {
+        return Utils::StrNDup(path, i + 1);
+      }
+    }
+  }
+  return nullptr;
+}
+
+// Returns the file portion of a given path. Returned string is either
+// `path` if no path separators are found or `path + separator_loc + sep_length`
+// if a separator is found.
+static const char* GetFileNameFromPath(const char* path) {
+  const char* sep = File::PathSeparator();
+  const intptr_t sep_length = strlen(sep);
+  intptr_t path_len = strlen(path);
+
+  for (intptr_t i = path_len - 1; i >= 0; --i) {
+    const char* str = path + i;
+    if (StartsWithPathSeparator(str, sep, sep_length)) {
+      return str + sep_length;
+    }
+  }
+  // No path separators, assume that path is a file name.
+  return path;
+}
+
+CStringUniquePtr EXEUtils::GetDirectoryPrefixFromResolvedExeName() {
+  const char* name = nullptr;
+  const int kTargetSize = PATH_MAX;
+  char target[kTargetSize];
+  intptr_t target_size =
+      Platform::ResolveExecutablePathInto(target, kTargetSize);
+  if (target_size > 0 && target_size < kTargetSize - 1) {
+    target[target_size] = 0;
+    name = target;
+  }
+  if (name == nullptr) {
+    name = Platform::GetExecutableName();
+    target_size = strlen(name);
+    ASSERT(target_size < kTargetSize);
+  }
+  Namespace* namespc = Namespace::Create(Namespace::Default());
+  char* result;
+  if (File::GetType(namespc, name, false) == File::kIsLink) {
+    char dir_path[kTargetSize];
+    // cwd is currently wherever we launched from, so set the cwd to the
+    // directory of the symlink while we try and resolve it. If we don't
+    // do this, we won't be able to properly resolve relative paths.
+    CStringUniquePtr initial_dir_path(Directory::CurrentNoScope());
+    // We might run into symlinks of symlinks, so make sure we follow the
+    // links all the way. See https://github.com/dart-lang/sdk/issues/41057 for
+    // an example where this happens with brew on MacOS.
+    do {
+      Directory::SetCurrent(namespc, GetDirectoryFromPath(name, dir_path));
+      // Resolve the link without creating Dart scope String.
+      name = File::LinkTarget(namespc, GetFileNameFromPath(name), target,
+                              kTargetSize);
+      if (name == nullptr) {
+        return CStringUniquePtr(Utils::StrDup(""));
+      }
+    } while (File::GetType(namespc, name, false) == File::kIsLink);
+    target_size = strlen(name);
+
+    char absolute_path[kTargetSize];
+
+    // Get the absolute path after we've resolved all the symlinks and before
+    // we reset the cwd, otherwise path resolution will fail.
+    File::GetCanonicalPath(namespc, name, absolute_path, kTargetSize);
+
+    // Reset cwd to the original value.
+    Directory::SetCurrent(namespc, initial_dir_path.get());
+
+    result = GetDirectoryFromPath(absolute_path, nullptr);
+  } else {
+    result = GetDirectoryFromPath(target, nullptr);
+  }
+  namespc->Release();
+  return CStringUniquePtr(result == nullptr ? Utils::StrDup("") : result);
+}
+
+CStringUniquePtr EXEUtils::GetDirectoryPrefixFromUnresolvedExeName() {
+  const char* exe = Platform::GetExecutableName();
+  return CStringUniquePtr(exe == nullptr ? nullptr
+                                         : GetDirectoryFromPath(exe, nullptr));
+}
+
+#if !defined(DART_HOST_OS_WINDOWS)
+void EXEUtils::LoadDartProfilerSymbols(const char* argv0) {
+  char* path = reinterpret_cast<char*>(malloc(PATH_MAX + 5));
+  if (Platform::ResolveExecutablePathInto(path, PATH_MAX) <= 0) {
+    free(path);
+    return;
+  }
+
+  int len = strlen(path);
+  memcpy(path + len, ".sym", 5);  // NOLINT
+  File* file = File::Open(nullptr, path, File::kRead);
+  free(path);
+  if (file == nullptr) return;
+
+  int64_t size = file->Length();
+  MappedMemory* mapping = file->Map(File::kReadOnly, 0, size);
+  Dart_AddSymbols(argv0, mapping->address(), size);
+  mapping->Leak();  // Let us delete the object but keep the mapping.
+  delete mapping;
+  file->Release();
+}
+#endif  // !defined(DART_HOST_OS_WINDOWS)
+
+}  // namespace bin
+}  // namespace dart

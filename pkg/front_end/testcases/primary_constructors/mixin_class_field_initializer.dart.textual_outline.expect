@@ -1,0 +1,24 @@
+mixin class M1();
+
+mixin class const M2();
+
+mixin class M3() {
+  final int id = 0;
+  this;
+}
+
+class C1 = Object with M1;
+
+class C2 = Object with M2;
+
+class C3 = Object with M3;
+
+mixin class M4(int x) {
+  final int id = x;
+}
+
+class C4 = Object with M4;
+
+main() {}
+
+expect(expected, actual) {}

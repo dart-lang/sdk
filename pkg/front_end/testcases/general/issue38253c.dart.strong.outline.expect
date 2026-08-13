@@ -1,0 +1,28 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/issue38253c.dart:6:3: Error: 'g' isn't a type.
+//   g f1() {}
+//   ^
+//
+// pkg/front_end/testcases/general/issue38253c.dart:7:3: Error: 'g' isn't a type.
+//   g f2() async {}
+//   ^
+//
+// pkg/front_end/testcases/general/issue38253c.dart:8:3: Error: A non-null value must be returned since the return type 'int' doesn't allow null.
+//   int f3() {}
+//   ^
+//
+// pkg/front_end/testcases/general/issue38253c.dart:9:3: Error: A non-null value must be returned since the return type 'int' doesn't allow null.
+//   Future<int> f4() async {}
+//   ^
+//
+import self as self;
+import "dart:async" as asy;
+
+static field () → Null a;
+static field (dynamic) → asy::Future<dynamic> b;
+static field (dynamic) → dynamic c;
+static method main() → dynamic
+  ;

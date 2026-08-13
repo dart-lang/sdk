@@ -1,0 +1,221 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/patterns/exhaustiveness/bool_switch.dart:17:11: Error: The type 'bool' is not exhaustively matched by the switch cases since it doesn't match 'false'.
+// Try adding a default case or cases that match 'false'.
+//   switch (b) /* Error */ {
+//           ^
+//
+// pkg/front_end/testcases/patterns/exhaustiveness/bool_switch.dart:25:11: Error: The type 'bool' is not exhaustively matched by the switch cases since it doesn't match 'true'.
+// Try adding a default case or cases that match 'true'.
+//   switch (b) /* Error */ {
+//           ^
+//
+// pkg/front_end/testcases/patterns/exhaustiveness/bool_switch.dart:58:11: Error: The type 'bool?' is not exhaustively matched by the switch cases since it doesn't match 'null'.
+// Try adding a default case or cases that match 'null'.
+//   switch (b) /* Error */ {
+//           ^
+//
+// pkg/front_end/testcases/patterns/exhaustiveness/bool_switch.dart:69:11: Error: The type 'bool?' is not exhaustively matched by the switch cases since it doesn't match 'false'.
+// Try adding a default case or cases that match 'false'.
+//   switch (b) /* Error */ {
+//           ^
+//
+import self as self;
+import "dart:core" as core;
+
+static method exhaustiveSwitch(core::bool b) → void {
+  #L1:
+  switch(b) /* isExplicitlyExhaustive, core::bool */ {
+    #L2:
+    case #C1:
+      {
+        core::print("true");
+        break #L1;
+      }
+    #L3:
+    case #C2:
+      {
+        core::print("false");
+        break #L1;
+      }
+  }
+}
+static method nonExhaustiveSwitch1(core::bool b) → void {
+  #L4:
+  switch(b) /* isExplicitlyExhaustive, core::bool */ {
+    #L5:
+    case #C1:
+      {
+        core::print("true");
+        break #L4;
+      }
+  }
+}
+static method nonExhaustiveSwitch2(core::bool b) → void {
+  #L6:
+  switch(b) /* isExplicitlyExhaustive, core::bool */ {
+    #L7:
+    case #C2:
+      {
+        core::print("false");
+        break #L6;
+      }
+  }
+}
+static method nonExhaustiveSwitchWithDefault(core::bool b) → void {
+  #L8:
+  switch(b) /* core::bool */ {
+    #L9:
+    case #C1:
+      {
+        core::print("true");
+        break #L8;
+      }
+    #L10:
+    default:
+      {
+        core::print("default");
+        break #L8;
+      }
+  }
+}
+static method exhaustiveNullableSwitch(core::bool? b) → void {
+  #L11:
+  switch(b) /* isExplicitlyExhaustive, core::bool? */ {
+    #L12:
+    case #C1:
+      {
+        core::print("true");
+        break #L11;
+      }
+    #L13:
+    case #C2:
+      {
+        core::print("false");
+        break #L11;
+      }
+    #L14:
+    case #C3:
+      {
+        core::print("null");
+        break #L11;
+      }
+  }
+}
+static method nonExhaustiveNullableSwitch1(core::bool? b) → void {
+  #L15:
+  switch(b) /* isExplicitlyExhaustive, core::bool? */ {
+    #L16:
+    case #C1:
+      {
+        core::print("true");
+        break #L15;
+      }
+    #L17:
+    case #C2:
+      {
+        core::print("false");
+        break #L15;
+      }
+  }
+}
+static method nonExhaustiveNullableSwitch2(core::bool? b) → void {
+  #L18:
+  switch(b) /* isExplicitlyExhaustive, core::bool? */ {
+    #L19:
+    case #C1:
+      {
+        core::print("true");
+        break #L18;
+      }
+    #L20:
+    case #C3:
+      {
+        core::print("null");
+        break #L18;
+      }
+  }
+}
+static method unreachableCase1(core::bool b) → void {
+  #L21:
+  switch(b) /* isExplicitlyExhaustive, core::bool */ {
+    #L22:
+    case #C1:
+      {
+        core::print("true1");
+        break #L21;
+      }
+    #L23:
+    case #C2:
+      {
+        core::print("false");
+        break #L21;
+      }
+    #L24:
+    case #C1:
+      {
+        core::print("true2");
+        break #L21;
+      }
+  }
+}
+static method unreachableCase2(core::bool b) → void {
+  #L25:
+  switch(b) /* isExplicitlyExhaustive, core::bool */ {
+    #L26:
+    case #C1:
+      {
+        core::print("true");
+        break #L25;
+      }
+    #L27:
+    case #C2:
+      {
+        core::print("false");
+        break #L25;
+      }
+    #L28:
+    case #C3:
+      {
+        core::print("null");
+        break #L25;
+      }
+  }
+}
+static method unreachableCase3(core::bool? b) → void {
+  #L29:
+  switch(b) /* isExplicitlyExhaustive, core::bool? */ {
+    #L30:
+    case #C1:
+      {
+        core::print("true");
+        break #L29;
+      }
+    #L31:
+    case #C2:
+      {
+        core::print("false");
+        break #L29;
+      }
+    #L32:
+    case #C3:
+      {
+        core::print("null1");
+        break #L29;
+      }
+    #L33:
+    case #C3:
+      {
+        core::print("null2");
+        break #L29;
+      }
+  }
+}
+
+constants  {
+  #C1 = true
+  #C2 = false
+  #C3 = null
+}

@@ -1,0 +1,11 @@
+f(x) => switch(x) {
+int _ => 0,
+_ => 1
+};
+
+
+f[StringToken]([BeginToken]x[StringToken])[SimpleToken] =>[SimpleToken] switch[KeywordToken]([BeginToken]x[StringToken])[SimpleToken] {[BeginToken]
+int[StringToken] _[StringToken] =>[SimpleToken] 0[StringToken],[SimpleToken]
+_[StringToken] =>[SimpleToken] 1[StringToken]
+}[SimpleToken];[SimpleToken]
+[SimpleToken]

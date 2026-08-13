@@ -1,0 +1,3 @@
+// @dart = 2.18
+
+test(dynamic x) {}

@@ -1,0 +1,537 @@
+// Copyright (c) 2021, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:test/test.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
+
+import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
+
+main() {
+  defineReflectiveSuite(() {
+    defineReflectiveTests(UnnecessaryImportTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
+  });
+}
+
+@reflectiveTest
+class UnnecessaryImportTest extends PubPackageResolutionTest {
+  test_library_annotationOnDirective() async {
+    newFile('$testPackageLibPath/lib1.dart', r'''
+class A {
+  const A() {}
+}
+''');
+    await resolveTestCodeWithDiagnostics(r'''
+@A()
+import 'lib1.dart';
+''');
+  }
+
+  test_library_as() async {
+    newFile('$testPackageLibPath/lib1.dart', '''
+class A {}
+''');
+    newFile('$testPackageLibPath/lib2.dart', '''
+export 'lib1.dart';
+class B {}
+''');
+    await resolveTestCodeWithDiagnostics('''
+import 'lib1.dart';
+import 'lib2.dart' as two;
+f(A a, two.B b) {}
+''');
+  }
+
+  test_library_as_differentPrefixes() async {
+    newFile('$testPackageLibPath/lib1.dart', '''
+class A {}
+''');
+    newFile('$testPackageLibPath/lib2.dart', '''
+export 'lib1.dart';
+class B {}
+''');
+    await resolveTestCodeWithDiagnostics('''
+import 'lib1.dart' as one;
+import 'lib2.dart' as two;
+f(one.A a, two.B b) {}
+''');
+  }
+
+  test_library_as_equalPrefixes_referenced() async {
+    newFile('$testPackageLibPath/lib1.dart', r'''
+class A {}
+''');
+    newFile('$testPackageLibPath/lib2.dart', r'''
+class B {}
+''');
+    await resolveTestCodeWithDiagnostics(r'''
+import 'lib1.dart' as one;
+import 'lib2.dart' as one;
+f(one.A a, one.B b) {}
+''');
+  }
+
+  test_library_as_equalPrefixes_referenced_via_export() async {
+    newFile('$testPackageLibPath/lib1.dart', r'''
+class A {}
+''');
+    newFile('$testPackageLibPath/lib2.dart', r'''
+class B {}
+''');
+    newFile('$testPackageLibPath/lib3.dart', r'''
+export 'lib2.dart';
+''');
+    await resolveTestCodeWithDiagnostics(r'''
+import 'lib1.dart' as one;
+import 'lib3.dart' as one;
+f(one.A a, one.B b) {}
+''');
+  }
+
+  test_library_as_equalPrefixes_unreferenced() async {
+    newFile('$testPackageLibPath/lib1.dart', r'''
+class A {}
+''');
+    newFile('$testPackageLibPath/lib2.dart', r'''
+class B {}
+''');
+    await resolveTestCodeWithDiagnostics(r'''
+import 'lib1.dart' as one;
+import 'lib2.dart' as one; // ignore: unused_import
+f(one.A a) {}
+''');
+  }
+
+  test_library_as_show_multipleElements() async {
+    newFile('$testPackageLibPath/lib1.dart', r'''
+class A {}
+class B {}
+''');
+    await resolveTestCodeWithDiagnostics(r'''
+import 'lib1.dart' as one show A, B;
+f(one.A a, one.B b) {}
+''');
+  }
+
+  test_library_as_showTopLevelFunction() async {
+    newFile('$testPackageLibPath/lib1.dart', r'''
+class One {}
+topLevelFunction() {}
+''');
+    await resolveTestCodeWithDiagnostics(r'''
+import 'lib1.dart' hide topLevelFunction;
+import 'lib1.dart' as one show topLevelFunction;
+f(One o) {
+  one.topLevelFunction();
+}
+''');
+  }
+
+  test_library_as_showTopLevelFunction_multipleDirectives() async {
+    newFile('$testPackageLibPath/lib1.dart', r'''
+class One {}
+topLevelFunction() {}
+''');
+    await resolveTestCodeWithDiagnostics(r'''
+import 'lib1.dart' hide topLevelFunction;
+import 'lib1.dart' as one show topLevelFunction;
+import 'lib1.dart' as two show topLevelFunction;
+f(One o) {
+  one.topLevelFunction();
+  two.topLevelFunction();
+}
+''');
+  }
+
+  test_library_as_systemShadowing() async {
+    newFile('$testPackageLibPath/lib1.dart', '''
+class File {}
+''');
+    await resolveTestCodeWithDiagnostics('''
+import 'dart:io' as io;
+import 'lib1.dart' as io;
+g(io.Directory d, io.File f) {}
+''');
+  }
+
+  test_library_as_unnecessary() async {
+    newFile('$testPackageLibPath/lib1.dart', '''
+class A {}
+''');
+    newFile('$testPackageLibPath/lib2.dart', '''
+export 'lib1.dart';
+class B {}
+''');
+    await resolveTestCodeWithDiagnostics('''
+import 'lib1.dart' as p;
+//     ^^^^^^^^^^^
+// [diag.unnecessaryImport] The import of 'lib1.dart' is unnecessary because all of the used elements are also provided by the import of 'lib2.dart'.
+import 'lib2.dart' as p;
+f(p.A a, p.B b) {}
+''');
+  }
+
+  test_library_duplicateImport_differentPrefix() async {
+    newFile('$testPackageLibPath/lib1.dart', '''
+class A {}
+class B {}
+''');
+    await resolveTestCodeWithDiagnostics('''
+import 'lib1.dart';
+import 'lib1.dart' as p;
+f(A a1, p.A a2, B b) {}
+''');
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/61877')
+  test_library_export_and_export() async {
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+    var c = getFile('$testPackageLibPath/c.dart');
+
+    await resolveFileWithDiagnostics(a, r'''
+class C {}
+''');
+
+    await resolveFileWithDiagnostics(b, r'''
+export 'a.dart';
+''');
+
+    await resolveFileWithDiagnostics(c, r'''
+export 'a.dart';
+''');
+
+    var d = newFile('$testPackageLibPath/d.dart', r'''
+import 'b.dart';
+import 'c.dart';
+
+method() => C();
+''');
+    // Import of 'c.dart' is not marked as unused even though it could be
+    // removed.
+    var result = await resolveFile(d);
+    expect(result.diagnostics, isNotEmpty);
+  }
+
+  test_library_extension_equalPrefixes_unnecessary() async {
+    newFile('$testPackageLibPath/lib1.dart', '''
+extension E1 on int {
+  void foo() {}
+}
+''');
+    newFile('$testPackageLibPath/lib2.dart', '''
+export 'lib1.dart';
+extension E2 on int {
+  void bar() {}
+}
+''');
+    await resolveTestCodeWithDiagnostics('''
+import 'lib1.dart' as prefix;
+//     ^^^^^^^^^^^
+// [diag.unnecessaryImport] The import of 'lib1.dart' is unnecessary because all of the used elements are also provided by the import of 'lib2.dart'.
+import 'lib2.dart' as prefix;
+void f() {
+  0.foo();
+  0.bar();
+}
+''');
+  }
+
+  test_library_extension_noPrefixes_necessary() async {
+    newFile('$testPackageLibPath/lib1.dart', '''
+extension E1 on int {
+  void foo() {}
+}
+''');
+    newFile('$testPackageLibPath/lib2.dart', '''
+extension E2 on int {
+  void bar() {}
+}
+''');
+    await resolveTestCodeWithDiagnostics('''
+import 'lib1.dart';
+import 'lib2.dart';
+void f() {
+  0.foo();
+  0.bar();
+}
+''');
+  }
+
+  test_library_extension_noPrefixes_unnecessary() async {
+    newFile('$testPackageLibPath/lib1.dart', '''
+extension E1 on int {
+  void foo() {}
+}
+''');
+    newFile('$testPackageLibPath/lib2.dart', '''
+export 'lib1.dart';
+extension E2 on int {
+  void bar() {}
+}
+''');
+    await resolveTestCodeWithDiagnostics('''
+import 'lib1.dart';
+//     ^^^^^^^^^^^
+// [diag.unnecessaryImport] The import of 'lib1.dart' is unnecessary because all of the used elements are also provided by the import of 'lib2.dart'.
+import 'lib2.dart';
+void f() {
+  0.foo();
+  0.bar();
+}
+''');
+  }
+
+  test_library_hasDeprecatedExport_hasNotDeprecatedImport_hasOtherClass() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+library;
+
+@deprecated
+export 'a.dart';
+
+class B {}
+''');
+
+    // `import b` is not reported because provides used `B`.
+    // `A` is from both `a.dart` and `b.dart`, so not reported.
+    await resolveTestCodeWithDiagnostics('''
+import 'a.dart';
+import 'b.dart';
+
+void f(A _, B _) {}
+''');
+  }
+
+  test_library_hasDeprecatedExport_hasNotDeprecatedImport_noOtherClass() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+class B {}
+''');
+
+    newFile('$testPackageLibPath/c.dart', r'''
+library;
+
+@deprecated
+export 'b.dart';
+
+class C {}
+''');
+
+    // `import c` is unnecessary because we use only `B` from it.
+    // But the export of `B` from `c.dart` is deprecated.
+    // We can get `B` from `import b`, in a not deprecated way.
+    // It also declares `C`, but we don't use it.
+    await resolveTestCodeWithDiagnostics('''
+import 'a.dart';
+import 'b.dart';
+import 'c.dart';
+//     ^^^^^^^^
+// [diag.unnecessaryImport] The import of 'c.dart' is unnecessary because all of the used elements are also provided by the import of 'a.dart'.
+
+void f(A _, B _) {}
+''');
+  }
+
+  test_library_hasDeprecatedExport_noNotDeprecatedImport() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+class B {}
+''');
+
+    newFile('$testPackageLibPath/c.dart', r'''
+library;
+
+@deprecated
+export 'b.dart';
+''');
+
+    // `import c` is not marked as unnecessary because of there is
+    // `DEPRECATED_EXPORT_USE` already reported.
+    await resolveTestCodeWithDiagnostics('''
+import 'a.dart';
+import 'c.dart';
+
+void f(A _, B _) {}
+//          ^
+// [diag.deprecatedExportUse] The ability to import 'B' indirectly is deprecated.
+''');
+  }
+
+  test_library_hide() async {
+    newFile('$testPackageLibPath/lib1.dart', '''
+class A {}
+''');
+    newFile('$testPackageLibPath/lib2.dart', '''
+export 'lib1.dart' hide A;
+class B {}
+''');
+    await resolveTestCodeWithDiagnostics('''
+import 'lib1.dart';
+import 'lib2.dart';
+f(A a, B b) {}
+''');
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/61877')
+  test_library_import_and_export() async {
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+
+    await resolveFileWithDiagnostics(a, r'''
+class C {}
+''');
+
+    await resolveFileWithDiagnostics(b, r'''
+export 'a.dart';
+''');
+
+    var c = newFile('$testPackageLibPath/c.dart', r'''
+import 'a.dart';
+import 'b.dart';
+
+method() => C();
+''');
+    // Import of 'b.dart' is not marked as unused even though it could be
+    // removed.
+    var result = await resolveFile(c);
+    expect(result.diagnostics, isNotEmpty);
+  }
+
+  test_library_systemShadowing() async {
+    newFile('$testPackageLibPath/lib1.dart', '''
+class File {}
+''');
+    await resolveTestCodeWithDiagnostics('''
+import 'dart:io';
+import 'lib1.dart';
+g(Directory d, File f) {}
+''');
+  }
+
+  test_library_unnecessary_hasError() async {
+    newFile('$testPackageLibPath/a.dart', '''
+class A {}
+''');
+
+    newFile('$testPackageLibPath/b.dart', '''
+export 'a.dart';
+class B {}
+''');
+
+    await resolveTestCodeWithDiagnostics('''
+import 'a.dart';
+import 'b.dart';
+void f(A _, B _, C _) {}
+//               ^
+// [diag.undefinedClass] Undefined class 'C'.
+''');
+  }
+
+  test_library_unnecessaryImport() async {
+    newFile('$testPackageLibPath/lib1.dart', '''
+class A {}
+''');
+    newFile('$testPackageLibPath/lib2.dart', '''
+export 'lib1.dart';
+class B {}
+''');
+    await resolveTestCodeWithDiagnostics('''
+import 'lib1.dart';
+//     ^^^^^^^^^^^
+// [diag.unnecessaryImport] The import of 'lib1.dart' is unnecessary because all of the used elements are also provided by the import of 'lib2.dart'.
+import 'lib2.dart';
+f(A a, B b) {}
+''');
+  }
+
+  test_library_unnecessaryImport_sameUri() async {
+    newFile('$testPackageLibPath/lib1.dart', '''
+class A {}
+''');
+    newFile('$testPackageLibPath/lib2.dart', '''
+export 'lib1.dart';
+class B {}
+''');
+    await resolveTestCodeWithDiagnostics('''
+import 'dart:async';
+import 'dart:async' show Completer;
+//     ^^^^^^^^^^^^
+// [diag.unnecessaryImport] The import of 'dart:async' is unnecessary because all of the used elements are also provided by the import of 'dart:async'.
+f(FutureOr<int> a, Completer<int> b) {}
+''');
+  }
+
+  test_library_uriDoesNotExist() async {
+    newFile('$testPackageLibPath/a.dart', '''
+class A {}
+''');
+
+    await resolveTestCodeWithDiagnostics('''
+import 'a.dart';
+import 'b.dart';
+//     ^^^^^^^^
+// [diag.uriDoesNotExist] Target of URI doesn't exist: 'b.dart'.
+void f(A _) {}
+''');
+  }
+
+  test_part_inside_unnecessary() async {
+    newFile('$testPackageLibPath/x.dart', '''
+class A {}
+class B {}
+''');
+
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+
+    await resolveFilesWithDiagnostics({
+      a: r'''
+part 'b.dart';
+''',
+      b: r'''
+part of 'a.dart';
+import 'x.dart' hide B;
+//     ^^^^^^^^
+// [diag.unnecessaryImport] The import of 'x.dart' is unnecessary because all of the used elements are also provided by the import of 'x.dart'.
+import 'x.dart';
+void f(A _, B _) {}
+''',
+    });
+  }
+
+  test_part_inside_unnecessary_prefixed() async {
+    newFile('$testPackageLibPath/x.dart', '''
+class A {}
+class B {}
+''');
+
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+
+    await resolveFilesWithDiagnostics({
+      a: r'''
+part 'b.dart';
+''',
+      b: r'''
+part of 'a.dart';
+import 'x.dart' as prefix hide B;
+//     ^^^^^^^^
+// [diag.unnecessaryImport] The import of 'x.dart' is unnecessary because all of the used elements are also provided by the import of 'x.dart'.
+import 'x.dart' as prefix;
+void f(prefix.A _, prefix.B _) {}
+''',
+    });
+  }
+}

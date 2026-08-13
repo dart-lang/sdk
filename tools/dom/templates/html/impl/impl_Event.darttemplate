@@ -1,0 +1,65 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+part of $LIBRARYNAME;
+
+$(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
+  // In JS, canBubble and cancelable are technically required parameters to
+  // init*Event. In practice, though, if they aren't provided they simply
+  // default to false (since that's Boolean(undefined)).
+  //
+  // Contrary to JS, we default canBubble and cancelable to true, since that's
+  // what people want most of the time anyway.
+  factory $CLASSNAME(String type,
+      {bool canBubble = true, bool cancelable = true}) {
+    return new Event.eventType('Event', type, canBubble: canBubble,
+        cancelable: cancelable);
+  }
+
+  /**
+   * Creates a new Event object of the specified type.
+   *
+   * This is analogous to document.createEvent.
+   * Normally events should be created via their constructors, if available.
+   *
+   *     var e = new Event.type('MouseEvent', 'mousedown', true, true);
+   */
+  factory Event.eventType(String type, String name, {bool canBubble = true,
+      bool cancelable = true}) {
+    final Event e = document._createEvent(type);
+    e._initEvent(name, canBubble, cancelable);
+    return e;
+  }
+
+  /** The CSS selector involved with event delegation. */
+  String$NULLABLE get _selector native;
+  set _selector(String$NULLABLE value) native;
+
+  /**
+   * A pointer to the element whose CSS selector matched within which an event
+   * was fired. If this Event was not associated with any Event delegation,
+   * accessing this value will throw an [UnsupportedError].
+   */
+  Element get matchingTarget {
+    if (_selector == null) {
+      throw new UnsupportedError('Cannot call matchingTarget if this Event did'
+          ' not arise as a result of event delegation.');
+    }
+    Element$NULLABLE currentTarget = this.currentTarget $#NULLSAFECAST(as Element$NULLABLE);
+    Element$NULLABLE target = this.target $#NULLSAFECAST(as Element$NULLABLE);
+    var matchedTarget;
+    do {
+      if (target$NULLASSERT.matches(_selector$NULLASSERT)) return target;
+      target = target.parent;
+    } while (target != null && target != currentTarget$NULLASSERT.parent);
+    throw new StateError('No selector matched for populating matchedTarget.');
+  }
+
+  List<EventTarget> get path =>
+    JS<bool>('bool', '!!#.composedPath', this) ? composedPath() : [];
+
+$!MEMBERS
+}

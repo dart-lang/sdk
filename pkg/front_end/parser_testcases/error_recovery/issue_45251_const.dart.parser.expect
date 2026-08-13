@@ -1,0 +1,59 @@
+NOTICE: Stream was rewritten by parser!
+
+class F {
+
+final Map<String, Undefined> foo1 = const Map<String, List<int>>{};
+
+
+final Map<String, Undefined> foo2 = const <String, List<int>>{};
+
+
+final Map<String, Undefined> foo3 = const Map{};
+
+
+final Map<String, Undefined> foo4 = const Map<String, List<int>>();
+
+
+final Map<String, Undefined> foo5 = const Map();
+
+
+final Map<String, Undefined> foo6 = const Map<String, List<int>>{"a": null};
+
+
+final Map<String, Undefined> foo7 = const Map{"a": null};
+
+
+final Map<String, Undefined> foo8 = const <String, List<int>>{"a": null};
+
+
+final Map<String, Undefined> foo9 = const {"a": null};
+}
+
+class[KeywordToken] F[StringToken] {[BeginToken]
+
+final[KeywordToken] Map[StringToken]<[BeginToken]String[StringToken],[SimpleToken] Undefined[StringToken]>[SimpleToken] foo1[StringToken] =[SimpleToken] const[KeywordToken] Map[StringToken]<[BeginToken]String[StringToken],[SimpleToken] List[StringToken]<[BeginToken]int[StringToken]>[SimpleToken]>[SimpleToken]{[BeginToken]}[SimpleToken];[SimpleToken]
+
+
+final[KeywordToken] Map[StringToken]<[BeginToken]String[StringToken],[SimpleToken] Undefined[StringToken]>[SimpleToken] foo2[StringToken] =[SimpleToken] const[KeywordToken] <[BeginToken]String[StringToken],[SimpleToken] List[StringToken]<[BeginToken]int[StringToken]>[SimpleToken]>[SimpleToken]{[BeginToken]}[SimpleToken];[SimpleToken]
+
+
+final[KeywordToken] Map[StringToken]<[BeginToken]String[StringToken],[SimpleToken] Undefined[StringToken]>[SimpleToken] foo3[StringToken] =[SimpleToken] const[KeywordToken] Map[StringToken]{[BeginToken]}[SimpleToken];[SimpleToken]
+
+
+final[KeywordToken] Map[StringToken]<[BeginToken]String[StringToken],[SimpleToken] Undefined[StringToken]>[SimpleToken] foo4[StringToken] =[SimpleToken] const[KeywordToken] Map[StringToken]<[BeginToken]String[StringToken],[SimpleToken] List[StringToken]<[BeginToken]int[StringToken]>[SimpleToken]>[SimpleToken]([BeginToken])[SimpleToken];[SimpleToken]
+
+
+final[KeywordToken] Map[StringToken]<[BeginToken]String[StringToken],[SimpleToken] Undefined[StringToken]>[SimpleToken] foo5[StringToken] =[SimpleToken] const[KeywordToken] Map[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+
+
+final[KeywordToken] Map[StringToken]<[BeginToken]String[StringToken],[SimpleToken] Undefined[StringToken]>[SimpleToken] foo6[StringToken] =[SimpleToken] const[KeywordToken] Map[StringToken]<[BeginToken]String[StringToken],[SimpleToken] List[StringToken]<[BeginToken]int[StringToken]>[SimpleToken]>[SimpleToken]{[BeginToken]"a"[StringToken]:[SimpleToken] null[KeywordToken]}[SimpleToken];[SimpleToken]
+
+
+final[KeywordToken] Map[StringToken]<[BeginToken]String[StringToken],[SimpleToken] Undefined[StringToken]>[SimpleToken] foo7[StringToken] =[SimpleToken] const[KeywordToken] Map[StringToken]{[BeginToken]"a"[StringToken]:[SimpleToken] null[KeywordToken]}[SimpleToken];[SimpleToken]
+
+
+final[KeywordToken] Map[StringToken]<[BeginToken]String[StringToken],[SimpleToken] Undefined[StringToken]>[SimpleToken] foo8[StringToken] =[SimpleToken] const[KeywordToken] <[BeginToken]String[StringToken],[SimpleToken] List[StringToken]<[BeginToken]int[StringToken]>[SimpleToken]>[SimpleToken]{[BeginToken]"a"[StringToken]:[SimpleToken] null[KeywordToken]}[SimpleToken];[SimpleToken]
+
+
+final[KeywordToken] Map[StringToken]<[BeginToken]String[StringToken],[SimpleToken] Undefined[StringToken]>[SimpleToken] foo9[StringToken] =[SimpleToken] const[KeywordToken] {[BeginToken]"a"[StringToken]:[SimpleToken] null[KeywordToken]}[SimpleToken];[SimpleToken]
+}[SimpleToken][SimpleToken]

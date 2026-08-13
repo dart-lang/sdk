@@ -1,0 +1,31 @@
+typedef R = Record;
+
+typedef RR = R;
+
+class G<X> {}
+
+abstract class A1 extends Record {}
+
+abstract class A2 extends RR {}
+
+abstract class A3 extends G<Record> {}
+
+abstract class A4 extends G<RR> {}
+
+abstract class B1 implements Record {}
+
+abstract class B2 implements RR {}
+
+abstract class B3 implements G<Record> {}
+
+abstract class B4 implements G<RR> {}
+
+abstract class C1 with Record {}
+
+abstract class C2 with RR {}
+
+abstract class C3 with G<Record> {}
+
+abstract class C4 with G<RR> {}
+
+main() {}

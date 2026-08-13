@@ -1,0 +1,14 @@
+mixin M {
+  var m;
+}
+
+mixin N on M {
+  void set superM(value) {}
+  get superM => super.m;
+}
+
+class S {}
+
+class Named = S with M, N, M;
+
+main() {}

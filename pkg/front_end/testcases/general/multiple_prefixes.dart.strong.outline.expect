@@ -1,0 +1,9 @@
+library;
+import self as self;
+
+import "dart:core" as prefix;
+import "dart:core" as prefix;
+import "dart:core" as prefix0;
+
+static method main() → dynamic
+  ;

@@ -1,0 +1,15 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+class B<T extends core::Object? = dynamic> extends core::Object {
+  covariant-by-class field self::B::T% x;
+  synthetic constructor •() → self::B<self::B::T%>
+    ;
+}
+class C extends self::B<core::num> {
+  synthetic constructor •() → self::C
+    ;
+}
+static method main() → void
+  ;

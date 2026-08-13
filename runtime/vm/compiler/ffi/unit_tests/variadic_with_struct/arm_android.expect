@@ -1,0 +1,5 @@
+(r0, r1) int64[double]
+M(r2 uint32, r3 uint32, S+0 uint32, S+4 uint32, S+8 uint32) Struct(size: 20)
+S+16 double
+=>
+(r0, r1) int64[double]

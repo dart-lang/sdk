@@ -1,0 +1,14 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method test1() → dynamic
+  ;
+static method test2(dynamic x, dynamic another) → dynamic
+  ;
+static method main() → dynamic
+  ;
+static method expectEquals(dynamic x, dynamic y) → dynamic
+  ;
+static method mapToString(core::Map<dynamic, dynamic> map) → dynamic
+  ;

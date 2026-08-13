@@ -1,0 +1,64 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/records/restricted_object_member_names.dart:5:6: Error: Record field names can't be the same as a member from 'Object'.
+// (int hashCode,) foo1() => throw 0; // Error.
+//      ^^^^^^^^
+//
+// pkg/front_end/testcases/records/restricted_object_member_names.dart:6:6: Error: Record field names can't be the same as a member from 'Object'.
+// (int runtimeType,) foo2() => throw 0; // Error.
+//      ^^^^^^^^^^^
+//
+// pkg/front_end/testcases/records/restricted_object_member_names.dart:7:6: Error: Record field names can't be the same as a member from 'Object'.
+// (int noSuchMethod,) foo3() => throw 0; // Error.
+//      ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/records/restricted_object_member_names.dart:8:6: Error: Record field names can't be the same as a member from 'Object'.
+// (int toString,) foo4() => throw 0; // Error.
+//      ^^^^^^^^
+//
+// pkg/front_end/testcases/records/restricted_object_member_names.dart:9:7: Error: Record field names can't be the same as a member from 'Object'.
+// ({int hashCode}) foo5() => throw 0; // Error.
+//       ^^^^^^^^
+//
+// pkg/front_end/testcases/records/restricted_object_member_names.dart:10:7: Error: Record field names can't be the same as a member from 'Object'.
+// ({int runtimeType}) foo6() => throw 0; // Error.
+//       ^^^^^^^^^^^
+//
+// pkg/front_end/testcases/records/restricted_object_member_names.dart:11:7: Error: Record field names can't be the same as a member from 'Object'.
+// ({int noSuchMethod}) foo7() => throw 0; // Error.
+//       ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/records/restricted_object_member_names.dart:12:7: Error: Record field names can't be the same as a member from 'Object'.
+// ({int toString}) foo8() => throw 0; // Error.
+//       ^^^^^^^^
+//
+import self as self;
+
+static method foo1() → invalid-type
+  ;
+static method foo2() → invalid-type
+  ;
+static method foo3() → invalid-type
+  ;
+static method foo4() → invalid-type
+  ;
+static method foo5() → invalid-type
+  ;
+static method foo6() → invalid-type
+  ;
+static method foo7() → invalid-type
+  ;
+static method foo8() → invalid-type
+  ;
+static method foo9() → dynamic
+  ;
+static method foo10() → dynamic
+  ;
+static method foo11() → dynamic
+  ;
+static method foo12() → dynamic
+  ;
+static method main() → dynamic
+  ;

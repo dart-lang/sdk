@@ -1,0 +1,28 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+import "package:meta/meta.dart" as meta;
+
+import "package:meta/meta.dart" show RecordUse;
+
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method main() → void {
+  self::recorded(#C4);
+  self::recorded(#C7);
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+[@vm.unboxing-info.metadata=[!regcc]]
+@#C8
+static method recorded([@vm.inferred-arg-type.metadata=dart._compact_hash::_ConstSet] core::Object arg) → void {}
+constants  {
+  #C1 = 1
+  #C2 = 2
+  #C3 = 3
+  #C4 = <core::int>{#C1, #C2, #C3}
+  #C5 = "a"
+  #C6 = "b"
+  #C7 = <core::String>{#C5, #C6}
+  #C8 = meta::RecordUse {}
+}

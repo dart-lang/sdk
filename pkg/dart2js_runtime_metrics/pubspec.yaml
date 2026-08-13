@@ -1,0 +1,16 @@
+name: dart2js_runtime_metrics
+# This package is not intended for consumption on pub.dev. DO NOT publish.
+publish_to: none
+version: 0.2.0
+description: >-
+  `dart2js` can generate extra code to measure certain activities.
+  This library provides access to the measurements at runtime.
+
+environment:
+  sdk: '^3.12.0-0'
+
+resolution: workspace
+
+# Use 'any' constraints here; we get our versions from the DEPS file.
+dev_dependencies:
+  expect: any

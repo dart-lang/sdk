@@ -1,0 +1,19 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+abstract class C extends core::Object {
+  synthetic constructor •() → self::C
+    ;
+  external get _f1() → core::int?;
+}
+extension /* unnamed */ _extension#0 on self::C {
+  get _f2 = self::_extension#0|get#_f2;
+}
+external static extension-member method _extension#0|get#_f2(lowered self::C #this) → core::int?;
+static method testExternalFieldInClass(self::C c) → void
+  ;
+static method testExternalFieldInExtension(self::C c) → void
+  ;
+static method main() → dynamic
+  ;

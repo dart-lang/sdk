@@ -1,0 +1,193 @@
+# Dart SDK breaking change process
+
+The present document describes the Dart SDK philosophy for compatibility, and
+process for breaking changes.
+
+For a list of past breaking changes, see the
+[dart.dev breaking changes](https://dart.dev/resources/breaking-changes) page.
+
+## Dart compatibility and philosophy
+
+Generally the Dart team strives to not make breaking changes, and to preserve
+compatibility of all Dart programs across stable Dart SDK releases. However, on
+occasion, we believe that breaking changes are needed, or justified:
+
+* Security: To resolve a security issue in the specification or implementation.
+
+* Unspecified behavior: Programs that depend on unspecified behavior may break
+  as such behavior is specified and implemented.
+
+* Implementation bugs: If the implementation deviates unintentionally from the
+  specification, programs may break as we rectify the implementation.
+
+* Evolution: If we deem that there is a very large benefit to changing current
+  behavior, we may choose to do so after careful consideration of the associated
+  impact of the change.
+
+## Scope of compatibility
+
+It is not practical to offer compatability to programs that do not follow
+best practices. Thus, the breaking change process assumes that programs
+abide by the following basic conditions:
+
+* Must contain no static analysis **errors**.
+
+* Must not rely on a certain runtime **error** being thrown (in other words,
+  a new SDK might throw fewer errors than an old SDK).
+
+* Must access libraries via the public API (for example, must not reach into
+  the internals of a package located in the `/src/` directory).
+
+* Must not rely on an [experiment flag](experimental-flags.md), or depend on
+  libraries or APIs that are documented as being experimental.
+
+* Must not circumvent clear restrictions documented in the public API
+  documentation (for example, must not mixin a class clearly documented as
+  not intended to be used as a mixin).
+
+* Must set an explicit
+  [language version constraint](https://dart.dev/guides/language/evolution#language-versioning)
+  to indicate which version of the language it requires. Incompatibilities
+  introduced in new language versions are not considered breaking as long as
+  the SDK continues to support the older version of the language.
+
+Compatibility is only considered between stable releases (i.e. releases from the
+[Dart stable channel](https://dart.dev/tools/sdk/archive#stable-channel)).
+
+## Breaking change implementation timing
+
+To avoid shipping features that have not been thoroughly vetted, we implement a
+policy of not including breaking changes in the final beta before a release.
+Breaking changes must be included in the beta before the final beta to be
+considered for the next stable release.
+
+## Breaking change notification
+
+Anyone wishing to make a breaking change to Dart is expected to perform the
+following steps.  It is expected that all of these steps are followed prior
+to a change being released in a dev channel release.
+
+### Step 1: Announcement
+
+* Create an issue in the
+  [Dart SDK issue tracker](https://github.com/dart-lang/sdk/issues/new?template=6_breaking_change.yml)
+  labelled `breaking-change-request` containing the following:
+
+  * The intended change in behavior.
+
+  * The justification/rationale for making the change.
+
+  * The expected impact of this change.
+
+  * Clear steps for mitigating the change.
+
+* Email [Dart Announce][] (`announce@dartlang.org`):
+
+  * Subject: 'Breaking change [bug ID]: [short summary]'
+
+  * Very short summary of the intended change
+
+  * Link to the above-mentioned issue
+
+  * A request that developers may leave comments in the linked issue, if this
+    breaking change poses a severe problem.
+
+Once you have sent the announce email, please let kevinjchisholm@ know in order
+to start the review and approval process.
+
+### Step 2: Approval
+
+If there is a general agreement that the benefit of the change outweighs the
+cost of the change, a set of Dart SDK approvers will approve the change.
+Adequate time must be allowed after step 1, at a minimum 24 hours during the
+work week for smaller impact changes, and proportionally longer for higher
+impact changes.
+
+### Step 3: Execution
+
+If approved, the breaking change is allowed to be made after ensuring the
+`google3` and `flutter` repositories ("downstream") are not broken.
+
+The person making the change is expected to:
+
+* Use code search to find obvious downstream breakages.
+
+* Run presubmits provided by downstream teams to detect breakage.
+  * `google3`: Follow the instructions at go/dart-breaking-change.
+  * `flutter`: Add `flutter-` presubmits to your change to detect breakages.
+
+* Fix the broken downstream code or attach a hotfix to the change.
+
+After breakages are fixed, the approved change may be landed.
+
+To land the change despite remaining breakages, request explicit approval for
+these breakages in the breaking change issue. After these approvals are granted,
+the change may be landed.
+
+### Step 4: Finalization
+
+After the breaking change has been made, the person who made the change must:
+
+* Resolve the breaking change issue and make a note that the change has landed
+
+* Make a note in the [Dart SDK changelog](../../CHANGELOG.md) detailing the change.
+  This must be prefixed `**Breaking Change**`.
+
+* Reply to the original announcement email, and make a note that the change is
+  being implemented.
+
+If not approved, or if the requester decides to not pursue the change, the
+requester must:
+
+* Reply to the original announcement email, and make a note that the change is
+  has been rejected, with a quick summary of the rationale for that.
+
+## Unexpected breaking changes & roll-back requests
+
+If a developer notices a breaking change has been made in the dev or stable
+channels, and this change impacts a program that abides to the above defined
+scope of compatibility, and for which either:
+
+  * No breaking change was announced, or
+
+  * The impact of the change was significantly larger than described in the
+    breaking change announcement
+
+Then they may file a 'request for roll-back' using the following steps:
+
+* Create an issue in the Dart SDK issue tracker labelled
+  `roll-back-request` containing the following:
+
+  * If applicable, a link to the associated breaking change request issue
+
+  * A clear description of the actual impact, and if applicable a description of
+    how this differs from the expected impact.
+
+  * A link to the program that was affected, or another program that illustrated
+    the same effect.
+
+Upon receiving such an issue the Dart SDK team will either:
+
+  * Roll-back the change, or
+
+  * Make a quick corrective action to correct the change, or
+
+  * Detail how the change in their opinion does not warrant a roll-back.
+
+If a breaking change is rolled-back, in addition:
+
+  * The breaking change request issue should be reopened
+
+### Roll-backs following unexpected changes
+
+If a roll-back occurs after what should have been a breaking change, the
+originator of the change is expected to follow the breaking change process to
+move forward.
+
+If a roll-back occurs after a breaking change, but where the impact was larger
+than anticipated, then the impacted party is expected to make a best effort to
+quickly rectify their program to either not be affected by the breaking change,
+or in some other way offer the originator a clear timeline for when the breaking
+change can be landed.
+
+[Dart Announce]: https://groups.google.com/a/dartlang.org/g/announce

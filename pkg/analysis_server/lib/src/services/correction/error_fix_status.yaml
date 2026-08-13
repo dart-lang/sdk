@@ -1,0 +1,4030 @@
+# This file contains information about the status of supporting fixes for every
+# diagnostic reported by the analyzer. The information supports the following
+# needs.
+#
+# - Record which diagnostics need to be considered in order to determine whether
+#   a fix for the diagnostic is possible.
+#
+# - Record the reasoning for saying that there is no fix for a diagnostic (when
+#   that reasoning might not be obvious).
+#
+# - Record the fixes that could be implemented for a diagnostic, whether there
+#   are existing fixes or not.
+#
+# The status information is recorded in a map. The key of each top-level entry
+# is the unique name of an error code. The value of each top-level entry is a
+# map describing the status of fixes related to that diagnostic.
+#
+# In every second-level map, the first key is `status` and the corresponding
+# value is one of the following:
+# - 'needsEvaluation', if the diagnostic has not been evaluated in terms of
+#   fixes.
+# - 'hasFix', if the diagnostic has one or more fixes.
+# - 'noFix', if no fix seems appropriate for the diagnostic. There should be a
+#   second key named `notes` whose value is text explaining why there is no
+#   appropriate fix.
+# - 'needsFix', if the diagnostic needs a fix. If an issue has been opened,
+#   there should be a second key named `issue` whose value is the URL of the
+#   issue.
+#
+# Note that some codes marked as 'noFix' have a note about the fix requiring a
+# refactoring. In some cases we could provide a fix that adds a new declaration
+# with the correct name while marking the old declaration with `deprecated`.
+# That would negate the need for a refactoring while providing a step toward a
+# more complete change. Doing so, however, would not be the best possible UX, so
+# we might not want to do that.
+#
+# The other keys in the second-level map are all optional, and include
+# - 'since', whose value is the version number of the SDK in which the
+#   diagnostic was added.
+# - 'notes', whose value is text, typically describing what fix should be
+#   created or why we think a fix for the diagnostic is not appropriate.
+# - 'issue', whose value is a list of the URLs of GitHub issues for the fixes
+#   that should be added. Ideally every code marked as 'needsFix' would have an
+#   issue created for it.
+#
+# Stats:
+# -  86 "needsEvaluation"
+# - 302 "needsFix"
+# - 525 "hasFix"
+# - 487 "noFix"
+
+included_file_parse_error:
+  status: noFix
+  notes: |-
+    The fix needs to be made in the included file.
+parse_error:
+  status: noFix
+  notes: |-
+    Because of the way the YAML parser works, there isn't enough information to
+    be able to provide a fix.
+analysis_option_deprecated:
+  status: needsFix
+  notes: |-
+    The fix is to remove the deprecated option.
+analysis_options_deprecated_plugins:
+  status: needsFix
+  notes: |-
+    The fix is to remove the section. But I think there is something maybe also
+    we could do to remove the plugin package from the pubspec file. But that
+    might be conditional...
+analysis_option_deprecated_with_replacement:
+  status: hasFix
+deprecated_lint:
+  status: hasFix
+deprecated_lint_with_replacement:
+  status: needsFix
+  notes: |-
+    We should be able to replace the deprecated lint rule with its replacement.
+duplicate_rule:
+  status: hasFix
+include_file_not_found:
+  status: noFix
+  notes: |-
+    It would not be performant to search the disk for analysis options files
+    that could be included.
+
+    We could potentially have a fix to create the referenced file that currently
+    doesn't exist, but that would only be useful if the missing file is in the
+    same repository as the including file.
+included_file_warning:
+  status: noFix
+  notes: |-
+    The fix needs to be made in the included file.
+incompatible_lint:
+  status: needsFix
+  notes: |-
+    Allowing the user to select which rule they would prefer to use so we can
+    remove the incompatible ones.
+incompatible_lint_files:
+  status: needsFix
+  notes: |-
+    Allowing the user to select which rule they would prefer to use so we can
+    disable the incompatible ones.
+incompatible_lint_included:
+  status: needsFix
+  notes: |-
+    Allowing the user to select which rule they would prefer to use so we can
+    disable the incompatible ones.
+incompatible_plugin_source:
+  status: needsFix
+  notes: |-
+    The fix is pretty simple; change this plugin source to be the same as the
+    other. We could even offer two fixes; the second would be to change the
+    other plugin source to match this one.
+invalid_option:
+  status: needsFix
+  notes: |-
+    We could look for valid options that are similar in spelling to the invalid
+    option and replace the invalid option with the selected replacement.
+invalid_section_format:
+  status: noFix
+  notes: |-
+    It isn't worth the cost to try to figure out how to convert
+    a list, map, or string to a different format.
+multiple_plugins:
+  status: needsFix
+  notes: |-
+    The fix is to remove the plugin name. Might not be worth the cost if we
+    can address the question of if/how we're supporting plugins.
+plugins_in_inner_options:
+  status: needsFix
+  notes: |-
+    The fix is to delete the 'plugins' section.
+recursive_include_file:
+  status: noFix
+  notes: |-
+    It isn't possible to know the right place to break the recursion. The best
+    we could do is to remove the include in the file that the diagnostic is
+    reported on.
+removed_lint:
+  status: hasFix
+replaced_lint:
+  status: needsFix
+  notes: |-
+    We should be able to replace the deprecated lint rule with its replacement.
+undefined_lint:
+  status: hasFix
+unrecognized_error_code:
+  status: needsFix
+  notes: |-
+    The fix would be to replace the code with a valid code whose name is similar
+    to the unrecognized code.
+unsupported_option_with_legal_value:
+  status: needsFix
+  notes: |-
+    The fix is to replace the unsupported option with the one legal value.
+unsupported_option_with_legal_values:
+  status: needsFix
+  notes: |-
+    The fix is to replace the unsupported option with one of the legal values.
+unsupported_option_without_values:
+  status: hasFix
+unsupported_value:
+  status: needsFix
+  notes: |-
+    The fix is to replace the unsupported option with one of the legal values.
+abstract_field_constructor_initializer:
+  status: hasFix
+abstract_field_initializer:
+  status: hasFix
+abstract_super_member_reference:
+  status: noFix
+  notes: |-
+    The only fix we could automate is to remove the call to super, which is
+    unlikely to be the right solution.
+ambiguous_export:
+  status: needsFix
+  notes: |-
+    For each exported name, add a fix to hide the name.
+ambiguous_extension_member_access_three_or_more:
+  status: hasFix
+ambiguous_extension_member_access_two:
+  status: hasFix
+ambiguous_import:
+  status: hasFix
+  notes: |-
+    For each imported name, add a fix to add a prefix. We wouldn't be able to
+    add the prefix everywhere, but could add it wherever the name was already
+    unambiguous.
+ambiguous_set_or_map_literal_both:
+  status: noFix
+  notes: |-
+    We could potentially have a pair of fixes: one to remove the elements that
+    force it to be a set and one to remove the map related elements. I doubt
+    that either is the right solution.
+ambiguous_set_or_map_literal_either:
+  status: noFix
+  notes: |-
+    We don't have enough information to add type arguments for the user.
+anonymous_method_wrong_parameter_list:
+  status: noFix
+  notes: |-
+    We could remove the parameter list, or we could change it
+    to `(id)` where `id` is an identifier, but we don't know
+    which parameter name would be a good choice.
+anonymous_method_wrong_parameter_type:
+  status: noFix
+  notes: |-
+    We could remove the type annotation, or we could replace the
+    specified type by the static type of the receiver, but having a
+    type annotation is probably only relevant when the developer has
+    a specific reason to _not_ use the precise type of the receiver.
+argument_type_not_assignable:
+  status: hasFix
+assert_in_redirecting_constructor:
+  status: hasFix
+assignment_to_const:
+  status: noFix
+  notes: |-
+    Making the field non-const doesn't seem to be a good choice, but it is a
+    possibility.
+assignment_to_primary_constructor_parameter:
+  status: needsEvaluation
+assignment_to_final:
+  status: hasFix
+assignment_to_final_local:
+  status: hasFix
+assignment_to_final_no_setter:
+  status: needsFix
+  notes: |-
+    The fix is to create the missing setter.
+assignment_to_function:
+  status: noFix
+  notes: |-
+    Theoretically we could replace the function with a function valued variable
+    if the value being assigned is a function with the same signature, but that
+    case is likely rare enough to not be worth supporting.
+assignment_to_method:
+  status: noFix
+  notes: |-
+    Theoretically we could replace the method with a function valued variable
+    if the value being assigned is a function with the same signature, but that
+    case is likely rare enough to not be worth supporting.
+assignment_to_type:
+  status: noFix
+async_for_in_wrong_context:
+  status: hasFix
+augmentation_extends_clause_already_present:
+  status: needsEvaluation
+augmentation_formal_parameter_modifier_extra:
+  status: needsEvaluation
+augmentation_formal_parameter_modifier_missing:
+  status: needsEvaluation
+augmentation_formal_parameter_type_mismatch:
+  status: needsEvaluation
+augmentation_induced_getter_already_complete:
+  status: needsEvaluation
+augmentation_induced_getter_return_type_mismatch:
+  status: needsEvaluation
+augmentation_induced_setter_already_complete:
+  status: needsEvaluation
+augmentation_modifier_extra:
+  status: hasFix
+augmentation_modifier_missing:
+  status: needsFix
+augmentation_named_formal_parameter_extra:
+  status: needsEvaluation
+augmentation_named_formal_parameter_missing:
+  status: needsEvaluation
+augmentation_of_different_declaration_kind:
+  status: noFix
+augmentation_of_mixin_application_class:
+  status: needsEvaluation
+augmentation_optional_positional_formal_parameter_count:
+  status: needsEvaluation
+augmentation_positional_formal_parameter_name:
+  status: needsEvaluation
+augmentation_required_positional_formal_parameter_count:
+  status: needsEvaluation
+augmentation_return_type_mismatch:
+  status: needsEvaluation
+augmentation_type_parameter_bound:
+  status: noFix
+augmentation_type_parameter_count:
+  status: noFix
+augmentation_type_parameter_name:
+  status: needsFix
+  notes: |-
+    We could rename the type parameter, this is purely local operation.
+augmentation_without_declaration:
+  status: noFix
+augmentation_without_getter_declaration:
+  status: needsEvaluation
+augmentation_without_setter_declaration:
+  status: needsEvaluation
+augmented_expression_is_not_setter:
+  status: noFix
+augmented_expression_is_setter:
+  status: noFix
+augmented_expression_not_operator:
+  status: noFix
+augments_constant_variable:
+  status: needsEvaluation
+await_in_late_local_variable_initializer:
+  status: hasFix
+await_in_wrong_context:
+  status: hasFix
+await_of_incompatible_type:
+  status: noFix
+base_class_implemented_outside_of_library:
+  status: noFix
+  notes: |-
+    Theoretically we could remove the `base` modifier, but that's unlikely to be
+    the right fix most of the time.
+base_mixin_implemented_outside_of_library:
+  status: noFix
+  notes: |-
+    Theoretically we could remove the `base` modifier, but that's unlikely to be
+    the right fix most of the time.
+body_might_complete_normally:
+  status: hasFix
+break_label_on_switch_member:
+  status: noFix
+  notes: |-
+    Theoretically we could replace the `break` with a `continue`, but this
+    probably occurs rarely enough to not be worth the cost.
+built_in_identifier_as_extension_name:
+  status: noFix
+  notes: |-
+    The correction is to change the name.
+built_in_identifier_as_extension_type_name:
+  status: noFix
+  notes: |-
+    The correction is to change the name.
+built_in_identifier_as_prefix_name:
+  status: noFix
+  notes: |-
+    The correction is to change the name.
+built_in_identifier_as_type:
+  status: noFix
+  notes: |-
+    The correction is to change the name.
+built_in_identifier_as_type_name:
+  status: noFix
+  notes: |-
+    The correction is to change the name.
+built_in_identifier_as_type_parameter_name:
+  status: noFix
+  notes: |-
+    The correction is to change the name.
+built_in_identifier_as_typedef_name:
+  status: noFix
+  notes: |-
+    The correction is to change the name.
+case_expression_type_implements_equals:
+  status: needsFix
+  notes: |-
+    The fix could be to change the switch expression to an if statement.
+case_expression_type_is_not_switch_expression_subtype:
+  status: noFix
+cast_to_non_type:
+  status: hasFix
+class_used_as_mixin:
+  status: noFix
+  notes: |-
+    Theoretically we could add the mixin modifier to the class if the class if
+    doing so would be valid.
+class_used_as_mixin_declares_generative_constructor:
+  status: needsFix
+  notes: |-
+    Remove the constructor.
+class_instantiation_access_to_instance_member:
+  status: noFix
+  since: 2.15
+class_instantiation_access_to_static_member:
+  status: hasFix
+class_instantiation_access_to_unknown_member:
+  status: noFix
+  notes: |-
+    Theoretically we could look for static members whose name is similar in
+    spelling and suggest them (and remove the type arguments), but it's probably
+    not valuable often enough to warrant the cost.
+  since: in 2.15
+concrete_class_has_enum_superinterface:
+  status: noFix
+  since: 2.17
+  notes: |-
+    We could potentially offer a fix that would remove all of the types in the
+    class header that are or implement `Enum`, but I think it would be more
+    likely that the user needed to restructure the super interfaces so that
+    `Enum` wasn't included but the rest of the interfaces could be.
+concrete_class_with_abstract_member:
+  status: hasFix
+conflicting_constructor_and_static_field:
+  status: noFix
+  notes: |-
+    The fix is to rename one of the two, but we can't know what name to use.
+conflicting_constructor_and_static_getter:
+  status: noFix
+  since: 2.15
+  notes: |-
+    The fix is to rename one of the two, but we can't know what name to use.
+conflicting_constructor_and_static_method:
+  status: noFix
+  notes: |-
+    The fix is to rename one of the two, but we can't know what name to use.
+conflicting_constructor_and_static_setter:
+  status: noFix
+  since: 2.15
+  notes: |-
+    The fix is to rename one of the two, but we can't know what name to use.
+constructor_already_complete:
+  status: needsEvaluation
+function_not_complete_after_augmentations:
+  status: needsEvaluation
+factory_not_complete_after_augmentations:
+  status: needsEvaluation
+conflicting_field_and_method:
+  status: noFix
+  notes: |-
+    The fix is to rename one of the two, but we can't know what name to use.
+conflicting_generic_interfaces:
+  status: noFix
+conflicting_inherited_method_and_setter:
+  status: needsEvaluation
+conflicting_method_and_field:
+  status: noFix
+  notes: |-
+    The fix is to rename one of the two, but we can't know what name to use.
+conflicting_static_and_instance:
+  status: noFix
+  notes: |-
+    The fix is to rename one of the two, but we can't know what name to use.
+conflicting_type_variable_and_class:
+  status: noFix
+  notes: |-
+    The fix is to rename one of the two, but we can't know what name to use.
+conflicting_type_variable_and_enum:
+  status: noFix
+  since: 2.17
+  notes: |-
+    The fix is to rename one of the two, but we can't know what name to use.
+conflicting_type_variable_and_extension:
+  status: noFix
+  notes: |-
+    The fix is to rename one of the two, but we can't know what name to use.
+conflicting_type_variable_and_extension_type:
+  status: noFix
+  notes: |-
+    The fix is to rename one of the two, but we can't know what name to use.
+conflicting_type_variable_and_member_class:
+  status: noFix
+  notes: |-
+    The fix is to rename one of the two, but we can't know what name to use.
+conflicting_type_variable_and_member_enum:
+  status: noFix
+  since: 2.17
+  notes: |-
+    The fix is to rename one of the two, but we can't know what name to use.
+conflicting_type_variable_and_member_extension:
+  status: noFix
+  notes: |-
+    The fix is to rename one of the two, but we can't know what name to use.
+conflicting_type_variable_and_member_extension_type:
+  status: noFix
+  notes: |-
+    The fix is to rename one of the two, but we can't know what name to use.
+conflicting_type_variable_and_member_mixin:
+  status: noFix
+  notes: |-
+    The fix is to rename one of the two, but we can't know what name to use.
+conflicting_type_variable_and_mixin:
+  status: noFix
+  notes: |-
+    The fix is to rename one of the two, but we can't know what name to use.
+const_constructor_constant_from_deferred_library:
+  status: needsFix
+  notes: |-
+    Remove the `deferred` keyword from the import.
+const_constructor_field_type_mismatch:
+  status: noFix
+const_constructor_param_type_mismatch:
+  status: noFix
+const_constructor_throws_exception:
+  status: noFix
+const_constructor_with_field_initialized_by_non_const:
+  status: noFix
+const_constructor_with_mixin_with_field:
+  status: noFix
+const_constructor_with_mixin_with_fields:
+  status: noFix
+const_constructor_with_non_const_super:
+  status: noFix
+const_constructor_with_non_final_field:
+  status: hasFix
+  notes: |-
+    Currently supported via `RemoveConst`.
+    Another fix to consider is making the non-final fields `final`.
+const_primary_constructor_with_block_body:
+  status: hasFix
+  notes: |-
+    Currently supported via `RemoveConst`.
+    Another fix to consider is removing the block body entirely.
+const_primary_constructor_with_expression_body:
+  status: needsEvaluation
+const_deferred_class:
+  status: needsFix
+  notes: |-
+    Remove the `deferred` keyword from the import.
+const_eval_assertion_failure:
+  status: needsEvaluation
+const_eval_assertion_failure_with_message:
+  status: needsEvaluation
+const_eval_extension_method:
+  status: needsEvaluation
+const_eval_extension_type_method:
+  status: needsEvaluation
+const_eval_for_element:
+  status: needsEvaluation
+const_eval_method_invocation:
+  status: hasFix
+const_eval_primitive_equality:
+  status: needsEvaluation
+const_eval_property_access:
+  status: needsEvaluation
+const_eval_throws_exception:
+  status: noFix
+const_eval_throws_idbze:
+  status: noFix
+const_eval_type_bool:
+  status: noFix
+const_eval_type_bool_int:
+  status: noFix
+const_eval_type_bool_num_string:
+  status: noFix
+const_eval_type_int:
+  status: noFix
+const_eval_type_num:
+  status: noFix
+const_eval_type_num_string:
+  status: noFix
+const_eval_type_string:
+  status: noFix
+const_eval_type_type:
+  status: noFix
+const_field_initializer_not_assignable:
+  status: noFix
+const_initialized_with_non_constant_value:
+  status: hasFix
+const_initialized_with_non_constant_value_from_deferred_library:
+  status: needsFix
+  notes: |-
+    Remove the `deferred` keyword from the import.
+const_instance_field:
+  status: hasFix
+const_map_key_not_primitive_equality:
+  status: noFix
+const_not_initialized:
+  status: noFix
+const_set_element_not_primitive_equality:
+  status: noFix
+const_spread_expected_list_or_set:
+  status: noFix
+const_spread_expected_map:
+  status: noFix
+const_type_parameter:
+  status: needsEvaluation
+const_with_non_const:
+  status: hasFix
+const_with_non_constant_argument:
+  status: noFix
+const_with_non_type:
+  status: hasFix
+const_with_type_parameters:
+  status: noFix
+const_with_type_parameters_constructor_tearoff:
+  status: noFix
+  since: 2.15
+const_with_type_parameters_function_tearoff:
+  status: noFix
+  since: 2.15
+const_with_undefined_constructor:
+  status: noFix
+const_with_undefined_constructor_default:
+  status: noFix
+constant_pattern_with_non_constant_expression:
+  status: hasFix
+  notes: |-
+    Has fix for expression that can be made constant. More cases to be
+    implemented as per the tests.
+constant_variable_augmentation:
+  status: needsEvaluation
+continue_label_invalid:
+  status: noFix
+could_not_infer:
+  status: noFix
+default_value_already_specified_in_augmentation_chain:
+  status: needsEvaluation
+default_value_in_redirecting_factory_constructor:
+  status: needsFix
+  notes: |-
+    Remove the default value.
+default_value_on_required_parameter:
+  status: hasFix
+deferred_import_of_extension:
+  status: needsFix
+  notes: |-
+    Remove the `deferred` keyword from the import.
+definitely_unassigned_late_local_variable:
+  status: noFix
+disallowed_type_instantiation_expression:
+  status: needsFix
+  since: 2.15
+dot_shorthand_missing_context:
+  status: needsEvaluation
+dot_shorthand_undefined_getter:
+  status: hasFix
+dot_shorthand_undefined_invocation:
+  status: hasFix
+duplicate_constructor_default:
+  status: noFix
+  notes: |-
+    Theoretically we could remove all but one of the constructors, but we have
+    no way of knowing which should not be removed.
+duplicate_constructor_name:
+  status: noFix
+  notes: |-
+    Theoretically we could remove all but one of the constructors, but we have
+    no way of knowing which should not be removed.
+duplicate_definition:
+  status: noFix
+  notes: |-
+    Theoretically we could remove all but one of the constructors, but we have
+    no way of knowing which should not be removed.
+duplicate_field_name:
+  status: noFix
+  notes: |-
+    Theoretically we could remove all but one of the constructors, but we have
+    no way of knowing which should not be removed.
+duplicate_field_formal_parameter:
+  status: noFix
+  notes: |-
+    Theoretically we could remove all but one of the constructors, but we have
+    no way of knowing which should not be removed.
+duplicate_named_argument:
+  status: needsFix
+  notes: |-
+    Look for other named parameters with similar name and suggest renaming the
+    argument. If there are none that are similar enough, then we could just
+    suggest all of the names that aren't already being used.
+duplicate_part:
+  status: needsFix
+  notes: |-
+    Remove the duplicated import.
+duplicate_pattern_assignment_variable:
+  status: needsFix
+  notes: |-
+    We can suggest names from the context, as in did you mean this?
+duplicate_pattern_field:
+  status: needsFix
+  notes: |-
+    Look for other named parameters with similar name and suggest renaming the
+    argument. If there are none that are similar enough, then we could just
+    suggest all of the names that aren't already being used.
+duplicate_rest_element_in_pattern:
+  status: noFix
+  notes: |-
+    We do not know which one of the rest elements is to be removed.
+duplicate_variable_pattern:
+  status: noFix
+  notes: |-
+    We cannot figure out the intent of the user to suggest the right fix.
+empty_map_pattern:
+  status: hasFix
+enum_constant_invokes_factory_constructor:
+  status: noFix
+  since: 3.3
+enum_constant_same_name_as_enclosing:
+  status: noFix
+  notes: |-
+    The fix is to rename one of the two, but we can't know what name to use.
+enum_instantiated_to_bounds_is_not_well_bounded:
+  status: noFix
+  since: 2.17
+enum_mixin_with_instance_variable:
+  status: noFix
+  since: 2.17
+  notes: |-
+    We could potentially offer a fix that would remove the mixin, but I think it
+    would be more likely that the user needed to restructure the mixin so that
+    part of it could be included here.
+enum_with_abstract_member:
+  status: hasFix
+  since: 2.17
+enum_with_name_values:
+  status: noFix
+  since: 2.17
+  notes: |-
+    Requires a rename.
+enum_without_constants:
+  status: noFix
+equal_elements_in_const_set:
+  status: needsFix
+  notes: |-
+    Remove the duplicates.
+equal_keys_in_const_map:
+  status: needsFix
+  notes: |-
+    Remove the duplicates.
+equal_keys_in_map_pattern:
+  status: needsFix
+  notes: |-
+    Remove the duplicates.
+expected_one_list_pattern_type_arguments:
+  status: noFix
+expected_one_list_type_arguments:
+  status: noFix
+expected_one_set_type_arguments:
+  status: noFix
+expected_two_map_type_arguments:
+  status: noFix
+expected_two_map_pattern_type_arguments:
+  status: noFix
+  notes: |-
+    We do not know the user's intent here and so cannot figure out what to
+    add or delete.
+export_internal_library:
+  status: needsFix
+  notes: |-
+    Remove the export.
+export_of_non_library:
+  status: needsFix
+  notes: |-
+    Find the library containing the part being export, update the export to the
+    library, and add a show combinator (if there isn't one already) that limits
+    the export to the names defined in the part.
+expression_in_map:
+  status: needsFix
+  notes: |-
+    Based on the type, add the separator either before or after the expression.
+extends_deferred_class:
+  status: needsFix
+  notes: |-
+    Remove the `deferred` keyword from the import.
+extends_disallowed_class:
+  status: hasFix
+extends_non_class:
+  status: hasFix
+extends_type_alias_expands_to_type_parameter:
+  status: hasFix
+extension_as_expression:
+  status: noFix
+extension_conflicting_static_and_instance:
+  status: noFix
+extension_declares_member_of_object:
+  status: hasFix
+extension_declares_instance_field:
+  status: hasFix
+  notes: |-
+    Remove the field, or add `static`.
+extension_override_access_to_static_member:
+  status: hasFix
+extension_override_argument_not_assignable:
+  status: noFix
+extension_override_with_cascade:
+  status: hasFix
+extension_override_without_access:
+  status: noFix
+extension_primary_constructor:
+  status: hasFix
+extension_type_augmentation_specifies_representation_field:
+  status: needsEvaluation
+extension_type_constructor_with_super_formal_parameter:
+  status: needsFix
+  notes: |-
+    Remove it.
+extension_type_constructor_with_super_invocation:
+  status: needsFix
+extension_type_declares_instance_field:
+  status: hasFix
+  notes: |-
+    Remove the field, or add `static`.
+extension_type_declares_member_of_object:
+  status: hasFix
+extension_type_implements_disallowed_type:
+  status: noFix
+extension_type_implements_itself:
+  status: noFix
+extension_type_implements_not_supertype:
+  status: noFix
+extension_type_implements_representation_not_supertype:
+  status: noFix
+extension_type_inherited_member_conflict:
+  status: noFix
+extension_type_representation_depends_on_itself:
+  status: noFix
+extension_type_representation_type_bottom:
+  status: noFix
+extension_type_with_abstract_member:
+  status: hasFix
+external_field_constructor_initializer:
+  status: needsFix
+  notes: |-
+    Remove the `external` keyword. Remove the initializer.
+external_field_initializer:
+  status: needsFix
+  notes: |-
+    Remove the `external` keyword. Remove the initializer.
+external_variable_initializer:
+  status: needsFix
+  notes: |-
+    Remove the `external` keyword. Remove the initializer.
+extra_positional_arguments:
+  status: hasFix
+extra_positional_arguments_could_be_named:
+  status: hasFix
+factory_constructor_new_name:
+  status: needsEvaluation
+field_initialized_by_multiple_initializers:
+  status: needsFix
+  notes: |-
+    Remove all but one of the initializers.
+    Replace the field name with the name of a different field (from the
+    enclosing class).
+field_initialized_in_declaration_and_initializer_of_primary_constructor:
+  status: needsEvaluation
+  notes: |-
+    Remove all but one of the initializers.
+field_initialized_in_declaration_and_parameter_of_primary_constructor:
+  status: needsEvaluation
+field_initialized_in_initializer_and_declaration:
+  status: needsFix
+  notes: |-
+    Remove all but one of the initializers.
+field_initialized_in_parameter_and_initializer:
+  status: needsFix
+  notes: |-
+    Remove all but one of the initializers.
+field_initializer_factory_constructor:
+  status: needsFix
+  notes: |-
+    Replace the initializing formal parameter with a normal parameter.
+field_initializer_not_assignable:
+  status: noFix
+field_initializer_outside_constructor:
+  status: needsFix
+  notes: |-
+    Replace the initializing formal parameter with a normal parameter and
+    add an assignment to the field in the method.
+field_initializer_redirecting_constructor:
+  status: needsFix
+  notes: |-
+    Replace the initializing formal parameter with a normal parameter.
+field_initializing_formal_not_assignable:
+  status: noFix
+final_class_extended_outside_of_library:
+  status: hasFix
+final_class_implemented_outside_of_library:
+  status: hasFix
+final_class_used_as_mixin_constraint_outside_of_library:
+  status: noFix
+final_initialized_in_declaration_and_constructor:
+  status: needsFix
+  notes: |-
+    Remove all but one of the initializers.
+final_not_initialized:
+  status: hasFix
+final_not_initialized_constructor_1:
+  status: hasFix
+final_not_initialized_constructor_2:
+  status: hasFix
+final_not_initialized_constructor_3_plus:
+  status: hasFix
+for_in_of_invalid_element_type:
+  status: noFix
+for_in_of_invalid_type:
+  status: hasFix
+for_in_with_const_variable:
+  status: noFix
+function_already_complete:
+  status: needsEvaluation
+generic_function_type_cannot_be_bound:
+  status: noFix
+generic_function_type_cannot_be_type_argument:
+  status: noFix
+generic_method_type_instantiation_on_dynamic:
+  status: needsFix
+  since: 2.15
+getter_not_subtype_setter_types:
+  status: noFix
+if_element_condition_from_deferred_library:
+  status: needsFix
+  notes: |-
+    Remove the `deferred` keyword from the import.
+illegal_async_generator_return_type:
+  status: hasFix
+illegal_async_return_type:
+  status: hasFix
+illegal_concrete_enum_member_declaration:
+  status: noFix
+  since: 2.17
+  notes: |-
+    We could potentially offer to remove the member, but the user probably needs
+    to think about what they were trying to do and it seems more likely that the
+    right fix is to rename the member.
+illegal_concrete_enum_member_inheritance:
+  status: noFix
+  since: 2.17
+  notes: |-
+    We could potentially offer to remove the member, but the user probably needs
+    to think about what they were trying to do and it seems more likely that the
+    right fix is to rename the member.
+illegal_enum_values_declaration:
+  status: noFix
+  since: 2.17
+  notes: |-
+    While we could have a fix to remove the declaration, it seems more likely
+    that the user would want to rename it.
+illegal_enum_values_inheritance:
+  status: noFix
+  since: 2.17
+illegal_language_version_override:
+  status: noFix
+  since: 2.17
+  notes: |-
+    We could potentially offer to remove the override, or to update it to the
+    lowest legal value, but it isn't clear that either of these is the right
+    fix without knowing why the language override was added.
+illegal_sync_generator_return_type:
+  status: hasFix
+implements_deferred_class:
+  status: needsFix
+  notes: |-
+    Remove the `deferred` keyword from the import.
+implements_disallowed_class:
+  status: hasFix
+implements_non_class:
+  status: hasFix
+implements_repeated:
+  status: hasFix
+implements_super_class:
+  status: hasFix
+implements_super_class_constraint:
+  status: needsEvaluation
+implements_type_alias_expands_to_type_parameter:
+  status: hasFix
+implicit_this_reference_in_initializer:
+  status: hasFix
+implicit_super_initializer_missing_arguments:
+  status: hasFix
+induced_getter_not_complete_after_augmentations:
+  status: needsEvaluation
+induced_getter_without_body:
+  status: needsEvaluation
+induced_setter_not_complete_after_augmentations:
+  status: needsEvaluation
+induced_setter_without_body:
+  status: needsEvaluation
+import_internal_library:
+  status: hasFix
+import_of_non_library:
+  status: hasFix
+inconsistent_inheritance:
+  status: needsFix
+  notes: |-
+    Add a stub of the method that needs to be implemented.
+inconsistent_inheritance_getter_and_method:
+  status: noFix
+inconsistent_language_version_override:
+  status: needsFix
+  notes: |-
+    Replace (or add) the language override in the parts to match the library.
+inconsistent_pattern_variable_logical_or:
+  status: noFix
+  notes: |-
+    We cannot figure out the user's intent here, and so cannot generate a
+    fix that would be right.
+initializer_for_non_existent_field:
+  status: needsFix
+  notes: |-
+    Suggest a different field whose name is similar.
+initializer_for_static_field:
+  status: needsFix
+  notes: |-
+    Suggest a different field whose name is similar.
+initializing_declaring_parameter:
+  status: needsEvaluation
+initializing_formal_for_non_existent_field:
+  status: hasFix
+instance_access_to_static_member:
+  status: hasFix
+instance_access_to_static_member_of_unnamed_extension:
+  status: noFix
+  notes: |-
+    Theoretically, we could give the extension a name and then use the name to
+    access the static member.
+instance_member_access_from_factory:
+  status: noFix
+instance_member_access_from_static:
+  status: noFix
+instantiate_abstract_class:
+  status: noFix
+  notes: |-
+    Theoretically we could remove the `abstract` modifier.
+instantiate_enum:
+  status: noFix
+instantiate_type_alias_expands_to_type_parameter:
+  status: noFix
+integer_literal_imprecise_as_double:
+  status: hasFix
+integer_literal_out_of_range:
+  status: needsFix
+  notes: |-
+    Replace the literal with a constructor for `BigInt`.
+interface_class_extended_outside_of_library:
+  status: noFix
+  notes: |-
+    Theoretically we could remove the `interface` modifier from the superclass.
+invalid_annotation:
+  status: hasFix
+invalid_annotation_constant_value_from_deferred_library:
+  status: needsFix
+  notes: |-
+    Remove the `deferred` keyword from the import.
+invalid_annotation_from_deferred_library:
+  status: needsFix
+  notes: |-
+    Remove the `deferred` keyword from the import.
+invalid_assignment:
+  status: hasFix
+invalid_constant:
+  status: hasFix
+  notes: |-
+    The diagnostic is too general. It needs to be replaced with multiple more
+    specific diagnostics.
+invalid_extension_argument_count:
+  status: needsFix
+  notes: |-
+    Remove all but one of the arguments. Not clear how much value that adds.
+invalid_factory_name_not_a_class:
+  status: needsFix
+  notes: |-
+    Replace the name of the factory with the name of the class (or prefix it
+    with the name of the class if it's lowercase?).
+invalid_field_name_from_object:
+  status: noFix
+invalid_field_name_private:
+  status: needsFix
+  notes: |-
+    Make the name public.
+invalid_field_name_positional:
+  status: noFix
+invalid_implementation_override:
+  status: needsFix
+  notes: |-
+    Replace the signature with the valid signature.
+invalid_implementation_override_setter:
+  status: needsFix
+  notes: |-
+    Replace the signature with the valid signature.
+invalid_inline_function_type:
+  status: needsFix
+  notes: |-
+    Replace with the equivalent generic function type.
+invalid_modifier_on_constructor:
+  status: hasFix
+invalid_modifier_on_setter:
+  status: hasFix
+invalid_override:
+  status: hasFix
+invalid_override_setter:
+  status: hasFix
+invalid_reference_to_generative_enum_constructor:
+  status: noFix
+  since: 2.17
+invalid_reference_to_generative_enum_constructor_tearoff:
+  status: noFix
+  since: 2.17
+invalid_reference_to_this:
+  status: hasFix
+invalid_super_formal_parameter_location:
+  status: needsFix
+  since: 2.17
+invalid_type_argument_in_const_list:
+  status: noFix
+invalid_type_argument_in_const_map:
+  status: noFix
+invalid_type_argument_in_const_set:
+  status: noFix
+invalid_uri:
+  status: noFix
+invalid_use_of_covariant:
+  status: hasFix
+invalid_use_of_null_value:
+  status: noFix
+invocation_of_extension_without_call:
+  status: needsFix
+  notes: |-
+    Add a call method to the extension.
+invocation_of_non_function:
+  status: needsFix
+  notes: |-
+    Suggest similarly named functions.
+invocation_of_non_function_expression:
+  status: hasFix
+label_in_outer_scope:
+  status: noFix
+label_undefined:
+  status: needsFix
+  notes: |-
+    Suggest similarly named label.
+late_final_field_with_const_constructor:
+  status: needsFix
+  notes: |-
+    Remove `late`.
+    Remove `const`.
+late_final_local_already_assigned:
+  status: hasFix
+list_element_type_not_assignable_nullability:
+  status: hasFix
+list_element_type_not_assignable:
+  status: needsEvaluation
+main_first_positional_parameter_type:
+  status: needsFix
+  notes: |-
+    Replace the type of the first parameter.
+main_has_required_named_parameters:
+  status: needsFix
+  notes: |-
+    Remove the named parameters.
+main_has_too_many_required_positional_parameters:
+  status: needsFix
+  notes: |-
+    Remove the invalid parameters.
+main_is_not_function:
+  status: noFix
+map_entry_not_in_map:
+  status: noFix
+map_key_type_not_assignable_nullability:
+  status: hasFix
+map_key_type_not_assignable:
+  status: noFix
+map_value_type_not_assignable_nullability:
+  status: hasFix
+map_value_type_not_assignable:
+  status: noFix
+missing_const_in_list_literal:
+  status: noFix
+  notes: |-
+    Not displayed to users.
+missing_const_in_map_literal:
+  status: noFix
+  notes: |-
+    Not displayed to users.
+missing_const_in_set_literal:
+  status: noFix
+  notes: |-
+    Not displayed to users.
+missing_default_value_for_parameter:
+  status: hasFix
+missing_default_value_for_parameter_positional:
+  status: hasFix
+missing_default_value_for_parameter_with_annotation:
+  status: hasFix
+missing_named_pattern_field_name:
+  status: noFix
+missing_required_argument:
+  status: hasFix
+missing_variable_pattern:
+  status: noFix
+mixin_application_class_augmentation:
+  status: noFix
+mixin_application_concrete_super_invoked_member_type:
+  status: needsFix
+  notes: |-
+    Update the type in the mixin.
+mixin_application_no_concrete_super_invoked_member:
+  status: noFix
+mixin_application_no_concrete_super_invoked_setter:
+  status: noFix
+mixin_application_not_implemented_interface:
+  status: hasFix
+mixin_class_declaration_extends_not_object:
+  status: hasFix
+mixin_class_declaration_with_clause:
+  status: needsEvaluation
+mixin_class_declares_non_trivial_generative_constructor:
+  status: needsFix
+  notes: |-
+    Remove the constructor.
+mixin_deferred_class:
+  status: needsFix
+  notes: |-
+    Remove the `deferred` keyword from the import.
+mixin_inherits_from_not_object:
+  status: needsFix
+  notes: |-
+    Remove the extends clause.
+mixin_instantiate:
+  status: noFix
+mixin_modifier_mixin_application_class_with_multiple_mixins:
+  status: needsEvaluation
+mixin_of_disallowed_class:
+  status: hasFix
+mixin_of_non_class:
+  status: hasFix
+mixin_of_type_alias_expands_to_type_parameter:
+  status: noFix
+mixin_on_type_alias_expands_to_type_parameter:
+  status: noFix
+mixin_primary_constructor:
+  status: hasFix
+mixin_subtype_of_base_is_not_base:
+  status: hasFix
+mixin_subtype_of_final_is_not_base:
+  status: hasFix
+mixin_super_class_constraint_deferred_class:
+  status: needsFix
+  notes: |-
+    Remove the `deferred` keyword from the import.
+mixin_super_class_constraint_disallowed_class:
+  status: hasFix
+mixin_super_class_constraint_non_interface:
+  status: hasFix
+mixin_with_non_class_superclass:
+  status: hasFix
+mixins_super_class:
+  status: needsFix
+  notes: |-
+    Remove one of the uses of the class.
+multiple_redirecting_constructor_invocations:
+  status: needsFix
+  notes: |-
+    Remove all but one of the redirecting constructor invocations.
+multiple_super_initializers:
+  status: needsFix
+  notes: |-
+    Remove all but one of the redirecting constructor invocations.
+new_constructor_dot_name:
+  status: needsEvaluation
+new_constructor_new_name:
+  status: needsEvaluation
+new_constructor_qualified_name:
+  status: needsEvaluation
+new_with_non_type:
+  status: hasFix
+new_with_undefined_constructor:
+  status: hasFix
+new_with_undefined_constructor_default:
+  status: hasFix
+no_annotation_constructor_arguments:
+  status: hasFix
+no_combined_super_signature:
+  status: noFix
+no_default_super_constructor_explicit:
+  status: hasFix
+no_default_super_constructor_implicit:
+  status: hasFix
+no_generative_constructors_in_superclass:
+  status: noFix
+non_abstract_class_inherits_abstract_member_five_plus:
+  status: hasFix
+non_abstract_class_inherits_abstract_member_four:
+  status: hasFix
+non_abstract_class_inherits_abstract_member_one:
+  status: hasFix
+non_abstract_class_inherits_abstract_member_three:
+  status: hasFix
+non_abstract_class_inherits_abstract_member_two:
+  status: hasFix
+non_bool_condition:
+  status: hasFix
+non_bool_expression:
+  status: noFix
+non_bool_negation_expression:
+  status: noFix
+non_bool_operand:
+  status: noFix
+non_const_generative_enum_constructor:
+  status: hasFix
+  since: 2.17
+non_const_map_as_expression_statement:
+  status: needsFix
+  notes: |-
+    Add `const` keyword.
+non_constant_annotation_constructor:
+  status: needsFix
+  notes: |-
+    Add `const` to the constructor (if doing so would be valid).
+non_constant_case_expression:
+  status: noFix
+  notes: |-
+    I think this is a pre-3.0 only issue, so might not be worth supporting. If
+    it is worth supporting, then we could potentially add `const` to make it a
+    constant expression.
+non_constant_case_expression_from_deferred_library:
+  status: needsFix
+  notes: |-
+    Remove the `deferred` keyword from the import.
+non_constant_default_value:
+  status: needsFix
+  notes: |-
+    Add `const` if the expression can be a constant expression.
+non_constant_default_value_from_deferred_library:
+  status: needsFix
+  notes: |-
+    Remove the `deferred` keyword from the import.
+non_constant_list_element:
+  status: hasFix
+non_constant_list_element_from_deferred_library:
+  status: hasFix
+  notes: |-
+    Remove the `deferred` keyword from the import.
+non_constant_map_element:
+  status: hasFix
+non_constant_map_key:
+  status: hasFix
+non_constant_map_key_from_deferred_library:
+  status: hasFix
+  notes: |-
+    Remove the `deferred` keyword from the import.
+non_constant_map_pattern_key:
+  status: hasFix
+non_constant_map_value:
+  status: hasFix
+non_constant_map_value_from_deferred_library:
+  status: hasFix
+  notes: |-
+    Remove the `deferred` keyword from the import.
+non_constant_record_field:
+  status: noFix
+non_constant_record_field_from_deferred_library:
+  status: needsFix
+  notes: |-
+    Remove the `deferred` keyword from the import.
+non_constant_relational_pattern_expression:
+  status: hasFix
+  notes: |-
+    Make the pattern expression a constant.
+non_constant_set_element:
+  status: hasFix
+non_covariant_type_parameter_position_in_representation_type:
+  status: noFix
+non_exhaustive_switch_expression:
+  status: hasFix
+non_exhaustive_switch_expression_private:
+  status: hasFix
+non_exhaustive_switch_statement:
+  status: hasFix
+non_exhaustive_switch_statement_private:
+  status: hasFix
+non_final_field_in_enum:
+  status: hasFix
+  since: 2.17
+non_generative_constructor:
+  status: needsFix
+  notes: |-
+    Suggest generative constructors that could be invoked.
+non_generative_implicit_constructor:
+  status: needsFix
+  notes: |-
+    Suggest generative constructors that could be invoked.
+non_redirecting_generative_constructor_with_primary:
+  status: needsEvaluation
+non_sync_factory:
+  status: needsFix
+  notes: |-
+    Remove the modifier on the body.
+non_type_as_type_argument:
+  status: hasFix
+non_type_in_catch_clause:
+  status: hasFix
+non_void_return_for_operator:
+  status: needsFix
+  notes: |-
+    Change the return type to `void`.
+non_void_return_for_setter:
+  status: needsFix
+  notes: |-
+    Remove the return type.
+    Change the return type to `void`.
+not_a_type:
+  status: hasFix
+not_assigned_potentially_non_nullable_local_variable:
+  status: noFix
+not_binary_operator:
+  status: noFix
+not_enough_positional_arguments_name_plural:
+  status: hasFix
+not_enough_positional_arguments_name_singular:
+  status: hasFix
+not_enough_positional_arguments_plural:
+  status: hasFix
+not_enough_positional_arguments_singular:
+  status: hasFix
+not_initialized_non_nullable_instance_field:
+  status: hasFix
+not_initialized_non_nullable_instance_field_constructor:
+  status: noFix
+not_initialized_non_nullable_variable:
+  status: noFix
+not_instantiated_bound:
+  status: noFix
+not_iterable_spread:
+  status: noFix
+not_map_spread:
+  status: noFix
+not_null_aware_null_spread:
+  status: needsFix
+  notes: |-
+    Convert to a null-aware spread operator.
+nullable_type_in_extends_clause:
+  status: hasFix
+nullable_type_in_implements_clause:
+  status: hasFix
+nullable_type_in_on_clause:
+  status: hasFix
+nullable_type_in_with_clause:
+  status: hasFix
+object_cannot_extend_another_class:
+  status: noFix
+obsolete_colon_for_default_value:
+  status: hasFix
+on_repeated:
+  status: needsFix
+  notes: |-
+    Remove the repeated type.
+optional_parameter_in_operator:
+  status: noFix
+part_of_different_library:
+  status: noFix
+part_of_non_part:
+  status: noFix
+part_of_unnamed_library:
+  status: needsFix
+  notes: |-
+    Replace the library name with a URI.
+pattern_assignment_not_local_variable:
+  status: noFix
+pattern_constant_from_deferred_library:
+  status: needsFix
+  notes: |-
+    Remove the `deferred` keyword from the import.
+pattern_type_mismatch_in_irrefutable_context:
+  status: noFix
+pattern_variable_assignment_inside_guard:
+  status: noFix
+  notes: |-
+    We do not have enough information to figure out the user's intent with the
+    use of the variable in the pattern.
+pattern_variable_shared_case_scope_different_finality_or_type:
+  status: needsFix
+  notes: |-
+    Make all of the types / finalities the same.
+pattern_variable_shared_case_scope_has_label:
+  status: needsFix
+  notes: |-
+    If the problem is a default, split the case group into two pieces.
+pattern_variable_shared_case_scope_not_all_cases:
+  status: noFix
+positional_field_in_object_pattern:
+  status: noFix
+positional_super_formal_parameter_with_positional_argument:
+  status: hasFix
+  since: 2.17
+prefix_collides_with_top_level_member:
+  status: noFix
+prefix_identifier_not_followed_by_dot:
+  status: noFix
+prefix_shadowed_by_local_declaration:
+  status: noFix
+primary_constructor_body_with_expression_body:
+  status: hasFix
+primary_constructor_body_with_modifier:
+  status: needsEvaluation
+primary_constructor_body_without_declaration:
+  status: needsEvaluation
+primary_constructor_cannot_redirect:
+  status: needsEvaluation
+private_collision_in_mixin_application:
+  status: noFix
+private_named_parameter_duplicate_public_name:
+  status: noFix
+private_named_parameter_without_public_name:
+  status: noFix
+private_setter:
+  status: noFix
+read_potentially_unassigned_final:
+  status: noFix
+record_literal_one_positional_no_trailing_comma_by_type:
+  status: hasFix
+recursive_constant_constructor:
+  status: noFix
+recursive_compile_time_constant:
+  status: noFix
+recursive_constructor_redirect:
+  status: noFix
+recursive_factory_redirect:
+  status: noFix
+recursive_interface_inheritance:
+  status: noFix
+recursive_interface_inheritance_extends:
+  status: noFix
+recursive_interface_inheritance_implements:
+  status: noFix
+recursive_interface_inheritance_on:
+  status: noFix
+recursive_interface_inheritance_with:
+  status: noFix
+redirect_generative_to_missing_constructor:
+  status: noFix
+redirect_generative_to_non_generative_constructor:
+  status: noFix
+redirect_to_abstract_class_constructor:
+  status: noFix
+redirect_to_invalid_function_type:
+  status: noFix
+redirect_to_invalid_return_type:
+  status: noFix
+redirect_to_missing_constructor:
+  status: noFix
+redirect_to_non_class:
+  status: noFix
+redirect_to_non_const_constructor:
+  status: noFix
+redirect_to_type_alias_expands_to_type_parameter:
+  status: noFix
+referenced_before_declaration:
+  status: noFix
+refutable_pattern_in_irrefutable_context:
+  status: noFix
+relational_pattern_operand_type_not_assignable:
+  status: noFix
+relational_pattern_operator_return_type_not_assignable_to_bool:
+  status: noFix
+rest_element_in_map_pattern:
+  status: needsFix
+  issue: https://github.com/dart-lang/sdk/issues/51892
+rethrow_outside_catch:
+  status: noFix
+return_in_generative_constructor:
+  status: needsFix
+  notes: |-
+    Remove the return.
+    Convert to a factory constructor.
+return_in_generator:
+  status: needsFix
+  notes: |-
+    Replace with a yield.
+return_of_invalid_type_from_closure:
+  status: hasFix
+return_of_invalid_type_from_constructor:
+  status: noFix
+return_of_invalid_type_from_function:
+  status: hasFix
+return_of_invalid_type_from_method:
+  status: hasFix
+return_without_value:
+  status: noFix
+sealed_class_subtype_outside_of_library:
+  status: noFix
+set_element_from_deferred_library:
+  status: hasFix
+  notes: |-
+    Remove the `deferred` keyword from the import.
+set_element_type_not_assignable_nullability:
+  status: hasFix
+set_element_type_not_assignable:
+  status: noFix
+shared_deferred_prefix:
+  status: noFix
+spread_expression_from_deferred_library:
+  status: hasFix
+  notes: |-
+    Remove the `deferred` keyword from the import.
+static_access_to_instance_member:
+  status: noFix
+subtype_of_base_is_not_base_final_or_sealed:
+  status: hasFix
+subtype_of_final_is_not_base_final_or_sealed:
+  status: hasFix
+super_formal_parameter_type_is_not_subtype_of_associated:
+  status: hasFix
+  since: 2.17
+super_formal_parameter_without_associated_named:
+  status: hasFix
+super_formal_parameter_without_associated_positional:
+  status: hasFix
+super_in_enum_constructor:
+  status: noFix
+  since: 2.17
+  notes: |-
+    We could potentially offer a fix to remove the super invocation, but the
+    user really needs to think about what constructor they were trying to invoke
+    and why in order to really fix the issue.
+super_in_extension:
+  status: noFix
+  notes: |-
+    We could potentially offer a fix to remove the super invocation, but the
+    user really needs to think about what function they were trying to invoke
+    and why in order to really fix the issue.
+super_in_extension_type:
+  status: noFix
+  notes: |-
+    We could potentially offer a fix to remove the super invocation, but the
+    user really needs to think about what function they were trying to invoke
+    and why in order to really fix the issue.
+super_in_invalid_context:
+  status: noFix
+  notes: |-
+    We could potentially offer a fix to remove the super invocation, but the
+    user really needs to think about what member they were trying to invoke
+    and why in order to really fix the issue.
+super_in_redirecting_constructor:
+  status: needsFix
+  notes: |-
+    Remove the super initialize.
+    Remove the redirection.
+super_initializer_in_object:
+  status: noFix
+  notes: |-
+    Object is only declared in SDK code; those developers do OK without fixes.
+super_initializing_declaring_parameter:
+  status: needsEvaluation
+super_invocation_not_last:
+  status: hasFix
+switch_case_completes_normally:
+  status: hasFix
+tearoff_of_generative_constructor_of_abstract_class:
+  status: noFix
+  since: 2.15
+throw_of_invalid_type:
+  status: noFix
+top_level_cycle:
+  status: noFix
+type_alias_cannot_reference_itself:
+  status: noFix
+type_annotation_deferred_class:
+  status: needsFix
+  notes: |-
+    Remove the `deferred` keyword from the import.
+type_argument_not_matching_bounds:
+  status: noFix
+type_parameter_referenced_by_static:
+  status: needsFix
+  notes: |-
+    Fixes could include (1) removing the 'static' keyword, (2) changing the type
+    variable to its bound, (3) looking for similarly spelled types.
+type_parameter_supertype_of_its_bound:
+  status: noFix
+type_test_with_non_type:
+  status: needsFix
+  notes: |-
+    Fixes could include: (1) changing ` is ` to ` == ` and (2) changing the
+    right operand to the static type of the left.
+type_test_with_undefined_name:
+  status: hasFix
+unchecked_invocation_of_nullable_value:
+  status: hasFix
+unchecked_method_invocation_of_nullable_value:
+  status: hasFix
+unchecked_operator_invocation_of_nullable_value:
+  status: hasFix
+unchecked_property_access_of_nullable_value:
+  status: hasFix
+unchecked_use_of_nullable_value_as_condition:
+  status: hasFix
+unchecked_use_of_nullable_value_as_iterator:
+  status: hasFix
+unchecked_use_of_nullable_value_in_spread:
+  status: hasFix
+unchecked_use_of_nullable_value_in_yield_each:
+  status: hasFix
+unawaited_return_in_try_block:
+  status: hasFix
+undefined_annotation:
+  status: hasFix
+undefined_class:
+  status: hasFix
+undefined_class_boolean:
+  status: hasFix
+undefined_constructor_in_initializer:
+  status: needsFix
+  notes: |-
+    Fixes could include (1) adding a declaration for such constructor, (2) look
+    for closely named constructors.
+undefined_constructor_in_initializer_default:
+  status: hasFix
+undefined_enum_constant:
+  status: hasFix
+undefined_enum_constructor_named:
+  status: hasFix
+  since: 2.17
+undefined_enum_constructor_unnamed:
+  status: hasFix
+  since: 2.17
+undefined_extension_getter:
+  status: hasFix
+undefined_extension_method:
+  status: hasFix
+undefined_extension_operator:
+  status: hasFix
+undefined_extension_setter:
+  status: hasFix
+undefined_function:
+  status: hasFix
+undefined_getter:
+  status: hasFix
+undefined_getter_on_function_type:
+  status: needsFix
+  since: 2.15
+undefined_identifier:
+  status: hasFix
+undefined_identifier_await:
+  status: hasFix
+undefined_method:
+  status: hasFix
+undefined_method_on_function_type:
+  status: needsFix
+  since: 2.15
+undefined_named_parameter:
+  status: hasFix
+undefined_operator:
+  status: hasFix
+undefined_prefixed_name:
+  status: hasFix
+undefined_setter:
+  status: hasFix
+undefined_setter_on_function_type:
+  status: needsFix
+  since: 2.15
+undefined_super_getter:
+  status: needsFix
+  notes: |-
+    The fix is to create the getter, assuming the superclass is editable.
+undefined_super_method:
+  status: needsFix
+  notes: |-
+    The fix is to create the method, assuming the superclass is editable.
+undefined_super_operator:
+  status: needsFix
+  notes: |-
+    The fix is to create the operator, assuming the superclass is editable.
+undefined_super_setter:
+  status: needsFix
+  notes: |-
+    The fix is to create the setter, assuming the superclass is editable.
+unqualified_reference_to_non_local_static_member:
+  status: hasFix
+unqualified_reference_to_static_member_of_extended_type:
+  status: hasFix
+uri_does_not_exist:
+  status: hasFix
+uri_has_not_been_generated:
+  status: noFix
+uri_with_interpolation:
+  status: noFix
+use_of_native_extension:
+  status: noFix
+  since: ~2.15
+use_of_private_parameter_name:
+  status: hasFix
+use_of_void_result:
+  status: noFix
+use_primary_constructors:
+  status: hasFix
+values_declaration_in_enum:
+  status: noFix
+  since: 2.17
+  notes: |-
+    We could potentially offer to remove the member, but the user probably needs
+    to think about what they were trying to do and it seems more likely that the
+    right fix is to rename the member.
+variable_type_mismatch:
+  status: noFix
+wrong_explicit_type_parameter_variance_in_superinterface:
+  status: noFix
+wrong_number_of_parameters_for_operator:
+  status: needsFix
+  notes: |-
+    Fixes could include (1) removing all past the first parameter, and (2)
+    removing all but a singular used parameter, if only one is used.
+wrong_number_of_parameters_for_operator_minus:
+  status: needsFix
+  notes: |-
+    Fixes could include (1) removing all past the first parameter, and (2)
+    removing all but a singular used parameter, if only one is used.
+wrong_number_of_type_arguments:
+  status: hasFix
+wrong_number_of_type_arguments_constructor:
+  status: hasFix
+wrong_number_of_type_arguments_dot_shorthand_constructor:
+  status: needsEvaluation
+wrong_number_of_type_arguments_enum:
+  status: noFix
+  since: 2.17
+  notes: |-
+    We can't know which type arguments to add or remove. (We do have a fix to
+    remove all type arguments that would work here, it just isn't a very good
+    fix to suggest.)
+wrong_number_of_type_arguments_extension:
+  status: hasFix
+wrong_number_of_type_arguments_function:
+  status: needsFix
+  since: ~2.15
+wrong_number_of_type_arguments_element:
+  status: hasFix
+wrong_type_parameter_variance_in_superinterface:
+  status: noFix
+wrong_type_parameter_variance_position:
+  status: noFix
+yield_each_in_non_generator:
+  status: needsFix
+  notes: |-
+    Fixes could include: (1) change `yield` to `return` (maybe only if it
+    matches the return type) and (2) change function signature from implicit
+    sync to `sync*` or `async` to `async*`.
+yield_in_non_generator:
+  status: needsFix
+  notes: |-
+    Fixes could include: (1) change `yield` to `return` (maybe only if it
+    matches the return type)  and (2) change function signature from implicit
+    sync to `sync*` or `async` to `async*`.
+yield_each_of_invalid_type:
+  status: noFix
+yield_of_invalid_type:
+  status: hasFix
+abi_specific_integer_invalid:
+  status: noFix
+  since: ~2.16
+abi_specific_integer_mapping_extra:
+  status: needsFix
+  since: ~2.16
+abi_specific_integer_mapping_missing:
+  status: noFix
+  since: ~2.16
+abi_specific_integer_mapping_unsupported:
+  status: noFix
+  since: ~2.16
+address_position:
+  status: needsEvaluation
+  since: ~3.5
+address_receiver:
+  status: needsEvaluation
+  since: ~3.5
+annotation_on_pointer_field:
+  status: needsFix
+argument_must_be_a_constant:
+  status: noFix
+argument_must_be_native:
+  status: needsEvaluation
+compound_implements_finalizable:
+  status: noFix
+creation_of_struct_or_union:
+  status: noFix
+  since: ~2.15
+empty_struct:
+  status: noFix
+extra_annotation_on_struct_field:
+  status: needsFix
+extra_size_annotation_carray:
+  status: needsFix
+ffi_native_must_be_external:
+  status: needsFix
+  since: ~2.15
+  notes: |-
+    The fix is to add the `external` keyword.
+ffi_native_only_classes_extending_nativefieldwrapperclass1_can_be_pointer:
+  status: noFix
+  since: ~2.15
+ffi_native_unexpected_number_of_parameters:
+  status: noFix
+  since: ~2.15
+ffi_native_unexpected_number_of_parameters_with_receiver:
+  status: noFix
+  since: ~2.15
+ffi_native_invalid_duplicate_default_asset:
+  status: needsEvaluation
+ffi_native_invalid_multiple_annotations:
+  status: needsEvaluation
+field_must_be_external_in_struct:
+  status: needsFix
+  since: ~2.15
+  notes: |-
+    The fix is to add the `external` keyword.
+generic_struct_subclass:
+  status: noFix
+invalid_exception_value:
+  status: noFix
+invalid_field_type_in_struct:
+  status: noFix
+leaf_call_must_not_return_handle:
+  status: noFix
+leaf_call_must_not_take_handle:
+  status: noFix
+mismatched_annotation_on_struct_field:
+  status: noFix
+missing_annotation_on_struct_field:
+  status: noFix
+missing_exception_value:
+  status: noFix
+missing_field_type_in_struct:
+  status: noFix
+missing_size_annotation_carray:
+  status: noFix
+must_be_a_native_function_type:
+  status: noFix
+must_be_a_subtype:
+  status: noFix
+must_return_void:
+  status: noFix
+native_field_invalid_type:
+  status: needsEvaluation
+native_field_missing_type:
+  status: needsEvaluation
+native_field_not_static:
+  status: needsEvaluation
+native_function_missing_type:
+  status: needsEvaluation
+negative_variable_dimension:
+  status: noFix
+non_constant_type_argument:
+  status: noFix
+non_native_function_type_argument_to_pointer:
+  status: noFix
+non_positive_array_dimension:
+  status: noFix
+non_sized_type_argument:
+  status: noFix
+packed_annotation:
+  status: needsFix
+  notes: |-
+    The fix is to remove the extra annotation.
+packed_annotation_alignment:
+  status: noFix
+size_annotation_dimensions:
+  status: noFix
+variable_length_array_not_last:
+  status: noFix
+subtype_of_struct_class_in_extends:
+  status: hasFix
+subtype_of_struct_class_in_implements:
+  status: hasFix
+subtype_of_struct_class_in_with:
+  status: hasFix
+deprecated_colon_for_default_value:
+  status: hasFix
+deprecated_member_use:
+  status: hasFix
+deprecated_member_use_with_message:
+  status: hasFix
+import_deferred_library_with_load_function:
+  status: noFix
+unnecessary_import:
+  status: hasFix
+always_declare_return_types_of_functions:
+  status: hasFix
+always_declare_return_types_of_methods:
+  status: hasFix
+always_put_control_body_on_new_line:
+  status: hasFix
+always_put_required_named_parameters_first:
+  status: hasFix
+always_specify_types_add_type:
+  status: hasFix
+always_specify_types_replace_keyword:
+  status: hasFix
+always_specify_types_specify_type:
+  status: hasFix
+always_specify_types_split_to_types:
+  status: hasFix
+always_use_package_imports:
+  status: hasFix
+analyzer_element_model_tracking_bad:
+  status: noFix
+analyzer_element_model_tracking_more_than_one:
+  status: noFix
+analyzer_element_model_tracking_zero:
+  status: noFix
+analyzer_public_api_bad_part_directive:
+  status: noFix
+analyzer_public_api_bad_type:
+  status: noFix
+analyzer_public_api_experimental_inconsistency:
+  status: noFix
+analyzer_public_api_exports_non_public_name:
+  status: noFix
+analyzer_public_api_impl_in_public_api:
+  status: noFix
+annotate_overrides:
+  status: hasFix
+annotate_redeclares:
+  status: hasFix
+async_return_with_no_await:
+  status: hasFix
+avoid_annotating_with_dynamic:
+  status: hasFix
+avoid_bool_literals_in_conditional_expressions:
+  status: hasFix
+avoid_catches_without_on_clauses:
+  status: noFix
+  notes: |-
+    There's no way to know which type to use in the on clause.
+avoid_catching_errors_class:
+  status: noFix
+avoid_catching_errors_subclass:
+  status: noFix
+avoid_classes_with_only_static_members:
+  status: noFix
+  notes: |-
+    The fix would be to convert the static members to top-level members, but
+    that would require a refactoring.
+avoid_double_and_int_checks:
+  status: needsFix
+  notes: |-
+    The fix is to replace the type name with `num`.
+avoid_dynamic_calls:
+  status: noFix
+avoid_empty_else:
+  status: hasFix
+avoid_equals_and_hash_code_on_mutable_classes:
+  status: noFix
+  notes: |-
+    Theoretically we could remove the methods, but the fix is probably
+    appropriate so seldom that it isn't worth offering it.
+avoid_escaping_inner_quotes:
+  status: hasFix
+avoid_field_initializers_in_const_classes:
+  status: noFix
+avoid_final_parameters:
+  status: hasFix
+avoid_function_literals_in_foreach_calls:
+  status: hasFix
+avoid_futureor_void:
+  status: noFix
+  notes: |-
+    The type 'FutureOr<void>' is inherently problematic, but there is
+    no replacement for this type which will always be the best choice.
+    'Future<void>?' is usually a very good choice, but it might create
+    a need for some implementation changes, or it might be a breaking
+    change. Another possibility is to use 'void', but this could also
+    be breaking.
+avoid_implementing_value_types:
+  status: noFix
+  notes: |-
+    This lint should probably be retired in favor of explicitly marking the
+    value type class as being `base`. We might want a new lint to flag classes
+    that implement `==` but aren't marked as `base`
+    (`non_base_class_with_equals`?).
+avoid_init_to_null:
+  status: hasFix
+avoid_js_rounded_ints:
+  status: noFix
+avoid_multiple_declarations_per_line:
+  status: hasFix
+avoid_null_checks_in_equality_operators:
+  status: hasFix
+avoid_positional_boolean_parameters:
+  status: noFix
+  notes: |-
+    The fix is to make bool parameter be named parameters, but that requires a
+    refactoring.
+avoid_print:
+  status: hasFix
+avoid_private_typedef_functions:
+  status: hasFix
+avoid_redundant_argument_values:
+  status: hasFix
+avoid_relative_lib_imports:
+  status: hasFix
+avoid_renaming_method_parameters:
+  status: hasFix
+avoid_return_types_on_setters:
+  status: hasFix
+avoid_returning_null_for_void_from_function:
+  status: hasFix
+avoid_returning_null_for_void_from_method:
+  status: hasFix
+avoid_returning_this:
+  status: noFix
+  notes: |-
+    The fix would be to change the return type to `void`, but that requires a
+    refactoring. (It might not be possible to clean up all invocation sites, but
+    we could handle some of them.)
+avoid_setters_without_getters:
+  status: needsFix
+  notes: |-
+    The fix is to either add a corresponding getter or to remove the setter.
+avoid_shadowing_type_parameters:
+  status: noFix
+  notes: |-
+    The fix is to rename the type parameter, which is a refactoring.
+avoid_single_cascade_in_expression_statements:
+  status: hasFix
+avoid_slow_async_io:
+  status: needsFix
+  notes: |-
+    The fix is to use the corresponding sync method and to remove the `await`,
+    but it's probably very seldom needed, so it's low priority.
+avoid_type_to_string:
+  status: noFix
+  notes: |-
+    Theoretically we could replace some uses with `is` checks, but it's probably
+    uncommon enough to not be worth the cost.
+avoid_types_as_parameter_names_type_parameter:
+  status: noFix
+  notes: |-
+    The type variable needs to be renamed, but that's a refactoring.
+avoid_types_as_parameter_names_formal_parameter:
+  status: hasFix
+avoid_types_on_closure_parameters:
+  status: hasFix
+avoid_unnecessary_containers:
+  status: hasFix
+avoid_unused_constructor_parameters:
+  status: hasFix
+avoid_void_async:
+  status: hasFix
+avoid_web_libraries_in_flutter:
+  status: noFix
+await_only_futures:
+  status: hasFix
+camel_case_extensions:
+  status: noFix
+  notes: |-
+    The fix is to rename the extension, but that's a refactoring.
+camel_case_types:
+  status: noFix
+  notes: |-
+    The fix is to rename the type, but that's a refactoring.
+cancel_subscriptions:
+  status: noFix
+cascade_invocations:
+  status: hasFix
+cast_nullable_to_non_nullable:
+  status: hasFix
+close_sinks:
+  status: noFix
+collection_methods_unrelated_type:
+  status: noFix
+combinators_ordering:
+  status: hasFix
+comment_references:
+  status: hasFix
+  notes: |-
+    This lint should be deprecated when we have a doc-only form of import. At
+    that point this will be a warning rather than a lint.
+conditional_uri_does_not_exist:
+  status: noFix
+  notes: |-
+    The fix is to create the file, but typically that means running a generator,
+    which is outside the scope of fixes.
+constant_identifier_names:
+  status: hasFix
+  notes: |-
+    Supported for local variables.
+    Not supported for fields and top-level variables, has to be a refactoring.
+control_flow_in_finally:
+  status: noFix
+curly_braces_in_flow_control_structures:
+  status: hasFix
+dangling_library_doc_comments:
+  status: hasFix
+depend_on_referenced_packages:
+  status: needsFix
+deprecated_consistency_constructor:
+  status: needsFix
+  notes: |-
+    The fix is to either remove deprecated or to add it in the missing places.
+deprecated_consistency_field:
+  status: needsFix
+  notes: |-
+    The fix is to either remove deprecated or to add it in the missing places.
+deprecated_consistency_parameter:
+  status: needsFix
+  notes: |-
+    The fix is to either remove deprecated or to add it in the missing places.
+deprecated_member_use_from_same_package_without_message:
+  status: hasFix
+deprecated_member_use_from_same_package_with_message:
+  status: hasFix
+diagnostic_describe_all_properties:
+  status: hasFix
+directives_ordering_alphabetical:
+  status: hasFix
+directives_ordering_dart:
+  status: hasFix
+directives_ordering_exports:
+  status: hasFix
+directives_ordering_package_before_relative:
+  status: hasFix
+discarded_futures:
+  status: hasFix
+do_not_use_environment:
+  status: noFix
+document_ignores:
+  status: needsFix
+  notes: |-
+    We of course cannot generate a fix including appropriate text, but we can
+    insert a stub comment in the correct position.
+empty_catches:
+  status: hasFix
+empty_constructor_bodies:
+  status: hasFix
+empty_container_bodies:
+  status: hasFix
+empty_statements:
+  status: hasFix
+eol_at_end_of_file_missing:
+  status: hasFix
+eol_at_end_of_file_too_many:
+  status: hasFix
+erase_dart_type_extension_types:
+  status: needsEvaluation
+exhaustive_cases:
+  status: hasFix
+file_names:
+  status: noFix
+  notes: |-
+    The fix is to rename the file, but that's a refactoring.
+flutter_style_todos:
+  status: hasFix
+future_sync_value:
+  status: hasFix
+hash_and_equals:
+  status: hasFix
+implementation_imports:
+  status: noFix
+  notes: |-
+    Theoretically, once analyzer can share dartdoc's method for finding public
+    libraries that export a private one, we could offer the public libraries as
+    a replacement. But a fix is blocked on having that support available.
+implicit_call_tearoffs:
+  status: hasFix
+implicit_reopen:
+  status: hasFix
+initialize_in_field_declaration:
+  status: hasFix
+invalid_case_patterns:
+  status: hasFix
+invalid_runtime_check_with_js_interop_types_catch_clause_js_interop_type:
+  status: needsEvaluation
+invalid_runtime_check_with_js_interop_types_dart_as_js:
+  status: needsEvaluation
+  notes: |-
+    The fix is dependent on the specific types that are being used. In some
+    cases, the type test is incorrect and has no fix besides removing the test.
+    In other cases, JS interop helpers may be used to do the type test instead.
+invalid_runtime_check_with_js_interop_types_dart_is_js:
+  status: needsEvaluation
+invalid_runtime_check_with_js_interop_types_js_as_dart:
+  status: needsEvaluation
+invalid_runtime_check_with_js_interop_types_js_as_incompatible_js:
+  status: needsEvaluation
+invalid_runtime_check_with_js_interop_types_js_is_dart:
+  status: needsEvaluation
+invalid_runtime_check_with_js_interop_types_js_is_inconsistent_js:
+  status: needsEvaluation
+invalid_runtime_check_with_js_interop_types_js_is_unrelated_js:
+  status: needsEvaluation
+join_return_with_assignment:
+  status: needsFix
+leading_newlines_in_multiline_strings:
+  status: hasFix
+library_annotations:
+  status: hasFix
+library_names:
+  status: noFix
+  notes: |-
+    The fix is to rename the library (possibly to an empty name), but that's a
+    refactoring.
+library_prefixes:
+  status: noFix
+  notes: |-
+    The fix is to rename the prefix, but that's a refactoring.
+library_private_types_in_public_api:
+  status: noFix
+  notes: |-
+    The fix is to either change the type in the API (which we can't automate) or
+    to make the private type public, which (sort of) requires a refactoring.
+lines_longer_than_80_chars:
+  status: noFix
+literal_only_boolean_expressions:
+  status: noFix
+matching_super_parameters:
+  status: needsFix
+  notes: |-
+    A little tricky, but two (non-conflicting) ideas:
+    1. Rename the super-parameter if it doesn't conflict with any other
+       parameter name.
+    2. Transpose two super parameters if doing so would match up their
+       super-constructor parameters.
+migrate_design_widgets:
+  status: hasFix
+missing_code_block_language_in_doc_comment:
+  status: needsEvaluation
+missing_whitespace_between_adjacent_strings:
+  status: needsFix
+  notes: |-
+    The fix is to add the whitespace. Might require a preference to know which
+    string to add it to.
+no_adjacent_strings_in_list:
+  status: needsFix
+  notes: |-
+    The fix is to either add a comma or join the strings.
+no_default_cases:
+  status: needsFix
+  notes: |-
+    The fix is to replace the `default` with a list of cases for the existing
+    values that the default would have matched.
+no_duplicate_case_values:
+  status: hasFix
+no_dynamic_casts:
+  status: needsFix
+  notes: The easy fix is to wrap the expression in a cast.
+no_leading_underscores_for_library_prefixes:
+  status: hasFix
+no_leading_underscores_for_local_identifiers:
+  status: hasFix
+no_literal_bool_comparisons:
+  status: hasFix
+no_logic_in_create_state:
+  status: noFix
+no_raw_types:
+  status: needsFix
+  notes: |-
+    There are a few basic cases where we can look at another expression's type
+    in order to find a replacement, like `C c = C<int>()`.
+no_runtimetype_tostring:
+  status: noFix
+no_self_assignments:
+  status: needsEvaluation
+non_constant_identifier_names:
+  status: hasFix
+  notes: |-
+    Supported for local variables.
+    Not supported for fields and top-level variables, has to be a refactoring.
+noop_primitive_operations:
+  status: hasFix
+null_check_on_nullable_type_parameter:
+  status: hasFix
+  notes: |-
+    A second fix is possible, in which we make the type parameter not
+    potentially nullable, something like changing `T foo<T>()` to
+    `T foo<T extends Object>()` and `T foo<T extends num?>()` to
+    `T foo<T extends num>()`. This is particularly valuable in the first
+    case, where the choice to implicitly bound the type to `dynamic` may not
+    have been intentional.
+null_closures:
+  status: hasFix
+omit_local_variable_types:
+  status: hasFix
+omit_obvious_local_variable_types:
+  status: hasFix
+omit_obvious_property_types:
+  status: hasFix
+one_member_abstracts:
+  status: noFix
+  notes: |-
+    Theoretically we could convert the member to a top-level function, but that
+    would require a refactoring.
+only_throw_errors:
+  status: noFix
+overridden_fields:
+  status: noFix
+package_names:
+  status: noFix
+  notes: |-
+    The fix is to rename the package, but that's a refactoring.
+package_prefixed_library_names:
+  status: noFix
+  notes: |-
+    The fix is to rename the library, but that's a refactoring.
+parameter_assignments:
+  status: noFix
+  notes: |-
+    Theoretically we could assign the parameter to a local variable and replace
+    all references to the parameter with a reference to the variable, but that
+    would require choosing a name for the local variable.
+prefer_adjacent_string_concatenation:
+  status: hasFix
+prefer_asserts_in_initializer_lists:
+  status: needsFix
+  notes: |-
+    The fix is to move the assert to the initializer list.
+prefer_asserts_with_message:
+  status: noFix
+prefer_collection_literals:
+  status: hasFix
+prefer_conditional_assignment:
+  status: hasFix
+prefer_const_constructors:
+  status: hasFix
+prefer_const_constructors_in_immutables:
+  status: hasFix
+prefer_const_declarations:
+  status: hasFix
+prefer_const_literals_to_create_immutables:
+  status: hasFix
+prefer_constructors_over_static_methods:
+  status: needsFix
+  notes: |-
+    The fix is to rewrite the static method as a factory constructor.
+prefer_contains_always_false:
+  status: hasFix
+prefer_contains_always_true:
+  status: hasFix
+prefer_contains_use_contains:
+  status: hasFix
+prefer_double_quotes:
+  status: hasFix
+prefer_expression_function_bodies:
+  status: hasFix
+prefer_final_fields:
+  status: hasFix
+prefer_final_in_for_each_pattern:
+  status: hasFix
+prefer_final_in_for_each_variable:
+  status: hasFix
+prefer_final_locals:
+  status: hasFix
+prefer_final_parameters:
+  status: hasFix
+prefer_for_elements_to_map_fromiterable:
+  status: hasFix
+prefer_foreach:
+  status: hasFix
+prefer_function_declarations_over_variables:
+  status: hasFix
+prefer_generic_function_type_aliases:
+  status: hasFix
+prefer_if_elements_to_conditional_expressions:
+  status: hasFix
+prefer_if_null_operators:
+  status: hasFix
+prefer_initializing_formals:
+  status: hasFix
+prefer_inlined_adds_multiple:
+  status: hasFix
+prefer_inlined_adds_single:
+  status: hasFix
+prefer_int_literals:
+  status: hasFix
+prefer_interpolation_to_compose_strings:
+  status: hasFix
+prefer_is_empty_always_false:
+  status: hasFix
+prefer_is_empty_always_true:
+  status: hasFix
+prefer_is_empty_use_is_empty:
+  status: hasFix
+prefer_is_empty_use_is_not_empty:
+  status: hasFix
+prefer_is_not_empty:
+  status: hasFix
+prefer_is_not_operator:
+  status: hasFix
+prefer_iterable_wheretype:
+  status: hasFix
+prefer_mixin:
+  status: needsFix
+  notes: |-
+    The fix is to either rewrite the class as a mixin or add the mixin modifier.
+prefer_null_aware_method_calls:
+  status: needsFix
+  notes: |-
+    The fix is to rewrite the invocation to use `?.`.
+prefer_null_aware_operators:
+  status: hasFix
+prefer_relative_imports:
+  status: hasFix
+prefer_single_quotes:
+  status: hasFix
+prefer_spread_collections:
+  status: hasFix
+prefer_typing_uninitialized_variables_for_field:
+  status: hasFix
+prefer_typing_uninitialized_variables_for_local_variable:
+  status: hasFix
+prefer_void_to_null:
+  status: hasFix
+provide_deprecation_message:
+  status: noFix
+  notes: |-
+    Theoretically we could identify common patterns of messages in doc comments
+    and move them into the annotation, but we'll never recognize all of the
+    possible patterns.
+public_member_api_docs:
+  status: noFix
+recursive_getters:
+  status: noFix
+remove_deprecations_in_breaking_versions:
+  status: needsFix
+  notes: |-
+    We can implement the fixes indicated in the messages.yaml.
+require_trailing_commas:
+  status: hasFix
+simple_directive_paths:
+  status: hasFix
+secure_pubspec_urls:
+  status: noFix
+simplify_variable_pattern:
+  status: hasFix
+sized_box_for_whitespace:
+  status: hasFix
+sized_box_shrink_expand:
+  status: needsFix
+  notes: |-
+    The fix is to invoke a different constructor.
+slash_for_doc_comments:
+  status: hasFix
+sort_child_properties_last:
+  status: hasFix
+sort_constructors_first:
+  status: hasFix
+sort_pub_dependencies:
+  status: hasFix
+sort_unnamed_constructors_first:
+  status: hasFix
+specify_nonobvious_local_variable_types:
+  status: hasFix
+specify_nonobvious_property_types:
+  status: hasFix
+strict_top_level_inference_add_type:
+  status: hasFix
+strict_top_level_inference_replace_keyword:
+  status: noFix
+  notes: |-
+    Conceivably for variable declarations we can search some space (like the
+    library or the compilation unit) for what values are assigned, and suggest
+    the LUB of those value(s)' type(s).
+strict_top_level_inference_split_to_types:
+  status: noFix
+  notes: |-
+    Conceivably for variable declarations we can search some space (like the
+    library or the compilation unit) for what values are assigned, and suggest
+    the LUB of those value(s)' type(s).
+switch_on_type:
+  status: noFix
+tearoff_with_must_be_const_parameter:
+  status: needsEvaluation
+test_types_in_equals:
+  status: noFix
+throw_in_finally:
+  status: noFix
+tighten_type_of_initializing_formals:
+  status: needsFix
+type_annotate_public_apis:
+  status: hasFix
+type_init_formals:
+  status: hasFix
+type_literal_in_constant_pattern:
+  status: hasFix
+unawaited_futures:
+  status: hasFix
+unintended_html_in_doc_comment:
+  status: needsFix
+  notes: |-
+    The fix is to encode the angle brackets.
+unnecessary_async:
+  status: hasFix
+unnecessary_await_in_return:
+  status: hasFix
+unnecessary_brace_in_string_interps:
+  status: hasFix
+unnecessary_breaks:
+  status: hasFix
+unnecessary_const:
+  status: hasFix
+unnecessary_const_in_enum_constructor:
+  status: hasFix
+unnecessary_constructor_name:
+  status: hasFix
+unnecessary_final_with_type:
+  status: hasFix
+unnecessary_final_without_type:
+  status: hasFix
+unnecessary_getters_setters:
+  status: hasFix
+unnecessary_ignore:
+  status: hasFix
+unnecessary_ignore_file:
+  status: hasFix
+unnecessary_ignore_name:
+  status: hasFix
+unnecessary_ignore_name_file:
+  status: hasFix
+unnecessary_lambdas:
+  status: hasFix
+unnecessary_late:
+  status: hasFix
+unnecessary_library_directive:
+  status: hasFix
+unnecessary_library_name:
+  status: hasFix
+unnecessary_new:
+  status: hasFix
+no_wildcard_variable_uses:
+  status: needsEvaluation
+unnecessary_null_aware_assignments:
+  status: hasFix
+unnecessary_null_aware_operator_on_extension_on_nullable:
+  status: hasFix
+unnecessary_null_checks:
+  status: hasFix
+unnecessary_null_in_if_null_operators:
+  status: hasFix
+unnecessary_nullable_for_final_variable_declarations:
+  status: hasFix
+unnecessary_overrides:
+  status: hasFix
+unnecessary_parenthesis:
+  status: hasFix
+unnecessary_primary_constructor_body:
+  status: hasFix
+unnecessary_raw_strings:
+  status: hasFix
+unnecessary_statements:
+  status: noFix
+unnecessary_string_escapes:
+  status: hasFix
+unnecessary_string_interpolations:
+  status: hasFix
+unnecessary_this:
+  status: hasFix
+unnecessary_to_list_in_spreads:
+  status: hasFix
+unnecessary_type_name_in_constructor:
+  status: hasFix
+unnecessary_unawaited:
+  status: hasFix
+unnecessary_underscores:
+  status: hasFix
+unreachable_from_main:
+  status: hasFix
+unrelated_type_equality_checks_in_expression:
+  status: hasFix
+unrelated_type_equality_checks_in_pattern:
+  status: needsEvaluation
+unsafe_variance:
+  status: noFix
+  notes: |-
+    A type like `X Function([X])` could be replaced by `X Function()`,
+    or by `X Function([Never])`, or by `Function`, depending on the
+    situation and the preferences of the developer. There is no
+    universally applicable fix.
+use_build_context_synchronously_async_use:
+  status: noFix
+use_build_context_synchronously_wrong_mounted:
+  status: needsFix
+  notes: |-
+    We could have a fix that would replace a mounted check on the wrong element
+    to a mounted check on the right element.
+use_colored_box:
+  status: hasFix
+use_declaring_parameters:
+  status: hasFix
+use_decorated_box:
+  status: hasFix
+use_enums:
+  status: hasFix
+use_full_hex_values_for_flutter_colors:
+  status: hasFix
+use_function_type_syntax_for_parameters:
+  status: hasFix
+use_if_null_to_convert_nulls_to_bools:
+  status: hasFix
+use_is_even_rather_than_modulo:
+  status: needsFix
+use_key_in_widget_constructors:
+  status: hasFix
+use_late_for_private_fields_and_variables:
+  status: needsFix
+use_named_constants:
+  status: hasFix
+use_null_aware_elements:
+  status: hasFix
+use_raw_strings:
+  status: hasFix
+use_rethrow_when_possible:
+  status: hasFix
+use_setters_to_change_properties:
+  status: noFix
+  notes: |-
+    Theoretically we could rewrite the method to a setter, but that would
+    require a refactoring.
+use_string_buffers:
+  status: needsFix
+  notes: |-
+    It isn't clear that this occurs often enough to justify the cost.
+use_string_in_part_of_directives:
+  status: hasFix
+use_test_throws_matchers:
+  status: needsFix
+use_super_parameters_multiple:
+  status: hasFix
+use_super_parameters_single:
+  status: hasFix
+use_to_and_as_if_applicable:
+  status: noFix
+  notes: |-
+    This would require renaming the method, which is a refactoring.
+use_truncating_division:
+  status: hasFix
+valid_regexps:
+  status: noFix
+void_checks:
+  status: noFix
+camera_permissions_incompatible:
+  status: noFix
+no_touchscreen_feature:
+  status: noFix
+non_resizable_activity:
+  status: noFix
+permission_implies_unsupported_hardware:
+  status: noFix
+setting_orientation_on_activity:
+  status: noFix
+unsupported_chrome_os_feature:
+  status: noFix
+unsupported_chrome_os_hardware:
+  status: noFix
+abstract_class_member:
+  status: hasFix
+abstract_external_field:
+  status: needsFix
+  notes: |-
+    Remove either the `abstract` or the `external` keyword.
+abstract_final_base_class:
+  status: needsFix
+  notes: |-
+    Remove either the `final` or `base` keyword.
+abstract_final_interface_class:
+  status: needsFix
+  notes: |-
+    Remove either the `final` or `interface` keyword.
+abstract_late_field:
+  status: needsFix
+  notes: |-
+    Remove either the `abstract` or the `late` keyword.
+abstract_sealed_class:
+  status: needsFix
+  notes: |-
+    Remove either the `abstract` or the `sealed` keyword.
+abstract_static_field:
+  status: hasFix
+abstract_static_method:
+  status: hasFix
+annotation_on_type_argument:
+  status: needsFix
+  notes: |-
+    Remove the annotation.
+annotation_space_before_parenthesis:
+  status: needsFix
+  notes: |-
+    Remove the extra spaces
+annotation_with_type_arguments:
+  status: needsFix
+  notes: |-
+    Remove the type arguments.
+annotation_with_type_arguments_uninstantiated:
+  status: needsFix
+  notes: |-
+    Add the parens.
+async_keyword_used_as_identifier:
+  status: noFix
+base_enum:
+  status: needsEvaluation
+binary_operator_written_out:
+  status: needsFix
+  notes: |-
+    Replace with the real operand.
+break_outside_of_loop:
+  status: noFix
+catch_syntax:
+  status: needsFix
+  notes: |-
+    Add `(exception)`. (The longer form is suggested as a learning aid.)
+catch_syntax_extra_parameters:
+  status: noFix
+class_in_class:
+  status: needsFix
+  notes: |-
+    Move the inner class to the top-level.
+colon_in_place_of_in:
+  status: hasFix
+conflicting_modifiers:
+  status: needsFix
+  notes: |-
+    Remove either the left or right modifier.
+const_and_final:
+  status: needsFix
+  notes: |-
+    Remove either `const` or `final`.
+const_class:
+  status: hasFix
+const_constructor_with_body:
+  status: noFix
+const_factory:
+  status: hasFix
+const_method:
+  status: hasFix
+const_without_primary_constructor:
+  status: needsFix
+  notes: |-
+    Remove the keyword.
+    Add a primary constructor.
+constructor_with_return_type:
+  status: needsFix
+  notes: |-
+    Remove the return type
+constructor_with_type_arguments:
+  status: needsFix
+  notes: |-
+    Move the type arguments to after the class name.
+  since: ~2.15
+continue_outside_of_loop:
+  status: noFix
+continue_without_label_in_case:
+  status: needsFix
+  notes: |-
+    Suggest each of the labels that are valid.
+covariant_and_static:
+  status: needsFix
+  notes: |-
+    Remove either `covariant` or `static`.
+covariant_constructor:
+  status: noFix
+  notes: |-
+    This error code is currently unreported and constructors
+    are treated the same as members (see `COVARIANT_MEMBER`).
+covariant_member:
+  status: hasFix
+default_in_switch_expression:
+  status: hasFix
+default_value_in_function_type:
+  status: needsFix
+  notes: |-
+    Remove the default value.
+deferred_after_prefix:
+  status: needsFix
+  notes: |-
+    Move the `deferred` keyword before the prefix.
+directive_after_declaration:
+  status: needsFix
+  notes: |-
+    Move the directive to the directive section.
+duplicate_deferred:
+  status: needsFix
+  notes: |-
+    Remove the second `deferred`.
+duplicate_label_in_switch_statement:
+  status: noFix
+duplicate_prefix:
+  status: needsFix
+  notes: |-
+    Remove the duplicate.
+duplicated_modifier:
+  status: hasFix
+empty_enum_body:
+  status: noFix
+  notes: |-
+    We can't guess at the names or number of the enum constants that should be
+    added.
+empty_record_literal_with_comma:
+  status: hasFix
+empty_record_type_named_fields_list:
+  status: noFix
+  notes: |-
+    It's likely that the user just hasn't provided a named field yet, and
+    offering to remove the braces would be counter-productive.
+empty_record_type_with_comma:
+  status: hasFix
+enum_in_class:
+  status: needsFix
+  notes: |-
+    Move the nested enum to the top level.
+equality_cannot_be_equality_operand:
+  status: noFix
+expected_case_or_default:
+  status: noFix
+expected_catch_clause_body:
+  status: hasFix
+expected_class_body:
+  status: hasFix
+expected_class_member:
+  status: noFix
+expected_else_or_comma:
+  status: noFix
+expected_executable:
+  status: noFix
+expected_extension_body:
+  status: hasFix
+expected_extension_type_body:
+  status: hasFix
+expected_finally_clause_body:
+  status: hasFix
+expected_identifier_but_got_keyword:
+  status: noFix
+expected_instead:
+  status: noFix
+expected_list_or_map_literal:
+  status: needsFix
+  notes: |-
+    Add the braces or brackets for the literal.
+expected_mixin_body:
+  status: hasFix
+expected_named_type_extends:
+  status: noFix
+expected_named_type_implements:
+  status: noFix
+expected_named_type_on:
+  status: noFix
+expected_named_type_with:
+  status: noFix
+expected_representation_field:
+  status: noFix
+expected_representation_type:
+  status: noFix
+expected_string_literal:
+  status: noFix
+expected_switch_expression_body:
+  status: hasFix
+expected_switch_statement_body:
+  status: hasFix
+expected_token:
+  status: hasFix
+expected_try_statement_body:
+  status: hasFix
+expected_type_name:
+  status: noFix
+experiment_not_enabled:
+  status: hasFix
+  notes: |-
+    Currently only for dot-shorthands.
+    Update the sdk constraints.
+experiment_not_enabled_off_by_default:
+  status: needsFix
+  notes: |-
+    Add the experiment to the analysis options file.
+export_directive_after_part_directive:
+  status: needsFix
+  notes: |-
+    Move the directive to a valid place.
+extension_augmentation_has_on_clause:
+  status: hasFix
+extension_declares_abstract_member:
+  status: needsFix
+  notes: |-
+    Provide an empty body for the member.
+extension_declares_constructor:
+  status: hasFix
+extension_type_extends:
+  status: needsEvaluation
+extension_type_with:
+  status: needsEvaluation
+external_class:
+  status: hasFix
+external_constructor_with_field_initializers:
+  status: needsFix
+  notes: |-
+    Remove the `external` keyword or remove the initializers.
+external_constructor_with_initializer:
+  status: needsFix
+  notes: |-
+    Remove the `external` keyword or remove the initializers.
+external_enum:
+  status: hasFix
+external_factory_redirection:
+  status: needsFix
+  notes: |-
+    Remove the `external` keyword.
+external_factory_with_body:
+  status: needsFix
+  notes: |-
+    Remove the `external` keyword, or remove the body of the factory.
+external_getter_with_body:
+  status: needsFix
+  notes: |-
+    Remove the `external` keyword, or remove the body.
+external_late_field:
+  status: needsFix
+  notes: |-
+    Remove the `external` keyword.
+external_method_with_body:
+  status: needsFix
+  notes: |-
+    Remove the `external` keyword, or remove the body.
+external_operator_with_body:
+  status: needsFix
+  notes: |-
+    Remove the `external` keyword, or remove the body.
+external_setter_with_body:
+  status: needsFix
+  notes: |-
+    Remove the `external` keyword, or remove the body.
+external_typedef:
+  status: hasFix
+extraneous_modifier:
+  status: hasFix
+extraneous_modifier_in_extension_type:
+  status: needsEvaluation
+extraneous_modifier_in_primary_constructor:
+  status: needsEvaluation
+factory_top_level_declaration:
+  status: hasFix
+factory_with_initializers:
+  status: needsFix
+  notes: |-
+    Remove the `factory` keyword or remove the initializers.
+factory_without_body:
+  status: noFix
+field_initialized_outside_declaring_class:
+  status: noFix
+final_and_covariant:
+  status: needsFix
+  notes: |-
+    Remove either `final` or `covariant`.
+final_and_covariant_late_with_initializer:
+  status: needsFix
+  notes: |-
+    Remove either `final` or `covariant`, or remove the initializer.
+final_and_var:
+  status: needsFix
+  notes: |-
+    Remove either `final` or `var`.
+final_constructor:
+  status: hasFix
+final_enum:
+  status: hasFix
+final_method:
+  status: hasFix
+final_mixin:
+  status: hasFix
+final_mixin_class:
+  status: hasFix
+function_typed_parameter_var:
+  status: noFix
+getter_constructor:
+  status: hasFix
+getter_in_function:
+  status: needsFix
+  notes: |-
+    Move the getter outside the function, or convert the getter to a function.
+getter_with_parameters:
+  status: hasFix
+illegal_assignment_to_non_assignable:
+  status: noFix
+illegal_pattern_assignment_variable_name:
+  status: needsEvaluation
+illegal_pattern_identifier_name:
+  status: needsEvaluation
+illegal_pattern_variable_name:
+  status: needsEvaluation
+implements_before_extends:
+  status: needsFix
+  notes: |-
+    Move the extends clause first.
+implements_before_on:
+  status: needsFix
+  notes: |-
+    Move the implements after the on.
+implements_before_with:
+  status: needsFix
+  notes: |-
+    Move the implements after the with.
+import_directive_after_part_directive:
+  status: needsFix
+  notes: |-
+    Move the directive to a valid location.
+initialized_variable_in_for_each:
+  status: needsFix
+  notes: |-
+    Remove the initializer.
+interface_enum:
+  status: needsEvaluation
+interface_mixin:
+  status: hasFix
+interface_mixin_class:
+  status: hasFix
+invalid_await_in_for:
+  status: noFix
+  notes: |-
+    We could potentially remove the await, but we can't convert the loop and it
+    seems wrong to hide the second option.
+invalid_code_point:
+  status: noFix
+invalid_comment_reference:
+  status: noFix
+invalid_constant_const_prefix:
+  status: needsFix
+  notes: |-
+    Add parents around the expression following `const`.
+invalid_constant_pattern_binary:
+  status: hasFix
+invalid_constant_pattern_duplicate_const:
+  status: needsFix
+  notes: |-
+    Remove all but the first `const`.
+invalid_constant_pattern_empty_record_literal:
+  status: noFix
+invalid_constant_pattern_generic:
+  status: hasFix
+invalid_constant_pattern_negation:
+  status: hasFix
+invalid_constant_pattern_unary:
+  status: needsFix
+  notes: |-
+    Use `AddConst.new`.
+invalid_constructor_name:
+  status: noFix
+invalid_generic_function_type:
+  status: noFix
+invalid_hex_escape:
+  status: noFix
+invalid_initializer:
+  status: noFix
+invalid_inside_unary_pattern:
+  status: hasFix
+invalid_literal_in_configuration:
+  status: noFix
+invalid_operator:
+  status: noFix
+invalid_operator_questionmark_period_for_super:
+  status: needsFix
+  notes: |-
+    Replace `?.` with `.`.
+invalid_star_after_async:
+  status: needsFix
+  notes: |-
+    Convert to a block body (already an assist, maybe no work needed).
+invalid_super_in_initializer:
+  status: noFix
+invalid_sync:
+  status: needsFix
+  notes: |-
+    Convert to a block body (already an assist, maybe no work needed).
+invalid_this_in_initializer:
+  status: noFix
+invalid_unicode_escape_started:
+  status: noFix
+invalid_unicode_escape_u_bracket:
+  status: noFix
+invalid_unicode_escape_u_no_bracket:
+  status: noFix
+invalid_unicode_escape_u_started:
+  status: noFix
+invalid_use_of_covariant_in_extension:
+  status: hasFix
+invalid_use_of_identifier_augmented:
+  status: noFix
+late_pattern_variable_declaration:
+  status: hasFix
+library_directive_not_first:
+  status: needsFix
+  notes: |-
+    Move the directive.
+literal_with_class_and_new:
+  status: needsFix
+  notes: |-
+    Remove `new List.`.
+literal_with_class:
+  status: needsFix
+  notes: |-
+    Remove the `List.`.
+literal_with_new:
+  status: hasFix
+local_function_declaration_modifier:
+  status: noFix
+member_with_class_name:
+  status: noFix
+missing_assignable_selector:
+  status: noFix
+missing_assignment_in_initializer:
+  status: needsFix
+  notes: |-
+    Add the `=`.
+missing_catch_or_finally:
+  status: noFix
+missing_closing_parenthesis:
+  status: noFix
+  notes: |-
+    The targeted location isn't likely to be the right place for the paren.
+missing_const_final_var_or_type:
+  status: hasFix
+missing_enum_body:
+  status: hasFix
+missing_expression_in_initializer:
+  status: noFix
+missing_expression_in_throw:
+  status: noFix
+missing_function_body:
+  status: hasFix
+missing_function_keyword:
+  status: noFix
+missing_function_parameters:
+  status: noFix
+missing_get:
+  status: needsFix
+  notes: |-
+    Add the `get`.
+missing_identifier:
+  status: noFix
+missing_initializer:
+  status: noFix
+missing_keyword_operator:
+  status: needsFix
+  notes: |-
+    Add `operator`.
+missing_method_parameters:
+  status: needsFix
+  notes: |-
+    Add an empty parameter list.
+missing_name_for_named_parameter:
+  status: noFix
+missing_name_in_library_directive:
+  status: noFix
+missing_name_in_part_of_directive:
+  status: noFix
+missing_prefix_in_deferred_import:
+  status: noFix
+missing_primary_constructor:
+  status: needsEvaluation
+missing_primary_constructor_parameters:
+  status: needsEvaluation
+missing_star_after_sync:
+  status: needsFix
+  notes: |-
+    Remove the `sync` keyword. Add a `*`.
+missing_statement:
+  status: noFix
+missing_typedef_parameters:
+  status: hasFix
+missing_variable_in_for_each:
+  status: noFix
+mixed_parameter_groups:
+  status: noFix
+mixin_augmentation_has_on_clause:
+  status: needsEvaluation
+mixin_declares_constructor:
+  status: hasFix
+mixin_with_clause:
+  status: needsEvaluation
+modifier_out_of_order:
+  status: noFix
+  notes: |-
+    There isn't enough information to reorder them correctly. Consider making
+    this diagnostic less general so that we'll have information for a fix.
+multiple_clauses:
+  status: noFix
+  notes: |-
+    There isn't enough information to know how to fix it. Consider making this
+    diagnostic less general so that we'll have information for a fix.
+multiple_extends_clauses:
+  status: noFix
+multiple_implements_clauses:
+  status: needsFix
+  notes: |-
+    Merge the two clauses.
+multiple_library_directives:
+  status: noFix
+multiple_named_parameter_groups:
+  status: needsFix
+  notes: |-
+    Merge the groups.
+multiple_on_clauses:
+  status: needsFix
+  notes: |-
+    Merge the clauses.
+multiple_part_of_directives:
+  status: noFix
+multiple_positional_parameter_groups:
+  status: needsFix
+  notes: |-
+    Merge the groups.
+multiple_representation_fields:
+  status: needsFix
+  notes: |-
+    Remove extra fields.
+    Maybe wrap into a record.
+multiple_variance_modifiers:
+  status: noFix
+multiple_with_clauses:
+  status: needsFix
+  notes: |-
+    Merge the two clauses.
+named_function_expression:
+  status: needsFix
+  notes: |-
+    Remove the name.
+named_function_type:
+  status: needsFix
+  notes: |-
+    Replace the name with `Function`.
+named_parameter_outside_group:
+  status: needsFix
+  notes: |-
+    Move it inside a group, creating the group if it doesn't already exist.
+native_clause_in_non_sdk_code:
+  status: needsFix
+  notes: |-
+    Remove the native clause.
+native_clause_should_be_annotation:
+  status: noFix
+native_function_body_in_non_sdk_code:
+  status: needsFix
+  notes: |-
+    Remove the `native` keyword.
+non_constructor_factory:
+  status: needsFix
+  notes: |-
+    Remove the keyword `factory`.
+non_identifier_library_name:
+  status: noFix
+non_part_of_directive_in_part:
+  status: needsFix
+  notes: |-
+    Remove the directive. Move the directive to the library.
+non_string_literal_as_uri:
+  status: noFix
+normal_before_optional_parameters:
+  status: needsFix
+  notes: |-
+    Move the normal parameters before the optional.
+null_aware_cascade_out_of_order:
+  status: needsFix
+  notes: |-
+    Move the `?..` to the first operator in the chain.
+out_of_order_clauses:
+  status: noFix
+  notes: |-
+    There isn't enough information for a fix. Consider splitting this diagnostic
+    so that each variant has enough information.
+pattern_assignment_declares_variable:
+  status: hasFix
+part_of_name:
+  status: needsFix
+  notes: |-
+    Convert to URI.
+pattern_variable_declaration_outside_function_or_method:
+  status: noFix
+positional_after_named_argument:
+  status: noFix
+  notes: |-
+    This probably isn't produced anymore.
+positional_parameter_outside_group:
+  status: needsFix
+  notes: |-
+    Add the square brackets.
+prefix_after_combinator:
+  status: needsFix
+  notes: |-
+    Move the prefix before the combinators.
+private_optional_parameter:
+  status: needsFix
+  notes: |-
+    Remove the underscore
+private_named_non_field_parameter:
+  status: needsEvaluation
+record_literal_one_positional_no_trailing_comma:
+  status: hasFix
+record_type_one_positional_no_trailing_comma:
+  status: hasFix
+redirecting_constructor_with_body:
+  status: needsFix
+  notes: |-
+    Remove the body. Remove the redirection.
+redirection_in_non_factory_constructor:
+  status: needsFix
+  notes: |-
+    Remove the redirection.
+representation_field_modifier:
+  status: hasFix
+representation_field_trailing_comma:
+  status: hasFix
+sealed_enum:
+  status: needsEvaluation
+sealed_mixin:
+  status: hasFix
+sealed_mixin_class:
+  status: hasFix
+setter_constructor:
+  status: hasFix
+setter_in_function:
+  status: needsFix
+  notes: |-
+    Move the setter outside the function. Convert the setter to a function.
+stack_overflow:
+  status: noFix
+static_constructor:
+  status: hasFix
+static_getter_without_body:
+  status: hasFix
+static_operator:
+  status: hasFix
+static_setter_without_body:
+  status: hasFix
+switch_has_case_after_default_case:
+  status: needsFix
+  notes: |-
+    Move the default case to the end.
+switch_has_multiple_default_cases:
+  status: needsFix
+  notes: |-
+    Merge the bodies.
+top_level_operator:
+  status: noFix
+type_arguments_on_type_variable:
+  status: needsFix
+  notes: |-
+    Remove the type arguments
+type_before_factory:
+  status: needsFix
+  notes: |-
+    Move the `factory` before the type.
+type_parameter_on_constructor:
+  status: needsFix
+  notes: |-
+    Remove the type parameters.
+type_parameter_on_operator:
+  status: needsFix
+  notes: |-
+    Remove the type parameters.
+typedef_augmentation:
+  status: noFix
+typedef_in_class:
+  status: needsFix
+  notes: |-
+    Move the typedef to the top level.
+unexpected_token:
+  status: noFix
+unexpected_tokens:
+  status: noFix
+var_and_type:
+  status: hasFix
+var_as_type_name:
+  status: hasFix
+var_class:
+  status: needsFix
+  notes: |-
+    Remove `var`.
+var_enum:
+  status: needsFix
+  notes: |-
+    Remove `var`.
+var_return_type:
+  status: hasFix
+var_typedef:
+  status: needsFix
+  notes: |-
+    Remove `var`.
+variable_pattern_keyword_in_declaration_context:
+  status: hasFix
+void_with_type_arguments:
+  status: needsFix
+  notes: |-
+    Remove the type arguments.
+with_before_extends:
+  status: needsFix
+  notes: |-
+    Move the extends clause.
+wrong_number_of_parameters_for_setter:
+  status: needsFix
+wrong_separator_for_positional_parameter:
+  status: hasFix
+asset_does_not_exist:
+  status: noFix
+  since: ~2.15
+asset_directory_does_not_exist:
+  status: noFix
+  since: ~2.15
+  notes: |-
+    Theoretically we could offer to create the directory, but I suspect that
+    this occurs more frequently as a result of mistyping the directory path.
+asset_field_not_list:
+  status: noFix
+  since: ~2.15
+asset_missing_path:
+  status: needsFix
+  notes: We could add a path field with a blank value.
+asset_not_string:
+  status: noFix
+  since: ~2.15
+asset_not_string_or_map:
+  status: noFix
+asset_path_not_string:
+  status: noFix
+dependencies_field_not_map:
+  status: noFix
+  since: ~2.15
+deprecated_field:
+  status: needsFix
+  since: ~2.15
+flutter_field_not_map:
+  status: noFix
+  since: ~2.15
+invalid_dependency:
+  status: noFix
+invalid_covariant_modifier_in_primary_constructor:
+  status: hasFix
+invalid_platforms_field:
+  status: needsEvaluation
+missing_dependency:
+  status: hasFix
+missing_name:
+  status: hasFix
+name_not_string:
+  status: noFix
+  since: ~2.15
+path_does_not_exist:
+  status: noFix
+path_not_posix:
+  status: needsFix
+  since: ~2.15
+  notes: |-
+    If the path is a windows path, then we should be able to convert it.
+path_pubspec_does_not_exist:
+  status: noFix
+platform_value_disallowed:
+  status: needsEvaluation
+unknown_platform:
+  status: needsEvaluation
+unnecessary_dev_dependency:
+  status: needsFix
+  since: ~2.15
+  notes: |-
+    The fix is to remove the dependency
+workspace_field_not_list:
+  status: needsEvaluation
+workspace_value_not_string:
+  status: needsEvaluation
+workspace_value_not_subdirectory:
+  status: needsEvaluation
+encoding:
+  status: needsEvaluation
+illegal_character:
+  status: noFix
+missing_digit:
+  status: noFix
+missing_hex_digit:
+  status: noFix
+missing_quote:
+  status: noFix
+unexpected_dollar_in_string:
+  status: noFix
+unexpected_separator_in_number:
+  status: hasFix
+unsupported_operator:
+  status: noFix
+unterminated_multi_line_comment:
+  status: noFix
+unterminated_string_literal:
+  status: noFix
+dead_null_aware_expression:
+  status: hasFix
+invalid_null_aware_operator:
+  status: hasFix
+invalid_null_aware_operator_after_short_circuit:
+  status: hasFix
+invalid_null_aware_element:
+  status: hasFix
+invalid_null_aware_map_entry_key:
+  status: hasFix
+invalid_null_aware_map_entry_value:
+  status: hasFix
+missing_enum_constant_in_switch:
+  status: hasFix
+unnecessary_non_null_assertion:
+  status: hasFix
+unnecessary_null_assert_pattern:
+  status: hasFix
+unnecessary_null_check_pattern:
+  status: hasFix
+argument_type_not_assignable_to_error_handler:
+  status: noFix
+  notes: |-
+    Fix depends on user's intent, which can't be known.
+assignment_of_do_not_store:
+  status: noFix
+  notes: |-
+    Fix depends on user's intent, which can't be known.
+body_might_complete_normally_catch_error:
+  status: needsFix
+cast_from_null_always_fails:
+  status: noFix
+cast_from_nullable_always_fails:
+  status: noFix
+constant_pattern_never_matches_value_type:
+  status: noFix
+body_might_complete_normally_nullable:
+  status: hasFix
+dead_code:
+  status: hasFix
+dead_code_catch_following_catch:
+  status: hasFix
+dead_code_late_wildcard_variable_initializer:
+  status: hasFix
+dead_code_on_catch_subtype:
+  status: hasFix
+deprecated_export_use:
+  status: hasFix
+  notes: |-
+    A data driven fix using `replacedBy`.
+deprecated_extend:
+  status: hasFix
+deprecated_extends_function:
+  status: needsFix
+  notes: |-
+    The fix is to remove the class from the implements list.
+deprecated_implement:
+  status: hasFix
+deprecated_implements_function:
+  status: hasFix
+deprecated_instantiate:
+  status: noFix
+  notes: |-
+    The only fix would be to delete the whole instance creation expression, or
+    follow the directions in the deprecation message.
+deprecated_mixin:
+  status: needsFix
+deprecated_mixin_function:
+  status: needsFix
+  notes: |-
+    The fix is to remove `Function` from where it's referenced.
+deprecated_new_in_comment_reference:
+  status: hasFix
+deprecated_optional:
+  status: needsEvaluation
+deprecated_subclass:
+  status: hasFix
+doc_directive_argument_wrong_format:
+  status: noFix
+doc_directive_has_extra_arguments:
+  status: needsFix
+  notes: |-
+    The fix is to remove the extra arguments.
+doc_directive_has_unexpected_named_argument:
+  status: needsFix
+  notes: |-
+    The fix is to remove the unexpected named argument.
+doc_directive_missing_closing_brace:
+  status: needsFix
+  notes: Add the closing brace at the end of the line.
+doc_directive_missing_closing_tag:
+  status: needsFix
+  notes: Add the appropriate closing tag, perhaps on the line just following.
+doc_directive_missing_one_argument:
+  status: noFix
+doc_directive_missing_opening_tag:
+  status: needsFix
+  notes: |-
+    I can think of two: Offer to insert the appropriate starting tag (maybe
+    on the preceding line), and offer to change the end-tag to the start-tag.
+doc_directive_missing_three_arguments:
+  status: noFix
+doc_directive_missing_two_arguments:
+  status: noFix
+doc_directive_unknown:
+  status: noFix
+doc_import_cannot_be_deferred:
+  status: needsFix
+doc_import_cannot_have_combinators:
+  status: needsFix
+doc_import_cannot_have_configurations:
+  status: needsFix
+doc_import_cannot_have_prefix:
+  status: needsFix
+duplicate_export:
+  status: needsFix
+  notes: |-
+    One fix is to remove the duplicated export.
+duplicate_hidden_name:
+  status: hasFix
+duplicate_ignore:
+  status: needsFix
+  notes: |-
+    One fix is to remove the duplicated error code.
+duplicate_import:
+  status: hasFix
+duplicate_shown_name:
+  status: hasFix
+equal_elements_in_set:
+  status: noFix
+  notes: |-
+    Fix depends on user's intent, which can't be known.
+equal_keys_in_map:
+  status: noFix
+  notes: |-
+    Fix depends on user's intent, which can't be known.
+experimental_member_use:
+  status: needsEvaluation
+inference_failure_on_collection_literal:
+  status: noFix
+inference_failure_on_function_invocation:
+  status: noFix
+inference_failure_on_function_return_type:
+  status: noFix
+inference_failure_on_generic_invocation:
+  status: noFix
+inference_failure_on_instance_creation:
+  status: noFix
+inference_failure_on_uninitialized_variable:
+  status: noFix
+inference_failure_on_untyped_parameter:
+  status: needsFix
+  notes:
+    The fix is to add a type for the parameter. The simple version of that is to
+    use `AddTypeAnnotation`, which will add `Object?` as the type. Longer term
+    we could consider looking at uses of the parameter to try to get a more
+    accurate type.
+invalid_annotation_target:
+  status: hasFix
+invalid_await_not_required_annotation:
+  status: needsFix
+  notes: The fix is to remove the annotation.
+invalid_deprecated_extend_annotation:
+  status: needsFix
+  notes: The fix is to remove the annotation.
+invalid_deprecated_implement_annotation:
+  status: needsFix
+  notes: The fix is to remove the annotation.
+invalid_deprecated_instantiate_annotation:
+  status: needsFix
+  notes: The fix is to remove the annotation.
+invalid_deprecated_mixin_annotation:
+  status: needsFix
+  notes: The fix is to remove the annotation.
+invalid_deprecated_optional_annotation:
+  status: needsFix
+  notes: The fix is to remove the annotation.
+invalid_deprecated_subclass_annotation:
+  status: needsFix
+  notes: The fix is to remove the annotation.
+invalid_export_of_internal_element:
+  status: needsFix
+  notes: |-
+    Low priority, because this is likely not encountered often.
+
+    The fix is to update the export directive so that the name is no longer
+    exported.
+invalid_export_of_internal_element_indirectly:
+  status: needsFix
+  notes: |-
+    Low priority, because this is likely not encountered often and the only fix
+    is not likely to be the most common fix.
+
+    The fix is to update the export directive so that the member using the name
+    is no longer exported.
+invalid_factory_method_decl:
+  status: noFix
+invalid_factory_method_impl:
+  status: noFix
+invalid_internal_annotation:
+  status: hasFix
+invalid_literal_annotation:
+  status: hasFix
+invalid_language_version_override_at_sign:
+  status: needsFix
+  notes: |-
+    If we can identify enough information to do so, the fix is to rewrite the
+    comment into a valid form.
+invalid_language_version_override_equals:
+  status: needsFix
+  notes: |-
+    If we can identify enough information to do so, the fix is to rewrite the
+    comment into a valid form.
+invalid_language_version_override_greater:
+  status: needsFix
+  notes: |-
+    If we can identify enough information to do so, the fix is to rewrite the
+    comment into a valid form.
+invalid_language_version_override_location:
+  status: needsFix
+  notes: |-
+    If we can identify enough information to do so, the fix is to rewrite the
+    comment into a valid form.
+invalid_language_version_override_lower_case:
+  status: needsFix
+  notes: |-
+    If we can identify enough information to do so, the fix is to rewrite the
+    comment into a valid form.
+invalid_language_version_override_number:
+  status: needsFix
+  notes: |-
+    If we can identify enough information to do so, the fix is to rewrite the
+    comment into a valid form.
+invalid_language_version_override_prefix:
+  status: needsFix
+  notes: |-
+    If we can identify enough information to do so, the fix is to rewrite the
+    comment into a valid form.
+invalid_language_version_override_trailing_characters:
+  status: needsFix
+  notes: |-
+    If we can identify enough information to do so, the fix is to rewrite the
+    comment into a valid form.
+invalid_language_version_override_two_slashes:
+  status: needsFix
+  notes: |-
+    If we can identify enough information to do so, the fix is to rewrite the
+    comment into a valid form.
+invalid_non_virtual_annotation:
+  status: hasFix
+invalid_override_of_non_virtual_member:
+  status: noFix
+invalid_reopen_annotation:
+  status: hasFix
+invalid_use_of_do_not_submit_member:
+  status: needsEvaluation
+invalid_use_of_internal_member:
+  status: noFix
+invalid_use_of_protected_member:
+  status: noFix
+invalid_use_of_visible_for_overriding_member:
+  status: noFix
+  since: ~2.15
+invalid_use_of_visible_for_template_member:
+  status: noFix
+invalid_use_of_visible_for_testing_member:
+  status: noFix
+invalid_widget_preview_application:
+  status: needsEvaluation
+invalid_widget_preview_private_argument:
+  status: needsEvaluation
+invalid_visibility_annotation:
+  status: hasFix
+invalid_visible_outside_template_annotation:
+  status: needsEvaluation
+missing_override_of_must_be_overridden_one:
+  status: hasFix
+missing_override_of_must_be_overridden_two:
+  status: hasFix
+missing_override_of_must_be_overridden_three_plus:
+  status: hasFix
+missing_required_param:
+  status: hasFix
+missing_required_param_with_details:
+  status: hasFix
+mixin_on_sealed_class:
+  status: noFix
+  notes: |-
+    `sealed` annotation is likely to be replaced by the `sealed` keyword
+    in the next stable release.
+multiple_combinators:
+  status: hasFix
+multiple_primary_constructor_body_declarations:
+  status: needsEvaluation
+must_be_immutable:
+  status: noFix
+must_call_super:
+  status: hasFix
+non_const_argument_for_const_parameter:
+  status: needsEvaluation
+non_const_call_to_literal_constructor:
+  status: needsFix
+  notes: |-
+    The fix is to add `const` before the constructor invocation.
+non_const_call_to_literal_constructor_using_new:
+  status: hasFix
+non_nullable_equals_parameter:
+  status: needsFix
+  notes: |-
+    The fix is to remove the question mark if the parameter has one (if the
+    written type is an alias, it may not).
+nullable_type_in_catch_clause:
+  status: hasFix
+null_argument_to_non_null_type:
+  status: noFix
+  since: ~2.15
+null_check_always_fails:
+  status: hasFix
+override_on_non_overriding_field:
+  status: hasFix
+override_on_non_overriding_getter:
+  status: hasFix
+override_on_non_overriding_method:
+  status: hasFix
+override_on_non_overriding_setter:
+  status: hasFix
+pattern_never_matches_value_type:
+  status: noFix
+receiver_of_type_never:
+  status: needsFix
+  notes: |-
+    We _could_ remove the thing being received (method invocation, etc.)
+redeclare_on_non_redeclaring_member:
+  status: hasFix
+removed_lint_use:
+  status: needsFix
+replaced_lint_use:
+  status: needsFix
+return_of_do_not_store:
+  status: needsFix
+  notes: |-
+    The fix is to add the annotation to the enclosing function.
+return_of_invalid_type_from_catch_error:
+  status: noFix
+return_of_invalid_type_from_then:
+  status: noFix
+return_type_invalid_for_catch_error:
+  status: noFix
+return_type_invalid_for_then:
+  status: noFix
+sdk_version_constructor_tearoffs:
+  status: needsFix
+  since: 2.15
+sdk_version_gt_gt_gt_operator:
+  status: hasFix
+sdk_version_since:
+  status: needsFix
+  notes: |-
+    The fix would be to update the SDK constraints. The user would still need to
+    run `dart pub` before the diagnostic would go away, and there's a question
+    whether a fix that doesn't actually fix the problem is something we want.
+strict_raw_type:
+  status: needsFix
+  notes: |-
+    One fix would be to add an explicit `<dynamic>`, but we can also provide
+    more helpful fixes that pretend inference works the way the user may
+    have thought it did. For example in: `List a = <int>[];`, we can add
+    `<int>` after `List`.
+subtype_of_sealed_class:
+  status: needsFix
+  notes: |-
+    `sealed` annotation is likely to be replaced by the `sealed` keyword
+    in the next stable release.
+    Remove the sealed class in the `extends` or `implements` clause.
+    Use RemoveNameFromDeclarationClause.
+text_direction_code_point_in_comment:
+  status: hasFix
+text_direction_code_point_in_literal:
+  status: hasFix
+type_check_is_not_null:
+  status: hasFix
+type_check_is_null:
+  status: hasFix
+undefined_hidden_name:
+  status: hasFix
+undefined_referenced_parameter:
+  status: needsFix
+  notes: |-
+    Can try to find the correct parameter name.
+undefined_shown_name:
+  status: hasFix
+unignorable_ignore:
+  status: needsFix
+  notes: |-
+    Remove the ignore comment (or one code in the comment).
+unnecessary_cast_pattern:
+  status: needsFix
+  notes: |-
+    The fix is to remove the cast pattern, assuming that doing so won't produce
+    invalid code.
+unnecessary_cast:
+  status: hasFix
+unnecessary_final:
+  status: hasFix
+unnecessary_nan_comparison_false:
+  status: hasFix
+  notes: |-
+    Add another fix to remove the comparison.
+unnecessary_nan_comparison_true:
+  status: hasFix
+  notes: |-
+    Add another fix to remove the comparison.
+unnecessary_no_such_method:
+  status: needsFix
+  notes: |-
+    Remove the noSuchMethod implementation.
+unnecessary_null_comparison_always_null_false:
+  status: hasFix
+unnecessary_null_comparison_always_null_true:
+  status: hasFix
+unnecessary_null_comparison_never_null_false:
+  status: hasFix
+unnecessary_null_comparison_never_null_true:
+  status: hasFix
+unnecessary_question_mark:
+  status: hasFix
+unnecessary_set_literal:
+  status: hasFix
+unnecessary_type_check_false:
+  status: hasFix
+unnecessary_type_check_true:
+  status: hasFix
+unnecessary_wildcard_pattern:
+  status: hasFix
+unreachable_switch_case:
+  status: hasFix
+unreachable_switch_default:
+  status: hasFix
+unused_catch_clause:
+  status: hasFix
+unused_catch_stack:
+  status: hasFix
+unused_element:
+  status: hasFix
+unused_element_parameter:
+  status: hasFix
+unused_field:
+  status: hasFix
+unused_field_from_primary_constructor:
+  status: needsFix
+  notes: |-
+    We can offer a fix to remove the `final` or `var` keyword. We can also offer
+    a fix to remove the parameter wholesale (`RemoveUnusedParameter.new`).
+unused_import:
+  status: hasFix
+unused_label:
+  status: hasFix
+unused_local_variable:
+  status: hasFix
+unused_result:
+  status: noFix
+  notes: |-
+    There is no predictable common way in which a result _should_ be used.
+unused_result_with_message:
+  status: noFix
+  notes: |-
+    There is no predictable common way in which a result _should_ be used.
+unused_shown_name:
+  status: hasFix
+uri_does_not_exist_in_doc_import:
+  status: needsFix
+  notes: |-
+    The same fix as CompileTimeErrorCode.URI_DOES_NOT_EXIST
+var_with_no_type_annotation:
+  status: hasFix
+deprecated_factory_method:
+  status: hasFix

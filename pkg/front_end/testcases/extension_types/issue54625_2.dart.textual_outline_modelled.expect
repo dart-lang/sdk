@@ -1,0 +1,13 @@
+A<Object, X> Function<X extends E>() test2() => throw 0;
+
+A<X, Null> Function<X extends E>() test1() => throw 0;
+
+Null returnsNull<Y extends E>() => null;
+
+X Function<X extends E>() foo() => throw 0;
+
+class A<Supertype, Subtype extends Supertype> {}
+
+extension type E(num it) implements num {}
+
+test3() {}

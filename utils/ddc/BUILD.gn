@@ -1,0 +1,522 @@
+# Copyright (c) 2023, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+import("../../build/dart/dart_action.gni")
+import("../../runtime/runtime_args.gni")
+import("../../sdk_args.gni")
+import("../../utils/compile_platform.gni")
+import("../aot_snapshot.gni")
+import("../application_snapshot.gni")
+import("../create_timestamp.gni")
+
+sdk_outline_dill = "$root_out_dir/ddc_outline.dill"
+sdk_full_dill = "$root_out_dir/ddc_platform.dill"
+
+sdk_root = "../../sdk"
+pkg_root = "../../pkg"
+
+aot_snapshot("dartdevc_aot") {
+  main_dart = "../../pkg/dev_compiler/bin/dartdevc.dart"
+  name = "dartdevc_aot"
+  output = "$root_gen_dir/dartdevc_aot.dart.snapshot"
+}
+
+aot_snapshot("dartdevc_aot_product") {
+  main_dart = "../../pkg/dev_compiler/bin/dartdevc.dart"
+  name = "dartdevc_aot_product"
+  output = "$root_gen_dir/dartdevc_aot_product.dart.snapshot"
+
+  # dartaotruntime in the dart sdk has dart_product_config applied to it,
+  # so it is built in product mode in both release and
+  # product builds, and is only built in debug mode in debug
+  # builds. The following line ensures that the dartaotruntime
+  # and dartdevc_aot snapshot in an SDK build are
+  # always compatible with each other.
+  force_product_mode = !dart_debug
+}
+
+application_snapshot("dartdevc") {
+  main_dart = "../../pkg/dev_compiler/bin/dartdevc.dart"
+
+  training_args = [
+    "--packages",
+    rebase_path("../../.dart_tool/package_config.json", root_build_dir),
+    "--dart-sdk-summary",
+    rebase_path(sdk_outline_dill, root_build_dir),
+    "-o",
+    "dartdevc.js",
+    rebase_path("../../pkg/dev_compiler/bin/dartdevc.dart", root_build_dir),
+  ]
+
+  training_deps = [ ":ddc_platform" ]
+  training_inputs = [ sdk_outline_dill ]
+}
+
+template("dart2js_compile") {
+  assert(defined(invoker.main), "Must specify the main file")
+  main = invoker.main
+  assert(defined(invoker.out), "Must specify the out file")
+  out = invoker.out
+  rebased_main = rebase_path(main, root_build_dir)
+  rebased_output = rebase_path(out, root_build_dir)
+
+  prebuilt_dart_action(target_name) {
+    mnemonic = "DART2JS"
+    deps = invoker.deps + [ "../compiler:dart2js_platform" ]
+
+    inputs = [
+      "$root_out_dir/dart2js_platform.dill",
+      "$root_out_dir/dart2js_outline.dill",
+    ]
+    outputs = [ out ]
+
+    script = "../../pkg/compiler/lib/src/dart2js.dart"
+
+    packages = "../../.dart_tool/package_config.json"
+
+    vm_args = [ "-Dsdk_hash=$sdk_hash" ]
+
+    args = [
+      "$rebased_main",
+      "-m",
+      "--invoker=gn_build",
+      "-o$rebased_output",
+      "--no-source-maps",
+      "--platform-binaries=" + rebase_path("$root_out_dir", root_build_dir),
+    ]
+  }
+}
+
+dart2js_compile("stack_trace_mapper") {
+  main = rebase_path("../../pkg/dev_compiler/web/stack_trace_mapper.dart")
+  out = "$root_out_dir/dev_compiler/build/web/dart_stack_trace_mapper.js"
+  deps = [ ":ddc_files_stamp" ]
+}
+
+# Builds everything needed to run tests with DDC (stable) using test.dart.
+group("ddc_stable_test") {
+  deps = [
+    ":dartdevc",
+    ":ddc_stable_test_local",
+    "../../sdk:create_most_sdk",
+  ]
+}
+
+# Builds everything needed to run tests with DDC (canary) using test.dart.
+group("ddc_canary_test") {
+  deps = [
+    ":dartdevc",
+    ":ddc_canary_test_local",
+    "../../sdk:create_most_sdk",
+  ]
+}
+
+# Builds everything needed to run tests with DDC (stable) locally using
+# test.dart without --use-sdk.
+#
+# This is the same as ddc_stable_test, but skips the targets that depend on
+# building the Dart VM and create_sdk.
+group("ddc_stable_test_local") {
+  deps = [
+    ":ddc_stable_sdk",
+    ":ddc_stable_test_pkg",
+  ]
+}
+
+# Builds everything needed to run tests with DDC (stable) locally using
+# test.dart without --use-sdk.
+#
+# This is the same as ddc_stable_test,but skips the targets that depend on
+# building the Dart VM and create_sdk.
+group("ddc_canary_test_local") {
+  deps = [
+    ":ddc_canary_sdk",
+    ":ddc_canary_sdk_ddc_module",
+    ":ddc_canary_test_pkg",
+  ]
+}
+
+create_timestamp_file("ddc_files_stamp") {
+  path = rebase_path("../../pkg/dev_compiler/lib")
+  output = "$target_gen_dir/ddc_files.stamp"
+}
+
+create_timestamp_file("ddc_sdk_patch_stamp") {
+  path = rebase_path("$sdk_root/lib/_internal/js_dev_runtime")
+  output = "$target_gen_dir/ddc_sdk_patch_stamp.stamp"
+}
+
+# Compiles to JavaScript using DDC (stable) all packages imported in tests.
+# TODO(sigmund): generate a js bundle or a module that load these indirectly so
+# we can stop referring to this list of packages explicitly in the test_runner.
+group("ddc_stable_test_pkg") {
+  deps = [
+    ":ddc_test_pkg_outline",
+    ":expect_stable_js",
+    ":js_stable_js",
+    ":meta_stable_js",
+  ]
+}
+
+# Compiles to JavaScript using DDC (canary) all packages imported in tests.
+group("ddc_canary_test_pkg") {
+  deps = [
+    ":ddc_test_pkg_outline",
+    ":expect_canary_ddc_js",
+    ":expect_canary_js",
+    ":js_canary_ddc_js",
+    ":js_canary_js",
+    ":meta_canary_ddc_js",
+    ":meta_canary_js",
+  ]
+}
+
+group("ddc_test_pkg_outline") {
+  deps = [
+    ":expect_outline",
+    ":js_outline",
+    ":meta_outline",
+  ]
+}
+
+template("ddc_compile") {
+  assert(defined(invoker.package),
+         "Need 'package' in $target_name (the name of the package)")
+  assert(defined(invoker.canary), "Need 'canary' in $target_name.")
+  assert(defined(invoker.modules), "Need 'modules' in $target_name.")
+
+  if (invoker.canary) {
+    js_gen_dir = "$target_gen_dir/canary/pkg"
+  } else {
+    js_gen_dir = "$target_gen_dir/stable/pkg"
+  }
+
+  # Other optional invoker parameters:
+  #   * extra_libraries: entrypoints to include in the module as
+  #     "package:package_name/library_name.dart" (the rule implicitly adds
+  #     the default import "package:package_name/package_name.dart").
+  #   * package_dependencies: the name of other packages this package depends
+  #     on. When providing `name`, a separate `ddc_compile` target
+  #     named `${name}_js` must exist.
+  #   * args: additional args to pass to dartdevc
+
+  prebuilt_dart_action(target_name) {
+    mnemonic = "DDC"
+    script = "../../pkg/dev_compiler/bin/dartdevc.dart"
+    package_name = invoker.package
+    sdk_path = rebase_path(sdk_outline_dill, root_build_dir)
+    pkg_root = rebase_path("../../pkg", root_build_dir)
+
+    deps = [
+      ":ddc_files_stamp",
+      ":ddc_platform",
+    ]
+
+    inputs = [
+      sdk_outline_dill,
+      "$target_gen_dir/ddc_files.stamp",
+    ]
+
+    outputs = []
+    args = []
+    foreach(module, invoker.modules) {
+      outputs += [
+        "$js_gen_dir/$module/$package_name.js",
+        "$js_gen_dir/$module/$package_name.js.map",
+      ]
+
+      args += [
+        "--modules=$module",
+        "-o" +
+            rebase_path("$js_gen_dir/$module/$package_name.js", root_build_dir),
+      ]
+    }
+
+    vm_args = [ "-Dsdk_hash=$sdk_hash" ]
+
+    args += [
+      "--no-summarize",
+      "--multi-root-output-path=$pkg_root",
+      "--dart-sdk-summary=$sdk_path",
+      "package:$package_name/$package_name.dart",
+    ]
+
+    if (defined(invoker.extra_libraries)) {
+      foreach(lib, invoker.extra_libraries) {
+        args += [ "package:$package_name/$lib.dart" ]
+      }
+    }
+
+    if (defined(invoker.package_dependencies)) {
+      foreach(dep, invoker.package_dependencies) {
+        deps += [ ":${dep}_js" ]
+        args += [ "-s" + rebase_path("$out_dir/$dep.dill", root_build_dir) ]
+      }
+    }
+
+    if (defined(invoker.args)) {
+      args += invoker.args
+    }
+
+    if (invoker.canary) {
+      args += [ "--canary" ]
+    }
+  }
+}
+
+# Compiles a package to outline .dill file with the "dartdevc" target option.
+template("package_kernel_outline") {
+  assert(defined(invoker.package),
+         "Need 'package' in $target_name (the name of the package)")
+
+  module = invoker.package
+  output = "$target_gen_dir/${module}_outline.dill"
+  sdk_outline = rebase_path(sdk_outline_dill, root_build_dir)
+
+  package_config =
+      rebase_path("../../.dart_tool/package_config.json", root_build_dir)
+
+  prebuilt_dart_action(target_name) {
+    deps = [
+      ":ddc_platform",
+      "../bazel:kernel_worker_files_stamp",
+    ]
+    script = "../bazel/kernel_worker.dart"
+    outputs = [ output ]
+    args = [
+      "--packages-file",
+      package_config,
+      "--summary-only",
+      "--target",
+      "ddc",
+      "--dart-sdk-summary",
+      sdk_outline,
+      "--source",
+      "package:$module/$module.dart",
+      "--output",
+      rebase_path(output, root_build_dir),
+    ]
+    if (defined(invoker.extra_libraries)) {
+      foreach(lib, invoker.extra_libraries) {
+        args += [
+          "--source",
+          "package:$module/$lib.dart",
+        ]
+      }
+    }
+  }
+}
+
+package_kernel_outline("expect_outline") {
+  package = "expect"
+  extra_libraries = [
+    "async_helper",
+    "legacy/minitest",
+    "legacy/async_minitest",
+  ]
+}
+
+ddc_compile("expect_stable_js") {
+  package = "expect"
+  extra_libraries = [
+    "async_helper",
+    "legacy/minitest",
+    "legacy/async_minitest",
+  ]
+  canary = false
+  modules = [
+    "amd",
+    "ddc",
+  ]
+}
+
+ddc_compile("expect_canary_js") {
+  package = "expect"
+  extra_libraries = [
+    "async_helper",
+    "legacy/minitest",
+    "legacy/async_minitest",
+  ]
+  canary = true
+  modules = [ "amd" ]
+}
+
+ddc_compile("expect_canary_ddc_js") {
+  package = "expect"
+  extra_libraries = [
+    "async_helper",
+    "legacy/minitest",
+    "legacy/async_minitest",
+  ]
+  canary = true
+  modules = [ "ddc" ]
+}
+
+package_kernel_outline("js_outline") {
+  package = "js"
+  extra_libraries = [ "js_util" ]
+}
+
+ddc_compile("js_stable_js") {
+  package = "js"
+  extra_libraries = [ "js_util" ]
+  canary = false
+  modules = [
+    "amd",
+    "ddc",
+  ]
+}
+
+ddc_compile("js_canary_js") {
+  package = "js"
+  extra_libraries = [ "js_util" ]
+  canary = true
+  modules = [ "amd" ]
+}
+
+ddc_compile("js_canary_ddc_js") {
+  package = "js"
+  extra_libraries = [ "js_util" ]
+  canary = true
+  modules = [ "ddc" ]
+}
+
+package_kernel_outline("meta_outline") {
+  package = "meta"
+}
+
+ddc_compile("meta_stable_js") {
+  package = "meta"
+  canary = false
+  modules = [
+    "amd",
+    "ddc",
+  ]
+}
+
+ddc_compile("meta_canary_js") {
+  package = "meta"
+  canary = true
+  modules = [ "amd" ]
+}
+
+ddc_compile("meta_canary_ddc_js") {
+  package = "meta"
+  canary = true
+  modules = [ "ddc" ]
+}
+
+compile_platform("ddc_platform") {
+  single_root_scheme = "org-dartlang-sdk"
+  single_root_base = rebase_path("$sdk_root/", root_build_dir)
+  libraries_specification_uri = "org-dartlang-sdk:///lib/libraries.json"
+
+  args = [
+    "--target=dartdevc",
+    "dart:core",
+  ]
+
+  outputs = [
+    sdk_full_dill,
+    sdk_outline_dill,
+  ]
+}
+
+# Compiles the DDC SDK JavaScript modules from the platform .dill file.
+template("ddc_compile_sdk") {
+  assert(defined(invoker.canary), "Need 'canary' in $target_name.")
+  assert(defined(invoker.modules), "Need 'modules' in $target_name.")
+
+  # Determine one of two possible directories for the JavaScript output to be
+  # generated:
+  #
+  # out/gen/ddc
+  #          |- canary/sdk
+  #          |- stable/sdk
+  if (invoker.canary) {
+    js_gen_dir = "$target_gen_dir/canary/sdk"
+  } else {
+    js_gen_dir = "$target_gen_dir/stable/sdk"
+  }
+
+  prebuilt_dart_action(target_name) {
+    mnemonic = "DDC"
+    deps = [
+      ":ddc_files_stamp",
+      ":ddc_platform",
+    ]
+
+    inputs = [ sdk_full_dill ]
+
+    outputs = []
+    args = []
+
+    foreach(module, invoker.modules) {
+      outputs += [
+        "$js_gen_dir/$module/dart_sdk.js",
+        "$js_gen_dir/$module/dart_sdk.js.map",
+      ]
+
+      args += [
+        "--modules",
+        "$module",
+        "-o",
+        rebase_path("$js_gen_dir/$module/dart_sdk.js", root_build_dir),
+      ]
+    }
+
+    vm_args = [ "-Dsdk_hash=$sdk_hash" ]
+
+    script = "../../pkg/dev_compiler/bin/dartdevc.dart"
+
+    args += [
+      "--multi-root-scheme",
+      "org-dartlang-sdk",
+      "--multi-root-output-path",
+
+      # This path is intended to point to a version of source files used to
+      # generate the SDK JavaScript modules.
+      # The intention is that the source map locations can be linked to the
+      # orignal source files while running SDK test suites.
+      # These JavaScript files and source maps are no longer packaged into the
+      # released SDK.
+      rebase_path("$target_gen_dir/../../../dart-sdk", root_build_dir),
+      rebase_path("$sdk_full_dill", root_build_dir),
+    ]
+
+    if (invoker.canary) {
+      args += [ "--canary" ]
+    }
+  }
+}
+
+ddc_compile_sdk("ddc_stable_sdk") {
+  canary = false
+  modules = [
+    "amd",
+    "common",
+    "es6",
+    "ddc",
+  ]
+}
+
+ddc_compile_sdk("ddc_canary_sdk") {
+  canary = true
+  modules = [
+    "amd",
+    "common",
+    "es6",
+  ]
+}
+
+# Compiles the DDC SDK JavaScript modules from the platform .dill file in the
+# "ddc" module format only.
+#
+# This allows for them to be built individually (only passing one `--modules`
+# flag value) so that when also passing the `--canary` flag it will trigger
+# DDC to enable the option for the new library bundle format.
+ddc_compile_sdk("ddc_canary_sdk_ddc_module") {
+  canary = true
+  modules = [ "ddc" ]
+}

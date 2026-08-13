@@ -1,0 +1,17 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+extension E<T extends core::Object? = dynamic> on core::Set<T%> {
+  method method = self::E|method;
+  method tearoff method = self::E|get#method;
+}
+static field core::Set<core::int> set;
+static method f<T extends core::Object? = dynamic>(core::Set<self::f::T%> s) → void
+  ;
+static extension-member method E|method<T extends core::Object? = dynamic>(lowered final core::Set<self::E|method::T%> #this) → dynamic
+  ;
+static extension-member method E|get#method<T extends core::Object? = dynamic>(lowered final core::Set<self::E|get#method::T%> #this) → () → dynamic
+  return () → dynamic => self::E|method<self::E|get#method::T%>(#this);
+static method main() → void
+  ;

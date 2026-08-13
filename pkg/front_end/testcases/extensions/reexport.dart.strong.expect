@@ -1,0 +1,71 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extensions/reexport.dart:8:3: Error: 'ClashingExtension' is exported from both 'pkg/front_end/testcases/extensions/reexport_lib1.dart' and 'pkg/front_end/testcases/extensions/reexport_lib2.dart'.
+//   ClashingExtension.staticMethod(); // Error
+//   ^^^^^^^^^^^^^^^^^
+//
+import self as self;
+import "reexport_lib1.dart" as ree;
+import "reexport_lib2.dart" as ree2;
+
+import "org-dartlang-testcase:///reexport_lib.dart";
+
+static method test() → dynamic {
+  invalid-expression "pkg/front_end/testcases/extensions/reexport.dart:8:3: Error: 'ClashingExtension' is exported from both 'pkg/front_end/testcases/extensions/reexport_lib1.dart' and 'pkg/front_end/testcases/extensions/reexport_lib2.dart'.
+  ClashingExtension.staticMethod(); // Error
+  ^^^^^^^^^^^^^^^^^"{dynamic}.staticMethod();
+  ree::UniqueExtension1|staticMethod();
+  ree2::UniqueExtension2|staticMethod();
+}
+
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extensions/reexport_lib.dart:6:1: Error: 'ClashingExtension' is exported from both 'pkg/front_end/testcases/extensions/reexport_lib1.dart' and 'pkg/front_end/testcases/extensions/reexport_lib2.dart'.
+// export 'reexport_lib2.dart';
+// ^
+//
+import self as self2;
+import "dart:core" as core;
+import "reexport_lib1.dart" as ree;
+import "reexport_lib2.dart" as ree2;
+additionalExports = (ree::UniqueExtension1,
+  ree2::UniqueExtension2)
+
+export "org-dartlang-testcase:///reexport_lib1.dart";
+export "org-dartlang-testcase:///reexport_lib2.dart";
+
+static const field dynamic _exports# = #C1;
+
+library;
+import self as ree;
+import "dart:core" as core;
+
+extension ClashingExtension on core::String {
+  static method staticMethod = ree::ClashingExtension|staticMethod;
+}
+extension UniqueExtension1 on core::String {
+  static method staticMethod = ree::UniqueExtension1|staticMethod;
+}
+static extension-member method ClashingExtension|staticMethod() → dynamic {}
+static extension-member method UniqueExtension1|staticMethod() → dynamic {}
+
+library;
+import self as ree2;
+import "dart:core" as core;
+
+extension ClashingExtension on core::String {
+  static method staticMethod = ree2::ClashingExtension|staticMethod;
+}
+extension UniqueExtension2 on core::String {
+  static method staticMethod = ree2::UniqueExtension2|staticMethod;
+}
+static extension-member method ClashingExtension|staticMethod() → dynamic {}
+static extension-member method UniqueExtension2|staticMethod() → dynamic {}
+
+constants  {
+  #C1 = "{\"ClashingExtension\":\"'ClashingExtension' is exported from both 'pkg/front_end/testcases/extensions/reexport_lib1.dart' and 'pkg/front_end/testcases/extensions/reexport_lib2.dart'.\"}"
+}

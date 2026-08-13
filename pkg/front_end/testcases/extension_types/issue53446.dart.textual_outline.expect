@@ -1,0 +1,11 @@
+extension type A(num _it) {
+  void foo() {}
+}
+
+extension type B(num _it) {
+  void foo() {}
+}
+
+extension type C(num _it2) implements A {
+  void foo() {}
+}

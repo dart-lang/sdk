@@ -1,0 +1,20 @@
+main = <No Member>;
+library from "org-dartlang-test:///foo.dart" as foo {
+
+  class Foo extends dart.core::Object {
+    synthetic constructor •() → foo::Foo
+      : super dart.core::Object::•()
+      ;
+    method getThing() → foo::Foo {
+      return new foo::Bar::•();
+    }
+  }
+  class Bar extends foo::Foo {
+    synthetic constructor •() → foo::Bar
+      : super foo::Foo::•()
+      ;
+    method _getNum() → dart.core::int {
+      return 43;
+    }
+  }
+}

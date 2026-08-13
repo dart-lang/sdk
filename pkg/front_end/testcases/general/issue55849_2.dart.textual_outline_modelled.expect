@@ -1,0 +1,9 @@
+class A {
+  const A(int x);
+  const factory A.redir(int x) = A;
+}
+
+@A.redir(1)
+foo(@A.redir(2) String y) {}
+
+main() {}

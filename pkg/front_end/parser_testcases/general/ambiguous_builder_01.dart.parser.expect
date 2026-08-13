@@ -1,0 +1,15 @@
+NOTICE: Stream was rewritten by parser!
+
+x(){}.y = 42;
+x(){}.z = true;
+void foo() {
+if (x != null) {}
+}
+
+
+x[StringToken]([SyntheticBeginToken])[SyntheticToken]{[SyntheticBeginToken]}[SyntheticToken].[SimpleToken]y[StringToken] =[SimpleToken] 42[StringToken];[SimpleToken]
+x[StringToken]([SyntheticBeginToken])[SyntheticToken]{[SyntheticBeginToken]}[SyntheticToken].[SimpleToken]z[StringToken] =[SimpleToken] true[KeywordToken];[SimpleToken]
+void[KeywordToken] foo[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] !=[SimpleToken] null[KeywordToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

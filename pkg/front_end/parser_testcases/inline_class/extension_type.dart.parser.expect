@@ -1,0 +1,51 @@
+NOTICE: Stream was rewritten by parser!
+
+extension type ExtensionType1(int it) {}
+extension type ExtensionType2(int it) implements ExtensionType1, int {}
+extension type ExtensionType3<T extends num>(T it) {}
+extension type ExtensionType4(int it) {
+ExtensionType4.constructor(this.it);
+ExtensionType4.redirect(int it) : this(it);
+factory ExtensionType4.fact(int it) => ExtensionType4(it);
+factory ExtensionType4.redirectingFactory(int it) = ExtensionType4;
+
+int field = 42;
+int get getter => it;
+void set setter(int value) {}
+int method() => it;
+int operator[](int index) => it;
+void operator[]=(int index, int value) {}
+
+static int staticField = 42;
+static int get staticGetter => 42;
+static void set staticSetter(int value) {}
+static int staticMethod() => 42;
+}
+extension type ExtensionType5.new(int it) {}
+extension type ExtensionType6.id(int it) {}
+extension type ExtensionType7<T extends num>.id(int it) {}
+
+extension[KeywordToken] type[StringToken] ExtensionType1[StringToken]([BeginToken]int[StringToken] it[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] ExtensionType2[StringToken]([BeginToken]int[StringToken] it[StringToken])[SimpleToken] implements[KeywordToken] ExtensionType1[StringToken],[SimpleToken] int[StringToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] ExtensionType3[StringToken]<[BeginToken]T[StringToken] extends[KeywordToken] num[StringToken]>[SimpleToken]([BeginToken]T[StringToken] it[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] ExtensionType4[StringToken]([BeginToken]int[StringToken] it[StringToken])[SimpleToken] {[BeginToken]
+ExtensionType4[StringToken].[SimpleToken]constructor[StringToken]([BeginToken]this[KeywordToken].[SimpleToken]it[StringToken])[SimpleToken];[SimpleToken]
+ExtensionType4[StringToken].[SimpleToken]redirect[StringToken]([BeginToken]int[StringToken] it[StringToken])[SimpleToken] :[SimpleToken] this[KeywordToken]([BeginToken]it[StringToken])[SimpleToken];[SimpleToken]
+factory[KeywordToken] ExtensionType4[StringToken].[SimpleToken]fact[StringToken]([BeginToken]int[StringToken] it[StringToken])[SimpleToken] =>[SimpleToken] ExtensionType4[StringToken]([BeginToken]it[StringToken])[SimpleToken];[SimpleToken]
+factory[KeywordToken] ExtensionType4[StringToken].[SimpleToken]redirectingFactory[StringToken]([BeginToken]int[StringToken] it[StringToken])[SimpleToken] =[SimpleToken] ExtensionType4[StringToken];[SimpleToken]
+
+int[StringToken] field[StringToken] =[SimpleToken] 42[StringToken];[SimpleToken]
+int[StringToken] get[KeywordToken] getter[StringToken] =>[SimpleToken] it[StringToken];[SimpleToken]
+void[KeywordToken] set[KeywordToken] setter[StringToken]([BeginToken]int[StringToken] value[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+int[StringToken] method[StringToken]([BeginToken])[SimpleToken] =>[SimpleToken] it[StringToken];[SimpleToken]
+int[StringToken] operator[KeywordToken][][SimpleToken]([BeginToken]int[StringToken] index[StringToken])[SimpleToken] =>[SimpleToken] it[StringToken];[SimpleToken]
+void[KeywordToken] operator[KeywordToken][]=[SimpleToken]([BeginToken]int[StringToken] index[StringToken],[SimpleToken] int[StringToken] value[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+static[KeywordToken] int[StringToken] staticField[StringToken] =[SimpleToken] 42[StringToken];[SimpleToken]
+static[KeywordToken] int[StringToken] get[KeywordToken] staticGetter[StringToken] =>[SimpleToken] 42[StringToken];[SimpleToken]
+static[KeywordToken] void[KeywordToken] set[KeywordToken] staticSetter[StringToken]([BeginToken]int[StringToken] value[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+static[KeywordToken] int[StringToken] staticMethod[StringToken]([BeginToken])[SimpleToken] =>[SimpleToken] 42[StringToken];[SimpleToken]
+}[SimpleToken]
+extension[KeywordToken] type[StringToken] ExtensionType5[StringToken].[SimpleToken]new[StringToken]([BeginToken]int[StringToken] it[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] ExtensionType6[StringToken].[SimpleToken]id[StringToken]([BeginToken]int[StringToken] it[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] ExtensionType7[StringToken]<[BeginToken]T[StringToken] extends[KeywordToken] num[StringToken]>[SimpleToken].[SimpleToken]id[StringToken]([BeginToken]int[StringToken] it[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken][SimpleToken]

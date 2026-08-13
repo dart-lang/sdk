@@ -1,0 +1,9 @@
+org-dartlang-testcase:///main.dart:
+import "foo.dart";
+class X extends Foo {}
+
+
+
+
+org-dartlang-testcase:///foo.dart:
+class Foo {}

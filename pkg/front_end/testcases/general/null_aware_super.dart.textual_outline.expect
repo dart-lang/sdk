@@ -1,0 +1,9 @@
+class Super {
+  Super.named();
+}
+
+class Class extends Super {
+  Class() : super?.named();
+}
+
+main() {}

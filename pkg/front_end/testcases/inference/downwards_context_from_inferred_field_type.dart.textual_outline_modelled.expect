@@ -1,0 +1,11 @@
+library test;
+
+abstract class A {
+  Iterable<String> get foo;
+}
+
+class B implements A {
+  final foo = const [];
+}
+
+void main() {}

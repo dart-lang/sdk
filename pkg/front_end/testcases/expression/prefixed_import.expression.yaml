@@ -1,0 +1,22 @@
+# Copyright (c) 2024, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+entry_point: a1.dart
+sources:
+  a1.dart: |
+    import 'a2.dart' as ext;
+
+    void stopHere() {
+      ext.foo();
+    }
+  a2.dart: |
+    void foo() {}
+definitions: []
+definition_types: []
+type_definitions: []
+type_bounds: []
+type_defaults: []
+method: "stopHere"
+expression: |
+  ext.foo()

@@ -1,0 +1,85 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/coverage/anonymous_methods/block_explicitly_wrongly_typed.dart:6:6: Error: The receiver type 'int' must be assignable to the formal parameter type 'String' in an anonymous method.
+// Try removing the parameter type, or make it a supertype of the receiver type.
+//   1.(String p) { // Error
+//      ^
+//
+// pkg/front_end/testcases/coverage/anonymous_methods/block_explicitly_wrongly_typed.dart:9:7: Error: The receiver type 'int' must be assignable to the formal parameter type 'String' in an anonymous method.
+// Try removing the parameter type, or make it a supertype of the receiver type.
+//   1?.(String p) { // Error
+//       ^
+//
+// pkg/front_end/testcases/coverage/anonymous_methods/block_explicitly_wrongly_typed.dart:12:7: Error: The receiver type 'int' must be assignable to the formal parameter type 'String' in an anonymous method.
+// Try removing the parameter type, or make it a supertype of the receiver type.
+//   1..(String p) { // Error
+//       ^
+//
+// pkg/front_end/testcases/coverage/anonymous_methods/block_explicitly_wrongly_typed.dart:15:8: Error: The receiver type 'int' must be assignable to the formal parameter type 'String' in an anonymous method.
+// Try removing the parameter type, or make it a supertype of the receiver type.
+//   1?..(String p) { // Error
+//        ^
+//
+import self as self;
+import "dart:core" as core;
+
+static method test() → void {
+  {
+    core::String p = invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/block_explicitly_wrongly_typed.dart:6:6: Error: The receiver type 'int' must be assignable to the formal parameter type 'String' in an anonymous method.
+Try removing the parameter type, or make it a supertype of the receiver type.
+  1.(String p) { // Error
+     ^" in 1 as{TypeError} core::String;
+    Null #t1;
+    #L1:
+    {
+      p;
+    }
+  }
+  let core::int #t2 = invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/block_explicitly_wrongly_typed.dart:9:7: Error: The receiver type 'int' must be assignable to the formal parameter type 'String' in an anonymous method.
+Try removing the parameter type, or make it a supertype of the receiver type.
+  1?.(String p) { // Error
+      ^" in 1 as{TypeError} core::String in #t2 == null ?{Null} null : block {
+    core::String p = #t2 as core::String;
+    Null #t3;
+    #L2:
+    {
+      p;
+    }
+  } =>#t3;
+  let final core::int #t4 = 1 in block {
+    {
+      core::String p = invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/block_explicitly_wrongly_typed.dart:12:7: Error: The receiver type 'int' must be assignable to the formal parameter type 'String' in an anonymous method.
+Try removing the parameter type, or make it a supertype of the receiver type.
+  1..(String p) { // Error
+      ^" in #t4 as{TypeError} core::String;
+      Null #t5;
+      #L3:
+      {
+        p;
+      }
+    }
+  } =>#t4;
+  let final core::int #t6 = 1 in #t6 == null ?{core::int} #t6 : block {
+    {
+      core::String p = invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/block_explicitly_wrongly_typed.dart:15:8: Error: The receiver type 'int' must be assignable to the formal parameter type 'String' in an anonymous method.
+Try removing the parameter type, or make it a supertype of the receiver type.
+  1?..(String p) { // Error
+       ^" in #t6 as{TypeError} core::String as{Unchecked} core::String;
+      Null #t7;
+      #L4:
+      {
+        p;
+      }
+    }
+  } =>#t6;
+}
+
+
+Extra constant evaluation status:
+Evaluated: VariableGet @ org-dartlang-testcase:///block_explicitly_wrongly_typed.dart:12:3 -> IntConstant(1)
+Evaluated: EqualsNull @ org-dartlang-testcase:///block_explicitly_wrongly_typed.dart:15:3 -> BoolConstant(false)
+Evaluated: VariableGet @ org-dartlang-testcase:///block_explicitly_wrongly_typed.dart:15:3 -> IntConstant(1)
+Evaluated: VariableGet @ org-dartlang-testcase:///block_explicitly_wrongly_typed.dart:15:3 -> IntConstant(1)
+Extra constant evaluation: evaluated: 22, effectively constant: 4

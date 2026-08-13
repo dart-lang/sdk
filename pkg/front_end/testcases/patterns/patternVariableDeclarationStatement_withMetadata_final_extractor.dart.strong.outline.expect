@@ -1,0 +1,7 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static const field core::int annotation = 0;
+static method f(dynamic x) → dynamic
+  ;

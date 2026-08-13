@@ -1,0 +1,24 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Super extends core::Object {
+  field core::int superInstanceField;
+  field dynamic untypedSuperInstanceField;
+  synthetic constructor •() → self::Super
+    ;
+}
+class C extends self::Super {
+  field core::int instanceField;
+  field dynamic untypedInstanceField;
+  static field core::double staticField;
+  static field dynamic untypedStaticField;
+  synthetic constructor •() → self::C
+    ;
+  method m() → dynamic
+    ;
+}
+static field core::bool topLevelField;
+static field dynamic untypedTopLevelField;
+static method main() → dynamic
+  ;

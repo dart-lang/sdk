@@ -1,0 +1,4 @@
+extension type ET1(int id) {
+  static int get _ => 1;
+  static int _ = 1;
+}

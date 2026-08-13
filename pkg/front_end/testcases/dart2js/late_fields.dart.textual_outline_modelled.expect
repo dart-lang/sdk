@@ -1,0 +1,18 @@
+class C {
+  late final int b;
+  late final int d = -1;
+  late int a;
+  late int c = -1;
+}
+
+var c = C();
+
+void main() {}
+
+void testInitializedFinalInstanceField() {}
+
+void testInitializedNonFinalInstanceField() {}
+
+void testUninitializedFinalInstanceField() {}
+
+void testUninitializedNonFinalInstanceField() {}

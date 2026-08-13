@@ -1,0 +1,17 @@
+class A {
+Stream<List<>>
+}
+
+class B {
+List<>
+}
+
+
+class[KeywordToken] A[StringToken] {[BeginToken]
+Stream[StringToken]<[BeginToken]List[StringToken]<[BeginToken]>>[SimpleToken]
+}[SimpleToken]
+
+class[KeywordToken] B[StringToken] {[BeginToken]
+List[StringToken]<[BeginToken]>[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

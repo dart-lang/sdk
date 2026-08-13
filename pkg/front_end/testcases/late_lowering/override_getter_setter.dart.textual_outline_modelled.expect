@@ -1,0 +1,20 @@
+class A {
+  late final int? y;
+  late final int x;
+}
+
+class B extends A {
+  int? get y => 1;
+  int get x => 1;
+}
+
+class C extends A {
+  late final int? y = 2;
+  late final int x = 2;
+}
+
+expect(expected, actual) {}
+
+main() {}
+
+throws(f(), String message) {}

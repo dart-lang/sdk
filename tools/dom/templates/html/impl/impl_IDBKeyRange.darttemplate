@@ -1,0 +1,23 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+part of $LIBRARYNAME;
+
+$(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
+  factory KeyRange.only(/*Key*/ value) =>
+      _KeyRangeFactoryProvider.create$(CLASSNAME)_only(value);
+
+  factory KeyRange.lowerBound(/*Key*/ bound, [bool open = false]) =>
+      _KeyRangeFactoryProvider.create$(CLASSNAME)_lowerBound(bound, open);
+
+  factory KeyRange.upperBound(/*Key*/ bound, [bool open = false]) =>
+      _KeyRangeFactoryProvider.create$(CLASSNAME)_upperBound(bound, open);
+
+  factory KeyRange.bound(/*Key*/ lower, /*Key*/ upper,
+                            [bool lowerOpen = false, bool upperOpen = false]) =>
+      _KeyRangeFactoryProvider.create$(CLASSNAME)_bound(
+          lower, upper, lowerOpen, upperOpen);
+
+$!MEMBERS
+}

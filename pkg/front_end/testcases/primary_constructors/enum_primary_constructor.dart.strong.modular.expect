@@ -1,0 +1,216 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/primary_constructors/enum_primary_constructor.dart:49:3: Error: Only redirecting factory constructors can be declared to be 'const'.
+// Try removing the 'const' keyword, or replacing the body with '=' followed by a valid target.
+//   const factory fact(int? c) => E7(c); // Error
+//   ^^^^^
+//
+// pkg/front_end/testcases/primary_constructors/enum_primary_constructor.dart:69:3: Error: A const constructor can't have a body.
+// Try removing either the 'const' keyword or the body.
+//   const new(this.c) {} // Error
+//   ^^^^^
+//
+// pkg/front_end/testcases/primary_constructors/enum_primary_constructor.dart:70:21: Error: A generative enum constructor can't have a body.
+// Try removing the constructor body.
+//   new named(this.c) {} // Error
+//                     ^
+//
+// pkg/front_end/testcases/primary_constructors/enum_primary_constructor.dart:50:36: Error: Enum factory constructors can't redirect to generative constructors.
+//   const factory redirect(int? c) = E7; // Error
+//                                    ^
+//
+// pkg/front_end/testcases/primary_constructors/enum_primary_constructor.dart:61:30: Error: Enum factory constructors can't redirect to generative constructors.
+//   factory redirect(int? c) = E8; // Error
+//                              ^
+//
+// pkg/front_end/testcases/primary_constructors/enum_primary_constructor.dart:49:33: Error: Enums can't be instantiated.
+//   const factory fact(int? c) => E7(c); // Error
+//                                 ^^
+//
+// pkg/front_end/testcases/primary_constructors/enum_primary_constructor.dart:60:27: Error: Enums can't be instantiated.
+//   factory fact(int? c) => E8(c); // Error
+//                           ^^
+//
+// pkg/front_end/testcases/primary_constructors/enum_primary_constructor.dart:19:14: Error: Final field 'b' is not initialized.
+// Try to initialize the field in the declaration or in every constructor.
+//   final int? b; // Error
+//              ^
+//
+// pkg/front_end/testcases/primary_constructors/enum_primary_constructor.dart:22:14: Error: Enum constructors are constant so all fields must be final.
+// enum const E4() { // Error
+//              ^
+// pkg/front_end/testcases/primary_constructors/enum_primary_constructor.dart:25:8: Context: Field isn't final, but constructor is 'const'.
+//   int? b;
+//        ^
+//
+// pkg/front_end/testcases/primary_constructors/enum_primary_constructor.dart:65:3: Error: A const constructor can't have a body.
+// Try removing either the 'const' keyword or the body.
+//   a(0),
+//   ^
+//
+// pkg/front_end/testcases/primary_constructors/enum_primary_constructor.dart:66:5: Error: A const constructor can't have a body.
+// Try removing either the 'const' keyword or the body.
+//   b.named(1);
+//     ^
+//
+import self as self;
+import "dart:core" as core;
+
+class E1 extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::E1 a = #C3;
+  static const field core::List<self::E1> values = #C4;
+  const constructor •(core::int #index, core::String #name) → self::E1
+    : super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E1.${this.{core::_Enum::_name}{core::String}}";
+}
+class E2 extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::E2 a = #C5;
+  static const field core::List<self::E2> values = #C6;
+  const constructor •(core::int #index, core::String #name) → self::E2
+    : super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E2.${this.{core::_Enum::_name}{core::String}}";
+}
+class E3 extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::E3 a = #C8;
+  final field core::int? b = null;
+  static const field core::List<self::E3> values = #C9;
+  const constructor •(core::int #index, core::String #name) → self::E3
+    : super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E3.${this.{core::_Enum::_name}{core::String}}";
+}
+class E4 extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::E4 a = #C10;
+  field core::int? b = null;
+  static const field core::List<self::E4> values = #C11;
+  const constructor •(core::int #index, core::String #name) → self::E4
+    : super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E4.${this.{core::_Enum::_name}{core::String}}";
+}
+class E5 extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::E5 a = #C12;
+  final field core::int? b;
+  static const field core::List<self::E5> values = #C13;
+  const constructor •(core::int #index, core::String #name) → self::E5
+    : self::E5::b = 0, super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E5.${this.{core::_Enum::_name}{core::String}}";
+}
+class E6 extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::E6 a = #C14;
+  final field core::int? b;
+  static const field core::List<self::E6> values = #C15;
+  const constructor •(core::int #index, core::String #name, core::int? x) → self::E6
+    : self::E6::b = x, super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E6.${this.{core::_Enum::_name}{core::String}}";
+}
+class E7 extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::E7 a = #C16;
+  enum-element static const field self::E7 b = #C19;
+  final field core::int? c;
+  static const field core::List<self::E7> values = #C20;
+  const constructor •(core::int #index, core::String #name, initializing-formal core::int? c) → self::E7
+    : self::E7::c = c, super core::_Enum::•(#index, #name)
+    ;
+  const constructor named(core::int #index, core::String #name, core::int? c) → self::E7
+    : this self::E7::•(#index, #name, c)
+    ;
+  method core::_enumToString() → core::String
+    return "E7.${this.{core::_Enum::_name}{core::String}}";
+  static const factory fact(core::int? c) → self::E7
+    return invalid-expression "pkg/front_end/testcases/primary_constructors/enum_primary_constructor.dart:49:33: Error: Enums can't be instantiated.
+  const factory fact(int? c) => E7(c); // Error
+                                ^^";
+  static const factory redirect(core::int? c) → self::E7
+    return invalid-expression "pkg/front_end/testcases/primary_constructors/enum_primary_constructor.dart:50:36: Error: Enum factory constructors can't redirect to generative constructors.
+  const factory redirect(int? c) = E7; // Error
+                                   ^";
+}
+class E8 extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::E8 a = #C21;
+  enum-element static const field self::E8 b = #C22;
+  final field core::int? c;
+  static const field core::List<self::E8> values = #C23;
+  const constructor •(core::int #index, core::String #name, initializing-formal core::int? c) → self::E8
+    : self::E8::c = c, super core::_Enum::•(#index, #name)
+    ;
+  const constructor named(core::int #index, core::String #name, core::int? c) → self::E8
+    : this self::E8::•(#index, #name, c)
+    ;
+  method core::_enumToString() → core::String
+    return "E8.${this.{core::_Enum::_name}{core::String}}";
+  static factory fact(core::int? c) → self::E8
+    return invalid-expression "pkg/front_end/testcases/primary_constructors/enum_primary_constructor.dart:60:27: Error: Enums can't be instantiated.
+  factory fact(int? c) => E8(c); // Error
+                          ^^";
+  static factory redirect(core::int? c) → self::E8
+    return invalid-expression "pkg/front_end/testcases/primary_constructors/enum_primary_constructor.dart:61:30: Error: Enum factory constructors can't redirect to generative constructors.
+  factory redirect(int? c) = E8; // Error
+                             ^";
+}
+class E9 extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::E9 a = invalid-expression "A const constructor can't have a body.";
+  enum-element static const field self::E9 b = invalid-expression "A const constructor can't have a body.";
+  final field core::int? c;
+  static const field core::List<self::E9> values = invalid-expression "A const constructor can't have a body.";
+  const constructor •(core::int #index, core::String #name, initializing-formal core::int? c) → self::E9
+    : self::E9::c = c, super core::_Enum::•(#index, #name) {}
+  const constructor named(core::int #index, core::String #name, initializing-formal core::int? c) → self::E9
+    : self::E9::c = c, super core::_Enum::•(#index, #name) {}
+  method core::_enumToString() → core::String
+    return "E9.${this.{core::_Enum::_name}{core::String}}";
+}
+
+constants  {
+  #C1 = 0
+  #C2 = "a"
+  #C3 = self::E1 {index:#C1, _name:#C2}
+  #C4 = <self::E1>[#C3]
+  #C5 = self::E2 {index:#C1, _name:#C2}
+  #C6 = <self::E2>[#C5]
+  #C7 = null
+  #C8 = self::E3 {b:#C7, index:#C1, _name:#C2}
+  #C9 = <self::E3>[#C8]
+  #C10 = self::E4 {b:#C7, index:#C1, _name:#C2}
+  #C11 = <self::E4>[#C10]
+  #C12 = self::E5 {b:#C1, index:#C1, _name:#C2}
+  #C13 = <self::E5>[#C12]
+  #C14 = self::E6 {b:#C1, index:#C1, _name:#C2}
+  #C15 = <self::E6>[#C14]
+  #C16 = self::E7 {c:#C1, index:#C1, _name:#C2}
+  #C17 = 1
+  #C18 = "b"
+  #C19 = self::E7 {c:#C17, index:#C17, _name:#C18}
+  #C20 = <self::E7>[#C16, #C19]
+  #C21 = self::E8 {c:#C1, index:#C1, _name:#C2}
+  #C22 = self::E8 {c:#C17, index:#C17, _name:#C18}
+  #C23 = <self::E8>[#C21, #C22]
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///enum_primary_constructor.dart:
+- E1. (from org-dartlang-testcase:///enum_primary_constructor.dart:8:8)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
+- E2. (from org-dartlang-testcase:///enum_primary_constructor.dart:12:14)
+- E3. (from org-dartlang-testcase:///enum_primary_constructor.dart:16:14)
+- E4. (from org-dartlang-testcase:///enum_primary_constructor.dart:22:14)
+- E5. (from org-dartlang-testcase:///enum_primary_constructor.dart:28:8)
+- E6. (from org-dartlang-testcase:///enum_primary_constructor.dart:35:8)
+- E7. (from org-dartlang-testcase:///enum_primary_constructor.dart:47:3)
+- E7.named (from org-dartlang-testcase:///enum_primary_constructor.dart:48:13)
+- E8. (from org-dartlang-testcase:///enum_primary_constructor.dart:58:9)
+- E8.named (from org-dartlang-testcase:///enum_primary_constructor.dart:59:7)

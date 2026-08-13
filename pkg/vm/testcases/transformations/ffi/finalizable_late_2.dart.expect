@@ -1,0 +1,94 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+import "dart:ffi" as ffi;
+import "dart:_internal" as _in;
+
+import "dart:ffi";
+
+class Foo extends core::Object implements ffi::Finalizable {
+  synthetic constructor •() → self::Foo
+    : super core::Object::•()
+    ;
+}
+static method main() → void {
+  self::Foo? :foo:finalizableValue;
+  late self::Foo foo;
+  if(new core::DateTime::now().{core::DateTime::millisecond}{core::int}.{core::num::%}(2){(core::num) → core::int} =={core::num::==}{(core::Object) → core::bool} 0) {
+    :foo:finalizableValue = foo = block {
+      final synthesized self::Foo :expressionValueWrappedFinalizable = new self::Foo::•();
+      _in::reachabilityFence(:foo:finalizableValue);
+    } =>:expressionValueWrappedFinalizable;
+  }
+  for (core::int i = 0; i.{core::num::<}(3){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int}) {
+    self::Foo? :foo2:finalizableValue;
+    late self::Foo foo2;
+    _in::reachabilityFence(:foo2:finalizableValue);
+  }
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal3<core::int>(1, 2, 3).{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int i = :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        self::Foo? :foo3:finalizableValue;
+        late self::Foo foo3;
+        _in::reachabilityFence(:foo3:finalizableValue);
+      }
+    }
+  }
+  if(new core::DateTime::now().{core::DateTime::millisecond}{core::int}.{core::num::%}(2){(core::num) → core::int} =={core::num::==}{(core::Object) → core::bool} 0) {
+    self::Foo? :foo4:finalizableValue;
+    late self::Foo foo4;
+    _in::reachabilityFence(:foo4:finalizableValue);
+  }
+  try
+    try {
+      self::Foo? :foo5:finalizableValue;
+      late self::Foo foo5;
+      _in::reachabilityFence(:foo5:finalizableValue);
+    }
+    on core::Object catch(final core::Object e) {
+      self::Foo? :foo6:finalizableValue;
+      late self::Foo foo6;
+      _in::reachabilityFence(:foo6:finalizableValue);
+    }
+  finally {
+    self::Foo? :foo7:finalizableValue;
+    late self::Foo foo7;
+    _in::reachabilityFence(:foo7:finalizableValue);
+  }
+  #L1:
+  switch(new core::DateTime::now().{core::DateTime::millisecond}{core::int}) /* core::int */ {
+    #L2:
+    case #C1:
+      {
+        self::Foo? :foo8:finalizableValue;
+        late self::Foo foo8;
+        {
+          _in::reachabilityFence(:foo8:finalizableValue);
+          break #L1;
+        }
+      }
+    #L3:
+    default:
+      {
+        self::Foo? :foo9:finalizableValue;
+        late self::Foo foo9;
+        _in::reachabilityFence(:foo9:finalizableValue);
+      }
+  }
+  final () → Null x = () → Null {
+    self::Foo? :foo10:finalizableValue;
+    late self::Foo foo10;
+    _in::reachabilityFence(:foo10:finalizableValue);
+  };
+  function bar() → Null {
+    self::Foo? :foo11:finalizableValue;
+    late self::Foo foo11;
+    _in::reachabilityFence(:foo11:finalizableValue);
+  }
+  _in::reachabilityFence(:foo:finalizableValue);
+}
+constants  {
+  #C1 = 1
+}

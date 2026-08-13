@@ -1,0 +1,9 @@
+macro class Class {}
+abstract macro class Class {}
+macro class Class = Object with Mixin;
+abstract macro class Class = Object with Mixin;
+
+macro[StringToken] class[KeywordToken] Class[StringToken] {[BeginToken]}[SimpleToken]
+abstract[KeywordToken] macro[StringToken] class[KeywordToken] Class[StringToken] {[BeginToken]}[SimpleToken]
+macro[StringToken] class[KeywordToken] Class[StringToken] =[SimpleToken] Object[StringToken] with[KeywordToken] Mixin[StringToken];[SimpleToken]
+abstract[KeywordToken] macro[StringToken] class[KeywordToken] Class[StringToken] =[SimpleToken] Object[StringToken] with[KeywordToken] Mixin[StringToken];[SimpleToken][SimpleToken]

@@ -1,0 +1,19 @@
+org-dartlang-testcase:///main.dart:
+import "a.dart";
+import "b.dart";
+@AbcX
+void foo() {}
+
+
+
+
+org-dartlang-testcase:///a.dart:
+
+
+
+
+org-dartlang-testcase:///b.dart:
+const AbcX = const _AbcX();
+class _AbcX {
+  const _AbcX();
+}

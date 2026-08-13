@@ -1,0 +1,7 @@
+main() {}
+
+test1() {}
+
+test2() {}
+
+typedef F<T> = T Function(T, T);

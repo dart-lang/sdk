@@ -1,0 +1,22 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+import "package:expect/expect.dart";
+
+class A extends core::Object /*hasConstConstructor*/  {
+  const constructor empty() → self::A
+    : super core::Object::•()
+    ;
+  static const factory •() → self::A /* redirection-target: self::B::•<core::String>*/
+    return new self::B::•<core::String>();
+}
+class B<T extends core::Object? = dynamic> extends self::A /*hasConstConstructor*/  {
+  const constructor •() → self::B<self::B::T%>
+    : super self::A::empty()
+    ;
+  method toString() → core::String
+    ;
+}
+static method main() → void
+  ;

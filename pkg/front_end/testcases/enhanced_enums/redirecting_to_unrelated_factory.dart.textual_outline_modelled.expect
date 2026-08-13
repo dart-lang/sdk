@@ -1,0 +1,10 @@
+class A {
+  const A();
+}
+
+enum E {
+  element;
+
+  const E();
+  const factory E.redir() = A;
+}

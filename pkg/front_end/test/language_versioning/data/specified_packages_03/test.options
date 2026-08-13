@@ -1,0 +1,2 @@
+# Point to package_config.json => non-standard layout; use it directly
+--packages=package_config.json

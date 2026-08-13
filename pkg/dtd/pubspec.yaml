@@ -1,0 +1,27 @@
+name: dtd
+version: 4.0.0
+description: A package for communicating with the Dart Tooling Daemon.
+repository: https://github.com/dart-lang/sdk/tree/main/pkg/dtd
+
+environment:
+  sdk: ^3.5.0
+
+resolution: workspace
+
+dependencies:
+  dart_service_protocol_shared: ^0.0.3
+  json_rpc_2: '>=3.0.2 <5.0.0'
+  stream_channel: ^2.1.2
+  unified_analytics: '>=7.0.0 <9.0.0'
+  web_socket_channel: '>=2.0.0 <4.0.0'
+
+# We use 'any' version constraints here as we get our package versions from
+# the dart-lang/sdk repo's DEPS file. Note that this is a special case; the
+# best practice for packages is to specify their compatible version ranges.
+# See also https://dart.dev/tools/pub/dependencies.
+dev_dependencies:
+  async: any
+  dart_flutter_team_lints: any
+  path: any
+  test: any
+  test_process: any

@@ -1,0 +1,51 @@
+# Copyright (c) 2023, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+sources:
+  foo.dart: |
+    //@dart=3.3
+    part    'bar.dart';
+
+    void foo() {
+      Foo x = new Foo(42);
+      print(x);
+      print(x.value);
+      x.printFoo();
+    }
+
+    extension type Foo(int value) {
+      void printFoo() {
+        print("This foos value is '$value'");
+      }
+    }
+  bar.dart: |
+    //@dart=3.3
+    part of 'foo.dart';
+
+    void bar() {
+      Bar x = new Bar('');
+      print(x);
+      print(x.value);
+      x.printBar();
+    }
+
+    extension type Bar(String value) {
+      void printBar() {
+        print("This bars value is '$value'");
+      }
+    }
+
+definitions: ["x"]
+# int
+definition_types: ["dart:core", "int", "1", "0"]
+type_definitions: []
+type_bounds: []
+type_defaults: []
+entry_point: "foo.dart" # the main library
+method: "main"
+static: true
+offset: 83 # at the start of the 'print(x.value);' line. In both files!
+scriptUri: foo.dart
+expression: |
+  x.printFoo()

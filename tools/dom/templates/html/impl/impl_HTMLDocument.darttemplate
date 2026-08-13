@@ -1,0 +1,110 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+part of $LIBRARYNAME;
+
+$(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
+$!MEMBERS
+
+  BodyElement$NULLABLE get body native;
+  set body(BodyElement$NULLABLE value) native;
+
+  /// UNSTABLE: Chrome-only - create a Range from the given point.
+  @Unstable()
+  Range caretRangeFromPoint(int$NULLABLE x, int$NULLABLE y) {
+    return _caretRangeFromPoint(x, y);
+  }
+
+  Element$NULLABLE elementFromPoint(int x, int y) {
+    return _elementFromPoint(x, y);
+  }
+
+  HeadElement$NULLABLE get head => _head;
+
+  String$NULLABLE get lastModified => _lastModified;
+
+  String$NULLABLE get preferredStylesheetSet => _preferredStylesheetSet;
+
+  String get referrer => _referrer;
+
+  String$NULLABLE get selectedStylesheetSet => _selectedStylesheetSet;
+  set selectedStylesheetSet(String$NULLABLE value) {
+    _selectedStylesheetSet = value;
+  }
+
+  List<StyleSheet>$NULLABLE get styleSheets => _styleSheets;
+
+  String get title => _title;
+
+  set title(String value) {
+    _title = value;
+  }
+
+  /**
+   * Returns page to standard layout.
+   *
+   * Has no effect if the page is not in fullscreen mode.
+   *
+   * ## Other resources
+   *
+   * * [Fullscreen
+   *   API](https://developer.mozilla.org/en-US/docs/Web/API/Fullscreen_API)
+   *   from MDN.
+   * * [Fullscreen specification](http://www.w3.org/TR/fullscreen/) from W3C.
+   */
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  void exitFullscreen() {
+    _webkitExitFullscreen();
+  }
+
+
+  /**
+   * Static factory designed to expose `visibilitychange` events to event
+   * handlers that are not necessarily instances of [Document].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.IE, '10')
+  static const EventStreamProvider<Event> visibilityChangeEvent =
+      const _CustomEventStreamProvider<Event>(
+        _determineVisibilityChangeEventType);
+
+  static String _determineVisibilityChangeEventType(EventTarget e) {
+    if (JS('bool', '(typeof #.hidden !== "undefined")', e)) {
+      // Opera 12.10 and Firefox 18 and later support
+      return 'visibilitychange';
+    } else if (JS('bool', '(typeof #.mozHidden !== "undefined")', e)) {
+      return 'mozvisibilitychange';
+    } else if (JS('bool', '(typeof #.msHidden !== "undefined")', e)) {
+      return 'msvisibilitychange';
+    } else if (JS('bool', '(typeof #.webkitHidden !== "undefined")', e)) {
+      return 'webkitvisibilitychange';
+    }
+    return 'visibilitychange';
+  }
+
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.IE, '10')
+  Stream<Event> get onVisibilityChange =>
+      visibilityChangeEvent.forTarget(this);
+
+  /// Creates an element upgrader which can be used to change the Dart wrapper
+  /// type for elements.
+  ///
+  /// The type specified must be a subclass of HtmlElement, when an element is
+  /// upgraded then the created constructor will be invoked on that element.
+  ///
+  /// If the type is not a direct subclass of HtmlElement then the extendsTag
+  /// parameter must be provided.
+  ElementUpgrader createElementUpgrader(Type type,
+      {String$NULLABLE extendsTag}) {
+    return new _JSElementUpgrader(this, type, extendsTag);
+  }
+}

@@ -1,0 +1,11 @@
+include: package:lints/recommended.yaml
+
+analyzer:
+  language:
+    strict-casts: true
+
+linter:
+  rules:
+    - unawaited_futures
+    - unnecessary_const_in_enum_constructor
+    - unnecessary_type_name_in_constructor

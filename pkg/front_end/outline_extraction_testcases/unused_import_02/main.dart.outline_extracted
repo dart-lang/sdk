@@ -1,0 +1,24 @@
+org-dartlang-testcase:///main.dart:
+import "dart:core";
+import "foo.dart";
+export "bar.dart";
+void main() {}
+
+
+
+
+org-dartlang-testcase:///bar.dart:
+import "baz.dart";
+class Bar {
+  void bar() {}
+}
+
+
+
+
+org-dartlang-testcase:///foo.dart:
+
+
+
+
+org-dartlang-testcase:///baz.dart:

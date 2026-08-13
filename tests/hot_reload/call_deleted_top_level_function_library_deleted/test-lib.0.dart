@@ -1,0 +1,3 @@
+deleted() {
+  return 'hello';
+}

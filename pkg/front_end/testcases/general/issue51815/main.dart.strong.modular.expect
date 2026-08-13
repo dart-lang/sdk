@@ -1,0 +1,10 @@
+library;
+import self as self;
+import "main_lib.dart" as mai;
+
+import "org-dartlang-testcase:///main_lib.dart";
+
+static method foo(() → void f) → dynamic {}
+static method test() → dynamic
+  return self::foo(let final mai::B #t1 = new mai::B::•() in #t1 == null ?{() → void} null : #t1.{mai::B::call}{() → void});
+static method main() → dynamic {}

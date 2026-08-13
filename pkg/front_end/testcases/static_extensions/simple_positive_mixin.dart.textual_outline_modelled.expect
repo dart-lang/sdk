@@ -1,0 +1,22 @@
+expectDoesntThrow(Function() f) {}
+
+expectEqual(a, b) {}
+
+expectThrows(Function() f) {}
+
+extension E on A {
+  static String extensionMethod() => "E.extensionMethod";
+  static String get extensionGetter => "E.extensionGetter";
+  static String get mixinGetter => "E.mixinGetter";
+  static String mixinMethod() => "E.mixinMethod";
+  static void set extensionSetter(bool value) {}
+  static void set mixinSetter(num value) {}
+}
+
+main() {}
+
+mixin A {
+  static String get mixinGetter => "A.mixinGetter";
+  static String mixinMethod() => "A.mixinMethod";
+  static void set mixinSetter(num value) {}
+}

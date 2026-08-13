@@ -1,0 +1,13 @@
+Name: RequireJS Asynchronous Module (AMD) implementation
+Short Name: requirejs
+URL: https://github.com/requirejs/requirejs
+Version: 2.3.3
+Date: February 19, 2017
+License: MIT
+
+Description: 
+
+This directory contains the un-minified require.js.  It is provided as
+a way to load and run Dart Dev Compiler (DDC) generated AMD modules.
+It is distributed with the DDC's AMD Dart SDK module for convenience.
+

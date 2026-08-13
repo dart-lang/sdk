@@ -1,0 +1,18 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+abstract class MyMap extends core::Object implements core::Map<core::String, core::int> {
+  synthetic constructor •() → self::MyMap
+    ;
+}
+static method test1(dynamic x) → dynamic
+  ;
+static method test2(dynamic x) → dynamic
+  ;
+static method test3(core::Map<core::bool, core::double> x) → dynamic
+  ;
+static method test4(self::MyMap x) → dynamic
+  ;
+static method test5(dynamic x) → dynamic
+  ;

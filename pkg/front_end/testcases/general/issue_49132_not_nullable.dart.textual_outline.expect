@@ -1,0 +1,7 @@
+class Foo {
+  dynamic x;
+  Foo.foo1(dynamic a) : x = a is int ? {} : [] {}
+  Foo.foo2(dynamic a) : x = a is int ? {"a": "b"} : ["a", "b"] {}
+  Foo.foo3(dynamic a) : x = a as bool ? {} : [] {}
+  Foo.foo4(dynamic a) : x = a as bool ? {"a": "b"} : ["a", "b"] {}
+}

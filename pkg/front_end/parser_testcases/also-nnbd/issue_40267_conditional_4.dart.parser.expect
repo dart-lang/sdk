@@ -1,0 +1,11 @@
+var a, b, c, d, e;
+List get f => a
+..addAll(!b && c[d]
+? [a, e(f)]
+: [a]);
+
+var[KeywordToken] a[StringToken],[SimpleToken] b[StringToken],[SimpleToken] c[StringToken],[SimpleToken] d[StringToken],[SimpleToken] e[StringToken];[SimpleToken]
+List[StringToken] get[KeywordToken] f[StringToken] =>[SimpleToken] a[StringToken]
+..[SimpleToken]addAll[StringToken]([BeginToken]![SimpleToken]b[StringToken] &&[SimpleToken] c[StringToken][[BeginToken]d[StringToken]][SimpleToken]
+?[SimpleToken] [[BeginToken]a[StringToken],[SimpleToken] e[StringToken]([BeginToken]f[StringToken])[SimpleToken]][SimpleToken]
+:[SimpleToken] [[BeginToken]a[StringToken]][SimpleToken])[SimpleToken];[SimpleToken][SimpleToken]

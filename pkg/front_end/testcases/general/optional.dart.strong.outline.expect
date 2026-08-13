@@ -1,0 +1,42 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Foo extends core::Object {
+  synthetic constructor •() → self::Foo
+    ;
+  method method(dynamic x, [dynamic y = null, dynamic z = null]) → dynamic
+    ;
+}
+abstract class External extends core::Object {
+  synthetic constructor •() → self::External
+    ;
+  abstract method externalMethod(core::int x, [core::int y = null, core::int z = null]) → core::String;
+  abstract method listen(self::Listener listener) → void;
+}
+abstract class Listener extends core::Object {
+  synthetic constructor •() → self::Listener
+    ;
+  abstract method event(core::String input, [core::int? x = null, core::int? y = null]) → void;
+}
+class TestListener extends self::Listener {
+  synthetic constructor •() → self::TestListener
+    ;
+  method event(core::String input, [core::int? x = null, core::int? y = null]) → void
+    ;
+}
+class ExtendedListener extends self::Listener {
+  synthetic constructor •() → self::ExtendedListener
+    ;
+  method event(core::String input, [core::int? x = null, core::int? y = null, dynamic z = null]) → void
+    ;
+}
+class InvalidListener extends core::Object {
+  synthetic constructor •() → self::InvalidListener
+    ;
+  method event(dynamic input, [dynamic x = null]) → void
+    ;
+}
+external static method createExternal() → self::External;
+static method main() → dynamic
+  ;

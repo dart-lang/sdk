@@ -1,0 +1,45 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+import "package:expect/expect.dart" as exp;
+
+import "package:expect/expect.dart";
+
+abstract class A<T extends core::Object? = dynamic> extends core::Object {
+
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]
+  abstract method setRange(covariant-by-class self::A<self::A::T%> other) → void;
+}
+class B extends core::Object implements self::A<core::int> {
+  synthetic constructor •() → self::B
+    : super core::Object::•()
+    ;
+
+  [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]
+  method setRange([@vm.inferred-arg-type.metadata=!] covariant-by-class self::A<core::int> other) → void {}
+}
+class C extends core::Object implements self::A<core::double> {
+  synthetic constructor •() → self::C
+    : super core::Object::•()
+    ;
+
+  [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]
+  method setRange([@vm.inferred-arg-type.metadata=#lib::C (skip check)] covariant-by-class self::A<core::double> other) → void {}
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method foo<T extends core::Object? = dynamic>([@vm.inferred-arg-type.metadata=!] self::A<self::foo::T%> a1, [@vm.inferred-arg-type.metadata=!] self::A<self::foo::T%> a2) → void {
+  [@vm.call-site-attributes.metadata=receiverType:#lib::A<#lib::foo.T%>] a1.{self::A::setRange}(a2){(self::A<self::foo::T%>) → void};
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+[@vm.closure-id=1]
+static method main() → void {
+  self::foo<core::int>(new self::B::•(), new self::B::•());
+  self::foo<core::double>(new self::C::•(), new self::C::•());
+  [@vm.inferred-type.metadata=#lib::B] self::A<core::num> a1 = new self::B::•();
+  [@vm.inferred-type.metadata=#lib::C] self::A<core::num> a2 = new self::C::•();
+  exp::Expect::throws<core::TypeError>([@vm.closure-id=1]() → void => [@vm.inferred-type.metadata=dart.core::Null? (value: null)] self::foo<core::num>(a1, a2));
+}

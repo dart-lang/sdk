@@ -1,0 +1,103 @@
+main = main::main;
+library from "org-dartlang-test:///lib.dart" as lib {
+additionalExports = (core::ArgumentError,
+  core::AssertionError,
+  core::BigInt,
+  core::Comparable,
+  core::Comparator,
+  core::ConcurrentModificationError,
+  core::DateTime,
+  core::DateTimeCopyWith,
+  core::Deprecated,
+  core::Duration,
+  core::Enum,
+  core::EnumByName,
+  core::EnumName,
+  core::Error,
+  core::Exception,
+  core::Expando,
+  core::Finalizer,
+  core::FormatException,
+  core::Function,
+  asy::Future,
+  asy::FutureExtensions,
+  asy::FutureIterable,
+  asy::FutureRecord2,
+  asy::FutureRecord3,
+  asy::FutureRecord4,
+  asy::FutureRecord5,
+  asy::FutureRecord6,
+  asy::FutureRecord7,
+  asy::FutureRecord8,
+  asy::FutureRecord9,
+  core::IndexError,
+  core::IntegerDivisionByZeroException,
+  core::Invocation,
+  core::Iterable,
+  col::IterableExtensions,
+  core::Iterator,
+  core::List,
+  core::Map,
+  core::MapEntry,
+  core::Match,
+  core::NoSuchMethodError,
+  core::Null,
+  col::NullableIterableExtensions,
+  core::Object,
+  core::OutOfMemoryError,
+  asy::ParallelWaitError,
+  core::Pattern,
+  core::RangeError,
+  core::Record,
+  core::RegExp,
+  core::RegExpMatch,
+  core::RuneIterator,
+  core::Runes,
+  core::Set,
+  core::Sink,
+  core::StackOverflowError,
+  core::StackTrace,
+  core::StateError,
+  core::Stopwatch,
+  asy::Stream,
+  core::String,
+  core::StringBuffer,
+  core::StringSink,
+  core::Symbol,
+  core::Type,
+  core::TypeError,
+  core::UnimplementedError,
+  core::UnsupportedError,
+  core::Uri,
+  core::UriData,
+  core::WeakReference,
+  core::bool,
+  core::deprecated,
+  core::double,
+  core::identical,
+  core::identityHashCode,
+  core::int,
+  core::num,
+  core::override,
+  core::pragma,
+  core::print)
+
+  export "dart:core";
+
+  static const field dynamic _exports# = #C1;
+  static method method() → dynamic {
+    dart.core::print("hello");
+  }
+}
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "org-dartlang-test:///lib.dart" as prefix;
+
+  static method main() → dynamic {
+    Never n;
+    lib::method();
+  }
+}
+constants  {
+  #C1 = "{\"dynamic\":\"<dynamic>\",\"Never\":\"<Never>\"}"
+}

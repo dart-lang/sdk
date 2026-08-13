@@ -1,0 +1,31 @@
+NOTICE: Stream was rewritten by parser!
+
+class Foo {
+Foo() {}operator/ (): super() {
+
+}
+Foo(){}.operator/ (): super() {
+
+}
+foo() {}operator/ (): super() {
+
+}
+foo(){}.operator/ (): super() {
+
+}
+}
+
+class[KeywordToken] Foo[StringToken] {[BeginToken]
+Foo[StringToken]([BeginToken])[SimpleToken] {[SyntheticBeginToken]}[SyntheticToken]operator[SyntheticKeywordToken]/[SimpleToken] ([SyntheticBeginToken])[SyntheticToken]:[SimpleToken] super[KeywordToken]([BeginToken])[SimpleToken] {[BeginToken]
+
+}[SimpleToken]
+Foo[StringToken]([BeginToken])[SimpleToken]{[SyntheticBeginToken]}[SyntheticToken].[SimpleToken]operator[SyntheticKeywordToken]/[SimpleToken] ([SyntheticBeginToken])[SyntheticToken]:[SimpleToken] super[KeywordToken]([BeginToken])[SimpleToken] {[BeginToken]
+
+}[SimpleToken]
+foo[StringToken]([BeginToken])[SimpleToken] {[SyntheticBeginToken]}[SyntheticToken]operator[SyntheticKeywordToken]/[SimpleToken] ([SyntheticBeginToken])[SyntheticToken]:[SimpleToken] super[KeywordToken]([BeginToken])[SimpleToken] {[BeginToken]
+
+}[SimpleToken]
+foo[StringToken]([BeginToken])[SimpleToken]{[SyntheticBeginToken]}[SyntheticToken].[SimpleToken]operator[SyntheticKeywordToken]/[SimpleToken] ([SyntheticBeginToken])[SyntheticToken]:[SimpleToken] super[KeywordToken]([BeginToken])[SimpleToken] {[BeginToken]
+
+}[SimpleToken]
+}[SimpleToken][SimpleToken]

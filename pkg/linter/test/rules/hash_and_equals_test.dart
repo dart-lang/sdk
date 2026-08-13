@@ -1,0 +1,141 @@
+// Copyright (c) 2022, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:test_reflective_loader/test_reflective_loader.dart';
+
+import '../rule_test_support.dart';
+
+void main() {
+  defineReflectiveSuite(() {
+    defineReflectiveTests(HashAndEqualsTest);
+  });
+}
+
+@reflectiveTest
+class HashAndEqualsTest extends LintRuleTest {
+  @override
+  String get lintRule => LintNames.hash_and_equals;
+
+  test_augmentedClass_augmentation() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part 'test.dart';
+
+class A {
+  int get hashCode => 0;
+}
+''');
+
+    await assertNoDiagnostics(r'''
+part of 'a.dart';
+
+augment class A {
+  bool operator ==(Object other) => false;
+}
+''');
+  }
+
+  test_augmentedClass_augmentation_missingHash() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part 'test.dart';
+
+class A { }
+''');
+
+    await assertDiagnosticsFromMarkup(r'''
+part of 'a.dart';
+
+augment class A {
+  bool operator [!==!](Object other) => false;
+}
+''');
+  }
+
+  test_enum_missingHash() async {
+    await assertDiagnostics(
+      r'''
+enum A {
+  a,b,c;
+  @override
+  bool operator ==(Object other) => false;
+}
+''',
+      [
+        error(diag.illegalConcreteEnumMemberDeclaration, 46, 2),
+        // no lint
+      ],
+    );
+  }
+
+  test_equalsEquals_andHashCode() async {
+    await assertNoDiagnostics(r'''
+class C {
+  @override
+  bool operator ==(Object other) => false;
+
+  @override
+  int get hashCode => 7;
+}
+''');
+  }
+
+  test_equalsEquals_andHashCodeField() async {
+    await assertNoDiagnostics(r'''
+class C {
+  @override
+  bool operator ==(Object other) => false;
+
+  @override
+  int hashCode = 7;
+}
+''');
+  }
+
+  test_equalsEquals_noHashCode() async {
+    await assertDiagnosticsFromMarkup(r'''
+class C {
+  @override
+  bool operator [!==!](Object other) => false;
+}
+''');
+  }
+
+  test_extensionType_missingHash() async {
+    await assertDiagnostics(
+      r'''
+extension type E(Object o) {
+  bool operator ==(Object other) => false;
+}
+''',
+      [
+        // No lint.
+        error(diag.extensionTypeDeclaresMemberOfObject, 45, 2),
+      ],
+    );
+  }
+
+  test_hashCode_noEqualsEquals() async {
+    await assertDiagnosticsFromMarkup(r'''
+class C {
+  @override
+  int get [!hashCode!] => 7;
+}
+''');
+  }
+
+  test_hashCodeField_missingEqualsEquals() async {
+    await assertDiagnosticsFromMarkup(r'''
+class C {
+  @override
+  final int [!hashCode!] = 7;
+}
+''');
+  }
+
+  test_neither() async {
+    await assertNoDiagnostics(r'''
+class C {}
+''');
+  }
+}

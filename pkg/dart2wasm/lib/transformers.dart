@@ -1,0 +1,1555 @@
+// Copyright (c) 2022, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:kernel/ast.dart';
+import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/clone.dart';
+import 'package:kernel/core_types.dart';
+import 'package:kernel/type_algebra.dart';
+import 'package:kernel/type_environment.dart';
+
+import 'factory_specializer.dart';
+import 'util.dart';
+
+void transformLibraries(
+  List<Library> libraries,
+  CoreTypes coreTypes,
+  ClassHierarchy hierarchy,
+) {
+  final transformer = _WasmTransformer(coreTypes, hierarchy);
+  libraries.forEach(transformer.visitLibrary);
+}
+
+void transformProcedure(
+  Procedure procedure,
+  CoreTypes coreTypes,
+  ClassHierarchy hierarchy,
+) {
+  final transformer = _WasmTransformer(coreTypes, hierarchy);
+  procedure.accept(transformer);
+}
+
+class _WasmTransformer extends Transformer {
+  final TypeEnvironment env;
+
+  Member? _currentMember;
+  StaticTypeContext? _cachedTypeContext;
+  final Set<Variable> _implicitFinalVariables = {};
+
+  final Library _coreLibrary;
+  final InterfaceType _nonNullableTypeType;
+
+  final Class _completerClass;
+  final Class _streamControllerClass;
+  final Class _wasmArrayClass;
+  final Class _wasmBaseClass;
+
+  final Procedure _completerComplete;
+  final Procedure _completerCompleteError;
+  final Procedure _completerConstructor;
+  final Procedure _completerSyncConstructor;
+  final Procedure _completerGetFuture;
+  final Procedure _streamControllerAdd;
+  final Procedure _streamControllerAddError;
+  final Procedure _streamControllerAddStream;
+  final Procedure _streamControllerClose;
+  final Procedure _streamControllerConstructor;
+  final Procedure _streamControllerGetHasListener;
+  final Procedure _streamControllerGetIsPaused;
+  final Procedure _streamControllerGetStream;
+  final Procedure _streamControllerSetOnListen;
+
+  final Procedure _trySetStackTraceForwarder;
+  final Procedure _trySetStackTrace;
+
+  final List<_AsyncStarFrame> _asyncStarFrames = [];
+  bool _enclosingIsAsyncStar = false;
+
+  final FactorySpecializer _factorySpecializer;
+
+  final PushPopWasmArrayTransformer _pushPopWasmArrayTransformer;
+
+  StaticTypeContext get typeContext =>
+      _cachedTypeContext ??= StaticTypeContext(_currentMember!, env);
+
+  CoreTypes get coreTypes => env.coreTypes;
+
+  /// Maps error handling function, constructor, factory references to functions
+  /// that, when minifying, throw errors without details, saving binary space.
+  ///
+  /// Calls to these error handling function etc. references are transformed
+  /// when they are introduced by the front-end, as indicated by
+  /// [Throw.forErrorHandling].
+  late final Map<Reference, Procedure> _errorHandlingFunctions = {
+    coreTypes.index
+        .getConstructor('dart:_internal', 'LateError', 'fieldADI')
+        .reference: coreTypes.index.getTopLevelProcedure(
+      'dart:_error_utils',
+      '_throwLateErrorFieldADI',
+    ),
+    coreTypes.index
+        .getConstructor('dart:_internal', 'LateError', 'localADI')
+        .reference: coreTypes.index.getTopLevelProcedure(
+      'dart:_error_utils',
+      '_throwLateErrorLocalADI',
+    ),
+    coreTypes.index
+        .getConstructor('dart:_internal', 'LateError', 'fieldNI')
+        .reference: coreTypes.index.getTopLevelProcedure(
+      'dart:_error_utils',
+      '_throwLateErrorFieldNI',
+    ),
+    coreTypes.index
+        .getConstructor('dart:_internal', 'LateError', 'localNI')
+        .reference: coreTypes.index.getTopLevelProcedure(
+      'dart:_error_utils',
+      '_throwLateErrorLocalNI',
+    ),
+    coreTypes.index
+        .getConstructor('dart:_internal', 'LateError', 'fieldAI')
+        .reference: coreTypes.index.getTopLevelProcedure(
+      'dart:_error_utils',
+      '_throwLateErrorFieldAI',
+    ),
+    coreTypes.index
+        .getConstructor('dart:_internal', 'LateError', 'localAI')
+        .reference: coreTypes.index.getTopLevelProcedure(
+      'dart:_error_utils',
+      '_throwLateErrorLocalAI',
+    ),
+    coreTypes.index
+        .getProcedure('dart:core', 'NoSuchMethodError', 'withInvocation')
+        .reference: coreTypes.index.getTopLevelProcedure(
+      'dart:_error_utils',
+      '_throwNoSuchMethodErrorWithInvocation',
+    ),
+    coreTypes.index
+        .getConstructor('dart:_internal', 'ReachabilityError', '')
+        .reference: coreTypes.index.getTopLevelProcedure(
+      'dart:_error_utils',
+      '_throwReachabilityError',
+    ),
+  };
+
+  _WasmTransformer(CoreTypes coreTypes, ClassHierarchy hierarchy)
+    : env = TypeEnvironment(coreTypes, hierarchy),
+      _nonNullableTypeType = coreTypes.index
+          .getClass('dart:core', '_Type')
+          .getThisType(coreTypes, Nullability.nonNullable),
+      _coreLibrary = coreTypes.index.getLibrary('dart:core'),
+      _completerClass = coreTypes.index.getClass('dart:async', 'Completer'),
+      _streamControllerClass = coreTypes.index.getClass(
+        'dart:async',
+        'StreamController',
+      ),
+      _wasmArrayClass = coreTypes.index.getClass('dart:_wasm', 'WasmArray'),
+      _wasmBaseClass = coreTypes.index.getClass('dart:_wasm', '_WasmBase'),
+      _completerComplete = coreTypes.index.getProcedure(
+        'dart:async',
+        'Completer',
+        'complete',
+      ),
+      _completerCompleteError = coreTypes.index.getProcedure(
+        'dart:async',
+        'Completer',
+        'completeError',
+      ),
+      _completerConstructor = coreTypes.index.getProcedure(
+        'dart:async',
+        'Completer',
+        '',
+      ),
+      _completerSyncConstructor = coreTypes.index.getProcedure(
+        'dart:async',
+        'Completer',
+        'sync',
+      ),
+      _completerGetFuture = coreTypes.index.getProcedure(
+        'dart:async',
+        'Completer',
+        'get:future',
+      ),
+      _streamControllerAdd = coreTypes.index.getProcedure(
+        'dart:async',
+        'StreamController',
+        'add',
+      ),
+      _streamControllerAddError = coreTypes.index.getProcedure(
+        'dart:async',
+        'StreamController',
+        'addError',
+      ),
+      _streamControllerAddStream = coreTypes.index.getProcedure(
+        'dart:async',
+        'StreamController',
+        'addStream',
+      ),
+      _streamControllerClose = coreTypes.index.getProcedure(
+        'dart:async',
+        'StreamController',
+        'close',
+      ),
+      _streamControllerConstructor = coreTypes.index.getProcedure(
+        'dart:async',
+        'StreamController',
+        '',
+      ),
+      _streamControllerGetHasListener = coreTypes.index.getProcedure(
+        'dart:async',
+        'StreamController',
+        'get:hasListener',
+      ),
+      _streamControllerGetIsPaused = coreTypes.index.getProcedure(
+        'dart:async',
+        'StreamController',
+        'get:isPaused',
+      ),
+      _streamControllerGetStream = coreTypes.index.getProcedure(
+        'dart:async',
+        'StreamController',
+        'get:stream',
+      ),
+      _streamControllerSetOnListen = coreTypes.index.getProcedure(
+        'dart:async',
+        'StreamController',
+        'set:onListen',
+      ),
+      _trySetStackTraceForwarder = coreTypes.index.getTopLevelProcedure(
+        'dart:async',
+        '_trySetStackTrace',
+      ),
+      _trySetStackTrace = coreTypes.index.getProcedure(
+        'dart:core',
+        'Error',
+        '_trySetStackTrace',
+      ),
+      _factorySpecializer = FactorySpecializer(coreTypes),
+      _pushPopWasmArrayTransformer = PushPopWasmArrayTransformer(coreTypes);
+
+  @override
+  defaultMember(Member node) {
+    _currentMember = node;
+    _cachedTypeContext = null;
+    _implicitFinalVariables.clear();
+
+    final result = super.defaultMember(node);
+
+    for (final node in _implicitFinalVariables) {
+      node.isFinal = true;
+    }
+    _currentMember = null;
+    _cachedTypeContext = null;
+    return result;
+  }
+
+  @override
+  TreeNode visitConstructor(Constructor node) {
+    _currentMember = node;
+    _cachedTypeContext = null;
+    _implicitFinalVariables.clear();
+
+    // NOTE: We handle constructors specially in order to ensure we process
+    // parameters before initializers (the `node.accept(this)` would use the
+    // wrong order)
+    transformList(node.function.positionalParameters, node.function);
+    transformList(node.function.namedParameters, node.function);
+    transformList(node.initializers, node);
+    if (node.function.body case final body?) {
+      node.function.body = transform(body);
+    }
+
+    for (final node in _implicitFinalVariables) {
+      node.isFinal = true;
+    }
+    _currentMember = null;
+    _cachedTypeContext = null;
+    return node;
+  }
+
+  /// Checks to see if it is safe to reuse `super._typeArguments`.
+  bool canReuseSuperMethod(Class cls) {
+    // We search for the first non-abstract super in [cls]'s inheritance chain
+    // to see if we can reuse its `_typeArguments` method.
+    Class classIter = cls;
+    late Supertype supertype;
+    while (classIter.supertype != null) {
+      Supertype supertypeIter = classIter.supertype!;
+      Class superclass = supertypeIter.classNode;
+      if (!superclass.isAbstract) {
+        supertype = supertypeIter;
+        break;
+      }
+      classIter = classIter.supertype!.classNode;
+    }
+
+    // We can reuse a superclass' `_typeArguments` method if the subclass and
+    // the superclass have the exact same type parameters in the exact same
+    // order.
+    if (cls.typeParameters.length != supertype.typeArguments.length) {
+      return false;
+    }
+    for (int i = 0; i < cls.typeParameters.length; i++) {
+      TypeParameter parameter = cls.typeParameters[i];
+      DartType superTypeArg = supertype.typeArguments[i];
+      if (superTypeArg is! TypeParameterType ||
+          superTypeArg.parameter != parameter ||
+          superTypeArg.nullability == Nullability.nullable) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  @override
+  defaultVariable(Variable node) {
+    if (!node.isFinal) {
+      _implicitFinalVariables.add(node);
+    }
+    return super.defaultVariable(node);
+  }
+
+  @override
+  visitVariableSet(VariableSet node) {
+    _implicitFinalVariables.remove(node.variable);
+    return super.visitVariableSet(node);
+  }
+
+  @override
+  TreeNode visitClass(Class cls) {
+    // For every concrete class whose type parameters do not match the type
+    // parameters of it's super class we embed a special virtual function
+    // `_getTypeArguments`.  When generating code for `_getTypeArguments`, we
+    // read the `TypeParameter`s off the instantiated object and generate a
+    // `List<Type>` to pass to `_getRuntimeType` which then returns a reified
+    // `Type` object.
+    if (!cls.isAbstract &&
+        cls != coreTypes.objectClass &&
+        !env.hierarchy.isSubclassOf(cls, _wasmBaseClass) &&
+        !canReuseSuperMethod(cls)) {
+      Procedure getTypeArguments = Procedure(
+        Name("_typeArguments", _coreLibrary),
+        ProcedureKind.Getter,
+        FunctionNode(
+          null,
+          returnType: InterfaceType(_wasmArrayClass, Nullability.nonNullable, [
+            _nonNullableTypeType,
+          ]),
+        ),
+        isExternal: true,
+        isSynthetic: true,
+        fileUri: cls.fileUri,
+      );
+      addPragma(getTypeArguments, 'wasm:intrinsic', coreTypes);
+      cls.addProcedure(getTypeArguments);
+    }
+    return super.visitClass(cls);
+  }
+
+  TreeNode _lowerForIn(ForInStatement stmt) {
+    // Transform
+    //
+    //   for ({var/final} T <variable> in <iterable>) { ... }
+    //
+    // Into
+    //
+    //  {
+    //    final Iterator<T> #forIterator = <iterable>.iterator;
+    //    for (; #forIterator.moveNext() ;) {
+    //        {var/final} T variable = #forIterator.current;
+    //        ...
+    //      }
+    //    }
+    //  }
+    //
+    // and:
+    //
+    //   await for ({var/final} T <variable> in <stream>) { ... }
+    //
+    // Into
+    //
+    //  {
+    //    final StreamIterator<T> #forIterator = StreamIterator(<stream>);
+    //    bool #jumpSentinel = false;
+    //    try {
+    //      for (; jumpSentinel = await #forIterator.moveNext() ;) {
+    //        {var/final} T variable = #forIterator.current;
+    //        ...
+    //      }
+    //    } finally {
+    //      if (#jumpSentinel) {
+    //        await #forIterator.cancel();
+    //      }
+    //    }
+    //  }
+
+    // The CFE might invoke this transformation despite the program having
+    // compile-time errors. So we will not transform this [stmt] if the
+    // `stmt.iterable` is an invalid expression or has an invalid type and
+    // instead eliminate the entire for-in and replace it with a invalid
+    // expression statement.
+    final iterable = stmt.iterable;
+    final iterableType = iterable.getStaticType(typeContext);
+    if (iterableType is InvalidType) {
+      return ExpressionStatement(
+        InvalidExpression('Invalid iterable type in for-in'),
+      );
+    }
+
+    final isAsync = stmt.isAsync;
+    late final Class iteratorClass;
+    late final Procedure iteratorMoveNext;
+    late final Member iteratorCurrent;
+    if (isAsync) {
+      iteratorClass = coreTypes.streamIteratorClass;
+      iteratorMoveNext = coreTypes.streamIteratorMoveNext;
+      iteratorCurrent = coreTypes.streamIteratorCurrent;
+    } else {
+      iteratorClass = coreTypes.iteratorClass;
+      iteratorMoveNext = coreTypes.iteratorMoveNext;
+      iteratorCurrent = coreTypes.iteratorGetCurrent;
+    }
+
+    final DartType elementType = stmt.getElementType(typeContext);
+    final iteratorType = InterfaceType(iteratorClass, Nullability.nonNullable, [
+      elementType,
+    ]);
+
+    late final Expression iteratorInitializer;
+    if (isAsync) {
+      iteratorInitializer = ConstructorInvocation(
+        coreTypes.streamIteratorDefaultConstructor,
+        Arguments([iterable], types: [elementType]),
+      );
+    } else {
+      iteratorInitializer = InstanceGet(
+        InstanceAccessKind.Instance,
+        iterable,
+        Name('iterator'),
+        interfaceTarget: coreTypes.iterableGetIterator,
+        resultType: iteratorType,
+      );
+    }
+
+    final iterator = SyntheticVariable(
+      cosmeticName: "#forIterator",
+      initializer: iteratorInitializer..fileOffset = iterable.fileOffset,
+      type: iteratorType,
+    )..fileOffset = iterable.fileOffset;
+
+    // Only used when `isAsync` is true.
+    final jumpSentinel = SyntheticVariable(
+      cosmeticName: "#jumpSentinel",
+      initializer: ConstantExpression(BoolConstant(false)),
+      type: InterfaceType(coreTypes.boolClass, Nullability.nonNullable),
+    );
+
+    final condition = InstanceInvocation(
+      InstanceAccessKind.Instance,
+      VariableGet(iterator),
+      Name('moveNext'),
+      Arguments(const []),
+      interfaceTarget: iteratorMoveNext,
+      functionType: iteratorMoveNext.getterType as FunctionType,
+    )..fileOffset = iterable.fileOffset;
+
+    final variable = stmt.variable
+      ..initializer = (InstanceGet(
+        InstanceAccessKind.Instance,
+        VariableGet(iterator),
+        Name('current'),
+        interfaceTarget: iteratorCurrent,
+        resultType: elementType,
+      )..fileOffset = stmt.bodyOffset);
+
+    Block body = Block([
+      VariableStatement(VariableDeclaration(variable)),
+      stmt.body,
+    ])..fileOffset = stmt.fileOffset;
+
+    Statement forStatement = ForStatement(
+      const [],
+      isAsync
+          ? VariableSet(jumpSentinel, AwaitExpression(condition))
+          : condition,
+      const [],
+      body,
+    );
+
+    // Wrap the body with a try / finally to cancel the stream on breaking out
+    // of the loop.
+    if (isAsync) {
+      forStatement = TryFinally(
+        Block([forStatement]),
+        Block([
+          IfStatement(
+            VariableGet(jumpSentinel),
+            ExpressionStatement(
+              AwaitExpression(
+                InstanceInvocation(
+                  InstanceAccessKind.Instance,
+                  VariableGet(iterator),
+                  Name('cancel'),
+                  Arguments(const []),
+                  interfaceTarget: coreTypes.streamIteratorCancel,
+                  functionType:
+                      coreTypes.streamIteratorCancel.getterType as FunctionType,
+                ),
+              ),
+            ),
+            null,
+          ),
+        ]),
+      );
+    }
+
+    return Block([
+      VariableStatement(VariableDeclaration(iterator)),
+      if (isAsync) VariableStatement(VariableDeclaration(jumpSentinel)),
+      forStatement,
+    ]).accept<TreeNode>(this);
+  }
+
+  @override
+  TreeNode visitForInStatement(ForInStatement stmt) {
+    return _lowerForIn(stmt);
+  }
+
+  InstanceInvocation _addToController(
+    Variable controller,
+    Expression expression,
+    int fileOffset,
+  ) {
+    final controllerNullableObjectType = InterfaceType(
+      _streamControllerClass,
+      Nullability.nonNullable,
+      [coreTypes.objectNullableRawType],
+    );
+    FunctionType controllerAddType =
+        Substitution.fromInterfaceType(
+              controllerNullableObjectType,
+            ).substituteType(
+              _streamControllerAdd.function.computeThisFunctionType(
+                Nullability.nonNullable,
+              ),
+            )
+            as FunctionType;
+    return InstanceInvocation(
+      InstanceAccessKind.Instance,
+      VariableGet(controller),
+      Name('add'),
+      Arguments([expression]),
+      interfaceTarget: _streamControllerAdd,
+      functionType: controllerAddType,
+    )..fileOffset = fileOffset;
+  }
+
+  TreeNode _lowerAsyncStar(FunctionNode functionNode) {
+    // Convert the function into:
+    //
+    //    Stream<T> name(args) {
+    //      var #paused;
+    //      var #cancelCompleter;
+    //      var #isDone = false;
+    //      var #onCancelCallback = () {
+    //        if (#isDone) return null;
+    //        if (#paused != null) {
+    //          #paused?.complete(null);
+    //          #paused = null;
+    //        }
+    //        #cancelCompleter ??= Completer.sync<void>();
+    //        return #cancelCompleter.future;
+    //      };
+    //      var #onResumeCallback = () {
+    //        if (#paused != null) {
+    //          #paused?.complete(null);
+    //          #paused = null;
+    //        }
+    //      }
+    //      var #controller = StreamController<T>(sync: true, onCancel: #onCancelCallback, onResume: #onResumeCallback);
+    //
+    //      void #body() async {
+    //        try {
+    //          <transformed body>
+    //        } catch (e, s) {
+    //          if (#cancelCompleter != null) {
+    //            #cancelCompleter?.completeError(e, s);
+    //            #cancelCompleter = null;
+    //          } else {
+    //            #controller.addError(e, s);
+    //          }
+    //        } finally {
+    //          #isDone = true;
+    //          #controller.close();
+    //          if (#cancelCompleter != null) {
+    //            #cancelCompleter?.complete(null);
+    //            #cancelCompleter = null;
+    //          }
+    //        }
+    //      }
+    //
+    //      #controller.onListen = () {
+    //        scheduleMicrotask(#body);
+    //      };
+    //
+    //      return controller.stream;
+    //    }
+    //
+    // Where `<transformed body>` is the body of `functionNode` with these
+    // transformations:
+    //
+    // - yield* e
+    //
+    //   ==>
+    //
+    //   await #controller.addStream(e);
+    //   if (!#controller.hasListener) {
+    //     return;
+    //   }
+    //
+    // - yield e
+    //
+    //   ==>
+    //
+    //   #controller.add(e);
+    //   if (#controller.isPaused) {
+    //     await (#paused = Completer()).future;
+    //   }
+    //   if (!#controller.hasListener) {
+    //     return;
+    //   }
+    //
+    // The `yield` and `yield*` transformations are done by [visitYieldStatement].
+
+    final fileOffset = functionNode.fileOffset;
+    final emittedValueType = functionNode.emittedValueType!;
+
+    // var #controller = StreamController<T>(sync: true);
+    final controllerObjectType = InterfaceType(
+      _streamControllerClass,
+      Nullability.nonNullable,
+      [emittedValueType],
+    );
+
+    // `void #body() async { ... }` statements.
+    final List<Statement> bodyStatements = [];
+
+    // Completer<void>? #paused;
+    final pausedVarType = InterfaceType(_completerClass, Nullability.nullable, [
+      const VoidType(),
+    ]);
+
+    final pausedVar = SyntheticVariable(
+      cosmeticName: '#paused',
+      initializer: null,
+      type: pausedVarType,
+    );
+
+    final cancelCompleterVar = SyntheticVariable(
+      cosmeticName: '#cancelCompleter',
+      initializer: null,
+      type: InterfaceType(_completerClass, Nullability.nullable, [
+        const VoidType(),
+      ]),
+    );
+
+    final isDoneVar = SyntheticVariable(
+      cosmeticName: '#isDone',
+      type: InterfaceType(coreTypes.boolClass, Nullability.nonNullable),
+      initializer: ConstantExpression(BoolConstant(false)),
+    );
+
+    IfStatement makePauseCheck() => IfStatement(
+      EqualsNull(VariableGet(pausedVar)),
+      Block([]),
+      Block([
+        ExpressionStatement(
+          InstanceInvocation(
+            InstanceAccessKind.Instance,
+            VariableGet(pausedVar),
+            Name('complete'),
+            Arguments([ConstantExpression(NullConstant())]),
+            interfaceTarget: _completerComplete,
+            functionType:
+                substitute(_completerComplete.getterType, {
+                      _completerClass.typeParameters.first: const VoidType(),
+                    })
+                    as FunctionType,
+          ),
+        ),
+        ExpressionStatement(
+          VariableSet(pausedVar, ConstantExpression(NullConstant())),
+        ),
+      ]),
+    );
+
+    final List<Statement> onCancelCallbackBodyStatements = [
+      IfStatement(
+        VariableGet(isDoneVar),
+        ReturnStatement(ConstantExpression(NullConstant())),
+        null,
+      ),
+      makePauseCheck(),
+      IfStatement(
+        EqualsNull(VariableGet(cancelCompleterVar)),
+        ExpressionStatement(
+          VariableSet(
+            cancelCompleterVar,
+            StaticInvocation(
+              _completerSyncConstructor,
+              Arguments([], types: [const VoidType()]),
+            ),
+          ),
+        ),
+        null,
+      ),
+      ReturnStatement(
+        InstanceGet(
+          InstanceAccessKind.Instance,
+          VariableGet(cancelCompleterVar),
+          Name('future'),
+          interfaceTarget: _completerGetFuture,
+          resultType: InterfaceType(
+            coreTypes.futureClass,
+            Nullability.nonNullable,
+            [const VoidType()],
+          ),
+        ),
+      ),
+    ];
+
+    final onCancelCallback = FunctionExpression(
+      FunctionNode(
+        Block(onCancelCallbackBodyStatements),
+        returnType: FutureOrType(const VoidType(), Nullability.nonNullable),
+      ),
+    );
+
+    final onCancelCallbackVar = SyntheticVariable(
+      cosmeticName: "#onCancelCallback",
+      initializer: onCancelCallback,
+      isSynthesized: false,
+    );
+
+    final onResumeCallback = FunctionExpression(
+      FunctionNode(makePauseCheck(), returnType: const VoidType()),
+    );
+
+    final onResumeCallbackVar = SyntheticVariable(
+      cosmeticName: "#onResumeCallback",
+      initializer: onResumeCallback,
+      isSynthesized: false,
+    );
+
+    // StreamController<T>(sync: true)
+    final controllerInitializer = StaticInvocation(
+      _streamControllerConstructor,
+      Arguments(
+        [],
+        types: [emittedValueType],
+        named: [
+          NamedExpression('sync', ConstantExpression(BoolConstant(true))),
+          NamedExpression('onCancel', VariableGet(onCancelCallbackVar)),
+          NamedExpression('onResume', VariableGet(onResumeCallbackVar)),
+        ],
+      ),
+    );
+
+    // var #controller = ...
+    final controllerVar = SyntheticVariable(
+      cosmeticName: '#controller',
+      initializer: controllerInitializer..fileOffset = fileOffset,
+      type: controllerObjectType,
+    )..fileOffset = fileOffset;
+
+    _asyncStarFrames.add(
+      _AsyncStarFrame(controllerVar, pausedVar, emittedValueType),
+    );
+    final Statement transformedBody =
+        functionNode.body!.accept<TreeNode>(this) as Statement;
+    _asyncStarFrames.removeLast();
+
+    // The body will be wrapped with a `try-catch` to pass the error to the
+    // controller, and `try-finally` to close the controller.
+    final exceptionVar = CatchVariable(name: '#exception', isSynthesized: true);
+
+    final stackTraceVar = CatchVariable(
+      name: '#stackTrace',
+      type: coreTypes.stackTraceRawType(Nullability.nonNullable),
+      isSynthesized: true,
+    );
+
+    final catch_ = Catch(
+      exceptionVar,
+      stackTrace: stackTraceVar,
+      IfStatement(
+        EqualsNull(VariableGet(cancelCompleterVar)),
+        ExpressionStatement(
+          InstanceInvocation(
+            InstanceAccessKind.Instance,
+            VariableGet(controllerVar),
+            Name("addError"),
+            Arguments([VariableGet(exceptionVar), VariableGet(stackTraceVar)]),
+            interfaceTarget: _streamControllerAddError,
+            functionType: _streamControllerAddError.getterType as FunctionType,
+          ),
+        ),
+        Block([
+          ExpressionStatement(
+            InstanceInvocation(
+              InstanceAccessKind.Instance,
+              VariableGet(cancelCompleterVar),
+              Name("completeError"),
+              Arguments([
+                VariableGet(exceptionVar),
+                VariableGet(stackTraceVar),
+              ]),
+              interfaceTarget: _completerCompleteError,
+              functionType: _completerCompleteError.getterType as FunctionType,
+            ),
+          ),
+          ExpressionStatement(
+            VariableSet(cancelCompleterVar, ConstantExpression(NullConstant())),
+          ),
+        ]),
+      ),
+    );
+
+    final finalizer = Block([
+      ExpressionStatement(
+        VariableSet(isDoneVar, ConstantExpression(BoolConstant(true))),
+      ),
+      ExpressionStatement(
+        InstanceInvocation(
+          InstanceAccessKind.Instance,
+          VariableGet(controllerVar),
+          Name("close"),
+          Arguments([]),
+          interfaceTarget: _streamControllerClose,
+          functionType: _streamControllerClose.getterType as FunctionType,
+        ),
+      ),
+      // Only complete the cancel completer if there was no error.
+      IfStatement(
+        Not(EqualsNull(VariableGet(cancelCompleterVar))),
+        ExpressionStatement(
+          InstanceInvocation(
+            InstanceAccessKind.Instance,
+            VariableGet(cancelCompleterVar),
+            Name('complete'),
+            Arguments([ConstantExpression(NullConstant())]),
+            interfaceTarget: _completerComplete,
+            functionType:
+                substitute(_completerComplete.getterType, {
+                      _completerClass.typeParameters.first: const VoidType(),
+                    })
+                    as FunctionType,
+          ),
+        ),
+        null,
+      ),
+    ]);
+
+    bodyStatements.add(
+      TryFinally(TryCatch(transformedBody, [catch_]), finalizer),
+    );
+
+    final bodyFunction = FunctionNode(
+      Block(bodyStatements),
+      emittedValueType: const VoidType(),
+      returnType: InterfaceType(
+        coreTypes.futureClass,
+        Nullability.nonNullable,
+        [const VoidType()],
+      ),
+      asyncMarker: AsyncMarker.Async,
+      dartAsyncMarker: AsyncMarker.Async,
+    );
+
+    final bodyInitializer = FunctionExpression(bodyFunction);
+
+    final bodyFunctionType = bodyFunction.computeThisFunctionType(
+      Nullability.nonNullable,
+    );
+
+    final bodyVar = SyntheticVariable(
+      cosmeticName: '#body',
+      initializer: bodyInitializer..fileOffset = fileOffset,
+      type: bodyFunctionType,
+    )..fileOffset = fileOffset;
+
+    // controller.onListen = () {
+    //   scheduleMicrotask(_body);
+    // };
+    final scheduleMicrotaskProcedure = coreTypes.index.getTopLevelProcedure(
+      'dart:async',
+      'scheduleMicrotask',
+    );
+
+    final setControllerOnListen = InstanceSet(
+      InstanceAccessKind.Instance,
+      VariableGet(controllerVar),
+      Name('onListen'),
+      FunctionExpression(
+        FunctionNode(
+          ExpressionStatement(
+            StaticInvocation(
+              scheduleMicrotaskProcedure,
+              Arguments([VariableGet(bodyVar)]),
+            ),
+          ),
+        ),
+      ),
+      interfaceTarget: _streamControllerSetOnListen,
+    );
+
+    return FunctionNode(
+      Block([
+        VariableStatement(VariableDeclaration(pausedVar)),
+        VariableStatement(VariableDeclaration(cancelCompleterVar)),
+        VariableStatement(VariableDeclaration(isDoneVar)),
+        VariableStatement(VariableDeclaration(onCancelCallbackVar)),
+        VariableStatement(VariableDeclaration(onResumeCallbackVar)),
+
+        // var controller = StreamController<T>(sync: true, onCancel: onCancelCallback, onResume: onResumeCallback);
+        VariableStatement(VariableDeclaration(controllerVar)),
+
+        // var #body = ...;
+        VariableStatement(VariableDeclaration(bodyVar)),
+
+        // controller.onListen = ...;
+        ExpressionStatement(setControllerOnListen),
+
+        // return controller.stream;
+        ReturnStatement(
+          InstanceGet(
+            InstanceAccessKind.Instance,
+            VariableGet(controllerVar),
+            Name("stream"),
+            interfaceTarget: _streamControllerGetStream,
+            resultType: substitute(_streamControllerGetStream.getterType, {
+              _streamControllerClass.typeParameters.first: emittedValueType,
+            }),
+          ),
+        ),
+      ]),
+      typeParameters: functionNode.typeParameters,
+      positionalParameters: functionNode.positionalParameters,
+      namedParameters: functionNode.namedParameters,
+      requiredParameterCount: functionNode.requiredParameterCount,
+      returnType: functionNode.returnType,
+      asyncMarker: AsyncMarker.Sync,
+      dartAsyncMarker: AsyncMarker.Sync,
+    );
+  }
+
+  void _lowerAsync(FunctionNode functionNode) {
+    /*
+    Convert `async` functions with "simple" bodies to `sync` functions, using
+    `Future.value`.
+
+    "Simple" means: constant or basic literal. In general, this transformation
+    can be done on any function body that doesn't `await` and doesn't throw.
+
+    Example:
+
+    foo() async { return const ...; }
+    ==>
+    foo() { return Future.value(const ...); }
+    */
+    final functionBody = functionNode.body!;
+    final simpleReturn = _getSimpleReturn(functionBody);
+    if (simpleReturn is BasicLiteral || simpleReturn is ConstantExpression) {
+      final futureValueType = functionNode.emittedValueType!;
+      final newBody = ReturnStatement(
+        StaticInvocation(
+          coreTypes.futureValueFactory,
+          Arguments([simpleReturn!], types: [futureValueType]),
+        ),
+      );
+      newBody.parent = functionNode;
+      functionNode.body = newBody;
+      functionNode.asyncMarker = AsyncMarker.Sync;
+    }
+  }
+
+  @override
+  TreeNode visitYieldStatement(YieldStatement yield) {
+    // We currently ignore yields in 'sync*'.
+    if (!_enclosingIsAsyncStar) {
+      return super.visitYieldStatement(yield);
+    }
+
+    final fileOffset = yield.fileOffset;
+    final frame = _asyncStarFrames.last;
+    final controllerVar = frame.controllerVar;
+    final pausedVar = frame.pausedVar;
+    final isYieldStar = yield.isYieldStar;
+
+    final transformedExpression = yield.expression.accept(this) as Expression;
+
+    final List<Statement> statements = [];
+
+    if (isYieldStar) {
+      // yield* e
+      //
+      // ==>
+      //
+      // await #controller.addStream(e);
+      // if (!#controller.hasListener) return;
+
+      final controllerAddStreamProcedureType =
+          _streamControllerAddStream.getterType as FunctionType;
+
+      statements.add(
+        ExpressionStatement(
+          AwaitExpression(
+            InstanceInvocation(
+              InstanceAccessKind.Instance,
+              VariableGet(controllerVar),
+              Name('addStream'),
+              Arguments([transformedExpression]),
+              interfaceTarget: _streamControllerAddStream,
+              functionType:
+                  substitute(controllerAddStreamProcedureType, {
+                        _streamControllerClass.typeParameters.first:
+                            frame.emittedValueType,
+                      })
+                      as FunctionType,
+            ),
+          ),
+        ),
+      );
+
+      statements.add(
+        IfStatement(
+          InstanceGet(
+            InstanceAccessKind.Instance,
+            VariableGet(controllerVar),
+            Name('hasListener'),
+            interfaceTarget: _streamControllerGetHasListener,
+            resultType: coreTypes.boolNonNullableRawType,
+          ),
+          Block([]),
+          ReturnStatement(),
+        ),
+      );
+    } else {
+      // yield e
+      //
+      // ==>
+      //
+      // #controller.add(e);
+      // if (#controller.isPaused) {
+      //   await (#paused = Completer()).future;
+      // }
+      // if (!#controller.hasListener) {
+      //   return;
+      // }
+
+      statements.add(
+        ExpressionStatement(
+          _addToController(controllerVar, yield.expression, fileOffset),
+        ),
+      );
+
+      // if (controller.isPaused) ...
+      statements.add(
+        IfStatement(
+          InstanceGet(
+            InstanceAccessKind.Instance,
+            VariableGet(controllerVar),
+            Name('isPaused'),
+            interfaceTarget: _streamControllerGetIsPaused,
+            resultType: coreTypes.boolNonNullableRawType,
+          ),
+          ExpressionStatement(
+            AwaitExpression(
+              InstanceGet(
+                InstanceAccessKind.Instance,
+                VariableSet(
+                  pausedVar,
+                  StaticInvocation(
+                    _completerConstructor,
+                    Arguments([], types: [const VoidType()]),
+                  ),
+                ),
+                Name('future'),
+                interfaceTarget: _completerGetFuture,
+                resultType: substitute(_completerGetFuture.getterType, {
+                  _completerClass.typeParameters.first: const VoidType(),
+                }),
+              ),
+            ),
+          ),
+          null,
+        ),
+      );
+
+      // if (!controller.hasListener) return;
+      statements.add(
+        IfStatement(
+          InstanceGet(
+            InstanceAccessKind.Instance,
+            VariableGet(controllerVar),
+            Name('hasListener'),
+            interfaceTarget: _streamControllerGetHasListener,
+            resultType: coreTypes.boolNonNullableRawType,
+          ),
+          Block([]),
+          ReturnStatement(),
+        ),
+      );
+    }
+
+    return Block(statements);
+  }
+
+  @override
+  TreeNode visitFunctionNode(FunctionNode functionNode) {
+    final previousEnclosing = _enclosingIsAsyncStar;
+    final FunctionNode transformed;
+
+    if (functionNode.asyncMarker == AsyncMarker.AsyncStar) {
+      _enclosingIsAsyncStar = true;
+      functionNode = _lowerAsyncStar(functionNode) as FunctionNode;
+      _enclosingIsAsyncStar = previousEnclosing;
+      transformed = super.visitFunctionNode(functionNode) as FunctionNode;
+    } else {
+      _enclosingIsAsyncStar = false;
+      transformed = super.visitFunctionNode(functionNode) as FunctionNode;
+      _enclosingIsAsyncStar = previousEnclosing;
+    }
+
+    if (transformed.asyncMarker == AsyncMarker.Async) {
+      _lowerAsync(transformed);
+    }
+
+    return transformed;
+  }
+
+  @override
+  TreeNode visitStaticInvocation(StaticInvocation node) {
+    node.transformChildren(this);
+
+    // Forward calls in `dart:async` to private `dart:core` method.
+    if (node.target == _trySetStackTraceForwarder) {
+      node.target = _trySetStackTrace;
+    }
+
+    TreeNode transformed = _pushPopWasmArrayTransformer
+        .transformStaticInvocation(node);
+
+    if (transformed is StaticInvocation) {
+      transformed = _factorySpecializer.transformStaticInvocation(transformed);
+    }
+
+    return transformed;
+  }
+
+  @override
+  TreeNode visitFunctionTearOff(FunctionTearOff node) {
+    node.transformChildren(this);
+    return node.receiver;
+  }
+
+  @override
+  TreeNode visitThrow(Throw node) {
+    node.transformChildren(this);
+    if (node.forErrorHandling) {
+      final expression = node.expression;
+      if (expression is ConstructorInvocation) {
+        final throwFunction =
+            _errorHandlingFunctions[expression.targetReference];
+        if (throwFunction != null) {
+          return StaticInvocation(throwFunction, expression.arguments);
+        }
+      } else if (expression is StaticInvocation) {
+        final throwFunction =
+            _errorHandlingFunctions[expression.targetReference];
+        if (throwFunction != null) {
+          return StaticInvocation(throwFunction, expression.arguments);
+        }
+      }
+    }
+    return node;
+  }
+}
+
+class _AsyncStarFrame {
+  final Variable controllerVar;
+  final Variable pausedVar;
+  final DartType emittedValueType;
+
+  _AsyncStarFrame(this.controllerVar, this.pausedVar, this.emittedValueType);
+}
+
+/// Converts `pushWasmArray<T>(array, length, elem, nextCapacity)` to:
+///
+///     if (array.length == length) {
+///       final newArray = WasmArray<T>(nextCapacity);
+///       newArray.copy(0, array, 0, length);
+///       array = newArray;
+///     }
+///     array[length] = elem;
+///     length += 1;
+///
+/// and `popWasmArray<T>(array, length)` to block expression:
+///
+///     {
+///       length -= 1;
+///       final T _value = array[length];
+///       array[length] = null;
+///     } => _value
+///
+/// This allows unboxing growable list in class fields.
+///
+/// `array` and `length` arguments need to be either `VariableGet` or
+/// `InstanceGet`.
+class PushPopWasmArrayTransformer {
+  final CoreTypes _coreTypes;
+  final Procedure _intAdd;
+  final Procedure _intSubtract;
+  final InterfaceType _intType;
+  final Procedure _popWasmArray;
+  final Procedure _pushWasmArray;
+  final Class _wasmArrayClass;
+  final Procedure _wasmArrayCopy;
+  final Procedure _wasmArrayElementGet;
+  final Procedure _wasmArrayElementSet;
+  final Procedure _wasmArrayFactory;
+  final Member _wasmArrayLength;
+
+  PushPopWasmArrayTransformer(this._coreTypes)
+    : _intAdd = _coreTypes.index.getProcedure('dart:core', 'num', '+'),
+      _intSubtract = _coreTypes.index.getProcedure('dart:core', 'num', '-'),
+      _intType = _coreTypes.intNonNullableRawType,
+      _popWasmArray = _coreTypes.index.getTopLevelProcedure(
+        'dart:_internal',
+        'popWasmArray',
+      ),
+      _pushWasmArray = _coreTypes.index.getTopLevelProcedure(
+        'dart:_internal',
+        'pushWasmArray',
+      ),
+      _wasmArrayClass = _coreTypes.index.getClass('dart:_wasm', 'WasmArray'),
+      _wasmArrayCopy = _coreTypes.index.getProcedure(
+        'dart:_wasm',
+        'WasmArrayExt',
+        'copy',
+      ),
+      _wasmArrayElementGet = _coreTypes.index.getProcedure(
+        'dart:_wasm',
+        'WasmArrayExt',
+        '[]',
+      ),
+      _wasmArrayElementSet = _coreTypes.index.getProcedure(
+        'dart:_wasm',
+        'WasmArrayExt',
+        '[]=',
+      ),
+      _wasmArrayFactory = _coreTypes.index.getProcedure(
+        'dart:_wasm',
+        'WasmArray',
+        '',
+      ),
+      _wasmArrayLength = _coreTypes.index.getProcedure(
+        'dart:_wasm',
+        'WasmArrayRef',
+        'get:length',
+      );
+
+  Expression transformStaticInvocation(StaticInvocation invocation) {
+    if (invocation.target == _pushWasmArray) {
+      return _transformPushWasmArray(invocation);
+    } else if (invocation.target == _popWasmArray) {
+      return _transformPopWasmArray(invocation);
+    } else {
+      return invocation;
+    }
+  }
+
+  Expression _transformPushWasmArray(StaticInvocation invocation) {
+    final elementType = invocation.arguments.types[0];
+
+    final positionalArguments = invocation.arguments.positional;
+    assert(positionalArguments.length == 4);
+
+    final array = positionalArguments[0];
+    final length = positionalArguments[1];
+    final elem = positionalArguments[2];
+    final nextCapacity = positionalArguments[3];
+
+    assert(array is InstanceGet || array is VariableGet);
+    assert(length is InstanceGet || length is VariableGet);
+
+    // Collect variables referenced in `VariableGet`s. These will be passed to
+    // the cloner as "already cloned" to avoid cloning them.
+    final variableCollector = _VariableCollector();
+    array.accept(variableCollector);
+    length.accept(variableCollector);
+    elem.accept(variableCollector);
+    nextCapacity.accept(variableCollector);
+
+    final variables = variableCollector.variables;
+
+    // Clone an expression.
+    Expression clone(Expression node) {
+      final cloner = CloneVisitorNotMembers();
+      for (final variable in variables) {
+        cloner.setVariableClone(variable, variable);
+      }
+      return cloner.clone(node);
+    }
+
+    // array.length == length
+    final objectEqualsType = _coreTypes.objectEquals
+        .computeSignatureOrFunctionType();
+    final lengthCheck = EqualsCall(
+      InstanceGet(
+        InstanceAccessKind.Instance,
+        array,
+        Name('length'),
+        interfaceTarget: _wasmArrayLength,
+        resultType: _intType,
+      ),
+      length,
+      functionType: objectEqualsType,
+      interfaceTarget: _coreTypes.objectEquals,
+    );
+
+    // WasmArray<T>(nextCapacity)
+    final arrayAllocation = StaticInvocation(
+      _wasmArrayFactory,
+      Arguments([nextCapacity], types: [elementType]),
+    );
+
+    // var newArray = WasmArray<T>(nextCapacity)
+    final newArrayVariable = SyntheticVariable(
+      cosmeticName: 'newArray',
+      initializer: arrayAllocation,
+      type: InterfaceType(_wasmArrayClass, Nullability.nonNullable, [
+        elementType,
+      ]),
+    );
+
+    // newArray.copy(...)
+    final newArrayCopy = StaticInvocation(
+      _wasmArrayCopy,
+      Arguments(
+        [
+          VariableGet(newArrayVariable),
+          IntLiteral(0),
+          clone(array),
+          IntLiteral(0),
+          clone(length),
+        ],
+        types: [elementType],
+      ),
+    );
+
+    // array = newArray
+    final Statement arrayFieldUpdate;
+    if (array is InstanceGet) {
+      arrayFieldUpdate = ExpressionStatement(
+        InstanceSet(
+          array.kind,
+          clone(array.receiver),
+          array.name,
+          VariableGet(newArrayVariable),
+          interfaceTarget: array.interfaceTarget,
+        ),
+      );
+    } else {
+      final arrayVariableGet = array as VariableGet;
+      arrayFieldUpdate = ExpressionStatement(
+        VariableSet(arrayVariableGet.variable, VariableGet(newArrayVariable)),
+      );
+    }
+
+    final List<Statement> arrayGrowStatements = [
+      VariableStatement(VariableDeclaration(newArrayVariable)),
+      ExpressionStatement(newArrayCopy),
+      arrayFieldUpdate,
+    ];
+
+    // array[length] = elem
+    final arrayPush = ExpressionStatement(
+      StaticInvocation(
+        _wasmArrayElementSet,
+        Arguments([clone(array), clone(length), elem], types: [elementType]),
+      ),
+    );
+
+    // length + 1
+    final intAddType = _intAdd.computeSignatureOrFunctionType();
+    final lengthPlusOne = InstanceInvocation(
+      InstanceAccessKind.Instance,
+      clone(length),
+      Name('+'),
+      Arguments([IntLiteral(1)]),
+      interfaceTarget: _intAdd,
+      functionType: intAddType,
+    );
+
+    // length = length + 1
+    final Statement arrayLengthUpdate;
+    if (length is InstanceGet) {
+      arrayLengthUpdate = ExpressionStatement(
+        InstanceSet(
+          length.kind,
+          clone(length.receiver),
+          length.name,
+          lengthPlusOne,
+          interfaceTarget: length.interfaceTarget,
+        ),
+      );
+    } else {
+      final lengthVariableGet = length as VariableGet;
+      arrayLengthUpdate = ExpressionStatement(
+        VariableSet(lengthVariableGet.variable, lengthPlusOne),
+      );
+    }
+
+    return BlockExpression(
+      Block([
+        IfStatement(lengthCheck, Block(arrayGrowStatements), null),
+        arrayPush,
+        arrayLengthUpdate,
+      ]),
+      NullLiteral(),
+    );
+  }
+
+  Expression _transformPopWasmArray(StaticInvocation invocation) {
+    final elementType = invocation.arguments.types[0] as InterfaceType;
+    final elementIsNullable =
+        elementType.nullability != Nullability.nonNullable;
+
+    final positionalArguments = invocation.arguments.positional;
+    assert(positionalArguments.length == 2);
+
+    final array = positionalArguments[0];
+    final length = positionalArguments[1];
+
+    assert(array is InstanceGet || array is VariableGet);
+    assert(length is InstanceGet || length is VariableGet);
+
+    // Collect variables referenced in `VariableGet`s. These will be passed to
+    // the cloner as "already cloned" to avoid cloning them.
+    final variableCollector = _VariableCollector();
+    array.accept(variableCollector);
+    length.accept(variableCollector);
+
+    final variables = variableCollector.variables;
+
+    // Clone an expression.
+    Expression clone(Expression node) {
+      final cloner = CloneVisitorNotMembers();
+      for (final variable in variables) {
+        cloner.setVariableClone(variable, variable);
+      }
+      return cloner.clone(node);
+    }
+
+    final List<Statement> blockStatements = [];
+
+    // length - 1
+    final intSubtractType = _intSubtract.computeSignatureOrFunctionType();
+    final lengthMinusOne = InstanceInvocation(
+      InstanceAccessKind.Instance,
+      clone(length),
+      Name('-'),
+      Arguments([IntLiteral(1)]),
+      interfaceTarget: _intSubtract,
+      functionType: intSubtractType,
+    );
+
+    // length -= 1
+    final Statement arrayLengthUpdate;
+    if (length is InstanceGet) {
+      arrayLengthUpdate = ExpressionStatement(
+        InstanceSet(
+          length.kind,
+          clone(length.receiver),
+          length.name,
+          lengthMinusOne,
+          interfaceTarget: length.interfaceTarget,
+        ),
+      );
+    } else {
+      final lengthVariableGet = length as VariableGet;
+      arrayLengthUpdate = ExpressionStatement(
+        VariableSet(lengthVariableGet.variable, lengthMinusOne),
+      );
+    }
+    blockStatements.add(arrayLengthUpdate);
+
+    // array[length]
+    final arrayGet = StaticInvocation(
+      _wasmArrayElementGet,
+      Arguments([clone(array), clone(length)], types: [elementType]),
+    );
+
+    // final temp = array[length]
+    final arrayGetVariable = SyntheticVariable(
+      initializer: arrayGet,
+      isFinal: true,
+      type: elementType,
+    );
+    blockStatements.add(
+      VariableStatement(VariableDeclaration(arrayGetVariable)),
+    );
+
+    // array[length] = null
+    if (elementIsNullable) {
+      final arrayClearElement = ExpressionStatement(
+        StaticInvocation(
+          _wasmArrayElementSet,
+          Arguments(
+            [clone(array), clone(length), NullLiteral()],
+            types: [elementType],
+          ),
+        ),
+      );
+      blockStatements.add(arrayClearElement);
+    }
+
+    return BlockExpression(
+      Block(blockStatements),
+      VariableGet(arrayGetVariable),
+    );
+  }
+}
+
+class _VariableCollector extends RecursiveVisitor {
+  Set<Variable> variables = {};
+
+  @override
+  void visitVariableGet(VariableGet node) {
+    variables.add(node.variable);
+  }
+}
+
+Expression? _getSimpleReturn(Statement functionBody) {
+  if (functionBody is ReturnStatement) {
+    if (functionBody.expression == null) {
+      return NullLiteral();
+    }
+    return functionBody.expression;
+  }
+
+  if (functionBody is Block) {
+    if (functionBody.statements.isEmpty) {
+      return NullLiteral();
+    }
+    if (functionBody.statements.length == 1) {
+      final statement = functionBody.statements.single;
+      if (statement is ReturnStatement) {
+        return statement.expression;
+      }
+    }
+  }
+
+  return null;
+}

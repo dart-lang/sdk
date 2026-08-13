@@ -1,0 +1,25 @@
+main = <No Member>;
+library from "org-dartlang-test:///lib.dart" as lib {
+
+  abstract class A extends dart.core::Object {
+    field dart.core::int? _#A#x = null;
+    synthetic constructor •() → lib::A
+      : super dart.core::Object::•()
+      ;
+    get x() → dart.core::int
+      return let final dart.core::int? #t1 = this.{lib::A::_#A#x}{dart.core::int?} in #t1 == null ?{dart.core::int} throw{for-error-handling} new dart._internal::LateError::fieldNI("x") : #t1{dart.core::int};
+    set x(dart.core::int x#param) → void
+      this.{lib::A::_#A#x} = x#param;
+  }
+}
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "org-dartlang-test:///lib.dart";
+
+  class B extends dart.core::Object implements lib::A {
+    field dart.core::int x = 3;
+    synthetic constructor •() → main::B
+      : super dart.core::Object::•()
+      ;
+  }
+}

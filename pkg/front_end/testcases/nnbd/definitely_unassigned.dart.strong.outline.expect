@@ -1,0 +1,64 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/definitely_unassigned.dart:34:3: Error: Non-nullable variable 'local1' must be assigned before it can be used.
+//   local1; // error
+//   ^^^^^^
+//
+// pkg/front_end/testcases/nnbd/definitely_unassigned.dart:35:3: Error: Late variable 'local2' without initializer is definitely unassigned.
+//   local2; // error
+//   ^^^^^^
+//
+// pkg/front_end/testcases/nnbd/definitely_unassigned.dart:36:3: Error: Non-nullable variable 'local3' must be assigned before it can be used.
+//   local3; // error
+//   ^^^^^^
+//
+// pkg/front_end/testcases/nnbd/definitely_unassigned.dart:37:3: Error: Late variable 'local4' without initializer is definitely unassigned.
+//   local4; // error
+//   ^^^^^^
+//
+// pkg/front_end/testcases/nnbd/definitely_unassigned.dart:38:3: Error: Non-nullable variable 'local5' must be assigned before it can be used.
+//   local5; // error
+//   ^^^^^^
+//
+// pkg/front_end/testcases/nnbd/definitely_unassigned.dart:39:3: Error: Late variable 'local6' without initializer is definitely unassigned.
+//   local6; // error
+//   ^^^^^^
+//
+// pkg/front_end/testcases/nnbd/definitely_unassigned.dart:90:3: Error: Non-nullable variable 'local1' must be assigned before it can be used.
+//   local1; // error
+//   ^^^^^^
+//
+// pkg/front_end/testcases/nnbd/definitely_unassigned.dart:92:3: Error: Non-nullable variable 'local3' must be assigned before it can be used.
+//   local3; // error
+//   ^^^^^^
+//
+// pkg/front_end/testcases/nnbd/definitely_unassigned.dart:94:3: Error: Non-nullable variable 'local5' must be assigned before it can be used.
+//   local5; // error
+//   ^^^^^^
+//
+// pkg/front_end/testcases/nnbd/definitely_unassigned.dart:111:3: Error: Non-nullable variable 'local3' must be assigned before it can be used.
+//   local3 += 0; // error
+//   ^^^^^^
+//
+// pkg/front_end/testcases/nnbd/definitely_unassigned.dart:112:3: Error: Late variable 'local4' without initializer is definitely unassigned.
+//   local4 += 0; // error
+//   ^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+import "dart:async";
+
+static field <T extends core::Object? = dynamic>(T%) → Null fieldDirect;
+static field <T extends core::Object? = dynamic>(core::bool, T%) → Null fieldConditional;
+static field () → Null fieldCompound;
+static method methodDirect<T extends core::Object? = dynamic>(self::methodDirect::T% value) → dynamic
+  ;
+static method methodConditional<T extends core::Object? = dynamic>(core::bool b, self::methodConditional::T% value) → dynamic
+  ;
+static method methodCompound() → dynamic
+  ;
+static method main() → dynamic
+  ;

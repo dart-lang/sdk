@@ -1,0 +1,5 @@
+import 'import_through_prefix_lib1.dart' as a;
+
+import 'import_through_prefix_lib2.dart' as a;
+
+method() {}

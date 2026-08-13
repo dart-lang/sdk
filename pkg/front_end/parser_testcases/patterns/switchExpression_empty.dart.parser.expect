@@ -1,0 +1,5 @@
+f(x) => switch(x) {};
+
+
+f[StringToken]([BeginToken]x[StringToken])[SimpleToken] =>[SimpleToken] switch[KeywordToken]([BeginToken]x[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken];[SimpleToken]
+[SimpleToken]

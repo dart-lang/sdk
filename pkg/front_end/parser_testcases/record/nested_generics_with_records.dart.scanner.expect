@@ -1,0 +1,21 @@
+List<(int, int)> l1;
+List<List<(int, int)>> l2;
+List<List<List<(int, int)>>> l3;
+List<List<List<List<(int, int)>>>> l4;
+List<List<List<List<List<(int, int)>>>>> l5;
+List<List<List<List<List<List<(int, int)>>>>>> l6;
+List<List<List<List<List<List<List<(int, int)>>>>>>> l7;
+List<List<List<List<List<List<List<List<(int, int)>>>>>>>> l8;
+List<List<List<List<List<List<List<List<List<(int, int)>>>>>>>>> l9;
+List<List<List<List<List<List<List<List<List<List<(int, int)>>>>>>>>>> l10;
+
+List[StringToken]<[BeginToken]([BeginToken]int[StringToken],[SimpleToken] int[StringToken])[SimpleToken]>[SimpleToken] l1[StringToken];[SimpleToken]
+List[StringToken]<[BeginToken]List[StringToken]<[BeginToken]([BeginToken]int[StringToken],[SimpleToken] int[StringToken])[SimpleToken]>>[SimpleToken] l2[StringToken];[SimpleToken]
+List[StringToken]<[BeginToken]List[StringToken]<[BeginToken]List[StringToken]<[BeginToken]([BeginToken]int[StringToken],[SimpleToken] int[StringToken])[SimpleToken]>>>[SimpleToken] l3[StringToken];[SimpleToken]
+List[StringToken]<[BeginToken]List[StringToken]<[BeginToken]List[StringToken]<[BeginToken]List[StringToken]<[BeginToken]([BeginToken]int[StringToken],[SimpleToken] int[StringToken])[SimpleToken]>>>[SimpleToken]>[SimpleToken] l4[StringToken];[SimpleToken]
+List[StringToken]<[BeginToken]List[StringToken]<[BeginToken]List[StringToken]<[BeginToken]List[StringToken]<[BeginToken]List[StringToken]<[BeginToken]([BeginToken]int[StringToken],[SimpleToken] int[StringToken])[SimpleToken]>>>[SimpleToken]>>[SimpleToken] l5[StringToken];[SimpleToken]
+List[StringToken]<[BeginToken]List[StringToken]<[BeginToken]List[StringToken]<[BeginToken]List[StringToken]<[BeginToken]List[StringToken]<[BeginToken]List[StringToken]<[BeginToken]([BeginToken]int[StringToken],[SimpleToken] int[StringToken])[SimpleToken]>>>[SimpleToken]>>>[SimpleToken] l6[StringToken];[SimpleToken]
+List[StringToken]<[BeginToken]List[StringToken]<[BeginToken]List[StringToken]<[BeginToken]List[StringToken]<[BeginToken]List[StringToken]<[BeginToken]List[StringToken]<[BeginToken]List[StringToken]<[BeginToken]([BeginToken]int[StringToken],[SimpleToken] int[StringToken])[SimpleToken]>>>[SimpleToken]>>>[SimpleToken]>[SimpleToken] l7[StringToken];[SimpleToken]
+List[StringToken]<[BeginToken]List[StringToken]<[BeginToken]List[StringToken]<[BeginToken]List[StringToken]<[BeginToken]List[StringToken]<[BeginToken]List[StringToken]<[BeginToken]List[StringToken]<[BeginToken]List[StringToken]<[BeginToken]([BeginToken]int[StringToken],[SimpleToken] int[StringToken])[SimpleToken]>>>[SimpleToken]>>>[SimpleToken]>>[SimpleToken] l8[StringToken];[SimpleToken]
+List[StringToken]<[BeginToken]List[StringToken]<[BeginToken]List[StringToken]<[BeginToken]List[StringToken]<[BeginToken]List[StringToken]<[BeginToken]List[StringToken]<[BeginToken]List[StringToken]<[BeginToken]List[StringToken]<[BeginToken]List[StringToken]<[BeginToken]([BeginToken]int[StringToken],[SimpleToken] int[StringToken])[SimpleToken]>>>[SimpleToken]>>>[SimpleToken]>>>[SimpleToken] l9[StringToken];[SimpleToken]
+List[StringToken]<[BeginToken]List[StringToken]<[BeginToken]List[StringToken]<[BeginToken]List[StringToken]<[BeginToken]List[StringToken]<[BeginToken]List[StringToken]<[BeginToken]List[StringToken]<[BeginToken]List[StringToken]<[BeginToken]List[StringToken]<[BeginToken]List[StringToken]<[BeginToken]([BeginToken]int[StringToken],[SimpleToken] int[StringToken])[SimpleToken]>>>[SimpleToken]>>>[SimpleToken]>>>[SimpleToken]>[SimpleToken] l10[StringToken];[SimpleToken][SimpleToken]

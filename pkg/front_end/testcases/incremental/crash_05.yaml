@@ -1,0 +1,31 @@
+# Copyright (c) 2021, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Reproduce a crash.
+
+type: newworld
+worlds:
+  - entry: main.dart
+    sources:
+      main.dart: |
+        import 'dart:ffi';
+        import 'lib.dart';
+        final class X extends Struct {
+          external Y xx;
+        }
+      lib.dart: |
+        import 'dart:ffi';
+        final class Y extends Struct {
+          @Uint32()
+          external int yy;
+        }
+    expectedLibraryCount: 2
+
+  - entry: main.dart
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - main.dart
+    expectedLibraryCount: 2
+    advancedInvalidation: importsFfi

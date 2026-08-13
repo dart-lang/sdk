@@ -1,0 +1,7 @@
+import 'dart:async';
+
+FutureOr<T?> foo<T>(T t) {}
+
+bar<S>(bool t, S s) {}
+
+main() {}

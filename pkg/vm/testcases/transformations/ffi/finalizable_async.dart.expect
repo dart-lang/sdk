@@ -1,0 +1,71 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+import "dart:ffi" as ffi;
+import "dart:async" as asy;
+import "dart:_internal" as _in;
+
+import "dart:ffi";
+
+class MyFinalizable extends core::Object implements ffi::Finalizable {
+  synthetic constructor •() → self::MyFinalizable
+    : super core::Object::•()
+    ;
+  method use() → asy::Future<core::int> async /* emittedValueType= core::int */ {
+    return block {
+      final synthesized asy::Future<core::int> :expressionValueWrappedFinalizable = self::doSomething();
+      _in::reachabilityFence(this);
+    } =>:expressionValueWrappedFinalizable;
+  }
+  method use2() → asy::Future<core::int> async /* emittedValueType= core::int */ {
+    return block {
+      final synthesized core::int :expressionValueWrappedFinalizable = await block {
+        final synthesized asy::Future<core::int> :expressionValueWrappedFinalizable = self::doSomething();
+        _in::reachabilityFence(this);
+      } =>:expressionValueWrappedFinalizable;
+      _in::reachabilityFence(this);
+    } =>:expressionValueWrappedFinalizable;
+  }
+  method use3() → asy::Future<core::int> {
+    return block {
+      final synthesized asy::Future<core::int> :expressionValueWrappedFinalizable = self::doSomething();
+      _in::reachabilityFence(this);
+    } =>:expressionValueWrappedFinalizable;
+  }
+}
+static method doSomething() → asy::Future<core::int> async /* emittedValueType= core::int */ 
+  return 3;
+static method useFinalizableAsync(ffi::Finalizable finalizable) → asy::Future<core::int> async /* emittedValueType= core::int */ {
+  await block {
+    final synthesized asy::Future<core::int> :expressionValueWrappedFinalizable = asy::Future::sync<core::int>(() → core::int => 6);
+    _in::reachabilityFence(finalizable);
+  } =>:expressionValueWrappedFinalizable;
+  final self::MyFinalizable finalizable2 = new self::MyFinalizable::•();
+  await block {
+    final synthesized asy::Future<core::int> :expressionValueWrappedFinalizable = asy::Future::sync<core::int>(() → core::int => 5);
+    _in::reachabilityFence(finalizable);
+    _in::reachabilityFence(finalizable2);
+  } =>:expressionValueWrappedFinalizable;
+  final self::MyFinalizable finalizable3 = new self::MyFinalizable::•();
+  await block {
+    final synthesized asy::Future<core::int> :expressionValueWrappedFinalizable = asy::Future::sync<core::int>(() → core::int => 4);
+    _in::reachabilityFence(finalizable);
+    _in::reachabilityFence(finalizable2);
+    _in::reachabilityFence(finalizable3);
+  } =>:expressionValueWrappedFinalizable;
+  return block {
+    final synthesized asy::Future<core::int> :expressionValueWrappedFinalizable = self::doSomething();
+    _in::reachabilityFence(finalizable);
+    _in::reachabilityFence(finalizable2);
+    _in::reachabilityFence(finalizable3);
+  } =>:expressionValueWrappedFinalizable;
+}
+static method main() → void async /* emittedValueType= void */ {
+  final self::MyFinalizable finalizable = new self::MyFinalizable::•();
+  final asy::Future<core::int> asyncResult = self::useFinalizableAsync(finalizable);
+  core::print(await block {
+    final synthesized asy::Future<core::int> :expressionValueWrappedFinalizable = asyncResult;
+    _in::reachabilityFence(finalizable);
+  } =>:expressionValueWrappedFinalizable);
+  _in::reachabilityFence(finalizable);
+}

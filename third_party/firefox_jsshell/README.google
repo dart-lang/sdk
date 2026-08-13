@@ -1,0 +1,11 @@
+Name: The SpiderMonkey shell.
+Short Name: js-shell
+URL: https://archive.mozilla.org/pub/firefox/releases/88.0/jsshell/
+Version: JavaScript-C88.0
+Date: April 19, 2021
+License: MPL2, https://www.mozilla.org/en-US/MPL/2.0/
+
+Description:
+This directory contains the Mozilla SpiderMonkey shell binaries.
+
+The binaries are used for testing dart code compiled to javascript.

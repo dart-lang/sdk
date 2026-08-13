@@ -1,0 +1,70 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+part of $LIBRARYNAME;
+
+$(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME extends Node
+{
+
+$!MEMBERS
+  /**
+   * Finds all descendant elements of this document that match the specified
+   * group of selectors.
+   *
+   * Unless your webpage contains multiple documents, the top-level
+   * [querySelectorAll]
+   * method behaves the same as this method, so you should use it instead to
+   * save typing a few characters.
+   *
+   * [selectors] should be a string using CSS selector syntax.
+   *
+   *     var items = document.querySelectorAll('.itemClassName');
+   *
+   * For details about CSS selector syntax, see the
+   * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
+   */
+  ElementList<T> querySelectorAll<T extends Element>(String selectors) =>
+    new _FrozenElementList<T>._wrap(_querySelectorAll(selectors));
+
+  @pragma('dart2js:tryInline') // Almost all call sites have one argument.
+  Element createElement(String tagName, [String$NULLABLE typeExtension]) {
+    return (typeExtension == null)
+        ? _createElement_2(tagName)
+        : _createElement(tagName, typeExtension);
+  }
+
+  // The two-argument version of this is automatically generated, but we need to
+  // omit the typeExtension if it's null on Firefox or we get an is="null" attribute.
+  _createElement_2(String tagName) =>
+      JS('Element', '#.createElement(#)', this, tagName);
+
+  // The three-argument version of this is automatically generated, but we need to
+  // omit the typeExtension if it's null on Firefox or we get an is="null" attribute.
+  _createElementNS_2(String namespaceURI, String qualifiedName) =>
+      JS('Element', '#.createElementNS(#, #)', this, namespaceURI, qualifiedName);
+
+  Element createElementNS(String namespaceURI, String qualifiedName,
+      [String$NULLABLE typeExtension]) {
+    return (typeExtension == null)
+        ? _createElementNS_2(namespaceURI, qualifiedName)
+        : _createElementNS(namespaceURI, qualifiedName, typeExtension);
+  }
+
+  NodeIterator _createNodeIterator(Node root,
+      [int$NULLABLE whatToShow, NodeFilter$NULLABLE filter])
+      => JS('NodeIterator', '#.createNodeIterator(#, #, #, false)',
+          this, root, whatToShow, filter);
+
+  TreeWalker _createTreeWalker(Node root,
+      [int$NULLABLE whatToShow, NodeFilter$NULLABLE filter])
+      => JS('TreeWalker', '#.createTreeWalker(#, #, #, false)',
+          this, root, whatToShow, filter);
+
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.IE, '10')
+  String get visibilityState => JS('String',
+    '(#.visibilityState || #.mozVisibilityState || #.msVisibilityState ||'
+      '#.webkitVisibilityState)', this, this, this, this);
+}

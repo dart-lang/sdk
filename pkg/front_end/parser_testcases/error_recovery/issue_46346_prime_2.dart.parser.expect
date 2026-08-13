@@ -1,0 +1,5 @@
+NOTICE: Stream was rewritten by parser!
+
+class*synthetic*{}
+
+class[KeywordToken][SyntheticStringToken]{[SyntheticBeginToken]}[SyntheticToken][SimpleToken]

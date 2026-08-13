@@ -1,0 +1,12 @@
+M(rdi uint64[uint24]) Struct(size: 3)
+M(rsi uint64[uint24]) Struct(size: 3)
+M(rdx uint64[uint24]) Struct(size: 3)
+M(rcx uint64[uint24]) Struct(size: 3)
+M(r8 uint64[uint24]) Struct(size: 3)
+M(r9 uint64[uint24]) Struct(size: 3)
+S+0 Struct(size: 3)
+S+8 Struct(size: 3)
+S+16 Struct(size: 3)
+S+24 Struct(size: 3)
+=>
+M(rax uint64[uint24]) Struct(size: 3)

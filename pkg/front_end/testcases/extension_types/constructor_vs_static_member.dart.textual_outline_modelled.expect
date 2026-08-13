@@ -1,0 +1,44 @@
+class Class1 {
+  Class1.n(this.id);
+  final int id;
+  static int get n => 1;
+}
+
+class Class2 {
+  const Class2.n(this.id);
+  final int id;
+  static int n() => 2;
+}
+
+class Class3 {
+  Class3(this.id);
+  factory Class3.n(int id) = Class3.new;
+  final int id;
+  static int n() => 3;
+}
+
+class Class4 {
+  Class4.n(this.id);
+  final int id;
+  static int n = 1;
+}
+
+extension type ET1(int id) {
+  ET1.n(this.id);
+  static int get n => 1;
+}
+
+extension type ET2(int id) {
+  const ET2.n(this.id);
+  static int n() => 2;
+}
+
+extension type ET3(int id) {
+  factory ET3.n(int id) = ET3.new;
+  static int n() => 3;
+}
+
+extension type ET4(int id) {
+  ET4.n(this.id);
+  static int n = 1;
+}

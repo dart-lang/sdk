@@ -1,0 +1,33 @@
+# Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+import("../../runtime/runtime_args.gni")
+import("../aot_snapshot.gni")
+import("../application_snapshot.gni")
+
+group("dart_runtime_service_vm_aot") {
+  public_deps = [ ":dart_runtime_service_vm_aot_snapshot" ]
+}
+
+aot_snapshot("dart_runtime_service_vm_aot_snapshot") {
+  main_dart = "../../pkg/dart_runtime_service_vm/bin/vm_service_entrypoint.dart"
+  output = "$root_out_dir/dart_runtime_service_vm_aot.dart.snapshot"
+}
+
+group("dart_runtime_service_vm") {
+  public_deps = [ ":copy_dart_runtime_service_vm_snapshot" ]
+}
+
+copy("copy_dart_runtime_service_vm_snapshot") {
+  visibility = [ ":dart_runtime_service_vm" ]
+  public_deps = [ ":generate_dart_runtime_service_vm_snapshot" ]
+  sources = [ "$root_gen_dir/dart_runtime_service_vm.dart.snapshot" ]
+  outputs = [ "$root_out_dir/dart_runtime_service_vm.dart.snapshot" ]
+}
+
+application_snapshot("generate_dart_runtime_service_vm_snapshot") {
+  main_dart = "../../pkg/dart_runtime_service_vm/bin/vm_service_entrypoint.dart"
+  training_args = [ "--help" ]
+  output = "$root_gen_dir/dart_runtime_service_vm.dart.snapshot"
+}

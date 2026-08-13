@@ -1,0 +1,5 @@
+String test(Object? o) {}
+
+expect(expected, actual) {}
+
+main() {}

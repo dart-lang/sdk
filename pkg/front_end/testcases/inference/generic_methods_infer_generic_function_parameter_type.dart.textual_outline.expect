@@ -1,0 +1,13 @@
+library test;
+
+class C<T> extends D<T> {
+  f<U>(x) => throw '';
+}
+
+class D<T> {
+  F<U> f<U>(U u) => throw '';
+}
+
+typedef void F<V>(V v);
+
+main() {}

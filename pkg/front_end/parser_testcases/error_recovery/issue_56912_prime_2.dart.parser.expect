@@ -1,0 +1,5 @@
+NOTICE: Stream was rewritten by parser!
+
+typedef *synthetic*<E> = Map<E, int>;
+
+typedef[KeywordToken] [SyntheticStringToken]<[BeginToken]E[StringToken]>[SimpleToken] =[SimpleToken] Map[StringToken]<[BeginToken]E[StringToken],[SimpleToken] int[StringToken]>[SimpleToken];[SimpleToken][SimpleToken]

@@ -1,0 +1,299 @@
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_system.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart'; // ignore: implementation_imports
+
+import '../extensions.dart';
+
+bool argumentsMatchParameters(
+  NodeList<Argument> arguments,
+  NodeList<FormalParameter> parameters,
+) {
+  var namedParameters = <String, Element?>{};
+  var namedArguments = <String, Element>{};
+  var positionalParameters = <Element?>[];
+  var positionalArguments = <Element>[];
+  for (var parameter in parameters) {
+    var identifier = parameter.name;
+    var parameterElement = parameter.declaredFragment?.element;
+    if (identifier != null) {
+      if (parameter.isNamed) {
+        namedParameters[identifier.lexeme] = parameterElement;
+      } else {
+        positionalParameters.add(parameterElement);
+      }
+    }
+  }
+  for (var argument in arguments) {
+    if (argument is NamedArgument) {
+      var element = argument.argumentExpression.canonicalElement;
+      if (element == null) {
+        return false;
+      }
+      namedArguments[argument.name.lexeme] = element;
+    } else {
+      var element = argument.argumentExpression.canonicalElement;
+      if (element == null) {
+        return false;
+      }
+      positionalArguments.add(element);
+    }
+  }
+  if (positionalParameters.length != positionalArguments.length ||
+      namedParameters.keys.length != namedArguments.keys.length) {
+    return false;
+  }
+  for (var i = 0; i < positionalArguments.length; i++) {
+    if (positionalArguments[i] != positionalParameters[i]) {
+      return false;
+    }
+  }
+
+  for (var key in namedParameters.keys) {
+    if (namedParameters[key] != namedArguments[key]) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+/// Returns whether the canonical elements of [element1] and [element2] are
+/// equal.
+bool canonicalElementsAreEqual(Element? element1, Element? element2) =>
+    element1?.canonicalElement2 == element2?.canonicalElement2;
+
+/// Returns whether the canonical elements from two nodes are equal.
+///
+/// As in, [AstNodeNullableExtension.canonicalElement], the two nodes must be
+/// [Expression]s in order to be compared (otherwise `false` is returned).
+///
+/// The two nodes must both be a [SimpleIdentifier], [PrefixedIdentifier], or
+/// [PropertyAccess] (otherwise `false` is returned).
+///
+/// If the two nodes are PrefixedIdentifiers, or PropertyAccess nodes, then
+/// `true` is returned only if their canonical elements are equal, in
+/// addition to their prefixes' and targets' (respectfully) canonical
+/// elements.
+///
+/// There is an inherent assumption about pure getters. For example:
+///
+///     A a1 = ...
+///     A a2 = ...
+///     a1.b.c; // statement 1
+///     a2.b.c; // statement 2
+///     a1.b.c; // statement 3
+///
+/// The canonical elements from statements 1 and 2 are different, because a1
+/// is not the same element as a2.  The canonical elements from statements 1
+/// and 3 are considered to be equal, even though `A.b` may have side effects
+/// which alter the returned value.
+bool canonicalElementsFromIdentifiersAreEqual(
+  Expression? rawExpression1,
+  Expression? rawExpression2,
+) {
+  if (rawExpression1 == null || rawExpression2 == null) return false;
+
+  var expression1 = rawExpression1.unParenthesized;
+  var expression2 = rawExpression2.unParenthesized;
+
+  if (expression1 is SimpleIdentifier) {
+    return expression2 is SimpleIdentifier &&
+        canonicalElementsAreEqual(
+          expression1.writeOrReadElement,
+          expression2.writeOrReadElement,
+        );
+  }
+
+  if (expression1 is PrefixedIdentifier) {
+    return expression2 is PrefixedIdentifier &&
+        canonicalElementsAreEqual(
+          expression1.prefix.element,
+          expression2.prefix.element,
+        ) &&
+        canonicalElementsAreEqual(
+          expression1.identifier.writeOrReadElement,
+          expression2.identifier.writeOrReadElement,
+        );
+  }
+
+  if (expression1 is PropertyAccess && expression2 is PropertyAccess) {
+    var target1 = expression1.target;
+    var target2 = expression2.target;
+    return canonicalElementsFromIdentifiersAreEqual(target1, target2) &&
+        canonicalElementsAreEqual(
+          expression1.propertyName.writeOrReadElement,
+          expression2.propertyName.writeOrReadElement,
+        );
+  }
+
+  return false;
+}
+
+/// Returns whether [leftType] and [rightType] are _definitely_ unrelated.
+///
+/// For the purposes of this function, here are some "relation" rules:
+/// * `dynamic` and `Null` are considered related to any other type.
+/// * Two types which are equal modulo nullability are considered related,
+///   e.g. `int` and `int`, `String` and `String?`, `List<String>` and
+///   `List<String>`, `List<T>` and `List<T>`, and type variables `A` and `A`.
+/// * Two types such that one is a subtype of the other, modulo nullability,
+///   such as `List<dynamic>` and `Iterable<dynamic>`, and type variables `A`
+///   and `B` where `A extends B`, are considered related.
+/// * Two interface types:
+///   * are related if they represent the same class, modulo type arguments,
+///     modulo nullability, and each of their pair-wise type arguments are
+///     related, e.g. `List<dynamic>` and `List<int>`, and `Future<T>` and
+///     `Future<S>` where `S extends T`.
+///   * are unrelated if [leftType]'s supertype is [Object].
+///   * are related if their supertypes are equal, e.g. `List<dynamic>` and
+///     `Set<dynamic>`.
+///   * are unrelated if they are distinct mixins.
+///   * are unrelated if they are distinct extension types.
+/// * Two type variables are related if their bounds are related.
+/// * A record type is unrelated to any other type except a record type of
+///   the same shape.
+/// * Otherwise, any two types are related.
+// TODO(srawlins): typedefs and functions in general.
+bool typesAreUnrelated(
+  TypeSystem typeSystem,
+  DartType leftType,
+  DartType rightType,
+) {
+  leftType = leftType.extensionTypeErasure;
+  rightType = rightType.extensionTypeErasure;
+
+  // If we don't have enough information, or can't really compare the types,
+  // return false as they _might_ be related.
+  if (leftType.isBottom ||
+      leftType is DynamicType ||
+      rightType.isBottom ||
+      rightType is DynamicType) {
+    return false;
+  }
+  var promotedLeftType = typeSystem.promoteToNonNull(leftType);
+  var promotedRightType = typeSystem.promoteToNonNull(rightType);
+  if (leftType.isDartCoreNull && typeSystem.isNonNullable(rightType)) {
+    return true;
+  }
+  if (rightType.isDartCoreNull && typeSystem.isNonNullable(leftType)) {
+    return true;
+  }
+  if (promotedLeftType == promotedRightType ||
+      typeSystem.isSubtypeOf(promotedLeftType, promotedRightType) ||
+      typeSystem.isSubtypeOf(promotedRightType, promotedLeftType)) {
+    return false;
+  }
+  if (promotedLeftType is InterfaceType && promotedRightType is InterfaceType) {
+    return typeSystem.interfaceTypesAreUnrelated(
+      promotedLeftType,
+      promotedRightType,
+    );
+  } else if (promotedLeftType is TypeParameterType &&
+      promotedRightType is TypeParameterType) {
+    var leftBound = promotedLeftType.element.bound;
+    if (leftBound == null) return false;
+    var rightBound = promotedRightType.element.bound;
+    if (rightBound == null) return false;
+    return typesAreUnrelated(typeSystem, leftBound, rightBound);
+  } else if (promotedLeftType is FunctionType) {
+    if (_isTypeUnrelatedToFunctionType(promotedRightType)) return true;
+  } else if (promotedRightType is FunctionType) {
+    if (_isTypeUnrelatedToFunctionType(promotedLeftType)) return true;
+  } else if (promotedLeftType is RecordType ||
+      promotedRightType is RecordType) {
+    return !typeSystem.isAssignableTo(promotedLeftType, promotedRightType) &&
+        !typeSystem.isAssignableTo(promotedRightType, promotedLeftType);
+  }
+  return false;
+}
+
+/// Returns whether [type] is definitely unrelated to a function type.
+///
+/// A returned value of `false` indicates [type] _might_ be related to a
+/// function type.
+bool _isTypeUnrelatedToFunctionType(DartType type) {
+  if (type is FunctionType) return false;
+  if (type is InterfaceType) {
+    var element = type.element;
+    if (element is! ClassElement) return true;
+    var callMethod = element.thisType.lookUpMethod(
+      'call',
+      element.library,
+      concrete: true,
+    );
+    if (callMethod != null) return false;
+  }
+  return true;
+}
+
+typedef AstNodePredicate = bool Function(AstNode node);
+
+extension on TypeSystem {
+  bool interfaceTypesAreUnrelated(
+    InterfaceType leftType,
+    InterfaceType rightType,
+  ) {
+    var leftElement = leftType.element;
+    var rightElement = rightType.element;
+    if (leftElement == rightElement) {
+      // In this case, [leftElement] and [rightElement] represent the same
+      // class, modulo generics, e.g. `List<int>` and `List<dynamic>`. Now we
+      // need to check type arguments.
+      var leftTypeArguments = leftType.typeArguments;
+      var rightTypeArguments = rightType.typeArguments;
+      if (leftTypeArguments.length != rightTypeArguments.length) {
+        // I cannot think of how we would enter this block, but it guards
+        // against RangeError below.
+        return false;
+      }
+      for (var i = 0; i < leftTypeArguments.length; i++) {
+        // If any of the pair-wise type arguments are unrelated, then
+        // [leftType] and [rightType] are unrelated.
+        if (typesAreUnrelated(
+          this,
+          leftTypeArguments[i],
+          rightTypeArguments[i],
+        )) {
+          return true;
+        }
+      }
+      // Otherwise, they might be related.
+      return false;
+    } else {
+      var leftSuper = leftElement.supertype;
+      if (leftSuper == null) return true;
+      if (leftSuper != rightElement.supertype) return true;
+
+      // Unrelated enums (and subclassess of ProtobufEnum) have the same
+      // supertype, but they are not the same element, so they are unrelated.
+      // Mixins always have supertype null, and so do extension types, and they
+      // are both considered unrelated when their elements are not equal.
+      if (leftElement is EnumElement) return true;
+
+      // We include this special case, but it may be removed if generated
+      // protobuf enums become final classes. See
+      // https://github.com/google/protobuf.dart/issues/820.
+      if (leftSuper.isProtobufEnum) return true;
+
+      return leftElement.supertype?.isDartCoreObject ?? false;
+    }
+  }
+}
+
+extension on InterfaceType {
+  static final _protobufEnumLibraryUri = Uri.parse(
+    'package:protobuf/src/protobuf/protobuf_enum.dart',
+  );
+
+  /// Whether this interface is the ProtobufEnum class from the protobuf
+  /// package.
+  bool get isProtobufEnum =>
+      element.name == 'ProtobufEnum' &&
+      element.library.uri == _protobufEnumLibraryUri;
+}

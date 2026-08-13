@@ -1,0 +1,60 @@
+abstract class B {
+  method3([int i]);
+  method4({int i});
+  method5([int? i]);
+  method6({int? i});
+  method7({required int i});
+  var i = 42;
+}
+
+class A {
+  A.constructor1([this.i]);
+  A.constructor2({this.i});
+  A.constructor3([int i]) : this.i = i;
+  A.constructor4({int i}) : this.i = i;
+  A.constructor5([int? i]) : this.i = i;
+  A.constructor6({int? i}) : this.i = i;
+  A.constructor7({required int i}) : this.i = i;
+  external A.constructor8([int i]);
+  external A.constructor9({int i});
+  external method8([int i]);
+  external method9({int i});
+  factory A.factory3([int i]) = A.constructor3;
+  factory A.factory4({int i}) = A.constructor4;
+  factory A.factory5([int? i]) = A.constructor5;
+  factory A.factory6({int? i}) = A.constructor6;
+  factory A.factory7({required int i}) = A.constructor7;
+  factory A.factory8([int i]) => new A.constructor3();
+  factory A.factory9({int i}) => new A.constructor4();
+  final int i;
+  method3([int i]) {}
+  method4({int i}) {}
+  method5([int? i]) {}
+  method6({int? i}) {}
+  method7({required int i}) {}
+}
+
+class C implements B {
+  C.constructor1([this.i]);
+  C.constructor2({this.i});
+  C.constructor3([int i]) : this.i = i;
+  C.constructor4({int i}) : this.i = i;
+  C.constructor5([int? i]) : this.i = i;
+  C.constructor6({int? i}) : this.i = i;
+  C.constructor7({required int i}) : this.i = i;
+  factory C.factory3([int i]) = C.constructor3;
+  factory C.factory4({int i}) = C.constructor4;
+  factory C.factory5([int? i]) = C.constructor5;
+  factory C.factory6({int? i}) = C.constructor6;
+  factory C.factory7({required int i}) = C.constructor7;
+  factory C.factory8([int i]) => new C.constructor3();
+  factory C.factory9({int i}) => new C.constructor4();
+  method3([i]) {}
+  method4({i}) {}
+  method5([i]) {}
+  method6({i}) {}
+  method7({required i}) {}
+  var i;
+}
+
+void main() {}

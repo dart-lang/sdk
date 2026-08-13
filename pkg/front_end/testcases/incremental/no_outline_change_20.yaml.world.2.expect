@@ -1,0 +1,34 @@
+main = <No Member>;
+library from "org-dartlang-test:///main.dart" as main {
+
+  class A1 extends dart.core::Object {
+    synthetic constructor •() → main::A1
+      : super dart.core::Object::•()
+      ;
+  }
+  extension /* unnamed */ _extension#0 on main::A1 {
+    method method1 = main::_extension#0|method1;
+    method tearoff method1 = main::_extension#0|get#method1;
+    get getter1 = main::_extension#0|get#getter1;
+    set setter1 = main::_extension#0|set#setter1;
+    static method method2 = main::_extension#0|method2;
+    static get getter2 = get main::_extension#0|getter2;
+    static set setter2 = set main::_extension#0|setter2;
+    static field field = main::_extension#0|field;
+  }
+  static field dart.core::int _extension#0|field = 42;
+  static extension-member method _extension#0|method1(lowered final main::A1 #this) → main::A1 {
+    return #this;
+  }
+  static extension-member method _extension#0|get#method1(lowered final main::A1 #this) → () → main::A1
+    return () → main::A1 => main::_extension#0|method1(#this);
+  static extension-member method _extension#0|get#getter1(lowered final main::A1 #this) → dart.core::String
+    return "42!";
+  static extension-member method _extension#0|set#setter1(lowered final main::A1 #this, dart.core::String s) → void {}
+  static extension-member method _extension#0|method2() → main::A1 {
+    throw "";
+  }
+  static extension-member get _extension#0|getter2() → dart.core::String
+    return "42!";
+  static extension-member set _extension#0|setter2(dart.core::String s) → void {}
+}

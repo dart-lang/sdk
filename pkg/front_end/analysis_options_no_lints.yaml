@@ -1,0 +1,26 @@
+# Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+analyzer:
+  exclude:
+    - outline_extraction_testcases/**
+    - parser_testcases/**
+    - test/analyser_ignored/**
+    - test/class_hierarchy/data/**
+    - test/enable_non_nullable/data/**
+    - test/extensions/data/**
+    - test/id_testing/data/**
+    - test/language_versioning/data/**
+    - test/macros/application/data/**
+    - test/macros/declaration/data/**
+    - test/macros/incremental/data/**
+    - test/patching/data/**
+    - test/predicates/data/**
+    - test/scopes/data/**
+    - test/static_types/data/**
+    - test/text_representation/data/**
+    - testcases/**
+  errors:
+    # Allow having TODOs in the code
+    todo: ignore

@@ -1,0 +1,20 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+import "dart:ffi" as ffi;
+import "dart:_internal" as _in;
+import "dart:async" as asy;
+
+import "dart:ffi";
+
+class MyFinalizable extends core::Object implements ffi::Finalizable {
+  constructor •() → self::MyFinalizable
+    : super core::Object::•() {
+    ;
+    _in::reachabilityFence(this);
+  }
+}
+static method main(core::List<core::String> arguments) → asy::Future<void> async /* emittedValueType= void */ {
+  final self::MyFinalizable myFinalizable = await new self::MyFinalizable::•() /* runtimeCheckType= asy::Future<self::MyFinalizable> */ ;
+  _in::reachabilityFence(myFinalizable);
+}

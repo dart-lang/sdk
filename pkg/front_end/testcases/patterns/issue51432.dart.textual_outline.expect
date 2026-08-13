@@ -1,0 +1,5 @@
+method() {}
+
+main() {}
+
+throws(void Function() f) {}

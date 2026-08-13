@@ -1,0 +1,15 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef AAlias = self::A;
+typedef TestFunction = () → core::int;
+typedef Func1 = (core::int) → void;
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    ;
+}
+static method testMe() → void
+  ;
+static method foo() → void
+  ;

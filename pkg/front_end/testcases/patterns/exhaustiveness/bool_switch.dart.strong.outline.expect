@@ -1,0 +1,24 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method exhaustiveSwitch(core::bool b) → void
+  ;
+static method nonExhaustiveSwitch1(core::bool b) → void
+  ;
+static method nonExhaustiveSwitch2(core::bool b) → void
+  ;
+static method nonExhaustiveSwitchWithDefault(core::bool b) → void
+  ;
+static method exhaustiveNullableSwitch(core::bool? b) → void
+  ;
+static method nonExhaustiveNullableSwitch1(core::bool? b) → void
+  ;
+static method nonExhaustiveNullableSwitch2(core::bool? b) → void
+  ;
+static method unreachableCase1(core::bool b) → void
+  ;
+static method unreachableCase2(core::bool b) → void
+  ;
+static method unreachableCase3(core::bool? b) → void
+  ;

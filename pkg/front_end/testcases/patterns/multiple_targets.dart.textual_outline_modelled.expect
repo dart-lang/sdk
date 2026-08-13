@@ -1,0 +1,20 @@
+class A<T> {
+  A(this.foo);
+  final T foo;
+}
+
+class B {
+  B(this.foo);
+  final num foo;
+}
+
+class C implements A<int>, B {
+  C(this.foo);
+  final int foo;
+}
+
+expect(expected, actual) {}
+
+main() {}
+
+test(o) {}

@@ -1,0 +1,17 @@
+import 'nsm_covariance_lib.dart';
+
+abstract class D1 implements A<int>, B {}
+
+abstract class D2 implements B, A<int> {}
+
+class D3 implements A<int>, B {
+  @override
+  noSuchMethod(Invocation invocation) => null;
+}
+
+class D4 implements B, A<int> {
+  @override
+  noSuchMethod(Invocation invocation) => null;
+}
+
+main() {}

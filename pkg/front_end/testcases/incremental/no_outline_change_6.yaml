@@ -1,0 +1,88 @@
+# Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Compile an application, change a file, but don't change the outline.
+
+type: newworld
+worlds:
+  - entry: main.dart
+    errors: true
+    sources:
+      main.dart: |
+        import 'libA.dart';
+
+        class Foo {
+          final message;
+          Foo(this.message);
+          @override
+          toString() { return '$message' } // missing ;
+        }
+
+        main() {
+          Foo foo = new Foo("hello");
+          whatever(foo);
+          CompilationStrategy compilationStrategy = CompilationStrategy.direct;
+          print(compilationStrategy);
+        }
+
+        enum CompilationStrategy { direct, toKernel, toData, fromData }
+      libA.dart: |
+        import 'main.dart';
+        whatever(Foo foo) {
+          print(foo);
+        }
+    expectedLibraryCount: 2
+  - entry: main.dart
+    errors: true
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - main.dart
+    sources:
+      main.dart: |
+        import 'libA.dart';
+
+        class Foo {
+          final message;
+          Foo(this.message);
+          @override
+          toString() { return '$message!!!' } // missing ; still
+        }
+
+        main() {
+          Foo foo = new Foo("hello");
+          whatever(foo);
+          CompilationStrategy compilationStrategy = CompilationStrategy.direct;
+          print(compilationStrategy);
+        }
+
+        enum CompilationStrategy { direct, toKernel, toData, fromData }
+    expectedLibraryCount: 2
+    advancedInvalidation: problemsInLibrary # For now, libraries with errors cannot have bodies rebuild.
+  - entry: main.dart
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - main.dart
+    sources:
+      main.dart: |
+        import 'libA.dart';
+
+        class Foo {
+          final message;
+          Foo(this.message);
+          @override
+          toString() { return '$message?!?'; } // fixed
+        }
+
+        main() {
+          Foo foo = new Foo("hello");
+          whatever(foo);
+          CompilationStrategy compilationStrategy = CompilationStrategy.direct;
+          print(compilationStrategy);
+        }
+
+        enum CompilationStrategy { direct, toKernel, toData, fromData }
+    expectedLibraryCount: 2
+    advancedInvalidation: problemsInLibrary # For now, libraries with errors cannot have bodies rebuild.

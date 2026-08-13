@@ -1,0 +1,7 @@
+part 'issue45330_lib.dart';
+
+void genericMethod<T>() {}
+
+testInMain() {}
+
+main() {}

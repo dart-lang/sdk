@@ -1,0 +1,59 @@
+import 'main_lib.dart';
+
+const sameGeneric0 = SameGeneric<String>('hello');
+
+const sameGeneric1 = SameGeneric<String?>(null);
+
+const sameGeneric2 = SameGeneric<String?>('hello');
+
+const sameNullable0 = SameNullable(null);
+
+const sameNullable1 = SameNullable('hello');
+
+const sameString0 = SameString('hello');
+
+const sameString1 = SameString.named('hello');
+
+const valGeneric0 = ExtGeneric<String>('hello');
+
+const valGeneric1 = ExtGeneric<String?>(null);
+
+const valGeneric2 = ExtGeneric<String?>('hello');
+
+const valNullable0 = ExtNullable(null);
+
+const valNullable1 = ExtNullable('hello');
+
+const valString0 = ExtString('hello');
+
+const valString1 = ExtString.named('hello');
+
+expect(expected, actual) {}
+
+extension type const SameGeneric<T>(T s) {}
+
+extension type const SameNullable(String? s) {}
+
+extension type const SameString(String s) {
+  const SameString.named(String s) : s = '$s world';
+}
+
+imported() {}
+
+main() {}
+
+otherLibrary() {}
+
+sameLibrary() {}
+
+void extGeneric<T>(expected, ExtGeneric<T> es) {}
+
+void extNullable(expected, ExtNullable es) {}
+
+void extString(expected, ExtString es) {}
+
+void sameGeneric<T>(expected, SameGeneric<T> es) {}
+
+void sameNullable(expected, SameNullable es) {}
+
+void sameString(expected, SameString es) {}

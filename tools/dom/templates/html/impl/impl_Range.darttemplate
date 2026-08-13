@@ -1,0 +1,39 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+part of $LIBRARYNAME;
+
+$(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
+  factory $CLASSNAME() => document.createRange();
+
+  factory $CLASSNAME.fromPoint(Point point) =>
+      document._caretRangeFromPoint(point.x.toInt(), point.y.toInt());
+$!MEMBERS
+
+  List<Rectangle> getClientRects() {
+    var value = _getClientRects();
+
+    // If no prototype we need one for the world to hookup to the proper Dart class.
+    var jsProto = JS('', '#.prototype', value);
+    if (jsProto == null) {
+      JS('', '#.prototype = Object.create(null)', value);
+    }
+
+    applyExtension('DOMRectList', value);
+
+    return value;
+  }
+
+  /**
+   * Checks if createContextualFragment is supported.
+   *
+   * See also:
+   *
+   * * [createContextualFragment]
+   */
+  static bool get supportsCreateContextualFragment =>
+      JS('bool', '("createContextualFragment" in window.Range.prototype)');
+}

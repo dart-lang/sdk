@@ -1,0 +1,8 @@
+library test;
+
+class C<T> {
+  final T t;
+  const C(this.t);
+}
+
+main() {}

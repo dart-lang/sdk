@@ -1,0 +1,3 @@
+typedef void Foo();
+
+main() {}

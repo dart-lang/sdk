@@ -1,0 +1,33 @@
+library test;
+
+A get target => throw '';
+
+T f<T>() => throw '';
+
+class A {
+  C operator *(D value) => throw '';
+  C operator +(int value) => throw '';
+}
+
+class B {
+  E operator *(F value) => throw '';
+  E operator +(int value) => throw '';
+}
+
+class C extends B {}
+
+class D {}
+
+class E {}
+
+class F {}
+
+main() {}
+
+void set target(B value) {}
+
+void test1() {}
+
+void test2() {}
+
+void test3() {}

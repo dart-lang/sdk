@@ -1,0 +1,272 @@
+// Copyright (c) 2020, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:analysis_server/src/diagnostic.dart' as diag;
+import 'package:test_reflective_loader/test_reflective_loader.dart';
+
+import '../transform_set_parser_test_support.dart';
+
+void main() {
+  defineReflectiveSuite(() {
+    defineReflectiveTests(MissingKeyTest);
+  });
+}
+
+@reflectiveTest
+class MissingKeyTest extends AbstractTransformSetParserTest {
+  void test_addParameterChange_argumentValue() {
+    assertErrors(
+      '''
+version: 1
+transforms:
+- title: ''
+  date: 2020-09-14
+  element:
+    uris: ['test.dart']
+    function: 'f'
+  changes:
+    - kind: 'addParameter'
+      index: 0
+      name: 'a'
+      style: required_positional
+''',
+      [error(diag.missingKey, 124, 84)],
+    );
+  }
+
+  void test_addParameterChange_index() {
+    assertErrors(
+      '''
+version: 1
+transforms:
+- title: ''
+  date: 2020-09-14
+  element:
+    uris: ['test.dart']
+    function: 'f'
+  changes:
+    - kind: 'addParameter'
+      name: 'a'
+      style: required_positional
+      argumentValue:
+        kind: 'argument'
+        index: 0
+''',
+      [error(diag.missingKey, 124, 132)],
+    );
+  }
+
+  void test_addParameterChange_name() {
+    assertErrors(
+      '''
+version: 1
+transforms:
+- title: ''
+  date: 2020-09-14
+  element:
+    uris: ['test.dart']
+    function: 'f'
+  changes:
+    - kind: 'addParameter'
+      index: 0
+      style: required_positional
+      argumentValue:
+        kind: 'argument'
+        index: 0
+''',
+      [error(diag.missingKey, 124, 131)],
+    );
+  }
+
+  void test_addParameterChange_style() {
+    assertErrors(
+      '''
+version: 1
+transforms:
+- title: ''
+  date: 2020-09-14
+  element:
+    uris: ['test.dart']
+    function: 'f'
+  changes:
+    - kind: 'addParameter'
+      index: 0
+      name: 'a'
+      argumentValue:
+        kind: 'argument'
+        index: 0
+''',
+      [error(diag.missingKey, 124, 114)],
+    );
+  }
+
+  void test_addTypeParameterChange_argumentValue() {
+    assertErrors(
+      '''
+version: 1
+transforms:
+- title: ''
+  date: 2020-09-14
+  element:
+    uris: ['test.dart']
+    function: 'f'
+  changes:
+    - kind: 'addTypeParameter'
+      index: 0
+      name: 'a'
+''',
+      [error(diag.missingKey, 124, 55)],
+    );
+  }
+
+  void test_addTypeParameterChange_index() {
+    assertErrors(
+      '''
+version: 1
+transforms:
+- title: ''
+  date: 2020-09-14
+  element:
+    uris: ['test.dart']
+    function: 'f'
+  changes:
+    - kind: 'addTypeParameter'
+      name: 'a'
+      argumentValue:
+        expression: ''
+''',
+      [error(diag.missingKey, 124, 84)],
+    );
+  }
+
+  void test_addTypeParameterChange_name() {
+    assertErrors(
+      '''
+version: 1
+transforms:
+- title: ''
+  date: 2020-09-14
+  element:
+    uris: ['test.dart']
+    function: 'f'
+  changes:
+    - kind: 'addTypeParameter'
+      index: 0
+      argumentValue:
+        expression: ''
+''',
+      [error(diag.missingKey, 124, 83)],
+    );
+  }
+
+  void test_change_kind() {
+    assertErrors(
+      '''
+version: 1
+transforms:
+- title: ''
+  date: 2020-09-14
+  element:
+    uris: ['test.dart']
+    function: 'f'
+  changes:
+    - index: 0
+''',
+      [error(diag.missingKey, 124, 8)],
+    );
+  }
+
+  void test_element_uris() {
+    assertErrors(
+      '''
+version: 1
+transforms:
+- title: ''
+  date: 2020-09-14
+  element:
+    function: 'f'
+  changes: []
+''',
+      [error(diag.missingKey, 69, 16)],
+    );
+  }
+
+  void test_renameChange_newName() {
+    assertErrors(
+      '''
+version: 1
+transforms:
+- title: ''
+  date: 2020-09-14
+  element:
+    uris: ['test.dart']
+    function: 'f'
+  changes:
+    - kind: 'rename'
+''',
+      [error(diag.missingKey, 124, 14)],
+    );
+  }
+
+  void test_transform_date() {
+    assertErrors(
+      '''
+version: 1
+transforms:
+- title: ''
+  element:
+    uris: ['test.dart']
+    function: 'f'
+  changes: []
+''',
+      [error(diag.missingKey, 25, 76)],
+    );
+  }
+
+  void test_transform_element() {
+    assertErrors(
+      '''
+version: 1
+transforms:
+- title: ''
+  date: 2020-09-14
+  changes: []
+''',
+      [error(diag.missingOneOfMultipleKeys, 25, 42)],
+    );
+  }
+
+  void test_transform_title() {
+    assertErrors(
+      '''
+version: 1
+transforms:
+- date: 2020-09-14
+  element:
+    uris: ['test.dart']
+    function: 'f'
+  changes: []
+''',
+      [error(diag.missingKey, 25, 83)],
+    );
+  }
+
+  void test_transformSet_transforms() {
+    assertErrors(
+      '''
+version: 1
+''',
+      [error(diag.missingKey, 0, 10)],
+    );
+  }
+
+  void test_transformSet_version() {
+    assertErrors(
+      '''
+transforms: []
+''',
+      [error(diag.missingKey, 0, 14)],
+    );
+  }
+}

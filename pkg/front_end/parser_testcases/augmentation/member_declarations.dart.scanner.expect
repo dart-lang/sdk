@@ -1,0 +1,123 @@
+class Class {
+augment method() {}
+augment void method() {}
+augment get getter => null;
+augment int get getter => 0;
+augment set setter(value) {}
+augment void set setter(value) {}
+augment var field;
+augment final field = 0;
+augment const field = 0;
+augment int field;
+augment late var field;
+augment late final field;
+augment late int field;
+
+augment static method() {}
+augment static void method() {}
+augment static get getter => null;
+augment static int get getter => 0;
+augment static set setter(value) {}
+augment static void set setter(value) {}
+augment static var field;
+augment static final field = 0;
+augment static const field = 0;
+augment static int field;
+augment static late var field;
+augment static late final field;
+augment static late int field;
+}
+
+mixin Mixin {
+augment method() {}
+augment void method() {}
+augment get getter => null;
+augment int get getter => 0;
+augment set setter(value) {}
+augment void set setter(value) {}
+augment var field;
+augment final field = 0;
+augment const field = 0;
+augment int field;
+augment late var field;
+augment late final field;
+augment late int field;
+
+augment static method() {}
+augment static void method() {}
+augment static get getter => null;
+augment static int get getter => 0;
+augment static set setter(value) {}
+augment static void set setter(value) {}
+augment static var field;
+augment static final field = 0;
+augment static const field = 0;
+augment static int field;
+augment static late var field;
+augment static late final field;
+augment static late int field;
+}
+
+
+
+class[KeywordToken] Class[StringToken] {[BeginToken]
+augment[KeywordToken] method[StringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+augment[KeywordToken] void[KeywordToken] method[StringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+augment[KeywordToken] get[KeywordToken] getter[StringToken] =>[SimpleToken] null[KeywordToken];[SimpleToken]
+augment[KeywordToken] int[StringToken] get[KeywordToken] getter[StringToken] =>[SimpleToken] 0[StringToken];[SimpleToken]
+augment[KeywordToken] set[KeywordToken] setter[StringToken]([BeginToken]value[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+augment[KeywordToken] void[KeywordToken] set[KeywordToken] setter[StringToken]([BeginToken]value[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+augment[KeywordToken] var[KeywordToken] field[StringToken];[SimpleToken]
+augment[KeywordToken] final[KeywordToken] field[StringToken] =[SimpleToken] 0[StringToken];[SimpleToken]
+augment[KeywordToken] const[KeywordToken] field[StringToken] =[SimpleToken] 0[StringToken];[SimpleToken]
+augment[KeywordToken] int[StringToken] field[StringToken];[SimpleToken]
+augment[KeywordToken] late[KeywordToken] var[KeywordToken] field[StringToken];[SimpleToken]
+augment[KeywordToken] late[KeywordToken] final[KeywordToken] field[StringToken];[SimpleToken]
+augment[KeywordToken] late[KeywordToken] int[StringToken] field[StringToken];[SimpleToken]
+
+augment[KeywordToken] static[KeywordToken] method[StringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+augment[KeywordToken] static[KeywordToken] void[KeywordToken] method[StringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+augment[KeywordToken] static[KeywordToken] get[KeywordToken] getter[StringToken] =>[SimpleToken] null[KeywordToken];[SimpleToken]
+augment[KeywordToken] static[KeywordToken] int[StringToken] get[KeywordToken] getter[StringToken] =>[SimpleToken] 0[StringToken];[SimpleToken]
+augment[KeywordToken] static[KeywordToken] set[KeywordToken] setter[StringToken]([BeginToken]value[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+augment[KeywordToken] static[KeywordToken] void[KeywordToken] set[KeywordToken] setter[StringToken]([BeginToken]value[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+augment[KeywordToken] static[KeywordToken] var[KeywordToken] field[StringToken];[SimpleToken]
+augment[KeywordToken] static[KeywordToken] final[KeywordToken] field[StringToken] =[SimpleToken] 0[StringToken];[SimpleToken]
+augment[KeywordToken] static[KeywordToken] const[KeywordToken] field[StringToken] =[SimpleToken] 0[StringToken];[SimpleToken]
+augment[KeywordToken] static[KeywordToken] int[StringToken] field[StringToken];[SimpleToken]
+augment[KeywordToken] static[KeywordToken] late[KeywordToken] var[KeywordToken] field[StringToken];[SimpleToken]
+augment[KeywordToken] static[KeywordToken] late[KeywordToken] final[KeywordToken] field[StringToken];[SimpleToken]
+augment[KeywordToken] static[KeywordToken] late[KeywordToken] int[StringToken] field[StringToken];[SimpleToken]
+}[SimpleToken]
+
+mixin[KeywordToken] Mixin[StringToken] {[BeginToken]
+augment[KeywordToken] method[StringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+augment[KeywordToken] void[KeywordToken] method[StringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+augment[KeywordToken] get[KeywordToken] getter[StringToken] =>[SimpleToken] null[KeywordToken];[SimpleToken]
+augment[KeywordToken] int[StringToken] get[KeywordToken] getter[StringToken] =>[SimpleToken] 0[StringToken];[SimpleToken]
+augment[KeywordToken] set[KeywordToken] setter[StringToken]([BeginToken]value[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+augment[KeywordToken] void[KeywordToken] set[KeywordToken] setter[StringToken]([BeginToken]value[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+augment[KeywordToken] var[KeywordToken] field[StringToken];[SimpleToken]
+augment[KeywordToken] final[KeywordToken] field[StringToken] =[SimpleToken] 0[StringToken];[SimpleToken]
+augment[KeywordToken] const[KeywordToken] field[StringToken] =[SimpleToken] 0[StringToken];[SimpleToken]
+augment[KeywordToken] int[StringToken] field[StringToken];[SimpleToken]
+augment[KeywordToken] late[KeywordToken] var[KeywordToken] field[StringToken];[SimpleToken]
+augment[KeywordToken] late[KeywordToken] final[KeywordToken] field[StringToken];[SimpleToken]
+augment[KeywordToken] late[KeywordToken] int[StringToken] field[StringToken];[SimpleToken]
+
+augment[KeywordToken] static[KeywordToken] method[StringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+augment[KeywordToken] static[KeywordToken] void[KeywordToken] method[StringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+augment[KeywordToken] static[KeywordToken] get[KeywordToken] getter[StringToken] =>[SimpleToken] null[KeywordToken];[SimpleToken]
+augment[KeywordToken] static[KeywordToken] int[StringToken] get[KeywordToken] getter[StringToken] =>[SimpleToken] 0[StringToken];[SimpleToken]
+augment[KeywordToken] static[KeywordToken] set[KeywordToken] setter[StringToken]([BeginToken]value[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+augment[KeywordToken] static[KeywordToken] void[KeywordToken] set[KeywordToken] setter[StringToken]([BeginToken]value[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+augment[KeywordToken] static[KeywordToken] var[KeywordToken] field[StringToken];[SimpleToken]
+augment[KeywordToken] static[KeywordToken] final[KeywordToken] field[StringToken] =[SimpleToken] 0[StringToken];[SimpleToken]
+augment[KeywordToken] static[KeywordToken] const[KeywordToken] field[StringToken] =[SimpleToken] 0[StringToken];[SimpleToken]
+augment[KeywordToken] static[KeywordToken] int[StringToken] field[StringToken];[SimpleToken]
+augment[KeywordToken] static[KeywordToken] late[KeywordToken] var[KeywordToken] field[StringToken];[SimpleToken]
+augment[KeywordToken] static[KeywordToken] late[KeywordToken] final[KeywordToken] field[StringToken];[SimpleToken]
+augment[KeywordToken] static[KeywordToken] late[KeywordToken] int[StringToken] field[StringToken];[SimpleToken]
+}[SimpleToken]
+
+[SimpleToken]

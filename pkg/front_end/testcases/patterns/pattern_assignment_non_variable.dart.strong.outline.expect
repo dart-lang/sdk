@@ -1,0 +1,18 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Super extends core::Object {
+  field dynamic superField;
+  synthetic constructor •() → self::Super
+    ;
+}
+class Class extends self::Super {
+  field dynamic instanceField;
+  static field dynamic staticField;
+  synthetic constructor •() → self::Class
+    ;
+  method method(dynamic o, dynamic parameter) → dynamic
+    ;
+}
+static field dynamic global;

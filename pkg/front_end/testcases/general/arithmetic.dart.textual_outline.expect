@@ -1,0 +1,5 @@
+int foo(int x, int y) {}
+
+void loop(List xs) {}
+
+main() {}

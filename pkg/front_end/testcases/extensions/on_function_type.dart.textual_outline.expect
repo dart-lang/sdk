@@ -1,0 +1,14 @@
+extension<R, T> on R Function(T) {
+  Type get returnType => R;
+  Type get parameterType => T;
+}
+
+class Class<T extends Class<T>> {}
+
+class Subclass extends Class<Subclass> {}
+
+extension<T extends Class<T>> on dynamic Function<S extends T>(T, S) {
+  Type get parameterType => T;
+}
+
+main() {}

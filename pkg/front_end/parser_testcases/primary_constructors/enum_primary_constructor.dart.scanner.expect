@@ -1,0 +1,15 @@
+enum E() {}
+enum const E() {}
+enum E<T>() {}
+enum const E<T>() {}
+enum E<T>.named() {}
+enum const E<T>.named() {}
+
+
+enum[KeywordToken] E[StringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+enum[KeywordToken] const[KeywordToken] E[StringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+enum[KeywordToken] E[StringToken]<[BeginToken]T[StringToken]>[SimpleToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+enum[KeywordToken] const[KeywordToken] E[StringToken]<[BeginToken]T[StringToken]>[SimpleToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+enum[KeywordToken] E[StringToken]<[BeginToken]T[StringToken]>[SimpleToken].[SimpleToken]named[StringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+enum[KeywordToken] const[KeywordToken] E[StringToken]<[BeginToken]T[StringToken]>[SimpleToken].[SimpleToken]named[StringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+[SimpleToken]

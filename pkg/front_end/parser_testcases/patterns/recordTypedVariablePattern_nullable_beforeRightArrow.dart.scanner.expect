@@ -1,0 +1,5 @@
+void f(x) => switch (x) { (int,)? y => 0 };
+
+
+void[KeywordToken] f[StringToken]([BeginToken]x[StringToken])[SimpleToken] =>[SimpleToken] switch[KeywordToken] ([BeginToken]x[StringToken])[SimpleToken] {[BeginToken] ([BeginToken]int[StringToken],[SimpleToken])[SimpleToken]?[SimpleToken] y[StringToken] =>[SimpleToken] 0[StringToken] }[SimpleToken];[SimpleToken]
+[SimpleToken]

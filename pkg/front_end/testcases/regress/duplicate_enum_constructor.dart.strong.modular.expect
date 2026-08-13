@@ -1,0 +1,30 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/duplicate_enum_constructor.dart:10:9: Error: 'Foo' is already declared in this scope.
+//   const Foo();
+//         ^^^
+// pkg/front_end/testcases/regress/duplicate_enum_constructor.dart:9:9: Context: Previous declaration of 'Foo'.
+//   const Foo();
+//         ^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Foo extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::Foo a = invalid-expression "pkg/front_end/testcases/regress/duplicate_enum_constructor.dart:6:3: Error: Can't use 'Foo' because it is declared more than once.
+  a,
+  ^";
+  enum-element static const field self::Foo b = invalid-expression "pkg/front_end/testcases/regress/duplicate_enum_constructor.dart:7:3: Error: Can't use 'Foo' because it is declared more than once.
+  b;
+  ^";
+  static const field core::List<self::Foo> values = invalid-expression "pkg/front_end/testcases/regress/duplicate_enum_constructor.dart:6:3: Error: Can't use 'Foo' because it is declared more than once.
+  a,
+  ^";
+  const constructor •(core::int #index, core::String #name) → self::Foo
+    : super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "Foo.${this.{core::_Enum::_name}{core::String}}";
+}

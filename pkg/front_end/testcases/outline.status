@@ -1,0 +1,18 @@
+# Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+const_functions/const_functions_const_factory: VerificationError
+enhanced_enums/declared_hashcode: TypeCheckError
+enhanced_enums/declared_index: TypeCheckError
+general/abstract_members: TypeCheckError
+general/bounds_type_parameters: TypeCheckError
+general/bug30695: TypeCheckError
+general/hierarchy/conflict: TypeCheckError
+general/hierarchy/duplicates: TypeCheckError
+general/supertype_conflict: TypeCheckError
+inference/mixin_inference_outwards_3: TypeCheckError
+inference/mixin_inference_outwards_4: TypeCheckError
+inference/mixin_inference_unification_1: TypeCheckError
+inference/mixin_inference_unification_2: TypeCheckError
+rasta/native_is_illegal: Pass # Issue 29763

@@ -1,0 +1,23 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+part part_extension_part.dart;
+extension Extension on core::int { // from org-dartlang-testcase:///part_extension_part.dart
+  method intMethod = self::Extension|intMethod;
+  method tearoff intMethod = self::Extension|get#intMethod;
+}
+extension /* unnamed */ _extension#1 on core::String { // from org-dartlang-testcase:///part_extension_part.dart
+  method stringMethod = self::_extension#1|stringMethod;
+  method tearoff stringMethod = self::_extension#1|get#stringMethod;
+}
+static method main() → dynamic
+  ;
+static extension-member method /* from org-dartlang-testcase:///part_extension_part.dart */ Extension|intMethod(lowered final core::int #this) → dynamic
+  ;
+static extension-member method /* from org-dartlang-testcase:///part_extension_part.dart */ Extension|get#intMethod(lowered final core::int #this) → () → dynamic
+  return () → dynamic => self::Extension|intMethod(#this);
+static extension-member method /* from org-dartlang-testcase:///part_extension_part.dart */ _extension#1|stringMethod(lowered final core::String #this) → dynamic
+  ;
+static extension-member method /* from org-dartlang-testcase:///part_extension_part.dart */ _extension#1|get#stringMethod(lowered final core::String #this) → () → dynamic
+  return () → dynamic => self::_extension#1|stringMethod(#this);

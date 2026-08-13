@@ -1,0 +1,110 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+
+import "dart:convert";
+
+abstract class IFoo extends core::Object {
+  synthetic constructor •() → self::IFoo
+    : super core::Object::•()
+    ;
+  @#C1
+  abstract method toString() → core::String;
+}
+class Foo extends core::Object implements self::IFoo {
+  synthetic constructor •() → self::Foo
+    : super core::Object::•()
+    ;
+  @#C1
+  method toString() → core::String
+    return super.{core::Object::toString}();
+}
+class FooEnum extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::FooEnum A = #C4;
+  enum-element static const field self::FooEnum B = #C7;
+  enum-element static const field self::FooEnum C = #C10;
+  static const field core::List<self::FooEnum> values = #C11;
+  const synthetic constructor •(core::int #index, core::String #name) → self::FooEnum
+    : super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "FooEnum.${this.{core::_Enum::_name}{core::String}}";
+}
+class Keep extends core::Object {
+  synthetic constructor •() → self::Keep
+    : super core::Object::•()
+    ;
+  @#C14
+  @#C1
+  method toString() → core::String
+    return "I am a Keep";
+}
+@#C16
+class Base1 extends core::Object {
+  synthetic constructor •() → self::Base1
+    : super core::Object::•()
+    ;
+}
+abstract class Base2 extends self::Base1 /*isMixinDeclaration*/  {
+}
+class Base3 extends self::_Base3&Object&Base1&Base2 {
+  synthetic constructor •() → self::Base3
+    : super self::_Base3&Object&Base1&Base2::•()
+    ;
+}
+class KeepInherited extends core::Object implements self::Base3 {
+  synthetic constructor •() → self::KeepInherited
+    : super core::Object::•()
+    ;
+  @#C1
+  method toString() → core::String
+    return "Heir";
+}
+class MyException extends core::Object implements core::Exception {
+  synthetic constructor •() → self::MyException
+    : super core::Object::•()
+    ;
+  @#C1
+  method toString() → core::String
+    return "A very detailed message";
+}
+abstract class _Base3&Object&Base1 extends core::Object implements self::Base1 /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_Base3&Object&Base1
+    : super core::Object::•()
+    ;
+}
+abstract class _Base3&Object&Base1&Base2 extends self::_Base3&Object&Base1 implements self::Base2 /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_Base3&Object&Base1&Base2
+    : super self::_Base3&Object&Base1::•()
+    ;
+}
+static const field core::pragma keepToString = #C14;
+static const field core::pragma keepToStringInSubtypes = #C16;
+static method toString() → core::String
+  return "I am static";
+static method main() → void {
+  final self::IFoo foo = new self::Foo::•();
+  core::print(foo.{self::IFoo::toString}(){() → core::String});
+  core::print(new self::Keep::•().{self::Keep::toString}(){() → core::String});
+  core::print(#C7.{core::_Enum::toString}(){() → core::String});
+  core::print(new self::KeepInherited::•().{self::KeepInherited::toString}(){() → core::String});
+  core::print(new self::MyException::•().{self::MyException::toString}(){() → core::String});
+}
+constants  {
+  #C1 = core::_Override {}
+  #C2 = 0
+  #C3 = "A"
+  #C4 = self::FooEnum {index:#C2, _name:#C3}
+  #C5 = 1
+  #C6 = "B"
+  #C7 = self::FooEnum {index:#C5, _name:#C6}
+  #C8 = 2
+  #C9 = "C"
+  #C10 = self::FooEnum {index:#C8, _name:#C9}
+  #C11 = <self::FooEnum>[#C4, #C7, #C10]
+  #C12 = "flutter:keep-to-string"
+  #C13 = null
+  #C14 = core::pragma {name:#C12, options:#C13}
+  #C15 = "flutter:keep-to-string-in-subtypes"
+  #C16 = core::pragma {name:#C15, options:#C13}
+}

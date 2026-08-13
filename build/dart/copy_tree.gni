@@ -1,0 +1,63 @@
+# Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+_dart_root = rebase_path("../..")
+
+# copy_tree() copies a directory tree rooted at `source` to `dest`, which should
+# be somewhere under $root_out_dir.
+#
+# When dest is a subdirectory of the dest of a different copy_tree() target,
+# the target whose dest is the subdirectory should include the target whose
+# dest is the parent directory in its "deps" list. This prevents races on
+# directory creation that could happen if the two targets were executed
+# concurrently.
+#
+# Optional parameters:
+# exclude - A comma separated list that is passed to shutil.ignore_patterns()
+#           in tools/copy_tree.py.
+template("copy_tree") {
+  assert(defined(invoker.source), "copy_tree must define 'source'")
+  assert(defined(invoker.dest), "copy_tree must define 'dest'")
+  source = invoker.source
+  dest = invoker.dest
+  action(target_name) {
+    mnemonic = "COPY_TREE"
+
+    if (defined(invoker.visibility)) {
+      visibility = invoker.visibility
+    }
+
+    deps = []
+    if (defined(invoker.deps)) {
+      deps += invoker.deps
+    }
+
+    depfile = "$target_gen_dir/$target_name.d"
+    stampfile = "$target_gen_dir/$target_name.stamp"
+
+    common_args = [
+      "--from",
+      rebase_path(source, root_build_dir),
+      "--to",
+      rebase_path(dest, root_build_dir),
+      "--depfile",
+      rebase_path(depfile, root_build_dir),
+      "--stamp",
+      rebase_path(stampfile, root_build_dir),
+    ]
+    if (defined(invoker.exclude)) {
+      common_args += [
+        "--exclude",
+        invoker.exclude,
+      ]
+    }
+
+    outputs = [
+      stampfile,
+      dest,
+    ]
+    script = "$_dart_root/tools/copy_tree.py"
+    args = common_args
+  }
+}

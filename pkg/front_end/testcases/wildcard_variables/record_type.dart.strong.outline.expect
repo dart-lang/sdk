@@ -1,0 +1,8 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef R = (core::String, core::String);
+static field (core::int, core::int) record;
+static method main() → dynamic
+  ;

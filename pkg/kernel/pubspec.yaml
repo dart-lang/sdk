@@ -1,0 +1,21 @@
+# Currently, kernel API is not stable and users should
+# not depend on semver semantics when depending on this package.
+name: kernel
+
+# This package is not intended for consumption on pub.dev. DO NOT publish.
+publish_to: none
+
+environment:
+  sdk: '^3.13.0-0'
+
+resolution: workspace
+
+# Use 'any' constraints here; we get our versions from the DEPS file.
+dependencies:
+  _fe_analyzer_shared: any
+
+# Use 'any' constraints here; we get our versions from the DEPS file.
+dev_dependencies:
+  args: any
+  expect: any
+  test: any

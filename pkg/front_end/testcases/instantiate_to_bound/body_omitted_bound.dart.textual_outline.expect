@@ -1,0 +1,9 @@
+import 'dart:collection';
+
+class A<T> {}
+
+class C {
+  fun() {}
+}
+
+main() {}

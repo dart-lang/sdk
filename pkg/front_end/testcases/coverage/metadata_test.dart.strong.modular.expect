@@ -1,0 +1,35 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/coverage/metadata_test.dart:16:3: Error: An annotation can't use type arguments.
+// @C<dynamic>() // Error
+//   ^
+//
+// pkg/front_end/testcases/coverage/metadata_test.dart:17:3: Error: An annotation can't use type arguments.
+// @C<int>() // Error
+//   ^
+//
+import self as self;
+import "dart:core" as core;
+
+class C<T extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::C<self::C::T%>
+    : super core::Object::•()
+    ;
+}
+@#C1
+@#C1
+@#C2
+static method foo() → void {}
+
+constants  {
+  #C1 = self::C<dynamic> {}
+  #C2 = self::C<core::int> {}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///metadata_test.dart:
+- C. (from org-dartlang-testcase:///metadata_test.dart:12:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)

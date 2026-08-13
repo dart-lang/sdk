@@ -1,0 +1,13 @@
+class C {
+C()
+/
+: super();
+}
+
+
+class[KeywordToken] C[StringToken] {[BeginToken]
+C[StringToken]([BeginToken])[SimpleToken]
+/[SimpleToken]
+:[SimpleToken] super[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

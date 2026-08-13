@@ -1,0 +1,53 @@
+@test::a
+@test::A::•(1)
+library test;
+import self as self;
+import "dart:core" as core;
+
+@self::a
+@self::A::•(2)
+typedef F1 = () → void;
+@self::a
+@self::A::•(3)
+typedef F2 = () → void;
+class A extends core::Object /*hasConstConstructor*/  {
+  const constructor •(core::int value) → self::A
+    : super core::Object::•()
+    ;
+}
+@self::a
+@self::A::•(2)
+class C extends core::Object {
+  synthetic constructor •() → self::C
+    ;
+}
+static const field core::Object a = const core::Object::•();
+@self::a
+@self::A::•(3)
+static field core::int? f1;
+@self::a
+@self::A::•(3)
+static field core::int? f2;
+@self::a
+@self::A::•(4)
+static method main() → void
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: StaticGet @ org-dartlang-testcase:///annotation_top.dart:5:2 -> InstanceConstant(const Object{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///annotation_top.dart:6:2 -> InstanceConstant(const A{})
+Evaluated: StaticGet @ org-dartlang-testcase:///annotation_top.dart:19:2 -> InstanceConstant(const Object{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///annotation_top.dart:20:2 -> InstanceConstant(const A{})
+Evaluated: StaticGet @ org-dartlang-testcase:///annotation_top.dart:23:2 -> InstanceConstant(const Object{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///annotation_top.dart:24:2 -> InstanceConstant(const A{})
+Evaluated: StaticGet @ org-dartlang-testcase:///annotation_top.dart:15:2 -> InstanceConstant(const Object{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///annotation_top.dart:16:2 -> InstanceConstant(const A{})
+Evaluated: StaticGet @ org-dartlang-testcase:///annotation_top.dart:31:2 -> InstanceConstant(const Object{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///annotation_top.dart:32:2 -> InstanceConstant(const A{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///annotation_top.dart:9:24 -> InstanceConstant(const Object{})
+Evaluated: StaticGet @ org-dartlang-testcase:///annotation_top.dart:27:2 -> InstanceConstant(const Object{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///annotation_top.dart:28:2 -> InstanceConstant(const A{})
+Evaluated: StaticGet @ org-dartlang-testcase:///annotation_top.dart:27:2 -> InstanceConstant(const Object{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///annotation_top.dart:28:2 -> InstanceConstant(const A{})
+Extra constant evaluation: evaluated: 15, effectively constant: 15

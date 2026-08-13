@@ -1,0 +1,18 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method main() → void {
+  let final synthesized core::int anonymous#this = 1 in 1;
+  let final synthesized core::int anonymous#this = 1 in anonymous#this;
+  let final synthesized core::int anonymous#this = 1 in anonymous#this.{core::int::isEven}{core::bool};
+  let final synthesized core::int anonymous#this = 1 in anonymous#this.{core::int::isEven}{core::bool};
+}
+
+
+Extra constant evaluation status:
+Evaluated: Let @ org-dartlang-testcase:///expression_without_parameter.dart:6:3 -> IntConstant(1)
+Evaluated: Let @ org-dartlang-testcase:///expression_without_parameter.dart:7:3 -> IntConstant(1)
+Evaluated: VariableGet @ org-dartlang-testcase:///expression_without_parameter.dart:8:8 -> IntConstant(1)
+Evaluated: VariableGet @ org-dartlang-testcase:///expression_without_parameter.dart:9:8 -> IntConstant(1)
+Extra constant evaluation: evaluated: 8, effectively constant: 4

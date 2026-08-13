@@ -1,0 +1,22 @@
+library;
+import self as self;
+
+import "org-dartlang-testcase:///main_lib.dart";
+
+static method main() → void
+  ;
+
+library;
+import self as self2;
+import "dart:core" as core;
+
+class DynamicDispatchRegistry<T extends core::Function> extends core::Object {
+  synthetic constructor •() → self2::DynamicDispatchRegistry<self2::DynamicDispatchRegistry::T>
+    ;
+  method register(covariant-by-class self2::DynamicDispatchRegistry::T function) → self2::DynamicDispatchRegistry::T
+    ;
+}
+class Registry extends self2::DynamicDispatchRegistry<({x: core::int}) → core::int> {
+  synthetic constructor •() → self2::Registry
+    ;
+}

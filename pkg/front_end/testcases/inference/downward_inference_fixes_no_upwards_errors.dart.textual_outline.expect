@@ -1,0 +1,7 @@
+library test;
+
+import 'dart:math';
+
+f(num x, dynamic y) {}
+
+main() {}

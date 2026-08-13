@@ -1,0 +1,5 @@
+enum E { element, final String foo = "foo"; }
+
+test() {}
+
+main() {}

@@ -1,0 +1,7 @@
+library foo;
+import self as self;
+import "dart:core" as core;
+
+static method foo() → dynamic {
+  core::print("Hello, World!");
+}

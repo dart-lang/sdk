@@ -1,0 +1,114 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method main() → void {
+  let final core::int #t1 = 1 in block {
+    {
+      final synthesized core::int anonymous#this = #t1;
+      Null #t2;
+      #L1:
+      {
+        1;
+        {
+          #t2 = null;
+          break #L1;
+        }
+      }
+    }
+  } =>#t1;
+  let final core::int #t3 = 1 in block {
+    {
+      final synthesized core::int anonymous#this = #t3;
+      Null #t4;
+      #L2:
+      {
+        anonymous#this;
+        {
+          #t4 = null;
+          break #L2;
+        }
+      }
+    }
+  } =>#t3;
+  let final core::int #t5 = 1 in block {
+    {
+      final synthesized core::int anonymous#this = #t5;
+      Null #t6;
+      #L3:
+      {
+        anonymous#this.{core::int::isEven}{core::bool};
+        {
+          #t6 = null;
+          break #L3;
+        }
+      }
+    }
+  } =>#t5;
+  let final core::int #t7 = 1 in block {
+    {
+      final synthesized core::int anonymous#this = #t7;
+      Null #t8;
+      #L4:
+      {
+        anonymous#this.{core::int::isEven}{core::bool};
+        {
+          #t8 = null;
+          break #L4;
+        }
+      }
+    }
+  } =>#t7;
+  let final core::int #t9 = 1 in block {
+    {
+      final synthesized core::int anonymous#this = #t9;
+      core::int #t10;
+      #L5:
+      {
+        {
+          #t10 = 1;
+          break #L5;
+        }
+      }
+    }
+  } =>#t9;
+  let final core::int #t11 = 1 in block {
+    {
+      final synthesized core::int anonymous#this = #t11;
+      core::int #t12;
+      #L6:
+      {
+        {
+          #t12 = anonymous#this;
+          break #L6;
+        }
+      }
+    }
+  } =>#t11;
+  let final core::int #t13 = 1 in block {
+    {
+      final synthesized core::int anonymous#this = #t13;
+      core::bool #t14;
+      #L7:
+      {
+        {
+          #t14 = anonymous#this.{core::int::isEven}{core::bool};
+          break #L7;
+        }
+      }
+    }
+  } =>#t13;
+  let final core::int #t15 = 1 in block {
+    {
+      final synthesized core::int anonymous#this = #t15;
+      core::bool #t16;
+      #L8:
+      {
+        {
+          #t16 = anonymous#this.{core::int::isEven}{core::bool};
+          break #L8;
+        }
+      }
+    }
+  } =>#t15;
+}

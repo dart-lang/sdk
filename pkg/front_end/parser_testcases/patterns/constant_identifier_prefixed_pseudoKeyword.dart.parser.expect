@@ -1,0 +1,17 @@
+void f(x) {
+const y = show.hide;
+switch (x) {
+case show.hide:
+break;
+}
+}
+
+
+void[KeywordToken] f[StringToken]([BeginToken]x[StringToken])[SimpleToken] {[BeginToken]
+const[KeywordToken] y[StringToken] =[SimpleToken] show[KeywordToken].[SimpleToken]hide[KeywordToken];[SimpleToken]
+switch[KeywordToken] ([BeginToken]x[StringToken])[SimpleToken] {[BeginToken]
+case[KeywordToken] show[KeywordToken].[SimpleToken]hide[KeywordToken]:[SimpleToken]
+break[KeywordToken];[SimpleToken]
+}[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

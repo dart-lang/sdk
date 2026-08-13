@@ -1,0 +1,14 @@
+library test;
+
+class A {
+  int a = 0;
+  List<int> b = [];
+  void m() {}
+}
+
+var v = new A()
+  ..a = 1
+  ..b.add(2)
+  ..m();
+
+main() {}

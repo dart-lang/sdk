@@ -1,0 +1,6 @@
+class C {
+  C({this._x});
+  int? _x;
+}
+
+test() {}

@@ -1,0 +1,2055 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:6:33: Error: The with clause must be before the implements clause.
+// Try moving the with clause before the implements clause.
+// class A1 extends B implements D with C {}
+//                                 ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:7:23: Error: The extends clause must be before the implements clause.
+// Try moving the extends clause before the implements clause.
+// class A2 implements D extends B with C {}
+//                       ^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:7:33: Error: The with clause must be before the implements clause.
+// Try moving the with clause before the implements clause.
+// class A2 implements D extends B with C {}
+//                                 ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:8:23: Error: The with clause must be before the implements clause.
+// Try moving the with clause before the implements clause.
+// class A3 implements D with C extends B {}
+//                       ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:8:30: Error: The extends clause must be before the with clause.
+// Try moving the extends clause before the with clause.
+// class A3 implements D with C extends B {}
+//                              ^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:9:30: Error: The extends clause must be before the with clause.
+// Try moving the extends clause before the with clause.
+// class A4 with C implements D extends B {}
+//                              ^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:10:17: Error: The extends clause must be before the with clause.
+// Try moving the extends clause before the with clause.
+// class A5 with C extends B implements D {}
+//                 ^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:11:40: Error: Each class definition can have at most one extends clause.
+// Try choosing one superclass and define your class to implement (or mix in) the others.
+// class A6 extends B with C implements D extends B {}
+//                                        ^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:12:40: Error: Each class definition can have at most one implements clause.
+// Try combining all of the implements clauses into a single clause.
+// class A7 extends B with C implements D implements D {}
+//                                        ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:13:40: Error: Each class definition can have at most one with clause.
+// Try combining all of the with clauses into a single clause.
+// class A8 extends B with C implements D with C {}
+//                                        ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:14:33: Error: The with clause must be before the implements clause.
+// Try moving the with clause before the implements clause.
+// class A9 extends B implements D with C extends B {}
+//                                 ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:14:40: Error: Each class definition can have at most one extends clause.
+// Try choosing one superclass and define your class to implement (or mix in) the others.
+// class A9 extends B implements D with C extends B {}
+//                                        ^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:15:34: Error: The with clause must be before the implements clause.
+// Try moving the with clause before the implements clause.
+// class A10 extends B implements D with C implements D {}
+//                                  ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:15:41: Error: Each class definition can have at most one implements clause.
+// Try combining all of the implements clauses into a single clause.
+// class A10 extends B implements D with C implements D {}
+//                                         ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:16:34: Error: The with clause must be before the implements clause.
+// Try moving the with clause before the implements clause.
+// class A11 extends B implements D with C with C {}
+//                                  ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:16:41: Error: Each class definition can have at most one with clause.
+// Try combining all of the with clauses into a single clause.
+// class A11 extends B implements D with C with C {}
+//                                         ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:17:21: Error: Each class definition can have at most one extends clause.
+// Try choosing one superclass and define your class to implement (or mix in) the others.
+// class A12 extends B extends B with C implements D {}
+//                     ^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:18:28: Error: Each class definition can have at most one with clause.
+// Try combining all of the with clauses into a single clause.
+// class A13 extends B with C with C implements D {}
+//                            ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:19:41: Error: Each class definition can have at most one implements clause.
+// Try combining all of the implements clauses into a single clause.
+// class A14 extends B with C implements D implements D {}
+//                                         ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:20:18: Error: The extends clause must be before the with clause.
+// Try moving the extends clause before the with clause.
+// class A15 with D extends B {}
+//                  ^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:21:24: Error: The extends clause must be before the implements clause.
+// Try moving the extends clause before the implements clause.
+// class A16 implements D extends B {}
+//                        ^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:22:24: Error: The with clause must be before the implements clause.
+// Try moving the with clause before the implements clause.
+// class A17 implements D with C {}
+//                        ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:23:19: Error: Expected a type, but got '{'.
+// class A18 extends {}
+//                   ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:24:26: Error: Expected a type, but got '{'.
+// class A19 extends B with {}
+//                          ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:25:16: Error: Expected a type, but got '{'.
+// class A20 with {}
+//                ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:26:39: Error: Expected a type, but got '{'.
+// class A21 extends B with C implements {}
+//                                       ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:27:29: Error: Expected a type, but got '{'.
+// class A22 with C implements {}
+//                             ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:28:22: Error: Expected a type, but got '{'.
+// class A23 implements {}
+//                      ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:29:29: Error: Expected a type, but got '{'.
+// class A24 extends B extends {}
+//                             ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:29:21: Error: Each class definition can have at most one extends clause.
+// Try choosing one superclass and define your class to implement (or mix in) the others.
+// class A24 extends B extends {}
+//                     ^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:30:23: Error: Expected a type, but got '{'.
+// class A25 with C with {}
+//                       ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:30:18: Error: Each class definition can have at most one with clause.
+// Try combining all of the with clauses into a single clause.
+// class A25 with C with {}
+//                  ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:31:35: Error: Expected a type, but got '{'.
+// class A26 implements D implements {}
+//                                   ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:31:24: Error: Each class definition can have at most one implements clause.
+// Try combining all of the implements clauses into a single clause.
+// class A26 implements D implements {}
+//                        ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:34:14: Error: Expected 'with' before this.
+// class N1 = B implements D with C;
+//              ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:34:25: Error: Expected ';' after this.
+// class N1 = B implements D with C;
+//                         ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:34:27: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+// class N1 = B implements D with C;
+//                           ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:34:27: Error: 'with' can't be used as an identifier because it's a keyword.
+// Try renaming this to be an identifier that isn't a keyword.
+// class N1 = B implements D with C;
+//                           ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:34:27: Error: Expected ';' after this.
+// class N1 = B implements D with C;
+//                           ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:34:32: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+// class N1 = B implements D with C;
+//                                ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:35:12: Error: The built-in identifier 'implements' can't be used as a type.
+// class N2 = implements D extends B with C;
+//            ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:35:23: Error: Expected 'with' before this.
+// class N2 = implements D extends B with C;
+//                       ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:35:23: Error: Expected ';' after this.
+// class N2 = implements D extends B with C;
+//                       ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:35:25: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+// class N2 = implements D extends B with C;
+//                         ^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:35:25: Error: 'extends' can't be used as an identifier because it's a keyword.
+// Try renaming this to be an identifier that isn't a keyword.
+// class N2 = implements D extends B with C;
+//                         ^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:35:25: Error: Expected ';' after this.
+// class N2 = implements D extends B with C;
+//                         ^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:35:33: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+// class N2 = implements D extends B with C;
+//                                 ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:35:33: Error: Expected ';' after this.
+// class N2 = implements D extends B with C;
+//                                 ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:35:35: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+// class N2 = implements D extends B with C;
+//                                   ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:35:35: Error: 'with' can't be used as an identifier because it's a keyword.
+// Try renaming this to be an identifier that isn't a keyword.
+// class N2 = implements D extends B with C;
+//                                   ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:35:35: Error: Expected ';' after this.
+// class N2 = implements D extends B with C;
+//                                   ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:35:40: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+// class N2 = implements D extends B with C;
+//                                        ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:36:12: Error: The built-in identifier 'implements' can't be used as a type.
+// class N3 = implements D with C extends B;
+//            ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:36:23: Error: Expected 'with' before this.
+// class N3 = implements D with C extends B;
+//                       ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:36:23: Error: Expected ';' after this.
+// class N3 = implements D with C extends B;
+//                       ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:36:25: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+// class N3 = implements D with C extends B;
+//                         ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:36:25: Error: 'with' can't be used as an identifier because it's a keyword.
+// Try renaming this to be an identifier that isn't a keyword.
+// class N3 = implements D with C extends B;
+//                         ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:36:25: Error: Expected ';' after this.
+// class N3 = implements D with C extends B;
+//                         ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:36:30: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+// class N3 = implements D with C extends B;
+//                              ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:36:30: Error: Expected ';' after this.
+// class N3 = implements D with C extends B;
+//                              ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:36:32: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+// class N3 = implements D with C extends B;
+//                                ^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:36:32: Error: 'extends' can't be used as an identifier because it's a keyword.
+// Try renaming this to be an identifier that isn't a keyword.
+// class N3 = implements D with C extends B;
+//                                ^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:36:32: Error: Expected ';' after this.
+// class N3 = implements D with C extends B;
+//                                ^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:36:40: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+// class N3 = implements D with C extends B;
+//                                        ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:37:12: Error: Expected a type, but got 'with'.
+// class N4 = with C implements D extends B;
+//            ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:37:30: Error: Expected ';' after this.
+// class N4 = with C implements D extends B;
+//                              ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:37:32: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+// class N4 = with C implements D extends B;
+//                                ^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:37:32: Error: 'extends' can't be used as an identifier because it's a keyword.
+// Try renaming this to be an identifier that isn't a keyword.
+// class N4 = with C implements D extends B;
+//                                ^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:37:32: Error: Expected ';' after this.
+// class N4 = with C implements D extends B;
+//                                ^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:37:40: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+// class N4 = with C implements D extends B;
+//                                        ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:38:12: Error: Expected a type, but got 'with'.
+// class N5 = with C extends B implements D;
+//            ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:38:17: Error: Expected ';' after this.
+// class N5 = with C extends B implements D;
+//                 ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:38:19: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+// class N5 = with C extends B implements D;
+//                   ^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:38:19: Error: 'extends' can't be used as an identifier because it's a keyword.
+// Try renaming this to be an identifier that isn't a keyword.
+// class N5 = with C extends B implements D;
+//                   ^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:38:19: Error: Expected ';' after this.
+// class N5 = with C extends B implements D;
+//                   ^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:38:29: Error: Expected ';' after this.
+// class N5 = with C extends B implements D;
+//                             ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:38:40: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+// class N5 = with C extends B implements D;
+//                                        ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:39:32: Error: Expected ';' after this.
+// class N6 = B with C implements D extends B;
+//                                ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:39:34: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+// class N6 = B with C implements D extends B;
+//                                  ^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:39:34: Error: 'extends' can't be used as an identifier because it's a keyword.
+// Try renaming this to be an identifier that isn't a keyword.
+// class N6 = B with C implements D extends B;
+//                                  ^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:39:34: Error: Expected ';' after this.
+// class N6 = B with C implements D extends B;
+//                                  ^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:39:42: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+// class N6 = B with C implements D extends B;
+//                                          ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:40:32: Error: Expected ';' after this.
+// class N7 = B with C implements D implements D;
+//                                ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:40:34: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+// class N7 = B with C implements D implements D;
+//                                  ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:40:34: Error: Expected ';' after this.
+// class N7 = B with C implements D implements D;
+//                                  ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:40:45: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+// class N7 = B with C implements D implements D;
+//                                             ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:41:32: Error: Expected ';' after this.
+// class N8 = B with C implements D with C;
+//                                ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:41:34: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+// class N8 = B with C implements D with C;
+//                                  ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:41:34: Error: 'with' can't be used as an identifier because it's a keyword.
+// Try renaming this to be an identifier that isn't a keyword.
+// class N8 = B with C implements D with C;
+//                                  ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:41:34: Error: Expected ';' after this.
+// class N8 = B with C implements D with C;
+//                                  ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:41:39: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+// class N8 = B with C implements D with C;
+//                                       ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:42:14: Error: Expected 'with' before this.
+// class N9 = B implements D with C extends B;
+//              ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:42:25: Error: Expected ';' after this.
+// class N9 = B implements D with C extends B;
+//                         ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:42:27: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+// class N9 = B implements D with C extends B;
+//                           ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:42:27: Error: 'with' can't be used as an identifier because it's a keyword.
+// Try renaming this to be an identifier that isn't a keyword.
+// class N9 = B implements D with C extends B;
+//                           ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:42:27: Error: Expected ';' after this.
+// class N9 = B implements D with C extends B;
+//                           ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:42:32: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+// class N9 = B implements D with C extends B;
+//                                ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:42:32: Error: Expected ';' after this.
+// class N9 = B implements D with C extends B;
+//                                ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:42:34: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+// class N9 = B implements D with C extends B;
+//                                  ^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:42:34: Error: 'extends' can't be used as an identifier because it's a keyword.
+// Try renaming this to be an identifier that isn't a keyword.
+// class N9 = B implements D with C extends B;
+//                                  ^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:42:34: Error: Expected ';' after this.
+// class N9 = B implements D with C extends B;
+//                                  ^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:42:42: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+// class N9 = B implements D with C extends B;
+//                                          ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:43:15: Error: Expected 'with' before this.
+// class N10 = B implements D with C implements D;
+//               ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:43:26: Error: Expected ';' after this.
+// class N10 = B implements D with C implements D;
+//                          ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:43:28: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+// class N10 = B implements D with C implements D;
+//                            ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:43:28: Error: 'with' can't be used as an identifier because it's a keyword.
+// Try renaming this to be an identifier that isn't a keyword.
+// class N10 = B implements D with C implements D;
+//                            ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:43:28: Error: Expected ';' after this.
+// class N10 = B implements D with C implements D;
+//                            ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:43:35: Error: Expected ';' after this.
+// class N10 = B implements D with C implements D;
+//                                   ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:43:46: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+// class N10 = B implements D with C implements D;
+//                                              ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:44:15: Error: Expected 'with' before this.
+// class N11 = B implements D with C with C;
+//               ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:44:26: Error: Expected ';' after this.
+// class N11 = B implements D with C with C;
+//                          ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:44:28: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+// class N11 = B implements D with C with C;
+//                            ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:44:28: Error: 'with' can't be used as an identifier because it's a keyword.
+// Try renaming this to be an identifier that isn't a keyword.
+// class N11 = B implements D with C with C;
+//                            ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:44:28: Error: Expected ';' after this.
+// class N11 = B implements D with C with C;
+//                            ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:44:33: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+// class N11 = B implements D with C with C;
+//                                 ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:44:33: Error: Expected ';' after this.
+// class N11 = B implements D with C with C;
+//                                 ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:44:35: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+// class N11 = B implements D with C with C;
+//                                   ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:44:35: Error: 'with' can't be used as an identifier because it's a keyword.
+// Try renaming this to be an identifier that isn't a keyword.
+// class N11 = B implements D with C with C;
+//                                   ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:44:35: Error: Expected ';' after this.
+// class N11 = B implements D with C with C;
+//                                   ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:44:40: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+// class N11 = B implements D with C with C;
+//                                        ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:45:15: Error: Expected 'with' before this.
+// class N12 = B extends B with C implements D;
+//               ^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:45:13: Error: Expected ';' after this.
+// class N12 = B extends B with C implements D;
+//             ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:45:15: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+// class N12 = B extends B with C implements D;
+//               ^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:45:15: Error: 'extends' can't be used as an identifier because it's a keyword.
+// Try renaming this to be an identifier that isn't a keyword.
+// class N12 = B extends B with C implements D;
+//               ^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:45:15: Error: Expected ';' after this.
+// class N12 = B extends B with C implements D;
+//               ^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:45:23: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+// class N12 = B extends B with C implements D;
+//                       ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:45:23: Error: Expected ';' after this.
+// class N12 = B extends B with C implements D;
+//                       ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:45:25: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+// class N12 = B extends B with C implements D;
+//                         ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:45:25: Error: 'with' can't be used as an identifier because it's a keyword.
+// Try renaming this to be an identifier that isn't a keyword.
+// class N12 = B extends B with C implements D;
+//                         ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:45:25: Error: Expected ';' after this.
+// class N12 = B extends B with C implements D;
+//                         ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:45:32: Error: Expected ';' after this.
+// class N12 = B extends B with C implements D;
+//                                ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:45:43: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+// class N12 = B extends B with C implements D;
+//                                           ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:46:20: Error: Expected ';' after this.
+// class N13 = B with C with C implements D;
+//                    ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:46:22: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+// class N13 = B with C with C implements D;
+//                      ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:46:22: Error: 'with' can't be used as an identifier because it's a keyword.
+// Try renaming this to be an identifier that isn't a keyword.
+// class N13 = B with C with C implements D;
+//                      ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:46:22: Error: Expected ';' after this.
+// class N13 = B with C with C implements D;
+//                      ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:46:29: Error: Expected ';' after this.
+// class N13 = B with C with C implements D;
+//                             ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:46:40: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+// class N13 = B with C with C implements D;
+//                                        ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:47:33: Error: Expected ';' after this.
+// class N14 = B with C implements D implements D;
+//                                 ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:47:35: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+// class N14 = B with C implements D implements D;
+//                                   ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:47:35: Error: Expected ';' after this.
+// class N14 = B with C implements D implements D;
+//                                   ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:47:46: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+// class N14 = B with C implements D implements D;
+//                                              ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:48:13: Error: Expected a type, but got 'with'.
+// class N15 = with D extends B;
+//             ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:48:18: Error: Expected ';' after this.
+// class N15 = with D extends B;
+//                  ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:48:20: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+// class N15 = with D extends B;
+//                    ^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:48:20: Error: 'extends' can't be used as an identifier because it's a keyword.
+// Try renaming this to be an identifier that isn't a keyword.
+// class N15 = with D extends B;
+//                    ^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:48:20: Error: Expected ';' after this.
+// class N15 = with D extends B;
+//                    ^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:48:28: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+// class N15 = with D extends B;
+//                            ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:49:13: Error: The built-in identifier 'implements' can't be used as a type.
+// class N16 = implements D extends B;
+//             ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:49:24: Error: Expected 'with' before this.
+// class N16 = implements D extends B;
+//                        ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:49:24: Error: Expected ';' after this.
+// class N16 = implements D extends B;
+//                        ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:49:26: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+// class N16 = implements D extends B;
+//                          ^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:49:26: Error: 'extends' can't be used as an identifier because it's a keyword.
+// Try renaming this to be an identifier that isn't a keyword.
+// class N16 = implements D extends B;
+//                          ^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:49:26: Error: Expected ';' after this.
+// class N16 = implements D extends B;
+//                          ^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:49:34: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+// class N16 = implements D extends B;
+//                                  ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:50:13: Error: The built-in identifier 'implements' can't be used as a type.
+// class N17 = implements D with C;
+//             ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:50:24: Error: Expected 'with' before this.
+// class N17 = implements D with C;
+//                        ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:50:24: Error: Expected ';' after this.
+// class N17 = implements D with C;
+//                        ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:50:26: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+// class N17 = implements D with C;
+//                          ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:50:26: Error: 'with' can't be used as an identifier because it's a keyword.
+// Try renaming this to be an identifier that isn't a keyword.
+// class N17 = implements D with C;
+//                          ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:50:26: Error: Expected ';' after this.
+// class N17 = implements D with C;
+//                          ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:50:31: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+// class N17 = implements D with C;
+//                               ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:51:13: Error: Expected a type, but got ';'.
+// class N18 = ;
+//             ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:51:13: Error: Expected 'with' before this.
+// class N18 = ;
+//             ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:52:19: Error: Expected a type, but got ';'.
+// class N19 = B with;
+//                   ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:53:13: Error: Expected a type, but got 'with'.
+// class N20 = with;
+//             ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:53:17: Error: Expected a type, but got ';'.
+// class N20 = with;
+//                 ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:54:32: Error: Expected a type, but got ';'.
+// class N21 = B with C implements;
+//                                ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:55:13: Error: Expected a type, but got 'with'.
+// class N22 = with C implements;
+//             ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:55:30: Error: Expected a type, but got ';'.
+// class N22 = with C implements;
+//                              ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:56:13: Error: The built-in identifier 'implements' can't be used as a type.
+// class N23 = implements;
+//             ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:56:23: Error: Expected 'with' before this.
+// class N23 = implements;
+//                       ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:57:15: Error: Expected 'with' before this.
+// class N24 = B extends;
+//               ^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:57:13: Error: Expected ';' after this.
+// class N24 = B extends;
+//             ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:57:15: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+// class N24 = B extends;
+//               ^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:57:15: Error: 'extends' can't be used as an identifier because it's a keyword.
+// Try renaming this to be an identifier that isn't a keyword.
+// class N24 = B extends;
+//               ^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:58:13: Error: Expected a type, but got 'with'.
+// class N25 = with C with;
+//             ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:58:18: Error: Expected ';' after this.
+// class N25 = with C with;
+//                  ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:58:20: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+// class N25 = with C with;
+//                    ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:58:20: Error: 'with' can't be used as an identifier because it's a keyword.
+// Try renaming this to be an identifier that isn't a keyword.
+// class N25 = with C with;
+//                    ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:59:13: Error: The built-in identifier 'implements' can't be used as a type.
+// class N26 = implements D implements;
+//             ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:59:24: Error: Expected 'with' before this.
+// class N26 = implements D implements;
+//                        ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:59:36: Error: Expected a type, but got ';'.
+// class N26 = implements D implements;
+//                                    ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:61:8: Error: Unexpected tokens.
+// enum E extends B with C implements D { element }
+//        ^^^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:62:9: Error: Unexpected tokens.
+// enum E1 extends B implements D with C { element }
+//         ^^^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:62:32: Error: The 'with' clause must come before the 'implements' clause.
+// Try moving the 'with' clause before the 'implements' clause.
+// enum E1 extends B implements D with C { element }
+//                                ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:63:22: Error: Unexpected tokens.
+// enum E2 implements D extends B with C { element }
+//                      ^^^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:63:32: Error: The 'with' clause must come before the 'implements' clause.
+// Try moving the 'with' clause before the 'implements' clause.
+// enum E2 implements D extends B with C { element }
+//                                ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:64:22: Error: The 'with' clause must come before the 'implements' clause.
+// Try moving the 'with' clause before the 'implements' clause.
+// enum E3 implements D with C extends B { element }
+//                      ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:64:29: Error: Unexpected tokens.
+// enum E3 implements D with C extends B { element }
+//                             ^^^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:65:29: Error: Unexpected tokens.
+// enum E4 with C implements D extends B { element }
+//                             ^^^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:66:16: Error: Unexpected tokens.
+// enum E5 with C extends B implements D { element }
+//                ^^^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:67:9: Error: Unexpected tokens.
+// enum E6 extends B with C implements D extends B { element }
+//         ^^^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:67:39: Error: Unexpected tokens.
+// enum E6 extends B with C implements D extends B { element }
+//                                       ^^^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:68:9: Error: Unexpected tokens.
+// enum E7 extends B with C implements D implements D { element }
+//         ^^^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:68:39: Error: Each 'enum' definition can have at most one 'implements' clause.
+// Try combining all of the 'implements' clauses into a single clause.
+// enum E7 extends B with C implements D implements D { element }
+//                                       ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:69:9: Error: Unexpected tokens.
+// enum E8 extends B with C implements D with C { element }
+//         ^^^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:69:39: Error: Each 'enum' definition can have at most one 'with' clause.
+// Try combining all of the 'with' clauses into a single clause.
+// enum E8 extends B with C implements D with C { element }
+//                                       ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:70:9: Error: Unexpected tokens.
+// enum E9 extends B implements D with C extends B { element }
+//         ^^^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:70:32: Error: The 'with' clause must come before the 'implements' clause.
+// Try moving the 'with' clause before the 'implements' clause.
+// enum E9 extends B implements D with C extends B { element }
+//                                ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:70:39: Error: Unexpected tokens.
+// enum E9 extends B implements D with C extends B { element }
+//                                       ^^^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:71:10: Error: Unexpected tokens.
+// enum E10 extends B implements D with C implements D { element }
+//          ^^^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:71:33: Error: The 'with' clause must come before the 'implements' clause.
+// Try moving the 'with' clause before the 'implements' clause.
+// enum E10 extends B implements D with C implements D { element }
+//                                 ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:71:40: Error: Each 'enum' definition can have at most one 'implements' clause.
+// Try combining all of the 'implements' clauses into a single clause.
+// enum E10 extends B implements D with C implements D { element }
+//                                        ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:72:10: Error: Unexpected tokens.
+// enum E11 extends B implements D with C with C { element }
+//          ^^^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:72:33: Error: The 'with' clause must come before the 'implements' clause.
+// Try moving the 'with' clause before the 'implements' clause.
+// enum E11 extends B implements D with C with C { element }
+//                                 ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:72:40: Error: Each 'enum' definition can have at most one 'with' clause.
+// Try combining all of the 'with' clauses into a single clause.
+// enum E11 extends B implements D with C with C { element }
+//                                        ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:73:10: Error: Expected a enum body, but got 'extends'.
+// An enum definition must have a body with at least one constant name.
+// enum E12 extends B extends B with C implements D { element }
+//          ^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:73:10: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+// enum E12 extends B extends B with C implements D { element }
+//          ^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:73:10: Error: 'extends' can't be used as an identifier because it's a keyword.
+// Try renaming this to be an identifier that isn't a keyword.
+// enum E12 extends B extends B with C implements D { element }
+//          ^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:73:10: Error: Expected ';' after this.
+// enum E12 extends B extends B with C implements D { element }
+//          ^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:73:18: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+// enum E12 extends B extends B with C implements D { element }
+//                  ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:73:18: Error: Expected ';' after this.
+// enum E12 extends B extends B with C implements D { element }
+//                  ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:73:20: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+// enum E12 extends B extends B with C implements D { element }
+//                    ^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:73:20: Error: 'extends' can't be used as an identifier because it's a keyword.
+// Try renaming this to be an identifier that isn't a keyword.
+// enum E12 extends B extends B with C implements D { element }
+//                    ^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:73:20: Error: Expected ';' after this.
+// enum E12 extends B extends B with C implements D { element }
+//                    ^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:73:28: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+// enum E12 extends B extends B with C implements D { element }
+//                            ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:73:28: Error: Expected ';' after this.
+// enum E12 extends B extends B with C implements D { element }
+//                            ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:73:30: Error: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// Try adding the name of the type of the variable or the keyword 'var'.
+// enum E12 extends B extends B with C implements D { element }
+//                              ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:73:30: Error: 'with' can't be used as an identifier because it's a keyword.
+// Try renaming this to be an identifier that isn't a keyword.
+// enum E12 extends B extends B with C implements D { element }
+//                              ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:73:30: Error: Expected ';' after this.
+// enum E12 extends B extends B with C implements D { element }
+//                              ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:73:37: Error: Expected ';' after this.
+// enum E12 extends B extends B with C implements D { element }
+//                                     ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:73:48: Error: A function declaration needs an explicit list of parameters.
+// Try adding a parameter list to the function declaration.
+// enum E12 extends B extends B with C implements D { element }
+//                                                ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:74:10: Error: Unexpected tokens.
+// enum E13 extends B with C with C implements D { element }
+//          ^^^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:74:27: Error: Each 'enum' definition can have at most one 'with' clause.
+// Try combining all of the 'with' clauses into a single clause.
+// enum E13 extends B with C with C implements D { element }
+//                           ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:75:10: Error: Unexpected tokens.
+// enum E14 extends B with C implements D implements D { element }
+//          ^^^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:75:40: Error: Each 'enum' definition can have at most one 'implements' clause.
+// Try combining all of the 'implements' clauses into a single clause.
+// enum E14 extends B with C implements D implements D { element }
+//                                        ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:76:17: Error: Unexpected tokens.
+// enum E15 with D extends B { element }
+//                 ^^^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:77:23: Error: Unexpected tokens.
+// enum E16 implements D extends B { element }
+//                       ^^^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:78:23: Error: The 'with' clause must come before the 'implements' clause.
+// Try moving the 'with' clause before the 'implements' clause.
+// enum E17 implements D with C { element }
+//                       ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:79:10: Error: Unexpected token 'extends'.
+// enum E18 extends { element }
+//          ^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:80:10: Error: Unexpected tokens.
+// enum E19 extends B with { element }
+//          ^^^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:80:25: Error: Expected a type, but got '{'.
+// enum E19 extends B with { element }
+//                         ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:81:15: Error: Expected a type, but got '{'.
+// enum E20 with { element }
+//               ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:82:10: Error: Unexpected tokens.
+// enum E21 extends B with C implements { element }
+//          ^^^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:82:38: Error: Expected a type, but got '{'.
+// enum E21 extends B with C implements { element }
+//                                      ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:83:28: Error: Expected a type, but got '{'.
+// enum E22 with C implements { element }
+//                            ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:84:21: Error: Expected a type, but got '{'.
+// enum E23 implements { element }
+//                     ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:85:10: Error: Unexpected tokens.
+// enum E24 extends B extends { element }
+//          ^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:86:17: Error: Each 'enum' definition can have at most one 'with' clause.
+// Try combining all of the 'with' clauses into a single clause.
+// enum E25 with C with { element }
+//                 ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:87:23: Error: Each 'enum' definition can have at most one 'implements' clause.
+// Try combining all of the 'implements' clauses into a single clause.
+// enum E26 implements D implements { element }
+//                       ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:35:35: Error: 'with' is already declared in this scope.
+// class N2 = implements D extends B with C;
+//                                   ^^^^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:34:27: Context: Previous declaration of 'with'.
+// class N1 = B implements D with C;
+//                           ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:36:25: Error: 'with' is already declared in this scope.
+// class N3 = implements D with C extends B;
+//                         ^^^^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:34:27: Context: Previous declaration of 'with'.
+// class N1 = B implements D with C;
+//                           ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:41:34: Error: 'with' is already declared in this scope.
+// class N8 = B with C implements D with C;
+//                                  ^^^^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:34:27: Context: Previous declaration of 'with'.
+// class N1 = B implements D with C;
+//                           ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:42:27: Error: 'with' is already declared in this scope.
+// class N9 = B implements D with C extends B;
+//                           ^^^^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:34:27: Context: Previous declaration of 'with'.
+// class N1 = B implements D with C;
+//                           ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:43:28: Error: 'with' is already declared in this scope.
+// class N10 = B implements D with C implements D;
+//                            ^^^^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:34:27: Context: Previous declaration of 'with'.
+// class N1 = B implements D with C;
+//                           ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:44:28: Error: 'with' is already declared in this scope.
+// class N11 = B implements D with C with C;
+//                            ^^^^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:34:27: Context: Previous declaration of 'with'.
+// class N1 = B implements D with C;
+//                           ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:44:35: Error: 'with' is already declared in this scope.
+// class N11 = B implements D with C with C;
+//                                   ^^^^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:34:27: Context: Previous declaration of 'with'.
+// class N1 = B implements D with C;
+//                           ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:45:25: Error: 'with' is already declared in this scope.
+// class N12 = B extends B with C implements D;
+//                         ^^^^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:34:27: Context: Previous declaration of 'with'.
+// class N1 = B implements D with C;
+//                           ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:46:22: Error: 'with' is already declared in this scope.
+// class N13 = B with C with C implements D;
+//                      ^^^^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:34:27: Context: Previous declaration of 'with'.
+// class N1 = B implements D with C;
+//                           ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:50:26: Error: 'with' is already declared in this scope.
+// class N17 = implements D with C;
+//                          ^^^^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:34:27: Context: Previous declaration of 'with'.
+// class N1 = B implements D with C;
+//                           ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:58:20: Error: 'with' is already declared in this scope.
+// class N25 = with C with;
+//                    ^^^^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:34:27: Context: Previous declaration of 'with'.
+// class N1 = B implements D with C;
+//                           ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:73:30: Error: 'with' is already declared in this scope.
+// enum E12 extends B extends B with C implements D { element }
+//                              ^^^^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:34:27: Context: Previous declaration of 'with'.
+// class N1 = B implements D with C;
+//                           ^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:35:40: Error: 'C' is already declared in this scope.
+// class N2 = implements D extends B with C;
+//                                        ^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:34:32: Context: Previous declaration of 'C'.
+// class N1 = B implements D with C;
+//                                ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:36:30: Error: 'C' is already declared in this scope.
+// class N3 = implements D with C extends B;
+//                              ^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:34:32: Context: Previous declaration of 'C'.
+// class N1 = B implements D with C;
+//                                ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:41:39: Error: 'C' is already declared in this scope.
+// class N8 = B with C implements D with C;
+//                                       ^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:34:32: Context: Previous declaration of 'C'.
+// class N1 = B implements D with C;
+//                                ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:42:32: Error: 'C' is already declared in this scope.
+// class N9 = B implements D with C extends B;
+//                                ^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:34:32: Context: Previous declaration of 'C'.
+// class N1 = B implements D with C;
+//                                ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:44:33: Error: 'C' is already declared in this scope.
+// class N11 = B implements D with C with C;
+//                                 ^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:34:32: Context: Previous declaration of 'C'.
+// class N1 = B implements D with C;
+//                                ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:44:40: Error: 'C' is already declared in this scope.
+// class N11 = B implements D with C with C;
+//                                        ^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:34:32: Context: Previous declaration of 'C'.
+// class N1 = B implements D with C;
+//                                ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:50:31: Error: 'C' is already declared in this scope.
+// class N17 = implements D with C;
+//                               ^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:34:32: Context: Previous declaration of 'C'.
+// class N1 = B implements D with C;
+//                                ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:90:7: Error: 'C' is already declared in this scope.
+// class C {}
+//       ^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:34:32: Context: Previous declaration of 'C'.
+// class N1 = B implements D with C;
+//                                ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:36:32: Error: 'extends' is already declared in this scope.
+// class N3 = implements D with C extends B;
+//                                ^^^^^^^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:35:25: Context: Previous declaration of 'extends'.
+// class N2 = implements D extends B with C;
+//                         ^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:37:32: Error: 'extends' is already declared in this scope.
+// class N4 = with C implements D extends B;
+//                                ^^^^^^^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:35:25: Context: Previous declaration of 'extends'.
+// class N2 = implements D extends B with C;
+//                         ^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:38:19: Error: 'extends' is already declared in this scope.
+// class N5 = with C extends B implements D;
+//                   ^^^^^^^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:35:25: Context: Previous declaration of 'extends'.
+// class N2 = implements D extends B with C;
+//                         ^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:39:34: Error: 'extends' is already declared in this scope.
+// class N6 = B with C implements D extends B;
+//                                  ^^^^^^^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:35:25: Context: Previous declaration of 'extends'.
+// class N2 = implements D extends B with C;
+//                         ^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:42:34: Error: 'extends' is already declared in this scope.
+// class N9 = B implements D with C extends B;
+//                                  ^^^^^^^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:35:25: Context: Previous declaration of 'extends'.
+// class N2 = implements D extends B with C;
+//                         ^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:45:15: Error: 'extends' is already declared in this scope.
+// class N12 = B extends B with C implements D;
+//               ^^^^^^^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:35:25: Context: Previous declaration of 'extends'.
+// class N2 = implements D extends B with C;
+//                         ^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:48:20: Error: 'extends' is already declared in this scope.
+// class N15 = with D extends B;
+//                    ^^^^^^^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:35:25: Context: Previous declaration of 'extends'.
+// class N2 = implements D extends B with C;
+//                         ^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:49:26: Error: 'extends' is already declared in this scope.
+// class N16 = implements D extends B;
+//                          ^^^^^^^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:35:25: Context: Previous declaration of 'extends'.
+// class N2 = implements D extends B with C;
+//                         ^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:57:15: Error: 'extends' is already declared in this scope.
+// class N24 = B extends;
+//               ^^^^^^^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:35:25: Context: Previous declaration of 'extends'.
+// class N2 = implements D extends B with C;
+//                         ^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:73:10: Error: 'extends' is already declared in this scope.
+// enum E12 extends B extends B with C implements D { element }
+//          ^^^^^^^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:35:25: Context: Previous declaration of 'extends'.
+// class N2 = implements D extends B with C;
+//                         ^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:73:20: Error: 'extends' is already declared in this scope.
+// enum E12 extends B extends B with C implements D { element }
+//                    ^^^^^^^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:35:25: Context: Previous declaration of 'extends'.
+// class N2 = implements D extends B with C;
+//                         ^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:36:40: Error: 'B' is already declared in this scope.
+// class N3 = implements D with C extends B;
+//                                        ^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:35:33: Context: Previous declaration of 'B'.
+// class N2 = implements D extends B with C;
+//                                 ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:37:40: Error: 'B' is already declared in this scope.
+// class N4 = with C implements D extends B;
+//                                        ^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:35:33: Context: Previous declaration of 'B'.
+// class N2 = implements D extends B with C;
+//                                 ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:39:42: Error: 'B' is already declared in this scope.
+// class N6 = B with C implements D extends B;
+//                                          ^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:35:33: Context: Previous declaration of 'B'.
+// class N2 = implements D extends B with C;
+//                                 ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:42:42: Error: 'B' is already declared in this scope.
+// class N9 = B implements D with C extends B;
+//                                          ^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:35:33: Context: Previous declaration of 'B'.
+// class N2 = implements D extends B with C;
+//                                 ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:45:23: Error: 'B' is already declared in this scope.
+// class N12 = B extends B with C implements D;
+//                       ^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:35:33: Context: Previous declaration of 'B'.
+// class N2 = implements D extends B with C;
+//                                 ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:48:28: Error: 'B' is already declared in this scope.
+// class N15 = with D extends B;
+//                            ^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:35:33: Context: Previous declaration of 'B'.
+// class N2 = implements D extends B with C;
+//                                 ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:49:34: Error: 'B' is already declared in this scope.
+// class N16 = implements D extends B;
+//                                  ^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:35:33: Context: Previous declaration of 'B'.
+// class N2 = implements D extends B with C;
+//                                 ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:73:18: Error: 'B' is already declared in this scope.
+// enum E12 extends B extends B with C implements D { element }
+//                  ^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:35:33: Context: Previous declaration of 'B'.
+// class N2 = implements D extends B with C;
+//                                 ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:73:28: Error: 'B' is already declared in this scope.
+// enum E12 extends B extends B with C implements D { element }
+//                            ^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:35:33: Context: Previous declaration of 'B'.
+// class N2 = implements D extends B with C;
+//                                 ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:89:7: Error: 'B' is already declared in this scope.
+// class B {}
+//       ^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:35:33: Context: Previous declaration of 'B'.
+// class N2 = implements D extends B with C;
+//                                 ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:40:34: Error: 'implements' is already declared in this scope.
+// class N7 = B with C implements D implements D;
+//                                  ^^^^^^^^^^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:38:29: Context: Previous declaration of 'implements'.
+// class N5 = with C extends B implements D;
+//                             ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:43:35: Error: 'implements' is already declared in this scope.
+// class N10 = B implements D with C implements D;
+//                                   ^^^^^^^^^^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:38:29: Context: Previous declaration of 'implements'.
+// class N5 = with C extends B implements D;
+//                             ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:45:32: Error: 'implements' is already declared in this scope.
+// class N12 = B extends B with C implements D;
+//                                ^^^^^^^^^^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:38:29: Context: Previous declaration of 'implements'.
+// class N5 = with C extends B implements D;
+//                             ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:46:29: Error: 'implements' is already declared in this scope.
+// class N13 = B with C with C implements D;
+//                             ^^^^^^^^^^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:38:29: Context: Previous declaration of 'implements'.
+// class N5 = with C extends B implements D;
+//                             ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:47:35: Error: 'implements' is already declared in this scope.
+// class N14 = B with C implements D implements D;
+//                                   ^^^^^^^^^^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:38:29: Context: Previous declaration of 'implements'.
+// class N5 = with C extends B implements D;
+//                             ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:73:37: Error: 'implements' is already declared in this scope.
+// enum E12 extends B extends B with C implements D { element }
+//                                     ^^^^^^^^^^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:38:29: Context: Previous declaration of 'implements'.
+// class N5 = with C extends B implements D;
+//                             ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:40:45: Error: 'D' is already declared in this scope.
+// class N7 = B with C implements D implements D;
+//                                             ^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:38:40: Context: Previous declaration of 'D'.
+// class N5 = with C extends B implements D;
+//                                        ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:43:46: Error: 'D' is already declared in this scope.
+// class N10 = B implements D with C implements D;
+//                                              ^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:38:40: Context: Previous declaration of 'D'.
+// class N5 = with C extends B implements D;
+//                                        ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:45:43: Error: 'D' is already declared in this scope.
+// class N12 = B extends B with C implements D;
+//                                           ^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:38:40: Context: Previous declaration of 'D'.
+// class N5 = with C extends B implements D;
+//                                        ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:46:40: Error: 'D' is already declared in this scope.
+// class N13 = B with C with C implements D;
+//                                        ^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:38:40: Context: Previous declaration of 'D'.
+// class N5 = with C extends B implements D;
+//                                        ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:47:46: Error: 'D' is already declared in this scope.
+// class N14 = B with C implements D implements D;
+//                                              ^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:38:40: Context: Previous declaration of 'D'.
+// class N5 = with C extends B implements D;
+//                                        ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:73:48: Error: 'D' is already declared in this scope.
+// enum E12 extends B extends B with C implements D { element }
+//                                                ^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:38:40: Context: Previous declaration of 'D'.
+// class N5 = with C extends B implements D;
+//                                        ^
+//
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:91:7: Error: 'D' is already declared in this scope.
+// class D {}
+//       ^
+// pkg/front_end/testcases/general/error_recovery/class_header.dart:38:40: Context: Previous declaration of 'D'.
+// class N5 = with C extends B implements D;
+//                                        ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends self::_A&B&C {
+  synthetic constructor •() → self::A
+    ;
+}
+class A1 extends core::Object {
+  synthetic constructor •() → self::A1
+    ;
+}
+class A2 extends core::Object {
+  synthetic constructor •() → self::A2
+    ;
+}
+class A3 extends core::Object {
+  synthetic constructor •() → self::A3
+    ;
+}
+class A4 extends self::_A4&Object&C {
+  synthetic constructor •() → self::A4
+    ;
+}
+class A5 extends self::_A5&Object&C {
+  synthetic constructor •() → self::A5
+    ;
+}
+class A6 extends self::_A6&B&C {
+  synthetic constructor •() → self::A6
+    ;
+}
+class A7 extends self::_A7&B&C {
+  synthetic constructor •() → self::A7
+    ;
+}
+class A8 extends self::_A8&B&C {
+  synthetic constructor •() → self::A8
+    ;
+}
+class A9 extends core::Object {
+  synthetic constructor •() → self::A9
+    ;
+}
+class A10 extends core::Object {
+  synthetic constructor •() → self::A10
+    ;
+}
+class A11 extends core::Object {
+  synthetic constructor •() → self::A11
+    ;
+}
+class A12 extends core::Object {
+  synthetic constructor •() → self::A12
+    ;
+}
+class A13 extends self::_A13&B&C {
+  synthetic constructor •() → self::A13
+    ;
+}
+class A14 extends self::_A14&B&C {
+  synthetic constructor •() → self::A14
+    ;
+}
+class A15 extends self::_A15&Object&D {
+  synthetic constructor •() → self::A15
+    ;
+}
+class A16 extends core::Object {
+  synthetic constructor •() → self::A16
+    ;
+}
+class A17 extends core::Object {
+  synthetic constructor •() → self::A17
+    ;
+}
+class A18 extends core::Object {
+  synthetic constructor •() → self::A18
+    ;
+}
+class A19 extends core::Object {
+  synthetic constructor •() → self::A19
+    ;
+}
+class A20 extends core::Object {
+  synthetic constructor •() → self::A20
+    ;
+}
+class A21 extends self::_A21&B&C {
+  synthetic constructor •() → self::A21
+    ;
+}
+class A22 extends self::_A22&Object&C {
+  synthetic constructor •() → self::A22
+    ;
+}
+class A23 extends core::Object {
+  synthetic constructor •() → self::A23
+    ;
+}
+class A24 extends core::Object {
+  synthetic constructor •() → self::A24
+    ;
+}
+class A25 extends self::_A25&Object&C {
+  synthetic constructor •() → self::A25
+    ;
+}
+class A26 extends core::Object {
+  synthetic constructor •() → self::A26
+    ;
+}
+class N extends core::Object {
+  synthetic constructor •() → self::N
+    ;
+}
+class C#8 extends core::Object {
+  synthetic constructor •() → self::C#8
+    ;
+}
+class N2 extends core::Object {
+  synthetic constructor •() → self::N2
+    ;
+}
+class B#10 extends core::Object {
+  synthetic constructor •() → self::B#10
+    ;
+}
+class N3 extends core::Object {
+  synthetic constructor •() → self::N3
+    ;
+}
+class D#7 extends core::Object {
+  synthetic constructor •() → self::D#7
+    ;
+}
+class N6 extends core::Object {
+  synthetic constructor •() → self::N6
+    ;
+}
+class N7 extends core::Object {
+  synthetic constructor •() → self::N7
+    ;
+}
+class N8 extends core::Object {
+  synthetic constructor •() → self::N8
+    ;
+}
+class N13 extends core::Object {
+  synthetic constructor •() → self::N13
+    ;
+}
+class N14 extends core::Object {
+  synthetic constructor •() → self::N14
+    ;
+}
+class N16 extends core::Object {
+  synthetic constructor •() → self::N16
+    ;
+}
+class N17 extends core::Object {
+  synthetic constructor •() → self::N17
+    ;
+}
+class N21 extends core::Object {
+  synthetic constructor •() → self::N21
+    ;
+}
+class N26 extends core::Object {
+  synthetic constructor •() → self::N26
+    ;
+}
+class E extends self::_E&_Enum&C /*isEnum*/  {
+  enum-element static const field self::E element = const self::E::•(0, "element");
+  static const field core::List<self::E> values = const <self::E>[self::E::element];
+  const synthetic constructor •(core::int #index, core::String #name) → self::E
+    : super self::_E&_Enum&C::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E.${this.{core::_Enum::_name}{core::String}}";
+}
+class E1 extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::E1 element = const self::E1::•(0, "element");
+  static const field core::List<self::E1> values = const <self::E1>[self::E1::element];
+  const synthetic constructor •(core::int #index, core::String #name) → self::E1
+    : super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E1.${this.{core::_Enum::_name}{core::String}}";
+}
+class E2 extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::E2 element = const self::E2::•(0, "element");
+  static const field core::List<self::E2> values = const <self::E2>[self::E2::element];
+  const synthetic constructor •(core::int #index, core::String #name) → self::E2
+    : super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E2.${this.{core::_Enum::_name}{core::String}}";
+}
+class E3 extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::E3 element = const self::E3::•(0, "element");
+  static const field core::List<self::E3> values = const <self::E3>[self::E3::element];
+  const synthetic constructor •(core::int #index, core::String #name) → self::E3
+    : super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E3.${this.{core::_Enum::_name}{core::String}}";
+}
+class E4 extends self::_E4&_Enum&C /*isEnum*/  {
+  enum-element static const field self::E4 element = const self::E4::•(0, "element");
+  static const field core::List<self::E4> values = const <self::E4>[self::E4::element];
+  const synthetic constructor •(core::int #index, core::String #name) → self::E4
+    : super self::_E4&_Enum&C::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E4.${this.{core::_Enum::_name}{core::String}}";
+}
+class E5 extends self::_E5&_Enum&C /*isEnum*/  {
+  enum-element static const field self::E5 element = const self::E5::•(0, "element");
+  static const field core::List<self::E5> values = const <self::E5>[self::E5::element];
+  const synthetic constructor •(core::int #index, core::String #name) → self::E5
+    : super self::_E5&_Enum&C::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E5.${this.{core::_Enum::_name}{core::String}}";
+}
+class E6 extends self::_E6&_Enum&C /*isEnum*/  {
+  enum-element static const field self::E6 element = const self::E6::•(0, "element");
+  static const field core::List<self::E6> values = const <self::E6>[self::E6::element];
+  const synthetic constructor •(core::int #index, core::String #name) → self::E6
+    : super self::_E6&_Enum&C::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E6.${this.{core::_Enum::_name}{core::String}}";
+}
+class E7 extends self::_E7&_Enum&C /*isEnum*/  {
+  enum-element static const field self::E7 element = const self::E7::•(0, "element");
+  static const field core::List<self::E7> values = const <self::E7>[self::E7::element];
+  const synthetic constructor •(core::int #index, core::String #name) → self::E7
+    : super self::_E7&_Enum&C::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E7.${this.{core::_Enum::_name}{core::String}}";
+}
+class E8 extends self::_E8&_Enum&C /*isEnum*/  {
+  enum-element static const field self::E8 element = const self::E8::•(0, "element");
+  static const field core::List<self::E8> values = const <self::E8>[self::E8::element];
+  const synthetic constructor •(core::int #index, core::String #name) → self::E8
+    : super self::_E8&_Enum&C::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E8.${this.{core::_Enum::_name}{core::String}}";
+}
+class E9 extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::E9 element = const self::E9::•(0, "element");
+  static const field core::List<self::E9> values = const <self::E9>[self::E9::element];
+  const synthetic constructor •(core::int #index, core::String #name) → self::E9
+    : super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E9.${this.{core::_Enum::_name}{core::String}}";
+}
+class E10 extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::E10 element = const self::E10::•(0, "element");
+  static const field core::List<self::E10> values = const <self::E10>[self::E10::element];
+  const synthetic constructor •(core::int #index, core::String #name) → self::E10
+    : super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E10.${this.{core::_Enum::_name}{core::String}}";
+}
+class E11 extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::E11 element = const self::E11::•(0, "element");
+  static const field core::List<self::E11> values = const <self::E11>[self::E11::element];
+  const synthetic constructor •(core::int #index, core::String #name) → self::E11
+    : super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E11.${this.{core::_Enum::_name}{core::String}}";
+}
+class E12 extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::E12> values = const <self::E12>[];
+  const synthetic constructor •(core::int #index, core::String #name) → self::E12
+    : super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E12.${this.{core::_Enum::_name}{core::String}}";
+}
+class E13 extends self::_E13&_Enum&C /*isEnum*/  {
+  enum-element static const field self::E13 element = const self::E13::•(0, "element");
+  static const field core::List<self::E13> values = const <self::E13>[self::E13::element];
+  const synthetic constructor •(core::int #index, core::String #name) → self::E13
+    : super self::_E13&_Enum&C::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E13.${this.{core::_Enum::_name}{core::String}}";
+}
+class E14 extends self::_E14&_Enum&C /*isEnum*/  {
+  enum-element static const field self::E14 element = const self::E14::•(0, "element");
+  static const field core::List<self::E14> values = const <self::E14>[self::E14::element];
+  const synthetic constructor •(core::int #index, core::String #name) → self::E14
+    : super self::_E14&_Enum&C::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E14.${this.{core::_Enum::_name}{core::String}}";
+}
+class E15 extends self::_E15&_Enum&D /*isEnum*/  {
+  enum-element static const field self::E15 element = const self::E15::•(0, "element");
+  static const field core::List<self::E15> values = const <self::E15>[self::E15::element];
+  const synthetic constructor •(core::int #index, core::String #name) → self::E15
+    : super self::_E15&_Enum&D::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E15.${this.{core::_Enum::_name}{core::String}}";
+}
+class E16 extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::E16 element = const self::E16::•(0, "element");
+  static const field core::List<self::E16> values = const <self::E16>[self::E16::element];
+  const synthetic constructor •(core::int #index, core::String #name) → self::E16
+    : super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E16.${this.{core::_Enum::_name}{core::String}}";
+}
+class E17 extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::E17 element = const self::E17::•(0, "element");
+  static const field core::List<self::E17> values = const <self::E17>[self::E17::element];
+  const synthetic constructor •(core::int #index, core::String #name) → self::E17
+    : super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E17.${this.{core::_Enum::_name}{core::String}}";
+}
+class E18 extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::E18 element = const self::E18::•(0, "element");
+  static const field core::List<self::E18> values = const <self::E18>[self::E18::element];
+  const synthetic constructor •(core::int #index, core::String #name) → self::E18
+    : super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E18.${this.{core::_Enum::_name}{core::String}}";
+}
+class E19 extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::E19 element = const self::E19::•(0, "element");
+  static const field core::List<self::E19> values = const <self::E19>[self::E19::element];
+  const synthetic constructor •(core::int #index, core::String #name) → self::E19
+    : super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E19.${this.{core::_Enum::_name}{core::String}}";
+}
+class E20 extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::E20 element = const self::E20::•(0, "element");
+  static const field core::List<self::E20> values = const <self::E20>[self::E20::element];
+  const synthetic constructor •(core::int #index, core::String #name) → self::E20
+    : super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E20.${this.{core::_Enum::_name}{core::String}}";
+}
+class E21 extends self::_E21&_Enum&C /*isEnum*/  {
+  enum-element static const field self::E21 element = const self::E21::•(0, "element");
+  static const field core::List<self::E21> values = const <self::E21>[self::E21::element];
+  const synthetic constructor •(core::int #index, core::String #name) → self::E21
+    : super self::_E21&_Enum&C::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E21.${this.{core::_Enum::_name}{core::String}}";
+}
+class E22 extends self::_E22&_Enum&C /*isEnum*/  {
+  enum-element static const field self::E22 element = const self::E22::•(0, "element");
+  static const field core::List<self::E22> values = const <self::E22>[self::E22::element];
+  const synthetic constructor •(core::int #index, core::String #name) → self::E22
+    : super self::_E22&_Enum&C::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E22.${this.{core::_Enum::_name}{core::String}}";
+}
+class E23 extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::E23 element = const self::E23::•(0, "element");
+  static const field core::List<self::E23> values = const <self::E23>[self::E23::element];
+  const synthetic constructor •(core::int #index, core::String #name) → self::E23
+    : super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E23.${this.{core::_Enum::_name}{core::String}}";
+}
+class E24 extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::E24 element = const self::E24::•(0, "element");
+  static const field core::List<self::E24> values = const <self::E24>[self::E24::element];
+  const synthetic constructor •(core::int #index, core::String #name) → self::E24
+    : super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E24.${this.{core::_Enum::_name}{core::String}}";
+}
+class E25 extends self::_E25&_Enum&C /*isEnum*/  {
+  enum-element static const field self::E25 element = const self::E25::•(0, "element");
+  static const field core::List<self::E25> values = const <self::E25>[self::E25::element];
+  const synthetic constructor •(core::int #index, core::String #name) → self::E25
+    : super self::_E25&_Enum&C::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E25.${this.{core::_Enum::_name}{core::String}}";
+}
+class E26 extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::E26 element = const self::E26::•(0, "element");
+  static const field core::List<self::E26> values = const <self::E26>[self::E26::element];
+  const synthetic constructor •(core::int #index, core::String #name) → self::E26
+    : super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E26.${this.{core::_Enum::_name}{core::String}}";
+}
+abstract class _A&B&C extends core::Object /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_A&B&C
+    ;
+}
+abstract class _A4&Object&C extends core::Object /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_A4&Object&C
+    : super core::Object::•()
+    ;
+}
+abstract class _A5&Object&C extends core::Object /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_A5&Object&C
+    : super core::Object::•()
+    ;
+}
+abstract class _A6&B&C extends core::Object /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_A6&B&C
+    ;
+}
+abstract class _A7&B&C extends core::Object /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_A7&B&C
+    ;
+}
+abstract class _A8&B&C extends core::Object /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_A8&B&C
+    ;
+}
+abstract class _A13&B&C extends core::Object /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_A13&B&C
+    ;
+}
+abstract class _A14&B&C extends core::Object /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_A14&B&C
+    ;
+}
+abstract class _A15&Object&D extends core::Object /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_A15&Object&D
+    : super core::Object::•()
+    ;
+}
+abstract class _A21&B&C extends core::Object /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_A21&B&C
+    ;
+}
+abstract class _A22&Object&C extends core::Object /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_A22&Object&C
+    : super core::Object::•()
+    ;
+}
+abstract class _A25&Object&C extends core::Object /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_A25&Object&C
+    : super core::Object::•()
+    ;
+}
+abstract class _E&_Enum&C extends core::_Enum /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E&_Enum&C
+    : super core::_Enum::•(index, _name)
+    ;
+}
+abstract class _E4&_Enum&C extends core::_Enum /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E4&_Enum&C
+    : super core::_Enum::•(index, _name)
+    ;
+}
+abstract class _E5&_Enum&C extends core::_Enum /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E5&_Enum&C
+    : super core::_Enum::•(index, _name)
+    ;
+}
+abstract class _E6&_Enum&C extends core::_Enum /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E6&_Enum&C
+    : super core::_Enum::•(index, _name)
+    ;
+}
+abstract class _E7&_Enum&C extends core::_Enum /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E7&_Enum&C
+    : super core::_Enum::•(index, _name)
+    ;
+}
+abstract class _E8&_Enum&C extends core::_Enum /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E8&_Enum&C
+    : super core::_Enum::•(index, _name)
+    ;
+}
+abstract class _E13&_Enum&C extends core::_Enum /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E13&_Enum&C
+    : super core::_Enum::•(index, _name)
+    ;
+}
+abstract class _E14&_Enum&C extends core::_Enum /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E14&_Enum&C
+    : super core::_Enum::•(index, _name)
+    ;
+}
+abstract class _E15&_Enum&D extends core::_Enum /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E15&_Enum&D
+    : super core::_Enum::•(index, _name)
+    ;
+}
+abstract class _E21&_Enum&C extends core::_Enum /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E21&_Enum&C
+    : super core::_Enum::•(index, _name)
+    ;
+}
+abstract class _E22&_Enum&C extends core::_Enum /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E22&_Enum&C
+    : super core::_Enum::•(index, _name)
+    ;
+}
+abstract class _E25&_Enum&C extends core::_Enum /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •(core::int index, core::String _name) → self::_E25&_Enum&C
+    : super core::_Enum::•(index, _name)
+    ;
+}
+static field dynamic with;
+static field dynamic C;
+static field dynamic extends;
+static field dynamic B;
+static field invalid-type implements;
+static field dynamic D;
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///class_header.dart:61:40 -> InstanceConstant(const E{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///class_header.dart:61:6 -> ListConstant(const <E>[const E{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///class_header.dart:62:41 -> InstanceConstant(const E1{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///class_header.dart:62:6 -> ListConstant(const <E1>[const E1{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///class_header.dart:63:41 -> InstanceConstant(const E2{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///class_header.dart:63:6 -> ListConstant(const <E2>[const E2{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///class_header.dart:64:41 -> InstanceConstant(const E3{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///class_header.dart:64:6 -> ListConstant(const <E3>[const E3{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///class_header.dart:65:41 -> InstanceConstant(const E4{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///class_header.dart:65:6 -> ListConstant(const <E4>[const E4{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///class_header.dart:66:41 -> InstanceConstant(const E5{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///class_header.dart:66:6 -> ListConstant(const <E5>[const E5{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///class_header.dart:67:51 -> InstanceConstant(const E6{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///class_header.dart:67:6 -> ListConstant(const <E6>[const E6{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///class_header.dart:68:54 -> InstanceConstant(const E7{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///class_header.dart:68:6 -> ListConstant(const <E7>[const E7{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///class_header.dart:69:48 -> InstanceConstant(const E8{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///class_header.dart:69:6 -> ListConstant(const <E8>[const E8{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///class_header.dart:70:51 -> InstanceConstant(const E9{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///class_header.dart:70:6 -> ListConstant(const <E9>[const E9{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///class_header.dart:71:55 -> InstanceConstant(const E10{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///class_header.dart:71:6 -> ListConstant(const <E10>[const E10{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///class_header.dart:72:49 -> InstanceConstant(const E11{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///class_header.dart:72:6 -> ListConstant(const <E11>[const E11{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ListLiteral @ org-dartlang-testcase:///class_header.dart:73:6 -> ListConstant(const <E12>[])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///class_header.dart:74:49 -> InstanceConstant(const E13{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///class_header.dart:74:6 -> ListConstant(const <E13>[const E13{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///class_header.dart:75:55 -> InstanceConstant(const E14{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///class_header.dart:75:6 -> ListConstant(const <E14>[const E14{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///class_header.dart:76:29 -> InstanceConstant(const E15{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///class_header.dart:76:6 -> ListConstant(const <E15>[const E15{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///class_header.dart:77:35 -> InstanceConstant(const E16{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///class_header.dart:77:6 -> ListConstant(const <E16>[const E16{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///class_header.dart:78:32 -> InstanceConstant(const E17{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///class_header.dart:78:6 -> ListConstant(const <E17>[const E17{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///class_header.dart:79:20 -> InstanceConstant(const E18{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///class_header.dart:79:6 -> ListConstant(const <E18>[const E18{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///class_header.dart:80:27 -> InstanceConstant(const E19{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///class_header.dart:80:6 -> ListConstant(const <E19>[const E19{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///class_header.dart:81:17 -> InstanceConstant(const E20{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///class_header.dart:81:6 -> ListConstant(const <E20>[const E20{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///class_header.dart:82:40 -> InstanceConstant(const E21{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///class_header.dart:82:6 -> ListConstant(const <E21>[const E21{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///class_header.dart:83:30 -> InstanceConstant(const E22{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///class_header.dart:83:6 -> ListConstant(const <E22>[const E22{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///class_header.dart:84:23 -> InstanceConstant(const E23{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///class_header.dart:84:6 -> ListConstant(const <E23>[const E23{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///class_header.dart:85:30 -> InstanceConstant(const E24{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///class_header.dart:85:6 -> ListConstant(const <E24>[const E24{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///class_header.dart:86:24 -> InstanceConstant(const E25{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///class_header.dart:86:6 -> ListConstant(const <E25>[const E25{_Enum.index: 0, _Enum._name: "element"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///class_header.dart:87:36 -> InstanceConstant(const E26{_Enum.index: 0, _Enum._name: "element"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///class_header.dart:87:6 -> ListConstant(const <E26>[const E26{_Enum.index: 0, _Enum._name: "element"}])
+Extra constant evaluation: evaluated: 212, effectively constant: 53

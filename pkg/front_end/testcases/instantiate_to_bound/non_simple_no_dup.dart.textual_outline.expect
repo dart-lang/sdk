@@ -1,0 +1,9 @@
+class A<TypeX extends A<TypeX>> {}
+
+class B<TypeY extends Map<A, A>> {}
+
+extension C<TypeY extends Map<A, A>> on int {}
+
+typedef D<TypeY extends Map<A, A>> = int;
+
+main() {}

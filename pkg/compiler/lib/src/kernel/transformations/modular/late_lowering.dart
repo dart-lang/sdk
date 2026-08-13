@@ -1,0 +1,768 @@
+// Copyright (c) 2021, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:kernel/ast.dart';
+import 'package:kernel/core_types.dart';
+import 'package:kernel/extension_table.dart';
+import 'package:kernel/type_algebra.dart';
+
+import '../../../options.dart';
+
+class _Reader {
+  final Procedure _procedure;
+  final FunctionType _type;
+
+  _Reader(this._procedure) : _type = _procedure.getterType as FunctionType;
+}
+
+const _lateInstanceFieldPrefix = '_#';
+const _lateFinalUninitializedSuffix = '#F';
+const _lateAssignableUninitializedSuffix = '#A';
+const _lateFinalInitializedSuffix = '#FI';
+const _lateAssignableInitializedSuffix = '#AI';
+
+bool _hasFinalSuffix(String name) {
+  return name.endsWith(_lateFinalUninitializedSuffix) ||
+      name.endsWith(_lateFinalInitializedSuffix);
+}
+
+bool _hasAssignableSuffix(String name) {
+  return name.endsWith(_lateAssignableUninitializedSuffix) ||
+      name.endsWith(_lateAssignableInitializedSuffix);
+}
+
+bool isNameOfLateInstanceBackingField(String? name) {
+  return name != null &&
+      name.startsWith(_lateInstanceFieldPrefix) &&
+      (_hasFinalSuffix(name) || _hasAssignableSuffix(name));
+}
+
+bool isBackingFieldForLateInstanceField(Field field) {
+  assert(!field.isStatic);
+  if (!field.isInternalImplementation) return false;
+  return isNameOfLateInstanceBackingField(field.name.text);
+}
+
+bool isBackingFieldForLateFinalInstanceField(Field field) {
+  if (!field.isInternalImplementation) return false;
+  final name = field.name.text;
+  return name.startsWith(_lateInstanceFieldPrefix) && _hasFinalSuffix(name);
+}
+
+class LateLowering {
+  final CoreTypes _coreTypes;
+
+  final bool _omitLateNames;
+
+  final _Reader _readLocal;
+  final _Reader _readField;
+  final _Reader _readInitialized;
+  final _Reader _readInitializedFinal;
+
+  // Each map contains the mapping from late local variables to cells for a
+  // given function scope. All late local variables are lowered to cells.
+  final List<Map<Variable, Variable>?> _variableCells = [];
+
+  // Uninitialized late static fields are lowered to cells.
+  final Map<Field, Field> _fieldCells = {};
+
+  // Late instance fields are lowered to a backing field (plus a getter/setter
+  // pair).
+  final Map<Field, Field> _backingInstanceFields = {};
+
+  Member? _contextMember;
+
+  final ExtensionTable _extensionTable = ExtensionTable();
+
+  late final InstanceConstant pragmaAllowCSE = _pragmaConstant(
+    'dart2js:allow-cse',
+  );
+
+  LateLowering(this._coreTypes, CompilerOptions? _options)
+    : _omitLateNames = _options?.omitLateNames ?? false,
+      _readLocal = _Reader(_coreTypes.cellReadLocal),
+      _readField = _Reader(_coreTypes.cellReadField),
+      _readInitialized = _Reader(_coreTypes.initializedCellRead),
+      _readInitializedFinal = _Reader(_coreTypes.initializedCellReadFinal);
+
+  Nullability get nonNullable => _contextMember!.enclosingLibrary.nonNullable;
+
+  bool _shouldLowerVariable(Variable variable) => variable.isLate;
+
+  bool _shouldLowerUninitializedVariable(Variable variable) =>
+      _shouldLowerVariable(variable) && variable.initializer == null;
+
+  bool _shouldLowerInitializedVariable(Variable variable) =>
+      _shouldLowerVariable(variable) && variable.initializer != null;
+
+  bool _shouldLowerStaticField(Field field) =>
+      field.isLate && field.isStatic && field.initializer == null;
+
+  bool _shouldLowerInstanceField(Field field) =>
+      field.isLate && !field.isStatic;
+
+  Name _mangleFieldCellName(Field field) {
+    assert(_shouldLowerStaticField(field));
+    return Name('_#${field.name.text}', field.enclosingLibrary);
+  }
+
+  Name _mangleFieldName(Field field) {
+    assert(_shouldLowerInstanceField(field));
+    final prefix = _lateInstanceFieldPrefix;
+    final suffix = field.initializer == null
+        ? field.isFinal
+              ? _lateFinalUninitializedSuffix
+              : _lateAssignableUninitializedSuffix
+        : field.isFinal
+        ? _lateFinalInitializedSuffix
+        : _lateAssignableInitializedSuffix;
+
+    Class cls = field.enclosingClass!;
+    return Name(
+      '$prefix${cls.name}#${field.name.text}$suffix',
+      field.enclosingLibrary,
+    );
+  }
+
+  ConstructorInvocation _callCellConstructor(Expression name, int fileOffset) =>
+      _omitLateNames
+      ? _callCellUnnamedConstructor(fileOffset)
+      : _callCellNamedConstructor(name, fileOffset);
+
+  ConstructorInvocation _callCellUnnamedConstructor(int fileOffset) =>
+      ConstructorInvocation(
+        _coreTypes.cellConstructor,
+        Arguments.empty()..fileOffset = fileOffset,
+      )..fileOffset = fileOffset;
+
+  ConstructorInvocation _callCellNamedConstructor(
+    Expression name,
+    int fileOffset,
+  ) => ConstructorInvocation(
+    _coreTypes.cellNamedConstructor,
+    Arguments([name])..fileOffset = fileOffset,
+  )..fileOffset = fileOffset;
+
+  ConstructorInvocation _callInitializedCellConstructor(
+    Expression name,
+    Expression initializer,
+    int fileOffset,
+  ) => _omitLateNames
+      ? _callInitializedCellUnnamedConstructor(initializer, fileOffset)
+      : _callInitializedCellNamedConstructor(name, initializer, fileOffset);
+
+  ConstructorInvocation _callInitializedCellUnnamedConstructor(
+    Expression initializer,
+    int fileOffset,
+  ) => ConstructorInvocation(
+    _coreTypes.initializedCellConstructor,
+    Arguments([initializer])..fileOffset = fileOffset,
+  )..fileOffset = fileOffset;
+
+  ConstructorInvocation _callInitializedCellNamedConstructor(
+    Expression name,
+    Expression initializer,
+    int fileOffset,
+  ) => ConstructorInvocation(
+    _coreTypes.initializedCellNamedConstructor,
+    Arguments([name, initializer])..fileOffset = fileOffset,
+  )..fileOffset = fileOffset;
+
+  StringLiteral _nameLiteral(String? name, int fileOffset) =>
+      StringLiteral(name ?? '')..fileOffset = fileOffset;
+
+  InstanceInvocation _callReader(
+    _Reader reader,
+    Expression receiver,
+    DartType type,
+    int fileOffset,
+  ) {
+    Procedure procedure = reader._procedure;
+    List<DartType> typeArguments = [type];
+    return InstanceInvocation(
+      InstanceAccessKind.Instance,
+      receiver,
+      procedure.name,
+      Arguments(const [], types: typeArguments)..fileOffset = fileOffset,
+      interfaceTarget: procedure,
+      functionType: FunctionTypeInstantiator.instantiate(
+        reader._type,
+        typeArguments,
+      ),
+    )..fileOffset = fileOffset;
+  }
+
+  InstanceSet _callSetter(
+    Procedure setter,
+    Expression receiver,
+    Expression value,
+    int fileOffset,
+  ) => InstanceSet(
+    InstanceAccessKind.Instance,
+    receiver,
+    setter.name,
+    value,
+    interfaceTarget: setter,
+  )..fileOffset = fileOffset;
+
+  StaticInvocation _callIsSentinel(Expression value, int fileOffset) =>
+      StaticInvocation(
+        _coreTypes.isSentinelMethod,
+        Arguments([value])..fileOffset = fileOffset,
+      )..fileOffset = fileOffset;
+
+  void exitLibrary() {
+    assert(_variableCells.isEmpty);
+    _fieldCells.clear();
+    _backingInstanceFields.clear();
+  }
+
+  void enterScope() {
+    _variableCells.add(null);
+  }
+
+  void exitScope() {
+    _variableCells.removeLast();
+  }
+
+  Variable? _lookupVariableCell(Variable variable) {
+    assert(_shouldLowerVariable(variable));
+    for (final scope in _variableCells) {
+      if (scope == null) continue;
+      final cell = scope[variable];
+      if (cell != null) return cell;
+    }
+    return null;
+  }
+
+  Variable _addToCurrentScope(Variable variable, Variable cell) {
+    assert(_shouldLowerVariable(variable));
+    assert(_lookupVariableCell(variable) == null);
+    return (_variableCells.last ??= {})[variable] = cell;
+  }
+
+  Variable _variableCell(Variable variable) {
+    assert(_shouldLowerVariable(variable));
+    final cell = _lookupVariableCell(variable);
+    if (cell != null) return cell;
+    return variable.initializer == null
+        ? _uninitializedVariableCell(variable)
+        : _initializedVariableCell(variable);
+  }
+
+  Variable _uninitializedVariableCell(Variable variable) {
+    assert(_shouldLowerUninitializedVariable(variable));
+    int fileOffset = variable.fileOffset;
+    String? name = variable.cosmeticName;
+    final cell = SyntheticVariable(
+      cosmeticName: name,
+      initializer: _callCellConstructor(
+        _nameLiteral(name, fileOffset),
+        fileOffset,
+      ),
+      type: InterfaceType(_coreTypes.cellClass, nonNullable),
+      isFinal: true,
+    )..fileOffset = fileOffset;
+
+    return _addToCurrentScope(variable, cell);
+  }
+
+  FunctionExpression _initializerClosure(
+    Expression initializer,
+    DartType type,
+  ) {
+    int fileOffset = initializer.fileOffset;
+    ReturnStatement body = ReturnStatement(initializer)
+      ..fileOffset = fileOffset;
+    FunctionNode closure = FunctionNode(body, returnType: type)
+      ..fileOffset = fileOffset;
+    return FunctionExpression(closure)..fileOffset = fileOffset;
+  }
+
+  Variable _initializedVariableCell(Variable variable) {
+    assert(_shouldLowerInitializedVariable(variable));
+    int fileOffset = variable.fileOffset;
+    String? name = variable.cosmeticName;
+    final cell = SyntheticVariable(
+      cosmeticName: name,
+      initializer: _callInitializedCellConstructor(
+        _nameLiteral(name, fileOffset),
+        _initializerClosure(variable.initializer!, variable.type),
+        fileOffset,
+      ),
+      type: InterfaceType(_coreTypes.initializedCellClass, nonNullable),
+      isFinal: true,
+    )..fileOffset = fileOffset;
+    return _addToCurrentScope(variable, cell);
+  }
+
+  TreeNode transformVariableDeclaration(
+    Variable variable,
+    Member? contextMember,
+  ) {
+    _contextMember = contextMember;
+
+    if (!_shouldLowerVariable(variable)) return variable;
+
+    return _variableCell(variable);
+  }
+
+  VariableGet _variableCellRead(Variable variable, int fileOffset) {
+    assert(_shouldLowerVariable(variable));
+    return VariableGet(_variableCell(variable))..fileOffset = fileOffset;
+  }
+
+  TreeNode transformVariableGet(VariableGet node, Member contextMember) {
+    _contextMember = contextMember;
+
+    Variable variable = node.variable;
+    if (!_shouldLowerVariable(variable)) return node;
+
+    int fileOffset = node.fileOffset;
+    VariableGet cell = _variableCellRead(variable, fileOffset);
+    _Reader reader = variable.initializer == null
+        ? _readLocal
+        : (variable.isFinal ? _readInitializedFinal : _readInitialized);
+    return _callReader(
+      reader,
+      cell,
+      node.promotedType ?? variable.type,
+      fileOffset,
+    );
+  }
+
+  TreeNode transformVariableSet(VariableSet node, Member contextMember) {
+    _contextMember = contextMember;
+
+    Variable variable = node.variable;
+    if (!_shouldLowerVariable(variable)) return node;
+
+    int fileOffset = node.fileOffset;
+    VariableGet cell = _variableCellRead(variable, fileOffset);
+    Procedure setter = variable.initializer == null
+        ? (variable.isFinal
+              ? _coreTypes.cellFinalLocalValueSetter
+              : _coreTypes.cellValueSetter)
+        : (variable.isFinal
+              ? _coreTypes.initializedCellFinalValueSetter
+              : _coreTypes.initializedCellValueSetter);
+    return _callSetter(setter, cell, node.value, fileOffset);
+  }
+
+  Field _fieldCell(Field field) {
+    assert(_shouldLowerStaticField(field));
+    return _fieldCells.putIfAbsent(field, () {
+      int fileOffset = field.fileOffset;
+      Name name = field.name;
+      Uri fileUri = field.fileUri;
+      DartType type = field.type;
+      // We need to unbind the canonical name since we reuse the reference but
+      // change the name.
+      field.fieldReference.canonicalName?.unbind();
+      ExtensionMemberInfo? extensionMemberInfo;
+      if (field.isExtensionMember) {
+        extensionMemberInfo = _extensionTable.getExtensionMemberInfo(field);
+      }
+      ExtensionTypeMemberInfo? extensionTypeMemberInfo;
+      if (field.isExtensionTypeMember) {
+        extensionTypeMemberInfo = _extensionTable.getExtensionTypeMemberInfo(
+          field,
+        );
+      }
+
+      Field fieldCell =
+          Field.immutable(
+              _mangleFieldCellName(field),
+              type: InterfaceType(_coreTypes.cellClass, nonNullable),
+              initializer: _callCellConstructor(
+                _nameLiteral(name.text, fileOffset),
+                fileOffset,
+              ),
+              isFinal: true,
+              isStatic: true,
+              fileUri: fileUri,
+              fieldReference: field.fieldReference,
+            )
+            ..fileOffset = fileOffset
+            // TODO(fishythefish,srujzs,johnniwinther): Also mark the getter/setter
+            //  as extension/extension type members.
+            ..isExtensionMember = field.isExtensionMember
+            ..isExtensionTypeMember = field.isExtensionTypeMember;
+      StaticGet fieldCellAccess() =>
+          StaticGet(fieldCell)..fileOffset = fileOffset;
+
+      Procedure getter = Procedure(
+        name,
+        ProcedureKind.Getter,
+        FunctionNode(
+          ReturnStatement(
+            _callReader(_readField, fieldCellAccess(), type, fileOffset),
+          )..fileOffset = fileOffset,
+          returnType: type,
+        )..fileOffset = fileOffset,
+        isStatic: true,
+        fileUri: fileUri,
+        reference: field.getterReference,
+        isExtensionMember: field.isExtensionMember,
+        isExtensionTypeMember: field.isExtensionTypeMember,
+      )..fileOffset = fileOffset;
+
+      PositionalParameter setterValue = PositionalParameter(
+        cosmeticName: 'value',
+        type: type,
+        isSynthesized: true,
+      )..fileOffset = fileOffset;
+      VariableGet setterValueRead() =>
+          VariableGet(setterValue)..fileOffset = fileOffset;
+
+      Procedure setter = Procedure(
+        name,
+        ProcedureKind.Setter,
+        FunctionNode(
+          ReturnStatement(
+            _callSetter(
+              field.isFinal
+                  ? _coreTypes.cellFinalFieldValueSetter
+                  : _coreTypes.cellValueSetter,
+              fieldCellAccess(),
+              setterValueRead(),
+              fileOffset,
+            ),
+          )..fileOffset = fileOffset,
+          positionalParameters: [setterValue],
+          returnType: VoidType(),
+        )..fileOffset = fileOffset,
+        isStatic: true,
+        fileUri: fileUri,
+        reference: field.setterReference,
+        isExtensionMember: field.isExtensionMember,
+        isExtensionTypeMember: field.isExtensionTypeMember,
+      )..fileOffset = fileOffset;
+
+      if (extensionMemberInfo != null) {
+        extensionMemberInfo.descriptor.isInternalImplementation = true;
+        extensionMemberInfo.extension.memberDescriptors.add(
+          ExtensionMemberDescriptor(
+            name: extensionMemberInfo.descriptor.name,
+            kind: ExtensionMemberKind.Getter,
+            isStatic: extensionMemberInfo.descriptor.isStatic,
+            memberReference: getter.reference,
+            tearOffReference: null,
+          ),
+        );
+        extensionMemberInfo.extension.memberDescriptors.add(
+          ExtensionMemberDescriptor(
+            name: extensionMemberInfo.descriptor.name,
+            kind: ExtensionMemberKind.Setter,
+            isStatic: extensionMemberInfo.descriptor.isStatic,
+            memberReference: setter.reference,
+            tearOffReference: null,
+          ),
+        );
+        field.enclosingLibrary.addProcedure(getter);
+        field.enclosingLibrary.addProcedure(setter);
+      } else if (extensionTypeMemberInfo != null) {
+        extensionTypeMemberInfo.descriptor.isInternalImplementation = true;
+        extensionTypeMemberInfo.extensionTypeDeclaration.memberDescriptors.add(
+          ExtensionTypeMemberDescriptor(
+            name: extensionTypeMemberInfo.descriptor.name,
+            kind: ExtensionTypeMemberKind.Getter,
+            isStatic: extensionTypeMemberInfo.descriptor.isStatic,
+            memberReference: getter.reference,
+            tearOffReference: null,
+          ),
+        );
+        extensionTypeMemberInfo.extensionTypeDeclaration.memberDescriptors.add(
+          ExtensionTypeMemberDescriptor(
+            name: extensionTypeMemberInfo.descriptor.name,
+            kind: ExtensionTypeMemberKind.Setter,
+            isStatic: extensionTypeMemberInfo.descriptor.isStatic,
+            memberReference: setter.reference,
+            tearOffReference: null,
+          ),
+        );
+        field.enclosingLibrary.addProcedure(getter);
+        field.enclosingLibrary.addProcedure(setter);
+      } else {
+        switch (field.enclosingTypeDeclaration) {
+          case null:
+            field.enclosingLibrary.addProcedure(getter);
+            field.enclosingLibrary.addProcedure(setter);
+          case Class cls:
+            cls.addProcedure(getter);
+            cls.addProcedure(setter);
+          case ExtensionTypeDeclaration extensionTypeDeclaration:
+            extensionTypeDeclaration.addProcedure(getter);
+            extensionTypeDeclaration.addProcedure(setter);
+        }
+      }
+      return fieldCell;
+    });
+  }
+
+  Field _backingInstanceField(Field field) {
+    assert(_shouldLowerInstanceField(field));
+    return _backingInstanceFields[field] ??= _computeBackingInstanceField(
+      field,
+    );
+  }
+
+  Field _computeBackingInstanceField(Field field) {
+    assert(_shouldLowerInstanceField(field));
+    assert(!_backingInstanceFields.containsKey(field));
+    int fileOffset = field.fileOffset;
+    Uri fileUri = field.fileUri;
+    Name name = field.name;
+    String nameText = name.text;
+    Name mangledName = _mangleFieldName(field);
+    DartType type = field.type;
+    Expression? initializer = field.initializer;
+    Class enclosingClass = field.enclosingClass!;
+
+    // We need to unbind the canonical name since we reuse the reference but
+    // change the name.
+    field.fieldReference.canonicalName?.unbind();
+    Field backingField =
+        Field.mutable(
+            mangledName,
+            type: type,
+            initializer: StaticInvocation(
+              _coreTypes.createSentinelMethod,
+              Arguments(const [], types: [type])..fileOffset = fileOffset,
+            )..fileOffset = fileOffset,
+            fileUri: fileUri,
+            fieldReference: field.fieldReference,
+          )
+          ..fileOffset = fileOffset
+          ..isInternalImplementation = true;
+    InstanceGet fieldRead() => InstanceGet(
+      InstanceAccessKind.Instance,
+      ThisExpression()..fileOffset = fileOffset,
+      mangledName,
+      interfaceTarget: backingField,
+      resultType: type,
+    )..fileOffset = fileOffset;
+    InstanceSet fieldWrite(Expression value) => InstanceSet(
+      InstanceAccessKind.Instance,
+      ThisExpression()..fileOffset = fileOffset,
+      mangledName,
+      value,
+      interfaceTarget: backingField,
+    )..fileOffset = fileOffset;
+
+    Statement getterBody() {
+      if (initializer == null) {
+        // The lowered getter for `late T field;` and `late final T field;` is
+        //
+        // T get field => _lateReadCheck<T>(this._#field, "field");
+        return ReturnStatement(
+          StaticInvocation(
+            _coreTypes.lateReadCheck,
+            Arguments(
+              [fieldRead(), _nameLiteral(nameText, fileOffset)],
+              types: [type],
+            )..fileOffset = fileOffset,
+          )..fileOffset = fileOffset,
+        )..fileOffset = fileOffset;
+      } else if (field.isFinal) {
+        // The lowered getter for `late final T field = e;` is
+        //
+        // T get field {
+        //   var value = this._#field;
+        //   if (isSentinel(value)) {
+        //     final result = e;
+        //     _lateInitializeOnceCheck(this._#field, "field");
+        //     value = this._#field = result;
+        //   }
+        //   return value;
+        // }
+        SyntheticVariable value = SyntheticVariable(
+          cosmeticName: 'value',
+          initializer: fieldRead(),
+          type: type,
+        )..fileOffset = fileOffset;
+        VariableGet valueRead() => VariableGet(value)..fileOffset = fileOffset;
+        SyntheticVariable result = SyntheticVariable(
+          cosmeticName: 'result',
+          initializer: initializer,
+          type: type,
+          isFinal: true,
+        )..fileOffset = fileOffset;
+        VariableGet resultRead() =>
+            VariableGet(result)..fileOffset = fileOffset;
+        return Block([
+          VariableStatement(VariableDeclaration(value)),
+          IfStatement(
+            _callIsSentinel(valueRead(), fileOffset),
+            Block([
+              VariableStatement(VariableDeclaration(result)),
+              ExpressionStatement(
+                StaticInvocation(
+                  _coreTypes.lateInitializeOnceCheck,
+                  Arguments([fieldRead(), _nameLiteral(nameText, fileOffset)])
+                    ..fileOffset = fileOffset,
+                )..fileOffset = fileOffset,
+              )..fileOffset = fileOffset,
+              ExpressionStatement(
+                VariableSet(value, fieldWrite(resultRead()))
+                  ..fileOffset = fileOffset,
+              )..fileOffset = fileOffset,
+            ])..fileOffset = fileOffset,
+            null,
+          )..fileOffset = fileOffset,
+          ReturnStatement(valueRead())..fileOffset = fileOffset,
+        ])..fileOffset = fileOffset;
+      } else {
+        // The lowered getter for `late T field = e;` is
+        //
+        // T get field {
+        //   var value = this._#field;
+        //   if (isSentinel(value)) {
+        //     value = this._#field = e;
+        //   }
+        //   return value;
+        // }
+        //
+        // The following lowering is also possible but currently worse:
+        //
+        // T get field {
+        //   var value = this._#field;
+        //   return isSentinel(value) ? this._#field = e : value;
+        // }
+        //
+        // This lowering avoids generating an extra narrowing node in inference,
+        // but the generated code is worse due to poor register allocation.
+        SyntheticVariable value = SyntheticVariable(
+          cosmeticName: 'value',
+          initializer: fieldRead(),
+          type: type,
+        )..fileOffset = fileOffset;
+        VariableGet valueRead() => VariableGet(value)..fileOffset = fileOffset;
+        return Block([
+          VariableStatement(VariableDeclaration(value)),
+          IfStatement(
+            _callIsSentinel(valueRead(), fileOffset),
+            ExpressionStatement(
+              VariableSet(value, fieldWrite(initializer))
+                ..fileOffset = fileOffset,
+            )..fileOffset = fileOffset,
+            null,
+          )..fileOffset = fileOffset,
+          ReturnStatement(valueRead())..fileOffset = fileOffset,
+        ])..fileOffset = fileOffset;
+      }
+    }
+
+    Procedure getter = Procedure(
+      name,
+      ProcedureKind.Getter,
+      FunctionNode(getterBody(), returnType: type)..fileOffset = fileOffset,
+      fileUri: fileUri,
+      reference: field.getterReference,
+    )..fileOffset = fileOffset;
+    // The initializer is copied from [field] to [getter] so we copy this
+    // property to reflect whether the getter contains super calls.
+    getter.containsSuperCalls = field.containsSuperCalls;
+    _copyAnnotations(getter, field);
+    if (initializer != null && field.isFinal) {
+      getter.addAnnotation(
+        ConstantExpression(pragmaAllowCSE, _coreTypes.pragmaNonNullableRawType)
+          ..fileOffset = field.fileOffset,
+      );
+    }
+    enclosingClass.addProcedure(getter);
+
+    PositionalParameter setterValue = PositionalParameter(
+      cosmeticName: 'value',
+      type: type,
+      isSynthesized: true,
+    )..fileOffset = fileOffset;
+    VariableGet setterValueRead() =>
+        VariableGet(setterValue)..fileOffset = fileOffset;
+
+    Statement? setterBody() {
+      if (!field.isFinal) {
+        // The lowered setter for `late T field;` and `late T field = e;` is
+        //
+        // set field(T value) {
+        //   this._#field = value;
+        // }
+        return ExpressionStatement(fieldWrite(setterValueRead()))
+          ..fileOffset = fileOffset;
+      } else if (initializer == null) {
+        // The lowered setter for `late final T field;` is
+        //
+        // set field(T value) {
+        //   _lateWriteOnceCheck(this._#field, "field");
+        //   this._#field = value;
+        // }
+        return Block([
+          ExpressionStatement(
+            StaticInvocation(
+              _coreTypes.lateWriteOnceCheck,
+              Arguments([fieldRead(), _nameLiteral(nameText, fileOffset)])
+                ..fileOffset = fileOffset,
+            )..fileOffset = fileOffset,
+          )..fileOffset = fileOffset,
+          ExpressionStatement(fieldWrite(setterValueRead()))
+            ..fileOffset = fileOffset,
+        ])..fileOffset = fileOffset;
+      } else {
+        // There is no setter for `late final T field = e;`.
+        return null;
+      }
+    }
+
+    Statement? body = setterBody();
+    if (body != null) {
+      Procedure setter = Procedure(
+        name,
+        ProcedureKind.Setter,
+        FunctionNode(
+          body,
+          positionalParameters: [setterValue],
+          returnType: VoidType(),
+        )..fileOffset = fileOffset,
+        fileUri: fileUri,
+        reference: field.setterReference,
+      )..fileOffset = fileOffset;
+      _copyAnnotations(setter, field);
+      enclosingClass.addProcedure(setter);
+    }
+
+    return backingField;
+  }
+
+  void _copyAnnotations(Member target, Member source) {
+    for (final annotation in source.annotations) {
+      if (annotation is ConstantExpression) {
+        target.addAnnotation(
+          ConstantExpression(annotation.constant, annotation.type)
+            ..fileOffset = annotation.fileOffset,
+        );
+      } else if (annotation is! InvalidExpression) {
+        throw StateError(
+          'Non-constant annotation on $source (${annotation.runtimeType}): '
+          '$annotation',
+        );
+      }
+    }
+  }
+
+  InstanceConstant _pragmaConstant(String pragmaName) {
+    return InstanceConstant(_coreTypes.pragmaClass.reference, [], {
+      _coreTypes.pragmaName.fieldReference: StringConstant(pragmaName),
+      _coreTypes.pragmaOptions.fieldReference: NullConstant(),
+    });
+  }
+
+  TreeNode transformField(Field field, Member contextMember) {
+    _contextMember = contextMember;
+
+    if (_shouldLowerStaticField(field)) return _fieldCell(field);
+    if (_shouldLowerInstanceField(field)) return _backingInstanceField(field);
+
+    return field;
+  }
+}

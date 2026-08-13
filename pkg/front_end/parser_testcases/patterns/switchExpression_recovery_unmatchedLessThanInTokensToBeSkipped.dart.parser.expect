@@ -1,0 +1,13 @@
+f(x) => switch (x) {
+1 => 2
+> 1 => 1
+< 1 => 0
+};
+
+
+f[StringToken]([BeginToken]x[StringToken])[SimpleToken] =>[SimpleToken] switch[KeywordToken] ([BeginToken]x[StringToken])[SimpleToken] {[BeginToken]
+1[StringToken] =>[SimpleToken] 2[StringToken]
+>[SimpleToken] 1[StringToken] =>[SimpleToken] 1[StringToken]
+<[BeginToken] 1[StringToken] =>[SimpleToken] 0[StringToken]
+}[SimpleToken];[SimpleToken]
+[SimpleToken]

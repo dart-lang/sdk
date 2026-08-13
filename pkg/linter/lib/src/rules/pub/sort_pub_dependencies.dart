@@ -1,0 +1,66 @@
+// Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
+import 'package:analyzer/analysis_rule/pubspec.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:source_span/source_span.dart';
+
+import '../../analyzer.dart';
+import '../../diagnostic.dart' as diag;
+
+const _desc = r'Sort pub dependencies alphabetically.';
+
+class SortPubDependencies extends AnalysisRule {
+  new() : super(name: LintNames.sort_pub_dependencies, description: _desc);
+
+  @override
+  DiagnosticCode get diagnosticCode => diag.sortPubDependencies;
+
+  @override
+  PubspecVisitor<void> get pubspecVisitor => _Visitor(this);
+}
+
+class _Visitor(final AnalysisRule rule) extends PubspecVisitor<void> {
+  @override
+  void visitPackageDependencies(PubspecDependencyList dependencies) {
+    _visitDeps(dependencies);
+  }
+
+  @override
+  void visitPackageDependencyOverrides(PubspecDependencyList dependencies) {
+    _visitDeps(dependencies);
+  }
+
+  @override
+  void visitPackageDevDependencies(PubspecDependencyList dependencies) {
+    _visitDeps(dependencies);
+  }
+
+  void _visitDeps(PubspecDependencyList dependencies) {
+    int compare(SourceLocation? lc1, SourceLocation? lc2) {
+      if (lc1 == null || lc2 == null) {
+        return 0;
+      }
+      return lc1.compareTo(lc2);
+    }
+
+    var depsByLocation = dependencies.toList()
+      ..sort((d1, d2) => compare(d1.name?.span.start, d2.name?.span.start));
+    var previousName = '';
+    for (var dep in depsByLocation) {
+      var name = dep.name;
+      if (name != null) {
+        var text = name.text;
+        if (text != null) {
+          if (text.compareTo(previousName) < 0) {
+            rule.reportAtPubNode(name);
+            return;
+          }
+          previousName = text;
+        }
+      }
+    }
+  }
+}

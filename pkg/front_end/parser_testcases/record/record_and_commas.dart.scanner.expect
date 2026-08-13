@@ -1,0 +1,31 @@
+main() {
+
+() emptyRecord1 = ();
+
+
+(,) emptyRecord2 = ();
+() emptyRecord3 = (,);
+(,) emptyRecord4 = (,);
+
+
+(int, ,) emptyRecord5 = (42, 42, ,);
+(int, int, ,) emptyRecord6 = (42, 42, ,);
+(int, , ,) emptyRecord7 = (42, 42, , ,);
+(int, int, , ,) emptyRecord8 = (42, 42, , ,);
+}
+
+main[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+
+([BeginToken])[SimpleToken] emptyRecord1[StringToken] =[SimpleToken] ([BeginToken])[SimpleToken];[SimpleToken]
+
+
+([BeginToken],[SimpleToken])[SimpleToken] emptyRecord2[StringToken] =[SimpleToken] ([BeginToken])[SimpleToken];[SimpleToken]
+([BeginToken])[SimpleToken] emptyRecord3[StringToken] =[SimpleToken] ([BeginToken],[SimpleToken])[SimpleToken];[SimpleToken]
+([BeginToken],[SimpleToken])[SimpleToken] emptyRecord4[StringToken] =[SimpleToken] ([BeginToken],[SimpleToken])[SimpleToken];[SimpleToken]
+
+
+([BeginToken]int[StringToken],[SimpleToken] ,[SimpleToken])[SimpleToken] emptyRecord5[StringToken] =[SimpleToken] ([BeginToken]42[StringToken],[SimpleToken] 42[StringToken],[SimpleToken] ,[SimpleToken])[SimpleToken];[SimpleToken]
+([BeginToken]int[StringToken],[SimpleToken] int[StringToken],[SimpleToken] ,[SimpleToken])[SimpleToken] emptyRecord6[StringToken] =[SimpleToken] ([BeginToken]42[StringToken],[SimpleToken] 42[StringToken],[SimpleToken] ,[SimpleToken])[SimpleToken];[SimpleToken]
+([BeginToken]int[StringToken],[SimpleToken] ,[SimpleToken] ,[SimpleToken])[SimpleToken] emptyRecord7[StringToken] =[SimpleToken] ([BeginToken]42[StringToken],[SimpleToken] 42[StringToken],[SimpleToken] ,[SimpleToken] ,[SimpleToken])[SimpleToken];[SimpleToken]
+([BeginToken]int[StringToken],[SimpleToken] int[StringToken],[SimpleToken] ,[SimpleToken] ,[SimpleToken])[SimpleToken] emptyRecord8[StringToken] =[SimpleToken] ([BeginToken]42[StringToken],[SimpleToken] 42[StringToken],[SimpleToken] ,[SimpleToken] ,[SimpleToken])[SimpleToken];[SimpleToken]
+}[SimpleToken][SimpleToken]

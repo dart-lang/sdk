@@ -1,0 +1,11 @@
+library test;
+
+class C {
+  static D<T> f<T>() => throw '';
+}
+
+class D<T> {}
+
+var f = C.f<int>();
+
+main() {}

@@ -1,0 +1,3 @@
+typedef foo<E> = Map<E, int>;
+
+typedef[KeywordToken] foo[StringToken]<[BeginToken]E[StringToken]>[SimpleToken] =[SimpleToken] Map[StringToken]<[BeginToken]E[StringToken],[SimpleToken] int[StringToken]>[SimpleToken];[SimpleToken][SimpleToken]

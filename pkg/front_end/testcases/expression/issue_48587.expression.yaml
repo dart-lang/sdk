@@ -1,0 +1,27 @@
+# Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Check the expression compilation (including serialization) of usage of a
+# deferred import works.
+
+sources:
+  main.dart: |
+    import 'import.dart' deferred as d;
+
+    void main() {
+      print('hello');
+    }
+
+    Future<void> printDeferred() async {
+      d.deferredPrintLocal();
+    }
+
+  import.dart: |
+    void deferredPrintLocal() {
+      print('hello from deferred library');
+    }
+definitions: []
+position: "main.dart"
+expression: |
+  d.deferredPrintLocal()

@@ -1,0 +1,14 @@
+class A {
+  B b;
+  A(this.b);
+}
+
+class B {
+  C operator +(int i) => new C();
+}
+
+class C extends B {}
+
+main() {}
+
+expect(expected, actual) {}

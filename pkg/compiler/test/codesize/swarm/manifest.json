@@ -1,0 +1,19 @@
+{
+  "name": "Swarm",
+  "description": "Bringing you the goog news",
+  "version": "1",
+  "app": {
+    "launch": {
+      "local_path": "@thumphtml@"
+    }
+  },
+  "icons": {
+    "16": "favicon.png",
+    "128": "favicon128.png"
+  },
+  "permissions": [
+    "notifications",
+    "unlimitedStorage",
+    "http://thump.googleplex.com/"
+  ]
+}

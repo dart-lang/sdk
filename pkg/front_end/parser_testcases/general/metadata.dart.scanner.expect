@@ -1,0 +1,79 @@
+@abstract
+@foo.abstract
+@foo.bar.abstract
+@foo("hello")
+@foo.abstract("hello")
+@foo.bar.abstract("hello")
+@foo<int>("hello")
+@foo<int>.abstract("hello")
+@foo.bar<int>("hello")
+@foo.bar<int>.abstract("hello")
+class X {}
+
+
+typedef F<@abstract T> = int Function<@abstract X>(@abstract int);
+typedef F<@foo.abstract T> = int Function<@foo.abstract X>(@foo.abstract int);
+typedef F<@foo.bar.abstract T> = int Function<@foo.bar.abstract X>(@foo.bar.abstract int);
+typedef F<@foo("hello") T> = int Function<@foo("hello") X>(@foo("hello") int);
+typedef F<@foo.abstract("hello") T> = int Function<@foo.abstract("hello") X>(@foo.abstract("hello") int);
+typedef F<@foo.bar.abstract("hello") T> = int Function<@foo.bar.abstract("hello") X>(@foo.bar.abstract("hello") int);
+typedef F<@foo<int>("hello") T> = int Function<@foo<int>("hello") X>(@foo<int>("hello") int);
+typedef F<@foo<int>.abstract("hello") T> = int Function<@foo<int>.abstract("hello") X>(@foo<int>.abstract("hello") int);
+typedef F<@foo.bar<int>("hello") T> = int Function<@foo.bar<int>("hello") X>(@foo.bar<int>("hello") int);
+typedef F<@foo.bar<int>.abstract("hello") T> = int Function<@foo.bar<int>.abstract("hello") X>(@foo.bar<int>.abstract("hello") int);
+
+
+
+
+
+
+@abstract.abstract
+@abstract.bar.abstract
+@abstract("hello")
+@abstract.abstract("hello")
+@abstract.bar.abstract("hello")
+@abstract<int>("hello")
+@abstract<int>.abstract("hello")
+@abstract.bar<int>("hello")
+@abstract.bar<int>.abstract("hello")
+class Y {}
+
+@[SimpleToken]abstract[KeywordToken]
+@[SimpleToken]foo[StringToken].[SimpleToken]abstract[KeywordToken]
+@[SimpleToken]foo[StringToken].[SimpleToken]bar[StringToken].[SimpleToken]abstract[KeywordToken]
+@[SimpleToken]foo[StringToken]([BeginToken]"hello"[StringToken])[SimpleToken]
+@[SimpleToken]foo[StringToken].[SimpleToken]abstract[KeywordToken]([BeginToken]"hello"[StringToken])[SimpleToken]
+@[SimpleToken]foo[StringToken].[SimpleToken]bar[StringToken].[SimpleToken]abstract[KeywordToken]([BeginToken]"hello"[StringToken])[SimpleToken]
+@[SimpleToken]foo[StringToken]<[BeginToken]int[StringToken]>[SimpleToken]([BeginToken]"hello"[StringToken])[SimpleToken]
+@[SimpleToken]foo[StringToken]<[BeginToken]int[StringToken]>[SimpleToken].[SimpleToken]abstract[KeywordToken]([BeginToken]"hello"[StringToken])[SimpleToken]
+@[SimpleToken]foo[StringToken].[SimpleToken]bar[StringToken]<[BeginToken]int[StringToken]>[SimpleToken]([BeginToken]"hello"[StringToken])[SimpleToken]
+@[SimpleToken]foo[StringToken].[SimpleToken]bar[StringToken]<[BeginToken]int[StringToken]>[SimpleToken].[SimpleToken]abstract[KeywordToken]([BeginToken]"hello"[StringToken])[SimpleToken]
+class[KeywordToken] X[StringToken] {[BeginToken]}[SimpleToken]
+
+
+typedef[KeywordToken] F[StringToken]<[BeginToken]@[SimpleToken]abstract[KeywordToken] T[StringToken]>[SimpleToken] =[SimpleToken] int[StringToken] Function[KeywordToken]<[BeginToken]@[SimpleToken]abstract[KeywordToken] X[StringToken]>[SimpleToken]([BeginToken]@[SimpleToken]abstract[KeywordToken] int[StringToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] F[StringToken]<[BeginToken]@[SimpleToken]foo[StringToken].[SimpleToken]abstract[KeywordToken] T[StringToken]>[SimpleToken] =[SimpleToken] int[StringToken] Function[KeywordToken]<[BeginToken]@[SimpleToken]foo[StringToken].[SimpleToken]abstract[KeywordToken] X[StringToken]>[SimpleToken]([BeginToken]@[SimpleToken]foo[StringToken].[SimpleToken]abstract[KeywordToken] int[StringToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] F[StringToken]<[BeginToken]@[SimpleToken]foo[StringToken].[SimpleToken]bar[StringToken].[SimpleToken]abstract[KeywordToken] T[StringToken]>[SimpleToken] =[SimpleToken] int[StringToken] Function[KeywordToken]<[BeginToken]@[SimpleToken]foo[StringToken].[SimpleToken]bar[StringToken].[SimpleToken]abstract[KeywordToken] X[StringToken]>[SimpleToken]([BeginToken]@[SimpleToken]foo[StringToken].[SimpleToken]bar[StringToken].[SimpleToken]abstract[KeywordToken] int[StringToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] F[StringToken]<[BeginToken]@[SimpleToken]foo[StringToken]([BeginToken]"hello"[StringToken])[SimpleToken] T[StringToken]>[SimpleToken] =[SimpleToken] int[StringToken] Function[KeywordToken]<[BeginToken]@[SimpleToken]foo[StringToken]([BeginToken]"hello"[StringToken])[SimpleToken] X[StringToken]>[SimpleToken]([BeginToken]@[SimpleToken]foo[StringToken]([BeginToken]"hello"[StringToken])[SimpleToken] int[StringToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] F[StringToken]<[BeginToken]@[SimpleToken]foo[StringToken].[SimpleToken]abstract[KeywordToken]([BeginToken]"hello"[StringToken])[SimpleToken] T[StringToken]>[SimpleToken] =[SimpleToken] int[StringToken] Function[KeywordToken]<[BeginToken]@[SimpleToken]foo[StringToken].[SimpleToken]abstract[KeywordToken]([BeginToken]"hello"[StringToken])[SimpleToken] X[StringToken]>[SimpleToken]([BeginToken]@[SimpleToken]foo[StringToken].[SimpleToken]abstract[KeywordToken]([BeginToken]"hello"[StringToken])[SimpleToken] int[StringToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] F[StringToken]<[BeginToken]@[SimpleToken]foo[StringToken].[SimpleToken]bar[StringToken].[SimpleToken]abstract[KeywordToken]([BeginToken]"hello"[StringToken])[SimpleToken] T[StringToken]>[SimpleToken] =[SimpleToken] int[StringToken] Function[KeywordToken]<[BeginToken]@[SimpleToken]foo[StringToken].[SimpleToken]bar[StringToken].[SimpleToken]abstract[KeywordToken]([BeginToken]"hello"[StringToken])[SimpleToken] X[StringToken]>[SimpleToken]([BeginToken]@[SimpleToken]foo[StringToken].[SimpleToken]bar[StringToken].[SimpleToken]abstract[KeywordToken]([BeginToken]"hello"[StringToken])[SimpleToken] int[StringToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] F[StringToken]<[BeginToken]@[SimpleToken]foo[StringToken]<[BeginToken]int[StringToken]>[SimpleToken]([BeginToken]"hello"[StringToken])[SimpleToken] T[StringToken]>[SimpleToken] =[SimpleToken] int[StringToken] Function[KeywordToken]<[BeginToken]@[SimpleToken]foo[StringToken]<[BeginToken]int[StringToken]>[SimpleToken]([BeginToken]"hello"[StringToken])[SimpleToken] X[StringToken]>[SimpleToken]([BeginToken]@[SimpleToken]foo[StringToken]<[BeginToken]int[StringToken]>[SimpleToken]([BeginToken]"hello"[StringToken])[SimpleToken] int[StringToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] F[StringToken]<[BeginToken]@[SimpleToken]foo[StringToken]<[BeginToken]int[StringToken]>[SimpleToken].[SimpleToken]abstract[KeywordToken]([BeginToken]"hello"[StringToken])[SimpleToken] T[StringToken]>[SimpleToken] =[SimpleToken] int[StringToken] Function[KeywordToken]<[BeginToken]@[SimpleToken]foo[StringToken]<[BeginToken]int[StringToken]>[SimpleToken].[SimpleToken]abstract[KeywordToken]([BeginToken]"hello"[StringToken])[SimpleToken] X[StringToken]>[SimpleToken]([BeginToken]@[SimpleToken]foo[StringToken]<[BeginToken]int[StringToken]>[SimpleToken].[SimpleToken]abstract[KeywordToken]([BeginToken]"hello"[StringToken])[SimpleToken] int[StringToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] F[StringToken]<[BeginToken]@[SimpleToken]foo[StringToken].[SimpleToken]bar[StringToken]<[BeginToken]int[StringToken]>[SimpleToken]([BeginToken]"hello"[StringToken])[SimpleToken] T[StringToken]>[SimpleToken] =[SimpleToken] int[StringToken] Function[KeywordToken]<[BeginToken]@[SimpleToken]foo[StringToken].[SimpleToken]bar[StringToken]<[BeginToken]int[StringToken]>[SimpleToken]([BeginToken]"hello"[StringToken])[SimpleToken] X[StringToken]>[SimpleToken]([BeginToken]@[SimpleToken]foo[StringToken].[SimpleToken]bar[StringToken]<[BeginToken]int[StringToken]>[SimpleToken]([BeginToken]"hello"[StringToken])[SimpleToken] int[StringToken])[SimpleToken];[SimpleToken]
+typedef[KeywordToken] F[StringToken]<[BeginToken]@[SimpleToken]foo[StringToken].[SimpleToken]bar[StringToken]<[BeginToken]int[StringToken]>[SimpleToken].[SimpleToken]abstract[KeywordToken]([BeginToken]"hello"[StringToken])[SimpleToken] T[StringToken]>[SimpleToken] =[SimpleToken] int[StringToken] Function[KeywordToken]<[BeginToken]@[SimpleToken]foo[StringToken].[SimpleToken]bar[StringToken]<[BeginToken]int[StringToken]>[SimpleToken].[SimpleToken]abstract[KeywordToken]([BeginToken]"hello"[StringToken])[SimpleToken] X[StringToken]>[SimpleToken]([BeginToken]@[SimpleToken]foo[StringToken].[SimpleToken]bar[StringToken]<[BeginToken]int[StringToken]>[SimpleToken].[SimpleToken]abstract[KeywordToken]([BeginToken]"hello"[StringToken])[SimpleToken] int[StringToken])[SimpleToken];[SimpleToken]
+
+
+
+
+
+
+@[SimpleToken]abstract[KeywordToken].[SimpleToken]abstract[KeywordToken]
+@[SimpleToken]abstract[KeywordToken].[SimpleToken]bar[StringToken].[SimpleToken]abstract[KeywordToken]
+@[SimpleToken]abstract[KeywordToken]([BeginToken]"hello"[StringToken])[SimpleToken]
+@[SimpleToken]abstract[KeywordToken].[SimpleToken]abstract[KeywordToken]([BeginToken]"hello"[StringToken])[SimpleToken]
+@[SimpleToken]abstract[KeywordToken].[SimpleToken]bar[StringToken].[SimpleToken]abstract[KeywordToken]([BeginToken]"hello"[StringToken])[SimpleToken]
+@[SimpleToken]abstract[KeywordToken]<[BeginToken]int[StringToken]>[SimpleToken]([BeginToken]"hello"[StringToken])[SimpleToken]
+@[SimpleToken]abstract[KeywordToken]<[BeginToken]int[StringToken]>[SimpleToken].[SimpleToken]abstract[KeywordToken]([BeginToken]"hello"[StringToken])[SimpleToken]
+@[SimpleToken]abstract[KeywordToken].[SimpleToken]bar[StringToken]<[BeginToken]int[StringToken]>[SimpleToken]([BeginToken]"hello"[StringToken])[SimpleToken]
+@[SimpleToken]abstract[KeywordToken].[SimpleToken]bar[StringToken]<[BeginToken]int[StringToken]>[SimpleToken].[SimpleToken]abstract[KeywordToken]([BeginToken]"hello"[StringToken])[SimpleToken]
+class[KeywordToken] Y[StringToken] {[BeginToken]}[SimpleToken][SimpleToken]

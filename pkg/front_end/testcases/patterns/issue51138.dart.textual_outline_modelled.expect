@@ -1,0 +1,5 @@
+String test(List list) {}
+
+main() {}
+
+throws(void Function() f) {}

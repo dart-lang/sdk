@@ -1,0 +1,45 @@
+{
+  "definitions": [
+    {
+      "path": [
+        {
+          "kind": "class",
+          "name": "C"
+        }
+      ],
+      "uri": "package:record_use_test/typedef_tearoff.dart"
+    },
+    {
+      "path": [
+        {
+          "kind": "class",
+          "name": "C"
+        },
+        {
+          "kind": "constructor",
+          "name": ""
+        }
+      ],
+      "uri": "package:record_use_test/typedef_tearoff.dart"
+    }
+  ],
+  "loading_units": [
+    {
+      "name": "1"
+    }
+  ],
+  "uses": {
+    "instances": [
+      {
+        "definition_index": 0,
+        "uses": [
+          {
+            "definition_index": 1,
+            "loading_unit_index": 0,
+            "type": "tearoff"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,17 @@
+class C<T> {
+  static C d<T>() => C<T>();
+  C();
+}
+
+class C1 {
+  @override
+  bool operator ==(Object other) => identical(C1.new, other);
+}
+
+class A1 {
+  bool operator ==(Object other) => identical(ET1.new, other);
+}
+
+extension type ET1(A1 _) implements A1 {}
+
+void main() {}

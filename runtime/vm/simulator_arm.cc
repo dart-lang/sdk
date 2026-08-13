@@ -1,0 +1,3792 @@
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+#include <setjmp.h>  // NOLINT
+#include <stdlib.h>
+
+#include "vm/globals.h"
+#if defined(TARGET_ARCH_ARM)
+
+// Only build the simulator if not compiling for real ARM hardware.
+#if defined(DART_INCLUDE_SIMULATOR)
+
+#include "vm/simulator.h"
+
+#include "vm/compiler/assembler/disassembler.h"
+#include "vm/constants.h"
+#include "vm/cpu.h"
+#include "vm/image_snapshot.h"
+#include "vm/native_arguments.h"
+#include "vm/os_thread.h"
+#include "vm/stack_frame.h"
+
+namespace dart {
+
+// constants_arm.h does not define LR constant to prevent accidental direct use
+// of it during code generation. However using LR directly is okay in this
+// file because it is a simulator.
+constexpr Register LR = LR_DO_NOT_USE_DIRECTLY;
+
+DEFINE_FLAG(uint64_t,
+            trace_sim_after,
+            ULLONG_MAX,
+            "Trace simulator execution after instruction count reached.");
+DEFINE_FLAG(uint64_t,
+            stop_sim_at,
+            ULLONG_MAX,
+            "Instruction address or instruction count to stop simulator at.");
+
+DEFINE_FLAG(bool, sim_buffer_memory, false, "Simulate weak memory ordering.");
+
+// This macro provides a platform independent use of sscanf. The reason for
+// SScanF not being implemented in a platform independent way through
+// OS in the same way as SNPrint is that the Windows C Run-Time
+// Library does not provide vsscanf.
+#define SScanF sscanf  // NOLINT
+
+// SimulatorSetjmpBuffer are linked together, and the last created one
+// is referenced by the Simulator. When an exception is thrown, the exception
+// runtime looks at where to jump and finds the corresponding
+// SimulatorSetjmpBuffer based on the stack pointer of the exception handler.
+// The runtime then does a Longjmp on that buffer to return to the simulator.
+class SimulatorSetjmpBuffer {
+ public:
+  void Longjmp() {
+    // "This" is now the last setjmp buffer.
+    simulator_->set_last_setjmp_buffer(this);
+    DART_LONGJMP(buffer_, 1);
+  }
+
+  explicit SimulatorSetjmpBuffer(Simulator* sim) {
+    simulator_ = sim;
+    link_ = sim->last_setjmp_buffer();
+    sim->set_last_setjmp_buffer(this);
+    sp_ = static_cast<uword>(sim->get_register(SP));
+  }
+
+  ~SimulatorSetjmpBuffer() {
+    ASSERT(simulator_->last_setjmp_buffer() == this);
+    simulator_->set_last_setjmp_buffer(link_);
+  }
+
+  SimulatorSetjmpBuffer* link() { return link_; }
+
+  uword sp() { return sp_; }
+
+ private:
+  uword sp_;
+  Simulator* simulator_;
+  SimulatorSetjmpBuffer* link_;
+  jmp_buf buffer_;
+
+  friend class Simulator;
+};
+
+// The SimulatorDebugger class is used by the simulator while debugging
+// simulated ARM code.
+class SimulatorDebugger {
+ public:
+  explicit SimulatorDebugger(Simulator* sim);
+  ~SimulatorDebugger();
+
+  void Stop(Instr* instr, const char* message);
+  void Debug();
+  char* ReadLine(const char* prompt);
+
+ private:
+  Simulator* sim_;
+
+  bool GetValue(char* desc, uint32_t* value);
+  bool GetFValue(char* desc, float* value);
+  bool GetDValue(char* desc, double* value);
+
+  static TokenPosition GetApproximateTokenIndex(const Code& code, uword pc);
+
+  static void PrintDartFrame(uword vm_instructions,
+                             uword isolate_instructions,
+                             uword pc,
+                             uword fp,
+                             uword sp,
+                             const Function& function,
+                             TokenPosition token_pos,
+                             bool is_optimized,
+                             bool is_inlined);
+  void PrintBacktrace();
+
+  // Set or delete a breakpoint. Returns true if successful.
+  bool SetBreakpoint(Instr* breakpc);
+  bool DeleteBreakpoint(Instr* breakpc);
+
+  // Undo and redo all breakpoints. This is needed to bracket disassembly and
+  // execution to skip past breakpoints when run from the debugger.
+  void UndoBreakpoints();
+  void RedoBreakpoints();
+};
+
+SimulatorDebugger::SimulatorDebugger(Simulator* sim) {
+  sim_ = sim;
+}
+
+SimulatorDebugger::~SimulatorDebugger() {}
+
+void SimulatorDebugger::Stop(Instr* instr, const char* message) {
+  OS::PrintErr("Simulator hit %s\n", message);
+  Debug();
+}
+
+static Register LookupCpuRegisterByName(const char* name) {
+  static const char* const kNames[] = {
+      "r0",  "r1",  "r2",  "r3",  "r4",  "r5", "r6", "r7", "r8", "r9", "r10",
+      "r11", "r12", "r13", "r14", "r15", "pc", "lr", "sp", "ip", "fp", "pp"};
+  static const Register kRegisters[] = {R0, R1, R2,  R3,  R4,  R5,  R6,  R7,
+                                        R8, R9, R10, R11, R12, R13, R14, R15,
+                                        PC, LR, SP,  IP,  FP,  PP};
+  ASSERT(ARRAY_SIZE(kNames) == ARRAY_SIZE(kRegisters));
+  for (unsigned i = 0; i < ARRAY_SIZE(kNames); i++) {
+    if (strcmp(kNames[i], name) == 0) {
+      return kRegisters[i];
+    }
+  }
+  return kNoRegister;
+}
+
+static SRegister LookupSRegisterByName(const char* name) {
+  int reg_nr = -1;
+  bool ok = SScanF(name, "s%d", &reg_nr);
+  if (ok && (0 <= reg_nr) && (reg_nr < kNumberOfSRegisters)) {
+    return static_cast<SRegister>(reg_nr);
+  }
+  return kNoSRegister;
+}
+
+static DRegister LookupDRegisterByName(const char* name) {
+  int reg_nr = -1;
+  bool ok = SScanF(name, "d%d", &reg_nr);
+  if (ok && (0 <= reg_nr) && (reg_nr < kNumberOfDRegisters)) {
+    return static_cast<DRegister>(reg_nr);
+  }
+  return kNoDRegister;
+}
+
+bool SimulatorDebugger::GetValue(char* desc, uint32_t* value) {
+  Register reg = LookupCpuRegisterByName(desc);
+  if (reg != kNoRegister) {
+    if (reg == PC) {
+      *value = sim_->get_pc();
+    } else {
+      *value = sim_->get_register(reg);
+    }
+    return true;
+  }
+  if (desc[0] == '*') {
+    uint32_t addr;
+    if (GetValue(desc + 1, &addr)) {
+      if (Simulator::IsIllegalAddress(addr)) {
+        return false;
+      }
+      *value = *(reinterpret_cast<uint32_t*>(addr));
+      return true;
+    }
+  }
+  bool retval = SScanF(desc, "0x%x", value) == 1;
+  if (!retval) {
+    retval = SScanF(desc, "%x", value) == 1;
+  }
+  return retval;
+}
+
+bool SimulatorDebugger::GetFValue(char* desc, float* value) {
+  SRegister sreg = LookupSRegisterByName(desc);
+  if (sreg != kNoSRegister) {
+    *value = sim_->get_sregister(sreg);
+    return true;
+  }
+  if (desc[0] == '*') {
+    uint32_t addr;
+    if (GetValue(desc + 1, &addr)) {
+      if (Simulator::IsIllegalAddress(addr)) {
+        return false;
+      }
+      *value = *(reinterpret_cast<float*>(addr));
+      return true;
+    }
+  }
+  return false;
+}
+
+bool SimulatorDebugger::GetDValue(char* desc, double* value) {
+  DRegister dreg = LookupDRegisterByName(desc);
+  if (dreg != kNoDRegister) {
+    *value = sim_->get_dregister(dreg);
+    return true;
+  }
+  if (desc[0] == '*') {
+    uint32_t addr;
+    if (GetValue(desc + 1, &addr)) {
+      if (Simulator::IsIllegalAddress(addr)) {
+        return false;
+      }
+      *value = *(reinterpret_cast<double*>(addr));
+      return true;
+    }
+  }
+  return false;
+}
+
+TokenPosition SimulatorDebugger::GetApproximateTokenIndex(const Code& code,
+                                                          uword pc) {
+  TokenPosition token_pos = TokenPosition::kNoSource;
+  uword pc_offset = pc - code.PayloadStart();
+  const PcDescriptors& descriptors =
+      PcDescriptors::Handle(code.pc_descriptors());
+  PcDescriptors::Iterator iter(descriptors, UntaggedPcDescriptors::kAnyKind);
+  while (iter.MoveNext()) {
+    if (iter.PcOffset() == pc_offset) {
+      return iter.TokenPos();
+    } else if (!token_pos.IsReal() && (iter.PcOffset() > pc_offset)) {
+      token_pos = iter.TokenPos();
+    }
+  }
+  return token_pos;
+}
+
+#if defined(DART_PRECOMPILED_RUNTIME)
+static const char* ImageName(uword vm_instructions,
+                             uword isolate_instructions,
+                             uword pc,
+                             intptr_t* offset) {
+  const Image isolate_image(isolate_instructions);
+  if (isolate_image.contains(pc)) {
+    *offset = pc - isolate_instructions;
+    return kSnapshotTextAsmSymbol;
+  } else {
+    *offset = 0;
+    return "<unknown>";
+  }
+}
+#endif
+
+void SimulatorDebugger::PrintDartFrame(uword vm_instructions,
+                                       uword isolate_instructions,
+                                       uword pc,
+                                       uword fp,
+                                       uword sp,
+                                       const Function& function,
+                                       TokenPosition token_pos,
+                                       bool is_optimized,
+                                       bool is_inlined) {
+  const Script& script = Script::Handle(function.script());
+  const String& func_name = String::Handle(function.QualifiedScrubbedName());
+  const String& url = String::Handle(script.url());
+  intptr_t line, column;
+  if (script.GetTokenLocation(token_pos, &line, &column)) {
+    OS::PrintErr(
+        "pc=0x%" Px " fp=0x%" Px " sp=0x%" Px " %s%s (%s:%" Pd ":%" Pd ")", pc,
+        fp, sp, is_optimized ? (is_inlined ? "inlined " : "optimized ") : "",
+        func_name.ToCString(), url.ToCString(), line, column);
+
+  } else {
+    OS::PrintErr("pc=0x%" Px " fp=0x%" Px " sp=0x%" Px " %s%s (%s)", pc, fp, sp,
+                 is_optimized ? (is_inlined ? "inlined " : "optimized ") : "",
+                 func_name.ToCString(), url.ToCString());
+  }
+#if defined(DART_PRECOMPILED_RUNTIME)
+  intptr_t offset;
+  auto const symbol_name =
+      ImageName(vm_instructions, isolate_instructions, pc, &offset);
+  OS::PrintErr(" %s+0x%" Px "", symbol_name, offset);
+#endif
+  OS::PrintErr("\n");
+}
+
+void SimulatorDebugger::PrintBacktrace() {
+  auto const T = Thread::Current();
+  auto const Z = T->zone();
+#if defined(DART_PRECOMPILED_RUNTIME)
+  const uword vm_instructions = 0;
+  const uword isolate_instructions =
+      reinterpret_cast<uword>(T->isolate_group()->source()->snapshot_text);
+  OS::PrintErr("vm_instructions=0x%" Px ", isolate_instructions=0x%" Px "\n",
+               vm_instructions, isolate_instructions);
+#else
+  const uword vm_instructions = 0;
+  const uword isolate_instructions = 0;
+#endif
+  StackFrameIterator frames(sim_->get_register(FP), sim_->get_register(SP),
+                            sim_->get_pc(),
+                            ValidationPolicy::kDontValidateFrames, T,
+                            StackFrameIterator::kNoCrossThreadIteration);
+  StackFrame* frame = frames.NextFrame();
+  ASSERT(frame != nullptr);
+  Function& function = Function::Handle(Z);
+  Function& inlined_function = Function::Handle(Z);
+  Code& code = Code::Handle(Z);
+  Code& unoptimized_code = Code::Handle(Z);
+  while (frame != nullptr) {
+    if (frame->IsDartFrame()) {
+      code = frame->LookupDartCode();
+      function = code.function();
+      if (code.is_optimized()) {
+        // For optimized frames, extract all the inlined functions if any
+        // into the stack trace.
+        InlinedFunctionsIterator it(code, frame->pc());
+        while (!it.Done()) {
+          // Print each inlined frame with its pc in the corresponding
+          // unoptimized frame.
+          inlined_function = it.function();
+          unoptimized_code = it.code();
+          uword unoptimized_pc = it.pc();
+          it.Advance();
+          if (!it.Done()) {
+            PrintDartFrame(
+                vm_instructions, isolate_instructions, unoptimized_pc,
+                frame->fp(), frame->sp(), inlined_function,
+                GetApproximateTokenIndex(unoptimized_code, unoptimized_pc),
+                true, true);
+          }
+        }
+        // Print the optimized inlining frame below.
+      }
+      PrintDartFrame(vm_instructions, isolate_instructions, frame->pc(),
+                     frame->fp(), frame->sp(), function,
+                     GetApproximateTokenIndex(code, frame->pc()),
+                     code.is_optimized(), false);
+    } else {
+      OS::PrintErr("pc=0x%" Px " fp=0x%" Px " sp=0x%" Px " %s frame",
+                   frame->pc(), frame->fp(), frame->sp(),
+                   frame->IsEntryFrame()  ? "entry"
+                   : frame->IsExitFrame() ? "exit"
+                   : frame->IsStubFrame() ? "stub"
+                                          : "invalid");
+#if defined(DART_PRECOMPILED_RUNTIME)
+      intptr_t offset;
+      auto const symbol_name = ImageName(vm_instructions, isolate_instructions,
+                                         frame->pc(), &offset);
+      OS::PrintErr(" %s+0x%" Px "", symbol_name, offset);
+#endif
+      OS::PrintErr("\n");
+    }
+    frame = frames.NextFrame();
+  }
+}
+
+bool SimulatorDebugger::SetBreakpoint(Instr* breakpc) {
+  // Check if a breakpoint can be set. If not return without any side-effects.
+  if (sim_->break_pc_ != nullptr) {
+    return false;
+  }
+
+  // Set the breakpoint.
+  sim_->break_pc_ = breakpc;
+  sim_->break_instr_ = breakpc->InstructionBits();
+  // Not setting the breakpoint instruction in the code itself. It will be set
+  // when the debugger shell continues.
+  return true;
+}
+
+bool SimulatorDebugger::DeleteBreakpoint(Instr* breakpc) {
+  if (sim_->break_pc_ != nullptr) {
+    sim_->break_pc_->SetInstructionBits(sim_->break_instr_);
+  }
+
+  sim_->break_pc_ = nullptr;
+  sim_->break_instr_ = 0;
+  return true;
+}
+
+void SimulatorDebugger::UndoBreakpoints() {
+  if (sim_->break_pc_ != nullptr) {
+    sim_->break_pc_->SetInstructionBits(sim_->break_instr_);
+  }
+}
+
+void SimulatorDebugger::RedoBreakpoints() {
+  if (sim_->break_pc_ != nullptr) {
+    sim_->break_pc_->SetInstructionBits(Instr::kSimulatorBreakpointInstruction);
+  }
+}
+
+void SimulatorDebugger::Debug() {
+  intptr_t last_pc = -1;
+  bool done = false;
+
+#define COMMAND_SIZE 63
+#define ARG_SIZE 255
+
+#define STR(a) #a
+#define XSTR(a) STR(a)
+
+  char cmd[COMMAND_SIZE + 1];
+  char arg1[ARG_SIZE + 1];
+  char arg2[ARG_SIZE + 1];
+
+  // make sure to have a proper terminating character if reaching the limit
+  cmd[COMMAND_SIZE] = 0;
+  arg1[ARG_SIZE] = 0;
+  arg2[ARG_SIZE] = 0;
+
+  // Undo all set breakpoints while running in the debugger shell. This will
+  // make them invisible to all commands.
+  UndoBreakpoints();
+
+  while (!done) {
+    if (last_pc != sim_->get_pc()) {
+      last_pc = sim_->get_pc();
+      if (Simulator::IsIllegalAddress(last_pc)) {
+        OS::PrintErr("pc is out of bounds: 0x%" Px "\n", last_pc);
+      } else {
+        if (FLAG_support_disassembler) {
+          Disassembler::Disassemble(last_pc, last_pc + Instr::kInstrSize);
+        } else {
+          OS::PrintErr("Disassembler not supported in this mode.\n");
+        }
+      }
+    }
+    char* line = ReadLine("sim> ");
+    if (line == nullptr) {
+      FATAL("ReadLine failed");
+    } else {
+      // Use sscanf to parse the individual parts of the command line. At the
+      // moment no command expects more than two parameters.
+      int args = SScanF(line,
+                        "%" XSTR(COMMAND_SIZE) "s "
+                        "%" XSTR(ARG_SIZE) "s "
+                        "%" XSTR(ARG_SIZE) "s",
+                        cmd, arg1, arg2);
+      if ((strcmp(cmd, "h") == 0) || (strcmp(cmd, "help") == 0)) {
+        OS::PrintErr(
+            "c/cont -- continue execution\n"
+            "disasm -- disassemble instrs at current pc location\n"
+            "  other variants are:\n"
+            "    disasm <address>\n"
+            "    disasm <address> <number_of_instructions>\n"
+            "  by default 10 instrs are disassembled\n"
+            "del -- delete breakpoints\n"
+            "flags -- print flag values\n"
+            "gdb -- transfer control to gdb\n"
+            "h/help -- print this help string\n"
+            "break <address> -- set break point at specified address\n"
+            "p/print <reg or icount or value or *addr> -- print integer\n"
+            "ps/printsingle <sreg or *addr> -- print float value\n"
+            "pd/printdouble <dreg or *addr> -- print double value\n"
+            "po/printobject <*reg or *addr> -- print object\n"
+            "si/stepi -- single step an instruction\n"
+            "trace -- toggle execution tracing mode\n"
+            "bt -- print backtrace\n"
+            "unstop -- if current pc is a stop instr make it a nop\n"
+            "q/quit -- Quit the debugger and exit the program\n");
+      } else if ((strcmp(cmd, "quit") == 0) || (strcmp(cmd, "q") == 0)) {
+        OS::PrintErr("Quitting\n");
+        OS::Exit(0);
+      } else if ((strcmp(cmd, "si") == 0) || (strcmp(cmd, "stepi") == 0)) {
+        sim_->InstructionDecode(reinterpret_cast<Instr*>(sim_->get_pc()));
+      } else if ((strcmp(cmd, "c") == 0) || (strcmp(cmd, "cont") == 0)) {
+        // Execute the one instruction we broke at with breakpoints disabled.
+        sim_->InstructionDecode(reinterpret_cast<Instr*>(sim_->get_pc()));
+        // Leave the debugger shell.
+        done = true;
+      } else if ((strcmp(cmd, "p") == 0) || (strcmp(cmd, "print") == 0)) {
+        if (args == 2) {
+          uint32_t value;
+          if (strcmp(arg1, "icount") == 0) {
+            const uint64_t icount = sim_->get_icount();
+            OS::PrintErr("icount: %" Pu64 " 0x%" Px64 "\n", icount, icount);
+          } else if (GetValue(arg1, &value)) {
+            OS::PrintErr("%s: %u 0x%x\n", arg1, value, value);
+          } else {
+            OS::PrintErr("%s unrecognized\n", arg1);
+          }
+        } else {
+          OS::PrintErr("print <reg or icount or value or *addr>\n");
+        }
+      } else if ((strcmp(cmd, "ps") == 0) ||
+                 (strcmp(cmd, "printsingle") == 0)) {
+        if (args == 2) {
+          float fvalue;
+          if (GetFValue(arg1, &fvalue)) {
+            uint32_t value = bit_cast<uint32_t, float>(fvalue);
+            OS::PrintErr("%s: 0%u 0x%x %.8g\n", arg1, value, value, fvalue);
+          } else {
+            OS::PrintErr("%s unrecognized\n", arg1);
+          }
+        } else {
+          OS::PrintErr("printfloat <sreg or *addr>\n");
+        }
+      } else if ((strcmp(cmd, "pd") == 0) ||
+                 (strcmp(cmd, "printdouble") == 0)) {
+        if (args == 2) {
+          double dvalue;
+          if (GetDValue(arg1, &dvalue)) {
+            uint64_t long_value = bit_cast<uint64_t, double>(dvalue);
+            OS::PrintErr("%s: %llu 0x%llx %.8g\n", arg1, long_value, long_value,
+                         dvalue);
+          } else {
+            OS::PrintErr("%s unrecognized\n", arg1);
+          }
+        } else {
+          OS::PrintErr("printdouble <dreg or *addr>\n");
+        }
+      } else if ((strcmp(cmd, "po") == 0) ||
+                 (strcmp(cmd, "printobject") == 0)) {
+        if (args == 2) {
+          uint32_t value;
+          // Make the dereferencing '*' optional.
+          if (((arg1[0] == '*') && GetValue(arg1 + 1, &value)) ||
+              GetValue(arg1, &value)) {
+            if (IsolateGroup::Current()->heap()->Contains(value)) {
+              OS::PrintErr("%s: \n", arg1);
+#if defined(DEBUG)
+              const Object& obj = Object::Handle(static_cast<ObjectPtr>(value));
+              obj.Print();
+#endif  // defined(DEBUG)
+            } else {
+              OS::PrintErr("0x%x is not an object reference\n", value);
+            }
+          } else {
+            OS::PrintErr("%s unrecognized\n", arg1);
+          }
+        } else {
+          OS::PrintErr("printobject <*reg or *addr>\n");
+        }
+      } else if (strcmp(cmd, "disasm") == 0) {
+        uint32_t start = 0;
+        uint32_t end = 0;
+        if (args == 1) {
+          start = sim_->get_pc();
+          end = start + (10 * Instr::kInstrSize);
+        } else if (args == 2) {
+          if (GetValue(arg1, &start)) {
+            // No length parameter passed, assume 10 instructions.
+            if (Simulator::IsIllegalAddress(start)) {
+              // If start isn't a valid address, warn and use PC instead.
+              OS::PrintErr("First argument yields invalid address: 0x%x\n",
+                           start);
+              OS::PrintErr("Using PC instead\n");
+              start = sim_->get_pc();
+            }
+            end = start + (10 * Instr::kInstrSize);
+          }
+        } else {
+          uint32_t length;
+          if (GetValue(arg1, &start) && GetValue(arg2, &length)) {
+            if (Simulator::IsIllegalAddress(start)) {
+              // If start isn't a valid address, warn and use PC instead.
+              OS::PrintErr("First argument yields invalid address: 0x%x\n",
+                           start);
+              OS::PrintErr("Using PC instead\n");
+              start = sim_->get_pc();
+            }
+            end = start + (length * Instr::kInstrSize);
+          }
+        }
+        if ((start > 0) && (end > start)) {
+          if (FLAG_support_disassembler) {
+            Disassembler::Disassemble(start, end);
+          } else {
+            OS::PrintErr("Disassembler not supported in this mode.\n");
+          }
+        } else {
+          OS::PrintErr("disasm [<address> [<number_of_instructions>]]\n");
+        }
+      } else if (strcmp(cmd, "gdb") == 0) {
+        OS::PrintErr("relinquishing control to gdb\n");
+        OS::DebugBreak();
+        OS::PrintErr("regaining control from gdb\n");
+      } else if (strcmp(cmd, "break") == 0) {
+        if (args == 2) {
+          uint32_t addr;
+          if (GetValue(arg1, &addr)) {
+            if (!SetBreakpoint(reinterpret_cast<Instr*>(addr))) {
+              OS::PrintErr("setting breakpoint failed\n");
+            }
+          } else {
+            OS::PrintErr("%s unrecognized\n", arg1);
+          }
+        } else {
+          OS::PrintErr("break <addr>\n");
+        }
+      } else if (strcmp(cmd, "del") == 0) {
+        if (!DeleteBreakpoint(nullptr)) {
+          OS::PrintErr("deleting breakpoint failed\n");
+        }
+      } else if (strcmp(cmd, "flags") == 0) {
+        OS::PrintErr("APSR: ");
+        OS::PrintErr("N flag: %d; ", sim_->n_flag_);
+        OS::PrintErr("Z flag: %d; ", sim_->z_flag_);
+        OS::PrintErr("C flag: %d; ", sim_->c_flag_);
+        OS::PrintErr("V flag: %d\n", sim_->v_flag_);
+        OS::PrintErr("FPSCR: ");
+        OS::PrintErr("N flag: %d; ", sim_->fp_n_flag_);
+        OS::PrintErr("Z flag: %d; ", sim_->fp_z_flag_);
+        OS::PrintErr("C flag: %d; ", sim_->fp_c_flag_);
+        OS::PrintErr("V flag: %d\n", sim_->fp_v_flag_);
+      } else if (strcmp(cmd, "unstop") == 0) {
+        intptr_t stop_pc = sim_->get_pc() - Instr::kInstrSize;
+        Instr* stop_instr = reinterpret_cast<Instr*>(stop_pc);
+        if (stop_instr->IsSvc() || stop_instr->IsBkpt()) {
+          stop_instr->SetInstructionBits(Instr::kNopInstruction);
+        } else {
+          OS::PrintErr("Not at debugger stop.\n");
+        }
+      } else if (strcmp(cmd, "trace") == 0) {
+        if (FLAG_trace_sim_after == ULLONG_MAX) {
+          FLAG_trace_sim_after = sim_->get_icount();
+          OS::PrintErr("execution tracing on\n");
+        } else {
+          FLAG_trace_sim_after = ULLONG_MAX;
+          OS::PrintErr("execution tracing off\n");
+        }
+      } else if (strcmp(cmd, "bt") == 0) {
+        Thread* thread = reinterpret_cast<Thread*>(sim_->get_register(THR));
+        thread->set_execution_state(Thread::kThreadInVM);
+        PrintBacktrace();
+        thread->set_execution_state(Thread::kThreadInGenerated);
+      } else {
+        OS::PrintErr("Unknown command: %s\n", cmd);
+      }
+    }
+    delete[] line;
+  }
+
+  // Add all the breakpoints back to stop execution and enter the debugger
+  // shell when hit.
+  RedoBreakpoints();
+
+#undef COMMAND_SIZE
+#undef ARG_SIZE
+
+#undef STR
+#undef XSTR
+}
+
+char* SimulatorDebugger::ReadLine(const char* prompt) {
+  char* result = nullptr;
+  char line_buf[256];
+  intptr_t offset = 0;
+  bool keep_going = true;
+  OS::PrintErr("%s", prompt);
+  while (keep_going) {
+    if (fgets(line_buf, sizeof(line_buf), stdin) == nullptr) {
+      // fgets got an error. Just give up.
+      if (result != nullptr) {
+        delete[] result;
+      }
+      return nullptr;
+    }
+    intptr_t len = strlen(line_buf);
+    if (len > 1 && line_buf[len - 2] == '\\' && line_buf[len - 1] == '\n') {
+      // When we read a line that ends with a "\" we remove the escape and
+      // append the remainder.
+      line_buf[len - 2] = '\n';
+      line_buf[len - 1] = 0;
+      len -= 1;
+    } else if ((len > 0) && (line_buf[len - 1] == '\n')) {
+      // Since we read a new line we are done reading the line. This
+      // will exit the loop after copying this buffer into the result.
+      keep_going = false;
+    }
+    if (result == nullptr) {
+      // Allocate the initial result and make room for the terminating '\0'
+      result = new char[len + 1];
+      if (result == nullptr) {
+        // OOM, so cannot readline anymore.
+        return nullptr;
+      }
+    } else {
+      // Allocate a new result with enough room for the new addition.
+      intptr_t new_len = offset + len + 1;
+      char* new_result = new char[new_len];
+      if (new_result == nullptr) {
+        // OOM, free the buffer allocated so far and return nullptr.
+        delete[] result;
+        return nullptr;
+      } else {
+        // Copy the existing input into the new array and set the new
+        // array as the result.
+        memmove(new_result, result, offset);
+        delete[] result;
+        result = new_result;
+      }
+    }
+    // Copy the newly read line into the result.
+    memmove(result + offset, line_buf, len);
+    offset += len;
+  }
+  ASSERT(result != nullptr);
+  result[offset] = '\0';
+  return result;
+}
+
+void Simulator::Init() {}
+
+Simulator::Simulator() : memory_(FLAG_sim_buffer_memory) {
+  // Setup simulator support first. Some of this information is needed to
+  // setup the architecture state.
+  // We allocate the stack here, the size is computed as the sum of
+  // the size specified by the user and the buffer space needed for
+  // handling stack overflow exceptions. To be safe in potential
+  // stack underflows we also add some underflow buffer space.
+  stack_ =
+      new char[(OSThread::GetSpecifiedStackSize() +
+                OSThread::kStackSizeBufferMax + kSimulatorStackUnderflowSize)];
+  // Low address.
+  stack_limit_ = reinterpret_cast<uword>(stack_);
+  // Limit for StackOverflowError.
+  overflow_stack_limit_ = stack_limit_ + OSThread::kStackSizeBufferMax;
+  // High address.
+  stack_base_ = overflow_stack_limit_ + OSThread::GetSpecifiedStackSize();
+
+  pc_modified_ = false;
+  icount_ = 0;
+  break_pc_ = nullptr;
+  break_instr_ = 0;
+  last_setjmp_buffer_ = nullptr;
+
+  // Setup architecture state.
+  // All registers are initialized to zero to start with.
+  for (int i = 0; i < kNumberOfCpuRegisters; i++) {
+    registers_[i] = 0;
+  }
+  n_flag_ = false;
+  z_flag_ = false;
+  c_flag_ = false;
+  v_flag_ = false;
+
+  // The sp is initialized to point to the bottom (high address) of the
+  // allocated stack area.
+  registers_[SP] = stack_base();
+  // The lr and pc are initialized to a known bad value that will cause an
+  // access violation if the simulator ever tries to execute it.
+  registers_[PC] = kBadLR;
+  registers_[LR] = kBadLR;
+
+  // All double-precision registers are initialized to zero.
+  for (int i = 0; i < kNumberOfDRegisters; i++) {
+    dregisters_[i] = 0;
+  }
+  // Since VFP registers are overlapping, single-precision registers should
+  // already be initialized.
+  ASSERT(2 * kNumberOfDRegisters >= kNumberOfSRegisters);
+  for (int i = 0; i < kNumberOfSRegisters; i++) {
+    ASSERT(sregisters_[i] == 0.0);
+  }
+  fp_n_flag_ = false;
+  fp_z_flag_ = false;
+  fp_c_flag_ = false;
+  fp_v_flag_ = false;
+}
+
+Simulator::~Simulator() {
+  delete[] stack_;
+  Isolate* isolate = Isolate::Current();
+  if (isolate != nullptr) {
+    isolate->set_simulator(nullptr);
+  }
+}
+
+// When the generated code calls an external reference we need to catch that in
+// the simulator.  The external reference will be a function compiled for the
+// host architecture.  We need to call that function instead of trying to
+// execute it with the simulator.  We do that by redirecting the external
+// reference to a svc (supervisor call) instruction that is handled by
+// the simulator.  We write the original destination of the jump just at a known
+// offset from the svc instruction so the simulator knows what to call.
+class Redirection {
+ public:
+  uword address_of_svc_instruction() {
+    return reinterpret_cast<uword>(&svc_instruction_);
+  }
+
+  uword external_function() const { return external_function_; }
+
+  Simulator::CallKind call_kind() const { return call_kind_; }
+
+  int argument_count() const { return argument_count_; }
+
+  static Redirection* Get(uword external_function,
+                          Simulator::CallKind call_kind,
+                          int argument_count) {
+    MutexLocker ml(mutex_);
+
+    Redirection* old_head = list_.load(std::memory_order_relaxed);
+    for (Redirection* current = old_head; current != nullptr;
+         current = current->next_) {
+      if (current->external_function_ == external_function) return current;
+    }
+
+    Redirection* redirection =
+        new Redirection(external_function, call_kind, argument_count);
+    redirection->next_ = old_head;
+
+    // Use a memory fence to ensure all pending writes are written at the time
+    // of updating the list head, so the profiling thread always has a valid
+    // list to look at.
+    list_.store(redirection, std::memory_order_release);
+
+    return redirection;
+  }
+
+  static Redirection* FromSvcInstruction(Instr* svc_instruction) {
+    char* addr_of_svc = reinterpret_cast<char*>(svc_instruction);
+    char* addr_of_redirection =
+        addr_of_svc - OFFSET_OF(Redirection, svc_instruction_);
+    return reinterpret_cast<Redirection*>(addr_of_redirection);
+  }
+
+  // Please note that this function is called by the signal handler of the
+  // profiling thread.  It can therefore run at any point in time and is not
+  // allowed to hold any locks - which is precisely the reason why the list is
+  // prepend-only and a memory fence is used when writing the list head [list_]!
+  static uword FunctionForRedirect(uword address_of_svc) {
+    for (Redirection* current = list_.load(std::memory_order_acquire);
+         current != nullptr; current = current->next_) {
+      if (current->address_of_svc_instruction() == address_of_svc) {
+        return current->external_function_;
+      }
+    }
+    return 0;
+  }
+
+ private:
+  Redirection(uword external_function,
+              Simulator::CallKind call_kind,
+              int argument_count)
+      : external_function_(external_function),
+        call_kind_(call_kind),
+        argument_count_(argument_count),
+        svc_instruction_(Instr::kSimulatorRedirectInstruction),
+        next_(nullptr) {}
+
+  uword external_function_;
+  Simulator::CallKind call_kind_;
+  int argument_count_;
+  uint32_t svc_instruction_;
+  Redirection* next_;
+  static std::atomic<Redirection*> list_;
+  static Mutex* mutex_;
+};
+
+std::atomic<Redirection*> Redirection::list_ = {nullptr};
+Mutex* Redirection::mutex_ = new Mutex();
+
+uword Simulator::RedirectExternalReference(uword function,
+                                           CallKind call_kind,
+                                           int argument_count) {
+  Redirection* redirection =
+      Redirection::Get(function, call_kind, argument_count);
+  return redirection->address_of_svc_instruction();
+}
+
+uword Simulator::FunctionForRedirect(uword redirect) {
+  return Redirection::FunctionForRedirect(redirect);
+}
+
+// Get the active Simulator for the current isolate.
+Simulator* Simulator::Current() {
+  Isolate* isolate = Isolate::Current();
+  Simulator* simulator = isolate->simulator();
+  if (simulator == nullptr) {
+    NoSafepointScope no_safepoint;
+    simulator = new Simulator();
+    isolate->set_simulator(simulator);
+  }
+  return simulator;
+}
+
+// Sets the register in the architecture state. It will also deal with updating
+// Simulator internal state for special registers such as PC.
+DART_FORCE_INLINE void Simulator::set_register(Register reg, int32_t value) {
+  ASSERT((reg >= 0) && (reg < kNumberOfCpuRegisters));
+  if (reg == PC) {
+    pc_modified_ = true;
+  }
+  registers_[reg] = value;
+}
+
+// Raw access to the PC register.
+DART_FORCE_INLINE void Simulator::set_pc(int32_t value) {
+  pc_modified_ = true;
+  registers_[PC] = value;
+}
+
+// Accessors for VFP register state.
+DART_FORCE_INLINE void Simulator::set_sregister(SRegister reg, float value) {
+  ASSERT((reg >= 0) && (reg < kNumberOfSRegisters));
+  sregisters_[reg] = bit_cast<int32_t, float>(value);
+}
+
+DART_FORCE_INLINE float Simulator::get_sregister(SRegister reg) const {
+  ASSERT((reg >= 0) && (reg < kNumberOfSRegisters));
+  return bit_cast<float, int32_t>(sregisters_[reg]);
+}
+
+DART_FORCE_INLINE void Simulator::set_dregister(DRegister reg, double value) {
+  ASSERT((reg >= 0) && (reg < kNumberOfDRegisters));
+  dregisters_[reg] = bit_cast<int64_t, double>(value);
+}
+
+DART_FORCE_INLINE double Simulator::get_dregister(DRegister reg) const {
+  ASSERT((reg >= 0) && (reg < kNumberOfDRegisters));
+  return bit_cast<double, int64_t>(dregisters_[reg]);
+}
+
+void Simulator::set_qregister(QRegister reg, const simd_value_t& value) {
+  ASSERT(TargetCPUFeatures::neon_supported());
+  ASSERT((reg >= 0) && (reg < kNumberOfQRegisters));
+  memcpy(&qregisters_[reg], &value, sizeof(value));  // NOLINT
+}
+
+void Simulator::get_qregister(QRegister reg, simd_value_t* value) const {
+  ASSERT(TargetCPUFeatures::neon_supported());
+  // TODO(zra): Replace this test with an assert after we support
+  // 16 Q registers.
+  if ((reg >= 0) && (reg < kNumberOfQRegisters)) {
+    *value = qregisters_[reg];
+  }
+}
+
+void Simulator::set_sregister_bits(SRegister reg, int32_t value) {
+  ASSERT((reg >= 0) && (reg < kNumberOfSRegisters));
+  sregisters_[reg] = value;
+}
+
+int32_t Simulator::get_sregister_bits(SRegister reg) const {
+  ASSERT((reg >= 0) && (reg < kNumberOfSRegisters));
+  return sregisters_[reg];
+}
+
+void Simulator::set_dregister_bits(DRegister reg, int64_t value) {
+  ASSERT((reg >= 0) && (reg < kNumberOfDRegisters));
+  dregisters_[reg] = value;
+}
+
+int64_t Simulator::get_dregister_bits(DRegister reg) const {
+  ASSERT((reg >= 0) && (reg < kNumberOfDRegisters));
+  return dregisters_[reg];
+}
+
+void Simulator::HandleIllegalAccess(uword addr, Instr* instr) {
+  uword fault_pc = get_pc();
+  // The debugger will not be able to single step past this instruction, but
+  // it will be possible to disassemble the code and inspect registers.
+  char buffer[128];
+  snprintf(buffer, sizeof(buffer),
+           "illegal memory access at 0x%" Px ", pc=0x%" Px "\n", addr,
+           fault_pc);
+  SimulatorDebugger dbg(this);
+  dbg.Stop(instr, buffer);
+  // The debugger will return control in non-interactive mode.
+  FATAL("Cannot continue execution after illegal memory access.");
+}
+
+void Simulator::UnimplementedInstruction(Instr* instr) {
+  char buffer[64];
+  snprintf(buffer, sizeof(buffer), "Unimplemented instruction: pc=%p\n", instr);
+  SimulatorDebugger dbg(this);
+  dbg.Stop(instr, buffer);
+  FATAL("Cannot continue execution after unimplemented instruction.");
+}
+
+DART_FORCE_INLINE intptr_t Simulator::ReadW(uword addr, Instr* instr) {
+  return memory_.Load<intptr_t>(addr);
+}
+
+DART_FORCE_INLINE void Simulator::WriteW(uword addr,
+                                         intptr_t value,
+                                         Instr* instr) {
+  memory_.Store(addr, value);
+}
+
+DART_FORCE_INLINE uint16_t Simulator::ReadHU(uword addr, Instr* instr) {
+  return memory_.Load<uint16_t>(addr);
+}
+
+DART_FORCE_INLINE int16_t Simulator::ReadH(uword addr, Instr* instr) {
+  return memory_.Load<int16_t>(addr);
+}
+
+DART_FORCE_INLINE void Simulator::WriteH(uword addr,
+                                         uint16_t value,
+                                         Instr* instr) {
+  memory_.Store(addr, value);
+}
+
+DART_FORCE_INLINE uint8_t Simulator::ReadBU(uword addr) {
+  return memory_.Load<uint8_t>(addr);
+}
+
+DART_FORCE_INLINE int8_t Simulator::ReadB(uword addr) {
+  return memory_.Load<int8_t>(addr);
+}
+
+DART_FORCE_INLINE void Simulator::WriteB(uword addr, uint8_t value) {
+  memory_.Store(addr, value);
+}
+
+void Simulator::ClearExclusive() {
+  exclusive_access_addr_ = 0;
+  exclusive_access_value_ = 0;
+}
+
+intptr_t Simulator::ReadExclusiveW(uword addr, Instr* instr) {
+  exclusive_access_addr_ = addr;
+  exclusive_access_value_ = ReadW(addr, instr);
+  return exclusive_access_value_;
+}
+
+intptr_t Simulator::WriteExclusiveW(uword addr, intptr_t value, Instr* instr) {
+  // In a well-formed code store-exclusive instruction should always follow
+  // a corresponding load-exclusive instruction with the same address.
+  ASSERT((exclusive_access_addr_ == 0) || (exclusive_access_addr_ == addr));
+  if (exclusive_access_addr_ != addr) {
+    return 1;  // Failure.
+  }
+
+  int32_t old_value = static_cast<uint32_t>(exclusive_access_value_);
+  ClearExclusive();
+
+  if ((random_.NextUInt32() % 16) == 0) {
+    return 1;  // Spurious failure.
+  }
+
+  if (memory_.CompareExchange(addr, old_value, value,
+                              std::memory_order_relaxed)) {
+    return 0;  // Success.
+  }
+  return 1;  // Failure.
+}
+
+bool Simulator::IsTracingExecution() const {
+  return icount_ > FLAG_trace_sim_after;
+}
+
+// Unsupported instructions use Format to print an error and stop execution.
+void Simulator::Format(Instr* instr, const char* format) {
+  OS::PrintErr("Simulator found unsupported instruction:\n 0x%p: %s\n", instr,
+               format);
+  UNIMPLEMENTED();
+}
+
+// Checks if the current instruction should be executed based on its
+// condition bits.
+DART_FORCE_INLINE bool Simulator::ConditionallyExecute(Instr* instr) {
+  switch (instr->ConditionField()) {
+    case EQ:
+      return z_flag_;
+    case NE:
+      return !z_flag_;
+    case CS:
+      return c_flag_;
+    case CC:
+      return !c_flag_;
+    case MI:
+      return n_flag_;
+    case PL:
+      return !n_flag_;
+    case VS:
+      return v_flag_;
+    case VC:
+      return !v_flag_;
+    case HI:
+      return c_flag_ && !z_flag_;
+    case LS:
+      return !c_flag_ || z_flag_;
+    case GE:
+      return n_flag_ == v_flag_;
+    case LT:
+      return n_flag_ != v_flag_;
+    case GT:
+      return !z_flag_ && (n_flag_ == v_flag_);
+    case LE:
+      return z_flag_ || (n_flag_ != v_flag_);
+    case AL:
+      return true;
+    default:
+      UNREACHABLE();
+  }
+  return false;
+}
+
+// Calculate and set the Negative and Zero flags.
+DART_FORCE_INLINE void Simulator::SetNZFlags(int32_t val) {
+  n_flag_ = (val < 0);
+  z_flag_ = (val == 0);
+}
+
+// Set the Carry flag.
+DART_FORCE_INLINE void Simulator::SetCFlag(bool val) {
+  c_flag_ = val;
+}
+
+// Set the oVerflow flag.
+DART_FORCE_INLINE void Simulator::SetVFlag(bool val) {
+  v_flag_ = val;
+}
+
+// Calculate C flag value for additions (and subtractions with adjusted args).
+DART_FORCE_INLINE bool Simulator::CarryFrom(int32_t left,
+                                            int32_t right,
+                                            int32_t carry) {
+  uint64_t uleft = static_cast<uint32_t>(left);
+  uint64_t uright = static_cast<uint32_t>(right);
+  uint64_t ucarry = static_cast<uint32_t>(carry);
+  return ((uleft + uright + ucarry) >> 32) != 0;
+}
+
+// Calculate V flag value for additions (and subtractions with adjusted args).
+DART_FORCE_INLINE bool Simulator::OverflowFrom(int32_t left,
+                                               int32_t right,
+                                               int32_t carry) {
+  int64_t result = static_cast<int64_t>(left) + right + carry;
+  return (result >> 31) != (result >> 32);
+}
+
+// Addressing Mode 1 - Data-processing operands:
+// Get the value based on the shifter_operand with register.
+int32_t Simulator::GetShiftRm(Instr* instr, bool* carry_out) {
+  Shift shift = instr->ShiftField();
+  int shift_amount = instr->ShiftAmountField();
+  int32_t result = get_register(instr->RmField());
+  if (instr->Bit(4) == 0) {
+    // by immediate
+    if ((shift == ROR) && (shift_amount == 0)) {
+      UnimplementedInstruction(instr);
+    } else if (((shift == LSR) || (shift == ASR)) && (shift_amount == 0)) {
+      shift_amount = 32;
+    }
+    switch (shift) {
+      case ASR: {
+        if (shift_amount == 0) {
+          if (result < 0) {
+            result = 0xffffffff;
+            *carry_out = true;
+          } else {
+            result = 0;
+            *carry_out = false;
+          }
+        } else {
+          result >>= (shift_amount - 1);
+          *carry_out = (result & 1) == 1;
+          result >>= 1;
+        }
+        break;
+      }
+
+      case LSL: {
+        if (shift_amount == 0) {
+          *carry_out = c_flag_;
+        } else {
+          result = static_cast<uint32_t>(result) << (shift_amount - 1);
+          *carry_out = (result < 0);
+          result = static_cast<uint32_t>(result) << 1;
+        }
+        break;
+      }
+
+      case LSR: {
+        if (shift_amount == 0) {
+          result = 0;
+          *carry_out = c_flag_;
+        } else {
+          uint32_t uresult = static_cast<uint32_t>(result);
+          uresult >>= (shift_amount - 1);
+          *carry_out = (uresult & 1) == 1;
+          uresult >>= 1;
+          result = static_cast<int32_t>(uresult);
+        }
+        break;
+      }
+
+      case ROR: {
+        UnimplementedInstruction(instr);
+        break;
+      }
+
+      default: {
+        UNREACHABLE();
+        break;
+      }
+    }
+  } else {
+    // by register
+    Register rs = instr->RsField();
+    shift_amount = get_register(rs) & 0xff;
+    switch (shift) {
+      case ASR: {
+        if (shift_amount == 0) {
+          *carry_out = c_flag_;
+        } else if (shift_amount < 32) {
+          result >>= (shift_amount - 1);
+          *carry_out = (result & 1) == 1;
+          result >>= 1;
+        } else {
+          ASSERT(shift_amount >= 32);
+          if (result < 0) {
+            *carry_out = true;
+            result = 0xffffffff;
+          } else {
+            *carry_out = false;
+            result = 0;
+          }
+        }
+        break;
+      }
+
+      case LSL: {
+        if (shift_amount == 0) {
+          *carry_out = c_flag_;
+        } else if (shift_amount < 32) {
+          result = static_cast<uint32_t>(result) << (shift_amount - 1);
+          *carry_out = (result < 0);
+          result = static_cast<uint32_t>(result) << 1;
+        } else if (shift_amount == 32) {
+          *carry_out = (result & 1) == 1;
+          result = 0;
+        } else {
+          ASSERT(shift_amount > 32);
+          *carry_out = false;
+          result = 0;
+        }
+        break;
+      }
+
+      case LSR: {
+        if (shift_amount == 0) {
+          *carry_out = c_flag_;
+        } else if (shift_amount < 32) {
+          uint32_t uresult = static_cast<uint32_t>(result);
+          uresult >>= (shift_amount - 1);
+          *carry_out = (uresult & 1) == 1;
+          uresult >>= 1;
+          result = static_cast<int32_t>(uresult);
+        } else if (shift_amount == 32) {
+          *carry_out = (result < 0);
+          result = 0;
+        } else {
+          *carry_out = false;
+          result = 0;
+        }
+        break;
+      }
+
+      case ROR: {
+        UnimplementedInstruction(instr);
+        break;
+      }
+
+      default: {
+        UNREACHABLE();
+        break;
+      }
+    }
+  }
+  return result;
+}
+
+// Addressing Mode 1 - Data-processing operands:
+// Get the value based on the shifter_operand with immediate.
+DART_FORCE_INLINE int32_t Simulator::GetImm(Instr* instr, bool* carry_out) {
+  uint8_t rotate = instr->RotateField() * 2;
+  int32_t immed8 = instr->Immed8Field();
+  int32_t imm = Utils::RotateRight(immed8, rotate);
+  *carry_out = (rotate == 0) ? c_flag_ : (imm < 0);
+  return imm;
+}
+
+// Addressing Mode 4 - Load and Store Multiple
+void Simulator::HandleRList(Instr* instr, bool load) {
+  Register rn = instr->RnField();
+  int32_t rn_val = get_register(rn);
+  int rlist = instr->RlistField();
+  int num_regs = Utils::CountOneBits32(static_cast<uint32_t>(rlist));
+
+  uword address = 0;
+  uword end_address = 0;
+  switch (instr->PUField()) {
+    case 0: {
+      // Print("da");
+      address = rn_val - (num_regs * 4) + 4;
+      end_address = rn_val + 4;
+      rn_val = rn_val - (num_regs * 4);
+      break;
+    }
+    case 1: {
+      // Print("ia");
+      address = rn_val;
+      end_address = rn_val + (num_regs * 4);
+      rn_val = rn_val + (num_regs * 4);
+      break;
+    }
+    case 2: {
+      // Print("db");
+      address = rn_val - (num_regs * 4);
+      end_address = rn_val;
+      rn_val = address;
+      break;
+    }
+    case 3: {
+      // Print("ib");
+      address = rn_val + 4;
+      end_address = rn_val + (num_regs * 4) + 4;
+      rn_val = rn_val + (num_regs * 4);
+      break;
+    }
+    default: {
+      UNREACHABLE();
+      break;
+    }
+  }
+  if (IsIllegalAddress(address)) {
+    HandleIllegalAccess(address, instr);
+  } else {
+    if (instr->HasW()) {
+      set_register(rn, rn_val);
+    }
+
+    // Special case `ldmia {fp, lr/pc}` for LeaveDartFrame[AndReturn] so that
+    // the profiler does not get confused by observing the update to fp before
+    // lr/pc when our caller is the entry stub, i.e., failing to identify the
+    // entry frame. On real hardware, the profiler's signal handler cannot
+    // observe a partially executued load-multiple instruction.
+    if (load && rlist == ((1 << FP) | (1 << PC))) {
+      COMPILE_ASSERT(FP < PC);
+      int32_t new_fp = ReadW(address, instr);
+      address += 4;
+      int32_t new_pc = ReadW(address, instr);
+      address += 4;
+      set_register(PC, new_pc);
+      set_register(FP, new_fp);
+    } else if (load && rlist == ((1 << FP) | (1 << LR))) {
+      COMPILE_ASSERT(FP < LR);
+      int32_t new_fp = ReadW(address, instr);
+      address += 4;
+      int32_t new_lr = ReadW(address, instr);
+      address += 4;
+      set_register(LR, new_lr);
+      set_register(FP, new_fp);
+    } else {
+      int reg = 0;
+      while (rlist != 0) {
+        if ((rlist & 1) != 0) {
+          if (load) {
+            set_register(static_cast<Register>(reg), ReadW(address, instr));
+          } else {
+            WriteW(address, get_register(static_cast<Register>(reg)), instr);
+          }
+          address += 4;
+        }
+        reg++;
+        rlist >>= 1;
+      }
+    }
+    ASSERT(end_address == address);
+  }
+}
+
+// Calls into the Dart runtime are based on this interface.
+typedef void (*SimulatorRuntimeCall)(NativeArguments arguments);
+
+// Calls to leaf Dart runtime functions are based on this interface.
+typedef int32_t (*SimulatorLeafRuntimeCall)(int32_t r0,
+                                            int32_t r1,
+                                            int32_t r2,
+                                            int32_t r3,
+                                            int32_t r4);
+
+// [target] has several different signatures that differ from
+// SimulatorLeafRuntimeCall. We can call them all from here only because in
+// IA32's calling convention a function can be called with extra arguments
+// and the callee will see the first arguments and won't unbalance the stack.
+NO_SANITIZE_UNDEFINED_FUNCTION
+static int32_t InvokeLeafRuntime(SimulatorLeafRuntimeCall target,
+                                 int32_t r0,
+                                 int32_t r1,
+                                 int32_t r2,
+                                 int32_t r3,
+                                 int32_t r4) {
+  return target(r0, r1, r2, r3, r4);
+}
+
+// Calls to leaf float Dart runtime functions are based on this interface.
+typedef double (*SimulatorLeafFloatRuntimeCall)(double d0, double d1);
+
+// [target] has several different signatures that differ from
+// SimulatorFloatLeafRuntimeCall. We can call them all from here only because
+// IA32's calling convention a function can be called with extra arguments
+// and the callee will see the first arguments and won't unbalance the stack.
+NO_SANITIZE_UNDEFINED_FUNCTION
+static double InvokeFloatLeafRuntime(SimulatorLeafFloatRuntimeCall target,
+                                     double d0,
+                                     double d1) {
+  return target(d0, d1);
+}
+
+// Calls to native Dart functions are based on this interface.
+typedef void (*SimulatorNativeCallWrapper)(Dart_NativeArguments arguments,
+                                           Dart_NativeFunction target);
+
+void Simulator::SupervisorCall(Instr* instr) {
+  // We can't instrument the runtime.
+  memory_.FlushAll();
+
+  int svc = instr->SvcField();
+  switch (svc) {
+    case Instr::kSimulatorRedirectCode: {
+      ASSERT(Utils::IsAligned(get_register(SPREG),
+                              OS::ActivationFrameAlignment()));
+
+      SimulatorSetjmpBuffer buffer(this);
+
+      if (!DART_SETJMP(buffer.buffer_)) {
+        int32_t saved_lr = get_register(LR);
+        Redirection* redirection = Redirection::FromSvcInstruction(instr);
+        uword external = redirection->external_function();
+        if (IsTracingExecution()) {
+          THR_Print("Call to host function at 0x%" Px "\n", external);
+        }
+        if (redirection->call_kind() == kRuntimeCall) {
+          NativeArguments arguments;
+          ASSERT(sizeof(NativeArguments) == 4 * kWordSize);
+          arguments.thread_ = reinterpret_cast<Thread*>(get_register(R0));
+          arguments.argc_tag_ = get_register(R1);
+          arguments.argv_ = reinterpret_cast<ObjectPtr*>(get_register(R2));
+          arguments.retval_ = reinterpret_cast<ObjectPtr*>(get_register(R3));
+          SimulatorRuntimeCall target =
+              reinterpret_cast<SimulatorRuntimeCall>(external);
+          target(arguments);
+          ClobberVolatileRegisters();
+        } else if (redirection->call_kind() == kLeafRuntimeCall) {
+          ASSERT((0 <= redirection->argument_count()) &&
+                 (redirection->argument_count() <= 5));
+          int32_t r0 = get_register(R0);
+          int32_t r1 = get_register(R1);
+          int32_t r2 = get_register(R2);
+          int32_t r3 = get_register(R3);
+          int32_t r4 = *reinterpret_cast<int32_t*>(get_register(SP));
+          SimulatorLeafRuntimeCall target =
+              reinterpret_cast<SimulatorLeafRuntimeCall>(external);
+          r0 = InvokeLeafRuntime(target, r0, r1, r2, r3, r4);
+          ClobberVolatileRegisters();
+          set_register(R0, r0);  // Set returned result from function.
+        } else if (redirection->call_kind() == kLeafFloatRuntimeCall) {
+          ASSERT((0 <= redirection->argument_count()) &&
+                 (redirection->argument_count() <= 2));
+          SimulatorLeafFloatRuntimeCall target =
+              reinterpret_cast<SimulatorLeafFloatRuntimeCall>(external);
+          if (TargetCPUFeatures::hardfp_supported()) {
+            // If we're doing "hardfp", the double arguments are already in the
+            // floating point registers.
+            double d0 = get_dregister(D0);
+            double d1 = get_dregister(D1);
+            d0 = InvokeFloatLeafRuntime(target, d0, d1);
+            ClobberVolatileRegisters();
+            set_dregister(D0, d0);
+          } else {
+            // If we're not doing "hardfp", we must be doing "soft" or "softfp",
+            // So take the double arguments from the integer registers.
+            uint32_t r0 = get_register(R0);
+            int32_t r1 = get_register(R1);
+            uint32_t r2 = get_register(R2);
+            int32_t r3 = get_register(R3);
+            int64_t a0 = Utils::LowHighTo64Bits(r0, r1);
+            int64_t a1 = Utils::LowHighTo64Bits(r2, r3);
+            double d0 = bit_cast<double, int64_t>(a0);
+            double d1 = bit_cast<double, int64_t>(a1);
+            d0 = InvokeFloatLeafRuntime(target, d0, d1);
+            ClobberVolatileRegisters();
+            a0 = bit_cast<int64_t, double>(d0);
+            r0 = Utils::Low32Bits(a0);
+            r1 = Utils::High32Bits(a0);
+            set_register(R0, r0);
+            set_register(R1, r1);
+          }
+        } else {
+          ASSERT(redirection->call_kind() == kNativeCallWrapper);
+          SimulatorNativeCallWrapper wrapper =
+              reinterpret_cast<SimulatorNativeCallWrapper>(external);
+          Dart_NativeArguments arguments =
+              reinterpret_cast<Dart_NativeArguments>(get_register(R0));
+          Dart_NativeFunction target_func =
+              reinterpret_cast<Dart_NativeFunction>(get_register(R1));
+          wrapper(arguments, target_func);
+          ClobberVolatileRegisters();
+        }
+
+        // Return.
+        set_pc(saved_lr);
+      } else {
+        // Coming via long jump from a throw. Continue to exception handler.
+      }
+
+      break;
+    }
+    case Instr::kSimulatorBreakCode: {
+      SimulatorDebugger dbg(this);
+      dbg.Stop(instr, "breakpoint");
+      break;
+    }
+    default: {
+      UNREACHABLE();
+      break;
+    }
+  }
+}
+
+void Simulator::ClobberVolatileRegisters() {
+  // Clear atomic reservation.
+  exclusive_access_addr_ = exclusive_access_value_ = 0;
+
+  for (intptr_t i = 0; i < kNumberOfCpuRegisters; i++) {
+    if ((kAbiVolatileCpuRegs & (1 << i)) != 0) {
+      registers_[i] = random_.NextUInt32();
+    }
+  }
+
+  double zap_dvalue = static_cast<double>(icount_);
+  for (int i = D0; i <= D7; i++) {
+    set_dregister(static_cast<DRegister>(i), zap_dvalue);
+  }
+  // The above loop also zaps overlapping registers S2-S15.
+  // Registers D8-D15 (overlapping with S16-S31) are preserved.
+#if defined(VFPv3_D32)
+  for (int i = D16; i <= D31; i++) {
+    set_dregister(static_cast<DRegister>(i), zap_dvalue);
+  }
+#endif
+}
+
+// Handle execution based on instruction types.
+
+// Instruction types 0 and 1 are both rolled into one function because they
+// only differ in the handling of the shifter_operand.
+DART_FORCE_INLINE void Simulator::DecodeType01(Instr* instr) {
+  if (!instr->IsDataProcessing()) {
+    // miscellaneous, multiply, sync primitives, extra loads and stores.
+    if (instr->IsMiscellaneous()) {
+      switch (instr->Bits(4, 3)) {
+        case 1: {
+          if (instr->Bits(21, 2) == 0x3) {
+            // Format(instr, "clz'cond 'rd, 'rm");
+            Register rm = instr->RmField();
+            Register rd = instr->RdField();
+            int32_t rm_val = get_register(rm);
+            int32_t rd_val = 0;
+            if (rm_val != 0) {
+              while (rm_val > 0) {
+                rd_val++;
+                rm_val <<= 1;
+              }
+            } else {
+              rd_val = 32;
+            }
+            set_register(rd, rd_val);
+          } else {
+            ASSERT(instr->Bits(21, 2) == 0x1);
+            // Format(instr, "bx'cond 'rm");
+            Register rm = instr->RmField();
+            int32_t rm_val = get_register(rm);
+            set_pc(rm_val);
+          }
+          break;
+        }
+        case 3: {
+          ASSERT(instr->Bits(21, 2) == 0x1);
+          // Format(instr, "blx'cond 'rm");
+          Register rm = instr->RmField();
+          int32_t rm_val = get_register(rm);
+          intptr_t pc = get_pc();
+          // Set LR first so that the profiler does not get confused by
+          // observing the update to PC without the update to LR when we are
+          // calling out of the entry stub, i.e., failing to indentify the entry
+          // stub. On real hardware, the profiler's signal handler cannot
+          // observe a partially execute BLR.
+          set_register(LR, pc + Instr::kInstrSize);
+          set_pc(rm_val);
+          break;
+        }
+        case 7: {
+          if ((instr->Bits(21, 2) == 0x1) && (instr->ConditionField() == AL)) {
+            // Format(instr, "bkpt #'imm12_4");
+            SimulatorDebugger dbg(this);
+            int32_t imm = instr->BkptField();
+            char buffer[32];
+            snprintf(buffer, sizeof(buffer), "bkpt #0x%x", imm);
+            set_pc(get_pc() + Instr::kInstrSize);
+            dbg.Stop(instr, buffer);
+          } else {
+            // Format(instr, "smc'cond");
+            UnimplementedInstruction(instr);
+          }
+          break;
+        }
+        default: {
+          UnimplementedInstruction(instr);
+          break;
+        }
+      }
+    } else if (instr->IsMultiplyOrSyncPrimitive()) {
+      if (instr->Bit(24) == 0) {
+        // multiply instructions.
+        Register rn = instr->RnField();
+        Register rd = instr->RdField();
+        Register rs = instr->RsField();
+        Register rm = instr->RmField();
+        uint32_t rm_val = get_register(rm);
+        uint32_t rs_val = get_register(rs);
+        uint32_t rd_val = 0;
+        switch (instr->Bits(21, 3)) {
+          case 1:
+          // Registers rd, rn, rm, ra are encoded as rn, rm, rs, rd.
+          // Format(instr, "mla'cond's 'rn, 'rm, 'rs, 'rd");
+          case 3: {
+            // Registers rd, rn, rm, ra are encoded as rn, rm, rs, rd.
+            // Format(instr, "mls'cond's 'rn, 'rm, 'rs, 'rd");
+            rd_val = get_register(rd);
+            FALL_THROUGH;
+          }
+          case 0: {
+            // Registers rd, rn, rm are encoded as rn, rm, rs.
+            // Format(instr, "mul'cond's 'rn, 'rm, 'rs");
+            uint32_t alu_out = rm_val * rs_val;
+            if (instr->Bits(21, 3) == 3) {  // mls
+              alu_out = -alu_out;
+            }
+            alu_out += rd_val;
+            set_register(rn, alu_out);
+            if (instr->HasS()) {
+              SetNZFlags(alu_out);
+            }
+            break;
+          }
+          case 4:
+          // Registers rd_lo, rd_hi, rn, rm are encoded as rd, rn, rm, rs.
+          // Format(instr, "umull'cond's 'rd, 'rn, 'rm, 'rs");
+          case 6: {
+            // Registers rd_lo, rd_hi, rn, rm are encoded as rd, rn, rm, rs.
+            // Format(instr, "smull'cond's 'rd, 'rn, 'rm, 'rs");
+            int64_t result;
+            if (instr->Bits(21, 3) == 4) {  // umull
+              uint64_t left_op = static_cast<uint32_t>(rm_val);
+              uint64_t right_op = static_cast<uint32_t>(rs_val);
+              result = left_op * right_op;  // Unsigned multiplication.
+            } else {                        // smull
+              int64_t left_op = static_cast<int32_t>(rm_val);
+              int64_t right_op = static_cast<int32_t>(rs_val);
+              result = left_op * right_op;  // Signed multiplication.
+            }
+            int32_t hi_res = Utils::High32Bits(result);
+            int32_t lo_res = Utils::Low32Bits(result);
+            set_register(rd, lo_res);
+            set_register(rn, hi_res);
+            if (instr->HasS()) {
+              if (lo_res != 0) {
+                // Collapse bits 0..31 into bit 32 so that 32-bit Z check works.
+                hi_res |= 1;
+              }
+              ASSERT((result == 0) == (hi_res == 0));                 // Z bit
+              ASSERT(((result & (1LL << 63)) != 0) == (hi_res < 0));  // N bit
+              SetNZFlags(hi_res);
+            }
+            break;
+          }
+          case 2:
+            // Registers rd_lo, rd_hi, rn, rm are encoded as rd, rn, rm, rs.
+            // Format(instr, "umaal'cond's 'rd, 'rn, 'rm, 'rs");
+            FALL_THROUGH;
+          case 5:
+            // Registers rd_lo, rd_hi, rn, rm are encoded as rd, rn, rm, rs.
+            // Format(instr, "umlal'cond's 'rd, 'rn, 'rm, 'rs");
+            FALL_THROUGH;
+          case 7: {
+            // Registers rd_lo, rd_hi, rn, rm are encoded as rd, rn, rm, rs.
+            // Format(instr, "smlal'cond's 'rd, 'rn, 'rm, 'rs");
+            int32_t rd_lo_val = get_register(rd);
+            int32_t rd_hi_val = get_register(rn);
+            uint32_t accum_lo = static_cast<uint32_t>(rd_lo_val);
+            int32_t accum_hi = static_cast<int32_t>(rd_hi_val);
+            int64_t accum = Utils::LowHighTo64Bits(accum_lo, accum_hi);
+            int64_t result;
+            if (instr->Bits(21, 3) == 5) {  // umlal
+              uint64_t left_op = static_cast<uint32_t>(rm_val);
+              uint64_t right_op = static_cast<uint32_t>(rs_val);
+              result = accum + left_op * right_op;  // Unsigned multiplication.
+            } else if (instr->Bits(21, 3) == 7) {   // smlal
+              int64_t left_op = static_cast<int32_t>(rm_val);
+              int64_t right_op = static_cast<int32_t>(rs_val);
+              result = accum + left_op * right_op;  // Signed multiplication.
+            } else {
+              ASSERT(instr->Bits(21, 3) == 2);  // umaal
+              ASSERT(!instr->HasS());
+              uint64_t left_op = static_cast<uint32_t>(rm_val);
+              uint64_t right_op = static_cast<uint32_t>(rs_val);
+              result = left_op * right_op +  // Unsigned multiplication.
+                       static_cast<uint32_t>(rd_lo_val) +
+                       static_cast<uint32_t>(rd_hi_val);
+            }
+            int32_t hi_res = Utils::High32Bits(result);
+            int32_t lo_res = Utils::Low32Bits(result);
+            set_register(rd, lo_res);
+            set_register(rn, hi_res);
+            if (instr->HasS()) {
+              if (lo_res != 0) {
+                // Collapse bits 0..31 into bit 32 so that 32-bit Z check works.
+                hi_res |= 1;
+              }
+              ASSERT((result == 0) == (hi_res == 0));                 // Z bit
+              ASSERT(((result & (1LL << 63)) != 0) == (hi_res < 0));  // N bit
+              SetNZFlags(hi_res);
+            }
+            break;
+          }
+          default: {
+            UnimplementedInstruction(instr);
+            break;
+          }
+        }
+      } else {
+        // synchronization primitives
+        Register rd = instr->RdField();
+        Register rn = instr->RnField();
+        uword addr = get_register(rn);
+        switch (instr->Bits(20, 4)) {
+          case 8: {
+            // Format(instr, "strex'cond 'rd, 'rm, ['rn]");
+            if (IsIllegalAddress(addr)) {
+              HandleIllegalAccess(addr, instr);
+            } else {
+              Register rm = instr->RmField();
+              set_register(rd, WriteExclusiveW(addr, get_register(rm), instr));
+            }
+            break;
+          }
+          case 9: {
+            // Format(instr, "ldrex'cond 'rd, ['rn]");
+            if (IsIllegalAddress(addr)) {
+              HandleIllegalAccess(addr, instr);
+            } else {
+              set_register(rd, ReadExclusiveW(addr, instr));
+            }
+            break;
+          }
+          default: {
+            UnimplementedInstruction(instr);
+            break;
+          }
+        }
+      }
+    } else if (instr->Bit(25) == 1) {
+      // 16-bit immediate loads, msr (immediate), and hints
+      switch (instr->Bits(20, 5)) {
+        case 16:
+        case 20: {
+          uint16_t imm16 = instr->MovwField();
+          Register rd = instr->RdField();
+          if (instr->Bit(22) == 0) {
+            // Format(instr, "movw'cond 'rd, #'imm4_12");
+            set_register(rd, imm16);
+          } else {
+            // Format(instr, "movt'cond 'rd, #'imm4_12");
+            set_register(rd, (get_register(rd) & 0xffff) | (imm16 << 16));
+          }
+          break;
+        }
+        case 18: {
+          if ((instr->Bits(16, 4) == 0) && (instr->Bits(0, 8) == 0)) {
+            // Format(instr, "nop'cond");
+          } else {
+            UnimplementedInstruction(instr);
+          }
+          break;
+        }
+        default: {
+          UnimplementedInstruction(instr);
+          break;
+        }
+      }
+    } else {
+      // extra load/store instructions
+      Register rd = instr->RdField();
+      Register rn = instr->RnField();
+      int32_t rn_val = get_register(rn);
+      uword addr = 0;
+      bool write_back = false;
+      if (instr->Bit(22) == 0) {
+        Register rm = instr->RmField();
+        int32_t rm_val = get_register(rm);
+        switch (instr->PUField()) {
+          case 0: {
+            // Format(instr, "'memop'cond'x 'rd2, ['rn], -'rm");
+            ASSERT(!instr->HasW());
+            addr = rn_val;
+            rn_val -= rm_val;
+            write_back = true;
+            break;
+          }
+          case 1: {
+            // Format(instr, "'memop'cond'x 'rd2, ['rn], +'rm");
+            ASSERT(!instr->HasW());
+            addr = rn_val;
+            rn_val += rm_val;
+            write_back = true;
+            break;
+          }
+          case 2: {
+            // Format(instr, "'memop'cond'x 'rd2, ['rn, -'rm]'w");
+            rn_val -= rm_val;
+            addr = rn_val;
+            write_back = instr->HasW();
+            break;
+          }
+          case 3: {
+            // Format(instr, "'memop'cond'x 'rd2, ['rn, +'rm]'w");
+            rn_val += rm_val;
+            addr = rn_val;
+            write_back = instr->HasW();
+            break;
+          }
+          default: {
+            // The PU field is a 2-bit field.
+            UNREACHABLE();
+            break;
+          }
+        }
+      } else {
+        int32_t imm_val = (instr->ImmedHField() << 4) | instr->ImmedLField();
+        switch (instr->PUField()) {
+          case 0: {
+            // Format(instr, "'memop'cond'x 'rd2, ['rn], #-'off8");
+            ASSERT(!instr->HasW());
+            addr = rn_val;
+            rn_val -= imm_val;
+            write_back = true;
+            break;
+          }
+          case 1: {
+            // Format(instr, "'memop'cond'x 'rd2, ['rn], #+'off8");
+            ASSERT(!instr->HasW());
+            addr = rn_val;
+            rn_val += imm_val;
+            write_back = true;
+            break;
+          }
+          case 2: {
+            // Format(instr, "'memop'cond'x 'rd2, ['rn, #-'off8]'w");
+            rn_val -= imm_val;
+            addr = rn_val;
+            write_back = instr->HasW();
+            break;
+          }
+          case 3: {
+            // Format(instr, "'memop'cond'x 'rd2, ['rn, #+'off8]'w");
+            rn_val += imm_val;
+            addr = rn_val;
+            write_back = instr->HasW();
+            break;
+          }
+          default: {
+            // The PU field is a 2-bit field.
+            UNREACHABLE();
+            break;
+          }
+        }
+      }
+      if (IsIllegalAddress(addr)) {
+        HandleIllegalAccess(addr, instr);
+      } else {
+        if (write_back) {
+          ASSERT(rd != rn);  // Unpredictable.
+          set_register(rn, rn_val);
+        }
+        if (!instr->HasSign()) {
+          if (instr->HasL()) {
+            uint16_t val = ReadHU(addr, instr);
+            set_register(rd, val);
+          } else {
+            uint16_t val = get_register(rd);
+            WriteH(addr, val, instr);
+          }
+        } else if (instr->HasL()) {
+          if (instr->HasH()) {
+            int16_t val = ReadH(addr, instr);
+            set_register(rd, val);
+          } else {
+            int8_t val = ReadB(addr);
+            set_register(rd, val);
+          }
+        } else if ((rd & 1) == 0) {
+          Register rd1 = static_cast<Register>(rd | 1);
+          ASSERT(rd1 < kNumberOfCpuRegisters);
+          if (instr->HasH()) {
+            int32_t val_low = get_register(rd);
+            int32_t val_high = get_register(rd1);
+            WriteW(addr, val_low, instr);
+            WriteW(addr + 4, val_high, instr);
+          } else {
+            int32_t val_low = ReadW(addr, instr);
+            int32_t val_high = ReadW(addr + 4, instr);
+            set_register(rd, val_low);
+            set_register(rd1, val_high);
+          }
+        } else {
+          UnimplementedInstruction(instr);
+        }
+      }
+    }
+  } else {
+    Register rd = instr->RdField();
+    Register rn = instr->RnField();
+    uint32_t rn_val = get_register(rn);
+    uint32_t shifter_operand = 0;
+    bool shifter_carry_out = 0;
+    if (instr->TypeField() == 0) {
+      shifter_operand = GetShiftRm(instr, &shifter_carry_out);
+    } else {
+      ASSERT(instr->TypeField() == 1);
+      shifter_operand = GetImm(instr, &shifter_carry_out);
+    }
+    uint32_t carry_in;
+    uint32_t alu_out;
+
+    switch (instr->OpcodeField()) {
+      case AND: {
+        // Format(instr, "and'cond's 'rd, 'rn, 'shift_rm");
+        // Format(instr, "and'cond's 'rd, 'rn, 'imm");
+        alu_out = rn_val & shifter_operand;
+        set_register(rd, alu_out);
+        if (instr->HasS()) {
+          SetNZFlags(alu_out);
+          SetCFlag(shifter_carry_out);
+        }
+        break;
+      }
+
+      case EOR: {
+        // Format(instr, "eor'cond's 'rd, 'rn, 'shift_rm");
+        // Format(instr, "eor'cond's 'rd, 'rn, 'imm");
+        alu_out = rn_val ^ shifter_operand;
+        set_register(rd, alu_out);
+        if (instr->HasS()) {
+          SetNZFlags(alu_out);
+          SetCFlag(shifter_carry_out);
+        }
+        break;
+      }
+
+      case SUB: {
+        // Format(instr, "sub'cond's 'rd, 'rn, 'shift_rm");
+        // Format(instr, "sub'cond's 'rd, 'rn, 'imm");
+        alu_out = rn_val - shifter_operand;
+        set_register(rd, alu_out);
+        if (instr->HasS()) {
+          SetNZFlags(alu_out);
+          SetCFlag(CarryFrom(rn_val, ~shifter_operand, 1));
+          SetVFlag(OverflowFrom(rn_val, ~shifter_operand, 1));
+        }
+        break;
+      }
+
+      case RSB: {
+        // Format(instr, "rsb'cond's 'rd, 'rn, 'shift_rm");
+        // Format(instr, "rsb'cond's 'rd, 'rn, 'imm");
+        alu_out = shifter_operand - rn_val;
+        set_register(rd, alu_out);
+        if (instr->HasS()) {
+          SetNZFlags(alu_out);
+          SetCFlag(CarryFrom(shifter_operand, ~rn_val, 1));
+          SetVFlag(OverflowFrom(shifter_operand, ~rn_val, 1));
+        }
+        break;
+      }
+
+      case ADD: {
+        // Format(instr, "add'cond's 'rd, 'rn, 'shift_rm");
+        // Format(instr, "add'cond's 'rd, 'rn, 'imm");
+        alu_out = rn_val + shifter_operand;
+        set_register(rd, alu_out);
+        if (instr->HasS()) {
+          SetNZFlags(alu_out);
+          SetCFlag(CarryFrom(rn_val, shifter_operand, 0));
+          SetVFlag(OverflowFrom(rn_val, shifter_operand, 0));
+        }
+        break;
+      }
+
+      case ADC: {
+        // Format(instr, "adc'cond's 'rd, 'rn, 'shift_rm");
+        // Format(instr, "adc'cond's 'rd, 'rn, 'imm");
+        carry_in = c_flag_ ? 1 : 0;
+        alu_out = rn_val + shifter_operand + carry_in;
+        set_register(rd, alu_out);
+        if (instr->HasS()) {
+          SetNZFlags(alu_out);
+          SetCFlag(CarryFrom(rn_val, shifter_operand, carry_in));
+          SetVFlag(OverflowFrom(rn_val, shifter_operand, carry_in));
+        }
+        break;
+      }
+
+      case SBC: {
+        // Format(instr, "sbc'cond's 'rd, 'rn, 'shift_rm");
+        // Format(instr, "sbc'cond's 'rd, 'rn, 'imm");
+        carry_in = c_flag_ ? 1 : 0;
+        alu_out = rn_val + ~shifter_operand + carry_in;
+        set_register(rd, alu_out);
+        if (instr->HasS()) {
+          SetNZFlags(alu_out);
+          SetCFlag(CarryFrom(rn_val, ~shifter_operand, carry_in));
+          SetVFlag(OverflowFrom(rn_val, ~shifter_operand, carry_in));
+        }
+        break;
+      }
+
+      case RSC: {
+        // Format(instr, "rsc'cond's 'rd, 'rn, 'shift_rm");
+        // Format(instr, "rsc'cond's 'rd, 'rn, 'imm");
+        carry_in = c_flag_ ? 1 : 0;
+        alu_out = shifter_operand + ~rn_val + carry_in;
+        set_register(rd, alu_out);
+        if (instr->HasS()) {
+          SetNZFlags(alu_out);
+          SetCFlag(CarryFrom(shifter_operand, ~rn_val, carry_in));
+          SetVFlag(OverflowFrom(shifter_operand, ~rn_val, carry_in));
+        }
+        break;
+      }
+
+      case TST: {
+        if (instr->HasS()) {
+          // Format(instr, "tst'cond 'rn, 'shift_rm");
+          // Format(instr, "tst'cond 'rn, 'imm");
+          alu_out = rn_val & shifter_operand;
+          SetNZFlags(alu_out);
+          SetCFlag(shifter_carry_out);
+        } else {
+          UnimplementedInstruction(instr);
+        }
+        break;
+      }
+
+      case TEQ: {
+        if (instr->HasS()) {
+          // Format(instr, "teq'cond 'rn, 'shift_rm");
+          // Format(instr, "teq'cond 'rn, 'imm");
+          alu_out = rn_val ^ shifter_operand;
+          SetNZFlags(alu_out);
+          SetCFlag(shifter_carry_out);
+        } else {
+          UnimplementedInstruction(instr);
+        }
+        break;
+      }
+
+      case CMP: {
+        if (instr->HasS()) {
+          // Format(instr, "cmp'cond 'rn, 'shift_rm");
+          // Format(instr, "cmp'cond 'rn, 'imm");
+          alu_out = rn_val - shifter_operand;
+          SetNZFlags(alu_out);
+          SetCFlag(CarryFrom(rn_val, ~shifter_operand, 1));
+          SetVFlag(OverflowFrom(rn_val, ~shifter_operand, 1));
+        } else {
+          UnimplementedInstruction(instr);
+        }
+        break;
+      }
+
+      case CMN: {
+        if (instr->HasS()) {
+          // Format(instr, "cmn'cond 'rn, 'shift_rm");
+          // Format(instr, "cmn'cond 'rn, 'imm");
+          alu_out = rn_val + shifter_operand;
+          SetNZFlags(alu_out);
+          SetCFlag(CarryFrom(rn_val, shifter_operand, 0));
+          SetVFlag(OverflowFrom(rn_val, shifter_operand, 0));
+        } else {
+          UnimplementedInstruction(instr);
+        }
+        break;
+      }
+
+      case ORR: {
+        // Format(instr, "orr'cond's 'rd, 'rn, 'shift_rm");
+        // Format(instr, "orr'cond's 'rd, 'rn, 'imm");
+        alu_out = rn_val | shifter_operand;
+        set_register(rd, alu_out);
+        if (instr->HasS()) {
+          SetNZFlags(alu_out);
+          SetCFlag(shifter_carry_out);
+        }
+        break;
+      }
+
+      case MOV: {
+        // Format(instr, "mov'cond's 'rd, 'shift_rm");
+        // Format(instr, "mov'cond's 'rd, 'imm");
+        alu_out = shifter_operand;
+        set_register(rd, alu_out);
+        if (instr->HasS()) {
+          SetNZFlags(alu_out);
+          SetCFlag(shifter_carry_out);
+        }
+        break;
+      }
+
+      case BIC: {
+        // Format(instr, "bic'cond's 'rd, 'rn, 'shift_rm");
+        // Format(instr, "bic'cond's 'rd, 'rn, 'imm");
+        alu_out = rn_val & ~shifter_operand;
+        set_register(rd, alu_out);
+        if (instr->HasS()) {
+          SetNZFlags(alu_out);
+          SetCFlag(shifter_carry_out);
+        }
+        break;
+      }
+
+      case MVN: {
+        // Format(instr, "mvn'cond's 'rd, 'shift_rm");
+        // Format(instr, "mvn'cond's 'rd, 'imm");
+        alu_out = ~shifter_operand;
+        set_register(rd, alu_out);
+        if (instr->HasS()) {
+          SetNZFlags(alu_out);
+          SetCFlag(shifter_carry_out);
+        }
+        break;
+      }
+
+      default: {
+        UNREACHABLE();
+        break;
+      }
+    }
+  }
+}
+
+DART_FORCE_INLINE void Simulator::DecodeType2(Instr* instr) {
+  Register rd = instr->RdField();
+  Register rn = instr->RnField();
+  int32_t rn_val = get_register(rn);
+  int32_t im_val = instr->Offset12Field();
+  uword addr = 0;
+  bool write_back = false;
+  switch (instr->PUField()) {
+    case 0: {
+      // Format(instr, "'memop'cond'b 'rd, ['rn], #-'off12");
+      ASSERT(!instr->HasW());
+      addr = rn_val;
+      rn_val -= im_val;
+      write_back = true;
+      break;
+    }
+    case 1: {
+      // Format(instr, "'memop'cond'b 'rd, ['rn], #+'off12");
+      ASSERT(!instr->HasW());
+      addr = rn_val;
+      rn_val += im_val;
+      write_back = true;
+      break;
+    }
+    case 2: {
+      // Format(instr, "'memop'cond'b 'rd, ['rn, #-'off12]'w");
+      rn_val -= im_val;
+      addr = rn_val;
+      write_back = instr->HasW();
+      break;
+    }
+    case 3: {
+      // Format(instr, "'memop'cond'b 'rd, ['rn, #+'off12]'w");
+      rn_val += im_val;
+      addr = rn_val;
+      write_back = instr->HasW();
+      break;
+    }
+    default: {
+      UNREACHABLE();
+      break;
+    }
+  }
+  if (IsIllegalAddress(addr)) {
+    HandleIllegalAccess(addr, instr);
+  } else {
+    if (write_back) {
+      ASSERT(rd != rn);  // Unpredictable.
+      set_register(rn, rn_val);
+    }
+    if (instr->HasB()) {
+      if (instr->HasL()) {
+        unsigned char val = ReadBU(addr);
+        set_register(rd, val);
+      } else {
+        unsigned char val = get_register(rd);
+        WriteB(addr, val);
+      }
+    } else {
+      if (instr->HasL()) {
+        set_register(rd, ReadW(addr, instr));
+      } else {
+        WriteW(addr, get_register(rd), instr);
+      }
+    }
+  }
+}
+
+void Simulator::DoDivision(Instr* instr) {
+  const Register rd = instr->DivRdField();
+  const Register rn = instr->DivRnField();
+  const Register rm = instr->DivRmField();
+
+  if (!TargetCPUFeatures::integer_division_supported()) {
+    UnimplementedInstruction(instr);
+    return;
+  }
+
+  // ARMv7-a does not trap on divide-by-zero. The destination register is just
+  // set to 0.
+  if (get_register(rm) == 0) {
+    set_register(rd, 0);
+    return;
+  }
+
+  if (instr->IsDivUnsigned()) {
+    // unsigned division.
+    uint32_t rn_val = static_cast<uint32_t>(get_register(rn));
+    uint32_t rm_val = static_cast<uint32_t>(get_register(rm));
+    uint32_t result = rn_val / rm_val;
+    set_register(rd, static_cast<int32_t>(result));
+  } else {
+    // signed division.
+    int32_t rn_val = get_register(rn);
+    int32_t rm_val = get_register(rm);
+    int32_t result;
+    if ((rn_val == static_cast<int32_t>(0x80000000)) &&
+        (rm_val == static_cast<int32_t>(0xffffffff))) {
+      result = 0x80000000;
+    } else {
+      result = rn_val / rm_val;
+    }
+    set_register(rd, result);
+  }
+}
+
+void Simulator::DecodeType3(Instr* instr) {
+  if (instr->IsMedia()) {
+    if (instr->IsDivision()) {
+      DoDivision(instr);
+      return;
+    } else if (instr->IsRbit()) {
+      // Format(instr, "rbit'cond 'rd, 'rm");
+      Register rm = instr->RmField();
+      Register rd = instr->RdField();
+      set_register(rd, Utils::ReverseBits32(get_register(rm)));
+      return;
+    } else if (instr->IsBitFieldExtract()) {
+      // Format(instr, "sbfx'cond 'rd, 'rn, 'lsb, 'width")
+      const Register rd = instr->RdField();
+      const Register rn = instr->BitFieldExtractRnField();
+      const uint8_t width = instr->BitFieldExtractWidthField() + 1;
+      const uint8_t lsb = instr->BitFieldExtractLSBField();
+      const int32_t rn_val = get_register(rn);
+      const uint32_t extracted_bitfield =
+          ((rn_val >> lsb) & Utils::NBitMask(width));
+      const uint32_t sign_extension =
+          (instr->IsBitFieldExtractSignExtended() &&
+           Utils::TestBit(extracted_bitfield, width - 1))
+              ? ~Utils::NBitMask(width)
+              : 0;
+      set_register(rd, sign_extension | extracted_bitfield);
+    } else {
+      UNREACHABLE();
+    }
+    return;
+  }
+  Register rd = instr->RdField();
+  Register rn = instr->RnField();
+  int32_t rn_val = get_register(rn);
+  bool shifter_carry_out = 0;
+  int32_t shifter_operand = GetShiftRm(instr, &shifter_carry_out);
+  uword addr = 0;
+  bool write_back = false;
+  switch (instr->PUField()) {
+    case 0: {
+      // Format(instr, "'memop'cond'b 'rd, ['rn], -'shift_rm");
+      ASSERT(!instr->HasW());
+      addr = rn_val;
+      rn_val -= shifter_operand;
+      write_back = true;
+      break;
+    }
+    case 1: {
+      // Format(instr, "'memop'cond'b 'rd, ['rn], +'shift_rm");
+      ASSERT(!instr->HasW());
+      addr = rn_val;
+      rn_val += shifter_operand;
+      write_back = true;
+      break;
+    }
+    case 2: {
+      // Format(instr, "'memop'cond'b 'rd, ['rn, -'shift_rm]'w");
+      rn_val -= shifter_operand;
+      addr = rn_val;
+      write_back = instr->HasW();
+      break;
+    }
+    case 3: {
+      // Format(instr, "'memop'cond'b 'rd, ['rn, +'shift_rm]'w");
+      rn_val += shifter_operand;
+      addr = rn_val;
+      write_back = instr->HasW();
+      break;
+    }
+    default: {
+      UNREACHABLE();
+      break;
+    }
+  }
+  if (IsIllegalAddress(addr)) {
+    HandleIllegalAccess(addr, instr);
+  } else {
+    if (write_back) {
+      ASSERT(rd != rn);  // Unpredictable.
+      set_register(rn, rn_val);
+    }
+    if (instr->HasB()) {
+      if (instr->HasL()) {
+        unsigned char val = ReadBU(addr);
+        set_register(rd, val);
+      } else {
+        unsigned char val = get_register(rd);
+        WriteB(addr, val);
+      }
+    } else {
+      if (instr->HasL()) {
+        set_register(rd, ReadW(addr, instr));
+      } else {
+        WriteW(addr, get_register(rd), instr);
+      }
+    }
+  }
+}
+
+void Simulator::DecodeType4(Instr* instr) {
+  ASSERT(instr->Bit(22) == 0);  // only allowed to be set in privileged mode
+  if (instr->HasL()) {
+    // Format(instr, "ldm'cond'pu 'rn'w, 'rlist");
+    HandleRList(instr, true);
+  } else {
+    // Format(instr, "stm'cond'pu 'rn'w, 'rlist");
+    HandleRList(instr, false);
+  }
+}
+
+void Simulator::DecodeType5(Instr* instr) {
+  // Format(instr, "b'l'cond 'target");
+  uint32_t off = (static_cast<uint32_t>(instr->SImmed24Field()) << 2) + 8;
+  uint32_t pc = get_pc();
+  if (instr->HasLink()) {
+    set_register(LR, pc + Instr::kInstrSize);
+  }
+  set_pc(pc + off);
+}
+
+void Simulator::DecodeType6(Instr* instr) {
+  if (instr->IsVFPDoubleTransfer()) {
+    Register rd = instr->RdField();
+    Register rn = instr->RnField();
+    if (instr->Bit(8) == 0) {
+      SRegister sm = instr->SmField();
+      SRegister sm1 = static_cast<SRegister>(sm + 1);
+      ASSERT(sm1 < kNumberOfSRegisters);
+      if (instr->Bit(20) == 1) {
+        // Format(instr, "vmovrrs'cond 'rd, 'rn, {'sm', 'sm1}");
+        set_register(rd, get_sregister_bits(sm));
+        set_register(rn, get_sregister_bits(sm1));
+      } else {
+        // Format(instr, "vmovsrr'cond {'sm, 'sm1}, 'rd', 'rn");
+        set_sregister_bits(sm, get_register(rd));
+        set_sregister_bits(sm1, get_register(rn));
+      }
+    } else {
+      DRegister dm = instr->DmField();
+      if (instr->Bit(20) == 1) {
+        // Format(instr, "vmovrrd'cond 'rd, 'rn, 'dm");
+        int64_t dm_val = get_dregister_bits(dm);
+        set_register(rd, Utils::Low32Bits(dm_val));
+        set_register(rn, Utils::High32Bits(dm_val));
+      } else {
+        // Format(instr, "vmovdrr'cond 'dm, 'rd, 'rn");
+        int64_t dm_val =
+            Utils::LowHighTo64Bits(get_register(rd), get_register(rn));
+        set_dregister_bits(dm, dm_val);
+      }
+    }
+  } else if (instr->IsVFPLoadStore()) {
+    Register rn = instr->RnField();
+    int32_t addr = get_register(rn);
+    int32_t imm_val = instr->Bits(0, 8) << 2;
+    if (instr->Bit(23) == 1) {
+      addr += imm_val;
+    } else {
+      addr -= imm_val;
+    }
+    if (IsIllegalAddress(addr)) {
+      HandleIllegalAccess(addr, instr);
+    } else {
+      if (instr->Bit(8) == 0) {
+        SRegister sd = instr->SdField();
+        if (instr->Bit(20) == 1) {  // vldrs
+          // Format(instr, "vldrs'cond 'sd, ['rn, #+'off10]");
+          // Format(instr, "vldrs'cond 'sd, ['rn, #-'off10]");
+          set_sregister_bits(sd, ReadW(addr, instr));
+        } else {  // vstrs
+          // Format(instr, "vstrs'cond 'sd, ['rn, #+'off10]");
+          // Format(instr, "vstrs'cond 'sd, ['rn, #-'off10]");
+          WriteW(addr, get_sregister_bits(sd), instr);
+        }
+      } else {
+        DRegister dd = instr->DdField();
+        if (instr->Bit(20) == 1) {  // vldrd
+          // Format(instr, "vldrd'cond 'dd, ['rn, #+'off10]");
+          // Format(instr, "vldrd'cond 'dd, ['rn, #-'off10]");
+          int64_t dd_val = Utils::LowHighTo64Bits(ReadW(addr, instr),
+                                                  ReadW(addr + 4, instr));
+          set_dregister_bits(dd, dd_val);
+        } else {  // vstrd
+          // Format(instr, "vstrd'cond 'dd, ['rn, #+'off10]");
+          // Format(instr, "vstrd'cond 'dd, ['rn, #-'off10]");
+          int64_t dd_val = get_dregister_bits(dd);
+          WriteW(addr, Utils::Low32Bits(dd_val), instr);
+          WriteW(addr + 4, Utils::High32Bits(dd_val), instr);
+        }
+      }
+    }
+  } else if (instr->IsVFPMultipleLoadStore()) {
+    Register rn = instr->RnField();
+    int32_t addr = get_register(rn);
+    int32_t imm_val = instr->Bits(0, 8);
+    if (instr->Bit(23) == 0) {
+      addr -= (imm_val << 2);
+    }
+    if (instr->HasW()) {
+      if (instr->Bit(23) == 1) {
+        set_register(rn, addr + (imm_val << 2));
+      } else {
+        set_register(rn, addr);  // already subtracted from addr
+      }
+    }
+    if (IsIllegalAddress(addr)) {
+      HandleIllegalAccess(addr, instr);
+    } else {
+      if (instr->Bit(8) == 0) {
+        int32_t regs_cnt = imm_val;
+        int32_t start = instr->Bit(22) | (instr->Bits(12, 4) << 1);
+        for (int i = start; i < start + regs_cnt; i++) {
+          SRegister sd = static_cast<SRegister>(i);
+          if (instr->Bit(20) == 1) {
+            // Format(instr, "vldms'cond'pu 'rn'w, 'slist");
+            set_sregister_bits(sd, ReadW(addr, instr));
+          } else {
+            // Format(instr, "vstms'cond'pu 'rn'w, 'slist");
+            WriteW(addr, get_sregister_bits(sd), instr);
+          }
+          addr += 4;
+        }
+      } else {
+        int32_t regs_cnt = imm_val >> 1;
+        int32_t start = (instr->Bit(22) << 4) | instr->Bits(12, 4);
+        if ((regs_cnt <= 16) && (start + regs_cnt <= kNumberOfDRegisters)) {
+          for (int i = start; i < start + regs_cnt; i++) {
+            DRegister dd = static_cast<DRegister>(i);
+            if (instr->Bit(20) == 1) {
+              // Format(instr, "vldmd'cond'pu 'rn'w, 'dlist");
+              int64_t dd_val = Utils::LowHighTo64Bits(ReadW(addr, instr),
+                                                      ReadW(addr + 4, instr));
+              set_dregister_bits(dd, dd_val);
+            } else {
+              // Format(instr, "vstmd'cond'pu 'rn'w, 'dlist");
+              int64_t dd_val = get_dregister_bits(dd);
+              WriteW(addr, Utils::Low32Bits(dd_val), instr);
+              WriteW(addr + 4, Utils::High32Bits(dd_val), instr);
+            }
+            addr += 8;
+          }
+        } else {
+          UnimplementedInstruction(instr);
+        }
+      }
+    }
+  } else {
+    UnimplementedInstruction(instr);
+  }
+}
+
+void Simulator::DecodeType7(Instr* instr) {
+  if (instr->Bit(24) == 1) {
+    // Format(instr, "svc #'svc");
+    SupervisorCall(instr);
+  } else if (instr->IsVFPDataProcessingOrSingleTransfer()) {
+    if (instr->Bit(4) == 0) {
+      // VFP Data Processing
+      SRegister sd;
+      SRegister sn;
+      SRegister sm;
+      DRegister dd;
+      DRegister dn;
+      DRegister dm;
+      if (instr->Bit(8) == 0) {
+        sd = instr->SdField();
+        sn = instr->SnField();
+        sm = instr->SmField();
+        dd = kNoDRegister;
+        dn = kNoDRegister;
+        dm = kNoDRegister;
+      } else {
+        sd = kNoSRegister;
+        sn = kNoSRegister;
+        sm = kNoSRegister;
+        dd = instr->DdField();
+        dn = instr->DnField();
+        dm = instr->DmField();
+      }
+      switch (instr->Bits(20, 4) & 0xb) {
+        case 1:  // vnmla, vnmls, vnmul
+        default: {
+          UnimplementedInstruction(instr);
+          break;
+        }
+        case 0: {  // vmla, vmls floating-point
+          if (instr->Bit(8) == 0) {
+            float addend = get_sregister(sn) * get_sregister(sm);
+            float sd_val = get_sregister(sd);
+            if (instr->Bit(6) == 0) {
+              // Format(instr, "vmlas'cond 'sd, 'sn, 'sm");
+            } else {
+              // Format(instr, "vmlss'cond 'sd, 'sn, 'sm");
+              addend = -addend;
+            }
+            set_sregister(sd, sd_val + addend);
+          } else {
+            double addend = get_dregister(dn) * get_dregister(dm);
+            double dd_val = get_dregister(dd);
+            if (instr->Bit(6) == 0) {
+              // Format(instr, "vmlad'cond 'dd, 'dn, 'dm");
+            } else {
+              // Format(instr, "vmlsd'cond 'dd, 'dn, 'dm");
+              addend = -addend;
+            }
+            set_dregister(dd, dd_val + addend);
+          }
+          break;
+        }
+        case 2: {  // vmul
+          if (instr->Bit(8) == 0) {
+            // Format(instr, "vmuls'cond 'sd, 'sn, 'sm");
+            set_sregister(sd, get_sregister(sn) * get_sregister(sm));
+          } else {
+            // Format(instr, "vmuld'cond 'dd, 'dn, 'dm");
+            set_dregister(dd, get_dregister(dn) * get_dregister(dm));
+          }
+          break;
+        }
+        case 8: {  // vdiv
+          if (instr->Bit(8) == 0) {
+            // Format(instr, "vdivs'cond 'sd, 'sn, 'sm");
+            set_sregister(sd, get_sregister(sn) / get_sregister(sm));
+          } else {
+            // Format(instr, "vdivd'cond 'dd, 'dn, 'dm");
+            set_dregister(dd, get_dregister(dn) / get_dregister(dm));
+          }
+          break;
+        }
+        case 3: {  // vadd, vsub floating-point
+          if (instr->Bit(8) == 0) {
+            if (instr->Bit(6) == 0) {
+              // Format(instr, "vadds'cond 'sd, 'sn, 'sm");
+              set_sregister(sd, get_sregister(sn) + get_sregister(sm));
+            } else {
+              // Format(instr, "vsubs'cond 'sd, 'sn, 'sm");
+              set_sregister(sd, get_sregister(sn) - get_sregister(sm));
+            }
+          } else {
+            if (instr->Bit(6) == 0) {
+              // Format(instr, "vaddd'cond 'dd, 'dn, 'dm");
+              set_dregister(dd, get_dregister(dn) + get_dregister(dm));
+            } else {
+              // Format(instr, "vsubd'cond 'dd, 'dn, 'dm");
+              set_dregister(dd, get_dregister(dn) - get_dregister(dm));
+            }
+          }
+          break;
+        }
+        case 0xb: {                  // Other VFP data-processing instructions
+          if (instr->Bit(6) == 0) {  // vmov immediate
+            if (instr->Bit(8) == 0) {
+              // Format(instr, "vmovs'cond 'sd, #'immf");
+              set_sregister(sd, instr->ImmFloatField());
+            } else {
+              // Format(instr, "vmovd'cond 'dd, #'immd");
+              set_dregister(dd, instr->ImmDoubleField());
+            }
+            break;
+          }
+          switch (instr->Bits(16, 4)) {
+            case 0: {  // vmov immediate, vmov register, vabs
+              switch (instr->Bits(6, 2)) {
+                case 1: {  // vmov register
+                  if (instr->Bit(8) == 0) {
+                    // Format(instr, "vmovs'cond 'sd, 'sm");
+                    set_sregister(sd, get_sregister(sm));
+                  } else {
+                    // Format(instr, "vmovd'cond 'dd, 'dm");
+                    set_dregister(dd, get_dregister(dm));
+                  }
+                  break;
+                }
+                case 3: {  // vabs
+                  if (instr->Bit(8) == 0) {
+                    // Format(instr, "vabss'cond 'sd, 'sm");
+                    set_sregister(sd, fabsf(get_sregister(sm)));
+                  } else {
+                    // Format(instr, "vabsd'cond 'dd, 'dm");
+                    set_dregister(dd, fabs(get_dregister(dm)));
+                  }
+                  break;
+                }
+                default: {
+                  UnimplementedInstruction(instr);
+                  break;
+                }
+              }
+              break;
+            }
+            case 1: {  // vneg, vsqrt
+              switch (instr->Bits(6, 2)) {
+                case 1: {  // vneg
+                  if (instr->Bit(8) == 0) {
+                    // Format(instr, "vnegs'cond 'sd, 'sm");
+                    set_sregister(sd, -get_sregister(sm));
+                  } else {
+                    // Format(instr, "vnegd'cond 'dd, 'dm");
+                    set_dregister(dd, -get_dregister(dm));
+                  }
+                  break;
+                }
+                case 3: {  // vsqrt
+                  if (instr->Bit(8) == 0) {
+                    // Format(instr, "vsqrts'cond 'sd, 'sm");
+                    set_sregister(sd, sqrtf(get_sregister(sm)));
+                  } else {
+                    // Format(instr, "vsqrtd'cond 'dd, 'dm");
+                    set_dregister(dd, sqrt(get_dregister(dm)));
+                  }
+                  break;
+                }
+                default: {
+                  UnimplementedInstruction(instr);
+                  break;
+                }
+              }
+              break;
+            }
+            case 4:                      // vcmp, vcmpe
+            case 5: {                    // vcmp #0.0, vcmpe #0.0
+              if (instr->Bit(7) == 1) {  // vcmpe
+                UnimplementedInstruction(instr);
+              } else {
+                fp_n_flag_ = false;
+                fp_z_flag_ = false;
+                fp_c_flag_ = false;
+                fp_v_flag_ = false;
+                if (instr->Bit(8) == 0) {  // vcmps
+                  float sd_val = get_sregister(sd);
+                  float sm_val;
+                  if (instr->Bit(16) == 0) {
+                    // Format(instr, "vcmps'cond 'sd, 'sm");
+                    sm_val = get_sregister(sm);
+                  } else {
+                    // Format(instr, "vcmps'cond 'sd, #0.0");
+                    sm_val = 0.0f;
+                  }
+                  if (isnan(sd_val) || isnan(sm_val)) {
+                    fp_c_flag_ = true;
+                    fp_v_flag_ = true;
+                  } else if (sd_val == sm_val) {
+                    fp_z_flag_ = true;
+                    fp_c_flag_ = true;
+                  } else if (sd_val < sm_val) {
+                    fp_n_flag_ = true;
+                  } else {
+                    fp_c_flag_ = true;
+                  }
+                } else {  // vcmpd
+                  double dd_val = get_dregister(dd);
+                  double dm_val;
+                  if (instr->Bit(16) == 0) {
+                    // Format(instr, "vcmpd'cond 'dd, 'dm");
+                    dm_val = get_dregister(dm);
+                  } else {
+                    // Format(instr, "vcmpd'cond 'dd, #0.0");
+                    dm_val = 0.0;
+                  }
+                  if (isnan(dd_val) || isnan(dm_val)) {
+                    fp_c_flag_ = true;
+                    fp_v_flag_ = true;
+                  } else if (dd_val == dm_val) {
+                    fp_z_flag_ = true;
+                    fp_c_flag_ = true;
+                  } else if (dd_val < dm_val) {
+                    fp_n_flag_ = true;
+                  } else {
+                    fp_c_flag_ = true;
+                  }
+                }
+              }
+              break;
+            }
+            case 7: {  // vcvt between double-precision and single-precision
+              if (instr->Bit(8) == 0) {
+                // Format(instr, "vcvtds'cond 'dd, 'sm");
+                dd = instr->DdField();
+                set_dregister(dd, static_cast<double>(get_sregister(sm)));
+              } else {
+                // Format(instr, "vcvtsd'cond 'sd, 'dm");
+                sd = instr->SdField();
+                set_sregister(sd, static_cast<float>(get_dregister(dm)));
+              }
+              break;
+            }
+            case 8: {  // vcvt, vcvtr between floating-point and integer
+              sm = instr->SmField();
+              int32_t sm_int = get_sregister_bits(sm);
+              uint32_t ud_val = 0;
+              int32_t id_val = 0;
+              if (instr->Bit(7) == 0) {  // vcvtsu, vcvtdu
+                ud_val = static_cast<uint32_t>(sm_int);
+              } else {  // vcvtsi, vcvtdi
+                id_val = sm_int;
+              }
+              if (instr->Bit(8) == 0) {
+                float sd_val;
+                if (instr->Bit(7) == 0) {
+                  // Format(instr, "vcvtsu'cond 'sd, 'sm");
+                  sd_val = static_cast<float>(ud_val);
+                } else {
+                  // Format(instr, "vcvtsi'cond 'sd, 'sm");
+                  sd_val = static_cast<float>(id_val);
+                }
+                set_sregister(sd, sd_val);
+              } else {
+                double dd_val;
+                if (instr->Bit(7) == 0) {
+                  // Format(instr, "vcvtdu'cond 'dd, 'sm");
+                  dd_val = static_cast<double>(ud_val);
+                } else {
+                  // Format(instr, "vcvtdi'cond 'dd, 'sm");
+                  dd_val = static_cast<double>(id_val);
+                }
+                set_dregister(dd, dd_val);
+              }
+              break;
+            }
+            case 12:
+            case 13: {  // vcvt, vcvtr between floating-point and integer
+              // We do not need to record exceptions in the FPSCR cumulative
+              // flags, because we do not use them.
+              if (instr->Bit(7) == 0) {
+                // We only support round-to-zero mode
+                UnimplementedInstruction(instr);
+                break;
+              }
+              int32_t id_val = 0;
+              uint32_t ud_val = 0;
+              if (instr->Bit(8) == 0) {
+                float sm_val = get_sregister(sm);
+                if (instr->Bit(16) == 0) {
+                  // Format(instr, "vcvtus'cond 'sd, 'sm");
+                  if (sm_val >= static_cast<float>(INT32_MAX)) {
+                    ud_val = INT32_MAX;
+                  } else if (sm_val > 0.0) {
+                    ud_val = static_cast<uint32_t>(sm_val);
+                  }
+                } else {
+                  // Format(instr, "vcvtis'cond 'sd, 'sm");
+                  if (sm_val <= static_cast<float>(INT32_MIN)) {
+                    id_val = INT32_MIN;
+                  } else if (sm_val >= static_cast<float>(INT32_MAX)) {
+                    id_val = INT32_MAX;
+                  } else {
+                    id_val = static_cast<int32_t>(sm_val);
+                  }
+                  ASSERT((id_val >= 0) || !(sm_val >= 0.0));
+                }
+              } else {
+                sd = instr->SdField();
+                double dm_val = get_dregister(dm);
+                if (instr->Bit(16) == 0) {
+                  // Format(instr, "vcvtud'cond 'sd, 'dm");
+                  if (dm_val >= static_cast<double>(INT32_MAX)) {
+                    ud_val = INT32_MAX;
+                  } else if (dm_val > 0.0) {
+                    ud_val = static_cast<uint32_t>(dm_val);
+                  }
+                } else {
+                  // Format(instr, "vcvtid'cond 'sd, 'dm");
+                  if (dm_val <= static_cast<double>(INT32_MIN)) {
+                    id_val = INT32_MIN;
+                  } else if (dm_val >= static_cast<double>(INT32_MAX)) {
+                    id_val = INT32_MAX;
+                  } else if (isnan(dm_val)) {
+                    id_val = 0;
+                  } else {
+                    id_val = static_cast<int32_t>(dm_val);
+                  }
+                  ASSERT((id_val >= 0) || !(dm_val >= 0.0));
+                }
+              }
+              int32_t sd_val;
+              if (instr->Bit(16) == 0) {
+                sd_val = static_cast<int32_t>(ud_val);
+              } else {
+                sd_val = id_val;
+              }
+              set_sregister_bits(sd, sd_val);
+              break;
+            }
+            case 2:   // vcvtb, vcvtt
+            case 3:   // vcvtb, vcvtt
+            case 9:   // undefined
+            case 10:  // vcvt between floating-point and fixed-point
+            case 11:  // vcvt between floating-point and fixed-point
+            case 14:  // vcvt between floating-point and fixed-point
+            case 15:  // vcvt between floating-point and fixed-point
+            default: {
+              UnimplementedInstruction(instr);
+              break;
+            }
+          }
+        } break;
+      }
+    } else {
+      // 8, 16, or 32-bit Transfer between ARM Core and VFP
+      if ((instr->Bits(21, 3) == 0) && (instr->Bit(8) == 0)) {
+        Register rd = instr->RdField();
+        SRegister sn = instr->SnField();
+        if (instr->Bit(20) == 0) {
+          // Format(instr, "vmovs'cond 'sn, 'rd");
+          set_sregister_bits(sn, get_register(rd));
+        } else {
+          // Format(instr, "vmovr'cond 'rd, 'sn");
+          set_register(rd, get_sregister_bits(sn));
+        }
+      } else if ((instr->Bits(22, 3) == 0) && (instr->Bit(20) == 0) &&
+                 (instr->Bit(8) == 1) && (instr->Bits(5, 2) == 0)) {
+        DRegister dn = instr->DnField();
+        Register rd = instr->RdField();
+        const int32_t src_value = get_register(rd);
+        const int64_t dst_value = get_dregister_bits(dn);
+        int32_t dst_lo = Utils::Low32Bits(dst_value);
+        int32_t dst_hi = Utils::High32Bits(dst_value);
+        if (instr->Bit(21) == 0) {
+          // Format(instr, "vmovd'cond 'dn[0], 'rd");
+          dst_lo = src_value;
+        } else {
+          // Format(instr, "vmovd'cond 'dn[1], 'rd");
+          dst_hi = src_value;
+        }
+        set_dregister_bits(dn, Utils::LowHighTo64Bits(dst_lo, dst_hi));
+      } else if ((instr->Bits(20, 4) == 0xf) && (instr->Bit(8) == 0)) {
+        if (instr->Bits(12, 4) == 0xf) {
+          // Format(instr, "vmrs'cond APSR, FPSCR");
+          n_flag_ = fp_n_flag_;
+          z_flag_ = fp_z_flag_;
+          c_flag_ = fp_c_flag_;
+          v_flag_ = fp_v_flag_;
+        } else {
+          // Format(instr, "vmrs'cond 'rd, FPSCR");
+          const int32_t n_flag = fp_n_flag_ ? (1 << 31) : 0;
+          const int32_t z_flag = fp_z_flag_ ? (1 << 30) : 0;
+          const int32_t c_flag = fp_c_flag_ ? (1 << 29) : 0;
+          const int32_t v_flag = fp_v_flag_ ? (1 << 28) : 0;
+          set_register(instr->RdField(), n_flag | z_flag | c_flag | v_flag);
+        }
+      } else {
+        UnimplementedInstruction(instr);
+      }
+    }
+  } else {
+    UnimplementedInstruction(instr);
+  }
+}
+
+static void simd_value_swap(simd_value_t* s1,
+                            int i1,
+                            simd_value_t* s2,
+                            int i2) {
+  uint32_t tmp;
+  tmp = s1->u32[i1];
+  s1->u32[i1] = s2->u32[i2];
+  s2->u32[i2] = tmp;
+}
+
+static float vminf(float f1, float f2) {
+  if (f1 == f2) {
+    // take care of (-0.0) < 0.0, (they are equal according to minss)
+    return signbit(f1) ? f1 : f2;
+  }
+  return f1 > f2 ? f2 : f1;
+}
+
+static float vmaxf(float f1, float f2) {
+  if (f1 == f2) {
+    // take care of (-0.0) < 0.0, (they are equal according to minss)
+    return signbit(f1) ? f2 : f1;
+  }
+  return f1 < f2 ? f2 : f1;
+}
+
+void Simulator::DecodeSIMDDataProcessing(Instr* instr) {
+  ASSERT(instr->ConditionField() == kSpecialCondition);
+
+  if (instr->Bit(6) == 1) {
+    // Q = 1, Using 128-bit Q registers.
+    const QRegister qd = instr->QdField();
+    const QRegister qn = instr->QnField();
+    const QRegister qm = instr->QmField();
+    simd_value_t s8d;
+    simd_value_t s8n;
+    simd_value_t s8m;
+
+    get_qregister(qn, &s8n);
+    get_qregister(qm, &s8m);
+
+    if ((instr->Bits(8, 4) == 8) && (instr->Bit(4) == 0) &&
+        (instr->Bits(23, 2) == 0)) {
+      // Uses q registers.
+      // Format(instr, "vadd.'sz 'qd, 'qn, 'qm");
+      const int size = instr->Bits(20, 2);
+      if (size == 0) {
+        for (int i = 0; i < 16; i++) {
+          s8d.u8[i] = s8n.u8[i] + s8m.u8[i];
+        }
+      } else if (size == 1) {
+        for (int i = 0; i < 8; i++) {
+          s8d.u16[i] = s8n.u16[i] + s8m.u16[i];
+        }
+      } else if (size == 2) {
+        for (int i = 0; i < 4; i++) {
+          s8d.u32[i] = s8n.u32[i] + s8m.u32[i];
+        }
+      } else if (size == 3) {
+        for (int i = 0; i < 2; i++) {
+          s8d.u64[i] = s8n.u64[i] + s8m.u64[i];
+        }
+      } else {
+        UNREACHABLE();
+      }
+    } else if ((instr->Bits(8, 4) == 13) && (instr->Bit(4) == 0) &&
+               (instr->Bits(23, 2) == 0) && (instr->Bit(21) == 0)) {
+      // Format(instr, "vadd.F32 'qd, 'qn, 'qm");
+      for (int i = 0; i < 4; i++) {
+        s8d.f32[i] = s8n.f32[i] + s8m.f32[i];
+      }
+    } else if ((instr->Bits(8, 4) == 8) && (instr->Bit(4) == 0) &&
+               (instr->Bits(23, 2) == 2)) {
+      // Format(instr, "vsub.'sz 'qd, 'qn, 'qm");
+      const int size = instr->Bits(20, 2);
+      if (size == 0) {
+        for (int i = 0; i < 16; i++) {
+          s8d.u8[i] = s8n.u8[i] - s8m.u8[i];
+        }
+      } else if (size == 1) {
+        for (int i = 0; i < 8; i++) {
+          s8d.u16[i] = s8n.u16[i] - s8m.u16[i];
+        }
+      } else if (size == 2) {
+        for (int i = 0; i < 4; i++) {
+          s8d.u32[i] = s8n.u32[i] - s8m.u32[i];
+        }
+      } else if (size == 3) {
+        for (int i = 0; i < 2; i++) {
+          s8d.u64[i] = s8n.u64[i] - s8m.u64[i];
+        }
+      } else {
+        UNREACHABLE();
+      }
+    } else if ((instr->Bits(8, 4) == 13) && (instr->Bit(4) == 0) &&
+               (instr->Bits(23, 2) == 0) && (instr->Bit(21) == 1)) {
+      // Format(instr, "vsub.F32 'qd, 'qn, 'qm");
+      for (int i = 0; i < 4; i++) {
+        s8d.f32[i] = s8n.f32[i] - s8m.f32[i];
+      }
+    } else if ((instr->Bits(8, 4) == 9) && (instr->Bit(4) == 1) &&
+               (instr->Bits(23, 2) == 0)) {
+      // Format(instr, "vmul.'sz 'qd, 'qn, 'qm");
+      const int size = instr->Bits(20, 2);
+      if (size == 0) {
+        for (int i = 0; i < 16; i++) {
+          s8d.i8[i] = s8n.i8[i] * s8m.i8[i];
+        }
+      } else if (size == 1) {
+        for (int i = 0; i < 8; i++) {
+          s8d.i16[i] = s8n.i16[i] * s8m.i16[i];
+        }
+      } else if (size == 2) {
+        for (int i = 0; i < 4; i++) {
+          s8d.u32[i] = s8n.u32[i] * s8m.u32[i];
+        }
+      } else if (size == 3) {
+        UnimplementedInstruction(instr);
+      } else {
+        UNREACHABLE();
+      }
+    } else if ((instr->Bits(8, 4) == 13) && (instr->Bit(4) == 1) &&
+               (instr->Bits(23, 2) == 2) && (instr->Bit(21) == 0)) {
+      // Format(instr, "vmul.F32 'qd, 'qn, 'qm");
+      for (int i = 0; i < 4; i++) {
+        s8d.f32[i] = s8n.f32[i] * s8m.f32[i];
+      }
+    } else if ((instr->Bits(8, 4) == 4) && (instr->Bit(4) == 0) &&
+               (instr->Bit(23) == 0) && (instr->Bits(25, 3) == 1)) {
+      // Format(instr, "vshlqu'sz 'qd, 'qm, 'qn");
+      // Format(instr, "vshlqi'sz 'qd, 'qm, 'qn");
+      const bool is_signed = instr->Bit(24) == 0;
+      const int size = instr->Bits(20, 2);
+      if (size == 0) {
+        for (int i = 0; i < 16; i++) {
+          int8_t shift = s8n.i8[i];
+          if (shift > 0) {
+            s8d.u8[i] = s8m.u8[i] << shift;
+          } else if (shift < 0) {
+            if (is_signed) {
+              s8d.i8[i] = s8m.i8[i] >> (-shift);
+            } else {
+              s8d.u8[i] = s8m.u8[i] >> (-shift);
+            }
+          }
+        }
+      } else if (size == 1) {
+        for (int i = 0; i < 8; i++) {
+          int8_t shift = s8n.i8[i * 2];
+          if (shift > 0) {
+            s8d.u16[i] = s8m.u16[i] << shift;
+          } else if (shift < 0) {
+            if (is_signed) {
+              s8d.i16[i] = s8m.i16[i] >> (-shift);
+            } else {
+              s8d.u16[i] = s8m.u16[i] >> (-shift);
+            }
+          }
+        }
+      } else if (size == 2) {
+        for (int i = 0; i < 4; i++) {
+          int8_t shift = s8n.i8[i * 4];
+          if (shift > 0) {
+            s8d.u32[i] = s8m.u32[i] << shift;
+          } else if (shift < 0) {
+            if (is_signed) {
+              s8d.i32[i] = s8m.i32[i] >> (-shift);
+            } else {
+              s8d.u32[i] = s8m.u32[i] >> (-shift);
+            }
+          }
+        }
+      } else {
+        ASSERT(size == 3);
+        for (int i = 0; i < 2; i++) {
+          int8_t shift = s8n.i8[i * 8];
+          if (shift > 0) {
+            s8d.u64[i] = s8m.u64[i] << shift;
+          } else if (shift < 0) {
+            if (is_signed) {
+              s8d.i64[i] = s8m.i64[i] >> (-shift);
+            } else {
+              s8d.u64[i] = s8m.u64[i] >> (-shift);
+            }
+          }
+        }
+      }
+    } else if ((instr->Bits(8, 4) == 1) && (instr->Bit(4) == 1) &&
+               (instr->Bits(20, 2) == 0) && (instr->Bits(23, 2) == 2)) {
+      // Format(instr, "veorq 'qd, 'qn, 'qm");
+      for (int i = 0; i < 4; i++) {
+        s8d.u32[i] = s8n.u32[i] ^ s8m.u32[i];
+      }
+    } else if ((instr->Bits(8, 4) == 1) && (instr->Bit(4) == 1) &&
+               (instr->Bits(20, 2) == 3) && (instr->Bits(23, 2) == 0)) {
+      // Format(instr, "vornq 'qd, 'qn, 'qm");
+      for (int i = 0; i < 4; i++) {
+        s8d.u32[i] = s8n.u32[i] | ~s8m.u32[i];
+      }
+    } else if ((instr->Bits(8, 4) == 1) && (instr->Bit(4) == 1) &&
+               (instr->Bits(20, 2) == 2) && (instr->Bits(23, 2) == 0)) {
+      if (qm == qn) {
+        // Format(instr, "vmovq 'qd, 'qm");
+        for (int i = 0; i < 4; i++) {
+          s8d.u32[i] = s8m.u32[i];
+        }
+      } else {
+        // Format(instr, "vorrq 'qd, 'qm");
+        for (int i = 0; i < 4; i++) {
+          s8d.u32[i] = s8n.u32[i] | s8m.u32[i];
+        }
+      }
+    } else if ((instr->Bits(8, 4) == 1) && (instr->Bit(4) == 1) &&
+               (instr->Bits(20, 2) == 0) && (instr->Bits(23, 2) == 0)) {
+      // Format(instr, "vandq 'qd, 'qn, 'qm");
+      for (int i = 0; i < 4; i++) {
+        s8d.u32[i] = s8n.u32[i] & s8m.u32[i];
+      }
+    } else if ((instr->Bits(7, 5) == 11) && (instr->Bit(4) == 0) &&
+               (instr->Bits(20, 2) == 3) && (instr->Bits(23, 5) == 7) &&
+               (instr->Bits(16, 4) == 0)) {
+      // Format(instr, "vmvnq 'qd, 'qm");
+      for (int i = 0; i < 4; i++) {
+        s8d.u32[i] = ~s8m.u32[i];
+      }
+    } else if ((instr->Bits(8, 4) == 15) && (instr->Bit(4) == 0) &&
+               (instr->Bits(20, 2) == 2) && (instr->Bits(23, 2) == 0)) {
+      // Format(instr, "vminqs 'qd, 'qn, 'qm");
+      for (int i = 0; i < 4; i++) {
+        s8d.f32[i] = vminf(s8n.f32[i], s8m.f32[i]);
+      }
+    } else if ((instr->Bits(8, 4) == 15) && (instr->Bit(4) == 0) &&
+               (instr->Bits(20, 2) == 0) && (instr->Bits(23, 2) == 0)) {
+      // Format(instr, "vmaxqs 'qd, 'qn, 'qm");
+      for (int i = 0; i < 4; i++) {
+        s8d.f32[i] = vmaxf(s8n.f32[i], s8m.f32[i]);
+      }
+    } else if ((instr->Bits(8, 4) == 7) && (instr->Bit(4) == 0) &&
+               (instr->Bits(20, 2) == 3) && (instr->Bits(23, 2) == 3) &&
+               (instr->Bit(7) == 0) && (instr->Bits(16, 4) == 9)) {
+      // Format(instr, "vabsqs 'qd, 'qm");
+      for (int i = 0; i < 4; i++) {
+        s8d.f32[i] = fabsf(s8m.f32[i]);
+      }
+    } else if ((instr->Bits(8, 4) == 7) && (instr->Bit(4) == 0) &&
+               (instr->Bits(20, 2) == 3) && (instr->Bits(23, 2) == 3) &&
+               (instr->Bit(7) == 1) && (instr->Bits(16, 4) == 9)) {
+      // Format(instr, "vnegqs 'qd, 'qm");
+      for (int i = 0; i < 4; i++) {
+        s8d.f32[i] = -s8m.f32[i];
+      }
+    } else if ((instr->Bits(7, 5) == 10) && (instr->Bit(4) == 0) &&
+               (instr->Bits(20, 2) == 3) && (instr->Bits(23, 2) == 3) &&
+               (instr->Bits(16, 4) == 11)) {
+      // Format(instr, "vrecpeq 'qd, 'qm");
+      for (int i = 0; i < 4; i++) {
+        s8d.f32[i] = ReciprocalEstimate(s8m.f32[i]);
+      }
+    } else if ((instr->Bits(8, 4) == 15) && (instr->Bit(4) == 1) &&
+               (instr->Bits(20, 2) == 0) && (instr->Bits(23, 2) == 0)) {
+      // Format(instr, "vrecpsq 'qd, 'qn, 'qm");
+      for (int i = 0; i < 4; i++) {
+        s8d.f32[i] = ReciprocalStep(s8n.f32[i], s8m.f32[i]);
+      }
+    } else if ((instr->Bits(8, 4) == 5) && (instr->Bit(4) == 0) &&
+               (instr->Bits(20, 2) == 3) && (instr->Bits(23, 2) == 3) &&
+               (instr->Bit(7) == 1) && (instr->Bits(16, 4) == 11)) {
+      // Format(instr, "vrsqrteqs 'qd, 'qm");
+      for (int i = 0; i < 4; i++) {
+        s8d.f32[i] = ReciprocalSqrtEstimate(s8m.f32[i]);
+      }
+    } else if ((instr->Bits(8, 4) == 15) && (instr->Bit(4) == 1) &&
+               (instr->Bits(20, 2) == 2) && (instr->Bits(23, 2) == 0)) {
+      // Format(instr, "vrsqrtsqs 'qd, 'qn, 'qm");
+      for (int i = 0; i < 4; i++) {
+        s8d.f32[i] = ReciprocalSqrtStep(s8n.f32[i], s8m.f32[i]);
+      }
+    } else if ((instr->Bits(8, 4) == 12) && (instr->Bit(4) == 0) &&
+               (instr->Bits(20, 2) == 3) && (instr->Bits(23, 2) == 3) &&
+               (instr->Bit(7) == 0)) {
+      DRegister dm = instr->DmField();
+      int64_t dm_value = get_dregister_bits(dm);
+      int32_t imm4 = instr->Bits(16, 4);
+      int32_t idx;
+      if ((imm4 & 1) != 0) {
+        // Format(instr, "vdupb 'qd, 'dm['imm4_vdup]");
+        int8_t dm_b[8];
+        memcpy(dm_b, &dm_value, sizeof(dm_b));  // NOLINT
+        idx = imm4 >> 1;
+        int8_t val = dm_b[idx];
+        for (int i = 0; i < 16; i++) {
+          s8d.i8[i] = val;
+        }
+      } else if ((imm4 & 2) != 0) {
+        // Format(instr, "vduph 'qd, 'dm['imm4_vdup]");
+        int16_t dm_h[4];
+        memcpy(dm_h, &dm_value, sizeof(dm_h));  // NOLINT
+        idx = imm4 >> 2;
+        int16_t val = dm_h[idx];
+        for (int i = 0; i < 8; i++) {
+          s8d.i16[i] = val;
+        }
+      } else if ((imm4 & 4) != 0) {
+        // Format(instr, "vdupw 'qd, 'dm['imm4_vdup]");
+        int32_t dm_w[2];
+        memcpy(dm_w, &dm_value, sizeof(dm_w));  // NOLINT
+        idx = imm4 >> 3;
+        int32_t val = dm_w[idx];
+        for (int i = 0; i < 4; i++) {
+          s8d.u32[i] = val;
+        }
+      } else {
+        UnimplementedInstruction(instr);
+      }
+    } else if ((instr->Bits(8, 4) == 1) && (instr->Bit(4) == 0) &&
+               (instr->Bits(20, 2) == 3) && (instr->Bits(23, 2) == 3) &&
+               (instr->Bit(7) == 1) && (instr->Bits(16, 4) == 10)) {
+      // Format(instr, "vzipqw 'qd, 'qm");
+      get_qregister(qd, &s8d);
+
+      // Interleave the elements with the low words in qd, and the high words
+      // in qm.
+      simd_value_swap(&s8d, 3, &s8m, 2);
+      simd_value_swap(&s8d, 3, &s8m, 1);
+      simd_value_swap(&s8d, 2, &s8m, 0);
+      simd_value_swap(&s8d, 2, &s8d, 1);
+
+      set_qregister(qm, s8m);  // Writes both qd and qm.
+    } else if ((instr->Bits(8, 4) == 8) && (instr->Bit(4) == 1) &&
+               (instr->Bits(23, 2) == 2)) {
+      // Format(instr, "vceqq'sz 'qd, 'qn, 'qm");
+      const int size = instr->Bits(20, 2);
+      if (size == 0) {
+        for (int i = 0; i < 16; i++) {
+          s8d.i8[i] = s8n.i8[i] == s8m.i8[i] ? 0xff : 0;
+        }
+      } else if (size == 1) {
+        for (int i = 0; i < 8; i++) {
+          s8d.i16[i] = s8n.i16[i] == s8m.i16[i] ? 0xffff : 0;
+        }
+      } else if (size == 2) {
+        for (int i = 0; i < 4; i++) {
+          s8d.u32[i] = s8n.u32[i] == s8m.u32[i] ? 0xffffffff : 0;
+        }
+      } else if (size == 3) {
+        UnimplementedInstruction(instr);
+      } else {
+        UNREACHABLE();
+      }
+    } else if ((instr->Bits(8, 4) == 14) && (instr->Bit(4) == 0) &&
+               (instr->Bits(20, 2) == 0) && (instr->Bits(23, 2) == 0)) {
+      // Format(instr, "vceqqs 'qd, 'qn, 'qm");
+      for (int i = 0; i < 4; i++) {
+        s8d.u32[i] = s8n.f32[i] == s8m.f32[i] ? 0xffffffff : 0;
+      }
+    } else if ((instr->Bits(8, 4) == 3) && (instr->Bit(4) == 1) &&
+               (instr->Bits(23, 2) == 0)) {
+      // Format(instr, "vcgeq'sz 'qd, 'qn, 'qm");
+      const int size = instr->Bits(20, 2);
+      if (size == 0) {
+        for (int i = 0; i < 16; i++) {
+          s8d.i8[i] = s8n.i8[i] >= s8m.i8[i] ? 0xff : 0;
+        }
+      } else if (size == 1) {
+        for (int i = 0; i < 8; i++) {
+          s8d.i16[i] = s8n.i16[i] >= s8m.i16[i] ? 0xffff : 0;
+        }
+      } else if (size == 2) {
+        for (int i = 0; i < 4; i++) {
+          s8d.u32[i] = s8n.i32[i] >= s8m.i32[i] ? 0xffffffff : 0;
+        }
+      } else if (size == 3) {
+        UnimplementedInstruction(instr);
+      } else {
+        UNREACHABLE();
+      }
+    } else if ((instr->Bits(8, 4) == 3) && (instr->Bit(4) == 1) &&
+               (instr->Bits(23, 2) == 2)) {
+      // Format(instr, "vcugeq'sz 'qd, 'qn, 'qm");
+      const int size = instr->Bits(20, 2);
+      if (size == 0) {
+        for (int i = 0; i < 16; i++) {
+          s8d.i8[i] = s8n.u8[i] >= s8m.u8[i] ? 0xff : 0;
+        }
+      } else if (size == 1) {
+        for (int i = 0; i < 8; i++) {
+          s8d.i16[i] = s8n.u16[i] >= s8m.u16[i] ? 0xffff : 0;
+        }
+      } else if (size == 2) {
+        for (int i = 0; i < 4; i++) {
+          s8d.u32[i] = s8n.u32[i] >= s8m.u32[i] ? 0xffffffff : 0;
+        }
+      } else if (size == 3) {
+        UnimplementedInstruction(instr);
+      } else {
+        UNREACHABLE();
+      }
+    } else if ((instr->Bits(8, 4) == 14) && (instr->Bit(4) == 0) &&
+               (instr->Bits(20, 2) == 0) && (instr->Bits(23, 2) == 2)) {
+      // Format(instr, "vcgeqs 'qd, 'qn, 'qm");
+      for (int i = 0; i < 4; i++) {
+        s8d.u32[i] = s8n.f32[i] >= s8m.f32[i] ? 0xffffffff : 0;
+      }
+    } else if ((instr->Bits(8, 4) == 3) && (instr->Bit(4) == 0) &&
+               (instr->Bits(23, 2) == 0)) {
+      // Format(instr, "vcgtq'sz 'qd, 'qn, 'qm");
+      const int size = instr->Bits(20, 2);
+      if (size == 0) {
+        for (int i = 0; i < 16; i++) {
+          s8d.i8[i] = s8n.i8[i] > s8m.i8[i] ? 0xff : 0;
+        }
+      } else if (size == 1) {
+        for (int i = 0; i < 8; i++) {
+          s8d.i16[i] = s8n.i16[i] > s8m.i16[i] ? 0xffff : 0;
+        }
+      } else if (size == 2) {
+        for (int i = 0; i < 4; i++) {
+          s8d.u32[i] = s8n.i32[i] > s8m.i32[i] ? 0xffffffff : 0;
+        }
+      } else if (size == 3) {
+        UnimplementedInstruction(instr);
+      } else {
+        UNREACHABLE();
+      }
+    } else if ((instr->Bits(8, 4) == 3) && (instr->Bit(4) == 0) &&
+               (instr->Bits(23, 2) == 2)) {
+      // Format(instr, "vcugtq'sz 'qd, 'qn, 'qm");
+      const int size = instr->Bits(20, 2);
+      if (size == 0) {
+        for (int i = 0; i < 16; i++) {
+          s8d.i8[i] = s8n.u8[i] > s8m.u8[i] ? 0xff : 0;
+        }
+      } else if (size == 1) {
+        for (int i = 0; i < 8; i++) {
+          s8d.i16[i] = s8n.u16[i] > s8m.u16[i] ? 0xffff : 0;
+        }
+      } else if (size == 2) {
+        for (int i = 0; i < 4; i++) {
+          s8d.u32[i] = s8n.u32[i] > s8m.u32[i] ? 0xffffffff : 0;
+        }
+      } else if (size == 3) {
+        UnimplementedInstruction(instr);
+      } else {
+        UNREACHABLE();
+      }
+    } else if ((instr->Bits(8, 4) == 14) && (instr->Bit(4) == 0) &&
+               (instr->Bits(20, 2) == 2) && (instr->Bits(23, 2) == 2)) {
+      // Format(instr, "vcgtqs 'qd, 'qn, 'qm");
+      for (int i = 0; i < 4; i++) {
+        s8d.u32[i] = s8n.f32[i] > s8m.f32[i] ? 0xffffffff : 0;
+      }
+    } else {
+      UnimplementedInstruction(instr);
+    }
+
+    set_qregister(qd, s8d);
+  } else {
+    // Q == 0, Uses 64-bit D registers.
+    if ((instr->Bits(23, 2) == 3) && (instr->Bits(20, 2) == 3) &&
+        (instr->Bits(10, 2) == 2) && (instr->Bit(4) == 0)) {
+      // Format(instr, "vtbl 'dd, 'dtbllist, 'dm");
+      DRegister dd = instr->DdField();
+      DRegister dm = instr->DmField();
+      int reg_count = instr->Bits(8, 2) + 1;
+      int start = (instr->Bit(7) << 4) | instr->Bits(16, 4);
+      int64_t table[4];
+
+      for (int i = 0; i < reg_count; i++) {
+        DRegister d = static_cast<DRegister>(start + i);
+        table[i] = get_dregister_bits(d);
+      }
+      for (int i = reg_count; i < 4; i++) {
+        table[i] = 0;
+      }
+
+      int64_t dm_value = get_dregister_bits(dm);
+      int64_t result;
+      int8_t* dm_bytes = reinterpret_cast<int8_t*>(&dm_value);
+      int8_t* result_bytes = reinterpret_cast<int8_t*>(&result);
+      int8_t* table_bytes = reinterpret_cast<int8_t*>(&table[0]);
+      for (int i = 0; i < 8; i++) {
+        int idx = dm_bytes[i];
+        if ((idx >= 0) && (idx < 256)) {
+          result_bytes[i] = table_bytes[idx];
+        } else {
+          result_bytes[i] = 0;
+        }
+      }
+
+      set_dregister_bits(dd, result);
+    } else if ((instr->Bits(8, 4) == 5) && (instr->Bit(7) == 0) &&
+               (instr->Bit(5) == 0) && (instr->Bit(4) == 0) &&
+               (instr->Bits(16, 4) == 0) && (instr->Bits(20, 2) == 3) &&
+               (instr->Bits(23, 5) == 7)) {
+      // Format(instr, "vcnt.8 'dd, 'dm");
+      DRegister dd = instr->DdField();
+      DRegister dm = instr->DmField();
+      uint64_t dm_value = static_cast<uint64_t>(get_dregister_bits(dm));
+      uint64_t result = 0;
+      uint8_t* in = reinterpret_cast<uint8_t*>(&dm_value);
+      uint8_t* out = reinterpret_cast<uint8_t*>(&result);
+      for (int i = 0; i < 8; i++) {
+        out[i] = Utils::CountOneBits32(in[i]);
+      }
+      set_dregister_bits(dd, static_cast<int64_t>(result));
+    } else if ((instr->Bits(8, 4) == 2) && (instr->Bit(7) == 1) &&
+               (instr->Bit(5) == 0) && (instr->Bit(4) == 0) &&
+               (instr->Bits(16, 2) == 0) && (instr->Bits(20, 2) == 3) &&
+               (instr->Bits(23, 5) == 7)) {
+      // Format(instr, "vpaddl.u<sz> 'dd, 'dm");
+      DRegister dd = instr->DdField();
+      DRegister dm = instr->DmField();
+      const int size = instr->Bits(18, 2);
+      uint64_t dm_value = static_cast<uint64_t>(get_dregister_bits(dm));
+      uint64_t result = 0;
+      if (size == 0) {
+        uint8_t* in = reinterpret_cast<uint8_t*>(&dm_value);
+        uint16_t* out = reinterpret_cast<uint16_t*>(&result);
+        for (int i = 0; i < 4; i++) {
+          out[i] = static_cast<uint16_t>(in[2 * i]) +
+                   static_cast<uint16_t>(in[2 * i + 1]);
+        }
+      } else if (size == 1) {
+        uint16_t* in = reinterpret_cast<uint16_t*>(&dm_value);
+        uint32_t* out = reinterpret_cast<uint32_t*>(&result);
+        for (int i = 0; i < 2; i++) {
+          out[i] = static_cast<uint32_t>(in[2 * i]) +
+                   static_cast<uint32_t>(in[2 * i + 1]);
+        }
+      } else if (size == 2) {
+        uint32_t* in = reinterpret_cast<uint32_t*>(&dm_value);
+        result = static_cast<uint64_t>(in[0]) + static_cast<uint64_t>(in[1]);
+      } else {
+        UnimplementedInstruction(instr);
+        return;
+      }
+      set_dregister_bits(dd, static_cast<int64_t>(result));
+    } else {
+      UnimplementedInstruction(instr);
+    }
+  }
+}
+
+// Executes the current instruction.
+DART_FORCE_INLINE void Simulator::InstructionDecodeImpl(Instr* instr) {
+  pc_modified_ = false;
+  if (instr->ConditionField() == kSpecialCondition) {
+    if (instr->InstructionBits() == static_cast<int32_t>(0xf57ff01f)) {
+      // Format(instr, "clrex");
+      ClearExclusive();
+    } else if (instr->InstructionBits() == static_cast<int32_t>(kDMB_ISH)) {
+      // Format(instr, "dmb ish");
+      memory_.FlushAll();
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic ignored "-Wtsan"
+#endif
+      std::atomic_thread_fence(std::memory_order_seq_cst);
+    } else if (instr->InstructionBits() == static_cast<int32_t>(kDMB_ISHST)) {
+      // Format(instr, "dmb ishst");
+      memory_.FlushAll();
+      StoreStoreFence();
+    } else {
+      if (instr->IsSIMDDataProcessing()) {
+        DecodeSIMDDataProcessing(instr);
+      } else {
+        UnimplementedInstruction(instr);
+      }
+    }
+  } else if (ConditionallyExecute(instr)) {
+    switch (instr->TypeField()) {
+      case 0:
+      case 1: {
+        DecodeType01(instr);
+        break;
+      }
+      case 2: {
+        DecodeType2(instr);
+        break;
+      }
+      case 3: {
+        DecodeType3(instr);
+        break;
+      }
+      case 4: {
+        DecodeType4(instr);
+        break;
+      }
+      case 5: {
+        DecodeType5(instr);
+        break;
+      }
+      case 6: {
+        DecodeType6(instr);
+        break;
+      }
+      case 7: {
+        DecodeType7(instr);
+        break;
+      }
+      default: {
+        // Type field is three bits.
+        UNREACHABLE();
+        break;
+      }
+    }
+  }
+  if (!pc_modified_) {
+    set_register(PC, reinterpret_cast<int32_t>(instr) + Instr::kInstrSize);
+  }
+}
+
+void Simulator::InstructionDecode(Instr* instr) {
+  if (IsTracingExecution()) {
+    THR_Print("%" Pu64 " ", icount_);
+    const uword start = reinterpret_cast<uword>(instr);
+    const uword end = start + Instr::kInstrSize;
+    if (FLAG_support_disassembler) {
+      Disassembler::Disassemble(start, end);
+    } else {
+      THR_Print("Disassembler not supported in this mode.\n");
+    }
+  }
+  InstructionDecodeImpl(instr);
+}
+
+void Simulator::Execute() {
+  if (FLAG_stop_sim_at == ULLONG_MAX && FLAG_trace_sim_after == ULLONG_MAX)
+      [[likely]] {
+    ExecuteNoTrace();
+  } else {
+    ExecuteTrace();
+  }
+}
+
+void Simulator::ExecuteNoTrace() {
+  // Get the PC to simulate. Cannot use the accessor here as we need the
+  // raw PC value and not the one used as input to arithmetic instructions.
+  uword program_counter = get_pc();
+
+  // Fast version of the dispatch loop without checking whether the simulator
+  // should be stopping at a particular executed instruction.
+  while (program_counter != kEndSimulatingPC) {
+    Instr* instr = reinterpret_cast<Instr*>(program_counter);
+    icount_++;
+    InstructionDecodeImpl(instr);
+    program_counter = get_pc();
+  }
+}
+
+void Simulator::ExecuteTrace() {
+  // Get the PC to simulate. Cannot use the accessor here as we need the
+  // raw PC value and not the one used as input to arithmetic instructions.
+  uword program_counter = get_pc();
+
+  // FLAG_stop_sim_at is at the non-default value. Stop in the debugger when
+  // we reach the particular instruction count or address.
+  while (program_counter != kEndSimulatingPC) {
+    Instr* instr = reinterpret_cast<Instr*>(program_counter);
+    icount_++;
+    if (icount_ == FLAG_stop_sim_at) {
+      SimulatorDebugger dbg(this);
+      dbg.Stop(instr, "Instruction count reached");
+    } else if (reinterpret_cast<uint64_t>(instr) == FLAG_stop_sim_at) {
+      SimulatorDebugger dbg(this);
+      dbg.Stop(instr, "Instruction address reached");
+    } else if (IsIllegalAddress(program_counter)) {
+      HandleIllegalAccess(program_counter, instr);
+    } else {
+      InstructionDecode(instr);
+    }
+    program_counter = get_pc();
+  }
+}
+
+int64_t Simulator::Call(int32_t entry,
+                        int32_t parameter0,
+                        int32_t parameter1,
+                        int32_t parameter2,
+                        int32_t parameter3,
+                        bool fp_return,
+                        bool fp_args) {
+  // Save the SP register before the call so we can restore it.
+  int32_t sp_before_call = get_register(SP);
+
+  // Setup parameters.
+  if (fp_args) {
+    set_sregister(S0, bit_cast<float, int32_t>(parameter0));
+    set_sregister(S1, bit_cast<float, int32_t>(parameter1));
+    set_sregister(S2, bit_cast<float, int32_t>(parameter2));
+    set_sregister(S3, bit_cast<float, int32_t>(parameter3));
+  } else {
+    set_register(R0, parameter0);
+    set_register(R1, parameter1);
+    set_register(R2, parameter2);
+    set_register(R3, parameter3);
+  }
+
+  // Make sure the activation frames are properly aligned.
+  int32_t stack_pointer = sp_before_call;
+  if (OS::ActivationFrameAlignment() > 1) {
+    stack_pointer =
+        Utils::RoundDown(stack_pointer, OS::ActivationFrameAlignment());
+  }
+  set_register(SP, stack_pointer);
+
+  // Prepare to execute the code at entry.
+  set_register(PC, entry);
+  // Put down marker for end of simulation. The simulator will stop simulation
+  // when the PC reaches this value. By saving the "end simulation" value into
+  // the LR the simulation stops when returning to this call point.
+  set_register(LR, kEndSimulatingPC);
+
+  // Remember the values of callee-saved registers.
+  // The code below assumes that r9 is not used as sb (static base) in
+  // simulator code and therefore is regarded as a callee-saved register.
+  int32_t r4_val = get_register(R4);
+  int32_t r5_val = get_register(R5);
+  int32_t r6_val = get_register(R6);
+  int32_t r7_val = get_register(R7);
+  int32_t r8_val = get_register(R8);
+#if !defined(DART_TARGET_OS_MACOS) && !defined(DART_TARGET_OS_MACOS_IOS)
+  int32_t r9_val = get_register(R9);
+#endif
+  int32_t r10_val = get_register(R10);
+  int32_t r11_val = get_register(R11);
+
+  double d8_val = 0.0;
+  double d9_val = 0.0;
+  double d10_val = 0.0;
+  double d11_val = 0.0;
+  double d12_val = 0.0;
+  double d13_val = 0.0;
+  double d14_val = 0.0;
+  double d15_val = 0.0;
+
+  d8_val = get_dregister(D8);
+  d9_val = get_dregister(D9);
+  d10_val = get_dregister(D10);
+  d11_val = get_dregister(D11);
+  d12_val = get_dregister(D12);
+  d13_val = get_dregister(D13);
+  d14_val = get_dregister(D14);
+  d15_val = get_dregister(D15);
+
+  // Setup the callee-saved registers with a known value. To be able to check
+  // that they are preserved properly across dart execution.
+  int32_t callee_saved_value = icount_;
+  set_register(R4, callee_saved_value);
+  set_register(R5, callee_saved_value);
+  set_register(R6, callee_saved_value);
+  set_register(R7, callee_saved_value);
+  set_register(R8, callee_saved_value);
+#if !defined(DART_TARGET_OS_MACOS) && !defined(DART_TARGET_OS_MACOS_IOS)
+  set_register(R9, callee_saved_value);
+#endif
+  set_register(R10, callee_saved_value);
+  set_register(R11, callee_saved_value);
+
+  double callee_saved_dvalue = 0.0;
+  callee_saved_dvalue = static_cast<double>(icount_);
+  set_dregister(D8, callee_saved_dvalue);
+  set_dregister(D9, callee_saved_dvalue);
+  set_dregister(D10, callee_saved_dvalue);
+  set_dregister(D11, callee_saved_dvalue);
+  set_dregister(D12, callee_saved_dvalue);
+  set_dregister(D13, callee_saved_dvalue);
+  set_dregister(D14, callee_saved_dvalue);
+  set_dregister(D15, callee_saved_dvalue);
+
+  // Start the simulation
+  Execute();
+
+  // Check that the callee-saved registers have been preserved.
+  ASSERT(callee_saved_value == get_register(R4));
+  ASSERT(callee_saved_value == get_register(R5));
+  ASSERT(callee_saved_value == get_register(R6));
+  ASSERT(callee_saved_value == get_register(R7));
+  ASSERT(callee_saved_value == get_register(R8));
+#if !defined(DART_TARGET_OS_MACOS) && !defined(DART_TARGET_OS_MACOS_IOS)
+  ASSERT(callee_saved_value == get_register(R9));
+#endif
+  ASSERT(callee_saved_value == get_register(R10));
+  ASSERT(callee_saved_value == get_register(R11));
+
+  ASSERT(callee_saved_dvalue == get_dregister(D8));
+  ASSERT(callee_saved_dvalue == get_dregister(D9));
+  ASSERT(callee_saved_dvalue == get_dregister(D10));
+  ASSERT(callee_saved_dvalue == get_dregister(D11));
+  ASSERT(callee_saved_dvalue == get_dregister(D12));
+  ASSERT(callee_saved_dvalue == get_dregister(D13));
+  ASSERT(callee_saved_dvalue == get_dregister(D14));
+  ASSERT(callee_saved_dvalue == get_dregister(D15));
+
+  // Restore callee-saved registers with the original value.
+  set_register(R4, r4_val);
+  set_register(R5, r5_val);
+  set_register(R6, r6_val);
+  set_register(R7, r7_val);
+  set_register(R8, r8_val);
+#if !defined(DART_TARGET_OS_MACOS) && !defined(DART_TARGET_OS_MACOS_IOS)
+  set_register(R9, r9_val);
+#endif
+  set_register(R10, r10_val);
+  set_register(R11, r11_val);
+
+  set_dregister(D8, d8_val);
+  set_dregister(D9, d9_val);
+  set_dregister(D10, d10_val);
+  set_dregister(D11, d11_val);
+  set_dregister(D12, d12_val);
+  set_dregister(D13, d13_val);
+  set_dregister(D14, d14_val);
+  set_dregister(D15, d15_val);
+
+  // Restore the SP register and return R1:R0.
+  set_register(SP, sp_before_call);
+  int64_t return_value;
+  if (fp_return) {
+    return_value = bit_cast<int64_t, double>(get_dregister(D0));
+  } else {
+    return_value = Utils::LowHighTo64Bits(get_register(R0), get_register(R1));
+  }
+
+  // We can't instrument the runtime.
+  memory_.FlushAll();
+
+  return return_value;
+}
+
+void Simulator::JumpToFrame(uword pc, uword sp, uword fp, Thread* thread) {
+  // Walk over all setjmp buffers (simulated --> C++ transitions)
+  // and try to find the setjmp associated with the simulated stack pointer.
+  SimulatorSetjmpBuffer* buf = last_setjmp_buffer();
+  while (buf->link() != nullptr && buf->link()->sp() <= sp) {
+    buf = buf->link();
+  }
+  ASSERT(buf != nullptr);
+
+  // Keep the following code in sync with `StubCode::JumpToFrameStub()`.
+
+  // Unwind the C++ stack and continue simulation in the target frame.
+  set_register(PC, static_cast<int32_t>(pc));
+  set_register(SP, static_cast<int32_t>(sp));
+  set_register(FP, static_cast<int32_t>(fp));
+  set_register(THR, reinterpret_cast<uword>(thread));
+  // Set the tag.
+  thread->set_vm_tag(VMTag::kDartTagId);
+  // Clear top exit frame.
+  thread->set_top_exit_frame_info(0);
+  // Restore pool pointer.
+  int32_t code =
+      *reinterpret_cast<int32_t*>(fp + kPcMarkerSlotFromFp * kWordSize);
+  int32_t pp = FLAG_precompiled_mode
+                   ? static_cast<int32_t>(thread->global_object_pool())
+                   : *reinterpret_cast<int32_t*>(
+                         (code + Code::object_pool_offset() - kHeapObjectTag));
+
+  set_register(CODE_REG, code);
+  set_register(PP, pp);
+  if (FLAG_precompiled_mode) {
+    set_register(DISPATCH_TABLE_REG,
+                 reinterpret_cast<int32_t>(thread->dispatch_table_array()));
+  }
+  buf->Longjmp();
+}
+
+}  // namespace dart
+
+#endif  // defined(DART_INCLUDE_SIMULATOR)
+
+#endif  // defined TARGET_ARCH_ARM

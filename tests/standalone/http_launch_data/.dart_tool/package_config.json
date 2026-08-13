@@ -1,0 +1,9 @@
+{
+  "configVersion": 2,
+  "packages": [
+    {
+      "name": "simple",
+      "rootUri": "../the_packages/simple"
+    }
+  ]
+}

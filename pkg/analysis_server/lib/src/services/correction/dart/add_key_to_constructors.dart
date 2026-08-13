@@ -1,0 +1,352 @@
+// Copyright (c) 2021, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
+import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
+import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:analyzer_plugin/utilities/range_factory.dart';
+import 'package:collection/collection.dart';
+
+class AddKeyToConstructors extends ResolvedCorrectionProducer {
+  new({required super.context});
+
+  @override
+  CorrectionApplicability get applicability =>
+      CorrectionApplicability.automatically;
+
+  @override
+  FixKind get fixKind => DartFixKind.addKeyToConstructors;
+
+  @override
+  FixKind get multiFixKind => DartFixKind.addKeyToConstructorsMulti;
+
+  @override
+  Future<void> compute(ChangeBuilder builder) async {
+    var node = this.node;
+    var parent = node.parent;
+    if (parent is ClassDeclaration) {
+      var namePart = parent.namePart;
+      if (namePart is PrimaryConstructorDeclaration) {
+        await _computePrimaryConstructorDeclaration(builder, namePart);
+      } else {
+        await _computeClassDeclaration(builder, parent);
+      }
+    } else if (node is ConstructorDeclaration) {
+      await _computeConstructorDeclaration(builder, node);
+    } else if (parent is ConstructorDeclaration) {
+      await _computeConstructorDeclaration(builder, parent);
+    }
+  }
+
+  /// Return `true` if the [classDeclaration] can be instantiated as a `const`.
+  bool _canBeConst(
+    ClassDeclaration classDeclaration,
+    List<ConstructorElement> constructors,
+  ) {
+    for (var constructor in constructors) {
+      if (constructor.isDefaultConstructor && !constructor.isConst) {
+        return false;
+      }
+    }
+
+    for (var member in classDeclaration.body.members) {
+      if (member is FieldDeclaration && !member.isStatic) {
+        if (!member.fields.isFinal) {
+          return false;
+        }
+        for (var variableDeclaration in member.fields.variables) {
+          var initializer = variableDeclaration.initializer;
+          if (initializer is InstanceCreationExpression &&
+              !initializer.isConst) {
+            return false;
+          }
+        }
+      }
+    }
+    return true;
+  }
+
+  /// The lint is on the name of the class when there are no constructors.
+  Future<void> _computeClassDeclaration(
+    ChangeBuilder builder,
+    ClassDeclaration node,
+  ) async {
+    var keyType = await _getKeyType();
+    if (keyType == null) {
+      return;
+    }
+    var className = node.namePart.typeName.lexeme;
+    var constructors = node.declaredFragment!.element.supertype?.constructors;
+    if (constructors == null) {
+      return;
+    }
+
+    var canBeConst = _canBeConst(node, constructors);
+    await builder.addDartFileEdit(file, (builder) {
+      builder.insertConstructor(node, (builder) {
+        // TODO(srawlins): Replace this block with `writeConstructorDeclaration`
+        // and `parameterWriter`.
+        if (canBeConst) {
+          builder.write('const ');
+        }
+        builder.write(className);
+        builder.write('({');
+        if (isEnabled(Feature.super_parameters)) {
+          builder.write('super.key});');
+        } else {
+          builder.writeType(keyType);
+          builder.write(' key}) : super(key: key);');
+        }
+      });
+    });
+  }
+
+  /// The lint is reported on a constructor when that constructor doesn't have a
+  /// `key` parameter.
+  Future<void> _computeConstructorDeclaration(
+    ChangeBuilder builder,
+    ConstructorDeclaration node,
+  ) async {
+    var keyType = await _getKeyType();
+    if (keyType == null) {
+      return;
+    }
+    var superParameters = isEnabled(Feature.super_parameters);
+
+    /// Write the parameter named `key`.
+    void writeKey(DartEditBuilder builder) {
+      if (superParameters) {
+        builder.write('super.key');
+      } else {
+        builder.writeType(keyType);
+        builder.write(' key');
+      }
+    }
+
+    var parameterList = node.parameters;
+    var parameters = parameterList.parameters;
+    if (parameters.isEmpty) {
+      // There are no parameters, so add the first parameter.
+      await builder.addDartFileEdit(file, (builder) {
+        builder.addInsertion(parameterList.leftParenthesis.end, (builder) {
+          builder.write('{');
+          writeKey(builder);
+          builder.write('}');
+        });
+        _updateSuper(builder, node, superParameters);
+      });
+      return;
+    }
+    var leftDelimiter = parameterList.leftDelimiter;
+    if (leftDelimiter == null) {
+      // There are no named parameters, so add the delimiters.
+      await builder.addDartFileEdit(file, (builder) {
+        builder.addInsertion(parameters.last.end, (builder) {
+          builder.write(', {');
+          writeKey(builder);
+          builder.write('}');
+        });
+        _updateSuper(builder, node, superParameters);
+      });
+    } else if (leftDelimiter.type == TokenType.OPEN_CURLY_BRACKET) {
+      // There are other named parameters, so add the new named parameter.
+      await builder.addDartFileEdit(file, (builder) {
+        builder.addInsertion(leftDelimiter.end, (builder) {
+          writeKey(builder);
+          builder.write(', ');
+        });
+        _updateSuper(builder, node, superParameters);
+      });
+    }
+  }
+
+  /// The lint is reported on a class definition when the primary constructor
+  /// doesn't have a `key` parameter.
+  Future<void> _computePrimaryConstructorDeclaration(
+    ChangeBuilder builder,
+    PrimaryConstructorDeclaration namePart,
+  ) async {
+    var keyType = await _getKeyType();
+    if (keyType == null) {
+      return;
+    }
+    var parameterList = namePart.formalParameters;
+    var parameters = parameterList.parameters;
+    var body = namePart.body;
+    if (parameters.isEmpty) {
+      // There are no parameters, so add the first parameter.
+      await builder.addDartFileEdit(file, (builder) {
+        builder.addSimpleInsertion(
+          parameterList.leftParenthesis.end,
+          '{super.key}',
+        );
+        _updateSuperInBody(builder, body);
+      });
+      return;
+    }
+    var leftDelimiter = parameterList.leftDelimiter;
+    if (leftDelimiter == null) {
+      // There are no named parameters, so add the delimiters.
+      await builder.addDartFileEdit(file, (builder) {
+        builder.addSimpleInsertion(parameters.last.end, ', {super.key}');
+        _updateSuperInBody(builder, body);
+      });
+    } else if (leftDelimiter.type == TokenType.OPEN_CURLY_BRACKET) {
+      // There are other named parameters, so add the new named parameter.
+      await builder.addDartFileEdit(file, (builder) {
+        builder.addSimpleInsertion(leftDelimiter.end, 'super.key, ');
+        _updateSuperInBody(builder, body);
+      });
+    }
+  }
+
+  /// Return the type for the class `Key`.
+  Future<DartType?> _getKeyType() async {
+    var keyClass = await sessionHelper.getFlutterClass('Key');
+    if (keyClass == null) {
+      return null;
+    }
+    return keyClass.instantiate(
+      typeArguments: const [],
+      nullabilitySuffix: NullabilitySuffix.question,
+    );
+  }
+
+  void _updateSuper(
+    DartFileEditBuilder builder,
+    ConstructorDeclaration constructor,
+    bool superParameters,
+  ) {
+    if (constructor.factoryKeyword != null ||
+        constructor.redirectedConstructor != null) {
+      // Can't have a super constructor invocation.
+      // TODO(brianwilkerson): Consider extending the redirected constructor to
+      //  also take a key, or finding the constructor invocation in the body of
+      //  the factory and updating it.
+      return;
+    }
+    var initializers = constructor.initializers;
+    SuperConstructorInvocation? invocation;
+    for (var initializer in initializers) {
+      if (initializer is SuperConstructorInvocation) {
+        invocation = initializer;
+      } else if (initializer is RedirectingConstructorInvocation) {
+        return;
+      }
+    }
+    if (superParameters) {
+      if (invocation != null && invocation.argumentList.arguments.isEmpty) {
+        var invocationIndex = initializers.indexOf(invocation);
+        if (initializers.length == 1) {
+          builder.addDeletion(
+            range.endStart(constructor.parameters, constructor.body),
+          );
+        } else if (invocationIndex == 0) {
+          builder.addDeletion(
+            range.startStart(invocation, initializers[invocationIndex + 1]),
+          );
+        } else {
+          builder.addDeletion(
+            range.endEnd(initializers[invocationIndex - 1], invocation),
+          );
+        }
+      }
+      return;
+    }
+
+    if (invocation == null) {
+      // There is no super constructor invocation, so add one.
+      if (initializers.isEmpty) {
+        builder.addSimpleInsertion(
+          constructor.parameters.rightParenthesis.end,
+          ' : super(key: key)',
+        );
+      } else {
+        builder.addSimpleInsertion(initializers.last.end, ', super(key: key)');
+      }
+    } else {
+      // There is a super constructor invocation, so update it.
+      var argumentList = invocation.argumentList;
+      var arguments = argumentList.arguments;
+      var existing = arguments.firstWhereOrNull(
+        (argument) =>
+            argument is NamedArgument && argument.name.lexeme == 'key',
+      );
+      if (existing == null) {
+        // There is no 'key' argument, so add it.
+        var namedArguments = arguments.whereType<NamedArgument>();
+        var firstNamed = namedArguments.firstOrNull;
+        var token = firstNamed?.beginToken ?? argumentList.endToken;
+        var comma = token.previous?.type == TokenType.COMMA;
+
+        builder.addInsertion(token.offset, (builder) {
+          if (arguments.length != namedArguments.length) {
+            // there are unnamed arguments
+            if (!comma) {
+              builder.write(',');
+            }
+            builder.write(' ');
+          }
+          builder.write('key: key');
+          if (firstNamed != null) {
+            builder.write(', ');
+          } else if (comma) {
+            builder.write(',');
+          }
+        });
+      } else {
+        // There is an existing 'key' argument, so we leave it alone.
+      }
+    }
+  }
+
+  void _updateSuperInBody(
+    DartFileEditBuilder builder,
+    PrimaryConstructorBody? body,
+  ) {
+    if (body == null) {
+      return;
+    }
+    var initializers = body.initializers;
+    SuperConstructorInvocation? invocation;
+    for (var initializer in initializers) {
+      if (initializer is SuperConstructorInvocation) {
+        invocation = initializer;
+      } else if (initializer is RedirectingConstructorInvocation) {
+        return;
+      }
+    }
+    if (invocation != null && invocation.argumentList.arguments.isEmpty) {
+      if (initializers.length == 1) {
+        if (body.body is EmptyFunctionBody) {
+          builder.addDeletion(range.endStart(body.thisKeyword, body.body));
+        } else {
+          builder.addSimpleReplacement(
+            range.endStart(body.thisKeyword, body.body),
+            ' ',
+          );
+        }
+      } else {
+        var invocationIndex = initializers.indexOf(invocation);
+        if (invocationIndex == 0) {
+          builder.addDeletion(
+            range.startStart(invocation, initializers[invocationIndex + 1]),
+          );
+        } else {
+          builder.addDeletion(
+            range.endEnd(initializers[invocationIndex - 1], invocation),
+          );
+        }
+      }
+    }
+  }
+}

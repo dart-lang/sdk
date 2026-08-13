@@ -1,0 +1,7 @@
+library test;
+
+class A<T extends int> {}
+
+A v = throw '';
+
+test() {}

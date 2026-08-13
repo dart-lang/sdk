@@ -1,0 +1,31 @@
+main() {
+
+
+int æFoo = 42;
+
+int fooÆ = 42;
+
+int foo = 42;
+print( æFoo);
+print( fooÆ);
+print( foo);
+}
+
+[NonAsciiIdentifierToken]
+
+[NonAsciiIdentifierToken]
+
+
+[NonAsciiIdentifierToken]
+[NonAsciiIdentifierToken]main[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+
+
+int[StringToken] æFoo[StringToken] =[SimpleToken] 42[StringToken];[SimpleToken]
+
+int[StringToken] fooÆ[StringToken] =[SimpleToken] 42[StringToken];[SimpleToken]
+
+int[StringToken] foo[StringToken] =[SimpleToken] 42[StringToken];[SimpleToken]
+print[StringToken]([BeginToken] æFoo[StringToken])[SimpleToken];[SimpleToken]
+print[StringToken]([BeginToken] fooÆ[StringToken])[SimpleToken];[SimpleToken]
+print[StringToken]([BeginToken] foo[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken][SimpleToken]

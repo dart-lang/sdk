@@ -1,0 +1,11 @@
+/*error: errors=PackagesFileFormat*/
+{
+    "configVersion": 2,
+    "packages": [
+        {
+            "name": "foo",
+            "rootUri": "../lib/",
+            "languageVersion": "arglebargle"
+        }
+    ]
+}

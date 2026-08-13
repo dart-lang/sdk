@@ -1,0 +1,13 @@
+library test;
+
+class I {
+  bool g() => true;
+}
+
+abstract class C implements I {}
+
+C f() => throw '';
+
+var x = f().g;
+
+main() {}

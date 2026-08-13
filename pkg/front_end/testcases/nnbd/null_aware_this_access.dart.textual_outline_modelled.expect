@@ -1,0 +1,18 @@
+class C {
+  C get property => this;
+  int? m1;
+  int? operator [](int index) => 0;
+  int m2 = 0;
+  method() {}
+  test() {}
+  void operator []=(int index, int value) {}
+}
+
+class D {
+  D get property => this;
+  int operator [](int index) => 0;
+  test() {}
+  void operator []=(int index, int value) {}
+}
+
+main() {}

@@ -1,0 +1,17 @@
+void main(List<String> arguments) {}
+
+void test(int positional, {int named1 = 0, int named2 = 0}) {}
+
+class Sueta {
+  static void test(int positional, {int named1 = 0, int named2 = 0}) {}
+}
+
+extension SuetaExtension on Sueta {
+  static void test(int pos, {int named1 = 0, int named2 = 0}) {}
+}
+
+void test1() {}
+
+void test2() {}
+
+void test3() {}

@@ -1,0 +1,19 @@
+NOTICE: Stream was rewritten by parser!
+
+main() {
+try {
+print(0);
+} on String {
+} on (*synthetic*[int? i, String? n]) {
+}
+on(){};
+}
+
+main[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+try[KeywordToken] {[BeginToken]
+print[StringToken]([BeginToken]0[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken] on[KeywordToken] String[StringToken] {[BeginToken]
+}[SimpleToken] on[KeywordToken] ([BeginToken][SyntheticStringToken][[BeginToken]int[StringToken]?[SimpleToken] i[StringToken],[SimpleToken] String[StringToken]?[SimpleToken] n[StringToken]][SimpleToken])[SimpleToken] {[BeginToken]
+}[SimpleToken]
+on[KeywordToken]([BeginToken])[SimpleToken]{[SyntheticBeginToken]}[SyntheticToken];[SimpleToken]
+}[SimpleToken][SimpleToken]

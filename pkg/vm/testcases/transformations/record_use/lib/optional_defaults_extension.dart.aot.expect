@@ -1,0 +1,30 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+import "package:meta/meta.dart" as meta;
+
+import "package:meta/meta.dart" show RecordUse;
+
+extension Ext on core::int {
+  method extMethod = self::Ext|extMethod;
+  method tearoff extMethod = self::Ext|get#extMethod;
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method main() → void {
+  self::Ext|extMethod(0);
+}
+
+[@vm.inferred-return-type.metadata=dart.core::_Smi (value: 15)]
+[@vm.unboxing-info.metadata=[!regcc]]
+@#C1
+static extension-member method Ext|extMethod([@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 0)] lowered final core::int #this, {[@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 15)] core::int i = #C2}) → core::int
+  return i;
+
+[@vm.unreachable.metadata=]
+static extension-member method Ext|get#extMethod(lowered final core::int #this) → ({i: core::int}) → core::int
+  throw "Attempt to execute method removed by Dart AOT compiler (TFA)";
+constants  {
+  #C1 = meta::RecordUse {}
+  #C2 = 15
+}

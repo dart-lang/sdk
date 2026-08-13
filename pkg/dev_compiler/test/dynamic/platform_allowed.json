@@ -1,0 +1,47 @@
+{
+  "sdk/lib/_internal/js_dev_runtime/private/debugger.dart": {
+    "Dynamic invocation of 'toJsonML'.": 1,
+    "Dynamic update to 'style'.": 3,
+    "Dynamic access of 'style'.": 2,
+    "Dynamic invocation of '+'.": 1,
+    "Dynamic access of 'name'.": 1,
+    "Dynamic access of 'object'.": 1,
+    "Dynamic invocation of 'forEach'.": 1,
+    "Dynamic access of 'length'.": 1,
+    "Dynamic access of 'key'.": 1,
+    "Dynamic access of 'value'.": 1,
+    "Dynamic access of 'start'.": 1,
+    "Dynamic invocation of '-'.": 1,
+    "Dynamic access of 'end'.": 1,
+    "Dynamic invocation of 'children'.": 1
+  },
+  "sdk/lib/_internal/js_dev_runtime/private/isolate_helper.dart": {
+    "Dynamic invocation of 'call'.": 1
+  },
+  "sdk/lib/_internal/js_dev_runtime/private/js_helper.dart": {
+    "Dynamic access of 'length'.": 1
+  },
+  "sdk/lib/_internal/js_dev_runtime/private/string_helper.dart": {
+    "Dynamic access of 'isNotEmpty'.": 1,
+    "Dynamic invocation of 'allMatches'.": 1
+  },
+  "sdk/lib/_internal/js_dev_runtime/patch/convert_patch.dart": {
+    "Dynamic invocation of 'clear'.": 1
+  },
+  "sdk/lib/convert/json.dart": {
+    "Dynamic invocation of 'toJson'.": 1
+  },
+  "sdk/lib/_internal/js_dev_runtime/patch/js_patch.dart": {
+    "Dynamic invocation of '[]'.": 1
+  },
+  "sdk/lib/html/dart2js/html_dart2js.dart": {
+    "Dynamic invocation of 'toList'.": 1,
+    "Dynamic invocation of 'call'.": 2,
+    "Dynamic access of 'attributes'.": 1,
+    "Dynamic invocation of '[]'.": 1,
+    "Dynamic invocation of 'toLowerCase'.": 1
+  },
+  "sdk/lib/core/errors.dart": {
+    "Dynamic access of 'length'.": 2
+  }
+}

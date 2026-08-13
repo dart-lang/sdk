@@ -1,0 +1,35 @@
+------------ foo ------------
+
+RESULT: _T {}?
+------------ bar ------------
+
+RESULT: _T (dart.core::bool, false)
+------------ bool_expressions ------------
+t0* = _Call direct [#lib::foo] ()
+t1 = _TypeCheck (t0 against dart.core::bool) (for #lib::foo() as dart.core::bool)
+t2* = _Call direct [#lib::bar] ()
+t3* = _Call [dart.core::num.+] (_T (dart.core::int)+, _T (dart.core::_Smi, 1))
+i_0 = _Join [dart.core::int] (_T (dart.core::_Smi, 0), t3)
+t5* = _Call [dart.core::num.<] (i_0, _T (dart.core::_Smi, 10))
+t6* = _Call direct [#lib::bar] ()
+t7 = _TypeCheck (t6 against dart.core::bool) (for x is dart.core::bool)
+t8 = IsEmpty (t7)
+t9 = Not (t8)
+t10 = Not (t7) {t9}
+t11* = _Call direct [#lib::foo] () {t10}
+t12 = Move (_T (dart.core::bool, true)) {t7}
+t13 = _Join [dynamic] (t12, t11) {t9}
+t14 = _TypeCheck (t13 against dart.core::bool) (for (x ?{dynamic} true : #lib::foo()) as dart.core::bool) {t9}
+t15* = _Call direct [#lib::bar] () {t9}
+t16 = Not (t15) {t9}
+t17* = _Call direct [#lib::bar] () {t16}
+t18* = _Call direct [#lib::foo] ()
+t19 = _TypeCheck (t18 against dart.core::bool) (for #lib::foo() as dart.core::bool)
+t20* = _Call direct [#lib::foo] () {t19}
+t21 = _TypeCheck (t20 against dart.core::bool) (for #lib::foo() as dart.core::bool) {t19}
+t22 = Or (t15, t17) {t9}
+y_0 = _Join [dart.core::bool] (t22, _T (dart.core::bool, true))
+RESULT: _T {}?
+------------ main ------------
+
+RESULT: _T {}?

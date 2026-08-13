@@ -1,0 +1,25 @@
+class A<in T> {
+  final T a = throw "uncalled";
+  final T Function() b = () => throw "uncalled";
+  T get c => throw "uncalled";
+  late T d;
+  covariant late T e;
+  T? f = null;
+}
+
+mixin BMixin<in T> {
+  final T a = throw "uncalled";
+  final T Function() b = () => throw "uncalled";
+  T get c => throw "uncalled";
+  late T d;
+  covariant late T e;
+  T? f = null;
+}
+
+abstract class C<in T> {
+  T get a;
+}
+
+class D<in T> extends C<T> {
+  var a;
+}

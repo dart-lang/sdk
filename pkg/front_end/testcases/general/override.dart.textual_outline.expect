@@ -1,0 +1,13 @@
+class Foo {}
+
+class Bar extends Foo {}
+
+class Base {
+  Foo method() {}
+}
+
+class Sub extends Base {
+  Foo method() {}
+}
+
+main(List<String> args) {}

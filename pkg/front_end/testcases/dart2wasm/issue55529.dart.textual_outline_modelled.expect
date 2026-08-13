@@ -1,0 +1,19 @@
+class A1 {
+  A1({required this.a});
+  final Object? a;
+}
+
+class A2 {
+  A2(this.a);
+  final Object? a;
+}
+
+class B1 extends A1 {
+  B1({super.a}) {}
+}
+
+class B2 extends A2 {
+  B2([super.a]);
+}
+
+void main() {}

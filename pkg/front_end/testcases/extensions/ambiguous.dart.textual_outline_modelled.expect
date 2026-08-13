@@ -1,0 +1,25 @@
+class C {}
+
+errors(C c) {}
+
+extension A on C {
+  int get getter => 42;
+  int get property => 42;
+  int operator +(int i) => i;
+  int operator -() => 0;
+  int operator [](int i) => i;
+  void method() {}
+  void set setter(int value) {}
+}
+
+extension B on C {
+  int get getter => 42;
+  int operator +(int i) => i;
+  int operator -() => 0;
+  void method() {}
+  void operator []=(int i, int j) {}
+  void set property(int value) {}
+  void set setter(int value) {}
+}
+
+main() {}

@@ -1,0 +1,21 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+abstract class ChannelA extends core::Object {
+  synthetic constructor •() → self::ChannelA
+    ;
+  abstract get channel() → self::ChannelB?;
+}
+abstract class ChannelB extends core::Object {
+  synthetic constructor •() → self::ChannelB
+    ;
+  abstract get activeFrom() → self::ActiveFrom?;
+}
+abstract class ActiveFrom extends core::Object {
+  synthetic constructor •() → self::ActiveFrom
+    ;
+  abstract method toLocal() → core::DateTime;
+}
+static method method(self::ChannelA channel) → void
+  ;

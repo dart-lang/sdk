@@ -1,0 +1,17 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+import "dart:async";
+
+static method f() → FutureOr<core::Iterable<core::int>> sync* 
+  ;
+static method g() → FutureOr<asy::Stream<core::int>> async* 
+  ;
+static method main() → dynamic async 
+  ;
+static method expectThrows(dynamic f) → dynamic
+  ;
+static method expectAsyncThrows(dynamic f) → dynamic async 
+  ;

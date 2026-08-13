@@ -1,0 +1,9 @@
+main() {
+for () {}
+}
+
+
+main[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+for[KeywordToken] ([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

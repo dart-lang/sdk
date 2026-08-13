@@ -1,0 +1,11 @@
+// @dart = 2.12
+
+main() {}
+
+typedef F = void Function()?;
+
+void bar(F x) {}
+
+void baz(F? x) {}
+
+void foo(void Function() x) {}

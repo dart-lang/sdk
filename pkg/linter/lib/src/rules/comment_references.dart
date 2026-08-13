@@ -1,0 +1,121 @@
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
+import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/error/error.dart';
+
+import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
+
+const _desc = r'Only reference in-scope identifiers in doc comments.';
+
+class CommentReferences extends AnalysisRule {
+  new() : super(name: LintNames.comment_references, description: _desc);
+
+  @override
+  DiagnosticCode get diagnosticCode => diag.commentReferences;
+
+  @override
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
+    var visitor = _Visitor(this);
+    registry.addComment(this, visitor);
+    registry.addCommentReference(this, visitor);
+  }
+}
+
+class _Visitor(final AnalysisRule rule) extends SimpleAstVisitor<void> {
+  static final _commentStartPattern = RegExp(r'^///+\s*$');
+
+  /// Recognized Markdown link references (see
+  /// https://spec.commonmark.org/0.31.2/#link-reference-definitions).
+  final linkReferences = <String>[];
+
+  @override
+  void visitComment(Comment node) {
+    // Clear any link references of the previous comment.
+    linkReferences.clear();
+
+    // Check for keywords that are not treated as references by the parser
+    // but should be reported.
+    // Note that no special care is taken to handle embedded code blocks.
+    // TODO(srawlins): Skip over code blocks, made available via
+    // `Comment.codeBlocks`.
+    for (var token in node.tokens) {
+      if (token.isSynthetic) continue;
+
+      var comment = token.lexeme;
+      var referenceIndices = comment.referenceIndices(0);
+      if (referenceIndices == null) continue;
+      var (leftIndex, rightIndex) = referenceIndices;
+      var prefix = comment.substring(0, leftIndex);
+      if (_commentStartPattern.hasMatch(prefix)) {
+        // Check for a Markdown [link reference
+        // definition](https://spec.commonmark.org/0.31.2/#link-reference-definitions).
+        var reference = comment.substring(leftIndex + 1, rightIndex);
+        if (rightIndex + 1 < comment.length && comment[rightIndex + 1] == ':') {
+          linkReferences.add(reference);
+        }
+      }
+
+      while (referenceIndices != null) {
+        (leftIndex, rightIndex) = referenceIndices;
+        var reference = comment.substring(leftIndex + 1, rightIndex);
+        if (_isParserSpecialCase(reference)) {
+          var nameOffset = token.offset + leftIndex + 1;
+          rule.reportAtOffset(nameOffset, reference.length);
+        }
+
+        referenceIndices = comment.referenceIndices(rightIndex);
+      }
+    }
+  }
+
+  @override
+  void visitCommentReference(CommentReference node) {
+    if (node.isSynthetic) return;
+    var expression = node.expression;
+    if (expression.isSynthetic) return;
+
+    if (expression is Identifier &&
+        expression.element == null &&
+        !linkReferences.contains(expression.name)) {
+      rule.reportAtNode(expression);
+    } else if (expression is PropertyAccess &&
+        expression.propertyName.element == null) {
+      var target = expression.target;
+      if (target is PrefixedIdentifier) {
+        var name = '${target.name}.${expression.propertyName.name}';
+        if (!linkReferences.contains(name)) {
+          rule.reportAtNode(expression);
+        }
+      }
+    }
+  }
+
+  bool _isParserSpecialCase(String reference) =>
+      reference == 'this' ||
+      reference == 'null' ||
+      reference == 'true' ||
+      reference == 'false';
+}
+
+extension on String {
+  /// Returns the first indices of a left and right bracket, if a left bracket
+  /// is found before a right bracket in this [String], starting at [start], and
+  /// `null` otherwise.
+  (int, int)? referenceIndices(int start) {
+    var leftIndex = indexOf('[', start);
+    if (leftIndex < 0) return null;
+    var rightIndex = indexOf(']', leftIndex);
+    if (rightIndex < 0) return null;
+    return (leftIndex, rightIndex);
+  }
+}

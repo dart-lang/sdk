@@ -1,0 +1,36 @@
+main = main::main;
+library from "org-dartlang-test:///lib1.dart" as lib1 {
+additionalExports = (lib2::Foo)
+
+  import "org-dartlang-test:///main.dart";
+  export "org-dartlang-test:///lib2.dart" show Foo;
+
+}
+library from "org-dartlang-test:///lib2.dart" as lib2 {
+
+  class Foo extends dart.core::Object /*hasConstConstructor*/  {
+    static const field lib2::Foo BAR = #C1;
+    const constructor •(dart.core::String x) → lib2::Foo
+      : super dart.core::Object::•()
+      ;
+  }
+}
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "org-dartlang-test:///lib1.dart" as prefix;
+
+  static method main() → dynamic {
+    dart.core::print(#C1);
+    dart.core::print(#C1);
+  }
+}
+constants  {
+  #C1 = lib2::Foo {}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-test:///lib2.dart:
+- Foo. (from org-dartlang-test:///lib2.dart:3:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
+

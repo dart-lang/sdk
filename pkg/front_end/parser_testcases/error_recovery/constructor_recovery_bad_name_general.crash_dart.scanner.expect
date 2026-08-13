@@ -1,0 +1,83 @@
+class Foo {
+foo.x() {
+
+}
+foo.x() : initializer = true {
+
+}
+foo() : initializer = true {
+
+}
+get Foo => 0;
+get Foo {
+return 0;
+}
+get Foo.X => 0;
+get Foo.X {
+return 0;
+}
+get Foo : bla = null => 0;
+get Foo.X : bla = null {
+return 0;
+}
+set Foo => 0;
+set Foo {
+return 0;
+}
+set Foo.X => 0;
+set Foo.X {
+return 0;
+}
+set Foo : bla = null => 0;
+set Foo.X : bla = null {
+return 0;
+}
+external Foo() : bla = null;
+external Foo.X() : bla = null {
+return 0;
+}
+int Foo;
+int A, Foo, B;
+}
+
+class[KeywordToken] Foo[StringToken] {[BeginToken]
+foo[StringToken].[SimpleToken]x[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+
+}[SimpleToken]
+foo[StringToken].[SimpleToken]x[StringToken]([BeginToken])[SimpleToken] :[SimpleToken] initializer[StringToken] =[SimpleToken] true[KeywordToken] {[BeginToken]
+
+}[SimpleToken]
+foo[StringToken]([BeginToken])[SimpleToken] :[SimpleToken] initializer[StringToken] =[SimpleToken] true[KeywordToken] {[BeginToken]
+
+}[SimpleToken]
+get[KeywordToken] Foo[StringToken] =>[SimpleToken] 0[StringToken];[SimpleToken]
+get[KeywordToken] Foo[StringToken] {[BeginToken]
+return[KeywordToken] 0[StringToken];[SimpleToken]
+}[SimpleToken]
+get[KeywordToken] Foo[StringToken].[SimpleToken]X[StringToken] =>[SimpleToken] 0[StringToken];[SimpleToken]
+get[KeywordToken] Foo[StringToken].[SimpleToken]X[StringToken] {[BeginToken]
+return[KeywordToken] 0[StringToken];[SimpleToken]
+}[SimpleToken]
+get[KeywordToken] Foo[StringToken] :[SimpleToken] bla[StringToken] =[SimpleToken] null[KeywordToken] =>[SimpleToken] 0[StringToken];[SimpleToken]
+get[KeywordToken] Foo[StringToken].[SimpleToken]X[StringToken] :[SimpleToken] bla[StringToken] =[SimpleToken] null[KeywordToken] {[BeginToken]
+return[KeywordToken] 0[StringToken];[SimpleToken]
+}[SimpleToken]
+set[KeywordToken] Foo[StringToken] =>[SimpleToken] 0[StringToken];[SimpleToken]
+set[KeywordToken] Foo[StringToken] {[BeginToken]
+return[KeywordToken] 0[StringToken];[SimpleToken]
+}[SimpleToken]
+set[KeywordToken] Foo[StringToken].[SimpleToken]X[StringToken] =>[SimpleToken] 0[StringToken];[SimpleToken]
+set[KeywordToken] Foo[StringToken].[SimpleToken]X[StringToken] {[BeginToken]
+return[KeywordToken] 0[StringToken];[SimpleToken]
+}[SimpleToken]
+set[KeywordToken] Foo[StringToken] :[SimpleToken] bla[StringToken] =[SimpleToken] null[KeywordToken] =>[SimpleToken] 0[StringToken];[SimpleToken]
+set[KeywordToken] Foo[StringToken].[SimpleToken]X[StringToken] :[SimpleToken] bla[StringToken] =[SimpleToken] null[KeywordToken] {[BeginToken]
+return[KeywordToken] 0[StringToken];[SimpleToken]
+}[SimpleToken]
+external[KeywordToken] Foo[StringToken]([BeginToken])[SimpleToken] :[SimpleToken] bla[StringToken] =[SimpleToken] null[KeywordToken];[SimpleToken]
+external[KeywordToken] Foo[StringToken].[SimpleToken]X[StringToken]([BeginToken])[SimpleToken] :[SimpleToken] bla[StringToken] =[SimpleToken] null[KeywordToken] {[BeginToken]
+return[KeywordToken] 0[StringToken];[SimpleToken]
+}[SimpleToken]
+int[StringToken] Foo[StringToken];[SimpleToken]
+int[StringToken] A[StringToken],[SimpleToken] Foo[StringToken],[SimpleToken] B[StringToken];[SimpleToken]
+}[SimpleToken][SimpleToken]

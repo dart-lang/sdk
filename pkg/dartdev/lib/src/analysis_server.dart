@@ -1,0 +1,495 @@
+// Copyright (c) 2020, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:analysis_server/src/server/driver.dart' show Driver;
+import 'package:analysis_server_client/protocol.dart'
+    show
+        AddContentOverlay,
+        AnalysisUpdateContentParams,
+        EditBulkFixesResult,
+        ResponseDecoder;
+import 'package:args/args.dart';
+import 'package:path/path.dart' as path;
+
+import 'core.dart';
+import 'experiments.dart';
+import 'sdk.dart';
+import 'utils.dart';
+
+/// When set, this function is executed just before the Analysis Server starts.
+void Function(
+  String cmdName,
+  List<FileSystemEntity> analysisRoots,
+  ArgResults? argResults,
+)?
+preAnalysisServerStart;
+
+/// A class to provide an API wrapper around an analysis server process.
+class AnalysisServer {
+  AnalysisServer(
+    this._packagesFile,
+    this._sdkPath,
+    this._analysisRoots, {
+    this.cacheDirectoryPath,
+    required this.commandName,
+    required this.argResults,
+    required this._usePlugins,
+    this.enabledExperiments = const [],
+    this.disableStatusNotificationDebouncing = false,
+    this.suppressAnalytics = false,
+    this._useAotSnapshot = false,
+  });
+
+  final String? cacheDirectoryPath;
+  final File? _packagesFile;
+  final Directory _sdkPath;
+  final List<FileSystemEntity> _analysisRoots;
+  final String commandName;
+  final ArgResults? argResults;
+  final List<String> enabledExperiments;
+  final bool disableStatusNotificationDebouncing;
+  final bool suppressAnalytics;
+  final bool _useAotSnapshot;
+  final bool _usePlugins;
+
+  Process? _process;
+
+  /// When not null, this is a [Completer] which completes when analysis has
+  /// finished, otherwise `null`.
+  Completer<bool>? _analysisFinished;
+
+  int _id = 0;
+
+  bool _shutdownResponseReceived = false;
+
+  bool _serverErrorReceived = false;
+
+  /// Whether any server error occurred that could mean analysis was not
+  /// performed correctly.
+  bool get serverErrorReceived => _serverErrorReceived;
+
+  Stream<bool> get onAnalyzing {
+    // {"event":"server.status","params":{"analysis":{"isAnalyzing":true}}}
+    return _streamController('server.status').stream
+        .where((event) => event['analysis'] != null)
+        .map((event) => (event['analysis']['isAnalyzing']!) as bool);
+  }
+
+  /// This future completes when we next receive an analysis finished event
+  /// (unless there's no current analysis and we've already received a complete
+  /// event, in which case this future completes immediately).
+  Future<bool>? get analysisFinished => _analysisFinished?.future;
+
+  Stream<FileAnalysisErrors> get onErrors {
+    // {"event":"analysis.errors",
+    //  "params":{"file":"/Users/.../lib/main.dart","errors":[]}}
+    return _streamController('analysis.errors').stream.map((event) {
+      final file = event['file'] as String;
+      final errorsList = event['errors'] as List<dynamic>;
+      final errors = [
+        for (final error in errorsList)
+          AnalysisError((error as Map).cast<String, dynamic>()),
+      ];
+      return FileAnalysisErrors(file, errors);
+    });
+  }
+
+  Future<int> get onExit => _process!.exitCode;
+
+  final Map<String, StreamController<Map<String, dynamic>>> _streamControllers =
+      {};
+
+  /// Completes when an analysis server crash has been detected.
+  Future<void> get onCrash => _onCrash.future;
+
+  final _onCrash = Completer<void>();
+
+  final Map<String, Completer<Map<String, dynamic>>> _requestCompleters = {};
+
+  /// Starts the process and returns the pid for it.
+  Future<int> start({bool setAnalysisRoots = true}) async {
+    preAnalysisServerStart?.call(commandName, _analysisRoots, argResults);
+
+    final process = await _startProcess();
+    _process = process;
+    _shutdownResponseReceived = false;
+    // This callback hookup can't throw.
+    process.exitCode.whenComplete(() {
+      _process = null;
+
+      if (!_shutdownResponseReceived) {
+        // The process exited unexpectedly. Report the crash.
+        // If `server.error` reported an error, that has been logged by
+        // `_handleServerError`.
+
+        final error = StateError('The analysis server crashed unexpectedly');
+
+        final analysisFinished = _analysisFinished;
+        if (analysisFinished != null && !analysisFinished.isCompleted) {
+          // Complete this completer in order to unstick the process.
+          analysisFinished.completeError(error);
+        }
+
+        // Complete these completers in order to unstick the process.
+        for (final completer in _requestCompleters.values) {
+          completer.completeError(error);
+        }
+
+        _onCrash.complete();
+      }
+    });
+
+    final errorStream = process.stderr
+        .transform<String>(utf8.decoder)
+        .transform<String>(const LineSplitter());
+    errorStream.listen(log.stderr);
+
+    final inStream = process.stdout
+        .transform<String>(utf8.decoder)
+        .transform<String>(const LineSplitter());
+    inStream.listen(_handleServerResponse);
+
+    _streamController('server.error').stream.listen(_handleServerError);
+
+    _streamController('server.pluginError').stream.listen(_handlePluginError);
+
+    _sendCommand(
+      'server.setSubscriptions',
+      params: {
+        'subscriptions': <String>['STATUS'],
+      },
+    );
+
+    // Reference and trim off any trailing slash, the Dart Analysis Server
+    // protocol throws an error (INVALID_FILE_PATH_FORMAT) if there is a
+    // trailing slash.
+    //
+    // The call to `absolute.resolveSymbolicLinksSync()` canonicalizes the path
+    // to be passed to the analysis server.
+    final analysisRootPaths = [
+      for (final root in _analysisRoots)
+        trimEnd(
+          root.absolute.resolveSymbolicLinksSync(),
+          path.context.separator,
+        ),
+    ];
+
+    onAnalyzing.listen((isAnalyzing) {
+      final analysisFinished = _analysisFinished;
+      if (isAnalyzing && (analysisFinished?.isCompleted ?? true)) {
+        // Start a new completer, to be completed when we receive the
+        // corresponding analysis complete event.
+        _analysisFinished = Completer();
+      } else if (!isAnalyzing &&
+          analysisFinished != null &&
+          !analysisFinished.isCompleted) {
+        analysisFinished.complete(true);
+      }
+    });
+
+    if (setAnalysisRoots) {
+      await _sendCommand(
+        'analysis.setAnalysisRoots',
+        params: {'included': analysisRootPaths, 'excluded': []},
+      );
+    }
+
+    return process.pid;
+  }
+
+  Future<Process> _startProcess() {
+    final executable = _useAotSnapshot ? sdk.dartAotRuntime : sdk.dart;
+    final arguments = [
+      if (_useAotSnapshot)
+        sdk.analysisServerAotSnapshot
+      else
+        sdk.analysisServerSnapshot,
+      if (suppressAnalytics) '--${Driver.suppressAnalyticsFlag}',
+      '--${Driver.clientIdOption}=dart-$commandName',
+      '--disable-server-feature-completion',
+      '--disable-server-feature-search',
+      if (disableStatusNotificationDebouncing)
+        '--disable-status-notification-debouncing',
+      '--disable-silent-analysis-exceptions',
+      '--sdk',
+      _sdkPath.path,
+      if (cacheDirectoryPath != null) '--cache=$cacheDirectoryPath',
+      if (_packagesFile != null) '--packages=${_packagesFile.path}',
+      if (enabledExperiments.isNotEmpty)
+        '--$experimentFlagName=${enabledExperiments.join(',')}',
+      if (!_usePlugins) '--no-plugins',
+    ];
+
+    log.trace('$executable ${arguments.join(' ')}');
+    return Process.start(executable, arguments);
+  }
+
+  Future<String> getVersion() {
+    return _sendCommand(
+      'server.getVersion',
+    ).then((response) => response['version']);
+  }
+
+  Future<EditBulkFixesResult> requestBulkFixes(
+    String filePath,
+    bool inTestMode,
+    List<String> codes, {
+    bool updatePubspec = false,
+  }) {
+    return _sendCommand(
+      'edit.bulkFixes',
+      params: {
+        'included': [path.canonicalize(filePath)],
+        'inTestMode': inTestMode,
+        'updatePubspec': updatePubspec,
+        if (codes.isNotEmpty) 'codes': codes,
+      },
+    ).then((result) {
+      return EditBulkFixesResult.fromJson(
+        ResponseDecoder(null),
+        'result',
+        result,
+      );
+    });
+  }
+
+  Future<void> shutdown({Duration? timeout}) async {
+    // Request shutdown.
+    var future = _sendCommand('server.shutdown').then((_) {
+      _shutdownResponseReceived = true;
+    });
+    if (timeout != null) {
+      future = future.timeout(
+        timeout,
+        onTimeout: () {
+          log.stderr('The analysis server timed out while shutting down.');
+        },
+      );
+    }
+    await future.whenComplete(dispose);
+  }
+
+  /// Send an `analysis.updateContent` request with the given [files].
+  Future<void> updateContent(Map<String, AddContentOverlay> files) async {
+    await _sendCommand(
+      'analysis.updateContent',
+      params: AnalysisUpdateContentParams(files).toJson(),
+    );
+  }
+
+  Future<Map<String, dynamic>> _sendCommand(
+    String method, {
+    Map<String, dynamic>? params,
+  }) {
+    final String id = (++_id).toString();
+    final String message = json.encode({
+      'id': id,
+      'method': method,
+      'params': params,
+    });
+
+    final Completer<Map<String, dynamic>> completer = Completer();
+
+    _requestCompleters[id] = completer;
+    _process!.stdin.writeln(message);
+
+    log.trace('==> $message');
+
+    return completer.future;
+  }
+
+  void _handlePluginError(Map<String, dynamic> error) {
+    _serverErrorReceived = true;
+    // No need for a preamble (like in `_handleServerError`); the message should
+    // have all of the context necessary.
+    log.stderr(error['message']);
+    final stackTrace = error['stackTrace'];
+    if (stackTrace is String && stackTrace.isNotEmpty) {
+      log.stderr(stackTrace);
+    }
+  }
+
+  void _handleServerResponse(String line) {
+    log.trace('<== $line');
+
+    final response = json.decode(line) as Object?;
+
+    if (response is Map<String, dynamic>) {
+      if (response case {
+        'event': final String event,
+        'params': final Object? params,
+      }) {
+        if (params is Map<String, dynamic>) {
+          _streamController(event).add(params.cast<String, dynamic>());
+        }
+      } else if (response case {'id': final String id}) {
+        if (response case {'error': final Map<String, Object?> error}) {
+          _requestCompleters
+              .remove(id)
+              ?.completeError(
+                _RequestError.parse(error.cast<String, dynamic>()),
+              );
+        } else {
+          _requestCompleters.remove(id)?.complete(response['result'] ?? {});
+        }
+      }
+    }
+  }
+
+  void _handleServerError(Map<String, dynamic> error) {
+    _serverErrorReceived = true;
+    log.stderr('An unexpected error was encountered by the Analysis Server.');
+    log.stderr(
+      'Please file an issue at '
+      'https://github.com/dart-lang/sdk/issues/new/choose with the following '
+      'details:\n',
+    );
+    // Fields are 'isFatal', 'message', and 'stackTrace'.
+    log.stderr(error['message']);
+    final stackTrace = error['stackTrace'];
+    if (stackTrace is String && stackTrace.isNotEmpty) {
+      log.stderr(stackTrace);
+    }
+  }
+
+  StreamController<Map<String, dynamic>> _streamController(String streamId) {
+    return _streamControllers.putIfAbsent(
+      streamId,
+      () => StreamController<Map<String, dynamic>>.broadcast(),
+    );
+  }
+
+  Future<bool> dispose() async {
+    return _process?.kill() ?? true;
+  }
+}
+
+enum _AnalysisSeverity { error, warning, info, none }
+
+class AnalysisError implements Comparable<AnalysisError> {
+  AnalysisError(this.json);
+
+  static final Map<String, _AnalysisSeverity> _severityMap = {
+    'INFO': _AnalysisSeverity.info,
+    'WARNING': _AnalysisSeverity.warning,
+    'ERROR': _AnalysisSeverity.error,
+  };
+
+  // "severity":"INFO","type":"TODO","location":{
+  //   "file":"/Users/.../lib/test.dart","offset":362,"length":72,"startLine":15,"startColumn":4
+  // },"message":"...","hasFix":false}
+  final Map<String, dynamic> json;
+
+  String get severity => json['severity'] as String;
+
+  _AnalysisSeverity get _severityLevel =>
+      _severityMap[severity] ?? _AnalysisSeverity.none;
+
+  bool get isInfo => _severityLevel == _AnalysisSeverity.info;
+
+  bool get isWarning => _severityLevel == _AnalysisSeverity.warning;
+
+  bool get isError => _severityLevel == _AnalysisSeverity.error;
+
+  String get type => json['type'] as String;
+
+  String get message => json['message'] as String;
+
+  String get code => json['code'] as String;
+
+  String? get correction => json['correction'] as String?;
+
+  int? get endColumn => json['location']['endColumn'] as int?;
+
+  int? get endLine => json['location']['endLine'] as int?;
+
+  String get file => json['location']['file'] as String;
+
+  int? get startLine => json['location']['startLine'] as int?;
+
+  int? get startColumn => json['location']['startColumn'] as int?;
+
+  int get offset => json['location']['offset'] as int;
+
+  int get length => json['location']['length'] as int;
+
+  String? get url => json['url'] as String?;
+
+  List<DiagnosticMessage> get contextMessages {
+    if (json['contextMessages'] case List<dynamic> messages) {
+      return messages.map((message) => DiagnosticMessage(message)).toList();
+    } else {
+      return const [];
+    }
+  }
+
+  @override
+  int compareTo(AnalysisError other) {
+    // Sort in order of severity, file path, error location, and message.
+    final diff = _severityLevel.index - other._severityLevel.index;
+    if (diff != 0) {
+      return diff;
+    }
+
+    if (file != other.file) {
+      return file.compareTo(other.file);
+    }
+
+    if (offset != other.offset) {
+      return offset - other.offset;
+    }
+
+    return message.compareTo(other.message);
+  }
+
+  @override
+  String toString() =>
+      '${severity.toLowerCase()} • '
+      '$message • $file:$startLine:$startColumn • '
+      '($code)';
+}
+
+extension type DiagnosticMessage(Map<String, dynamic> json) {
+  int? get column => json['location']['startColumn'] as int?;
+
+  int? get endColumn => json['location']['endColumn'] as int?;
+
+  int? get endLine => json['location']['endLine'] as int?;
+
+  String get filePath => json['location']['file'] as String;
+
+  int get length => json['location']['length'] as int;
+
+  int get line => json['location']['startLine'] as int;
+
+  String get message => json['message'] as String;
+
+  int get offset => json['location']['offset'] as int;
+}
+
+class FileAnalysisErrors {
+  final String file;
+  final List<AnalysisError> errors;
+
+  FileAnalysisErrors(this.file, this.errors);
+}
+
+class _RequestError {
+  factory _RequestError.parse(Map<String, dynamic> error) => _RequestError(
+    error['code'],
+    error['message'],
+  );
+
+  final String code;
+  final String message;
+
+  _RequestError(this.code, this.message);
+
+  @override
+  String toString() => '[RequestError code: $code, message: $message]';
+}

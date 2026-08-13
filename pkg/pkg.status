@@ -1,0 +1,381 @@
+# Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+# Don't run any test-like files that show up in packages directories. It
+# shouldn't be necessary to run "pub install" in these packages, but if you do
+# it shouldn't break the tests.
+*/*/*/*/*/packages/*/*: Skip
+*/*/*/*/packages/*/*: Skip
+*/*/*/packages/*/*: Skip
+*/*/packages/*/*: Skip
+*/packages/*/*: Skip
+analyzer/test/verify_diagnostics_test: Slow, Pass
+analyzer/test/verify_docs_test: Slow, Pass
+analyzer_plugin/test/plugin/folding_mixin_test: Slow, Pass
+compiler/test/analyses/analyze_test: Slow, Pass
+compiler/test/analyses/api_dynamic_test: Slow, Pass
+compiler/test/closure/closure_test: Slow, Pass
+compiler/test/codegen/load_elimination_test: Slow, Pass
+compiler/test/codegen/model_test: Slow, Pass
+compiler/test/deferred_loading/deferred_loading_test: Slow, Pass
+compiler/test/end_to_end/dump_info_test: Skip #47401
+compiler/test/impact/impact_test: Slow, Pass
+compiler/test/inference/inference0_test: Slow, Pass
+compiler/test/inference/inference1_test: Slow, Pass
+compiler/test/inference/inference2_test: Slow, Pass
+compiler/test/inference/inference3_test: Slow, Pass
+compiler/test/inlining/inlining_test: Slow, Pass
+compiler/test/model/native_test: Slow, Pass
+compiler/test/model/no_such_method_enabled_test: Slow, Pass
+compiler/test/model/subtype_test: Slow, Pass
+compiler/test/modular/*: Slow, Pass
+compiler/test/packages/*: SkipByDesign
+compiler/test/rti/rti_emission0_test: Slow, Pass
+compiler/test/rti/rti_emission1_test: Slow, Pass
+compiler/test/rti/rti_emission2_test: Slow, Pass
+compiler/test/rti/rti_emission3_test: Slow, Pass
+compiler/test/rti/rti_need0_test: Slow, Pass
+compiler/test/rti/rti_need1_test: Slow, Pass
+compiler/test/rti/rti_need2_test: Slow, Pass
+compiler/test/rti/rti_need3_test: Slow, Pass
+compiler/test/serialization/serialization_test: Slow, Pass
+compiler/test/sourcemaps/source_mapping_invokes_test: Slow, Pass
+compiler/test/sourcemaps/source_mapping_operators_test: Slow, Pass
+compiler/test/sourcemaps/source_mapping_test: Slow, Pass
+compiler/test/sourcemaps/stacktrace_test: Slow, Pass
+dart2wasm/*: Slow, Pass # Tests run subprocesses.
+dartdev/test/commands/analyze_test: Slow, Pass
+dartdev/test/commands/help_test: Slow, Pass
+dartdev/test/smoke/*: Slow, Pass
+dartpad_worker/test/ci_test: Slow, Pass
+dev_compiler/test/modular/*: Slow, Pass
+dev_compiler/test/options/*: Skip # test needs fixes
+dev_compiler/test/sourcemap/*: SkipByDesign # Skip sourcemap tests
+dev_compiler/test/sourcemap/testfiles/*: SkipByDesign # Skip dev_compiler codegen tests
+dev_compiler/test/worker/*: Skip # test needs fixes
+dwds/test/integration/*: Pass, Slow
+front_end/test/analyze_git_test: Pass, Slow
+front_end/test/bootstrap_test: Pass, Slow
+front_end/test/dart_scope_calculator_test: Slow, Pass
+front_end/test/incremental_compiler_leak_test: Pass, ExtraSlow
+front_end/test/incremental_dart2js_test: Pass, Slow
+front_end/test/rasta/*: SkipByDesign # Anything in rasta is input to cfe unit tests and shouldn't be run as tests.
+front_end/test/types/dart2js_benchmark_test: Pass, Slow
+front_end/test/types/large_app_benchmark_test: Pass, ExtraSlow
+front_end/testcases/*: Skip # These are not tests but input for tests.
+front_end/tool/incremental_perf_test: Slow, Pass
+kernel/testcases/*: Skip # These are not tests but input for tests.
+vm/test/kernel_front_end_test: Slow, Pass
+vm/test/transformations/ffi_test: Slow, Pass # https://github.com/dart-lang/sdk/issues/54950
+vm/test/transformations/protobuf_aware_treeshaker/treeshaker_test: Slow, Pass
+vm/test/transformations/record_use_test: Slow, Pass
+vm/test/transformations/type_flow/transformer_test: Slow, Pass
+vm/testcases/*: SkipByDesign # These are not tests but input for tests.
+vm_service/*: Slow, Pass
+vm_service/test/valid_source_locations_test: ExtraSlow, Pass # Iterates through all libraries and checks for valid source locations.
+vm_snapshot_analysis/test/instruction_sizes_test: Pass, Slow # https://github.com/dart-lang/sdk/issues/60067
+
+[ $compiler == dart2analyzer ]
+dev_compiler/test/options/*: SkipByDesign
+
+[ $compiler == dart2bytecode ]
+vm_service/test/mirror_references_test: SkipByDesign # Uses 'dart:mirrors' library
+vm_service/test/weak_properties_test: SkipByDesign # Uses 'dart:mirrors' library
+
+[ $compiler == dart2js ]
+_fe_analyzer_shared/test/*: SkipByDesign # Only meant to run on vm
+analysis_server/test/integration: SkipByDesign # Analysis server integration tests don't make sense to run under dart2js, since the code under test always runs in the Dart vm as a subprocess.
+analysis_server/tool/*: SkipByDesign # Only meant to run on vm
+analysis_server_client/test/*: SkipByDesign # Only meant to run on vm
+analyzer_cli/test/*: SkipByDesign # Only meant to run on vm
+analyzer_cli/tool/*: SkipByDesign # Only meant to run on vm
+analyzer_plugin/test/*: SkipByDesign # Only meant to run on vm
+analyzer_plugin/tool/*: SkipByDesign # Only meant to run on vm
+build_integration/test/*: SkipByDesign # Only meant to run on vm, most use dart:mirrors and dart:io
+compiler/tool/*: SkipByDesign # Only meant to run on vm
+dart_service_protocol_shared/test/*: SkipByDesign # Only meant to run on vm
+dartdev/test/*: SkipByDesign # Only meant to run on vm
+front_end/test/*: SkipByDesign # Only meant to run on vm, most use dart:mirrors and dart:io
+front_end/tool/*: SkipByDesign # Only meant to run on vm
+hooks_runner/test/*: SkipByDesign # Only meant to run on vm
+modular_test/test/memory_pipeline_test: Slow, Pass
+modular_test/test/validate_pipeline_test: Slow, Pass
+modular_test/test/validate_suite_test: Slow, Pass
+smith/test/*: SkipByDesign # Only meant to run on vm
+status_file/test/normalize_test: SkipByDesign # Uses dart:io
+status_file/test/parse_and_normalize_test: SkipByDesign # Uses dart:io
+status_file/test/repo_status_files_test: SkipByDesign # Uses dart:io
+telemetry/test/*: SkipByDesign # Only meant to run on vm
+test_runner/test/*: SkipByDesign # Only meant to run on vm
+testing/*: SkipByDesign # Only meant to run on vm
+
+[ $compiler == dartkp ]
+vm_service/test/*breakpoint*: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/*debugger*: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/*step_into*: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/*step_out*: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/async_next_regression_18877_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/async_next_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/async_scope_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/async_single_step_exception_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/awaiter_async_stack_contents_2_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/awaiter_async_stack_contents_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/branch_coverage_test: SkipByDesign # Hot reload is disabled in AOT mode.
+vm_service/test/break*: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/capture_stdio_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/causal_async*: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/code_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/coverage_async_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/coverage_closure_call_after_optimization_test: SkipByDesign # Debugger and coverage are disabled in AOT mode.
+vm_service/test/coverage_closure_call_test: SkipByDesign # Debugger and coverage are disabled in AOT mode.
+vm_service/test/coverage_const_field_async_closure_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/coverage_extension_methods_test: SkipByDesign # Debugger and coverage are disabled in AOT mode.
+vm_service/test/coverage_instance_call_after_optimization_test: SkipByDesign # Debugger and coverage are disabled in AOT mode.
+vm_service/test/coverage_leaf_function_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/coverage_optimized_function_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/coverage_static_call_after_optimization_test: SkipByDesign # Debugger and coverage are disabled in AOT mode.
+vm_service/test/debug*: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/deferred_import_reload_test: SkipByDesign # Hot reload is disabled in AOT mode.
+vm_service/test/developer_extension_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/developer_service_get_isolate_id_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/developer_service_get_object_id_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/dot_shorthands_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/enhanced_enum_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/eval_*test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/evaluate_*test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/external_compilation_service_test: SkipByDesign # Spawns a secondary process.
+vm_service/test/field_script_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/forward_compile_expression_error_from_external_client_with_dds_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/forward_compile_expression_error_from_external_client_without_dds_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/get_allocation_traces_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/get_instances_as_*: SkipByDesign # Debugger is disabled in AOT mode
+vm_service/test/get_instances_rpc_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/get_object_rpc_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/get_queued_microtasks_rpc_test: SkipByDesign # In AOT mode, the debugger is disabled, and there's no other way to pause the testee at a point when the microtask queue is non-empty.
+vm_service/test/get_source_report_const_coverage_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/get_source_report_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/get_source_report_with_mixin_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/get_stack_limit_rpc_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/get_stack_rpc_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/get_stack_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/id_zone_deletion_on_client_disconnect_with_dds_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/id_zone_deletion_on_client_disconnect_without_dds_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/id_zones_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/implicit_getter_setter_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/invoke_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/isolate_lifecycle_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/issue_25465_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/issue_27238_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/issue_27287_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/issue_30555_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/issue_56911_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/issue_57040_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/issue_59653_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/issue_59661_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/kill_paused_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/library_dependency_test: SkipByDesign # Uses 'dart:mirrors' library.
+vm_service/test/local_variable_declaration_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/local_variable_in_awaiter_async_frame_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/logging_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/mark_main_isolate_as_system_isolate_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/mirror_references_test: SkipByDesign # Uses 'dart:mirrors' library.
+vm_service/test/mixin_break_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/network_profiling_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/parameters_in_scope_at_entry_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/patterns_local_vars_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/pause_*: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/positive_token_pos_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/private_rpcs/breakpoint_gc_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/private_rpcs/reachable_size_test: SkipByDesign # No incremental compiler available.
+vm_service/test/process_service_test: SkipByDesign # Spawns a secondary process using Platform.script.
+vm_service/test/regress_28443_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/regress_28980_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/regress_34841_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/regress_44588_test: SkipByDesign # Not relevant in AOT mode.
+vm_service/test/regress_45684_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/regress_46419_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/regress_46559_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/regress_48279_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/regress_55559_test: SkipByDesign # Spawns a child process from source.
+vm_service/test/regress_60396_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/regress_88104_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/reload_sources_rpc_triggers_isolate_reload_event_test: SkipByDesign # Hot reload is disabled in AOT mode.
+vm_service/test/reload_sources_test: SkipByDesign # Hot reload is disabled in AOT mode.
+vm_service/test/reload_sources_with_resident_compiler_test: SkipByDesign # Hot reload is disabled in AOT mode.
+vm_service/test/resume_shutdown_race_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/rewind*: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/sdk_break_with_mixin_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/set_sdk_library_debuggable_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/sigquit_starts_service_test: SkipByDesign # Spawns a secondary process using Platform.executable.
+vm_service/test/simple_reload_test: SkipByDesign # Hot reload is disabled in AOT mode.
+vm_service/test/source_report_libraries_already_compiled_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/source_report_package_filters_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/stdio_newline_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/step_*: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/super_constructor_invocation_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/uri_mappings_lookup_test: SkipByDesign # Uses Platform.script for URI mappings.
+vm_service/test/valid_source_locations_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/validate_timer_port_behavior_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/vm_timeline_flags_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/weak_properties_test: SkipByDesign # Uses 'dart:mirrors' library
+vm_service/test/wildcard_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/yield_positions_with_finally_test: SkipByDesign # Debugger is disabled in AOT mode.
+
+[ $mode == debug ]
+compiler/test/deferred/load_graph_segmentation_test: Slow, Pass
+compiler/test/deferred/load_mapping_test: Slow, Pass
+compiler/test/end_to_end/dart2js_batch_test: Slow, Pass
+compiler/test/end_to_end/exit_code_test: Slow, Pass
+dartpad_worker/test/ci_test: SkipSlow
+vm/test/kernel_front_end_test: SkipSlow
+vm_snapshot_analysis/test/precompiler_trace_test: SkipSlow
+
+[ $mode == product ]
+vm_service/test*: SkipByDesign # VM service isn't supported in PRODUCT mode.
+
+[ $runtime == vm ]
+analysis_server/test/benchmarks_test: Slow, Pass
+analysis_server/test/domain_completion_test: Slow, Pass
+analysis_server/test/edit/refactoring_test: Slow, Pass
+analysis_server/test/integration/*: Slow, Pass
+analysis_server/test/socket_server_test: Skip # Pass, Slow
+analysis_server/test/src/plugin/plugin_manager_test: Slow, Pass
+analyzer/test/src/dart/analysis/driver_test: Slow, Pass
+analyzer/test/src/task/strong/inferred_type_test: Slow, Pass
+analyzer/tool/experiments/experiments_test: Skip # https://github.com/dart-lang/sdk/issues/46277
+analyzer_plugin/test/src/utilities/change_builder/change_builder_dart_test: Slow, Pass
+analyzer_plugin/test/src/utilities/completion/optype_test: Slow, Pass
+dartdev/test/*: Slow, Pass
+dds/test/dap/integration/*: Slow, Pass
+dds/test/devtools_server/server_connection_api_test: Slow, Pass
+dds/test/devtools_server/server_connection_vm_service_test: Slow, Pass
+test_runner/test/update_error_cmdline_test: Slow, Pass
+
+[ $runtime != vm ]
+dart2js_info/test/*: SkipByDesign # Only meant to run on vm
+dds/test/*: SkipByDesign # Only meant to run on vm
+dev_compiler/test/options/*: SkipByDesign
+frontend_server/test/*: SkipByDesign # Only meant to run on vm
+js_runtime/test/*: SkipByDesign # Only meant to run on vm
+js_shared/test/*: SkipByDesign # Only meant to run on vm
+linter/test/*: SkipByDesign # Only meant to run on vm
+linter/tool/*: SkipByDesign # Only meant to run on vm
+native_stack_traces/test/*: SkipByDesign # Only meant to run on vm
+vm/test/*: SkipByDesign # Only meant to run on vm
+vm_snapshot_analysis/test/*: SkipByDesign # Only meant to run on vm
+
+[ $system == macos ]
+dartpad_worker/test/ci_test: Skip # Chrome will hang asking for keychain access.
+
+[ $system == windows ]
+front_end/test/bootstrap_test: Skip # Issue 31902
+front_end/test/incremental_dart2js_load_from_dill_test: Pass, Slow
+frontend_server_client/test/example/vm_client_test: SkipByDesign # Test is incompatible with Windows platform.
+frontend_server_client/test/example/web_client_test: SkipByDesign # Test is incompatible with Windows platform.
+vm_service/test/private_rpcs/dev_fs_http_put_test: Skip # Windows disallows "?" in paths
+
+[ $browser ]
+*/test/analyzer_test: SkipByDesign # No need to run analysis tests on browser bots
+_fe_analyzer_shared/test/*: SkipByDesign # Only meant to run on vm
+analysis_server/test/*: SkipByDesign # Uses dart:io.
+analysis_server/tool/spec/check_all_test: SkipByDesign # Uses dart:io.
+analyzer/test/*: SkipByDesign # Uses dart:io.
+analyzer/tool/summary/check_test: SkipByDesign # Uses dart:io.
+analyzer_cli/*: SkipByDesign # Uses dart:io.
+compiler/tool/*: SkipByDesign # Only meant to run on vm
+front_end/tool/*: SkipByDesign # Only meant to run on vm
+kernel/test/*: SkipByDesign # Uses dart:io and bigints.
+status_file/*: SkipByDesign # Only meant to run on the standalone VM.
+testing/test/analyze_test: SkipByDesign
+
+[ $checked ]
+compiler/test/codegen/value_range_test: Slow, Pass
+compiler/test/end_to_end/exit_code_test: Slow, Pass
+compiler/test/end_to_end/output_type_test: Slow, Pass
+compiler/test/jsinterop/declaration_test: Slow, Pass
+compiler/test/jsinterop/interop_anonymous_unreachable_test: Slow, Pass
+compiler/test/jsinterop/world_test: Slow, Pass
+compiler/test/sourcemaps/stacktrace_test: Slow, Pass
+
+[ !$checked ]
+compiler/test/end_to_end/exit_code_test: SkipByDesign # This tests requires checked mode.
+compiler/test/jsinterop/declaration_test: Slow, Pass
+
+[ $jscl ]
+kernel/test/*: SkipByDesign # Uses dart:io and bigints.
+
+# Timeout. These tests do not run efficiently on our simulator.
+[ $simulator ]
+*: Skip
+
+[ $arch == arm64 && $runtime == vm && $system == windows ]
+dds/test/log_history_size_gigantic_test: Skip # The Windows ARM64 bots are not powerful enough to run this test without it timing out
+
+[ $arch == x64 && $runtime == vm && $system == windows && $checked ]
+analyzer/test/src/task/strong/inferred_type_test: Slow, Pass
+
+[ $arch != x64 && ($system == linux || $system == windows) ]
+dart_runtime_service/test/sse_client_test: Skip # Chrome not available
+dartpad_worker/test/ci_test: Skip # Chrome not available
+dds/test/devtools_server/instance_reuse_test: Skip # Chrome not available
+dds/test/devtools_server/remote_control_test: Skip # Chrome not available
+dds/test/devtools_server/server_connection_api_test: Skip # Chrome not available
+dds/test/devtools_server/server_connection_vm_service_test: Skip # Chrome not available
+dds/test/sse_smoke_test: Skip # Chrome not available
+
+[ $builder_tag != dart2js_analyzer && $compiler == dart2js ]
+analysis_server/test/*: Skip # Issue 26813
+analyzer/test/*: Skip # Issue 26813
+analyzer/tool/*: Skip # Issue 26813
+
+[ $compiler != dart2analyzer && $runtime != dart_precompiled && $runtime != vm ]
+vm_service/test/*: SkipByDesign # Only meant to run on vm
+
+[ $compiler != dart2analyzer && $runtime != vm ]
+dev_compiler/test/*: Skip
+modular_test/test/find_sdk_root1_test: SkipByDesign
+modular_test/test/io_pipeline_test: SkipByDesign
+modular_test/test/loader/loader_test: SkipByDesign
+modular_test/test/specification_parser_test: SkipByDesign
+modular_test/test/src/find_sdk_root2_test: SkipByDesign
+
+[ $compiler == dart2js && $runtime != d8 ]
+front_end/test/mixin_export_test: RuntimeError # Issue 30576
+
+[ $compiler == dart2js && $host_asserts ]
+js_ast/test/printer_callback_test: Slow, Pass
+js_ast/test/string_escape_test: Slow, Pass
+
+[ $runtime == vm && $system != linux ]
+dartdev/test/commands/info_linux_test: SkipByDesign
+
+[ $runtime == vm && $system != macos ]
+dartdev/test/commands/info_macos_test: SkipByDesign
+
+[ $runtime == vm && $system == windows ]
+analysis_server/test/analysis/get_errors_test: Skip # runtime error, Issue 22180
+analysis_server/test/src/plugin/plugin_manager_test: Slow, Pass # Issue 34231
+
+[ $runtime == vm && $system == windows && $checked ]
+front_end/tool/perf_test: Slow, Pass
+
+[ $runtime == vm && $system != windows ]
+dartdev/test/commands/info_windows_test: SkipByDesign
+
+[ $runtime == vm && $checked ]
+analysis_server/test/socket_server_test: Skip # Pass, Slow
+
+[ $arch != x64 || $mode != release || $runtime != vm || $system != windows ]
+vm_service/test/breakpoint_resolution_after_reloading_with_resident_compiler_test: Skip # issue 59909
+vm_service/test/eval_with_resident_compiler_test: Skip # issue 59909
+vm_service/test/evaluate_in_frame_rpc_with_resident_compiler_test: Skip # issue 59909
+vm_service/test/evaluate_in_frame_with_scope_with_resident_compiler_test: Skip # issue 59909
+vm_service/test/evaluate_with_scope_with_resident_compiler_test: Skip # issue 59999
+vm_service/test/reload_sources_with_resident_compiler_test: Skip # issue 59909
+
+[ $mode == debug || $runtime != vm || $system == android ]
+vm/test/modular_kernel_plus_aot_test: SkipByDesign # This test should only run if binary is run from build dir
+
+[ $browser || $jscl ]
+compiler/test/*: Skip # dart2js uses #import('dart:io'); and it is not self-hosted (yet).
+mmap/*: SkipByDesign # Only meant to run on vm

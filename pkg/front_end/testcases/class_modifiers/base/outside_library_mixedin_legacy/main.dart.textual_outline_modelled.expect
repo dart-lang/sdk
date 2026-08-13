@@ -1,0 +1,15 @@
+// @dart = 2.19
+
+import 'main_lib.dart';
+
+abstract class AbstractWithAbstractBaseMixinClass with AbstractBaseMixinClass {}
+
+abstract class AbstractWithBaseMixin with BaseMixin {}
+
+abstract class AbstractWithBaseMixinClass with BaseMixinClass {}
+
+class WithAbstractBaseMixinClass with AbstractBaseMixinClass {}
+
+class WithBaseMixin with BaseMixin {}
+
+class WithBaseMixinClass with BaseMixinClass {}

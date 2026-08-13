@@ -1,0 +1,7 @@
+PropertyState();
+
+class PropertyState<I, O> {
+  void dispose() {}
+}
+
+main() {}

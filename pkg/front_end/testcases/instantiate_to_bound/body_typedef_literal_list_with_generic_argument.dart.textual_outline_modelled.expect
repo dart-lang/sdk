@@ -1,0 +1,7 @@
+class B<U> {
+  fun() {}
+}
+
+main() {}
+
+typedef A<T>(T p);

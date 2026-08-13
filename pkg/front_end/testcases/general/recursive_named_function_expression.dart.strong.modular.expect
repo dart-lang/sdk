@@ -1,0 +1,19 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/recursive_named_function_expression.dart:6:16: Error: A function expression can't have a name.
+//   var f = void foo() {
+//                ^^^
+//
+import self as self;
+
+static method test() → void {
+  invalid-type f = block {
+    function foo() → void {
+      foo(){() → void};
+    }
+  } =>invalid-expression "pkg/front_end/testcases/general/recursive_named_function_expression.dart:6:11: Error: A function expression can't have a name.
+  var f = void foo() {
+          ^";
+}

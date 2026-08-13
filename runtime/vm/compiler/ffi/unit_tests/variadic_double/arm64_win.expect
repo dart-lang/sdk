@@ -1,0 +1,7 @@
+r0 int64[double]
+r1 int64[double]
+r2 int64[double]
+r3 int64[double]
+r4 int64[double]
+=>
+v0 double

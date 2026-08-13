@@ -1,0 +1,9 @@
+void Function({required int Function()}) f;
+void Function({required int}) g;
+void Function({required int, required int})? h;
+
+
+void[KeywordToken] Function[KeywordToken]([BeginToken]{[BeginToken]required[KeywordToken] int[StringToken] Function[KeywordToken]([BeginToken])[SimpleToken]}[SimpleToken])[SimpleToken] f[StringToken];[SimpleToken]
+void[KeywordToken] Function[KeywordToken]([BeginToken]{[BeginToken]required[KeywordToken] int[StringToken]}[SimpleToken])[SimpleToken] g[StringToken];[SimpleToken]
+void[KeywordToken] Function[KeywordToken]([BeginToken]{[BeginToken]required[KeywordToken] int[StringToken],[SimpleToken] required[KeywordToken] int[StringToken]}[SimpleToken])[SimpleToken]?[SimpleToken] h[StringToken];[SimpleToken]
+[SimpleToken]

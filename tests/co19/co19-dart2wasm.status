@@ -1,0 +1,56 @@
+# Copyright (c) 2024, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+[ $compiler == dart2wasm ]
+Language/Classes/Instance_Methods/Operators/unary_minus_t01: SkipByDesign # dart:mirrors is not supported
+Language/Expressions/Constants/Constant_Contexts/constant_context_A02_t01: SkipByDesign # dart:mirrors is not supported.
+Language/Expressions/Spawning_an_Isolate/new_isolate_t01: SkipByDesign # dart:isolate is not supported.
+Language/Libraries_and_Scripts/Scripts/top_level_main_t01: SkipByDesign # dart:io is not supported.
+Language/Libraries_and_Scripts/Scripts/top_level_main_t06: SkipByDesign # dart:io is not supported.
+Language/Types/Interface_Types/subtype_t27: Skip # https://github.com/dart-lang/sdk/issues/42641
+LanguageFeatures/Augmentations/metadata_A01_t01.dart: SkipByDesign # dart:mirrors is not supported
+LanguageFeatures/Augmentations/metadata_A01_t02.dart: SkipByDesign # dart:mirrors is not supported
+LanguageFeatures/Augmentations/metadata_A01_t03.dart: SkipByDesign # dart:mirrors is not supported
+LanguageFeatures/Augmentations/metadata_A01_t04.dart: SkipByDesign # dart:mirrors is not supported
+LanguageFeatures/Augmentations/metadata_A01_t05.dart: SkipByDesign # dart:mirrors is not supported
+LanguageFeatures/Augmentations/metadata_A01_t06.dart: SkipByDesign # dart:mirrors is not supported
+LanguageFeatures/Augmentations/metadata_A01_t07.dart: SkipByDesign # dart:mirrors is not supported
+LanguageFeatures/Augmentations/metadata_A01_t08.dart: SkipByDesign # dart:mirrors is not supported
+LanguageFeatures/Augmentations/metadata_A01_t09.dart: SkipByDesign # dart:mirrors is not supported
+LanguageFeatures/Augmentations/metadata_A01_t10.dart: SkipByDesign # dart:mirrors is not supported
+LanguageFeatures/Augmentations/metadata_A01_t11.dart: SkipByDesign # dart:mirrors is not supported
+LanguageFeatures/Constructor-tear-offs/unnamed_constructor_A06_t01: SkipByDesign # dart:mirrors is not supported
+LanguageFeatures/FinalizationRegistry/ffi/*: SkipByDesign # dart:ffi is not supported.
+LibTest/ffi/*: SkipByDesign # dart:ffi is not supported.
+LibTest/html/*: SkipByDesign # dart:html is not supported.
+LibTest/io/*: SkipByDesign # dart:io is not supported.
+LibTest/isolate/*: SkipByDesign # dart:isolate is not supported.
+LibTest/js_interop/NullableUndefineableJSAnyExtension/isNull_t01: SkipByDesign #isNull is not supported.
+LibTest/js_interop/NullableUndefineableJSAnyExtension/isUndefined_t01: SkipByDesign #isUndefined is not supported.
+LibTest/js_interop/interop_type_A01_t10: SkipByDesign # dart:html is not supported.
+LibTest/mirrors/*: SkipByDesign # dart:mirrors is not supported.
+VM/*: SkipByDesign # Only meant to run on vm.
+
+[ $compiler == dart2wasm && $browser ]
+Language/Expressions/Function_Invocation/async_generator_invokation_t10: SkipSlow # Issue(http://dartbug.com/55182): Will timeout on browsers (due to no asyncEnd() firing) but eagerly fail on commandline JS engines.
+
+[ $compiler == dart2wasm && !$browser ]
+LibTest/js_interop/JS/js_A03_t05: Skip # https://github.com/dart-lang/sdk/issues/61204
+LibTest/js_interop/JS/js_A03_t06: Skip # https://github.com/dart-lang/sdk/issues/61204
+LibTest/js_interop/JS/js_A03_t07: Skip # https://github.com/dart-lang/sdk/issues/61204
+LibTest/js_interop/JS/js_A03_t08: Skip # https://github.com/dart-lang/sdk/issues/61204
+LibTest/js_interop/JSAnyUtilityExtension/instanceOfString_A04_t01: Skip # https://github.com/dart-lang/sdk/issues/61204
+LibTest/js_interop/JSAnyUtilityExtension/instanceOfString_A04_t02: Skip # https://github.com/dart-lang/sdk/issues/61204
+LibTest/js_interop/JSAnyUtilityExtension/isA_A03_t05: Skip # https://github.com/dart-lang/sdk/issues/61204
+LibTest/js_interop/importModule_A01_t01: Skip # https://github.com/dart-lang/sdk/issues/61204
+LibTest/js_interop/importModule_A01_t02: Skip # https://github.com/dart-lang/sdk/issues/61204
+LibTest/js_interop/importModule_A02_t01: Skip # https://github.com/dart-lang/sdk/issues/61204
+LibTest/js_interop/importModule_A02_t02: Skip # https://github.com/dart-lang/sdk/issues/61204
+LibTest/js_interop/importModule_A02_t03: Skip # https://github.com/dart-lang/sdk/issues/61204
+LibTest/js_interop/interop_A08_t05: Skip # https://github.com/dart-lang/sdk/issues/61204
+
+[ $compiler == dart2wasm && $dart2wasm_standalone ]
+LanguageFeatures/Augmentations/js_interop/*: SkipByDesign # This is a generic WebAssembly target without JavaScript support
+LibTest/js_interop/*: SkipByDesign # This is a generic WebAssembly target without JavaScript support
+LibTest/js_interop_unsafe/*: SkipByDesign # This is a generic WebAssembly target without JavaScript support

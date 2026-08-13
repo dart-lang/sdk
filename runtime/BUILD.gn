@@ -1,0 +1,459 @@
+# Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+import("../sdk_args.gni")
+import("configs.gni")
+import("runtime_args.gni")
+
+import("//build/config/sysroot.gni")
+
+config("dart_public_config") {
+  include_dirs = [
+    ".",
+    "include",
+  ]
+}
+
+# Adds PRODUCT define if Flutter has specified "release" for dart_runtime_mode
+config("dart_maybe_product_config") {
+  defines = []
+
+  if (dart_runtime_mode != "develop" && dart_runtime_mode != "profile" &&
+      dart_runtime_mode != "release") {
+    print("Invalid |dart_runtime_mode|")
+    assert(false)
+  }
+
+  if (dart_runtime_mode == "release") {
+    if (dart_debug) {
+      print("Debug and release mode are mutually exclusive.")
+    }
+    assert(!dart_debug)
+    defines += [ "PRODUCT" ]
+    if (target_os == "linux") {
+      defines += [ "DART_DISABLE_TIMELINE" ]
+    }
+  }
+}
+
+# This is a config to use to build PRODUCT mode artifacts in a RELEASE build.
+# If a DEBUG build has been specified it will be ignored.
+config("dart_product_config") {
+  defines = []
+  cflags = []
+  if (!dart_debug) {
+    defines += [ "PRODUCT" ]
+    if (dart_runtime_mode == "release" && target_os == "linux") {
+      defines += [ "DART_DISABLE_TIMELINE" ]
+    }
+  }
+}
+
+config("dart_aotruntime_config") {
+  defines = []
+  defines += [
+    "DART_PRECOMPILED_RUNTIME",
+    "EXCLUDE_CFE_AND_KERNEL_PLATFORM",
+  ]
+}
+
+config("dartdev_config") {
+  defines = []
+  cflags = []
+  defines += [
+    "DART_PRECOMPILED_RUNTIME",
+    "EXCLUDE_CFE_AND_KERNEL_PLATFORM",
+  ]
+  if (!dart_debug) {
+    defines += [ "PRODUCT" ]
+  }
+}
+
+config("add_empty_macho_section_config") {
+  if (is_mac || is_ios) {
+    # We create an empty __space_for_note section in a __CUSTOM segment to
+    # reserve the header space needed for inserting a snapshot into the
+    # executable when creating standalone executables. This segment and section
+    # is removed in standalone executables, replaced with a note that points to
+    # the snapshot in the file.
+    #
+    # (A segment load command with a single section is 132 bytes in 32-bit
+    # executables and 152 bytes in 64-bit ones, and a note load command is
+    # always 40 bytes.)
+    #
+    # Keep this in sync with the constants reservedSegmentName and
+    # reservedSectionName in pkg/dart2native/lib/macho_utils.dart.
+    ldflags = [ "-Wl,-add_empty_section,__CUSTOM,__space_for_note" ]
+  }
+}
+
+# Controls DART_PRECOMPILER #define.
+config("dart_precompiler_config") {
+  defines = []
+  defines += [ "DART_PRECOMPILER" ]
+  if (is_clang) {
+    cflags = [ "-fno-omit-frame-pointer" ]
+  }
+
+  # In our GN build rules we'll always compile AOT compiler & AOT runtime in
+  # the same mode (TSAN or non-TSAN).
+  if (is_asan) {
+    defines += [ "TARGET_USES_ADDRESS_SANITIZER" ]
+  } else if (is_msan) {
+    defines += [ "TARGET_USES_MEMORY_SANITIZER" ]
+  } else if (is_tsan) {
+    defines += [ "TARGET_USES_THREAD_SANITIZER" ]
+  }
+}
+
+config("dart_os_config") {
+  defines = []
+
+  if (target_os == "android") {
+    defines += [ "DART_TARGET_OS_ANDROID" ]
+  } else if (target_os == "fuchsia") {
+    defines += [ "DART_TARGET_OS_FUCHSIA" ]
+  } else if (target_os == "ios") {
+    defines += [ "DART_TARGET_OS_MACOS" ]
+    defines += [ "DART_TARGET_OS_MACOS_IOS" ]
+  } else if (target_os == "watchos") {
+    defines += [ "DART_TARGET_OS_MACOS" ]
+
+    # This doesn't look entirely correct, but so far it looks
+    # sufficient and allows to add watchOS support with less changes.
+    # If we need to differentiate iOS and watchOS targets later, we'll
+    # change this.
+    defines += [ "DART_TARGET_OS_MACOS_IOS" ]
+  } else if (target_os == "linux") {
+    defines += [ "DART_TARGET_OS_LINUX" ]
+  } else if (target_os == "mac") {
+    defines += [ "DART_TARGET_OS_MACOS" ]
+  } else if (target_os == "win") {
+    defines += [ "DART_TARGET_OS_WINDOWS" ]
+  } else if (target_os == "winuwp") {
+    defines += [
+      "DART_TARGET_OS_WINDOWS",
+      "DART_TARGET_OS_WINDOWS_UWP",
+    ]
+  } else {
+    print("Unknown target_os: $target_os")
+    assert(false)
+  }
+}
+
+# The dart_linux_<arch>_config configs below are used for building cross
+# compilers when building the SDK. They should not be combined with
+# dart_os_config and dart_arch_config.
+
+config("dart_linux_arm64_config") {
+  defines = [
+    "DART_TARGET_OS_LINUX",
+    "TARGET_ARCH_ARM64",
+  ]
+}
+
+config("dart_linux_x64_config") {
+  defines = [
+    "DART_TARGET_OS_LINUX",
+    "TARGET_ARCH_X64",
+  ]
+}
+
+config("dart_linux_arm_config") {
+  defines = [
+    "DART_TARGET_OS_LINUX",
+    "TARGET_ARCH_ARM",
+  ]
+}
+
+config("dart_linux_riscv64_config") {
+  defines = [
+    "DART_TARGET_OS_LINUX",
+    "TARGET_ARCH_RISCV64",
+  ]
+}
+
+config("dart_arch_config") {
+  defines = []
+
+  if (dart_target_arch == "arm") {
+    defines += [ "TARGET_ARCH_ARM" ]
+  } else if (dart_target_arch == "arm64") {
+    defines += [ "TARGET_ARCH_ARM64" ]
+  } else if (dart_target_arch == "arm64e") {
+    defines += [
+      "TARGET_ARCH_ARM64",
+      "TARGET_ARCH_ARM64E",
+    ]
+  } else if (dart_target_arch == "x64") {
+    defines += [ "TARGET_ARCH_X64" ]
+  } else if (dart_target_arch == "ia32" || dart_target_arch == "x86") {
+    defines += [ "TARGET_ARCH_IA32" ]
+  } else if (dart_target_arch == "riscv32") {
+    defines += [ "TARGET_ARCH_RISCV32" ]
+  } else if (dart_target_arch == "riscv64") {
+    defines += [ "TARGET_ARCH_RISCV64" ]
+  } else {
+    print("Invalid dart_target_arch: $dart_target_arch")
+    assert(false)
+  }
+  if (dart_use_compressed_pointers) {
+    if (dart_target_arch != "arm64" && dart_target_arch != "x64") {
+      print("Invalid architecture for compressed pointers: $dart_target_arch")
+      assert(false)
+    }
+    defines += [ "DART_COMPRESSED_POINTERS" ]
+  }
+  if (dart_force_simulator) {
+    defines += [ "DART_INCLUDE_SIMULATOR" ]
+    if (dart_target_arch == "arm64") {
+      defines += [ "SIMULATOR_FFI" ]
+    }
+  }
+}
+
+config("dart_config") {
+  defines = []
+
+  if (dart_debug) {
+    defines += [ "DEBUG" ]
+  } else {
+    defines += [ "NDEBUG" ]
+  }
+
+  include_dirs = [ "include" ]
+
+  if (dart_include_sampling_heap_profiler) {
+    defines += [ "FORCE_FORCE_INCLUDE_SAMPLING_HEAP_PROFILER" ]
+  }
+
+  if (dart_support_perfetto) {
+    defines += [ "SUPPORT_PERFETTO" ]
+  }
+
+  if (dart_dynamic_modules) {
+    defines += [ "DART_DYNAMIC_MODULES" ]
+  }
+
+  if (include_experimental_vm_service) {
+    defines += [ "EXPERIMENTAL_VM_SERVICE" ]
+  }
+
+  if (is_fuchsia) {
+    lib_dirs = [ "${fuchsia_arch_root}/lib" ]
+
+    # TODO(chinmaygarde): Currently these targets need to be build in the
+    # Fuchsia tree as well as outside it using the SDK. However, not all
+    # Fuchsia features are available in the SDK. As these features are added,
+    # the guards can be removed. Eventually, only SDK builds will be present.
+    # Then, this flag can be removed completely.
+    defines += [ "FUCHSIA_SDK" ]
+  }
+
+  # Below are flags copied from ../build/config/compiler/BUILD.gn that should
+  # be preserved even when the Dart VM and runtime are compiled out-of-tree,
+  # for example in the Flutter Engine build. They ensure that the Dart VM
+  # and runtime are compiled with optimizations unless explicitly requested
+  # otherwise with the `dart_debug` and `dart_debug_optimization_level`
+  # flags.
+  if (is_win) {
+    if (dart_debug) {
+      if (is_clang && dart_debug_optimization_level != "2") {
+        cflags = [
+          "-d${dart_debug_optimization_level}",
+          "/Oy-",
+        ]
+      } else {
+        cflags = [
+          "/O${dart_debug_optimization_level}",
+          "/Oy-",
+        ]
+      }
+    } else {
+      cflags = [
+        "/O${dart_default_optimization_level}",
+        "/Ob2",
+        "/Oy-",
+        "/Oi",
+        "/Gw",
+      ]
+    }
+    if (!is_clang) {
+      cflags += [
+        # Fixes __VA_OPT__ when using MSVC.
+        "/Zc:preprocessor",
+      ]
+    }
+  } else {
+    cflags = [
+      "-Wno-unused-parameter",
+      "-Wno-unused-private-field",
+      "-Wnon-virtual-dtor",
+      "-Wvla",
+      "-Woverloaded-virtual",
+      "-Wno-comments",  # Conflicts with clang-format.
+      "-g3",
+      "-ggdb3",
+      "-fno-rtti",
+      "-fno-exceptions",
+    ]
+    if (is_clang) {
+      cflags += [
+        "-Wnewline-eof",  # Flutter compiles with this (to match Fuchsia).
+        "-Wimplicit-fallthrough",
+        "-fno-strict-vtable-pointers",  # Handle assignment updates vtable
+                                        # pointers.
+      ]
+    } else {
+      cflags += [
+        "-Wno-cast-function-type",
+        "-Wno-dangling-reference",
+      ]
+    }
+
+    ldflags = []
+    if (is_clang && dart_vm_code_coverage) {
+      cflags += [
+        "-O0",
+        "-fprofile-arcs",
+        "-ftest-coverage",
+      ]
+      ldflags += [ "--coverage" ]
+    } else if (dart_debug) {
+      cflags += [ "-O${dart_debug_optimization_level}" ]
+    } else {
+      cflags += [ "-O${dart_default_optimization_level}" ]
+    }
+
+    if (is_fuchsia) {
+      # safe-stack does not work with the interpreter.
+      cflags += [
+        "-fno-sanitize=safe-stack",
+        "-Wno-deprecated-copy",
+      ]
+    }
+  }
+}
+
+config("dart_testing_config") {
+  defines = [ "TESTING" ]
+}
+
+config("dart_shared_lib") {
+  if (dart_lib_export_symbols) {
+    defines = [ "DART_SHARED_LIB" ]
+  }
+}
+
+config("dart_libfuzzer_config") {
+  defines = [ "FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION" ]
+  cflags = [ "-fsanitize=address,fuzzer-no-link" ]
+  ldflags = [ "-fsanitize=address,fuzzer" ]
+}
+
+source_set("dart_api") {
+  public_configs = [ ":dart_public_config" ]
+  sources = [
+    "include/analyze_snapshot_api.h",
+    "include/dart_api.h",
+    "include/dart_api_dl.c",
+    "include/dart_api_dl.h",
+    "include/dart_native_api.h",
+    "include/dart_tools_api.h",
+    "include/dart_version.h",
+    "include/internal/dart_api_dl_impl.h",
+  ]
+}
+
+library_for_all_configs("libdart") {
+  target_type = dart_component_kind
+  extra_nonproduct_deps = []
+  extra_deps = [
+    ":generate_version_cc_file",
+    "../third_party/double-conversion/src:libdouble_conversion",
+  ]
+  if (dart_support_perfetto) {
+    extra_deps += [ "//third_party/perfetto:libprotozero" ]
+  }
+  if (is_fuchsia) {
+    extra_deps += [
+      "$fuchsia_sdk/pkg/fdio",
+      "$fuchsia_sdk/pkg/trace-engine",
+    ]
+  }
+  configurable_deps = [
+    "platform:libdart_platform",
+    "vm:libdart_lib",
+    "vm:libdart_vm",
+  ]
+  compiler_lib = "vm:libdart_compiler"
+  extra_configs = [ ":dart_shared_lib" ]
+  include_dirs = [ "." ]
+  public_configs = [ ":dart_public_config" ]
+  sources = [
+    "$target_gen_dir/version.cc",
+    "include/analyze_snapshot_api.h",
+    "include/dart_api.h",
+    "include/dart_native_api.h",
+    "include/dart_tools_api.h",
+    "vm/analyze_snapshot_api_impl.cc",
+    "vm/dart_api_impl.cc",
+    "vm/native_api_impl.cc",
+    "vm/version.h",
+  ]
+}
+
+shared_library("dart_jit_library") {
+  output_name = "dart_jit"
+  ldflags = [ "-Wl,-install_name,@rpath/Dart.framework/Dart" ]
+  public = [ "include/dart_api.h" ]
+  deps = [ ":libdart_jit" ]
+  public_configs = [ ":dart_public_config" ]
+}
+
+action("generate_version_cc_file") {
+  inputs = [
+    "../tools/utils.py",
+    "../tools/VERSION",
+    "vm/version_in.cc",
+  ]
+
+  # This list must be kept in sync with the VM_SNAPSHOT_FILES in
+  # tools/make_version.py.
+  inputs += [
+    "vm/app_snapshot.cc",
+    "vm/app_snapshot.h",
+    "vm/dart.cc",
+    "vm/dart_api_impl.cc",
+    "vm/datastream.h",
+    "vm/image_snapshot.cc",
+    "vm/image_snapshot.h",
+    "vm/object.cc",
+    "vm/object.h",
+    "vm/raw_object.cc",
+    "vm/raw_object.h",
+    "vm/snapshot.cc",
+    "vm/snapshot.h",
+    "vm/symbols.cc",
+    "vm/symbols.h",
+  ]
+  deps = [ "../utils:git_version" ]
+  output = "$target_gen_dir/version.cc"
+  outputs = [ output ]
+
+  script = "../tools/make_version.py"
+  args = [
+    "--quiet",
+    "--output",
+    rebase_path(output, root_build_dir),
+    "--input",
+    rebase_path("vm/version_in.cc", root_build_dir),
+  ]
+  if (!dart_version_git_info) {
+    args += [ "--no-git-hash" ]
+  }
+  if (!verify_sdk_hash) {
+    args += [ "--no-sdk-hash" ]
+  }
+}

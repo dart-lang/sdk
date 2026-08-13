@@ -1,0 +1,17 @@
+main = main::main;
+library from "package:foo/lib.dart" as lib {
+
+  static method methodFromLib() → dynamic {}
+}
+library from "package:foo/main.dart" as main {
+//
+// Problems in library:
+//
+// org-dartlang-test:///main.dart:1:6: Error: Can't use 'org-dartlang-test:///lib.dart' as a part, because it has no 'part of' declaration.
+// part 'lib.dart';
+//      ^
+//
+
+  part lib.dart;
+  static method main() → dynamic {}
+}

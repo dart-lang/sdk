@@ -1,0 +1,5 @@
+import 'infer_type_regardless_of_declaration_order_or_cycles.dart';
+
+class B extends A {}
+
+main() {}

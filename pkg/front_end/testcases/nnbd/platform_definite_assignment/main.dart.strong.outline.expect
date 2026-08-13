@@ -1,0 +1,50 @@
+library;
+import self as self;
+
+import "dart:test";
+
+static method main() → dynamic
+  ;
+
+library;
+import self as self2;
+import "dart:_internal" as _in;
+import "dart:core" as core;
+
+import "dart:_internal";
+
+@/* from org-dartlang-testcase:///patch_lib.dart */ _in::patch
+class Class<T extends core::num> extends core::Object /*hasConstConstructor*/  {
+  final field core::int a;
+  final field self2::Class::T b;
+  const constructor constConstructor(core::int a, self2::Class::T b) → self2::Class<self2::Class::T>
+    : self2::Class::a = a, self2::Class::b = b, super core::Object::•()
+    ;
+  constructor constructor(core::int a, self2::Class::T b) → self2::Class<self2::Class::T>
+    ;
+  @_in::patch
+  constructor /* from org-dartlang-testcase:///patch_lib.dart */ patchedConstructor(core::int i, self2::Class::T j) → self2::Class<self2::Class::T>
+    ;
+  method method(core::int a) → core::int
+    ;
+  @_in::patch
+  method /* from org-dartlang-testcase:///patch_lib.dart */ patchedMethod(core::int i) → core::int
+    ;
+  method /* from org-dartlang-testcase:///patch_lib.dart */ _injectedMethod(core::int i) → core::int
+    ;
+}
+static method method(core::int a) → core::int
+  ;
+@_in::patch
+static method /* from org-dartlang-testcase:///patch_lib.dart */ patchedMethod(core::int i) → core::int
+  ;
+static method /* from org-dartlang-testcase:///patch_lib.dart */ _injectedMethod(core::int i) → core::int
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: FileUriExpression @ org-dartlang-testcase:///patch_lib.dart:8:1 -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:10:4 -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:16:4 -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:30:2 -> InstanceConstant(const _Patch{})
+Extra constant evaluation: evaluated: 6, effectively constant: 4

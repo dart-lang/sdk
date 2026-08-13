@@ -1,0 +1,64 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  @#C3
+  late field core::int a;
+  @#C5
+  late final [setter] field core::int b;
+  @#C3
+  @#C7
+  late field core::int c = 1.{core::int::unary-}(){() → core::int};
+  @#C5
+  @#C9
+  late final field core::int d = 1.{core::int::unary-}(){() → core::int};
+  synthetic constructor •() → self::C
+    : super core::Object::•()
+    ;
+  static method _#new#tearOff() → self::C
+    return new self::C::•();
+}
+static field self::C c = new self::C::•();
+static method main() → void {
+  self::testUninitializedNonFinalInstanceField();
+  self::testUninitializedFinalInstanceField();
+  self::testInitializedNonFinalInstanceField();
+  self::testInitializedFinalInstanceField();
+}
+static method testUninitializedNonFinalInstanceField() → void {
+  core::print(self::c.{self::C::a}{core::int});
+  self::c.{self::C::a} = 42;
+  core::print(self::c.{self::C::a}{core::int});
+}
+static method testUninitializedFinalInstanceField() → void {
+  core::print(self::c.{self::C::b}{core::int});
+  self::c.{self::C::b} = 42;
+  core::print(self::c.{self::C::b}{core::int});
+}
+static method testInitializedNonFinalInstanceField() → void {
+  core::print(self::c.{self::C::c}{core::int});
+  self::c.{self::C::c} = 42;
+  core::print(self::c.{self::C::c}{core::int});
+}
+static method testInitializedFinalInstanceField() → void {
+  core::print(self::c.{self::C::d}{core::int});
+}
+
+constants  {
+  #C1 = "dart2js:late:trust"
+  #C2 = null
+  #C3 = core::pragma {name:#C1, options:#C2}
+  #C4 = "dart2js:late:check"
+  #C5 = core::pragma {name:#C4, options:#C2}
+  #C6 = "dart2js:tryInline"
+  #C7 = core::pragma {name:#C6, options:#C2}
+  #C8 = "dart2js:noInline"
+  #C9 = core::pragma {name:#C8, options:#C2}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///late_fields_with_annotation.dart:
+- pragma._ (from org-dartlang-sdk:///lib/core/annotations.dart)
+- Object. (from org-dartlang-sdk:///lib/core/object.dart)

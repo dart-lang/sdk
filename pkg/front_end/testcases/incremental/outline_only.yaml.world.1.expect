@@ -1,0 +1,6 @@
+main = main::main;
+library from "org-dartlang-test:///main.dart" as main {
+
+  static method main() → dynamic
+    ;
+}

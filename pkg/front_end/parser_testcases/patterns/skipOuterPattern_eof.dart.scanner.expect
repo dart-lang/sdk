@@ -1,0 +1,7 @@
+main() {
+int var = 0;
+}
+
+[UnmatchedToken]main[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+int[StringToken] var[KeywordToken] =[SimpleToken] 0[StringToken];[SimpleToken]
+}[SyntheticToken][SimpleToken]

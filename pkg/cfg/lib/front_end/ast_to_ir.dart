@@ -1,0 +1,2323 @@
+// Copyright (c) 2025, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:cfg/front_end/ast_to_ir_types.dart';
+import 'package:cfg/front_end/recognized_methods.dart';
+import 'package:cfg/front_end/scopes.dart';
+import 'package:cfg/ir/constant_value.dart';
+import 'package:cfg/ir/field.dart';
+import 'package:cfg/ir/flow_graph.dart';
+import 'package:cfg/ir/flow_graph_builder.dart';
+import 'package:cfg/ir/functions.dart';
+import 'package:cfg/ir/global_context.dart';
+import 'package:cfg/ir/instructions.dart';
+import 'package:cfg/ir/local_variable.dart';
+import 'package:cfg/ir/source_position.dart';
+import 'package:cfg/ir/types.dart';
+import 'package:kernel/ast.dart' as ast;
+import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
+import 'package:kernel/core_types.dart' show CoreTypes;
+import 'package:kernel/type_environment.dart' show StaticTypeContext;
+
+/// Strategy for adding [TypeParameters] instructions when building CFG IR.
+enum TypeParametersStyle {
+  /// Maintain separate [TypeParameters] for function type parameters and
+  /// class type parameters.
+  /// Represent incoming function type parameters as the first parameter.
+  separateFunctionAndClassTypeParameters,
+}
+
+/// Translates kernel AST to the flow graph.
+///
+/// Not implemented yet:
+///  - non-regular functions;
+///  - parameter type checks;
+///  - tear-offs;
+///  - stack overflow/interrupt checks;
+///  - assert statements;
+///  - deferred libraries.
+///
+class AstToIr extends ast.RecursiveVisitor {
+  final CFunction function;
+  final CoreTypes coreTypes;
+  final ClassHierarchy hierarchy;
+  final FunctionRegistry functionRegistry;
+  final RecognizedMethods recognizedMethods;
+  final void Function(CFunction) onLocalFunction;
+  final FlowGraphBuilder builder;
+  final bool enableAsserts;
+  final TypeParametersStyle typeParametersStyle;
+  final Scopes scopes;
+  late final AstToIrTypes _typeTranslator;
+  late final LocalVariableIndexer localVarIndexer;
+  late final StaticTypeContext _staticTypeContext = StaticTypeContext(
+    function.member,
+    GlobalContext.instance.typeEnvironment,
+  );
+  late final ClosureLayout _currentClosureLayout;
+
+  Map<ast.LabeledStatement, JoinBlock>? labeledStatements;
+  Map<ast.SwitchCase, JoinBlock>? switchCases;
+  Map<ast.TryFinally, List<FinallyBlock>>? finallyBlocks;
+
+  bool _hasTypeParametersInScope = false;
+  TypeParameters? functionTypeParameters;
+  TypeParameters? classTypeParameters;
+
+  AstToIr(
+    this.function,
+    this.functionRegistry,
+    this.recognizedMethods, {
+    required this.onLocalFunction,
+    required this.enableAsserts,
+    required this.typeParametersStyle,
+    required this.scopes,
+  }) : coreTypes = GlobalContext.instance.coreTypes,
+       hierarchy = GlobalContext.instance.classHierarchy,
+       builder = FlowGraphBuilder(function) {
+    assert(!function.member.isAbstract);
+    _typeTranslator = GlobalContext.instance.astToIrTypes;
+    localVarIndexer = LocalVariableIndexer(
+      builder,
+      coreTypes,
+      _typeTranslator,
+      scopes,
+      function,
+    );
+    final f = function;
+    if (f is ClosureFunction) {
+      _currentClosureLayout = _computeClosureLayout(f);
+    }
+  }
+
+  /// Create [FlowGraph] for the body of the [function].
+  FlowGraph buildFlowGraph() {
+    _buildPrologue();
+    final member = function.member;
+    final functionNode = function.functionNode;
+    if (member.isInstanceMember && member.enclosingClass!.isMixinDeclaration) {
+      // After mixin transformation, original members of mixins should not be called.
+      // Only their clones in the mixin application classes can be called.
+      // By removing their bodies we can reduce code size and avoid any
+      // complexity dealing with super-invocations of abstract members.
+      builder.addUnreachable(
+        'Original instance members of mixins should not be called.',
+      );
+      return builder.done();
+    }
+    switch (function) {
+      case ImplicitFieldGetter():
+        _buildImplicitGetter(member as ast.Field);
+      case ImplicitFieldSetter():
+        _buildImplicitSetter(member as ast.Field);
+      case FieldInitializerFunction():
+        final field = member as ast.Field;
+        _enterScope(field);
+        _translateNode(field.initializer!);
+        if (builder.hasOpenBlock) {
+          builder.addReturn();
+        }
+      case MethodExtractor():
+        throw 'Unimplemented buildFlowGraph for ${function.runtimeType}';
+      case RegularFunction() || GetterFunction() || SetterFunction():
+        _enterScope(functionNode);
+        _translateNode(functionNode?.body);
+      case GenerativeConstructor():
+        _enterScope(functionNode);
+        _translateConstructorInitializers(member as ast.Constructor);
+        _translateNode(functionNode!.body);
+      case LocalFunction():
+        _enterScope(functionNode);
+        _translateNode(functionNode!.body);
+      case TearOffFunction():
+        throw 'Unimplemented buildFlowGraph for ${function.runtimeType}';
+    }
+    if (builder.hasOpenBlock) {
+      builder.addNullConstant();
+      builder.addReturn();
+    }
+    return builder.done();
+  }
+
+  void _buildPrologue() {
+    for (final param in localVarIndexer.parameters) {
+      builder.addParameter(param);
+    }
+    if (function.hasFunctionTypeParameters ||
+        function.hasEnclosingFunctionTypeParameters ||
+        function.hasClassTypeParameters) {
+      _hasTypeParametersInScope = true;
+      switch (typeParametersStyle) {
+        case .separateFunctionAndClassTypeParameters:
+          if (function.hasFunctionTypeParameters ||
+              function.hasEnclosingFunctionTypeParameters) {
+            var inputCount = 0;
+            if (function.hasFunctionTypeParameters) {
+              ++inputCount;
+              builder.addLoadLocal(localVarIndexer.functionTypeParameters);
+            }
+            if (function.hasEnclosingFunctionTypeParameters) {
+              ++inputCount;
+              builder.addLoadLocal(localVarIndexer.closure);
+              builder.addLoadInstanceField(
+                CField(
+                  ClosureField(_currentClosureLayout.functionTypeArgsIndex),
+                ),
+              );
+            }
+            functionTypeParameters = builder.addTypeParameters(
+              .functionTypeParameters,
+              inputCount,
+            );
+          }
+          if (function.hasClassTypeParameters) {
+            if (function.hasReceiverParameter) {
+              builder.addLoadLocal(localVarIndexer.receiver);
+              classTypeParameters = builder.addTypeParameters(
+                .classTypeParameters,
+                1,
+              );
+            } else if (_isCaptured(localVarIndexer.receiverDeclaration!)) {
+              // Read captured receiver. Load context from closure
+              // as contexts are not defined yet.
+              final variable = localVarIndexer.receiverDeclaration!;
+              builder.addLoadLocal(localVarIndexer.closure);
+              builder.addLoadInstanceField(
+                CField(
+                  ClosureField(
+                    _currentClosureLayout.firstContextIndex +
+                        scopes
+                            .getCapturedContexts(
+                              function.functionNode!,
+                              enableAsserts: enableAsserts,
+                            )
+                            .indexOf(scopes.getVariableContext(variable)),
+                  ),
+                ),
+              );
+              builder.addLoadInstanceField(
+                localVarIndexer.contextField(variable),
+              );
+              classTypeParameters = builder.addTypeParameters(
+                .classTypeParameters,
+                1,
+              );
+            }
+          }
+      }
+    }
+    if (function.isSuspendable) {
+      final emittedValueType = function.functionNode!.emittedValueType!;
+      builder.addTypeArguments([
+        emittedValueType,
+      ], typeParameters: _typeParametersForType(emittedValueType));
+      builder.addEnterSuspendableFunction();
+    }
+  }
+
+  void _buildImplicitGetter(ast.Field node) {
+    final field = CField(node);
+    if (node.isStatic) {
+      builder.addLoadStaticField(
+        field,
+        checkInitialized: field.isLate || field.hasInitializer,
+      );
+    } else {
+      builder.addLoadLocal(localVarIndexer.receiver);
+      builder.addLoadInstanceField(field, checkInitialized: field.isLate);
+    }
+    builder.addReturn();
+  }
+
+  void _buildImplicitSetter(ast.Field node) {
+    final field = CField(node);
+    if (node.isStatic) {
+      builder.addLoadLocal(localVarIndexer.parameters.last);
+      builder.addStoreStaticField(
+        field,
+        checkNotInitialized: field.isLate && field.isFinal,
+      );
+    } else {
+      builder.addLoadLocal(localVarIndexer.receiver);
+      builder.addLoadLocal(localVarIndexer.parameters.last);
+      builder.addStoreInstanceField(
+        field,
+        checkNotInitialized: field.isLate && field.isFinal,
+      );
+    }
+  }
+
+  void _translateNode(ast.TreeNode? node) {
+    if (node == null) {
+      return;
+    }
+    if (!builder.hasOpenBlock) {
+      switch (node) {
+        case ast.Expression():
+          _handleUnreachableExpression(0);
+          return;
+        case ast.Statement():
+          return;
+        default:
+          throw 'Unexpected ${node.runtimeType} $node';
+      }
+    }
+    final savedSourcePosition = builder.currentSourcePosition;
+    builder.currentSourcePosition = SourcePosition(node.fileOffset);
+    node.accept(this);
+    builder.currentSourcePosition = savedSourcePosition;
+  }
+
+  void _translateNodes(List<ast.TreeNode> nodes) {
+    for (final node in nodes) {
+      _translateNode(node);
+    }
+  }
+
+  void _translateConstructorInitializers(ast.Constructor node) {
+    var isRedirecting = false;
+    final initializedFields = <ast.Field>{};
+    for (final initializer in node.initializers) {
+      if (initializer is ast.RedirectingInitializer) {
+        isRedirecting = true;
+      } else if (initializer is ast.FieldInitializer) {
+        initializedFields.add(initializer.field);
+      }
+    }
+
+    if (!isRedirecting) {
+      for (final field in node.enclosingClass.fields) {
+        if (!field.isStatic) {
+          if (field.isLate) {
+            if (!initializedFields.contains(field)) {
+              builder.addLoadLocal(localVarIndexer.receiver);
+              builder.addSentinelConstant();
+              builder.addStoreInstanceField(CField(field));
+            }
+          } else {
+            final fieldInitializer = field.initializer;
+            if (fieldInitializer != null) {
+              if (initializedFields.contains(field)) {
+                // Do not store a value into the field as it is going to be
+                // overwritten by initializers list.
+                _translateNode(fieldInitializer);
+                builder.pop();
+                if (!builder.hasOpenBlock) return;
+              } else {
+                builder.addLoadLocal(localVarIndexer.receiver);
+                _translateNode(fieldInitializer);
+                if (!builder.hasOpenBlock) {
+                  builder.drop(2);
+                  return;
+                }
+                builder.addStoreInstanceField(CField(field));
+              }
+            }
+          }
+        }
+      }
+    }
+
+    _translateNodes(node.initializers);
+  }
+
+  /// If this expression is unreachable, then maintain expression stack
+  /// balance without appending IR instructions and return `true`.
+  bool _handleUnreachableExpression(int inputCount) {
+    if (!builder.hasOpenBlock) {
+      builder.drop(inputCount);
+      builder.addNullConstant();
+      return true;
+    }
+    return false;
+  }
+
+  /// Translate [receiver] and [arguments] expressions.
+  /// Returns number of arguments pushed onto expression stack.
+  /// Use [_handleUnreachableExpression] after calling this method in case
+  /// any of the argument expressions ended control flow.
+  int _translateArguments(ast.Expression? receiver, ast.Arguments arguments) {
+    assert(builder.hasOpenBlock);
+    var inputCount = 0;
+    if (arguments.types.isNotEmpty) {
+      builder.addTypeArguments(
+        arguments.types,
+        typeParameters: _typeParametersForTypes(arguments.types),
+      );
+      ++inputCount;
+    }
+    if (receiver != null) {
+      _translateNode(receiver);
+      ++inputCount;
+    }
+    _translateNodes(arguments.positional);
+    inputCount += arguments.positional.length;
+    for (final namedExpr in arguments.named) {
+      _translateNode(namedExpr.value);
+    }
+    inputCount += arguments.named.length;
+    return inputCount;
+  }
+
+  ArgumentsShape _translateArgumentsShape(
+    int implicitArgs,
+    ast.Arguments args,
+  ) => functionRegistry.getArgumentsShape(
+    implicitArgs + args.positional.length,
+    types: args.types.length,
+    named: args.named.map((ne) => ne.name).toList(),
+  );
+
+  CType _staticType(ast.Expression node) =>
+      _typeTranslator.translate(node.getStaticType(_staticTypeContext));
+
+  List<CType> _argumentTypes(ast.Expression? receiver, ast.Arguments args) => [
+    if (receiver != null) _staticType(receiver),
+    for (final arg in args.positional) _staticType(arg),
+    for (final arg in args.named) _staticType(arg.value),
+  ];
+
+  /// Joins control flow from the given [blocks].
+  ///
+  /// If [needNewJoinBlock], then the result is a new [JoinBlock] even
+  /// if there was only one block in [blocks].
+  Block _joinBlocks(List<Block> blocks, {bool needNewJoinBlock = false}) {
+    assert(blocks.isNotEmpty);
+    if (blocks.length == 1 && !needNewJoinBlock) {
+      return blocks.single;
+    }
+    final join = builder.newJoinBlock();
+    for (final block in blocks) {
+      assert(block.next == null);
+      builder.startBlock(block);
+      builder.addGoto(join);
+    }
+    return join;
+  }
+
+  /// Translates given [condition] and returns a pair of
+  /// (true blocks, false blocks).
+  (List<Block>, List<Block>) _translateConditionForControl(
+    ast.Expression condition,
+  ) {
+    switch (condition) {
+      case ast.Not():
+        var (trueBlocks, falseBlocks) = _translateConditionForControl(
+          condition.operand,
+        );
+        return (falseBlocks, trueBlocks);
+      case ast.LogicalExpression():
+        var (leftTrue, leftFalse) = _translateConditionForControl(
+          condition.left,
+        );
+        switch (condition.operatorEnum) {
+          case ast.LogicalExpressionOperator.AND:
+            if (leftTrue.isEmpty) {
+              return ([], leftFalse);
+            }
+            builder.startBlock(_joinBlocks(leftTrue));
+            var (rightTrue, rightFalse) = _translateConditionForControl(
+              condition.right,
+            );
+            return (rightTrue, [...leftFalse, ...rightFalse]);
+          case ast.LogicalExpressionOperator.OR:
+            if (leftFalse.isEmpty) {
+              return (leftTrue, []);
+            }
+            builder.startBlock(_joinBlocks(leftFalse));
+            var (rightTrue, rightFalse) = _translateConditionForControl(
+              condition.right,
+            );
+            return ([...leftTrue, ...rightTrue], rightFalse);
+        }
+      case _:
+        _translateNode(condition);
+        if (!builder.hasOpenBlock) {
+          builder.pop();
+          return ([], []);
+        }
+        final trueBlock = builder.newTargetBlock();
+        final falseBlock = builder.newTargetBlock();
+        builder.addBranch(trueBlock, falseBlock);
+        return ([trueBlock], [falseBlock]);
+    }
+  }
+
+  List<Definition> _referencedTypeParameters(_FindTypeParameters visitor) {
+    if (!visitor.containsClassTypeParams &&
+        !visitor.containsFunctionTypeParams) {
+      return const [];
+    }
+    return switch (typeParametersStyle) {
+      .separateFunctionAndClassTypeParameters => [
+        visitor.containsClassTypeParams
+            ? classTypeParameters!
+            : builder.graph.getConstant(ConstantValue.fromNull()),
+        visitor.containsFunctionTypeParams
+            ? functionTypeParameters!
+            : builder.graph.getConstant(ConstantValue.fromNull()),
+      ],
+    };
+  }
+
+  List<Definition> _typeParametersForType(ast.DartType type) {
+    if (!_hasTypeParametersInScope) {
+      return const [];
+    }
+    final visitor = _FindTypeParameters();
+    type.accept(visitor);
+    return _referencedTypeParameters(visitor);
+  }
+
+  List<Definition> _typeParametersForTypes(List<ast.DartType> types) {
+    if (!_hasTypeParametersInScope) {
+      return const [];
+    }
+    final visitor = _FindTypeParameters();
+    for (final type in types) {
+      type.accept(visitor);
+    }
+    return _referencedTypeParameters(visitor);
+  }
+
+  @override
+  void defaultTreeNode(ast.Node node) =>
+      throw 'Unsupported node ${node.runtimeType}';
+
+  @override
+  void visitIntLiteral(ast.IntLiteral node) {
+    builder.addIntConstant(node.value);
+  }
+
+  @override
+  void visitBoolLiteral(ast.BoolLiteral node) {
+    builder.addBoolConstant(node.value);
+  }
+
+  @override
+  void visitDoubleLiteral(ast.DoubleLiteral node) {
+    builder.addConstant(ConstantValue.fromDouble(node.value));
+  }
+
+  @override
+  void visitStringLiteral(ast.StringLiteral node) {
+    builder.addConstant(ConstantValue.fromString(node.value));
+  }
+
+  @override
+  void visitNullLiteral(ast.NullLiteral node) {
+    builder.addNullConstant();
+  }
+
+  @override
+  void visitTypeLiteral(ast.TypeLiteral node) {
+    builder.addTypeLiteral(
+      node.type,
+      typeParameters: _typeParametersForType(node.type),
+    );
+  }
+
+  @override
+  void visitListLiteral(ast.ListLiteral node) {
+    assert(!node.isConst);
+    final inputCount = node.expressions.length + 1;
+    builder.addTypeArguments([
+      node.typeArgument,
+    ], typeParameters: _typeParametersForType(node.typeArgument));
+    _translateNodes(node.expressions);
+    if (_handleUnreachableExpression(inputCount)) return;
+    builder.addAllocateListLiteral(_staticType(node), inputCount);
+  }
+
+  @override
+  void visitMapLiteral(ast.MapLiteral node) {
+    assert(!node.isConst);
+    final inputCount = (node.entries.length << 1) + 1;
+    final typeArgs = <ast.DartType>[node.keyType, node.valueType];
+    builder.addTypeArguments(
+      typeArgs,
+      typeParameters: _typeParametersForTypes(typeArgs),
+    );
+    for (final entry in node.entries) {
+      _translateNode(entry.key);
+      _translateNode(entry.value);
+    }
+    if (_handleUnreachableExpression(inputCount)) return;
+    builder.addAllocateMapLiteral(_staticType(node), inputCount);
+  }
+
+  @override
+  void visitConstantExpression(ast.ConstantExpression node) {
+    builder.addConstant(ConstantValue(node.constant));
+  }
+
+  @override
+  void visitReturnStatement(ast.ReturnStatement node) {
+    final expr = node.expression;
+    if (expr != null) {
+      _translateNode(expr);
+    } else {
+      builder.addNullConstant();
+    }
+    final value = builder.pop();
+    _generateNonLocalControlTransfer(node, null, () {
+      builder.push(value);
+      builder.addReturn();
+    });
+  }
+
+  @override
+  void visitBlock(ast.Block node) {
+    _enterScope(node);
+    _translateNodes(node.statements);
+  }
+
+  @override
+  void visitAssertBlock(ast.AssertBlock node) {
+    if (enableAsserts) {
+      _enterScope(node);
+      _translateNodes(node.statements);
+    }
+  }
+
+  @override
+  void visitAssertStatement(ast.AssertStatement node) {
+    if (!enableAsserts) {
+      return;
+    }
+    throw 'Unsupported node ${node.runtimeType} with enabled asserts';
+  }
+
+  @override
+  void visitEmptyStatement(ast.EmptyStatement node) {
+    // no-op
+  }
+
+  @override
+  void visitBlockExpression(ast.BlockExpression node) {
+    _enterScope(node);
+    _translateNodes(node.body.statements);
+    _translateNode(node.value);
+  }
+
+  @override
+  void visitExpressionStatement(ast.ExpressionStatement node) {
+    _translateNode(node.expression);
+    builder.pop();
+  }
+
+  @override
+  void visitStaticInvocation(ast.StaticInvocation node) {
+    assert(!node.isConst);
+    final args = node.arguments;
+    final target = functionRegistry.getFunction(node.target);
+    final inputCount = _translateArguments(null, args);
+    if (_handleUnreachableExpression(inputCount)) return;
+    builder.addDirectCall(
+      target,
+      inputCount,
+      _translateArgumentsShape(0, args),
+      _staticType(node),
+    );
+  }
+
+  @override
+  void visitStaticGet(ast.StaticGet node) {
+    final member = node.target;
+    if (member is ast.Field) {
+      final field = CField(member);
+      builder.addLoadStaticField(
+        field,
+        checkInitialized: field.isLate || field.hasInitializer,
+      );
+    } else {
+      final target = functionRegistry.getFunction(node.target, isGetter: true);
+      builder.addDirectCall(
+        target,
+        0,
+        functionRegistry.getArgumentsShape(0),
+        _staticType(node),
+      );
+    }
+  }
+
+  @override
+  void visitStaticSet(ast.StaticSet node) {
+    _translateNode(node.value);
+    if (_handleUnreachableExpression(1)) return;
+    final value = builder.stackTop;
+    final member = node.target;
+    if (member is ast.Field) {
+      final field = CField(member);
+      builder.addStoreStaticField(
+        field,
+        checkNotInitialized: field.isLate && field.isFinal,
+      );
+    } else {
+      final target = functionRegistry.getFunction(node.target, isSetter: true);
+      builder.addDirectCall(
+        target,
+        1,
+        functionRegistry.getArgumentsShape(1),
+        const TopType(const ast.VoidType()),
+      );
+      builder.pop();
+    }
+    builder.push(value);
+  }
+
+  @override
+  void visitInstanceInvocation(ast.InstanceInvocation node) {
+    final args = node.arguments;
+    final interfaceTarget = functionRegistry.getFunction(node.interfaceTarget);
+    final inputCount = _translateArguments(node.receiver, args);
+    if (_handleUnreachableExpression(inputCount)) return;
+    final matcher = recognizedMethods.instanceInvocations[node.interfaceTarget];
+    if (matcher != null) {
+      final snippet = matcher.match(_argumentTypes(node.receiver, args));
+      if (snippet != null) {
+        snippet(builder);
+        return;
+      }
+    }
+    builder.addInterfaceCall(
+      interfaceTarget,
+      inputCount,
+      _translateArgumentsShape(1, args),
+      _staticType(node),
+    );
+  }
+
+  @override
+  void visitInstanceGet(ast.InstanceGet node) {
+    final interfaceTarget = functionRegistry.getFunction(
+      node.interfaceTarget,
+      isGetter: true,
+    );
+    _translateNode(node.receiver);
+    if (_handleUnreachableExpression(1)) return;
+    final matcher = recognizedMethods.instanceGetters[node.interfaceTarget];
+    if (matcher != null) {
+      final snippet = matcher.match([_staticType(node.receiver)]);
+      if (snippet != null) {
+        snippet(builder);
+        return;
+      }
+    }
+    builder.addInterfaceCall(
+      interfaceTarget,
+      1,
+      functionRegistry.getArgumentsShape(1),
+      _staticType(node),
+    );
+  }
+
+  @override
+  void visitInstanceSet(ast.InstanceSet node) {
+    final interfaceTarget = functionRegistry.getFunction(
+      node.interfaceTarget,
+      isSetter: true,
+    );
+    _translateNode(node.receiver);
+    _translateNode(node.value);
+    if (_handleUnreachableExpression(2)) return;
+    final value = builder.stackTop;
+    builder.addInterfaceCall(
+      interfaceTarget,
+      2,
+      functionRegistry.getArgumentsShape(2),
+      const TopType(const ast.VoidType()),
+    );
+    builder.pop();
+    builder.push(value);
+  }
+
+  @override
+  void visitInstanceTearOff(ast.InstanceTearOff node) {
+    final interfaceTarget = functionRegistry.getFunction(
+      node.interfaceTarget,
+      isMethodExtractor: true,
+    );
+    _translateNode(node.receiver);
+    if (_handleUnreachableExpression(1)) return;
+    builder.addInterfaceCall(
+      interfaceTarget,
+      1,
+      functionRegistry.getArgumentsShape(1),
+      _staticType(node),
+    );
+  }
+
+  @override
+  void visitEqualsCall(ast.EqualsCall node) {
+    _translateNode(node.left);
+    _translateNode(node.right);
+    if (_handleUnreachableExpression(2)) return;
+    final interfaceTarget = functionRegistry.getFunction(node.interfaceTarget);
+    final matcher = recognizedMethods.instanceInvocations[node.interfaceTarget];
+    if (matcher != null) {
+      final snippet = matcher.match([
+        _staticType(node.left),
+        _staticType(node.right),
+      ]);
+      if (snippet != null) {
+        snippet(builder);
+        return;
+      }
+    }
+    builder.addInterfaceCall(
+      interfaceTarget,
+      2,
+      functionRegistry.getArgumentsShape(2),
+      const BoolType(),
+    );
+  }
+
+  @override
+  void visitEqualsNull(ast.EqualsNull node) {
+    _translateNode(node.expression);
+    if (_handleUnreachableExpression(1)) return;
+    builder.addNullConstant();
+    builder.addComparison(ComparisonOpcode.equal);
+  }
+
+  @override
+  void visitDynamicInvocation(ast.DynamicInvocation node) {
+    final args = node.arguments;
+    final inputCount = _translateArguments(node.receiver, args);
+    if (_handleUnreachableExpression(inputCount)) return;
+    builder.addDynamicCall(
+      node.name,
+      DynamicCallKind.method,
+      inputCount,
+      _translateArgumentsShape(1, args),
+    );
+  }
+
+  @override
+  void visitDynamicGet(ast.DynamicGet node) {
+    _translateNode(node.receiver);
+    if (_handleUnreachableExpression(1)) return;
+    builder.addDynamicCall(
+      node.name,
+      DynamicCallKind.getter,
+      1,
+      functionRegistry.getArgumentsShape(1),
+    );
+  }
+
+  @override
+  void visitDynamicSet(ast.DynamicSet node) {
+    _translateNode(node.receiver);
+    _translateNode(node.value);
+    if (_handleUnreachableExpression(2)) return;
+    final value = builder.stackTop;
+    builder.addDynamicCall(
+      node.name,
+      DynamicCallKind.setter,
+      2,
+      functionRegistry.getArgumentsShape(2),
+    );
+    builder.pop();
+    builder.push(value);
+  }
+
+  @override
+  void visitThisExpression(ast.ThisExpression node) {
+    // TODO: always use ThisVariable.
+    final receiverDeclaration = localVarIndexer.receiverDeclaration;
+    if (receiverDeclaration != null) {
+      _readVariable(receiverDeclaration);
+    } else {
+      builder.addLoadLocal(localVarIndexer.receiver);
+    }
+  }
+
+  bool _isCapturedContext(Context context) =>
+      context.isCaptured(enableAsserts: enableAsserts);
+
+  bool _isCaptured(ast.Variable v) =>
+      _isCapturedContext(scopes.getVariableContext(v));
+
+  void _readVariable(ast.Variable v) {
+    if (_isCaptured(v)) {
+      builder.push(localVarIndexer.contextDef(scopes.getVariableContext(v)));
+      builder.addLoadInstanceField(localVarIndexer.contextField(v));
+    } else {
+      builder.addLoadLocal(localVarIndexer.variableForDeclaration(v));
+    }
+  }
+
+  void _writeVariable(ast.Variable v) {
+    if (_isCaptured(v)) {
+      final value = builder.pop();
+      builder.push(localVarIndexer.contextDef(scopes.getVariableContext(v)));
+      builder.push(value);
+      builder.addStoreInstanceField(localVarIndexer.contextField(v));
+    } else {
+      builder.addStoreLocal(localVarIndexer.variableForDeclaration(v));
+    }
+  }
+
+  void _enterScope(ast.TreeNode? node) {
+    if (node == null) {
+      return;
+    }
+    if (node is ast.FunctionNode) {
+      assert(function.functionNode == node);
+      if (function is ClosureFunction) {
+        var index = _currentClosureLayout.firstContextIndex;
+        for (final context in scopes.getCapturedContexts(
+          node,
+          enableAsserts: enableAsserts,
+        )) {
+          assert(_isCapturedContext(context));
+          assert(index < _currentClosureLayout.length);
+          builder.addLoadLocal(localVarIndexer.closure);
+          builder.addLoadInstanceField(CField(ClosureField(index)));
+          localVarIndexer.defineContext(context, builder.pop());
+          ++index;
+        }
+      } else {
+        assert(
+          scopes
+              .getCapturedContexts(node, enableAsserts: enableAsserts)
+              .isEmpty,
+        );
+      }
+    }
+    final scope = scopes.getScope(node);
+    if (scope == null) {
+      return;
+    }
+    for (final context in scope.contexts) {
+      if (_isCapturedContext(context)) {
+        final def = builder.addAllocateContext(context.variables.length);
+        localVarIndexer.defineContext(context, def);
+      }
+    }
+    if (node is ast.Field && node.isInstanceMember) {
+      final thisVariable = scopes.getThisVariable(node);
+      if (thisVariable != null && _isCaptured(thisVariable)) {
+        builder.addLoadLocal(localVarIndexer.receiver);
+        _writeVariable(thisVariable);
+      }
+    } else if (node is ast.FunctionNode) {
+      for (final v in [
+        if (function.hasReceiverParameter) localVarIndexer.receiverDeclaration!,
+        ...node.positionalParameters,
+        ...node.namedParameters,
+      ]) {
+        if (_isCaptured(v)) {
+          builder.addLoadLocal(localVarIndexer.variableForDeclaration(v));
+          _writeVariable(v);
+        }
+      }
+    }
+  }
+
+  @override
+  void defaultVariable(ast.Variable node) {
+    if (node.isConst) return;
+    if (node.isLate) {
+      builder.addSentinelConstant();
+      _writeVariable(node);
+    } else {
+      final initializer = node.initializer;
+      if (initializer != null) {
+        _translateNode(initializer);
+        if (!builder.hasOpenBlock) {
+          builder.pop();
+          return;
+        }
+        _writeVariable(node);
+      } else if (node.type.nullability == ast.Nullability.nullable &&
+          !_isCaptured(node)) {
+        builder.addNullConstant();
+        _writeVariable(node);
+      }
+    }
+  }
+
+  @override
+  void visitVariableDeclaration(ast.VariableDeclaration node) {
+    defaultVariable(node.variable);
+  }
+
+  @override
+  void visitVariableStatement(ast.VariableStatement node) {
+    visitVariableDeclaration(node.declaration);
+  }
+
+  @override
+  void visitVariableGet(ast.VariableGet node) {
+    final variable = node.variable;
+    if (variable.isConst) {
+      builder.addConstant(
+        ConstantValue(
+          (variable.initializer as ast.ConstantExpression).constant,
+        ),
+      );
+      return;
+    }
+    if (variable.isLate) {
+      // Check if the late variable is initialized.
+      final notInitBlock = builder.newTargetBlock();
+      final initBlock = builder.newTargetBlock();
+      final doneBlock = builder.newJoinBlock();
+
+      _readVariable(variable);
+      builder.addSentinelConstant();
+      builder.addComparison(.equal);
+      builder.addBranch(notInitBlock, initBlock);
+
+      builder.startBlock(notInitBlock);
+      final initializer = variable.initializer;
+      if (initializer != null) {
+        _translateNode(initializer);
+        if (variable.isFinal) {
+          // Check if the late final variable is already initialized.
+          final notInit2Block = builder.newTargetBlock();
+          final init2Block = builder.newTargetBlock();
+
+          _readVariable(variable);
+          builder.addSentinelConstant();
+          builder.addComparison(.equal);
+          builder.addBranch(notInit2Block, init2Block);
+
+          builder.startBlock(init2Block);
+          builder.addConstant(ConstantValue.fromString(variable.cosmeticName!));
+          builder.addThrow(.lateLocalAssignedDuringInitialization, 1);
+
+          builder.startBlock(notInit2Block);
+        }
+        _writeVariable(variable);
+        builder.addGoto(doneBlock);
+      } else {
+        builder.addConstant(ConstantValue.fromString(variable.cosmeticName!));
+        builder.addThrow(.lateLocalNotInitialized, 1);
+      }
+
+      builder.startBlock(initBlock);
+      builder.addGoto(doneBlock);
+
+      builder.startBlock(doneBlock);
+    }
+
+    _readVariable(variable);
+
+    ast.DartType? promotedType = node.promotedType;
+    if (promotedType == null && variable.isLate) {
+      // "Promote" value of LateValueType to the Dart type.
+      promotedType = variable.type;
+    }
+    if (promotedType != null) {
+      final promotedCType = _typeTranslator.translate(promotedType);
+      if (variable.isLate ||
+          (promotedCType is! TopType && promotedType != variable.type)) {
+        builder.addTypeCast(
+          promotedCType,
+          typeParameters: _typeParametersForType(promotedType),
+          isChecked: false,
+        );
+      }
+    }
+  }
+
+  @override
+  void visitVariableSet(ast.VariableSet node) {
+    final variable = node.variable;
+    _translateNode(node.value);
+    if (_handleUnreachableExpression(1)) return;
+    if (variable.isLate && variable.isFinal) {
+      // Check if the late final variable is already initialized.
+      final notInitBlock = builder.newTargetBlock();
+      final initBlock = builder.newTargetBlock();
+
+      _readVariable(variable);
+      builder.addSentinelConstant();
+      builder.addComparison(.equal);
+      builder.addBranch(notInitBlock, initBlock);
+
+      builder.startBlock(initBlock);
+      builder.addConstant(ConstantValue.fromString(variable.cosmeticName!));
+      builder.addThrow(.lateLocalAlreadyInitialized, 1);
+
+      builder.startBlock(notInitBlock);
+    }
+    final value = builder.stackTop;
+    _writeVariable(variable);
+    builder.push(value);
+  }
+
+  @override
+  void visitIfStatement(ast.IfStatement node) {
+    var (thenBlocks, otherwiseBlocks) = _translateConditionForControl(
+      node.condition,
+    );
+    if (thenBlocks.isEmpty && otherwiseBlocks.isEmpty) {
+      assert(!builder.hasOpenBlock);
+      return;
+    }
+
+    final elsePart = node.otherwise;
+    JoinBlock? join;
+    if (elsePart == null && otherwiseBlocks.isNotEmpty) {
+      join = _joinBlocks(otherwiseBlocks, needNewJoinBlock: true) as JoinBlock;
+    }
+
+    if (thenBlocks.isNotEmpty) {
+      builder.startBlock(_joinBlocks(thenBlocks));
+      _translateNode(node.then);
+      if (builder.hasOpenBlock) {
+        join ??= builder.newJoinBlock();
+        builder.addGoto(join);
+      }
+    }
+
+    if (elsePart != null && otherwiseBlocks.isNotEmpty) {
+      builder.startBlock(_joinBlocks(otherwiseBlocks));
+      _translateNode(elsePart);
+      if (builder.hasOpenBlock) {
+        join ??= builder.newJoinBlock();
+        builder.addGoto(join);
+      }
+    }
+
+    if (join != null) {
+      builder.startBlock(join);
+    }
+  }
+
+  @override
+  void visitWhileStatement(ast.WhileStatement node) {
+    final join = builder.newJoinBlock();
+    builder.addGoto(join);
+    builder.startBlock(join);
+
+    final (trueBlocks, falseBlocks) = _translateConditionForControl(
+      node.condition,
+    );
+
+    if (trueBlocks.isNotEmpty) {
+      builder.startBlock(_joinBlocks(trueBlocks));
+      _enterScope(node);
+      _translateNode(node.body);
+      if (builder.hasOpenBlock) {
+        builder.addGoto(join);
+      }
+    }
+
+    if (falseBlocks.isNotEmpty) {
+      builder.startBlock(_joinBlocks(falseBlocks));
+    }
+  }
+
+  @override
+  void visitDoStatement(ast.DoStatement node) {
+    final join = builder.newJoinBlock();
+    builder.addGoto(join);
+    builder.startBlock(join);
+
+    _translateNode(node.body);
+    if (!builder.hasOpenBlock) return;
+
+    final (trueBlocks, falseBlocks) = _translateConditionForControl(
+      node.condition,
+    );
+
+    for (final block in trueBlocks) {
+      builder.startBlock(block);
+      builder.addGoto(join);
+    }
+
+    if (falseBlocks.isNotEmpty) {
+      builder.startBlock(_joinBlocks(falseBlocks));
+    }
+  }
+
+  @override
+  void visitForStatement(ast.ForStatement node) {
+    // TODO: implement separate contexts for each iteration and
+    // copying of the 'for' variables from a previous iteration.
+    _enterScope(node);
+    _translateNodes(node.variableInitializations);
+    if (!builder.hasOpenBlock) return;
+
+    final join = builder.newJoinBlock();
+    builder.addGoto(join);
+    builder.startBlock(join);
+
+    final condition = node.condition;
+    Block? done;
+    if (condition != null) {
+      final (trueBlocks, falseBlocks) = _translateConditionForControl(
+        condition,
+      );
+      if (falseBlocks.isNotEmpty) {
+        done = _joinBlocks(falseBlocks);
+      }
+      if (trueBlocks.isNotEmpty) {
+        builder.startBlock(_joinBlocks(trueBlocks));
+      }
+    }
+
+    _translateNode(node.body);
+
+    for (var update in node.updates) {
+      _translateNode(update);
+      builder.pop();
+    }
+
+    if (builder.hasOpenBlock) {
+      builder.addGoto(join);
+    }
+
+    if (done != null) {
+      builder.startBlock(done);
+    }
+  }
+
+  @override
+  void visitForInStatement(ast.ForInStatement node) =>
+      throw 'Should be lowered';
+
+  @override
+  void visitLabeledStatement(ast.LabeledStatement node) {
+    final labeledStatements = this.labeledStatements ??=
+        <ast.LabeledStatement, JoinBlock>{};
+    JoinBlock? join;
+    try {
+      _translateNode(node.body);
+    } finally {
+      join = labeledStatements.remove(node);
+    }
+    if (join != null) {
+      if (builder.hasOpenBlock) {
+        builder.addGoto(join);
+      }
+      builder.startBlock(join);
+    }
+  }
+
+  @override
+  void visitBreakStatement(ast.BreakStatement node) {
+    _generateNonLocalControlTransfer(node, node.target, () {
+      final targetBlock = (labeledStatements![node.target] ??= builder
+          .newJoinBlock());
+      builder.addGoto(targetBlock);
+    });
+  }
+
+  void _generateSwitchComparison(
+    Definition value,
+    ast.Expression caseExpression,
+  ) {
+    _translateNode(caseExpression);
+    // TODO(alexmarkov): use proper devirtualization to specialize ==.
+    final interfaceTarget = (builder.stackTop.type is IntType)
+        ? coreTypes.index.getProcedure('dart:core', 'num', '==')
+        : coreTypes.objectEquals;
+    builder.push(value);
+    final matcher = recognizedMethods.instanceInvocations[interfaceTarget];
+    if (matcher != null) {
+      final snippet = matcher.match([_staticType(caseExpression), value.type]);
+      if (snippet != null) {
+        snippet(builder);
+        return;
+      }
+    }
+    builder.addInterfaceCall(
+      functionRegistry.getFunction(interfaceTarget),
+      2,
+      functionRegistry.getArgumentsShape(2),
+      const BoolType(),
+    );
+  }
+
+  @override
+  void visitSwitchStatement(ast.SwitchStatement node) {
+    _translateNode(node.expression);
+    final value = builder.pop();
+
+    final switchCases = this.switchCases ??= <ast.SwitchCase, JoinBlock>{};
+    final caseBlocks = List<JoinBlock>.generate(
+      node.cases.length,
+      (_) => builder.newJoinBlock(),
+    );
+
+    for (var i = 0; i < node.cases.length; i++) {
+      final switchCase = node.cases[i];
+      final caseBlock = caseBlocks[i];
+      switchCases[switchCase] = caseBlock;
+
+      if (switchCase.isDefault) {
+        assert(i == node.cases.length - 1);
+        builder.addGoto(caseBlock);
+      } else {
+        final savedSourcePosition = builder.currentSourcePosition;
+        for (var i = 0; i < switchCase.expressions.length; ++i) {
+          builder.currentSourcePosition = SourcePosition(
+            switchCase.expressionOffsets[i],
+          );
+          _generateSwitchComparison(value, switchCase.expressions[i]);
+
+          final trueBlock = builder.newTargetBlock();
+          final falseBlock = builder.newTargetBlock();
+          builder.addBranch(trueBlock, falseBlock);
+
+          builder.startBlock(trueBlock);
+          builder.addGoto(caseBlock);
+
+          builder.startBlock(falseBlock);
+        }
+        builder.currentSourcePosition = savedSourcePosition;
+      }
+    }
+
+    JoinBlock? done;
+    if (builder.hasOpenBlock) {
+      done = builder.newJoinBlock();
+      builder.addGoto(done);
+    }
+
+    for (var i = 0; i < node.cases.length; i++) {
+      final switchCase = node.cases[i];
+      final caseBlock = caseBlocks[i];
+
+      builder.startBlock(caseBlock);
+      _translateNode(switchCase.body);
+
+      if (builder.hasOpenBlock) {
+        assert(i == node.cases.length - 1);
+        if (done != null) {
+          builder.addGoto(done);
+        }
+      }
+    }
+
+    node.cases.forEach(switchCases.remove);
+
+    if (done != null) {
+      builder.startBlock(done);
+    }
+  }
+
+  @override
+  void visitContinueSwitchStatement(ast.ContinueSwitchStatement node) {
+    final targetBlock = switchCases?[node.target];
+    if (targetBlock == null) {
+      throw 'Target block ${node.target} was not registered for continue-switch $node';
+    }
+    _generateNonLocalControlTransfer(node, node.target.parent!, () {
+      builder.addGoto(targetBlock);
+    });
+  }
+
+  @override
+  void visitTryCatch(ast.TryCatch node) {
+    final tryBody = builder.newTargetBlock();
+    final guardTypes = [
+      for (final catchClause in node.catches) catchClause.guard,
+    ];
+    final catchBlock = builder.newCatchBlock(
+      guardTypes,
+      isSynthetic: node.isSynthetic,
+    );
+    builder.addTryEntry(tryBody, catchBlock);
+
+    builder.enterTryBlock(catchBlock);
+    builder.startBlock(tryBody);
+
+    _translateNode(node.body);
+
+    JoinBlock? done;
+    if (builder.hasOpenBlock) {
+      done = builder.newJoinBlock();
+      builder.addGoto(done);
+    }
+    builder.leaveTryBlock();
+
+    builder.startBlock(catchBlock);
+
+    final exceptionLocal = localVarIndexer.exceptionVariable(node);
+    final stackTraceLocal = localVarIndexer.stackTraceVariable(node);
+    builder.addParameter(exceptionLocal);
+    builder.addParameter(stackTraceLocal);
+
+    final savedSourcePosition = builder.currentSourcePosition;
+    for (final catchClause in node.catches) {
+      builder.currentSourcePosition = SourcePosition(catchClause.fileOffset);
+
+      TargetBlock? next;
+      final guardType = catchClause.guard;
+      final guardCType = _typeTranslator.translate(guardType);
+      // Exception objects are guaranteed to be non-nullable, so
+      // non-nullable Object is also a catch-all type.
+      if (guardCType is! TopType && guardCType is! ObjectType) {
+        builder.addLoadLocal(exceptionLocal);
+        builder.addTypeTest(
+          guardCType,
+          typeParameters: _typeParametersForType(guardType),
+        );
+
+        final catchBody = builder.newTargetBlock();
+        next = builder.newTargetBlock();
+        builder.addBranch(catchBody, next);
+
+        builder.startBlock(catchBody);
+      }
+
+      _enterScope(catchClause);
+
+      final exceptionVariable = catchClause.exception;
+      if (exceptionVariable != null) {
+        builder.addLoadLocal(exceptionLocal);
+        _writeVariable(exceptionVariable);
+      }
+
+      final stackTraceVariable = catchClause.stackTrace;
+      if (stackTraceVariable != null) {
+        builder.addLoadLocal(stackTraceLocal);
+        _writeVariable(stackTraceVariable);
+      }
+
+      _translateNode(catchClause.body);
+
+      if (builder.hasOpenBlock) {
+        done ??= builder.newJoinBlock();
+        builder.addGoto(done);
+      }
+
+      if (next != null) {
+        builder.startBlock(next);
+      }
+    }
+    builder.currentSourcePosition = savedSourcePosition;
+
+    if (builder.hasOpenBlock) {
+      builder.addLoadLocal(exceptionLocal);
+      builder.addLoadLocal(stackTraceLocal);
+      builder.addThrow(.rethrowException, 2);
+    }
+
+    if (done != null) {
+      builder.startBlock(done);
+    }
+  }
+
+  @override
+  void visitTryFinally(ast.TryFinally node) {
+    final finallyBlocks = this.finallyBlocks ??=
+        <ast.TryFinally, List<FinallyBlock>>{};
+    finallyBlocks[node] = <FinallyBlock>[];
+
+    final tryBody = builder.newTargetBlock();
+    final catchBlock = builder.newCatchBlock(const [
+      ast.DynamicType(),
+    ], isSynthetic: true);
+    builder.addTryEntry(tryBody, catchBlock);
+
+    builder.enterTryBlock(catchBlock);
+    builder.startBlock(tryBody);
+
+    _translateNode(node.body);
+
+    if (builder.hasOpenBlock) {
+      final normalContinuation = FinallyBlock(builder, () {
+        // Do nothing (fall through).
+      });
+      finallyBlocks[node]!.add(normalContinuation);
+      final entryBlock = normalContinuation.entryBlock = builder.newJoinBlock();
+      builder.addGoto(entryBlock);
+    }
+
+    builder.leaveTryBlock();
+    final collectedFinallyBlocks = finallyBlocks.remove(node)!;
+
+    builder.startBlock(catchBlock);
+
+    final exceptionLocal = localVarIndexer.exceptionVariable(node);
+    final stackTraceLocal = localVarIndexer.stackTraceVariable(node);
+    builder.addParameter(exceptionLocal);
+    builder.addParameter(stackTraceLocal);
+
+    _translateNode(node.finalizer);
+
+    if (builder.hasOpenBlock) {
+      builder.addLoadLocal(exceptionLocal);
+      builder.addLoadLocal(stackTraceLocal);
+      builder.addThrow(.rethrowException, 2);
+    }
+
+    for (var finallyBlock in collectedFinallyBlocks) {
+      final entryBlock = finallyBlock.entryBlock;
+      if (entryBlock == null) {
+        continue;
+      }
+      builder.startBlock(entryBlock);
+      _translateNode(node.finalizer);
+      if (builder.hasOpenBlock) {
+        finallyBlock.generateContinuation();
+      }
+    }
+  }
+
+  /// Returns the list of try-finally blocks between [from] and [to],
+  /// ordered from inner to outer. If [to] is null, returns all enclosing
+  /// try-finally blocks up to the function boundary.
+  List<ast.TryFinally> _getEnclosingTryFinallyBlocks(
+    ast.TreeNode from,
+    ast.TreeNode? to,
+  ) {
+    final blocks = <ast.TryFinally>[];
+    ast.TreeNode? node = from;
+    for (;;) {
+      if (node == to) {
+        return blocks;
+      }
+      if (node == null || node is ast.FunctionNode || node is ast.Member) {
+        if (to == null) {
+          return blocks;
+        } else {
+          throw 'Unable to find node $to up from $from';
+        }
+      }
+      // Inspect parent as we only need try-finally blocks enclosing [node]
+      // in the body, and not in the finally-block.
+      final parent = node.parent;
+      if (parent is ast.TryFinally && parent.body == node) {
+        blocks.add(parent);
+      }
+      node = parent;
+    }
+  }
+
+  /// Appends chained [FinallyBlock]s to each try-finally in the given
+  /// list [tryFinallyBlocks] (ordered from inner to outer).
+  /// [continuation] is invoked to generate control transfer following
+  /// the last finally block.
+  void _addFinallyBlocks(
+    List<ast.TryFinally> tryFinallyBlocks,
+    void Function() continuation,
+  ) {
+    if (!builder.hasOpenBlock) {
+      return;
+    }
+    // Add finally blocks to all try-finally from outer to inner.
+    // The outermost finally block should generate continuation, each inner
+    // finally block should proceed to a corresponding outer block.
+    for (var tryFinally in tryFinallyBlocks.reversed) {
+      final finallyBlock = FinallyBlock(builder, continuation);
+      finallyBlocks![tryFinally]!.add(finallyBlock);
+
+      continuation = () {
+        final nextFinally = finallyBlock.entryBlock = builder.newJoinBlock();
+        builder.addGoto(nextFinally);
+      };
+    }
+
+    // Generate Goto to the innermost finally (or to the original
+    // continuation if there are no try-finally blocks).
+    continuation();
+  }
+
+  /// Generates non-local transfer from inner node [from] into the outer
+  /// node, executing finally blocks on the way out. [to] can be null,
+  /// in such case all enclosing finally blocks are executed.
+  /// [continuation] is invoked to generate control transfer following
+  /// the last finally block.
+  void _generateNonLocalControlTransfer(
+    ast.TreeNode from,
+    ast.TreeNode? to,
+    void Function() continuation,
+  ) {
+    _addFinallyBlocks(_getEnclosingTryFinallyBlocks(from, to), continuation);
+  }
+
+  @override
+  void visitThrow(ast.Throw node) {
+    _translateNode(node.expression);
+    if (_handleUnreachableExpression(1)) return;
+    builder.addThrow(.exception, 1);
+    // Maintain expression stack balance.
+    builder.addNullConstant();
+  }
+
+  @override
+  void visitRethrow(ast.Rethrow node) {
+    ast.TryCatch tryCatch;
+    for (var parent = node.parent; ; parent = parent.parent) {
+      if (parent is ast.Catch) {
+        tryCatch = parent.parent as ast.TryCatch;
+        break;
+      }
+      if (parent == null ||
+          parent is ast.FunctionNode ||
+          parent is ast.Member) {
+        throw 'Unable to find enclosing catch for $node';
+      }
+    }
+    final exceptionLocal = localVarIndexer.exceptionVariable(tryCatch);
+    final stackTraceLocal = localVarIndexer.stackTraceVariable(tryCatch);
+    builder.addLoadLocal(exceptionLocal);
+    builder.addLoadLocal(stackTraceLocal);
+    builder.addThrow(.rethrowException, 2);
+    // Maintain expression stack balance.
+    builder.addNullConstant();
+  }
+
+  @override
+  void visitNullCheck(ast.NullCheck node) {
+    _translateNode(node.operand);
+    if (_handleUnreachableExpression(1)) return;
+    builder.addNullCheck();
+  }
+
+  @override
+  void visitIsExpression(ast.IsExpression node) {
+    _translateNode(node.operand);
+    if (_handleUnreachableExpression(1)) return;
+
+    final type = _typeTranslator.translate(node.type);
+    if (type is TopType) {
+      builder.pop();
+      builder.addBoolConstant(true);
+    } else {
+      builder.addTypeTest(
+        type,
+        typeParameters: _typeParametersForType(node.type),
+      );
+    }
+  }
+
+  @override
+  void visitAsExpression(ast.AsExpression node) {
+    _translateNode(node.operand);
+    if (_handleUnreachableExpression(1)) return;
+
+    final type = _typeTranslator.translate(node.type);
+    if (type is TopType) {
+      return;
+    }
+    builder.addTypeCast(
+      type,
+      typeParameters: _typeParametersForType(node.type),
+      isChecked: !node.isUnchecked,
+    );
+  }
+
+  @override
+  void visitConditionalExpression(ast.ConditionalExpression node) {
+    final (trueBlocks, falseBlocks) = _translateConditionForControl(
+      node.condition,
+    );
+    if (trueBlocks.isEmpty && falseBlocks.isEmpty) {
+      assert(!builder.hasOpenBlock);
+      return;
+    }
+    JoinBlock? joinBlock;
+    final tempVar = builder.declareLocalVariable(
+      '#temp',
+      null,
+      _typeTranslator.translate(node.staticType),
+    );
+
+    if (trueBlocks.isNotEmpty) {
+      builder.startBlock(_joinBlocks(trueBlocks));
+      _translateNode(node.then);
+      if (builder.hasOpenBlock) {
+        builder.addStoreLocal(tempVar);
+        joinBlock ??= builder.newJoinBlock();
+        builder.addGoto(joinBlock);
+      }
+    }
+
+    if (falseBlocks.isNotEmpty) {
+      builder.startBlock(_joinBlocks(falseBlocks));
+      _translateNode(node.otherwise);
+      if (builder.hasOpenBlock) {
+        builder.addStoreLocal(tempVar);
+        joinBlock ??= builder.newJoinBlock();
+        builder.addGoto(joinBlock);
+      }
+    }
+
+    if (joinBlock != null) {
+      builder.startBlock(joinBlock);
+      builder.addLoadLocal(tempVar);
+    }
+  }
+
+  @override
+  void visitLet(ast.Let node) {
+    _enterScope(node);
+    _translateNode(node.variable);
+    _translateNode(node.body);
+  }
+
+  @override
+  void visitFieldInitializer(ast.FieldInitializer node) {
+    builder.addLoadLocal(localVarIndexer.receiver);
+    _translateNode(node.value);
+    if (!builder.hasOpenBlock) {
+      builder.drop(2);
+      return;
+    }
+    builder.addStoreInstanceField(CField(node.field));
+  }
+
+  @override
+  void visitRedirectingInitializer(ast.RedirectingInitializer node) {
+    final args = node.arguments;
+    assert(args.types.isEmpty);
+    final target = functionRegistry.getFunction(node.target);
+    final inputCount = _translateArguments(ast.ThisExpression(), args);
+    if (_handleUnreachableExpression(inputCount)) return;
+    builder.addDirectCall(
+      target,
+      inputCount,
+      _translateArgumentsShape(1, args),
+      const TopType(const ast.VoidType()),
+    );
+    builder.pop();
+  }
+
+  @override
+  void visitSuperInitializer(ast.SuperInitializer node) {
+    final args = node.arguments;
+    assert(args.types.isEmpty);
+    // Re-resolve target due to partial mixin resolution.
+    ast.Member? targetMember;
+    for (final constr
+        in function.member.enclosingClass!.superclass!.constructors) {
+      if (node.target.name == constr.name) {
+        targetMember = constr;
+        break;
+      }
+    }
+    final target = functionRegistry.getFunction(targetMember!);
+    final inputCount = _translateArguments(ast.ThisExpression(), args);
+    if (_handleUnreachableExpression(inputCount)) return;
+    builder.addDirectCall(
+      target,
+      inputCount,
+      _translateArgumentsShape(1, args),
+      const TopType(const ast.VoidType()),
+    );
+    builder.pop();
+  }
+
+  @override
+  void visitLocalInitializer(ast.LocalInitializer node) {
+    _translateNode(node.variable);
+  }
+
+  @override
+  void visitAssertInitializer(ast.AssertInitializer node) {
+    _translateNode(node.statement);
+  }
+
+  @override
+  void visitSuperMethodInvocation(ast.SuperMethodInvocation node) {
+    final args = node.arguments;
+    final targetMember = hierarchy.getDispatchTarget(
+      function.member.enclosingClass!.superclass!,
+      node.name,
+    );
+    final target = functionRegistry.getFunction(targetMember!);
+    // TODO: use node.receiver
+    final inputCount = _translateArguments(ast.ThisExpression(), args);
+    if (_handleUnreachableExpression(inputCount)) return;
+    builder.addDirectCall(
+      target,
+      inputCount,
+      _translateArgumentsShape(1, args),
+      _staticType(node),
+    );
+  }
+
+  @override
+  void visitSuperPropertyGet(ast.SuperPropertyGet node) {
+    // TODO: use node.receiver
+    _translateNode(ast.ThisExpression());
+    if (_handleUnreachableExpression(1)) return;
+    final targetMember = hierarchy.getDispatchTarget(
+      function.member.enclosingClass!.superclass!,
+      node.name,
+    );
+    final target = functionRegistry.getFunction(targetMember!, isGetter: true);
+    builder.addDirectCall(
+      target,
+      1,
+      functionRegistry.getArgumentsShape(1),
+      _staticType(node),
+    );
+  }
+
+  @override
+  void visitSuperPropertySet(ast.SuperPropertySet node) {
+    // TODO: use node.receiver
+    _translateNode(ast.ThisExpression());
+    _translateNode(node.value);
+    if (_handleUnreachableExpression(2)) return;
+    final targetMember = hierarchy.getDispatchTarget(
+      function.member.enclosingClass!.superclass!,
+      node.name,
+      setter: true,
+    );
+    final target = functionRegistry.getFunction(targetMember!, isSetter: true);
+    final value = builder.stackTop;
+    builder.addDirectCall(
+      target,
+      2,
+      functionRegistry.getArgumentsShape(2),
+      const TopType(const ast.VoidType()),
+    );
+    builder.pop();
+    builder.push(value);
+  }
+
+  @override
+  void visitConstructorInvocation(ast.ConstructorInvocation node) {
+    assert(!node.isConst);
+
+    final args = node.arguments;
+    final target = functionRegistry.getFunction(node.target);
+    Definition? typeArguments;
+    if (args.types.isNotEmpty) {
+      builder.addTypeArguments(
+        args.types,
+        typeParameters: _typeParametersForTypes(args.types),
+      );
+      typeArguments = builder.pop();
+    }
+    final instance = builder.addAllocateObject(
+      _typeTranslator.translate(node.constructedType),
+      typeArguments: typeArguments,
+    );
+    _translateNodes(args.positional);
+    for (final namedArg in args.named) {
+      _translateNode(namedArg.value);
+    }
+    final inputCount = 1 + args.positional.length + args.named.length;
+    if (_handleUnreachableExpression(inputCount)) return;
+    builder.addDirectCall(
+      target,
+      inputCount,
+      functionRegistry.getArgumentsShape(
+        1 + args.positional.length,
+        types: 0,
+        named: args.named.map((ne) => ne.name).toList(),
+      ),
+      const TopType(const ast.VoidType()),
+    );
+    builder.pop();
+    builder.push(instance);
+  }
+
+  @override
+  void visitStringConcatenation(ast.StringConcatenation node) {
+    final inputCount = node.expressions.length;
+    _translateNodes(node.expressions);
+    if (_handleUnreachableExpression(inputCount)) return;
+    builder.addStringInterpolation(inputCount);
+  }
+
+  void _translateClosure(ast.LocalFunction node, CType type) {
+    final closureFunction = functionRegistry.getFunction(
+      function.member,
+      enclosingFunction: function,
+      localFunction: node,
+    ) as ClosureFunction;
+    onLocalFunction(closureFunction);
+
+    final closureLayout = _computeClosureLayout(closureFunction);
+    final closure = builder.addAllocateClosure(
+      closureFunction,
+      closureLayout,
+      type,
+    );
+
+    if (closureLayout.hasClassTypeArgs) {
+      assert(typeParametersStyle == .separateFunctionAndClassTypeParameters);
+      builder.push(closure);
+      builder.push(classTypeParameters!);
+      builder.addStoreInstanceField(
+        CField(ClosureField(closureLayout.classTypeArgsIndex)),
+      );
+    }
+
+    if (closureLayout.hasFunctionTypeArgs) {
+      assert(typeParametersStyle == .separateFunctionAndClassTypeParameters);
+      builder.push(closure);
+      builder.push(functionTypeParameters!);
+      builder.addStoreInstanceField(
+        CField(ClosureField(closureLayout.functionTypeArgsIndex)),
+      );
+    }
+
+    final contexts = scopes.getCapturedContexts(
+      node.function,
+      enableAsserts: enableAsserts,
+    );
+    var index = closureLayout.firstContextIndex;
+    for (final context in contexts) {
+      assert(_isCapturedContext(context));
+      assert(index < closureLayout.length);
+      builder.push(closure);
+      builder.push(localVarIndexer.contextDef(context));
+      // TODO: cache and reuse ClosureField objects.
+      builder.addStoreInstanceField(CField(ClosureField(index++)));
+    }
+  }
+
+  ClosureLayout _computeClosureLayout(ClosureFunction closureFunction) {
+    var hasDelayedTypeArgs = false;
+    var hasClassTypeArgs = false;
+    var hasFunctionTypeArgs = false;
+    switch (typeParametersStyle) {
+      case .separateFunctionAndClassTypeParameters:
+        hasDelayedTypeArgs = closureFunction.hasFunctionTypeParameters;
+
+        final visitor = _FindTypeParameters();
+        closureFunction.functionNode!
+            .computeFunctionType(ast.Nullability.nonNullable)
+            .accept(visitor);
+        hasClassTypeArgs = visitor.containsClassTypeParams;
+
+        hasFunctionTypeArgs = switch (closureFunction) {
+          LocalFunction() => closureFunction.hasEnclosingFunctionTypeParameters,
+          TearOffFunction() => false,
+        };
+    }
+    final numContexts = switch (closureFunction) {
+      LocalFunction() =>
+        scopes
+            .getCapturedContexts(
+              closureFunction.functionNode!,
+              enableAsserts: enableAsserts,
+            )
+            .length,
+      TearOffFunction() =>
+        closureFunction.member.isInstanceMember ? /* receiver */ 1 : 0,
+    };
+    return ClosureLayout(
+      numContexts,
+      hasDelayedTypeArgs: hasDelayedTypeArgs,
+      hasClassTypeArgs: hasClassTypeArgs,
+      hasFunctionTypeArgs: hasFunctionTypeArgs,
+    );
+  }
+
+  @override
+  void visitFunctionExpression(ast.FunctionExpression node) {
+    _translateClosure(node, _staticType(node));
+  }
+
+  @override
+  void visitFunctionDeclaration(ast.FunctionDeclaration node) {
+    _translateClosure(node, _typeTranslator.translate(node.variable.type));
+    _writeVariable(node.variable);
+  }
+
+  @override
+  void visitInstantiation(ast.Instantiation node) {
+    builder.addTypeArguments(
+      node.typeArguments,
+      typeParameters: _typeParametersForTypes(node.typeArguments),
+    );
+    _translateNode(node.expression);
+    if (_handleUnreachableExpression(2)) return;
+    builder.addInstantiateClosure(_staticType(node));
+  }
+
+  @override
+  void visitFunctionInvocation(ast.FunctionInvocation node) {
+    final args = node.arguments;
+    final inputCount = _translateArguments(node.receiver, args);
+    if (_handleUnreachableExpression(inputCount)) return;
+    if (node.kind == ast.FunctionAccessKind.FunctionType) {
+      builder.addClosureCall(
+        inputCount,
+        _translateArgumentsShape(1, args),
+        _staticType(node),
+      );
+    } else {
+      builder.addDynamicCall(
+        ast.Name.callName,
+        DynamicCallKind.method,
+        inputCount,
+        _translateArgumentsShape(1, args),
+      );
+    }
+  }
+
+  @override
+  void visitLocalFunctionInvocation(ast.LocalFunctionInvocation node) {
+    final args = node.arguments;
+    final inputCount = _translateArguments(
+      ast.VariableGet(node.variable),
+      args,
+    );
+    if (_handleUnreachableExpression(inputCount)) return;
+    builder.addClosureCall(
+      inputCount,
+      _translateArgumentsShape(1, args),
+      _staticType(node),
+    );
+  }
+
+  /// Translate logical expression (!x, x || y, x && y) for value.
+  void _translateConditionForValue(ast.Expression node) {
+    // Created lazily, only if there are extra edges with true/false results.
+    JoinBlock? done;
+    late final resultVar = builder.declareLocalVariable(
+      '#temp',
+      null,
+      const BoolType(),
+    );
+
+    void addExtraEdges(bool result, List<Block> blocks) {
+      for (final block in blocks) {
+        builder.startBlock(block);
+        builder.addBoolConstant(result);
+        builder.addStoreLocal(resultVar);
+        builder.addGoto(done ??= builder.newJoinBlock());
+      }
+    }
+
+    var negated = false;
+    for (ast.Expression? expr = node; expr != null;) {
+      switch (expr) {
+        case ast.Not():
+          negated = !negated;
+          expr = expr.operand;
+          break;
+        case ast.LogicalExpression():
+          var (leftTrue, leftFalse) = _translateConditionForControl(expr.left);
+          var op = expr.operatorEnum;
+          if (negated) {
+            op = switch (op) {
+              .AND => .OR,
+              .OR => .AND,
+            };
+            final tmp = leftTrue;
+            leftTrue = leftFalse;
+            leftFalse = tmp;
+          }
+          switch (op) {
+            case .AND:
+              addExtraEdges(false, leftFalse);
+              if (leftTrue.isEmpty) {
+                expr = null;
+                break;
+              }
+              builder.startBlock(_joinBlocks(leftTrue));
+              expr = expr.right;
+            case .OR:
+              addExtraEdges(true, leftTrue);
+              if (leftFalse.isEmpty) {
+                expr = null;
+                break;
+              }
+              builder.startBlock(_joinBlocks(leftFalse));
+              expr = expr.right;
+          }
+          break;
+        case _:
+          _translateNode(expr);
+          if (builder.hasOpenBlock) {
+            if (negated) {
+              builder.addUnaryBoolOp(UnaryBoolOpcode.not);
+            }
+            if (done != null) {
+              builder.addStoreLocal(resultVar);
+              builder.addGoto(done!);
+            }
+          } else {
+            builder.drop(1);
+          }
+          expr = null;
+          break;
+      }
+    }
+
+    if (done != null) {
+      builder.startBlock(done!);
+      builder.addLoadLocal(resultVar);
+    } else {
+      _handleUnreachableExpression(0);
+    }
+  }
+
+  @override
+  void visitNot(ast.Not node) {
+    _translateConditionForValue(node);
+  }
+
+  @override
+  void visitLogicalExpression(ast.LogicalExpression node) {
+    _translateConditionForValue(node);
+  }
+
+  @override
+  void visitAwaitExpression(ast.AwaitExpression node) {
+    _translateNode(node.operand);
+    if (_handleUnreachableExpression(1)) return;
+
+    final runtimeCheckType = node.runtimeCheckType;
+    if (runtimeCheckType != null) {
+      assert(
+        (runtimeCheckType as ast.InterfaceType).classNode ==
+            coreTypes.futureClass,
+      );
+      final valueType =
+          (runtimeCheckType as ast.InterfaceType).typeArguments.single;
+      if (_typeTranslator.translate(valueType) is! TopType) {
+        builder.addTypeArguments([
+          valueType,
+        ], typeParameters: _typeParametersForType(valueType));
+        builder.addSuspend(.awaitWithTypeCheck, _staticType(node));
+        return;
+      }
+    }
+
+    builder.addSuspend(.await, _staticType(node));
+  }
+
+  @override
+  void visitYieldStatement(ast.YieldStatement node) {
+    _translateNode(node.expression);
+    if (!builder.hasOpenBlock) {
+      builder.pop();
+      return;
+    }
+    switch (function.asyncMarker) {
+      case .AsyncStar:
+        // yield/yield* statement acts as a return statement if subscription
+        // to the async* Stream is cancelled.
+        final canceledBlock = builder.newTargetBlock();
+        final continueBlock = builder.newTargetBlock();
+
+        // Suspend will evaluate to true if subscription to async* Stream is cancelled.
+        builder.addSuspend(
+          node.isYieldStar ? .asyncYieldStar : .asyncYield,
+          const BoolType(),
+        );
+        builder.addBranch(canceledBlock, continueBlock);
+
+        builder.startBlock(canceledBlock);
+        _generateNonLocalControlTransfer(node, null, () {
+          builder.addNullConstant();
+          builder.addReturn();
+        });
+
+        builder.startBlock(continueBlock);
+        break;
+
+      case .SyncStar:
+        builder.addSuspend(
+          node.isYieldStar ? .syncYieldStar : .syncYield,
+          const TopType(),
+        );
+        break;
+
+      default:
+        throw 'Unexpected YieldStatement in $function with ${function.asyncMarker}';
+    }
+  }
+
+  @override
+  void visitRecordIndexGet(ast.RecordIndexGet node) {
+    final shape = RecordType(node.receiverType).shape;
+    _translateNode(node.receiver);
+    // TODO: canonicalize record fields
+    builder.addLoadInstanceField(CField(RecordField(shape, node.index)));
+  }
+
+  @override
+  void visitRecordNameGet(ast.RecordNameGet node) {
+    final shape = RecordType(node.receiverType).shape;
+    final namedIndex = shape.named.indexOf(node.name);
+    assert(namedIndex >= 0);
+    _translateNode(node.receiver);
+    // TODO: canonicalize record fields
+    builder.addLoadInstanceField(
+      CField(RecordField(shape, shape.positional + namedIndex)),
+    );
+  }
+
+  @override
+  void visitRecordLiteral(ast.RecordLiteral node) {
+    assert(!node.isConst);
+    final type = RecordType(node.recordType);
+    for (final expr in node.positional) {
+      _translateNode(expr);
+    }
+    for (final expr in node.named) {
+      _translateNode(expr.value);
+    }
+    assert(node.positional.length + node.named.length == type.numFields);
+    builder.addAllocateRecordLiteral(type);
+  }
+}
+
+/// Mapping between AST nodes and CFG IR [LocalVariable].
+class LocalVariableIndexer {
+  final FlowGraphBuilder builder;
+  final CoreTypes coreTypes;
+  final AstToIrTypes typeTranslator;
+  final Scopes scopes;
+  final Map<ast.Variable, LocalVariable> _declaredVariables = {};
+  final Map<ast.TreeNode, LocalVariable> _exceptionVariables = {};
+  final Map<ast.TreeNode, LocalVariable> _stackTraceVariables = {};
+  final Map<Context, Definition> _contexts = {};
+  final Map<ast.Variable, CField> _contextFields = {};
+
+  final List<LocalVariable> parameters = [];
+  late final LocalVariable functionTypeParameters;
+  late final LocalVariable receiver;
+  late final LocalVariable closure;
+  late final ast.Variable? receiverDeclaration;
+
+  LocalVariableIndexer(
+    this.builder,
+    this.coreTypes,
+    this.typeTranslator,
+    this.scopes,
+    CFunction function,
+  ) {
+    final functionNode = function.functionNode;
+    final receiverDeclaration = this.receiverDeclaration = scopes
+        .getThisVariable(function.member);
+    if (function.hasFunctionTypeParameters) {
+      functionTypeParameters = builder.declareLocalVariable(
+        '#functionTypeParameters',
+        null,
+        const TypeParametersType(),
+      );
+      parameters.add(functionTypeParameters);
+    }
+    if (function.hasReceiverParameter) {
+      final cls = function.member.enclosingClass!;
+      receiver = builder.declareLocalVariable(
+        'this',
+        receiverDeclaration,
+        typeTranslator.translate(
+          cls.getThisType(coreTypes, ast.Nullability.nonNullable),
+        ),
+      );
+      if (receiverDeclaration != null) {
+        _declaredVariables[receiverDeclaration] = receiver;
+      }
+      parameters.add(receiver);
+    }
+    if (function.hasClosureParameter) {
+      closure = builder.declareLocalVariable(
+        '#closure',
+        null,
+        typeTranslator.translate(coreTypes.functionNonNullableRawType),
+      );
+      parameters.add(closure);
+    }
+    if (function is ImplicitFieldSetter) {
+      parameters.add(
+        builder.declareLocalVariable('#value', null, function.valueType),
+      );
+    }
+    if (functionNode != null) {
+      for (final v in functionNode.positionalParameters) {
+        parameters.add(variableForDeclaration(v));
+      }
+      for (final v in functionNode.namedParameters) {
+        parameters.add(variableForDeclaration(v));
+      }
+    }
+    assert(parameters.length == function.numberOfParameters);
+  }
+
+  LocalVariable variableForDeclaration(ast.Variable declaration) =>
+      _declaredVariables[declaration] ??= builder.declareLocalVariable(
+        declaration.cosmeticName ?? '#temp',
+        declaration,
+        declaration.isLate
+            ? const LateValueType()
+            : typeTranslator.translate(declaration.type),
+      );
+
+  LocalVariable exceptionVariable(ast.TreeNode tryBlock) {
+    assert(tryBlock is ast.TryCatch || tryBlock is ast.TryFinally);
+    return _exceptionVariables[tryBlock] ??= builder.declareLocalVariable(
+      LocalVariable.exceptionVariableName,
+      null,
+      const ObjectType(),
+    );
+  }
+
+  LocalVariable stackTraceVariable(ast.TreeNode tryBlock) {
+    assert(tryBlock is ast.TryCatch || tryBlock is ast.TryFinally);
+    return _stackTraceVariables[tryBlock] ??= builder.declareLocalVariable(
+      LocalVariable.stackTraceVariableName,
+      null,
+      StaticType(coreTypes.stackTraceNonNullableRawType),
+    );
+  }
+
+  void defineContext(Context ctx, Definition def) {
+    _contexts[ctx] = def;
+  }
+
+  Definition contextDef(Context ctx) => _contexts[ctx]!;
+
+  // TODO: share context fields between functions.
+  CField contextField(ast.Variable variable) =>
+      _contextFields[variable] ??= CField(
+        ContextField(
+          variable,
+          scopes.getVariableContext(variable).variables.indexOf(variable),
+        ),
+      );
+}
+
+/// A pending request to generate IR for a finally block.
+///
+/// Used to implement non-local control transfers (such as `break`,
+/// `continue` or `return`).
+///
+/// These requests are fullfilled in [AstToIr.visitTryFinally] when
+/// leaving a try-finally block in order to ensure correct AST scoping.
+class FinallyBlock {
+  /// Entry basic block for the finally block.
+  /// Created only when finally block is reachable.
+  JoinBlock? entryBlock;
+
+  /// Generate continuation code after the finally block.
+  final void Function() generateContinuation;
+
+  FinallyBlock(FlowGraphBuilder builder, this.generateContinuation);
+}
+
+/// Look up references to type parameters.
+class _FindTypeParameters extends ast.RecursiveVisitor {
+  _FindTypeParameters();
+
+  bool containsClassTypeParams = false;
+  bool containsFunctionTypeParams = false;
+
+  @override
+  void visitTypeParameterType(ast.TypeParameterType node) {
+    final declaration = node.parameter.declaration;
+    switch (declaration) {
+      case ast.Class():
+        containsClassTypeParams = true;
+        break;
+      case ast.GenericFunction():
+        containsFunctionTypeParams = true;
+        break;
+      default:
+        throw 'Unexpected type parameter $node declaration ${declaration.runtimeType} $declaration';
+    }
+  }
+}

@@ -1,0 +1,26 @@
+library;
+import self as self;
+
+import "org-dartlang-testcase:///main_lib.dart";
+
+static method foo(() → void f) → dynamic
+  ;
+static method test() → dynamic
+  ;
+static method main() → dynamic
+  ;
+
+library;
+import self as self2;
+import "dart:core" as core;
+
+class A<X extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self2::A<self2::A::X%>
+    ;
+}
+class B extends self2::A<(core::int, core::String)> {
+  synthetic constructor •() → self2::B
+    ;
+  method call() → void
+    ;
+}

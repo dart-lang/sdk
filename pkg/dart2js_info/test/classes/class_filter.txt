@@ -1,0 +1,5 @@
+dart:_rti - _Universe - 300 (bytes)
+dart:core - Error - 300 (bytes)
+testroot:classes.dart - Subsub1 - 300 (bytes)
+testroot:classes.dart - Super - 300 (bytes)
+package:expect/expect.dart - Expect - 300 (bytes)

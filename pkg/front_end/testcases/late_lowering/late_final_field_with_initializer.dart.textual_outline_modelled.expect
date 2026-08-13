@@ -1,0 +1,49 @@
+class B {
+  B(this.x);
+  final int x;
+}
+
+class C extends B {
+  C(int x) : super(x);
+  late final y = x + 1;
+  method() => x;
+}
+
+class Class<T> {
+  Class(this.field);
+  T? lateGenericFieldInit;
+  T initLateGenericField(T value) {}
+  final T field;
+  instanceMethod() {}
+  int? lateInstanceFieldInit;
+  int initLateInstanceField(int value) {}
+  late final T lateGenericField = initLateGenericField(field);
+  late final int lateInstanceField = initLateInstanceField(16);
+  static int? lateStaticField1Init;
+  static int? lateStaticField2Init;
+  static int initLateStaticField1(int value) {}
+  static int initLateStaticField2(int value) {}
+  static late final int lateStaticField1 = initLateStaticField1(87);
+  static late final int lateStaticField2 = initLateStaticField2(42);
+  static staticMethod() {}
+}
+
+expect(expected, actual) {}
+
+extension Extension<T> on Class<T> {
+  static int? lateExtensionField1Init;
+  static int? lateExtensionField2Init;
+  static int initLateExtensionField1(int value) {}
+  static int initLateExtensionField2(int value) {}
+  static late final int lateExtensionField1 = initLateExtensionField1(87);
+  static late final int lateExtensionField2 = initLateExtensionField2(42);
+  static staticMethod() {}
+}
+
+int? lateTopLevelField1Init;
+
+int initLateTopLevelField1(int value) {}
+
+late final int lateTopLevelField1 = initLateTopLevelField1(123);
+
+main() {}

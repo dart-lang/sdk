@@ -1,0 +1,5 @@
+extension type A._(int value) {
+  A.name1(this.value);
+}
+
+void method() => A.name2(1);

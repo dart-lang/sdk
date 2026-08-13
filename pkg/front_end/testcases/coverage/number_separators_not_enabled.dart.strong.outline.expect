@@ -1,0 +1,18 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static const field core::int minNativeInt = 1.{core::int::unary-}(){() → core::int}.{core::num::*}(65536){(core::num) → core::int}.{core::num::*}(65536){(core::num) → core::int}.{core::num::*}(65536){(core::num) → core::int}.{core::num::*}(32768){(core::num) → core::int};
+static const field core::int maxNativeInt = 65536.{core::num::*}(65536){(core::num) → core::int}.{core::num::*}(65536){(core::num) → core::int}.{core::num::*}(32){(core::num) → core::int}.{core::num::-}(1){(core::num) → core::int}.{core::num::*}(1024){(core::num) → core::int};
+static method asDouble(core::double x) → core::double
+  ;
+static method foo() → void
+  ;
+static method equals(dynamic a, dynamic b) → void
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///number_separators_not_enabled.dart:12:49 -> IntConstant(-9223372036854775808)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///number_separators_not_enabled.dart:13:55 -> IntConstant(9223372036854774784)
+Extra constant evaluation: evaluated: 2, effectively constant: 2

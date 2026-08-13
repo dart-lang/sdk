@@ -1,0 +1,3 @@
+part 'conditional_parts_part2.dart' if (dart.library.io) 'conditional_parts_part1.dart';
+
+test() {}

@@ -1,0 +1,8 @@
+class Class<T> {
+  Class();
+  Class.named();
+}
+
+main() {}
+
+test() {}

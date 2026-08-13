@@ -1,0 +1,94 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "private_lib.dart" as pri;
+
+import "org-dartlang-testcase:///private_lib.dart";
+
+abstract class M extends core::Object /*isMixinDeclaration*/  {
+}
+class D = pri::A with self::M {
+  synthetic constructor pri::_() → self::D
+    : super pri::A::_()
+    ;
+  static synthetic method pri::_#_#tearOff() → self::D
+    return new self::D::_();
+}
+class E = pri::B with self::M {
+  synthetic constructor •() → self::E
+    ;
+  static synthetic method _#new#tearOff() → self::E
+    return new self::E::•();
+}
+class F = pri::C with self::M {
+  synthetic constructor named() → self::F
+    : super pri::C::named()
+    ;
+  synthetic constructor pri::_() → self::F
+    : super pri::C::_()
+    ;
+  static synthetic method _#named#tearOff() → self::F
+    return new self::F::named();
+  static synthetic method pri::_#_#tearOff() → self::F
+    return new self::F::_();
+}
+
+library;
+import self as pri;
+import "dart:core" as core;
+import "private.dart" as self;
+
+import "org-dartlang-testcase:///private.dart";
+
+class A extends core::Object {
+  constructor _() → pri::A
+    ;
+  static synthetic method _#_#tearOff() → pri::A
+    return new pri::A::_();
+}
+class B extends core::Object {
+  static factory _() → pri::B /* redirection-target: pri::_B::• */
+    return new pri::_B::•();
+  static synthetic method _#_#tearOff() → pri::B
+    return new pri::_B::•();
+}
+class _B extends core::Object implements pri::B {
+  synthetic constructor •() → pri::_B
+    ;
+  static synthetic method _#new#tearOff() → pri::_B
+    return new pri::_B::•();
+}
+class C extends core::Object {
+  constructor named() → pri::C
+    ;
+  constructor _() → pri::C
+    ;
+  static synthetic method _#named#tearOff() → pri::C
+    return new pri::C::named();
+  static synthetic method _#_#tearOff() → pri::C
+    return new pri::C::_();
+}
+class G extends self::D {
+  constructor _() → pri::G
+    ;
+  static synthetic method _#_#tearOff() → pri::G
+    return new pri::G::_();
+}
+class H extends self::E {
+  constructor _() → pri::H
+    ;
+  static synthetic method _#_#tearOff() → pri::H
+    return new pri::H::_();
+}
+class I extends self::F {
+  constructor named() → pri::I
+    ;
+  constructor _() → pri::I
+    ;
+  static synthetic method _#named#tearOff() → pri::I
+    return new pri::I::named();
+  static synthetic method _#_#tearOff() → pri::I
+    return new pri::I::_();
+}
+static method method() → dynamic
+  ;

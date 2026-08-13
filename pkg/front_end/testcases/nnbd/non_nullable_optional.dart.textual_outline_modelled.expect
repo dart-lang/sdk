@@ -1,0 +1,7 @@
+part 'non_nullable_optional_part.dart';
+
+main() {}
+
+method1({int a}) {}
+
+method2([int a]) {}

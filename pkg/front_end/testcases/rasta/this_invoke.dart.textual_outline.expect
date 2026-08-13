@@ -1,0 +1,6 @@
+class C {
+  m(x) => this(x);
+  call(x) => 42;
+}
+
+main() {}

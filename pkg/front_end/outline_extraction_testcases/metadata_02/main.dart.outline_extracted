@@ -1,0 +1,18 @@
+org-dartlang-testcase:///main.dart:
+import "test15.dart" as $test15;
+import "nottest15.dart";
+@$test15.Test15()
+void test15thing() {}
+
+
+
+
+org-dartlang-testcase:///test15.dart:
+class Test15 {
+  const Test15();
+}
+
+
+
+
+org-dartlang-testcase:///nottest15.dart:

@@ -1,0 +1,48 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/definitely_assigned.dart:30:3: Error: Late final variable 'local2' definitely assigned.
+//   local2 = value; // error
+//   ^^^^^^
+//
+// pkg/front_end/testcases/nnbd/definitely_assigned.dart:31:3: Error: Late final variable 'local4' definitely assigned.
+//   local4 = 0; // error
+//   ^^^^^^
+//
+// pkg/front_end/testcases/nnbd/definitely_assigned.dart:32:3: Error: Late final variable 'local6' definitely assigned.
+//   local6 = 0; // error
+//   ^^^^^^
+//
+// pkg/front_end/testcases/nnbd/definitely_assigned.dart:70:3: Error: Late final variable 'local2' definitely assigned.
+//   local2 = value; // error
+//   ^^^^^^
+//
+// pkg/front_end/testcases/nnbd/definitely_assigned.dart:71:3: Error: Late final variable 'local4' definitely assigned.
+//   local4 = 0; // error
+//   ^^^^^^
+//
+// pkg/front_end/testcases/nnbd/definitely_assigned.dart:72:3: Error: Late final variable 'local6' definitely assigned.
+//   local6 = 0; // error
+//   ^^^^^^
+//
+// pkg/front_end/testcases/nnbd/definitely_assigned.dart:88:3: Error: Late final variable 'local4' definitely assigned.
+//   local4 += 0; // error
+//   ^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+import "dart:async";
+
+static field <T extends core::Object? = dynamic>(T%) → Null fieldDirect;
+static field <T extends core::Object? = dynamic>(core::bool, T%) → Null fieldConditional;
+static field () → Null fieldCompound;
+static method methodDirect<T extends core::Object? = dynamic>(self::methodDirect::T% value) → dynamic
+  ;
+static method methodConditional<T extends core::Object? = dynamic>(core::bool b, self::methodConditional::T% value) → dynamic
+  ;
+static method methodCompound() → dynamic
+  ;
+static method main() → dynamic
+  ;

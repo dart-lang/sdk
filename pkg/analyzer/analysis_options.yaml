@@ -1,0 +1,67 @@
+include: package:lints/recommended.yaml
+
+analyzer:
+  errors:
+    # Increase the severity of the unused_import hint.
+    unused_import: warning
+
+    # "strict-inference" is enabled, but "unused" parameters named '_' are
+    # still reported.  Re-evaluate after
+    # https://github.com/dart-lang/language/pull/599 and a functional fix land.
+    inference_failure_on_untyped_parameter: ignore
+
+    # Lints from the recommended set that conflict w/ analyzer style or will
+    # require some work to reach compliance.
+    # See: https://github.com/dart-lang/sdk/issues/48784
+    avoid_renaming_method_parameters: ignore
+
+    # More than 500 violations in lib/.
+    constant_identifier_names: ignore
+
+    # About 10 violations in lib/.
+    hash_and_equals: ignore
+
+    # More than 500 violations in lib/.
+    non_constant_identifier_names: ignore
+
+    # This package imports much of the implementation libraries of the
+    # '_fe_analyzer_shared' package, because it is tightly integrated. This
+    # will not likely change any time soon.
+    implementation_imports: ignore
+
+    # About 20 violations of this in lib/.
+    library_private_types_in_public_api: ignore
+
+    # About 30 violations of this in lib/.
+    provide_deprecation_message: ignore
+
+    # ~3,500 violations in test/.
+    strict_top_level_inference: ignore
+
+    # Ignoring this for all developers means developers don't need to ignore
+    # TODOs in their IDE settings.
+    todo: ignore
+
+  language:
+    strict-casts: true
+    strict-inference: true
+
+linter:
+  rules:
+    - always_use_package_imports
+    - analyzer_element_model_tracking
+    - analyzer_public_api
+    - avoid_dynamic_calls
+    - avoid_redundant_argument_values
+    - avoid_unused_constructor_parameters
+    - comment_references
+    - deprecated_member_use_from_same_package
+    - discarded_futures
+    - flutter_style_todos
+    - no_literal_bool_comparisons
+    - unawaited_futures
+    - unnecessary_breaks
+    - unnecessary_final
+    - unnecessary_ignore
+    - unnecessary_library_directive
+    - unnecessary_parenthesis

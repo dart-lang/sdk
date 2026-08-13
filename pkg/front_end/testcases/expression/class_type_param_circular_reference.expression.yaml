@@ -1,0 +1,12 @@
+# Copyright (c) 2018, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+sources: |
+  abstract class Built<V extends Built<V, B>, B extends Builder<V, B>> {}
+  abstract class Builder<V extends Built<V, B>, B extends Builder<V, B>> {}
+  class MiddlewareApi<State extends Built<State, StateBuilder>,
+      StateBuilder extends Builder<State, StateBuilder>> {}
+position: "#MiddlewareApi"
+expression: |
+  toString()

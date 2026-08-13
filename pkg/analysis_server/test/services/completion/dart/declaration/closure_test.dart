@@ -1,0 +1,291 @@
+// Copyright (c) 2025, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:analyzer_testing/utilities/utilities.dart';
+import 'package:linter/src/lint_names.dart';
+import 'package:linter/src/rules.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
+
+import '../../../../client/completion_driver_test.dart';
+
+void main() {
+  defineReflectiveSuite(() {
+    defineReflectiveTests(ClosureTest);
+  });
+}
+
+@reflectiveTest
+class ClosureTest extends AbstractCompletionDriverTest with ClosureTestCases {}
+
+mixin ClosureTestCases on AbstractCompletionDriverTest {
+  @override
+  bool get includeClosures => true;
+
+  @override
+  bool get includeKeywords => false;
+
+  @override
+  Future<void> setUp() async {
+    await super.setUp();
+    printerConfiguration.withDisplayText = true;
+  }
+
+  Future<void> test_afterArrow_functionReturnType() async {
+    await computeSuggestions('''
+void Function(int x, int y) f() => ^;
+''');
+    assertResponse(r'''
+suggestions
+  |(x, y) => |
+    kind: invocation
+    displayText: (x, y) =>
+  (x, y) {
+  ^
+}
+    kind: invocation
+    displayText: (x, y) {}
+''');
+  }
+
+  Future<void> test_afterReturn_functionReturnType() async {
+    await computeSuggestions('''
+void Function(int x, int y) f() {return ^;}
+''');
+    assertResponse(r'''
+suggestions
+  |(x, y) => |
+    kind: invocation
+    displayText: (x, y) =>
+  (x, y) {
+  ^
+}
+    kind: invocation
+    displayText: (x, y) {}
+''');
+  }
+
+  Future<void> test_argumentList_named() async {
+    await computeSuggestions('''
+void f({void Function(int a, String b) closure}) {}
+
+void g() {
+  f(closure: ^);
+}
+''');
+    assertResponse('''
+suggestions
+  (a, b) => ^,
+    kind: invocation
+    displayText: (a, b) =>
+  (a, b) {
+    ^
+  },
+    kind: invocation
+    displayText: (a, b) {}
+''');
+  }
+
+  Future<void> test_argumentList_named_hasComma() async {
+    await computeSuggestions('''
+void f({void Function(int a, String b) closure}) {}
+
+void g() {
+  f(
+    closure: ^,
+  );
+}
+''');
+    assertResponse('''
+suggestions
+  |(a, b) => |
+    kind: invocation
+    displayText: (a, b) =>
+  (a, b) {
+      ^
+    }
+    kind: invocation
+    displayText: (a, b) {}
+''');
+  }
+
+  Future<void> test_argumentList_positional() async {
+    await computeSuggestions('''
+void f(void Function(int a, int b) closure) {}
+
+void g() {
+  f(^);
+}
+''');
+    assertResponse('''
+suggestions
+  (a, b) => ^,
+    kind: invocation
+    displayText: (a, b) =>
+  (a, b) {
+    ^
+  },
+    kind: invocation
+    displayText: (a, b) {}
+''');
+  }
+
+  Future<void> test_argumentList_positional_hasComma() async {
+    await computeSuggestions('''
+void f(void Function(int a, int b) closure) {}
+
+void g() {
+  f(^,);
+}
+''');
+    assertResponse('''
+suggestions
+  |(a, b) => |
+    kind: invocation
+    displayText: (a, b) =>
+  (a, b) {
+    ^
+  }
+    kind: invocation
+    displayText: (a, b) {}
+''');
+  }
+
+  Future<void> test_inSwitch_functionType() async {
+    await computeSuggestions('''
+void Function(int x, int y) f() => switch (0) {_ => ^};
+''');
+    assertResponse(r'''
+suggestions
+  |(x, y) => |
+    kind: invocation
+    displayText: (x, y) =>
+  (x, y) {
+  ^
+}
+    kind: invocation
+    displayText: (x, y) {}
+''');
+  }
+
+  Future<void> test_lint_alwaysSpecifyTypes() async {
+    registerLintRules();
+    writeTestPackageAnalysisOptionsFile(
+      analysisOptionsContent(rules: [LintNames.always_specify_types]),
+    );
+
+    await computeSuggestions('''
+void Function(List<int> a, Object? b, [dynamic c]) v = ^;
+''');
+    assertResponse('''
+suggestions
+  |(List<int> a, Object? b, [dynamic c]) => |
+    kind: invocation
+    displayText: (a, b, [c]) =>
+  (List<int> a, Object? b, [dynamic c]) {
+  ^
+}
+    kind: invocation
+    displayText: (a, b, [c]) {}
+''');
+  }
+
+  Future<void> test_parameter_unnamed() async {
+    await computeSuggestions('''
+void f(void Function(int) x) {
+  f(^);
+}
+''');
+    assertResponse('''
+suggestions
+  (p0) => ^,
+    kind: invocation
+    displayText: (p0) =>
+  (p0) {
+    ^
+  },
+    kind: invocation
+    displayText: (p0) {}
+''');
+  }
+
+  Future<void> test_parameters_optionalNamed() async {
+    await computeSuggestions('''
+void f({void Function(int a, {int b, int c}) closure}) {}
+
+void g() {
+  f(closure: ^);
+}
+''');
+    assertResponse('''
+suggestions
+  (a, {b, c}) => ^,
+    kind: invocation
+    displayText: (a, {b, c}) =>
+  (a, {b, c}) {
+    ^
+  },
+    kind: invocation
+    displayText: (a, {b, c}) {}
+''');
+  }
+
+  Future<void> test_parameters_optionalPositional() async {
+    await computeSuggestions('''
+void f({void Function(int a, [int b, int c]) closure]) {}
+
+void g() {
+  f(closure: ^);
+}
+''');
+    assertResponse('''
+suggestions
+  (a, [b, c]) => ^,
+    kind: invocation
+    displayText: (a, [b, c]) =>
+  (a, [b, c]) {
+    ^
+  },
+    kind: invocation
+    displayText: (a, [b, c]) {}
+''');
+  }
+
+  Future<void> test_parameters_requiredNamed() async {
+    await computeSuggestions('''
+void f({void Function(int a, {int b, required int c}) closure}) {}
+
+void g() {
+  f(closure: ^);
+}
+''');
+    assertResponse('''
+suggestions
+  (a, {b, required c}) => ^,
+    kind: invocation
+    displayText: (a, {b, c}) =>
+  (a, {b, required c}) {
+    ^
+  },
+    kind: invocation
+    displayText: (a, {b, c}) {}
+''');
+  }
+
+  Future<void> test_variableInitializer() async {
+    await computeSuggestions('''
+void Function(int a, int b) v = ^;
+''');
+    assertResponse('''
+suggestions
+  |(a, b) => |
+    kind: invocation
+    displayText: (a, b) =>
+  (a, b) {
+  ^
+}
+    kind: invocation
+    displayText: (a, b) {}
+''');
+  }
+}

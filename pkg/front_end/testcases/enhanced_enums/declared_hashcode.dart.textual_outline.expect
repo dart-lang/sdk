@@ -1,0 +1,82 @@
+enum E1 {
+  element;
+
+  int get hashCode => 42;
+}
+
+enum E2 {
+  element;
+
+  String get hashCode => "foo";
+}
+
+enum E3 {
+  element;
+
+  final int hashCode = 42;
+}
+
+enum E4 {
+  element;
+
+  List<String> hashCode() => [];
+}
+
+enum E5 {
+  element;
+
+  Never get hashCode => throw 42;
+}
+
+enum E6 {
+  element;
+
+  final int foo = 0, hashCode = 1, bar = 2;
+}
+
+enum E7 {
+  element;
+
+  void set hashCode(int value) {}
+  int get hashCode;
+}
+
+enum E8 {
+  element;
+
+  void set hashCode(String value) {}
+}
+
+enum E9 {
+  element;
+
+  double get hashCode;
+}
+
+enum E10 {
+  element;
+
+  static int get hashCode => 42;
+}
+
+enum E11 {
+  element;
+
+  static void set hashCode(int value) {}
+}
+
+enum E12 { hashCode }
+
+abstract class I13 {
+  int get hashCode;
+}
+
+enum E13 implements I13 { element }
+
+abstract class I14 {
+  Never get hashCode;
+}
+
+enum E14 implements I14 { element }
+
+main() {}

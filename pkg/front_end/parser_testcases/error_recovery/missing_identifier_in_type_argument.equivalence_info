@@ -1,0 +1,8 @@
+files:
+  - missing_identifier_in_type_argument_ok.dart
+  - missing_identifier_in_type_argument_bad_1.dart
+  - missing_identifier_in_type_argument_bad_2.dart
+filters:
+  - ignoreListenerArguments
+ignored:
+  - handleRecoverableError

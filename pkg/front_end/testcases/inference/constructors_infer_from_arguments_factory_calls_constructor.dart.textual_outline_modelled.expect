@@ -1,0 +1,10 @@
+library test;
+
+class A<T> {
+  A();
+  A<T> f = new A();
+  A<T> m() => new A();
+  factory A.factory() => new A();
+}
+
+main() {}

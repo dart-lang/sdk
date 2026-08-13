@@ -1,0 +1,4 @@
+Errors: {
+}
+static method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr(#lib1::Foo% /* erasure=dart.core::int, declared=! */ x) → dynamic
+  return #lib1::Foo|printFoo(x);

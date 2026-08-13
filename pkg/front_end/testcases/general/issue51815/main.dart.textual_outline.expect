@@ -1,0 +1,7 @@
+import 'main_lib.dart';
+
+foo(void Function() f) {}
+
+test() => foo(new B());
+
+main() {}

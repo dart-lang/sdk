@@ -1,0 +1,34 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method use(dynamic o) → dynamic {}
+static method f(core::List<core::int> list) → () → void {
+  return block {
+    () → void #t1;
+    final synthesized core::List<core::int> #0#0 = list;
+    #L1:
+    {
+      {
+        final hoisted core::int item;
+        if(#0#0.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1) {
+          item = #0#0.{core::List::[]}(0){(core::int) → core::int};
+          #t1 = () → void {
+            self::use(item);
+          };
+          break #L1;
+        }
+      }
+      {
+        if(true) {
+          #t1 = () → void {};
+          break #L1;
+        }
+      }
+    }
+  } =>#t1;
+}
+
+constants  {
+  #C1 = 1
+}

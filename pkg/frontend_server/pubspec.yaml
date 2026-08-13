@@ -1,0 +1,29 @@
+name: frontend_server
+description: A resident kernel compiler
+# This package is not intended for consumption on pub.dev. DO NOT publish.
+publish_to: none
+
+environment:
+  sdk: '^3.13.0-0'
+
+resolution: workspace
+
+# Use 'any' constraints here; we get our versions from the DEPS file.
+dependencies:
+  args: any
+  build_integration: any
+  compiler: any
+  dart2wasm: any
+  dev_compiler: any
+  front_end: any
+  kernel: any
+  package_config: any
+  path: any
+  vm: any
+
+# Use 'any' constraints here; we get our versions from the DEPS file.
+dev_dependencies:
+  _fe_analyzer_shared: any
+  collection: any
+  lints: any
+  test: any

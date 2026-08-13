@@ -1,0 +1,24 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class _X<T extends core::Object? = dynamic> extends core::Object {
+  static const factory •<T extends core::Object? = dynamic>() → self::_X<self::_X::•::T%> /* redirection-target: self::_Y::•<self::_X::•::T%>*/
+    return new self::_Y::•<self::_X::•::T%>();
+}
+class _Y<T extends core::Object? = dynamic> extends core::Object implements self::_X<self::_Y::T%> /*hasConstConstructor*/  {
+  const constructor •() → self::_Y<self::_Y::T%>
+    : super core::Object::•()
+    ;
+}
+class A<T extends core::Object? = dynamic> extends core::Object {
+  covariant-by-class field self::_X<self::A::T%> x;
+  constructor •(initializing-formal self::_X<self::A::T%> x) → self::A<self::A::T%>
+    ;
+}
+class B<T extends core::Object? = dynamic> extends self::A<self::B::T%> {
+  constructor •() → self::B<self::B::T%>
+    ;
+}
+static method main() → dynamic
+  ;

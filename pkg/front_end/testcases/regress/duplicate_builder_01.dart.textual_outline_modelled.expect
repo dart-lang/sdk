@@ -1,0 +1,5 @@
+extension type foo(String foo) {
+  set foo(double x) {}
+}
+
+int foo = 42;

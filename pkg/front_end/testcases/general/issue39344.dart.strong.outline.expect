@@ -1,0 +1,32 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    ;
+}
+class B extends self::A {
+  synthetic constructor •() → self::B
+    ;
+}
+class Class<T extends self::A> extends core::Object {
+  synthetic constructor •() → self::Class<self::Class::T>
+    ;
+  method method1a(covariant-by-class self::Class::T t) → void
+    ;
+  method method1b(covariant-by-class self::Class::T t) → void
+    ;
+  method method2a(covariant-by-class self::Class::T t) → void
+    ;
+  method method2b(covariant-by-class self::Class::T t) → void
+    ;
+}
+late static field core::List<self::B> xs;
+late static field core::List<core::List<self::B>> xss;
+static method main() → void
+  ;
+static method errors() → void
+  ;
+static method throws(() → void f) → void
+  ;

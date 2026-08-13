@@ -1,0 +1,39 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/rasta/native_is_illegal.dart:5:7: Error: Expected a function body or '=>'.
+// Try adding {}.
+// foo() native "foo";
+//       ^^^^^^
+//
+// pkg/front_end/testcases/rasta/native_is_illegal.dart:8:13: Error: Expected a function body or '=>'.
+// Try adding {}.
+//   Bar get x native "Bar_get_x";
+//             ^^^^^^
+//
+// pkg/front_end/testcases/rasta/native_is_illegal.dart:9:20: Error: Expected a function body or '=>'.
+// Try adding {}.
+//   set x(Bar value) native "Bar_set_x";
+//                    ^^^^^^
+//
+// pkg/front_end/testcases/rasta/native_is_illegal.dart:10:7: Error: Expected a function body or '=>'.
+// Try adding {}.
+//   f() native "Bar_f";
+//       ^^^^^^
+//
+// pkg/front_end/testcases/rasta/native_is_illegal.dart:11:17: Error: Expected a function body or '=>'.
+// Try adding {}.
+//   factory Bar() native "Bar_constructor";
+//                 ^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Bar extends core::Object {
+  external get x() → self::Bar;
+  external set x(self::Bar value) → void;
+  external method f() → dynamic;
+  external static factory •() → self::Bar;
+}
+external static method foo() → dynamic;

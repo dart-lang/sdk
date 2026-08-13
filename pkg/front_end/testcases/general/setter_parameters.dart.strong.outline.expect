@@ -1,0 +1,79 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  synthetic constructor •() → self::C
+    ;
+  set noParameter(dynamic #synthetic) → void
+    ;
+  set optionalPositionalParameter(dynamic #synthetic) → void
+    ;
+  set optionalNamedParameter(dynamic #synthetic) → void
+    ;
+  set multipleParameters(dynamic #synthetic) → void
+    ;
+  set multiplePositionalParameters(dynamic #synthetic) → void
+    ;
+  set multipleNamedParameters(dynamic #synthetic) → void
+    ;
+}
+extension E on core::int {
+  set noParameter = self::E|set#noParameter;
+  set optionalPositionalParameter = self::E|set#optionalPositionalParameter;
+  set optionalNamedParameter = self::E|set#optionalNamedParameter;
+  set multipleParameters = self::E|set#multipleParameters;
+  set multiplePositionalParameters = self::E|set#multiplePositionalParameters;
+  set multipleNamedParameters = self::E|set#multipleNamedParameters;
+}
+extension type ET(core::int it) {
+  abstract extension-type-member representation-field get it() → core::int;
+  set noParameter = self::ET|set#noParameter;
+  set optionalPositionalParameter = self::ET|set#optionalPositionalParameter;
+  set optionalNamedParameter = self::ET|set#optionalNamedParameter;
+  set multipleParameters = self::ET|set#multipleParameters;
+  set multiplePositionalParameters = self::ET|set#multiplePositionalParameters;
+  set multipleNamedParameters = self::ET|set#multipleNamedParameters;
+  constructor • = self::ET|constructor#;
+  constructor tearoff • = self::ET|constructor#_#new#tearOff;
+}
+static set noParameter(dynamic #synthetic) → void
+  ;
+static set optionalPositionalParameter(dynamic #synthetic) → void
+  ;
+static set optionalNamedParameter(dynamic #synthetic) → void
+  ;
+static set multipleParameters(dynamic #synthetic) → void
+  ;
+static set multiplePositionalParameters(dynamic #synthetic) → void
+  ;
+static set multipleNamedParameters(dynamic #synthetic) → void
+  ;
+static extension-member method E|set#noParameter(lowered final core::int #this, dynamic #synthetic) → void
+  ;
+static extension-member method E|set#optionalPositionalParameter(lowered final core::int #this, dynamic #synthetic) → void
+  ;
+static extension-member method E|set#optionalNamedParameter(lowered final core::int #this, dynamic #synthetic) → void
+  ;
+static extension-member method E|set#multipleParameters(lowered final core::int #this, dynamic #synthetic) → void
+  ;
+static extension-member method E|set#multiplePositionalParameters(lowered final core::int #this, dynamic #synthetic) → void
+  ;
+static extension-member method E|set#multipleNamedParameters(lowered final core::int #this, dynamic #synthetic) → void
+  ;
+static extension-type-member method ET|constructor#(initializing-formal core::int it) → self::ET% /* erasure=core::int, declared=! */
+  ;
+static extension-type-member synthetic method ET|constructor#_#new#tearOff(core::int it) → self::ET% /* erasure=core::int, declared=! */
+  return self::ET|constructor#(it);
+static extension-type-member method ET|set#noParameter(lowered final self::ET% /* erasure=core::int, declared=! */ #this, dynamic #synthetic) → void
+  ;
+static extension-type-member method ET|set#optionalPositionalParameter(lowered final self::ET% /* erasure=core::int, declared=! */ #this, dynamic #synthetic) → void
+  ;
+static extension-type-member method ET|set#optionalNamedParameter(lowered final self::ET% /* erasure=core::int, declared=! */ #this, dynamic #synthetic) → void
+  ;
+static extension-type-member method ET|set#multipleParameters(lowered final self::ET% /* erasure=core::int, declared=! */ #this, dynamic #synthetic) → void
+  ;
+static extension-type-member method ET|set#multiplePositionalParameters(lowered final self::ET% /* erasure=core::int, declared=! */ #this, dynamic #synthetic) → void
+  ;
+static extension-type-member method ET|set#multipleNamedParameters(lowered final self::ET% /* erasure=core::int, declared=! */ #this, dynamic #synthetic) → void
+  ;

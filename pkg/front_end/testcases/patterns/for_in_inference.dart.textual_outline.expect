@@ -1,0 +1,7 @@
+test1() {}
+
+test2() {}
+
+Iterable<bool> test3() {}
+
+test4() {}

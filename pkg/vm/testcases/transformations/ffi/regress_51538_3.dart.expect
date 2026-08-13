@@ -1,0 +1,33 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+import "dart:ffi" as ffi;
+import "dart:async" as asy;
+import "dart:_internal" as _in;
+
+import "dart:ffi";
+
+class Foo extends core::Object implements ffi::Finalizable {
+  synthetic constructor •() → self::Foo
+    : super core::Object::•()
+    ;
+}
+static method hasMore() → asy::Future<core::bool> async /* emittedValueType= core::bool */ 
+  return false;
+static method nextElement() → asy::Future<self::Foo>
+  return asy::Future::value<self::Foo>(new self::Foo::•());
+static method main() → void async /* emittedValueType= void */ {
+  for (self::Foo element = new self::Foo::•(); await block {
+    final synthesized asy::Future<core::bool> :expressionValueWrappedFinalizable = self::hasMore();
+    _in::reachabilityFence(element);
+  } =>:expressionValueWrappedFinalizable; element = block {
+    final synthesized self::Foo :expressionValueWrappedFinalizable = await block {
+      final synthesized asy::Future<self::Foo> :expressionValueWrappedFinalizable = self::nextElement();
+      _in::reachabilityFence(element);
+    } =>:expressionValueWrappedFinalizable;
+    _in::reachabilityFence(element);
+  } =>:expressionValueWrappedFinalizable) {
+    core::print(element);
+    _in::reachabilityFence(element);
+  }
+}

@@ -1,0 +1,21 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/annotation_on_type_parameter_name_clash_on_constructor.dart:8:6: Error: Constructors can't have type parameters.
+// Try removing the type parameters.
+//   Foo<@x x>() {}
+//      ^^^^^^
+//
+// pkg/front_end/testcases/regress/annotation_on_type_parameter_name_clash_on_constructor.dart:8:8: Error: This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
+//   Foo<@x x>() {}
+//        ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Foo extends core::Object {
+  constructor •() → self::Foo
+    ;
+}
+static const field core::int x = 42;

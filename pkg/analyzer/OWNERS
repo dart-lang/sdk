@@ -1,0 +1,11 @@
+file:/tools/OWNERS_MODEL
+
+# messages.yaml contains error message text, so it should be
+# reviewable by the either the model team or the developer experience
+# team.
+per-file messages.yaml=file:/tools/OWNERS_DEVELOPER_EXPERIENCE
+
+# .g.dart files are generated, and we have tests making sure the code
+# generation is up to date, so it is safe for them to be reviewed by
+# either the model team or the developer experience team.
+per-file *.g.dart=file:/tools/OWNERS_DEVELOPER_EXPERIENCE

@@ -1,0 +1,3 @@
+test1(dynamic x) {}
+
+test2(num x) {}

@@ -1,0 +1,14 @@
+class Class1 extends Super with Mixin {}
+
+class Class2 with Mixin implements Super {}
+
+class Super {
+  int property = 42;
+  void method() {}
+}
+
+mixin Mixin on Super {
+  int get property {}
+  void method() {}
+  void set property(int value) {}
+}

@@ -1,0 +1,9 @@
+Class: A
+Method: A.method1
+Method: A.method2
+Class: B
+Method: B.method1
+Method: B.method2
+Class: C
+Method: C.method1
+Method: C.method2

@@ -1,0 +1,9 @@
+library test;
+
+class A {}
+
+class B<T extends A> {}
+
+B v = throw '';
+
+test() {}

@@ -1,0 +1,12 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+  get x() → core::int
+    return 42;
+  set x(wildcard core::String _#wc0#formal) → void {}
+}

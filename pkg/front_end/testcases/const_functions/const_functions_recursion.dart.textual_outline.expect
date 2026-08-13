@@ -1,0 +1,9 @@
+import "package:expect/expect.dart";
+
+const b = fn(4);
+
+int fn(int a) {}
+
+int localTest() {}
+
+void main() {}

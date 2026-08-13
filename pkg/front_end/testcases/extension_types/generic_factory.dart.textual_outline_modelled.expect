@@ -1,0 +1,4 @@
+extension type const ET3<T extends num>(int id) {
+  const ET3.c1() : this(0);
+  factory ET3.f1() = ET3.c1;
+}

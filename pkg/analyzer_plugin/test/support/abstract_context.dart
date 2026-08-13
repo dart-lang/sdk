@@ -1,0 +1,178 @@
+// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:analyzer/dart/analysis/analysis_context.dart';
+import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
+import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/analysis/session.dart';
+import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
+import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
+import 'package:analyzer/src/test_utilities/mock_sdk.dart';
+import 'package:analyzer_testing/experiments/experiments.dart';
+import 'package:analyzer_testing/mock_packages/mock_packages.dart';
+import 'package:analyzer_testing/package_config_file_builder.dart';
+import 'package:analyzer_testing/resource_provider_mixin.dart';
+import 'package:analyzer_testing/utilities/utilities.dart';
+import 'package:linter/src/rules.dart';
+import 'package:meta/meta.dart';
+
+class AbstractContextTest with MockPackagesMixin, ResourceProviderMixin {
+  final ByteStore _byteStore = MemoryByteStore();
+
+  final Map<String, String> _declaredVariables = {};
+
+  AnalysisContextCollection? _analysisContextCollection;
+
+  List<String> get collectionIncludedPaths => [workspaceRootPath];
+
+  /// Return a list of the experimental features that are to be enabled for
+  /// tests in this class.
+  List<Feature> get experimentalFeatures => experimentalFeaturesForTests;
+
+  @override
+  String get packagesRootPath => '/packages';
+
+  Folder get sdkRoot => newFolder('/sdk');
+
+  Future<AnalysisSession> get session => sessionFor(testPackageRootPath);
+
+  /// The file system-specific `analysis_options.yaml` path.
+  String get testPackageAnalysisOptionsPath =>
+      convertPath('$testPackageRootPath/analysis_options.yaml');
+
+  String? get testPackageLanguageVersion => null;
+
+  /// The file system-specific `pubspec.yaml` path.
+  String get testPackagePubspecPath =>
+      convertPath('$testPackageRootPath/pubspec.yaml');
+
+  String get testPackageRootPath => convertPath('/home/test');
+
+  String get workspaceRootPath => convertPath('/home');
+
+  void addSource(String path, String content) {
+    newFile(path, content);
+  }
+
+  AnalysisContext contextFor(String path) {
+    _createAnalysisContexts();
+
+    path = convertPath(path);
+    return _analysisContextCollection!.contextFor(path);
+  }
+
+  /// Create an analysis options file based on the given arguments.
+  void createAnalysisOptionsFile({
+    List<Feature> experimentalFeatures = const [],
+  }) {
+    newFile(
+      testPackageAnalysisOptionsPath,
+      analysisOptionsContent(
+        experimentalFeatures: experimentalFeatures,
+        propagateLinterExceptions: false,
+      ),
+    );
+  }
+
+  @override
+  File newFile(String path, String content) {
+    if (_analysisContextCollection != null && !path.endsWith('.dart')) {
+      throw StateError('Only dart files can be changed after analysis.');
+    }
+
+    return super.newFile(path, content);
+  }
+
+  Future<ResolvedUnitResult> resolveFile(String path) async {
+    var session = await sessionFor(path);
+    return await session.getResolvedUnit(path) as ResolvedUnitResult;
+  }
+
+  Future<AnalysisSession> sessionFor(String path) async {
+    var analysisContext = contextFor(path);
+    await analysisContext.applyPendingFileChanges();
+    return analysisContext.currentSession;
+  }
+
+  @mustCallSuper
+  void setUp() {
+    createMockSdk(resourceProvider: resourceProvider, root: sdkRoot);
+
+    newFolder(testPackageRootPath);
+    writeTestPackageConfig();
+    createAnalysisOptionsFile(experimentalFeatures: experimentalFeatures);
+  }
+
+  @mustCallSuper
+  void tearDown() {
+    AnalysisEngine.instance.clearCaches();
+  }
+
+  void writePackageConfig(String path, PackageConfigFileBuilder config) {
+    newFile(path, config.toContent());
+  }
+
+  /// Write an analysis options file based on the given arguments.
+  // TODO(asashour): Use AnalysisOptionsFileConfig
+  void writeTestPackageAnalysisOptionsFile({List<String>? lints}) {
+    var buffer = StringBuffer();
+
+    if (lints != null) {
+      registerLintRules();
+      buffer.writeln('linter:');
+      buffer.writeln('  rules:');
+      for (var lint in lints) {
+        buffer.writeln('    - $lint');
+      }
+    }
+
+    newFile(testPackageAnalysisOptionsPath, buffer.toString());
+  }
+
+  void writeTestPackageConfig({
+    PackageConfigFileBuilder? config,
+    String? languageVersion,
+    bool meta = false,
+  }) {
+    if (config == null) {
+      config = PackageConfigFileBuilder();
+    } else {
+      config = config.copy();
+    }
+
+    config.add(
+      name: 'test',
+      rootFolder: getFolder(testPackageRootPath),
+      languageVersion: languageVersion ?? testPackageLanguageVersion,
+    );
+
+    if (meta) {
+      var metaRoot = addMeta().parent;
+      config.add(name: 'meta', rootFolder: metaRoot);
+    }
+
+    var path = '$testPackageRootPath/.dart_tool/package_config.json';
+    writePackageConfig(path, config);
+  }
+
+  /// Create all analysis contexts in [collectionIncludedPaths].
+  void _createAnalysisContexts() {
+    if (_analysisContextCollection != null) {
+      return;
+    }
+
+    _analysisContextCollection = AnalysisContextCollectionImpl(
+      byteStore: _byteStore,
+      declaredVariables: _declaredVariables,
+      enableIndex: true,
+      includedPaths: collectionIncludedPaths.map(convertPath).toList(),
+      resourceProvider: resourceProvider,
+      sdkPath: sdkRoot.path,
+      withFineDependencies: true,
+    );
+  }
+}

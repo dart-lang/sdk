@@ -1,0 +1,108 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///for_in.dart" deferred as defer hide Extension, IndexExtension;
+
+class Class extends core::Object {
+  field core::int intField;
+  field core::num numField;
+  field core::String stringField;
+  final field core::int finalField;
+  late field core::int lateField;
+  late final [setter] field core::int lateFinalField;
+  static field core::int intStaticField;
+  static field core::num numStaticField;
+  static field core::String stringStaticField;
+  static final field core::int finalStaticField;
+  late static field core::int lateStaticField;
+  late static final [setter] field core::int lateFinalStaticField;
+  synthetic constructor •() → self::Class
+    ;
+  operator []=(core::int index, core::int value) → void
+    ;
+  operator [](core::int index) → core::int
+    ;
+  method test() → dynamic
+    ;
+  method method() → dynamic
+    ;
+}
+class Subclass extends self::Class {
+  synthetic constructor •() → self::Subclass
+    ;
+  method test() → dynamic
+    ;
+}
+extension Extension on self::Class {
+  get extensionIntProperty = self::Extension|get#extensionIntProperty;
+  set extensionIntProperty = self::Extension|set#extensionIntProperty;
+  get extensionNumProperty = self::Extension|get#extensionNumProperty;
+  set extensionNumProperty = self::Extension|set#extensionNumProperty;
+  get extensionStringProperty = self::Extension|get#extensionStringProperty;
+  set extensionStringProperty = self::Extension|set#extensionStringProperty;
+  get extensionReadOnlyProperty = self::Extension|get#extensionReadOnlyProperty;
+  static field intStaticField = self::Extension|intStaticField;
+  static field numStaticField = self::Extension|numStaticField;
+  static field stringStaticField = self::Extension|stringStaticField;
+  static field finalStaticField = self::Extension|finalStaticField;
+  static field lateStaticField = self::Extension|lateStaticField;
+  static field lateFinalStaticField = self::Extension|lateFinalStaticField;
+  method test = self::Extension|test;
+  method tearoff test = self::Extension|get#test;
+  method extensionMethod = self::Extension|extensionMethod;
+  method tearoff extensionMethod = self::Extension|get#extensionMethod;
+}
+extension IndexExtension on core::int {
+  operator []= = self::IndexExtension|[]=;
+  operator [] = self::IndexExtension|[];
+  method extensionMethod = self::IndexExtension|extensionMethod;
+  method tearoff extensionMethod = self::IndexExtension|get#extensionMethod;
+}
+static field core::int intTopLevel;
+static final field core::int finalTopLevel;
+static const field core::int constTopLevel = 0;
+late static field core::int lateTopLevel;
+late static final [setter] field core::int lateFinalTopLevel;
+static field core::num numTopLevel;
+static field core::String stringTopLevel;
+static field core::int Extension|intStaticField;
+static field core::num Extension|numStaticField;
+static field core::String Extension|stringStaticField;
+static final field core::int Extension|finalStaticField;
+late static field core::int Extension|lateStaticField;
+late static final [setter] field core::int Extension|lateFinalStaticField;
+static method test() → dynamic
+  ;
+static method main() → dynamic
+  ;
+static extension-member method Extension|get#extensionIntProperty(lowered final self::Class #this) → core::int
+  ;
+static extension-member method Extension|set#extensionIntProperty(lowered final self::Class #this, core::int value) → void
+  ;
+static extension-member method Extension|get#extensionNumProperty(lowered final self::Class #this) → core::num
+  ;
+static extension-member method Extension|set#extensionNumProperty(lowered final self::Class #this, core::num value) → void
+  ;
+static extension-member method Extension|get#extensionStringProperty(lowered final self::Class #this) → core::String
+  ;
+static extension-member method Extension|set#extensionStringProperty(lowered final self::Class #this, core::String value) → void
+  ;
+static extension-member method Extension|get#extensionReadOnlyProperty(lowered final self::Class #this) → core::int
+  ;
+static extension-member method Extension|test(lowered final self::Class #this) → dynamic
+  ;
+static extension-member method Extension|get#test(lowered final self::Class #this) → () → dynamic
+  return () → dynamic => self::Extension|test(#this);
+static extension-member method Extension|extensionMethod(lowered final self::Class #this) → dynamic
+  ;
+static extension-member method Extension|get#extensionMethod(lowered final self::Class #this) → () → dynamic
+  return () → dynamic => self::Extension|extensionMethod(#this);
+static extension-member method IndexExtension|[]=(lowered final core::int #this, core::int index, core::int value) → void
+  ;
+static extension-member method IndexExtension|[](lowered final core::int #this, core::int index) → core::int
+  ;
+static extension-member method IndexExtension|extensionMethod(lowered final core::int #this) → dynamic
+  ;
+static extension-member method IndexExtension|get#extensionMethod(lowered final core::int #this) → () → dynamic
+  return () → dynamic => self::IndexExtension|extensionMethod(#this);

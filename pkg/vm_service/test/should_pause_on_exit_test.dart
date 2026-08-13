@@ -1,0 +1,66 @@
+// Copyright (c) 2021, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+//
+// OtherResources=should_pause_on_exit_lib.dart
+
+import 'dart:async';
+
+import 'package:test/test.dart';
+import 'package:vm_service/vm_service.dart';
+
+import 'common/service_test_common.dart';
+import 'should_pause_on_exit_lib.dart' as lib;
+
+Future<bool> shouldPauseOnExit(VmService service, IsolateRef isolateRef) async {
+  final isolate = await service.getIsolate(isolateRef.id!);
+  return isolate.pauseOnExit!;
+}
+
+void main([args = const <String>[]]) => IsolateTestHarness(
+      'should_pause_on_exit_lib.dart',
+      args,
+    )
+        .hasPausedAtStart()
+        .addCustomTest((VmService service, IsolateRef isolateRef) async {
+      await service.setIsolatePauseMode(
+        isolateRef.id!,
+        shouldPauseOnExit: false,
+      );
+      expect(await shouldPauseOnExit(service, isolateRef), false);
+      final completer = Completer<void>();
+
+      final stream = service.onDebugEvent;
+      final subscription = stream.listen((Event event) {
+        if (event.kind == EventKind.kPauseExit) {
+          completer.complete();
+        }
+      });
+      await service.streamListen(EventStreams.kDebug);
+
+      await service.setIsolatePauseMode(
+        isolateRef.id!,
+        shouldPauseOnExit: true,
+      );
+      expect(await shouldPauseOnExit(service, isolateRef), true);
+      await service.resume(isolateRef.id!);
+      await completer.future;
+      try {
+        await service.resume(isolateRef.id!);
+      } on RPCError catch (e) {
+        // The server may have already shut down, causing the service connection
+        // to be disposed before the resume response is sent.
+        if (![
+          RPCErrorKind.kConnectionDisposed.code,
+          RPCErrorKind.kServerError.code,
+        ].contains(e.code)) {
+          rethrow;
+        }
+        // This is expected - ignore it.
+      }
+      await subscription.cancel();
+    }).run(
+      pauseOnStart: true,
+      pauseOnExit: true,
+      testeeMain: lib.main,
+    );

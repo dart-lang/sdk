@@ -1,0 +1,156 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+part of $LIBRARYNAME;
+
+$(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
+
+  Future add(value, [key]) {
+    try {
+      var request;
+      if (key != null) {
+        request = _add(value, key);
+      } else {
+        request = _add(value);
+      }
+      return _completeRequest(request);
+    } catch (e, stacktrace) {
+      return new Future.error(e, stacktrace);
+    }
+  }
+
+  Future clear() {
+    try {
+      return _completeRequest(_clear());
+    } catch (e, stacktrace) {
+      return new Future.error(e, stacktrace);
+    }
+  }
+
+  Future delete(key_OR_keyRange){
+    try {
+      return _completeRequest(_delete(key_OR_keyRange));
+    } catch (e, stacktrace) {
+      return new Future.error(e, stacktrace);
+    }
+  }
+
+  Future<int> count([key_OR_range]) {
+   try {
+      var request = _count(key_OR_range);
+      return _completeRequest(request);
+    } catch (e, stacktrace) {
+      return new Future.error(e, stacktrace);
+    }
+  }
+
+  Future put(value, [key]) {
+    try {
+      var request;
+      if (key != null) {
+        request = _put(value, key);
+      } else {
+        request = _put(value);
+      }
+      return _completeRequest(request);
+    } catch (e, stacktrace) {
+      return new Future.error(e, stacktrace);
+    }
+  }
+
+  Future getObject(key) {
+    try {
+      var request = _get(key);
+
+      return _completeRequest(request);
+    } catch (e, stacktrace) {
+      return new Future.error(e, stacktrace);
+    }
+  }
+
+  /**
+   * Creates a stream of cursors over the records in this object store.
+   *
+   * **The stream must be manually advanced by calling [Cursor.next] after
+   * each item or by specifying autoAdvance to be true.**
+   *
+   *     var cursors = objectStore.openCursor().listen(
+   *       (cursor) {
+   *         // ...some processing with the cursor
+   *         cursor.next(); // advance onto the next cursor.
+   *       },
+   *       onDone: () {
+   *         // called when there are no more cursors.
+   *         print('all done!');
+   *       });
+   *
+   * Asynchronous operations which are not related to the current transaction
+   * will cause the transaction to automatically be committed-- all processing
+   * must be done synchronously unless they are additional async requests to
+   * the current transaction.
+   */
+  Stream<CursorWithValue> openCursor({key, KeyRange$NULLABLE range,
+      String$NULLABLE direction, bool$NULLABLE autoAdvance}) {
+    var key_OR_range = null;
+    if (key != null) {
+      if (range != null) {
+        throw new ArgumentError('Cannot specify both key and range.');
+      }
+      key_OR_range = key;
+    } else {
+      key_OR_range = range;
+    }
+
+    // TODO: try/catch this and return a stream with an immediate error.
+    var request;
+    if (direction == null) {
+      request = _openCursor(key_OR_range);
+    } else {
+      request = _openCursor(key_OR_range, direction);
+    }
+    return _cursorStreamFromResult(request, autoAdvance);
+  }
+
+  Index createIndex(String name, keyPath, {bool$NULLABLE unique,
+      bool$NULLABLE multiEntry}) {
+    var options = {};
+    if (unique != null) {
+      options['unique'] = unique;
+    }
+    if (multiEntry != null) {
+      options['multiEntry'] = multiEntry;
+    }
+
+    return _createIndex(name, keyPath, options);
+  }
+
+$!MEMBERS
+
+  /**
+   * Helper for iterating over cursors in a request.
+   */
+  static Stream<T> _cursorStreamFromResult<T extends Cursor>(Request request,
+      bool$NULLABLE autoAdvance) {
+    // TODO: need to guarantee that the controller provides the values
+    // immediately as waiting until the next tick will cause the transaction to
+    // close.
+    var controller = new StreamController<T>(sync: true);
+
+    //TODO: Report stacktrace once issue 4061 is resolved.
+    request.onError.listen(controller.addError);
+
+    request.onSuccess.listen((e) {
+      T$NULLABLE cursor = request.result as dynamic;
+      if (cursor == null) {
+        controller.close();
+      } else {
+        controller.add(cursor);
+        if (autoAdvance == true && controller.hasListener) {
+          cursor.next();
+        }
+      }
+    });
+    return controller.stream;
+  }
+}

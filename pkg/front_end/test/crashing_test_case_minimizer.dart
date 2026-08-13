@@ -1,0 +1,123 @@
+// Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'dart:convert' show jsonDecode;
+import 'dart:io' show File;
+
+import 'crashing_test_case_minimizer_impl.dart';
+
+// TODO(jensj): Option to automatically find and search for _all_ crashes that
+// it uncovers --- i.e. it currently has an option to ask if we want to search
+// for the other crash instead --- add an option so it does that automatically
+// for everything it sees. One can possibly just make a copy of the state of
+// the file system and save that for later...
+
+// TODO(jensj): Add asserts or similar where - after each rewrite - we run the
+// parser on it and verifies that no syntax errors have been introduced.
+
+Future<void> main(List<String> arguments) async {
+  List<String> filenames = [];
+  Uri? loadJson;
+  for (String arg in arguments) {
+    if (arg.startsWith("--json=")) {
+      String json = arg.substring("--json=".length);
+      loadJson = Uri.base.resolve(json);
+      break;
+    }
+  }
+  TestMinimizerSettings settings = new TestMinimizerSettings();
+
+  if (loadJson != null) {
+    File f = new File.fromUri(loadJson);
+    settings.initializeFromJson((jsonDecode(f.readAsStringSync())));
+  } else {
+    for (String arg in arguments) {
+      if (arg.startsWith("--")) {
+        if (arg == "--experimental-invalidation") {
+          settings.experimentalInvalidation = true;
+        } else if (arg == "--serialize") {
+          settings.serialize = true;
+        } else if (arg.startsWith("--platform=")) {
+          String platform = arg.substring("--platform=".length);
+          settings.platformUri = Uri.base.resolve(platform);
+        } else if (arg.startsWith("--packages=")) {
+          String packages = arg.substring("--packages=".length);
+          settings.packagesFileUri = Uri.base.resolve(packages);
+        } else if (arg == "--no-platform") {
+          settings.noPlatform = true;
+        } else if (arg == "--initial-only-outline") {
+          settings.initialOnlyOutline = true;
+        } else if (arg == "--load-from-component-before-invalidate") {
+          settings.loadFromComponentBeforeInvalidate = true;
+        } else if (arg == "--invalidate-all-at-once") {
+          settings.invalidateAllAtOnce = true;
+        } else if (arg.startsWith("--invalidate=")) {
+          for (String s in arg.substring("--invalidate=".length).split(",")) {
+            settings.invalidate.add(Uri.base.resolve(s));
+          }
+        } else if (arg.startsWith("--track-creation-locations")) {
+          settings.trackCreationLocations = true;
+        } else if (arg.startsWith("--target=vm")) {
+          settings.targetString = "vm";
+        } else if (arg.startsWith("--target=flutter")) {
+          settings.targetString = "flutter";
+        } else if (arg.startsWith("--target=dartdevc")) {
+          settings.targetString = "dartdevc";
+        } else if (arg.startsWith("--target=dart2js")) {
+          settings.targetString = "dart2js";
+        } else if (arg == "--noTryToDeleteEmptyFilesUpFront") {
+          settings.noTryToDeleteEmptyFilesUpFront = true;
+        } else if (arg.startsWith("--wantErrorOnReload=")) {
+          String wantErrorOnReload = arg.substring(
+            "--wantErrorOnReload=".length,
+          );
+          settings.lookForErrorErrorOnReload = wantErrorOnReload;
+        } else if (arg == "--oldBlockDelete") {
+          settings.oldBlockDelete = true;
+        } else if (arg == "--lineDelete") {
+          settings.lineDelete = true;
+        } else if (arg == "--byteDelete") {
+          settings.byteDelete = true;
+        } else if (arg == "--ask-redirect-target") {
+          settings.askAboutRedirectCrashTarget = true;
+        } else if (arg == "--auto-uncover-all-crashes") {
+          settings.autoUncoverAllCrashes = true;
+        } else if (arg.startsWith("--stack-matches=")) {
+          String stackMatches = arg.substring("--stack-matches=".length);
+          settings.stackTraceMatches = int.parse(stackMatches);
+        } else {
+          throw "Unknown option $arg";
+        }
+      } else {
+        filenames.add(arg);
+      }
+    }
+    if (settings.noPlatform) {
+      int i = 0;
+      while (settings.platformUri == null ||
+          new File.fromUri(settings.platformUri!).existsSync()) {
+        settings.platformUri = Uri.base.resolve("nonexisting_$i");
+        i++;
+      }
+    } else {
+      if (settings.platformUri == null) {
+        throw "No platform given. Use --platform=/path/to/platform.dill";
+      }
+      if (!new File.fromUri(settings.platformUri!).existsSync()) {
+        throw "The platform file '${settings.platformUri}' doesn't exist";
+      }
+    }
+    if (filenames.isEmpty) {
+      throw "Need file(s) to operate on";
+    }
+    for (String filename in filenames) {
+      File file = new File(filename);
+      if (!file.existsSync()) throw "File $filename doesn't exist.";
+      settings.entryUris.add(file.absolute.uri);
+    }
+  }
+
+  TestMinimizer testMinimizer = new TestMinimizer(settings);
+  await testMinimizer.tryToMinimize();
+}

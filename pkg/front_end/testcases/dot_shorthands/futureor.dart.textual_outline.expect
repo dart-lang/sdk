@@ -1,0 +1,11 @@
+import 'dart:async';
+
+enum Color { red, blue, green }
+
+class E {
+  final int x;
+  static E y(int x) => E(x);
+  E(this.x);
+}
+
+void main() {}

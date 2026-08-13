@@ -1,0 +1,31 @@
+# Copyright (c) 2021, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Reproduce a compilation failure: After invalidation it no longer compiles.
+# Dart2js doesn't really use the incremental compiler though.
+
+type: newworld
+target: dart2js
+worlds:
+  - entry: late_statics.dart
+    sources:
+      late_statics.dart: |
+        import 'late_statics_lib.dart' as lib;
+        void testUninitializedNonFinalTopLevelField() {
+          print(lib.a);
+          lib.a = 42;
+          print(lib.a);
+        }
+      late_statics_lib.dart: |
+        late int a;
+    expectedLibraryCount: 2
+
+  - entry: late_statics.dart
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - late_statics.dart
+    expectedLibraryCount: 2
+    advancedInvalidation: bodiesOnly
+

@@ -1,0 +1,7 @@
+library test;
+
+void test(List<int> o) {}
+
+void functionExpressionInvocation(List<int> o) {}
+
+main() {}

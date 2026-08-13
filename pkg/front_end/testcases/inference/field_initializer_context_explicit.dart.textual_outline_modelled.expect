@@ -1,0 +1,10 @@
+library test;
+
+T f<T>() => throw '';
+
+class C {
+  C() : x = f();
+  final int x;
+}
+
+main() {}

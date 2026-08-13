@@ -1,0 +1,11 @@
+var simpleIdentifier = f<a, b>;
+var method = f().m<a, b>;
+var prefixedIdentifier = prefix.f<a, b>;
+var three_identifiers = prefix.ClassName.m<a, b>;
+
+
+var[KeywordToken] simpleIdentifier[StringToken] =[SimpleToken] f[StringToken]<[BeginToken]a[StringToken],[SimpleToken] b[StringToken]>[SimpleToken];[SimpleToken]
+var[KeywordToken] method[StringToken] =[SimpleToken] f[StringToken]([BeginToken])[SimpleToken].[SimpleToken]m[StringToken]<[BeginToken]a[StringToken],[SimpleToken] b[StringToken]>[SimpleToken];[SimpleToken]
+var[KeywordToken] prefixedIdentifier[StringToken] =[SimpleToken] prefix[StringToken].[SimpleToken]f[StringToken]<[BeginToken]a[StringToken],[SimpleToken] b[StringToken]>[SimpleToken];[SimpleToken]
+var[KeywordToken] three_identifiers[StringToken] =[SimpleToken] prefix[StringToken].[SimpleToken]ClassName[StringToken].[SimpleToken]m[StringToken]<[BeginToken]a[StringToken],[SimpleToken] b[StringToken]>[SimpleToken];[SimpleToken]
+[SimpleToken]

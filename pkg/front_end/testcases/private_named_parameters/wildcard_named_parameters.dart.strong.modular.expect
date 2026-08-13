@@ -1,0 +1,48 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/private_named_parameters/wildcard_named_parameters.dart:5:14: Error: A named parameter that doesn't refer to an instance variable can't start with an underscore ('_').
+// void f1({int _ = 0}) {}
+//              ^
+//
+// pkg/front_end/testcases/private_named_parameters/wildcard_named_parameters.dart:6:14: Error: A named parameter that doesn't refer to an instance variable can't start with an underscore ('_').
+// void f2({int _ = 0, String _ = ''}) {}
+//              ^
+//
+// pkg/front_end/testcases/private_named_parameters/wildcard_named_parameters.dart:6:28: Error: A named parameter that doesn't refer to an instance variable can't start with an underscore ('_').
+// void f2({int _ = 0, String _ = ''}) {}
+//                            ^
+//
+// pkg/front_end/testcases/private_named_parameters/wildcard_named_parameters.dart:6:28: Error: Duplicated parameter name '_'.
+// void f2({int _ = 0, String _ = ''}) {}
+//                            ^
+// pkg/front_end/testcases/private_named_parameters/wildcard_named_parameters.dart:6:14: Context: Other parameter named '_'.
+// void f2({int _ = 0, String _ = ''}) {}
+//              ^
+//
+// pkg/front_end/testcases/private_named_parameters/wildcard_named_parameters.dart:10:11: Error: A private named parameter must have a corresponding public name.
+//   C({this._ = 0});
+//           ^
+//
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  field core::int _;
+  constructor •({initializing-formal core::int _ = #C1}) → self::C
+    : self::C::_ = _, super core::Object::•()
+    ;
+}
+static method f1({core::int _ = #C1}) → void {}
+static method f2({core::int _ = #C1, core::String _ = #C2}) → void {}
+static method test() → dynamic {
+  self::f1(_: 1);
+  self::f2(_: 2);
+  new self::C::•(_: 3);
+}
+
+constants  {
+  #C1 = 0
+  #C2 = ""
+}

@@ -1,0 +1,76 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/records/record_type_errors.dart:6:5: Error: A record type with exactly one positional field requires a trailing comma.
+// Try adding a trailing comma.
+// (int) singleType = throw '';
+//     ^
+//
+// pkg/front_end/testcases/records/record_type_errors.dart:7:14: Error: Expected an identifier, but got '}'.
+// Try inserting an identifier before '}'.
+// (int, {String}) missingName = throw '';
+//              ^
+//
+// pkg/front_end/testcases/records/record_type_errors.dart:8:2: Error: Expected a type, but got 'var'.
+// (var a, {var b}) missingType = throw '';
+//  ^^^
+//
+// pkg/front_end/testcases/records/record_type_errors.dart:8:2: Error: Expected ')' before this.
+// (var a, {var b}) missingType = throw '';
+//  ^^^
+//
+// pkg/front_end/testcases/records/record_type_errors.dart:8:16: Error: A record type with exactly one positional field requires a trailing comma.
+// Try adding a trailing comma.
+// (var a, {var b}) missingType = throw '';
+//                ^
+//
+// pkg/front_end/testcases/records/record_type_errors.dart:9:8: Error: The list of named fields in a record type can't be empty.
+// Try adding a named field to the list.
+// (int, {}) emptyNamedFields = throw '';
+//        ^
+//
+// pkg/front_end/testcases/records/record_type_errors.dart:10:17: Error: Duplicated record type field name 'a'.
+// Try renaming or removing one of the named record type fields.
+// ({int a, String a}) duplicateNamedFields = throw '';
+//                 ^
+// pkg/front_end/testcases/records/record_type_errors.dart:10:7: Context: This is the existing record type field named 'a'.
+// ({int a, String a}) duplicateNamedFields = throw '';
+//       ^
+//
+// pkg/front_end/testcases/records/record_type_errors.dart:11:17: Error: Duplicated record type field name 'a'.
+// Try renaming or removing one of the named record type fields.
+// ({int a, String a, double a, bool b, num b}) duplicateNamedFields2 = throw '';
+//                 ^
+// pkg/front_end/testcases/records/record_type_errors.dart:11:7: Context: This is the existing record type field named 'a'.
+// ({int a, String a, double a, bool b, num b}) duplicateNamedFields2 = throw '';
+//       ^
+//
+// pkg/front_end/testcases/records/record_type_errors.dart:11:27: Error: Duplicated record type field name 'a'.
+// Try renaming or removing one of the named record type fields.
+// ({int a, String a, double a, bool b, num b}) duplicateNamedFields2 = throw '';
+//                           ^
+// pkg/front_end/testcases/records/record_type_errors.dart:11:7: Context: This is the existing record type field named 'a'.
+// ({int a, String a, double a, bool b, num b}) duplicateNamedFields2 = throw '';
+//       ^
+//
+// pkg/front_end/testcases/records/record_type_errors.dart:11:42: Error: Duplicated record type field name 'b'.
+// Try renaming or removing one of the named record type fields.
+// ({int a, String a, double a, bool b, num b}) duplicateNamedFields2 = throw '';
+//                                          ^
+// pkg/front_end/testcases/records/record_type_errors.dart:11:35: Context: This is the existing record type field named 'b'.
+// ({int a, String a, double a, bool b, num b}) duplicateNamedFields2 = throw '';
+//                                   ^
+//
+import self as self;
+import "dart:core" as core;
+
+static field () emptyType;
+static field (core::int) singleType;
+static field invalid-type missingName;
+static field (invalid-type) missingType;
+static field (core::int) emptyNamedFields;
+static field invalid-type duplicateNamedFields;
+static field invalid-type duplicateNamedFields2;
+static method method() → void
+  ;

@@ -1,0 +1,52 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/invalid_override_named_parameter.dart:10:3: Error: The method 'Sub.foo' doesn't have the named parameter 'y' of overridden method 'Super.foo'.
+//   foo({num x, Symbol x2, bool x3}) {}
+//   ^
+// pkg/front_end/testcases/general/invalid_override_named_parameter.dart:6:3: Context: This is the overridden method ('foo').
+//   foo({num x, String y}) {}
+//   ^
+//
+// pkg/front_end/testcases/general/invalid_override_named_parameter.dart:6:12: Error: The parameter 'x' can't have a value of 'null' because of its type 'num', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+//   foo({num x, String y}) {}
+//            ^
+//
+// pkg/front_end/testcases/general/invalid_override_named_parameter.dart:6:22: Error: The parameter 'y' can't have a value of 'null' because of its type 'String', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+//   foo({num x, String y}) {}
+//                      ^
+//
+// pkg/front_end/testcases/general/invalid_override_named_parameter.dart:10:12: Error: The parameter 'x' can't have a value of 'null' because of its type 'num', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+//   foo({num x, Symbol x2, bool x3}) {}
+//            ^
+//
+// pkg/front_end/testcases/general/invalid_override_named_parameter.dart:10:22: Error: The parameter 'x2' can't have a value of 'null' because of its type 'Symbol', but the implicit default value is 'null'.
+//  - 'Symbol' is from 'dart:core'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+//   foo({num x, Symbol x2, bool x3}) {}
+//                      ^^
+//
+// pkg/front_end/testcases/general/invalid_override_named_parameter.dart:10:31: Error: The parameter 'x3' can't have a value of 'null' because of its type 'bool', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+//   foo({num x, Symbol x2, bool x3}) {}
+//                               ^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Super extends core::Object {
+  synthetic constructor •() → self::Super
+    ;
+  method foo({erroneously-initialized core::num x = null, erroneously-initialized core::String y = null}) → dynamic
+    ;
+}
+class Sub extends self::Super {
+  synthetic constructor •() → self::Sub
+    ;
+  erroneous method foo({erroneously-initialized core::num x = null, erroneously-initialized core::Symbol x2 = null, erroneously-initialized core::bool x3 = null}) → dynamic
+    ;
+}

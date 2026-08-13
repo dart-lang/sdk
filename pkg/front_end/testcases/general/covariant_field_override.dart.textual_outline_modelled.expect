@@ -1,0 +1,13 @@
+class A {
+  num field = 0;
+}
+
+class B {
+  covariant num field = 0;
+}
+
+class C extends A implements B {
+  num field = 0;
+}
+
+main() {}

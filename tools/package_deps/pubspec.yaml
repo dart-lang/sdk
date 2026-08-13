@@ -1,0 +1,17 @@
+name: package_deps
+description: A tool to validate pubspec files in pkg/.
+
+# This package is not intended for consumption on pub.dev. DO NOT publish.
+publish_to: none
+
+environment:
+  sdk: '^3.5.0'
+
+resolution: workspace
+
+dependencies:
+  cli_util: any
+  collection: any
+  path: any
+  pub_semver: any
+  yaml: any

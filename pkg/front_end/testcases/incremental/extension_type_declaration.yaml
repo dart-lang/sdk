@@ -1,0 +1,52 @@
+# Copyright (c) 2023, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Test extension on String from import from dill.
+
+type: newworld
+worlds:
+  - entry: main.dart
+    sources:
+      main.dart: |
+        extension type ExtensionType(int i)  {
+          factory ExtensionType.f(int i) => ExtensionType(i);
+          factory ExtensionType.r(int i) = ExtensionType;
+          int method() => i;
+          int get getter => i;
+          void set setter(int value) {}
+          static void staticMethod() {}
+          static int staticField = 42;
+        }
+        main() {
+          ExtensionType(0).method();
+          ExtensionType.f(0).getter;
+          ExtensionType.r(0).setter = 42;
+          ExtensionType.staticMethod();
+          ExtensionType.staticField = ExtensionType.staticField + 1;
+        }
+    expectedLibraryCount: 1
+  - entry: main.dart
+    invalidate:
+      - main.dart
+    sources:
+      main.dart: |
+        extension type ExtensionType(int i)  {
+          factory ExtensionType.f(int i) => ExtensionType(i);
+          factory ExtensionType.r(int i) = ExtensionType;
+          int method() => i;
+          int get getter => i;
+          void set setter(int value) {}
+          static void staticMethod() {}
+          static int staticField = 42;
+        }
+        main() {
+          ExtensionType(1).method();
+          ExtensionType.f(1).getter;
+          ExtensionType.r(1).setter = 42;
+          ExtensionType.staticMethod();
+          ExtensionType.staticField = ExtensionType.staticField + 2;
+        }
+    expectedLibraryCount: 1
+    advancedInvalidation: bodiesOnly
+

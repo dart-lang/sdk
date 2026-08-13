@@ -1,0 +1,14 @@
+include: ../analysis_options.yaml
+
+analyzer:
+  errors:
+    # There are about 10k violations here due to missing return types on test
+    # methods.
+    inference_failure_on_function_return_type: ignore
+
+    # We sometimes name test classes with an underscore, and have a consistent
+    # practice of doing so. We do not have an problems of naming classes with
+    # snake_case, so we're not missing much by disabling it.
+    camel_case_types: ignore
+    constant_identifier_names: ignore
+    non_constant_identifier_names: ignore

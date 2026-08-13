@@ -1,0 +1,6 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method method(core::Map<dynamic, dynamic> m) → dynamic
+  ;

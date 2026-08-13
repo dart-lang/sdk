@@ -1,0 +1,17 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+abstract class A extends core::Object {
+  synthetic constructor •() → self::A
+    ;
+  set x(core::double value) → void
+    ;
+}
+class B extends self::A {
+  final field core::double x;
+  constructor •(initializing-formal core::double x) → self::B
+    ;
+}
+static method main() → dynamic
+  ;

@@ -1,0 +1,5 @@
+r0 int32
+(r2, r3) int64
+S+0 int32
+=>
+r0 int32

@@ -1,0 +1,82 @@
+// Copyright (c) 2023, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// ignore_for_file: file_names
+
+import 'package:test_reflective_loader/test_reflective_loader.dart';
+
+import '../rule_test_support.dart';
+
+void main() {
+  defineReflectiveSuite(() {
+    defineReflectiveTests(PreferForElementsToMapFromIterableTest);
+  });
+}
+
+@reflectiveTest
+class PreferForElementsToMapFromIterableTest extends LintRuleTest {
+  @override
+  String get lintRule => LintNames.prefer_for_elements_to_map_fromiterable;
+
+  test_hasKeyAndValue_blockBody_multipleStatements() async {
+    await assertNoDiagnostics(r'''
+void f(Iterable<int> i) {
+  Map.fromIterable(i, key: (k) { print(k); return k * 2; }, value: (v) => 0);
+}
+''');
+  }
+
+  test_hasKeyAndValue_blockBody_singleReturn() async {
+    await assertDiagnosticsFromMarkup(r'''
+void f(Iterable<int> i) {
+  [!Map.fromIterable(i, key: (k) { return k * 2; }, value: (v) { return 0; })!];
+}
+''');
+  }
+
+  test_hasKeyAndValue_closuresAreSimple() async {
+    await assertDiagnosticsFromMarkup(r'''
+void f(Iterable<int> i) {
+  [!Map.fromIterable(i, key: (k) => k * 2, value: (v) => 0)!];
+}
+''');
+  }
+
+  test_hasKeyAndValue_closuresReferenceE() async {
+    await assertDiagnosticsFromMarkup(r'''
+void f(Iterable<int> i, int e) {
+  [!Map.fromIterable(i, key: (k) => k * e, value: (v) => v + e)!];
+}
+''');
+  }
+
+  test_hasKeyAndValue_closuresShadowVariable() async {
+    await assertDiagnosticsFromMarkup(r'''
+void f(Iterable<int> i, int k) {
+  [!Map.fromIterable(i, key: (k) => k * 2, value: (v) => k)!];
+}
+''');
+  }
+
+  test_missingKey() async {
+    await assertNoDiagnostics(r'''
+void f(Iterable<int> i) {
+  Map.fromIterable(i, value: (e) => e + 3);
+}
+''');
+  }
+
+  test_nonMap_fromIterable() async {
+    await assertNoDiagnostics(r'''
+void f(Iterable<int> i) {
+  A.fromIterable(i, key: (e) => e * 2, value: (e) => e + 3);
+}
+
+class A<K, V> {
+  A.fromIterable(
+      Iterable<int> i, {K Function(int)? key, V Function(int)? value});
+}
+''');
+  }
+}

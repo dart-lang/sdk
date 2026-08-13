@@ -1,0 +1,32 @@
+// DO NOT EDIT - unless you are editing documentation as per:
+// https://code.google.com/p/dart/wiki/ContributingHTMLDocumentation
+// Auto-generated dart:web_gl library.
+
+/// 3D programming in the browser.
+///
+/// > [!Note]
+/// > This core library is deprecated, and scheduled for removal in late 2025.
+/// > It has been replaced by [package:web](https://pub.dev/packages/web).
+/// > The [migration guide](https://dart.dev/go/package-web) has more details.
+///
+/// {@category Web (Legacy)}
+@Deprecated('Use package:web and dart:js_interop instead.')
+library dart.dom.web_gl;
+
+import 'dart:async';
+import 'dart:collection' hide LinkedList, LinkedListEntry;
+import 'dart:_internal' show FixedLengthListMixin;
+import 'dart:html';
+import 'dart:html_common';
+import 'dart:_native_typed_data';
+import 'dart:typed_data';
+import 'dart:_js_helper' show Creates, JSName, Native, Returns, convertDartClosureToJS;
+import 'dart:_foreign_helper' show JS;
+import 'dart:_interceptors' show JavaScriptObject, JSExtendableArray;
+
+// This comment is an extra padding to work around Flutter license script
+// cutting a copyright notice in the middle of this file because it reads
+// only the first kMaxSize bytes of a file.
+// (https://github.com/flutter/flutter/issues/168065)
+
+$!GENERATED_DART_FILES

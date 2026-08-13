@@ -1,0 +1,5 @@
+class A<TypeX extends A> {}
+
+typedef C<TypeX extends C> = int;
+
+main() {}

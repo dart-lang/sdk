@@ -1,0 +1,11 @@
+void f<T>() {}
+
+void m() {
+f<>();
+}
+
+void[KeywordToken] f[StringToken]<[BeginToken]T[StringToken]>[SimpleToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+
+void[KeywordToken] m[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+f[StringToken]<[BeginToken]>[SimpleToken]([BeginToken])[SimpleToken];[SimpleToken]
+}[SimpleToken][SimpleToken]

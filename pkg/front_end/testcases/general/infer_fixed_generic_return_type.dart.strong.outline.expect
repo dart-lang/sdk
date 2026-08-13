@@ -1,0 +1,56 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+abstract class Base extends core::Object {
+  synthetic constructor •() → self::Base
+    ;
+}
+abstract class MixinA<T extends core::Object? = dynamic> extends core::Object /*isMixinDeclaration*/  {
+  abstract method method(core::Object t) → self::MixinA::T%;
+}
+abstract class Class extends self::_Class&Base&MixinA {
+  synthetic constructor •() → self::Class
+    ;
+  method method(core::Object t) → dynamic
+    ;
+}
+abstract class YamlNode extends core::Object {
+  synthetic constructor •() → self::YamlNode
+    ;
+}
+abstract class Map<K extends core::Object? = dynamic, V extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::Map<self::Map::K%, self::Map::V%>
+    ;
+  abstract operator [](core::Object key) → self::Map::V%;
+}
+abstract class MapMixin<K extends core::Object? = dynamic, V extends core::Object? = dynamic> extends core::Object implements self::Map<self::MapMixin::K%, self::MapMixin::V%> /*isMixinDeclaration*/  {
+  abstract operator [](core::Object key) → self::MapMixin::V%;
+}
+abstract class UnmodifiableMapMixin<K extends core::Object? = dynamic, V extends core::Object? = dynamic> extends core::Object implements self::Map<self::UnmodifiableMapMixin::K%, self::UnmodifiableMapMixin::V%> /*isMixinDeclaration*/  {
+}
+class YamlMap extends self::_YamlMap&YamlNode&MapMixin&UnmodifiableMapMixin {
+  synthetic constructor •() → self::YamlMap
+    ;
+  operator [](core::Object key) → dynamic
+    ;
+}
+abstract class _Class&Base&MixinA = self::Base with self::MixinA<dynamic> /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_Class&Base&MixinA
+    : super self::Base::•()
+    ;
+  abstract synthetic mixin-stub method method(core::Object t) → dynamic; -> self::MixinA::method
+}
+abstract class _YamlMap&YamlNode&MapMixin = self::YamlNode with self::MapMixin<dynamic, dynamic> /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_YamlMap&YamlNode&MapMixin
+    : super self::YamlNode::•()
+    ;
+  abstract synthetic mixin-stub operator [](core::Object key) → dynamic; -> self::MapMixin::[]
+}
+abstract class _YamlMap&YamlNode&MapMixin&UnmodifiableMapMixin = self::_YamlMap&YamlNode&MapMixin with self::UnmodifiableMapMixin<dynamic, dynamic> /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_YamlMap&YamlNode&MapMixin&UnmodifiableMapMixin
+    : super self::_YamlMap&YamlNode&MapMixin::•()
+    ;
+}
+static method main() → dynamic
+  ;

@@ -1,0 +1,16 @@
+extension type ET(int i);
+extension type ET(int i) implements I;
+extension type ET<T>(int i);
+extension type ET<T>(int i) implements I<T>;
+extension type const ET(int i);
+extension type const ET(int i) implements I;
+extension type const ET<T>(int i);
+extension type const ET<T>(int i) implements I<T>;
+extension type ET.named(int i);
+extension type ET.named(int i) implements I;
+extension type ET<T>.named(int i);
+extension type ET<T>.named(int i) implements I<T>;
+extension type const ET.named(int i);
+extension type const ET.named(int i) implements I;
+extension type const ET<T>.named(int i);
+extension type const ET<T>.named(int i) implements I<T>;

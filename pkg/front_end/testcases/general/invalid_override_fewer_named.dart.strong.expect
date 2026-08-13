@@ -1,0 +1,30 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/invalid_override_fewer_named.dart:10:3: Error: The method 'Sub.foo' has fewer named arguments than those of overridden method 'Super.foo'.
+//   foo({num? x}) {}
+//   ^
+// pkg/front_end/testcases/general/invalid_override_fewer_named.dart:6:3: Context: This is the overridden method ('foo').
+//   foo({num? x, String? y}) {}
+//   ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Super extends core::Object {
+  synthetic constructor •() → self::Super
+    : super core::Object::•()
+    ;
+  method foo({core::num? x = #C1, core::String? y = #C1}) → dynamic {}
+}
+class Sub extends self::Super {
+  synthetic constructor •() → self::Sub
+    : super self::Super::•()
+    ;
+  erroneous method foo({core::num? x = #C1}) → dynamic {}
+}
+
+constants  {
+  #C1 = null
+}

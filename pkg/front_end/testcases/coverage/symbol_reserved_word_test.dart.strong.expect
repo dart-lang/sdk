@@ -1,0 +1,15 @@
+library;
+import self as self;
+import "dart:_internal" as _in;
+import "dart:core" as core;
+
+static method foo() → void {
+  dynamic x;
+  x = #C1;
+  x = #C1;
+  x = new _in::Symbol::•("void");
+}
+
+constants  {
+  #C1 = #void
+}

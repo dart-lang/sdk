@@ -1,0 +1,3 @@
+method<T>(T a, T b) {}
+
+main() {}

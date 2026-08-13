@@ -1,0 +1,6 @@
+Class: Foo
+Method: Foo.foo_method1
+Method: Foo.foo_method2
+Class: Bar
+Method: Bar.bar_method1
+Method: Bar.bar_method2

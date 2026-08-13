@@ -1,0 +1,78 @@
+<html>
+
+<head>
+  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+  <script type="text/javascript">
+    google.charts.load('current', { 'packages': ['corechart'] });
+    google.charts.setOnLoadCallback(loaded);
+
+    function drawChart() {
+      var useLogarithmic = document.getElementById('chartLog').checked;
+      try {
+        var benchmarkdata = JSON.parse(document.getElementById('jsondata').value);
+      }
+      catch (e) {
+        document.getElementById('chart_div').innerHTML = "BAD JSON #0!" + e.message;
+        return;
+      }
+      var data = new google.visualization.DataTable();
+      data.addColumn('string', 'Phase');
+
+      var countBenchmarks = benchmarkdata.benchmarkers.length;
+      for (var i = 0; i < countBenchmarks; i++) {
+        data.addColumn('number', 'Run #' + (i + 1));
+      }
+
+      var phaseCount = benchmarkdata.benchmarkers[0].phases.length;
+      for (var i = 0; i < countBenchmarks; i++) {
+        if (benchmarkdata.benchmarkers[i].phases.length != phaseCount) {
+          document.getElementById('chart_div').innerHTML = "BAD JSON #1!";
+          return;
+        }
+      }
+
+      for (var j = 0; j < phaseCount; j++) {
+        var rowArray = [];
+        rowArray.push(benchmarkdata.benchmarkers[0].phases[j].phase);
+        for (var i = 0; i < countBenchmarks; i++) {
+          rowArray.push(benchmarkdata.benchmarkers[i].phases[j].runtime);
+          if (benchmarkdata.benchmarkers[i].phases[j].phase != rowArray[0]) {
+            document.getElementById('chart_div').innerHTML = "BAD JSON #2!";
+            return;
+          }
+        }
+        data.addRow(rowArray);
+      }
+
+      if (useLogarithmic) {
+        var options = {
+          vAxis: {
+            scaleType: 'log'
+          }
+        };
+      } else {
+        var options = {};
+      }
+
+      var chart = new google.visualization.ColumnChart(document.getElementById('chart_div'));
+      chart.draw(data, options);
+    }
+
+    function loaded() {
+      document.getElementById('chartitbutton').disabled = false;
+    }
+  </script>
+</head>
+
+<body>
+  <textarea id="jsondata" rows="20" cols="80"></textarea>
+  <br />
+  <input type="checkbox" id="chartLog">
+  <label for="chartLog"> Use logarithmic scale</label>
+  <br />
+
+  <button id="chartitbutton" onclick="drawChart()" disabled>Chart it!</button>
+  <div id="chart_div" style="width:1200; height:900"></div>
+</body>
+
+</html>

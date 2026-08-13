@@ -1,0 +1,10 @@
+{
+    "configVersion": 2,
+    "packages": [
+        {
+            "name": "foo",
+            "rootUri": "../lib/",
+            "languageVersion": "%TOO_HIGH_VERSION_MARKER%"
+        }
+    ]
+}

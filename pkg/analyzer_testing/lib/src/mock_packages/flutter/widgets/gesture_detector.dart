@@ -1,0 +1,82 @@
+// Copyright (c) 2025, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:analyzer_testing/src/mock_packages/mock_library.dart';
+
+final widgetsGestureDetectorLibrary = MockLibraryUnit(
+  'lib/src/widgets/gesture_detector.dart',
+  r'''
+import 'package:flutter/widgets.dart';
+
+class GestureDetector extends StatelessWidget {
+  GestureDetector({
+    super.key,
+    Widget? child,
+    GestureTapDownCallback? onTapDown,
+    GestureTapUpCallback? onTapUp,
+    GestureTapCallback? onTap,
+    GestureTapMoveCallback? onTapMove,
+    GestureTapCancelCallback? onTapCancel,
+    GestureTapCallback? onSecondaryTap,
+    GestureTapDownCallback? onSecondaryTapDown,
+    GestureTapUpCallback? onSecondaryTapUp,
+    GestureTapCancelCallback? onSecondaryTapCancel,
+    GestureTapDownCallback? onTertiaryTapDown,
+    GestureTapUpCallback? onTertiaryTapUp,
+    GestureTapCancelCallback? onTertiaryTapCancel,
+    GestureTapDownCallback? onDoubleTapDown,
+    GestureTapCallback? onDoubleTap,
+    GestureTapCancelCallback? onDoubleTapCancel,
+    GestureLongPressDownCallback? onLongPressDown,
+    GestureLongPressCancelCallback? onLongPressCancel,
+    GestureLongPressCallback? onLongPress,
+    GestureLongPressStartCallback? onLongPressStart,
+    GestureLongPressMoveUpdateCallback? onLongPressMoveUpdate,
+    GestureLongPressUpCallback? onLongPressUp,
+    GestureLongPressEndCallback? onLongPressEnd,
+    GestureLongPressDownCallback? onSecondaryLongPressDown,
+    GestureLongPressCancelCallback? onSecondaryLongPressCancel,
+    GestureLongPressCallback? onSecondaryLongPress,
+    GestureLongPressStartCallback? onSecondaryLongPressStart,
+    GestureLongPressMoveUpdateCallback? onSecondaryLongPressMoveUpdate,
+    GestureLongPressUpCallback? onSecondaryLongPressUp,
+    GestureLongPressEndCallback? onSecondaryLongPressEnd,
+    GestureLongPressDownCallback? onTertiaryLongPressDown,
+    GestureLongPressCancelCallback? onTertiaryLongPressCancel,
+    GestureLongPressCallback? onTertiaryLongPress,
+    GestureLongPressStartCallback? onTertiaryLongPressStart,
+    GestureLongPressMoveUpdateCallback? onTertiaryLongPressMoveUpdate,
+    GestureLongPressUpCallback? onTertiaryLongPressUp,
+    GestureLongPressEndCallback? onTertiaryLongPressEnd,
+    GestureDragDownCallback? onVerticalDragDown,
+    GestureDragStartCallback? onVerticalDragStart,
+    GestureDragUpdateCallback? onVerticalDragUpdate,
+    GestureDragEndCallback? onVerticalDragEnd,
+    GestureDragCancelCallback? onVerticalDragCancel,
+    GestureDragDownCallback? onHorizontalDragDown,
+    GestureDragStartCallback? onHorizontalDragStart,
+    GestureDragUpdateCallback? onHorizontalDragUpdate,
+    GestureDragEndCallback? onHorizontalDragEnd,
+    GestureForcePressStartCallback? onForcePressStart,
+    GestureForcePressPeakCallback? onForcePressPeak,
+    GestureForcePressUpdateCallback? onForcePressUpdate,
+    GestureForcePressEndCallback? onForcePressEnd,
+    GestureDragDownCallback? onPanDown,
+    GestureDragStartCallback? onPanStart,
+    GestureDragUpdateCallback? onPanUpdate,
+    GestureDragEndCallback? onPanEnd,
+    GestureDragCancelCallback? onPanCancel,
+    GestureScaleStartCallback? onScaleStart,
+    GestureScaleUpdateCallback? onScaleUpdate,
+    GestureScaleEndCallback? onScaleEnd,
+    HitTestBehavior? behavior,
+    bool excludeFromSemantics = false,
+    DragStartBehavior dragStartBehavior = DragStartBehavior.start,
+    bool trackpadScrollCausesScale = false,
+    Offset trackpadScrollToScaleFactor = kDefaultTrackpadScrollToScaleFactor,
+    Set<PointerDeviceKind>? supportedDevices,
+  });
+}
+''',
+);

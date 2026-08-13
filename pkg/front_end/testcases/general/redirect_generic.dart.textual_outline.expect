@@ -1,0 +1,7 @@
+class Class<T> {
+  factory Class(void Function(T) f) = ClassImpl<T>;
+}
+
+class ClassImpl<T> implements Class<T> {
+  ClassImpl(void Function(T) f);
+}

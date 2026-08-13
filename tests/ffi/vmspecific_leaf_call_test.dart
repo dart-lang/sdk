@@ -1,0 +1,67 @@
+// Copyright (c) 2021, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+//
+// SharedObjects=ffi_test_functions
+
+// Formatting can break multitests, so don't format them.
+// dart format off
+
+import 'dart:ffi';
+import 'dart:io';
+
+import 'package:expect/expect.dart';
+
+import 'callback_tests_utils.dart';
+import 'dylib_utils.dart';
+
+DynamicLibrary ffiTestFunctions = dlopenPlatformSpecific("ffi_test_functions");
+
+testLeafCall() {
+  // Regular calls should transition to native mode.
+  final isThreadInNative = ffiTestFunctions
+      .lookupFunction<Int8 Function(), int Function()>("IsThreadInNative");
+  Expect.equals(1, isThreadInNative());
+  // Leaf calls should remain in generated state for compiled code, or
+  // in the VM (due to FFI calls being implemented as a runtime call)
+  // for interpreted code.
+  final isThreadInNativeLeaf = ffiTestFunctions
+      .lookupFunction<Int8 Function(), int Function()>("IsThreadInNative",
+          isLeaf: true);
+  Expect.equals(0, isThreadInNativeLeaf());
+}
+
+testLeafCallApi() {
+  // Note: This will only crash as expected in debug build mode. In other modes
+  // it's effectively skip.
+  final f = ffiTestFunctions.lookupFunction<Void Function(), void Function()>(
+      "TestLeafCallApi",
+      isLeaf: true);
+  // Calling Dart_.. API is unsafe from leaf calls since we explicitly haven't
+  // made the generated -> native transition.
+  f();
+}
+
+void nop() {}
+
+testCallbackLeaf() {
+  // This should crash with "expected: T->IsAtSafepoint()", since it's unsafe to
+  // do callbacks from leaf calls (otherwise they wouldn't be leaf calls).
+  // Note: This will only crash as expected in debug build mode. In other modes
+  // it's effectively skip.
+  CallbackTest("CallbackLeaf", Pointer.fromFunction<Void Function()>(nop),
+          isLeaf: true)
+      .run();
+}
+
+main() {
+  testLeafCall();
+  // These tests terminate the process after successful completion, so we have
+  // to run them separately.
+  //
+  // Since they use signal handlers they only run on Linux.
+  if (Platform.isLinux && !const bool.fromEnvironment("dart.vm.product")) {
+    testLeafCallApi();
+    testCallbackLeaf();
+  }
+}

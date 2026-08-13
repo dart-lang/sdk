@@ -1,0 +1,77 @@
+{
+  "constants": [
+    {
+      "definition_index": 1,
+      "index": 0,
+      "name": "a",
+      "type": "enum"
+    },
+    {
+      "definition_index": 1,
+      "index": 1,
+      "name": "b",
+      "type": "enum"
+    },
+    {
+      "definition_index": 0,
+      "type": "instance",
+      "value": {
+        "a": 0
+      }
+    }
+  ],
+  "definitions": [
+    {
+      "path": [
+        {
+          "kind": "class",
+          "name": "MyClass"
+        }
+      ],
+      "uri": "package:record_use_test/record_enum.dart"
+    },
+    {
+      "path": [
+        {
+          "kind": "enum",
+          "name": "A"
+        }
+      ],
+      "uri": "package:record_use_test/record_enum.dart"
+    }
+  ],
+  "loading_units": [
+    {
+      "name": "1"
+    }
+  ],
+  "uses": {
+    "instances": [
+      {
+        "definition_index": 0,
+        "uses": [
+          {
+            "constant_index": 2,
+            "loading_unit_index": 0,
+            "type": "constant"
+          }
+        ]
+      },
+      {
+        "definition_index": 1,
+        "uses": [
+          {
+            "constant_index": 0,
+            "loading_unit_index": 0,
+            "type": "constant"
+          },
+          {
+            "constant_index": 1,
+            "loading_unit_index": 0,
+            "type": "constant"
+          }
+        ]
+      }
+    ]
+  }
+}

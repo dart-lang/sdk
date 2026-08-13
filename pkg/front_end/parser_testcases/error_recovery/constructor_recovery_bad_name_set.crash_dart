@@ -1,0 +1,11 @@
+class Foo {
+  set foo.x() {
+    // Not OK.
+  }
+  set foo.x() : initializer = true {
+    // Not OK.
+  }
+  set foo() : initializer = true {
+    // Not OK.
+  }
+}

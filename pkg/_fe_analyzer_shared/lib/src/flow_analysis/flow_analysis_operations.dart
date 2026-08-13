@@ -1,0 +1,151 @@
+// Copyright (c) 2023, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+/// @docImport 'flow_analysis.dart';
+/// @docImport '../field_promotability.dart';
+/// @docImport '../type_inference/type_analyzer_operations.dart';
+library;
+
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
+
+/// Callback API used by flow analysis to query and manipulate the client's
+/// representation of variables and types.
+abstract interface class FlowAnalysisOperations<Variable extends Object>
+    implements FlowAnalysisTypeOperations {
+  /// Whether the given [variable] was declared with the `final` modifier.
+  bool isFinal(Variable variable);
+
+  /// Determines whether the given property can be promoted.
+  ///
+  /// [property] will correspond to a `propertyMember` value passed to
+  /// [FlowAnalysis.promotedPropertyType], [FlowAnalysis.propertyGet], or
+  /// [FlowAnalysis.pushPropertySubpattern].
+  ///
+  /// This method will not be called if field promotion is disabled for the
+  /// current library.
+  bool isPropertyPromotable(Object property);
+
+  /// Returns the static type of the given [variable].
+  SharedTypeView variableType(Variable variable);
+
+  /// Returns additional information about why a given property couldn't be
+  /// promoted. [property] will correspond to a `propertyMember` value passed to
+  /// [FlowAnalysis.promotedPropertyType], [FlowAnalysis.propertyGet], or
+  /// [FlowAnalysis.pushPropertySubpattern].
+  ///
+  /// This method is only called if a closure returned by
+  /// [FlowAnalysis.whyNotPromoted] is invoked, and the expression being queried
+  /// is a reference to a private property that wasn't promoted; this typically
+  /// means that an error occurred and the client is attempting to produce a
+  /// context message to provide additional information about the error (i.e.,
+  /// that the error happened due to failed promotion).
+  ///
+  /// The client should return `null` if [property] was not promotable due to a
+  /// conflict with a field, getter, or noSuchMethod forwarder elsewhere in the
+  /// library; if this happens, the closure returned by
+  /// [FlowAnalysis.whyNotPromoted] will yield an object of type
+  /// [PropertyNotPromotedForNonInherentReason] containing enough information
+  /// for the client to be able to generate the appropriate context information.
+  ///
+  /// If this method is called when analyzing a library for which field
+  /// promotion is disabled, and the property in question *would* have been
+  /// promotable if field promotion had been enabled, the client should return
+  /// `null`; otherwise it should behave as if field promotion were enabled.
+  PropertyNonPromotabilityReason? whyPropertyIsNotPromotable(Object property);
+}
+
+/// Callback API used by flow analysis to query and manipulate the client's
+/// representation of types.
+abstract interface class FlowAnalysisTypeOperations {
+  /// Returns the client's representation of the type `bool`.
+  SharedTypeView get boolType;
+
+  /// Classifies the given type into one of the three categories defined by
+  /// the [TypeClassification] enum.
+  TypeClassification classifyType(SharedTypeView type);
+
+  /// If [type] is an extension type, returns the ultimate representation type.
+  /// Otherwise returns [type] as is.
+  SharedTypeView extensionTypeErasure(SharedTypeView type);
+
+  /// Returns the "remainder" of [from] when [what] has been removed from
+  /// consideration by an instance check.
+  SharedTypeView factor(SharedTypeView from, SharedTypeView what);
+
+  /// Determines whether the given [type] is a bottom type.
+  ///
+  /// A type is a bottom type if it:
+  /// (a) is the `Never` type itself.
+  /// (b) is a type variable that extends `Never`, OR
+  /// (c) is a type variable that has been promoted to `Never`
+  bool isBottomType(SharedTypeView type);
+
+  /// Return `true` if the [leftType] is a subtype of the [rightType].
+  bool isSubtypeOf(SharedTypeView leftType, SharedTypeView rightType);
+
+  /// Returns `true` if [type] is a reference to a type parameter.
+  bool isTypeParameterType(SharedTypeView type);
+
+  /// Returns `true` if [type] represents the invalid type, i.e. the type of
+  /// an invalid expression.
+  bool isInvalidType(SharedTypeView type);
+
+  /// Computes the nullable form of [type], in other words the least upper bound
+  /// of [type] and `Null`.
+  ///
+  /// The concrete classes implementing [TypeAnalyzerOperations] should mix in
+  /// [TypeAnalyzerOperationsMixin] and implement
+  /// [TypeAnalyzerOperations.makeNullableInternal] to receive a concrete
+  /// implementation of [makeNullable] instead of implementing [makeNullable]
+  /// directly.
+  SharedTypeView makeNullable(SharedTypeView type);
+
+  /// Returns the non-null promoted version of [type].
+  ///
+  /// Note that some types don't have a non-nullable version (e.g.
+  /// `FutureOr<int?>`), so [type] may be returned even if it is nullable.
+  SharedTypeView promoteToNonNull(SharedTypeView type);
+
+  /// Tries to promote to the first type from the second type, and returns the
+  /// promoted type if it succeeds, otherwise null.
+  SharedTypeView? tryPromoteToType(SharedTypeView to, SharedTypeView from);
+}
+
+/// Possible reasons why a property may not be promotable.
+///
+/// This enum captures the possible non-promotability reasons that are inherent
+/// to the property declaration itself. A property may also be non-promotable
+/// because field promotion is disabled, or due to a conflict with another
+/// declaration; the code that handles those two reasons doesn't use this enum.
+///
+/// Some of these reasons are distinguished by [FieldPromotability.addField];
+/// others must be distinguished by the client.
+enum PropertyNonPromotabilityReason {
+  /// The property is not promotable because it's not a field (it's either a
+  /// getter or a tear-off of a method).
+  isNotField,
+
+  /// The property is not promotable because its name is public.
+  isNotPrivate,
+
+  /// The property is not promotable because it's an external field.
+  isExternal,
+
+  /// The property is not promotable because it's a non-final field.
+  isNotFinal,
+}
+
+/// Enum representing the different classifications of types that can be
+/// returned by [FlowAnalysisTypeOperations.classifyType].
+enum TypeClassification {
+  /// The type is `Null` or an equivalent type (e.g. `Never?`)
+  nullOrEquivalent,
+
+  /// The type is a potentially nullable type, but not equivalent to `Null`
+  /// (e.g. `int?`, or a type variable whose bound is potentially nullable)
+  potentiallyNullable,
+
+  /// The type is a non-nullable type.
+  nonNullable,
+}

@@ -1,0 +1,26 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method test(positional-parameter list) → dynamic/* scope=[
+  #ctx1: not-captured VariableContext([
+    positional-parameter list;
+  ]),
+] */ /* scope=[
+  #ctx2: not-captured VariableContext([
+    local-variable s;
+  ]),
+] */ {
+  s := "";
+  for /* scope=[
+    #ctx3: not-captured VariableContext([
+      synthetic-variable final #t1;
+    ]),
+  ] */ (synthetic-variable final #t1 in list) {
+    s = #t1;
+    if(s.{core::String::isNotEmpty}{core::bool}) {
+      return s;
+    }
+  }
+  return s;
+}

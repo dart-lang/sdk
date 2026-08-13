@@ -1,0 +1,52 @@
+class Number {
+  final int value;
+  Number(this.value);
+  int get hashCode => value.hashCode;
+  bool operator ==(Object other) => other is Number && value == other.value;
+  String toString() => 'Number($value)';
+}
+
+extension NumberExtension on Number {
+  Number operator +(Object other) {}
+  Number operator -(Object other) {}
+}
+
+class Class {
+  Number field;
+  Class(this.field);
+}
+
+extension ClassExtension on Class {
+  Number get property => field;
+  void set property(Number value) {}
+  testImplicitProperties() {}
+}
+
+class IntClass {
+  int field;
+  IntClass(this.field);
+}
+
+extension IntClassExtension on IntClass {
+  int get property => field;
+  void set property(int value) {}
+  testImplicitProperties() {}
+}
+
+main() {}
+
+testLocals() {}
+
+testProperties() {}
+
+testIntProperties() {}
+
+testExplicitProperties() {}
+
+testExplicitIntProperties() {}
+
+testExplicitNullAwareProperties(Class? v) {}
+
+testExplicitNullAwareIntProperties(IntClass? v) {}
+
+expect(expected, actual, [expectNull = false]) {}

@@ -1,0 +1,15 @@
+library test;
+
+class A<T> {
+  final T x = throw '';
+  final T w = throw '';
+}
+
+class B implements A<int> {
+  get x => 3;
+  get w => "hello";
+}
+
+foo() {}
+
+main() {}

@@ -1,0 +1,10 @@
+class A {
+  int field;
+  A(this.field);
+}
+
+class B extends A {
+  B(int field) : super(field);
+}
+
+main() {}

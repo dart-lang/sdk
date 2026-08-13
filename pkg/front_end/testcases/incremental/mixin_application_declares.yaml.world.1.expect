@@ -1,0 +1,45 @@
+main = main::main;
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "org-dartlang-test:///main_lib2.dart";
+
+  static method main() → dynamic {
+    mai::method();
+  }
+}
+library from "org-dartlang-test:///main_lib1.dart" as mai2 {
+
+  class SuperClass extends dart.core::Object {
+    synthetic constructor •() → mai2::SuperClass
+      : super dart.core::Object::•()
+      ;
+    method method(covariant-by-declaration dart.core::int i) → void {}
+  }
+  abstract class Mixin extends dart.core::Object /*isMixinDeclaration*/  {
+    method method(dart.core::num i) → void {}
+  }
+  class Class extends mai2::_Class&SuperClass&Mixin {
+    synthetic constructor •() → mai2::Class
+      : super mai2::_Class&SuperClass&Mixin::•()
+      ;
+  }
+  abstract class _Class&SuperClass&Mixin = mai2::SuperClass with mai2::Mixin /*isAnonymousMixin*/  {
+    synthetic constructor •() → mai2::_Class&SuperClass&Mixin
+      : super mai2::SuperClass::•()
+      ;
+    forwarding-stub synthetic method method(covariant-by-declaration dart.core::num i) → void
+      return super.{mai2::Mixin::method}(i);
+  }
+}
+library from "org-dartlang-test:///main_lib2.dart" as mai {
+
+  import "org-dartlang-test:///main_lib1.dart";
+
+  class SubClass extends mai2::Class {
+    synthetic constructor •() → mai::SubClass
+      : super mai2::Class::•()
+      ;
+  }
+  static method method() → dynamic
+    return new mai::SubClass::•().{mai2::_Class&SuperClass&Mixin::method}(0){(dart.core::num) → void};
+}

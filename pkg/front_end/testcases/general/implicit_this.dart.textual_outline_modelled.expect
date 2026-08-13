@@ -1,0 +1,10 @@
+class C {
+  m() {}
+  testC() {}
+}
+
+class D extends C {
+  testD() {}
+}
+
+main() {}

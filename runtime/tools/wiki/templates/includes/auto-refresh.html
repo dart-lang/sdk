@@ -1,0 +1,15 @@
+{% if dev %}
+<script>
+  (function() {
+    let ws = new WebSocket(`ws://${location.host}/ws`);
+    ws.onopen = function (event) {
+      console.log('WebSocket connected');
+    };
+    ws.onmessage = function (event) {
+      if (event.data == 'reload') {
+        location.reload(true);
+      }
+    };
+  })();
+</script>
+{% endif %}

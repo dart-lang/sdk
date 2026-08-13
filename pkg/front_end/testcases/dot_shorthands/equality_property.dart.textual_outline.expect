@@ -1,0 +1,8 @@
+class Color {
+  final int x;
+  static Color get red => Color(1);
+  static Color get blue => Color(2);
+  Color(this.x);
+}
+
+void main() {}

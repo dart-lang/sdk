@@ -1,0 +1,10 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+import "dart:math";
+
+static method f(core::num x, dynamic y) → dynamic
+  ;
+static method main() → dynamic
+  ;

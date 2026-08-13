@@ -1,0 +1,15 @@
+{
+  "configVersion": 2,
+  "packages": [
+    {
+      "name": "foo",
+      "rootUri": "pkg/foo/",
+      "packageUri": "lib/"
+    },
+    {
+      "name": "options_include_directive_tests_project",
+      "rootUri": ".",
+      "packageUri": "lib/"
+    }
+  ]
+}

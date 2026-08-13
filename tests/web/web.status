@@ -1,0 +1,80 @@
+# Copyright (c) 2022, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+[ $compiler != dart2js ]
+dart2js/*: SkipByDesign # tests specific to dart2js
+
+[ $compiler == dart2wasm ]
+(?!wasm)*: SkipByDesign
+wasm/multi_module_stress_test: Slow, Pass # Large stress test by design
+
+[ $compiler != dart2wasm ]
+wasm/*: SkipByDesign
+
+[ $compiler == ddc ]
+async_stacktrace_test: Skip # Issue 53555
+js_error_stack_trace_test: SkipByDesign # Stack trace discrepancy between dart2js/wasm and ddc
+native/*: Skip # dart2js tests for native keyword
+wasm_js_shared/weak_reference_polyfill_test: SkipByDesign # Test specific for the dart2js/dart2wasm runtime
+
+[ $runtime == d8 ]
+dart2js/deferred_with_cross_origin_test: SkipByDesign # Requires dom
+dart2js/deferred_with_csp_nonce2_test: SkipByDesign # Requires dom
+dart2js/deferred_with_csp_nonce_test: SkipByDesign # Requires dom
+internal/html_mocks_with_static_interop_test: SkipByDesign # Browser test
+internal/object_members_test: SkipByDesign # Browser test
+
+[ $browser ]
+native/*: Skip
+
+[ $compiler == dart2js && $mode == debug ]
+operator_test: Skip
+string_interpolation_test: Skip
+
+[ $compiler == dart2js && $runtime == chrome && $system == windows ]
+closure_capture3_test: Slow, Pass # Issue 25940
+closure_capture5_test: Slow, Pass # Issue 25940
+conditional_test: Slow, Pass # Issue 25940
+consistent_codeUnitAt_error_test: Slow, Pass # Issue 25940
+constant_javascript_semantics2_test: Slow, Pass # Issue 25940
+deferred_split_test: Slow, Pass # Issue 25940
+
+[ $compiler == dart2js && $runtime == ff && $system == windows ]
+consistent_index_error_string_test: Slow, Pass # Issue 25940
+
+[ $compiler == dart2js && $csp ]
+dart2js/deferred_fail_and_retry_test: SkipByDesign # Uses eval to simulate failed loading.
+internal/40296_test: SkipByDesign # Uses eval
+internal/deferred/deferred_custom_loader: SkipByDesign # Uses eval
+internal/deferred/load_in_correct_order_test: SkipByDesign # Uses eval
+internal/deferred/load_multiple_in_correct_order_test: SkipByDesign # Uses eval
+internal/deferred/load_with_priority_test: SkipByDesign # Uses eval
+internal/object_members_test: SkipByDesign # Uses eval for interop
+internal/rti/js_interop_subtype_test: SkipByDesign # Uses eval
+js_error_stack_trace_test: SkipByDesign # Uses eval for interop
+js_interop_generic_cast_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
+js_interop_non_null_asserts_disabled_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
+js_interop_non_null_asserts_enabled_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
+js_interop_optional_arg_test: SkipByDesign # Uses eval
+js_interop_test: SkipByDesign # Uses eval
+regress/issue/40152a_test: SkipByDesign # Uses eval
+regress/issue/49129_test: SkipByDesign # Uses eval for interop
+
+[ $compiler == dart2js && !$host_asserts ]
+deferred/many_parts/many_parts_test: Slow, Pass # Large stress test by design
+
+[ $compiler == dart2js && ($runtime == ff || $runtime == jsshell || $runtime == safari) ]
+dart2js/code_motion_exception_test: Skip # Required V8 specific format of JavaScript errors.
+
+[ $compiler == dart2wasm && $runtime != d8 ]
+wasm/source_map_simple_optimized_deferred_test: SkipByDesign # Reads source map file using d8's readbuffer
+wasm/source_map_simple_optimized_test: SkipByDesign # Reads source map file using d8's readbuffer
+wasm/source_map_simple_test: SkipByDesign # Reads source map file using d8's readbuffer
+
+[ $compiler == dart2wasm && ($runtime == d8 || $runtime == jsc || $runtime == jsshell) ]
+wasm/multi_module_stress_test: SkipByDesign # DataView fails to load necessary input file.
+
+[ $compiler == dartk && $runtime == vm ]
+new_from_env_test: SkipByDesign # dart2js only test
+unconditional_dartio_import_test: SkipByDesign # dart2js only test

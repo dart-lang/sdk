@@ -1,0 +1,15 @@
+library test;
+
+class C {
+  operator []=(int index, dynamic value) {}
+}
+
+abstract class I {
+  void operator []=(int index, dynamic value) {}
+}
+
+class D extends C implements I {
+  operator []=(int index, value) {}
+}
+
+main() {}

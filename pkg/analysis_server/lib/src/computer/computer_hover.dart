@@ -1,0 +1,363 @@
+// Copyright (c) 2014, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:analysis_server/protocol/protocol_generated.dart'
+    show HoverInformation;
+import 'package:analysis_server/src/computer/computer_documentation.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/element_locator.dart';
+import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
+import 'package:path/path.dart' as path;
+
+/// Information about a library to display in a hover.
+typedef _LibraryInfo = ({String? libraryName, String? libraryPath})?;
+typedef _OffsetLength = ({int offset, int length});
+
+/// A computer for the hover at the specified offset of a Dart
+/// [CompilationUnit].
+class DartUnitHoverComputer {
+  final CompilationUnit _unit;
+  final int _offset;
+  final DartDocumentationComputer _documentationComputer;
+
+  new(DartdocDirectiveInfo dartdocInfo, this._unit, this._offset)
+    : _documentationComputer = DartDocumentationComputer(dartdocInfo);
+
+  /// Returns the computed hover, maybe `null`.
+  HoverInformation? compute() {
+    var node = _unit.nodeCovering(offset: _offset);
+    if (node == null) {
+      return null;
+    }
+
+    var locationEntity = _locationEntity(node, _offset);
+    node = _targetNode(node);
+    if (node == null || locationEntity == null) {
+      return null;
+    }
+
+    if (node is CompilationUnitMember ||
+        node is CatchClauseParameter ||
+        node is EnumConstantDeclaration ||
+        node is Expression ||
+        node is FormalParameter ||
+        node is MethodDeclaration ||
+        node is NamedArgument ||
+        node is NamedType ||
+        node is ConstructorDeclaration ||
+        node is DeclaredIdentifier ||
+        node is RecordLiteralNamedField ||
+        node is VariableDeclaration ||
+        node is VariablePattern ||
+        node is PatternFieldName ||
+        node is PrimaryConstructorBody ||
+        node is PrimaryConstructorDeclaration ||
+        node is PrimaryConstructorName ||
+        node is DartPattern ||
+        (node is LibraryDirective && node.name == null) ||
+        (node is SimpleIdentifier && node.parent is ImportDirective) ||
+        node is ImportPrefixReference) {
+      var range = _hoverRange(node, locationEntity);
+      var hover = HoverInformation(range.offset, range.length);
+      // element
+      var element = ElementLocator.locate(node);
+      if (element != null) {
+        // short code that illustrates the element meaning.
+        hover.elementDescription = _elementDisplayString(node, element);
+        hover.elementKind = element.kind.displayName;
+        hover.isDeprecated = element.isDeprecatedWithKind('use');
+        // not local element
+        if (element.enclosingElement is! ExecutableElement) {
+          // containing class
+          hover.containingClassDescription = _containingClass(element);
+          // containing library
+          var libraryInfo = _libraryInfo(element);
+          hover.containingLibraryName = libraryInfo?.libraryName;
+          hover.containingLibraryPath = libraryInfo?.libraryPath;
+        }
+        // documentation
+        hover.dartdoc = _documentationComputer.compute(element)?.full;
+      }
+      // parameter
+      hover.parameter = _parameterDisplayString(node);
+      // types
+      hover.staticType = _typeDisplayString(node, element);
+      // done
+      return hover;
+    }
+    // not an expression
+    return null;
+  }
+
+  /// Gets the name of the containing class of [element].
+  String? _containingClass(Element element) {
+    var containingClass = element.thisOrAncestorOfType<InterfaceElement>();
+    return containingClass != null && containingClass != element
+        ? containingClass.displayName
+        : null;
+  }
+
+  /// Gets the display string for [element].
+  ///
+  /// This is usually `element.getDisplayString()` but may contain additional
+  /// information to disambiguate things like constructors from types (and
+  /// whether they are const).
+  String? _elementDisplayString(AstNode node, Element? element) {
+    var displayString = element?.displayString(multiline: true);
+
+    if (displayString != null) {
+      if (node is InstanceCreationExpression && node.keyword == null) {
+        var prefix = node.isConst ? '(const) ' : '(new) ';
+        displayString = prefix + displayString;
+      } else if (node is DotShorthandConstructorInvocation) {
+        var prefix = node.isConst ? '(const) ' : '(new) ';
+        displayString = prefix + displayString;
+      }
+    }
+
+    return displayString;
+  }
+
+  /// Computes the range this hover applies to.
+  ///
+  /// This is usually the range of [entity] but may be adjusted for entities
+  /// like constructor names.
+  _OffsetLength _hoverRange(AstNode node, SyntacticEntity entity) {
+    // For constructors, the location should cover the type name and
+    // constructor name (for both calls and declarations).
+    if (node is InstanceCreationExpression) {
+      return (
+        offset: node.constructorName.offset,
+        length: node.constructorName.length,
+      );
+    } else if (node is DotShorthandConstructorInvocation) {
+      return (offset: node.offset, length: node.length);
+    } else if (node is ConstructorDeclaration) {
+      var offset =
+          node.typeName?.offset ??
+          node.newKeyword?.offset ??
+          node.factoryKeyword!.offset;
+      var end =
+          node.name?.end ??
+          node.typeName?.end ??
+          node.newKeyword?.end ??
+          node.factoryKeyword!.end;
+      var length = end - offset;
+      return (offset: offset, length: length);
+    } else if (node is PrimaryConstructorDeclaration) {
+      if (node.constructorName != null) {
+        return (offset: entity.offset, length: entity.length);
+      }
+      var offset = node.typeName.offset;
+      var end = node.typeName.end;
+      var length = end - offset;
+      return (offset: offset, length: length);
+    } else {
+      return (offset: entity.offset, length: entity.length);
+    }
+  }
+
+  /// Returns information about the library that contains [element].
+  _LibraryInfo _libraryInfo(Element element) {
+    var library = element.library;
+    if (library == null) {
+      return null;
+    }
+
+    var definingSource = library.firstFragment.source;
+    var uri = definingSource.uri;
+    var analysisSession = _unit.declaredFragment?.element.session;
+
+    String? libraryName, libraryPath;
+    // for 'file:' URIs, use the path after the package root
+    if (uri.isScheme('file') && analysisSession != null) {
+      var pathContext = analysisSession.resourceProvider.pathContext;
+      var libraryFilePath = pathContext.fromUri(uri);
+      var contextRoot = analysisSession.analysisContext.contextRoot;
+      var workspace = contextRoot.workspace;
+
+      // Prefer using the root of the package that contains this library, since
+      // the context root could now be a Pub Workspace. If we don't find one,
+      // fall back to the context root.
+      var package = workspace.packages.packageForPath(libraryFilePath);
+      var packageRootDir = package?.rootFolder.path ?? contextRoot.root.path;
+
+      var relativePath = pathContext.relative(
+        libraryFilePath,
+        from: packageRootDir,
+      );
+      if (pathContext.style == path.Style.windows) {
+        var pathList = pathContext.split(relativePath);
+        libraryName = pathList.join('/');
+      } else {
+        libraryName = relativePath;
+      }
+    } else {
+      libraryName = uri.toString();
+    }
+    libraryPath = definingSource.fullName;
+
+    return (libraryName: libraryName, libraryPath: libraryPath);
+  }
+
+  /// Returns the [SyntacticEntity] that should be used as the range for this
+  /// hover.
+  ///
+  /// Returns `null` if there is no valid entity for this hover.
+  SyntacticEntity? _locationEntity(AstNode node, int offset) {
+    return switch (node) {
+      BinaryExpression() => node.operator,
+      ConditionalExpression()
+          when offset >= node.question.offset && offset <= node.question.end =>
+        node.question,
+      ConditionalExpression()
+          when offset >= node.colon.offset && offset <= node.colon.end =>
+        node.colon,
+      AssignmentExpression() => node.operator,
+      PrefixExpression() => node.operator,
+      PostfixExpression() => node.operator,
+      CatchClauseParameter() => node.name,
+      ClassDeclaration() => node.namePart.typeName,
+      ConstructorDeclaration() =>
+        node.name ?? node.typeName ?? node.newKeyword ?? node.factoryKeyword,
+      DeclaredIdentifier() => node.name,
+      EnumConstantDeclaration() => node.name,
+      EnumDeclaration() => node.namePart.typeName,
+      Expression() => node,
+      ExtensionDeclaration() => node.name,
+      ExtensionTypeDeclaration() => node.namePart.typeName,
+      FormalParameter() => node.name,
+      FunctionDeclaration() => node.name,
+      ImportPrefixReference() => node.name,
+      LibraryDirective() => node.libraryKeyword,
+      MethodDeclaration() => node.name,
+      NamedArgument() => node.name,
+      MixinDeclaration() => node.name,
+      NameWithTypeParameters() => node.typeName,
+      NamedType() => node.name,
+      PatternFieldName() => node.name,
+      PrimaryConstructorBody() =>
+        node.declaration?.constructorName ?? node.declaration?.typeName,
+      PrimaryConstructorDeclaration() => node.constructorName ?? node.typeName,
+      PrimaryConstructorName() => node.name,
+      RecordLiteralNamedField() => node.name,
+      TypeAlias() => node.name,
+      VariableDeclaration() => node.name,
+      VariablePattern() => node.name,
+      WildcardPattern() => node.name,
+      _ => null,
+    };
+  }
+
+  /// Gets the display string for the type of the parameter.
+  ///
+  /// Returns `null` if the node doesn't correspond to a parameter.
+  String? _parameterDisplayString(AstNode node) {
+    FormalParameterElement? parameter;
+    if (node is Argument) {
+      parameter = node.correspondingParameter;
+    }
+    return switch (parameter?.enclosingElement) {
+      // Expressions passed as arguments to setters and binary expressions
+      // will have parameters here but we don't want them to show as such in
+      // hovers because information about those functions are already available
+      // by hovering over the function name or the operator.
+      SetterElement() => null,
+      MethodElement method when method.isOperator => null,
+      _ => _elementDisplayString(node, parameter),
+    };
+  }
+
+  /// Adjusts the target node for constructors.
+  AstNode? _targetNode(AstNode node) {
+    var parent = node.parent;
+    var parent2 = parent?.parent;
+    if (node is ClassNamePart) {
+      return parent;
+    } else if (parent is NamedType &&
+        parent2 is ConstructorName &&
+        parent2.parent is InstanceCreationExpression) {
+      return parent2.parent;
+    } else if (parent is ConstructorName &&
+        parent2 is InstanceCreationExpression) {
+      return parent2;
+    } else if (node is SimpleIdentifier &&
+        parent is ConstructorDeclaration &&
+        parent.name != null) {
+      return parent;
+    } else if (node is SimpleIdentifier &&
+        parent is DotShorthandConstructorInvocation) {
+      return parent;
+    }
+    return node;
+  }
+
+  /// Returns information about the static type of [node].
+  String? _typeDisplayString(AstNode node, Element? element) {
+    var parent = node.parent;
+    DartType? staticType;
+    if (node is NamedArgument) {
+      staticType = node.correspondingParameter?.type;
+    } else if (node is Expression &&
+        (element == null ||
+            element is VariableElement ||
+            element is GetterElement ||
+            element is SetterElement)) {
+      staticType = _getTypeOfDeclarationOrReference(node);
+    } else if (element is VariableElement) {
+      staticType = element.type;
+    } else if (parent is MethodInvocation && parent.methodName == node) {
+      staticType = parent.staticInvokeType;
+      if (staticType != null && staticType is DynamicType) {
+        staticType = null;
+      }
+    } else if (parent is PrefixedIdentifier && parent.identifier == node) {
+      staticType = parent.identifier.staticType;
+      if (staticType != null && staticType is DynamicType) {
+        staticType = null;
+      }
+    } else if (parent is DotShorthandInvocation && parent.memberName == node) {
+      staticType = parent.staticInvokeType;
+      if (staticType != null && staticType is DynamicType) {
+        staticType = null;
+      }
+    } else if (node is PatternFieldName && parent is PatternField) {
+      staticType = parent.pattern.matchedValueType;
+    } else if (node is DartPattern) {
+      staticType = node.matchedValueType;
+    }
+    return staticType?.getDisplayString();
+  }
+
+  static DartType? _getTypeOfDeclarationOrReference(Expression node) {
+    if (node is SimpleIdentifier) {
+      var element = node.element;
+      if (element is VariableElement) {
+        if (node.inDeclarationContext()) {
+          return element.type;
+        }
+      }
+      var parent = node.parent;
+      var parent2 = parent?.parent;
+
+      if (parent is AssignmentExpression && parent.leftHandSide == node) {
+        // Direct setter reference
+        return parent.writeType;
+      } else if (parent2 is AssignmentExpression &&
+          parent2.leftHandSide == parent) {
+        if (parent is PrefixedIdentifier && parent.identifier == node) {
+          // Prefixed setter (`myInstance.foo =`)
+          return parent2.writeType;
+        } else if (parent is PropertyAccess && parent.propertyName == node) {
+          // Expression prefix (`A<int>().foo =`)
+          return parent2.writeType;
+        }
+      }
+    }
+    return node.staticType;
+  }
+}

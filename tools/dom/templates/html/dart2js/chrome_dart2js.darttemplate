@@ -1,0 +1,30 @@
+
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// DO NOT EDIT
+// Auto-generated dart:chrome library.
+
+/// Native wrappers for the Chrome packaged app APIs.
+///
+/// These functions allow direct access to the chrome.* APIs, allowing
+/// Chrome packaged apps to be written using Dart.
+///
+/// For more information on these APIs, see the
+/// [chrome.* API documentation](http://developer.chrome.com/apps/api_index.html).
+library chrome;
+
+import 'dart:_foreign_helper' show JS;
+/* TODO(sashab): Add "show convertDartClosureToJS" once 'show' works. */
+import 'dart:_js_helper';
+import 'dart:html_common';
+import 'dart:html';
+
+part "$AUXILIARY_DIR/_chrome/utils.dart";
+part "$AUXILIARY_DIR/_chrome/_chrome.dart";
+
+// Generated files below this line.
+part "$AUXILIARY_DIR/_chrome/app_window.dart";
+part "$AUXILIARY_DIR/_chrome/app_runtime.dart";
+part "$AUXILIARY_DIR/_chrome/file_system.dart";

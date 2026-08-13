@@ -1,0 +1,14 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///const_patterns_binary.dart" as prefix;
+
+class Class extends core::Object {
+  static const field core::int value = 2;
+  synthetic constructor •() → self::Class
+    ;
+}
+static const field core::int value = 1;
+static method method<T extends core::Object? = dynamic>(dynamic o) → dynamic
+  ;

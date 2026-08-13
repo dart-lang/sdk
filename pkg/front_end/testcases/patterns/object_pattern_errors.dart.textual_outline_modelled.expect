@@ -1,0 +1,7 @@
+class A {
+  int? field;
+}
+
+test(dynamic x) {}
+
+typedef B<X> = A;

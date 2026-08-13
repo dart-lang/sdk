@@ -1,0 +1,6 @@
+class C {
+  operator ==(other) => throw 'x';
+  test() {}
+}
+
+main() {}

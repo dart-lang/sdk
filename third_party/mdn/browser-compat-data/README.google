@@ -1,0 +1,11 @@
+Name: mdn-browser-compat-data
+Short Name: mdn-browser-compat-data
+URL: https://github.com/mdn/browser-compat-data
+Version: 1.0.22
+Date: May 26th 2020
+License: Creative Commons Zero v1.0 Universal
+
+Description:
+This repository contains compatibility data for Web technologies. The files were
+fetched from: https://github.com/mdn/browser-compat-data/tree/v1.0.22 on
+May 26th 2020.

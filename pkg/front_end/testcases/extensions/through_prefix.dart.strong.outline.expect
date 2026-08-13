@@ -1,0 +1,19 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///through_prefix_lib.dart" as lib;
+
+part through_prefix_part.dart;
+static method /* from org-dartlang-testcase:///through_prefix_part.dart */ method(core::int i) → void
+  ;
+
+library;
+import self as self2;
+import "dart:core" as core;
+
+extension Extension on core::int {
+  get foo = self2::Extension|get#foo;
+}
+static extension-member method Extension|get#foo(lowered final core::int #this) → core::int
+  ;

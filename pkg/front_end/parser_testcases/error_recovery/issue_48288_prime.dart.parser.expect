@@ -1,0 +1,9 @@
+void f(int x) {
+g(foo: 1, bbb: 0);
+}
+
+
+void[KeywordToken] f[StringToken]([BeginToken]int[StringToken] x[StringToken])[SimpleToken] {[BeginToken]
+g[StringToken]([BeginToken]foo[StringToken]:[SimpleToken] 1[StringToken],[SimpleToken] bbb[StringToken]:[SimpleToken] 0[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

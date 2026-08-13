@@ -1,0 +1,7 @@
+String log = "";
+
+T sideEffect<T>(T t) {}
+
+main() {}
+
+expectEquals(x, y) {}

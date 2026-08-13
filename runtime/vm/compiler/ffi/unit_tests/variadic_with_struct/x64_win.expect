@@ -1,0 +1,5 @@
+B(xmm0 double, rcx int64[double])
+P(rdx int64) Struct(size: 20)
+B(xmm2 double, r8 int64[double])
+=>
+xmm0 double

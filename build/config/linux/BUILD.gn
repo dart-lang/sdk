@@ -1,0 +1,72 @@
+# Copyright (c) 2013 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import("//build/config/sysroot.gni")
+
+config("sdk") {
+  ldflags = []
+  cflags = []
+
+  if (is_clang) {
+    # Don't allow visible symbols from libc++ to be re-exported.
+    ldflags += [ "-Wl,--exclude-libs=libc++.a" ]
+  }
+
+  # Explicitly use static linking for libstdc++ and libgcc to minimize
+  # dependencies.
+  if (!use_flutter_cxx) {
+    ldflags += [
+      "-static-libgcc",
+      "-static-libstdc++",
+    ]
+  }
+
+  if (sysroot != "") {
+    cflags += [ "--sysroot=" + sysroot ]
+    ldflags += [ "--sysroot=" + sysroot ]
+
+    # Need to get some linker flags out of the sysroot.
+    ldflags += [ exec_script("sysroot_ld_path.py",
+                             [
+                               rebase_path("//build/linux/sysroot_ld_path.sh",
+                                           root_build_dir),
+                               sysroot,
+                             ],
+                             "value") ]
+
+    if (dart_sysroot == "alpine") {
+      # When using the alpine sysroot, prefers lld as linker.
+      if (is_clang) {
+        ldflags += [ "-fuse-ld=lld" ]
+      }
+    }
+
+    # When using the pulled Debian sysroot with gcc, we have to specify these
+    # explicitly.
+    if (dart_sysroot == "debian" && !is_clang) {
+      cflags += [
+        "-I=/usr/include/c++/4.8",
+        "-I=/usr/include/c++/4.8/i486-linux-gnu",
+      ]
+    }
+  }
+
+  # Enable Large File Support extension (LFS)
+  cflags += [
+    "-D_FILE_OFFSET_BITS=64",
+    "-D_LARGEFILE_SOURCE",
+    "-D_LARGEFILE64_SOURCE",
+  ]
+}
+
+config("executable_config") {
+  # GDB cannot find the executable's mapping in QEMU when PIE is enabled.
+  if (is_qemu) {
+    cflags = [ "-fno-pie" ]
+    ldflags = [ "-no-pie" ]
+  } else if (current_cpu != "x86") {
+    cflags = [ "-fPIE" ]
+    ldflags = [ "-pie" ]
+  }
+}

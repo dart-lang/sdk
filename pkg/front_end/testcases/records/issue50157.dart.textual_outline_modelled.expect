@@ -1,0 +1,15 @@
+class A {
+  int get foo => 0;
+}
+
+extension on A {
+  void set foo(int value) {}
+}
+
+extension on R {
+  void set foo(int value) {}
+}
+
+test(A a, R r) {}
+
+typedef R = ({int foo});

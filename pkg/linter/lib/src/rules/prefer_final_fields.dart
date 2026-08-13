@@ -1,0 +1,207 @@
+// Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
+import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
+
+import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
+import '../extensions.dart';
+
+const _desc = r'Private field could be `final`.';
+
+class PreferFinalFields extends AnalysisRule {
+  new() : super(name: LintNames.prefer_final_fields, description: _desc);
+
+  @override
+  DiagnosticCode get diagnosticCode => diag.preferFinalFields;
+
+  @override
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
+    var visitor = _Visitor(this, context);
+    registry.addCompilationUnit(this, visitor);
+  }
+}
+
+class _DeclarationsCollector extends RecursiveAstVisitor<void> {
+  final fields = <FieldElement, VariableDeclaration>{};
+
+  final fieldsFromParameters = <FieldElement, FormalParameter>{};
+
+  bool overridesField(FieldElement field) {
+    var enclosingElement = field.enclosingElement;
+    if (enclosingElement is! InterfaceElement) return false;
+
+    return enclosingElement.getOverridden(
+          Name.forLibrary(field.library, '${field.name!}='),
+        ) !=
+        null;
+  }
+
+  @override
+  void visitFieldDeclaration(FieldDeclaration node) {
+    if (node.isInvalidExtensionTypeField) return;
+    if (node.parent?.parent is EnumDeclaration) return;
+    if (node.fields.isFinal || node.fields.isConst) {
+      return;
+    }
+
+    for (var variable in node.fields.variables) {
+      var element = variable.declaredFragment?.element;
+      if (element is FieldElement &&
+          element.name != null &&
+          element.isPrivate &&
+          !overridesField(element)) {
+        fields[element] = variable;
+      }
+    }
+  }
+
+  @override
+  void visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
+    var declaration = node.parent;
+    if (declaration is EnumDeclaration ||
+        declaration is ExtensionTypeDeclaration) {
+      return;
+    }
+
+    for (var parameter in node.formalParameters.parameters) {
+      var element = parameter.declaredFragment?.element;
+      if (element is FieldFormalParameterElement &&
+          element.isDeclaring &&
+          element.name != null &&
+          element.isPrivate) {
+        var field = element.field;
+        if (field != null && !field.isFinal && !overridesField(field)) {
+          fieldsFromParameters[field] = parameter;
+        }
+      }
+    }
+  }
+}
+
+class _FieldMutationFinder extends RecursiveAstVisitor<void> {
+  /// The collection of fields explicitly declared in this library.
+  ///
+  /// This visitor removes a field when it finds that it is assigned anywhere.
+  final Map<FieldElement, VariableDeclaration> _fields;
+
+  /// The collection of fields declared via a declaring parameter in this
+  /// library.
+  ///
+  /// This visitor removes a field when it finds that it is assigned anywhere.
+  final Map<FieldElement, FormalParameter> _fieldsFromParameters;
+
+  new(this._fields, this._fieldsFromParameters);
+
+  @override
+  void visitAssignmentExpression(AssignmentExpression node) {
+    _addMutatedFieldElement(node);
+    super.visitAssignmentExpression(node);
+  }
+
+  @override
+  void visitPostfixExpression(PostfixExpression node) {
+    _addMutatedFieldElement(node);
+    super.visitPostfixExpression(node);
+  }
+
+  @override
+  void visitPrefixExpression(PrefixExpression node) {
+    var operator = node.operator;
+    if (operator.type == TokenType.MINUS_MINUS ||
+        operator.type == TokenType.PLUS_PLUS) {
+      _addMutatedFieldElement(node);
+    }
+    super.visitPrefixExpression(node);
+  }
+
+  void _addMutatedFieldElement(CompoundAssignmentExpression assignment) {
+    var element = assignment.writeElement?.canonicalElement2;
+    element = element?.baseElement;
+
+    if (element is FieldElement) {
+      _fields.remove(element);
+      _fieldsFromParameters.remove(element);
+    }
+  }
+}
+
+class _Visitor(final AnalysisRule rule, final RuleContext context)
+    extends SimpleAstVisitor<void> {
+  @override
+  void visitCompilationUnit(CompilationUnit node) {
+    var declarationsCollector = _DeclarationsCollector();
+    node.accept(declarationsCollector);
+    var fields = declarationsCollector.fields;
+    var fieldsFromParameters = declarationsCollector.fieldsFromParameters;
+
+    var fieldMutationFinder = _FieldMutationFinder(
+      fields,
+      fieldsFromParameters,
+    );
+    for (var unit in context.allUnits) {
+      unit.unit.accept(fieldMutationFinder);
+    }
+
+    for (var MapEntry(key: field, value: variable) in fields.entries) {
+      // TODO(srawlins): We could look at the constructors once and store a set
+      // of which fields are initialized by any, and a set of which fields are
+      // initialized by all. This would conceivably improve performance.
+      var classDeclaration = variable.parent?.parent?.parent?.parent;
+      var constructors = <ConstructorDeclaration>[];
+      if (classDeclaration is ClassDeclaration) {
+        constructors = classDeclaration.body.members
+            .whereType<ConstructorDeclaration>()
+            .toList();
+      }
+
+      var isSetInAnyConstructor = constructors.any(
+        (constructor) => field.isSetInConstructor(constructor),
+      );
+
+      if (isSetInAnyConstructor) {
+        var isSetInEveryConstructor = constructors.every(
+          (constructor) => field.isSetInConstructor(constructor),
+        );
+
+        if (isSetInEveryConstructor) {
+          rule.reportAtNode(variable, arguments: [variable.name.lexeme]);
+        }
+      } else if (field.hasInitializer) {
+        rule.reportAtNode(variable, arguments: [variable.name.lexeme]);
+      }
+    }
+    for (var MapEntry(value: variable) in fieldsFromParameters.entries) {
+      rule.reportAtNode(variable, arguments: [variable.name!.lexeme]);
+    }
+  }
+}
+
+extension on VariableElement {
+  bool isSetInConstructor(ConstructorDeclaration constructor) =>
+      constructor.initializers.any(isSetInInitializer) ||
+      constructor.parameters.parameters.any(isSetInParameter);
+
+  /// Whether `this` is initialized in [initializer].
+  bool isSetInInitializer(ConstructorInitializer initializer) =>
+      initializer is ConstructorFieldInitializer &&
+      initializer.fieldName.canonicalElement == this;
+
+  /// Whether `this` is initialized with [parameter].
+  bool isSetInParameter(FormalParameter parameter) {
+    var formalField = parameter.declaredFragment?.element;
+    return formalField is FieldFormalParameterElement &&
+        formalField.field == this;
+  }
+}

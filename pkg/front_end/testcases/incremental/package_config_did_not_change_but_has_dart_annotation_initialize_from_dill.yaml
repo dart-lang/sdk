@@ -1,0 +1,69 @@
+# Copyright (c) 2026, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Package libraries has two different versions because of a language annotation,
+# but should still be allowed to initialize from the dill.
+
+type: newworld
+worlds:
+  - entry: package:foo/main.dart
+    sources:
+      .dart_tool/package_config.json: |
+        {
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "foo",
+              "rootUri": "../foo",
+              "packageUri": "lib",
+              "languageVersion": "3.13"
+            }
+          ]
+        }
+      foo/lib/a.dart: |
+        class A {
+          new() {
+            print("A");
+          }
+        }
+      foo/lib/main.dart: |
+        // @dart=3.12
+        import "a.dart";
+        void main() {
+          A();
+        }
+    expectedLibraryCount: 2
+
+  - entry: package:foo/main.dart
+    expectInitializeFromDill: true
+    sources:
+      .dart_tool/package_config.json: |
+        {
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "foo",
+              "rootUri": "../foo",
+              "packageUri": "lib",
+              "languageVersion": "3.13"
+            }
+          ]
+        }
+      foo/lib/a.dart: |
+        class A {
+          new() {
+            print("A");
+          }
+        }
+      foo/lib/main.dart: |
+        // @dart=3.12
+        import "a.dart";
+        void main() {
+          print("hello");
+          A();
+        }
+    invalidate:
+      - package:foo/main.dart
+    expectedLibraryCount: 2
+    advancedInvalidation: bodiesOnly

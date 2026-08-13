@@ -1,0 +1,29 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+abstract class C extends core::Object {
+  synthetic constructor •() → self::C
+    ;
+  abstract operator +(core::int i) → self::C?;
+  get cProperty() → core::int
+    ;
+}
+static method direct_assignment(core::int? i, core::int? j) → dynamic
+  ;
+static method compound_assignment(self::C? c, core::int i) → dynamic
+  ;
+static method via_postfix_op(self::C? c) → dynamic
+  ;
+static method via_prefix_op(self::C? c) → dynamic
+  ;
+static method via_for_each_statement(core::int? i, core::List<core::int?> list) → dynamic
+  ;
+static method via_for_each_list_element(core::int? i, core::List<core::int?> list) → dynamic
+  ;
+static method via_for_each_set_element(core::int? i, core::List<core::int?> list) → dynamic
+  ;
+static method via_for_each_map_key(core::int? i, core::List<core::int?> list) → dynamic
+  ;
+static method via_for_each_map_value(core::int? i, core::List<core::int?> list) → dynamic
+  ;

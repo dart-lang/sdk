@@ -1,0 +1,19 @@
+extension type (int i) {}
+extension type const (int i) {}
+extension type .name(int i) {}
+extension type const .name(int i) {}
+extension type <T>(int i) {}
+extension type const <T>(int i) {}
+extension type <T>.name(int i) {}
+extension type const <T>.name(int i) {}
+
+
+extension[KeywordToken] type[StringToken] ([BeginToken]int[StringToken] i[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] const[KeywordToken] ([BeginToken]int[StringToken] i[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] .[SimpleToken]name[StringToken]([BeginToken]int[StringToken] i[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] const[KeywordToken] .[SimpleToken]name[StringToken]([BeginToken]int[StringToken] i[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] <[BeginToken]T[StringToken]>[SimpleToken]([BeginToken]int[StringToken] i[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] const[KeywordToken] <[BeginToken]T[StringToken]>[SimpleToken]([BeginToken]int[StringToken] i[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] <[BeginToken]T[StringToken]>[SimpleToken].[SimpleToken]name[StringToken]([BeginToken]int[StringToken] i[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] const[KeywordToken] <[BeginToken]T[StringToken]>[SimpleToken].[SimpleToken]name[StringToken]([BeginToken]int[StringToken] i[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+[SimpleToken]

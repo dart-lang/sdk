@@ -1,0 +1,9 @@
+main = lib::main;
+library libFoo from "org-dartlang-test:///main.dart" as lib {
+
+  part c.dart;
+  static method /* from org-dartlang-test:///c.dart */ c() → dynamic {}
+  static method main() → dynamic {
+    lib::c();
+  }
+}

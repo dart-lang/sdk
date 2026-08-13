@@ -1,0 +1,499 @@
+// Copyright (c) 2021, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:test_reflective_loader/test_reflective_loader.dart';
+
+import '../rule_test_support.dart';
+
+void main() {
+  defineReflectiveSuite(() {
+    defineReflectiveTests(PreferConstConstructorsTest);
+  });
+}
+
+@reflectiveTest
+class PreferConstConstructorsTest extends LintRuleTest {
+  @override
+  bool get addMetaPackageDep => true;
+
+  @override
+  String get lintRule => LintNames.prefer_const_constructors;
+
+  test_canBeConst_argumentIsAdjacentStrings() async {
+    await assertDiagnosticsFromMarkup(r'''
+class A {
+  const A(String s);
+}
+var a = [!A('adjacent' 'string')!];
+''');
+  }
+
+  test_canBeConst_argumentIsListLiteral() async {
+    await assertDiagnosticsFromMarkup(r'''
+class A {
+  const A(List<int> l);
+}
+var a = [!A([])!];
+''');
+  }
+
+  test_canBeConst_argumentIsMap_nonLiteral() async {
+    await assertNoDiagnostics(r'''
+class A {
+  const A(Map<int, int> m);
+}
+A f(Map<int, int> m) => A(m);
+''');
+  }
+
+  test_canBeConst_argumentIsMapLiteral_containsNonLiteral() async {
+    await assertNoDiagnostics(r'''
+class A {
+  const A(Map<int, int> m);
+}
+A f(int x) => A({x: x});
+''');
+  }
+
+  test_canBeConst_argumentIsMapLiteral_instantiated() async {
+    await assertDiagnosticsFromMarkup(r'''
+class A {
+  const A(Map<int, int> m);
+}
+var a = [!A({})!];
+''');
+  }
+
+  test_canBeConst_dotShorthand() async {
+    await assertDiagnosticsFromMarkup(r'''
+class A {
+  const A();
+}
+A a = [!.new()!];
+''');
+  }
+
+  test_canBeConst_dotShorthand_methodCall() async {
+    await assertDiagnosticsFromMarkup(r'''
+class A {
+  const A.tightFor({int? height});
+  A copyWith({int? minWidth}) => this;
+}
+void f() {
+  A a = [!.tightFor(height: 400)!].copyWith(minWidth: 400);
+}
+''');
+  }
+
+  test_canBeConst_explicitTypeArgument_dynamic() async {
+    await assertDiagnosticsFromMarkup(r'''
+class A<T> {
+  const A();
+}
+var a = [!A<dynamic>()!];
+''');
+  }
+
+  test_canBeConst_explicitTypeArgument_string() async {
+    await assertDiagnosticsFromMarkup(r'''
+class A<T> {
+  const A();
+}
+var a = [!A<String>()!];
+''');
+  }
+
+  test_canBeConst_implicitTypeArgument() async {
+    await assertNoDiagnostics(r'''
+class A<T, U> {
+  const A();
+}
+A<T, int> f<T>() => A();
+''');
+  }
+
+  test_canBeConst_implicitTypeArgument_downwardInference() async {
+    await assertDiagnosticsFromMarkup(r'''
+class A<T> {
+  const A();
+}
+A<int> f() => [!A()!];
+''');
+  }
+
+  test_canBeConst_implicitTypeArgument_inConditional() async {
+    await assertNoDiagnostics(r'''
+class A<T, U> {
+  const A();
+}
+class B<T, U> extends A<T, U> {}
+A<T, int> f<T>(bool b) => b ? A() : B();
+''');
+  }
+
+  test_canBeConst_intLiteralArgument() async {
+    await assertDiagnosticsFromMarkup(r'''
+class A {
+  const A(int x);
+}
+var a = [!A(5)!];
+''');
+  }
+
+  test_canBeConst_literal() async {
+    await assertDiagnostics(
+      r'''
+import 'package:meta/meta.dart';
+
+class K {
+  @literal
+  const K();
+}
+
+K k = K();
+''',
+      [
+        // No lint
+        error(diag.nonConstCallToLiteralConstructor, 77, 3),
+      ],
+    );
+  }
+
+  test_canBeConst_literal_dotShorthands() async {
+    await assertDiagnostics(
+      r'''
+import 'package:meta/meta.dart';
+
+class K {
+  @literal
+  const K();
+}
+
+K k = .new();
+''',
+      [
+        // No lint
+        error(diag.nonConstCallToLiteralConstructor, 77, 6),
+      ],
+    );
+  }
+
+  test_canBeConst_newSyntax() async {
+    await assertDiagnosticsFromMarkup(r'''
+class A {
+  const new();
+}
+A a = [!A()!];
+''');
+  }
+
+  test_canBeConst_optionalNamedParameter() async {
+    await assertDiagnosticsFromMarkup(r'''
+class A {
+  const A({A? parent});
+}
+var a = [!A()!];
+''');
+  }
+
+  test_canBeConst_optionalNamedParameter_nested() async {
+    await assertDiagnosticsFromMarkup(r'''
+class A {
+  const A({A? parent});
+  const A.a();
+}
+var a = /*[0*/A(
+  parent: /*[1*/A.a()/*1]*/,
+)/*0]*/;
+''');
+  }
+
+  test_canBeConst_optionalNamedParameter_newKeyword() async {
+    await assertDiagnosticsFromMarkup(r'''
+class A {
+  const A({A? parent});
+}
+var a = [!new A()!];
+''');
+  }
+
+  test_cannotBeConst_argumentIsAdjacentStrings_withInterpolation() async {
+    await assertNoDiagnostics(r'''
+class A {
+  const A(String s);
+}
+A f(int i) => A('adjacent' '$i');
+''');
+  }
+
+  test_cannotBeConst_argumentIsExtensionTypeMethodCall() async {
+    await assertNoDiagnostics(r'''
+final class A {
+  final Ex f;
+  const A(this.f);
+
+  void foo() {
+    var a = A(-f);
+  }
+}
+
+extension type const Ex(int i) implements int {
+  Ex operator -() => Ex(-i);
+}
+''');
+  }
+
+  test_cannotBeConst_argumentIsListLiteral_nonLiteralElement() async {
+    await assertNoDiagnostics(r'''
+class A {
+  const A(List<int> l);
+}
+A f(int i) => A([i]);
+''');
+  }
+
+  test_cannotBeConst_argumentIsLocalVariable() async {
+    await assertNoDiagnostics(r'''
+class A {
+  const A(String s);
+}
+
+void f() {
+  final s = '';
+  var a = A(s);
+}
+''');
+  }
+
+  test_cannotBeConst_argumentIsNonLiteral() async {
+    await assertNoDiagnostics(r'''
+class A {
+  const A(String s);
+}
+A f(String s) => A(s);
+''');
+  }
+
+  test_cannotBeConst_argumentIsNonLiteralList() async {
+    await assertNoDiagnostics(r'''
+class A {
+  const A(List<int> l);
+}
+A f(List<int> l) => A(l);
+''');
+  }
+
+  test_cannotBeConst_dotShorthands_issue60963() async {
+    await assertNoDiagnostics(r'''
+class A {
+  int cannotBeConst;
+  A(): cannotBeConst = 0;
+}
+extension type const B(A a) {}
+
+B get b => .new(A());
+''');
+  }
+
+  test_cannotBeConst_explicitTypeArgument_typeVariable_constructorDeclaration() async {
+    await assertNoDiagnostics(r'''
+class A<T> {
+  const A({required List<T> p});
+
+  factory A.named() => A(p: <T>[]);
+}
+''');
+  }
+
+  test_cannotBeConst_explicitTypeArgument_typeVariable_functionDeclaration() async {
+    await assertNoDiagnostics(r'''
+class A<T> {
+  const A();
+}
+void f<U>() => A<U>();
+''');
+  }
+
+  test_cannotBeConst_nonConstArgument() async {
+    await assertNoDiagnostics(r'''
+class A {
+  final int x;
+
+  const A(this.x);
+}
+A f(int x) => A(x);
+''');
+  }
+
+  test_cannotBeConst_notConstConstructor() async {
+    await assertNoDiagnostics(r'''
+class A {
+  A();
+}
+var a = A();
+''');
+  }
+
+  test_cannotBeConst_notConstConstructor_dotShorthand() async {
+    await assertNoDiagnostics(r'''
+class A {
+  A();
+}
+A a = .new();
+''');
+  }
+
+  test_cannotBeConst_stringLiteralArgument_withInterpolation() async {
+    await assertNoDiagnostics(r'''
+class A {
+  const A(String s);
+  static A m1(int i) => A('$i');
+}
+''');
+  }
+
+  test_class_primaryConstructor_const() async {
+    await assertDiagnosticsFromMarkup(r'''
+class const C(final int x);
+var c = [!C(1)!];
+''');
+  }
+
+  test_class_primaryConstructor_dotShorthand_const() async {
+    await assertDiagnosticsFromMarkup(r'''
+class const C(final int x);
+C get f => [!.new(1)!];
+''');
+  }
+
+  test_class_primaryConstructor_named_const() async {
+    await assertDiagnosticsFromMarkup(r'''
+class const C.named(final int x);
+var c = [!C.named(1)!];
+''');
+  }
+
+  test_constructorArgument_rhsOfLogicalOperation() async {
+    // Note: prior to the fix for https://github.com/dart-lang/sdk/issues/61761,
+    // this caused an exception to be thrown in the linter.
+    await assertNoDiagnostics(r'''
+class C {
+  final bool x;
+  const C(this.x);
+}
+const C a = C(true);
+final C b = C(false || a.x);
+''');
+  }
+
+  test_deferred_arg() async {
+    newFile('$testPackageLibPath/a.dart', '''
+class A {
+  const A();
+}
+
+const aa = A();
+''');
+
+    await assertNoDiagnostics(r'''
+import 'a.dart' deferred as a;
+
+class B {
+  const B(Object a);
+}
+
+main() {
+  var b = B(a.aa);
+}
+''');
+  }
+
+  test_deferredConstructorCall() async {
+    newFile('$testPackageLibPath/a.dart', '''
+class A {
+  const A();
+}
+''');
+
+    await assertNoDiagnostics(r'''
+import 'a.dart' deferred as a;
+
+void f() {
+  var aa = a.A();
+}
+''');
+  }
+
+  test_dotShorthand_withConst() async {
+    await assertNoDiagnostics(r'''
+class A {
+  const A.tightFor({int? height});
+}
+void f() {
+  A a = const .tightFor(height: 400);
+}
+''');
+  }
+
+  test_dotShorthand_withConst_methodCall() async {
+    await assertNoDiagnostics(r'''
+class A {
+  const A.tightFor({int? height});
+  A copyWith({int? minWidth}) => this;
+}
+void f() {
+  A a = const .tightFor(height: 400).copyWith(minWidth: 400);
+}
+''');
+  }
+
+  test_extensionType_constPrimaryConstructor() async {
+    await assertDiagnosticsFromMarkup(r'''
+extension type const E(int i) {}
+
+var e = [!E(1)!];
+''');
+  }
+
+  test_extensionType_nonConstPrimaryConstructor() async {
+    await assertNoDiagnostics(r'''
+extension type E(int i) {}
+
+var e = E(1);
+''');
+  }
+
+  test_isConst_intLiteralArgument() async {
+    await assertNoDiagnostics(r'''
+class A {
+  final int x;
+
+  const A(this.x);
+}
+A f() => const A(5);
+''');
+  }
+
+  test_isConstCall_optionalNamedParameter() async {
+    await assertNoDiagnostics(r'''
+class A {
+  const A({A? parent});
+}
+var a = const A();
+''');
+  }
+
+  test_objectConstructorCall() async {
+    await assertNoDiagnostics(r'''
+var x = Object();
+''');
+  }
+
+  test_objectConstructorCall_dotShorthand() async {
+    await assertNoDiagnostics(r'''
+Object x = .new();
+''');
+  }
+}

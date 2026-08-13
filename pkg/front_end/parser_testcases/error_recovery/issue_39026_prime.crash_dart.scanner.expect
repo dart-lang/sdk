@@ -1,0 +1,9 @@
+class A{
+co operator <{
+}
+}
+
+class[KeywordToken] A[StringToken]{[BeginToken]
+co[StringToken] operator[KeywordToken] <[BeginToken]{[BeginToken]
+}[SimpleToken]
+}[SimpleToken][SimpleToken]

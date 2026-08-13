@@ -1,0 +1,84 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:collection" as col;
+import "dart:_compact_hash" as _co;
+
+[222]static method [226] [1036] main([240, -1] core::List<core::String> args) → void {
+[262]  [262, 269] core::Set<core::String> fooSet = [271] [271] block {
+[271]    [271, -1] final core::Set<core::String> #t1 = [271] [271] col::LinkedHashSet::of [271]<core::String>([280] args);
+[290]    [290] [290] [-1] [-1] #t1.{core::Set::add}{Invariant}[-1]([290] "hello"){(core::String) → core::bool};
+[317]    [317] [317] [-1] [-1] #t1.{core::Set::addAll}{Invariant}[-1]([317] [306] [306]<core::String, core::String>{[310] [307] [307] "x": [312] [312] "y"}.{core::Map::keys}{core::Iterable<core::String>}){(core::Iterable<core::String>) → void};
+[-1]    {
+[344]      [344, -1] synthesized core::Iterator<core::String> :sync-for-iterator = [344] [344] [344] [344] args.{core::Iterable::iterator}{core::Iterator<core::String>};
+[327]      for (; [344] [344] [-1] [-1] :sync-for-iterator.{core::Iterator::moveNext}[-1](){() → core::bool}; ) {
+[339]        [339, -1] core::String s = [-1] [-1] [-1] [-1] :sync-for-iterator.{core::Iterator::current}{core::String};
+[353]        [353] [353] [-1] [-1] #t1.{core::Set::addAll}{Invariant}[-1]([353] block {
+[-1]          [-1, -1] final core::Set<core::String> #t2 = [-1] [-1] new _co::_Set::• [-1]<core::String>();
+[354]          [354] [354] [-1] [-1] #t2.{core::Set::add}{Invariant}[-1]([354] "${[356] [356] s}"){(core::String) → core::bool};
+[360]          [360] [360] [-1] [-1] #t2.{core::Set::add}{Invariant}[-1]([360] "${[363] [363] s}_2"){(core::String) → core::bool};
+        } =>[-1] [-1] #t2){(core::Iterable<core::String>) → void};
+      }
+    }
+[375]    if([391] [391] [384] [384] [379] [379] args.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} [394] [394] 42)
+[401]      [401] [401] [-1] [-1] #t1.{core::Set::addAll}{Invariant}[-1]([401] block {
+[-1]        [-1, -1] final core::Set<core::String> #t3 = [-1] [-1] new _co::_Set::• [-1]<core::String>();
+[402]        [402] [402] [-1] [-1] #t3.{core::Set::add}{Invariant}[-1]([402] "length"){(core::String) → core::bool};
+[412]        [412] [412] [-1] [-1] #t3.{core::Set::add}{Invariant}[-1]([412] "is"){(core::String) → core::bool};
+[418]        [418] [418] [-1] [-1] #t3.{core::Set::add}{Invariant}[-1]([418] "42"){(core::String) → core::bool};
+      } =>[-1] [-1] #t3){(core::Iterable<core::String>) → void};
+  } =>[271] [271] #t1;
+[432]  [432] [432] core::print [437]([438] fooSet);
+[462]  [462, 470] core::Set<core::String> fooSet2 = [472] [472] block {
+[472]    [472, -1] final core::Set<core::String> #t4 = [472] [472] col::LinkedHashSet::of [472]<core::String>([481] args);
+[505]    [505] [505] [-1] [-1] #t4.{core::Set::addAll}{Invariant}[-1]([505] [494] [494]<core::String, core::String>{[498] [495] [495] "x": [500] [500] "y"}.{core::Map::keys}{core::Iterable<core::String>}){(core::Iterable<core::String>) → void};
+[-1]    {
+[532]      [532, -1] synthesized core::Iterator<core::String> :sync-for-iterator = [532] [532] [532] [532] args.{core::Iterable::iterator}{core::Iterator<core::String>};
+[515]      for (; [532] [532] [-1] [-1] :sync-for-iterator.{core::Iterator::moveNext}[-1](){() → core::bool}; ) {
+[527]        [527, -1] core::String s = [-1] [-1] [-1] [-1] :sync-for-iterator.{core::Iterator::current}{core::String};
+[541]        [541] [541] [-1] [-1] #t4.{core::Set::addAll}{Invariant}[-1]([541] block {
+[-1]          [-1, -1] final core::Set<core::String> #t5 = [-1] [-1] new _co::_Set::• [-1]<core::String>();
+[542]          [542] [542] [-1] [-1] #t5.{core::Set::add}{Invariant}[-1]([542] "${[544] [544] s}"){(core::String) → core::bool};
+[548]          [548] [548] [-1] [-1] #t5.{core::Set::add}{Invariant}[-1]([548] "${[551] [551] s}_2"){(core::String) → core::bool};
+        } =>[-1] [-1] #t5){(core::Iterable<core::String>) → void};
+      }
+    }
+[563]    if([579] [579] [572] [572] [567] [567] args.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} [582] [582] 42)
+[589]      [589] [589] [-1] [-1] #t4.{core::Set::addAll}{Invariant}[-1]([589] block {
+[-1]        [-1, -1] final core::Set<core::String> #t6 = [-1] [-1] new _co::_Set::• [-1]<core::String>();
+[590]        [590] [590] [-1] [-1] #t6.{core::Set::add}{Invariant}[-1]([590] "length"){(core::String) → core::bool};
+[600]        [600] [600] [-1] [-1] #t6.{core::Set::add}{Invariant}[-1]([600] "is"){(core::String) → core::bool};
+[606]        [606] [606] [-1] [-1] #t6.{core::Set::add}{Invariant}[-1]([606] "42"){(core::String) → core::bool};
+      } =>[-1] [-1] #t6){(core::Iterable<core::String>) → void};
+  } =>[472] [472] #t4;
+[620]  [620] [620] core::print [625]([626] fooSet2);
+[652]  [652, 660] core::List<core::String> fooList = [662] [662] block {
+[662]    [662, -1] final core::List<core::String> #t7 = [662] [662] core::List::of [662]<core::String>([671] args);
+[681]    [681] [681] [-1] [-1] #t7.{core::List::add}{Invariant}[-1]([681] "hello"){(core::String) → void};
+[708]    [708] [708] [-1] [-1] #t7.{core::List::addAll}{Invariant}[-1]([708] [697] [697]<core::String, core::String>{[701] [698] [698] "x": [703] [703] "y"}.{core::Map::keys}{core::Iterable<core::String>}){(core::Iterable<core::String>) → void};
+[-1]    {
+[735]      [735, -1] synthesized core::Iterator<core::String> :sync-for-iterator = [735] [735] [735] [735] args.{core::Iterable::iterator}{core::Iterator<core::String>};
+[718]      for (; [735] [735] [-1] [-1] :sync-for-iterator.{core::Iterator::moveNext}[-1](){() → core::bool}; ) {
+[730]        [730, -1] core::String s = [-1] [-1] [-1] [-1] :sync-for-iterator.{core::Iterator::current}{core::String};
+[744]        [744] [744] [-1] [-1] #t7.{core::List::addAll}{Invariant}[-1]([744] core::_GrowableList::_literal2 [-1]<core::String>([745] "${[747] [747] s}", [751] "${[754] [754] s}_2")){(core::Iterable<core::String>) → void};
+      }
+    }
+[766]    if([782] [782] [775] [775] [770] [770] args.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} [785] [785] 42)
+[792]      [792] [792] [-1] [-1] #t7.{core::List::addAll}{Invariant}[-1]([792] core::_GrowableList::_literal3 [-1]<core::String>([793] "length", [803] "is", [809] "42")){(core::Iterable<core::String>) → void};
+  } =>[662] [662] #t7;
+[823]  [823] [823] core::print [828]([829] fooList);
+[862]  [862, 869] core::Map<core::String, core::String> fooMap = [871] [871] block {
+[871]    [871, -1] final core::Map<core::String, core::String> #t8 = [871] [871]<core::String, core::String>{};
+[884]    [884] [884] [-1] [-1] #t8.{core::Map::[]=}{Invariant}[-1]([877] "hello", [886] "world"){(core::String, core::String) → void};
+[-1]    {
+[916]      [916, -1] synthesized core::Iterator<core::String> :sync-for-iterator = [916] [916] [916] [916] args.{core::Iterable::iterator}{core::Iterator<core::String>};
+[899]      for (; [916] [916] [-1] [-1] :sync-for-iterator.{core::Iterator::moveNext}[-1](){() → core::bool}; ) {
+[911]        [911, -1] core::String s = [-1] [-1] [-1] [-1] :sync-for-iterator.{core::Iterator::current}{core::String};
+[925]        [925] [925] [-1] [-1] #t8.{core::Map::addAll}{Invariant}[-1]([925]<core::String, core::String>{[930] [926] [926] "${[928] [928] s}": [932] [932] "${[935] [935] s}_2"}){(core::Map<core::String, core::String>) → void};
+      }
+    }
+[947]    if([963] [963] [956] [956] [951] [951] args.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} [966] [966] 42)
+[973]      [973] [973] [-1] [-1] #t8.{core::Map::addAll}{Invariant}[-1]([973]<core::String, core::String>{[982] [974] [974] "length": [984] [984] "42", [994] [990] [990] "is": [996] [996] "42", [1006] [1002] [1002] "42": [1008] [1008] "!"}){(core::Map<core::String, core::String>) → void};
+  } =>[871] [871] #t8;
+[1021]  [1021] [1021] core::print [1026]([1027] fooMap);
+}

@@ -1,0 +1,5 @@
+expect(expected, actual) {}
+
+main() {}
+
+test(o) {}

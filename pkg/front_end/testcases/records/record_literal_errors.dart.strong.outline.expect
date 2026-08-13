@@ -1,0 +1,35 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/records/record_literal_errors.dart:7:37: Error: Expected an identifier, but got ')'.
+// Try inserting an identifier before ')'.
+// dynamic missingNamedElement = (0, a:);
+//                                     ^
+//
+// pkg/front_end/testcases/records/record_literal_errors.dart:8:30: Error: 'in' can't be used as an identifier because it's a keyword.
+// Try renaming this to be an identifier that isn't a keyword.
+// dynamic keywordElement = (0, in);
+//                              ^^
+//
+// pkg/front_end/testcases/records/record_literal_errors.dart:9:33: Error: 'in' can't be used as an identifier because it's a keyword.
+// Try renaming this to be an identifier that isn't a keyword.
+// dynamic keywordProperty = (0, 1.in);
+//                                 ^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  synthetic constructor •() → self::Class
+    ;
+  method method() → void
+    ;
+}
+static field dynamic duplicateNamedFields;
+static field dynamic duplicateNamedFields2;
+static field dynamic missingNamedElement;
+static field dynamic keywordElement;
+static field dynamic keywordProperty;
+static method method() → void
+  ;

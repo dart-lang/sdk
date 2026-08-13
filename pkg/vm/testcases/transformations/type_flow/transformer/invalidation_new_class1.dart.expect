@@ -1,0 +1,49 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+class T1 extends core::Object {
+}
+abstract class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+}
+class B extends self::A {
+  synthetic constructor •() → self::B
+    : super self::A::•()
+    ;
+}
+class Intermediate extends core::Object {
+  synthetic constructor •() → self::Intermediate
+    : super core::Object::•()
+    ;
+}
+
+[@vm.inferred-type.metadata=!]
+late static field core::Function unknown;
+
+[@vm.inferred-return-type.metadata=!]
+static method getDynamic() → dynamic
+  return block {
+    [@vm.inferred-type.metadata=!] self::unknown;
+  } =>throw "Attempt to execute code removed by Dart AOT compiler (TFA)";
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method allocateB() → dynamic {
+  new self::B::•();
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method main(core::List<core::String> args) → dynamic {
+  block {
+    new self::Intermediate::•();
+    _in::unsafeCast<self::A>([@vm.inferred-type.metadata=!] self::getDynamic());
+  } =>throw "Attempt to execute code removed by Dart AOT compiler (TFA)";
+  self::allocateB();
+  block {
+    new self::Intermediate::•();
+    _in::unsafeCast<self::A>([@vm.inferred-type.metadata=!] self::getDynamic());
+  } =>throw "Attempt to execute code removed by Dart AOT compiler (TFA)";
+}

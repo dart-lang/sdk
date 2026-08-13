@@ -1,0 +1,11 @@
+class Foo {
+  a() {}
+  b() {}
+  c() {}
+  var field1;
+  var field2;
+  var field3;
+  Foo.constructor1();
+  Foo.constructor2();
+  Foo.constructor3();
+}

@@ -1,0 +1,7 @@
+library test;
+
+main() {}
+
+test1() {}
+
+test2(Pattern p) {}

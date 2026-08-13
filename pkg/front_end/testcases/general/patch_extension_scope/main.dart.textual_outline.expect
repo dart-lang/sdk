@@ -1,0 +1,7 @@
+import 'dart:test';
+
+test(Class c) {}
+
+method(Class c) {}
+
+main() {}

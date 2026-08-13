@@ -1,0 +1,261 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+part of $LIBRARYNAME;
+
+$(ANNOTATIONS)@Native("Window,DOMWindow")
+$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
+
+  /**
+   * Returns a Future that completes just before the window is about to
+   * repaint so the user can draw an animation frame.
+   *
+   * If you need to later cancel this animation, use [requestAnimationFrame]
+   * instead.
+   *
+   * The [Future] completes to a timestamp that represents a floating
+   * point value of the number of milliseconds that have elapsed since the page
+   * started to load (which is also the timestamp at this call to
+   * animationFrame).
+   *
+   * Note: The code that runs when the future completes should call
+   * [animationFrame] again for the animation to continue.
+   */
+  Future<num> get animationFrame {
+    var completer = new Completer<num>.sync();
+    requestAnimationFrame((time) {
+      completer.complete(time);
+    });
+    return completer.future;
+  }
+
+  /**
+   * The newest document in this window.
+   *
+   * ## Other resources
+   *
+   * * [Loading web
+   *   pages](https://html.spec.whatwg.org/multipage/browsers.html)
+   *   from WHATWG.
+   */
+  Document get document => JS('Document', '#.document', this);
+
+  WindowBase$NULLABLE _open2(url, name) =>
+      JS('Window|Null', '#.open(#,#)', this, url, name);
+
+  WindowBase$NULLABLE _open3(url, name, options) =>
+      JS('Window|Null', '#.open(#,#,#)', this, url, name, options);
+
+  /**
+   * Opens a new window.
+   *
+   * ## Other resources
+   *
+   * * [Window.open](https://developer.mozilla.org/en-US/docs/Web/API/Window.open)
+   *   from MDN.
+   */
+  WindowBase open(String url, String name, [String$NULLABLE options]) {
+    final win =
+        options == null ? _open2(url, name) : _open3(url, name, options);
+    return _DOMWindowCrossFrame._createSafe(win);
+  }
+
+  // API level getter and setter for Location.
+  // TODO: The cross domain safe wrapper can be inserted here.
+  /**
+   * The current location of this window.
+   *
+   *     Location currentLocation = window.location;
+   *     print(currentLocation.href); // 'http://www.example.com:80/'
+   */
+  Location get location => _location;
+
+  // TODO: consider forcing users to do: window.location.assign('string').
+  /**
+   * Sets the window's location, which causes the browser to navigate to the new
+   * location.
+   */
+  set location(value) {
+    _location = value;
+  }
+
+  // Native getter and setter to access raw Location object.
+  dynamic get _location => JS('Location|Null', '#.location', this);
+  set _location(value) {
+    JS('void', '#.location = #', this, value);
+  }
+
+  /**
+   * Called to draw an animation frame and then request the window to repaint
+   * after [callback] has finished (creating the animation).
+   *
+   * Use this method only if you need to later call [cancelAnimationFrame]. If
+   * not, the preferred Dart idiom is to set animation frames by calling
+   * [animationFrame], which returns a Future.
+   *
+   * Returns a non-zero valued integer to represent the request id for this
+   * request. This value only needs to be saved if you intend to call
+   * [cancelAnimationFrame] so you can specify the particular animation to
+   * cancel.
+   *
+   * Note: The supplied [callback] needs to call [requestAnimationFrame] again
+   * for the animation to continue.
+   */
+  int requestAnimationFrame(FrameRequestCallback callback) {
+    _ensureRequestAnimationFrame();
+    return _requestAnimationFrame(_wrapZone(callback)$NULLASSERT);
+  }
+
+  /**
+   * Cancels an animation frame request.
+   *
+   * ## Other resources
+   *
+   * * [Window.cancelAnimationFrame](https://developer.mozilla.org/en-US/docs/Web/API/Window.cancelAnimationFrame)
+   *   from MDN.
+   */
+  void cancelAnimationFrame(int id) {
+    _ensureRequestAnimationFrame();
+    _cancelAnimationFrame(id);
+  }
+
+  @JSName('requestAnimationFrame')
+  int _requestAnimationFrame(FrameRequestCallback callback) native;
+
+  @JSName('cancelAnimationFrame')
+  void _cancelAnimationFrame(int id) native;
+
+  _ensureRequestAnimationFrame() {
+    if (JS<bool>('bool',
+           '!!(#.requestAnimationFrame && #.cancelAnimationFrame)', this, this))
+      return;
+
+    JS('void',
+       r"""
+  (function($this) {
+   var vendors = ['ms', 'moz', 'webkit', 'o'];
+   for (var i = 0; i < vendors.length && !$this.requestAnimationFrame; ++i) {
+     $this.requestAnimationFrame = $this[vendors[i] + 'RequestAnimationFrame'];
+     $this.cancelAnimationFrame =
+         $this[vendors[i]+'CancelAnimationFrame'] ||
+         $this[vendors[i]+'CancelRequestAnimationFrame'];
+   }
+   if ($this.requestAnimationFrame && $this.cancelAnimationFrame) return;
+   $this.requestAnimationFrame = function(callback) {
+      return window.setTimeout(function() {
+        callback(Date.now());
+      }, 16 /* 16ms ~= 60fps */);
+   };
+   $this.cancelAnimationFrame = function(id) { clearTimeout(id); }
+  })(#)""",
+       this);
+  }
+
+  /**
+   * Gets an instance of the Indexed DB factory to being using Indexed DB.
+   *
+   * Use [dart:indexed_db.IdbFactory.supported] to check if Indexed DB is
+   * supported on the current platform.
+   */
+  @SupportedBrowser(SupportedBrowser.CHROME, '23.0')
+  @SupportedBrowser(SupportedBrowser.FIREFOX, '15.0')
+  @SupportedBrowser(SupportedBrowser.IE, '10.0')
+  IdbFactory$NULLABLE get indexedDB =>
+      JS('IdbFactory|Null',  // If not supported, returns null.
+         '#.indexedDB || #.webkitIndexedDB || #.mozIndexedDB',
+         this, this, this);
+
+  /// The debugging console for this window.
+  Console get console => Console._safeConsole;
+
+  /**
+   * Access a sandboxed file system of `size` bytes.
+   *
+   * If `persistent` is true, the application will request permission from the
+   * user to create lasting storage. This storage cannot be freed without the
+   * user's permission. Returns a [Future] whose value stores a reference to
+   * the sandboxed file system for use. Because the file system is sandboxed,
+   * applications cannot access file systems created in other web pages.
+   */
+  Future<FileSystem> requestFileSystem(int size, {bool persistent = false}) {
+    return _requestFileSystem(persistent? 1 : 0, size);
+  }
+
+  /**
+   * convertPointFromNodeToPage and convertPointFromPageToNode are removed.
+   * see http://dev.w3.org/csswg/cssom-view/#geometry
+   */
+  static bool get supportsPointConversions => DomPoint.supported;
+$!MEMBERS
+
+  /**
+   * Static factory designed to expose `beforeunload` events to event
+   * handlers that are not necessarily instances of [Window].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
+  static const EventStreamProvider<BeforeUnloadEvent> beforeUnloadEvent =
+      const EventStreamProvider('beforeunload');
+
+  /// Stream of `beforeunload` events handled by this [Window].
+  Stream<Event> get onBeforeUnload => beforeUnloadEvent.forTarget(this);
+
+  /// Stream of `wheel` events handled by this [Window].
+  Stream<WheelEvent> get onWheel => Element.wheelEvent.forTarget(this);
+
+  /**
+   * Moves this window to a specific position.
+   *
+   * x and y can be negative.
+   *
+   * ## Other resources
+   *
+   * * [Window.moveTo](https://developer.mozilla.org/en-US/docs/Web/API/Window.moveTo)
+   *   from MDN.
+   * * [Window.moveTo](http://dev.w3.org/csswg/cssom-view/#dom-window-moveto)
+   *   from W3C.
+   */
+  void moveTo(Point p) {
+    _moveTo(p.x.toInt(), p.y.toInt());
+  }
+
+  int get pageXOffset => JS<num>('num', '#.pageXOffset', this).round();
+
+  int get pageYOffset => JS<num>('num', '#.pageYOffset', this).round();
+
+  /**
+   * The distance this window has been scrolled horizontally.
+   *
+   * ## Other resources
+   *
+   * * [The Screen interface
+   *   specification](http://www.w3.org/TR/cssom-view/#screen) from W3C.
+   * * [scrollX](https://developer.mozilla.org/en-US/docs/Web/API/Window.scrollX)
+   *   from MDN.
+   */
+  int get scrollX => JS<bool>('bool', '("scrollX" in #)', this) ?
+      JS<num>('num', '#.scrollX', this).round() :
+      document.documentElement$NULLASSERT.scrollLeft;
+
+  /**
+   * The distance this window has been scrolled vertically.
+   *
+   * ## Other resources
+   *
+   * * [The Screen interface
+   *   specification](http://www.w3.org/TR/cssom-view/#screen) from W3C.
+   * * [scrollY](https://developer.mozilla.org/en-US/docs/Web/API/Window.scrollY)
+   *   from MDN.
+   */
+  int get scrollY => JS<bool>('bool', '("scrollY" in #)', this) ?
+      JS<num>('num', '#.scrollY', this).round() :
+      document.documentElement$NULLASSERT.scrollTop;
+}
+
+class NullWindowException implements Exception {
+  @override
+  String toString() {
+    return 'Attempting to use a null window opened in Window.open.';
+  }
+}

@@ -1,0 +1,3 @@
+extension type ET(int id) {
+  void set id(String i) {}
+}

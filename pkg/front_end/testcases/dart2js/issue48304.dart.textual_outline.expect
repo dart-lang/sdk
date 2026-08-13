@@ -1,0 +1,17 @@
+abstract class B {
+  call<T>();
+}
+
+class C implements B {
+  call<T>() => print(T);
+}
+
+abstract class A {}
+
+class Wrapper {
+  Wrapper(this.b, this.call);
+  final B b;
+  final B call;
+}
+
+void main() {}

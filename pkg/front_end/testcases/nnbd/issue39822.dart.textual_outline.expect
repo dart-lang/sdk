@@ -1,0 +1,5 @@
+foo(Null x) {}
+
+bar(int y) {}
+
+main() {}

@@ -1,0 +1,3 @@
+test(Never nonNullableNever, Never? nullableNever) {}
+
+main() {}

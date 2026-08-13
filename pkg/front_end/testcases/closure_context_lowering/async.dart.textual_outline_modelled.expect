@@ -1,0 +1,23 @@
+import 'dart:async';
+
+Future<int> foo() async => 42;
+
+Future<int> loops(List<int> list) async {}
+
+Future<int> simpleAsyncAwait(Future<int> a, Future<int> b) async {}
+
+Future<int> testAssert(Future<int> a) async {}
+
+Future<int> tryCatchRethrow(
+  Future<int> a,
+  Future<int> b,
+  Future<int> c,
+) async {}
+
+closure(Future<int> a) {}
+
+main() {}
+
+var asyncInFieldInitializer = (Future<int> x) async {
+  await x;
+};

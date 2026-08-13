@@ -1,0 +1,54 @@
+callable:
+  - library: 'lib1.dart'
+  - library: 'lib2.dart'
+    class: A
+  - library: 'lib2.dart'
+    class: B
+    member: imethod5
+  - library: 'lib2.dart'
+    member: sfield9
+  - library: 'lib3.dart'
+    class: ['A', 'B']
+  - library: 'lib4.dart'
+  - library: 'prefix/lib1.dart'
+  - library: 'prefix/lib2.dart'
+
+can-be-used-as-type:
+  - library: 'lib5.dart'
+  - library: 'lib3.dart'
+    class: ['F', 'G']
+  - library: 'lib3.dart'
+    extension_type: 'H'
+
+extendable:
+  - library: 'lib1.dart'
+    class: ['A', 'O', 'Q', 'S', 'T', 'V']
+  - library: 'lib2.dart'
+  - library: 'lib4.dart'
+
+can-be-overridden:
+  - library: 'lib1.dart'
+    class: ['A', 'Q', 'U']
+  - library: 'lib2.dart'
+    class: 'D'
+    member: 'build'
+  - library: 'lib4.dart'
+
+dynamically-callable:
+  - library: 'lib6.dart'
+    class: ['A', 'B', 'D']
+  - library: 'lib6.dart'
+    class: E
+    member: dcMethod5
+  - library: 'lib6.dart'
+    class: E
+    member: 'get:dcGetter3'
+  - library: 'lib6.dart'
+    class: E
+    member: 'set:dcSetter3'
+  - library: 'lib6.dart'
+    class: E
+    member: dcField7
+  - library: 'lib6.dart'
+    class: E
+    member: dcField8

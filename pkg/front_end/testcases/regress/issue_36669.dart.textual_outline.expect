@@ -1,0 +1,7 @@
+class NoUnnamedConstructor {
+  NoUnnamedConstructor._();
+}
+
+mixin MixMeIn {}
+
+class Foo extends NoUnnamedConstructor with MixMeIn {}

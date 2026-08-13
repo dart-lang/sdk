@@ -1,0 +1,48 @@
+# Copyright (c) 2020, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Reproduce a crash.
+
+type: newworld
+worlds:
+  - entry: main.dart
+    sources:
+      main.dart: |
+        import 'file2.dart';
+        class A extends B implements C {}
+      file1.dart: |
+        class D {
+          D? parent;
+        }
+      file2.dart: |
+        import 'file1.dart';
+        abstract class C implements D {}
+        class B extends D {
+          D? parent;
+        }
+    expectedLibraryCount: 3
+
+  - entry: main.dart
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - main.dart
+    expectedLibraryCount: 3
+    advancedInvalidation: bodiesOnly
+
+  - entry: main.dart
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - file1.dart
+    expectedLibraryCount: 3
+    advancedInvalidation: bodiesOnly
+
+  - entry: main.dart
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - main.dart
+    expectedLibraryCount: 3
+    advancedInvalidation: bodiesOnly

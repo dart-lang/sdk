@@ -1,0 +1,12 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/issue43975.dart:5:9: Error: The typedef 'F' has a reference to itself.
+// typedef F = void Function<X extends F>() Function();
+//         ^
+//
+import self as self;
+
+typedef F = invalid-type;
+static method main() → void {}

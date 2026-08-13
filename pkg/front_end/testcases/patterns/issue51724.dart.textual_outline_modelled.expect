@@ -1,0 +1,7 @@
+dynamic guard(dynamic x) => x;
+
+int val(int x) => x;
+
+main() {}
+
+throws(void Function() f) {}

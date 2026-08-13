@@ -1,0 +1,3 @@
+class const Self();
+
+extension type MyComponent(@Self() final int? x) {}

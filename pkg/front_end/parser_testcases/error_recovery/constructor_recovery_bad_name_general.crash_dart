@@ -1,0 +1,41 @@
+class Foo {
+  foo.x() {
+    // Not OK.
+  }
+  foo.x() : initializer = true {
+    // Not OK.
+  }
+  foo() : initializer = true {
+    // Not OK.
+  }
+  get Foo => 0;
+  get Foo {
+    return 0;
+  }
+  get Foo.X => 0;
+  get Foo.X {
+    return 0;
+  }
+  get Foo : bla = null => 0;
+  get Foo.X : bla = null {
+    return 0;
+  }
+  set Foo => 0;
+  set Foo {
+    return 0;
+  }
+  set Foo.X => 0;
+  set Foo.X {
+    return 0;
+  }
+  set Foo : bla = null => 0;
+  set Foo.X : bla = null {
+    return 0;
+  }
+  external Foo() : bla = null;
+  external Foo.X() : bla = null {
+    return 0;
+  }
+  int Foo;
+  int A, Foo, B;
+}

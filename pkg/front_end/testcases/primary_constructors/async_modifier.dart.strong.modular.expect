@@ -1,0 +1,315 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/primary_constructors/async_modifier.dart:7:8: Error: A primary constructor body can't have the modifier 'async'.
+// Try removing the modifier.
+//   this async;
+//        ^^^^^
+//
+// pkg/front_end/testcases/primary_constructors/async_modifier.dart:7:13: Error: Abstract methods can't use 'async', 'async*', or 'sync*'.
+//   this async;
+//             ^
+//
+// pkg/front_end/testcases/primary_constructors/async_modifier.dart:7:13: Error: Expected a function body or '=>'.
+// Try adding {}.
+//   this async;
+//             ^
+//
+// pkg/front_end/testcases/primary_constructors/async_modifier.dart:12:23: Error: A primary constructor body can't have the modifier 'async'.
+// Try removing the modifier.
+//   this: assert(x > 0) async;
+//                       ^^^^^
+//
+// pkg/front_end/testcases/primary_constructors/async_modifier.dart:12:28: Error: Abstract methods can't use 'async', 'async*', or 'sync*'.
+//   this: assert(x > 0) async;
+//                            ^
+//
+// pkg/front_end/testcases/primary_constructors/async_modifier.dart:12:28: Error: Expected a function body or '=>'.
+// Try adding {}.
+//   this: assert(x > 0) async;
+//                            ^
+//
+// pkg/front_end/testcases/primary_constructors/async_modifier.dart:17:8: Error: A primary constructor body can't have the modifier 'async*'.
+// Try removing the modifier.
+//   this async*;
+//        ^^^^^
+//
+// pkg/front_end/testcases/primary_constructors/async_modifier.dart:17:14: Error: Abstract methods can't use 'async', 'async*', or 'sync*'.
+//   this async*;
+//              ^
+//
+// pkg/front_end/testcases/primary_constructors/async_modifier.dart:17:14: Error: Expected a function body or '=>'.
+// Try adding {}.
+//   this async*;
+//              ^
+//
+// pkg/front_end/testcases/primary_constructors/async_modifier.dart:22:23: Error: A primary constructor body can't have the modifier 'async*'.
+// Try removing the modifier.
+//   this: assert(x > 0) async*;
+//                       ^^^^^
+//
+// pkg/front_end/testcases/primary_constructors/async_modifier.dart:22:29: Error: Abstract methods can't use 'async', 'async*', or 'sync*'.
+//   this: assert(x > 0) async*;
+//                             ^
+//
+// pkg/front_end/testcases/primary_constructors/async_modifier.dart:22:29: Error: Expected a function body or '=>'.
+// Try adding {}.
+//   this: assert(x > 0) async*;
+//                             ^
+//
+// pkg/front_end/testcases/primary_constructors/async_modifier.dart:27:8: Error: A primary constructor body can't have the modifier 'sync*'.
+// Try removing the modifier.
+//   this sync*;
+//        ^^^^
+//
+// pkg/front_end/testcases/primary_constructors/async_modifier.dart:27:13: Error: Abstract methods can't use 'async', 'async*', or 'sync*'.
+//   this sync*;
+//             ^
+//
+// pkg/front_end/testcases/primary_constructors/async_modifier.dart:27:13: Error: Expected a function body or '=>'.
+// Try adding {}.
+//   this sync*;
+//             ^
+//
+// pkg/front_end/testcases/primary_constructors/async_modifier.dart:32:23: Error: A primary constructor body can't have the modifier 'sync*'.
+// Try removing the modifier.
+//   this: assert(x > 0) sync*;
+//                       ^^^^
+//
+// pkg/front_end/testcases/primary_constructors/async_modifier.dart:32:28: Error: Abstract methods can't use 'async', 'async*', or 'sync*'.
+//   this: assert(x > 0) sync*;
+//                            ^
+//
+// pkg/front_end/testcases/primary_constructors/async_modifier.dart:32:28: Error: Expected a function body or '=>'.
+// Try adding {}.
+//   this: assert(x > 0) sync*;
+//                            ^
+//
+// pkg/front_end/testcases/primary_constructors/async_modifier.dart:36:8: Error: A primary constructor body can't have the modifier 'async'.
+// Try removing the modifier.
+//   this async;
+//        ^^^^^
+//
+// pkg/front_end/testcases/primary_constructors/async_modifier.dart:36:13: Error: Abstract methods can't use 'async', 'async*', or 'sync*'.
+//   this async;
+//             ^
+//
+// pkg/front_end/testcases/primary_constructors/async_modifier.dart:36:13: Error: Expected a function body or '=>'.
+// Try adding {}.
+//   this async;
+//             ^
+//
+// pkg/front_end/testcases/primary_constructors/async_modifier.dart:40:8: Error: A primary constructor body can't have the modifier 'async*'.
+// Try removing the modifier.
+//   this async*;
+//        ^^^^^
+//
+// pkg/front_end/testcases/primary_constructors/async_modifier.dart:40:14: Error: Abstract methods can't use 'async', 'async*', or 'sync*'.
+//   this async*;
+//              ^
+//
+// pkg/front_end/testcases/primary_constructors/async_modifier.dart:40:14: Error: Expected a function body or '=>'.
+// Try adding {}.
+//   this async*;
+//              ^
+//
+// pkg/front_end/testcases/primary_constructors/async_modifier.dart:45:8: Error: A primary constructor body can't have the modifier 'sync*'.
+// Try removing the modifier.
+//   this sync*;
+//        ^^^^
+//
+// pkg/front_end/testcases/primary_constructors/async_modifier.dart:45:13: Error: Abstract methods can't use 'async', 'async*', or 'sync*'.
+//   this sync*;
+//             ^
+//
+// pkg/front_end/testcases/primary_constructors/async_modifier.dart:45:13: Error: Expected a function body or '=>'.
+// Try adding {}.
+//   this sync*;
+//             ^
+//
+// pkg/front_end/testcases/primary_constructors/async_modifier.dart:7:8: Error: Constructor bodies can't use 'async', 'async*', or 'sync*'.
+//   this async;
+//        ^
+//
+// pkg/front_end/testcases/primary_constructors/async_modifier.dart:12:23: Error: Constructor bodies can't use 'async', 'async*', or 'sync*'.
+//   this: assert(x > 0) async;
+//                       ^
+//
+// pkg/front_end/testcases/primary_constructors/async_modifier.dart:17:8: Error: Constructor bodies can't use 'async', 'async*', or 'sync*'.
+//   this async*;
+//        ^
+//
+// pkg/front_end/testcases/primary_constructors/async_modifier.dart:22:23: Error: Constructor bodies can't use 'async', 'async*', or 'sync*'.
+//   this: assert(x > 0) async*;
+//                       ^
+//
+// pkg/front_end/testcases/primary_constructors/async_modifier.dart:27:8: Error: Constructor bodies can't use 'async', 'async*', or 'sync*'.
+//   this sync*;
+//        ^
+//
+// pkg/front_end/testcases/primary_constructors/async_modifier.dart:32:23: Error: Constructor bodies can't use 'async', 'async*', or 'sync*'.
+//   this: assert(x > 0) sync*;
+//                       ^
+//
+// pkg/front_end/testcases/primary_constructors/async_modifier.dart:36:8: Error: Constructor bodies can't use 'async', 'async*', or 'sync*'.
+//   this async;
+//        ^
+//
+// pkg/front_end/testcases/primary_constructors/async_modifier.dart:40:8: Error: Constructor bodies can't use 'async', 'async*', or 'sync*'.
+//   this async*;
+//        ^
+//
+// pkg/front_end/testcases/primary_constructors/async_modifier.dart:45:8: Error: Constructor bodies can't use 'async', 'async*', or 'sync*'.
+//   this sync*;
+//        ^
+//
+// pkg/front_end/testcases/primary_constructors/async_modifier.dart:11:3: Error: Constant evaluation error:
+//   e0(0);
+//   ^
+// pkg/front_end/testcases/primary_constructors/async_modifier.dart:12:18: Context: This assertion failed.
+//   this: assert(x > 0) async;
+//                  ^
+// pkg/front_end/testcases/primary_constructors/async_modifier.dart:11:3: Context: While analyzing:
+//   e0(0);
+//   ^
+//
+// pkg/front_end/testcases/primary_constructors/async_modifier.dart:21:3: Error: Constant evaluation error:
+//   e0(0);
+//   ^
+// pkg/front_end/testcases/primary_constructors/async_modifier.dart:22:18: Context: This assertion failed.
+//   this: assert(x > 0) async*;
+//                  ^
+// pkg/front_end/testcases/primary_constructors/async_modifier.dart:21:3: Context: While analyzing:
+//   e0(0);
+//   ^
+//
+// pkg/front_end/testcases/primary_constructors/async_modifier.dart:31:3: Error: Constant evaluation error:
+//   e0(0);
+//   ^
+// pkg/front_end/testcases/primary_constructors/async_modifier.dart:32:18: Context: This assertion failed.
+//   this: assert(x > 0) sync*;
+//                  ^
+// pkg/front_end/testcases/primary_constructors/async_modifier.dart:31:3: Context: While analyzing:
+//   e0(0);
+//   ^
+//
+import self as self;
+import "dart:core" as core;
+
+class E1 extends core::_Enum /*isEnum*/  {
+  final field core::int x;
+  enum-element static const field self::E1 e0 = invalid-expression "pkg/front_end/testcases/primary_constructors/async_modifier.dart:7:8: Error: Constructor bodies can't use 'async', 'async*', or 'sync*'.
+  this async;
+       ^";
+  static const field core::List<self::E1> values = invalid-expression "pkg/front_end/testcases/primary_constructors/async_modifier.dart:7:8: Error: Constructor bodies can't use 'async', 'async*', or 'sync*'.
+  this async;
+       ^";
+  const constructor •(core::int #index, core::String #name, final initializing-formal core::int x) → self::E1
+    : self::E1::x = x, invalid-initializer "pkg/front_end/testcases/primary_constructors/async_modifier.dart:7:8: Error: Constructor bodies can't use 'async', 'async*', or 'sync*'.
+  this async;
+       ^"
+    ;
+  method core::_enumToString() → core::String
+    return "E1.${this.{core::_Enum::_name}{core::String}}";
+}
+class E2 extends core::_Enum /*isEnum*/  {
+  final field core::int x;
+  enum-element static const field self::E2 e0 = invalid-expression "This assertion failed.";
+  static const field core::List<self::E2> values = invalid-expression "This assertion failed.";
+  const constructor •(core::int #index, core::String #name, final initializing-formal core::int x) → self::E2
+    : self::E2::x = x, assert(x.{core::num::>}(0){(core::num) → core::bool}), invalid-initializer "pkg/front_end/testcases/primary_constructors/async_modifier.dart:12:23: Error: Constructor bodies can't use 'async', 'async*', or 'sync*'.
+  this: assert(x > 0) async;
+                      ^"
+    ;
+  method core::_enumToString() → core::String
+    return "E2.${this.{core::_Enum::_name}{core::String}}";
+}
+class E3 extends core::_Enum /*isEnum*/  {
+  final field core::int x;
+  enum-element static const field self::E3 e0 = invalid-expression "pkg/front_end/testcases/primary_constructors/async_modifier.dart:17:8: Error: Constructor bodies can't use 'async', 'async*', or 'sync*'.
+  this async*;
+       ^";
+  static const field core::List<self::E3> values = invalid-expression "pkg/front_end/testcases/primary_constructors/async_modifier.dart:17:8: Error: Constructor bodies can't use 'async', 'async*', or 'sync*'.
+  this async*;
+       ^";
+  const constructor •(core::int #index, core::String #name, final initializing-formal core::int x) → self::E3
+    : self::E3::x = x, invalid-initializer "pkg/front_end/testcases/primary_constructors/async_modifier.dart:17:8: Error: Constructor bodies can't use 'async', 'async*', or 'sync*'.
+  this async*;
+       ^"
+    ;
+  method core::_enumToString() → core::String
+    return "E3.${this.{core::_Enum::_name}{core::String}}";
+}
+class E4 extends core::_Enum /*isEnum*/  {
+  final field core::int x;
+  enum-element static const field self::E4 e0 = invalid-expression "This assertion failed.";
+  static const field core::List<self::E4> values = invalid-expression "This assertion failed.";
+  const constructor •(core::int #index, core::String #name, final initializing-formal core::int x) → self::E4
+    : self::E4::x = x, assert(x.{core::num::>}(0){(core::num) → core::bool}), invalid-initializer "pkg/front_end/testcases/primary_constructors/async_modifier.dart:22:23: Error: Constructor bodies can't use 'async', 'async*', or 'sync*'.
+  this: assert(x > 0) async*;
+                      ^"
+    ;
+  method core::_enumToString() → core::String
+    return "E4.${this.{core::_Enum::_name}{core::String}}";
+}
+class E5 extends core::_Enum /*isEnum*/  {
+  final field core::int x;
+  enum-element static const field self::E5 e0 = invalid-expression "pkg/front_end/testcases/primary_constructors/async_modifier.dart:27:8: Error: Constructor bodies can't use 'async', 'async*', or 'sync*'.
+  this sync*;
+       ^";
+  static const field core::List<self::E5> values = invalid-expression "pkg/front_end/testcases/primary_constructors/async_modifier.dart:27:8: Error: Constructor bodies can't use 'async', 'async*', or 'sync*'.
+  this sync*;
+       ^";
+  const constructor •(core::int #index, core::String #name, final initializing-formal core::int x) → self::E5
+    : self::E5::x = x, invalid-initializer "pkg/front_end/testcases/primary_constructors/async_modifier.dart:27:8: Error: Constructor bodies can't use 'async', 'async*', or 'sync*'.
+  this sync*;
+       ^"
+    ;
+  method core::_enumToString() → core::String
+    return "E5.${this.{core::_Enum::_name}{core::String}}";
+}
+class E6 extends core::_Enum /*isEnum*/  {
+  final field core::int x;
+  enum-element static const field self::E6 e0 = invalid-expression "This assertion failed.";
+  static const field core::List<self::E6> values = invalid-expression "This assertion failed.";
+  const constructor •(core::int #index, core::String #name, final initializing-formal core::int x) → self::E6
+    : self::E6::x = x, assert(x.{core::num::>}(0){(core::num) → core::bool}), invalid-initializer "pkg/front_end/testcases/primary_constructors/async_modifier.dart:32:23: Error: Constructor bodies can't use 'async', 'async*', or 'sync*'.
+  this: assert(x > 0) sync*;
+                      ^"
+    ;
+  method core::_enumToString() → core::String
+    return "E6.${this.{core::_Enum::_name}{core::String}}";
+}
+mixin class M1 extends core::Object {
+  constructor •() → self::M1
+    : invalid-initializer "pkg/front_end/testcases/primary_constructors/async_modifier.dart:36:8: Error: Constructor bodies can't use 'async', 'async*', or 'sync*'.
+  this async;
+       ^"
+    ;
+}
+mixin class M2 extends core::Object {
+  constructor •() → self::M2
+    : invalid-initializer "pkg/front_end/testcases/primary_constructors/async_modifier.dart:40:8: Error: Constructor bodies can't use 'async', 'async*', or 'sync*'.
+  this async*;
+       ^"
+    ;
+}
+mixin class M3 extends core::Object {
+  constructor •() → self::M3
+    : invalid-initializer "pkg/front_end/testcases/primary_constructors/async_modifier.dart:45:8: Error: Constructor bodies can't use 'async', 'async*', or 'sync*'.
+  this sync*;
+       ^"
+    ;
+}
+
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///async_modifier.dart:
+- E1. (from org-dartlang-testcase:///async_modifier.dart:5:8)
+- E2. (from org-dartlang-testcase:///async_modifier.dart:10:8)
+- E3. (from org-dartlang-testcase:///async_modifier.dart:15:8)
+- E4. (from org-dartlang-testcase:///async_modifier.dart:20:8)
+- E5. (from org-dartlang-testcase:///async_modifier.dart:25:8)
+- E6. (from org-dartlang-testcase:///async_modifier.dart:30:8)

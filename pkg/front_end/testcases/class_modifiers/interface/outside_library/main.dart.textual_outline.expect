@@ -1,0 +1,7 @@
+import 'main_lib.dart';
+
+class ExtendsInterfaceClass extends A {}
+
+mixin MixinOnA on A {}
+
+mixin MixinOnAM on A, B {}

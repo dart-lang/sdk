@@ -1,0 +1,5 @@
+mixin M {}
+
+class A = void Function() with M;
+
+main() {}

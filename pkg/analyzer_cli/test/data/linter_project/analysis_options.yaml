@@ -1,0 +1,4 @@
+linter:
+  rules:
+    - camel_case_types
+    - sort_pub_dependencies

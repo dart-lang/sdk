@@ -1,0 +1,72 @@
+<!-- Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+     for details. All rights reserved. Use of this source code is governed by a
+     BSD-style license that can be found in the LICENSE file. -->
+
+<html>
+<body>
+  <h1>Upload New Fake Feed</h1>
+
+  <p>This magnificent administration interface is your gateway to an exciting
+    career in uploading hand-curated fake news feeds into this server. You can
+    then view them directly on the server, or download them back down in
+    long-tasting and great-tasting CannedData form.</p>
+
+  <ol>
+    <li>Make a fake feed. This is a JSON file.</li>
+    <li>Go here. It seems you've already completed this step.</li>
+    <li>Click the "JSON File" button and select your local file.</li>
+    <li>Click "Submit". It is not necessary to kneel beforehand, but it may
+      help. Your call.</li>
+    <li>You're done!</li>
+  </ol>
+
+  <p>Here's a sample of what the JSON file should look like:</p>
+
+  <pre>
+{
+  "section":"awesome",
+  "id":"feed/http://www.example.com/feed/",
+  "title":"Example Feed",
+  "alternate":[{"href":"http://www.example.com"}],
+  "updated":1307338620,
+  "items":[
+  {
+    "id":"fake/example.com/1",
+    "title":"I am the first post!",
+    "published":1307337590,
+    "alternate":[{"href":"http://www.example.com/first"}],
+    "content":{
+      "content":"This is the text of the first post."
+    },
+    "author":"Fred Example"
+  },
+  {
+    "id":"fake/example.com/2",
+    "title":"I am the second post!",
+    "published":1307336590,
+    "alternate":[{"href":"http://www.example.com/second"}],
+    "content":{
+      "content":"This is the text of the second post."
+    },
+    "author":"Fred Example"
+  },
+  {
+    "id":"fake/example.com/3",
+    "title":"I am the third post!",
+    "published":1307335590,
+    "alternate":[{"href":"http://www.example.com/third"}],
+    "content":{
+      "content":"This is the text of the third post."
+    },
+    "author":"Fred Example"
+  }
+  ]
+}
+  </pre>
+
+  <form action="/update/upload" method="POST" enctype="multipart/form-data">
+    JSON File: <input type="file" multiple="" name="files"><br>
+    <input type="submit" name="submit" value="Submit">
+  </form>
+</body>
+</html>

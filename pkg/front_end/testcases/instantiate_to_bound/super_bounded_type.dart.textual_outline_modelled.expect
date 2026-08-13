@@ -1,0 +1,5 @@
+A a = throw '';
+
+class A<T extends A<T>> {}
+
+main() {}

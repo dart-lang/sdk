@@ -1,0 +1,24 @@
+void main() {}
+
+class C {
+  @pragma('dart2js:late:trust')
+  late int a;
+  @pragma('dart2js:late:check')
+  late final int b;
+  @pragma('dart2js:late:trust')
+  @pragma('dart2js:tryInline')
+  late int c = -1;
+  @pragma('dart2js:late:check')
+  @pragma('dart2js:noInline')
+  late final int d = -1;
+}
+
+var c = C();
+
+void testUninitializedNonFinalInstanceField() {}
+
+void testUninitializedFinalInstanceField() {}
+
+void testInitializedNonFinalInstanceField() {}
+
+void testInitializedFinalInstanceField() {}

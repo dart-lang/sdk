@@ -1,0 +1,178 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+import "dart:async";
+
+class C<T extends core::Object? = dynamic> extends core::Object {
+  field FutureOr<dynamic>? _#C#field1 = null;
+  field core::bool _#C#field1#isSet = false;
+  field FutureOr<dynamic>? _#C#field2 = null;
+  field core::bool _#C#field2#isSet = false;
+  covariant-by-class field FutureOr<self::C::T%>? _#C#field3 = null;
+  field core::bool _#C#field3#isSet = false;
+  covariant-by-class field FutureOr<self::C::T?>? _#C#field4 = null;
+  field core::bool _#C#field4#isSet = false;
+  covariant-by-class field FutureOr<self::C::T?>? _#C#field5 = null;
+  field core::bool _#C#field5#isSet = false;
+  synthetic constructor •() → self::C<self::C::T%>
+    : super core::Object::•()
+    ;
+  get field1() → FutureOr<dynamic>
+    return this.{self::C::_#C#field1#isSet}{core::bool} ?{FutureOr<dynamic>} this.{self::C::_#C#field1}{FutureOr<dynamic>?} : throw{for-error-handling} new _in::LateError::fieldNI("field1");
+  set field1(FutureOr<dynamic>field1#param) → void {
+    this.{self::C::_#C#field1#isSet} = true;
+    this.{self::C::_#C#field1} = field1#param;
+  }
+  get field2() → FutureOr<dynamic>?
+    return this.{self::C::_#C#field2#isSet}{core::bool} ?{FutureOr<dynamic>?} this.{self::C::_#C#field2}{FutureOr<dynamic>?} : throw{for-error-handling} new _in::LateError::fieldNI("field2");
+  set field2(FutureOr<dynamic>? field2#param) → void {
+    this.{self::C::_#C#field2#isSet} = true;
+    this.{self::C::_#C#field2} = field2#param;
+  }
+  get field3() → FutureOr<self::C::T%>
+    return this.{self::C::_#C#field3#isSet}{core::bool} ?{FutureOr<self::C::T%>} let final FutureOr<self::C::T%>? #t1 = this.{self::C::_#C#field3}{FutureOr<self::C::T%>?} in #t1{FutureOr<self::C::T%>} : throw{for-error-handling} new _in::LateError::fieldNI("field3");
+  set field3(covariant-by-class FutureOr<self::C::T%>field3#param) → void {
+    this.{self::C::_#C#field3#isSet} = true;
+    this.{self::C::_#C#field3} = field3#param;
+  }
+  get field4() → FutureOr<self::C::T?>
+    return this.{self::C::_#C#field4#isSet}{core::bool} ?{FutureOr<self::C::T?>} this.{self::C::_#C#field4}{FutureOr<self::C::T?>?} : throw{for-error-handling} new _in::LateError::fieldNI("field4");
+  set field4(covariant-by-class FutureOr<self::C::T?>field4#param) → void {
+    this.{self::C::_#C#field4#isSet} = true;
+    this.{self::C::_#C#field4} = field4#param;
+  }
+  get field5() → FutureOr<self::C::T?>?
+    return this.{self::C::_#C#field5#isSet}{core::bool} ?{FutureOr<self::C::T?>?} this.{self::C::_#C#field5}{FutureOr<self::C::T?>?} : throw{for-error-handling} new _in::LateError::fieldNI("field5");
+  set field5(covariant-by-class FutureOr<self::C::T?>? field5#param) → void {
+    this.{self::C::_#C#field5#isSet} = true;
+    this.{self::C::_#C#field5} = field5#param;
+  }
+  method method() → dynamic {
+    lowered FutureOr<dynamic>? #local1;
+    lowered core::bool #local1#isSet = false;
+    function #local1#get() → FutureOr<dynamic>
+      return #local1#isSet ?{FutureOr<dynamic>} #local1 : throw{for-error-handling} new _in::LateError::localNI("local1");
+    function #local1#set(FutureOr<dynamic>local1#param) → dynamic {
+      #local1#isSet = true;
+      return #local1 = local1#param;
+    }
+    lowered FutureOr<dynamic>? #local2;
+    lowered core::bool #local2#isSet = false;
+    function #local2#get() → FutureOr<dynamic>?
+      return #local2#isSet ?{FutureOr<dynamic>?} #local2 : throw{for-error-handling} new _in::LateError::localNI("local2");
+    function #local2#set(FutureOr<dynamic>? local2#param) → dynamic {
+      #local2#isSet = true;
+      return #local2 = local2#param;
+    }
+    lowered FutureOr<self::C::T%>? #local3;
+    lowered core::bool #local3#isSet = false;
+    function #local3#get() → FutureOr<self::C::T%>
+      return #local3#isSet ?{FutureOr<self::C::T%>} #local3{FutureOr<self::C::T%>} : throw{for-error-handling} new _in::LateError::localNI("local3");
+    function #local3#set(FutureOr<self::C::T%>local3#param) → dynamic {
+      #local3#isSet = true;
+      return #local3 = local3#param;
+    }
+    lowered FutureOr<self::C::T?>? #local4;
+    lowered core::bool #local4#isSet = false;
+    function #local4#get() → FutureOr<self::C::T?>
+      return #local4#isSet ?{FutureOr<self::C::T?>} #local4 : throw{for-error-handling} new _in::LateError::localNI("local4");
+    function #local4#set(FutureOr<self::C::T?>local4#param) → dynamic {
+      #local4#isSet = true;
+      return #local4 = local4#param;
+    }
+    lowered FutureOr<self::C::T?>? #local5;
+    lowered core::bool #local5#isSet = false;
+    function #local5#get() → FutureOr<self::C::T?>?
+      return #local5#isSet ?{FutureOr<self::C::T?>?} #local5 : throw{for-error-handling} new _in::LateError::localNI("local5");
+    function #local5#set(FutureOr<self::C::T?>? local5#param) → dynamic {
+      #local5#isSet = true;
+      return #local5 = local5#param;
+    }
+  }
+}
+static field FutureOr<dynamic>? _#field1 = null;
+static field core::bool _#field1#isSet = false;
+static field FutureOr<dynamic>? _#field2 = null;
+static field core::bool _#field2#isSet = false;
+static field FutureOr<dynamic>? _#field3 = null;
+static field core::bool _#field3#isSet = false;
+static field FutureOr<core::int>? _#field4 = null;
+static field core::bool _#field4#isSet = false;
+static field FutureOr<core::int?>? _#field5 = null;
+static field core::bool _#field5#isSet = false;
+static field FutureOr<core::int?>? _#field6 = null;
+static field core::bool _#field6#isSet = false;
+static method method1() → FutureOr<dynamic>
+  return null;
+static method method2() → FutureOr<dynamic>?
+  return null;
+static method method3() → FutureOr<dynamic>
+  return null;
+static method method4() → FutureOr<core::int>
+  return 0;
+static method method5() → FutureOr<core::int?>
+  return null;
+static method method6() → FutureOr<core::int?>?
+  return null;
+static get field1() → FutureOr<dynamic> {
+  if(!self::_#field1#isSet) {
+    self::_#field1 = self::method1();
+    self::_#field1#isSet = true;
+  }
+  return self::_#field1;
+}
+static set field1(FutureOr<dynamic>field1#param) → void {
+  self::_#field1#isSet = true;
+  self::_#field1 = field1#param;
+}
+static get field2() → FutureOr<dynamic>? {
+  if(!self::_#field2#isSet) {
+    self::_#field2 = self::method2();
+    self::_#field2#isSet = true;
+  }
+  return self::_#field2;
+}
+static set field2(FutureOr<dynamic>? field2#param) → void {
+  self::_#field2#isSet = true;
+  self::_#field2 = field2#param;
+}
+static get field3() → FutureOr<dynamic> {
+  if(!self::_#field3#isSet) {
+    self::_#field3 = self::method3();
+    self::_#field3#isSet = true;
+  }
+  return self::_#field3;
+}
+static set field3(FutureOr<dynamic>field3#param) → void {
+  self::_#field3#isSet = true;
+  self::_#field3 = field3#param;
+}
+static get field4() → FutureOr<core::int>
+  return let final FutureOr<core::int>? #t2 = self::_#field4 in #t2 == null ?{FutureOr<core::int>} self::_#field4 = self::method4() : #t2{FutureOr<core::int>};
+static set field4(FutureOr<core::int>field4#param) → void
+  self::_#field4 = field4#param;
+static get field5() → FutureOr<core::int?> {
+  if(!self::_#field5#isSet) {
+    self::_#field5 = self::method5();
+    self::_#field5#isSet = true;
+  }
+  return self::_#field5;
+}
+static set field5(FutureOr<core::int?>field5#param) → void {
+  self::_#field5#isSet = true;
+  self::_#field5 = field5#param;
+}
+static get field6() → FutureOr<core::int?>? {
+  if(!self::_#field6#isSet) {
+    self::_#field6 = self::method6();
+    self::_#field6#isSet = true;
+  }
+  return self::_#field6;
+}
+static set field6(FutureOr<core::int?>? field6#param) → void {
+  self::_#field6#isSet = true;
+  self::_#field6 = field6#param;
+}
+static method main() → dynamic {}

@@ -1,0 +1,26 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///const_patterns.dart" as prefix;
+
+class Class extends core::Object /*hasConstConstructor*/  {
+  const constructor •([dynamic a = null]) → self::Class
+    : super core::Object::•()
+    ;
+  const constructor named() → self::Class
+    : super core::Object::•()
+    ;
+  method call() → dynamic
+    ;
+  method test(dynamic o) → dynamic async 
+    ;
+}
+class GenericClass<T extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
+  const constructor •({dynamic a = null}) → self::GenericClass<self::GenericClass::T%>
+    : super core::Object::•()
+    ;
+}
+static const field core::int value = 42;
+static method func() → void
+  ;

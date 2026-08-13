@@ -1,0 +1,13 @@
+void f(x) {
+switch (x) {
+case Enum.value when !flag:
+}
+}
+
+
+void[KeywordToken] f[StringToken]([BeginToken]x[StringToken])[SimpleToken] {[BeginToken]
+switch[KeywordToken] ([BeginToken]x[StringToken])[SimpleToken] {[BeginToken]
+case[KeywordToken] Enum[StringToken].[SimpleToken]value[StringToken] when[KeywordToken] ![SimpleToken]flag[StringToken]:[SimpleToken]
+}[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

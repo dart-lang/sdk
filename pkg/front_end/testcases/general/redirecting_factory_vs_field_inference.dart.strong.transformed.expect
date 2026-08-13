@@ -1,0 +1,42 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "redirecting_factory_vs_field_inference_lib.dart" as red;
+
+import "org-dartlang-testcase:///redirecting_factory_vs_field_inference_lib.dart";
+
+class Element extends core::Object {
+  synthetic constructor •() → self::Element
+    : super core::Object::•()
+    ;
+}
+class Class extends core::Object {
+  field red::Util<self::Element> field = new red::_UtilImpl::•<self::Element>();
+  synthetic constructor •() → self::Class
+    : super core::Object::•()
+    ;
+}
+class SubClass extends self::Class {
+  synthetic constructor •() → self::SubClass
+    : super self::Class::•()
+    ;
+  get field() → red::Util<self::Element>
+    return super.{self::Class::field};
+  set field(red::Util<self::Element> value) → void {
+    super.{self::Class::field} = value;
+  }
+}
+
+library;
+import self as red;
+import "dart:core" as core;
+
+abstract class Util<E extends core::Object? = dynamic> extends core::Object {
+  static factory •<E extends core::Object? = dynamic>() → red::Util<red::Util::•::E%> /* redirection-target: red::_UtilImpl::•<red::Util::•::E%>*/
+    return new red::_UtilImpl::•<red::Util::•::E%>();
+}
+class _UtilImpl<E extends core::Object? = dynamic> extends core::Object implements red::Util<red::_UtilImpl::E%> {
+  synthetic constructor •() → red::_UtilImpl<red::_UtilImpl::E%>
+    : super core::Object::•()
+    ;
+}

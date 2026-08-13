@@ -1,0 +1,204 @@
+// Copyright (c) 2022, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:analysis_server/src/services/snippets/dart_snippet_request.dart';
+import 'package:analysis_server/src/services/snippets/snippet.dart';
+import 'package:analysis_server_plugin/edit/correction_utils.dart';
+import 'package:analyzer/dart/analysis/code_style_options.dart';
+import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
+import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/analysis/session_helper.dart';
+import 'package:analyzer/src/utilities/extensions/flutter.dart';
+import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_dart.dart'
+    show DartFileEditBuilderImpl;
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
+import 'package:meta/meta.dart';
+
+abstract class DartSnippetProducer extends SnippetProducer {
+  final AnalysisSessionHelper sessionHelper;
+  final CorrectionUtils utils;
+  final bool useSuperParams;
+
+  /// A cache of mappings from Elements to their public Library Elements.
+  ///
+  /// Callers can share this cache across multiple snippet producers to avoid
+  /// repeated searches where they may add imports for the same elements.
+  final Map<Element, LibraryElement?> _elementImportCache;
+
+  new(super.request, {required this._elementImportCache})
+    : sessionHelper = AnalysisSessionHelper(request.analysisSession),
+      utils = CorrectionUtils.fromUnitAndContent(
+        request.compilationUnit,
+        request.content,
+      ),
+      useSuperParams = request.libraryElement.featureSet.isEnabled(
+        Feature.super_parameters,
+      );
+
+  CodeStyleOptions get codeStyleOptions => sessionHelper.session.analysisContext
+      .getAnalysisOptionsForFile(request.file)
+      .codeStyleOptions;
+
+  bool get isInTestDirectory => request.isInTestDirectory;
+}
+
+abstract class FlutterSnippetProducer extends DartSnippetProducer {
+  late ClassElement? _classWidget;
+  late ClassElement? _classPlaceholder;
+
+  /// Elements that need to be imported for generated code to be valid.
+  ///
+  /// Calling [addImports] will add any required imports to the supplied
+  /// builder.
+  final Set<Element> _requiredElementImports = {};
+
+  new(super.request, {required super.elementImportCache});
+
+  /// Adds public imports for any elements fetched by [getClass] and [getMixin]
+  /// to [builder].
+  Future<void> addImports(DartFileEditBuilder builder) async {
+    var dartBuilder = builder as DartFileEditBuilderImpl;
+    await Future.wait(
+      _requiredElementImports.map(
+        (element) => dartBuilder.importElementLibrary(
+          element,
+          resultCache: _elementImportCache,
+        ),
+      ),
+    );
+  }
+
+  Future<ClassElement?> getClass(String name) async {
+    var class_ = await sessionHelper.getFlutterClass(name);
+    if (class_ != null) {
+      _requiredElementImports.add(class_);
+    }
+    return class_;
+  }
+
+  Future<MixinElement?> getMixin(String name) async {
+    var mixin = await sessionHelper.getMixin(widgetsUri, name);
+    if (mixin != null) {
+      _requiredElementImports.add(mixin);
+    }
+    return mixin;
+  }
+
+  DartType getType(
+    InterfaceElement classElement, [
+    NullabilitySuffix nullabilitySuffix = NullabilitySuffix.none,
+  ]) => classElement.instantiate(
+    typeArguments: const [],
+    nullabilitySuffix: nullabilitySuffix,
+  );
+
+  @override
+  @mustCallSuper
+  Future<bool> isValid() async {
+    if ((_classWidget = await getClass('Widget')) == null) {
+      return false;
+    }
+
+    if ((_classPlaceholder = await getClass('Placeholder')) == null) {
+      return false;
+    }
+
+    return super.isValid();
+  }
+}
+
+/// A mixin that provides some common methods for producers that build snippets
+/// for Flutter widget classes.
+mixin FlutterWidgetSnippetProducerMixin on FlutterSnippetProducer {
+  ClassElement? get classBuildContext;
+  ClassElement? get classKey;
+  String get widgetClassName => 'MyWidget';
+
+  void writeBuildMethod(DartEditBuilder builder) {
+    // Checked by isValid() before this will be called.
+    var classBuildContext = this.classBuildContext!;
+    var classWidget = _classWidget!;
+    var classPlaceholder = _classPlaceholder!;
+
+    // Add the build method.
+    builder.writeln('  @override');
+    builder.write('  ');
+    builder.writeFunctionDeclaration(
+      'build',
+      returnType: getType(classWidget),
+      parameterWriter: () {
+        builder.writeParameter('context', type: getType(classBuildContext));
+      },
+      bodyWriter: () {
+        builder.writeln('{');
+        builder.write('    return ');
+        builder.selectAll(() {
+          builder.write('const ');
+          builder.writeType(getType(classPlaceholder));
+          builder.write('()');
+        });
+        builder.writeln(';');
+        builder.writeln('  }');
+      },
+    );
+  }
+
+  void writeCreateStateMethod(DartEditBuilder builder) {
+    builder.writeln('  @override');
+    builder.write('  State<');
+    builder.addSimpleLinkedEdit('name', widgetClassName);
+    builder.write('> createState() => _');
+    builder.addSimpleLinkedEdit('name', widgetClassName);
+    builder.writeln('State();');
+  }
+
+  void writeWidgetConstructor(DartEditBuilder builder) {
+    // Checked by isValid() before this will be called.
+    var classKey = this.classKey!;
+
+    String keyName;
+    DartType? keyType;
+    void Function()? keyInitializer;
+    if (useSuperParams) {
+      keyName = 'super.key';
+    } else {
+      keyName = 'key';
+      keyType = getType(classKey, NullabilitySuffix.question);
+      keyInitializer = () => builder.write('super(key: key)');
+    }
+
+    builder.write('  ');
+    builder.writeConstructorDeclaration(
+      widgetClassName,
+      classNameGroupName: 'name',
+      isConst: true,
+      parameterWriter: () {
+        builder.write('{');
+        builder.writeParameter(keyName, type: keyType);
+        builder.write('}');
+      },
+      initializerWriter: keyInitializer,
+    );
+  }
+}
+
+abstract class SnippetProducer {
+  final DartSnippetRequest request;
+
+  new(this.request);
+
+  /// The prefix a user types to use this snippet.
+  String get snippetPrefix;
+
+  Future<Snippet> compute();
+
+  Future<bool> isValid() async {
+    // File edit builders will not produce edits for files outside of the
+    // analysis roots so we should not try to produce any snippets.
+    var analysisContext = request.analysisSession.analysisContext;
+    return analysisContext.contextRoot.isAnalyzed(request.filePath);
+  }
+}

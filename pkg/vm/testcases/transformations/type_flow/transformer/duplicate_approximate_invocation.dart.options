@@ -1,0 +1,2 @@
+--tfa.maxAllocatedTypesInSetSpecialization=4
+--tfa.maxInterfaceInvocationsPerSelector=4

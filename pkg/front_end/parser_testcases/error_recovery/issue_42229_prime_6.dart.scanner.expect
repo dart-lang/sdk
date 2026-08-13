@@ -1,0 +1,3 @@
+const foo
+
+const[KeywordToken] foo[StringToken][SimpleToken]

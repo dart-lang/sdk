@@ -1,0 +1,72 @@
+library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference/inconsistent_overrides.dart:14:3: Error: Can't infer types for 'f' as the overridden members don't have a combined signature.
+// Try adding explicit types.
+//   f(x, {y}) => throw '';
+//   ^
+// pkg/front_end/testcases/inference/inconsistent_overrides.dart:8:5: Context: This is one of the overridden members.
+//   A f(A x, {A? y}) => throw '';
+//     ^
+// pkg/front_end/testcases/inference/inconsistent_overrides.dart:20:5: Context: This is one of the overridden members.
+//   I f(I x, {I? y}) => throw '';
+//     ^
+//
+// pkg/front_end/testcases/inference/inconsistent_overrides.dart:15:3: Error: Can't infer types for 'g' as the overridden members don't have a combined signature.
+// Try adding explicit types.
+//   g(x, {y}) => throw '';
+//   ^
+// pkg/front_end/testcases/inference/inconsistent_overrides.dart:9:5: Context: This is one of the overridden members.
+//   A g(A x, {A? y}) => throw '';
+//     ^
+// pkg/front_end/testcases/inference/inconsistent_overrides.dart:21:5: Context: This is one of the overridden members.
+//   A g(I x, {I? y}) => throw '';
+//     ^
+//
+// pkg/front_end/testcases/inference/inconsistent_overrides.dart:16:3: Error: Can't infer types for 'h' as the overridden members don't have a combined signature.
+// Try adding explicit types.
+//   h(x, {y}) => throw '';
+//   ^
+// pkg/front_end/testcases/inference/inconsistent_overrides.dart:10:5: Context: This is one of the overridden members.
+//   A h(A x, {A? y}) => throw '';
+//     ^
+// pkg/front_end/testcases/inference/inconsistent_overrides.dart:22:5: Context: This is one of the overridden members.
+//   A h(A x, {I? y}) => throw '';
+//     ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    ;
+  method f(self::A x, {self::A? y = null}) → self::A
+    ;
+  method g(self::A x, {self::A? y = null}) → self::A
+    ;
+  method h(self::A x, {self::A? y = null}) → self::A
+    ;
+}
+class B extends self::A implements self::I {
+  synthetic constructor •() → self::B
+    ;
+  method f(invalid-type x, {invalid-type y = null}) → invalid-type
+    ;
+  method g(invalid-type x, {invalid-type y = null}) → invalid-type
+    ;
+  method h(invalid-type x, {invalid-type y = null}) → invalid-type
+    ;
+}
+class I extends core::Object {
+  synthetic constructor •() → self::I
+    ;
+  method f(self::I x, {self::I? y = null}) → self::I
+    ;
+  method g(self::I x, {self::I? y = null}) → self::A
+    ;
+  method h(self::A x, {self::I? y = null}) → self::A
+    ;
+}
+static method main() → dynamic
+  ;

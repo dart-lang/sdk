@@ -1,0 +1,3 @@
+main() {}
+
+C(this.name);

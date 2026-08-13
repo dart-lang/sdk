@@ -1,0 +1,16 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  constructor •() → self::A
+    ;
+  static factory fisk() → self::A /* redirection-target: self::B::• */
+    return new self::B::•();
+}
+class B extends self::A {
+  synthetic constructor •() → self::B
+    ;
+}
+static method main() → dynamic
+  ;

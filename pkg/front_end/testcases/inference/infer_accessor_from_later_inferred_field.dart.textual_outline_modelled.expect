@@ -1,0 +1,14 @@
+library test;
+
+class A implements B {
+  get x => f();
+  void set x(value) {}
+}
+
+class B {
+  var x = 0;
+}
+
+dynamic f() => null;
+
+main() {}

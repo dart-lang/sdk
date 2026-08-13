@@ -1,0 +1,5 @@
+test(dynamic x1, dynamic x2) {}
+
+main() {}
+
+expectEquals(x, y) {}

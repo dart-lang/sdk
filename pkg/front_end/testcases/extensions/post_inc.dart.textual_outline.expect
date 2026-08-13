@@ -1,0 +1,12 @@
+void main() {}
+
+String setValue = "";
+
+void expect(String expect, Object value, String expectSet) {}
+
+extension Ops on Object {
+  Object operator +(Object other) => "(${this}+$other)";
+  Object operator -(Object other) => "(${this}-$other)";
+  Object get field => "${this}.field";
+  void set field(Object other) {}
+}

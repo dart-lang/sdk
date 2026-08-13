@@ -1,0 +1,34 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method main() → void {
+  core::List<dynamic> list1 = [@vm.inferred-type.metadata=dart.core::_GrowableList<dynamic>] core::_GrowableList::_literal3<dynamic>(1, 2, 3);
+  core::print(list1);
+  core::List<dynamic> list2 = #C4;
+  core::print(list2);
+  core::List<dynamic> list3 = [@vm.inferred-type.metadata=dart.core::_List] core::List::from<dynamic>(list1, growable: false);
+  core::print(list3);
+  core::List<dynamic> list4 = [@vm.inferred-type.metadata=dart.core::_List] core::List::from<dynamic>(list2, growable: false);
+  core::print(list4);
+  core::List<dynamic> list5 = [@vm.direct-call.metadata=dart.core::_GrowableList.toList] [@vm.inferred-type.metadata=dart.core::_List<dynamic> (skip check)] list1.{core::Iterable::toList}(growable: false){({growable: core::bool}) → core::List<dynamic>};
+  core::print(list5);
+  core::List<dynamic> list6 = [@vm.direct-call.metadata=dart.core::_Array.toList] [@vm.inferred-type.metadata=dart.core::_List (skip check)] list2.{core::Iterable::toList}(growable: false){({growable: core::bool}) → core::List<dynamic>};
+  core::print(list6);
+  core::List<dynamic> list7 = [@vm.inferred-type.metadata=dart.core::_GrowableList<dynamic>] core::List::from<dynamic>(list1);
+  core::print(list7);
+  core::List<dynamic> list8 = [@vm.inferred-type.metadata=dart.core::_GrowableList<dynamic>] core::List::from<dynamic>(list2);
+  core::print(list8);
+  core::List<dynamic> list9 = [@vm.direct-call.metadata=dart.core::_GrowableList.toList] [@vm.inferred-type.metadata=dart.core::_GrowableList<dynamic> (skip check)] list1.{core::Iterable::toList}(){({growable: core::bool}) → core::List<dynamic>};
+  core::print(list9);
+  core::List<dynamic> list10 = [@vm.direct-call.metadata=dart.core::_Array.toList] [@vm.inferred-type.metadata=dart.core::_GrowableList (skip check)] list2.{core::Iterable::toList}(){({growable: core::bool}) → core::List<dynamic>};
+  core::print(list10);
+}
+constants  {
+  #C1 = 1
+  #C2 = 2
+  #C3 = 3
+  #C4 = <dynamic>[#C1, #C2, #C3]
+}

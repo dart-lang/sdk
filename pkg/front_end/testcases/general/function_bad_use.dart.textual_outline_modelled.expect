@@ -1,0 +1,7 @@
+class C<Function> {}
+
+class Function {}
+
+main() {}
+
+mixin M<Function> implements List<Function> {}

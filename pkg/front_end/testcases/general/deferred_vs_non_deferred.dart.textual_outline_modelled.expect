@@ -1,0 +1,4 @@
+import 'deferred_vs_non_deferred_lib1.dart' as bar;
+import 'deferred_vs_non_deferred_lib1.dart' deferred as foo;
+import 'deferred_vs_non_deferred_lib2.dart' as foo;
+import 'deferred_vs_non_deferred_lib2.dart' deferred as bar;

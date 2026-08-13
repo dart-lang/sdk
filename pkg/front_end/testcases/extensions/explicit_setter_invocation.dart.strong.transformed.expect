@@ -1,0 +1,44 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extensions/explicit_setter_invocation.dart:9:5: Error: Getter not found: 'g'.
+//     g(0); // Error
+//     ^
+//
+// pkg/front_end/testcases/extensions/explicit_setter_invocation.dart:14:9: Error: Getter not found: 'g'.
+//   E(i1).g(0); // Error
+//         ^
+//
+// pkg/front_end/testcases/extensions/explicit_setter_invocation.dart:15:10: Error: Getter not found: 'g'.
+//   E(i2)?.g(0); // Error
+//          ^
+//
+import self as self;
+import "dart:core" as core;
+
+extension E on core::int {
+  set g = self::E|set#g;
+  method m = self::E|m;
+  method tearoff m = self::E|get#m;
+}
+static extension-member method E|set#g(lowered final core::int #this, wildcard dynamic _#wc0#formal) → void {}
+static extension-member method E|m(lowered final core::int #this) → dynamic {
+  invalid-expression "pkg/front_end/testcases/extensions/explicit_setter_invocation.dart:9:5: Error: Getter not found: 'g'.
+    g(0); // Error
+    ^";
+}
+static extension-member method E|get#m(lowered final core::int #this) → () → dynamic
+  return () → dynamic => self::E|m(#this);
+static method test(core::int i1, core::int? i2) → dynamic {
+  invalid-expression "pkg/front_end/testcases/extensions/explicit_setter_invocation.dart:14:9: Error: Getter not found: 'g'.
+  E(i1).g(0); // Error
+        ^";
+  invalid-expression "pkg/front_end/testcases/extensions/explicit_setter_invocation.dart:15:10: Error: Getter not found: 'g'.
+  E(i2)?.g(0); // Error
+         ^";
+}
+static method method() → dynamic {
+  self::E|m(0);
+  self::test(0, 0);
+}

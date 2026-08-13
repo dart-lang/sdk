@@ -1,0 +1,24 @@
+abstract class I {
+  String get member1;
+  String get procedure;
+  double get getterVsSetter;
+  void set fieldSetter(String value);
+  void set setter(String value);
+  void set setterVsGetter(num value);
+}
+
+class A implements I {
+  dynamic noSuchMethod(Invocation i) => "foo";
+  static String fieldSetter = "fieldSetter";
+  static String member1 = "member1";
+  static String member2 = "member2";
+  static String member3 = "member3";
+  static String member4 = "member4";
+  static String member5 = "member5";
+  static num get setterVsGetter => 0;
+  static void procedure() {}
+  static void set getterVsSetter(double value) {}
+  static void set setter(String value) {}
+}
+
+main() {}

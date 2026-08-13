@@ -1,0 +1,19 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+abstract class M extends core::Object /*isMixinDeclaration*/  {
+  method foo() → dynamic
+    ;
+}
+class A extends self::_A&Object&M {
+  synthetic constructor •() → self::A
+    ;
+}
+abstract class _A&Object&M = core::Object with self::M /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_A&Object&M
+    : super core::Object::•()
+    ;
+  synthetic mixin-super-stub method foo() → dynamic
+    return super.{self::M::foo}();
+}

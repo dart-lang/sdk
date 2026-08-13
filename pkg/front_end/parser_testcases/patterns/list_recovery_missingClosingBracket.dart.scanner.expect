@@ -1,0 +1,15 @@
+void f(x) {
+switch (x) {
+case [int():
+break;
+]}
+}
+
+
+[UnmatchedToken]void[KeywordToken] f[StringToken]([BeginToken]x[StringToken])[SimpleToken] {[BeginToken]
+switch[KeywordToken] ([BeginToken]x[StringToken])[SimpleToken] {[BeginToken]
+case[KeywordToken] [[BeginToken]int[StringToken]([BeginToken])[SimpleToken]:[SimpleToken]
+break[KeywordToken];[SimpleToken]
+][SyntheticToken]}[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

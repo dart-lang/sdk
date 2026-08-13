@@ -1,0 +1,21 @@
+import 'non_type_object_pattern.dart' as prefix;
+
+extension Extension on int {}
+
+testExtension(o) {}
+
+testMemberAccess(o) {}
+
+testNonType(o) {}
+
+testPrefixedExtension(o) {}
+
+testPrefixedNonType(o) {}
+
+testPrefixedUnresolved(o) {}
+
+testUnresolved(o) {}
+
+testUnresolvedPrefix(o) {}
+
+var NonType = 0;

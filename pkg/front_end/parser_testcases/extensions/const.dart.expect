@@ -1,0 +1,22 @@
+Problems reported:
+
+parser/extensions/const:1:11: Extensions can't have primary constructors.
+extension const Extension on int {}
+          ^^^^^
+
+beginCompilationUnit(extension)
+  beginMetadataStar(extension)
+  endMetadataStar(0)
+  beginExtensionDeclarationPrelude(extension)
+    handleNoTypeVariables(on)
+    beginExtensionDeclaration(null, extension, Extension)
+      handleRecoverableError(ExtensionPrimaryConstructor, const, const)
+      handleNoPrimaryConstructor(DeclarationKind.Extension, Extension, const)
+      handleIdentifier(int, typeReference)
+      handleNoTypeArguments({)
+      handleType(int, null)
+      beginClassOrMixinOrExtensionBody(DeclarationKind.Extension, {)
+      endClassOrMixinOrExtensionBody(DeclarationKind.Extension, 0, {, })
+    endExtensionDeclaration(extension, extension, on, })
+  endTopLevelDeclaration(})
+endCompilationUnit(1, )

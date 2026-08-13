@@ -1,0 +1,26 @@
+class Class {
+  Class.constructorAndField();
+  Class.constructorAndGetter();
+  Class.constructorAndMethod();
+  Class.constructorAndSetter();
+  dynamic constructorAndField;
+  dynamic factoryAndField;
+  dynamic get constructorAndGetter => null;
+  dynamic get factoryAndGetter => null;
+  dynamic get redirectingFactoryAndGetter => null;
+  dynamic redirectingFactoryAndField;
+  factory Class.factoryAndField() => new Class.constructorAndField();
+  factory Class.factoryAndGetter() => new Class.constructorAndGetter();
+  factory Class.factoryAndMethod() => new Class.constructorAndMethod();
+  factory Class.factoryAndSetter() => new Class.constructorAndSetter();
+  factory Class.redirectingFactoryAndField() = Class.constructorAndField;
+  factory Class.redirectingFactoryAndGetter() = Class.constructorAndGetter;
+  factory Class.redirectingFactoryAndMethod() = Class.constructorAndMethod;
+  factory Class.redirectingFactoryAndSetter() = Class.constructorAndSetter;
+  void constructorAndMethod() {}
+  void factoryAndMethod() {}
+  void redirectingFactoryAndMethod() {}
+  void set constructorAndSetter(value) {}
+  void set factoryAndSetter(value) {}
+  void set redirectingFactoryAndSetter(value) {}
+}

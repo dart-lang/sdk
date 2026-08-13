@@ -1,0 +1,3 @@
+Foo<int> f() {}
+
+Foo[StringToken]<[BeginToken]int[StringToken]>[SimpleToken] f[StringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken][SimpleToken]

@@ -1,0 +1,151 @@
+// Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:front_end/src/api_unstable/ddc.dart';
+import 'package:kernel/ast.dart';
+import 'package:kernel/binary/ast_from_binary.dart';
+import 'package:kernel/src/printer.dart';
+import 'package:test/test.dart';
+
+/// Verbose mode for debugging
+bool get verbose => false;
+
+Uri sdkSummaryPath = computePlatformBinariesLocation().resolve(
+  'ddc_outline.dill',
+);
+
+void main(List<String> args) {
+  test('Offsets are present on scoping nodes in SDK', () async {
+    var entity = StandardFileSystem.instance.entityForUri(sdkSummaryPath);
+    var bytes = await entity.readAsBytes();
+
+    var component = Component();
+    BinaryBuilderWithMetadata(
+      bytes,
+      disableLazyReading: true,
+    ).readComponent(component, checkCanonicalNames: true, createView: true);
+
+    for (var lib in component.libraries) {
+      ScopeOffsetValidator.validate(lib);
+    }
+  });
+}
+
+class ScopeOffsetValidator extends VisitorDefault<void> with VisitorVoidMixin {
+  int classCount = 0;
+  int memberCount = 0;
+  int blockCount = 0;
+
+  ScopeOffsetValidator._();
+
+  static void validate(Library library) {
+    var validator = ScopeOffsetValidator._();
+    validator.visitLibrary(library);
+    final importUri = library.importUri.toString();
+    // TODO(joshualitt): Currently, there's nothing in `dart:_js_types` that
+    // would be indexed. Remove this exception when we add things to it.
+    if (importUri != 'dart:_js_types' && importUri != 'dart:_ddc_only') {
+      expect(
+        validator.classCount + validator.memberCount,
+        greaterThan(0),
+        reason: 'Validation was not empty',
+      );
+    }
+  }
+
+  @override
+  void defaultTreeNode(Node node) {
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitClass(Class cls) {
+    classCount++;
+    expect(
+      cls,
+      const TypeMatcher<Class>()
+          .having(
+            (c) => c.fileOffset,
+            '${cls.name} : fileOffset',
+            isNot(equals(-1)),
+          )
+          .having(
+            (c) => c.fileEndOffset,
+            '${cls.name} : fileEndOffset',
+            isNot(equals(-1)),
+          ),
+    );
+
+    super.visitClass(cls);
+  }
+
+  @override
+  void defaultMember(Member member) {
+    // exclude code that does not correspond to a dart source
+    // location we can set a breakpoint on.
+    var noBreakPointPossible = (member is Constructor)
+        ? member.isSynthetic
+        : (member is Procedure)
+        ? member.isNoSuchMethodForwarder ||
+              member.isAbstract ||
+              member.isForwardingStub ||
+              member.stubKind == ProcedureStubKind.ConcreteMixinStub
+        : false;
+
+    if (!noBreakPointPossible) {
+      memberCount++;
+      expect(
+        member,
+        const TypeMatcher<Member>()
+            .having(
+              (c) => c.fileOffset,
+              '${member.enclosingClass}.${member.name} : fileOffset',
+              isNot(equals(-1)),
+            )
+            .having(
+              (c) => c.fileEndOffset,
+              '${member.enclosingClass}.${member.name} : fileEndOffset',
+              isNot(equals(-1)),
+            ),
+      );
+
+      super.defaultMember(member);
+    }
+  }
+
+  @override
+  void visitFunctionNode(FunctionNode fun) {
+    expect(
+      fun,
+      const TypeMatcher<FunctionNode>()
+          .having(
+            (c) => c.fileOffset,
+            '${fun.parent!.toText(astTextStrategyForTesting)} : fileOffset',
+            isNot(equals(-1)),
+          )
+          .having(
+            (c) => c.fileEndOffset,
+            '${fun.parent!.toText(astTextStrategyForTesting)} : fileEndOffset',
+            isNot(equals(-1)),
+          ),
+    );
+
+    super.visitFunctionNode(fun);
+  }
+
+  @override
+  void visitBlock(Block block) {
+    blockCount++;
+    expect(
+      block,
+      const TypeMatcher<Block>().having(
+        (c) => c.fileOffset,
+        '${block.toText(astTextStrategyForTesting)} : fileOffset',
+        isNot(equals(-1)),
+      ),
+    );
+
+    super.visitBlock(block);
+  }
+}

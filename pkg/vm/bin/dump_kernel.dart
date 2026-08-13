@@ -1,0 +1,78 @@
+// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'dart:io';
+import 'dart:typed_data';
+
+import 'package:args/args.dart';
+import 'package:kernel/binary/ast_from_binary.dart'
+    show BinaryBuilderWithMetadata;
+import 'package:kernel/kernel.dart' show Component, writeComponentToText;
+import 'package:vm/metadata/closure_id.dart' show ClosureIdMetadataRepository;
+import 'package:vm/metadata/direct_call.dart' show DirectCallMetadataRepository;
+import 'package:vm/metadata/inferred_type.dart'
+    show
+        InferredTypeMetadataRepository,
+        InferredArgTypeMetadataRepository,
+        InferredReturnTypeMetadataRepository;
+import 'package:vm/metadata/loading_units.dart'
+    show LoadingUnitsMetadataRepository;
+import 'package:vm/metadata/procedure_attributes.dart'
+    show ProcedureAttributesMetadataRepository;
+import 'package:vm/metadata/table_selector.dart'
+    show TableSelectorMetadataRepository;
+import 'package:vm/metadata/unboxing_info.dart'
+    show UnboxingInfoMetadataRepository;
+import 'package:vm/metadata/unreachable.dart'
+    show UnreachableNodeMetadataRepository;
+import 'package:vm/modular/metadata/call_site_attributes.dart'
+    show CallSiteAttributesMetadataRepository;
+
+final ArgParser _argParser = ArgParser()
+  ..addFlag('show-offsets', help: 'Print file offsets');
+
+final String _usage =
+    '''
+Usage: dump_kernel [options] input.dill output.txt
+Dumps kernel binary file with VM-specific metadata.
+
+Options:
+${_argParser.usage}
+''';
+
+void main(List<String> arguments) async {
+  final argResults = _argParser.parse(arguments);
+  if (argResults.rest.length != 2) {
+    print(_usage);
+    exit(1);
+  }
+
+  final input = argResults.rest[0];
+  final output = argResults.rest[1];
+
+  final component = Component();
+
+  // Register VM-specific metadata.
+  component.addMetadataRepository(DirectCallMetadataRepository());
+  component.addMetadataRepository(InferredTypeMetadataRepository());
+  component.addMetadataRepository(InferredArgTypeMetadataRepository());
+  component.addMetadataRepository(InferredReturnTypeMetadataRepository());
+  component.addMetadataRepository(ProcedureAttributesMetadataRepository());
+  component.addMetadataRepository(TableSelectorMetadataRepository());
+  component.addMetadataRepository(UnboxingInfoMetadataRepository());
+  component.addMetadataRepository(UnreachableNodeMetadataRepository());
+  component.addMetadataRepository(CallSiteAttributesMetadataRepository());
+  component.addMetadataRepository(LoadingUnitsMetadataRepository());
+  component.addMetadataRepository(ClosureIdMetadataRepository());
+
+  final Uint8List bytes = File(input).readAsBytesSync();
+  BinaryBuilderWithMetadata(bytes).readComponent(component);
+
+  writeComponentToText(
+    component,
+    path: output,
+    showMetadata: true,
+    showOffsets: argResults['show-offsets'],
+  );
+}

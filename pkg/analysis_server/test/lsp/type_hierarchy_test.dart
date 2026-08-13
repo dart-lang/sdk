@@ -1,0 +1,622 @@
+// Copyright (c) 2022, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
+import 'package:analyzer_testing/package_config_file_builder.dart';
+import 'package:language_server_protocol/protocol_generated.dart';
+import 'package:test/test.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
+
+import '../utils/test_code_extensions.dart';
+import 'server_abstract.dart';
+
+void main() {
+  defineReflectiveSuite(() {
+    // These tests cover the LSP handler. A complete set of Type Hierarchy tests
+    // are in 'test/src/computer/type_hierarchy_computer_test.dart'.
+    defineReflectiveTests(PrepareTypeHierarchyTest);
+    defineReflectiveTests(TypeHierarchySupertypesTest);
+    defineReflectiveTests(TypeHierarchySubtypesTest);
+  });
+}
+
+abstract class AbstractTypeHierarchyTest extends AbstractLspAnalysisServerTest {
+  /// Code being tested in the main file.
+  late TestCode code;
+
+  /// Another file for testing cross-file content.
+  late final String otherFilePath;
+  late final Uri otherFileUri;
+  late TestCode otherCode;
+
+  /// The result of the last prepareTypeHierarchy call.
+  TypeHierarchyItem? prepareResult;
+
+  late final dartCodeUri = pathContext.toUri(
+    convertPath('/sdk/lib/core/core.dart'),
+  );
+
+  /// Matches a [TypeHierarchyItem] for [Object].
+  Matcher get _isObject => TypeMatcher<TypeHierarchyItem>()
+      .having((e) => e.name, 'name', 'Object')
+      .having((e) => e.uri, 'uri', dartCodeUri)
+      .having((e) => e.kind, 'kind', SymbolKind.Class)
+      .having((e) => e.selectionRange, 'selectionRange', _isValidRange)
+      .having((e) => e.range, 'range', _isValidRange);
+
+  /// Matches a valid [Position].
+  Matcher get _isValidPosition => TypeMatcher<Position>()
+      .having((e) => e.line, 'line', greaterThanOrEqualTo(0))
+      .having((e) => e.character, 'character', greaterThanOrEqualTo(0));
+
+  /// Matches a [Range] with valid [Position]s.
+  Matcher get _isValidRange => TypeMatcher<Range>()
+      .having((e) => e.start, 'start', _isValidPosition)
+      .having((e) => e.end, 'end', _isValidPosition);
+
+  @override
+  void setUp() {
+    super.setUp();
+    otherFilePath = join(projectFolderPath, 'lib', 'other.dart');
+    otherFileUri = pathContext.toUri(otherFilePath);
+  }
+
+  /// Matches a [TypeHierarchyItem] with the given values.
+  Matcher _isItem(
+    String name,
+    Uri uri, {
+    String? detail,
+    required Range selectionRange,
+    required Range range,
+  }) => TypeMatcher<TypeHierarchyItem>()
+      .having((e) => e.name, 'name', name)
+      .having((e) => e.uri, 'uri', uri)
+      .having((e) => e.kind, 'kind', SymbolKind.Class)
+      .having((e) => e.detail, 'detail', detail)
+      .having((e) => e.selectionRange, 'selectionRange', selectionRange)
+      .having((e) => e.range, 'range', range);
+
+  /// Parses [content] and calls 'textDocument/prepareTypeHierarchy' at the
+  /// marked location.
+  Future<void> _prepareTypeHierarchy(
+    String content, {
+    String? otherContent,
+  }) async {
+    code = TestCode.parse(content);
+    newFile(mainFilePath, code.code);
+
+    if (otherContent != null) {
+      otherCode = TestCode.parse(otherContent);
+      newFile(otherFilePath, otherCode.code);
+    }
+
+    await initialize();
+    var result = await prepareTypeHierarchy(
+      mainFileUri,
+      code.position.position,
+    );
+    prepareResult = result?.singleOrNull;
+  }
+}
+
+@reflectiveTest
+class PrepareTypeHierarchyTest extends AbstractTypeHierarchyTest {
+  /// Ensure when invoked on a reference in a different file to where the
+  /// type actually is, we resolve the correct location.
+  Future<void> test_acrossFiles() async {
+    var content = '''
+import 'other.dart';
+
+class B extends A^ {}
+''';
+
+    // Include lots of lines in this file so the expected line number of 'A'
+    // is very different to in the main content above, since we're verifying
+    // the correct LineInfo mapping.
+    var otherContent =
+        '''
+${'// comment\n' * 10}
+/*[0*/class /*[1*/A/*1]*/ {}/*0]*/
+''';
+    await _prepareTypeHierarchy(content, otherContent: otherContent);
+    expect(
+      prepareResult,
+      _isItem(
+        'A',
+        otherFileUri,
+        range: otherCode.ranges[0].range,
+        selectionRange: otherCode.ranges[1].range,
+      ),
+    );
+  }
+
+  Future<void> test_class() async {
+    var content = '''
+/*[0*/class /*[1*/MyC^lass1/*1]*/ {}/*0]*/
+''';
+    await _prepareTypeHierarchy(content);
+    expect(
+      prepareResult,
+      _isItem(
+        'MyClass1',
+        mainFileUri,
+        range: code.ranges[0].range,
+        selectionRange: code.ranges[1].range,
+      ),
+    );
+  }
+
+  Future<void> test_commentReference() async {
+    var content = '''
+/// Not a subtype of [^C]
+class A {}
+
+/*[0*/class /*[1*/C/*1]*/ {}/*0]*/
+''';
+    await _prepareTypeHierarchy(content);
+    expect(
+      prepareResult,
+      _isItem(
+        'C',
+        mainFileUri,
+        range: code.ranges[0].range,
+        selectionRange: code.ranges[1].range,
+      ),
+    );
+  }
+
+  Future<void> test_extensionType() async {
+    var content = '''
+/*[0*/extension type /*[1*/Int^Ext/*1]*/(int a) {}/*0]*/
+''';
+    await _prepareTypeHierarchy(content);
+    expect(
+      prepareResult,
+      _isItem(
+        'IntExt',
+        mainFileUri,
+        range: code.ranges[0].range,
+        selectionRange: code.ranges[1].range,
+      ),
+    );
+  }
+
+  Future<void> test_nonClass() async {
+    var content = '''
+int? a^a;
+''';
+    await _prepareTypeHierarchy(content);
+    expect(prepareResult, isNull);
+  }
+
+  Future<void> test_whitespace() async {
+    var content = '''
+int? a;
+^
+int? b;
+''';
+    await _prepareTypeHierarchy(content);
+    expect(prepareResult, isNull);
+  }
+}
+
+@reflectiveTest
+class TypeHierarchySubtypesTest extends AbstractTypeHierarchyTest {
+  List<TypeHierarchyItem>? subtypes;
+
+  Future<void> test_anotherFile() async {
+    var content = '''
+class MyCl^ass1 {}
+''';
+    var otherContent = '''
+import 'main.dart';
+
+/*[0*/class /*[1*/MyClass2/*1]*/ extends MyClass1 {}/*0]*/
+''';
+    await _fetchSubtypes(content, otherContent: otherContent);
+    expect(
+      subtypes,
+      equals([
+        _isItem(
+          'MyClass2',
+          otherFileUri,
+          range: otherCode.ranges[0].range,
+          selectionRange: otherCode.ranges[1].range,
+        ),
+      ]),
+    );
+  }
+
+  Future<void> test_augment_extends() async {
+    var content = '''
+part 'other.dart';
+
+class MyCl^ass1 {}
+[!class /*[1*/C/*1]*/ {}!]
+''';
+    var augmentation = '''
+part of 'main.dart';
+
+augment class C extends MyClass1 {}
+''';
+    await _fetchSubtypes(content, otherContent: augmentation);
+    expect(
+      subtypes,
+      equals([
+        _isItem(
+          'C',
+          mainFileUri,
+          range: code.ranges[0].range,
+          selectionRange: code.ranges[1].range,
+        ),
+      ]),
+    );
+  }
+
+  Future<void> test_extends() async {
+    var content = '''
+class MyCla^ss1 {}
+/*[0*/class /*[1*/MyClass2/*1]*/ extends MyClass1 {}/*0]*/
+''';
+    await _fetchSubtypes(content);
+    expect(
+      subtypes,
+      equals([
+        _isItem(
+          'MyClass2',
+          mainFileUri,
+          range: code.ranges[0].range,
+          selectionRange: code.ranges[1].range,
+        ),
+      ]),
+    );
+  }
+
+  Future<void> test_implements() async {
+    var content = '''
+class MyCla^ss1 {}
+/*[0*/class /*[1*/MyClass2/*1]*/ implements MyClass1 {}/*0]*/
+/*[2*/extension type /*[3*/E1/*3]*/(MyClass1 a) implements MyClass1 {}/*2]*/
+
+''';
+    await _fetchSubtypes(content);
+    expect(
+      subtypes,
+      equals([
+        _isItem(
+          'MyClass2',
+          mainFileUri,
+          range: code.ranges[0].range,
+          selectionRange: code.ranges[1].range,
+        ),
+        _isItem(
+          'E1',
+          mainFileUri,
+          range: code.ranges[2].range,
+          selectionRange: code.ranges[3].range,
+        ),
+      ]),
+    );
+  }
+
+  Future<void> test_implements_extensionType() async {
+    var content = '''
+class A {}
+extension type E^1(A a) {}
+/*[0*/extension type /*[1*/E2/*1]*/(A a) implements E1 {}/*0]*/
+''';
+    await _fetchSubtypes(content);
+    expect(
+      subtypes,
+      equals([
+        _isItem(
+          'E2',
+          mainFileUri,
+          range: code.ranges[0].range,
+          selectionRange: code.ranges[1].range,
+        ),
+      ]),
+    );
+  }
+
+  Future<void> test_issue62425() async {
+    // Code used in test files. This contains a reference to a class inside the
+    // dependency where we'll invoke Show Type Hierarchy so that it is scoped
+    // to a specific version of the dependency without starting in that version.
+    var code = TestCode.parse('''
+import 'package:a/a.dart';
+Depende^ncyClass? x;
+''');
+
+    /// Helper to create a version of a simple dependency (`package:a`) that
+    /// contains a class and subclass.
+    void createDependency(int version) {
+      var dependencyPath = convertPath('$packagesRootPath/v$version/a');
+      writePackageConfig(convertPath(dependencyPath));
+      newFile('$dependencyPath/lib/a.dart', '''
+class DependencyClass;
+
+class SubClass extends DependencyClass;
+''');
+    }
+
+    /// Helper to create a test package number [i] that references
+    /// version [i] of of `package:a`.
+    void createTestPackage(int i) {
+      var packagePath = convertPath('$projectFolderPath/package$i');
+      writePackageConfig(
+        packagePath,
+        config: (PackageConfigFileBuilder()
+          // Package i references version i of the dependency.
+          ..add(name: 'a', rootFolder: getFolder('$packagesRootPath/v$i/a'))),
+      );
+      newFile('$packagePath/lib/foo.dart', code.code);
+    }
+
+    // Create two versions the dependency, `package:a` with a sample class.
+    createDependency(1);
+    createDependency(2);
+
+    // Create two packages, one that references each version of the dependency.
+    createTestPackage(1);
+    createTestPackage(2);
+
+    await initialize();
+
+    // Now for each test package, verify that we can invoke type hierarchy
+    // and get back the corresponding version of `package:a`s types in the
+    // results.
+    for (var i in [1, 2]) {
+      // Get the anchor element via test package i.
+      var prepareResult = await prepareTypeHierarchy(
+        Uri.file(convertPath('$projectFolderPath/package$i/lib/foo.dart')),
+        code.position.position,
+      );
+
+      // Fetch subtypes, which should find the subtype inside the correct
+      // version of the dependency.
+      var subtypes = await typeHierarchySubtypes(prepareResult!.single);
+      expect(subtypes, hasLength(1));
+      var subtype = subtypes!.single;
+      // Ensure we get a result for dependency version i.
+      expect(subtype.name, 'SubClass');
+      expect(
+        subtype.uri,
+        toUri(convertPath('$packagesRootPath/v$i/a/lib/a.dart')),
+      );
+    }
+  }
+
+  Future<void> test_on() async {
+    var content = '''
+class MyCla^ss1 {}
+/*[0*/mixin /*[1*/MyMixin1/*1]*/ on MyClass1 {}/*0]*/
+''';
+    await _fetchSubtypes(content);
+    expect(
+      subtypes,
+      equals([
+        _isItem(
+          'MyMixin1',
+          mainFileUri,
+          range: code.ranges[0].range,
+          selectionRange: code.ranges[1].range,
+        ),
+      ]),
+    );
+  }
+
+  Future<void> test_with() async {
+    var content = '''
+mixin MyMi^xin1 {}
+/*[0*/class /*[1*/MyClass1/*1]*/ with MyMixin1 {}/*0]*/
+''';
+    await _fetchSubtypes(content);
+    expect(
+      subtypes,
+      equals([
+        _isItem(
+          'MyClass1',
+          mainFileUri,
+          range: code.ranges[0].range,
+          selectionRange: code.ranges[1].range,
+        ),
+      ]),
+    );
+  }
+
+  /// Parses [content], calls 'textDocument/prepareTypeHierarchy' at the
+  /// marked location and then calls 'typeHierarchy/subtypes' with the result.
+  Future<void> _fetchSubtypes(String content, {String? otherContent}) async {
+    await _prepareTypeHierarchy(content, otherContent: otherContent);
+    subtypes = await typeHierarchySubtypes(prepareResult!);
+  }
+}
+
+@reflectiveTest
+class TypeHierarchySupertypesTest extends AbstractTypeHierarchyTest {
+  List<TypeHierarchyItem>? supertypes;
+
+  Future<void> test_anotherFile() async {
+    var content = '''
+import 'other.dart';
+
+class MyCla^ss2 extends MyClass1 {}
+''';
+    var otherContent = '''
+/*[0*/class /*[1*/MyClass1/*1]*/ {}/*0]*/
+''';
+    await _fetchSupertypes(content, otherContent: otherContent);
+    expect(
+      supertypes,
+      equals([
+        _isItem(
+          'MyClass1',
+          otherFileUri,
+          range: otherCode.ranges[0].range,
+          selectionRange: otherCode.ranges[1].range,
+        ),
+      ]),
+    );
+  }
+
+  Future<void> test_augment_extends() async {
+    var content = '''
+[!class /*[1*/MyClass1/*1]*/ {}!]
+class C^s {}
+
+augment class Cs extends MyClass1 {}
+''';
+    await _fetchSupertypes(content);
+    expect(
+      supertypes,
+      equals([
+        _isItem(
+          'MyClass1',
+          mainFileUri,
+          range: code.ranges[0].range,
+          selectionRange: code.ranges[1].range,
+        ),
+      ]),
+    );
+  }
+
+  Future<void> test_extends() async {
+    var content = '''
+/*[0*/class /*[1*/MyClass1/*1]*/ {}/*0]*/
+class MyCla^ss2 extends MyClass1 {}
+''';
+    await _fetchSupertypes(content);
+    expect(
+      supertypes,
+      equals([
+        _isItem(
+          'MyClass1',
+          mainFileUri,
+          range: code.ranges[0].range,
+          selectionRange: code.ranges[1].range,
+        ),
+      ]),
+    );
+  }
+
+  Future<void> test_extensionType() async {
+    var content = '''
+class A extends B {}
+/*[0*/class /*[1*/B/*1]*/ {}/*0]*/
+/*[2*/extension type /*[3*/E1/*3]*/(A a) {}/*2]*/
+extension type E^2(A a) implements B, E1 {}
+''';
+    await _fetchSupertypes(content);
+    expect(
+      supertypes,
+      equals([
+        _isItem(
+          'B',
+          mainFileUri,
+          range: code.ranges[0].range,
+          selectionRange: code.ranges[1].range,
+        ),
+        _isItem(
+          'E1',
+          mainFileUri,
+          range: code.ranges[2].range,
+          selectionRange: code.ranges[3].range,
+        ),
+      ]),
+    );
+  }
+
+  /// Ensure that we always show type parameters and not type arguments.
+  Future<void> test_generics_typeParameters() async {
+    var content = '''
+class A<T1, T2> {}
+class B<T1, T2> extends A<T1, T2> {}
+class C<T1> extends B<T1, String> {}
+class D extends C<int> {}
+class ^E extends D {}
+''';
+    await _prepareTypeHierarchy(content);
+
+    // Walk the tree and collect names at each level.
+    var item = prepareResult;
+    var names = <String>[];
+    while (item != null) {
+      names.add(item.name);
+      var supertypes = await typeHierarchySupertypes(item);
+      item = (supertypes != null && supertypes.isNotEmpty)
+          ? supertypes.single
+          : null;
+    }
+
+    // Check for substituted type args.
+    expect(names, ['E', 'D', 'C<T1>', 'B<T1, T2>', 'A<T1, T2>', 'Object']);
+  }
+
+  Future<void> test_implements() async {
+    var content = '''
+/*[0*/class /*[1*/MyClass1/*1]*/ {}/*0]*/
+class MyCla^ss2 implements MyClass1 {}
+''';
+    await _fetchSupertypes(content);
+    expect(
+      supertypes,
+      equals([
+        _isObject,
+        _isItem(
+          'MyClass1',
+          mainFileUri,
+          range: code.ranges[0].range,
+          selectionRange: code.ranges[1].range,
+        ),
+      ]),
+    );
+  }
+
+  Future<void> test_on() async {
+    var content = '''
+/*[0*/class /*[1*/MyClass1/*1]*/ {}/*0]*/
+mixin MyMix^in1 on MyClass1 {}
+''';
+    await _fetchSupertypes(content);
+    expect(
+      supertypes,
+      equals([
+        _isItem(
+          'MyClass1',
+          mainFileUri,
+          range: code.ranges[0].range,
+          selectionRange: code.ranges[1].range,
+        ),
+      ]),
+    );
+  }
+
+  Future<void> test_with() async {
+    var content = '''
+/*[0*/mixin /*[1*/MyMixin1/*1]*/ {}/*0]*/
+class MyCla^ss1 with MyMixin1 {}
+''';
+    await _fetchSupertypes(content);
+    expect(
+      supertypes,
+      equals([
+        _isObject,
+        _isItem(
+          'MyMixin1',
+          mainFileUri,
+          range: code.ranges[0].range,
+          selectionRange: code.ranges[1].range,
+        ),
+      ]),
+    );
+  }
+
+  /// Parses [content], calls 'textDocument/prepareTypeHierarchy' at the
+  /// marked location and then calls 'typeHierarchy/supertypes' with the result.
+  Future<void> _fetchSupertypes(String content, {String? otherContent}) async {
+    await _prepareTypeHierarchy(content, otherContent: otherContent);
+    supertypes = await typeHierarchySupertypes(prepareResult!);
+  }
+}

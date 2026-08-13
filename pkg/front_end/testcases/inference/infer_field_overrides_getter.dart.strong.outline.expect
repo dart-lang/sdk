@@ -1,0 +1,49 @@
+library test;
+import self as self;
+import "dart:core" as core;
+
+abstract class A extends core::Object {
+  synthetic constructor •() → self::A
+    ;
+  abstract get x() → core::int?;
+}
+mixin class B extends core::Object {
+  synthetic constructor •() → self::B
+    ;
+  get x() → core::int?
+    ;
+}
+class C extends self::A {
+  field core::int? x;
+  synthetic constructor •() → self::C
+    ;
+}
+class D extends self::B {
+  field core::int? x;
+  synthetic constructor •() → self::D
+    ;
+}
+class E extends core::Object implements self::A {
+  field core::int? x;
+  synthetic constructor •() → self::E
+    ;
+}
+class F extends core::Object implements self::B {
+  field core::int? x;
+  synthetic constructor •() → self::F
+    ;
+}
+class G extends self::_G&Object&B {
+  field core::int? x;
+  synthetic constructor •() → self::G
+    ;
+}
+abstract class _G&Object&B = core::Object with self::B /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_G&Object&B
+    : super core::Object::•()
+    ;
+  synthetic mixin-super-stub get x() → core::int?
+    return super.{self::B::x};
+}
+static method main() → dynamic
+  ;

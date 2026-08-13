@@ -1,0 +1,1383 @@
+// Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'dart:math' as math show min, max;
+import 'dart:typed_data';
+
+import 'package:cfg/utils/misc.dart';
+import 'package:native_compiler/back_end/back_end_state.dart';
+import 'package:native_compiler/back_end/constraints.dart';
+import 'package:native_compiler/back_end/locations.dart';
+import 'package:native_compiler/back_end/safepoint.dart';
+import 'package:cfg/ir/constant_value.dart';
+import 'package:cfg/ir/instructions.dart';
+import 'package:cfg/ir/ir_to_text.dart';
+import 'package:cfg/ir/liveness_analysis.dart';
+import 'package:cfg/ir/types.dart';
+import 'package:cfg/passes/pass.dart';
+import 'package:native_compiler/utils/interval_list.dart';
+
+abstract base class RegisterAllocator extends Pass {
+  final BackEndState backEndState;
+
+  RegisterAllocator(this.backEndState) : super('RegisterAllocation');
+}
+
+/// Linear scan register allocator.
+///
+/// Allocates registers on the linearized control flow.
+/// Live ranges are represented as a sequence of intervals.
+///
+/// The original idea of linear scan register allocation is described in
+/// Massimiliano Poletto and Vivek Sarkar "Linear scan register allocation" (1999).
+///
+/// This variant of linear scan is largerly based on
+/// "Linear Scan Register Allocation for the Java HotSpot Client Compiler",
+/// by Christian Wimmer (2004).
+/// http://www.christianwimmer.at/Publications/Wimmer04a/Wimmer04a.pdf
+///
+final class LinearScanRegisterAllocator extends RegisterAllocator {
+  // Step of instruction positions in the linearized control flow.
+  // Increment positions by 2 to leave space for ParallelMove instructions
+  // which can be inserted later between instructions.
+  static const int step = 2;
+
+  static const bool trace = const bool.fromEnvironment('trace.regalloc');
+
+  static const int maxPosition = 0x7fffffff;
+
+  final Constraints constraints;
+
+  /// Instruction id -> instruction position in the
+  /// linearized control flow.
+  late final Int32List _instructionPos;
+
+  /// Instruction position ~/ step -> instruction id.
+  late final Int32List _instructionByPos;
+
+  /// Instruction id -> LiveRange corresponding to the instruction output.
+  late final List<LiveRange?> _liveRanges;
+
+  /// Instruction id -> its Safepoint.
+  late final List<Safepoint?> _safepoints;
+
+  /// Instruction position ~/ step -> position of the next instruction with a safepoint.
+  late final Int32List _nextSafepointPos;
+
+  /// Locations of instruction inputs/outputs/temps.
+  final Map<OperandId, Location> _operandLocations = {};
+
+  /// Live ranges corresponding to the fixed register locations.
+  late final List<LiveRange?> _cpuRegLiveRanges;
+  late final List<LiveRange?> _fpuRegLiveRanges;
+
+  /// Register index -> [Location].
+  late List<PhysicalRegister?> _registerLocations;
+
+  /// List of live ranges which were not handled yet by [allocate].
+  late List<LiveRange> _unhandled;
+  int _unhandledIndex = -1;
+
+  /// For each register, list of live ranges allocated to this register,
+  /// or null if register is not allocatable.
+  late List<List<LiveRange>?> _allocated;
+
+  LinearScanRegisterAllocator(super.backEndState, this.constraints);
+
+  RegisterClass registerClass(Definition instr) =>
+      instr.type is DoubleType && backEndState.unboxing.hasUnboxedResult(instr)
+      ? RegisterClass.fpu
+      : RegisterClass.cpu;
+
+  int instructionPos(Instruction instr) => _instructionPos[instr.id];
+  int blockStartPos(Block block) => instructionPos(block);
+  int blockEndPos(Block block) => instructionPos(block.lastInstruction);
+
+  Instruction instructionByPos(int pos) =>
+      graph.instructions[_instructionByPos[pos ~/ step]];
+
+  bool hasLiveRange(Definition instr) => instr is! Constant;
+
+  LiveRange liveRangeFor(Definition instr) {
+    assert(hasLiveRange(instr));
+    return _liveRanges[instr.id] ??= LiveRange(
+      registerClass(instr),
+      isObjectPointer: !backEndState.unboxing.hasUnboxedResult(instr),
+    );
+  }
+
+  LiveRange regLiveRange(PhysicalRegister r) => (r is Register)
+      ? (_cpuRegLiveRanges[r.index] ??= LiveRange(
+          RegisterClass.cpu,
+          isObjectPointer: false,
+          isPhysical: true,
+        ))
+      : (_fpuRegLiveRanges[r.index] ??= LiveRange(
+          RegisterClass.fpu,
+          isObjectPointer: false,
+          isPhysical: true,
+        ));
+
+  @override
+  void run() {
+    numberInstructions();
+
+    final liveness = SSALivenessAnalysis(graph);
+    liveness.analyze();
+
+    buildLiveRanges(liveness);
+
+    coalesceLiveRanges();
+
+    allocate(
+      RegisterClass.cpu,
+      constraints.getNumberOfRegisters(),
+      constraints.getAllocatableRegisters(),
+      _cpuRegLiveRanges,
+    );
+    allocate(
+      RegisterClass.fpu,
+      constraints.getNumberOfFPRegisters(),
+      constraints.getAllocatableFPRegisters(),
+      _fpuRegLiveRanges,
+    );
+
+    resolveDataFlow(liveness);
+
+    backEndState.safepoints = _safepoints;
+    backEndState.operandLocations = _operandLocations;
+    backEndState.stackFrame.finalize();
+  }
+
+  /// Number instructions in the linearized control flow.
+  void numberInstructions() {
+    _instructionPos = Int32List(graph.instructions.length);
+    _instructionByPos = Int32List(graph.instructions.length + 1);
+    // Reserve 0 for uninitialized value, use even positions
+    // for the instructions.
+    int pos = step;
+    for (final block in backEndState.codeGenBlockOrder) {
+      _instructionPos[block.id] = pos;
+      _instructionByPos[pos ~/ step] = block.id;
+      assert(pos == blockStartPos(block));
+      pos += step;
+      for (final instr in block) {
+        if (instr is Phi || instr is Constant || instr is Parameter) {
+          // All Phis, Constants and Parameters have the same position as their Block.
+          _instructionPos[instr.id] = blockStartPos(block);
+        } else {
+          _instructionPos[instr.id] = pos;
+          _instructionByPos[pos ~/ step] = instr.id;
+          pos += step;
+        }
+      }
+      assert(pos == blockEndPos(block) + step);
+    }
+
+    errorContext.annotator = (Instruction instr) =>
+        (instr is ParallelMove) ? null : '[${instructionPos(instr)}]';
+  }
+
+  void buildLiveRanges(SSALivenessAnalysis liveness) {
+    _liveRanges = List.filled(graph.instructions.length, null, growable: true);
+    _cpuRegLiveRanges = List.filled(constraints.getNumberOfRegisters(), null);
+    _fpuRegLiveRanges = List.filled(constraints.getNumberOfFPRegisters(), null);
+    _safepoints = List.filled(graph.instructions.length, null);
+    _nextSafepointPos = Int32List(graph.instructions.length + 1);
+    var nextSafepointPos = maxPosition;
+
+    for (final block in backEndState.codeGenBlockOrder.reversed) {
+      currentBlock = block;
+      final blockStart = blockStartPos(block);
+      final blockEnd = blockEndPos(block);
+
+      // Add intervals for values which are live-out.
+      for (final instrId in liveness.liveOut(block).elements) {
+        final instr = graph.instructions[instrId] as Definition;
+        if (hasLiveRange(instr)) {
+          final liveRange = liveRangeFor(instr);
+          liveRange.addInterval(blockStart, blockEnd);
+        }
+      }
+
+      // Add uses in the Phis in the successor block.
+      if (block.successors.length == 1) {
+        final succ = block.successors.single;
+        if (succ is JoinBlock) {
+          final int predIndex = succ.predecessors.indexOf(block);
+          assert(predIndex >= 0);
+          for (final phi in succ.phis) {
+            final input = phi.inputDefAt(predIndex);
+            if (input is! Constant) {
+              final inputConstr = constraints
+                  .getConstraints(phi)!
+                  .inputs[predIndex]!;
+              final operandId = OperandId.input(phi.id, predIndex);
+              final liveRange = liveRangeFor(input);
+              _processInput(
+                phi,
+                liveRange,
+                blockEnd,
+                inputConstr,
+                operandId,
+                null,
+              );
+            }
+          }
+        }
+      }
+
+      for (final instr in block.reversed) {
+        currentInstruction = instr;
+        backEndState.stackFrame.allocateArgumentsSlots(instr);
+        final pos = instructionPos(instr);
+        final constr = constraints.getConstraints(instr);
+        _nextSafepointPos[pos ~/ step] = nextSafepointPos;
+        if (constr == null) {
+          continue;
+        }
+        final safepoint = constr.safepoint;
+        // Ignore Phis as they are processed in the predecessor blocks.
+        if (instr is! Phi) {
+          // Process inputs.
+          for (int i = 0, n = instr.inputCount; i < n; ++i) {
+            final input = instr.inputDefAt(i);
+            final inputConstr = constr.inputs[i];
+            final operandId = OperandId.input(instr.id, i);
+            if (input is Constant) {
+              if (inputConstr != null) {
+                _processConstantInput(
+                  instr,
+                  input.value,
+                  pos,
+                  inputConstr,
+                  operandId,
+                  safepoint,
+                );
+              }
+            } else {
+              final liveRange = liveRangeFor(input);
+              // Extend range up to block start position.
+              // It will be truncated by the definition if needed.
+              liveRange.addInterval(blockStart, pos);
+              if (inputConstr != null) {
+                _processInput(
+                  instr,
+                  liveRange,
+                  pos,
+                  inputConstr,
+                  operandId,
+                  safepoint,
+                );
+              }
+            }
+          }
+        }
+        // Process temps.
+        for (int i = 0, n = constr.temps.length; i < n; ++i) {
+          final operandId = OperandId.temp(instr.id, i);
+          _processTemp(pos, constr.temps[i], operandId);
+        }
+        // Process output.
+        if (instr is Definition && hasLiveRange(instr)) {
+          final operandId = OperandId.result(instr.id);
+          final liveRange = liveRangeFor(instr);
+          final resultConstr = constr.result;
+          liveRange.defineAt(
+            instructionPos(instr) +
+                ((resultConstr is PhysicalRegister ||
+                        resultConstr is ParameterStackLocation)
+                    ? 1
+                    : 0),
+          );
+          if (resultConstr != null) {
+            _processOutput(instr, liveRange, pos, resultConstr, operandId);
+          }
+        }
+        // Process safepoint.
+        if (safepoint != null) {
+          backEndState.stackFrame.recordReservedLocations(safepoint);
+          _safepoints[instr.id] = safepoint;
+          nextSafepointPos = pos;
+        }
+      }
+
+      _nextSafepointPos[blockStart ~/ step] = nextSafepointPos;
+    }
+
+    errorContext.annotator = (Instruction instr) {
+      if (instr is ParallelMove) return null;
+      return '[${instructionPos(instr)}]' +
+          ((instr is Definition && hasLiveRange(instr))
+              ? ' ${liveRangeFor(instr)}'
+              : '');
+    };
+
+    if (trace) {
+      print(
+        IrToText(
+          graph,
+          printDominators: true,
+          printLoops: true,
+          annotator: errorContext.annotator,
+        ).toString(),
+      );
+    }
+  }
+
+  void _processInput(
+    Instruction instr,
+    LiveRange liveRange,
+    int pos,
+    Constraint constr,
+    OperandId operandId,
+    Safepoint? safepoint,
+  ) {
+    if (constr is PhysicalRegister) {
+      regLiveRange(constr).addInterval(pos, pos + 1);
+      final loc = liveRange.addUse(pos - 1, constr);
+      _insertMoveBefore(instr, ParallelMoveStage.input, loc, constr);
+      _operandLocations[operandId] = constr;
+      safepoint?.addLiveLocation(
+        constr,
+        isObjectPointer: liveRange.isObjectPointer,
+      );
+    } else {
+      final loc = liveRange.addUse(pos - 1, constr);
+      _operandLocations[operandId] = loc;
+    }
+  }
+
+  // TODO: allocate constants to registers.
+  void _processConstantInput(
+    Instruction instr,
+    ConstantValue value,
+    int pos,
+    Constraint constr,
+    OperandId operandId,
+    Safepoint? safepoint,
+  ) {
+    if (constr is PhysicalRegister) {
+      _insertMoveBefore(instr, ParallelMoveStage.input, null, constr, value);
+      regLiveRange(constr).addInterval(pos, pos + 1);
+      _operandLocations[operandId] = constr;
+      safepoint?.addLiveLocation(constr, isObjectPointer: !value.isUnboxed);
+    } else {
+      final liveRange = LiveRange(
+        constr.registerClass,
+        isObjectPointer: !value.isUnboxed,
+      );
+      _liveRanges.add(liveRange);
+      liveRange.addInterval(pos - 1, pos);
+      final loc = liveRange.addUse(pos - 1, constr);
+      _insertMoveBefore(instr, ParallelMoveStage.input, null, loc, value);
+      _operandLocations[operandId] = loc;
+    }
+  }
+
+  void _processTemp(int pos, Constraint constr, OperandId operandId) {
+    if (constr is PhysicalRegister) {
+      regLiveRange(constr).addInterval(pos, pos + 1);
+      _operandLocations[operandId] = constr;
+    } else {
+      final liveRange = LiveRange(constr.registerClass, isObjectPointer: false);
+      _liveRanges.add(liveRange);
+      liveRange.addInterval(pos - 1, pos + 1);
+      final loc = liveRange.addUse(pos, constr);
+      _operandLocations[operandId] = loc;
+    }
+  }
+
+  void _processOutput(
+    Definition instr,
+    LiveRange liveRange,
+    int pos,
+    Constraint constr,
+    OperandId operandId,
+  ) {
+    assert(instr is! ControlFlowInstruction);
+    if (constr is PhysicalRegister) {
+      regLiveRange(constr).addInterval(pos, pos + 1);
+      _operandLocations[operandId] = constr;
+      if (instr.hasUses) {
+        final loc = liveRange.addUse(pos + 1, constr);
+        _insertMoveBefore(
+          _nextInstruction(instr),
+          ParallelMoveStage.output,
+          constr,
+          loc,
+        );
+      }
+    } else if (constr is ParameterStackLocation) {
+      if (!graph.function.isSuspendable) {
+        // Lock spill slot to the parameter location on the stack,
+        // unless the current function is suspendable
+        // (suspend/resume does not preserve parameters on the stack).
+        assert(liveRange.splitFrom == null);
+        liveRange.spillSlot = constr;
+      }
+      _operandLocations[operandId] = constr;
+      if (instr.hasUses) {
+        final loc = liveRange.addUse(pos + 1, constr);
+        _insertMoveBefore(
+          _nextInstruction(instr),
+          ParallelMoveStage.output,
+          constr,
+          loc,
+        );
+      }
+    } else {
+      final loc = liveRange.addUse(pos, constr);
+      _operandLocations[operandId] = loc;
+    }
+  }
+
+  ParallelMove _parallelMoveBefore(Instruction instr, ParallelMoveStage stage) {
+    assert(instr is! Phi);
+    assert(instr is! Constant);
+    assert(instr is! ParallelMove);
+    for (;;) {
+      Instruction? prev = instr.previous;
+      if (prev is! ParallelMove || prev.stage.index < stage.index) {
+        break;
+      }
+      if (prev.stage == stage) {
+        return prev;
+      }
+      instr = prev;
+    }
+    final move = ParallelMove(instr.graph, stage);
+    move.insertBefore(instr);
+    return move;
+  }
+
+  void _insertMoveBefore(
+    Instruction instr,
+    ParallelMoveStage stage,
+    Location? src,
+    Location dst, [
+    ConstantValue? value,
+  ]) {
+    ParallelMove move = _parallelMoveBefore(instr, stage);
+    MoveOp moveOp;
+    if (src == null) {
+      moveOp = LoadConstant(value!, dst);
+    } else {
+      assert(value == null);
+      moveOp = Move(src, dst);
+    }
+    move.moves.add(moveOp);
+  }
+
+  /// Returns the instruction at the next position after [instr].
+  Instruction _nextInstruction(Instruction instr) {
+    return instructionByPos(instructionPos(instr) + step);
+  }
+
+  /// Tries to merge live ranges which would benefit from
+  /// allocation to the same location.
+  ///
+  /// TODO: Currently only inputs/outputs of phis are merged, but we
+  /// can also merge inputs/outputs of instructions reusing
+  /// the same register if/when we add "SameAsFirstInput" constraint.
+  void coalesceLiveRanges() {
+    for (final block in backEndState.codeGenBlockOrder.reversed) {
+      if (block is JoinBlock) {
+        for (final phi in block.phis) {
+          final liveRange = liveRangeFor(phi).bundle;
+          for (int i = 0, n = phi.inputCount; i < n; ++i) {
+            final input = phi.inputDefAt(i);
+            if (input is! Constant) {
+              liveRange.tryMerge(liveRangeFor(input).bundle);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  void allocate(
+    RegisterClass registerClass,
+    int numberOfRegisters,
+    List<PhysicalRegister> allocatableRegisters,
+    List<LiveRange?> blockedRegisters,
+  ) {
+    _unhandled = <LiveRange>[];
+    for (final liveRange in _liveRanges) {
+      if (liveRange != null &&
+          liveRange.registerClass == registerClass &&
+          liveRange.mergedTo == null) {
+        _unhandled.add(liveRange);
+      }
+    }
+    _unhandled.sort((a, b) => a.start.compareTo(b.start));
+    _unhandledIndex = 0;
+
+    if (trace) {
+      print('UNHANDLED:');
+      print('----------');
+      for (final range in _unhandled) {
+        print(range);
+      }
+      print('----------');
+    }
+
+    _registerLocations = List<PhysicalRegister?>.filled(
+      numberOfRegisters,
+      null,
+    );
+    _allocated = List<List<LiveRange>?>.filled(numberOfRegisters, null);
+    for (final reg in allocatableRegisters) {
+      _registerLocations[reg.index] = reg;
+      final blocked = blockedRegisters[reg.index];
+      assert(blocked == null || blocked.isPhysical);
+      _allocated[reg.index] = <LiveRange>[if (blocked != null) blocked];
+    }
+
+    if (trace) {
+      print('BLOCKED:');
+      print('----------');
+      for (var reg = 0; reg < _allocated.length; ++reg) {
+        final ranges = _allocated[reg];
+        if (ranges != null && ranges.isNotEmpty) {
+          print('${_registerLocations[reg]}: ${ranges.single}');
+        }
+      }
+      print('----------');
+    }
+
+    for (; _unhandledIndex < _unhandled.length; ++_unhandledIndex) {
+      final range = _unhandled[_unhandledIndex];
+      if (trace) {
+        print('Allocating $range');
+      }
+      advance(range.start);
+
+      if (!allocateFreeRegister(range)) {
+        allocateBlockedRegister(range);
+      }
+    }
+
+    advance(maxPosition);
+  }
+
+  void advance(int pos) {
+    if (trace) {
+      print('Advance to $pos');
+    }
+    for (var reg = 0; reg < _allocated.length; ++reg) {
+      final ranges = _allocated[reg];
+      if (ranges == null) {
+        continue;
+      }
+      var i = 0;
+      for (var j = 0; j < ranges.length; ++j) {
+        final range = ranges[j];
+        if (range.advance(pos)) {
+          // Live range ended, set its location and move it to [handled].
+          if (range.isPhysical) {
+            assert(range.uses.isEmpty);
+            if (trace) {
+              print('Finished blocked $range');
+            }
+          } else {
+            finishLiveRange(range, reg);
+          }
+        } else {
+          ranges[i++] = range;
+        }
+      }
+      ranges.length = i;
+    }
+  }
+
+  void finishLiveRange(LiveRange range, int reg) {
+    final loc = _registerLocations[reg]!;
+    if (trace) {
+      print('Finished $range, allocated to $loc');
+    }
+    range.setLocation(loc);
+    recordLiveRangeAtSafepoints(range, loc);
+  }
+
+  // Update all safepoints in this live range with given location.
+  void recordLiveRangeAtSafepoints(LiveRange range, Location loc) {
+    final intervals = range.intervals;
+    for (var i = 0, n = intervals.length; i < n; ++i) {
+      final start = intervals.startAt(i);
+      final end = intervals.endAt(i);
+      var pos = _nextSafepointPos[(start - 1) ~/ step];
+      while (pos < end) {
+        final safepoint = _safepoints[instructionByPos(pos).id]!;
+        safepoint.addLiveLocation(loc, isObjectPointer: range.isObjectPointer);
+        pos = _nextSafepointPos[pos ~/ step];
+      }
+    }
+  }
+
+  /// Tries to allocate a free register for [range].
+  bool allocateFreeRegister(LiveRange range) {
+    // Handle fixed register location first.
+    final preferredRegisterUse = range.firstPreferredRegisterUse;
+    if (preferredRegisterUse != null) {
+      int fixedRegister =
+          (preferredRegisterUse.constraint as PhysicalRegister).index;
+      int freeUntil = firstIntersectionWithAllocated(range, fixedRegister);
+      if (toSplitPosition(freeUntil) > preferredRegisterUse.pos) {
+        // Split [range] if register is not free for the whole duration of the [range].
+        if (freeUntil < range.end) {
+          if (trace) {
+            print('Split $range at $freeUntil');
+          }
+          addToUnhandled(
+            splitBetween(range, preferredRegisterUse.pos, freeUntil),
+          );
+        }
+        if (trace) {
+          print(
+            'Allocating $range to preferred ${_registerLocations[fixedRegister]}',
+          );
+        }
+        _allocated[fixedRegister]!.add(range);
+        return true;
+      }
+    }
+    // Pick a register which is free the longest span.
+    var candidate = -1;
+    int freeUntil = range.start;
+    for (var reg = 0; reg < _allocated.length; ++reg) {
+      if (_allocated[reg] == null) continue;
+      int intersection = firstIntersectionWithAllocated(range, reg);
+      if (toSplitPosition(intersection) > freeUntil) {
+        candidate = reg;
+        freeUntil = intersection;
+      }
+      if (intersection == maxPosition) {
+        break;
+      }
+    }
+    if (candidate < 0) {
+      if (trace) {
+        print('Free register is not found');
+      }
+      return false;
+    }
+    if (freeUntil < range.end) {
+      if (trace) {
+        print('Split $range at $freeUntil');
+      }
+      addToUnhandled(splitBetween(range, range.start, freeUntil));
+    }
+    if (trace) {
+      print('Allocating $range to free ${_registerLocations[candidate]}');
+    }
+    _allocated[candidate]!.add(range);
+    return true;
+  }
+
+  /// Returns position of the first intersection of [range] with live ranges
+  /// allocated to [reg], or [maxPosition] if they do not intersect.
+  int firstIntersectionWithAllocated(LiveRange range, int reg) {
+    int pos = maxPosition;
+    for (final allocated in _allocated[reg]!) {
+      final intersection = range.intervals.firstIntersection(
+        0,
+        allocated.intervals,
+        allocated.currentInterval,
+      );
+      if (intersection >= 0 && intersection < pos) {
+        pos = intersection;
+      }
+    }
+    return pos;
+  }
+
+  // Find the nearest valid position for live range splitting which doesn't exceed [pos].
+  int toSplitPosition(int pos) {
+    if (pos.isOdd) {
+      // Positions between instructions are always valid.
+      return pos;
+    }
+    final instr = instructionByPos(pos);
+    if (instr is Block || instr == instr.block!.lastInstruction) {
+      // Block start or end positions are valid for splitting.
+      return pos;
+    }
+    return pos - 1;
+  }
+
+  LiveRange splitBetween(LiveRange range, int start, int end) {
+    assert(start < end);
+    // TODO: figure out more optimal split position using loop boundaries.
+    final pos = toSplitPosition(end);
+    assert(pos >= start);
+    assert(pos <= end);
+    return range.splitAt(pos);
+  }
+
+  /// Add [tail] to the [_unhandled] list after splitting.
+  void addToUnhandled(LiveRange tail) {
+    if (trace) {
+      print('Add $tail to unhandled');
+    }
+    final start = tail.start;
+    int i = _unhandledIndex + 1;
+    for (; i < _unhandled.length; ++i) {
+      final range = _unhandled[i];
+      if (range.start > start) {
+        break;
+      }
+      _unhandled[i - 1] = range;
+    }
+    _unhandled[i - 1] = tail;
+    --_unhandledIndex;
+  }
+
+  void allocateBlockedRegister(LiveRange unallocated) {
+    var candidateReg = -1;
+    var bestFreeUntil = 0;
+    int bestBlockedAt = maxPosition;
+
+    // Select a live range which is not going to be used for the longest time.
+    // Spilling this live range would free a register as long as possible.
+    void inspectAllocatedRegister(int reg) {
+      final ranges = _allocated[reg];
+      if (ranges == null) {
+        return;
+      }
+      int freeUntil = maxPosition;
+      int blockedAt = maxPosition;
+      final start = unallocated.start;
+      for (final allocated in ranges) {
+        if (allocated.nextIntervalContains(start)) {
+          // Active interval.
+          if (allocated.isPhysical) {
+            return;
+          }
+          int nextUsePosition =
+              allocated.findRegisterUseAfter(start)?.pos ?? allocated.end;
+          if (nextUsePosition < freeUntil) {
+            freeUntil = nextUsePosition;
+          }
+        } else {
+          // Inactive interval.
+          final intersection = unallocated.intervals.firstIntersection(
+            0,
+            allocated.intervals,
+            allocated.currentInterval,
+          );
+          if (intersection >= 0) {
+            if (intersection < freeUntil) {
+              freeUntil = intersection;
+            }
+            if (allocated.isPhysical && intersection < blockedAt) {
+              blockedAt = intersection;
+            }
+          }
+        }
+
+        if (freeUntil <= bestFreeUntil) {
+          return;
+        }
+      }
+      assert(freeUntil > bestFreeUntil);
+      bestFreeUntil = freeUntil;
+      bestBlockedAt = blockedAt;
+      candidateReg = reg;
+    }
+
+    for (var reg = 0; reg < _allocated.length; ++reg) {
+      inspectAllocatedRegister(reg);
+    }
+
+    assert(bestFreeUntil <= bestBlockedAt);
+
+    int firstUsePos = unallocated.uses.isEmpty
+        ? unallocated.start
+        : unallocated.uses.last.pos;
+    if (bestFreeUntil < firstUsePos) {
+      if (unallocated.start < firstUsePos) {
+        if (trace) {
+          print('Split $unallocated at $firstUsePos');
+        }
+        addToUnhandled(unallocated.splitAt(firstUsePos));
+      }
+      spillLiveRange(unallocated);
+      return;
+    }
+
+    assert(candidateReg >= 0);
+    if (bestBlockedAt < unallocated.end) {
+      if (trace) {
+        print('Split $unallocated at $bestBlockedAt');
+      }
+      addToUnhandled(unallocated.splitAt(bestBlockedAt));
+    }
+    assignNonFreeRegister(unallocated, candidateReg);
+  }
+
+  void spillLiveRange(LiveRange range) {
+    final splitParent = range.splitParent;
+    assert(splitParent.registerClass == range.registerClass);
+    final spillSlot = allocateSpillSlotFor(splitParent);
+    if (trace) {
+      print('Spill $range to $spillSlot');
+    }
+    range.setLocation(spillSlot);
+  }
+
+  StackLocation allocateSpillSlotFor(LiveRange range) {
+    assert(range.splitParent == range);
+    assert(range.mergedTo == null);
+    var spillSlot = range.spillSlot;
+    if (spillSlot == null) {
+      spillSlot = range.spillSlot = backEndState.stackFrame.allocateSpillSlot(
+        range.registerClass,
+      );
+      for (LiveRange? r = range; r != null; r = r.splitNext) {
+        recordLiveRangeAtSafepoints(r, spillSlot);
+      }
+    }
+    return spillSlot;
+  }
+
+  void assignNonFreeRegister(LiveRange range, int reg) {
+    if (trace) {
+      print('Assigning non-free ${_registerLocations[reg]} to $range');
+    }
+    _allocated[reg]!.removeWhere(
+      (LiveRange allocated) =>
+          !allocated.isPhysical && evictIntersection(allocated, range, reg),
+    );
+    _allocated[reg]!.add(range);
+  }
+
+  bool evictIntersection(LiveRange allocated, LiveRange unallocated, int reg) {
+    final intersection = unallocated.intervals.firstIntersection(
+      0,
+      allocated.intervals,
+      allocated.currentInterval,
+    );
+    if (intersection < 0) {
+      if (trace) {
+        print(' ... no intersection with $allocated');
+      }
+      return false;
+    }
+    final spillPos = unallocated.start;
+    final nextUse = allocated.findRegisterUseAfter(spillPos);
+    if (nextUse == null) {
+      // No more uses which require registers.
+      if (trace) {
+        print('Split $allocated at $spillPos');
+      }
+      if (toSplitPosition(spillPos) <= allocated.start) {
+        if (trace) {
+          print('Spill evicted $allocated');
+        }
+        spillLiveRange(allocated);
+      } else {
+        spillLiveRange(splitBetween(allocated, allocated.start, spillPos));
+        finishLiveRange(allocated, reg);
+      }
+    } else {
+      final usePos = nextUse.pos;
+      final restorePos = (spillPos < intersection)
+          ? math.min(intersection, usePos)
+          : usePos;
+      if (toSplitPosition(spillPos) <= allocated.start) {
+        if (trace) {
+          print('Split $allocated at $restorePos');
+        }
+        assert(restorePos > allocated.start);
+        addToUnhandled(splitBetween(allocated, spillPos, restorePos));
+        spillLiveRange(allocated);
+      } else {
+        if (trace) {
+          print('Split $allocated at $spillPos');
+        }
+        final rangeToSpill = splitBetween(allocated, allocated.start, spillPos);
+        if (trace) {
+          print('Split $rangeToSpill at $restorePos');
+        }
+        addToUnhandled(splitBetween(rangeToSpill, spillPos, restorePos));
+        spillLiveRange(rangeToSpill);
+        finishLiveRange(allocated, reg);
+      }
+    }
+    return true;
+  }
+
+  /// Resolve data flow between blocks and split live ranges.
+  void resolveDataFlow(SSALivenessAnalysis liveness) {
+    // Allocate spill slots to resolve data flow into catch blocks.
+    for (final block in backEndState.codeGenBlockOrder) {
+      if (block is CatchBlock) {
+        for (final instrId in liveness.liveIn(block).elements) {
+          LiveRange? liveRange = _liveRanges[instrId]?.bundle;
+          if (liveRange != null && liveRange.spillSlot == null) {
+            assert(liveRange.splitParent == liveRange);
+            allocateSpillSlotFor(liveRange);
+          }
+        }
+      }
+    }
+    // Insert moves for split and spilled live ranges.
+    for (var i = 0; i < _liveRanges.length; ++i) {
+      LiveRange? liveRange = _liveRanges[i];
+      if (liveRange == null) {
+        continue;
+      }
+      currentInstruction = (i < graph.instructions.length)
+          ? graph.instructions[i]
+          : null;
+      // Insert moves between split live ranges at split points.
+      if (liveRange.mergedTo == null) {
+        for (;;) {
+          LiveRange? next = liveRange!.splitNext;
+          if (next == null) {
+            break;
+          }
+          if (liveRange.end == next.start &&
+              liveRange.allocatedLocation != next.allocatedLocation &&
+              next.allocatedLocation is! StackLocation) {
+            Instruction instr = instructionByPos(roundUp(next.start, step));
+            ParallelMoveStage stage = next.start.isOdd
+                ? ParallelMoveStage.output
+                : ParallelMoveStage.input;
+            if (instr is Block) {
+              if (instr is JoinBlock && instr.hasPhis) {
+                instr = instr.phis.last;
+              }
+              instr = _nextInstruction(instr);
+              stage = ParallelMoveStage.output;
+            }
+            _insertMoveBefore(
+              instr,
+              stage,
+              liveRange.allocatedLocation!,
+              next.allocatedLocation!,
+            );
+            if (trace) {
+              print(
+                'Insert split move at ${next.start} (${stage.name} before ${IrToText.instruction(instr)})'
+                ' ${liveRange} ${liveRange.allocatedLocation} => $next ${next.allocatedLocation}',
+              );
+            }
+          }
+          liveRange = next;
+        }
+      }
+      // Fill in spill slots after definitions if needed
+      // (so the value is always available in the spill slot).
+      liveRange = _liveRanges[i]!.bundle;
+      assert(liveRange.splitParent == liveRange);
+      final spillSlot = liveRange.spillSlot;
+      if (spillSlot != null &&
+          spillSlot is! ParameterStackLocation &&
+          i < graph.instructions.length) {
+        Instruction instr = graph.instructions[i];
+        if ((instr as Definition).hasUses) {
+          if (instr is Phi) {
+            instr = (instr.block as JoinBlock).phis.last;
+          }
+          final definitionPos = _liveRanges[i]!.definitionPos;
+          assert(definitionPos >= 0);
+          assert(
+            definitionPos == instructionPos(instr) ||
+                definitionPos == instructionPos(instr) + 1,
+          );
+          LiveRange splitChild = liveRange.findSplitChildAt(definitionPos);
+          ParallelMoveStage stage = definitionPos.isOdd
+              ? ParallelMoveStage.spill
+              : ParallelMoveStage.output;
+          if (splitChild.allocatedLocation is! SpillSlot) {
+            _insertMoveBefore(
+              _nextInstruction(instr),
+              stage,
+              splitChild.allocatedLocation!,
+              spillSlot,
+            );
+            if (trace) {
+              print(
+                'Insert spill move at $definitionPos (${stage.name} before ${IrToText.instruction(_nextInstruction(instr))})'
+                ' $splitChild ${splitChild.allocatedLocation} => $spillSlot',
+              );
+            }
+          }
+        }
+      }
+    }
+
+    for (final block in backEndState.codeGenBlockOrder) {
+      final blockStart = blockStartPos(block);
+      for (
+        int predIndex = 0, n = block.predecessors.length;
+        predIndex < n;
+        ++predIndex
+      ) {
+        final pred = block.predecessors[predIndex];
+        final Instruction insertionPoint;
+        final ParallelMoveStage stage;
+        if (block is JoinBlock) {
+          insertionPoint = pred.lastInstruction;
+          stage = ParallelMoveStage.input;
+        } else {
+          insertionPoint = _nextInstruction(block);
+          stage = ParallelMoveStage.control;
+        }
+        final predEnd = blockEndPos(pred);
+        // Insert moves between split live ranges at control flow edges
+        // which do not match linearized control flow.
+        if (block is! CatchBlock) {
+          for (final instrId in liveness.liveIn(block).elements) {
+            LiveRange? liveRange = _liveRanges[instrId]?.bundle;
+            if (liveRange != null) {
+              final from = liveRange.findSplitChildAt(predEnd - 1);
+              final to = liveRange.findSplitChildAt(blockStart);
+              if (from.allocatedLocation != to.allocatedLocation &&
+                  to.allocatedLocation is! StackLocation) {
+                _insertMoveBefore(
+                  insertionPoint,
+                  stage,
+                  from.allocatedLocation!,
+                  to.allocatedLocation!,
+                );
+              }
+            }
+          }
+        }
+        // Insert moves between phis and their inputs.
+        if (block is JoinBlock) {
+          for (final phi in block.phis) {
+            final to = liveRangeFor(phi).bundle.findSplitChildAt(blockStart);
+            final input = phi.inputDefAt(predIndex);
+            if (input is Constant) {
+              _insertMoveBefore(
+                insertionPoint,
+                stage,
+                null,
+                to.allocatedLocation!,
+                input.value,
+              );
+            } else {
+              final from = liveRangeFor(input).bundle
+                  .findSplitChildAt(predEnd - 1);
+              if (from.allocatedLocation != to.allocatedLocation) {
+                _insertMoveBefore(
+                  insertionPoint,
+                  stage,
+                  from.allocatedLocation!,
+                  to.allocatedLocation!,
+                );
+              }
+            }
+          }
+        }
+        // In the beginning of a catch block load live values from
+        // their corresponding spill slots.
+        if (block is CatchBlock) {
+          for (final instrId in liveness.liveIn(block).elements) {
+            LiveRange? liveRange = _liveRanges[instrId]?.bundle;
+            if (liveRange != null) {
+              final to = liveRange.findSplitChildAt(blockStart);
+              if (to.allocatedLocation is! StackLocation) {
+                _insertMoveBefore(
+                  insertionPoint,
+                  stage,
+                  liveRange.spillSlot!,
+                  to.allocatedLocation!,
+                );
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+/// Single use of a [LiveRange].
+class UsePosition {
+  final int pos;
+  final VirtualLocation vloc;
+  Constraint constraint;
+
+  UsePosition(this.pos, this.vloc, this.constraint);
+
+  @override
+  String toString() => 'Use[$pos, $constraint]';
+}
+
+/// A unit of register allocation.
+///
+/// Combines multiple related non-intersecting live ranges
+/// which would benefit from being allocating to the same location.
+/// Has a list of live intervals [s1, e1), [s2, e2), ...., [sN, eN).
+class LiveRange {
+  static const int maxUseIndex = 0xffffffff;
+
+  static const int registerClassMask = 1 << 0;
+  static const int isObjectPointerFlag = 1 << 1;
+  static const int isPhysicalFlag = 1 << 2;
+
+  int _flags;
+
+  // List of intervals.
+  IntervalList intervals = IntervalList();
+
+  // Uses of this live range in the descending order.
+  List<UsePosition> uses = [];
+
+  // Live range where this live range was merged.
+  LiveRange? mergedTo;
+
+  // Original live range which was split.
+  LiveRange? splitFrom;
+
+  // Next live range which was split from this live range.
+  LiveRange? splitNext;
+
+  // Location assigned to this live range.
+  Location? allocatedLocation;
+
+  // Spill slot assigned to this live range (and all its split siblings).
+  StackLocation? spillSlot;
+
+  // Position of the Definition for this live range.
+  int definitionPos = -1;
+
+  // Used for the currently tracked live ranges (both active and inactive).
+  // Index in [intervals].
+  int currentInterval = 0;
+  // uses.length - index in [uses].
+  int currentUse = 1;
+
+  LiveRange(
+    RegisterClass registerClass, {
+    required bool isObjectPointer,
+    bool isPhysical = false,
+  }) : assert((registerClass.index & registerClassMask) == registerClass.index),
+       assert(registerClass == .cpu || !isObjectPointer),
+       _flags =
+           registerClass.index |
+           (isObjectPointer ? isObjectPointerFlag : 0) |
+           (isPhysical ? isPhysicalFlag : 0);
+
+  RegisterClass get registerClass =>
+      RegisterClass.values[_flags & registerClassMask];
+
+  // Whether this live range is an object pointer and should be scanned by GC.
+  bool get isObjectPointer => (_flags & isObjectPointerFlag) != 0;
+
+  // Whether this live range represents a blocked physical register
+  // or an allocatable/splittable/spillable live range.
+  bool get isPhysical => (_flags & isPhysicalFlag) != 0;
+
+  /// Add interval [start, end) to this live range.
+  ///
+  /// Intervals should be added in the descending order by the end position.
+  /// Intersecting intervals are not allowed except nested intervals with
+  /// the same starting position (which are ignored).
+  void addInterval(int start, int end) {
+    intervals.addInterval(start, end);
+  }
+
+  /// Cut the last use interval to start at [pos].
+  void defineAt(int pos) {
+    definitionPos = pos;
+    if (intervals.isEmpty) {
+      // Value is defined but not used.
+      // Add synthetic interval. Make sure the intermediate point between
+      // instructions is included into the interval as it is used to find
+      // output location for a spill move.
+      intervals.addInterval(
+        pos,
+        roundUp(pos + 1, LinearScanRegisterAllocator.step),
+      );
+    } else {
+      assert(intervals.startAt(0) <= pos && pos < intervals.endAt(0));
+      intervals.setStartAt(0, pos);
+    }
+  }
+
+  VirtualLocation addUse(int pos, Constraint constr) {
+    if (uses.isNotEmpty) {
+      final last = uses.last;
+      if (last.pos == pos) {
+        // Reuse existing use with the same position.
+        if (constr is PhysicalRegister &&
+            last.constraint is! PhysicalRegister) {
+          last.constraint = constr;
+        }
+        return last.vloc;
+      }
+    }
+    final vloc = VirtualLocation();
+    uses.add(UsePosition(pos, vloc, constr));
+    return vloc;
+  }
+
+  int get start => intervals.start;
+  int get end => intervals.end;
+
+  LiveRange get bundle {
+    LiveRange? parent = mergedTo;
+    if (parent == null) return this;
+    while (parent!.mergedTo != null) {
+      parent = parent.mergedTo;
+    }
+    mergedTo = parent;
+    return parent;
+  }
+
+  bool intersects(LiveRange other) => intervals.intersects(other.intervals);
+
+  void tryMerge(LiveRange other) {
+    assert(mergedTo == null && other.mergedTo == null);
+    assert(!intervals.isEmpty && !other.intervals.isEmpty);
+    if (this == other ||
+        this.intersects(other) ||
+        this.registerClass != other.registerClass ||
+        this.isObjectPointer != other.isObjectPointer) {
+      return;
+    }
+    intervals.merge(other.intervals);
+    uses = _mergeUsePositions(uses, other.uses);
+    other.mergedTo = this;
+  }
+
+  List<UsePosition> _mergeUsePositions(
+    List<UsePosition> list1,
+    List<UsePosition> list2,
+  ) {
+    final list = <UsePosition>[];
+    var i = 0;
+    var j = 0;
+    while (i < list1.length && j < list2.length) {
+      final u1 = list1[i];
+      final u2 = list2[j];
+      if (u1.pos >= u2.pos) {
+        list.add(u1);
+        ++i;
+      } else {
+        list.add(u2);
+        ++j;
+      }
+    }
+    while (i < list1.length) {
+      list.add(list1[i++]);
+    }
+    while (j < list2.length) {
+      list.add(list2[j++]);
+    }
+    return list;
+  }
+
+  LiveRange get splitParent => splitFrom ?? this;
+
+  LiveRange splitAt(int pos) {
+    assert(pos > start);
+    assert(!isPhysical);
+    assert(mergedTo == null);
+    assert(splitNext == null || end <= splitNext!.start);
+    final sibling = LiveRange(registerClass, isObjectPointer: isObjectPointer);
+    sibling.splitFrom = splitParent;
+    sibling.splitNext = splitNext;
+    sibling.intervals = intervals.splitAt(pos);
+    _splitUsePositions(pos, uses, sibling.uses);
+    currentUse = math.max(1, currentUse - sibling.uses.length);
+    splitNext = sibling;
+    return sibling;
+  }
+
+  void _splitUsePositions(
+    int pos,
+    List<UsePosition> src,
+    List<UsePosition> dst,
+  ) {
+    var i = 0;
+    for (; i < src.length; ++i) {
+      if (src[i].pos < pos) break;
+    }
+    dst.addAll(src.getRange(0, i));
+    src.removeRange(0, i);
+  }
+
+  /// Advance [currentInterval] and [currentUse], skipping
+  /// intervals and uses which end before [pos].
+  /// Returns true if the whole live range ended before [pos].
+  bool advance(int pos) {
+    if (pos >= end) {
+      currentInterval = intervals.length;
+      currentUse = uses.length + 1;
+      return true;
+    }
+    while (intervals.endAt(currentInterval) <= pos) {
+      ++currentInterval;
+    }
+    while (currentUse <= uses.length &&
+        uses[uses.length - currentUse].pos < pos) {
+      ++currentUse;
+    }
+    return false;
+  }
+
+  UsePosition? findRegisterUseAfter(int pos) {
+    assert(!isPhysical);
+    for (int i = currentUse; i <= uses.length; ++i) {
+      final use = uses[uses.length - i];
+      if (use.pos >= pos) {
+        final constr = use.constraint;
+        if (constr is AnyCpuRegister ||
+            constr is AnyFpuRegister ||
+            constr is PhysicalRegister) {
+          return use;
+        }
+      }
+    }
+    return null;
+  }
+
+  UsePosition? get nextUse =>
+      (currentUse <= uses.length) ? uses[uses.length - currentUse] : null;
+
+  (int, int)? get nextInterval => (currentInterval < intervals.length)
+      ? (intervals.startAt(currentInterval), intervals.endAt(currentInterval))
+      : null;
+
+  bool nextIntervalContains(int pos) =>
+      intervals.startAt(currentInterval) <= pos &&
+      pos < intervals.endAt(currentInterval);
+
+  UsePosition? get firstPreferredRegisterUse {
+    for (final use in uses.reversed) {
+      if (use.constraint is PhysicalRegister) {
+        return use;
+      }
+    }
+    return null;
+  }
+
+  void setLocation(Location loc) {
+    assert(!isPhysical);
+    allocatedLocation = loc;
+    for (final use in uses) {
+      use.vloc.location = loc;
+    }
+  }
+
+  LiveRange findSplitChildAt(int pos) {
+    for (LiveRange? range = this; range != null; range = range.splitNext) {
+      if (range.start <= pos && pos < range.end) {
+        return range;
+      }
+    }
+    throw 'Unable to find cover for pos $pos in $this';
+  }
+
+  @override
+  String toString() =>
+      'LR $intervals ${uses.reversed} next: $nextInterval $nextUse';
+}

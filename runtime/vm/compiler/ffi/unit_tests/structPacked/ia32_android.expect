@@ -1,0 +1,15 @@
+S+0 Struct(size: 9)
+S+12 Struct(size: 9)
+S+24 Struct(size: 9)
+S+36 Struct(size: 9)
+S+48 Struct(size: 9)
+S+60 Struct(size: 9)
+S+72 Struct(size: 9)
+S+84 Struct(size: 9)
+S+96 Struct(size: 9)
+S+108 Struct(size: 9)
+S+120 double
+S+128 int32
+S+132 int32
+=>
+xmm0 double

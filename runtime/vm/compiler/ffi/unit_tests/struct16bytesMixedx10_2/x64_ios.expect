@@ -1,0 +1,17 @@
+xmm0 float
+xmm1 float
+xmm2 float
+xmm3 float
+M(xmm4 double, rdi uint64) Struct(size: 16)
+M(xmm5 double, rsi uint64) Struct(size: 16)
+M(xmm6 double, rdx uint64) Struct(size: 16)
+M(xmm7 double, rcx uint64) Struct(size: 16)
+S+0 Struct(size: 16)
+S+16 Struct(size: 16)
+S+32 Struct(size: 16)
+S+48 Struct(size: 16)
+S+64 Struct(size: 16)
+S+80 Struct(size: 16)
+r8 int32
+=>
+M(xmm0 double, rax uint64) Struct(size: 16)

@@ -1,0 +1,22 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  constructor •() → self::A
+    ;
+  static factory redirectingFactory() → self::A /* redirection-target: self::A::• */
+    return new self::A::•();
+  static factory redirectingFactoryChild() → self::A /* redirection-target: self::B::• */
+    return new self::B::•();
+  static factory redirectingTwice() → self::A /* redirection-target: self::A::redirectingFactory */
+    return self::A::redirectingFactory();
+}
+class B extends self::A {
+  synthetic constructor •() → self::B
+    ;
+}
+static method test() → dynamic
+  ;
+static method main() → dynamic
+  ;

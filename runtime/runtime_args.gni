@@ -1,0 +1,114 @@
+# Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+declare_args() {
+  # Instead of using is_debug, we introduce a different flag for specifying a
+  # Debug build of Dart so that clients can still use a Release build of Dart
+  # while themselves doing a Debug build.
+  dart_debug = false
+
+  # Set the runtime mode. This affects how the runtime is built and what
+  # features it has. Valid values are:
+  # 'develop' (the default) - VM is built to run as a JIT with all development
+  # features enabled.
+  # 'profile' - The VM is built to run with AOT compiled code with only the
+  # CPU profiling features enabled.
+  # 'release' - The VM is built to run with AOT compiled code with no developer
+  # features enabled.
+  #
+  # These settings are only used for Flutter, at the moment. A standalone build
+  # of the Dart VM should leave this set to "develop", and should set
+  # 'is_debug', 'is_release', or 'is_product'.
+  #
+  # TODO(rmacnak): dart_runtime_mode no longer selects whether libdart is build
+  # for JIT or AOT, since libdart waw split into libdart_jit and
+  # libdart_aotruntime. We should remove this flag and just set
+  # dart_debug/dart_product.
+  dart_runtime_mode = "develop"
+
+  # Explicitly set the target architecture to use a simulator.
+  # Available options are: arm, arm64, x64, ia32, riscv32, riscv64.
+  dart_target_arch = target_cpu
+
+  # Force use of the simulator even when the Dart target arch matches the
+  # current cpu.
+  dart_force_simulator = false
+
+  # The optimization level to use for debug builds. Defaults to 0 for builds
+  # with code coverage enabled.
+  dart_debug_optimization_level = "2"
+
+  # The optimization level to use for non-debug builds.
+  dart_default_optimization_level = "2"
+
+  # Whether to enable code coverage for the standalone VM.
+  dart_vm_code_coverage = false
+
+  # Whether to disable support for secure sockets in the Dart IO library.
+  dart_disable_secure_socket = false
+
+  # Whether to link Crashpad library for crash handling. Only supported on
+  # Windows for now.
+  dart_use_crashpad = false
+
+  # Whether the Dart binary version string should include the git hash and
+  # git commit time.
+  dart_version_git_info = true
+
+  # Controls whether the VM is built as a static library or a shared library.
+  dart_component_kind = "static_library"
+
+  # Whether the VM includes the kernel service in all modes (debug, release,
+  # product).
+  exclude_kernel_service = false
+
+  # Whether libdart should export the symbols of the Dart API.
+  dart_lib_export_symbols = true
+
+  # Whether to use compressed pointers.
+  dart_use_compressed_pointers = false
+
+  # Whether the sampling heap profiler should be included in product mode.
+  dart_include_sampling_heap_profiler = false
+
+  # Whether to support dynamic loading and interpretation of Dart bytecode.
+  dart_dynamic_modules = false
+}
+
+declare_args() {
+  # Whether features that depend on Perfetto should be built. We need
+  # to define this to allow excluding code that depends on Perfetto
+  # from being built on platforms which have a problem linking in the
+  # Perfetto library, e.g. watchOS.
+  #
+  # We also exclude perfetto support when producing builds which set
+  # dart_runtime_mode to release e.g. Dart Product builds or Flutter
+  # release engine variants. This does not affect product AOT runtime
+  # which shipped with Dart SDK.
+  #
+  # Note: including Perfetto support automatically includes profiler
+  # into the resulting binary.
+  #
+  # is_watchos may be undefined when Dart SDK is built from the Flutter
+  # engine tree.
+  dart_support_perfetto =
+      !((defined(is_watchos) && is_watchos) || dart_runtime_mode == "release")
+
+  # The analyze_snapshot tool is only supported on 64 bit AOT builds.
+  build_analyze_snapshot =
+      dart_target_arch == "x64" || dart_target_arch == "arm64" ||
+      dart_target_arch == "riscv64"
+}
+
+if (is_fuchsia) {
+  declare_args() {
+    # In case some repo uses build rules in dart/sdk, but put fuchsia-gn-sdk in
+    # a different folder, this gn arg can specify the location of
+    # fuchsia-gn-sdk.
+    if (!defined(fuchsia_gn_sdk)) {
+      fuchsia_gn_sdk = "//third_party/fuchsia/gn-sdk"
+    }
+  }
+  import(fuchsia_gn_sdk + "/src/gn_configs.gni")
+}

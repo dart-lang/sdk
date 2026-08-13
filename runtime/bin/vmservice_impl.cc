@@ -1,0 +1,307 @@
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+#include "bin/vmservice_impl.h"
+
+#include "include/dart_api.h"
+
+#include "bin/builtin.h"
+#include "bin/dartutils.h"
+#include "bin/isolate_data.h"
+#include "bin/platform.h"
+#include "bin/thread.h"
+#include "bin/utils.h"
+#include "platform/text_buffer.h"
+#include "platform/utils.h"
+
+namespace dart {
+namespace bin {
+
+#if !defined(PRODUCT)
+
+#if defined(EXPERIMENTAL_VM_SERVICE)
+bool VmService::enable_experimental_vm_service = true;
+#else
+bool VmService::enable_experimental_vm_service = false;
+#endif
+
+#define RETURN_ERROR_HANDLE(handle)                                            \
+  if (Dart_IsError(handle)) {                                                  \
+    return handle;                                                             \
+  }
+
+#define SHUTDOWN_ON_ERROR(handle)                                              \
+  if (Dart_IsError(handle)) {                                                  \
+    error_msg_ = Utils::StrDup(Dart_GetError(handle));                         \
+    Dart_ExitScope();                                                          \
+    Dart_ShutdownIsolate();                                                    \
+    return false;                                                              \
+  }
+
+void NotifyServerState(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  const char* uri_chars;
+  Dart_Handle uri_arg = Dart_GetNativeArgument(args, 0);
+  if (Dart_IsError(uri_arg)) {
+    VmService::SetServerAddress("");
+    Dart_ExitScope();
+    return;
+  }
+  Dart_Handle result = Dart_StringToCString(uri_arg, &uri_chars);
+  if (Dart_IsError(result)) {
+    VmService::SetServerAddress("");
+    Dart_ExitScope();
+    return;
+  }
+  VmService::SetServerAddress(uri_chars);
+  Dart_ExitScope();
+}
+
+static void Shutdown(Dart_NativeArguments args) {
+  // NO-OP.
+}
+
+struct VmServiceIONativeEntry {
+  const char* name;
+  int num_arguments;
+  Dart_NativeFunction function;
+};
+
+static VmServiceIONativeEntry _VmServiceIONativeEntries[] = {
+    // TODO(bkonyi): these aren't used by any known embedders and can be
+    // removed.
+    {"VMServiceIO_NotifyServerState", 1, NotifyServerState},
+    {"VMServiceIO_Shutdown", 0, Shutdown},
+};
+
+static Dart_NativeFunction VmServiceIONativeResolver(Dart_Handle name,
+                                                     int num_arguments,
+                                                     bool* auto_setup_scope) {
+  const char* function_name = nullptr;
+  Dart_Handle result = Dart_StringToCString(name, &function_name);
+  ASSERT(!Dart_IsError(result));
+  ASSERT(function_name != nullptr);
+  *auto_setup_scope = true;
+  intptr_t n =
+      sizeof(_VmServiceIONativeEntries) / sizeof(_VmServiceIONativeEntries[0]);
+  for (intptr_t i = 0; i < n; i++) {
+    VmServiceIONativeEntry entry = _VmServiceIONativeEntries[i];
+    if ((strcmp(function_name, entry.name) == 0) &&
+        (num_arguments == entry.num_arguments)) {
+      return entry.function;
+    }
+  }
+  return nullptr;
+}
+
+const uint8_t* VmServiceIONativeSymbol(Dart_NativeFunction nf) {
+  intptr_t n =
+      sizeof(_VmServiceIONativeEntries) / sizeof(_VmServiceIONativeEntries[0]);
+  for (intptr_t i = 0; i < n; i++) {
+    VmServiceIONativeEntry entry = _VmServiceIONativeEntries[i];
+    if (reinterpret_cast<Dart_NativeFunction>(entry.function) == nf) {
+      return reinterpret_cast<const uint8_t*>(entry.name);
+    }
+  }
+  return nullptr;
+}
+
+const char* VmService::error_msg_ = nullptr;
+char VmService::server_uri_[kServerUriStringBufferSize];
+
+static constexpr const char* kVMServiceIOLibraryUri = "dart:vmservice_io";
+
+void VmService::SetNativeResolver() {
+  Dart_Handle url = DartUtils::NewString(kVMServiceIOLibraryUri);
+  Dart_Handle library = Dart_LookupLibrary(url);
+  if (!Dart_IsError(library)) {
+    Dart_SetNativeResolver(library, VmServiceIONativeResolver,
+                           VmServiceIONativeSymbol);
+  }
+}
+
+static constexpr const char* DEFAULT_VM_SERVICE_SERVER_IP = "localhost";
+
+bool VmService::Setup(const char* server_ip,
+                      intptr_t server_port,
+                      bool origin_check_disabled,
+                      bool auth_codes_disabled,
+                      const char* write_service_info_filename,
+                      bool trace_loading,
+                      bool deterministic,
+                      bool enable_service_port_fallback,
+                      bool wait_for_dds_to_advertise_service,
+                      bool serve_devtools,
+                      bool serve_observatory,
+                      bool print_dtd,
+                      bool should_use_resident_compiler,
+                      const char* resident_compiler_info_file_path) {
+  Dart_Isolate isolate = Dart_CurrentIsolate();
+  ASSERT(isolate != nullptr);
+  SetServerAddress("");
+
+  Dart_Handle result;
+
+  // Prepare all core libraries for execution of Dart code.
+  result = DartUtils::SetupCoreLibraries(
+      /*is_service_isolate=*/true, trace_loading,
+      /*flag_profile_microtasks=*/false, DartIoSettings{});
+  SHUTDOWN_ON_ERROR(result);
+
+  if (!enable_experimental_vm_service) {
+    Dart_Handle url = DartUtils::NewString(kVMServiceIOLibraryUri);
+    Dart_Handle library = Dart_LookupLibrary(url);
+    SHUTDOWN_ON_ERROR(library);
+    result = Dart_SetRootLibrary(library);
+    SHUTDOWN_ON_ERROR(library);
+    result = Dart_SetNativeResolver(library, VmServiceIONativeResolver,
+                                    VmServiceIONativeSymbol);
+    SHUTDOWN_ON_ERROR(result);
+  }
+
+  // Make runnable.
+  Dart_ExitScope();
+  Dart_ExitIsolate();
+  error_msg_ = Dart_IsolateMakeRunnable(isolate);
+  if (error_msg_ != nullptr) {
+    Dart_EnterIsolate(isolate);
+    Dart_ShutdownIsolate();
+    return false;
+  }
+  Dart_EnterIsolate(isolate);
+  Dart_EnterScope();
+
+  Dart_Handle library = Dart_RootLibrary();
+  SHUTDOWN_ON_ERROR(library);
+
+  // Set HTTP server state.
+  // If we have a port specified, start the server immediately.
+  bool auto_start = server_port >= 0;
+  if (server_port < 0) {
+    // Adjust server_port to port 0 which will result in the first available
+    // port when the HTTP server is started.
+    server_port = 0;
+  }
+  if (wait_for_dds_to_advertise_service) {
+    result = DartUtils::SetStringField(library, "_ddsIP", server_ip);
+    SHUTDOWN_ON_ERROR(result);
+    result = DartUtils::SetIntegerField(library, "_ddsPort", server_port);
+    SHUTDOWN_ON_ERROR(result);
+    result =
+        DartUtils::SetStringField(library, "_ip", DEFAULT_VM_SERVICE_SERVER_IP);
+    SHUTDOWN_ON_ERROR(result);
+    result = DartUtils::SetIntegerField(library, "_port", 0);
+    SHUTDOWN_ON_ERROR(result);
+  } else {
+    result = DartUtils::SetStringField(library, "_ip", server_ip);
+    SHUTDOWN_ON_ERROR(result);
+    result = DartUtils::SetIntegerField(library, "_port", server_port);
+    SHUTDOWN_ON_ERROR(result);
+  }
+  result = Dart_SetField(library, DartUtils::NewString("_autoStart"),
+                         Dart_NewBoolean(auto_start));
+  SHUTDOWN_ON_ERROR(result);
+  result = Dart_SetField(library, DartUtils::NewString("_originCheckDisabled"),
+                         Dart_NewBoolean(origin_check_disabled));
+  SHUTDOWN_ON_ERROR(result);
+
+  result = Dart_SetField(library, DartUtils::NewString("_authCodesDisabled"),
+                         Dart_NewBoolean(auth_codes_disabled));
+  SHUTDOWN_ON_ERROR(result);
+
+  result =
+      Dart_SetField(library, DartUtils::NewString("_enableServicePortFallback"),
+                    Dart_NewBoolean(enable_service_port_fallback));
+  SHUTDOWN_ON_ERROR(result);
+
+  if (write_service_info_filename != nullptr) {
+    result = DartUtils::SetStringField(library, "_serviceInfoFilename",
+                                       write_service_info_filename);
+    SHUTDOWN_ON_ERROR(result);
+  }
+
+  result = Dart_SetField(library,
+                         DartUtils::NewString("_waitForDdsToAdvertiseService"),
+                         Dart_NewBoolean(wait_for_dds_to_advertise_service));
+  SHUTDOWN_ON_ERROR(result);
+
+  result = Dart_SetField(library, DartUtils::NewString("_serveDevtools"),
+                         serve_devtools ? Dart_True() : Dart_False());
+  SHUTDOWN_ON_ERROR(result);
+
+  result = Dart_SetField(library, DartUtils::NewString("_printDtd"),
+                         print_dtd ? Dart_True() : Dart_False());
+  SHUTDOWN_ON_ERROR(result);
+
+  if (should_use_resident_compiler) {
+    Dart_Handle resident_compiler_info_file_path_dart_string = nullptr;
+    if (resident_compiler_info_file_path == nullptr) {
+      resident_compiler_info_file_path_dart_string = Dart_Null();
+    } else {
+      resident_compiler_info_file_path_dart_string =
+          DartUtils::NewString(resident_compiler_info_file_path);
+    }
+    result = Dart_Invoke(
+        library, DartUtils::NewString("_populateResidentCompilerInfoFile"), 1,
+        &resident_compiler_info_file_path_dart_string);
+    SHUTDOWN_ON_ERROR(result);
+  }
+
+// Are we running on Windows?
+#if defined(DART_HOST_OS_WINDOWS)
+  Dart_Handle is_windows = Dart_True();
+#else
+  Dart_Handle is_windows = Dart_False();
+#endif
+  result =
+      Dart_SetField(library, DartUtils::NewString("_isWindows"), is_windows);
+  SHUTDOWN_ON_ERROR(result);
+
+// Are we running on Fuchsia?
+#if defined(DART_HOST_OS_FUCHSIA)
+  Dart_Handle is_fuchsia = Dart_True();
+#else
+  Dart_Handle is_fuchsia = Dart_False();
+#endif
+  result =
+      Dart_SetField(library, DartUtils::NewString("_isFuchsia"), is_fuchsia);
+  SHUTDOWN_ON_ERROR(result);
+
+  // Get _getWatchSignalInternal from dart:io.
+  Dart_Handle dart_io_str = Dart_NewStringFromCString(DartUtils::kIOLibURL);
+  SHUTDOWN_ON_ERROR(dart_io_str);
+  Dart_Handle io_lib = Dart_LookupLibrary(dart_io_str);
+  SHUTDOWN_ON_ERROR(io_lib);
+  Dart_Handle function_name =
+      Dart_NewStringFromCString("_getWatchSignalInternal");
+  SHUTDOWN_ON_ERROR(function_name);
+  Dart_Handle signal_watch = Dart_Invoke(io_lib, function_name, 0, nullptr);
+  SHUTDOWN_ON_ERROR(signal_watch);
+  Dart_Handle field_name = Dart_NewStringFromCString("_signalWatch");
+  SHUTDOWN_ON_ERROR(field_name);
+  result = Dart_SetField(library, field_name, signal_watch);
+  SHUTDOWN_ON_ERROR(field_name);
+  return true;
+}
+
+const char* VmService::GetErrorMessage() {
+  return (error_msg_ == nullptr) ? "No error." : error_msg_;
+}
+
+void VmService::SetServerAddress(const char* server_uri) {
+  if (server_uri == nullptr) {
+    server_uri = "";
+  }
+  const intptr_t server_uri_len = strlen(server_uri);
+  if (server_uri_len >= (kServerUriStringBufferSize - 1)) {
+    FATAL("vm-service: Server URI exceeded length: %s\n", server_uri);
+  }
+  strncpy(server_uri_, server_uri, kServerUriStringBufferSize);
+  server_uri_[kServerUriStringBufferSize - 1] = '\0';
+}
+
+#endif  // !defined(PRODUCT)
+
+}  // namespace bin
+}  // namespace dart

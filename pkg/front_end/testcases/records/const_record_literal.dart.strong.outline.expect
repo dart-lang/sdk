@@ -1,0 +1,32 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static const field dynamic a = const (1, 2);
+static const field dynamic b1 = const ({a: 1, b: 2});
+static const field dynamic b2 = const ({a: 1, b: 2});
+static const field dynamic b3 = const (1, {b: 2});
+static const field dynamic c1 = const ({a: self::a, b: self::b1});
+static const field dynamic c2 = const ({a: self::a, b: self::b2});
+static const field dynamic c3 = const (self::a, {b: self::b3});
+static const field dynamic d = const (self::c1, const (1, 2));
+static field dynamic e;
+static field dynamic f1;
+static field dynamic f2;
+static field dynamic f3;
+static field dynamic g1;
+static field dynamic g2;
+static field dynamic g3;
+static field dynamic h;
+
+
+Extra constant evaluation status:
+Evaluated: RecordLiteral @ org-dartlang-testcase:///const_record_literal.dart:5:19 -> RecordConstant(const (1, 2))
+Evaluated: RecordLiteral @ org-dartlang-testcase:///const_record_literal.dart:6:20 -> RecordConstant(const ({a: 1, b: 2}))
+Evaluated: RecordLiteral @ org-dartlang-testcase:///const_record_literal.dart:7:20 -> RecordConstant(const ({a: 1, b: 2}))
+Evaluated: RecordLiteral @ org-dartlang-testcase:///const_record_literal.dart:8:20 -> RecordConstant(const (1, {b: 2}))
+Evaluated: RecordLiteral @ org-dartlang-testcase:///const_record_literal.dart:9:20 -> RecordConstant(const ({a: const (1, 2), b: const ({a: 1, b: 2})}))
+Evaluated: RecordLiteral @ org-dartlang-testcase:///const_record_literal.dart:10:20 -> RecordConstant(const ({a: const (1, 2), b: const ({a: 1, b: 2})}))
+Evaluated: RecordLiteral @ org-dartlang-testcase:///const_record_literal.dart:11:20 -> RecordConstant(const (const (1, 2), {b: const (1, {b: 2})}))
+Evaluated: RecordLiteral @ org-dartlang-testcase:///const_record_literal.dart:12:19 -> RecordConstant(const (const ({a: const (1, 2), b: const ({a: 1, b: 2})}), const (1, 2)))
+Extra constant evaluation: evaluated: 8, effectively constant: 8

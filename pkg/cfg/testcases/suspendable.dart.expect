@@ -1,0 +1,153 @@
+--- async1
+B0 = EntryBlock()
+  v1 = Constant(<int>)
+  v3 = Constant(42)
+  EnterSuspendableFunction(v1)
+  Return(v3)
+
+--- async2
+B0 = EntryBlock()
+  v3 = Constant(<int>)
+  v1 = Parameter(a)
+  v2 = Parameter(b)
+  EnterSuspendableFunction(v3)
+  v6 = Suspend await(v1)
+  v8 = Suspend await(v2)
+  v9 = BinaryIntOp +(v6, v8)
+  Return(v9)
+
+--- async3
+B0 = EntryBlock()
+  v2 = Constant(<void>)
+  v5 = Constant(<Object>)
+  v10 = Constant(null)
+  v1 = Parameter(x)
+  EnterSuspendableFunction(v2)
+  v6 = Suspend awaitWithTypeCheck(v1, v5)
+  DirectCall print(v6)
+  Return(v10)
+
+--- async4
+B0 = EntryBlock()
+  v5 = Constant(null)
+  v1 = Parameter(#functionTypeParameters)
+  v2 = Parameter(x)
+  v4 = TypeParameters(v1)
+  v6 = TypeArguments(v5, v4, <List<async4.T%>>)
+  EnterSuspendableFunction(v6)
+  v8 = TypeArguments(v5, v4, <async4.T%>)
+  v10 = DirectCall _GrowableList._literal1(v8, v2)
+  Return(v10)
+
+--- async5
+B0 = EntryBlock()
+  v5 = Constant(<void>)
+  v8 = Constant(null)
+  v1 = Parameter(#functionTypeParameters)
+  v2 = Parameter(x)
+  v4 = TypeParameters(v1)
+  EnterSuspendableFunction(v5)
+  v9 = TypeArguments(v8, v4, <async5.T%>)
+  v10 = Suspend awaitWithTypeCheck(v2, v9)
+  DirectCall print(v10)
+  Return(v8)
+
+--- asyncStar1
+B0 = EntryBlock() dominates:(B8, B7)
+  v2 = Constant(<int>)
+  v4 = Constant("before")
+  v11 = Constant(null)
+  v13 = Constant("after")
+  v1 = Parameter(a)
+  EnterSuspendableFunction(v2)
+  DirectCall print(v4)
+  v9 = Suspend asyncYield(v1)
+  Branch(v9, true: B7, false: B8)
+B7 = TargetBlock() idom:B0
+  Return(v11)
+B8 = TargetBlock() idom:B0
+  DirectCall print(v13)
+  Return(v11)
+
+--- asyncStar2
+B0 = EntryBlock() dominates:(B8, B7)
+  v2 = Constant(<int>)
+  v4 = Constant("before")
+  v11 = Constant(null)
+  v13 = Constant("after")
+  v1 = Parameter(a)
+  EnterSuspendableFunction(v2)
+  DirectCall print(v4)
+  v9 = Suspend asyncYieldStar(v1)
+  Branch(v9, true: B7, false: B8)
+B7 = TargetBlock() idom:B0
+  Return(v11)
+B8 = TargetBlock() idom:B0
+  DirectCall print(v13)
+  Return(v11)
+
+--- asyncStar3
+B0 = EntryBlock() dominates:(B5, B4)
+  v2 = Constant(<int>)
+  v7 = Constant("before")
+  v16 = Constant("after")
+  v22 = Constant("finally")
+  v28 = Constant(null)
+  v1 = Parameter(a)
+  EnterSuspendableFunction(v2)
+  TryEntry(try-body: B4, catch-block: B5)
+B4 = TargetBlock() exception-handler:B5 idom:B0 dominates:(B11, B10)
+  DirectCall print(v7)
+  v12 = Suspend asyncYield(v1)
+  Branch(v12, true: B10, false: B11)
+B10 = TargetBlock() exception-handler:B5 idom:B4 dominates:(B14)
+  Goto(B14)
+B14 = JoinBlock(B10) idom:B10
+  DirectCall print(v22)
+  Return(v28)
+B11 = TargetBlock() exception-handler:B5 idom:B4 dominates:(B18)
+  DirectCall print(v16)
+  Goto(B18)
+B18 = JoinBlock(B11) idom:B11
+  DirectCall print(v22)
+  Return(v28)
+B5 = CatchBlock() idom:B0
+  v20 = Parameter(#exception)
+  v21 = Parameter(#stackTrace)
+  DirectCall print(v22)
+  Throw(v20, v21)
+
+--- syncStar1
+B0 = EntryBlock()
+  v2 = Constant(<int>)
+  v6 = Constant(null)
+  v1 = Parameter(a)
+  EnterSuspendableFunction(v2)
+  Suspend syncYield(v1)
+  Return(v6)
+
+--- syncStar2
+B0 = EntryBlock()
+  v2 = Constant(<int>)
+  v6 = Constant(null)
+  v1 = Parameter(a)
+  EnterSuspendableFunction(v2)
+  Suspend syncYieldStar(v1)
+  Return(v6)
+
+--- getter syncStar3
+B0 = EntryBlock()
+  v1 = Constant(<int>)
+  v3 = Constant(1)
+  v5 = Constant(2)
+  v7 = Constant(null)
+  EnterSuspendableFunction(v1)
+  Suspend syncYield(v3)
+  Suspend syncYield(v5)
+  Return(v7)
+
+--- main
+B0 = EntryBlock()
+  v1 = Constant(null)
+  Return(v1)
+

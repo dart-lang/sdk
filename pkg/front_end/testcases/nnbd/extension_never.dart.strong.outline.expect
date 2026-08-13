@@ -1,0 +1,17 @@
+library;
+import self as self;
+
+extension Extension on Never {
+  method extensionMethod = self::Extension|extensionMethod;
+  method tearoff extensionMethod = self::Extension|get#extensionMethod;
+}
+static extension-member method Extension|extensionMethod(lowered final Never #this) → dynamic
+  ;
+static extension-member method Extension|get#extensionMethod(lowered final Never #this) → () → dynamic
+  return () → dynamic => self::Extension|extensionMethod(#this);
+static method implicitAccess(Never never) → dynamic
+  ;
+static method explicitAccess(Never never) → dynamic
+  ;
+static method main() → dynamic
+  ;

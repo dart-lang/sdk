@@ -1,0 +1,74 @@
+Part 0
+  ImportSet
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/dead_constraint.dart prefix: OrAlive
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/dead_constraint.dart prefix: OrAlive_1
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/dead_constraint.dart prefix: OrAlive_2
+  References
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/dead_constraint.dart::@methods::testOr
+  Constants
+
+Part 1
+  ImportSet
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/dead_constraint.dart prefix: AndAlive
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/dead_constraint.dart prefix: AndAlive_1
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/dead_constraint.dart prefix: AndAlive_2
+  References
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/dead_constraint.dart::@methods::testAnd
+  Constants
+
+Part 2
+  ImportSet
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/dead_constraint.dart prefix: FuseAlive
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/dead_constraint.dart prefix: FuseAlive_1
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/dead_constraint.dart prefix: FuseAlive_2
+  References
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/dead_constraint.dart::@methods::testFuse
+  Constants
+
+Part 3
+  ImportSet
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/dead_constraint.dart prefix: OrAlive_1
+  References
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/dead_constraint.dart::@methods::orTest_alive_1
+  Constants
+     - StringConstant("orTest_alive_1")
+
+Part 4
+  ImportSet
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/dead_constraint.dart prefix: OrAlive_2
+  References
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/dead_constraint.dart::@methods::orTest_alive_2
+  Constants
+     - StringConstant("orTest_alive_2")
+
+Part 5
+  ImportSet
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/dead_constraint.dart prefix: AndAlive_1
+  References
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/dead_constraint.dart::@methods::andTest_alive_1
+  Constants
+     - StringConstant("andTest_alive_1")
+
+Part 6
+  ImportSet
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/dead_constraint.dart prefix: AndAlive_2
+  References
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/dead_constraint.dart::@methods::andTest_alive_2
+  Constants
+     - StringConstant("andTest_alive_2")
+
+Part 7
+  ImportSet
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/dead_constraint.dart prefix: FuseAlive_1
+  References
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/dead_constraint.dart::@methods::fuseTest_alive_1
+  Constants
+     - StringConstant("fuseTest_alive_1")
+
+Part 8
+  ImportSet
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/dead_constraint.dart prefix: FuseAlive_2
+  References
+     - pkg/dart2wasm/test/deferred_loading/partition_tests/dead_constraint.dart::@methods::fuseTest_alive_2
+  Constants
+     - StringConstant("fuseTest_alive_2")

@@ -1,0 +1,16 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method exhaustiveWildcard((core::int, core::String, {required named: core::bool}) r) → dynamic
+  ;
+static method exhaustiveTyped((core::int, core::String, {required named: core::bool}) r) → dynamic
+  ;
+static method exhaustiveValue((core::int, core::String, {required named: core::bool}) r) → dynamic
+  ;
+static method nonExhaustiveRestrictedValue1((core::int, core::String, {required named: core::bool}) r) → dynamic
+  ;
+static method nonExhaustiveRestrictedValue2((core::int, core::String, {required named: core::bool}) r) → dynamic
+  ;
+static method nonExhaustiveRestrictedValue3((core::int, core::String, {required named: core::bool}) r) → dynamic
+  ;

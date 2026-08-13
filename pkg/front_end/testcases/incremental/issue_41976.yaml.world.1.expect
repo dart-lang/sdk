@@ -1,0 +1,26 @@
+main = foo::main;
+library from "org-dartlang-test:///foo.dart" as foo {
+
+  abstract class Key extends dart.core::Object /*hasConstConstructor*/  {
+    const constructor empty() → foo::Key
+      : super dart.core::Object::•()
+      ;
+    static const factory •(dart.core::String value) → foo::Key /* redirection-target: foo::ValueKey::• */
+      return new foo::ValueKey::•(value);
+  }
+  abstract class LocalKey extends foo::Key /*hasConstConstructor*/  {
+    const constructor •() → foo::LocalKey
+      : super foo::Key::empty()
+      ;
+  }
+  class ValueKey extends dart.core::Object implements foo::LocalKey /*hasConstConstructor*/  {
+    final field dart.core::String value;
+    const constructor •(initializing-formal dart.core::String value) → foo::ValueKey
+      : foo::ValueKey::value = value, super dart.core::Object::•()
+      ;
+  }
+  static method main() → void {
+    foo::Key k = new foo::ValueKey::•("t");
+    dart.core::print("${k}");
+  }
+}

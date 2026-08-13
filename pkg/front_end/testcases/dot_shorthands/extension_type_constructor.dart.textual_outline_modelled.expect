@@ -1,0 +1,5 @@
+extension type IntegerExt(int integer) {
+  IntegerExt.regular(this.integer);
+}
+
+void main() {}

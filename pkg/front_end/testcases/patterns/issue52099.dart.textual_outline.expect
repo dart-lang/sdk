@@ -1,0 +1,15 @@
+typedef SourceLocation = int;
+
+abstract class FieldRef {
+  int get location;
+}
+
+abstract class FuncRef {
+  int get location;
+}
+
+abstract class ClassRef {
+  int get location;
+}
+
+foo(Object object) {}

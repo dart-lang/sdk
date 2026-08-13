@@ -1,0 +1,349 @@
+// Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server_plugin/src/correction/change_workspace.dart';
+import 'package:analysis_server_plugin/src/correction/dart_change_workspace.dart';
+import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:analyzer_testing/package_config_file_builder.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
+
+import 'fix_processor.dart';
+
+void main() {
+  defineReflectiveSuite(() {
+    defineReflectiveTests(AddMissingParameterRequiredTest);
+    defineReflectiveTests(AddMissingParameterRequiredTest_Workspace);
+  });
+}
+
+@reflectiveTest
+class AddMissingParameterRequiredTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.addMissingParameterRequired;
+
+  Future<void> test_constructor_callingViaSuperParameter() async {
+    await resolveTestCode('''
+class A {
+  A(int a);
+}
+class B extends A {
+  B(super.a, int super.b);
+}
+''');
+    await assertHasFix('''
+class A {
+  A(int a, int b);
+}
+class B extends A {
+  B(super.a, int super.b);
+}
+''');
+  }
+
+  Future<void> test_constructor_callingViaSuperParameter_default() async {
+    await resolveTestCode('''
+class A {
+  A(int a);
+}
+class B extends A {
+  B(super.a, super.b);
+}
+''');
+    await assertHasFix('''
+class A {
+  A(int a, Object? b);
+}
+class B extends A {
+  B(super.a, super.b);
+}
+''');
+  }
+
+  Future<void> test_constructor_factory_unnamed_hasOne() async {
+    await resolveTestCode('''
+class C {
+  factory (int a) => C._();
+
+  C._();
+}
+
+void f() {
+  new C(1, 2.0);
+}
+''');
+    await assertHasFix('''
+class C {
+  factory (int a, double d) => C._();
+
+  C._();
+}
+
+void f() {
+  new C(1, 2.0);
+}
+''');
+  }
+
+  Future<void> test_constructor_implicitSuper() async {
+    // https://github.com/dart-lang/sdk/issues/61927
+    await resolveTestCode('''
+class A {}
+class B extends A {
+  B(super.other);
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_constructor_named_hasOne() async {
+    await resolveTestCode('''
+class A {
+  A.named(int a) {}
+}
+void f() {
+  new A.named(1, 2.0);
+}
+''');
+    await assertHasFix('''
+class A {
+  A.named(int a, double d) {}
+}
+void f() {
+  new A.named(1, 2.0);
+}
+''');
+  }
+
+  Future<void> test_constructor_new_unnamed_hasOne() async {
+    await resolveTestCode('''
+class C {
+  new (int a);
+}
+
+void f() {
+  new C(1, 2.0);
+}
+''');
+    await assertHasFix('''
+class C {
+  new (int a, double d);
+}
+
+void f() {
+  new C(1, 2.0);
+}
+''');
+  }
+
+  Future<void> test_constructor_primary_unnamed_hasOne() async {
+    await resolveTestCode('''
+class C(int a) {}
+
+void f() {
+  new C(1, 2.0);
+}
+''');
+    await assertHasFix('''
+class C(int a, double d) {}
+
+void f() {
+  new C(1, 2.0);
+}
+''');
+  }
+
+  Future<void> test_constructor_superParameter_differentConstructor() async {
+    await resolveTestCode('''
+class A {
+  A();
+  A.foo();
+}
+class B extends A {
+  B(super.other) : super.foo();
+}
+''');
+    await assertHasFix('''
+class A {
+  A();
+  A.foo(Object? other);
+}
+class B extends A {
+  B(super.other) : super.foo();
+}
+''');
+  }
+
+  Future<void> test_constructor_unnamed_hasOne() async {
+    await resolveTestCode('''
+class A {
+  A(int a) {}
+}
+void f() {
+  new A(1, 2.0);
+}
+''');
+    await assertHasFix('''
+class A {
+  A(int a, double d) {}
+}
+void f() {
+  new A(1, 2.0);
+}
+''');
+  }
+
+  Future<void> test_function_hasNamed() async {
+    await resolveTestCode('''
+test({int a = 0}) {}
+void f() {
+  test(1);
+}
+''');
+    await assertHasFix('''
+test(int i, {int a = 0}) {}
+void f() {
+  test(1);
+}
+''');
+  }
+
+  Future<void> test_function_hasOne() async {
+    await resolveTestCode('''
+test(int a) {}
+void f() {
+  test(1, 2.0);
+}
+''');
+    await assertHasFix('''
+test(int a, double d) {}
+void f() {
+  test(1, 2.0);
+}
+''');
+  }
+
+  Future<void> test_function_hasZero() async {
+    await resolveTestCode('''
+test() {}
+void f() {
+  test(1);
+}
+''');
+    await assertHasFix('''
+test(int i) {}
+void f() {
+  test(1);
+}
+''');
+  }
+
+  Future<void> test_function_hasZero_partOfUri_noLibrary() async {
+    await resolveTestCode('''
+part of 'a.dart';
+test() {}
+void f() {
+  test(1);
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_method_hasOne() async {
+    await resolveTestCode('''
+class A {
+  test(int a) {}
+  void f() {
+    test(1, 2.0);
+  }
+}
+''');
+    await assertHasFix('''
+class A {
+  test(int a, double d) {}
+  void f() {
+    test(1, 2.0);
+  }
+}
+''');
+  }
+
+  Future<void> test_method_hasZero() async {
+    await resolveTestCode('''
+class A {
+  test() {}
+  void f() {
+    test(1);
+  }
+}
+''');
+    await assertHasFix('''
+class A {
+  test(int i) {}
+  void f() {
+    test(1);
+  }
+}
+''');
+  }
+}
+
+@reflectiveTest
+class AddMissingParameterRequiredTest_Workspace
+    extends AddMissingParameterRequiredTest {
+  ChangeWorkspace? _workspace;
+
+  @override
+  Future<ChangeWorkspace> get workspace async {
+    return _workspace ?? await super.workspace;
+  }
+
+  Future<void> test_function_inPackage_inWorkspace() async {
+    var a = newFile('/home/aaa/lib/a.dart', 'void test() {}');
+
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootFolder: getFolder('$workspaceRootPath/aaa')),
+    );
+
+    _workspace = DartChangeWorkspace([await session, await sessionFor(a)]);
+
+    await resolveTestCode('''
+import 'package:aaa/a.dart';
+
+void f() {
+  test(42);
+}
+''');
+
+    await assertHasFix('void test(int i) {}', target: '/home/aaa/lib/a.dart');
+  }
+
+  Future<void> test_function_inPackage_outsideWorkspace() async {
+    newFile('/home/bbb/lib/b.dart', 'void test() {}');
+
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'bbb', rootFolder: getFolder('$workspaceRootPath/bbb')),
+    );
+
+    await resolveTestCode('''
+import 'package:bbb/b.dart';
+
+void f() {
+  test(42);
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_method_inSdk() async {
+    await resolveTestCode('''
+void f() {
+  42.abs(true);
+}
+''');
+    await assertNoFix();
+  }
+}

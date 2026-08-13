@@ -1,0 +1,5 @@
+typedef R = (String _, String _);
+
+(int _, int _) record = (1, 2);
+
+main() {}

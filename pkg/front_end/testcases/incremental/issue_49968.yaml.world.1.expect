@@ -1,0 +1,38 @@
+main = a::main;
+library from "org-dartlang-test:///lib/foo.dart" as foo {
+
+  class Foo extends dart.core::Object /*hasConstConstructor*/  {
+    const constructor •() → foo::Foo
+      : super dart.core::Object::•()
+      ;
+  }
+  static const field foo::Foo foo = #C1;
+}
+library from "package:foo/foo.dart" as foo2 {
+
+  class Foo extends dart.core::Object /*hasConstConstructor*/  {
+    const constructor •() → foo2::Foo
+      : super dart.core::Object::•()
+      ;
+  }
+  static const field foo2::Foo foo = #C2;
+}
+library from "org-dartlang-test:///test/a.dart" as a {
+
+  import "package:foo/foo.dart";
+  import "org-dartlang-test:///lib/foo.dart";
+
+  static method main() → void {}
+}
+constants  {
+  #C1 = foo::Foo {}
+  #C2 = foo2::Foo {}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-test:///lib/foo.dart:
+- Foo. (from org-dartlang-test:///lib/foo.dart:2:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
+- Foo. (from org-dartlang-test:///lib/foo.dart:2:9)
+

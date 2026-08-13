@@ -1,0 +1,14 @@
+library test;
+
+abstract class C<T> {
+  T get t;
+  void set t(T x);
+  factory C(T t) = CImpl<T>;
+}
+
+class CImpl<T> implements C<T> {
+  T t;
+  CImpl(this.t);
+}
+
+main() {}

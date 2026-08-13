@@ -1,0 +1,37 @@
+class C {
+  String call() => 'call from C';
+}
+
+class D {
+  Function get getter1 => Ext(C());
+  Function get getter2 {}
+  Function get getter3 => Ext2(C());
+  Function get getter4 {}
+  Function method1<T extends C>(T c) {}
+  Function method2<T extends C>(T c) {}
+  Function method3<T extends Ext>(Ext e) {}
+  Function method4<T extends Ext2>(Ext2 e) {}
+  Function method5<T>(T c) {}
+  Function method6<T, S extends C>(T c) {}
+}
+
+class E {
+  String get getter1 => Ext(C())();
+  String get getter2 {}
+  String get getter3 => Ext2(C())();
+  String get getter4 {}
+  String method1<T extends C>(T c) {}
+  String method2<T extends C>(T c) {}
+  String method3<T extends Ext>(Ext e) {}
+  String method4<T extends Ext2>(Ext2 e) {}
+  String method5<T>(T c) {}
+  String method6<T, S extends C>(T c) {}
+}
+
+extension type Ext(Function it) {
+  String call() => 'call from Ext: ${it()}';
+}
+
+extension type Ext2(C c) implements C {}
+
+void main() {}

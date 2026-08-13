@@ -1,0 +1,1643 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+part of $LIBRARYNAME;
+
+class _ChildrenElementList extends ListBase<Element>
+    implements NodeListWrapper {
+  // Raw Element.
+  final Element _element;
+  final HtmlCollection _childElements;
+
+  _ChildrenElementList._wrap(Element element)
+    : _childElements = element._children $#NULLSAFECAST(as HtmlCollection),
+      _element = element;
+
+  bool contains(Object$NULLABLE element) => _childElements.contains(element);
+
+
+  bool get isEmpty {
+    return _element._firstElementChild == null;
+  }
+
+  int get length {
+    return _childElements.length;
+  }
+
+  Element operator [](int index) {
+    return _childElements[index] $#NULLSAFECAST(as Element);
+  }
+
+  void operator []=(int index, Element value) {
+    _element._replaceChild(value, _childElements[index]);
+  }
+
+  set length(int newLength) {
+    // TODO(jacobr): remove children when length is reduced.
+    throw new UnsupportedError('Cannot resize element lists');
+  }
+
+  Element add(Element value) {
+    _element.append(value);
+    return value;
+  }
+
+  Iterator<Element> get iterator => toList().iterator;
+
+  void addAll(Iterable<Element> iterable) {
+    _addAll(_element, iterable);
+  }
+
+  static void _addAll(Element _element, Iterable<Element> iterable) {
+    if (iterable is _ChildNodeListLazy) {
+      iterable = new List.from(iterable);
+    }
+
+    for (Element element in iterable) {
+      _element.append(element);
+    }
+  }
+
+  void sort([int compare(Element a, Element b)$NULLABLE]) {
+    throw new UnsupportedError('Cannot sort element lists');
+  }
+
+  void shuffle([Random$NULLABLE random]) {
+    throw new UnsupportedError('Cannot shuffle element lists');
+  }
+
+  void removeWhere(bool test(Element element)) {
+    _filter(test, false);
+  }
+
+  void retainWhere(bool test(Element element)) {
+    _filter(test, true);
+  }
+
+  void _filter(bool test(Element element), bool retainMatching) {
+    Iterable<Element> removed;
+    if (retainMatching) {
+      removed = _element.children.where((e) => !test(e));
+    } else {
+      removed = _element.children.where(test);
+    }
+    for (var e in removed) e.remove();
+  }
+
+  void fillRange(int start, int end, [Element$NULLABLE fillValue]) {
+    throw new UnimplementedError();
+  }
+
+  void replaceRange(int start, int end, Iterable<Element> iterable) {
+    throw new UnimplementedError();
+  }
+
+  void removeRange(int start, int end) {
+    throw new UnimplementedError();
+  }
+
+  void setRange(int start, int end, Iterable<Element> iterable,
+                [int skipCount = 0]) {
+    throw new UnimplementedError();
+  }
+
+  bool remove(Object$NULLABLE object) {
+    return _remove(_element, object);
+  }
+
+  static bool _remove(Element _element, Object$NULLABLE object) {
+    if (object is Element) {
+      Element element = object;
+      if (identical(element.parentNode, _element)) {
+        _element._removeChild(element);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  void insert(int index, Element element) {
+    if (index < 0 || index > length) {
+      throw new RangeError.range(index, 0, length);
+    }
+    if (index == length) {
+      _element.append(element);
+    } else {
+      _element.insertBefore(element, this[index]);
+    }
+  }
+
+  void insertAll(int index, Iterable<Element> iterable) {
+    throw new UnimplementedError();
+  }
+
+  void setAll(int index, Iterable<Element> iterable) {
+    throw new UnimplementedError();
+  }
+
+  void clear() {
+    _element._clearChildren();
+  }
+
+  Element removeAt(int index) {
+    final result = this[index];
+  $if NNBD
+    // TODO(41258): Remove null check after unfork/strong mode.
+  $endif
+    if (result != null) {
+      _element._removeChild(result);
+    }
+    return result;
+  }
+
+  Element removeLast() {
+    final result = this.last;
+    _element._removeChild(result);
+    return result;
+  }
+
+  Element get first => _first(_element);
+
+  @pragma('dart2js:noInline')
+  static Element _first(Element _element) {
+    Element$NULLABLE result = _element._firstElementChild;
+    if (result == null) throw new StateError("No elements");
+    return result;
+  }
+
+
+  Element get last {
+    Element$NULLABLE result = _element._lastElementChild;
+    if (result == null) throw new StateError("No elements");
+    return result;
+  }
+
+  Element get single {
+    if (length > 1) throw new StateError("More than one element");
+    return first;
+  }
+
+  List<Node> get rawList => _childElements;
+}
+
+/**
+ * An immutable list containing HTML elements. This list contains some
+ * additional methods when compared to regular lists for ease of CSS
+ * manipulation on a group of elements.
+ */
+abstract class ElementList<T extends Element> extends ListBase<T> {
+  /**
+   * The union of all CSS classes applied to the elements in this list.
+   *
+   * This set makes it easy to add, remove or toggle (add if not present, remove
+   * if present) the classes applied to a collection of elements.
+   *
+   *     htmlList.classes.add('selected');
+   *     htmlList.classes.toggle('isOnline');
+   *     htmlList.classes.remove('selected');
+   */
+  CssClassSet get classes;
+
+  /** Replace the classes with `value` for every element in this list. */
+  set classes(Iterable<String> value);
+
+  /**
+   * Access the union of all [CssStyleDeclaration]s that are associated with an
+   * [ElementList].
+   *
+   * Grouping the style objects all together provides easy editing of specific
+   * properties of a collection of elements. Setting a specific property value
+   * will set that property in all [Element]s in the [ElementList]. Getting a
+   * specific property value will return the value of the property of the first
+   * element in the [ElementList].
+   */
+  CssStyleDeclarationBase get style;
+
+  /**
+   * Access dimensions and position of the [Element]s in this list.
+   *
+   * Setting the height or width properties will set the height or width
+   * property for all elements in the list. This returns a rectangle with the
+   * dimensions actually available for content
+   * in this element, in pixels, regardless of this element's box-sizing
+   * property. Getting the height or width returns the height or width of the
+   * first Element in this list.
+   *
+   * Unlike [Element.getBoundingClientRect], the dimensions of this rectangle
+   * will return the same numerical height if the element is hidden or not.
+   */
+  CssRect get contentEdge;
+
+  /**
+   * Access dimensions and position of the first [Element]'s content + padding
+   * box in this list.
+   *
+   * This returns a rectangle with the dimensions actually available for content
+   * in this element, in pixels, regardless of this element's box-sizing
+   * property. Unlike [Element.getBoundingClientRect], the dimensions of this
+   * rectangle will return the same numerical height if the element is hidden
+   * or not. This can be used to retrieve jQuery's `innerHeight` value for an
+   * element. This is also a rectangle equalling the dimensions of clientHeight
+   * and clientWidth.
+   */
+  CssRect get paddingEdge;
+
+  /**
+   * Access dimensions and position of the first [Element]'s content + padding +
+   * border box in this list.
+   *
+   * This returns a rectangle with the dimensions actually available for content
+   * in this element, in pixels, regardless of this element's box-sizing
+   * property. Unlike [Element.getBoundingClientRect], the dimensions of this
+   * rectangle will return the same numerical height if the element is hidden
+   * or not. This can be used to retrieve jQuery's `outerHeight` value for an
+   * element.
+   */
+  CssRect get borderEdge;
+
+  /**
+   * Access dimensions and position of the first [Element]'s content + padding +
+   * border + margin box in this list.
+   *
+   * This returns a rectangle with the dimensions actually available for content
+   * in this element, in pixels, regardless of this element's box-sizing
+   * property. Unlike [Element.getBoundingClientRect], the dimensions of this
+   * rectangle will return the same numerical height if the element is hidden
+   * or not. This can be used to retrieve jQuery's `outerHeight` value for an
+   * element.
+   */
+  CssRect get marginEdge;
+$!STREAM_GETTER_SIGNATURES
+}
+
+// Wrapper over an immutable NodeList to make it implement ElementList.
+//
+// Clients are {`Document`, `DocumentFragment`}.`querySelectorAll` which are
+// declared to return `ElementList`.  This provides all the static analysis
+// benefit so there is no need for this class have a constrained type parameter.
+//
+class _FrozenElementList<E extends Element> extends ListBase<E>
+    implements ElementList<E>, NodeListWrapper {
+  final List<Node> _nodeList;
+
+  _FrozenElementList._wrap(this._nodeList) {
+     assert(this._nodeList.every((element) => element is E),
+         "Query expects only HTML elements of type $E but found ${this._nodeList.firstWhere((e) => e is! E)}");
+  }
+
+  int get length => _nodeList.length;
+
+  E operator [](int index) => _nodeList[index] $#NULLSAFECAST(as E);
+
+  void operator []=(int index, E value) {
+    throw new UnsupportedError('Cannot modify list');
+  }
+
+  set length(int newLength) {
+    throw new UnsupportedError('Cannot modify list');
+  }
+
+  void sort([Comparator<E>$NULLABLE compare]) {
+    throw new UnsupportedError('Cannot sort list');
+  }
+
+  void shuffle([Random$NULLABLE random]) {
+    throw new UnsupportedError('Cannot shuffle list');
+  }
+
+  E get first => _nodeList.first $#NULLSAFECAST(as E);
+
+  E get last => _nodeList.last $#NULLSAFECAST(as E);
+
+  E get single => _nodeList.single $#NULLSAFECAST(as E);
+
+  CssClassSet get classes => new _MultiElementCssClassSet(this);
+
+  CssStyleDeclarationBase get style =>
+      new _CssStyleDeclarationSet(this);
+
+  set classes(Iterable<String> value) {
+    // TODO(sra): This might be faster for Sets:
+    //
+    //     new _MultiElementCssClassSet(this).writeClasses(value)
+    //
+    // as the code below converts the Iterable[value] to a string multiple
+    // times.  Maybe compute the string and set className here.
+    forEach((e) => e.classes = value);
+  }
+
+  CssRect get contentEdge => new _ContentCssListRect(this);
+
+  CssRect get paddingEdge => this.first.paddingEdge;
+
+  CssRect get borderEdge => this.first.borderEdge;
+
+  CssRect get marginEdge => this.first.marginEdge;
+
+  List<Node> get rawList => _nodeList;
+
+$!ELEMENT_STREAM_GETTERS
+}
+
+$(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
+
+  /**
+   * Creates an HTML element from a valid fragment of HTML.
+   *
+   *     var element = new Element.html('<div class="foo">content</div>');
+   *
+   * The HTML fragment should contain only one single root element, any
+   * leading or trailing text nodes will be removed.
+   *
+   * The HTML fragment is parsed as if it occurred within the context of a
+   * `<body>` tag, this means that special elements such as `<caption>` which
+   * must be parsed within the scope of a `<table>` element will be dropped. Use
+   * [createFragment] to parse contextual HTML fragments.
+   *
+   * Unless a validator is provided this will perform the default validation
+   * and remove all scriptable elements and attributes.
+   *
+   * See also:
+   *
+   * * [NodeValidator]
+   *
+   */
+  factory Element.html(String$NULLABLE html,
+      {NodeValidator$NULLABLE validator,
+       NodeTreeSanitizer$NULLABLE treeSanitizer}) {
+    var fragment = document.body$NULLASSERT.createFragment(html,
+        validator: validator, treeSanitizer: treeSanitizer);
+
+    return fragment.nodes.where((e) => e is Element).single $#NULLSAFECAST(as Element);
+  }
+
+  /**
+   * Creates the HTML element specified by the tag name.
+   *
+   * This is similar to [Document.createElement].
+   * [tag] should be a valid HTML tag name. If [tag] is an unknown tag then
+   * this will create an [UnknownElement].
+   *
+   *     var divElement = new Element.tag('div');
+   *     print(divElement is DivElement); // 'true'
+   *     var myElement = new Element.tag('unknownTag');
+   *     print(myElement is UnknownElement); // 'true'
+   *
+   * For standard elements it is better to use the element type constructors:
+   *
+   *     var element = new DivElement();
+   *
+   * It is better to use e.g `new CanvasElement()` because the type of the
+   * expression is `CanvasElement`, whereas the type of `Element.tag` is the
+   * less specific `Element`.
+   *
+   * See also:
+   *
+   * * [isTagSupported]
+   */
+  factory $CLASSNAME.tag(String tag, [String$NULLABLE typeExtension]) =>
+      _$(CLASSNAME)FactoryProvider.createElement_tag(tag, typeExtension);
+
+  /// Creates a new `<a>` element.
+  ///
+  /// This is equivalent to calling `new Element.tag('a')`.
+  factory Element.a() => new AnchorElement();
+
+  /// Creates a new `<article>` element.
+  ///
+  /// This is equivalent to calling `new Element.tag('article')`.
+  factory Element.article() => new Element.tag('article');
+
+  /// Creates a new `<aside>` element.
+  ///
+  /// This is equivalent to calling `new Element.tag('aside')`.
+  factory Element.aside() => new Element.tag('aside');
+
+  /// Creates a new `<audio>` element.
+  ///
+  /// This is equivalent to calling `new Element.tag('audio')`.
+  factory Element.audio() => new Element.tag('audio');
+
+  /// Creates a new `<br>` element.
+  ///
+  /// This is equivalent to calling `new Element.tag('br')`.
+  factory Element.br() => new BRElement();
+
+  /// Creates a new `<canvas>` element.
+  ///
+  /// This is equivalent to calling `new Element.tag('canvas')`.
+  factory Element.canvas() => new CanvasElement();
+
+  /// Creates a new `<div>` element.
+  ///
+  /// This is equivalent to calling `new Element.tag('div')`.
+  factory Element.div() => new DivElement();
+
+  /// Creates a new `<footer>` element.
+  ///
+  /// This is equivalent to calling `new Element.tag('footer')`.
+  factory Element.footer() => new Element.tag('footer');
+
+  /// Creates a new `<header>` element.
+  ///
+  /// This is equivalent to calling `new Element.tag('header')`.
+  factory Element.header() => new Element.tag('header');
+
+  /// Creates a new `<hr>` element.
+  ///
+  /// This is equivalent to calling `new Element.tag('hr')`.
+  factory Element.hr() => new Element.tag('hr');
+
+  /// Creates a new `<iframe>` element.
+  ///
+  /// This is equivalent to calling `new Element.tag('iframe')`.
+  factory Element.iframe() => new Element.tag('iframe');
+
+  /// Creates a new `<img>` element.
+  ///
+  /// This is equivalent to calling `new Element.tag('img')`.
+  factory Element.img() => new Element.tag('img');
+
+  /// Creates a new `<li>` element.
+  ///
+  /// This is equivalent to calling `new Element.tag('li')`.
+  factory Element.li() => new Element.tag('li');
+
+  /// Creates a new `<nav>` element.
+  ///
+  /// This is equivalent to calling `new Element.tag('nav')`.
+  factory Element.nav() => new Element.tag('nav');
+
+  /// Creates a new `<ol>` element.
+  ///
+  /// This is equivalent to calling `new Element.tag('ol')`.
+  factory Element.ol() => new Element.tag('ol');
+
+  /// Creates a new `<option>` element.
+  ///
+  /// This is equivalent to calling `new Element.tag('option')`.
+  factory Element.option() => new Element.tag('option');
+
+  /// Creates a new `<p>` element.
+  ///
+  /// This is equivalent to calling `new Element.tag('p')`.
+  factory Element.p() => new Element.tag('p');
+
+  /// Creates a new `<pre>` element.
+  ///
+  /// This is equivalent to calling `new Element.tag('pre')`.
+  factory Element.pre() => new Element.tag('pre');
+
+  /// Creates a new `<section>` element.
+  ///
+  /// This is equivalent to calling `new Element.tag('section')`.
+  factory Element.section() => new Element.tag('section');
+
+  /// Creates a new `<select>` element.
+  ///
+  /// This is equivalent to calling `new Element.tag('select')`.
+  factory Element.select() => new Element.tag('select');
+
+  /// Creates a new `<span>` element.
+  ///
+  /// This is equivalent to calling `new Element.tag('span')`.
+  factory Element.span() => new Element.tag('span');
+
+  /// Creates a new `<svg>` element.
+  ///
+  /// This is equivalent to calling `new Element.tag('svg')`.
+  factory Element.svg() => new Element.tag('svg');
+
+  /// Creates a new `<table>` element.
+  ///
+  /// This is equivalent to calling `new Element.tag('table')`.
+  factory Element.table() => new Element.tag('table');
+
+  /// Creates a new `<td>` element.
+  ///
+  /// This is equivalent to calling `new Element.tag('td')`.
+  factory Element.td() => new Element.tag('td');
+
+  /// Creates a new `<textarea>` element.
+  ///
+  /// This is equivalent to calling `new Element.tag('textarea')`.
+  factory Element.textarea() => new Element.tag('textarea');
+
+  /// Creates a new `<th>` element.
+  ///
+  /// This is equivalent to calling `new Element.tag('th')`.
+  factory Element.th() => new Element.tag('th');
+
+  /// Creates a new `<tr>` element.
+  ///
+  /// This is equivalent to calling `new Element.tag('tr')`.
+  factory Element.tr() => new Element.tag('tr');
+
+  /// Creates a new `<ul>` element.
+  ///
+  /// This is equivalent to calling `new Element.tag('ul')`.
+  factory Element.ul() => new Element.tag('ul');
+
+  /// Creates a new `<video>` element.
+  ///
+  /// This is equivalent to calling `new Element.tag('video')`.
+  factory Element.video() => new Element.tag('video');
+
+  /**
+   * All attributes on this element.
+   *
+   * Any modifications to the attribute map will automatically be applied to
+   * this element.
+   *
+   * This only includes attributes which are not in a namespace
+   * (such as 'xlink:href'), additional attributes can be accessed via
+   * [getNamespacedAttributes].
+   */
+  Map<String, String> get attributes => new _ElementAttributeMap(this);
+
+  set attributes(Map<String, String> value) {
+    Map<String, String> attributes = this.attributes;
+    attributes.clear();
+    for (String key in value.keys) {
+      attributes[key] = value[key]$NULLASSERT;
+    }
+  }
+
+  @pragma('dart2js:tryInline')
+  String$NULLABLE getAttribute(String name) {
+$if NNBD
+    // TODO(41258): Delete this assertion after forcing strong mode.
+$endif
+    // Protect [name] against string conversion to "null" or "undefined".
+    assert(name != null, 'Attribute name cannot be null');
+    return _getAttribute(name);
+  }
+
+  @pragma('dart2js:tryInline')
+  String$NULLABLE getAttributeNS(String$NULLABLE namespaceURI, String name) {
+$if NNBD
+    // TODO(41258): Delete this assertion after forcing strong mode.
+$endif
+    // Protect [name] against string conversion to "null" or "undefined".
+    // [namespaceURI] does not need protecting, both `null` and `undefined` map to `null`.
+    assert(name != null, 'Attribute name cannot be null');
+    return _getAttributeNS(namespaceURI, name);
+  }
+
+  @pragma('dart2js:tryInline')
+  bool hasAttribute(String name) {
+$if NNBD
+    // TODO(41258): Delete this assertion after forcing strong mode.
+$endif
+    // Protect [name] against string conversion to "null" or "undefined".
+    assert(name != null, 'Attribute name cannot be null');
+    return _hasAttribute(name);
+  }
+
+  @pragma('dart2js:tryInline')
+  bool hasAttributeNS(String$NULLABLE namespaceURI, String name) {
+$if NNBD
+    // TODO(41258): Delete this assertion after forcing strong mode.
+$endif
+    // Protect [name] against string conversion to "null" or "undefined".
+    // [namespaceURI] does not need protecting, both `null` and `undefined` map to `null`.
+    assert(name != null, 'Attribute name cannot be null');
+    return _hasAttributeNS(namespaceURI, name);
+  }
+
+  @pragma('dart2js:tryInline')
+  void removeAttribute(String name) {
+$if NNBD
+    // TODO(41258): Delete this assertion after forcing strong mode.
+$endif
+    // Protect [name] against string conversion to "null" or "undefined".
+    assert(name != null, 'Attribute name cannot be null');
+    _removeAttribute(name);
+  }
+
+  @pragma('dart2js:tryInline')
+  void removeAttributeNS(String$NULLABLE namespaceURI, String name) {
+$if NNBD
+    // TODO(41258): Delete this assertion after forcing strong mode.
+$endif
+    // Protect [name] against string conversion to "null" or "undefined".
+    assert(name != null, 'Attribute name cannot be null');
+    _removeAttributeNS(namespaceURI, name);
+  }
+
+  @pragma('dart2js:tryInline')
+  void setAttribute(String name, Object value) {
+$if NNBD
+    // TODO(41258): Delete these assertions after forcing strong mode.
+$endif
+    // Protect [name] against string conversion to "null" or "undefined".
+    assert(name != null, 'Attribute name cannot be null');
+    // TODO(sra): assert(value != null, 'Attribute value cannot be null.');
+    _setAttribute(name, value);
+  }
+
+  @pragma('dart2js:tryInline')
+  void setAttributeNS(String$NULLABLE namespaceURI, String name, Object value) {
+$if NNBD
+    // TODO(41258): Delete these assertions after forcing strong mode.
+$endif
+    // Protect [name] against string conversion to "null" or "undefined".
+    assert(name != null, 'Attribute name cannot be null');
+    // TODO(sra): assert(value != null, 'Attribute value cannot be null.');
+    _setAttributeNS(namespaceURI, name, value);
+  }
+
+  /**
+   * List of the direct children of this element.
+   *
+   * This collection can be used to add and remove elements from the document.
+   *
+   *     var item = new DivElement();
+   *     item.text = 'Something';
+   *     document.body.children.add(item) // Item is now displayed on the page.
+   *     for (var element in document.body.children) {
+   *       element.style.background = 'red'; // Turns every child of body red.
+   *     }
+   */
+  List<Element> get children => new _ChildrenElementList._wrap(this);
+
+  List<Node> get _children =>
+      // Element.children always returns the same list-like object which is a
+      // live view on the underlying DOM tree. So we can GVN it and remove it if
+      // unused.
+      JS('returns:HtmlCollection;creates:HtmlCollection;'
+             'depends:none;effects:none;gvn:true',
+         '#.children',
+         this);
+
+  set children(List<Element> value) {
+    // Copy list first since we don't want liveness during iteration.
+    var copy = value.toList();
+    var children = this.children;
+    children.clear();
+    children.addAll(copy);
+  }
+
+  /**
+   * Finds all descendent elements of this element that match the specified
+   * group of selectors.
+   *
+   * [selectors] should be a string using CSS selector syntax.
+   *
+   *     var items = element.querySelectorAll('.itemClassName');
+   *
+   * For details about CSS selector syntax, see the
+   * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
+   */
+  ElementList<T> querySelectorAll<T extends Element>(String selectors) =>
+    new _FrozenElementList<T>._wrap(_querySelectorAll(selectors));
+
+  @JSName('setApplyScroll')
+  void _setApplyScroll(ScrollStateCallback scrollStateCallback, String nativeScrollBehavior) native;
+
+  Future<ScrollState> setApplyScroll(String nativeScrollBehavior) {
+    var completer = new Completer<ScrollState>();
+      _setApplyScroll((value) {
+        completer.complete(value);
+      }, nativeScrollBehavior);
+    return completer.future;
+  }
+
+  @JSName('setDistributeScroll')
+  void _setDistributeScroll(ScrollStateCallback scrollStateCallback, String nativeScrollBehavior) native;
+
+  Future<ScrollState> setDistributeScroll(String nativeScrollBehavior) {
+    var completer = new Completer<ScrollState>();
+      _setDistributeScroll((value) {
+        completer.complete(value);
+      }, nativeScrollBehavior);
+    return completer.future;
+  }
+
+  /**
+   * The set of CSS classes applied to this element.
+   *
+   * This set makes it easy to add, remove or toggle the classes applied to
+   * this element.
+   *
+   *     element.classes.add('selected');
+   *     element.classes.toggle('isOnline');
+   *     element.classes.remove('selected');
+   */
+  CssClassSet get classes => new _ElementCssClassSet(this);
+
+  set classes(Iterable<String> value) {
+    // TODO(sra): Do this without reading the classes in clear() and addAll(),
+    // or writing the classes in clear().
+    CssClassSet classSet = classes;
+    classSet.clear();
+    classSet.addAll(value);
+  }
+
+  /**
+   * Allows access to all custom data attributes (data-*) set on this element.
+   *
+   * Any data attributes in the markup will be converted to camel-cased keys
+   * in the map based on [these conversion
+   * rules](https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/dataset).
+   *
+   * For example, HTML specified as:
+   *
+   *     <div data-my-random-value='value'></div>
+   *
+   * Would be accessed in Dart as:
+   *
+   *     var value = element.dataset['myRandomValue'];
+   *
+   * See also:
+   *
+   * * [HTML data-* attributes naming
+       restrictions](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/data-*)
+   * * [Custom data
+   *   attributes](http://dev.w3.org/html5/spec-preview/global-attributes.html#custom-data-attribute)
+   */
+  Map<String, String> get dataset =>
+    new _DataAttributeMap(attributes);
+
+  set dataset(Map<String, String> value) {
+    final data = this.dataset;
+    data.clear();
+    for (String key in value.keys) {
+      data[key] = value[key]$NULLASSERT;
+    }
+  }
+
+  /**
+   * Gets a map for manipulating the attributes of a particular namespace.
+   *
+   * This is primarily useful for SVG attributes such as xref:link.
+   */
+  Map<String, String> getNamespacedAttributes(String namespace) {
+    return new _NamespacedAttributeMap(this, namespace);
+  }
+
+  /**
+   * The set of all CSS values applied to this element, including inherited
+   * and default values.
+   *
+   * The computedStyle contains values that are inherited from other
+   * sources, such as parent elements or stylesheets. This differs from the
+   * [style] property, which contains only the values specified directly on this
+   * element.
+   *
+   * PseudoElement can be values such as `::after`, `::before`, `::marker`,
+   * `::line-marker`.
+   *
+   * See also:
+   *
+   * * [Cascade and Inheritance](https://developer.mozilla.org/en-US/docs/Learn/CSS/Introduction_to_CSS/Cascade_and_inheritance)
+   *   from MDN.
+   * * [Pseudo-elements](https://developer.mozilla.org/en-US/docs/Web/CSS/Pseudo-elements)
+   *   from MDN.
+   */
+  CssStyleDeclaration getComputedStyle([String$NULLABLE pseudoElement]) {
+    if (pseudoElement == null) {
+      pseudoElement = '';
+    }
+    // TODO(jacobr): last param should be null, see b/5045788
+    return window._getComputedStyle(this, pseudoElement);
+  }
+
+  /**
+   * Gets the position of this element relative to the client area of the page.
+   */
+  Rectangle get client => new Rectangle(clientLeft$NULLASSERT,
+      clientTop$NULLASSERT, clientWidth, clientHeight);
+
+  /**
+   * Gets the offset of this element relative to its offsetParent.
+   */
+  Rectangle get offset => new Rectangle(offsetLeft, offsetTop, offsetWidth,
+      offsetHeight);
+
+  /**
+   * Adds the specified text after the last child of this element.
+   */
+  void appendText(String text) {
+    this.append(new Text(text));
+  }
+
+  /**
+   * Parses the specified text as HTML and adds the resulting node after the
+   * last child of this element.
+   */
+  void appendHtml(String text, {NodeValidator$NULLABLE validator,
+      NodeTreeSanitizer$NULLABLE treeSanitizer}) {
+    this.insertAdjacentHtml('beforeend', text, validator: validator,
+        treeSanitizer: treeSanitizer);
+  }
+
+  /**
+   * Checks to see if the tag name is supported by the current platform.
+   *
+   * The tag should be a valid HTML tag name.
+   */
+  static bool isTagSupported(String tag) {
+    var e = _ElementFactoryProvider.createElement_tag(tag, null);
+    return e is Element && !(e is UnknownElement);
+  }
+
+  /**
+   * Called by the DOM when this element has been inserted into the live
+   * document.
+   *
+   * Warning: This API is part of multiple custom element APIs that are no [longer supported](https://github.com/dart-lang/sdk/issues/49536).
+   */
+  void attached() {
+    // For the deprecation period, call the old callback.
+    enteredView();
+  }
+
+  /**
+   * Called by the DOM when this element has been removed from the live
+   * document.
+   *
+   * Warning: This API is part of multiple custom element APIs that are no [longer supported](https://github.com/dart-lang/sdk/issues/49536).
+   * draft specification.
+   */
+  void detached() {
+    // For the deprecation period, call the old callback.
+    leftView();
+  }
+
+  /** *Deprecated*: override [attached] instead. */
+  @deprecated
+  void enteredView() {}
+
+  List<Rectangle> getClientRects() {
+    var value = _getClientRects();
+
+    // If no prototype we need one for the world to hookup to the proper Dart class.
+    var jsProto = JS('', '#.prototype', value);
+    if (jsProto == null) {
+      JS('', '#.prototype = Object.create(null)', value);
+    }
+
+    applyExtension('DOMRectList', value);
+
+    return value;
+  }
+
+  /** *Deprecated*: override [detached] instead. */
+  @deprecated
+  void leftView() {}
+
+  /**
+   * Creates a new AnimationEffect object whose target element is the object
+   * on which the method is called, and calls the play() method of the
+   * AnimationTimeline object of the document timeline of the node document
+   * of the element, passing the newly created AnimationEffect as the argument
+   * to the method. Returns an Animation for the effect.
+   *
+   * Examples
+   *
+   *     var animation = elem.animate([{"opacity": 75}, {"opacity": 0}], 200);
+   *
+   *     var animation = elem.animate([
+   *       {"transform": "translate(100px, -100%)"},
+   *       {"transform" : "translate(400px, 500px)"}
+   *     ], 1500);
+   *
+   * The [frames] parameter is an Iterable<Map>, where the
+   * map entries specify CSS animation effects. The
+   * [timing] parameter can be a double, representing the number of
+   * milliseconds for the transition, or a Map with fields corresponding to
+   * those of the [timing] object.
+   */
+  @SupportedBrowser(SupportedBrowser.CHROME, '36')
+  Animation animate(Iterable<Map<String, dynamic>> frames, [timing]) {
+    if (frames is! Iterable || !(frames.every((x) => x is Map))) {
+      throw new ArgumentError("The frames parameter should be a List of Maps "
+          "with frame information");
+    }
+    var convertedFrames;
+    if (frames is Iterable) {
+      convertedFrames = frames.map(convertDartToNative_Dictionary).toList();
+    } else {
+      convertedFrames = frames;
+    }
+    var convertedTiming = timing is Map ? convertDartToNative_Dictionary(timing) : timing;
+    return convertedTiming == null
+      ? _animate(convertedFrames)
+      : _animate(convertedFrames, convertedTiming);
+  }
+
+  @JSName('animate')
+  Animation _animate(Object effect, [timing]) native;
+  /**
+   * Called by the DOM whenever an attribute on this has been changed.
+   */
+  void attributeChanged(String name, String oldValue, String newValue) {}
+
+  @Returns('String')
+  // Non-null for Elements.
+  String get localName => JS('String', '#', _localName);
+
+  /**
+   * A URI that identifies the XML namespace of this element.
+   *
+   * `null` if no namespace URI is specified.
+   *
+   * ## Other resources
+   *
+   * * [Node.namespaceURI](http://www.w3.org/TR/DOM-Level-3-Core/core.html#ID-NodeNSname)
+   *   from W3C.
+   */
+  String$NULLABLE get namespaceUri => _namespaceUri;
+
+  /**
+   * The string representation of this element.
+   *
+   * This is equivalent to reading the [localName] property.
+   */
+  String toString() => localName;
+
+  /**
+   * Scrolls this element into view.
+   *
+   * Only one of the alignment options may be specified at a time.
+   *
+   * If no options are specified then this will attempt to scroll the minimum
+   * amount needed to bring the element into view.
+   *
+   * Note that alignCenter is currently only supported on WebKit platforms. If
+   * alignCenter is specified but not supported then this will fall back to
+   * alignTop.
+   *
+   * See also:
+   *
+   * * [scrollIntoView](https://developer.mozilla.org/en-US/docs/Web/API/Element/scrollIntoView)
+   *   from MDN.
+   * * [scrollIntoViewIfNeeded](https://developer.mozilla.org/en-US/docs/Web/API/Element/scrollIntoViewIfNeeded)
+   *   from MDN.
+   */
+  void scrollIntoView([ScrollAlignment$NULLABLE alignment]) {
+    var hasScrollIntoViewIfNeeded = true;
+    hasScrollIntoViewIfNeeded =
+        JS('bool', '!!(#.scrollIntoViewIfNeeded)', this);
+    if (alignment == ScrollAlignment.TOP) {
+      this._scrollIntoView(true);
+    } else if (alignment == ScrollAlignment.BOTTOM) {
+      this._scrollIntoView(false);
+    } else if (hasScrollIntoViewIfNeeded) {
+      // TODO(srujzs): This method shouldn't be calling out to
+      // `scrollIntoViewIfNeeded`. Remove this and make `scrollIntoView` match
+      // the browser definition. If you intend to use `scrollIntoViewIfNeeded`,
+      // use the `Element.scrollIntoViewIfNeeded` method.
+      if (alignment == ScrollAlignment.CENTER) {
+        this.scrollIntoViewIfNeeded(true);
+      } else {
+        this.scrollIntoViewIfNeeded();
+      }
+    } else {
+      this._scrollIntoView();
+    }
+  }
+
+  /**
+   * Static factory designed to expose `mousewheel` events to event
+   * handlers that are not necessarily instances of [Element].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
+  static const EventStreamProvider<WheelEvent> mouseWheelEvent =
+      const _CustomEventStreamProvider<WheelEvent>(
+        Element._determineMouseWheelEventType);
+
+  static String _determineMouseWheelEventType(EventTarget e) => 'wheel';
+
+  /**
+   * Static factory designed to expose `transitionend` events to event
+   * handlers that are not necessarily instances of [Element].
+   *
+   * See [EventStreamProvider] for usage information.
+   */
+  static const EventStreamProvider<TransitionEvent> transitionEndEvent =
+      const _CustomEventStreamProvider<TransitionEvent>(
+        Element._determineTransitionEventType);
+
+  static String _determineTransitionEventType(EventTarget e) {
+    // Unfortunately the normal 'ontransitionend' style checks don't work here.
+    if (Device.isWebKit) {
+      return 'webkitTransitionEnd';
+    } else if (Device.isOpera) {
+      return 'oTransitionEnd';
+    }
+    return 'transitionend';
+  }
+  /**
+   * Inserts text into the DOM at the specified location.
+   *
+   * To see the possible values for [where], read the doc for
+   * [insertAdjacentHtml].
+   *
+   * See also:
+   *
+   * * [insertAdjacentHtml]
+   */
+  void insertAdjacentText(String where, String text) {
+    if (JS('bool', '!!#.insertAdjacentText', this)) {
+      _insertAdjacentText(where, text);
+    } else {
+      _insertAdjacentNode(where, new Text(text));
+    }
+  }
+
+  @JSName('insertAdjacentText')
+  void _insertAdjacentText(String where, String text) native;
+
+
+  /**
+   * Parses text as an HTML fragment and inserts it into the DOM at the
+   * specified location.
+   *
+   * The [where] parameter indicates where to insert the HTML fragment:
+   *
+   * * 'beforeBegin': Immediately before this element.
+   * * 'afterBegin': As the first child of this element.
+   * * 'beforeEnd': As the last child of this element.
+   * * 'afterEnd': Immediately after this element.
+   *
+   * ```dart
+   *     var html = '<div class="something">content</div>';
+   *     // Inserts as the first child
+   *     document.body.insertAdjacentHtml('afterBegin', html);
+   *     var createdElement = document.body.children[0];
+   *     print(createdElement.classes[0]); // Prints 'something'
+   * ```
+   *
+   * See also:
+   *
+   * * [insertAdjacentText]
+   * * [insertAdjacentElement]
+   */
+  void insertAdjacentHtml(String where, String html,
+      {NodeValidator$NULLABLE validator,
+       NodeTreeSanitizer$NULLABLE treeSanitizer}) {
+      if (treeSanitizer is _TrustedHtmlTreeSanitizer) {
+        _insertAdjacentHtml(where, html);
+      } else {
+        _insertAdjacentNode(where, createFragment(html,
+            validator: validator, treeSanitizer: treeSanitizer));
+      }
+  }
+
+
+  @JSName('insertAdjacentHTML')
+  void _insertAdjacentHtml(String where, String text) native;
+
+  /**
+   * Inserts [element] into the DOM at the specified location.
+   *
+   * To see the possible values for [where], read the doc for
+   * [insertAdjacentHtml].
+   *
+   * See also:
+   *
+   * * [insertAdjacentHtml]
+   */
+  Element insertAdjacentElement(String where, Element element) {
+    if (JS('bool', '!!#.insertAdjacentElement', this)) {
+      _insertAdjacentElement(where, element);
+    } else {
+      _insertAdjacentNode(where, element);
+    }
+    return element;
+  }
+
+  @JSName('insertAdjacentElement')
+  void _insertAdjacentElement(String where, Element element) native;
+
+  void _insertAdjacentNode(String where, Node node) {
+    switch (where.toLowerCase()) {
+      case 'beforebegin':
+        this.parentNode$NULLASSERT.insertBefore(node, this);
+        break;
+      case 'afterbegin':
+        var first = this.nodes.length > 0 ? this.nodes[0] : null;
+        this.insertBefore(node, first);
+        break;
+      case 'beforeend':
+        this.append(node);
+        break;
+      case 'afterend':
+        this.parentNode$NULLASSERT.insertBefore(node, this.nextNode);
+        break;
+      default:
+        throw new ArgumentError("Invalid position ${where}");
+    }
+  }
+
+  /**
+   * Checks if this element matches the CSS selectors.
+   */
+  bool matches(String selectors) {
+    if (JS('bool', '!!#.matches', this)) {
+      return JS('bool', '#.matches(#)', this, selectors);
+    } else if (JS('bool', '!!#.webkitMatchesSelector', this)) {
+      return JS('bool', '#.webkitMatchesSelector(#)', this, selectors);
+    } else if (JS('bool', '!!#.mozMatchesSelector', this)) {
+      return JS('bool', '#.mozMatchesSelector(#)', this, selectors);
+    } else if (JS('bool', '!!#.msMatchesSelector', this)) {
+      return JS('bool', '#.msMatchesSelector(#)', this, selectors);
+    } else if (JS('bool', '!!#.oMatchesSelector', this)) {
+      return JS('bool', '#.oMatchesSelector(#)', this, selectors);
+    } else {
+      throw new UnsupportedError("Not supported on this platform");
+    }
+  }
+
+  /** Checks if this element or any of its parents match the CSS selectors. */
+  bool matchesWithAncestors(String selectors) {
+    var elem = this $#NULLSAFECAST(as Element$NULLABLE);
+    do {
+      if (elem$NULLASSERT.matches(selectors)) return true;
+      elem = elem.parent;
+    } while(elem != null);
+    return false;
+  }
+
+  /**
+   * Creates a new shadow root for this shadow host.
+   *
+   * ## Other resources
+   *
+   * * [Shadow DOM 101](http://www.html5rocks.com/en/tutorials/webcomponents/shadowdom/)
+   *   from HTML5Rocks.
+   * * [Shadow DOM specification](http://www.w3.org/TR/shadow-dom/) from W3C.
+   */
+  @SupportedBrowser(SupportedBrowser.CHROME, '25')
+  ShadowRoot createShadowRoot() {
+    return JS('ShadowRoot',
+      '(#.createShadowRoot || #.webkitCreateShadowRoot).call(#)',
+      this, this, this);
+  }
+
+  /**
+   * The shadow root of this shadow host.
+   *
+   * ## Other resources
+   *
+   * * [Shadow DOM 101](http://www.html5rocks.com/en/tutorials/webcomponents/shadowdom/)
+   *   from HTML5Rocks.
+   * * [Shadow DOM specification](http://www.w3.org/TR/shadow-dom/)
+   *   from W3C.
+   */
+  @SupportedBrowser(SupportedBrowser.CHROME, '25')
+  ShadowRoot$NULLABLE get shadowRoot =>
+      JS('ShadowRoot|Null', '#.shadowRoot || #.webkitShadowRoot', this, this);
+
+  /**
+   * Access this element's content position.
+   *
+   * This returns a rectangle with the dimensions actually available for content
+   * in this element, in pixels, regardless of this element's box-sizing
+   * property. Unlike [getBoundingClientRect], the dimensions of this rectangle
+   * will return the same numerical height if the element is hidden or not.
+   *
+   * _Important_ _note_: use of this method _will_ perform CSS calculations that
+   * can trigger a browser reflow. Therefore, use of this property _during_ an
+   * animation frame is discouraged. See also:
+   * [Browser Reflow](https://developers.google.com/speed/articles/reflow)
+   */
+  CssRect get contentEdge => new _ContentCssRect(this);
+
+  /**
+   * Access the dimensions and position of this element's content + padding box.
+   *
+   * This returns a rectangle with the dimensions actually available for content
+   * in this element, in pixels, regardless of this element's box-sizing
+   * property. Unlike [getBoundingClientRect], the dimensions of this rectangle
+   * will return the same numerical height if the element is hidden or not. This
+   * can be used to retrieve jQuery's
+   * [innerHeight](http://api.jquery.com/innerHeight/) value for an element.
+   * This is also a rectangle equalling the dimensions of clientHeight and
+   * clientWidth.
+   *
+   * _Important_ _note_: use of this method _will_ perform CSS calculations that
+   * can trigger a browser reflow. Therefore, use of this property _during_ an
+   * animation frame is discouraged. See also:
+   * [Browser Reflow](https://developers.google.com/speed/articles/reflow)
+   */
+  CssRect get paddingEdge => new _PaddingCssRect(this);
+
+  /**
+   * Access the dimensions and position of this element's content + padding +
+   * border box.
+   *
+   * This returns a rectangle with the dimensions actually available for content
+   * in this element, in pixels, regardless of this element's box-sizing
+   * property. Unlike [getBoundingClientRect], the dimensions of this rectangle
+   * will return the same numerical height if the element is hidden or not. This
+   * can be used to retrieve jQuery's
+   * [outerHeight](http://api.jquery.com/outerHeight/) value for an element.
+   *
+   * _Important_ _note_: use of this method _will_ perform CSS calculations that
+   * can trigger a browser reflow. Therefore, use of this property _during_ an
+   * animation frame is discouraged. See also:
+   * [Browser Reflow](https://developers.google.com/speed/articles/reflow)
+   */
+  CssRect get borderEdge => new _BorderCssRect(this);
+
+  /**
+   * Access the dimensions and position of this element's content + padding +
+   * border + margin box.
+   *
+   * This returns a rectangle with the dimensions actually available for content
+   * in this element, in pixels, regardless of this element's box-sizing
+   * property. Unlike [getBoundingClientRect], the dimensions of this rectangle
+   * will return the same numerical height if the element is hidden or not. This
+   * can be used to retrieve jQuery's
+   * [outerHeight](http://api.jquery.com/outerHeight/) value for an element.
+   *
+   * _Important_ _note_: use of this method will perform CSS calculations that
+   * can trigger a browser reflow. Therefore, use of this property _during_ an
+   * animation frame is discouraged. See also:
+   * [Browser Reflow](https://developers.google.com/speed/articles/reflow)
+   */
+  CssRect get marginEdge => new _MarginCssRect(this);
+
+  /**
+   * Provides the coordinates of the element relative to the top of the
+   * document.
+   *
+   * This method is the Dart equivalent to jQuery's
+   * [offset](http://api.jquery.com/offset/) method.
+   */
+  Point get documentOffset => offsetTo(document.documentElement$NULLASSERT);
+
+  /**
+   * Provides the offset of this element's [borderEdge] relative to the
+   * specified [parent].
+   *
+   * This is the Dart equivalent of jQuery's
+   * [position](http://api.jquery.com/position/) method. Unlike jQuery's
+   * position, however, [parent] can be any parent element of `this`,
+   * rather than only `this`'s immediate [offsetParent]. If the specified
+   * element is _not_ an offset parent or transitive offset parent to this
+   * element, an [ArgumentError] is thrown.
+   */
+  Point offsetTo(Element parent) {
+    return Element._offsetToHelper(this, parent);
+  }
+
+  static Point _offsetToHelper(Element$NULLABLE current, Element parent) {
+    // We're hopping from _offsetParent_ to offsetParent (not just parent), so
+    // offsetParent, "tops out" at BODY. But people could conceivably pass in
+    // the document.documentElement and I want it to return an absolute offset,
+    // so we have the special case checking for HTML.
+    bool sameAsParent = identical(current, parent);
+    bool foundAsParent = sameAsParent || parent.tagName == 'HTML';
+    if (current == null || sameAsParent) {
+      if (foundAsParent) return new Point(0, 0);
+      throw new ArgumentError("Specified element is not a transitive offset "
+          "parent of this element.");
+    }
+    Element$NULLABLE parentOffset = current.offsetParent;
+    Point p = Element._offsetToHelper(parentOffset, parent);
+    return new Point(p.x + current.offsetLeft, p.y + current.offsetTop);
+  }
+
+  static HtmlDocument$NULLABLE _parseDocument;
+  static Range$NULLABLE _parseRange;
+  static NodeValidatorBuilder$NULLABLE _defaultValidator;
+  static _ValidatingTreeSanitizer$NULLABLE _defaultSanitizer;
+
+  /**
+   * Create a DocumentFragment from the HTML fragment and ensure that it follows
+   * the sanitization rules specified by the validator or treeSanitizer.
+   *
+   * If the default validation behavior is too restrictive then a new
+   * NodeValidator should be created, either extending or wrapping a default
+   * validator and overriding the validation APIs.
+   *
+   * The treeSanitizer is used to walk the generated node tree and sanitize it.
+   * A custom treeSanitizer can also be provided to perform special validation
+   * rules but since the API is more complex to implement this is discouraged.
+   *
+   * The returned tree is guaranteed to only contain nodes and attributes which
+   * are allowed by the provided validator.
+   *
+   * See also:
+   *
+   * * [NodeValidator]
+   * * [NodeTreeSanitizer]
+   */
+  DocumentFragment createFragment(String$NULLABLE html,
+      {NodeValidator$NULLABLE validator,
+       NodeTreeSanitizer$NULLABLE treeSanitizer}) {
+    if (treeSanitizer == null) {
+      if (validator == null) {
+        if (_defaultValidator == null) {
+          _defaultValidator = new NodeValidatorBuilder.common();
+        }
+        validator = _defaultValidator;
+      }
+      if (_defaultSanitizer == null) {
+        _defaultSanitizer = new _ValidatingTreeSanitizer(validator$NULLASSERT);
+      } else {
+        _defaultSanitizer$NULLASSERT.validator = validator$NULLASSERT;
+      }
+      treeSanitizer = _defaultSanitizer;
+    } else if (validator != null) {
+      throw new ArgumentError(
+          'validator can only be passed if treeSanitizer is null');
+    }
+
+    if (_parseDocument == null) {
+      _parseDocument = document.implementation$NULLASSERT.createHtmlDocument('');
+      _parseRange = _parseDocument$NULLASSERT.createRange();
+
+      // Workaround for Safari bug. Was also previously Chrome bug 229142
+      // - URIs are not resolved in new doc.
+      BaseElement base =
+          _parseDocument$NULLASSERT.createElement('base') $#NULLSAFECAST(as BaseElement);
+      base.href = document.baseUri$NULLASSERT;
+      _parseDocument$NULLASSERT.head$NULLASSERT.append(base);
+    }
+
+    // TODO(terry): Fixes Chromium 50 change no body after createHtmlDocument()
+    if (_parseDocument$NULLASSERT.body == null) {
+      _parseDocument$NULLASSERT.body =
+          _parseDocument$NULLASSERT.createElement("body") $#NULLSAFECAST(as BodyElement);
+    }
+
+    Element contextElement;
+    if (this is BodyElement) {
+      contextElement = _parseDocument$NULLASSERT.body$NULLASSERT;
+    } else {
+      contextElement = _parseDocument$NULLASSERT.createElement(tagName);
+      _parseDocument$NULLASSERT.body$NULLASSERT.append(contextElement);
+    }
+    DocumentFragment fragment;
+    if (Range.supportsCreateContextualFragment &&
+        _canBeUsedToCreateContextualFragment) {
+      _parseRange$NULLASSERT.selectNodeContents(contextElement);
+      // createContextualFragment expects a non-nullable html string.
+      // If null is passed, it gets converted to 'null' instead.
+      fragment = _parseRange$NULLASSERT.createContextualFragment(html ?? 'null');
+    } else {
+      contextElement._innerHtml = html;
+
+      fragment = _parseDocument$NULLASSERT.createDocumentFragment();
+      while (contextElement.firstChild != null) {
+        fragment.append(contextElement.firstChild!);
+      }
+    }
+    if (contextElement != _parseDocument$NULLASSERT.body) {
+      contextElement.remove();
+    }
+
+    treeSanitizer$NULLASSERT.sanitizeTree(fragment);
+    // Copy the fragment over to the main document (fix for 14184)
+    document.adoptNode(fragment);
+
+    return fragment;
+  }
+
+  /** Test if createContextualFragment is supported for this element type */
+  bool get _canBeUsedToCreateContextualFragment =>
+      !_cannotBeUsedToCreateContextualFragment;
+
+  /** Test if createContextualFragment is NOT supported for this element type */
+  bool get _cannotBeUsedToCreateContextualFragment =>
+      _tagsForWhichCreateContextualFragmentIsNotSupported.contains(tagName);
+
+  /**
+   * A hard-coded list of the tag names for which createContextualFragment
+   * isn't supported.
+   */
+  static const _tagsForWhichCreateContextualFragmentIsNotSupported =
+      const ['HEAD', 'AREA',
+      'BASE', 'BASEFONT', 'BR', 'COL', 'COLGROUP', 'EMBED', 'FRAME', 'FRAMESET',
+      'HR', 'IMAGE', 'IMG', 'INPUT', 'ISINDEX', 'LINK', 'META', 'PARAM',
+      'SOURCE', 'STYLE', 'TITLE', 'WBR'];
+
+  /**
+   * Parses the HTML fragment and sets it as the contents of this element.
+   *
+   * This uses the default sanitization behavior to sanitize the HTML fragment,
+   * use [setInnerHtml] to override the default behavior.
+   */
+  set innerHtml(String$NULLABLE html) {
+    this.setInnerHtml(html);
+  }
+
+  /**
+   * Parses the HTML fragment and sets it as the contents of this element.
+   * This ensures that the generated content follows the sanitization rules
+   * specified by the validator or treeSanitizer.
+   *
+   * If the default validation behavior is too restrictive then a new
+   * NodeValidator should be created, either extending or wrapping a default
+   * validator and overriding the validation APIs.
+   *
+   * The treeSanitizer is used to walk the generated node tree and sanitize it.
+   * A custom treeSanitizer can also be provided to perform special validation
+   * rules but since the API is more complex to implement this is discouraged.
+   *
+   * The resulting tree is guaranteed to only contain nodes and attributes which
+   * are allowed by the provided validator.
+   *
+   * See also:
+   *
+   * * [NodeValidator]
+   * * [NodeTreeSanitizer]
+   */
+  void setInnerHtml(String$NULLABLE html,
+    {NodeValidator$NULLABLE validator,
+     NodeTreeSanitizer$NULLABLE treeSanitizer}) {
+    text = null;
+    if (treeSanitizer is _TrustedHtmlTreeSanitizer) {
+      _innerHtml = html;
+    } else {
+      append(createFragment(html, validator: validator,
+          treeSanitizer: treeSanitizer));
+    }
+  }
+  String$NULLABLE get innerHtml => _innerHtml;
+
+  @JSName('innerText')
+  String get innerText native;
+  set innerText(String value) native;
+
+  /**
+   * This is an ease-of-use accessor for event streams which should only be
+   * used when an explicit accessor is not available.
+   */
+  ElementEvents get on => new ElementEvents(this);
+
+  /**
+   * Verify if any of the attributes that we use in the sanitizer look unexpected,
+   * possibly indicating DOM clobbering attacks.
+   *
+   * Those attributes are: attributes, lastChild, children, previousNode and tagName.
+   */
+  static bool _hasCorruptedAttributes(Element element) {
+     return JS('bool', r'''
+       (function(element) {
+         if (!(element.attributes instanceof NamedNodeMap)) {
+	   return true;
+	 }
+         // If something has corrupted the traversal we want to detect
+         // these on not only the children (tested below) but on the node itself
+         // in case it was bypassed.
+         if (element["id"] == 'lastChild' || element["name"] == 'lastChild' ||
+             element["id"] == 'previousSibling' || element["name"] == 'previousSibling' ||
+             element["id"] == 'children' || element["name"] == 'children') {
+           return true;
+         }
+	 var childNodes = element.childNodes;
+	 if (element.lastChild &&
+	     element.lastChild !== childNodes[childNodes.length -1]) {
+	   return true;
+	 }
+	 if (element.children) { // On Safari, children can apparently be null.
+  	   if (!((element.children instanceof HTMLCollection) ||
+               (element.children instanceof NodeList))) {
+	     return true;
+	   }
+	 }
+         var length = 0;
+         if (element.children) {
+           length = element.children.length;
+         }
+         for (var i = 0; i < length; i++) {
+           var child = element.children[i];
+           // On IE it seems like we sometimes don't see the clobbered attribute,
+           // perhaps as a result of an over-optimization. Also use another route
+           // to check of attributes, children, or lastChild are clobbered. It may
+           // seem silly to check children as we rely on children to do this iteration,
+           // but it seems possible that the access to children might see the real thing,
+           // allowing us to check for clobbering that may show up in other accesses.
+           if (child["id"] == 'attributes' || child["name"] == 'attributes' ||
+               child["id"] == 'lastChild'  || child["name"] == 'lastChild' ||
+               child["id"] == 'previousSibling'  || child["name"] == 'previousSibling' ||
+               child["id"] == 'children' || child["name"] == 'children') {
+             return true;
+           }
+         }
+	 return false;
+          })(#)''', element);
+  }
+
+  /// A secondary check for corruption, needed on IE
+  static bool _hasCorruptedAttributesAdditionalCheck(Element element) {
+    return JS('bool', r'!(#.attributes instanceof NamedNodeMap)', element);
+  }
+
+  static String _safeTagName(Element element) {
+    String result = 'element tag unavailable';
+    try {
+      if (element.tagName is String) {
+        result = element.tagName;
+      }
+    } catch (e) {}
+    return result;
+  }
+
+  Element$NULLABLE get offsetParent native;
+
+  int get offsetHeight => JS<num>('num', '#.offsetHeight', this).round();
+
+  int get offsetLeft => JS<num>('num', '#.offsetLeft', this).round();
+
+  int get offsetTop => JS<num>('num', '#.offsetTop', this).round();
+
+  int get offsetWidth => JS<num>('num', '#.offsetWidth', this).round();
+
+  int get scrollHeight => JS<num>('num', '#.scrollHeight', this).round();
+  int get scrollLeft => JS<num>('num', '#.scrollLeft', this).round();
+
+  set scrollLeft(int value) {
+    JS("void", "#.scrollLeft = #", this, value.round());
+  }
+
+  int get scrollTop => JS<num>('num', '#.scrollTop', this).round();
+
+  set scrollTop(int value) {
+    JS("void", "#.scrollTop = #", this, value.round());
+  }
+
+  int get scrollWidth => JS<num>('num', '#.scrollWidth', this).round();
+
+  /**
+   * Displays this element fullscreen.
+   *
+   * ## Other resources
+   *
+   * * [Fullscreen
+   *   API](https://developer.mozilla.org/en-US/docs/Web/API/Fullscreen_API)
+   *   from MDN.
+   * * [Fullscreen specification](http://www.w3.org/TR/fullscreen/) from W3C.
+   */
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  Future<void> requestFullscreen([Map? options]) {
+    var retValue;
+    if (options != null) {
+      retValue = JS(
+          '',
+          '(#.requestFullscreen||#.webkitRequestFullscreen).call(#, #)',
+          this,
+          this,
+          this,
+          convertDartToNative_Dictionary(options));
+    } else {
+      retValue = JS(
+          '',
+          '(#.requestFullscreen||#.webkitRequestFullscreen).call(#)',
+          this,
+          this,
+          this);
+    }
+    if (retValue != null) return promiseToFuture(retValue);
+    return Future<void>.value();
+  }
+
+$!MEMBERS
+}
+
+
+class _ElementFactoryProvider {
+
+  // Optimization to improve performance until the dart2js compiler inlines this
+  // method.
+  static dynamic createElement_tag(String tag, String$NULLABLE typeExtension) {
+    // Firefox may return a JS function for some types (Embed, Object).
+    if (typeExtension != null) {
+      return JS('Element|=Object', 'document.createElement(#, #)',
+          tag, typeExtension);
+    }
+    // Should be able to eliminate this and just call the two-arg version above
+    // with null typeExtension, but Chrome treats the tag as case-sensitive if
+    // typeExtension is null.
+    // https://code.google.com/p/chromium/issues/detail?id=282467
+    return JS('Element|=Object', 'document.createElement(#)', tag);
+  }
+
+}
+
+
+/**
+ * Options for Element.scrollIntoView.
+ */
+class ScrollAlignment {
+  final _value;
+  const ScrollAlignment._internal(this._value);
+  toString() => 'ScrollAlignment.$_value';
+
+  /// Attempt to align the element to the top of the scrollable area.
+  static const TOP = const ScrollAlignment._internal('TOP');
+  /// Attempt to center the element in the scrollable area.
+  static const CENTER = const ScrollAlignment._internal('CENTER');
+  /// Attempt to align the element to the bottom of the scrollable area.
+  static const BOTTOM = const ScrollAlignment._internal('BOTTOM');
+}

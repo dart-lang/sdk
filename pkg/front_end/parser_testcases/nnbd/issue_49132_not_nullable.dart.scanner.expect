@@ -1,0 +1,41 @@
+class Foo {
+dynamic x;
+
+Foo.foo1(dynamic a) : x = a is int ? {} : [] {
+
+}
+
+Foo.foo2(dynamic a) : x = a is int ? {"a": "b"} : ["a", "b"] {
+
+}
+
+Foo.foo3(dynamic a) : x = a as bool ? {} : [] {
+
+}
+
+Foo.foo4(dynamic a) : x = a as bool ? {"a": "b"} : ["a", "b"] {
+
+}
+}
+
+
+class[KeywordToken] Foo[StringToken] {[BeginToken]
+dynamic[KeywordToken] x[StringToken];[SimpleToken]
+
+Foo[StringToken].[SimpleToken]foo1[StringToken]([BeginToken]dynamic[KeywordToken] a[StringToken])[SimpleToken] :[SimpleToken] x[StringToken] =[SimpleToken] a[StringToken] is[KeywordToken] int[StringToken] ?[SimpleToken] {[BeginToken]}[SimpleToken] :[SimpleToken] [][SimpleToken] {[BeginToken]
+
+}[SimpleToken]
+
+Foo[StringToken].[SimpleToken]foo2[StringToken]([BeginToken]dynamic[KeywordToken] a[StringToken])[SimpleToken] :[SimpleToken] x[StringToken] =[SimpleToken] a[StringToken] is[KeywordToken] int[StringToken] ?[SimpleToken] {[BeginToken]"a"[StringToken]:[SimpleToken] "b"[StringToken]}[SimpleToken] :[SimpleToken] [[BeginToken]"a"[StringToken],[SimpleToken] "b"[StringToken]][SimpleToken] {[BeginToken]
+
+}[SimpleToken]
+
+Foo[StringToken].[SimpleToken]foo3[StringToken]([BeginToken]dynamic[KeywordToken] a[StringToken])[SimpleToken] :[SimpleToken] x[StringToken] =[SimpleToken] a[StringToken] as[KeywordToken] bool[StringToken] ?[SimpleToken] {[BeginToken]}[SimpleToken] :[SimpleToken] [][SimpleToken] {[BeginToken]
+
+}[SimpleToken]
+
+Foo[StringToken].[SimpleToken]foo4[StringToken]([BeginToken]dynamic[KeywordToken] a[StringToken])[SimpleToken] :[SimpleToken] x[StringToken] =[SimpleToken] a[StringToken] as[KeywordToken] bool[StringToken] ?[SimpleToken] {[BeginToken]"a"[StringToken]:[SimpleToken] "b"[StringToken]}[SimpleToken] :[SimpleToken] [[BeginToken]"a"[StringToken],[SimpleToken] "b"[StringToken]][SimpleToken] {[BeginToken]
+
+}[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

@@ -1,0 +1,12 @@
+import 'redirecting_factory_vs_field_inference_lib.dart';
+
+class Class {
+  var field = Util<Element>();
+}
+
+class Element {}
+
+class SubClass extends Class {
+  Util<Element> get field => super.field;
+  set field(Util<Element> value) {}
+}

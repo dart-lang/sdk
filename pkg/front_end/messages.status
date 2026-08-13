@@ -1,0 +1,176 @@
+# Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Note that test/spelling: Status will have no effect. Spelling errors can
+# always be fixed by either spelling correctly or updating the dictionary.
+
+# Missing examples, but probably ok - at least for now.
+front_end/CannotAssignToSuper/example: missingExample # Not covered.
+front_end/CannotReadSdkSpecification/example: missingExample # Issued on what is essentially a wrong setup.
+front_end/CantInferPackagesFromManyInputs/example: missingExample # We don't control input uri in messages test.
+front_end/CantInferPackagesFromPackageUri/example: missingExample # We don't control input uri in messages test.
+front_end/ClassShouldBeListedAsCallableInDynamicInterface/example: missingExample # Can't do dynamic modules stuff in messages suite.
+front_end/ClassShouldBeListedAsCanBeUsedAsTypeInDynamicInterface/example: missingExample # Can't do dynamic modules stuff in messages suite.
+front_end/ClassShouldBeListedAsExtendableInDynamicInterface/example: missingExample # Can't do dynamic modules stuff in messages suite.
+front_end/ClassWithNoSuchMethodSubtypeCause/example: missingExample # Can't do dynamic modules stuff in messages suite.
+front_end/ConstEvalError/example: missingExample # Uncovered, at least outside of constant stress testing.
+front_end/ConstEvalGetterNotFound/example: missingExample # Not covered.
+front_end/ConstEvalInvalidPropertyGet/example: missingExample # Uncovered, at least outside of constant stress testing.
+front_end/ConstEvalInvalidRecordIndexGet/example: missingExample # Uncovered, at least outside of constant stress testing.
+front_end/ConstEvalInvalidRecordNameGet/example: missingExample # Uncovered, at least outside of constant stress testing.
+front_end/ConstEvalInvalidStaticInvocation/example: missingExample # Happens in some VM tests with @pragma("vm:platform-const") but unclear if it can happen otherwise.
+front_end/ConstEvalInvalidSymbolName/example: missingExample # Uncovered. Likely unreachable.
+front_end/ConstEvalKeyImplementsEqual/example: missingExample # Uncovered.
+front_end/ConstEvalNonConstantVariableGet/example: missingExample # Only covered in constant evaluator stress test. Not clear if it can happen on its own.
+front_end/ConstEvalStartingPoint/example: missingExample # This is just used for displaying the starting point.
+front_end/ConstEvalUnevaluated/example: missingExample # Unevaluated consts not possible in this suite.
+front_end/ConstructorShouldBeListedAsCallableInDynamicInterface/example: missingExample # Can't do dynamic modules stuff in messages suite.
+front_end/DartFfiLibraryInDart2Wasm/example: missingExample # Web compiler specific
+front_end/DillOutlineSummary/example: missingExample # Used for verbose output.
+front_end/DuplicatedDeclarationUse/part_wrapped_script1: hasOnlyUnrelatedMessages # Seemingly this is not issued as an error, but ends up in the kernel AST.
+front_end/DuplicatedDeclarationUse/script1: hasOnlyUnrelatedMessages # Seemingly this is not issued as an error, but ends up in the kernel AST.
+front_end/DuplicatedDeclarationUse/script2: hasOnlyUnrelatedMessages # Seemingly this is not issued as an error, but ends up in the kernel AST.
+front_end/DynamicCallsAreDisallowedByDefault/example: missingExample # Can't do dynamic modules stuff in messages suite.
+front_end/DynamicCallsAreDiscouragedInDynamicModules/example: missingExample # Can't do dynamic modules stuff in messages suite.
+front_end/DynamicCallsAreNotAllowedInDynamicModule/example: missingExample # Can't do dynamic modules stuff in messages suite.
+front_end/DynamicallyCallableWithNoSuchMethod/example: missingExample # Can't do dynamic modules stuff in messages suite.
+front_end/DynamicallyCallableWithNoSuchMethodDynamicSubtype/example: missingExample # Can't do dynamic modules stuff in messages suite.
+front_end/DynamicallyCallableWithNoSuchMethodHostSubtype/example: missingExample # Can't do dynamic modules stuff in messages suite.
+front_end/ExceptionReadingFile/example: missingExample # Requires an exception (generally not a FileSystemException) to occur when reading a file.
+front_end/ExpectedBlockToSkip/example: missingExample # Seemingly only used when skipping a block in a special parser.
+front_end/ExpectedButGot2/example: missingExample # Only used in experimental code.
+front_end/ExpectedOneExpression/example: missingExample # Used via expression compilation.
+_fe_analyzer_shared/ExpectedStatement/part_wrapped_statement: hasOnlyUnrelatedMessages # Only issued in Analyzer
+_fe_analyzer_shared/ExpectedStatement/statement: hasOnlyUnrelatedMessages # Only issued in Analyzer
+front_end/ExperimentDisabled/example: missingExample # Uncovered.
+front_end/ExperimentDisabledInvalidLanguageVersion/example: missingExample # Uncovered.
+front_end/ExperimentExpiredDisabled/example: missingExample # Uncovered.
+front_end/ExperimentExpiredEnabled/example: missingExample # Uncovered.
+_fe_analyzer_shared/ExperimentNotEnabled/example: missingExample # issued via the parser, but overridden by StackListenerImpl --- so likely not possible via CFE outside of special tests?
+front_end/ExplicitExtensionAsLvalue/example: missingExample # Uncovered.
+front_end/ExpressionEvaluationKnownVariableUnavailable/example: missingExample # Expression compilation.
+_fe_analyzer_shared/ExtensionAugmentationHasOnClause/part_wrapped_script: hasOnlyUnrelatedMessages # Doesn't seem to be any (direct?) way to get this for now
+_fe_analyzer_shared/ExtensionAugmentationHasOnClause/script: hasOnlyUnrelatedMessages # Doesn't seem to be any (direct?) way to get this for now
+front_end/ExtensionTypeShouldBeListedAsCallableInDynamicInterface/example: missingExample # Can't do dynamic modules stuff in messages suite.
+front_end/ExtensionTypeShouldBeListedAsCanBeUsedAsTypeInDynamicInterface/example: missingExample # Can't do dynamic modules stuff in messages suite.
+front_end/FastaCLIArgumentRequired/example: missingExample # Used in the compile tool
+front_end/FastaUsageLong/example: missingExample # Help for the compile tool
+front_end/FastaUsageShort/example: missingExample # Help for the compile tool
+_fe_analyzer_shared/IllegalAssignmentToNonAssignable/part_wrapped_script1: hasOnlyUnrelatedMessages # Possibly not reachable in the CFE
+_fe_analyzer_shared/IllegalAssignmentToNonAssignable/script1: hasOnlyUnrelatedMessages # Possibly not reachable in the CFE
+front_end/IncrementalCompilerIllegalParameter/example: missingExample # Expression compilation.
+front_end/IncrementalCompilerIllegalTypeParameter/example: missingExample # Expression compilation.
+front_end/IndexOutOfBoundInRecordIndexGet/example: missingExample # Not covered.
+front_end/InputFileNotFound/example: missingExample # Issued for additional dills that doesn't exist.
+_fe_analyzer_shared/InvalidSuperInInitializer/example: missingExample # Only issued in Analyzer
+_fe_analyzer_shared/InvalidThisInInitializer/example: missingExample # Only issued in Analyzer
+front_end/JsInteropDartClassExtendsJSClass/example: missingExample # Web compiler specific
+front_end/JsInteropDartJsInteropAnnotationForStaticInteropOnly/example: missingExample # Web compiler specific
+front_end/JsInteropEnclosingClassJSAnnotation/example: missingExample # Web compiler specific
+front_end/JsInteropExportClassNotMarkedExportable/example: missingExample # Web compiler specific
+front_end/JsInteropExportDartInterfaceHasNonEmptyJSExportValue/example: missingExample # Web compiler specific
+front_end/JsInteropExportDisallowedMember/example: missingExample # Web compiler specific
+front_end/JsInteropExportInvalidInteropTypeArgument/example: missingExample # Web compiler specific
+front_end/JsInteropExportInvalidTypeArgument/example: missingExample # Web compiler specific
+front_end/JsInteropExportMemberCollision/example: missingExample # Web compiler specific
+front_end/JsInteropExportNoExportableMembers/example: missingExample # Web compiler specific
+front_end/JsInteropExtensionTypeMemberNotInterop/example: missingExample # Web compiler specific
+front_end/JsInteropExtensionTypeNotInterop/example: missingExample # Web compiler specific
+front_end/JsInteropExtensionTypeUsedWithWrongJsAnnotation/example: missingExample # Web compiler specific
+front_end/JsInteropExternalExtensionMemberOnTypeInvalid/example: missingExample # Web compiler specific
+front_end/JsInteropExternalExtensionMemberWithStaticDisallowed/example: missingExample # Web compiler specific
+front_end/JsInteropExternalMemberNotJSAnnotated/example: missingExample # Web compiler specific
+front_end/JsInteropFunctionToJSNamedParameters/example: missingExample # Web compiler specific
+front_end/JsInteropFunctionToJSRequiresStaticType/example: missingExample # Web compiler specific
+front_end/JsInteropFunctionToJSTypeParameters/example: missingExample # Web compiler specific
+front_end/JsInteropFunctionToJSTypeViolation/example: missingExample
+front_end/JsInteropInvalidStaticClassMemberName/example: missingExample # Web compiler specific
+front_end/JsInteropIsAInvalidTypeVariable/example: missingExample # Web compiler specific
+front_end/JsInteropIsAObjectLiteralType/example: missingExample # Web compiler specific
+front_end/JsInteropIsAPrimitiveExtensionType/example: missingExample # Web compiler specific
+front_end/JsInteropIsATearoff/example: missingExample # Web compiler specific
+front_end/JsInteropJSClassExtendsDartClass/example: missingExample # Web compiler specific
+front_end/JsInteropNamedParameters/example: missingExample # Web compiler specific
+front_end/JsInteropNativeClassInAnnotation/example: missingExample # Web compiler specific
+front_end/JsInteropNonExternalConstructor/example: missingExample # Web compiler specific
+front_end/JsInteropNonExternalMember/example: missingExample # Web compiler specific
+front_end/JsInteropNonStaticWithStaticInteropSupertype/example: missingExample # Web compiler specific
+front_end/JsInteropObjectLiteralConstructorPositionalParameters/example: missingExample # Web compiler specific
+front_end/JsInteropOperatorCannotBeRenamed/example: missingExample # Web compiler specific
+front_end/JsInteropOperatorsNotSupported/example: missingExample # Web compiler specific
+front_end/JsInteropStaticInteropExternalAccessorTypeViolation/example: missingExample # Web compiler specific
+front_end/JsInteropStaticInteropExternalFunctionTypeViolation/example: missingExample # Web compiler specific
+front_end/JsInteropStaticInteropGenerativeConstructor/example: missingExample # Web compiler specific
+front_end/JsInteropStaticInteropMockMissingGetterOrSetter/example: missingExample # Web compiler specific
+front_end/JsInteropStaticInteropMockMissingImplements/example: missingExample # Web compiler specific
+front_end/JsInteropStaticInteropMockNotStaticInteropType/example: missingExample # Web compiler specific
+front_end/JsInteropStaticInteropMockTypeParametersNotAllowed/example: missingExample # Web compiler specific
+front_end/JsInteropStaticInteropNoJSAnnotation/example: missingExample # Web compiler specific
+front_end/JsInteropStaticInteropParameterInitializersAreIgnored/example: missingExample # Web compiler specific
+front_end/JsInteropStaticInteropSyntheticConstructor/example: missingExample # Web compiler specific
+front_end/JsInteropStaticInteropTearOffsDisallowed/example: missingExample # Web compiler specific
+front_end/JsInteropStaticInteropToJSFunctionTypeViolation/example: missingExample # Web compiler specific
+front_end/JsInteropStaticInteropTrustTypesUsageNotAllowed/example: missingExample # Web compiler specific
+front_end/JsInteropStaticInteropTrustTypesUsedWithoutStaticInterop/example: missingExample # Web compiler specific
+front_end/JsInteropStaticInteropWithInstanceMembers/example: missingExample # Web compiler specific
+front_end/JsInteropStaticInteropWithNonStaticSupertype/example: missingExample # Web compiler specific
+front_end/LanguageVersionMismatchInPatch/example: missingExample # Patching.
+front_end/MemberShouldBeListedAsCallableInDynamicInterface/example: missingExample # Can't do dynamic modules stuff in messages suite.
+front_end/MemberShouldBeListedAsCanBeOverriddenInDynamicInterface/example: missingExample # Can't do dynamic modules stuff in messages suite.
+_fe_analyzer_shared/MissingAssignableSelector/part_wrapped_script1: hasOnlyUnrelatedMessages # Only issued in Analyzer
+_fe_analyzer_shared/MissingAssignableSelector/script1: hasOnlyUnrelatedMessages # Only issued in Analyzer
+front_end/MissingInput/example: missingExample # Issued on what is essentially a wrong setup.
+front_end/MissingMain/example: missingExample # Main is only required in some compilation modes, and not in messages testing.
+front_end/NameNotFoundInRecordNameGet/example: missingExample # Uncovered.
+_fe_analyzer_shared/NativeClauseShouldBeAnnotation/example: missingExample # Swallowed in StackListener.dart.
+front_end/NeverReachableSwitchDefaultError/example: missingExample # Probably only added to AST, but never issued.
+front_end/NeverReachableSwitchExpressionError/example: missingExample # No coverage.
+front_end/NeverReachableSwitchStatementError/example: missingExample # No coverage.
+front_end/NeverValueError/example: missingExample # No coverage.
+front_end/NonIdentifierForInElement/example: missingExample # TODO(johnniwinther): Use this error in the parser.
+front_end/NonPartOfDirectiveInPart/script1: hasOnlyUnrelatedMessages # Specifically ignored in `isIgnoredParserError`?!?
+front_end/NoUnnamedConstructorInObject/example: missingExample # No coverage.
+front_end/PatchClassTypeParametersMismatch/example: missingExample # Patching.
+front_end/PatchExtensionTypeParametersMismatch/example: missingExample # Patching.
+front_end/PatchInjectionFailed/example: missingExample # Patching.
+front_end/PatternMatchingError/example: missingExample # Seemingly this is not issued as an error, but ends up in the kernel AST.
+front_end/PositionalAfterNamedArgument/example: missingExample # Seemingly only issued in Analyzer
+front_end/RecordUseCannotBePlacedHere/example: missingExample # No coverage.
+front_end/RecordUseClassesMustBeFinal/example: missingExample # No coverage.
+front_end/RecordUseOutsideOfPackage/example: missingExample # No coverage.
+front_end/RecordUseSubtypingNotSupported/example: missingExample # No coverage.
+front_end/SdkRootNotFound/example: missingExample # Issued on what is essentially a wrong setup.
+front_end/SdkSpecificationNotFound/example: missingExample # Issued on what is essentially a wrong setup.
+front_end/SdkSummaryNotFound/example: missingExample # Issued on what is essentially a wrong setup.
+front_end/SourceBodySummary/example: missingExample # Used for verbose output.
+front_end/SourceOutlineSummary/example: missingExample # Used for verbose output.
+_fe_analyzer_shared/StackOverflow/example: missingExample # Requires 500 nested expressions.
+front_end/SuperclassHasNoMember/example: missingExample # Not covered...
+front_end/SyntheticToken/example: missingExample # Seemingly this is not issued as an error, but ends up in the kernel AST.
+front_end/UnmatchedAugmentationClass/example: missingExample # Doesn't seem to be any (direct?) way to get this for now
+front_end/UnmatchedAugmentationClassMember/example: missingExample # Doesn't seem to be any (direct?) way to get this for now
+front_end/UnmatchedAugmentationConstructor/example: missingExample # Doesn't seem to be any (direct?) way to get this for now
+front_end/UnmatchedAugmentationDeclaration/example: missingExample # Doesn't seem to be any (direct?) way to get this for now
+front_end/UnmatchedAugmentationLibraryMember/example: missingExample # Doesn't seem to be any (direct?) way to get this for now
+front_end/UnmatchedPatchClass/example: missingExample # Patching.
+front_end/UnmatchedPatchClassMember/example: missingExample # Patching.
+front_end/UnmatchedPatchDeclaration/example: missingExample # Patching.
+front_end/UnmatchedPatchLibraryMember/example: missingExample # Patching.
+front_end/UnsoundSwitchExpressionError/example: missingExample # Used in throw in code, but not issued as a message.
+front_end/UnsoundSwitchStatementError/example: missingExample # Used in throw in code, but not issued as a message.
+front_end/Unspecified/example: missingExample # This should generally not be used.
+front_end/UnterminatedToken/example: missingExample # This is a fall-back message that shouldn't happen.
+front_end/WasmConstantLaneOutOfRange/script: hasOnlyUnrelatedMessages # Wasm private library access.
+front_end/WasmImportOrExportInUserCode/example: missingExample # only issued by wasm build
+front_end/WasmExternInvalidLoad/example: missingExample # only issued by wasm build
+front_end/WasmExternInvalidTarget/example: missingExample # only issued by wasm build
+front_end/WasmIntrinsicTearOff/example: missingExample # only issued by wasm build
+front_end/WasmExternMemoryMissingAnnotation/example: missingExample # only issued by wasm build
+front_end/WebLiteralCannotBeRepresentedExactly/example: missingExample # only issued on web build
+
+# Can we do better?
+_fe_analyzer_shared/ConstAndFinal/declaration3: hasOnlyUnrelatedMessages # maybe the parser should do better here - it seems it once did?
+_fe_analyzer_shared/ConstAndFinal/declaration4: hasOnlyUnrelatedMessages # maybe the parser should do better here - it seems it once did?
+_fe_analyzer_shared/ConstAndFinal/part_wrapped_declaration3: hasOnlyUnrelatedMessages # maybe the parser should do better here - it seems it once did?
+_fe_analyzer_shared/ConstAndFinal/part_wrapped_declaration4: hasOnlyUnrelatedMessages # maybe the parser should do better here - it seems it once did?

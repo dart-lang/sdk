@@ -1,0 +1,9 @@
+class A {}
+
+class B {}
+
+extension on A {
+  void foo(A a, B b) {}
+}
+
+void main() {}

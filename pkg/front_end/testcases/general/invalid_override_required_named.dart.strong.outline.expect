@@ -1,0 +1,26 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/invalid_override_required_named.dart:10:25: Error: The required named parameter 'x' in method 'Sub.foo' is not required in overridden method 'Super.foo'.
+//   foo({required dynamic x}) {}
+//                         ^
+// pkg/front_end/testcases/general/invalid_override_required_named.dart:6:3: Context: This is the overridden method ('foo').
+//   foo({num? x}) {}
+//   ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Super extends core::Object {
+  synthetic constructor •() → self::Super
+    ;
+  method foo({core::num? x = null}) → dynamic
+    ;
+}
+class Sub extends self::Super {
+  synthetic constructor •() → self::Sub
+    ;
+  erroneous method foo({required dynamic x}) → dynamic
+    ;
+}

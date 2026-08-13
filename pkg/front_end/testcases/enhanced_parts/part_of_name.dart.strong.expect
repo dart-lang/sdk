@@ -1,0 +1,12 @@
+library lib;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/enhanced_parts/part_of_name_part.dart:5:9: Error: The 'part of' directive can't use a name with the enhanced-parts feature.
+// Try using 'part of' with a URI instead.
+// part of lib;
+//         ^
+//
+import self as self;
+
+part part_of_name_part.dart;

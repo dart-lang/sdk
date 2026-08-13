@@ -1,0 +1,12 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method test1() → dynamic
+  ;
+static method test2() → dynamic
+  ;
+static method test3() → core::Iterable<core::bool>
+  ;
+static method test4() → dynamic
+  ;

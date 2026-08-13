@@ -1,0 +1,3 @@
+M(rdi uint64) Struct(size: 8)
+=>
+M(rax uint64) Struct(size: 8)

@@ -1,0 +1,48 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method exhaustive(core::List<core::num> list) → dynamic
+  ;
+static method exhaustive1a(core::List<core::num> list) → dynamic
+  ;
+static method exhaustive1b(core::List<core::num> list) → dynamic
+  ;
+static method exhaustive2a(core::List<core::num> list) → dynamic
+  ;
+static method exhaustive2b(core::List<core::num> list) → dynamic
+  ;
+static method exhaustive2c(core::List<core::num> list) → dynamic
+  ;
+static method nonExhaustive1aMissing(core::List<core::num> list) → dynamic
+  ;
+static method nonExhaustive1bMissing(core::List<core::num> list) → dynamic
+  ;
+static method nonExhaustive2aMissing(core::List<core::num> list) → dynamic
+  ;
+static method nonExhaustive2bMissing(core::List<core::num> list) → dynamic
+  ;
+static method nonExhaustive2cMissing(core::List<core::num> list) → dynamic
+  ;
+static method nonExhaustiveRestrictedType(core::List<core::num> list) → dynamic
+  ;
+static method nonExhaustive1aRestrictedValue(core::List<core::num> list) → dynamic
+  ;
+static method nonExhaustive1aRestrictedType(core::List<core::num> list) → dynamic
+  ;
+static method nonExhaustive1bRestrictedValue(core::List<core::num> list) → dynamic
+  ;
+static method nonExhaustive1bRestrictedType(core::List<core::num> list) → dynamic
+  ;
+static method nonExhaustive2aRestrictedValue(core::List<core::num> list) → dynamic
+  ;
+static method nonExhaustive2bRestrictedValue(core::List<core::num> list) → dynamic
+  ;
+static method nonExhaustive2cRestrictedValue(core::List<core::num> list) → dynamic
+  ;
+static method nonExhaustive2dRestrictedValue(core::List<core::num> list) → dynamic
+  ;
+static method nonExhaustive2eRestrictedValue(core::List<core::num> list) → dynamic
+  ;
+static method nonExhaustive2fRestrictedValue(core::List<core::num> list) → dynamic
+  ;

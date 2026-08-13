@@ -1,0 +1,13 @@
+S+4 Union(size: 16)
+S+20 Union(size: 16)
+S+36 Union(size: 16)
+S+52 Union(size: 16)
+S+68 Union(size: 16)
+S+84 Union(size: 16)
+S+100 Union(size: 16)
+S+116 Union(size: 16)
+S+132 Union(size: 16)
+S+148 int32[int8]
+S+152 Union(size: 16)
+=>
+P(S+0 uint32, ret:eax uint32) Union(size: 16)

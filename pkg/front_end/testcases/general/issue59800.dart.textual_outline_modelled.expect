@@ -1,0 +1,34 @@
+class A {
+  const A(this.foo);
+  final int? foo;
+}
+
+const A CAInt = const A(0);
+
+const A CANull = const A(null);
+
+const int? CInt = 0;
+
+const int? CNull = null;
+
+const int C1 = 0!;
+
+const int C2 = null!;
+
+const int C3 = CInt!;
+
+const int C4 = CNull!;
+
+const int C5 = CAInt.foo!;
+
+const int C6 = CANull.foo!;
+
+const int C7 = "".length!;
+
+const int C8 = ""!.length;
+
+const int C9 = ""!.length!;
+
+main() {}
+
+test() {}

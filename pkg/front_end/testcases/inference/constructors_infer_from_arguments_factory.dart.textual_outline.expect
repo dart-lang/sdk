@@ -1,0 +1,11 @@
+library test;
+
+class C<T> {
+  T? t;
+  C._();
+  factory C(T t) {}
+}
+
+test() {}
+
+main() {}

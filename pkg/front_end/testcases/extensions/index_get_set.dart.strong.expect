@@ -1,0 +1,95 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extensions/index_get_set.dart:50:14: Error: The operator '[]=' isn't defined for the type 'HasIndexGet'.
+//  - 'HasIndexGet' is from 'pkg/front_end/testcases/extensions/index_get_set.dart'.
+// Try correcting the operator to an existing operator, or defining a '[]=' operator.
+//   hasIndexGet[0] = 0; // Error
+//              ^
+//
+// pkg/front_end/testcases/extensions/index_get_set.dart:52:14: Error: The operator '[]' isn't defined for the type 'HasIndexSet'.
+//  - 'HasIndexSet' is from 'pkg/front_end/testcases/extensions/index_get_set.dart'.
+// Try correcting the operator to an existing operator, or defining a '[]' operator.
+//   hasIndexSet[0]; // Error
+//              ^
+//
+import self as self;
+import "dart:core" as core;
+
+class HasNone extends core::Object {
+  synthetic constructor •() → self::HasNone
+    : super core::Object::•()
+    ;
+}
+class HasIndexGet extends core::Object {
+  synthetic constructor •() → self::HasIndexGet
+    : super core::Object::•()
+    ;
+  operator [](wildcard dynamic _#wc0#formal) → dynamic {}
+}
+class HasIndexSet extends core::Object {
+  synthetic constructor •() → self::HasIndexSet
+    : super core::Object::•()
+    ;
+  operator []=(wildcard dynamic _#wc1#formal, wildcard dynamic _#wc2#formal) → void {}
+}
+class HasIndexGetSet extends core::Object {
+  synthetic constructor •() → self::HasIndexGetSet
+    : super core::Object::•()
+    ;
+  operator [](wildcard dynamic _#wc3#formal) → dynamic {}
+  operator []=(wildcard dynamic _#wc4#formal, wildcard dynamic _#wc5#formal) → void {}
+}
+extension HasNoneExtension on self::HasNone {
+  operator [] = self::HasNoneExtension|[];
+  operator []= = self::HasNoneExtension|[]=;
+}
+extension HasIndexGetExtension on self::HasIndexGet {
+  operator [] = self::HasIndexGetExtension|[];
+  operator []= = self::HasIndexGetExtension|[]=;
+}
+extension HasIndexSetExtension on self::HasIndexSet {
+  operator [] = self::HasIndexSetExtension|[];
+  operator []= = self::HasIndexSetExtension|[]=;
+}
+extension HasIndexGetSetExtension on self::HasIndexGetSet {
+  operator [] = self::HasIndexGetSetExtension|[];
+  operator []= = self::HasIndexGetSetExtension|[]=;
+}
+static extension-member method HasNoneExtension|[](lowered final self::HasNone #this, wildcard dynamic _#wc6#formal) → dynamic {}
+static extension-member method HasNoneExtension|[]=(lowered final self::HasNone #this, wildcard dynamic _#wc7#formal, wildcard dynamic _#wc8#formal) → void {}
+static extension-member method HasIndexGetExtension|[](lowered final self::HasIndexGet #this, wildcard dynamic _#wc9#formal) → dynamic {}
+static extension-member method HasIndexGetExtension|[]=(lowered final self::HasIndexGet #this, wildcard dynamic _#wc10#formal, wildcard dynamic _#wc11#formal) → void {}
+static extension-member method HasIndexSetExtension|[](lowered final self::HasIndexSet #this, wildcard dynamic _#wc12#formal) → dynamic {}
+static extension-member method HasIndexSetExtension|[]=(lowered final self::HasIndexSet #this, wildcard dynamic _#wc13#formal, wildcard dynamic _#wc14#formal) → void {}
+static extension-member method HasIndexGetSetExtension|[](lowered final self::HasIndexGetSet #this, wildcard dynamic _#wc15#formal) → dynamic {}
+static extension-member method HasIndexGetSetExtension|[]=(lowered final self::HasIndexGetSet #this, wildcard dynamic _#wc16#formal, wildcard dynamic _#wc17#formal) → void {}
+static method implicit(self::HasNone hasNone, self::HasIndexGet hasIndexGet, self::HasIndexSet hasIndexSet, self::HasIndexGetSet hasIndexGetSet) → dynamic {
+  self::HasNoneExtension|[](hasNone, 0);
+  self::HasNoneExtension|[]=(hasNone, 0, 0);
+  hasIndexGet.{self::HasIndexGet::[]}(0){(dynamic) → dynamic};
+  invalid-expression "pkg/front_end/testcases/extensions/index_get_set.dart:50:14: Error: The operator '[]=' isn't defined for the type 'HasIndexGet'.
+ - 'HasIndexGet' is from 'pkg/front_end/testcases/extensions/index_get_set.dart'.
+Try correcting the operator to an existing operator, or defining a '[]=' operator.
+  hasIndexGet[0] = 0; // Error
+             ^" in hasIndexGet{<unresolved>}.[]=(0, 0);
+  invalid-expression "pkg/front_end/testcases/extensions/index_get_set.dart:52:14: Error: The operator '[]' isn't defined for the type 'HasIndexSet'.
+ - 'HasIndexSet' is from 'pkg/front_end/testcases/extensions/index_get_set.dart'.
+Try correcting the operator to an existing operator, or defining a '[]' operator.
+  hasIndexSet[0]; // Error
+             ^" in hasIndexSet{<unresolved>}.[](0);
+  hasIndexSet.{self::HasIndexSet::[]=}(0, 0){(dynamic, dynamic) → void};
+  hasIndexGetSet.{self::HasIndexGetSet::[]}(0){(dynamic) → dynamic};
+  hasIndexGetSet.{self::HasIndexGetSet::[]=}(0, 0){(dynamic, dynamic) → void};
+}
+static method explicit(self::HasNone hasNone, self::HasIndexGet hasIndexGet, self::HasIndexSet hasIndexSet, self::HasIndexGetSet hasIndexGetSet) → dynamic {
+  self::HasNoneExtension|[](hasNone, 0);
+  self::HasNoneExtension|[]=(hasNone, 0, 0);
+  self::HasIndexGetExtension|[](hasIndexGet, 0);
+  self::HasIndexGetExtension|[]=(hasIndexGet, 0, 0);
+  self::HasIndexSetExtension|[](hasIndexSet, 0);
+  self::HasIndexSetExtension|[]=(hasIndexSet, 0, 0);
+  self::HasIndexGetSetExtension|[](hasIndexGetSet, 0);
+  self::HasIndexGetSetExtension|[]=(hasIndexGetSet, 0, 0);
+}

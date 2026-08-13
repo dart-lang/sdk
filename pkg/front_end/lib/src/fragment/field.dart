@@ -1,0 +1,125 @@
+// Copyright (c) 2024, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+part of 'fragment.dart';
+
+class FieldFragment implements Fragment {
+  @override
+  final String name;
+
+  final Uri fileUri;
+
+  final int nameOffset;
+
+  final int endOffset;
+
+  Token? _initializerTokenForTopLevelInference;
+  Token? _initializerTokenForOutline;
+
+  final List<MetadataBuilder>? metadata;
+
+  final TypeBuilder type;
+
+  final bool isTopLevel;
+  final Modifiers modifiers;
+
+  final LookupScope enclosingScope;
+
+  final DeclarationFragment? enclosingDeclaration;
+  final LibraryFragment enclosingCompilationUnit;
+
+  SourcePropertyBuilder? _builder;
+  FieldFragmentDeclaration? _declaration;
+
+  @override
+  late final UriOffsetLength uriOffset = new UriOffsetLength(
+    fileUri,
+    nameOffset,
+    name.length,
+  );
+
+  new({
+    required this.name,
+    required this.fileUri,
+    required this.nameOffset,
+    required this.endOffset,
+    required Token? initializerToken,
+    required this.metadata,
+    required this.type,
+    required this.isTopLevel,
+    required this.modifiers,
+    required this.enclosingScope,
+    required this.enclosingDeclaration,
+    required this.enclosingCompilationUnit,
+  }) : _initializerTokenForTopLevelInference = initializerToken,
+       _initializerTokenForOutline = initializerToken;
+
+  @override
+  SourcePropertyBuilder get builder {
+    assert(_builder != null, "Builder has not been computed for $this.");
+    return _builder!;
+  }
+
+  void set builder(SourcePropertyBuilder value) {
+    assert(_builder == null, "Builder has already been computed for $this.");
+    _builder = value;
+  }
+
+  /// Returns the token for the initializer of this field, if any. This is the
+  /// same as [initializerToken] but is used to signal that the initializer
+  /// needs to be computed for outline expressions.
+  ///
+  /// This can only be called once and will hand over the responsibility of
+  /// the token to the caller.
+  Token? takeInitializerTokenForOutline() {
+    Token? result = _initializerTokenForOutline;
+    // Ensure that we don't hold onto the token.
+    _initializerTokenForOutline = null;
+    return result;
+  }
+
+  FieldFragmentDeclaration get declaration {
+    assert(
+      _declaration != null,
+      "Declaration has not been computed for $this.",
+    );
+    return _declaration!;
+  }
+
+  void set declaration(FieldFragmentDeclaration value) {
+    assert(
+      _declaration == null,
+      "Declaration has already been computed for $this.",
+    );
+    _declaration = value;
+  }
+
+  bool get hasSetter {
+    if (modifiers.isConst) {
+      return false;
+    } else if (modifiers.isFinal) {
+      if (modifiers.isLate) {
+        return !modifiers.hasInitializer;
+      } else {
+        return false;
+      }
+    } else {
+      return true;
+    }
+  }
+
+  /// Returns the token for the initializer of this field, if any.
+  ///
+  /// This can only be called once and will hand over the responsibility of
+  /// the token to the caller.
+  Token? takeInitializerTokenForTopLevelInference() {
+    Token? result = _initializerTokenForTopLevelInference;
+    // Ensure that we don't hold on to the token.
+    _initializerTokenForTopLevelInference = null;
+    return result;
+  }
+
+  @override
+  String toString() => '$runtimeType($name,$fileUri,$nameOffset)';
+}

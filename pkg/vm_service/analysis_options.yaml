@@ -1,0 +1,15 @@
+include: package:lints/recommended.yaml
+
+analyzer:
+  errors:
+    unnecessary_library_name: ignore
+    # ~300 violations in test/.
+    strict_top_level_inference: ignore
+
+linter:
+  rules:
+    # still 5 errors in lib/src/vm_service.dart
+    # - comment_references
+    - directives_ordering
+    - prefer_single_quotes
+    - unawaited_futures

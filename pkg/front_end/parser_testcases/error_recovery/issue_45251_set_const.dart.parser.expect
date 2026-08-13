@@ -1,0 +1,59 @@
+NOTICE: Stream was rewritten by parser!
+
+class F {
+
+final Set<Undefined> foo1 = const Set<List<int>>{};
+
+
+final Set<Undefined> foo2 = const <List<int>>{};
+
+
+final Set<Undefined> foo3 = const Set{};
+
+
+final Set<Undefined> foo4 = const Set<List<int>>();
+
+
+final Set<Undefined> foo5 = const Set();
+
+
+final Set<Undefined> foo6 = const Set<List<int>>{null};
+
+
+final Set<Undefined> foo7 = const Set{null};
+
+
+final Set<Undefined> foo8 = const <List<int>>{null};
+
+
+final Set<Undefined> foo9 = const {null};
+}
+
+class[KeywordToken] F[StringToken] {[BeginToken]
+
+final[KeywordToken] Set[StringToken]<[BeginToken]Undefined[StringToken]>[SimpleToken] foo1[StringToken] =[SimpleToken] const[KeywordToken] Set[StringToken]<[BeginToken]List[StringToken]<[BeginToken]int[StringToken]>[SimpleToken]>[SimpleToken]{[BeginToken]}[SimpleToken];[SimpleToken]
+
+
+final[KeywordToken] Set[StringToken]<[BeginToken]Undefined[StringToken]>[SimpleToken] foo2[StringToken] =[SimpleToken] const[KeywordToken] <[BeginToken]List[StringToken]<[BeginToken]int[StringToken]>[SimpleToken]>[SimpleToken]{[BeginToken]}[SimpleToken];[SimpleToken]
+
+
+final[KeywordToken] Set[StringToken]<[BeginToken]Undefined[StringToken]>[SimpleToken] foo3[StringToken] =[SimpleToken] const[KeywordToken] Set[StringToken]{[BeginToken]}[SimpleToken];[SimpleToken]
+
+
+final[KeywordToken] Set[StringToken]<[BeginToken]Undefined[StringToken]>[SimpleToken] foo4[StringToken] =[SimpleToken] const[KeywordToken] Set[StringToken]<[BeginToken]List[StringToken]<[BeginToken]int[StringToken]>[SimpleToken]>[SimpleToken]([BeginToken])[SimpleToken];[SimpleToken]
+
+
+final[KeywordToken] Set[StringToken]<[BeginToken]Undefined[StringToken]>[SimpleToken] foo5[StringToken] =[SimpleToken] const[KeywordToken] Set[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+
+
+final[KeywordToken] Set[StringToken]<[BeginToken]Undefined[StringToken]>[SimpleToken] foo6[StringToken] =[SimpleToken] const[KeywordToken] Set[StringToken]<[BeginToken]List[StringToken]<[BeginToken]int[StringToken]>[SimpleToken]>[SimpleToken]{[BeginToken]null[KeywordToken]}[SimpleToken];[SimpleToken]
+
+
+final[KeywordToken] Set[StringToken]<[BeginToken]Undefined[StringToken]>[SimpleToken] foo7[StringToken] =[SimpleToken] const[KeywordToken] Set[StringToken]{[BeginToken]null[KeywordToken]}[SimpleToken];[SimpleToken]
+
+
+final[KeywordToken] Set[StringToken]<[BeginToken]Undefined[StringToken]>[SimpleToken] foo8[StringToken] =[SimpleToken] const[KeywordToken] <[BeginToken]List[StringToken]<[BeginToken]int[StringToken]>[SimpleToken]>[SimpleToken]{[BeginToken]null[KeywordToken]}[SimpleToken];[SimpleToken]
+
+
+final[KeywordToken] Set[StringToken]<[BeginToken]Undefined[StringToken]>[SimpleToken] foo9[StringToken] =[SimpleToken] const[KeywordToken] {[BeginToken]null[KeywordToken]}[SimpleToken];[SimpleToken]
+}[SimpleToken][SimpleToken]

@@ -1,0 +1,221 @@
+// Copyright (c) 2020, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:analysis_server/src/services/correction/dart/create_getter.dart';
+import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/services/correction/util.dart';
+import 'package:analysis_server/src/utilities/extensions/dart_type.dart';
+import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/utilities/extensions/ast.dart';
+import 'package:analyzer/src/utilities/extensions/object.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
+import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+
+class CreateField extends CreateFieldOrGetter {
+  /// The name of the field to be created.
+  String _fieldName = '';
+
+  new({required super.context});
+
+  @override
+  CorrectionApplicability get applicability =>
+      // TODO(applicability): comment on why.
+      CorrectionApplicability.singleLocation;
+
+  @override
+  List<String> get fixArguments => [_fieldName];
+
+  @override
+  FixKind get fixKind => DartFixKind.createField;
+
+  @override
+  Future<void> addForObjectPattern({
+    required ChangeBuilder builder,
+    required InterfaceElement? targetElement,
+    required String fieldName,
+    required DartType? fieldType,
+    required InterfaceType? targetType,
+  }) async {
+    _fieldName = fieldName;
+
+    await _addDeclaration(
+      builder: builder,
+      staticModifier: false,
+      targetElement: targetElement,
+      fieldType: fieldType,
+      target: targetType,
+    );
+  }
+
+  @override
+  Future<void> compute(ChangeBuilder builder) async {
+    if (await compute0(builder)) {
+      return;
+    }
+
+    var parameter = node.thisOrAncestorOfType<FieldFormalParameter>();
+    if (parameter != null) {
+      await _proposeFromFieldFormalParameter(builder, parameter);
+    } else {
+      await _proposeFromIdentifier(builder);
+    }
+  }
+
+  Future<void> _addDeclaration({
+    required ChangeBuilder builder,
+    required bool staticModifier,
+    required InterfaceElement? targetElement,
+    required DartType? fieldType,
+    required InterfaceType? target,
+  }) async {
+    if (targetElement == null) {
+      return;
+    }
+    if (targetElement.library.isInSdk) {
+      return;
+    }
+    // Prepare target `ClassDeclaration`.
+    var targetFragment = targetElement.firstFragment;
+    var targetNode = await getDeclarationNodeFromElement(
+      targetFragment.element,
+    );
+    if (targetNode is! CompilationUnitMember) {
+      return;
+    }
+    if (!(targetNode is ClassDeclaration ||
+        targetNode is EnumDeclaration ||
+        targetNode is MixinDeclaration)) {
+      return;
+    }
+    // Build field source.
+    var targetSource = targetFragment.libraryFragment.source;
+    var targetFile = targetSource.fullName;
+    await builder.addDartFileEdit(targetFile, (builder) {
+      builder.insertField(targetNode, (builder) {
+        var bound = target.typeParameterCorrespondingTo(fieldType);
+        builder.writeFieldDeclaration(
+          _fieldName,
+          isFinal: targetNode is EnumDeclaration && !staticModifier,
+          isStatic: staticModifier,
+          nameGroupName: 'NAME',
+          type: bound ?? fieldType,
+          typeGroupName: 'TYPE',
+          typeParametersInScope: [?bound.tryCast<TypeParameterType>()?.element],
+        );
+      });
+    });
+  }
+
+  Future<void> _proposeFromFieldFormalParameter(
+    ChangeBuilder builder,
+    FieldFormalParameter parameter,
+  ) async {
+    var constructor = parameter.thisOrAncestorOfType<ConstructorDeclaration>();
+    if (constructor == null) {
+      return;
+    }
+    var container = constructor.thisOrAncestorOfType<CompilationUnitMember>();
+    if (container == null) {
+      return;
+    }
+    if (container is! ClassDeclaration && container is! EnumDeclaration) {
+      return;
+    }
+
+    _fieldName = parameter.name.lexeme;
+
+    // Add proposal.
+    await builder.addDartFileEdit(file, (builder) {
+      builder.insertField(container, (builder) {
+        var type = parameter.declaredFragment?.element.type;
+        builder.writeFieldDeclaration(
+          _fieldName,
+          isFinal: constructor.constKeyword != null,
+          nameGroupName: 'NAME',
+          type: type,
+          typeGroupName: 'TYPE',
+          typeParametersInScope: [?type.tryCast<TypeParameterType>()?.element],
+        );
+      });
+    });
+  }
+
+  Future<void> _proposeFromIdentifier(ChangeBuilder builder) async {
+    var nameNode = node;
+    if (nameNode is! SimpleIdentifier) {
+      return;
+    }
+    _fieldName = nameNode.name;
+    // Prepare target `Expression`.
+    var parent = nameNode.parent;
+    var target = switch (parent) {
+      PrefixedIdentifier(:var prefix) => prefix,
+      PropertyAccess(:var realTarget) => realTarget,
+      _ => null,
+    };
+    // Prepare target `ClassElement`.
+    var staticModifier = false;
+    InterfaceElement? targetClassElement;
+    // If the target type contains type arguments
+    InterfaceType? targetType;
+    if (target != null) {
+      targetClassElement = getTargetInterfaceElement(target);
+      // Maybe static.
+      if (target.staticType case InterfaceType type) {
+        targetType = type;
+      }
+      if (target is Identifier) {
+        var targetIdentifier = target;
+        var targetElement = targetIdentifier.element;
+        if (targetElement == null) {
+          return;
+        }
+        staticModifier =
+            targetElement.kind == .CLASS ||
+            targetElement.kind == .ENUM ||
+            targetElement.kind == .MIXIN;
+      }
+    } else if (parent is DotShorthandPropertyAccess) {
+      targetClassElement = computeDotShorthandContextTypeElement(
+        node,
+        unitResult.libraryElement,
+      );
+      staticModifier = true;
+    } else {
+      targetClassElement = node.enclosingInterfaceElement;
+      staticModifier = inStaticContext;
+      if (targetClassElement?.thisType case InterfaceType type
+          when !staticModifier) {
+        targetType = type;
+      }
+    }
+
+    var fieldTypeNode = climbPropertyAccess(nameNode);
+    var fieldTypeParent = fieldTypeNode.parent;
+    if (targetClassElement is EnumElement &&
+        fieldTypeParent is AssignmentExpression &&
+        fieldTypeNode == fieldTypeParent.leftHandSide &&
+        !staticModifier) {
+      // Any field on an enum must be final; creating a final field does not
+      // make sense when seen in an assignment expression. Only static fields
+      // could be assigned.
+      return;
+    }
+    var fieldType = inferUndefinedExpressionType(fieldTypeNode);
+    if (fieldType is InvalidType) {
+      return;
+    }
+
+    await _addDeclaration(
+      builder: builder,
+      staticModifier: staticModifier,
+      targetElement: targetClassElement,
+      fieldType: fieldType,
+      target: targetType,
+    );
+  }
+}

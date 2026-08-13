@@ -1,0 +1,10 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method getLocation(core::String name) → (core::double, core::double)
+  ;
+static method main(core::List<core::String> arguments) → void
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;

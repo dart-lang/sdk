@@ -1,0 +1,30 @@
+# Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+_fe_analyzer_shared/lib/src/debug_helpers/debug_helpers/Exports: Fail
+_fe_analyzer_shared/lib/src/metadata/ast/Exports: Fail
+_fe_analyzer_shared/lib/src/parser/parser/Exports: Fail
+_fe_analyzer_shared/lib/src/scanner/scanner/Exports: Fail
+front_end/lib/src/api_prototype/codes/Exports: Fail
+front_end/lib/src/api_prototype/compiler_options/Exports: Fail
+front_end/lib/src/api_prototype/const_conditional_simplifier/Exports: Fail
+front_end/lib/src/api_prototype/constant_evaluator/Exports: Fail
+front_end/lib/src/api_prototype/dynamic_module_validator/Exports: Fail
+front_end/lib/src/api_prototype/external_effect/Exports: Fail
+front_end/lib/src/api_prototype/front_end/Exports: Fail
+front_end/lib/src/api_prototype/incremental_kernel_generator/Exports: Fail
+front_end/lib/src/api_prototype/lowering_predicates/Exports: Fail
+front_end/lib/src/api_prototype/record_use/Exports: Fail
+front_end/lib/src/api_prototype/static_weak_references/Exports: Fail
+front_end/lib/src/api_prototype/terminal_color_support/Exports: Fail
+front_end/lib/src/api_prototype/testing/Exports: Fail
+front_end/lib/src/api_prototype/try_constant_evaluator/Exports: Fail
+front_end/lib/src/base/messages/Exports: Fail
+front_end/lib/src/codes/cfe_codes/Exports: Fail
+front_end/lib/src/codes/diagnostic/Exports: Fail
+front_end/lib/src/debug_helpers/Exports: Fail
+front_end/lib/src/testing/id_testing_helper/Exports: Fail
+kernel/lib/ast/Exports: Fail
+kernel/lib/kernel/Exports: Fail
+kernel/lib/src/debug_helpers/Exports: Fail

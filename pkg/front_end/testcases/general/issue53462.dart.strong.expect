@@ -1,0 +1,23 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef Callback = () → void;
+class Foo extends core::Object {
+  late final [setter] field () →? void _koCallback;
+  final field () →? void _okCallback;
+  constructor •({() →? void okCallback = #C1, () →? void koCallback = #C1}) → self::Foo
+    : self::Foo::_okCallback = okCallback, super core::Object::•() {
+    this.{self::Foo::_koCallback} = koCallback;
+  }
+  method thisWorks() → void {
+    this.{self::Foo::_okCallback}{() →? void} == null ?{(dynamic) →? void} null : (dynamic value) → void => (this.{self::Foo::_okCallback}{() →? void} as{Unchecked} () → void)(){() → void};
+  }
+  method thisDoesNot() → void {
+    this.{self::Foo::_koCallback}{() →? void} == null ?{(dynamic) →? void} null : (dynamic value) → void => (this.{self::Foo::_koCallback}{() →? void} as{Unchecked} () → void)(){() → void};
+  }
+}
+
+constants  {
+  #C1 = null
+}

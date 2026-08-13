@@ -1,0 +1,13 @@
+{
+  "configVersion": 2,
+  "packages": [
+    {
+      "name": "..",
+      "rootUri": "nonexistent"
+    },
+    {
+      "name": "foo",
+      "rootUri": "foo"
+    }
+  ]
+}

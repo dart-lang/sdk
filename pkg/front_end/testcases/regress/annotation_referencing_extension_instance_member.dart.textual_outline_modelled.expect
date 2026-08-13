@@ -1,0 +1,5 @@
+extension Bar on String {
+  @foo
+  bar() => 42;
+  foo() => 42;
+}

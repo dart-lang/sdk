@@ -1,0 +1,7 @@
+// @dart = 2.19
+
+topLevel({int x: 3}) {}
+
+class Class {
+  method({int x: 3}) {}
+}

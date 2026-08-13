@@ -1,0 +1,25 @@
+class TypeExpecter<X> {
+  Y checkType<Y>(dynamic value) {}
+}
+
+expectThrows<T>(void Function() f) {}
+
+expectType<T>(x) {}
+
+main() {}
+
+test1(int? x) {}
+
+test2(dynamic x) {}
+
+test3(String? key) {}
+
+test4(dynamic key) {}
+
+test5(String? value) {}
+
+test6(dynamic value) {}
+
+test7(int? key, Symbol? value) {}
+
+test8(dynamic key, dynamic value) {}

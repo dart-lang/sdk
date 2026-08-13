@@ -1,0 +1,37 @@
+void f(bool b1, bool b2) {
+print('b1=$b1, b2=$b2');
+}
+
+void g(int x, int y, Object o, Object p) async {
+f(x < y, (await o, ) > (p as int));
+}
+
+void main() {
+g(0, 1, 2, 3);
+}
+
+extension on Map {
+bool operator>(dynamic whatever) {
+return true;
+}
+}
+
+
+void[KeywordToken] f[StringToken]([BeginToken]bool[StringToken] b1[StringToken],[SimpleToken] bool[StringToken] b2[StringToken])[SimpleToken] {[BeginToken]
+print[StringToken]([BeginToken]'b1=[StringToken]$[SimpleToken]b1[StringToken], b2=[StringToken]$[SimpleToken]b2[StringToken]'[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+
+void[KeywordToken] g[StringToken]([BeginToken]int[StringToken] x[StringToken],[SimpleToken] int[StringToken] y[StringToken],[SimpleToken] Object[StringToken] o[StringToken],[SimpleToken] Object[StringToken] p[StringToken])[SimpleToken] async[KeywordToken] {[BeginToken]
+f[StringToken]([BeginToken]x[StringToken] <[BeginToken] y[StringToken],[SimpleToken] ([BeginToken]await[KeywordToken] o[StringToken],[SimpleToken] )[SimpleToken] >[SimpleToken] ([BeginToken]p[StringToken] as[KeywordToken] int[StringToken])[SimpleToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+
+void[KeywordToken] main[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+g[StringToken]([BeginToken]0[StringToken],[SimpleToken] 1[StringToken],[SimpleToken] 2[StringToken],[SimpleToken] 3[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+
+extension[KeywordToken] on[KeywordToken] Map[StringToken] {[BeginToken]
+bool[StringToken] operator[KeywordToken]>[SimpleToken]([BeginToken]dynamic[KeywordToken] whatever[StringToken])[SimpleToken] {[BeginToken]
+return[KeywordToken] true[KeywordToken];[SimpleToken]
+}[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

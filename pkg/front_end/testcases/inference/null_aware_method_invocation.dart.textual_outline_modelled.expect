@@ -1,0 +1,9 @@
+library test;
+
+class C {
+  int f() => throw '';
+}
+
+g(C? c) {}
+
+main() {}

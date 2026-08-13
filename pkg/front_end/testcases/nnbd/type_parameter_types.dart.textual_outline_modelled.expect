@@ -1,0 +1,21 @@
+Never never() => throw "Never";
+
+class A<X extends Object, Y extends Object?> {
+  X? bar() => null;
+  X foo() => never();
+  Y baz() => never();
+}
+
+class B<X extends List<Y>, Y extends Object?> {
+  foo(X x, Y y) {}
+}
+
+class C<X extends List<Y>?, Y extends List<X>?> {
+  foo(X x, Y y) {}
+}
+
+class D<X extends Y, Y extends Z, Z> {
+  foo(X x, Y y, Z z) {}
+}
+
+main() {}

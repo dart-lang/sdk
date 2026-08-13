@@ -1,0 +1,130 @@
+# Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Compile an application with a number of modules.
+# Compile again with changing modules.
+
+type: newworld
+modules:
+  example_1:
+    example_1/a.dart: |
+      a() {}
+      var example = true;
+    example_1/.dart_tool/package_config.json: |
+      {
+        "configVersion": 2,
+        "packages": [
+          {
+            "name": "example",
+            "rootUri": ".."
+          }
+        ]
+      }
+  example_2:
+    example_2/a.dart: |
+      a() {}
+      var example = true;
+    example_2/.dart_tool/package_config.json: |
+      {
+        "configVersion": 2,
+        "packages": [
+          {
+            "name": "example",
+            "rootUri": ".."
+          }
+        ]
+      }
+  foo:
+    foo/foo.dart: |
+      export "package:example/a.dart";
+      var foo = true;
+    foo/.dart_tool/package_config.json: |
+      {
+        "configVersion": 2,
+        "packages": [
+          {
+            "name": "foo",
+            "rootUri": ".."
+          },
+          {
+            "name": "example",
+            "rootUri": "../../example_1"
+          }
+        ]
+      }
+worlds:
+  - entry: main.dart
+    fromComponent: true
+    sources:
+      main.dart: |
+        import "package:foo/foo.dart";
+        main() {
+          print("hello");
+          a();
+        }
+      .dart_tool/package_config.json: |
+        {
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "foo",
+              "rootUri": "../foo"
+            },
+            {
+              "name": "example",
+              "rootUri": "../../example_1"
+            }
+          ]
+        }
+    modules:
+      - foo
+      - example_1
+    expectedLibraryCount: 3
+    neededDillLibraries:
+      - package:foo/foo.dart
+      - package:example/a.dart
+    expectedContent:
+      org-dartlang-test:///main.dart:
+        - Procedure main
+      package:foo/foo.dart:
+        - Field foo
+      package:example/a.dart:
+        - Procedure a
+        - Field example
+    advancedInvalidation: modulesToLoad
+
+  - entry: main.dart
+    worldType: updated
+    expectInitializeFromDill: false
+    sources:
+      .dart_tool/package_config.json: |
+        {
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "foo",
+              "rootUri": "../foo"
+            },
+            {
+              "name": "example",
+              "rootUri": "../../example_2"
+            }
+          ]
+        }
+    modules:
+      - foo
+      - example_2
+    expectedLibraryCount: 3
+    neededDillLibraries:
+      - package:foo/foo.dart
+      - package:example/a.dart
+    expectedContent:
+      org-dartlang-test:///main.dart:
+        - Procedure main
+      package:foo/foo.dart:
+        - Field foo
+      package:example/a.dart:
+        - Procedure a
+        - Field example
+    advancedInvalidation: modulesToLoad

@@ -1,0 +1,15 @@
+class A<T> {}
+
+mixin M<T> {}
+
+class DND1 extends Object with M<dynamic> Function()> {
+}
+
+
+class[KeywordToken] A[StringToken]<[BeginToken]T[StringToken]>[SimpleToken] {[BeginToken]}[SimpleToken]
+
+mixin[KeywordToken] M[StringToken]<[BeginToken]T[StringToken]>[SimpleToken] {[BeginToken]}[SimpleToken]
+
+class[KeywordToken] DND1[StringToken] extends[KeywordToken] Object[StringToken] with[KeywordToken] M[StringToken]<[BeginToken]dynamic[KeywordToken]>[SimpleToken] Function[KeywordToken]([BeginToken])[SimpleToken]>[SimpleToken] {[BeginToken]
+}[SimpleToken]
+[SimpleToken]

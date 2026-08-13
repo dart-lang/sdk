@@ -1,0 +1,5 @@
+import 'main_lib.dart';
+
+class B extends A {}
+
+main() {}

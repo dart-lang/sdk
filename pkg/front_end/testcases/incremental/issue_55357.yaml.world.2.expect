@@ -1,0 +1,9 @@
+main = <No Member>;
+library from "org-dartlang-test:///main.dart" as main {
+
+  extension /* unnamed */ _extension#0 on dart.core::String {
+    get fooValue = main::_extension#0|get#fooValue;
+  }
+  static extension-member method _extension#0|get#fooValue(lowered final dart.core::String #this) → dart.core::int
+    return 42;
+}

@@ -1,0 +1,22 @@
+# Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+analyzer:
+  errors:
+    todo: ignore
+    deprecated_member_use: ignore
+    illegal_language_version_override: ignore
+
+  exclude:
+    - '**/data/*'
+    - '**/inference_data/*'
+    - 'rti/emission/*'
+    - '**/model_data/*'
+    - 'deferred_loading/libs/*'
+
+linter:
+  rules:
+    - annotate_overrides
+    - prefer_if_null_operators
+    - prefer_null_aware_operators

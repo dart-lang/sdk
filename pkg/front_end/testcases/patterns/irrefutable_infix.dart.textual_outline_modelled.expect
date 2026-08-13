@@ -1,0 +1,11 @@
+abstract class Foo {
+  int get a;
+  num get b;
+  num get c;
+}
+
+method1(o) {}
+
+method2(o) {}
+
+method3(o) {}

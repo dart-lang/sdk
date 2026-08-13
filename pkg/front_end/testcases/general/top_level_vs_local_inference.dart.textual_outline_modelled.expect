@@ -1,0 +1,13 @@
+class Column {}
+
+class TableContext {}
+
+class TableSchema<F extends Column, C extends TableContext> {
+  TableSchema._();
+  factory TableSchema({required Iterable<F> fields, C? context}) =>
+      new TableSchema._();
+}
+
+var schema = TableSchema(fields: []);
+
+void method() {}

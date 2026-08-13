@@ -1,0 +1,30 @@
+class Class<T> {
+  Class(this.field);
+  T? lateGenericInstanceFieldInit() => field;
+  final T? field;
+  instanceMethod(T? value) {}
+  int? lateInstanceFieldInit() => 16;
+  late T? lateGenericInstanceField = lateGenericInstanceFieldInit();
+  late int? lateInstanceField = lateInstanceFieldInit();
+  static int? lateStaticField1Init() => 87;
+  static int? lateStaticField2Init() => 42;
+  static late int? lateStaticField1 = lateStaticField1Init();
+  static late int? lateStaticField2 = lateStaticField2Init();
+  static staticMethod() {}
+}
+
+expect(expected, actual) {}
+
+extension Extension<T> on Class<T> {
+  static int? lateExtensionField1Init() => 87;
+  static int? lateExtensionField2Init() => 42;
+  static late int? lateExtensionField1 = lateExtensionField1Init();
+  static late int? lateExtensionField2 = lateExtensionField2Init();
+  static staticMethod() {}
+}
+
+int? lateTopLevelField1Init() => 123;
+
+late int? lateTopLevelField1 = lateTopLevelField1Init();
+
+main() {}

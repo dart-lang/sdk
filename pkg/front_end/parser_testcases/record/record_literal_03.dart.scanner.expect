@@ -1,0 +1,29 @@
+void foo() {
+
+var r1 = (42, );
+
+
+var r2 = (hello: 42);
+
+
+var r3 = (hello: 42, );
+
+
+var r4 = (42);
+}
+
+
+void[KeywordToken] foo[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+
+var[KeywordToken] r1[StringToken] =[SimpleToken] ([BeginToken]42[StringToken],[SimpleToken] )[SimpleToken];[SimpleToken]
+
+
+var[KeywordToken] r2[StringToken] =[SimpleToken] ([BeginToken]hello[StringToken]:[SimpleToken] 42[StringToken])[SimpleToken];[SimpleToken]
+
+
+var[KeywordToken] r3[StringToken] =[SimpleToken] ([BeginToken]hello[StringToken]:[SimpleToken] 42[StringToken],[SimpleToken] )[SimpleToken];[SimpleToken]
+
+
+var[KeywordToken] r4[StringToken] =[SimpleToken] ([BeginToken]42[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

@@ -1,0 +1,5 @@
+get x => 42;
+
+main() {}
+
+set x(val) {}

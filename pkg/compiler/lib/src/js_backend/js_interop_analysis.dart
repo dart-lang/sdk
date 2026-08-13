@@ -1,0 +1,79 @@
+// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+/// Analysis to determine how to generate code for typed JavaScript interop.
+library;
+
+import '../elements/types.dart';
+import '../js/js.dart' as js_ast;
+import '../js/js.dart' show js;
+import '../universe/codegen_world_builder.dart';
+import '../universe/selector.dart' show Selector;
+import '../universe/world_builder.dart' show SelectorConstraints;
+import 'namer.dart';
+import 'native_data.dart';
+
+const String _candidateParameterNames =
+    'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+String _generateParameterName(int index) {
+  final StringBuffer buffer = StringBuffer();
+  while (index >= _candidateParameterNames.length) {
+    buffer.write(
+      _candidateParameterNames[index % _candidateParameterNames.length],
+    );
+    index = index ~/ _candidateParameterNames.length;
+  }
+  buffer.write(_candidateParameterNames[index]);
+  return buffer.toString();
+}
+
+js_ast.Statement? buildJsInteropBootstrap(
+  CodegenWorld codegenWorld,
+  NativeBasicData nativeBasicData,
+  Namer namer,
+) {
+  if (!nativeBasicData.isJsInteropUsed) return null;
+  List<js_ast.Statement> statements = [];
+  codegenWorld.forEachInvokedName((
+    String name,
+    Map<Selector, SelectorConstraints> selectors,
+  ) {
+    selectors.forEach((Selector selector, SelectorConstraints constraints) {
+      if (selector.isMaybeClosureCall) {
+        // TODO(jacobr): support named arguments.
+        if (selector.namedArgumentCount > 0) return;
+        int argumentCount = selector.argumentCount;
+        List<String> parameters = List<String>.generate(
+          argumentCount,
+          _generateParameterName,
+        );
+
+        js_ast.Name name = namer.invocationName(selector);
+        statements.add(
+          js.statement(
+            'Function.prototype.# = function(#) { return this(#) }',
+            [name, parameters, parameters],
+          ),
+        );
+      }
+    });
+  });
+  return js_ast.Block(statements);
+}
+
+FunctionType buildJsFunctionType(DartTypes dartTypes) {
+  // TODO(jacobr): consider using codegenWorldBuilder.isChecks to determine the
+  // range of positional arguments that need to be supported by JavaScript
+  // function types.
+  return dartTypes.functionType(
+    dartTypes.dynamicType(),
+    const <DartType>[],
+    List<DartType>.filled(16, dartTypes.dynamicType()),
+    const <String>[],
+    const <String>{},
+    const <DartType>[],
+    const <FunctionTypeVariable>[],
+  );
+}

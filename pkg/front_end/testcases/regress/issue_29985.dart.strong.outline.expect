@@ -1,0 +1,15 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/regress/issue_29985.dart:6:3: Error: The non-ASCII character '🔛' (U+1F51B) can't be used in identifiers, only in strings and comments.
+// Try using an US-ASCII letter, a digit, '_' (an underscore), or '$' (a dollar sign).
+//   🔛
+//   ^
+//
+import self as self;
+
+static method bad() → dynamic
+  ;
+static method main() → dynamic
+  ;

@@ -1,0 +1,22 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Class<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::Class<self::Class::T%>
+    ;
+  method method(covariant-by-class self::Class::T% a) → self::Class::T%
+    ;
+}
+extension Extension<T extends core::Object? = dynamic> on self::Class<T%> {
+  method call = self::Extension|call;
+  method tearoff call = self::Extension|get#call;
+}
+static extension-member method Extension|call<T extends core::Object? = dynamic>(lowered final self::Class<self::Extension|call::T%> #this, self::Extension|call::T% a) → self::Extension|call::T%
+  ;
+static extension-member method Extension|get#call<T extends core::Object? = dynamic>(lowered final self::Class<self::Extension|get#call::T%> #this) → (self::Extension|get#call::T%) → self::Extension|get#call::T%
+  return (self::Extension|get#call::T% a) → self::Extension|get#call::T% => self::Extension|call<self::Extension|get#call::T%>(#this, a);
+static method main() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;

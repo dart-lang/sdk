@@ -1,0 +1,15 @@
+library test;
+
+import 'infer_type_regardless_of_declaration_order_or_cycles_b.dart';
+
+class A {
+  int get x => 0;
+}
+
+class C extends B {
+  get x => throw '';
+}
+
+foo() {}
+
+main() {}

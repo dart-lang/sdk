@@ -1,0 +1,104 @@
+# Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+_dart_root = get_path_info("../..", "abspath")
+
+template("rust_library") {
+  manifest = rebase_path("Cargo.toml")
+  if (defined(invoker.manifest)) {
+    manifest = invoker.manifest
+  }
+
+  debug = defined(invoker.debug) && invoker.debug
+  shared = defined(invoker.shared) && invoker.shared
+
+  cmd = [
+    rebase_path("//buildtools/${host_os}-${host_cpu}/rust/bin/cargo"),
+    "build",
+    "--target-dir",
+    rebase_path(target_out_dir),
+    "--manifest-path",
+    manifest,
+  ]
+
+  # For cross compilation, figure out the target triple. You can get a full list
+  # of the targets that rust supports like this: rustc --print target-list
+  cargo_out_dir = target_out_dir
+  if (is_linux) {
+    rust_os = "unknown-linux-gnu"
+  } else if (is_mac) {
+    rust_os = "apple-darwin"
+  } else if (is_win) {
+    rust_os = "pc-windows-gnu"
+  } else if (is_android) {
+    rust_os = "linux-android"
+  } else if (is_fuchsia) {
+    rust_os = "fuchsia"
+  }
+  if (defined(rust_os)) {
+    if (current_cpu == "x86") {
+      rust_target = "i686-${rust_os}"
+    } else if (current_cpu == "x64") {
+      rust_target = "x86_64-${rust_os}"
+    } else if (current_cpu == "arm") {
+      rust_target = "arm-${rust_os}eabi"
+    } else if (current_cpu == "arm64") {
+      rust_target = "aarch64-${rust_os}"
+    }
+  }
+  if (defined(rust_target)) {
+    cmd += [
+      "--target",
+      rust_target,
+    ]
+    cargo_out_dir += "/${rust_target}"
+  }
+
+  if (debug) {
+    cargo_out_dir += "/debug"
+  } else {
+    cargo_out_dir += "/release"
+    cmd += [ "--release" ]
+  }
+
+  output_file = ""
+  if (shared) {
+    if (is_win) {
+      output_file = "${invoker.lib_name}.dll"
+    } else if (is_mac) {
+      output_file = "lib${invoker.lib_name}.dylib"
+    } else {
+      output_file = "lib${invoker.lib_name}.so"
+    }
+  } else {
+    if (is_win) {
+      output_file = "${invoker.lib_name}.lib"
+    } else {
+      output_file = "lib${invoker.lib_name}.a"
+    }
+  }
+
+  action("${target_name}_cargo") {
+    script = "${_dart_root}/build/rust/run.py"
+    args = cmd
+    outputs = [ "${cargo_out_dir}/${output_file}" ]
+    public_configs = [ ":${target_name}_config" ]
+  }
+
+  config("${target_name}_cargo_config") {
+    if (!shared) {
+      libs = [ invoker.lib_name ]
+      lib_dirs = [ target_out_dir ]
+    }
+  }
+
+  # Cargo leaves the library in cargo_out_dir, which varies based on the target.
+  # So we need to copy it to target_out_dir to make it easier for dependees to
+  # locate the library.
+  copy(target_name) {
+    public_deps = [ ":${target_name}_cargo" ]
+    sources = [ "${cargo_out_dir}/${output_file}" ]
+    outputs = [ "${target_out_dir}/${output_file}" ]
+  }
+}

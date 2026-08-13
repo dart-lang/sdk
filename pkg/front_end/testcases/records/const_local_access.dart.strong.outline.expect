@@ -1,0 +1,14 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object /*hasConstConstructor*/  {
+  final field (core::num, {required name: core::String}) r;
+  const constructor •(core::int i, core::String s) → self::C
+    : self::C::r = (i.{core::num::+}(1){(core::num) → core::int}, {name: s.{core::String::+}("!"){(core::String) → core::String}}), super core::Object::•()
+    ;
+}
+static method main() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;

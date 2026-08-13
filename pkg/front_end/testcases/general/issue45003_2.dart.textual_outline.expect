@@ -1,0 +1,14 @@
+class C {
+  const C({dynamic x = const A.foo()});
+}
+
+class B<X> extends A {
+  const B();
+}
+
+abstract class A {
+  const A();
+  const factory A.foo() = B;
+}
+
+main() {}

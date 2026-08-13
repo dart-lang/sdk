@@ -1,0 +1,15 @@
+digraph {
+        label="Dominators";
+        r -> a;
+        r -> b;
+        r -> c;
+        r -> d;
+        d -> e;
+        d -> f;
+        d -> g;
+        { rank=same; r }
+        { rank=same; a; b }
+        { rank=same; c; d }
+        { rank=same; e; f }
+        { rank=same; g }
+}

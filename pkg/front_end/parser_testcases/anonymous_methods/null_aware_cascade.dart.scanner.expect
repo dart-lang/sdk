@@ -1,0 +1,21 @@
+main() => 1?..{};
+main() => 1?..{ 1; };
+main() => 1?..=> 1;
+main() => 1?..(p) {};
+main() => 1?..(p) { 1; };
+main() => 1?..(p) => 1;
+main() => 1?..(int p) {};
+main() => 1?..(int p) { 1; };
+main() => 1?..(int p) => 1;
+
+
+main[StringToken]([BeginToken])[SimpleToken] =>[SimpleToken] 1[StringToken]?..[SimpleToken]{[BeginToken]}[SimpleToken];[SimpleToken]
+main[StringToken]([BeginToken])[SimpleToken] =>[SimpleToken] 1[StringToken]?..[SimpleToken]{[BeginToken] 1[StringToken];[SimpleToken] }[SimpleToken];[SimpleToken]
+main[StringToken]([BeginToken])[SimpleToken] =>[SimpleToken] 1[StringToken]?..[SimpleToken]=>[SimpleToken] 1[StringToken];[SimpleToken]
+main[StringToken]([BeginToken])[SimpleToken] =>[SimpleToken] 1[StringToken]?..[SimpleToken]([BeginToken]p[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken];[SimpleToken]
+main[StringToken]([BeginToken])[SimpleToken] =>[SimpleToken] 1[StringToken]?..[SimpleToken]([BeginToken]p[StringToken])[SimpleToken] {[BeginToken] 1[StringToken];[SimpleToken] }[SimpleToken];[SimpleToken]
+main[StringToken]([BeginToken])[SimpleToken] =>[SimpleToken] 1[StringToken]?..[SimpleToken]([BeginToken]p[StringToken])[SimpleToken] =>[SimpleToken] 1[StringToken];[SimpleToken]
+main[StringToken]([BeginToken])[SimpleToken] =>[SimpleToken] 1[StringToken]?..[SimpleToken]([BeginToken]int[StringToken] p[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken];[SimpleToken]
+main[StringToken]([BeginToken])[SimpleToken] =>[SimpleToken] 1[StringToken]?..[SimpleToken]([BeginToken]int[StringToken] p[StringToken])[SimpleToken] {[BeginToken] 1[StringToken];[SimpleToken] }[SimpleToken];[SimpleToken]
+main[StringToken]([BeginToken])[SimpleToken] =>[SimpleToken] 1[StringToken]?..[SimpleToken]([BeginToken]int[StringToken] p[StringToken])[SimpleToken] =>[SimpleToken] 1[StringToken];[SimpleToken]
+[SimpleToken]

@@ -1,0 +1,68 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/rasta/super.dart:27:7: Error: The setter conflicts with declaration 'n'.
+//   set n(_) {}
+//       ^
+// pkg/front_end/testcases/rasta/super.dart:26:8: Context: Conflicting declaration 'n'.
+//   void n() {}
+//        ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  field dynamic a;
+  field dynamic b;
+  field dynamic c;
+  field dynamic d;
+  final field dynamic f;
+  synthetic constructor •() → self::A
+    ;
+  get e() → dynamic
+    ;
+  set g(wildcard dynamic _#wc0#formal) → void
+    ;
+  get h() → dynamic
+    ;
+  set h(wildcard dynamic _#wc1#formal) → void
+    ;
+  get i() → dynamic
+    ;
+  operator [](wildcard dynamic _#wc2#formal) → dynamic
+    ;
+  operator []=(dynamic a, dynamic b) → void
+    ;
+  operator ~() → dynamic
+    ;
+  operator unary-() → dynamic
+    ;
+  operator ==(core::Object other) → core::bool
+    ;
+  method m() → void
+    ;
+  method n() → void
+    ;
+}
+class B extends self::A {
+  final field dynamic d;
+  synthetic constructor •() → self::B
+    ;
+  get b() → dynamic
+    ;
+  set c(dynamic x) → void
+    ;
+  set i(dynamic x) → void
+    ;
+}
+class C extends self::B {
+  synthetic constructor •() → self::C
+    ;
+  method test() → dynamic
+    ;
+}
+static method use(dynamic x) → dynamic
+  ;
+static method main() → dynamic
+  ;

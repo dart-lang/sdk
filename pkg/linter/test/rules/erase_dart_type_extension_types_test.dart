@@ -1,0 +1,53 @@
+// Copyright (c) 2023, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:test_reflective_loader/test_reflective_loader.dart';
+
+import '../rule_test_support.dart';
+
+void main() {
+  defineReflectiveSuite(() {
+    defineReflectiveTests(EraseDartTypeExtensionTypesTest);
+  });
+}
+
+@reflectiveTest
+class EraseDartTypeExtensionTypesTest extends LintRuleTest {
+  @override
+  String get lintRule => LintNames.erase_dart_type_extension_types;
+
+  @override
+  void setUp() {
+    newPackage('kernel').addFile('lib/ast.dart', r'''
+library kernel.ast;
+
+abstract class Node {}
+
+class DartType extends Node {}
+
+class InterfaceType extends DartType {}
+''');
+    super.setUp();
+  }
+
+  test_isDartType() async {
+    await assertDiagnosticsFromMarkup(r'''
+import 'package:kernel/ast.dart';
+
+void f(Object t) {
+  [!t is DartType!];
+}
+''');
+  }
+
+  test_isDartType_subclass() async {
+    await assertDiagnosticsFromMarkup(r'''
+import 'package:kernel/ast.dart';
+
+void f(Object t) {
+  [!t is InterfaceType!];
+}
+''');
+  }
+}

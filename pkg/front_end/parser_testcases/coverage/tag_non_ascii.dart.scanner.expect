@@ -1,0 +1,5 @@
+#!æbler
+void foo() {}
+
+#!æbler[StringToken]
+void[KeywordToken] foo[StringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken][SimpleToken]

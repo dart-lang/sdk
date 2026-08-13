@@ -1,0 +1,7 @@
+T id<T>(T t) => t;
+
+class Class<E> {
+  void method(E e) {}
+}
+
+main() {}

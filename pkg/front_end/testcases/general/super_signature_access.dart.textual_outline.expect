@@ -1,0 +1,46 @@
+class Super {
+  void method(num a) {}
+  num operator [](num a) => 0;
+  void operator []=(num a, num b) {}
+  void set setter(num a) {}
+}
+
+class Super1 {
+  num? operator [](num a) => null;
+  void operator []=(num a, num b) {}
+}
+
+class Class extends Super {
+  void method(covariant int a);
+  num operator [](covariant int a);
+  void operator []=(covariant int a, covariant int b);
+  void set setter(covariant int a);
+}
+
+class Class1 extends Super1 {
+  num? operator [](covariant int a);
+  void operator []=(covariant int a, covariant int b);
+}
+
+class Subclass extends Class {
+  void method(int a) {}
+  num operator [](covariant int a) {}
+  void operator []=(covariant int a, covariant int b) {}
+  void set setter(int a) {}
+}
+
+class Subclass1 extends Class1 {
+  num? operator [](covariant int a) {}
+  void operator []=(covariant int a, covariant int b) {}
+}
+
+mixin Mixin on Class {
+  void method(int a) {}
+  num operator [](covariant int a) {}
+  void operator []=(covariant int a, covariant int b) {}
+  void set setter(int a) {}
+}
+
+mixin Mixin1 on Class1 {
+  void operator []=(covariant int a, covariant int b) {}
+}

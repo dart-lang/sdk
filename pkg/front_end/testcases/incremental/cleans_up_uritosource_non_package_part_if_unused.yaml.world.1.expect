@@ -1,0 +1,23 @@
+main = main::main;
+library libFoo from "org-dartlang-test:///b.dart" as lib {
+
+  part e.dart;
+  part c.dart;
+  part d.dart;
+  static method b() → dynamic {
+    lib::c();
+    lib::d();
+    lib::e();
+  }
+  static method /* from org-dartlang-test:///c.dart */ c() → dynamic {}
+  static method /* from org-dartlang-test:///d.dart */ d() → dynamic {}
+  static method /* from org-dartlang-test:///e.dart */ e() → dynamic {}
+}
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "org-dartlang-test:///b.dart";
+
+  static method main() → dynamic {
+    lib::b();
+  }
+}

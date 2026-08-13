@@ -1,0 +1,9 @@
+# Parent grants access to everybody so ignore that.
+set noparent
+
+# But we do still want to permit the last resort global approvers
+# defined at top level.
+file:/OWNERS
+
+# Owned by language team members.
+file:/tools/OWNERS_LANGUAGE

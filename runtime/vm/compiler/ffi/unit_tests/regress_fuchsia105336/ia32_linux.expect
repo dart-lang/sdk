@@ -1,0 +1,9 @@
+S+0 int32
+S+4 double
+S+12 int32
+S+16 double
+S+24 int32
+S+28 int32
+S+32 int32
+=>
+eax void

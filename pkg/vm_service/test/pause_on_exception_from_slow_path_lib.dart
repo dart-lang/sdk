@@ -1,0 +1,26 @@
+// Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'common/test_helper.dart';
+
+class X {
+  late String _y;
+
+  @pragma('vm:never-inline')
+  String get y => _y;
+}
+
+Future<void> testeeMain() async {
+  final x = X();
+  x._y = '';
+  for (int i = 0; i < 2000; i++) {
+    x.y;
+  }
+
+  X().y;
+}
+
+Future<void> main([List<String> args = const <String>[]]) {
+  return startServiceTest(testeeConcurrent: testeeMain);
+}

@@ -1,0 +1,3 @@
+(int, int) firstAndLast(List<int> a) => (a.first, a.last);
+
+main() {}

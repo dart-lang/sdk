@@ -1,0 +1,17 @@
+class C {
+  const new(int x);
+}
+
+class E {
+  const new named();
+}
+
+class const D() extends C {
+  this : super(0);
+}
+
+class const F() extends E {
+  this : super.named();
+}
+
+void main() {}

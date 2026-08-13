@@ -1,0 +1,14 @@
+import 'dart:collection';
+
+A a = throw '';
+
+DoubleLinkedQueue c = throw '';
+
+class A<T> {}
+
+class C {
+  A foo() => throw '';
+  DoubleLinkedQueue baz() => throw '';
+}
+
+main() {}

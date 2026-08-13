@@ -1,0 +1,9 @@
+expect(expected, actual) {}
+
+extension type Class(int it) {
+  Class.named(int it) : this.it = it + 1;
+}
+
+extension type GenericClass<T>(T it) {}
+
+main() {}

@@ -1,0 +1,7 @@
+class A {
+  Stream<List<>>
+}
+
+class B {
+  List<>
+}

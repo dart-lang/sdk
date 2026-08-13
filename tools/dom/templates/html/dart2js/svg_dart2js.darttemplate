@@ -1,0 +1,32 @@
+// DO NOT EDIT - unless you are editing documentation as per:
+// https://code.google.com/p/dart/wiki/ContributingHTMLDocumentation
+// Auto-generated dart:svg library.
+
+/// Scalable Vector Graphics:
+/// Two-dimensional vector graphics with support for events and animation.
+///
+/// > [!Note]
+/// > This core library is deprecated, and scheduled for removal in late 2025.
+/// > It has been replaced by [package:web](https://pub.dev/packages/web).
+/// > The [migration guide](https://dart.dev/go/package-web) has more details.
+///
+/// For details about the features and syntax of SVG, a W3C standard,
+/// refer to the
+/// [Scalable Vector Graphics Specification](http://www.w3.org/TR/SVG/).
+///
+/// {@category Web (Legacy)}
+@Deprecated('Use package:web and dart:js_interop instead.')
+library dart.dom.svg;
+
+import 'dart:async';
+import 'dart:collection' hide LinkedList, LinkedListEntry;
+import 'dart:_internal' show FixedLengthListMixin;
+import 'dart:html';
+import 'dart:html_common';
+import 'dart:_js_helper' show Creates, Returns, JSName, Native;
+import 'dart:_foreign_helper' show JS;
+import 'dart:_interceptors' show JavaScriptObject;
+
+part '$AUXILIARY_DIR/shared_SVGFactoryProviders.dart';
+
+$!GENERATED_DART_FILES

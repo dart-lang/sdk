@@ -1,0 +1,11 @@
+class Super {}
+
+class Class extends Super {
+  method() {}
+  static staticMethod() {}
+}
+
+mixin Mixin on Super {
+  method() {}
+  static staticMethod() {}
+}

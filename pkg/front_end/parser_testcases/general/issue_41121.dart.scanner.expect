@@ -1,0 +1,73 @@
+class ConfigurationService {
+Configuration _configuration;
+
+ConfigurationService(Configuration configuration)
+: assert(configuration != null),
+_configuration = configuration {
+
+}
+
+void set configuration(Configuration configuration)
+: assert(configuration != null),
+_configuration = configuration {
+
+}
+
+Configuration get configuration
+: assert(_configuration != null),
+_configuration = _configuration.foo {
+
+return _configuration;
+}
+
+void method() : _configuration = null {
+
+}
+
+Foo() : _configuration = null {
+
+
+}
+}
+
+class Configuration {
+Configuration get foo => this;
+}
+
+
+class[KeywordToken] ConfigurationService[StringToken] {[BeginToken]
+Configuration[StringToken] _configuration[StringToken];[SimpleToken]
+
+ConfigurationService[StringToken]([BeginToken]Configuration[StringToken] configuration[StringToken])[SimpleToken]
+:[SimpleToken] assert[KeywordToken]([BeginToken]configuration[StringToken] !=[SimpleToken] null[KeywordToken])[SimpleToken],[SimpleToken]
+_configuration[StringToken] =[SimpleToken] configuration[StringToken] {[BeginToken]
+
+}[SimpleToken]
+
+void[KeywordToken] set[KeywordToken] configuration[StringToken]([BeginToken]Configuration[StringToken] configuration[StringToken])[SimpleToken]
+:[SimpleToken] assert[KeywordToken]([BeginToken]configuration[StringToken] !=[SimpleToken] null[KeywordToken])[SimpleToken],[SimpleToken]
+_configuration[StringToken] =[SimpleToken] configuration[StringToken] {[BeginToken]
+
+}[SimpleToken]
+
+Configuration[StringToken] get[KeywordToken] configuration[StringToken]
+:[SimpleToken] assert[KeywordToken]([BeginToken]_configuration[StringToken] !=[SimpleToken] null[KeywordToken])[SimpleToken],[SimpleToken]
+_configuration[StringToken] =[SimpleToken] _configuration[StringToken].[SimpleToken]foo[StringToken] {[BeginToken]
+
+return[KeywordToken] _configuration[StringToken];[SimpleToken]
+}[SimpleToken]
+
+void[KeywordToken] method[StringToken]([BeginToken])[SimpleToken] :[SimpleToken] _configuration[StringToken] =[SimpleToken] null[KeywordToken] {[BeginToken]
+
+}[SimpleToken]
+
+Foo[StringToken]([BeginToken])[SimpleToken] :[SimpleToken] _configuration[StringToken] =[SimpleToken] null[KeywordToken] {[BeginToken]
+
+
+}[SimpleToken]
+}[SimpleToken]
+
+class[KeywordToken] Configuration[StringToken] {[BeginToken]
+Configuration[StringToken] get[KeywordToken] foo[StringToken] =>[SimpleToken] this[KeywordToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

@@ -1,0 +1,47 @@
+library;
+import self as self;
+import "issue61717_lib.dart" as iss;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///issue61717_lib.dart";
+
+base class C extends iss::B {
+  synthetic constructor •() → self::C
+    : super iss::B::•()
+    ;
+  synthetic no-such-method-forwarder method iss::_m(core::num _#wc1#formal) → void
+    return throw{for-error-handling} core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#C1, 0, #C2, core::List::unmodifiable<dynamic>(core::_GrowableList::_literal1<dynamic>(_#wc1#formal)), core::Map::unmodifiable<core::Symbol, dynamic>(#C3)));
+}
+static method main() → void {
+  try {
+    new self::C::•().{iss::A::public}(){() → void};
+  }
+  on core::Object catch(final wildcard core::Object _#wc0#formal) {
+    core::print("C.public throws");
+  }
+}
+
+library;
+import self as iss;
+import "dart:core" as core;
+
+base class A extends core::Object {
+  synthetic constructor •() → iss::A
+    : super core::Object::•()
+    ;
+  method _m(wildcard core::int _#wc0#formal) → void {}
+  method public() → void
+    return this.{iss::A::_m}(0){(core::int) → void};
+}
+abstract base class B extends iss::A {
+  synthetic constructor •() → iss::B
+    : super iss::A::•()
+    ;
+  abstract method _m(wildcard core::num _#wc1#formal) → void;
+}
+
+constants  {
+  #C1 = #org-dartlang-testcase:///issue61717.dart::_m
+  #C2 = <core::Type>[]
+  #C3 = <core::Symbol, dynamic>{}
+}

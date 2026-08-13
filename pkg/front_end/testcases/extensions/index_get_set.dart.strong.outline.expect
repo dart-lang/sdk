@@ -1,0 +1,64 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class HasNone extends core::Object {
+  synthetic constructor •() → self::HasNone
+    ;
+}
+class HasIndexGet extends core::Object {
+  synthetic constructor •() → self::HasIndexGet
+    ;
+  operator [](wildcard dynamic _#wc0#formal) → dynamic
+    ;
+}
+class HasIndexSet extends core::Object {
+  synthetic constructor •() → self::HasIndexSet
+    ;
+  operator []=(wildcard dynamic _#wc1#formal, wildcard dynamic _#wc2#formal) → void
+    ;
+}
+class HasIndexGetSet extends core::Object {
+  synthetic constructor •() → self::HasIndexGetSet
+    ;
+  operator [](wildcard dynamic _#wc3#formal) → dynamic
+    ;
+  operator []=(wildcard dynamic _#wc4#formal, wildcard dynamic _#wc5#formal) → void
+    ;
+}
+extension HasNoneExtension on self::HasNone {
+  operator [] = self::HasNoneExtension|[];
+  operator []= = self::HasNoneExtension|[]=;
+}
+extension HasIndexGetExtension on self::HasIndexGet {
+  operator [] = self::HasIndexGetExtension|[];
+  operator []= = self::HasIndexGetExtension|[]=;
+}
+extension HasIndexSetExtension on self::HasIndexSet {
+  operator [] = self::HasIndexSetExtension|[];
+  operator []= = self::HasIndexSetExtension|[]=;
+}
+extension HasIndexGetSetExtension on self::HasIndexGetSet {
+  operator [] = self::HasIndexGetSetExtension|[];
+  operator []= = self::HasIndexGetSetExtension|[]=;
+}
+static extension-member method HasNoneExtension|[](lowered final self::HasNone #this, wildcard dynamic _#wc6#formal) → dynamic
+  ;
+static extension-member method HasNoneExtension|[]=(lowered final self::HasNone #this, wildcard dynamic _#wc7#formal, wildcard dynamic _#wc8#formal) → void
+  ;
+static extension-member method HasIndexGetExtension|[](lowered final self::HasIndexGet #this, wildcard dynamic _#wc9#formal) → dynamic
+  ;
+static extension-member method HasIndexGetExtension|[]=(lowered final self::HasIndexGet #this, wildcard dynamic _#wc10#formal, wildcard dynamic _#wc11#formal) → void
+  ;
+static extension-member method HasIndexSetExtension|[](lowered final self::HasIndexSet #this, wildcard dynamic _#wc12#formal) → dynamic
+  ;
+static extension-member method HasIndexSetExtension|[]=(lowered final self::HasIndexSet #this, wildcard dynamic _#wc13#formal, wildcard dynamic _#wc14#formal) → void
+  ;
+static extension-member method HasIndexGetSetExtension|[](lowered final self::HasIndexGetSet #this, wildcard dynamic _#wc15#formal) → dynamic
+  ;
+static extension-member method HasIndexGetSetExtension|[]=(lowered final self::HasIndexGetSet #this, wildcard dynamic _#wc16#formal, wildcard dynamic _#wc17#formal) → void
+  ;
+static method implicit(self::HasNone hasNone, self::HasIndexGet hasIndexGet, self::HasIndexSet hasIndexSet, self::HasIndexGetSet hasIndexGetSet) → dynamic
+  ;
+static method explicit(self::HasNone hasNone, self::HasIndexGet hasIndexGet, self::HasIndexSet hasIndexSet, self::HasIndexGetSet hasIndexGetSet) → dynamic
+  ;

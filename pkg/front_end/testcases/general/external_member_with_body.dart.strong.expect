@@ -1,0 +1,88 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/external_member_with_body.dart:5:1: Error: An external or native method can't have a body.
+// external method() {} // Error
+// ^^^^^^^^
+//
+// pkg/front_end/testcases/general/external_member_with_body.dart:6:1: Error: An external or native method can't have a body.
+// external get getter => 42; // Error
+// ^^^^^^^^
+//
+// pkg/front_end/testcases/general/external_member_with_body.dart:7:1: Error: An external or native method can't have a body.
+// external set setter(_) {} // Error
+// ^^^^^^^^
+//
+// pkg/front_end/testcases/general/external_member_with_body.dart:10:21: Error: An external or native method can't have a body.
+//   external method() {} // Error
+//                     ^
+//
+// pkg/front_end/testcases/general/external_member_with_body.dart:11:23: Error: An external or native method can't have a body.
+//   external get getter => 42; // Error
+//                       ^^
+//
+// pkg/front_end/testcases/general/external_member_with_body.dart:12:26: Error: An external or native method can't have a body.
+//   external set setter(_) {} // Error
+//                          ^
+//
+// pkg/front_end/testcases/general/external_member_with_body.dart:5:19: Error: An external or native method can't have a body.
+// external method() {} // Error
+//                   ^
+//
+// pkg/front_end/testcases/general/external_member_with_body.dart:6:24: Error: An external or native method can't have a body.
+// external get getter => 42; // Error
+//                        ^
+//
+// pkg/front_end/testcases/general/external_member_with_body.dart:7:24: Error: An external or native method can't have a body.
+// external set setter(_) {} // Error
+//                        ^
+//
+// pkg/front_end/testcases/general/external_member_with_body.dart:11:26: Error: An external or native method can't have a body.
+//   external get getter => 42; // Error
+//                          ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  synthetic constructor •() → self::Class
+    : super core::Object::•()
+    ;
+  external method method() → dynamic {
+    invalid-expression "pkg/front_end/testcases/general/external_member_with_body.dart:10:21: Error: An external or native method can't have a body.
+  external method() {} // Error
+                    ^";
+    {}
+  }
+  external get getter() → dynamic {
+    invalid-expression "pkg/front_end/testcases/general/external_member_with_body.dart:11:26: Error: An external or native method can't have a body.
+  external get getter => 42; // Error
+                         ^";
+    return 42;
+  }
+  external set setter(wildcard dynamic _#wc1#formal) → void {
+    invalid-expression "pkg/front_end/testcases/general/external_member_with_body.dart:12:26: Error: An external or native method can't have a body.
+  external set setter(_) {} // Error
+                         ^";
+    {}
+  }
+}
+external static method method() → dynamic {
+  invalid-expression "pkg/front_end/testcases/general/external_member_with_body.dart:5:19: Error: An external or native method can't have a body.
+external method() {} // Error
+                  ^";
+  {}
+}
+external static get getter() → dynamic {
+  invalid-expression "pkg/front_end/testcases/general/external_member_with_body.dart:6:24: Error: An external or native method can't have a body.
+external get getter => 42; // Error
+                       ^";
+  return 42;
+}
+external static set setter(wildcard dynamic _#wc0#formal) → void {
+  invalid-expression "pkg/front_end/testcases/general/external_member_with_body.dart:7:24: Error: An external or native method can't have a body.
+external set setter(_) {} // Error
+                       ^";
+  {}
+}

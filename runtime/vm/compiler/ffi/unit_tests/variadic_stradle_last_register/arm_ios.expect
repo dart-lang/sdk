@@ -1,0 +1,6 @@
+r0 int32
+r1 int32
+r2 int32
+M(r3 uint32, S+0 uint32[uint16]) Struct(size: 6)
+=>
+r0 int32

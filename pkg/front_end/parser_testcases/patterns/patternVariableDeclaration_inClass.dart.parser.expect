@@ -1,0 +1,11 @@
+NOTICE: Stream was rewritten by parser!
+
+class C {
+var *synthetic* = (0, 1);
+}
+
+
+class[KeywordToken] C[StringToken] {[BeginToken]
+var[KeywordToken] [SyntheticStringToken] =[SimpleToken] ([BeginToken]0[StringToken],[SimpleToken] 1[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

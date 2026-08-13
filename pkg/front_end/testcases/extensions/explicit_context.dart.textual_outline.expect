@@ -1,0 +1,9 @@
+extension E<T> on Set<T> {
+  int get property => 0;
+  set property(int value) {}
+  int method() => 0;
+  int operator [](int index) => 0;
+  void operator []=(int index, int value) {}
+}
+
+main() {}

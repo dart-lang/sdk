@@ -1,0 +1,16 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/rasta/bad_interpolation.dart:6:13: Error: String starting with " must end with ".
+//   print(" $x.);
+//             ^^^
+//
+// pkg/front_end/testcases/rasta/bad_interpolation.dart:6:8: Error: Can't find ')' to match '('.
+//   print(" $x.);
+//        ^
+//
+import self as self;
+
+static method main() → dynamic
+  ;

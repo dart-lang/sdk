@@ -1,0 +1,23 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/enhanced_parts/part_with_library_directive_part1.dart:5:1: Error: A part cannot have a library directive.
+// Try removing the library directive.
+// library;
+// ^
+//
+// pkg/front_end/testcases/enhanced_parts/part_with_library_directive_part2.dart:6:1: Error: The part-of directive must be the only directive in a part.
+// Try removing the other directives, or moving them to the library for which this is a part.
+// library;
+// ^^^^^^^
+//
+// pkg/front_end/testcases/enhanced_parts/part_with_library_directive_part2.dart:6:1: Error: A part cannot have a library directive.
+// Try removing the library directive.
+// library;
+// ^
+//
+import self as self;
+
+part part_with_library_directive_part1.dart;
+part part_with_library_directive_part2.dart;

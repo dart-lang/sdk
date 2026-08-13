@@ -1,0 +1,33 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+abstract class Interface extends core::Object {
+  field core::int implementedConcreteField = 0;
+  field core::int declaredConcreteImplementsConcreteField = 0;
+  field core::int declaredAbstractImplementsConcreteField = 0;
+  synthetic constructor •() → self::Interface
+    : super core::Object::•()
+    ;
+  abstract get implementedAbstractField() → core::int;
+  abstract set implementedAbstractField(synthesized core::int #externalFieldValue) → void;
+  abstract get declaredConcreteImplementsAbstractField() → core::int;
+  abstract set declaredConcreteImplementsAbstractField(synthesized core::int #externalFieldValue) → void;
+  abstract get declaredAbstractImplementsAbstractField() → core::int;
+  abstract set declaredAbstractImplementsAbstractField(synthesized core::int #externalFieldValue) → void;
+}
+abstract class AbstractClass extends core::Object implements self::Interface {
+  field core::int declaredConcreteField = 0;
+  field core::int declaredConcreteImplementsConcreteField = 0;
+  field core::int declaredConcreteImplementsAbstractField = 0;
+  synthetic constructor •() → self::AbstractClass
+    : super core::Object::•()
+    ;
+  abstract get declaredAbstractField() → core::int;
+  abstract set declaredAbstractField(synthesized core::int #externalFieldValue) → void;
+  abstract get declaredAbstractImplementsConcreteField() → core::int;
+  abstract set declaredAbstractImplementsConcreteField(synthesized core::int #externalFieldValue) → void;
+  abstract get declaredAbstractImplementsAbstractField() → core::int;
+  abstract set declaredAbstractImplementsAbstractField(synthesized core::int #externalFieldValue) → void;
+}
+static method main() → dynamic {}

@@ -1,0 +1,22 @@
+library;
+import self as self;
+import "main_lib2.dart" as mai;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///main_lib1.dart";
+
+static method main() → dynamic {
+  mai::Extension|set#instanceProperty(0, mai::Extension|get#instanceProperty(1));
+  mai::Extension|instanceMethod(2);
+  mai::Extension|get#instanceMethod(3);
+  mai::Extension|staticField = #C1;
+  mai::Extension|set#instanceProperty(3, mai::Extension|staticFinalField);
+  mai::Extension|staticProperty = mai::Extension|staticProperty;
+  mai::Extension|staticMethod();
+  #C2;
+}
+
+constants  {
+  #C1 = 42
+  #C2 = static-tearoff mai::Extension|staticMethod
+}

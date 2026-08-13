@@ -1,0 +1,9 @@
+A() {}
+
+class A {
+  const A();
+}
+
+class B {}
+
+main() {}

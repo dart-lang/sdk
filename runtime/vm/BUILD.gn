@@ -1,0 +1,271 @@
+# Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+import("//build_overrides/build.gni")
+import("../../build/executable_suffix.gni")
+import("../../sdk/lib/_vm/vm_sources.gni")
+import("../../sdk/lib/async/async_sources.gni")
+import("../../sdk/lib/collection/collection_sources.gni")
+import("../../sdk/lib/concurrent/concurrent_sources.gni")
+import("../../sdk/lib/convert/convert_sources.gni")
+import("../../sdk/lib/core/core_sources.gni")
+import("../../sdk/lib/developer/developer_sources.gni")
+import("../../sdk/lib/ffi/ffi_sources.gni")
+import("../../sdk/lib/internal/internal_sources.gni")
+import("../../sdk/lib/isolate/isolate_sources.gni")
+import("../../sdk/lib/math/math_sources.gni")
+import("../../sdk/lib/mirrors/mirrors_sources.gni")
+import("../../sdk/lib/typed_data/typed_data_sources.gni")
+import("../../sdk/lib/vmservice/vmservice_sources.gni")
+import("../../sdk_args.gni")
+import("../../utils/compile_platform.gni")
+import("../bin/cli_sources.gni")
+import("../bin/io_sources.gni")
+import("../configs.gni")
+import("../lib/async_sources.gni")
+import("../lib/concurrent_sources.gni")
+import("../lib/convert_sources.gni")
+import("../lib/core_sources.gni")
+import("../lib/developer_sources.gni")
+import("../lib/ffi_sources.gni")
+import("../lib/isolate_sources.gni")
+import("../lib/math_sources.gni")
+import("../lib/mirrors_sources.gni")
+import("../lib/profiler_sources.gni")
+import("../lib/typed_data_sources.gni")
+import("../lib/vmservice_sources.gni")
+import("../runtime_args.gni")
+import("compiler/compiler_sources.gni")
+import("ffi/ffi_sources.gni")
+import("heap/heap_sources.gni")
+import("regexp/regexp_sources.gni")
+import("vm_sources.gni")
+
+config("libdart_vm_config") {
+  if (is_fuchsia) {
+    libs = [ "zircon" ]
+  } else if (is_win) {
+    libs = [
+      "advapi32.lib",
+      "ntdll.lib",
+      "onecore.lib",
+      "shell32.lib",
+    ]
+    if (target_os != "winuwp") {
+      libs += [ "dbghelp.lib" ]
+    }
+  } else {
+    libs = [ "dl" ]
+    if (!is_android) {
+      libs += [ "pthread" ]
+    }
+
+    # Clang with libc++ does not require an explicit atomic library reference.
+    # (similar to https://github.com/flutter/buildroot/blob/master/build/config/compiler/BUILD.gn#L562)
+    if (!is_clang) {
+      libs += [ "atomic" ]
+    }
+  }
+}
+
+library_for_all_configs("libdart_vm") {
+  target_type = "source_set"
+  extra_product_deps = []
+  extra_nonproduct_deps = []
+  extra_deps = [ "//third_party/icu:icuuc" ]
+  if (dart_support_perfetto) {
+    extra_deps += [ "//third_party/perfetto:libprotozero" ]
+  }
+  extra_precompiler_deps = [
+    # The Mach-O writer uses BoringSSL's SHA256 function for code signatures.
+    "//third_party/boringssl",
+  ]
+  if (is_fuchsia) {
+    extra_deps += [
+      "$fuchsia_sdk/fidl/fuchsia.intl",
+      "$fuchsia_sdk/fidl/fuchsia.kernel",
+      "$fuchsia_sdk/pkg/async",
+      "$fuchsia_sdk/pkg/async-default",
+      "$fuchsia_sdk/pkg/async-loop",
+      "$fuchsia_sdk/pkg/async-loop-default",
+      "$fuchsia_sdk/pkg/inspect",
+      "$fuchsia_sdk/pkg/inspect_component_cpp",
+      "$fuchsia_sdk/pkg/sys_cpp",
+      "$fuchsia_sdk/pkg/trace-engine",
+      "//third_party/icu:icui18n",
+    ]
+  }
+  public_configs = [ ":libdart_vm_config" ]
+  sources = vm_sources + rebase_path(compiler_api_sources, ".", "./compiler/") +
+            rebase_path(disassembler_sources, ".", "./compiler/") +
+            rebase_path(ffi_sources, ".", "./ffi/") +
+            rebase_path(heap_sources, ".", "./heap/") +
+            rebase_path(regexp_sources, ".", "./regexp/")
+  if (is_android) {
+    # Android specific workaround for a kernel bug. This source file can't
+    # go into vm_sources list because it will break Windows build which
+    # uses different assembler syntax.
+    sources += [ "thread_interrupter_android_arm.S" ]
+  }
+  if (!is_win) {
+    sources += [ "ffi_trampolines_arm64.S" ]
+  }
+  include_dirs = [
+    "..",
+    "../..",
+  ]
+}
+
+library_for_all_configs_with_compiler("libdart_compiler") {
+  target_type = "source_set"
+  public_configs = [ ":libdart_vm_config" ]
+  sources = rebase_path(compiler_sources, ".", "./compiler/")
+  include_dirs = [ ".." ]
+
+  extra_nonproduct_deps = []
+  extra_deps = []
+  if (dart_support_perfetto) {
+    extra_deps += [ "//third_party/perfetto:libprotozero" ]
+  }
+  if (is_fuchsia) {
+    extra_deps += [ "$fuchsia_sdk/pkg/trace-engine" ]
+  }
+}
+
+library_for_all_configs("libdart_lib") {
+  target_type = "source_set"
+  extra_nonproduct_deps = []
+  extra_deps = []
+  if (is_fuchsia) {
+    extra_deps += [ "$fuchsia_sdk/pkg/trace-engine" ]
+  }
+  if (dart_support_perfetto) {
+    extra_deps += [ "//third_party/perfetto:libprotozero" ]
+  }
+  include_dirs = [ ".." ]
+  allsources = async_runtime_cc_files + concurrent_runtime_cc_files +
+               core_runtime_cc_files + developer_runtime_cc_files +
+               ffi_runtime_cc_files + isolate_runtime_cc_files +
+               math_runtime_cc_files + mirrors_runtime_cc_files +
+               typed_data_runtime_cc_files + vmservice_runtime_cc_files
+
+  sources = [ "bootstrap.cc" ] + rebase_path(allsources, ".", "../lib")
+  snapshot_sources = []
+}
+
+template("gen_vm_platform") {
+  assert(defined(invoker.output_postfix),
+         "Must define output postfix (e.g., '_strong'")
+  is_product_flag = dart_runtime_mode == "release"
+  if (defined(invoker.product_mode)) {
+    is_product_flag = invoker.product_mode
+  }
+  compile_platform(target_name) {
+    output_postfix = invoker.output_postfix
+    single_root_scheme = "org-dartlang-sdk"
+    single_root_base = rebase_path("../../", root_build_dir)
+    libraries_specification_uri = "org-dartlang-sdk:///sdk/lib/libraries.json"
+    outputs = [
+      "$root_out_dir/vm_platform" + output_postfix + ".dill",
+      "$root_out_dir/vm_outline" + output_postfix + ".dill",
+    ]
+    args = [ "dart:core" ]
+    args += [
+      "-Ddart.vm.product=$is_product_flag",
+      "-Ddart.vm.asan=$is_asan",
+      "-Ddart.vm.msan=$is_msan",
+      "-Ddart.vm.tsan=$is_tsan",
+      "-Ddart.isVM=true",
+    ]
+    if (defined(invoker.exclude_source) && invoker.exclude_source) {
+      args += [ "--exclude-source" ]
+    }
+  }
+}
+
+gen_vm_platform("vm_platform") {
+  exclude_source = false
+  output_postfix = ""
+}
+
+gen_vm_platform("vm_platform_product") {
+  exclude_source = false
+  output_postfix = "_product"
+
+  # In Debug mode we use debug binaries for dart2native.
+  # (see also the "dart_product_config" config)
+  product_mode = !is_debug
+}
+
+gen_vm_platform("vm_platform_stripped") {
+  exclude_source = true
+  output_postfix = "_stripped"
+}
+
+group("kernel_platform_files") {
+  public_deps = [
+    ":vm_platform",
+    ":vm_platform_stripped",
+  ]
+}
+
+executable("offsets_extractor") {
+  # The timeline cannot be accessed from the generated executable, so we define
+  # DART_DISABLE_TIMELINE to strip out the timeline source code. The precise
+  # reason why we do this is to avoid missing header errors, as the Perfetto
+  # proto headers are not built as a dependency of this target, but are
+  # transitively included in this target when DART_DISABLE_TIMELINE is not
+  # defined.
+  defines = [ "DART_DISABLE_TIMELINE" ]
+  configs += [
+    "..:dart_arch_config",
+    "..:dart_config",
+    "..:dart_maybe_product_config",
+    ":libdart_vm_config",
+  ]
+  sources = [ "compiler/offsets_extractor.cc" ]
+  include_dirs = [ ".." ]
+}
+
+executable("offsets_extractor_aotruntime") {
+  # The timeline cannot be accessed from the generated executable, so we define
+  # DART_DISABLE_TIMELINE to strip out the timeline source code. The precise
+  # reason why we do this is to avoid missing header errors, as the Perfetto
+  # proto headers are not built as a dependency of this target, but are
+  # transitively included in this target when DART_DISABLE_TIMELINE is not
+  # defined.
+  defines = [ "DART_DISABLE_TIMELINE" ]
+  configs += [
+    "..:dart_arch_config",
+    "..:dart_config",
+    "..:dart_aotruntime_config",
+    "..:dart_maybe_product_config",
+    ":libdart_vm_config",
+  ]
+  sources = [ "compiler/offsets_extractor.cc" ]
+  include_dirs = [ ".." ]
+}
+
+executable("gen_regexp_special_case") {
+  # The timeline cannot be accessed from the generated executable, so we define
+  # DART_DISABLE_TIMELINE to strip out the timeline source code. The precise
+  # reason why we do this is to avoid missing header errors, as the Perfetto
+  # proto headers are not built as a dependency of this target, but are
+  # transitively included in this target when DART_DISABLE_TIMELINE is not
+  # defined.
+  defines = [ "DART_DISABLE_TIMELINE" ]
+  configs += [
+    "..:dart_arch_config",
+    "..:dart_config",
+    "..:dart_aotruntime_config",
+    "..:dart_maybe_product_config",
+    ":libdart_vm_config",
+  ]
+  deps = [
+    "../platform:libdart_platform_jit",
+    "//third_party/icu:icuuc",
+  ]
+  sources = [ "regexp/gen_regexp_special_case.cc" ]
+  include_dirs = [ ".." ]
+}

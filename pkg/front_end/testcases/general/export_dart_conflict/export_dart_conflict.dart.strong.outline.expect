@@ -1,0 +1,32 @@
+library;
+import self as self;
+import "export_dart_conflict_lib2.dart" as exp;
+
+import "org-dartlang-testcase:///export_dart_conflict_lib1.dart";
+
+static field exp::Random random;
+static field exp::int i;
+
+library;
+import self as self2;
+import "export_dart_conflict_lib2.dart" as exp;
+additionalExports = (exp::Random,
+  exp::int)
+
+export "dart:core" show int;
+export "org-dartlang-testcase:///export_dart_conflict_lib2.dart";
+export "dart:math" show Random;
+
+
+library;
+import self as exp;
+import "dart:core" as core;
+
+class int extends core::Object {
+  synthetic constructor •() → exp::int
+    ;
+}
+class Random extends core::Object {
+  synthetic constructor •() → exp::Random
+    ;
+}

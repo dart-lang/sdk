@@ -1,0 +1,19 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef Nullable = core::Object?;
+static method exhaustiveByValue(Null n) → dynamic
+  ;
+static method exhaustiveByType(Null n) → dynamic
+  ;
+static method exhaustiveWithField(Null n) → dynamic
+  ;
+static method nonExhaustiveRestrictedField(Null n) → dynamic
+  ;
+static method exhaustiveNullable(core::Object? o) → dynamic
+  ;
+static method nonExhaustiveNullable(core::Object? o) → dynamic
+  ;
+static method nonExhaustiveNullableRestricted(core::Object? o) → dynamic
+  ;

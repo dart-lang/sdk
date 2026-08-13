@@ -1,0 +1,15 @@
+(r0, r1) int64[double]
+(r2, r3) int64[double]
+S+0 double
+S+8 double
+S+16 double
+S+24 double
+S+32 double
+S+40 double
+S+48 float
+M(S+52 uint32, S+56 uint32, S+60 uint32) Struct(size: 12)
+S+64 int64
+S+72 int32
+M(S+76 uint32, S+80 uint32, S+84 uint32) Struct(size: 12)
+=>
+(r0, r1) int64[double]

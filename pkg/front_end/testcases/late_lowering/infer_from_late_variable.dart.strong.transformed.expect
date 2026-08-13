@@ -1,0 +1,15 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+static method f<T extends core::Object? = dynamic>(self::f::T% t) → self::f::T%
+  return t;
+static method main() → dynamic {
+  lowered core::int? #local;
+  function #local#get() → core::int
+    return let final core::int? #t1 = #local in #t1 == null ?{core::int} throw{for-error-handling} new _in::LateError::localNI("local") : #t1{core::int};
+  function #local#set(core::int local#param) → dynamic
+    return #local = local#param;
+  #local#set(self::f<core::int>(0)){(core::int) → dynamic};
+}

@@ -1,0 +1,15 @@
+mixin class A {}
+
+abstract mixin class B {}
+
+mixin M {}
+mixin class C = Object with M;
+
+
+mixin[KeywordToken] class[KeywordToken] A[StringToken] {[BeginToken]}[SimpleToken]
+
+abstract[KeywordToken] mixin[KeywordToken] class[KeywordToken] B[StringToken] {[BeginToken]}[SimpleToken]
+
+mixin[KeywordToken] M[StringToken] {[BeginToken]}[SimpleToken]
+mixin[KeywordToken] class[KeywordToken] C[StringToken] =[SimpleToken] Object[StringToken] with[KeywordToken] M[StringToken];[SimpleToken]
+[SimpleToken]

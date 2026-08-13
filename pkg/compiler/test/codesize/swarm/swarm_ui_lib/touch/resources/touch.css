@@ -1,0 +1,27 @@
+/* Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+   for details. All rights reserved. Use of this source code is governed by a
+   BSD-style license that can be found in the LICENSE file. */
+.touch-scrollbar {
+  position: absolute;
+  background: rgba(127, 127, 127, 0.4);
+  -webkit-transition: opacity 300ms;
+  z-index: 1000;
+}
+
+.touch-scrollbar.drag,
+.touch-scrollbar:hover {
+  background: rgba(127, 127, 127, 0.8); 
+}
+
+
+.touch-scrollbar-vertical {
+  height: 30px;
+  width: 7px;
+  right: 1px;
+}
+
+.touch-scrollbar-horizontal {
+  width: 30px;
+  height: 7px;
+  bottom: 1px;
+}

@@ -1,0 +1,47 @@
+main() {
+dynamic foo = new X();
+var bar = foo.required;
+required();
+bar();
+new X().required();
+new Y().required;
+}
+
+required({required int named}) {
+print("hello");
+}
+
+class X {
+required() {
+print("hello");
+}
+}
+
+class Y {
+int required = 42;
+}
+
+
+main[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+dynamic[KeywordToken] foo[StringToken] =[SimpleToken] new[KeywordToken] X[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+var[KeywordToken] bar[StringToken] =[SimpleToken] foo[StringToken].[SimpleToken]required[KeywordToken];[SimpleToken]
+required[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+bar[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+new[KeywordToken] X[StringToken]([BeginToken])[SimpleToken].[SimpleToken]required[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+new[KeywordToken] Y[StringToken]([BeginToken])[SimpleToken].[SimpleToken]required[KeywordToken];[SimpleToken]
+}[SimpleToken]
+
+required[KeywordToken]([BeginToken]{[BeginToken]required[KeywordToken] int[StringToken] named[StringToken]}[SimpleToken])[SimpleToken] {[BeginToken]
+print[StringToken]([BeginToken]"hello"[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+
+class[KeywordToken] X[StringToken] {[BeginToken]
+required[KeywordToken]([BeginToken])[SimpleToken] {[BeginToken]
+print[StringToken]([BeginToken]"hello"[StringToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+}[SimpleToken]
+
+class[KeywordToken] Y[StringToken] {[BeginToken]
+int[StringToken] required[KeywordToken] =[SimpleToken] 42[StringToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

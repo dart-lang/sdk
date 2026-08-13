@@ -1,0 +1,259 @@
+// Copyright (c) 2024, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'dart:convert';
+
+import 'package:kernel/ast.dart';
+import 'package:kernel/core_types.dart';
+import 'package:vm/metadata/direct_call.dart' show DirectCallMetadataRepository;
+import 'package:vm/metadata/inferred_type.dart'
+    show
+        InferredTypeMetadataRepository,
+        InferredReturnTypeMetadataRepository,
+        InferredArgTypeMetadataRepository;
+import 'package:vm/metadata/procedure_attributes.dart'
+    show ProcedureAttributesMetadataRepository;
+import 'package:vm/metadata/table_selector.dart'
+    show TableSelectorMetadataRepository;
+import 'package:vm/metadata/unreachable.dart';
+
+final bool compilerAssertsEnabled = (() {
+  bool compilerAsserts = false;
+  assert(compilerAsserts = true);
+  return compilerAsserts;
+})();
+
+bool hasPragma(CoreTypes coreTypes, Annotatable node, String name) {
+  return getPragma(coreTypes, node, name, defaultValue: '') != null;
+}
+
+T? getPragma<T>(
+  CoreTypes coreTypes,
+  Annotatable node,
+  String name, {
+  T? defaultValue,
+}) {
+  for (Expression annotation in node.annotations) {
+    if (annotation is ConstantExpression) {
+      Constant constant = annotation.constant;
+      if (constant is InstanceConstant) {
+        if (constant.classNode == coreTypes.pragmaClass) {
+          Constant? nameConstant =
+              constant.fieldValues[coreTypes.pragmaName.fieldReference];
+          if (nameConstant is StringConstant && nameConstant.value == name) {
+            Constant? value =
+                constant.fieldValues[coreTypes.pragmaOptions.fieldReference];
+            if (value == null || value is NullConstant) {
+              return defaultValue;
+            }
+            if (value is PrimitiveConstant<T>) {
+              return value.value;
+            }
+            if (value is! T) {
+              throw ArgumentError(
+                "$name pragma argument has unexpected type "
+                "${value.runtimeType} (expected $T)",
+              );
+            }
+            return value as T;
+          }
+        }
+      }
+    }
+  }
+  return null;
+}
+
+bool hasWasmImportPragma(CoreTypes coreTypes, Member member) {
+  return hasPragma(coreTypes, member, "wasm:import");
+}
+
+ImportName? getWasmImportPragma(CoreTypes coreTypes, Member member) {
+  String? importName = getPragma(coreTypes, member, "wasm:import");
+  if (importName != null) {
+    int dot = importName.indexOf('.');
+    if (dot != -1) {
+      assert(!member.isInstanceMember);
+      String module = importName.substring(0, dot);
+      String name = importName.substring(dot + 1);
+      return ImportName(module, name);
+    }
+  }
+
+  return null;
+}
+
+final class ImportName {
+  final String moduleName;
+  final String itemName;
+
+  ImportName(this.moduleName, this.itemName);
+
+  @override
+  String toString() {
+    return '$moduleName.$itemName';
+  }
+}
+
+bool hasWasmExportPragma(CoreTypes coreTypes, Member member) {
+  return hasPragma(coreTypes, member, "wasm:export");
+}
+
+bool hasWasmWeakExportPragma(CoreTypes coreTypes, Member member) {
+  return hasPragma(coreTypes, member, "wasm:weak-export");
+}
+
+bool? getWasmPreferInlinePragma(CoreTypes coreTypes, Member member) {
+  return getPragma<bool>(
+    coreTypes,
+    member,
+    "wasm:prefer-inline",
+    defaultValue: true,
+  );
+}
+
+bool? getWasmNeverInlinePragma(CoreTypes coreTypes, Member member) {
+  return getPragma<bool>(
+    coreTypes,
+    member,
+    "wasm:never-inline",
+    defaultValue: true,
+  );
+}
+
+String? getWasmExportPragma(CoreTypes coreTypes, Member member) {
+  return getPragma<String>(
+    coreTypes,
+    member,
+    'wasm:export',
+    defaultValue: member.name.text,
+  );
+}
+
+String? getWasmWeakExportPragma(CoreTypes coreTypes, Member member) {
+  return getPragma<String>(
+    coreTypes,
+    member,
+    'wasm:weak-export',
+    defaultValue: member.name.text,
+  );
+}
+
+bool hasWasmPureFunctionPragma(CoreTypes coreTypes, Member member) {
+  return getPragma<bool>(
+        coreTypes,
+        member,
+        'wasm:pure-function',
+        defaultValue: true,
+      ) ==
+      true;
+}
+
+/// Add a `@pragma('wasm:entry-point')` annotation to an annotatable.
+T addWasmEntryPointPragma<T extends Annotatable>(T node, CoreTypes coreTypes) =>
+    addPragma(node, 'wasm:entry-point', coreTypes);
+
+T addPragma<T extends Annotatable>(
+  T node,
+  String pragmaName,
+  CoreTypes coreTypes, {
+  Constant? value,
+}) => node
+  ..addAnnotation(
+    ConstantExpression(
+      InstanceConstant(coreTypes.pragmaClass.reference, [], {
+        coreTypes.pragmaName.fieldReference: StringConstant(pragmaName),
+        coreTypes.pragmaOptions.fieldReference: value ?? NullConstant(),
+      }),
+    ),
+  );
+
+List<int> _intToLittleEndianBytes(int i) {
+  List<int> bytes = [];
+  bytes.add(i & 0xFF);
+  i >>>= 8;
+  while (i != 0) {
+    bytes.add(i & 0xFF);
+    i >>>= 8;
+  }
+  return bytes;
+}
+
+String intToBase64(int i) => base64.encode(_intToLittleEndianBytes(i));
+
+/// The name of the module with given [id].
+///
+/// NOTE:
+///
+/// This is the name used in the name section of the module. If a wasm runtime
+/// doesn't know where the wasm file came from (e.g. no url or file path) then
+/// stack traces may fallback to use the module name. Using a stable naming for
+/// the module names allows mapping module names in stack frames back to module
+/// ids and therefore back the file name:
+///
+/// We also use this name in imports: Wasm modules that import things from other
+/// wasm modules use this name as import module name. (Currently the only cross
+/// module imports are deferred modules importing the main module, deferred
+/// modules don't import other deferred modules).
+String moduleNameFromId(int id) => id == 0 ? 'M' : 'M$id';
+
+/// The reverse of [moduleNameFromId].
+int? moduleNameToId(String moduleName) {
+  if (moduleName == 'M') return 0;
+  if (moduleName.startsWith('M')) {
+    return int.tryParse(moduleName.substring(1));
+  }
+  return null;
+}
+
+/// Maps ints to minimal length strings.
+///
+/// For simplicity, this only uses combinations of 1-byte characters. The 2+
+/// byte characters don't significantly impact the average string size.
+///
+/// Will not emit an empty string.
+String intToMinString(int i) {
+  // Stick to the 92 printable characters (starting after "), from 35 to 126.
+  var base = 92;
+  assert(i >= 0);
+  i += 1;
+  final codeUnits = <int>[];
+  while (i > 0) {
+    int remainder = i % base;
+    i ~/= base;
+    codeUnits.add(remainder + 35);
+  }
+  return String.fromCharCodes(codeUnits);
+}
+
+/// Maps ints to minimal length strings that are safe to use as JavaScript
+/// identifiers.
+///
+/// Will not emit an empty string.
+String intToMinJsSafeString(int i) {
+  assert(i >= 0);
+  i += 1;
+  final codeUnits = <int>[];
+  while (i > 0) {
+    int remainder = i % 52;
+    i ~/= 52;
+    if (remainder < 26) {
+      codeUnits.add(remainder + 65); // 'A'-'Z'
+    } else {
+      codeUnits.add(remainder - 26 + 97); // 'a'-'z'
+    }
+  }
+  return String.fromCharCodes(codeUnits);
+}
+
+Component createEmptyComponent() {
+  return Component()
+    ..addMetadataRepository(UnreachableNodeMetadataRepository())
+    ..addMetadataRepository(ProcedureAttributesMetadataRepository())
+    ..addMetadataRepository(TableSelectorMetadataRepository())
+    ..addMetadataRepository(DirectCallMetadataRepository())
+    ..addMetadataRepository(InferredTypeMetadataRepository())
+    ..addMetadataRepository(InferredReturnTypeMetadataRepository())
+    ..addMetadataRepository(InferredArgTypeMetadataRepository());
+}

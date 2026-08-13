@@ -1,0 +1,7 @@
+import 'main_lib.dart';
+
+class Class1 extends Sealed {}
+
+class Class2 implements Sealed {}
+
+class Class3 with Sealed {}

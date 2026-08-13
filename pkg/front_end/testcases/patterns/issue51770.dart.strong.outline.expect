@@ -1,0 +1,8 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method method1(core::List<dynamic> o) → dynamic
+  ;
+static method method2(dynamic o) → dynamic
+  ;

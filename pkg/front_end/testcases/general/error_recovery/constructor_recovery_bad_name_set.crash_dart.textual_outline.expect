@@ -1,0 +1,5 @@
+class Foo {
+  set foo.x() {}
+  set foo.x() : initializer = true {}
+  set foo() : initializer = true {}
+}

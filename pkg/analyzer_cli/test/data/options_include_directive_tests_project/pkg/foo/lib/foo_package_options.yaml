@@ -1,0 +1,13 @@
+analyzer:
+  strong-mode: true
+  errors:
+    unused_local_variable: ignore
+    undefined_function: warning
+    unnecessary_cast: error
+  language:
+    enableSuperMixins: true
+
+linter:
+ rules:
+   # see catalog here: https://dart.dev/lints
+   - avoid_empty_else
