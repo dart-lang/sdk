@@ -54,23 +54,52 @@ void f(Completer c) {}
 // Comment 2.
 
 @deprecated
+@pragma('example')
 /// Doc comment.
 import 'dart:async';
 
 void f(Completer c) {}
 ''');
-    // TODO(srawlins): Fix the 4 newlines below; should be 2.
+    await assertHasFix('''
+// Comment 1.
+
+// Comment 2.
+
+@deprecated
+@pragma('example')
+/// Doc comment.
+library;
+
+import 'dart:async';
+
+void f(Completer c) {}
+''');
+  }
+
+  Future<void>
+  test_commentsAreFirst_documentationCommentBeforeAnnotations() async {
+    await resolveTestCode('''
+// Comment 1.
+
+// Comment 2.
+
+/// Doc comment.
+@deprecated
+@pragma('example')
+import 'dart:async';
+
+void f(Completer c) {}
+''');
     await assertHasFix('''
 // Comment 1.
 
 // Comment 2.
 
 /// Doc comment.
+@deprecated
+@pragma('example')
 library;
 
-
-
-@deprecated
 import 'dart:async';
 
 void f(Completer c) {}
@@ -133,6 +162,70 @@ void f(Completer c) {}
     await assertHasFix('''
 /// Doc comment.
 library;
+import 'dart:async';
+
+void f(Completer c) {}
+''');
+  }
+
+  Future<void> test_scriptTag() async {
+    await resolveTestCode('''
+#!/usr/bin/env dart
+/// Doc comment.
+import 'dart:async';
+
+void f(Completer c) {}
+''');
+    await assertHasFix('''
+#!/usr/bin/env dart
+/// Doc comment.
+library;
+import 'dart:async';
+
+void f(Completer c) {}
+''');
+  }
+
+  Future<void> test_scriptTag_withAnnotation() async {
+    await resolveTestCode('''
+#!/usr/bin/env dart
+/// Doc comment.
+@deprecated
+@pragma('example')
+import 'dart:async';
+
+void f(Completer c) {}
+''');
+    await assertHasFix('''
+#!/usr/bin/env dart
+/// Doc comment.
+@deprecated
+@pragma('example')
+library;
+
+import 'dart:async';
+
+void f(Completer c) {}
+''');
+  }
+
+  Future<void> test_scriptTag_withHeaderComment() async {
+    await resolveTestCode('''
+#!/usr/bin/env dart
+// Copyright notice.
+
+/// Doc comment.
+import 'dart:async';
+
+void f(Completer c) {}
+''');
+    await assertHasFix('''
+#!/usr/bin/env dart
+// Copyright notice.
+
+/// Doc comment.
+library;
+
 import 'dart:async';
 
 void f(Completer c) {}
