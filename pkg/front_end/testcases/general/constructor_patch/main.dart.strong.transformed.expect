@@ -105,10 +105,10 @@ constants  {
 
 
 Constructor coverage from constants:
-org-dartlang-testcase:///main.dart:
-- Class.constGenerative (from org-dartlang-testcase:///patch_lib.dart:16:9)
-- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
-
 org-dartlang-testcase:///origin_lib.dart:
 - Class3._ (from org-dartlang-testcase:///patch_lib.dart:38:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
+
+org-dartlang-testcase:///main.dart:
+- Class.constGenerative (from org-dartlang-testcase:///patch_lib.dart:16:9)
 - Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
