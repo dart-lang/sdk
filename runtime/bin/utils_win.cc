@@ -337,6 +337,40 @@ void TimerUtils::Sleep(int64_t millis) {
   ::Sleep(millis);
 }
 
+void DeleteTempDirDetached(const wchar_t* temp_dir_w) {
+  size_t len = wcslen(temp_dir_w);
+  auto clean_dir = std::make_unique<wchar_t[]>(len + 1);
+  wcscpy(clean_dir.get(), temp_dir_w);
+  while (len > 0 &&
+         (clean_dir[len - 1] == L'\\' || clean_dir[len - 1] == L'/')) {
+    clean_dir[len - 1] = L'\0';
+    len--;
+  }
+
+  const wchar_t* cmd_fmt =
+      L"cmd.exe /c (for /l %%i in (1,1,10) do (rmdir /s /q \"%s\" 2>&1 && "
+      L"exit /b 0 || timeout /t 1 /nobreak)) > NUL 2>&1";
+  size_t cmd_len = wcslen(cmd_fmt) + wcslen(clean_dir.get()) + 100;
+  wchar_t* cmd_line = new wchar_t[cmd_len];
+  swprintf(cmd_line, cmd_len, cmd_fmt, clean_dir.get());
+
+  STARTUPINFOW si;
+  ZeroMemory(&si, sizeof(si));
+  si.cb = sizeof(si);
+  PROCESS_INFORMATION pi;
+  ZeroMemory(&pi, sizeof(pi));
+
+  if (CreateProcessW(
+          nullptr, cmd_line, nullptr, nullptr, FALSE,
+          CREATE_NO_WINDOW | DETACHED_PROCESS | CREATE_BREAKAWAY_FROM_JOB,
+          nullptr, nullptr, &si, &pi)) {
+    CloseHandle(pi.hProcess);
+    CloseHandle(pi.hThread);
+  }
+
+  delete[] cmd_line;
+}
+
 std::unique_ptr<wchar_t[]> Utf8ToWideChar(const char* path) {
   int wide_len = MultiByteToWideChar(CP_UTF8, 0, path, -1, nullptr, 0);
   auto result = std::make_unique<wchar_t[]>(wide_len);

@@ -1047,13 +1047,15 @@ sealed class AnonymousMethodBodyImpl extends AstNodeImpl
 ///        [FormalParameterList]? [AnonymousMethodBody]
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 @experimental
-abstract final class AnonymousMethodInvocation implements Expression {
+abstract final class AnonymousMethodInvocation
+    implements Expression, FragmentDeclaringNode {
   /// The body of the anonymous method being invoked.
   AnonymousMethodBody get body;
 
   /// The fragment declared by this function expression.
   ///
   /// Returns `null` if the AST structure hasn't been resolved.
+  @override
   LocalFunctionFragment? get declaredFragment;
 
   /// Whether this expression is cascaded.
@@ -6193,10 +6195,12 @@ final class CatchClauseImpl extends AstNodeImpl implements CatchClause {
 
 /// An 'exception' or 'stackTrace' parameter in [CatchClause].
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-abstract final class CatchClauseParameter extends AstNode {
+abstract final class CatchClauseParameter extends AstNode
+    implements FragmentDeclaringNode {
   /// The declared fragment.
   ///
   /// Returns `null` if the AST hasn't been resolved.
+  @override
   LocalVariableFragment? get declaredFragment;
 
   /// The name of the parameter.
@@ -6448,7 +6452,7 @@ abstract final class ClassDeclaration implements CompilationUnitMember {
 )
 final class ClassDeclarationImpl extends CompilationUnitMemberImpl
     with AstNodeWithNameScopeMixin
-    implements ClassDeclaration {
+    implements TopLevelDeclarationV1OrV2Impl, ClassDeclaration {
   @generated
   @override
   final Token? augmentKeyword;
@@ -7884,18 +7888,29 @@ final class CommentReferenceImpl extends AstNodeImpl
 ///    declarations ::=
 ///        [CompilationUnitMember]*
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-abstract final class CompilationUnit implements AstNode {
+abstract final class CompilationUnit implements AstNode, FragmentDeclaringNode {
   /// The first (non-EOF) token in the token stream that was parsed to form this
   /// compilation unit.
   @override
   Token get beginToken;
 
-  /// The declarations contained in this compilation unit.
+  /// The declarations contained in this compilation unit in the V1 AST view.
+  ///
+  /// Analyzer implementations should traverse [declarations2] instead.
   NodeList<CompilationUnitMember> get declarations;
+
+  /// The top-level declarations exposed by the V2 AST view.
+  ///
+  /// The element type is temporarily [AnnotatedNode] while the V2 AST migration
+  /// is in progress. Each entry is either a V2 [TopLevelDeclaration] or a V1
+  /// [CompilationUnitMember] whose V2 representation is not yet available.
+  @experimental
+  NodeList<AnnotatedNode> get declarations2;
 
   /// The fragment associated with this compilation unit.
   ///
   /// Returns `null` if the AST structure hasn't been resolved.
+  @override
   LibraryFragment? get declaredFragment;
 
   /// The directives contained in this compilation unit.
@@ -7964,8 +7979,14 @@ final class CompilationUnitImpl extends AstNodeImpl
 
   final NodeListImpl<DirectiveImpl> _directives = NodeListImpl._();
 
-  final NodeListImpl<CompilationUnitMemberImpl> _declarations =
+  final NodeListImpl<TopLevelDeclarationV1OrV2Impl> _declarations2 =
       NodeListImpl._();
+
+  late final NodeListImpl<CompilationUnitMemberImpl> _declarations =
+      _V1ProjectedNodeListImpl(
+        _declarations2,
+        V1Projection.toV1CompilationUnitMember,
+      );
 
   @override
   final Token endToken;
@@ -7998,13 +8019,13 @@ final class CompilationUnitImpl extends AstNodeImpl
   /// The list of [directives] can be `null` if there are no directives in the
   /// compilation unit.
   ///
-  /// The list of [declarations] can be `null` if there are no declarations in
+  /// The list of [declarations2] can be `null` if there are no declarations in
   /// the compilation unit.
   CompilationUnitImpl({
     required this.beginToken,
     required ScriptTagImpl? scriptTag,
     required List<DirectiveImpl>? directives,
-    required List<CompilationUnitMemberImpl>? declarations,
+    required List<TopLevelDeclarationV1OrV2Impl>? declarations2,
     required this.endToken,
     required this.featureSet,
     required this.lineInfo,
@@ -8013,11 +8034,19 @@ final class CompilationUnitImpl extends AstNodeImpl
   }) : _scriptTag = scriptTag {
     _becomeParentOf12(_scriptTag);
     _directives._initialize(this, directives);
-    _declarations._initialize(this, declarations);
+    _declarations2._initializeProjected(
+      this,
+      declarations2,
+      V1Projection.toV1CompilationUnitMember,
+    );
   }
 
   @override
   NodeListImpl<CompilationUnitMemberImpl> get declarations => _declarations;
+
+  @override
+  NodeListImpl<TopLevelDeclarationV1OrV2Impl> get declarations2 =>
+      _declarations2;
 
   @override
   NodeListImpl<DirectiveImpl> get directives => _directives;
@@ -8069,14 +8098,27 @@ final class CompilationUnitImpl extends AstNodeImpl
       ..addNodeList('declarations', declarations);
   }
 
+  @override
+  ChildEntities get _childEntities2 {
+    return ChildEntities()
+      ..addNode('scriptTag', scriptTag)
+      ..addNodeList('directives', directives)
+      ..addNodeList('declarations2', declarations2);
+  }
+
   /// Whether all of the directives are lexically before any declarations.
   bool get _directivesAreBeforeDeclarations {
-    if (_directives.isEmpty || _declarations.isEmpty) {
+    if (_directives.isEmpty || _declarations2.isEmpty) {
       return true;
     }
     Directive lastDirective = _directives[_directives.length - 1];
-    CompilationUnitMember firstDeclaration = _declarations[0];
+    AstNode firstDeclaration = _declarations2[0];
     return lastDirective.offset < firstDeclaration.offset;
+  }
+
+  List<AstNode> get _sortedDirectivesAndDeclarations2 {
+    return <AstNode>[..._directives, ..._declarations2]
+      ..sort(AstNode.LEXICAL_ORDER);
   }
 
   @ToBeDeprecated('Use accept2 instead.')
@@ -8132,7 +8174,7 @@ final class CompilationUnitImpl extends AstNodeImpl
         "Cannot remove child 'directives' because NodeList cannot be resized.",
       );
     }
-    if (declarations.containsChild(oldNode)) {
+    if (declarations2.containsChild(oldNode)) {
       throw UnsupportedError(
         "Cannot remove child 'declarations' because NodeList cannot be resized.",
       );
@@ -8149,7 +8191,7 @@ final class CompilationUnitImpl extends AstNodeImpl
     if (directives.replaceChild(oldNode, newNode)) {
       return;
     }
-    if (declarations.replaceChild(oldNode, newNode)) {
+    if (declarations2.replaceChild(oldNode, newNode)) {
       return;
     }
     super.replaceChild(oldNode, newNode);
@@ -8178,9 +8220,9 @@ final class CompilationUnitImpl extends AstNodeImpl
     _scriptTag?.accept2(visitor);
     if (_directivesAreBeforeDeclarations) {
       _directives.accept2(visitor);
-      _declarations.accept2(visitor);
+      _declarations2.accept2(visitor);
     } else {
-      List<AstNode> sortedMembers = sortedDirectivesAndDeclarations;
+      List<AstNode> sortedMembers = _sortedDirectivesAndDeclarations2;
       int length = sortedMembers.length;
       for (int i = 0; i < length; i++) {
         AstNode child = sortedMembers[i];
@@ -8196,6 +8238,15 @@ final class CompilationUnitImpl extends AstNodeImpl
     }
     return _directives._elementContainingRange(rangeOffset, rangeEnd) ??
         _declarations._elementContainingRange(rangeOffset, rangeEnd);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (_scriptTag?._containsOffset(rangeOffset, rangeEnd) ?? false) {
+      return _scriptTag;
+    }
+    return _directives._elementContainingRange(rangeOffset, rangeEnd) ??
+        _declarations2._elementContainingRange(rangeOffset, rangeEnd);
   }
 }
 
@@ -8560,6 +8611,7 @@ final class CompoundAssignmentV1Impl extends ExpressionImpl
   @DoNotGenerate(reason: 'Projects the canonical V2 target')
   @override
   ExpressionImpl get leftHandSide => switch (_origin.target) {
+    IndexAssignmentTargetImpl target => target.indexExpression,
     PropertyAssignmentTargetImpl target => target.propertyAccess,
     UnqualifiedNameAssignmentTargetImpl target => target.simpleIdentifier,
     InvalidExpressionAssignmentTargetImpl target => V1Projection.toV1Expression(
@@ -8580,6 +8632,7 @@ final class CompoundAssignmentV1Impl extends ExpressionImpl
 
   @override
   Element? get readElement => switch (_origin.target) {
+    IndexAssignmentTargetImpl() => null,
     PropertyAssignmentTargetImpl target => target._legacyReadElement,
     UnqualifiedNameAssignmentTargetImpl target => target._legacyReadElement,
     InvalidExpressionAssignmentTargetImpl(expression: IdentifierImpl element) =>
@@ -8589,6 +8642,7 @@ final class CompoundAssignmentV1Impl extends ExpressionImpl
 
   @override
   TypeImpl? get readType => switch (_origin.target) {
+    IndexAssignmentTargetImpl() => InvalidTypeImpl.instance,
     PropertyAssignmentTargetImpl target =>
       target.read?.type ?? InvalidTypeImpl.instance,
     UnqualifiedNameAssignmentTargetImpl target => target.read?.type,
@@ -8610,6 +8664,7 @@ final class CompoundAssignmentV1Impl extends ExpressionImpl
 
   @override
   Element? get writeElement => switch (_origin.target) {
+    IndexAssignmentTargetImpl target => target._legacyWriteElement,
     PropertyAssignmentTargetImpl target => target._legacyWriteElement,
     UnqualifiedNameAssignmentTargetImpl target => target._legacyWriteElement,
     InvalidExpressionAssignmentTargetImpl(expression: IdentifierImpl element) =>
@@ -8619,6 +8674,7 @@ final class CompoundAssignmentV1Impl extends ExpressionImpl
 
   @override
   TypeImpl? get writeType => switch (_origin.target) {
+    IndexAssignmentTargetImpl target => target.write?.acceptedType,
     PropertyAssignmentTargetImpl target =>
       target.write?.acceptedType ?? InvalidTypeImpl.instance,
     UnqualifiedNameAssignmentTargetImpl target => target.write?.acceptedType,
@@ -12124,7 +12180,8 @@ sealed class DartPatternImpl extends AstNodeImpl
 ///
 /// Each declared name is visible within a name scope.
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-abstract final class Declaration implements AnnotatedNode {
+abstract final class Declaration
+    implements AnnotatedNode, FragmentDeclaringNode {
   /// The fragment declared by this declaration.
   ///
   /// Returns `null` if the AST structure hasn't been resolved.
@@ -12132,7 +12189,8 @@ abstract final class Declaration implements AnnotatedNode {
   /// Returns `null` for [FieldDeclaration] and [TopLevelVariableDeclaration]
   /// because these nodes don't declare any fragments, but individual
   /// [VariableDeclaration]s inside them do. They are [Declaration]s mostly to
-  /// fit into [ClassDeclaration.body] and [CompilationUnit.declarations].
+  /// fit into [ClassDeclaration.body] and [CompilationUnit.declarations2].
+  @override
   Fragment? get declaredFragment;
 }
 
@@ -12367,10 +12425,12 @@ final class DeclaredIdentifierImpl extends DeclarationImpl
 ///    variablePattern ::=
 ///        ( 'var' | 'final' | 'final'? [TypeAnnotation])? [Identifier]
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-sealed class DeclaredVariablePattern implements VariablePattern {
+sealed class DeclaredVariablePattern
+    implements VariablePattern, FragmentDeclaringNode {
   /// The fragment declared by this declaration.
   ///
   /// Returns `null` if the AST structure hasn't been resolved.
+  @override
   BindPatternVariableFragment? get declaredFragment;
 
   /// The `var` or `final` keyword.
@@ -12854,12 +12914,16 @@ final class DirectAssignmentImpl extends AssignmentExpression2Impl
   @override
   InternalFormalParameterElement? get _staticParameterElementForValue {
     var write = switch (target) {
+      IndexAssignmentTargetImpl(:var write) => write,
       PropertyAssignmentTargetImpl(:var write) => write,
       UnqualifiedNameAssignmentTargetImpl(:var write) => write,
       InvalidExpressionAssignmentTargetImpl() => null,
     };
     if (write case SetterInvocationResolutionImpl(:var element)) {
       return element.formalParameters.single;
+    }
+    if (write case MethodIndexWriteResolutionImpl(:var element)) {
+      return element.formalParameters[1];
     }
     return null;
   }
@@ -13013,6 +13077,7 @@ final class DirectAssignmentV1Impl extends ExpressionImpl
   @DoNotGenerate(reason: 'Projects the canonical V2 target')
   @override
   ExpressionImpl get leftHandSide => switch (_origin.target) {
+    IndexAssignmentTargetImpl target => target.indexExpression,
     PropertyAssignmentTargetImpl target => target.propertyAccess,
     UnqualifiedNameAssignmentTargetImpl target => target.simpleIdentifier,
     InvalidExpressionAssignmentTargetImpl target => V1Projection.toV1Expression(
@@ -13051,6 +13116,7 @@ final class DirectAssignmentV1Impl extends ExpressionImpl
 
   @override
   Element? get writeElement => switch (_origin.target) {
+    IndexAssignmentTargetImpl target => target._legacyWriteElement,
     PropertyAssignmentTargetImpl target => target._legacyWriteElement,
     UnqualifiedNameAssignmentTargetImpl target => target._legacyWriteElement,
     InvalidExpressionAssignmentTargetImpl(expression: IdentifierImpl element) =>
@@ -13060,6 +13126,7 @@ final class DirectAssignmentV1Impl extends ExpressionImpl
 
   @override
   TypeImpl? get writeType => switch (_origin.target) {
+    IndexAssignmentTargetImpl target => target.write?.acceptedType,
     PropertyAssignmentTargetImpl target =>
       target.write?.acceptedType ?? InvalidTypeImpl.instance,
     UnqualifiedNameAssignmentTargetImpl target => target.write?.acceptedType,
@@ -14349,6 +14416,23 @@ final class DoubleLiteralImpl extends LiteralImpl implements DoubleLiteral {
   }
 }
 
+/// An index write whose `operator []=` is selected dynamically at runtime.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class DynamicIndexWriteResolution
+    implements ValidIndexWriteResolution {}
+
+final class DynamicIndexWriteResolutionImpl extends IndexWriteResolutionImpl
+    implements DynamicIndexWriteResolution {
+  const DynamicIndexWriteResolutionImpl();
+
+  @override
+  TypeImpl get acceptedType => DynamicTypeImpl.instance;
+
+  @override
+  TypeImpl get indexContextType => UnknownInferredType.instance;
+}
+
 /// A property read whose getter is selected dynamically at runtime.
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
@@ -15262,7 +15346,7 @@ abstract final class EnumDeclaration implements CompilationUnitMember {
 )
 final class EnumDeclarationImpl extends CompilationUnitMemberImpl
     with AstNodeWithNameScopeMixin
-    implements EnumDeclaration {
+    implements TopLevelDeclarationV1OrV2Impl, EnumDeclaration {
   @generated
   @override
   final Token? augmentKeyword;
@@ -16156,6 +16240,10 @@ sealed class ExpressionImpl extends InstanceReceiverImpl
       if (identical(parent.index2, this)) {
         return parent._staticParameterElementForIndex;
       }
+    } else if (parent is IndexAssignmentTargetImpl) {
+      if (identical(parent.index, this)) {
+        return parent._legacyWriteElement?.formalParameters.firstOrNull;
+      }
     } else if (parent is BinaryOperatorInvocationImpl) {
       // TODO(scheglov): https://github.com/dart-lang/sdk/issues/49102
       if (identical(parent.rightOperand, this)) {
@@ -16840,7 +16928,7 @@ abstract final class ExtensionDeclaration implements CompilationUnitMember {
 )
 final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
     with AstNodeWithNameScopeMixin
-    implements ExtensionDeclaration {
+    implements TopLevelDeclarationV1OrV2Impl, ExtensionDeclaration {
   @generated
   @override
   final Token? augmentKeyword;
@@ -17625,7 +17713,7 @@ abstract final class ExtensionTypeDeclaration implements CompilationUnitMember {
 )
 final class ExtensionTypeDeclarationImpl extends CompilationUnitMemberImpl
     with AstNodeWithNameScopeMixin
-    implements ExtensionTypeDeclaration {
+    implements TopLevelDeclarationV1OrV2Impl, ExtensionTypeDeclaration {
   @generated
   @override
   final Token? augmentKeyword;
@@ -19457,7 +19545,7 @@ sealed class ForLoopPartsImpl extends AstNodeImpl implements ForLoopParts {
 ///      | [FieldFormalParameter]
 ///      | [SuperFormalParameter]
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-sealed class FormalParameter implements AnnotatedNode {
+sealed class FormalParameter implements AnnotatedNode, FragmentDeclaringNode {
   /// The token representing either the `const`, `final` or `var` keyword, or
   /// `null` if no keyword was used.
   Token? get constFinalOrVarKeyword;
@@ -19471,6 +19559,7 @@ sealed class FormalParameter implements AnnotatedNode {
   ///The fragment declared by this parameter.
   ///
   /// Returns `null` if this parameter hasn't been resolved.
+  @override
   FormalParameterFragment? get declaredFragment;
 
   /// The default clause associated with this parameter, or `null` if this
@@ -21398,6 +21487,14 @@ final class ForStatementImpl extends StatementImpl
   }
 }
 
+/// An AST node that can be associated with a declared [Fragment].
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class FragmentDeclaringNode implements AstNode {
+  /// The fragment associated with this node, or `null` if there is no
+  /// associated fragment or if the AST structure hasn't been resolved.
+  Fragment? get declaredFragment;
+}
+
 /// A node representing the body of a function or method.
 ///
 ///    functionBody ::=
@@ -21544,7 +21641,7 @@ abstract final class FunctionDeclaration implements CompilationUnitMember {
 )
 final class FunctionDeclarationImpl extends CompilationUnitMemberImpl
     with AstNodeWithNameScopeMixin
-    implements FunctionDeclaration {
+    implements TopLevelDeclarationV1OrV2Impl, FunctionDeclaration {
   @generated
   @override
   final Token? augmentKeyword;
@@ -21936,7 +22033,8 @@ final class FunctionDeclarationStatementImpl extends StatementImpl
 ///    functionExpression ::=
 ///        [TypeParameterList]? [FormalParameterList] [FunctionBody]
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-abstract final class FunctionExpression implements Expression {
+abstract final class FunctionExpression
+    implements Expression, FragmentDeclaringNode {
   /// The body of the function.
   FunctionBody get body;
 
@@ -21946,6 +22044,7 @@ abstract final class FunctionExpression implements Expression {
   ///
   /// Returns `null` is thie expression is a closure, or the parent is a
   /// local function.
+  @override
   ExecutableFragment? get declaredFragment;
 
   /// The parameters associated with the function, or `null` if the function is
@@ -23323,10 +23422,12 @@ class GenerateNodeProperty {
 ///    optionalPositionalParameterTypes ::=
 ///        [ normalParameterTypes ,? ]
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-abstract final class GenericFunctionType implements TypeAnnotation {
+abstract final class GenericFunctionType
+    implements TypeAnnotation, FragmentDeclaringNode {
   /// The fragment declared by this declaration.
   ///
   /// Returns `null` if the AST structure hasn't been resolved.
+  @override
   GenericFunctionTypeFragment? get declaredFragment;
 
   /// The `Function` keyword.
@@ -23854,6 +23955,276 @@ final class GenericTypeAliasImpl extends TypeAliasImpl
     }
     if (type._containsOffset(rangeOffset, rangeEnd)) {
       return type;
+    }
+    return null;
+  }
+}
+
+/// A getter declaration in an instance declaration body.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class GetterDeclaration
+    implements MemberDeclaration, FragmentDeclaringNode {
+  /// The `augment` keyword, or `null` if there is no `augment` keyword.
+  Token? get augmentKeyword;
+
+  /// The body of the getter.
+  FunctionBody get body;
+
+  @override
+  GetterFragment? get declaredFragment;
+
+  /// The `external` keyword, or `null` if this isn't an external getter.
+  Token? get externalKeyword;
+
+  /// The `get` keyword.
+  Token get getKeyword;
+
+  /// Whether this declaration is complete for augmentation purposes.
+  ///
+  /// A getter declaration is complete if it is external or has a body.
+  bool get isComplete;
+
+  /// The name of the getter.
+  Token get name;
+
+  /// The return type of the getter, or `null` if no return type was declared.
+  TypeAnnotation? get returnType;
+
+  /// The `static` keyword, or `null` if this isn't a static getter.
+  Token? get staticKeyword;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [
+    GenerateNodeProperty('augmentKeyword'),
+    GenerateNodeProperty('externalKeyword', tokenGroupId: 0),
+    GenerateNodeProperty('staticKeyword', tokenGroupId: 0),
+    GenerateNodeProperty('returnType'),
+    GenerateNodeProperty('getKeyword'),
+    GenerateNodeProperty('name'),
+    GenerateNodeProperty('body'),
+  ],
+)
+final class GetterDeclarationImpl extends MemberDeclarationImpl
+    with AstNodeWithNameScopeMixin
+    implements GetterDeclaration {
+  @generated
+  @override
+  final Token? augmentKeyword;
+
+  @generated
+  @override
+  final Token? externalKeyword;
+
+  @generated
+  @override
+  final Token? staticKeyword;
+
+  @generated
+  TypeAnnotationImpl? _returnType;
+
+  @generated
+  @override
+  final Token getKeyword;
+
+  @generated
+  @override
+  final Token name;
+
+  @generated
+  FunctionBodyImpl _body;
+
+  @override
+  GetterFragmentImpl? declaredFragment;
+
+  @generated
+  GetterDeclarationImpl({
+    required super.comment,
+    required super.metadata,
+    required this.augmentKeyword,
+    required this.externalKeyword,
+    required this.staticKeyword,
+    required TypeAnnotationImpl? returnType,
+    required this.getKeyword,
+    required this.name,
+    required FunctionBodyImpl body,
+  }) : _returnType = returnType,
+       _body = body {
+    _becomeParentOf2(returnType);
+    _becomeParentOf2(body);
+  }
+
+  @generated
+  @override
+  FunctionBodyImpl get body => _body;
+
+  @generated
+  set body(FunctionBodyImpl body) {
+    _body = _becomeParentOf2(body);
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return body.endToken;
+  }
+
+  @generated
+  @override
+  Token get firstTokenAfterCommentAndMetadata {
+    if (augmentKeyword case var augmentKeyword?) {
+      return augmentKeyword;
+    }
+    if (Token.lexicallyFirst(externalKeyword, staticKeyword) case var result?) {
+      return result;
+    }
+    if (returnType case var returnType?) {
+      return returnType.beginToken;
+    }
+    return getKeyword;
+  }
+
+  @override
+  bool get isComplete => externalKeyword != null || body is! EmptyFunctionBody;
+
+  @generated
+  @override
+  TypeAnnotationImpl? get returnType => _returnType;
+
+  @generated
+  set returnType(TypeAnnotationImpl? returnType) {
+    _returnType = _becomeParentOf2(returnType);
+  }
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @DoNotGenerate(reason: 'This node is not in the V1 AST view')
+  @override
+  ChildEntities get _childEntities => super._childEntities;
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => super._childEntities2
+    ..addToken('augmentKeyword', augmentKeyword)
+    ..addToken('externalKeyword', externalKeyword)
+    ..addToken('staticKeyword', staticKeyword)
+    ..addNode('returnType', returnType)
+    ..addToken('getKeyword', getKeyword)
+    ..addToken('name', name)
+    ..addNode('body', body);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('GetterDeclaration is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitGetterDeclaration(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent2, this));
+    return false;
+  }
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    if (identical(returnType, oldNode)) {
+      returnType = null;
+      return;
+    }
+    if (identical(body, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'body'.");
+    }
+    super.removeChild(oldNode);
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (identical(returnType, oldNode)) {
+      returnType = newNode as TypeAnnotationImpl?;
+      return;
+    }
+    if (identical(body, oldNode)) {
+      body = newNode as FunctionBodyImpl;
+      return;
+    }
+    super.replaceChild(oldNode, newNode);
+  }
+
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError('GetterDeclaration is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    _visitCommentAndAnnotations2(visitor);
+    returnType?.accept2(visitor);
+    body.accept2(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(
+    AstVisitor2 visitor, {
+    void Function(TypeAnnotationImpl)? visitReturnType,
+    void Function(FunctionBodyImpl)? visitBody,
+  }) {
+    _visitCommentAndAnnotations2(visitor);
+    if (returnType case var returnType?) {
+      if (visitReturnType != null) {
+        visitReturnType(returnType);
+      } else {
+        returnType.accept2(visitor);
+      }
+    }
+    if (visitBody != null) {
+      visitBody(body);
+    } else {
+      body.accept2(visitor);
+    }
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError('GetterDeclaration is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (super._childContainingRange2(rangeOffset, rangeEnd) case var result?) {
+      return result;
+    }
+    if (returnType case var returnType?) {
+      if (returnType._containsOffset(rangeOffset, rangeEnd)) {
+        return returnType;
+      }
+    }
+    if (body._containsOffset(rangeOffset, rangeEnd)) {
+      return body;
     }
     return null;
   }
@@ -24821,12 +25192,16 @@ final class IfNullAssignmentImpl extends AssignmentExpression2Impl
   @override
   InternalFormalParameterElement? get _staticParameterElementForValue {
     var write = switch (target) {
+      IndexAssignmentTargetImpl(:var write) => write,
       PropertyAssignmentTargetImpl(:var write) => write,
       UnqualifiedNameAssignmentTargetImpl(:var write) => write,
       InvalidExpressionAssignmentTargetImpl() => null,
     };
     if (write case SetterInvocationResolutionImpl(:var element)) {
       return element.formalParameters.single;
+    }
+    if (write case MethodIndexWriteResolutionImpl(:var element)) {
+      return element.formalParameters[1];
     }
     return null;
   }
@@ -24980,6 +25355,7 @@ final class IfNullAssignmentV1Impl extends ExpressionImpl
   @DoNotGenerate(reason: 'Projects the canonical V2 target')
   @override
   ExpressionImpl get leftHandSide => switch (_origin.target) {
+    IndexAssignmentTargetImpl target => target.indexExpression,
     PropertyAssignmentTargetImpl target => target.propertyAccess,
     UnqualifiedNameAssignmentTargetImpl target => target.simpleIdentifier,
     InvalidExpressionAssignmentTargetImpl target => V1Projection.toV1Expression(
@@ -25000,6 +25376,7 @@ final class IfNullAssignmentV1Impl extends ExpressionImpl
 
   @override
   Element? get readElement => switch (_origin.target) {
+    IndexAssignmentTargetImpl() => null,
     PropertyAssignmentTargetImpl target => target._legacyReadElement,
     UnqualifiedNameAssignmentTargetImpl target => target._legacyReadElement,
     InvalidExpressionAssignmentTargetImpl(expression: IdentifierImpl element) =>
@@ -25009,6 +25386,7 @@ final class IfNullAssignmentV1Impl extends ExpressionImpl
 
   @override
   TypeImpl? get readType => switch (_origin.target) {
+    IndexAssignmentTargetImpl() => InvalidTypeImpl.instance,
     PropertyAssignmentTargetImpl target =>
       target.read?.type ?? InvalidTypeImpl.instance,
     UnqualifiedNameAssignmentTargetImpl target => target.read?.type,
@@ -25030,6 +25408,7 @@ final class IfNullAssignmentV1Impl extends ExpressionImpl
 
   @override
   Element? get writeElement => switch (_origin.target) {
+    IndexAssignmentTargetImpl target => target._legacyWriteElement,
     PropertyAssignmentTargetImpl target => target._legacyWriteElement,
     UnqualifiedNameAssignmentTargetImpl target => target._legacyWriteElement,
     InvalidExpressionAssignmentTargetImpl(expression: IdentifierImpl element) =>
@@ -25039,6 +25418,7 @@ final class IfNullAssignmentV1Impl extends ExpressionImpl
 
   @override
   TypeImpl? get writeType => switch (_origin.target) {
+    IndexAssignmentTargetImpl target => target.write?.acceptedType,
     PropertyAssignmentTargetImpl target =>
       target.write?.acceptedType ?? InvalidTypeImpl.instance,
     UnqualifiedNameAssignmentTargetImpl target => target.write?.acceptedType,
@@ -26636,6 +27016,240 @@ abstract base class IncrementOrDecrementExpressionImpl extends ExpressionImpl
   }
 }
 
+/// An indexed location used as an assignment destination.
+///
+/// This migration slice supports ordinary, non-null-aware, non-cascade direct
+/// assignments. Other index operations remain on their existing AST shapes.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class IndexAssignmentTarget implements AssignmentTarget {
+  /// The expression used to compute the index.
+  Expression get index;
+
+  /// The left square bracket.
+  Token get leftBracket;
+
+  /// The expression whose value is indexed.
+  Expression get receiver;
+
+  /// The right square bracket.
+  Token get rightBracket;
+
+  /// The write operation, or `null` if this target has not been resolved or
+  /// receiver evaluation prevents the index operation.
+  IndexWriteResolution? get write;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [
+    GenerateNodeProperty('receiver', isInValueExpressionSlot: true),
+    GenerateNodeProperty('leftBracket'),
+    GenerateNodeProperty('index', isInValueExpressionSlot: true),
+    GenerateNodeProperty('rightBracket'),
+  ],
+)
+final class IndexAssignmentTargetImpl extends AssignmentTargetImpl
+    implements IndexAssignmentTarget {
+  @generated
+  ExpressionImpl _receiver;
+
+  @generated
+  @override
+  final Token leftBracket;
+
+  @generated
+  ExpressionImpl _index;
+
+  @generated
+  @override
+  final Token rightBracket;
+
+  @DoNotGenerate(reason: 'Stores the canonical typed write resolution')
+  @override
+  IndexWriteResolutionImpl? write;
+
+  IndexExpressionImpl? _indexExpression;
+
+  @generated
+  IndexAssignmentTargetImpl({
+    required ExpressionImpl receiver,
+    required this.leftBracket,
+    required ExpressionImpl index,
+    required this.rightBracket,
+  }) : _receiver = receiver,
+       _index = index {
+    _becomeParentOf2(receiver);
+    _becomeParentOf2(index);
+  }
+
+  @generated
+  @override
+  Token get beginToken {
+    return receiver.beginToken;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return rightBracket;
+  }
+
+  @generated
+  @override
+  ExpressionImpl get index => _index;
+
+  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  set index(ExpressionImpl index) {
+    _index = _becomeParentOf2(index);
+    _indexExpression?._attachV1Children();
+  }
+
+  /// The cached V1 compatibility projection for this target.
+  IndexExpressionImpl get indexExpression => _indexExpression ??=
+      IndexExpressionImpl.v1ProjectionFromAssignmentTarget(this);
+
+  @generated
+  @override
+  ExpressionImpl get receiver => _receiver;
+
+  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  set receiver(ExpressionImpl receiver) {
+    _receiver = _becomeParentOf2(receiver);
+    _indexExpression?._attachV1Children();
+  }
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @generated
+  @override
+  ChildEntities get _childEntities {
+    throw StateError('IndexAssignmentTarget is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('receiver', receiver)
+    ..addToken('leftBracket', leftBracket)
+    ..addNode('index', index)
+    ..addToken('rightBracket', rightBracket);
+
+  InternalMethodElement? get _legacyWriteElement => switch (write) {
+    MethodIndexWriteResolutionImpl(:var element) => element,
+    InvalidIndexWriteResolutionImpl(
+      recovery: MethodIndexWriteResolutionImpl(:var element),
+    ) =>
+      element,
+    _ => null,
+  };
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('IndexAssignmentTarget is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitIndexAssignmentTarget(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent2, this));
+    return true;
+  }
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    if (identical(receiver, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'receiver'.");
+    }
+    if (identical(index, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'index'.");
+    }
+    super.removeChild(oldNode);
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (identical(receiver, oldNode)) {
+      receiver = newNode as ExpressionImpl;
+      return;
+    }
+    if (identical(index, oldNode)) {
+      index = newNode as ExpressionImpl;
+      return;
+    }
+    super.replaceChild(oldNode, newNode);
+  }
+
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError('IndexAssignmentTarget is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    receiver.accept2(visitor);
+    index.accept2(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(
+    AstVisitor2 visitor, {
+    void Function(ExpressionImpl)? visitReceiver,
+    void Function(ExpressionImpl)? visitIndex,
+  }) {
+    if (visitReceiver != null) {
+      visitReceiver(receiver);
+    } else {
+      receiver.accept2(visitor);
+    }
+    if (visitIndex != null) {
+      visitIndex(index);
+    } else {
+      index.accept2(visitor);
+    }
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError('IndexAssignmentTarget is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (receiver._containsOffset(rangeOffset, rangeEnd)) {
+      return receiver;
+    }
+    if (index._containsOffset(rangeOffset, rangeEnd)) {
+      return index;
+    }
+    return null;
+  }
+}
+
 /// An index expression.
 ///
 ///    indexExpression ::=
@@ -26746,9 +27360,6 @@ final class IndexExpressionImpl extends ExpressionImpl
     with DotShorthandMixin
     implements IndexExpression {
   @generated
-  ExpressionImpl? _target2;
-
-  @generated
   @override
   final Token? period;
 
@@ -26761,17 +27372,18 @@ final class IndexExpressionImpl extends ExpressionImpl
   final Token leftBracket;
 
   @generated
-  ExpressionImpl _index2;
-
-  @generated
   @override
   final Token rightBracket;
 
-  /// The element associated with the operator based on the static type of the
-  /// target, or `null` if the AST structure hasn't been resolved or if the
-  /// operator couldn't be resolved.
-  @override
-  MethodElement? element;
+  @DoNotGenerate(reason: 'Some instances are V1 projection objects')
+  ExpressionImpl? _target2;
+
+  @DoNotGenerate(reason: 'Some instances are V1 projection objects')
+  ExpressionImpl _index2;
+
+  MethodElement? _element;
+
+  IndexAssignmentTargetImpl? _v1ProjectionOrigin;
 
   @generated
   IndexExpressionImpl({
@@ -26792,6 +27404,18 @@ final class IndexExpressionImpl extends ExpressionImpl
     _becomeParentOf1(V1Projection.toV1Expression(index2));
   }
 
+  IndexExpressionImpl.v1ProjectionFromAssignmentTarget(
+    IndexAssignmentTargetImpl origin,
+  ) : _target2 = null,
+      period = null,
+      question = null,
+      leftBracket = origin.leftBracket,
+      _index2 = origin.index,
+      rightBracket = origin.rightBracket,
+      _v1ProjectionOrigin = origin {
+    _attachV1Children();
+  }
+
   @generated
   @override
   Token get beginToken {
@@ -26807,25 +27431,46 @@ final class IndexExpressionImpl extends ExpressionImpl
     return leftBracket;
   }
 
+  /// The element associated with the operator based on the static type of the
+  /// target, or `null` if the AST structure hasn't been resolved or if the
+  /// operator couldn't be resolved.
+  @override
+  MethodElement? get element => _v1ProjectionOrigin == null ? _element : null;
+
+  set element(MethodElement? element) {
+    if (_v1ProjectionOrigin != null) {
+      throw UnsupportedError('A V1 projection cannot be mutated.');
+    }
+    _element = element;
+  }
+
   @generated
   @override
   Token get endToken {
     return rightBracket;
   }
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
   @ToBeDeprecated('Use index2 instead.')
   @override
   ExpressionImpl get index => V1Projection.toV1Expression(index2);
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
   @experimental
   @override
-  ExpressionImpl get index2 => _index2;
+  ExpressionImpl get index2 => switch (_v1ProjectionOrigin) {
+    IndexAssignmentTargetImpl origin => V1Projection.toV1Expression(
+      origin.index,
+    ),
+    _ => _index2,
+  };
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projection objects are read-only')
   @experimental
   set index2(ExpressionImpl index2) {
+    if (_v1ProjectionOrigin != null) {
+      throw UnsupportedError('A V1 projection cannot be mutated.');
+    }
     _index2 = _becomeParentOf2(index2);
     _becomeParentOf1(V1Projection.toV1Expression(index2));
   }
@@ -26861,10 +27506,10 @@ final class IndexExpressionImpl extends ExpressionImpl
     if (isCascaded) {
       return _ancestorCascade.target2;
     }
-    return _target2!;
+    return target2!;
   }
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
   @ToBeDeprecated('Use target2 instead.')
   @override
   ExpressionImpl? get target => switch (target2) {
@@ -26872,14 +27517,22 @@ final class IndexExpressionImpl extends ExpressionImpl
     _ => null,
   };
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
   @experimental
   @override
-  ExpressionImpl? get target2 => _target2;
+  ExpressionImpl? get target2 => switch (_v1ProjectionOrigin) {
+    IndexAssignmentTargetImpl origin => V1Projection.toV1Expression(
+      origin.receiver,
+    ),
+    _ => _target2,
+  };
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projection objects are read-only')
   @experimental
   set target2(ExpressionImpl? target2) {
+    if (_v1ProjectionOrigin != null) {
+      throw UnsupportedError('A V1 projection cannot be mutated.');
+    }
     _target2 = _becomeParentOf2(target2);
     _becomeParentOf1(switch (target2) {
       var node? => V1Projection.toV1Expression(node),
@@ -26899,6 +27552,11 @@ final class IndexExpressionImpl extends ExpressionImpl
     }
   }
 
+  @DoNotGenerate(reason: 'Some instances are V1 projection objects')
+  @override
+  AstNodeApi get _astNodeApi =>
+      _v1ProjectionOrigin == null ? AstNodeApi.shared : AstNodeApi.v1;
+
   @generated
   @override
   ChildEntities get _childEntities => ChildEntities()
@@ -26909,15 +27567,20 @@ final class IndexExpressionImpl extends ExpressionImpl
     ..addNode('index', index)
     ..addToken('rightBracket', rightBracket);
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
   @override
-  ChildEntities get _childEntities2 => ChildEntities()
-    ..addNode('target2', target2)
-    ..addToken('period', period)
-    ..addToken('question', question)
-    ..addToken('leftBracket', leftBracket)
-    ..addNode('index2', index2)
-    ..addToken('rightBracket', rightBracket);
+  ChildEntities get _childEntities2 {
+    if (_v1ProjectionOrigin != null) {
+      throw StateError('IndexExpression is not in the V2 AST view.');
+    }
+    return ChildEntities()
+      ..addNode('target2', target2)
+      ..addToken('period', period)
+      ..addToken('question', question)
+      ..addToken('leftBracket', leftBracket)
+      ..addNode('index2', index2)
+      ..addToken('rightBracket', rightBracket);
+  }
 
   /// The parameter element representing the parameter to which the value of the
   /// index expression is bound, or `null` if the AST structure is not resolved,
@@ -26947,13 +27610,21 @@ final class IndexExpressionImpl extends ExpressionImpl
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitIndexExpression(this);
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
   @experimental
   @override
-  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitIndexExpression(this);
+  E? accept2<E>(AstVisitor2<E> visitor) {
+    if (_v1ProjectionOrigin != null) {
+      throw StateError('IndexExpression is not in the V2 AST view.');
+    }
+    return visitor.visitIndexExpression(this);
+  }
 
   @override
   bool inGetterContext() {
+    if (_v1ProjectionOrigin != null) {
+      return false;
+    }
     // TODO(brianwilkerson): Convert this to a getter.
     var parent = parent2!;
     if (parent case AssignmentExpression assignment) {
@@ -26967,6 +27638,9 @@ final class IndexExpressionImpl extends ExpressionImpl
 
   @override
   bool inSetterContext() {
+    if (_v1ProjectionOrigin != null) {
+      return true;
+    }
     // TODO(brianwilkerson): Convert this to a getter.
     var parent = parent2!;
     if (parent is IncrementOrDecrementExpressionImpl) {
@@ -26977,16 +27651,22 @@ final class IndexExpressionImpl extends ExpressionImpl
     return false;
   }
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projection children are value expressions')
   @override
   bool isInValueExpressionSlot(AstNode child) {
+    if (_v1ProjectionOrigin != null) {
+      return true;
+    }
     assert(identical(child.parent2, this));
     return true;
   }
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projection objects are read-only')
   @override
   void removeChild(AstNodeImpl oldNode) {
+    if (_v1ProjectionOrigin != null) {
+      throw UnsupportedError('A V1 projection cannot be mutated.');
+    }
     if (identical(target2, oldNode)) {
       target2 = null;
       return;
@@ -26997,9 +27677,12 @@ final class IndexExpressionImpl extends ExpressionImpl
     super.removeChild(oldNode);
   }
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projection objects are read-only')
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (_v1ProjectionOrigin != null) {
+      throw UnsupportedError('A V1 projection cannot be mutated.');
+    }
     if (identical(target2, oldNode)) {
       target2 = newNode as ExpressionImpl?;
       return;
@@ -27011,11 +27694,17 @@ final class IndexExpressionImpl extends ExpressionImpl
     super.replaceChild(oldNode, newNode);
   }
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projection objects cannot be resolved')
   @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+    if (_v1ProjectionOrigin != null) {
+      throw StateError('IndexExpression is a V1 projection.');
+    }
     resolver.visitIndexExpression(this, contextType: contextType);
   }
+
+  @override
+  String toSource() => _v1ProjectionOrigin?.toSource() ?? super.toSource();
 
   @generated
   @ToBeDeprecated('Use visitChildren2 instead.')
@@ -27025,10 +27714,13 @@ final class IndexExpressionImpl extends ExpressionImpl
     index.accept(visitor);
   }
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
   @experimental
   @override
   void visitChildren2(AstVisitor2 visitor) {
+    if (_v1ProjectionOrigin != null) {
+      throw StateError('IndexExpression is not in the V2 AST view.');
+    }
     target2?.accept2(visitor);
     index2.accept2(visitor);
   }
@@ -27038,13 +27730,16 @@ final class IndexExpressionImpl extends ExpressionImpl
   /// If a specific hook is provided for a child, it is called instead of
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
-  @generated
+  @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
   @experimental
   void visitChildrenWithHooks(
     AstVisitor2 visitor, {
     void Function(ExpressionImpl)? visitTarget2,
     void Function(ExpressionImpl)? visitIndex2,
   }) {
+    if (_v1ProjectionOrigin != null) {
+      throw StateError('IndexExpression is not in the V2 AST view.');
+    }
     if (target2 case var target2?) {
       if (visitTarget2 != null) {
         visitTarget2(target2);
@@ -27057,6 +27752,11 @@ final class IndexExpressionImpl extends ExpressionImpl
     } else {
       index2.accept2(visitor);
     }
+  }
+
+  void _attachV1Children() {
+    _becomeParentOf1(target);
+    _becomeParentOf1(index);
   }
 
   @generated
@@ -27073,9 +27773,12 @@ final class IndexExpressionImpl extends ExpressionImpl
     return null;
   }
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
   @override
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (_v1ProjectionOrigin != null) {
+      throw StateError('IndexExpression is not in the V2 AST view.');
+    }
     if (target2 case var target2?) {
       if (target2._containsOffset(rangeOffset, rangeEnd)) {
         return target2;
@@ -27086,6 +27789,23 @@ final class IndexExpressionImpl extends ExpressionImpl
     }
     return null;
   }
+}
+
+/// The result of writing an indexed assignment target.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class IndexWriteResolution {
+  /// The type accepted by `operator []=` for the written value.
+  DartType get acceptedType;
+}
+
+sealed class IndexWriteResolutionImpl implements IndexWriteResolution {
+  const IndexWriteResolutionImpl();
+
+  @override
+  TypeImpl get acceptedType;
+
+  TypeImpl get indexContextType;
 }
 
 /// An instance creation expression.
@@ -27289,6 +28009,31 @@ final class InstanceCreationExpressionImpl extends ExpressionImpl
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     throw StateError('InstanceCreationExpression is not in the V2 AST view.');
   }
+}
+
+/// A top-level V2 declaration that contributes an [InstanceFragment].
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class InstanceDeclaration
+    implements TopLevelDeclaration, FragmentDeclaringNode {
+  /// The body containing the members explicitly written by this declaration.
+  InstanceDeclarationBody get body;
+
+  @override
+  InstanceFragment? get declaredFragment;
+
+  /// The type parameters, or `null` if there are none.
+  TypeParameterList? get typeParameters;
+}
+
+/// The normalized body of an [InstanceDeclaration].
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+sealed class InstanceDeclarationBody implements AstNode {
+  /// The member declarations explicitly written in this body.
+  ///
+  /// This list excludes enum constants.
+  NodeList<MemberDeclaration> get members;
 }
 
 /// An expression or non-value form that can receive an instance operation.
@@ -28020,6 +28765,30 @@ final class InvalidExpressionAssignmentTargetImpl extends AssignmentTargetImpl
   }
 }
 
+/// An unsuccessful index write resolution.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class InvalidIndexWriteResolution
+    implements IndexWriteResolution {
+  /// A complete hypothetical valid resolution used for recovery.
+  ValidIndexWriteResolution? get recovery;
+}
+
+final class InvalidIndexWriteResolutionImpl extends IndexWriteResolutionImpl
+    implements InvalidIndexWriteResolution {
+  @override
+  final MethodIndexWriteResolutionImpl? recovery;
+
+  InvalidIndexWriteResolutionImpl({required this.recovery});
+
+  @override
+  TypeImpl get acceptedType => InvalidTypeImpl.instance;
+
+  @override
+  TypeImpl get indexContextType =>
+      recovery?.indexContextType ?? UnknownInferredType.instance;
+}
+
 /// An unsuccessful named read resolution.
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
@@ -28398,13 +29167,14 @@ final class IsExpressionImpl extends ExpressionImpl implements IsExpression {
 ///    label ::=
 ///        [SimpleIdentifier] ':'
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-abstract final class Label implements AstNode {
+abstract final class Label implements AstNode, FragmentDeclaringNode {
   /// The colon that separates the label from the statement.
   Token get colon;
 
   /// The fragment declared by this declaration.
   ///
   /// Returns `null` if the AST structure hasn't been resolved.
+  @override
   LabelFragment? get declaredFragment;
 
   /// The label name.
@@ -31294,6 +32064,22 @@ final class MapPatternImpl extends DartPatternImpl implements MapPattern {
   }
 }
 
+/// A declaration occupying a member position in an instance declaration body.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+sealed class MemberDeclaration implements AnnotatedNode {}
+
+sealed class MemberDeclarationImpl extends AnnotatedNodeImpl
+    implements MemberDeclaration {
+  MemberDeclarationImpl({required super.comment, required super.metadata});
+
+  @override
+  ChildEntities get _childEntities {
+    super._childEntities;
+    throw StateError('MemberDeclaration is not in the V1 AST view.');
+  }
+}
+
 /// A method declaration.
 ///
 ///    methodDeclaration ::=
@@ -31372,6 +32158,348 @@ abstract final class MethodDeclaration implements ClassMember {
   /// The type parameters associated with this method, or `null` if this method
   /// isn't a generic method.
   TypeParameterList? get typeParameters;
+}
+
+/// A method declaration in an instance declaration body.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class MethodDeclaration2
+    implements MemberDeclaration, FragmentDeclaringNode {
+  /// The `augment` keyword, or `null` if there is no `augment` keyword.
+  Token? get augmentKeyword;
+
+  /// The body of the method.
+  FunctionBody get body;
+
+  @override
+  MethodFragment? get declaredFragment;
+
+  /// The `external` keyword, or `null` if this isn't an external method.
+  Token? get externalKeyword;
+
+  /// The formal parameters of the method.
+  FormalParameterList get formalParameters;
+
+  /// Whether this declaration is complete for augmentation purposes.
+  ///
+  /// A method declaration is complete if it is external or has a body.
+  bool get isComplete;
+
+  /// The name of the method.
+  Token get name;
+
+  /// The return type of the method, or `null` if no return type was declared.
+  TypeAnnotation? get returnType;
+
+  /// The `static` keyword, or `null` if this isn't a static method.
+  Token? get staticKeyword;
+
+  /// The type parameters of the method, or `null` if the method isn't generic.
+  TypeParameterList? get typeParameters;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [
+    GenerateNodeProperty('augmentKeyword'),
+    GenerateNodeProperty('externalKeyword', tokenGroupId: 0),
+    GenerateNodeProperty('staticKeyword', tokenGroupId: 0),
+    GenerateNodeProperty('returnType'),
+    GenerateNodeProperty('name'),
+    GenerateNodeProperty('typeParameters'),
+    GenerateNodeProperty('formalParameters'),
+    GenerateNodeProperty('body'),
+  ],
+)
+final class MethodDeclaration2Impl extends MemberDeclarationImpl
+    with AstNodeWithNameScopeMixin
+    implements MethodDeclaration2 {
+  @generated
+  @override
+  final Token? augmentKeyword;
+
+  @generated
+  @override
+  final Token? externalKeyword;
+
+  @generated
+  @override
+  final Token? staticKeyword;
+
+  @generated
+  TypeAnnotationImpl? _returnType;
+
+  @generated
+  @override
+  final Token name;
+
+  @generated
+  TypeParameterListImpl? _typeParameters;
+
+  @generated
+  FormalParameterListImpl _formalParameters;
+
+  @generated
+  FunctionBodyImpl _body;
+
+  @override
+  MethodFragmentImpl? declaredFragment;
+
+  @generated
+  MethodDeclaration2Impl({
+    required super.comment,
+    required super.metadata,
+    required this.augmentKeyword,
+    required this.externalKeyword,
+    required this.staticKeyword,
+    required TypeAnnotationImpl? returnType,
+    required this.name,
+    required TypeParameterListImpl? typeParameters,
+    required FormalParameterListImpl formalParameters,
+    required FunctionBodyImpl body,
+  }) : _returnType = returnType,
+       _typeParameters = typeParameters,
+       _formalParameters = formalParameters,
+       _body = body {
+    _becomeParentOf2(returnType);
+    _becomeParentOf2(typeParameters);
+    _becomeParentOf2(formalParameters);
+    _becomeParentOf2(body);
+  }
+
+  @generated
+  @override
+  FunctionBodyImpl get body => _body;
+
+  @generated
+  set body(FunctionBodyImpl body) {
+    _body = _becomeParentOf2(body);
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return body.endToken;
+  }
+
+  @generated
+  @override
+  Token get firstTokenAfterCommentAndMetadata {
+    if (augmentKeyword case var augmentKeyword?) {
+      return augmentKeyword;
+    }
+    if (Token.lexicallyFirst(externalKeyword, staticKeyword) case var result?) {
+      return result;
+    }
+    if (returnType case var returnType?) {
+      return returnType.beginToken;
+    }
+    return name;
+  }
+
+  @generated
+  @override
+  FormalParameterListImpl get formalParameters => _formalParameters;
+
+  @generated
+  set formalParameters(FormalParameterListImpl formalParameters) {
+    _formalParameters = _becomeParentOf2(formalParameters);
+  }
+
+  @override
+  bool get isComplete => externalKeyword != null || body is! EmptyFunctionBody;
+
+  @generated
+  @override
+  TypeAnnotationImpl? get returnType => _returnType;
+
+  @generated
+  set returnType(TypeAnnotationImpl? returnType) {
+    _returnType = _becomeParentOf2(returnType);
+  }
+
+  @generated
+  @override
+  TypeParameterListImpl? get typeParameters => _typeParameters;
+
+  @generated
+  set typeParameters(TypeParameterListImpl? typeParameters) {
+    _typeParameters = _becomeParentOf2(typeParameters);
+  }
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @DoNotGenerate(reason: 'This node is not in the V1 AST view')
+  @override
+  ChildEntities get _childEntities => super._childEntities;
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => super._childEntities2
+    ..addToken('augmentKeyword', augmentKeyword)
+    ..addToken('externalKeyword', externalKeyword)
+    ..addToken('staticKeyword', staticKeyword)
+    ..addNode('returnType', returnType)
+    ..addToken('name', name)
+    ..addNode('typeParameters', typeParameters)
+    ..addNode('formalParameters', formalParameters)
+    ..addNode('body', body);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('MethodDeclaration2 is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitMethodDeclaration2(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent2, this));
+    return false;
+  }
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    if (identical(returnType, oldNode)) {
+      returnType = null;
+      return;
+    }
+    if (identical(typeParameters, oldNode)) {
+      typeParameters = null;
+      return;
+    }
+    if (identical(formalParameters, oldNode)) {
+      throw UnsupportedError(
+        "Cannot remove required child 'formalParameters'.",
+      );
+    }
+    if (identical(body, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'body'.");
+    }
+    super.removeChild(oldNode);
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (identical(returnType, oldNode)) {
+      returnType = newNode as TypeAnnotationImpl?;
+      return;
+    }
+    if (identical(typeParameters, oldNode)) {
+      typeParameters = newNode as TypeParameterListImpl?;
+      return;
+    }
+    if (identical(formalParameters, oldNode)) {
+      formalParameters = newNode as FormalParameterListImpl;
+      return;
+    }
+    if (identical(body, oldNode)) {
+      body = newNode as FunctionBodyImpl;
+      return;
+    }
+    super.replaceChild(oldNode, newNode);
+  }
+
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError('MethodDeclaration2 is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    _visitCommentAndAnnotations2(visitor);
+    returnType?.accept2(visitor);
+    typeParameters?.accept2(visitor);
+    formalParameters.accept2(visitor);
+    body.accept2(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(
+    AstVisitor2 visitor, {
+    void Function(TypeAnnotationImpl)? visitReturnType,
+    void Function(TypeParameterListImpl)? visitTypeParameters,
+    void Function(FormalParameterListImpl)? visitFormalParameters,
+    void Function(FunctionBodyImpl)? visitBody,
+  }) {
+    _visitCommentAndAnnotations2(visitor);
+    if (returnType case var returnType?) {
+      if (visitReturnType != null) {
+        visitReturnType(returnType);
+      } else {
+        returnType.accept2(visitor);
+      }
+    }
+    if (typeParameters case var typeParameters?) {
+      if (visitTypeParameters != null) {
+        visitTypeParameters(typeParameters);
+      } else {
+        typeParameters.accept2(visitor);
+      }
+    }
+    if (visitFormalParameters != null) {
+      visitFormalParameters(formalParameters);
+    } else {
+      formalParameters.accept2(visitor);
+    }
+    if (visitBody != null) {
+      visitBody(body);
+    } else {
+      body.accept2(visitor);
+    }
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError('MethodDeclaration2 is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (super._childContainingRange2(rangeOffset, rangeEnd) case var result?) {
+      return result;
+    }
+    if (returnType case var returnType?) {
+      if (returnType._containsOffset(rangeOffset, rangeEnd)) {
+        return returnType;
+      }
+    }
+    if (typeParameters case var typeParameters?) {
+      if (typeParameters._containsOffset(rangeOffset, rangeEnd)) {
+        return typeParameters;
+      }
+    }
+    if (formalParameters._containsOffset(rangeOffset, rangeEnd)) {
+      return formalParameters;
+    }
+    if (body._containsOffset(rangeOffset, rangeEnd)) {
+      return body;
+    }
+    return null;
+  }
 }
 
 @GenerateNodeImpl(
@@ -31749,6 +32877,35 @@ final class MethodDeclarationImpl extends ClassMemberImpl
     }
     return null;
   }
+}
+
+/// An index write resolved to a statically selected `operator []=` method.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class MethodIndexWriteResolution
+    implements ValidIndexWriteResolution {
+  /// The selected substituted `operator []=` method.
+  MethodElement get element;
+
+  /// The substituted function type used for this invocation.
+  FunctionType get invokeType;
+}
+
+final class MethodIndexWriteResolutionImpl extends IndexWriteResolutionImpl
+    implements MethodIndexWriteResolution {
+  @override
+  final InternalMethodElement element;
+
+  MethodIndexWriteResolutionImpl({required this.element});
+
+  @override
+  TypeImpl get acceptedType => element.formalParameters[1].type;
+
+  @override
+  TypeImpl get indexContextType => element.formalParameters[0].type;
+
+  @override
+  FunctionTypeImpl get invokeType => element.type;
 }
 
 /// The invocation of either a function or a method.
@@ -32227,7 +33384,7 @@ abstract final class MixinDeclaration implements CompilationUnitMember {
 )
 final class MixinDeclarationImpl extends CompilationUnitMemberImpl
     with AstNodeWithNameScopeMixin
-    implements MixinDeclaration {
+    implements TopLevelDeclarationV1OrV2Impl, MixinDeclaration {
   @generated
   @override
   final Token? augmentKeyword;
@@ -35178,6 +36335,306 @@ final class ObjectPatternImpl extends DartPatternImpl implements ObjectPattern {
     if (fields._elementContainingRange(rangeOffset, rangeEnd)
         case var result?) {
       return result;
+    }
+    return null;
+  }
+}
+
+/// An operator declaration in an instance declaration body.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class OperatorDeclaration
+    implements MemberDeclaration, FragmentDeclaringNode {
+  /// The `augment` keyword, or `null` if there is no `augment` keyword.
+  Token? get augmentKeyword;
+
+  /// The body of the operator.
+  FunctionBody get body;
+
+  @override
+  MethodFragment? get declaredFragment;
+
+  /// The `external` keyword, or `null` if this isn't an external operator.
+  Token? get externalKeyword;
+
+  /// The formal parameters of the operator.
+  FormalParameterList get formalParameters;
+
+  /// Whether this declaration is complete for augmentation purposes.
+  ///
+  /// An operator declaration is complete if it is external or has a body.
+  bool get isComplete;
+
+  /// The token representing the operator being declared.
+  Token get operator;
+
+  /// The `operator` keyword.
+  Token get operatorKeyword;
+
+  /// The return type of the operator, or `null` if no return type was declared.
+  TypeAnnotation? get returnType;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [
+    GenerateNodeProperty('augmentKeyword'),
+    GenerateNodeProperty('externalKeyword', tokenGroupId: 0),
+    GenerateNodeProperty('returnType'),
+    GenerateNodeProperty('operatorKeyword'),
+    GenerateNodeProperty('operator'),
+    GenerateNodeProperty('formalParameters'),
+    GenerateNodeProperty('body'),
+  ],
+)
+final class OperatorDeclarationImpl extends MemberDeclarationImpl
+    with AstNodeWithNameScopeMixin
+    implements OperatorDeclaration {
+  @generated
+  @override
+  final Token? augmentKeyword;
+
+  @generated
+  @override
+  final Token? externalKeyword;
+
+  @generated
+  TypeAnnotationImpl? _returnType;
+
+  @generated
+  @override
+  final Token operatorKeyword;
+
+  @generated
+  @override
+  final Token operator;
+
+  @generated
+  FormalParameterListImpl _formalParameters;
+
+  @generated
+  FunctionBodyImpl _body;
+
+  @override
+  MethodFragmentImpl? declaredFragment;
+
+  @generated
+  OperatorDeclarationImpl({
+    required super.comment,
+    required super.metadata,
+    required this.augmentKeyword,
+    required this.externalKeyword,
+    required TypeAnnotationImpl? returnType,
+    required this.operatorKeyword,
+    required this.operator,
+    required FormalParameterListImpl formalParameters,
+    required FunctionBodyImpl body,
+  }) : _returnType = returnType,
+       _formalParameters = formalParameters,
+       _body = body {
+    _becomeParentOf2(returnType);
+    _becomeParentOf2(formalParameters);
+    _becomeParentOf2(body);
+  }
+
+  @generated
+  @override
+  FunctionBodyImpl get body => _body;
+
+  @generated
+  set body(FunctionBodyImpl body) {
+    _body = _becomeParentOf2(body);
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return body.endToken;
+  }
+
+  @generated
+  @override
+  Token get firstTokenAfterCommentAndMetadata {
+    if (augmentKeyword case var augmentKeyword?) {
+      return augmentKeyword;
+    }
+    if (Token.lexicallyFirst(externalKeyword) case var result?) {
+      return result;
+    }
+    if (returnType case var returnType?) {
+      return returnType.beginToken;
+    }
+    return operatorKeyword;
+  }
+
+  @generated
+  @override
+  FormalParameterListImpl get formalParameters => _formalParameters;
+
+  @generated
+  set formalParameters(FormalParameterListImpl formalParameters) {
+    _formalParameters = _becomeParentOf2(formalParameters);
+  }
+
+  @override
+  bool get isComplete => externalKeyword != null || body is! EmptyFunctionBody;
+
+  @generated
+  @override
+  TypeAnnotationImpl? get returnType => _returnType;
+
+  @generated
+  set returnType(TypeAnnotationImpl? returnType) {
+    _returnType = _becomeParentOf2(returnType);
+  }
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @DoNotGenerate(reason: 'This node is not in the V1 AST view')
+  @override
+  ChildEntities get _childEntities => super._childEntities;
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => super._childEntities2
+    ..addToken('augmentKeyword', augmentKeyword)
+    ..addToken('externalKeyword', externalKeyword)
+    ..addNode('returnType', returnType)
+    ..addToken('operatorKeyword', operatorKeyword)
+    ..addToken('operator', operator)
+    ..addNode('formalParameters', formalParameters)
+    ..addNode('body', body);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('OperatorDeclaration is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitOperatorDeclaration(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent2, this));
+    return false;
+  }
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    if (identical(returnType, oldNode)) {
+      returnType = null;
+      return;
+    }
+    if (identical(formalParameters, oldNode)) {
+      throw UnsupportedError(
+        "Cannot remove required child 'formalParameters'.",
+      );
+    }
+    if (identical(body, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'body'.");
+    }
+    super.removeChild(oldNode);
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (identical(returnType, oldNode)) {
+      returnType = newNode as TypeAnnotationImpl?;
+      return;
+    }
+    if (identical(formalParameters, oldNode)) {
+      formalParameters = newNode as FormalParameterListImpl;
+      return;
+    }
+    if (identical(body, oldNode)) {
+      body = newNode as FunctionBodyImpl;
+      return;
+    }
+    super.replaceChild(oldNode, newNode);
+  }
+
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError('OperatorDeclaration is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    _visitCommentAndAnnotations2(visitor);
+    returnType?.accept2(visitor);
+    formalParameters.accept2(visitor);
+    body.accept2(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(
+    AstVisitor2 visitor, {
+    void Function(TypeAnnotationImpl)? visitReturnType,
+    void Function(FormalParameterListImpl)? visitFormalParameters,
+    void Function(FunctionBodyImpl)? visitBody,
+  }) {
+    _visitCommentAndAnnotations2(visitor);
+    if (returnType case var returnType?) {
+      if (visitReturnType != null) {
+        visitReturnType(returnType);
+      } else {
+        returnType.accept2(visitor);
+      }
+    }
+    if (visitFormalParameters != null) {
+      visitFormalParameters(formalParameters);
+    } else {
+      formalParameters.accept2(visitor);
+    }
+    if (visitBody != null) {
+      visitBody(body);
+    } else {
+      body.accept2(visitor);
+    }
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError('OperatorDeclaration is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (super._childContainingRange2(rangeOffset, rangeEnd) case var result?) {
+      return result;
+    }
+    if (returnType case var returnType?) {
+      if (returnType._containsOffset(rangeOffset, rangeEnd)) {
+        return returnType;
+      }
+    }
+    if (formalParameters._containsOffset(rangeOffset, rangeEnd)) {
+      return formalParameters;
+    }
+    if (body._containsOffset(rangeOffset, rangeEnd)) {
+      return body;
     }
     return null;
   }
@@ -38691,7 +40148,8 @@ final class PrimaryConstructorBodyImpl extends ClassMemberImpl
 
 /// The declaration of a primary constructor.
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-abstract final class PrimaryConstructorDeclaration implements ClassNamePart {
+abstract final class PrimaryConstructorDeclaration
+    implements ClassNamePart, FragmentDeclaringNode {
   /// The body of this primary constructor, or `null` if the class members
   /// don't have the body.
   PrimaryConstructorBody? get body;
@@ -38706,6 +40164,7 @@ abstract final class PrimaryConstructorDeclaration implements ClassNamePart {
   /// The fragment declared by this declaration.
   ///
   /// Returns `null` if the AST structure hasn't been resolved.
+  @override
   ConstructorFragment? get declaredFragment;
 
   /// The offset and length to use as an error range for this constructor
@@ -43049,6 +44508,315 @@ final class SetOrMapLiteralImpl extends TypedLiteralImpl
   }
 }
 
+/// A setter declaration in an instance declaration body.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class SetterDeclaration
+    implements MemberDeclaration, FragmentDeclaringNode {
+  /// The `augment` keyword, or `null` if there is no `augment` keyword.
+  Token? get augmentKeyword;
+
+  /// The body of the setter.
+  FunctionBody get body;
+
+  @override
+  SetterFragment? get declaredFragment;
+
+  /// The `external` keyword, or `null` if this isn't an external setter.
+  Token? get externalKeyword;
+
+  /// The formal parameters of the setter.
+  FormalParameterList get formalParameters;
+
+  /// Whether this declaration is complete for augmentation purposes.
+  ///
+  /// A setter declaration is complete if it is external or has a body.
+  bool get isComplete;
+
+  /// The name of the setter.
+  Token get name;
+
+  /// The return type of the setter, or `null` if no return type was declared.
+  TypeAnnotation? get returnType;
+
+  /// The `set` keyword.
+  Token get setKeyword;
+
+  /// The `static` keyword, or `null` if this isn't a static setter.
+  Token? get staticKeyword;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [
+    GenerateNodeProperty('augmentKeyword'),
+    GenerateNodeProperty('externalKeyword', tokenGroupId: 0),
+    GenerateNodeProperty('staticKeyword', tokenGroupId: 0),
+    GenerateNodeProperty('returnType'),
+    GenerateNodeProperty('setKeyword'),
+    GenerateNodeProperty('name'),
+    GenerateNodeProperty('formalParameters'),
+    GenerateNodeProperty('body'),
+  ],
+)
+final class SetterDeclarationImpl extends MemberDeclarationImpl
+    with AstNodeWithNameScopeMixin
+    implements SetterDeclaration {
+  @generated
+  @override
+  final Token? augmentKeyword;
+
+  @generated
+  @override
+  final Token? externalKeyword;
+
+  @generated
+  @override
+  final Token? staticKeyword;
+
+  @generated
+  TypeAnnotationImpl? _returnType;
+
+  @generated
+  @override
+  final Token setKeyword;
+
+  @generated
+  @override
+  final Token name;
+
+  @generated
+  FormalParameterListImpl _formalParameters;
+
+  @generated
+  FunctionBodyImpl _body;
+
+  @override
+  SetterFragmentImpl? declaredFragment;
+
+  @generated
+  SetterDeclarationImpl({
+    required super.comment,
+    required super.metadata,
+    required this.augmentKeyword,
+    required this.externalKeyword,
+    required this.staticKeyword,
+    required TypeAnnotationImpl? returnType,
+    required this.setKeyword,
+    required this.name,
+    required FormalParameterListImpl formalParameters,
+    required FunctionBodyImpl body,
+  }) : _returnType = returnType,
+       _formalParameters = formalParameters,
+       _body = body {
+    _becomeParentOf2(returnType);
+    _becomeParentOf2(formalParameters);
+    _becomeParentOf2(body);
+  }
+
+  @generated
+  @override
+  FunctionBodyImpl get body => _body;
+
+  @generated
+  set body(FunctionBodyImpl body) {
+    _body = _becomeParentOf2(body);
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return body.endToken;
+  }
+
+  @generated
+  @override
+  Token get firstTokenAfterCommentAndMetadata {
+    if (augmentKeyword case var augmentKeyword?) {
+      return augmentKeyword;
+    }
+    if (Token.lexicallyFirst(externalKeyword, staticKeyword) case var result?) {
+      return result;
+    }
+    if (returnType case var returnType?) {
+      return returnType.beginToken;
+    }
+    return setKeyword;
+  }
+
+  @generated
+  @override
+  FormalParameterListImpl get formalParameters => _formalParameters;
+
+  @generated
+  set formalParameters(FormalParameterListImpl formalParameters) {
+    _formalParameters = _becomeParentOf2(formalParameters);
+  }
+
+  @override
+  bool get isComplete => externalKeyword != null || body is! EmptyFunctionBody;
+
+  @generated
+  @override
+  TypeAnnotationImpl? get returnType => _returnType;
+
+  @generated
+  set returnType(TypeAnnotationImpl? returnType) {
+    _returnType = _becomeParentOf2(returnType);
+  }
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @DoNotGenerate(reason: 'This node is not in the V1 AST view')
+  @override
+  ChildEntities get _childEntities => super._childEntities;
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => super._childEntities2
+    ..addToken('augmentKeyword', augmentKeyword)
+    ..addToken('externalKeyword', externalKeyword)
+    ..addToken('staticKeyword', staticKeyword)
+    ..addNode('returnType', returnType)
+    ..addToken('setKeyword', setKeyword)
+    ..addToken('name', name)
+    ..addNode('formalParameters', formalParameters)
+    ..addNode('body', body);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('SetterDeclaration is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitSetterDeclaration(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent2, this));
+    return false;
+  }
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    if (identical(returnType, oldNode)) {
+      returnType = null;
+      return;
+    }
+    if (identical(formalParameters, oldNode)) {
+      throw UnsupportedError(
+        "Cannot remove required child 'formalParameters'.",
+      );
+    }
+    if (identical(body, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'body'.");
+    }
+    super.removeChild(oldNode);
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (identical(returnType, oldNode)) {
+      returnType = newNode as TypeAnnotationImpl?;
+      return;
+    }
+    if (identical(formalParameters, oldNode)) {
+      formalParameters = newNode as FormalParameterListImpl;
+      return;
+    }
+    if (identical(body, oldNode)) {
+      body = newNode as FunctionBodyImpl;
+      return;
+    }
+    super.replaceChild(oldNode, newNode);
+  }
+
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError('SetterDeclaration is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    _visitCommentAndAnnotations2(visitor);
+    returnType?.accept2(visitor);
+    formalParameters.accept2(visitor);
+    body.accept2(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(
+    AstVisitor2 visitor, {
+    void Function(TypeAnnotationImpl)? visitReturnType,
+    void Function(FormalParameterListImpl)? visitFormalParameters,
+    void Function(FunctionBodyImpl)? visitBody,
+  }) {
+    _visitCommentAndAnnotations2(visitor);
+    if (returnType case var returnType?) {
+      if (visitReturnType != null) {
+        visitReturnType(returnType);
+      } else {
+        returnType.accept2(visitor);
+      }
+    }
+    if (visitFormalParameters != null) {
+      visitFormalParameters(formalParameters);
+    } else {
+      formalParameters.accept2(visitor);
+    }
+    if (visitBody != null) {
+      visitBody(body);
+    } else {
+      body.accept2(visitor);
+    }
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError('SetterDeclaration is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (super._childContainingRange2(rangeOffset, rangeEnd) case var result?) {
+      return result;
+    }
+    if (returnType case var returnType?) {
+      if (returnType._containsOffset(rangeOffset, rangeEnd)) {
+        return returnType;
+      }
+    }
+    if (formalParameters._containsOffset(rangeOffset, rangeEnd)) {
+      return formalParameters;
+    }
+    if (body._containsOffset(rangeOffset, rangeEnd)) {
+      return body;
+    }
+    return null;
+  }
+}
+
 /// An invocation of a setter selected for a named write.
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
@@ -46770,6 +48538,622 @@ final class ToBeDeprecated {
   const ToBeDeprecated([this.message = '']);
 }
 
+/// A declaration that can appear directly in a compilation unit in V2.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class TopLevelDeclaration implements AnnotatedNode {}
+
+sealed class TopLevelDeclarationImpl extends AnnotatedNodeImpl
+    implements TopLevelDeclarationV1OrV2Impl, TopLevelDeclaration {
+  TopLevelDeclarationImpl({required super.comment, required super.metadata});
+}
+
+/// A temporary marker interface for declarations in
+/// [CompilationUnitImpl.declarations2].
+///
+/// This unifies V1 declarations that have not yet been migrated with V2
+/// [TopLevelDeclaration]s.
+sealed class TopLevelDeclarationV1OrV2Impl implements AnnotatedNodeImpl {}
+
+/// A top-level getter declaration.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class TopLevelGetterDeclaration
+    implements TopLevelDeclaration, FragmentDeclaringNode {
+  /// The `augment` keyword, or `null` if there is no `augment` keyword.
+  Token? get augmentKeyword;
+
+  /// The body of the getter.
+  FunctionBody get body;
+
+  @override
+  GetterFragment? get declaredFragment;
+
+  /// The `external` keyword, or `null` if this isn't an external getter.
+  Token? get externalKeyword;
+
+  /// The `get` keyword.
+  Token get getKeyword;
+
+  /// Whether this declaration is complete for augmentation purposes.
+  ///
+  /// A getter declaration is complete if it is external or has a body.
+  bool get isComplete;
+
+  /// The name of the getter.
+  Token get name;
+
+  /// The return type of the getter, or `null` if no return type was declared.
+  TypeAnnotation? get returnType;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [
+    GenerateNodeProperty('augmentKeyword'),
+    GenerateNodeProperty('externalKeyword'),
+    GenerateNodeProperty('returnType'),
+    GenerateNodeProperty('getKeyword'),
+    GenerateNodeProperty('name'),
+    GenerateNodeProperty(
+      'recoveryTypeParameters',
+      withOverride: false,
+      type: _TypeLiteral<TypeParameterList?>,
+    ),
+    GenerateNodeProperty(
+      'recoveryFormalParameters',
+      withOverride: false,
+      type: _TypeLiteral<FormalParameterList?>,
+    ),
+    GenerateNodeProperty('body'),
+  ],
+)
+final class TopLevelGetterDeclarationImpl extends TopLevelDeclarationImpl
+    with AstNodeWithNameScopeMixin
+    implements TopLevelGetterDeclaration {
+  @generated
+  @override
+  final Token? augmentKeyword;
+
+  @generated
+  @override
+  final Token? externalKeyword;
+
+  @generated
+  TypeAnnotationImpl? _returnType;
+
+  @generated
+  @override
+  final Token getKeyword;
+
+  @generated
+  @override
+  final Token name;
+
+  @generated
+  TypeParameterListImpl? _recoveryTypeParameters;
+
+  @generated
+  FormalParameterListImpl? _recoveryFormalParameters;
+
+  @generated
+  FunctionBodyImpl _body;
+
+  @override
+  GetterFragmentImpl? declaredFragment;
+
+  late final TopLevelGetterDeclarationV1Impl v1Projection =
+      TopLevelGetterDeclarationV1Impl._(this);
+
+  @generated
+  TopLevelGetterDeclarationImpl({
+    required super.comment,
+    required super.metadata,
+    required this.augmentKeyword,
+    required this.externalKeyword,
+    required TypeAnnotationImpl? returnType,
+    required this.getKeyword,
+    required this.name,
+    required TypeParameterListImpl? recoveryTypeParameters,
+    required FormalParameterListImpl? recoveryFormalParameters,
+    required FunctionBodyImpl body,
+  }) : _returnType = returnType,
+       _recoveryTypeParameters = recoveryTypeParameters,
+       _recoveryFormalParameters = recoveryFormalParameters,
+       _body = body {
+    _becomeParentOf2(returnType);
+    _becomeParentOf2(recoveryTypeParameters);
+    _becomeParentOf2(recoveryFormalParameters);
+    _becomeParentOf2(body);
+  }
+
+  @generated
+  @override
+  FunctionBodyImpl get body => _body;
+
+  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  set body(FunctionBodyImpl body) {
+    _body = _becomeParentOf2(body);
+    v1Projection.functionExpression._becomeParentOf1(body);
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return body.endToken;
+  }
+
+  @generated
+  @override
+  Token get firstTokenAfterCommentAndMetadata {
+    if (augmentKeyword case var augmentKeyword?) {
+      return augmentKeyword;
+    }
+    if (externalKeyword case var externalKeyword?) {
+      return externalKeyword;
+    }
+    if (returnType case var returnType?) {
+      return returnType.beginToken;
+    }
+    return getKeyword;
+  }
+
+  @override
+  bool get isComplete => externalKeyword != null || body is! EmptyFunctionBody;
+
+  @generated
+  FormalParameterListImpl? get recoveryFormalParameters =>
+      _recoveryFormalParameters;
+
+  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  set recoveryFormalParameters(
+    FormalParameterListImpl? recoveryFormalParameters,
+  ) {
+    _recoveryFormalParameters = _becomeParentOf2(recoveryFormalParameters);
+    v1Projection.functionExpression._becomeParentOf1(recoveryFormalParameters);
+  }
+
+  @generated
+  TypeParameterListImpl? get recoveryTypeParameters => _recoveryTypeParameters;
+
+  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  set recoveryTypeParameters(TypeParameterListImpl? recoveryTypeParameters) {
+    _recoveryTypeParameters = _becomeParentOf2(recoveryTypeParameters);
+    v1Projection.functionExpression._becomeParentOf1(recoveryTypeParameters);
+  }
+
+  @generated
+  @override
+  TypeAnnotationImpl? get returnType => _returnType;
+
+  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  set returnType(TypeAnnotationImpl? returnType) {
+    _returnType = _becomeParentOf2(returnType);
+    v1Projection._becomeParentOf1(returnType);
+  }
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @DoNotGenerate(reason: 'This node is not in the V1 AST view')
+  @override
+  ChildEntities get _childEntities => super._childEntities;
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => super._childEntities2
+    ..addToken('augmentKeyword', augmentKeyword)
+    ..addToken('externalKeyword', externalKeyword)
+    ..addNode('returnType', returnType)
+    ..addToken('getKeyword', getKeyword)
+    ..addToken('name', name)
+    ..addNode('recoveryTypeParameters', recoveryTypeParameters)
+    ..addNode('recoveryFormalParameters', recoveryFormalParameters)
+    ..addNode('body', body);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('TopLevelGetterDeclaration is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitTopLevelGetterDeclaration(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent2, this));
+    return false;
+  }
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    if (identical(returnType, oldNode)) {
+      returnType = null;
+      return;
+    }
+    if (identical(recoveryTypeParameters, oldNode)) {
+      recoveryTypeParameters = null;
+      return;
+    }
+    if (identical(recoveryFormalParameters, oldNode)) {
+      recoveryFormalParameters = null;
+      return;
+    }
+    if (identical(body, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'body'.");
+    }
+    super.removeChild(oldNode);
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (identical(returnType, oldNode)) {
+      returnType = newNode as TypeAnnotationImpl?;
+      return;
+    }
+    if (identical(recoveryTypeParameters, oldNode)) {
+      recoveryTypeParameters = newNode as TypeParameterListImpl?;
+      return;
+    }
+    if (identical(recoveryFormalParameters, oldNode)) {
+      recoveryFormalParameters = newNode as FormalParameterListImpl?;
+      return;
+    }
+    if (identical(body, oldNode)) {
+      body = newNode as FunctionBodyImpl;
+      return;
+    }
+    super.replaceChild(oldNode, newNode);
+  }
+
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError('TopLevelGetterDeclaration is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    _visitCommentAndAnnotations2(visitor);
+    returnType?.accept2(visitor);
+    recoveryTypeParameters?.accept2(visitor);
+    recoveryFormalParameters?.accept2(visitor);
+    body.accept2(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(
+    AstVisitor2 visitor, {
+    void Function(TypeAnnotationImpl)? visitReturnType,
+    void Function(TypeParameterListImpl)? visitRecoveryTypeParameters,
+    void Function(FormalParameterListImpl)? visitRecoveryFormalParameters,
+    void Function(FunctionBodyImpl)? visitBody,
+  }) {
+    _visitCommentAndAnnotations2(visitor);
+    if (returnType case var returnType?) {
+      if (visitReturnType != null) {
+        visitReturnType(returnType);
+      } else {
+        returnType.accept2(visitor);
+      }
+    }
+    if (recoveryTypeParameters case var recoveryTypeParameters?) {
+      if (visitRecoveryTypeParameters != null) {
+        visitRecoveryTypeParameters(recoveryTypeParameters);
+      } else {
+        recoveryTypeParameters.accept2(visitor);
+      }
+    }
+    if (recoveryFormalParameters case var recoveryFormalParameters?) {
+      if (visitRecoveryFormalParameters != null) {
+        visitRecoveryFormalParameters(recoveryFormalParameters);
+      } else {
+        recoveryFormalParameters.accept2(visitor);
+      }
+    }
+    if (visitBody != null) {
+      visitBody(body);
+    } else {
+      body.accept2(visitor);
+    }
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError('TopLevelGetterDeclaration is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (super._childContainingRange2(rangeOffset, rangeEnd) case var result?) {
+      return result;
+    }
+    if (returnType case var returnType?) {
+      if (returnType._containsOffset(rangeOffset, rangeEnd)) {
+        return returnType;
+      }
+    }
+    if (recoveryTypeParameters case var recoveryTypeParameters?) {
+      if (recoveryTypeParameters._containsOffset(rangeOffset, rangeEnd)) {
+        return recoveryTypeParameters;
+      }
+    }
+    if (recoveryFormalParameters case var recoveryFormalParameters?) {
+      if (recoveryFormalParameters._containsOffset(rangeOffset, rangeEnd)) {
+        return recoveryFormalParameters;
+      }
+    }
+    if (body._containsOffset(rangeOffset, rangeEnd)) {
+      return body;
+    }
+    return null;
+  }
+}
+
+final class TopLevelGetterDeclarationV1Impl extends CompilationUnitMemberImpl
+    implements FunctionDeclaration {
+  final TopLevelGetterDeclarationImpl _origin;
+
+  late final TopLevelGetterFunctionExpressionV1Impl _functionExpression =
+      TopLevelGetterFunctionExpressionV1Impl._(_origin);
+
+  TopLevelGetterDeclarationV1Impl._(this._origin)
+    : super(
+        comment: _origin.documentationComment,
+        metadata: _origin.metadata.toList(),
+      ) {
+    _becomeParentOf1(_origin.returnType);
+    _becomeParentOf1(_functionExpression);
+  }
+
+  @override
+  Token? get augmentKeyword => _origin.augmentKeyword;
+
+  @override
+  ExecutableFragmentImpl? get declaredFragment => _origin.declaredFragment;
+
+  @override
+  Token get endToken => _origin.endToken;
+
+  @override
+  Token? get externalKeyword => _origin.externalKeyword;
+
+  @override
+  Token get firstTokenAfterCommentAndMetadata =>
+      _origin.firstTokenAfterCommentAndMetadata;
+
+  @override
+  TopLevelGetterFunctionExpressionV1Impl get functionExpression =>
+      _functionExpression;
+
+  @override
+  bool get isComplete => _origin.isComplete;
+
+  @override
+  bool get isGetter => true;
+
+  @override
+  bool get isSetter => false;
+
+  @override
+  Token get name => _origin.name;
+
+  @override
+  Token get propertyKeyword => _origin.getKeyword;
+
+  @override
+  TypeAnnotationImpl? get returnType => _origin.returnType;
+
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v1;
+
+  @override
+  ChildEntities get _childEntities => super._childEntities
+    ..addToken('augmentKeyword', augmentKeyword)
+    ..addToken('externalKeyword', externalKeyword)
+    ..addNode('returnType', returnType)
+    ..addToken('propertyKeyword', propertyKeyword)
+    ..addToken('name', name)
+    ..addNode('functionExpression', functionExpression);
+
+  @override
+  // ignore: must_call_super
+  ChildEntities get _childEntities2 {
+    throw StateError('FunctionDeclaration is not in the V2 AST view.');
+  }
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitFunctionDeclaration(this);
+
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) {
+    throw StateError('FunctionDeclaration is not in the V2 AST view.');
+  }
+
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    throw UnsupportedError('A V1 projection cannot be mutated.');
+  }
+
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    throw UnsupportedError('A V1 projection cannot be mutated.');
+  }
+
+  @override
+  String toSource() => _origin.toSource();
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    _visitCommentAndAnnotations(visitor);
+    returnType?.accept(visitor);
+    functionExpression.accept(visitor);
+  }
+
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    throw StateError('FunctionDeclaration is not in the V2 AST view.');
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
+      return result;
+    }
+    if (returnType case var returnType?) {
+      if (returnType._containsOffset(rangeOffset, rangeEnd)) {
+        return returnType;
+      }
+    }
+    if (functionExpression._containsOffset(rangeOffset, rangeEnd)) {
+      return functionExpression;
+    }
+    return null;
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    throw StateError('FunctionDeclaration is not in the V2 AST view.');
+  }
+}
+
+final class TopLevelGetterFunctionExpressionV1Impl extends ExpressionImpl
+    implements FunctionExpression {
+  final TopLevelGetterDeclarationImpl _origin;
+
+  TopLevelGetterFunctionExpressionV1Impl._(this._origin) {
+    _becomeParentOf1(typeParameters);
+    _becomeParentOf1(parameters);
+    _becomeParentOf1(body);
+  }
+
+  @override
+  Token get beginToken =>
+      typeParameters?.beginToken ?? parameters?.beginToken ?? body.beginToken;
+
+  @override
+  FunctionBodyImpl get body => _origin.body;
+
+  @override
+  ExecutableFragmentImpl? get declaredFragment => _origin.declaredFragment;
+
+  @override
+  Token get endToken => body.endToken;
+
+  @override
+  FormalParameterListImpl? get parameters => _origin.recoveryFormalParameters;
+
+  @override
+  Precedence get precedence => Precedence.primary;
+
+  @override
+  TypeImpl? get staticType => _origin.declaredFragment?.element.type;
+
+  @override
+  TypeParameterListImpl? get typeParameters => _origin.recoveryTypeParameters;
+
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v1;
+
+  @override
+  ChildEntities get _childEntities => ChildEntities()
+    ..addNode('typeParameters', typeParameters)
+    ..addNode('parameters', parameters)
+    ..addNode('body', body);
+
+  @override
+  ChildEntities get _childEntities2 {
+    throw StateError('FunctionExpression is not in the V2 AST view.');
+  }
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitFunctionExpression(this);
+
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) {
+    throw StateError('FunctionExpression is not in the V2 AST view.');
+  }
+
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    throw UnsupportedError('A V1 projection cannot be mutated.');
+  }
+
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    throw UnsupportedError('A V1 projection cannot be mutated.');
+  }
+
+  @override
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+    throw StateError('FunctionExpression is a V1 projection.');
+  }
+
+  @override
+  String toSource() => _origin.body.toSource();
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    typeParameters?.accept(visitor);
+    parameters?.accept(visitor);
+    body.accept(visitor);
+  }
+
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    throw StateError('FunctionExpression is not in the V2 AST view.');
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (typeParameters case var typeParameters?) {
+      if (typeParameters._containsOffset(rangeOffset, rangeEnd)) {
+        return typeParameters;
+      }
+    }
+    if (parameters case var parameters?) {
+      if (parameters._containsOffset(rangeOffset, rangeEnd)) {
+        return parameters;
+      }
+    }
+    if (body._containsOffset(rangeOffset, rangeEnd)) {
+      return body;
+    }
+    return null;
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    throw StateError('FunctionExpression is not in the V2 AST view.');
+  }
+}
+
 /// The declaration of one or more top-level variables of the same type.
 ///
 ///    topLevelVariableDeclaration ::=
@@ -46811,7 +49195,7 @@ abstract final class TopLevelVariableDeclaration
   ],
 )
 final class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
-    implements TopLevelVariableDeclaration {
+    implements TopLevelDeclarationV1OrV2Impl, TopLevelVariableDeclaration {
   @generated
   @override
   final Token? augmentKeyword;
@@ -47280,7 +49664,7 @@ abstract final class TypeAlias implements CompilationUnitMember {
 }
 
 sealed class TypeAliasImpl extends CompilationUnitMemberImpl
-    implements TypeAlias {
+    implements TopLevelDeclarationV1OrV2Impl, TypeAlias {
   @override
   final Token? augmentKeyword;
 
@@ -48752,6 +51136,13 @@ enum V1Projection {
     return toV1Expression(node) as CommentReferableExpressionImpl;
   }
 
+  static CompilationUnitMemberImpl toV1CompilationUnitMember(AstNodeImpl node) {
+    if (node is TopLevelGetterDeclarationImpl) {
+      return node.v1Projection;
+    }
+    return node as CompilationUnitMemberImpl;
+  }
+
   static ExpressionImpl toV1Expression(ExpressionImpl node) {
     if (node is ConstructorInvocationImpl) {
       return node.instanceCreationExpression;
@@ -48816,6 +51207,12 @@ enum V1Projection {
     return node;
   }
 }
+
+/// A successful index write resolution.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class ValidIndexWriteResolution
+    implements IndexWriteResolution {}
 
 /// An identifier that has an initial value associated with it.
 ///
@@ -50709,7 +53106,7 @@ base mixin _AnnotatedNodeMixin on AstNodeImpl implements AnnotatedNode {
     CommentImpl? comment,
     List<AnnotationImpl>? metadata,
   ) {
-    _documentationComment = _becomeParentOf12(comment);
+    _documentationComment = _becomeParentOfOwnedView(comment);
     _metadata._initialize(this, metadata);
   }
 

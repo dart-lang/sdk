@@ -101,7 +101,7 @@ class ReferenceResolver extends ThrowingAstVisitor2<void> {
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    node.declarations.accept2(this);
+    node.declarations2.accept2(this);
   }
 
   @override
@@ -347,6 +347,14 @@ class ReferenceResolver extends ThrowingAstVisitor2<void> {
   @override
   void visitSuperFormalParameter(covariant SuperFormalParameterImpl node) {
     _visitFormalParameter(node);
+  }
+
+  @override
+  void visitTopLevelGetterDeclaration(
+    covariant TopLevelGetterDeclarationImpl node,
+  ) {
+    _scopeContext.visitTopLevelGetterDeclaration(node, visitor: this);
+    nodesToBuildType.addDeclaration(node);
   }
 
   @override

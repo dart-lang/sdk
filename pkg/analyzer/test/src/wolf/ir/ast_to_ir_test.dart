@@ -170,6 +170,33 @@ test() => 'foo' " " 'bar';
 
   test_assignmentExpression_divideEq() => checkBinaryOpEq('/');
 
+  test_assignmentExpression_index_simple() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {
+  external void operator []=(int index, int value);
+}
+test(C c, int index, int value) => c[index] = value;
+''');
+    analyze(result, result.findNode.singleFunctionDeclaration);
+    var assignment = result.findNode.directAssignment('[index] = value');
+    check(astNodes)[assignment]
+      ..containsSubrange(astNodes[assignment.target]!)
+      ..containsSubrange(astNodes[result.findNode.simple('index]')]!)
+      ..containsSubrange(astNodes[result.findNode.simple('value;')]!);
+    var c = Instance(result.findElement.class_('C').thisType);
+    _callHandlers['C.[]='] = ternaryFunction<Instance, int, int>((
+      receiver,
+      index,
+      value,
+    ) {
+      check(receiver).identicalTo(c);
+      check(index).equals(123);
+      check(value).equals(456);
+      return null;
+    });
+    check(runInterpreter(result, [c, 123, 456])).equals(456);
+  }
+
   test_assignmentExpression_integerDivideEq() => checkBinaryOpEq('~/');
 
   test_assignmentExpression_leftShiftEq() => checkBinaryOpEq('<<');
@@ -1997,6 +2024,18 @@ test(Object? o) sync* {
         check(positionalArguments).isEmpty();
         check(namedArguments).isEmpty();
         return f();
+      };
+
+  static CallHandler ternaryFunction<T, U, V>(Object? Function(T, U, V) f) =>
+      (callDescriptor, positionalArguments, namedArguments) {
+        check(callDescriptor.typeArguments).isEmpty;
+        check(positionalArguments).length.equals(3);
+        check(namedArguments).isEmpty();
+        return f(
+          positionalArguments[0] as T,
+          positionalArguments[1] as U,
+          positionalArguments[2] as V,
+        );
       };
 
   static CallHandler unaryFunction<T>(Object? Function(T) f) =>

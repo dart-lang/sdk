@@ -51,8 +51,8 @@ To select the correct commit SHA:
 
 1. Locate `native_rev` in the `DEPS` file (typically under `vars`):
    ```python
-   "native_rev": "<old_sha>", # rolled manually while record_use is experimental
-   ```
+   "native_rev": "<old_sha>",
+```
 2. Replace the hash with the chosen remote `origin/main` commit SHA.
 3. If not already done in step 4 above, ensure the `DEPS` host and URL configuration are reverted to the googlesource mirror, leaving only the updated `native_rev` hash.
 4. Run `gclient sync -f` from the SDK root directory to update the checkout of the dependencies and regenerate the package configuration using the mirror.
@@ -76,22 +76,15 @@ RBE_exec_strategy=racing tools/build.py -mrelease create_sdk runtime ffi_test_fu
 ```
 
 ### Record Use Optimization Tests
-Since `record_use` integrates closely with `native_rev` updates, these tests must be validated for both backends (Wasm and VM).
+Since `record_use` integrates closely with `native_rev` updates, these tests must be validated for both backends (Wasm and VM). **Note**: `record_use` is now 1.0, so breaking changes are not allowed and expectations should NOT need updating.
 
 1. Build the required target backends and run all record use tests:
    ```bash
    RBE_exec_strategy=racing tools/build.py -mrelease create_sdk dart2wasm runtime ffi_test_functions runtime_precompiled && xcodebuild/ReleaseARM64/dart-sdk/bin/dart pkg/compiler/test/record_use/record_use_test.dart && xcodebuild/ReleaseARM64/dart-sdk/bin/dart pkg/dart2wasm/test/record_use_test.dart && xcodebuild/ReleaseARM64/dart-sdk/bin/dart pkg/vm/test/transformations/record_use_test.dart
    ```
-2. **Updating Expectations**:
+2. **Test Failure Policy**:
    > [!IMPORTANT]
-   > If the record_use tests fail, **DO NOT** update the expectations automatically. You **MUST** first ask the user for confirmation/permission and clarify if updating expectations is the correct course of action.
-
-   If the user confirms that the expectations should be updated to match the new behavior:
-   * Run the test command with `-DupdateExpectations=true`:
-     ```bash
-     RBE_exec_strategy=racing tools/build.py -mrelease create_sdk dart2wasm runtime ffi_test_functions runtime_precompiled && xcodebuild/ReleaseARM64/dart-sdk/bin/dart pkg/compiler/test/record_use/record_use_test.dart -DupdateExpectations=true && xcodebuild/ReleaseARM64/dart-sdk/bin/dart pkg/dart2wasm/test/record_use_test.dart -DupdateExpectations=true && xcodebuild/ReleaseARM64/dart-sdk/bin/dart pkg/vm/test/transformations/record_use_test.dart -DupdateExpectations=true
-     ```
-   * **Note**: Always run the VM test one last when updating expectations. The expect files are stored in the VM directory.
+   > Since `record_use` is 1.0, any test failure here indicates an illegal breaking change rather than a need for expectation updates. Do not update expectations; report any failure immediately.
 3. **Running Individual Tests**:
    To debug or verify a single test:
    ```bash

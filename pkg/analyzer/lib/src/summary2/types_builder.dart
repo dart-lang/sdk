@@ -164,6 +164,8 @@ class TypesBuilder {
       _fieldFormalParameter(node);
     } else if (node is FunctionDeclarationImpl) {
       _functionDeclaration(node);
+    } else if (node is TopLevelGetterDeclarationImpl) {
+      _topLevelGetterDeclaration(node);
     } else if (node is FunctionTypeAliasImpl) {
       _functionTypeAlias(node);
     } else if (node is RegularFormalParameterImpl) {
@@ -426,6 +428,16 @@ class TypesBuilder {
       fragment.element.type = type;
     } else {
       fragment.element.type = node.type?.type ?? _dynamicType;
+    }
+  }
+
+  void _topLevelGetterDeclaration(TopLevelGetterDeclarationImpl node) {
+    var fragment = node.declaredFragment!;
+    var element = fragment.element;
+
+    if (fragment.previousFragment == null) {
+      element.returnType = node.returnType?.type ?? _dynamicType;
+      _setSyntheticVariableType(element);
     }
   }
 

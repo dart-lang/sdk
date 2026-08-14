@@ -256,6 +256,9 @@ class NullSafetyDeadCodeVerifier {
         if (node is FunctionDeclaration) {
           node = node.functionExpression.body;
         }
+        if (node is TopLevelGetterDeclaration) {
+          node = node.body;
+        }
         if (node is FunctionExpression) {
           node = node.body;
         }

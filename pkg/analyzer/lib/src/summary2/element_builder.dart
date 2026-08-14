@@ -1282,7 +1282,7 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
   Linker get _linker => _libraryBuilder.linker;
 
   void buildDeclarationFragments(CompilationUnit unit) {
-    unit.declarations.accept2(this);
+    unit.declarations2.accept2(this);
   }
 
   /// Builds exports and imports, metadata into [_libraryFragment].
@@ -2221,6 +2221,38 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
     _buildFunctionTypedParameterSuffix(fragment, node.functionTypedSuffix);
 
     node.type?.accept2(this);
+  }
+
+  @override
+  void visitTopLevelGetterDeclaration(
+    covariant TopLevelGetterDeclarationImpl node,
+  ) {
+    var name2 = _getFragmentName(node.name);
+    var body = node.body;
+
+    var fragment = GetterFragmentImpl(name: name2);
+    fragment.isAugmentation = node.augmentKeyword != null;
+    fragment.isOriginDeclaration = true;
+    fragment.isStatic = true;
+    fragment.enclosingFragment = _libraryFragment;
+    fragment.hasImplicitReturnType = node.returnType == null;
+    fragment.isAsynchronous = body.isAsynchronous;
+    fragment.isExternal = node.externalKeyword != null;
+    fragment.isGenerator = body.isGenerator;
+    fragment.isComplete = node.isComplete;
+    fragment.metadata = _buildMetadata(node.metadata);
+
+    _libraryBuilder.addTopFragment(_libraryFragment, fragment);
+    node.declaredFragment = fragment;
+    _linker.setFragmentNode(fragment, node);
+
+    _buildExecutableElementChildren(
+      fragment: fragment,
+      formalParameters: node.recoveryFormalParameters,
+      typeParameters: node.recoveryTypeParameters,
+    );
+
+    node.returnType?.accept2(this);
   }
 
   @override

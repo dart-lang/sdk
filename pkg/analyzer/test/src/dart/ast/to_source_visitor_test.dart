@@ -2198,13 +2198,6 @@ void f () {
     _assertSource(code, node);
   }
 
-  void test_visitFunctionDeclaration_getter() {
-    var code = 'get foo {}';
-    var parseResult = parseTestCodeWithDiagnostics(code);
-    var node = parseResult.findNode.singleFunctionDeclaration;
-    _assertSource(code, node);
-  }
-
   void test_visitFunctionDeclaration_local_blockBody() {
     var code = 'void foo() {}';
     var parseResult = parseTestCodeWithDiagnostics('''
@@ -4299,6 +4292,13 @@ void f() {
 }
 ''');
     var node = parseResult.findNode.singleThrowExpression;
+    _assertSource(code, node);
+  }
+
+  void test_visitTopLevelGetterDeclaration() {
+    var code = 'get foo {}';
+    var parseResult = parseTestCodeWithDiagnostics(code);
+    var node = parseResult.findNode.singleTopLevelGetterDeclaration;
     _assertSource(code, node);
   }
 

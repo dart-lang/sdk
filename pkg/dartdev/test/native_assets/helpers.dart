@@ -536,3 +536,16 @@ final nativeAssetsExperimentAvailableOnCurrentChannel = ExperimentalFeatures
     .native_assets
     .channels
     .contains(Runtime.runtime.channel);
+
+/// Polls [condition] every [interval] until it returns `true` or [timeout] expires.
+Future<void> pollUntil(
+  FutureOr<bool> Function() condition, {
+  Duration timeout = const Duration(seconds: 5),
+  Duration interval = const Duration(milliseconds: 100),
+}) async {
+  final watch = Stopwatch()..start();
+  while (watch.elapsed < timeout) {
+    if (await condition()) return;
+    await Future.delayed(interval);
+  }
+}

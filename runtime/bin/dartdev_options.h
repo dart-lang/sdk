@@ -21,7 +21,8 @@ namespace bin {
 // The value of the flag can then be accessed with Options::field_name().
 #define STRING_OPTIONS_LIST(V)                                                 \
   V(packages, packages_file)                                                   \
-  V(namespace, namespc)
+  V(namespace, namespc)                                                        \
+  V(delete_temp_dir_on_shutdown, delete_temp_dir_on_shutdown)
 
 // As STRING_OPTIONS_LIST but for boolean valued options. The default value is
 // always false, and the presence of the flag switches the value to true.
@@ -85,6 +86,9 @@ class Options {
   static bool resident() { return resident_; }
   static const char* resident_compiler_info_file_path() {
     return resident_compiler_info_file_path_;
+  }
+  static void set_delete_temp_dir_on_shutdown(const char* dir) {
+    delete_temp_dir_on_shutdown_ = dir;
   }
 
 // Callbacks have to be public.

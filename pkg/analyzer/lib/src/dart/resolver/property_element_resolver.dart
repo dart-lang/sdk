@@ -153,6 +153,71 @@ class PropertyElementResolver with ScopeHelpers {
     );
   }
 
+  IndexWriteResolutionImpl? resolveIndexDirectAssignmentTarget(
+    IndexAssignmentTargetImpl node,
+  ) {
+    var receiver = node.receiver;
+
+    if (receiver is ExtensionOverrideImpl) {
+      var result = _extensionResolver.getOverrideMember(receiver, '[]');
+      var writeElement = result.setter2;
+      var isInvalid = writeElement == null;
+      if (isInvalid && result != ExtensionResolutionError.ambiguous) {
+        _reportUnresolvedIndex(
+          node,
+          diag.undefinedExtensionOperator.withArguments(
+            operator: '[]=',
+            extensionName: receiver.element.name!,
+          ),
+        );
+      }
+      return _createIndexWriteResolution(
+        writeElement,
+        atDynamicTarget: false,
+        isInvalid: isInvalid,
+      );
+    }
+
+    var receiverType = _typeSystem.resolveToBound(receiver.typeOrThrow);
+    if (receiverType is NeverType &&
+        receiverType.nullabilitySuffix == NullabilitySuffix.none) {
+      diagnosticReporter.report(diag.receiverOfTypeNever.at(receiver));
+      return null;
+    }
+    if (receiverType is DynamicType) {
+      return const DynamicIndexWriteResolutionImpl();
+    }
+    if (receiverType is VoidType) {
+      _reportUnresolvedIndex(node, diag.useOfVoidResult);
+      return InvalidIndexWriteResolutionImpl(recovery: null);
+    }
+
+    var result = _resolver.typePropertyResolver.resolve(
+      receiver: receiver,
+      receiverType: receiverType,
+      name: '[]',
+      hasRead: false,
+      hasWrite: true,
+      propertyErrorEntity: node.leftBracket,
+      nameErrorEntity: receiver,
+      parentNode: node,
+    );
+    if (result.needsSetterError) {
+      _reportUnresolvedIndex(
+        node,
+        (receiver is SuperExpression
+                ? diag.undefinedSuperOperator
+                : diag.undefinedOperator)
+            .withArguments(operator: '[]=', type: receiverType),
+      );
+    }
+    return _createIndexWriteResolution(
+      result.setter2,
+      atDynamicTarget: false,
+      isInvalid: result.needsSetterError || receiverType is InvalidType,
+    );
+  }
+
   PropertyElementResolverResult resolveIndexExpression({
     required IndexExpressionImpl node,
     required bool hasRead,
@@ -851,6 +916,24 @@ class PropertyElementResolver with ScopeHelpers {
     }
   }
 
+  IndexWriteResolutionImpl _createIndexWriteResolution(
+    InternalExecutableElement? element, {
+    required bool atDynamicTarget,
+    required bool isInvalid,
+  }) {
+    MethodIndexWriteResolutionImpl? methodResolution;
+    if (element is InternalMethodElement &&
+        element.formalParameters.length == 2) {
+      methodResolution = MethodIndexWriteResolutionImpl(element: element);
+    }
+    if (isInvalid) {
+      return InvalidIndexWriteResolutionImpl(recovery: methodResolution);
+    }
+    if (methodResolution != null) return methodResolution;
+    if (atDynamicTarget) return const DynamicIndexWriteResolutionImpl();
+    return InvalidIndexWriteResolutionImpl(recovery: null);
+  }
+
   NamedReadResolutionWithElementImpl? _createNamedReadResolutionWithElement(
     Element? element, {
     required TypeImpl? type,
@@ -916,11 +999,20 @@ class PropertyElementResolver with ScopeHelpers {
   }
 
   void _reportUnresolvedIndex(
-    IndexExpression node,
+    AstNode node,
     LocatableDiagnostic locatableDiagnostic,
   ) {
-    var leftBracket = node.leftBracket;
-    var rightBracket = node.rightBracket;
+    var (leftBracket, rightBracket) = switch (node) {
+      IndexAssignmentTarget(:var leftBracket, :var rightBracket) => (
+        leftBracket,
+        rightBracket,
+      ),
+      IndexExpression(:var leftBracket, :var rightBracket) => (
+        leftBracket,
+        rightBracket,
+      ),
+      _ => throw StateError('Not an index node: ${node.runtimeType}'),
+    };
     var offset = leftBracket.offset;
     var length = rightBracket.end - offset;
 

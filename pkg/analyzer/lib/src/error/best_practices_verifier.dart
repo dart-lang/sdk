@@ -37,6 +37,7 @@ import 'package:analyzer/src/error/null_safe_api_verifier.dart';
 import 'package:analyzer/src/error/widget_preview_verifier.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
+import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:meta/meta.dart';
 
@@ -366,6 +367,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
     _elementUsageFrontierDetector.directAssignment(node);
     var target = node.target;
     switch (target) {
+      case IndexAssignmentTarget():
+        break;
       case PropertyAssignmentTarget():
         _invalidAccessVerifier.verifyPropertyAssignmentTarget(target);
       case UnqualifiedNameAssignmentTarget():
@@ -933,6 +936,35 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitTopLevelGetterDeclaration(
+    covariant TopLevelGetterDeclarationImpl node,
+  ) {
+    var wasInDoNotStoreMember = _inDoNotStoreMember;
+    var element = node.declaredFragment!.element;
+    _elementUsageFrontierDetector.pushElement(element);
+    if (element.metadata.hasDoNotStore) {
+      _inDoNotStoreMember = true;
+    }
+    try {
+      _checkStrictInferenceReturnType(node.returnType, node, node.name.lexeme);
+      _checkStrictInferenceInParameters(
+        node.recoveryFormalParameters,
+        body: node.body,
+      );
+      if (node.body case ExpressionFunctionBodyImpl body) {
+        _checkForUnnecessarySetLiteralWithReturnType(
+          body,
+          node.returnType?.type,
+        );
+      }
+      super.visitTopLevelGetterDeclaration(node);
+    } finally {
+      _elementUsageFrontierDetector.popElement();
+      _inDoNotStoreMember = wasInDoNotStoreMember;
+    }
+  }
+
+  @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     _elementUsageFrontierDetector.pushElement(node.firstVariableElement);
 
@@ -1380,12 +1412,18 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
     }
     var expressionMap = _getSubExpressionsMarkedDoNotStore(expression);
     if (expressionMap.isNotEmpty) {
-      var parent =
-          expression!.thisOrAncestorMatching2(
-                (e) => e is FunctionDeclaration || e is MethodDeclaration,
-              )
-              as Declaration?;
-      if (parent == null) {
+      var parent = expression!.thisOrAncestorMatching2(
+        (e) =>
+            e is FunctionDeclaration ||
+            e is MethodDeclaration ||
+            e is TopLevelGetterDeclaration,
+      );
+
+      var parentElement = parent
+          .tryCast<FragmentDeclaringNode>()
+          ?.declaredFragment
+          ?.element;
+      if (parentElement == null) {
         return;
       }
       for (var entry in expressionMap.entries) {
@@ -1396,7 +1434,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
           diag.returnOfDoNotStore
               .withArguments(
                 invokedFunction: entry.value.name!,
-                returningFunction: parent.declaredFragment!.element.displayName,
+                returningFunction: parentElement.displayName,
               )
               .at(entry.key),
         );
@@ -1468,24 +1506,31 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
         if (parent is! FunctionDeclaration) return;
         returnType = parent.returnType?.type;
       }
-      if (returnType == null) return;
+      _checkForUnnecessarySetLiteralWithReturnType(body, returnType);
+    }
+  }
 
-      bool isReturnVoid;
-      if (returnType is VoidType) {
-        isReturnVoid = true;
-      } else if (returnType is ParameterizedType &&
-          (returnType.isDartAsyncFuture || returnType.isDartAsyncFutureOr)) {
-        var typeArguments = returnType.typeArguments;
-        isReturnVoid =
-            typeArguments.length == 1 && typeArguments.first is VoidType;
-      } else {
-        isReturnVoid = false;
-      }
-      if (isReturnVoid) {
-        var expression = body.expression2;
-        if (expression is SetOrMapLiteralImpl && expression.isSet) {
-          _diagnosticReporter.report(diag.unnecessarySetLiteral.at(expression));
-        }
+  void _checkForUnnecessarySetLiteralWithReturnType(
+    ExpressionFunctionBodyImpl body,
+    DartType? returnType,
+  ) {
+    if (returnType == null) return;
+
+    bool isReturnVoid;
+    if (returnType is VoidType) {
+      isReturnVoid = true;
+    } else if (returnType is ParameterizedType &&
+        (returnType.isDartAsyncFuture || returnType.isDartAsyncFutureOr)) {
+      var typeArguments = returnType.typeArguments;
+      isReturnVoid =
+          typeArguments.length == 1 && typeArguments.first is VoidType;
+    } else {
+      isReturnVoid = false;
+    }
+    if (isReturnVoid) {
+      var expression = body.expression2;
+      if (expression is SetOrMapLiteralImpl && expression.isSet) {
+        _diagnosticReporter.report(diag.unnecessarySetLiteral.at(expression));
       }
     }
   }
@@ -1562,7 +1607,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
     }
 
     switch (reportNode) {
-      case MethodDeclaration(:var name) || FunctionDeclaration(:var name):
+      case MethodDeclaration(:var name) ||
+          FunctionDeclaration(:var name) ||
+          TopLevelGetterDeclaration(:var name):
         _diagnosticReporter.report(
           diag.inferenceFailureOnFunctionReturnType
               .withArguments(function: displayName)

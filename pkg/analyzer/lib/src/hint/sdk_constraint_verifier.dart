@@ -145,6 +145,11 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
   @override
   void visitDirectAssignment(DirectAssignment node) {
     var target = node.target;
+    if (target case IndexAssignmentTarget(
+      write: MethodIndexWriteResolution(:var element),
+    )) {
+      _checkSinceSdkVersion(element, target);
+    }
     var write = switch (target) {
       PropertyAssignmentTarget(:var write) => write,
       UnqualifiedNameAssignmentTarget(:var write) => write,
@@ -280,6 +285,8 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
           } else if (target is FunctionExpressionInvocation) {
             errorEntity = target.argumentList;
           } else if (target is IndexExpression) {
+            errorEntity = target.leftBracket;
+          } else if (target is IndexAssignmentTarget) {
             errorEntity = target.leftBracket;
           } else if (target is MethodInvocation) {
             errorEntity = target.methodName;

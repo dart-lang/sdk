@@ -12,7 +12,7 @@ class TypeAliasSelfReferenceFinder {
   void perform(Linker linker) {
     for (var builder in linker.builders.values) {
       for (var linkingUnit in builder.units) {
-        for (var node in linkingUnit.node.declarations) {
+        for (var node in linkingUnit.node.declarations2) {
           if (node is FunctionTypeAliasImpl) {
             var finder = _Finder(linker, node);
             finder.functionTypeAlias(node);

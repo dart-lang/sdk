@@ -1355,6 +1355,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
           node is Directive ||
           node is ExtensionDeclaration ||
           node is FunctionDeclaration ||
+          node is TopLevelGetterDeclaration ||
           node is TopLevelVariableDeclaration;
     }
 
@@ -1589,6 +1590,12 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       popRewrite();
       return PropertyElementResolverResult();
     }
+  }
+
+  IndexWriteResolutionImpl? resolveIndexDirectAssignmentTarget(
+    IndexAssignmentTargetImpl node,
+  ) {
+    return _propertyElementResolver.resolveIndexDirectAssignmentTarget(node);
   }
 
   PatternResult resolveMapPattern({
@@ -2458,7 +2465,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       for (int i = 0; i < directiveCount; i++) {
         directives[i].accept2(this);
       }
-      NodeList<CompilationUnitMember> declarations = node.declarations;
+      NodeList<AstNode> declarations = node.declarations2;
       int declarationCount = declarations.length;
       for (int i = 0; i < declarationCount; i++) {
         declarations[i].accept2(this);
@@ -4506,6 +4513,37 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitTopLevelGetterDeclaration(
+    covariant TopLevelGetterDeclarationImpl node,
+  ) {
+    var element = node.declaredFragment!.element;
+    var returnType = element.returnType;
+
+    _withEnclosingExecutableElement(element, () {
+      checkUnreachableNode(node);
+      node.documentationComment?.accept2(this);
+      node.metadata.accept2(this);
+      node.returnType?.accept2(this);
+      node.recoveryTypeParameters?.accept2(this);
+      node.recoveryFormalParameters?.accept2(this);
+
+      flowAnalysis.bodyOrInitializer_enter(node, element.formalParameters);
+      flowAnalysis.executableDeclaration_enter(
+        node,
+        element.formalParameters,
+        isClosure: false,
+      );
+
+      node.body.resolve(this, returnType is DynamicType ? null : returnType);
+
+      checkForBodyMayCompleteNormally(body: node.body, errorNode: node.name);
+      flowAnalysis.executableDeclaration_exit(node.body, false);
+      flowAnalysis.bodyOrInitializer_exit();
+      nullSafetyDeadCodeVerifier.flowEnd(node);
+    });
+  }
+
+  @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     checkUnreachableNode(node);
     node.visitChildren2(this);
@@ -4881,15 +4919,16 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       context = parent.writeType!;
     } else if (parent is AssignmentExpression2Impl) {
       var target = parent.target;
-      var write = switch (target) {
-        PropertyAssignmentTargetImpl(:var write) => write,
-        UnqualifiedNameAssignmentTargetImpl(:var write) => write,
+      var writeType = switch (target) {
+        IndexAssignmentTargetImpl(:var write) => write?.acceptedType,
+        PropertyAssignmentTargetImpl(:var write) => write?.acceptedType,
+        UnqualifiedNameAssignmentTargetImpl(:var write) => write?.acceptedType,
         InvalidExpressionAssignmentTargetImpl() => null,
       };
-      if (write == null) {
+      if (writeType == null) {
         return;
       }
-      context = write.acceptedType;
+      context = writeType;
     } else {
       context = contextType;
     }

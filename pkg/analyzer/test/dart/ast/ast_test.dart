@@ -584,7 +584,8 @@ void f() {
   a[0] = 0;
 }
 ''');
-    var node = parseResult.findNode.singleIndexExpression;
+    var node = parseResult.findNode.singleAssignmentExpression.leftHandSide;
+    node as IndexExpression;
     expect(node.inGetterContext(), isFalse);
   }
 
@@ -622,7 +623,8 @@ void f() {
   a[0] = 0;
 }
 ''');
-    var node = parseResult.findNode.singleIndexExpression;
+    var node = parseResult.findNode.singleAssignmentExpression.leftHandSide;
+    node as IndexExpression;
     expect(node.inSetterContext(), isTrue);
   }
 

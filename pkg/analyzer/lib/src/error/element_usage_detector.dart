@@ -697,6 +697,11 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
 
   void directAssignment(DirectAssignment node) {
     var target = node.target;
+    if (target case IndexAssignmentTarget(
+      write: MethodIndexWriteResolution(:var element),
+    )) {
+      checkUsage(element, target);
+    }
     var write = switch (target) {
       PropertyAssignmentTarget(:var write) => write,
       UnqualifiedNameAssignmentTarget(:var write) => write,

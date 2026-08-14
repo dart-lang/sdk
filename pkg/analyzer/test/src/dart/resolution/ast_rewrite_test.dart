@@ -41,14 +41,43 @@ void Function(int) foo(C c) {
     var node = result.findNode.implicitCallReference('c;');
     assertResolvedNodeText(node, r'''
 ImplicitCallReference
-  expression2: AssignmentExpression
-    leftHandSide2: IndexExpression
-      target2: SimpleIdentifier
+  expression2: DirectAssignment
+    target: IndexAssignmentTarget
+      receiver: SimpleIdentifier
         token: map
         element: map@83
         staticType: Map<int, C>
       leftBracket: [
-      index2: IntegerLiteral
+      index: IntegerLiteral
+        literal: 1
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: dart:core::@class::Map::@method::[]=::@formalParameter::key
+          substitution: {K: int, V: C}
+        staticType: int
+      rightBracket: ]
+      write: MethodIndexWriteResolution
+        element: SubstitutedMethodElementImpl
+          baseElement: dart:core::@class::Map::@method::[]=
+          substitution: {K: int, V: C}
+        invokeType: void Function(int, C)
+        acceptedType: C
+    operator: =
+    value: SimpleIdentifier
+      token: c
+      correspondingParameter: SubstitutedFormalParameterElementImpl
+        baseElement: dart:core::@class::Map::@method::[]=::@formalParameter::value
+        substitution: {K: int, V: C}
+      element: <testLibrary>::@function::foo::@formalParameter::c
+      staticType: C
+    staticType: C
+  expression(v1): AssignmentExpression
+    leftHandSide: IndexExpression
+      target: SimpleIdentifier
+        token: map
+        element: map@83
+        staticType: Map<int, C>
+      leftBracket: [
+      index: IntegerLiteral
         literal: 1
         correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: dart:core::@class::Map::@method::[]=::@formalParameter::key
@@ -58,7 +87,7 @@ ImplicitCallReference
       element: <null>
       staticType: null
     operator: =
-    rightHandSide2: SimpleIdentifier
+    rightHandSide: SimpleIdentifier
       token: c
       correspondingParameter: SubstitutedFormalParameterElementImpl
         baseElement: dart:core::@class::Map::@method::[]=::@formalParameter::value

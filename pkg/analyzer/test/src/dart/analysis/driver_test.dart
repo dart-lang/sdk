@@ -3880,7 +3880,7 @@ class A {}
       var result = driver.parseFileSync2(a) as ParsedUnitResult;
       assertParsedNodeText(result.unit, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -3929,7 +3929,7 @@ class A {}
     var result = driver.parseFileSync2(a) as ParsedUnitResult;
     assertParsedNodeText(result.unit, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters

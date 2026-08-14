@@ -594,6 +594,14 @@ class DartDev {
     for (intptr_t i = 0; i < argc_; ++i) {
       argv_[i] = Utils::StrDup(dart_args[i]->value.as_string);
     }
+
+    if (message->value.as_array.length > 5) {
+      auto item5 = GetArrayItem(message, 5);
+      if (item5->type == Dart_CObject_kString) {
+        Options::set_delete_temp_dir_on_shutdown(
+            Utils::StrDup(item5->value.as_string));
+      }
+    }
   }
 
   // Process the DartDev_Result_RunExec result message produced by
@@ -638,6 +646,14 @@ class DartDev {
     intptr_t argc = args->value.as_array.length;
     Dart_CObject** dart_args = args->value.as_array.values;
 
+    const char* delete_temp_dir_on_shutdown = nullptr;
+    if (message->value.as_array.length > 6) {
+      auto item6 = GetArrayItem(message, 6);
+      if (item6->type == Dart_CObject_kString) {
+        delete_temp_dir_on_shutdown = item6->value.as_string;
+      }
+    }
+
     auto deleter = [](char** args) {
       for (intptr_t i = 0; i < argc_; ++i) {
         free(args[i]);
@@ -658,6 +674,9 @@ class DartDev {
       argc_++;
     }
     if (item2->type == Dart_CObject_kString) {
+      argc_++;
+    }
+    if (delete_temp_dir_on_shutdown != nullptr) {
       argc_++;
     }
 
@@ -725,6 +744,18 @@ class DartDev {
 #else
       argv_[idx++] =
           Utils::SCreate("--script_uri_override=%s", item2->value.as_string);
+#endif
+    }
+
+    if (delete_temp_dir_on_shutdown != nullptr) {
+#if defined(DART_HOST_OS_WINDOWS)
+      char* delete_arg = Utils::SCreate("--delete_temp_dir_on_shutdown=%s",
+                                        delete_temp_dir_on_shutdown);
+      argv_[idx++] = StringUtilsWin::ArgumentEscape(delete_arg);
+      free(delete_arg);
+#else
+      argv_[idx++] = Utils::SCreate("--delete_temp_dir_on_shutdown=%s",
+                                    delete_temp_dir_on_shutdown);
 #endif
     }
 

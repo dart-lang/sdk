@@ -458,6 +458,20 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitTopLevelGetterDeclaration(
+    covariant TopLevelGetterDeclarationImpl node,
+  ) {
+    _checkFfiNative(
+      errorNode: node.name,
+      declarationElement: node.declaredFragment!.element,
+      formalParameterList: node.recoveryFormalParameters,
+      metadata: node.metadata,
+      isExternal: node.externalKeyword != null,
+    );
+    super.visitTopLevelGetterDeclaration(node);
+  }
+
+  @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     for (var declared in node.variables.variables) {
       var declaredElement = declared.declaredFragment?.element;

@@ -139,6 +139,7 @@ class TypePropertyResolver {
         } else if (parentNode is MethodInvocation ||
             parentNode is MethodReferenceExpression ||
             parentNode is CompoundAssignment ||
+            parentNode is IndexAssignmentTarget ||
             parentNode is IncrementOrDecrementExpression ||
             parentNode is UnaryOperatorInvocation) {
           locatableDiagnostic = diag.uncheckedMethodInvocationOfNullableValue

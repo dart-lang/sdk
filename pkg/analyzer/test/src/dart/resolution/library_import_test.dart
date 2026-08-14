@@ -293,7 +293,7 @@ CompilationUnit
       libraryImport: LibraryImport
         uri: DirectiveUriWithLibrary
           uri: package:test/a.dart
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -390,7 +390,7 @@ CompilationUnit
       libraryImport: LibraryImport
         uri: DirectiveUriWithLibrary
           uri: package:test/a_html.dart
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -597,7 +597,7 @@ CompilationUnit
       libraryImport: LibraryImport
         uri: DirectiveUriWithLibrary
           uri: package:test/a_io.dart
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var

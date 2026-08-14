@@ -185,7 +185,7 @@ augment class A = B with M;
 ''');
     assertParsedNodeText(parseResult.findNode.unit, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassTypeAlias
       augmentKeyword: augment
       typedefKeyword: class

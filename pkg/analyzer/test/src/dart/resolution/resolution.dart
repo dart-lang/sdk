@@ -246,12 +246,10 @@ mixin ResolutionTest implements ResourceProviderMixin {
       return node.element;
     } else if (node is ConstructorTearOff) {
       return node.element;
-    } else if (node is Declaration) {
+    } else if (node is FragmentDeclaringNode) {
       return node.declaredFragment?.element;
     } else if (node is ExtensionOverride) {
       return node.element;
-    } else if (node is FormalParameter) {
-      return node.declaredFragment?.element;
     } else if (node is FunctionExpressionInvocation) {
       return node.element;
     } else if (node is FunctionReference) {

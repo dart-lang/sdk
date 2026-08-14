@@ -55,7 +55,7 @@ class AstBuilder extends StackListener {
   final Uri fileUri;
   ScriptTagImpl? scriptTag;
   final List<DirectiveImpl> directives = [];
-  final List<CompilationUnitMemberImpl> declarations = [];
+  final List<TopLevelDeclarationV1OrV2Impl> declarations = [];
   final List<AstNodeImpl> invalidNodes = [];
 
   @override
@@ -1347,7 +1347,7 @@ class AstBuilder extends StackListener {
       beginToken: beginToken,
       scriptTag: scriptTag,
       directives: directives,
-      declarations: declarations,
+      declarations2: declarations,
       endToken: endToken,
       featureSet: _featureSet,
       lineInfo: _lineInfo,
@@ -3363,22 +3363,39 @@ class AstBuilder extends StackListener {
       formalParameters = _ensureSetterFormalParameter(name, formalParameters);
     }
 
-    declarations.add(
-      FunctionDeclarationImpl(
-        comment: comment,
-        metadata: metadata,
-        augmentKeyword: augmentKeyword,
-        externalKeyword: externalKeyword,
-        returnType: returnType,
-        propertyKeyword: getOrSet,
-        name: name.token,
-        functionExpression: FunctionExpressionImpl(
-          typeParameters: typeParameters,
-          parameters: formalParameters,
+    if (getOrSet?.keyword == Keyword.GET) {
+      declarations.add(
+        TopLevelGetterDeclarationImpl(
+          comment: comment,
+          metadata: metadata,
+          augmentKeyword: augmentKeyword,
+          externalKeyword: externalKeyword,
+          returnType: returnType,
+          getKeyword: getOrSet!,
+          name: name.token,
+          recoveryTypeParameters: typeParameters,
+          recoveryFormalParameters: formalParameters,
           body: body,
         ),
-      ),
-    );
+      );
+    } else {
+      declarations.add(
+        FunctionDeclarationImpl(
+          comment: comment,
+          metadata: metadata,
+          augmentKeyword: augmentKeyword,
+          externalKeyword: externalKeyword,
+          returnType: returnType,
+          propertyKeyword: getOrSet,
+          name: name.token,
+          functionExpression: FunctionExpressionImpl(
+            typeParameters: typeParameters,
+            parameters: formalParameters,
+            body: body,
+          ),
+        ),
+      );
+    }
   }
 
   @override
@@ -3752,6 +3769,26 @@ class AstBuilder extends StackListener {
         (receiver, operator, lhs.propertyName.token),
       _ => null,
     };
+    var indexTarget = token.type == TokenType.EQ
+        ? switch (lhs) {
+            IndexExpressionImpl(
+              target2: var receiver?,
+              period: null,
+              question: null,
+              :var leftBracket,
+              index2: var index,
+              :var rightBracket,
+            )
+                when !lhs.isDotShorthand =>
+              IndexAssignmentTargetImpl(
+                receiver: receiver,
+                leftBracket: leftBracket,
+                index: index,
+                rightBracket: rightBracket,
+              ),
+            _ => null,
+          }
+        : null;
     if (!isAssignable && token.type == TokenType.EQ) {
       push(
         DirectAssignmentImpl(
@@ -3767,6 +3804,10 @@ class AstBuilder extends StackListener {
           operator: token,
           value: rhs,
         ),
+      );
+    } else if (indexTarget != null) {
+      push(
+        DirectAssignmentImpl(target: indexTarget, operator: token, value: rhs),
       );
     } else if (property != null) {
       var target = PropertyAssignmentTargetImpl(
