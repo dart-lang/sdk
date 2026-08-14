@@ -292,8 +292,8 @@ class LanguageVersionOverrideVerifier {
     Token firstMeaningfulToken;
     if (unit.directives.isNotEmpty) {
       firstMeaningfulToken = unit.directives.first.beginToken;
-    } else if (unit.declarations.isNotEmpty) {
-      firstMeaningfulToken = unit.declarations.first.beginToken;
+    } else if (unit.declarations2.isNotEmpty) {
+      firstMeaningfulToken = unit.declarations2.first.beginToken;
     } else {
       return;
     }

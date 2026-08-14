@@ -45,7 +45,7 @@ class C {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -628,7 +628,7 @@ Foo(dynamic a, dynamic b) : x = a is int, y = b is int?;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: Foo
       functionExpression: FunctionExpression
@@ -697,7 +697,7 @@ Foo(dynamic a, dynamic b) : x = a is int?, y = b is int;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: Foo
       functionExpression: FunctionExpression
@@ -770,7 +770,7 @@ Foo(dynamic a, dynamic b) : x = a is int, y = b is int? {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: Foo
       functionExpression: FunctionExpression
@@ -843,7 +843,7 @@ Foo(dynamic a, dynamic b) : x = a is int?, y = b is int {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: Foo
       functionExpression: FunctionExpression
@@ -912,7 +912,7 @@ Foo(dynamic a, dynamic b) : x = a as int, y = b as int?;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: Foo
       functionExpression: FunctionExpression
@@ -981,7 +981,7 @@ Foo(dynamic a, dynamic b) : x = a as int?, y = b as int;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: Foo
       functionExpression: FunctionExpression
@@ -1054,7 +1054,7 @@ Foo(dynamic a, dynamic b) : x = a as int, y = b as int? {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: Foo
       functionExpression: FunctionExpression
@@ -1127,7 +1127,7 @@ Foo(dynamic a, dynamic b) : x = a as int?, y = b as int {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: Foo
       functionExpression: FunctionExpression
@@ -2446,7 +2446,7 @@ class C {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -2479,7 +2479,7 @@ mixin C {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     MixinDeclaration
       mixinKeyword: mixin
       name: C
@@ -2603,7 +2603,7 @@ class C {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -2647,7 +2647,7 @@ class C {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -3068,7 +3068,7 @@ class C{ C() : super() * (); }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -3130,7 +3130,7 @@ class{const():super.{n
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -3181,7 +3181,7 @@ class A { operator/() : super(); }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters

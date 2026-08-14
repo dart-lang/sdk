@@ -6,17 +6,19 @@ import 'package:_fe_analyzer_shared/src/util/dependency_walker.dart' as graph;
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary2/link.dart';
+import 'package:analyzer/src/utilities/extensions/object.dart';
 
 /// Clears interfaces for declarations that have cycles.
 void breakInterfaceCycles(Linker linker, List<AstNode> declarations) {
   var walker = _ImplementsWalker();
   var elements = <InterfaceElementImpl>[];
   for (var declaration in declarations) {
-    if (declaration is DeclarationImpl) {
-      var element = declaration.declaredFragment!.element;
-      if (element is InterfaceElementImpl) {
-        elements.add(element);
-      }
+    var element = declaration
+        .tryCast<FragmentDeclaringNode>()
+        ?.declaredFragment
+        ?.element;
+    if (element is InterfaceElementImpl) {
+      elements.add(element);
     }
   }
 

@@ -74,7 +74,7 @@ class MetadataResolver extends ThrowingAstVisitor2<void> {
   @override
   void visitCompilationUnit(CompilationUnit node) {
     node.directives.accept2(this);
-    node.declarations.accept2(this);
+    node.declarations2.accept2(this);
   }
 
   @override
@@ -278,6 +278,14 @@ class MetadataResolver extends ThrowingAstVisitor2<void> {
     if (node.functionTypedSuffix case var functionTypedSuffix?) {
       functionTypedSuffix.formalParameters.accept2(this);
     }
+  }
+
+  @override
+  void visitTopLevelGetterDeclaration(TopLevelGetterDeclaration node) {
+    node.metadata.accept2(this);
+    var nodeImpl = node as TopLevelGetterDeclarationImpl;
+    nodeImpl.recoveryTypeParameters?.accept2(this);
+    nodeImpl.recoveryFormalParameters?.accept2(this);
   }
 
   @override

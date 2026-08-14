@@ -33,7 +33,7 @@ CompilationUnit
         tokens
           <empty> <synthetic>
       semicolon: ; <synthetic>
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -61,7 +61,7 @@ CompilationUnit
         tokens
           <empty> <synthetic>
       semicolon: ; <synthetic>
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: const
@@ -92,7 +92,7 @@ CompilationUnit
         tokens
           <empty> <synthetic>
       semicolon: ; <synthetic>
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -168,7 +168,7 @@ CompilationUnit
         tokens
           <empty> <synthetic>
       semicolon: ; <synthetic>
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: final
@@ -198,7 +198,7 @@ CompilationUnit
         tokens
           int
       semicolon: ; <synthetic>
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -229,7 +229,7 @@ CompilationUnit
         tokens
           <empty> <synthetic>
       semicolon: ; <synthetic>
-  declarations
+  declarations2
     FunctionDeclaration
       returnType: NamedType
         name: void
@@ -261,14 +261,23 @@ CompilationUnit
         tokens
           int
       semicolon: ; <synthetic>
-  declarations
+  declarations2
+    TopLevelGetterDeclaration
+      getKeyword: get
+      name: a
+      body: ExpressionFunctionBody
+        functionDefinition: =>
+        expression2: IntegerLiteral
+          literal: 0
+        semicolon: ;
+  declarations(v1)
     FunctionDeclaration
       propertyKeyword: get
       name: a
       functionExpression: FunctionExpression
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression2: IntegerLiteral
+          expression: IntegerLiteral
             literal: 0
           semicolon: ;
 ''');
@@ -316,7 +325,7 @@ CompilationUnit
         tokens
           <empty> <synthetic>
       semicolon: ; <synthetic>
-  declarations
+  declarations2
     MixinDeclaration
       mixinKeyword: mixin
       name: M
@@ -368,7 +377,7 @@ CompilationUnit
         tokens
           <empty> <synthetic>
       semicolon: ; <synthetic>
-  declarations
+  declarations2
     FunctionDeclaration
       propertyKeyword: set
       name: a
@@ -408,7 +417,7 @@ CompilationUnit
         tokens
           <empty> <synthetic>
       semicolon: ; <synthetic>
-  declarations
+  declarations2
     GenericTypeAlias
       typedefKeyword: typedef
       name: A
@@ -457,7 +466,7 @@ CompilationUnit
         tokens
           <empty> <synthetic>
       semicolon: ; <synthetic>
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -484,7 +493,7 @@ CompilationUnit
         tokens
           lib
       semicolon: ; <synthetic>
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -511,7 +520,7 @@ CompilationUnit
         tokens
           lib
       semicolon: ; <synthetic>
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: const
@@ -541,7 +550,7 @@ CompilationUnit
         tokens
           lib
       semicolon: ; <synthetic>
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -614,7 +623,7 @@ CompilationUnit
         tokens
           lib
       semicolon: ; <synthetic>
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: final
@@ -644,7 +653,7 @@ CompilationUnit
         tokens
           lib
       semicolon: ; <synthetic>
-  declarations
+  declarations2
     FunctionDeclaration
       returnType: NamedType
         name: int
@@ -676,7 +685,7 @@ CompilationUnit
         tokens
           lib
       semicolon: ; <synthetic>
-  declarations
+  declarations2
     FunctionDeclaration
       returnType: NamedType
         name: void
@@ -708,7 +717,18 @@ CompilationUnit
         tokens
           lib
       semicolon: ; <synthetic>
-  declarations
+  declarations2
+    TopLevelGetterDeclaration
+      returnType: NamedType
+        name: int
+      getKeyword: get
+      name: a
+      body: ExpressionFunctionBody
+        functionDefinition: =>
+        expression2: IntegerLiteral
+          literal: 0
+        semicolon: ;
+  declarations(v1)
     FunctionDeclaration
       returnType: NamedType
         name: int
@@ -717,7 +737,7 @@ CompilationUnit
       functionExpression: FunctionExpression
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression2: IntegerLiteral
+          expression: IntegerLiteral
             literal: 0
           semicolon: ;
 ''');
@@ -763,7 +783,7 @@ CompilationUnit
         tokens
           lib
       semicolon: ; <synthetic>
-  declarations
+  declarations2
     MixinDeclaration
       mixinKeyword: mixin
       name: M
@@ -813,7 +833,7 @@ CompilationUnit
         tokens
           lib
       semicolon: ; <synthetic>
-  declarations
+  declarations2
     FunctionDeclaration
       propertyKeyword: set
       name: a
@@ -852,7 +872,7 @@ CompilationUnit
         tokens
           lib
       semicolon: ; <synthetic>
-  declarations
+  declarations2
     GenericTypeAlias
       typedefKeyword: typedef
       name: A
@@ -900,7 +920,7 @@ CompilationUnit
         tokens
           lib
       semicolon: ; <synthetic>
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -931,7 +951,7 @@ CompilationUnit
           .
           <empty> <synthetic>
       semicolon: ; <synthetic>
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -962,7 +982,7 @@ CompilationUnit
           .
           <empty> <synthetic>
       semicolon: ; <synthetic>
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: const
@@ -996,7 +1016,7 @@ CompilationUnit
           .
           <empty> <synthetic>
       semicolon: ; <synthetic>
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -1081,7 +1101,7 @@ CompilationUnit
           .
           <empty> <synthetic>
       semicolon: ; <synthetic>
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: final
@@ -1113,7 +1133,7 @@ CompilationUnit
           .
           int
       semicolon: ; <synthetic>
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1147,7 +1167,7 @@ CompilationUnit
           .
           <empty> <synthetic>
       semicolon: ; <synthetic>
-  declarations
+  declarations2
     FunctionDeclaration
       returnType: NamedType
         name: void
@@ -1181,14 +1201,23 @@ CompilationUnit
           .
           int
       semicolon: ; <synthetic>
-  declarations
+  declarations2
+    TopLevelGetterDeclaration
+      getKeyword: get
+      name: a
+      body: ExpressionFunctionBody
+        functionDefinition: =>
+        expression2: IntegerLiteral
+          literal: 0
+        semicolon: ;
+  declarations(v1)
     FunctionDeclaration
       propertyKeyword: get
       name: a
       functionExpression: FunctionExpression
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression2: IntegerLiteral
+          expression: IntegerLiteral
             literal: 0
           semicolon: ;
 ''');
@@ -1242,7 +1271,7 @@ CompilationUnit
           .
           <empty> <synthetic>
       semicolon: ; <synthetic>
-  declarations
+  declarations2
     MixinDeclaration
       mixinKeyword: mixin
       name: M
@@ -1300,7 +1329,7 @@ CompilationUnit
           .
           <empty> <synthetic>
       semicolon: ; <synthetic>
-  declarations
+  declarations2
     FunctionDeclaration
       propertyKeyword: set
       name: a
@@ -1343,7 +1372,7 @@ CompilationUnit
           .
           <empty> <synthetic>
       semicolon: ; <synthetic>
-  declarations
+  declarations2
     GenericTypeAlias
       typedefKeyword: typedef
       name: A
@@ -1395,7 +1424,7 @@ CompilationUnit
           .
           <empty> <synthetic>
       semicolon: ; <synthetic>
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -1424,7 +1453,7 @@ CompilationUnit
           .
           a
       semicolon: ; <synthetic>
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -1453,7 +1482,7 @@ CompilationUnit
           .
           a
       semicolon: ; <synthetic>
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: const
@@ -1485,7 +1514,7 @@ CompilationUnit
           .
           a
       semicolon: ; <synthetic>
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -1564,7 +1593,7 @@ CompilationUnit
           .
           a
       semicolon: ; <synthetic>
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: final
@@ -1596,7 +1625,7 @@ CompilationUnit
           .
           a
       semicolon: ; <synthetic>
-  declarations
+  declarations2
     FunctionDeclaration
       returnType: NamedType
         name: int
@@ -1630,7 +1659,7 @@ CompilationUnit
           .
           a
       semicolon: ; <synthetic>
-  declarations
+  declarations2
     FunctionDeclaration
       returnType: NamedType
         name: void
@@ -1664,7 +1693,18 @@ CompilationUnit
           .
           a
       semicolon: ; <synthetic>
-  declarations
+  declarations2
+    TopLevelGetterDeclaration
+      returnType: NamedType
+        name: int
+      getKeyword: get
+      name: a
+      body: ExpressionFunctionBody
+        functionDefinition: =>
+        expression2: IntegerLiteral
+          literal: 0
+        semicolon: ;
+  declarations(v1)
     FunctionDeclaration
       returnType: NamedType
         name: int
@@ -1673,7 +1713,7 @@ CompilationUnit
       functionExpression: FunctionExpression
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression2: IntegerLiteral
+          expression: IntegerLiteral
             literal: 0
           semicolon: ;
 ''');
@@ -1723,7 +1763,7 @@ CompilationUnit
           .
           a
       semicolon: ; <synthetic>
-  declarations
+  declarations2
     MixinDeclaration
       mixinKeyword: mixin
       name: M
@@ -1777,7 +1817,7 @@ CompilationUnit
           .
           a
       semicolon: ; <synthetic>
-  declarations
+  declarations2
     FunctionDeclaration
       propertyKeyword: set
       name: a
@@ -1818,7 +1858,7 @@ CompilationUnit
           .
           a
       semicolon: ; <synthetic>
-  declarations
+  declarations2
     GenericTypeAlias
       typedefKeyword: typedef
       name: A
@@ -1868,7 +1908,7 @@ CompilationUnit
           .
           a
       semicolon: ; <synthetic>
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var

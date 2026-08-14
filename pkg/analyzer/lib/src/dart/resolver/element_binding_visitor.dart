@@ -137,7 +137,7 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
         .where((f) => f.isOriginDeclaration)
         .toList();
 
-    for (var declaration in node.declarations) {
+    for (var declaration in node.declarations2) {
       switch (declaration) {
         case ClassDeclarationImpl():
           _bindClassDeclaration(
@@ -189,6 +189,8 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
             declaration,
             _libraryFragment.typeAliases[typedefIndex++],
           );
+        case TopLevelGetterDeclarationImpl():
+          _bindTopLevelGetterDeclaration(declaration, getters[getterIndex++]);
         case TopLevelVariableDeclarationImpl():
           declaration.documentationComment?.accept2(this);
           declaration.variables.type?.accept2(this);
@@ -898,6 +900,26 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
     node.implementsClause?.accept2(this);
 
     _bindMembers(node.body.members, memberFragments);
+  }
+
+  void _bindTopLevelGetterDeclaration(
+    TopLevelGetterDeclarationImpl node,
+    GetterFragmentImpl fragment,
+  ) {
+    node.declaredFragment = fragment;
+    _setOrCreateMetadataElements(fragment, node.metadata);
+
+    node.documentationComment?.accept2(this);
+    node.returnType?.accept2(this);
+    _bindTypeParameters(node.recoveryTypeParameters, fragment.typeParameters);
+    _bindFormalParameters(
+      node.recoveryFormalParameters,
+      fragment.formalParameters,
+    );
+
+    _withElementHolder(ElementHolder(fragment), () {
+      node.body.accept2(this);
+    });
   }
 
   void _bindTopLevelVariable(

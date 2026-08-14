@@ -1355,6 +1355,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
           node is Directive ||
           node is ExtensionDeclaration ||
           node is FunctionDeclaration ||
+          node is TopLevelGetterDeclaration ||
           node is TopLevelVariableDeclaration;
     }
 
@@ -2458,7 +2459,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       for (int i = 0; i < directiveCount; i++) {
         directives[i].accept2(this);
       }
-      NodeList<CompilationUnitMember> declarations = node.declarations;
+      NodeList<AstNode> declarations = node.declarations2;
       int declarationCount = declarations.length;
       for (int i = 0; i < declarationCount; i++) {
         declarations[i].accept2(this);
@@ -4503,6 +4504,37 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     // `TypeAnalyzer.analyzeExpression` calls it when the static type of the
     // expression is `Never`.
     inferenceLogWriter?.exitExpression(node);
+  }
+
+  @override
+  void visitTopLevelGetterDeclaration(
+    covariant TopLevelGetterDeclarationImpl node,
+  ) {
+    var element = node.declaredFragment!.element;
+    var returnType = element.returnType;
+
+    _withEnclosingExecutableElement(element, () {
+      checkUnreachableNode(node);
+      node.documentationComment?.accept2(this);
+      node.metadata.accept2(this);
+      node.returnType?.accept2(this);
+      node.recoveryTypeParameters?.accept2(this);
+      node.recoveryFormalParameters?.accept2(this);
+
+      flowAnalysis.bodyOrInitializer_enter(node, element.formalParameters);
+      flowAnalysis.executableDeclaration_enter(
+        node,
+        element.formalParameters,
+        isClosure: false,
+      );
+
+      node.body.resolve(this, returnType is DynamicType ? null : returnType);
+
+      checkForBodyMayCompleteNormally(body: node.body, errorNode: node.name);
+      flowAnalysis.executableDeclaration_exit(node.body, false);
+      flowAnalysis.bodyOrInitializer_exit();
+      nullSafetyDeadCodeVerifier.flowEnd(node);
+    });
   }
 
   @override

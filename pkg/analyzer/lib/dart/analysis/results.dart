@@ -11,6 +11,7 @@ import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/line_info.dart';
+import 'package:meta/meta.dart';
 
 @Deprecated('Use AnalysisResultWithDiagnostics instead')
 typedef AnalysisResultWithErrors = AnalysisResultWithDiagnostics;
@@ -213,12 +214,20 @@ abstract class ParsedLibraryResult
   /// The parsed units of the library.
   List<ParsedUnitResult> get units;
 
-  /// Returns the declaration of the [fragment].
+  /// Returns the declaration of the [fragment] in the V1 AST view.
   ///
   /// Returns `null` if the [fragment] is synthetic.
   ///
   /// Throws [ArgumentError] if the [fragment] is not defined in this library.
   FragmentDeclarationResult? getFragmentDeclaration(Fragment fragment);
+
+  /// Returns the declaration of the [fragment] in the V2 AST view.
+  ///
+  /// Returns `null` if the [fragment] is synthetic.
+  ///
+  /// Throws [ArgumentError] if the [fragment] is not defined in this library.
+  @experimental
+  FragmentDeclarationResult? getFragmentDeclaration2(Fragment fragment);
 }
 
 /// The result of parsing of a single file. The errors returned include only

@@ -56,7 +56,7 @@ class InheritanceOverrideVerifier {
       return _interfaceElementStates[element] ??= _InterfaceElementState();
     }
 
-    for (var declaration in unit.declarations) {
+    for (var declaration in unit.declarations2) {
       _ClassVerifier verifier;
       if (declaration is ClassDeclarationImpl) {
         var fragment = declaration.declaredFragment!;

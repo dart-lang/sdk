@@ -2268,6 +2268,69 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   @override
+  void visitTopLevelGetterDeclaration(
+    covariant TopLevelGetterDeclarationImpl node,
+  ) {
+    var declaredFragment = node.declaredFragment!;
+    var element = declaredFragment.element;
+
+    var hasConstVariableAugmentation =
+        _checkForConstVariableAugmentationByAccessor(
+          fragment: declaredFragment,
+          errorToken: node.name,
+        );
+    if (!hasConstVariableAugmentation) {
+      _checkAugmentationWithoutDeclaration(
+        declaredFragment,
+        node.augmentKeyword,
+      );
+      _checkForFunctionAlreadyComplete(
+        fragment: declaredFragment,
+        augmentKeyword: node.augmentKeyword,
+      );
+    }
+    _checkForFunctionBodyCompleteness(
+      fragment: declaredFragment,
+      node: node,
+      nameToken: node.name,
+    );
+    // _checkForAugmentationTypeParameters(
+    //   fragment: declaredFragment,
+    //   firstTypeParameters: element.firstFragment.typeParameters,
+    //   nameOrKeywordToken: node.name,
+    //   typeParameterList: node.recoveryTypeParameters,
+    // );
+    _checkForAugmentationReturnTypeMismatch(
+      fragment: declaredFragment,
+      returnTypeNode: node.returnType,
+      errorEntity: node.returnType ?? node.name,
+    );
+    // if (node.recoveryFormalParameters case var parameters?) {
+    //   _checkForAugmentationFormalParameters(
+    //     executableFragment: declaredFragment,
+    //     formalParameterList: parameters,
+    //   );
+    // }
+
+    _withEnclosingExecutable(
+      element,
+      () {
+        var returnType = node.returnType;
+        _checkForTypeAnnotationDeferredClass(returnType);
+        _returnTypeVerifier.verifyReturnType(returnType);
+        _checkForMainFunction1(declaredFragment, node.name);
+        _checkForExternalMethodWithBody(
+          externalKeyword: node.externalKeyword,
+          body: node.body,
+        );
+        super.visitTopLevelGetterDeclaration(node);
+      },
+      isAsynchronous: declaredFragment.isAsynchronous,
+      isGenerator: declaredFragment.isGenerator,
+    );
+  }
+
+  @override
   void visitTopLevelVariableDeclaration(
     covariant TopLevelVariableDeclarationImpl node,
   ) {
@@ -5655,6 +5718,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
             MethodDeclaration(:var body) => body,
             FunctionDeclaration(:var functionExpression) =>
               functionExpression.body,
+            TopLevelGetterDeclaration(:var body) => body,
             _ => throw StateError('Unexpected node type: ${node.runtimeType}'),
           };
           var errorToken = (body as EmptyFunctionBody).semicolon;
@@ -8384,6 +8448,15 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
         if (parent.augmentKeyword != null) {
           return false;
         } else if (parent.declaredFragment!.element.isAbstract) {
+          return false;
+        } else if (parent.externalKeyword != null) {
+          return false;
+        } else if (parent.body is NativeFunctionBody) {
+          return false;
+        }
+        return true;
+      } else if (parent is TopLevelGetterDeclarationImpl) {
+        if (parent.augmentKeyword != null) {
           return false;
         } else if (parent.externalKeyword != null) {
           return false;

@@ -51,7 +51,7 @@ void f() {
 
     assertResolvedNodeText(result.unit, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -141,7 +141,7 @@ void f() {
 
     assertResolvedNodeText(result.unit, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters

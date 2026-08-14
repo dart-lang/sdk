@@ -107,6 +107,15 @@ class OverrideVerifier extends RecursiveAstVisitor2<void> {
     }
   }
 
+  @override
+  void visitTopLevelGetterDeclaration(TopLevelGetterDeclaration node) {
+    var element = node.declaredFragment!.element;
+    if (element.metadata.hasOverride) {
+      _errorReporter.report(diag.overrideOnNonOverridingGetter.at(node.name));
+    }
+    super.visitTopLevelGetterDeclaration(node);
+  }
+
   void _checkField(FieldElement fieldElement, Token errorNode) {
     var getter = fieldElement.getter;
     if (getter != null && _isOverride(getter)) return;

@@ -35,7 +35,7 @@ Set<String> computeSubtypedNames(CompilationUnit unit) {
     types?.forEach(addSubtypedName);
   }
 
-  for (CompilationUnitMember declaration in unit.declarations) {
+  for (var declaration in unit.declarations2) {
     if (declaration is ClassDeclaration) {
       addSubtypedName(declaration.extendsClause?.superclass);
       addSubtypedNames(declaration.withClause?.mixinTypes);
@@ -156,25 +156,27 @@ class _LocalNameScope {
     return scope;
   }
 
-  factory _LocalNameScope.forUnit(CompilationUnit node) {
+  factory _LocalNameScope.forUnit(CompilationUnitImpl node) {
     _LocalNameScope scope = _LocalNameScope(null);
-    for (CompilationUnitMember declaration in node.declarations) {
+    for (var declaration in node.declarations2) {
       switch (declaration) {
-        case ClassDeclaration():
+        case ClassDeclarationImpl():
           scope.add(declaration.namePart.typeName);
-        case EnumDeclaration():
+        case EnumDeclarationImpl():
           scope.add(declaration.namePart.typeName);
-        case ExtensionDeclaration():
+        case ExtensionDeclarationImpl():
           scope.add(declaration.name);
-        case ExtensionTypeDeclaration():
+        case ExtensionTypeDeclarationImpl():
           scope.add(declaration.namePart.typeName);
-        case FunctionDeclaration():
+        case FunctionDeclarationImpl():
           scope.add(declaration.name);
-        case MixinDeclaration():
+        case MixinDeclarationImpl():
           scope.add(declaration.name);
-        case TopLevelVariableDeclaration():
+        case TopLevelVariableDeclarationImpl():
           scope.addVariableNames(declaration.variables);
-        case TypeAlias():
+        case TopLevelGetterDeclarationImpl():
+          scope.add(declaration.name);
+        case TypeAliasImpl():
           scope.add(declaration.name);
       }
     }
@@ -269,7 +271,7 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor2<void> {
   }
 
   @override
-  void visitCompilationUnit(CompilationUnit node) {
+  void visitCompilationUnit(covariant CompilationUnitImpl node) {
     localScope = _LocalNameScope.forUnit(node);
     super.visitCompilationUnit(node);
   }

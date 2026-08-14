@@ -1886,6 +1886,15 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitTopLevelGetterDeclaration(TopLevelGetterDeclaration node) {
+    _sink.writeln('TopLevelGetterDeclaration');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeDeclaredFragment(node.declaredFragment);
+    });
+  }
+
+  @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     _sink.writeln('TopLevelVariableDeclaration');
     _sink.withIndent(() {
@@ -2049,10 +2058,12 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   /// Writes [node] and its V1 compatibility view when the V2 root has a
-  /// distinct expression projection.
+  /// distinct projection.
   void writeNodeWithV1Projection(AstNode node) {
     writeNode(node);
-    if (node case ExpressionImpl expression) {
+    if (node case TopLevelDeclarationImpl declaration) {
+      writeNode(V1Projection.toV1CompilationUnitMember(declaration));
+    } else if (node case ExpressionImpl expression) {
       var v1 = V1Projection.toV1Expression(expression);
       if (!identical(v1, expression)) {
         _sink.writeWithIndent('V1: ');

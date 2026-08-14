@@ -608,6 +608,9 @@ abstract class AstVisitor2<R> {
 
   R? visitGenericTypeAlias(GenericTypeAlias node);
 
+  @experimental
+  R? visitGetterDeclaration(GetterDeclaration node);
+
   R? visitGuardedPattern(GuardedPattern node);
 
   R? visitHideCombinator(HideCombinator node);
@@ -678,6 +681,9 @@ abstract class AstVisitor2<R> {
 
   R? visitMethodDeclaration(MethodDeclaration node);
 
+  @experimental
+  R? visitMethodDeclaration2(MethodDeclaration2 node);
+
   R? visitMethodInvocation(MethodInvocation node);
 
   R? visitMixinDeclaration(MixinDeclaration node);
@@ -706,6 +712,9 @@ abstract class AstVisitor2<R> {
   R? visitNullLiteral(NullLiteral node);
 
   R? visitObjectPattern(ObjectPattern node);
+
+  @experimental
+  R? visitOperatorDeclaration(OperatorDeclaration node);
 
   R? visitParenthesizedExpression(ParenthesizedExpression node);
 
@@ -789,6 +798,9 @@ abstract class AstVisitor2<R> {
 
   R? visitSetOrMapLiteral(SetOrMapLiteral node);
 
+  @experimental
+  R? visitSetterDeclaration(SetterDeclaration node);
+
   R? visitShowCombinator(ShowCombinator node);
 
   R? visitSimpleIdentifier(SimpleIdentifier node);
@@ -822,6 +834,9 @@ abstract class AstVisitor2<R> {
   R? visitThisExpression(ThisExpression node);
 
   R? visitThrowExpression(ThrowExpression node);
+
+  @experimental
+  R? visitTopLevelGetterDeclaration(TopLevelGetterDeclaration node);
 
   R? visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node);
 

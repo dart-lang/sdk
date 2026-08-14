@@ -7,6 +7,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
+import 'package:analyzer/src/utilities/extensions/object.dart';
 
 /// An object used to locate the [Element] associated with a given V1 [AstNode].
 @ToBeDeprecated('Use ElementLocatorV2 instead')
@@ -56,31 +57,6 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
   }
 
   @override
-  Element? visitCatchClauseParameter(CatchClauseParameter node) {
-    return node.declaredFragment?.element;
-  }
-
-  @override
-  Element? visitClassDeclaration(ClassDeclaration node) {
-    return node.declaredFragment?.element;
-  }
-
-  @override
-  Element? visitClassTypeAlias(ClassTypeAlias node) {
-    return node.declaredFragment?.element;
-  }
-
-  @override
-  Element? visitCompilationUnit(CompilationUnit node) {
-    return node.declaredFragment?.element;
-  }
-
-  @override
-  Element? visitConstructorDeclaration(ConstructorDeclaration node) {
-    return node.declaredFragment?.element;
-  }
-
-  @override
   Element? visitConstructorSelector(ConstructorSelector node) {
     var parent = node.parent;
     if (parent is EnumConstantArguments) {
@@ -90,16 +66,6 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
       }
     }
     return null;
-  }
-
-  @override
-  Element? visitDeclaredIdentifier(DeclaredIdentifier node) {
-    return node.declaredFragment?.element;
-  }
-
-  @override
-  Element? visitDeclaredVariablePattern(DeclaredVariablePattern node) {
-    return node.declaredFragment?.element;
   }
 
   @override
@@ -129,53 +95,13 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
   }
 
   @override
-  Element? visitEnumConstantDeclaration(EnumConstantDeclaration node) {
-    return node.declaredFragment?.element;
-  }
-
-  @override
-  Element? visitEnumDeclaration(EnumDeclaration node) {
-    return node.declaredFragment?.element;
-  }
-
-  @override
   Element? visitExportDirective(ExportDirective node) {
     return node.libraryExport?.exportedLibrary;
   }
 
   @override
-  Element? visitExtensionDeclaration(ExtensionDeclaration node) {
-    return node.declaredFragment?.element;
-  }
-
-  @override
   Element? visitExtensionOverride(ExtensionOverride node) {
     return node.element;
-  }
-
-  @override
-  Element? visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
-    return node.declaredFragment?.element;
-  }
-
-  @override
-  Element? visitFormalParameter(FormalParameter node) {
-    return node.declaredFragment?.element;
-  }
-
-  @override
-  Element? visitFunctionDeclaration(FunctionDeclaration node) {
-    return node.declaredFragment?.element;
-  }
-
-  @override
-  Element? visitFunctionTypeAlias(FunctionTypeAlias node) {
-    return node.declaredFragment?.element;
-  }
-
-  @override
-  Element? visitGenericTypeAlias(GenericTypeAlias node) {
-    return node.declaredFragment?.element;
   }
 
   @override
@@ -254,11 +180,6 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
   }
 
   @override
-  Element? visitLabel(Label node) {
-    return node.declaredFragment?.element;
-  }
-
-  @override
   Element? visitLabelReference(LabelReference node) {
     return node.element;
   }
@@ -269,18 +190,8 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
   }
 
   @override
-  Element? visitMethodDeclaration(MethodDeclaration node) {
-    return node.declaredFragment?.element;
-  }
-
-  @override
   Element? visitMethodInvocation(MethodInvocation node) {
     return node.methodName.element ?? visitIdentifier(node.methodName);
-  }
-
-  @override
-  Element? visitMixinDeclaration(MixinDeclaration node) {
-    return node.declaredFragment?.element;
   }
 
   @override
@@ -296,6 +207,11 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
   @override
   Element? visitNameWithTypeParameters(NameWithTypeParameters node) {
     return node.parent!.accept(this);
+  }
+
+  @override
+  Element? visitNode(AstNode node) {
+    return node.tryCast<FragmentDeclaringNode>()?.declaredFragment?.element;
   }
 
   @override
@@ -368,16 +284,6 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
     }
     return null;
   }
-
-  @override
-  Element? visitTypeParameter(TypeParameter node) {
-    return node.declaredFragment?.element;
-  }
-
-  @override
-  Element? visitVariableDeclaration(VariableDeclaration node) {
-    return node.declaredFragment?.element ?? node.declaredFragment?.element;
-  }
 }
 
 /// Visitor that maps nodes to elements.
@@ -403,38 +309,13 @@ class _ElementMapperV2 extends GeneralizingAstVisitor2<Element> {
   }
 
   @override
-  Element? visitCatchClauseParameter(CatchClauseParameter node) {
-    return node.declaredFragment?.element;
-  }
-
-  @override
-  Element? visitClassDeclaration(ClassDeclaration node) {
-    return node.declaredFragment?.element;
-  }
-
-  @override
-  Element? visitClassTypeAlias(ClassTypeAlias node) {
-    return node.declaredFragment?.element;
-  }
-
-  @override
   Element? visitCombinatorName(CombinatorName node) {
     return node.element ?? node.setterElement;
   }
 
   @override
-  Element? visitCompilationUnit(CompilationUnit node) {
-    return node.declaredFragment?.element;
-  }
-
-  @override
   Element? visitCompoundAssignment(CompoundAssignment node) {
     return node.element;
-  }
-
-  @override
-  Element? visitConstructorDeclaration(ConstructorDeclaration node) {
-    return node.declaredFragment?.element;
   }
 
   @override
@@ -464,16 +345,6 @@ class _ElementMapperV2 extends GeneralizingAstVisitor2<Element> {
   }
 
   @override
-  Element? visitDeclaredIdentifier(DeclaredIdentifier node) {
-    return node.declaredFragment?.element;
-  }
-
-  @override
-  Element? visitDeclaredVariablePattern(DeclaredVariablePattern node) {
-    return node.declaredFragment?.element;
-  }
-
-  @override
   Element? visitDotShorthandConstructorInvocation(
     DotShorthandConstructorInvocation node,
   ) {
@@ -500,33 +371,13 @@ class _ElementMapperV2 extends GeneralizingAstVisitor2<Element> {
   }
 
   @override
-  Element? visitEnumConstantDeclaration(EnumConstantDeclaration node) {
-    return node.declaredFragment?.element;
-  }
-
-  @override
-  Element? visitEnumDeclaration(EnumDeclaration node) {
-    return node.declaredFragment?.element;
-  }
-
-  @override
   Element? visitExportDirective(ExportDirective node) {
     return node.libraryExport?.exportedLibrary;
   }
 
   @override
-  Element? visitExtensionDeclaration(ExtensionDeclaration node) {
-    return node.declaredFragment?.element;
-  }
-
-  @override
   Element? visitExtensionOverride(ExtensionOverride node) {
     return node.element;
-  }
-
-  @override
-  Element? visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
-    return node.declaredFragment?.element;
   }
 
   @override
@@ -537,26 +388,6 @@ class _ElementMapperV2 extends GeneralizingAstVisitor2<Element> {
       NamedWriteResolutionWithElement(:var element) => element,
       _ => null,
     };
-  }
-
-  @override
-  Element? visitFormalParameter(FormalParameter node) {
-    return node.declaredFragment?.element;
-  }
-
-  @override
-  Element? visitFunctionDeclaration(FunctionDeclaration node) {
-    return node.declaredFragment?.element;
-  }
-
-  @override
-  Element? visitFunctionTypeAlias(FunctionTypeAlias node) {
-    return node.declaredFragment?.element;
-  }
-
-  @override
-  Element? visitGenericTypeAlias(GenericTypeAlias node) {
-    return node.declaredFragment?.element;
   }
 
   @override
@@ -629,11 +460,6 @@ class _ElementMapperV2 extends GeneralizingAstVisitor2<Element> {
   }
 
   @override
-  Element? visitLabel(Label node) {
-    return node.declaredFragment?.element;
-  }
-
-  @override
   Element? visitLabelReference(LabelReference node) {
     return node.element;
   }
@@ -644,18 +470,8 @@ class _ElementMapperV2 extends GeneralizingAstVisitor2<Element> {
   }
 
   @override
-  Element? visitMethodDeclaration(MethodDeclaration node) {
-    return node.declaredFragment?.element;
-  }
-
-  @override
   Element? visitMethodInvocation(MethodInvocation node) {
     return node.methodName.element ?? visitIdentifier(node.methodName);
-  }
-
-  @override
-  Element? visitMixinDeclaration(MixinDeclaration node) {
-    return node.declaredFragment?.element;
   }
 
   @override
@@ -671,6 +487,11 @@ class _ElementMapperV2 extends GeneralizingAstVisitor2<Element> {
   @override
   Element? visitNameWithTypeParameters(NameWithTypeParameters node) {
     return node.parent2!.accept2(this);
+  }
+
+  @override
+  Element? visitNode(AstNode node) {
+    return node.tryCast<FragmentDeclaringNode>()?.declaredFragment?.element;
   }
 
   @override
@@ -751,11 +572,6 @@ class _ElementMapperV2 extends GeneralizingAstVisitor2<Element> {
   }
 
   @override
-  Element? visitTypeParameter(TypeParameter node) {
-    return node.declaredFragment?.element;
-  }
-
-  @override
   Element? visitUnaryOperatorInvocation(UnaryOperatorInvocation node) {
     return node.element;
   }
@@ -768,10 +584,5 @@ class _ElementMapperV2 extends GeneralizingAstVisitor2<Element> {
       return element;
     }
     return null;
-  }
-
-  @override
-  Element? visitVariableDeclaration(VariableDeclaration node) {
-    return node.declaredFragment?.element ?? node.declaredFragment?.element;
   }
 }

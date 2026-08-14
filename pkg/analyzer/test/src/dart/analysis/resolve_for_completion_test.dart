@@ -330,6 +330,15 @@ var v2 = v1.^;
     result.assertResolvedNodes(['var v2 = v1.;']);
   }
 
+  test_topLevelGetter_body() async {
+    var result = await _resolveTestCode(r'''
+int get foo => bar^;
+int get other => 0;
+''');
+
+    result.assertResolvedNodes(['int get foo => bar;']);
+  }
+
   test_topLevelVariable_initializer() async {
     var result = await _resolveTestCode(r'''
 var v1 = 0;

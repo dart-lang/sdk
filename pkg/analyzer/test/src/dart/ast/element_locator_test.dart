@@ -1724,6 +1724,17 @@ package:test/foo.dart
 ''');
   }
 
+  test_locate_TopLevelGetterDeclaration() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+int get x => 0;
+''');
+    var node = result.findNode.singleTopLevelGetterDeclaration;
+    var element = ElementLocatorV2.locate(node);
+    _assertElement(element, r'''
+<testLibrary>::@getter::x
+''');
+  }
+
   test_locate_VariableDeclaration_Local() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 f() {
