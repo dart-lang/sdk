@@ -748,16 +748,14 @@ See https://dart.dev/to/package-descriptors for more details.''', verbose) {
           );
         }
 
-        final executableUri = appBundleDirectory.directory.uri.resolve(
-          'bundle/bin/$executable',
-        );
+        final executableFile = appBundleDirectory.executable(executable).file;
         final arguments = args.rest.skip(1).toList();
 
         // The app-bundle contains executables (not AOT snapshots) to make it
         // self-contained. So, spawn a process instead of loading a snapshot in
         // the VM.
         final process = await Process.start(
-          executableUri.toFilePath(),
+          executableFile.path,
           arguments,
           mode: ProcessStartMode.inheritStdio, // Enable using stdin etc.
           environment: VmInteropHandler.environmentOverrides,
