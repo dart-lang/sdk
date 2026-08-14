@@ -106,7 +106,7 @@ static method testFor() → dynamic {
     }
   }
   {
-    final hoisted core::int i##3;
+    hoisted core::int i##3;
     hoisted core::String s;
     {
       final synthesized(core::int, core::String) #1#0 = (0, "");
@@ -125,7 +125,7 @@ static method testFor() → dynamic {
   }
   {
     hoisted core::int i##5;
-    final hoisted core::String s##2;
+    hoisted core::String s##2;
     {
       final synthesized(core::int, core::String) #2#0 = (0, "");
       synthesized core::int #2#1;
@@ -164,7 +164,7 @@ static method testFor() → dynamic {
   } =>#t20;
   core::List<core::int> l3 = block {
     final core::List<core::int> #t23 = <core::int>[];
-    final hoisted core::int i##10;
+    hoisted core::int i##10;
     hoisted core::String s##4;
     {
       final synthesized(core::int, core::String) #4#0 = (0, "");
@@ -183,7 +183,7 @@ static method testFor() → dynamic {
   core::List<core::int> l4 = block {
     final core::List<core::int> #t32 = <core::int>[];
     hoisted core::int i##12;
-    final hoisted core::String s##6;
+    hoisted core::String s##6;
     {
       final synthesized(core::int, core::String) #5#0 = (0, "");
       synthesized core::int #5#1;

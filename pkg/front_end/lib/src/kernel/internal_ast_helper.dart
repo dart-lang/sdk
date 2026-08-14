@@ -600,6 +600,22 @@ InternalLoopStatement createForStatement(
   );
 }
 
+InternalLoopStatement createPatternForStatement({
+  required InternalPatternVariableDeclaration patternVariableDeclaration,
+  required InternalExpression? condition,
+  required List<InternalExpression> updates,
+  required InternalStatement body,
+  required int fileOffset,
+}) {
+  return new InternalPatternForStatement(
+    patternVariableDeclaration,
+    condition,
+    updates,
+    body,
+    fileOffset: fileOffset,
+  );
+}
+
 InternalStatement createFunctionDeclaration({
   required InternalLocalFunctionVariable variable,
   required int fileOffset,
@@ -1354,8 +1370,8 @@ InternalExpression createPatternAssignment(
 
 InternalElement createPatternForElement({
   required InternalPatternVariableDeclaration patternVariableDeclaration,
-  required List<InternalVariableDeclaration> intermediateVariables,
-  required List<InternalVariableDeclaration> variables,
+  //required List<InternalVariableDeclaration> intermediateVariables,
+  //required List<InternalVariableDeclaration> variables,
   required InternalExpression? condition,
   required List<InternalExpression> updates,
   required InternalElement body,
@@ -1363,8 +1379,8 @@ InternalElement createPatternForElement({
 }) {
   return new PatternForElement(
     patternVariableDeclaration: patternVariableDeclaration,
-    intermediateVariables: intermediateVariables,
-    variables: variables,
+    //intermediateVariables: intermediateVariables,
+    //variables: variables,
     condition: condition,
     updates: updates,
     body: body,
