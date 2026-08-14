@@ -126,11 +126,17 @@ class _Visitor(final AnalysisRule _rule, final RuleContext _context)
 
   @override
   void visitIfElement(IfElement node) {
+    // Check if the expression is implicitly cast to bool, _only_ if this is not
+    // an if-case.
+    if (node.caseClause != null) return;
     _check(node.expression, _context.typeProvider.boolType);
   }
 
   @override
   void visitIfStatement(IfStatement node) {
+    // Check if the expression is implicitly cast to bool, _only_ if this is not
+    // an if-case.
+    if (node.caseClause != null) return;
     _check(node.expression, _context.typeProvider.boolType);
   }
 
