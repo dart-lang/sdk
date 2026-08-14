@@ -2426,7 +2426,7 @@ mixin TypeAnalyzer<
           componentVariables,
           patternVariablePromotionKeys,
           location: JoinedPatternVariableLocation.singlePattern,
-          offset: memberInfo.endAlternativeOffset,
+          offset: memberInfo.head.finishJoinedPatternVariablesOffset,
         );
         // Stack: (Expression, i * ExpressionCase, Pattern)
         Expression? guard = memberInfo.head.guard;

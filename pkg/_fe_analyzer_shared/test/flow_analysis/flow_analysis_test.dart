@@ -9712,6 +9712,22 @@ main() {
         ]);
       });
 
+      test('guarded with logical or join', () {
+        var x1 = Var('x', identity: 'x1');
+        var x2 = Var('x', identity: 'x2');
+        var x = PatternVariableJoin('x', expectedComponents: [x1, x2]);
+        h.run([
+          switchExpr(expr('int?'), [
+            x1
+                .pattern(type: 'int?')
+                .nullCheck
+                .or(x2.pattern(type: 'int?'))
+                .when(expr('bool'))
+                .thenExpr(checkNotPromoted(x)),
+          ]),
+        ]);
+      });
+
       group('guard promotes later cases:', () {
         test('when pattern fully covers the scrutinee type', () {
           // `case _ when x == null:` promotes `x` to non-null in later cases,
@@ -13338,6 +13354,33 @@ main() {
           checkPromoted(this_, 'E'),
         ], returnType: 'void'),
         checkPromoted(this_, 'D'),
+      ]);
+    });
+  });
+
+  group('Horizontal inference:', () {
+    test('Two arguments, second argument analyzed before first', () {
+      h.addMember('C', 'm', 'void Function(void Function(), int)');
+      var x = Var('x');
+      var y = Var('y');
+      h.run([
+        declare(x, type: 'num', initializer: expr('num')),
+        declare(y, type: 'num', initializer: expr('num')),
+        // Promote y so that there will be an observable state change when the
+        // write capture it becomes live.
+        y.as_('int'),
+        expr('C').invokeMethod(
+          'm',
+          [
+            localFunction([
+              checkPromoted(x, 'int'),
+              checkNotPromoted(y),
+              y.write(expr('num')),
+            ]),
+            x.as_('int'),
+          ],
+          argumentVisitOrder: [1, 0],
+        ),
       ]);
     });
   });

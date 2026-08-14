@@ -1110,9 +1110,7 @@ class C(this.f) {
 ''');
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/3210')
   Future<void> test_superParameter() async {
-    // If this issue gets closed as "won't fix," remove this test.
     await resolveTestCode('''
 class C {
   C(int f);
@@ -1123,8 +1121,10 @@ class D extends C {
 ''');
     await assertHasFix('''
 class C {
-  int f;
-  C(super.f);
+  C(int f);
+}
+class D extends C {
+  D(super.f);
 }
 ''');
   }

@@ -760,6 +760,7 @@ See https://dart.dev/to/package-descriptors for more details.''', verbose) {
           executableUri.toFilePath(),
           arguments,
           mode: ProcessStartMode.inheritStdio, // Enable using stdin etc.
+          environment: VmInteropHandler.environmentOverrides,
         );
         return await process.exitCode;
       } on InstallException catch (e) {

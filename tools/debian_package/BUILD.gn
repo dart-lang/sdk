@@ -8,19 +8,19 @@ if (is_linux) {
     timestamp = exec_script("get_timestamp.py", [], "trim string")
     if (target_cpu == "x86" || target_cpu == "ia32") {
       debian_arch = "i386"
-      lib_dir = "//buildtools/sysroot/jammy/lib/i386-linux-gnu"
+      lib_dir = "//buildtools/sysroot/linux/lib/i386-linux-gnu"
     } else if (target_cpu == "x64") {
       debian_arch = "amd64"
-      lib_dir = "//buildtools/sysroot/jammy/lib/x86_64-linux-gnu"
+      lib_dir = "//buildtools/sysroot/linux/lib/x86_64-linux-gnu"
     } else if (target_cpu == "arm") {
       debian_arch = "armhf"
-      lib_dir = "//buildtools/sysroot/jammy/lib/arm-linux-gnueabihf"
+      lib_dir = "//buildtools/sysroot/linux/lib/arm-linux-gnueabihf"
     } else if (target_cpu == "arm64") {
       debian_arch = "arm64"
-      lib_dir = "//buildtools/sysroot/jammy/lib/aarch64-linux-gnu"
+      lib_dir = "//buildtools/sysroot/linux/lib/aarch64-linux-gnu"
     } else if (target_cpu == "riscv64") {
       debian_arch = "riscv64"
-      lib_dir = "//buildtools/sysroot/jammy/lib/riscv64-linux-gnu"
+      lib_dir = "//buildtools/sysroot/focal/lib/riscv64-linux-gnu/"
     } else {
       assert(false, "Don't know Debian name for $target_cpu")
     }
