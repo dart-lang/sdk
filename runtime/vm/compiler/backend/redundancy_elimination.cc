@@ -2319,18 +2319,13 @@ class LoadOptimizer : public ValueObject {
                 continue;
               }
 
-              const intptr_t pos = alloc->InputForSlot(*slot);
-              if (pos != -1) {
-                forward_def = alloc->InputAt(pos)->definition();
-              } else if (!slot->is_tagged()) {
-                // Fields that do not contain tagged values should not
-                // have a tagged null value forwarded for them, similar to
-                // payloads of typed data arrays.
-                continue;
+              if (auto* const value =
+                      alloc->InitialValueForSlot(graph_, *slot)) {
+                forward_def = value;
               } else {
-                // Fields not provided as an input to the instruction are
-                // initialized to null during allocation.
-                forward_def = graph_->constant_null();
+                // The initial value of the field is not known or cannot be
+                // represented as a tagged constant.
+                continue;
               }
             }
 
