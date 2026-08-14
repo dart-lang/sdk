@@ -1598,6 +1598,11 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     return _propertyElementResolver.resolveIndexDirectAssignmentTarget(node);
   }
 
+  ({IndexReadResolutionImpl read, IndexWriteResolutionImpl write})?
+  resolveIndexReadWriteAssignmentTarget(IndexAssignmentTargetImpl node) {
+    return _propertyElementResolver.resolveIndexReadWriteAssignmentTarget(node);
+  }
+
   PatternResult resolveMapPattern({
     required MapPatternImpl node,
     required SharedMatchContext context,

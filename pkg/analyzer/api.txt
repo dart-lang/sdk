@@ -1581,6 +1581,7 @@ package:analyzer/dart/ast/ast.dart:
   DoubleLiteral (class extends Object implements Literal, abstract, final):
     literal (getter: Token)
     value (getter: double)
+  DynamicIndexReadResolution (class extends Object implements ValidIndexReadResolution, abstract, final, experimental)
   DynamicIndexWriteResolution (class extends Object implements ValidIndexWriteResolution, abstract, final, experimental)
   DynamicPropertyReadResolution (class extends Object implements NamedReadResolution, abstract, final, experimental)
   DynamicPropertyWriteResolution (class extends Object implements NamedWriteResolution, abstract, final, experimental)
@@ -1896,6 +1897,7 @@ package:analyzer/dart/ast/ast.dart:
   IndexAssignmentTarget (class extends Object implements AssignmentTarget, abstract, final, experimental):
     index (getter: Expression)
     leftBracket (getter: Token)
+    read (getter: IndexReadResolution?)
     receiver (getter: Expression)
     rightBracket (getter: Token)
     write (getter: IndexWriteResolution?)
@@ -1914,6 +1916,8 @@ package:analyzer/dart/ast/ast.dart:
     target2 (getter: Expression?, experimental)
     inGetterContext (method: bool Function())
     inSetterContext (method: bool Function())
+  IndexReadResolution (class extends Object, abstract, final, experimental):
+    type (getter: DartType)
   IndexWriteResolution (class extends Object, abstract, final, experimental):
     acceptedType (getter: DartType)
   InstanceCreationExpression (class extends Object implements Expression, abstract, final):
@@ -1947,6 +1951,8 @@ package:analyzer/dart/ast/ast.dart:
   InvalidAssignmentTarget (class extends Object implements AssignmentTarget, sealed (immediate subtypes: InvalidExpressionAssignmentTarget), experimental)
   InvalidExpressionAssignmentTarget (class extends Object implements InvalidAssignmentTarget, abstract, final, experimental):
     expression (getter: Expression)
+  InvalidIndexReadResolution (class extends Object implements IndexReadResolution, abstract, final, experimental):
+    recovery (getter: ValidIndexReadResolution?)
   InvalidIndexWriteResolution (class extends Object implements IndexWriteResolution, abstract, final, experimental):
     recovery (getter: ValidIndexWriteResolution?)
   InvalidNamedReadResolution (class extends Object implements NamedReadResolution, abstract, final, experimental):
@@ -2065,6 +2071,9 @@ package:analyzer/dart/ast/ast.dart:
     returnType (getter: TypeAnnotation?)
     staticKeyword (getter: Token?)
     typeParameters (getter: TypeParameterList?)
+  MethodIndexReadResolution (class extends Object implements ValidIndexReadResolution, abstract, final, experimental):
+    element (getter: MethodElement)
+    invokeType (getter: FunctionType)
   MethodIndexWriteResolution (class extends Object implements ValidIndexWriteResolution, abstract, final, experimental):
     element (getter: MethodElement)
     invokeType (getter: FunctionType)
@@ -2494,6 +2503,7 @@ package:analyzer/dart/ast/ast.dart:
     write (getter: NamedWriteResolution?)
   UriBasedDirective (class extends Object implements Directive, sealed (immediate subtypes: NamespaceDirective, PartDirective, UriBasedDirectiveImpl)):
     uri (getter: StringLiteral)
+  ValidIndexReadResolution (class extends Object implements IndexReadResolution, abstract, final, experimental)
   ValidIndexWriteResolution (class extends Object implements IndexWriteResolution, abstract, final, experimental)
   VariableDeclaration (class extends Object implements Declaration, abstract, final):
     declaredFragment (getter: VariableFragment?)

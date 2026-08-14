@@ -30,6 +30,8 @@ enum ElementTag {
 
 enum ImportElementPrefixKind { isDeferred, isNotDeferred, isNull }
 
+enum IndexReadResolutionTag { dynamic_, invalid, method }
+
 enum IndexWriteResolutionTag { dynamic_, invalid, method }
 
 enum NamedReadResolutionTag {

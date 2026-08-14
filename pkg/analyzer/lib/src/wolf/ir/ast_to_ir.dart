@@ -120,6 +120,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
   late final threeArguments = ir.encodeArgumentNames([null, null, null]);
   late final null_ = ir.encodeLiteral(null);
   late final one = ir.encodeLiteral(1);
+  late final stackIndices0101 = ir.encodeStackIndices(const [0, 1, 0, 1]);
   late final stackIndices101 = ir.encodeStackIndices(const [1, 0, 1]);
   late final stackIndices2012 = ir.encodeStackIndices(const [2, 0, 1, 2]);
 
@@ -461,7 +462,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
     late _LValueTemplates lValueTemplates;
     switch (target) {
       case IndexAssignmentTargetImpl():
-        throw StateError('Index compound assignment is not migrated.');
+        lValueTemplates = _indexAssignmentTarget(target);
       case InvalidExpressionAssignmentTargetImpl():
         throw UnimplementedError('Invalid expression assignment target');
       case PropertyAssignmentTargetImpl():
@@ -712,7 +713,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
     late _LValueTemplates lValueTemplates;
     switch (target) {
       case IndexAssignmentTargetImpl():
-        throw StateError('Index if-null assignment is not migrated.');
+        lValueTemplates = _indexAssignmentTarget(target);
       case InvalidExpressionAssignmentTargetImpl():
         throw UnimplementedError('Invalid expression assignment target');
       case PropertyAssignmentTargetImpl():
@@ -1165,6 +1166,15 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
   _LValueTemplates _indexAssignmentTarget(IndexAssignmentTarget node) {
     dispatchNode(node.receiver);
     dispatchNode(node.index);
+    var readElement = switch (node.read) {
+      MethodIndexReadResolution(:var element) => element,
+      DynamicIndexReadResolution() => null,
+      InvalidIndexReadResolution() => throw UnimplementedError(
+        'Invalid index assignment target read',
+      ),
+      null => null,
+      _ => throw StateError('Unexpected index read resolution'),
+    };
     var writeElement = switch (node.write) {
       MethodIndexWriteResolution(:var element) => element,
       DynamicIndexWriteResolution() => null,
@@ -1174,7 +1184,10 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
       null => null,
       _ => throw StateError('Unexpected index write resolution'),
     };
-    return _IndexAssignmentTemplates(writeElement: writeElement);
+    return _IndexAssignmentTemplates(
+      readElement: readElement,
+      writeElement: writeElement,
+    );
   }
 
   _LValueTemplates _propertyAssignmentTarget(PropertyAssignmentTarget node) {
@@ -1269,14 +1282,21 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
 
 /// Instruction templates for an indexed assignment target.
 class _IndexAssignmentTemplates extends _LValueTemplates {
+  final MethodElement? readElement;
   final MethodElement? writeElement;
 
-  _IndexAssignmentTemplates({required this.writeElement})
-    : super(subexpressionCount: 2);
+  _IndexAssignmentTemplates({
+    required this.readElement,
+    required this.writeElement,
+  }) : super(subexpressionCount: 2);
 
   @override
   void readForCompoundAssignment(_AstToIRVisitor visitor) {
-    throw StateError('Index compound assignment is not migrated.');
+    // Stack: receiver index
+    visitor.ir.shuffle(2, visitor.stackIndices0101);
+    // Stack: receiver index receiver index
+    visitor.instanceCall(readElement, '[]', [], visitor.twoArguments);
+    // Stack: receiver index value
   }
 
   @override

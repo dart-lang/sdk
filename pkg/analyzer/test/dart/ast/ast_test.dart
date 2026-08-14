@@ -574,7 +574,17 @@ void f() {
   a[0] += 0;
 }
 ''');
-    var node = parseResult.findNode.singleIndexExpression;
+    var node = parseResult.findNodeV1.singleIndexExpression;
+    expect(node.inGetterContext(), isTrue);
+  }
+
+  void test_inGetterContext_assignment_ifNull_left() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+void f() {
+  a[0] ??= 0;
+}
+''');
+    var node = parseResult.findNodeV1.singleIndexExpression;
     expect(node.inGetterContext(), isTrue);
   }
 
@@ -603,7 +613,7 @@ void f() {
   a[0] += 0;
 }
 ''');
-    var node = parseResult.findNode.singleIndexExpression;
+    var node = parseResult.findNodeV1.singleIndexExpression;
     expect(node.inSetterContext(), isTrue);
   }
 
@@ -615,6 +625,16 @@ void f() {
 ''');
     var node = parseResult.findNode.singleIndexExpression;
     expect(node.inSetterContext(), isFalse);
+  }
+
+  void test_inSetterContext_assignment_ifNull_left() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+void f() {
+  a[0] ??= 0;
+}
+''');
+    var node = parseResult.findNodeV1.singleIndexExpression;
+    expect(node.inSetterContext(), isTrue);
   }
 
   void test_inSetterContext_assignment_simple_left() {

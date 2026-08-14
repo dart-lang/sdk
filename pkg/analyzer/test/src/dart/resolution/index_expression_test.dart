@@ -182,6 +182,7 @@ DirectAssignment
       correspondingParameter: <testLibrary>::@extension::E::@method::[]=::@formalParameter::index
       staticType: int
     rightBracket: ]
+    read: <null>
     write: MethodIndexWriteResolution
       element: <testLibrary>::@extension::E::@method::[]=
       invokeType: void Function(int, num)
@@ -671,13 +672,13 @@ void f(A a) {
     var node = result.findNode.assignment('a[0]');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide2: IndexExpression
-    target2: SimpleIdentifier
+  leftHandSide: IndexExpression
+    target: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::f::@formalParameter::a
       staticType: A
     leftBracket: [
-    index2: IntegerLiteral
+    index: IntegerLiteral
       literal: 0
       correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
       staticType: int
@@ -685,7 +686,7 @@ AssignmentExpression
     element: <null>
     staticType: null
   operator: +=
-  rightHandSide2: DoubleLiteral
+  rightHandSide: DoubleLiteral
     literal: 1.2
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: double
@@ -713,13 +714,13 @@ void f(A<double> a) {
     var node = result.findNode.assignment('a[0]');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide2: IndexExpression
-    target2: SimpleIdentifier
+  leftHandSide: IndexExpression
+    target: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::f::@formalParameter::a
       staticType: A<double>
     leftBracket: [
-    index2: IntegerLiteral
+    index: IntegerLiteral
       literal: 0
       correspondingParameter: SubstitutedFormalParameterElementImpl
         baseElement: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
@@ -729,7 +730,7 @@ AssignmentExpression
     element: <null>
     staticType: null
   operator: +=
-  rightHandSide2: DoubleLiteral
+  rightHandSide: DoubleLiteral
     literal: 1.2
     correspondingParameter: dart:core::@class::double::@method::+::@formalParameter::other
     staticType: double
@@ -865,6 +866,7 @@ DirectAssignment
       correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
       staticType: int
     rightBracket: ]
+    read: <null>
     write: MethodIndexWriteResolution
       element: <testLibrary>::@class::A::@method::[]=
       invokeType: void Function(int, num)
@@ -999,6 +1001,7 @@ DirectAssignment
         substitution: {T: double}
       staticType: int
     rightBracket: ]
+    read: <null>
     write: MethodIndexWriteResolution
       element: SubstitutedMethodElementImpl
         baseElement: <testLibrary>::@class::A::@method::[]=
@@ -1075,6 +1078,7 @@ DirectAssignment
       correspondingParameter: <null>
       staticType: int
     rightBracket: ]
+    read: <null>
     write: <null>
   operator: =
   value: IntegerLiteral
@@ -1216,6 +1220,7 @@ DirectAssignment
       correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
       staticType: int
     rightBracket: ]
+    read: <null>
     write: MethodIndexWriteResolution
       element: <testLibrary>::@class::A::@method::[]=
       invokeType: void Function(int, num)

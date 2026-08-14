@@ -429,6 +429,7 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
     _writeByte(Tag.IndexAssignmentTarget);
     _writeNode(node.receiver);
     _writeNode(node.index);
+    _sink.writeOptionalObject(node.read, _writeIndexReadResolution);
     _sink.writeOptionalObject(node.write, _writeIndexWriteResolution);
   }
 
@@ -1106,6 +1107,20 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
     _sink.writeType(nodeImpl.writeType);
     _sink.writeType(node.operatorResultType);
     _storeExpression(node);
+  }
+
+  void _writeIndexReadResolution(IndexReadResolutionImpl resolution) {
+    switch (resolution) {
+      case DynamicIndexReadResolutionImpl():
+        _writeByte(IndexReadResolutionTag.dynamic_.index);
+      case InvalidIndexReadResolutionImpl(:var recovery):
+        _writeByte(IndexReadResolutionTag.invalid.index);
+        _sink.writeOptionalObject(recovery, _writeIndexReadResolution);
+      case MethodIndexReadResolutionImpl(:var element, :var type):
+        _writeByte(IndexReadResolutionTag.method.index);
+        _sink.writeElement(element);
+        _sink.writeType(type);
+    }
   }
 
   void _writeIndexWriteResolution(IndexWriteResolutionImpl resolution) {

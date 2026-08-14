@@ -1031,6 +1031,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
       if (_withResolution) {
+        _writeIndexReadResolution('read', node.read);
         _writeIndexWriteResolution('write', node.write);
       }
     });
@@ -2318,6 +2319,34 @@ Expected parent: (${parent.runtimeType}) $parent
         _writeType('returnType', element.returnType);
         _writeType('type', element.type);
       });
+    }
+  }
+
+  void _writeIndexReadResolution(
+    String name,
+    IndexReadResolutionImpl? resolution,
+  ) {
+    switch (resolution) {
+      case null:
+        _sink.writelnWithIndent('$name: <null>');
+      case DynamicIndexReadResolutionImpl():
+        _sink.writelnWithIndent('$name: DynamicIndexReadResolution');
+        _sink.withIndent(() {
+          _writeType('type', resolution.type);
+        });
+      case InvalidIndexReadResolutionImpl(:var recovery):
+        _sink.writelnWithIndent('$name: InvalidIndexReadResolution');
+        _sink.withIndent(() {
+          _writeType('type', resolution.type);
+          _writeIndexReadResolution('recovery', recovery);
+        });
+      case MethodIndexReadResolutionImpl():
+        _sink.writelnWithIndent('$name: MethodIndexReadResolution');
+        _sink.withIndent(() {
+          _writeElement('element', resolution.element);
+          _writeType('invokeType', resolution.invokeType);
+          _writeType('type', resolution.type);
+        });
     }
   }
 

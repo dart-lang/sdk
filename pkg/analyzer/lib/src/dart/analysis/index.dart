@@ -857,7 +857,7 @@ class _IndexContributor extends GeneralizingAstVisitor2 {
     recordOperatorReference(node.operator, node.element);
     switch (node.target as AssignmentTargetImpl) {
       case IndexAssignmentTargetImpl target:
-        _recordIndexWriteTarget(target);
+        _recordIndexReadWriteTarget(target);
       case InvalidExpressionAssignmentTargetImpl():
         break;
       case PropertyAssignmentTargetImpl target:
@@ -967,7 +967,7 @@ class _IndexContributor extends GeneralizingAstVisitor2 {
   void visitDirectAssignment(DirectAssignment node) {
     switch (node.target as AssignmentTargetImpl) {
       case IndexAssignmentTargetImpl target:
-        _recordIndexWriteTarget(target);
+        _recordIndexReadWriteTarget(target);
       case InvalidExpressionAssignmentTargetImpl():
         break;
       case PropertyAssignmentTargetImpl target:
@@ -1210,7 +1210,7 @@ class _IndexContributor extends GeneralizingAstVisitor2 {
   void visitIfNullAssignment(IfNullAssignment node) {
     switch (node.target as AssignmentTargetImpl) {
       case IndexAssignmentTargetImpl target:
-        _recordIndexWriteTarget(target);
+        _recordIndexReadWriteTarget(target);
       case InvalidExpressionAssignmentTargetImpl():
         break;
       case PropertyAssignmentTargetImpl target:
@@ -1779,7 +1779,14 @@ class _IndexContributor extends GeneralizingAstVisitor2 {
     );
   }
 
-  void _recordIndexWriteTarget(IndexAssignmentTargetImpl target) {
+  void _recordIndexReadWriteTarget(IndexAssignmentTargetImpl target) {
+    if (target.read case MethodIndexReadResolutionImpl(:var element)) {
+      recordRelationToken(
+        element,
+        IndexRelationKind.IS_INVOKED_BY,
+        target.leftBracket,
+      );
+    }
     if (target.write case MethodIndexWriteResolutionImpl(:var element)) {
       recordRelationToken(
         element,

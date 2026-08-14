@@ -5924,10 +5924,13 @@ void useOperator(A a) {
     var result = await _indexTestCode('''
 /// [operator []] and [A.operator []]
 class A {
-  operator [](i) => null;
+  dynamic operator [](i) => null;
+  operator []=(i, v) {}
 }
 void useOperator(A a) {
   a[0];
+  a[1] += 42;
+  a[2] ??= 43;
 }
 ''');
 
@@ -5936,10 +5939,15 @@ void useOperator(A a) {
     assertElementIndexText(result, element, r'''
 /// [operator []] and [A.operator []]
 class A {
-  operator [](i) => null;
+  dynamic operator [](i) => null;
+  operator []=(i, v) {}
 }
 void useOperator(A a) {
   a[0];
+   ^ IS_INVOKED_BY qualified
+  a[1] += 42;
+   ^ IS_INVOKED_BY qualified
+  a[2] ??= 43;
    ^ IS_INVOKED_BY qualified
 }
 ''');
@@ -5949,10 +5957,13 @@ void useOperator(A a) {
     var result = await _indexTestCode('''
 /// [operator []=] and [A.operator []=]
 class A {
+  dynamic operator [](i) => null;
   operator []=(i, v) {}
 }
 void useOperator(A a) {
   a[1] = 42;
+  a[2] += 43;
+  a[3] ??= 44;
 }
 ''');
 
@@ -5961,10 +5972,15 @@ void useOperator(A a) {
     assertElementIndexText(result, element, r'''
 /// [operator []=] and [A.operator []=]
 class A {
+  dynamic operator [](i) => null;
   operator []=(i, v) {}
 }
 void useOperator(A a) {
   a[1] = 42;
+   ^ IS_INVOKED_BY qualified
+  a[2] += 43;
+   ^ IS_INVOKED_BY qualified
+  a[3] ??= 44;
    ^ IS_INVOKED_BY qualified
 }
 ''');

@@ -326,6 +326,113 @@ class PropertyElementResolver with ScopeHelpers {
     );
   }
 
+  ({IndexReadResolutionImpl read, IndexWriteResolutionImpl write})?
+  resolveIndexReadWriteAssignmentTarget(IndexAssignmentTargetImpl node) {
+    var receiver = node.receiver;
+
+    if (receiver is ExtensionOverrideImpl) {
+      var result = _extensionResolver.getOverrideMember(receiver, '[]');
+      var readElement = result.getter2;
+      var writeElement = result.setter2;
+      var isReadInvalid = readElement == null;
+      var isWriteInvalid = writeElement == null;
+      if (result != ExtensionResolutionError.ambiguous) {
+        if (isReadInvalid) {
+          _reportUnresolvedIndex(
+            node,
+            diag.undefinedExtensionOperator.withArguments(
+              operator: '[]',
+              extensionName: receiver.element.name!,
+            ),
+          );
+        }
+        if (isWriteInvalid) {
+          _reportUnresolvedIndex(
+            node,
+            diag.undefinedExtensionOperator.withArguments(
+              operator: '[]=',
+              extensionName: receiver.element.name!,
+            ),
+          );
+        }
+      }
+      return (
+        read: _createIndexReadResolution(
+          readElement,
+          atDynamicTarget: false,
+          isInvalid: isReadInvalid,
+        ),
+        write: _createIndexWriteResolution(
+          writeElement,
+          atDynamicTarget: false,
+          isInvalid: isWriteInvalid,
+        ),
+      );
+    }
+
+    var receiverType = _typeSystem.resolveToBound(receiver.typeOrThrow);
+    if (receiverType is NeverType &&
+        receiverType.nullabilitySuffix == NullabilitySuffix.none) {
+      diagnosticReporter.report(diag.receiverOfTypeNever.at(receiver));
+      return null;
+    }
+    if (receiverType is DynamicType) {
+      return (
+        read: const DynamicIndexReadResolutionImpl(),
+        write: const DynamicIndexWriteResolutionImpl(),
+      );
+    }
+    if (receiverType is VoidType) {
+      _reportUnresolvedIndex(node, diag.useOfVoidResult);
+      return (
+        read: InvalidIndexReadResolutionImpl(recovery: null),
+        write: InvalidIndexWriteResolutionImpl(recovery: null),
+      );
+    }
+
+    var result = _resolver.typePropertyResolver.resolve(
+      receiver: receiver,
+      receiverType: receiverType,
+      name: '[]',
+      hasRead: true,
+      hasWrite: true,
+      propertyErrorEntity: node.leftBracket,
+      nameErrorEntity: receiver,
+      parentNode: node,
+    );
+    if (result.needsGetterError) {
+      _reportUnresolvedIndex(
+        node,
+        (receiver is SuperExpression
+                ? diag.undefinedSuperOperator
+                : diag.undefinedOperator)
+            .withArguments(operator: '[]', type: receiverType),
+      );
+    }
+    if (result.needsSetterError) {
+      _reportUnresolvedIndex(
+        node,
+        (receiver is SuperExpression
+                ? diag.undefinedSuperOperator
+                : diag.undefinedOperator)
+            .withArguments(operator: '[]=', type: receiverType),
+      );
+    }
+    var isReceiverInvalid = receiverType is InvalidType;
+    return (
+      read: _createIndexReadResolution(
+        result.getter2,
+        atDynamicTarget: false,
+        isInvalid: result.needsGetterError || isReceiverInvalid,
+      ),
+      write: _createIndexWriteResolution(
+        result.setter2,
+        atDynamicTarget: false,
+        isInvalid: result.needsSetterError || isReceiverInvalid,
+      ),
+    );
+  }
+
   PropertyElementResolverResult resolvePrefixedIdentifier({
     required PrefixedIdentifierImpl node,
     required bool hasRead,
@@ -914,6 +1021,27 @@ class PropertyElementResolver with ScopeHelpers {
         }
       }
     }
+  }
+
+  IndexReadResolutionImpl _createIndexReadResolution(
+    InternalExecutableElement? element, {
+    required bool atDynamicTarget,
+    required bool isInvalid,
+  }) {
+    MethodIndexReadResolutionImpl? methodResolution;
+    if (element is InternalMethodElement &&
+        element.formalParameters.length == 1) {
+      methodResolution = MethodIndexReadResolutionImpl(
+        element: element,
+        type: element.returnType,
+      );
+    }
+    if (isInvalid) {
+      return InvalidIndexReadResolutionImpl(recovery: methodResolution);
+    }
+    if (methodResolution != null) return methodResolution;
+    if (atDynamicTarget) return const DynamicIndexReadResolutionImpl();
+    return InvalidIndexReadResolutionImpl(recovery: null);
   }
 
   IndexWriteResolutionImpl _createIndexWriteResolution(

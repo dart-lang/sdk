@@ -2128,6 +2128,7 @@ DirectAssignment
       correspondingParameter: <testLibrary>::@class::C::@method::[]=::@formalParameter::index
       staticType: int
     rightBracket: ]
+    read: <null>
     write: MethodIndexWriteResolution
       element: <testLibrary>::@class::C::@method::[]=
       invokeType: void Function(int, int)
@@ -2189,6 +2190,7 @@ DirectAssignment
       correspondingParameter: <testLibrary>::@extension::E::@method::[]=::@formalParameter::index
       staticType: int
     rightBracket: ]
+    read: <null>
     write: MethodIndexWriteResolution
       element: <testLibrary>::@extension::E::@method::[]=
       invokeType: void Function(int, int)
@@ -2251,6 +2253,7 @@ DirectAssignment
       correspondingParameter: <testLibrary>::@extension::E::@method::[]=::@formalParameter::index
       staticType: int
     rightBracket: ]
+    read: <null>
     write: MethodIndexWriteResolution
       element: <testLibrary>::@extension::E::@method::[]=
       invokeType: void Function(int, int)
@@ -4698,6 +4701,7 @@ DirectAssignment
       correspondingParameter: <testLibrary>::@class::C::@method::[]=::@formalParameter::index
       staticType: int
     rightBracket: ]
+    read: <null>
     write: MethodIndexWriteResolution
       element: <testLibrary>::@class::C::@method::[]=
       invokeType: void Function(int, int)
@@ -4756,6 +4760,7 @@ DirectAssignment
       correspondingParameter: <testLibrary>::@extension::E::@method::[]=::@formalParameter::index
       staticType: int
     rightBracket: ]
+    read: <null>
     write: MethodIndexWriteResolution
       element: <testLibrary>::@extension::E::@method::[]=
       invokeType: void Function(int, int)

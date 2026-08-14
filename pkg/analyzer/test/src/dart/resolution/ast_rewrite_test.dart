@@ -55,6 +55,7 @@ ImplicitCallReference
           substitution: {K: int, V: C}
         staticType: int
       rightBracket: ]
+      read: <null>
       write: MethodIndexWriteResolution
         element: SubstitutedMethodElementImpl
           baseElement: dart:core::@class::Map::@method::[]=

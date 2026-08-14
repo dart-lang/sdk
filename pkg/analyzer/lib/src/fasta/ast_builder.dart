@@ -3769,26 +3769,24 @@ class AstBuilder extends StackListener {
         (receiver, operator, lhs.propertyName.token),
       _ => null,
     };
-    var indexTarget = token.type == TokenType.EQ
-        ? switch (lhs) {
-            IndexExpressionImpl(
-              target2: var receiver?,
-              period: null,
-              question: null,
-              :var leftBracket,
-              index2: var index,
-              :var rightBracket,
-            )
-                when !lhs.isDotShorthand =>
-              IndexAssignmentTargetImpl(
-                receiver: receiver,
-                leftBracket: leftBracket,
-                index: index,
-                rightBracket: rightBracket,
-              ),
-            _ => null,
-          }
-        : null;
+    var indexTarget = switch (lhs) {
+      IndexExpressionImpl(
+        target2: var receiver?,
+        period: null,
+        question: null,
+        :var leftBracket,
+        index2: var index,
+        :var rightBracket,
+      )
+          when !lhs.isDotShorthand =>
+        IndexAssignmentTargetImpl(
+          receiver: receiver,
+          leftBracket: leftBracket,
+          index: index,
+          rightBracket: rightBracket,
+        ),
+      _ => null,
+    };
     if (!isAssignable && token.type == TokenType.EQ) {
       push(
         DirectAssignmentImpl(
@@ -3806,9 +3804,31 @@ class AstBuilder extends StackListener {
         ),
       );
     } else if (indexTarget != null) {
-      push(
-        DirectAssignmentImpl(target: indexTarget, operator: token, value: rhs),
-      );
+      if (token.type == TokenType.EQ) {
+        push(
+          DirectAssignmentImpl(
+            target: indexTarget,
+            operator: token,
+            value: rhs,
+          ),
+        );
+      } else if (token.type == TokenType.QUESTION_QUESTION_EQ) {
+        push(
+          IfNullAssignmentImpl(
+            target: indexTarget,
+            operator: token,
+            value: rhs,
+          ),
+        );
+      } else {
+        push(
+          CompoundAssignmentImpl(
+            target: indexTarget,
+            operator: token,
+            value: rhs,
+          ),
+        );
+      }
     } else if (property != null) {
       var target = PropertyAssignmentTargetImpl(
         receiver: property.$1,

@@ -2021,6 +2021,44 @@ mixin M {
     );
   }
 
+  test_mixin_superInvokedNames_indexRead_compoundAssignment() {
+    _assertNotSameSignature(
+      r'''
+mixin M {
+  void foo() {
+    super[0] = 0;
+  }
+}
+''',
+      r'''
+mixin M {
+  void foo() {
+    super[0] += 0;
+  }
+}
+''',
+    );
+  }
+
+  test_mixin_superInvokedNames_indexRead_ifNullAssignment() {
+    _assertNotSameSignature(
+      r'''
+mixin M {
+  void foo() {
+    super[0] = 0;
+  }
+}
+''',
+      r'''
+mixin M {
+  void foo() {
+    super[0] ??= 0;
+  }
+}
+''',
+    );
+  }
+
   test_mixin_superInvokedNames_indexWrite_add() {
     _assertNotSameSignature(
       r'''

@@ -746,6 +746,7 @@ class AstBinaryReader {
       index: index,
       rightBracket: Tokens.closeSquareBracket(),
     );
+    node.read = _reader.readOptionalObject(_readIndexReadResolution);
     node.write = _reader.readOptionalObject(_readIndexWriteResolution);
     return node;
   }
@@ -765,6 +766,24 @@ class AstBinaryReader {
     node.element = _reader.readElement() as MethodElement?;
     _readExpressionResolution(node);
     return node;
+  }
+
+  IndexReadResolutionImpl _readIndexReadResolution() {
+    switch (IndexReadResolutionTag.values[_readByte()]) {
+      case IndexReadResolutionTag.dynamic_:
+        return const DynamicIndexReadResolutionImpl();
+      case IndexReadResolutionTag.invalid:
+        return InvalidIndexReadResolutionImpl(
+          recovery: _reader.readOptionalObject(
+            () => _readIndexReadResolution() as MethodIndexReadResolutionImpl,
+          ),
+        );
+      case IndexReadResolutionTag.method:
+        return MethodIndexReadResolutionImpl(
+          element: _reader.readElement() as InternalMethodElement,
+          type: _reader.readType() as TypeImpl,
+        );
+    }
   }
 
   IndexWriteResolutionImpl _readIndexWriteResolution() {
