@@ -35,6 +35,7 @@ import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart'
     show DiagnosticMessage, DiagnosticMessageImpl;
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/diagnostic/diagnostic_data.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/async_return_visitor.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -6526,7 +6527,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       if (!isSatisfied) {
         // This error can only occur if [mixinName] resolved to an actual mixin,
         // so we can safely rely on `mixinName.type` being non-`null`.
-        diagnosticReporter.report(
+        var diagnostic = diagnosticReporter.report(
           diag.mixinApplicationNotImplementedInterface
               .withArguments(
                 mixinType: mixinName.type!,
@@ -6535,6 +6536,8 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
               )
               .at(mixinName.name),
         );
+        mixinApplicationNotImplementedInterfaceConstraint[diagnostic] =
+            constraint;
         return true;
       }
     }
