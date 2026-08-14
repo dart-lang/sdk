@@ -118,8 +118,8 @@ class IfElement({
   }
 }
 
-/// Base class for [ForElement] and [PatternForElement].
-sealed class ForElementBase({
+/// A 'for' element in a list, set, or map literal.
+class ForElement({
   /// The variables declared in the for-element initializer.
   required final List<InternalVariableDeclaration> variables,
 
@@ -132,16 +132,7 @@ sealed class ForElementBase({
   /// The body of the for-element.
   required final InternalElement body,
   required super.fileOffset,
-}) extends InternalElement;
-
-/// A 'for' element in a list, set, or map literal.
-class ForElement({
-  required super.variables,
-  required super.condition,
-  required super.updates,
-  required super.body,
-  required super.fileOffset,
-}) extends ForElementBase {
+}) extends InternalElement {
   @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
@@ -263,29 +254,24 @@ class PatternForElement({
   required final InternalPatternVariableDeclaration patternVariableDeclaration,
 
   /// Intermediate variables needed for the lowering of the pattern for-element.
-  required final List<InternalVariableDeclaration> intermediateVariables,
+  //required final List<InternalVariableDeclaration> intermediateVariables,
 
-  required super.variables,
-  required super.condition,
-  required super.updates,
-  required super.body,
+  /// The condition expression of the for-element, if present.
+  required final InternalExpression? condition,
+
+  /// The expressions occurring in the updates part of the for-element.
+  required final List<InternalExpression> updates,
+
+  /// The body of the for-element.
+  required final InternalElement body,
   required super.fileOffset,
-}) extends ForElementBase {
+}) extends InternalElement {
   @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     patternVariableDeclaration.toTextInternal(printer);
     printer.write('for (');
-    for (int index = 0; index < variables.length; index++) {
-      if (index > 0) {
-        printer.write(', ');
-      }
-      variables[index].variable.toTextInternal(
-        printer,
-        includeModifiersAndType: index == 0,
-        initializer: variables[index].initializer,
-      );
-    }
+    patternVariableDeclaration.toTextInternal(printer);
     printer.write('; ');
     if (condition != null) {
       condition!.toTextInternal(printer);

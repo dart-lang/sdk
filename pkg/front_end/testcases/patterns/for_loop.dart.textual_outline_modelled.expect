@@ -1,0 +1,8 @@
+class Square(final double length) {
+  double get areaAsDouble => length * length;
+  int get areaAsInt => areaAsDouble.toInt();
+}
+
+expect<T>(List<T> expected, List<T> actual) {}
+
+main() {}

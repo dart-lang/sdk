@@ -1,0 +1,42 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Square extends core::Object {
+  final field core::double length;
+  constructor •(final initializing-formal core::double length) → self::Square
+    : self::Square::length = length, super core::Object::•()
+    ;
+  get areaAsDouble() → core::double
+    return this.{self::Square::length}{core::double}.{core::double::*}(this.{self::Square::length}{core::double}){(core::num) → core::double};
+  get areaAsInt() → core::int
+    return this.{self::Square::areaAsDouble}{core::double}.{core::num::toInt}(){() → core::int};
+}
+static method main() → dynamic {
+  core::List<core::int> list = block {
+    final core::List<core::int> #t1 = <core::int>[0];
+    hoisted core::int areaAsInt;
+    {
+      final synthesized self::Square #0#0 = new self::Square::•(1.0);
+      areaAsInt = #0#0.{self::Square::areaAsInt}{core::int};
+    }
+    final core::int #t2 = areaAsInt;
+    for (core::int areaAsInt##1 = #t2; areaAsInt##1.{core::num::<=}(9){(core::num) → core::bool}; block {
+      final synthesized self::Square #1#0 = new self::Square::•((areaAsInt##1 = areaAsInt##1.{core::num::+}(1){(core::num) → core::int}).{core::num::toDouble}(){() → core::double});
+      areaAsInt##1 = #1#0.{self::Square::areaAsInt}{core::int};
+    } =>#1#0)
+      #t1.{core::List::add}{Invariant}(areaAsInt##1){(core::int) → void};
+    #t1.{core::List::add}{Invariant}(42){(core::int) → void};
+  } =>#t1;
+  self::expect<core::int>(<core::int>[0, 1, 4, 42], list);
+}
+static method expect<T extends core::Object? = dynamic>(core::List<self::expect::T%> expected, core::List<self::expect::T%> actual) → dynamic {
+  if(!(expected.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} actual.{core::List::length}{core::int})) {
+    throw "Length mismatch: Expected ${expected} of length ${expected.{core::List::length}{core::int}}. Actual ${actual} of length ${actual.{core::List::length}{core::int}}.";
+  }
+  for (core::int i = 0; i.{core::num::<}(expected.{core::List::length}{core::int}){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int}) {
+    if(!(expected.{core::List::[]}(i){(core::int) → self::expect::T%} =={core::Object::==}{(core::Object) → core::bool} actual.{core::List::[]}(i){(core::int) → self::expect::T%})) {
+      throw "Expected ${expected.{core::List::[]}(i){(core::int) → self::expect::T%}}, actual ${actual.{core::List::[]}(i){(core::int) → self::expect::T%}} at index ${i}";
+    }
+  }
+}

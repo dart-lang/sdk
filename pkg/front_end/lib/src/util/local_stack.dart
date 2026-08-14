@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Extension type that uses a list as a stack.
-extension type LocalStack<T>(List<T> _list) {
+extension type LocalStack<T>(List<T> _list) implements Iterable<T> {
   /// Return `true` if the stack is not empty.
   ///
   /// ```

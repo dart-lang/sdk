@@ -7452,17 +7452,10 @@ class AllocationInstr : public Definition {
   // or if the input is not stored in the object.
   virtual const Slot* SlotForInput(intptr_t pos) { return nullptr; }
 
-  // Returns the input index that has a corresponding slot which is identical to
-  // the given slot. Returns a negative index if no such input found.
-  intptr_t InputForSlot(const Slot& slot) {
-    for (intptr_t i = 0; i < InputCount(); i++) {
-      auto* const input_slot = SlotForInput(i);
-      if (input_slot != nullptr && input_slot->IsIdentical(slot)) {
-        return i;
-      }
-    }
-    return -1;
-  }
+  // Returns a definition carrying the initial value of the field
+  // corresponding to the given slot in the allocated object and
+  // nullptr if such definition can't be computed.
+  virtual Definition* InitialValueForSlot(FlowGraph* graph, const Slot& slot);
 
   // Returns whether the allocated object has initialized fields and/or payload
   // elements. Override for any subclass that returns an uninitialized object.
@@ -7661,6 +7654,8 @@ class AllocateClosureInstr : public TemplateAllocation<2> {
         return TemplateAllocation::SlotForInput(pos);
     }
   }
+
+  virtual Definition* InitialValueForSlot(FlowGraph* graph, const Slot& slot);
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 

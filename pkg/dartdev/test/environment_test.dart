@@ -161,15 +161,17 @@ void main() {
       },
     );
 
-    test('run command with @ descriptor sets DASH__TOOL, DASH__SUPPRESS_ANALYTICS, and DART_ROOT', () async {
-      final p = project();
-      p.file(
-        'pubspec.yaml',
-        'name: ${p.name}\nenvironment:\n  sdk: ^3.0.0\nexecutables:\n  ${p.name}:\n',
-      );
-      p.file(
-        'bin/${p.name}.dart',
-        '''
+    test(
+      'run command with @ descriptor sets DASH__TOOL, DASH__SUPPRESS_ANALYTICS, and DART_ROOT',
+      () async {
+        final p = project();
+        p.file(
+          'pubspec.yaml',
+          'name: ${p.name}\nenvironment:\n  sdk: ^3.0.0\nexecutables:\n  ${p.name}:\n',
+        );
+        p.file(
+          'bin/${p.name}.dart',
+          '''
 import 'dart:io';
 void main() {
   print('DASH__TOOL: \${Platform.environment['DASH__TOOL']}');
@@ -178,34 +180,43 @@ void main() {
   print('DART_ROOT: \${Platform.environment['DART_ROOT']}');
 }
 ''',
-      );
+        );
 
-      final result = await Process.run(
-        Platform.resolvedExecutable,
-        ['run', '${p.name}@{path: ${p.dir.path}}'],
-        workingDirectory: p.dir.path,
-        includeParentEnvironment: false,
-        environment: {
-          'PUB_CACHE': p.pubCachePath,
-          'BOT': 'false',
-          'PATH': Platform.environment['PATH'] ?? '',
-          if (Platform.isWindows) ...{
-            if (Platform.environment['SystemRoot'] != null)
-              'SystemRoot': Platform.environment['SystemRoot']!,
-            if (Platform.environment['TEMP'] != null)
-              'TEMP': Platform.environment['TEMP']!,
+        final result = await Process.run(
+          Platform.resolvedExecutable,
+          ['run', '${p.name}@{path: ${p.dir.path}}'],
+          workingDirectory: p.dir.path,
+          includeParentEnvironment: false,
+          environment: {
+            'PUB_CACHE': p.pubCachePath,
+            'BOT': 'false',
+            'PATH': Platform.environment['PATH'] ?? '',
+            if (Platform.isWindows) ...{
+              if (Platform.environment['SystemRoot'] != null)
+                'SystemRoot': Platform.environment['SystemRoot']!,
+              if (Platform.environment['TEMP'] != null)
+                'TEMP': Platform.environment['TEMP']!,
+              if (Platform.environment['LOCALAPPDATA'] != null)
+                'LOCALAPPDATA': Platform.environment['LOCALAPPDATA']!,
+              if (Platform.environment['APPDATA'] != null)
+                'APPDATA': Platform.environment['APPDATA']!,
+              if (Platform.environment['USERPROFILE'] != null)
+                'USERPROFILE': Platform.environment['USERPROFILE']!,
+              if (Platform.environment['SystemDrive'] != null)
+                'SystemDrive': Platform.environment['SystemDrive']!,
+            },
+            if (Platform.isMacOS || Platform.isLinux) ...{
+              if (Platform.environment['HOME'] != null)
+                'HOME': Platform.environment['HOME']!,
+            },
           },
-          if (Platform.isMacOS || Platform.isLinux) ...{
-            if (Platform.environment['HOME'] != null)
-              'HOME': Platform.environment['HOME']!,
-          },
-        },
-      );
-      expect(result.exitCode, 0);
-      expect(result.stdout, contains('DASH__TOOL: dart-tool'));
-      expect(result.stdout, contains('DASH__SUPPRESS_ANALYTICS: false'));
-      expect(result.stdout, contains('DART_ROOT: ${sdk.sdkPath}'));
-    });
+        );
+        expect(result.exitCode, 0);
+        expect(result.stdout, contains('DASH__TOOL: dart-tool'));
+        expect(result.stdout, contains('DASH__SUPPRESS_ANALYTICS: false'));
+        expect(result.stdout, contains('DART_ROOT: ${sdk.sdkPath}'));
+      },
+    );
 
     test('run command with @ descriptor preserves existing DASH__TOOL', () async {
       final p = project();
@@ -237,6 +248,14 @@ void main() {
               'SystemRoot': Platform.environment['SystemRoot']!,
             if (Platform.environment['TEMP'] != null)
               'TEMP': Platform.environment['TEMP']!,
+            if (Platform.environment['LOCALAPPDATA'] != null)
+              'LOCALAPPDATA': Platform.environment['LOCALAPPDATA']!,
+            if (Platform.environment['APPDATA'] != null)
+              'APPDATA': Platform.environment['APPDATA']!,
+            if (Platform.environment['USERPROFILE'] != null)
+              'USERPROFILE': Platform.environment['USERPROFILE']!,
+            if (Platform.environment['SystemDrive'] != null)
+              'SystemDrive': Platform.environment['SystemDrive']!,
           },
           if (Platform.isMacOS || Platform.isLinux) ...{
             if (Platform.environment['HOME'] != null)
@@ -280,6 +299,14 @@ void main() {
                 'SystemRoot': Platform.environment['SystemRoot']!,
               if (Platform.environment['TEMP'] != null)
                 'TEMP': Platform.environment['TEMP']!,
+              if (Platform.environment['LOCALAPPDATA'] != null)
+                'LOCALAPPDATA': Platform.environment['LOCALAPPDATA']!,
+              if (Platform.environment['APPDATA'] != null)
+                'APPDATA': Platform.environment['APPDATA']!,
+              if (Platform.environment['USERPROFILE'] != null)
+                'USERPROFILE': Platform.environment['USERPROFILE']!,
+              if (Platform.environment['SystemDrive'] != null)
+                'SystemDrive': Platform.environment['SystemDrive']!,
             },
             if (Platform.isMacOS || Platform.isLinux) ...{
               if (Platform.environment['HOME'] != null)
