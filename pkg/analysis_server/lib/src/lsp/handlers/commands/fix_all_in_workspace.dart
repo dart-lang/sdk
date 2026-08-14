@@ -2,7 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/simple_edit_handler.dart';
@@ -11,8 +14,9 @@ import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/progress.dart';
 import 'package:analysis_server/src/lsp/source_edits.dart';
+import 'package:analysis_server/src/lsp/temporary_overlay_operation.dart';
 import 'package:analysis_server/src/services/correction/bulk_fix_processor.dart';
-import 'package:analysis_server_plugin/src/correction/dart_change_workspace.dart';
+import 'package:analysis_server/src/utilities/source_change_merger.dart';
 
 abstract class AbstractFixAllInWorkspaceCommandHandler
     extends SimpleEditCommandHandler<LspAnalysisServer> {
@@ -55,39 +59,22 @@ abstract class AbstractFixAllInWorkspaceCommandHandler
       );
     }
 
-    var workspace = DartChangeWorkspace(await server.currentSessions);
-    var processor = BulkFixProcessor(
-      server.instrumentationService,
-      workspace,
-      byteStore: server.byteStore,
+    var operation = _FixAllOperation(
+      server: server,
+      message: message,
+      cancellationToken: cancellationToken,
+      requireConfirmation: requireConfirmation,
     );
 
     progress.begin('Computing fixes…');
     try {
-      var result = await processor.fixErrors(
-        server.contextManager.analysisContexts,
-      );
-
-      var errorMessage = result.errorMessage;
-      if (errorMessage != null) {
-        return error(ErrorCodes.RequestFailed, errorMessage);
-      }
-
-      var changeBuilder = result.builder!;
-      var change = changeBuilder.sourceChange;
-      if (change.edits.isEmpty) {
-        return success(null);
-      }
-
-      var edit = createWorkspaceEdit(
-        server,
-        clientCapabilities,
-        change,
-        annotateChanges: requireConfirmation
-            ? ChangeAnnotations.requireConfirmation
-            : ChangeAnnotations.include,
-      );
-      return await sendWorkspaceEditToClient(edit);
+      var result = await operation.computeEdits();
+      return await result.mapResult((edit) async {
+        if (edit == null) {
+          return success(null);
+        }
+        return await sendWorkspaceEditToClient(edit);
+      });
     } finally {
       progress.end();
     }
@@ -114,4 +101,73 @@ class PreviewFixAllInWorkspaceCommandHandler
 
   @override
   bool get requireConfirmation => true;
+}
+
+/// Computes edits for iterative fix-all using temporary overlays.
+class _FixAllOperation extends TemporaryOverlayOperation
+    with HandlerHelperMixin<AnalysisServer> {
+  final MessageInfo message;
+  final CancellationToken cancellationToken;
+  final bool requireConfirmation;
+
+  new({
+    required AnalysisServer server,
+    required this.message,
+    required this.cancellationToken,
+    required this.requireConfirmation,
+  }) : super(server);
+
+  Future<ErrorOr<WorkspaceEdit?>> computeEdits() async {
+    return await pauseSchedulerWithTemporaryOverlays(_computeEditsImpl);
+  }
+
+  Future<ErrorOr<WorkspaceEdit?>> _computeEditsImpl() async {
+    if (cancellationToken.isCancellationRequested) {
+      return cancelled(cancellationToken);
+    }
+
+    var contexts = server.contextManager.analysisContexts;
+    var processor = IterativeBulkFixProcessor(
+      instrumentationService: server.instrumentationService,
+      byteStore: server.byteStore,
+      applyTemporaryOverlayEdits: applyTemporaryOverlayEdits,
+      applyOverlays: applyOverlays,
+      cancellationToken: cancellationToken,
+    );
+
+    var result = await processor.fixErrors(message.performance, contexts);
+    var errorMessage = result.errorMessage;
+    if (errorMessage != null) {
+      return ErrorOr.error(
+        ResponseError(code: ErrorCodes.RequestFailed, message: errorMessage),
+      );
+    }
+    var changes = result.edits;
+    if (changes.isEmpty) {
+      return success(null);
+    }
+
+    // We only need to merge if we know we did multiple passes.
+    if (processor.passesWithEdits > 1) {
+      changes = message.performance.run(
+        'SourceChangeMerger.merge',
+        (_) => SourceChangeMerger().merge(changes),
+      );
+    }
+
+    // We must revert overlays before mapping edits, because we need any
+    // LineInfos to reflect the original state while mapping to LSP.
+    await revertOverlays();
+
+    var edit = createPlainWorkspaceEdit(
+      server,
+      server.editorClientCapabilities!,
+      changes,
+      annotateChanges: requireConfirmation
+          ? ChangeAnnotations.requireConfirmation
+          : ChangeAnnotations.include,
+    );
+
+    return success(edit);
+  }
 }

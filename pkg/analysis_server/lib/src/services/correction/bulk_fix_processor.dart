@@ -218,7 +218,7 @@ class BulkFixProcessor {
 
   /// Returns a change builder that has been used to create fixes for the
   /// diagnostics in [path] in the given [context].
-  Future<ChangeBuilder> fixErrorsForFile(
+  Future<BulkFixRequestResult> fixErrorsForFile(
     OperationPerformanceImpl performance,
     AnalysisContext context,
     String path, {
@@ -243,7 +243,7 @@ class BulkFixProcessor {
       }
     }
 
-    return builder;
+    return BulkFixRequestResult(builder);
   }
 
   /// Returns a [BulkFixRequestResult] that includes a change builder that has
@@ -1083,7 +1083,6 @@ class IterativeBulkFixProcessor {
   static const _maxPassCount = 4;
 
   final InstrumentationService _instrumentationService;
-  final AnalysisContext _context;
 
   final void Function(SourceFileEdit) _applyTemporaryOverlayEdits;
   final Future<void> Function() _applyOverlays;
@@ -1100,7 +1099,6 @@ class IterativeBulkFixProcessor {
   new({
     required this._instrumentationService,
     required this._byteStore,
-    required this._context,
     required this._applyTemporaryOverlayEdits,
     required this._applyOverlays,
     this._cancellationToken,
@@ -1111,67 +1109,110 @@ class IterativeBulkFixProcessor {
 
   bool get _isCancelled => _cancellationToken?.isCancellationRequested ?? false;
 
-  Future<List<SourceFileEdit>> fixErrorsForFile(
+  Future<IterativeBulkFixRequestResult> fixErrors(
     OperationPerformanceImpl performance,
+    List<AnalysisContext> contexts,
+  ) {
+    return performance.runAsync('IterativeBulkFixProcessor.fixErrors', (
+      performance,
+    ) {
+      return _runFixesIteratively(
+        performance,
+        contexts,
+        (processor) => processor.fixErrors(contexts),
+      );
+    });
+  }
+
+  Future<IterativeBulkFixRequestResult> fixErrorsForFile(
+    OperationPerformanceImpl performance,
+    AnalysisContext context,
     String path, {
     required bool autoTriggered,
   }) {
     return performance.runAsync('IterativeBulkFixProcessor.fixErrorsForFile', (
       performance,
-    ) async {
-      var edits = <SourceFileEdit>[];
-      _passesWithEdits = 0;
-
-      for (var i = 0; i < _maxPassCount; i++) {
-        var workspace = DartChangeWorkspace([_context.currentSession]);
-        var processor = BulkFixProcessor(
-          _instrumentationService,
-          workspace,
-          byteStore: _byteStore,
-          cancellationToken: _cancellationToken,
+    ) {
+      return _runFixesIteratively(performance, [context], (processor) {
+        return processor.fixErrorsForFile(
+          performance,
+          context,
+          path,
+          autoTriggered: autoTriggered,
         );
-
-        var builder = await performance.runAsync(
-          'BulkFixProcessor.fixErrorsForFile pass $i',
-          (performance) => processor.fixErrorsForFile(
-            performance,
-            _context,
-            path,
-            autoTriggered: autoTriggered,
-          ),
-        );
-
-        if (_isCancelled) {
-          return [];
-        }
-
-        var change = builder.sourceChange;
-        // If this pass made no changes, we don't need to do anything more.
-        if (change.edits.isEmpty) {
-          break;
-        }
-
-        // Record these changes in the results.
-        edits.addAll(change.edits);
-        _passesWithEdits++;
-
-        // Also apply them to the overlay provider so the next iteration can
-        // use them.
-        await performance.runAsync('Apply edits from pass $i', (_) async {
-          for (var fileEdit in change.edits) {
-            _applyTemporaryOverlayEdits(fileEdit);
-          }
-          await _applyOverlays();
-        });
-
-        if (_isCancelled) {
-          return [];
-        }
-      }
-
-      return edits;
+      });
     });
   }
+
+  /// Runs [fixOperation] iteratively using temporary overlay changes to allow
+  /// multiple passes of fixes in a single request.
+  Future<IterativeBulkFixRequestResult> _runFixesIteratively(
+    OperationPerformanceImpl performance,
+    List<AnalysisContext> contexts,
+    Future<BulkFixRequestResult> Function(BulkFixProcessor) fixOperation,
+  ) async {
+    var edits = <SourceFileEdit>[];
+    _passesWithEdits = 0;
+
+    for (var pass = 0; pass < _maxPassCount; pass++) {
+      var workspace = DartChangeWorkspace(
+        contexts.map((context) => context.currentSession).toList(),
+      );
+      var processor = BulkFixProcessor(
+        _instrumentationService,
+        workspace,
+        byteStore: _byteStore,
+        cancellationToken: _cancellationToken,
+      );
+
+      var result = await performance.runAsync(
+        '_runFixesIteratively pass $pass',
+        (_) => fixOperation(processor),
+      );
+      var builder = result.builder;
+
+      if (_isCancelled) {
+        return IterativeBulkFixRequestResult([]);
+      }
+      if (builder == null) {
+        return IterativeBulkFixRequestResult.error(result.errorMessage!);
+      }
+
+      var change = builder.sourceChange;
+      // If this pass made no changes, we don't need to do anything more.
+      if (change.edits.isEmpty) {
+        break;
+      }
+
+      // Record these changes in the results.
+      edits.addAll(change.edits);
+      _passesWithEdits++;
+
+      // Also apply them to the overlay provider so the next iteration can use
+      // them.
+      await performance.runAsync('Apply edits from pass $pass', (_) async {
+        for (var fileEdit in change.edits) {
+          _applyTemporaryOverlayEdits(fileEdit);
+        }
+        await _applyOverlays();
+      });
+
+      if (_isCancelled) {
+        return IterativeBulkFixRequestResult([]);
+      }
+    }
+
+    return IterativeBulkFixRequestResult(edits);
+  }
+}
+
+class IterativeBulkFixRequestResult {
+  final List<SourceFileEdit> edits;
+  final String? errorMessage;
+
+  new(this.edits) : errorMessage = null;
+
+  new error(this.errorMessage) : edits = [];
 }
 
 class _PubspecDeps {

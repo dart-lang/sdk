@@ -121,17 +121,24 @@ class _FixAllOperation extends TemporaryOverlayOperation
     var processor = IterativeBulkFixProcessor(
       instrumentationService: server.instrumentationService,
       byteStore: server.byteStore,
-      context: context,
       applyTemporaryOverlayEdits: applyTemporaryOverlayEdits,
       applyOverlays: applyOverlays,
       cancellationToken: cancellationToken,
     );
 
-    var changes = await processor.fixErrorsForFile(
+    var result = await processor.fixErrorsForFile(
       message.performance,
+      context,
       path,
       autoTriggered: autoTriggered,
     );
+    var errorMessage = result.errorMessage;
+    if (errorMessage != null) {
+      return ErrorOr.error(
+        ResponseError(code: ErrorCodes.RequestFailed, message: errorMessage),
+      );
+    }
+    var changes = result.edits;
     if (changes.isEmpty) {
       return success(null);
     }

@@ -135,6 +135,49 @@ class B extends A {
     await check_multipleFixes_multipleFiles();
   }
 
+  Future<void> test_iterates() async {
+    // Use lints that will fire on different iterations. var -> final -> const.
+    newFile(analysisOptionsPath, '''
+linter:
+  rules:
+    - prefer_final_locals
+    - prefer_const_declarations
+    ''');
+
+    // Write multiple files with violations.
+    for (var fileName in ['a', 'b']) {
+      newFile(join(projectFolderPath, 'lib', '$fileName.dart'), '''
+/// $fileName
+void f() {
+  var a = 'test';
+}
+''');
+    }
+
+    await initialize();
+    var verifier = await verifyCommandEdits(
+      Command(command: commandId, title: 'UNUSED'),
+      '''
+>>>>>>>>>> lib/a.dart
+>>>>>>>>>>   Make final, Replace 'final' with 'const': line 3
+/// a
+void f() {
+  const a = 'test';
+}
+>>>>>>>>>> lib/b.dart
+>>>>>>>>>>   Make final, Replace 'final' with 'const': line 3
+/// b
+void f() {
+  const a = 'test';
+}
+''',
+    );
+    var annotations = verifier.edit.changeAnnotations?.values ?? [];
+    for (var annotation in annotations) {
+      expect(annotation.needsConfirmation, expectRequiresConfirmation);
+    }
+  }
+
   /// Some fixes computer their FixKind lazily so we need to test they're
   /// generating the right labels.
   Future<void> test_lazyFixKind() async {
