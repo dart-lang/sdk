@@ -1,5 +1,6 @@
-## v0.0.4-wip
+## v0.0.4
  - Support for file watching.
+ - `flutter_test` SDK-package is now included in the Flutter DartPad SDK.
 
 ## v0.0.3
  - Embed assets for `package:dartpad` in `web/` folder.

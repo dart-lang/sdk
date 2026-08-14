@@ -153,11 +153,7 @@ Future<void> _setupLocalFlutter(_BuildContext ctx) async {
   final myappDir = p.join(ctx.tempDir, 'myapp');
 
   print('Pruning pubspec.yaml...');
-  _runSync(ctx.flutterBin, [
-    'pub',
-    'remove',
-    'flutter_lints',
-  ], myappDir);
+  _runSync(ctx.flutterBin, ['pub', 'remove', 'flutter_lints'], myappDir);
 
   print('Adding flutter_web_plugins dependency...');
   _runSync(ctx.flutterBin, [
@@ -436,6 +432,7 @@ ${File(p.join(ctx.dartDartPadSdk, 'sandbox.js')).readAsStringSync()}
     'flutter_test',
     'integration_test',
     'flutter_driver',
+    'fuchsia_remote_debug_protocol',
   ];
   for (final pkg in sdkPackages) {
     print('Adding package:$pkg for analysis...');
