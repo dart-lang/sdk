@@ -603,7 +603,7 @@ void f() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = a[b] + c;
 ''');
-    var node = parseResult.findNode.singleIndexExpression;
+    var node = parseResult.findNodeV1.singleIndexExpression;
     expect(node.inGetterContext(), isTrue);
   }
 
@@ -623,7 +623,7 @@ void f() {
   b += a[0];
 }
 ''');
-    var node = parseResult.findNode.singleIndexExpression;
+    var node = parseResult.findNodeV1.singleIndexExpression;
     expect(node.inSetterContext(), isFalse);
   }
 
@@ -654,7 +654,7 @@ void f() {
   b = a[0];
 }
 ''');
-    var node = parseResult.findNode.singleIndexExpression;
+    var node = parseResult.findNodeV1.singleIndexExpression;
     expect(node.inSetterContext(), isFalse);
   }
 
@@ -662,7 +662,7 @@ void f() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = a[b] + c;
 ''');
-    var node = parseResult.findNode.singleIndexExpression;
+    var node = parseResult.findNodeV1.singleIndexExpression;
     expect(node.inSetterContext(), isFalse);
   }
 
@@ -672,7 +672,7 @@ void f() {
   a[0]!;
 }
 ''');
-    var node = parseResult.findNode.singleIndexExpression;
+    var node = parseResult.findNodeV1.singleIndexExpression;
     expect(node.inSetterContext(), isFalse);
   }
 
@@ -682,7 +682,7 @@ void f() {
   a[0]++;
 }
 ''');
-    var node = parseResult.findNode.singleIndexExpression;
+    var node = parseResult.findNodeV1.singleIndexExpression;
     expect(node.inSetterContext(), isTrue);
   }
 
@@ -692,7 +692,7 @@ void f() {
   !a[0];
 }
 ''');
-    var node = parseResult.findNode.singleIndexExpression;
+    var node = parseResult.findNodeV1.singleIndexExpression;
     expect(node.inSetterContext(), isFalse);
   }
 
@@ -722,7 +722,7 @@ void f() {
   a..[0];
 }
 ''');
-    var expression = parseResult.findNode.index('[0]');
+    var expression = parseResult.findNodeV1.index('[0]');
     expect(expression.isNullAware, isFalse);
   }
 
@@ -742,7 +742,7 @@ void f() {
   a[0];
 }
 ''');
-    var expression = parseResult.findNode.index('[0]');
+    var expression = parseResult.findNodeV1.index('[0]');
     expect(expression.isNullAware, isFalse);
   }
 

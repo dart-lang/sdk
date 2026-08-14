@@ -374,6 +374,8 @@ abstract class _FindNodeBase {
 
   IndexExpression get singleIndexExpression => _single();
 
+  IndexExpression2 get singleIndexExpression2 => _single();
+
   IntegerLiteral get singleIntegerLiteral => _single();
 
   InterpolationExpression get singleInterpolationExpression => _single();
@@ -885,6 +887,10 @@ abstract class _FindNodeBase {
 
   IndexExpression index(String search) {
     return _node(search, (n) => n is IndexExpression);
+  }
+
+  IndexExpression2 indexExpression2(String search) {
+    return _node(search, (n) => n is IndexExpression2);
   }
 
   IntegerLiteral integerLiteral(String search) {

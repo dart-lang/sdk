@@ -234,15 +234,26 @@ var v = a.b[];
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-IndexExpression
-  target2: PrefixedIdentifier
+IndexExpression2
+  receiver: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
     period: .
     identifier: SimpleIdentifier
       token: b
   leftBracket: [
-  index2: SimpleIdentifier
+  index: SimpleIdentifier
+    token: <empty> <synthetic>
+  rightBracket: ]
+V1: IndexExpression
+  target: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: a
+    period: .
+    identifier: SimpleIdentifier
+      token: b
+  leftBracket: [
+  index: SimpleIdentifier
     token: <empty> <synthetic>
   rightBracket: ]
 ''');

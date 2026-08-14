@@ -1208,6 +1208,10 @@ class GeneralizingAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitIndexExpression(IndexExpression node) => visitExpression(node);
 
+  @experimental
+  @override
+  R? visitIndexExpression2(IndexExpression2 node) => visitExpression(node);
+
   R? visitInstanceReceiver(InstanceReceiver node) => visitNode(node);
 
   @override
@@ -3409,6 +3413,13 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
     return null;
   }
 
+  @experimental
+  @override
+  R? visitIndexExpression2(IndexExpression2 node) {
+    node.visitChildren2(this);
+    return null;
+  }
+
   @override
   R? visitIntegerLiteral(IntegerLiteral node) {
     node.visitChildren2(this);
@@ -4994,6 +5005,10 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitIndexExpression(IndexExpression node) => null;
 
+  @experimental
+  @override
+  R? visitIndexExpression2(IndexExpression2 node) => null;
+
   @override
   R? visitIntegerLiteral(IntegerLiteral node) => null;
 
@@ -6294,6 +6309,10 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitIndexExpression(IndexExpression node) => _throw(node);
+
+  @experimental
+  @override
+  R? visitIndexExpression2(IndexExpression2 node) => _throw(node);
 
   @override
   R? visitIntegerLiteral(IntegerLiteral node) => _throw(node);
@@ -8999,6 +9018,15 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
     return result;
   }
 
+  @experimental
+  @override
+  T? visitIndexExpression2(IndexExpression2 node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitIndexExpression2(node);
+    stopwatch.stop();
+    return result;
+  }
+
   @override
   T? visitIntegerLiteral(IntegerLiteral node) {
     stopwatch.start();
@@ -10857,6 +10885,10 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitIndexExpression(IndexExpression node) => visitNode(node);
+
+  @experimental
+  @override
+  R? visitIndexExpression2(IndexExpression2 node) => visitNode(node);
 
   @override
   R? visitIntegerLiteral(IntegerLiteral node) => visitNode(node);

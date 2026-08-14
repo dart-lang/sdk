@@ -1144,10 +1144,10 @@ void f() {
   b[1];
 }
 ''');
-    _assertReplacementForChildren<IndexExpression>(
-      destination: parseResult.findNode.index('[0]'),
-      source: parseResult.findNode.index('[1]'),
-      childAccessors: [(node) => node.target2!, (node) => node.index2],
+    _assertReplacementForChildren<IndexExpression2>(
+      destination: parseResult.findNode.indexExpression2('[0]'),
+      source: parseResult.findNode.indexExpression2('[1]'),
+      childAccessors: [(node) => node.receiver, (node) => node.index],
     );
   }
 

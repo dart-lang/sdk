@@ -131,11 +131,24 @@ CompilationUnit
                 fieldName(v1): SimpleIdentifier
                   token: a
                 equals: =
-                expression2: IndexExpression
-                  target2: SimpleIdentifier
+                expression2: IndexExpression2
+                  receiver: SimpleIdentifier
                     token: x
                   leftBracket: [
-                  index2: FunctionExpression
+                  index: FunctionExpression
+                    parameters: FormalParameterList
+                      leftParenthesis: (
+                      rightParenthesis: )
+                    body: BlockFunctionBody
+                      block: Block
+                        leftBracket: {
+                        rightBracket: }
+                  rightBracket: ]
+                expression(v1): IndexExpression
+                  target: SimpleIdentifier
+                    token: x
+                  leftBracket: [
+                  index: FunctionExpression
                     parameters: FormalParameterList
                       leftParenthesis: (
                       rightParenthesis: )

@@ -182,6 +182,7 @@ export 'package:analyzer/src/dart/ast/ast.dart'
         IncrementOrDecrementExpression,
         IndexAssignmentTarget,
         IndexExpression,
+        IndexExpression2,
         IndexReadResolution,
         IndexWriteResolution,
         InstanceDeclaration,

@@ -472,6 +472,23 @@ class _ElementMapperV2 extends GeneralizingAstVisitor2<Element> {
   }
 
   @override
+  Element? visitIndexExpression2(IndexExpression2 node) {
+    return switch (node.resolution) {
+      MethodIndexReadResolution(:var element) => element,
+      InvalidIndexReadResolution(
+        recovery: MethodIndexReadResolution(:var element),
+      ) =>
+        element,
+      _ => null,
+    };
+  }
+
+  @override
+  Element? visitLabel(Label node) {
+    return node.declaredFragment?.element;
+  }
+
+  @override
   Element? visitLabelReference(LabelReference node) {
     return node.element;
   }

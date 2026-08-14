@@ -5097,13 +5097,33 @@ void Function(int) foo(List<void Function<T>(T)> f) {
     var node = result.findNode.functionReference('f[0];');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function2: IndexExpression
-    target2: SimpleIdentifier
+  function2: IndexExpression2
+    receiver: SimpleIdentifier
       token: f
       element: <testLibrary>::@function::foo::@formalParameter::f
       staticType: List<void Function<T>(T)>
     leftBracket: [
-    index2: IntegerLiteral
+    index: IntegerLiteral
+      literal: 0
+      correspondingParameter: SubstitutedFormalParameterElementImpl
+        baseElement: dart:core::@class::List::@method::[]::@formalParameter::index
+        substitution: {E: void Function<T>(T)}
+      staticType: int
+    rightBracket: ]
+    resolution: MethodIndexReadResolution
+      element: SubstitutedMethodElementImpl
+        baseElement: dart:core::@class::List::@method::[]
+        substitution: {E: void Function<T>(T)}
+      invokeType: void Function<T>(T) Function(int)
+      type: void Function<T>(T)
+    staticType: void Function<T>(T)
+  function(v1): IndexExpression
+    target: SimpleIdentifier
+      token: f
+      element: <testLibrary>::@function::foo::@formalParameter::f
+      staticType: List<void Function<T>(T)>
+    leftBracket: [
+    index: IntegerLiteral
       literal: 0
       correspondingParameter: SubstitutedFormalParameterElementImpl
         baseElement: dart:core::@class::List::@method::[]::@formalParameter::index

@@ -1276,6 +1276,26 @@ class _IndexContributor extends GeneralizingAstVisitor2 {
   }
 
   @override
+  void visitIndexExpression2(IndexExpression2 node) {
+    var element = switch (node.resolution) {
+      MethodIndexReadResolution(:var element) => element,
+      InvalidIndexReadResolution(
+        recovery: MethodIndexReadResolution(:var element),
+      ) =>
+        element,
+      _ => null,
+    };
+    if (element is MethodElement) {
+      recordRelationToken(
+        element,
+        IndexRelationKind.IS_INVOKED_BY,
+        node.leftBracket,
+      );
+    }
+    super.visitIndexExpression2(node);
+  }
+
+  @override
   void visitLabelReference(LabelReference node) {
     var element = node.element;
     recordRelation(element, IndexRelationKind.IS_REFERENCED_BY, node, false);

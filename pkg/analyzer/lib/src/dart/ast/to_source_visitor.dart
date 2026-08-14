@@ -888,6 +888,14 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
+  void visitIndexExpression2(IndexExpression2 node) {
+    _visitNode(node.receiver);
+    _visitToken(node.leftBracket);
+    _visitNode(node.index);
+    _visitToken(node.rightBracket);
+  }
+
+  @override
   void visitIntegerLiteral(IntegerLiteral node) {
     sink.write(node.literal.lexeme);
   }

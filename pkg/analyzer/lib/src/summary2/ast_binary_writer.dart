@@ -451,6 +451,15 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   }
 
   @override
+  void visitIndexExpression2(covariant IndexExpression2Impl node) {
+    _writeByte(Tag.IndexExpression2);
+    _writeNode(node.receiver);
+    _writeNode(node.index);
+    _sink.writeOptionalObject(node.resolution, _writeIndexReadResolution);
+    _storeExpression(node);
+  }
+
+  @override
   void visitIntegerLiteral(IntegerLiteral node) {
     var value = node.value;
 

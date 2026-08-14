@@ -498,15 +498,28 @@ void f(Never x) {
 }
 ''');
 
-    var node = result.findNode.index('x[0]');
+    var node = result.findNode.indexExpression2('x[0]');
     assertResolvedNodeText(node, r'''
-IndexExpression
-  target2: SimpleIdentifier
+IndexExpression2
+  receiver: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Never
   leftBracket: [
-  index2: IntegerLiteral
+  index: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  rightBracket: ]
+  resolution: <null>
+  staticType: Never
+V1: IndexExpression
+  target: SimpleIdentifier
+    token: x
+    element: <testLibrary>::@function::f::@formalParameter::x
+    staticType: Never
+  leftBracket: [
+  index: IntegerLiteral
     literal: 0
     correspondingParameter: <null>
     staticType: int
@@ -819,15 +832,30 @@ void f(Never? x) {
 }
 ''');
 
-    var node = result.findNode.index('x[0]');
+    var node = result.findNode.indexExpression2('x[0]');
     assertResolvedNodeText(node, r'''
-IndexExpression
-  target2: SimpleIdentifier
+IndexExpression2
+  receiver: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Never?
   leftBracket: [
-  index2: IntegerLiteral
+  index: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  rightBracket: ]
+  resolution: InvalidIndexReadResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: IndexExpression
+  target: SimpleIdentifier
+    token: x
+    element: <testLibrary>::@function::f::@formalParameter::x
+    staticType: Never?
+  leftBracket: [
+  index: IntegerLiteral
     literal: 0
     correspondingParameter: <null>
     staticType: int

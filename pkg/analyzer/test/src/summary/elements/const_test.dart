@@ -1363,20 +1363,23 @@ library
         #F5 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic c (nameOffset:34) (firstTokenOffset:34) (offset:34)
           element: <testLibrary>::@topLevelVariable::c
           initializer: expression_2
-            IndexExpression
-              target2: SimpleIdentifier
+            IndexExpression2
+              receiver: SimpleIdentifier
                 token: a @38
                 element: <testLibrary>::@getter::a
                 staticType: List<int>
               leftBracket: [ @39
-              index2: SimpleIdentifier
+              index: SimpleIdentifier
                 token: b @40
                 element: <testLibrary>::@getter::b
                 staticType: int
               rightBracket: ] @41
-              element: SubstitutedMethodElementImpl
-                baseElement: dart:core::@class::List::@method::[]
-                substitution: {E: int}
+              resolution: MethodIndexReadResolution
+                element: SubstitutedMethodElementImpl
+                  baseElement: dart:core::@class::List::@method::[]
+                  substitution: {E: int}
+                invokeType: int Function(int)
+                type: int
               staticType: int
           inducedGetter: #F6
       getters

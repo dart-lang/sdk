@@ -55,6 +55,16 @@ ExpressionImpl insertCascadeTargetIntoExpression({
       operator: expression.operator,
       rightHandSide2: expression.rightHandSide2,
     );
+  } else if (expression is IndexExpression2Impl) {
+    return IndexExpression2Impl(
+      receiver: insertCascadeTargetIntoExpression(
+        expression: expression.receiver,
+        cascadeTarget: cascadeTarget,
+      ),
+      leftBracket: expression.leftBracket,
+      index: expression.index,
+      rightBracket: expression.rightBracket,
+    );
   } else if (expression is IndexExpressionImpl) {
     var expressionTarget = expression.realTarget;
     var question = expression.question;

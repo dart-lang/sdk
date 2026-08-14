@@ -282,6 +282,20 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitIndexExpression2(IndexExpression2 node) {
+    var element = switch (node.resolution) {
+      MethodIndexReadResolution(:var element) => element,
+      InvalidIndexReadResolution(
+        recovery: MethodIndexReadResolution(:var element),
+      ) =>
+        element,
+      _ => null,
+    };
+    usedElements.addMember(element);
+    super.visitIndexExpression2(node);
+  }
+
+  @override
   void visitIsExpression(IsExpression node) {
     var insideIsExpressionOld = _insideIsExpression;
     node.expression2.accept2(this);

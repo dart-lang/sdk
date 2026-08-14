@@ -638,6 +638,9 @@ abstract class AstVisitor2<R> {
 
   R? visitIndexExpression(IndexExpression node);
 
+  @experimental
+  R? visitIndexExpression2(IndexExpression2 node);
+
   R? visitIntegerLiteral(IntegerLiteral node);
 
   R? visitInterpolationExpression(InterpolationExpression node);

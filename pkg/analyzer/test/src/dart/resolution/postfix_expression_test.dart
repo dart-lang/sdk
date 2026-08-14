@@ -84,15 +84,31 @@ void f(Map<String, int> a) {
 }
 ''');
 
-    var node1 = result.findNode.index('a[');
+    var node1 = result.findNode.indexExpression2('a[');
     assertResolvedNodeText(node1, r'''
-IndexExpression
-  target2: SimpleIdentifier
+IndexExpression2
+  receiver: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: Map<String, int>
   leftBracket: [
-  index2: SimpleStringLiteral
+  index: SimpleStringLiteral
+    literal: 'foo'
+  rightBracket: ]
+  resolution: MethodIndexReadResolution
+    element: SubstitutedMethodElementImpl
+      baseElement: dart:core::@class::Map::@method::[]
+      substitution: {K: String, V: int}
+    invokeType: int? Function(Object?)
+    type: int?
+  staticType: int?
+V1: IndexExpression
+  target: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: Map<String, int>
+  leftBracket: [
+  index: SimpleStringLiteral
     literal: 'foo'
   rightBracket: ]
   element: SubstitutedMethodElementImpl
@@ -104,18 +120,21 @@ IndexExpression
     var node2 = result.findNode.nullAssertion(']!');
     assertResolvedNodeText(node2, r'''
 NullAssertionExpression
-  operand: IndexExpression
-    target2: SimpleIdentifier
+  operand: IndexExpression2
+    receiver: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::f::@formalParameter::a
       staticType: Map<String, int>
     leftBracket: [
-    index2: SimpleStringLiteral
+    index: SimpleStringLiteral
       literal: 'foo'
     rightBracket: ]
-    element: SubstitutedMethodElementImpl
-      baseElement: dart:core::@class::Map::@method::[]
-      substitution: {K: String, V: int}
+    resolution: MethodIndexReadResolution
+      element: SubstitutedMethodElementImpl
+        baseElement: dart:core::@class::Map::@method::[]
+        substitution: {K: String, V: int}
+      invokeType: int? Function(Object?)
+      type: int?
     staticType: int?
   operator: !
   staticType: int

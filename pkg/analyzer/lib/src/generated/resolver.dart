@@ -3527,6 +3527,70 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitIndexExpression2(
+    covariant IndexExpression2Impl node, {
+    TypeImpl contextType = UnknownInferredType.instance,
+  }) {
+    inferenceLogWriter?.enterExpression(node, contextType);
+
+    if (isDotShorthand(node)) {
+      pushDotShorthandContext(node, SharedTypeSchemaView(contextType));
+    }
+
+    checkUnreachableNode(node);
+    analyzeExpression(
+      node.receiver,
+      SharedTypeSchemaView(UnknownInferredType.instance),
+      continueNullShorting: true,
+    );
+    node.receiver = popRewrite()!;
+
+    var resolution = _propertyElementResolver.resolveIndexExpression2(node);
+    node.resolution = resolution;
+
+    analyzeExpression(
+      node.index,
+      SharedTypeSchemaView(
+        resolution?.indexContextType ?? UnknownInferredType.instance,
+      ),
+    );
+    node.index = popRewrite()!;
+    var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(
+      flowAnalysis.getExpressionInfo(node.index),
+    );
+    var readElement = switch (resolution) {
+      MethodIndexReadResolutionImpl(:var element) => element,
+      InvalidIndexReadResolutionImpl(
+        recovery: MethodIndexReadResolutionImpl(:var element),
+      ) =>
+        element,
+      _ => null,
+    };
+    checkIndexExpressionIndex(
+      node.index,
+      readElement: readElement,
+      writeElement: null,
+      whyNotPromoted: whyNotPromoted,
+    );
+
+    node.recordStaticType(
+      resolution?.type ?? NeverTypeImpl.instance,
+      resolver: this,
+    );
+    var replacement = insertGenericFunctionInstantiation(
+      node,
+      contextType: contextType,
+    );
+    _insertImplicitCallReference(replacement, contextType: contextType);
+
+    if (isDotShorthand(node)) {
+      popDotShorthandContext();
+    }
+
+    inferenceLogWriter?.exitExpression(node);
+  }
+
+  @override
   void visitIntegerLiteral(
     IntegerLiteral node, {
     TypeImpl contextType = UnknownInferredType.instance,

@@ -223,6 +223,7 @@ class UseResultVerifier {
         parent is IfStatement ||
         parent is IndexAssignmentTarget ||
         parent is IndexExpression ||
+        parent is IndexExpression2 ||
         parent is InterpolationExpression ||
         parent is ListLiteral ||
         parent is MapLiteralEntry ||

@@ -761,6 +761,13 @@ class AstBuilder extends StackListener {
       return initializerObject;
     }
 
+    if (initializerObject is IndexExpression2Impl) {
+      return buildInitializerTargetExpressionRecovery(
+        initializerObject.receiver,
+        initializerObject,
+      );
+    }
+
     if (initializerObject is IndexExpressionImpl) {
       return buildInitializerTargetExpressionRecovery(
         initializerObject.target2,
@@ -3770,6 +3777,19 @@ class AstBuilder extends StackListener {
       _ => null,
     };
     var indexTarget = switch (lhs) {
+      IndexExpression2Impl(
+        :var receiver,
+        :var leftBracket,
+        :var index,
+        :var rightBracket,
+      )
+          when !lhs.isDotShorthand =>
+        IndexAssignmentTargetImpl(
+          receiver: receiver,
+          leftBracket: leftBracket,
+          index: index,
+          rightBracket: rightBracket,
+        ),
       IndexExpressionImpl(
         target2: var receiver?,
         period: null,
@@ -4753,16 +4773,27 @@ class AstBuilder extends StackListener {
       assert(expression.isCascaded);
       push(expression);
     } else {
-      push(
-        IndexExpressionImpl(
-          target2: target,
-          period: null,
-          question: question,
-          leftBracket: leftBracket,
-          index2: index,
-          rightBracket: rightBracket,
-        ),
-      );
+      if (question == null) {
+        push(
+          IndexExpression2Impl(
+            receiver: target,
+            leftBracket: leftBracket,
+            index: index,
+            rightBracket: rightBracket,
+          ),
+        );
+      } else {
+        push(
+          IndexExpressionImpl(
+            target2: target,
+            period: null,
+            question: question,
+            leftBracket: leftBracket,
+            index2: index,
+            rightBracket: rightBracket,
+          ),
+        );
+      }
     }
   }
 
@@ -5865,6 +5896,16 @@ class AstBuilder extends StackListener {
     debugEvent("UnaryPostfixAssignmentExpression");
 
     var expression = pop() as ExpressionImpl;
+    if (expression is IndexExpression2Impl) {
+      expression = IndexExpressionImpl(
+        target2: expression.receiver,
+        period: null,
+        question: null,
+        leftBracket: expression.leftBracket,
+        index2: expression.index,
+        rightBracket: expression.rightBracket,
+      )..isDotShorthand = expression.isDotShorthand;
+    }
     if (expression is PropertyExtractionImpl) {
       expression = PropertyAccessImpl(
         target2: expression.receiver,
@@ -5902,6 +5943,16 @@ class AstBuilder extends StackListener {
     debugEvent("UnaryPrefixAssignmentExpression");
 
     var expression = pop() as ExpressionImpl;
+    if (expression is IndexExpression2Impl) {
+      expression = IndexExpressionImpl(
+        target2: expression.receiver,
+        period: null,
+        question: null,
+        leftBracket: expression.leftBracket,
+        index2: expression.index,
+        rightBracket: expression.rightBracket,
+      )..isDotShorthand = expression.isDotShorthand;
+    }
     if (expression is PropertyExtractionImpl) {
       expression = PropertyAccessImpl(
         target2: expression.receiver,

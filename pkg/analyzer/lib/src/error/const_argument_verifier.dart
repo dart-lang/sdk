@@ -96,6 +96,11 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
   }
 
   @override
+  void visitIndexExpression2(IndexExpression2 node) {
+    _check(arguments: [node.index], errorNode: node.leftBracket);
+  }
+
+  @override
   void visitMethodInvocation(MethodInvocation node) {
     _check(arguments: node.argumentList.arguments2, errorNode: node.methodName);
   }

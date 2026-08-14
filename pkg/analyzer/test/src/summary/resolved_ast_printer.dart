@@ -1049,6 +1049,19 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitIndexExpression2(covariant IndexExpression2Impl node) {
+    _sink.writeln('IndexExpression2');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      if (_withResolution) {
+        _writeIndexReadResolution('resolution', node.resolution);
+      }
+      _writeParameterElement(node);
+      _writeType('staticType', node.staticType);
+    });
+  }
+
+  @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     _sink.writeln('InstanceCreationExpression');
     _sink.withIndent(() {
@@ -2619,7 +2632,8 @@ Expected parent: (${parent.runtimeType}) $parent
             parent is DirectAssignment && parent.value == node ||
             parent is IfNullAssignment && parent.value == node ||
             parent is IndexAssignmentTarget && parent.index == node ||
-            parent is IndexExpression && parent.index2 == node) {
+            parent is IndexExpression && parent.index2 == node ||
+            parent is IndexExpression2 && parent.index == node) {
           _writeElement('correspondingParameter', node.correspondingParameter);
         }
       }

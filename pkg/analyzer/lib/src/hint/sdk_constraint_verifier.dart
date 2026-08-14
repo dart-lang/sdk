@@ -221,6 +221,20 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitIndexExpression2(IndexExpression2 node) {
+    var element = switch (node.resolution) {
+      MethodIndexReadResolution(:var element) => element,
+      InvalidIndexReadResolution(
+        recovery: MethodIndexReadResolution(:var element),
+      ) =>
+        element,
+      _ => null,
+    };
+    _checkSinceSdkVersion(element, node);
+    super.visitIndexExpression2(node);
+  }
+
+  @override
   void visitMethodDeclaration(MethodDeclaration node) {
     if (checkTripleShift && node.isOperator && node.name.lexeme == '>>>') {
       _errorReporter.report(diag.sdkVersionGtGtGtOperator.at(node.name));
@@ -304,6 +318,8 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
             errorEntity = target.name;
           } else if (target is FunctionExpressionInvocation) {
             errorEntity = target.argumentList;
+          } else if (target is IndexExpression2) {
+            errorEntity = target.leftBracket;
           } else if (target is IndexExpression) {
             errorEntity = target.leftBracket;
           } else if (target is IndexAssignmentTarget) {

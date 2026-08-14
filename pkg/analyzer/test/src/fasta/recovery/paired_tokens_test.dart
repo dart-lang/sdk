@@ -859,11 +859,18 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression2: IndexExpression
-            target2: SimpleIdentifier
+          expression2: IndexExpression2
+            receiver: SimpleIdentifier
               token: l
             leftBracket: [
-            index2: SimpleIdentifier
+            index: SimpleIdentifier
+              token: x
+            rightBracket: ] <synthetic>
+          expression(v1): IndexExpression
+            target: SimpleIdentifier
+              token: l
+            leftBracket: [
+            index: SimpleIdentifier
               token: x
             rightBracket: ] <synthetic>
           semicolon: ; <synthetic>
