@@ -951,9 +951,57 @@ Definition* AllocateContextInstr::Canonicalize(FlowGraph* flow_graph) {
   return nullptr;
 }
 
+Definition* AllocationInstr::InitialValueForSlot(FlowGraph* graph,
+                                                 const Slot& slot) {
+  for (intptr_t i = 0; i < InputCount(); i++) {
+    auto* const input_slot = SlotForInput(i);
+    if ((input_slot != nullptr) && input_slot->IsIdentical(slot)) {
+      return InputAt(i)->definition();
+    }
+  }
+  // Fields that do not contain tagged values should not have a tagged null
+  // value forwarded for them, similar to payloads of typed data arrays.
+  if (!slot.is_tagged()) {
+    return nullptr;
+  }
+  // Fields that are not provided as an input to the instruction are
+  // initialized to null during allocation.
+  return graph->constant_null();
+}
+
 Definition* AllocateClosureInstr::Canonicalize(FlowGraph* flow_graph) {
   if (!HasUses()) return nullptr;
   return this;
+}
+
+Definition* AllocateClosureInstr::InitialValueForSlot(FlowGraph* graph,
+                                                      const Slot& slot) {
+  // Closure allocation initializes some fields of the new closure to
+  // non-null values (see Closure::New and
+  // StubCodeCompiler::GenerateAllocateClosureStub): the hash field is set
+  // to Smi 0 (meaning "hash not computed yet"), the length_and_flags field
+  // is set to the encoded length and flags, and the delayed type arguments
+  // element, if present, is set to the empty type arguments vector.
+  // Forwarding null for these fields would be unsound: for instance, it
+  // would make an inlined _Closure.get:hashCode return null out of a
+  // non-nullable int getter, as the getter compares the hash field against
+  // Smi 0 to detect a not-yet-computed hash code.
+  if (slot.IsIdentical(Slot::Closure_hash())) {
+    return graph->GetConstant(Object::smi_zero());
+  }
+  if (slot.IsIdentical(Slot::Closure_length_and_flags())) {
+    return graph->GetConstant(
+        Smi::ZoneHandle(graph->zone(), Smi::New(EncodedLengthAndFlags())));
+  }
+  if (UntaggedClosure::HasDelayedTypeArgumentsBit::decode(
+          EncodedLengthAndFlags()) &&
+      (slot.kind() == Slot::Kind::kClosureElement) &&
+      (slot.offset_in_bytes() ==
+       compiler::target::Closure::element_offset(
+           UntaggedClosure::kDelayedTypeArgumentsIndex))) {
+    return graph->GetConstant(Object::empty_type_arguments());
+  }
+  return TemplateAllocation::InitialValueForSlot(graph, slot);
 }
 
 LocationSummary* AllocateClosureInstr::MakeLocationSummary(Zone* zone,

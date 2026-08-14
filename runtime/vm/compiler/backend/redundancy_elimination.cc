@@ -1828,43 +1828,6 @@ bool DelayAllocations::IsOneTimeUse(BlockEntryInstr* use_block,
   return true;
 }
 
-// Returns a definition carrying the initial value of the field [slot] of
-// the object created by the allocation [alloc], assuming the field is not
-// provided as an input to the allocation instruction.
-//
-// Such fields are usually initialized to null, but closure allocation
-// (see Closure::New and StubCodeCompiler::GenerateAllocateClosureStub)
-// initializes some fields of the new closure to non-null values: the hash
-// field is set to Smi 0 (meaning "hash not computed yet"), the
-// length_and_flags field is set to the encoded length and flags, and the
-// delayed type arguments element, if present, is set to the empty type
-// arguments vector. Forwarding null for those fields is unsound: for
-// instance, it would make an inlined _Closure.get:hashCode return null out
-// of a non-nullable int getter, as the getter compares the hash field
-// against Smi 0 to detect a not-yet-computed hash code.
-static Definition* InitialValueOfNonInputField(FlowGraph* graph,
-                                               AllocationInstr* alloc,
-                                               const Slot& slot) {
-  if (auto* const alloc_closure = alloc->AsAllocateClosure()) {
-    if (slot.IsIdentical(Slot::Closure_hash())) {
-      return graph->GetConstant(Object::smi_zero());
-    }
-    if (slot.IsIdentical(Slot::Closure_length_and_flags())) {
-      return graph->GetConstant(Smi::ZoneHandle(
-          graph->zone(), Smi::New(alloc_closure->EncodedLengthAndFlags())));
-    }
-    if (UntaggedClosure::HasDelayedTypeArgumentsBit::decode(
-            alloc_closure->EncodedLengthAndFlags()) &&
-        (slot.kind() == Slot::Kind::kClosureElement) &&
-        (slot.offset_in_bytes() ==
-         compiler::target::Closure::element_offset(
-             UntaggedClosure::kDelayedTypeArgumentsIndex))) {
-      return graph->GetConstant(Object::empty_type_arguments());
-    }
-  }
-  return graph->constant_null();
-}
-
 class LoadOptimizer : public ValueObject {
  public:
   LoadOptimizer(FlowGraph* graph, AliasedSet* aliased_set)
@@ -2356,19 +2319,13 @@ class LoadOptimizer : public ValueObject {
                 continue;
               }
 
-              const intptr_t pos = alloc->InputForSlot(*slot);
-              if (pos != -1) {
-                forward_def = alloc->InputAt(pos)->definition();
-              } else if (!slot->is_tagged()) {
-                // Fields that do not contain tagged values should not
-                // have a tagged null value forwarded for them, similar to
-                // payloads of typed data arrays.
-                continue;
+              if (auto* const value =
+                      alloc->InitialValueForSlot(graph_, *slot)) {
+                forward_def = value;
               } else {
-                // Fields not provided as an input to the instruction are
-                // initialized during allocation, usually (but not always)
-                // to null.
-                forward_def = InitialValueOfNonInputField(graph_, alloc, *slot);
+                // The initial value of the field is not known or cannot be
+                // represented as a tagged constant.
+                continue;
               }
             }
 
