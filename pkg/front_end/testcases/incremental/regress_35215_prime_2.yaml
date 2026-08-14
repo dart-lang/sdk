@@ -1,4 +1,4 @@
-# Copyright (c) 2022, the Dart project authors. Please see the AUTHORS file
+# Copyright (c) 2026, the Dart project authors. Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
@@ -6,18 +6,28 @@
 # error in such a way that the position in the old library doesn't exist in
 # newly compiled procedure.
 #
-# This is the reversed case of regress_35215.yaml
+# A version using packages.
 
 type: newworld
 worlds:
-  - entry: main.dart
+  - entry: x/main.dart
     sources:
-      main.dart: |
+      .dart_tool/package_config.json: |
+        {
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "x",
+              "rootUri": "../x"
+            }
+          ]
+        }
+      x/main.dart: |
         import "b.dart";
         main() {
           b(42);
         }
-      b.dart: |
+      x/b.dart: |
         // lots of comments
         // forcing offsets down
         // adding more lines
@@ -28,18 +38,28 @@ worlds:
     expectedLibraryCount: 2
     errors: true
 
-  - entry: main.dart
+  - entry: x/main.dart
     invalidate:
-      - b.dart
+      - x/b.dart
     sources:
-      main.dart: |
+      x/main.dart: |
         import "b.dart";
         main() {
           b(42);
         }
-      b.dart: |
+      x/b.dart: |
         b({int? named}) {
           print("b");
+        }
+      .dart_tool/package_config.json: |
+        {
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "x",
+              "rootUri": "../x"
+            }
+          ]
         }
     expectedLibraryCount: 2
     errors: true
