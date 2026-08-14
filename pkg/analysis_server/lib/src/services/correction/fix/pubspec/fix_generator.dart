@@ -17,6 +17,7 @@ import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/pubspec/validators/missing_dependency_validator.dart';
 import 'package:analyzer/src/util/yaml.dart';
+import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/src/utilities/extensions/string_extension.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:linter/src/diagnostic.dart' as diag;
@@ -133,7 +134,7 @@ class PubspecFixGenerator {
 
   /// Adds a fix whose edits were built by the [builder] that has the given
   /// [kind].
-  void _addFixFromBuilder(ChangeBuilder builder, FixKind kind) {
+  void _addFixFromBuilder(ChangeBuilderImpl builder, FixKind kind) {
     var change = builder.sourceChange;
     if (change.edits.isEmpty) {
       return;
@@ -148,11 +149,8 @@ class PubspecFixGenerator {
     if (node is! YamlMap) {
       return;
     }
-    var builder = ChangeBuilder(
-      workspace: _NonDartChangeWorkspace(resourceProvider),
-      defaultEol: endOfLine,
-    );
-
+    var fixKind = PubspecFixKind.addDependency;
+    var builder = _createChangeBuilder(fixKind);
     var data = MissingDependencyData.byDiagnostic[diagnostic]!;
     var addDeps = data.addDeps;
     var addDevDeps = data.addDevDeps;
@@ -281,16 +279,14 @@ class PubspecFixGenerator {
         }
       }
     }
-    _addFixFromBuilder(builder, PubspecFixKind.addDependency);
+    _addFixFromBuilder(builder, fixKind);
   }
 
   Future<void> _addNameEntry() async {
     var context = resourceProvider.pathContext;
     var packageName = _identifierFrom(context.basename(context.dirname(file)));
-    var builder = ChangeBuilder(
-      workspace: _NonDartChangeWorkspace(resourceProvider),
-      defaultEol: endOfLine,
-    );
+    var fixKind = PubspecFixKind.addName;
+    var builder = _createChangeBuilder(fixKind);
     var firstOffset = _initialOffset(node);
     if (firstOffset < 0) {
       // The document contains a list, and we don't support converting it to a
@@ -303,7 +299,18 @@ class PubspecFixGenerator {
       //  the end-of-line marker.
       builder.addSimpleInsertion(firstOffset, 'name: $packageName$endOfLine');
     });
-    _addFixFromBuilder(builder, PubspecFixKind.addName);
+    _addFixFromBuilder(builder, fixKind);
+  }
+
+  /// Creates a [ChangeBuilder] with the change description set correctly for
+  /// [fixKind].
+  ChangeBuilderImpl _createChangeBuilder(FixKind fixKind) {
+    var builder = ChangeBuilder(
+      workspace: _NonDartChangeWorkspace(resourceProvider),
+      defaultEol: endOfLine,
+    ) as ChangeBuilderImpl;
+    builder.currentChangeDescription = fixKind.message;
+    return builder;
   }
 
   (String, int) _getTextAndOffset(
@@ -471,17 +478,15 @@ class PubspecFixGenerator {
     var lastEntry = entries.last;
     var replaceEnd = lastEntry.endOffset;
 
-    var builder = ChangeBuilder(
-      workspace: _NonDartChangeWorkspace(resourceProvider),
-      defaultEol: endOfLine,
-    );
+    var fixKind = PubspecFixKind.sortDependencies;
+    var builder = _createChangeBuilder(fixKind);
     await builder.addYamlFileEdit(file, (builder) {
       builder.addSimpleReplacement(
         SourceRange(replaceStart, replaceEnd - replaceStart),
         sortedContent.toString(),
       );
     });
-    _addFixFromBuilder(builder, PubspecFixKind.sortDependencies);
+    _addFixFromBuilder(builder, fixKind);
   }
 }
 

@@ -281,6 +281,27 @@ class _MyClass {
     );
   }
 
+  /// Currently we don't run the Pubspec fixes for Fix All (it would add all
+  /// missing dependencies and not only this file).
+  Future<void> test_pubspec_excluded() async {
+    const content = '''
+import 'package:path/path.dart';
+''';
+
+    newPubspecYamlFile(projectFolderPath, 'name: x');
+
+    var action = await expectCodeActionLiteral(
+      filePath: mainFilePath,
+      content,
+      command: Commands.fixAll,
+    );
+
+    // Expect we can just execute the command and it completes. If we tried to
+    // update the pubspec, we would fail to handle an applyEdit reverse request
+    // here.
+    await executeCommand(action.command!);
+  }
+
   Future<void> test_unavailable_outsideAnalysisRoot() async {
     var otherFile = convertPath('/other/file.dart');
     var content = '';

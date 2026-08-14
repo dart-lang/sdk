@@ -135,6 +135,38 @@ class B extends A {
     await check_multipleFixes_multipleFiles();
   }
 
+  Future<void> test_includesPubspec() async {
+    failTestOnErrorDiagnostic = false;
+
+    newPubspecYamlFile(projectFolderPath, '''
+name: x
+''');
+
+    newFile(mainFilePath, '''
+import 'package:path/path.dart' as path;
+
+void f() {
+  path.join();
+}
+''');
+
+    await initialize();
+    var verifier = await verifyCommandEdits(
+      Command(command: commandId, title: 'UNUSED'),
+      '''
+>>>>>>>>>> pubspec.yaml
+>>>>>>>>>>   Update pubspec with the missing dependencies: line 2
+name: x
+dependencies:
+  path: any
+''',
+    );
+    var annotations = verifier.edit.changeAnnotations?.values ?? [];
+    for (var annotation in annotations) {
+      expect(annotation.needsConfirmation, expectRequiresConfirmation);
+    }
+  }
+
   Future<void> test_iterates() async {
     // Use lints that will fire on different iterations. var -> final -> const.
     newFile(analysisOptionsPath, '''

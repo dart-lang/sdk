@@ -1119,6 +1119,7 @@ class IterativeBulkFixProcessor {
       return _runFixesIteratively(
         performance,
         contexts,
+        includePubspec: true,
         (processor) => processor.fixErrors(contexts),
       );
     });
@@ -1133,14 +1134,19 @@ class IterativeBulkFixProcessor {
     return performance.runAsync('IterativeBulkFixProcessor.fixErrorsForFile', (
       performance,
     ) {
-      return _runFixesIteratively(performance, [context], (processor) {
-        return processor.fixErrorsForFile(
-          performance,
-          context,
-          path,
-          autoTriggered: autoTriggered,
-        );
-      });
+      return _runFixesIteratively(
+        performance,
+        [context],
+        includePubspec: false,
+        (processor) {
+          return processor.fixErrorsForFile(
+            performance,
+            context,
+            path,
+            autoTriggered: autoTriggered,
+          );
+        },
+      );
     });
   }
 
@@ -1149,8 +1155,12 @@ class IterativeBulkFixProcessor {
   Future<IterativeBulkFixRequestResult> _runFixesIteratively(
     OperationPerformanceImpl performance,
     List<AnalysisContext> contexts,
-    Future<BulkFixRequestResult> Function(BulkFixProcessor) fixOperation,
-  ) async {
+    Future<BulkFixRequestResult> Function(BulkFixProcessor) fixOperation, {
+    // TODO(dantup): Consider supporting this for "Fix All" (single-file).
+    //  To do that, we need to filter it so it doesn't add deps for all files
+    //  but only missing deps for the current file.
+    required bool includePubspec,
+  }) async {
     var edits = <SourceFileEdit>[];
     _passesWithEdits = 0;
 
@@ -1202,7 +1212,35 @@ class IterativeBulkFixProcessor {
       }
     }
 
+    // Finally, add any Pubspec fixes.
+    if (includePubspec) {
+      var pubspecResult = await performance.runAsync(
+        '_runFixesIteratively pubspec pass',
+        (_) => _runPubspecFixes(contexts),
+      );
+      if (pubspecResult.edits.isNotEmpty) {
+        _passesWithEdits++;
+        edits.addAll(pubspecResult.edits);
+      }
+    }
+
     return IterativeBulkFixRequestResult(edits);
+  }
+
+  /// Runs pubspec fixes to be included at the end of the loop of normal fixes.
+  Future<PubspecFixRequestResult> _runPubspecFixes(
+    List<AnalysisContext> contexts,
+  ) async {
+    var workspace = DartChangeWorkspace(
+      contexts.map((context) => context.currentSession).toList(),
+    );
+    var processor = BulkFixProcessor(
+      _instrumentationService,
+      workspace,
+      byteStore: _byteStore,
+      cancellationToken: _cancellationToken,
+    );
+    return await processor.fixPubspec(contexts);
   }
 }
 
