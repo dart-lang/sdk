@@ -976,16 +976,6 @@ Definition* AllocateClosureInstr::Canonicalize(FlowGraph* flow_graph) {
 
 Definition* AllocateClosureInstr::InitialValueForSlot(FlowGraph* graph,
                                                       const Slot& slot) {
-  // Closure allocation initializes some fields of the new closure to
-  // non-null values (see Closure::New and
-  // StubCodeCompiler::GenerateAllocateClosureStub): the hash field is set
-  // to Smi 0 (meaning "hash not computed yet"), the length_and_flags field
-  // is set to the encoded length and flags, and the delayed type arguments
-  // element, if present, is set to the empty type arguments vector.
-  // Forwarding null for these fields would be unsound: for instance, it
-  // would make an inlined _Closure.get:hashCode return null out of a
-  // non-nullable int getter, as the getter compares the hash field against
-  // Smi 0 to detect a not-yet-computed hash code.
   if (slot.IsIdentical(Slot::Closure_hash())) {
     return graph->GetConstant(Object::smi_zero());
   }
@@ -993,9 +983,7 @@ Definition* AllocateClosureInstr::InitialValueForSlot(FlowGraph* graph,
     return graph->GetConstant(
         Smi::ZoneHandle(graph->zone(), Smi::New(EncodedLengthAndFlags())));
   }
-  if (UntaggedClosure::HasDelayedTypeArgumentsBit::decode(
-          EncodedLengthAndFlags()) &&
-      (slot.kind() == Slot::Kind::kClosureElement) &&
+  if (has_delayed_type_args_ && (slot.kind() == Slot::Kind::kClosureElement) &&
       (slot.offset_in_bytes() ==
        compiler::target::Closure::element_offset(
            UntaggedClosure::kDelayedTypeArgumentsIndex))) {

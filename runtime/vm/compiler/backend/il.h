@@ -7453,10 +7453,8 @@ class AllocationInstr : public Definition {
   virtual const Slot* SlotForInput(intptr_t pos) { return nullptr; }
 
   // Returns a definition carrying the initial value of the field
-  // corresponding to the given slot in the allocated object. Returns the
-  // input definition if the field is provided as an input to this
-  // instruction, and null if the initial value is not known or cannot be
-  // represented as a tagged constant.
+  // corresponding to the given slot in the allocated object and
+  // nullptr if such definition can't be computed.
   virtual Definition* InitialValueForSlot(FlowGraph* graph, const Slot& slot);
 
   // Returns whether the allocated object has initialized fields and/or payload
