@@ -460,10 +460,10 @@ void f(int? a) {
 }
 ''');
 
-    var node = result.findNode.index('[0]');
+    var node = result.findNode.indexExpression2('[0]');
     assertResolvedNodeText(node, r'''
-IndexExpression
-  target2: ExtensionOverride
+IndexExpression2
+  receiver: ExtensionOverride
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
@@ -479,7 +479,34 @@ IndexExpression
     staticType: null
   question: ?
   leftBracket: [
-  index2: IntegerLiteral
+  index: IntegerLiteral
+    literal: 0
+    correspondingParameter: <testLibrary>::@extension::E::@method::[]::@formalParameter::index
+    staticType: int
+  rightBracket: ]
+  resolution: MethodIndexReadResolution
+    element: <testLibrary>::@extension::E::@method::[]
+    invokeType: int Function(int)
+    type: int?
+  staticType: int?
+V1: IndexExpression
+  target: ExtensionOverride
+    name: E
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: a
+          correspondingParameter: <null>
+          element: <testLibrary>::@function::f::@formalParameter::a
+          staticType: int?
+      rightParenthesis: )
+    element: <testLibrary>::@extension::E
+    extendedType: int
+    staticType: null
+  question: ?
+  leftBracket: [
+  index: IntegerLiteral
     literal: 0
     correspondingParameter: <testLibrary>::@extension::E::@method::[]::@formalParameter::index
     staticType: int

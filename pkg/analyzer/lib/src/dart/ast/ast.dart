@@ -27402,8 +27402,8 @@ abstract final class IndexExpression implements MethodReferenceExpression {
 /// A value produced by invoking `operator []` on an explicitly written
 /// expression receiver.
 ///
-/// This migration slice supports ordinary, non-null-aware, non-cascade index
-/// expressions. Other index forms remain on [IndexExpression].
+/// This migration slice supports ordinary non-cascade index expressions.
+/// Cascade index expressions remain on [IndexExpression].
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class IndexExpression2 implements Expression {
@@ -27412,6 +27412,10 @@ abstract final class IndexExpression2 implements Expression {
 
   /// The left square bracket.
   Token get leftBracket;
+
+  /// The question mark before the left square bracket, or `null` if this
+  /// expression isn't null aware.
+  Token? get question;
 
   /// The expression whose value is indexed.
   Expression get receiver;
@@ -27428,6 +27432,7 @@ abstract final class IndexExpression2 implements Expression {
   api: AstNodeApi.v2,
   childEntitiesOrder: [
     GenerateNodeProperty('receiver', isInValueExpressionSlot: true),
+    GenerateNodeProperty('question'),
     GenerateNodeProperty('leftBracket'),
     GenerateNodeProperty('index', isInValueExpressionSlot: true),
     GenerateNodeProperty('rightBracket'),
@@ -27438,6 +27443,10 @@ final class IndexExpression2Impl extends ExpressionImpl
     implements IndexExpression2 {
   @generated
   ExpressionImpl _receiver;
+
+  @generated
+  @override
+  final Token? question;
 
   @generated
   @override
@@ -27459,6 +27468,7 @@ final class IndexExpression2Impl extends ExpressionImpl
   @generated
   IndexExpression2Impl({
     required ExpressionImpl receiver,
+    required this.question,
     required this.leftBracket,
     required ExpressionImpl index,
     required this.rightBracket,
@@ -27524,6 +27534,7 @@ final class IndexExpression2Impl extends ExpressionImpl
   @override
   ChildEntities get _childEntities2 => ChildEntities()
     ..addNode('receiver', receiver)
+    ..addToken('question', question)
     ..addToken('leftBracket', leftBracket)
     ..addNode('index', index)
     ..addToken('rightBracket', rightBracket);
@@ -27557,6 +27568,14 @@ final class IndexExpression2Impl extends ExpressionImpl
   bool isInValueExpressionSlot(AstNode child) {
     assert(identical(child.parent2, this));
     return true;
+  }
+
+  @override
+  void recordNullShortedType(TypeImpl type) {
+    super.recordNullShortedType(type);
+    if (resolution case MethodIndexReadResolutionImpl(:var element)) {
+      resolution = MethodIndexReadResolutionImpl(element: element, type: type);
+    }
   }
 
   @generated
@@ -27733,7 +27752,7 @@ final class IndexExpressionImpl extends ExpressionImpl
     IndexExpression2Impl origin,
   ) : _target2 = null,
       period = null,
-      question = null,
+      question = origin.question,
       leftBracket = origin.leftBracket,
       _index2 = origin.index,
       rightBracket = origin.rightBracket,

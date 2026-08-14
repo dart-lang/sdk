@@ -752,8 +752,8 @@ void f() {
   a?[0];
 }
 ''');
-    var expression = parseResult.findNode.index('[0]');
-    expect(expression.isNullAware, isTrue);
+    var expression = parseResult.findNode.indexExpression2('[0]');
+    expect(expression.question, isNotNull);
   }
 }
 

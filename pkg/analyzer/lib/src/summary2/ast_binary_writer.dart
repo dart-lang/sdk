@@ -453,6 +453,7 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   @override
   void visitIndexExpression2(covariant IndexExpression2Impl node) {
     _writeByte(Tag.IndexExpression2);
+    _writeByte(AstBinaryFlags.encode(hasQuestion: node.question != null));
     _writeNode(node.receiver);
     _writeNode(node.index);
     _sink.writeOptionalObject(node.resolution, _writeIndexReadResolution);

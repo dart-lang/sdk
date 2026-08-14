@@ -2623,6 +2623,15 @@ final x = $code;
     _assertSource(code, node);
   }
 
+  void test_visitIndexExpression_nullAware() {
+    var code = 'a?[0]';
+    var parseResult = parseTestCodeWithDiagnostics('''
+final x = $code;
+''');
+    var node = parseResult.findNode.singleIndexExpression2;
+    _assertSource(code, node);
+  }
+
   void test_visitIntegerLiteral() {
     var code = '42';
     var parseResult = parseTestCodeWithDiagnostics('''

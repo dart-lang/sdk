@@ -1764,12 +1764,20 @@ var x = x?[0]<a, b>;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 FunctionReference
-  function2: IndexExpression
-    target2: SimpleIdentifier
+  function2: IndexExpression2
+    receiver: SimpleIdentifier
       token: x
     question: ?
     leftBracket: [
-    index2: IntegerLiteral
+    index: IntegerLiteral
+      literal: 0
+    rightBracket: ]
+  function(v1): IndexExpression
+    target: SimpleIdentifier
+      token: x
+    question: ?
+    leftBracket: [
+    index: IntegerLiteral
       literal: 0
     rightBracket: ]
   typeArguments: TypeArgumentList

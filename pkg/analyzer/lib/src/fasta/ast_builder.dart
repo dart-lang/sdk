@@ -3757,6 +3757,9 @@ class AstBuilder extends StackListener {
 
     var rhs = pop() as ExpressionImpl;
     var lhs = pop() as ExpressionImpl;
+    if (lhs case IndexExpression2Impl(question: != null)) {
+      lhs = _toLegacyIndexExpression(lhs);
+    }
     var isAssignable = lhs.isAssignable;
     if (!isAssignable) {
       // TODO(danrubel): Update the BodyBuilder to report this error.
@@ -4773,27 +4776,15 @@ class AstBuilder extends StackListener {
       assert(expression.isCascaded);
       push(expression);
     } else {
-      if (question == null) {
-        push(
-          IndexExpression2Impl(
-            receiver: target,
-            leftBracket: leftBracket,
-            index: index,
-            rightBracket: rightBracket,
-          ),
-        );
-      } else {
-        push(
-          IndexExpressionImpl(
-            target2: target,
-            period: null,
-            question: question,
-            leftBracket: leftBracket,
-            index2: index,
-            rightBracket: rightBracket,
-          ),
-        );
-      }
+      push(
+        IndexExpression2Impl(
+          receiver: target,
+          question: question,
+          leftBracket: leftBracket,
+          index: index,
+          rightBracket: rightBracket,
+        ),
+      );
     }
   }
 
@@ -5897,14 +5888,7 @@ class AstBuilder extends StackListener {
 
     var expression = pop() as ExpressionImpl;
     if (expression is IndexExpression2Impl) {
-      expression = IndexExpressionImpl(
-        target2: expression.receiver,
-        period: null,
-        question: null,
-        leftBracket: expression.leftBracket,
-        index2: expression.index,
-        rightBracket: expression.rightBracket,
-      )..isDotShorthand = expression.isDotShorthand;
+      expression = _toLegacyIndexExpression(expression);
     }
     if (expression is PropertyExtractionImpl) {
       expression = PropertyAccessImpl(
@@ -5944,14 +5928,7 @@ class AstBuilder extends StackListener {
 
     var expression = pop() as ExpressionImpl;
     if (expression is IndexExpression2Impl) {
-      expression = IndexExpressionImpl(
-        target2: expression.receiver,
-        period: null,
-        question: null,
-        leftBracket: expression.leftBracket,
-        index2: expression.index,
-        rightBracket: expression.rightBracket,
-      )..isDotShorthand = expression.isDotShorthand;
+      expression = _toLegacyIndexExpression(expression);
     }
     if (expression is PropertyExtractionImpl) {
       expression = PropertyAccessImpl(
@@ -6735,6 +6712,19 @@ class AstBuilder extends StackListener {
       case FormalParameterKind.optionalPositional:
         return ParameterKind.POSITIONAL;
     }
+  }
+
+  IndexExpressionImpl _toLegacyIndexExpression(
+    IndexExpression2Impl expression,
+  ) {
+    return IndexExpressionImpl(
+      target2: expression.receiver,
+      period: null,
+      question: expression.question,
+      leftBracket: expression.leftBracket,
+      index2: expression.index,
+      rightBracket: expression.rightBracket,
+    )..isDotShorthand = expression.isDotShorthand;
   }
 
   static String _versionAsString(Version version) {

@@ -299,18 +299,24 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression2: IndexExpression
-        target2: NullAssertionExpression
-          operand: SimpleIdentifier
-            token: a
-          operator: !
-        target(v1): PostfixExpression
+      expression2: IndexExpression2
+        receiver: NullAssertionExpression
           operand: SimpleIdentifier
             token: a
           operator: !
         question: ?
         leftBracket: [
-        index2: IntegerLiteral
+        index: IntegerLiteral
+          literal: 0
+        rightBracket: ]
+      expression(v1): IndexExpression
+        target: PostfixExpression
+          operand: SimpleIdentifier
+            token: a
+          operator: !
+        question: ?
+        leftBracket: [
+        index: IntegerLiteral
           literal: 0
         rightBracket: ]
       semicolon: ;
@@ -1161,12 +1167,20 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression2: IndexExpression
-        target2: SimpleIdentifier
+      expression2: IndexExpression2
+        receiver: SimpleIdentifier
           token: a
         question: ?
         leftBracket: [
-        index2: IntegerLiteral
+        index: IntegerLiteral
+          literal: 7
+        rightBracket: ]
+      expression(v1): IndexExpression
+        target: SimpleIdentifier
+          token: a
+        question: ?
+        leftBracket: [
+        index: IntegerLiteral
           literal: 7
         rightBracket: ]
       semicolon: ;

@@ -2147,16 +2147,33 @@ f(int? a) {
   a?[0];
 }
 ''');
-    var node = result.findNode.index('a?[0]');
+    var node = result.findNode.indexExpression2('a?[0]');
     assertResolvedNodeText(node, r'''
-IndexExpression
-  target2: SimpleIdentifier
+IndexExpression2
+  receiver: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: int?
   question: ?
   leftBracket: [
-  index2: IntegerLiteral
+  index: IntegerLiteral
+    literal: 0
+    correspondingParameter: <testLibrary>::@extension::E::@method::[]::@formalParameter::index
+    staticType: int
+  rightBracket: ]
+  resolution: MethodIndexReadResolution
+    element: <testLibrary>::@extension::E::@method::[]
+    invokeType: int Function(int)
+    type: int?
+  staticType: int?
+V1: IndexExpression
+  target: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: int?
+  question: ?
+  leftBracket: [
+  index: IntegerLiteral
     literal: 0
     correspondingParameter: <testLibrary>::@extension::E::@method::[]::@formalParameter::index
     staticType: int

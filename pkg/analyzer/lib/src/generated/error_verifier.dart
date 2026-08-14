@@ -1611,6 +1611,20 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   @override
+  void visitIndexExpression2(IndexExpression2 node) {
+    var question = node.question;
+    if (question != null) {
+      _checkForUnnecessaryNullAware(
+        node.receiver,
+        question,
+        kind: _NullAwareKind.indexExpression,
+      );
+    }
+
+    super.visitIndexExpression2(node);
+  }
+
+  @override
   void visitIntegerLiteral(covariant IntegerLiteralImpl node) {
     _checkForOutOfRange(node);
     super.visitIntegerLiteral(node);
@@ -7748,6 +7762,11 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
         if (target.question != null) {
           var realTarget = target.realTarget2;
           return previousShortCircuitingOperator(realTarget) ?? target.question;
+        }
+      } else if (target is IndexExpression2) {
+        if (target.question != null) {
+          return previousShortCircuitingOperator(target.receiver) ??
+              target.question;
         }
       } else if (target is MethodInvocation) {
         var operator = target.operator;

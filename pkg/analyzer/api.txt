@@ -1921,6 +1921,7 @@ package:analyzer/dart/ast/ast.dart:
   IndexExpression2 (class extends Object implements Expression, abstract, final, experimental):
     index (getter: Expression)
     leftBracket (getter: Token)
+    question (getter: Token?)
     receiver (getter: Expression)
     resolution (getter: IndexReadResolution?)
     rightBracket (getter: Token)

@@ -529,6 +529,52 @@ V1: IndexExpression
 ''');
   }
 
+  test_indexExpression_never_read_nullAware() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void f(Never x) {
+  x?[0];
+//^
+// [diag.receiverOfTypeNever] The receiver is of type 'Never', and will never complete with a value.
+// ^^
+// [diag.invalidNullAwareOperator] The receiver can't be null, so the null-aware operator '?[' is unnecessary.
+//   ^^^
+// [diag.deadCode] Dead code.
+}
+''');
+
+    var node = result.findNode.indexExpression2('x?[0]');
+    assertResolvedNodeText(node, r'''
+IndexExpression2
+  receiver: SimpleIdentifier
+    token: x
+    element: <testLibrary>::@function::f::@formalParameter::x
+    staticType: Never
+  question: ?
+  leftBracket: [
+  index: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  rightBracket: ]
+  resolution: <null>
+  staticType: Never
+V1: IndexExpression
+  target: SimpleIdentifier
+    token: x
+    element: <testLibrary>::@function::f::@formalParameter::x
+    staticType: Never
+  question: ?
+  leftBracket: [
+  index: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  rightBracket: ]
+  element: <null>
+  staticType: Never
+''');
+  }
+
   test_indexExpression_never_readWrite() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Never x) {

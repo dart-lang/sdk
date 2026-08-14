@@ -769,10 +769,12 @@ class AstBinaryReader {
   }
 
   IndexExpression2 _readIndexExpression2() {
+    var flags = _readByte();
     var receiver = _readNode() as ExpressionImpl;
     var index = _readNode() as ExpressionImpl;
     var node = IndexExpression2Impl(
       receiver: receiver,
+      question: AstBinaryFlags.hasQuestion(flags) ? Tokens.question() : null,
       leftBracket: Tokens.openSquareBracket(),
       index: index,
       rightBracket: Tokens.closeSquareBracket(),

@@ -3545,6 +3545,17 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     );
     node.receiver = popRewrite()!;
 
+    var receiverDoesNotComplete =
+        node.receiver is! ExtensionOverrideImpl &&
+        identical(
+          typeSystem.resolveToBound(node.receiver.typeOrThrow),
+          NeverTypeImpl.instance,
+        );
+    if (node.question != null && !receiverDoesNotComplete) {
+      _startNullAwareAccess(node.receiver);
+      nullSafetyDeadCodeVerifier.visitNode(node.index);
+    }
+
     var resolution = _propertyElementResolver.resolveIndexExpression2(node);
     node.resolution = resolution;
 
@@ -3582,6 +3593,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       contextType: contextType,
     );
     _insertImplicitCallReference(replacement, contextType: contextType);
+    nullSafetyDeadCodeVerifier.verifyIndexExpression2(node);
 
     if (isDotShorthand(node)) {
       popDotShorthandContext();

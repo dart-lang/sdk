@@ -357,6 +357,12 @@ class PropertyElementResolver with ScopeHelpers {
       diagnosticReporter.report(diag.receiverOfTypeNever.at(receiver));
       return null;
     }
+    if (node.question != null) {
+      if (_typeSystem.isNull(receiverType)) {
+        return null;
+      }
+      receiverType = _typeSystem.promoteToNonNull(receiverType);
+    }
     if (receiverType is DynamicType) {
       return const DynamicIndexReadResolutionImpl();
     }

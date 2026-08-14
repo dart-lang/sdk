@@ -2063,6 +2063,7 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
 
   @override
   void visitIndexExpression2(IndexExpression2 node) {
+    _tokenOrNull(node.question);
     _tokenOrNull(node.leftBracket);
     _tokenOrNull(node.rightBracket);
     super.visitIndexExpression2(node);

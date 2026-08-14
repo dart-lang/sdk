@@ -238,16 +238,32 @@ void f({a = b?[0]}) {}
 ''');
 
     // TODO(scheglov): https://github.com/dart-lang/sdk/issues/49101
-    var node = result.findNode.index('[0]');
+    var node = result.findNode.indexExpression2('[0]');
     assertResolvedNodeText(node, r'''
-IndexExpression
-  target2: SimpleIdentifier
+IndexExpression2
+  receiver: SimpleIdentifier
     token: b
     element: <null>
     staticType: InvalidType
   question: ?
   leftBracket: [
-  index2: IntegerLiteral
+  index: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  rightBracket: ]
+  resolution: InvalidIndexReadResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: IndexExpression
+  target: SimpleIdentifier
+    token: b
+    element: <null>
+    staticType: InvalidType
+  question: ?
+  leftBracket: [
+  index: IntegerLiteral
     literal: 0
     correspondingParameter: <null>
     staticType: int
@@ -266,16 +282,32 @@ typedef void F({a = b?[0]});
 // [diag.undefinedIdentifier] Undefined name 'b'.
 ''');
 
-    var node = result.findNode.index('[0]');
+    var node = result.findNode.indexExpression2('[0]');
     assertResolvedNodeText(node, r'''
-IndexExpression
-  target2: SimpleIdentifier
+IndexExpression2
+  receiver: SimpleIdentifier
     token: b
     element: <null>
     staticType: InvalidType
   question: ?
   leftBracket: [
-  index2: IntegerLiteral
+  index: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  rightBracket: ]
+  resolution: InvalidIndexReadResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: IndexExpression
+  target: SimpleIdentifier
+    token: b
+    element: <null>
+    staticType: InvalidType
+  question: ?
+  leftBracket: [
+  index: IntegerLiteral
     literal: 0
     correspondingParameter: <null>
     staticType: int
@@ -521,6 +553,46 @@ V1: IndexExpression
 ''');
   }
 
+  test_read_null() async {
+    var result = await resolveTestCode(r'''
+void f(Null a) {
+  a?[0];
+}
+''');
+
+    var node = result.findNode.indexExpression2('a?[0]');
+    assertResolvedNodeText(node, r'''
+IndexExpression2
+  receiver: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: Null
+  question: ?
+  leftBracket: [
+  index: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  rightBracket: ]
+  resolution: <null>
+  staticType: Never?
+V1: IndexExpression
+  target: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: Null
+  question: ?
+  leftBracket: [
+  index: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  rightBracket: ]
+  element: <null>
+  staticType: Never?
+''');
+  }
+
   test_read_nullable() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
@@ -532,16 +604,33 @@ void f(A? a) {
 }
 ''');
 
-    var node = result.findNode.index('a?[0]');
+    var node = result.findNode.indexExpression2('a?[0]');
     assertResolvedNodeText(node, r'''
-IndexExpression
-  target2: SimpleIdentifier
+IndexExpression2
+  receiver: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A?
   question: ?
   leftBracket: [
-  index2: IntegerLiteral
+  index: IntegerLiteral
+    literal: 0
+    correspondingParameter: <testLibrary>::@class::A::@method::[]::@formalParameter::index
+    staticType: int
+  rightBracket: ]
+  resolution: MethodIndexReadResolution
+    element: <testLibrary>::@class::A::@method::[]
+    invokeType: bool Function(int)
+    type: bool?
+  staticType: bool?
+V1: IndexExpression
+  target: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: A?
+  question: ?
+  leftBracket: [
+  index: IntegerLiteral
     literal: 0
     correspondingParameter: <testLibrary>::@class::A::@method::[]::@formalParameter::index
     staticType: int

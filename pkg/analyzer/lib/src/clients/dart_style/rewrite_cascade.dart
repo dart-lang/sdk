@@ -61,6 +61,7 @@ ExpressionImpl insertCascadeTargetIntoExpression({
         expression: expression.receiver,
         cascadeTarget: cascadeTarget,
       ),
+      question: expression.question,
       leftBracket: expression.leftBracket,
       index: expression.index,
       rightBracket: expression.rightBracket,
