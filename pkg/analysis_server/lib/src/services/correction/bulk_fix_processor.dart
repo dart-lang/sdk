@@ -309,6 +309,14 @@ class BulkFixProcessor {
   Future<PubspecFixRequestResult> fixPubspec(List<AnalysisContext> contexts) =>
       _computeChangesToPubspec(contexts);
 
+  /// Returns a [PubspecFixRequestResult] that includes edits to the pubspec
+  /// files in the given [context] to fix diagnostics for missing packages in
+  /// [filePath].
+  Future<PubspecFixRequestResult> fixPubspecForFile(
+    AnalysisContext context,
+    String filePath,
+  ) => _computeChangesToPubspec([context], onlyForFile: filePath);
+
   /// Returns a [BulkFixRequestResult] that includes a change builder that has
   /// been used to format the dart files in the given [contexts].
   Future<BulkFixRequestResult> formatCode(List<AnalysisContext> contexts) =>
@@ -378,8 +386,14 @@ class BulkFixProcessor {
   }
 
   Future<PubspecFixRequestResult> _computeChangesToPubspec(
-    List<AnalysisContext> contexts,
-  ) async {
+    List<AnalysisContext> contexts, {
+    String? onlyForFile,
+  }) async {
+    assert(
+      onlyForFile == null || contexts.length == 1,
+      'When fixing pubspec issues only for one file, only one context should be provided',
+    );
+
     var fixes = <SourceFileEdit>[];
     var details = <BulkFix>[];
     for (var context in contexts) {
@@ -390,12 +404,15 @@ class BulkFixProcessor {
       var pathContext = context.contextRoot.resourceProvider.pathContext;
       var packageToDeps = <PubPackage, _PubspecDeps>{};
 
-      for (var path in context.contextRoot.analyzedFiles()) {
-        if (!file_paths.isDart(pathContext, path) ||
-            file_paths.isGenerated(path)) {
+      var filePaths = onlyForFile != null
+          ? [onlyForFile]
+          : context.contextRoot.analyzedFiles();
+      for (var filePath in filePaths) {
+        if (!file_paths.isDart(pathContext, filePath) ||
+            file_paths.isGenerated(filePath)) {
           continue;
         }
-        var package = workspace.findPackageFor(path);
+        var package = workspace.findPackageFor(filePath);
         if (package is! PubPackage) {
           continue;
         }
@@ -409,7 +426,7 @@ class BulkFixProcessor {
         );
 
         // Get the list of imports used in the files.
-        var libraryResult = context.currentSession.getParsedLibrary(path);
+        var libraryResult = context.currentSession.getParsedLibrary(filePath);
         if (libraryResult is! ParsedLibraryResult) {
           continue;
         }
@@ -422,7 +439,7 @@ class BulkFixProcessor {
                 : '';
             if (uri!.startsWith('package:')) {
               var name = Uri.parse(uri).pathSegments.first;
-              if (libPath.contains(path) || binPath.contains(path)) {
+              if (libPath.contains(filePath) || binPath.contains(filePath)) {
                 pubspecDeps.packages.add(name);
               } else {
                 pubspecDeps.devPackages.add(name);
@@ -1119,8 +1136,8 @@ class IterativeBulkFixProcessor {
       return _runFixesIteratively(
         performance,
         contexts,
-        includePubspec: true,
         (processor) => processor.fixErrors(contexts),
+        (processor) => processor.fixPubspec(contexts),
       );
     });
   }
@@ -1137,7 +1154,6 @@ class IterativeBulkFixProcessor {
       return _runFixesIteratively(
         performance,
         [context],
-        includePubspec: false,
         (processor) {
           return processor.fixErrorsForFile(
             performance,
@@ -1146,8 +1162,25 @@ class IterativeBulkFixProcessor {
             autoTriggered: autoTriggered,
           );
         },
+        (processor) {
+          return processor.fixPubspecForFile(context, path);
+        },
       );
     });
+  }
+
+  BulkFixProcessor _createProcessor(List<AnalysisContext> contexts) {
+    var workspace = DartChangeWorkspace(
+      contexts.map((context) => context.currentSession).toList(),
+    );
+    var processor = BulkFixProcessor(
+      _instrumentationService,
+      workspace,
+      byteStore: _byteStore,
+      cancellationToken: _cancellationToken,
+    );
+
+    return processor;
   }
 
   /// Runs [fixOperation] iteratively using temporary overlay changes to allow
@@ -1155,25 +1188,15 @@ class IterativeBulkFixProcessor {
   Future<IterativeBulkFixRequestResult> _runFixesIteratively(
     OperationPerformanceImpl performance,
     List<AnalysisContext> contexts,
-    Future<BulkFixRequestResult> Function(BulkFixProcessor) fixOperation, {
-    // TODO(dantup): Consider supporting this for "Fix All" (single-file).
-    //  To do that, we need to filter it so it doesn't add deps for all files
-    //  but only missing deps for the current file.
-    required bool includePubspec,
-  }) async {
+    Future<BulkFixRequestResult> Function(BulkFixProcessor) fixOperation,
+    Future<PubspecFixRequestResult> Function(BulkFixProcessor)
+    fixPubspecOperation,
+  ) async {
     var edits = <SourceFileEdit>[];
     _passesWithEdits = 0;
 
     for (var pass = 0; pass < _maxPassCount; pass++) {
-      var workspace = DartChangeWorkspace(
-        contexts.map((context) => context.currentSession).toList(),
-      );
-      var processor = BulkFixProcessor(
-        _instrumentationService,
-        workspace,
-        byteStore: _byteStore,
-        cancellationToken: _cancellationToken,
-      );
+      var processor = _createProcessor(contexts);
 
       var result = await performance.runAsync(
         '_runFixesIteratively pass $pass',
@@ -1213,34 +1236,19 @@ class IterativeBulkFixProcessor {
     }
 
     // Finally, add any Pubspec fixes.
-    if (includePubspec) {
-      var pubspecResult = await performance.runAsync(
-        '_runFixesIteratively pubspec pass',
-        (_) => _runPubspecFixes(contexts),
-      );
-      if (pubspecResult.edits.isNotEmpty) {
-        _passesWithEdits++;
-        edits.addAll(pubspecResult.edits);
-      }
+    var pubspecResult = await performance.runAsync(
+      '_runFixesIteratively pubspec pass',
+      (_) {
+        var processor = _createProcessor(contexts);
+        return fixPubspecOperation(processor);
+      },
+    );
+    if (pubspecResult.edits.isNotEmpty) {
+      _passesWithEdits++;
+      edits.addAll(pubspecResult.edits);
     }
 
     return IterativeBulkFixRequestResult(edits);
-  }
-
-  /// Runs pubspec fixes to be included at the end of the loop of normal fixes.
-  Future<PubspecFixRequestResult> _runPubspecFixes(
-    List<AnalysisContext> contexts,
-  ) async {
-    var workspace = DartChangeWorkspace(
-      contexts.map((context) => context.currentSession).toList(),
-    );
-    var processor = BulkFixProcessor(
-      _instrumentationService,
-      workspace,
-      byteStore: _byteStore,
-      cancellationToken: _cancellationToken,
-    );
-    return await processor.fixPubspec(contexts);
   }
 }
 

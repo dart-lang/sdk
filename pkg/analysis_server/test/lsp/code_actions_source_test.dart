@@ -281,14 +281,23 @@ class _MyClass {
     );
   }
 
-  /// Currently we don't run the Pubspec fixes for Fix All (it would add all
-  /// missing dependencies and not only this file).
-  Future<void> test_pubspec_excluded() async {
+  /// We should only add dependencies to pubspec to fix diagnostics in the
+  /// current file and not other files.
+  Future<void> test_pubspec() async {
+    newPubspecYamlFile(projectFolderPath, '''
+name: x
+''');
+
+    // Main file content. We should get a new dependency for this.
     const content = '''
 import 'package:path/path.dart';
 ''';
 
-    newPubspecYamlFile(projectFolderPath, 'name: x');
+    // Another file that we're not fixing. We should not get a dependency for
+    // this.
+    newFile(join(projectFolderPath, 'lib', 'other.dart'), '''
+import 'package:args/args.dart';
+''');
 
     var action = await expectCodeActionLiteral(
       filePath: mainFilePath,
@@ -296,10 +305,13 @@ import 'package:path/path.dart';
       command: Commands.fixAll,
     );
 
-    // Expect we can just execute the command and it completes. If we tried to
-    // update the pubspec, we would fail to handle an applyEdit reverse request
-    // here.
-    await executeCommand(action.command!);
+    // Expect only 'path', not 'args'.
+    await verifyCommandEdits(action.command!, '''
+>>>>>>>>>> pubspec.yaml
+name: x
+dependencies:
+  path: any
+''');
   }
 
   Future<void> test_unavailable_outsideAnalysisRoot() async {
