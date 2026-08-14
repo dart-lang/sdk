@@ -31,6 +31,7 @@ namespace bin {
   V(executable_name, executable_name)                                          \
   V(resolved_executable_name, resolved_executable_name)                        \
   V(script_uri_override, script_uri_override)                                  \
+  V(delete_temp_dir_on_shutdown, delete_temp_dir_on_shutdown)                  \
   /* The purpose of these flags is documented in */                            \
   /* pkg/dartdev/lib/src/commands/compilation_server.dart. */                  \
   V(resident_server_info_file, resident_server_info_file_path)                 \
@@ -185,6 +186,10 @@ class Options {
   static DFE* dfe() { return dfe_; }
   static void set_dfe(DFE* dfe) { dfe_ = dfe; }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
+  static void set_delete_temp_dir_on_shutdown(const char* dir) {
+    delete_temp_dir_on_shutdown_ = dir;
+  }
 
   static void PrintUsage();
   static void PrintVersion();

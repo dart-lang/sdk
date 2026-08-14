@@ -483,6 +483,7 @@ See https://dart.dev/to/package-descriptors for more details.''', verbose) {
     }
 
     String? nativeAssets;
+    DartNativeAssetsBuilder? builder;
     Uri baseUri = Directory.current.uri;
     if (mainCommand.isNotEmpty) {
       final file = File(mainCommand);
@@ -508,7 +509,7 @@ See https://dart.dev/to/package-descriptors for more details.''', verbose) {
         final pubspecUri = await DartNativeAssetsBuilder.findWorkspacePubspec(
           packageConfigUri,
         );
-        final builder = DartNativeAssetsBuilder(
+        builder = DartNativeAssetsBuilder(
           pubspecUri: pubspecUri,
           packageConfigUri: packageConfigUri,
           packageConfig: packageConfig,
@@ -626,6 +627,7 @@ See https://dart.dev/to/package-descriptors for more details.''', verbose) {
       scriptUriOverride: identical(executable, executableOriginal)
           ? null
           : executableOriginal.executable,
+      deleteTempDirOnShutdown: builder?.tempDirUri?.toFilePath(),
     );
     return 0;
   }

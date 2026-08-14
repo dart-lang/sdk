@@ -50,6 +50,9 @@ abstract class VmInteropHandler {
     /// another file. Used for launching from a dill file while behaving as if
     /// launched directly from a dart file.
     String? scriptUriOverride,
+
+    /// Directory path that will be recursively deleted on VM shutdown.
+    String? deleteTempDirOnShutdown,
   }) {
     List<String> argsList;
     if (useExecProcess && Platform.isWindows) {
@@ -83,6 +86,7 @@ abstract class VmInteropHandler {
       packageConfigOverride,
       markMainIsolateAsSystemIsolate,
       argsList,
+      deleteTempDirOnShutdown,
     ];
     port.send(message);
   }
