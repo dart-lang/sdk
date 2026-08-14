@@ -23,6 +23,7 @@ import '../util/helpers.dart';
 import 'body_inference_context.dart';
 import 'context_allocation_strategy.dart';
 import 'inference_results.dart';
+import 'inference_strategy.dart';
 import 'inference_visitor.dart';
 import 'inference_visitor_base.dart';
 import 'object_access_target.dart';
@@ -213,6 +214,12 @@ class TypeInferrerImpl implements TypeInferrer {
       typeAnalyzerOptions,
       expressionEvaluationHelper,
       contextAllocationStrategy: contextAllocationStrategy,
+      cfeInferenceStrategy:
+          libraryBuilder.libraryFeatures.receiverTypeInference.isEnabled
+          ?
+            // Coverage-ignore(suite): Not run.
+            new CfeReceiverTypeInferenceStrategy()
+          : new CfeTrivialTypeInferenceStrategy(),
     );
   }
 

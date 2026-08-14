@@ -101,6 +101,117 @@ class UnknownType extends AuxiliaryType implements SharedUnknownType {
   }
 }
 
+// Coverage-ignore(suite): Not run.
+class InvocationStructuralContextType extends AuxiliaryType
+    implements SharedInvocationStructuralContextType {
+  @override
+  final DartType returnType;
+
+  new({required this.returnType});
+
+  @override
+  Nullability get declaredNullability => Nullability.undetermined;
+
+  @override
+  bool equals(Object other, Assumptions? assumptions) {
+    if (other is! InvocationStructuralContextType) return false;
+    return returnType.equals(other.returnType, assumptions);
+  }
+
+  @override
+  bool get hasNonObjectMemberAccess {
+    // TODO(64052): Determine whether this member should be supported.
+    throw new UnimplementedError();
+  }
+
+  @override
+  DartType get nonTypeParameterBound => this;
+
+  @override
+  Nullability get nullability => Nullability.undetermined;
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.write("(");
+    printer.write("...");
+    printer.write(") --> ");
+    returnType.toTextInternal(printer);
+  }
+
+  @override
+  void visitChildren(Visitor v) {
+    // TODO(64052): Determine whether this member should be supported.
+    throw new UnimplementedError();
+  }
+
+  @override
+  DartType withDeclaredNullability(Nullability declaredNullability) {
+    return this;
+  }
+
+  @override
+  String toString() {
+    return "InvocationStructuralContextType(${toStringInternal()})";
+  }
+}
+
+// Coverage-ignore(suite): Not run.
+class LookupStructuralContextType extends AuxiliaryType
+    implements SharedLookupStructuralContextType {
+  @override
+  final String lookupName;
+
+  @override
+  final DartType lookupType;
+
+  new({required this.lookupName, required this.lookupType});
+
+  @override
+  Nullability get declaredNullability => Nullability.undetermined;
+
+  @override
+  bool equals(Object other, Assumptions? assumptions) {
+    if (other is! LookupStructuralContextType) return false;
+    if (lookupName != other.lookupName) return false;
+    return lookupType.equals(other.lookupType, assumptions);
+  }
+
+  @override
+  bool get hasNonObjectMemberAccess {
+    // TODO(64052): Determine whether this member should be supported.
+    throw new UnimplementedError();
+  }
+
+  @override
+  DartType get nonTypeParameterBound => this;
+
+  @override
+  Nullability get nullability => Nullability.undetermined;
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.write("{${lookupName}: ");
+    lookupType.toTextInternal(printer);
+    printer.write("}");
+  }
+
+  @override
+  void visitChildren(Visitor v) {
+    // TODO(64052): Determine whether this member should be supported.
+    throw new UnimplementedError();
+  }
+
+  @override
+  DartType withDeclaredNullability(Nullability declaredNullability) {
+    return this;
+  }
+
+  @override
+  String toString() {
+    return "LookupStructuralContextType(${toStringInternal()})";
+  }
+}
+
 /// Visitor used to compute [isKnown].
 class _HasUnknownVisitor extends FindTypeVisitor {
   const new();

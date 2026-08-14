@@ -45,6 +45,7 @@ import 'collection_encoding.dart';
 import 'context_allocation_strategy.dart';
 import 'element_inference.dart';
 import 'inference_results.dart';
+import 'inference_strategy.dart';
 import 'inference_visitor_base.dart';
 import 'object_access_target.dart';
 import 'shared_type_analyzer.dart';
@@ -190,6 +191,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   ContextAllocationStrategy _contextAllocationStrategy;
 
+  CfeInferenceStrategy _cfeInferenceStrategy;
+
   new(
     super.inferrer,
     super.fileUri,
@@ -198,7 +201,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     this.typeAnalyzerOptions,
     super.expressionEvaluationHelper, {
     required ContextAllocationStrategy contextAllocationStrategy,
-  }) : _contextAllocationStrategy = contextAllocationStrategy;
+    required CfeInferenceStrategy cfeInferenceStrategy,
+  }) : _contextAllocationStrategy = contextAllocationStrategy,
+       _cfeInferenceStrategy = cfeInferenceStrategy;
 
   @override
   ThisVariable get internalThisVariable =>
@@ -5343,7 +5348,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     assert(node.name != unaryMinusName);
     ExpressionInferenceResult result = inferExpression(
       node.receiver,
-      const UnknownType(),
+      _cfeInferenceStrategy.createTypeContextForMethodInvocationReceiver(
+        methodName: node.name.text,
+        methodInvocationTypeContext: typeContext,
+      ),
       continueNullShorting: true,
     );
     Expression receiver = result.expression;
@@ -9561,7 +9569,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   ) {
     ExpressionInferenceResult receiverResult = inferExpression(
       node.receiver,
-      const UnknownType(),
+      _cfeInferenceStrategy.createTypeContextForPropertyGetReceiver(
+        propertyName: node.name.text,
+        propertyGetTypeContext: typeContext,
+      ),
       continueNullShorting: true,
     );
 
