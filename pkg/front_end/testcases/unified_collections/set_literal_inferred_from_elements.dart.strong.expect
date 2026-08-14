@@ -41,21 +41,21 @@ static method main() → dynamic {
     #t5.{core::Set::add}{Invariant}(self::id<core::int>(0)){(core::num) → core::bool};
     for (core::int i = 0; i.{core::num::<}(self::intList.{core::List::length}{core::int}){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int})
       #t5.{core::Set::add}{Invariant}(self::intList.{core::List::[]}(i){(core::int) → core::int}){(core::num) → core::bool};
-    hoisted core::int i;
+    hoisted core::int i##1;
     hoisted core::int j;
     {
       final synthesized(core::int, core::int) #0#0 = (0, 1);
-      i = #0#0.$1{core::int};
+      i##1 = #0#0.$1{core::int};
       j = #0#0.$2{core::int};
     }
-    final core::int #t6 = i;
+    final core::int #t6 = i##1;
     final core::int #t7 = j;
-    for (core::int i = #t6, core::int j = #t7; i.{core::num::<}(self::intList.{core::List::length}{core::int}){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int})
-      #t5.{core::Set::add}{Invariant}(self::intList.{core::List::[]}(i){(core::int) → core::int}.{core::num::+}(j){(core::num) → core::int}){(core::num) → core::bool};
+    for (core::int i##2 = #t6, core::int j##1 = #t7; i##2.{core::num::<}(self::intList.{core::List::length}{core::int}){(core::num) → core::bool}; i##2 = i##2.{core::num::+}(1){(core::num) → core::int})
+      #t5.{core::Set::add}{Invariant}(self::intList.{core::List::[]}(i##2){(core::int) → core::int}.{core::num::+}(j##1){(core::num) → core::int}){(core::num) → core::bool};
     for (core::int e in self::intSet)
       #t5.{core::Set::add}{Invariant}(e){(core::num) → core::bool};
-    for (core::num e in self::numSet)
-      #t5.{core::Set::add}{Invariant}(e){(core::num) → core::bool};
+    for (core::num e##1 in self::numSet)
+      #t5.{core::Set::add}{Invariant}(e##1){(core::num) → core::bool};
     for (final(core::int, core::int) #t8 in self::intIntSet) {
       hoisted core::int a;
       hoisted core::int b;
@@ -82,10 +82,10 @@ static method main() → dynamic {
       final synthesized core::List<core::int> #2#0 = self::intList;
       final const synthesized core::int #2#2 = #C1;
       {
-        hoisted core::int a;
+        hoisted core::int a##1;
         if(#2#0.{core::List::length}{core::int}.{core::num::>=}(#C1){(core::num) → core::bool}) {
-          a = #2#0.{core::List::[]}(0){(core::int) → core::int};
-          #t5.{core::Set::add}{Invariant}(a){(core::num) → core::bool};
+          a##1 = #2#0.{core::List::[]}(0){(core::int) → core::int};
+          #t5.{core::Set::add}{Invariant}(a##1){(core::num) → core::bool};
         }
       }
     }
@@ -93,10 +93,10 @@ static method main() → dynamic {
       final synthesized core::List<core::int> #3#0 = self::intList;
       final const synthesized core::int #3#2 = #C2;
       {
-        hoisted core::int b;
+        hoisted core::int b##1;
         if(#3#0.{core::List::length}{core::int}.{core::num::>=}(#C2){(core::num) → core::bool}) {
-          b = #3#0.{core::List::[]}(1){(core::int) → core::int};
-          #t5.{core::Set::add}{Invariant}(b){(core::num) → core::bool};
+          b##1 = #3#0.{core::List::[]}(1){(core::int) → core::int};
+          #t5.{core::Set::add}{Invariant}(b##1){(core::num) → core::bool};
         }
         else
           #t5.{core::Set::add}{Invariant}(7){(core::num) → core::bool};

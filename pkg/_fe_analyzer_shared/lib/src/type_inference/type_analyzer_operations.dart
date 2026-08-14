@@ -2214,7 +2214,7 @@ abstract class TypeConstraintGenerator<
 
     // If `P` is a structural context schema, the match holds with no
     // constraints.
-    if (p is SharedStructuralContextSchema) {
+    if (p is SharedStructuralContextType) {
       return true;
     }
 
@@ -2261,13 +2261,13 @@ abstract class TypeConstraintGenerator<
       return true;
     }
 
-    if (q is SharedStructuralContextSchema) {
+    if (q is SharedStructuralContextType) {
       // At this point, `P` can't be a structural context schema, and `Q` is a
       // structural context schema.
-      assert(p is! SharedStructuralContextSchema);
+      assert(p is! SharedStructuralContextType);
 
       switch (q) {
-        case SharedInvocationStructuralContextSchema(:var returnType):
+        case SharedInvocationStructuralContextType(:var returnType):
           if (p is! SharedFunctionType) {
             // If `P` is not a function type, the match doesn't hold.
             return false;
@@ -2285,7 +2285,7 @@ abstract class TypeConstraintGenerator<
             );
             return result;
           }
-        case SharedLookupStructuralContextSchema(
+        case SharedLookupStructuralContextType(
           :var lookupName,
           :var lookupType,
         ):

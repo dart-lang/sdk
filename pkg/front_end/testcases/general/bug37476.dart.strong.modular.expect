@@ -34,7 +34,7 @@ static method main() → dynamic {
     self::b.{self::B::foo}(){() → (core::num) → void} as{TypeError,CovarianceCheck} (core::num) → void;
     throw "Expected TypeError";
   }
-  on core::TypeError catch(final core::TypeError e) {
-    core::print(e);
+  on core::TypeError catch(final core::TypeError e##1) {
+    core::print(e##1);
   }
 }

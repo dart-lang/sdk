@@ -8,7 +8,7 @@ static method test(() → void f) → void {
     f(){() → void};
   }
   finally {
-    core::int x = 0;
+    core::int x##1 = 0;
   }
 }
 static method main() → dynamic {}

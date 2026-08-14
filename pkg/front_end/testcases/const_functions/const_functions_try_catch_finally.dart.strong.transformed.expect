@@ -36,7 +36,7 @@ static method fn1(dynamic error) → core::int {
   on core::int catch(final core::int e) {
     return e;
   }
-  on core::Object catch(final core::Object e) {
+  on core::Object catch(final core::Object e##1) {
     return 1;
   }
 }
@@ -49,7 +49,7 @@ static method finallyReturn(dynamic error) → core::int {
     on core::int catch(final core::int e) {
       return e;
     }
-    on core::Object catch(final core::Object e) {
+    on core::Object catch(final core::Object e##1) {
       return 1;
     }
   finally {

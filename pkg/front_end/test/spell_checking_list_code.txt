@@ -527,6 +527,7 @@ disagrees
 disallow
 disambiguating
 disambiguation
+disambiguations
 disambiguator
 discourage
 discovers

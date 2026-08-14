@@ -734,7 +734,13 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       element,
       () {
         _checkForNonConstGenerativeEnumConstructor(node);
-        _checkForInvalidModifierOnBody(node.body);
+
+        // Check for modifiers in the body only for non-factory constructors.
+        // For factory constructors Parser already emits 'factoryNotSync' which then converted to 'nonSyncFactory'.
+        if (node.factoryKeyword == null) {
+          _checkForInvalidModifierOnBody(node.body);
+        }
+
         if (!_checkForConstConstructorWithNonConstSuper(
           element: element,
           factoryKeyword: node.factoryKeyword,

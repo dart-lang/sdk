@@ -841,6 +841,7 @@ extension CheckHelper on ProblemReporting {
     TypeParameter? typeParameter,
     DartType? superBoundedAttempt,
     DartType? superBoundedAttemptInverted,
+    bool isVariancePosition = false,
   }) {
     List<LocatedMessage>? context;
     // Skip reporting location for function-type type parameters as it's a
@@ -850,8 +851,14 @@ extension CheckHelper on ProblemReporting {
         typeParameter.location?.file != null) {
       // It looks like when parameters come from augmentation libraries, they
       // don't have a reportable location.
+      MessageCode message;
+      if (isVariancePosition) {
+        message = diag.incorrectVariancePositionVariable;
+      } else {
+        message = diag.incorrectTypeArgumentVariable;
+      }
       (context ??= <LocatedMessage>[]).add(
-        diag.incorrectTypeArgumentVariable.withLocation(
+        message.withLocation(
           typeParameter.location!.file,
           typeParameter.fileOffset,
           noLength,

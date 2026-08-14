@@ -236,35 +236,35 @@ static method main() → void {
   final ffi::Array<ffi::Array<ffi::Array<ffi::Double>>> wholeArray = self::manyNumbers;
   ffi::DoubleArray|[]=( block {
     synthesized ffi::Array<dynamic> #array = ( block {
-      synthesized ffi::Array<dynamic> #array = wholeArray!;
+      synthesized ffi::Array<dynamic> #array##1 = wholeArray!;
       synthesized core::int #index = 0!;
-      #array.{ffi::Array::_checkIndex}(#index){(core::int) → void};
+      #array##1.{ffi::Array::_checkIndex}(#index){(core::int) → void};
       synthesized core::int #singleElementSize = #C14;
-      synthesized core::int #elementSize = #singleElementSize.{core::num::*}(#array.{ffi::Array::_nestedDimensionsFlattened}{core::int}){(core::num) → core::num};
+      synthesized core::int #elementSize = #singleElementSize.{core::num::*}(#array##1.{ffi::Array::_nestedDimensionsFlattened}{core::int}){(core::num) → core::num};
       synthesized core::int #offset = #elementSize.{core::num::*}(#index){(core::num) → core::num};
-    } =>new ffi::Array::_<ffi::Array<ffi::Double>>(#array.{ffi::_Compound::_typedDataBase}{core::Object}, #array.{ffi::_Compound::_offsetInBytes}{core::int}.{core::num::+}(#offset){(core::num) → core::num}, #array.{ffi::Array::_nestedDimensionsFirst}{core::int}, #array.{ffi::Array::_variableLength}{core::bool}, #array.{ffi::Array::_nestedDimensionsRest}{core::List<core::int>}))!;
-    synthesized core::int #index = 1!;
-    #array.{ffi::Array::_checkIndex}(#index){(core::int) → void};
-    synthesized core::int #singleElementSize = #C14;
-    synthesized core::int #elementSize = #singleElementSize.{core::num::*}(#array.{ffi::Array::_nestedDimensionsFlattened}{core::int}){(core::num) → core::num};
-    synthesized core::int #offset = #elementSize.{core::num::*}(#index){(core::num) → core::num};
-  } =>new ffi::Array::_<ffi::Double>(#array.{ffi::_Compound::_typedDataBase}{core::Object}, #array.{ffi::_Compound::_offsetInBytes}{core::int}.{core::num::+}(#offset){(core::num) → core::num}, #array.{ffi::Array::_nestedDimensionsFirst}{core::int}, #array.{ffi::Array::_variableLength}{core::bool}, #array.{ffi::Array::_nestedDimensionsRest}{core::List<core::int>}), 2, 123.45);
+    } =>new ffi::Array::_<ffi::Array<ffi::Double>>(#array##1.{ffi::_Compound::_typedDataBase}{core::Object}, #array##1.{ffi::_Compound::_offsetInBytes}{core::int}.{core::num::+}(#offset){(core::num) → core::num}, #array##1.{ffi::Array::_nestedDimensionsFirst}{core::int}, #array##1.{ffi::Array::_variableLength}{core::bool}, #array##1.{ffi::Array::_nestedDimensionsRest}{core::List<core::int>}))!;
+    synthesized core::int #index##1 = 1!;
+    #array.{ffi::Array::_checkIndex}(#index##1){(core::int) → void};
+    synthesized core::int #singleElementSize##1 = #C14;
+    synthesized core::int #elementSize##1 = #singleElementSize##1.{core::num::*}(#array.{ffi::Array::_nestedDimensionsFlattened}{core::int}){(core::num) → core::num};
+    synthesized core::int #offset##1 = #elementSize##1.{core::num::*}(#index##1){(core::num) → core::num};
+  } =>new ffi::Array::_<ffi::Double>(#array.{ffi::_Compound::_typedDataBase}{core::Object}, #array.{ffi::_Compound::_offsetInBytes}{core::int}.{core::num::+}(#offset##1){(core::num) → core::num}, #array.{ffi::Array::_nestedDimensionsFirst}{core::int}, #array.{ffi::Array::_variableLength}{core::bool}, #array.{ffi::Array::_nestedDimensionsRest}{core::List<core::int>}), 2, 123.45);
   self::manyNumbers = wholeArray;
   ffi::DoubleArray|[]=( block {
-    synthesized ffi::Array<dynamic> #array = ( block {
-      synthesized ffi::Array<dynamic> #array = self::manyNumbers!;
-      synthesized core::int #index = 0!;
-      #array.{ffi::Array::_checkIndex}(#index){(core::int) → void};
-      synthesized core::int #singleElementSize = #C14;
-      synthesized core::int #elementSize = #singleElementSize.{core::num::*}(#array.{ffi::Array::_nestedDimensionsFlattened}{core::int}){(core::num) → core::num};
-      synthesized core::int #offset = #elementSize.{core::num::*}(#index){(core::num) → core::num};
-    } =>new ffi::Array::_<ffi::Array<ffi::Double>>(#array.{ffi::_Compound::_typedDataBase}{core::Object}, #array.{ffi::_Compound::_offsetInBytes}{core::int}.{core::num::+}(#offset){(core::num) → core::num}, #array.{ffi::Array::_nestedDimensionsFirst}{core::int}, #array.{ffi::Array::_variableLength}{core::bool}, #array.{ffi::Array::_nestedDimensionsRest}{core::List<core::int>}))!;
-    synthesized core::int #index = 0!;
-    #array.{ffi::Array::_checkIndex}(#index){(core::int) → void};
-    synthesized core::int #singleElementSize = #C14;
-    synthesized core::int #elementSize = #singleElementSize.{core::num::*}(#array.{ffi::Array::_nestedDimensionsFlattened}{core::int}){(core::num) → core::num};
-    synthesized core::int #offset = #elementSize.{core::num::*}(#index){(core::num) → core::num};
-  } =>new ffi::Array::_<ffi::Double>(#array.{ffi::_Compound::_typedDataBase}{core::Object}, #array.{ffi::_Compound::_offsetInBytes}{core::int}.{core::num::+}(#offset){(core::num) → core::num}, #array.{ffi::Array::_nestedDimensionsFirst}{core::int}, #array.{ffi::Array::_variableLength}{core::bool}, #array.{ffi::Array::_nestedDimensionsRest}{core::List<core::int>}), 0, 54.321);
+    synthesized ffi::Array<dynamic> #array##2 = ( block {
+      synthesized ffi::Array<dynamic> #array##3 = self::manyNumbers!;
+      synthesized core::int #index##2 = 0!;
+      #array##3.{ffi::Array::_checkIndex}(#index##2){(core::int) → void};
+      synthesized core::int #singleElementSize##2 = #C14;
+      synthesized core::int #elementSize##2 = #singleElementSize##2.{core::num::*}(#array##3.{ffi::Array::_nestedDimensionsFlattened}{core::int}){(core::num) → core::num};
+      synthesized core::int #offset##2 = #elementSize##2.{core::num::*}(#index##2){(core::num) → core::num};
+    } =>new ffi::Array::_<ffi::Array<ffi::Double>>(#array##3.{ffi::_Compound::_typedDataBase}{core::Object}, #array##3.{ffi::_Compound::_offsetInBytes}{core::int}.{core::num::+}(#offset##2){(core::num) → core::num}, #array##3.{ffi::Array::_nestedDimensionsFirst}{core::int}, #array##3.{ffi::Array::_variableLength}{core::bool}, #array##3.{ffi::Array::_nestedDimensionsRest}{core::List<core::int>}))!;
+    synthesized core::int #index##3 = 0!;
+    #array##2.{ffi::Array::_checkIndex}(#index##3){(core::int) → void};
+    synthesized core::int #singleElementSize##3 = #C14;
+    synthesized core::int #elementSize##3 = #singleElementSize##3.{core::num::*}(#array##2.{ffi::Array::_nestedDimensionsFlattened}{core::int}){(core::num) → core::num};
+    synthesized core::int #offset##3 = #elementSize##3.{core::num::*}(#index##3){(core::num) → core::num};
+  } =>new ffi::Array::_<ffi::Double>(#array##2.{ffi::_Compound::_typedDataBase}{core::Object}, #array##2.{ffi::_Compound::_offsetInBytes}{core::int}.{core::num::+}(#offset##3){(core::num) → core::num}, #array##2.{ffi::Array::_nestedDimensionsFirst}{core::int}, #array##2.{ffi::Array::_variableLength}{core::bool}, #array##2.{ffi::Array::_nestedDimensionsRest}{core::List<core::int>}), 0, 54.321);
 }
 constants  {
   #C1 = "vm:deeply-immutable"

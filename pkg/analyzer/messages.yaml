@@ -13717,10 +13717,6 @@ CompileTimeErrorCode:
     parameters: none
     problemMessage: "Factory bodies can't use 'async', 'async*', or 'sync*'."
     hasPublishedDocs: true
-    # In the documentation, the `invalid_modifier_on_constructor` diagnostic is
-    # being ignored because this diagnostic can't be produced without using the
-    # invalid modifier. If these two diagnostics are always produced together
-    # then we should remove one of them.
     documentation: |-
       #### Description
 
@@ -13735,7 +13731,6 @@ CompileTimeErrorCode:
       constructor is marked with `async`:
 
       ```dart
-      %ignore=invalid_modifier_on_constructor
       class C {
         factory C() [!async!] {
           return C._();

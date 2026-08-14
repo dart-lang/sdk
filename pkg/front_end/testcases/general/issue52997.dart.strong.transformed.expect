@@ -28,15 +28,15 @@ static method foo<X extends core::Object? = dynamic>(core::bool test, self::foo:
   if(!(b is core::int))
     return;
   {
-    self::foo::X% c = let final self::foo::X% & core::int /* '%' & '!' = '!' */ #t2 = test ?{self::foo::X% & core::int /* '%' & '!' = '!' */} a{self::foo::X% & core::int /* '%' & '!' = '!' */} : b{self::foo::X% & core::int /* '%' & '!' = '!' */} in block {
+    self::foo::X% c##1 = let final self::foo::X% & core::int /* '%' & '!' = '!' */ #t2 = test ?{self::foo::X% & core::int /* '%' & '!' = '!' */} a{self::foo::X% & core::int /* '%' & '!' = '!' */} : b{self::foo::X% & core::int /* '%' & '!' = '!' */} in block {
       #t2.{core::int::toRadixString}(2){(core::int) → core::String};
       self::Ext|st<self::foo::X%, (self::foo::X%) → self::foo::X%>(#t2);
     } =>#t2;
     {
-      self::foo::X% v1 = c{self::foo::X% & core::int /* '%' & '!' = '!' */};
-      core::int v2 = c{self::foo::X% & core::int /* '%' & '!' = '!' */};
-      self::Ext|get#st<self::foo::X%>(c{self::foo::X% & core::int /* '%' & '!' = '!' */})<(self::foo::X%) → self::foo::X%>;
-      c = a{self::foo::X% & core::int /* '%' & '!' = '!' */} as{Unchecked} self::foo::X%;
+      self::foo::X% v1##1 = c##1{self::foo::X% & core::int /* '%' & '!' = '!' */};
+      core::int v2##1 = c##1{self::foo::X% & core::int /* '%' & '!' = '!' */};
+      self::Ext|get#st<self::foo::X%>(c##1{self::foo::X% & core::int /* '%' & '!' = '!' */})<(self::foo::X%) → self::foo::X%>;
+      c##1 = a{self::foo::X% & core::int /* '%' & '!' = '!' */} as{Unchecked} self::foo::X%;
     }
   }
 }

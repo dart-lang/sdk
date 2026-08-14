@@ -16,10 +16,10 @@ static method method(dynamic o) → dynamic {
       }
     }
     {
-      hoisted core::int a;
-      if(#0#0 is core::int && (let final dynamic #t2 = a = #0#0{core::int} in true)) {
+      hoisted core::int a##1;
+      if(#0#0 is core::int && (let final dynamic #t2 = a##1 = #0#0{core::int} in true)) {
         {
-          core::print(a);
+          core::print(a##1);
           break #L1;
         }
       }

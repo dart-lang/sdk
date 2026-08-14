@@ -25,12 +25,12 @@ class S extends core::Object {
 }
 class C extends self::S {
   field core::int i1;
-  constructor •(initializing-formal core::int i1, super-initializing-formal core::int s1, {super-initializing-formal core::int s2 = #C1, super-initializing-formal core::int s2 = #C1}) → self::C
+  constructor •(initializing-formal core::int i1, super-initializing-formal core::int s1, {super-initializing-formal core::int s2 = #C1, super-initializing-formal core::int s2##1 = #C1}) → self::C
     : self::C::i1 = i1, super self::S::•(s1, s2: invalid-expression "pkg/front_end/testcases/super_parameters/duplicate_named.dart:14:41: Error: Duplicated named argument 's2'.
   C(this.i1, super.s1, {super.s2, super.s2});
                                         ^^" in block {
       s2;
-    } =>s2)
+    } =>s2##1)
     ;
 }
 static method test() → dynamic {
