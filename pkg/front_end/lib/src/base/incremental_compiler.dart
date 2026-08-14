@@ -1209,6 +1209,41 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       return null;
     }
 
+    // If a library that would have been recompiled has one or more problems
+    // where one of the invalidated uris are mentioned in a context we have to
+    // bail to get the message updated correctly.
+    // TODO(jensj): Possibly just treat any such libraries as bodies-only
+    // changed.
+    {
+      Set<Uri>? directlyInvalidatedImportUris;
+      for (DillLibraryBuilder builder in reusedResult.notReusedLibraries) {
+        if (builder.library.problemsAsJson == null) continue;
+        if (reusedResult.directlyInvalidated.contains(builder)) continue;
+        for (String jsonString in builder.library.problemsAsJson!) {
+          DiagnosticMessageFromJson message =
+              new DiagnosticMessageFromJson.fromJson(jsonString);
+          List<Uri>? relatedUris = message.relatedUris;
+          if (relatedUris != null) {
+            if (directlyInvalidatedImportUris == null) {
+              directlyInvalidatedImportUris = {};
+              for (DillLibraryBuilder invalidated
+                  in reusedResult.directlyInvalidated) {
+                directlyInvalidatedImportUris.add(invalidated.fileUri);
+              }
+            }
+            for (Uri relatedUri in relatedUris) {
+              if (directlyInvalidatedImportUris.contains(relatedUri)) {
+                recorderForTesting?.recordAdvancedInvalidationResult(
+                  AdvancedInvalidationResult.problemsInRelatedLibrary,
+                );
+                return null;
+              }
+            }
+          }
+        }
+      }
+    }
+
     // Figure out if the file(s) have changed outline, or we can just
     // rebuild the bodies.
     for (DillLibraryBuilder builder in reusedResult.directlyInvalidated) {
@@ -3672,6 +3707,9 @@ enum AdvancedInvalidationResult {
 
   /// Problems in invalidated library, advanced invalidation is not supported.
   problemsInLibrary,
+
+  /// Problems in related library, advanced invalidation is not supported.
+  problemsInRelatedLibrary,
 
   /// No previous source for invalidated library, can't compare to new source.
   noPreviousSource,

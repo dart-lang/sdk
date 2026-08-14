@@ -13,7 +13,7 @@ library from "org-dartlang-test:///main.dart" as main {
 // Try removing the extra positional arguments.
 //   b(42);
 //    ^
-// org-dartlang-test:///b.dart:5:1: Context: Found this candidate, but the arguments don't match.
+// org-dartlang-test:///b.dart:1:1: Context: Found this candidate, but the arguments don't match.
 // b({int? named}) {
 // ^
 //
