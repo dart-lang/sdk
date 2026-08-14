@@ -318,8 +318,14 @@ class PubspecFixGenerator {
     String sectionName,
     List<String> packageNames,
   ) {
-    var section = node[sectionName];
+    var section = node[sectionName] as YamlNode?;
+    var insertAfterNode = section ?? node;
+    var insertNewline = !insertAfterNode.span.text.endsWith(endOfLine);
+
     var buffer = StringBuffer();
+    if (insertNewline) {
+      buffer.write(endOfLine);
+    }
     if (section == null) {
       buffer.write('$sectionName:');
       buffer.write(endOfLine);
@@ -329,9 +335,7 @@ class PubspecFixGenerator {
       buffer.write(endOfLine);
     }
 
-    var offset = section == null
-        ? node.span.end.offset
-        : (section as YamlNode).span.end.offset;
+    var offset = insertAfterNode.span.end.offset;
 
     return (buffer.toString(), offset);
   }
