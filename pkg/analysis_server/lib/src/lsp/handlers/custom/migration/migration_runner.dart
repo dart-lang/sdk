@@ -11,11 +11,13 @@ import 'package:analysis_server/src/lsp/handlers/custom/migration/migration_regi
 import 'package:analysis_server/src/lsp/handlers/custom/migration/migration_summary_builder.dart';
 import 'package:analysis_server/src/lsp/temporary_overlay_operation.dart';
 import 'package:analysis_server/src/services/correction/bulk_fix_processor.dart';
+import 'package:analysis_server/src/utilities/package_config.dart';
 import 'package:analysis_server/src/utilities/pubspec.dart';
 import 'package:analysis_server_plugin/src/correction/dart_change_workspace.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
@@ -76,6 +78,34 @@ class MigrationRunner({
       applyTemporaryOverlayEdits(fileEdit);
     }
     await applyOverlays();
+  }
+
+  /// Adds a temporary overlay for `package_config.json` with the updated
+  /// language version so that subsequent analysis (such as the cleanup step)
+  /// evaluates code using the target language version.
+  bool _bumpPackageConfig(
+    File pubspecFile,
+    String packageName,
+    PubspecEdit versionBumpEdit,
+  ) {
+    var packageConfigPath = server.resourceProvider.pathContext.join(
+      pubspecFile.parent.path,
+      file_paths.dotDartTool,
+      file_paths.packageConfigJson,
+    );
+    var packageConfigFile = server.resourceProvider.getFile(packageConfigPath);
+    if (!packageConfigFile.exists) return false;
+
+    var packageConfigJson = packageConfigFile.readAsStringSync();
+    var updatedJson = updatePackageLanguageVersion(
+      packageConfigJson,
+      packageName: packageName,
+      languageVersion: versionBumpEdit.targetVersion,
+    );
+    if (updatedJson == null) return false;
+
+    applyTemporaryOverlay(packageConfigPath, updatedJson, packageConfigJson);
+    return true;
   }
 
   /// Applies the pubspec SDK constraint bump edit.
@@ -248,6 +278,22 @@ class MigrationRunner({
     // Bump version constraint.
     if (runBump) {
       await _bumpPubspecConstraint(pubspecFile, versionBumpEdit, builder);
+
+      var bumpSuccess = _bumpPackageConfig(
+        pubspecFile,
+        pubspec.displayName,
+        versionBumpEdit,
+      );
+      if (!bumpSuccess) {
+        summaryBuilder.recordStepFailure(
+          pubspec,
+          MigrationStep.Bump,
+          'Failed to update .dart_tool/package_config.json for '
+          '"${pubspec.displayName}". Try running "dart pub get" to update '
+          'the package configuration, then re-run the migration.',
+        );
+        return ExecutionOutcome.exception;
+      }
 
       summaryBuilder.recordBump(
         pubspec.displayName,
