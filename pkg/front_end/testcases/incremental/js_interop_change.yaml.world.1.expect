@@ -82,12 +82,12 @@ library from "org-dartlang-test:///main.dart" as main {
     sta::StaticJSClass bar = lib1::Class::staticMethod();
     () → sta::StaticJSClass barFunction = #C7;
     bar = lib1::Class::staticGetter;
-    lib1::Class::staticSetter = (sta::StaticJSClass s) → void {};
+    lib1::Class::staticSetter = (sta::StaticJSClass s##1) → void {};
     lib1::Class c = new lib1::Class::•();
     sta::StaticJSClass baz = c.{lib1::Class::instanceMethod}(){() → sta::StaticJSClass};
     () → sta::StaticJSClass bazFunction = c.{lib1::Class::instanceMethod}{() → sta::StaticJSClass};
     baz = c.{lib1::Class::instanceGetter}{sta::StaticJSClass};
-    c.{lib1::Class::instanceSetter} = (sta::StaticJSClass s) → void {};
+    c.{lib1::Class::instanceSetter} = (sta::StaticJSClass s##2) → void {};
   }
 }
 constants  {

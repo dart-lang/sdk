@@ -138,12 +138,12 @@ static method testInlineArray() → void {
       #array.{ffi::Array::_checkIndex}(#index){(core::int) → void};
     } =>ffi::_storeAbiSpecificIntAtIndex<self::WChar>(#array.{ffi::_Compound::_typedDataBase}{core::Object}, #array.{ffi::_Compound::_offsetInBytes}{core::int}, #index, i);
   }
-  for (core::int i = 0; i.{core::num::<}(100){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int}) {
+  for (core::int i##1 = 0; i##1.{core::num::<}(100){(core::num) → core::bool}; i##1 = i##1.{core::num::+}(1){(core::num) → core::int}) {
     core::print( block {
-      synthesized ffi::Array<dynamic> #array = array!;
-      synthesized core::int #index = i!;
-      #array.{ffi::Array::_checkIndex}(#index){(core::int) → void};
-    } =>ffi::_loadAbiSpecificIntAtIndex<self::WChar>(#array.{ffi::_Compound::_typedDataBase}{core::Object}, #array.{ffi::_Compound::_offsetInBytes}{core::int}, #index));
+      synthesized ffi::Array<dynamic> #array##1 = array!;
+      synthesized core::int #index##1 = i##1!;
+      #array##1.{ffi::Array::_checkIndex}(#index##1){(core::int) → void};
+    } =>ffi::_loadAbiSpecificIntAtIndex<self::WChar>(#array##1.{ffi::_Compound::_typedDataBase}{core::Object}, #array##1.{ffi::_Compound::_offsetInBytes}{core::int}, #index##1));
   }
   #C92.{self::_DummyAllocator::free}(p){(ffi::Pointer<ffi::NativeType>) → void};
 }

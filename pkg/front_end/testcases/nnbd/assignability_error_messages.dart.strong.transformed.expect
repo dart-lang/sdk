@@ -250,14 +250,14 @@ Try changing the type of the variable.
     }
   }
   {
-    synthesized core::Iterator<Never> :sync-for-iterator = invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:36:15: Error: The type 'List<B>?' used in the 'for' loop must implement 'Iterable<dynamic>'.
+    synthesized core::Iterator<Never> :sync-for-iterator##1 = invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:36:15: Error: The type 'List<B>?' used in the 'for' loop must implement 'Iterable<dynamic>'.
  - 'List' is from 'dart:core'.
  - 'B' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
  - 'Iterable' is from 'dart:core'.
   for (A y in l2) {} // Error.
               ^" in let core::List<self::B>? #t7 = l2 in #t7 == null ?{core::Iterable<dynamic>} #t7 as{TypeError} core::Iterable<dynamic> : #t7{core::Iterable<dynamic>}.{core::Iterable::iterator}{core::Iterator<Never>};
-    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      self::A y = :sync-for-iterator.{core::Iterator::current}{Never};
+    for (; :sync-for-iterator##1.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      self::A y##1 = :sync-for-iterator##1.{core::Iterator::current}{Never};
       {}
     }
   }
@@ -330,7 +330,7 @@ static method bar(core::List<self::B?> x, core::List<core::List<self::B?>> l, co
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
       final core::List<self::B?> #t11 = :sync-for-iterator.{core::Iterator::current}{core::List<self::B?>};
       {
-        core::List<self::A> y = invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:59:16: Error: A value of type 'List<B?>' can't be assigned to a variable of type 'List<A>'.
+        core::List<self::A> y##1 = invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:59:16: Error: A value of type 'List<B?>' can't be assigned to a variable of type 'List<A>'.
  - 'List' is from 'dart:core'.
  - 'B' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
  - 'A' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.

@@ -37,7 +37,7 @@ static method test(core::String s, core::int y) → dynamic async /* emittedValu
  - 'Stream' is from 'dart:async'.
   await for (int x in s) {}
                       ^" in s as{TypeError} asy::Stream<dynamic>) {
-    core::int x = #t2 as{TypeError,ForDynamic} core::int;
+    core::int x##1 = #t2 as{TypeError,ForDynamic} core::int;
   }
   for (final dynamic #t3 in invalid-expression "pkg/front_end/testcases/inference_new/for_each_invalid_iterable.dart:10:13: Error: The type 'String' used in the 'for' loop must implement 'Iterable<dynamic>'.
  - 'Iterable' is from 'dart:core'.

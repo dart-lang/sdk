@@ -33,11 +33,11 @@ static method test1() → void {
         }
       }
       {
-        final hoisted core::String value;
+        final hoisted core::String value##1;
         if(true) {
           #0#0 as core::String;
-          value = #0#0 as core::String;
-          #t1 = new self::MyModelExpectingAString::•(value);
+          value##1 = #0#0 as core::String;
+          #t1 = new self::MyModelExpectingAString::•(value##1);
           break #L1;
         }
       }

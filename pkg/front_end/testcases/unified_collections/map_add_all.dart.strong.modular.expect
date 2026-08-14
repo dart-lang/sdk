@@ -27,7 +27,7 @@ static method useAddAll() → void {
     }
     #t1.{core::Map::addAll}{Invariant}(intMap){(core::Map<core::int, core::int>) → void};
   } =>#t1;
-  self::expect(col::LinkedHashMap::fromIterables<core::int, core::int>(core::List::generate<core::int>(12, (core::int i) → core::int => i), core::List::generate<core::int>(12, (core::int i) → core::int => 100.{core::num::+}(i){(core::num) → core::int})), map1);
+  self::expect(col::LinkedHashMap::fromIterables<core::int, core::int>(core::List::generate<core::int>(12, (core::int i) → core::int => i), core::List::generate<core::int>(12, (core::int i##1) → core::int => 100.{core::num::+}(i##1){(core::num) → core::int})), map1);
   core::Map<core::num, core::num> map2 = block {
     final core::Map<core::num, core::num> #t11 = <core::num, core::num>{};
     for (final has-declared-initializer core::MapEntry<dynamic, dynamic> #t12 in (dynamicMap1 as{TypeError,ForDynamic} core::Map<dynamic, dynamic>).{core::Map::entries}{core::Iterable<core::MapEntry<core::num, core::num>>}) {
@@ -47,7 +47,7 @@ static method useAddAll() → void {
     }
     #t11.{core::Map::addAll}{Invariant}(intMap){(core::Map<core::num, core::num>) → void};
   } =>#t11;
-  self::expect(col::LinkedHashMap::fromIterables<core::num, core::num>(core::List::generate<core::num>(12, (core::int i) → core::int => i), core::List::generate<core::num>(12, (core::int i) → core::int => 100.{core::num::+}(i){(core::num) → core::int})), map2);
+  self::expect(col::LinkedHashMap::fromIterables<core::num, core::num>(core::List::generate<core::num>(12, (core::int i##2) → core::int => i##2), core::List::generate<core::num>(12, (core::int i##3) → core::int => 100.{core::num::+}(i##3){(core::num) → core::int})), map2);
   core::Map<core::int, core::int> map3 = block {
     final core::Map<core::int, core::int> #t21 = <core::int, core::int>{};
     for (final has-declared-initializer core::MapEntry<dynamic, dynamic> #t22 in (dynamicMap1 as{TypeError,ForDynamic} core::Map<dynamic, dynamic>).{core::Map::entries}{core::Iterable<core::MapEntry<core::int, core::int>>}) {
@@ -67,14 +67,14 @@ static method useAddAll() → void {
     }
     #t21.{core::Map::addAll}{Invariant}(intMap){(core::Map<core::int, core::int>) → void};
   } =>#t21;
-  self::expect(col::LinkedHashMap::fromIterables<core::int, core::int>(core::List::generate<core::int>(12, (core::int i) → core::int => i), core::List::generate<core::int>(12, (core::int i) → core::int => 100.{core::num::+}(i){(core::num) → core::int})), map3);
+  self::expect(col::LinkedHashMap::fromIterables<core::int, core::int>(core::List::generate<core::int>(12, (core::int i##4) → core::int => i##4), core::List::generate<core::int>(12, (core::int i##5) → core::int => 100.{core::num::+}(i##5){(core::num) → core::int})), map3);
   core::Map<dynamic, dynamic> map4 = block {
     final core::Map<dynamic, dynamic> #t31 = col::LinkedHashMap::of<dynamic, dynamic>(dynamicMap1 as{TypeError,ForDynamic} core::Map<dynamic, dynamic>);
     #t31.{core::Map::addAll}{Invariant}(dynamicMap2 as{TypeError,ForDynamic} core::Map<dynamic, dynamic>){(core::Map<dynamic, dynamic>) → void};
     #t31.{core::Map::addAll}{Invariant}(dynamicMap3 as{TypeError,ForDynamic} core::Map<dynamic, dynamic>){(core::Map<dynamic, dynamic>) → void};
     #t31.{core::Map::addAll}{Invariant}(intMap){(core::Map<dynamic, dynamic>) → void};
   } =>#t31;
-  self::expect(col::LinkedHashMap::fromIterables<dynamic, dynamic>(core::List::generate<core::int>(12, (core::int i) → core::int => i), core::List::generate<core::int>(12, (core::int i) → core::int => 100.{core::num::+}(i){(core::num) → core::int})), map4);
+  self::expect(col::LinkedHashMap::fromIterables<dynamic, dynamic>(core::List::generate<core::int>(12, (core::int i##6) → core::int => i##6), core::List::generate<core::int>(12, (core::int i##7) → core::int => 100.{core::num::+}(i##7){(core::num) → core::int})), map4);
   {
     core::Map<core::int, core::int> intMap1 = <core::int, core::int>{0: 100, 1: 101, 2: 102};
     core::Map<core::int, core::int> intMap2 = <core::int, core::int>{3: 103, 4: 104, 5: 105};
@@ -82,7 +82,7 @@ static method useAddAll() → void {
       final core::Map<core::int, core::int> #t32 = col::LinkedHashMap::of<core::int, core::int>(intMap1);
       #t32.{core::Map::addAll}{Invariant}(intMap2){(core::Map<core::int, core::int>) → void};
     } =>#t32;
-    self::expect(col::LinkedHashMap::fromIterables<core::int, core::int>(core::List::generate<core::int>(6, (core::int i) → core::int => i), core::List::generate<core::int>(6, (core::int i) → core::int => 100.{core::num::+}(i){(core::num) → core::int})), map);
+    self::expect(col::LinkedHashMap::fromIterables<core::int, core::int>(core::List::generate<core::int>(6, (core::int i##8) → core::int => i##8), core::List::generate<core::int>(6, (core::int i##9) → core::int => 100.{core::num::+}(i##9){(core::num) → core::int})), map);
   }
 }
 static method useAddAllNullable() → void {
@@ -117,7 +117,7 @@ static method useAddAllNullable() → void {
     if(!(#t46 == null))
       #t33.{core::Map::addAll}{Invariant}(#t46{core::Map<core::int, core::int>}){(core::Map<core::int, core::int>) → void};
   } =>#t33;
-  self::expect(col::LinkedHashMap::fromIterables<core::int, core::int>(core::List::generate<core::int>(12, (core::int i) → core::int => i), core::List::generate<core::int>(12, (core::int i) → core::int => 100.{core::num::+}(i){(core::num) → core::int})), map1);
+  self::expect(col::LinkedHashMap::fromIterables<core::int, core::int>(core::List::generate<core::int>(12, (core::int i) → core::int => i), core::List::generate<core::int>(12, (core::int i##1) → core::int => 100.{core::num::+}(i##1){(core::num) → core::int})), map1);
   core::Map<core::num, core::num> map2 = block {
     final core::Map<core::num, core::num> #t47 = <core::num, core::num>{};
     final core::Map<dynamic, dynamic>? #t48 = dynamicMap1 as{TypeError,ForDynamic} core::Map<dynamic, dynamic>?;
@@ -145,7 +145,7 @@ static method useAddAllNullable() → void {
     if(!(#t60 == null))
       #t47.{core::Map::addAll}{Invariant}(#t60{core::Map<core::num, core::num>}){(core::Map<core::num, core::num>) → void};
   } =>#t47;
-  self::expect(col::LinkedHashMap::fromIterables<core::num, core::num>(core::List::generate<core::num>(12, (core::int i) → core::int => i), core::List::generate<core::num>(12, (core::int i) → core::int => 100.{core::num::+}(i){(core::num) → core::int})), map2);
+  self::expect(col::LinkedHashMap::fromIterables<core::num, core::num>(core::List::generate<core::num>(12, (core::int i##2) → core::int => i##2), core::List::generate<core::num>(12, (core::int i##3) → core::int => 100.{core::num::+}(i##3){(core::num) → core::int})), map2);
   core::Map<core::int, core::int> map3 = block {
     final core::Map<core::int, core::int> #t61 = <core::int, core::int>{};
     final core::Map<dynamic, dynamic>? #t62 = dynamicMap1 as{TypeError,ForDynamic} core::Map<dynamic, dynamic>?;
@@ -173,7 +173,7 @@ static method useAddAllNullable() → void {
     if(!(#t74 == null))
       #t61.{core::Map::addAll}{Invariant}(#t74{core::Map<core::int, core::int>}){(core::Map<core::int, core::int>) → void};
   } =>#t61;
-  self::expect(col::LinkedHashMap::fromIterables<core::int, core::int>(core::List::generate<core::int>(12, (core::int i) → core::int => i), core::List::generate<core::int>(12, (core::int i) → core::int => 100.{core::num::+}(i){(core::num) → core::int})), map3);
+  self::expect(col::LinkedHashMap::fromIterables<core::int, core::int>(core::List::generate<core::int>(12, (core::int i##4) → core::int => i##4), core::List::generate<core::int>(12, (core::int i##5) → core::int => 100.{core::num::+}(i##5){(core::num) → core::int})), map3);
   core::Map<dynamic, dynamic> map4 = block {
     final core::Map<dynamic, dynamic> #t75 = <dynamic, dynamic>{};
     final core::Map<dynamic, dynamic>? #t76 = dynamicMap1 as{TypeError,ForDynamic} core::Map<dynamic, dynamic>?;
@@ -189,7 +189,7 @@ static method useAddAllNullable() → void {
     if(!(#t79 == null))
       #t75.{core::Map::addAll}{Invariant}(#t79{core::Map<dynamic, dynamic>}){(core::Map<dynamic, dynamic>) → void};
   } =>#t75;
-  self::expect(col::LinkedHashMap::fromIterables<dynamic, dynamic>(core::List::generate<core::int>(12, (core::int i) → core::int => i), core::List::generate<core::int>(12, (core::int i) → core::int => 100.{core::num::+}(i){(core::num) → core::int})), map4);
+  self::expect(col::LinkedHashMap::fromIterables<dynamic, dynamic>(core::List::generate<core::int>(12, (core::int i##6) → core::int => i##6), core::List::generate<core::int>(12, (core::int i##7) → core::int => 100.{core::num::+}(i##7){(core::num) → core::int})), map4);
 }
 static method main() → dynamic {
   self::useAddAll();

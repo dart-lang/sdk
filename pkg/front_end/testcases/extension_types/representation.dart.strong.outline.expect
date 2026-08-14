@@ -54,7 +54,7 @@ static extension-type-member method Multiple|constructor#(initializing-formal co
   ;
 static extension-type-member synthetic method Multiple|constructor#_#new#tearOff(core::bool instanceField1, core::int instanceField2) → self::Multiple% /* erasure=core::bool, declared=! */
   return self::Multiple|constructor#(instanceField1, instanceField2);
-static extension-type-member method Duplicate|constructor#(initializing-formal core::bool instanceField, initializing-formal core::bool instanceField) → self::Duplicate% /* erasure=core::bool, declared=! */
+static extension-type-member method Duplicate|constructor#(initializing-formal core::bool instanceField, initializing-formal core::bool instanceField##1) → self::Duplicate% /* erasure=core::bool, declared=! */
   ;
-static extension-type-member synthetic method Duplicate|constructor#_#new#tearOff(core::bool instanceField, core::bool instanceField) → self::Duplicate% /* erasure=core::bool, declared=! */
-  return self::Duplicate|constructor#(instanceField, instanceField);
+static extension-type-member synthetic method Duplicate|constructor#_#new#tearOff(core::bool instanceField, core::bool instanceField##1) → self::Duplicate% /* erasure=core::bool, declared=! */
+  return self::Duplicate|constructor#(instanceField, instanceField##1);

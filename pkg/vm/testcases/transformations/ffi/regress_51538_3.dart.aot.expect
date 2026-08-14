@@ -27,12 +27,12 @@ static method main() → void async /* emittedValueType= void */ {
     final synthesized asy::Future<core::bool> :expressionValueWrappedFinalizable = self::hasMore();
     _in::reachabilityFence(element);
   } =>:expressionValueWrappedFinalizable; element = block {
-    final synthesized self::Foo :expressionValueWrappedFinalizable = await block {
-      final synthesized asy::Future<self::Foo> :expressionValueWrappedFinalizable = self::nextElement();
+    final synthesized self::Foo :expressionValueWrappedFinalizable##1 = await block {
+      final synthesized asy::Future<self::Foo> :expressionValueWrappedFinalizable##2 = self::nextElement();
       _in::reachabilityFence(element);
-    } =>:expressionValueWrappedFinalizable;
+    } =>:expressionValueWrappedFinalizable##2;
     _in::reachabilityFence(element);
-  } =>:expressionValueWrappedFinalizable) {
+  } =>:expressionValueWrappedFinalizable##1) {
     core::print(element);
     _in::reachabilityFence(element);
   }

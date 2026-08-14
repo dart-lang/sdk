@@ -46,12 +46,12 @@ static method foo<X extends core::Object? = dynamic>(core::bool not, self::foo::
   if(!(c is self::C))
     return;
   {
-    self::foo::X% v1 = c{self::foo::X% & self::C /* '%' & '!' = '!' */};
-    self::C v2 = c{self::foo::X% & self::C /* '%' & '!' = '!' */};
+    self::foo::X% v1##1 = c{self::foo::X% & self::C /* '%' & '!' = '!' */};
+    self::C v2##1 = c{self::foo::X% & self::C /* '%' & '!' = '!' */};
   }
   self::foo::X% bc = not ?{self::foo::X%} b{self::foo::X% & self::B /* '%' & '!' = '!' */} : c{self::foo::X% & self::C /* '%' & '!' = '!' */};
   {
-    self::foo::X% v1 = bc;
+    self::foo::X% v1##2 = bc;
     if(not) {
       bc = 0 as self::foo::X%;
       throw "never got here, never go back";

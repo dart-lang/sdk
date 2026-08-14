@@ -46,9 +46,9 @@ static method main() → dynamic async /* emittedValueType= dynamic */ {
   {
     synthesized core::Iterator<dynamic> :sync-for-iterator = ((f_sync_star(){() → core::int} as dynamic) as{TypeError,ForDynamic} core::Iterable<dynamic>).{core::Iterable::iterator}{core::Iterator<dynamic>};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      dynamic x = :sync-for-iterator.{core::Iterator::current}{dynamic};
+      dynamic x##1 = :sync-for-iterator.{core::Iterator::current}{dynamic};
       {
-        core::print(x);
+        core::print(x##1);
       }
     }
   }

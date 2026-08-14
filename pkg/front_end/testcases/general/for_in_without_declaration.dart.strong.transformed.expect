@@ -85,72 +85,72 @@ class C extends self::Super {
       }
     }
     {
-      synthesized core::Iterator<dynamic> :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final dynamic #t2 = :sync-for-iterator.{core::Iterator::current}{dynamic};
+      synthesized core::Iterator<dynamic> :sync-for-iterator##1 = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>};
+      for (; :sync-for-iterator##1.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final dynamic #t2 = :sync-for-iterator##1.{core::Iterator::current}{dynamic};
         {
           untypedLocal = #t2;
         }
       }
     }
     {
-      synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::•<core::int>(0).{core::Iterable::iterator}{core::Iterator<core::int>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::int #t3 = :sync-for-iterator.{core::Iterator::current}{core::int};
+      synthesized core::Iterator<core::int> :sync-for-iterator##2 = core::_GrowableList::•<core::int>(0).{core::Iterable::iterator}{core::Iterator<core::int>};
+      for (; :sync-for-iterator##2.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::int #t3 = :sync-for-iterator##2.{core::Iterator::current}{core::int};
         {
           this.{self::C::instanceField} = #t3;
         }
       }
     }
     {
-      synthesized core::Iterator<dynamic> :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final dynamic #t4 = :sync-for-iterator.{core::Iterator::current}{dynamic};
+      synthesized core::Iterator<dynamic> :sync-for-iterator##3 = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>};
+      for (; :sync-for-iterator##3.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final dynamic #t4 = :sync-for-iterator##3.{core::Iterator::current}{dynamic};
         {
           this.{self::C::untypedInstanceField} = #t4;
         }
       }
     }
     {
-      synthesized core::Iterator<core::double> :sync-for-iterator = core::_GrowableList::•<core::double>(0).{core::Iterable::iterator}{core::Iterator<core::double>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::double #t5 = :sync-for-iterator.{core::Iterator::current}{core::double};
+      synthesized core::Iterator<core::double> :sync-for-iterator##4 = core::_GrowableList::•<core::double>(0).{core::Iterable::iterator}{core::Iterator<core::double>};
+      for (; :sync-for-iterator##4.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::double #t5 = :sync-for-iterator##4.{core::Iterator::current}{core::double};
         {
           self::C::staticField = #t5;
         }
       }
     }
     {
-      synthesized core::Iterator<dynamic> :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final dynamic #t6 = :sync-for-iterator.{core::Iterator::current}{dynamic};
+      synthesized core::Iterator<dynamic> :sync-for-iterator##5 = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>};
+      for (; :sync-for-iterator##5.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final dynamic #t6 = :sync-for-iterator##5.{core::Iterator::current}{dynamic};
         {
           self::C::untypedStaticField = #t6;
         }
       }
     }
     {
-      synthesized core::Iterator<core::bool> :sync-for-iterator = core::_GrowableList::•<core::bool>(0).{core::Iterable::iterator}{core::Iterator<core::bool>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final core::bool #t7 = :sync-for-iterator.{core::Iterator::current}{core::bool};
+      synthesized core::Iterator<core::bool> :sync-for-iterator##6 = core::_GrowableList::•<core::bool>(0).{core::Iterable::iterator}{core::Iterator<core::bool>};
+      for (; :sync-for-iterator##6.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final core::bool #t7 = :sync-for-iterator##6.{core::Iterator::current}{core::bool};
         {
           self::topLevelField = #t7;
         }
       }
     }
     {
-      synthesized core::Iterator<dynamic> :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final dynamic #t8 = :sync-for-iterator.{core::Iterator::current}{dynamic};
+      synthesized core::Iterator<dynamic> :sync-for-iterator##7 = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>};
+      for (; :sync-for-iterator##7.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final dynamic #t8 = :sync-for-iterator##7.{core::Iterator::current}{dynamic};
         {
           self::untypedTopLevelField = #t8;
         }
       }
     }
     {
-      synthesized core::Iterator<dynamic> :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final dynamic #t9 = :sync-for-iterator.{core::Iterator::current}{dynamic};
+      synthesized core::Iterator<dynamic> :sync-for-iterator##8 = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>};
+      for (; :sync-for-iterator##8.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final dynamic #t9 = :sync-for-iterator##8.{core::Iterator::current}{dynamic};
         {
           invalid-expression "pkg/front_end/testcases/general/for_in_without_declaration.dart:32:16: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -160,9 +160,9 @@ Try using an existing variable or a variable declaration.
       }
     }
     {
-      synthesized core::Iterator<dynamic> :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final dynamic #t10 = :sync-for-iterator.{core::Iterator::current}{dynamic};
+      synthesized core::Iterator<dynamic> :sync-for-iterator##9 = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>};
+      for (; :sync-for-iterator##9.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final dynamic #t10 = :sync-for-iterator##9.{core::Iterator::current}{dynamic};
         {
           invalid-expression "pkg/front_end/testcases/general/for_in_without_declaration.dart:33:16: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -173,9 +173,9 @@ Try using an existing variable or a variable declaration.
     }
     self::C c = new self::C::•();
     {
-      synthesized core::Iterator<dynamic> :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final dynamic #t11 = :sync-for-iterator.{core::Iterator::current}{dynamic};
+      synthesized core::Iterator<dynamic> :sync-for-iterator##10 = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>};
+      for (; :sync-for-iterator##10.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final dynamic #t11 = :sync-for-iterator##10.{core::Iterator::current}{dynamic};
         {
           invalid-expression "pkg/front_end/testcases/general/for_in_without_declaration.dart:35:12: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -185,9 +185,9 @@ Try using an existing variable or a variable declaration.
       }
     }
     {
-      synthesized core::Iterator<dynamic> :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final dynamic #t12 = :sync-for-iterator.{core::Iterator::current}{dynamic};
+      synthesized core::Iterator<dynamic> :sync-for-iterator##11 = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>};
+      for (; :sync-for-iterator##11.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final dynamic #t12 = :sync-for-iterator##11.{core::Iterator::current}{dynamic};
         {
           invalid-expression "pkg/front_end/testcases/general/for_in_without_declaration.dart:36:12: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -197,9 +197,9 @@ Try using an existing variable or a variable declaration.
       }
     }
     {
-      synthesized core::Iterator<dynamic> :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final dynamic #t13 = :sync-for-iterator.{core::Iterator::current}{dynamic};
+      synthesized core::Iterator<dynamic> :sync-for-iterator##12 = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>};
+      for (; :sync-for-iterator##12.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final dynamic #t13 = :sync-for-iterator##12.{core::Iterator::current}{dynamic};
         {
           invalid-expression "pkg/front_end/testcases/general/for_in_without_declaration.dart:37:10: Error: The setter 'unresolved' isn't defined for the type 'C'.
  - 'C' is from 'pkg/front_end/testcases/general/for_in_without_declaration.dart'.
@@ -210,9 +210,9 @@ Try correcting the name to the name of an existing setter, or defining a setter 
       }
     }
     {
-      synthesized core::Iterator<dynamic> :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final dynamic #t14 = :sync-for-iterator.{core::Iterator::current}{dynamic};
+      synthesized core::Iterator<dynamic> :sync-for-iterator##13 = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>};
+      for (; :sync-for-iterator##13.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final dynamic #t14 = :sync-for-iterator##13.{core::Iterator::current}{dynamic};
         {
           invalid-expression "pkg/front_end/testcases/general/for_in_without_declaration.dart:38:21: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -222,9 +222,9 @@ Try using an existing variable or a variable declaration.
       }
     }
     {
-      synthesized core::Iterator<dynamic> :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final dynamic #t15 = :sync-for-iterator.{core::Iterator::current}{dynamic};
+      synthesized core::Iterator<dynamic> :sync-for-iterator##14 = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>};
+      for (; :sync-for-iterator##14.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final dynamic #t15 = :sync-for-iterator##14.{core::Iterator::current}{dynamic};
         {
           invalid-expression "pkg/front_end/testcases/general/for_in_without_declaration.dart:39:12: Error: The element in a for-in loop must be an identifier or a local variable declaration.
 Try using an existing variable or a variable declaration.
@@ -238,9 +238,9 @@ Try using an existing variable or a variable declaration.
     for (main() in []) {}
          ^^^^";
       {
-        synthesized core::Iterator<dynamic> :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>};
-        for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-          final dynamic #t16 = :sync-for-iterator.{core::Iterator::current}{dynamic};
+        synthesized core::Iterator<dynamic> :sync-for-iterator##15 = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>};
+        for (; :sync-for-iterator##15.{core::Iterator::moveNext}(){() → core::bool}; ) {
+          final dynamic #t16 = :sync-for-iterator##15.{core::Iterator::current}{dynamic};
           {
             self::main();
           }
@@ -252,9 +252,9 @@ Try using an existing variable or a variable declaration.
     for (var x, y in <int>[]) {
          ^^^";
       {
-        synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::•<core::int>(0).{core::Iterable::iterator}{core::Iterator<core::int>};
-        for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-          final core::int #t17 = :sync-for-iterator.{core::Iterator::current}{core::int};
+        synthesized core::Iterator<core::int> :sync-for-iterator##16 = core::_GrowableList::•<core::int>(0).{core::Iterable::iterator}{core::Iterator<core::int>};
+        for (; :sync-for-iterator##16.{core::Iterator::moveNext}(){() → core::bool}; ) {
+          final core::int #t17 = :sync-for-iterator##16.{core::Iterator::current}{core::int};
           {
             dynamic x;
             dynamic y;
@@ -266,9 +266,9 @@ Try using an existing variable or a variable declaration.
     }
     const core::int constant = #C1;
     {
-      synthesized core::Iterator<dynamic> :sync-for-iterator = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        final dynamic #t18 = :sync-for-iterator.{core::Iterator::current}{dynamic};
+      synthesized core::Iterator<dynamic> :sync-for-iterator##17 = core::_GrowableList::•<dynamic>(0).{core::Iterable::iterator}{core::Iterator<dynamic>};
+      for (; :sync-for-iterator##17.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        final dynamic #t18 = :sync-for-iterator##17.{core::Iterator::current}{dynamic};
         {
           invalid-expression "pkg/front_end/testcases/general/for_in_without_declaration.dart:46:10: Error: Can't assign to the const variable 'constant'.
     for (constant in []) {}

@@ -7,9 +7,9 @@ static method main() → void {
     let core::int p = #t1 in let dynamic #t2 = 1 in p;
   } =>#t1;
   let final core::int #t3 = 1 in block {
-    let core::int p = #t3 in let dynamic #t4 = p in p;
+    let core::int p##1 = #t3 in let dynamic #t4 = p##1 in p##1;
   } =>#t3;
   let final core::int #t5 = 1 in block {
-    let core::int p = #t5 in let dynamic #t6 = p.{core::int::isEven}{core::bool} in p;
+    let core::int p##2 = #t5 in let dynamic #t6 = p##2.{core::int::isEven}{core::bool} in p##2;
   } =>#t5;
 }

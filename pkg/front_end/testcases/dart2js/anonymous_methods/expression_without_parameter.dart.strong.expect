@@ -9,18 +9,18 @@ static method main() → void {
     #t1 = 1;
   }
   {
-    final synthesized core::int anonymous#this = 1;
+    final synthesized core::int anonymous#this##1 = 1;
     core::int #t2;
-    #t2 = anonymous#this;
+    #t2 = anonymous#this##1;
   }
   {
-    final synthesized core::int anonymous#this = 1;
+    final synthesized core::int anonymous#this##2 = 1;
     core::bool #t3;
-    #t3 = anonymous#this.{core::int::isEven}{core::bool};
+    #t3 = anonymous#this##2.{core::int::isEven}{core::bool};
   }
   {
-    final synthesized core::int anonymous#this = 1;
+    final synthesized core::int anonymous#this##3 = 1;
     core::bool #t4;
-    #t4 = anonymous#this.{core::int::isEven}{core::bool};
+    #t4 = anonymous#this##3.{core::int::isEven}{core::bool};
   }
 }

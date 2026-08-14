@@ -118,8 +118,8 @@ No types are needed, the first is given by 'on', the second is always 'StackTrac
   }
   {
     final core::List<core::int> #t1 = core::_GrowableList::•<core::int>(0);
-    for (core::int i = 0; i.{core::num::<}(10){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int})
-      #t1.{core::List::add}{Invariant}(i){(core::int) → void};
+    for (core::int i##1 = 0; i##1.{core::num::<}(10){(core::num) → core::bool}; i##1 = i##1.{core::num::+}(1){(core::num) → core::int})
+      #t1.{core::List::add}{Invariant}(i##1){(core::int) → void};
   }
 }
 static method hest() → dynamic async /* emittedValueType= dynamic */ {

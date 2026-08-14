@@ -30,7 +30,7 @@ static method main() → void {
   {
     synthesized core::Iterator<core::int> :sync-for-iterator = [@vm.direct-call.metadata=dart.core::_GrowableList.iterator] [@vm.inferred-type.metadata=dart._internal::ListIterator<dart.core::int>] [@vm.inferred-type.metadata=dart.core::_GrowableList<dart.core::int>] core::_GrowableList::_literal3<core::int>(1, 2, 3).{core::Iterable::iterator}{core::Iterator<core::int>};
     for (; [@vm.direct-call.metadata=dart._internal::ListIterator.moveNext] [@vm.inferred-type.metadata=dart.core::bool (skip check)] :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-      final core::int i = [@vm.direct-call.metadata=dart._internal::ListIterator.current] :sync-for-iterator.{core::Iterator::current}{core::int};
+      final core::int i##1 = [@vm.direct-call.metadata=dart._internal::ListIterator.current] :sync-for-iterator.{core::Iterator::current}{core::int};
       {
         self::Foo? :foo3:finalizableValue;
         late self::Foo foo3;

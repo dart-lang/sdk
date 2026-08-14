@@ -18,8 +18,8 @@ static method main() → void {
     f(core::_GrowableList::_literal1<core::Map<core::int, core::String>>(<core::int, core::String>{y: x})){(core::List<core::Map<core::int, core::String>>) → void};
   }
   {
-    function f(core::int x) → core::int
+    function f##1(core::int x##1) → core::int
       return 0;
-    self::A<core::int> a = new self::A::•<core::int>(f);
+    self::A<core::int> a = new self::A::•<core::int>(f##1);
   }
 }

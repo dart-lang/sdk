@@ -4,9 +4,9 @@ import "dart:core" as core;
 
 static method main() → void {
   let final synthesized core::int anonymous#this = 1 in 1;
-  let final synthesized core::int anonymous#this = 1 in anonymous#this;
-  let final synthesized core::int anonymous#this = 1 in anonymous#this.{core::int::isEven}{core::bool};
-  let final synthesized core::int anonymous#this = 1 in anonymous#this.{core::int::isEven}{core::bool};
+  let final synthesized core::int anonymous#this##1 = 1 in anonymous#this##1;
+  let final synthesized core::int anonymous#this##2 = 1 in anonymous#this##2.{core::int::isEven}{core::bool};
+  let final synthesized core::int anonymous#this##3 = 1 in anonymous#this##3.{core::int::isEven}{core::bool};
 }
 
 

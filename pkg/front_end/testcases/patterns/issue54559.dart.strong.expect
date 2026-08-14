@@ -7,11 +7,11 @@ static method main() → void {
   {
     final synthesized core::String #0#0 = fooValue{core::String};
     {
-      final hoisted core::String fooValue;
+      final hoisted core::String fooValue##1;
       if(#0#0 is core::String) {
-        fooValue = #0#0;
+        fooValue##1 = #0#0;
         {
-          core::print(fooValue);
+          core::print(fooValue##1);
         }
       }
     }
@@ -20,12 +20,12 @@ static method main() → void {
     final synthesized core::String #1#0 = fooValue{core::String};
     {
       final hoisted core::String barValue;
-      hoisted core::String fooValue;
+      hoisted core::String fooValue##2;
       if(#1#0 is core::String && (let final dynamic #t1 = barValue = #1#0 in true) && #1#0 is core::String) {
-        fooValue = #1#0;
+        fooValue##2 = #1#0;
         {
           core::print(barValue);
-          core::print(fooValue);
+          core::print(fooValue##2);
         }
       }
     }
@@ -36,10 +36,10 @@ static method main() → void {
     #L1:
     {
       {
-        hoisted core::String fooValue;
+        hoisted core::String fooValue##3;
         if(#2#0 is core::String) {
-          fooValue = #2#0;
-          #t2 = fooValue;
+          fooValue##3 = #2#0;
+          #t2 = fooValue##3;
           break #L1;
         }
       }
@@ -54,10 +54,10 @@ static method main() → void {
   {
     final synthesized core::String #3#0 = fooValue{core::String};
     {
-      hoisted core::String fooValue;
-      if(#3#0 is core::String && (let final dynamic #t3 = fooValue = #3#0 in true)) {
+      hoisted core::String fooValue##4;
+      if(#3#0 is core::String && (let final dynamic #t3 = fooValue##4 = #3#0 in true)) {
         {
-          core::print(fooValue);
+          core::print(fooValue##4);
         }
       }
     }
