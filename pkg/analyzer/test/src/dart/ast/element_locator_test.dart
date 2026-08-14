@@ -1402,6 +1402,23 @@ dart:core
 ''');
   }
 
+  test_locate_IndexAssignmentTarget() async {
+    var result = await resolveTestCode(r'''
+class A {
+  void operator []=(int index, num value) {}
+}
+
+void f(A a) {
+  a[0] = 1;
+}
+''');
+    var node = result.findNode.directAssignment('[0] = 1').target;
+    var element = ElementLocatorV2.locate(node);
+    _assertElement(element, r'''
+<testLibrary>::@class::A::@method::[]=
+''');
+  }
+
   test_locate_IndexExpression() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 void main() {

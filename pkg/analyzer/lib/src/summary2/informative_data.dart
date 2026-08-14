@@ -2048,6 +2048,13 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitIndexAssignmentTarget(IndexAssignmentTarget node) {
+    _tokenOrNull(node.leftBracket);
+    _tokenOrNull(node.rightBracket);
+    super.visitIndexAssignmentTarget(node);
+  }
+
+  @override
   void visitIndexExpression(IndexExpression node) {
     _tokenOrNull(node.leftBracket);
     _tokenOrNull(node.rightBracket);

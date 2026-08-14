@@ -13,6 +13,7 @@ import 'package:analyzer/src/dart/ast/ast.dart'
     show
         AssignmentTargetImpl,
         GetterInvocationResolutionImpl,
+        IndexAssignmentTargetImpl,
         IncrementOrDecrementExpressionImpl,
         InvalidExpressionAssignmentTargetImpl,
         PropertyAssignmentTargetImpl,
@@ -116,9 +117,11 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
   final Map<VariableElement, int> locals = {};
   late final oneArgument = ir.encodeArgumentNames([null]);
   late final twoArguments = ir.encodeArgumentNames([null, null]);
+  late final threeArguments = ir.encodeArgumentNames([null, null, null]);
   late final null_ = ir.encodeLiteral(null);
   late final one = ir.encodeLiteral(1);
   late final stackIndices101 = ir.encodeStackIndices(const [1, 0, 1]);
+  late final stackIndices2012 = ir.encodeStackIndices(const [2, 0, 1, 2]);
 
   _AstToIRVisitor({
     required this.typeProvider,
@@ -457,6 +460,8 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
     var target = node.target as AssignmentTargetImpl;
     late _LValueTemplates lValueTemplates;
     switch (target) {
+      case IndexAssignmentTargetImpl():
+        throw StateError('Index compound assignment is not migrated.');
       case InvalidExpressionAssignmentTargetImpl():
         throw UnimplementedError('Invalid expression assignment target');
       case PropertyAssignmentTargetImpl():
@@ -521,6 +526,8 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
     var target = node.target as AssignmentTargetImpl;
     late _LValueTemplates lValueTemplates;
     switch (target) {
+      case IndexAssignmentTargetImpl():
+        lValueTemplates = _indexAssignmentTarget(target);
       case InvalidExpressionAssignmentTargetImpl():
         throw UnimplementedError('Invalid expression assignment target');
       case PropertyAssignmentTargetImpl():
@@ -704,6 +711,8 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
     var target = node.target as AssignmentTargetImpl;
     late _LValueTemplates lValueTemplates;
     switch (target) {
+      case IndexAssignmentTargetImpl():
+        throw StateError('Index if-null assignment is not migrated.');
       case InvalidExpressionAssignmentTargetImpl():
         throw UnimplementedError('Invalid expression assignment target');
       case PropertyAssignmentTargetImpl():
@@ -1153,6 +1162,21 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
     }
   }
 
+  _LValueTemplates _indexAssignmentTarget(IndexAssignmentTarget node) {
+    dispatchNode(node.receiver);
+    dispatchNode(node.index);
+    var writeElement = switch (node.write) {
+      MethodIndexWriteResolution(:var element) => element,
+      DynamicIndexWriteResolution() => null,
+      InvalidIndexWriteResolution() => throw UnimplementedError(
+        'Invalid index assignment target',
+      ),
+      null => null,
+      _ => throw StateError('Unexpected index write resolution'),
+    };
+    return _IndexAssignmentTemplates(writeElement: writeElement);
+  }
+
   _LValueTemplates _propertyAssignmentTarget(PropertyAssignmentTarget node) {
     dispatchNode(node.receiver);
     var readElement = switch (node.read) {
@@ -1240,6 +1264,40 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
     lValueTemplates.write(this);
     // Stack: newValue
     eventListener.onExitNode();
+  }
+}
+
+/// Instruction templates for an indexed assignment target.
+class _IndexAssignmentTemplates extends _LValueTemplates {
+  final MethodElement? writeElement;
+
+  _IndexAssignmentTemplates({required this.writeElement})
+    : super(subexpressionCount: 2);
+
+  @override
+  void readForCompoundAssignment(_AstToIRVisitor visitor) {
+    throw StateError('Index compound assignment is not migrated.');
+  }
+
+  @override
+  void readForPostfixIncDec(_AstToIRVisitor visitor) {
+    throw StateError('Index increment and decrement are not migrated.');
+  }
+
+  @override
+  void simpleRead(_AstToIRVisitor visitor) {
+    throw StateError('IndexAssignmentTarget cannot be read as an expression.');
+  }
+
+  @override
+  void write(_AstToIRVisitor visitor) {
+    // Stack: receiver index value
+    visitor.ir.shuffle(3, visitor.stackIndices2012);
+    // Stack: value receiver index value
+    visitor.instanceCall(writeElement, '[]=', [], visitor.threeArguments);
+    // Stack: value returnValue
+    visitor.ir.drop();
+    // Stack: value
   }
 }
 

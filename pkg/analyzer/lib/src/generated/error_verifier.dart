@@ -650,8 +650,8 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   @override
   void visitCompoundAssignment(covariant CompoundAssignmentImpl node) {
     switch (node.target) {
+      case IndexAssignmentTargetImpl():
       case InvalidExpressionAssignmentTargetImpl():
-        break;
       case PropertyAssignmentTargetImpl():
         break;
       case UnqualifiedNameAssignmentTargetImpl target:
@@ -1511,6 +1511,8 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       return;
     }
     switch (target) {
+      case IndexAssignmentTargetImpl():
+        throw StateError('Index if-null assignment is not migrated.');
       case PropertyAssignmentTargetImpl(:var read):
         if (read case NamedReadResolutionImpl(:var type)) {
           _checkForDeadNullCoalesce(type, node.value);

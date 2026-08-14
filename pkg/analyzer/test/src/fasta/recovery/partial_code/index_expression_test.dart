@@ -37,16 +37,27 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: AssignmentExpression
-                  leftHandSide2: IndexExpression
-                    target2: SimpleIdentifier
+                expression2: DirectAssignment
+                  target: IndexAssignmentTarget
+                    receiver: SimpleIdentifier
                       token: intList
                     leftBracket: [
-                    index2: SimpleIdentifier
+                    index: SimpleIdentifier
                       token: <empty> <synthetic>
                     rightBracket: ]
                   operator: =
-                  rightHandSide2: IntegerLiteral
+                  value: IntegerLiteral
+                    literal: 0
+                expression(v1): AssignmentExpression
+                  leftHandSide: IndexExpression
+                    target: SimpleIdentifier
+                      token: intList
+                    leftBracket: [
+                    index: SimpleIdentifier
+                      token: <empty> <synthetic>
+                    rightBracket: ]
+                  operator: =
+                  rightHandSide: IntegerLiteral
                     literal: 0
                 semicolon: ;
             rightBracket: }
@@ -74,16 +85,27 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: AssignmentExpression
-                  leftHandSide2: IndexExpression
-                    target2: SimpleIdentifier
+                expression2: DirectAssignment
+                  target: IndexAssignmentTarget
+                    receiver: SimpleIdentifier
                       token: intList
                     leftBracket: [
-                    index2: SimpleIdentifier
+                    index: SimpleIdentifier
                       token: <empty> <synthetic>
                     rightBracket: ]
                   operator: =
-                  rightHandSide2: IntegerLiteral
+                  value: IntegerLiteral
+                    literal: 0
+                expression(v1): AssignmentExpression
+                  leftHandSide: IndexExpression
+                    target: SimpleIdentifier
+                      token: intList
+                    leftBracket: [
+                    index: SimpleIdentifier
+                      token: <empty> <synthetic>
+                    rightBracket: ]
+                  operator: =
+                  rightHandSide: IntegerLiteral
                     literal: 0
                 semicolon: ;
             rightBracket: }
@@ -111,16 +133,27 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: AssignmentExpression
-                  leftHandSide2: IndexExpression
-                    target2: SimpleIdentifier
+                expression2: DirectAssignment
+                  target: IndexAssignmentTarget
+                    receiver: SimpleIdentifier
                       token: intList
                     leftBracket: [
-                    index2: SimpleIdentifier
+                    index: SimpleIdentifier
                       token: x
                     rightBracket: ]
                   operator: =
-                  rightHandSide2: IntegerLiteral
+                  value: IntegerLiteral
+                    literal: 0
+                expression(v1): AssignmentExpression
+                  leftHandSide: IndexExpression
+                    target: SimpleIdentifier
+                      token: intList
+                    leftBracket: [
+                    index: SimpleIdentifier
+                      token: x
+                    rightBracket: ]
+                  operator: =
+                  rightHandSide: IntegerLiteral
                     literal: 0
                 semicolon: ;
             rightBracket: }
@@ -148,16 +181,27 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: AssignmentExpression
-                  leftHandSide2: IndexExpression
-                    target2: SimpleIdentifier
+                expression2: DirectAssignment
+                  target: IndexAssignmentTarget
+                    receiver: SimpleIdentifier
                       token: intList
                     leftBracket: [
-                    index2: SimpleIdentifier
+                    index: SimpleIdentifier
                       token: x
                     rightBracket: ]
                   operator: =
-                  rightHandSide2: IntegerLiteral
+                  value: IntegerLiteral
+                    literal: 0
+                expression(v1): AssignmentExpression
+                  leftHandSide: IndexExpression
+                    target: SimpleIdentifier
+                      token: intList
+                    leftBracket: [
+                    index: SimpleIdentifier
+                      token: x
+                    rightBracket: ]
+                  operator: =
+                  rightHandSide: IntegerLiteral
                     literal: 0
                 semicolon: ;
             rightBracket: }
@@ -185,16 +229,27 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: AssignmentExpression
-                  leftHandSide2: IndexExpression
-                    target2: SimpleIdentifier
+                expression2: DirectAssignment
+                  target: IndexAssignmentTarget
+                    receiver: SimpleIdentifier
                       token: intList
                     leftBracket: [
-                    index2: SimpleIdentifier
+                    index: SimpleIdentifier
                       token: x
                     rightBracket: ]
                   operator: =
-                  rightHandSide2: IntegerLiteral
+                  value: IntegerLiteral
+                    literal: 0
+                expression(v1): AssignmentExpression
+                  leftHandSide: IndexExpression
+                    target: SimpleIdentifier
+                      token: intList
+                    leftBracket: [
+                    index: SimpleIdentifier
+                      token: x
+                    rightBracket: ]
+                  operator: =
+                  rightHandSide: IntegerLiteral
                     literal: 0
                 semicolon: ;
             rightBracket: }

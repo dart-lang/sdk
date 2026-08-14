@@ -589,24 +589,23 @@ void f(Never x) {
 }
 ''');
 
-    var node = result.findNode.assignment('x[0]');
+    var node = result.findNode.directAssignment('x[0]');
     assertResolvedNodeText(node, r'''
-AssignmentExpression
-  leftHandSide2: IndexExpression
-    target2: SimpleIdentifier
+DirectAssignment
+  target: IndexAssignmentTarget
+    receiver: SimpleIdentifier
       token: x
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: Never
     leftBracket: [
-    index2: IntegerLiteral
+    index: IntegerLiteral
       literal: 0
       correspondingParameter: <null>
       staticType: int
     rightBracket: ]
-    element: <null>
-    staticType: null
+    write: <null>
   operator: =
-  rightHandSide2: BinaryOperatorInvocation
+  value: BinaryOperatorInvocation
     leftOperand: IntegerLiteral
       literal: 1
       staticType: int
@@ -619,7 +618,23 @@ AssignmentExpression
     binaryOperator: add
     element: dart:core::@class::num::@method::+
     staticType: int
-  rightHandSide(v1): BinaryExpression
+  staticType: Never
+V1: AssignmentExpression
+  leftHandSide: IndexExpression
+    target: SimpleIdentifier
+      token: x
+      element: <testLibrary>::@function::f::@formalParameter::x
+      staticType: Never
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      correspondingParameter: <null>
+      staticType: int
+    rightBracket: ]
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: BinaryExpression
     leftOperand: IntegerLiteral
       literal: 1
       staticType: int
@@ -634,9 +649,9 @@ AssignmentExpression
   readElement: <null>
   readType: null
   writeElement: <null>
-  writeType: InvalidType
+  writeType: null
   element: <null>
-  staticType: int
+  staticType: Never
 ''');
   }
 
@@ -736,24 +751,25 @@ void f(Never? x) {
 }
 ''');
 
-    var node = result.findNode.assignment('x[0]');
+    var node = result.findNode.directAssignment('x[0]');
     assertResolvedNodeText(node, r'''
-AssignmentExpression
-  leftHandSide2: IndexExpression
-    target2: SimpleIdentifier
+DirectAssignment
+  target: IndexAssignmentTarget
+    receiver: SimpleIdentifier
       token: x
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: Never?
     leftBracket: [
-    index2: IntegerLiteral
+    index: IntegerLiteral
       literal: 0
       correspondingParameter: <null>
       staticType: int
     rightBracket: ]
-    element: <null>
-    staticType: null
+    write: InvalidIndexWriteResolution
+      acceptedType: InvalidType
+      recovery: <null>
   operator: =
-  rightHandSide2: BinaryOperatorInvocation
+  value: BinaryOperatorInvocation
     leftOperand: IntegerLiteral
       literal: 1
       staticType: int
@@ -766,7 +782,23 @@ AssignmentExpression
     binaryOperator: add
     element: dart:core::@class::num::@method::+
     staticType: int
-  rightHandSide(v1): BinaryExpression
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: IndexExpression
+    target: SimpleIdentifier
+      token: x
+      element: <testLibrary>::@function::f::@formalParameter::x
+      staticType: Never?
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      correspondingParameter: <null>
+      staticType: int
+    rightBracket: ]
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: BinaryExpression
     leftOperand: IntegerLiteral
       literal: 1
       staticType: int

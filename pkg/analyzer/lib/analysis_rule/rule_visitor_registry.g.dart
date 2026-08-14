@@ -776,6 +776,9 @@ abstract class RuleVisitorRegistry2 {
 
   void addImportPrefixReference(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
+  @experimental
+  void addIndexAssignmentTarget(AbstractAnalysisRule rule, AstVisitor2 visitor);
+
   void addIndexExpression(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addIntegerLiteral(AbstractAnalysisRule rule, AstVisitor2 visitor);

@@ -455,6 +455,18 @@ class _ElementMapperV2 extends GeneralizingAstVisitor2<Element> {
   }
 
   @override
+  Element? visitIndexAssignmentTarget(IndexAssignmentTarget node) {
+    return switch (node.write) {
+      MethodIndexWriteResolution(:var element) => element,
+      InvalidIndexWriteResolution(
+        recovery: MethodIndexWriteResolution(:var element),
+      ) =>
+        element,
+      _ => null,
+    };
+  }
+
+  @override
   Element? visitIndexExpression(IndexExpression node) {
     return node.element;
   }

@@ -1026,6 +1026,17 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitIndexAssignmentTarget(covariant IndexAssignmentTargetImpl node) {
+    _sink.writeln('IndexAssignmentTarget');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      if (_withResolution) {
+        _writeIndexWriteResolution('write', node.write);
+      }
+    });
+  }
+
+  @override
   void visitIndexExpression(IndexExpression node) {
     _sink.writeln('IndexExpression');
     _sink.withIndent(() {
@@ -2310,6 +2321,34 @@ Expected parent: (${parent.runtimeType}) $parent
     }
   }
 
+  void _writeIndexWriteResolution(
+    String name,
+    IndexWriteResolutionImpl? resolution,
+  ) {
+    switch (resolution) {
+      case null:
+        _sink.writelnWithIndent('$name: <null>');
+      case DynamicIndexWriteResolutionImpl():
+        _sink.writelnWithIndent('$name: DynamicIndexWriteResolution');
+        _sink.withIndent(() {
+          _writeType('acceptedType', resolution.acceptedType);
+        });
+      case InvalidIndexWriteResolutionImpl(:var recovery):
+        _sink.writelnWithIndent('$name: InvalidIndexWriteResolution');
+        _sink.withIndent(() {
+          _writeType('acceptedType', resolution.acceptedType);
+          _writeIndexWriteResolution('recovery', recovery);
+        });
+      case MethodIndexWriteResolutionImpl():
+        _sink.writelnWithIndent('$name: MethodIndexWriteResolution');
+        _sink.withIndent(() {
+          _writeElement('element', resolution.element);
+          _writeType('invokeType', resolution.invokeType);
+          _writeType('acceptedType', resolution.acceptedType);
+        });
+    }
+  }
+
   void _writeMdCodeBlock(MdCodeBlock codeBlock) {
     _sink.writelnWithIndent('MdCodeBlock');
     _sink.withIndent(() {
@@ -2550,6 +2589,7 @@ Expected parent: (${parent.runtimeType}) $parent
             parent is CompoundAssignment && parent.value == node ||
             parent is DirectAssignment && parent.value == node ||
             parent is IfNullAssignment && parent.value == node ||
+            parent is IndexAssignmentTarget && parent.index == node ||
             parent is IndexExpression && parent.index2 == node) {
           _writeElement('correspondingParameter', node.correspondingParameter);
         }

@@ -2103,12 +2103,12 @@ CompilationUnit
                             leftBracket: {
                             statements
                               ExpressionStatement
-                                expression2: AssignmentExpression
-                                  leftHandSide2: IndexExpression
-                                    target2: SimpleIdentifier
+                                expression2: DirectAssignment
+                                  target: IndexAssignmentTarget
+                                    receiver: SimpleIdentifier
                                       token: result
                                     leftBracket: [
-                                    index2: ConstructorInvocation
+                                    index: ConstructorInvocation
                                       keyword: new
                                       constructorReference: ConstructorReference2
                                         typeReference: ConstructorTypeReference
@@ -2119,7 +2119,16 @@ CompilationUnit
                                           SimpleIdentifier
                                             token: name
                                         rightParenthesis: )
-                                    index(v1): InstanceCreationExpression
+                                    rightBracket: ]
+                                  operator: =
+                                  value: SimpleIdentifier
+                                    token: value
+                                expression(v1): AssignmentExpression
+                                  leftHandSide: IndexExpression
+                                    target: SimpleIdentifier
+                                      token: result
+                                    leftBracket: [
+                                    index: InstanceCreationExpression
                                       keyword: new
                                       constructorName: ConstructorName
                                         type: NamedType
@@ -2132,7 +2141,7 @@ CompilationUnit
                                         rightParenthesis: )
                                     rightBracket: ]
                                   operator: =
-                                  rightHandSide2: SimpleIdentifier
+                                  rightHandSide: SimpleIdentifier
                                     token: value
                                 semicolon: ;
                             rightBracket: }

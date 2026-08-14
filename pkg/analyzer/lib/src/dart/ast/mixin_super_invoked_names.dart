@@ -20,6 +20,14 @@ class MixinSuperInvokedNamesCollector extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitIndexAssignmentTarget(IndexAssignmentTarget node) {
+    if (node.receiver is SuperExpression) {
+      _names.add('[]=');
+    }
+    super.visitIndexAssignmentTarget(node);
+  }
+
+  @override
   void visitIndexExpression(IndexExpression node) {
     if (node.target2 is SuperExpression) {
       if (node.inGetterContext()) {

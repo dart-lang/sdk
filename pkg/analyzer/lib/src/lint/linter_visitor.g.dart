@@ -1823,6 +1823,13 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
     node.visitChildren2(this);
   }
 
+  @experimental
+  @override
+  void visitIndexAssignmentTarget(IndexAssignmentTarget node) {
+    _runSubscriptions(node, _registry._forIndexAssignmentTarget);
+    node.visitChildren2(this);
+  }
+
   @override
   void visitIndexExpression(IndexExpression node) {
     _runSubscriptions(node, _registry._forIndexExpression);
@@ -4534,6 +4541,9 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   final List<_Subscription2<ImportPrefixReference>> _forImportPrefixReference =
       [];
 
+  final List<_Subscription2<IndexAssignmentTarget>> _forIndexAssignmentTarget =
+      [];
+
   final List<_Subscription2<IndexExpression>> _forIndexExpression = [];
 
   final List<_Subscription2<IntegerLiteral>> _forIntegerLiteral = [];
@@ -5529,6 +5539,17 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   ) {
     _hasNodeProcessors = true;
     _forImportPrefixReference.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
+  }
+
+  @override
+  void addIndexAssignmentTarget(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
+    _hasNodeProcessors = true;
+    _forIndexAssignmentTarget.add(
       _Subscription2(rule, visitor, _getTimer(rule)),
     );
   }

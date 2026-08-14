@@ -1033,6 +1033,26 @@ int f(A a) {
 ''');
   }
 
+  test_method_result_indexAssignmentTarget() async {
+    await resolveTestCodeWithDiagnostics('''
+import 'package:meta/meta.dart';
+
+class A {
+  void operator []=(int index, int value) {}
+}
+
+@useResult
+A receiver() => A();
+
+@useResult
+int index() => 0;
+
+void f() {
+  receiver()[index()] = 1;
+}
+''');
+  }
+
   test_method_result_indexExpression() async {
     await resolveTestCodeWithDiagnostics('''
 import 'package:meta/meta.dart';

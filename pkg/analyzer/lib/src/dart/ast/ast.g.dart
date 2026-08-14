@@ -633,6 +633,9 @@ abstract class AstVisitor2<R> {
 
   R? visitImportPrefixReference(ImportPrefixReference node);
 
+  @experimental
+  R? visitIndexAssignmentTarget(IndexAssignmentTarget node);
+
   R? visitIndexExpression(IndexExpression node);
 
   R? visitIntegerLiteral(IntegerLiteral node);

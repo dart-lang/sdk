@@ -1200,6 +1200,11 @@ class GeneralizingAstVisitor2<R> implements AstVisitor2<R> {
   R? visitIncrementOrDecrementExpression(IncrementOrDecrementExpression node) =>
       visitExpression(node);
 
+  @experimental
+  @override
+  R? visitIndexAssignmentTarget(IndexAssignmentTarget node) =>
+      visitAssignmentTarget(node);
+
   @override
   R? visitIndexExpression(IndexExpression node) => visitExpression(node);
 
@@ -3391,6 +3396,13 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
     return null;
   }
 
+  @experimental
+  @override
+  R? visitIndexAssignmentTarget(IndexAssignmentTarget node) {
+    node.visitChildren2(this);
+    return null;
+  }
+
   @override
   R? visitIndexExpression(IndexExpression node) {
     node.visitChildren2(this);
@@ -4975,6 +4987,10 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitImportPrefixReference(ImportPrefixReference node) => null;
 
+  @experimental
+  @override
+  R? visitIndexAssignmentTarget(IndexAssignmentTarget node) => null;
+
   @override
   R? visitIndexExpression(IndexExpression node) => null;
 
@@ -6271,6 +6287,10 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitImportPrefixReference(ImportPrefixReference node) => _throw(node);
+
+  @experimental
+  @override
+  R? visitIndexAssignmentTarget(IndexAssignmentTarget node) => _throw(node);
 
   @override
   R? visitIndexExpression(IndexExpression node) => _throw(node);
@@ -8962,6 +8982,15 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
     return result;
   }
 
+  @experimental
+  @override
+  T? visitIndexAssignmentTarget(IndexAssignmentTarget node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitIndexAssignmentTarget(node);
+    stopwatch.stop();
+    return result;
+  }
+
   @override
   T? visitIndexExpression(IndexExpression node) {
     stopwatch.start();
@@ -10821,6 +10850,10 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitImportPrefixReference(ImportPrefixReference node) => visitNode(node);
+
+  @experimental
+  @override
+  R? visitIndexAssignmentTarget(IndexAssignmentTarget node) => visitNode(node);
 
   @override
   R? visitIndexExpression(IndexExpression node) => visitNode(node);

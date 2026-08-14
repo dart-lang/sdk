@@ -1592,6 +1592,12 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     }
   }
 
+  IndexWriteResolutionImpl? resolveIndexDirectAssignmentTarget(
+    IndexAssignmentTargetImpl node,
+  ) {
+    return _propertyElementResolver.resolveIndexDirectAssignmentTarget(node);
+  }
+
   PatternResult resolveMapPattern({
     required MapPatternImpl node,
     required SharedMatchContext context,
@@ -4913,15 +4919,16 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       context = parent.writeType!;
     } else if (parent is AssignmentExpression2Impl) {
       var target = parent.target;
-      var write = switch (target) {
-        PropertyAssignmentTargetImpl(:var write) => write,
-        UnqualifiedNameAssignmentTargetImpl(:var write) => write,
+      var writeType = switch (target) {
+        IndexAssignmentTargetImpl(:var write) => write?.acceptedType,
+        PropertyAssignmentTargetImpl(:var write) => write?.acceptedType,
+        UnqualifiedNameAssignmentTargetImpl(:var write) => write?.acceptedType,
         InvalidExpressionAssignmentTargetImpl() => null,
       };
-      if (write == null) {
+      if (writeType == null) {
         return;
       }
-      context = write.acceptedType;
+      context = writeType;
     } else {
       context = contextType;
     }

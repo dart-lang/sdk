@@ -856,6 +856,8 @@ class _IndexContributor extends GeneralizingAstVisitor2 {
   void visitCompoundAssignment(CompoundAssignment node) {
     recordOperatorReference(node.operator, node.element);
     switch (node.target as AssignmentTargetImpl) {
+      case IndexAssignmentTargetImpl target:
+        _recordIndexWriteTarget(target);
       case InvalidExpressionAssignmentTargetImpl():
         break;
       case PropertyAssignmentTargetImpl target:
@@ -964,6 +966,8 @@ class _IndexContributor extends GeneralizingAstVisitor2 {
   @override
   void visitDirectAssignment(DirectAssignment node) {
     switch (node.target as AssignmentTargetImpl) {
+      case IndexAssignmentTargetImpl target:
+        _recordIndexWriteTarget(target);
       case InvalidExpressionAssignmentTargetImpl():
         break;
       case PropertyAssignmentTargetImpl target:
@@ -1205,6 +1209,8 @@ class _IndexContributor extends GeneralizingAstVisitor2 {
   @override
   void visitIfNullAssignment(IfNullAssignment node) {
     switch (node.target as AssignmentTargetImpl) {
+      case IndexAssignmentTargetImpl target:
+        _recordIndexWriteTarget(target);
       case InvalidExpressionAssignmentTargetImpl():
         break;
       case PropertyAssignmentTargetImpl target:
@@ -1771,6 +1777,16 @@ class _IndexContributor extends GeneralizingAstVisitor2 {
       name,
       isQualified: importPrefix != null,
     );
+  }
+
+  void _recordIndexWriteTarget(IndexAssignmentTargetImpl target) {
+    if (target.write case MethodIndexWriteResolutionImpl(:var element)) {
+      recordRelationToken(
+        element,
+        IndexRelationKind.IS_INVOKED_BY,
+        target.leftBracket,
+      );
+    }
   }
 
   void _recordPropertyReadWriteTarget(PropertyAssignmentTargetImpl target) {

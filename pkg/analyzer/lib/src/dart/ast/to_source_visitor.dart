@@ -867,6 +867,14 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
+  void visitIndexAssignmentTarget(IndexAssignmentTarget node) {
+    _visitNode(node.receiver);
+    _visitToken(node.leftBracket);
+    _visitNode(node.index);
+    _visitToken(node.rightBracket);
+  }
+
+  @override
   void visitIndexExpression(IndexExpression node) {
     if (node.isCascaded) {
       _visitToken(node.period);

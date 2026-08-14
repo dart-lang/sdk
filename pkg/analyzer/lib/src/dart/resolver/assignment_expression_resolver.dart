@@ -139,6 +139,8 @@ class AssignmentExpressionResolver {
     late NamedReadResolutionImpl readResolution;
     late NamedWriteResolutionImpl writeResolution;
     switch (target) {
+      case IndexAssignmentTargetImpl():
+        throw StateError('Index compound assignment is not migrated.');
       case PropertyAssignmentTargetImpl():
         _resolver.analyzeExpression(
           target.receiver,
@@ -234,8 +236,55 @@ class AssignmentExpressionResolver {
       _resolveInvalidDirect(node, target);
       return;
     }
-    late NamedWriteResolutionImpl writeResolution;
+
+    late TypeImpl writeAcceptedType;
+    InternalVariableElement? variableElement;
     switch (target) {
+      case IndexAssignmentTargetImpl():
+        _resolver.analyzeExpression(
+          target.receiver,
+          SharedTypeSchemaView(UnknownInferredType.instance),
+          continueNullShorting: true,
+        );
+        target.receiver = _resolver.popRewrite()!;
+        var resolution = _resolver.resolveIndexDirectAssignmentTarget(target);
+        target.write = resolution;
+
+        _resolver.analyzeExpression(
+          target.index,
+          SharedTypeSchemaView(
+            resolution?.indexContextType ?? UnknownInferredType.instance,
+          ),
+        );
+        target.index = _resolver.popRewrite()!;
+        var whyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(
+          _resolver.flowAnalysis.getExpressionInfo(target.index),
+        );
+        var writeElement = switch (resolution) {
+          MethodIndexWriteResolutionImpl(:var element) => element,
+          InvalidIndexWriteResolutionImpl(
+            recovery: MethodIndexWriteResolutionImpl(:var element),
+          ) =>
+            element,
+          _ => null,
+        };
+        _resolver.checkIndexExpressionIndex(
+          target.index,
+          readElement: null,
+          writeElement: writeElement,
+          whyNotPromoted: whyNotPromoted,
+        );
+
+        if (resolution == null) {
+          _resolver.analyzeExpression(
+            node.value,
+            SharedTypeSchemaView(UnknownInferredType.instance),
+          );
+          node.value = _resolver.popRewrite()!;
+          node.recordStaticType(NeverTypeImpl.instance, resolver: _resolver);
+          return;
+        }
+        writeAcceptedType = resolution.acceptedType;
       case PropertyAssignmentTargetImpl():
         _resolver.analyzeExpression(
           target.receiver,
@@ -256,19 +305,23 @@ class AssignmentExpressionResolver {
           node.recordStaticType(NeverTypeImpl.instance, resolver: _resolver);
           return;
         }
-        writeResolution = resolution;
+        writeAcceptedType = resolution.acceptedType;
       case UnqualifiedNameAssignmentTargetImpl():
         var resolution = _resolver.resolveUnqualifiedNameAssignmentTarget(
           target,
         );
         target.write = resolution;
-        writeResolution = resolution;
+        writeAcceptedType = resolution.acceptedType;
+        if (resolution case VariableWriteResolutionImpl(:var element)) {
+          variableElement = element;
+        }
         _assignmentShared.checkFinalTargetAlreadyAssigned(target);
       case InvalidExpressionAssignmentTargetImpl():
         throw StateError('Handled above');
     }
-    var rhsContext = writeResolution.acceptedType;
-    if (writeResolution case VariableWriteResolutionImpl(:var element)) {
+
+    var rhsContext = writeAcceptedType;
+    if (variableElement case var element?) {
       rhsContext = _resolver.localVariableTypeProvider.getWriteType(element);
     }
 
@@ -282,16 +335,14 @@ class AssignmentExpressionResolver {
 
     node.recordStaticType(valueType, resolver: _resolver);
     _checkForInvalidAssignment(
-      writeResolution.acceptedType,
+      writeAcceptedType,
       node.value,
       valueType,
       whyNotPromoted: whyNotPromoted,
     );
 
     if (flow == null) return;
-    if (writeResolution case VariableWriteResolutionImpl(
-      element: PromotableElementImpl element,
-    )) {
+    if (variableElement case PromotableElementImpl element) {
       _resolver.flowAnalysis.storeExpressionInfo(
         node,
         flow.write(
@@ -317,6 +368,8 @@ class AssignmentExpressionResolver {
     late NamedWriteResolutionImpl writeResolution;
     ExpressionInfo? readExpressionInfo;
     switch (target) {
+      case IndexAssignmentTargetImpl():
+        throw StateError('Index if-null assignment is not migrated.');
       case PropertyAssignmentTargetImpl():
         _resolver.analyzeExpression(
           target.receiver,

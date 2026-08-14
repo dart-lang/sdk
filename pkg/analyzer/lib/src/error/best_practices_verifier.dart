@@ -367,6 +367,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
     _elementUsageFrontierDetector.directAssignment(node);
     var target = node.target;
     switch (target) {
+      case IndexAssignmentTarget():
+        break;
       case PropertyAssignmentTarget():
         _invalidAccessVerifier.verifyPropertyAssignmentTarget(target);
       case UnqualifiedNameAssignmentTarget():

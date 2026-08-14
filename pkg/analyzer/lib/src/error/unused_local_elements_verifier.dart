@@ -163,6 +163,13 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
   @override
   void visitDirectAssignment(DirectAssignment node) {
     var target = node.target;
+    if (target case IndexAssignmentTarget(
+      write: MethodIndexWriteResolution(:var element),
+    )) {
+      _useAssignmentWriteElement(element);
+      super.visitDirectAssignment(node);
+      return;
+    }
     var write = switch (target) {
       PropertyAssignmentTarget(:var write) => write,
       UnqualifiedNameAssignmentTarget(:var write) => write,
@@ -182,24 +189,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
       super.visitDirectAssignment(node);
       return;
     }
-    var element = write.element;
-    if (element is SubstitutedExecutableElementImpl) {
-      element = element.baseElement;
-    }
-
-    // A write alone does not make a local variable's value used.
-    if (element is LocalVariableElement) {
-      super.visitDirectAssignment(node);
-      return;
-    }
-
-    _useIdentifierElement(element);
-    var enclosingElement = element.enclosingElement;
-    if ((enclosingElement is InterfaceElement ||
-            enclosingElement is ExtensionElement) &&
-        !identical(element, _enclosingExec)) {
-      usedElements.members.add(element);
-    }
+    _useAssignmentWriteElement(write.element);
 
     super.visitDirectAssignment(node);
   }
@@ -533,6 +523,25 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
     for (var argument in argumentList.arguments2) {
       var parameter = argument.correspondingParameter;
       usedElements.addElement(parameter);
+    }
+  }
+
+  void _useAssignmentWriteElement(Element element) {
+    if (element is SubstitutedExecutableElementImpl) {
+      element = element.baseElement;
+    }
+
+    // A write alone does not make a local variable's value used.
+    if (element is LocalVariableElement) {
+      return;
+    }
+
+    _useIdentifierElement(element);
+    var enclosingElement = element.enclosingElement;
+    if ((enclosingElement is InterfaceElement ||
+            enclosingElement is ExtensionElement) &&
+        !identical(element, _enclosingExec)) {
+      usedElements.members.add(element);
     }
   }
 
