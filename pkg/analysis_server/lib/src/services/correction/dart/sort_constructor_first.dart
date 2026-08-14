@@ -67,7 +67,9 @@ class SortConstructorFirst extends ResolvedCorrectionProducer {
     // The constructor always starts on its own line at the insertion point,
     // using just the newline and indentation from the end of the gap (never
     // a leading blank line, even if one separated it from its previous
-    // member at its old position).
+    // member at its old position). The one exception is an enum body, where
+    // the insertion point is the boundary between the constant list and the
+    // members that follow it; see `leadingBlankLine` below.
     var lastNewline = gapText.lastIndexOf('\n');
     var newlineAndIndent = lastNewline < 0
         ? gapText
@@ -86,13 +88,25 @@ class SortConstructorFirst extends ResolvedCorrectionProducer {
     var blankLineSeparator =
         hadBlankLineBeforeOldPosition && !alreadyHasBlankLineAfter ? '\n' : '';
 
+    // For an enum, the insertion point is right after the constant list
+    // (the semicolon, or the last constant). If the file already uses blank
+    // lines to separate members (as evidenced by a blank line having
+    // separated the constructor from its own previous member), also add a
+    // blank line between the constant list and the relocated constructor,
+    // so that boundary isn't left inconsistent with the rest of the file.
+    // A class body has no such analogous boundary: the insertion point
+    // there is the opening brace, where a leading blank line is never
+    // wanted.
+    var leadingBlankLine =
+        body is BlockEnumBody && hadBlankLineBeforeOldPosition ? '\n' : '';
+
     await builder.addDartFileEdit(file, (builder) {
       builder.addDeletion(
         SourceRange(previousToken.end, nodeRange.end - previousToken.end),
       );
       builder.addSimpleInsertion(
         insertionOffset,
-        '$newlineAndIndent$nodeText$blankLineSeparator',
+        '$leadingBlankLine$newlineAndIndent$nodeText$blankLineSeparator',
       );
     });
   }

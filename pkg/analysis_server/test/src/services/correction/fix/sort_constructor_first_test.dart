@@ -194,7 +194,7 @@ class A {
 ''');
   }
 
-  Future<void> test_enum_noBlankLineAfterSemicolon() async {
+  Future<void> test_enum_blankLineAfterSemicolon() async {
     await resolveTestCode('''
 enum A {
   bar('Open'),
@@ -209,6 +209,7 @@ enum A {
 enum A {
   bar('Open'),
   baz('Accepted Provisionally');
+
   const A(this.value);
 
   final String value;
@@ -216,7 +217,7 @@ enum A {
 ''');
   }
 
-  Future<void> test_enum_blankLineMovesFromOldGapToAfterConstructor() async {
+  Future<void> test_enum_blankLineAddedAroundRelocatedConstructor() async {
     await resolveTestCode('''
 enum A {
   bar('Open'),
@@ -230,6 +231,7 @@ enum A {
 enum A {
   bar('Open'),
   baz('Accepted Provisionally');
+
   const A(this.value);
 
   final String value;
