@@ -1,3 +1,5 @@
+environment:
+  sdk: ^3.11.0
 package:analyzer/analysis_rule/analysis_rule.dart:
   AbstractAnalysisRule (class extends Object, sealed (immediate subtypes: AnalysisRule, MultiAnalysisRule)):
     canUseParsedResult (getter: bool)
@@ -6728,8 +6730,8 @@ package:analyzer/error/listener.dart:
     onDiagnostic (method: void Function(Diagnostic))
   DiagnosticReporter (class extends Object):
     new (constructor: DiagnosticReporter Function(DiagnosticListener, Source))
-    lockLevel (getter: int)
-    lockLevel= (setter: int)
+    lockLevel (getter: int, internal)
+    lockLevel= (setter: int, internal)
     source (getter: Source)
     atConstructorDeclaration (method: Diagnostic Function(ConstructorDeclaration, DiagnosticCode, {List<Object>? arguments, List<DiagnosticMessage>? contextMessages}))
     atElement2 (method: Diagnostic Function(Element, DiagnosticCode, {List<Object>? arguments, List<DiagnosticMessage>? contextMessages}))
