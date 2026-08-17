@@ -6615,6 +6615,7 @@ class AstBuilder extends StackListener {
       case ParenthesizedExpressionImpl():
       case ConstructorInvocationImpl():
       case InstanceCreationExpressionImpl():
+      case IndexExpression2Impl():
       case ThisExpressionImpl():
         return true;
       case PropertyAccessImpl(target2: var target?, operator: var operator)

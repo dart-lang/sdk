@@ -41719,9 +41719,9 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
 /// as an assignment destination.
 ///
 /// This migration slice supports ordinary `.` and `?.` receiver chains rooted
-/// at a literal, parenthesized expression, explicit instance creation, or
-/// explicit `this`. Other receiver forms and cascades remain on their existing
-/// AST shapes.
+/// at a literal, parenthesized expression, explicit instance creation,
+/// ordinary index expression, or explicit `this`. Other receiver forms and
+/// cascades remain on their existing AST shapes.
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class PropertyAssignmentTarget implements AssignmentTarget {
@@ -41931,10 +41931,11 @@ final class PropertyAssignmentTargetImpl extends AssignmentTargetImpl
 
 /// A property value selected on an explicitly written expression receiver.
 ///
-/// This migration slice supports ordinary `.` and `?.` receiver chains rooted at a
-/// literal, parenthesized expression, explicit instance creation, or explicit
-/// `this`. Other receiver forms, explicit `.call`, language versions without
-/// constructor tear-offs, and cascades remain on their existing AST shapes.
+/// This migration slice supports ordinary `.` and `?.` receiver chains rooted
+/// at a literal, parenthesized expression, explicit instance creation,
+/// ordinary index expression, or explicit `this`. Other receiver forms,
+/// explicit `.call`, language versions without constructor tear-offs, and
+/// cascades remain on their existing AST shapes.
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class PropertyExtraction implements Expression {

@@ -3359,6 +3359,95 @@ AssignmentExpression
 ''');
   }
 
+  test_propertyAccess_indexExpression_compound() async {
+    var result = await resolveTestCode(r'''
+class A {
+  B operator [](int index) => B();
+}
+
+class B {
+  int get x => 0;
+  set x(num _) {}
+}
+
+void f(A a) {
+  a[0].x += 2;
+}
+''');
+
+    var node = result.findNode.compoundAssignment('x += 2');
+    assertResolvedNodeText(node, r'''
+CompoundAssignment
+  target: PropertyAssignmentTarget
+    receiver: IndexExpression2
+      receiver: SimpleIdentifier
+        token: a
+        element: <testLibrary>::@function::f::@formalParameter::a
+        staticType: A
+      leftBracket: [
+      index: IntegerLiteral
+        literal: 0
+        correspondingParameter: <testLibrary>::@class::A::@method::[]::@formalParameter::index
+        staticType: int
+      rightBracket: ]
+      resolution: MethodIndexReadResolution
+        element: <testLibrary>::@class::A::@method::[]
+        invokeType: B Function(int)
+        type: B
+      staticType: B
+    operator: .
+    propertyName: x
+    read: GetterInvocationResolution
+      element: <testLibrary>::@class::B::@getter::x
+      invokeType: int Function()
+      type: int
+    write: SetterInvocationResolution
+      element: <testLibrary>::@class::B::@setter::x
+      acceptedType: num
+  operator: +=
+  value: IntegerLiteral
+    literal: 2
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+    staticType: int
+  binaryOperator: add
+  element: dart:core::@class::num::@method::+
+  operatorResultType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: IndexExpression
+      target: SimpleIdentifier
+        token: a
+        element: <testLibrary>::@function::f::@formalParameter::a
+        staticType: A
+      leftBracket: [
+      index: IntegerLiteral
+        literal: 0
+        correspondingParameter: <testLibrary>::@class::A::@method::[]::@formalParameter::index
+        staticType: int
+      rightBracket: ]
+      element: <testLibrary>::@class::A::@method::[]
+      staticType: B
+    operator: .
+    propertyName: SimpleIdentifier
+      token: x
+      element: <null>
+      staticType: null
+    staticType: null
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 2
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+    staticType: int
+  readElement: <testLibrary>::@class::B::@getter::x
+  readType: int
+  writeElement: <testLibrary>::@class::B::@setter::x
+  writeType: num
+  element: dart:core::@class::num::@method::+
+  staticType: int
+''');
+  }
+
   test_propertyAccess_instance_compound() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
