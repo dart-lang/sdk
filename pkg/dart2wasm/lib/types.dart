@@ -383,7 +383,7 @@ class Types {
     ClassInfo info = translator.classInfo[classForType(type)]!;
     if (type is FutureOrType) {
       _makeFutureOrType(codeGen, type);
-      return info.nonNullableType;
+      return nonNullableTypeType;
     }
 
     translator.functions.recordClassAllocation(info.classId);
