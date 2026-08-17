@@ -280,6 +280,29 @@ class A {
 ''');
   }
 
+  Future<void> test_crlfLineEndings() async {
+    await resolveTestCode(
+      '''
+class A {
+  final String foo;
+
+  const A({required this.foo});
+}
+'''
+          .replaceAll('\n', '\r\n'),
+    );
+    await assertHasFix(
+      '''
+class A {
+  const A({required this.foo});
+
+  final String foo;
+}
+'''
+          .replaceAll('\n', '\r\n'),
+    );
+  }
+
   Future<void> test_enum_blankLineAfterSemicolon() async {
     await resolveTestCode('''
 enum A {
