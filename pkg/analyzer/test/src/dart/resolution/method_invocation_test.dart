@@ -7193,11 +7193,34 @@ void main() {
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function2: PropertyAccess
-    target2: PropertyAccess
-      target2: ParenthesizedExpression
+    target2: PropertyExtraction
+      receiver: ParenthesizedExpression
         leftParenthesis: (
         expression2: AsExpression
           expression2: NullLiteral
+            literal: null
+            staticType: Null
+          asOperator: as
+          type: NamedType
+            name: B
+            question: ?
+            element: <testLibrary>::@class::B
+            type: B?
+          staticType: B?
+        rightParenthesis: )
+        staticType: B?
+      operator: ?.
+      propertyName: a
+      resolution: GetterInvocationResolution
+        element: <testLibrary>::@class::B::@getter::a
+        invokeType: A Function()
+        type: A
+      staticType: A
+    target(v1): PropertyAccess
+      target: ParenthesizedExpression
+        leftParenthesis: (
+        expression: AsExpression
+          expression: NullLiteral
             literal: null
             staticType: Null
           asOperator: as

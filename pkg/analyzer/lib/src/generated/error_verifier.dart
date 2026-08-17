@@ -2079,8 +2079,27 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   @override
+  void visitPropertyAssignmentTarget(PropertyAssignmentTarget node) {
+    if (node.operator.type == TokenType.QUESTION_PERIOD) {
+      _checkForUnnecessaryNullAware(
+        node.receiver,
+        node.operator,
+        kind: _NullAwareKind.access,
+      );
+    }
+    super.visitPropertyAssignmentTarget(node);
+  }
+
+  @override
   void visitPropertyExtraction(covariant PropertyExtractionImpl node) {
     _constArgumentsVerifier.visitPropertyExtraction(node);
+    if (node.operator.type == TokenType.QUESTION_PERIOD) {
+      _checkForUnnecessaryNullAware(
+        node.receiver,
+        node.operator,
+        kind: _NullAwareKind.access,
+      );
+    }
     _checkUseVerifier.checkPropertyExtraction(node);
     super.visitPropertyExtraction(node);
   }

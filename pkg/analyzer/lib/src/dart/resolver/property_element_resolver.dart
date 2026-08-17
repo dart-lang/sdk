@@ -599,6 +599,13 @@ class PropertyElementResolver with ScopeHelpers {
       return null;
     }
 
+    if (node.operator.type == TokenType.QUESTION_PERIOD) {
+      if (_typeSystem.isNull(receiverType)) {
+        return null;
+      }
+      receiverType = _typeSystem.promoteToNonNull(receiverType);
+    }
+
     if (receiverType is DynamicType) {
       return const DynamicPropertyWriteResolutionImpl();
     }
@@ -673,6 +680,17 @@ class PropertyElementResolver with ScopeHelpers {
         receiverType.nullabilitySuffix == NullabilitySuffix.none) {
       diagnosticReporter.report(diag.receiverOfTypeNever.at(receiver));
       return (expressionInfo: null, resolution: null, type: receiverType);
+    }
+
+    if (node.operator.type == TokenType.QUESTION_PERIOD) {
+      if (_typeSystem.isNull(receiverType)) {
+        return (
+          expressionInfo: null,
+          resolution: null,
+          type: NeverTypeImpl.instance,
+        );
+      }
+      receiverType = _typeSystem.promoteToNonNull(receiverType);
     }
 
     if (receiverType is VoidType) {
@@ -773,6 +791,13 @@ class PropertyElementResolver with ScopeHelpers {
         receiverType.nullabilitySuffix == NullabilitySuffix.none) {
       diagnosticReporter.report(diag.receiverOfTypeNever.at(receiver));
       return null;
+    }
+
+    if (node.operator.type == TokenType.QUESTION_PERIOD) {
+      if (_typeSystem.isNull(receiverType)) {
+        return null;
+      }
+      receiverType = _typeSystem.promoteToNonNull(receiverType);
     }
 
     if (receiverType is VoidType) {

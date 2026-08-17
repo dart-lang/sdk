@@ -4261,6 +4261,11 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     );
     node.receiver = popRewrite()!;
 
+    if (node.operator.type == TokenType.QUESTION_PERIOD) {
+      _startNullAwareAccess(node.receiver);
+      nullSafetyDeadCodeVerifier.visitNullAwareAccess(node, node.propertyName);
+    }
+
     var (:expressionInfo, :resolution, :type) = _propertyElementResolver
         .resolvePropertyExtraction(node);
     node.resolution = resolution;
@@ -4272,6 +4277,13 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       contextType: contextType,
     );
     _insertImplicitCallReference(replacement, contextType: contextType);
+    if (node.operator.type == TokenType.QUESTION_PERIOD) {
+      nullSafetyDeadCodeVerifier.verifyNullAwareAccess(
+        node,
+        node.receiver,
+        node.operator,
+      );
+    }
 
     inferenceLogWriter?.exitExpression(node);
   }

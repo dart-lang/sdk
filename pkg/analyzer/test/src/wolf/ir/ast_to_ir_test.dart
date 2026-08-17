@@ -736,6 +736,81 @@ test(List l) => (l).length = 3;
     check(l).deepEquals(['a', 'b', 'c']);
   }
 
+  test_assignmentExpression_property_propertyAssignmentTarget_nullAware_compound() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+external int hook(int x, String s);
+class C {
+  external int get p;
+  external set p(int value);
+}
+test(C? c) => (c)?.p += hook(2, 'rhs');
+''');
+    analyze(result, result.findNode.functionDeclaration('test'));
+    var value = 3;
+    _callHandlers['C.p'] = unaryFunction<Instance>((c) => hook(value, 'get'));
+    _callHandlers['C.p='] = binaryFunction<Instance, int>(
+      (c, newValue) => hook(value = newValue, 'set=$newValue'),
+    );
+    var c = Instance(result.findElement.class_('C').thisType);
+    expectHooks([
+      'get',
+      'rhs',
+      'set=5',
+    ], () => check(runInterpreter(result, [c])).equals(5));
+    check(value).equals(5);
+    expectHooks([], () => check(runInterpreter(result, [null])).equals(null));
+    check(value).equals(5);
+  }
+
+  test_assignmentExpression_property_propertyAssignmentTarget_nullAware_ifNull() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+external int hook(int x, String s);
+class C {
+  external int? get p;
+  external set p(int value);
+}
+test(C? c) => (c)?.p ??= hook(2, 'rhs');
+''');
+    analyze(result, result.findNode.functionDeclaration('test'));
+    int? value;
+    _callHandlers['C.p'] = unaryFunction<Instance>((c) => hook(value, 'get'));
+    _callHandlers['C.p='] = binaryFunction<Instance, int>(
+      (c, newValue) => hook(value = newValue, 'set=$newValue'),
+    );
+    var c = Instance(result.findElement.class_('C').thisType);
+    expectHooks([
+      'get',
+      'rhs',
+      'set=2',
+    ], () => check(runInterpreter(result, [c])).equals(2));
+    check(value).equals(2);
+    expectHooks(['get'], () => check(runInterpreter(result, [c])).equals(2));
+    expectHooks([], () => check(runInterpreter(result, [null])).equals(null));
+  }
+
+  test_assignmentExpression_property_propertyAssignmentTarget_nullAware_simple() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+external int hook(int x, String s);
+class C {
+  external set p(int value);
+}
+test(C? c) => (c)?.p = hook(2, 'rhs');
+''');
+    analyze(result, result.findNode.functionDeclaration('test'));
+    int? value;
+    _callHandlers['C.p='] = binaryFunction<Instance, int>(
+      (c, newValue) => hook(value = newValue, 'set=$newValue'),
+    );
+    var c = Instance(result.findElement.class_('C').thisType);
+    expectHooks([
+      'rhs',
+      'set=2',
+    ], () => check(runInterpreter(result, [c])).equals(2));
+    check(value).equals(2);
+    expectHooks([], () => check(runInterpreter(result, [null])).equals(null));
+    check(value).equals(2);
+  }
+
   test_assignmentExpression_property_simpleIdentifier_compound() async {
     var result = await resolveTestCodeWithDiagnostics('''
 extension E on List {
@@ -1863,6 +1938,18 @@ test(List<Object?>? list) => list?.first?.hashCode;
         makeList(result, [123]),
       ]),
     ).equals(123.hashCode);
+  }
+
+  test_propertyExtraction_nullAware() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+test(String? s) => (s)?.length;
+''');
+    analyze(result, result.findNode.singleFunctionDeclaration);
+    check(astNodes)[result.findNode.singlePropertyExtraction].containsSubrange(
+      astNodes[result.findNode.parenthesized('(s)')]!,
+    );
+    check(runInterpreter(result, [null])).equals(null);
+    check(runInterpreter(result, ['foo'])).equals(3);
   }
 
   test_propertyGet_nullShorting() async {

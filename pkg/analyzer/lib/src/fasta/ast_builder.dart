@@ -885,7 +885,8 @@ class AstBuilder extends StackListener {
         );
       } else if (receiver != null &&
           _featureSet.isEnabled(Feature.constructor_tearoffs) &&
-          dot.type == TokenType.PERIOD &&
+          (dot.type == TokenType.PERIOD ||
+              dot.type == TokenType.QUESTION_PERIOD) &&
           identifierOrInvoke.name != 'call' &&
           _isSupportedPropertyReceiver(receiver)) {
         push(

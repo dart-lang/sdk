@@ -2818,6 +2818,63 @@ V1: PropertyAccess
 ''');
   }
 
+  test_propertyExtraction_explicitInstanceCreation_nullAware() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class C {
+  int x = 0;
+}
+
+void f() {
+  new C()?.x;
+//       ^^
+// [diag.invalidNullAwareOperator] The receiver can't be null, so the null-aware operator '?.' is unnecessary.
+}
+''');
+
+    var node = result.findNode.singlePropertyExtraction;
+    assertResolvedNodeText(node, r'''
+PropertyExtraction
+  receiver: ConstructorInvocation
+    keyword: new
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: C
+        element: <testLibrary>::@class::C
+        type: C
+      element: <testLibrary>::@class::C::@constructor::new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: C
+  operator: ?.
+  propertyName: x
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::C::@getter::x
+    invokeType: int Function()
+    type: int
+  staticType: int?
+V1: PropertyAccess
+  target: InstanceCreationExpression
+    keyword: new
+    constructorName: ConstructorName
+      type: NamedType
+        name: C
+        element: <testLibrary>::@class::C
+        type: C
+      element: <testLibrary>::@class::C::@constructor::new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: C
+  operator: ?.
+  propertyName: SimpleIdentifier
+    token: x
+    element: <testLibrary>::@class::C::@getter::x
+    staticType: int
+  staticType: int?
+''');
+  }
+
   test_propertyExtraction_nestedOrdinaryDotChain() async {
     var result = await resolveTestCode(r'''
 void f() {
@@ -2962,6 +3019,93 @@ V1: PropertyAccess
 ''');
   }
 
+  test_propertyExtraction_parenthesizedExpression_nullAware() async {
+    var result = await resolveTestCode(r'''
+class A {
+  int get foo => 0;
+}
+
+void f(A? a) {
+  (a)?.foo;
+}
+''');
+
+    var node = result.findNode.singlePropertyExtraction;
+    assertResolvedNodeText(node, r'''
+PropertyExtraction
+  receiver: ParenthesizedExpression
+    leftParenthesis: (
+    expression2: SimpleIdentifier
+      token: a
+      element: <testLibrary>::@function::f::@formalParameter::a
+      staticType: A?
+    rightParenthesis: )
+    staticType: A?
+  operator: ?.
+  propertyName: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::A::@getter::foo
+    invokeType: int Function()
+    type: int
+  staticType: int?
+V1: PropertyAccess
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: SimpleIdentifier
+      token: a
+      element: <testLibrary>::@function::f::@formalParameter::a
+      staticType: A?
+    rightParenthesis: )
+    staticType: A?
+  operator: ?.
+  propertyName: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@class::A::@getter::foo
+    staticType: int
+  staticType: int?
+''');
+  }
+
+  test_propertyExtraction_parenthesizedExpression_nullAware_null() async {
+    var result = await resolveTestCode(r'''
+void f(Null a) {
+  (a)?.foo;
+}
+''');
+
+    var node = result.findNode.singlePropertyExtraction;
+    assertResolvedNodeText(node, r'''
+PropertyExtraction
+  receiver: ParenthesizedExpression
+    leftParenthesis: (
+    expression2: SimpleIdentifier
+      token: a
+      element: <testLibrary>::@function::f::@formalParameter::a
+      staticType: Null
+    rightParenthesis: )
+    staticType: Null
+  operator: ?.
+  propertyName: foo
+  resolution: <null>
+  staticType: Never?
+V1: PropertyAccess
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: SimpleIdentifier
+      token: a
+      element: <testLibrary>::@function::f::@formalParameter::a
+      staticType: Null
+    rightParenthesis: )
+    staticType: Null
+  operator: ?.
+  propertyName: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: Never?
+  staticType: Never?
+''');
+  }
+
   test_propertyExtraction_recordLiteral_namedField() async {
     var result = await resolveTestCode(r'''
 void f() {
@@ -3051,6 +3195,78 @@ V1: PropertyAccess
     element: dart:core::@class::String::@getter::length
     staticType: int
   staticType: int
+''');
+  }
+
+  test_propertyExtraction_stringLiteral_nullAware() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void f() {
+  'a'?.length;
+//   ^^
+// [diag.invalidNullAwareOperator] The receiver can't be null, so the null-aware operator '?.' is unnecessary.
+}
+''');
+
+    var node = result.findNode.singlePropertyExtraction;
+    assertResolvedNodeText(node, r'''
+PropertyExtraction
+  receiver: SimpleStringLiteral
+    literal: 'a'
+  operator: ?.
+  propertyName: length
+  resolution: GetterInvocationResolution
+    element: dart:core::@class::String::@getter::length
+    invokeType: int Function()
+    type: int
+  staticType: int?
+V1: PropertyAccess
+  target: SimpleStringLiteral
+    literal: 'a'
+  operator: ?.
+  propertyName: SimpleIdentifier
+    token: length
+    element: dart:core::@class::String::@getter::length
+    staticType: int
+  staticType: int?
+''');
+  }
+
+  test_propertyExtraction_this_nullAware() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class C {
+  int x = 0;
+
+  void f() {
+    this?.x;
+//      ^^
+// [diag.invalidNullAwareOperator] The receiver can't be null, so the null-aware operator '?.' is unnecessary.
+  }
+}
+''');
+
+    var node = result.findNode.singlePropertyExtraction;
+    assertResolvedNodeText(node, r'''
+PropertyExtraction
+  receiver: ThisExpression
+    thisKeyword: this
+    staticType: C
+  operator: ?.
+  propertyName: x
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::C::@getter::x
+    invokeType: int Function()
+    type: int
+  staticType: int?
+V1: PropertyAccess
+  target: ThisExpression
+    thisKeyword: this
+    staticType: C
+  operator: ?.
+  propertyName: SimpleIdentifier
+    token: x
+    element: <testLibrary>::@class::C::@getter::x
+    staticType: int
+  staticType: int?
 ''');
   }
 

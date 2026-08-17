@@ -41482,10 +41482,10 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
 /// A property selected on an explicitly written expression receiver and used
 /// as an assignment destination.
 ///
-/// This migration slice supports ordinary `.` receiver chains rooted at a
-/// literal, parenthesized expression, explicit instance creation, or explicit
-/// `this`. Other receiver forms, null-aware access, and cascades remain on
-/// their existing AST shapes.
+/// This migration slice supports ordinary `.` and `?.` receiver chains rooted
+/// at a literal, parenthesized expression, explicit instance creation, or
+/// explicit `this`. Other receiver forms and cascades remain on their existing
+/// AST shapes.
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class PropertyAssignmentTarget implements AssignmentTarget {
@@ -41695,11 +41695,10 @@ final class PropertyAssignmentTargetImpl extends AssignmentTargetImpl
 
 /// A property value selected on an explicitly written expression receiver.
 ///
-/// This migration slice supports ordinary `.` receiver chains rooted at a
+/// This migration slice supports ordinary `.` and `?.` receiver chains rooted at a
 /// literal, parenthesized expression, explicit instance creation, or explicit
 /// `this`. Other receiver forms, explicit `.call`, language versions without
-/// constructor tear-offs, null-aware access, and cascades remain on their
-/// existing AST shapes.
+/// constructor tear-offs, and cascades remain on their existing AST shapes.
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class PropertyExtraction implements Expression {
@@ -41742,7 +41741,7 @@ final class PropertyExtractionImpl extends ExpressionImpl
   @override
   NamedReadResolutionImpl? resolution;
 
-  PropertyAccessImpl? _propertyAccess;
+  PropertyExtractionV1Impl? _propertyAccess;
 
   @generated
   PropertyExtractionImpl({
@@ -41772,8 +41771,8 @@ final class PropertyExtractionImpl extends ExpressionImpl
   Precedence get precedence => Precedence.postfix;
 
   /// The cached V1 compatibility projection for this expression.
-  PropertyAccessImpl get propertyAccess =>
-      _propertyAccess ??= PropertyAccessImpl.v1ProjectionFromExtraction(this);
+  PropertyExtractionV1Impl get propertyAccess =>
+      _propertyAccess ??= PropertyExtractionV1Impl._(this);
 
   @generated
   @override
@@ -41899,6 +41898,187 @@ final class PropertyExtractionImpl extends ExpressionImpl
       return receiver;
     }
     return null;
+  }
+}
+
+/// The V1 compatibility projection of a [PropertyExtraction].
+@GenerateNodeImpl(
+  api: AstNodeApi.v1,
+  generateConstructor: false,
+  childEntitiesOrder: [
+    GenerateNodeProperty('target'),
+    GenerateNodeProperty('operator'),
+    GenerateNodeProperty('propertyName'),
+  ],
+)
+final class PropertyExtractionV1Impl extends CommentReferableExpressionImpl
+    implements PropertyAccess {
+  final PropertyExtractionImpl _origin;
+
+  @DoNotGenerate(reason: 'Caches the projected V1 property name')
+  late final SimpleIdentifierImpl _propertyName =
+      SimpleIdentifierImpl.v1Projection(token: _origin.propertyName);
+
+  PropertyExtractionV1Impl._(this._origin) {
+    _attachV1Children();
+  }
+
+  @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
+  @override
+  Token get beginToken => _origin.beginToken;
+
+  @override
+  InternalFormalParameterElement? get correspondingParameter =>
+      _origin.correspondingParameter;
+
+  @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
+  @override
+  Token get endToken => _origin.endToken;
+
+  @override
+  bool get inConstantContext => _origin.inConstantContext;
+
+  @override
+  bool get isAssignable => true;
+
+  @override
+  bool get isCascaded => false;
+
+  @override
+  bool get isNullAware => _origin.operator.type == TokenType.QUESTION_PERIOD;
+
+  @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
+  @override
+  Token get operator => _origin.operator;
+
+  @override
+  Precedence get precedence => Precedence.postfix;
+
+  @DoNotGenerate(reason: 'Projects the canonical V2 property name')
+  @override
+  SimpleIdentifierImpl get propertyName {
+    _propertyName.element = _origin._legacyReadElement;
+    _propertyName.setPseudoExpressionStaticType(
+      _origin.resolution?.type ?? _origin.staticType,
+    );
+    return _propertyName;
+  }
+
+  @DoNotGenerate(reason: 'Projects the canonical V2 receiver')
+  @override
+  ExpressionImpl get realTarget => target!;
+
+  @experimental
+  @override
+  ExpressionImpl get realTarget2 => target!;
+
+  @override
+  TypeImpl? get staticType => _origin.staticType;
+
+  @DoNotGenerate(reason: 'Projects the canonical V2 receiver')
+  @override
+  ExpressionImpl? get target => V1Projection.toV1Expression(_origin.receiver);
+
+  @experimental
+  @override
+  ExpressionImpl? get target2 => target;
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v1;
+
+  @generated
+  @override
+  ChildEntities get _childEntities => ChildEntities()
+    ..addNode('target', target)
+    ..addToken('operator', operator)
+    ..addNode('propertyName', propertyName);
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 {
+    throw StateError('PropertyAccess is not in the V2 AST view.');
+  }
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitPropertyAccess(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) {
+    throw StateError('PropertyAccess is not in the V2 AST view.');
+  }
+
+  @override
+  AttemptedConstantEvaluationResult? computeConstantValue() =>
+      _origin.computeConstantValue();
+
+  @DoNotGenerate(reason: 'V1 projection children are value expressions')
+  @override
+  bool isInValueExpressionSlot(AstNode child) => true;
+
+  @DoNotGenerate(reason: 'A V1 projection cannot be mutated')
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    throw UnsupportedError('A V1 projection cannot be mutated.');
+  }
+
+  @DoNotGenerate(reason: 'A V1 projection cannot be mutated')
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    throw UnsupportedError('A V1 projection cannot be mutated.');
+  }
+
+  @DoNotGenerate(reason: 'A V1 projection cannot be resolved')
+  @override
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+    throw StateError('PropertyAccess is a V1 projection.');
+  }
+
+  @override
+  String toSource() => _origin.toSource();
+
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    target?.accept(visitor);
+    propertyName.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    throw StateError('PropertyAccess is not in the V2 AST view.');
+  }
+
+  void _attachV1Children() {
+    _becomeParentOf1(target);
+    _becomeParentOf1(propertyName);
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (target case var target?) {
+      if (target._containsOffset(rangeOffset, rangeEnd)) {
+        return target;
+      }
+    }
+    if (propertyName._containsOffset(rangeOffset, rangeEnd)) {
+      return propertyName;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    throw StateError('PropertyAccess is not in the V2 AST view.');
   }
 }
 

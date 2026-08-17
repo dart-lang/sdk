@@ -4642,6 +4642,101 @@ class B extends A {
     );
   }
 
+  test_searchReferences_FieldElement_ofClass_instance_propertyAssignmentTarget() async {
+    var result = await resolveTestCode('''
+class A {
+  num x = 0;
+}
+class B {
+  num? x;
+}
+void use(A a, A? nullableA, B b, B? nullableB) {
+  (a).x = 1;
+  (nullableA)?.x = 2;
+  (a).x += 3;
+  (nullableA)?.x += 4;
+  (b).x ??= 5;
+  (nullableB)?.x ??= 6;
+}
+''');
+
+    await assertElementsReferencesText(
+      {
+        'aField': result.findElement.field('x', of: 'A'),
+        'aGetter': result.findElement.getter('x', of: 'A'),
+        'aSetter': result.findElement.setter('x', of: 'A'),
+        'bField': result.findElement.field('x', of: 'B'),
+        'bGetter': result.findElement.getter('x', of: 'B'),
+        'bSetter': result.findElement.setter('x', of: 'B'),
+        'num.+': result.typeProvider.numElement.getMethod('+')!,
+      },
+      r'''
+class A {
+  num x = 0;
+}
+class B {
+  num? x;
+}
+void use(A a, A? nullableA, B b, B? nullableB) {
+  (a).x = 1;
+      ^ aField WRITE qualified
+      ^ aSetter INVOCATION qualified
+  (nullableA)?.x = 2;
+               ^ aField WRITE qualified
+               ^ aSetter INVOCATION qualified
+  (a).x += 3;
+      ^ aField READ_WRITE qualified
+      ^ aGetter INVOCATION qualified
+      ^ aSetter INVOCATION qualified
+        ^^ num.+ INVOCATION qualified
+  (nullableA)?.x += 4;
+               ^ aField READ_WRITE qualified
+               ^ aGetter INVOCATION qualified
+               ^ aSetter INVOCATION qualified
+                 ^^ num.+ INVOCATION qualified
+  (b).x ??= 5;
+      ^ bField READ_WRITE qualified
+      ^ bGetter INVOCATION qualified
+      ^ bSetter INVOCATION qualified
+  (nullableB)?.x ??= 6;
+               ^ bField READ_WRITE qualified
+               ^ bGetter INVOCATION qualified
+               ^ bSetter INVOCATION qualified
+}
+''',
+    );
+  }
+
+  test_searchReferences_FieldElement_ofClass_instance_propertyExtraction() async {
+    var result = await resolveTestCode('''
+class A {
+  num x = 0;
+}
+void use(A a, A? nullableA) {
+  (a).x;
+  (nullableA)?.x;
+}
+''');
+
+    var field = result.findElement.field('x', of: 'A');
+    await assertElementsReferencesText(
+      {'field': field, 'getter': field.getter!},
+      r'''
+class A {
+  num x = 0;
+}
+void use(A a, A? nullableA) {
+  (a).x;
+      ^ field READ qualified
+      ^ getter INVOCATION qualified
+  (nullableA)?.x;
+               ^ field READ qualified
+               ^ getter INVOCATION qualified
+}
+''',
+    );
+  }
+
   test_searchReferences_FieldElement_ofClass_instance_setterDeclaration() async {
     var result = await resolveTestCode('''
 /// [foo] and [A.foo]

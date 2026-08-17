@@ -1011,7 +1011,11 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
   _LValueTemplates visitPropertyExtraction(
     covariant PropertyExtractionImpl node,
   ) {
+    var previousNestingLevel = ir.nestingLevel;
     dispatchNode(node.receiver, terminateNullShorting: false);
+    if (node.operator.type == TokenType.QUESTION_PERIOD) {
+      nullShortingCheck(previousNestingLevel: previousNestingLevel);
+    }
     return _PropertyAccessTemplates.direct(
       name: node.propertyName.lexeme,
       readElement: switch (node.resolution) {
@@ -1195,7 +1199,11 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
   }
 
   _LValueTemplates _propertyAssignmentTarget(PropertyAssignmentTarget node) {
-    dispatchNode(node.receiver);
+    var previousNestingLevel = ir.nestingLevel;
+    dispatchNode(node.receiver, terminateNullShorting: false);
+    if (node.operator.type == TokenType.QUESTION_PERIOD) {
+      nullShortingCheck(previousNestingLevel: previousNestingLevel);
+    }
     var readElement = switch (node.read) {
       GetterInvocationResolution(:var element) => element,
       DynamicPropertyReadResolution() => null,

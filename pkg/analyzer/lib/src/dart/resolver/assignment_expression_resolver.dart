@@ -155,12 +155,7 @@ class AssignmentExpressionResolver {
         readType = targetResult.read.type;
         writeAcceptedType = targetResult.write.acceptedType;
       case PropertyAssignmentTargetImpl():
-        _resolver.analyzeExpression(
-          target.receiver,
-          SharedTypeSchemaView(UnknownInferredType.instance),
-          continueNullShorting: true,
-        );
-        target.receiver = _resolver.popRewrite()!;
+        _analyzePropertyTargetReceiver(node, target);
         var targetResult = _resolver.resolvePropertyReadWriteAssignmentTarget(
           target,
         );
@@ -313,12 +308,7 @@ class AssignmentExpressionResolver {
         }
         writeAcceptedType = resolution.acceptedType;
       case PropertyAssignmentTargetImpl():
-        _resolver.analyzeExpression(
-          target.receiver,
-          SharedTypeSchemaView(UnknownInferredType.instance),
-          continueNullShorting: true,
-        );
-        target.receiver = _resolver.popRewrite()!;
+        _analyzePropertyTargetReceiver(node, target);
         var resolution = _resolver.resolvePropertyDirectAssignmentTarget(
           target,
         );
@@ -410,12 +400,7 @@ class AssignmentExpressionResolver {
         readType = targetResult.read.type;
         writeAcceptedType = targetResult.write.acceptedType;
       case PropertyAssignmentTargetImpl():
-        _resolver.analyzeExpression(
-          target.receiver,
-          SharedTypeSchemaView(UnknownInferredType.instance),
-          continueNullShorting: true,
-        );
-        target.receiver = _resolver.popRewrite()!;
+        _analyzePropertyTargetReceiver(node, target);
         var targetResult = _resolver.resolvePropertyReadWriteAssignmentTarget(
           target,
         );
@@ -492,6 +477,36 @@ class AssignmentExpressionResolver {
       );
     }
     flow.ifNullExpression_end();
+  }
+
+  void _analyzePropertyTargetReceiver(
+    AssignmentExpression2 node,
+    PropertyAssignmentTargetImpl target,
+  ) {
+    _resolver.analyzeExpression(
+      target.receiver,
+      SharedTypeSchemaView(UnknownInferredType.instance),
+      continueNullShorting: true,
+    );
+    target.receiver = _resolver.popRewrite()!;
+
+    var receiverDoesNotComplete = identical(
+      _typeSystem.resolveToBound(target.receiver.typeOrThrow),
+      NeverTypeImpl.instance,
+    );
+    if (target.operator.type == TokenType.QUESTION_PERIOD &&
+        !receiverDoesNotComplete) {
+      _resolver.startNullAwareAssignmentTarget(target.receiver);
+      _resolver.nullSafetyDeadCodeVerifier.visitNullAwareAccess(
+        node,
+        target.propertyName,
+      );
+      _resolver.nullSafetyDeadCodeVerifier.verifyNullAwareAccess(
+        node,
+        target.receiver,
+        target.operator,
+      );
+    }
   }
 
   void _checkForInvalidAssignment(
