@@ -4099,9 +4099,19 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       switch (invocationTargetType) {
         case InvocationTargetFunctionType():
           FunctionType functionType = invocationTargetType.functionType;
-          if (functionType.positionalParameters.length == 1 &&
-              functionType.positionalParameters.first.nullability !=
-                  Nullability.nullable) {
+          if (functionType.positionalParameters.length != 1) break;
+          if (arguments.argumentList.single.expression is DotShorthand) {
+            // When evaluating a dot shorthand in the RHS, `super` does not
+            // provide a context type.
+            invocationTargetType = new InvocationTargetFunctionType(
+              new FunctionType(
+                [const UnknownType()],
+                functionType.returnType,
+                functionType.declaredNullability,
+              ),
+            );
+          } else if (functionType.positionalParameters.first.nullability !=
+              Nullability.nullable) {
             // operator == always allows nullable arguments.
             invocationTargetType = new InvocationTargetFunctionType(
               new FunctionType(
