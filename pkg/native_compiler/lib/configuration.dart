@@ -135,7 +135,7 @@ final class DevelopmentCompilerConfiguration extends Configuration {
     StubFactory stubFactory,
     CodeConsumer consumeGeneratedCode,
   ) {
-    final unboxing = Unboxing();
+    final unboxing = Unboxing(objectLayout);
     final stackFrame = createStackFrame(function);
     final backEndState = BackEndState();
     backEndState.vmOffsets = vmOffsets;

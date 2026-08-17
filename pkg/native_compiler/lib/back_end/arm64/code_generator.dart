@@ -839,6 +839,10 @@ final class Arm64CodeGenerator extends CodeGenerator {
   void visitLoadInstanceField(LoadInstanceField instr) {
     final objectReg = inputReg(instr, 0);
     final valueReg = outputReg(instr);
+    if (instr.field == objectLayout.Object_classId) {
+      _asm.loadClassId(valueReg, objectReg);
+      return;
+    }
     if (instr.checkInitialized) {
       // TODO: initialized check for late fields.
       _asm.unimplemented(
@@ -846,7 +850,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
       );
       return;
     }
-    // TODO: unboxed fields
+    // TODO: compressed pointers, unboxed fields
     _asm.ldr(
       valueReg,
       _asm.fieldAddress(objectReg, objectLayout.getFieldOffset(instr.field)),

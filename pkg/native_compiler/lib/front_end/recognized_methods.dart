@@ -290,6 +290,13 @@ final class VmRecognizedMethods(
     // dart:core
     index.getProcedure(
       'dart:core',
+      'Object',
+      '==',
+    ): (FlowGraphBuilder builder) {
+      buildComparisonOp(builder, .equal);
+    },
+    index.getProcedure(
+      'dart:core',
       '_Smi',
       'get:hashCode',
     ): (FlowGraphBuilder builder) {
@@ -323,6 +330,13 @@ final class VmRecognizedMethods(
       '_equalToInteger',
     ): (FlowGraphBuilder builder) {
       buildComparisonOp(builder, .intEqual);
+    },
+    index.getProcedure(
+      'dart:core',
+      '_StringBase',
+      'get:length',
+    ): (FlowGraphBuilder builder) {
+      buildInstanceGetter(builder, objectLayout.StringBase_length);
     },
     index.getProcedure(
       'dart:core',
@@ -545,6 +559,13 @@ final class VmRecognizedMethods(
     ): (FlowGraphBuilder builder) {
       buildInstanceSetter(builder, objectLayout.LinkedHashBase_deletedKeys);
     },
+    index.getProcedure(
+      'dart:_compact_hash',
+      '_LinkedHashImmutableBase',
+      'get:_data',
+    ): (FlowGraphBuilder builder) {
+      buildInstanceGetter(builder, objectLayout.LinkedHashBase_data);
+    },
 
     // dart:_internal
     index.getTopLevelProcedure(
@@ -555,6 +576,57 @@ final class VmRecognizedMethods(
           smiBits(objectLayout.compressedWordSize) + 1; // Including sign bit.
       final has63BitSmis = totalSmiBits >= 63;
       buildConstantGetter(builder, ConstantValue.fromBool(has63BitSmis));
+    },
+    index.getProcedure(
+      'dart:_internal',
+      'ClassID',
+      'getID',
+    ): (FlowGraphBuilder builder) {
+      buildInstanceGetter(builder, objectLayout.Object_classId);
+    },
+
+    // dart:async
+    index.getProcedure(
+      'dart:async',
+      '_SuspendState',
+      'get:_functionData',
+    ): (FlowGraphBuilder builder) {
+      buildInstanceGetter(builder, objectLayout.SuspendState_functionData);
+    },
+    index.getProcedure(
+      'dart:async',
+      '_SuspendState',
+      'set:_functionData',
+    ): (FlowGraphBuilder builder) {
+      buildInstanceSetter(builder, objectLayout.SuspendState_functionData);
+    },
+    index.getProcedure(
+      'dart:async',
+      '_SuspendState',
+      'get:_thenCallback',
+    ): (FlowGraphBuilder builder) {
+      buildInstanceGetter(builder, objectLayout.SuspendState_thenCallback);
+    },
+    index.getProcedure(
+      'dart:async',
+      '_SuspendState',
+      'set:_thenCallback',
+    ): (FlowGraphBuilder builder) {
+      buildInstanceSetter(builder, objectLayout.SuspendState_thenCallback);
+    },
+    index.getProcedure(
+      'dart:async',
+      '_SuspendState',
+      'get:_errorCallback',
+    ): (FlowGraphBuilder builder) {
+      buildInstanceGetter(builder, objectLayout.SuspendState_errorCallback);
+    },
+    index.getProcedure(
+      'dart:async',
+      '_SuspendState',
+      'set:_errorCallback',
+    ): (FlowGraphBuilder builder) {
+      buildInstanceSetter(builder, objectLayout.SuspendState_errorCallback);
     },
 
     // dart:isolate
