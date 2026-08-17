@@ -1976,8 +1976,6 @@ void OneByteStringFromCharCodeInstr::EmitNativeCode(
       result,
       compiler::Address(
           THR, compiler::target::Thread::predefined_symbols_address_offset()));
-  __ AddImmediate(
-      result, Symbols::kNullCharCodeSymbolOffset * compiler::target::kWordSize);
   __ ldr(result,
          compiler::Address(result, char_code, LSL, 1));  // Char code is a smi.
 }

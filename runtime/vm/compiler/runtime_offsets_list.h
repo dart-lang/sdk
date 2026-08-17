@@ -126,6 +126,7 @@
   CONSTANT(RecordShape, kMaxNumFields)                                         \
   CONSTANT(RecordShape, kNumFieldsMask)                                        \
   CONSTANT(String, kMaxElements)                                               \
+  CONSTANT(Symbols, kNumberOfOneCharCodeSymbols)                               \
   CONSTANT(OneByteString, kMaxNewSpaceElements)                                \
   CONSTANT(TwoByteString, kMaxNewSpaceElements)                                \
   CONSTANT(SubtypeTestCache, kFunctionTypeArguments)                           \

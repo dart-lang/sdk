@@ -216,6 +216,10 @@ final class Simplification extends Pass
   Instruction visitStoreArrayElement(StoreArrayElement instr) => instr;
 
   @override
+  Instruction visitLoadExternalArrayElement(LoadExternalArrayElement instr) =>
+      instr;
+
+  @override
   Instruction visitThrow(Throw instr) => instr;
 
   @override

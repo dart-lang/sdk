@@ -1165,6 +1165,17 @@ final class Arm64CodeGenerator extends CodeGenerator {
   }
 
   @override
+  void visitLoadExternalArrayElement(LoadExternalArrayElement instr) {
+    final arrayReg = inputReg(instr, 0);
+    final indexReg = inputReg(instr, 1);
+    final resultReg = outputReg(instr);
+    _asm.ldr(
+      resultReg,
+      RegExtRegAddress(arrayReg, indexReg, .UXTX, scaled: true),
+    );
+  }
+
+  @override
   void visitThrow(Throw instr) {
     switch (instr.kind) {
       case .exception:
@@ -1869,6 +1880,26 @@ final class Arm64CodeGenerator extends CodeGenerator {
           _callRuntime(RuntimeEntry.AllocateArray, 2);
           _asm.ldr(resultReg, RegOffsetAddress(stackPointerReg, 2 * wordSize));
           break;
+        case .oneByteString:
+          assert(stackFrame.maxArgumentsStackSlots >= 2);
+          _asm.stp(
+            lengthReg, // Array length.
+            nullReg, // Space for result.
+            RegOffsetAddress(stackPointerReg, 0),
+          );
+          _callRuntime(RuntimeEntry.AllocateOneByteString, 1);
+          _asm.ldr(resultReg, RegOffsetAddress(stackPointerReg, wordSize));
+          break;
+        case .twoByteString:
+          assert(stackFrame.maxArgumentsStackSlots >= 2);
+          _asm.stp(
+            lengthReg, // Array length.
+            nullReg, // Space for result.
+            RegOffsetAddress(stackPointerReg, 0),
+          );
+          _callRuntime(RuntimeEntry.AllocateTwoByteString, 1);
+          _asm.ldr(resultReg, RegOffsetAddress(stackPointerReg, wordSize));
+          break;
         case .int8List ||
             .uint8List ||
             .uint8ClampedList ||
@@ -2534,6 +2565,8 @@ extension on ArrayKind {
           : ((objectLayout.compressedWordSize == 4)
                 ? .s32
                 : (throw 'Unexpected compressedWordSize ${objectLayout.compressedWordSize}'))),
+    .oneByteString => .u8,
+    .twoByteString => .u16,
     .int8List => .s8,
     .uint8List || .uint8ClampedList => .u8,
     .int16List => .s16,
@@ -2546,6 +2579,8 @@ extension on ArrayKind {
 
   int dataOffset(VMOffsets vmOffsets) => switch (this) {
     .fixedLengthList => vmOffsets.Array_data_offset,
+    .oneByteString => vmOffsets.OneByteString_data_offset,
+    .twoByteString => vmOffsets.TwoByteString_data_offset,
     .int8List ||
     .uint8List ||
     .uint8ClampedList ||
@@ -2559,6 +2594,7 @@ extension on ArrayKind {
 
   int lengthFieldOffset(VMOffsets vmOffsets) => switch (this) {
     .fixedLengthList => vmOffsets.Array_length_offset,
+    .oneByteString || .twoByteString => vmOffsets.String_length_offset,
     .int8List ||
     .uint8List ||
     .uint8ClampedList ||
@@ -2571,7 +2607,9 @@ extension on ArrayKind {
   };
 
   int? dataFieldOffset(VMOffsets vmOffsets) => switch (this) {
-    .fixedLengthList => null, // No 'data' field.
+    .fixedLengthList ||
+    .oneByteString ||
+    .twoByteString => null, // No 'data' field.
     .int8List ||
     .uint8List ||
     .uint8ClampedList ||
@@ -2592,6 +2630,8 @@ extension on ArrayKind {
 
   ClassId get classId => switch (this) {
     .fixedLengthList => ClassId.ArrayCid,
+    .oneByteString => ClassId.OneByteStringCid,
+    .twoByteString => ClassId.TwoByteStringCid,
     .int8List => ClassId.TypedDataInt8ArrayCid,
     .uint8List => ClassId.TypedDataUint8ArrayCid,
     .uint8ClampedList => ClassId.TypedDataUint8ClampedArrayCid,

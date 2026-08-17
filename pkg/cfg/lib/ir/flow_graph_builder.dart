@@ -477,6 +477,22 @@ class FlowGraphBuilder {
     return instr;
   }
 
+  /// Append [LoadExternalArrayElement] to the graph.
+  LoadExternalArrayElement addLoadExternalArrayElement(CType type) {
+    final index = pop();
+    final array = pop();
+    final instr = LoadExternalArrayElement(
+      graph,
+      currentSourcePosition,
+      type,
+      array,
+      index,
+    );
+    push(instr);
+    appendInstruction(instr);
+    return instr;
+  }
+
   /// Append [Throw] to the graph.
   /// Ends current block.
   void addThrow(ThrowKind kind, int inputCount) {

@@ -331,6 +331,12 @@ class ObjectLayout {
     _coreTypes.listNonNullableRawType,
     vmOffsets.Thread_thread_locals_offset,
   );
+  late final CField Thread_predefined_symbols_address = _createBuiltInField(
+    _threadClass,
+    'predefinedSymbolsAddress',
+    _coreTypes.intNonNullableRawType, // Address.
+    vmOffsets.Thread_predefined_symbols_address_offset,
+  );
 
   // Layout of built-in instances is specified either as
   // 'int size' or '(int size, int typeArgsOffset)' if class is generic.

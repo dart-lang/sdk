@@ -1640,8 +1640,7 @@ void AsmIntrinsifier::StringBaseCharAt(Assembler* assembler,
   __ lx(A0, Address(THR, target::Thread::predefined_symbols_address_offset()));
   __ slli(A1, A1, target::kWordSizeLog2);
   __ add(A0, A0, A1);
-  __ lx(A0, Address(A0, target::Symbols::kNullCharCodeSymbolOffset *
-                            target::kWordSize));
+  __ lx(A0, Address(A0, 0));
   __ ret();
 
   __ Bind(&try_two_byte_string);
@@ -1655,8 +1654,7 @@ void AsmIntrinsifier::StringBaseCharAt(Assembler* assembler,
   __ lx(A0, Address(THR, target::Thread::predefined_symbols_address_offset()));
   __ slli(A1, A1, target::kWordSizeLog2);
   __ add(A0, A0, A1);
-  __ lx(A0, Address(A0, target::Symbols::kNullCharCodeSymbolOffset *
-                            target::kWordSize));
+  __ lx(A0, Address(A0, 0));
   __ ret();
 
   __ Bind(normal_ir_body);

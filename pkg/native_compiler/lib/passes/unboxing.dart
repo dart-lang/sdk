@@ -56,7 +56,8 @@ final class Unboxing extends Pass {
       UnaryDoubleOp() ||
       Box() ||
       IndexCheck() ||
-      LoadExternalField() => true,
+      LoadExternalField() ||
+      LoadExternalArrayElement() => true,
       LoadArrayElement() => inputIndex == 1,
       StoreArrayElement() =>
         inputIndex == 1 || (inputIndex == 2 && instr.kind != .fixedLengthList),
@@ -79,6 +80,7 @@ final class Unboxing extends Pass {
       Unbox() ||
       IndexCheck() => true,
       LoadArrayElement() => instr.kind != .fixedLengthList,
+      LoadExternalArrayElement() => instr.type is IntType,
       LoadExternalField() => objectLayout.isUnboxedField(instr.field),
       LoadInstanceField() => objectLayout.isUnboxedField(instr.field),
       Parameter() => false, // TODO: support unboxed parameters.

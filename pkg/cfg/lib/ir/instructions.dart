@@ -1098,6 +1098,9 @@ final class StoreStaticField extends StoreField {
 enum ArrayKind {
   // Built-in fixed-length List.
   fixedLengthList,
+  // String objects with 1-byte and 2-byte characters.
+  oneByteString,
+  twoByteString,
   // Typed data lists holding their elements.
   int8List,
   uint8List,
@@ -1929,6 +1932,30 @@ final class LoadExternalField extends LoadField with BackendInstruction {
 
   @override
   R accept<R>(InstructionVisitor<R> v) => v.visitLoadExternalField(this);
+}
+
+/// Load value from an element of a non-Dart array.
+final class LoadExternalArrayElement extends Definition
+    with NoThrow, Pure, BackendInstruction {
+  @override
+  final CType type;
+
+  LoadExternalArrayElement(
+    super.graph,
+    super.sourcePosition,
+    this.type,
+    Definition array,
+    Definition index,
+  ) : super(inputCount: 2) {
+    setInputAt(0, array);
+    setInputAt(1, index);
+  }
+
+  Definition get array => inputDefAt(0);
+  Definition get index => inputDefAt(1);
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitLoadExternalArrayElement(this);
 }
 
 /// Allocate an array (built-in list or typed data list) of given length.

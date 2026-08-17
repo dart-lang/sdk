@@ -33,9 +33,8 @@ PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_INDEX)
   // Number of one character symbols being predefined in the predefined_ array.
   static constexpr int kNumberOfOneCharCodeSymbols =
       (kMaxPredefinedId - kNullCharId);
-
-  // Offset of Null character which is the predefined character symbol.
-  static constexpr int kNullCharCodeSymbolOffset = 0;
+  static_assert(kNumberOfOneCharCodeSymbols > kMaxUint8,
+                "Should have symbols for all one-byte characters");
 
   static const String& Symbol(intptr_t index) {
     ASSERT((index >= 0) && (index < kMaxPredefinedId));

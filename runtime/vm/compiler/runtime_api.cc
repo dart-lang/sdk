@@ -982,11 +982,6 @@ word RegExp::function_offset(classid_t cid, bool sticky) {
 #endif
 }
 
-const word Symbols::kNumberOfOneCharCodeSymbols =
-    dart::Symbols::kNumberOfOneCharCodeSymbols;
-const word Symbols::kNullCharCodeSymbolOffset =
-    dart::Symbols::kNullCharCodeSymbolOffset;
-
 const word String::kHashBits = dart::String::kHashBits;
 
 const uint8_t Nullability::kNullable =

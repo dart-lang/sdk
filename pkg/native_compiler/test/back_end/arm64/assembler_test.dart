@@ -1253,6 +1253,10 @@ void main() {
       asm.ldr(R0, RegOffsetAddress(SP, 4096));
       asm.ldr(R0, WritebackRegOffsetAddress(R1, 16, isPostIndexed: true));
       asm.ldr(R0, WritebackRegOffsetAddress(R1, -8, isPostIndexed: false));
+      asm.ldr(R0, RegExtRegAddress(R0, R1, .UXTX, scaled: true));
+      asm.ldr(R0, RegExtRegAddress(SP, R1, .SXTW, scaled: true), .s32);
+      asm.ldr(R0, RegExtRegAddress(R2, R3, .UXTW, scaled: false), .u16);
+      asm.ldr(R1, RegExtRegAddress(R5, R4, .SXTX, scaled: false), .s8);
       expectDisassembly(
         'ldr r0, [r1, #7]\n'
         'ldrw r0, [r1, #7]\n'
@@ -1263,7 +1267,11 @@ void main() {
         'ldrsb r0, [r1, #7]\n'
         'ldr r0, [csp, #4096]\n'
         'ldr r0, [r1], #16 !\n'
-        'ldr r0, [r1, #-8]!\n',
+        'ldr r0, [r1, #-8]!\n'
+        'ldr r0, [r0, r1 uxtx scaled]\n'
+        'ldrsw r0, [csp, r1 sxtw scaled]\n'
+        'ldrh r0, [r2, r3 uxtw]\n'
+        'ldrsb r1, [r5, r4 sxtx]\n',
       );
       expectThrows(() {
         asm.ldr(R0, RegOffsetAddress(R1, 32768));
@@ -1291,6 +1299,15 @@ void main() {
       });
       expectThrows(() {
         asm.ldr(R0, RegOffsetAddress(R1, 0), .simd128);
+      });
+      expectThrows(() {
+        asm.ldr(SP, RegExtRegAddress(R0, R1, .UXTX, scaled: true));
+      });
+      expectThrows(() {
+        asm.ldr(R0, RegExtRegAddress(R0, SP, .UXTX, scaled: true));
+      });
+      expectThrows(() {
+        asm.ldr(R0, RegExtRegAddress(R0, R1, .UXTB, scaled: true));
       });
     });
 
