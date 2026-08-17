@@ -1,3 +1,6 @@
+## v0.0.5
+ - Update embedded resources.
+
 ## v0.0.4
  - Support for file watching.
  - `flutter_test` SDK-package is now included in the Flutter DartPad SDK.
