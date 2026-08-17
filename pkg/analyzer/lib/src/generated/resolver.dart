@@ -262,6 +262,9 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   /// If there is no `this` binding, `null`.
   TypeImpl? _unpromotedThisType;
 
+  /// The cascade whose section is currently being resolved.
+  CascadeExpressionImpl? _activeCascadeExpression;
+
   final FlowAnalysisHelper flowAnalysis;
 
   late final FunctionReferenceResolver _functionReferenceResolver;
@@ -1453,6 +1456,25 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     return analyzeAssignedVariablePattern(context, node, element);
   }
 
+  ({IndexReadResolutionImpl? read, IndexWriteResolutionImpl? write})?
+  resolveCascadeIndex(
+    AstNode node, {
+    required bool hasRead,
+    required bool hasWrite,
+  }) {
+    var cascade = _activeCascadeExpression;
+    if (cascade == null) {
+      throw StateError('Cascade index node outside a cascade section.');
+    }
+    return _propertyElementResolver.resolveCascadeIndex(
+      node: node,
+      receiver: cascade.target2,
+      isNullAware: cascade.isNullAware,
+      hasRead: hasRead,
+      hasWrite: hasWrite,
+    );
+  }
+
   /// Resolve LHS [node] of an assignment, an explicit [AssignmentExpression],
   /// or implicit [IncrementOrDecrementExpression].
   PropertyElementResolverResult resolveForWrite({
@@ -2386,9 +2408,15 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       isNullAware: node.isNullAware,
     );
 
-    for (var cascadeSection in node.cascadeSections2) {
-      analyzeExpression(cascadeSection, operations.unknownType);
-      popRewrite();
+    var previousCascade = _activeCascadeExpression;
+    _activeCascadeExpression = node;
+    try {
+      for (var section in node.sections) {
+        analyzeExpression(section.body, operations.unknownType);
+        section.body = popRewrite()!;
+      }
+    } finally {
+      _activeCascadeExpression = previousCascade;
     }
 
     typeAnalyzer.visitCascadeExpression(node);
@@ -2402,6 +2430,55 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     );
     _insertImplicitCallReference(node, contextType: contextType);
     nullSafetyDeadCodeVerifier.verifyCascadeExpression(node);
+    inferenceLogWriter?.exitExpression(node);
+  }
+
+  @override
+  void visitCascadeIndexExpression(
+    covariant CascadeIndexExpressionImpl node, {
+    TypeImpl contextType = UnknownInferredType.instance,
+  }) {
+    inferenceLogWriter?.enterExpression(node, contextType);
+    checkUnreachableNode(node);
+
+    var result = resolveCascadeIndex(node, hasRead: true, hasWrite: false);
+    var resolution = result?.read;
+    node.resolution = resolution;
+
+    analyzeExpression(
+      node.index,
+      SharedTypeSchemaView(
+        resolution?.indexContextType ?? UnknownInferredType.instance,
+      ),
+    );
+    node.index = popRewrite()!;
+    var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(
+      flowAnalysis.getExpressionInfo(node.index),
+    );
+    var readElement = switch (resolution) {
+      MethodIndexReadResolutionImpl(:var element) => element,
+      InvalidIndexReadResolutionImpl(
+        recovery: MethodIndexReadResolutionImpl(:var element),
+      ) =>
+        element,
+      _ => null,
+    };
+    checkIndexExpressionIndex(
+      node.index,
+      readElement: readElement,
+      writeElement: null,
+      whyNotPromoted: whyNotPromoted,
+    );
+
+    node.recordStaticType(
+      resolution?.type ?? NeverTypeImpl.instance,
+      resolver: this,
+    );
+    var replacement = insertGenericFunctionInstantiation(
+      node,
+      contextType: contextType,
+    );
+    _insertImplicitCallReference(replacement, contextType: contextType);
     inferenceLogWriter?.exitExpression(node);
   }
 
@@ -5025,6 +5102,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     } else if (parent is AssignmentExpression2Impl) {
       var target = parent.target;
       var writeType = switch (target) {
+        CascadeIndexAssignmentTargetImpl(:var write) => write?.acceptedType,
         IndexAssignmentTargetImpl(:var write) => write?.acceptedType,
         PropertyAssignmentTargetImpl(:var write) => write?.acceptedType,
         UnqualifiedNameAssignmentTargetImpl(:var write) => write?.acceptedType,

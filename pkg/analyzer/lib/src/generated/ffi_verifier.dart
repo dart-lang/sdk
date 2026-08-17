@@ -127,6 +127,38 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
   });
 
   @override
+  void visitCascadeIndexExpression(covariant CascadeIndexExpressionImpl node) {
+    var element = switch (node.resolution) {
+      MethodIndexReadResolutionImpl(:var element) => element,
+      InvalidIndexReadResolutionImpl(
+        recovery: MethodIndexReadResolutionImpl(:var element),
+      ) =>
+        element,
+      _ => null,
+    };
+    if (element != null) {
+      var enclosingElement = element.enclosingElement;
+      if ((enclosingElement.isNativeStructPointerExtension ||
+              enclosingElement.isNativeStructArrayExtension ||
+              enclosingElement.isNativeUnionPointerExtension ||
+              enclosingElement.isNativeUnionArrayExtension) &&
+          element.name == '[]') {
+        for (
+          AstNodeImpl? ancestor = node.parent2;
+          ancestor != null;
+          ancestor = ancestor.parent2
+        ) {
+          if (ancestor case CascadeExpressionImpl(:var target2)) {
+            _validateRefIndexed(node, target2);
+            break;
+          }
+        }
+      }
+    }
+    super.visitCascadeIndexExpression(node);
+  }
+
+  @override
   void visitClassDeclaration(covariant ClassDeclarationImpl node) {
     inCompound = false;
     compound = null;

@@ -59,6 +59,10 @@ class IncrementOrDecrementResolver {
     late TypeImpl writeAcceptedType;
     InternalVariableElement? variableElement;
     switch (target) {
+      case CascadeIndexAssignmentTargetImpl():
+        throw StateError(
+          'A cascade section cannot be an increment or decrement target',
+        );
       case IndexAssignmentTargetImpl():
         var result = _assignmentResolver.resolveIndexReadWriteTarget(target);
         if (result == null) {

@@ -1097,7 +1097,16 @@ MethodInvocation
           operator: >
           rightOperand: SimpleIdentifier
             token: <empty> <synthetic>
-        cascadeSections2
+        sections
+          CascadeSection
+            body: MethodInvocation
+              operator: ..
+              methodName: SimpleIdentifier
+                token: toString
+              argumentList: ArgumentList
+                leftParenthesis: (
+                rightParenthesis: )
+        cascadeSections
           MethodInvocation
             operator: ..
             methodName: SimpleIdentifier

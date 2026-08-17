@@ -223,6 +223,41 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitCascadeIndexAssignmentTarget(
+    covariant CascadeIndexAssignmentTargetImpl node,
+  ) {
+    _sink.writeln('CascadeIndexAssignmentTarget');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      if (_withResolution) {
+        _writeIndexReadResolution('read', node.read);
+        _writeIndexWriteResolution('write', node.write);
+      }
+    });
+  }
+
+  @override
+  void visitCascadeIndexExpression(covariant CascadeIndexExpressionImpl node) {
+    _sink.writeln('CascadeIndexExpression');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      if (_withResolution) {
+        _writeIndexReadResolution('resolution', node.resolution);
+      }
+      _writeParameterElement(node);
+      _writeType('staticType', node.staticType);
+    });
+  }
+
+  @override
+  void visitCascadeSection(CascadeSection node) {
+    _sink.writeln('CascadeSection');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
   void visitCaseClause(CaseClause node) {
     _sink.writeln('CaseClause');
     _sink.withIndent(() {
@@ -2629,6 +2664,8 @@ Expected parent: (${parent.runtimeType}) $parent
             parent is BinaryExpression && parent.rightOperand2 == node ||
             parent is BinaryOperatorInvocation && parent.rightOperand == node ||
             parent is CompoundAssignment && parent.value == node ||
+            parent is CascadeIndexAssignmentTarget && parent.index == node ||
+            parent is CascadeIndexExpression && parent.index == node ||
             parent is DirectAssignment && parent.value == node ||
             parent is IfNullAssignment && parent.value == node ||
             parent is IndexAssignmentTarget && parent.index == node ||

@@ -2029,6 +2029,27 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
     return null;
   }
 
+  @experimental
+  @override
+  R? visitCascadeIndexAssignmentTarget(CascadeIndexAssignmentTarget node) {
+    node.visitChildren2(this);
+    return null;
+  }
+
+  @experimental
+  @override
+  R? visitCascadeIndexExpression(CascadeIndexExpression node) {
+    node.visitChildren2(this);
+    return null;
+  }
+
+  @experimental
+  @override
+  R? visitCascadeSection(CascadeSection node) {
+    node.visitChildren2(this);
+    return null;
+  }
+
   @override
   R? visitCaseClause(CaseClause node) {
     node.visitChildren2(this);
@@ -3861,6 +3882,19 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitCascadeExpression(CascadeExpression node) => null;
 
+  @experimental
+  @override
+  R? visitCascadeIndexAssignmentTarget(CascadeIndexAssignmentTarget node) =>
+      null;
+
+  @experimental
+  @override
+  R? visitCascadeIndexExpression(CascadeIndexExpression node) => null;
+
+  @experimental
+  @override
+  R? visitCascadeSection(CascadeSection node) => null;
+
   @override
   R? visitCaseClause(CaseClause node) => null;
 
@@ -5157,6 +5191,19 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitCascadeExpression(CascadeExpression node) => _throw(node);
+
+  @experimental
+  @override
+  R? visitCascadeIndexAssignmentTarget(CascadeIndexAssignmentTarget node) =>
+      _throw(node);
+
+  @experimental
+  @override
+  R? visitCascadeIndexExpression(CascadeIndexExpression node) => _throw(node);
+
+  @experimental
+  @override
+  R? visitCascadeSection(CascadeSection node) => _throw(node);
 
   @override
   R? visitCaseClause(CaseClause node) => _throw(node);
@@ -7472,6 +7519,33 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
     return result;
   }
 
+  @experimental
+  @override
+  T? visitCascadeIndexAssignmentTarget(CascadeIndexAssignmentTarget node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitCascadeIndexAssignmentTarget(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @experimental
+  @override
+  T? visitCascadeIndexExpression(CascadeIndexExpression node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitCascadeIndexExpression(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @experimental
+  @override
+  T? visitCascadeSection(CascadeSection node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitCascadeSection(node);
+    stopwatch.stop();
+    return result;
+  }
+
   @override
   T? visitCaseClause(CaseClause node) {
     stopwatch.start();
@@ -9726,6 +9800,20 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitCascadeExpression(CascadeExpression node) => visitNode(node);
+
+  @experimental
+  @override
+  R? visitCascadeIndexAssignmentTarget(CascadeIndexAssignmentTarget node) =>
+      visitNode(node);
+
+  @experimental
+  @override
+  R? visitCascadeIndexExpression(CascadeIndexExpression node) =>
+      visitNode(node);
+
+  @experimental
+  @override
+  R? visitCascadeSection(CascadeSection node) => visitNode(node);
 
   @override
   R? visitCaseClause(CaseClause node) => visitNode(node);

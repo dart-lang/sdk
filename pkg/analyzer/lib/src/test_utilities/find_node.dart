@@ -254,6 +254,13 @@ abstract class _FindNodeBase {
 
   CascadeExpression get singleCascadeExpression => _single();
 
+  CascadeIndexAssignmentTarget get singleCascadeIndexAssignmentTarget =>
+      _single();
+
+  CascadeIndexExpression get singleCascadeIndexExpression => _single();
+
+  CascadeSection get singleCascadeSection => _single();
+
   CastPattern get singleCastPattern => _single();
 
   CatchClause get singleCatchClause => _single();
@@ -604,6 +611,18 @@ abstract class _FindNodeBase {
 
   CascadeExpression cascade(String search) {
     return _node(search, (n) => n is CascadeExpression);
+  }
+
+  CascadeIndexAssignmentTarget cascadeIndexAssignmentTarget(String search) {
+    return _node(search, (n) => n is CascadeIndexAssignmentTarget);
+  }
+
+  CascadeIndexExpression cascadeIndexExpression(String search) {
+    return _node(search, (n) => n is CascadeIndexExpression);
+  }
+
+  CascadeSection cascadeSection(String search) {
+    return _node(search, (n) => n is CascadeSection);
   }
 
   CaseClause caseClause(String search) {

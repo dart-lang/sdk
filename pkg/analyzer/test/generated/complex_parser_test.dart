@@ -957,26 +957,49 @@ CascadeExpression
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
-  cascadeSections2
+  sections
+    CascadeSection
+      operator: ..
+      body: DirectAssignment
+        target: CascadeIndexAssignmentTarget
+          leftBracket: [
+          index: IntegerLiteral
+            literal: 3
+          rightBracket: ]
+        operator: =
+        value: IntegerLiteral
+          literal: 4
+    CascadeSection
+      operator: ..
+      body: DirectAssignment
+        target: CascadeIndexAssignmentTarget
+          leftBracket: [
+          index: IntegerLiteral
+            literal: 0
+          rightBracket: ]
+        operator: =
+        value: IntegerLiteral
+          literal: 11
+  cascadeSections
     AssignmentExpression
-      leftHandSide2: IndexExpression
+      leftHandSide: IndexExpression
         period: ..
         leftBracket: [
-        index2: IntegerLiteral
+        index: IntegerLiteral
           literal: 3
         rightBracket: ]
       operator: =
-      rightHandSide2: IntegerLiteral
+      rightHandSide: IntegerLiteral
         literal: 4
     AssignmentExpression
-      leftHandSide2: IndexExpression
+      leftHandSide: IndexExpression
         period: ..
         leftBracket: [
-        index2: IntegerLiteral
+        index: IntegerLiteral
           literal: 0
         rightBracket: ]
       operator: =
-      rightHandSide2: IntegerLiteral
+      rightHandSide: IntegerLiteral
         literal: 11
 ''');
   }

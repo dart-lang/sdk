@@ -406,13 +406,12 @@ class NullSafetyDeadCodeVerifier {
   }
 
   void verifyCascadeExpression(CascadeExpression node) {
-    var first = node.cascadeSections2.firstOrNull;
-    if (first is PropertyAccess) {
-      _verifyUnassignedSimpleIdentifier(node, node.target2, first.operator);
-    } else if (first is MethodInvocation) {
-      _verifyUnassignedSimpleIdentifier(node, node.target2, first.operator);
-    } else if (first is IndexExpression) {
-      _verifyUnassignedSimpleIdentifier(node, node.target2, first.period);
+    var first = node.sections.firstOrNull;
+    var body = first?.body;
+    if (body is PropertyAccess ||
+        body is MethodInvocation ||
+        body is CascadeIndexExpression) {
+      _verifyUnassignedSimpleIdentifier(node, node.target2, first!.operator);
     }
   }
 

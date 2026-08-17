@@ -920,13 +920,38 @@ void f(A a) {
 }
 ''');
 
-    var node = result.findNode.assignment('[0] += 2');
+    var node = result.findNode.compoundAssignment('[0] += 2');
     assertResolvedNodeText(node, r'''
-AssignmentExpression
-  leftHandSide2: IndexExpression
+CompoundAssignment
+  target: CascadeIndexAssignmentTarget
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
+      staticType: int
+    rightBracket: ]
+    read: MethodIndexReadResolution
+      element: <testLibrary>::@class::A::@method::[]
+      invokeType: int Function(int)
+      type: int
+    write: MethodIndexWriteResolution
+      element: <testLibrary>::@class::A::@method::[]=
+      invokeType: void Function(int, num)
+      acceptedType: num
+  operator: +=
+  value: IntegerLiteral
+    literal: 2
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+    staticType: int
+  binaryOperator: add
+  element: dart:core::@class::num::@method::+
+  operatorResultType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: IndexExpression
     period: ..
     leftBracket: [
-    index2: IntegerLiteral
+    index: IntegerLiteral
       literal: 0
       correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
       staticType: int
@@ -934,7 +959,7 @@ AssignmentExpression
     element: <null>
     staticType: null
   operator: +=
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 2
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
@@ -944,6 +969,47 @@ AssignmentExpression
   writeType: num
   element: dart:core::@class::num::@method::+
   staticType: int
+''');
+  }
+
+  test_indexExpression_cascade_ifNull() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  int? operator[](int index) => 0;
+  operator[]=(int index, num value) {}
+}
+
+void f(A a) {
+  a..[0] ??= 2;
+}
+''');
+
+    var node = result.findNode.cascadeSection('..[0] ??= 2');
+    assertResolvedNodeText(node, r'''
+CascadeSection
+  operator: ..
+  body: IfNullAssignment
+    target: CascadeIndexAssignmentTarget
+      leftBracket: [
+      index: IntegerLiteral
+        literal: 0
+        correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
+        staticType: int
+      rightBracket: ]
+      read: MethodIndexReadResolution
+        element: <testLibrary>::@class::A::@method::[]
+        invokeType: int? Function(int)
+        type: int?
+      write: MethodIndexWriteResolution
+        element: <testLibrary>::@class::A::@method::[]=
+        invokeType: void Function(int, num)
+        acceptedType: num
+    operator: ??=
+    value: IntegerLiteral
+      literal: 2
+      correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::value
+      staticType: int
+    staticType: int
 ''');
   }
 

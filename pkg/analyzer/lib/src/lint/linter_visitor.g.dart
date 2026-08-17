@@ -1334,6 +1334,27 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
     node.visitChildren2(this);
   }
 
+  @experimental
+  @override
+  void visitCascadeIndexAssignmentTarget(CascadeIndexAssignmentTarget node) {
+    _runSubscriptions(node, _registry._forCascadeIndexAssignmentTarget);
+    node.visitChildren2(this);
+  }
+
+  @experimental
+  @override
+  void visitCascadeIndexExpression(CascadeIndexExpression node) {
+    _runSubscriptions(node, _registry._forCascadeIndexExpression);
+    node.visitChildren2(this);
+  }
+
+  @experimental
+  @override
+  void visitCascadeSection(CascadeSection node) {
+    _runSubscriptions(node, _registry._forCascadeSection);
+    node.visitChildren2(this);
+  }
+
   @override
   void visitCaseClause(CaseClause node) {
     _runSubscriptions(node, _registry._forCaseClause);
@@ -4361,6 +4382,14 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
 
   final List<_Subscription2<CascadeExpression>> _forCascadeExpression = [];
 
+  final List<_Subscription2<CascadeIndexAssignmentTarget>>
+  _forCascadeIndexAssignmentTarget = [];
+
+  final List<_Subscription2<CascadeIndexExpression>>
+  _forCascadeIndexExpression = [];
+
+  final List<_Subscription2<CascadeSection>> _forCascadeSection = [];
+
   final List<_Subscription2<CaseClause>> _forCaseClause = [];
 
   final List<_Subscription2<CastPattern>> _forCastPattern = [];
@@ -4940,6 +4969,34 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   void addCascadeExpression(AbstractAnalysisRule rule, AstVisitor2 visitor) {
     _hasNodeProcessors = true;
     _forCascadeExpression.add(_Subscription2(rule, visitor, _getTimer(rule)));
+  }
+
+  @override
+  void addCascadeIndexAssignmentTarget(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
+    _hasNodeProcessors = true;
+    _forCascadeIndexAssignmentTarget.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
+  }
+
+  @override
+  void addCascadeIndexExpression(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
+    _hasNodeProcessors = true;
+    _forCascadeIndexExpression.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
+  }
+
+  @override
+  void addCascadeSection(AbstractAnalysisRule rule, AstVisitor2 visitor) {
+    _hasNodeProcessors = true;
+    _forCascadeSection.add(_Subscription2(rule, visitor, _getTimer(rule)));
   }
 
   @override

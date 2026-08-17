@@ -164,6 +164,54 @@ class AssignmentExpressionResolver {
     }
   }
 
+  ({IndexReadResolutionImpl read, IndexWriteResolutionImpl write})?
+  resolveCascadeIndexReadWriteTarget(CascadeIndexAssignmentTargetImpl target) {
+    var result = _resolver.resolveCascadeIndex(
+      target,
+      hasRead: true,
+      hasWrite: true,
+    );
+    target.read = result?.read;
+    target.write = result?.write;
+
+    _resolver.analyzeExpression(
+      target.index,
+      SharedTypeSchemaView(
+        result?.read?.indexContextType ?? UnknownInferredType.instance,
+      ),
+    );
+    target.index = _resolver.popRewrite()!;
+    var whyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(
+      _resolver.flowAnalysis.getExpressionInfo(target.index),
+    );
+    var readElement = switch (result?.read) {
+      MethodIndexReadResolutionImpl(:var element) => element,
+      InvalidIndexReadResolutionImpl(
+        recovery: MethodIndexReadResolutionImpl(:var element),
+      ) =>
+        element,
+      _ => null,
+    };
+    var writeElement = switch (result?.write) {
+      MethodIndexWriteResolutionImpl(:var element) => element,
+      InvalidIndexWriteResolutionImpl(
+        recovery: MethodIndexWriteResolutionImpl(:var element),
+      ) =>
+        element,
+      _ => null,
+    };
+    _resolver.checkIndexExpressionIndex(
+      target.index,
+      readElement: readElement,
+      writeElement: writeElement,
+      whyNotPromoted: whyNotPromoted,
+    );
+    var read = result?.read;
+    var write = result?.write;
+    if (read == null || write == null) return null;
+    return (read: read, write: write);
+  }
+
   void resolveCompound(
     CompoundAssignmentImpl node, {
     required TypeImpl contextType,
@@ -177,6 +225,20 @@ class AssignmentExpressionResolver {
     late TypeImpl writeAcceptedType;
     InternalVariableElement? variableElement;
     switch (target) {
+      case CascadeIndexAssignmentTargetImpl():
+        var targetResult = resolveCascadeIndexReadWriteTarget(target);
+        if (targetResult == null) {
+          _resolver.analyzeExpression(
+            node.value,
+            SharedTypeSchemaView(UnknownInferredType.instance),
+          );
+          node.value = _resolver.popRewrite()!;
+          node.operatorResultType = NeverTypeImpl.instance;
+          node.recordStaticType(NeverTypeImpl.instance, resolver: _resolver);
+          return;
+        }
+        readType = targetResult.read.type;
+        writeAcceptedType = targetResult.write.acceptedType;
       case IndexAssignmentTargetImpl():
         var targetResult = resolveIndexReadWriteTarget(target);
         if (targetResult == null) {
@@ -289,6 +351,48 @@ class AssignmentExpressionResolver {
     late TypeImpl writeAcceptedType;
     InternalVariableElement? variableElement;
     switch (target) {
+      case CascadeIndexAssignmentTargetImpl():
+        var result = _resolver.resolveCascadeIndex(
+          target,
+          hasRead: false,
+          hasWrite: true,
+        );
+        var resolution = result?.write;
+        target.write = resolution;
+        _resolver.analyzeExpression(
+          target.index,
+          SharedTypeSchemaView(
+            resolution?.indexContextType ?? UnknownInferredType.instance,
+          ),
+        );
+        target.index = _resolver.popRewrite()!;
+        var whyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(
+          _resolver.flowAnalysis.getExpressionInfo(target.index),
+        );
+        var writeElement = switch (resolution) {
+          MethodIndexWriteResolutionImpl(:var element) => element,
+          InvalidIndexWriteResolutionImpl(
+            recovery: MethodIndexWriteResolutionImpl(:var element),
+          ) =>
+            element,
+          _ => null,
+        };
+        _resolver.checkIndexExpressionIndex(
+          target.index,
+          readElement: null,
+          writeElement: writeElement,
+          whyNotPromoted: whyNotPromoted,
+        );
+        if (resolution == null) {
+          _resolver.analyzeExpression(
+            node.value,
+            SharedTypeSchemaView(UnknownInferredType.instance),
+          );
+          node.value = _resolver.popRewrite()!;
+          node.recordStaticType(NeverTypeImpl.instance, resolver: _resolver);
+          return;
+        }
+        writeAcceptedType = resolution.acceptedType;
       case IndexAssignmentTargetImpl():
         _resolver.analyzeExpression(
           target.receiver,
@@ -423,6 +527,19 @@ class AssignmentExpressionResolver {
     InternalVariableElement? variableElement;
     ExpressionInfo? readExpressionInfo;
     switch (target) {
+      case CascadeIndexAssignmentTargetImpl():
+        var targetResult = resolveCascadeIndexReadWriteTarget(target);
+        if (targetResult == null) {
+          _resolver.analyzeExpression(
+            node.value,
+            SharedTypeSchemaView(UnknownInferredType.instance),
+          );
+          node.value = _resolver.popRewrite()!;
+          node.recordStaticType(NeverTypeImpl.instance, resolver: _resolver);
+          return;
+        }
+        readType = targetResult.read.type;
+        writeAcceptedType = targetResult.write.acceptedType;
       case IndexAssignmentTargetImpl():
         var targetResult = resolveIndexReadWriteTarget(target);
         if (targetResult == null) {

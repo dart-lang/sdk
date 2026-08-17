@@ -460,6 +460,15 @@ abstract class AstVisitor2<R> {
 
   R? visitCascadeExpression(CascadeExpression node);
 
+  @experimental
+  R? visitCascadeIndexAssignmentTarget(CascadeIndexAssignmentTarget node);
+
+  @experimental
+  R? visitCascadeIndexExpression(CascadeIndexExpression node);
+
+  @experimental
+  R? visitCascadeSection(CascadeSection node);
+
   R? visitCaseClause(CaseClause node);
 
   R? visitCastPattern(CastPattern node);
