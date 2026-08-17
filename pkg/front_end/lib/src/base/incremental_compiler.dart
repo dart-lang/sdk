@@ -2216,7 +2216,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       }
       DartType type = def.value;
       PositionalParameter variable = extern.createPositionalParameter(
-        cosmeticName: name,
+        parameterName: name,
         type: type,
         fileOffset: fileOffset,
       );
@@ -2351,7 +2351,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
               subBuilder.invokeTarget?.function?.positionalParameters;
           if (positionals != null &&
               positionals.isNotEmpty &&
-              isExtensionThisName(positionals.first.cosmeticName) &&
+              isExtensionThisName(positionals.first.parameterName) &&
               scopeData.usedDefinitions.containsKey(syntheticThisName)) {
             // If we setup the extensionType (and later the
             // `extensionThis`) we should also set the type correctly

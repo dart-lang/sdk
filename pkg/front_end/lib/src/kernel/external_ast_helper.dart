@@ -1298,7 +1298,7 @@ PatternVariableDeclaration createPatternVariableDeclaration({
 }
 
 PositionalParameter createPositionalParameter({
-  String? cosmeticName,
+  required String parameterName,
   required DartType type,
   Expression? defaultValue,
   bool isCovariantByDeclaration = false,
@@ -1314,7 +1314,7 @@ PositionalParameter createPositionalParameter({
   required int fileOffset,
 }) {
   return new PositionalParameter(
-    cosmeticName: cosmeticName,
+    parameterName: parameterName,
     type: type,
     defaultValue: defaultValue,
     isCovariantByDeclaration: isCovariantByDeclaration,

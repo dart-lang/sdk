@@ -1463,7 +1463,7 @@ InternalPatternVariableDeclaration createPatternVariableDeclaration(
 }
 
 InternalPositionalParameter createPositionalParameter({
-  String? cosmeticName,
+  required String parameterName,
   required DartType type,
   bool isImplicitlyTyped = false,
   InternalExpression? defaultValue,
@@ -1482,7 +1482,7 @@ InternalPositionalParameter createPositionalParameter({
   return new InternalPositionalParameter(
     defaultValue: defaultValue,
     astVariable: extern.createPositionalParameter(
-      cosmeticName: cosmeticName,
+      parameterName: parameterName,
       type: type,
       isCovariantByDeclaration: isCovariantByDeclaration,
       isInitializingFormal: isInitializingFormal,

@@ -313,10 +313,10 @@ class DelayedDefaultValueCloner {
         _libraryBuilder.addProblem(
           diag.optionalSuperParameterWithoutInitializer.withArguments(
             superParameterType: synthesizedParameter.type,
-            superParameterName: synthesizedParameter.cosmeticName!,
+            superParameterName: synthesizedParameter.parameterName,
           ),
           synthesizedParameter.fileOffset,
-          synthesizedParameter.cosmeticName?.length ?? 1,
+          synthesizedParameter.parameterName.length,
           synthesized.fileUri,
         );
         synthesizedParameter.hasErroneousDefaultValue = true;

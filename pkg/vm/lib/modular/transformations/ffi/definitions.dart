@@ -594,12 +594,12 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     ///   super._fromTypedDataBase(#typedDataBase, #offsetInBytes);
     /// ```
     final PositionalParameter typedDataBase = PositionalParameter(
-      cosmeticName: "#typedDataBase",
+      parameterName: "#typedDataBase",
       type: coreTypes.objectNonNullableRawType,
       isSynthesized: true,
     );
     final PositionalParameter offsetInBytes = PositionalParameter(
-      cosmeticName: "#offsetInBytes",
+      parameterName: "#offsetInBytes",
       type: coreTypes.intNonNullableRawType,
       isSynthesized: true,
     );
@@ -640,7 +640,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       /// ) : super._fromTypedData();
       /// ```
       final PositionalParameter typedData = PositionalParameter(
-        cosmeticName: "#typedData",
+        parameterName: "#typedData",
         type: InterfaceType(
           typedDataClass,
           Nullability.nonNullable,
@@ -649,12 +649,12 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         isSynthesized: true,
       );
       final PositionalParameter offset = PositionalParameter(
-        cosmeticName: "#offset",
+        parameterName: "#offset",
         type: coreTypes.intNonNullableRawType,
         isSynthesized: true,
       );
       final PositionalParameter sizeInBytes = PositionalParameter(
-        cosmeticName: "#sizeInBytes",
+        parameterName: "#sizeInBytes",
         type: coreTypes.intNonNullableRawType,
         isSynthesized: true,
       );
@@ -1099,7 +1099,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         "Unexpected setter reference for ${field}, found $setterReference.",
       );
       final PositionalParameter argument = PositionalParameter(
-        cosmeticName: '#v',
+        parameterName: '#v',
         type: field.type,
         isSynthesized: true,
       )..fileOffset = field.fileOffset;

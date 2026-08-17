@@ -3742,7 +3742,7 @@ class ConstantEvaluator
       }
       for (final NamedParameter parameter in function.namedParameters) {
         final Constant value =
-            namedArguments[parameter.cosmeticName] ??
+            namedArguments[parameter.parameterName] ??
             // TODO(johnniwinther): This should call [_evaluateSubexpression].
             _evaluateNullableSubexpression(parameter.defaultValue);
         if (value is AbortConstant) return value;
@@ -5080,7 +5080,7 @@ class ConstantEvaluator
 
   Constant _getFromEnvironmentDefaultValue(Procedure target) {
     Variable variable = target.function.namedParameters.singleWhere(
-      (v) => v.cosmeticName == 'defaultValue',
+      (v) => v.parameterName == 'defaultValue',
     );
     return evaluateExpressionInContext(target, variable.initializer!);
   }
@@ -5372,7 +5372,7 @@ class ConstantEvaluator
       }
       for (final NamedParameter parameter in function.namedParameters) {
         final Constant value =
-            namedArguments[parameter.cosmeticName] ??
+            namedArguments[parameter.parameterName] ??
             // TODO(johnniwinther): This should call [_evaluateSubexpression].
             _evaluateNullableSubexpression(parameter.defaultValue);
         if (value is AbortConstant) return value;

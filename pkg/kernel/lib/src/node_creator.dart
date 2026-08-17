@@ -1688,7 +1688,7 @@ class NodeCreator {
       case VariableKind.NamedParameter:
         return NamedParameter(parameterName: 'foo');
       case VariableKind.PositionalParameter:
-        return PositionalParameter();
+        return PositionalParameter(parameterName: 'foo');
       case VariableKind.SyntheticVariable:
         return SyntheticVariable();
       case VariableKind.ThisVariable:

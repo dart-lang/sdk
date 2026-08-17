@@ -824,7 +824,7 @@ final class FunctionSerializationCluster extends SerializationCluster {
         data = ClosureData(function.enclosingFunction);
         positionalParameterNames = getListConstant([
           '#closure', // Implicit closure parameter.
-          for (final p in functionNode.positionalParameters) p.cosmeticName!,
+          for (final p in functionNode.positionalParameters) p.parameterName,
         ]);
         startFileOffset = functionNode.fileOffset;
         endFileOffset = functionNode.fileEndOffset;

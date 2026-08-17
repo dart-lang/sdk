@@ -1491,7 +1491,7 @@ class InternalLateVariable extends InternalDeclaredVariable {
         fileOffset: fileOffset,
       );
       PositionalParameter setterParameter = extern.createPositionalParameter(
-        cosmeticName: "${name}#param",
+        parameterName: "${name}#param",
         type: type,
         isSynthesized: false,
         fileOffset: fileOffset,
@@ -1652,7 +1652,7 @@ sealed class InternalFunctionParameter extends InternalVariable
   bool get isStaticLate => false;
 
   @override
-  String? get cosmeticName => _astVariable.cosmeticName;
+  String? get cosmeticName => _astVariable.parameterName;
 
   @override
   @Deprecated('Use InternalFunctionParameter.hasDeclaredDefaultValue instead.')

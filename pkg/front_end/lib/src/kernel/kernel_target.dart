@@ -1076,7 +1076,7 @@ class KernelTarget {
       required bool isPositional,
     }) {
       PositionalParameter copy = extern.createPositionalParameter(
-        cosmeticName: formal.cosmeticName,
+        parameterName: formal.parameterName,
         type: const UnknownType(),
         isFinal: formal.isFinal,
         isRequired: formal.isRequired,

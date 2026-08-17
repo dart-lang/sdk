@@ -1246,7 +1246,7 @@ class Summary {
     FunctionNode function = member.function!;
     statements.length = implicit;
     for (PositionalParameter param in function.positionalParameters) {
-      statements.add(paramsByName[param.cosmeticName]!);
+      statements.add(paramsByName[param.parameterName]!);
     }
     positionalParameterCount = statements.length;
     for (NamedParameter param in function.namedParameters) {

@@ -326,7 +326,7 @@ mixin _DirectSetterEncodingMixin implements SetterEncoding {
       // Do this after building the parameters, since the diet listener
       // assumes that parameters are built, even if illegal in number.
       PositionalParameter parameter = extern.createPositionalParameter(
-        cosmeticName: "#synthetic",
+        parameterName: "#synthetic",
         type: const DynamicType(),
         fileOffset: TreeNode.noOffset,
       );
@@ -654,7 +654,7 @@ mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
       // assumes that parameters are built, even if illegal in number.
       PositionalParameter thisParameter = function.positionalParameters[0];
       PositionalParameter parameter = extern.createPositionalParameter(
-        cosmeticName: "#synthetic",
+        parameterName: "#synthetic",
         type: const DynamicType(),
         fileOffset: TreeNode.noOffset,
       );
