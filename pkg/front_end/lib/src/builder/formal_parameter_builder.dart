@@ -276,8 +276,6 @@ class CatchParameterBuilder extends NamedBuilderImpl
 class FormalParameterBuilder extends NamedBuilderImpl
     with LookupResultMixin
     implements ParameterVariableBuilder, InferredTypeListener {
-  static const String noNameSentinel = 'no name sentinel';
-
   @override
   final int fileOffset;
 
@@ -425,10 +423,6 @@ class FormalParameterBuilder extends NamedBuilderImpl
       DartType? builtType = type.build(library, TypeUse.parameterType);
 
       String? variableName = switch (name) {
-        // TODO(johnniwinther): This case is only for function type parameters
-        // for which we should create [FunctionTypeParameterBuilder] instead of
-        // [FormalParameterBuilder].
-        noNameSentinel => null,
         // If the parameter is a private named parameter, use the public name
         // for the corresponding variable.
         _ when publicName != null => publicName,
@@ -451,7 +445,6 @@ class FormalParameterBuilder extends NamedBuilderImpl
             isFinal: modifiers.isFinal,
             hasDeclaredDefaultValue: hasDeclaredDefaultValue,
             isLowered: isExtensionThis,
-            isSynthesized: name == noNameSentinel,
             isWildcard: isWildcard,
             fileOffset: fileOffset,
             isImplicitlyTyped: isTypeOmitted,
@@ -468,7 +461,6 @@ class FormalParameterBuilder extends NamedBuilderImpl
             isSuperInitializingFormal: isSuperInitializingFormal,
             isFinal: modifiers.isFinal,
             hasDeclaredDefaultValue: hasDeclaredDefaultValue,
-            isSynthesized: name == noNameSentinel,
             isWildcard: isWildcard,
             isRenamedPrivateNamedParameter: publicName != null,
             isImplicitlyTyped: isTypeOmitted,
@@ -647,7 +639,37 @@ class FunctionTypeParameterBuilder implements ParameterBuilder {
   @override
   final String? name;
 
-  new(this.kind, this.type, this.name);
+  @override
+  final int fileOffset;
+
+  @override
+  final bool isWildcard;
+
+  new({
+    required this.kind,
+    required this.type,
+    required this.name,
+    required this.fileOffset,
+    required this.isWildcard,
+  });
+
+  @override
+  InternalVariable build(SourceLibraryBuilder library) {
+    throw new UnsupportedError("${this.runtimeType}.build");
+  }
+}
+
+class ComputedParameterBuilder implements ParameterBuilder {
+  @override
+  final FormalParameterKind kind;
+
+  @override
+  final TypeBuilder type;
+
+  @override
+  final String? name;
+
+  new({required this.kind, required this.type, required this.name});
 
   @override
   int get fileOffset {
