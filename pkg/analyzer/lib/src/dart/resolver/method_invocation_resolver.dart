@@ -13,6 +13,7 @@ import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
@@ -286,15 +287,20 @@ class MethodInvocationResolver with ScopeHelpers {
         contextType: contextType,
       );
     }
-
-    _resolver.diagnosticReporter.report(
-      diag.dotShorthandUndefinedInvocation
-          .withArguments(
-            name: node.memberName.name,
-            contextType: contextType.getDisplayString(),
-          )
-          .at(node.memberName),
-    );
+    if (dotShorthandContextType is UnknownInferredType) {
+      _resolver.diagnosticReporter.report(
+        diag.dotShorthandMissingContext.at(node),
+      );
+    } else {
+      _resolver.diagnosticReporter.report(
+        diag.dotShorthandUndefinedInvocation
+            .withArguments(
+              name: node.memberName.name,
+              contextType: contextType.getDisplayString(),
+            )
+            .at(node.memberName),
+      );
+    }
     _setInvalidTypeResolutionForDotShorthand(
       node,
       setNameTypeToDynamic: false,

@@ -257,8 +257,8 @@ void f() {
   E(0) == .member();
 //     ^^
 // [diag.undefinedExtensionOperator] The operator '==' isn't defined for the extension 'E'.
-//         ^^^^^^
-// [diag.dotShorthandUndefinedInvocation] The static method or constructor 'member' isn't defined for the context type '_'.
+//        ^^^^^^^^^
+// [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
 }
 ''');
   }
@@ -271,8 +271,8 @@ void f() {
   E(0) != .member();
 //     ^^
 // [diag.undefinedExtensionOperator] The operator '==' isn't defined for the extension 'E'.
-//         ^^^^^^
-// [diag.dotShorthandUndefinedInvocation] The static method or constructor 'member' isn't defined for the context type '_'.
+//        ^^^^^^^^^
+// [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
 }
 ''');
   }
@@ -317,8 +317,8 @@ class B extends A {
   const B();
   static B member() => B();
   bool test() => super == .member();
-//                         ^^^^^^
-// [diag.dotShorthandUndefinedInvocation] The static method or constructor 'member' isn't defined for the context type '_'.
+//                        ^^^^^^^^^
+// [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
 }
 ''');
   }
@@ -333,8 +333,8 @@ class B extends A {
   const B();
   static B member() => B();
   bool test() => super != .member();
-//                         ^^^^^^
-// [diag.dotShorthandUndefinedInvocation] The static method or constructor 'member' isn't defined for the context type '_'.
+//                        ^^^^^^^^^
+// [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
 }
 ''');
   }
@@ -356,8 +356,8 @@ void main() {
     await resolveTestCodeWithDiagnostics(r'''
 void main() {
   var c = .member();
-//         ^^^^^^
-// [diag.dotShorthandUndefinedInvocation] The static method or constructor 'member' isn't defined for the context type '_'.
+//        ^^^^^^^^^
+// [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
   print(c);
 }
 ''');
@@ -868,8 +868,8 @@ class C {
 
 void main() {
   C c = .member()++;
-//       ^^^^^^
-// [diag.dotShorthandUndefinedInvocation] The static method or constructor 'member' isn't defined for the context type '_'.
+//      ^^^^^^^^^
+// [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
 //               ^^
 // [diag.illegalAssignmentToNonAssignable] Illegal assignment to non-assignable expression.
   print(c);
@@ -887,8 +887,8 @@ class C {
 
 void main() {
   C c = ++.member();
-//         ^^^^^^
-// [diag.dotShorthandUndefinedInvocation] The static method or constructor 'member' isn't defined for the context type '_'.
+//        ^^^^^^^^^
+// [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
 //                ^
 // [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
   print(c);
