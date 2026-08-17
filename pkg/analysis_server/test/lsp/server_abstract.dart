@@ -747,6 +747,13 @@ mixin ClientCapabilitiesHelperMixin {
     );
   }
 
+  void setPublishDiagnosticsSupport() {
+    textDocumentCapabilities = extendTextDocumentCapabilities(
+      textDocumentCapabilities,
+      {'publishDiagnostics': <String, Object?>{}},
+    );
+  }
+
   void setSignatureHelpContentFormat(List<MarkupKind>? formats) {
     textDocumentCapabilities = extendTextDocumentCapabilities(
       textDocumentCapabilities,

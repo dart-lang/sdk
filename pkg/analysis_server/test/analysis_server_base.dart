@@ -77,7 +77,16 @@ abstract class ContextResolutionTest with ResourceProviderMixin {
 
   void Function(Notification)? notificationListener;
 
+  bool _hasSetRoots = false;
+
   String get dartSdkPath => sdkRoot.path;
+
+  /// Whether analysis roots have been set for this first time.
+  ///
+  /// Used as a safety check to ensure tests that send client capabilities do
+  /// so before this, because otherwise the capabilities might not apply during
+  /// initial analysis.
+  bool get hasSetRoots => _hasSetRoots;
 
   bool get retainDataForTesting => false;
 
@@ -146,6 +155,8 @@ abstract class ContextResolutionTest with ResourceProviderMixin {
     required List<String> included,
     required List<String> excluded,
   }) async {
+    _hasSetRoots = true;
+
     var includedConverted = included.map(convertPath).toList();
     var excludedConverted = excluded.map(convertPath).toList();
     await handleSuccessfulRequest(

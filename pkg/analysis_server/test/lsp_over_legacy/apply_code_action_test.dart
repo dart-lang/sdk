@@ -23,8 +23,8 @@ class ApplyCodeActionTest extends SharedLspOverLegacyTest
         SharedApplyCodeActionTests {
   @override
   Future<void> initializeServer() async {
-    await super.initializeServer();
     await sendClientCapabilities();
+    await super.initializeServer();
   }
 
   @override

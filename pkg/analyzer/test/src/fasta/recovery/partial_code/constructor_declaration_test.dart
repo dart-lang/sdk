@@ -1531,8 +1531,8 @@ CompilationUnit
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: PostfixIncrement
-                  operand: SimpleIdentifier
-                    token: f
+                  target: UnqualifiedNameAssignmentTarget
+                    name: f
                   operator: ++
                 expression(v1): PostfixExpression
                   operand: SimpleIdentifier
@@ -1592,8 +1592,8 @@ CompilationUnit
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: PostfixIncrement
-                  operand: SimpleIdentifier
-                    token: f
+                  target: UnqualifiedNameAssignmentTarget
+                    name: f
                   operator: ++
                 expression(v1): PostfixExpression
                   operand: SimpleIdentifier
@@ -1641,8 +1641,8 @@ CompilationUnit
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: PostfixIncrement
-                  operand: SimpleIdentifier
-                    token: f
+                  target: UnqualifiedNameAssignmentTarget
+                    name: f
                   operator: ++
                 expression(v1): PostfixExpression
                   operand: SimpleIdentifier
@@ -1697,8 +1697,8 @@ CompilationUnit
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: PostfixIncrement
-                  operand: SimpleIdentifier
-                    token: f
+                  target: UnqualifiedNameAssignmentTarget
+                    name: f
                   operator: ++
                 expression(v1): PostfixExpression
                   operand: SimpleIdentifier
@@ -1756,8 +1756,8 @@ CompilationUnit
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: PostfixIncrement
-                  operand: SimpleIdentifier
-                    token: f
+                  target: UnqualifiedNameAssignmentTarget
+                    name: f
                   operator: ++
                 expression(v1): PostfixExpression
                   operand: SimpleIdentifier
@@ -1815,8 +1815,8 @@ CompilationUnit
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: PostfixIncrement
-                  operand: SimpleIdentifier
-                    token: f
+                  target: UnqualifiedNameAssignmentTarget
+                    name: f
                   operator: ++
                 expression(v1): PostfixExpression
                   operand: SimpleIdentifier
@@ -1874,8 +1874,8 @@ CompilationUnit
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: PostfixIncrement
-                  operand: SimpleIdentifier
-                    token: f
+                  target: UnqualifiedNameAssignmentTarget
+                    name: f
                   operator: ++
                 expression(v1): PostfixExpression
                   operand: SimpleIdentifier
@@ -1943,8 +1943,8 @@ CompilationUnit
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: PostfixIncrement
-                  operand: SimpleIdentifier
-                    token: f
+                  target: UnqualifiedNameAssignmentTarget
+                    name: f
                   operator: ++
                 expression(v1): PostfixExpression
                   operand: SimpleIdentifier
@@ -2011,8 +2011,8 @@ CompilationUnit
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: PostfixIncrement
-                  operand: SimpleIdentifier
-                    token: f
+                  target: UnqualifiedNameAssignmentTarget
+                    name: f
                   operator: ++
                 expression(v1): PostfixExpression
                   operand: SimpleIdentifier

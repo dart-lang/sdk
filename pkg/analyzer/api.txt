@@ -1895,9 +1895,9 @@ package:analyzer/dart/ast/ast.dart:
     period (getter: Token)
   IncrementOrDecrementExpression (class extends Object implements Expression, abstract, final, experimental):
     element (getter: MethodElement?)
-    operand (getter: Expression)
     operator (getter: Token)
     operatorResultType (getter: DartType?)
+    target (getter: AssignmentTarget)
   IndexAssignmentTarget (class extends Object implements AssignmentTarget, abstract, final, experimental):
     index (getter: Expression)
     leftBracket (getter: Token)

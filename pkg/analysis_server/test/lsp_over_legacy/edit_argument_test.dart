@@ -23,8 +23,8 @@ class EditArgumentTest extends SharedLspOverLegacyTest
         SharedEditArgumentTests {
   @override
   Future<void> initializeServer() async {
-    await super.initializeServer();
     await sendClientCapabilities();
+    await super.initializeServer();
   }
 
   @override

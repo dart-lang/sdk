@@ -135,8 +135,8 @@ ListLiteral
         updaters2
           PrefixIncrement
             operator: ++
-            operand: SimpleIdentifier
-              token: x
+            target: UnqualifiedNameAssignmentTarget
+              name: x
         updaters(v1)
           PrefixExpression
             operator: ++
@@ -564,8 +564,8 @@ SetOrMapLiteral
         updaters2
           PrefixIncrement
             operator: ++
-            operand: SimpleIdentifier
-              token: x
+            target: UnqualifiedNameAssignmentTarget
+              name: x
         updaters(v1)
           PrefixExpression
             operator: ++

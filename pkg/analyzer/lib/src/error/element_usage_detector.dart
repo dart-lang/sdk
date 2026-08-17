@@ -284,8 +284,33 @@ class ElementUsageDetector<TagInfo extends Object> {
   }
 
   void incrementOrDecrement(IncrementOrDecrementExpressionImpl node) {
-    checkUsage(node.readElement, node.operand);
-    checkUsage(node.writeElement, node.operand);
+    var target = node.target;
+    if (target case IndexAssignmentTarget(
+      read: MethodIndexReadResolution(:var element),
+    )) {
+      checkUsage(element, target);
+    }
+    if (target case IndexAssignmentTarget(
+      write: MethodIndexWriteResolution(:var element),
+    )) {
+      checkUsage(element, target);
+    }
+    var read = switch (target) {
+      PropertyAssignmentTarget(:var read) => read,
+      UnqualifiedNameAssignmentTarget(:var read) => read,
+      _ => null,
+    };
+    var write = switch (target) {
+      PropertyAssignmentTarget(:var write) => write,
+      UnqualifiedNameAssignmentTarget(:var write) => write,
+      _ => null,
+    };
+    if (read case NamedReadResolutionWithElement(:var element)) {
+      checkUsage(element, target);
+    }
+    if (write case NamedWriteResolutionWithElement(:var element)) {
+      checkUsage(element, target);
+    }
     checkUsage(node.element, node);
   }
 
@@ -843,8 +868,33 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
   }
 
   void incrementOrDecrement(IncrementOrDecrementExpressionImpl node) {
-    checkUsage(node.readElement, node.operand);
-    checkUsage(node.writeElement, node.operand);
+    var target = node.target;
+    if (target case IndexAssignmentTarget(
+      read: MethodIndexReadResolution(:var element),
+    )) {
+      checkUsage(element, target);
+    }
+    if (target case IndexAssignmentTarget(
+      write: MethodIndexWriteResolution(:var element),
+    )) {
+      checkUsage(element, target);
+    }
+    var read = switch (target) {
+      PropertyAssignmentTarget(:var read) => read,
+      UnqualifiedNameAssignmentTarget(:var read) => read,
+      _ => null,
+    };
+    var write = switch (target) {
+      PropertyAssignmentTarget(:var write) => write,
+      UnqualifiedNameAssignmentTarget(:var write) => write,
+      _ => null,
+    };
+    if (read case NamedReadResolutionWithElement(:var element)) {
+      checkUsage(element, target);
+    }
+    if (write case NamedWriteResolutionWithElement(:var element)) {
+      checkUsage(element, target);
+    }
     checkUsage(node.element, node);
   }
 

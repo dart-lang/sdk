@@ -371,6 +371,11 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
         if (element is PrefixElement) {
           return element;
         }
+      } else if (target is SimpleIdentifier) {
+        var element = target.element;
+        if (element is PrefixElement) {
+          return element;
+        }
       }
     } else if (node is MethodInvocation) {
       var target = node.target;

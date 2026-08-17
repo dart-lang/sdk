@@ -571,10 +571,18 @@ var v = (x)?.y;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-PropertyAccess
-  target2: ParenthesizedExpression
+PropertyExtraction
+  receiver: ParenthesizedExpression
     leftParenthesis: (
     expression2: SimpleIdentifier
+      token: x
+    rightParenthesis: )
+  operator: ?.
+  propertyName: y
+V1: PropertyAccess
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: SimpleIdentifier
       token: x
     rightParenthesis: )
   operator: ?.
@@ -1800,12 +1808,11 @@ var v = --a.b == c;
 BinaryOperatorInvocation
   leftOperand: PrefixDecrement
     operator: --
-    operand: PrefixedIdentifier
-      prefix: SimpleIdentifier
+    target: PropertyAssignmentTarget
+      receiver: SimpleIdentifier
         token: a
-      period: .
-      identifier: SimpleIdentifier
-        token: b
+      operator: .
+      propertyName: b
   operator: ==
   rightOperand: SimpleIdentifier
     token: c
@@ -1813,11 +1820,11 @@ BinaryOperatorInvocation
 V1: BinaryExpression
   leftOperand: PrefixExpression
     operator: --
-    operand: PrefixedIdentifier
-      prefix: SimpleIdentifier
+    operand: PropertyAccess
+      target: SimpleIdentifier
         token: a
-      period: .
-      identifier: SimpleIdentifier
+      operator: .
+      propertyName: SimpleIdentifier
         token: b
   operator: ==
   rightOperand: SimpleIdentifier
@@ -2218,12 +2225,11 @@ var v = --a.b == c;
 BinaryOperatorInvocation
   leftOperand: PrefixDecrement
     operator: --
-    operand: PrefixedIdentifier
-      prefix: SimpleIdentifier
+    target: PropertyAssignmentTarget
+      receiver: SimpleIdentifier
         token: a
-      period: .
-      identifier: SimpleIdentifier
-        token: b
+      operator: .
+      propertyName: b
   operator: ==
   rightOperand: SimpleIdentifier
     token: c
@@ -2231,11 +2237,11 @@ BinaryOperatorInvocation
 V1: BinaryExpression
   leftOperand: PrefixExpression
     operator: --
-    operand: PrefixedIdentifier
-      prefix: SimpleIdentifier
+    operand: PropertyAccess
+      target: SimpleIdentifier
         token: a
-      period: .
-      identifier: SimpleIdentifier
+      operator: .
+      propertyName: SimpleIdentifier
         token: b
   operator: ==
   rightOperand: SimpleIdentifier
@@ -2311,8 +2317,8 @@ FunctionExpression
   body: ExpressionFunctionBody
     functionDefinition: =>
     expression2: PostfixIncrement
-      operand: SimpleIdentifier
-        token: i
+      target: UnqualifiedNameAssignmentTarget
+        name: i
       operator: ++
     expression(v1): PostfixExpression
       operand: SimpleIdentifier
@@ -2354,8 +2360,8 @@ FunctionExpression
   body: ExpressionFunctionBody
     functionDefinition: =>
     expression2: PostfixIncrement
-      operand: SimpleIdentifier
-        token: i
+      target: UnqualifiedNameAssignmentTarget
+        name: i
       operator: ++
     expression(v1): PostfixExpression
       operand: SimpleIdentifier
@@ -2422,8 +2428,8 @@ FunctionExpression
   body: ExpressionFunctionBody
     functionDefinition: =>
     expression2: PostfixIncrement
-      operand: SimpleIdentifier
-        token: i
+      target: UnqualifiedNameAssignmentTarget
+        name: i
       operator: ++
     expression(v1): PostfixExpression
       operand: SimpleIdentifier
@@ -3279,8 +3285,8 @@ var v = i--;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 PostfixDecrement
-  operand: SimpleIdentifier
-    token: i
+  target: UnqualifiedNameAssignmentTarget
+    name: i
   operator: --
 V1: PostfixExpression
   operand: SimpleIdentifier
@@ -3296,8 +3302,8 @@ var v = i++;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 PostfixIncrement
-  operand: SimpleIdentifier
-    token: i
+  target: UnqualifiedNameAssignmentTarget
+    name: i
   operator: ++
 V1: PostfixExpression
   operand: SimpleIdentifier
@@ -4973,11 +4979,11 @@ var v = --a[0];
     assertParsedNodeText(node, r'''
 PrefixDecrement
   operator: --
-  operand: IndexExpression
-    target2: SimpleIdentifier
+  target: IndexAssignmentTarget
+    receiver: SimpleIdentifier
       token: a
     leftBracket: [
-    index2: IntegerLiteral
+    index: IntegerLiteral
       literal: 0
     rightBracket: ]
 V1: PrefixExpression
@@ -5000,8 +5006,8 @@ var v = --x;
     assertParsedNodeText(node, r'''
 PrefixDecrement
   operator: --
-  operand: SimpleIdentifier
-    token: x
+  target: UnqualifiedNameAssignmentTarget
+    name: x
 V1: PrefixExpression
   operator: --
   operand: SimpleIdentifier
@@ -5031,12 +5037,11 @@ var v = --super.x;
     assertParsedNodeText(node, r'''
 PrefixDecrement
   operator: --
-  operand: PropertyAccess
-    target2: SuperExpression
+  target: PropertyAssignmentTarget
+    receiver: SuperExpression
       superKeyword: super
     operator: .
-    propertyName: SimpleIdentifier
-      token: x
+    propertyName: x
 V1: PrefixExpression
   operator: --
   operand: PropertyAccess
@@ -5070,11 +5075,11 @@ var v = ++a[0];
     assertParsedNodeText(node, r'''
 PrefixIncrement
   operator: ++
-  operand: IndexExpression
-    target2: SimpleIdentifier
+  target: IndexAssignmentTarget
+    receiver: SimpleIdentifier
       token: a
     leftBracket: [
-    index2: IntegerLiteral
+    index: IntegerLiteral
       literal: 0
     rightBracket: ]
 V1: PrefixExpression
@@ -5097,8 +5102,8 @@ var v = ++x;
     assertParsedNodeText(node, r'''
 PrefixIncrement
   operator: ++
-  operand: SimpleIdentifier
-    token: x
+  target: UnqualifiedNameAssignmentTarget
+    name: x
 V1: PrefixExpression
   operator: ++
   operand: SimpleIdentifier
@@ -5114,11 +5119,11 @@ var v = ++super[0];
     assertParsedNodeText(node, r'''
 PrefixIncrement
   operator: ++
-  operand: IndexExpression
-    target2: SuperExpression
+  target: IndexAssignmentTarget
+    receiver: SuperExpression
       superKeyword: super
     leftBracket: [
-    index2: IntegerLiteral
+    index: IntegerLiteral
       literal: 0
     rightBracket: ]
 V1: PrefixExpression
@@ -5141,12 +5146,11 @@ var v = ++super.x;
     assertParsedNodeText(node, r'''
 PrefixIncrement
   operator: ++
-  operand: PropertyAccess
-    target2: SuperExpression
+  target: PropertyAssignmentTarget
+    receiver: SuperExpression
       superKeyword: super
     operator: .
-    propertyName: SimpleIdentifier
-      token: x
+    propertyName: x
 V1: PrefixExpression
   operator: ++
   operand: PropertyAccess

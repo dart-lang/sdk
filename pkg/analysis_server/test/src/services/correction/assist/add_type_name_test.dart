@@ -85,7 +85,7 @@ void f((int,) g) => f(.^m());
   Future<void> test_typeParameter() async {
     await resolveTestCode('''
 class C {}
-// ignore: dot_shorthand_undefined_member
+// ignore: dot_shorthand_missing_context
 void f<T extends C>(T g) => f(.^m());
 ''');
     await assertNoAssist();

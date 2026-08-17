@@ -5193,10 +5193,14 @@ void Function(int) foo(void Function<T>(T) f) {
     assertResolvedNodeText(node, r'''
 FunctionReference
   function2: PostfixIncrement
-    operand: SimpleIdentifier
-      token: f
-      element: <testLibrary>::@function::foo::@formalParameter::f
-      staticType: null
+    target: UnqualifiedNameAssignmentTarget
+      name: f
+      read: VariableReadResolution
+        element: <testLibrary>::@function::foo::@formalParameter::f
+        type: void Function<T>(T)
+      write: VariableWriteResolution
+        element: <testLibrary>::@function::foo::@formalParameter::f
+        acceptedType: void Function<T>(T)
     operator: ++
     element: <testLibrary>::@extension::#0::@method::+
     operatorResultType: void Function<T>(T)
@@ -5269,10 +5273,14 @@ void Function(int) foo(void Function<T>(T) f) {
 FunctionReference
   function2: PrefixIncrement
     operator: ++
-    operand: SimpleIdentifier
-      token: f
-      element: <testLibrary>::@function::foo::@formalParameter::f
-      staticType: null
+    target: UnqualifiedNameAssignmentTarget
+      name: f
+      read: VariableReadResolution
+        element: <testLibrary>::@function::foo::@formalParameter::f
+        type: void Function<T>(T)
+      write: VariableWriteResolution
+        element: <testLibrary>::@function::foo::@formalParameter::f
+        acceptedType: void Function<T>(T)
     element: <testLibrary>::@extension::#0::@method::+
     operatorResultType: void Function<T>(T)
     staticType: void Function<T>(T)

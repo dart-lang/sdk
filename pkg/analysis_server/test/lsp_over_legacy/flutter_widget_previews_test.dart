@@ -52,7 +52,7 @@ import 'package:flutter/widget_previews.dart';
 Widget preview1() => Text('1');
 ''');
 
-    await waitForTasksFinished();
+    await initializeServer();
     var result = await getFlutterWidgetPreviews(fileUri);
     expect(result!.previews, hasLength(1));
     expect(result.previews.first.functionName, 'preview1');
@@ -72,7 +72,7 @@ import 'package:flutter/widget_previews.dart';
 Widget b() => Text('B');
 ''');
 
-    await waitForTasksFinished();
+    await initializeServer();
     var result = await getWorkspaceFlutterWidgetPreviews();
     expect(result!.previews, hasLength(2));
     expect(result.previews.any((p) => p.functionName == 'a'), isTrue);

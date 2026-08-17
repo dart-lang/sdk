@@ -542,6 +542,9 @@ extension ExpressionNullableExtension on Expression? {
       case AssignmentExpression():
         // Allow `x = LinkedHashMap()`.
         return ancestor.staticType;
+      case BinaryExpression(:var operator)
+          when operator.type == TokenType.QUESTION_QUESTION:
+        return ancestor.approximateContextType;
       case ConditionalExpression():
         return ancestor.staticType;
       case ConstructorFieldInitializer():

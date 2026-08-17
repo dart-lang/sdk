@@ -1281,8 +1281,8 @@ Block
         rightSeparator: ;
         updaters2
           PostfixIncrement
-            operand: SimpleIdentifier
-              token: i
+            target: UnqualifiedNameAssignmentTarget
+              name: i
             operator: ++
         updaters(v1)
           PostfixExpression
@@ -1329,8 +1329,8 @@ Block
         rightSeparator: ;
         updaters2
           PostfixIncrement
-            operand: SimpleIdentifier
-              token: i
+            target: UnqualifiedNameAssignmentTarget
+              name: i
             operator: ++
         updaters(v1)
           PostfixExpression
@@ -1361,8 +1361,8 @@ Block
       leftParenthesis: (
       forLoopParts: ForPartsWithExpression
         initialization2: PostfixDecrement
-          operand: SimpleIdentifier
-            token: i
+          target: UnqualifiedNameAssignmentTarget
+            name: i
           operator: --
         initialization(v1): PostfixExpression
           operand: SimpleIdentifier
@@ -1385,8 +1385,8 @@ Block
         rightSeparator: ;
         updaters2
           PostfixIncrement
-            operand: SimpleIdentifier
-              token: i
+            target: UnqualifiedNameAssignmentTarget
+              name: i
             operator: ++
         updaters(v1)
           PostfixExpression
@@ -1417,8 +1417,8 @@ Block
       leftParenthesis: (
       forLoopParts: ForPartsWithExpression
         initialization2: PostfixDecrement
-          operand: SimpleIdentifier
-            token: i
+          target: UnqualifiedNameAssignmentTarget
+            name: i
           operator: --
         initialization(v1): PostfixExpression
           operand: SimpleIdentifier
@@ -1441,8 +1441,8 @@ Block
         rightSeparator: ;
         updaters2
           PostfixIncrement
-            operand: SimpleIdentifier
-              token: i
+            target: UnqualifiedNameAssignmentTarget
+              name: i
             operator: ++
         updaters(v1)
           PostfixExpression
@@ -1731,8 +1731,8 @@ Block
         rightSeparator: ;
         updaters2
           PostfixIncrement
-            operand: SimpleIdentifier
-              token: i
+            target: UnqualifiedNameAssignmentTarget
+              name: i
             operator: ++
         updaters(v1)
           PostfixExpression
@@ -1787,8 +1787,8 @@ Block
         rightSeparator: ;
         updaters2
           PostfixIncrement
-            operand: SimpleIdentifier
-              token: i
+            target: UnqualifiedNameAssignmentTarget
+              name: i
             operator: ++
         updaters(v1)
           PostfixExpression
@@ -1849,12 +1849,12 @@ Block
         rightSeparator: ;
         updaters2
           PostfixIncrement
-            operand: SimpleIdentifier
-              token: i
+            target: UnqualifiedNameAssignmentTarget
+              name: i
             operator: ++
           PostfixDecrement
-            operand: SimpleIdentifier
-              token: j
+            target: UnqualifiedNameAssignmentTarget
+              name: j
             operator: --
         updaters(v1)
           PostfixExpression
@@ -1919,12 +1919,12 @@ Block
         rightSeparator: ;
         updaters2
           PostfixIncrement
-            operand: SimpleIdentifier
-              token: i
+            target: UnqualifiedNameAssignmentTarget
+              name: i
             operator: ++
           PostfixDecrement
-            operand: SimpleIdentifier
-              token: j
+            target: UnqualifiedNameAssignmentTarget
+              name: j
             operator: --
         updaters(v1)
           PostfixExpression
@@ -1970,8 +1970,8 @@ Block
         rightSeparator: ;
         updaters2
           PostfixIncrement
-            operand: SimpleIdentifier
-              token: i
+            target: UnqualifiedNameAssignmentTarget
+              name: i
             operator: ++
         updaters(v1)
           PostfixExpression
@@ -2013,8 +2013,8 @@ Block
         rightSeparator: ;
         updaters2
           PostfixIncrement
-            operand: SimpleIdentifier
-              token: i
+            target: UnqualifiedNameAssignmentTarget
+              name: i
             operator: ++
         updaters(v1)
           PostfixExpression
@@ -2048,8 +2048,8 @@ Block
         rightSeparator: ;
         updaters2
           PostfixIncrement
-            operand: SimpleIdentifier
-              token: i
+            target: UnqualifiedNameAssignmentTarget
+              name: i
             operator: ++
         updaters(v1)
           PostfixExpression
@@ -2083,8 +2083,8 @@ Block
         rightSeparator: ;
         updaters2
           PostfixIncrement
-            operand: SimpleIdentifier
-              token: i
+            target: UnqualifiedNameAssignmentTarget
+              name: i
             operator: ++
         updaters(v1)
           PostfixExpression

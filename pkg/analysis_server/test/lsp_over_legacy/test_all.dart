@@ -11,6 +11,7 @@ import 'code_action_fixes_test.dart' as code_action_fixes;
 import 'code_action_refactors_test.dart' as code_action_refactors;
 import 'code_action_source_test.dart' as code_action_source;
 import 'definition_test.dart' as definition;
+import 'diagnostics_test.dart' as diagnostics;
 import 'document_color_test.dart' as document_color;
 import 'document_highlights_test.dart' as document_highlights;
 import 'document_symbols_test.dart' as document_symbols;
@@ -38,6 +39,7 @@ void main() {
     code_action_refactors.main();
     code_action_source.main();
     definition.main();
+    diagnostics.main();
     document_color.main();
     document_highlights.main();
     document_symbols.main();

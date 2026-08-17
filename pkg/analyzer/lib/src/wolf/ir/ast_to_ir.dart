@@ -14,7 +14,6 @@ import 'package:analyzer/src/dart/ast/ast.dart'
         AssignmentTargetImpl,
         GetterInvocationResolutionImpl,
         IndexAssignmentTargetImpl,
-        IncrementOrDecrementExpressionImpl,
         InvalidExpressionAssignmentTargetImpl,
         PropertyAssignmentTargetImpl,
         PropertyExtractionImpl,
@@ -147,16 +146,26 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
             readElement: parent.readElement,
             writeElement: parent.writeElement,
           );
-        case IncrementOrDecrementExpressionImpl():
-          return (
-            readElement: parent.readElement,
-            writeElement: parent.writeElement,
-          );
+        case AssignmentTarget():
+          return null;
         case dynamic(:var runtimeType):
           throw UnimplementedError('TODO(paulberry): $runtimeType');
       }
     }
   }
+
+  _LValueTemplates dispatchAssignmentTarget(AssignmentTarget target) =>
+      switch (target) {
+        IndexAssignmentTarget() => _indexAssignmentTarget(target),
+        PropertyAssignmentTarget() => _propertyAssignmentTarget(target),
+        UnqualifiedNameAssignmentTarget() => _unqualifiedNameAssignmentTarget(
+          target,
+        ),
+        InvalidExpressionAssignmentTarget(:var expression) => dispatchLValue(
+          expression,
+        ),
+        _ => throw UnimplementedError('TODO(paulberry): ${target.runtimeType}'),
+      };
 
   /// Visits L-value [node] and returns the templates for reading/writing it.
   _LValueTemplates dispatchLValue(Expression node) => node.accept2(this)!;
@@ -1011,7 +1020,11 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
   _LValueTemplates visitPropertyExtraction(
     covariant PropertyExtractionImpl node,
   ) {
+    var previousNestingLevel = ir.nestingLevel;
     dispatchNode(node.receiver, terminateNullShorting: false);
+    if (node.operator.type == TokenType.QUESTION_PERIOD) {
+      nullShortingCheck(previousNestingLevel: previousNestingLevel);
+    }
     return _PropertyAccessTemplates.direct(
       name: node.propertyName.lexeme,
       readElement: switch (node.resolution) {
@@ -1195,7 +1208,11 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
   }
 
   _LValueTemplates _propertyAssignmentTarget(PropertyAssignmentTarget node) {
-    dispatchNode(node.receiver);
+    var previousNestingLevel = ir.nestingLevel;
+    dispatchNode(node.receiver, terminateNullShorting: false);
+    if (node.operator.type == TokenType.QUESTION_PERIOD) {
+      nullShortingCheck(previousNestingLevel: previousNestingLevel);
+    }
     var readElement = switch (node.read) {
       GetterInvocationResolution(:var element) => element,
       DynamicPropertyReadResolution() => null,
@@ -1252,9 +1269,9 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
   }
 
   Null _visitPostfixIncrementOrDecrement(IncrementOrDecrementExpression node) {
-    var lValueTemplates = dispatchLValue(node.operand);
+    var lValueTemplates = dispatchAssignmentTarget(node.target);
     // Stack: lValue
-    eventListener.onEnterNode(node.operand);
+    eventListener.onEnterNode(node.target);
     lValueTemplates.readForPostfixIncDec(this);
     // Stack: oldValue lValue oldValue
     eventListener.onExitNode();
@@ -1269,7 +1286,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
   }
 
   Null _visitPrefixIncrementOrDecrement(IncrementOrDecrementExpression node) {
-    var lValueTemplates = dispatchLValue(node.operand);
+    var lValueTemplates = dispatchAssignmentTarget(node.target);
     // Stack: lValue
     lValueTemplates.readForCompoundAssignment(this);
     // Stack: lValue oldValue
@@ -1277,7 +1294,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
     // Stack: lValue oldValue 1
     instanceCall(node.element, node.operator.lexeme[0], [], twoArguments);
     // Stack: lValue newValue
-    eventListener.onEnterNode(node.operand);
+    eventListener.onEnterNode(node.target);
     lValueTemplates.write(this);
     // Stack: newValue
     eventListener.onExitNode();

@@ -995,15 +995,18 @@ extension E on int {
 f(){
   E(0).v++;
 //     ^
-// [diag.undefinedExtensionSetter] The setter 'v' isn't defined for the extension 'E'.
+// [diag.assignmentToMethod] Methods can't be assigned a value.
+  ++E(0).v;
+//       ^
+// [diag.assignmentToMethod] Methods can't be assigned a value.
 }
 ''');
 
     var node = result.findNode.postfixIncrement('++;');
     assertResolvedNodeText(node, r'''
 PostfixIncrement
-  operand: PropertyAccess
-    target2: ExtensionOverride
+  target: PropertyAssignmentTarget
+    receiver: ExtensionOverride
       name: E
       argumentList: ArgumentList
         leftParenthesis: (
@@ -1015,17 +1018,21 @@ PostfixIncrement
         rightParenthesis: )
       element: <testLibrary>::@extension::E
       extendedType: int
-      staticType: null
+      staticType: int
     operator: .
-    propertyName: SimpleIdentifier
-      token: v
-      element: <null>
-      staticType: null
-    staticType: null
+    propertyName: v
+    read: ExecutableTearOffResolution
+      element: <testLibrary>::@extension::E::@method::v
+      type: dynamic Function()
+    write: InvalidNamedWriteResolution
+      acceptedType: InvalidType
+      candidates
+        candidate: <testLibrary>::@extension::E::@method::v
+      recovery: <null>
   operator: ++
   element: <null>
   operatorResultType: dynamic
-  staticType: InvalidType
+  staticType: dynamic Function()
 V1: PostfixExpression
   operand: PropertyAccess
     target: ExtensionOverride
@@ -1040,7 +1047,7 @@ V1: PostfixExpression
         rightParenthesis: )
       element: <testLibrary>::@extension::E
       extendedType: int
-      staticType: null
+      staticType: int
     operator: .
     propertyName: SimpleIdentifier
       token: v
@@ -1049,11 +1056,11 @@ V1: PostfixExpression
     staticType: null
   operator: ++
   readElement: <testLibrary>::@extension::E::@method::v
-  readType: InvalidType
-  writeElement: <null>
+  readType: dynamic Function()
+  writeElement: <testLibrary>::@extension::E::@method::v
   writeType: InvalidType
   element: <null>
-  staticType: InvalidType
+  staticType: dynamic Function()
 ''');
   }
 

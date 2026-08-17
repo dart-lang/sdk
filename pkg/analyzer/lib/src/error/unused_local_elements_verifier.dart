@@ -344,25 +344,25 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
 
   @override
   void visitPostfixDecrement(PostfixDecrement node) {
-    usedElements.addMember(node.element);
+    _visitIncrementOrDecrementExpression(node);
     super.visitPostfixDecrement(node);
   }
 
   @override
   void visitPostfixIncrement(PostfixIncrement node) {
-    usedElements.addMember(node.element);
+    _visitIncrementOrDecrementExpression(node);
     super.visitPostfixIncrement(node);
   }
 
   @override
   void visitPrefixDecrement(PrefixDecrement node) {
-    usedElements.addMember(node.element);
+    _visitIncrementOrDecrementExpression(node);
     super.visitPrefixDecrement(node);
   }
 
   @override
   void visitPrefixIncrement(PrefixIncrement node) {
-    usedElements.addMember(node.element);
+    _visitIncrementOrDecrementExpression(node);
     super.visitPrefixIncrement(node);
   }
 
@@ -666,6 +666,16 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
         }
       }
     }
+  }
+
+  void _visitIncrementOrDecrementExpression(
+    IncrementOrDecrementExpression node,
+  ) {
+    usedElements.addMember(node.element);
+    _useReadWriteAssignmentTarget(
+      node.target,
+      readCountsAsUse: node.parent2 is! ExpressionStatement,
+    );
   }
 
   /// Returns whether the value of [node] is _only_ being read at this position.

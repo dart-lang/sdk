@@ -885,7 +885,8 @@ class AstBuilder extends StackListener {
         );
       } else if (receiver != null &&
           _featureSet.isEnabled(Feature.constructor_tearoffs) &&
-          dot.type == TokenType.PERIOD &&
+          (dot.type == TokenType.PERIOD ||
+              dot.type == TokenType.QUESTION_PERIOD) &&
           identifierOrInvoke.name != 'call' &&
           _isSupportedPropertyReceiver(receiver)) {
         push(
@@ -5887,16 +5888,6 @@ class AstBuilder extends StackListener {
     debugEvent("UnaryPostfixAssignmentExpression");
 
     var expression = pop() as ExpressionImpl;
-    if (expression is IndexExpression2Impl) {
-      expression = _toLegacyIndexExpression(expression);
-    }
-    if (expression is PropertyExtractionImpl) {
-      expression = PropertyAccessImpl(
-        target2: expression.receiver,
-        operator: expression.operator,
-        propertyName: SimpleIdentifierImpl(token: expression.propertyName),
-      );
-    }
     if (!expression.isAssignable) {
       // This error is also reported by the body builder.
       handleRecoverableError(
@@ -5907,11 +5898,11 @@ class AstBuilder extends StackListener {
     }
     push(switch (operator.type) {
       TokenType.PLUS_PLUS => PostfixIncrementImpl(
-        operand: expression,
+        target: _toIncrementOrDecrementTarget(expression),
         operator: operator,
       ),
       TokenType.MINUS_MINUS => PostfixDecrementImpl(
-        operand: expression,
+        target: _toIncrementOrDecrementTarget(expression),
         operator: operator,
       ),
       _ => throw StateError(
@@ -5927,16 +5918,6 @@ class AstBuilder extends StackListener {
     debugEvent("UnaryPrefixAssignmentExpression");
 
     var expression = pop() as ExpressionImpl;
-    if (expression is IndexExpression2Impl) {
-      expression = _toLegacyIndexExpression(expression);
-    }
-    if (expression is PropertyExtractionImpl) {
-      expression = PropertyAccessImpl(
-        target2: expression.receiver,
-        operator: expression.operator,
-        propertyName: SimpleIdentifierImpl(token: expression.propertyName),
-      );
-    }
     if (!expression.isAssignable) {
       // This error is also reported by the body builder.
       handleRecoverableError(
@@ -5948,11 +5929,11 @@ class AstBuilder extends StackListener {
     push(switch (operator.type) {
       TokenType.PLUS_PLUS => PrefixIncrementImpl(
         operator: operator,
-        operand: expression,
+        target: _toIncrementOrDecrementTarget(expression),
       ),
       TokenType.MINUS_MINUS => PrefixDecrementImpl(
         operator: operator,
-        operand: expression,
+        target: _toIncrementOrDecrementTarget(expression),
       ),
       _ => throw StateError(
         'Unexpected prefix increment or decrement operator '
@@ -6634,6 +6615,7 @@ class AstBuilder extends StackListener {
       case ParenthesizedExpressionImpl():
       case ConstructorInvocationImpl():
       case InstanceCreationExpressionImpl():
+      case IndexExpression2Impl():
       case ThisExpressionImpl():
         return true;
       case PropertyAccessImpl(target2: var target?, operator: var operator)
@@ -6714,17 +6696,75 @@ class AstBuilder extends StackListener {
     }
   }
 
-  IndexExpressionImpl _toLegacyIndexExpression(
-    IndexExpression2Impl expression,
+  AssignmentTargetImpl _toIncrementOrDecrementTarget(
+    ExpressionImpl expression,
   ) {
-    return IndexExpressionImpl(
-      target2: expression.receiver,
-      period: null,
-      question: expression.question,
-      leftBracket: expression.leftBracket,
-      index2: expression.index,
-      rightBracket: expression.rightBracket,
-    )..isDotShorthand = expression.isDotShorthand;
+    // Ordinary index reads are canonical V2 nodes. Move their children into
+    // the corresponding read/write target used by `++` and `--`.
+    if (expression is IndexExpression2Impl && !expression.isDotShorthand) {
+      return IndexAssignmentTargetImpl(
+        receiver: expression.receiver,
+        question: expression.question,
+        leftBracket: expression.leftBracket,
+        index: expression.index,
+        rightBracket: expression.rightBracket,
+      );
+    }
+
+    // Recovery can still produce a legacy, non-cascade index expression.
+    // Keep accepting it until all parser paths produce IndexExpression2.
+    if (expression is IndexExpressionImpl) {
+      var receiver = expression.target2;
+      if (receiver != null &&
+          expression.period == null &&
+          !expression.isDotShorthand) {
+        return IndexAssignmentTargetImpl(
+          receiver: receiver,
+          question: expression.question,
+          leftBracket: expression.leftBracket,
+          index: expression.index2,
+          rightBracket: expression.rightBracket,
+        );
+      }
+    }
+
+    // PropertyExtraction is the canonical V2 representation of `receiver.x`.
+    if (expression is PropertyExtractionImpl) {
+      return PropertyAssignmentTargetImpl(
+        receiver: expression.receiver,
+        operator: expression.operator,
+        propertyName: expression.propertyName,
+      );
+    }
+
+    // Legacy property nodes are still possible in unmigrated parser paths.
+    if (expression is PropertyAccessImpl) {
+      var receiver = expression.target2;
+      if (receiver != null) {
+        return PropertyAssignmentTargetImpl(
+          receiver: receiver,
+          operator: expression.operator,
+          propertyName: expression.propertyName.token,
+        );
+      }
+    }
+    if (expression is PrefixedIdentifierImpl) {
+      return PropertyAssignmentTargetImpl(
+        receiver: expression.prefix,
+        operator: expression.period,
+        propertyName: expression.identifier.token,
+      );
+    }
+
+    // An unqualified target owns just the identifier token, not a value
+    // expression node.
+    if (expression is SimpleIdentifierImpl) {
+      return UnqualifiedNameAssignmentTargetImpl(name: expression.token);
+    }
+
+    // Preserve an invalid operand as an expression so later phases can still
+    // analyze it and provide useful recovery information.
+    return InvalidExpressionAssignmentTargetImpl(expression: expression);
   }
 
   static String _versionAsString(Version version) {

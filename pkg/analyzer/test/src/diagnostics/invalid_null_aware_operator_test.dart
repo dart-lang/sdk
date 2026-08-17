@@ -309,6 +309,44 @@ f() {
 ''');
   }
 
+  test_getter_propertyExtraction_explicitInstanceCreation() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class C {
+  int x = 0;
+}
+
+void f() {
+  new C()?.x;
+//       ^^
+// [diag.invalidNullAwareOperator] The receiver can't be null, so the null-aware operator '?.' is unnecessary.
+}
+''');
+  }
+
+  test_getter_propertyExtraction_stringLiteral() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f() {
+  'a'?.length;
+//   ^^
+// [diag.invalidNullAwareOperator] The receiver can't be null, so the null-aware operator '?.' is unnecessary.
+}
+''');
+  }
+
+  test_getter_propertyExtraction_this() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class C {
+  int x = 0;
+
+  void f() {
+    this?.x;
+//      ^^
+// [diag.invalidNullAwareOperator] The receiver can't be null, so the null-aware operator '?.' is unnecessary.
+  }
+}
+''');
+  }
+
   test_index_nonNullable() async {
     await resolveTestCodeWithDiagnostics(r'''
 f(List<int> x) {
@@ -568,6 +606,48 @@ f() {
   p?.x = 0;
 //^
 // [diag.prefixIdentifierNotFollowedByDot] The name 'p' refers to an import prefix, so it must be followed by '.'.
+}
+''');
+  }
+
+  test_setter_propertyAssignmentTarget_explicitInstanceCreation() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class C {
+  int x = 0;
+}
+
+void f() {
+  new C()?.x = 0;
+//       ^^
+// [diag.invalidNullAwareOperator] The receiver can't be null, so the null-aware operator '?.' is unnecessary.
+}
+''');
+  }
+
+  test_setter_propertyAssignmentTarget_stringLiteral() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on String {
+  set x(int value) {}
+}
+
+void f() {
+  'a'?.x = 0;
+//   ^^
+// [diag.invalidNullAwareOperator] The receiver can't be null, so the null-aware operator '?.' is unnecessary.
+}
+''');
+  }
+
+  test_setter_propertyAssignmentTarget_this() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class C {
+  int x = 0;
+
+  void f() {
+    this?.x = 0;
+//      ^^
+// [diag.invalidNullAwareOperator] The receiver can't be null, so the null-aware operator '?.' is unnecessary.
+  }
 }
 ''');
   }

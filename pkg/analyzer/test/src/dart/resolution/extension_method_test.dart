@@ -2388,10 +2388,14 @@ f(C c) {
     var node = result.findNode.postfixIncrement('++');
     assertResolvedNodeText(node, r'''
 PostfixIncrement
-  operand: SimpleIdentifier
-    token: c
-    element: <testLibrary>::@function::f::@formalParameter::c
-    staticType: null
+  target: UnqualifiedNameAssignmentTarget
+    name: c
+    read: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      type: C
+    write: VariableWriteResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      acceptedType: C
   operator: ++
   element: <testLibrary>::@class::C::@method::+
   operatorResultType: C
@@ -2423,10 +2427,14 @@ g(int Function(int) f) {
     var node = result.findNode.postfixIncrement('++');
     assertResolvedNodeText(node, r'''
 PostfixIncrement
-  operand: SimpleIdentifier
-    token: f
-    element: <testLibrary>::@function::g::@formalParameter::f
-    staticType: null
+  target: UnqualifiedNameAssignmentTarget
+    name: f
+    read: VariableReadResolution
+      element: <testLibrary>::@function::g::@formalParameter::f
+      type: int Function(int)
+    write: VariableWriteResolution
+      element: <testLibrary>::@function::g::@formalParameter::f
+      acceptedType: int Function(int)
   operator: ++
   element: <testLibrary>::@extension::E::@method::+
   operatorResultType: int Function(int)
@@ -2459,10 +2467,14 @@ f(C c) {
     var node = result.findNode.postfixIncrement('++');
     assertResolvedNodeText(node, r'''
 PostfixIncrement
-  operand: SimpleIdentifier
-    token: c
-    element: <testLibrary>::@function::f::@formalParameter::c
-    staticType: null
+  target: UnqualifiedNameAssignmentTarget
+    name: c
+    read: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      type: C
+    write: VariableWriteResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      acceptedType: C
   operator: ++
   element: <testLibrary>::@extension::E::@method::+
   operatorResultType: C
@@ -2497,10 +2509,14 @@ f(A? a) {
     var node = result.findNode.postfixIncrement('a++');
     assertResolvedNodeText(node, r'''
 PostfixIncrement
-  operand: SimpleIdentifier
-    token: a
-    element: <testLibrary>::@function::f::@formalParameter::a
-    staticType: null
+  target: UnqualifiedNameAssignmentTarget
+    name: a
+    read: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: A?
+    write: VariableWriteResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      acceptedType: A?
   operator: ++
   element: <testLibrary>::@extension::E::@method::+
   operatorResultType: A?
@@ -2536,10 +2552,14 @@ f(C c) {
     assertResolvedNodeText(node, r'''
 PrefixIncrement
   operator: ++
-  operand: SimpleIdentifier
-    token: c
-    element: <testLibrary>::@function::f::@formalParameter::c
-    staticType: null
+  target: UnqualifiedNameAssignmentTarget
+    name: c
+    read: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      type: C
+    write: VariableWriteResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      acceptedType: C
   element: <testLibrary>::@class::C::@method::+
   operatorResultType: C
   staticType: C
@@ -2571,10 +2591,14 @@ g(int Function(int) f) {
     assertResolvedNodeText(node, r'''
 PrefixIncrement
   operator: ++
-  operand: SimpleIdentifier
-    token: f
-    element: <testLibrary>::@function::g::@formalParameter::f
-    staticType: null
+  target: UnqualifiedNameAssignmentTarget
+    name: f
+    read: VariableReadResolution
+      element: <testLibrary>::@function::g::@formalParameter::f
+      type: int Function(int)
+    write: VariableWriteResolution
+      element: <testLibrary>::@function::g::@formalParameter::f
+      acceptedType: int Function(int)
   element: <testLibrary>::@extension::E::@method::+
   operatorResultType: int Function(int)
   staticType: int Function(int)
@@ -2607,10 +2631,14 @@ f(C c) {
     assertResolvedNodeText(node, r'''
 PrefixIncrement
   operator: ++
-  operand: SimpleIdentifier
-    token: c
-    element: <testLibrary>::@function::f::@formalParameter::c
-    staticType: null
+  target: UnqualifiedNameAssignmentTarget
+    name: c
+    read: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      type: C
+    write: VariableWriteResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      acceptedType: C
   element: <testLibrary>::@extension::E::@method::+
   operatorResultType: C
   staticType: C
@@ -2645,10 +2673,14 @@ f(A? a) {
     assertResolvedNodeText(node, r'''
 PrefixIncrement
   operator: ++
-  operand: SimpleIdentifier
-    token: a
-    element: <testLibrary>::@function::f::@formalParameter::a
-    staticType: null
+  target: UnqualifiedNameAssignmentTarget
+    name: a
+    read: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: A?
+    write: VariableWriteResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      acceptedType: A?
   element: <testLibrary>::@extension::E::@method::+
   operatorResultType: A?
   staticType: A?

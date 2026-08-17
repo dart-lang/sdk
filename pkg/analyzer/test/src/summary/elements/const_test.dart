@@ -6081,10 +6081,17 @@ library
           element: <testLibrary>::@topLevelVariable::b
           initializer: expression_1
             PostfixIncrement
-              operand: SimpleIdentifier
-                token: a @23
-                element: <null>
-                staticType: null
+              target: UnqualifiedNameAssignmentTarget
+                name: a @23
+                read: GetterInvocationResolution
+                  element: <testLibrary>::@getter::a
+                  invokeType: int Function()
+                  type: int
+                write: InvalidNamedWriteResolution
+                  acceptedType: InvalidType
+                  candidates
+                    candidate: <testLibrary>::@getter::a
+                  recovery: <null>
               operator: ++ @24
               element: dart:core::@class::num::@method::+
               operatorResultType: int
@@ -6278,10 +6285,17 @@ library
           initializer: expression_1
             PrefixIncrement
               operator: ++ @23
-              operand: SimpleIdentifier
-                token: a @25
-                element: <null>
-                staticType: null
+              target: UnqualifiedNameAssignmentTarget
+                name: a @25
+                read: GetterInvocationResolution
+                  element: <testLibrary>::@getter::a
+                  invokeType: int Function()
+                  type: int
+                write: InvalidNamedWriteResolution
+                  acceptedType: InvalidType
+                  candidates
+                    candidate: <testLibrary>::@getter::a
+                  recovery: <null>
               element: dart:core::@class::num::@method::+
               operatorResultType: int
               staticType: int

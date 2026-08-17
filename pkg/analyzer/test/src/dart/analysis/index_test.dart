@@ -3115,6 +3115,91 @@ class B extends A {
     );
   }
 
+  test_FieldElement_ofClass_instance_propertyAssignmentTarget() async {
+    var result = await _indexTestCode('''
+class A {
+  num x = 0;
+}
+class B {
+  num? x;
+}
+void use(A a, A? nullableA, B b, B? nullableB) {
+  (a).x = 1;
+  (nullableA)?.x = 2;
+  (a).x += 3;
+  (nullableA)?.x += 4;
+  (b).x ??= 5;
+  (nullableB)?.x ??= 6;
+}
+''');
+
+    assertElementsIndexText(
+      result,
+      {
+        'aField': result.findElement.field('x', of: 'A'),
+        'aGetter': result.findElement.getter('x', of: 'A'),
+        'aSetter': result.findElement.setter('x', of: 'A'),
+        'bField': result.findElement.field('x', of: 'B'),
+        'bGetter': result.findElement.getter('x', of: 'B'),
+        'bSetter': result.findElement.setter('x', of: 'B'),
+        'num.+': result.resolvedUnit.typeProvider.numElement.getMethod('+')!,
+      },
+      r'''
+class A {
+  num x = 0;
+}
+class B {
+  num? x;
+}
+void use(A a, A? nullableA, B b, B? nullableB) {
+  (a).x = 1;
+      ^ aSetter IS_INVOKED_BY qualified
+  (nullableA)?.x = 2;
+               ^ aSetter IS_INVOKED_BY qualified
+  (a).x += 3;
+      ^ aGetter IS_INVOKED_BY qualified
+      ^ aSetter IS_INVOKED_BY qualified
+        ^^ num.+ IS_INVOKED_BY qualified
+  (nullableA)?.x += 4;
+               ^ aGetter IS_INVOKED_BY qualified
+               ^ aSetter IS_INVOKED_BY qualified
+                 ^^ num.+ IS_INVOKED_BY qualified
+  (b).x ??= 5;
+      ^ bGetter IS_INVOKED_BY qualified
+      ^ bSetter IS_INVOKED_BY qualified
+  (nullableB)?.x ??= 6;
+               ^ bGetter IS_INVOKED_BY qualified
+               ^ bSetter IS_INVOKED_BY qualified
+}
+''',
+    );
+  }
+
+  test_FieldElement_ofClass_instance_propertyExtraction() async {
+    var result = await _indexTestCode('''
+class A {
+  num x = 0;
+}
+void use(A a, A? nullableA) {
+  (a).x;
+  (nullableA)?.x;
+}
+''');
+
+    var getter = result.findElement.getter('x', of: 'A');
+    assertElementIndexText(result, getter, r'''
+class A {
+  num x = 0;
+}
+void use(A a, A? nullableA) {
+  (a).x;
+      ^ IS_INVOKED_BY qualified
+  (nullableA)?.x;
+               ^ IS_INVOKED_BY qualified
+}
+''');
+  }
+
   test_FieldElement_ofClass_instance_setterDeclaration() async {
     var result = await _indexTestCode('''
 class A {

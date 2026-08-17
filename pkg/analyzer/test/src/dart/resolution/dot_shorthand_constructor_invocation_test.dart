@@ -789,8 +789,8 @@ void f() {
   E(0) == .named();
 //     ^^
 // [diag.undefinedExtensionOperator] The operator '==' isn't defined for the extension 'E'.
-//         ^^^^^
-// [diag.dotShorthandUndefinedInvocation] The static method or constructor 'named' isn't defined for the context type '_'.
+//        ^^^^^^^^
+// [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
 }
 ''');
   }
@@ -803,8 +803,8 @@ void f() {
   E(0) != .named();
 //     ^^
 // [diag.undefinedExtensionOperator] The operator '==' isn't defined for the extension 'E'.
-//         ^^^^^
-// [diag.dotShorthandUndefinedInvocation] The static method or constructor 'named' isn't defined for the context type '_'.
+//        ^^^^^^^^
+// [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
 }
 ''');
   }
@@ -889,8 +889,8 @@ class A {
 class B extends A {
   const B.named();
   bool test() => super == .named();
-//                         ^^^^^
-// [diag.dotShorthandUndefinedInvocation] The static method or constructor 'named' isn't defined for the context type '_'.
+//                        ^^^^^^^^
+// [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
 }
 ''');
   }
@@ -904,8 +904,8 @@ class A {
 class B extends A {
   const B.named();
   bool test() => super != .named();
-//                         ^^^^^
-// [diag.dotShorthandUndefinedInvocation] The static method or constructor 'named' isn't defined for the context type '_'.
+//                        ^^^^^^^^
+// [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
 }
 ''');
   }
@@ -1416,8 +1416,8 @@ class C {}
 
 void main() {
   C c = .new()++;
-//       ^^^
-// [diag.dotShorthandUndefinedInvocation] The static method or constructor 'new' isn't defined for the context type '_'.
+//      ^^^^^^
+// [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
 //            ^^
 // [diag.illegalAssignmentToNonAssignable] Illegal assignment to non-assignable expression.
   print(c);
@@ -1431,8 +1431,8 @@ class C {}
 
 void main() {
   C c = ++.new();
-//         ^^^
-// [diag.dotShorthandUndefinedInvocation] The static method or constructor 'new' isn't defined for the context type '_'.
+//        ^^^^^^
+// [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
 //             ^
 // [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
   print(c);

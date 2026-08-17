@@ -1120,10 +1120,14 @@ ForElement
     rightSeparator: ;
     updaters2
       PostfixIncrement
-        operand: SimpleIdentifier
-          token: i
-          element: i@28
-          staticType: null
+        target: UnqualifiedNameAssignmentTarget
+          name: i
+          read: VariableReadResolution
+            element: i@28
+            type: dynamic
+          write: VariableWriteResolution
+            element: i@28
+            acceptedType: dynamic
         operator: ++
         element: <null>
         operatorResultType: dynamic
@@ -1206,10 +1210,14 @@ ForElement
     updaters2
       PrefixIncrement
         operator: ++
-        operand: SimpleIdentifier
-          token: i2
-          element: i2@28
-          staticType: null
+        target: UnqualifiedNameAssignmentTarget
+          name: i2
+          read: VariableReadResolution
+            element: i2@28
+            type: int
+          write: VariableWriteResolution
+            element: i2@28
+            acceptedType: int
         element: dart:core::@class::num::@method::+
         operatorResultType: int
         staticType: int
@@ -1299,10 +1307,14 @@ ForElement
     rightSeparator: ;
     updaters2
       PostfixIncrement
-        operand: SimpleIdentifier
-          token: j
-          element: j@30
-          staticType: null
+        target: UnqualifiedNameAssignmentTarget
+          name: j
+          read: VariableReadResolution
+            element: j@30
+            type: int
+          write: VariableWriteResolution
+            element: j@30
+            acceptedType: int
         operator: ++
         element: dart:core::@class::num::@method::+
         operatorResultType: int
@@ -1455,10 +1467,14 @@ ForElement
     rightSeparator: ;
     updaters2
       PostfixDecrement
-        operand: SimpleIdentifier
-          token: a
-          element: a@37
-          staticType: null
+        target: UnqualifiedNameAssignmentTarget
+          name: a
+          read: VariableReadResolution
+            element: a@37
+            type: int
+          write: VariableWriteResolution
+            element: a@37
+            acceptedType: int
         operator: --
         element: dart:core::@class::num::@method::-
         operatorResultType: int
@@ -1534,10 +1550,14 @@ ForElement
     rightSeparator: ;
     updaters2
       PostfixDecrement
-        operand: SimpleIdentifier
-          token: a
-          element: a@37
-          staticType: null
+        target: UnqualifiedNameAssignmentTarget
+          name: a
+          read: VariableReadResolution
+            element: a@37
+            type: int
+          write: VariableWriteResolution
+            element: a@37
+            acceptedType: int
         operator: --
         element: dart:core::@class::num::@method::-
         operatorResultType: int
@@ -1612,10 +1632,14 @@ ForElement
     rightSeparator: ;
     updaters2
       PostfixDecrement
-        operand: SimpleIdentifier
-          token: a
-          element: a@37
-          staticType: null
+        target: UnqualifiedNameAssignmentTarget
+          name: a
+          read: VariableReadResolution
+            element: a@37
+            type: InvalidType
+          write: VariableWriteResolution
+            element: a@37
+            acceptedType: InvalidType
         operator: --
         element: <null>
         operatorResultType: dynamic
@@ -1690,10 +1714,14 @@ ForElement
     rightSeparator: ;
     updaters2
       PostfixDecrement
-        operand: SimpleIdentifier
-          token: a2
-          element: a2@37
-          staticType: null
+        target: UnqualifiedNameAssignmentTarget
+          name: a2
+          read: VariableReadResolution
+            element: a2@37
+            type: int
+          write: VariableWriteResolution
+            element: a2@37
+            acceptedType: int
         operator: --
         element: dart:core::@class::num::@method::-
         operatorResultType: int

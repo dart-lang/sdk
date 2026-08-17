@@ -75,6 +75,13 @@ class _TypePromotionDataExtractor extends AstDataExtractor<DartType> {
           promotedType = readResolution.type;
         }
       }
+    } else if (node is UnqualifiedNameAssignmentTarget &&
+        node.parent2 is IncrementOrDecrementExpression) {
+      var readResolution = node.read;
+      if (readResolution is VariableReadResolution) {
+        element = readResolution.element;
+        promotedType = readResolution.type;
+      }
     }
     if ((element is LocalVariableElement ||
             element is FormalParameterElement) &&
@@ -87,11 +94,19 @@ class _TypePromotionDataExtractor extends AstDataExtractor<DartType> {
     return null;
   }
 
+  @override
+  void visitUnqualifiedNameAssignmentTarget(
+    UnqualifiedNameAssignmentTarget node,
+  ) {
+    if (node.parent2 is IncrementOrDecrementExpression) {
+      computeForNode(node, computeDefaultNodeId(node));
+    }
+    super.visitUnqualifiedNameAssignmentTarget(node);
+  }
+
   static Element? _readElement(SimpleIdentifier node) {
     var parent = node.parent2;
     if (parent is AssignmentExpression && parent.leftHandSide2 == node) {
-      return parent.readElement;
-    } else if (parent is IncrementOrDecrementExpressionImpl) {
       return parent.readElement;
     } else if (parent is PrefixExpression) {
       return parent.readElement;
@@ -103,8 +118,6 @@ class _TypePromotionDataExtractor extends AstDataExtractor<DartType> {
   static DartType? _readType(SimpleIdentifier node) {
     var parent = node.parent2;
     if (parent is AssignmentExpression && parent.leftHandSide2 == node) {
-      return parent.readType;
-    } else if (parent is IncrementOrDecrementExpressionImpl) {
       return parent.readType;
     } else if (parent is PrefixExpression) {
       return parent.readType;

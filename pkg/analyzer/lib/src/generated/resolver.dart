@@ -1699,6 +1699,19 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     return (null, SharedTypeView(typeProvider.dynamicType));
   }
 
+  ({
+    NamedReadResolutionImpl read,
+    NamedWriteResolutionImpl write,
+    ExpressionInfo? readExpressionInfo,
+  })
+  resolvePrefixedPropertyReadWriteAssignmentTarget(
+    PropertyAssignmentTargetImpl node,
+    PrefixElement prefix,
+  ) {
+    return _propertyElementResolver
+        .resolvePrefixedPropertyReadWriteAssignmentTarget(node, prefix);
+  }
+
   NamedWriteResolutionImpl? resolvePropertyDirectAssignmentTarget(
     PropertyAssignmentTargetImpl node,
   ) {
@@ -1824,9 +1837,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     if (parent is AssignmentExpressionImpl && parent.leftHandSide2 == node) {
       parent.readElement = element;
       parent.readType = readType;
-    } else if (parent is IncrementOrDecrementExpressionImpl) {
-      parent.readElement = element;
-      parent.readType = readType;
     }
   }
 
@@ -1873,9 +1883,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
 
     var parent = node.parent2;
     if (parent is AssignmentExpressionImpl && parent.leftHandSide2 == node) {
-      parent.writeElement = element;
-      parent.writeType = writeType;
-    } else if (parent is IncrementOrDecrementExpressionImpl) {
       parent.writeElement = element;
       parent.writeType = writeType;
     }
@@ -4261,6 +4268,11 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     );
     node.receiver = popRewrite()!;
 
+    if (node.operator.type == TokenType.QUESTION_PERIOD) {
+      _startNullAwareAccess(node.receiver);
+      nullSafetyDeadCodeVerifier.visitNullAwareAccess(node, node.propertyName);
+    }
+
     var (:expressionInfo, :resolution, :type) = _propertyElementResolver
         .resolvePropertyExtraction(node);
     node.resolution = resolution;
@@ -4272,6 +4284,13 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       contextType: contextType,
     );
     _insertImplicitCallReference(replacement, contextType: contextType);
+    if (node.operator.type == TokenType.QUESTION_PERIOD) {
+      nullSafetyDeadCodeVerifier.verifyNullAwareAccess(
+        node,
+        node.receiver,
+        node.operator,
+      );
+    }
 
     inferenceLogWriter?.exitExpression(node);
   }

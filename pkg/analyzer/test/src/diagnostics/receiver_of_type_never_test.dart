@@ -1303,10 +1303,14 @@ void f(Never x) {
     var node = result.findNode.postfixIncrement('x++');
     assertResolvedNodeText(node, r'''
 PostfixIncrement
-  operand: SimpleIdentifier
-    token: x
-    element: <testLibrary>::@function::f::@formalParameter::x
-    staticType: null
+  target: UnqualifiedNameAssignmentTarget
+    name: x
+    read: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: Never
+    write: VariableWriteResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      acceptedType: Never
   operator: ++
   element: <null>
   operatorResultType: Never
@@ -1338,10 +1342,14 @@ void f(Never? x) {
     var node = result.findNode.postfixIncrement('x++');
     assertResolvedNodeText(node, r'''
 PostfixIncrement
-  operand: SimpleIdentifier
-    token: x
-    element: <testLibrary>::@function::f::@formalParameter::x
-    staticType: null
+  target: UnqualifiedNameAssignmentTarget
+    name: x
+    read: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: Never?
+    write: VariableWriteResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      acceptedType: Never?
   operator: ++
   element: <null>
   operatorResultType: dynamic
@@ -1375,10 +1383,14 @@ void f(Never x) {
     assertResolvedNodeText(node, r'''
 PrefixIncrement
   operator: ++
-  operand: SimpleIdentifier
-    token: x
-    element: <testLibrary>::@function::f::@formalParameter::x
-    staticType: null
+  target: UnqualifiedNameAssignmentTarget
+    name: x
+    read: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: Never
+    write: VariableWriteResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      acceptedType: Never
   element: <null>
   operatorResultType: Never
   staticType: Never
@@ -1410,10 +1422,14 @@ void f(Never? x) {
     assertResolvedNodeText(node, r'''
 PrefixIncrement
   operator: ++
-  operand: SimpleIdentifier
-    token: x
-    element: <testLibrary>::@function::f::@formalParameter::x
-    staticType: null
+  target: UnqualifiedNameAssignmentTarget
+    name: x
+    read: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: Never?
+    write: VariableWriteResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      acceptedType: Never?
   element: <null>
   operatorResultType: InvalidType
   staticType: InvalidType

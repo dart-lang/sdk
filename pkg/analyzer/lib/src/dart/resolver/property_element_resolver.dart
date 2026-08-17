@@ -547,6 +547,25 @@ class PropertyElementResolver with ScopeHelpers {
     );
   }
 
+  ({
+    NamedReadResolutionImpl read,
+    NamedWriteResolutionImpl write,
+    ExpressionInfo? readExpressionInfo,
+  })
+  resolvePrefixedPropertyReadWriteAssignmentTarget(
+    PropertyAssignmentTargetImpl node,
+    PrefixElement prefix,
+  ) {
+    var result = _resolveTargetPrefixElement(
+      target: prefix,
+      identifier: SimpleIdentifierImpl(token: node.propertyName),
+      hasRead: true,
+      hasWrite: true,
+      forAnnotation: false,
+    );
+    return _propertyReadWriteTargetResult(node, result);
+  }
+
   PropertyElementResolverResult resolvePropertyAccess({
     required PropertyAccessImpl node,
     required bool hasRead,
@@ -597,6 +616,13 @@ class PropertyElementResolver with ScopeHelpers {
         receiverType.nullabilitySuffix == NullabilitySuffix.none) {
       diagnosticReporter.report(diag.receiverOfTypeNever.at(receiver));
       return null;
+    }
+
+    if (node.operator.type == TokenType.QUESTION_PERIOD) {
+      if (_typeSystem.isNull(receiverType)) {
+        return null;
+      }
+      receiverType = _typeSystem.promoteToNonNull(receiverType);
     }
 
     if (receiverType is DynamicType) {
@@ -673,6 +699,17 @@ class PropertyElementResolver with ScopeHelpers {
         receiverType.nullabilitySuffix == NullabilitySuffix.none) {
       diagnosticReporter.report(diag.receiverOfTypeNever.at(receiver));
       return (expressionInfo: null, resolution: null, type: receiverType);
+    }
+
+    if (node.operator.type == TokenType.QUESTION_PERIOD) {
+      if (_typeSystem.isNull(receiverType)) {
+        return (
+          expressionInfo: null,
+          resolution: null,
+          type: NeverTypeImpl.instance,
+        );
+      }
+      receiverType = _typeSystem.promoteToNonNull(receiverType);
     }
 
     if (receiverType is VoidType) {
@@ -767,12 +804,58 @@ class PropertyElementResolver with ScopeHelpers {
   })?
   resolvePropertyReadWriteAssignmentTarget(PropertyAssignmentTargetImpl node) {
     var receiver = node.receiver;
+
+    if (receiver is ExtensionOverrideImpl) {
+      var result = _resolveTargetExtensionOverride(
+        target: receiver,
+        propertyName: SimpleIdentifierImpl(token: node.propertyName),
+        hasRead: true,
+        hasWrite: true,
+        assignmentToMethodOnMissingWrite:
+            node.parent2 is IncrementOrDecrementExpression,
+      );
+      return _propertyReadWriteTargetResult(node, result);
+    }
+
+    if (receiver case TypeLiteralImpl(
+      type: NamedTypeImpl(element: InterfaceElement typeReference),
+    )) {
+      var result = _resolveTargetInterfaceElement(
+        typeReference: typeReference,
+        isCascaded: false,
+        propertyName: SimpleIdentifierImpl(token: node.propertyName),
+        hasRead: true,
+        hasWrite: true,
+      );
+      return _propertyReadWriteTargetResult(node, result);
+    }
+
+    if (receiver case SimpleIdentifierImpl(
+      element: InterfaceElement typeReference,
+    )) {
+      var result = _resolveTargetInterfaceElement(
+        typeReference: typeReference,
+        isCascaded: false,
+        propertyName: SimpleIdentifierImpl(token: node.propertyName),
+        hasRead: true,
+        hasWrite: true,
+      );
+      return _propertyReadWriteTargetResult(node, result);
+    }
+
     var receiverType = receiver.typeOrThrow;
 
     if (receiverType is NeverType &&
         receiverType.nullabilitySuffix == NullabilitySuffix.none) {
       diagnosticReporter.report(diag.receiverOfTypeNever.at(receiver));
       return null;
+    }
+
+    if (node.operator.type == TokenType.QUESTION_PERIOD) {
+      if (_typeSystem.isNull(receiverType)) {
+        return null;
+      }
+      receiverType = _typeSystem.promoteToNonNull(receiverType);
     }
 
     if (receiverType is VoidType) {
@@ -1208,6 +1291,45 @@ class PropertyElementResolver with ScopeHelpers {
     };
   }
 
+  ({
+    NamedReadResolutionImpl read,
+    NamedWriteResolutionImpl write,
+    ExpressionInfo? readExpressionInfo,
+  })
+  _propertyReadWriteTargetResult(
+    PropertyAssignmentTargetImpl node,
+    PropertyElementResolverResult result,
+  ) {
+    var readElement = result.readElement2;
+    var writeElement = result.writeElement2;
+    var readResolution = _createPropertyReadResolution(
+      element: readElement,
+      recordField: result.recordField,
+      type: result.getType as TypeImpl?,
+    );
+    readResolution ??= InvalidNamedReadResolutionImpl(
+      candidates: [?readElement, ?result.readElementRecovery2, ?writeElement],
+      recovery: null,
+      type: InvalidTypeImpl.instance,
+    );
+    var writeResolution =
+        _createNamedWriteResolutionWithElement(writeElement) ??
+        InvalidNamedWriteResolutionImpl(
+          acceptedType: InvalidTypeImpl.instance,
+          candidates: [
+            ?writeElement,
+            ?result.writeElementRecovery2,
+            ?readElement,
+          ],
+          recovery: null,
+        );
+    return (
+      read: readResolution,
+      write: writeResolution,
+      readExpressionInfo: null,
+    );
+  }
+
   void _reportUnresolvedIndex(
     AstNode node,
     LocatableDiagnostic locatableDiagnostic,
@@ -1487,6 +1609,7 @@ class PropertyElementResolver with ScopeHelpers {
     required SimpleIdentifier propertyName,
     required bool hasRead,
     required bool hasWrite,
+    bool assignmentToMethodOnMissingWrite = false,
   }) {
     if (target.parent2 is CascadeExpression) {
       // Report this error and recover by treating it like a non-cascade.
@@ -1526,17 +1649,21 @@ class PropertyElementResolver with ScopeHelpers {
     if (hasWrite) {
       writeElement = result.setter2;
       if (writeElement == null) {
-        // This method is only called for extension overrides, and extension
-        // overrides can only refer to named extensions.  So it is safe to
-        // assume that `element.name` is non-`null`.
-        diagnosticReporter.report(
-          diag.undefinedExtensionSetter
-              .withArguments(
-                setterName: memberName,
-                extensionName: element.name!,
-              )
-              .at(propertyName),
-        );
+        if (assignmentToMethodOnMissingWrite && readElement is MethodElement) {
+          diagnosticReporter.report(diag.assignmentToMethod.at(propertyName));
+        } else {
+          // This method is only called for extension overrides, and extension
+          // overrides can only refer to named extensions.  So it is safe to
+          // assume that `element.name` is non-`null`.
+          diagnosticReporter.report(
+            diag.undefinedExtensionSetter
+                .withArguments(
+                  setterName: memberName,
+                  extensionName: element.name!,
+                )
+                .at(propertyName),
+          );
+        }
       }
       _checkForStaticMember(target, propertyName, writeElement);
     }
