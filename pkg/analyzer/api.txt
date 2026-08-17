@@ -1901,6 +1901,7 @@ package:analyzer/dart/ast/ast.dart:
   IndexAssignmentTarget (class extends Object implements AssignmentTarget, abstract, final, experimental):
     index (getter: Expression)
     leftBracket (getter: Token)
+    question (getter: Token?)
     read (getter: IndexReadResolution?)
     receiver (getter: Expression)
     rightBracket (getter: Token)

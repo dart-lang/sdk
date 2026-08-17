@@ -1773,6 +1773,10 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
               a.encoding(sz) |
               (sz.log2sizeInBytes << 30),
         );
+      case RegExtRegAddress():
+        emit(
+          opcode | rt.encodingRt() | a.encoding | (sz.log2sizeInBytes << 30),
+        );
       case WritebackRegOffsetAddress():
         // Same value and base registers in case of pre- and
         // post-indexing is unpredictable.
@@ -2462,6 +2466,18 @@ extension on WritebackRegOffsetAddress {
     return (isPostIndexed ? B23 : (B23 | B24)) |
         (((offset >> scale) & 0x7f) << 15) |
         base.encodingRn(allowSP: true);
+  }
+}
+
+extension on RegExtRegAddress {
+  int get encoding {
+    assert(ext == .UXTW || ext == .UXTX || ext == .SXTW || ext == .SXTX);
+    return B11 |
+        B21 |
+        base.encodingRn(allowSP: true) |
+        (scaled ? B12 : 0) |
+        (ext.index << 13) |
+        reg.encodingRm();
   }
 }
 

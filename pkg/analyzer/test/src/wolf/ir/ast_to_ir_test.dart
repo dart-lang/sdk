@@ -172,18 +172,23 @@ test() => 'foo' " " 'bar';
 
   test_assignmentExpression_index_compound() async {
     var result = await resolveTestCodeWithDiagnostics('''
+external int hook(int value, String label);
 class C {
   external int operator [](int index);
   external void operator []=(int index, int value);
 }
-test(C c, int index, int value) => c[index] += value;
+test(C? c) => c?[hook(123, 'index')] += hook(789, 'value');
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
-    var assignment = result.findNode.compoundAssignment('[index] += value');
+    analyze(result, result.findNode.functionDeclaration('test'));
+    var assignment = result.findNode.compoundAssignment('?[');
     check(astNodes)[assignment]
       ..containsSubrange(astNodes[assignment.target]!)
-      ..containsSubrange(astNodes[result.findNode.simple('index]')]!)
-      ..containsSubrange(astNodes[result.findNode.simple('value;')]!);
+      ..containsSubrange(
+        astNodes[result.findNode.methodInvocation("hook(123, 'index')")]!,
+      )
+      ..containsSubrange(
+        astNodes[result.findNode.methodInvocation("hook(789, 'value')")]!,
+      );
     var c = Instance(result.findElement.class_('C').thisType);
     _callHandlers['C.[]'] = binaryFunction<Instance, int>((receiver, index) {
       check(receiver).identicalTo(c);
@@ -200,10 +205,13 @@ test(C c, int index, int value) => c[index] += value;
       check(value).equals(1245);
       return hook(null, 'C.[]=1245');
     });
+    expectHooks([], () => check(runInterpreter(result, [null])).equals(null));
     expectHooks([
+      'index',
       'C.[]',
+      'value',
       'C.[]=1245',
-    ], () => check(runInterpreter(result, [c, 123, 789])).equals(1245));
+    ], () => check(runInterpreter(result, [c])).equals(1245));
   }
 
   test_assignmentExpression_index_ifNull() async {
@@ -213,13 +221,15 @@ class C {
   external int? operator [](int index);
   external void operator []=(int index, int value);
 }
-test(C c, int index) => c[index] ??= hook(456, '456');
+test(C? c) => c?[hook(123, 'index')] ??= hook(456, '456');
 ''');
     analyze(result, result.findNode.functionDeclaration('test'));
-    var assignment = result.findNode.ifNullAssignment('[index] ??=');
+    var assignment = result.findNode.ifNullAssignment('?[');
     check(astNodes)[assignment]
       ..containsSubrange(astNodes[assignment.target]!)
-      ..containsSubrange(astNodes[result.findNode.simple('index]')]!)
+      ..containsSubrange(
+        astNodes[result.findNode.methodInvocation("hook(123, 'index')")]!,
+      )
       ..containsSubrange(
         astNodes[result.findNode.methodInvocation("hook(456, '456')")]!,
       );
@@ -239,15 +249,18 @@ test(C c, int index) => c[index] ??= hook(456, '456');
       check(index).equals(123);
       return hook(indexedValue = value, 'C.[]=$value');
     });
+    expectHooks([], () => check(runInterpreter(result, [null])).equals(null));
     expectHooks([
+      'index',
       'C.[]',
       '456',
       'C.[]=456',
-    ], () => check(runInterpreter(result, [c, 123])).equals(456));
+    ], () => check(runInterpreter(result, [c])).equals(456));
     check(indexedValue).equals(456);
     expectHooks([
+      'index',
       'C.[]',
-    ], () => check(runInterpreter(result, [c, 123])).equals(456));
+    ], () => check(runInterpreter(result, [c])).equals(456));
     check(indexedValue).equals(456);
   }
 
@@ -276,6 +289,43 @@ test(C c, int index, int value) => c[index] = value;
       return null;
     });
     check(runInterpreter(result, [c, 123, 456])).equals(456);
+  }
+
+  test_assignmentExpression_index_simple_nullShorting() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+external int hook(int value, String label);
+class C {
+  external void operator []=(int index, int value);
+}
+test(C? c) => c?[hook(123, 'index')] = hook(456, 'value');
+''');
+    analyze(result, result.findNode.functionDeclaration('test'));
+    var assignment = result.findNode.directAssignment('?[');
+    check(astNodes)[assignment]
+      ..containsSubrange(astNodes[assignment.target]!)
+      ..containsSubrange(
+        astNodes[result.findNode.methodInvocation("hook(123, 'index')")]!,
+      )
+      ..containsSubrange(
+        astNodes[result.findNode.methodInvocation("hook(456, 'value')")]!,
+      );
+    var c = Instance(result.findElement.class_('C').thisType);
+    _callHandlers['C.[]='] = ternaryFunction<Instance, int, int>((
+      receiver,
+      index,
+      value,
+    ) {
+      check(receiver).identicalTo(c);
+      check(index).equals(123);
+      check(value).equals(456);
+      return hook(null, 'C.[]=$value');
+    });
+    expectHooks([], () => check(runInterpreter(result, [null])).equals(null));
+    expectHooks([
+      'index',
+      'value',
+      'C.[]=456',
+    ], () => check(runInterpreter(result, [c])).equals(456));
   }
 
   test_assignmentExpression_integerDivideEq() => checkBinaryOpEq('~/');

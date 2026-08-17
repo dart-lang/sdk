@@ -3757,9 +3757,6 @@ class AstBuilder extends StackListener {
 
     var rhs = pop() as ExpressionImpl;
     var lhs = pop() as ExpressionImpl;
-    if (lhs case IndexExpression2Impl(question: != null)) {
-      lhs = _toLegacyIndexExpression(lhs);
-    }
     var isAssignable = lhs.isAssignable;
     if (!isAssignable) {
       // TODO(danrubel): Update the BodyBuilder to report this error.
@@ -3782,6 +3779,7 @@ class AstBuilder extends StackListener {
     var indexTarget = switch (lhs) {
       IndexExpression2Impl(
         :var receiver,
+        :var question,
         :var leftBracket,
         :var index,
         :var rightBracket,
@@ -3789,6 +3787,7 @@ class AstBuilder extends StackListener {
           when !lhs.isDotShorthand =>
         IndexAssignmentTargetImpl(
           receiver: receiver,
+          question: question,
           leftBracket: leftBracket,
           index: index,
           rightBracket: rightBracket,
@@ -3804,6 +3803,7 @@ class AstBuilder extends StackListener {
           when !lhs.isDotShorthand =>
         IndexAssignmentTargetImpl(
           receiver: receiver,
+          question: null,
           leftBracket: leftBracket,
           index: index,
           rightBracket: rightBracket,

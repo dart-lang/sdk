@@ -76,11 +76,15 @@ void buildArrayElementGetter(
   FlowGraphBuilder builder,
   ArrayKind kind,
   CField lengthField,
-  CType elemType,
-) {
+  CType elemType, {
+  CField? indirectDataField,
+}) {
   final index = builder.pop();
   final array = builder.pop();
   builder.push(array);
+  if (indirectDataField != null) {
+    builder.addLoadInstanceField(indirectDataField);
+  }
   builder.push(index);
   builder.push(array);
   builder.addLoadInstanceField(lengthField);
@@ -92,16 +96,23 @@ void buildArrayElementGetter(
 void buildArrayElementSetter(
   FlowGraphBuilder builder,
   ArrayKind kind,
-  CField lengthField,
-) {
+  CField lengthField, {
+  CField? indirectDataField,
+  bool checkIndex = true,
+}) {
   final value = builder.pop();
   final index = builder.pop();
   final array = builder.pop();
   builder.push(array);
+  if (indirectDataField != null) {
+    builder.addLoadInstanceField(indirectDataField);
+  }
   builder.push(index);
-  builder.push(array);
-  builder.addLoadInstanceField(lengthField);
-  builder.addIndexCheck();
+  if (checkIndex) {
+    builder.push(array);
+    builder.addLoadInstanceField(lengthField);
+    builder.addIndexCheck();
+  }
   builder.push(value);
   builder.addStoreArrayElement(kind);
   builder.addNullConstant();
@@ -115,12 +126,167 @@ void buildArrayFactory(
 ) {
   final hasTypeArguments = kind == .fixedLengthList;
   final coreTypes = GlobalContext.instance.coreTypes;
-  final type = StaticType(
-    hasTypeArguments
-        ? coreTypes.thisInterfaceType(cls, .nonNullable)
-        : coreTypes.nonNullableRawType(cls),
-  );
+  final type = switch (kind) {
+    .oneByteString ||
+    .twoByteString => StringType(coreTypes.nonNullableRawType(cls)),
+    _ => StaticType(
+      hasTypeArguments
+          ? coreTypes.thisInterfaceType(cls, .nonNullable)
+          : coreTypes.nonNullableRawType(cls),
+    ),
+  };
   builder.addAllocateArray(kind, type, hasTypeArguments: hasTypeArguments);
+}
+
+void buildStringBaseCodeUnitAt(
+  FlowGraphBuilder builder,
+  ObjectLayout objectLayout,
+) {
+  final index = builder.pop();
+  final string = builder.pop();
+  builder.push(index);
+  builder.push(string);
+  builder.addLoadInstanceField(objectLayout.StringBase_length);
+  builder.addIndexCheck();
+  final checkedIndex = builder.pop();
+
+  builder.push(string);
+  builder.addLoadInstanceField(objectLayout.Object_classId);
+  builder.addIntConstant(ClassId.OneByteStringCid.index);
+  builder.addComparison(.intEqual);
+
+  final oneByteStringBlock = builder.newTargetBlock();
+  final twoByteStringBlock = builder.newTargetBlock();
+  builder.addBranch(oneByteStringBlock, twoByteStringBlock);
+
+  final joinBlock = builder.newJoinBlock();
+  final resultVar = builder.declareLocalVariable(
+    '#result',
+    null,
+    const IntType(),
+  );
+
+  builder.startBlock(oneByteStringBlock);
+  builder.push(string);
+  builder.push(checkedIndex);
+  builder.addLoadArrayElement(.oneByteString, const IntType());
+  builder.addStoreLocal(resultVar);
+  builder.addGoto(joinBlock);
+
+  builder.startBlock(twoByteStringBlock);
+  builder.push(string);
+  builder.push(checkedIndex);
+  builder.addLoadArrayElement(.twoByteString, const IntType());
+  builder.addStoreLocal(resultVar);
+  builder.addGoto(joinBlock);
+
+  builder.startBlock(joinBlock);
+  builder.addLoadLocal(resultVar);
+}
+
+void buildStringBaseCharAt(
+  FlowGraphBuilder builder,
+  FunctionRegistry functionRegistry,
+  ObjectLayout objectLayout,
+  CFunction function,
+) {
+  final index = builder.pop();
+  final string = builder.pop();
+  builder.push(index);
+  builder.push(string);
+  builder.addLoadInstanceField(objectLayout.StringBase_length);
+  builder.addIndexCheck();
+  final checkedIndex = builder.pop();
+
+  builder.push(string);
+  builder.addLoadInstanceField(objectLayout.Object_classId);
+  builder.addIntConstant(ClassId.OneByteStringCid.index);
+  builder.addComparison(.intEqual);
+
+  final oneByteStringBlock = builder.newTargetBlock();
+  final twoByteStringBlock = builder.newTargetBlock();
+  builder.addBranch(oneByteStringBlock, twoByteStringBlock);
+
+  final joinBlock = builder.newJoinBlock();
+  final resultVar = builder.declareLocalVariable(
+    '#result',
+    null,
+    const StringType(),
+  );
+
+  builder.startBlock(oneByteStringBlock);
+  builder.addLoadExternalField(
+    objectLayout.Thread_predefined_symbols_address,
+    hasObject: false,
+  );
+  builder.push(string);
+  builder.push(checkedIndex);
+  builder.addLoadArrayElement(.oneByteString, const IntType());
+  assert(objectLayout.vmOffsets.Symbols_kNumberOfOneCharCodeSymbols >= 256);
+  builder.addLoadExternalArrayElement(const StringType());
+  builder.addStoreLocal(resultVar);
+  builder.addGoto(joinBlock);
+
+  builder.startBlock(twoByteStringBlock);
+  builder.push(string);
+  builder.push(checkedIndex);
+  final codeUnit = builder.addLoadArrayElement(.twoByteString, const IntType());
+  builder.addIntConstant(
+    objectLayout.vmOffsets.Symbols_kNumberOfOneCharCodeSymbols,
+  );
+  builder.addComparison(.intGreaterOrEqual);
+
+  final oneByteCodeUnitBlock = builder.newTargetBlock();
+  final twoByteCodeUnitBlock = builder.newTargetBlock();
+  builder.addBranch(oneByteCodeUnitBlock, twoByteCodeUnitBlock);
+
+  builder.startBlock(oneByteCodeUnitBlock);
+  builder.addLoadExternalField(
+    objectLayout.Thread_predefined_symbols_address,
+    hasObject: false,
+  );
+  builder.push(codeUnit);
+  builder.addLoadExternalArrayElement(const StringType());
+  builder.addStoreLocal(resultVar);
+  builder.addGoto(joinBlock);
+
+  builder.startBlock(twoByteCodeUnitBlock);
+  builder.push(string);
+  builder.push(index);
+  buildNativeMethod(builder, functionRegistry, function);
+  builder.addStoreLocal(resultVar);
+  builder.addGoto(joinBlock);
+
+  builder.startBlock(joinBlock);
+  builder.addLoadLocal(resultVar);
+}
+
+/// Build IR for _GrowableList._withData factory constructor.
+void buildGrowableListWithData(
+  FlowGraphBuilder builder,
+  ObjectLayout objectLayout,
+  ast.Class cls,
+) {
+  final data = builder.pop();
+  final typeArgs = builder.pop();
+  final coreTypes = GlobalContext.instance.coreTypes;
+  final type = StaticType(coreTypes.thisInterfaceType(cls, .nonNullable));
+  final obj = builder.addAllocateObject(type, typeArguments: typeArgs);
+  builder.push(obj);
+  builder.push(data);
+  builder.addStoreInstanceField(objectLayout.GrowableList_data);
+  builder.push(obj);
+  builder.addIntConstant(0);
+  builder.addStoreInstanceField(objectLayout.GrowableList_length);
+}
+
+/// Build IR for _GrowableList._capacity getter.
+void buildGrowableListCapacity(
+  FlowGraphBuilder builder,
+  ObjectLayout objectLayout,
+) {
+  builder.addLoadInstanceField(objectLayout.GrowableList_data);
+  builder.addLoadInstanceField(objectLayout.Array_length);
 }
 
 /// Build IR for ThreadLocal._hasValue.
@@ -141,32 +307,30 @@ void buildThreadLocalHasValue(
   final continueBlock = builder.newTargetBlock();
   builder.addBranch(failBlock, continueBlock);
 
-  // if (Thread.threadLocals[id] == sentinel) return false;
+  final joinBlock = builder.newJoinBlock();
+  final resultVar = builder.declareLocalVariable(
+    '#result',
+    null,
+    const BoolType(),
+  );
+
+  // return (Thread.threadLocals[id] != sentinel);
   builder.startBlock(continueBlock);
   builder.push(array);
   builder.push(id);
   builder.addLoadArrayElement(.fixedLengthList, const LateValueType());
   builder.addSentinelConstant();
-  builder.addComparison(.equal);
+  builder.addComparison(.notEqual);
+  builder.addStoreLocal(resultVar);
+  builder.addGoto(joinBlock);
 
-  final failBlock2 = builder.newTargetBlock();
-  final continueBlock2 = builder.newTargetBlock();
-  builder.addBranch(failBlock2, continueBlock2);
-
-  // Otherwise return true;
-  builder.startBlock(continueBlock2);
-  builder.addBoolConstant(true);
-  builder.addReturn();
-
-  final returnFalseBlock = builder.newJoinBlock();
   builder.startBlock(failBlock);
-  builder.addGoto(returnFalseBlock);
-  builder.startBlock(failBlock2);
-  builder.addGoto(returnFalseBlock);
-
-  builder.startBlock(returnFalseBlock);
   builder.addBoolConstant(false);
-  builder.addReturn();
+  builder.addStoreLocal(resultVar);
+  builder.addGoto(joinBlock);
+
+  builder.startBlock(joinBlock);
+  builder.addLoadLocal(resultVar);
 }
 
 /// Build IR for ThreadLocal._getValue.
@@ -211,7 +375,9 @@ extension on ArrayKind {
     .uint32List => 'Uint32',
     .int64List => 'Int64',
     .uint64List => 'Uint64',
-    .fixedLengthList => throw 'ArrayKind.elementName is not defined for $this',
+    .fixedLengthList ||
+    .oneByteString ||
+    .twoByteString => throw 'ArrayKind.elementName is not defined for $this',
   };
 }
 
@@ -254,6 +420,13 @@ final class VmRecognizedMethods(
     // dart:core
     index.getProcedure(
       'dart:core',
+      'Object',
+      '==',
+    ): (FlowGraphBuilder builder) {
+      buildComparisonOp(builder, .equal);
+    },
+    index.getProcedure(
+      'dart:core',
       '_Smi',
       'get:hashCode',
     ): (FlowGraphBuilder builder) {
@@ -288,6 +461,33 @@ final class VmRecognizedMethods(
     ): (FlowGraphBuilder builder) {
       buildComparisonOp(builder, .intEqual);
     },
+    index.getProcedure(
+      'dart:core',
+      '_StringBase',
+      'get:length',
+    ): (FlowGraphBuilder builder) {
+      buildInstanceGetter(builder, objectLayout.StringBase_length);
+    },
+    index.getProcedure(
+      'dart:core',
+      '_StringBase',
+      'codeUnitAt',
+    ): (FlowGraphBuilder builder) {
+      buildStringBaseCodeUnitAt(builder, objectLayout);
+    },
+    index.getProcedure(
+      'dart:core',
+      '_StringBase',
+      '[]',
+    ): (FlowGraphBuilder builder) {
+      buildStringBaseCharAt(
+        builder,
+        functionRegistry,
+        objectLayout,
+        builder.graph.function,
+      );
+    },
+
     index.getProcedure(
       'dart:core',
       '_Array',
@@ -327,6 +527,96 @@ final class VmRecognizedMethods(
         builder,
         .fixedLengthList,
         objectLayout.Array_length,
+      );
+    },
+    index.getProcedure(
+      'dart:core',
+      '_GrowableList',
+      '_withData',
+    ): (FlowGraphBuilder builder) {
+      buildGrowableListWithData(
+        builder,
+        objectLayout,
+        index.getClass('dart:core', '_GrowableList'),
+      );
+    },
+    index.getProcedure(
+      'dart:core',
+      '_GrowableList',
+      'get:_emptyList',
+    ): (FlowGraphBuilder builder) {
+      buildConstantGetter(
+        builder,
+        ConstantValue(RuntimeConstantObject(.mutableEmptyList)),
+      );
+    },
+    index.getProcedure(
+      'dart:core',
+      '_GrowableList',
+      'get:length',
+    ): (FlowGraphBuilder builder) {
+      buildInstanceGetter(builder, objectLayout.GrowableList_length);
+    },
+    index.getProcedure(
+      'dart:core',
+      '_GrowableList',
+      '_setLength',
+    ): (FlowGraphBuilder builder) {
+      buildInstanceSetter(builder, objectLayout.GrowableList_length);
+    },
+    index.getProcedure(
+      'dart:core',
+      '_GrowableList',
+      'get:_capacity',
+    ): (FlowGraphBuilder builder) {
+      buildGrowableListCapacity(builder, objectLayout);
+    },
+    index.getProcedure(
+      'dart:core',
+      '_GrowableList',
+      '_setData',
+    ): (FlowGraphBuilder builder) {
+      buildInstanceSetter(builder, objectLayout.GrowableList_data);
+    },
+    index.getProcedure(
+      'dart:core',
+      '_GrowableList',
+      '[]',
+    ): (FlowGraphBuilder builder) {
+      buildArrayElementGetter(
+        builder,
+        .fixedLengthList, // Backing store array.
+        objectLayout.GrowableList_length,
+        StaticType(
+          ast.TypeParameterType.withDefaultNullability(
+            index.getClass('dart:core', '_GrowableList').typeParameters.single,
+          ),
+        ),
+        indirectDataField: objectLayout.GrowableList_data,
+      );
+    },
+    index.getProcedure(
+      'dart:core',
+      '_GrowableList',
+      '[]=',
+    ): (FlowGraphBuilder builder) {
+      buildArrayElementSetter(
+        builder,
+        .fixedLengthList, // Backing store array.
+        objectLayout.GrowableList_length,
+        indirectDataField: objectLayout.GrowableList_data,
+      );
+    },
+    index.getProcedure(
+      'dart:core',
+      '_GrowableList',
+      '_setIndexed',
+    ): (FlowGraphBuilder builder) {
+      buildArrayElementSetter(
+        builder,
+        .fixedLengthList, // Backing store array.
+        objectLayout.GrowableList_length,
+        indirectDataField: objectLayout.GrowableList_data,
       );
     },
 
@@ -419,6 +709,13 @@ final class VmRecognizedMethods(
     ): (FlowGraphBuilder builder) {
       buildInstanceSetter(builder, objectLayout.LinkedHashBase_deletedKeys);
     },
+    index.getProcedure(
+      'dart:_compact_hash',
+      '_LinkedHashImmutableBase',
+      'get:_data',
+    ): (FlowGraphBuilder builder) {
+      buildInstanceGetter(builder, objectLayout.LinkedHashBase_data);
+    },
 
     // dart:_internal
     index.getTopLevelProcedure(
@@ -429,6 +726,99 @@ final class VmRecognizedMethods(
           smiBits(objectLayout.compressedWordSize) + 1; // Including sign bit.
       final has63BitSmis = totalSmiBits >= 63;
       buildConstantGetter(builder, ConstantValue.fromBool(has63BitSmis));
+    },
+    index.getTopLevelProcedure(
+      'dart:_internal',
+      'allocateOneByteString',
+    ): (FlowGraphBuilder builder) {
+      buildArrayFactory(
+        builder,
+        .oneByteString,
+        index.getClass('dart:core', '_OneByteString'),
+      );
+    },
+    index.getTopLevelProcedure(
+      'dart:_internal',
+      'allocateTwoByteString',
+    ): (FlowGraphBuilder builder) {
+      buildArrayFactory(
+        builder,
+        .twoByteString,
+        index.getClass('dart:core', '_TwoByteString'),
+      );
+    },
+    index.getTopLevelProcedure(
+      'dart:_internal',
+      'writeIntoOneByteString',
+    ): (FlowGraphBuilder builder) {
+      buildArrayElementSetter(
+        builder,
+        .oneByteString,
+        objectLayout.StringBase_length,
+        checkIndex: false,
+      );
+    },
+    index.getTopLevelProcedure(
+      'dart:_internal',
+      'writeIntoTwoByteString',
+    ): (FlowGraphBuilder builder) {
+      buildArrayElementSetter(
+        builder,
+        .twoByteString,
+        objectLayout.StringBase_length,
+        checkIndex: false,
+      );
+    },
+    index.getProcedure(
+      'dart:_internal',
+      'ClassID',
+      'getID',
+    ): (FlowGraphBuilder builder) {
+      buildInstanceGetter(builder, objectLayout.Object_classId);
+    },
+
+    // dart:async
+    index.getProcedure(
+      'dart:async',
+      '_SuspendState',
+      'get:_functionData',
+    ): (FlowGraphBuilder builder) {
+      buildInstanceGetter(builder, objectLayout.SuspendState_functionData);
+    },
+    index.getProcedure(
+      'dart:async',
+      '_SuspendState',
+      'set:_functionData',
+    ): (FlowGraphBuilder builder) {
+      buildInstanceSetter(builder, objectLayout.SuspendState_functionData);
+    },
+    index.getProcedure(
+      'dart:async',
+      '_SuspendState',
+      'get:_thenCallback',
+    ): (FlowGraphBuilder builder) {
+      buildInstanceGetter(builder, objectLayout.SuspendState_thenCallback);
+    },
+    index.getProcedure(
+      'dart:async',
+      '_SuspendState',
+      'set:_thenCallback',
+    ): (FlowGraphBuilder builder) {
+      buildInstanceSetter(builder, objectLayout.SuspendState_thenCallback);
+    },
+    index.getProcedure(
+      'dart:async',
+      '_SuspendState',
+      'get:_errorCallback',
+    ): (FlowGraphBuilder builder) {
+      buildInstanceGetter(builder, objectLayout.SuspendState_errorCallback);
+    },
+    index.getProcedure(
+      'dart:async',
+      '_SuspendState',
+      'set:_errorCallback',
+    ): (FlowGraphBuilder builder) {
+      buildInstanceSetter(builder, objectLayout.SuspendState_errorCallback);
     },
 
     // dart:isolate

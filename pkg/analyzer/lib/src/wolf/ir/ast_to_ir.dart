@@ -1164,7 +1164,11 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
   }
 
   _LValueTemplates _indexAssignmentTarget(IndexAssignmentTarget node) {
-    dispatchNode(node.receiver);
+    var previousNestingLevel = ir.nestingLevel;
+    dispatchNode(node.receiver, terminateNullShorting: false);
+    if (node.question != null) {
+      nullShortingCheck(previousNestingLevel: previousNestingLevel);
+    }
     dispatchNode(node.index);
     var readElement = switch (node.read) {
       MethodIndexReadResolution(:var element) => element,

@@ -271,6 +271,14 @@ final class Arm64Constraints extends Constraints {
   }
 
   @override
+  InstructionConstraints? visitLoadExternalArrayElement(
+    LoadExternalArrayElement instr,
+  ) => const InstructionConstraints(anyCpuRegister, [
+    anyCpuRegister,
+    anyCpuRegister,
+  ]);
+
+  @override
   InstructionConstraints? visitThrow(Throw instr) {
     final inputs = allocatableRegisters.take(instr.inputCount).toList();
     return InstructionConstraints(

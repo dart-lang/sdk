@@ -1828,8 +1828,7 @@ void OneByteStringFromCharCodeInstr::EmitNativeCode(
   __ lx(result,
         compiler::Address(THR, Thread::predefined_symbols_address_offset()));
   __ AddShifted(TMP, result, char_code, kWordSizeLog2 - kSmiTagSize);
-  __ lx(result,
-        compiler::Address(TMP, Symbols::kNullCharCodeSymbolOffset * kWordSize));
+  __ lx(result, compiler::Address(TMP, 0));
 }
 
 LocationSummary* StringToCharCodeInstr::MakeLocationSummary(Zone* zone,

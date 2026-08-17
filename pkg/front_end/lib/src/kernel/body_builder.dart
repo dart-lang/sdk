@@ -3830,9 +3830,11 @@ class BodyBuilderImpl extends StackListenerImpl
       if (memberKind.isFunctionType) {
         push(
           new FunctionTypeParameterBuilder(
-            kind,
-            type ?? const ImplicitTypeBuilder(),
-            parameterName,
+            kind: kind,
+            type: type ?? const ImplicitTypeBuilder(),
+            name: parameterName,
+            fileOffset: nameOffset,
+            isWildcard: isWildcard,
           ),
         );
         return;

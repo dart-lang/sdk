@@ -18,6 +18,10 @@ enum RuntimeConstantObjectKind {
   // A unique `Object::uninitialized_data()` object.
   // Result of '_uninitializedData' from dart:_compact_hash.
   uninitializedData,
+
+  // An empty _List object used as a backing storage
+  // for the new empty _GrowableList objects.
+  mutableEmptyList,
 }
 
 /// Constant representing the unique VM object.
@@ -52,6 +56,9 @@ final class RuntimeConstantObject(final RuntimeConstantObjectKind kind)
         coreTypes.index.getClass('dart:typed_data', 'Uint32List'),
       ),
       .uninitializedData => coreTypes.listNonNullableRawType,
+      .mutableEmptyList => coreTypes.nonNullableRawType(
+        coreTypes.index.getClass('dart:core', '_List'),
+      ),
     };
   }
 }

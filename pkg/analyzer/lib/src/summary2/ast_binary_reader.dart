@@ -738,10 +738,12 @@ class AstBinaryReader {
   }
 
   IndexAssignmentTarget _readIndexAssignmentTarget() {
+    var flags = _readByte();
     var receiver = _readNode() as ExpressionImpl;
     var index = _readNode() as ExpressionImpl;
     var node = IndexAssignmentTargetImpl(
       receiver: receiver,
+      question: AstBinaryFlags.hasQuestion(flags) ? Tokens.question() : null,
       leftBracket: Tokens.openSquareBracket(),
       index: index,
       rightBracket: Tokens.closeSquareBracket(),

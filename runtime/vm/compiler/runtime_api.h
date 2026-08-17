@@ -1589,7 +1589,6 @@ class UserTag : public AllStatic {
 class Symbols : public AllStatic {
  public:
   static const word kNumberOfOneCharCodeSymbols;
-  static const word kNullCharCodeSymbolOffset;
 };
 
 class Field : public AllStatic {

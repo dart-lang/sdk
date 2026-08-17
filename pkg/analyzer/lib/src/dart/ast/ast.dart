@@ -27042,8 +27042,9 @@ abstract base class IncrementOrDecrementExpressionImpl extends ExpressionImpl
 
 /// An indexed location used as an assignment destination.
 ///
-/// This migration slice supports ordinary, non-null-aware, non-cascade
-/// assignments. Other index operations remain on their existing AST shapes.
+/// This migration slice supports ordinary non-cascade direct, compound, and
+/// if-null assignments. Other index operations remain on their existing AST
+/// shapes.
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class IndexAssignmentTarget implements AssignmentTarget {
@@ -27052,6 +27053,10 @@ abstract final class IndexAssignmentTarget implements AssignmentTarget {
 
   /// The left square bracket.
   Token get leftBracket;
+
+  /// The question mark before the left square bracket, or `null` if this
+  /// target isn't null aware.
+  Token? get question;
 
   /// The read operation, or `null` if the enclosing operation does not read,
   /// this target has not been resolved, or receiver evaluation prevents the
@@ -27074,6 +27079,7 @@ abstract final class IndexAssignmentTarget implements AssignmentTarget {
   api: AstNodeApi.v2,
   childEntitiesOrder: [
     GenerateNodeProperty('receiver', isInValueExpressionSlot: true),
+    GenerateNodeProperty('question'),
     GenerateNodeProperty('leftBracket'),
     GenerateNodeProperty('index', isInValueExpressionSlot: true),
     GenerateNodeProperty('rightBracket'),
@@ -27083,6 +27089,10 @@ final class IndexAssignmentTargetImpl extends AssignmentTargetImpl
     implements IndexAssignmentTarget {
   @generated
   ExpressionImpl _receiver;
+
+  @generated
+  @override
+  final Token? question;
 
   @generated
   @override
@@ -27108,6 +27118,7 @@ final class IndexAssignmentTargetImpl extends AssignmentTargetImpl
   @generated
   IndexAssignmentTargetImpl({
     required ExpressionImpl receiver,
+    required this.question,
     required this.leftBracket,
     required ExpressionImpl index,
     required this.rightBracket,
@@ -27167,6 +27178,7 @@ final class IndexAssignmentTargetImpl extends AssignmentTargetImpl
   @override
   ChildEntities get _childEntities2 => ChildEntities()
     ..addNode('receiver', receiver)
+    ..addToken('question', question)
     ..addToken('leftBracket', leftBracket)
     ..addNode('index', index)
     ..addToken('rightBracket', rightBracket);
@@ -27740,7 +27752,7 @@ final class IndexExpressionImpl extends ExpressionImpl
     IndexAssignmentTargetImpl origin,
   ) : _target2 = null,
       period = null,
-      question = null,
+      question = origin.question,
       leftBracket = origin.leftBracket,
       _index2 = origin.index,
       rightBracket = origin.rightBracket,

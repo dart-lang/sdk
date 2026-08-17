@@ -357,6 +357,11 @@ final class ConstantPropagation extends Pass
   void visitStoreArrayElement(StoreArrayElement instr) {}
 
   @override
+  void visitLoadExternalArrayElement(LoadExternalArrayElement instr) {
+    _setNonConstant(instr);
+  }
+
+  @override
   void visitThrow(Throw instr) {}
 
   @override

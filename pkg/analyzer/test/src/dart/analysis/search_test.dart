@@ -8020,14 +8020,75 @@ void useOperator(A a) {
 ''');
   }
 
-  test_searchReferences_MethodElement_operator_ofClass_index() async {
+  test_searchReferences_MethodElement_operator_ofClass_indexAssignmentTarget() async {
+    var result = await resolveTestCode('''
+class A {
+  num operator [](int i) => 0;
+  void operator []=(int i, num v) {}
+}
+class B {
+  num? operator [](int i) => 0;
+  void operator []=(int i, num v) {}
+}
+void useOperator(A a, A? nullableA, B b, B? nullableB) {
+  a[0] = 1;
+  nullableA?[1] = 2;
+  a[2] += 3;
+  nullableA?[3] += 4;
+  b[4] ??= 5;
+  nullableB?[5] ??= 6;
+}
+''');
+    await assertElementsReferencesText(
+      {
+        'aRead': result.findElement.method('[]', of: 'A'),
+        'aWrite': result.findElement.method('[]=', of: 'A'),
+        'bRead': result.findElement.method('[]', of: 'B'),
+        'bWrite': result.findElement.method('[]=', of: 'B'),
+        'num.+': result.typeProvider.numElement.getMethod('+')!,
+      },
+      r'''
+class A {
+  num operator [](int i) => 0;
+  void operator []=(int i, num v) {}
+}
+class B {
+  num? operator [](int i) => 0;
+  void operator []=(int i, num v) {}
+}
+void useOperator(A a, A? nullableA, B b, B? nullableB) {
+  a[0] = 1;
+   ^ aWrite INVOCATION qualified
+  nullableA?[1] = 2;
+            ^ aWrite INVOCATION qualified
+  a[2] += 3;
+   ^ aRead INVOCATION qualified
+   ^ aWrite INVOCATION qualified
+       ^^ num.+ INVOCATION qualified
+  nullableA?[3] += 4;
+            ^ aRead INVOCATION qualified
+            ^ aWrite INVOCATION qualified
+                ^^ num.+ INVOCATION qualified
+  b[4] ??= 5;
+   ^ bRead INVOCATION qualified
+   ^ bWrite INVOCATION qualified
+  nullableB?[5] ??= 6;
+            ^ bRead INVOCATION qualified
+            ^ bWrite INVOCATION qualified
+}
+''',
+    );
+  }
+
+  test_searchReferences_MethodElement_operator_ofClass_indexExpression() async {
     var result = await resolveTestCode('''
 /// [operator []] and [A.operator []]
 class A {
-  operator [](i) => null;
+  num operator [](int i) => 0;
 }
-void useOperator(A a) {
+void useOperator(A a, A? b) {
   a[0];
+  b?[1];
 }
 ''');
     var element = result.findElement.method('[]');
@@ -8035,35 +8096,13 @@ void useOperator(A a) {
     await assertElementReferencesText(element, r'''
 /// [operator []] and [A.operator []]
 class A {
-  operator [](i) => null;
+  num operator [](int i) => 0;
 }
-void useOperator(A a) {
+void useOperator(A a, A? b) {
   a[0];
    ^ INVOCATION qualified
-}
-''');
-  }
-
-  test_searchReferences_MethodElement_operator_ofClass_indexEq() async {
-    var result = await resolveTestCode('''
-/// [operator []=] and [A.operator []=]
-class A {
-  operator []=(i, v) {}
-}
-void useOperator(A a) {
-  a[1] = 42;
-}
-''');
-    var element = result.findElement.method('[]=');
-
-    await assertElementReferencesText(element, r'''
-/// [operator []=] and [A.operator []=]
-class A {
-  operator []=(i, v) {}
-}
-void useOperator(A a) {
-  a[1] = 42;
-   ^ INVOCATION qualified
+  b?[1];
+    ^ INVOCATION qualified
 }
 ''');
   }

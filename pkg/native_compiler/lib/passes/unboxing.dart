@@ -7,13 +7,16 @@ import 'package:cfg/ir/instructions.dart';
 import 'package:cfg/ir/types.dart';
 import 'package:cfg/passes/pass.dart';
 import 'package:cfg/utils/bit_vector.dart';
+import 'package:native_compiler/runtime/object_layout.dart';
 
 /// Insert boxing and unboxing instructions to make sure
 /// IR instructions take expected representation of their inputs.
 final class Unboxing extends Pass {
+  final ObjectLayout objectLayout;
+
   late final BitVector _unboxedPhis = BitVector(graph.instructions.length);
 
-  Unboxing() : super('Unboxing');
+  Unboxing(this.objectLayout) : super('Unboxing');
 
   @override
   void run() {
@@ -53,11 +56,13 @@ final class Unboxing extends Pass {
       UnaryDoubleOp() ||
       Box() ||
       IndexCheck() ||
-      LoadExternalField() => true,
+      LoadExternalField() ||
+      LoadExternalArrayElement() => true,
       LoadArrayElement() => inputIndex == 1,
       StoreArrayElement() =>
         inputIndex == 1 || (inputIndex == 2 && instr.kind != .fixedLengthList),
-      StoreField() => false, // TODO: unboxed fields,
+      StoreInstanceField() =>
+        inputIndex == 1 && objectLayout.isUnboxedField(instr.field),
       CallInstruction() => false, // TODO: support unboxed parameters.
       Return() => false, // TODO: support unboxed return values.
       _ => false,
@@ -75,8 +80,9 @@ final class Unboxing extends Pass {
       Unbox() ||
       IndexCheck() => true,
       LoadArrayElement() => instr.kind != .fixedLengthList,
-      LoadExternalField() => instr.field.type is IntType,
-      LoadField() => false, // TODO: unboxed fields,
+      LoadExternalArrayElement() => instr.type is IntType,
+      LoadExternalField() => objectLayout.isUnboxedField(instr.field),
+      LoadInstanceField() => objectLayout.isUnboxedField(instr.field),
       Parameter() => false, // TODO: support unboxed parameters.
       CallInstruction() => false, // TODO: support unboxed return values.
       Constant() => instr.value.isUnboxed,

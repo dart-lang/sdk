@@ -930,6 +930,246 @@ library
 ''');
   }
 
+  test_initializer_assign_indexed_nullAware() async {
+    var library = await _encodeDecodeLibrary(r'''
+List<int>? a;
+var t = (a?[0] = 2);
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 isOriginDeclaration isStatic a (nameOffset:11) (firstTokenOffset:11) (offset:11)
+          element: <testLibrary>::@topLevelVariable::a
+          inducedGetter: #F2
+          inducedSetter: #F3
+        #F4 hasImplicitType hasInitializer isOriginDeclaration isStatic t (nameOffset:18) (firstTokenOffset:18) (offset:18)
+          element: <testLibrary>::@topLevelVariable::t
+          inducedGetter: #F5
+          inducedSetter: #F6
+      getters
+        #F2 isComplete isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+          element: <testLibrary>::@getter::a
+          inducingVariable: #F1
+        #F5 isComplete isOriginVariable isStatic t (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
+          element: <testLibrary>::@getter::t
+          inducingVariable: #F4
+      setters
+        #F3 isComplete isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+          element: <testLibrary>::@setter::a
+          inducingVariable: #F1
+          formalParameters
+            #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+              element: <testLibrary>::@setter::a::@formalParameter::value
+        #F6 isComplete isOriginVariable isStatic t (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
+          element: <testLibrary>::@setter::t
+          inducingVariable: #F4
+          formalParameters
+            #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
+              element: <testLibrary>::@setter::t::@formalParameter::value
+  topLevelVariables
+    isOriginDeclaration isStatic a
+      reference: <testLibrary>::@topLevelVariable::a
+      firstFragment: #F1
+      type: List<int>?
+      getter: <testLibrary>::@getter::a
+      setter: <testLibrary>::@setter::a
+    hasImplicitType hasInitializer isOriginDeclaration isStatic isTypeInferredFromInitializer t
+      reference: <testLibrary>::@topLevelVariable::t
+      firstFragment: #F4
+      type: int?
+      getter: <testLibrary>::@getter::t
+      setter: <testLibrary>::@setter::t
+  getters
+    isOriginVariable isStatic a
+      reference: <testLibrary>::@getter::a
+      firstFragment: #F2
+      returnType: List<int>?
+      variable: <testLibrary>::@topLevelVariable::a
+    isOriginVariable isStatic t
+      reference: <testLibrary>::@getter::t
+      firstFragment: #F5
+      returnType: int?
+      variable: <testLibrary>::@topLevelVariable::t
+  setters
+    isOriginVariable isStatic a
+      reference: <testLibrary>::@setter::a
+      firstFragment: #F3
+      formalParameters
+        #E0 requiredPositional value
+          firstFragment: #F7
+          type: List<int>?
+      returnType: void
+      variable: <testLibrary>::@topLevelVariable::a
+    isOriginVariable isStatic t
+      reference: <testLibrary>::@setter::t
+      firstFragment: #F6
+      formalParameters
+        #E1 requiredPositional value
+          firstFragment: #F8
+          type: int?
+      returnType: void
+      variable: <testLibrary>::@topLevelVariable::t
+''');
+  }
+
+  test_initializer_assign_indexed_nullAware_readWrite() async {
+    var library = await _encodeDecodeLibrary(r'''
+List<num>? a;
+List<num?>? b;
+var t1 = (a?[0] += 2);
+var t2 = (b?[0] ??= 2);
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 isOriginDeclaration isStatic a (nameOffset:11) (firstTokenOffset:11) (offset:11)
+          element: <testLibrary>::@topLevelVariable::a
+          inducedGetter: #F2
+          inducedSetter: #F3
+        #F4 isOriginDeclaration isStatic b (nameOffset:26) (firstTokenOffset:26) (offset:26)
+          element: <testLibrary>::@topLevelVariable::b
+          inducedGetter: #F5
+          inducedSetter: #F6
+        #F7 hasImplicitType hasInitializer isOriginDeclaration isStatic t1 (nameOffset:33) (firstTokenOffset:33) (offset:33)
+          element: <testLibrary>::@topLevelVariable::t1
+          inducedGetter: #F8
+          inducedSetter: #F9
+        #F10 hasImplicitType hasInitializer isOriginDeclaration isStatic t2 (nameOffset:56) (firstTokenOffset:56) (offset:56)
+          element: <testLibrary>::@topLevelVariable::t2
+          inducedGetter: #F11
+          inducedSetter: #F12
+      getters
+        #F2 isComplete isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+          element: <testLibrary>::@getter::a
+          inducingVariable: #F1
+        #F5 isComplete isOriginVariable isStatic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+          element: <testLibrary>::@getter::b
+          inducingVariable: #F4
+        #F8 isComplete isOriginVariable isStatic t1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:33)
+          element: <testLibrary>::@getter::t1
+          inducingVariable: #F7
+        #F11 isComplete isOriginVariable isStatic t2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:56)
+          element: <testLibrary>::@getter::t2
+          inducingVariable: #F10
+      setters
+        #F3 isComplete isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+          element: <testLibrary>::@setter::a
+          inducingVariable: #F1
+          formalParameters
+            #F13 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+              element: <testLibrary>::@setter::a::@formalParameter::value
+        #F6 isComplete isOriginVariable isStatic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+          element: <testLibrary>::@setter::b
+          inducingVariable: #F4
+          formalParameters
+            #F14 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+              element: <testLibrary>::@setter::b::@formalParameter::value
+        #F9 isComplete isOriginVariable isStatic t1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:33)
+          element: <testLibrary>::@setter::t1
+          inducingVariable: #F7
+          formalParameters
+            #F15 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:33)
+              element: <testLibrary>::@setter::t1::@formalParameter::value
+        #F12 isComplete isOriginVariable isStatic t2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:56)
+          element: <testLibrary>::@setter::t2
+          inducingVariable: #F10
+          formalParameters
+            #F16 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:56)
+              element: <testLibrary>::@setter::t2::@formalParameter::value
+  topLevelVariables
+    isOriginDeclaration isStatic a
+      reference: <testLibrary>::@topLevelVariable::a
+      firstFragment: #F1
+      type: List<num>?
+      getter: <testLibrary>::@getter::a
+      setter: <testLibrary>::@setter::a
+    isOriginDeclaration isStatic b
+      reference: <testLibrary>::@topLevelVariable::b
+      firstFragment: #F4
+      type: List<num?>?
+      getter: <testLibrary>::@getter::b
+      setter: <testLibrary>::@setter::b
+    hasImplicitType hasInitializer isOriginDeclaration isStatic isTypeInferredFromInitializer t1
+      reference: <testLibrary>::@topLevelVariable::t1
+      firstFragment: #F7
+      type: num?
+      getter: <testLibrary>::@getter::t1
+      setter: <testLibrary>::@setter::t1
+    hasImplicitType hasInitializer isOriginDeclaration isStatic isTypeInferredFromInitializer t2
+      reference: <testLibrary>::@topLevelVariable::t2
+      firstFragment: #F10
+      type: num?
+      getter: <testLibrary>::@getter::t2
+      setter: <testLibrary>::@setter::t2
+  getters
+    isOriginVariable isStatic a
+      reference: <testLibrary>::@getter::a
+      firstFragment: #F2
+      returnType: List<num>?
+      variable: <testLibrary>::@topLevelVariable::a
+    isOriginVariable isStatic b
+      reference: <testLibrary>::@getter::b
+      firstFragment: #F5
+      returnType: List<num?>?
+      variable: <testLibrary>::@topLevelVariable::b
+    isOriginVariable isStatic t1
+      reference: <testLibrary>::@getter::t1
+      firstFragment: #F8
+      returnType: num?
+      variable: <testLibrary>::@topLevelVariable::t1
+    isOriginVariable isStatic t2
+      reference: <testLibrary>::@getter::t2
+      firstFragment: #F11
+      returnType: num?
+      variable: <testLibrary>::@topLevelVariable::t2
+  setters
+    isOriginVariable isStatic a
+      reference: <testLibrary>::@setter::a
+      firstFragment: #F3
+      formalParameters
+        #E0 requiredPositional value
+          firstFragment: #F13
+          type: List<num>?
+      returnType: void
+      variable: <testLibrary>::@topLevelVariable::a
+    isOriginVariable isStatic b
+      reference: <testLibrary>::@setter::b
+      firstFragment: #F6
+      formalParameters
+        #E1 requiredPositional value
+          firstFragment: #F14
+          type: List<num?>?
+      returnType: void
+      variable: <testLibrary>::@topLevelVariable::b
+    isOriginVariable isStatic t1
+      reference: <testLibrary>::@setter::t1
+      firstFragment: #F9
+      formalParameters
+        #E2 requiredPositional value
+          firstFragment: #F15
+          type: num?
+      returnType: void
+      variable: <testLibrary>::@topLevelVariable::t1
+    isOriginVariable isStatic t2
+      reference: <testLibrary>::@setter::t2
+      firstFragment: #F12
+      formalParameters
+        #E3 requiredPositional value
+          firstFragment: #F16
+          type: num?
+      returnType: void
+      variable: <testLibrary>::@topLevelVariable::t2
+''');
+  }
+
   test_initializer_assign_prefixed() async {
     var library = await _encodeDecodeLibrary(r'''
 class A {
