@@ -9,6 +9,8 @@ This is a patch release that:
 - Fixes dart2wasm compiler crash in no-such-method forwarders (issue #63904)
 - Fixes dart2wasm compilation error if 3rd party `Type` implementations exist
   (issue #63843)
+- Fixes dart2wasm compiler crash if dynamic getter calls are used that target a
+  getter implementation that was inferred to never return
 
 [#63968]: https://github.com/dart-lang/sdk/issues/63968
 [#63904]: https://github.com/dart-lang/sdk/issues/63904
