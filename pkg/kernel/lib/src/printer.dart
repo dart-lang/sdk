@@ -246,7 +246,7 @@ class AstPrinter {
   String getVariableName(VariableBase node) {
     switch (node) {
       case NamedParameter(parameterName: var name):
-      case PositionalParameter(cosmeticName: var name?):
+      case PositionalParameter(parameterName: var name):
       case TypeVariable(cosmeticName: var name?):
       case LocalVariable(cosmeticName: var name?):
       case LateVariable(cosmeticName: var name?):
@@ -255,7 +255,6 @@ class AstPrinter {
         return name;
       case ThisVariable():
         return 'this';
-      case PositionalParameter(cosmeticName: null):
       case TypeVariable(cosmeticName: null):
       case LocalVariable(cosmeticName: null):
       case LateVariable(cosmeticName: null):

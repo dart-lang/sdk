@@ -374,6 +374,8 @@ abstract class _FindNodeBase {
 
   IndexExpression get singleIndexExpression => _single();
 
+  IndexExpression2 get singleIndexExpression2 => _single();
+
   IntegerLiteral get singleIntegerLiteral => _single();
 
   InterpolationExpression get singleInterpolationExpression => _single();
@@ -887,6 +889,10 @@ abstract class _FindNodeBase {
     return _node(search, (n) => n is IndexExpression);
   }
 
+  IndexExpression2 indexExpression2(String search) {
+    return _node(search, (n) => n is IndexExpression2);
+  }
+
   IntegerLiteral integerLiteral(String search) {
     return _node(search, (n) => n is IntegerLiteral);
   }
@@ -1324,8 +1330,7 @@ class _TypedNodeVisitor<T extends AstNode>
   }
 }
 
-class _TypedNodeVisitor2<T extends AstNode>
-    extends GeneralizingAstVisitor2<void> {
+class _TypedNodeVisitor2<T extends AstNode> extends UnifyingAstVisitor2<void> {
   final List<T> nodes = [];
 
   @override

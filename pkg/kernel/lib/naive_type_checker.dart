@@ -244,7 +244,7 @@ ${ownType} is not a subtype of ${superType}
         isSuperNoSuchMethodForwarder: superMember.isNoSuchMethodForwarder,
       )) {
         return '''
-type of parameter ${ownParameter.cosmeticName} is incompatible
+type of parameter ${ownParameter.parameterName} is incompatible
 override declares ${ownParameter.type}
 super method declares ${superParameter.type}
 ''';

@@ -761,6 +761,13 @@ class AstBuilder extends StackListener {
       return initializerObject;
     }
 
+    if (initializerObject is IndexExpression2Impl) {
+      return buildInitializerTargetExpressionRecovery(
+        initializerObject.receiver,
+        initializerObject,
+      );
+    }
+
     if (initializerObject is IndexExpressionImpl) {
       return buildInitializerTargetExpressionRecovery(
         initializerObject.target2,
@@ -3750,6 +3757,9 @@ class AstBuilder extends StackListener {
 
     var rhs = pop() as ExpressionImpl;
     var lhs = pop() as ExpressionImpl;
+    if (lhs case IndexExpression2Impl(question: != null)) {
+      lhs = _toLegacyIndexExpression(lhs);
+    }
     var isAssignable = lhs.isAssignable;
     if (!isAssignable) {
       // TODO(danrubel): Update the BodyBuilder to report this error.
@@ -3769,26 +3779,37 @@ class AstBuilder extends StackListener {
         (receiver, operator, lhs.propertyName.token),
       _ => null,
     };
-    var indexTarget = token.type == TokenType.EQ
-        ? switch (lhs) {
-            IndexExpressionImpl(
-              target2: var receiver?,
-              period: null,
-              question: null,
-              :var leftBracket,
-              index2: var index,
-              :var rightBracket,
-            )
-                when !lhs.isDotShorthand =>
-              IndexAssignmentTargetImpl(
-                receiver: receiver,
-                leftBracket: leftBracket,
-                index: index,
-                rightBracket: rightBracket,
-              ),
-            _ => null,
-          }
-        : null;
+    var indexTarget = switch (lhs) {
+      IndexExpression2Impl(
+        :var receiver,
+        :var leftBracket,
+        :var index,
+        :var rightBracket,
+      )
+          when !lhs.isDotShorthand =>
+        IndexAssignmentTargetImpl(
+          receiver: receiver,
+          leftBracket: leftBracket,
+          index: index,
+          rightBracket: rightBracket,
+        ),
+      IndexExpressionImpl(
+        target2: var receiver?,
+        period: null,
+        question: null,
+        :var leftBracket,
+        index2: var index,
+        :var rightBracket,
+      )
+          when !lhs.isDotShorthand =>
+        IndexAssignmentTargetImpl(
+          receiver: receiver,
+          leftBracket: leftBracket,
+          index: index,
+          rightBracket: rightBracket,
+        ),
+      _ => null,
+    };
     if (!isAssignable && token.type == TokenType.EQ) {
       push(
         DirectAssignmentImpl(
@@ -3806,9 +3827,31 @@ class AstBuilder extends StackListener {
         ),
       );
     } else if (indexTarget != null) {
-      push(
-        DirectAssignmentImpl(target: indexTarget, operator: token, value: rhs),
-      );
+      if (token.type == TokenType.EQ) {
+        push(
+          DirectAssignmentImpl(
+            target: indexTarget,
+            operator: token,
+            value: rhs,
+          ),
+        );
+      } else if (token.type == TokenType.QUESTION_QUESTION_EQ) {
+        push(
+          IfNullAssignmentImpl(
+            target: indexTarget,
+            operator: token,
+            value: rhs,
+          ),
+        );
+      } else {
+        push(
+          CompoundAssignmentImpl(
+            target: indexTarget,
+            operator: token,
+            value: rhs,
+          ),
+        );
+      }
     } else if (property != null) {
       var target = PropertyAssignmentTargetImpl(
         receiver: property.$1,
@@ -4734,12 +4777,11 @@ class AstBuilder extends StackListener {
       push(expression);
     } else {
       push(
-        IndexExpressionImpl(
-          target2: target,
-          period: null,
+        IndexExpression2Impl(
+          receiver: target,
           question: question,
           leftBracket: leftBracket,
-          index2: index,
+          index: index,
           rightBracket: rightBracket,
         ),
       );
@@ -5845,6 +5887,9 @@ class AstBuilder extends StackListener {
     debugEvent("UnaryPostfixAssignmentExpression");
 
     var expression = pop() as ExpressionImpl;
+    if (expression is IndexExpression2Impl) {
+      expression = _toLegacyIndexExpression(expression);
+    }
     if (expression is PropertyExtractionImpl) {
       expression = PropertyAccessImpl(
         target2: expression.receiver,
@@ -5882,6 +5927,9 @@ class AstBuilder extends StackListener {
     debugEvent("UnaryPrefixAssignmentExpression");
 
     var expression = pop() as ExpressionImpl;
+    if (expression is IndexExpression2Impl) {
+      expression = _toLegacyIndexExpression(expression);
+    }
     if (expression is PropertyExtractionImpl) {
       expression = PropertyAccessImpl(
         target2: expression.receiver,
@@ -6664,6 +6712,19 @@ class AstBuilder extends StackListener {
       case FormalParameterKind.optionalPositional:
         return ParameterKind.POSITIONAL;
     }
+  }
+
+  IndexExpressionImpl _toLegacyIndexExpression(
+    IndexExpression2Impl expression,
+  ) {
+    return IndexExpressionImpl(
+      target2: expression.receiver,
+      period: null,
+      question: expression.question,
+      leftBracket: expression.leftBracket,
+      index2: expression.index,
+      rightBracket: expression.rightBracket,
+    )..isDotShorthand = expression.isDotShorthand;
   }
 
   static String _versionAsString(Version version) {

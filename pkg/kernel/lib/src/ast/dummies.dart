@@ -554,7 +554,7 @@ final CatchVariable dummyCatchVariable = new CatchVariable(
 /// used for instance as a dummy initial value for the `List.filled`
 /// constructor.
 final PositionalParameter dummyPositionalParameter = new PositionalParameter(
-  cosmeticName: null,
+  parameterName: '',
   type: const DynamicType(),
   defaultValue: null,
 );

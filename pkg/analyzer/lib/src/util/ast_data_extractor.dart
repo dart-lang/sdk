@@ -39,7 +39,7 @@ MemberId computeMemberId(Element element) {
 
 /// Abstract IR visitor for computing data corresponding to a node, token, or
 /// element, and recording it with a generic [Id].
-abstract class AstDataExtractor<T> extends GeneralizingAstVisitor2<void>
+abstract class AstDataExtractor<T> extends UnifyingAstVisitor2<void>
     with DataRegistry<T> {
   final Uri uri;
 
@@ -166,12 +166,6 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor2<void>
   }
 
   @override
-  void visitExpression(Expression node) {
-    computeForNode(node, computeDefaultNodeId(node));
-    super.visitExpression(node);
-  }
-
-  @override
   void visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
     computeForNode(node, computeDefaultNodeId(node));
     super.visitForEachPartsWithIdentifier(node);
@@ -181,12 +175,6 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor2<void>
   void visitForElement(ForElement node) {
     computeForNode(node, computeDefaultNodeId(node));
     super.visitForElement(node);
-  }
-
-  @override
-  void visitFormalParameter(FormalParameter node) {
-    computeForFormalParameter(node, computeDefaultNodeId(node));
-    super.visitFormalParameter(node);
   }
 
   @override
@@ -216,6 +204,23 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor2<void>
   }
 
   @override
+  void visitNode(AstNode node) {
+    switch (node) {
+      case Expression():
+        computeForNode(node, computeDefaultNodeId(node));
+      case FormalParameter():
+        computeForFormalParameter(node, computeDefaultNodeId(node));
+      case ExpressionStatement():
+        computeForStatement(node, createStatementId(node));
+      case Statement():
+        computeForStatement(node, computeDefaultNodeId(node));
+      case SwitchMember():
+        computeForNode(node, computeDefaultNodeId(node));
+    }
+    super.visitNode(node);
+  }
+
+  @override
   void visitNullAwareElement(NullAwareElement node) {
     computeForNode(node, computeDefaultNodeId(node));
     super.visitNullAwareElement(node);
@@ -237,26 +242,9 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor2<void>
   }
 
   @override
-  void visitStatement(Statement node) {
-    computeForStatement(
-      node,
-      node is ExpressionStatement
-          ? createStatementId(node)
-          : computeDefaultNodeId(node),
-    );
-    super.visitStatement(node);
-  }
-
-  @override
   void visitSwitchExpressionCase(SwitchExpressionCase node) {
     computeForNode(node, computeDefaultNodeId(node));
     super.visitSwitchExpressionCase(node);
-  }
-
-  @override
-  void visitSwitchMember(SwitchMember node) {
-    computeForNode(node, computeDefaultNodeId(node));
-    super.visitSwitchMember(node);
   }
 
   @override

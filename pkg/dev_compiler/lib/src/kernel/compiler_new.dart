@@ -3079,7 +3079,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var positionalParameters = function.positionalParameters;
     for (var i = 0, n = positionalParameters.length; i < n; i++) {
       var param = positionalParameters[i];
-      var jsParam = _emitIdentifier(param.cosmeticName!);
+      var jsParam = _emitIdentifier(param.parameterName);
       jsParams.add(jsParam);
 
       if (isCovariantParameter(param) &&
@@ -5091,7 +5091,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       // named argument initialization, and sync* functions also emit locally
       // modified parameters into the function's scope.
       var parameterNames = {
-        for (var p in f.positionalParameters) p.cosmeticName!,
+        for (var p in f.positionalParameters) p.parameterName,
         for (var p in f.namedParameters) p.parameterName,
       };
 
@@ -7309,7 +7309,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         var params = [
           ..._emitTypeFormals(function.typeParameters),
           for (var param in function.positionalParameters)
-            _emitIdentifier(param.cosmeticName!),
+            _emitIdentifier(param.parameterName),
           if (function.namedParameters.isNotEmpty) _namedArgumentTemp,
         ];
 

@@ -7,6 +7,7 @@ import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/clone.dart' show CloneVisitorNotMembers;
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/type_algebra.dart';
+
 import 'factory_specializer.dart';
 
 /// Replaces invocation of List factory constructors.
@@ -245,8 +246,8 @@ class ListFactorySpecializer extends BaseSpecializer {
 
   String _indexNameFromContext(FunctionExpression generator) {
     final function = generator.function;
-    String? candidate = function.positionalParameters.first.cosmeticName;
-    if (candidate == null || candidate == '' || candidate == '_') return '_i';
+    String? candidate = function.positionalParameters.first.parameterName;
+    if (candidate == '' || candidate == '_') return '_i';
     return candidate;
   }
 }
@@ -354,11 +355,10 @@ class ListGenerateLoopBodyInliner extends CloneVisitorNotMembers {
           ]),
           interfaceTarget: listFactorySpecializer.jsArrayIndexSet,
           functionType:
-              Substitution.fromInterfaceType(
-                    listVariable.type as InterfaceType,
-                  ).substituteType(
-                    listFactorySpecializer.jsArrayIndexSet.getterType,
-                  )
+              Substitution.fromInterfaceType(listVariable.type as InterfaceType)
+                      .substituteType(
+                        listFactorySpecializer.jsArrayIndexSet.getterType,
+                      )
                   as FunctionType,
         )
         ..isInvariant = true

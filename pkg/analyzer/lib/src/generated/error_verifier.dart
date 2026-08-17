@@ -35,6 +35,7 @@ import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart'
     show DiagnosticMessage, DiagnosticMessageImpl;
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/diagnostic/diagnostic_data.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/async_return_visitor.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -1511,8 +1512,10 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       return;
     }
     switch (target) {
-      case IndexAssignmentTargetImpl():
-        throw StateError('Index if-null assignment is not migrated.');
+      case IndexAssignmentTargetImpl(:var read):
+        if (read case IndexReadResolutionImpl(:var type)) {
+          _checkForDeadNullCoalesce(type, node.value);
+        }
       case PropertyAssignmentTargetImpl(:var read):
         if (read case NamedReadResolutionImpl(:var type)) {
           _checkForDeadNullCoalesce(type, node.value);
@@ -1605,6 +1608,20 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     }
 
     super.visitIndexExpression(node);
+  }
+
+  @override
+  void visitIndexExpression2(IndexExpression2 node) {
+    var question = node.question;
+    if (question != null) {
+      _checkForUnnecessaryNullAware(
+        node.receiver,
+        question,
+        kind: _NullAwareKind.indexExpression,
+      );
+    }
+
+    super.visitIndexExpression2(node);
   }
 
   @override
@@ -6524,7 +6541,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       if (!isSatisfied) {
         // This error can only occur if [mixinName] resolved to an actual mixin,
         // so we can safely rely on `mixinName.type` being non-`null`.
-        diagnosticReporter.report(
+        var diagnostic = diagnosticReporter.report(
           diag.mixinApplicationNotImplementedInterface
               .withArguments(
                 mixinType: mixinName.type!,
@@ -6533,6 +6550,8 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
               )
               .at(mixinName.name),
         );
+        mixinApplicationNotImplementedInterfaceConstraint[diagnostic] =
+            constraint;
         return true;
       }
     }
@@ -7743,6 +7762,11 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
         if (target.question != null) {
           var realTarget = target.realTarget2;
           return previousShortCircuitingOperator(realTarget) ?? target.question;
+        }
+      } else if (target is IndexExpression2) {
+        if (target.question != null) {
+          return previousShortCircuitingOperator(target.receiver) ??
+              target.question;
         }
       } else if (target is MethodInvocation) {
         var operator = target.operator;

@@ -84,15 +84,31 @@ void f(Map<String, int> a) {
 }
 ''');
 
-    var node1 = result.findNode.index('a[');
+    var node1 = result.findNode.indexExpression2('a[');
     assertResolvedNodeText(node1, r'''
-IndexExpression
-  target2: SimpleIdentifier
+IndexExpression2
+  receiver: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: Map<String, int>
   leftBracket: [
-  index2: SimpleStringLiteral
+  index: SimpleStringLiteral
+    literal: 'foo'
+  rightBracket: ]
+  resolution: MethodIndexReadResolution
+    element: SubstitutedMethodElementImpl
+      baseElement: dart:core::@class::Map::@method::[]
+      substitution: {K: String, V: int}
+    invokeType: int? Function(Object?)
+    type: int?
+  staticType: int?
+V1: IndexExpression
+  target: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: Map<String, int>
+  leftBracket: [
+  index: SimpleStringLiteral
     literal: 'foo'
   rightBracket: ]
   element: SubstitutedMethodElementImpl
@@ -104,18 +120,21 @@ IndexExpression
     var node2 = result.findNode.nullAssertion(']!');
     assertResolvedNodeText(node2, r'''
 NullAssertionExpression
-  operand: IndexExpression
-    target2: SimpleIdentifier
+  operand: IndexExpression2
+    receiver: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::f::@formalParameter::a
       staticType: Map<String, int>
     leftBracket: [
-    index2: SimpleStringLiteral
+    index: SimpleStringLiteral
       literal: 'foo'
     rightBracket: ]
-    element: SubstitutedMethodElementImpl
-      baseElement: dart:core::@class::Map::@method::[]
-      substitution: {K: String, V: int}
+    resolution: MethodIndexReadResolution
+      element: SubstitutedMethodElementImpl
+        baseElement: dart:core::@class::Map::@method::[]
+        substitution: {K: String, V: int}
+      invokeType: int? Function(Object?)
+      type: int?
     staticType: int?
   operator: !
   staticType: int
@@ -696,6 +715,64 @@ V1: PostfixExpression
   writeType: num
   element: dart:core::@class::num::@method::+
   staticType: int
+''');
+  }
+
+  test_inc_indexExpression_instance_nullAware() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  int operator[](int index) => 0;
+  operator[]=(int index, num _) {}
+}
+
+void f(A? a) {
+  a?[0]++;
+}
+''');
+
+    var node = result.findNode.postfixIncrement('a?[0]++');
+    assertResolvedNodeText(node, r'''
+PostfixIncrement
+  operand: IndexExpression
+    target2: SimpleIdentifier
+      token: a
+      element: <testLibrary>::@function::f::@formalParameter::a
+      staticType: A?
+    question: ?
+    leftBracket: [
+    index2: IntegerLiteral
+      literal: 0
+      correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
+      staticType: int
+    rightBracket: ]
+    element: <null>
+    staticType: null
+  operator: ++
+  element: dart:core::@class::num::@method::+
+  operatorResultType: int
+  staticType: int?
+V1: PostfixExpression
+  operand: IndexExpression
+    target: SimpleIdentifier
+      token: a
+      element: <testLibrary>::@function::f::@formalParameter::a
+      staticType: A?
+    question: ?
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
+      staticType: int
+    rightBracket: ]
+    element: <null>
+    staticType: null
+  operator: ++
+  readElement: <testLibrary>::@class::A::@method::[]
+  readType: int
+  writeElement: <testLibrary>::@class::A::@method::[]=
+  writeType: num
+  element: dart:core::@class::num::@method::+
+  staticType: int?
 ''');
   }
 

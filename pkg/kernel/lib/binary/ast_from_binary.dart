@@ -4714,7 +4714,7 @@ class BinaryBuilder {
       case Tag.PositionalParameter:
         node =
             new PositionalParameter(
-                cosmeticName: name,
+                parameterName: name!,
                 type: type,
                 defaultValue: initializer,
               )

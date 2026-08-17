@@ -746,6 +746,7 @@ class AstBinaryReader {
       index: index,
       rightBracket: Tokens.closeSquareBracket(),
     );
+    node.read = _reader.readOptionalObject(_readIndexReadResolution);
     node.write = _reader.readOptionalObject(_readIndexWriteResolution);
     return node;
   }
@@ -765,6 +766,40 @@ class AstBinaryReader {
     node.element = _reader.readElement() as MethodElement?;
     _readExpressionResolution(node);
     return node;
+  }
+
+  IndexExpression2 _readIndexExpression2() {
+    var flags = _readByte();
+    var receiver = _readNode() as ExpressionImpl;
+    var index = _readNode() as ExpressionImpl;
+    var node = IndexExpression2Impl(
+      receiver: receiver,
+      question: AstBinaryFlags.hasQuestion(flags) ? Tokens.question() : null,
+      leftBracket: Tokens.openSquareBracket(),
+      index: index,
+      rightBracket: Tokens.closeSquareBracket(),
+    );
+    node.resolution = _reader.readOptionalObject(_readIndexReadResolution);
+    _readExpressionResolution(node);
+    return node;
+  }
+
+  IndexReadResolutionImpl _readIndexReadResolution() {
+    switch (IndexReadResolutionTag.values[_readByte()]) {
+      case IndexReadResolutionTag.dynamic_:
+        return const DynamicIndexReadResolutionImpl();
+      case IndexReadResolutionTag.invalid:
+        return InvalidIndexReadResolutionImpl(
+          recovery: _reader.readOptionalObject(
+            () => _readIndexReadResolution() as MethodIndexReadResolutionImpl,
+          ),
+        );
+      case IndexReadResolutionTag.method:
+        return MethodIndexReadResolutionImpl(
+          element: _reader.readElement() as InternalMethodElement,
+          type: _reader.readType() as TypeImpl,
+        );
+    }
   }
 
   IndexWriteResolutionImpl _readIndexWriteResolution() {
@@ -1138,6 +1173,8 @@ class AstBinaryReader {
         return _readImportPrefixReference();
       case Tag.IndexExpression:
         return _readIndexExpression();
+      case Tag.IndexExpression2:
+        return _readIndexExpression2();
       case Tag.IndexAssignmentTarget:
         return _readIndexAssignmentTarget();
       case Tag.IntegerLiteralNegative1:

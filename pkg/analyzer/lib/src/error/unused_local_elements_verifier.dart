@@ -166,7 +166,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
     if (target case IndexAssignmentTarget(
       write: MethodIndexWriteResolution(:var element),
     )) {
-      _useAssignmentWriteElement(element);
+      _useAssignmentTargetElement(element);
       super.visitDirectAssignment(node);
       return;
     }
@@ -189,7 +189,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
       super.visitDirectAssignment(node);
       return;
     }
-    _useAssignmentWriteElement(write.element);
+    _useAssignmentTargetElement(write.element);
 
     super.visitDirectAssignment(node);
   }
@@ -279,6 +279,20 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
     var element = node.writeOrReadElement2;
     usedElements.addMember(element);
     super.visitIndexExpression(node);
+  }
+
+  @override
+  void visitIndexExpression2(IndexExpression2 node) {
+    var element = switch (node.resolution) {
+      MethodIndexReadResolution(:var element) => element,
+      InvalidIndexReadResolution(
+        recovery: MethodIndexReadResolution(:var element),
+      ) =>
+        element,
+      _ => null,
+    };
+    usedElements.addMember(element);
+    super.visitIndexExpression2(node);
   }
 
   @override
@@ -526,7 +540,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
     }
   }
 
-  void _useAssignmentWriteElement(Element element) {
+  void _useAssignmentTargetElement(Element element) {
     if (element is SubstitutedExecutableElementImpl) {
       element = element.baseElement;
     }
@@ -616,6 +630,15 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
     AssignmentTarget target, {
     required bool readCountsAsUse,
   }) {
+    if (target is IndexAssignmentTarget) {
+      if (target.read case MethodIndexReadResolution(:var element)) {
+        _useAssignmentTargetElement(element);
+      }
+      if (target.write case MethodIndexWriteResolution(:var element)) {
+        _useAssignmentTargetElement(element);
+      }
+      return;
+    }
     var read = switch (target) {
       PropertyAssignmentTarget(:var read) => read,
       UnqualifiedNameAssignmentTarget(:var read) => read,

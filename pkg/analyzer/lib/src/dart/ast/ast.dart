@@ -22,6 +22,7 @@ import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
@@ -8632,7 +8633,7 @@ final class CompoundAssignmentV1Impl extends ExpressionImpl
 
   @override
   Element? get readElement => switch (_origin.target) {
-    IndexAssignmentTargetImpl() => null,
+    IndexAssignmentTargetImpl target => target._legacyReadElement,
     PropertyAssignmentTargetImpl target => target._legacyReadElement,
     UnqualifiedNameAssignmentTargetImpl target => target._legacyReadElement,
     InvalidExpressionAssignmentTargetImpl(expression: IdentifierImpl element) =>
@@ -8642,7 +8643,7 @@ final class CompoundAssignmentV1Impl extends ExpressionImpl
 
   @override
   TypeImpl? get readType => switch (_origin.target) {
-    IndexAssignmentTargetImpl() => InvalidTypeImpl.instance,
+    IndexAssignmentTargetImpl target => target._legacyReadType,
     PropertyAssignmentTargetImpl target =>
       target.read?.type ?? InvalidTypeImpl.instance,
     UnqualifiedNameAssignmentTargetImpl target => target.read?.type,
@@ -8674,7 +8675,8 @@ final class CompoundAssignmentV1Impl extends ExpressionImpl
 
   @override
   TypeImpl? get writeType => switch (_origin.target) {
-    IndexAssignmentTargetImpl target => target.write?.acceptedType,
+    IndexAssignmentTargetImpl target =>
+      target.write?.acceptedType ?? InvalidTypeImpl.instance,
     PropertyAssignmentTargetImpl target =>
       target.write?.acceptedType ?? InvalidTypeImpl.instance,
     UnqualifiedNameAssignmentTargetImpl target => target.write?.acceptedType,
@@ -14416,6 +14418,23 @@ final class DoubleLiteralImpl extends LiteralImpl implements DoubleLiteral {
   }
 }
 
+/// An index read whose `operator []` is selected dynamically at runtime.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class DynamicIndexReadResolution
+    implements ValidIndexReadResolution {}
+
+final class DynamicIndexReadResolutionImpl extends IndexReadResolutionImpl
+    implements DynamicIndexReadResolution {
+  const DynamicIndexReadResolutionImpl();
+
+  @override
+  TypeImpl get indexContextType => UnknownInferredType.instance;
+
+  @override
+  TypeImpl get type => DynamicTypeImpl.instance;
+}
+
 /// An index write whose `operator []=` is selected dynamically at runtime.
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
@@ -16236,13 +16255,17 @@ sealed class ExpressionImpl extends InstanceReceiverImpl
     var parent = parentInPrimaryView;
     if (parent is ArgumentListImpl) {
       return parent._getStaticParameterElementFor(this);
+    } else if (parent is IndexExpression2Impl) {
+      if (identical(parent.index, this)) {
+        return parent._staticParameterElementForIndex;
+      }
     } else if (parent is IndexExpressionImpl) {
       if (identical(parent.index2, this)) {
         return parent._staticParameterElementForIndex;
       }
     } else if (parent is IndexAssignmentTargetImpl) {
       if (identical(parent.index, this)) {
-        return parent._legacyWriteElement?.formalParameters.firstOrNull;
+        return parent._staticParameterElementForIndex;
       }
     } else if (parent is BinaryOperatorInvocationImpl) {
       // TODO(scheglov): https://github.com/dart-lang/sdk/issues/49102
@@ -25376,7 +25399,7 @@ final class IfNullAssignmentV1Impl extends ExpressionImpl
 
   @override
   Element? get readElement => switch (_origin.target) {
-    IndexAssignmentTargetImpl() => null,
+    IndexAssignmentTargetImpl target => target._legacyReadElement,
     PropertyAssignmentTargetImpl target => target._legacyReadElement,
     UnqualifiedNameAssignmentTargetImpl target => target._legacyReadElement,
     InvalidExpressionAssignmentTargetImpl(expression: IdentifierImpl element) =>
@@ -25386,7 +25409,7 @@ final class IfNullAssignmentV1Impl extends ExpressionImpl
 
   @override
   TypeImpl? get readType => switch (_origin.target) {
-    IndexAssignmentTargetImpl() => InvalidTypeImpl.instance,
+    IndexAssignmentTargetImpl target => target._legacyReadType,
     PropertyAssignmentTargetImpl target =>
       target.read?.type ?? InvalidTypeImpl.instance,
     UnqualifiedNameAssignmentTargetImpl target => target.read?.type,
@@ -25418,7 +25441,8 @@ final class IfNullAssignmentV1Impl extends ExpressionImpl
 
   @override
   TypeImpl? get writeType => switch (_origin.target) {
-    IndexAssignmentTargetImpl target => target.write?.acceptedType,
+    IndexAssignmentTargetImpl target =>
+      target.write?.acceptedType ?? InvalidTypeImpl.instance,
     PropertyAssignmentTargetImpl target =>
       target.write?.acceptedType ?? InvalidTypeImpl.instance,
     UnqualifiedNameAssignmentTargetImpl target => target.write?.acceptedType,
@@ -27018,7 +27042,7 @@ abstract base class IncrementOrDecrementExpressionImpl extends ExpressionImpl
 
 /// An indexed location used as an assignment destination.
 ///
-/// This migration slice supports ordinary, non-null-aware, non-cascade direct
+/// This migration slice supports ordinary, non-null-aware, non-cascade
 /// assignments. Other index operations remain on their existing AST shapes.
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
@@ -27029,14 +27053,20 @@ abstract final class IndexAssignmentTarget implements AssignmentTarget {
   /// The left square bracket.
   Token get leftBracket;
 
+  /// The read operation, or `null` if the enclosing operation does not read,
+  /// this target has not been resolved, or receiver evaluation prevents the
+  /// index operation.
+  IndexReadResolution? get read;
+
   /// The expression whose value is indexed.
   Expression get receiver;
 
   /// The right square bracket.
   Token get rightBracket;
 
-  /// The write operation, or `null` if this target has not been resolved or
-  /// receiver evaluation prevents the index operation.
+  /// The write operation, or `null` if the enclosing operation does not write,
+  /// this target has not been resolved, or receiver evaluation prevents the
+  /// index operation.
   IndexWriteResolution? get write;
 }
 
@@ -27064,6 +27094,10 @@ final class IndexAssignmentTargetImpl extends AssignmentTargetImpl
   @generated
   @override
   final Token rightBracket;
+
+  @DoNotGenerate(reason: 'Stores the canonical typed read resolution')
+  @override
+  IndexReadResolutionImpl? read;
 
   @DoNotGenerate(reason: 'Stores the canonical typed write resolution')
   @override
@@ -27137,6 +27171,32 @@ final class IndexAssignmentTargetImpl extends AssignmentTargetImpl
     ..addNode('index', index)
     ..addToken('rightBracket', rightBracket);
 
+  InternalMethodElement? get _legacyReadElement => switch (read) {
+    MethodIndexReadResolutionImpl(:var element) => element,
+    InvalidIndexReadResolutionImpl(
+      recovery: MethodIndexReadResolutionImpl(:var element),
+    ) =>
+      element,
+    _ => null,
+  };
+
+  /// The read type exposed by the V1 [AssignmentExpression] projection.
+  ///
+  /// A `Never` receiver prevents the index operation, so [read] is absent,
+  /// but the corresponding V1 index read still has the receiver's `Never`
+  /// type. Returning the receiver type also preserves type aliases of `Never`.
+  TypeImpl get _legacyReadType {
+    if (read case IndexReadResolutionImpl(:var type)) {
+      return type;
+    }
+    var receiverType = receiver.typeOrThrow;
+    if (receiverType is NeverTypeImpl &&
+        receiverType.nullabilitySuffix == NullabilitySuffix.none) {
+      return receiverType;
+    }
+    return InvalidTypeImpl.instance;
+  }
+
   InternalMethodElement? get _legacyWriteElement => switch (write) {
     MethodIndexWriteResolutionImpl(:var element) => element,
     InvalidIndexWriteResolutionImpl(
@@ -27145,6 +27205,9 @@ final class IndexAssignmentTargetImpl extends AssignmentTargetImpl
       element,
     _ => null,
   };
+
+  InternalFormalParameterElement? get _staticParameterElementForIndex =>
+      (_legacyWriteElement ?? _legacyReadElement)?.formalParameters.firstOrNull;
 
   @generated
   @ToBeDeprecated('Use accept2 instead.')
@@ -27336,6 +27399,275 @@ abstract final class IndexExpression implements MethodReferenceExpression {
   bool inSetterContext();
 }
 
+/// A value produced by invoking `operator []` on an explicitly written
+/// expression receiver.
+///
+/// This migration slice supports ordinary non-cascade index expressions.
+/// Cascade index expressions remain on [IndexExpression].
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class IndexExpression2 implements Expression {
+  /// The expression used to compute the index.
+  Expression get index;
+
+  /// The left square bracket.
+  Token get leftBracket;
+
+  /// The question mark before the left square bracket, or `null` if this
+  /// expression isn't null aware.
+  Token? get question;
+
+  /// The expression whose value is indexed.
+  Expression get receiver;
+
+  /// The resolution of the read, or `null` if this expression has not been
+  /// resolved or receiver evaluation prevents the index operation.
+  IndexReadResolution? get resolution;
+
+  /// The right square bracket.
+  Token get rightBracket;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [
+    GenerateNodeProperty('receiver', isInValueExpressionSlot: true),
+    GenerateNodeProperty('question'),
+    GenerateNodeProperty('leftBracket'),
+    GenerateNodeProperty('index', isInValueExpressionSlot: true),
+    GenerateNodeProperty('rightBracket'),
+  ],
+)
+final class IndexExpression2Impl extends ExpressionImpl
+    with DotShorthandMixin
+    implements IndexExpression2 {
+  @generated
+  ExpressionImpl _receiver;
+
+  @generated
+  @override
+  final Token? question;
+
+  @generated
+  @override
+  final Token leftBracket;
+
+  @generated
+  ExpressionImpl _index;
+
+  @generated
+  @override
+  final Token rightBracket;
+
+  @DoNotGenerate(reason: 'Stores the canonical typed read resolution')
+  @override
+  IndexReadResolutionImpl? resolution;
+
+  IndexExpressionImpl? _indexExpression;
+
+  @generated
+  IndexExpression2Impl({
+    required ExpressionImpl receiver,
+    required this.question,
+    required this.leftBracket,
+    required ExpressionImpl index,
+    required this.rightBracket,
+  }) : _receiver = receiver,
+       _index = index {
+    _becomeParentOf2(receiver);
+    _becomeParentOf2(index);
+  }
+
+  @generated
+  @override
+  Token get beginToken {
+    return receiver.beginToken;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return rightBracket;
+  }
+
+  @generated
+  @override
+  ExpressionImpl get index => _index;
+
+  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  set index(ExpressionImpl index) {
+    _index = _becomeParentOf2(index);
+    _indexExpression?._attachV1Children();
+  }
+
+  /// The cached V1 compatibility projection for this expression.
+  IndexExpressionImpl get indexExpression => _indexExpression ??=
+      IndexExpressionImpl.v1ProjectionFromIndexExpression2(this);
+
+  @override
+  bool get isAssignable => true;
+
+  @override
+  Precedence get precedence => Precedence.postfix;
+
+  @generated
+  @override
+  ExpressionImpl get receiver => _receiver;
+
+  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  set receiver(ExpressionImpl receiver) {
+    _receiver = _becomeParentOf2(receiver);
+    _indexExpression?._attachV1Children();
+  }
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @generated
+  @override
+  ChildEntities get _childEntities {
+    throw StateError('IndexExpression2 is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('receiver', receiver)
+    ..addToken('question', question)
+    ..addToken('leftBracket', leftBracket)
+    ..addNode('index', index)
+    ..addToken('rightBracket', rightBracket);
+
+  InternalMethodElement? get _legacyReadElement => switch (resolution) {
+    MethodIndexReadResolutionImpl(:var element) => element,
+    InvalidIndexReadResolutionImpl(
+      recovery: MethodIndexReadResolutionImpl(:var element),
+    ) =>
+      element,
+    _ => null,
+  };
+
+  InternalFormalParameterElement? get _staticParameterElementForIndex =>
+      _legacyReadElement?.formalParameters.firstOrNull;
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('IndexExpression2 is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitIndexExpression2(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent2, this));
+    return true;
+  }
+
+  @override
+  void recordNullShortedType(TypeImpl type) {
+    super.recordNullShortedType(type);
+    if (resolution case MethodIndexReadResolutionImpl(:var element)) {
+      resolution = MethodIndexReadResolutionImpl(element: element, type: type);
+    }
+  }
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    if (identical(receiver, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'receiver'.");
+    }
+    if (identical(index, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'index'.");
+    }
+    super.removeChild(oldNode);
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (identical(receiver, oldNode)) {
+      receiver = newNode as ExpressionImpl;
+      return;
+    }
+    if (identical(index, oldNode)) {
+      index = newNode as ExpressionImpl;
+      return;
+    }
+    super.replaceChild(oldNode, newNode);
+  }
+
+  @generated
+  @override
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+    resolver.visitIndexExpression2(this, contextType: contextType);
+  }
+
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError('IndexExpression2 is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    receiver.accept2(visitor);
+    index.accept2(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(
+    AstVisitor2 visitor, {
+    void Function(ExpressionImpl)? visitReceiver,
+    void Function(ExpressionImpl)? visitIndex,
+  }) {
+    if (visitReceiver != null) {
+      visitReceiver(receiver);
+    } else {
+      receiver.accept2(visitor);
+    }
+    if (visitIndex != null) {
+      visitIndex(index);
+    } else {
+      index.accept2(visitor);
+    }
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError('IndexExpression2 is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (receiver._containsOffset(rangeOffset, rangeEnd)) {
+      return receiver;
+    }
+    if (index._containsOffset(rangeOffset, rangeEnd)) {
+      return index;
+    }
+    return null;
+  }
+}
+
 @GenerateNodeImpl(
   childEntitiesOrder: [
     GenerateNodeProperty(
@@ -27383,7 +27715,7 @@ final class IndexExpressionImpl extends ExpressionImpl
 
   MethodElement? _element;
 
-  IndexAssignmentTargetImpl? _v1ProjectionOrigin;
+  AstNodeImpl? _v1ProjectionOrigin;
 
   @generated
   IndexExpressionImpl({
@@ -27416,6 +27748,18 @@ final class IndexExpressionImpl extends ExpressionImpl
     _attachV1Children();
   }
 
+  IndexExpressionImpl.v1ProjectionFromIndexExpression2(
+    IndexExpression2Impl origin,
+  ) : _target2 = null,
+      period = null,
+      question = origin.question,
+      leftBracket = origin.leftBracket,
+      _index2 = origin.index,
+      rightBracket = origin.rightBracket,
+      _v1ProjectionOrigin = origin {
+    _attachV1Children();
+  }
+
   @generated
   @override
   Token get beginToken {
@@ -27431,11 +27775,22 @@ final class IndexExpressionImpl extends ExpressionImpl
     return leftBracket;
   }
 
+  @override
+  InternalFormalParameterElement? get correspondingParameter =>
+      switch (_v1ProjectionOrigin) {
+        IndexExpression2Impl origin => origin.correspondingParameter,
+        _ => super.correspondingParameter,
+      };
+
   /// The element associated with the operator based on the static type of the
   /// target, or `null` if the AST structure hasn't been resolved or if the
   /// operator couldn't be resolved.
   @override
-  MethodElement? get element => _v1ProjectionOrigin == null ? _element : null;
+  MethodElement? get element => switch (_v1ProjectionOrigin) {
+    IndexExpression2Impl origin => origin._legacyReadElement,
+    null => _element,
+    _ => null,
+  };
 
   set element(MethodElement? element) {
     if (_v1ProjectionOrigin != null) {
@@ -27450,6 +27805,12 @@ final class IndexExpressionImpl extends ExpressionImpl
     return rightBracket;
   }
 
+  @override
+  bool get inConstantContext => switch (_v1ProjectionOrigin) {
+    IndexExpression2Impl origin => origin.inConstantContext,
+    _ => super.inConstantContext,
+  };
+
   @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
   @ToBeDeprecated('Use index2 instead.')
   @override
@@ -27462,6 +27823,7 @@ final class IndexExpressionImpl extends ExpressionImpl
     IndexAssignmentTargetImpl origin => V1Projection.toV1Expression(
       origin.index,
     ),
+    IndexExpression2Impl origin => V1Projection.toV1Expression(origin.index),
     _ => _index2,
   };
 
@@ -27509,6 +27871,12 @@ final class IndexExpressionImpl extends ExpressionImpl
     return target2!;
   }
 
+  @override
+  TypeImpl? get staticType => switch (_v1ProjectionOrigin) {
+    IndexExpression2Impl origin => origin.staticType,
+    _ => super.staticType,
+  };
+
   @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
   @ToBeDeprecated('Use target2 instead.')
   @override
@@ -27524,6 +27892,7 @@ final class IndexExpressionImpl extends ExpressionImpl
     IndexAssignmentTargetImpl origin => V1Projection.toV1Expression(
       origin.receiver,
     ),
+    IndexExpression2Impl origin => V1Projection.toV1Expression(origin.receiver),
     _ => _target2,
   };
 
@@ -27621,9 +27990,16 @@ final class IndexExpressionImpl extends ExpressionImpl
   }
 
   @override
+  AttemptedConstantEvaluationResult? computeConstantValue() =>
+      switch (_v1ProjectionOrigin) {
+        IndexExpression2Impl origin => origin.computeConstantValue(),
+        _ => super.computeConstantValue(),
+      };
+
+  @override
   bool inGetterContext() {
-    if (_v1ProjectionOrigin != null) {
-      return false;
+    if (_v1ProjectionOrigin case var origin?) {
+      return origin.parent2 is! DirectAssignment;
     }
     // TODO(brianwilkerson): Convert this to a getter.
     var parent = parent2!;
@@ -27638,6 +28014,9 @@ final class IndexExpressionImpl extends ExpressionImpl
 
   @override
   bool inSetterContext() {
+    if (_v1ProjectionOrigin is IndexExpression2Impl) {
+      return false;
+    }
     if (_v1ProjectionOrigin != null) {
       return true;
     }
@@ -27789,6 +28168,23 @@ final class IndexExpressionImpl extends ExpressionImpl
     }
     return null;
   }
+}
+
+/// The result of an indexed read operation.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class IndexReadResolution {
+  /// The type produced by `operator []`.
+  DartType get type;
+}
+
+sealed class IndexReadResolutionImpl implements IndexReadResolution {
+  const IndexReadResolutionImpl();
+
+  TypeImpl get indexContextType;
+
+  @override
+  TypeImpl get type;
 }
 
 /// The result of writing an indexed assignment target.
@@ -28763,6 +29159,29 @@ final class InvalidExpressionAssignmentTargetImpl extends AssignmentTargetImpl
     }
     return null;
   }
+}
+
+/// An unsuccessful index read resolution.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class InvalidIndexReadResolution implements IndexReadResolution {
+  /// A complete hypothetical valid resolution used for recovery.
+  ValidIndexReadResolution? get recovery;
+}
+
+final class InvalidIndexReadResolutionImpl extends IndexReadResolutionImpl
+    implements InvalidIndexReadResolution {
+  @override
+  final MethodIndexReadResolutionImpl? recovery;
+
+  InvalidIndexReadResolutionImpl({required this.recovery});
+
+  @override
+  TypeImpl get indexContextType =>
+      recovery?.indexContextType ?? UnknownInferredType.instance;
+
+  @override
+  TypeImpl get type => InvalidTypeImpl.instance;
 }
 
 /// An unsuccessful index write resolution.
@@ -32877,6 +33296,35 @@ final class MethodDeclarationImpl extends ClassMemberImpl
     }
     return null;
   }
+}
+
+/// An index read resolved to a statically selected `operator []` method.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class MethodIndexReadResolution
+    implements ValidIndexReadResolution {
+  /// The selected substituted `operator []` method.
+  MethodElement get element;
+
+  /// The substituted function type used for this invocation.
+  FunctionType get invokeType;
+}
+
+final class MethodIndexReadResolutionImpl extends IndexReadResolutionImpl
+    implements MethodIndexReadResolution {
+  @override
+  final InternalMethodElement element;
+
+  @override
+  final TypeImpl type;
+
+  MethodIndexReadResolutionImpl({required this.element, required this.type});
+
+  @override
+  TypeImpl get indexContextType => element.formalParameters[0].type;
+
+  @override
+  FunctionTypeImpl get invokeType => element.type;
 }
 
 /// An index write resolved to a statically selected `operator []=` method.
@@ -45108,7 +45556,7 @@ final class SimpleIdentifierImpl extends IdentifierImpl
     var parent = parentInPrimaryView!;
     if (parent is PrefixedIdentifierImpl) {
       return identical(parent.identifier, this);
-    } else if (parent is PropertyAccessImpl) {
+    } else if (parent case PropertyAccess parent) {
       return identical(parent.propertyName, this);
     } else if (parent is ConstructorNameImpl) {
       return identical(parent.name, this);
@@ -50918,7 +51366,7 @@ final class UnqualifiedNameAssignmentTargetImpl extends AssignmentTargetImpl
       InvalidNamedReadResolutionImpl(:var candidates) =>
         candidates.isEmpty ? null : candidates.first,
       NamedReadResolutionWithElementImpl(:var element) => element,
-      RecordFieldReadResolutionImpl() => null,
+      _ => null,
     };
   }
 
@@ -51165,6 +51613,9 @@ enum V1Projection {
     if (node is IfNullAssignmentImpl) {
       return node.assignmentExpression;
     }
+    if (node is IndexExpression2Impl) {
+      return node.indexExpression;
+    }
     if (node is LogicalNotImpl) {
       return node.prefixExpression;
     }
@@ -51207,6 +51658,11 @@ enum V1Projection {
     return node;
   }
 }
+
+/// A successful index read resolution.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class ValidIndexReadResolution implements IndexReadResolution {}
 
 /// A successful index write resolution.
 @experimental

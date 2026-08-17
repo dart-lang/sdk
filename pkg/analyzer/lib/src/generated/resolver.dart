@@ -1598,6 +1598,11 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     return _propertyElementResolver.resolveIndexDirectAssignmentTarget(node);
   }
 
+  ({IndexReadResolutionImpl read, IndexWriteResolutionImpl write})?
+  resolveIndexReadWriteAssignmentTarget(IndexAssignmentTargetImpl node) {
+    return _propertyElementResolver.resolveIndexReadWriteAssignmentTarget(node);
+  }
+
   PatternResult resolveMapPattern({
     required MapPatternImpl node,
     required SharedMatchContext context,
@@ -3513,6 +3518,82 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
 
     _insertImplicitCallReference(replacement, contextType: contextType);
     nullSafetyDeadCodeVerifier.verifyIndexExpression(node);
+
+    if (isDotShorthand(node)) {
+      popDotShorthandContext();
+    }
+
+    inferenceLogWriter?.exitExpression(node);
+  }
+
+  @override
+  void visitIndexExpression2(
+    covariant IndexExpression2Impl node, {
+    TypeImpl contextType = UnknownInferredType.instance,
+  }) {
+    inferenceLogWriter?.enterExpression(node, contextType);
+
+    if (isDotShorthand(node)) {
+      pushDotShorthandContext(node, SharedTypeSchemaView(contextType));
+    }
+
+    checkUnreachableNode(node);
+    analyzeExpression(
+      node.receiver,
+      SharedTypeSchemaView(UnknownInferredType.instance),
+      continueNullShorting: true,
+    );
+    node.receiver = popRewrite()!;
+
+    var receiverDoesNotComplete =
+        node.receiver is! ExtensionOverrideImpl &&
+        identical(
+          typeSystem.resolveToBound(node.receiver.typeOrThrow),
+          NeverTypeImpl.instance,
+        );
+    if (node.question != null && !receiverDoesNotComplete) {
+      _startNullAwareAccess(node.receiver);
+      nullSafetyDeadCodeVerifier.visitNode(node.index);
+    }
+
+    var resolution = _propertyElementResolver.resolveIndexExpression2(node);
+    node.resolution = resolution;
+
+    analyzeExpression(
+      node.index,
+      SharedTypeSchemaView(
+        resolution?.indexContextType ?? UnknownInferredType.instance,
+      ),
+    );
+    node.index = popRewrite()!;
+    var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(
+      flowAnalysis.getExpressionInfo(node.index),
+    );
+    var readElement = switch (resolution) {
+      MethodIndexReadResolutionImpl(:var element) => element,
+      InvalidIndexReadResolutionImpl(
+        recovery: MethodIndexReadResolutionImpl(:var element),
+      ) =>
+        element,
+      _ => null,
+    };
+    checkIndexExpressionIndex(
+      node.index,
+      readElement: readElement,
+      writeElement: null,
+      whyNotPromoted: whyNotPromoted,
+    );
+
+    node.recordStaticType(
+      resolution?.type ?? NeverTypeImpl.instance,
+      resolver: this,
+    );
+    var replacement = insertGenericFunctionInstantiation(
+      node,
+      contextType: contextType,
+    );
+    _insertImplicitCallReference(replacement, contextType: contextType);
+    nullSafetyDeadCodeVerifier.verifyIndexExpression2(node);
 
     if (isDotShorthand(node)) {
       popDotShorthandContext();

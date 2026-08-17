@@ -648,6 +648,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitIndexExpression2(IndexExpression2 node) {
+    _elementUsageFrontierDetector.indexExpression2(node);
+    super.visitIndexExpression2(node);
+  }
+
+  @override
   void visitIsExpression(covariant IsExpressionImpl node) {
     _checkAllTypeChecks(node);
     super.visitIsExpression(node);

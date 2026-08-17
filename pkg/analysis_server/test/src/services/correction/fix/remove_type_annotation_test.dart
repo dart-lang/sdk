@@ -467,6 +467,24 @@ Set f() {
   }
 
   Future<void>
+  test_generic_instanceCreation_cascade_dotShorthandTarget() async {
+    await resolveTestCode('''
+C<int> f() {
+  C<int> c = .new()..toString();
+  return c;
+}
+class C<T> {}
+''');
+    await assertHasFix('''
+C<int> f() {
+  var c = C<int>.new()..toString();
+  return c;
+}
+class C<T> {}
+''');
+  }
+
+  Future<void>
   test_generic_instanceCreation_withoutArguments_dotShorthand() async {
     await resolveTestCode('''
 C<int> f() {

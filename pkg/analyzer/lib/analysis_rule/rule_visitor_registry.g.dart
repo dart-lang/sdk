@@ -781,6 +781,9 @@ abstract class RuleVisitorRegistry2 {
 
   void addIndexExpression(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
+  @experimental
+  void addIndexExpression2(AbstractAnalysisRule rule, AstVisitor2 visitor);
+
   void addIntegerLiteral(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addInterpolationExpression(

@@ -2838,6 +2838,30 @@ void main() {
 ''');
   }
 
+  test_method_isUsed_privateExtension_indexOperators_compound() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension _A on bool {
+  int operator [](int index) => 7;
+  void operator []=(int index, int value) {}
+}
+void main() {
+  false[3] += 1;
+}
+''');
+  }
+
+  test_method_isUsed_privateExtension_indexOperators_ifNull() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension _A on bool {
+  int? operator [](int index) => 7;
+  void operator []=(int index, int value) {}
+}
+void main() {
+  false[3] ??= 1;
+}
+''');
+  }
+
   test_method_isUsed_privateExtension_methodCall() async {
     await resolveTestCodeWithDiagnostics(r'''
 extension _E on int {

@@ -291,8 +291,8 @@ abstract class AstCodeGenerator
     ) {
       final localIndex = implicitParams + index;
       w.Local local = paramLocals[localIndex];
-      final variableName = variable.cosmeticName;
-      if (variableName != null && variableName.isNotEmpty) {
+      final variableName = variable.parameterName;
+      if (variableName.isNotEmpty) {
         b.localNames[local.index] = variableName;
       }
       if (!isRequired && defaultValue == ParameterInfo.defaultValueSentinel) {
@@ -358,7 +358,7 @@ abstract class AstCodeGenerator
           }
           b.local_get(operand);
           _generateArgumentTypeCheck(
-            variable.cosmeticName!,
+            variable.parameterName,
             operand.type as w.RefType,
             variableTypeToCheck,
           );
@@ -3936,7 +3936,7 @@ class DynamicForwarderCodeGenerator extends AstCodeGenerator {
           final param = targetPositionalParams[i];
           b.local_get(paramValue);
           _generateArgumentTypeCheck(
-            param.cosmeticName!,
+            param.parameterName,
             translator.topType,
             param.type,
           );

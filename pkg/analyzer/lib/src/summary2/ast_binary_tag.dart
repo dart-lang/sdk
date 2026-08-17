@@ -30,6 +30,8 @@ enum ElementTag {
 
 enum ImportElementPrefixKind { isDeferred, isNotDeferred, isNull }
 
+enum IndexReadResolutionTag { dynamic_, invalid, method }
+
 enum IndexWriteResolutionTag { dynamic_, invalid, method }
 
 enum NamedReadResolutionTag {
@@ -130,6 +132,7 @@ class Tag {
   static const int PropertyAssignmentTarget = 139;
   static const int PropertyExtraction = 140;
   static const int IndexAssignmentTarget = 141;
+  static const int IndexExpression2 = 142;
   static const int NullLiteral = 49;
   static const int ParenthesizedExpression = 53;
   static const int PrefixedIdentifier = 32;

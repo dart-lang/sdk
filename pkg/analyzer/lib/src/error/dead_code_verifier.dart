@@ -427,6 +427,10 @@ class NullSafetyDeadCodeVerifier {
     _verifyUnassignedSimpleIdentifier(node, node.target2, node.question);
   }
 
+  void verifyIndexExpression2(IndexExpression2 node) {
+    _verifyUnassignedSimpleIdentifier(node, node.receiver, node.question);
+  }
+
   void verifyMethodInvocation(MethodInvocation node) {
     _verifyUnassignedSimpleIdentifier(node, node.target2, node.operator);
   }
@@ -498,6 +502,7 @@ class NullSafetyDeadCodeVerifier {
         var parent = node.parent2;
         while (parent is MethodInvocation ||
             parent is PropertyAccess ||
+            parent is IndexExpression2 ||
             parent is IndexExpression) {
           node = parent!;
           parent = node.parent2;

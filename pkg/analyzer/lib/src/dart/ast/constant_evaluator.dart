@@ -415,7 +415,7 @@ class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
 /// The implementations are kept separate so that the two AST views can
 /// evolve independently.
 @Deprecated('This has no uses in package:analyzer and not exhaustive.')
-class ConstantEvaluator2 extends GeneralizingAstVisitor2<Object> {
+class ConstantEvaluator2 extends UnifyingAstVisitor2<Object> {
   /// The value returned for expressions (or non-expression nodes) that are not
   /// compile-time constant expressions.
   static Object NOT_A_CONSTANT = Object();
@@ -552,7 +552,7 @@ class ConstantEvaluator2 extends GeneralizingAstVisitor2<Object> {
       break;
     }
     // TODO(brianwilkerson): This doesn't handle numeric conversions.
-    return visitExpression(node);
+    return visitNode(node);
   }
 
   @override

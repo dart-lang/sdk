@@ -318,6 +318,64 @@ V1: PrefixExpression
 ''');
   }
 
+  test_inc_indexExpression_instance_nullAware() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  int operator[](int index) => 0;
+  operator[]=(int index, num _) {}
+}
+
+void f(A? a) {
+  ++a?[0];
+}
+''');
+
+    var node = result.findNode.prefixIncrement('++a?[0]');
+    assertResolvedNodeText(node, r'''
+PrefixIncrement
+  operator: ++
+  operand: IndexExpression
+    target2: SimpleIdentifier
+      token: a
+      element: <testLibrary>::@function::f::@formalParameter::a
+      staticType: A?
+    question: ?
+    leftBracket: [
+    index2: IntegerLiteral
+      literal: 0
+      correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
+      staticType: int
+    rightBracket: ]
+    element: <null>
+    staticType: null
+  element: dart:core::@class::num::@method::+
+  operatorResultType: int
+  staticType: int?
+V1: PrefixExpression
+  operator: ++
+  operand: IndexExpression
+    target: SimpleIdentifier
+      token: a
+      element: <testLibrary>::@function::f::@formalParameter::a
+      staticType: A?
+    question: ?
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
+      staticType: int
+    rightBracket: ]
+    element: <null>
+    staticType: null
+  readElement: <testLibrary>::@class::A::@method::[]
+  readType: int
+  writeElement: <testLibrary>::@class::A::@method::[]=
+  writeType: num
+  element: dart:core::@class::num::@method::+
+  staticType: int?
+''');
+  }
+
   test_inc_indexExpression_super() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class A {

@@ -470,7 +470,7 @@ void main() {
 // [diag.unusedLocalVariable] The value of the local variable 'y' isn't used.
 }
 ''');
-    var node = result.findNode.index('[0]');
+    var node = result.findNodeV1.index('[0]');
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 SubstitutedMethodElementImpl
@@ -1428,7 +1428,7 @@ void main() {
 // [diag.unusedLocalVariable] The value of the local variable 'y' isn't used.
 }
 ''');
-    var node = result.findNode.index('[0]');
+    var node = result.findNode.indexExpression2('[0]');
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 SubstitutedMethodElementImpl

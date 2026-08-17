@@ -389,7 +389,7 @@ class MatchKind {
   String toString() => name;
 }
 
-class ReferencesCollector extends GeneralizingAstVisitor2<void> {
+class ReferencesCollector extends RecursiveAstVisitor2<void> {
   final Element element;
   final List<MatchInfo> references = [];
 

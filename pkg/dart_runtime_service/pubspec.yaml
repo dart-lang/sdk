@@ -11,9 +11,11 @@ resolution: workspace
 dependencies:
   dds: any
   dds_service_extensions: any
+  devtools_shared: any
   json_rpc_2: any
   logging: any
   meta: any
+  path: any
   pool: any
   shelf: any
   shelf_web_socket: any

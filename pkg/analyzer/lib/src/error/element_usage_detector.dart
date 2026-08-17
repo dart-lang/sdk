@@ -293,6 +293,18 @@ class ElementUsageDetector<TagInfo extends Object> {
     checkUsage(node.element, node);
   }
 
+  void indexExpression2(IndexExpression2 node) {
+    var element = switch (node.resolution) {
+      MethodIndexReadResolution(:var element) => element,
+      InvalidIndexReadResolution(
+        recovery: MethodIndexReadResolution(:var element),
+      ) =>
+        element,
+      _ => null,
+    };
+    checkUsage(element, node);
+  }
+
   void instanceCreationExpression(InstanceCreationExpression node) {
     _invocationArguments(node.constructorName.element, node.argumentList);
   }
@@ -645,6 +657,16 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
 
   void compoundAssignment(CompoundAssignment node) {
     var target = node.target;
+    if (target case IndexAssignmentTarget(
+      read: MethodIndexReadResolution(:var element),
+    )) {
+      checkUsage(element, target);
+    }
+    if (target case IndexAssignmentTarget(
+      write: MethodIndexWriteResolution(:var element),
+    )) {
+      checkUsage(element, target);
+    }
     var read = switch (target) {
       PropertyAssignmentTarget(:var read) => read,
       UnqualifiedNameAssignmentTarget(:var read) => read,
@@ -796,6 +818,16 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
 
   void ifNullAssignment(IfNullAssignment node) {
     var target = node.target;
+    if (target case IndexAssignmentTarget(
+      read: MethodIndexReadResolution(:var element),
+    )) {
+      checkUsage(element, target);
+    }
+    if (target case IndexAssignmentTarget(
+      write: MethodIndexWriteResolution(:var element),
+    )) {
+      checkUsage(element, target);
+    }
     if (target is UnqualifiedNameAssignmentTarget) {
       if (target.read case NamedReadResolutionWithElement(:var element)) {
         checkUsage(element, target);
@@ -818,6 +850,18 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
 
   void indexExpression(IndexExpression node) {
     checkUsage(node.element, node);
+  }
+
+  void indexExpression2(IndexExpression2 node) {
+    var element = switch (node.resolution) {
+      MethodIndexReadResolution(:var element) => element,
+      InvalidIndexReadResolution(
+        recovery: MethodIndexReadResolution(:var element),
+      ) =>
+        element,
+      _ => null,
+    };
+    checkUsage(element, node);
   }
 
   void methodInvocation(MethodInvocation node) {

@@ -97,7 +97,7 @@ sealed class CFunction {
   /// Named parameters are sorted by name and follow required positional parameters.
   String getParameterName(int index) {
     assert(hasNamedParameters);
-    return _getOptionalOrNamedParameter(index).cosmeticName!;
+    return _getOptionalOrNamedParameter(index).parameterName;
   }
 
   /// Whether the [index]-th named parameter is required.

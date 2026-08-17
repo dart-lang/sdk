@@ -281,11 +281,18 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression
-                  target2: SimpleIdentifier
+                expression2: IndexExpression2
+                  receiver: SimpleIdentifier
                     token: intList
                   leftBracket: [
-                  index2: SimpleIdentifier
+                  index: SimpleIdentifier
+                    token: x
+                  rightBracket: ] <synthetic>
+                expression(v1): IndexExpression
+                  target: SimpleIdentifier
+                    token: intList
+                  leftBracket: [
+                  index: SimpleIdentifier
                     token: x
                   rightBracket: ] <synthetic>
                 semicolon: ; <synthetic>
@@ -323,11 +330,18 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression
-                  target2: SimpleIdentifier
+                expression2: IndexExpression2
+                  receiver: SimpleIdentifier
                     token: intList
                   leftBracket: [
-                  index2: SimpleIdentifier
+                  index: SimpleIdentifier
+                    token: x
+                  rightBracket: ] <synthetic>
+                expression(v1): IndexExpression
+                  target: SimpleIdentifier
+                    token: intList
+                  leftBracket: [
+                  index: SimpleIdentifier
                     token: x
                   rightBracket: ] <synthetic>
                 semicolon: ; <synthetic>
@@ -364,11 +378,18 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression
-                  target2: SimpleIdentifier
+                expression2: IndexExpression2
+                  receiver: SimpleIdentifier
                     token: intList
                   leftBracket: [
-                  index2: SimpleIdentifier
+                  index: SimpleIdentifier
+                    token: x
+                  rightBracket: ] <synthetic>
+                expression(v1): IndexExpression
+                  target: SimpleIdentifier
+                    token: intList
+                  leftBracket: [
+                  index: SimpleIdentifier
                     token: x
                   rightBracket: ] <synthetic>
                 semicolon: ; <synthetic>
@@ -405,11 +426,18 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression
-                  target2: SimpleIdentifier
+                expression2: IndexExpression2
+                  receiver: SimpleIdentifier
                     token: intList
                   leftBracket: [
-                  index2: SimpleIdentifier
+                  index: SimpleIdentifier
+                    token: x
+                  rightBracket: ] <synthetic>
+                expression(v1): IndexExpression
+                  target: SimpleIdentifier
+                    token: intList
+                  leftBracket: [
+                  index: SimpleIdentifier
                     token: x
                   rightBracket: ] <synthetic>
                 semicolon: ; <synthetic>
@@ -445,11 +473,18 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression
-                  target2: SimpleIdentifier
+                expression2: IndexExpression2
+                  receiver: SimpleIdentifier
                     token: intList
                   leftBracket: [
-                  index2: SimpleIdentifier
+                  index: SimpleIdentifier
+                    token: x
+                  rightBracket: ] <synthetic>
+                expression(v1): IndexExpression
+                  target: SimpleIdentifier
+                    token: intList
+                  leftBracket: [
+                  index: SimpleIdentifier
                     token: x
                   rightBracket: ] <synthetic>
                 semicolon: ; <synthetic>
@@ -491,11 +526,18 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression
-                  target2: SimpleIdentifier
+                expression2: IndexExpression2
+                  receiver: SimpleIdentifier
                     token: intList
                   leftBracket: [
-                  index2: SimpleIdentifier
+                  index: SimpleIdentifier
+                    token: x
+                  rightBracket: ] <synthetic>
+                expression(v1): IndexExpression
+                  target: SimpleIdentifier
+                    token: intList
+                  leftBracket: [
+                  index: SimpleIdentifier
                     token: x
                   rightBracket: ] <synthetic>
                 semicolon: ; <synthetic>
@@ -528,11 +570,18 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression
-                  target2: SimpleIdentifier
+                expression2: IndexExpression2
+                  receiver: SimpleIdentifier
                     token: intList
                   leftBracket: [
-                  index2: SimpleIdentifier
+                  index: SimpleIdentifier
+                    token: x
+                  rightBracket: ] <synthetic>
+                expression(v1): IndexExpression
+                  target: SimpleIdentifier
+                    token: intList
+                  leftBracket: [
+                  index: SimpleIdentifier
                     token: x
                   rightBracket: ] <synthetic>
                 semicolon: ; <synthetic>
@@ -579,11 +628,18 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression
-                  target2: SimpleIdentifier
+                expression2: IndexExpression2
+                  receiver: SimpleIdentifier
                     token: intList
                   leftBracket: [
-                  index2: SimpleIdentifier
+                  index: SimpleIdentifier
+                    token: x
+                  rightBracket: ] <synthetic>
+                expression(v1): IndexExpression
+                  target: SimpleIdentifier
+                    token: intList
+                  leftBracket: [
+                  index: SimpleIdentifier
                     token: x
                   rightBracket: ] <synthetic>
                 semicolon: ; <synthetic>
@@ -623,11 +679,18 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression
-                  target2: SimpleIdentifier
+                expression2: IndexExpression2
+                  receiver: SimpleIdentifier
                     token: intList
                   leftBracket: [
-                  index2: SimpleIdentifier
+                  index: SimpleIdentifier
+                    token: x
+                  rightBracket: ] <synthetic>
+                expression(v1): IndexExpression
+                  target: SimpleIdentifier
+                    token: intList
+                  leftBracket: [
+                  index: SimpleIdentifier
                     token: x
                   rightBracket: ] <synthetic>
                 semicolon: ; <synthetic>
@@ -668,11 +731,18 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression
-                  target2: SimpleIdentifier
+                expression2: IndexExpression2
+                  receiver: SimpleIdentifier
                     token: intList
                   leftBracket: [
-                  index2: SimpleIdentifier
+                  index: SimpleIdentifier
+                    token: x
+                  rightBracket: ] <synthetic>
+                expression(v1): IndexExpression
+                  target: SimpleIdentifier
+                    token: intList
+                  leftBracket: [
+                  index: SimpleIdentifier
                     token: x
                   rightBracket: ] <synthetic>
                 semicolon: ; <synthetic>
@@ -718,11 +788,18 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression
-                  target2: SimpleIdentifier
+                expression2: IndexExpression2
+                  receiver: SimpleIdentifier
                     token: intList
                   leftBracket: [
-                  index2: SimpleIdentifier
+                  index: SimpleIdentifier
+                    token: x
+                  rightBracket: ] <synthetic>
+                expression(v1): IndexExpression
+                  target: SimpleIdentifier
+                    token: intList
+                  leftBracket: [
+                  index: SimpleIdentifier
                     token: x
                   rightBracket: ] <synthetic>
                 semicolon: ; <synthetic>
@@ -768,11 +845,18 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression
-                  target2: SimpleIdentifier
+                expression2: IndexExpression2
+                  receiver: SimpleIdentifier
                     token: intList
                   leftBracket: [
-                  index2: SimpleIdentifier
+                  index: SimpleIdentifier
+                    token: x
+                  rightBracket: ] <synthetic>
+                expression(v1): IndexExpression
+                  target: SimpleIdentifier
+                    token: intList
+                  leftBracket: [
+                  index: SimpleIdentifier
                     token: x
                   rightBracket: ] <synthetic>
                 semicolon: ; <synthetic>
@@ -812,11 +896,18 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression
-                  target2: SimpleIdentifier
+                expression2: IndexExpression2
+                  receiver: SimpleIdentifier
                     token: intList
                   leftBracket: [
-                  index2: SimpleIdentifier
+                  index: SimpleIdentifier
+                    token: x
+                  rightBracket: ] <synthetic>
+                expression(v1): IndexExpression
+                  target: SimpleIdentifier
+                    token: intList
+                  leftBracket: [
+                  index: SimpleIdentifier
                     token: x
                   rightBracket: ] <synthetic>
                 semicolon: ; <synthetic>
@@ -852,11 +943,18 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression
-                  target2: SimpleIdentifier
+                expression2: IndexExpression2
+                  receiver: SimpleIdentifier
                     token: intList
                   leftBracket: [
-                  index2: SimpleIdentifier
+                  index: SimpleIdentifier
+                    token: x
+                  rightBracket: ] <synthetic>
+                expression(v1): IndexExpression
+                  target: SimpleIdentifier
+                    token: intList
+                  leftBracket: [
+                  index: SimpleIdentifier
                     token: x
                   rightBracket: ] <synthetic>
                 semicolon: ; <synthetic>
@@ -897,11 +995,18 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression
-                  target2: SimpleIdentifier
+                expression2: IndexExpression2
+                  receiver: SimpleIdentifier
                     token: intList
                   leftBracket: [
-                  index2: SimpleIdentifier
+                  index: SimpleIdentifier
+                    token: x
+                  rightBracket: ] <synthetic>
+                expression(v1): IndexExpression
+                  target: SimpleIdentifier
+                    token: intList
+                  leftBracket: [
+                  index: SimpleIdentifier
                     token: x
                   rightBracket: ] <synthetic>
                 semicolon: ; <synthetic>
@@ -943,11 +1048,18 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression
-                  target2: SimpleIdentifier
+                expression2: IndexExpression2
+                  receiver: SimpleIdentifier
                     token: intList
                   leftBracket: [
-                  index2: SimpleIdentifier
+                  index: SimpleIdentifier
+                    token: x
+                  rightBracket: ] <synthetic>
+                expression(v1): IndexExpression
+                  target: SimpleIdentifier
+                    token: intList
+                  leftBracket: [
+                  index: SimpleIdentifier
                     token: x
                   rightBracket: ] <synthetic>
                 semicolon: ; <synthetic>
@@ -985,16 +1097,30 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression
-                  target2: SimpleIdentifier
+                expression2: IndexExpression2
+                  receiver: SimpleIdentifier
                     token: intList
                   leftBracket: [
-                  index2: FunctionExpressionInvocation
+                  index: FunctionExpressionInvocation
                     function2: SimpleIdentifier
                       token: assert
                     argumentList: ArgumentList
                       leftParenthesis: (
                       arguments2
+                        BooleanLiteral
+                          literal: true
+                      rightParenthesis: )
+                  rightBracket: ] <synthetic>
+                expression(v1): IndexExpression
+                  target: SimpleIdentifier
+                    token: intList
+                  leftBracket: [
+                  index: FunctionExpressionInvocation
+                    function: SimpleIdentifier
+                      token: assert
+                    argumentList: ArgumentList
+                      leftParenthesis: (
+                      arguments
                         BooleanLiteral
                           literal: true
                       rightParenthesis: )
@@ -1027,11 +1153,20 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression
-                  target2: SimpleIdentifier
+                expression2: IndexExpression2
+                  receiver: SimpleIdentifier
                     token: intList
                   leftBracket: [
-                  index2: SetOrMapLiteral
+                  index: SetOrMapLiteral
+                    leftBracket: {
+                    rightBracket: }
+                    isMap: false
+                  rightBracket: ] <synthetic>
+                expression(v1): IndexExpression
+                  target: SimpleIdentifier
+                    token: intList
+                  leftBracket: [
+                  index: SetOrMapLiteral
                     leftBracket: {
                     rightBracket: }
                     isMap: false
@@ -1068,11 +1203,18 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression
-                  target2: SimpleIdentifier
+                expression2: IndexExpression2
+                  receiver: SimpleIdentifier
                     token: intList
                   leftBracket: [
-                  index2: SimpleIdentifier
+                  index: SimpleIdentifier
+                    token: <empty> <synthetic>
+                  rightBracket: ] <synthetic>
+                expression(v1): IndexExpression
+                  target: SimpleIdentifier
+                    token: intList
+                  leftBracket: [
+                  index: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightBracket: ] <synthetic>
                 semicolon: ; <synthetic>
@@ -1110,11 +1252,18 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression
-                  target2: SimpleIdentifier
+                expression2: IndexExpression2
+                  receiver: SimpleIdentifier
                     token: intList
                   leftBracket: [
-                  index2: SimpleIdentifier
+                  index: SimpleIdentifier
+                    token: <empty> <synthetic>
+                  rightBracket: ] <synthetic>
+                expression(v1): IndexExpression
+                  target: SimpleIdentifier
+                    token: intList
+                  leftBracket: [
+                  index: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightBracket: ] <synthetic>
                 semicolon: ; <synthetic>
@@ -1151,11 +1300,18 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression
-                  target2: SimpleIdentifier
+                expression2: IndexExpression2
+                  receiver: SimpleIdentifier
                     token: intList
                   leftBracket: [
-                  index2: SimpleIdentifier
+                  index: SimpleIdentifier
+                    token: <empty> <synthetic>
+                  rightBracket: ] <synthetic>
+                expression(v1): IndexExpression
+                  target: SimpleIdentifier
+                    token: intList
+                  leftBracket: [
+                  index: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightBracket: ] <synthetic>
                 semicolon: ; <synthetic>
@@ -1198,11 +1354,18 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression
-                  target2: SimpleIdentifier
+                expression2: IndexExpression2
+                  receiver: SimpleIdentifier
                     token: intList
                   leftBracket: [
-                  index2: SimpleIdentifier
+                  index: SimpleIdentifier
+                    token: <empty> <synthetic>
+                  rightBracket: ] <synthetic>
+                expression(v1): IndexExpression
+                  target: SimpleIdentifier
+                    token: intList
+                  leftBracket: [
+                  index: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightBracket: ] <synthetic>
                 semicolon: ; <synthetic>
@@ -1236,11 +1399,18 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression
-                  target2: SimpleIdentifier
+                expression2: IndexExpression2
+                  receiver: SimpleIdentifier
                     token: intList
                   leftBracket: [
-                  index2: SimpleIdentifier
+                  index: SimpleIdentifier
+                    token: <empty> <synthetic>
+                  rightBracket: ] <synthetic>
+                expression(v1): IndexExpression
+                  target: SimpleIdentifier
+                    token: intList
+                  leftBracket: [
+                  index: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightBracket: ] <synthetic>
                 semicolon: ; <synthetic>
@@ -1288,11 +1458,18 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression
-                  target2: SimpleIdentifier
+                expression2: IndexExpression2
+                  receiver: SimpleIdentifier
                     token: intList
                   leftBracket: [
-                  index2: SimpleIdentifier
+                  index: SimpleIdentifier
+                    token: <empty> <synthetic>
+                  rightBracket: ] <synthetic>
+                expression(v1): IndexExpression
+                  target: SimpleIdentifier
+                    token: intList
+                  leftBracket: [
+                  index: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightBracket: ] <synthetic>
                 semicolon: ; <synthetic>
@@ -1334,11 +1511,18 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression
-                  target2: SimpleIdentifier
+                expression2: IndexExpression2
+                  receiver: SimpleIdentifier
                     token: intList
                   leftBracket: [
-                  index2: SimpleIdentifier
+                  index: SimpleIdentifier
+                    token: l
+                  rightBracket: ] <synthetic>
+                expression(v1): IndexExpression
+                  target: SimpleIdentifier
+                    token: intList
+                  leftBracket: [
+                  index: SimpleIdentifier
                     token: l
                   rightBracket: ] <synthetic>
                 semicolon: ; <synthetic>
@@ -1378,11 +1562,24 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression
-                  target2: SimpleIdentifier
+                expression2: IndexExpression2
+                  receiver: SimpleIdentifier
                     token: intList
                   leftBracket: [
-                  index2: FunctionExpression
+                  index: FunctionExpression
+                    parameters: FormalParameterList
+                      leftParenthesis: (
+                      rightParenthesis: )
+                    body: BlockFunctionBody
+                      block: Block
+                        leftBracket: {
+                        rightBracket: }
+                  rightBracket: ] <synthetic>
+                expression(v1): IndexExpression
+                  target: SimpleIdentifier
+                    token: intList
+                  leftBracket: [
+                  index: FunctionExpression
                     parameters: FormalParameterList
                       leftParenthesis: (
                       rightParenthesis: )
@@ -1421,11 +1618,24 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression
-                  target2: SimpleIdentifier
+                expression2: IndexExpression2
+                  receiver: SimpleIdentifier
                     token: intList
                   leftBracket: [
-                  index2: FunctionExpression
+                  index: FunctionExpression
+                    parameters: FormalParameterList
+                      leftParenthesis: (
+                      rightParenthesis: )
+                    body: BlockFunctionBody
+                      block: Block
+                        leftBracket: {
+                        rightBracket: }
+                  rightBracket: ] <synthetic>
+                expression(v1): IndexExpression
+                  target: SimpleIdentifier
+                    token: intList
+                  leftBracket: [
+                  index: FunctionExpression
                     parameters: FormalParameterList
                       leftParenthesis: (
                       rightParenthesis: )
@@ -1465,11 +1675,18 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression
-                  target2: SimpleIdentifier
+                expression2: IndexExpression2
+                  receiver: SimpleIdentifier
                     token: intList
                   leftBracket: [
-                  index2: SimpleIdentifier
+                  index: SimpleIdentifier
+                    token: <empty> <synthetic>
+                  rightBracket: ] <synthetic>
+                expression(v1): IndexExpression
+                  target: SimpleIdentifier
+                    token: intList
+                  leftBracket: [
+                  index: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightBracket: ] <synthetic>
                 semicolon: ; <synthetic>
@@ -1508,11 +1725,18 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression
-                  target2: SimpleIdentifier
+                expression2: IndexExpression2
+                  receiver: SimpleIdentifier
                     token: intList
                   leftBracket: [
-                  index2: SimpleIdentifier
+                  index: SimpleIdentifier
+                    token: <empty> <synthetic>
+                  rightBracket: ] <synthetic>
+                expression(v1): IndexExpression
+                  target: SimpleIdentifier
+                    token: intList
+                  leftBracket: [
+                  index: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightBracket: ] <synthetic>
                 semicolon: ;
@@ -1543,14 +1767,27 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression
-                  target2: SimpleIdentifier
+                expression2: IndexExpression2
+                  receiver: SimpleIdentifier
                     token: intList
                   leftBracket: [
-                  index2: SwitchExpression
+                  index: SwitchExpression
                     switchKeyword: switch
                     leftParenthesis: (
                     expression2: SimpleIdentifier
+                      token: x
+                    rightParenthesis: )
+                    leftBracket: {
+                    rightBracket: }
+                  rightBracket: ] <synthetic>
+                expression(v1): IndexExpression
+                  target: SimpleIdentifier
+                    token: intList
+                  leftBracket: [
+                  index: SwitchExpression
+                    switchKeyword: switch
+                    leftParenthesis: (
+                    expression: SimpleIdentifier
                       token: x
                     rightParenthesis: )
                     leftBracket: {
@@ -1587,11 +1824,18 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression
-                  target2: SimpleIdentifier
+                expression2: IndexExpression2
+                  receiver: SimpleIdentifier
                     token: intList
                   leftBracket: [
-                  index2: SimpleIdentifier
+                  index: SimpleIdentifier
+                    token: <empty> <synthetic>
+                  rightBracket: ] <synthetic>
+                expression(v1): IndexExpression
+                  target: SimpleIdentifier
+                    token: intList
+                  leftBracket: [
+                  index: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightBracket: ] <synthetic>
                 semicolon: ; <synthetic>
@@ -1634,11 +1878,18 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression
-                  target2: SimpleIdentifier
+                expression2: IndexExpression2
+                  receiver: SimpleIdentifier
                     token: intList
                   leftBracket: [
-                  index2: SimpleIdentifier
+                  index: SimpleIdentifier
+                    token: <empty> <synthetic>
+                  rightBracket: ] <synthetic>
+                expression(v1): IndexExpression
+                  target: SimpleIdentifier
+                    token: intList
+                  leftBracket: [
+                  index: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightBracket: ] <synthetic>
                 semicolon: ; <synthetic>

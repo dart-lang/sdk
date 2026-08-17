@@ -280,6 +280,34 @@ DotShorthandPropertyAccess
 ''');
   }
 
+  test_equality_extensionOverride() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {}
+
+void f() {
+  E(0) == .member;
+//     ^^
+// [diag.undefinedExtensionOperator] The operator '==' isn't defined for the extension 'E'.
+//        ^^^^^^^
+// [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
+}
+''');
+  }
+
+  test_equality_extensionOverride_neq() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {}
+
+void f() {
+  E(0) != .member;
+//     ^^
+// [diag.undefinedExtensionOperator] The operator '==' isn't defined for the extension 'E'.
+//        ^^^^^^^
+// [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
+}
+''');
+  }
+
   test_equality_indexExpression() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
@@ -379,6 +407,38 @@ DotShorthandPropertyAccess
     staticType: Color
   isDotShorthand: true
   staticType: Color
+''');
+  }
+
+  test_equality_super() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  const A();
+}
+
+class B extends A {
+  const B();
+  static const member = B();
+  bool test() => super == .member;
+//                        ^^^^^^^
+// [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
+}
+''');
+  }
+
+  test_equality_super_neq() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  const A();
+}
+
+class B extends A {
+  const B();
+  static const member = B();
+  bool test() => super != .member;
+//                        ^^^^^^^
+// [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
+}
 ''');
   }
 
@@ -825,7 +885,75 @@ DotShorthandPropertyAccess
 ''');
   }
 
-  test_postfixOperator() async {
+  test_postfixDecrement_indexExpression() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class C {
+  static List<int> values = [1];
+}
+
+void f(Object o) {
+  if (o is C) {
+    o = .values[0]--;
+//      ^^^^^^^
+// [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
+  }
+}
+''');
+
+    var node = result.findNode.postfixDecrement('[0]--');
+    assertResolvedNodeText(node, r'''
+PostfixDecrement
+  operand: IndexExpression
+    target2: DotShorthandPropertyAccess
+      period: .
+      propertyName: SimpleIdentifier
+        token: values
+        element: <null>
+        staticType: InvalidType
+      isDotShorthand: false
+      staticType: InvalidType
+    leftBracket: [
+    index2: IntegerLiteral
+      literal: 0
+      correspondingParameter: <null>
+      staticType: int
+    rightBracket: ]
+    element: <null>
+    staticType: null
+  operator: --
+  correspondingParameter: <null>
+  element: <null>
+  operatorResultType: dynamic
+  staticType: InvalidType
+V1: PostfixExpression
+  operand: IndexExpression
+    target: DotShorthandPropertyAccess
+      period: .
+      propertyName: SimpleIdentifier
+        token: values
+        element: <null>
+        staticType: InvalidType
+      isDotShorthand: false
+      staticType: InvalidType
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      correspondingParameter: <null>
+      staticType: int
+    rightBracket: ]
+    element: <null>
+    staticType: null
+  operator: --
+  readElement: <null>
+  readType: InvalidType
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_postfixIncrement() async {
     await resolveTestCodeWithDiagnostics(r'''
 class C {
   static C get member => C(1);
@@ -844,7 +972,75 @@ void main() {
 ''');
   }
 
-  test_prefixOperator() async {
+  test_prefixDecrement_indexExpression() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class C {
+  static List<int> values = [1];
+}
+
+void f(Object o) {
+  if (o is C) {
+    o = --.values[0];
+//        ^^^^^^^
+// [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
+  }
+}
+''');
+
+    var node = result.findNode.prefixDecrement('--.');
+    assertResolvedNodeText(node, r'''
+PrefixDecrement
+  operator: --
+  operand: IndexExpression
+    target2: DotShorthandPropertyAccess
+      period: .
+      propertyName: SimpleIdentifier
+        token: values
+        element: <null>
+        staticType: InvalidType
+      isDotShorthand: false
+      staticType: InvalidType
+    leftBracket: [
+    index2: IntegerLiteral
+      literal: 0
+      correspondingParameter: <null>
+      staticType: int
+    rightBracket: ]
+    element: <null>
+    staticType: null
+  correspondingParameter: <null>
+  element: <null>
+  operatorResultType: InvalidType
+  staticType: InvalidType
+V1: PrefixExpression
+  operator: --
+  operand: IndexExpression
+    target: DotShorthandPropertyAccess
+      period: .
+      propertyName: SimpleIdentifier
+        token: values
+        element: <null>
+        staticType: InvalidType
+      isDotShorthand: false
+      staticType: InvalidType
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      correspondingParameter: <null>
+      staticType: int
+    rightBracket: ]
+    element: <null>
+    staticType: null
+  readElement: <null>
+  readType: InvalidType
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_prefixIncrement() async {
     await resolveTestCodeWithDiagnostics(r'''
 class C {
   static C get member => C(1);

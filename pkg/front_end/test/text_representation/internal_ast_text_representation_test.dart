@@ -2134,7 +2134,7 @@ dynamic foo = 0''',
         fileOffset: TreeNode.noOffset,
       ),
       astVariable: new PositionalParameter(
-        cosmeticName: 'foo',
+        parameterName: 'foo',
         type: const VoidType(),
         isFinal: true,
         isRequired: true,

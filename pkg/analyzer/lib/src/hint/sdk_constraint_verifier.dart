@@ -89,6 +89,16 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
   @override
   void visitCompoundAssignment(CompoundAssignment node) {
     var target = node.target;
+    if (target case IndexAssignmentTarget(
+      read: MethodIndexReadResolution(:var element),
+    )) {
+      _checkSinceSdkVersion(element, target);
+    }
+    if (target case IndexAssignmentTarget(
+      write: MethodIndexWriteResolution(:var element),
+    )) {
+      _checkSinceSdkVersion(element, target);
+    }
     var read = switch (target) {
       PropertyAssignmentTarget(:var read) => read,
       UnqualifiedNameAssignmentTarget(:var read) => read,
@@ -183,6 +193,16 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
   @override
   void visitIfNullAssignment(IfNullAssignment node) {
     var target = node.target;
+    if (target case IndexAssignmentTarget(
+      read: MethodIndexReadResolution(:var element),
+    )) {
+      _checkSinceSdkVersion(element, target);
+    }
+    if (target case IndexAssignmentTarget(
+      write: MethodIndexWriteResolution(:var element),
+    )) {
+      _checkSinceSdkVersion(element, target);
+    }
     if (target is UnqualifiedNameAssignmentTarget) {
       if (target.read case NamedReadResolutionWithElement(:var element)) {
         _checkSinceSdkVersion(element, target);
@@ -198,6 +218,20 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
   void visitIndexExpression(IndexExpression node) {
     _checkSinceSdkVersion(node.element, node);
     super.visitIndexExpression(node);
+  }
+
+  @override
+  void visitIndexExpression2(IndexExpression2 node) {
+    var element = switch (node.resolution) {
+      MethodIndexReadResolution(:var element) => element,
+      InvalidIndexReadResolution(
+        recovery: MethodIndexReadResolution(:var element),
+      ) =>
+        element,
+      _ => null,
+    };
+    _checkSinceSdkVersion(element, node);
+    super.visitIndexExpression2(node);
   }
 
   @override
@@ -284,6 +318,8 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
             errorEntity = target.name;
           } else if (target is FunctionExpressionInvocation) {
             errorEntity = target.argumentList;
+          } else if (target is IndexExpression2) {
+            errorEntity = target.leftBracket;
           } else if (target is IndexExpression) {
             errorEntity = target.leftBracket;
           } else if (target is IndexAssignmentTarget) {

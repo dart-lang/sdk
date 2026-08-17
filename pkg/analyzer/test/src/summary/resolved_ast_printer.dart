@@ -1031,6 +1031,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
       if (_withResolution) {
+        _writeIndexReadResolution('read', node.read);
         _writeIndexWriteResolution('write', node.write);
       }
     });
@@ -1043,6 +1044,19 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
       _writeNamedChildEntities(node);
       _writeParameterElement(node);
       _writeElement('element', node.element);
+      _writeType('staticType', node.staticType);
+    });
+  }
+
+  @override
+  void visitIndexExpression2(covariant IndexExpression2Impl node) {
+    _sink.writeln('IndexExpression2');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      if (_withResolution) {
+        _writeIndexReadResolution('resolution', node.resolution);
+      }
+      _writeParameterElement(node);
       _writeType('staticType', node.staticType);
     });
   }
@@ -2321,6 +2335,34 @@ Expected parent: (${parent.runtimeType}) $parent
     }
   }
 
+  void _writeIndexReadResolution(
+    String name,
+    IndexReadResolutionImpl? resolution,
+  ) {
+    switch (resolution) {
+      case null:
+        _sink.writelnWithIndent('$name: <null>');
+      case DynamicIndexReadResolutionImpl():
+        _sink.writelnWithIndent('$name: DynamicIndexReadResolution');
+        _sink.withIndent(() {
+          _writeType('type', resolution.type);
+        });
+      case InvalidIndexReadResolutionImpl(:var recovery):
+        _sink.writelnWithIndent('$name: InvalidIndexReadResolution');
+        _sink.withIndent(() {
+          _writeType('type', resolution.type);
+          _writeIndexReadResolution('recovery', recovery);
+        });
+      case MethodIndexReadResolutionImpl():
+        _sink.writelnWithIndent('$name: MethodIndexReadResolution');
+        _sink.withIndent(() {
+          _writeElement('element', resolution.element);
+          _writeType('invokeType', resolution.invokeType);
+          _writeType('type', resolution.type);
+        });
+    }
+  }
+
   void _writeIndexWriteResolution(
     String name,
     IndexWriteResolutionImpl? resolution,
@@ -2590,7 +2632,8 @@ Expected parent: (${parent.runtimeType}) $parent
             parent is DirectAssignment && parent.value == node ||
             parent is IfNullAssignment && parent.value == node ||
             parent is IndexAssignmentTarget && parent.index == node ||
-            parent is IndexExpression && parent.index2 == node) {
+            parent is IndexExpression && parent.index2 == node ||
+            parent is IndexExpression2 && parent.index == node) {
           _writeElement('correspondingParameter', node.correspondingParameter);
         }
       }

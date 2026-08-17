@@ -228,15 +228,14 @@ class OutputParametersMatches
               "positional parameters: Expected ${test.definitions.length} "
               "(${test.definitions.join(", ")}) "
               "but had ${positionals.length} "
-              "(${positionals.map((p) => p.cosmeticName).join(", ")}).",
+              "(${positionals.map((p) => p.parameterName).join(", ")}).",
             ),
           );
         }
         for (int i = 0; i < positionals.length; i++) {
-          String? positionalName = positionals[i].cosmeticName;
+          String? positionalName = positionals[i].parameterName;
           if (positionalName != test.definitions[i]) {
-            if (positionalName != null &&
-                positionalName.startsWith("_") &&
+            if (positionalName.startsWith("_") &&
                 positionalName.substring(1) == test.definitions[i]) {
               // Probably a renamed private named variable.
               continue;
@@ -245,7 +244,7 @@ class OutputParametersMatches
               fail(
                 tests,
                 "Compiled expression doesn't contain '${test.definitions[i]}' "
-                "but '${positionals[i].cosmeticName}' as positional parameter "
+                "but '${positionals[i].parameterName}' as positional parameter "
                 "$i.",
               ),
             );

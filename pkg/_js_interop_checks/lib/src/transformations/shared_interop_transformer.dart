@@ -338,7 +338,7 @@ class SharedInteropTransformer extends Transformer {
     for (var i = 0; i < funcType.positionalParameters.length; i++) {
       final paramType = funcType.positionalParameters[i];
       final param = PositionalParameter(
-        cosmeticName: '#param$i',
+        parameterName: '#param$i',
         type: paramType,
         isSynthesized: true,
       )..fileOffset = invocation.fileOffset;
@@ -629,7 +629,7 @@ class SharedInteropTransformer extends Transformer {
         }
         if (setter != null) {
           var setterParameter = PositionalParameter(
-            cosmeticName: '#val',
+            parameterName: '#val',
             type: _staticInteropMockValidator.typeParameterResolver.resolve(
               setter.setterType,
             ),

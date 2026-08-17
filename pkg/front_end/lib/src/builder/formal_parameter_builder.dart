@@ -425,6 +425,9 @@ class FormalParameterBuilder extends NamedBuilderImpl
       DartType? builtType = type.build(library, TypeUse.parameterType);
 
       String? variableName = switch (name) {
+        // TODO(johnniwinther): This case is only for function type parameters
+        // for which we should create [FunctionTypeParameterBuilder] instead of
+        // [FormalParameterBuilder].
         noNameSentinel => null,
         // If the parameter is a private named parameter, use the public name
         // for the corresponding variable.
@@ -439,7 +442,7 @@ class FormalParameterBuilder extends NamedBuilderImpl
         case FormalParameterKind.requiredPositional:
         case FormalParameterKind.optionalPositional:
           _variable = intern.createPositionalParameter(
-            cosmeticName: variableName,
+            parameterName: variableName ?? '',
             type: isTypeOmitted ? const DynamicType() : builtType,
             defaultValue: null,
             isCovariantByDeclaration: isCovariantByDeclaration,

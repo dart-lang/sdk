@@ -340,7 +340,7 @@ class ScopedNameFinder extends GeneralizingAstVisitor<void>
 }
 
 /// The V2 AST equivalent of [ScopedNameFinder].
-class ScopedNameFinder2 extends GeneralizingAstVisitor2<void>
+class ScopedNameFinder2 extends UnifyingAstVisitor2<void>
     with _ScopedNameFinderMixin {
   @override
   final int position;
@@ -352,6 +352,12 @@ class ScopedNameFinder2 extends GeneralizingAstVisitor2<void>
 
   @override
   void visitNode(AstNode node) {
+    if (node is SwitchMember) {
+      _checkStatements(node.statements);
+    } else if (node is TypeAlias) {
+      _declarationNode = node;
+      return;
+    }
     immediateChild = node;
     parentOf(node)?.accept2(this);
   }

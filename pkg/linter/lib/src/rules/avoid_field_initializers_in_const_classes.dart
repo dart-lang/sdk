@@ -97,10 +97,23 @@ class _Visitor(final AnalysisRule rule) extends SimpleAstVisitor<void> {
       if (declaredElement.constructors.every((e) => !e.isConst)) {
         return;
       }
+      // Only the parameters of a primary constructor are in scope in a field
+      // initializer.
+      var namePart = parent.namePart;
+      var primaryConstructor = namePart is PrimaryConstructorDeclaration
+          ? namePart.declaredFragment?.element
+          : null;
       for (var variable in node.fields.variables) {
-        if (variable.initializer != null) {
-          rule.reportAtNode(variable);
+        var initializer = variable.initializer;
+        if (initializer == null) continue;
+        if (primaryConstructor != null) {
+          var visitor = HasParameterReferenceVisitor(
+            primaryConstructor.formalParameters,
+          );
+          initializer.accept(visitor);
+          if (visitor.useParameter) continue;
         }
+        rule.reportAtNode(variable);
       }
     }
   }

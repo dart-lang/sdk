@@ -220,7 +220,7 @@ class _LocalNameScope {
   }
 }
 
-class _ReferencedNamesComputer extends GeneralizingAstVisitor2<void> {
+class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
   final bool includeAnalyzerDiagnosticExpectations;
   final Set<String> names = <String>{};
   final Set<String> importPrefixNames = <String>{};
@@ -352,18 +352,6 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor2<void> {
   }
 
   @override
-  void visitIncrementOrDecrementExpression(
-    IncrementOrDecrementExpression node,
-  ) {
-    names.add(switch (node.operator.lexeme) {
-      '++' => '+',
-      '--' => '-',
-      var lexeme => throw StateError('Unexpected update operator: $lexeme'),
-    });
-    super.visitIncrementOrDecrementExpression(node);
-  }
-
-  @override
   void visitMethodDeclaration(MethodDeclaration node) {
     _LocalNameScope outerScope = localScope;
     try {
@@ -399,6 +387,30 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor2<void> {
     }
 
     super.visitPatternField(node);
+  }
+
+  @override
+  void visitPostfixDecrement(PostfixDecrement node) {
+    names.add('-');
+    node.visitChildren2(this);
+  }
+
+  @override
+  void visitPostfixIncrement(PostfixIncrement node) {
+    names.add('+');
+    node.visitChildren2(this);
+  }
+
+  @override
+  void visitPrefixDecrement(PrefixDecrement node) {
+    names.add('-');
+    node.visitChildren2(this);
+  }
+
+  @override
+  void visitPrefixIncrement(PrefixIncrement node) {
+    names.add('+');
+    node.visitChildren2(this);
   }
 
   @override
