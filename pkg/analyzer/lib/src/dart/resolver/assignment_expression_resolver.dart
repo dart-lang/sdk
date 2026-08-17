@@ -264,6 +264,16 @@ class AssignmentExpressionResolver {
           continueNullShorting: true,
         );
         target.receiver = _resolver.popRewrite()!;
+        var receiverDoesNotComplete =
+            target.receiver is! ExtensionOverrideImpl &&
+            identical(
+              _typeSystem.resolveToBound(target.receiver.typeOrThrow),
+              NeverTypeImpl.instance,
+            );
+        if (target.question != null && !receiverDoesNotComplete) {
+          _resolver.startNullAwareAssignmentTarget(target.receiver);
+          _resolver.nullSafetyDeadCodeVerifier.visitNode(target.index);
+        }
         var resolution = _resolver.resolveIndexDirectAssignmentTarget(target);
         target.write = resolution;
 
@@ -708,6 +718,17 @@ class AssignmentExpressionResolver {
       continueNullShorting: true,
     );
     target.receiver = _resolver.popRewrite()!;
+
+    var receiverDoesNotComplete =
+        target.receiver is! ExtensionOverrideImpl &&
+        identical(
+          _typeSystem.resolveToBound(target.receiver.typeOrThrow),
+          NeverTypeImpl.instance,
+        );
+    if (target.question != null && !receiverDoesNotComplete) {
+      _resolver.startNullAwareAssignmentTarget(target.receiver);
+      _resolver.nullSafetyDeadCodeVerifier.visitNode(target.index);
+    }
 
     var result = _resolver.resolveIndexReadWriteAssignmentTarget(target);
     target.read = result?.read;

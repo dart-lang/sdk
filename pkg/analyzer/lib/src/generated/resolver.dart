@@ -1881,6 +1881,11 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     }
   }
 
+  /// Starts null shorting for a null-aware assignment target.
+  void startNullAwareAssignmentTarget(ExpressionImpl target) {
+    _startNullAwareAccess(target);
+  }
+
   @override
   int statementEndOffset(StatementImpl statement) {
     // TODO(paulberry): implement.
