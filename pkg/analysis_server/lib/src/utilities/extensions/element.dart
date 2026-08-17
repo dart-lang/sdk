@@ -111,30 +111,4 @@ extension MethodElementExtensions on MethodElement {
         definingClass.isDartCoreMap ||
         definingClass.isDartCoreSet;
   }
-
-  /// Return `true` if this element represents the method `toList` from
-  /// `Iterable`.
-  bool get isToListMethod {
-    if (name != 'toList') {
-      return false;
-    }
-    var definingClass = enclosingElement;
-    if (definingClass is! ClassElement) {
-      return false;
-    }
-    return definingClass.isDartCoreIterable;
-  }
-
-  /// Return `true` if this element represents the method `toSet` from
-  /// `Iterable`.
-  bool get isToSetMethod {
-    if (name != 'toSet') {
-      return false;
-    }
-    var definingClass = enclosingElement;
-    if (definingClass is! ClassElement) {
-      return false;
-    }
-    return definingClass.isDartCoreIterable;
-  }
 }
