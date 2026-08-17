@@ -7,6 +7,7 @@ import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server/src/utilities/extensions/range_factory.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -70,11 +71,12 @@ class SortConstructorFirst extends ResolvedCorrectionProducer {
     // member at its old position). The one exception is an enum body, where
     // the insertion point is the boundary between the constant list and the
     // members that follow it; see `leadingBlankLine` below.
-    var lastNewline = gapText.lastIndexOf('\n');
+    var eol = utils.endOfLine;
+    var lastNewline = gapText.lastIndexOf(eol);
     var newlineAndIndent = lastNewline < 0
         ? gapText
         : gapText.substring(lastNewline);
-    var hadBlankLineBeforeOldPosition = '\n'.allMatches(gapText).length > 1;
+    var hadBlankLineBeforeOldPosition = eol.allMatches(gapText).length > 1;
 
     // If a blank line used to separate the constructor from the previous
     // member, that separation should still exist somewhere: move it after
@@ -83,10 +85,12 @@ class SortConstructorFirst extends ResolvedCorrectionProducer {
     // already there naturally (e.g. the insertion point is followed by a
     // blank line unrelated to the constructor's old position), to avoid a
     // double blank line.
-    var alreadyHasBlankLineAfter = RegExp(r'^[ \t]*\r?\n[ \t]*\r?\n')
-        .hasMatch(unitResult.content.substring(insertionOffset));
+    var alreadyHasBlankLineAfter = _hasBlankLineAfter(
+      lineInfo,
+      insertionOffset,
+    );
     var blankLineSeparator =
-        hadBlankLineBeforeOldPosition && !alreadyHasBlankLineAfter ? '\n' : '';
+        hadBlankLineBeforeOldPosition && !alreadyHasBlankLineAfter ? eol : '';
 
     // For an enum, the insertion point is right after the constant list
     // (the semicolon, or the last constant). If the file already uses blank
@@ -98,7 +102,7 @@ class SortConstructorFirst extends ResolvedCorrectionProducer {
     // there is the opening brace, where a leading blank line is never
     // wanted.
     var leadingBlankLine =
-        body is BlockEnumBody && hadBlankLineBeforeOldPosition ? '\n' : '';
+        body is BlockEnumBody && hadBlankLineBeforeOldPosition ? eol : '';
 
     await builder.addDartFileEdit(file, (builder) {
       builder.addDeletion(
@@ -109,5 +113,20 @@ class SortConstructorFirst extends ResolvedCorrectionProducer {
         '$leadingBlankLine$newlineAndIndent$nodeText$blankLineSeparator',
       );
     });
+  }
+
+  /// Whether the line containing [offset] is blank from [offset] onward,
+  /// and the line following it is blank too.
+  bool _hasBlankLineAfter(LineInfo lineInfo, int offset) {
+    var lineNumber = lineInfo.getLocation(offset).lineNumber;
+    if (lineNumber >= lineInfo.lineCount) return false;
+    var nextLineStart = lineInfo.getOffsetOfLine(lineNumber);
+    var content = unitResult.content;
+    if (content.substring(offset, nextLineStart).trim().isNotEmpty) {
+      return false;
+    }
+    if (lineNumber + 1 >= lineInfo.lineCount) return false;
+    var lineAfterNextStart = lineInfo.getOffsetOfLine(lineNumber + 1);
+    return content.substring(nextLineStart, lineAfterNextStart).trim().isEmpty;
   }
 }
