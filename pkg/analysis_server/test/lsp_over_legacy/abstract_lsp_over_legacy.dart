@@ -36,6 +36,8 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
   final StreamController<NotificationMessage> _notificationsFromServer =
       StreamController<NotificationMessage>.broadcast();
 
+  bool _hasSetClientCapabilities = false;
+
   new() {
     // Ensure the base fields for the tests are populated with the same default
     // client caapbilities that the server uses. This ensures if a test does not
@@ -153,6 +155,11 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
     return super.handleRequest(request);
   }
 
+  Future<void> initializeServer() async {
+    await setRoots(included: [testPackageRootPath], excluded: []);
+    await waitForTasksFinished();
+  }
+
   /// Gets the number of recorded responses for [method].
   int numberOfRecordedResponses(String method) {
     return server.analyticsManager
@@ -196,6 +203,9 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
   /// Send the configured LSP client capabilities to the server in a
   /// `server.setClientCapabilities` request.
   Future<void> sendClientCapabilities() async {
+    expect(hasSetRoots, false);
+    expect(_hasSetClientCapabilities, false);
+    _hasSetClientCapabilities = true;
     var clientCapabilities = ClientCapabilities(
       workspace: workspaceCapabilities,
       textDocument: textDocumentCapabilities,
@@ -255,7 +265,6 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
   @override
   Future<void> setUp() async {
     super.setUp();
-    await setRoots(included: [testPackageRootPath], excluded: []);
   }
 
   Future<void> updateOverlay(String filePath, SourceEdit edit) {
@@ -295,11 +304,6 @@ abstract class SharedLspOverLegacyTest extends LspOverLegacyTest
   @override
   void createFile(String path, String content) {
     newFile(path, content);
-  }
-
-  @override
-  Future<void> initializeServer() async {
-    await waitForTasksFinished();
   }
 
   @override

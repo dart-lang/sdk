@@ -35,7 +35,7 @@ void foo() {
   Future<void> testContents(String contents) async {
     var code = TestCode.parse(contents);
     newFile(testFilePath, code.code);
-    await waitForTasksFinished();
+    await initializeServer();
 
     var res = await getDefinitionAsLocation(
       testFileUri,

@@ -31,6 +31,7 @@ const red = [!Colors.red!];
 ''';
     var code = TestCode.parse(content);
     newFile(testFilePath, code.code);
+    await initializeServer();
     var results = await getDocumentColors(testFileUri);
     var result = results.single;
 
@@ -50,6 +51,7 @@ const red = [!Colors.red!];
 ''';
     var code = TestCode.parse(content);
     newFile(testFilePath, code.code);
+    await initializeServer();
     var colorResults = await getDocumentColors(testFileUri);
     var colorResult = colorResults.single;
 
