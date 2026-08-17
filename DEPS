@@ -128,12 +128,12 @@ vars = {
   ### /third_party/pkg dependencies
   # 'tools/rev_sdk_deps.dart' will rev pkg dependencies to their latest; put an
   # EOL comment after a dependency to instead pin at the current revision.
-  "core_rev": "4a5ae2bc9db1f39fac071f1a6fade64bd155f734",
-  "dartdoc_rev": "8be851e2bfc5e4cfc0c7ec6f64b1a89699bf6456",
-  "ecosystem_rev": "ed9c592c1d35106c0a8a52044426515017a60646",
+  "core_rev": "773de9d6321bc2c7d86d6926e30b341f0b8c2cb1",
+  "dartdoc_rev": "27376696f59b8776af3a2d07291a53562767d345",
+  "ecosystem_rev": "cda8bd535dfbcff45010bc3c843d325682f944b2",
   "flute_rev": "b84119fba67016a80c3eb80765762bcc4d0d0b8d",
   "http_rev": "a9176ac97402a42e1b275a26eb20a9deaec92184",
-  "i18n_rev": "e1b5a798f8922bb27bbc6d858748ece6f9a19f02",
+  "i18n_rev": "2fd9412c87f0cd3c6f018db6b2f888010c281356",
   "leak_tracker_rev": "f5620600a5ce1c44f65ddaa02001e200b096e14c", # rolled manually
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
   "native_rev": "d196dea41ad2a901a6734066e2c73002a02f9fd5",
