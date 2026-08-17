@@ -903,27 +903,30 @@ void f(Object o) {
     var node = result.findNode.postfixDecrement('[0]--');
     assertResolvedNodeText(node, r'''
 PostfixDecrement
-  operand: IndexExpression
-    target2: DotShorthandPropertyAccess
-      period: .
-      propertyName: SimpleIdentifier
-        token: values
-        element: <null>
+  target: InvalidExpressionAssignmentTarget
+    expression: IndexExpression2
+      receiver: DotShorthandPropertyAccess
+        period: .
+        propertyName: SimpleIdentifier
+          token: values
+          element: <null>
+          staticType: InvalidType
+        isDotShorthand: false
         staticType: InvalidType
-      isDotShorthand: false
+      leftBracket: [
+      index: IntegerLiteral
+        literal: 0
+        correspondingParameter: <null>
+        staticType: int
+      rightBracket: ]
+      resolution: InvalidIndexReadResolution
+        type: InvalidType
+        recovery: <null>
       staticType: InvalidType
-    leftBracket: [
-    index2: IntegerLiteral
-      literal: 0
-      correspondingParameter: <null>
-      staticType: int
-    rightBracket: ]
-    element: <null>
-    staticType: null
   operator: --
   correspondingParameter: <null>
   element: <null>
-  operatorResultType: dynamic
+  operatorResultType: InvalidType
   staticType: InvalidType
 V1: PostfixExpression
   operand: IndexExpression
@@ -942,7 +945,7 @@ V1: PostfixExpression
       staticType: int
     rightBracket: ]
     element: <null>
-    staticType: null
+    staticType: InvalidType
   operator: --
   readElement: <null>
   readType: InvalidType
@@ -991,23 +994,26 @@ void f(Object o) {
     assertResolvedNodeText(node, r'''
 PrefixDecrement
   operator: --
-  operand: IndexExpression
-    target2: DotShorthandPropertyAccess
-      period: .
-      propertyName: SimpleIdentifier
-        token: values
-        element: <null>
+  target: InvalidExpressionAssignmentTarget
+    expression: IndexExpression2
+      receiver: DotShorthandPropertyAccess
+        period: .
+        propertyName: SimpleIdentifier
+          token: values
+          element: <null>
+          staticType: InvalidType
+        isDotShorthand: false
         staticType: InvalidType
-      isDotShorthand: false
+      leftBracket: [
+      index: IntegerLiteral
+        literal: 0
+        correspondingParameter: <null>
+        staticType: int
+      rightBracket: ]
+      resolution: InvalidIndexReadResolution
+        type: InvalidType
+        recovery: <null>
       staticType: InvalidType
-    leftBracket: [
-    index2: IntegerLiteral
-      literal: 0
-      correspondingParameter: <null>
-      staticType: int
-    rightBracket: ]
-    element: <null>
-    staticType: null
   correspondingParameter: <null>
   element: <null>
   operatorResultType: InvalidType
@@ -1030,7 +1036,7 @@ V1: PrefixExpression
       staticType: int
     rightBracket: ]
     element: <null>
-    staticType: null
+    staticType: InvalidType
   readElement: <null>
   readType: InvalidType
   writeElement: <null>

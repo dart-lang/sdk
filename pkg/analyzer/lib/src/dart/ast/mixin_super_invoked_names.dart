@@ -99,7 +99,9 @@ class MixinSuperInvokedNamesCollector extends RecursiveAstVisitor2<void> {
     IncrementOrDecrementExpression node,
     String operatorName,
   ) {
-    if (node.operand is SuperExpression) {
+    if (node.target case InvalidExpressionAssignmentTarget(
+      expression: SuperExpression(),
+    )) {
       _names.add(operatorName);
     }
     node.visitChildren2(this);

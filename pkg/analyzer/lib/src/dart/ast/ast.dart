@@ -8647,8 +8647,7 @@ final class CompoundAssignmentV1Impl extends ExpressionImpl
     PropertyAssignmentTargetImpl target =>
       target.read?.type ?? InvalidTypeImpl.instance,
     UnqualifiedNameAssignmentTargetImpl target => target.read?.type,
-    InvalidExpressionAssignmentTargetImpl target =>
-      target.expression.staticType,
+    InvalidExpressionAssignmentTargetImpl() => InvalidTypeImpl.instance,
   };
 
   @DoNotGenerate(reason: 'Projects the canonical V2 value')
@@ -26971,8 +26970,6 @@ final class ImportPrefixReferenceImpl extends AstNodeImpl
 
 /// A prefix or postfix increment or decrement expression.
 ///
-/// The operand remains an expression during the assignment-target migration.
-/// Unlike the complete expression, it is resolved as a read-write location.
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class IncrementOrDecrementExpression implements Expression {
@@ -26980,18 +26977,18 @@ abstract final class IncrementOrDecrementExpression implements Expression {
   /// `null` if this node hasn't been resolved or no method was selected.
   MethodElement? get element;
 
-  /// The expression resolved as the read-write operand.
-  Expression get operand;
-
   /// The written `++` or `--` token.
   Token get operator;
 
   /// The type produced by the implicit operator operation before it is written
-  /// back to [operand], or `null` if this node hasn't been resolved.
+  /// back to [target], or `null` if this node hasn't been resolved.
   ///
   /// For a postfix expression this can differ from [staticType], because the
   /// complete expression produces the value read before the update.
   DartType? get operatorResultType;
+
+  /// The location that is read and then written by this operation.
+  AssignmentTarget get target;
 }
 
 abstract base class IncrementOrDecrementExpressionImpl extends ExpressionImpl
@@ -27002,28 +26999,62 @@ abstract base class IncrementOrDecrementExpressionImpl extends ExpressionImpl
   @override
   final Token operator;
 
-  ExpressionImpl _operand;
-
-  Element? readElement;
-
-  TypeImpl? readType;
+  AssignmentTargetImpl _target;
 
   @override
   TypeImpl? operatorResultType;
 
-  Element? writeElement;
-
-  TypeImpl? writeType;
-
   IncrementOrDecrementExpressionImpl({
     required this.operator,
-    required ExpressionImpl operand,
-  }) : _operand = operand {
-    _becomeParentOf2(operand);
+    required AssignmentTargetImpl target,
+  }) : _target = target {
+    _becomeParentOf2(target);
   }
 
   @override
-  ExpressionImpl get operand => _operand;
+  AssignmentTargetImpl get target => _target;
+
+  ExpressionImpl get _legacyOperand => switch (target) {
+    IndexAssignmentTargetImpl target => target.indexExpression,
+    PropertyAssignmentTargetImpl target => target.propertyAccess,
+    UnqualifiedNameAssignmentTargetImpl target => target.simpleIdentifier,
+    InvalidExpressionAssignmentTargetImpl target => V1Projection.toV1Expression(
+      target.expression,
+    ),
+  };
+
+  Element? get _legacyReadElement => switch (target) {
+    IndexAssignmentTargetImpl target => target._legacyReadElement,
+    PropertyAssignmentTargetImpl target => target._legacyReadElement,
+    UnqualifiedNameAssignmentTargetImpl target => target._legacyReadElement,
+    InvalidExpressionAssignmentTargetImpl(expression: IdentifierImpl element) =>
+      element.element,
+    InvalidExpressionAssignmentTargetImpl() => null,
+  };
+
+  TypeImpl? get _legacyReadType => switch (target) {
+    IndexAssignmentTargetImpl target => target.read?.type,
+    PropertyAssignmentTargetImpl target => target.read?.type,
+    UnqualifiedNameAssignmentTargetImpl target => target.read?.type,
+    InvalidExpressionAssignmentTargetImpl() => InvalidTypeImpl.instance,
+  };
+
+  Element? get _legacyWriteElement => switch (target) {
+    IndexAssignmentTargetImpl target => target._legacyWriteElement,
+    PropertyAssignmentTargetImpl target => target._legacyWriteElement,
+    UnqualifiedNameAssignmentTargetImpl target => target._legacyWriteElement,
+    InvalidExpressionAssignmentTargetImpl(expression: IdentifierImpl element) =>
+      element.element,
+    InvalidExpressionAssignmentTargetImpl() => null,
+  };
+
+  TypeImpl? get _legacyWriteType => switch (target) {
+    IndexAssignmentTargetImpl target => target.write?.acceptedType,
+    PropertyAssignmentTargetImpl target =>
+      target.write?.acceptedType ?? InvalidTypeImpl.instance,
+    UnqualifiedNameAssignmentTargetImpl target => target.write?.acceptedType,
+    InvalidExpressionAssignmentTargetImpl() => InvalidTypeImpl.instance,
+  };
 
   /// The parameter element representing the parameter to which the value of the
   /// operand is bound, or `null` if the AST structure isn't resolved or the
@@ -27038,13 +27069,26 @@ abstract base class IncrementOrDecrementExpressionImpl extends ExpressionImpl
     }
     return parameters[0];
   }
+
+  void _attachV1ProjectionChildren() {
+    switch (this) {
+      case PostfixDecrementImpl node:
+        node._postfixExpression?._attachV1Children();
+      case PostfixIncrementImpl node:
+        node._postfixExpression?._attachV1Children();
+      case PrefixDecrementImpl node:
+        node._prefixExpression?._attachV1Children();
+      case PrefixIncrementImpl node:
+        node._prefixExpression?._attachV1Children();
+    }
+  }
 }
 
 /// An indexed location used as an assignment destination.
 ///
 /// This migration slice supports ordinary non-cascade direct, compound, and
-/// if-null assignments. Other index operations remain on their existing AST
-/// shapes.
+/// if-null assignments, and prefix and postfix increment and decrement.
+/// Cascade indexing remains on its existing AST shape.
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class IndexAssignmentTarget implements AssignmentTarget {
@@ -27113,7 +27157,7 @@ final class IndexAssignmentTargetImpl extends AssignmentTargetImpl
   @override
   IndexWriteResolutionImpl? write;
 
-  IndexExpressionImpl? _indexExpression;
+  IndexAssignmentTargetV1Impl? _indexExpression;
 
   @generated
   IndexAssignmentTargetImpl({
@@ -27151,8 +27195,8 @@ final class IndexAssignmentTargetImpl extends AssignmentTargetImpl
   }
 
   /// The cached V1 compatibility projection for this target.
-  IndexExpressionImpl get indexExpression => _indexExpression ??=
-      IndexExpressionImpl.v1ProjectionFromAssignmentTarget(this);
+  IndexAssignmentTargetV1Impl get indexExpression =>
+      _indexExpression ??= IndexAssignmentTargetV1Impl._(this);
 
   @generated
   @override
@@ -27322,6 +27366,194 @@ final class IndexAssignmentTargetImpl extends AssignmentTargetImpl
       return index;
     }
     return null;
+  }
+}
+
+/// The V1 compatibility projection of an [IndexAssignmentTarget].
+@GenerateNodeImpl(
+  api: AstNodeApi.v1,
+  generateConstructor: false,
+  childEntitiesOrder: [
+    GenerateNodeProperty('target'),
+    GenerateNodeProperty('period'),
+    GenerateNodeProperty('question'),
+    GenerateNodeProperty('leftBracket'),
+    GenerateNodeProperty('index'),
+    GenerateNodeProperty('rightBracket'),
+  ],
+)
+final class IndexAssignmentTargetV1Impl extends ExpressionImpl
+    implements IndexExpression {
+  final IndexAssignmentTargetImpl _origin;
+
+  IndexAssignmentTargetV1Impl._(this._origin) {
+    _attachV1Children();
+  }
+
+  @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
+  @override
+  Token get beginToken => _origin.beginToken;
+
+  @override
+  MethodElement? get element => null;
+
+  @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
+  @override
+  Token get endToken => _origin.endToken;
+
+  @DoNotGenerate(reason: 'Projects the canonical V2 index expression')
+  @override
+  ExpressionImpl get index => V1Projection.toV1Expression(_origin.index);
+
+  @experimental
+  @override
+  ExpressionImpl get index2 => index;
+
+  @override
+  bool get isAssignable => true;
+
+  @override
+  bool get isCascaded => false;
+
+  @override
+  bool get isNullAware => _origin.question != null;
+
+  @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
+  @override
+  Token get leftBracket => _origin.leftBracket;
+
+  @DoNotGenerate(reason: 'This migration slice is not cascaded')
+  @override
+  Token? get period => null;
+
+  @override
+  Precedence get precedence => Precedence.postfix;
+
+  @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
+  @override
+  Token? get question => _origin.question;
+
+  @DoNotGenerate(reason: 'Projects the canonical V2 receiver')
+  @override
+  ExpressionImpl get realTarget => target!;
+
+  @experimental
+  @override
+  ExpressionImpl get realTarget2 => target!;
+
+  @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
+  @override
+  Token get rightBracket => _origin.rightBracket;
+
+  @DoNotGenerate(reason: 'Projects the canonical V2 receiver')
+  @override
+  ExpressionImpl? get target => V1Projection.toV1Expression(_origin.receiver);
+
+  @experimental
+  @override
+  ExpressionImpl? get target2 => target;
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v1;
+
+  @generated
+  @override
+  ChildEntities get _childEntities => ChildEntities()
+    ..addNode('target', target)
+    ..addToken('period', period)
+    ..addToken('question', question)
+    ..addToken('leftBracket', leftBracket)
+    ..addNode('index', index)
+    ..addToken('rightBracket', rightBracket);
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 {
+    throw StateError('IndexExpression is not in the V2 AST view.');
+  }
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitIndexExpression(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) {
+    throw StateError('IndexExpression is not in the V2 AST view.');
+  }
+
+  @override
+  bool inGetterContext() => _origin.parent2 is! DirectAssignment;
+
+  @override
+  bool inSetterContext() => true;
+
+  @DoNotGenerate(reason: 'V1 projection children are value expressions')
+  @override
+  bool isInValueExpressionSlot(AstNode child) => true;
+
+  @DoNotGenerate(reason: 'A V1 projection cannot be mutated')
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    throw UnsupportedError('A V1 projection cannot be mutated.');
+  }
+
+  @DoNotGenerate(reason: 'A V1 projection cannot be mutated')
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    throw UnsupportedError('A V1 projection cannot be mutated.');
+  }
+
+  @DoNotGenerate(reason: 'A V1 projection cannot be resolved')
+  @override
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+    throw StateError('IndexExpression is a V1 projection.');
+  }
+
+  @override
+  String toSource() => _origin.toSource();
+
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    target?.accept(visitor);
+    index.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    throw StateError('IndexExpression is not in the V2 AST view.');
+  }
+
+  void _attachV1Children() {
+    _becomeParentOf1(target);
+    _becomeParentOf1(index);
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (target case var target?) {
+      if (target._containsOffset(rangeOffset, rangeEnd)) {
+        return target;
+      }
+    }
+    if (index._containsOffset(rangeOffset, rangeEnd)) {
+      return index;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    throw StateError('IndexExpression is not in the V2 AST view.');
   }
 }
 
@@ -27972,8 +28204,9 @@ final class IndexExpressionImpl extends ExpressionImpl
 
     if (parent2 case CompoundAssignmentExpression parent) {
       element = parent.writeElement ?? parent.readElement;
-    } else if (parent2 case IncrementOrDecrementExpressionImpl parent) {
-      element = parent.writeElement ?? parent.readElement;
+    } else if (parent2 case IndexAssignmentTargetImpl target
+        when target.parent2 is IncrementOrDecrementExpressionImpl) {
+      element = target._legacyWriteElement ?? target._legacyReadElement;
     }
 
     if (element is InternalExecutableElement) {
@@ -29057,9 +29290,12 @@ final class InvalidExpressionAssignmentTargetImpl extends AssignmentTargetImpl
   @override
   ExpressionImpl get expression => _expression;
 
-  @generated
+  @DoNotGenerate(reason: 'Keeps an enclosing V1 projection synchronized')
   set expression(ExpressionImpl expression) {
     _expression = _becomeParentOf2(expression);
+    if (parent2 case IncrementOrDecrementExpressionImpl parent) {
+      parent._attachV1ProjectionChildren();
+    }
   }
 
   @generated
@@ -38922,7 +39158,7 @@ abstract final class PostfixDecrement
 @GenerateNodeImpl(
   api: AstNodeApi.v2,
   childEntitiesOrder: [
-    GenerateNodeProperty('operand', isSuper: true),
+    GenerateNodeProperty('target', isSuper: true),
     GenerateNodeProperty('operator', isSuper: true),
   ],
 )
@@ -38932,12 +39168,12 @@ final class PostfixDecrementImpl extends IncrementOrDecrementExpressionImpl
   PostfixIncrementOrDecrementV1Impl? _postfixExpression;
 
   @generated
-  PostfixDecrementImpl({required super.operand, required super.operator});
+  PostfixDecrementImpl({required super.target, required super.operator});
 
   @generated
   @override
   Token get beginToken {
-    return operand.beginToken;
+    return target.beginToken;
   }
 
   @generated
@@ -38946,18 +39182,18 @@ final class PostfixDecrementImpl extends IncrementOrDecrementExpressionImpl
     return operator;
   }
 
-  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
-  set operand(ExpressionImpl operand) {
-    _operand = _becomeParentOf2(operand);
-    _postfixExpression?._attachV1Children();
-  }
-
   /// The cached V1 compatibility projection for this expression.
   PostfixIncrementOrDecrementV1Impl get postfixExpression =>
       _postfixExpression ??= PostfixIncrementOrDecrementV1Impl._(this);
 
   @override
   Precedence get precedence => Precedence.postfix;
+
+  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  set target(AssignmentTargetImpl target) {
+    _target = _becomeParentOf2(target);
+    _postfixExpression?._attachV1Children();
+  }
 
   @generated
   @override
@@ -38972,7 +39208,7 @@ final class PostfixDecrementImpl extends IncrementOrDecrementExpressionImpl
   @generated
   @override
   ChildEntities get _childEntities2 => ChildEntities()
-    ..addNode('operand', operand)
+    ..addNode('target', target)
     ..addToken('operator', operator);
 
   @generated
@@ -38997,8 +39233,8 @@ final class PostfixDecrementImpl extends IncrementOrDecrementExpressionImpl
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(operand, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'operand'.");
+    if (identical(target, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'target'.");
     }
     super.removeChild(oldNode);
   }
@@ -39006,8 +39242,8 @@ final class PostfixDecrementImpl extends IncrementOrDecrementExpressionImpl
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(operand, oldNode)) {
-      operand = newNode as ExpressionImpl;
+    if (identical(target, oldNode)) {
+      target = newNode as AssignmentTargetImpl;
       return;
     }
     super.replaceChild(oldNode, newNode);
@@ -39030,7 +39266,7 @@ final class PostfixDecrementImpl extends IncrementOrDecrementExpressionImpl
   @experimental
   @override
   void visitChildren2(AstVisitor2 visitor) {
-    operand.accept2(visitor);
+    target.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -39042,12 +39278,12 @@ final class PostfixDecrementImpl extends IncrementOrDecrementExpressionImpl
   @experimental
   void visitChildrenWithHooks(
     AstVisitor2 visitor, {
-    void Function(ExpressionImpl)? visitOperand,
+    void Function(AssignmentTargetImpl)? visitTarget,
   }) {
-    if (visitOperand != null) {
-      visitOperand(operand);
+    if (visitTarget != null) {
+      visitTarget(target);
     } else {
-      operand.accept2(visitor);
+      target.accept2(visitor);
     }
   }
 
@@ -39060,8 +39296,8 @@ final class PostfixDecrementImpl extends IncrementOrDecrementExpressionImpl
   @generated
   @override
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    if (operand._containsOffset(rangeOffset, rangeEnd)) {
-      return operand;
+    if (target._containsOffset(rangeOffset, rangeEnd)) {
+      return target;
     }
     return null;
   }
@@ -39243,7 +39479,7 @@ abstract final class PostfixIncrement
 @GenerateNodeImpl(
   api: AstNodeApi.v2,
   childEntitiesOrder: [
-    GenerateNodeProperty('operand', isSuper: true),
+    GenerateNodeProperty('target', isSuper: true),
     GenerateNodeProperty('operator', isSuper: true),
   ],
 )
@@ -39253,12 +39489,12 @@ final class PostfixIncrementImpl extends IncrementOrDecrementExpressionImpl
   PostfixIncrementOrDecrementV1Impl? _postfixExpression;
 
   @generated
-  PostfixIncrementImpl({required super.operand, required super.operator});
+  PostfixIncrementImpl({required super.target, required super.operator});
 
   @generated
   @override
   Token get beginToken {
-    return operand.beginToken;
+    return target.beginToken;
   }
 
   @generated
@@ -39267,18 +39503,18 @@ final class PostfixIncrementImpl extends IncrementOrDecrementExpressionImpl
     return operator;
   }
 
-  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
-  set operand(ExpressionImpl operand) {
-    _operand = _becomeParentOf2(operand);
-    _postfixExpression?._attachV1Children();
-  }
-
   /// The cached V1 compatibility projection for this expression.
   PostfixIncrementOrDecrementV1Impl get postfixExpression =>
       _postfixExpression ??= PostfixIncrementOrDecrementV1Impl._(this);
 
   @override
   Precedence get precedence => Precedence.postfix;
+
+  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  set target(AssignmentTargetImpl target) {
+    _target = _becomeParentOf2(target);
+    _postfixExpression?._attachV1Children();
+  }
 
   @generated
   @override
@@ -39293,7 +39529,7 @@ final class PostfixIncrementImpl extends IncrementOrDecrementExpressionImpl
   @generated
   @override
   ChildEntities get _childEntities2 => ChildEntities()
-    ..addNode('operand', operand)
+    ..addNode('target', target)
     ..addToken('operator', operator);
 
   @generated
@@ -39318,8 +39554,8 @@ final class PostfixIncrementImpl extends IncrementOrDecrementExpressionImpl
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(operand, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'operand'.");
+    if (identical(target, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'target'.");
     }
     super.removeChild(oldNode);
   }
@@ -39327,8 +39563,8 @@ final class PostfixIncrementImpl extends IncrementOrDecrementExpressionImpl
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(operand, oldNode)) {
-      operand = newNode as ExpressionImpl;
+    if (identical(target, oldNode)) {
+      target = newNode as AssignmentTargetImpl;
       return;
     }
     super.replaceChild(oldNode, newNode);
@@ -39351,7 +39587,7 @@ final class PostfixIncrementImpl extends IncrementOrDecrementExpressionImpl
   @experimental
   @override
   void visitChildren2(AstVisitor2 visitor) {
-    operand.accept2(visitor);
+    target.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -39363,12 +39599,12 @@ final class PostfixIncrementImpl extends IncrementOrDecrementExpressionImpl
   @experimental
   void visitChildrenWithHooks(
     AstVisitor2 visitor, {
-    void Function(ExpressionImpl)? visitOperand,
+    void Function(AssignmentTargetImpl)? visitTarget,
   }) {
-    if (visitOperand != null) {
-      visitOperand(operand);
+    if (visitTarget != null) {
+      visitTarget(target);
     } else {
-      operand.accept2(visitor);
+      target.accept2(visitor);
     }
   }
 
@@ -39381,8 +39617,8 @@ final class PostfixIncrementImpl extends IncrementOrDecrementExpressionImpl
   @generated
   @override
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    if (operand._containsOffset(rangeOffset, rangeEnd)) {
-      return operand;
+    if (target._containsOffset(rangeOffset, rangeEnd)) {
+      return target;
     }
     return null;
   }
@@ -39415,7 +39651,7 @@ final class PostfixIncrementOrDecrementV1Impl extends ExpressionImpl
   bool get inConstantContext => _origin.inConstantContext;
 
   @override
-  ExpressionImpl get operand => V1Projection.toV1Expression(_origin.operand);
+  ExpressionImpl get operand => _origin._legacyOperand;
 
   @override
   Token get operator => _origin.operator;
@@ -39424,19 +39660,19 @@ final class PostfixIncrementOrDecrementV1Impl extends ExpressionImpl
   Precedence get precedence => Precedence.postfix;
 
   @override
-  Element? get readElement => _origin.readElement;
+  Element? get readElement => _origin._legacyReadElement;
 
   @override
-  TypeImpl? get readType => _origin.readType;
+  TypeImpl? get readType => _origin._legacyReadType;
 
   @override
   TypeImpl? get staticType => _origin.staticType;
 
   @override
-  Element? get writeElement => _origin.writeElement;
+  Element? get writeElement => _origin._legacyWriteElement;
 
   @override
-  TypeImpl? get writeType => _origin.writeType;
+  TypeImpl? get writeType => _origin._legacyWriteType;
 
   @override
   AstNodeApi get _astNodeApi => AstNodeApi.v1;
@@ -39526,7 +39762,7 @@ abstract final class PrefixDecrement
   api: AstNodeApi.v2,
   childEntitiesOrder: [
     GenerateNodeProperty('operator', isSuper: true),
-    GenerateNodeProperty('operand', isSuper: true),
+    GenerateNodeProperty('target', isSuper: true),
   ],
 )
 final class PrefixDecrementImpl extends IncrementOrDecrementExpressionImpl
@@ -39534,7 +39770,7 @@ final class PrefixDecrementImpl extends IncrementOrDecrementExpressionImpl
   PrefixIncrementOrDecrementV1Impl? _prefixExpression;
 
   @generated
-  PrefixDecrementImpl({required super.operator, required super.operand});
+  PrefixDecrementImpl({required super.operator, required super.target});
 
   @generated
   @override
@@ -39545,13 +39781,7 @@ final class PrefixDecrementImpl extends IncrementOrDecrementExpressionImpl
   @generated
   @override
   Token get endToken {
-    return operand.endToken;
-  }
-
-  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
-  set operand(ExpressionImpl operand) {
-    _operand = _becomeParentOf2(operand);
-    _prefixExpression?._attachV1Children();
+    return target.endToken;
   }
 
   @override
@@ -39560,6 +39790,12 @@ final class PrefixDecrementImpl extends IncrementOrDecrementExpressionImpl
   /// The cached V1 compatibility projection for this expression.
   PrefixIncrementOrDecrementV1Impl get prefixExpression =>
       _prefixExpression ??= PrefixIncrementOrDecrementV1Impl._(this);
+
+  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  set target(AssignmentTargetImpl target) {
+    _target = _becomeParentOf2(target);
+    _prefixExpression?._attachV1Children();
+  }
 
   @generated
   @override
@@ -39575,7 +39811,7 @@ final class PrefixDecrementImpl extends IncrementOrDecrementExpressionImpl
   @override
   ChildEntities get _childEntities2 => ChildEntities()
     ..addToken('operator', operator)
-    ..addNode('operand', operand);
+    ..addNode('target', target);
 
   @generated
   @ToBeDeprecated('Use accept2 instead.')
@@ -39599,8 +39835,8 @@ final class PrefixDecrementImpl extends IncrementOrDecrementExpressionImpl
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(operand, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'operand'.");
+    if (identical(target, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'target'.");
     }
     super.removeChild(oldNode);
   }
@@ -39608,8 +39844,8 @@ final class PrefixDecrementImpl extends IncrementOrDecrementExpressionImpl
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(operand, oldNode)) {
-      operand = newNode as ExpressionImpl;
+    if (identical(target, oldNode)) {
+      target = newNode as AssignmentTargetImpl;
       return;
     }
     super.replaceChild(oldNode, newNode);
@@ -39632,7 +39868,7 @@ final class PrefixDecrementImpl extends IncrementOrDecrementExpressionImpl
   @experimental
   @override
   void visitChildren2(AstVisitor2 visitor) {
-    operand.accept2(visitor);
+    target.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -39644,12 +39880,12 @@ final class PrefixDecrementImpl extends IncrementOrDecrementExpressionImpl
   @experimental
   void visitChildrenWithHooks(
     AstVisitor2 visitor, {
-    void Function(ExpressionImpl)? visitOperand,
+    void Function(AssignmentTargetImpl)? visitTarget,
   }) {
-    if (visitOperand != null) {
-      visitOperand(operand);
+    if (visitTarget != null) {
+      visitTarget(target);
     } else {
-      operand.accept2(visitor);
+      target.accept2(visitor);
     }
   }
 
@@ -39662,8 +39898,8 @@ final class PrefixDecrementImpl extends IncrementOrDecrementExpressionImpl
   @generated
   @override
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    if (operand._containsOffset(rangeOffset, rangeEnd)) {
-      return operand;
+    if (target._containsOffset(rangeOffset, rangeEnd)) {
+      return target;
     }
     return null;
   }
@@ -40081,7 +40317,7 @@ abstract final class PrefixIncrement
   api: AstNodeApi.v2,
   childEntitiesOrder: [
     GenerateNodeProperty('operator', isSuper: true),
-    GenerateNodeProperty('operand', isSuper: true),
+    GenerateNodeProperty('target', isSuper: true),
   ],
 )
 final class PrefixIncrementImpl extends IncrementOrDecrementExpressionImpl
@@ -40089,7 +40325,7 @@ final class PrefixIncrementImpl extends IncrementOrDecrementExpressionImpl
   PrefixIncrementOrDecrementV1Impl? _prefixExpression;
 
   @generated
-  PrefixIncrementImpl({required super.operator, required super.operand});
+  PrefixIncrementImpl({required super.operator, required super.target});
 
   @generated
   @override
@@ -40100,13 +40336,7 @@ final class PrefixIncrementImpl extends IncrementOrDecrementExpressionImpl
   @generated
   @override
   Token get endToken {
-    return operand.endToken;
-  }
-
-  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
-  set operand(ExpressionImpl operand) {
-    _operand = _becomeParentOf2(operand);
-    _prefixExpression?._attachV1Children();
+    return target.endToken;
   }
 
   @override
@@ -40115,6 +40345,12 @@ final class PrefixIncrementImpl extends IncrementOrDecrementExpressionImpl
   /// The cached V1 compatibility projection for this expression.
   PrefixIncrementOrDecrementV1Impl get prefixExpression =>
       _prefixExpression ??= PrefixIncrementOrDecrementV1Impl._(this);
+
+  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  set target(AssignmentTargetImpl target) {
+    _target = _becomeParentOf2(target);
+    _prefixExpression?._attachV1Children();
+  }
 
   @generated
   @override
@@ -40130,7 +40366,7 @@ final class PrefixIncrementImpl extends IncrementOrDecrementExpressionImpl
   @override
   ChildEntities get _childEntities2 => ChildEntities()
     ..addToken('operator', operator)
-    ..addNode('operand', operand);
+    ..addNode('target', target);
 
   @generated
   @ToBeDeprecated('Use accept2 instead.')
@@ -40154,8 +40390,8 @@ final class PrefixIncrementImpl extends IncrementOrDecrementExpressionImpl
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(operand, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'operand'.");
+    if (identical(target, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'target'.");
     }
     super.removeChild(oldNode);
   }
@@ -40163,8 +40399,8 @@ final class PrefixIncrementImpl extends IncrementOrDecrementExpressionImpl
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(operand, oldNode)) {
-      operand = newNode as ExpressionImpl;
+    if (identical(target, oldNode)) {
+      target = newNode as AssignmentTargetImpl;
       return;
     }
     super.replaceChild(oldNode, newNode);
@@ -40187,7 +40423,7 @@ final class PrefixIncrementImpl extends IncrementOrDecrementExpressionImpl
   @experimental
   @override
   void visitChildren2(AstVisitor2 visitor) {
-    operand.accept2(visitor);
+    target.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -40199,12 +40435,12 @@ final class PrefixIncrementImpl extends IncrementOrDecrementExpressionImpl
   @experimental
   void visitChildrenWithHooks(
     AstVisitor2 visitor, {
-    void Function(ExpressionImpl)? visitOperand,
+    void Function(AssignmentTargetImpl)? visitTarget,
   }) {
-    if (visitOperand != null) {
-      visitOperand(operand);
+    if (visitTarget != null) {
+      visitTarget(target);
     } else {
-      operand.accept2(visitor);
+      target.accept2(visitor);
     }
   }
 
@@ -40217,8 +40453,8 @@ final class PrefixIncrementImpl extends IncrementOrDecrementExpressionImpl
   @generated
   @override
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    if (operand._containsOffset(rangeOffset, rangeEnd)) {
-      return operand;
+    if (target._containsOffset(rangeOffset, rangeEnd)) {
+      return target;
     }
     return null;
   }
@@ -40251,7 +40487,7 @@ final class PrefixIncrementOrDecrementV1Impl extends ExpressionImpl
   bool get inConstantContext => _origin.inConstantContext;
 
   @override
-  ExpressionImpl get operand => V1Projection.toV1Expression(_origin.operand);
+  ExpressionImpl get operand => _origin._legacyOperand;
 
   @override
   Token get operator => _origin.operator;
@@ -40260,19 +40496,19 @@ final class PrefixIncrementOrDecrementV1Impl extends ExpressionImpl
   Precedence get precedence => Precedence.prefix;
 
   @override
-  Element? get readElement => _origin.readElement;
+  Element? get readElement => _origin._legacyReadElement;
 
   @override
-  TypeImpl? get readType => _origin.readType;
+  TypeImpl? get readType => _origin._legacyReadType;
 
   @override
   TypeImpl? get staticType => _origin.staticType;
 
   @override
-  Element? get writeElement => _origin.writeElement;
+  Element? get writeElement => _origin._legacyWriteElement;
 
   @override
-  TypeImpl? get writeType => _origin.writeType;
+  TypeImpl? get writeType => _origin._legacyWriteType;
 
   @override
   AstNodeApi get _astNodeApi => AstNodeApi.v1;

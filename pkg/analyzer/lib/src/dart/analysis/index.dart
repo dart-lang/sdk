@@ -1924,18 +1924,15 @@ class _IndexContributor extends UnifyingAstVisitor2 {
     IncrementOrDecrementExpressionImpl node,
   ) {
     recordOperatorReference(node.operator, node.element);
-    // TODO(scheglov): Remove this compensation when the operand is migrated
-    // from `Expression` to `AssignmentTarget`. Traversing the operand records
-    // only its write element, so record the getter invocation here.
-    if (node.readElement case GetterElement element) {
-      if (_accessName(node.operand) case var name?) {
-        recordRelation(
-          element,
-          IndexRelationKind.IS_INVOKED_BY,
-          name,
-          _isQualified(name),
-        );
-      }
+    switch (node.target) {
+      case IndexAssignmentTargetImpl target:
+        _recordIndexReadWriteTarget(target);
+      case InvalidExpressionAssignmentTargetImpl():
+        break;
+      case PropertyAssignmentTargetImpl target:
+        _recordPropertyReadWriteTarget(target);
+      case UnqualifiedNameAssignmentTargetImpl target:
+        _recordUnqualifiedNameReadWriteTarget(target);
     }
     node.visitChildren2(this);
   }

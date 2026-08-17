@@ -397,6 +397,46 @@ class A {
 ''');
   }
 
+  test_incrementAndDecrement_implicitArgument_contextTypeDouble() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A operator +(double p) => this;
+  A operator -(double p) => this;
+}
+
+void f(A a) {
+  ++a;
+  --a;
+  a++;
+  a--;
+}
+''');
+  }
+
+  test_incrementAndDecrement_implicitArgument_notAssignable() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A operator +(String p) => this;
+  A operator -(String p) => this;
+}
+
+void f(A a) {
+  ++a;
+//^^
+// [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'String'.
+  --a;
+//^^
+// [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'String'.
+  a++;
+// ^^
+// [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'String'.
+  a--;
+// ^^
+// [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'String'.
+}
+''');
+  }
+
   test_index_invalidRead() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {
@@ -770,6 +810,22 @@ void foo(dynamic a) {
   f(a);
 //  ^
 // [diag.argumentTypeNotAssignable] The argument type 'dynamic' can't be assigned to the parameter type 'int'.
+}
+''');
+  }
+
+  test_incrementAndDecrement_implicitArgument_contextTypeDouble() async {
+    await assertTestCodeWithStrictCastsDiagnostics('''
+class A {
+  A(double value);
+}
+
+void f() {
+  var ordinal = 0.0;
+  A(++ordinal);
+  A(--ordinal);
+  A(ordinal++);
+  A(ordinal--);
 }
 ''');
   }

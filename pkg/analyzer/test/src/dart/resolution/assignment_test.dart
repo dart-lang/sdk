@@ -2301,10 +2301,14 @@ void f(num x, int y) {
     assertResolvedNodeText(node, r'''
 AssignmentExpression
   leftHandSide2: PostfixIncrement
-    operand: SimpleIdentifier
-      token: x
-      element: <testLibrary>::@function::f::@formalParameter::x
-      staticType: null
+    target: UnqualifiedNameAssignmentTarget
+      name: x
+      read: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::x
+        type: num
+      write: VariableWriteResolution
+        element: <testLibrary>::@function::f::@formalParameter::x
+        acceptedType: num
     operator: ++
     element: dart:core::@class::num::@method::+
     operatorResultType: num
@@ -2351,10 +2355,14 @@ void f(num x, int y) {
 IfNullAssignment
   target: InvalidExpressionAssignmentTarget
     expression: PostfixIncrement
-      operand: SimpleIdentifier
-        token: x
-        element: <testLibrary>::@function::f::@formalParameter::x
-        staticType: null
+      target: UnqualifiedNameAssignmentTarget
+        name: x
+        read: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::x
+          type: num
+        write: VariableWriteResolution
+          element: <testLibrary>::@function::f::@formalParameter::x
+          acceptedType: num
       operator: ++
       element: dart:core::@class::num::@method::+
       operatorResultType: num
@@ -2409,10 +2417,14 @@ void f(num x, int y) {
 DirectAssignment
   target: InvalidExpressionAssignmentTarget
     expression: PostfixIncrement
-      operand: SimpleIdentifier
-        token: x
-        element: <testLibrary>::@function::f::@formalParameter::x
-        staticType: null
+      target: UnqualifiedNameAssignmentTarget
+        name: x
+        read: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::x
+          type: num
+        write: VariableWriteResolution
+          element: <testLibrary>::@function::f::@formalParameter::x
+          acceptedType: num
       operator: ++
       element: dart:core::@class::num::@method::+
       operatorResultType: num
@@ -2467,10 +2479,14 @@ void f(num x, int y) {
 AssignmentExpression
   leftHandSide2: PrefixIncrement
     operator: ++
-    operand: SimpleIdentifier
-      token: x
-      element: <testLibrary>::@function::f::@formalParameter::x
-      staticType: null
+    target: UnqualifiedNameAssignmentTarget
+      name: x
+      read: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::x
+        type: num
+      write: VariableWriteResolution
+        element: <testLibrary>::@function::f::@formalParameter::x
+        acceptedType: num
     element: dart:core::@class::num::@method::+
     operatorResultType: num
     staticType: num
@@ -2517,10 +2533,14 @@ IfNullAssignment
   target: InvalidExpressionAssignmentTarget
     expression: PrefixIncrement
       operator: ++
-      operand: SimpleIdentifier
-        token: x
-        element: <testLibrary>::@function::f::@formalParameter::x
-        staticType: null
+      target: UnqualifiedNameAssignmentTarget
+        name: x
+        read: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::x
+          type: num
+        write: VariableWriteResolution
+          element: <testLibrary>::@function::f::@formalParameter::x
+          acceptedType: num
       element: dart:core::@class::num::@method::+
       operatorResultType: num
       staticType: num
@@ -2575,10 +2595,14 @@ DirectAssignment
   target: InvalidExpressionAssignmentTarget
     expression: PrefixIncrement
       operator: ++
-      operand: SimpleIdentifier
-        token: x
-        element: <testLibrary>::@function::f::@formalParameter::x
-        staticType: null
+      target: UnqualifiedNameAssignmentTarget
+        name: x
+        read: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::x
+          type: num
+        write: VariableWriteResolution
+          element: <testLibrary>::@function::f::@formalParameter::x
+          acceptedType: num
       element: dart:core::@class::num::@method::+
       operatorResultType: num
       staticType: num

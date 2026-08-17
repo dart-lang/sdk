@@ -696,8 +696,8 @@ Block
         updaters2
           PrefixIncrement
             operator: ++
-            operand: SimpleIdentifier
-              token: x
+            target: UnqualifiedNameAssignmentTarget
+              name: x
         updaters(v1)
           PrefixExpression
             operator: ++
@@ -773,8 +773,8 @@ Block
         updaters2
           PrefixIncrement
             operator: ++
-            operand: SimpleIdentifier
-              token: y
+            target: UnqualifiedNameAssignmentTarget
+              name: y
         updaters(v1)
           PrefixExpression
             operator: ++
@@ -831,8 +831,8 @@ Block
         updaters2
           PrefixIncrement
             operator: ++
-            operand: SimpleIdentifier
-              token: x
+            target: UnqualifiedNameAssignmentTarget
+              name: x
         updaters(v1)
           PrefixExpression
             operator: ++
@@ -3379,8 +3379,8 @@ Block
     ExpressionStatement
       expression2: NullAssertionExpression
         operand: PostfixIncrement
-          operand: SimpleIdentifier
-            token: x
+          target: UnqualifiedNameAssignmentTarget
+            name: x
           operator: ++
         operator: !
       expression(v1): PostfixExpression

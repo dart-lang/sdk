@@ -1256,20 +1256,20 @@ class ToSourceVisitor implements AstVisitor2<void> {
 
   @override
   void visitPostfixDecrement(PostfixDecrement node) {
-    _writeOperand(node, node.operand);
+    _visitNode(node.target);
     sink.write(node.operator.lexeme);
   }
 
   @override
   void visitPostfixIncrement(PostfixIncrement node) {
-    _writeOperand(node, node.operand);
+    _visitNode(node.target);
     sink.write(node.operator.lexeme);
   }
 
   @override
   void visitPrefixDecrement(PrefixDecrement node) {
     sink.write(node.operator.lexeme);
-    _writeOperand(node, node.operand);
+    _visitNode(node.target);
   }
 
   @override
@@ -1282,7 +1282,7 @@ class ToSourceVisitor implements AstVisitor2<void> {
   @override
   void visitPrefixIncrement(PrefixIncrement node) {
     sink.write(node.operator.lexeme);
-    _writeOperand(node, node.operand);
+    _visitNode(node.target);
   }
 
   @override

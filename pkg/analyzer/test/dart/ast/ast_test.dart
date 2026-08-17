@@ -702,7 +702,7 @@ void f() {
   --a[0];
 }
 ''');
-    var node = parseResult.findNode.singleIndexExpression;
+    var node = parseResult.findNodeV1.singleIndexExpression;
     expect(node.inSetterContext(), isTrue);
   }
 
@@ -712,7 +712,7 @@ void f() {
   ++a[0];
 }
 ''');
-    var node = parseResult.findNode.singleIndexExpression;
+    var node = parseResult.findNodeV1.singleIndexExpression;
     expect(node.inSetterContext(), isTrue);
   }
 
@@ -1593,7 +1593,7 @@ void f() {
   $code;
 }
 ''');
-    return parseResult.findNode.simple('test');
+    return parseResult.findNodeV1.simple('test');
   }
 
   /// Return the top-most node in the AST structure containing the given

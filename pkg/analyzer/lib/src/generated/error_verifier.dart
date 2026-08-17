@@ -2080,6 +2080,20 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
 
   @override
   void visitPropertyAssignmentTarget(PropertyAssignmentTarget node) {
+    var ambiguousElement = switch (node.read) {
+      InvalidNamedReadResolution(:var candidates) =>
+        candidates.whereType<MultiplyDefinedElementImpl>().firstOrNull,
+      _ => null,
+    };
+    ambiguousElement ??= switch (node.write) {
+      InvalidNamedWriteResolution(:var candidates) =>
+        candidates.whereType<MultiplyDefinedElementImpl>().firstOrNull,
+      _ => null,
+    };
+    _checkForAmbiguousImport(
+      element: ambiguousElement,
+      name: node.propertyName,
+    );
     if (node.operator.type == TokenType.QUESTION_PERIOD) {
       _checkForUnnecessaryNullAware(
         node.receiver,
@@ -8747,13 +8761,57 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     IncrementOrDecrementExpressionImpl node, {
     required bool isPrefix,
   }) {
-    var operand = node.operand;
-    _checkForAssignmentToFinal(operand);
-    _checkForAssignmentToPrimaryConstructorParameter(operand);
-    if (isPrefix) {
-      checkForUseOfVoidResult(operand);
+    if (node.target case UnqualifiedNameAssignmentTarget(
+      :var read,
+      :var write,
+    )) {
+      _checkForUnqualifiedReferenceToNonLocalStaticMember2(
+        entity: node.target,
+        element: switch (write) {
+          NamedWriteResolutionWithElement(:var element) => element,
+          _ => switch (read) {
+            NamedReadResolutionWithElement(:var element) => element,
+            _ => null,
+          },
+        },
+      );
     }
-    _checkForIntNotAssignable(operand);
+    var writeElement = switch (node.target) {
+      IndexAssignmentTarget(write: MethodIndexWriteResolution(:var element)) =>
+        element,
+      PropertyAssignmentTarget(
+        write: NamedWriteResolutionWithElement(:var element),
+      ) ||
+      UnqualifiedNameAssignmentTarget(
+        write: NamedWriteResolutionWithElement(:var element),
+      ) => element,
+      _ => null,
+    };
+    if (node.target case UnqualifiedNameAssignmentTarget(
+      :var name,
+      :var read,
+    )) {
+      var readElement = switch (read) {
+        NamedReadResolutionWithElement(:var element) => element,
+        _ => null,
+      };
+      for (var element in {readElement, writeElement}) {
+        _checkForReferenceBeforeDeclaration(element: element, nameToken: name);
+      }
+    }
+    _checkForAssignmentToPrimaryConstructorParameter(
+      node.target,
+      element: writeElement,
+    );
+    var readType = switch (node.target) {
+      IndexAssignmentTarget(:var read) => read?.type,
+      PropertyAssignmentTarget(:var read) => read?.type,
+      UnqualifiedNameAssignmentTarget(:var read) => read?.type,
+      _ => null,
+    };
+    if (isPrefix && readType is VoidType) {
+      diagnosticReporter.report(diag.useOfVoidResult.at(node.target));
+    }
     node.visitChildren2(this);
   }
 

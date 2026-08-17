@@ -1431,14 +1431,9 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
   void _visitIncrementOrDecrementExpression(
     IncrementOrDecrementExpression node,
   ) {
+    _readAssignmentTarget(node.target);
     node.visitChildren2(this);
-    var operand = node.operand;
-    if (operand is SimpleIdentifier) {
-      var element = operand.element;
-      if (element is PromotableElementImpl) {
-        assignedVariables.write(element);
-      }
-    }
+    _writeAssignmentTarget(node.target);
   }
 
   void _writeAssignmentTarget(AssignmentTarget target) {

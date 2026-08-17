@@ -1452,7 +1452,7 @@ void f() {
     _assertReplacementForChildren<PostfixIncrement>(
       destination: parseResult.findNode.postfixIncrement('a++'),
       source: parseResult.findNode.postfixIncrement('b++'),
-      childAccessors: [(node) => node.operand],
+      childAccessors: [(node) => node.target],
     );
   }
 
@@ -1480,7 +1480,7 @@ void f() {
     _assertReplacementForChildren<PrefixIncrement>(
       destination: parseResult.findNode.prefixIncrement('++a'),
       source: parseResult.findNode.prefixIncrement('++b'),
-      childAccessors: [(node) => node.operand],
+      childAccessors: [(node) => node.target],
     );
   }
 

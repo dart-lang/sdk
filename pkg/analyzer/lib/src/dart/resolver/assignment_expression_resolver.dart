@@ -37,6 +37,43 @@ class AssignmentExpressionResolver {
 
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
+  void analyzePropertyTargetReceiver(
+    AstNode node,
+    PropertyAssignmentTargetImpl target,
+  ) {
+    if (target.receiver case ExtensionOverrideImpl receiver) {
+      _resolver.visitExtensionOverride(receiver);
+      receiver.setPseudoExpressionStaticType(
+        receiver.extendedType ?? InvalidTypeImpl.instance,
+      );
+    } else {
+      _resolver.analyzeExpression(
+        target.receiver,
+        SharedTypeSchemaView(UnknownInferredType.instance),
+        continueNullShorting: true,
+      );
+      target.receiver = _resolver.popRewrite()!;
+    }
+
+    var receiverDoesNotComplete = identical(
+      _typeSystem.resolveToBound(target.receiver.typeOrThrow),
+      NeverTypeImpl.instance,
+    );
+    if (target.operator.type == TokenType.QUESTION_PERIOD &&
+        !receiverDoesNotComplete) {
+      _resolver.startNullAwareAssignmentTarget(target.receiver);
+      _resolver.nullSafetyDeadCodeVerifier.visitNullAwareAccess(
+        node,
+        target.propertyName,
+      );
+      _resolver.nullSafetyDeadCodeVerifier.verifyNullAwareAccess(
+        node,
+        target.receiver,
+        target.operator,
+      );
+    }
+  }
+
   void resolve(AssignmentExpressionImpl node, {required TypeImpl contextType}) {
     var operator = node.operator.type;
     var hasRead = operator != TokenType.EQ;
@@ -141,7 +178,7 @@ class AssignmentExpressionResolver {
     InternalVariableElement? variableElement;
     switch (target) {
       case IndexAssignmentTargetImpl():
-        var targetResult = _resolveIndexReadWriteTarget(target);
+        var targetResult = resolveIndexReadWriteTarget(target);
         if (targetResult == null) {
           _resolver.analyzeExpression(
             node.value,
@@ -155,7 +192,7 @@ class AssignmentExpressionResolver {
         readType = targetResult.read.type;
         writeAcceptedType = targetResult.write.acceptedType;
       case PropertyAssignmentTargetImpl():
-        _analyzePropertyTargetReceiver(node, target);
+        analyzePropertyTargetReceiver(node, target);
         var targetResult = _resolver.resolvePropertyReadWriteAssignmentTarget(
           target,
         );
@@ -308,7 +345,7 @@ class AssignmentExpressionResolver {
         }
         writeAcceptedType = resolution.acceptedType;
       case PropertyAssignmentTargetImpl():
-        _analyzePropertyTargetReceiver(node, target);
+        analyzePropertyTargetReceiver(node, target);
         var resolution = _resolver.resolvePropertyDirectAssignmentTarget(
           target,
         );
@@ -387,7 +424,7 @@ class AssignmentExpressionResolver {
     ExpressionInfo? readExpressionInfo;
     switch (target) {
       case IndexAssignmentTargetImpl():
-        var targetResult = _resolveIndexReadWriteTarget(target);
+        var targetResult = resolveIndexReadWriteTarget(target);
         if (targetResult == null) {
           _resolver.analyzeExpression(
             node.value,
@@ -400,7 +437,7 @@ class AssignmentExpressionResolver {
         readType = targetResult.read.type;
         writeAcceptedType = targetResult.write.acceptedType;
       case PropertyAssignmentTargetImpl():
-        _analyzePropertyTargetReceiver(node, target);
+        analyzePropertyTargetReceiver(node, target);
         var targetResult = _resolver.resolvePropertyReadWriteAssignmentTarget(
           target,
         );
@@ -479,10 +516,8 @@ class AssignmentExpressionResolver {
     flow.ifNullExpression_end();
   }
 
-  void _analyzePropertyTargetReceiver(
-    AssignmentExpression2 node,
-    PropertyAssignmentTargetImpl target,
-  ) {
+  ({IndexReadResolutionImpl read, IndexWriteResolutionImpl write})?
+  resolveIndexReadWriteTarget(IndexAssignmentTargetImpl target) {
     _resolver.analyzeExpression(
       target.receiver,
       SharedTypeSchemaView(UnknownInferredType.instance),
@@ -490,23 +525,54 @@ class AssignmentExpressionResolver {
     );
     target.receiver = _resolver.popRewrite()!;
 
-    var receiverDoesNotComplete = identical(
-      _typeSystem.resolveToBound(target.receiver.typeOrThrow),
-      NeverTypeImpl.instance,
-    );
-    if (target.operator.type == TokenType.QUESTION_PERIOD &&
-        !receiverDoesNotComplete) {
+    var receiverDoesNotComplete =
+        target.receiver is! ExtensionOverrideImpl &&
+        identical(
+          _typeSystem.resolveToBound(target.receiver.typeOrThrow),
+          NeverTypeImpl.instance,
+        );
+    if (target.question != null && !receiverDoesNotComplete) {
       _resolver.startNullAwareAssignmentTarget(target.receiver);
-      _resolver.nullSafetyDeadCodeVerifier.visitNullAwareAccess(
-        node,
-        target.propertyName,
-      );
-      _resolver.nullSafetyDeadCodeVerifier.verifyNullAwareAccess(
-        node,
-        target.receiver,
-        target.operator,
-      );
+      _resolver.nullSafetyDeadCodeVerifier.visitNode(target.index);
     }
+
+    var result = _resolver.resolveIndexReadWriteAssignmentTarget(target);
+    target.read = result?.read;
+    target.write = result?.write;
+
+    _resolver.analyzeExpression(
+      target.index,
+      SharedTypeSchemaView(
+        result?.read.indexContextType ?? UnknownInferredType.instance,
+      ),
+    );
+    target.index = _resolver.popRewrite()!;
+    var whyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(
+      _resolver.flowAnalysis.getExpressionInfo(target.index),
+    );
+    var readElement = switch (result?.read) {
+      MethodIndexReadResolutionImpl(:var element) => element,
+      InvalidIndexReadResolutionImpl(
+        recovery: MethodIndexReadResolutionImpl(:var element),
+      ) =>
+        element,
+      _ => null,
+    };
+    var writeElement = switch (result?.write) {
+      MethodIndexWriteResolutionImpl(:var element) => element,
+      InvalidIndexWriteResolutionImpl(
+        recovery: MethodIndexWriteResolutionImpl(:var element),
+      ) =>
+        element,
+      _ => null,
+    };
+    _resolver.checkIndexExpressionIndex(
+      target.index,
+      readElement: readElement,
+      writeElement: writeElement,
+      whyNotPromoted: whyNotPromoted,
+    );
+    return result;
   }
 
   void _checkForInvalidAssignment(
@@ -723,65 +789,6 @@ class AssignmentExpressionResolver {
             .at(node.operator),
       );
     }
-  }
-
-  ({IndexReadResolutionImpl read, IndexWriteResolutionImpl write})?
-  _resolveIndexReadWriteTarget(IndexAssignmentTargetImpl target) {
-    _resolver.analyzeExpression(
-      target.receiver,
-      SharedTypeSchemaView(UnknownInferredType.instance),
-      continueNullShorting: true,
-    );
-    target.receiver = _resolver.popRewrite()!;
-
-    var receiverDoesNotComplete =
-        target.receiver is! ExtensionOverrideImpl &&
-        identical(
-          _typeSystem.resolveToBound(target.receiver.typeOrThrow),
-          NeverTypeImpl.instance,
-        );
-    if (target.question != null && !receiverDoesNotComplete) {
-      _resolver.startNullAwareAssignmentTarget(target.receiver);
-      _resolver.nullSafetyDeadCodeVerifier.visitNode(target.index);
-    }
-
-    var result = _resolver.resolveIndexReadWriteAssignmentTarget(target);
-    target.read = result?.read;
-    target.write = result?.write;
-
-    _resolver.analyzeExpression(
-      target.index,
-      SharedTypeSchemaView(
-        result?.read.indexContextType ?? UnknownInferredType.instance,
-      ),
-    );
-    target.index = _resolver.popRewrite()!;
-    var whyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(
-      _resolver.flowAnalysis.getExpressionInfo(target.index),
-    );
-    var readElement = switch (result?.read) {
-      MethodIndexReadResolutionImpl(:var element) => element,
-      InvalidIndexReadResolutionImpl(
-        recovery: MethodIndexReadResolutionImpl(:var element),
-      ) =>
-        element,
-      _ => null,
-    };
-    var writeElement = switch (result?.write) {
-      MethodIndexWriteResolutionImpl(:var element) => element,
-      InvalidIndexWriteResolutionImpl(
-        recovery: MethodIndexWriteResolutionImpl(:var element),
-      ) =>
-        element,
-      _ => null,
-    };
-    _resolver.checkIndexExpressionIndex(
-      target.index,
-      readElement: readElement,
-      writeElement: writeElement,
-      whyNotPromoted: whyNotPromoted,
-    );
-    return result;
   }
 
   void _resolveInvalidCompound(
