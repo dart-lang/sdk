@@ -19,6 +19,10 @@ This is a patch release that:
 [#63843]: https://github.com/dart-lang/sdk/issues/63843
 [#60583]: https://github.com/dart-lang/sdk/issues/60583
 
+- Fixes `closure.hashCode` sometimes returning null (issue [#64035]).
+
+[#64035]: https://github.com/dart-lang/sdk/issues/64035
+
 ## 3.13.0
 
 **Released on:** Unreleased
