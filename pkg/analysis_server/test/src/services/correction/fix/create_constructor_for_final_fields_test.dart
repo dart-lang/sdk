@@ -227,6 +227,39 @@ class Test extends StatelessWidget {
     );
   }
 
+  Future<void> test_class_flutter_inheritedNonFinal() async {
+    writeTestPackageConfig(flutter: true);
+    await resolveTestCode('''
+import 'package:flutter/widgets.dart';
+
+mixin M {
+  int counter = 0;
+}
+
+class Test extends StatelessWidget with M {
+  final int a;
+}
+''');
+    await assertHasFix(
+      '''
+import 'package:flutter/widgets.dart';
+
+mixin M {
+  int counter = 0;
+}
+
+class Test extends StatelessWidget with M {
+  final int a;
+
+  new({super.key, required this.a});
+}
+''',
+      filter: (error) {
+        return error.message.contains("'a' must be initialized");
+      },
+    );
+  }
+
   Future<void> test_class_nonFinal_mixedWithFinal() async {
     await resolveTestCode('''
 class Test {

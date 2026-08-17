@@ -60,13 +60,15 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
     _FixContext fixContext;
     switch (container) {
       case ClassDeclaration():
-        superType = container.declaredFragment?.element.supertype;
+        var classElement = container.declaredFragment?.element;
+        superType = classElement?.supertype;
         if (superType == null) {
           return;
         }
         fixContext = _FixContext(
           builder: builder,
           containerName: container.namePart.typeName.lexeme,
+          classElement: classElement,
           superType: superType,
           variableLists: container.body.members.interestingVariableLists,
         );
@@ -78,6 +80,7 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
         fixContext = _FixContext(
           builder: builder,
           containerName: container.namePart.typeName.lexeme,
+          classElement: null,
           superType: superType,
           variableLists: container.body.members.interestingVariableLists,
         );
@@ -518,12 +521,19 @@ class _Field {
 class _FixContext {
   final ChangeBuilder builder;
   final String containerName;
+
+  /// The element of the class being fixed, or `null` if it's an enum.
+  ///
+  /// Enum instance fields must always be final, so [canBeConst] doesn't need
+  /// this to determine whether an enum's generated constructor can be const.
+  final ClassElement? classElement;
   final InterfaceType superType;
   final Iterable<VariableDeclarationList> variableLists;
 
   new({
     required this.builder,
     required this.containerName,
+    required this.classElement,
     required this.superType,
     required this.variableLists,
   });
@@ -539,9 +549,14 @@ class _FixContext {
   }
 
   /// Whether a generated constructor initializing [variableLists] can be
-  /// `const`. A `const` constructor requires every instance field to be
-  /// final, so this is false as soon as a non-final field is included.
-  bool get canBeConst => variableLists.every((e) => e.isFinal);
+  /// `const`. A `const` constructor requires every instance field, own or
+  /// inherited, to be final.
+  bool get canBeConst {
+    var classElement = this.classElement;
+    return classElement != null
+        ? !classElement.hasNonFinalField
+        : variableLists.every((e) => e.isFinal);
+  }
 }
 
 enum _Style {
