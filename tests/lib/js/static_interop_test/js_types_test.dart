@@ -19,6 +19,12 @@ extension type JSSet._(JSObject _) implements JSObject, JSIterable<JSNumber> {
   external JSSet(JSArray<JSNumber> contents);
 }
 
+@JS('Error')
+extension type JSError._(JSObject _) implements JSObject {
+  external JSError(String message);
+  external String get message;
+}
+
 @JS()
 external void eval(String code);
 
@@ -1147,6 +1153,47 @@ Future<void> asyncTests() async {
       );
       StackTrace.fromString((jsError['stack'] as JSString).toDart);
     }
+    var error = await asyncExpectThrows<JSAny>(
+      Future<JSAny?>(() => throw JSError('oh no')).toJS.toDart,
+    );
+    Expect.isTrue(error.isA<JSError>());
+    Expect.equals('oh no', (error as JSError).message);
+
+    error = await asyncExpectThrows<JSAny>(
+      Future<JSAny?>(() => throw 'oh no'.toJS).toJS.toDart,
+    );
+    Expect.isTrue(error.isA<JSString>());
+    Expect.equals('oh no', (error as JSString).toDart);
+
+    error = await asyncExpectThrows<JSAny>(
+      Future<JSAny?>(() => throw true.toJS).toJS.toDart,
+    );
+    Expect.isTrue(error.isA<JSBoolean>());
+    Expect.isTrue((error as JSBoolean).toDart);
+
+    error = await asyncExpectThrows<JSAny>(
+      Future<JSAny?>(() => throw 'oh no').toJS.toDart,
+    );
+    if (isJSBackend) {
+      Expect.isTrue(error.isA<JSString>());
+      Expect.equals('oh no', (error as JSString).toDart);
+    } else {
+      Expect.isTrue(error.isA<JSError>());
+      final jsError = error as JSError;
+      Expect.equals('oh no', (jsError['error'] as JSBoxedDartObject).toDart);
+    }
+
+    error = await asyncExpectThrows<JSAny>(
+      Future<JSAny?>(() => throw true).toJS.toDart,
+    );
+    if (isJSBackend) {
+      Expect.isTrue(error.isA<JSBoolean>());
+      Expect.isTrue((error as JSBoolean).toDart);
+    } else {
+      Expect.isTrue(error.isA<JSError>());
+      final jsError = error as JSError;
+      Expect.isTrue((jsError['error'] as JSBoxedDartObject).toDart);
+    }
   }
 
   // [Future<void>] -> [JSPromise].
@@ -1175,6 +1222,47 @@ Future<void> asyncTests() async {
         (jsError['error'] as JSBoxedDartObject).toDart is Exception,
       );
       StackTrace.fromString((jsError['stack'] as JSString).toDart);
+    }
+    var error = await asyncExpectThrows<JSAny>(
+      Future<void>(() => throw JSError('oh no')).toJS.toDart as Future<void>,
+    );
+    Expect.isTrue(error.isA<JSError>());
+    Expect.equals('oh no', (error as JSError).message);
+
+    error = await asyncExpectThrows<JSAny>(
+      Future<void>(() => throw 'oh no'.toJS).toJS.toDart as Future<void>,
+    );
+    Expect.isTrue(error.isA<JSString>());
+    Expect.equals('oh no', (error as JSString).toDart);
+
+    error = await asyncExpectThrows<JSAny>(
+      Future<void>(() => throw true.toJS).toJS.toDart as Future<void>,
+    );
+    Expect.isTrue(error.isA<JSBoolean>());
+    Expect.isTrue((error as JSBoolean).toDart);
+
+    error = await asyncExpectThrows<JSAny>(
+      Future<void>(() => throw 'oh no').toJS.toDart as Future<void>,
+    );
+    if (isJSBackend) {
+      Expect.isTrue(error.isA<JSString>());
+      Expect.equals('oh no', (error as JSString).toDart);
+    } else {
+      Expect.isTrue(error.isA<JSError>());
+      final jsError = error as JSError;
+      Expect.equals('oh no', (jsError['error'] as JSBoxedDartObject).toDart);
+    }
+
+    error = await asyncExpectThrows<JSAny>(
+      Future<void>(() => throw true).toJS.toDart as Future<void>,
+    );
+    if (isJSBackend) {
+      Expect.isTrue(error.isA<JSBoolean>());
+      Expect.isTrue((error as JSBoolean).toDart);
+    } else {
+      Expect.isTrue(error.isA<JSError>());
+      final jsError = error as JSError;
+      Expect.isTrue((jsError['error'] as JSBoxedDartObject).toDart);
     }
   }
 }
