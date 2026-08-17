@@ -295,7 +295,7 @@ abstract class AstCodeGenerator
       if (variableName != null && variableName.isNotEmpty) {
         b.localNames[local.index] = variableName;
       }
-      if (defaultValue == ParameterInfo.defaultValueSentinel) {
+      if (!isRequired && defaultValue == ParameterInfo.defaultValueSentinel) {
         // The default value for this parameter differs between implementations
         // within the same selector. This means that callers will pass the
         // default value sentinel to indicate that the parameter is not given.
@@ -5354,9 +5354,8 @@ class SwitchInfo {
           successLabel,
           switchExprLocal.type as w.RefType,
           equalsMemberSignature.inputs[0].withNullability(
-                switchExprLocal.type.nullable,
-              )
-              as w.RefType,
+            switchExprLocal.type.nullable,
+          ) as w.RefType,
         );
         codeGen.b.drop();
       };
