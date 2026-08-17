@@ -1330,8 +1330,7 @@ class _TypedNodeVisitor<T extends AstNode>
   }
 }
 
-class _TypedNodeVisitor2<T extends AstNode>
-    extends GeneralizingAstVisitor2<void> {
+class _TypedNodeVisitor2<T extends AstNode> extends UnifyingAstVisitor2<void> {
   final List<T> nodes = [];
 
   @override

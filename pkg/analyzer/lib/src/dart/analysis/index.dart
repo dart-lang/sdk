@@ -540,7 +540,7 @@ class _IndexAssembler {
 }
 
 /// Visits a resolved AST and adds relationships into the [assembler].
-class _IndexContributor extends GeneralizingAstVisitor2 {
+class _IndexContributor extends UnifyingAstVisitor2 {
   final _IndexAssembler assembler;
   final CompilationUnit unit;
 
@@ -1245,27 +1245,6 @@ class _IndexContributor extends GeneralizingAstVisitor2 {
   }
 
   @override
-  void visitIncrementOrDecrementExpression(
-    covariant IncrementOrDecrementExpressionImpl node,
-  ) {
-    recordOperatorReference(node.operator, node.element);
-    // TODO(scheglov): Remove this compensation when the operand is migrated
-    // from `Expression` to `AssignmentTarget`. Traversing the operand records
-    // only its write element, so record the getter invocation here.
-    if (node.readElement case GetterElement element) {
-      if (_accessName(node.operand) case var name?) {
-        recordRelation(
-          element,
-          IndexRelationKind.IS_INVOKED_BY,
-          name,
-          _isQualified(name),
-        );
-      }
-    }
-    super.visitIncrementOrDecrementExpression(node);
-  }
-
-  @override
   void visitIndexExpression(IndexExpression node) {
     var element = node.writeOrReadElement2;
     if (element is MethodElement) {
@@ -1403,6 +1382,21 @@ class _IndexContributor extends GeneralizingAstVisitor2 {
   }
 
   @override
+  void visitPostfixDecrement(covariant PostfixDecrementImpl node) {
+    _visitIncrementOrDecrementExpression(node);
+  }
+
+  @override
+  void visitPostfixIncrement(covariant PostfixIncrementImpl node) {
+    _visitIncrementOrDecrementExpression(node);
+  }
+
+  @override
+  void visitPrefixDecrement(covariant PrefixDecrementImpl node) {
+    _visitIncrementOrDecrementExpression(node);
+  }
+
+  @override
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
     var element = node.element;
     var prefixElement = node.prefix.element;
@@ -1410,6 +1404,11 @@ class _IndexContributor extends GeneralizingAstVisitor2 {
       assembler.addPrefixForElement(element, prefix: prefixElement);
     }
     super.visitPrefixedIdentifier(node);
+  }
+
+  @override
+  void visitPrefixIncrement(covariant PrefixIncrementImpl node) {
+    _visitIncrementOrDecrementExpression(node);
   }
 
   @override
@@ -1919,6 +1918,26 @@ class _IndexContributor extends GeneralizingAstVisitor2 {
         false,
       );
     }
+  }
+
+  void _visitIncrementOrDecrementExpression(
+    IncrementOrDecrementExpressionImpl node,
+  ) {
+    recordOperatorReference(node.operator, node.element);
+    // TODO(scheglov): Remove this compensation when the operand is migrated
+    // from `Expression` to `AssignmentTarget`. Traversing the operand records
+    // only its write element, so record the getter invocation here.
+    if (node.readElement case GetterElement element) {
+      if (_accessName(node.operand) case var name?) {
+        recordRelation(
+          element,
+          IndexRelationKind.IS_INVOKED_BY,
+          name,
+          _isQualified(name),
+        );
+      }
+    }
+    node.visitChildren2(this);
   }
 }
 

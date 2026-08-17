@@ -287,7 +287,7 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
 }
 
 /// Visitor that maps nodes to elements.
-class _ElementMapperV2 extends GeneralizingAstVisitor2<Element> {
+class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
   @override
   Element? visitAnnotation(Annotation node) {
     return node.element;
@@ -391,66 +391,12 @@ class _ElementMapperV2 extends GeneralizingAstVisitor2<Element> {
   }
 
   @override
-  Element? visitIdentifier(Identifier node) {
-    var parent = node.parent2;
-    if (parent is Annotation) {
-      // Map the type name in an annotation.
-      if (identical(parent.name, node) && parent.constructorName == null) {
-        return parent.element;
-      }
-    } else if (parent is ConstructorDeclaration) {
-      // Map a constructor declarations to its associated constructor element.
-      var returnType = parent.typeName;
-      if (identical(returnType, node)) {
-        var name = parent.name;
-        if (name != null) {
-          return parent.declaredFragment?.element;
-        }
-        var element = node.element;
-        if (element is InterfaceElement) {
-          return element.unnamedConstructor;
-        }
-      } else if (parent.name == node.endToken) {
-        return parent.declaredFragment?.element;
-      }
-    } else if (parent is DottedName) {
-      var grandParent = parent.parent2;
-      if (grandParent is LibraryDirective) {
-        return grandParent.element;
-      }
-      return null;
-    } else if (parent is MethodInvocation &&
-        parent.methodName == node &&
-        parent.methodName.name == MethodElement.CALL_METHOD_NAME) {
-      // Handle .call() invocations on functions.
-      var method = parent.realTarget2;
-      if (method is Identifier && method.staticType is FunctionType) {
-        return method.element;
-      }
-    } else if (parent is PrefixedIdentifier &&
-        parent.identifier == node &&
-        parent.identifier.name == MethodElement.CALL_METHOD_NAME &&
-        parent.prefix.staticType is FunctionType) {
-      // Handle .call tear-offs on functions.
-      return parent.prefix.element;
-    }
-    return node.writeOrReadElement2;
-  }
-
-  @override
   Element? visitImportDirective(ImportDirective node) {
     return node.libraryImport?.importedLibrary;
   }
 
   @override
   Element? visitImportPrefixReference(ImportPrefixReference node) {
-    return node.element;
-  }
-
-  @override
-  Element? visitIncrementOrDecrementExpression(
-    IncrementOrDecrementExpression node,
-  ) {
     return node.element;
   }
 
@@ -500,7 +446,7 @@ class _ElementMapperV2 extends GeneralizingAstVisitor2<Element> {
 
   @override
   Element? visitMethodInvocation(MethodInvocation node) {
-    return node.methodName.element ?? visitIdentifier(node.methodName);
+    return node.methodName.element ?? _visitIdentifier(node.methodName);
   }
 
   @override
@@ -520,7 +466,12 @@ class _ElementMapperV2 extends GeneralizingAstVisitor2<Element> {
 
   @override
   Element? visitNode(AstNode node) {
-    return node.tryCast<FragmentDeclaringNode>()?.declaredFragment?.element;
+    return switch (node) {
+      IncrementOrDecrementExpression(:var element) => element,
+      Identifier() => _visitIdentifier(node),
+      StringLiteral() => _visitStringLiteral(node),
+      _ => node.tryCast<FragmentDeclaringNode>()?.declaredFragment?.element,
+    };
   }
 
   @override
@@ -545,7 +496,7 @@ class _ElementMapperV2 extends GeneralizingAstVisitor2<Element> {
 
   @override
   Element? visitPrefixedIdentifier(PrefixedIdentifier node) {
-    return node.element ?? visitIdentifier(node.identifier);
+    return node.element ?? _visitIdentifier(node.identifier);
   }
 
   @override
@@ -588,19 +539,6 @@ class _ElementMapperV2 extends GeneralizingAstVisitor2<Element> {
   }
 
   @override
-  Element? visitStringLiteral(StringLiteral node) {
-    var parent = node.parent2;
-    if (parent is ExportDirective) {
-      return parent.libraryExport?.exportedLibrary;
-    } else if (parent is ImportDirective) {
-      return parent.libraryImport?.importedLibrary;
-    } else if (parent is PartDirective) {
-      return null;
-    }
-    return null;
-  }
-
-  @override
   Element? visitUnaryOperatorInvocation(UnaryOperatorInvocation node) {
     return node.element;
   }
@@ -611,6 +549,64 @@ class _ElementMapperV2 extends GeneralizingAstVisitor2<Element> {
   ) {
     if (node.write case NamedWriteResolutionWithElement(:var element)) {
       return element;
+    }
+    return null;
+  }
+
+  Element? _visitIdentifier(Identifier node) {
+    var parent = node.parent2;
+    if (parent is Annotation) {
+      // Map the type name in an annotation.
+      if (identical(parent.name, node) && parent.constructorName == null) {
+        return parent.element;
+      }
+    } else if (parent is ConstructorDeclaration) {
+      // Map a constructor declarations to its associated constructor element.
+      var returnType = parent.typeName;
+      if (identical(returnType, node)) {
+        var name = parent.name;
+        if (name != null) {
+          return parent.declaredFragment?.element;
+        }
+        var element = node.element;
+        if (element is InterfaceElement) {
+          return element.unnamedConstructor;
+        }
+      } else if (parent.name == node.endToken) {
+        return parent.declaredFragment?.element;
+      }
+    } else if (parent is DottedName) {
+      var grandParent = parent.parent2;
+      if (grandParent is LibraryDirective) {
+        return grandParent.element;
+      }
+      return null;
+    } else if (parent is MethodInvocation &&
+        parent.methodName == node &&
+        parent.methodName.name == MethodElement.CALL_METHOD_NAME) {
+      // Handle .call() invocations on functions.
+      var method = parent.realTarget2;
+      if (method is Identifier && method.staticType is FunctionType) {
+        return method.element;
+      }
+    } else if (parent is PrefixedIdentifier &&
+        parent.identifier == node &&
+        parent.identifier.name == MethodElement.CALL_METHOD_NAME &&
+        parent.prefix.staticType is FunctionType) {
+      // Handle .call tear-offs on functions.
+      return parent.prefix.element;
+    }
+    return node.writeOrReadElement2;
+  }
+
+  Element? _visitStringLiteral(StringLiteral node) {
+    var parent = node.parent2;
+    if (parent is ExportDirective) {
+      return parent.libraryExport?.exportedLibrary;
+    } else if (parent is ImportDirective) {
+      return parent.libraryImport?.importedLibrary;
+    } else if (parent is PartDirective) {
+      return null;
     }
     return null;
   }
