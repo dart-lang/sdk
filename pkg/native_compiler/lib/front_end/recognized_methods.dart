@@ -76,11 +76,15 @@ void buildArrayElementGetter(
   FlowGraphBuilder builder,
   ArrayKind kind,
   CField lengthField,
-  CType elemType,
-) {
+  CType elemType, {
+  CField? indirectDataField,
+}) {
   final index = builder.pop();
   final array = builder.pop();
   builder.push(array);
+  if (indirectDataField != null) {
+    builder.addLoadInstanceField(indirectDataField);
+  }
   builder.push(index);
   builder.push(array);
   builder.addLoadInstanceField(lengthField);
@@ -92,12 +96,16 @@ void buildArrayElementGetter(
 void buildArrayElementSetter(
   FlowGraphBuilder builder,
   ArrayKind kind,
-  CField lengthField,
-) {
+  CField lengthField, {
+  CField? indirectDataField,
+}) {
   final value = builder.pop();
   final index = builder.pop();
   final array = builder.pop();
   builder.push(array);
+  if (indirectDataField != null) {
+    builder.addLoadInstanceField(indirectDataField);
+  }
   builder.push(index);
   builder.push(array);
   builder.addLoadInstanceField(lengthField);
@@ -121,6 +129,34 @@ void buildArrayFactory(
         : coreTypes.nonNullableRawType(cls),
   );
   builder.addAllocateArray(kind, type, hasTypeArguments: hasTypeArguments);
+}
+
+/// Build IR for _GrowableList._withData factory constructor.
+void buildGrowableListWithData(
+  FlowGraphBuilder builder,
+  ObjectLayout objectLayout,
+  ast.Class cls,
+) {
+  final data = builder.pop();
+  final typeArgs = builder.pop();
+  final coreTypes = GlobalContext.instance.coreTypes;
+  final type = StaticType(coreTypes.thisInterfaceType(cls, .nonNullable));
+  final obj = builder.addAllocateObject(type, typeArguments: typeArgs);
+  builder.push(obj);
+  builder.push(data);
+  builder.addStoreInstanceField(objectLayout.GrowableList_data);
+  builder.push(obj);
+  builder.addIntConstant(0);
+  builder.addStoreInstanceField(objectLayout.GrowableList_length);
+}
+
+/// Build IR for _GrowableList._capacity getter.
+void buildGrowableListCapacity(
+  FlowGraphBuilder builder,
+  ObjectLayout objectLayout,
+) {
+  builder.addLoadInstanceField(objectLayout.GrowableList_data);
+  builder.addLoadInstanceField(objectLayout.Array_length);
 }
 
 /// Build IR for ThreadLocal._hasValue.
@@ -327,6 +363,96 @@ final class VmRecognizedMethods(
         builder,
         .fixedLengthList,
         objectLayout.Array_length,
+      );
+    },
+    index.getProcedure(
+      'dart:core',
+      '_GrowableList',
+      '_withData',
+    ): (FlowGraphBuilder builder) {
+      buildGrowableListWithData(
+        builder,
+        objectLayout,
+        index.getClass('dart:core', '_GrowableList'),
+      );
+    },
+    index.getProcedure(
+      'dart:core',
+      '_GrowableList',
+      'get:_emptyList',
+    ): (FlowGraphBuilder builder) {
+      buildConstantGetter(
+        builder,
+        ConstantValue(RuntimeConstantObject(.mutableEmptyList)),
+      );
+    },
+    index.getProcedure(
+      'dart:core',
+      '_GrowableList',
+      'get:length',
+    ): (FlowGraphBuilder builder) {
+      buildInstanceGetter(builder, objectLayout.GrowableList_length);
+    },
+    index.getProcedure(
+      'dart:core',
+      '_GrowableList',
+      '_setLength',
+    ): (FlowGraphBuilder builder) {
+      buildInstanceSetter(builder, objectLayout.GrowableList_length);
+    },
+    index.getProcedure(
+      'dart:core',
+      '_GrowableList',
+      'get:_capacity',
+    ): (FlowGraphBuilder builder) {
+      buildGrowableListCapacity(builder, objectLayout);
+    },
+    index.getProcedure(
+      'dart:core',
+      '_GrowableList',
+      '_setData',
+    ): (FlowGraphBuilder builder) {
+      buildInstanceSetter(builder, objectLayout.GrowableList_data);
+    },
+    index.getProcedure(
+      'dart:core',
+      '_GrowableList',
+      '[]',
+    ): (FlowGraphBuilder builder) {
+      buildArrayElementGetter(
+        builder,
+        .fixedLengthList, // Backing store array.
+        objectLayout.GrowableList_length,
+        StaticType(
+          ast.TypeParameterType.withDefaultNullability(
+            index.getClass('dart:core', '_GrowableList').typeParameters.single,
+          ),
+        ),
+        indirectDataField: objectLayout.GrowableList_data,
+      );
+    },
+    index.getProcedure(
+      'dart:core',
+      '_GrowableList',
+      '[]=',
+    ): (FlowGraphBuilder builder) {
+      buildArrayElementSetter(
+        builder,
+        .fixedLengthList, // Backing store array.
+        objectLayout.GrowableList_length,
+        indirectDataField: objectLayout.GrowableList_data,
+      );
+    },
+    index.getProcedure(
+      'dart:core',
+      '_GrowableList',
+      '_setIndexed',
+    ): (FlowGraphBuilder builder) {
+      buildArrayElementSetter(
+        builder,
+        .fixedLengthList, // Backing store array.
+        objectLayout.GrowableList_length,
+        indirectDataField: objectLayout.GrowableList_data,
       );
     },
 

@@ -154,6 +154,10 @@ class ObjectLayout {
     'dart:core',
     '_Array',
   );
+  late final ast.Class _growableListClass = _libraryIndex.getClass(
+    'dart:core',
+    '_GrowableList',
+  );
   late final ast.Class _linkedHashBaseClass = _libraryIndex.getClass(
     'dart:_compact_hash',
     '_LinkedHashBase',
@@ -182,6 +186,18 @@ class ObjectLayout {
     _coreTypes.intNonNullableRawType,
     vmOffsets.Array_length_offset,
     isFinal: true,
+  );
+  late final CField GrowableList_length = _createBuiltInField(
+    _growableListClass,
+    'length',
+    _coreTypes.intNonNullableRawType,
+    vmOffsets.GrowableObjectArray_length_offset,
+  );
+  late final CField GrowableList_data = _createBuiltInField(
+    _growableListClass,
+    'data',
+    _coreTypes.nonNullableRawType(_arrayClass),
+    vmOffsets.GrowableObjectArray_data_offset,
   );
 
   // dart:_compact_hash
