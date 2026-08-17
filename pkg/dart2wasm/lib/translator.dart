@@ -2040,7 +2040,11 @@ class Translator with KernelNodes {
     return inferredTypeMetadata[node]?.skipCheck ?? false;
   }
 
-  DartType typeOfParameterVariable(Variable node, bool isRequired) {
+  DartType typeOfParameterVariable(
+    Variable node,
+    bool isRequired, {
+    bool isNoSuchMethodForwarder = false,
+  }) {
     // We have a guarantee that inferred types are correct.
     final inferredType = _inferredTypeOfParameterVariable(node);
     if (inferredType != null) {
@@ -2064,7 +2068,22 @@ class Translator with KernelNodes {
       return coreTypes.objectNullableRawType;
     }
 
-    return node.type;
+    // Special case for NSM forwarders: A method with a non-nullable optional
+    // parameter requires an implementation to (normally) have a default value,
+    // in case a call site didn't pass the optional parameter.
+    //
+    // Though an implementation may be done via defining a `noSuchMethod`
+    // method, which will make CFE auto generate all unimplemented methods via
+    // no-such-method forwarder functions. Those may not have a sensible
+    // default. To make this still work we use `null` as default which will then
+    // be in the `Invocation` object passed to the `noSuchMethod` call.
+    //
+    // See
+    //   * https://github.com/dart-lang/language/issues/3331
+    //   * https://github.com/dart-lang/sdk/issues/63958
+    return (!isRequired && isNoSuchMethodForwarder)
+        ? node.type.withDeclaredNullability(Nullability.nullable)
+        : node.type;
   }
 
   // The type to use assuming the argument was already checked (in case a
@@ -2089,8 +2108,19 @@ class Translator with KernelNodes {
     return _inferredTypeOfField(node) ?? node.type;
   }
 
-  w.ValueType translateTypeOfParameter(Variable node, bool isRequired) {
-    return translateType(typeOfParameterVariable(node, isRequired));
+  w.ValueType translateTypeOfParameter(
+    Variable node,
+    bool isRequired,
+    Member member,
+  ) {
+    return translateType(
+      typeOfParameterVariable(
+        node,
+        isRequired,
+        isNoSuchMethodForwarder:
+            member is Procedure && member.isNoSuchMethodForwarder,
+      ),
+    );
   }
 
   w.ValueType translateTypeOfField(Field node) {

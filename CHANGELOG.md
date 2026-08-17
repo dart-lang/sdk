@@ -6,8 +6,10 @@ This is a patch release that:
 
 - Fixes `dart fix --apply --code=migrate_design_widgets` to replace URIs in
   both import and export statements. (issue [#63968]).
+- Fixes dart2wasm compiler crash in no-such-method forwarders (issue #63904)
 
 [#63968]: https://github.com/dart-lang/sdk/issues/63968
+[#63904]: https://github.com/dart-lang/sdk/issues/63904
 
 ## 3.13.0
 
