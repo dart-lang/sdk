@@ -1385,6 +1385,7 @@ exhaustiveCases = LinterLintTemplate(
   name: 'exhaustive_cases',
   problemMessage: "Missing case clauses for some constants in '{0}'.",
   correctionMessage: "Try adding case clauses for the missing constants.",
+  hasPublishedDocs: true,
   uniqueName: 'exhaustive_cases',
   withArguments: _withArgumentsExhaustiveCases,
   expectedTypes: [ExpectedType.object],
@@ -1423,6 +1424,7 @@ const LinterLintWithoutArguments futureSyncValue = LinterLintWithoutArguments(
   problemMessage:
       "For synchronous values, `Future.syncValue` is more performant.",
   correctionMessage: "Try replacing `Future.value` with `Future.syncValue`.",
+  hasPublishedDocs: true,
   uniqueName: 'future_sync_value',
   expectedTypes: [],
 );
@@ -1874,6 +1876,7 @@ const LinterLintWithoutArguments noDefaultCases = LinterLintWithoutArguments(
   problemMessage: "Invalid use of 'default' member in a switch.",
   correctionMessage:
       "Try enumerating all the possible values of the switch expression.",
+  hasPublishedDocs: true,
   uniqueName: 'no_default_cases',
   expectedTypes: [],
 );
@@ -2556,6 +2559,7 @@ const LinterLintWithoutArguments preferIfElementsToConditionalExpressions =
       problemMessage: "Use an 'if' element to conditionally add elements.",
       correctionMessage:
           "Try using an 'if' element rather than a conditional expression.",
+      hasPublishedDocs: true,
       uniqueName: 'prefer_if_elements_to_conditional_expressions',
       expectedTypes: [],
     );
@@ -2786,6 +2790,7 @@ const LinterLintWithoutArguments preferSpreadCollections =
       problemMessage: "The addition of multiple elements could be inlined.",
       correctionMessage:
           "Try using the spread operator ('...') to inline the addition.",
+      hasPublishedDocs: true,
       uniqueName: 'prefer_spread_collections',
       expectedTypes: [],
     );
@@ -3637,6 +3642,7 @@ unreachableFromMain = LinterLintTemplate(
   name: 'unreachable_from_main',
   problemMessage: "Unreachable member '{0}' in an executable library.",
   correctionMessage: "Try referencing the member or removing it.",
+  hasPublishedDocs: true,
   uniqueName: 'unreachable_from_main',
   withArguments: _withArgumentsUnreachableFromMain,
   expectedTypes: [ExpectedType.object],
@@ -3851,6 +3857,7 @@ useIsEvenRatherThanModulo = LinterLintTemplate(
   name: 'use_is_even_rather_than_modulo',
   problemMessage: "Use '{0}' rather than '% 2'.",
   correctionMessage: "Try using '{0}'.",
+  hasPublishedDocs: true,
   uniqueName: 'use_is_even_rather_than_modulo',
   withArguments: _withArgumentsUseIsEvenRatherThanModulo,
   expectedTypes: [ExpectedType.object],
