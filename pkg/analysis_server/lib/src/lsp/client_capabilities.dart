@@ -84,6 +84,7 @@ class LspClientCapabilities {
   final bool renameResourceOperations;
   final bool completionDeprecatedFlag;
   final bool applyEdit;
+  final bool publishDiagnostics;
   final bool workDoneProgress;
   final bool completionSnippets;
   final bool renameValidation;
@@ -239,6 +240,7 @@ class LspClientCapabilities {
       renameResourceOperations: renameResourceOperations,
       completionDeprecatedFlag: completionDeprecatedFlag,
       applyEdit: applyEdit,
+      publishDiagnostics: publishDiagnostics != null,
       workDoneProgress: workDoneProgress,
       completionSnippets: completionSnippets,
       renameValidation: renameValidation,
@@ -286,6 +288,7 @@ class LspClientCapabilities {
     required this.renameResourceOperations,
     required this.completionDeprecatedFlag,
     required this.applyEdit,
+    required this.publishDiagnostics,
     required this.workDoneProgress,
     required this.completionSnippets,
     required this.renameValidation,
