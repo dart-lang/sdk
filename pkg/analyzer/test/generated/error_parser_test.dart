@@ -1052,7 +1052,7 @@ var s = '$x$';
     var node = parseResult.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -1129,7 +1129,7 @@ CompilationUnit
       uri: SimpleStringLiteral
         literal: ''
       semicolon: ; <synthetic>
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -1168,7 +1168,7 @@ CompilationUnit
       uri: SimpleStringLiteral
         literal: ''
       semicolon: ; <synthetic>
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -1196,7 +1196,7 @@ CompilationUnit
       uri: SimpleStringLiteral
         literal: "" <synthetic>
       semicolon: ; <synthetic>
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -1630,7 +1630,7 @@ void f() {
     var node = parseResult.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       returnType: NamedType
         name: void
@@ -3530,15 +3530,23 @@ void f() {
     var result = parseTestCodeWithDiagnostics(r'''
 get x => 7;
 ''');
-    var node = result.findNode.singleFunctionDeclaration;
+    var node = result.findNode.singleTopLevelGetterDeclaration;
     assertParsedNodeText(node, r'''
+TopLevelGetterDeclaration
+  getKeyword: get
+  name: x
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression2: IntegerLiteral
+      literal: 7
+    semicolon: ;
 FunctionDeclaration
   propertyKeyword: get
   name: x
   functionExpression: FunctionExpression
     body: ExpressionFunctionBody
       functionDefinition: =>
-      expression2: IntegerLiteral
+      expression: IntegerLiteral
         literal: 7
       semicolon: ;
 ''');
@@ -3818,7 +3826,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: x
   binaryOperator: add
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: <empty> <synthetic>
   operator: +

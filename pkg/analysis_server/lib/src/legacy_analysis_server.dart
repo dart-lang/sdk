@@ -421,6 +421,7 @@ class LegacyAnalysisServer extends AnalysisServer {
          NotificationManager(channel, baseResourceProvider.pathContext),
          usePlugins: options.usePlugins,
        ) {
+    notificationManager.analysisServer = this;
     var contextManagerCallbacks = ServerContextManagerCallbacks(
       this,
       resourceProvider,
@@ -482,15 +483,13 @@ class LegacyAnalysisServer extends AnalysisServer {
   set clientCapabilities(ServerSetClientCapabilitiesParams capabilities) {
     _clientCapabilities = capabilities;
 
-    // TODO(dantup): If we can confirm that IntelliJ did not ship code that
-    //  sets supportsUris=true, then we may be able to entirely remove the
-    //  uriConverter and all the calls through it.
     if (capabilities.supportsUris ?? false) {
       // URI support implies LSP, as that's the only way to access (and get
       // change notifications for) custom-scheme files.
       uriConverter = ClientUriConverter.withVirtualFileSupport(
         resourceProvider.pathContext,
       );
+      // supportsUris implies LSP-over-Legacy support.
       initializeLspOverLegacy();
     } else {
       uriConverter = ClientUriConverter.noop(resourceProvider.pathContext);
@@ -498,6 +497,8 @@ class LegacyAnalysisServer extends AnalysisServer {
 
     if (capabilities.lspCapabilities
         case Map<Object?, Object?> lspCapabilities) {
+      initializeLspOverLegacy();
+
       // First validate the capabilities so we can get a better message if it's
       // invalid.
       var reporter = lsp.LspJsonReporter();
@@ -517,6 +518,10 @@ class LegacyAnalysisServer extends AnalysisServer {
   @override
   lsp.LspClientCapabilities get editorClientCapabilities =>
       _editorClientCapabilities;
+
+  @override
+  NotificationManager get notificationManager =>
+      super.notificationManager as NotificationManager;
 
   /// The [Future] that completes when analysis is complete.
   ///
@@ -726,6 +731,9 @@ class LegacyAnalysisServer extends AnalysisServer {
   /// This only applies to LSP over the legacy protocol and not DTD, since we
   /// do not want a DTD-LSP client to trigger LSP notifications going to the
   /// legacy protocol client, only the legacy protocol client should do that.
+  ///
+  /// For convenience, this method can be called multiple times from different
+  /// code paths.
   void initializeLspOverLegacy() {
     sendLspNotifications = true;
   }

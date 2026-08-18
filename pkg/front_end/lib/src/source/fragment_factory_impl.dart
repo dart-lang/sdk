@@ -2256,6 +2256,27 @@ class FragmentFactoryImpl implements FragmentFactory {
   }
 
   @override
+  FunctionTypeParameterBuilder addFunctionTypeParameter({
+    required FormalParameterKind kind,
+    required TypeBuilder type,
+    required String? name,
+    required int fileOffset,
+  }) {
+    bool isWildcard =
+        kind.isPositional &&
+        libraryFeatures.wildcardVariables.isEnabled &&
+        name == '_';
+    FunctionTypeParameterBuilder formal = new FunctionTypeParameterBuilder(
+      kind: kind,
+      type: type,
+      name: name,
+      fileOffset: fileOffset,
+      isWildcard: isWildcard,
+    );
+    return formal;
+  }
+
+  @override
   TypeBuilder addNamedType(
     TypeName typeName,
     NullabilityBuilder nullabilityBuilder,
@@ -2284,7 +2305,7 @@ class FragmentFactoryImpl implements FragmentFactory {
   FunctionTypeBuilder addFunctionType(
     TypeBuilder returnType,
     List<SourceStructuralParameterBuilder>? structuralVariableBuilders,
-    List<FormalParameterBuilder>? formals,
+    List<FunctionTypeParameterBuilder>? formals,
     NullabilityBuilder nullabilityBuilder,
     Uri fileUri,
     int charOffset, {

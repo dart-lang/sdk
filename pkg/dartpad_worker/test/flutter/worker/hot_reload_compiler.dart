@@ -35,6 +35,22 @@ void main() {
       ..codeContains('MaterialApp');
   });
 
+  testFlutterWorkspace('recompile lib/main.dart entrypoint', (ws) async {
+    await ws.writeFileFromText('lib/main.dart', '''
+      import 'package:flutter/material.dart';
+
+      void main() => runApp(
+        const MaterialApp(home: Center(child: Text('Hello Lib Main!'))),
+      );
+    ''');
+
+    final c = await ws.startHotReloadCompiler(Uri.parse('lib/main.dart'));
+    check(await c.compile())
+      ..log.isEmpty()
+      ..codeContains('Hello Lib Main!')
+      ..codeContains('MaterialApp');
+  });
+
   testFlutterWorkspace('recompile with imports', (ws) async {
     await ws.writeFileFromText('lib/sayhello.dart', '''
       void sayHello() => print('Hello 1!');

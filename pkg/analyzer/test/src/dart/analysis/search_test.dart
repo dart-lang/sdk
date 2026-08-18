@@ -7,7 +7,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/search.dart';
-import 'package:analyzer/src/test_utilities/find_element2.dart';
+import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:analyzer_testing/package_config_file_builder.dart';
@@ -4642,6 +4642,101 @@ class B extends A {
     );
   }
 
+  test_searchReferences_FieldElement_ofClass_instance_propertyAssignmentTarget() async {
+    var result = await resolveTestCode('''
+class A {
+  num x = 0;
+}
+class B {
+  num? x;
+}
+void use(A a, A? nullableA, B b, B? nullableB) {
+  (a).x = 1;
+  (nullableA)?.x = 2;
+  (a).x += 3;
+  (nullableA)?.x += 4;
+  (b).x ??= 5;
+  (nullableB)?.x ??= 6;
+}
+''');
+
+    await assertElementsReferencesText(
+      {
+        'aField': result.findElement.field('x', of: 'A'),
+        'aGetter': result.findElement.getter('x', of: 'A'),
+        'aSetter': result.findElement.setter('x', of: 'A'),
+        'bField': result.findElement.field('x', of: 'B'),
+        'bGetter': result.findElement.getter('x', of: 'B'),
+        'bSetter': result.findElement.setter('x', of: 'B'),
+        'num.+': result.typeProvider.numElement.getMethod('+')!,
+      },
+      r'''
+class A {
+  num x = 0;
+}
+class B {
+  num? x;
+}
+void use(A a, A? nullableA, B b, B? nullableB) {
+  (a).x = 1;
+      ^ aField WRITE qualified
+      ^ aSetter INVOCATION qualified
+  (nullableA)?.x = 2;
+               ^ aField WRITE qualified
+               ^ aSetter INVOCATION qualified
+  (a).x += 3;
+      ^ aField READ_WRITE qualified
+      ^ aGetter INVOCATION qualified
+      ^ aSetter INVOCATION qualified
+        ^^ num.+ INVOCATION qualified
+  (nullableA)?.x += 4;
+               ^ aField READ_WRITE qualified
+               ^ aGetter INVOCATION qualified
+               ^ aSetter INVOCATION qualified
+                 ^^ num.+ INVOCATION qualified
+  (b).x ??= 5;
+      ^ bField READ_WRITE qualified
+      ^ bGetter INVOCATION qualified
+      ^ bSetter INVOCATION qualified
+  (nullableB)?.x ??= 6;
+               ^ bField READ_WRITE qualified
+               ^ bGetter INVOCATION qualified
+               ^ bSetter INVOCATION qualified
+}
+''',
+    );
+  }
+
+  test_searchReferences_FieldElement_ofClass_instance_propertyExtraction() async {
+    var result = await resolveTestCode('''
+class A {
+  num x = 0;
+}
+void use(A a, A? nullableA) {
+  (a).x;
+  (nullableA)?.x;
+}
+''');
+
+    var field = result.findElement.field('x', of: 'A');
+    await assertElementsReferencesText(
+      {'field': field, 'getter': field.getter!},
+      r'''
+class A {
+  num x = 0;
+}
+void use(A a, A? nullableA) {
+  (a).x;
+      ^ field READ qualified
+      ^ getter INVOCATION qualified
+  (nullableA)?.x;
+               ^ field READ qualified
+               ^ getter INVOCATION qualified
+}
+''',
+    );
+  }
+
   test_searchReferences_FieldElement_ofClass_instance_setterDeclaration() async {
     var result = await resolveTestCode('''
 /// [foo] and [A.foo]
@@ -8020,14 +8115,75 @@ void useOperator(A a) {
 ''');
   }
 
-  test_searchReferences_MethodElement_operator_ofClass_index() async {
+  test_searchReferences_MethodElement_operator_ofClass_indexAssignmentTarget() async {
+    var result = await resolveTestCode('''
+class A {
+  num operator [](int i) => 0;
+  void operator []=(int i, num v) {}
+}
+class B {
+  num? operator [](int i) => 0;
+  void operator []=(int i, num v) {}
+}
+void useOperator(A a, A? nullableA, B b, B? nullableB) {
+  a[0] = 1;
+  nullableA?[1] = 2;
+  a[2] += 3;
+  nullableA?[3] += 4;
+  b[4] ??= 5;
+  nullableB?[5] ??= 6;
+}
+''');
+    await assertElementsReferencesText(
+      {
+        'aRead': result.findElement.method('[]', of: 'A'),
+        'aWrite': result.findElement.method('[]=', of: 'A'),
+        'bRead': result.findElement.method('[]', of: 'B'),
+        'bWrite': result.findElement.method('[]=', of: 'B'),
+        'num.+': result.typeProvider.numElement.getMethod('+')!,
+      },
+      r'''
+class A {
+  num operator [](int i) => 0;
+  void operator []=(int i, num v) {}
+}
+class B {
+  num? operator [](int i) => 0;
+  void operator []=(int i, num v) {}
+}
+void useOperator(A a, A? nullableA, B b, B? nullableB) {
+  a[0] = 1;
+   ^ aWrite INVOCATION qualified
+  nullableA?[1] = 2;
+            ^ aWrite INVOCATION qualified
+  a[2] += 3;
+   ^ aRead INVOCATION qualified
+   ^ aWrite INVOCATION qualified
+       ^^ num.+ INVOCATION qualified
+  nullableA?[3] += 4;
+            ^ aRead INVOCATION qualified
+            ^ aWrite INVOCATION qualified
+                ^^ num.+ INVOCATION qualified
+  b[4] ??= 5;
+   ^ bRead INVOCATION qualified
+   ^ bWrite INVOCATION qualified
+  nullableB?[5] ??= 6;
+            ^ bRead INVOCATION qualified
+            ^ bWrite INVOCATION qualified
+}
+''',
+    );
+  }
+
+  test_searchReferences_MethodElement_operator_ofClass_indexExpression() async {
     var result = await resolveTestCode('''
 /// [operator []] and [A.operator []]
 class A {
-  operator [](i) => null;
+  num operator [](int i) => 0;
 }
-void useOperator(A a) {
+void useOperator(A a, A? b) {
   a[0];
+  b?[1];
 }
 ''');
     var element = result.findElement.method('[]');
@@ -8035,35 +8191,13 @@ void useOperator(A a) {
     await assertElementReferencesText(element, r'''
 /// [operator []] and [A.operator []]
 class A {
-  operator [](i) => null;
+  num operator [](int i) => 0;
 }
-void useOperator(A a) {
+void useOperator(A a, A? b) {
   a[0];
    ^ INVOCATION qualified
-}
-''');
-  }
-
-  test_searchReferences_MethodElement_operator_ofClass_indexEq() async {
-    var result = await resolveTestCode('''
-/// [operator []=] and [A.operator []=]
-class A {
-  operator []=(i, v) {}
-}
-void useOperator(A a) {
-  a[1] = 42;
-}
-''');
-    var element = result.findElement.method('[]=');
-
-    await assertElementReferencesText(element, r'''
-/// [operator []=] and [A.operator []=]
-class A {
-  operator []=(i, v) {}
-}
-void useOperator(A a) {
-  a[1] = 42;
-   ^ INVOCATION qualified
+  b?[1];
+    ^ INVOCATION qualified
 }
 ''');
   }

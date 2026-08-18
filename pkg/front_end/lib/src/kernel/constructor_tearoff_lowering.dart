@@ -370,7 +370,7 @@ DelayedDefaultValueCloner _createParameters(
       constructorParameter.type,
     );
     return extern.createPositionalParameter(
-      cosmeticName: constructorParameter.cosmeticName,
+      parameterName: constructorParameter.parameterName,
       type: tearOffParameterType,
       fileOffset: constructorParameter.fileOffset,
     );
@@ -444,7 +444,7 @@ Arguments _createArguments(
   for (NamedParameter tearOffParameter in tearOff.function.namedParameters) {
     namedArguments.add(
       extern.createNamedExpression(
-        tearOffParameter.cosmeticName!,
+        tearOffParameter.parameterName,
         extern.createVariableGet(tearOffParameter, fileOffset: fileOffset),
       ),
     );

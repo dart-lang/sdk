@@ -1329,10 +1329,10 @@ final B1 = A1;
         (result) {
           return switch (result.uriStr) {
             'package:test/a.dart' => [
-              result.findElement2.topVar('A1'),
-              result.findElement2.topVar('A2'),
+              result.findElement.topVar('A1'),
+              result.findElement.topVar('A2'),
             ],
-            'package:test/b.dart' => [result.findElement2.topVar('B1')],
+            'package:test/b.dart' => [result.findElement.topVar('B1')],
             _ => [],
           };
         };
@@ -1414,7 +1414,7 @@ final A2 = B1;
         (result) {
           switch (result.uriStr) {
             case 'package:test/a.dart':
-              return [result.findElement2.topVar('V')];
+              return [result.findElement.topVar('V')];
             default:
               return [];
           }
@@ -3036,7 +3036,7 @@ final foo = 0;
 
     configuration.libraryConfiguration.unitConfiguration.variableTypesSelector =
         (result) {
-          return [result.findElement2.topVar('foo')];
+          return [result.findElement.topVar('foo')];
         };
 
     // The extension of the file does not matter.
@@ -3491,7 +3491,7 @@ final B = A;
         (result) {
           switch (result.uriStr) {
             case 'package:test/b.dart':
-              return [result.findElement2.topVar('B')];
+              return [result.findElement.topVar('B')];
             default:
               return [];
           }
@@ -3645,7 +3645,7 @@ driver
         (result) {
           switch (result.uriStr) {
             case 'package:test/a.dart':
-              return [result.findElement2.topVar('V')];
+              return [result.findElement.topVar('V')];
             default:
               return [];
           }
@@ -3880,7 +3880,7 @@ class A {}
       var result = driver.parseFileSync2(a) as ParsedUnitResult;
       assertParsedNodeText(result.unit, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -3929,7 +3929,7 @@ class A {}
     var result = driver.parseFileSync2(a) as ParsedUnitResult;
     assertParsedNodeText(result.unit, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -5282,9 +5282,9 @@ final B = 0;
         (result) {
           switch (result.uriStr) {
             case 'package:test/a.dart':
-              return [result.findElement2.topVar('A')];
+              return [result.findElement.topVar('A')];
             case 'package:test/b.dart':
-              return [result.findElement2.topVar('B')];
+              return [result.findElement.topVar('B')];
             default:
               return [];
           }

@@ -487,6 +487,13 @@ abstract class FragmentFactory {
     required Token? initializerToken,
   });
 
+  FunctionTypeParameterBuilder addFunctionTypeParameter({
+    required FormalParameterKind kind,
+    required TypeBuilder type,
+    required String? name,
+    required int fileOffset,
+  });
+
   ConstructorReferenceBuilder addConstructorReference(
     TypeName name,
     List<TypeBuilder>? typeArguments,
@@ -511,7 +518,7 @@ abstract class FragmentFactory {
   FunctionTypeBuilder addFunctionType(
     TypeBuilder returnType,
     List<SourceStructuralParameterBuilder>? structuralParameterBuilders,
-    List<FormalParameterBuilder>? formals,
+    List<FunctionTypeParameterBuilder>? formals,
     NullabilityBuilder nullabilityBuilder,
     Uri fileUri,
     int charOffset, {

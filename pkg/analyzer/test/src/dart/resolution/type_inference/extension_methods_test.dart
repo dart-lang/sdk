@@ -309,7 +309,7 @@ PropertyExtraction
     invokeType: S Function(S) Function()
     type: S Function(S)
   staticType: S Function(S)
-PropertyAccess
+V1: PropertyAccess
   target: ParenthesizedExpression
     leftParenthesis: (
     expression: SimpleIdentifier

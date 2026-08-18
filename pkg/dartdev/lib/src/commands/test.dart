@@ -54,6 +54,7 @@ Run "${runner!.executableName} help" to see global options.''');
     final args = argResults!;
 
     String? nativeAssets;
+    DartNativeAssetsBuilder? builder;
     final packageConfigUri = await DartNativeAssetsBuilder.ensurePackageConfig(
       Directory.current.uri,
     );
@@ -74,7 +75,7 @@ Run "${runner!.executableName} help" to see global options.''');
         final pubspecUri = await DartNativeAssetsBuilder.findWorkspacePubspec(
           packageConfigUri,
         );
-        final builder = DartNativeAssetsBuilder(
+        builder = DartNativeAssetsBuilder(
           pubspecUri: pubspecUri,
           packageConfigUri: packageConfigUri,
           packageConfig: packageConfig,
@@ -140,6 +141,7 @@ Run "${runner!.executableName} help" to see global options.''');
         //
         // See https://github.com/dart-lang/sdk/issues/53576
         markMainIsolateAsSystemIsolate: true,
+        deleteTempDirOnShutdown: builder?.tempDirUri?.toFilePath(),
       );
       return 0;
     } on CommandResolutionFailedException catch (e) {

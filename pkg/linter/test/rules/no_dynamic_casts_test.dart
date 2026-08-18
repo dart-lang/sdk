@@ -129,6 +129,42 @@ void f(List<dynamic> list) {
 ''');
   }
 
+  test_ifCase_element_ok() async {
+    await assertNoDiagnostics(r'''
+void f(dynamic a) {
+  [if (a case String s) s];
+}
+''');
+  }
+
+  test_ifCase_element_when() async {
+    await assertDiagnosticsFromMarkup(r'''
+void f(dynamic a, dynamic b) {
+  [if (a case String s when [!b!]) s];
+}
+''');
+  }
+
+  test_ifCase_ok() async {
+    await assertNoDiagnostics(r'''
+void f(dynamic a) {
+  if (a case String s) {
+    print(s);
+  }
+}
+''');
+  }
+
+  test_ifCase_when() async {
+    await assertDiagnosticsFromMarkup(r'''
+void f(dynamic a, dynamic b) {
+  if (a case String s when [!b!]) {
+    print(s);
+  }
+}
+''');
+  }
+
   test_listLiteral() async {
     await assertDiagnosticsFromMarkup(r'''
 void f(dynamic a) {
@@ -190,6 +226,15 @@ void g(dynamic a) {
     await assertDiagnosticsFromMarkup(r'''
 void f(dynamic a) {
   ![!a!];
+}
+''');
+  }
+
+  test_patternAssignment_list() async {
+    await assertDiagnosticsFromMarkup(r'''
+void f(dynamic p, dynamic q) {
+  String a, b;
+  [a, b] = [/*[0*/p/*0]*/, /*[1*/q/*1]*/];
 }
 ''');
   }

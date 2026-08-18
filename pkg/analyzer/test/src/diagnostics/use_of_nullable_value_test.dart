@@ -766,7 +766,7 @@ CompoundAssignment
   element: dart:core::@class::num::@method::+
   operatorResultType: int
   staticType: int
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::m::@formalParameter::x
@@ -804,7 +804,7 @@ CompoundAssignment
   element: dart:core::@class::num::@method::+
   operatorResultType: int
   staticType: int
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: y
     element: <testLibrary>::@function::m::@formalParameter::y

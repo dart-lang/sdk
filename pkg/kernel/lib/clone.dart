@@ -785,7 +785,7 @@ class CloneVisitorNotMembers
         setVariableClone(
           node,
           new PositionalParameter(
-              cosmeticName: node.cosmeticName,
+              parameterName: node.parameterName,
               type: visitType(node.type),
               defaultValue: cloneOptional(node.defaultValue),
             )

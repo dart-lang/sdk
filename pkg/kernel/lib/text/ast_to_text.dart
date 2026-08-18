@@ -27,6 +27,46 @@ class NormalNamer<T> extends Namer<T> {
   new(this.prefix);
 }
 
+class VariableNamer({required final String infix, required String prefix})
+    extends NormalNamer<Variable> {
+  final Map<String, Set<Variable>> disambiguation = {};
+
+  this : super(prefix);
+
+  String getVariableName(Variable variable) {
+    String? cosmeticName = variable.cosmeticName;
+    if (cosmeticName == null) {
+      return getName(variable);
+    } else {
+      return map.putIfAbsent(
+        variable,
+        () => _disambiguate(variable, cosmeticName),
+      );
+    }
+  }
+
+  String _disambiguate(Variable variable, String name) {
+    Set<Variable>? set = disambiguation[name];
+    if (set != null) {
+      String disambiguatedName = '$name${infix}${set.length}';
+      set.add(variable);
+      return disambiguatedName;
+    } else {
+      disambiguation[name] = {variable};
+      return name;
+    }
+  }
+
+  void clearDisambiguations() {
+    for (Set<Variable> set in disambiguation.values) {
+      for (Variable variable in set) {
+        map.remove(variable);
+      }
+    }
+    disambiguation.clear();
+  }
+}
+
 class ConstantNamer extends RecursiveVisitor with Namer<Constant> {
   @override
   final String prefix;
@@ -146,7 +186,7 @@ String componentToString(Component node) {
 }
 
 class NameSystem {
-  final Namer<Variable> variables = new NormalNamer<Variable>('#t');
+  final VariableNamer variables = new VariableNamer(prefix: '#t', infix: '##');
   final Namer<Reference> libraries = new NormalNamer<Reference>('#lib');
   final Namer<TypeParameter> typeParameters = new NormalNamer<TypeParameter>(
     '#T',
@@ -161,7 +201,8 @@ class NameSystem {
   final Disambiguator<Reference, CanonicalName> prefixes =
       new Disambiguator<Reference, CanonicalName>();
 
-  String nameVariable(Variable node) => variables.getName(node);
+  String nameVariable(Variable node) => variables.getVariableName(node);
+  void clearVariableDisambiguations() => variables.clearDisambiguations();
   String nameLibrary(Reference node) => libraries.getName(node);
   String nameTypeParameter(TypeParameter node) => typeParameters.getName(node);
   String nameStructuralParameter(StructuralParameter node) =>
@@ -372,7 +413,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
   }
 
   String getVariableName(Variable node) {
-    return node.cosmeticName ?? syntheticNames.nameVariable(node);
+    return syntheticNames.nameVariable(node);
   }
 
   String getVariableReference(Variable node) {
@@ -1349,6 +1390,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
       writeWord("/*${features.join(',')}*/");
     }
     endLine(';');
+    syntheticNames.clearVariableDisambiguations();
   }
 
   @override
@@ -1427,6 +1469,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
         endLine();
         break;
     }
+    syntheticNames.clearVariableDisambiguations();
   }
 
   @override
@@ -1450,6 +1493,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
       name: node.name,
       initializers: node.initializers,
     );
+    syntheticNames.clearVariableDisambiguations();
   }
 
   @override
@@ -1687,6 +1731,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
       writeNode(type);
     }
     endLine(';');
+    syntheticNames.clearVariableDisambiguations();
   }
 
   @override

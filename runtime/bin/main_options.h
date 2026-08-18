@@ -30,12 +30,19 @@ namespace bin {
   V(write_service_info, vm_write_service_info_filename)                        \
   V(executable_name, executable_name)                                          \
   V(resolved_executable_name, resolved_executable_name)                        \
-  V(load_module_snapshot, load_module_snapshot)                                \
   V(script_uri_override, script_uri_override)                                  \
+  V(delete_temp_dir_on_shutdown, delete_temp_dir_on_shutdown)                  \
   /* The purpose of these flags is documented in */                            \
   /* pkg/dartdev/lib/src/commands/compilation_server.dart. */                  \
   V(resident_server_info_file, resident_server_info_file_path)                 \
   V(resident_compiler_info_file, resident_compiler_info_file_path)
+
+// A list of options taking a list of string arguments (comma-separated or
+// specified multiple times). Organized as:
+//   V(flag_name, field_name)
+// The values of the flag can then be accessed with Options::field_name().
+#define STRING_LIST_OPTIONS_LIST(V)                                            \
+  V(load_module_snapshot, load_module_snapshots)
 
 // As STRING_OPTIONS_LIST but for boolean valued options. The default value is
 // always false, and the presence of the flag switches the value to true.
@@ -127,6 +134,13 @@ class Options {
   STRING_OPTIONS_LIST(STRING_OPTION_GETTER)
 #undef STRING_OPTION_GETTER
 
+#define STRING_LIST_OPTION_GETTER(flag, variable)                              \
+  static const MallocGrowableArray<const char*>& variable() {                  \
+    return variable##_;                                                        \
+  }
+  STRING_LIST_OPTIONS_LIST(STRING_LIST_OPTION_GETTER)
+#undef STRING_LIST_OPTION_GETTER
+
 #define BOOL_OPTION_GETTER(flag, variable)                                     \
   static bool variable() {                                                     \
     return variable##_;                                                        \
@@ -173,6 +187,10 @@ class Options {
   static void set_dfe(DFE* dfe) { dfe_ = dfe; }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
+  static void set_delete_temp_dir_on_shutdown(const char* dir) {
+    delete_temp_dir_on_shutdown_ = dir;
+  }
+
   static void PrintUsage();
   static void PrintVersion();
 
@@ -192,6 +210,11 @@ class Options {
 #define STRING_OPTION_DECL(flag, variable) static const char* variable##_;
   STRING_OPTIONS_LIST(STRING_OPTION_DECL)
 #undef STRING_OPTION_DECL
+
+#define STRING_LIST_OPTION_DECL(flag, variable)                                \
+  static MallocGrowableArray<const char*> variable##_;
+  STRING_LIST_OPTIONS_LIST(STRING_LIST_OPTION_DECL)
+#undef STRING_LIST_OPTION_DECL
 
 #define BOOL_OPTION_DECL(flag, variable) static bool variable##_;
   BOOL_OPTIONS_LIST(BOOL_OPTION_DECL)
@@ -252,6 +275,7 @@ class Options {
 
 #define OPTION_FRIEND(flag, variable) friend class OptionProcessor_##flag;
   STRING_OPTIONS_LIST(OPTION_FRIEND)
+  STRING_LIST_OPTIONS_LIST(OPTION_FRIEND)
   BOOL_OPTIONS_LIST(OPTION_FRIEND)
 #if defined(DEBUG)
   DEBUG_BOOL_OPTIONS_LIST(OPTION_FRIEND)

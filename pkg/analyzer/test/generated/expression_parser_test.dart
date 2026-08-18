@@ -41,7 +41,7 @@ var v = <b?c>();
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -82,7 +82,7 @@ var v = n=<.["$assert;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -161,7 +161,7 @@ var v = [<y.<z>(){}];
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -423,7 +423,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: y
   binaryOperator: add
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
   operator: +
@@ -445,7 +445,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: y
   binaryOperator: add
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SuperExpression
     superKeyword: super
   operator: +
@@ -524,7 +524,7 @@ PropertyExtraction
     rightParenthesis: )
   operator: .
   propertyName: y
-PropertyAccess
+V1: PropertyAccess
   target: ParenthesizedExpression
     leftParenthesis: (
     expression: SimpleIdentifier
@@ -542,14 +542,24 @@ var v = (x)[y];
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-IndexExpression
-  target2: ParenthesizedExpression
+IndexExpression2
+  receiver: ParenthesizedExpression
     leftParenthesis: (
     expression2: SimpleIdentifier
       token: x
     rightParenthesis: )
   leftBracket: [
-  index2: SimpleIdentifier
+  index: SimpleIdentifier
+    token: y
+  rightBracket: ]
+V1: IndexExpression
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: SimpleIdentifier
+      token: x
+    rightParenthesis: )
+  leftBracket: [
+  index: SimpleIdentifier
     token: y
   rightBracket: ]
 ''');
@@ -561,10 +571,18 @@ var v = (x)?.y;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-PropertyAccess
-  target2: ParenthesizedExpression
+PropertyExtraction
+  receiver: ParenthesizedExpression
     leftParenthesis: (
     expression2: SimpleIdentifier
+      token: x
+    rightParenthesis: )
+  operator: ?.
+  propertyName: y
+V1: PropertyAccess
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: SimpleIdentifier
       token: x
     rightParenthesis: )
   operator: ?.
@@ -655,11 +673,18 @@ var v = x[y];
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-IndexExpression
-  target2: SimpleIdentifier
+IndexExpression2
+  receiver: SimpleIdentifier
     token: x
   leftBracket: [
-  index2: SimpleIdentifier
+  index: SimpleIdentifier
+    token: y
+  rightBracket: ]
+V1: IndexExpression
+  target: SimpleIdentifier
+    token: x
+  leftBracket: [
+  index: SimpleIdentifier
     token: y
   rightBracket: ]
 ''');
@@ -701,11 +726,18 @@ var v = super[y];
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-IndexExpression
-  target2: SuperExpression
+IndexExpression2
+  receiver: SuperExpression
     superKeyword: super
   leftBracket: [
-  index2: SimpleIdentifier
+  index: SimpleIdentifier
+    token: y
+  rightBracket: ]
+V1: IndexExpression
+  target: SuperExpression
+    superKeyword: super
+  leftBracket: [
+  index: SimpleIdentifier
     token: y
   rightBracket: ]
 ''');
@@ -732,11 +764,18 @@ var v = x[x];
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-IndexExpression
-  target2: SimpleIdentifier
+IndexExpression2
+  receiver: SimpleIdentifier
     token: x
   leftBracket: [
-  index2: SimpleIdentifier
+  index: SimpleIdentifier
+    token: x
+  rightBracket: ]
+V1: IndexExpression
+  target: SimpleIdentifier
+    token: x
+  leftBracket: [
+  index: SimpleIdentifier
     token: x
   rightBracket: ]
 ''');
@@ -796,7 +835,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: y
   binaryOperator: bitwiseAnd
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
   operator: &
@@ -818,7 +857,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: y
   binaryOperator: bitwiseAnd
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SuperExpression
     superKeyword: super
   operator: &
@@ -840,7 +879,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: y
   binaryOperator: bitwiseOr
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
   operator: |
@@ -862,7 +901,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: y
   binaryOperator: bitwiseOr
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SuperExpression
     superKeyword: super
   operator: |
@@ -884,7 +923,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: y
   binaryOperator: bitwiseXor
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
   operator: ^
@@ -906,7 +945,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: y
   binaryOperator: bitwiseXor
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SuperExpression
     superKeyword: super
   operator: ^
@@ -924,13 +963,45 @@ var v = null..[i];
 CascadeExpression
   target2: NullLiteral
     literal: null
-  cascadeSections2
+  sections
+    CascadeSection
+      operator: ..
+      body: CascadeIndexExpression
+        leftBracket: [
+        index: SimpleIdentifier
+          token: i
+        rightBracket: ]
+  cascadeSections
     IndexExpression
       period: ..
       leftBracket: [
-      index2: SimpleIdentifier
+      index: SimpleIdentifier
         token: i
       rightBracket: ]
+''');
+  }
+
+  void test_parseCascadeSection_i_postfixDecrement_invalid() {
+    parseTestCodeWithDiagnostics(r'''
+var v = null..[i]--;
+//              ^
+// [diag.expectedToken] Expected to find ';'.
+//               ^^
+// [diag.expectedExecutable] Expected a method, getter, setter or operator declaration.
+//                 ^
+// [diag.unexpectedToken] Unexpected text ';'.
+''');
+  }
+
+  void test_parseCascadeSection_i_postfixIncrement_invalid() {
+    parseTestCodeWithDiagnostics(r'''
+var v = null..[i]++;
+//              ^
+// [diag.expectedToken] Expected to find ';'.
+//               ^^
+// [diag.expectedExecutable] Expected a method, getter, setter or operator declaration.
+//                 ^
+// [diag.unexpectedToken] Unexpected text ';'.
 ''');
   }
 
@@ -943,17 +1014,38 @@ var v = null..[i](b);
 CascadeExpression
   target2: NullLiteral
     literal: null
-  cascadeSections2
+  sections
+    CascadeSection
+      operator: ..
+      body: FunctionExpressionInvocation
+        function2: CascadeIndexExpression
+          leftBracket: [
+          index: SimpleIdentifier
+            token: i
+          rightBracket: ]
+        function(v1): IndexExpression
+          period: ..
+          leftBracket: [
+          index: SimpleIdentifier
+            token: i
+          rightBracket: ]
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments2
+            SimpleIdentifier
+              token: b
+          rightParenthesis: )
+  cascadeSections
     FunctionExpressionInvocation
-      function2: IndexExpression
+      function: IndexExpression
         period: ..
         leftBracket: [
-        index2: SimpleIdentifier
+        index: SimpleIdentifier
           token: i
         rightBracket: ]
       argumentList: ArgumentList
         leftParenthesis: (
-        arguments2
+        arguments
           SimpleIdentifier
             token: b
         rightParenthesis: )
@@ -969,12 +1061,39 @@ var v = null..[i]<E>(b);
 CascadeExpression
   target2: NullLiteral
     literal: null
-  cascadeSections2
+  sections
+    CascadeSection
+      operator: ..
+      body: FunctionExpressionInvocation
+        function2: CascadeIndexExpression
+          leftBracket: [
+          index: SimpleIdentifier
+            token: i
+          rightBracket: ]
+        function(v1): IndexExpression
+          period: ..
+          leftBracket: [
+          index: SimpleIdentifier
+            token: i
+          rightBracket: ]
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: E
+          rightBracket: >
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments2
+            SimpleIdentifier
+              token: b
+          rightParenthesis: )
+  cascadeSections
     FunctionExpressionInvocation
-      function2: IndexExpression
+      function: IndexExpression
         period: ..
         leftBracket: [
-        index2: SimpleIdentifier
+        index: SimpleIdentifier
           token: i
         rightBracket: ]
       typeArguments: TypeArgumentList
@@ -985,7 +1104,7 @@ CascadeExpression
         rightBracket: >
       argumentList: ArgumentList
         leftParenthesis: (
-        arguments2
+        arguments
           SimpleIdentifier
             token: b
         rightParenthesis: )
@@ -1001,15 +1120,37 @@ var v = null..a(b).c(d);
 CascadeExpression
   target2: NullLiteral
     literal: null
-  cascadeSections2
+  sections
+    CascadeSection
+      body: MethodInvocation
+        target2: MethodInvocation
+          operator: ..
+          methodName: SimpleIdentifier
+            token: a
+          argumentList: ArgumentList
+            leftParenthesis: (
+            arguments2
+              SimpleIdentifier
+                token: b
+            rightParenthesis: )
+        operator: .
+        methodName: SimpleIdentifier
+          token: c
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments2
+            SimpleIdentifier
+              token: d
+          rightParenthesis: )
+  cascadeSections
     MethodInvocation
-      target2: MethodInvocation
+      target: MethodInvocation
         operator: ..
         methodName: SimpleIdentifier
           token: a
         argumentList: ArgumentList
           leftParenthesis: (
-          arguments2
+          arguments
             SimpleIdentifier
               token: b
           rightParenthesis: )
@@ -1018,7 +1159,7 @@ CascadeExpression
         token: c
       argumentList: ArgumentList
         leftParenthesis: (
-        arguments2
+        arguments
           SimpleIdentifier
             token: d
         rightParenthesis: )
@@ -1034,9 +1175,43 @@ var v = null..a<E>(b).c<F>(d);
 CascadeExpression
   target2: NullLiteral
     literal: null
-  cascadeSections2
+  sections
+    CascadeSection
+      body: MethodInvocation
+        target2: MethodInvocation
+          operator: ..
+          methodName: SimpleIdentifier
+            token: a
+          typeArguments: TypeArgumentList
+            leftBracket: <
+            arguments
+              NamedType
+                name: E
+            rightBracket: >
+          argumentList: ArgumentList
+            leftParenthesis: (
+            arguments2
+              SimpleIdentifier
+                token: b
+            rightParenthesis: )
+        operator: .
+        methodName: SimpleIdentifier
+          token: c
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: F
+          rightBracket: >
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments2
+            SimpleIdentifier
+              token: d
+          rightParenthesis: )
+  cascadeSections
     MethodInvocation
-      target2: MethodInvocation
+      target: MethodInvocation
         operator: ..
         methodName: SimpleIdentifier
           token: a
@@ -1048,7 +1223,7 @@ CascadeExpression
           rightBracket: >
         argumentList: ArgumentList
           leftParenthesis: (
-          arguments2
+          arguments
             SimpleIdentifier
               token: b
           rightParenthesis: )
@@ -1063,7 +1238,7 @@ CascadeExpression
         rightBracket: >
       argumentList: ArgumentList
         leftParenthesis: (
-        arguments2
+        arguments
           SimpleIdentifier
             token: d
         rightParenthesis: )
@@ -1079,7 +1254,13 @@ var v = null..a;
 CascadeExpression
   target2: NullLiteral
     literal: null
-  cascadeSections2
+  sections
+    CascadeSection
+      body: PropertyAccess
+        operator: ..
+        propertyName: SimpleIdentifier
+          token: a
+  cascadeSections
     PropertyAccess
       operator: ..
       propertyName: SimpleIdentifier
@@ -1096,14 +1277,24 @@ var v = null..a = 3;
 CascadeExpression
   target2: NullLiteral
     literal: null
-  cascadeSections2
+  sections
+    CascadeSection
+      body: AssignmentExpression
+        leftHandSide2: PropertyAccess
+          operator: ..
+          propertyName: SimpleIdentifier
+            token: a
+        operator: =
+        rightHandSide2: IntegerLiteral
+          literal: 3
+  cascadeSections
     AssignmentExpression
-      leftHandSide2: PropertyAccess
+      leftHandSide: PropertyAccess
         operator: ..
         propertyName: SimpleIdentifier
           token: a
       operator: =
-      rightHandSide2: IntegerLiteral
+      rightHandSide: IntegerLiteral
         literal: 3
 ''');
   }
@@ -1119,14 +1310,32 @@ var v = null
 CascadeExpression
   target2: NullLiteral
     literal: null
-  cascadeSections2
+  sections
+    CascadeSection
+      body: AssignmentExpression
+        leftHandSide2: PropertyAccess
+          operator: ..
+          propertyName: SimpleIdentifier
+            token: a
+        operator: =
+        rightHandSide2: IntegerLiteral
+          literal: 3
+    CascadeSection
+      body: MethodInvocation
+        operator: ..
+        methodName: SimpleIdentifier
+          token: m
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+  cascadeSections
     AssignmentExpression
-      leftHandSide2: PropertyAccess
+      leftHandSide: PropertyAccess
         operator: ..
         propertyName: SimpleIdentifier
           token: a
       operator: =
-      rightHandSide2: IntegerLiteral
+      rightHandSide: IntegerLiteral
         literal: 3
     MethodInvocation
       operator: ..
@@ -1149,14 +1358,38 @@ var v = null
 CascadeExpression
   target2: NullLiteral
     literal: null
-  cascadeSections2
+  sections
+    CascadeSection
+      body: AssignmentExpression
+        leftHandSide2: PropertyAccess
+          operator: ..
+          propertyName: SimpleIdentifier
+            token: a
+        operator: =
+        rightHandSide2: IntegerLiteral
+          literal: 3
+    CascadeSection
+      body: MethodInvocation
+        operator: ..
+        methodName: SimpleIdentifier
+          token: m
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: E
+          rightBracket: >
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+  cascadeSections
     AssignmentExpression
-      leftHandSide2: PropertyAccess
+      leftHandSide: PropertyAccess
         operator: ..
         propertyName: SimpleIdentifier
           token: a
       operator: =
-      rightHandSide2: IntegerLiteral
+      rightHandSide: IntegerLiteral
         literal: 3
     MethodInvocation
       operator: ..
@@ -1183,7 +1416,13 @@ var v = null..as;
 CascadeExpression
   target2: NullLiteral
     literal: null
-  cascadeSections2
+  sections
+    CascadeSection
+      body: PropertyAccess
+        operator: ..
+        propertyName: SimpleIdentifier
+          token: as
+  cascadeSections
     PropertyAccess
       operator: ..
       propertyName: SimpleIdentifier
@@ -1200,14 +1439,26 @@ var v = null..a(b);
 CascadeExpression
   target2: NullLiteral
     literal: null
-  cascadeSections2
+  sections
+    CascadeSection
+      body: MethodInvocation
+        operator: ..
+        methodName: SimpleIdentifier
+          token: a
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments2
+            SimpleIdentifier
+              token: b
+          rightParenthesis: )
+  cascadeSections
     MethodInvocation
       operator: ..
       methodName: SimpleIdentifier
         token: a
       argumentList: ArgumentList
         leftParenthesis: (
-        arguments2
+        arguments
           SimpleIdentifier
             token: b
         rightParenthesis: )
@@ -1223,68 +1474,9 @@ var v = null..a<E>(b);
 CascadeExpression
   target2: NullLiteral
     literal: null
-  cascadeSections2
-    MethodInvocation
-      operator: ..
-      methodName: SimpleIdentifier
-        token: a
-      typeArguments: TypeArgumentList
-        leftBracket: <
-        arguments
-          NamedType
-            name: E
-        rightBracket: >
-      argumentList: ArgumentList
-        leftParenthesis: (
-        arguments2
-          SimpleIdentifier
-            token: b
-        rightParenthesis: )
-''');
-  }
-
-  void test_parseCascadeSection_paa() {
-    var parseResult = parseTestCodeWithDiagnostics(r'''
-var v = null..a(b)(c);
-''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
-    assertParsedNodeText(node, r'''
-CascadeExpression
-  target2: NullLiteral
-    literal: null
-  cascadeSections2
-    FunctionExpressionInvocation
-      function2: MethodInvocation
-        operator: ..
-        methodName: SimpleIdentifier
-          token: a
-        argumentList: ArgumentList
-          leftParenthesis: (
-          arguments2
-            SimpleIdentifier
-              token: b
-          rightParenthesis: )
-      argumentList: ArgumentList
-        leftParenthesis: (
-        arguments2
-          SimpleIdentifier
-            token: c
-        rightParenthesis: )
-''');
-  }
-
-  void test_parseCascadeSection_paa_typeArguments() {
-    var parseResult = parseTestCodeWithDiagnostics(r'''
-var v = null..a<E>(b)<F>(c);
-''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
-    assertParsedNodeText(node, r'''
-CascadeExpression
-  target2: NullLiteral
-    literal: null
-  cascadeSections2
-    FunctionExpressionInvocation
-      function2: MethodInvocation
+  sections
+    CascadeSection
+      body: MethodInvocation
         operator: ..
         methodName: SimpleIdentifier
           token: a
@@ -1300,6 +1492,133 @@ CascadeExpression
             SimpleIdentifier
               token: b
           rightParenthesis: )
+  cascadeSections
+    MethodInvocation
+      operator: ..
+      methodName: SimpleIdentifier
+        token: a
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: E
+        rightBracket: >
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
+          SimpleIdentifier
+            token: b
+        rightParenthesis: )
+''');
+  }
+
+  void test_parseCascadeSection_paa() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+var v = null..a(b)(c);
+''');
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    assertParsedNodeText(node, r'''
+CascadeExpression
+  target2: NullLiteral
+    literal: null
+  sections
+    CascadeSection
+      body: FunctionExpressionInvocation
+        function2: MethodInvocation
+          operator: ..
+          methodName: SimpleIdentifier
+            token: a
+          argumentList: ArgumentList
+            leftParenthesis: (
+            arguments2
+              SimpleIdentifier
+                token: b
+            rightParenthesis: )
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments2
+            SimpleIdentifier
+              token: c
+          rightParenthesis: )
+  cascadeSections
+    FunctionExpressionInvocation
+      function: MethodInvocation
+        operator: ..
+        methodName: SimpleIdentifier
+          token: a
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments
+            SimpleIdentifier
+              token: b
+          rightParenthesis: )
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
+          SimpleIdentifier
+            token: c
+        rightParenthesis: )
+''');
+  }
+
+  void test_parseCascadeSection_paa_typeArguments() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+var v = null..a<E>(b)<F>(c);
+''');
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    assertParsedNodeText(node, r'''
+CascadeExpression
+  target2: NullLiteral
+    literal: null
+  sections
+    CascadeSection
+      body: FunctionExpressionInvocation
+        function2: MethodInvocation
+          operator: ..
+          methodName: SimpleIdentifier
+            token: a
+          typeArguments: TypeArgumentList
+            leftBracket: <
+            arguments
+              NamedType
+                name: E
+            rightBracket: >
+          argumentList: ArgumentList
+            leftParenthesis: (
+            arguments2
+              SimpleIdentifier
+                token: b
+            rightParenthesis: )
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: F
+          rightBracket: >
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments2
+            SimpleIdentifier
+              token: c
+          rightParenthesis: )
+  cascadeSections
+    FunctionExpressionInvocation
+      function: MethodInvocation
+        operator: ..
+        methodName: SimpleIdentifier
+          token: a
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: E
+          rightBracket: >
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments
+            SimpleIdentifier
+              token: b
+          rightParenthesis: )
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
@@ -1308,7 +1627,7 @@ CascadeExpression
         rightBracket: >
       argumentList: ArgumentList
         leftParenthesis: (
-        arguments2
+        arguments
           SimpleIdentifier
             token: c
         rightParenthesis: )
@@ -1324,23 +1643,59 @@ var v = null..a(b)(c).d(e)(f);
 CascadeExpression
   target2: NullLiteral
     literal: null
-  cascadeSections2
+  sections
+    CascadeSection
+      body: FunctionExpressionInvocation
+        function2: MethodInvocation
+          target2: FunctionExpressionInvocation
+            function2: MethodInvocation
+              operator: ..
+              methodName: SimpleIdentifier
+                token: a
+              argumentList: ArgumentList
+                leftParenthesis: (
+                arguments2
+                  SimpleIdentifier
+                    token: b
+                rightParenthesis: )
+            argumentList: ArgumentList
+              leftParenthesis: (
+              arguments2
+                SimpleIdentifier
+                  token: c
+              rightParenthesis: )
+          operator: .
+          methodName: SimpleIdentifier
+            token: d
+          argumentList: ArgumentList
+            leftParenthesis: (
+            arguments2
+              SimpleIdentifier
+                token: e
+            rightParenthesis: )
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments2
+            SimpleIdentifier
+              token: f
+          rightParenthesis: )
+  cascadeSections
     FunctionExpressionInvocation
-      function2: MethodInvocation
-        target2: FunctionExpressionInvocation
-          function2: MethodInvocation
+      function: MethodInvocation
+        target: FunctionExpressionInvocation
+          function: MethodInvocation
             operator: ..
             methodName: SimpleIdentifier
               token: a
             argumentList: ArgumentList
               leftParenthesis: (
-              arguments2
+              arguments
                 SimpleIdentifier
                   token: b
               rightParenthesis: )
           argumentList: ArgumentList
             leftParenthesis: (
-            arguments2
+            arguments
               SimpleIdentifier
                 token: c
             rightParenthesis: )
@@ -1349,13 +1704,13 @@ CascadeExpression
           token: d
         argumentList: ArgumentList
           leftParenthesis: (
-          arguments2
+          arguments
             SimpleIdentifier
               token: e
           rightParenthesis: )
       argumentList: ArgumentList
         leftParenthesis: (
-        arguments2
+        arguments
           SimpleIdentifier
             token: f
         rightParenthesis: )
@@ -1371,11 +1726,71 @@ var v = null..a<E>(b)<F>(c).d<G>(e)<H>(f);
 CascadeExpression
   target2: NullLiteral
     literal: null
-  cascadeSections2
+  sections
+    CascadeSection
+      body: FunctionExpressionInvocation
+        function2: MethodInvocation
+          target2: FunctionExpressionInvocation
+            function2: MethodInvocation
+              operator: ..
+              methodName: SimpleIdentifier
+                token: a
+              typeArguments: TypeArgumentList
+                leftBracket: <
+                arguments
+                  NamedType
+                    name: E
+                rightBracket: >
+              argumentList: ArgumentList
+                leftParenthesis: (
+                arguments2
+                  SimpleIdentifier
+                    token: b
+                rightParenthesis: )
+            typeArguments: TypeArgumentList
+              leftBracket: <
+              arguments
+                NamedType
+                  name: F
+              rightBracket: >
+            argumentList: ArgumentList
+              leftParenthesis: (
+              arguments2
+                SimpleIdentifier
+                  token: c
+              rightParenthesis: )
+          operator: .
+          methodName: SimpleIdentifier
+            token: d
+          typeArguments: TypeArgumentList
+            leftBracket: <
+            arguments
+              NamedType
+                name: G
+            rightBracket: >
+          argumentList: ArgumentList
+            leftParenthesis: (
+            arguments2
+              SimpleIdentifier
+                token: e
+            rightParenthesis: )
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: H
+          rightBracket: >
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments2
+            SimpleIdentifier
+              token: f
+          rightParenthesis: )
+  cascadeSections
     FunctionExpressionInvocation
-      function2: MethodInvocation
-        target2: FunctionExpressionInvocation
-          function2: MethodInvocation
+      function: MethodInvocation
+        target: FunctionExpressionInvocation
+          function: MethodInvocation
             operator: ..
             methodName: SimpleIdentifier
               token: a
@@ -1387,7 +1802,7 @@ CascadeExpression
               rightBracket: >
             argumentList: ArgumentList
               leftParenthesis: (
-              arguments2
+              arguments
                 SimpleIdentifier
                   token: b
               rightParenthesis: )
@@ -1399,7 +1814,7 @@ CascadeExpression
             rightBracket: >
           argumentList: ArgumentList
             leftParenthesis: (
-            arguments2
+            arguments
               SimpleIdentifier
                 token: c
             rightParenthesis: )
@@ -1414,7 +1829,7 @@ CascadeExpression
           rightBracket: >
         argumentList: ArgumentList
           leftParenthesis: (
-          arguments2
+          arguments
             SimpleIdentifier
               token: e
           rightParenthesis: )
@@ -1426,7 +1841,7 @@ CascadeExpression
         rightBracket: >
       argumentList: ArgumentList
         leftParenthesis: (
-        arguments2
+        arguments
           SimpleIdentifier
             token: f
         rightParenthesis: )
@@ -1442,15 +1857,31 @@ var v = null..a(b).c;
 CascadeExpression
   target2: NullLiteral
     literal: null
-  cascadeSections2
+  sections
+    CascadeSection
+      body: PropertyAccess
+        target2: MethodInvocation
+          operator: ..
+          methodName: SimpleIdentifier
+            token: a
+          argumentList: ArgumentList
+            leftParenthesis: (
+            arguments2
+              SimpleIdentifier
+                token: b
+            rightParenthesis: )
+        operator: .
+        propertyName: SimpleIdentifier
+          token: c
+  cascadeSections
     PropertyAccess
-      target2: MethodInvocation
+      target: MethodInvocation
         operator: ..
         methodName: SimpleIdentifier
           token: a
         argumentList: ArgumentList
           leftParenthesis: (
-          arguments2
+          arguments
             SimpleIdentifier
               token: b
           rightParenthesis: )
@@ -1469,9 +1900,31 @@ var v = null..a<E>(b).c;
 CascadeExpression
   target2: NullLiteral
     literal: null
-  cascadeSections2
+  sections
+    CascadeSection
+      body: PropertyAccess
+        target2: MethodInvocation
+          operator: ..
+          methodName: SimpleIdentifier
+            token: a
+          typeArguments: TypeArgumentList
+            leftBracket: <
+            arguments
+              NamedType
+                name: E
+            rightBracket: >
+          argumentList: ArgumentList
+            leftParenthesis: (
+            arguments2
+              SimpleIdentifier
+                token: b
+            rightParenthesis: )
+        operator: .
+        propertyName: SimpleIdentifier
+          token: c
+  cascadeSections
     PropertyAccess
-      target2: MethodInvocation
+      target: MethodInvocation
         operator: ..
         methodName: SimpleIdentifier
           token: a
@@ -1483,7 +1936,7 @@ CascadeExpression
           rightBracket: >
         argumentList: ArgumentList
           leftParenthesis: (
-          arguments2
+          arguments
             SimpleIdentifier
               token: b
           rightParenthesis: )
@@ -1525,7 +1978,7 @@ ConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-InstanceCreationExpression
+V1: InstanceCreationExpression
   keyword: const
   constructorName: ConstructorName
     type: NamedType
@@ -1637,7 +2090,7 @@ class C { C.n() : this()(); }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -1646,7 +2099,8 @@ CompilationUnit
         leftBracket: {
         members
           ConstructorDeclaration
-            typeName: SimpleIdentifier
+            typeName2: C
+            typeName(v1): SimpleIdentifier
               token: C
             period: .
             name: n
@@ -1673,7 +2127,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: y
   binaryOperator: equal
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
   operator: ==
@@ -1695,7 +2149,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: y
   binaryOperator: equal
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SuperExpression
     superKeyword: super
   operator: ==
@@ -1716,7 +2170,7 @@ DirectAssignment
   operator: =
   value: SimpleIdentifier
     token: y
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
   operator: =
@@ -1746,7 +2200,7 @@ DirectAssignment
   operator: =
   value: SimpleIdentifier
     token: y
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: BinaryExpression
     leftOperand: SimpleIdentifier
       token: x
@@ -1768,24 +2222,23 @@ var v = --a.b == c;
 BinaryOperatorInvocation
   leftOperand: PrefixDecrement
     operator: --
-    operand: PrefixedIdentifier
-      prefix: SimpleIdentifier
+    target: PropertyAssignmentTarget
+      receiver: SimpleIdentifier
         token: a
-      period: .
-      identifier: SimpleIdentifier
-        token: b
+      operator: .
+      propertyName: b
   operator: ==
   rightOperand: SimpleIdentifier
     token: c
   binaryOperator: equal
-BinaryExpression
+V1: BinaryExpression
   leftOperand: PrefixExpression
     operator: --
-    operand: PrefixedIdentifier
-      prefix: SimpleIdentifier
+    operand: PropertyAccess
+      target: SimpleIdentifier
         token: a
-      period: .
-      identifier: SimpleIdentifier
+      operator: .
+      propertyName: SimpleIdentifier
         token: b
   operator: ==
   rightOperand: SimpleIdentifier
@@ -1962,7 +2415,7 @@ main() {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: main
       functionExpression: FunctionExpression
@@ -1975,11 +2428,18 @@ CompilationUnit
             statements
               ExpressionStatement
                 expression2: FunctionExpressionInvocation
-                  function2: IndexExpression
-                    target2: SimpleIdentifier
+                  function2: IndexExpression2
+                    receiver: SimpleIdentifier
                       token: factories
                     leftBracket: [
-                    index2: SimpleIdentifier
+                    index: SimpleIdentifier
+                      token: C
+                    rightBracket: ]
+                  function(v1): IndexExpression
+                    target: SimpleIdentifier
+                      token: factories
+                    leftBracket: [
+                    index: SimpleIdentifier
                       token: C
                     rightBracket: ]
                   typeArguments: TypeArgumentList
@@ -2007,7 +2467,7 @@ main() {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: main
       functionExpression: FunctionExpression
@@ -2161,7 +2621,7 @@ DirectAssignment
   operator: =
   value: SimpleIdentifier
     token: y
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
   operator: =
@@ -2179,24 +2639,23 @@ var v = --a.b == c;
 BinaryOperatorInvocation
   leftOperand: PrefixDecrement
     operator: --
-    operand: PrefixedIdentifier
-      prefix: SimpleIdentifier
+    target: PropertyAssignmentTarget
+      receiver: SimpleIdentifier
         token: a
-      period: .
-      identifier: SimpleIdentifier
-        token: b
+      operator: .
+      propertyName: b
   operator: ==
   rightOperand: SimpleIdentifier
     token: c
   binaryOperator: equal
-BinaryExpression
+V1: BinaryExpression
   leftOperand: PrefixExpression
     operator: --
-    operand: PrefixedIdentifier
-      prefix: SimpleIdentifier
+    operand: PropertyAccess
+      target: SimpleIdentifier
         token: a
-      period: .
-      identifier: SimpleIdentifier
+      operator: .
+      propertyName: SimpleIdentifier
         token: b
   operator: ==
   rightOperand: SimpleIdentifier
@@ -2272,8 +2731,8 @@ FunctionExpression
   body: ExpressionFunctionBody
     functionDefinition: =>
     expression2: PostfixIncrement
-      operand: SimpleIdentifier
-        token: i
+      target: UnqualifiedNameAssignmentTarget
+        name: i
       operator: ++
     expression(v1): PostfixExpression
       operand: SimpleIdentifier
@@ -2315,8 +2774,8 @@ FunctionExpression
   body: ExpressionFunctionBody
     functionDefinition: =>
     expression2: PostfixIncrement
-      operand: SimpleIdentifier
-        token: i
+      target: UnqualifiedNameAssignmentTarget
+        name: i
       operator: ++
     expression(v1): PostfixExpression
       operand: SimpleIdentifier
@@ -2383,8 +2842,8 @@ FunctionExpression
   body: ExpressionFunctionBody
     functionDefinition: =>
     expression2: PostfixIncrement
-      operand: SimpleIdentifier
-        token: i
+      target: UnqualifiedNameAssignmentTarget
+        name: i
       operator: ++
     expression(v1): PostfixExpression
       operand: SimpleIdentifier
@@ -2409,7 +2868,7 @@ ConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: ( <synthetic>
     rightParenthesis: ) <synthetic>
-InstanceCreationExpression
+V1: InstanceCreationExpression
   keyword: new
   constructorName: ConstructorName
     type: NamedType
@@ -2436,7 +2895,7 @@ ConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: ( <synthetic>
     rightParenthesis: ) <synthetic>
-InstanceCreationExpression
+V1: InstanceCreationExpression
   keyword: new
   constructorName: ConstructorName
     type: NamedType
@@ -2464,7 +2923,7 @@ ConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: ( <synthetic>
     rightParenthesis: ) <synthetic>
-InstanceCreationExpression
+V1: InstanceCreationExpression
   keyword: new
   constructorName: ConstructorName
     type: NamedType
@@ -2491,7 +2950,7 @@ ConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: ( <synthetic>
     rightParenthesis: ) <synthetic>
-InstanceCreationExpression
+V1: InstanceCreationExpression
   keyword: new
   constructorName: ConstructorName
     type: NamedType
@@ -2518,7 +2977,7 @@ ConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: ( <synthetic>
     rightParenthesis: ) <synthetic>
-InstanceCreationExpression
+V1: InstanceCreationExpression
   keyword: new
   constructorName: ConstructorName
     type: NamedType
@@ -2545,7 +3004,7 @@ ConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: ( <synthetic>
     rightParenthesis: ) <synthetic>
-InstanceCreationExpression
+V1: InstanceCreationExpression
   keyword: new
   constructorName: ConstructorName
     type: NamedType
@@ -2572,7 +3031,7 @@ ConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: ( <synthetic>
     rightParenthesis: ) <synthetic>
-InstanceCreationExpression
+V1: InstanceCreationExpression
   keyword: new
   constructorName: ConstructorName
     type: NamedType
@@ -2611,7 +3070,7 @@ ConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-InstanceCreationExpression
+V1: InstanceCreationExpression
   keyword: new
   constructorName: ConstructorName
     type: NamedType
@@ -2650,7 +3109,7 @@ ConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: ( <synthetic>
     rightParenthesis: ) <synthetic>
-InstanceCreationExpression
+V1: InstanceCreationExpression
   keyword: new
   constructorName: ConstructorName
     type: NamedType
@@ -2758,15 +3217,26 @@ var v = [1][1];
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-IndexExpression
-  target2: ListLiteral
+IndexExpression2
+  receiver: ListLiteral
     leftBracket: [
     elements2
       IntegerLiteral
         literal: 1
     rightBracket: ]
   leftBracket: [
-  index2: IntegerLiteral
+  index: IntegerLiteral
+    literal: 1
+  rightBracket: ]
+V1: IndexExpression
+  target: ListLiteral
+    leftBracket: [
+    elements
+      IntegerLiteral
+        literal: 1
+    rightBracket: ]
+  leftBracket: [
+  index: IntegerLiteral
     literal: 1
   rightBracket: ]
 ''');
@@ -2806,7 +3276,7 @@ BinaryOperatorInvocation
         literal: 1
     rightBracket: ]
   binaryOperator: greaterThan
-BinaryExpression
+V1: BinaryExpression
   leftOperand: BinaryExpression
     leftOperand: ListLiteral
       typeArguments: TypeArgumentList
@@ -2874,7 +3344,7 @@ var v = <String, int> {'1' : 1} <String, int> {'1' : 1};
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -2947,7 +3417,7 @@ LogicalAnd
   operator: &&
   rightOperand: SimpleIdentifier
     token: y
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
   operator: &&
@@ -2968,7 +3438,7 @@ LogicalOr
   operator: ||
   rightOperand: SimpleIdentifier
     token: y
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
   operator: ||
@@ -3132,7 +3602,7 @@ var v = { x' :  };
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -3166,7 +3636,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: y
   binaryOperator: multiply
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
   operator: *
@@ -3188,7 +3658,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: y
   binaryOperator: multiply
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SuperExpression
     superKeyword: super
   operator: *
@@ -3211,7 +3681,7 @@ ConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-InstanceCreationExpression
+V1: InstanceCreationExpression
   keyword: new
   constructorName: ConstructorName
     type: NamedType
@@ -3229,10 +3699,10 @@ var v = i--;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 PostfixDecrement
-  operand: SimpleIdentifier
-    token: i
+  target: UnqualifiedNameAssignmentTarget
+    name: i
   operator: --
-PostfixExpression
+V1: PostfixExpression
   operand: SimpleIdentifier
     token: i
   operator: --
@@ -3246,10 +3716,10 @@ var v = i++;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 PostfixIncrement
-  operand: SimpleIdentifier
-    token: i
+  target: UnqualifiedNameAssignmentTarget
+    name: i
   operator: ++
-PostfixExpression
+V1: PostfixExpression
   operand: SimpleIdentifier
     token: i
   operator: ++
@@ -3262,11 +3732,18 @@ var v = a[0];
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-IndexExpression
-  target2: SimpleIdentifier
+IndexExpression2
+  receiver: SimpleIdentifier
     token: a
   leftBracket: [
-  index2: IntegerLiteral
+  index: IntegerLiteral
+    literal: 0
+  rightBracket: ]
+V1: IndexExpression
+  target: SimpleIdentifier
+    token: a
+  leftBracket: [
+  index: IntegerLiteral
     literal: 0
   rightBracket: ]
 ''');
@@ -3408,7 +3885,7 @@ ConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-InstanceCreationExpression
+V1: InstanceCreationExpression
   keyword: const
   constructorName: ConstructorName
     type: NamedType
@@ -3554,11 +4031,18 @@ FunctionExpression
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression2: IndexExpression
-      target2: SimpleIdentifier
+    expression2: IndexExpression2
+      receiver: SimpleIdentifier
         token: m
       leftBracket: [
-      index2: SimpleIdentifier
+      index: SimpleIdentifier
+        token: x
+      rightBracket: ]
+    expression(v1): IndexExpression
+      target: SimpleIdentifier
+        token: m
+      leftBracket: [
+      index: SimpleIdentifier
         token: x
       rightBracket: ]
 ''');
@@ -3687,7 +4171,7 @@ ConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-InstanceCreationExpression
+V1: InstanceCreationExpression
   keyword: new
   constructorName: ConstructorName
     type: NamedType
@@ -3802,7 +4286,7 @@ class C {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -3811,7 +4295,8 @@ CompilationUnit
         leftBracket: {
         members
           ConstructorDeclaration
-            typeName: SimpleIdentifier
+            typeName2: C
+            typeName(v1): SimpleIdentifier
               token: C
             parameters: FormalParameterList
               leftParenthesis: (
@@ -3844,7 +4329,7 @@ class C {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -3853,7 +4338,8 @@ CompilationUnit
         leftBracket: {
         members
           ConstructorDeclaration
-            typeName: SimpleIdentifier
+            typeName2: C
+            typeName(v1): SimpleIdentifier
               token: C
             parameters: FormalParameterList
               leftParenthesis: (
@@ -4058,7 +4544,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: y
   binaryOperator: lessThan
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
   operator: <
@@ -4080,7 +4566,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: y
   binaryOperator: lessThan
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SuperExpression
     superKeyword: super
   operator: <
@@ -4115,7 +4601,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: y
   binaryOperator: shiftLeft
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
   operator: <<
@@ -4137,7 +4623,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: y
   binaryOperator: shiftLeft
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SuperExpression
     superKeyword: super
   operator: <<
@@ -4185,7 +4671,7 @@ var v = a' 'b;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -4233,7 +4719,7 @@ var v = a ${b} c $this d;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -4292,7 +4778,7 @@ var v = <html>$void</html>;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -4340,7 +4826,7 @@ a;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -4387,7 +4873,7 @@ a;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -4432,7 +4918,7 @@ a;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -4479,7 +4965,7 @@ a;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -4523,7 +5009,7 @@ a;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -4588,7 +5074,7 @@ var v = ${x}y;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -4643,7 +5129,7 @@ b;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -4704,7 +5190,7 @@ var v = ${x}y;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -4733,7 +5219,7 @@ class C {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -4742,7 +5228,8 @@ CompilationUnit
         leftBracket: {
         members
           ConstructorDeclaration
-            typeName: SimpleIdentifier
+            typeName2: C
+            typeName(v1): SimpleIdentifier
               token: C
             parameters: FormalParameterList
               leftParenthesis: (
@@ -4775,7 +5262,7 @@ class C {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -4784,7 +5271,8 @@ CompilationUnit
         leftBracket: {
         members
           ConstructorDeclaration
-            typeName: SimpleIdentifier
+            typeName2: C
+            typeName(v1): SimpleIdentifier
               token: C
             parameters: FormalParameterList
               leftParenthesis: (
@@ -4905,14 +5393,14 @@ var v = --a[0];
     assertParsedNodeText(node, r'''
 PrefixDecrement
   operator: --
-  operand: IndexExpression
-    target2: SimpleIdentifier
+  target: IndexAssignmentTarget
+    receiver: SimpleIdentifier
       token: a
     leftBracket: [
-    index2: IntegerLiteral
+    index: IntegerLiteral
       literal: 0
     rightBracket: ]
-PrefixExpression
+V1: PrefixExpression
   operator: --
   operand: IndexExpression
     target: SimpleIdentifier
@@ -4932,9 +5420,9 @@ var v = --x;
     assertParsedNodeText(node, r'''
 PrefixDecrement
   operator: --
-  operand: SimpleIdentifier
-    token: x
-PrefixExpression
+  target: UnqualifiedNameAssignmentTarget
+    name: x
+V1: PrefixExpression
   operator: --
   operand: SimpleIdentifier
     token: x
@@ -4963,13 +5451,12 @@ var v = --super.x;
     assertParsedNodeText(node, r'''
 PrefixDecrement
   operator: --
-  operand: PropertyAccess
-    target2: SuperExpression
+  target: PropertyAssignmentTarget
+    receiver: SuperExpression
       superKeyword: super
     operator: .
-    propertyName: SimpleIdentifier
-      token: x
-PrefixExpression
+    propertyName: x
+V1: PrefixExpression
   operator: --
   operand: PropertyAccess
     target: SuperExpression
@@ -5002,14 +5489,14 @@ var v = ++a[0];
     assertParsedNodeText(node, r'''
 PrefixIncrement
   operator: ++
-  operand: IndexExpression
-    target2: SimpleIdentifier
+  target: IndexAssignmentTarget
+    receiver: SimpleIdentifier
       token: a
     leftBracket: [
-    index2: IntegerLiteral
+    index: IntegerLiteral
       literal: 0
     rightBracket: ]
-PrefixExpression
+V1: PrefixExpression
   operator: ++
   operand: IndexExpression
     target: SimpleIdentifier
@@ -5029,9 +5516,9 @@ var v = ++x;
     assertParsedNodeText(node, r'''
 PrefixIncrement
   operator: ++
-  operand: SimpleIdentifier
-    token: x
-PrefixExpression
+  target: UnqualifiedNameAssignmentTarget
+    name: x
+V1: PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: x
@@ -5046,14 +5533,14 @@ var v = ++super[0];
     assertParsedNodeText(node, r'''
 PrefixIncrement
   operator: ++
-  operand: IndexExpression
-    target2: SuperExpression
+  target: IndexAssignmentTarget
+    receiver: SuperExpression
       superKeyword: super
     leftBracket: [
-    index2: IntegerLiteral
+    index: IntegerLiteral
       literal: 0
     rightBracket: ]
-PrefixExpression
+V1: PrefixExpression
   operator: ++
   operand: IndexExpression
     target: SuperExpression
@@ -5073,13 +5560,12 @@ var v = ++super.x;
     assertParsedNodeText(node, r'''
 PrefixIncrement
   operator: ++
-  operand: PropertyAccess
-    target2: SuperExpression
+  target: PropertyAssignmentTarget
+    receiver: SuperExpression
       superKeyword: super
     operator: .
-    propertyName: SimpleIdentifier
-      token: x
-PrefixExpression
+    propertyName: x
+V1: PrefixExpression
   operator: ++
   operand: PropertyAccess
     target: SuperExpression
@@ -5098,15 +5584,15 @@ var v = -a[0];
     assertParsedNodeText(node, r'''
 UnaryOperatorInvocation
   operator: -
-  operand: IndexExpression
-    target2: SimpleIdentifier
+  operand: IndexExpression2
+    receiver: SimpleIdentifier
       token: a
     leftBracket: [
-    index2: IntegerLiteral
+    index: IntegerLiteral
       literal: 0
     rightBracket: ]
   unaryOperator: negate
-PrefixExpression
+V1: PrefixExpression
   operator: -
   operand: IndexExpression
     target: SimpleIdentifier
@@ -5129,7 +5615,7 @@ UnaryOperatorInvocation
   operand: SimpleIdentifier
     token: x
   unaryOperator: negate
-PrefixExpression
+V1: PrefixExpression
   operator: -
   operand: SimpleIdentifier
     token: x
@@ -5147,7 +5633,7 @@ UnaryOperatorInvocation
   operand: SuperExpression
     superKeyword: super
   unaryOperator: negate
-PrefixExpression
+V1: PrefixExpression
   operator: -
   operand: SuperExpression
     superKeyword: super
@@ -5164,7 +5650,7 @@ LogicalNot
   operator: !
   operand: SimpleIdentifier
     token: x
-PrefixExpression
+V1: PrefixExpression
   operator: !
   operand: SimpleIdentifier
     token: x
@@ -5183,7 +5669,7 @@ LogicalNot
   operator: !
   operand: SuperExpression
     superKeyword: super
-PrefixExpression
+V1: PrefixExpression
   operator: !
   operand: SuperExpression
     superKeyword: super
@@ -5201,7 +5687,7 @@ UnaryOperatorInvocation
   operand: SimpleIdentifier
     token: x
   unaryOperator: bitwiseComplement
-PrefixExpression
+V1: PrefixExpression
   operator: ~
   operand: SimpleIdentifier
     token: x
@@ -5219,7 +5705,7 @@ UnaryOperatorInvocation
   operand: SuperExpression
     superKeyword: super
   unaryOperator: bitwiseComplement
-PrefixExpression
+V1: PrefixExpression
   operator: ~
   operand: SuperExpression
     superKeyword: super
@@ -5234,15 +5720,15 @@ var v = ~a[0];
     assertParsedNodeText(node, r'''
 UnaryOperatorInvocation
   operator: ~
-  operand: IndexExpression
-    target2: SimpleIdentifier
+  operand: IndexExpression2
+    receiver: SimpleIdentifier
       token: a
     leftBracket: [
-    index2: IntegerLiteral
+    index: IntegerLiteral
       literal: 0
     rightBracket: ]
   unaryOperator: bitwiseComplement
-PrefixExpression
+V1: PrefixExpression
   operator: ~
   operand: IndexExpression
     target: SimpleIdentifier

@@ -127,6 +127,38 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
   });
 
   @override
+  void visitCascadeIndexExpression(covariant CascadeIndexExpressionImpl node) {
+    var element = switch (node.resolution) {
+      MethodIndexReadResolutionImpl(:var element) => element,
+      InvalidIndexReadResolutionImpl(
+        recovery: MethodIndexReadResolutionImpl(:var element),
+      ) =>
+        element,
+      _ => null,
+    };
+    if (element != null) {
+      var enclosingElement = element.enclosingElement;
+      if ((enclosingElement.isNativeStructPointerExtension ||
+              enclosingElement.isNativeStructArrayExtension ||
+              enclosingElement.isNativeUnionPointerExtension ||
+              enclosingElement.isNativeUnionArrayExtension) &&
+          element.name == '[]') {
+        for (
+          AstNodeImpl? ancestor = node.parent2;
+          ancestor != null;
+          ancestor = ancestor.parent2
+        ) {
+          if (ancestor case CascadeExpressionImpl(:var target2)) {
+            _validateRefIndexed(node, target2);
+            break;
+          }
+        }
+      }
+    }
+    super.visitCascadeIndexExpression(node);
+  }
+
+  @override
   void visitClassDeclaration(covariant ClassDeclarationImpl node) {
     inCompound = false;
     compound = null;
@@ -312,10 +344,34 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
           enclosingElement.isNativeUnionPointerExtension ||
           enclosingElement.isNativeUnionArrayExtension) {
         if (element.name == '[]') {
-          _validateRefIndexed(node);
+          _validateRefIndexed(node, node.realTarget2);
         }
       }
     }
+  }
+
+  @override
+  void visitIndexExpression2(covariant IndexExpression2Impl node) {
+    var element = switch (node.resolution) {
+      MethodIndexReadResolutionImpl(:var element) => element,
+      InvalidIndexReadResolutionImpl(
+        recovery: MethodIndexReadResolutionImpl(:var element),
+      ) =>
+        element,
+      _ => null,
+    };
+    if (element != null) {
+      var enclosingElement = element.enclosingElement;
+      if (enclosingElement.isNativeStructPointerExtension ||
+          enclosingElement.isNativeStructArrayExtension ||
+          enclosingElement.isNativeUnionPointerExtension ||
+          enclosingElement.isNativeUnionArrayExtension) {
+        if (element.name == '[]') {
+          _validateRefIndexed(node, node.receiver);
+        }
+      }
+    }
+    super.visitIndexExpression2(node);
   }
 
   @override
@@ -455,6 +511,20 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
       }
     }
     super.visitPropertyExtraction(node);
+  }
+
+  @override
+  void visitTopLevelGetterDeclaration(
+    covariant TopLevelGetterDeclarationImpl node,
+  ) {
+    _checkFfiNative(
+      errorNode: node.name,
+      declarationElement: node.declaredFragment!.element,
+      formalParameterList: node.recoveryFormalParameters,
+      metadata: node.metadata,
+      isExternal: node.externalKeyword != null,
+    );
+    super.visitTopLevelGetterDeclaration(node);
   }
 
   @override
@@ -1234,6 +1304,15 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
       return;
     }
     switch (receiver) {
+      case IndexExpression2(receiver: var indexedReceiver):
+        // Array or TypedData element.
+        var type = indexedReceiver.staticType;
+        if (type?.isArray ?? false) {
+          return;
+        }
+        if (type?.isTypedData ?? false) {
+          return;
+        }
       case IndexExpression _:
         // Array or TypedData element.
         var arrayOrTypedData = receiver.target2;
@@ -2098,8 +2177,8 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
     }
   }
 
-  void _validateRefIndexed(IndexExpressionImpl node) {
-    var targetType = node.realTarget2.typeOrThrow;
+  void _validateRefIndexed(AstNode node, ExpressionImpl receiver) {
+    var targetType = receiver.typeOrThrow;
     if (!_isValidFfiNativeType(
       targetType,
       allowEmptyStruct: true,

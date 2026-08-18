@@ -134,7 +134,11 @@ void main() {
     new FunctionNode(
       null,
       positionalParameters: [
-        new PositionalParameter(type: const DynamicType(), isSynthesized: true),
+        new PositionalParameter(
+          parameterName: 'p',
+          type: const DynamicType(),
+          isSynthesized: true,
+        ),
       ],
     ),
     fileUri: dummyUri,
@@ -162,11 +166,31 @@ void main() {
     new FunctionNode(
       null,
       positionalParameters: [
-        new PositionalParameter(type: const DynamicType(), isSynthesized: true),
-        new PositionalParameter(type: const DynamicType(), isSynthesized: true),
-        new PositionalParameter(type: const DynamicType(), isSynthesized: true),
-        new PositionalParameter(type: const DynamicType(), isSynthesized: true),
-        new PositionalParameter(type: const DynamicType(), isSynthesized: true),
+        new PositionalParameter(
+          parameterName: 'p1',
+          type: const DynamicType(),
+          isSynthesized: true,
+        ),
+        new PositionalParameter(
+          parameterName: 'p2',
+          type: const DynamicType(),
+          isSynthesized: true,
+        ),
+        new PositionalParameter(
+          parameterName: 'p3',
+          type: const DynamicType(),
+          isSynthesized: true,
+        ),
+        new PositionalParameter(
+          parameterName: 'p4',
+          type: const DynamicType(),
+          isSynthesized: true,
+        ),
+        new PositionalParameter(
+          parameterName: 'p5',
+          type: const DynamicType(),
+          isSynthesized: true,
+        ),
       ],
     ),
     fileUri: dummyUri,

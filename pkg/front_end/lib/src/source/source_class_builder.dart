@@ -1355,6 +1355,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         fileUri: fileUri,
         fileOffset: fileOffset,
         typeParameter: typeParameter,
+        isVariancePosition: true,
       );
     }
   }

@@ -1309,10 +1309,24 @@ extension JSPromiseToFuture<T extends JSAny?> on JSPromise<T> {
   external Future<T> get toDart;
 }
 
+JSAny _convertError(Object error, StackTrace stackTrace) {
+  if (error.isA<JSAny>()) return error as JSAny;
+  final errorConstructor = globalContext['Error'] as JSFunction;
+  final wrapper = errorConstructor.callAsConstructor<JSObject>(
+    "Wrapped Dart error thrown from converted Future. See 'error'"
+            "and 'stack' properties.\n$error"
+        .toJS,
+  );
+  wrapper['error'] = error.toJSBox;
+  wrapper['stack'] = stackTrace.toString().toJS;
+  return wrapper;
+}
+
 /// Conversions from [Future] to [JSPromise] where the [Future] returns a value.
 extension FutureOfJSAnyToJSPromise<T extends JSAny?> on Future<T> {
   /// A [JSPromise] that either resolves with the result of the completed
-  /// [Future] or rejects with an object that contains its error.
+  /// [Future] or rejects with its error if it is a JS value and otherwise
+  /// rejects with a JS `Error` that wraps its Dart error value.
   ///
   /// The rejected object contains the original error as a [JSBoxedDartObject]
   /// in the property `error` and the original stack trace as a [String] in the
@@ -1326,20 +1340,9 @@ extension FutureOfJSAnyToJSPromise<T extends JSAny?> on Future<T> {
             return value;
           },
           onError: (Object error, StackTrace stackTrace) {
-            // TODO(srujzs): Can we do something better here? This is pretty much
-            // useless to the user unless they call a Dart callback that consumes
-            // this value and unboxes.
-            final errorConstructor = globalContext['Error'] as JSFunction;
-            final wrapper = errorConstructor.callAsConstructor<JSObject>(
-              "Dart exception thrown from converted Future. Use the properties "
-                      "'error' to fetch the boxed error and 'stack' to recover "
-                      "the stack trace."
-                  .toJS,
-            );
-            wrapper['error'] = error.toJSBox;
-            wrapper['stack'] = stackTrace.toString().toJS;
-            reject.callAsFunction(reject, wrapper);
-            return wrapper;
+            final jsError = _convertError(error, stackTrace);
+            reject.callAsFunction(reject, jsError);
+            return jsError;
           },
         );
       }.toJS,
@@ -1362,19 +1365,9 @@ extension FutureOfVoidToJSPromise on Future<void> {
         this.then(
           (_) => resolve.callAsFunction(resolve),
           onError: (Object error, StackTrace stackTrace) {
-            // TODO(srujzs): Can we do something better here? This is pretty much
-            // useless to the user unless they call a Dart callback that consumes
-            // this value and unboxes.
-            final errorConstructor = globalContext['Error'] as JSFunction;
-            final wrapper = errorConstructor.callAsConstructor<JSObject>(
-              "Dart exception thrown from converted Future. Use the properties "
-                      "'error' to fetch the boxed error and 'stack' to recover "
-                      "the stack trace."
-                  .toJS,
-            );
-            wrapper['error'] = error.toJSBox;
-            wrapper['stack'] = stackTrace.toString().toJS;
-            reject.callAsFunction(reject, wrapper);
+            final jsError = _convertError(error, stackTrace);
+            reject.callAsFunction(reject, jsError);
+            return jsError;
           },
         );
       }.toJS,
@@ -2065,6 +2058,287 @@ extension JSStringToString on JSString {
 extension StringToJSString on String {
   /// Converts this [String] to a [JSString].
   external JSString get toJS;
+}
+
+/// Conversions from `JSArray<JSNumber>` directly to Dart lists.
+@Since('3.14')
+extension JSArrayOfJSNumberToList on JSArray<JSNumber> {
+  /// Converts this to a [List] of [double]s.
+  ///
+  /// **Note:** Depending on whether code is compiled to JavaScript or Wasm,
+  /// this conversion will have different semantics.
+  ///
+  /// When compiling to JavaScript, core [List]s are `Array`s and therefore, if
+  /// the [JSArray] was already a [List] converted via a `toJS*` method, this
+  /// getter simply casts the `Array`. Otherwise, it wraps the `Array` with a
+  /// [List] that casts the elements to [double] on access to ensure soundness.
+  ///
+  /// When compiling to Wasm, this clones the `Array`'s values into a new
+  /// [List].
+  ///
+  /// Avoid assuming that modifications to this [JSArray] will affect the
+  /// returned [List] and vice versa in all compilers.
+  external List<double> get toDartDoubleList;
+
+  /// Converts this to a [List] of [int]s.
+  ///
+  /// **Note:** Depending on whether code is compiled to JavaScript or Wasm,
+  /// this conversion will have different semantics.
+  ///
+  /// When compiling to JavaScript, core [List]s are `Array`s and therefore, if
+  /// the [JSArray] was already a [List] converted via a `toJS*` method, this
+  /// getter simply casts the `Array`. Otherwise, it wraps the `Array` with a
+  /// [List] that casts the elements to [int] on access to ensure soundness.
+  ///
+  /// When compiling to Wasm, this clones the `Array`'s values into a new
+  /// [List]. If the `Array` contains any non-integer values, this will throw a
+  /// [TypeError].
+  ///
+  /// Avoid assuming that modifications to this [JSArray] will affect the
+  /// returned [List] and vice versa in all compilers.
+  external List<int> get toDartIntList;
+}
+
+/// Conversions from `List<num>` directly to `JSArray<JSNumber>`.
+@Since('3.14')
+extension ListOfNumberToJSArray on List<num> {
+  /// Converts this to a [JSArray] of [JSNumber]s.
+  ///
+  /// **Note:** Depending on whether code is compiled to JavaScript or Wasm,
+  /// this conversion will have different semantics.
+  ///
+  /// When compiling to JavaScript, the core [List] is a JavaScript Array, and
+  /// therefore this getter simply casts. If the [List] is not a core [List]
+  /// e.g. a user-defined list, this getter throws with a cast error.
+  ///
+  /// When compiling to Wasm, this getter clones this [List]'s values into a new
+  /// [JSArray].
+  ///
+  /// Avoid assuming that modifications to this [List] will affect the
+  /// returned [JSArray] and vice versa in all compilers.
+  external JSArray<JSNumber> get toJS;
+}
+
+/// Conversions from `JSArray<JSNumber?>` directly to Dart lists.
+@Since('3.14')
+extension JSArrayOfNullableJSNumberToList on JSArray<JSNumber?> {
+  /// Converts this to a [List] of nullable [double]s.
+  ///
+  /// **Note:** Depending on whether code is compiled to JavaScript or Wasm,
+  /// this conversion will have different semantics.
+  ///
+  /// When compiling to JavaScript, core [List]s are `Array`s and therefore, if
+  /// the [JSArray] was already a [List] converted via a `toJS*` method, this
+  /// getter simply casts the `Array`. Otherwise, it wraps the `Array` with a
+  /// [List] that casts the elements to [double?] on access to ensure soundness.
+  ///
+  /// When compiling to Wasm, this clones the `Array`'s values into a new
+  /// [List].
+  ///
+  /// Avoid assuming that modifications to this [JSArray] will affect the
+  /// returned [List] and vice versa in all compilers.
+  external List<double?> get toDartDoubleList;
+
+  /// Converts this to a [List] of nullable [int]s.
+  ///
+  /// **Note:** Depending on whether code is compiled to JavaScript or Wasm,
+  /// this conversion will have different semantics.
+  ///
+  /// When compiling to JavaScript, core [List]s are `Array`s and therefore, if
+  /// the [JSArray] was already a [List] converted via a `toJS*` method, this
+  /// getter simply casts the `Array`. Otherwise, it wraps the `Array` with a
+  /// [List] that casts the elements to [double?] on access to ensure soundness.
+  ///
+  /// When compiling to Wasm, this clones the `Array`'s values into a new
+  /// [List].
+  ///
+  /// Avoid assuming that modifications to this [JSArray] will affect the
+  /// returned [List] and vice versa in all compilers.
+  external List<int?> get toDartIntList;
+}
+
+/// Conversions from `List<num>` directly to `JSArray<JSNumber>`.
+@Since('3.14')
+extension ListOfNullableNumberToJSArray on List<num?> {
+  /// Converts this to a [JSArray] of nullable [JSNumber]s.
+  ///
+  /// **Note:** Depending on whether code is compiled to JavaScript or Wasm,
+  /// this conversion will have different semantics.
+  ///
+  /// When compiling to JavaScript, the core [List] is a JavaScript Array, and
+  /// therefore this getter simply casts. If the [List] is not a core [List]
+  /// e.g. a user-defined list, this getter throws with a cast error.
+  ///
+  /// When compiling to Wasm, this getter clones this [List]'s values into a new
+  /// [JSArray].
+  ///
+  /// Avoid assuming that modifications to this [List] will affect the
+  /// returned [JSArray] and vice versa in all compilers.
+  external JSArray<JSNumber?> get toJS;
+}
+
+/// Conversions from `JSArray<JSString>` directly to `List<String>`.
+@Since('3.14')
+extension JSArrayOfJSStringToList on JSArray<JSString> {
+  /// Converts this to a [List] of [String]s.
+  ///
+  /// **Note:** Depending on whether code is compiled to JavaScript or Wasm,
+  /// this conversion will have different semantics.
+  ///
+  /// When compiling to JavaScript, core [List]s are `Array`s and therefore, if
+  /// the [JSArray] was already a [List] converted via a `toJS*` method, this
+  /// getter simply casts the `Array`. Otherwise, it wraps the `Array` with a
+  /// [List] that casts the elements to [String] on access to ensure soundness.
+  ///
+  /// When compiling to Wasm, this clones the `Array`'s values into a new
+  /// [List].
+  ///
+  /// Avoid assuming that modifications to this [JSArray] will affect the
+  /// returned [List] and vice versa in all compilers.
+  external List<String> get toDartStringList;
+}
+
+/// Conversions from `List<String>` directly to `JSArray<JSString>`.
+@Since('3.14')
+extension ListOfStringToJSArray on List<String> {
+  /// Converts this to a [JSArray] of [JSString]s.
+  ///
+  /// **Note:** Depending on whether code is compiled to JavaScript or Wasm,
+  /// this conversion will have different semantics.
+  ///
+  /// When compiling to JavaScript, the core [List] is a JavaScript Array, and
+  /// therefore this getter simply casts. If the [List] is not a core [List]
+  /// e.g. a user-defined list, this getter throws with a cast error.
+  ///
+  /// When compiling to Wasm, this getter clones this [List]'s values into a new
+  /// [JSArray].
+  ///
+  /// Avoid assuming that modifications to this [List] will affect the
+  /// returned [JSArray] and vice versa in all compilers.
+  external JSArray<JSString> get toJS;
+}
+
+/// Conversions from `JSArray<JSString?>` directly to `List<String?>`.
+@Since('3.14')
+extension JSArrayOfNullableJSStringToList on JSArray<JSString?> {
+  /// Converts this to a [List] of nullable [String]s.
+  ///
+  /// **Note:** Depending on whether code is compiled to JavaScript or Wasm,
+  /// this conversion will have different semantics.
+  ///
+  /// When compiling to JavaScript, core [List]s are `Array`s and therefore, if
+  /// the [JSArray] was already a [List] converted via a `toJS*` method, this
+  /// getter simply casts the `Array`. Otherwise, it wraps the `Array` with a
+  /// [List] that casts the elements to [String?] on access to ensure soundness.
+  ///
+  /// When compiling to Wasm, this clones the `Array`'s values into a new
+  /// [List].
+  ///
+  /// Avoid assuming that modifications to this [JSArray] will affect the
+  /// returned [List] and vice versa in all compilers.
+  external List<String?> get toDartStringList;
+}
+
+/// Conversions from `List<String>` directly to `JSArray<JSString>`.
+@Since('3.14')
+extension ListOfNullableStringToJSArray on List<String?> {
+  /// Converts this to a [JSArray] of nullable [JSString]s.
+  ///
+  /// **Note:** Depending on whether code is compiled to JavaScript or Wasm,
+  /// this conversion will have different semantics.
+  ///
+  /// When compiling to JavaScript, the core [List] is a JavaScript Array, and
+  /// therefore this getter simply casts. If the [List] is not a core [List]
+  /// e.g. a user-defined list, this getter throws with a cast error.
+  ///
+  /// When compiling to Wasm, this getter clones this [List]'s values into a new
+  /// [JSArray].
+  ///
+  /// Avoid assuming that modifications to this [List] will affect the
+  /// returned [JSArray] and vice versa in all compilers.
+  external JSArray<JSString?> get toJS;
+}
+
+/// Conversions from `JSArray<JSBoolean>` directly to `List<bool>`.
+@Since('3.14')
+extension JSArrayOfJSBooleanToList on JSArray<JSBoolean> {
+  /// Converts this to [List] of [bool]s.
+  ///
+  /// **Note:** Depending on whether code is compiled to JavaScript or Wasm,
+  /// this conversion will have different semantics.
+  ///
+  /// When compiling to JavaScript, core [List]s are `Array`s and therefore, if
+  /// the [JSArray] was already a [List] converted via a `toJS*` method, this
+  /// getter simply casts the `Array`. Otherwise, it wraps the `Array` with a
+  /// [List] that casts the elements to [bool?] on access to ensure soundness.
+  ///
+  /// When compiling to Wasm, this clones the `Array`'s values into a new
+  /// [List].
+  ///
+  /// Avoid assuming that modifications to this [JSArray] will affect the
+  /// returned [List] and vice versa in all compilers.
+  external List<bool> get toDartBoolList;
+}
+
+/// Conversions from `List<bool>` directly to `JSArray<JSBoolean>`.
+@Since('3.14')
+extension ListOfBoolToJSArray on List<bool> {
+  /// Converts this to a [JSArray] of [JSBoolean]s.
+  ///
+  /// **Note:** Depending on whether code is compiled to JavaScript or Wasm,
+  /// this conversion will have different semantics.
+  ///
+  /// When compiling to JavaScript, the core [List] is a JavaScript Array, and
+  /// therefore this getter simply casts. If the [List] is not a core [List]
+  /// e.g. a user-defined list, this getter throws with a cast error.
+  ///
+  /// When compiling to Wasm, this getter clones this [List]'s values into a new
+  /// [JSArray].
+  ///
+  /// Avoid assuming that modifications to this [List] will affect the
+  /// returned [JSArray] and vice versa in all compilers.
+  external JSArray<JSBoolean> get toJS;
+}
+
+/// Conversions from `JSArray<JSBoolean?>` directly to `List<bool?>`.
+@Since('3.14')
+extension JSArrayOfNullableJSBooleanToList on JSArray<JSBoolean?> {
+  /// Converts this to [List] of nullable [bool]s.
+  ///
+  /// **Note:** Depending on whether code is compiled to JavaScript or Wasm,
+  /// this conversion will have different semantics.
+  ///
+  /// When compiling to JavaScript, core [List]s are `Array`s and therefore, if
+  /// the [JSArray] was already a [List] converted via a `toJS*` method, this
+  /// getter simply casts the `Array`. Otherwise, it wraps the `Array` with a
+  /// [List] that casts the elements to [bool?] on access to ensure soundness.
+  ///
+  /// When compiling to Wasm, this clones the `Array`'s values into a new
+  /// [List].
+  ///
+  /// Avoid assuming that modifications to this [JSArray] will affect the
+  /// returned [List] and vice versa in all compilers.
+  external List<bool?> get toDartBoolList;
+}
+
+/// Conversions from `List<bool>` directly to `JSArray<JSBoolean>`.
+@Since('3.14')
+extension ListOfNullableBoolToJSArray on List<bool?> {
+  /// Converts this to a [JSArray] of nullable [JSBoolean]s.
+  ///
+  /// **Note:** Depending on whether code is compiled to JavaScript or Wasm,
+  /// this conversion will have different semantics.
+  ///
+  /// When compiling to JavaScript, the core [List] is a JavaScript Array, and
+  /// therefore this getter simply casts. If the [List] is not a core [List]
+  /// e.g. a user-defined list, this getter throws with a cast error.
+  ///
+  /// When compiling to Wasm, this getter clones this [List]'s values into a new
+  /// [JSArray].
+  ///
+  /// Avoid assuming that modifications to this [List] will affect the
+  /// returned [JSArray] and vice versa in all compilers.
+  external JSArray<JSBoolean?> get toJS;
 }
 
 /// General-purpose JavaScript operators.

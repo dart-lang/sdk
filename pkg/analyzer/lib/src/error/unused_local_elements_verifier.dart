@@ -63,6 +63,20 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitCascadeIndexExpression(CascadeIndexExpression node) {
+    var element = switch (node.resolution) {
+      MethodIndexReadResolution(:var element) => element,
+      InvalidIndexReadResolution(
+        recovery: MethodIndexReadResolution(:var element),
+      ) =>
+        element,
+      _ => null,
+    };
+    usedElements.addMember(element);
+    super.visitCascadeIndexExpression(node);
+  }
+
+  @override
   void visitCatchClause(CatchClause node) {
     var exceptionParameter = node.exceptionParameter;
     var stackTraceParameter = node.stackTraceParameter;
@@ -111,6 +125,12 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     var element = node.declaredFragment!.element;
+    if (node.typeName2 case var typeName?) {
+      if (typeName.lexeme == element.enclosingElement.name) {
+        _useIdentifierElement(element.enclosingElement);
+      }
+    }
+
     var factoryRedirectionTarget = node.factoryRedirectionTarget;
     if (factoryRedirectionTarget != null) {
       var redirectedElement = factoryRedirectionTarget.element;
@@ -157,6 +177,13 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
   @override
   void visitDirectAssignment(DirectAssignment node) {
     var target = node.target;
+    if (target case IndexAssignmentTarget(
+      write: MethodIndexWriteResolution(:var element),
+    )) {
+      _useAssignmentTargetElement(element);
+      super.visitDirectAssignment(node);
+      return;
+    }
     var write = switch (target) {
       PropertyAssignmentTarget(:var write) => write,
       UnqualifiedNameAssignmentTarget(:var write) => write,
@@ -176,24 +203,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
       super.visitDirectAssignment(node);
       return;
     }
-    var element = write.element;
-    if (element is SubstitutedExecutableElementImpl) {
-      element = element.baseElement;
-    }
-
-    // A write alone does not make a local variable's value used.
-    if (element is LocalVariableElement) {
-      super.visitDirectAssignment(node);
-      return;
-    }
-
-    _useIdentifierElement(element);
-    var enclosingElement = element.enclosingElement;
-    if ((enclosingElement is InterfaceElement ||
-            enclosingElement is ExtensionElement) &&
-        !identical(element, _enclosingExec)) {
-      usedElements.members.add(element);
-    }
+    _useAssignmentTargetElement(write.element);
 
     super.visitDirectAssignment(node);
   }
@@ -286,6 +296,20 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitIndexExpression2(IndexExpression2 node) {
+    var element = switch (node.resolution) {
+      MethodIndexReadResolution(:var element) => element,
+      InvalidIndexReadResolution(
+        recovery: MethodIndexReadResolution(:var element),
+      ) =>
+        element,
+      _ => null,
+    };
+    usedElements.addMember(element);
+    super.visitIndexExpression2(node);
+  }
+
+  @override
   void visitIsExpression(IsExpression node) {
     var insideIsExpressionOld = _insideIsExpression;
     node.expression2.accept2(this);
@@ -334,25 +358,25 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
 
   @override
   void visitPostfixDecrement(PostfixDecrement node) {
-    usedElements.addMember(node.element);
+    _visitIncrementOrDecrementExpression(node);
     super.visitPostfixDecrement(node);
   }
 
   @override
   void visitPostfixIncrement(PostfixIncrement node) {
-    usedElements.addMember(node.element);
+    _visitIncrementOrDecrementExpression(node);
     super.visitPostfixIncrement(node);
   }
 
   @override
   void visitPrefixDecrement(PrefixDecrement node) {
-    usedElements.addMember(node.element);
+    _visitIncrementOrDecrementExpression(node);
     super.visitPrefixDecrement(node);
   }
 
   @override
   void visitPrefixIncrement(PrefixIncrement node) {
-    usedElements.addMember(node.element);
+    _visitIncrementOrDecrementExpression(node);
     super.visitPrefixIncrement(node);
   }
 
@@ -483,6 +507,17 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitTopLevelGetterDeclaration(TopLevelGetterDeclaration node) {
+    var enclosingExecOld = _enclosingExec;
+    try {
+      _enclosingExec = node.declaredFragment?.element;
+      super.visitTopLevelGetterDeclaration(node);
+    } finally {
+      _enclosingExec = enclosingExecOld;
+    }
+  }
+
+  @override
   void visitUnaryOperatorInvocation(UnaryOperatorInvocation node) {
     usedElements.addMember(node.element);
     super.visitUnaryOperatorInvocation(node);
@@ -516,6 +551,25 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
     for (var argument in argumentList.arguments2) {
       var parameter = argument.correspondingParameter;
       usedElements.addElement(parameter);
+    }
+  }
+
+  void _useAssignmentTargetElement(Element element) {
+    if (element is SubstitutedExecutableElementImpl) {
+      element = element.baseElement;
+    }
+
+    // A write alone does not make a local variable's value used.
+    if (element is LocalVariableElement) {
+      return;
+    }
+
+    _useIdentifierElement(element);
+    var enclosingElement = element.enclosingElement;
+    if ((enclosingElement is InterfaceElement ||
+            enclosingElement is ExtensionElement) &&
+        !identical(element, _enclosingExec)) {
+      usedElements.members.add(element);
     }
   }
 
@@ -590,6 +644,20 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
     AssignmentTarget target, {
     required bool readCountsAsUse,
   }) {
+    var indexResolutions = switch (target) {
+      CascadeIndexAssignmentTarget(:var read, :var write) => (read, write),
+      IndexAssignmentTarget(:var read, :var write) => (read, write),
+      _ => null,
+    };
+    if (indexResolutions case (var read, var write)) {
+      if (read case MethodIndexReadResolution(:var element)) {
+        _useAssignmentTargetElement(element);
+      }
+      if (write case MethodIndexWriteResolution(:var element)) {
+        _useAssignmentTargetElement(element);
+      }
+      return;
+    }
     var read = switch (target) {
       PropertyAssignmentTarget(:var read) => read,
       UnqualifiedNameAssignmentTarget(:var read) => read,
@@ -617,6 +685,16 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
         }
       }
     }
+  }
+
+  void _visitIncrementOrDecrementExpression(
+    IncrementOrDecrementExpression node,
+  ) {
+    usedElements.addMember(node.element);
+    _useReadWriteAssignmentTarget(
+      node.target,
+      readCountsAsUse: node.parent2 is! ExpressionStatement,
+    );
   }
 
   /// Returns whether the value of [node] is _only_ being read at this position.
@@ -978,6 +1056,16 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor2<void> {
         _visitTypeAliasElement(element);
       }
     }
+  }
+
+  @override
+  void visitTopLevelGetterDeclaration(TopLevelGetterDeclaration node) {
+    var declaredElement = node.declaredFragment?.element;
+    if (declaredElement != null) {
+      _visitPropertyAccessorElement(declaredElement);
+    }
+
+    super.visitTopLevelGetterDeclaration(node);
   }
 
   @override

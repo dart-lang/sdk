@@ -234,7 +234,7 @@ ConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-InstanceCreationExpression
+V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: f
@@ -772,7 +772,7 @@ BinaryOperatorInvocation
     leftBracket: [ <synthetic>
     rightBracket: ] <synthetic>
   binaryOperator: greaterThan
-BinaryExpression
+V1: BinaryExpression
   leftOperand: BinaryExpression
     leftOperand: SimpleIdentifier
       token: f
@@ -1097,7 +1097,16 @@ MethodInvocation
           operator: >
           rightOperand: SimpleIdentifier
             token: <empty> <synthetic>
-        cascadeSections2
+        sections
+          CascadeSection
+            body: MethodInvocation
+              operator: ..
+              methodName: SimpleIdentifier
+                token: toString
+              argumentList: ArgumentList
+                leftParenthesis: (
+                rightParenthesis: )
+        cascadeSections
           MethodInvocation
             operator: ..
             methodName: SimpleIdentifier
@@ -1660,11 +1669,18 @@ var x = x[0]<a, b>;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 FunctionReference
-  function2: IndexExpression
-    target2: SimpleIdentifier
+  function2: IndexExpression2
+    receiver: SimpleIdentifier
       token: x
     leftBracket: [
-    index2: IntegerLiteral
+    index: IntegerLiteral
+      literal: 0
+    rightBracket: ]
+  function(v1): IndexExpression
+    target: SimpleIdentifier
+      token: x
+    leftBracket: [
+    index: IntegerLiteral
       literal: 0
     rightBracket: ]
   typeArguments: TypeArgumentList
@@ -1686,11 +1702,11 @@ var x = x[0]!<a, b>;
     assertParsedNodeText(node, r'''
 FunctionReference
   function2: NullAssertionExpression
-    operand: IndexExpression
-      target2: SimpleIdentifier
+    operand: IndexExpression2
+      receiver: SimpleIdentifier
         token: x
       leftBracket: [
-      index2: IntegerLiteral
+      index: IntegerLiteral
         literal: 0
       rightBracket: ]
     operator: !
@@ -1722,11 +1738,18 @@ var x = x[0]()<a, b>;
     assertParsedNodeText(node, r'''
 FunctionReference
   function2: FunctionExpressionInvocation
-    function2: IndexExpression
-      target2: SimpleIdentifier
+    function2: IndexExpression2
+      receiver: SimpleIdentifier
         token: x
       leftBracket: [
-      index2: IntegerLiteral
+      index: IntegerLiteral
+        literal: 0
+      rightBracket: ]
+    function(v1): IndexExpression
+      target: SimpleIdentifier
+        token: x
+      leftBracket: [
+      index: IntegerLiteral
         literal: 0
       rightBracket: ]
     argumentList: ArgumentList
@@ -1750,12 +1773,20 @@ var x = x?[0]<a, b>;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 FunctionReference
-  function2: IndexExpression
-    target2: SimpleIdentifier
+  function2: IndexExpression2
+    receiver: SimpleIdentifier
       token: x
     question: ?
     leftBracket: [
-    index2: IntegerLiteral
+    index: IntegerLiteral
+      literal: 0
+    rightBracket: ]
+  function(v1): IndexExpression
+    target: SimpleIdentifier
+      token: x
+    question: ?
+    leftBracket: [
+    index: IntegerLiteral
       literal: 0
     rightBracket: ]
   typeArguments: TypeArgumentList

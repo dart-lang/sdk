@@ -242,7 +242,7 @@ ConstructorInvocation
     leftParenthesis: (
     rightParenthesis: )
   staticType: C<int>
-InstanceCreationExpression
+V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       importPrefix: ImportPrefixReference

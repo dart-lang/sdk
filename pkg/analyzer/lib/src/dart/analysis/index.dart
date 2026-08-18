@@ -540,7 +540,7 @@ class _IndexAssembler {
 }
 
 /// Visits a resolved AST and adds relationships into the [assembler].
-class _IndexContributor extends GeneralizingAstVisitor2 {
+class _IndexContributor extends UnifyingAstVisitor2 {
   final _IndexAssembler assembler;
   final CompilationUnit unit;
 
@@ -753,6 +753,26 @@ class _IndexContributor extends GeneralizingAstVisitor2 {
   }
 
   @override
+  void visitCascadeIndexExpression(CascadeIndexExpression node) {
+    var element = switch (node.resolution) {
+      MethodIndexReadResolution(:var element) => element,
+      InvalidIndexReadResolution(
+        recovery: MethodIndexReadResolution(:var element),
+      ) =>
+        element,
+      _ => null,
+    };
+    if (element is MethodElement) {
+      recordRelationToken(
+        element,
+        IndexRelationKind.IS_INVOKED_BY,
+        node.leftBracket,
+      );
+    }
+    super.visitCascadeIndexExpression(node);
+  }
+
+  @override
   void visitClassDeclaration(covariant ClassDeclarationImpl node) {
     _addSubtypeForClassDeclaration(node);
     var declaredElement = node.declaredFragment!.element;
@@ -856,6 +876,10 @@ class _IndexContributor extends GeneralizingAstVisitor2 {
   void visitCompoundAssignment(CompoundAssignment node) {
     recordOperatorReference(node.operator, node.element);
     switch (node.target as AssignmentTargetImpl) {
+      case CascadeIndexAssignmentTargetImpl target:
+        _recordIndexReadWriteTarget(target);
+      case IndexAssignmentTargetImpl target:
+        _recordIndexReadWriteTarget(target);
       case InvalidExpressionAssignmentTargetImpl():
         break;
       case PropertyAssignmentTargetImpl target:
@@ -868,10 +892,21 @@ class _IndexContributor extends GeneralizingAstVisitor2 {
 
   @override
   visitConstructorDeclaration(covariant ConstructorDeclarationImpl node) {
+    // TODO(fshcheglov): Consider removing the index entry.
+    var element = node.declaredFragment!.element;
+    if (node.typeName2 case var typeName?
+        when typeName.lexeme == element.enclosingElement.name) {
+      recordRelation(
+        element.enclosingElement,
+        IndexRelationKind.IS_REFERENCED_BY,
+        typeName,
+        false,
+      );
+    }
+
     // If the constructor does not have an explicit `super` constructor
     // invocation, it implicitly invokes the unnamed constructor.
     if (node.initializers.none((e) => e is SuperConstructorInvocation)) {
-      var element = node.declaredFragment!.element;
       var superConstructor = element.superConstructor;
       if (superConstructor != null) {
         var range = node.errorRange;
@@ -953,6 +988,10 @@ class _IndexContributor extends GeneralizingAstVisitor2 {
   @override
   void visitDirectAssignment(DirectAssignment node) {
     switch (node.target as AssignmentTargetImpl) {
+      case CascadeIndexAssignmentTargetImpl target:
+        _recordIndexReadWriteTarget(target);
+      case IndexAssignmentTargetImpl target:
+        _recordIndexReadWriteTarget(target);
       case InvalidExpressionAssignmentTargetImpl():
         break;
       case PropertyAssignmentTargetImpl target:
@@ -1194,6 +1233,10 @@ class _IndexContributor extends GeneralizingAstVisitor2 {
   @override
   void visitIfNullAssignment(IfNullAssignment node) {
     switch (node.target as AssignmentTargetImpl) {
+      case CascadeIndexAssignmentTargetImpl target:
+        _recordIndexReadWriteTarget(target);
+      case IndexAssignmentTargetImpl target:
+        _recordIndexReadWriteTarget(target);
       case InvalidExpressionAssignmentTargetImpl():
         break;
       case PropertyAssignmentTargetImpl target:
@@ -1228,27 +1271,6 @@ class _IndexContributor extends GeneralizingAstVisitor2 {
   }
 
   @override
-  void visitIncrementOrDecrementExpression(
-    covariant IncrementOrDecrementExpressionImpl node,
-  ) {
-    recordOperatorReference(node.operator, node.element);
-    // TODO(scheglov): Remove this compensation when the operand is migrated
-    // from `Expression` to `AssignmentTarget`. Traversing the operand records
-    // only its write element, so record the getter invocation here.
-    if (node.readElement case GetterElement element) {
-      if (_accessName(node.operand) case var name?) {
-        recordRelation(
-          element,
-          IndexRelationKind.IS_INVOKED_BY,
-          name,
-          _isQualified(name),
-        );
-      }
-    }
-    super.visitIncrementOrDecrementExpression(node);
-  }
-
-  @override
   void visitIndexExpression(IndexExpression node) {
     var element = node.writeOrReadElement2;
     if (element is MethodElement) {
@@ -1256,6 +1278,26 @@ class _IndexContributor extends GeneralizingAstVisitor2 {
       recordRelationToken(element, IndexRelationKind.IS_INVOKED_BY, operator);
     }
     super.visitIndexExpression(node);
+  }
+
+  @override
+  void visitIndexExpression2(IndexExpression2 node) {
+    var element = switch (node.resolution) {
+      MethodIndexReadResolution(:var element) => element,
+      InvalidIndexReadResolution(
+        recovery: MethodIndexReadResolution(:var element),
+      ) =>
+        element,
+      _ => null,
+    };
+    if (element is MethodElement) {
+      recordRelationToken(
+        element,
+        IndexRelationKind.IS_INVOKED_BY,
+        node.leftBracket,
+      );
+    }
+    super.visitIndexExpression2(node);
   }
 
   @override
@@ -1366,6 +1408,21 @@ class _IndexContributor extends GeneralizingAstVisitor2 {
   }
 
   @override
+  void visitPostfixDecrement(covariant PostfixDecrementImpl node) {
+    _visitIncrementOrDecrementExpression(node);
+  }
+
+  @override
+  void visitPostfixIncrement(covariant PostfixIncrementImpl node) {
+    _visitIncrementOrDecrementExpression(node);
+  }
+
+  @override
+  void visitPrefixDecrement(covariant PrefixDecrementImpl node) {
+    _visitIncrementOrDecrementExpression(node);
+  }
+
+  @override
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
     var element = node.element;
     var prefixElement = node.prefix.element;
@@ -1373,6 +1430,11 @@ class _IndexContributor extends GeneralizingAstVisitor2 {
       assembler.addPrefixForElement(element, prefix: prefixElement);
     }
     super.visitPrefixedIdentifier(node);
+  }
+
+  @override
+  void visitPrefixIncrement(covariant PrefixIncrementImpl node) {
+    _visitIncrementOrDecrementExpression(node);
   }
 
   @override
@@ -1762,6 +1824,36 @@ class _IndexContributor extends GeneralizingAstVisitor2 {
     );
   }
 
+  void _recordIndexReadWriteTarget(AstNode target) {
+    var (read, write, leftBracket) = switch (target) {
+      CascadeIndexAssignmentTargetImpl target => (
+        target.read,
+        target.write,
+        target.leftBracket,
+      ),
+      IndexAssignmentTargetImpl target => (
+        target.read,
+        target.write,
+        target.leftBracket,
+      ),
+      _ => throw StateError('Not an index assignment target: $target'),
+    };
+    if (read case MethodIndexReadResolutionImpl(:var element)) {
+      recordRelationToken(
+        element,
+        IndexRelationKind.IS_INVOKED_BY,
+        leftBracket,
+      );
+    }
+    if (write case MethodIndexWriteResolutionImpl(:var element)) {
+      recordRelationToken(
+        element,
+        IndexRelationKind.IS_INVOKED_BY,
+        leftBracket,
+      );
+    }
+  }
+
   void _recordPropertyReadWriteTarget(PropertyAssignmentTargetImpl target) {
     var hasRelation = false;
     switch (target.read) {
@@ -1865,6 +1957,25 @@ class _IndexContributor extends GeneralizingAstVisitor2 {
         false,
       );
     }
+  }
+
+  void _visitIncrementOrDecrementExpression(
+    IncrementOrDecrementExpressionImpl node,
+  ) {
+    recordOperatorReference(node.operator, node.element);
+    switch (node.target) {
+      case CascadeIndexAssignmentTargetImpl target:
+        _recordIndexReadWriteTarget(target);
+      case IndexAssignmentTargetImpl target:
+        _recordIndexReadWriteTarget(target);
+      case InvalidExpressionAssignmentTargetImpl():
+        break;
+      case PropertyAssignmentTargetImpl target:
+        _recordPropertyReadWriteTarget(target);
+      case UnqualifiedNameAssignmentTargetImpl target:
+        _recordUnqualifiedNameReadWriteTarget(target);
+    }
+    node.visitChildren2(this);
   }
 }
 

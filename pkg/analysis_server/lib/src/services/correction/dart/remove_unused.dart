@@ -120,6 +120,17 @@ class RemoveUnusedField extends _RemoveUnused {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     var declaration = node;
+
+    if (declaration is EnumConstantDeclaration) {
+      var body = declaration.parent;
+      if (body is EnumBody && body.constants.length > 1) {
+        await builder.addDartFileEdit(file, (builder) {
+          builder.addDeletion(range.nodeInList(body.constants, declaration));
+        });
+      }
+      return;
+    }
+
     if (declaration is! VariableDeclaration) {
       return;
     }

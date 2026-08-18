@@ -48,7 +48,7 @@ PropertyExtraction
     invokeType: int? Function()
     type: int?
   staticType: int?
-PropertyAccess
+V1: PropertyAccess
   target: ParenthesizedExpression
     leftParenthesis: (
     expression: SimpleIdentifier
@@ -630,7 +630,7 @@ PropertyExtraction
     invokeType: int? Function()
     type: int
   staticType: int
-PropertyAccess
+V1: PropertyAccess
   target: ParenthesizedExpression
     leftParenthesis: (
     expression: SimpleIdentifier

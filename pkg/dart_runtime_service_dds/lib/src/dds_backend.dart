@@ -6,13 +6,18 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:dart_runtime_service/dart_runtime_service.dart';
+import 'package:devtools_shared/devtools_shared.dart' show DtdInfo;
+import 'package:dtd/dtd.dart';
 import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
+import 'package:logging/logging.dart';
 import 'package:shelf_proxy/shelf_proxy.dart';
 import 'package:vm_service/vm_service.dart' as vm;
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 import 'dds_isolate_manager.dart';
 import 'dds_rpcs.dart';
+
+final _logger = Logger('DartRuntimeServiceDdsBackend');
 
 /// A [DartRuntimeServiceBackend] implementation that provides the Dart
 /// Development Service (DDS) for a remote VM Service.
@@ -23,10 +28,17 @@ class DartRuntimeServiceDdsBackend
   DartRuntimeServiceDdsBackend(
     this.remoteVmServiceUri, {
     required super.frontend,
+    this.appName,
+    this.serveDevTools = false,
   });
 
   /// The [Uri] of the target VM Service.
   final Uri remoteVmServiceUri;
+  final bool serveDevTools;
+  final String? appName;
+
+  DtdInfo? _hostedDartToolingDaemon;
+  DtdInfo? get hostedDartToolingDaemon => _hostedDartToolingDaemon;
 
   late final DdsIsolateManager _isolateManager;
   late final WebSocketChannel _webSocketChannel;
@@ -43,6 +55,13 @@ class DartRuntimeServiceDdsBackend
 
   @override
   Future<void> initialize() async {
+    if (serveDevTools) {
+      _hostedDartToolingDaemon = await startDtd(
+        machineMode: false,
+        printDtdUri: false,
+      );
+    }
+
     final wsUri = _convertToWebSocketUri(remoteVmServiceUri);
     _webSocketChannel = WebSocketChannel.connect(wsUri);
 
@@ -78,7 +97,30 @@ class DartRuntimeServiceDdsBackend
   Future<void> onServerStarted({
     required Uri httpUri,
     required Uri wsUri,
-  }) async {}
+  }) async {
+    final hostedDtd = _hostedDartToolingDaemon;
+    final secret = hostedDtd?.secret;
+    if (hostedDtd != null && secret != null) {
+      DartToolingDaemon? dtdClient;
+      try {
+        dtdClient = await DartToolingDaemon.connect(hostedDtd.localUri);
+        final ddsWsPathSegments = [
+          ...wsUri.pathSegments.where((e) => e.isNotEmpty),
+          'ws',
+        ];
+        final ddsWsUri = wsUri.replace(pathSegments: ddsWsPathSegments);
+        await dtdClient.registerVmService(
+          uri: ddsWsUri.toString(),
+          secret: secret,
+          name: appName,
+        );
+      } catch (e, st) {
+        _logger.warning('Failed to register VM Service to DTD: $e', e, st);
+      } finally {
+        await dtdClient?.close();
+      }
+    }
+  }
 
   @override
   Future<void> onServerShutdown() async {}

@@ -38,6 +38,39 @@ abstract class TemporaryOverlayOperation {
     _affectedContexts.clear();
   }
 
+  /// Applies a temporary overlay with the given [newContent].
+  ///
+  /// The [existingContent] will be saved as the original content to restore if
+  /// [path] already has an active overlay.
+  ///
+  /// This can be used for files with or without an analysis context.
+  void applyTemporaryOverlay(
+    String path,
+    String newContent,
+    String existingContent,
+  ) {
+    // Store the original overlay content if we haven't already, so we can
+    // revert to it at the end, otherwise store null so [revertOverlays]
+    // removes the temporary overlay.
+    if (!_originalOverlays.containsKey(path)) {
+      _originalOverlays[path] = resourceProvider.hasOverlay(path)
+          ? existingContent
+          : null;
+    }
+
+    resourceProvider.setOverlay(
+      path,
+      content: newContent,
+      modificationStamp: -1,
+    );
+
+    var context = contextManager.getContextFor(path);
+    if (context != null) {
+      _affectedContexts.add(context);
+      context.changeFile(path);
+    }
+  }
+
   /// Applies edits as a temporary overlay.
   void applyTemporaryOverlayEdits(SourceFileEdit fileEdit) {
     var path = fileEdit.file;
@@ -52,29 +85,13 @@ abstract class TemporaryOverlayOperation {
     // because we have paused watchers and incoming events and expect a
     // consistent state.
     var overlayContent = resourceProvider.getFile(path).readAsStringSync();
-    var stateContent = context.driver.fsState.getFileForPath(path).content;
-    if (overlayContent != stateContent) {
-      throw StateError('Overlay and analyzed content do not match');
-    }
-
-    // Store the original overlay content if we haven't already, so we can
-    // revert to it at the end.
-    _originalOverlays.putIfAbsent(
-      path,
-      () => resourceProvider.hasOverlay(path) ? overlayContent : null,
+    assert(
+      overlayContent == context.driver.fsState.getFileForPath(path).content,
+      'Overlay and analyzed content do not match',
     );
 
-    // Keep track of which contexts will have pending changes.
-    _affectedContexts.add(context);
-
-    // Finally, update the overlay and notify the driver.
     var newContent = SourceEdit.applySequence(overlayContent, fileEdit.edits);
-    resourceProvider.setOverlay(
-      path,
-      content: newContent,
-      modificationStamp: -1,
-    );
-    context.changeFile(path);
+    applyTemporaryOverlay(path, newContent, overlayContent);
   }
 
   /// Locks the server from processing incoming messages until [operation]
@@ -115,13 +132,6 @@ abstract class TemporaryOverlayOperation {
   Future<void> revertOverlays() async {
     for (var entry in _originalOverlays.entries) {
       var path = entry.key;
-      var context = contextManager.getContextFor(path);
-      if (context == null) {
-        throw ArgumentError(
-          'Unable to reset a temporary overlay for file with no context: $path',
-        );
-      }
-
       var overlayContent = entry.value;
       if (overlayContent != null) {
         resourceProvider.setOverlay(
@@ -132,8 +142,12 @@ abstract class TemporaryOverlayOperation {
       } else {
         resourceProvider.removeOverlay(path);
       }
-      _affectedContexts.add(context);
-      context.changeFile(path);
+
+      var context = contextManager.getContextFor(path);
+      if (context != null) {
+        _affectedContexts.add(context);
+        context.changeFile(path);
+      }
     }
     _originalOverlays.clear();
 

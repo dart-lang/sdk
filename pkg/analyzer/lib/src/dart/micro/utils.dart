@@ -389,7 +389,7 @@ class MatchKind {
   String toString() => name;
 }
 
-class ReferencesCollector extends GeneralizingAstVisitor2<void> {
+class ReferencesCollector extends RecursiveAstVisitor2<void> {
   final Element element;
   final List<MatchInfo> references = [];
 
@@ -516,13 +516,23 @@ class ReferencesCollector extends GeneralizingAstVisitor2<void> {
 
   @override
   visitConstructorDeclaration(covariant ConstructorDeclarationImpl node) {
-    if (node.declaredFragment?.element == element) {
+    var constructorElement = node.declaredFragment?.element;
+    if (node.typeName2 case var typeName?) {
+      if (constructorElement?.enclosingElement == element &&
+          typeName.lexeme == element.name) {
+        references.add(
+          MatchInfo(typeName.offset, typeName.length, MatchKind.REFERENCE),
+        );
+      }
+    }
+
+    if (constructorElement == element) {
       if (node.name case var name?) {
         var offset = node.period?.offset ?? name.offset;
         var length = name.end - offset;
         references.add(MatchInfo(offset, length, MatchKind.DECLARATION));
       } else {
-        var end = (node.typeName ?? node.newKeyword)!.end;
+        var end = (node.typeName2 ?? node.newKeyword)!.end;
         references.add(MatchInfo(end, 0, MatchKind.DECLARATION));
       }
     }

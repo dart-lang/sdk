@@ -951,9 +951,45 @@ Definition* AllocateContextInstr::Canonicalize(FlowGraph* flow_graph) {
   return nullptr;
 }
 
+Definition* AllocationInstr::InitialValueForSlot(FlowGraph* graph,
+                                                 const Slot& slot) {
+  for (intptr_t i = 0; i < InputCount(); i++) {
+    auto* const input_slot = SlotForInput(i);
+    if ((input_slot != nullptr) && input_slot->IsIdentical(slot)) {
+      return InputAt(i)->definition();
+    }
+  }
+  // Fields that do not contain tagged values should not have a tagged null
+  // value forwarded for them, similar to payloads of typed data arrays.
+  if (!slot.is_tagged()) {
+    return nullptr;
+  }
+  // Fields that are not provided as an input to the instruction are
+  // initialized to null during allocation.
+  return graph->constant_null();
+}
+
 Definition* AllocateClosureInstr::Canonicalize(FlowGraph* flow_graph) {
   if (!HasUses()) return nullptr;
   return this;
+}
+
+Definition* AllocateClosureInstr::InitialValueForSlot(FlowGraph* graph,
+                                                      const Slot& slot) {
+  if (slot.IsIdentical(Slot::Closure_hash())) {
+    return graph->GetConstant(Object::smi_zero());
+  }
+  if (slot.IsIdentical(Slot::Closure_length_and_flags())) {
+    return graph->GetConstant(
+        Smi::ZoneHandle(graph->zone(), Smi::New(EncodedLengthAndFlags())));
+  }
+  if (has_delayed_type_args_ && (slot.kind() == Slot::Kind::kClosureElement) &&
+      (slot.offset_in_bytes() ==
+       compiler::target::Closure::element_offset(
+           UntaggedClosure::kDelayedTypeArgumentsIndex))) {
+    return graph->GetConstant(Object::empty_type_arguments());
+  }
+  return TemplateAllocation::InitialValueForSlot(graph, slot);
 }
 
 LocationSummary* AllocateClosureInstr::MakeLocationSummary(Zone* zone,
@@ -7462,9 +7498,7 @@ static void EmitSanCall(FlowGraphCompiler* compiler,
 #if defined(TARGET_ARCH_RISCV64)
   __ MoveRegister(FAR_TMP, PP);
 #endif
-#if defined(TARGET_ARCH_ARM64)
-  __ AndImmediate(CSP, SP, ~(OS::ActivationFrameAlignment() - 1));
-#else
+#if !defined(TARGET_ARCH_ARM64)
   __ ReserveAlignedFrameSpace(0);
 #endif
   auto& entry = move_parameters();
@@ -7482,9 +7516,6 @@ static void EmitSanCall(FlowGraphCompiler* compiler,
   __ MoveRegister(PP, FAR_TMP);
 #endif
   __ MoveRegister(SPREG, saved_sp);
-#if defined(TARGET_ARCH_ARM64)
-  __ SetupCSPFromThread(THR);
-#endif
   __ PopRegisters(spill_set);
 }
 

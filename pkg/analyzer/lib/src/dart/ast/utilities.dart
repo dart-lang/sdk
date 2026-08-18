@@ -80,7 +80,7 @@ class NodeLocator extends UnifyingAstVisitor<void> {
     // Names do not have AstNodes but offsets at the end should be treated as
     // part of the declaration (not parameter list).
     if (_startOffset == _endOffset) {
-      var end = node.name?.end ?? node.typeName?.end;
+      var end = node.name?.end ?? node.typeName2?.end;
       if (end != null && _startOffset == end) {
         _foundNode = node;
         return;
@@ -231,7 +231,7 @@ class NodeLocator2 extends UnifyingAstVisitor2<void> {
     // Names do not have AstNodes but offsets at the end should be treated as
     // part of the declaration (not parameter list).
     if (_startOffset == _endOffset) {
-      var end = node.name?.end ?? node.typeName?.end;
+      var end = node.name?.end ?? node.typeName2?.end;
       if (end != null && _startOffset == end) {
         _foundNode = node;
         return;
@@ -340,7 +340,7 @@ class ScopedNameFinder extends GeneralizingAstVisitor<void>
 }
 
 /// The V2 AST equivalent of [ScopedNameFinder].
-class ScopedNameFinder2 extends GeneralizingAstVisitor2<void>
+class ScopedNameFinder2 extends UnifyingAstVisitor2<void>
     with _ScopedNameFinderMixin {
   @override
   final int position;
@@ -352,6 +352,12 @@ class ScopedNameFinder2 extends GeneralizingAstVisitor2<void>
 
   @override
   void visitNode(AstNode node) {
+    if (node is SwitchMember) {
+      _checkStatements(node.statements);
+    } else if (node is TypeAlias) {
+      _declarationNode = node;
+      return;
+    }
     immediateChild = node;
     parentOf(node)?.accept2(this);
   }

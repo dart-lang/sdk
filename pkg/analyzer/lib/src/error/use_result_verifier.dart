@@ -221,7 +221,9 @@ class UseResultVerifier {
         parent is ForLoopParts ||
         parent is FunctionExpressionInvocation ||
         parent is IfStatement ||
+        parent is IndexAssignmentTarget ||
         parent is IndexExpression ||
+        parent is IndexExpression2 ||
         parent is InterpolationExpression ||
         parent is ListLiteral ||
         parent is MapLiteralEntry ||

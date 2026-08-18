@@ -519,12 +519,19 @@ class ExtensionMemberResolver {
   /// of an operation that might be accessing an instance member.
   static bool _isValidContext(ExtensionOverride node) {
     var parent = node.parent2;
+    // Increment and decrement wrap a syntactically invalid write-back target,
+    // but still constitute an attempted implicit member access.
+    if (parent case InvalidExpressionAssignmentTarget target) {
+      parent = target.parent2;
+    }
     return parent is BinaryOperatorInvocation && parent.leftOperand == node ||
         parent is FunctionExpressionInvocation && parent.function2 == node ||
+        parent is IndexAssignmentTarget && parent.receiver == node ||
+        parent is IndexExpression2 && parent.receiver == node ||
         parent is IndexExpression && parent.target2 == node ||
+        parent is IncrementOrDecrementExpression ||
         parent is MethodInvocation && parent.target2 == node ||
-        parent is PrefixIncrement ||
-        parent is PrefixDecrement ||
+        parent is PropertyAssignmentTarget && parent.receiver == node ||
         parent is UnaryOperatorInvocation && parent.operand == node ||
         parent is PropertyAccess && parent.target2 == node;
   }

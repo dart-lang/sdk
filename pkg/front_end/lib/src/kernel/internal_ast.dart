@@ -1491,7 +1491,7 @@ class InternalLateVariable extends InternalDeclaredVariable {
         fileOffset: fileOffset,
       );
       PositionalParameter setterParameter = extern.createPositionalParameter(
-        cosmeticName: "${name}#param",
+        parameterName: "${name}#param",
         type: type,
         isSynthesized: false,
         fileOffset: fileOffset,
@@ -1652,7 +1652,7 @@ sealed class InternalFunctionParameter extends InternalVariable
   bool get isStaticLate => false;
 
   @override
-  String? get cosmeticName => _astVariable.cosmeticName;
+  String? get cosmeticName => _astVariable.parameterName;
 
   @override
   @Deprecated('Use InternalFunctionParameter.hasDeclaredDefaultValue instead.')
@@ -1965,6 +1965,7 @@ class InternalSyntheticVariable extends InternalDeclaredVariable {
        )..fileOffset = fileOffset;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isStaticLate => false;
 
   @override
@@ -1974,6 +1975,7 @@ class InternalSyntheticVariable extends InternalDeclaredVariable {
   String? get cosmeticName => _astVariable.cosmeticName;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get hasDeclaredInitializer => _astVariable.hasDeclaredInitializer;
 
   @override
@@ -1983,9 +1985,11 @@ class InternalSyntheticVariable extends InternalDeclaredVariable {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isConst => false;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isFinal => _astVariable.isFinal;
 
   @override
@@ -2003,6 +2007,7 @@ class InternalSyntheticVariable extends InternalDeclaredVariable {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isAssignable {
     if (isFinal) return false;
     return true;
@@ -7688,6 +7693,42 @@ class InternalForStatement extends InternalLoopStatement {
   }
 }
 
+class InternalPatternForStatement extends InternalLoopStatement {
+  final InternalPatternVariableDeclaration patternVariableDeclaration;
+  final InternalExpression? condition; // May be null.
+  final List<InternalExpression> updates; // May be empty, but not null.
+
+  final InternalStatement body;
+
+  new(
+    this.patternVariableDeclaration,
+    this.condition,
+    this.updates,
+    this.body, {
+    required super.fileOffset,
+  });
+
+  @override
+  StatementInferenceResult acceptInference(InferenceVisitorImpl visitor) {
+    return visitor.visitInternalPatternForStatement(this);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    printer.write('for (');
+    patternVariableDeclaration.toTextInternal(printer);
+    printer.write('; ');
+    if (condition != null) {
+      condition!.toTextInternal(printer);
+    }
+    printer.write('; ');
+    updates.toTextInternal(printer);
+    printer.write(') ');
+    body.toTextInternal(printer);
+  }
+}
+
 /// Synthetic expression of form `let v = x in y`
 // TODO(johnniwinther): Can we avoid this?
 class InternalLet extends InternalExpression {
@@ -9082,3 +9123,5 @@ class JointVariable extends InternalDeclaredVariable {
     return true;
   }
 }
+
+class PatternForLoopVariable {}

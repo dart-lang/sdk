@@ -33,8 +33,6 @@ class ConvertToPackageImport_AlwaysUsePackageImportsBulkTest
     newFile('$testPackageLibPath/foo.dart', 'class Foo {}');
     newFile('$testPackageLibPath/bar.dart', 'class Bar {}');
 
-    testFilePath = convertPath('$testPackageLibPath/test.dart');
-
     await resolveTestCode('''
 import 'foo.dart';
 import 'bar.dart';
@@ -85,12 +83,13 @@ class ConvertToPackageImport_AvoidRelativeLibImportsBulkTest
   @override
   String get lintCode => LintNames.avoid_relative_lib_imports;
 
+  @override
+  String get testFilePath => convertPath('/home/test/tool/test.dart');
+
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/44673')
   Future<void> test_singleFile() async {
     writeTestPackageConfig(config: PackageConfigFileBuilder());
     newFile('$testPackageLibPath/bar.dart', 'class Bar {}');
-
-    testFilePath = convertPath('/home/test/tool/test.dart');
 
     await resolveTestCode('''
 import '../lib/bar.dart';

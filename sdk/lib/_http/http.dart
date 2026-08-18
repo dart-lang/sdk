@@ -38,6 +38,7 @@ part 'http_testing.dart';
 part 'overrides.dart';
 part 'websocket.dart';
 part 'websocket_impl.dart';
+part 'websocket_profiler.dart';
 
 /// A server that delivers content, such as web pages, using the HTTP protocol.
 ///

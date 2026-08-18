@@ -108,7 +108,32 @@ CascadeExpression
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A
-  cascadeSections2
+  sections
+    CascadeSection
+      body: MethodInvocation
+        operator: ..
+        methodName: SimpleIdentifier
+          token: foo
+          element: <testLibrary>::@class::A::@method::foo
+          staticType: void Function()
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        staticInvokeType: void Function()
+        staticType: void
+    CascadeSection
+      body: MethodInvocation
+        operator: ..
+        methodName: SimpleIdentifier
+          token: bar
+          element: <testLibrary>::@class::A::@method::bar
+          staticType: void Function()
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        staticInvokeType: void Function()
+        staticType: void
+  cascadeSections
     MethodInvocation
       operator: ..
       methodName: SimpleIdentifier
@@ -6623,7 +6648,32 @@ CascadeExpression
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A?
-  cascadeSections2
+  sections
+    CascadeSection
+      body: MethodInvocation
+        operator: ?..
+        methodName: SimpleIdentifier
+          token: foo
+          element: <testLibrary>::@class::A::@method::foo
+          staticType: int Function()
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        staticInvokeType: int Function()
+        staticType: int
+    CascadeSection
+      body: MethodInvocation
+        operator: ..
+        methodName: SimpleIdentifier
+          token: bar
+          element: <testLibrary>::@class::A::@method::bar
+          staticType: int Function()
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        staticInvokeType: int Function()
+        staticType: int
+  cascadeSections
     MethodInvocation
       operator: ?..
       methodName: SimpleIdentifier
@@ -6669,7 +6719,28 @@ CascadeExpression
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A?
-  cascadeSections2
+  sections
+    CascadeSection
+      body: PropertyAccess
+        operator: ?..
+        propertyName: SimpleIdentifier
+          token: foo
+          element: <testLibrary>::@class::A::@getter::foo
+          staticType: int
+        staticType: int
+    CascadeSection
+      body: MethodInvocation
+        operator: ..
+        methodName: SimpleIdentifier
+          token: bar
+          element: <testLibrary>::@class::A::@method::bar
+          staticType: int Function()
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        staticInvokeType: int Function()
+        staticType: int
+  cascadeSections
     PropertyAccess
       operator: ?..
       propertyName: SimpleIdentifier
@@ -6729,9 +6800,33 @@ CascadeExpression
       leftParenthesis: (
       rightParenthesis: )
     staticType: A
-  cascadeSections2
+  sections
+    CascadeSection
+      body: MethodInvocation
+        target2: MethodInvocation
+          operator: ..
+          methodName: SimpleIdentifier
+            token: foo
+            element: <testLibrary>::@class::A::@method::foo
+            staticType: int? Function()
+          argumentList: ArgumentList
+            leftParenthesis: (
+            rightParenthesis: )
+          staticInvokeType: int? Function()
+          staticType: int?
+        operator: ?.
+        methodName: SimpleIdentifier
+          token: abs
+          element: dart:core::@class::int::@method::abs
+          staticType: int Function()
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        staticInvokeType: int Function()
+        staticType: int?
+  cascadeSections
     MethodInvocation
-      target2: MethodInvocation
+      target: MethodInvocation
         operator: ..
         methodName: SimpleIdentifier
           token: foo
@@ -7193,11 +7288,34 @@ void main() {
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function2: PropertyAccess
-    target2: PropertyAccess
-      target2: ParenthesizedExpression
+    target2: PropertyExtraction
+      receiver: ParenthesizedExpression
         leftParenthesis: (
         expression2: AsExpression
           expression2: NullLiteral
+            literal: null
+            staticType: Null
+          asOperator: as
+          type: NamedType
+            name: B
+            question: ?
+            element: <testLibrary>::@class::B
+            type: B?
+          staticType: B?
+        rightParenthesis: )
+        staticType: B?
+      operator: ?.
+      propertyName: a
+      resolution: GetterInvocationResolution
+        element: <testLibrary>::@class::B::@getter::a
+        invokeType: A Function()
+        type: A
+      staticType: A
+    target(v1): PropertyAccess
+      target: ParenthesizedExpression
+        leftParenthesis: (
+        expression: AsExpression
+          expression: NullLiteral
             literal: null
             staticType: Null
           asOperator: as

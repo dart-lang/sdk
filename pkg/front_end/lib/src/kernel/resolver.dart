@@ -925,7 +925,7 @@ class Resolver {
               PositionalParameter parameter = positionalParameters[i];
               return createFormalParameterBuilder(
                 parameter,
-                parameter.cosmeticName!,
+                parameter.parameterName,
               );
             },
             growable: false,

@@ -240,6 +240,23 @@ Future<void> copyDirectory(Directory source, Directory target) async {
   }
 }
 
+Future<void> copyTestData(Uri sourceUri, Uri targetUri) async {
+  final manifestFile = File.fromUri(sourceUri.resolve('manifest.yaml'));
+  final manifest =
+      loadYamlDocument(
+            await manifestFile.readAsString(),
+          ).contents
+          as YamlList;
+
+  for (final path in manifest.cast<String>()) {
+    final relativeUri = Uri(path: path);
+    final sourceFile = File.fromUri(sourceUri.resolveUri(relativeUri));
+    final targetFile = File.fromUri(targetUri.resolveUri(relativeUri));
+    await targetFile.parent.create(recursive: true);
+    await sourceFile.copy(targetFile.path);
+  }
+}
+
 Future<void> copyTestProjects(
   Uri copyTargetUri,
   Logger logger,
@@ -300,6 +317,12 @@ Future<void> copyTestProjects(
       'meta',
     ])
       package: {'path': sdkRoot.resolve('pkg/$package/').toFilePath()},
+    for (final package in ['test', 'test_api', 'test_core'])
+      package: {
+        'path': sdkRoot
+            .resolve('third_party/pkg/test/pkgs/$package/')
+            .toFilePath(),
+      },
   };
   final userDefinesWorkspace = {};
   for (final pubspecPath in pubspecPaths) {
@@ -536,3 +559,16 @@ final nativeAssetsExperimentAvailableOnCurrentChannel = ExperimentalFeatures
     .native_assets
     .channels
     .contains(Runtime.runtime.channel);
+
+/// Polls [condition] every [interval] until it returns `true` or [timeout] expires.
+Future<void> pollUntil(
+  FutureOr<bool> Function() condition, {
+  Duration timeout = const Duration(seconds: 5),
+  Duration interval = const Duration(milliseconds: 100),
+}) async {
+  final watch = Stopwatch()..start();
+  while (watch.elapsed < timeout) {
+    if (await condition()) return;
+    await Future.delayed(interval);
+  }
+}

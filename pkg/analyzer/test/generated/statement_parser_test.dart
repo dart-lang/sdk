@@ -66,7 +66,7 @@ foo Future<List<int>> bar() {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       returnType: NamedType
         name: foo
@@ -107,7 +107,7 @@ main() { C<@Foo T> v; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: main
       functionExpression: FunctionExpression
@@ -145,7 +145,7 @@ main() { C<@Foo.bar(1) T> v; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: main
       functionExpression: FunctionExpression
@@ -190,7 +190,7 @@ main() {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: main
       functionExpression: FunctionExpression
@@ -677,7 +677,7 @@ main() { else return 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: main
       functionExpression: FunctionExpression
@@ -1281,8 +1281,8 @@ Block
         rightSeparator: ;
         updaters2
           PostfixIncrement
-            operand: SimpleIdentifier
-              token: i
+            target: UnqualifiedNameAssignmentTarget
+              name: i
             operator: ++
         updaters(v1)
           PostfixExpression
@@ -1329,8 +1329,8 @@ Block
         rightSeparator: ;
         updaters2
           PostfixIncrement
-            operand: SimpleIdentifier
-              token: i
+            target: UnqualifiedNameAssignmentTarget
+              name: i
             operator: ++
         updaters(v1)
           PostfixExpression
@@ -1361,8 +1361,8 @@ Block
       leftParenthesis: (
       forLoopParts: ForPartsWithExpression
         initialization2: PostfixDecrement
-          operand: SimpleIdentifier
-            token: i
+          target: UnqualifiedNameAssignmentTarget
+            name: i
           operator: --
         initialization(v1): PostfixExpression
           operand: SimpleIdentifier
@@ -1385,8 +1385,8 @@ Block
         rightSeparator: ;
         updaters2
           PostfixIncrement
-            operand: SimpleIdentifier
-              token: i
+            target: UnqualifiedNameAssignmentTarget
+              name: i
             operator: ++
         updaters(v1)
           PostfixExpression
@@ -1417,8 +1417,8 @@ Block
       leftParenthesis: (
       forLoopParts: ForPartsWithExpression
         initialization2: PostfixDecrement
-          operand: SimpleIdentifier
-            token: i
+          target: UnqualifiedNameAssignmentTarget
+            name: i
           operator: --
         initialization(v1): PostfixExpression
           operand: SimpleIdentifier
@@ -1441,8 +1441,8 @@ Block
         rightSeparator: ;
         updaters2
           PostfixIncrement
-            operand: SimpleIdentifier
-              token: i
+            target: UnqualifiedNameAssignmentTarget
+              name: i
             operator: ++
         updaters(v1)
           PostfixExpression
@@ -1731,8 +1731,8 @@ Block
         rightSeparator: ;
         updaters2
           PostfixIncrement
-            operand: SimpleIdentifier
-              token: i
+            target: UnqualifiedNameAssignmentTarget
+              name: i
             operator: ++
         updaters(v1)
           PostfixExpression
@@ -1787,8 +1787,8 @@ Block
         rightSeparator: ;
         updaters2
           PostfixIncrement
-            operand: SimpleIdentifier
-              token: i
+            target: UnqualifiedNameAssignmentTarget
+              name: i
             operator: ++
         updaters(v1)
           PostfixExpression
@@ -1849,12 +1849,12 @@ Block
         rightSeparator: ;
         updaters2
           PostfixIncrement
-            operand: SimpleIdentifier
-              token: i
+            target: UnqualifiedNameAssignmentTarget
+              name: i
             operator: ++
           PostfixDecrement
-            operand: SimpleIdentifier
-              token: j
+            target: UnqualifiedNameAssignmentTarget
+              name: j
             operator: --
         updaters(v1)
           PostfixExpression
@@ -1919,12 +1919,12 @@ Block
         rightSeparator: ;
         updaters2
           PostfixIncrement
-            operand: SimpleIdentifier
-              token: i
+            target: UnqualifiedNameAssignmentTarget
+              name: i
             operator: ++
           PostfixDecrement
-            operand: SimpleIdentifier
-              token: j
+            target: UnqualifiedNameAssignmentTarget
+              name: j
             operator: --
         updaters(v1)
           PostfixExpression
@@ -1970,8 +1970,8 @@ Block
         rightSeparator: ;
         updaters2
           PostfixIncrement
-            operand: SimpleIdentifier
-              token: i
+            target: UnqualifiedNameAssignmentTarget
+              name: i
             operator: ++
         updaters(v1)
           PostfixExpression
@@ -2013,8 +2013,8 @@ Block
         rightSeparator: ;
         updaters2
           PostfixIncrement
-            operand: SimpleIdentifier
-              token: i
+            target: UnqualifiedNameAssignmentTarget
+              name: i
             operator: ++
         updaters(v1)
           PostfixExpression
@@ -2048,8 +2048,8 @@ Block
         rightSeparator: ;
         updaters2
           PostfixIncrement
-            operand: SimpleIdentifier
-              token: i
+            target: UnqualifiedNameAssignmentTarget
+              name: i
             operator: ++
         updaters(v1)
           PostfixExpression
@@ -2083,8 +2083,8 @@ Block
         rightSeparator: ;
         updaters2
           PostfixIncrement
-            operand: SimpleIdentifier
-              token: i
+            target: UnqualifiedNameAssignmentTarget
+              name: i
             operator: ++
         updaters(v1)
           PostfixExpression
@@ -2841,9 +2841,9 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression2: AssignmentExpression
-        leftHandSide2: IndexExpression
-          target2: FunctionExpression
+      expression2: DirectAssignment
+        target: IndexAssignmentTarget
+          receiver: FunctionExpression
             parameters: FormalParameterList
               leftParenthesis: (
               rightParenthesis: )
@@ -2852,11 +2852,28 @@ Block
                 leftBracket: {
                 rightBracket: }
           leftBracket: [
-          index2: IntegerLiteral
+          index: IntegerLiteral
             literal: 0
           rightBracket: ]
         operator: =
-        rightHandSide2: NullLiteral
+        value: NullLiteral
+          literal: null
+      expression(v1): AssignmentExpression
+        leftHandSide: IndexExpression
+          target: FunctionExpression
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+          leftBracket: [
+          index: IntegerLiteral
+            literal: 0
+          rightBracket: ]
+        operator: =
+        rightHandSide: NullLiteral
           literal: null
       semicolon: ;
   rightBracket: }
@@ -4246,7 +4263,7 @@ main() { try {} catch (int e) { } }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: main
       functionExpression: FunctionExpression
@@ -4909,7 +4926,7 @@ Block
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         type: NamedType
@@ -4939,7 +4956,7 @@ foo <bar<
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         type: NamedType

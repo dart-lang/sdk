@@ -136,5 +136,34 @@ void main() {
         expect(ddsProto.minor, 1);
       },
     );
+
+    test('does not start DTD when serveDevTools is false', () async {
+      late DartRuntimeServiceDdsBackend backend;
+      final service = await DartRuntimeService.initialize(
+        // Note: serveDevTools defaults to false. It is omitted here to adhere
+        // to the avoid_redundant_argument_values lint.
+        config: const DartRuntimeServiceOptions(),
+        backendBuilder: (frontend) => backend = DartRuntimeServiceDdsBackend(
+          mockVmService!.uri,
+          frontend: frontend,
+        ),
+      );
+      expect(backend.hostedDartToolingDaemon, isNull);
+      await service.shutdown();
+    });
+
+    test('starts DTD when serveDevTools is true', () async {
+      late DartRuntimeServiceDdsBackend backend;
+      final service = await DartRuntimeService.initialize(
+        config: const DartRuntimeServiceOptions(serveDevTools: true),
+        backendBuilder: (frontend) => backend = DartRuntimeServiceDdsBackend(
+          mockVmService!.uri,
+          frontend: frontend,
+          serveDevTools: true,
+        ),
+      );
+      expect(backend.hostedDartToolingDaemon, isNotNull);
+      await service.shutdown();
+    });
   });
 }

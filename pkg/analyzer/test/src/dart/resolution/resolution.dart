@@ -19,7 +19,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/test_utilities/find_element2.dart';
+import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:analyzer_testing/src/expected_diagnostics.dart';
@@ -246,12 +246,10 @@ mixin ResolutionTest implements ResourceProviderMixin {
       return node.element;
     } else if (node is ConstructorTearOff) {
       return node.element;
-    } else if (node is Declaration) {
+    } else if (node is FragmentDeclaringNode) {
       return node.declaredFragment?.element;
     } else if (node is ExtensionOverride) {
       return node.element;
-    } else if (node is FormalParameter) {
-      return node.declaredFragment?.element;
     } else if (node is FunctionExpressionInvocation) {
       return node.element;
     } else if (node is FunctionReference) {
@@ -454,7 +452,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
 final class TestResolvedUnitResult {
   final ResolvedUnitResultImpl analysisResult;
 
-  late final FindElement2 findElement = FindElement2(unit);
+  late final FindElement findElement = FindElement(unit);
 
   late final FindNode2 findNode = FindNode2(content, unit);
 
@@ -524,8 +522,8 @@ class _DiagnosticTestFile {
 }
 
 extension ResolvedUnitResultExtension on ResolvedUnitResult {
-  FindElement2 get findElement2 {
-    return FindElement2(unit);
+  FindElement get findElement {
+    return FindElement(unit);
   }
 
   FindNode2 get findNode {

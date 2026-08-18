@@ -259,7 +259,7 @@ class LibraryBuilder {
 
   void collectMixinSuperInvokedNames() {
     for (var linkingUnit in units) {
-      for (var declaration in linkingUnit.node.declarations) {
+      for (var declaration in linkingUnit.node.declarations2) {
         if (declaration is ast.MixinDeclarationImpl) {
           var names = <String>{};
           var collector = MixinSuperInvokedNamesCollector(names);

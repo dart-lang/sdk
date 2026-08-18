@@ -59,7 +59,7 @@ vars = {
 
   # co19 is a cipd package automatically generated for each co19 commit.
   # Use tests/co19/update.sh to update this hash.
-  "co19_rev": "ab10223374c3290a189f66187d9196e3c5444476",
+  "co19_rev": "1df420e536b47ee82c8c4e418af4f1b078b236cb",
 
   # The internal benchmarks to use. See go/dart-benchmarks-internal
   "benchmarks_internal_rev": "02b00ba22d77dc489e481c33b279edf5d008e0cd",
@@ -83,7 +83,7 @@ vars = {
   "clang_version": "git_revision:dde579becf31add55c5a473f28fd010df36d2490",
 
   # https://chrome-infra-packages.appspot.com/p/gn/gn
-  "gn_version": "git_revision:64cfb8344ec3e8585a89a3836716a026e2771fcb",
+  "gn_version": "git_revision:e8a8e0932a5e42a99e5896aa58e3b8290f4e5b8c",
 
   "reclient_version": "re_client_version:28341fc74c68f05a5c8be35160ada940c4edb969",
   "download_reclient": True,
@@ -102,7 +102,7 @@ vars = {
 
   # Prefer to use hashes of binaryen that have been reviewed & rolled into g3.
   "binaryen_rev" : "9926156a583cec3d22d521232b31c70fa9a87dc1",
-  "boringssl_rev": "619e6bc3deda4e0d2fe4ad3fc439ae4fc1e00caf",
+  "boringssl_rev": "3c31f33f61cdb22e48437c4347d17c6cebab1506",
   "browser-compat-data_tag": "ac8cae697014da1ff7124fba33b0b4245cc6cd1b", # v1.0.22
   "cpu_features_rev": "936b9ab5515dead115606559502e3864958f7f6e",
   "devtools_rev": "21f1838f3a9b138ac377efb953ca5a53c8832e75",
@@ -128,24 +128,24 @@ vars = {
   ### /third_party/pkg dependencies
   # 'tools/rev_sdk_deps.dart' will rev pkg dependencies to their latest; put an
   # EOL comment after a dependency to instead pin at the current revision.
-  "core_rev": "4a5ae2bc9db1f39fac071f1a6fade64bd155f734",
-  "dartdoc_rev": "8be851e2bfc5e4cfc0c7ec6f64b1a89699bf6456",
-  "ecosystem_rev": "ed9c592c1d35106c0a8a52044426515017a60646",
+  "core_rev": "773de9d6321bc2c7d86d6926e30b341f0b8c2cb1",
+  "dartdoc_rev": "27376696f59b8776af3a2d07291a53562767d345",
+  "ecosystem_rev": "cda8bd535dfbcff45010bc3c843d325682f944b2",
   "flute_rev": "b84119fba67016a80c3eb80765762bcc4d0d0b8d",
   "http_rev": "a9176ac97402a42e1b275a26eb20a9deaec92184",
-  "i18n_rev": "e1b5a798f8922bb27bbc6d858748ece6f9a19f02",
+  "i18n_rev": "2fd9412c87f0cd3c6f018db6b2f888010c281356",
   "leak_tracker_rev": "f5620600a5ce1c44f65ddaa02001e200b096e14c", # rolled manually
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
-  "native_rev": "046f63d1d89cd9954623bfa2df9c69d1a395375e", # rolled manually while record_use is experimental
+  "native_rev": "d196dea41ad2a901a6734066e2c73002a02f9fd5",
   "protobuf_rev": "91efb90f437bb6a30e6726c3369a2fcb9bba06e7",
   "pub_rev": "7654d523a42e764fad77c9e7b63a9686b88c9323", # rolled manually
   "shelf_rev": "fb3f931d2c158d794e83c1b76b7be4b625db3c28",
   "sync_http_rev": "6666fff944221891182e1f80bf56569338164d72",
   "tar_rev": "13479f7c2a18f499e840ad470cfcca8c579f6909",
   "test_rev": "55b186ddcad50fe4808226e0b681875dda6dd123",
-  "tools_rev": "d644cdabe20233a344fc0eb1f5cbd1cc3388ad9d",
+  "tools_rev": "a4b459cca3ab39466bf8fe6734622b92015b5e15",
   "vector_math_rev": "cf3b5db7340d317dd3489e5a35434b408020a852",
-  "web_rev": "f1b9d561850355efd81b24fdbfd226dbe805d415",
+  "web_rev": "6b84f811cd67a5fd05f4dac24cb56542bcfc92e4",
   "webdriver_rev": "3a711ebb36871eac997c5d5d2429f7414873dc63",
   "webkit_inspection_protocol_rev": "762115a971d1968bc940454ad1e88d506d8c5640",
 
@@ -384,11 +384,21 @@ deps = {
   Var("dart_root") + "/third_party/pkg/web":
       Var("dart_git") + "web.git" + "@" + Var("web_rev"),
 
-  Var("dart_root") + "/buildtools/sysroot/jammy": {
+  Var("dart_root") + "/buildtools/sysroot/linux": {
       "packages": [
           {
-              "package": "fuchsia/third_party/sysroot/jammy",
-              "version": "git_revision:1d35e3be9be587ed0de81ea4208be7cc01a7748c",
+              "package": "fuchsia/third_party/sysroot/linux",
+              "version": "git_revision:fa7a5a9710540f30ff98ae48b62f2cdf72ed2acd",
+          },
+      ],
+      "condition": "host_os == linux",
+      "dep_type": "cipd",
+  },
+  Var("dart_root") + "/buildtools/sysroot/focal": {
+      "packages": [
+          {
+              "package": "fuchsia/third_party/sysroot/focal",
+              "version": "git_revision:fa7a5a9710540f30ff98ae48b62f2cdf72ed2acd",
           },
       ],
       "condition": "host_os == linux",

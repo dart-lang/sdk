@@ -1,3 +1,5 @@
+environment:
+  sdk: ^3.9.0
 package:analyzer_plugin/channel/channel.dart:
   PluginCommunicationChannel (class extends Object, abstract):
     new (constructor: PluginCommunicationChannel Function())

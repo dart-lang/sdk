@@ -15,6 +15,8 @@ namespace dart {
   V(AllocateFloat64x2)                                                         \
   V(AllocateInt32x4)                                                           \
   V(AllocateTypedData)                                                         \
+  V(AllocateOneByteString)                                                     \
+  V(AllocateTwoByteString)                                                     \
   V(AllocateClosure)                                                           \
   V(AllocateContext)                                                           \
   V(AllocateObject)                                                            \

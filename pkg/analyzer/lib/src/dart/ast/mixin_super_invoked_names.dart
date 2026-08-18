@@ -20,6 +20,36 @@ class MixinSuperInvokedNamesCollector extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitCascadeIndexAssignmentTarget(CascadeIndexAssignmentTarget node) {
+    if (_cascadeTarget(node) is SuperExpression) {
+      if (node.hasRead) {
+        _names.add('[]');
+      }
+      _names.add('[]=');
+    }
+    super.visitCascadeIndexAssignmentTarget(node);
+  }
+
+  @override
+  void visitCascadeIndexExpression(CascadeIndexExpression node) {
+    if (_cascadeTarget(node) is SuperExpression) {
+      _names.add('[]');
+    }
+    super.visitCascadeIndexExpression(node);
+  }
+
+  @override
+  void visitIndexAssignmentTarget(IndexAssignmentTarget node) {
+    if (node.receiver is SuperExpression) {
+      if (node.hasRead) {
+        _names.add('[]');
+      }
+      _names.add('[]=');
+    }
+    super.visitIndexAssignmentTarget(node);
+  }
+
+  @override
   void visitIndexExpression(IndexExpression node) {
     if (node.target2 is SuperExpression) {
       if (node.inGetterContext()) {
@@ -30,6 +60,14 @@ class MixinSuperInvokedNamesCollector extends RecursiveAstVisitor2<void> {
       }
     }
     super.visitIndexExpression(node);
+  }
+
+  @override
+  void visitIndexExpression2(IndexExpression2 node) {
+    if (node.receiver is SuperExpression) {
+      _names.add('[]');
+    }
+    super.visitIndexExpression2(node);
   }
 
   @override
@@ -75,11 +113,24 @@ class MixinSuperInvokedNamesCollector extends RecursiveAstVisitor2<void> {
     super.visitUnaryOperatorInvocation(node);
   }
 
+  Expression? _cascadeTarget(AstNode node) {
+    for (
+      AstNode? ancestor = node.parent2;
+      ancestor != null;
+      ancestor = ancestor.parent2
+    ) {
+      if (ancestor is CascadeExpression) return ancestor.target2;
+    }
+    return null;
+  }
+
   void _visitPrefixIncrementOrDecrement(
     IncrementOrDecrementExpression node,
     String operatorName,
   ) {
-    if (node.operand is SuperExpression) {
+    if (node.target case InvalidExpressionAssignmentTarget(
+      expression: SuperExpression(),
+    )) {
       _names.add(operatorName);
     }
     node.visitChildren2(this);

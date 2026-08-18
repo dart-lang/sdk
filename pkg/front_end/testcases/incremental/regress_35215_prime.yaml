@@ -43,4 +43,4 @@ worlds:
         }
     expectedLibraryCount: 2
     errors: true
-    advancedInvalidation: bodiesOnly
+    advancedInvalidation: problemsInRelatedLibrary

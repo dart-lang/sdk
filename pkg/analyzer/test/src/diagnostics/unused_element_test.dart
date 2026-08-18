@@ -2151,6 +2151,7 @@ typedef A = E;
 ''');
   }
 
+  // TODO(fshcheglov): Think why on constructor, not extension type as a whole?
   test_extensionTypePrivate_publicConstructor() async {
     await resolveTestCodeWithDiagnostics('''
 extension type _E(int i) {
@@ -2833,6 +2834,30 @@ extension _A on bool {
 }
 void main() {
   false[3];
+}
+''');
+  }
+
+  test_method_isUsed_privateExtension_indexOperators_compound() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension _A on bool {
+  int operator [](int index) => 7;
+  void operator []=(int index, int value) {}
+}
+void main() {
+  false[3] += 1;
+}
+''');
+  }
+
+  test_method_isUsed_privateExtension_indexOperators_ifNull() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension _A on bool {
+  int? operator [](int index) => 7;
+  void operator []=(int index, int value) {}
+}
+void main() {
+  false[3] ??= 1;
 }
 ''');
   }

@@ -2198,13 +2198,6 @@ void f () {
     _assertSource(code, node);
   }
 
-  void test_visitFunctionDeclaration_getter() {
-    var code = 'get foo {}';
-    var parseResult = parseTestCodeWithDiagnostics(code);
-    var node = parseResult.findNode.singleFunctionDeclaration;
-    _assertSource(code, node);
-  }
-
   void test_visitFunctionDeclaration_local_blockBody() {
     var code = 'void foo() {}';
     var parseResult = parseTestCodeWithDiagnostics('''
@@ -2626,7 +2619,16 @@ import 'a.dart' $code;
     var parseResult = parseTestCodeWithDiagnostics('''
 final x = $code;
 ''');
-    var node = parseResult.findNode.singleIndexExpression;
+    var node = parseResult.findNode.singleIndexExpression2;
+    _assertSource(code, node);
+  }
+
+  void test_visitIndexExpression_nullAware() {
+    var code = 'a?[0]';
+    var parseResult = parseTestCodeWithDiagnostics('''
+final x = $code;
+''');
+    var node = parseResult.findNode.singleIndexExpression2;
     _assertSource(code, node);
   }
 
@@ -4299,6 +4301,13 @@ void f() {
 }
 ''');
     var node = parseResult.findNode.singleThrowExpression;
+    _assertSource(code, node);
+  }
+
+  void test_visitTopLevelGetterDeclaration() {
+    var code = 'get foo {}';
+    var parseResult = parseTestCodeWithDiagnostics(code);
+    var node = parseResult.findNode.singleTopLevelGetterDeclaration;
     _assertSource(code, node);
   }
 

@@ -1,0 +1,25 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method patternVariable(positional-parameter r) → dynamic/* scope=[
+  #ctx1: not-captured VariableContext([
+    positional-parameter r;
+  ]),
+] */ /* scope=[
+  #ctx2: direct-captured VariableContext([
+    local-variable hoisted x;
+  ]),
+  #ctx3: not-captured VariableContext([
+    local-variable hoisted s;
+  ]),
+] */ {
+  has-declared-initializer x;
+  has-declared-initializer s;
+  {
+    #0#0 := r;
+    x = #0#0.$1{core::int};
+    s = #0#0.$2{core::String};
+  }
+  return () /* #ctx2 */ → core::int => x;
+}

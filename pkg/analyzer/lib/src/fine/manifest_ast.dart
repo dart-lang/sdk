@@ -211,7 +211,7 @@ class ManifestNode {
   }
 }
 
-class _ElementCollector extends GeneralizingAstVisitor2<void> {
+class _ElementCollector extends UnifyingAstVisitor2<void> {
   bool isValid = true;
   final int Function(TypeParameterElementImpl) indexOfTypeParameter;
   final int Function(FormalParameterElementImpl) indexOfFormalParameter;

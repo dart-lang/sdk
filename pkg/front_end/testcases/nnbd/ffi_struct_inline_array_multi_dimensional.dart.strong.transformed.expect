@@ -49,14 +49,14 @@ static method main() → dynamic {
     synthesized core::int #offset = #elementSize.{core::num::*}(#index){(core::num) → core::num};
   } =>new ffi::Array::_<ffi::Array<ffi::Uint8>>(#array.{ffi::_Compound::_typedDataBase}{core::Object}, #array.{ffi::_Compound::_offsetInBytes}{core::int}.{core::num::+}(#offset){(core::num) → core::num}, #array.{ffi::Array::_nestedDimensionsFirst}{core::int}, #array.{ffi::Array::_variableLength}{core::bool}, #array.{ffi::Array::_nestedDimensionsRest}{core::List<core::int>});
   block {
-    synthesized ffi::Array<dynamic> #array = array!;
-    synthesized core::int #index = 1!;
-    #array.{ffi::Array::_checkIndex}(#index){(core::int) → void};
-    synthesized core::int #singleElementSize = #C21;
-    synthesized core::int #elementSize = #singleElementSize.{core::num::*}(#array.{ffi::Array::_nestedDimensionsFlattened}{core::int}){(core::num) → core::num};
-    synthesized core::int #offset = #elementSize.{core::num::*}(#index){(core::num) → core::num};
+    synthesized ffi::Array<dynamic> #array##1 = array!;
+    synthesized core::int #index##1 = 1!;
+    #array##1.{ffi::Array::_checkIndex}(#index##1){(core::int) → void};
+    synthesized core::int #singleElementSize##1 = #C21;
+    synthesized core::int #elementSize##1 = #singleElementSize##1.{core::num::*}(#array##1.{ffi::Array::_nestedDimensionsFlattened}{core::int}){(core::num) → core::num};
+    synthesized core::int #offset##1 = #elementSize##1.{core::num::*}(#index##1){(core::num) → core::num};
     synthesized ffi::Array<dynamic> #value = subArray!;
-  } =>ffi::_memCopy(#array.{ffi::_Compound::_typedDataBase}{core::Object}, #array.{ffi::_Compound::_offsetInBytes}{core::int}.{core::num::+}(#offset){(core::num) → core::num}, #value.{ffi::_Compound::_typedDataBase}{core::Object}, #value.{ffi::_Compound::_offsetInBytes}{core::int}, #elementSize);
+  } =>ffi::_memCopy(#array##1.{ffi::_Compound::_typedDataBase}{core::Object}, #array##1.{ffi::_Compound::_offsetInBytes}{core::int}.{core::num::+}(#offset##1){(core::num) → core::num}, #value.{ffi::_Compound::_typedDataBase}{core::Object}, #value.{ffi::_Compound::_offsetInBytes}{core::int}, #elementSize##1);
   #C20.{all::CallocAllocator::free}(pointer){(ffi::Pointer<ffi::NativeType>) → void};
 }
 

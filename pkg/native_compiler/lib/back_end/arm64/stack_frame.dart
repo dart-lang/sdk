@@ -91,7 +91,13 @@ final class Arm64StackFrame extends StackFrame {
       case AllocateContext():
         return 2; // Result + 1 argument for AllocateContext runtime call.
       case AllocateArray():
-        return 3; // Result + 2 arguments for AllocateList/AllocateTypedData runtime call.
+        switch (instr.kind) {
+          case .oneByteString:
+          case .twoByteString:
+            return 2; // Result + 1 argument for AllocateOneByteString/AllocateTwoByteString runtime call.
+          default:
+            return 3; // Result + 2 arguments for AllocateList/AllocateTypedData runtime call.
+        }
       case AllocateRecord():
         return 2; // Result + 1 argument for AllocateRecord runtime call.
       case TypeLiteral():

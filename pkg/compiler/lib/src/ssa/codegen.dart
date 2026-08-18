@@ -2612,7 +2612,7 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
         definitionHasReceiver =
             (node.function.positionalParameters.isNotEmpty &&
                 isExtensionThisName(
-                  node.function.positionalParameters[0].cosmeticName,
+                  node.function.positionalParameters[0].parameterName,
                 )) ||
             isExtensionMemberTearOff(node);
       }

@@ -171,6 +171,7 @@ class SnapshotSerializer {
     addBaseObject(PcDescriptors());
     addBaseObject(RuntimeConstantObject(.uninitializedIndex));
     addBaseObject(RuntimeConstantObject(.uninitializedData));
+    addBaseObject(RuntimeConstantObject(.mutableEmptyList));
     // TODO: generate these stubs instead of referencing them from the VM.
     addBaseObject(StubCode.Subtype1TestCache);
     addBaseObject(StubCode.Subtype2TestCache);
@@ -824,7 +825,7 @@ final class FunctionSerializationCluster extends SerializationCluster {
         data = ClosureData(function.enclosingFunction);
         positionalParameterNames = getListConstant([
           '#closure', // Implicit closure parameter.
-          for (final p in functionNode.positionalParameters) p.cosmeticName!,
+          for (final p in functionNode.positionalParameters) p.parameterName,
         ]);
         startFileOffset = functionNode.fileOffset;
         endFileOffset = functionNode.fileEndOffset;

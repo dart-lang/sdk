@@ -318,8 +318,8 @@ void f() {
     var cascadeExpression = parseResult.findNode.cascade('0');
     _assertReplaceInList(
       destination: cascadeExpression,
-      child: cascadeExpression.cascadeSections2[0],
-      replacement: cascadeExpression.cascadeSections2[1],
+      child: cascadeExpression.sections[0],
+      replacement: cascadeExpression.sections[1],
     );
 
     _assertReplacementForChildren<CascadeExpression>(
@@ -1144,10 +1144,10 @@ void f() {
   b[1];
 }
 ''');
-    _assertReplacementForChildren<IndexExpression>(
-      destination: parseResult.findNode.index('[0]'),
-      source: parseResult.findNode.index('[1]'),
-      childAccessors: [(node) => node.target2!, (node) => node.index2],
+    _assertReplacementForChildren<IndexExpression2>(
+      destination: parseResult.findNode.indexExpression2('[0]'),
+      source: parseResult.findNode.indexExpression2('[1]'),
+      childAccessors: [(node) => node.receiver, (node) => node.index],
     );
   }
 
@@ -1452,7 +1452,7 @@ void f() {
     _assertReplacementForChildren<PostfixIncrement>(
       destination: parseResult.findNode.postfixIncrement('a++'),
       source: parseResult.findNode.postfixIncrement('b++'),
-      childAccessors: [(node) => node.operand],
+      childAccessors: [(node) => node.target],
     );
   }
 
@@ -1480,7 +1480,7 @@ void f() {
     _assertReplacementForChildren<PrefixIncrement>(
       destination: parseResult.findNode.prefixIncrement('++a'),
       source: parseResult.findNode.prefixIncrement('++b'),
-      childAccessors: [(node) => node.operand],
+      childAccessors: [(node) => node.target],
     );
   }
 

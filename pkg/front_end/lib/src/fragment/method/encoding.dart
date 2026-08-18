@@ -880,7 +880,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
       DartType type,
     ) {
       PositionalParameter newParameter = new PositionalParameter(
-        cosmeticName: parameter.cosmeticName,
+        parameterName: parameter.parameterName,
         type: type,
         isFinal: parameter.isFinal,
         isLowered: parameter.isLowered,

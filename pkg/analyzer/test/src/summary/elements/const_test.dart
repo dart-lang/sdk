@@ -265,7 +265,28 @@ library
               target2: IntegerLiteral
                 literal: 0 @10
                 staticType: int
-              cascadeSections2
+              sections
+                CascadeSection
+                  body: PropertyAccess
+                    operator: .. @14
+                    propertyName: SimpleIdentifier
+                      token: isEven @16
+                      element: dart:core::@class::int::@getter::isEven
+                      staticType: bool
+                    staticType: bool
+                CascadeSection
+                  body: MethodInvocation
+                    operator: .. @25
+                    methodName: SimpleIdentifier
+                      token: abs @27
+                      element: dart:core::@class::int::@method::abs
+                      staticType: int Function()
+                    argumentList: ArgumentList
+                      leftParenthesis: ( @30
+                      rightParenthesis: ) @31
+                    staticInvokeType: int Function()
+                    staticType: int
+              cascadeSections
                 PropertyAccess
                   operator: .. @14
                   propertyName: SimpleIdentifier
@@ -304,6 +325,134 @@ library
       reference: <testLibrary>::@getter::a
       firstFragment: #F2
       returnType: int
+      variable: <testLibrary>::@topLevelVariable::a
+''');
+  }
+
+  test_const_cascadeExpression_indexSections() async {
+    var library = await buildLibrary(r'''
+const a = <int>[0]
+  ..[0]
+  ..[0] = 1;
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:6) (firstTokenOffset:6) (offset:6)
+          element: <testLibrary>::@topLevelVariable::a
+          initializer: expression_0
+            CascadeExpression
+              target2: ListLiteral
+                typeArguments: TypeArgumentList
+                  leftBracket: < @10
+                  arguments
+                    NamedType
+                      name: int @11
+                      element: dart:core::@class::int
+                      type: int
+                  rightBracket: > @14
+                leftBracket: [ @15
+                elements2
+                  IntegerLiteral
+                    literal: 0 @16
+                    staticType: int
+                rightBracket: ] @17
+                staticType: List<int>
+              sections
+                CascadeSection
+                  operator: .. @21
+                  body: CascadeIndexExpression
+                    leftBracket: [ @23
+                    index: IntegerLiteral
+                      literal: 0 @24
+                      staticType: int
+                    rightBracket: ] @25
+                    resolution: MethodIndexReadResolution
+                      element: SubstitutedMethodElementImpl
+                        baseElement: dart:core::@class::List::@method::[]
+                        substitution: {E: int}
+                      invokeType: int Function(int)
+                      type: int
+                    staticType: int
+                CascadeSection
+                  operator: .. @29
+                  body: DirectAssignment
+                    target: CascadeIndexAssignmentTarget
+                      leftBracket: [ @31
+                      index: IntegerLiteral
+                        literal: 0 @32
+                        staticType: int
+                      rightBracket: ] @33
+                      read: <null>
+                      write: MethodIndexWriteResolution
+                        element: SubstitutedMethodElementImpl
+                          baseElement: dart:core::@class::List::@method::[]=
+                          substitution: {E: int}
+                        invokeType: void Function(int, int)
+                        acceptedType: int
+                    operator: = @35
+                    value: IntegerLiteral
+                      literal: 1 @37
+                      staticType: int
+                    staticType: int
+              cascadeSections
+                IndexExpression
+                  period: .. @21
+                  leftBracket: [ @23
+                  index: IntegerLiteral
+                    literal: 0 @24
+                    staticType: int
+                  rightBracket: ] @25
+                  element: SubstitutedMethodElementImpl
+                    baseElement: dart:core::@class::List::@method::[]
+                    substitution: {E: int}
+                  staticType: int
+                AssignmentExpression
+                  leftHandSide: IndexExpression
+                    period: .. @29
+                    leftBracket: [ @31
+                    index: IntegerLiteral
+                      literal: 0 @32
+                      staticType: int
+                    rightBracket: ] @33
+                    element: <null>
+                    staticType: null
+                  operator: = @35
+                  rightHandSide: IntegerLiteral
+                    literal: 1 @37
+                    staticType: int
+                  readElement: <null>
+                  readType: null
+                  writeElement: SubstitutedMethodElementImpl
+                    baseElement: dart:core::@class::List::@method::[]=
+                    substitution: {E: int}
+                  writeType: int
+                  element: <null>
+                  staticType: int
+              staticType: List<int>
+          inducedGetter: #F2
+      getters
+        #F2 isComplete isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+          element: <testLibrary>::@getter::a
+          inducingVariable: #F1
+  topLevelVariables
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer a
+      reference: <testLibrary>::@topLevelVariable::a
+      firstFragment: #F1
+      type: List<int>
+      constantInitializer
+        fragment: #F1
+        expression: expression_0
+      getter: <testLibrary>::@getter::a
+  getters
+    isOriginVariable isStatic a
+      reference: <testLibrary>::@getter::a
+      firstFragment: #F2
+      returnType: List<int>
       variable: <testLibrary>::@topLevelVariable::a
 ''');
   }
@@ -1363,20 +1512,23 @@ library
         #F5 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic c (nameOffset:34) (firstTokenOffset:34) (offset:34)
           element: <testLibrary>::@topLevelVariable::c
           initializer: expression_2
-            IndexExpression
-              target2: SimpleIdentifier
+            IndexExpression2
+              receiver: SimpleIdentifier
                 token: a @38
                 element: <testLibrary>::@getter::a
                 staticType: List<int>
               leftBracket: [ @39
-              index2: SimpleIdentifier
+              index: SimpleIdentifier
                 token: b @40
                 element: <testLibrary>::@getter::b
                 staticType: int
               rightBracket: ] @41
-              element: SubstitutedMethodElementImpl
-                baseElement: dart:core::@class::List::@method::[]
-                substitution: {E: int}
+              resolution: MethodIndexReadResolution
+                element: SubstitutedMethodElementImpl
+                  baseElement: dart:core::@class::List::@method::[]
+                  substitution: {E: int}
+                invokeType: int Function(int)
+                type: int
               staticType: int
           inducedGetter: #F6
       getters
@@ -1429,6 +1581,115 @@ library
       reference: <testLibrary>::@getter::c
       firstFragment: #F6
       returnType: int
+      variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
+  test_const_indexExpression_nullAware() async {
+    var library = await buildLibrary(r'''
+const List<int>? a = [0];
+const b = 0;
+const c = a?[b];
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:17) (firstTokenOffset:17) (offset:17)
+          element: <testLibrary>::@topLevelVariable::a
+          initializer: expression_0
+            ListLiteral
+              leftBracket: [ @21
+              elements2
+                IntegerLiteral
+                  literal: 0 @22
+                  staticType: int
+              rightBracket: ] @23
+              staticType: List<int>
+          inducedGetter: #F2
+        #F3 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic b (nameOffset:32) (firstTokenOffset:32) (offset:32)
+          element: <testLibrary>::@topLevelVariable::b
+          initializer: expression_1
+            IntegerLiteral
+              literal: 0 @36
+              staticType: int
+          inducedGetter: #F4
+        #F5 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic c (nameOffset:45) (firstTokenOffset:45) (offset:45)
+          element: <testLibrary>::@topLevelVariable::c
+          initializer: expression_2
+            IndexExpression2
+              receiver: SimpleIdentifier
+                token: a @49
+                element: <testLibrary>::@getter::a
+                staticType: List<int>?
+              question: ? @50
+              leftBracket: [ @51
+              index: SimpleIdentifier
+                token: b @52
+                element: <testLibrary>::@getter::b
+                staticType: int
+              rightBracket: ] @53
+              resolution: MethodIndexReadResolution
+                element: SubstitutedMethodElementImpl
+                  baseElement: dart:core::@class::List::@method::[]
+                  substitution: {E: int}
+                invokeType: int Function(int)
+                type: int?
+              staticType: int?
+          inducedGetter: #F6
+      getters
+        #F2 isComplete isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
+          element: <testLibrary>::@getter::a
+          inducingVariable: #F1
+        #F4 isComplete isOriginVariable isStatic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
+          element: <testLibrary>::@getter::b
+          inducingVariable: #F3
+        #F6 isComplete isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:45)
+          element: <testLibrary>::@getter::c
+          inducingVariable: #F5
+  topLevelVariables
+    hasInitializer isConst isOriginDeclaration isStatic a
+      reference: <testLibrary>::@topLevelVariable::a
+      firstFragment: #F1
+      type: List<int>?
+      constantInitializer
+        fragment: #F1
+        expression: expression_0
+      getter: <testLibrary>::@getter::a
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer b
+      reference: <testLibrary>::@topLevelVariable::b
+      firstFragment: #F3
+      type: int
+      constantInitializer
+        fragment: #F3
+        expression: expression_1
+      getter: <testLibrary>::@getter::b
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer c
+      reference: <testLibrary>::@topLevelVariable::c
+      firstFragment: #F5
+      type: int?
+      constantInitializer
+        fragment: #F5
+        expression: expression_2
+      getter: <testLibrary>::@getter::c
+  getters
+    isOriginVariable isStatic a
+      reference: <testLibrary>::@getter::a
+      firstFragment: #F2
+      returnType: List<int>?
+      variable: <testLibrary>::@topLevelVariable::a
+    isOriginVariable isStatic b
+      reference: <testLibrary>::@getter::b
+      firstFragment: #F4
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::b
+    isOriginVariable isStatic c
+      reference: <testLibrary>::@getter::c
+      firstFragment: #F6
+      returnType: int?
       variable: <testLibrary>::@topLevelVariable::c
 ''');
   }
@@ -5969,10 +6230,17 @@ library
           element: <testLibrary>::@topLevelVariable::b
           initializer: expression_1
             PostfixIncrement
-              operand: SimpleIdentifier
-                token: a @23
-                element: <null>
-                staticType: null
+              target: UnqualifiedNameAssignmentTarget
+                name: a @23
+                read: GetterInvocationResolution
+                  element: <testLibrary>::@getter::a
+                  invokeType: int Function()
+                  type: int
+                write: InvalidNamedWriteResolution
+                  acceptedType: InvalidType
+                  candidates
+                    candidate: <testLibrary>::@getter::a
+                  recovery: <null>
               operator: ++ @24
               element: dart:core::@class::num::@method::+
               operatorResultType: int
@@ -6166,10 +6434,17 @@ library
           initializer: expression_1
             PrefixIncrement
               operator: ++ @23
-              operand: SimpleIdentifier
-                token: a @25
-                element: <null>
-                staticType: null
+              target: UnqualifiedNameAssignmentTarget
+                name: a @25
+                read: GetterInvocationResolution
+                  element: <testLibrary>::@getter::a
+                  invokeType: int Function()
+                  type: int
+                write: InvalidNamedWriteResolution
+                  acceptedType: InvalidType
+                  candidates
+                    candidate: <testLibrary>::@getter::a
+                  recovery: <null>
               element: dart:core::@class::num::@method::+
               operatorResultType: int
               staticType: int
@@ -9735,7 +10010,20 @@ library
                 token: a @28
                 element: <testLibrary>::@getter::a
                 staticType: int?
-              cascadeSections2
+              sections
+                CascadeSection
+                  body: MethodInvocation
+                    operator: ?.. @29
+                    methodName: SimpleIdentifier
+                      token: toString @32
+                      element: dart:core::@class::int::@method::toString
+                      staticType: String Function()
+                    argumentList: ArgumentList
+                      leftParenthesis: ( @40
+                      rightParenthesis: ) @41
+                    staticInvokeType: String Function()
+                    staticType: String
+              cascadeSections
                 MethodInvocation
                   operator: ?.. @29
                   methodName: SimpleIdentifier

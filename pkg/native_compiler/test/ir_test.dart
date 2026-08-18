@@ -178,7 +178,7 @@ class CompileAndDumpIr extends RecursiveVisitor {
     final stackFrame = Arm64StackFrame(function);
     final constraints = Arm64Constraints(stackFrame);
     backEndState.stackFrame = stackFrame;
-    backEndState.unboxing = Unboxing();
+    backEndState.unboxing = Unboxing(objectLayout);
     final pipeline = Pipeline([
       SSAComputation(),
       ValueNumbering(simplification: Simplification()),

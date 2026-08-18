@@ -340,13 +340,13 @@ class A {
 ''');
   }
 
-  test_locate_Identifier_constructor_unnamed() async {
+  test_locate_Identifier_constructor_unnamed_v1Projection() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   A();
 }
 ''');
-    var node = result.findNode.simple('A()');
+    var node = result.findNode.constructor('A()').typeName!;
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A::@constructor::new
@@ -470,7 +470,7 @@ void main() {
 // [diag.unusedLocalVariable] The value of the local variable 'y' isn't used.
 }
 ''');
-    var node = result.findNode.index('[0]');
+    var node = result.findNodeV1.index('[0]');
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 SubstitutedMethodElementImpl
@@ -1337,19 +1337,6 @@ class A {
 ''');
   }
 
-  test_locate_Identifier_constructor_unnamed() async {
-    var result = await resolveTestCodeWithDiagnostics(r'''
-class A {
-  A();
-}
-''');
-    var node = result.findNode.simple('A()');
-    var element = ElementLocatorV2.locate(node);
-    _assertElement(element, r'''
-<testLibrary>::@class::A::@constructor::new
-''');
-  }
-
   test_locate_Identifier_fieldName() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
@@ -1415,6 +1402,23 @@ dart:core
 ''');
   }
 
+  test_locate_IndexAssignmentTarget() async {
+    var result = await resolveTestCode(r'''
+class A {
+  void operator []=(int index, num value) {}
+}
+
+void f(A a) {
+  a[0] = 1;
+}
+''');
+    var node = result.findNode.directAssignment('[0] = 1').target;
+    var element = ElementLocatorV2.locate(node);
+    _assertElement(element, r'''
+<testLibrary>::@class::A::@method::[]=
+''');
+  }
+
   test_locate_IndexExpression() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 void main() {
@@ -1424,7 +1428,7 @@ void main() {
 // [diag.unusedLocalVariable] The value of the local variable 'y' isn't used.
 }
 ''');
-    var node = result.findNode.index('[0]');
+    var node = result.findNode.indexExpression2('[0]');
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 SubstitutedMethodElementImpl
@@ -1734,6 +1738,17 @@ import 'foo.dart';
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 package:test/foo.dart
+''');
+  }
+
+  test_locate_TopLevelGetterDeclaration() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+int get x => 0;
+''');
+    var node = result.findNode.singleTopLevelGetterDeclaration;
+    var element = ElementLocatorV2.locate(node);
+    _assertElement(element, r'''
+<testLibrary>::@getter::x
 ''');
   }
 

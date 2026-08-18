@@ -1771,7 +1771,6 @@ class IndexedAccessGenerator extends Generator {
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   InternalExpression doInvocation({
     required int offset,
     required List<TypeBuilder>? typeArgumentBuilders,

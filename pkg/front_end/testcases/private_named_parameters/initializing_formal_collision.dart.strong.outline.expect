@@ -96,7 +96,7 @@ import "dart:core" as core;
 
 class C1 extends core::Object {
   final field core::String? _foo;
-  constructor •({required initializing-formal renamed-private-named-parameter core::String? foo, required initializing-formal renamed-private-named-parameter core::String? foo}) → self::C1
+  constructor •({required initializing-formal renamed-private-named-parameter core::String? foo, required initializing-formal renamed-private-named-parameter core::String? foo##1}) → self::C1
     ;
 }
 class C2 extends core::Object {
@@ -106,7 +106,7 @@ class C2 extends core::Object {
 }
 class C3 extends core::Object {
   final field core::String? _foo;
-  constructor •({required initializing-formal renamed-private-named-parameter core::String? foo, core::String? foo = null}) → self::C3
+  constructor •({required initializing-formal renamed-private-named-parameter core::String? foo, core::String? foo##1 = null}) → self::C3
     ;
 }
 class C4 extends core::Object {
@@ -122,21 +122,21 @@ class C5 extends core::Object {
 class C6 extends core::Object {
   final field core::String? foo;
   final field core::String? _foo;
-  constructor •({required initializing-formal core::String? foo, required initializing-formal renamed-private-named-parameter core::String? foo}) → self::C6
+  constructor •({required initializing-formal core::String? foo, required initializing-formal renamed-private-named-parameter core::String? foo##1}) → self::C6
     ;
 }
 class C7 extends core::Object {
   final field core::String? _foo;
-  constructor •({core::String? foo = null, required initializing-formal renamed-private-named-parameter core::String? foo}) → self::C7
+  constructor •({core::String? foo = null, required initializing-formal renamed-private-named-parameter core::String? foo##1}) → self::C7
     ;
 }
 class C8 extends core::Object {
   final field core::String? _foo;
-  constructor •(core::String? foo, {required initializing-formal renamed-private-named-parameter core::String? foo}) → self::C8
+  constructor •(core::String? foo, {required initializing-formal renamed-private-named-parameter core::String? foo##1}) → self::C8
     ;
 }
 class C9 extends core::Object {
   final field core::String? _foo;
-  constructor •(core::String? foo, {required initializing-formal renamed-private-named-parameter core::String? foo, core::int? _foo = null, core::int? foo = null}) → self::C9
+  constructor •(core::String? foo, {required initializing-formal renamed-private-named-parameter core::String? foo##1, core::int? _foo = null, core::int? foo##2 = null}) → self::C9
     ;
 }

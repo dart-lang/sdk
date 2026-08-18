@@ -457,7 +457,7 @@ class _Transform extends RecursiveVisitor {
           } else {
             var replacement =
                 PositionalParameter(
-                    cosmeticName: variable.parameterName,
+                    parameterName: variable.parameterName,
                     type: variable.type,
                     isCovariantByClass: variable.isCovariantByClass,
                     isCovariantByDeclaration: variable.isCovariantByDeclaration,

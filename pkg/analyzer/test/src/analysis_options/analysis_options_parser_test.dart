@@ -630,6 +630,23 @@ AnalysisOptionsImpl
 ''');
   }
 
+  test_analyzer_errors_removed_pluginsInInnerOptions() {
+    // TODO(scheglov): Remove this test together with the
+    // `PLUGINS_IN_INNER_OPTIONS` entry in `_DiagnosticOptions.removedCodeNames`
+    // after Flutter removes its suppression.
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+analyzer:
+  errors:
+    plugins_in_inner_options: ignore
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  errorProcessors
+    plugins_in_inner_options: ignore
+''');
+  }
+
   test_analyzer_errors_severityValues() {
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
@@ -884,6 +901,24 @@ AnalysisOptionsImpl
     AnalysisOptionsExcludePattern
       declaringFile: /home/test/analysis_options.yaml
       pattern: test/_data/p4/lib/lib1.dart
+''');
+  }
+
+  test_analyzer_exclude_startsWithForwardSlash() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+analyzer:
+  exclude:
+    - /test/**
+//    ^^^^^^^^
+// [diag.excludeInvalidGlob] The exclude glob pattern '/test/**' shouldn't start with a forward slash.
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  excludePatterns
+    AnalysisOptionsExcludePattern
+      declaringFile: /home/test/analysis_options.yaml
+      pattern: /test/**
 ''');
   }
 

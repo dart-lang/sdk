@@ -350,11 +350,13 @@ condensed
 config
 configs
 configured
+confuses
 confusing
 connecting
 connections
 connectivity
 consecutive
+consecutively
 considerable
 consideration
 considering
@@ -526,6 +528,7 @@ disagrees
 disallow
 disambiguating
 disambiguation
+disambiguations
 disambiguator
 discourage
 discovers
@@ -1236,6 +1239,7 @@ nullification
 nullify
 nullness
 nulls
+numbered
 numeral
 o
 oauth

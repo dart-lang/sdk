@@ -22,10 +22,27 @@
 #include "bin/file.h"
 #include "bin/namespace.h"
 #include "bin/platform.h"
+#include "platform/memory_sanitizer.h"
 #include "platform/signal_blocker.h"
 
 namespace dart {
 namespace bin {
+
+static int fstatat64_fixed(int dirfd,
+                           const char* __restrict pathname,
+                           struct stat64* __restrict statbuf,
+                           int flags) {
+  int result = ::fstatat64(dirfd, pathname, statbuf, flags);
+  if (result == 0) {
+    // MSAN only intercepts the old symbol name.
+    MSAN_UNPOISON(statbuf, sizeof(*statbuf));
+  }
+  return result;
+}
+static int fstatat64(int dirfd,
+                     const char* __restrict pathname,
+                     struct stat64* __restrict statbuf,
+                     int flags) = delete;
 
 PathBuffer::PathBuffer() : length_(0) {
   data_ = calloc(PATH_MAX + 1, sizeof(char));  // NOLINT
@@ -153,8 +170,8 @@ ListType DirectoryListingEntry::Next(DirectoryListing* listing) {
                           listing->path_buffer().AsString());
         struct stat64 entry_info;
         int stat_success;
-        stat_success = TEMP_FAILURE_RETRY(
-            fstatat64(ns.fd(), ns.path(), &entry_info, AT_SYMLINK_NOFOLLOW));
+        stat_success = TEMP_FAILURE_RETRY(fstatat64_fixed(
+            ns.fd(), ns.path(), &entry_info, AT_SYMLINK_NOFOLLOW));
         if (stat_success == -1) {
           return kListError;
         }
@@ -170,8 +187,8 @@ ListType DirectoryListingEntry::Next(DirectoryListing* listing) {
             }
             previous = previous->next;
           }
-          stat_success =
-              TEMP_FAILURE_RETRY(fstatat64(ns.fd(), ns.path(), &entry_info, 0));
+          stat_success = TEMP_FAILURE_RETRY(
+              fstatat64_fixed(ns.fd(), ns.path(), &entry_info, 0));
           if (stat_success == -1 || (S_IFMT & entry_info.st_mode) == 0) {
             // Report a broken link as a link, even if follow_links is true.
             // A symbolic link can potentially point to an anon_inode. For
@@ -268,8 +285,8 @@ static bool DeleteRecursively(int dirfd,
   // Do not recurse into links for deletion. Instead delete the link.
   // If it's a file, delete it.
   struct stat64 st;
-  if (TEMP_FAILURE_RETRY(
-          fstatat64(dirfd, path->AsString(), &st, AT_SYMLINK_NOFOLLOW)) == -1) {
+  if (TEMP_FAILURE_RETRY(fstatat64_fixed(dirfd, path->AsString(), &st,
+                                         AT_SYMLINK_NOFOLLOW)) == -1) {
     return !fail_on_missing && (errno == ENOENT);
   } else if (!S_ISDIR(st.st_mode)) {
     return (NO_RETRY_EXPECTED(unlinkat(dirfd, path->AsString(), 0)) == 0) ||
@@ -346,8 +363,9 @@ static bool DeleteRecursively(int dirfd,
         // readdir. For those we use lstat to determine the entry
         // type.
         struct stat64 entry_info;
-        if (TEMP_FAILURE_RETRY(fstatat64(dirfd, path->AsString(), &entry_info,
-                                         AT_SYMLINK_NOFOLLOW)) == -1) {
+        if (TEMP_FAILURE_RETRY(fstatat64_fixed(
+                dirfd, path->AsString(), &entry_info, AT_SYMLINK_NOFOLLOW)) ==
+            -1) {
           if (errno == ENOENT) {
             ok = true;
           }
@@ -387,7 +405,7 @@ Directory::ExistsResult Directory::Exists(Namespace* namespc,
   NamespaceScope ns(namespc, dir_name);
   struct stat64 entry_info;
   int success =
-      TEMP_FAILURE_RETRY(fstatat64(ns.fd(), ns.path(), &entry_info, 0));
+      TEMP_FAILURE_RETRY(fstatat64_fixed(ns.fd(), ns.path(), &entry_info, 0));
   if (success == 0) {
     if (S_ISDIR(entry_info.st_mode)) {
       return EXISTS;

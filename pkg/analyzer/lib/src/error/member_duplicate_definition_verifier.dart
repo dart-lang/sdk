@@ -102,8 +102,8 @@ class MemberDuplicateDefinitionVerifier {
           }
 
           // Skip if the typeName is wrong.
-          if (member.typeName case var typeName?) {
-            if (typeName.name != firstFragment.name) {
+          if (member.typeName2 case var typeName?) {
+            if (typeName.lexeme != firstFragment.name) {
               continue;
             }
           }
@@ -533,7 +533,7 @@ class MemberDuplicateDefinitionVerifier {
   }
 
   void _checkUnit(CompilationUnitImpl node) {
-    for (var node in node.declarations) {
+    for (var node in node.declarations2) {
       switch (node) {
         case ClassDeclarationImpl():
           _checkClass(node);
@@ -547,16 +547,18 @@ class MemberDuplicateDefinitionVerifier {
           _checkMixin(node);
         case ClassTypeAliasImpl():
         case FunctionDeclarationImpl():
+        case TopLevelGetterDeclarationImpl():
         case FunctionTypeAliasImpl():
         case GenericTypeAliasImpl():
         case TopLevelVariableDeclarationImpl():
-        // Do nothing.
+          // Do nothing.
+          break;
       }
     }
   }
 
   void _checkUnitStatic(CompilationUnitImpl node) {
-    for (var declaration in node.declarations) {
+    for (var declaration in node.declarations2) {
       switch (declaration) {
         case ClassDeclarationImpl():
           var fragment = declaration.declaredFragment!;
@@ -573,10 +575,12 @@ class MemberDuplicateDefinitionVerifier {
           _checkClassStatic(fragment, declaration.body.members);
         case ClassTypeAliasImpl():
         case FunctionDeclarationImpl():
+        case TopLevelGetterDeclarationImpl():
         case FunctionTypeAliasImpl():
         case GenericTypeAliasImpl():
         case TopLevelVariableDeclarationImpl():
-        // Do nothing.
+          // Do nothing.
+          break;
       }
     }
   }

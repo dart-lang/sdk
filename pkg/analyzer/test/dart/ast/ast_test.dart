@@ -574,7 +574,17 @@ void f() {
   a[0] += 0;
 }
 ''');
-    var node = parseResult.findNode.singleIndexExpression;
+    var node = parseResult.findNodeV1.singleIndexExpression;
+    expect(node.inGetterContext(), isTrue);
+  }
+
+  void test_inGetterContext_assignment_ifNull_left() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+void f() {
+  a[0] ??= 0;
+}
+''');
+    var node = parseResult.findNodeV1.singleIndexExpression;
     expect(node.inGetterContext(), isTrue);
   }
 
@@ -584,7 +594,8 @@ void f() {
   a[0] = 0;
 }
 ''');
-    var node = parseResult.findNode.singleIndexExpression;
+    var node = parseResult.findNode.singleAssignmentExpression.leftHandSide;
+    node as IndexExpression;
     expect(node.inGetterContext(), isFalse);
   }
 
@@ -592,7 +603,7 @@ void f() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = a[b] + c;
 ''');
-    var node = parseResult.findNode.singleIndexExpression;
+    var node = parseResult.findNodeV1.singleIndexExpression;
     expect(node.inGetterContext(), isTrue);
   }
 
@@ -602,7 +613,7 @@ void f() {
   a[0] += 0;
 }
 ''');
-    var node = parseResult.findNode.singleIndexExpression;
+    var node = parseResult.findNodeV1.singleIndexExpression;
     expect(node.inSetterContext(), isTrue);
   }
 
@@ -612,8 +623,18 @@ void f() {
   b += a[0];
 }
 ''');
-    var node = parseResult.findNode.singleIndexExpression;
+    var node = parseResult.findNodeV1.singleIndexExpression;
     expect(node.inSetterContext(), isFalse);
+  }
+
+  void test_inSetterContext_assignment_ifNull_left() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+void f() {
+  a[0] ??= 0;
+}
+''');
+    var node = parseResult.findNodeV1.singleIndexExpression;
+    expect(node.inSetterContext(), isTrue);
   }
 
   void test_inSetterContext_assignment_simple_left() {
@@ -622,7 +643,8 @@ void f() {
   a[0] = 0;
 }
 ''');
-    var node = parseResult.findNode.singleIndexExpression;
+    var node = parseResult.findNode.singleAssignmentExpression.leftHandSide;
+    node as IndexExpression;
     expect(node.inSetterContext(), isTrue);
   }
 
@@ -632,7 +654,7 @@ void f() {
   b = a[0];
 }
 ''');
-    var node = parseResult.findNode.singleIndexExpression;
+    var node = parseResult.findNodeV1.singleIndexExpression;
     expect(node.inSetterContext(), isFalse);
   }
 
@@ -640,7 +662,7 @@ void f() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = a[b] + c;
 ''');
-    var node = parseResult.findNode.singleIndexExpression;
+    var node = parseResult.findNodeV1.singleIndexExpression;
     expect(node.inSetterContext(), isFalse);
   }
 
@@ -650,7 +672,7 @@ void f() {
   a[0]!;
 }
 ''');
-    var node = parseResult.findNode.singleIndexExpression;
+    var node = parseResult.findNodeV1.singleIndexExpression;
     expect(node.inSetterContext(), isFalse);
   }
 
@@ -660,7 +682,7 @@ void f() {
   a[0]++;
 }
 ''');
-    var node = parseResult.findNode.singleIndexExpression;
+    var node = parseResult.findNodeV1.singleIndexExpression;
     expect(node.inSetterContext(), isTrue);
   }
 
@@ -670,7 +692,7 @@ void f() {
   !a[0];
 }
 ''');
-    var node = parseResult.findNode.singleIndexExpression;
+    var node = parseResult.findNodeV1.singleIndexExpression;
     expect(node.inSetterContext(), isFalse);
   }
 
@@ -680,7 +702,7 @@ void f() {
   --a[0];
 }
 ''');
-    var node = parseResult.findNode.singleIndexExpression;
+    var node = parseResult.findNodeV1.singleIndexExpression;
     expect(node.inSetterContext(), isTrue);
   }
 
@@ -690,7 +712,7 @@ void f() {
   ++a[0];
 }
 ''');
-    var node = parseResult.findNode.singleIndexExpression;
+    var node = parseResult.findNodeV1.singleIndexExpression;
     expect(node.inSetterContext(), isTrue);
   }
 
@@ -700,7 +722,7 @@ void f() {
   a..[0];
 }
 ''');
-    var expression = parseResult.findNode.index('[0]');
+    var expression = parseResult.findNodeV1.index('[0]');
     expect(expression.isNullAware, isFalse);
   }
 
@@ -710,7 +732,7 @@ void f() {
   a?..[0];
 }
 ''');
-    var expression = parseResult.findNode.index('[0]');
+    var expression = parseResult.findNodeV1.index('[0]');
     expect(expression.isNullAware, isTrue);
   }
 
@@ -720,7 +742,7 @@ void f() {
   a[0];
 }
 ''');
-    var expression = parseResult.findNode.index('[0]');
+    var expression = parseResult.findNodeV1.index('[0]');
     expect(expression.isNullAware, isFalse);
   }
 
@@ -730,8 +752,8 @@ void f() {
   a?[0];
 }
 ''');
-    var expression = parseResult.findNode.index('[0]');
-    expect(expression.isNullAware, isTrue);
+    var expression = parseResult.findNode.indexExpression2('[0]');
+    expect(expression.question, isNotNull);
   }
 }
 
@@ -1492,6 +1514,18 @@ void f() {
     expect(identifier.isQualified, isFalse);
   }
 
+  void test_isQualified_inPropertyExtraction_name() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+class A {
+  void f() {
+    this.foo;
+  }
+}
+''');
+    var identifier = parseResult.findNodeV1.simple('foo');
+    expect(identifier.isQualified, isTrue);
+  }
+
   void test_isQualified_inReturnStatement() {
     var parseResult = parseTestCodeWithDiagnostics('''
 void f() {
@@ -1559,7 +1593,7 @@ void f() {
   $code;
 }
 ''');
-    return parseResult.findNode.simple('test');
+    return parseResult.findNodeV1.simple('test');
   }
 
   /// Return the top-most node in the AST structure containing the given

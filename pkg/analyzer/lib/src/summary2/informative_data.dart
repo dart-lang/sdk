@@ -564,7 +564,7 @@ class InformativeDataApplier {
 
 class _InfoBuilder {
   _InfoUnit build(CompilationUnit unit) {
-    // Build all needed lists from `unit.declarations` with a single iteration
+    // Build all needed lists from `unit.declarations2` with a single iteration
     // the list.
     var classDeclarations = <_InfoClassDeclaration>[];
     var classTypeAliases = <_InfoClassTypeAlias>[];
@@ -577,7 +577,7 @@ class _InfoBuilder {
     var topLevelSetters = <_InfoExecutableDeclaration>[];
     var topLevelVariable = <_InfoTopLevelVariable>[];
     var typeAliases = <_InfoTypeAlias>[];
-    for (var declaration in unit.declarations) {
+    for (var declaration in unit.declarations2) {
       if (declaration is ClassDeclaration) {
         classDeclarations.add(_buildClass(declaration));
       } else if (declaration is ClassTypeAlias) {
@@ -590,6 +590,8 @@ class _InfoBuilder {
         extensionTypes.add(_buildExtensionType(declaration));
       } else if (declaration is MixinDeclarationImpl) {
         mixinDeclarations.add(_buildMixin(declaration));
+      } else if (declaration is TopLevelGetterDeclarationImpl) {
+        topLevelGetters.add(_buildTopLevelGetter(declaration));
       } else if (declaration is FunctionDeclaration) {
         if (declaration.isGetter) {
           topLevelGetters.add(_buildTopLevelFunction(declaration));
@@ -778,9 +780,9 @@ class _InfoBuilder {
       ),
       newKeywordOffset: node.newKeyword?.offset,
       factoryKeywordOffset: node.factoryKeyword?.offset,
-      typeNameOffset: node.typeName?.offset,
+      typeNameOffset: node.typeName2?.offset,
       periodOffset: node.period?.offset,
-      nameEnd: (node.name ?? node.typeName)?.end,
+      nameEnd: (node.name ?? node.typeName2)?.end,
       thisKeywordOffset: null,
     );
   }
@@ -1111,6 +1113,25 @@ class _InfoBuilder {
         metadata: node.metadata,
         typeParameters: node.functionExpression.typeParameters,
         formalParameters: node.functionExpression.parameters,
+      ),
+    );
+  }
+
+  _InfoExecutableDeclaration _buildTopLevelGetter(
+    TopLevelGetterDeclarationImpl node,
+  ) {
+    return _InfoExecutableDeclaration(
+      firstTokenOffset: node.offset,
+      codeOffset: node.offset,
+      codeLength: node.length,
+      nameOffset: node.name.offsetIfNotEmpty,
+      documentationComment: _getDocumentationComment(node),
+      typeParameters: _buildTypeParameters(node.recoveryTypeParameters),
+      parameters: _buildFormalParameters(node.recoveryFormalParameters),
+      constantOffsets: _buildConstantOffsets(
+        metadata: node.metadata,
+        typeParameters: node.recoveryTypeParameters,
+        formalParameters: node.recoveryFormalParameters,
       ),
     );
   }
@@ -1894,6 +1915,26 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitCascadeIndexAssignmentTarget(CascadeIndexAssignmentTarget node) {
+    _tokenOrNull(node.leftBracket);
+    _tokenOrNull(node.rightBracket);
+    super.visitCascadeIndexAssignmentTarget(node);
+  }
+
+  @override
+  void visitCascadeIndexExpression(CascadeIndexExpression node) {
+    _tokenOrNull(node.leftBracket);
+    _tokenOrNull(node.rightBracket);
+    super.visitCascadeIndexExpression(node);
+  }
+
+  @override
+  void visitCascadeSection(CascadeSection node) {
+    _tokenOrNull(node.operator);
+    super.visitCascadeSection(node);
+  }
+
+  @override
   void visitCompoundAssignment(CompoundAssignment node) {
     _tokenOrNull(node.operator);
     super.visitCompoundAssignment(node);
@@ -2027,10 +2068,25 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitIndexAssignmentTarget(IndexAssignmentTarget node) {
+    _tokenOrNull(node.leftBracket);
+    _tokenOrNull(node.rightBracket);
+    super.visitIndexAssignmentTarget(node);
+  }
+
+  @override
   void visitIndexExpression(IndexExpression node) {
     _tokenOrNull(node.leftBracket);
     _tokenOrNull(node.rightBracket);
     super.visitIndexExpression(node);
+  }
+
+  @override
+  void visitIndexExpression2(IndexExpression2 node) {
+    _tokenOrNull(node.question);
+    _tokenOrNull(node.leftBracket);
+    _tokenOrNull(node.rightBracket);
+    super.visitIndexExpression2(node);
   }
 
   @override

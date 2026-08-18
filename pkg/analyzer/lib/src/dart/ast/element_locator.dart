@@ -7,6 +7,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
+import 'package:analyzer/src/utilities/extensions/object.dart';
 
 /// An object used to locate the [Element] associated with a given V1 [AstNode].
 @ToBeDeprecated('Use ElementLocatorV2 instead')
@@ -56,31 +57,6 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
   }
 
   @override
-  Element? visitCatchClauseParameter(CatchClauseParameter node) {
-    return node.declaredFragment?.element;
-  }
-
-  @override
-  Element? visitClassDeclaration(ClassDeclaration node) {
-    return node.declaredFragment?.element;
-  }
-
-  @override
-  Element? visitClassTypeAlias(ClassTypeAlias node) {
-    return node.declaredFragment?.element;
-  }
-
-  @override
-  Element? visitCompilationUnit(CompilationUnit node) {
-    return node.declaredFragment?.element;
-  }
-
-  @override
-  Element? visitConstructorDeclaration(ConstructorDeclaration node) {
-    return node.declaredFragment?.element;
-  }
-
-  @override
   Element? visitConstructorSelector(ConstructorSelector node) {
     var parent = node.parent;
     if (parent is EnumConstantArguments) {
@@ -90,16 +66,6 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
       }
     }
     return null;
-  }
-
-  @override
-  Element? visitDeclaredIdentifier(DeclaredIdentifier node) {
-    return node.declaredFragment?.element;
-  }
-
-  @override
-  Element? visitDeclaredVariablePattern(DeclaredVariablePattern node) {
-    return node.declaredFragment?.element;
   }
 
   @override
@@ -129,53 +95,13 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
   }
 
   @override
-  Element? visitEnumConstantDeclaration(EnumConstantDeclaration node) {
-    return node.declaredFragment?.element;
-  }
-
-  @override
-  Element? visitEnumDeclaration(EnumDeclaration node) {
-    return node.declaredFragment?.element;
-  }
-
-  @override
   Element? visitExportDirective(ExportDirective node) {
     return node.libraryExport?.exportedLibrary;
   }
 
   @override
-  Element? visitExtensionDeclaration(ExtensionDeclaration node) {
-    return node.declaredFragment?.element;
-  }
-
-  @override
   Element? visitExtensionOverride(ExtensionOverride node) {
     return node.element;
-  }
-
-  @override
-  Element? visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
-    return node.declaredFragment?.element;
-  }
-
-  @override
-  Element? visitFormalParameter(FormalParameter node) {
-    return node.declaredFragment?.element;
-  }
-
-  @override
-  Element? visitFunctionDeclaration(FunctionDeclaration node) {
-    return node.declaredFragment?.element;
-  }
-
-  @override
-  Element? visitFunctionTypeAlias(FunctionTypeAlias node) {
-    return node.declaredFragment?.element;
-  }
-
-  @override
-  Element? visitGenericTypeAlias(GenericTypeAlias node) {
-    return node.declaredFragment?.element;
   }
 
   @override
@@ -254,11 +180,6 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
   }
 
   @override
-  Element? visitLabel(Label node) {
-    return node.declaredFragment?.element;
-  }
-
-  @override
   Element? visitLabelReference(LabelReference node) {
     return node.element;
   }
@@ -269,18 +190,8 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
   }
 
   @override
-  Element? visitMethodDeclaration(MethodDeclaration node) {
-    return node.declaredFragment?.element;
-  }
-
-  @override
   Element? visitMethodInvocation(MethodInvocation node) {
     return node.methodName.element ?? visitIdentifier(node.methodName);
-  }
-
-  @override
-  Element? visitMixinDeclaration(MixinDeclaration node) {
-    return node.declaredFragment?.element;
   }
 
   @override
@@ -296,6 +207,11 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
   @override
   Element? visitNameWithTypeParameters(NameWithTypeParameters node) {
     return node.parent!.accept(this);
+  }
+
+  @override
+  Element? visitNode(AstNode node) {
+    return node.tryCast<FragmentDeclaringNode>()?.declaredFragment?.element;
   }
 
   @override
@@ -368,20 +284,10 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
     }
     return null;
   }
-
-  @override
-  Element? visitTypeParameter(TypeParameter node) {
-    return node.declaredFragment?.element;
-  }
-
-  @override
-  Element? visitVariableDeclaration(VariableDeclaration node) {
-    return node.declaredFragment?.element ?? node.declaredFragment?.element;
-  }
 }
 
 /// Visitor that maps nodes to elements.
-class _ElementMapperV2 extends GeneralizingAstVisitor2<Element> {
+class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
   @override
   Element? visitAnnotation(Annotation node) {
     return node.element;
@@ -400,6 +306,32 @@ class _ElementMapperV2 extends GeneralizingAstVisitor2<Element> {
   @override
   Element? visitBinaryOperatorInvocation(BinaryOperatorInvocation node) {
     return node.element;
+  }
+
+  @override
+  Element? visitCascadeIndexAssignmentTarget(
+    CascadeIndexAssignmentTarget node,
+  ) {
+    return switch (node.write) {
+      MethodIndexWriteResolution(:var element) => element,
+      InvalidIndexWriteResolution(
+        recovery: MethodIndexWriteResolution(:var element),
+      ) =>
+        element,
+      _ => null,
+    };
+  }
+
+  @override
+  Element? visitCascadeIndexExpression(CascadeIndexExpression node) {
+    return switch (node.resolution) {
+      MethodIndexReadResolution(:var element) => element,
+      InvalidIndexReadResolution(
+        recovery: MethodIndexReadResolution(:var element),
+      ) =>
+        element,
+      _ => null,
+    };
   }
 
   @override
@@ -423,18 +355,8 @@ class _ElementMapperV2 extends GeneralizingAstVisitor2<Element> {
   }
 
   @override
-  Element? visitCompilationUnit(CompilationUnit node) {
-    return node.declaredFragment?.element;
-  }
-
-  @override
   Element? visitCompoundAssignment(CompoundAssignment node) {
     return node.element;
-  }
-
-  @override
-  Element? visitConstructorDeclaration(ConstructorDeclaration node) {
-    return node.declaredFragment?.element;
   }
 
   @override
@@ -464,16 +386,6 @@ class _ElementMapperV2 extends GeneralizingAstVisitor2<Element> {
   }
 
   @override
-  Element? visitDeclaredIdentifier(DeclaredIdentifier node) {
-    return node.declaredFragment?.element;
-  }
-
-  @override
-  Element? visitDeclaredVariablePattern(DeclaredVariablePattern node) {
-    return node.declaredFragment?.element;
-  }
-
-  @override
   Element? visitDotShorthandConstructorInvocation(
     DotShorthandConstructorInvocation node,
   ) {
@@ -500,33 +412,13 @@ class _ElementMapperV2 extends GeneralizingAstVisitor2<Element> {
   }
 
   @override
-  Element? visitEnumConstantDeclaration(EnumConstantDeclaration node) {
-    return node.declaredFragment?.element;
-  }
-
-  @override
-  Element? visitEnumDeclaration(EnumDeclaration node) {
-    return node.declaredFragment?.element;
-  }
-
-  @override
   Element? visitExportDirective(ExportDirective node) {
     return node.libraryExport?.exportedLibrary;
   }
 
   @override
-  Element? visitExtensionDeclaration(ExtensionDeclaration node) {
-    return node.declaredFragment?.element;
-  }
-
-  @override
   Element? visitExtensionOverride(ExtensionOverride node) {
     return node.element;
-  }
-
-  @override
-  Element? visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
-    return node.declaredFragment?.element;
   }
 
   @override
@@ -540,27 +432,169 @@ class _ElementMapperV2 extends GeneralizingAstVisitor2<Element> {
   }
 
   @override
-  Element? visitFormalParameter(FormalParameter node) {
+  Element? visitImportDirective(ImportDirective node) {
+    return node.libraryImport?.importedLibrary;
+  }
+
+  @override
+  Element? visitImportPrefixReference(ImportPrefixReference node) {
+    return node.element;
+  }
+
+  @override
+  Element? visitIndexAssignmentTarget(IndexAssignmentTarget node) {
+    return switch (node.write) {
+      MethodIndexWriteResolution(:var element) => element,
+      InvalidIndexWriteResolution(
+        recovery: MethodIndexWriteResolution(:var element),
+      ) =>
+        element,
+      _ => null,
+    };
+  }
+
+  @override
+  Element? visitIndexExpression(IndexExpression node) {
+    return node.element;
+  }
+
+  @override
+  Element? visitIndexExpression2(IndexExpression2 node) {
+    return switch (node.resolution) {
+      MethodIndexReadResolution(:var element) => element,
+      InvalidIndexReadResolution(
+        recovery: MethodIndexReadResolution(:var element),
+      ) =>
+        element,
+      _ => null,
+    };
+  }
+
+  @override
+  Element? visitLabel(Label node) {
     return node.declaredFragment?.element;
   }
 
   @override
-  Element? visitFunctionDeclaration(FunctionDeclaration node) {
-    return node.declaredFragment?.element;
+  Element? visitLabelReference(LabelReference node) {
+    return node.element;
   }
 
   @override
-  Element? visitFunctionTypeAlias(FunctionTypeAlias node) {
-    return node.declaredFragment?.element;
+  Element? visitLibraryDirective(LibraryDirective node) {
+    return node.element;
   }
 
   @override
-  Element? visitGenericTypeAlias(GenericTypeAlias node) {
-    return node.declaredFragment?.element;
+  Element? visitMethodInvocation(MethodInvocation node) {
+    return node.methodName.element ?? _visitIdentifier(node.methodName);
   }
 
   @override
-  Element? visitIdentifier(Identifier node) {
+  Element? visitNamedArgument(NamedArgument node) {
+    return node.correspondingParameter;
+  }
+
+  @override
+  Element? visitNamedType(NamedType node) {
+    return node.element;
+  }
+
+  @override
+  Element? visitNameWithTypeParameters(NameWithTypeParameters node) {
+    return node.parent2!.accept2(this);
+  }
+
+  @override
+  Element? visitNode(AstNode node) {
+    return switch (node) {
+      IncrementOrDecrementExpression(:var element) => element,
+      Identifier() => _visitIdentifier(node),
+      StringLiteral() => _visitStringLiteral(node),
+      _ => node.tryCast<FragmentDeclaringNode>()?.declaredFragment?.element,
+    };
+  }
+
+  @override
+  Element? visitPartOfDirective(PartOfDirective node) {
+    return null;
+  }
+
+  @override
+  Element? visitPatternField(PatternField node) {
+    return node.element;
+  }
+
+  @override
+  Element? visitPatternFieldName(PatternFieldName node) {
+    var parent = node.parent2;
+    if (parent is PatternField) {
+      return parent.element;
+    } else {
+      return null;
+    }
+  }
+
+  @override
+  Element? visitPrefixedIdentifier(PrefixedIdentifier node) {
+    return node.element ?? _visitIdentifier(node.identifier);
+  }
+
+  @override
+  Element? visitPrimaryConstructorBody(PrimaryConstructorBody node) {
+    return node.declaration?.declaredFragment?.element;
+  }
+
+  @override
+  Element? visitPrimaryConstructorDeclaration(
+    PrimaryConstructorDeclaration node,
+  ) {
+    if (node.parent2 case Declaration declaration) {
+      return declaration.declaredFragment?.element;
+    }
+    return null;
+  }
+
+  @override
+  Element? visitPrimaryConstructorName(PrimaryConstructorName node) {
+    if (node.parent2 case PrimaryConstructorDeclaration declaration) {
+      return declaration.declaredFragment?.element;
+    }
+    return node.parent2!.accept2(this);
+  }
+
+  @override
+  Element? visitPropertyAssignmentTarget(PropertyAssignmentTarget node) {
+    if (node.write case NamedWriteResolutionWithElement(:var element)) {
+      return element;
+    }
+    return null;
+  }
+
+  @override
+  Element? visitPropertyExtraction(PropertyExtraction node) {
+    if (node.resolution case NamedReadResolutionWithElement(:var element)) {
+      return element;
+    }
+    return null;
+  }
+
+  @override
+  Element? visitUnaryOperatorInvocation(UnaryOperatorInvocation node) {
+    return node.element;
+  }
+
+  @override
+  Element? visitUnqualifiedNameAssignmentTarget(
+    UnqualifiedNameAssignmentTarget node,
+  ) {
+    if (node.write case NamedWriteResolutionWithElement(:var element)) {
+      return element;
+    }
+    return null;
+  }
+
+  Element? _visitIdentifier(Identifier node) {
     var parent = node.parent2;
     if (parent is Annotation) {
       // Map the type name in an annotation.
@@ -606,139 +640,7 @@ class _ElementMapperV2 extends GeneralizingAstVisitor2<Element> {
     return node.writeOrReadElement2;
   }
 
-  @override
-  Element? visitImportDirective(ImportDirective node) {
-    return node.libraryImport?.importedLibrary;
-  }
-
-  @override
-  Element? visitImportPrefixReference(ImportPrefixReference node) {
-    return node.element;
-  }
-
-  @override
-  Element? visitIncrementOrDecrementExpression(
-    IncrementOrDecrementExpression node,
-  ) {
-    return node.element;
-  }
-
-  @override
-  Element? visitIndexExpression(IndexExpression node) {
-    return node.element;
-  }
-
-  @override
-  Element? visitLabel(Label node) {
-    return node.declaredFragment?.element;
-  }
-
-  @override
-  Element? visitLabelReference(LabelReference node) {
-    return node.element;
-  }
-
-  @override
-  Element? visitLibraryDirective(LibraryDirective node) {
-    return node.element;
-  }
-
-  @override
-  Element? visitMethodDeclaration(MethodDeclaration node) {
-    return node.declaredFragment?.element;
-  }
-
-  @override
-  Element? visitMethodInvocation(MethodInvocation node) {
-    return node.methodName.element ?? visitIdentifier(node.methodName);
-  }
-
-  @override
-  Element? visitMixinDeclaration(MixinDeclaration node) {
-    return node.declaredFragment?.element;
-  }
-
-  @override
-  Element? visitNamedArgument(NamedArgument node) {
-    return node.correspondingParameter;
-  }
-
-  @override
-  Element? visitNamedType(NamedType node) {
-    return node.element;
-  }
-
-  @override
-  Element? visitNameWithTypeParameters(NameWithTypeParameters node) {
-    return node.parent2!.accept2(this);
-  }
-
-  @override
-  Element? visitPartOfDirective(PartOfDirective node) {
-    return null;
-  }
-
-  @override
-  Element? visitPatternField(PatternField node) {
-    return node.element;
-  }
-
-  @override
-  Element? visitPatternFieldName(PatternFieldName node) {
-    var parent = node.parent2;
-    if (parent is PatternField) {
-      return parent.element;
-    } else {
-      return null;
-    }
-  }
-
-  @override
-  Element? visitPrefixedIdentifier(PrefixedIdentifier node) {
-    return node.element ?? visitIdentifier(node.identifier);
-  }
-
-  @override
-  Element? visitPrimaryConstructorBody(PrimaryConstructorBody node) {
-    return node.declaration?.declaredFragment?.element;
-  }
-
-  @override
-  Element? visitPrimaryConstructorDeclaration(
-    PrimaryConstructorDeclaration node,
-  ) {
-    if (node.parent2 case Declaration declaration) {
-      return declaration.declaredFragment?.element;
-    }
-    return null;
-  }
-
-  @override
-  Element? visitPrimaryConstructorName(PrimaryConstructorName node) {
-    if (node.parent2 case PrimaryConstructorDeclaration declaration) {
-      return declaration.declaredFragment?.element;
-    }
-    return node.parent2!.accept2(this);
-  }
-
-  @override
-  Element? visitPropertyAssignmentTarget(PropertyAssignmentTarget node) {
-    if (node.write case NamedWriteResolutionWithElement(:var element)) {
-      return element;
-    }
-    return null;
-  }
-
-  @override
-  Element? visitPropertyExtraction(PropertyExtraction node) {
-    if (node.resolution case NamedReadResolutionWithElement(:var element)) {
-      return element;
-    }
-    return null;
-  }
-
-  @override
-  Element? visitStringLiteral(StringLiteral node) {
+  Element? _visitStringLiteral(StringLiteral node) {
     var parent = node.parent2;
     if (parent is ExportDirective) {
       return parent.libraryExport?.exportedLibrary;
@@ -748,30 +650,5 @@ class _ElementMapperV2 extends GeneralizingAstVisitor2<Element> {
       return null;
     }
     return null;
-  }
-
-  @override
-  Element? visitTypeParameter(TypeParameter node) {
-    return node.declaredFragment?.element;
-  }
-
-  @override
-  Element? visitUnaryOperatorInvocation(UnaryOperatorInvocation node) {
-    return node.element;
-  }
-
-  @override
-  Element? visitUnqualifiedNameAssignmentTarget(
-    UnqualifiedNameAssignmentTarget node,
-  ) {
-    if (node.write case NamedWriteResolutionWithElement(:var element)) {
-      return element;
-    }
-    return null;
-  }
-
-  @override
-  Element? visitVariableDeclaration(VariableDeclaration node) {
-    return node.declaredFragment?.element ?? node.declaredFragment?.element;
   }
 }

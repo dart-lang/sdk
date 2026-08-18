@@ -4747,6 +4747,11 @@ incorrectTypeArgumentVariable:
   problemMessage: "This is the type variable whose bound isn't conformed to."
   severity: CONTEXT
 
+incorrectVariancePositionVariable:
+  parameters: none
+  problemMessage: "This is the type variable which is referenced from an invalid position."
+  severity: CONTEXT
+
 superBoundedHint:
   parameters:
     Type attemptedType: The type that the user appears to be attempting to make super-bounded.

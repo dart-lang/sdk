@@ -8,7 +8,7 @@ import 'package:analyzer/src/dart/analysis/index.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary/idl.dart';
-import 'package:analyzer/src/test_utilities/find_element2.dart';
+import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:collection/collection.dart';
@@ -520,6 +520,26 @@ class A {}
                ^ IS_REFERENCED_BY qualified
 void f() {}
 Prefixes: (unprefixed),p
+''');
+  }
+
+  test_ClassElement_reference_constructorDeclaration() async {
+    var result = await _indexTestCode(r'''
+class A {
+  A();
+  A.named();
+}
+''');
+
+    var element = result.findElement.class_('A');
+
+    assertElementIndexText(result, element, r'''
+class A {
+  A();
+  ^ IS_REFERENCED_BY
+  A.named();
+  ^ IS_REFERENCED_BY
+}
 ''');
   }
 
@@ -3093,6 +3113,91 @@ class B extends A {
 }
 ''',
     );
+  }
+
+  test_FieldElement_ofClass_instance_propertyAssignmentTarget() async {
+    var result = await _indexTestCode('''
+class A {
+  num x = 0;
+}
+class B {
+  num? x;
+}
+void use(A a, A? nullableA, B b, B? nullableB) {
+  (a).x = 1;
+  (nullableA)?.x = 2;
+  (a).x += 3;
+  (nullableA)?.x += 4;
+  (b).x ??= 5;
+  (nullableB)?.x ??= 6;
+}
+''');
+
+    assertElementsIndexText(
+      result,
+      {
+        'aField': result.findElement.field('x', of: 'A'),
+        'aGetter': result.findElement.getter('x', of: 'A'),
+        'aSetter': result.findElement.setter('x', of: 'A'),
+        'bField': result.findElement.field('x', of: 'B'),
+        'bGetter': result.findElement.getter('x', of: 'B'),
+        'bSetter': result.findElement.setter('x', of: 'B'),
+        'num.+': result.resolvedUnit.typeProvider.numElement.getMethod('+')!,
+      },
+      r'''
+class A {
+  num x = 0;
+}
+class B {
+  num? x;
+}
+void use(A a, A? nullableA, B b, B? nullableB) {
+  (a).x = 1;
+      ^ aSetter IS_INVOKED_BY qualified
+  (nullableA)?.x = 2;
+               ^ aSetter IS_INVOKED_BY qualified
+  (a).x += 3;
+      ^ aGetter IS_INVOKED_BY qualified
+      ^ aSetter IS_INVOKED_BY qualified
+        ^^ num.+ IS_INVOKED_BY qualified
+  (nullableA)?.x += 4;
+               ^ aGetter IS_INVOKED_BY qualified
+               ^ aSetter IS_INVOKED_BY qualified
+                 ^^ num.+ IS_INVOKED_BY qualified
+  (b).x ??= 5;
+      ^ bGetter IS_INVOKED_BY qualified
+      ^ bSetter IS_INVOKED_BY qualified
+  (nullableB)?.x ??= 6;
+               ^ bGetter IS_INVOKED_BY qualified
+               ^ bSetter IS_INVOKED_BY qualified
+}
+''',
+    );
+  }
+
+  test_FieldElement_ofClass_instance_propertyExtraction() async {
+    var result = await _indexTestCode('''
+class A {
+  num x = 0;
+}
+void use(A a, A? nullableA) {
+  (a).x;
+  (nullableA)?.x;
+}
+''');
+
+    var getter = result.findElement.getter('x', of: 'A');
+    assertElementIndexText(result, getter, r'''
+class A {
+  num x = 0;
+}
+void use(A a, A? nullableA) {
+  (a).x;
+      ^ IS_INVOKED_BY qualified
+  (nullableA)?.x;
+               ^ IS_INVOKED_BY qualified
+}
+''');
   }
 
   test_FieldElement_ofClass_instance_setterDeclaration() async {
@@ -5900,14 +6005,77 @@ void useOperator(A a) {
 ''');
   }
 
-  test_MethodElement_operator_ofClass_index() async {
+  test_MethodElement_operator_ofClass_indexAssignmentTarget() async {
+    var result = await _indexTestCode('''
+class A {
+  num operator [](int i) => 0;
+  void operator []=(int i, num v) {}
+}
+class B {
+  num? operator [](int i) => 0;
+  void operator []=(int i, num v) {}
+}
+void useOperator(A a, A? nullableA, B b, B? nullableB) {
+  a[0] = 1;
+  nullableA?[1] = 2;
+  a[2] += 3;
+  nullableA?[3] += 4;
+  b[4] ??= 5;
+  nullableB?[5] ??= 6;
+}
+''');
+
+    assertElementsIndexText(
+      result,
+      {
+        'aRead': result.findElement.method('[]', of: 'A'),
+        'aWrite': result.findElement.method('[]=', of: 'A'),
+        'bRead': result.findElement.method('[]', of: 'B'),
+        'bWrite': result.findElement.method('[]=', of: 'B'),
+        'num.+': result.resolvedUnit.typeProvider.numElement.getMethod('+')!,
+      },
+      r'''
+class A {
+  num operator [](int i) => 0;
+  void operator []=(int i, num v) {}
+}
+class B {
+  num? operator [](int i) => 0;
+  void operator []=(int i, num v) {}
+}
+void useOperator(A a, A? nullableA, B b, B? nullableB) {
+  a[0] = 1;
+   ^ aWrite IS_INVOKED_BY qualified
+  nullableA?[1] = 2;
+            ^ aWrite IS_INVOKED_BY qualified
+  a[2] += 3;
+   ^ aRead IS_INVOKED_BY qualified
+   ^ aWrite IS_INVOKED_BY qualified
+       ^^ num.+ IS_INVOKED_BY qualified
+  nullableA?[3] += 4;
+            ^ aRead IS_INVOKED_BY qualified
+            ^ aWrite IS_INVOKED_BY qualified
+                ^^ num.+ IS_INVOKED_BY qualified
+  b[4] ??= 5;
+   ^ bRead IS_INVOKED_BY qualified
+   ^ bWrite IS_INVOKED_BY qualified
+  nullableB?[5] ??= 6;
+            ^ bRead IS_INVOKED_BY qualified
+            ^ bWrite IS_INVOKED_BY qualified
+}
+''',
+    );
+  }
+
+  test_MethodElement_operator_ofClass_indexExpression() async {
     var result = await _indexTestCode('''
 /// [operator []] and [A.operator []]
 class A {
-  operator [](i) => null;
+  num operator [](int i) => 0;
 }
-void useOperator(A a) {
+void useOperator(A a, A? b) {
   a[0];
+  b?[1];
 }
 ''');
 
@@ -5916,36 +6084,13 @@ void useOperator(A a) {
     assertElementIndexText(result, element, r'''
 /// [operator []] and [A.operator []]
 class A {
-  operator [](i) => null;
+  num operator [](int i) => 0;
 }
-void useOperator(A a) {
+void useOperator(A a, A? b) {
   a[0];
    ^ IS_INVOKED_BY qualified
-}
-''');
-  }
-
-  test_MethodElement_operator_ofClass_indexEq() async {
-    var result = await _indexTestCode('''
-/// [operator []=] and [A.operator []=]
-class A {
-  operator []=(i, v) {}
-}
-void useOperator(A a) {
-  a[1] = 42;
-}
-''');
-
-    var element = result.findElement.method('[]=');
-
-    assertElementIndexText(result, element, r'''
-/// [operator []=] and [A.operator []=]
-class A {
-  operator []=(i, v) {}
-}
-void useOperator(A a) {
-  a[1] = 42;
-   ^ IS_INVOKED_BY qualified
+  b?[1];
+    ^ IS_INVOKED_BY qualified
 }
 ''');
   }
@@ -7993,7 +8138,7 @@ final class _IndexResult {
 
   _IndexResult(this.resolvedUnit, this.index);
 
-  FindElement2 get findElement => resolvedUnit.findElement;
+  FindElement get findElement => resolvedUnit.findElement;
 }
 
 final class _IndexTextBuilder {

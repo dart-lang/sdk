@@ -4099,9 +4099,19 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       switch (invocationTargetType) {
         case InvocationTargetFunctionType():
           FunctionType functionType = invocationTargetType.functionType;
-          if (functionType.positionalParameters.length == 1 &&
-              functionType.positionalParameters.first.nullability !=
-                  Nullability.nullable) {
+          if (functionType.positionalParameters.length != 1) break;
+          if (arguments.argumentList.single.expression is DotShorthand) {
+            // When evaluating a dot shorthand in the RHS, `super` does not
+            // provide a context type.
+            invocationTargetType = new InvocationTargetFunctionType(
+              new FunctionType(
+                [const UnknownType()],
+                functionType.returnType,
+                functionType.declaredNullability,
+              ),
+            );
+          } else if (functionType.positionalParameters.first.nullability !=
+              Nullability.nullable) {
             // operator == always allows nullable arguments.
             invocationTargetType = new InvocationTargetFunctionType(
               new FunctionType(
@@ -4342,6 +4352,17 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     return new ExpressionInferenceResult(rhsType, replacement);
   }
 
+  VariableGet readVariable(
+    InternalVariable internalVariable, {
+    required int fileOffset,
+  });
+
+  VariableSet writeVariable(
+    InternalVariable internalVariable,
+    Expression value, {
+    required int fileOffset,
+  });
+
   /// Performs the inference for a local get of [variable].
   ///
   /// [accessNode] is the internal node for accessing [variable].
@@ -4351,10 +4372,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     required int nameOffset,
     required InternalNode accessNode,
   }) {
-    VariableGet result = extern.createVariableGet(
-      variable.astVariable,
-      fileOffset: nameOffset,
-    );
+    VariableGet result = readVariable(variable, fileOffset: nameOffset);
     DartType? promotedType;
     DartType declaredOrInferredType = variable.lateType ?? variable.type;
     ExpressionInfo? expressionInfo;
@@ -4523,8 +4541,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       assignedNode: valueNode,
     );
     Expression rhs = rhsResult.expression;
-    VariableSet result = new VariableSet(variable.astVariable, rhs)
-      ..fileOffset = nameOffset;
+    VariableSet result = writeVariable(variable, rhs, fileOffset: nameOffset);
     storeExpressionInfo(
       result,
       flowAnalysis.write(
@@ -4547,8 +4564,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       // expression information.
       storeExpressionInfo(resultExpression, getExpressionInfo(result));
     } else {
-      result.value = rhs..parent = result;
-      resultExpression = result..variable = variable.astVariable;
+      resultExpression = result;
     }
     // Synthetic variables, local functions, and variables with
     // invalid types aren't checked.

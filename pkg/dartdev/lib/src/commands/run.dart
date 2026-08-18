@@ -483,6 +483,7 @@ See https://dart.dev/to/package-descriptors for more details.''', verbose) {
     }
 
     String? nativeAssets;
+    DartNativeAssetsBuilder? builder;
     Uri baseUri = Directory.current.uri;
     if (mainCommand.isNotEmpty) {
       final file = File(mainCommand);
@@ -508,7 +509,7 @@ See https://dart.dev/to/package-descriptors for more details.''', verbose) {
         final pubspecUri = await DartNativeAssetsBuilder.findWorkspacePubspec(
           packageConfigUri,
         );
-        final builder = DartNativeAssetsBuilder(
+        builder = DartNativeAssetsBuilder(
           pubspecUri: pubspecUri,
           packageConfigUri: packageConfigUri,
           packageConfig: packageConfig,
@@ -626,6 +627,7 @@ See https://dart.dev/to/package-descriptors for more details.''', verbose) {
       scriptUriOverride: identical(executable, executableOriginal)
           ? null
           : executableOriginal.executable,
+      deleteTempDirOnShutdown: builder?.tempDirUri?.toFilePath(),
     );
     return 0;
   }
@@ -748,18 +750,17 @@ See https://dart.dev/to/package-descriptors for more details.''', verbose) {
           );
         }
 
-        final executableUri = appBundleDirectory.directory.uri.resolve(
-          'bundle/bin/$executable',
-        );
+        final executableFile = appBundleDirectory.executable(executable).file;
         final arguments = args.rest.skip(1).toList();
 
         // The app-bundle contains executables (not AOT snapshots) to make it
         // self-contained. So, spawn a process instead of loading a snapshot in
         // the VM.
         final process = await Process.start(
-          executableUri.toFilePath(),
+          executableFile.path,
           arguments,
           mode: ProcessStartMode.inheritStdio, // Enable using stdin etc.
+          environment: VmInteropHandler.environmentOverrides,
         );
         return await process.exitCode;
       } on InstallException catch (e) {

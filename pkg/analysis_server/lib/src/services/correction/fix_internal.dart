@@ -1079,7 +1079,10 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   diag.unusedCatchClause: [RemoveUnusedCatchClause.new],
   diag.unusedCatchStack: [RemoveUnusedCatchStack.new],
   diag.unusedElement: [RemoveUnusedElement.new],
-  diag.unusedElementParameter: [RemoveUnusedParameter.new],
+  diag.unusedElementParameter: [
+    ConvertToWildcardVariable.new,
+    RemoveUnusedParameter.new,
+  ],
   diag.unusedField: [RemoveUnusedField.new],
   diag.unusedImport: [RemoveUnusedImport.new],
   diag.unusedLabel: [RemoveUnusedLabel.new],

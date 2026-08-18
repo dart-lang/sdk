@@ -814,7 +814,7 @@ CompoundAssignment
   element: <testLibrary>::@class::C::@method::+
   operatorResultType: C
   staticType: C
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::f::@formalParameter::c
@@ -863,7 +863,7 @@ CompoundAssignment
   element: <testLibrary>::@extension::E::@method::+
   operatorResultType: C
   staticType: C
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::f::@formalParameter::c
@@ -1808,7 +1808,7 @@ BinaryOperatorInvocation
   binaryOperator: add
   element: <testLibrary>::@class::C::@method::+
   staticType: void
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::f::@formalParameter::c
@@ -1848,7 +1848,7 @@ BinaryOperatorInvocation
   binaryOperator: add
   element: <testLibrary>::@extension::E::@method::+
   staticType: void
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: f
     element: <testLibrary>::@function::g::@formalParameter::f
@@ -1889,7 +1889,7 @@ BinaryOperatorInvocation
   binaryOperator: add
   element: <testLibrary>::@extension::E::@method::+
   staticType: void
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::f::@formalParameter::c
@@ -1932,7 +1932,7 @@ BinaryOperatorInvocation
   binaryOperator: add
   element: <testLibrary>::@extension::E::@method::+
   staticType: int
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
@@ -1972,15 +1972,31 @@ f(C c) {
   c[2];
 }
 ''');
-    var node = result.findNode.index('c[2]');
+    var node = result.findNode.indexExpression2('c[2]');
     assertResolvedNodeText(node, r'''
-IndexExpression
-  target2: SimpleIdentifier
+IndexExpression2
+  receiver: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::f::@formalParameter::c
     staticType: C
   leftBracket: [
-  index2: IntegerLiteral
+  index: IntegerLiteral
+    literal: 2
+    correspondingParameter: <testLibrary>::@class::C::@method::[]::@formalParameter::index
+    staticType: int
+  rightBracket: ]
+  resolution: MethodIndexReadResolution
+    element: <testLibrary>::@class::C::@method::[]
+    invokeType: void Function(int)
+    type: void
+  staticType: void
+V1: IndexExpression
+  target: SimpleIdentifier
+    token: c
+    element: <testLibrary>::@function::f::@formalParameter::c
+    staticType: C
+  leftBracket: [
+  index: IntegerLiteral
     literal: 2
     correspondingParameter: <testLibrary>::@class::C::@method::[]::@formalParameter::index
     staticType: int
@@ -1999,15 +2015,31 @@ g(int Function(int) f) {
   f[2];
 }
 ''');
-    var node = result.findNode.index('f[2]');
+    var node = result.findNode.indexExpression2('f[2]');
     assertResolvedNodeText(node, r'''
-IndexExpression
-  target2: SimpleIdentifier
+IndexExpression2
+  receiver: SimpleIdentifier
     token: f
     element: <testLibrary>::@function::g::@formalParameter::f
     staticType: int Function(int)
   leftBracket: [
-  index2: IntegerLiteral
+  index: IntegerLiteral
+    literal: 2
+    correspondingParameter: <testLibrary>::@extension::E::@method::[]::@formalParameter::index
+    staticType: int
+  rightBracket: ]
+  resolution: MethodIndexReadResolution
+    element: <testLibrary>::@extension::E::@method::[]
+    invokeType: void Function(int)
+    type: void
+  staticType: void
+V1: IndexExpression
+  target: SimpleIdentifier
+    token: f
+    element: <testLibrary>::@function::g::@formalParameter::f
+    staticType: int Function(int)
+  leftBracket: [
+  index: IntegerLiteral
     literal: 2
     correspondingParameter: <testLibrary>::@extension::E::@method::[]::@formalParameter::index
     staticType: int
@@ -2027,15 +2059,31 @@ f(C c) {
   c[2];
 }
 ''');
-    var node = result.findNode.index('c[2]');
+    var node = result.findNode.indexExpression2('c[2]');
     assertResolvedNodeText(node, r'''
-IndexExpression
-  target2: SimpleIdentifier
+IndexExpression2
+  receiver: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::f::@formalParameter::c
     staticType: C
   leftBracket: [
-  index2: IntegerLiteral
+  index: IntegerLiteral
+    literal: 2
+    correspondingParameter: <testLibrary>::@extension::E::@method::[]::@formalParameter::index
+    staticType: int
+  rightBracket: ]
+  resolution: MethodIndexReadResolution
+    element: <testLibrary>::@extension::E::@method::[]
+    invokeType: void Function(int)
+    type: void
+  staticType: void
+V1: IndexExpression
+  target: SimpleIdentifier
+    token: c
+    element: <testLibrary>::@function::f::@formalParameter::c
+    staticType: C
+  leftBracket: [
+  index: IntegerLiteral
     literal: 2
     correspondingParameter: <testLibrary>::@extension::E::@method::[]::@formalParameter::index
     staticType: int
@@ -2055,15 +2103,31 @@ f(int? a) {
   a[0];
 }
 ''');
-    var node = result.findNode.index('a[0]');
+    var node = result.findNode.indexExpression2('a[0]');
     assertResolvedNodeText(node, r'''
-IndexExpression
-  target2: SimpleIdentifier
+IndexExpression2
+  receiver: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: int?
   leftBracket: [
-  index2: IntegerLiteral
+  index: IntegerLiteral
+    literal: 0
+    correspondingParameter: <testLibrary>::@extension::E::@method::[]::@formalParameter::index
+    staticType: int
+  rightBracket: ]
+  resolution: MethodIndexReadResolution
+    element: <testLibrary>::@extension::E::@method::[]
+    invokeType: int Function(int)
+    type: int
+  staticType: int
+V1: IndexExpression
+  target: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: int?
+  leftBracket: [
+  index: IntegerLiteral
     literal: 0
     correspondingParameter: <testLibrary>::@extension::E::@method::[]::@formalParameter::index
     staticType: int
@@ -2083,16 +2147,33 @@ f(int? a) {
   a?[0];
 }
 ''');
-    var node = result.findNode.index('a?[0]');
+    var node = result.findNode.indexExpression2('a?[0]');
     assertResolvedNodeText(node, r'''
-IndexExpression
-  target2: SimpleIdentifier
+IndexExpression2
+  receiver: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: int?
   question: ?
   leftBracket: [
-  index2: IntegerLiteral
+  index: IntegerLiteral
+    literal: 0
+    correspondingParameter: <testLibrary>::@extension::E::@method::[]::@formalParameter::index
+    staticType: int
+  rightBracket: ]
+  resolution: MethodIndexReadResolution
+    element: <testLibrary>::@extension::E::@method::[]
+    invokeType: int Function(int)
+    type: int?
+  staticType: int?
+V1: IndexExpression
+  target: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: int?
+  question: ?
+  leftBracket: [
+  index: IntegerLiteral
     literal: 0
     correspondingParameter: <testLibrary>::@extension::E::@method::[]::@formalParameter::index
     staticType: int
@@ -2114,16 +2195,39 @@ f(C c) {
   c[2] = 1;
 }
 ''');
-    var node = result.findNode.assignment('[2] =');
+    var node = result.findNode.directAssignment('[2] =');
     assertResolvedNodeText(node, r'''
-AssignmentExpression
-  leftHandSide2: IndexExpression
-    target2: SimpleIdentifier
+DirectAssignment
+  target: IndexAssignmentTarget
+    receiver: SimpleIdentifier
       token: c
       element: <testLibrary>::@function::f::@formalParameter::c
       staticType: C
     leftBracket: [
-    index2: IntegerLiteral
+    index: IntegerLiteral
+      literal: 2
+      correspondingParameter: <testLibrary>::@class::C::@method::[]=::@formalParameter::index
+      staticType: int
+    rightBracket: ]
+    read: <null>
+    write: MethodIndexWriteResolution
+      element: <testLibrary>::@class::C::@method::[]=
+      invokeType: void Function(int, int)
+      acceptedType: int
+  operator: =
+  value: IntegerLiteral
+    literal: 1
+    correspondingParameter: <testLibrary>::@class::C::@method::[]=::@formalParameter::value
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: IndexExpression
+    target: SimpleIdentifier
+      token: c
+      element: <testLibrary>::@function::f::@formalParameter::c
+      staticType: C
+    leftBracket: [
+    index: IntegerLiteral
       literal: 2
       correspondingParameter: <testLibrary>::@class::C::@method::[]=::@formalParameter::index
       staticType: int
@@ -2131,7 +2235,7 @@ AssignmentExpression
     element: <null>
     staticType: null
   operator: =
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 1
     correspondingParameter: <testLibrary>::@class::C::@method::[]=::@formalParameter::value
     staticType: int
@@ -2153,16 +2257,39 @@ g(int Function(int) f) {
   f[2] = 3;
 }
 ''');
-    var node = result.findNode.assignment('f[2]');
+    var node = result.findNode.directAssignment('f[2]');
     assertResolvedNodeText(node, r'''
-AssignmentExpression
-  leftHandSide2: IndexExpression
-    target2: SimpleIdentifier
+DirectAssignment
+  target: IndexAssignmentTarget
+    receiver: SimpleIdentifier
       token: f
       element: <testLibrary>::@function::g::@formalParameter::f
       staticType: int Function(int)
     leftBracket: [
-    index2: IntegerLiteral
+    index: IntegerLiteral
+      literal: 2
+      correspondingParameter: <testLibrary>::@extension::E::@method::[]=::@formalParameter::index
+      staticType: int
+    rightBracket: ]
+    read: <null>
+    write: MethodIndexWriteResolution
+      element: <testLibrary>::@extension::E::@method::[]=
+      invokeType: void Function(int, int)
+      acceptedType: int
+  operator: =
+  value: IntegerLiteral
+    literal: 3
+    correspondingParameter: <testLibrary>::@extension::E::@method::[]=::@formalParameter::value
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: IndexExpression
+    target: SimpleIdentifier
+      token: f
+      element: <testLibrary>::@function::g::@formalParameter::f
+      staticType: int Function(int)
+    leftBracket: [
+    index: IntegerLiteral
       literal: 2
       correspondingParameter: <testLibrary>::@extension::E::@method::[]=::@formalParameter::index
       staticType: int
@@ -2170,7 +2297,7 @@ AssignmentExpression
     element: <null>
     staticType: null
   operator: =
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 3
     correspondingParameter: <testLibrary>::@extension::E::@method::[]=::@formalParameter::value
     staticType: int
@@ -2193,16 +2320,39 @@ f(C c) {
   c[2] = 3;
 }
 ''');
-    var node = result.findNode.assignment('c[2]');
+    var node = result.findNode.directAssignment('c[2]');
     assertResolvedNodeText(node, r'''
-AssignmentExpression
-  leftHandSide2: IndexExpression
-    target2: SimpleIdentifier
+DirectAssignment
+  target: IndexAssignmentTarget
+    receiver: SimpleIdentifier
       token: c
       element: <testLibrary>::@function::f::@formalParameter::c
       staticType: C
     leftBracket: [
-    index2: IntegerLiteral
+    index: IntegerLiteral
+      literal: 2
+      correspondingParameter: <testLibrary>::@extension::E::@method::[]=::@formalParameter::index
+      staticType: int
+    rightBracket: ]
+    read: <null>
+    write: MethodIndexWriteResolution
+      element: <testLibrary>::@extension::E::@method::[]=
+      invokeType: void Function(int, int)
+      acceptedType: int
+  operator: =
+  value: IntegerLiteral
+    literal: 3
+    correspondingParameter: <testLibrary>::@extension::E::@method::[]=::@formalParameter::value
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: IndexExpression
+    target: SimpleIdentifier
+      token: c
+      element: <testLibrary>::@function::f::@formalParameter::c
+      staticType: C
+    leftBracket: [
+    index: IntegerLiteral
       literal: 2
       correspondingParameter: <testLibrary>::@extension::E::@method::[]=::@formalParameter::index
       staticType: int
@@ -2210,7 +2360,7 @@ AssignmentExpression
     element: <null>
     staticType: null
   operator: =
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 3
     correspondingParameter: <testLibrary>::@extension::E::@method::[]=::@formalParameter::value
     staticType: int
@@ -2238,15 +2388,19 @@ f(C c) {
     var node = result.findNode.postfixIncrement('++');
     assertResolvedNodeText(node, r'''
 PostfixIncrement
-  operand: SimpleIdentifier
-    token: c
-    element: <testLibrary>::@function::f::@formalParameter::c
-    staticType: null
+  target: UnqualifiedNameAssignmentTarget
+    name: c
+    read: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      type: C
+    write: VariableWriteResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      acceptedType: C
   operator: ++
   element: <testLibrary>::@class::C::@method::+
   operatorResultType: C
   staticType: C
-PostfixExpression
+V1: PostfixExpression
   operand: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::f::@formalParameter::c
@@ -2273,15 +2427,19 @@ g(int Function(int) f) {
     var node = result.findNode.postfixIncrement('++');
     assertResolvedNodeText(node, r'''
 PostfixIncrement
-  operand: SimpleIdentifier
-    token: f
-    element: <testLibrary>::@function::g::@formalParameter::f
-    staticType: null
+  target: UnqualifiedNameAssignmentTarget
+    name: f
+    read: VariableReadResolution
+      element: <testLibrary>::@function::g::@formalParameter::f
+      type: int Function(int)
+    write: VariableWriteResolution
+      element: <testLibrary>::@function::g::@formalParameter::f
+      acceptedType: int Function(int)
   operator: ++
   element: <testLibrary>::@extension::E::@method::+
   operatorResultType: int Function(int)
   staticType: int Function(int)
-PostfixExpression
+V1: PostfixExpression
   operand: SimpleIdentifier
     token: f
     element: <testLibrary>::@function::g::@formalParameter::f
@@ -2309,15 +2467,19 @@ f(C c) {
     var node = result.findNode.postfixIncrement('++');
     assertResolvedNodeText(node, r'''
 PostfixIncrement
-  operand: SimpleIdentifier
-    token: c
-    element: <testLibrary>::@function::f::@formalParameter::c
-    staticType: null
+  target: UnqualifiedNameAssignmentTarget
+    name: c
+    read: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      type: C
+    write: VariableWriteResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      acceptedType: C
   operator: ++
   element: <testLibrary>::@extension::E::@method::+
   operatorResultType: C
   staticType: C
-PostfixExpression
+V1: PostfixExpression
   operand: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::f::@formalParameter::c
@@ -2347,15 +2509,19 @@ f(A? a) {
     var node = result.findNode.postfixIncrement('a++');
     assertResolvedNodeText(node, r'''
 PostfixIncrement
-  operand: SimpleIdentifier
-    token: a
-    element: <testLibrary>::@function::f::@formalParameter::a
-    staticType: null
+  target: UnqualifiedNameAssignmentTarget
+    name: a
+    read: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: A?
+    write: VariableWriteResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      acceptedType: A?
   operator: ++
   element: <testLibrary>::@extension::E::@method::+
   operatorResultType: A?
   staticType: A?
-PostfixExpression
+V1: PostfixExpression
   operand: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
@@ -2386,14 +2552,18 @@ f(C c) {
     assertResolvedNodeText(node, r'''
 PrefixIncrement
   operator: ++
-  operand: SimpleIdentifier
-    token: c
-    element: <testLibrary>::@function::f::@formalParameter::c
-    staticType: null
+  target: UnqualifiedNameAssignmentTarget
+    name: c
+    read: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      type: C
+    write: VariableWriteResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      acceptedType: C
   element: <testLibrary>::@class::C::@method::+
   operatorResultType: C
   staticType: C
-PrefixExpression
+V1: PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: c
@@ -2421,14 +2591,18 @@ g(int Function(int) f) {
     assertResolvedNodeText(node, r'''
 PrefixIncrement
   operator: ++
-  operand: SimpleIdentifier
-    token: f
-    element: <testLibrary>::@function::g::@formalParameter::f
-    staticType: null
+  target: UnqualifiedNameAssignmentTarget
+    name: f
+    read: VariableReadResolution
+      element: <testLibrary>::@function::g::@formalParameter::f
+      type: int Function(int)
+    write: VariableWriteResolution
+      element: <testLibrary>::@function::g::@formalParameter::f
+      acceptedType: int Function(int)
   element: <testLibrary>::@extension::E::@method::+
   operatorResultType: int Function(int)
   staticType: int Function(int)
-PrefixExpression
+V1: PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: f
@@ -2457,14 +2631,18 @@ f(C c) {
     assertResolvedNodeText(node, r'''
 PrefixIncrement
   operator: ++
-  operand: SimpleIdentifier
-    token: c
-    element: <testLibrary>::@function::f::@formalParameter::c
-    staticType: null
+  target: UnqualifiedNameAssignmentTarget
+    name: c
+    read: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      type: C
+    write: VariableWriteResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      acceptedType: C
   element: <testLibrary>::@extension::E::@method::+
   operatorResultType: C
   staticType: C
-PrefixExpression
+V1: PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: c
@@ -2495,14 +2673,18 @@ f(A? a) {
     assertResolvedNodeText(node, r'''
 PrefixIncrement
   operator: ++
-  operand: SimpleIdentifier
-    token: a
-    element: <testLibrary>::@function::f::@formalParameter::a
-    staticType: null
+  target: UnqualifiedNameAssignmentTarget
+    name: a
+    read: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: A?
+    write: VariableWriteResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      acceptedType: A?
   element: <testLibrary>::@extension::E::@method::+
   operatorResultType: A?
   staticType: A?
-PrefixExpression
+V1: PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: a
@@ -2540,7 +2722,7 @@ UnaryOperatorInvocation
   unaryOperator: negate
   element: <testLibrary>::@class::C::@method::unary-
   staticType: C
-PrefixExpression
+V1: PrefixExpression
   operator: -
   operand: SimpleIdentifier
     token: c
@@ -2571,7 +2753,7 @@ UnaryOperatorInvocation
   unaryOperator: negate
   element: <testLibrary>::@extension::E::@method::unary-
   staticType: void
-PrefixExpression
+V1: PrefixExpression
   operator: -
   operand: SimpleIdentifier
     token: f
@@ -2603,7 +2785,7 @@ UnaryOperatorInvocation
   unaryOperator: negate
   element: <testLibrary>::@extension::E::@method::unary-
   staticType: C
-PrefixExpression
+V1: PrefixExpression
   operator: -
   operand: SimpleIdentifier
     token: c
@@ -2637,7 +2819,7 @@ UnaryOperatorInvocation
   unaryOperator: negate
   element: <testLibrary>::@extension::E::@method::unary-
   staticType: A?
-PrefixExpression
+V1: PrefixExpression
   operator: -
   operand: SimpleIdentifier
     token: a
@@ -4338,10 +4520,21 @@ extension E on C {
   int m() => this.a;
 }
 ''');
-    var node = result.findNode.propertyAccess('this.a');
+    var node = result.findNode.propertyExtraction('this.a');
     assertResolvedNodeText(node, r'''
-PropertyAccess
-  target2: ThisExpression
+PropertyExtraction
+  receiver: ThisExpression
+    thisKeyword: this
+    staticType: C
+  operator: .
+  propertyName: a
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::C::@getter::a
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: PropertyAccess
+  target: ThisExpression
     thisKeyword: this
     staticType: C
   operator: .
@@ -4363,10 +4556,21 @@ extension E on C {
 }
 ''');
 
-    var node = result.findNode.singlePropertyAccess;
+    var node = result.findNode.singlePropertyExtraction;
     assertResolvedNodeText(node, r'''
-PropertyAccess
-  target2: ThisExpression
+PropertyExtraction
+  receiver: ThisExpression
+    thisKeyword: this
+    staticType: C
+  operator: .
+  propertyName: a
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@extension::E::@getter::a
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: PropertyAccess
+  target: ThisExpression
     thisKeyword: this
     staticType: C
   operator: .
@@ -4483,7 +4687,7 @@ BinaryOperatorInvocation
   binaryOperator: add
   element: <testLibrary>::@class::C::@method::+
   staticType: void
-BinaryExpression
+V1: BinaryExpression
   leftOperand: ThisExpression
     thisKeyword: this
     staticType: C
@@ -4520,7 +4724,7 @@ BinaryOperatorInvocation
   binaryOperator: add
   element: <testLibrary>::@extension::E::@method::+
   staticType: void
-BinaryExpression
+V1: BinaryExpression
   leftOperand: ThisExpression
     thisKeyword: this
     staticType: C
@@ -4545,14 +4749,29 @@ extension E on C {
   void b() { this[2]; }
 }
 ''');
-    var node = result.findNode.index('this[2]');
+    var node = result.findNode.indexExpression2('this[2]');
     assertResolvedNodeText(node, r'''
-IndexExpression
-  target2: ThisExpression
+IndexExpression2
+  receiver: ThisExpression
     thisKeyword: this
     staticType: C
   leftBracket: [
-  index2: IntegerLiteral
+  index: IntegerLiteral
+    literal: 2
+    correspondingParameter: <testLibrary>::@class::C::@method::[]::@formalParameter::index
+    staticType: int
+  rightBracket: ]
+  resolution: MethodIndexReadResolution
+    element: <testLibrary>::@class::C::@method::[]
+    invokeType: void Function(int)
+    type: void
+  staticType: void
+V1: IndexExpression
+  target: ThisExpression
+    thisKeyword: this
+    staticType: C
+  leftBracket: [
+  index: IntegerLiteral
     literal: 2
     correspondingParameter: <testLibrary>::@class::C::@method::[]::@formalParameter::index
     staticType: int
@@ -4570,14 +4789,29 @@ extension E on C {
   void b() { this[2]; }
 }
 ''');
-    var node = result.findNode.index('this[2]');
+    var node = result.findNode.indexExpression2('this[2]');
     assertResolvedNodeText(node, r'''
-IndexExpression
-  target2: ThisExpression
+IndexExpression2
+  receiver: ThisExpression
     thisKeyword: this
     staticType: C
   leftBracket: [
-  index2: IntegerLiteral
+  index: IntegerLiteral
+    literal: 2
+    correspondingParameter: <testLibrary>::@extension::E::@method::[]::@formalParameter::index
+    staticType: int
+  rightBracket: ]
+  resolution: MethodIndexReadResolution
+    element: <testLibrary>::@extension::E::@method::[]
+    invokeType: void Function(int)
+    type: void
+  staticType: void
+V1: IndexExpression
+  target: ThisExpression
+    thisKeyword: this
+    staticType: C
+  leftBracket: [
+  index: IntegerLiteral
     literal: 2
     correspondingParameter: <testLibrary>::@extension::E::@method::[]::@formalParameter::index
     staticType: int
@@ -4597,15 +4831,37 @@ extension E on C {
   void b() { this[2] = 1; }
 }
 ''');
-    var node = result.findNode.assignment('this[2]');
+    var node = result.findNode.directAssignment('this[2]');
     assertResolvedNodeText(node, r'''
-AssignmentExpression
-  leftHandSide2: IndexExpression
-    target2: ThisExpression
+DirectAssignment
+  target: IndexAssignmentTarget
+    receiver: ThisExpression
       thisKeyword: this
       staticType: C
     leftBracket: [
-    index2: IntegerLiteral
+    index: IntegerLiteral
+      literal: 2
+      correspondingParameter: <testLibrary>::@class::C::@method::[]=::@formalParameter::index
+      staticType: int
+    rightBracket: ]
+    read: <null>
+    write: MethodIndexWriteResolution
+      element: <testLibrary>::@class::C::@method::[]=
+      invokeType: void Function(int, int)
+      acceptedType: int
+  operator: =
+  value: IntegerLiteral
+    literal: 1
+    correspondingParameter: <testLibrary>::@class::C::@method::[]=::@formalParameter::value
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: IndexExpression
+    target: ThisExpression
+      thisKeyword: this
+      staticType: C
+    leftBracket: [
+    index: IntegerLiteral
       literal: 2
       correspondingParameter: <testLibrary>::@class::C::@method::[]=::@formalParameter::index
       staticType: int
@@ -4613,7 +4869,7 @@ AssignmentExpression
     element: <null>
     staticType: null
   operator: =
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 1
     correspondingParameter: <testLibrary>::@class::C::@method::[]=::@formalParameter::value
     staticType: int
@@ -4634,15 +4890,37 @@ extension E on C {
   void b() { this[2] = 3; }
 }
 ''');
-    var node = result.findNode.assignment('this[2]');
+    var node = result.findNode.directAssignment('this[2]');
     assertResolvedNodeText(node, r'''
-AssignmentExpression
-  leftHandSide2: IndexExpression
-    target2: ThisExpression
+DirectAssignment
+  target: IndexAssignmentTarget
+    receiver: ThisExpression
       thisKeyword: this
       staticType: C
     leftBracket: [
-    index2: IntegerLiteral
+    index: IntegerLiteral
+      literal: 2
+      correspondingParameter: <testLibrary>::@extension::E::@method::[]=::@formalParameter::index
+      staticType: int
+    rightBracket: ]
+    read: <null>
+    write: MethodIndexWriteResolution
+      element: <testLibrary>::@extension::E::@method::[]=
+      invokeType: void Function(int, int)
+      acceptedType: int
+  operator: =
+  value: IntegerLiteral
+    literal: 3
+    correspondingParameter: <testLibrary>::@extension::E::@method::[]=::@formalParameter::value
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: IndexExpression
+    target: ThisExpression
+      thisKeyword: this
+      staticType: C
+    leftBracket: [
+    index: IntegerLiteral
       literal: 2
       correspondingParameter: <testLibrary>::@extension::E::@method::[]=::@formalParameter::index
       staticType: int
@@ -4650,7 +4928,7 @@ AssignmentExpression
     element: <null>
     staticType: null
   operator: =
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 3
     correspondingParameter: <testLibrary>::@extension::E::@method::[]=::@formalParameter::value
     staticType: int
@@ -4683,7 +4961,7 @@ UnaryOperatorInvocation
   unaryOperator: negate
   element: <testLibrary>::@class::C::@method::unary-
   staticType: void
-PrefixExpression
+V1: PrefixExpression
   operator: -
   operand: ThisExpression
     thisKeyword: this
@@ -4711,7 +4989,7 @@ UnaryOperatorInvocation
   unaryOperator: negate
   element: <testLibrary>::@extension::E::@method::unary-
   staticType: void
-PrefixExpression
+V1: PrefixExpression
   operator: -
   operand: ThisExpression
     thisKeyword: this
@@ -4795,8 +5073,8 @@ extension E on C {
     var node = result.findNode.assignment('a = 3');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide2: PropertyAccess
-    target2: ThisExpression
+  leftHandSide: PropertyAccess
+    target: ThisExpression
       thisKeyword: this
       staticType: C
     operator: .
@@ -4806,7 +5084,7 @@ AssignmentExpression
       staticType: null
     staticType: null
   operator: =
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 3
     correspondingParameter: <testLibrary>::@class::C::@setter::a::@formalParameter::_
     staticType: int
@@ -4833,8 +5111,8 @@ extension E on C {
     var node = result.findNode.assignment('a = 3');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide2: PropertyAccess
-    target2: ThisExpression
+  leftHandSide: PropertyAccess
+    target: ThisExpression
       thisKeyword: this
       staticType: C
     operator: .
@@ -4844,7 +5122,7 @@ AssignmentExpression
       staticType: null
     staticType: null
   operator: =
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 3
     correspondingParameter: <testLibrary>::@extension::E::@setter::a::@formalParameter::_
     staticType: int
@@ -4884,10 +5162,20 @@ extension E on C {
   get c => this.a;
 }
 ''');
-    var node = result.findNode.propertyAccess('this.a;');
+    var node = result.findNode.propertyExtraction('this.a;');
     assertResolvedNodeText(node, r'''
-PropertyAccess
-  target2: ThisExpression
+PropertyExtraction
+  receiver: ThisExpression
+    thisKeyword: this
+    staticType: C
+  operator: .
+  propertyName: a
+  resolution: ExecutableTearOffResolution
+    element: <testLibrary>::@extension::E::@method::a
+    type: void Function(int)
+  staticType: void Function(int)
+V1: PropertyAccess
+  target: ThisExpression
     thisKeyword: this
     staticType: C
   operator: .

@@ -240,6 +240,12 @@ final class Arm64Constraints extends Constraints {
       );
 
   @override
+  InstructionConstraints? visitLoadExternalField(LoadExternalField instr) =>
+      InstructionConstraints(anyCpuRegister, [
+        if (instr.hasObject) anyCpuRegister,
+      ]);
+
+  @override
   InstructionConstraints? visitLoadArrayElement(LoadArrayElement instr) =>
       InstructionConstraints(anyCpuRegister, [
         anyCpuRegister,
@@ -263,6 +269,14 @@ final class Arm64Constraints extends Constraints {
       );
     }
   }
+
+  @override
+  InstructionConstraints? visitLoadExternalArrayElement(
+    LoadExternalArrayElement instr,
+  ) => const InstructionConstraints(anyCpuRegister, [
+    anyCpuRegister,
+    anyCpuRegister,
+  ]);
 
   @override
   InstructionConstraints? visitThrow(Throw instr) {

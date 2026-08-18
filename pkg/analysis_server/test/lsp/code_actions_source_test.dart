@@ -281,6 +281,39 @@ class _MyClass {
     );
   }
 
+  /// We should only add dependencies to pubspec to fix diagnostics in the
+  /// current file and not other files.
+  Future<void> test_pubspec() async {
+    newPubspecYamlFile(projectFolderPath, '''
+name: x
+''');
+
+    // Main file content. We should get a new dependency for this.
+    const content = '''
+import 'package:path/path.dart';
+''';
+
+    // Another file that we're not fixing. We should not get a dependency for
+    // this.
+    newFile(join(projectFolderPath, 'lib', 'other.dart'), '''
+import 'package:args/args.dart';
+''');
+
+    var action = await expectCodeActionLiteral(
+      filePath: mainFilePath,
+      content,
+      command: Commands.fixAll,
+    );
+
+    // Expect only 'path', not 'args'.
+    await verifyCommandEdits(action.command!, '''
+>>>>>>>>>> pubspec.yaml
+name: x
+dependencies:
+  path: any
+''');
+  }
+
   Future<void> test_unavailable_outsideAnalysisRoot() async {
     var otherFile = convertPath('/other/file.dart');
     var content = '';

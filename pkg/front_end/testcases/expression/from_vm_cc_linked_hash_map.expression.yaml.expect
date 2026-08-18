@@ -1,19 +1,19 @@
 Errors: {
 }
 method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr(dynamic a, dynamic b) → dynamic
-  return ((dynamic a, dynamic b) → dart.core::bool {
-    if(!(a{dynamic}._usedData =={dart.core::Object::==}{(dart.core::Object) → dart.core::bool} b{dynamic}._usedData) || !(a{dynamic}._deletedKeys =={dart.core::Object::==}{(dart.core::Object) → dart.core::bool} b{dynamic}._deletedKeys) || !(a{dynamic}._hashMask =={dart.core::Object::==}{(dart.core::Object) → dart.core::bool} b{dynamic}._hashMask) || !(a{dynamic}._index{dynamic}.length =={dart.core::Object::==}{(dart.core::Object) → dart.core::bool} b{dynamic}._index{dynamic}.length) || !(a{dynamic}._data{dynamic}.length =={dart.core::Object::==}{(dart.core::Object) → dart.core::bool} b{dynamic}._data{dynamic}.length)) {
+  return ((dynamic a##1, dynamic b##1) → dart.core::bool {
+    if(!(a##1{dynamic}._usedData =={dart.core::Object::==}{(dart.core::Object) → dart.core::bool} b##1{dynamic}._usedData) || !(a##1{dynamic}._deletedKeys =={dart.core::Object::==}{(dart.core::Object) → dart.core::bool} b##1{dynamic}._deletedKeys) || !(a##1{dynamic}._hashMask =={dart.core::Object::==}{(dart.core::Object) → dart.core::bool} b##1{dynamic}._hashMask) || !(a##1{dynamic}._index{dynamic}.length =={dart.core::Object::==}{(dart.core::Object) → dart.core::bool} b##1{dynamic}._index{dynamic}.length) || !(a##1{dynamic}._data{dynamic}.length =={dart.core::Object::==}{(dart.core::Object) → dart.core::bool} b##1{dynamic}._data{dynamic}.length)) {
       return false;
     }
-    for (dart.core::int i = 0; i.{dart.core::num::<}(a{dynamic}._index{dynamic}.length as{TypeError,ForDynamic} dart.core::num){(dart.core::num) → dart.core::bool}; i = i.{dart.core::num::+}(1){(dart.core::num) → dart.core::int}) {
-      if(!(a{dynamic}._index{dynamic}.[](i) =={dart.core::Object::==}{(dart.core::Object) → dart.core::bool} b{dynamic}._index{dynamic}.[](i))) {
+    for (dart.core::int i = 0; i.{dart.core::num::<}(a##1{dynamic}._index{dynamic}.length as{TypeError,ForDynamic} dart.core::num){(dart.core::num) → dart.core::bool}; i = i.{dart.core::num::+}(1){(dart.core::num) → dart.core::int}) {
+      if(!(a##1{dynamic}._index{dynamic}.[](i) =={dart.core::Object::==}{(dart.core::Object) → dart.core::bool} b##1{dynamic}._index{dynamic}.[](i))) {
         return false;
       }
     }
-    for (dart.core::int i = 0; i.{dart.core::num::<}(a{dynamic}._data{dynamic}.length as{TypeError,ForDynamic} dart.core::num){(dart.core::num) → dart.core::bool}; i = i.{dart.core::num::+}(1){(dart.core::num) → dart.core::int}) {
-      dynamic ad = a{dynamic}._data{dynamic}.[](i);
-      dynamic bd = b{dynamic}._data{dynamic}.[](i);
-      if(!dart.core::identical(ad, bd) && !(ad =={dart.core::Object::==}{(dart.core::Object) → dart.core::bool} a && bd =={dart.core::Object::==}{(dart.core::Object) → dart.core::bool} b)) {
+    for (dart.core::int i##1 = 0; i##1.{dart.core::num::<}(a##1{dynamic}._data{dynamic}.length as{TypeError,ForDynamic} dart.core::num){(dart.core::num) → dart.core::bool}; i##1 = i##1.{dart.core::num::+}(1){(dart.core::num) → dart.core::int}) {
+      dynamic ad = a##1{dynamic}._data{dynamic}.[](i##1);
+      dynamic bd = b##1{dynamic}._data{dynamic}.[](i##1);
+      if(!dart.core::identical(ad, bd) && !(ad =={dart.core::Object::==}{(dart.core::Object) → dart.core::bool} a##1 && bd =={dart.core::Object::==}{(dart.core::Object) → dart.core::bool} b##1)) {
         return false;
       }
     }

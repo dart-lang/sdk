@@ -200,7 +200,7 @@ class DuplicateDefinitionVerifier {
       addWithoutChecking(libraryFragment);
     }
 
-    for (var member in node.declarations) {
+    for (var member in node.declarations2) {
       switch (member) {
         case ClassDeclarationImpl():
           var declaredFragment = member.declaredFragment!;
@@ -257,6 +257,15 @@ class DuplicateDefinitionVerifier {
                 fragment: declaredFragment,
               );
             }
+          }
+        case TopLevelGetterDeclarationImpl():
+          var declaredFragment = member.declaredFragment!;
+          if (!declaredFragment.isAugmentation) {
+            _checkDuplicateFragmentIdentifier(
+              definedGetters,
+              member.name,
+              fragment: declaredFragment,
+            );
           }
         case MixinDeclarationImpl():
           var declaredFragment = member.declaredFragment!;

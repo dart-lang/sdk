@@ -100,6 +100,9 @@ class AnnotationVerifier {
       if (type is FunctionType) {
         checkType(type.returnType);
       }
+    } else if (parent is TopLevelGetterDeclaration) {
+      var type = parent.declaredFragment?.element.type;
+      checkType(type?.returnType);
     } else if (parent case FieldDeclaration(:var fields)) {
       for (var field in fields.variables) {
         checkType(field.declaredFieldElement.type, errorNode: field);
@@ -765,7 +768,7 @@ class AnnotationVerifier {
           for (var variable in variables.variables)
             ?variable.declaredFragment?.element,
         ];
-      case Declaration(:var declaredFragment):
+      case FragmentDeclaringNode(:var declaredFragment):
         return [?declaredFragment?.element];
       default:
         return const [];

@@ -1,4 +1,9 @@
-# 3.13.0-wip
+# 3.14.0-wip
+
+- new lint: `future_sync_value`
+- new _(experimental)_ lint: `unnecessary_this_alias`
+
+# 3.13.0
 
 - new lint: `async_return_with_no_await`
 - new lint: `empty_container_bodies`
@@ -11,6 +16,7 @@
 - new lint: `use_declaring_parameters`
 - deprecated lint: `avoid_private_typedef_functions`
 - deprecated lint: `one_member_abstracts`
+- deprecated lint: `unnecessary_await_in_return`
 - stable: `unnecessary_null_checks`
 - update `type_literal_in_constant_pattern` to ignore cases where the matched
   pattern is of type `Type`.

@@ -207,9 +207,8 @@ class A {
 
 const v = .new() == A();
 //        ^^^^^^
+// [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
 // [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
-//         ^^^
-// [diag.dotShorthandUndefinedInvocation] The static method or constructor 'new' isn't defined for the context type '_'.
 ''');
   }
 
@@ -257,9 +256,8 @@ const A a = .method();
     await resolveTestCodeWithDiagnostics('''
 const a = .new();
 //        ^^^^^^
+// [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
 // [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
-//         ^^^
-// [diag.dotShorthandUndefinedInvocation] The static method or constructor 'new' isn't defined for the context type '_'.
 ''');
   }
 

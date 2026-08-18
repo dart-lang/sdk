@@ -57,7 +57,7 @@ ConstructorInvocation
         staticType: InvalidType
     rightParenthesis: )
   staticType: C<dynamic>
-InstanceCreationExpression
+V1: InstanceCreationExpression
   keyword: new
   constructorName: ConstructorName
     type: NamedType

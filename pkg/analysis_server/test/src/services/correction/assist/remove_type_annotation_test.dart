@@ -183,6 +183,24 @@ Set f() {
 ''');
   }
 
+  Future<void>
+  test_generic_instanceCreation_cascade_dotShorthandTarget() async {
+    await resolveTestCode('''
+C<int> f() {
+  final ^C<int> c = .new()..toString();
+  return c;
+}
+class C<T> {}
+''');
+    await assertHasAssist('''
+C<int> f() {
+  final c = C<int>.new()..toString();
+  return c;
+}
+class C<T> {}
+''');
+  }
+
   Future<void> test_generic_instanceCreation_withoutArguments() async {
     await resolveTestCode('''
 C<int> ^c = C();
@@ -224,6 +242,16 @@ List f() {
     await resolveTestCode('''
 Set f() {
   ^Set s = {};
+  return s;
+}
+''');
+    await assertNoAssist();
+  }
+
+  Future<void> test_generic_setLiteral_ambiguous_cascade() async {
+    await resolveTestCode('''
+Set f() {
+  ^Set s = {}..addAll([]);
   return s;
 }
 ''');

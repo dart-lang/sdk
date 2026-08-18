@@ -41,14 +41,44 @@ void Function(int) foo(C c) {
     var node = result.findNode.implicitCallReference('c;');
     assertResolvedNodeText(node, r'''
 ImplicitCallReference
-  expression2: AssignmentExpression
-    leftHandSide2: IndexExpression
-      target2: SimpleIdentifier
+  expression2: DirectAssignment
+    target: IndexAssignmentTarget
+      receiver: SimpleIdentifier
         token: map
         element: map@83
         staticType: Map<int, C>
       leftBracket: [
-      index2: IntegerLiteral
+      index: IntegerLiteral
+        literal: 1
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: dart:core::@class::Map::@method::[]=::@formalParameter::key
+          substitution: {K: int, V: C}
+        staticType: int
+      rightBracket: ]
+      read: <null>
+      write: MethodIndexWriteResolution
+        element: SubstitutedMethodElementImpl
+          baseElement: dart:core::@class::Map::@method::[]=
+          substitution: {K: int, V: C}
+        invokeType: void Function(int, C)
+        acceptedType: C
+    operator: =
+    value: SimpleIdentifier
+      token: c
+      correspondingParameter: SubstitutedFormalParameterElementImpl
+        baseElement: dart:core::@class::Map::@method::[]=::@formalParameter::value
+        substitution: {K: int, V: C}
+      element: <testLibrary>::@function::foo::@formalParameter::c
+      staticType: C
+    staticType: C
+  expression(v1): AssignmentExpression
+    leftHandSide: IndexExpression
+      target: SimpleIdentifier
+        token: map
+        element: map@83
+        staticType: Map<int, C>
+      leftBracket: [
+      index: IntegerLiteral
         literal: 1
         correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: dart:core::@class::Map::@method::[]=::@formalParameter::key
@@ -58,7 +88,7 @@ ImplicitCallReference
       element: <null>
       staticType: null
     operator: =
-    rightHandSide2: SimpleIdentifier
+    rightHandSide: SimpleIdentifier
       token: c
       correspondingParameter: SubstitutedFormalParameterElementImpl
         baseElement: dart:core::@class::Map::@method::[]=::@formalParameter::value
@@ -205,7 +235,7 @@ IfNull
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A
   staticType: A
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::f::@formalParameter::c
@@ -386,7 +416,20 @@ ImplicitCallReference
         staticType: C
       rightParenthesis: )
       staticType: C
-    cascadeSections2
+    sections
+      CascadeSection
+        body: MethodInvocation
+          operator: ..
+          methodName: SimpleIdentifier
+            token: m
+            element: <testLibrary>::@class::C::@method::m
+            staticType: void Function()
+          argumentList: ArgumentList
+            leftParenthesis: (
+            rightParenthesis: )
+          staticInvokeType: void Function()
+          staticType: void
+    cascadeSections
       MethodInvocation
         operator: ..
         methodName: SimpleIdentifier
@@ -747,7 +790,7 @@ ConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticType: A<int, String>
-InstanceCreationExpression
+V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
@@ -914,7 +957,7 @@ ConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticType: A<int, String>
-InstanceCreationExpression
+V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: X
@@ -1006,7 +1049,7 @@ ConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticType: A<int>
-InstanceCreationExpression
+V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       importPrefix: ImportPrefixReference
@@ -1093,7 +1136,7 @@ ConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticType: A<int>
-InstanceCreationExpression
+V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       importPrefix: ImportPrefixReference
@@ -1188,7 +1231,7 @@ ConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticType: A<int>
-InstanceCreationExpression
+V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       importPrefix: ImportPrefixReference
@@ -1324,7 +1367,7 @@ ConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticType: A<int>
-InstanceCreationExpression
+V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       importPrefix: ImportPrefixReference
@@ -1394,7 +1437,7 @@ ConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticType: A<int>
-InstanceCreationExpression
+V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
@@ -1475,7 +1518,7 @@ ConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticType: A<dynamic, dynamic>
-InstanceCreationExpression
+V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
@@ -1568,7 +1611,7 @@ ConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticType: A<dynamic, dynamic>
-InstanceCreationExpression
+V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
@@ -1697,7 +1740,7 @@ ConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticType: A<int, String>
-InstanceCreationExpression
+V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       importPrefix: ImportPrefixReference
@@ -1878,7 +1921,7 @@ ConstructorInvocation
         staticType: int
     rightParenthesis: )
   staticType: A<int>
-InstanceCreationExpression
+V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: X
@@ -1954,7 +1997,7 @@ ConstructorTearOff
   correspondingParameter: <testLibrary>::@setter::f::@formalParameter::value
   element: <testLibrary>::@class::C::@constructor::new
   staticType: C Function()
-ConstructorReference
+V1: ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       name: C

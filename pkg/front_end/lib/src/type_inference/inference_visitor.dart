@@ -45,6 +45,7 @@ import 'collection_encoding.dart';
 import 'context_allocation_strategy.dart';
 import 'element_inference.dart';
 import 'inference_results.dart';
+import 'inference_strategy.dart';
 import 'inference_visitor_base.dart';
 import 'object_access_target.dart';
 import 'shared_type_analyzer.dart';
@@ -190,6 +191,19 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   ContextAllocationStrategy _contextAllocationStrategy;
 
+  CfeInferenceStrategy _cfeInferenceStrategy;
+
+  /// Stack of variable aliases.
+  ///
+  /// When lowering pattern for statements/elements, the pattern variables are
+  /// replaced by synthesized loop variables to ensure the right capturing
+  /// semantics. This means that reads/writes to the pattern variables should be
+  /// redirected to the loop variables, the loop variables are therefore marked
+  /// as aliases of their corresponding pattern variable.
+  ///
+  /// This is used by [readVariable] and [writeVariable].
+  LocalStack<Map<Variable, Variable>> _variableAliases = new LocalStack([]);
+
   new(
     super.inferrer,
     super.fileUri,
@@ -198,7 +212,42 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     this.typeAnalyzerOptions,
     super.expressionEvaluationHelper, {
     required ContextAllocationStrategy contextAllocationStrategy,
-  }) : _contextAllocationStrategy = contextAllocationStrategy;
+    required CfeInferenceStrategy cfeInferenceStrategy,
+  }) : _contextAllocationStrategy = contextAllocationStrategy,
+       _cfeInferenceStrategy = cfeInferenceStrategy;
+
+  Variable _unaliasVariable(Variable variable) {
+    if (_variableAliases.isEmpty) {
+      return variable;
+    }
+    for (Map<Variable, Variable> map in _variableAliases) {
+      Variable? alias = map[variable];
+      if (alias != null) {
+        return alias;
+      }
+    }
+    return variable;
+  }
+
+  @override
+  VariableGet readVariable(
+    InternalVariable internalVariable, {
+    required int fileOffset,
+  }) {
+    Variable variable = internalVariable.astVariable;
+    return new VariableGet(_unaliasVariable(variable))..fileOffset = fileOffset;
+  }
+
+  @override
+  VariableSet writeVariable(
+    InternalVariable internalVariable,
+    Expression value, {
+    required int fileOffset,
+  }) {
+    Variable variable = internalVariable.astVariable;
+    return new VariableSet(_unaliasVariable(variable), value)
+      ..fileOffset = fileOffset;
+  }
 
   @override
   ThisVariable get internalThisVariable =>
@@ -3420,35 +3469,29 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new StatementInferenceResult.single(result);
   }
 
-  StatementInferenceResult visitInternalForStatement(
-    InternalForStatement node,
-  ) {
-    ScopeProviderInfo? scopeProviderInfo;
-    if (isClosureContextLoweringEnabled) {
-      scopeProviderInfo = _contextAllocationStrategy.enterScopeProvider(
-        scopeProviderInfoKind: ScopeProviderInfoKind.Loop,
-      );
-    }
-    List<VariableDeclaration> variables = new List.filled(
-      node.variables.length,
+  List<VariableDeclaration> _inferForVariables({
+    required List<InternalVariableDeclaration> variables,
+  }) {
+    List<VariableDeclaration> inferredVariables = new List.filled(
+      variables.length,
       dummyVariableDeclaration,
       growable: true,
     );
-    for (int index = 0; index < node.variables.length; index++) {
-      InternalVariableDeclaration variableDeclaration = node.variables[index];
+    for (int index = 0; index < variables.length; index++) {
+      InternalVariableDeclaration variableDeclaration = variables[index];
       InternalDeclaredVariable variable = variableDeclaration.variable;
       if (variable.cosmeticName == null) {
         Expression? initializer;
         if (variableDeclaration.initializer != null) {
-          ExpressionInferenceResult result = inferExpression(
+          ExpressionInferenceResult initializerResult = inferExpression(
             variableDeclaration.initializer!,
-            const UnknownType(),
+            variable.type,
             isVoidAllowed: true,
           );
-          initializer = result.expression;
-          variable.type = result.inferredType;
+          initializer = initializerResult.expression;
+          variable.type = initializerResult.inferredType;
         }
-        variables[index] = extern.createVariableDeclaration(
+        inferredVariables[index] = extern.createVariableDeclaration(
           variable.astVariable,
           initializer: initializer,
           fileOffset: variableDeclaration.fileOffset,
@@ -3461,7 +3504,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             );
         switch (variableResult) {
           case DirectVariableDeclarationInferenceResult():
-            variables[index] = variableResult.declaration;
+            inferredVariables[index] = variableResult.declaration;
           // Coverage-ignore(suite): Not run.
           case EffectVariableDeclarationInferenceResult():
           case LateVariableDeclarationInferenceResult():
@@ -3471,54 +3514,113 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         }
       }
     }
-    flowAnalysis.for_conditionBegin(node);
-    Expression? condition;
-    if (node.condition != null) {
-      InterfaceType expectedType = coreTypes.boolRawType(
-        Nullability.nonNullable,
-      );
-      ExpressionInferenceResult conditionResult = inferExpression(
-        node.condition!,
-        expectedType,
-        isVoidAllowed: true,
-      );
-      condition = ensureAssignableResult(
-        expectedType,
-        conditionResult,
-        assignedNode: node.condition!,
-      ).expression;
-    }
+    return inferredVariables;
+  }
 
+  Expression? _inferForCondition({
+    required InternalNode node,
+    required InternalExpression? condition,
+  }) {
+    flowAnalysis.for_conditionBegin(node);
+    Expression? inferredCondition;
+    if (condition != null) {
+      ExpressionInferenceResult conditionResult = inferExpression(
+        condition,
+        coreTypes.boolRawType(Nullability.nonNullable),
+        isVoidAllowed: false,
+      );
+      Expression assignableCondition = ensureAssignable(
+        coreTypes.boolRawType(Nullability.nonNullable),
+        conditionResult.inferredType,
+        conditionResult.expression,
+        assignedNode: condition,
+      );
+      inferredCondition = assignableCondition;
+    }
+    return inferredCondition;
+  }
+
+  Statement _inferForStatementBody({
+    required InternalLoopStatement node,
+    required Expression? condition,
+    required InternalStatement body,
+  }) {
     flowAnalysis.for_bodyBegin(node, switch (condition) {
       null => flowAnalysis.booleanLiteral(true),
       var condition => getExpressionInfo(condition),
     });
-    StatementInferenceResult bodyResult = inferStatement(node.body);
-    Statement body = bodyResult.statement;
+    StatementInferenceResult bodyResult = inferStatement(body);
+    return _handleContinues(node, bodyResult.statement);
+  }
 
-    body = _handleContinues(node, body);
+  ElementInferenceResult _inferForElementBody({
+    required InternalElement node,
+    required Expression? condition,
+    required InternalElement body,
+    required ElementInferenceContext context,
+  }) {
+    flowAnalysis.for_bodyBegin(null, switch (condition) {
+      null => flowAnalysis.booleanLiteral(true),
+      var condition => getExpressionInfo(condition),
+    });
+    return inferElement(body, context);
+  }
 
+  List<Expression> _inferForUpdates({
+    required InternalNode node,
+    required List<InternalExpression> updates,
+  }) {
     flowAnalysis.for_updaterBegin();
-
-    List<Expression> updates = new List.filled(
-      node.updates.length,
+    List<Expression> inferredUpdates = new List.filled(
+      updates.length,
       dummyExpression,
-      growable: true,
     );
-    for (int index = 0; index < node.updates.length; index++) {
+    for (int index = 0; index < updates.length; index++) {
       ExpressionInferenceResult updateResult = inferExpression(
-        node.updates[index],
+        updates[index],
         const UnknownType(),
         isVoidAllowed: true,
       );
-      updates[index] = updateResult.expression;
+      inferredUpdates[index] = updateResult.expression;
     }
     flowAnalysis.for_end();
+    return inferredUpdates;
+  }
+
+  StatementInferenceResult visitInternalForStatement(
+    InternalForStatement node,
+  ) {
+    ScopeProviderInfo? scopeProviderInfo;
+    if (isClosureContextLoweringEnabled) {
+      scopeProviderInfo = _contextAllocationStrategy.enterScopeProvider(
+        scopeProviderInfoKind: ScopeProviderInfoKind.Loop,
+      );
+    }
+    List<VariableDeclaration> variables = _inferForVariables(
+      variables: node.variables,
+    );
+    Expression? condition = _inferForCondition(
+      node: node,
+      condition: node.condition,
+    );
+
+    Statement body = _inferForStatementBody(
+      node: node,
+      condition: condition,
+      body: node.body,
+    );
+
+    List<Expression> updates = _inferForUpdates(
+      node: node,
+      updates: node.updates,
+    );
+
     Scope? scope;
     if (scopeProviderInfo != null) {
       _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
       scope = scopeProviderInfo.scope;
     }
+
     Statement replacement = extern.createForStatement(
       variables: variables,
       condition: condition,
@@ -3533,6 +3635,78 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     ?.registerExternalNode(node, replacement);
 
     replacement = _handleBreaks(node, replacement);
+
+    return new StatementInferenceResult.single(replacement);
+  }
+
+  StatementInferenceResult visitInternalPatternForStatement(
+    InternalPatternForStatement node,
+  ) {
+    ScopeProviderInfo? scopeProviderInfo;
+    if (isClosureContextLoweringEnabled) {
+      // Coverage-ignore-block(suite): Not run.
+      scopeProviderInfo = _contextAllocationStrategy.enterScopeProvider(
+        scopeProviderInfoKind: ScopeProviderInfoKind.Loop,
+      );
+    }
+
+    PatternForVariablesResult variablesResult = _inferPatternForVariables(
+      node: node,
+      patternVariableDeclaration: node.patternVariableDeclaration,
+    );
+    _variableAliases.push(variablesResult.variableAliases);
+
+    Expression? condition = _inferForCondition(
+      node: node,
+      condition: node.condition,
+    );
+
+    Statement body = _inferForStatementBody(
+      node: node,
+      condition: condition,
+      body: node.body,
+    );
+
+    List<Expression> updates = _inferForUpdates(
+      node: node,
+      updates: node.updates,
+    );
+
+    _variableAliases.pop();
+
+    Scope? scope;
+    if (scopeProviderInfo != null) {
+      // Coverage-ignore-block(suite): Not run.
+      _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
+      scope = scopeProviderInfo.scope;
+    }
+
+    Statement replacement = extern.createForStatement(
+      variables: variablesResult.variables,
+      condition: condition,
+      updates: updates,
+      body: body,
+      scope: scope,
+      fileOffset: node.fileOffset,
+    );
+
+    libraryBuilder.loader.dataForTesting
+    // Coverage-ignore(suite): Not run.
+    ?.registerExternalNode(node, replacement);
+
+    replacement = _handleBreaks(node, replacement);
+
+    replacement = extern.createBlock(
+      fileOffset: node.fileOffset,
+      fileEndOffset: node.fileOffset,
+      [
+        variablesResult.patternVariableDeclaration,
+        for (VariableDeclaration variableDeclaration
+            in variablesResult.intermediateVariables)
+          extern.createVariableStatement(variableDeclaration),
+        replacement,
+      ],
+    );
 
     return new StatementInferenceResult.single(replacement);
   }
@@ -4851,131 +5025,57 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
   }
 
-  ForElementBaseResult _inferForElementBase2(
-    ForElementBase node,
-    ElementInferenceContext context,
-  ) {
-    List<VariableDeclaration> variables = new List.filled(
-      node.variables.length,
-      dummyVariableDeclaration,
-      growable: true,
-    );
-    for (int index = 0; index < node.variables.length; index++) {
-      InternalVariableDeclaration variableDeclaration = node.variables[index];
-      InternalDeclaredVariable variable = variableDeclaration.variable;
-      if (variable.cosmeticName == null) {
-        Expression? initializer;
-        if (variableDeclaration.initializer != null) {
-          ExpressionInferenceResult initializerResult = inferExpression(
-            variableDeclaration.initializer!,
-            variable.type,
-            isVoidAllowed: true,
-          );
-          initializer = initializerResult.expression;
-          variable.type = initializerResult.inferredType;
-        }
-        variables[index] = extern.createVariableDeclaration(
-          variable.astVariable,
-          initializer: initializer,
-          fileOffset: variableDeclaration.fileOffset,
-        );
-      } else {
-        VariableDeclarationInferenceResult variableResult =
-            inferVariableDeclaration(
-              variableDeclaration,
-              forLoopVariable: true,
-            );
-        switch (variableResult) {
-          case DirectVariableDeclarationInferenceResult():
-            variables[index] = variableResult.declaration;
-          // Coverage-ignore(suite): Not run.
-          case EffectVariableDeclarationInferenceResult():
-          case LateVariableDeclarationInferenceResult():
-            throw new UnsupportedError(
-              "Unexpected variable declaration change.",
-            );
-        }
-      }
-    }
-
-    flowAnalysis.for_conditionBegin(node);
-    Expression? condition;
-    if (node.condition != null) {
-      ExpressionInferenceResult conditionResult = inferExpression(
-        node.condition!,
-        coreTypes.boolRawType(Nullability.nonNullable),
-        isVoidAllowed: false,
-      );
-      Expression assignableCondition = ensureAssignable(
-        coreTypes.boolRawType(Nullability.nonNullable),
-        conditionResult.inferredType,
-        conditionResult.expression,
-        assignedNode: node.condition!,
-      );
-      condition = assignableCondition;
-    }
-    flowAnalysis.for_bodyBegin(null, switch (condition) {
-      null => flowAnalysis.booleanLiteral(true),
-      var condition => getExpressionInfo(condition),
-    });
-    ElementInferenceResult bodyResult = inferElement(node.body, context);
-    InferredElement body = bodyResult.element;
-    flowAnalysis.for_updaterBegin();
-    List<Expression> updates = new List.filled(
-      node.updates.length,
-      dummyExpression,
-    );
-    for (int index = 0; index < node.updates.length; index++) {
-      ExpressionInferenceResult updateResult = inferExpression(
-        node.updates[index],
-        const UnknownType(),
-        isVoidAllowed: true,
-      );
-      updates[index] = updateResult.expression;
-    }
-    flowAnalysis.for_end();
-    return new ForElementBaseResult(
-      variables: variables,
-      condition: condition,
-      body: body,
-      updates: updates,
-      inferredType: bodyResult.inferredType,
-    );
-  }
-
   ElementInferenceResult visitForElement(
     ForElement node,
     ElementInferenceContext context,
   ) {
-    ForElementBaseResult result = _inferForElementBase2(node, context);
+    List<VariableDeclaration> variables = _inferForVariables(
+      variables: node.variables,
+    );
+
+    Expression? condition = _inferForCondition(
+      node: node,
+      condition: node.condition,
+    );
+
+    ElementInferenceResult bodyResult = _inferForElementBody(
+      node: node,
+      condition: condition,
+      body: node.body,
+      context: context,
+    );
+
+    List<Expression> updates = _inferForUpdates(
+      node: node,
+      updates: node.updates,
+    );
+
     return new ElementInferenceResult(
-      inferredType: result.inferredType,
+      inferredType: bodyResult.inferredType,
       element: new InferredForElement(
-        variables: result.variables,
-        condition: result.condition,
-        updates: result.updates,
-        body: result.body,
+        variables: variables,
+        condition: condition,
+        updates: updates,
+        body: bodyResult.element,
         nodeForTesting: node,
         fileOffset: node.fileOffset,
       ),
     );
   }
 
-  ElementInferenceResult visitPatternForElement(
-    PatternForElement node,
-    ElementInferenceContext context,
-  ) {
+  PatternForVariablesResult _inferPatternForVariables({
+    required InternalNode node,
+    required InternalPatternVariableDeclaration patternVariableDeclaration,
+  }) {
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
-    InternalPatternVariableDeclaration internalPatternVariableDeclaration =
-        node.patternVariableDeclaration;
     PatternVariableDeclarationAnalysisResult analysisResult =
         analyzePatternVariableDeclaration(
-          internalPatternVariableDeclaration,
-          internalPatternVariableDeclaration.pattern,
-          internalPatternVariableDeclaration.initializer,
-          isFinal: internalPatternVariableDeclaration.isFinal,
+          patternVariableDeclaration,
+          patternVariableDeclaration.pattern,
+          patternVariableDeclaration.initializer,
+          isFinal: patternVariableDeclaration.isFinal,
         );
     DartType matchedValueType = analysisResult.initializerType.unwrapTypeView();
 
@@ -4988,55 +5088,103 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     Pattern pattern = popRewrite() as Pattern;
     Expression initializer = popRewrite() as Expression;
-    PatternVariableDeclaration patternVariableDeclaration = extern
+
+    List<VariableDeclaration> variables = [];
+    List<VariableDeclaration> intermediateVariables = [];
+    Map<Variable, Variable> variableAliases = {};
+    for (DeclaredVariable declaredVariable in pattern.declaredVariables) {
+      // We create an intermediate variable to transfer the value from the
+      // pattern variable to the loop variable created below. This is done
+      // to ensure that we done create an assignment like `var a = a` in the
+      // for loop initializer because this confuses DDC.
+      SyntheticVariable intermediateVariable = new SyntheticVariable(
+        isFinal: true,
+        type: declaredVariable.type,
+      )..fileOffset = declaredVariable.fileOffset;
+      variableAliases[declaredVariable] = intermediateVariable;
+      intermediateVariables.add(
+        extern.createVariableDeclaration(
+          intermediateVariable,
+          initializer: extern.createVariableGet(declaredVariable),
+        ),
+      );
+
+      // We create a synthesized loop variable as an alias for the pattern
+      // variable to ensure that the correct variable capture in the for
+      // statement/element.
+      // TODO(johnniwinther): Should this be a [LocalVariable]?
+      SyntheticVariable loopVariable = new SyntheticVariable(
+        cosmeticName: declaredVariable.cosmeticName,
+        type: declaredVariable.type,
+        isSynthesized: false,
+        isFinal: declaredVariable.isFinal,
+      )..fileOffset = declaredVariable.fileOffset;
+      variables.add(
+        extern.createVariableDeclaration(
+          loopVariable,
+          initializer: extern.createVariableGet(intermediateVariable),
+        ),
+      );
+
+      variableAliases[declaredVariable] = loopVariable;
+    }
+
+    PatternVariableDeclaration inferredPatternVariableDeclaration = extern
         .createPatternVariableDeclaration(
           pattern: pattern,
           initializer: initializer,
-          isFinal: internalPatternVariableDeclaration.isFinal,
+          isFinal: patternVariableDeclaration.isFinal,
           matchedValueType: matchedValueType,
-          fileOffset: internalPatternVariableDeclaration.fileOffset,
+          fileOffset: patternVariableDeclaration.fileOffset,
         );
 
-    List<Variable> declaredVariables = pattern.declaredVariables;
-    assert(declaredVariables.length == node.intermediateVariables.length);
-    assert(declaredVariables.length == node.variables.length);
-    List<VariableDeclaration> intermediateVariables = new List.filled(
-      node.intermediateVariables.length,
-      dummyVariableDeclaration,
+    return new PatternForVariablesResult(
+      variables: variables,
+      intermediateVariables: intermediateVariables,
+      variableAliases: variableAliases,
+      patternVariableDeclaration: inferredPatternVariableDeclaration,
     );
-    for (int i = 0; i < declaredVariables.length; i++) {
-      DartType type = declaredVariables[i].type;
+  }
 
-      InternalVariableDeclaration intermediateVariableDeclaration =
-          node.intermediateVariables[i];
-      InternalDeclaredVariable intermediateVariable =
-          intermediateVariableDeclaration.variable;
-      Expression initializer = inferExpression(
-        intermediateVariableDeclaration.initializer!,
-        type,
-        isVoidAllowed: true,
-      ).expression;
-      intermediateVariable.type = type;
+  ElementInferenceResult visitPatternForElement(
+    PatternForElement node,
+    ElementInferenceContext context,
+  ) {
+    PatternForVariablesResult variablesResult = _inferPatternForVariables(
+      node: node,
+      patternVariableDeclaration: node.patternVariableDeclaration,
+    );
 
-      intermediateVariables[i] = extern.createVariableDeclaration(
-        intermediateVariable.astVariable,
-        initializer: initializer,
-        fileOffset: intermediateVariableDeclaration.fileOffset,
-      );
+    _variableAliases.push(variablesResult.variableAliases);
 
-      node.variables[i].variable.type = type;
-    }
+    Expression? condition = _inferForCondition(
+      node: node,
+      condition: node.condition,
+    );
 
-    ForElementBaseResult result = _inferForElementBase2(node, context);
+    ElementInferenceResult bodyResult = _inferForElementBody(
+      node: node,
+      condition: condition,
+      body: node.body,
+      context: context,
+    );
+
+    List<Expression> updates = _inferForUpdates(
+      node: node,
+      updates: node.updates,
+    );
+
+    _variableAliases.pop();
+
     return new ElementInferenceResult(
-      inferredType: result.inferredType,
+      inferredType: bodyResult.inferredType,
       element: new InferredPatternForElement(
-        patternVariableDeclaration: patternVariableDeclaration,
-        intermediateVariables: intermediateVariables,
-        variables: result.variables,
-        condition: result.condition,
-        updates: result.updates,
-        body: result.body,
+        patternVariableDeclaration: variablesResult.patternVariableDeclaration,
+        intermediateVariables: variablesResult.intermediateVariables,
+        variables: variablesResult.variables,
+        condition: condition,
+        updates: updates,
+        body: bodyResult.element,
         nodeForTesting: node,
         fileOffset: node.fileOffset,
       ),
@@ -5343,7 +5491,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     assert(node.name != unaryMinusName);
     ExpressionInferenceResult result = inferExpression(
       node.receiver,
-      const UnknownType(),
+      _cfeInferenceStrategy.createTypeContextForMethodInvocationReceiver(
+        methodName: node.name.text,
+        methodInvocationTypeContext: typeContext,
+      ),
       continueNullShorting: true,
     );
     Expression receiver = result.expression;
@@ -7492,7 +7643,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     // When evaluating exactly a dot shorthand in the RHS, we use the LHS type
     // to provide the context type for the shorthand.
-    DartType rightTypeContext = right is DotShorthand
+    DartType rightTypeContext =
+        right is DotShorthand && leftType is! InvalidType
         ? leftType
         : const UnknownType();
     ExpressionInferenceResult rightResult = inferExpression(
@@ -9561,7 +9713,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   ) {
     ExpressionInferenceResult receiverResult = inferExpression(
       node.receiver,
-      const UnknownType(),
+      _cfeInferenceStrategy.createTypeContextForPropertyGetReceiver(
+        propertyName: node.name.text,
+        propertyGetTypeContext: typeContext,
+      ),
       continueNullShorting: true,
     );
 
@@ -11985,6 +12140,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             fileOffset: node.fileOffset,
           ),
     );
+    if (isClosureContextLoweringEnabled) {
+      _contextAllocationStrategy.handleDeclarationOfVariable(
+        node.variable.astVariable,
+        captureKind: captureKindForVariable(node.variable),
+      );
+    }
 
     assert(checkStack(node, stackBase, [/* pattern = */ ValueKinds.Pattern]));
     return analysisResult;
@@ -13335,7 +13496,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     pushRewrite(
       replacement ??
           extern.createAssignedVariablePattern(
-            variable: node.variable.astVariable,
+            variable: _unaliasVariable(node.variable.astVariable),
             setter: node.variable.lateSetter,
             matchedValueType: matchedValueType,
             needsCast: needsCast,
@@ -14385,10 +14546,9 @@ class NamedRecordResult({
   required final DartType type,
 });
 
-class ForElementBaseResult({
+class PatternForVariablesResult({
   required final List<VariableDeclaration> variables,
-  required final Expression? condition,
-  required final InferredElement body,
-  required final List<Expression> updates,
-  required final ElementType inferredType,
+  required final List<VariableDeclaration> intermediateVariables,
+  required final Map<Variable, Variable> variableAliases,
+  required final PatternVariableDeclaration patternVariableDeclaration,
 });

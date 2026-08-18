@@ -23,6 +23,9 @@ Normally this is not null (but it can be).
 `involvedFiles`: A possibly null list of uris involved in this message.
 Normally this is null.
 
+`relatedUris`: A possibly null list of uris involved in the context(s) of
+this message. This does not include uris already in `uri` or `involvedFiles`.
+
 `codeName`: A string identifying the specific error message.
 
 These values are subject to change, but this file will be updated along with any

@@ -46,7 +46,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: z
   binaryOperator: subtract
-BinaryExpression
+V1: BinaryExpression
   leftOperand: BinaryExpression
     leftOperand: SimpleIdentifier
       token: x
@@ -75,7 +75,7 @@ BinaryOperatorInvocation
   rightOperand: IntegerLiteral
     literal: 1
   binaryOperator: add
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: i
   operator: +
@@ -105,7 +105,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: z
   binaryOperator: add
-BinaryExpression
+V1: BinaryExpression
   leftOperand: BinaryExpression
     leftOperand: SimpleIdentifier
       token: x
@@ -141,7 +141,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: z
   binaryOperator: subtract
-BinaryExpression
+V1: BinaryExpression
   leftOperand: BinaryExpression
     leftOperand: SuperExpression
       superKeyword: super
@@ -175,7 +175,7 @@ BinaryOperatorInvocation
       token: z
     binaryOperator: multiply
   binaryOperator: add
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
   operator: +
@@ -211,7 +211,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: z
   binaryOperator: subtract
-BinaryExpression
+V1: BinaryExpression
   leftOperand: BinaryExpression
     leftOperand: SuperExpression
       superKeyword: super
@@ -345,7 +345,7 @@ DirectAssignment
     operator: =
     value: IntegerLiteral
       literal: 0
-AssignmentExpression
+V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
   operator: =
@@ -367,16 +367,27 @@ void f() {
 
     var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
-AssignmentExpression
-  leftHandSide2: IndexExpression
-    target2: SimpleIdentifier
+DirectAssignment
+  target: IndexAssignmentTarget
+    receiver: SimpleIdentifier
       token: x
     leftBracket: [
-    index2: IntegerLiteral
+    index: IntegerLiteral
       literal: 1
     rightBracket: ]
   operator: =
-  rightHandSide2: IntegerLiteral
+  value: IntegerLiteral
+    literal: 0
+V1: AssignmentExpression
+  leftHandSide: IndexExpression
+    target: SimpleIdentifier
+      token: x
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 1
+    rightBracket: ]
+  operator: =
+  rightHandSide: IntegerLiteral
     literal: 0
 ''');
   }
@@ -529,7 +540,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: z
   binaryOperator: bitwiseAnd
-BinaryExpression
+V1: BinaryExpression
   leftOperand: BinaryExpression
     leftOperand: SimpleIdentifier
       token: x
@@ -562,7 +573,7 @@ LogicalAnd
   operator: &&
   rightOperand: SimpleIdentifier
     token: z
-BinaryExpression
+V1: BinaryExpression
   leftOperand: BinaryExpression
     leftOperand: SimpleIdentifier
       token: x
@@ -595,7 +606,7 @@ LogicalAnd
     rightOperand: SimpleIdentifier
       token: z
     binaryOperator: equal
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
   operator: &&
@@ -631,7 +642,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: z
   binaryOperator: bitwiseAnd
-BinaryExpression
+V1: BinaryExpression
   leftOperand: BinaryExpression
     leftOperand: SuperExpression
       superKeyword: super
@@ -665,7 +676,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: z
   binaryOperator: bitwiseOr
-BinaryExpression
+V1: BinaryExpression
   leftOperand: BinaryExpression
     leftOperand: SimpleIdentifier
       token: x
@@ -699,7 +710,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: z
   binaryOperator: bitwiseOr
-BinaryExpression
+V1: BinaryExpression
   leftOperand: BinaryExpression
     leftOperand: SimpleIdentifier
       token: x
@@ -733,7 +744,7 @@ BinaryOperatorInvocation
       token: z
     binaryOperator: bitwiseXor
   binaryOperator: bitwiseOr
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
   operator: |
@@ -769,7 +780,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: z
   binaryOperator: bitwiseOr
-BinaryExpression
+V1: BinaryExpression
   leftOperand: BinaryExpression
     leftOperand: SuperExpression
       superKeyword: super
@@ -803,7 +814,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: z
   binaryOperator: bitwiseXor
-BinaryExpression
+V1: BinaryExpression
   leftOperand: BinaryExpression
     leftOperand: SimpleIdentifier
       token: x
@@ -837,7 +848,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: z
   binaryOperator: bitwiseXor
-BinaryExpression
+V1: BinaryExpression
   leftOperand: BinaryExpression
     leftOperand: SimpleIdentifier
       token: x
@@ -871,7 +882,7 @@ BinaryOperatorInvocation
       token: z
     binaryOperator: bitwiseAnd
   binaryOperator: bitwiseXor
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
   operator: ^
@@ -907,7 +918,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: z
   binaryOperator: bitwiseXor
-BinaryExpression
+V1: BinaryExpression
   leftOperand: BinaryExpression
     leftOperand: SuperExpression
       superKeyword: super
@@ -946,26 +957,49 @@ CascadeExpression
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
-  cascadeSections2
+  sections
+    CascadeSection
+      operator: ..
+      body: DirectAssignment
+        target: CascadeIndexAssignmentTarget
+          leftBracket: [
+          index: IntegerLiteral
+            literal: 3
+          rightBracket: ]
+        operator: =
+        value: IntegerLiteral
+          literal: 4
+    CascadeSection
+      operator: ..
+      body: DirectAssignment
+        target: CascadeIndexAssignmentTarget
+          leftBracket: [
+          index: IntegerLiteral
+            literal: 0
+          rightBracket: ]
+        operator: =
+        value: IntegerLiteral
+          literal: 11
+  cascadeSections
     AssignmentExpression
-      leftHandSide2: IndexExpression
+      leftHandSide: IndexExpression
         period: ..
         leftBracket: [
-        index2: IntegerLiteral
+        index: IntegerLiteral
           literal: 3
         rightBracket: ]
       operator: =
-      rightHandSide2: IntegerLiteral
+      rightHandSide: IntegerLiteral
         literal: 4
     AssignmentExpression
-      leftHandSide2: IndexExpression
+      leftHandSide: IndexExpression
         period: ..
         leftBracket: [
-        index2: IntegerLiteral
+        index: IntegerLiteral
           literal: 0
         rightBracket: ]
       operator: =
-      rightHandSide2: IntegerLiteral
+      rightHandSide: IntegerLiteral
         literal: 11
 ''');
   }
@@ -1693,7 +1727,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: z
   binaryOperator: equal
-BinaryExpression
+V1: BinaryExpression
   leftOperand: IsExpression
     expression: SimpleIdentifier
       token: x
@@ -1726,7 +1760,7 @@ BinaryOperatorInvocation
     type: NamedType
       name: z
   binaryOperator: equal
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
   operator: ==
@@ -1802,7 +1836,7 @@ IfNull
   operator: ??
   rightOperand: SimpleIdentifier
     token: z
-BinaryExpression
+V1: BinaryExpression
   leftOperand: BinaryExpression
     leftOperand: SimpleIdentifier
       token: x
@@ -1834,7 +1868,7 @@ IfNull
   operator: ??
   rightOperand: SimpleIdentifier
     token: z
-BinaryExpression
+V1: BinaryExpression
   leftOperand: BinaryExpression
     leftOperand: SimpleIdentifier
       token: x
@@ -1866,7 +1900,7 @@ IfNull
     operator: ||
     rightOperand: SimpleIdentifier
       token: z
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
   operator: ??
@@ -1898,7 +1932,7 @@ LogicalAnd
   operator: &&
   rightOperand: SimpleIdentifier
     token: z
-BinaryExpression
+V1: BinaryExpression
   leftOperand: BinaryExpression
     leftOperand: SimpleIdentifier
       token: x
@@ -1932,7 +1966,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: z
   binaryOperator: lessThan
-BinaryExpression
+V1: BinaryExpression
   leftOperand: BinaryExpression
     leftOperand: SimpleIdentifier
       token: x
@@ -1966,7 +2000,7 @@ BinaryOperatorInvocation
       token: z
     binaryOperator: bitwiseOr
   binaryOperator: lessThan
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
   operator: <
@@ -2005,7 +2039,7 @@ LogicalAnd
     rightOperand: SimpleIdentifier
       token: U
     binaryOperator: greaterThan
-BinaryExpression
+V1: BinaryExpression
   leftOperand: BinaryExpression
     leftOperand: SimpleIdentifier
       token: C
@@ -2041,7 +2075,7 @@ LogicalOr
   operator: ||
   rightOperand: SimpleIdentifier
     token: z
-BinaryExpression
+V1: BinaryExpression
   leftOperand: BinaryExpression
     leftOperand: SimpleIdentifier
       token: x
@@ -2073,7 +2107,7 @@ LogicalOr
   operator: ||
   rightOperand: SimpleIdentifier
     token: z
-BinaryExpression
+V1: BinaryExpression
   leftOperand: BinaryExpression
     leftOperand: SimpleIdentifier
       token: x
@@ -2105,7 +2139,7 @@ LogicalOr
     operator: &&
     rightOperand: SimpleIdentifier
       token: z
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
   operator: ||
@@ -2317,7 +2351,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: z
   binaryOperator: divide
-BinaryExpression
+V1: BinaryExpression
   leftOperand: BinaryExpression
     leftOperand: SimpleIdentifier
       token: x
@@ -2349,7 +2383,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: y
   binaryOperator: multiply
-BinaryExpression
+V1: BinaryExpression
   leftOperand: PrefixExpression
     operator: -
     operand: SimpleIdentifier
@@ -2379,7 +2413,7 @@ BinaryOperatorInvocation
       token: y
     unaryOperator: negate
   binaryOperator: multiply
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
   operator: *
@@ -2413,7 +2447,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: z
   binaryOperator: divide
-BinaryExpression
+V1: BinaryExpression
   leftOperand: BinaryExpression
     leftOperand: SuperExpression
       superKeyword: super
@@ -2476,7 +2510,7 @@ BinaryOperatorInvocation
   rightOperand: IntegerLiteral
     literal: 3
   binaryOperator: shiftLeft
-BinaryExpression
+V1: BinaryExpression
   leftOperand: BinaryExpression
     leftOperand: SimpleIdentifier
       token: x
@@ -2510,7 +2544,7 @@ BinaryOperatorInvocation
   rightOperand: SimpleIdentifier
     token: z
   binaryOperator: shiftLeft
-BinaryExpression
+V1: BinaryExpression
   leftOperand: BinaryExpression
     leftOperand: SimpleIdentifier
       token: x
@@ -2544,7 +2578,7 @@ BinaryOperatorInvocation
       token: z
     binaryOperator: add
   binaryOperator: shiftLeft
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
   operator: <<
@@ -2580,7 +2614,7 @@ BinaryOperatorInvocation
   rightOperand: IntegerLiteral
     literal: 3
   binaryOperator: shiftLeft
-BinaryExpression
+V1: BinaryExpression
   leftOperand: BinaryExpression
     leftOperand: SuperExpression
       superKeyword: super

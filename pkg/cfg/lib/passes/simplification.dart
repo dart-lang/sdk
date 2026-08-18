@@ -207,10 +207,17 @@ final class Simplification extends Pass
   Instruction visitStoreStaticField(StoreStaticField instr) => instr;
 
   @override
+  Instruction visitLoadExternalField(LoadExternalField instr) => instr;
+
+  @override
   Instruction visitLoadArrayElement(LoadArrayElement instr) => instr;
 
   @override
   Instruction visitStoreArrayElement(StoreArrayElement instr) => instr;
+
+  @override
+  Instruction visitLoadExternalArrayElement(LoadExternalArrayElement instr) =>
+      instr;
 
   @override
   Instruction visitThrow(Throw instr) => instr;

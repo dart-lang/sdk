@@ -7,7 +7,7 @@ static method main() → dynamic {
   for (core::int i = 0; i.{core::num::<}(100){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int}) {
     core::print(let final core::int #t1 = i in let final void #t2 = i = #t1.{core::num::+}(1){(core::num) → core::int} in #t1);
   }
-  for (core::int i = 0; i.{core::num::<}(100){(core::num) → core::bool}; c.{core::num::<}(42){(core::num) → core::bool} ?{core::int} throw "fisk" : let final core::int #t3 = i in let final void #t4 = i = #t3.{core::num::+}(1){(core::num) → core::int} in #t3) {
-    core::print(let final core::int #t5 = i in let final void #t6 = i = #t5.{core::num::+}(1){(core::num) → core::int} in #t5);
+  for (core::int i##1 = 0; i##1.{core::num::<}(100){(core::num) → core::bool}; c.{core::num::<}(42){(core::num) → core::bool} ?{core::int} throw "fisk" : let final core::int #t3 = i##1 in let final void #t4 = i##1 = #t3.{core::num::+}(1){(core::num) → core::int} in #t3) {
+    core::print(let final core::int #t5 = i##1 in let final void #t6 = i##1 = #t5.{core::num::+}(1){(core::num) → core::int} in #t5);
   }
 }

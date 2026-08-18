@@ -23,18 +23,18 @@ static method test(() → void f) → void {
     f(){() → void};
   }
   on self::C catch(no-exception-var) {
-    core::int x = 0;
+    core::int x##1 = 0;
   }
-  on self::D catch(final self::D x) {
-    self::D x2 = x;
+  on self::D catch(final self::D x##2) {
+    self::D x2 = x##2;
   }
-  on self::E catch(final self::E x, final core::StackTrace y) {
-    self::E x2 = x;
+  on self::E catch(final self::E x##3, final core::StackTrace y) {
+    self::E x2##1 = x##3;
     core::StackTrace y2 = y;
   }
-  on core::Object catch(final core::Object x, final core::StackTrace y) {
-    core::Object x2 = x;
-    core::StackTrace y2 = y;
+  on core::Object catch(final core::Object x##4, final core::StackTrace y##1) {
+    core::Object x2##2 = x##4;
+    core::StackTrace y2##1 = y##1;
   }
 }
 static method main() → dynamic {}

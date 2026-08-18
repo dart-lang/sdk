@@ -409,7 +409,7 @@ class LateLowering {
       )..fileOffset = fileOffset;
 
       PositionalParameter setterValue = PositionalParameter(
-        cosmeticName: 'value',
+        parameterName: 'value',
         type: type,
         isSynthesized: true,
       )..fileOffset = fileOffset;
@@ -674,7 +674,7 @@ class LateLowering {
     enclosingClass.addProcedure(getter);
 
     PositionalParameter setterValue = PositionalParameter(
-      cosmeticName: 'value',
+      parameterName: 'value',
       type: type,
       isSynthesized: true,
     )..fileOffset = fileOffset;

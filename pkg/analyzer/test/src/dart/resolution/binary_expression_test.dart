@@ -45,7 +45,7 @@ BinaryOperatorInvocation
   binaryOperator: equal
   element: <testLibrary>::@class::A::@method::==
   staticType: bool
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
@@ -101,7 +101,7 @@ BinaryOperatorInvocation
   binaryOperator: equal
   element: dart:core::@class::num::@method::==
   staticType: bool
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SwitchExpression
     switchKeyword: switch
     leftParenthesis: (
@@ -174,7 +174,7 @@ BinaryOperatorInvocation
   binaryOperator: equal
   element: dart:core::@class::num::@method::==
   staticType: bool
-BinaryExpression
+V1: BinaryExpression
   leftOperand: IntegerLiteral
     literal: 0
     staticType: int
@@ -232,7 +232,7 @@ BinaryOperatorInvocation
   binaryOperator: add
   element: <testLibrary>::@extension::#0::@method::+
   staticType: int
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
@@ -271,7 +271,7 @@ BinaryOperatorInvocation
   binaryOperator: add
   element: <null>
   staticType: InvalidType
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
@@ -312,7 +312,7 @@ BinaryOperatorInvocation
   binaryOperator: unsignedShiftRight
   element: <testLibrary>::@class::A::@method::>>>
   staticType: A
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
@@ -362,7 +362,7 @@ IfNull
     literal: 0
     staticType: int
   staticType: int
-BinaryExpression
+V1: BinaryExpression
   leftOperand: MethodInvocation
     methodName: SimpleIdentifier
       token: f
@@ -422,7 +422,7 @@ IfNull
     staticType: C2
   correspondingParameter: <null>
   staticType: A
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: c1
     element: <testLibrary>::@function::f::@formalParameter::c1
@@ -459,7 +459,7 @@ IfNull
     element: <testLibrary>::@function::f::@formalParameter::y
     staticType: int
   staticType: int
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
@@ -496,7 +496,7 @@ IfNull
     element: <testLibrary>::@function::f::@formalParameter::y
     staticType: double?
   staticType: num?
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
@@ -533,7 +533,7 @@ IfNull
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: int?
   staticType: int?
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
@@ -579,7 +579,7 @@ BinaryOperatorInvocation
   binaryOperator: add
   element: <testLibrary>::@extensionType::Int::@method::+
   staticType: Int
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
@@ -619,7 +619,7 @@ BinaryOperatorInvocation
   binaryOperator: add
   element: dart:core::@class::num::@method::+
   staticType: num
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
@@ -663,7 +663,7 @@ BinaryOperatorInvocation
   binaryOperator: add
   element: <null>
   staticType: Never
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
@@ -721,7 +721,7 @@ BinaryOperatorInvocation
   binaryOperator: add
   element: dart:core::@class::num::@method::+
   staticType: int
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SwitchExpression
     switchKeyword: switch
     leftParenthesis: (
@@ -795,7 +795,7 @@ BinaryOperatorInvocation
   binaryOperator: add
   element: dart:core::@class::num::@method::+
   staticType: int
-BinaryExpression
+V1: BinaryExpression
   leftOperand: IntegerLiteral
     literal: 0
     staticType: int
@@ -857,7 +857,7 @@ BinaryOperatorInvocation
   binaryOperator: multiply
   element: <null>
   staticType: InvalidType
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: <empty> <synthetic>
     element: <null>
@@ -900,7 +900,7 @@ BinaryOperatorInvocation
   binaryOperator: multiply
   element: <null>
   staticType: InvalidType
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: <empty> <synthetic>
     element: <null>
@@ -942,7 +942,7 @@ BinaryOperatorInvocation
   binaryOperator: multiply
   element: dart:core::@class::num::@method::*
   staticType: double
-BinaryExpression
+V1: BinaryExpression
   leftOperand: IntegerLiteral
     literal: 2
     staticType: int
@@ -987,7 +987,7 @@ BinaryOperatorInvocation
   binaryOperator: add
   element: <testLibrary>::@class::A::@method::+
   staticType: int
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SuperExpression
     superKeyword: super
     staticType: B
@@ -1027,7 +1027,7 @@ BinaryOperatorInvocation
   binaryOperator: add
   element: <testLibrary>::@class::A::@method::+
   staticType: int
-BinaryExpression
+V1: BinaryExpression
   leftOperand: ThisExpression
     thisKeyword: this
     staticType: A
@@ -1067,7 +1067,7 @@ BinaryOperatorInvocation
   binaryOperator: notEqual
   element: dart:core::@class::num::@method::==
   staticType: bool
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
@@ -1120,7 +1120,7 @@ BinaryOperatorInvocation
   binaryOperator: notEqual
   element: <null>
   staticType: InvalidType
-BinaryExpression
+V1: BinaryExpression
   leftOperand: ExtensionOverride
     name: E
     argumentList: ArgumentList
@@ -1171,7 +1171,7 @@ BinaryOperatorInvocation
   binaryOperator: notEqual
   element: <null>
   staticType: InvalidType
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
@@ -1210,7 +1210,7 @@ BinaryOperatorInvocation
   binaryOperator: equal
   element: dart:core::@class::Object::@method::==
   staticType: bool
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
@@ -1262,7 +1262,7 @@ BinaryOperatorInvocation
   binaryOperator: equal
   element: <null>
   staticType: bool
-BinaryExpression
+V1: BinaryExpression
   leftOperand: ExtensionOverride
     name: E
     argumentList: ArgumentList
@@ -1311,7 +1311,7 @@ BinaryOperatorInvocation
   binaryOperator: equal
   element: dart:core::@class::num::@method::==
   staticType: bool
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
@@ -1352,7 +1352,7 @@ BinaryOperatorInvocation
   binaryOperator: equal
   element: dart:core::@class::Object::@method::==
   staticType: bool
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
@@ -1393,7 +1393,7 @@ BinaryOperatorInvocation
   binaryOperator: equal
   element: <null>
   staticType: InvalidType
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
@@ -1430,7 +1430,7 @@ IfNull
     element: <testLibrary>::@function::f::@formalParameter::b
     staticType: double
   staticType: num
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
@@ -1467,7 +1467,7 @@ LogicalAnd
     element: <testLibrary>::@function::f::@formalParameter::b
     staticType: bool
   staticType: bool
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
@@ -1504,7 +1504,7 @@ LogicalOr
     element: <testLibrary>::@function::f::@formalParameter::b
     staticType: bool
   staticType: bool
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
@@ -1571,7 +1571,7 @@ BinaryOperatorInvocation
   binaryOperator: subtract
   element: dart:core::@class::num::@method::-
   staticType: double
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
@@ -1611,7 +1611,7 @@ BinaryOperatorInvocation
   binaryOperator: subtract
   element: dart:core::@class::num::@method::-
   staticType: int
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
@@ -1678,7 +1678,7 @@ BinaryOperatorInvocation
   binaryOperator: modulo
   element: dart:core::@class::num::@method::%
   staticType: double
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
@@ -1718,7 +1718,7 @@ BinaryOperatorInvocation
   binaryOperator: modulo
   element: dart:core::@class::num::@method::%
   staticType: int
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
@@ -1837,7 +1837,7 @@ BinaryOperatorInvocation
   binaryOperator: add
   element: dart:core::@class::double::@method::+
   staticType: double
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
@@ -2010,7 +2010,7 @@ BinaryOperatorInvocation
   binaryOperator: add
   element: dart:core::@class::num::@method::+
   staticType: double
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
@@ -2049,7 +2049,7 @@ BinaryOperatorInvocation
   binaryOperator: add
   element: dart:core::@class::num::@method::+
   staticType: num
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
@@ -2088,7 +2088,7 @@ BinaryOperatorInvocation
   binaryOperator: add
   element: dart:core::@class::num::@method::+
   staticType: int
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
@@ -2134,7 +2134,7 @@ BinaryOperatorInvocation
   binaryOperator: add
   element: dart:core::@class::num::@method::+
   staticType: int
-BinaryExpression
+V1: BinaryExpression
   leftOperand: FunctionExpressionInvocation
     function: SimpleIdentifier
       token: a
@@ -2193,7 +2193,7 @@ BinaryOperatorInvocation
   binaryOperator: add
   element: <testLibrary>::@extension::E::@method::+
   staticType: String
-BinaryExpression
+V1: BinaryExpression
   leftOperand: ExtensionOverride
     name: E
     argumentList: ArgumentList
@@ -2242,7 +2242,7 @@ BinaryOperatorInvocation
   binaryOperator: add
   element: dart:core::@class::num::@method::+
   staticType: num
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
@@ -2287,7 +2287,7 @@ BinaryOperatorInvocation
     baseElement: <testLibrary>::@extension::FooExtension::@method::+
     substitution: {F: F}
   staticType: F
-BinaryExpression
+V1: BinaryExpression
   leftOperand: ThisExpression
     thisKeyword: this
     staticType: F
@@ -2329,7 +2329,7 @@ BinaryOperatorInvocation
   binaryOperator: add
   element: <null>
   staticType: InvalidType
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: x
     element: <null>
@@ -2498,7 +2498,7 @@ BinaryOperatorInvocation
   binaryOperator: add
   element: <testLibrary>::@class::A::@method::+
   staticType: String
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
@@ -2552,7 +2552,7 @@ BinaryOperatorInvocation
   binaryOperator: add
   element: <testLibrary>::@extension::E::@method::+
   staticType: String
-BinaryExpression
+V1: BinaryExpression
   leftOperand: ExtensionOverride
     name: E
     argumentList: ArgumentList
@@ -2606,7 +2606,7 @@ BinaryOperatorInvocation
   binaryOperator: add
   element: <testLibrary>::@extension::E::@method::+
   staticType: String
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
@@ -2645,7 +2645,7 @@ BinaryOperatorInvocation
   binaryOperator: add
   element: <null>
   staticType: dynamic
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
@@ -2683,7 +2683,7 @@ BinaryOperatorInvocation
   binaryOperator: add
   element: dart:core::@class::num::@method::+
   staticType: num
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
@@ -2722,7 +2722,7 @@ BinaryOperatorInvocation
   binaryOperator: divide
   element: dart:core::@class::num::@method::/
   staticType: double
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
@@ -2789,7 +2789,7 @@ BinaryOperatorInvocation
   binaryOperator: multiply
   element: dart:core::@class::num::@method::*
   staticType: double
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
@@ -2829,7 +2829,7 @@ BinaryOperatorInvocation
   binaryOperator: multiply
   element: dart:core::@class::num::@method::*
   staticType: int
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
@@ -2877,7 +2877,7 @@ f(C1<int>? c1, C2<double> c2) {
     baseElement: <testLibrary>::@function::contextB1::@formalParameter::b1
     substitution: {T: Object?}
   staticType: B1<Object?>
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: c1
     element: <testLibrary>::@function::f::@formalParameter::c1
@@ -2924,7 +2924,7 @@ f(B2? b2, C1 c1, Object? o) {
     staticType: C1
   correspondingParameter: <null>
   staticType: B2
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: b2
     element: <testLibrary>::@function::f::@formalParameter::b2
@@ -2968,7 +2968,7 @@ f(C1? c1, B2 b2, Object? o) {
     staticType: B2
   correspondingParameter: <null>
   staticType: B2
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: c1
     element: <testLibrary>::@function::f::@formalParameter::c1
@@ -3008,7 +3008,7 @@ IfNull
     element: <testLibrary>::@function::f::@formalParameter::c2
     staticType: C2
   staticType: B1
-BinaryExpression
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: c1
     element: <testLibrary>::@function::f::@formalParameter::c1

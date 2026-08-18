@@ -9,7 +9,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
-import 'package:analyzer/src/test_utilities/find_element2.dart';
+import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer_testing/src/analysis_rule/pub_package_resolution.dart';
 import 'package:linter/src/util/scope.dart';
@@ -26,7 +26,7 @@ void main() {
 
 @reflectiveTest
 class ResolveNameInScopeTest extends PubPackageResolutionTest {
-  late FindElement2 findElement;
+  late FindElement findElement;
 
   late FindNode findNode;
 
@@ -34,7 +34,7 @@ class ResolveNameInScopeTest extends PubPackageResolutionTest {
   Future<ResolvedUnitResult> resolveFile(String path) async {
     var result = await super.resolveFile(path);
 
-    findElement = FindElement2(result.unit);
+    findElement = FindElement(result.unit);
     findNode = FindNode(result.content, result.unit);
     return result;
   }

@@ -957,7 +957,7 @@ class FileState {
   }
 
   static UnlinkedUnit serializeAstUnlinked2(
-    CompilationUnit unit, {
+    CompilationUnitImpl unit, {
     required bool exists,
     required bool isDartCore,
     required OperationPerformanceImpl performance,
@@ -981,69 +981,75 @@ class FileState {
     var parts = <UnlinkedPartDirective>[];
     var hasDartCoreImport = false;
     for (var directive in unit.directives) {
-      if (directive is ExportDirective) {
-        var builder = _serializeExport(directive);
-        exports.add(builder);
-      } else if (directive is ImportDirectiveImpl) {
-        var builder = _serializeImport(node: directive, isDocImport: false);
-        imports.add(builder);
-        if (builder.uri == 'dart:core') {
-          hasDartCoreImport = true;
-        }
-      } else if (directive is LibraryDirective) {
-        libraryDirective = UnlinkedLibraryDirective(
-          docImports: buildDocImports(directive),
-          name: directive.name?.tokens.map((e) => e.lexeme).join(),
-        );
-      } else if (directive is PartDirective) {
-        var unlinked = _serializePart(directive);
-        parts.add(unlinked);
-      } else if (directive is PartOfDirective) {
-        var libraryName = directive.libraryName;
-        var uri = directive.uri;
-        if (libraryName != null) {
-          partOfNameDirective ??= UnlinkedPartOfNameDirective(
+      switch (directive) {
+        case ExportDirectiveImpl():
+          var builder = _serializeExport(directive);
+          exports.add(builder);
+        case ImportDirectiveImpl():
+          var builder = _serializeImport(node: directive, isDocImport: false);
+          imports.add(builder);
+          if (builder.uri == 'dart:core') {
+            hasDartCoreImport = true;
+          }
+        case LibraryDirectiveImpl():
+          libraryDirective = UnlinkedLibraryDirective(
             docImports: buildDocImports(directive),
-            name: libraryName.tokens.map((e) => e.lexeme).join(),
-            nameRange: UnlinkedSourceRange(
-              offset: libraryName.offset,
-              length: libraryName.length,
-            ),
+            name: directive.name?.tokens.map((e) => e.lexeme).join(),
           );
-        } else if (uri != null) {
-          partOfUriDirective ??= UnlinkedPartOfUriDirective(
-            docImports: buildDocImports(directive),
-            uri: uri.stringValue,
-            uriRange: UnlinkedSourceRange(
-              offset: uri.offset,
-              length: uri.length,
-            ),
-          );
-        }
+        case PartDirectiveImpl():
+          var unlinked = _serializePart(directive);
+          parts.add(unlinked);
+        case PartOfDirectiveImpl():
+          var libraryName = directive.libraryName;
+          var uri = directive.uri;
+          if (libraryName != null) {
+            partOfNameDirective ??= UnlinkedPartOfNameDirective(
+              docImports: buildDocImports(directive),
+              name: libraryName.tokens.map((e) => e.lexeme).join(),
+              nameRange: UnlinkedSourceRange(
+                offset: libraryName.offset,
+                length: libraryName.length,
+              ),
+            );
+          } else if (uri != null) {
+            partOfUriDirective ??= UnlinkedPartOfUriDirective(
+              docImports: buildDocImports(directive),
+              uri: uri.stringValue,
+              uriRange: UnlinkedSourceRange(
+                offset: uri.offset,
+                length: uri.length,
+              ),
+            );
+          }
       }
     }
 
     var topLevelDeclarations = <String>{};
-    for (var declaration in unit.declarations) {
-      if (declaration is ClassDeclaration) {
-        topLevelDeclarations.add(declaration.namePart.typeName.lexeme);
-      } else if (declaration is EnumDeclaration) {
-        topLevelDeclarations.add(declaration.namePart.typeName.lexeme);
-      } else if (declaration is ExtensionDeclaration) {
-        var name = declaration.name;
-        if (name != null) {
-          topLevelDeclarations.add(name.lexeme);
-        }
-      } else if (declaration is ExtensionTypeDeclaration) {
-        topLevelDeclarations.add(declaration.namePart.typeName.lexeme);
-      } else if (declaration is FunctionDeclaration) {
-        topLevelDeclarations.add(declaration.name.lexeme);
-      } else if (declaration is MixinDeclaration) {
-        topLevelDeclarations.add(declaration.name.lexeme);
-      } else if (declaration is TopLevelVariableDeclaration) {
-        for (var variable in declaration.variables.variables) {
-          topLevelDeclarations.add(variable.name.lexeme);
-        }
+    for (var declaration in unit.declarations2) {
+      switch (declaration) {
+        case ClassDeclarationImpl():
+          topLevelDeclarations.add(declaration.namePart.typeName.lexeme);
+        case EnumDeclarationImpl():
+          topLevelDeclarations.add(declaration.namePart.typeName.lexeme);
+        case ExtensionDeclarationImpl():
+          var name = declaration.name;
+          if (name != null) {
+            topLevelDeclarations.add(name.lexeme);
+          }
+        case ExtensionTypeDeclarationImpl():
+          topLevelDeclarations.add(declaration.namePart.typeName.lexeme);
+        case FunctionDeclarationImpl():
+          topLevelDeclarations.add(declaration.name.lexeme);
+        case MixinDeclarationImpl():
+          topLevelDeclarations.add(declaration.name.lexeme);
+        case TopLevelGetterDeclarationImpl():
+          topLevelDeclarations.add(declaration.name.lexeme);
+        case TopLevelVariableDeclarationImpl():
+          for (var variable in declaration.variables.variables) {
+            topLevelDeclarations.add(variable.name.lexeme);
+          }
+        case TypeAliasImpl():
+          break;
       }
     }
 

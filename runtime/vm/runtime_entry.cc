@@ -635,6 +635,42 @@ DEFINE_RUNTIME_ENTRY(AllocateTypedData, 2) {
   RuntimeAllocationEpilogue(thread);
 }
 
+// Allocate OneByteString of given length.
+// Arg0: number of elements.
+// Return value: newly allocated OneByteString.
+DEFINE_RUNTIME_ENTRY(AllocateOneByteString, 1) {
+  const int64_t length =
+      Integer::CheckedHandle(zone, arguments.ArgAt(0)).Value();
+  if ((length < 0) || (length > OneByteString::kMaxElements)) {
+    // Assume that negative lengths are the result of wrapping in code in
+    // string_patch.dart.
+    Exceptions::ThrowOOM();
+  }
+  const auto& str =
+      String::Handle(zone, OneByteString::New(static_cast<intptr_t>(length),
+                                              SpaceForRuntimeAllocation()));
+  arguments.SetReturn(str);
+  RuntimeAllocationEpilogue(thread);
+}
+
+// Allocate TwoByteString of given length.
+// Arg0: number of elements.
+// Return value: newly allocated TwoByteString.
+DEFINE_RUNTIME_ENTRY(AllocateTwoByteString, 1) {
+  const int64_t length =
+      Integer::CheckedHandle(zone, arguments.ArgAt(0)).Value();
+  if ((length < 0) || (length > TwoByteString::kMaxElements)) {
+    // Assume that negative lengths are the result of wrapping in code in
+    // string_patch.dart.
+    Exceptions::ThrowOOM();
+  }
+  const auto& str =
+      String::Handle(zone, TwoByteString::New(static_cast<intptr_t>(length),
+                                              SpaceForRuntimeAllocation()));
+  arguments.SetReturn(str);
+  RuntimeAllocationEpilogue(thread);
+}
+
 // Result of an invoke may be an unhandled exception, in which case we
 // rethrow it.
 static void ThrowIfError(const Object& result) {

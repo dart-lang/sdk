@@ -19,8 +19,8 @@ static method error() → dynamic {
   for (core::int i = 0; i.{core::num::<}(10){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int}) {
     core::print(i);
   }
-  for (core::int i in <core::int>[]) {
-    core::print(i);
+  for (core::int i##1 in <core::int>[]) {
+    core::print(i##1);
   }
 }
 static method main() → dynamic {}

@@ -128,10 +128,6 @@ class AstBinaryReader {
       rightHandSide2: rightHandSide,
     );
     node.element = _reader.readElement() as InternalMethodElement?;
-    node.readElement = _reader.readElement();
-    node.readType = _reader.readType();
-    node.writeElement = _reader.readElement();
-    node.writeType = _reader.readType();
     _readExpressionResolution(node);
     return node;
   }
@@ -174,13 +170,50 @@ class AstBinaryReader {
 
   CascadeExpression _readCascadeExpression() {
     var target = _readNode() as ExpressionImpl;
-    var sections = _readNodeList<ExpressionImpl>();
-    var node = CascadeExpressionImpl(
-      target2: target,
-      cascadeSections2: sections,
-    );
+    var sections = _readNodeList<CascadeSectionImpl>();
+    var node = CascadeExpressionImpl(target2: target, sections: sections);
     node.setPseudoExpressionStaticType(target.staticType);
     return node;
+  }
+
+  CascadeIndexAssignmentTarget _readCascadeIndexAssignmentTarget() {
+    var index = _readNode() as ExpressionImpl;
+    var node = CascadeIndexAssignmentTargetImpl(
+      leftBracket: Tokens.openSquareBracket(),
+      index: index,
+      rightBracket: Tokens.closeSquareBracket(),
+    );
+    node.read = _reader.readOptionalObject(_readIndexReadResolution);
+    node.write = _reader.readOptionalObject(_readIndexWriteResolution);
+    return node;
+  }
+
+  CascadeIndexExpression _readCascadeIndexExpression() {
+    var index = _readNode() as ExpressionImpl;
+    var node = CascadeIndexExpressionImpl(
+      leftBracket: Tokens.openSquareBracket(),
+      index: index,
+      rightBracket: Tokens.closeSquareBracket(),
+    );
+    node.resolution = _reader.readOptionalObject(_readIndexReadResolution);
+    _readExpressionResolution(node);
+    return node;
+  }
+
+  CascadeSection _readCascadeSection() {
+    var isNullAware = _readByte() == 1;
+    var body = _readNode() as ExpressionImpl;
+    var operatorType = isNullAware
+        ? TokenType.QUESTION_PERIOD_PERIOD
+        : TokenType.PERIOD_PERIOD;
+    return CascadeSectionImpl(
+      operator: body.beginToken.type == operatorType
+          ? body.beginToken
+          : isNullAware
+          ? Tokens.questionPeriodPeriod()
+          : Tokens.periodPeriod(),
+      body: body,
+    );
   }
 
   CompoundAssignment _readCompoundAssignment() {
@@ -729,12 +762,24 @@ class AstBinaryReader {
     IncrementOrDecrementExpressionImpl node,
   ) {
     node.element = _reader.readElement() as InternalMethodElement?;
-    node.readElement = _reader.readElement();
-    node.readType = _reader.readType();
-    node.writeElement = _reader.readElement();
-    node.writeType = _reader.readType();
     node.operatorResultType = _reader.readType();
     _readExpressionResolution(node);
+  }
+
+  IndexAssignmentTarget _readIndexAssignmentTarget() {
+    var flags = _readByte();
+    var receiver = _readNode() as ExpressionImpl;
+    var index = _readNode() as ExpressionImpl;
+    var node = IndexAssignmentTargetImpl(
+      receiver: receiver,
+      question: AstBinaryFlags.hasQuestion(flags) ? Tokens.question() : null,
+      leftBracket: Tokens.openSquareBracket(),
+      index: index,
+      rightBracket: Tokens.closeSquareBracket(),
+    );
+    node.read = _reader.readOptionalObject(_readIndexReadResolution);
+    node.write = _reader.readOptionalObject(_readIndexWriteResolution);
+    return node;
   }
 
   IndexExpression _readIndexExpression() {
@@ -752,6 +797,57 @@ class AstBinaryReader {
     node.element = _reader.readElement() as MethodElement?;
     _readExpressionResolution(node);
     return node;
+  }
+
+  IndexExpression2 _readIndexExpression2() {
+    var flags = _readByte();
+    var receiver = _readNode() as ExpressionImpl;
+    var index = _readNode() as ExpressionImpl;
+    var node = IndexExpression2Impl(
+      receiver: receiver,
+      question: AstBinaryFlags.hasQuestion(flags) ? Tokens.question() : null,
+      leftBracket: Tokens.openSquareBracket(),
+      index: index,
+      rightBracket: Tokens.closeSquareBracket(),
+    );
+    node.resolution = _reader.readOptionalObject(_readIndexReadResolution);
+    _readExpressionResolution(node);
+    return node;
+  }
+
+  IndexReadResolutionImpl _readIndexReadResolution() {
+    switch (IndexReadResolutionTag.values[_readByte()]) {
+      case IndexReadResolutionTag.dynamic_:
+        return const DynamicIndexReadResolutionImpl();
+      case IndexReadResolutionTag.invalid:
+        return InvalidIndexReadResolutionImpl(
+          recovery: _reader.readOptionalObject(
+            () => _readIndexReadResolution() as MethodIndexReadResolutionImpl,
+          ),
+        );
+      case IndexReadResolutionTag.method:
+        return MethodIndexReadResolutionImpl(
+          element: _reader.readElement() as InternalMethodElement,
+          type: _reader.readType() as TypeImpl,
+        );
+    }
+  }
+
+  IndexWriteResolutionImpl _readIndexWriteResolution() {
+    switch (IndexWriteResolutionTag.values[_readByte()]) {
+      case IndexWriteResolutionTag.dynamic_:
+        return const DynamicIndexWriteResolutionImpl();
+      case IndexWriteResolutionTag.invalid:
+        return InvalidIndexWriteResolutionImpl(
+          recovery: _reader.readOptionalObject(
+            () => _readIndexWriteResolution() as MethodIndexWriteResolutionImpl,
+          ),
+        );
+      case IndexWriteResolutionTag.method:
+        return MethodIndexWriteResolutionImpl(
+          element: _reader.readElement() as InternalMethodElement,
+        );
+    }
   }
 
   IntegerLiteral _readIntegerLiteralNegative() {
@@ -1052,6 +1148,12 @@ class AstBinaryReader {
         return _readBooleanLiteral();
       case Tag.CascadeExpression:
         return _readCascadeExpression();
+      case Tag.CascadeIndexAssignmentTarget:
+        return _readCascadeIndexAssignmentTarget();
+      case Tag.CascadeIndexExpression:
+        return _readCascadeIndexExpression();
+      case Tag.CascadeSection:
+        return _readCascadeSection();
       case Tag.ConditionalExpression:
         return _readConditionalExpression();
       case Tag.ConstructorFieldInitializer:
@@ -1108,6 +1210,10 @@ class AstBinaryReader {
         return _readImportPrefixReference();
       case Tag.IndexExpression:
         return _readIndexExpression();
+      case Tag.IndexExpression2:
+        return _readIndexExpression2();
+      case Tag.IndexAssignmentTarget:
+        return _readIndexAssignmentTarget();
       case Tag.IntegerLiteralNegative1:
         return _readIntegerLiteralNegative1();
       case Tag.IntegerLiteralNull:
@@ -1286,9 +1392,9 @@ class AstBinaryReader {
   }
 
   PostfixDecrement _readPostfixDecrement() {
-    var operand = _readNode() as ExpressionImpl;
+    var target = _readNode() as AssignmentTargetImpl;
     var node = PostfixDecrementImpl(
-      operand: operand,
+      target: target,
       operator: Tokens.fromType(UnlinkedTokenType.MINUS_MINUS),
     );
     _readIncrementOrDecrementResolution(node);
@@ -1296,9 +1402,9 @@ class AstBinaryReader {
   }
 
   PostfixIncrement _readPostfixIncrement() {
-    var operand = _readNode() as ExpressionImpl;
+    var target = _readNode() as AssignmentTargetImpl;
     var node = PostfixIncrementImpl(
-      operand: operand,
+      target: target,
       operator: Tokens.fromType(UnlinkedTokenType.PLUS_PLUS),
     );
     _readIncrementOrDecrementResolution(node);
@@ -1306,10 +1412,10 @@ class AstBinaryReader {
   }
 
   PrefixDecrement _readPrefixDecrement() {
-    var operand = _readNode() as ExpressionImpl;
+    var target = _readNode() as AssignmentTargetImpl;
     var node = PrefixDecrementImpl(
       operator: Tokens.fromType(UnlinkedTokenType.MINUS_MINUS),
-      operand: operand,
+      target: target,
     );
     _readIncrementOrDecrementResolution(node);
     return node;
@@ -1328,10 +1434,10 @@ class AstBinaryReader {
   }
 
   PrefixIncrement _readPrefixIncrement() {
-    var operand = _readNode() as ExpressionImpl;
+    var target = _readNode() as AssignmentTargetImpl;
     var node = PrefixIncrementImpl(
       operator: Tokens.fromType(UnlinkedTokenType.PLUS_PLUS),
-      operand: operand,
+      target: target,
     );
     _readIncrementOrDecrementResolution(node);
     return node;

@@ -730,10 +730,8 @@ abstract class FlowAnalysis<
   /// [AssignedVariables.endNode] for the for statement.
   ///
   /// [offset] is the last source offset that should be considered to be prior
-  /// to entry into the `for`. The offset of any character in the `for` keyword
-  /// (or `await` keyword, if present) should work, since no expressions can
-  /// appear in this range, but the first such character is probably the best
-  /// choice.
+  /// to entry into the loop condition. The offset of the first `;` in the
+  /// for-loop is probably the best choice.
   void for_conditionBegin(Node node, {int offset = 0});
 
   /// Call this method just after visiting the updaters of a conventional "for"
@@ -1512,6 +1510,29 @@ abstract class FlowAnalysis<
   /// to entry into the subpattern. The start offset of the subpattern is
   /// probably the best choice.
   void pushSubpattern(SharedTypeView matchedType, {int offset = 0});
+
+  /// Call this method to inform flow analysis that invocation arguments may be
+  /// visited out of order (e.g., due to horizontal inference).
+  ///
+  /// If the arguments in an invocation are numbered consecutively from 0 to
+  /// n-1 (where n is the number of arguments), this method should be called:
+  ///
+  /// - Just prior to visiting argument 0, if argument 0 is not the first
+  ///   argument to be visited.
+  /// - Just prior to visiting argument i+1, if the most recently visited
+  ///   argument was not argument i.
+  /// - After visiting all arguments, if the most recently visited argument was
+  ///   not argument n-1.
+  ///
+  /// In the first two cases, [offset] is the last source offset that should be
+  /// considered to be prior to the argument that's about to be visited. The
+  /// offset of the `(` or `,` token that precedes the argument is probably the
+  /// best choice.
+  ///
+  /// In the third case, [offset] is the last source offset that should be
+  /// considered to be prior to the invocation taking place. The offset of the
+  /// `)` is probably the best choice.
+  void recordArgumentVisitOrderException({required int offset});
 
   /// Retrieves the SSA node associated with [variable].
   ///
@@ -3168,6 +3189,14 @@ class FlowAnalysisDebug<
     _wrap(
       'pushSubpattern($matchedType, offset: $offset)',
       () => _wrapped.pushSubpattern(matchedType, offset: offset),
+    );
+  }
+
+  @override
+  void recordArgumentVisitOrderException({required int offset}) {
+    _wrap(
+      'recordArgumentVisitOrderException(offset: $offset)',
+      () => _wrapped.recordArgumentVisitOrderException(offset: offset),
     );
   }
 
@@ -7533,6 +7562,12 @@ class _FlowAnalysisImpl<
         _makeTemporaryReference(new SsaNode(), matchedType, offset: offset),
       ),
     );
+  }
+
+  @override
+  void recordArgumentVisitOrderException({required int offset}) {
+    _logBuilder?.allowOutOfOrderOffsets();
+    _logBuilder?.promotionInfoChanged(_current.promotionInfo, offset: offset);
   }
 
   @override

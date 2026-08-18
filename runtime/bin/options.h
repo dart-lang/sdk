@@ -9,6 +9,7 @@
 #include "platform/globals.h"
 #include "platform/hashmap.h"
 #include "platform/syslog.h"
+#include "platform/utils.h"
 
 namespace dart {
 namespace bin {
@@ -81,6 +82,25 @@ class CallbackOptionProcessor : public OptionProcessor {
 
 #define DEFINE_STRING_OPTION(name, variable)                                   \
   DEFINE_STRING_OPTION_CB(name, { variable = value; })
+
+#define DEFINE_STRING_LIST_OPTION(name, variable)                              \
+  DEFINE_STRING_OPTION_CB(name, {                                              \
+    const char* token = value;                                                 \
+    while (true) {                                                             \
+      const char* comma = strchr(token, ',');                                  \
+      if (comma != nullptr) {                                                  \
+        if (comma > token) {                                                   \
+          variable.Add(Utils::StrNDup(token, comma - token));                  \
+        }                                                                      \
+        token = comma + 1;                                                     \
+      } else {                                                                 \
+        if (*token != '\0') {                                                  \
+          variable.Add(Utils::StrDup(token));                                  \
+        }                                                                      \
+        break;                                                                 \
+      }                                                                        \
+    }                                                                          \
+  })
 
 #define DEFINE_ENUM_OPTION(name, enum_name, variable)                          \
   DEFINE_STRING_OPTION_CB(name, {                                              \

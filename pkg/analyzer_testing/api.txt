@@ -1,3 +1,5 @@
+environment:
+  sdk: ^3.9.0
 package:analyzer_testing/analysis_rule/analysis_rule.dart:
   contextMessage (function: ExpectedContextMessage Function(File, int, int, {deprecated String? text, List<Pattern> textContains}))
   error (function: ExpectedDiagnostic Function(DiagnosticCode, int, int, {List<ExpectedContextMessage>? contextMessages, Pattern? correctionContains, deprecated Pattern? messageContains, List<Pattern> messageContainsAll}))
@@ -10,7 +12,7 @@ package:analyzer_testing/analysis_rule/analysis_rule.dart:
     assertPubspecDiagnostics (method: Future<void> Function(String, List<ExpectedDiagnostic>))
     correctionMessage (method: String Function(List<Diagnostic>))
     lint (method: ExpectedDiagnostic Function(int, int, {List<ExpectedContextMessage>? contextMessages, Pattern? correctionContains, deprecated Pattern? messageContains, List<Pattern> messageContainsAll, String? name}))
-    setUp (method: void Function())
+    setUp (method: void Function(), must call super)
     unexpectedMessage (method: String Function(List<Diagnostic>))
   PackageBuilder (class extends Object):
     addFile (method: void Function(String, String))

@@ -123,7 +123,32 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   void visitCascadeExpression(CascadeExpression node) {
     _writeByte(Tag.CascadeExpression);
     _writeNode(node.target2);
-    _writeNodeList(node.cascadeSections2);
+    _writeNodeList(node.sections);
+  }
+
+  @override
+  void visitCascadeIndexAssignmentTarget(
+    covariant CascadeIndexAssignmentTargetImpl node,
+  ) {
+    _writeByte(Tag.CascadeIndexAssignmentTarget);
+    _writeNode(node.index);
+    _sink.writeOptionalObject(node.read, _writeIndexReadResolution);
+    _sink.writeOptionalObject(node.write, _writeIndexWriteResolution);
+  }
+
+  @override
+  void visitCascadeIndexExpression(covariant CascadeIndexExpressionImpl node) {
+    _writeByte(Tag.CascadeIndexExpression);
+    _writeNode(node.index);
+    _sink.writeOptionalObject(node.resolution, _writeIndexReadResolution);
+    _storeExpression(node);
+  }
+
+  @override
+  void visitCascadeSection(CascadeSection node) {
+    _writeByte(Tag.CascadeSection);
+    _writeByte(node.isNullAware ? 1 : 0);
+    _writeNode(node.body);
   }
 
   @override
@@ -425,6 +450,16 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   }
 
   @override
+  void visitIndexAssignmentTarget(covariant IndexAssignmentTargetImpl node) {
+    _writeByte(Tag.IndexAssignmentTarget);
+    _writeByte(AstBinaryFlags.encode(hasQuestion: node.question != null));
+    _writeNode(node.receiver);
+    _writeNode(node.index);
+    _sink.writeOptionalObject(node.read, _writeIndexReadResolution);
+    _sink.writeOptionalObject(node.write, _writeIndexWriteResolution);
+  }
+
+  @override
   void visitIndexExpression(IndexExpression node) {
     _writeByte(Tag.IndexExpression);
     _writeByte(
@@ -438,6 +473,16 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
 
     _sink.writeElement(node.element);
 
+    _storeExpression(node);
+  }
+
+  @override
+  void visitIndexExpression2(covariant IndexExpression2Impl node) {
+    _writeByte(Tag.IndexExpression2);
+    _writeByte(AstBinaryFlags.encode(hasQuestion: node.question != null));
+    _writeNode(node.receiver);
+    _writeNode(node.index);
+    _sink.writeOptionalObject(node.resolution, _writeIndexReadResolution);
     _storeExpression(node);
   }
 
@@ -645,21 +690,21 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   @override
   void visitPostfixDecrement(PostfixDecrement node) {
     _writeByte(Tag.PostfixDecrement);
-    _writeNode(node.operand);
+    _writeNode(node.target);
     _writeIncrementOrDecrementResolution(node);
   }
 
   @override
   void visitPostfixIncrement(PostfixIncrement node) {
     _writeByte(Tag.PostfixIncrement);
-    _writeNode(node.operand);
+    _writeNode(node.target);
     _writeIncrementOrDecrementResolution(node);
   }
 
   @override
   void visitPrefixDecrement(PrefixDecrement node) {
     _writeByte(Tag.PrefixDecrement);
-    _writeNode(node.operand);
+    _writeNode(node.target);
     _writeIncrementOrDecrementResolution(node);
   }
 
@@ -676,7 +721,7 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   @override
   void visitPrefixIncrement(PrefixIncrement node) {
     _writeByte(Tag.PrefixIncrement);
-    _writeNode(node.operand);
+    _writeNode(node.target);
     _writeIncrementOrDecrementResolution(node);
   }
 
@@ -1091,13 +1136,35 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
     IncrementOrDecrementExpression node,
   ) {
     _sink.writeElement(node.element);
-    var nodeImpl = node as IncrementOrDecrementExpressionImpl;
-    _sink.writeElement(nodeImpl.readElement);
-    _sink.writeType(nodeImpl.readType);
-    _sink.writeElement(nodeImpl.writeElement);
-    _sink.writeType(nodeImpl.writeType);
     _sink.writeType(node.operatorResultType);
     _storeExpression(node);
+  }
+
+  void _writeIndexReadResolution(IndexReadResolutionImpl resolution) {
+    switch (resolution) {
+      case DynamicIndexReadResolutionImpl():
+        _writeByte(IndexReadResolutionTag.dynamic_.index);
+      case InvalidIndexReadResolutionImpl(:var recovery):
+        _writeByte(IndexReadResolutionTag.invalid.index);
+        _sink.writeOptionalObject(recovery, _writeIndexReadResolution);
+      case MethodIndexReadResolutionImpl(:var element, :var type):
+        _writeByte(IndexReadResolutionTag.method.index);
+        _sink.writeElement(element);
+        _sink.writeType(type);
+    }
+  }
+
+  void _writeIndexWriteResolution(IndexWriteResolutionImpl resolution) {
+    switch (resolution) {
+      case DynamicIndexWriteResolutionImpl():
+        _writeByte(IndexWriteResolutionTag.dynamic_.index);
+      case InvalidIndexWriteResolutionImpl(:var recovery):
+        _writeByte(IndexWriteResolutionTag.invalid.index);
+        _sink.writeOptionalObject(recovery, _writeIndexWriteResolution);
+      case MethodIndexWriteResolutionImpl(:var element):
+        _writeByte(IndexWriteResolutionTag.method.index);
+        _sink.writeElement(element);
+    }
   }
 
   void _writeNamedReadResolution(NamedReadResolutionImpl resolution) {

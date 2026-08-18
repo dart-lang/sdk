@@ -378,7 +378,7 @@ LogicalAnd
     typeArgumentTypes
       bool
   staticType: bool
-BinaryExpression
+V1: BinaryExpression
   leftOperand: MethodInvocation
     methodName: SimpleIdentifier
       token: foo
@@ -449,7 +449,7 @@ LogicalOr
     typeArgumentTypes
       bool
   staticType: bool
-BinaryExpression
+V1: BinaryExpression
   leftOperand: MethodInvocation
     methodName: SimpleIdentifier
       token: foo

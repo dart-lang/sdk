@@ -144,11 +144,6 @@ class PrefixedIdentifierResolver {
     if (node is SimpleIdentifier && node.inDeclarationContext()) {
       return false;
     }
-    if (parent is ConstructorDeclaration) {
-      if (parent.typeName == node) {
-        return false;
-      }
-    }
     if (parent is MethodInvocation ||
         parent is PrefixedIdentifier && parent.prefix == node ||
         parent is PropertyAccess ||

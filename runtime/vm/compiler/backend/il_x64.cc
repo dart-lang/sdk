@@ -1590,7 +1590,7 @@ void OneByteStringFromCharCodeInstr::EmitNativeCode(
   __ movq(result,
           compiler::Address(result, char_code,
                             TIMES_HALF_WORD_SIZE,  // Char code is a smi.
-                            Symbols::kNullCharCodeSymbolOffset * kWordSize));
+                            0));
 }
 
 LocationSummary* StringToCharCodeInstr::MakeLocationSummary(Zone* zone,

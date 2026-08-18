@@ -319,6 +319,15 @@ AnalysisOptionsWarningCode:
       ```
     comment: |-
       Duplicate rules.
+  excludeInvalidGlob:
+    type: staticWarning
+    parameters:
+      String pattern: the glob pattern
+    problemMessage: "The exclude glob pattern '#pattern' shouldn't start with a forward slash."
+    correctionMessage: "Remove the leading forward slash."
+    hasPublishedDocs: false
+    comment: |-
+      A warning code indicating that an exclude glob pattern is invalid.
   includedFileWarning:
     type: staticWarning
     parameters:
@@ -13708,10 +13717,6 @@ CompileTimeErrorCode:
     parameters: none
     problemMessage: "Factory bodies can't use 'async', 'async*', or 'sync*'."
     hasPublishedDocs: true
-    # In the documentation, the `invalid_modifier_on_constructor` diagnostic is
-    # being ignored because this diagnostic can't be produced without using the
-    # invalid modifier. If these two diagnostics are always produced together
-    # then we should remove one of them.
     documentation: |-
       #### Description
 
@@ -13726,7 +13731,6 @@ CompileTimeErrorCode:
       constructor is marked with `async`:
 
       ```dart
-      %ignore=invalid_modifier_on_constructor
       class C {
         factory C() [!async!] {
           return C._();

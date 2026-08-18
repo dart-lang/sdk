@@ -65,6 +65,18 @@ class ElementUsageDetector<TagInfo extends Object> {
     checkUsage(node.element, node);
   }
 
+  void cascadeIndexExpression(CascadeIndexExpression node) {
+    var element = switch (node.resolution) {
+      MethodIndexReadResolution(:var element) => element,
+      InvalidIndexReadResolution(
+        recovery: MethodIndexReadResolution(:var element),
+      ) =>
+        element,
+      _ => null,
+    };
+    checkUsage(element, node);
+  }
+
   /// Reports the usage of [element] at [node] if [element] is in
   /// any of [usagesMetadataOnly] or [usagesArbitrary].
   void checkUsage(Element? element, AstNode node) {
@@ -284,13 +296,60 @@ class ElementUsageDetector<TagInfo extends Object> {
   }
 
   void incrementOrDecrement(IncrementOrDecrementExpressionImpl node) {
-    checkUsage(node.readElement, node.operand);
-    checkUsage(node.writeElement, node.operand);
+    var target = node.target;
+    if (target case CascadeIndexAssignmentTarget(
+      read: MethodIndexReadResolution(:var element),
+    )) {
+      checkUsage(element, target);
+    }
+    if (target case CascadeIndexAssignmentTarget(
+      write: MethodIndexWriteResolution(:var element),
+    )) {
+      checkUsage(element, target);
+    }
+    if (target case IndexAssignmentTarget(
+      read: MethodIndexReadResolution(:var element),
+    )) {
+      checkUsage(element, target);
+    }
+    if (target case IndexAssignmentTarget(
+      write: MethodIndexWriteResolution(:var element),
+    )) {
+      checkUsage(element, target);
+    }
+    var read = switch (target) {
+      PropertyAssignmentTarget(:var read) => read,
+      UnqualifiedNameAssignmentTarget(:var read) => read,
+      _ => null,
+    };
+    var write = switch (target) {
+      PropertyAssignmentTarget(:var write) => write,
+      UnqualifiedNameAssignmentTarget(:var write) => write,
+      _ => null,
+    };
+    if (read case NamedReadResolutionWithElement(:var element)) {
+      checkUsage(element, target);
+    }
+    if (write case NamedWriteResolutionWithElement(:var element)) {
+      checkUsage(element, target);
+    }
     checkUsage(node.element, node);
   }
 
   void indexExpression(IndexExpression node) {
     checkUsage(node.element, node);
+  }
+
+  void indexExpression2(IndexExpression2 node) {
+    var element = switch (node.resolution) {
+      MethodIndexReadResolution(:var element) => element,
+      InvalidIndexReadResolution(
+        recovery: MethodIndexReadResolution(:var element),
+      ) =>
+        element,
+      _ => null,
+    };
+    checkUsage(element, node);
   }
 
   void instanceCreationExpression(InstanceCreationExpression node) {
@@ -515,6 +574,18 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
     checkUsage(node.element, node);
   }
 
+  void cascadeIndexExpression(CascadeIndexExpression node) {
+    var element = switch (node.resolution) {
+      MethodIndexReadResolution(:var element) => element,
+      InvalidIndexReadResolution(
+        recovery: MethodIndexReadResolution(:var element),
+      ) =>
+        element,
+      _ => null,
+    };
+    checkUsage(element, node);
+  }
+
   /// Reports the usage of [element] at [node] if [element] is in
   /// any of [usagesMetadataOnly] or [usagesArbitrary].
   void checkUsage(Element? element, AstNode node) {
@@ -645,6 +716,26 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
 
   void compoundAssignment(CompoundAssignment node) {
     var target = node.target;
+    if (target case CascadeIndexAssignmentTarget(
+      read: MethodIndexReadResolution(:var element),
+    )) {
+      checkUsage(element, target);
+    }
+    if (target case CascadeIndexAssignmentTarget(
+      write: MethodIndexWriteResolution(:var element),
+    )) {
+      checkUsage(element, target);
+    }
+    if (target case IndexAssignmentTarget(
+      read: MethodIndexReadResolution(:var element),
+    )) {
+      checkUsage(element, target);
+    }
+    if (target case IndexAssignmentTarget(
+      write: MethodIndexWriteResolution(:var element),
+    )) {
+      checkUsage(element, target);
+    }
     var read = switch (target) {
       PropertyAssignmentTarget(:var read) => read,
       UnqualifiedNameAssignmentTarget(:var read) => read,
@@ -697,6 +788,16 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
 
   void directAssignment(DirectAssignment node) {
     var target = node.target;
+    if (target case CascadeIndexAssignmentTarget(
+      write: MethodIndexWriteResolution(:var element),
+    )) {
+      checkUsage(element, target);
+    }
+    if (target case IndexAssignmentTarget(
+      write: MethodIndexWriteResolution(:var element),
+    )) {
+      checkUsage(element, target);
+    }
     var write = switch (target) {
       PropertyAssignmentTarget(:var write) => write,
       UnqualifiedNameAssignmentTarget(:var write) => write,
@@ -791,6 +892,26 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
 
   void ifNullAssignment(IfNullAssignment node) {
     var target = node.target;
+    if (target case CascadeIndexAssignmentTarget(
+      read: MethodIndexReadResolution(:var element),
+    )) {
+      checkUsage(element, target);
+    }
+    if (target case CascadeIndexAssignmentTarget(
+      write: MethodIndexWriteResolution(:var element),
+    )) {
+      checkUsage(element, target);
+    }
+    if (target case IndexAssignmentTarget(
+      read: MethodIndexReadResolution(:var element),
+    )) {
+      checkUsage(element, target);
+    }
+    if (target case IndexAssignmentTarget(
+      write: MethodIndexWriteResolution(:var element),
+    )) {
+      checkUsage(element, target);
+    }
     if (target is UnqualifiedNameAssignmentTarget) {
       if (target.read case NamedReadResolutionWithElement(:var element)) {
         checkUsage(element, target);
@@ -806,13 +927,60 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
   }
 
   void incrementOrDecrement(IncrementOrDecrementExpressionImpl node) {
-    checkUsage(node.readElement, node.operand);
-    checkUsage(node.writeElement, node.operand);
+    var target = node.target;
+    if (target case CascadeIndexAssignmentTarget(
+      read: MethodIndexReadResolution(:var element),
+    )) {
+      checkUsage(element, target);
+    }
+    if (target case CascadeIndexAssignmentTarget(
+      write: MethodIndexWriteResolution(:var element),
+    )) {
+      checkUsage(element, target);
+    }
+    if (target case IndexAssignmentTarget(
+      read: MethodIndexReadResolution(:var element),
+    )) {
+      checkUsage(element, target);
+    }
+    if (target case IndexAssignmentTarget(
+      write: MethodIndexWriteResolution(:var element),
+    )) {
+      checkUsage(element, target);
+    }
+    var read = switch (target) {
+      PropertyAssignmentTarget(:var read) => read,
+      UnqualifiedNameAssignmentTarget(:var read) => read,
+      _ => null,
+    };
+    var write = switch (target) {
+      PropertyAssignmentTarget(:var write) => write,
+      UnqualifiedNameAssignmentTarget(:var write) => write,
+      _ => null,
+    };
+    if (read case NamedReadResolutionWithElement(:var element)) {
+      checkUsage(element, target);
+    }
+    if (write case NamedWriteResolutionWithElement(:var element)) {
+      checkUsage(element, target);
+    }
     checkUsage(node.element, node);
   }
 
   void indexExpression(IndexExpression node) {
     checkUsage(node.element, node);
+  }
+
+  void indexExpression2(IndexExpression2 node) {
+    var element = switch (node.resolution) {
+      MethodIndexReadResolution(:var element) => element,
+      InvalidIndexReadResolution(
+        recovery: MethodIndexReadResolution(:var element),
+      ) =>
+        element,
+      _ => null,
+    };
+    checkUsage(element, node);
   }
 
   void methodInvocation(MethodInvocation node) {

@@ -262,6 +262,9 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   /// If there is no `this` binding, `null`.
   TypeImpl? _unpromotedThisType;
 
+  /// The cascade whose section is currently being resolved.
+  CascadeExpressionImpl? _activeCascadeExpression;
+
   final FlowAnalysisHelper flowAnalysis;
 
   late final FunctionReferenceResolver _functionReferenceResolver;
@@ -1355,6 +1358,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
           node is Directive ||
           node is ExtensionDeclaration ||
           node is FunctionDeclaration ||
+          node is TopLevelGetterDeclaration ||
           node is TopLevelVariableDeclaration;
     }
 
@@ -1450,6 +1454,25 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     }
 
     return analyzeAssignedVariablePattern(context, node, element);
+  }
+
+  ({IndexReadResolutionImpl? read, IndexWriteResolutionImpl? write})?
+  resolveCascadeIndex(
+    AstNode node, {
+    required bool hasRead,
+    required bool hasWrite,
+  }) {
+    var cascade = _activeCascadeExpression;
+    if (cascade == null) {
+      throw StateError('Cascade index node outside a cascade section.');
+    }
+    return _propertyElementResolver.resolveCascadeIndex(
+      node: node,
+      receiver: cascade.target2,
+      isNullAware: cascade.isNullAware,
+      hasRead: hasRead,
+      hasWrite: hasWrite,
+    );
   }
 
   /// Resolve LHS [node] of an assignment, an explicit [AssignmentExpression],
@@ -1591,6 +1614,17 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     }
   }
 
+  IndexWriteResolutionImpl? resolveIndexDirectAssignmentTarget(
+    IndexAssignmentTargetImpl node,
+  ) {
+    return _propertyElementResolver.resolveIndexDirectAssignmentTarget(node);
+  }
+
+  ({IndexReadResolutionImpl read, IndexWriteResolutionImpl write})?
+  resolveIndexReadWriteAssignmentTarget(IndexAssignmentTargetImpl node) {
+    return _propertyElementResolver.resolveIndexReadWriteAssignmentTarget(node);
+  }
+
   PatternResult resolveMapPattern({
     required MapPatternImpl node,
     required SharedMatchContext context,
@@ -1685,6 +1719,19 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     }
 
     return (null, SharedTypeView(typeProvider.dynamicType));
+  }
+
+  ({
+    NamedReadResolutionImpl read,
+    NamedWriteResolutionImpl write,
+    ExpressionInfo? readExpressionInfo,
+  })
+  resolvePrefixedPropertyReadWriteAssignmentTarget(
+    PropertyAssignmentTargetImpl node,
+    PrefixElement prefix,
+  ) {
+    return _propertyElementResolver
+        .resolvePrefixedPropertyReadWriteAssignmentTarget(node, prefix);
   }
 
   NamedWriteResolutionImpl? resolvePropertyDirectAssignmentTarget(
@@ -1812,9 +1859,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     if (parent is AssignmentExpressionImpl && parent.leftHandSide2 == node) {
       parent.readElement = element;
       parent.readType = readType;
-    } else if (parent is IncrementOrDecrementExpressionImpl) {
-      parent.readElement = element;
-      parent.readType = readType;
     }
   }
 
@@ -1863,10 +1907,12 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     if (parent is AssignmentExpressionImpl && parent.leftHandSide2 == node) {
       parent.writeElement = element;
       parent.writeType = writeType;
-    } else if (parent is IncrementOrDecrementExpressionImpl) {
-      parent.writeElement = element;
-      parent.writeType = writeType;
     }
+  }
+
+  /// Starts null shorting for a null-aware assignment target.
+  void startNullAwareAssignmentTarget(ExpressionImpl target) {
+    _startNullAwareAccess(target);
   }
 
   @override
@@ -2362,9 +2408,15 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       isNullAware: node.isNullAware,
     );
 
-    for (var cascadeSection in node.cascadeSections2) {
-      analyzeExpression(cascadeSection, operations.unknownType);
-      popRewrite();
+    var previousCascade = _activeCascadeExpression;
+    _activeCascadeExpression = node;
+    try {
+      for (var section in node.sections) {
+        analyzeExpression(section.body, operations.unknownType);
+        section.body = popRewrite()!;
+      }
+    } finally {
+      _activeCascadeExpression = previousCascade;
     }
 
     typeAnalyzer.visitCascadeExpression(node);
@@ -2378,6 +2430,55 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     );
     _insertImplicitCallReference(node, contextType: contextType);
     nullSafetyDeadCodeVerifier.verifyCascadeExpression(node);
+    inferenceLogWriter?.exitExpression(node);
+  }
+
+  @override
+  void visitCascadeIndexExpression(
+    covariant CascadeIndexExpressionImpl node, {
+    TypeImpl contextType = UnknownInferredType.instance,
+  }) {
+    inferenceLogWriter?.enterExpression(node, contextType);
+    checkUnreachableNode(node);
+
+    var result = resolveCascadeIndex(node, hasRead: true, hasWrite: false);
+    var resolution = result?.read;
+    node.resolution = resolution;
+
+    analyzeExpression(
+      node.index,
+      SharedTypeSchemaView(
+        resolution?.indexContextType ?? UnknownInferredType.instance,
+      ),
+    );
+    node.index = popRewrite()!;
+    var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(
+      flowAnalysis.getExpressionInfo(node.index),
+    );
+    var readElement = switch (resolution) {
+      MethodIndexReadResolutionImpl(:var element) => element,
+      InvalidIndexReadResolutionImpl(
+        recovery: MethodIndexReadResolutionImpl(:var element),
+      ) =>
+        element,
+      _ => null,
+    };
+    checkIndexExpressionIndex(
+      node.index,
+      readElement: readElement,
+      writeElement: null,
+      whyNotPromoted: whyNotPromoted,
+    );
+
+    node.recordStaticType(
+      resolution?.type ?? NeverTypeImpl.instance,
+      resolver: this,
+    );
+    var replacement = insertGenericFunctionInstantiation(
+      node,
+      contextType: contextType,
+    );
+    _insertImplicitCallReference(replacement, contextType: contextType);
     inferenceLogWriter?.exitExpression(node);
   }
 
@@ -2458,7 +2559,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       for (int i = 0; i < directiveCount; i++) {
         directives[i].accept2(this);
       }
-      NodeList<CompilationUnitMember> declarations = node.declarations;
+      NodeList<AstNode> declarations = node.declarations2;
       int declarationCount = declarations.length;
       for (int i = 0; i < declarationCount; i++) {
         declarations[i].accept2(this);
@@ -2569,7 +2670,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
         checkUnreachableNode(node);
         node.documentationComment?.accept2(this);
         node.metadata.accept2(this);
-        node.typeName?.accept2(this);
         node.parameters.accept2(this);
 
         flowAnalysis.bodyOrInitializer_enter(node, element.formalParameters);
@@ -3516,6 +3616,82 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitIndexExpression2(
+    covariant IndexExpression2Impl node, {
+    TypeImpl contextType = UnknownInferredType.instance,
+  }) {
+    inferenceLogWriter?.enterExpression(node, contextType);
+
+    if (isDotShorthand(node)) {
+      pushDotShorthandContext(node, SharedTypeSchemaView(contextType));
+    }
+
+    checkUnreachableNode(node);
+    analyzeExpression(
+      node.receiver,
+      SharedTypeSchemaView(UnknownInferredType.instance),
+      continueNullShorting: true,
+    );
+    node.receiver = popRewrite()!;
+
+    var receiverDoesNotComplete =
+        node.receiver is! ExtensionOverrideImpl &&
+        identical(
+          typeSystem.resolveToBound(node.receiver.typeOrThrow),
+          NeverTypeImpl.instance,
+        );
+    if (node.question != null && !receiverDoesNotComplete) {
+      _startNullAwareAccess(node.receiver);
+      nullSafetyDeadCodeVerifier.visitNode(node.index);
+    }
+
+    var resolution = _propertyElementResolver.resolveIndexExpression2(node);
+    node.resolution = resolution;
+
+    analyzeExpression(
+      node.index,
+      SharedTypeSchemaView(
+        resolution?.indexContextType ?? UnknownInferredType.instance,
+      ),
+    );
+    node.index = popRewrite()!;
+    var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(
+      flowAnalysis.getExpressionInfo(node.index),
+    );
+    var readElement = switch (resolution) {
+      MethodIndexReadResolutionImpl(:var element) => element,
+      InvalidIndexReadResolutionImpl(
+        recovery: MethodIndexReadResolutionImpl(:var element),
+      ) =>
+        element,
+      _ => null,
+    };
+    checkIndexExpressionIndex(
+      node.index,
+      readElement: readElement,
+      writeElement: null,
+      whyNotPromoted: whyNotPromoted,
+    );
+
+    node.recordStaticType(
+      resolution?.type ?? NeverTypeImpl.instance,
+      resolver: this,
+    );
+    var replacement = insertGenericFunctionInstantiation(
+      node,
+      contextType: contextType,
+    );
+    _insertImplicitCallReference(replacement, contextType: contextType);
+    nullSafetyDeadCodeVerifier.verifyIndexExpression2(node);
+
+    if (isDotShorthand(node)) {
+      popDotShorthandContext();
+    }
+
+    inferenceLogWriter?.exitExpression(node);
+  }
+
+  @override
   void visitIntegerLiteral(
     IntegerLiteral node, {
     TypeImpl contextType = UnknownInferredType.instance,
@@ -4169,6 +4345,11 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     );
     node.receiver = popRewrite()!;
 
+    if (node.operator.type == TokenType.QUESTION_PERIOD) {
+      _startNullAwareAccess(node.receiver);
+      nullSafetyDeadCodeVerifier.visitNullAwareAccess(node, node.propertyName);
+    }
+
     var (:expressionInfo, :resolution, :type) = _propertyElementResolver
         .resolvePropertyExtraction(node);
     node.resolution = resolution;
@@ -4180,6 +4361,13 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       contextType: contextType,
     );
     _insertImplicitCallReference(replacement, contextType: contextType);
+    if (node.operator.type == TokenType.QUESTION_PERIOD) {
+      nullSafetyDeadCodeVerifier.verifyNullAwareAccess(
+        node,
+        node.receiver,
+        node.operator,
+      );
+    }
 
     inferenceLogWriter?.exitExpression(node);
   }
@@ -4504,6 +4692,37 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     // `TypeAnalyzer.analyzeExpression` calls it when the static type of the
     // expression is `Never`.
     inferenceLogWriter?.exitExpression(node);
+  }
+
+  @override
+  void visitTopLevelGetterDeclaration(
+    covariant TopLevelGetterDeclarationImpl node,
+  ) {
+    var element = node.declaredFragment!.element;
+    var returnType = element.returnType;
+
+    _withEnclosingExecutableElement(element, () {
+      checkUnreachableNode(node);
+      node.documentationComment?.accept2(this);
+      node.metadata.accept2(this);
+      node.returnType?.accept2(this);
+      node.recoveryTypeParameters?.accept2(this);
+      node.recoveryFormalParameters?.accept2(this);
+
+      flowAnalysis.bodyOrInitializer_enter(node, element.formalParameters);
+      flowAnalysis.executableDeclaration_enter(
+        node,
+        element.formalParameters,
+        isClosure: false,
+      );
+
+      node.body.resolve(this, returnType is DynamicType ? null : returnType);
+
+      checkForBodyMayCompleteNormally(body: node.body, errorNode: node.name);
+      flowAnalysis.executableDeclaration_exit(node.body, false);
+      flowAnalysis.bodyOrInitializer_exit();
+      nullSafetyDeadCodeVerifier.flowEnd(node);
+    });
   }
 
   @override
@@ -4882,15 +5101,17 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       context = parent.writeType!;
     } else if (parent is AssignmentExpression2Impl) {
       var target = parent.target;
-      var write = switch (target) {
-        PropertyAssignmentTargetImpl(:var write) => write,
-        UnqualifiedNameAssignmentTargetImpl(:var write) => write,
+      var writeType = switch (target) {
+        CascadeIndexAssignmentTargetImpl(:var write) => write?.acceptedType,
+        IndexAssignmentTargetImpl(:var write) => write?.acceptedType,
+        PropertyAssignmentTargetImpl(:var write) => write?.acceptedType,
+        UnqualifiedNameAssignmentTargetImpl(:var write) => write?.acceptedType,
         InvalidExpressionAssignmentTargetImpl() => null,
       };
-      if (write == null) {
+      if (writeType == null) {
         return;
       }
-      context = write.acceptedType;
+      context = writeType;
     } else {
       context = contextType;
     }

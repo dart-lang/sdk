@@ -623,7 +623,7 @@ namespace dart {
   V(CoreLibrary, _GrowableList, _setLength, GrowableArraySetLength,            \
     0xcbfee1f6)                                                                \
   V(CoreLibrary, _GrowableList, _setIndexed, GrowableArraySetIndexedUnchecked, \
-    0x512deb6f)                                                                \
+    0x31281683)                                                                \
   V(CoreLibrary, _StringBase, get:length, StringBaseLength, 0x5833d8ab)        \
   V(CoreLibrary, _Smi, ~, Smi_bitNegate, 0x8237e11c)                           \
   V(CoreLibrary, _IntegerImplementation, +, Integer_add, 0x6ef842cb)           \

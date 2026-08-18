@@ -387,10 +387,21 @@ augment class A {
 }
 ''');
 
-    var node = result.findNode.singlePropertyAccess;
+    var node = result.findNode.singlePropertyExtraction;
     assertResolvedNodeText(node, r'''
-PropertyAccess
-  target2: ThisExpression
+PropertyExtraction
+  receiver: ThisExpression
+    thisKeyword: this
+    staticType: A
+  operator: .
+  propertyName: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::A::@getter::foo
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: PropertyAccess
+  target: ThisExpression
     thisKeyword: this
     staticType: A
   operator: .
@@ -417,10 +428,21 @@ augment class A {
 }
 ''');
 
-    var node = result.findNode.singlePropertyAccess;
+    var node = result.findNode.singlePropertyExtraction;
     assertResolvedNodeText(node, r'''
-PropertyAccess
-  target2: ThisExpression
+PropertyExtraction
+  receiver: ThisExpression
+    thisKeyword: this
+    staticType: A
+  operator: .
+  propertyName: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::A::@getter::foo
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: PropertyAccess
+  target: ThisExpression
     thisKeyword: this
     staticType: A
   operator: .
@@ -447,10 +469,20 @@ augment class A {
 }
 ''');
 
-    var node = result.findNode.singlePropertyAccess;
+    var node = result.findNode.singlePropertyExtraction;
     assertResolvedNodeText(node, r'''
-PropertyAccess
-  target2: ThisExpression
+PropertyExtraction
+  receiver: ThisExpression
+    thisKeyword: this
+    staticType: A
+  operator: .
+  propertyName: foo
+  resolution: ExecutableTearOffResolution
+    element: <testLibrary>::@class::A::@method::foo
+    type: void Function()
+  staticType: void Function()
+V1: PropertyAccess
+  target: ThisExpression
     thisKeyword: this
     staticType: A
   operator: .
@@ -593,10 +625,21 @@ class A {
 }
 ''');
 
-    var node = result.findNode.propertyAccess('foo;');
+    var node = result.findNode.propertyExtraction('foo;');
     assertResolvedNodeText(node, r'''
-PropertyAccess
-  target2: ThisExpression
+PropertyExtraction
+  receiver: ThisExpression
+    thisKeyword: this
+    staticType: A
+  operator: .
+  propertyName: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::A::@getter::foo
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: PropertyAccess
+  target: ThisExpression
     thisKeyword: this
     staticType: A
   operator: .
@@ -619,10 +662,20 @@ class A {
 }
 ''');
 
-    var node = result.findNode.propertyAccess('foo;');
+    var node = result.findNode.propertyExtraction('foo;');
     assertResolvedNodeText(node, r'''
-PropertyAccess
-  target2: ThisExpression
+PropertyExtraction
+  receiver: ThisExpression
+    thisKeyword: this
+    staticType: A
+  operator: .
+  propertyName: foo
+  resolution: ExecutableTearOffResolution
+    element: <testLibrary>::@class::A::@method::foo
+    type: void Function(int)
+  staticType: void Function(int)
+V1: PropertyAccess
+  target: ThisExpression
     thisKeyword: this
     staticType: A
   operator: .
@@ -645,10 +698,21 @@ extension type A(int it) {
 }
 ''');
 
-    var node = result.findNode.singlePropertyAccess;
+    var node = result.findNode.singlePropertyExtraction;
     assertResolvedNodeText(node, r'''
-PropertyAccess
-  target2: ThisExpression
+PropertyExtraction
+  receiver: ThisExpression
+    thisKeyword: this
+    staticType: A
+  operator: .
+  propertyName: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@extensionType::A::@getter::foo
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: PropertyAccess
+  target: ThisExpression
     thisKeyword: this
     staticType: A
   operator: .
@@ -675,10 +739,21 @@ extension type X(B it) implements A {
 }
 ''');
 
-    var node = result.findNode.singlePropertyAccess;
+    var node = result.findNode.singlePropertyExtraction;
     assertResolvedNodeText(node, r'''
-PropertyAccess
-  target2: ThisExpression
+PropertyExtraction
+  receiver: ThisExpression
+    thisKeyword: this
+    staticType: X
+  operator: .
+  propertyName: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::A::@getter::foo
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: PropertyAccess
+  target: ThisExpression
     thisKeyword: this
     staticType: X
   operator: .
@@ -756,7 +831,16 @@ RegularFormalParameter
         token: b
         element: <null>
         staticType: InvalidType
-      cascadeSections2
+      sections
+        CascadeSection
+          body: PropertyAccess
+            operator: ?..
+            propertyName: SimpleIdentifier
+              token: foo
+              element: <null>
+              staticType: InvalidType
+            staticType: InvalidType
+      cascadeSections
         PropertyAccess
           operator: ?..
           propertyName: SimpleIdentifier
@@ -790,7 +874,24 @@ CascadeExpression
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A?
-  cascadeSections2
+  sections
+    CascadeSection
+      body: PropertyAccess
+        operator: ?..
+        propertyName: SimpleIdentifier
+          token: foo
+          element: <testLibrary>::@class::A::@getter::foo
+          staticType: int
+        staticType: int
+    CascadeSection
+      body: PropertyAccess
+        operator: ..
+        propertyName: SimpleIdentifier
+          token: bar
+          element: <testLibrary>::@class::A::@getter::bar
+          staticType: int
+        staticType: int
+  cascadeSections
     PropertyAccess
       operator: ?..
       propertyName: SimpleIdentifier
@@ -846,9 +947,25 @@ CascadeExpression
       leftParenthesis: (
       rightParenthesis: )
     staticType: A
-  cascadeSections2
+  sections
+    CascadeSection
+      body: PropertyAccess
+        target2: PropertyAccess
+          operator: ..
+          propertyName: SimpleIdentifier
+            token: foo
+            element: <testLibrary>::@class::A::@getter::foo
+            staticType: int?
+          staticType: int?
+        operator: ?.
+        propertyName: SimpleIdentifier
+          token: isEven
+          element: dart:core::@class::int::@getter::isEven
+          staticType: bool
+        staticType: bool?
+  cascadeSections
     PropertyAccess
-      target2: PropertyAccess
+      target: PropertyAccess
         operator: ..
         propertyName: SimpleIdentifier
           token: foo
@@ -904,10 +1021,33 @@ CascadeExpression
       leftParenthesis: (
       rightParenthesis: )
     staticType: A
-  cascadeSections2
-    PropertyAccess
-      target2: PropertyAccess
+  sections
+    CascadeSection
+      body: PropertyAccess
         target2: PropertyAccess
+          target2: PropertyAccess
+            operator: ..
+            propertyName: SimpleIdentifier
+              token: foo
+              element: <testLibrary>::@class::A::@getter::foo
+              staticType: A?
+            staticType: A?
+          operator: ?.
+          propertyName: SimpleIdentifier
+            token: bar
+            element: <testLibrary>::@class::A::@getter::bar
+            staticType: A?
+          staticType: A?
+        operator: ?.
+        propertyName: SimpleIdentifier
+          token: baz
+          element: <testLibrary>::@class::A::@getter::baz
+          staticType: A?
+        staticType: A?
+  cascadeSections
+    PropertyAccess
+      target: PropertyAccess
+        target: PropertyAccess
           operator: ..
           propertyName: SimpleIdentifier
             token: foo
@@ -959,9 +1099,25 @@ CascadeExpression
       element: <testLibrary>::@class::A::@getter::bar
       staticType: A
     staticType: A?
-  cascadeSections2
+  sections
+    CascadeSection
+      body: PropertyAccess
+        target2: PropertyAccess
+          operator: ?..
+          propertyName: SimpleIdentifier
+            token: baz
+            element: <testLibrary>::@class::A::@getter::baz
+            staticType: A?
+          staticType: A?
+        operator: ?.
+        propertyName: SimpleIdentifier
+          token: baq
+          element: <testLibrary>::@class::A::@getter::baq
+          staticType: A
+        staticType: A?
+  cascadeSections
     PropertyAccess
-      target2: PropertyAccess
+      target: PropertyAccess
         operator: ?..
         propertyName: SimpleIdentifier
           token: baz
@@ -1011,7 +1167,7 @@ PropertyExtraction
     invokeType: int Function()
     type: int
   staticType: int
-PropertyAccess
+V1: PropertyAccess
   target: ParenthesizedExpression
     leftParenthesis: (
     expression: SimpleIdentifier
@@ -1060,7 +1216,7 @@ PropertyExtraction
     invokeType: int Function()
     type: int
   staticType: int
-PropertyAccess
+V1: PropertyAccess
   target: ParenthesizedExpression
     leftParenthesis: (
     expression: SimpleIdentifier
@@ -1111,7 +1267,7 @@ PropertyExtraction
     invokeType: int Function()
     type: int
   staticType: int
-PropertyAccess
+V1: PropertyAccess
   target: ParenthesizedExpression
     leftParenthesis: (
     expression: SimpleIdentifier
@@ -1162,7 +1318,7 @@ PropertyExtraction
     invokeType: double Function()
     type: double
   staticType: double
-PropertyAccess
+V1: PropertyAccess
   target: ParenthesizedExpression
     leftParenthesis: (
     expression: SimpleIdentifier
@@ -1203,7 +1359,7 @@ PropertyExtraction
   resolution: DynamicPropertyReadResolution
     type: dynamic
   staticType: dynamic
-PropertyAccess
+V1: PropertyAccess
   target: ParenthesizedExpression
     leftParenthesis: (
     expression: SimpleIdentifier
@@ -1246,7 +1402,7 @@ PropertyExtraction
     invokeType: int Function()
     type: int
   staticType: int
-PropertyAccess
+V1: PropertyAccess
   target: ParenthesizedExpression
     leftParenthesis: (
     expression: SimpleIdentifier
@@ -1289,7 +1445,7 @@ PropertyExtraction
     invokeType: Type Function()
     type: Type
   staticType: Type
-PropertyAccess
+V1: PropertyAccess
   target: ParenthesizedExpression
     leftParenthesis: (
     expression: SimpleIdentifier
@@ -1331,7 +1487,7 @@ PropertyExtraction
     element: dart:core::@class::Object::@method::toString
     type: String Function()
   staticType: String Function()
-PropertyAccess
+V1: PropertyAccess
   target: ParenthesizedExpression
     leftParenthesis: (
     expression: SimpleIdentifier
@@ -1379,7 +1535,7 @@ PropertyExtraction
     invokeType: int Function()
     type: int
   staticType: int
-PropertyAccess
+V1: PropertyAccess
   target: ParenthesizedExpression
     leftParenthesis: (
     expression: SimpleIdentifier
@@ -1430,7 +1586,7 @@ PropertyExtraction
     invokeType: int Function()
     type: int
   staticType: int
-PropertyAccess
+V1: PropertyAccess
   target: ParenthesizedExpression
     leftParenthesis: (
     expression: SimpleIdentifier
@@ -1525,7 +1681,7 @@ PropertyExtraction
     invokeType: int Function()
     type: int
   staticType: int
-PropertyAccess
+V1: PropertyAccess
   target: ParenthesizedExpression
     leftParenthesis: (
     expression: SimpleIdentifier
@@ -1625,7 +1781,7 @@ PropertyExtraction
     invokeType: int Function()
     type: int
   staticType: int
-PropertyAccess
+V1: PropertyAccess
   target: ParenthesizedExpression
     leftParenthesis: (
     expression: SimpleIdentifier
@@ -1896,7 +2052,7 @@ PropertyExtraction
     invokeType: int Function()
     type: int
   staticType: int
-PropertyAccess
+V1: PropertyAccess
   target: ParenthesizedExpression
     leftParenthesis: (
     expression: SimpleIdentifier
@@ -1941,7 +2097,7 @@ PropertyExtraction
     invokeType: int Function()
     type: int
   staticType: int
-PropertyAccess
+V1: PropertyAccess
   target: ParenthesizedExpression
     leftParenthesis: (
     expression: SimpleIdentifier
@@ -1986,7 +2142,7 @@ PropertyExtraction
     invokeType: int Function()
     type: int
   staticType: int
-PropertyAccess
+V1: PropertyAccess
   target: ParenthesizedExpression
     leftParenthesis: (
     expression: SimpleIdentifier
@@ -2033,7 +2189,7 @@ PropertyExtraction
     candidates
     recovery: <null>
   staticType: InvalidType
-PropertyAccess
+V1: PropertyAccess
   target: ParenthesizedExpression
     leftParenthesis: (
     expression: SimpleIdentifier
@@ -2127,7 +2283,7 @@ PropertyExtraction
     invokeType: int Function()
     type: int
   staticType: int
-PropertyAccess
+V1: PropertyAccess
   target: ParenthesizedExpression
     leftParenthesis: (
     expression: SimpleIdentifier
@@ -2176,7 +2332,7 @@ PropertyExtraction
     invokeType: int Function()
     type: int
   staticType: int
-PropertyAccess
+V1: PropertyAccess
   target: ParenthesizedExpression
     leftParenthesis: (
     expression: SimpleIdentifier
@@ -2721,7 +2877,7 @@ PropertyExtraction
     invokeType: int Function()
     type: int
   staticType: int
-PropertyAccess
+V1: PropertyAccess
   target: InstanceCreationExpression
     keyword: new
     constructorName: ConstructorName
@@ -2740,6 +2896,63 @@ PropertyAccess
     element: <testLibrary>::@class::A::@getter::foo
     staticType: int
   staticType: int
+''');
+  }
+
+  test_propertyExtraction_explicitInstanceCreation_nullAware() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class C {
+  int x = 0;
+}
+
+void f() {
+  new C()?.x;
+//       ^^
+// [diag.invalidNullAwareOperator] The receiver can't be null, so the null-aware operator '?.' is unnecessary.
+}
+''');
+
+    var node = result.findNode.singlePropertyExtraction;
+    assertResolvedNodeText(node, r'''
+PropertyExtraction
+  receiver: ConstructorInvocation
+    keyword: new
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: C
+        element: <testLibrary>::@class::C
+        type: C
+      element: <testLibrary>::@class::C::@constructor::new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: C
+  operator: ?.
+  propertyName: x
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::C::@getter::x
+    invokeType: int Function()
+    type: int
+  staticType: int?
+V1: PropertyAccess
+  target: InstanceCreationExpression
+    keyword: new
+    constructorName: ConstructorName
+      type: NamedType
+        name: C
+        element: <testLibrary>::@class::C
+        type: C
+      element: <testLibrary>::@class::C::@constructor::new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: C
+  operator: ?.
+  propertyName: SimpleIdentifier
+    token: x
+    element: <testLibrary>::@class::C::@getter::x
+    staticType: int
+  staticType: int?
 ''');
   }
 
@@ -2774,7 +2987,7 @@ PropertyExtraction
     invokeType: bool Function()
     type: bool
   staticType: bool
-PropertyAccess
+V1: PropertyAccess
   target: PropertyAccess
     target: ParenthesizedExpression
       leftParenthesis: (
@@ -2825,7 +3038,7 @@ PropertyExtraction
     element: <testLibrary>::@class::A::@method::foo
     type: void Function(int)
   staticType: void Function(int)
-PropertyAccess
+V1: PropertyAccess
   target: ParenthesizedExpression
     leftParenthesis: (
     expression: SimpleIdentifier
@@ -2869,7 +3082,7 @@ PropertyExtraction
   propertyName: foo
   resolution: <null>
   staticType: Never
-PropertyAccess
+V1: PropertyAccess
   target: ParenthesizedExpression
     leftParenthesis: (
     expression: SimpleIdentifier
@@ -2884,6 +3097,93 @@ PropertyAccess
     element: <null>
     staticType: Never
   staticType: Never
+''');
+  }
+
+  test_propertyExtraction_parenthesizedExpression_nullAware() async {
+    var result = await resolveTestCode(r'''
+class A {
+  int get foo => 0;
+}
+
+void f(A? a) {
+  (a)?.foo;
+}
+''');
+
+    var node = result.findNode.singlePropertyExtraction;
+    assertResolvedNodeText(node, r'''
+PropertyExtraction
+  receiver: ParenthesizedExpression
+    leftParenthesis: (
+    expression2: SimpleIdentifier
+      token: a
+      element: <testLibrary>::@function::f::@formalParameter::a
+      staticType: A?
+    rightParenthesis: )
+    staticType: A?
+  operator: ?.
+  propertyName: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::A::@getter::foo
+    invokeType: int Function()
+    type: int
+  staticType: int?
+V1: PropertyAccess
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: SimpleIdentifier
+      token: a
+      element: <testLibrary>::@function::f::@formalParameter::a
+      staticType: A?
+    rightParenthesis: )
+    staticType: A?
+  operator: ?.
+  propertyName: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@class::A::@getter::foo
+    staticType: int
+  staticType: int?
+''');
+  }
+
+  test_propertyExtraction_parenthesizedExpression_nullAware_null() async {
+    var result = await resolveTestCode(r'''
+void f(Null a) {
+  (a)?.foo;
+}
+''');
+
+    var node = result.findNode.singlePropertyExtraction;
+    assertResolvedNodeText(node, r'''
+PropertyExtraction
+  receiver: ParenthesizedExpression
+    leftParenthesis: (
+    expression2: SimpleIdentifier
+      token: a
+      element: <testLibrary>::@function::f::@formalParameter::a
+      staticType: Null
+    rightParenthesis: )
+    staticType: Null
+  operator: ?.
+  propertyName: foo
+  resolution: <null>
+  staticType: Never?
+V1: PropertyAccess
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: SimpleIdentifier
+      token: a
+      element: <testLibrary>::@function::f::@formalParameter::a
+      staticType: Null
+    rightParenthesis: )
+    staticType: Null
+  operator: ?.
+  propertyName: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: Never?
+  staticType: Never?
 ''');
   }
 
@@ -2920,7 +3220,7 @@ PropertyExtraction
   resolution: RecordFieldReadResolution
     type: int
   staticType: int
-PropertyAccess
+V1: PropertyAccess
   target: ParenthesizedExpression
     leftParenthesis: (
     expression: RecordLiteral
@@ -2967,7 +3267,7 @@ PropertyExtraction
     invokeType: int Function()
     type: int
   staticType: int
-PropertyAccess
+V1: PropertyAccess
   target: SimpleStringLiteral
     literal: 'foo'
   operator: .
@@ -2976,6 +3276,78 @@ PropertyAccess
     element: dart:core::@class::String::@getter::length
     staticType: int
   staticType: int
+''');
+  }
+
+  test_propertyExtraction_stringLiteral_nullAware() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void f() {
+  'a'?.length;
+//   ^^
+// [diag.invalidNullAwareOperator] The receiver can't be null, so the null-aware operator '?.' is unnecessary.
+}
+''');
+
+    var node = result.findNode.singlePropertyExtraction;
+    assertResolvedNodeText(node, r'''
+PropertyExtraction
+  receiver: SimpleStringLiteral
+    literal: 'a'
+  operator: ?.
+  propertyName: length
+  resolution: GetterInvocationResolution
+    element: dart:core::@class::String::@getter::length
+    invokeType: int Function()
+    type: int
+  staticType: int?
+V1: PropertyAccess
+  target: SimpleStringLiteral
+    literal: 'a'
+  operator: ?.
+  propertyName: SimpleIdentifier
+    token: length
+    element: dart:core::@class::String::@getter::length
+    staticType: int
+  staticType: int?
+''');
+  }
+
+  test_propertyExtraction_this_nullAware() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class C {
+  int x = 0;
+
+  void f() {
+    this?.x;
+//      ^^
+// [diag.invalidNullAwareOperator] The receiver can't be null, so the null-aware operator '?.' is unnecessary.
+  }
+}
+''');
+
+    var node = result.findNode.singlePropertyExtraction;
+    assertResolvedNodeText(node, r'''
+PropertyExtraction
+  receiver: ThisExpression
+    thisKeyword: this
+    staticType: C
+  operator: ?.
+  propertyName: x
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::C::@getter::x
+    invokeType: int Function()
+    type: int
+  staticType: int?
+V1: PropertyAccess
+  target: ThisExpression
+    thisKeyword: this
+    staticType: C
+  operator: ?.
+  propertyName: SimpleIdentifier
+    token: x
+    element: <testLibrary>::@class::C::@getter::x
+    staticType: int
+  staticType: int?
 ''');
   }
 
@@ -3161,7 +3533,7 @@ PropertyExtraction
   resolution: DynamicPropertyReadResolution
     type: dynamic
   staticType: dynamic
-PropertyAccess
+V1: PropertyAccess
   target: ParenthesizedExpression
     leftParenthesis: (
     expression: SimpleIdentifier
@@ -3208,7 +3580,7 @@ PropertyExtraction
     candidates
     recovery: <null>
   staticType: InvalidType
-PropertyAccess
+V1: PropertyAccess
   target: ParenthesizedExpression
     leftParenthesis: (
     expression: SimpleIdentifier
@@ -3273,7 +3645,7 @@ PropertyExtraction
     candidates
     recovery: <null>
   staticType: InvalidType
-PropertyAccess
+V1: PropertyAccess
   target: ParenthesizedExpression
     leftParenthesis: (
     expression: SimpleIdentifier

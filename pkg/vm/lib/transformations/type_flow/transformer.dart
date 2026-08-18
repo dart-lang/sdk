@@ -1188,7 +1188,7 @@ class FieldMorpher {
       final isAbstract = !shaker.isFieldSetterReachable(field);
       final parameter =
           new PositionalParameter(
-              cosmeticName: 'value',
+              parameterName: 'value',
               type: field.type,
               isSynthesized: true,
             )

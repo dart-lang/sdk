@@ -398,10 +398,10 @@ abstract class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
         );
         if (parameterType != null) {
           newFormals ??= new List.of(formals);
-          newFormals[i] = new FunctionTypeParameterBuilder(
-            formal.kind,
-            parameterType,
-            formal.name,
+          newFormals[i] = new ComputedParameterBuilder(
+            kind: formal.kind,
+            type: parameterType,
+            name: formal.name,
           );
         }
       }
