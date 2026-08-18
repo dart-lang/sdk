@@ -777,7 +777,13 @@ bar(A a) {
     var node = result.findNode.functionReference('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function2: PropertyAccess
+  function2: CascadePropertyExtraction
+    propertyName: foo
+    resolution: ExecutableTearOffResolution
+      element: <testLibrary>::@extension::E::@method::foo
+      type: void Function<T>(T)
+    staticType: void Function<T>(T)
+  function(v1): PropertyAccess
     operator: ..
     propertyName: SimpleIdentifier
       token: foo
@@ -2707,7 +2713,13 @@ bar(A a) {
     var node = result.findNode.functionReference('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function2: PropertyAccess
+  function2: CascadePropertyExtraction
+    propertyName: foo
+    resolution: ExecutableTearOffResolution
+      element: <testLibrary>::@class::A::@method::foo
+      type: void Function<T>(T)
+    staticType: void Function<T>(T)
+  function(v1): PropertyAccess
     operator: ..
     propertyName: SimpleIdentifier
       token: foo

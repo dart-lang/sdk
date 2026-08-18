@@ -12,6 +12,12 @@ class UseResultVerifier {
 
   UseResultVerifier(this._diagnosticReporter);
 
+  void checkCascadePropertyExtraction(CascadePropertyExtractionImpl node) {
+    if (node.resolution case NamedReadResolutionWithElementImpl(:var element)) {
+      _check(node, element);
+    }
+  }
+
   void checkConstructorInvocation(ConstructorInvocation node) {
     var element = node.constructorReference.element;
     if (element == null) {

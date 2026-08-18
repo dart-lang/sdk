@@ -159,6 +159,54 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitCascadePropertyExtraction(
+    covariant CascadePropertyExtractionImpl node,
+  ) {
+    var element = switch (node.resolution) {
+      NamedReadResolutionWithElementImpl(:var element) => element,
+      _ => null,
+    };
+    if (element != null) {
+      ExpressionImpl? cascadeTarget;
+      for (
+        AstNodeImpl? ancestor = node.parent2;
+        ancestor != null;
+        ancestor = ancestor.parent2
+      ) {
+        if (ancestor case CascadeExpressionImpl(:var target2)) {
+          cascadeTarget = target2;
+          break;
+        }
+      }
+      var enclosingElement = element.enclosingElement;
+      if (enclosingElement.isNativeStructPointerExtension ||
+          enclosingElement.isNativeUnionPointerExtension) {
+        if (element.name == 'ref' && cascadeTarget != null) {
+          var targetType = cascadeTarget.typeOrThrow;
+          if (!_isValidFfiNativeType(targetType, allowEmptyStruct: true)) {
+            _diagnosticReporter.report(
+              diag.nonConstantTypeArgument
+                  .withArguments(executableName: 'ref')
+                  .at(node),
+            );
+          }
+        }
+      } else if (enclosingElement.isAddressOfExtension &&
+          element.name == 'address') {
+        var errorNode = node.propertyName;
+        _validateAddressPosition(node, errorNode);
+        _validateAddressReceiver(
+          node,
+          enclosingElement?.name,
+          cascadeTarget,
+          errorNode,
+        );
+      }
+    }
+    super.visitCascadePropertyExtraction(node);
+  }
+
+  @override
   void visitClassDeclaration(covariant ClassDeclarationImpl node) {
     inCompound = false;
     compound = null;

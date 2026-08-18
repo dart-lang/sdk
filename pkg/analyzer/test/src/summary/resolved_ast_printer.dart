@@ -250,6 +250,35 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitCascadePropertyAssignmentTarget(
+    covariant CascadePropertyAssignmentTargetImpl node,
+  ) {
+    _sink.writeln('CascadePropertyAssignmentTarget');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      if (_withResolution) {
+        _writeNamedReadResolution('read', node.read);
+        _writeNamedWriteResolution('write', node.write);
+      }
+    });
+  }
+
+  @override
+  void visitCascadePropertyExtraction(
+    covariant CascadePropertyExtractionImpl node,
+  ) {
+    _sink.writeln('CascadePropertyExtraction');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeParameterElement(node);
+      if (_withResolution) {
+        _writeNamedReadResolution('resolution', node.resolution);
+      }
+      _writeType('staticType', node.staticType);
+    });
+  }
+
+  @override
   void visitCascadeSection(CascadeSection node) {
     _sink.writeln('CascadeSection');
     _sink.withIndent(() {

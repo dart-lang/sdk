@@ -212,6 +212,13 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitCascadePropertyExtraction(CascadePropertyExtraction node) {
+    _elementUsageFrontierDetector.cascadePropertyExtraction(node);
+    _invalidAccessVerifier.verifyCascadePropertyExtraction(node);
+    super.visitCascadePropertyExtraction(node);
+  }
+
+  @override
   void visitCastPattern(CastPattern node) {
     var type = node.type.type;
     var matchedValueType = node.matchedValueType;
@@ -306,6 +313,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
   void visitCompoundAssignment(CompoundAssignment node) {
     _elementUsageFrontierDetector.compoundAssignment(node);
     switch (node.target) {
+      case CascadePropertyAssignmentTarget target:
+        _invalidAccessVerifier.verifyCascadePropertyAssignmentTarget(target);
       case PropertyAssignmentTarget target:
         _invalidAccessVerifier.verifyPropertyAssignmentTarget(target);
       case UnqualifiedNameAssignmentTarget target:
@@ -375,6 +384,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
     switch (target) {
       case IndexAssignmentTarget():
         break;
+      case CascadePropertyAssignmentTarget():
+        _invalidAccessVerifier.verifyCascadePropertyAssignmentTarget(target);
       case PropertyAssignmentTarget():
         _invalidAccessVerifier.verifyPropertyAssignmentTarget(target);
       case UnqualifiedNameAssignmentTarget():
@@ -626,6 +637,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
   void visitIfNullAssignment(IfNullAssignment node) {
     _elementUsageFrontierDetector.ifNullAssignment(node);
     switch (node.target) {
+      case CascadePropertyAssignmentTarget target:
+        _invalidAccessVerifier.verifyCascadePropertyAssignmentTarget(target);
       case PropertyAssignmentTarget target:
         _invalidAccessVerifier.verifyPropertyAssignmentTarget(target);
       case UnqualifiedNameAssignmentTarget target:
@@ -1837,6 +1850,36 @@ class _InvalidAccessVerifier {
     }
   }
 
+  void verifyCascadePropertyAssignmentTarget(
+    CascadePropertyAssignmentTarget node,
+  ) {
+    var readElement = switch (node.read) {
+      InvalidNamedReadResolution(:var candidates) when candidates.isNotEmpty =>
+        candidates.first,
+      NamedReadResolutionWithElement(:var element) => element,
+      _ => null,
+    };
+    var writeElement = switch (node.write) {
+      InvalidNamedWriteResolution(:var candidates) when candidates.isNotEmpty =>
+        candidates.first,
+      NamedWriteResolutionWithElement(:var element) => element,
+      _ => null,
+    };
+    for (var element in {readElement, writeElement}) {
+      _verify(node: node, nameToken: node.propertyName, element: element);
+    }
+  }
+
+  void verifyCascadePropertyExtraction(CascadePropertyExtraction node) {
+    var element = switch (node.resolution) {
+      InvalidNamedReadResolution(:var candidates) when candidates.isNotEmpty =>
+        candidates.first,
+      NamedReadResolutionWithElement(:var element) => element,
+      _ => null,
+    };
+    _verify(node: node, nameToken: node.propertyName, element: element);
+  }
+
   void verifyCombinatorName(CombinatorName node) {
     if (node.parent2 is HideCombinator) {
       return;
@@ -2273,7 +2316,13 @@ class _InvalidAccessVerifier {
     } else if (node is PropertyAssignmentTarget) {
       name = node.propertyName.lexeme;
       errorEntity = node.propertyName;
+    } else if (node is CascadePropertyAssignmentTarget) {
+      name = node.propertyName.lexeme;
+      errorEntity = node.propertyName;
     } else if (node is PropertyExtraction) {
+      name = node.propertyName.lexeme;
+      errorEntity = node.propertyName;
+    } else if (node is CascadePropertyExtraction) {
       name = node.propertyName.lexeme;
       errorEntity = node.propertyName;
     } else if (node is UnqualifiedNameAssignmentTarget) {

@@ -972,12 +972,13 @@ RegularFormalParameter
         staticType: InvalidType
       sections
         CascadeSection
-          body: PropertyAccess
-            operator: ?..
-            propertyName: SimpleIdentifier
-              token: foo
-              element: <null>
-              staticType: InvalidType
+          operator: ?..
+          body: CascadePropertyExtraction
+            propertyName: foo
+            resolution: InvalidNamedReadResolution
+              type: InvalidType
+              candidates
+              recovery: <null>
             staticType: InvalidType
       cascadeSections
         PropertyAccess
@@ -1015,20 +1016,22 @@ CascadeExpression
     staticType: A?
   sections
     CascadeSection
-      body: PropertyAccess
-        operator: ?..
-        propertyName: SimpleIdentifier
-          token: foo
+      operator: ?..
+      body: CascadePropertyExtraction
+        propertyName: foo
+        resolution: GetterInvocationResolution
           element: <testLibrary>::@class::A::@getter::foo
-          staticType: int
+          invokeType: int Function()
+          type: int
         staticType: int
     CascadeSection
-      body: PropertyAccess
-        operator: ..
-        propertyName: SimpleIdentifier
-          token: bar
+      operator: ..
+      body: CascadePropertyExtraction
+        propertyName: bar
+        resolution: GetterInvocationResolution
           element: <testLibrary>::@class::A::@getter::bar
-          staticType: int
+          invokeType: int Function()
+          type: int
         staticType: int
   cascadeSections
     PropertyAccess
@@ -1088,8 +1091,16 @@ CascadeExpression
     staticType: A
   sections
     CascadeSection
+      operator: ..
       body: PropertyAccess
-        target2: PropertyAccess
+        target2: CascadePropertyExtraction
+          propertyName: foo
+          resolution: GetterInvocationResolution
+            element: <testLibrary>::@class::A::@getter::foo
+            invokeType: int? Function()
+            type: int?
+          staticType: int?
+        target(v1): PropertyAccess
           operator: ..
           propertyName: SimpleIdentifier
             token: foo
@@ -1162,9 +1173,17 @@ CascadeExpression
     staticType: A
   sections
     CascadeSection
+      operator: ..
       body: PropertyAccess
         target2: PropertyAccess
-          target2: PropertyAccess
+          target2: CascadePropertyExtraction
+            propertyName: foo
+            resolution: GetterInvocationResolution
+              element: <testLibrary>::@class::A::@getter::foo
+              invokeType: A? Function()
+              type: A?
+            staticType: A?
+          target(v1): PropertyAccess
             operator: ..
             propertyName: SimpleIdentifier
               token: foo
@@ -1240,8 +1259,16 @@ CascadeExpression
     staticType: A?
   sections
     CascadeSection
+      operator: ?..
       body: PropertyAccess
-        target2: PropertyAccess
+        target2: CascadePropertyExtraction
+          propertyName: baz
+          resolution: GetterInvocationResolution
+            element: <testLibrary>::@class::A::@getter::baz
+            invokeType: A? Function()
+            type: A?
+          staticType: A?
+        target(v1): PropertyAccess
           operator: ?..
           propertyName: SimpleIdentifier
             token: baz
@@ -1536,11 +1563,9 @@ PropertyExtraction
     staticType: dynamic
   operator: .
   propertyName: hashCode
-  resolution: GetterInvocationResolution
-    element: dart:core::@class::Object::@getter::hashCode
-    invokeType: int Function()
-    type: int
-  staticType: int
+  resolution: DynamicPropertyReadResolution
+    type: dynamic
+  staticType: dynamic
 V1: PropertyAccess
   target: ParenthesizedExpression
     leftParenthesis: (
@@ -1553,9 +1578,9 @@ V1: PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: hashCode
-    element: dart:core::@class::Object::@getter::hashCode
-    staticType: int
-  staticType: int
+    element: <null>
+    staticType: dynamic
+  staticType: dynamic
 ''');
   }
 
@@ -1579,11 +1604,9 @@ PropertyExtraction
     staticType: dynamic
   operator: .
   propertyName: runtimeType
-  resolution: GetterInvocationResolution
-    element: dart:core::@class::Object::@getter::runtimeType
-    invokeType: Type Function()
-    type: Type
-  staticType: Type
+  resolution: DynamicPropertyReadResolution
+    type: dynamic
+  staticType: dynamic
 V1: PropertyAccess
   target: ParenthesizedExpression
     leftParenthesis: (
@@ -1596,9 +1619,9 @@ V1: PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: runtimeType
-    element: dart:core::@class::Object::@getter::runtimeType
-    staticType: Type
-  staticType: Type
+    element: <null>
+    staticType: dynamic
+  staticType: dynamic
 ''');
   }
 
@@ -1622,10 +1645,9 @@ PropertyExtraction
     staticType: dynamic
   operator: .
   propertyName: toString
-  resolution: ExecutableTearOffResolution
-    element: dart:core::@class::Object::@method::toString
-    type: String Function()
-  staticType: String Function()
+  resolution: DynamicPropertyReadResolution
+    type: dynamic
+  staticType: dynamic
 V1: PropertyAccess
   target: ParenthesizedExpression
     leftParenthesis: (
@@ -1638,9 +1660,9 @@ V1: PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: toString
-    element: dart:core::@class::Object::@method::toString
-    staticType: String Function()
-  staticType: String Function()
+    element: <null>
+    staticType: dynamic
+  staticType: dynamic
 ''');
   }
 

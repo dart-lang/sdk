@@ -200,6 +200,26 @@ class AstBinaryReader {
     return node;
   }
 
+  CascadePropertyAssignmentTarget _readCascadePropertyAssignmentTarget() {
+    var propertyName = _readStringReference();
+    var node = CascadePropertyAssignmentTargetImpl(
+      propertyName: StringToken(TokenType.STRING, propertyName, -1),
+    );
+    node.read = _reader.readOptionalObject(_readNamedReadResolution);
+    node.write = _reader.readOptionalObject(_readNamedWriteResolution);
+    return node;
+  }
+
+  CascadePropertyExtraction _readCascadePropertyExtraction() {
+    var propertyName = _readStringReference();
+    var node = CascadePropertyExtractionImpl(
+      propertyName: StringToken(TokenType.STRING, propertyName, -1),
+    );
+    node.resolution = _reader.readOptionalObject(_readNamedReadResolution);
+    _readExpressionResolution(node);
+    return node;
+  }
+
   CascadeSection _readCascadeSection() {
     var isNullAware = _readByte() == 1;
     var body = _readNode() as ExpressionImpl;
@@ -1162,6 +1182,10 @@ class AstBinaryReader {
         return _readCascadeIndexAssignmentTarget();
       case Tag.CascadeIndexExpression:
         return _readCascadeIndexExpression();
+      case Tag.CascadePropertyAssignmentTarget:
+        return _readCascadePropertyAssignmentTarget();
+      case Tag.CascadePropertyExtraction:
+        return _readCascadePropertyExtraction();
       case Tag.CascadeSection:
         return _readCascadeSection();
       case Tag.ConditionalExpression:

@@ -191,6 +191,18 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
+  void visitCascadePropertyAssignmentTarget(
+    CascadePropertyAssignmentTarget node,
+  ) {
+    _visitToken(node.propertyName);
+  }
+
+  @override
+  void visitCascadePropertyExtraction(CascadePropertyExtraction node) {
+    _visitToken(node.propertyName);
+  }
+
+  @override
   void visitCascadeSection(CascadeSection node) {
     if (!identical(node.body.beginToken, node.operator)) {
       _visitToken(node.operator);

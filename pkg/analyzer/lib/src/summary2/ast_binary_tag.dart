@@ -138,6 +138,8 @@ class Tag {
   static const int CascadeSection = 143;
   static const int CascadeIndexExpression = 144;
   static const int CascadeIndexAssignmentTarget = 145;
+  static const int CascadePropertyExtraction = 146;
+  static const int CascadePropertyAssignmentTarget = 147;
   static const int NullLiteral = 49;
   static const int ParenthesizedExpression = 53;
   static const int PrefixedIdentifier = 32;

@@ -2045,6 +2045,22 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
 
   @experimental
   @override
+  R? visitCascadePropertyAssignmentTarget(
+    CascadePropertyAssignmentTarget node,
+  ) {
+    node.visitChildren2(this);
+    return null;
+  }
+
+  @experimental
+  @override
+  R? visitCascadePropertyExtraction(CascadePropertyExtraction node) {
+    node.visitChildren2(this);
+    return null;
+  }
+
+  @experimental
+  @override
   R? visitCascadeSection(CascadeSection node) {
     node.visitChildren2(this);
     return null;
@@ -3893,6 +3909,16 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
 
   @experimental
   @override
+  R? visitCascadePropertyAssignmentTarget(
+    CascadePropertyAssignmentTarget node,
+  ) => null;
+
+  @experimental
+  @override
+  R? visitCascadePropertyExtraction(CascadePropertyExtraction node) => null;
+
+  @experimental
+  @override
   R? visitCascadeSection(CascadeSection node) => null;
 
   @override
@@ -5200,6 +5226,17 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
   @experimental
   @override
   R? visitCascadeIndexExpression(CascadeIndexExpression node) => _throw(node);
+
+  @experimental
+  @override
+  R? visitCascadePropertyAssignmentTarget(
+    CascadePropertyAssignmentTarget node,
+  ) => _throw(node);
+
+  @experimental
+  @override
+  R? visitCascadePropertyExtraction(CascadePropertyExtraction node) =>
+      _throw(node);
 
   @experimental
   @override
@@ -7539,6 +7576,26 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
 
   @experimental
   @override
+  T? visitCascadePropertyAssignmentTarget(
+    CascadePropertyAssignmentTarget node,
+  ) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitCascadePropertyAssignmentTarget(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @experimental
+  @override
+  T? visitCascadePropertyExtraction(CascadePropertyExtraction node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitCascadePropertyExtraction(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @experimental
+  @override
   T? visitCascadeSection(CascadeSection node) {
     stopwatch.start();
     T? result = _baseVisitor.visitCascadeSection(node);
@@ -9809,6 +9866,17 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
   @experimental
   @override
   R? visitCascadeIndexExpression(CascadeIndexExpression node) =>
+      visitNode(node);
+
+  @experimental
+  @override
+  R? visitCascadePropertyAssignmentTarget(
+    CascadePropertyAssignmentTarget node,
+  ) => visitNode(node);
+
+  @experimental
+  @override
+  R? visitCascadePropertyExtraction(CascadePropertyExtraction node) =>
       visitNode(node);
 
   @experimental

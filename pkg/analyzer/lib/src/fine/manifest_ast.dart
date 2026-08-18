@@ -260,6 +260,15 @@ class _ElementCollector extends UnifyingAstVisitor2<void> {
   void visitBooleanLiteral(BooleanLiteral node) {}
 
   @override
+  void visitCascadePropertyExtraction(CascadePropertyExtraction node) {
+    var element = switch (node.resolution) {
+      NamedReadResolutionWithElement(:var element) => element,
+      _ => null,
+    };
+    _addElement(element);
+  }
+
+  @override
   void visitConditionalExpression(ConditionalExpression node) {
     node.visitChildren2(this);
   }

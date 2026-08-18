@@ -335,6 +335,24 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
   }
 
   @override
+  Element? visitCascadePropertyAssignmentTarget(
+    CascadePropertyAssignmentTarget node,
+  ) {
+    if (node.write case NamedWriteResolutionWithElement(:var element)) {
+      return element;
+    }
+    return null;
+  }
+
+  @override
+  Element? visitCascadePropertyExtraction(CascadePropertyExtraction node) {
+    if (node.resolution case NamedReadResolutionWithElement(:var element)) {
+      return element;
+    }
+    return null;
+  }
+
+  @override
   Element? visitCatchClauseParameter(CatchClauseParameter node) {
     return node.declaredFragment?.element;
   }

@@ -7683,13 +7683,12 @@ CascadeExpression
     token: a
   sections
     CascadeSection
-      body: AssignmentExpression
-        leftHandSide2: PropertyAccess
-          operator: ..
-          propertyName: SimpleIdentifier
-            token: b
+      operator: ..
+      body: DirectAssignment
+        target: CascadePropertyAssignmentTarget
+          propertyName: b
         operator: =
-        rightHandSide2: PatternAssignment
+        value: PatternAssignment
           pattern: ParenthesizedPattern
             leftParenthesis: (
             pattern: AssignedVariablePattern

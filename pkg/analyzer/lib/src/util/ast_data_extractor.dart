@@ -147,6 +147,12 @@ abstract class AstDataExtractor<T> extends UnifyingAstVisitor2<void>
   }
 
   @override
+  void visitCascadePropertyExtraction(CascadePropertyExtraction node) {
+    var propertyName = node.propertyName;
+    computeForToken(propertyName, NodeId(propertyName.offset, IdKind.node));
+  }
+
+  @override
   void visitClassDeclaration(ClassDeclaration node) {
     computeForClass(node, createClassId(node));
     super.visitClassDeclaration(node);

@@ -173,6 +173,116 @@ class PropertyElementResolver with ScopeHelpers {
     );
   }
 
+  ({
+    NamedReadResolutionImpl? read,
+    NamedWriteResolutionImpl? write,
+    ExpressionInfo? readExpressionInfo,
+  })?
+  resolveCascadeProperty({
+    required ExpressionImpl node,
+    required ExpressionImpl receiver,
+    required bool isNullAware,
+    required Token propertyName,
+    required bool hasRead,
+    required bool hasWrite,
+  }) {
+    if (receiver is! ExtensionOverrideImpl) {
+      var receiverType = _typeSystem.resolveToBound(receiver.typeOrThrow);
+      if (receiverType is NeverType &&
+          receiverType.nullabilitySuffix == NullabilitySuffix.none) {
+        diagnosticReporter.report(diag.receiverOfTypeNever.at(receiver));
+        return null;
+      }
+      if (isNullAware && _typeSystem.isNull(receiverType)) {
+        return null;
+      }
+    }
+
+    var identifier = SimpleIdentifierImpl(token: propertyName);
+    var result = switch (receiver) {
+      ExtensionOverrideImpl() => _resolveTargetExtensionOverride(
+        target: receiver,
+        propertyName: identifier,
+        hasRead: hasRead,
+        hasWrite: hasWrite,
+      ),
+      SuperExpressionImpl() => _resolveTargetSuperExpression(
+        node: node,
+        target: receiver,
+        propertyName: identifier,
+        hasRead: hasRead,
+        hasWrite: hasWrite,
+      ),
+      _ => _resolve(
+        node: node,
+        target: receiver,
+        isCascaded: true,
+        isNullAware: isNullAware,
+        propertyName: identifier,
+        hasRead: hasRead,
+        hasWrite: hasWrite,
+      ),
+    };
+
+    var readElement = result.readElement2;
+    var writeElement = result.writeElement2;
+    NamedReadResolutionImpl? read;
+    if (hasRead) {
+      var functionCallTearOffResolution = switch (result.functionTypeCallType) {
+        TypeImpl type => _functionCallTearOffResolution(
+          receiverType: type,
+          isCall: true,
+          callFunctionType: result.callFunctionType,
+        ),
+        _ => null,
+      };
+      read =
+          functionCallTearOffResolution ??
+          (result.atDynamicTarget
+              ? DynamicPropertyReadResolutionImpl()
+              : _createPropertyReadResolution(
+                      element: readElement,
+                      recordField: result.recordField,
+                      type: result.getType as TypeImpl?,
+                    ) ??
+                    InvalidNamedReadResolutionImpl(
+                      candidates: [
+                        ?readElement,
+                        ?result.readElementRecovery2,
+                        ?writeElement,
+                      ],
+                      recovery: null,
+                      type: InvalidTypeImpl.instance,
+                    ));
+    }
+
+    NamedWriteResolutionImpl? write;
+    if (hasWrite) {
+      write = result.atDynamicTarget
+          ? const DynamicPropertyWriteResolutionImpl()
+          : _createNamedWriteResolutionWithElement(writeElement) ??
+                InvalidNamedWriteResolutionImpl(
+                  acceptedType: InvalidTypeImpl.instance,
+                  candidates: [
+                    ?writeElement,
+                    ?result.writeElementRecovery2,
+                    ?readElement,
+                  ],
+                  recovery: null,
+                );
+    }
+
+    return (
+      read: read,
+      write: write,
+      readExpressionInfo: hasRead
+          ? _resolver.flowAnalysis.flow == null
+                ? null
+                : _resolver.flowAnalysis.getExpressionInfo(node)
+          : null,
+    );
+  }
+
   PropertyElementResolverResult resolveDotShorthand(
     DotShorthandPropertyAccessImpl node, {
     required TypeImpl contextType,
@@ -847,6 +957,15 @@ class PropertyElementResolver with ScopeHelpers {
         recovery: null,
         type: InvalidTypeImpl.instance,
       );
+      return (
+        expressionInfo: null,
+        resolution: resolution,
+        type: resolution.type,
+      );
+    }
+
+    if (_typeSystem.isDynamicBounded(receiverType)) {
+      var resolution = DynamicPropertyReadResolutionImpl();
       return (
         expressionInfo: null,
         resolution: resolution,
@@ -1596,12 +1715,6 @@ class PropertyElementResolver with ScopeHelpers {
 
     var targetType = target.typeOrThrow;
 
-    if (propertyName.name == MethodElement.CALL_METHOD_NAME) {
-      if (targetType is FunctionType || targetType.isDartCoreFunction) {
-        return PropertyElementResolverResult(functionTypeCallType: targetType);
-      }
-    }
-
     if (targetType is VoidType) {
       diagnosticReporter.report(diag.useOfVoidResult.at(propertyName));
       return PropertyElementResolverResult();
@@ -1609,6 +1722,19 @@ class PropertyElementResolver with ScopeHelpers {
 
     if (isNullAware) {
       targetType = _typeSystem.promoteToNonNull(targetType);
+    }
+
+    if (propertyName.name == MethodElement.CALL_METHOD_NAME) {
+      var targetTypeResolved = _typeSystem.resolveToBound(targetType);
+      if (targetTypeResolved is FunctionTypeImpl) {
+        return PropertyElementResolverResult(
+          functionTypeCallType: targetType,
+          callFunctionType: targetTypeResolved,
+        );
+      }
+      if (targetTypeResolved.isDartCoreFunction) {
+        return PropertyElementResolverResult(functionTypeCallType: targetType);
+      }
     }
 
     if (target is TypeLiteralImpl && target.type.type is FunctionType) {
@@ -2298,6 +2424,7 @@ class PropertyElementResolverResult {
   final Element? writeElementRecovery2;
   final bool atDynamicTarget;
   final DartType? functionTypeCallType;
+  final FunctionTypeImpl? callFunctionType;
   final RecordTypeFieldImpl? recordField;
   final DartType? getType;
 
@@ -2313,6 +2440,7 @@ class PropertyElementResolverResult {
     this.atDynamicTarget = false,
     this.indexContextType = UnknownInferredType.instance,
     this.functionTypeCallType,
+    this.callFunctionType,
     this.recordField,
     this.getType,
   });

@@ -212,6 +212,33 @@ class AssignmentExpressionResolver {
     return (read: read, write: write);
   }
 
+  ({
+    NamedReadResolutionImpl read,
+    NamedWriteResolutionImpl write,
+    ExpressionInfo? readExpressionInfo,
+  })?
+  resolveCascadePropertyReadWriteTarget(
+    ExpressionImpl node,
+    CascadePropertyAssignmentTargetImpl target,
+  ) {
+    var result = _resolver.resolveCascadeProperty(
+      node,
+      target.propertyName,
+      hasRead: true,
+      hasWrite: true,
+    );
+    target.read = result?.read;
+    target.write = result?.write;
+    var read = result?.read;
+    var write = result?.write;
+    if (read == null || write == null) return null;
+    return (
+      read: read,
+      write: write,
+      readExpressionInfo: result?.readExpressionInfo,
+    );
+  }
+
   void resolveCompound(
     CompoundAssignmentImpl node, {
     required TypeImpl contextType,
@@ -227,6 +254,20 @@ class AssignmentExpressionResolver {
     switch (target) {
       case CascadeIndexAssignmentTargetImpl():
         var targetResult = resolveCascadeIndexReadWriteTarget(target);
+        if (targetResult == null) {
+          _resolver.analyzeExpression(
+            node.value,
+            SharedTypeSchemaView(UnknownInferredType.instance),
+          );
+          node.value = _resolver.popRewrite()!;
+          node.operatorResultType = NeverTypeImpl.instance;
+          node.recordStaticType(NeverTypeImpl.instance, resolver: _resolver);
+          return;
+        }
+        readType = targetResult.read.type;
+        writeAcceptedType = targetResult.write.acceptedType;
+      case CascadePropertyAssignmentTargetImpl():
+        var targetResult = resolveCascadePropertyReadWriteTarget(node, target);
         if (targetResult == null) {
           _resolver.analyzeExpression(
             node.value,
@@ -393,6 +434,25 @@ class AssignmentExpressionResolver {
           return;
         }
         writeAcceptedType = resolution.acceptedType;
+      case CascadePropertyAssignmentTargetImpl():
+        var result = _resolver.resolveCascadeProperty(
+          node,
+          target.propertyName,
+          hasRead: false,
+          hasWrite: true,
+        );
+        var resolution = result?.write;
+        target.write = resolution;
+        if (resolution == null) {
+          _resolver.analyzeExpression(
+            node.value,
+            SharedTypeSchemaView(UnknownInferredType.instance),
+          );
+          node.value = _resolver.popRewrite()!;
+          node.recordStaticType(NeverTypeImpl.instance, resolver: _resolver);
+          return;
+        }
+        writeAcceptedType = resolution.acceptedType;
       case IndexAssignmentTargetImpl():
         _resolver.analyzeExpression(
           target.receiver,
@@ -540,6 +600,20 @@ class AssignmentExpressionResolver {
         }
         readType = targetResult.read.type;
         writeAcceptedType = targetResult.write.acceptedType;
+      case CascadePropertyAssignmentTargetImpl():
+        var targetResult = resolveCascadePropertyReadWriteTarget(node, target);
+        if (targetResult == null) {
+          _resolver.analyzeExpression(
+            node.value,
+            SharedTypeSchemaView(UnknownInferredType.instance),
+          );
+          node.value = _resolver.popRewrite()!;
+          node.recordStaticType(NeverTypeImpl.instance, resolver: _resolver);
+          return;
+        }
+        readType = targetResult.read.type;
+        writeAcceptedType = targetResult.write.acceptedType;
+        readExpressionInfo = targetResult.readExpressionInfo;
       case IndexAssignmentTargetImpl():
         var targetResult = resolveIndexReadWriteTarget(target);
         if (targetResult == null) {

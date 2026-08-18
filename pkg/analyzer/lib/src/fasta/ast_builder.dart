@@ -875,7 +875,14 @@ class AstBuilder extends StackListener {
     var identifierOrInvoke = pop() as ExpressionImpl;
     var receiver = pop() as ExpressionImpl?;
     if (identifierOrInvoke is SimpleIdentifierImpl) {
-      if (receiver is SimpleIdentifierImpl && identical('.', dot.stringValue)) {
+      if (receiver == null &&
+          (dot.type == TokenType.PERIOD_PERIOD ||
+              dot.type == TokenType.QUESTION_PERIOD_PERIOD)) {
+        push(
+          CascadePropertyExtractionImpl(propertyName: identifierOrInvoke.token),
+        );
+      } else if (receiver is SimpleIdentifierImpl &&
+          identical('.', dot.stringValue)) {
         push(
           PrefixedIdentifierImpl(
             prefix: receiver,
@@ -3767,13 +3774,23 @@ class AstBuilder extends StackListener {
       );
     }
     reportErrorIfSuper(rhs);
-    var property = switch (lhs) {
+    var propertyTarget = switch (lhs) {
+      CascadePropertyExtractionImpl(:var propertyName) =>
+        CascadePropertyAssignmentTargetImpl(propertyName: propertyName),
       PropertyExtractionImpl(:var receiver, :var operator, :var propertyName) =>
-        (receiver, operator, propertyName),
+        PropertyAssignmentTargetImpl(
+          receiver: receiver,
+          operator: operator,
+          propertyName: propertyName,
+        ),
       PropertyAccessImpl(target2: var receiver?, operator: var operator)
           when operator.type == TokenType.PERIOD &&
               _isSupportedPropertyReceiver(receiver) =>
-        (receiver, operator, lhs.propertyName.token),
+        PropertyAssignmentTargetImpl(
+          receiver: receiver,
+          operator: operator,
+          propertyName: lhs.propertyName.token,
+        ),
       _ => null,
     };
     var indexTarget = switch (lhs) {
@@ -3862,19 +3879,30 @@ class AstBuilder extends StackListener {
           ),
         );
       }
-    } else if (property != null) {
-      var target = PropertyAssignmentTargetImpl(
-        receiver: property.$1,
-        operator: property.$2,
-        propertyName: property.$3,
-      );
+    } else if (propertyTarget != null) {
       if (token.type == TokenType.EQ) {
-        push(DirectAssignmentImpl(target: target, operator: token, value: rhs));
+        push(
+          DirectAssignmentImpl(
+            target: propertyTarget,
+            operator: token,
+            value: rhs,
+          ),
+        );
       } else if (token.type == TokenType.QUESTION_QUESTION_EQ) {
-        push(IfNullAssignmentImpl(target: target, operator: token, value: rhs));
+        push(
+          IfNullAssignmentImpl(
+            target: propertyTarget,
+            operator: token,
+            value: rhs,
+          ),
+        );
       } else {
         push(
-          CompoundAssignmentImpl(target: target, operator: token, value: rhs),
+          CompoundAssignmentImpl(
+            target: propertyTarget,
+            operator: token,
+            value: rhs,
+          ),
         );
       }
     } else if (lhs is SimpleIdentifierImpl) {

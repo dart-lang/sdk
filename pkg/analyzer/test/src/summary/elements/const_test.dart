@@ -267,12 +267,13 @@ library
                 staticType: int
               sections
                 CascadeSection
-                  body: PropertyAccess
-                    operator: .. @14
-                    propertyName: SimpleIdentifier
-                      token: isEven @16
+                  operator: .. @14
+                  body: CascadePropertyExtraction
+                    propertyName: isEven @16
+                    resolution: GetterInvocationResolution
                       element: dart:core::@class::int::@getter::isEven
-                      staticType: bool
+                      invokeType: bool Function()
+                      type: bool
                     staticType: bool
                 CascadeSection
                   body: MethodInvocation

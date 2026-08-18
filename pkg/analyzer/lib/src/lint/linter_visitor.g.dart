@@ -1350,6 +1350,22 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
 
   @experimental
   @override
+  void visitCascadePropertyAssignmentTarget(
+    CascadePropertyAssignmentTarget node,
+  ) {
+    _runSubscriptions(node, _registry._forCascadePropertyAssignmentTarget);
+    node.visitChildren2(this);
+  }
+
+  @experimental
+  @override
+  void visitCascadePropertyExtraction(CascadePropertyExtraction node) {
+    _runSubscriptions(node, _registry._forCascadePropertyExtraction);
+    node.visitChildren2(this);
+  }
+
+  @experimental
+  @override
   void visitCascadeSection(CascadeSection node) {
     _runSubscriptions(node, _registry._forCascadeSection);
     node.visitChildren2(this);
@@ -4388,6 +4404,12 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   final List<_Subscription2<CascadeIndexExpression>>
   _forCascadeIndexExpression = [];
 
+  final List<_Subscription2<CascadePropertyAssignmentTarget>>
+  _forCascadePropertyAssignmentTarget = [];
+
+  final List<_Subscription2<CascadePropertyExtraction>>
+  _forCascadePropertyExtraction = [];
+
   final List<_Subscription2<CascadeSection>> _forCascadeSection = [];
 
   final List<_Subscription2<CaseClause>> _forCaseClause = [];
@@ -4989,6 +5011,28 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   ) {
     _hasNodeProcessors = true;
     _forCascadeIndexExpression.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
+  }
+
+  @override
+  void addCascadePropertyAssignmentTarget(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
+    _hasNodeProcessors = true;
+    _forCascadePropertyAssignmentTarget.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
+  }
+
+  @override
+  void addCascadePropertyExtraction(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
+    _hasNodeProcessors = true;
+    _forCascadePropertyExtraction.add(
       _Subscription2(rule, visitor, _getTimer(rule)),
     );
   }

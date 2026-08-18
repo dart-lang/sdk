@@ -145,6 +145,26 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   }
 
   @override
+  void visitCascadePropertyAssignmentTarget(
+    covariant CascadePropertyAssignmentTargetImpl node,
+  ) {
+    _writeByte(Tag.CascadePropertyAssignmentTarget);
+    _writeStringReference(node.propertyName.lexeme);
+    _sink.writeOptionalObject(node.read, _writeNamedReadResolution);
+    _sink.writeOptionalObject(node.write, _writeNamedWriteResolution);
+  }
+
+  @override
+  void visitCascadePropertyExtraction(
+    covariant CascadePropertyExtractionImpl node,
+  ) {
+    _writeByte(Tag.CascadePropertyExtraction);
+    _writeStringReference(node.propertyName.lexeme);
+    _sink.writeOptionalObject(node.resolution, _writeNamedReadResolution);
+    _storeExpression(node);
+  }
+
+  @override
   void visitCascadeSection(CascadeSection node) {
     _writeByte(Tag.CascadeSection);
     _writeByte(node.isNullAware ? 1 : 0);

@@ -1256,10 +1256,9 @@ CascadeExpression
     literal: null
   sections
     CascadeSection
-      body: PropertyAccess
-        operator: ..
-        propertyName: SimpleIdentifier
-          token: a
+      operator: ..
+      body: CascadePropertyExtraction
+        propertyName: a
   cascadeSections
     PropertyAccess
       operator: ..
@@ -1279,13 +1278,12 @@ CascadeExpression
     literal: null
   sections
     CascadeSection
-      body: AssignmentExpression
-        leftHandSide2: PropertyAccess
-          operator: ..
-          propertyName: SimpleIdentifier
-            token: a
+      operator: ..
+      body: DirectAssignment
+        target: CascadePropertyAssignmentTarget
+          propertyName: a
         operator: =
-        rightHandSide2: IntegerLiteral
+        value: IntegerLiteral
           literal: 3
   cascadeSections
     AssignmentExpression
@@ -1312,13 +1310,12 @@ CascadeExpression
     literal: null
   sections
     CascadeSection
-      body: AssignmentExpression
-        leftHandSide2: PropertyAccess
-          operator: ..
-          propertyName: SimpleIdentifier
-            token: a
+      operator: ..
+      body: DirectAssignment
+        target: CascadePropertyAssignmentTarget
+          propertyName: a
         operator: =
-        rightHandSide2: IntegerLiteral
+        value: IntegerLiteral
           literal: 3
     CascadeSection
       body: MethodInvocation
@@ -1360,13 +1357,12 @@ CascadeExpression
     literal: null
   sections
     CascadeSection
-      body: AssignmentExpression
-        leftHandSide2: PropertyAccess
-          operator: ..
-          propertyName: SimpleIdentifier
-            token: a
+      operator: ..
+      body: DirectAssignment
+        target: CascadePropertyAssignmentTarget
+          propertyName: a
         operator: =
-        rightHandSide2: IntegerLiteral
+        value: IntegerLiteral
           literal: 3
     CascadeSection
       body: MethodInvocation
@@ -1418,10 +1414,9 @@ CascadeExpression
     literal: null
   sections
     CascadeSection
-      body: PropertyAccess
-        operator: ..
-        propertyName: SimpleIdentifier
-          token: as
+      operator: ..
+      body: CascadePropertyExtraction
+        propertyName: as
   cascadeSections
     PropertyAccess
       operator: ..

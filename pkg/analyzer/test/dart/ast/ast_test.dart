@@ -1285,7 +1285,7 @@ void f() {
   a..foo;
 }
 ''');
-    var invocation = parseResult.findNode.propertyAccess('foo');
+    var invocation = parseResult.findNodeV1.propertyAccess('foo');
     expect(invocation.isNullAware, isFalse);
   }
 
@@ -1295,7 +1295,7 @@ void f() {
   a?..foo;
 }
 ''');
-    var invocation = parseResult.findNode.propertyAccess('foo');
+    var invocation = parseResult.findNodeV1.propertyAccess('foo');
     expect(invocation.isNullAware, isTrue);
   }
 

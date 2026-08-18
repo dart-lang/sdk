@@ -1929,6 +1929,18 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitCascadePropertyAssignmentTarget(
+    CascadePropertyAssignmentTarget node,
+  ) {
+    _tokenOrNull(node.propertyName);
+  }
+
+  @override
+  void visitCascadePropertyExtraction(CascadePropertyExtraction node) {
+    _tokenOrNull(node.propertyName);
+  }
+
+  @override
   void visitCascadeSection(CascadeSection node) {
     _tokenOrNull(node.operator);
     super.visitCascadeSection(node);

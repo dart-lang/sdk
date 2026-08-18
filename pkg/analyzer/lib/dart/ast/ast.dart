@@ -71,6 +71,8 @@ export 'package:analyzer/src/dart/ast/ast.dart'
         CascadeExpression,
         CascadeIndexAssignmentTarget,
         CascadeIndexExpression,
+        CascadePropertyAssignmentTarget,
+        CascadePropertyExtraction,
         CascadeSection,
         CaseClause,
         CastPattern,

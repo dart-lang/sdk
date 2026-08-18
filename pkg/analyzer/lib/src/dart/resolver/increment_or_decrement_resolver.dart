@@ -60,6 +60,7 @@ class IncrementOrDecrementResolver {
     InternalVariableElement? variableElement;
     switch (target) {
       case CascadeIndexAssignmentTargetImpl():
+      case CascadePropertyAssignmentTargetImpl():
         throw StateError(
           'A cascade section cannot be an increment or decrement target',
         );

@@ -16,6 +16,55 @@ main() {
 
 @reflectiveTest
 class CascadeExpressionResolutionTest extends PubPackageResolutionTest {
+  test_functionInterface_call_read() async {
+    var result = await resolveTestCode(r'''
+Function f(Function a) {
+  return a..call;
+}
+''');
+
+    var node = result.findNode.cascadePropertyExtraction('call;');
+    assertResolvedNodeText(node, r'''
+CascadePropertyExtraction
+  propertyName: call
+  resolution: FunctionInterfaceCallTearOffResolution
+    type: Function
+  staticType: Function
+V1: PropertyAccess
+  operator: ..
+  propertyName: SimpleIdentifier
+    token: call
+    element: <null>
+    staticType: Function
+  staticType: Function
+''');
+  }
+
+  test_functionType_call_read_typeParameterBound() async {
+    var result = await resolveTestCode(r'''
+T f<T extends int Function(String)>(T a) {
+  return a..call;
+}
+''');
+
+    var node = result.findNode.cascadePropertyExtraction('call;');
+    assertResolvedNodeText(node, r'''
+CascadePropertyExtraction
+  propertyName: call
+  resolution: FunctionCallTearOffResolution
+    type: T
+    associatedFunctionType: int Function(String)
+  staticType: T
+V1: PropertyAccess
+  operator: ..
+  propertyName: SimpleIdentifier
+    token: call
+    element: <null>
+    staticType: T
+  staticType: T
+''');
+  }
+
   test_indexSections_ast() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
@@ -223,11 +272,21 @@ test(C c) {
     // The null shorting for the index get `.._d?[0]` ends at the end of the
     // cascade section, therefore in the cascade section that follows, `..d_`
     // has static type `D?`.
-    var node = result.findNode.simple('_d?.g()');
+    var node = result.findNode.cascadePropertyExtraction('_d?.g()');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
-  token: _d
-  element: <testLibrary>::@class::C::@getter::_d
+CascadePropertyExtraction
+  propertyName: _d
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::C::@getter::_d
+    invokeType: D? Function()
+    type: D?
+  staticType: D?
+V1: PropertyAccess
+  operator: ..
+  propertyName: SimpleIdentifier
+    token: _d
+    element: <testLibrary>::@class::C::@getter::_d
+    staticType: D?
   staticType: D?
 ''');
   }
@@ -308,11 +367,21 @@ test(C c) {
     // The null shorting for the method invocation `.._d?.f()` ends at the end
     // of the cascade section, therefore in the cascade section that follows,
     // `.._d` has static type `D?`.
-    var node = result.findNode.simple('_d?.g()');
+    var node = result.findNode.cascadePropertyExtraction('_d?.g()');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
-  token: _d
-  element: <testLibrary>::@class::C::@getter::_d
+CascadePropertyExtraction
+  propertyName: _d
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::C::@getter::_d
+    invokeType: D? Function()
+    type: D?
+  staticType: D?
+V1: PropertyAccess
+  operator: ..
+  propertyName: SimpleIdentifier
+    token: _d
+    element: <testLibrary>::@class::C::@getter::_d
+    staticType: D?
   staticType: D?
 ''');
   }
@@ -364,11 +433,21 @@ test(C c) {
     // The null shorting for the property get `.._d?.d` ends at the end of the
     // cascade section, therefore in the cascade section that follows, `..d_`
     // has static type `D?`.
-    var node = result.findNode.simple('_d?.g()');
+    var node = result.findNode.cascadePropertyExtraction('_d?.g()');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
-  token: _d
-  element: <testLibrary>::@class::C::@getter::_d
+CascadePropertyExtraction
+  propertyName: _d
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::C::@getter::_d
+    invokeType: D? Function()
+    type: D?
+  staticType: D?
+V1: PropertyAccess
+  operator: ..
+  propertyName: SimpleIdentifier
+    token: _d
+    element: <testLibrary>::@class::C::@getter::_d
+    staticType: D?
   staticType: D?
 ''');
   }

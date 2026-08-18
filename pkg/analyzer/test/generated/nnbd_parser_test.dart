@@ -133,17 +133,12 @@ Block
               propertyName: SimpleIdentifier
                 token: length
           CascadeSection
-            body: AssignmentExpression
-              leftHandSide2: PropertyAccess
-                operator: ..
-                propertyName: SimpleIdentifier
-                  token: x27
+            operator: ..
+            body: DirectAssignment
+              target: CascadePropertyAssignmentTarget
+                propertyName: x27
               operator: =
-              rightHandSide2: NullAssertionExpression
-                operand: SimpleIdentifier
-                  token: s
-                operator: !
-              rightHandSide(v1): PostfixExpression
+              value: NullAssertionExpression
                 operand: SimpleIdentifier
                   token: s
                 operator: !
@@ -448,10 +443,9 @@ Block
                 literal: 27
               rightBracket: ]
           CascadeSection
-            body: PropertyAccess
-              operator: ?..
-              propertyName: SimpleIdentifier
-                token: x
+            operator: ?..
+            body: CascadePropertyExtraction
+              propertyName: x
         cascadeSections
           IndexExpression
             period: ..
@@ -522,10 +516,9 @@ Block
           token: a
         sections
           CascadeSection
-            body: PropertyAccess
-              operator: ?..
-              propertyName: SimpleIdentifier
-                token: x27
+            operator: ?..
+            body: CascadePropertyExtraction
+              propertyName: x27
         cascadeSections
           PropertyAccess
             operator: ?..
