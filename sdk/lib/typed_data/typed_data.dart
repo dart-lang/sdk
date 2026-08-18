@@ -4342,6 +4342,11 @@ abstract final class Int32x4 {
   /// The bit-wise xor operator.
   Int32x4 operator ^(Int32x4 other);
 
+  /// Negation of each lane.
+  ///
+  /// Returns a new [Int32x4] with every bit of every lane inverted.
+  Int32x4 operator ~();
+
   /// Addition operator.
   Int32x4 operator +(Int32x4 other);
 

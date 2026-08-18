@@ -4092,6 +4092,7 @@ DEFINE_EMIT(SimdBinaryOp,
   SIMD_OP_FLOAT_ARITH(V, Sqrt, sqrt)                                           \
   SIMD_OP_FLOAT_ARITH(V, Negate, negate)                                       \
   SIMD_OP_FLOAT_ARITH(V, Abs, abs)                                             \
+  V(Int32x4Not, notps)                                                         \
   V(Float32x4Reciprocal, reciprocalps)                                         \
   V(Float32x4ReciprocalSqrt, rsqrtps)
 

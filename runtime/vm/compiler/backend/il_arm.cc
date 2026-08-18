@@ -4868,6 +4868,9 @@ DEFINE_EMIT(Float32x4Sqrt,
 
 DEFINE_EMIT(Float32x4Unary, (QRegister result, QRegister left)) {
   switch (instr->kind()) {
+    case SimdOpInstr::kInt32x4Not:
+      __ vmvnq(result, left);
+      break;
     case SimdOpInstr::kFloat32x4Negate:
       __ vnegqs(result, left);
       break;
@@ -5244,6 +5247,7 @@ DEFINE_EMIT(Int32x4WithFlag,
   SIMPLE(Float32x4Zero)                                                        \
   SIMPLE(Float32x4Splat)                                                       \
   SIMPLE(Float32x4Sqrt)                                                        \
+  CASE(Int32x4Not)                                                             \
   CASE(Float32x4Negate)                                                        \
   CASE(Float32x4Abs)                                                           \
   CASE(Float32x4Reciprocal)                                                    \

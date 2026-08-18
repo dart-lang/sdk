@@ -4008,6 +4008,10 @@ final class _Int32x4 implements Int32x4 {
   @pragma("vm:exact-result-type", _Int32x4)
   @pragma("vm:external-name", "Int32x4_xor")
   external Int32x4 operator ^(Int32x4 other);
+  @pragma("vm:recognized", "other")
+  @pragma("vm:exact-result-type", _Int32x4)
+  @pragma("vm:external-name", "Int32x4_not")
+  external Int32x4 operator ~();
   @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:exact-result-type", _Int32x4)
   @pragma("vm:external-name", "Int32x4_add")

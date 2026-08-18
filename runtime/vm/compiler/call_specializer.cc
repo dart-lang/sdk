@@ -3413,6 +3413,7 @@ bool CallSpecializer::TryInlineRecognizedMethod(
     case MethodRecognizer::kInt32x4BitAnd:
     case MethodRecognizer::kInt32x4BitOr:
     case MethodRecognizer::kInt32x4BitXor:
+    case MethodRecognizer::kInt32x4Not:
       return InlineSimdOp(flow_graph, is_dynamic_call, call, receiver, kind,
                           graph_entry, entry, last, result);
 

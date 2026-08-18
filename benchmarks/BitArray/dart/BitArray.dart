@@ -286,6 +286,24 @@ class BitArray32 with BitArrayOps<Uint32List> {
     }
   }
 
+  static void complementNot(BitArray32 a, BitArray32 out) {
+    final wa = a._words;
+    final wo = out._words;
+    if (wa.length != wo.length) {
+      throw ArgumentError('a and out must have the same length');
+    }
+    final n = wa.length;
+    final simdWords = n >> 2;
+    final va = Int32x4List.view(wa.buffer, wa.offsetInBytes, simdWords);
+    final vo = Int32x4List.view(wo.buffer, wo.offsetInBytes, simdWords);
+    for (var i = 0; i < simdWords; i++) {
+      vo[i] = ~va[i];
+    }
+    for (var i = simdWords << 2; i < n; i++) {
+      wo[i] = ~wa[i] & 0xFFFFFFFF;
+    }
+  }
+
   bool wordsEqual(BitArray32 other) {
     if (_words.length != other._words.length) return false;
     for (var i = 0; i < _words.length; i++) {
@@ -649,6 +667,11 @@ List<BenchmarkBase> _benchmarks32() {
       'complement.accelerated',
       25,
       (a, _, out) => BitArray32.complementAccelerated(a, out),
+    ),
+    _BitArray32PairBenchmark(
+      'complement.not',
+      25,
+      (a, _, out) => BitArray32.complementNot(a, out),
     ),
   ];
 }

@@ -21,23 +21,23 @@ void testBadArguments() {
   // is a built-in type.
 
   dynamic dynamicNull = null;
-  Expect.throws(() => new Int32x4(dynamicNull, 2, 3, 4), isTypeError);
-  Expect.throws(() => new Int32x4(1, dynamicNull, 3, 4), isTypeError);
-  Expect.throws(() => new Int32x4(1, 2, dynamicNull, 4), isTypeError);
-  Expect.throws(() => new Int32x4(1, 2, 3, dynamicNull), isTypeError);
+  Expect.throws(() => Int32x4(dynamicNull, 2, 3, 4), isTypeError);
+  Expect.throws(() => Int32x4(1, dynamicNull, 3, 4), isTypeError);
+  Expect.throws(() => Int32x4(1, 2, dynamicNull, 4), isTypeError);
+  Expect.throws(() => Int32x4(1, 2, 3, dynamicNull), isTypeError);
 
   // Use a local variable typed as dynamic to avoid static warnings.
   dynamic str = "foo";
-  Expect.throws(() => new Int32x4(str, 2, 3, 4), isTypeError);
-  Expect.throws(() => new Int32x4(1, str, 3, 4), isTypeError);
-  Expect.throws(() => new Int32x4(1, 2, str, 4), isTypeError);
-  Expect.throws(() => new Int32x4(1, 2, 3, str), isTypeError);
+  Expect.throws(() => Int32x4(str, 2, 3, 4), isTypeError);
+  Expect.throws(() => Int32x4(1, str, 3, 4), isTypeError);
+  Expect.throws(() => Int32x4(1, 2, str, 4), isTypeError);
+  Expect.throws(() => Int32x4(1, 2, 3, str), isTypeError);
   // Use a local variable typed as dynamic to avoid static warnings.
   dynamic d = 0.5;
-  Expect.throws(() => new Int32x4(d, 2, 3, 4), isTypeError);
-  Expect.throws(() => new Int32x4(1, d, 3, 4), isTypeError);
-  Expect.throws(() => new Int32x4(1, 2, d, 4), isTypeError);
-  Expect.throws(() => new Int32x4(1, 2, 3, d), isTypeError);
+  Expect.throws(() => Int32x4(d, 2, 3, 4), isTypeError);
+  Expect.throws(() => Int32x4(1, d, 3, 4), isTypeError);
+  Expect.throws(() => Int32x4(1, 2, d, 4), isTypeError);
+  Expect.throws(() => Int32x4(1, 2, 3, d), isTypeError);
 }
 
 void testBigArguments() {
@@ -55,25 +55,25 @@ void testBigArguments() {
     var input = test[0];
     var expected = test[1];
 
-    int32x4 = new Int32x4(input, 2, 3, 4);
+    int32x4 = Int32x4(input, 2, 3, 4);
     Expect.equals(expected, int32x4.x);
     Expect.equals(2, int32x4.y);
     Expect.equals(3, int32x4.z);
     Expect.equals(4, int32x4.w);
 
-    int32x4 = new Int32x4(1, input, 3, 4);
+    int32x4 = Int32x4(1, input, 3, 4);
     Expect.equals(1, int32x4.x);
     Expect.equals(expected, int32x4.y);
     Expect.equals(3, int32x4.z);
     Expect.equals(4, int32x4.w);
 
-    int32x4 = new Int32x4(1, 2, input, 4);
+    int32x4 = Int32x4(1, 2, input, 4);
     Expect.equals(1, int32x4.x);
     Expect.equals(2, int32x4.y);
     Expect.equals(expected, int32x4.z);
     Expect.equals(4, int32x4.w);
 
-    int32x4 = new Int32x4(1, 2, 3, input);
+    int32x4 = Int32x4(1, 2, 3, input);
     Expect.equals(1, int32x4.x);
     Expect.equals(2, int32x4.y);
     Expect.equals(3, int32x4.z);
@@ -166,6 +166,22 @@ void testGetters() {
   Expect.equals(false, m.flagW);
 }
 
+void testNot() {
+  var v = Int32x4(0, -1, 0x12345678, 0x0f0f0f0f);
+  var n = ~v;
+  Expect.equals(-1, n.x);
+  Expect.equals(0, n.y);
+  // Lanes are signed 32-bit; the complement sets the sign bit.
+  Expect.equals(-305419897, n.z); // ~0x12345678
+  Expect.equals(-252645136, n.w); // ~0x0f0f0f0f
+  // Double negation is the identity.
+  var nn = ~n;
+  Expect.equals(v.x, nn.x);
+  Expect.equals(v.y, nn.y);
+  Expect.equals(v.z, nn.z);
+  Expect.equals(v.w, nn.w);
+}
+
 main() {
   for (int i = 0; i < 20; i++) {
     testBigArguments();
@@ -173,5 +189,6 @@ main() {
     testBitOperators();
     testSetters();
     testGetters();
+    testNot();
   }
 }

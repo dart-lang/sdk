@@ -11,6 +11,11 @@
 
 [#63811]: https://github.com/dart-lang/sdk/issues/63811
 
+#### `dart:typed_data`
+
+- Added the bit-wise negation operator `~` to `Int32x4`, which inverts every bit
+  of every lane.
+
 #### `dart:js_interop`
 
 - The `isA<JSArray>` check now uses both `Array.isArray` and `instanceof` to
