@@ -516,6 +516,14 @@ extension type JSArray<T extends JSAny?>._(JSArrayType _jsArray)
   @Since('3.6')
   external static JSArray<T> from<T extends JSAny>(JSObject arrayLike);
 
+  /// Creates a new, shallow-copied JavaScript `Array` instance from an
+  /// JavaScript asynchronous iterable or array-like object that may contain
+  /// JavaScript promises.
+  @Since('3.14')
+  external static JSPromise<JSArray<T>> fromAsync<T extends JSAny>(
+    JSObject arrayLike,
+  );
+
   /// The length in elements of this `Array`.
   @Since('3.6')
   external int get length;

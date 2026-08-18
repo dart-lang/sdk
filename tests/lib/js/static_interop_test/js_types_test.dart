@@ -985,6 +985,13 @@ Future<void> asyncTests() async {
     }
   ''');
 
+  // [JSArray.fromAsync]
+  final arrN = await JSArray.fromAsync<JSNumber>(
+    [Future.value(1.toJS).toJS].toJS,
+  ).toDart;
+  Expect.equals(1, arrN.length);
+  Expect.equals(1, arrN[0].toDartInt);
+
   // [JSPromise] -> [Future].
   // Test resolution.
   {
