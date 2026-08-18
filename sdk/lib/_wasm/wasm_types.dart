@@ -198,6 +198,12 @@ class WasmI32 extends _WasmBase {
   external bool gtU(WasmI32 other);
 }
 
+extension WasmI32Extension on WasmI32 {
+  /// Wasm `f32.reinterpret_i32` instruction.
+  @pragma("wasm:intrinsic")
+  external WasmF32 get asWasmF32;
+}
+
 /// The Wasm `i64` type.
 @pragma("wasm:entry-point")
 class WasmI64 extends _WasmBase {
@@ -244,6 +250,12 @@ class WasmI64 extends _WasmBase {
   external WasmI64 maxS(WasmI64 other);
 }
 
+extension WasmI64Extension on WasmI64 {
+  /// Wasm `f64.reinterpret_i64` instruction.
+  @pragma("wasm:intrinsic")
+  external WasmF64 get asWasmF64;
+}
+
 /// The Wasm `f32` type.
 @pragma("wasm:entry-point")
 class WasmF32 extends _WasmBase {
@@ -258,6 +270,12 @@ class WasmF32 extends _WasmBase {
   external factory WasmF32.fromDouble(double value);
 
   external double toDouble();
+}
+
+extension WasmF32Extension on WasmF32 {
+  /// Wasm `i32.reinterpret_f32` instruction.
+  @pragma("wasm:intrinsic")
+  external WasmI32 get asWasmI32;
 }
 
 /// The Wasm `f64` type.
@@ -289,6 +307,12 @@ class WasmF64 extends _WasmBase {
 
   /// Wasm `f64.max` instruction.
   external WasmF64 max(WasmF64 other);
+}
+
+extension WasmF64Extension on WasmF64 {
+  /// Wasm `i64.reinterpret_f64` instruction.
+  @pragma("wasm:intrinsic")
+  external WasmI64 get asWasmI64;
 }
 
 /// The Wasm `v128` type.

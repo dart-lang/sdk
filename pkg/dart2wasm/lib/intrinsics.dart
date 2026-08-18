@@ -167,9 +167,13 @@ enum StaticIntrinsic {
   wasmI32Int16FromInt('dart:_wasm', 'WasmI32', 'int16FromInt'),
   wasmI32Uint16FromInt('dart:_wasm', 'WasmI32', 'uint16FromInt'),
   wasmI32FromBool('dart:_wasm', 'WasmI32', 'fromBool'),
+  wasmI32AsWasmF32('dart:_wasm', null, 'WasmI32Extension|get#asWasmF32'),
   wasmI64FromInt('dart:_wasm', 'WasmI64', 'fromInt'),
+  wasmI64AsWasmF64('dart:_wasm', null, 'WasmI64Extension|get#asWasmF64'),
   wasmF32FromDouble('dart:_wasm', 'WasmF32', 'fromDouble'),
+  wasmF32AsWasmI32('dart:_wasm', null, 'WasmF32Extension|get#asWasmI32'),
   wasmF64FromDouble('dart:_wasm', 'WasmF64', 'fromDouble'),
+  wasmF64AsWasmI64('dart:_wasm', null, 'WasmF64Extension|get#asWasmI64'),
   wasmI8x16Splat('dart:_wasm', null, 'WasmI8x16|constructor#splat'),
   wasmI8x16ExtractLaneS('dart:_wasm', null, 'WasmI8x16|extractLaneSigned'),
   wasmI8x16ExtractLaneU('dart:_wasm', null, 'WasmI8x16|extractLaneUnsigned'),
@@ -289,10 +293,6 @@ enum StaticIntrinsic {
   setIdentityHashField('dart:_object_helper', null, 'setIdentityHashField'),
   unsafeCast('dart:_internal', null, 'unsafeCast'),
   unsafeCastOpaque('dart:_internal', null, 'unsafeCastOpaque'),
-  floatToIntBits('dart:_internal', null, 'floatToIntBits'),
-  intBitsToFloat('dart:_internal', null, 'intBitsToFloat'),
-  doubleToIntBits('dart:_internal', null, 'doubleToIntBits'),
-  intBitsToDouble('dart:_internal', null, 'intBitsToDouble'),
   exportWasmFunction('dart:_internal', null, 'exportWasmFunction'),
   getID('dart:_internal', 'ClassID', 'getID'),
   loadInt8('dart:ffi', null, '_loadInt8'),
@@ -1520,38 +1520,6 @@ class Intrinsifier {
         // Just evaluate the operand and let the context convert it to the
         // expected type.
         return codeGen.translateExpression(operand, typeOfExp(operand));
-      case StaticIntrinsic.floatToIntBits:
-        codeGen.translateExpression(
-          node.arguments.positional.single,
-          w.NumType.f64,
-        );
-        b.f32_demote_f64();
-        b.i32_reinterpret_f32();
-        b.i64_extend_i32_u();
-        return w.NumType.i64;
-      case StaticIntrinsic.intBitsToFloat:
-        codeGen.translateExpression(
-          node.arguments.positional.single,
-          w.NumType.i64,
-        );
-        b.i32_wrap_i64();
-        b.f32_reinterpret_i32();
-        b.f64_promote_f32();
-        return w.NumType.f64;
-      case StaticIntrinsic.doubleToIntBits:
-        codeGen.translateExpression(
-          node.arguments.positional.single,
-          w.NumType.f64,
-        );
-        b.i64_reinterpret_f64();
-        return w.NumType.i64;
-      case StaticIntrinsic.intBitsToDouble:
-        codeGen.translateExpression(
-          node.arguments.positional.single,
-          w.NumType.i64,
-        );
-        b.f64_reinterpret_i64();
-        return w.NumType.f64;
       case StaticIntrinsic.exportWasmFunction:
         const error =
             'The `dart:_internal:exportWasmFunction` expects its argument '
@@ -2064,19 +2032,39 @@ class Intrinsifier {
         Expression value = node.arguments.positional[0];
         codeGen.translateExpression(value, w.NumType.i32);
         return w.NumType.i32;
+      case StaticIntrinsic.wasmI32AsWasmF32:
+        Expression value = node.arguments.positional[0];
+        codeGen.translateExpression(value, w.NumType.i32);
+        b.f32_reinterpret_i32();
+        return w.NumType.f32;
       case StaticIntrinsic.wasmI64FromInt:
         Expression value = node.arguments.positional[0];
         codeGen.translateExpression(value, w.NumType.i64);
         return w.NumType.i64;
+      case StaticIntrinsic.wasmI64AsWasmF64:
+        Expression value = node.arguments.positional[0];
+        codeGen.translateExpression(value, w.NumType.i64);
+        b.f64_reinterpret_i64();
+        return w.NumType.f64;
       case StaticIntrinsic.wasmF32FromDouble:
         Expression value = node.arguments.positional[0];
         codeGen.translateExpression(value, w.NumType.f64);
         b.f32_demote_f64();
         return w.NumType.f32;
+      case StaticIntrinsic.wasmF32AsWasmI32:
+        Expression value = node.arguments.positional[0];
+        codeGen.translateExpression(value, w.NumType.f32);
+        b.i32_reinterpret_f32();
+        return w.NumType.i32;
       case StaticIntrinsic.wasmF64FromDouble:
         Expression value = node.arguments.positional[0];
         codeGen.translateExpression(value, w.NumType.f64);
         return w.NumType.f64;
+      case StaticIntrinsic.wasmF64AsWasmI64:
+        Expression value = node.arguments.positional[0];
+        codeGen.translateExpression(value, w.NumType.f64);
+        b.i64_reinterpret_f64();
+        return w.NumType.i64;
       case StaticIntrinsic.wasmI8x16Splat:
         Expression value = node.arguments.positional[0];
         codeGen.translateExpression(value, w.NumType.i32);

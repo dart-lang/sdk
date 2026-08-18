@@ -1471,12 +1471,14 @@ class MachOSymbolTable : public MachOCommand {
            intptr_t n_type,
            const MachOSection* section,
            intptr_t n_desc,
-           uword section_offset_or_value)
+           uword section_offset_or_value,
+           const char* name)
         : name_index(n_idx),
           type(n_type),
           section(section),
           description(n_desc),
-          section_offset_or_value(section_offset_or_value) {
+          section_offset_or_value(section_offset_or_value),
+          name(name) {
       ASSERT(Utils::IsUint(32, n_idx));
       ASSERT(Utils::IsUint(8, n_type));
       ASSERT(Utils::IsUint(16, n_desc));
@@ -1504,6 +1506,12 @@ class MachOSymbolTable : public MachOCommand {
       return base + section_offset_or_value;
     }
 
+    static int Compare(const Symbol* a, const Symbol* b) {
+      ASSERT(a != nullptr && a->name != nullptr);
+      ASSERT(b != nullptr && b->name != nullptr);
+      return strcmp(a->name, b->name);
+    }
+
     // The index of the name in the symbol table's string table.
     uint32_t name_index;
     // See the mach_o::N_* constants for the encoding of this field.
@@ -1516,6 +1524,9 @@ class MachOSymbolTable : public MachOCommand {
     // Otherwise, it is used to calculate the final value, which can be
     // computed once the section's memory address has been set.
     intptr_t section_offset_or_value;
+    // A pointer to the null-terminated string for the name stored
+    // in the symbol table's string table. Used only for sorting.
+    const char* name;
 
     DISALLOW_ALLOCATION();
   };
@@ -1541,8 +1552,8 @@ class MachOSymbolTable : public MachOCommand {
     auto const name_index = strings_.Add(name);
     ASSERT(*name == '\0' || name_index != 0);
     const intptr_t new_index = num_symbols();
-    symbols_.Add(
-        {name_index, type, section, description, section_offset_or_value});
+    symbols_.Add({name_index, type, section, description,
+                  section_offset_or_value, strings_.At(name_index)});
     if (label > 0) {
       DEBUG_ONLY(max_label_ = max_label_ > label ? max_label_ : label);
       // Store an 1-based index since 0 is kNoValue for IntMap.
@@ -3795,6 +3806,11 @@ void MachOSymbolTable::Initialize(SharedObjectWriter::Type type,
     }
   }
   set_num_external_symbols(num_symbols() - num_local_symbols());
+  // External symbols must be sorted by name in MH_OBJECT files, but grouped
+  // by module in MH_DYLIB files.
+  if (type == SnapshotType::Object) {
+    symbols_.SortFromTo(num_local_symbols(), num_symbols(), Symbol::Compare);
+  }
 }
 
 }  // namespace dart
