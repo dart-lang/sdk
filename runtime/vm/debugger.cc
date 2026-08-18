@@ -2629,7 +2629,7 @@ ErrorPtr Debugger::FindAndCompileMatchingFunctions(
     GrowableObjectArray& code_function_list) const {
   auto thread = Thread::Current();
   auto zone = thread->zone();
-
+  HANDLESCOPE(thread);
   Script& script = Script::Handle(zone);
   Object& ensure_has_code_result = Object::Handle(zone);
   Class& cls = Class::Handle(zone);
@@ -3305,6 +3305,7 @@ ErrorPtr Debugger::BreakpointLocationAtLineCol(
   Error& error = Error::Handle();
   while ((*result_breakpoint_location == nullptr) &&
          (first_token_idx <= last_token_idx)) {
+    HANDLESCOPE(Thread::Current());
     error = SetBreakpoint(scripts, first_token_idx, last_token_idx, line_number,
                           column_number, Function::Handle(),
                           result_breakpoint_location);
