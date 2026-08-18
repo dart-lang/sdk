@@ -516,7 +516,7 @@ var v = (x).y;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-PropertyExtraction
+ReceiverPropertyExtraction
   receiver: ParenthesizedExpression
     leftParenthesis: (
     expression2: SimpleIdentifier
@@ -571,7 +571,7 @@ var v = (x)?.y;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-PropertyExtraction
+ReceiverPropertyExtraction
   receiver: ParenthesizedExpression
     leftParenthesis: (
     expression2: SimpleIdentifier
@@ -1256,10 +1256,9 @@ CascadeExpression
     literal: null
   sections
     CascadeSection
-      body: PropertyAccess
-        operator: ..
-        propertyName: SimpleIdentifier
-          token: a
+      operator: ..
+      body: CascadePropertyExtraction
+        propertyName: a
   cascadeSections
     PropertyAccess
       operator: ..
@@ -1279,13 +1278,12 @@ CascadeExpression
     literal: null
   sections
     CascadeSection
-      body: AssignmentExpression
-        leftHandSide2: PropertyAccess
-          operator: ..
-          propertyName: SimpleIdentifier
-            token: a
+      operator: ..
+      body: DirectAssignment
+        target: CascadePropertyAssignmentTarget
+          propertyName: a
         operator: =
-        rightHandSide2: IntegerLiteral
+        value: IntegerLiteral
           literal: 3
   cascadeSections
     AssignmentExpression
@@ -1312,13 +1310,12 @@ CascadeExpression
     literal: null
   sections
     CascadeSection
-      body: AssignmentExpression
-        leftHandSide2: PropertyAccess
-          operator: ..
-          propertyName: SimpleIdentifier
-            token: a
+      operator: ..
+      body: DirectAssignment
+        target: CascadePropertyAssignmentTarget
+          propertyName: a
         operator: =
-        rightHandSide2: IntegerLiteral
+        value: IntegerLiteral
           literal: 3
     CascadeSection
       body: MethodInvocation
@@ -1360,13 +1357,12 @@ CascadeExpression
     literal: null
   sections
     CascadeSection
-      body: AssignmentExpression
-        leftHandSide2: PropertyAccess
-          operator: ..
-          propertyName: SimpleIdentifier
-            token: a
+      operator: ..
+      body: DirectAssignment
+        target: CascadePropertyAssignmentTarget
+          propertyName: a
         operator: =
-        rightHandSide2: IntegerLiteral
+        value: IntegerLiteral
           literal: 3
     CascadeSection
       body: MethodInvocation
@@ -1418,10 +1414,9 @@ CascadeExpression
     literal: null
   sections
     CascadeSection
-      body: PropertyAccess
-        operator: ..
-        propertyName: SimpleIdentifier
-          token: as
+      operator: ..
+      body: CascadePropertyExtraction
+        propertyName: as
   cascadeSections
     PropertyAccess
       operator: ..
@@ -2222,7 +2217,7 @@ var v = --a.b == c;
 BinaryOperatorInvocation
   leftOperand: PrefixDecrement
     operator: --
-    target: PropertyAssignmentTarget
+    target: ReceiverPropertyAssignmentTarget
       receiver: SimpleIdentifier
         token: a
       operator: .
@@ -2639,7 +2634,7 @@ var v = --a.b == c;
 BinaryOperatorInvocation
   leftOperand: PrefixDecrement
     operator: --
-    target: PropertyAssignmentTarget
+    target: ReceiverPropertyAssignmentTarget
       receiver: SimpleIdentifier
         token: a
       operator: .
@@ -5451,7 +5446,7 @@ var v = --super.x;
     assertParsedNodeText(node, r'''
 PrefixDecrement
   operator: --
-  target: PropertyAssignmentTarget
+  target: ReceiverPropertyAssignmentTarget
     receiver: SuperExpression
       superKeyword: super
     operator: .
@@ -5560,7 +5555,7 @@ var v = ++super.x;
     assertParsedNodeText(node, r'''
 PrefixIncrement
   operator: ++
-  target: PropertyAssignmentTarget
+  target: ReceiverPropertyAssignmentTarget
     receiver: SuperExpression
       superKeyword: super
     operator: .

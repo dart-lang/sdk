@@ -1514,9 +1514,9 @@ void f() {
   (b).bar;
 }
 ''');
-    _assertReplacementForChildren<PropertyExtraction>(
-      destination: parseResult.findNode.propertyExtraction('(a)'),
-      source: parseResult.findNode.propertyExtraction('(b)'),
+    _assertReplacementForChildren<ReceiverPropertyExtraction>(
+      destination: parseResult.findNode.receiverPropertyExtraction('(a)'),
+      source: parseResult.findNode.receiverPropertyExtraction('(b)'),
       childAccessors: [(node) => node.receiver],
     );
   }

@@ -1402,7 +1402,7 @@ not_initialized_non_nullable_instance_field:
 not_initialized_non_nullable_instance_field_constructor:
   status: noFix
 not_initialized_non_nullable_variable:
-  status: noFix
+  status: hasFix
 not_instantiated_bound:
   status: noFix
 not_iterable_spread:

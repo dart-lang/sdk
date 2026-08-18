@@ -289,9 +289,9 @@ void f<S extends num>(S x) {
 }
 ''');
 
-    var node = result.findNode.singlePropertyExtraction;
+    var node = result.findNode.singleReceiverPropertyExtraction;
     assertResolvedNodeText(node, r'''
-PropertyExtraction
+ReceiverPropertyExtraction
   receiver: ParenthesizedExpression
     leftParenthesis: (
     expression2: SimpleIdentifier

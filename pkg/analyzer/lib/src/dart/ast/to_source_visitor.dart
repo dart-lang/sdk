@@ -191,6 +191,18 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
+  void visitCascadePropertyAssignmentTarget(
+    CascadePropertyAssignmentTarget node,
+  ) {
+    _visitToken(node.propertyName);
+  }
+
+  @override
+  void visitCascadePropertyExtraction(CascadePropertyExtraction node) {
+    _visitToken(node.propertyName);
+  }
+
+  @override
   void visitCascadeSection(CascadeSection node) {
     if (!identical(node.body.beginToken, node.operator)) {
       _visitToken(node.operator);
@@ -1345,14 +1357,16 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
-  void visitPropertyAssignmentTarget(PropertyAssignmentTarget node) {
+  void visitReceiverPropertyAssignmentTarget(
+    ReceiverPropertyAssignmentTarget node,
+  ) {
     _visitNode(node.receiver);
     sink.write(node.operator.lexeme);
     sink.write(node.propertyName.lexeme);
   }
 
   @override
-  void visitPropertyExtraction(PropertyExtraction node) {
+  void visitReceiverPropertyExtraction(ReceiverPropertyExtraction node) {
     _visitNode(node.receiver);
     sink.write(node.operator.lexeme);
     sink.write(node.propertyName.lexeme);

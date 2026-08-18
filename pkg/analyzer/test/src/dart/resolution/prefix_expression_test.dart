@@ -832,7 +832,7 @@ void f(A? a) {
     assertResolvedNodeText(node, r'''
 PrefixIncrement
   operator: ++
-  target: PropertyAssignmentTarget
+  target: ReceiverPropertyAssignmentTarget
     receiver: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::f::@formalParameter::a
@@ -887,7 +887,7 @@ void f(A a) {
     assertResolvedNodeText(node, r'''
 PrefixIncrement
   operator: ++
-  target: PropertyAssignmentTarget
+  target: ReceiverPropertyAssignmentTarget
     receiver: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::f::@formalParameter::a
@@ -941,7 +941,7 @@ void f(A a) {
     assertResolvedNodeText(node, r'''
 PrefixIncrement
   operator: ++
-  target: PropertyAssignmentTarget
+  target: ReceiverPropertyAssignmentTarget
     receiver: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::f::@formalParameter::a
@@ -996,7 +996,7 @@ void f() {
     assertResolvedNodeText(node, r'''
 PrefixIncrement
   operator: ++
-  target: PropertyAssignmentTarget
+  target: ReceiverPropertyAssignmentTarget
     receiver: SimpleIdentifier
       token: p
       element: <testLibraryFragment>::@prefix::p
@@ -1050,7 +1050,7 @@ void f() {
     assertResolvedNodeText(node, r'''
 PrefixIncrement
   operator: ++
-  target: PropertyAssignmentTarget
+  target: ReceiverPropertyAssignmentTarget
     receiver: ConstructorInvocation
       constructorReference: ConstructorReference2
         typeReference: ConstructorTypeReference
@@ -1124,7 +1124,7 @@ class B extends A {
     assertResolvedNodeText(node, r'''
 PrefixIncrement
   operator: ++
-  target: PropertyAssignmentTarget
+  target: ReceiverPropertyAssignmentTarget
     receiver: SuperExpression
       superKeyword: super
       staticType: B
@@ -1177,7 +1177,7 @@ class A {
     assertResolvedNodeText(node, r'''
 PrefixIncrement
   operator: ++
-  target: PropertyAssignmentTarget
+  target: ReceiverPropertyAssignmentTarget
     receiver: ThisExpression
       thisKeyword: this
       staticType: A

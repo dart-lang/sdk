@@ -48,7 +48,7 @@ class UseResultVerifier {
     _check(node, element);
   }
 
-  void checkPropertyExtraction(PropertyExtractionImpl node) {
+  void checkPropertyExtraction(PropertyExtraction node) {
     if (node.resolution case NamedReadResolutionWithElementImpl(:var element)) {
       _check(node, element);
     }

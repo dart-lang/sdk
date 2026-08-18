@@ -613,9 +613,9 @@ void f(A a) {
 }
 ''');
 
-    var node = result.findNode.propertyExtraction('.foo');
+    var node = result.findNode.receiverPropertyExtraction('.foo');
     assertResolvedNodeText(node, r'''
-PropertyExtraction
+ReceiverPropertyExtraction
   receiver: ParenthesizedExpression
     leftParenthesis: (
     expression2: SimpleIdentifier

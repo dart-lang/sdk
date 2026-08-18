@@ -41,6 +41,8 @@ enum NamedReadResolutionTag {
   dynamicPropertyRead,
   executableTearOff,
   recordFieldRead,
+  functionCallTearOff,
+  functionInterfaceCallTearOff,
 }
 
 enum NamedWriteResolutionTag {
@@ -129,13 +131,15 @@ class Tag {
   static const int UnqualifiedNameAssignmentTarget = 135;
   static const int IfNullAssignment = 136;
   static const int InvalidExpressionAssignmentTarget = 137;
-  static const int PropertyAssignmentTarget = 139;
-  static const int PropertyExtraction = 140;
+  static const int ReceiverPropertyAssignmentTarget = 139;
+  static const int ReceiverPropertyExtraction = 140;
   static const int IndexAssignmentTarget = 141;
   static const int IndexExpression2 = 142;
   static const int CascadeSection = 143;
   static const int CascadeIndexExpression = 144;
   static const int CascadeIndexAssignmentTarget = 145;
+  static const int CascadePropertyExtraction = 146;
+  static const int CascadePropertyAssignmentTarget = 147;
   static const int NullLiteral = 49;
   static const int ParenthesizedExpression = 53;
   static const int PrefixedIdentifier = 32;

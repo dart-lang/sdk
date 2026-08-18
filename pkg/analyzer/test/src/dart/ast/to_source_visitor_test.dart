@@ -3611,7 +3611,7 @@ final x = $code;
     var parseResult = parseTestCodeWithDiagnostics('''
 final x = $code;
 ''');
-    var node = parseResult.findNode.singlePropertyExtraction;
+    var node = parseResult.findNode.singleReceiverPropertyExtraction;
     _assertSource(code, node);
   }
 

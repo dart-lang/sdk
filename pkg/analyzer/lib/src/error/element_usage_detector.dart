@@ -77,6 +77,12 @@ class ElementUsageDetector<TagInfo extends Object> {
     checkUsage(element, node);
   }
 
+  void cascadePropertyExtraction(CascadePropertyExtraction node) {
+    if (node.resolution case NamedReadResolutionWithElement(:var element)) {
+      checkUsage(element, node);
+    }
+  }
+
   /// Reports the usage of [element] at [node] if [element] is in
   /// any of [usagesMetadataOnly] or [usagesArbitrary].
   void checkUsage(Element? element, AstNode node) {

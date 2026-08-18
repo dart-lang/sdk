@@ -250,6 +250,35 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitCascadePropertyAssignmentTarget(
+    covariant CascadePropertyAssignmentTargetImpl node,
+  ) {
+    _sink.writeln('CascadePropertyAssignmentTarget');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      if (_withResolution) {
+        _writeNamedReadResolution('read', node.read);
+        _writeNamedWriteResolution('write', node.write);
+      }
+    });
+  }
+
+  @override
+  void visitCascadePropertyExtraction(
+    covariant CascadePropertyExtractionImpl node,
+  ) {
+    _sink.writeln('CascadePropertyExtraction');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeParameterElement(node);
+      if (_withResolution) {
+        _writeNamedReadResolution('resolution', node.resolution);
+      }
+      _writeType('staticType', node.staticType);
+    });
+  }
+
+  @override
   void visitCascadeSection(CascadeSection node) {
     _sink.writeln('CascadeSection');
     _sink.withIndent(() {
@@ -1624,10 +1653,10 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
-  void visitPropertyAssignmentTarget(
-    covariant PropertyAssignmentTargetImpl node,
+  void visitReceiverPropertyAssignmentTarget(
+    covariant ReceiverPropertyAssignmentTargetImpl node,
   ) {
-    _sink.writeln('PropertyAssignmentTarget');
+    _sink.writeln('ReceiverPropertyAssignmentTarget');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
       if (_withResolution) {
@@ -1638,8 +1667,10 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
-  void visitPropertyExtraction(covariant PropertyExtractionImpl node) {
-    _sink.writeln('PropertyExtraction');
+  void visitReceiverPropertyExtraction(
+    covariant ReceiverPropertyExtractionImpl node,
+  ) {
+    _sink.writeln('ReceiverPropertyExtraction');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
       _writeParameterElement(node);
@@ -2548,6 +2579,22 @@ Expected parent: (${parent.runtimeType}) $parent
         _sink.writelnWithIndent('$name: ExecutableTearOffResolution');
         _sink.withIndent(() {
           _writeElement('element', resolution.element);
+          _writeType('type', resolution.type);
+        });
+      case FunctionCallTearOffResolutionImpl():
+        _sink.writelnWithIndent('$name: FunctionCallTearOffResolution');
+        _sink.withIndent(() {
+          _writeType('type', resolution.type);
+          _writeType(
+            'associatedFunctionType',
+            resolution.associatedFunctionType,
+          );
+        });
+      case FunctionInterfaceCallTearOffResolutionImpl():
+        _sink.writelnWithIndent(
+          '$name: FunctionInterfaceCallTearOffResolution',
+        );
+        _sink.withIndent(() {
           _writeType('type', resolution.type);
         });
       case GetterInvocationResolutionImpl():

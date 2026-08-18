@@ -779,10 +779,9 @@ CompilationUnit
                     token: x
                   sections
                     CascadeSection
-                      body: PropertyAccess
-                        operator: ..
-                        propertyName: SimpleIdentifier
-                          token: <empty> <synthetic>
+                      operator: ..
+                      body: CascadePropertyExtraction
+                        propertyName: <empty> <synthetic>
                   cascadeSections
                     PropertyAccess
                       operator: ..

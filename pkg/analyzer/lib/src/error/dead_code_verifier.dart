@@ -408,7 +408,8 @@ class NullSafetyDeadCodeVerifier {
   void verifyCascadeExpression(CascadeExpression node) {
     var first = node.sections.firstOrNull;
     var body = first?.body;
-    if (body is PropertyAccess ||
+    if (body is CascadePropertyExtraction ||
+        body is PropertyAccess ||
         body is MethodInvocation ||
         body is CascadeIndexExpression) {
       _verifyUnassignedSimpleIdentifier(node, node.target2, first!.operator);

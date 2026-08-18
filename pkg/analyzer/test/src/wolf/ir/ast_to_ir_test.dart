@@ -1935,9 +1935,8 @@ test(List<Object?>? list) => list?.first?.hashCode;
 test(String? s) => (s)?.length;
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.singlePropertyExtraction].containsSubrange(
-      astNodes[result.findNode.parenthesized('(s)')]!,
-    );
+    check(astNodes)[result.findNode.singleReceiverPropertyExtraction]
+        .containsSubrange(astNodes[result.findNode.parenthesized('(s)')]!);
     check(runInterpreter(result, [null])).equals(null);
     check(runInterpreter(result, ['foo'])).equals(3);
   }
@@ -1970,7 +1969,7 @@ test(int i) => i.isEven;
 test() => 'foo'.length;
 ''');
     analyze(result, result.findNode.singleFunctionDeclaration);
-    check(astNodes)[result.findNode.propertyExtraction("'foo'.length")]
+    check(astNodes)[result.findNode.receiverPropertyExtraction("'foo'.length")]
         .containsSubrange(astNodes[result.findNode.stringLiteral("'foo'")]!);
     check(runInterpreter(result, [])).equals(3);
   }

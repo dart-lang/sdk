@@ -6067,6 +6067,55 @@ void useOperator(A a, A? nullableA, B b, B? nullableB) {
     );
   }
 
+  test_MethodElement_operator_ofClass_indexCascadeSections() async {
+    var result = await _indexTestCode('''
+class A {
+  num operator [](int i) => 0;
+  void operator []=(int i, num v) {}
+}
+class B {
+  num? operator [](int i) => 0;
+  void operator []=(int i, num v) {}
+}
+void useOperator(A a, B b) {
+  a..[0]..[1] = 2..[2] += 3;
+  b..[4] ??= 5;
+}
+''');
+
+    assertElementsIndexText(
+      result,
+      {
+        'aRead': result.findElement.method('[]', of: 'A'),
+        'aWrite': result.findElement.method('[]=', of: 'A'),
+        'bRead': result.findElement.method('[]', of: 'B'),
+        'bWrite': result.findElement.method('[]=', of: 'B'),
+        'num.+': result.resolvedUnit.typeProvider.numElement.getMethod('+')!,
+      },
+      r'''
+class A {
+  num operator [](int i) => 0;
+  void operator []=(int i, num v) {}
+}
+class B {
+  num? operator [](int i) => 0;
+  void operator []=(int i, num v) {}
+}
+void useOperator(A a, B b) {
+  a..[0]..[1] = 2..[2] += 3;
+     ^ aRead IS_INVOKED_BY qualified
+          ^ aWrite IS_INVOKED_BY qualified
+                   ^ aRead IS_INVOKED_BY qualified
+                   ^ aWrite IS_INVOKED_BY qualified
+                       ^^ num.+ IS_INVOKED_BY qualified
+  b..[4] ??= 5;
+     ^ bRead IS_INVOKED_BY qualified
+     ^ bWrite IS_INVOKED_BY qualified
+}
+''',
+    );
+  }
+
   test_MethodElement_operator_ofClass_indexExpression() async {
     var result = await _indexTestCode('''
 /// [operator []] and [A.operator []]

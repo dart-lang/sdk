@@ -1384,7 +1384,7 @@ void main() {
 // [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
 }
 ''');
-    var node = result.findNode.propertyExtraction('length');
+    var node = result.findNode.receiverPropertyExtraction('length');
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 dart:core::@class::String::@getter::length

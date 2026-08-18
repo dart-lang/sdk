@@ -259,6 +259,11 @@ abstract class _FindNodeBase {
 
   CascadeIndexExpression get singleCascadeIndexExpression => _single();
 
+  CascadePropertyAssignmentTarget get singleCascadePropertyAssignmentTarget =>
+      _single();
+
+  CascadePropertyExtraction get singleCascadePropertyExtraction => _single();
+
   CascadeSection get singleCascadeSection => _single();
 
   CastPattern get singleCastPattern => _single();
@@ -467,7 +472,7 @@ abstract class _FindNodeBase {
 
   PropertyAccess get singlePropertyAccess => _single();
 
-  PropertyExtraction get singlePropertyExtraction => _single();
+  ReceiverPropertyExtraction get singleReceiverPropertyExtraction => _single();
 
   RecordLiteral get singleRecordLiteral => _single();
 
@@ -619,6 +624,16 @@ abstract class _FindNodeBase {
 
   CascadeIndexExpression cascadeIndexExpression(String search) {
     return _node(search, (n) => n is CascadeIndexExpression);
+  }
+
+  CascadePropertyAssignmentTarget cascadePropertyAssignmentTarget(
+    String search,
+  ) {
+    return _node(search, (n) => n is CascadePropertyAssignmentTarget);
+  }
+
+  CascadePropertyExtraction cascadePropertyExtraction(String search) {
+    return _node(search, (n) => n is CascadePropertyExtraction);
   }
 
   CascadeSection cascadeSection(String search) {
@@ -1087,8 +1102,8 @@ abstract class _FindNodeBase {
     return _node(search, (n) => n is PropertyAccess);
   }
 
-  PropertyExtraction propertyExtraction(String search) {
-    return _node(search, (n) => n is PropertyExtraction);
+  ReceiverPropertyExtraction receiverPropertyExtraction(String search) {
+    return _node(search, (n) => n is ReceiverPropertyExtraction);
   }
 
   RecordLiteral recordLiteral(String search) {

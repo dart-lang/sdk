@@ -267,12 +267,13 @@ library
                 staticType: int
               sections
                 CascadeSection
-                  body: PropertyAccess
-                    operator: .. @14
-                    propertyName: SimpleIdentifier
-                      token: isEven @16
+                  operator: .. @14
+                  body: CascadePropertyExtraction
+                    propertyName: isEven @16
+                    resolution: GetterInvocationResolution
                       element: dart:core::@class::int::@getter::isEven
-                      staticType: bool
+                      invokeType: bool Function()
+                      type: bool
                     staticType: bool
                 CascadeSection
                   body: MethodInvocation
@@ -1334,6 +1335,74 @@ library
 ''');
   }
 
+  test_const_functionCallTearOff() async {
+    var library = await buildLibrary(r'''
+int f(String value) => 0;
+const v = (f).call;
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic v (nameOffset:32) (firstTokenOffset:32) (offset:32)
+          element: <testLibrary>::@topLevelVariable::v
+          initializer: expression_0
+            ReceiverPropertyExtraction
+              receiver: ParenthesizedExpression
+                leftParenthesis: ( @36
+                expression2: SimpleIdentifier
+                  token: f @37
+                  element: <testLibrary>::@function::f
+                  staticType: int Function(String)
+                rightParenthesis: ) @38
+                staticType: int Function(String)
+              operator: . @39
+              propertyName: call @40
+              resolution: FunctionCallTearOffResolution
+                type: int Function(String)
+                associatedFunctionType: int Function(String)
+              staticType: int Function(String)
+          inducedGetter: #F2
+      getters
+        #F2 isComplete isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
+          element: <testLibrary>::@getter::v
+          inducingVariable: #F1
+      functions
+        #F3 isComplete isOriginDeclaration isStatic f (nameOffset:4) (firstTokenOffset:0) (offset:4)
+          element: <testLibrary>::@function::f
+          formalParameters
+            #F4 requiredPositional isOriginDeclaration value (nameOffset:13) (firstTokenOffset:6) (offset:13)
+              element: <testLibrary>::@function::f::@formalParameter::value
+  topLevelVariables
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer v
+      reference: <testLibrary>::@topLevelVariable::v
+      firstFragment: #F1
+      type: int Function(String)
+      constantInitializer
+        fragment: #F1
+        expression: expression_0
+      getter: <testLibrary>::@getter::v
+  getters
+    isOriginVariable isStatic v
+      reference: <testLibrary>::@getter::v
+      firstFragment: #F2
+      returnType: int Function(String)
+      variable: <testLibrary>::@topLevelVariable::v
+  functions
+    isOriginDeclaration isStatic f
+      reference: <testLibrary>::@function::f
+      firstFragment: #F3
+      formalParameters
+        #E0 requiredPositional value
+          firstFragment: #F4
+          type: String
+      returnType: int
+''');
+  }
+
   test_const_functionExpression_typeArgumentTypes() async {
     var library = await buildLibrary(r'''
 void f<T>(T a) {}
@@ -1399,6 +1468,98 @@ library
           firstFragment: #F5
           type: T
       returnType: void
+''');
+  }
+
+  test_const_functionInterfaceCallTearOff() async {
+    var library = await buildLibrary(r'''
+int f(String value) => 0;
+const Function untyped = f;
+const v = (untyped).call;
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 hasInitializer isConst isOriginDeclaration isStatic untyped (nameOffset:41) (firstTokenOffset:41) (offset:41)
+          element: <testLibrary>::@topLevelVariable::untyped
+          initializer: expression_0
+            SimpleIdentifier
+              token: f @51
+              element: <testLibrary>::@function::f
+              staticType: int Function(String)
+          inducedGetter: #F2
+        #F3 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic v (nameOffset:60) (firstTokenOffset:60) (offset:60)
+          element: <testLibrary>::@topLevelVariable::v
+          initializer: expression_1
+            ReceiverPropertyExtraction
+              receiver: ParenthesizedExpression
+                leftParenthesis: ( @64
+                expression2: SimpleIdentifier
+                  token: untyped @65
+                  element: <testLibrary>::@getter::untyped
+                  staticType: Function
+                rightParenthesis: ) @72
+                staticType: Function
+              operator: . @73
+              propertyName: call @74
+              resolution: FunctionInterfaceCallTearOffResolution
+                type: Function
+              staticType: Function
+          inducedGetter: #F4
+      getters
+        #F2 isComplete isOriginVariable isStatic untyped (nameOffset:<null>) (firstTokenOffset:<null>) (offset:41)
+          element: <testLibrary>::@getter::untyped
+          inducingVariable: #F1
+        #F4 isComplete isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:60)
+          element: <testLibrary>::@getter::v
+          inducingVariable: #F3
+      functions
+        #F5 isComplete isOriginDeclaration isStatic f (nameOffset:4) (firstTokenOffset:0) (offset:4)
+          element: <testLibrary>::@function::f
+          formalParameters
+            #F6 requiredPositional isOriginDeclaration value (nameOffset:13) (firstTokenOffset:6) (offset:13)
+              element: <testLibrary>::@function::f::@formalParameter::value
+  topLevelVariables
+    hasInitializer isConst isOriginDeclaration isStatic untyped
+      reference: <testLibrary>::@topLevelVariable::untyped
+      firstFragment: #F1
+      type: Function
+      constantInitializer
+        fragment: #F1
+        expression: expression_0
+      getter: <testLibrary>::@getter::untyped
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer v
+      reference: <testLibrary>::@topLevelVariable::v
+      firstFragment: #F3
+      type: Function
+      constantInitializer
+        fragment: #F3
+        expression: expression_1
+      getter: <testLibrary>::@getter::v
+  getters
+    isOriginVariable isStatic untyped
+      reference: <testLibrary>::@getter::untyped
+      firstFragment: #F2
+      returnType: Function
+      variable: <testLibrary>::@topLevelVariable::untyped
+    isOriginVariable isStatic v
+      reference: <testLibrary>::@getter::v
+      firstFragment: #F4
+      returnType: Function
+      variable: <testLibrary>::@topLevelVariable::v
+  functions
+    isOriginDeclaration isStatic f
+      reference: <testLibrary>::@function::f
+      firstFragment: #F5
+      formalParameters
+        #E0 requiredPositional value
+          firstFragment: #F6
+          type: String
+      returnType: int
 ''');
   }
 
@@ -4737,7 +4898,7 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic v (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::v
           initializer: expression_0
-            PropertyExtraction
+            ReceiverPropertyExtraction
               receiver: SimpleStringLiteral
                 literal: 'abc' @10
               operator: . @15
@@ -10241,7 +10402,7 @@ library
         #F5 hasInitializer isConst isOriginDeclaration isStatic v3 (nameOffset:63) (firstTokenOffset:63) (offset:63)
           element: <testLibrary>::@topLevelVariable::v3
           initializer: expression_2
-            PropertyExtraction
+            ReceiverPropertyExtraction
               receiver: ParenthesizedExpression
                 leftParenthesis: ( @68
                 expression2: BinaryOperatorInvocation

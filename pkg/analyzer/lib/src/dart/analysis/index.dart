@@ -773,6 +773,41 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   }
 
   @override
+  void visitCascadePropertyExtraction(
+    covariant CascadePropertyExtractionImpl node,
+  ) {
+    switch (node.resolution) {
+      case GetterInvocationResolutionImpl(:var element):
+        if (element.firstFragment.enclosingFragment is LibraryFragmentImpl) {
+          assembler.addPrefixForElement(element);
+        }
+        recordRelation(
+          element,
+          IndexRelationKind.IS_INVOKED_BY,
+          node.propertyName,
+          true,
+        );
+      case ExecutableTearOffResolutionImpl(:var element):
+        if (element.firstFragment.enclosingFragment is LibraryFragmentImpl) {
+          assembler.addPrefixForElement(element);
+        }
+        recordRelation(
+          element,
+          IndexRelationKind.IS_REFERENCED_BY,
+          node.propertyName,
+          true,
+        );
+      default:
+        assembler.addNameRelation(
+          node.propertyName.lexeme,
+          IndexRelationKind.IS_READ_BY,
+          node.propertyName.offset,
+          true,
+        );
+    }
+  }
+
+  @override
   void visitClassDeclaration(covariant ClassDeclarationImpl node) {
     _addSubtypeForClassDeclaration(node);
     var declaredElement = node.declaredFragment!.element;
@@ -878,12 +913,12 @@ class _IndexContributor extends UnifyingAstVisitor2 {
     switch (node.target as AssignmentTargetImpl) {
       case CascadeIndexAssignmentTargetImpl target:
         _recordIndexReadWriteTarget(target);
+      case PropertyAssignmentTargetImpl target:
+        _recordPropertyReadWriteTarget(target);
       case IndexAssignmentTargetImpl target:
         _recordIndexReadWriteTarget(target);
       case InvalidExpressionAssignmentTargetImpl():
         break;
-      case PropertyAssignmentTargetImpl target:
-        _recordPropertyReadWriteTarget(target);
       case UnqualifiedNameAssignmentTargetImpl target:
         _recordUnqualifiedNameReadWriteTarget(target);
     }
@@ -990,10 +1025,6 @@ class _IndexContributor extends UnifyingAstVisitor2 {
     switch (node.target as AssignmentTargetImpl) {
       case CascadeIndexAssignmentTargetImpl target:
         _recordIndexReadWriteTarget(target);
-      case IndexAssignmentTargetImpl target:
-        _recordIndexReadWriteTarget(target);
-      case InvalidExpressionAssignmentTargetImpl():
-        break;
       case PropertyAssignmentTargetImpl target:
         switch (target.write) {
           case SetterInvocationResolutionImpl(element: var element):
@@ -1015,6 +1046,10 @@ class _IndexContributor extends UnifyingAstVisitor2 {
               false,
             );
         }
+      case IndexAssignmentTargetImpl target:
+        _recordIndexReadWriteTarget(target);
+      case InvalidExpressionAssignmentTargetImpl():
+        break;
       case UnqualifiedNameAssignmentTargetImpl target:
         switch (target.write) {
           case VariableWriteResolutionImpl(element: var element):
@@ -1235,12 +1270,12 @@ class _IndexContributor extends UnifyingAstVisitor2 {
     switch (node.target as AssignmentTargetImpl) {
       case CascadeIndexAssignmentTargetImpl target:
         _recordIndexReadWriteTarget(target);
+      case PropertyAssignmentTargetImpl target:
+        _recordPropertyReadWriteTarget(target);
       case IndexAssignmentTargetImpl target:
         _recordIndexReadWriteTarget(target);
       case InvalidExpressionAssignmentTargetImpl():
         break;
-      case PropertyAssignmentTargetImpl target:
-        _recordPropertyReadWriteTarget(target);
       case UnqualifiedNameAssignmentTargetImpl target:
         _recordUnqualifiedNameReadWriteTarget(target);
     }
@@ -1438,7 +1473,9 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   }
 
   @override
-  void visitPropertyExtraction(covariant PropertyExtractionImpl node) {
+  void visitReceiverPropertyExtraction(
+    covariant ReceiverPropertyExtractionImpl node,
+  ) {
     switch (node.resolution) {
       case GetterInvocationResolutionImpl(:var element):
         if (element.firstFragment.enclosingFragment is LibraryFragmentImpl) {
@@ -1854,9 +1891,13 @@ class _IndexContributor extends UnifyingAstVisitor2 {
     }
   }
 
-  void _recordPropertyReadWriteTarget(PropertyAssignmentTargetImpl target) {
+  void _recordNamedPropertyReadWriteTarget({
+    required Token propertyName,
+    required NamedReadResolutionImpl? read,
+    required NamedWriteResolutionImpl? write,
+  }) {
     var hasRelation = false;
-    switch (target.read) {
+    switch (read) {
       case GetterInvocationResolutionImpl(:var element):
         if (element.firstFragment.enclosingFragment is LibraryFragmentImpl) {
           assembler.addPrefixForElement(element);
@@ -1864,7 +1905,7 @@ class _IndexContributor extends UnifyingAstVisitor2 {
         recordRelation(
           element,
           IndexRelationKind.IS_INVOKED_BY,
-          target.propertyName,
+          propertyName,
           true,
         );
         hasRelation = true;
@@ -1875,32 +1916,40 @@ class _IndexContributor extends UnifyingAstVisitor2 {
         recordRelation(
           element,
           IndexRelationKind.IS_REFERENCED_BY,
-          target.propertyName,
+          propertyName,
           true,
         );
         hasRelation = true;
       default:
     }
-    if (target.write case SetterInvocationResolutionImpl(:var element)) {
+    if (write case SetterInvocationResolutionImpl(:var element)) {
       if (element.firstFragment.enclosingFragment is LibraryFragmentImpl) {
         assembler.addPrefixForElement(element);
       }
       recordRelation(
         element,
         IndexRelationKind.IS_INVOKED_BY,
-        target.propertyName,
+        propertyName,
         true,
       );
       hasRelation = true;
     }
     if (!hasRelation) {
       assembler.addNameRelation(
-        target.propertyName.lexeme,
+        propertyName.lexeme,
         IndexRelationKind.IS_READ_WRITTEN_BY,
-        target.propertyName.offset,
+        propertyName.offset,
         true,
       );
     }
+  }
+
+  void _recordPropertyReadWriteTarget(PropertyAssignmentTargetImpl target) {
+    _recordNamedPropertyReadWriteTarget(
+      propertyName: target.propertyName,
+      read: target.read,
+      write: target.write,
+    );
   }
 
   void _recordUnqualifiedNameReadWriteTarget(
@@ -1966,12 +2015,12 @@ class _IndexContributor extends UnifyingAstVisitor2 {
     switch (node.target) {
       case CascadeIndexAssignmentTargetImpl target:
         _recordIndexReadWriteTarget(target);
+      case PropertyAssignmentTargetImpl target:
+        _recordPropertyReadWriteTarget(target);
       case IndexAssignmentTargetImpl target:
         _recordIndexReadWriteTarget(target);
       case InvalidExpressionAssignmentTargetImpl():
         break;
-      case PropertyAssignmentTargetImpl target:
-        _recordPropertyReadWriteTarget(target);
       case UnqualifiedNameAssignmentTargetImpl target:
         _recordUnqualifiedNameReadWriteTarget(target);
     }

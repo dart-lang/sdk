@@ -1350,6 +1350,22 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
 
   @experimental
   @override
+  void visitCascadePropertyAssignmentTarget(
+    CascadePropertyAssignmentTarget node,
+  ) {
+    _runSubscriptions(node, _registry._forCascadePropertyAssignmentTarget);
+    node.visitChildren2(this);
+  }
+
+  @experimental
+  @override
+  void visitCascadePropertyExtraction(CascadePropertyExtraction node) {
+    _runSubscriptions(node, _registry._forCascadePropertyExtraction);
+    node.visitChildren2(this);
+  }
+
+  @experimental
+  @override
   void visitCascadeSection(CascadeSection node) {
     _runSubscriptions(node, _registry._forCascadeSection);
     node.visitChildren2(this);
@@ -2205,15 +2221,17 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
 
   @experimental
   @override
-  void visitPropertyAssignmentTarget(PropertyAssignmentTarget node) {
-    _runSubscriptions(node, _registry._forPropertyAssignmentTarget);
+  void visitReceiverPropertyAssignmentTarget(
+    ReceiverPropertyAssignmentTarget node,
+  ) {
+    _runSubscriptions(node, _registry._forReceiverPropertyAssignmentTarget);
     node.visitChildren2(this);
   }
 
   @experimental
   @override
-  void visitPropertyExtraction(PropertyExtraction node) {
-    _runSubscriptions(node, _registry._forPropertyExtraction);
+  void visitReceiverPropertyExtraction(ReceiverPropertyExtraction node) {
+    _runSubscriptions(node, _registry._forReceiverPropertyExtraction);
     node.visitChildren2(this);
   }
 
@@ -4388,6 +4406,12 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   final List<_Subscription2<CascadeIndexExpression>>
   _forCascadeIndexExpression = [];
 
+  final List<_Subscription2<CascadePropertyAssignmentTarget>>
+  _forCascadePropertyAssignmentTarget = [];
+
+  final List<_Subscription2<CascadePropertyExtraction>>
+  _forCascadePropertyExtraction = [];
+
   final List<_Subscription2<CascadeSection>> _forCascadeSection = [];
 
   final List<_Subscription2<CaseClause>> _forCaseClause = [];
@@ -4703,10 +4727,11 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
 
   final List<_Subscription2<PropertyAccess>> _forPropertyAccess = [];
 
-  final List<_Subscription2<PropertyAssignmentTarget>>
-  _forPropertyAssignmentTarget = [];
+  final List<_Subscription2<ReceiverPropertyAssignmentTarget>>
+  _forReceiverPropertyAssignmentTarget = [];
 
-  final List<_Subscription2<PropertyExtraction>> _forPropertyExtraction = [];
+  final List<_Subscription2<ReceiverPropertyExtraction>>
+  _forReceiverPropertyExtraction = [];
 
   final List<_Subscription2<RecordLiteral>> _forRecordLiteral = [];
 
@@ -4989,6 +5014,28 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   ) {
     _hasNodeProcessors = true;
     _forCascadeIndexExpression.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
+  }
+
+  @override
+  void addCascadePropertyAssignmentTarget(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
+    _hasNodeProcessors = true;
+    _forCascadePropertyAssignmentTarget.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
+  }
+
+  @override
+  void addCascadePropertyExtraction(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
+    _hasNodeProcessors = true;
+    _forCascadePropertyExtraction.add(
       _Subscription2(rule, visitor, _getTimer(rule)),
     );
   }
@@ -6009,20 +6056,25 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   }
 
   @override
-  void addPropertyAssignmentTarget(
+  void addReceiverPropertyAssignmentTarget(
     AbstractAnalysisRule rule,
     AstVisitor2 visitor,
   ) {
     _hasNodeProcessors = true;
-    _forPropertyAssignmentTarget.add(
+    _forReceiverPropertyAssignmentTarget.add(
       _Subscription2(rule, visitor, _getTimer(rule)),
     );
   }
 
   @override
-  void addPropertyExtraction(AbstractAnalysisRule rule, AstVisitor2 visitor) {
+  void addReceiverPropertyExtraction(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
     _hasNodeProcessors = true;
-    _forPropertyExtraction.add(_Subscription2(rule, visitor, _getTimer(rule)));
+    _forReceiverPropertyExtraction.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
   }
 
   @override

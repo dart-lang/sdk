@@ -101,6 +101,16 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitCascadePropertyExtraction(CascadePropertyExtraction node) {
+    var element = switch (node.resolution) {
+      NamedReadResolutionWithElement(:var element) => element,
+      _ => null,
+    };
+    _checkSinceSdkVersion(element, node, errorEntity: node.propertyName);
+    super.visitCascadePropertyExtraction(node);
+  }
+
+  @override
   void visitCompoundAssignment(CompoundAssignment node) {
     var target = node.target;
     if (target
@@ -311,13 +321,13 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitPropertyExtraction(PropertyExtraction node) {
+  void visitReceiverPropertyExtraction(ReceiverPropertyExtraction node) {
     var element = switch (node.resolution) {
       NamedReadResolutionWithElement(:var element) => element,
       _ => null,
     };
     _checkSinceSdkVersion(element, node);
-    super.visitPropertyExtraction(node);
+    super.visitReceiverPropertyExtraction(node);
   }
 
   @override

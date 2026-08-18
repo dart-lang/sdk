@@ -249,6 +249,11 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
   }
 
   @override
+  void visitCascadePropertyExtraction(CascadePropertyExtraction node) {
+    names.add(node.propertyName.lexeme);
+  }
+
+  @override
   void visitClassDeclaration(covariant ClassDeclarationImpl node) {
     _LocalNameScope outerScope = localScope;
     try {
@@ -414,15 +419,17 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitPropertyAssignmentTarget(PropertyAssignmentTarget node) {
+  void visitReceiverPropertyAssignmentTarget(
+    ReceiverPropertyAssignmentTarget node,
+  ) {
     names.add(node.propertyName.lexeme);
-    super.visitPropertyAssignmentTarget(node);
+    super.visitReceiverPropertyAssignmentTarget(node);
   }
 
   @override
-  void visitPropertyExtraction(PropertyExtraction node) {
+  void visitReceiverPropertyExtraction(ReceiverPropertyExtraction node) {
     names.add(node.propertyName.lexeme);
-    super.visitPropertyExtraction(node);
+    super.visitReceiverPropertyExtraction(node);
   }
 
   @override

@@ -285,4 +285,44 @@ class D extends C {
 }
 ''');
   }
+
+  Future<void> test_uninitialized_constField() async {
+    await resolveTestCode('''
+class Example {
+  static const String example;
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_uninitialized_finalField() async {
+    await resolveTestCode('''
+class Example {
+  final String example;
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_uninitialized_instanceField() async {
+    await resolveTestCode('''
+class Example {
+  String example;
+}
+''');
+    await assertHasFix('''
+class Example {
+  String? example;
+}
+''');
+  }
+
+  Future<void> test_uninitialized_topLevelVariable() async {
+    await resolveTestCode('''
+String example;
+''');
+    await assertHasFix('''
+String? example;
+''');
+  }
 }

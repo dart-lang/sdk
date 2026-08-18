@@ -200,6 +200,26 @@ class AstBinaryReader {
     return node;
   }
 
+  CascadePropertyAssignmentTarget _readCascadePropertyAssignmentTarget() {
+    var propertyName = _readStringReference();
+    var node = CascadePropertyAssignmentTargetImpl(
+      propertyName: StringToken(TokenType.STRING, propertyName, -1),
+    );
+    node.read = _reader.readOptionalObject(_readNamedReadResolution);
+    node.write = _reader.readOptionalObject(_readNamedWriteResolution);
+    return node;
+  }
+
+  CascadePropertyExtraction _readCascadePropertyExtraction() {
+    var propertyName = _readStringReference();
+    var node = CascadePropertyExtractionImpl(
+      propertyName: StringToken(TokenType.STRING, propertyName, -1),
+    );
+    node.resolution = _reader.readOptionalObject(_readNamedReadResolution);
+    _readExpressionResolution(node);
+    return node;
+  }
+
   CascadeSection _readCascadeSection() {
     var isNullAware = _readByte() == 1;
     var body = _readNode() as ExpressionImpl;
@@ -1045,6 +1065,16 @@ class AstBinaryReader {
         return ExecutableTearOffResolutionImpl(
           element: _reader.readElement() as InternalExecutableElement,
         );
+      case NamedReadResolutionTag.functionCallTearOff:
+        return FunctionCallTearOffResolutionImpl(
+          type: _reader.readRequiredType(),
+          associatedFunctionType:
+              _reader.readRequiredType() as FunctionTypeImpl,
+        );
+      case NamedReadResolutionTag.functionInterfaceCallTearOff:
+        return FunctionInterfaceCallTearOffResolutionImpl(
+          type: _reader.readRequiredType(),
+        );
       case NamedReadResolutionTag.getterInvocation:
         return GetterInvocationResolutionImpl(
           element: _reader.readElement() as InternalGetterElement,
@@ -1152,6 +1182,10 @@ class AstBinaryReader {
         return _readCascadeIndexAssignmentTarget();
       case Tag.CascadeIndexExpression:
         return _readCascadeIndexExpression();
+      case Tag.CascadePropertyAssignmentTarget:
+        return _readCascadePropertyAssignmentTarget();
+      case Tag.CascadePropertyExtraction:
+        return _readCascadePropertyExtraction();
       case Tag.CascadeSection:
         return _readCascadeSection();
       case Tag.ConditionalExpression:
@@ -1268,10 +1302,10 @@ class AstBinaryReader {
         return _readPrefixedIdentifier();
       case Tag.PropertyAccess:
         return _readPropertyAccess();
-      case Tag.PropertyAssignmentTarget:
-        return _readPropertyAssignmentTarget();
-      case Tag.PropertyExtraction:
-        return _readPropertyExtraction();
+      case Tag.ReceiverPropertyAssignmentTarget:
+        return _readReceiverPropertyAssignmentTarget();
+      case Tag.ReceiverPropertyExtraction:
+        return _readReceiverPropertyExtraction();
       case Tag.RecordLiteral:
         return _readRecordLiteral();
       case Tag.RecordLiteralNamedField:
@@ -1468,11 +1502,11 @@ class AstBinaryReader {
     return node;
   }
 
-  PropertyAssignmentTarget _readPropertyAssignmentTarget() {
+  ReceiverPropertyAssignmentTarget _readReceiverPropertyAssignmentTarget() {
     var receiver = _readNode() as ExpressionImpl;
     var operatorType = UnlinkedTokenType.values[_readByte()];
     var propertyName = _readStringReference();
-    var node = PropertyAssignmentTargetImpl(
+    var node = ReceiverPropertyAssignmentTargetImpl(
       receiver: receiver,
       operator: Tokens.fromType(operatorType),
       propertyName: StringToken(TokenType.STRING, propertyName, -1),
@@ -1482,11 +1516,11 @@ class AstBinaryReader {
     return node;
   }
 
-  PropertyExtraction _readPropertyExtraction() {
+  ReceiverPropertyExtraction _readReceiverPropertyExtraction() {
     var receiver = _readNode() as ExpressionImpl;
     var operatorType = UnlinkedTokenType.values[_readByte()];
     var propertyName = _readStringReference();
-    var node = PropertyExtractionImpl(
+    var node = ReceiverPropertyExtractionImpl(
       receiver: receiver,
       operator: Tokens.fromType(operatorType),
       propertyName: StringToken(TokenType.STRING, propertyName, -1),

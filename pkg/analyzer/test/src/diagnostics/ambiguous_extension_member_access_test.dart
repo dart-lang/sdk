@@ -51,9 +51,9 @@ f() {
 }
 ''');
 
-    var node = result.findNode.propertyExtraction('0.a');
+    var node = result.findNode.receiverPropertyExtraction('0.a');
     assertResolvedNodeText(node, r'''
-PropertyExtraction
+ReceiverPropertyExtraction
   receiver: IntegerLiteral
     literal: 0
     staticType: int
@@ -92,9 +92,9 @@ f() {
 }
 ''');
 
-    var node = result.findNode.propertyExtraction('0.a');
+    var node = result.findNode.receiverPropertyExtraction('0.a');
     assertResolvedNodeText(node, r'''
-PropertyExtraction
+ReceiverPropertyExtraction
   receiver: IntegerLiteral
     literal: 0
     staticType: int
@@ -135,9 +135,9 @@ f() {
 }
 ''');
 
-    var node = result.findNode.propertyExtraction('0.a');
+    var node = result.findNode.receiverPropertyExtraction('0.a');
     assertResolvedNodeText(node, r'''
-PropertyExtraction
+ReceiverPropertyExtraction
   receiver: IntegerLiteral
     literal: 0
     staticType: int
@@ -178,9 +178,9 @@ f() {
 }
 ''');
 
-    var node = result.findNode.propertyExtraction('0.a');
+    var node = result.findNode.receiverPropertyExtraction('0.a');
     assertResolvedNodeText(node, r'''
-PropertyExtraction
+ReceiverPropertyExtraction
   receiver: IntegerLiteral
     literal: 0
     staticType: int

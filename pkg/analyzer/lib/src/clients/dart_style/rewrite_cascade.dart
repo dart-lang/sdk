@@ -68,6 +68,26 @@ ExpressionImpl insertCascadeTargetIntoExpression({
       index: expression.index,
       rightBracket: expression.rightBracket,
     );
+  } else if (expression is CascadePropertyExtractionImpl) {
+    return ReceiverPropertyExtractionImpl(
+      receiver: cascadeTarget,
+      operator: _synthesizeToken(
+        cascadeOperator?.type == TokenType.QUESTION_PERIOD_PERIOD
+            ? TokenType.QUESTION_PERIOD
+            : TokenType.PERIOD,
+        cascadeOperator!,
+      ),
+      propertyName: expression.propertyName,
+    );
+  } else if (expression is ReceiverPropertyExtractionImpl) {
+    return ReceiverPropertyExtractionImpl(
+      receiver: insertCascadeTargetIntoExpression(
+        expression: expression.receiver,
+        cascadeTarget: cascadeTarget,
+      ),
+      operator: expression.operator,
+      propertyName: expression.propertyName,
+    );
   } else if (expression is IndexExpression2Impl) {
     return IndexExpression2Impl(
       receiver: insertCascadeTargetIntoExpression(
@@ -132,6 +152,22 @@ ExpressionImpl insertCascadeTargetIntoExpression({
         value: expression.value,
       );
     }
+    if (target is CascadePropertyAssignmentTargetImpl) {
+      return DirectAssignmentImpl(
+        target: ReceiverPropertyAssignmentTargetImpl(
+          receiver: cascadeTarget,
+          operator: _synthesizeToken(
+            cascadeOperator?.type == TokenType.QUESTION_PERIOD_PERIOD
+                ? TokenType.QUESTION_PERIOD
+                : TokenType.PERIOD,
+            cascadeOperator!,
+          ),
+          propertyName: target.propertyName,
+        ),
+        operator: expression.operator,
+        value: expression.value,
+      );
+    }
     if (target is IndexAssignmentTargetImpl) {
       return DirectAssignmentImpl(
         target: IndexAssignmentTargetImpl(
@@ -148,13 +184,13 @@ ExpressionImpl insertCascadeTargetIntoExpression({
         value: expression.value,
       );
     }
-    if (target is! PropertyAssignmentTargetImpl) {
+    if (target is! ReceiverPropertyAssignmentTargetImpl) {
       throw UnimplementedError(
         'Unhandled ${target.runtimeType} in $expression',
       );
     }
     return DirectAssignmentImpl(
-      target: PropertyAssignmentTargetImpl(
+      target: ReceiverPropertyAssignmentTargetImpl(
         receiver: insertCascadeTargetIntoExpression(
           expression: target.receiver,
           cascadeTarget: cascadeTarget,
@@ -189,9 +225,19 @@ Token? _cascadeOperator(AstNodeImpl node) {
   for (
     AstNodeImpl? ancestor = node;
     ancestor != null;
-    ancestor = ancestor.parent2
+    ancestor = ancestor.parentInPrimaryView
   ) {
     if (ancestor is CascadeSectionImpl) return ancestor.operator;
+    var operator = switch (ancestor) {
+      IndexExpression(:var period) => period,
+      MethodInvocation(:var operator) => operator,
+      PropertyAccess(:var operator) => operator,
+      _ => null,
+    };
+    if (operator?.type
+        case TokenType.PERIOD_PERIOD || TokenType.QUESTION_PERIOD_PERIOD) {
+      return operator;
+    }
   }
   return null;
 }

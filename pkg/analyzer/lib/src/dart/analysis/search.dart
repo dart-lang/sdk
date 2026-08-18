@@ -1851,6 +1851,47 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitCascadePropertyAssignmentTarget(
+    CascadePropertyAssignmentTarget node,
+  ) {
+    var readMatches = switch (node.read) {
+      NamedReadResolutionWithElement(:var element) => _matches(element),
+      _ => false,
+    };
+    var writeMatches = switch (node.write) {
+      NamedWriteResolutionWithElement(:var element) => _matches(element),
+      _ => false,
+    };
+    var kind = switch ((readMatches, writeMatches)) {
+      (true, true) => SearchResultKind.READ_WRITE,
+      (true, false) => SearchResultKind.READ,
+      (false, true) => SearchResultKind.WRITE,
+      (false, false) => null,
+    };
+    if (kind != null) {
+      _addResultImpl(node.propertyName, kind, isQualified: true);
+    }
+  }
+
+  @override
+  void visitCascadePropertyExtraction(CascadePropertyExtraction node) {
+    var result = switch (node.resolution) {
+      GetterInvocationResolution(:var element) => (
+        element,
+        SearchResultKind.INVOCATION,
+      ),
+      ExecutableTearOffResolution(:var element) => (
+        element,
+        SearchResultKind.REFERENCE,
+      ),
+      _ => null,
+    };
+    if (result != null && _matches(result.$1)) {
+      _addResultImpl(node.propertyName, result.$2, isQualified: true);
+    }
+  }
+
+  @override
   void visitExtensionOverride(ExtensionOverride node) {
     node.importPrefix?.accept2(this);
     node.typeArguments?.accept2(this);
@@ -1911,7 +1952,9 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitPropertyAssignmentTarget(PropertyAssignmentTarget node) {
+  void visitReceiverPropertyAssignmentTarget(
+    ReceiverPropertyAssignmentTarget node,
+  ) {
     var readMatches = switch (node.read) {
       NamedReadResolutionWithElement(:var element) => _matches(element),
       _ => false,
@@ -1934,7 +1977,7 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitPropertyExtraction(PropertyExtraction node) {
+  void visitReceiverPropertyExtraction(ReceiverPropertyExtraction node) {
     var result = switch (node.resolution) {
       GetterInvocationResolution(:var element) => (
         element,

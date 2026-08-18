@@ -145,6 +145,26 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   }
 
   @override
+  void visitCascadePropertyAssignmentTarget(
+    covariant CascadePropertyAssignmentTargetImpl node,
+  ) {
+    _writeByte(Tag.CascadePropertyAssignmentTarget);
+    _writeStringReference(node.propertyName.lexeme);
+    _sink.writeOptionalObject(node.read, _writeNamedReadResolution);
+    _sink.writeOptionalObject(node.write, _writeNamedWriteResolution);
+  }
+
+  @override
+  void visitCascadePropertyExtraction(
+    covariant CascadePropertyExtractionImpl node,
+  ) {
+    _writeByte(Tag.CascadePropertyExtraction);
+    _writeStringReference(node.propertyName.lexeme);
+    _sink.writeOptionalObject(node.resolution, _writeNamedReadResolution);
+    _storeExpression(node);
+  }
+
+  @override
   void visitCascadeSection(CascadeSection node) {
     _writeByte(Tag.CascadeSection);
     _writeByte(node.isNullAware ? 1 : 0);
@@ -751,10 +771,10 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitPropertyAssignmentTarget(
-    covariant PropertyAssignmentTargetImpl node,
+  void visitReceiverPropertyAssignmentTarget(
+    covariant ReceiverPropertyAssignmentTargetImpl node,
   ) {
-    _writeByte(Tag.PropertyAssignmentTarget);
+    _writeByte(Tag.ReceiverPropertyAssignmentTarget);
     _writeNode(node.receiver);
     _writeByte(TokensWriter.astToBinaryTokenType(node.operator.type).index);
     _writeStringReference(node.propertyName.lexeme);
@@ -763,8 +783,10 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitPropertyExtraction(covariant PropertyExtractionImpl node) {
-    _writeByte(Tag.PropertyExtraction);
+  void visitReceiverPropertyExtraction(
+    covariant ReceiverPropertyExtractionImpl node,
+  ) {
+    _writeByte(Tag.ReceiverPropertyExtraction);
     _writeNode(node.receiver);
     _writeByte(TokensWriter.astToBinaryTokenType(node.operator.type).index);
     _writeStringReference(node.propertyName.lexeme);
@@ -1174,6 +1196,13 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
       case ExecutableTearOffResolutionImpl():
         _writeByte(NamedReadResolutionTag.executableTearOff.index);
         _sink.writeElement(resolution.element);
+      case FunctionCallTearOffResolutionImpl():
+        _writeByte(NamedReadResolutionTag.functionCallTearOff.index);
+        _sink.writeType(resolution.type);
+        _sink.writeType(resolution.associatedFunctionType);
+      case FunctionInterfaceCallTearOffResolutionImpl():
+        _writeByte(NamedReadResolutionTag.functionInterfaceCallTearOff.index);
+        _sink.writeType(resolution.type);
       case GetterInvocationResolutionImpl():
         _writeByte(NamedReadResolutionTag.getterInvocation.index);
         _sink.writeElement(resolution.element);

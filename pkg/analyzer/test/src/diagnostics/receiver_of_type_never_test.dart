@@ -1685,9 +1685,9 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.singlePropertyExtraction;
+    var node = result.findNode.singleReceiverPropertyExtraction;
     assertResolvedNodeText(node, r'''
-PropertyExtraction
+ReceiverPropertyExtraction
   receiver: ParenthesizedExpression
     leftParenthesis: (
     expression2: ThrowExpression
@@ -1769,9 +1769,9 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.singlePropertyExtraction;
+    var node = result.findNode.singleReceiverPropertyExtraction;
     assertResolvedNodeText(node, r'''
-PropertyExtraction
+ReceiverPropertyExtraction
   receiver: ParenthesizedExpression
     leftParenthesis: (
     expression2: ThrowExpression

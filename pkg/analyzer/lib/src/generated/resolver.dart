@@ -1475,6 +1475,31 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     );
   }
 
+  ({
+    NamedReadResolutionImpl? read,
+    NamedWriteResolutionImpl? write,
+    ExpressionInfo? readExpressionInfo,
+  })?
+  resolveCascadeProperty(
+    ExpressionImpl node,
+    Token propertyName, {
+    required bool hasRead,
+    required bool hasWrite,
+  }) {
+    var cascade = _activeCascadeExpression;
+    if (cascade == null) {
+      throw StateError('Cascade property node outside a cascade section.');
+    }
+    return _propertyElementResolver.resolveCascadeProperty(
+      node: node,
+      receiver: cascade.target2,
+      isNullAware: cascade.isNullAware,
+      propertyName: propertyName,
+      hasRead: hasRead,
+      hasWrite: hasWrite,
+    );
+  }
+
   /// Resolve LHS [node] of an assignment, an explicit [AssignmentExpression],
   /// or implicit [IncrementOrDecrementExpression].
   PropertyElementResolverResult resolveForWrite({
@@ -1614,6 +1639,19 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     }
   }
 
+  ({
+    NamedReadResolutionImpl read,
+    NamedWriteResolutionImpl write,
+    ExpressionInfo? readExpressionInfo,
+  })
+  resolveImportPrefixedPropertyReadWriteTarget(
+    ReceiverPropertyAssignmentTargetImpl node,
+    PrefixElement prefix,
+  ) {
+    return _propertyElementResolver
+        .resolveImportPrefixedPropertyReadWriteTarget(node, prefix);
+  }
+
   IndexWriteResolutionImpl? resolveIndexDirectAssignmentTarget(
     IndexAssignmentTargetImpl node,
   ) {
@@ -1721,23 +1759,11 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     return (null, SharedTypeView(typeProvider.dynamicType));
   }
 
-  ({
-    NamedReadResolutionImpl read,
-    NamedWriteResolutionImpl write,
-    ExpressionInfo? readExpressionInfo,
-  })
-  resolvePrefixedPropertyReadWriteAssignmentTarget(
-    PropertyAssignmentTargetImpl node,
-    PrefixElement prefix,
+  NamedWriteResolutionImpl? resolveReceiverPropertyDirectAssignmentTarget(
+    ReceiverPropertyAssignmentTargetImpl node,
   ) {
     return _propertyElementResolver
-        .resolvePrefixedPropertyReadWriteAssignmentTarget(node, prefix);
-  }
-
-  NamedWriteResolutionImpl? resolvePropertyDirectAssignmentTarget(
-    PropertyAssignmentTargetImpl node,
-  ) {
-    return _propertyElementResolver.resolvePropertyDirectAssignmentTarget(node);
+        .resolveReceiverPropertyDirectAssignmentTarget(node);
   }
 
   ({
@@ -1745,10 +1771,11 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     NamedWriteResolutionImpl write,
     ExpressionInfo? readExpressionInfo,
   })?
-  resolvePropertyReadWriteAssignmentTarget(PropertyAssignmentTargetImpl node) {
-    return _propertyElementResolver.resolvePropertyReadWriteAssignmentTarget(
-      node,
-    );
+  resolveReceiverPropertyReadWriteAssignmentTarget(
+    ReceiverPropertyAssignmentTargetImpl node,
+  ) {
+    return _propertyElementResolver
+        .resolveReceiverPropertyReadWriteAssignmentTarget(node);
   }
 
   @override
@@ -2474,6 +2501,38 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       resolution?.type ?? NeverTypeImpl.instance,
       resolver: this,
     );
+    var replacement = insertGenericFunctionInstantiation(
+      node,
+      contextType: contextType,
+    );
+    _insertImplicitCallReference(replacement, contextType: contextType);
+    inferenceLogWriter?.exitExpression(node);
+  }
+
+  @override
+  void visitCascadePropertyExtraction(
+    covariant CascadePropertyExtractionImpl node, {
+    TypeImpl contextType = UnknownInferredType.instance,
+  }) {
+    inferenceLogWriter?.enterExpression(node, contextType);
+    checkUnreachableNode(node);
+
+    var result = resolveCascadeProperty(
+      node,
+      node.propertyName,
+      hasRead: true,
+      hasWrite: false,
+    );
+    var resolution = result?.read;
+    node.resolution = resolution;
+    node.recordStaticType(
+      resolution?.type ?? NeverTypeImpl.instance,
+      resolver: this,
+    );
+    if (result?.readExpressionInfo case var expressionInfo?) {
+      flowAnalysis.storeExpressionInfo(node, expressionInfo);
+    }
+
     var replacement = insertGenericFunctionInstantiation(
       node,
       contextType: contextType,
@@ -4331,8 +4390,8 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   }
 
   @override
-  void visitPropertyExtraction(
-    covariant PropertyExtractionImpl node, {
+  void visitReceiverPropertyExtraction(
+    covariant ReceiverPropertyExtractionImpl node, {
     TypeImpl contextType = UnknownInferredType.instance,
   }) {
     inferenceLogWriter?.enterExpression(node, contextType);
@@ -4351,7 +4410,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     }
 
     var (:expressionInfo, :resolution, :type) = _propertyElementResolver
-        .resolvePropertyExtraction(node);
+        .resolveReceiverPropertyExtraction(node);
     node.resolution = resolution;
     node.recordStaticType(type, resolver: this);
     flowAnalysis.storeExpressionInfo(node, expressionInfo);
@@ -5103,8 +5162,8 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       var target = parent.target;
       var writeType = switch (target) {
         CascadeIndexAssignmentTargetImpl(:var write) => write?.acceptedType,
-        IndexAssignmentTargetImpl(:var write) => write?.acceptedType,
         PropertyAssignmentTargetImpl(:var write) => write?.acceptedType,
+        IndexAssignmentTargetImpl(:var write) => write?.acceptedType,
         UnqualifiedNameAssignmentTargetImpl(:var write) => write?.acceptedType,
         InvalidExpressionAssignmentTargetImpl() => null,
       };

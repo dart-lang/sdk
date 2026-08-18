@@ -45,8 +45,8 @@ class FunctionReferenceResolver {
       _resolveSimpleIdentifierFunction(node, function);
     } else if (function is PrefixedIdentifierImpl) {
       _resolvePrefixedIdentifierFunction(node, function);
-    } else if (function is PropertyExtractionImpl) {
-      _resolvePropertyExtractionFunction(node, function);
+    } else if (function is ReceiverPropertyExtractionImpl) {
+      _resolveReceiverPropertyExtractionFunction(node, function);
     } else if (function is PropertyAccessImpl) {
       _resolvePropertyAccessFunction(node, function);
     } else if (function is ConstructorTearOffImpl) {
@@ -566,54 +566,6 @@ class FunctionReferenceResolver {
     );
   }
 
-  void _resolvePropertyExtractionFunction(
-    FunctionReferenceImpl node,
-    PropertyExtractionImpl function,
-  ) {
-    _resolver.analyzeExpression(function, _resolver.operations.unknownType);
-    function = _resolver.popRewrite()! as PropertyExtractionImpl;
-    var functionType = function.staticType;
-
-    if (functionType is FunctionTypeImpl) {
-      var target = switch (function.resolution) {
-        ExecutableTearOffResolutionImpl(:var element) =>
-          InvocationTargetExecutableElement(element),
-        _ => InvocationTargetFunctionTypedExpression(functionType),
-      };
-      _resolve(
-        node: node,
-        rawType: functionType,
-        name: function.propertyName.lexeme,
-        target: target,
-      );
-      return;
-    }
-
-    if (functionType is DynamicType) {
-      _diagnosticReporter.report(
-        diag.genericMethodTypeInstantiationOnDynamic.at(node),
-      );
-      node.recordStaticType(InvalidTypeImpl.instance, resolver: _resolver);
-      return;
-    }
-
-    if (functionType is InvalidType) {
-      node.recordStaticType(InvalidTypeImpl.instance, resolver: _resolver);
-      return;
-    }
-
-    var callMethod = _getCallMethod(node, functionType);
-    if (callMethod is MethodElement) {
-      _resolveAsImplicitCallReference(node, callMethod);
-      return;
-    }
-
-    _diagnosticReporter.report(
-      diag.disallowedTypeInstantiationExpression.at(function.propertyName),
-    );
-    node.recordStaticType(InvalidTypeImpl.instance, resolver: _resolver);
-  }
-
   void _resolveReceiverPrefix(
     FunctionReferenceImpl node,
     PrefixElement prefixElement,
@@ -658,6 +610,54 @@ class FunctionReferenceResolver {
       'type alias, or executable element: $element (${element.runtimeType})',
     );
     node.setPseudoExpressionStaticType(InvalidTypeImpl.instance);
+  }
+
+  void _resolveReceiverPropertyExtractionFunction(
+    FunctionReferenceImpl node,
+    ReceiverPropertyExtractionImpl function,
+  ) {
+    _resolver.analyzeExpression(function, _resolver.operations.unknownType);
+    function = _resolver.popRewrite()! as ReceiverPropertyExtractionImpl;
+    var functionType = function.staticType;
+
+    if (functionType is FunctionTypeImpl) {
+      var target = switch (function.resolution) {
+        ExecutableTearOffResolutionImpl(:var element) =>
+          InvocationTargetExecutableElement(element),
+        _ => InvocationTargetFunctionTypedExpression(functionType),
+      };
+      _resolve(
+        node: node,
+        rawType: functionType,
+        name: function.propertyName.lexeme,
+        target: target,
+      );
+      return;
+    }
+
+    if (functionType is DynamicType) {
+      _diagnosticReporter.report(
+        diag.genericMethodTypeInstantiationOnDynamic.at(node),
+      );
+      node.recordStaticType(InvalidTypeImpl.instance, resolver: _resolver);
+      return;
+    }
+
+    if (functionType is InvalidType) {
+      node.recordStaticType(InvalidTypeImpl.instance, resolver: _resolver);
+      return;
+    }
+
+    var callMethod = _getCallMethod(node, functionType);
+    if (callMethod is MethodElement) {
+      _resolveAsImplicitCallReference(node, callMethod);
+      return;
+    }
+
+    _diagnosticReporter.report(
+      diag.disallowedTypeInstantiationExpression.at(function.propertyName),
+    );
+    node.recordStaticType(InvalidTypeImpl.instance, resolver: _resolver);
   }
 
   void _resolveSimpleIdentifierFunction(

@@ -39,6 +39,28 @@ class MixinSuperInvokedNamesCollector extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitCascadePropertyAssignmentTarget(
+    CascadePropertyAssignmentTarget node,
+  ) {
+    if (_cascadeTarget(node) is SuperExpression) {
+      if (node.parent2 is CompoundAssignment ||
+          node.parent2 is IfNullAssignment) {
+        _names.add(node.propertyName.lexeme);
+      }
+      _names.add('${node.propertyName.lexeme}=');
+    }
+    super.visitCascadePropertyAssignmentTarget(node);
+  }
+
+  @override
+  void visitCascadePropertyExtraction(CascadePropertyExtraction node) {
+    if (_cascadeTarget(node) is SuperExpression) {
+      _names.add(node.propertyName.lexeme);
+    }
+    super.visitCascadePropertyExtraction(node);
+  }
+
+  @override
   void visitIndexAssignmentTarget(IndexAssignmentTarget node) {
     if (node.receiver is SuperExpression) {
       if (node.hasRead) {

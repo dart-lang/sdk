@@ -30,9 +30,9 @@ void f(C c) {
   }
 }
 ''');
-    var node = result.findNode.propertyExtraction('._foo;');
+    var node = result.findNode.receiverPropertyExtraction('._foo;');
     assertResolvedNodeText(node, r'''
-PropertyExtraction
+ReceiverPropertyExtraction
   receiver: ParenthesizedExpression
     leftParenthesis: (
     expression2: SimpleIdentifier
@@ -110,7 +110,14 @@ void f(C c) {
     var node = result.findNode.methodInvocation('_field.toString');
     assertResolvedNodeText(node, r'''
 MethodInvocation
-  target2: PropertyAccess
+  target2: CascadePropertyExtraction
+    propertyName: _field
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@class::C::@getter::_field
+      invokeType: Object? Function()
+      type: int
+    staticType: int
+  target(v1): PropertyAccess
     operator: ..
     propertyName: SimpleIdentifier
       token: _field
@@ -142,9 +149,16 @@ void f(C? c) {
 }
 ''');
     // The `!` in the first statement promotes _field within the cascade
-    var node2 = result.findNode.propertyAccess('_field.toString');
+    var node2 = result.findNode.cascadePropertyExtraction('_field.toString');
     assertResolvedNodeText(node2, r'''
-PropertyAccess
+CascadePropertyExtraction
+  propertyName: _field
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::C::@getter::_field
+    invokeType: Object? Function()
+    type: Object
+  staticType: Object
+V1: PropertyAccess
   operator: ..
   propertyName: SimpleIdentifier
     token: _field
@@ -612,9 +626,9 @@ void f(C c) {
   }
 }
 ''');
-    var node = result.findNode.propertyExtraction('._foo;');
+    var node = result.findNode.receiverPropertyExtraction('._foo;');
     assertResolvedNodeText(node, r'''
-PropertyExtraction
+ReceiverPropertyExtraction
   receiver: ParenthesizedExpression
     leftParenthesis: (
     expression2: SimpleIdentifier

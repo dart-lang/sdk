@@ -606,7 +606,7 @@ void f(Never? x) {
     var node = result.findNode.functionReference('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function2: PropertyExtraction
+  function2: ReceiverPropertyExtraction
     receiver: ParenthesizedExpression
       leftParenthesis: (
       expression2: SimpleIdentifier
@@ -670,7 +670,7 @@ extension E on A {
     var node = result.findNode.functionReference('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function2: PropertyExtraction
+  function2: ReceiverPropertyExtraction
     receiver: ThisExpression
       thisKeyword: this
       staticType: A
@@ -777,7 +777,13 @@ bar(A a) {
     var node = result.findNode.functionReference('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function2: PropertyAccess
+  function2: CascadePropertyExtraction
+    propertyName: foo
+    resolution: ExecutableTearOffResolution
+      element: <testLibrary>::@extension::E::@method::foo
+      type: void Function<T>(T)
+    staticType: void Function<T>(T)
+  function(v1): PropertyAccess
     operator: ..
     propertyName: SimpleIdentifier
       token: foo
@@ -1771,7 +1777,7 @@ void foo(A a) {
     var node = result.findNode.functionReference('f<String>');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function2: PropertyExtraction
+  function2: ReceiverPropertyExtraction
     receiver: ParenthesizedExpression
       leftParenthesis: (
       expression2: SimpleIdentifier
@@ -2000,7 +2006,7 @@ void f(A a) {
     var node = result.findNode.functionReference('foo<double>');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function2: PropertyExtraction
+  function2: ReceiverPropertyExtraction
     receiver: ParenthesizedExpression
       leftParenthesis: (
       expression2: SimpleIdentifier
@@ -2057,7 +2063,7 @@ void f(A? a, A b) {
     var node = result.findNode.functionReference('(a ?? b).foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function2: PropertyExtraction
+  function2: ReceiverPropertyExtraction
     receiver: ParenthesizedExpression
       leftParenthesis: (
       expression2: IfNull
@@ -2224,13 +2230,10 @@ var a = [].foo.call<int>;
 ''');
 
     var node = result.findNode.functionReference('foo.call<int>;');
-    // TODO(srawlins): PropertyElementResolver does not return an element for
-    // `.call`. If we want `findElement.method('foo')` here, we must change the
-    // policy over there.
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function2: PropertyAccess
-    target2: PropertyExtraction
+  function2: ReceiverPropertyExtraction
+    receiver: ReceiverPropertyExtraction
       receiver: ListLiteral
         leftBracket: [
         rightBracket: ]
@@ -2241,7 +2244,14 @@ FunctionReference
         element: <testLibrary>::@extension::#0::@method::foo
         type: void Function<T>(T)
       staticType: void Function<T>(T)
-    target(v1): PropertyAccess
+    operator: .
+    propertyName: call
+    resolution: FunctionCallTearOffResolution
+      type: void Function<T>(T)
+      associatedFunctionType: void Function<T>(T)
+    staticType: void Function<T>(T)
+  function(v1): PropertyAccess
+    target: PropertyAccess
       target: ListLiteral
         leftBracket: [
         rightBracket: ]
@@ -2438,7 +2448,7 @@ class A {
     var node = result.findNode.functionReference('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function2: PropertyExtraction
+  function2: ReceiverPropertyExtraction
     receiver: ThisExpression
       thisKeyword: this
       staticType: A
@@ -2703,7 +2713,13 @@ bar(A a) {
     var node = result.findNode.functionReference('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function2: PropertyAccess
+  function2: CascadePropertyExtraction
+    propertyName: foo
+    resolution: ExecutableTearOffResolution
+      element: <testLibrary>::@class::A::@method::foo
+      type: void Function<T>(T)
+    staticType: void Function<T>(T)
+  function(v1): PropertyAccess
     operator: ..
     propertyName: SimpleIdentifier
       token: foo
@@ -5316,7 +5332,7 @@ void Function(int) foo(C c) {
     var node = result.findNode.functionReference('(c).f;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function2: PropertyExtraction
+  function2: ReceiverPropertyExtraction
     receiver: ParenthesizedExpression
       leftParenthesis: (
       expression2: SimpleIdentifier
