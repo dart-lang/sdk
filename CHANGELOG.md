@@ -1,6 +1,6 @@
 ## 3.13.1
 
-**Released on:** Unreleased
+**Released on:** 2026-08-18
 
 This is a patch release that:
 
