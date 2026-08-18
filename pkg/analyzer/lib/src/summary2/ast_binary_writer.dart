@@ -123,7 +123,32 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   void visitCascadeExpression(CascadeExpression node) {
     _writeByte(Tag.CascadeExpression);
     _writeNode(node.target2);
-    _writeNodeList(node.cascadeSections2);
+    _writeNodeList(node.sections);
+  }
+
+  @override
+  void visitCascadeIndexAssignmentTarget(
+    covariant CascadeIndexAssignmentTargetImpl node,
+  ) {
+    _writeByte(Tag.CascadeIndexAssignmentTarget);
+    _writeNode(node.index);
+    _sink.writeOptionalObject(node.read, _writeIndexReadResolution);
+    _sink.writeOptionalObject(node.write, _writeIndexWriteResolution);
+  }
+
+  @override
+  void visitCascadeIndexExpression(covariant CascadeIndexExpressionImpl node) {
+    _writeByte(Tag.CascadeIndexExpression);
+    _writeNode(node.index);
+    _sink.writeOptionalObject(node.resolution, _writeIndexReadResolution);
+    _storeExpression(node);
+  }
+
+  @override
+  void visitCascadeSection(CascadeSection node) {
+    _writeByte(Tag.CascadeSection);
+    _writeByte(node.isNullAware ? 1 : 0);
+    _writeNode(node.body);
   }
 
   @override

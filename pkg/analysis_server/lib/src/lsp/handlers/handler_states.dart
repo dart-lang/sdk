@@ -102,7 +102,6 @@ class InitializedLspStateMessageHandler extends InitializedStateMessageHandler {
         SelectionRangeHandler.new,
         SemanticTokensFullHandler.new,
         SemanticTokensRangeHandler.new,
-        InlayHintHandler.new,
       ];
 
   new(LspAnalysisServer server) : super(server) {
@@ -145,6 +144,7 @@ class InitializedStateMessageHandler extends ServerStateMessageHandler {
         ImportsHandler.new,
         ImplementationHandler.new,
         IncomingCallHierarchyHandler.new,
+        InlayHintHandler.new,
         InlineValueHandler.new,
         MigrateHandler.new,
         OutgoingCallHierarchyHandler.new,

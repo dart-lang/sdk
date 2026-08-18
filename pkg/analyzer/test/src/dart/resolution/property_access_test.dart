@@ -831,7 +831,16 @@ RegularFormalParameter
         token: b
         element: <null>
         staticType: InvalidType
-      cascadeSections2
+      sections
+        CascadeSection
+          body: PropertyAccess
+            operator: ?..
+            propertyName: SimpleIdentifier
+              token: foo
+              element: <null>
+              staticType: InvalidType
+            staticType: InvalidType
+      cascadeSections
         PropertyAccess
           operator: ?..
           propertyName: SimpleIdentifier
@@ -865,7 +874,24 @@ CascadeExpression
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A?
-  cascadeSections2
+  sections
+    CascadeSection
+      body: PropertyAccess
+        operator: ?..
+        propertyName: SimpleIdentifier
+          token: foo
+          element: <testLibrary>::@class::A::@getter::foo
+          staticType: int
+        staticType: int
+    CascadeSection
+      body: PropertyAccess
+        operator: ..
+        propertyName: SimpleIdentifier
+          token: bar
+          element: <testLibrary>::@class::A::@getter::bar
+          staticType: int
+        staticType: int
+  cascadeSections
     PropertyAccess
       operator: ?..
       propertyName: SimpleIdentifier
@@ -921,9 +947,25 @@ CascadeExpression
       leftParenthesis: (
       rightParenthesis: )
     staticType: A
-  cascadeSections2
+  sections
+    CascadeSection
+      body: PropertyAccess
+        target2: PropertyAccess
+          operator: ..
+          propertyName: SimpleIdentifier
+            token: foo
+            element: <testLibrary>::@class::A::@getter::foo
+            staticType: int?
+          staticType: int?
+        operator: ?.
+        propertyName: SimpleIdentifier
+          token: isEven
+          element: dart:core::@class::int::@getter::isEven
+          staticType: bool
+        staticType: bool?
+  cascadeSections
     PropertyAccess
-      target2: PropertyAccess
+      target: PropertyAccess
         operator: ..
         propertyName: SimpleIdentifier
           token: foo
@@ -979,10 +1021,33 @@ CascadeExpression
       leftParenthesis: (
       rightParenthesis: )
     staticType: A
-  cascadeSections2
-    PropertyAccess
-      target2: PropertyAccess
+  sections
+    CascadeSection
+      body: PropertyAccess
         target2: PropertyAccess
+          target2: PropertyAccess
+            operator: ..
+            propertyName: SimpleIdentifier
+              token: foo
+              element: <testLibrary>::@class::A::@getter::foo
+              staticType: A?
+            staticType: A?
+          operator: ?.
+          propertyName: SimpleIdentifier
+            token: bar
+            element: <testLibrary>::@class::A::@getter::bar
+            staticType: A?
+          staticType: A?
+        operator: ?.
+        propertyName: SimpleIdentifier
+          token: baz
+          element: <testLibrary>::@class::A::@getter::baz
+          staticType: A?
+        staticType: A?
+  cascadeSections
+    PropertyAccess
+      target: PropertyAccess
+        target: PropertyAccess
           operator: ..
           propertyName: SimpleIdentifier
             token: foo
@@ -1034,9 +1099,25 @@ CascadeExpression
       element: <testLibrary>::@class::A::@getter::bar
       staticType: A
     staticType: A?
-  cascadeSections2
+  sections
+    CascadeSection
+      body: PropertyAccess
+        target2: PropertyAccess
+          operator: ?..
+          propertyName: SimpleIdentifier
+            token: baz
+            element: <testLibrary>::@class::A::@getter::baz
+            staticType: A?
+          staticType: A?
+        operator: ?.
+        propertyName: SimpleIdentifier
+          token: baq
+          element: <testLibrary>::@class::A::@getter::baq
+          staticType: A
+        staticType: A?
+  cascadeSections
     PropertyAccess
-      target2: PropertyAccess
+      target: PropertyAccess
         operator: ?..
         propertyName: SimpleIdentifier
           token: baz

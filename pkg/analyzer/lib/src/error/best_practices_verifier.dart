@@ -206,6 +206,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitCascadeIndexExpression(CascadeIndexExpression node) {
+    _elementUsageFrontierDetector.cascadeIndexExpression(node);
+    super.visitCascadeIndexExpression(node);
+  }
+
+  @override
   void visitCastPattern(CastPattern node) {
     var type = node.type.type;
     var matchedValueType = node.matchedValueType;

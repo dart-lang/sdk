@@ -963,13 +963,45 @@ var v = null..[i];
 CascadeExpression
   target2: NullLiteral
     literal: null
-  cascadeSections2
+  sections
+    CascadeSection
+      operator: ..
+      body: CascadeIndexExpression
+        leftBracket: [
+        index: SimpleIdentifier
+          token: i
+        rightBracket: ]
+  cascadeSections
     IndexExpression
       period: ..
       leftBracket: [
-      index2: SimpleIdentifier
+      index: SimpleIdentifier
         token: i
       rightBracket: ]
+''');
+  }
+
+  void test_parseCascadeSection_i_postfixDecrement_invalid() {
+    parseTestCodeWithDiagnostics(r'''
+var v = null..[i]--;
+//              ^
+// [diag.expectedToken] Expected to find ';'.
+//               ^^
+// [diag.expectedExecutable] Expected a method, getter, setter or operator declaration.
+//                 ^
+// [diag.unexpectedToken] Unexpected text ';'.
+''');
+  }
+
+  void test_parseCascadeSection_i_postfixIncrement_invalid() {
+    parseTestCodeWithDiagnostics(r'''
+var v = null..[i]++;
+//              ^
+// [diag.expectedToken] Expected to find ';'.
+//               ^^
+// [diag.expectedExecutable] Expected a method, getter, setter or operator declaration.
+//                 ^
+// [diag.unexpectedToken] Unexpected text ';'.
 ''');
   }
 
@@ -982,17 +1014,38 @@ var v = null..[i](b);
 CascadeExpression
   target2: NullLiteral
     literal: null
-  cascadeSections2
+  sections
+    CascadeSection
+      operator: ..
+      body: FunctionExpressionInvocation
+        function2: CascadeIndexExpression
+          leftBracket: [
+          index: SimpleIdentifier
+            token: i
+          rightBracket: ]
+        function(v1): IndexExpression
+          period: ..
+          leftBracket: [
+          index: SimpleIdentifier
+            token: i
+          rightBracket: ]
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments2
+            SimpleIdentifier
+              token: b
+          rightParenthesis: )
+  cascadeSections
     FunctionExpressionInvocation
-      function2: IndexExpression
+      function: IndexExpression
         period: ..
         leftBracket: [
-        index2: SimpleIdentifier
+        index: SimpleIdentifier
           token: i
         rightBracket: ]
       argumentList: ArgumentList
         leftParenthesis: (
-        arguments2
+        arguments
           SimpleIdentifier
             token: b
         rightParenthesis: )
@@ -1008,12 +1061,39 @@ var v = null..[i]<E>(b);
 CascadeExpression
   target2: NullLiteral
     literal: null
-  cascadeSections2
+  sections
+    CascadeSection
+      operator: ..
+      body: FunctionExpressionInvocation
+        function2: CascadeIndexExpression
+          leftBracket: [
+          index: SimpleIdentifier
+            token: i
+          rightBracket: ]
+        function(v1): IndexExpression
+          period: ..
+          leftBracket: [
+          index: SimpleIdentifier
+            token: i
+          rightBracket: ]
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: E
+          rightBracket: >
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments2
+            SimpleIdentifier
+              token: b
+          rightParenthesis: )
+  cascadeSections
     FunctionExpressionInvocation
-      function2: IndexExpression
+      function: IndexExpression
         period: ..
         leftBracket: [
-        index2: SimpleIdentifier
+        index: SimpleIdentifier
           token: i
         rightBracket: ]
       typeArguments: TypeArgumentList
@@ -1024,7 +1104,7 @@ CascadeExpression
         rightBracket: >
       argumentList: ArgumentList
         leftParenthesis: (
-        arguments2
+        arguments
           SimpleIdentifier
             token: b
         rightParenthesis: )
@@ -1040,15 +1120,37 @@ var v = null..a(b).c(d);
 CascadeExpression
   target2: NullLiteral
     literal: null
-  cascadeSections2
+  sections
+    CascadeSection
+      body: MethodInvocation
+        target2: MethodInvocation
+          operator: ..
+          methodName: SimpleIdentifier
+            token: a
+          argumentList: ArgumentList
+            leftParenthesis: (
+            arguments2
+              SimpleIdentifier
+                token: b
+            rightParenthesis: )
+        operator: .
+        methodName: SimpleIdentifier
+          token: c
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments2
+            SimpleIdentifier
+              token: d
+          rightParenthesis: )
+  cascadeSections
     MethodInvocation
-      target2: MethodInvocation
+      target: MethodInvocation
         operator: ..
         methodName: SimpleIdentifier
           token: a
         argumentList: ArgumentList
           leftParenthesis: (
-          arguments2
+          arguments
             SimpleIdentifier
               token: b
           rightParenthesis: )
@@ -1057,7 +1159,7 @@ CascadeExpression
         token: c
       argumentList: ArgumentList
         leftParenthesis: (
-        arguments2
+        arguments
           SimpleIdentifier
             token: d
         rightParenthesis: )
@@ -1073,9 +1175,43 @@ var v = null..a<E>(b).c<F>(d);
 CascadeExpression
   target2: NullLiteral
     literal: null
-  cascadeSections2
+  sections
+    CascadeSection
+      body: MethodInvocation
+        target2: MethodInvocation
+          operator: ..
+          methodName: SimpleIdentifier
+            token: a
+          typeArguments: TypeArgumentList
+            leftBracket: <
+            arguments
+              NamedType
+                name: E
+            rightBracket: >
+          argumentList: ArgumentList
+            leftParenthesis: (
+            arguments2
+              SimpleIdentifier
+                token: b
+            rightParenthesis: )
+        operator: .
+        methodName: SimpleIdentifier
+          token: c
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: F
+          rightBracket: >
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments2
+            SimpleIdentifier
+              token: d
+          rightParenthesis: )
+  cascadeSections
     MethodInvocation
-      target2: MethodInvocation
+      target: MethodInvocation
         operator: ..
         methodName: SimpleIdentifier
           token: a
@@ -1087,7 +1223,7 @@ CascadeExpression
           rightBracket: >
         argumentList: ArgumentList
           leftParenthesis: (
-          arguments2
+          arguments
             SimpleIdentifier
               token: b
           rightParenthesis: )
@@ -1102,7 +1238,7 @@ CascadeExpression
         rightBracket: >
       argumentList: ArgumentList
         leftParenthesis: (
-        arguments2
+        arguments
           SimpleIdentifier
             token: d
         rightParenthesis: )
@@ -1118,7 +1254,13 @@ var v = null..a;
 CascadeExpression
   target2: NullLiteral
     literal: null
-  cascadeSections2
+  sections
+    CascadeSection
+      body: PropertyAccess
+        operator: ..
+        propertyName: SimpleIdentifier
+          token: a
+  cascadeSections
     PropertyAccess
       operator: ..
       propertyName: SimpleIdentifier
@@ -1135,14 +1277,24 @@ var v = null..a = 3;
 CascadeExpression
   target2: NullLiteral
     literal: null
-  cascadeSections2
+  sections
+    CascadeSection
+      body: AssignmentExpression
+        leftHandSide2: PropertyAccess
+          operator: ..
+          propertyName: SimpleIdentifier
+            token: a
+        operator: =
+        rightHandSide2: IntegerLiteral
+          literal: 3
+  cascadeSections
     AssignmentExpression
-      leftHandSide2: PropertyAccess
+      leftHandSide: PropertyAccess
         operator: ..
         propertyName: SimpleIdentifier
           token: a
       operator: =
-      rightHandSide2: IntegerLiteral
+      rightHandSide: IntegerLiteral
         literal: 3
 ''');
   }
@@ -1158,14 +1310,32 @@ var v = null
 CascadeExpression
   target2: NullLiteral
     literal: null
-  cascadeSections2
+  sections
+    CascadeSection
+      body: AssignmentExpression
+        leftHandSide2: PropertyAccess
+          operator: ..
+          propertyName: SimpleIdentifier
+            token: a
+        operator: =
+        rightHandSide2: IntegerLiteral
+          literal: 3
+    CascadeSection
+      body: MethodInvocation
+        operator: ..
+        methodName: SimpleIdentifier
+          token: m
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+  cascadeSections
     AssignmentExpression
-      leftHandSide2: PropertyAccess
+      leftHandSide: PropertyAccess
         operator: ..
         propertyName: SimpleIdentifier
           token: a
       operator: =
-      rightHandSide2: IntegerLiteral
+      rightHandSide: IntegerLiteral
         literal: 3
     MethodInvocation
       operator: ..
@@ -1188,14 +1358,38 @@ var v = null
 CascadeExpression
   target2: NullLiteral
     literal: null
-  cascadeSections2
+  sections
+    CascadeSection
+      body: AssignmentExpression
+        leftHandSide2: PropertyAccess
+          operator: ..
+          propertyName: SimpleIdentifier
+            token: a
+        operator: =
+        rightHandSide2: IntegerLiteral
+          literal: 3
+    CascadeSection
+      body: MethodInvocation
+        operator: ..
+        methodName: SimpleIdentifier
+          token: m
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: E
+          rightBracket: >
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+  cascadeSections
     AssignmentExpression
-      leftHandSide2: PropertyAccess
+      leftHandSide: PropertyAccess
         operator: ..
         propertyName: SimpleIdentifier
           token: a
       operator: =
-      rightHandSide2: IntegerLiteral
+      rightHandSide: IntegerLiteral
         literal: 3
     MethodInvocation
       operator: ..
@@ -1222,7 +1416,13 @@ var v = null..as;
 CascadeExpression
   target2: NullLiteral
     literal: null
-  cascadeSections2
+  sections
+    CascadeSection
+      body: PropertyAccess
+        operator: ..
+        propertyName: SimpleIdentifier
+          token: as
+  cascadeSections
     PropertyAccess
       operator: ..
       propertyName: SimpleIdentifier
@@ -1239,14 +1439,26 @@ var v = null..a(b);
 CascadeExpression
   target2: NullLiteral
     literal: null
-  cascadeSections2
+  sections
+    CascadeSection
+      body: MethodInvocation
+        operator: ..
+        methodName: SimpleIdentifier
+          token: a
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments2
+            SimpleIdentifier
+              token: b
+          rightParenthesis: )
+  cascadeSections
     MethodInvocation
       operator: ..
       methodName: SimpleIdentifier
         token: a
       argumentList: ArgumentList
         leftParenthesis: (
-        arguments2
+        arguments
           SimpleIdentifier
             token: b
         rightParenthesis: )
@@ -1262,68 +1474,9 @@ var v = null..a<E>(b);
 CascadeExpression
   target2: NullLiteral
     literal: null
-  cascadeSections2
-    MethodInvocation
-      operator: ..
-      methodName: SimpleIdentifier
-        token: a
-      typeArguments: TypeArgumentList
-        leftBracket: <
-        arguments
-          NamedType
-            name: E
-        rightBracket: >
-      argumentList: ArgumentList
-        leftParenthesis: (
-        arguments2
-          SimpleIdentifier
-            token: b
-        rightParenthesis: )
-''');
-  }
-
-  void test_parseCascadeSection_paa() {
-    var parseResult = parseTestCodeWithDiagnostics(r'''
-var v = null..a(b)(c);
-''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
-    assertParsedNodeText(node, r'''
-CascadeExpression
-  target2: NullLiteral
-    literal: null
-  cascadeSections2
-    FunctionExpressionInvocation
-      function2: MethodInvocation
-        operator: ..
-        methodName: SimpleIdentifier
-          token: a
-        argumentList: ArgumentList
-          leftParenthesis: (
-          arguments2
-            SimpleIdentifier
-              token: b
-          rightParenthesis: )
-      argumentList: ArgumentList
-        leftParenthesis: (
-        arguments2
-          SimpleIdentifier
-            token: c
-        rightParenthesis: )
-''');
-  }
-
-  void test_parseCascadeSection_paa_typeArguments() {
-    var parseResult = parseTestCodeWithDiagnostics(r'''
-var v = null..a<E>(b)<F>(c);
-''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
-    assertParsedNodeText(node, r'''
-CascadeExpression
-  target2: NullLiteral
-    literal: null
-  cascadeSections2
-    FunctionExpressionInvocation
-      function2: MethodInvocation
+  sections
+    CascadeSection
+      body: MethodInvocation
         operator: ..
         methodName: SimpleIdentifier
           token: a
@@ -1339,6 +1492,133 @@ CascadeExpression
             SimpleIdentifier
               token: b
           rightParenthesis: )
+  cascadeSections
+    MethodInvocation
+      operator: ..
+      methodName: SimpleIdentifier
+        token: a
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: E
+        rightBracket: >
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
+          SimpleIdentifier
+            token: b
+        rightParenthesis: )
+''');
+  }
+
+  void test_parseCascadeSection_paa() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+var v = null..a(b)(c);
+''');
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    assertParsedNodeText(node, r'''
+CascadeExpression
+  target2: NullLiteral
+    literal: null
+  sections
+    CascadeSection
+      body: FunctionExpressionInvocation
+        function2: MethodInvocation
+          operator: ..
+          methodName: SimpleIdentifier
+            token: a
+          argumentList: ArgumentList
+            leftParenthesis: (
+            arguments2
+              SimpleIdentifier
+                token: b
+            rightParenthesis: )
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments2
+            SimpleIdentifier
+              token: c
+          rightParenthesis: )
+  cascadeSections
+    FunctionExpressionInvocation
+      function: MethodInvocation
+        operator: ..
+        methodName: SimpleIdentifier
+          token: a
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments
+            SimpleIdentifier
+              token: b
+          rightParenthesis: )
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
+          SimpleIdentifier
+            token: c
+        rightParenthesis: )
+''');
+  }
+
+  void test_parseCascadeSection_paa_typeArguments() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+var v = null..a<E>(b)<F>(c);
+''');
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    assertParsedNodeText(node, r'''
+CascadeExpression
+  target2: NullLiteral
+    literal: null
+  sections
+    CascadeSection
+      body: FunctionExpressionInvocation
+        function2: MethodInvocation
+          operator: ..
+          methodName: SimpleIdentifier
+            token: a
+          typeArguments: TypeArgumentList
+            leftBracket: <
+            arguments
+              NamedType
+                name: E
+            rightBracket: >
+          argumentList: ArgumentList
+            leftParenthesis: (
+            arguments2
+              SimpleIdentifier
+                token: b
+            rightParenthesis: )
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: F
+          rightBracket: >
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments2
+            SimpleIdentifier
+              token: c
+          rightParenthesis: )
+  cascadeSections
+    FunctionExpressionInvocation
+      function: MethodInvocation
+        operator: ..
+        methodName: SimpleIdentifier
+          token: a
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: E
+          rightBracket: >
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments
+            SimpleIdentifier
+              token: b
+          rightParenthesis: )
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
@@ -1347,7 +1627,7 @@ CascadeExpression
         rightBracket: >
       argumentList: ArgumentList
         leftParenthesis: (
-        arguments2
+        arguments
           SimpleIdentifier
             token: c
         rightParenthesis: )
@@ -1363,23 +1643,59 @@ var v = null..a(b)(c).d(e)(f);
 CascadeExpression
   target2: NullLiteral
     literal: null
-  cascadeSections2
+  sections
+    CascadeSection
+      body: FunctionExpressionInvocation
+        function2: MethodInvocation
+          target2: FunctionExpressionInvocation
+            function2: MethodInvocation
+              operator: ..
+              methodName: SimpleIdentifier
+                token: a
+              argumentList: ArgumentList
+                leftParenthesis: (
+                arguments2
+                  SimpleIdentifier
+                    token: b
+                rightParenthesis: )
+            argumentList: ArgumentList
+              leftParenthesis: (
+              arguments2
+                SimpleIdentifier
+                  token: c
+              rightParenthesis: )
+          operator: .
+          methodName: SimpleIdentifier
+            token: d
+          argumentList: ArgumentList
+            leftParenthesis: (
+            arguments2
+              SimpleIdentifier
+                token: e
+            rightParenthesis: )
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments2
+            SimpleIdentifier
+              token: f
+          rightParenthesis: )
+  cascadeSections
     FunctionExpressionInvocation
-      function2: MethodInvocation
-        target2: FunctionExpressionInvocation
-          function2: MethodInvocation
+      function: MethodInvocation
+        target: FunctionExpressionInvocation
+          function: MethodInvocation
             operator: ..
             methodName: SimpleIdentifier
               token: a
             argumentList: ArgumentList
               leftParenthesis: (
-              arguments2
+              arguments
                 SimpleIdentifier
                   token: b
               rightParenthesis: )
           argumentList: ArgumentList
             leftParenthesis: (
-            arguments2
+            arguments
               SimpleIdentifier
                 token: c
             rightParenthesis: )
@@ -1388,13 +1704,13 @@ CascadeExpression
           token: d
         argumentList: ArgumentList
           leftParenthesis: (
-          arguments2
+          arguments
             SimpleIdentifier
               token: e
           rightParenthesis: )
       argumentList: ArgumentList
         leftParenthesis: (
-        arguments2
+        arguments
           SimpleIdentifier
             token: f
         rightParenthesis: )
@@ -1410,11 +1726,71 @@ var v = null..a<E>(b)<F>(c).d<G>(e)<H>(f);
 CascadeExpression
   target2: NullLiteral
     literal: null
-  cascadeSections2
+  sections
+    CascadeSection
+      body: FunctionExpressionInvocation
+        function2: MethodInvocation
+          target2: FunctionExpressionInvocation
+            function2: MethodInvocation
+              operator: ..
+              methodName: SimpleIdentifier
+                token: a
+              typeArguments: TypeArgumentList
+                leftBracket: <
+                arguments
+                  NamedType
+                    name: E
+                rightBracket: >
+              argumentList: ArgumentList
+                leftParenthesis: (
+                arguments2
+                  SimpleIdentifier
+                    token: b
+                rightParenthesis: )
+            typeArguments: TypeArgumentList
+              leftBracket: <
+              arguments
+                NamedType
+                  name: F
+              rightBracket: >
+            argumentList: ArgumentList
+              leftParenthesis: (
+              arguments2
+                SimpleIdentifier
+                  token: c
+              rightParenthesis: )
+          operator: .
+          methodName: SimpleIdentifier
+            token: d
+          typeArguments: TypeArgumentList
+            leftBracket: <
+            arguments
+              NamedType
+                name: G
+            rightBracket: >
+          argumentList: ArgumentList
+            leftParenthesis: (
+            arguments2
+              SimpleIdentifier
+                token: e
+            rightParenthesis: )
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: H
+          rightBracket: >
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments2
+            SimpleIdentifier
+              token: f
+          rightParenthesis: )
+  cascadeSections
     FunctionExpressionInvocation
-      function2: MethodInvocation
-        target2: FunctionExpressionInvocation
-          function2: MethodInvocation
+      function: MethodInvocation
+        target: FunctionExpressionInvocation
+          function: MethodInvocation
             operator: ..
             methodName: SimpleIdentifier
               token: a
@@ -1426,7 +1802,7 @@ CascadeExpression
               rightBracket: >
             argumentList: ArgumentList
               leftParenthesis: (
-              arguments2
+              arguments
                 SimpleIdentifier
                   token: b
               rightParenthesis: )
@@ -1438,7 +1814,7 @@ CascadeExpression
             rightBracket: >
           argumentList: ArgumentList
             leftParenthesis: (
-            arguments2
+            arguments
               SimpleIdentifier
                 token: c
             rightParenthesis: )
@@ -1453,7 +1829,7 @@ CascadeExpression
           rightBracket: >
         argumentList: ArgumentList
           leftParenthesis: (
-          arguments2
+          arguments
             SimpleIdentifier
               token: e
           rightParenthesis: )
@@ -1465,7 +1841,7 @@ CascadeExpression
         rightBracket: >
       argumentList: ArgumentList
         leftParenthesis: (
-        arguments2
+        arguments
           SimpleIdentifier
             token: f
         rightParenthesis: )
@@ -1481,15 +1857,31 @@ var v = null..a(b).c;
 CascadeExpression
   target2: NullLiteral
     literal: null
-  cascadeSections2
+  sections
+    CascadeSection
+      body: PropertyAccess
+        target2: MethodInvocation
+          operator: ..
+          methodName: SimpleIdentifier
+            token: a
+          argumentList: ArgumentList
+            leftParenthesis: (
+            arguments2
+              SimpleIdentifier
+                token: b
+            rightParenthesis: )
+        operator: .
+        propertyName: SimpleIdentifier
+          token: c
+  cascadeSections
     PropertyAccess
-      target2: MethodInvocation
+      target: MethodInvocation
         operator: ..
         methodName: SimpleIdentifier
           token: a
         argumentList: ArgumentList
           leftParenthesis: (
-          arguments2
+          arguments
             SimpleIdentifier
               token: b
           rightParenthesis: )
@@ -1508,9 +1900,31 @@ var v = null..a<E>(b).c;
 CascadeExpression
   target2: NullLiteral
     literal: null
-  cascadeSections2
+  sections
+    CascadeSection
+      body: PropertyAccess
+        target2: MethodInvocation
+          operator: ..
+          methodName: SimpleIdentifier
+            token: a
+          typeArguments: TypeArgumentList
+            leftBracket: <
+            arguments
+              NamedType
+                name: E
+            rightBracket: >
+          argumentList: ArgumentList
+            leftParenthesis: (
+            arguments2
+              SimpleIdentifier
+                token: b
+            rightParenthesis: )
+        operator: .
+        propertyName: SimpleIdentifier
+          token: c
+  cascadeSections
     PropertyAccess
-      target2: MethodInvocation
+      target: MethodInvocation
         operator: ..
         methodName: SimpleIdentifier
           token: a
@@ -1522,7 +1936,7 @@ CascadeExpression
           rightBracket: >
         argumentList: ArgumentList
           leftParenthesis: (
-          arguments2
+          arguments
             SimpleIdentifier
               token: b
           rightParenthesis: )

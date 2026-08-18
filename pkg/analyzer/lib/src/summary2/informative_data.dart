@@ -1915,6 +1915,26 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitCascadeIndexAssignmentTarget(CascadeIndexAssignmentTarget node) {
+    _tokenOrNull(node.leftBracket);
+    _tokenOrNull(node.rightBracket);
+    super.visitCascadeIndexAssignmentTarget(node);
+  }
+
+  @override
+  void visitCascadeIndexExpression(CascadeIndexExpression node) {
+    _tokenOrNull(node.leftBracket);
+    _tokenOrNull(node.rightBracket);
+    super.visitCascadeIndexExpression(node);
+  }
+
+  @override
+  void visitCascadeSection(CascadeSection node) {
+    _tokenOrNull(node.operator);
+    super.visitCascadeSection(node);
+  }
+
+  @override
   void visitCompoundAssignment(CompoundAssignment node) {
     _tokenOrNull(node.operator);
     super.visitCompoundAssignment(node);

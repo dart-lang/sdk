@@ -216,7 +216,7 @@ class AstBuilder extends StackListener {
       push(
         CascadeExpressionImpl(
           target2: expression,
-          cascadeSections2: <ExpressionImpl>[],
+          sections: <CascadeSectionImpl>[],
         ),
       );
     }
@@ -1255,13 +1255,13 @@ class AstBuilder extends StackListener {
 
     var expression = pop() as ExpressionImpl;
     var cascade = pop() as CascadeExpressionImpl;
-    pop(); // Token.
+    var operator = pop() as Token;
     push(
       CascadeExpressionImpl(
         target2: cascade.target2,
-        cascadeSections2: <ExpressionImpl>[
-          ...cascade.cascadeSections2,
-          expression,
+        sections: <CascadeSectionImpl>[
+          ...cascade.sections,
+          CascadeSectionImpl(operator: operator, body: expression),
         ],
       ),
     );
@@ -3778,6 +3778,16 @@ class AstBuilder extends StackListener {
       _ => null,
     };
     var indexTarget = switch (lhs) {
+      CascadeIndexExpressionImpl(
+        :var leftBracket,
+        :var index,
+        :var rightBracket,
+      ) =>
+        CascadeIndexAssignmentTargetImpl(
+          leftBracket: leftBracket,
+          index: index,
+          rightBracket: rightBracket,
+        ),
       IndexExpression2Impl(
         :var receiver,
         :var question,
@@ -4764,17 +4774,12 @@ class AstBuilder extends StackListener {
     reportErrorIfSuper(index);
     if (target == null) {
       var receiver = pop() as CascadeExpressionImpl;
-      var token = peek() as Token;
       push(receiver);
-      var expression = IndexExpressionImpl(
-        target2: null,
-        period: token,
-        question: question,
+      var expression = CascadeIndexExpressionImpl(
         leftBracket: leftBracket,
-        index2: index,
+        index: index,
         rightBracket: rightBracket,
       );
-      assert(expression.isCascaded);
       push(expression);
     } else {
       push(

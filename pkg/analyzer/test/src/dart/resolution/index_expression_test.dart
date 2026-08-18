@@ -373,12 +373,24 @@ void f(A? a) {
 }
 ''');
 
-    var node1 = result.findNode.index('..[0]');
+    var node1 = result.findNode.cascadeIndexExpression('[0]');
     assertResolvedNodeText(node1, r'''
-IndexExpression
+CascadeIndexExpression
+  leftBracket: [
+  index: IntegerLiteral
+    literal: 0
+    correspondingParameter: <testLibrary>::@class::A::@method::[]::@formalParameter::index
+    staticType: int
+  rightBracket: ]
+  resolution: MethodIndexReadResolution
+    element: <testLibrary>::@class::A::@method::[]
+    invokeType: bool Function(int)
+    type: bool
+  staticType: bool
+V1: IndexExpression
   period: ?..
   leftBracket: [
-  index2: IntegerLiteral
+  index: IntegerLiteral
     literal: 0
     correspondingParameter: <testLibrary>::@class::A::@method::[]::@formalParameter::index
     staticType: int
@@ -387,12 +399,24 @@ IndexExpression
   staticType: bool
 ''');
 
-    var node2 = result.findNode.index('..[1]');
+    var node2 = result.findNode.cascadeIndexExpression('[1]');
     assertResolvedNodeText(node2, r'''
-IndexExpression
+CascadeIndexExpression
+  leftBracket: [
+  index: IntegerLiteral
+    literal: 1
+    correspondingParameter: <testLibrary>::@class::A::@method::[]::@formalParameter::index
+    staticType: int
+  rightBracket: ]
+  resolution: MethodIndexReadResolution
+    element: <testLibrary>::@class::A::@method::[]
+    invokeType: bool Function(int)
+    type: bool
+  staticType: bool
+V1: IndexExpression
   period: ..
   leftBracket: [
-  index2: IntegerLiteral
+  index: IntegerLiteral
     literal: 1
     correspondingParameter: <testLibrary>::@class::A::@method::[]::@formalParameter::index
     staticType: int
@@ -1528,12 +1552,57 @@ CascadeExpression
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A?
-  cascadeSections2
+  sections
+    CascadeSection
+      operator: ?..
+      body: DirectAssignment
+        target: CascadeIndexAssignmentTarget
+          leftBracket: [
+          index: IntegerLiteral
+            literal: 0
+            correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
+            staticType: int
+          rightBracket: ]
+          read: <null>
+          write: MethodIndexWriteResolution
+            element: <testLibrary>::@class::A::@method::[]=
+            invokeType: void Function(int, A)
+            acceptedType: A
+        operator: =
+        value: SimpleIdentifier
+          token: a
+          correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::a
+          element: <testLibrary>::@function::f::@formalParameter::a
+          staticType: A
+        staticType: A
+    CascadeSection
+      operator: ..
+      body: DirectAssignment
+        target: CascadeIndexAssignmentTarget
+          leftBracket: [
+          index: IntegerLiteral
+            literal: 1
+            correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
+            staticType: int
+          rightBracket: ]
+          read: <null>
+          write: MethodIndexWriteResolution
+            element: <testLibrary>::@class::A::@method::[]=
+            invokeType: void Function(int, A)
+            acceptedType: A
+        operator: =
+        value: SimpleIdentifier
+          token: a
+          correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::a
+          element: <testLibrary>::@function::f::@formalParameter::a
+          staticType: A
+        staticType: A
+  cascadeSections
     AssignmentExpression
-      leftHandSide2: IndexExpression
+      leftHandSide: IndexExpression
         period: ?..
         leftBracket: [
-        index2: IntegerLiteral
+        index: IntegerLiteral
           literal: 0
           correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
           staticType: int
@@ -1541,7 +1610,7 @@ CascadeExpression
         element: <null>
         staticType: null
       operator: =
-      rightHandSide2: SimpleIdentifier
+      rightHandSide: SimpleIdentifier
         token: a
         correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::a
         element: <testLibrary>::@function::f::@formalParameter::a
@@ -1553,10 +1622,10 @@ CascadeExpression
       element: <null>
       staticType: A
     AssignmentExpression
-      leftHandSide2: IndexExpression
+      leftHandSide: IndexExpression
         period: ..
         leftBracket: [
-        index2: IntegerLiteral
+        index: IntegerLiteral
           literal: 1
           correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
           staticType: int
@@ -1564,7 +1633,7 @@ CascadeExpression
         element: <null>
         staticType: null
       operator: =
-      rightHandSide2: SimpleIdentifier
+      rightHandSide: SimpleIdentifier
         token: a
         correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::a
         element: <testLibrary>::@function::f::@formalParameter::a

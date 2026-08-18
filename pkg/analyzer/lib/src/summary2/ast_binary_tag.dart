@@ -133,6 +133,9 @@ class Tag {
   static const int PropertyExtraction = 140;
   static const int IndexAssignmentTarget = 141;
   static const int IndexExpression2 = 142;
+  static const int CascadeSection = 143;
+  static const int CascadeIndexExpression = 144;
+  static const int CascadeIndexAssignmentTarget = 145;
   static const int NullLiteral = 49;
   static const int ParenthesizedExpression = 53;
   static const int PrefixedIdentifier = 32;

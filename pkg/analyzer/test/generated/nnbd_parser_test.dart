@@ -119,9 +119,49 @@ Block
       expression2: CascadeExpression
         target2: SimpleIdentifier
           token: a
-        cascadeSections2
+        sections
+          CascadeSection
+            body: PropertyAccess
+              target2: MethodInvocation
+                operator: ?..
+                methodName: SimpleIdentifier
+                  token: foo
+                argumentList: ArgumentList
+                  leftParenthesis: (
+                  rightParenthesis: )
+              operator: .
+              propertyName: SimpleIdentifier
+                token: length
+          CascadeSection
+            body: AssignmentExpression
+              leftHandSide2: PropertyAccess
+                operator: ..
+                propertyName: SimpleIdentifier
+                  token: x27
+              operator: =
+              rightHandSide2: NullAssertionExpression
+                operand: SimpleIdentifier
+                  token: s
+                operator: !
+              rightHandSide(v1): PostfixExpression
+                operand: SimpleIdentifier
+                  token: s
+                operator: !
+          CascadeSection
+            body: PropertyAccess
+              target2: MethodInvocation
+                operator: ..
+                methodName: SimpleIdentifier
+                  token: toString
+                argumentList: ArgumentList
+                  leftParenthesis: (
+                  rightParenthesis: )
+              operator: .
+              propertyName: SimpleIdentifier
+                token: length
+        cascadeSections
           PropertyAccess
-            target2: MethodInvocation
+            target: MethodInvocation
               operator: ?..
               methodName: SimpleIdentifier
                 token: foo
@@ -132,21 +172,17 @@ Block
             propertyName: SimpleIdentifier
               token: length
           AssignmentExpression
-            leftHandSide2: PropertyAccess
+            leftHandSide: PropertyAccess
               operator: ..
               propertyName: SimpleIdentifier
                 token: x27
             operator: =
-            rightHandSide2: NullAssertionExpression
-              operand: SimpleIdentifier
-                token: s
-              operator: !
-            rightHandSide(v1): PostfixExpression
+            rightHandSide: PostfixExpression
               operand: SimpleIdentifier
                 token: s
               operator: !
           PropertyAccess
-            target2: MethodInvocation
+            target: MethodInvocation
               operator: ..
               methodName: SimpleIdentifier
                 token: toString
@@ -368,11 +404,19 @@ Block
       expression2: CascadeExpression
         target2: SimpleIdentifier
           token: a
-        cascadeSections2
+        sections
+          CascadeSection
+            operator: ?..
+            body: CascadeIndexExpression
+              leftBracket: [
+              index: IntegerLiteral
+                literal: 27
+              rightBracket: ]
+        cascadeSections
           IndexExpression
             period: ?..
             leftBracket: [
-            index2: IntegerLiteral
+            index: IntegerLiteral
               literal: 27
             rightBracket: ]
       semicolon: ;
@@ -395,11 +439,24 @@ Block
       expression2: CascadeExpression
         target2: SimpleIdentifier
           token: a
-        cascadeSections2
+        sections
+          CascadeSection
+            operator: ..
+            body: CascadeIndexExpression
+              leftBracket: [
+              index: IntegerLiteral
+                literal: 27
+              rightBracket: ]
+          CascadeSection
+            body: PropertyAccess
+              operator: ?..
+              propertyName: SimpleIdentifier
+                token: x
+        cascadeSections
           IndexExpression
             period: ..
             leftBracket: [
-            index2: IntegerLiteral
+            index: IntegerLiteral
               literal: 27
             rightBracket: ]
           PropertyAccess
@@ -426,7 +483,16 @@ Block
       expression2: CascadeExpression
         target2: SimpleIdentifier
           token: a
-        cascadeSections2
+        sections
+          CascadeSection
+            body: MethodInvocation
+              operator: ?..
+              methodName: SimpleIdentifier
+                token: foo
+              argumentList: ArgumentList
+                leftParenthesis: (
+                rightParenthesis: )
+        cascadeSections
           MethodInvocation
             operator: ?..
             methodName: SimpleIdentifier
@@ -454,7 +520,13 @@ Block
       expression2: CascadeExpression
         target2: SimpleIdentifier
           token: a
-        cascadeSections2
+        sections
+          CascadeSection
+            body: PropertyAccess
+              operator: ?..
+              propertyName: SimpleIdentifier
+                token: x27
+        cascadeSections
           PropertyAccess
             operator: ?..
             propertyName: SimpleIdentifier

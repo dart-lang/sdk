@@ -416,7 +416,20 @@ ImplicitCallReference
         staticType: C
       rightParenthesis: )
       staticType: C
-    cascadeSections2
+    sections
+      CascadeSection
+        body: MethodInvocation
+          operator: ..
+          methodName: SimpleIdentifier
+            token: m
+            element: <testLibrary>::@class::C::@method::m
+            staticType: void Function()
+          argumentList: ArgumentList
+            leftParenthesis: (
+            rightParenthesis: )
+          staticInvokeType: void Function()
+          staticType: void
+    cascadeSections
       MethodInvocation
         operator: ..
         methodName: SimpleIdentifier

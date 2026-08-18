@@ -16,6 +16,193 @@ main() {
 
 @reflectiveTest
 class CascadeExpressionResolutionTest extends PubPackageResolutionTest {
+  test_indexSections_ast() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  dynamic operator[](int index) => 0;
+  operator[]=(int index, dynamic value) {}
+}
+
+void f(A a) {
+  a..[0]..[1] = 1..[2] += 1..[3] ??= 1;
+}
+''');
+
+    var node = result.findNode.singleCascadeExpression;
+    assertResolvedNodeText(node, r'''
+CascadeExpression
+  target2: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: A
+  sections
+    CascadeSection
+      operator: ..
+      body: CascadeIndexExpression
+        leftBracket: [
+        index: IntegerLiteral
+          literal: 0
+          correspondingParameter: <testLibrary>::@class::A::@method::[]::@formalParameter::index
+          staticType: int
+        rightBracket: ]
+        resolution: MethodIndexReadResolution
+          element: <testLibrary>::@class::A::@method::[]
+          invokeType: dynamic Function(int)
+          type: dynamic
+        staticType: dynamic
+    CascadeSection
+      operator: ..
+      body: DirectAssignment
+        target: CascadeIndexAssignmentTarget
+          leftBracket: [
+          index: IntegerLiteral
+            literal: 1
+            correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
+            staticType: int
+          rightBracket: ]
+          read: <null>
+          write: MethodIndexWriteResolution
+            element: <testLibrary>::@class::A::@method::[]=
+            invokeType: void Function(int, dynamic)
+            acceptedType: dynamic
+        operator: =
+        value: IntegerLiteral
+          literal: 1
+          correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::value
+          staticType: int
+        staticType: int
+    CascadeSection
+      operator: ..
+      body: CompoundAssignment
+        target: CascadeIndexAssignmentTarget
+          leftBracket: [
+          index: IntegerLiteral
+            literal: 2
+            correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
+            staticType: int
+          rightBracket: ]
+          read: MethodIndexReadResolution
+            element: <testLibrary>::@class::A::@method::[]
+            invokeType: dynamic Function(int)
+            type: dynamic
+          write: MethodIndexWriteResolution
+            element: <testLibrary>::@class::A::@method::[]=
+            invokeType: void Function(int, dynamic)
+            acceptedType: dynamic
+        operator: +=
+        value: IntegerLiteral
+          literal: 1
+          correspondingParameter: <null>
+          staticType: int
+        binaryOperator: add
+        element: <null>
+        operatorResultType: dynamic
+        staticType: dynamic
+    CascadeSection
+      operator: ..
+      body: IfNullAssignment
+        target: CascadeIndexAssignmentTarget
+          leftBracket: [
+          index: IntegerLiteral
+            literal: 3
+            correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
+            staticType: int
+          rightBracket: ]
+          read: MethodIndexReadResolution
+            element: <testLibrary>::@class::A::@method::[]
+            invokeType: dynamic Function(int)
+            type: dynamic
+          write: MethodIndexWriteResolution
+            element: <testLibrary>::@class::A::@method::[]=
+            invokeType: void Function(int, dynamic)
+            acceptedType: dynamic
+        operator: ??=
+        value: IntegerLiteral
+          literal: 1
+          correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::value
+          staticType: int
+        staticType: dynamic
+  cascadeSections
+    IndexExpression
+      period: ..
+      leftBracket: [
+      index: IntegerLiteral
+        literal: 0
+        correspondingParameter: <testLibrary>::@class::A::@method::[]::@formalParameter::index
+        staticType: int
+      rightBracket: ]
+      element: <testLibrary>::@class::A::@method::[]
+      staticType: dynamic
+    AssignmentExpression
+      leftHandSide: IndexExpression
+        period: ..
+        leftBracket: [
+        index: IntegerLiteral
+          literal: 1
+          correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
+          staticType: int
+        rightBracket: ]
+        element: <null>
+        staticType: null
+      operator: =
+      rightHandSide: IntegerLiteral
+        literal: 1
+        correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::value
+        staticType: int
+      readElement: <null>
+      readType: null
+      writeElement: <testLibrary>::@class::A::@method::[]=
+      writeType: dynamic
+      element: <null>
+      staticType: int
+    AssignmentExpression
+      leftHandSide: IndexExpression
+        period: ..
+        leftBracket: [
+        index: IntegerLiteral
+          literal: 2
+          correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
+          staticType: int
+        rightBracket: ]
+        element: <null>
+        staticType: null
+      operator: +=
+      rightHandSide: IntegerLiteral
+        literal: 1
+        correspondingParameter: <null>
+        staticType: int
+      readElement: <testLibrary>::@class::A::@method::[]
+      readType: dynamic
+      writeElement: <testLibrary>::@class::A::@method::[]=
+      writeType: dynamic
+      element: <null>
+      staticType: dynamic
+    AssignmentExpression
+      leftHandSide: IndexExpression
+        period: ..
+        leftBracket: [
+        index: IntegerLiteral
+          literal: 3
+          correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
+          staticType: int
+        rightBracket: ]
+        element: <null>
+        staticType: null
+      operator: ??=
+      rightHandSide: IntegerLiteral
+        literal: 1
+        correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::value
+        staticType: int
+      readElement: <testLibrary>::@class::A::@method::[]
+      readType: dynamic
+      writeElement: <testLibrary>::@class::A::@method::[]=
+      writeType: dynamic
+      element: <null>
+      staticType: dynamic
+  staticType: A
+''');
+  }
+
   test_nullAware_indexGet_promotableField() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class C {

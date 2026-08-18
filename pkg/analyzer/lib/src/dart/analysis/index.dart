@@ -753,6 +753,26 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   }
 
   @override
+  void visitCascadeIndexExpression(CascadeIndexExpression node) {
+    var element = switch (node.resolution) {
+      MethodIndexReadResolution(:var element) => element,
+      InvalidIndexReadResolution(
+        recovery: MethodIndexReadResolution(:var element),
+      ) =>
+        element,
+      _ => null,
+    };
+    if (element is MethodElement) {
+      recordRelationToken(
+        element,
+        IndexRelationKind.IS_INVOKED_BY,
+        node.leftBracket,
+      );
+    }
+    super.visitCascadeIndexExpression(node);
+  }
+
+  @override
   void visitClassDeclaration(covariant ClassDeclarationImpl node) {
     _addSubtypeForClassDeclaration(node);
     var declaredElement = node.declaredFragment!.element;
@@ -856,6 +876,8 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   void visitCompoundAssignment(CompoundAssignment node) {
     recordOperatorReference(node.operator, node.element);
     switch (node.target as AssignmentTargetImpl) {
+      case CascadeIndexAssignmentTargetImpl target:
+        _recordIndexReadWriteTarget(target);
       case IndexAssignmentTargetImpl target:
         _recordIndexReadWriteTarget(target);
       case InvalidExpressionAssignmentTargetImpl():
@@ -966,6 +988,8 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   @override
   void visitDirectAssignment(DirectAssignment node) {
     switch (node.target as AssignmentTargetImpl) {
+      case CascadeIndexAssignmentTargetImpl target:
+        _recordIndexReadWriteTarget(target);
       case IndexAssignmentTargetImpl target:
         _recordIndexReadWriteTarget(target);
       case InvalidExpressionAssignmentTargetImpl():
@@ -1209,6 +1233,8 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   @override
   void visitIfNullAssignment(IfNullAssignment node) {
     switch (node.target as AssignmentTargetImpl) {
+      case CascadeIndexAssignmentTargetImpl target:
+        _recordIndexReadWriteTarget(target);
       case IndexAssignmentTargetImpl target:
         _recordIndexReadWriteTarget(target);
       case InvalidExpressionAssignmentTargetImpl():
@@ -1798,19 +1824,32 @@ class _IndexContributor extends UnifyingAstVisitor2 {
     );
   }
 
-  void _recordIndexReadWriteTarget(IndexAssignmentTargetImpl target) {
-    if (target.read case MethodIndexReadResolutionImpl(:var element)) {
+  void _recordIndexReadWriteTarget(AstNode target) {
+    var (read, write, leftBracket) = switch (target) {
+      CascadeIndexAssignmentTargetImpl target => (
+        target.read,
+        target.write,
+        target.leftBracket,
+      ),
+      IndexAssignmentTargetImpl target => (
+        target.read,
+        target.write,
+        target.leftBracket,
+      ),
+      _ => throw StateError('Not an index assignment target: $target'),
+    };
+    if (read case MethodIndexReadResolutionImpl(:var element)) {
       recordRelationToken(
         element,
         IndexRelationKind.IS_INVOKED_BY,
-        target.leftBracket,
+        leftBracket,
       );
     }
-    if (target.write case MethodIndexWriteResolutionImpl(:var element)) {
+    if (write case MethodIndexWriteResolutionImpl(:var element)) {
       recordRelationToken(
         element,
         IndexRelationKind.IS_INVOKED_BY,
-        target.leftBracket,
+        leftBracket,
       );
     }
   }
@@ -1925,6 +1964,8 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   ) {
     recordOperatorReference(node.operator, node.element);
     switch (node.target) {
+      case CascadeIndexAssignmentTargetImpl target:
+        _recordIndexReadWriteTarget(target);
       case IndexAssignmentTargetImpl target:
         _recordIndexReadWriteTarget(target);
       case InvalidExpressionAssignmentTargetImpl():

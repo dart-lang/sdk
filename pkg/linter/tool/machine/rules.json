@@ -1121,6 +1121,19 @@
     "sinceDartSdk": "2.1"
   },
   {
+    "name": "future_sync_value",
+    "description": "For synchronous values, `Future.syncValue` is more performant.",
+    "categories": [
+      "nonPerformant"
+    ],
+    "state": "stable",
+    "incompatible": [],
+    "sets": [],
+    "fixStatus": "hasFix",
+    "details": "**DO** use `Future.syncValue` when the argument is synchronous.\n\n**BAD:**\n```dart\nFuture<int> f() => Future.value(1);\n```\n\n**GOOD:**\n```dart\nFuture<int> f() => Future.value(1);\n```",
+    "sinceDartSdk": "3.14"
+  },
+  {
     "name": "hash_and_equals",
     "description": "Always override `hashCode` if overriding `==`.",
     "categories": [
@@ -1362,6 +1375,19 @@
     "fixStatus": "needsFix",
     "details": "**DO** use super parameter names that match their corresponding super\nconstructor's parameter names.\n\n**BAD:**\n\n```dart\nclass Rectangle {\n  final int width;\n  final int height;\n\n  Rectangle(this.width, this.height);\n}\n\nclass ColoredRectangle extends Rectangle {\n  final Color color;\n\n  ColoredRectangle(\n    this.color,\n    super.height, // Bad, actually corresponds to the `width` parameter.\n    super.width, // Bad, actually corresponds to the `height` parameter.\n  );\n}\n```\n\n**GOOD:**\n\n```dart\nclass Rectangle {\n  final int width;\n  final int height;\n\n  Rectangle(this.width, this.height);\n}\n\nclass ColoredRectangle extends Rectangle {\n  final Color color;\n\n  ColoredRectangle(\n    this.color,\n    super.width,\n    super.height,\n  );\n}\n```",
     "sinceDartSdk": "3.0"
+  },
+  {
+    "name": "migrate_design_widgets",
+    "description": "Design widgets should be imported from Material or Cupertino packages.",
+    "categories": [
+      "flutter"
+    ],
+    "state": "experimental",
+    "incompatible": [],
+    "sets": [],
+    "fixStatus": "hasFix",
+    "details": "The 'package:flutter/material.dart' and 'package:flutter/cupertino.dart' libraries are deprecated.",
+    "sinceDartSdk": "3.13"
   },
   {
     "name": "missing_code_block_language_in_doc_comment",
@@ -2008,7 +2034,7 @@
     "incompatible": [],
     "sets": [],
     "fixStatus": "hasFix",
-    "details": "When building maps from iterables, it is preferable to use `for` elements.\n\nUsing 'for' elements brings several benefits including:\n\n- Performance\n- Flexibility\n- Readability\n- Improved type inference\n- Improved interaction with null safety\n\n\n**BAD:**\n```dart\nMap<String, WidgetBuilder>.fromIterable(\n  kAllGalleryDemos,\n  key: (demo) => '${demo.routeName}',\n  value: (demo) => demo.buildRoute,\n);\n```\n\n**GOOD:**\n```dart\nreturn {\n  for (var demo in kAllGalleryDemos)\n    '${demo.routeName}': demo.buildRoute,\n};\n```\n\n**GOOD:**\n```dart\n// Map<int, Student> is not required, type is inferred automatically.\nfinal pizzaRecipients = {\n  ...studentLeaders,\n  for (var student in classG)\n    if (student.isPassing) student.id: student,\n};\n```",
+    "details": "When building maps from iterables, it is preferable to use `for` elements.\n\nUsing 'for' elements brings several benefits including:\n\n- Performance\n- Flexibility\n- Readability\n- Improved type inference\n- Improved interaction with null safety\n\n**BAD:**\n```dart\nMap<String, WidgetBuilder>.fromIterable(\n  kAllGalleryDemos,\n  key: (demo) => '${demo.routeName}',\n  value: (demo) => demo.buildRoute,\n);\n```\n\n**GOOD:**\n```dart\nreturn {\n  for (var demo in kAllGalleryDemos)\n    '${demo.routeName}': demo.buildRoute,\n};\n```\n\n**GOOD:**\n```dart\n// Map<int, Student> is not required, type is inferred automatically.\nfinal pizzaRecipients = {\n  ...studentLeaders,\n  for (var student in classG)\n    if (student.isPassing) student.id: student,\n};\n```",
     "sinceDartSdk": "2.3"
   },
   {
@@ -2483,7 +2509,7 @@
     "state": "stable",
     "incompatible": [],
     "sets": [],
-    "fixStatus": "needsFix",
+    "fixStatus": "hasFix",
     "details": "**DO** sort pub dependencies alphabetically (A to Z) in `pubspec.yaml`.\n\nSorting list of pub dependencies makes maintenance easier.",
     "sinceDartSdk": "2.1"
   },
@@ -2695,11 +2721,11 @@
     "categories": [
       "style"
     ],
-    "state": "stable",
+    "state": "deprecated",
     "incompatible": [],
     "sets": [],
     "fixStatus": "hasFix",
-    "details": "Avoid returning an awaited expression when the expression type is assignable to\nthe function's return type.\n\n\n**BAD:**\n```dart\nFuture<int> future;\nFuture<int> f1() async => await future;\nFuture<int> f2() async {\n  return await future;\n}\n```\n\n**GOOD:**\n```dart\nFuture<int> future;\nFuture<int> f1() => future;\nFuture<int> f2() {\n  return future;\n}\n```",
+    "details": "**NOTE:** As following this lint rule everywhere (specially when not reported) can\nlead to unexpected errors, this lint has been deprecated.\nRemove all inclusions of this lint from your analysis options.\n\nAvoid returning an awaited expression when the expression type is assignable to\nthe function's return type.\n\n\n**BAD:**\n```dart\nFuture<int> future;\nFuture<int> f1() async => await future;\nFuture<int> f2() async {\n  return await future;\n}\n```\n\n**GOOD:**\n```dart\nFuture<int> future;\nFuture<int> f1() => future;\nFuture<int> f2() {\n  return future;\n}\n```",
     "sinceDartSdk": "2.1"
   },
   {
@@ -3067,6 +3093,19 @@
     "sinceDartSdk": "2.0"
   },
   {
+    "name": "unnecessary_this_alias",
+    "description": "Use 'this' directly instead of assigning it to a local variable.",
+    "categories": [
+      "style"
+    ],
+    "state": "experimental",
+    "incompatible": [],
+    "sets": [],
+    "fixStatus": "needsEvaluation",
+    "details": "**DON'T** assign `this` to a local variable to perform type promotion.\n\n**BAD:**\n```dart\n%experiments=this-promotion\nclass C {\n  void m() {\n    var [!self!] = this;\n    if (self is D) {}\n  }\n}\nclass D extends C {}\n```\n\n**GOOD:**\n```dart\n%experiments=this-promotion\nclass C {\n  void m() {\n    if (this is D) {}\n  }\n}\nclass D extends C {}\n```",
+    "sinceDartSdk": "3.14"
+  },
+  {
     "name": "unnecessary_to_list_in_spreads",
     "description": "Unnecessary `toList()` in spreads.",
     "categories": [
@@ -3119,7 +3158,7 @@
     "incompatible": [],
     "sets": [],
     "fixStatus": "hasFix",
-    "details": "**AVOID** using multiple underscores when a single wildcard will do.\n\n**BAD:**\n```dart\nvoid function(int __) { }\n```\n\n**GOOD:**\n```dart\nvoid function(int _) { }\n```",
+    "details": "**AVOID** using multiple underscores when a single wildcard will do.\n\n**BAD:**\n```dart\nvoid function(int __) {}\n```\n\n**GOOD:**\n```dart\nvoid function(int _) {}\n```",
     "sinceDartSdk": "3.7"
   },
   {
@@ -3307,7 +3346,7 @@
     "incompatible": [],
     "sets": [],
     "fixStatus": "hasFix",
-    "details": "**DO** use key in widget constructors.\n\nIt's a good practice to expose the ability to provide a key when creating public\nwidgets.\n\n**BAD:**\n```dart\nclass MyPublicWidget extends StatelessWidget {\n}\n```\n\n**GOOD:**\n```dart\nclass MyPublicWidget extends StatelessWidget {\n  MyPublicWidget({super.key});\n}\n```",
+    "details": "**DO** use key in widget constructors.\n\nIt's a good practice to expose the ability to provide a key when creating public\nwidgets.\n\n**BAD:**\n```dart\nclass MyPublicWidget extends StatelessWidget {\n}\n```\n\n**GOOD:**\n```dart\nclass MyPublicWidget extends StatelessWidget {\n  const MyPublicWidget({super.key});\n}\n```",
     "sinceDartSdk": "2.8"
   },
   {
@@ -3349,19 +3388,6 @@
     "fixStatus": "hasFix",
     "details": "Where possible, use null-aware elements in collection literals.\n\n**BAD:**\n```dart\nf(String? key) => {if (key != null) key: \"value\"};\n```\n\n**GOOD:**\n```dart\nf(String? key) => {?key: \"value\"};\n```",
     "sinceDartSdk": "3.8"
-  },
-  {
-    "name": "use_primary_constructors",
-    "description": "Use a primary constructor.",
-    "categories": [
-      "style"
-    ],
-    "state": "experimental",
-    "incompatible": [],
-    "sets": [],
-    "fixStatus": "hasFix",
-    "details": "Use a primary constructor everywhere it's valid to do so.",
-    "sinceDartSdk": "3.13"
   },
   {
     "name": "use_raw_strings",

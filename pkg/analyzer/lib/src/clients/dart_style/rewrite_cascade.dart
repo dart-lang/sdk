@@ -27,7 +27,7 @@ ExpressionStatement fixCascadeByParenthesizingTarget({
   return ExpressionStatementImpl(
     expression2: CascadeExpressionImpl(
       target2: newTarget,
-      cascadeSections2: cascadeExpression.cascadeSections2,
+      sections: cascadeExpression.sections,
     ),
     semicolon: expressionStatement.semicolon,
   );
@@ -38,9 +38,11 @@ ExpressionStatement fixCascadeByParenthesizingTarget({
 ExpressionImpl insertCascadeTargetIntoExpression({
   required Expression expression,
   required Expression cascadeTarget,
+  Token? cascadeOperator,
 }) {
   expression as ExpressionImpl;
   cascadeTarget as ExpressionImpl;
+  cascadeOperator ??= _cascadeOperator(expression);
 
   // Base case: We've recursed as deep as possible.
   if (expression == cascadeTarget) return cascadeTarget;
@@ -51,9 +53,20 @@ ExpressionImpl insertCascadeTargetIntoExpression({
       leftHandSide2: insertCascadeTargetIntoExpression(
         expression: expression.leftHandSide2,
         cascadeTarget: cascadeTarget,
+        cascadeOperator: cascadeOperator,
       ),
       operator: expression.operator,
       rightHandSide2: expression.rightHandSide2,
+    );
+  } else if (expression is CascadeIndexExpressionImpl) {
+    return IndexExpression2Impl(
+      receiver: cascadeTarget,
+      question: cascadeOperator?.type == TokenType.QUESTION_PERIOD_PERIOD
+          ? _synthesizeToken(TokenType.QUESTION, cascadeOperator!)
+          : null,
+      leftBracket: expression.leftBracket,
+      index: expression.index,
+      rightBracket: expression.rightBracket,
     );
   } else if (expression is IndexExpression2Impl) {
     return IndexExpression2Impl(
@@ -104,6 +117,21 @@ ExpressionImpl insertCascadeTargetIntoExpression({
     );
   } else if (expression is DirectAssignmentImpl) {
     var target = expression.target;
+    if (target is CascadeIndexAssignmentTargetImpl) {
+      return DirectAssignmentImpl(
+        target: IndexAssignmentTargetImpl(
+          receiver: cascadeTarget,
+          question: cascadeOperator?.type == TokenType.QUESTION_PERIOD_PERIOD
+              ? _synthesizeToken(TokenType.QUESTION, cascadeOperator!)
+              : null,
+          leftBracket: target.leftBracket,
+          index: target.index,
+          rightBracket: target.rightBracket,
+        ),
+        operator: expression.operator,
+        value: expression.value,
+      );
+    }
     if (target is IndexAssignmentTargetImpl) {
       return DirectAssignmentImpl(
         target: IndexAssignmentTargetImpl(
@@ -155,6 +183,17 @@ ExpressionImpl insertCascadeTargetIntoExpression({
     'Unhandled ${expression.runtimeType}'
     '($expression)',
   );
+}
+
+Token? _cascadeOperator(AstNodeImpl node) {
+  for (
+    AstNodeImpl? ancestor = node;
+    ancestor != null;
+    ancestor = ancestor.parent2
+  ) {
+    if (ancestor is CascadeSectionImpl) return ancestor.operator;
+  }
+  return null;
 }
 
 /// Synthesize a token with [type] to replace the given [operator].

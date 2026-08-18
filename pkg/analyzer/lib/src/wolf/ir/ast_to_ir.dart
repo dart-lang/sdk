@@ -12,6 +12,7 @@ import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/ast/ast.dart'
     show
         AssignmentTargetImpl,
+        CascadeIndexAssignmentTargetImpl,
         GetterInvocationResolutionImpl,
         IndexAssignmentTargetImpl,
         InvalidExpressionAssignmentTargetImpl,
@@ -470,6 +471,8 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
     var target = node.target as AssignmentTargetImpl;
     late _LValueTemplates lValueTemplates;
     switch (target) {
+      case CascadeIndexAssignmentTargetImpl():
+        throw UnimplementedError('Cascade index assignment target');
       case IndexAssignmentTargetImpl():
         lValueTemplates = _indexAssignmentTarget(target);
       case InvalidExpressionAssignmentTargetImpl():
@@ -536,6 +539,8 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
     var target = node.target as AssignmentTargetImpl;
     late _LValueTemplates lValueTemplates;
     switch (target) {
+      case CascadeIndexAssignmentTargetImpl():
+        throw UnimplementedError('Cascade index assignment target');
       case IndexAssignmentTargetImpl():
         lValueTemplates = _indexAssignmentTarget(target);
       case InvalidExpressionAssignmentTargetImpl():
@@ -721,6 +726,8 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
     var target = node.target as AssignmentTargetImpl;
     late _LValueTemplates lValueTemplates;
     switch (target) {
+      case CascadeIndexAssignmentTargetImpl():
+        throw UnimplementedError('Cascade index assignment target');
       case IndexAssignmentTargetImpl():
         lValueTemplates = _indexAssignmentTarget(target);
       case InvalidExpressionAssignmentTargetImpl():

@@ -173,7 +173,29 @@ class ToSourceVisitor implements AstVisitor2<void> {
   @override
   void visitCascadeExpression(CascadeExpression node) {
     _visitNode(node.target2);
-    _visitNodeList(node.cascadeSections2);
+    _visitNodeList(node.sections);
+  }
+
+  @override
+  void visitCascadeIndexAssignmentTarget(CascadeIndexAssignmentTarget node) {
+    _visitToken(node.leftBracket);
+    _visitNode(node.index);
+    _visitToken(node.rightBracket);
+  }
+
+  @override
+  void visitCascadeIndexExpression(CascadeIndexExpression node) {
+    _visitToken(node.leftBracket);
+    _visitNode(node.index);
+    _visitToken(node.rightBracket);
+  }
+
+  @override
+  void visitCascadeSection(CascadeSection node) {
+    if (!identical(node.body.beginToken, node.operator)) {
+      _visitToken(node.operator);
+    }
+    _visitNode(node.body);
   }
 
   @override

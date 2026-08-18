@@ -63,6 +63,20 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitCascadeIndexExpression(CascadeIndexExpression node) {
+    var element = switch (node.resolution) {
+      MethodIndexReadResolution(:var element) => element,
+      InvalidIndexReadResolution(
+        recovery: MethodIndexReadResolution(:var element),
+      ) =>
+        element,
+      _ => null,
+    };
+    usedElements.addMember(element);
+    super.visitCascadeIndexExpression(node);
+  }
+
+  @override
   void visitCatchClause(CatchClause node) {
     var exceptionParameter = node.exceptionParameter;
     var stackTraceParameter = node.stackTraceParameter;
@@ -630,11 +644,16 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
     AssignmentTarget target, {
     required bool readCountsAsUse,
   }) {
-    if (target is IndexAssignmentTarget) {
-      if (target.read case MethodIndexReadResolution(:var element)) {
+    var indexResolutions = switch (target) {
+      CascadeIndexAssignmentTarget(:var read, :var write) => (read, write),
+      IndexAssignmentTarget(:var read, :var write) => (read, write),
+      _ => null,
+    };
+    if (indexResolutions case (var read, var write)) {
+      if (read case MethodIndexReadResolution(:var element)) {
         _useAssignmentTargetElement(element);
       }
-      if (target.write case MethodIndexWriteResolution(:var element)) {
+      if (write case MethodIndexWriteResolution(:var element)) {
         _useAssignmentTargetElement(element);
       }
       return;

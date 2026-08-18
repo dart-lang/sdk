@@ -20,10 +20,28 @@ class MixinSuperInvokedNamesCollector extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitCascadeIndexAssignmentTarget(CascadeIndexAssignmentTarget node) {
+    if (_cascadeTarget(node) is SuperExpression) {
+      if (node.hasRead) {
+        _names.add('[]');
+      }
+      _names.add('[]=');
+    }
+    super.visitCascadeIndexAssignmentTarget(node);
+  }
+
+  @override
+  void visitCascadeIndexExpression(CascadeIndexExpression node) {
+    if (_cascadeTarget(node) is SuperExpression) {
+      _names.add('[]');
+    }
+    super.visitCascadeIndexExpression(node);
+  }
+
+  @override
   void visitIndexAssignmentTarget(IndexAssignmentTarget node) {
     if (node.receiver is SuperExpression) {
-      if (node.parent2 is CompoundAssignment ||
-          node.parent2 is IfNullAssignment) {
+      if (node.hasRead) {
         _names.add('[]');
       }
       _names.add('[]=');
@@ -93,6 +111,17 @@ class MixinSuperInvokedNamesCollector extends RecursiveAstVisitor2<void> {
       });
     }
     super.visitUnaryOperatorInvocation(node);
+  }
+
+  Expression? _cascadeTarget(AstNode node) {
+    for (
+      AstNode? ancestor = node.parent2;
+      ancestor != null;
+      ancestor = ancestor.parent2
+    ) {
+      if (ancestor is CascadeExpression) return ancestor.target2;
+    }
+    return null;
   }
 
   void _visitPrefixIncrementOrDecrement(

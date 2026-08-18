@@ -547,6 +547,21 @@ abstract class RuleVisitorRegistry2 {
 
   void addCascadeExpression(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
+  @experimental
+  void addCascadeIndexAssignmentTarget(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
+
+  @experimental
+  void addCascadeIndexExpression(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
+
+  @experimental
+  void addCascadeSection(AbstractAnalysisRule rule, AstVisitor2 visitor);
+
   void addCaseClause(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addCastPattern(AbstractAnalysisRule rule, AstVisitor2 visitor);

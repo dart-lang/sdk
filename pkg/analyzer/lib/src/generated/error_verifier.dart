@@ -498,6 +498,18 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   @override
+  void visitCascadeIndexAssignmentTarget(CascadeIndexAssignmentTarget node) {
+    _checkCascadeIndexNullAwareOperator(node);
+    super.visitCascadeIndexAssignmentTarget(node);
+  }
+
+  @override
+  void visitCascadeIndexExpression(CascadeIndexExpression node) {
+    _checkCascadeIndexNullAwareOperator(node);
+    super.visitCascadeIndexExpression(node);
+  }
+
+  @override
   void visitCatchClause(CatchClause node) {
     _duplicateDefinitionVerifier.checkCatchClause(node);
     try {
@@ -651,6 +663,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   @override
   void visitCompoundAssignment(covariant CompoundAssignmentImpl node) {
     switch (node.target) {
+      case CascadeIndexAssignmentTargetImpl():
       case IndexAssignmentTargetImpl():
       case InvalidExpressionAssignmentTargetImpl():
       case PropertyAssignmentTargetImpl():
@@ -1512,6 +1525,10 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       return;
     }
     switch (target) {
+      case CascadeIndexAssignmentTargetImpl(:var read):
+        if (read case IndexReadResolutionImpl(:var type)) {
+          _checkForDeadNullCoalesce(type, node.value);
+        }
       case IndexAssignmentTargetImpl(:var read):
         if (read case IndexReadResolutionImpl(:var type)) {
           _checkForDeadNullCoalesce(type, node.value);
@@ -2675,6 +2692,20 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
               .at(variableName),
         );
       }
+    }
+  }
+
+  void _checkCascadeIndexNullAwareOperator(AstNode node) {
+    var section = node.thisOrAncestorOfType2<CascadeSection>();
+    if (section == null || !section.isNullAware) {
+      return;
+    }
+    if (section.parent2 case CascadeExpression cascade) {
+      _checkForUnnecessaryNullAware(
+        cascade.target2,
+        section.operator,
+        kind: _NullAwareKind.cascaded,
+      );
     }
   }
 

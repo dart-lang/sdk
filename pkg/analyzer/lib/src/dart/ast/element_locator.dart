@@ -309,6 +309,47 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
   }
 
   @override
+  Element? visitCascadeIndexAssignmentTarget(
+    CascadeIndexAssignmentTarget node,
+  ) {
+    return switch (node.write) {
+      MethodIndexWriteResolution(:var element) => element,
+      InvalidIndexWriteResolution(
+        recovery: MethodIndexWriteResolution(:var element),
+      ) =>
+        element,
+      _ => null,
+    };
+  }
+
+  @override
+  Element? visitCascadeIndexExpression(CascadeIndexExpression node) {
+    return switch (node.resolution) {
+      MethodIndexReadResolution(:var element) => element,
+      InvalidIndexReadResolution(
+        recovery: MethodIndexReadResolution(:var element),
+      ) =>
+        element,
+      _ => null,
+    };
+  }
+
+  @override
+  Element? visitCatchClauseParameter(CatchClauseParameter node) {
+    return node.declaredFragment?.element;
+  }
+
+  @override
+  Element? visitClassDeclaration(ClassDeclaration node) {
+    return node.declaredFragment?.element;
+  }
+
+  @override
+  Element? visitClassTypeAlias(ClassTypeAlias node) {
+    return node.declaredFragment?.element;
+  }
+
+  @override
   Element? visitCombinatorName(CombinatorName node) {
     return node.element ?? node.setterElement;
   }

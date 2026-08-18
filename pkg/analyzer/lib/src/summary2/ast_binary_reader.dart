@@ -170,13 +170,50 @@ class AstBinaryReader {
 
   CascadeExpression _readCascadeExpression() {
     var target = _readNode() as ExpressionImpl;
-    var sections = _readNodeList<ExpressionImpl>();
-    var node = CascadeExpressionImpl(
-      target2: target,
-      cascadeSections2: sections,
-    );
+    var sections = _readNodeList<CascadeSectionImpl>();
+    var node = CascadeExpressionImpl(target2: target, sections: sections);
     node.setPseudoExpressionStaticType(target.staticType);
     return node;
+  }
+
+  CascadeIndexAssignmentTarget _readCascadeIndexAssignmentTarget() {
+    var index = _readNode() as ExpressionImpl;
+    var node = CascadeIndexAssignmentTargetImpl(
+      leftBracket: Tokens.openSquareBracket(),
+      index: index,
+      rightBracket: Tokens.closeSquareBracket(),
+    );
+    node.read = _reader.readOptionalObject(_readIndexReadResolution);
+    node.write = _reader.readOptionalObject(_readIndexWriteResolution);
+    return node;
+  }
+
+  CascadeIndexExpression _readCascadeIndexExpression() {
+    var index = _readNode() as ExpressionImpl;
+    var node = CascadeIndexExpressionImpl(
+      leftBracket: Tokens.openSquareBracket(),
+      index: index,
+      rightBracket: Tokens.closeSquareBracket(),
+    );
+    node.resolution = _reader.readOptionalObject(_readIndexReadResolution);
+    _readExpressionResolution(node);
+    return node;
+  }
+
+  CascadeSection _readCascadeSection() {
+    var isNullAware = _readByte() == 1;
+    var body = _readNode() as ExpressionImpl;
+    var operatorType = isNullAware
+        ? TokenType.QUESTION_PERIOD_PERIOD
+        : TokenType.PERIOD_PERIOD;
+    return CascadeSectionImpl(
+      operator: body.beginToken.type == operatorType
+          ? body.beginToken
+          : isNullAware
+          ? Tokens.questionPeriodPeriod()
+          : Tokens.periodPeriod(),
+      body: body,
+    );
   }
 
   CompoundAssignment _readCompoundAssignment() {
@@ -1111,6 +1148,12 @@ class AstBinaryReader {
         return _readBooleanLiteral();
       case Tag.CascadeExpression:
         return _readCascadeExpression();
+      case Tag.CascadeIndexAssignmentTarget:
+        return _readCascadeIndexAssignmentTarget();
+      case Tag.CascadeIndexExpression:
+        return _readCascadeIndexExpression();
+      case Tag.CascadeSection:
+        return _readCascadeSection();
       case Tag.ConditionalExpression:
         return _readConditionalExpression();
       case Tag.ConstructorFieldInitializer:

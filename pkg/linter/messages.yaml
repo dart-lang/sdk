@@ -5555,7 +5555,7 @@ LinterLintCode:
     state:
       stable: "2.9"
     categories: [errorProne]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -5786,7 +5786,7 @@ LinterLintCode:
     state:
       stable: "3.14"
     categories: [nonPerformant]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -7746,7 +7746,7 @@ LinterLintCode:
     state:
       experimental: "2.9"
     categories: [style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -11135,7 +11135,7 @@ LinterLintCode:
     state:
       stable: "2.3"
     categories: [brevity, style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -11988,7 +11988,7 @@ LinterLintCode:
     state:
       stable: "2.3"
     categories: [brevity, style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -16501,7 +16501,7 @@ LinterLintCode:
     state:
       stable: "2.19"
     categories: [unusedCode]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -17550,7 +17550,7 @@ LinterLintCode:
     state:
       stable: "2.9"
     categories: [style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
