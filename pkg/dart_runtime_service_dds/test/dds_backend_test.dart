@@ -3,12 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:dart_runtime_service/dart_runtime_service.dart';
 import 'package:dart_runtime_service_dds/dart_runtime_service_dds.dart';
 import 'package:dds_service_extensions/dds_service_extensions.dart';
 import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
+import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart' as vm;
 import 'package:vm_service/vm_service_io.dart';
@@ -163,6 +165,102 @@ void main() {
         ),
       );
       expect(backend.hostedDartToolingDaemon, isNotNull);
+      await service.shutdown();
+    });
+  });
+
+  group('DevTools hosting', () {
+    late MockVmService mockVmService;
+    late Directory tempDir;
+
+    setUp(() async {
+      mockVmService = await MockVmService.start();
+      tempDir = Directory.systemTemp.createTempSync('devtools_test');
+      File(
+        path.join(tempDir.path, 'index.html'),
+      ).writeAsStringSync('<html><body>DevTools</body></html>');
+    });
+
+    tearDown(() async {
+      if (tempDir.existsSync()) {
+        tempDir.deleteSync(recursive: true);
+      }
+      await mockVmService.shutdown();
+    });
+
+    test('serve DevTools assets', () async {
+      late DartRuntimeServiceDdsBackend backend;
+      final service = await DartRuntimeService.initialize(
+        config: const DartRuntimeServiceOptions(serveDevTools: true),
+        backendBuilder: (frontend) => backend = DartRuntimeServiceDdsBackend(
+          mockVmService.uri,
+          frontend: frontend,
+          customDevToolsPath: tempDir.uri,
+          serveDevTools: true,
+        ),
+      );
+
+      final devToolsUri = backend.devToolsUri;
+      expect(devToolsUri, isNotNull);
+
+      final client = HttpClient();
+      final request = await client.getUrl(devToolsUri!);
+      final response = await request.close();
+      expect(response.statusCode, HttpStatus.ok);
+
+      final body = await response.transform(utf8.decoder).join();
+      expect(body, '<html><body>DevTools</body></html>');
+
+      client.close();
+      await service.shutdown();
+    });
+
+    test('redirect to external DevTools', () async {
+      late DartRuntimeServiceDdsBackend backend;
+      final service = await DartRuntimeService.initialize(
+        config: const DartRuntimeServiceOptions(),
+        backendBuilder: (frontend) => backend = DartRuntimeServiceDdsBackend(
+          mockVmService.uri,
+          frontend: frontend,
+        ),
+      );
+
+      final client = HttpClient();
+
+      final ddsHttpUri = service.httpUri;
+      final devtoolsReqUri = ddsHttpUri.replace(
+        pathSegments: [
+          ...ddsHttpUri.pathSegments.where((e) => e.isNotEmpty),
+          'devtools',
+        ],
+      );
+
+      final request1 = await client.getUrl(devtoolsReqUri);
+      request1.followRedirects = false;
+      final response1 = await request1.close();
+      expect(response1.statusCode, HttpStatus.notFound);
+      await response1.drain<void>();
+
+      final externalUri = Uri.parse('http://localhost:1234/custom');
+      backend.setExternalDevToolsUri(externalUri);
+
+      expect(backend.devToolsUri, isNotNull);
+      expect(
+        backend.devToolsUri.toString(),
+        startsWith('http://localhost:1234/custom?uri='),
+      );
+
+      final request2 = await client.getUrl(devtoolsReqUri);
+      request2.followRedirects = false;
+      final response2 = await request2.close();
+      expect(response2.statusCode, HttpStatus.seeOther);
+      expect(
+        response2.headers.value(HttpHeaders.locationHeader),
+        startsWith(externalUri.toString()),
+      );
+      await response2.drain<void>();
+
+      client.close();
       await service.shutdown();
     });
   });
