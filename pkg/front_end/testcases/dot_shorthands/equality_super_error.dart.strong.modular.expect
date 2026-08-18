@@ -1,0 +1,45 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/dot_shorthands/equality_super_error.dart:12:28: Error: No type was provided to find the dot shorthand 'member'.
+//   bool test() => super == .member;
+//                            ^^^^^^
+//
+// pkg/front_end/testcases/dot_shorthands/equality_super_error.dart:13:36: Error: No type was provided to find the dot shorthand 'member'.
+//   bool testNotEqual() => super != .member;
+//                                    ^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class SuperClass extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::SuperClass
+    : super core::Object::•()
+    ;
+}
+class SubClass extends self::SuperClass /*hasConstConstructor*/  {
+  static const field self::SubClass member = #C1;
+  const constructor •() → self::SubClass
+    : super self::SuperClass::•()
+    ;
+  method test() → core::bool
+    return super.{core::Object::==}(invalid-expression "pkg/front_end/testcases/dot_shorthands/equality_super_error.dart:12:28: Error: No type was provided to find the dot shorthand 'member'.
+  bool test() => super == .member;
+                           ^^^^^^");
+  method testNotEqual() → core::bool
+    return !super.{core::Object::==}(invalid-expression "pkg/front_end/testcases/dot_shorthands/equality_super_error.dart:13:36: Error: No type was provided to find the dot shorthand 'member'.
+  bool testNotEqual() => super != .member;
+                                   ^^^^^^");
+}
+
+constants  {
+  #C1 = self::SubClass {}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///equality_super_error.dart:
+- SubClass. (from org-dartlang-testcase:///equality_super_error.dart:11:9)
+- SuperClass. (from org-dartlang-testcase:///equality_super_error.dart:6:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)

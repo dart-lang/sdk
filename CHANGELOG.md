@@ -18,6 +18,12 @@
   returns true.
   For more details, see SDK issue [#62699][]
 
+- Converting a `Future` to a `JSPromise` using `FutureOfJSAnyToJSPromise.toJS`
+  or `FutureOfVoidToJSPromise.toJS` now passes JavaScript error
+  values (`JSAny`) through directly to the rejected promise without
+  wrapping them. Only Dart errors are wrapped in a JS `Error`.
+  For more details, see SDK issue [#61353][].
+
 - Added extension methods `JSArray<JSNumber>.toDartDoubleList` and
   `JSArray<JSNumber>.toDartIntList` (`JSArrayOfJSNumberToList`);
   `List<num>.toJS` (`ListOfNumberToJSArray`);
@@ -34,6 +40,7 @@
   (`ListOfNullableBoolToJSArray`). These make it easier and more efficient to
   convert between JS and Dart arrays of primitives.
 
+[#61353]: https://github.com/dart-lang/sdk/issues/61353
 [#62699]: https://github.com/dart-lang/sdk/issues/62699
 
 ## 3.13.0
