@@ -73,6 +73,7 @@ regress_52715_test/measure: Skip # Shadow memory and scudo quarantine interfere 
 [ $hot_reload || $hot_reload_rollback ]
 io/directory_chdir_test: Skip # Changes cwd
 io/directory_uri_test: Skip # Changes cwd
+io/file_absolute_path_test: Skip # Changes cwd
 io/file_long_path_test: Skip # Changes cwd
 io/file_test: Skip # Changes cwd
 io/file_uri_test: Skip # Changes cwd
