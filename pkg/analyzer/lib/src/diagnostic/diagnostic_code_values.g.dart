@@ -39,6 +39,7 @@ const List<DiagnosticCode> diagnosticCodeValues = [
   diag.ambiguousSetOrMapLiteralEither,
   diag.analysisOptionDeprecated,
   diag.analysisOptionDeprecatedWithReplacement,
+  diag.analysisOptionsDeprecatedPlugins,
   diag.annotationOnPointerField,
   diag.annotationOnTypeArgument,
   diag.annotationSpaceBeforeParenthesis,

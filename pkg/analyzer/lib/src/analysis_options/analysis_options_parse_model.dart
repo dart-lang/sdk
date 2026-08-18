@@ -273,6 +273,12 @@ final class _ParsedAnalyzerData {
       reporter,
     );
 
+    if (analyzer.getKey(AnalysisOptionsFileKeys.plugins) case var keyNode?) {
+      reporter.report(
+        diag.analysisOptionsDeprecatedPlugins.atSourceSpan(keyNode.span),
+      );
+    }
+
     return _ParsedAnalyzerData._(
       cannotIgnore: _ParsedCannotIgnoreData.parse(
         analyzer.valueAt(AnalysisOptionsFileKeys.cannotIgnore),

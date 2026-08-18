@@ -13,11 +13,13 @@ This is a patch release that:
   getter implementation that was inferred to never return.
 - Fixes dart2wasm compiler crash if named parameters in hierarchy have mixed
   "required"-ness. (issue #60583)
+- Deprecates the legacy analyzer plugin system. (issue #62164)
 
 [#63968]: https://github.com/dart-lang/sdk/issues/63968
 [#63904]: https://github.com/dart-lang/sdk/issues/63904
 [#63843]: https://github.com/dart-lang/sdk/issues/63843
 [#60583]: https://github.com/dart-lang/sdk/issues/60583
+[#62164]: https://github.com/dart-lang/sdk/issues/62164
 
 - Fixes `closure.hashCode` sometimes returning null (issue [#64035]).
 

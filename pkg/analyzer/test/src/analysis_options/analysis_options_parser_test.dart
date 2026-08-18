@@ -1247,11 +1247,169 @@ AnalysisOptionsImpl
 ''');
   }
 
+  test_analyzer_plugins_include_includedListThenDirectList() {
+    newFile('$testPackageRootPath/other_options.yaml', '''
+analyzer:
+  plugins:
+    - plugin_one
+''');
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics(r'''
+include: other_options.yaml
+//       ^^^^^^^^^^^^^^^^^^
+// [diag.includedFileWarning] Warning in the included options file /home/test/other_options.yaml(12..18): Support for legacy plugins is deprecated, and will be removed in an upcoming version of Dart.
+analyzer:
+  plugins:
+//^^^^^^^
+// [diag.analysisOptionsDeprecatedPlugins] Support for legacy plugins is deprecated, and will be removed in an upcoming version of Dart.
+    - plugin_two
+//    ^^^^^^^^^^
+// [diag.multiplePlugins] Multiple plugins can't be enabled.
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  enabledLegacyPluginNames
+    plugin_one
+''');
+  }
+
+  test_analyzer_plugins_include_includedListThenDirectMap() {
+    newFile('$testPackageRootPath/other_options.yaml', '''
+analyzer:
+  plugins:
+    - plugin_one
+''');
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics(r'''
+include: other_options.yaml
+//       ^^^^^^^^^^^^^^^^^^
+// [diag.includedFileWarning] Warning in the included options file /home/test/other_options.yaml(12..18): Support for legacy plugins is deprecated, and will be removed in an upcoming version of Dart.
+analyzer:
+  plugins:
+//^^^^^^^
+// [diag.analysisOptionsDeprecatedPlugins] Support for legacy plugins is deprecated, and will be removed in an upcoming version of Dart.
+    plugin_two:
+//  ^^^^^^^^^^
+// [diag.multiplePlugins] Multiple plugins can't be enabled.
+      foo: bar
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  enabledLegacyPluginNames
+    plugin_two
+''');
+  }
+
+  test_analyzer_plugins_include_includedListThenDirectScalar() {
+    newFile('$testPackageRootPath/other_options.yaml', '''
+analyzer:
+  plugins:
+    - plugin_one
+''');
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics(r'''
+include: other_options.yaml
+//       ^^^^^^^^^^^^^^^^^^
+// [diag.includedFileWarning] Warning in the included options file /home/test/other_options.yaml(12..18): Support for legacy plugins is deprecated, and will be removed in an upcoming version of Dart.
+analyzer:
+  plugins: plugin_two
+//^^^^^^^
+// [diag.analysisOptionsDeprecatedPlugins] Support for legacy plugins is deprecated, and will be removed in an upcoming version of Dart.
+//         ^^^^^^^^^^
+// [diag.multiplePlugins] Multiple plugins can't be enabled.
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  enabledLegacyPluginNames
+    plugin_two
+''');
+  }
+
+  test_analyzer_plugins_include_indirectIncludedListThenDirectList() {
+    newFile('$testPackageRootPath/more_options.yaml', '''
+analyzer:
+  plugins:
+    - plugin_one
+''');
+    newFile('$testPackageRootPath/other_options.yaml', '''
+include: more_options.yaml
+''');
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics(r'''
+include: other_options.yaml
+//       ^^^^^^^^^^^^^^^^^^
+// [diag.includedFileWarning] Warning in the included options file /home/test/more_options.yaml(12..18): Support for legacy plugins is deprecated, and will be removed in an upcoming version of Dart.
+analyzer:
+  plugins:
+//^^^^^^^
+// [diag.analysisOptionsDeprecatedPlugins] Support for legacy plugins is deprecated, and will be removed in an upcoming version of Dart.
+    - plugin_two
+//    ^^^^^^^^^^
+// [diag.multiplePlugins] Multiple plugins can't be enabled.
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  enabledLegacyPluginNames
+    plugin_one
+''');
+  }
+
+  test_analyzer_plugins_include_indirectIncludedListThenIncludedList() {
+    newFile('$testPackageRootPath/more_options.yaml', '''
+analyzer:
+  plugins:
+    - plugin_one
+''');
+    newFile('$testPackageRootPath/other_options.yaml', '''
+include: more_options.yaml
+analyzer:
+  plugins:
+    - plugin_two
+''');
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics(r'''
+include: other_options.yaml
+//       ^^^^^^^^^^^^^^^^^^
+// [diag.includedFileWarning] Warning in the included options file /home/test/other_options.yaml(39..45): Support for legacy plugins is deprecated, and will be removed in an upcoming version of Dart.
+// [diag.includedFileWarning] Warning in the included options file /home/test/more_options.yaml(12..18): Support for legacy plugins is deprecated, and will be removed in an upcoming version of Dart.
+// [diag.includedFileWarning] Warning in the included options file /home/test/other_options.yaml(54..63): Multiple plugins can't be enabled.
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  enabledLegacyPluginNames
+    plugin_one
+''');
+  }
+
+  test_analyzer_plugins_include_map() {
+    var options = parseAnalysisOptionsFilesWithDiagnostics({
+      analysisOptionsFile: r'''
+include: other_options.yaml
+//       ^^^^^^^^^^^^^^^^^^
+// [diag.includedFileWarning] Warning in the included options file /home/test/other_options.yaml(12..18): Support for legacy plugins is deprecated, and will be removed in an upcoming version of Dart.
+''',
+      getFile('$testPackageRootPath/other_options.yaml'): '''
+analyzer:
+  plugins:
+    toplevelplugin:
+      enabled: true
+''',
+    });
+
+    assertAnalysisOptionsText(options, r'''
+AnalysisOptionsImpl
+  enabledLegacyPluginNames
+    toplevelplugin
+''');
+  }
+
   test_analyzer_plugins_legacy_chooseFirst() {
     var options = parseAnalysisOptionsFilesWithDiagnostics({
       analysisOptionsFile: r'''
 include: other_options.yaml
 //       ^^^^^^^^^^^^^^^^^^
+// [diag.includedFileWarning] Warning in the included options file /home/test/other_options.yaml(39..45): Support for legacy plugins is deprecated, and will be removed in an upcoming version of Dart.
+// [diag.includedFileWarning] Warning in the included options file /home/test/more_options.yaml(12..18): Support for legacy plugins is deprecated, and will be removed in an upcoming version of Dart.
 // [diag.includedFileWarning] Warning in the included options file /home/test/more_options.yaml(44..53): Multiple plugins can't be enabled.
 // [diag.includedFileWarning] Warning in the included options file /home/test/more_options.yaml(61..70): Multiple plugins can't be enabled.
 // [diag.includedFileWarning] Warning in the included options file /home/test/other_options.yaml(54..63): Multiple plugins can't be enabled.
@@ -1259,6 +1417,8 @@ include: other_options.yaml
 // [diag.includedFileWarning] Warning in the included options file /home/test/other_options.yaml(88..97): Multiple plugins can't be enabled.
 analyzer:
   plugins:
+//^^^^^^^
+// [diag.analysisOptionsDeprecatedPlugins] Support for legacy plugins is deprecated, and will be removed in an upcoming version of Dart.
     - plugin_fff
 //    ^^^^^^^^^^
 // [diag.multiplePlugins] Multiple plugins can't be enabled.
@@ -1297,6 +1457,8 @@ AnalysisOptionsImpl
     var options = parseAnalysisOptionsFilesWithDiagnostics({
       analysisOptionsFile: r'''
 include: other_options.yaml
+//       ^^^^^^^^^^^^^^^^^^
+// [diag.includedFileWarning] Warning in the included options file /home/test/other_options.yaml(12..18): Support for legacy plugins is deprecated, and will be removed in an upcoming version of Dart.
 ''',
       getFile('$testPackageRootPath/other_options.yaml'): '''
 analyzer:
@@ -1319,6 +1481,8 @@ AnalysisOptionsImpl
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   plugins:
+//^^^^^^^
+// [diag.analysisOptionsDeprecatedPlugins] Support for legacy plugins is deprecated, and will be removed in an upcoming version of Dart.
     - angular2
     - intl
 //    ^^^^
@@ -1338,14 +1502,16 @@ AnalysisOptionsImpl
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   plugins:
-    angular2:
-      enabled: true
+//^^^^^^^
+// [diag.analysisOptionsDeprecatedPlugins] Support for legacy plugins is deprecated, and will be removed in an upcoming version of Dart.
+    - plugin_one
+    - plugin_one
 ''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
 AnalysisOptionsImpl
   enabledLegacyPluginNames
-    angular2
+    plugin_one
 ''');
   }
 
@@ -1353,6 +1519,8 @@ AnalysisOptionsImpl
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
   plugins:
+//^^^^^^^
+// [diag.analysisOptionsDeprecatedPlugins] Support for legacy plugins is deprecated, and will be removed in an upcoming version of Dart.
     angular2
 ''');
 
@@ -1363,10 +1531,46 @@ AnalysisOptionsImpl
 ''');
   }
 
+  test_analyzer_plugins_list_nonStringAfterString() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics(r'''
+analyzer:
+  plugins:
+//^^^^^^^
+// [diag.analysisOptionsDeprecatedPlugins] Support for legacy plugins is deprecated, and will be removed in an upcoming version of Dart.
+    - plugin_one
+    - 7
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  enabledLegacyPluginNames
+    plugin_one
+''');
+  }
+
+  test_analyzer_plugins_list_nonStringBeforeString() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics(r'''
+analyzer:
+  plugins:
+//^^^^^^^
+// [diag.analysisOptionsDeprecatedPlugins] Support for legacy plugins is deprecated, and will be removed in an upcoming version of Dart.
+    - 7
+    - plugin_one
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  enabledLegacyPluginNames
+    plugin_one
+''');
+  }
+
   test_analyzer_plugins_multiple_directList() {
     var analysisOptions = parseAnalysisOptionsWithDiagnostics(r'''
 analyzer:
   plugins:
+//^^^^^^^
+// [diag.analysisOptionsDeprecatedPlugins] Support for legacy plugins is deprecated, and will be removed in an upcoming version of Dart.
     - plugin_one
     - plugin_two
 //    ^^^^^^^^^^
@@ -1383,33 +1587,20 @@ AnalysisOptionsImpl
 ''');
   }
 
-  test_analyzer_plugins_multiple_directList_nonString() {
-    var analysisOptions = parseAnalysisOptionsWithDiagnostics(r'''
-analyzer:
-  plugins:
-    - 7
-    - plugin_one
-''');
-
-    assertAnalysisOptionsText(analysisOptions, r'''
-AnalysisOptionsImpl
-  enabledLegacyPluginNames
-    plugin_one
-''');
-  }
-
   test_analyzer_plugins_multiple_directList_nonString_afterString() {
     var analysisOptions = parseAnalysisOptionsWithDiagnostics(r'''
 analyzer:
   plugins:
-    - plugin_one
-    - 7
+//^^^^^^^
+// [diag.analysisOptionsDeprecatedPlugins] Support for legacy plugins is deprecated, and will be removed in an upcoming version of Dart.
+    angular2:
+      enabled: true
 ''');
 
     assertAnalysisOptionsText(analysisOptions, r'''
 AnalysisOptionsImpl
   enabledLegacyPluginNames
-    plugin_one
+    angular2
 ''');
   }
 
@@ -1417,6 +1608,8 @@ AnalysisOptionsImpl
     var analysisOptions = parseAnalysisOptionsWithDiagnostics(r'''
 analyzer:
   plugins:
+//^^^^^^^
+// [diag.analysisOptionsDeprecatedPlugins] Support for legacy plugins is deprecated, and will be removed in an upcoming version of Dart.
     - plugin_one
     - plugin_one
 ''');
@@ -1432,6 +1625,8 @@ AnalysisOptionsImpl
     var analysisOptions = parseAnalysisOptionsWithDiagnostics(r'''
 analyzer:
   plugins:
+//^^^^^^^
+// [diag.analysisOptionsDeprecatedPlugins] Support for legacy plugins is deprecated, and will be removed in an upcoming version of Dart.
     plugin_one: yes
     plugin_two: sure
 //  ^^^^^^^^^^
@@ -1468,8 +1663,12 @@ analyzer:
 ''');
     var analysisOptions = parseAnalysisOptionsWithDiagnostics(r'''
 include: other_options.yaml
+//       ^^^^^^^^^^^^^^^^^^
+// [diag.includedFileWarning] Warning in the included options file /home/test/other_options.yaml(12..18): Support for legacy plugins is deprecated, and will be removed in an upcoming version of Dart.
 analyzer:
   plugins:
+//^^^^^^^
+// [diag.analysisOptionsDeprecatedPlugins] Support for legacy plugins is deprecated, and will be removed in an upcoming version of Dart.
     - plugin_two
 //    ^^^^^^^^^^
 // [diag.multiplePlugins] Multiple plugins can't be enabled.
@@ -1490,8 +1689,12 @@ analyzer:
 ''');
     var analysisOptions = parseAnalysisOptionsWithDiagnostics(r'''
 include: other_options.yaml
+//       ^^^^^^^^^^^^^^^^^^
+// [diag.includedFileWarning] Warning in the included options file /home/test/other_options.yaml(12..18): Support for legacy plugins is deprecated, and will be removed in an upcoming version of Dart.
 analyzer:
   plugins:
+//^^^^^^^
+// [diag.analysisOptionsDeprecatedPlugins] Support for legacy plugins is deprecated, and will be removed in an upcoming version of Dart.
     plugin_two:
 //  ^^^^^^^^^^
 // [diag.multiplePlugins] Multiple plugins can't be enabled.
@@ -1513,8 +1716,12 @@ analyzer:
 ''');
     var analysisOptions = parseAnalysisOptionsWithDiagnostics(r'''
 include: other_options.yaml
+//       ^^^^^^^^^^^^^^^^^^
+// [diag.includedFileWarning] Warning in the included options file /home/test/other_options.yaml(12..18): Support for legacy plugins is deprecated, and will be removed in an upcoming version of Dart.
 analyzer:
   plugins: plugin_two
+//^^^^^^^
+// [diag.analysisOptionsDeprecatedPlugins] Support for legacy plugins is deprecated, and will be removed in an upcoming version of Dart.
 //         ^^^^^^^^^^
 // [diag.multiplePlugins] Multiple plugins can't be enabled.
 ''');
@@ -1537,8 +1744,12 @@ include: more_options.yaml
 ''');
     var analysisOptions = parseAnalysisOptionsWithDiagnostics(r'''
 include: other_options.yaml
+//       ^^^^^^^^^^^^^^^^^^
+// [diag.includedFileWarning] Warning in the included options file /home/test/more_options.yaml(12..18): Support for legacy plugins is deprecated, and will be removed in an upcoming version of Dart.
 analyzer:
   plugins:
+//^^^^^^^
+// [diag.analysisOptionsDeprecatedPlugins] Support for legacy plugins is deprecated, and will be removed in an upcoming version of Dart.
     - plugin_two
 //    ^^^^^^^^^^
 // [diag.multiplePlugins] Multiple plugins can't be enabled.
@@ -1566,6 +1777,8 @@ analyzer:
     var analysisOptions = parseAnalysisOptionsWithDiagnostics(r'''
 include: other_options.yaml
 //       ^^^^^^^^^^^^^^^^^^
+// [diag.includedFileWarning] Warning in the included options file /home/test/other_options.yaml(39..45): Support for legacy plugins is deprecated, and will be removed in an upcoming version of Dart.
+// [diag.includedFileWarning] Warning in the included options file /home/test/more_options.yaml(12..18): Support for legacy plugins is deprecated, and will be removed in an upcoming version of Dart.
 // [diag.includedFileWarning] Warning in the included options file /home/test/other_options.yaml(54..63): Multiple plugins can't be enabled.
 ''');
 

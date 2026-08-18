@@ -203,6 +203,14 @@ AnalysisOptionsWarningCode:
       If no replacement is available, remove the deprecated option.
     comment: |-
       An error code indicating that the given option is deprecated.
+  analysisOptionsDeprecatedPlugins:
+    type: staticWarning
+    parameters: none
+    problemMessage: Support for legacy plugins is deprecated, and will be removed in an upcoming version of Dart.
+    correctionMessage: See https://dart.dev/tools/analyzer-plugins for documentation regarding the new analyzer plugin system.
+    hasPublishedDocs: false
+    comment: |-
+      A warning code indicating that legacy plugins are deprecated.
   analysisOptionDeprecatedWithReplacement:
     type: staticWarning
     parameters:
