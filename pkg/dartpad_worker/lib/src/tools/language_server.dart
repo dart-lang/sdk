@@ -65,8 +65,10 @@ class LanguageServer {
   }
 
   Future<void> close() async {
-    await _input.sink.close();
+    // Shutdown can still emit messages, so keep the channel open until it
+    // completes.
     await _server.shutdown();
+    await _input.sink.close();
     if (!_closed.isCompleted) {
       _closed.complete();
     }
