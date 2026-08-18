@@ -60,9 +60,9 @@ DEFINE_FLAG(charp,
 
 #if defined(DART_TARGET_OS_MACOS_IOS)
 DEFINE_FLAG(bool,
-            macho_ios_simulator,
+            macho_platform_simulated,
             false,
-            "Whether to mark Mach-O snapshots as targeting the iOS Simulator");
+            "Mark Mach-O snapshots as targeting a simulated platform");
 #endif
 
 DEFINE_FLAG(charp,
@@ -1349,8 +1349,8 @@ class MachOBuildVersion : public MachOCommand {
 
   uint32_t platform() const {
 #if defined(DART_TARGET_OS_MACOS_IOS)
-    return FLAG_macho_ios_simulator ? mach_o::PLATFORM_IOSSIMULATOR
-                                    : mach_o::PLATFORM_IOS;
+    return FLAG_macho_platform_simulated ? mach_o::PLATFORM_IOSSIMULATOR
+                                         : mach_o::PLATFORM_IOS;
 #else
     return mach_o::PLATFORM_MACOS;
 #endif
