@@ -1045,6 +1045,16 @@ class AstBinaryReader {
         return ExecutableTearOffResolutionImpl(
           element: _reader.readElement() as InternalExecutableElement,
         );
+      case NamedReadResolutionTag.functionCallTearOff:
+        return FunctionCallTearOffResolutionImpl(
+          type: _reader.readRequiredType(),
+          associatedFunctionType:
+              _reader.readRequiredType() as FunctionTypeImpl,
+        );
+      case NamedReadResolutionTag.functionInterfaceCallTearOff:
+        return FunctionInterfaceCallTearOffResolutionImpl(
+          type: _reader.readRequiredType(),
+        );
       case NamedReadResolutionTag.getterInvocation:
         return GetterInvocationResolutionImpl(
           element: _reader.readElement() as InternalGetterElement,

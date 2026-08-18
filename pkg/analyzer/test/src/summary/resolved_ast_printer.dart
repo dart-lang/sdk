@@ -2550,6 +2550,22 @@ Expected parent: (${parent.runtimeType}) $parent
           _writeElement('element', resolution.element);
           _writeType('type', resolution.type);
         });
+      case FunctionCallTearOffResolutionImpl():
+        _sink.writelnWithIndent('$name: FunctionCallTearOffResolution');
+        _sink.withIndent(() {
+          _writeType('type', resolution.type);
+          _writeType(
+            'associatedFunctionType',
+            resolution.associatedFunctionType,
+          );
+        });
+      case FunctionInterfaceCallTearOffResolutionImpl():
+        _sink.writelnWithIndent(
+          '$name: FunctionInterfaceCallTearOffResolution',
+        );
+        _sink.withIndent(() {
+          _writeType('type', resolution.type);
+        });
       case GetterInvocationResolutionImpl():
         _sink.writelnWithIndent('$name: GetterInvocationResolution');
         _sink.withIndent(() {

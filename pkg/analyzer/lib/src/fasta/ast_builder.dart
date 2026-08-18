@@ -887,7 +887,6 @@ class AstBuilder extends StackListener {
           _featureSet.isEnabled(Feature.constructor_tearoffs) &&
           (dot.type == TokenType.PERIOD ||
               dot.type == TokenType.QUESTION_PERIOD) &&
-          identifierOrInvoke.name != 'call' &&
           _isSupportedPropertyReceiver(receiver)) {
         push(
           PropertyExtractionImpl(

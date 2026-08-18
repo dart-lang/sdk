@@ -1801,6 +1801,9 @@ package:analyzer/dart/ast/ast.dart:
     keyword (getter: Token?)
     star (getter: Token?)
     isPotentiallyMutatedInScope (method: bool Function(VariableElement))
+  FunctionCallTearOffResolution (class extends Object implements NamedReadResolution, abstract, final, experimental):
+    associatedFunctionType (getter: FunctionType)
+    type (getter: DartType)
   FunctionDeclaration (class extends Object implements CompilationUnitMember, abstract, final):
     augmentKeyword (getter: Token?)
     declaredFragment (getter: ExecutableFragment?)
@@ -1823,6 +1826,8 @@ package:analyzer/dart/ast/ast.dart:
     element (getter: ExecutableElement?)
     function (getter: Expression)
     function2 (getter: Expression, experimental)
+  FunctionInterfaceCallTearOffResolution (class extends Object implements NamedReadResolution, abstract, final, experimental):
+    type (getter: DartType)
   FunctionReference (class extends Object implements Expression, CommentReferableExpression, abstract, final):
     function (getter: Expression)
     function2 (getter: Expression, experimental)

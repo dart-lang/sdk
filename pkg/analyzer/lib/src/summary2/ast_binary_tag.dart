@@ -41,6 +41,8 @@ enum NamedReadResolutionTag {
   dynamicPropertyRead,
   executableTearOff,
   recordFieldRead,
+  functionCallTearOff,
+  functionInterfaceCallTearOff,
 }
 
 enum NamedWriteResolutionTag {

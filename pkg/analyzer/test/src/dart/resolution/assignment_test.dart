@@ -4235,6 +4235,91 @@ V1: AssignmentExpression
 ''');
   }
 
+  test_propertyAccess_parenthesized_functionCall_ifNull() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+void f(void Function() a) {
+  (a).call ??= () {};
+//             ^^^^^
+// [diag.deadCode] Dead code.
+// [diag.deadNullAwareExpression] The left operand can't be null, so the right operand is never executed.
+}
+''');
+
+    var node = result.findNode.ifNullAssignment('call ??= () {}');
+    assertResolvedNodeText(node, r'''
+IfNullAssignment
+  target: PropertyAssignmentTarget
+    receiver: ParenthesizedExpression
+      leftParenthesis: (
+      expression2: SimpleIdentifier
+        token: a
+        element: <testLibrary>::@function::f::@formalParameter::a
+        staticType: void Function()
+      rightParenthesis: )
+      staticType: void Function()
+    operator: .
+    propertyName: call
+    read: FunctionCallTearOffResolution
+      type: void Function()
+      associatedFunctionType: void Function()
+    write: InvalidNamedWriteResolution
+      acceptedType: InvalidType
+      candidates
+      recovery: <null>
+  operator: ??=
+  value: FunctionExpression
+    parameters: FormalParameterList
+      leftParenthesis: (
+      rightParenthesis: )
+    body: BlockFunctionBody
+      block: Block
+        leftBracket: {
+        rightBracket: }
+    declaredFragment: <testLibraryFragment> null@null
+      element: null@null
+        type: Never Function()
+    correspondingParameter: <null>
+    staticType: Never Function()
+  staticType: void Function()
+V1: AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: ParenthesizedExpression
+      leftParenthesis: (
+      expression: SimpleIdentifier
+        token: a
+        element: <testLibrary>::@function::f::@formalParameter::a
+        staticType: void Function()
+      rightParenthesis: )
+      staticType: void Function()
+    operator: .
+    propertyName: SimpleIdentifier
+      token: call
+      element: <null>
+      staticType: null
+    staticType: null
+  operator: ??=
+  rightHandSide: FunctionExpression
+    parameters: FormalParameterList
+      leftParenthesis: (
+      rightParenthesis: )
+    body: BlockFunctionBody
+      block: Block
+        leftBracket: {
+        rightBracket: }
+    declaredFragment: <testLibraryFragment> null@null
+      element: null@null
+        type: Never Function()
+    correspondingParameter: <null>
+    staticType: Never Function()
+  readElement: <null>
+  readType: void Function()
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: void Function()
+''');
+  }
+
   test_propertyAccess_parenthesized_method_ifNull() async {
     var result = await resolveTestCodeWithDiagnostics('''
 class A {

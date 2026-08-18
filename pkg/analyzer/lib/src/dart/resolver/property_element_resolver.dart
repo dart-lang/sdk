@@ -865,6 +865,19 @@ class PropertyElementResolver with ScopeHelpers {
       parentNode: node.parent2,
     );
 
+    var functionCallTearOffResolution = _functionCallTearOffResolution(
+      receiverType: receiverType,
+      isCall: node.propertyName.lexeme == MethodElement.CALL_METHOD_NAME,
+      callFunctionType: result.callFunctionType,
+    );
+    if (functionCallTearOffResolution != null) {
+      return (
+        expressionInfo: null,
+        resolution: functionCallTearOffResolution,
+        type: functionCallTearOffResolution.type,
+      );
+    }
+
     var readElement = result.getter2;
     _checkForStaticMember2(
       target: receiver,
@@ -1022,6 +1035,12 @@ class PropertyElementResolver with ScopeHelpers {
       parentNode: node.parent2,
     );
 
+    var functionCallTearOffResolution = _functionCallTearOffResolution(
+      receiverType: receiverType,
+      isCall: node.propertyName.lexeme == MethodElement.CALL_METHOD_NAME,
+      callFunctionType: result.callFunctionType,
+    );
+
     var readElement = result.getter2;
     var writeElement = result.setter2;
     _checkForStaticMember2(
@@ -1078,11 +1097,13 @@ class PropertyElementResolver with ScopeHelpers {
       }
     }
 
-    var readResolution = _createPropertyReadResolution(
-      element: readElement,
-      recordField: recordField,
-      type: readType,
-    );
+    var readResolution =
+        functionCallTearOffResolution ??
+        _createPropertyReadResolution(
+          element: readElement,
+          recordField: recordField,
+          type: readType,
+        );
     readResolution ??= InvalidNamedReadResolutionImpl(
       candidates: [?readElement, ?writeElement],
       recovery: null,
@@ -1402,6 +1423,29 @@ class PropertyElementResolver with ScopeHelpers {
     }
     if (recordField != null) {
       return RecordFieldReadResolutionImpl(type: type);
+    }
+    return null;
+  }
+
+  NamedReadResolutionImpl? _functionCallTearOffResolution({
+    required TypeImpl receiverType,
+    required bool isCall,
+    required FunctionTypeImpl? callFunctionType,
+  }) {
+    assert(callFunctionType == null || isCall);
+
+    if (callFunctionType != null) {
+      return FunctionCallTearOffResolutionImpl(
+        type: receiverType,
+        associatedFunctionType: callFunctionType,
+      );
+    }
+    if (isCall) {
+      var receiverTypeResolved = _typeSystem.resolveToBound(receiverType);
+      if (receiverTypeResolved is InterfaceTypeImpl &&
+          receiverTypeResolved.isDartCoreFunction) {
+        return FunctionInterfaceCallTearOffResolutionImpl(type: receiverType);
+      }
     }
     return null;
   }

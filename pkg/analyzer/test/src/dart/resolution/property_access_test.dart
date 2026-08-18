@@ -319,6 +319,88 @@ AssignmentExpression
 ''');
   }
 
+  test_functionClass_call_read() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+void f(Function a) {
+  (a).call;
+}
+''');
+
+    var node = result.findNode.singlePropertyExtraction;
+    assertResolvedNodeText(node, r'''
+PropertyExtraction
+  receiver: ParenthesizedExpression
+    leftParenthesis: (
+    expression2: SimpleIdentifier
+      token: a
+      element: <testLibrary>::@function::f::@formalParameter::a
+      staticType: Function
+    rightParenthesis: )
+    staticType: Function
+  operator: .
+  propertyName: call
+  resolution: FunctionInterfaceCallTearOffResolution
+    type: Function
+  staticType: Function
+V1: PropertyAccess
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: SimpleIdentifier
+      token: a
+      element: <testLibrary>::@function::f::@formalParameter::a
+      staticType: Function
+    rightParenthesis: )
+    staticType: Function
+  operator: .
+  propertyName: SimpleIdentifier
+    token: call
+    element: <null>
+    staticType: Function
+  staticType: Function
+''');
+  }
+
+  test_functionClass_call_read_typeParameterBound() async {
+    var result = await resolveTestCode(r'''
+T f<T extends Function>(T a) {
+  return (a).call;
+}
+''');
+
+    var node = result.findNode.singlePropertyExtraction;
+    assertResolvedNodeText(node, r'''
+PropertyExtraction
+  receiver: ParenthesizedExpression
+    leftParenthesis: (
+    expression2: SimpleIdentifier
+      token: a
+      element: <testLibrary>::@function::f::@formalParameter::a
+      staticType: T
+    rightParenthesis: )
+    staticType: T
+  operator: .
+  propertyName: call
+  resolution: FunctionInterfaceCallTearOffResolution
+    type: T
+  staticType: T
+V1: PropertyAccess
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: SimpleIdentifier
+      token: a
+      element: <testLibrary>::@function::f::@formalParameter::a
+      staticType: T
+    rightParenthesis: )
+    staticType: T
+  operator: .
+  propertyName: SimpleIdentifier
+    token: call
+    element: <null>
+    staticType: T
+  staticType: T
+''');
+  }
+
   test_functionType_call_read() async {
     var result = await resolveTestCodeWithDiagnostics('''
 void f(int Function(String) a) {
@@ -326,12 +408,27 @@ void f(int Function(String) a) {
 }
 ''');
 
-    var node = result.findNode.singlePropertyAccess;
+    var node = result.findNode.singlePropertyExtraction;
     assertResolvedNodeText(node, r'''
-PropertyAccess
-  target2: ParenthesizedExpression
+PropertyExtraction
+  receiver: ParenthesizedExpression
     leftParenthesis: (
     expression2: SimpleIdentifier
+      token: a
+      element: <testLibrary>::@function::f::@formalParameter::a
+      staticType: int Function(String)
+    rightParenthesis: )
+    staticType: int Function(String)
+  operator: .
+  propertyName: call
+  resolution: FunctionCallTearOffResolution
+    type: int Function(String)
+    associatedFunctionType: int Function(String)
+  staticType: int Function(String)
+V1: PropertyAccess
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::f::@formalParameter::a
       staticType: int Function(String)
@@ -343,6 +440,48 @@ PropertyAccess
     element: <null>
     staticType: int Function(String)
   staticType: int Function(String)
+''');
+  }
+
+  test_functionType_call_read_typeParameterBound() async {
+    var result = await resolveTestCode(r'''
+T f<T extends int Function(String)>(T a) {
+  return (a).call;
+}
+''');
+
+    var node = result.findNode.singlePropertyExtraction;
+    assertResolvedNodeText(node, r'''
+PropertyExtraction
+  receiver: ParenthesizedExpression
+    leftParenthesis: (
+    expression2: SimpleIdentifier
+      token: a
+      element: <testLibrary>::@function::f::@formalParameter::a
+      staticType: T
+    rightParenthesis: )
+    staticType: T
+  operator: .
+  propertyName: call
+  resolution: FunctionCallTearOffResolution
+    type: T
+    associatedFunctionType: int Function(String)
+  staticType: T
+V1: PropertyAccess
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: SimpleIdentifier
+      token: a
+      element: <testLibrary>::@function::f::@formalParameter::a
+      staticType: T
+    rightParenthesis: )
+    staticType: T
+  operator: .
+  propertyName: SimpleIdentifier
+    token: call
+    element: <null>
+    staticType: T
+  staticType: T
 ''');
   }
 

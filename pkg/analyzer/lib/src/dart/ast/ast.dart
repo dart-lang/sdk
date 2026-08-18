@@ -22237,6 +22237,39 @@ sealed class FunctionBodyImpl extends AstNodeImpl implements FunctionBody {
   TypeImpl resolve(ResolverVisitor resolver, TypeImpl? imposedType);
 }
 
+/// A tear-off of the language-defined `call` method of a function-typed value.
+///
+/// Function-typed values expose `call` without selecting a declaration
+/// element. The [type] is the static type produced by the tear-off and can be
+/// a type parameter. The [associatedFunctionType] is the exact callable
+/// signature associated with [type].
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class FunctionCallTearOffResolution
+    implements NamedReadResolution {
+  /// The associated function type of [type].
+  ///
+  /// The [type] is [associatedFunctionType]-bounded.
+  FunctionType get associatedFunctionType;
+
+  @override
+  DartType get type;
+}
+
+final class FunctionCallTearOffResolutionImpl extends NamedReadResolutionImpl
+    implements FunctionCallTearOffResolution {
+  @override
+  final TypeImpl type;
+
+  @override
+  final FunctionTypeImpl associatedFunctionType;
+
+  FunctionCallTearOffResolutionImpl({
+    required this.type,
+    required this.associatedFunctionType,
+  });
+}
+
 /// A function declaration.
 ///
 /// Wrapped in a [FunctionDeclarationStatement] to represent a local function
@@ -23217,6 +23250,29 @@ final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
     }
     return null;
   }
+}
+
+/// A tear-off of `call` through the core `Function` interface.
+///
+/// The core `Function` interface exposes `call` without selecting a declaration
+/// element or providing an exact function signature. The [type] is the static
+/// type produced by the tear-off. It can be the core `Function` interface or a
+/// type parameter whose bound resolves to that interface.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class FunctionInterfaceCallTearOffResolution
+    implements NamedReadResolution {
+  @override
+  DartType get type;
+}
+
+final class FunctionInterfaceCallTearOffResolutionImpl
+    extends NamedReadResolutionImpl
+    implements FunctionInterfaceCallTearOffResolution {
+  @override
+  final TypeImpl type;
+
+  FunctionInterfaceCallTearOffResolutionImpl({required this.type});
 }
 
 /// An expression representing a reference to a function, possibly with type
@@ -42566,6 +42622,8 @@ final class PropertyAssignmentTargetImpl extends AssignmentTargetImpl
   Element? get _legacyReadElement => switch (read) {
     null => null,
     DynamicPropertyReadResolutionImpl() => null,
+    FunctionCallTearOffResolutionImpl() => null,
+    FunctionInterfaceCallTearOffResolutionImpl() => null,
     InvalidNamedReadResolutionImpl() => null,
     NamedReadResolutionWithElementImpl(:var element) => element,
     RecordFieldReadResolutionImpl() => null,
@@ -42671,8 +42729,8 @@ final class PropertyAssignmentTargetImpl extends AssignmentTargetImpl
 /// This migration slice supports ordinary `.` and `?.` receiver chains rooted
 /// at a literal, parenthesized expression, explicit instance creation,
 /// ordinary index expression, or explicit `this`. Other receiver forms,
-/// explicit `.call`, language versions without constructor tear-offs, and
-/// cascades remain on their existing AST shapes.
+/// language versions without constructor tear-offs, and cascades remain on
+/// their existing AST shapes.
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class PropertyExtraction implements Expression {

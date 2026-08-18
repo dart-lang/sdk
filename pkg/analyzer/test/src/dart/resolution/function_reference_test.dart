@@ -2224,13 +2224,10 @@ var a = [].foo.call<int>;
 ''');
 
     var node = result.findNode.functionReference('foo.call<int>;');
-    // TODO(srawlins): PropertyElementResolver does not return an element for
-    // `.call`. If we want `findElement.method('foo')` here, we must change the
-    // policy over there.
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function2: PropertyAccess
-    target2: PropertyExtraction
+  function2: PropertyExtraction
+    receiver: PropertyExtraction
       receiver: ListLiteral
         leftBracket: [
         rightBracket: ]
@@ -2241,7 +2238,14 @@ FunctionReference
         element: <testLibrary>::@extension::#0::@method::foo
         type: void Function<T>(T)
       staticType: void Function<T>(T)
-    target(v1): PropertyAccess
+    operator: .
+    propertyName: call
+    resolution: FunctionCallTearOffResolution
+      type: void Function<T>(T)
+      associatedFunctionType: void Function<T>(T)
+    staticType: void Function<T>(T)
+  function(v1): PropertyAccess
+    target: PropertyAccess
       target: ListLiteral
         leftBracket: [
         rightBracket: ]

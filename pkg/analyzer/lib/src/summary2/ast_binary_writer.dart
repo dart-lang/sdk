@@ -1174,6 +1174,13 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
       case ExecutableTearOffResolutionImpl():
         _writeByte(NamedReadResolutionTag.executableTearOff.index);
         _sink.writeElement(resolution.element);
+      case FunctionCallTearOffResolutionImpl():
+        _writeByte(NamedReadResolutionTag.functionCallTearOff.index);
+        _sink.writeType(resolution.type);
+        _sink.writeType(resolution.associatedFunctionType);
+      case FunctionInterfaceCallTearOffResolutionImpl():
+        _writeByte(NamedReadResolutionTag.functionInterfaceCallTearOff.index);
+        _sink.writeType(resolution.type);
       case GetterInvocationResolutionImpl():
         _writeByte(NamedReadResolutionTag.getterInvocation.index);
         _sink.writeElement(resolution.element);

@@ -1305,7 +1305,7 @@ void f() {
   (a).call;
 }
 ''');
-    var invocation = parseResult.findNode.propertyAccess('call');
+    var invocation = parseResult.findNodeV1.propertyAccess('call');
     expect(invocation.isNullAware, isFalse);
   }
 
