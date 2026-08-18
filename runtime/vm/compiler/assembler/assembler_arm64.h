@@ -1834,9 +1834,11 @@ class Assembler : public AssemblerBase {
   void CallCFunction(Register target) {
 #define __ this->
 #if defined(TARGET_ARCH_ARM64E)
+#if defined(HOST_ARCH_ARM64E)
     ASSERT(ptrauth_key_function_pointer == ptrauth_key_asia);
     ASSERT(ptrauth_function_pointer_type_discriminator(Dart_NativeFunction) ==
            0);
+#endif
     CLOBBERS_LR({ blraaz(target); });
 #else
     CLOBBERS_LR({ blr(target); });
@@ -1845,9 +1847,11 @@ class Assembler : public AssemblerBase {
   }
   void TailCallCFunction(Register target) {
 #if defined(TARGET_ARCH_ARM64E)
+#if defined(HOST_ARCH_ARM64E)
     ASSERT(ptrauth_key_function_pointer == ptrauth_key_asia);
     ASSERT(ptrauth_function_pointer_type_discriminator(Dart_NativeFunction) ==
            0);
+#endif
     braaz(target);
 #else
     br(target);
