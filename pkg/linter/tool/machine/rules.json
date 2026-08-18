@@ -3129,7 +3129,7 @@
     "incompatible": [],
     "sets": [],
     "fixStatus": "hasFix",
-    "details": "Don't include the type name in a constructor declaration. It isn't\nnecessary, and the code is shorter and cleaner without it.\n\n**BAD:**\n```dart\nclass C {\n  C();\n  C.name();\n}\n```\n\n**GOOD:**\n```dart\nclass C {\n  new ();\n  new name();\n}\n```",
+    "details": "Don't include the type name in a constructor declaration. It isn't\nnecessary, and the code is shorter and cleaner without it.\n\n**BAD:**\n```dart\nclass C {\n  C();\n  C.name();\n}\n```\n\n**GOOD:**\n```dart\nclass C {\n  new();\n  new name();\n}\n```",
     "sinceDartSdk": "3.13"
   },
   {
