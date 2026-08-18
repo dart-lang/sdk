@@ -479,6 +479,7 @@ struct InstrAttrs {
   M(HashDoubleOp, kNoGC)                                                       \
   M(HashIntegerOp, kNoGC)                                                      \
   M(UnarySmiOp, kNoGC)                                                         \
+  M(UnaryInt32Op, kNoGC)                                                       \
   M(UnaryDoubleOp, kNoGC)                                                      \
   M(CheckStackOverflow, _)                                                     \
   M(SmiToDouble, kNoGC)                                                        \
@@ -9292,6 +9293,34 @@ class UnaryUint32OpInstr : public UnaryIntegerOpInstr {
 
  private:
   DISALLOW_COPY_AND_ASSIGN(UnaryUint32OpInstr);
+};
+
+class UnaryInt32OpInstr : public UnaryIntegerOpInstr {
+ public:
+  UnaryInt32OpInstr(Token::Kind op_kind, Value* value, intptr_t deopt_id)
+      : UnaryIntegerOpInstr(op_kind, value, deopt_id) {
+    ASSERT(IsSupported(op_kind));
+  }
+
+  virtual bool ComputeCanDeoptimize() const { return false; }
+
+  virtual Representation representation() const { return kUnboxedInt32; }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx == 0);
+    return kUnboxedInt32;
+  }
+
+  static bool IsSupported(Token::Kind op_kind) {
+    return op_kind == Token::kBIT_NOT;
+  }
+
+  DECLARE_INSTRUCTION(UnaryInt32Op)
+
+  DECLARE_EMPTY_SERIALIZATION(UnaryInt32OpInstr, UnaryIntegerOpInstr)
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(UnaryInt32OpInstr);
 };
 
 class UnaryInt64OpInstr : public UnaryIntegerOpInstr {

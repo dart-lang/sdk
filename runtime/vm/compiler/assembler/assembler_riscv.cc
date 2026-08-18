@@ -4131,6 +4131,18 @@ void Assembler::AddImmediate(Register rd,
   if ((imm == 0) && (rd == rs1)) {
     return;
   }
+#if XLEN > 32
+  if (sz == kFourBytes) {
+    if (IsITypeImm(imm)) {
+      addiw(rd, rs1, imm);
+    } else {
+      ASSERT(rs1 != TMP2);
+      LoadImmediate(TMP2, imm);
+      addw(rd, rs1, TMP2);
+    }
+    return;
+  }
+#endif
   if (IsITypeImm(imm)) {
     addi(rd, rs1, imm);
   } else {

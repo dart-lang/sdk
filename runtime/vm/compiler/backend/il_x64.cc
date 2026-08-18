@@ -6337,6 +6337,11 @@ DEFINE_BACKEND(UnaryUint32Op, (SameAsFirstInput, Register value)) {
   __ notl(value);
 }
 
+DEFINE_BACKEND(UnaryInt32Op, (SameAsFirstInput, Register value)) {
+  ASSERT(instr->op_kind() == Token::kBIT_NOT);
+  __ notl(value);
+}
+
 DEFINE_UNIMPLEMENTED_INSTRUCTION(BinaryInt32OpInstr)
 
 LocationSummary* IntConverterInstr::MakeLocationSummary(Zone* zone,
