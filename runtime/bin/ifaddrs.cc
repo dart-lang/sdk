@@ -72,6 +72,14 @@ DART_WARN_UNUSED_RESULT static bool SetAddresses(struct ifaddrs* ifaddr,
 }
 
 static void SetNetmask(struct ifaddrs* ifaddr, int family, int prefixlen) {
+  // prefixlen comes from the netlink message (ifa_prefixlen is a u8) and is not
+  // bounded to the address family, so clamp it before using it to index into
+  // the address. Without this a value above 128 walks past the 16-byte
+  // sin6_addr, and a value above 32 shifts by a negative amount below.
+  const int max_prefix = (family == AF_INET6) ? 128 : 32;
+  if (prefixlen < 0 || prefixlen > max_prefix) {
+    prefixlen = max_prefix;
+  }
   if (family == AF_INET6) {
     sockaddr_in6* mask = new sockaddr_in6;
     mask->sin6_family = AF_INET6;
