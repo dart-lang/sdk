@@ -1961,6 +1961,17 @@ final class NativeInt32x4 implements Int32x4 {
     );
   }
 
+  Int32x4 operator ~() {
+    // Dart2js uses unsigned results for bit-operations.
+    // We use "JS" to fall back to the signed versions.
+    return NativeInt32x4._truncated(
+      JS('int', '~#', x),
+      JS('int', '~#', y),
+      JS('int', '~#', z),
+      JS('int', '~#', w),
+    );
+  }
+
   Int32x4 operator +(Int32x4 other) {
     // Avoid going through the typed array by "| 0" the result.
     return NativeInt32x4._truncated(

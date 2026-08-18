@@ -1752,7 +1752,7 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
   void ldr(Register rt, Address a, [OperandSize sz = OperandSize.s64]) {
     final needsSignExtension = !sz.is64 && sz.isSigned;
     _emitLoadStore(
-      B22 | B27 | B28 | B29 | (needsSignExtension ? B23 : 0),
+      B27 | B28 | B29 | (needsSignExtension ? B23 : B22),
       rt,
       a,
       sz,

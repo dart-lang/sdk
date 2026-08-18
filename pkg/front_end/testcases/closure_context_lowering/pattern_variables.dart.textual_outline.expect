@@ -1,1 +1,3 @@
-patternVariable((int, String) r) {}
+patternVariableAssignment((int, String) r) {}
+
+orPatternVariable(dynamic x) {}

@@ -5350,6 +5350,9 @@ class EquivalenceStrategy {
     )) {
       result = visitor.resultOnInequivalence;
     }
+    if (!checkPatternSwitchCase_scope(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
     if (!checkPatternSwitchCase_fileOffset(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
@@ -12570,6 +12573,15 @@ class EquivalenceStrategy {
       visitor.checkValues,
       'jointVariableFirstUseOffsets',
     );
+  }
+
+  bool checkPatternSwitchCase_scope(
+    EquivalenceVisitor visitor,
+    PatternSwitchCase node,
+    PatternSwitchCase other,
+  ) {
+    'scope';
+    return checkScope(visitor, node.scope, other.scope);
   }
 
   bool checkPatternSwitchCase_fileOffset(

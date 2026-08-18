@@ -1739,7 +1739,7 @@ class PatternGuard extends TreeNode {
   String toString() => 'PatternGuard(${toStringInternal()})';
 }
 
-class PatternSwitchCase extends TreeNode implements SwitchCase {
+class PatternSwitchCase extends TreeNode implements SwitchCase, ScopeProvider {
   final List<int> caseOffsets;
   final List<PatternGuard> patternGuards;
   // TODO(johnniwinther): Handle this through serialization. Currently this
@@ -1760,6 +1760,9 @@ class PatternSwitchCase extends TreeNode implements SwitchCase {
 
   // TODO(johnniwinther): Serialize this field.
   final List<int>? jointVariableFirstUseOffsets;
+
+  @override
+  Scope? scope;
 
   new(
     this.caseOffsets,
