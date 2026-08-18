@@ -195,6 +195,10 @@ class BaseGrowableArray : public B {
   // Sort the array in place.
   inline void Sort(int compare(const T*, const T*));
 
+  // Sort the portion of the array from start (inclusive) to end
+  // (exclusive) in place.
+  inline void SortFromTo(int start, int end, int compare(const T*, const T*));
+
   void StealBuffer(T** buffer, intptr_t* length) {
     *buffer = data_;
     *length = length_;
@@ -226,6 +230,22 @@ inline void BaseGrowableArray<T, B, Allocator>::Sort(int compare(const T*,
 
   typedef int (*CompareFunction)(const void*, const void*);
   qsort(data_, length_, sizeof(T), reinterpret_cast<CompareFunction>(compare));
+}
+
+template <typename T, typename B, typename Allocator>
+inline void BaseGrowableArray<T, B, Allocator>::SortFromTo(
+    int start,
+    int end,
+    int compare(const T*, const T*)) {
+  // Avoid calling qsort with a null array.
+  if (length_ == 0) return;
+
+  // Also avoid calling it if an invalid portion is given.
+  if (start < 0 || end <= start || length_ < end) return;
+
+  typedef int (*CompareFunction)(const void*, const void*);
+  qsort(data_ + start, end - start, sizeof(T),
+        reinterpret_cast<CompareFunction>(compare));
 }
 
 template <typename T, typename B, typename Allocator>
