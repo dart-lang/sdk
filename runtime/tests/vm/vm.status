@@ -259,6 +259,7 @@ cc/TypeArguments_Cache_ManyInstantiations: Skip # Generates 100k classes, extrem
 [ $simulator ]
 cc/DartAPI_NativeFieldAccess: SkipByDesign # https://dartbug.com/37299 Test uses dart:ffi which is not supported on simulators.
 cc/DartAPI_NativeFieldAccess_Throws: SkipByDesign # https://dartbug.com/37299 Test uses dart:ffi which is not supported on simulators.
+cc/Dart_NativeAssets*: SkipByDesign # https://dartbug.com/37299 Test uses dart:ffi which is not supported on simulators.
 cc/Dart_SetFfiNativeResolver: SkipByDesign # https://dartbug.com/37299 Test uses dart:ffi which is not supported on simulators.
 cc/Dart_SetFfiNativeResolver_DoesNotResolve: SkipByDesign # https://dartbug.com/37299 Test uses dart:ffi which is not supported on simulators.
 cc/Dart_SetFfiNativeResolver_MissingResolver: SkipByDesign # https://dartbug.com/37299 Test uses dart:ffi which is not supported on simulators.
