@@ -1,3 +1,6 @@
+## 15.3.0
+- Add support for WebSocket profiling.
+
 ## 15.2.0
 - Update to version `4.22` of the spec.
 - Deprecate `Message` type and `messages` field of `Stack` type.
