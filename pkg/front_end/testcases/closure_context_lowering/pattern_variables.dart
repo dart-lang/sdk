@@ -2,7 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-patternVariable((int, String) r) {
+patternVariableAssignment((int, String) r) {
   var (x, s) = r;
   return () => x;
+}
+
+orPatternVariable(dynamic x) {
+  switch (x) {
+    case int y:
+    case String(length: int y):
+      return () => y;
+    default:
+      return () => 0;
+  }
 }

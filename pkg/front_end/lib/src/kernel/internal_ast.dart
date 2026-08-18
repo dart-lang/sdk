@@ -34,6 +34,7 @@ import '../base/problems.dart' show unsupported;
 import '../builder/declaration_builders.dart';
 import '../codes/diagnostic.dart' as diag;
 import '../source/source_library_builder.dart';
+import '../type_inference/context_allocation_strategy.dart';
 import '../type_inference/element_inference.dart';
 import '../type_inference/inference_results.dart';
 import '../type_inference/inference_visitor.dart';
@@ -7244,6 +7245,30 @@ class InternalPatternSwitchCase extends InternalSwitchCase {
   final List<JointVariable> jointVariables;
 
   final List<int>? jointVariableFirstUseOffsets;
+
+  /// Scope information for the body of the pattern switch case.
+  ///
+  /// See the documentation for [switchCaseScopeProviderInfo].
+  ScopeProviderInfo? switchCaseBodyScopeProviderInfo;
+
+  /// Scope information for the overall pattern switch case.
+  ///
+  /// Consider the following example:
+  ///
+  ///   switch (x) {
+  ///     case int y:
+  ///     case String(length: int y):
+  ///       return () => y;
+  ///     default:
+  ///       return () => 0;
+  ///   }
+  ///
+  /// The first switch case has two heads, both of which declare the joint
+  /// variable 'y'. The joint variable 'y' is assigned the value of one of the
+  /// temporary variables 'y' from either of the two case heads. The temporary
+  /// variables are declared in the scope of [switchCaseScopeProviderInfo], and
+  /// the joint variable 'y' is declared in [switchCaseBodyScopeProviderInfo].
+  ScopeProviderInfo? switchCaseScopeProviderInfo;
 
   new({
     required this.caseOffsets,

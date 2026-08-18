@@ -11720,6 +11720,16 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       case InternalPatternSwitchStatement():
         InternalPatternSwitchCase case_ = node.cases[caseIndex];
 
+        if (isClosureContextLoweringEnabled) {
+          _contextAllocationStrategy.exitScopeProvider(
+            case_.switchCaseBodyScopeProviderInfo!,
+          );
+
+          _contextAllocationStrategy.exitScopeProvider(
+            case_.switchCaseScopeProviderInfo!,
+          );
+        }
+
         int? stackBase;
         assert(
           checkStackBase(
@@ -11777,6 +11787,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
         assert(checkStack(node, stackBase, [/*empty*/]));
 
+        if (body is Block) {
+          body.scope = case_.switchCaseBodyScopeProviderInfo?.scope;
+        }
+
         PatternSwitchCase replacement = extern.createPatternSwitchCase(
           caseOffsets: case_.caseOffsets,
           patternGuards: patternGuards,
@@ -11789,7 +11803,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           ],
           jointVariableFirstUseOffsets: case_.jointVariableFirstUseOffsets,
           fileOffset: case_.fileOffset,
-        );
+        )..scope = case_.switchCaseScopeProviderInfo?.scope;
         case_.registerSwitchCase(replacement);
         pushRewrite(replacement);
 
@@ -11856,6 +11870,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         );
       case InternalPatternSwitchStatement():
         InternalPatternSwitchCase case_ = node.cases[caseIndex];
+        if (isClosureContextLoweringEnabled) {
+          case_.switchCaseScopeProviderInfo = _contextAllocationStrategy
+              .enterScopeProvider(
+                scopeProviderInfoKind: ScopeProviderInfoKind.Block,
+              );
+        }
         return new SwitchStatementMemberInfo(
           heads: [
             for (InternalPatternGuard patternGuard in case_.patternGuards)
@@ -11996,7 +12016,22 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     InternalStatement node,
     int caseIndex,
     Iterable<InternalVariable> variables,
-  ) {}
+  ) {
+    if (isClosureContextLoweringEnabled &&
+        node is InternalPatternSwitchStatement) {
+      InternalPatternSwitchCase case_ = node.cases[caseIndex];
+      case_.switchCaseBodyScopeProviderInfo = _contextAllocationStrategy
+          .enterScopeProvider(
+            scopeProviderInfoKind: ScopeProviderInfoKind.Block,
+          );
+      for (InternalVariable joinedVariable in variables) {
+        _contextAllocationStrategy.handleDeclarationOfVariable(
+          joinedVariable.astVariable,
+          captureKind: captureKindForVariable(joinedVariable),
+        );
+      }
+    }
+  }
 
   @override
   void handleDefault(

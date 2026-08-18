@@ -1319,12 +1319,17 @@ class ConstantsTransformer extends RemovingTransformer {
 
           replacementCases.add(replacementCase);
         } else {
+          Scope? bodyScope;
+          if (body is Block) {
+            bodyScope = body.scope;
+            body.scope = null;
+          }
           caseBlock = extern.createBlock([
             for (VariableDeclaration jointVariableDeclaration
                 in switchCase.jointVariableDeclarations)
               extern.createVariableStatement(jointVariableDeclaration),
             if (body is! Block || body.statements.isNotEmpty) body,
-          ], fileOffset: switchCase.fileOffset);
+          ], fileOffset: switchCase.fileOffset)..scope = bodyScope;
         }
 
         if (caseCondition != null) {
@@ -1363,7 +1368,7 @@ class ConstantsTransformer extends RemovingTransformer {
             if (breakStatement != null)
               // Coverage-ignore(suite): Not run.
               breakStatement,
-          ], fileOffset: switchCase.fileOffset),
+          ], fileOffset: switchCase.fileOffset)..scope = switchCase.scope,
         );
       }
 
