@@ -1201,10 +1201,12 @@ class ARM64Decoder {
       // Integer
       if (instr.bits(22, 2) == 0) {
         format(instr, "str'sz 'rt, 'memop");
-      } else if (instr.bits(23, 1) == 1) {
+      } else if (instr.bits(22, 2) == 1) {
+        format(instr, "ldr'sz 'rt, 'memop");
+      } else if (instr.bits(22, 2) == 2) {
         format(instr, "ldrs'sz 'rt, 'memop");
       } else {
-        format(instr, "ldr'sz 'rt, 'memop");
+        unknown(instr);
       }
     }
   }
