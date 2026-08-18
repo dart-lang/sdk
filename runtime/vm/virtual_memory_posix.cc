@@ -631,12 +631,11 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
 #endif
 
   int map_flags = MAP_PRIVATE | MAP_ANONYMOUS;
-#if (defined(DART_HOST_OS_MACOS) && !defined(DART_HOST_OS_IOS))
-  if (is_executable && IsAtLeastMacOSX10_14() &&
-      !ShouldDualMapExecutablePages()) {
+#if defined(DART_HOST_OS_MACOS) && !defined(DART_HOST_OS_IOS)
+  if (is_executable && !ShouldDualMapExecutablePages()) {
     map_flags |= MAP_JIT;
   }
-#endif  // defined(DART_HOST_OS_MACOS)
+#endif  // defined(DART_HOST_OS_MACOS) && !defined(DART_HOST_OS_IOS)
 
   void* hint = nullptr;
   // Some 64-bit microarchitectures store only the low 32-bits of targets as
