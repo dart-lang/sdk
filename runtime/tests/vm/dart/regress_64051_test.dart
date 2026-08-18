@@ -23,6 +23,12 @@ void main() async {
     return; // SDK tree and dart_bootstrap not available on the test device.
   }
 
+  if (isSimulator) {
+    // Output of Mach-O relocatable objects isn't supported for most
+    // simulated architectures, so don't run the test.
+    return;
+  }
+
   if (nm == null) {
     return;
   }
