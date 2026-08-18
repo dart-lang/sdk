@@ -177,8 +177,8 @@ class _Collector {
       return _propertyAccess(node);
     }
 
-    if (node is PropertyExtraction) {
-      return _propertyExtraction(node);
+    if (node is ReceiverPropertyExtraction) {
+      return _receiverPropertyExtraction(node);
     }
 
     if (node is AsExpression) {
@@ -371,7 +371,7 @@ class _Collector {
     nodes.add(node);
   }
 
-  void _propertyExtraction(PropertyExtraction node) {
+  void _receiverPropertyExtraction(ReceiverPropertyExtraction node) {
     if (node.propertyName.lexeme == 'length') {
       collect(node.receiver);
       return;

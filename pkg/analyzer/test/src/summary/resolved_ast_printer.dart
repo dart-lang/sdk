@@ -1653,10 +1653,10 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
-  void visitPropertyAssignmentTarget(
-    covariant PropertyAssignmentTargetImpl node,
+  void visitReceiverPropertyAssignmentTarget(
+    covariant ReceiverPropertyAssignmentTargetImpl node,
   ) {
-    _sink.writeln('PropertyAssignmentTarget');
+    _sink.writeln('ReceiverPropertyAssignmentTarget');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
       if (_withResolution) {
@@ -1667,8 +1667,10 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
-  void visitPropertyExtraction(covariant PropertyExtractionImpl node) {
-    _sink.writeln('PropertyExtraction');
+  void visitReceiverPropertyExtraction(
+    covariant ReceiverPropertyExtractionImpl node,
+  ) {
+    _sink.writeln('ReceiverPropertyExtraction');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
       _writeParameterElement(node);

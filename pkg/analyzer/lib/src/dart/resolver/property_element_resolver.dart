@@ -391,6 +391,25 @@ class PropertyElementResolver with ScopeHelpers {
     );
   }
 
+  ({
+    NamedReadResolutionImpl read,
+    NamedWriteResolutionImpl write,
+    ExpressionInfo? readExpressionInfo,
+  })
+  resolveImportPrefixedPropertyReadWriteTarget(
+    ReceiverPropertyAssignmentTargetImpl node,
+    PrefixElement prefix,
+  ) {
+    var result = _resolveTargetPrefixElement(
+      target: prefix,
+      identifier: SimpleIdentifierImpl(token: node.propertyName),
+      hasRead: true,
+      hasWrite: true,
+      forAnnotation: false,
+    );
+    return _propertyReadWriteTargetResult(result);
+  }
+
   IndexWriteResolutionImpl? resolveIndexDirectAssignmentTarget(
     IndexAssignmentTargetImpl node,
   ) {
@@ -785,25 +804,6 @@ class PropertyElementResolver with ScopeHelpers {
     );
   }
 
-  ({
-    NamedReadResolutionImpl read,
-    NamedWriteResolutionImpl write,
-    ExpressionInfo? readExpressionInfo,
-  })
-  resolvePrefixedPropertyReadWriteAssignmentTarget(
-    PropertyAssignmentTargetImpl node,
-    PrefixElement prefix,
-  ) {
-    var result = _resolveTargetPrefixElement(
-      target: prefix,
-      identifier: SimpleIdentifierImpl(token: node.propertyName),
-      hasRead: true,
-      hasWrite: true,
-      forAnnotation: false,
-    );
-    return _propertyReadWriteTargetResult(node, result);
-  }
-
   PropertyElementResolverResult resolvePropertyAccess({
     required PropertyAccessImpl node,
     required bool hasRead,
@@ -844,8 +844,8 @@ class PropertyElementResolver with ScopeHelpers {
     );
   }
 
-  NamedWriteResolutionImpl? resolvePropertyDirectAssignmentTarget(
-    PropertyAssignmentTargetImpl node,
+  NamedWriteResolutionImpl? resolveReceiverPropertyDirectAssignmentTarget(
+    ReceiverPropertyAssignmentTargetImpl node,
   ) {
     var receiver = node.receiver;
     var receiverType = receiver.typeOrThrow;
@@ -929,7 +929,7 @@ class PropertyElementResolver with ScopeHelpers {
     NamedReadResolutionImpl? resolution,
     TypeImpl type,
   })
-  resolvePropertyExtraction(PropertyExtractionImpl node) {
+  resolveReceiverPropertyExtraction(ReceiverPropertyExtractionImpl node) {
     var receiver = node.receiver;
     var receiverType = receiver.typeOrThrow;
 
@@ -1062,7 +1062,9 @@ class PropertyElementResolver with ScopeHelpers {
     NamedWriteResolutionImpl write,
     ExpressionInfo? readExpressionInfo,
   })?
-  resolvePropertyReadWriteAssignmentTarget(PropertyAssignmentTargetImpl node) {
+  resolveReceiverPropertyReadWriteAssignmentTarget(
+    ReceiverPropertyAssignmentTargetImpl node,
+  ) {
     var receiver = node.receiver;
 
     if (receiver is ExtensionOverrideImpl) {
@@ -1074,7 +1076,7 @@ class PropertyElementResolver with ScopeHelpers {
         assignmentToMethodOnMissingWrite:
             node.parent2 is IncrementOrDecrementExpression,
       );
-      return _propertyReadWriteTargetResult(node, result);
+      return _propertyReadWriteTargetResult(result);
     }
 
     if (receiver case TypeLiteralImpl(
@@ -1087,7 +1089,7 @@ class PropertyElementResolver with ScopeHelpers {
         hasRead: true,
         hasWrite: true,
       );
-      return _propertyReadWriteTargetResult(node, result);
+      return _propertyReadWriteTargetResult(result);
     }
 
     if (receiver case SimpleIdentifierImpl(
@@ -1100,7 +1102,7 @@ class PropertyElementResolver with ScopeHelpers {
         hasRead: true,
         hasWrite: true,
       );
-      return _propertyReadWriteTargetResult(node, result);
+      return _propertyReadWriteTargetResult(result);
     }
 
     var receiverType = receiver.typeOrThrow;
@@ -1587,10 +1589,7 @@ class PropertyElementResolver with ScopeHelpers {
     NamedWriteResolutionImpl write,
     ExpressionInfo? readExpressionInfo,
   })
-  _propertyReadWriteTargetResult(
-    PropertyAssignmentTargetImpl node,
-    PropertyElementResolverResult result,
-  ) {
+  _propertyReadWriteTargetResult(PropertyElementResolverResult result) {
     var readElement = result.readElement2;
     var writeElement = result.writeElement2;
     var readResolution = _createPropertyReadResolution(

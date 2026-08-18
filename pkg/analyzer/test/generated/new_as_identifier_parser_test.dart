@@ -59,7 +59,7 @@ ClassDeclaration
             fieldName(v1): SimpleIdentifier
               token: <empty> <synthetic>
             equals: = <synthetic>
-            expression2: PropertyExtraction
+            expression2: ReceiverPropertyExtraction
               receiver: ThisExpression
                 thisKeyword: this
               operator: .

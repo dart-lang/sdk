@@ -516,7 +516,7 @@ var v = (x).y;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-PropertyExtraction
+ReceiverPropertyExtraction
   receiver: ParenthesizedExpression
     leftParenthesis: (
     expression2: SimpleIdentifier
@@ -571,7 +571,7 @@ var v = (x)?.y;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-PropertyExtraction
+ReceiverPropertyExtraction
   receiver: ParenthesizedExpression
     leftParenthesis: (
     expression2: SimpleIdentifier
@@ -2217,7 +2217,7 @@ var v = --a.b == c;
 BinaryOperatorInvocation
   leftOperand: PrefixDecrement
     operator: --
-    target: PropertyAssignmentTarget
+    target: ReceiverPropertyAssignmentTarget
       receiver: SimpleIdentifier
         token: a
       operator: .
@@ -2634,7 +2634,7 @@ var v = --a.b == c;
 BinaryOperatorInvocation
   leftOperand: PrefixDecrement
     operator: --
-    target: PropertyAssignmentTarget
+    target: ReceiverPropertyAssignmentTarget
       receiver: SimpleIdentifier
         token: a
       operator: .
@@ -5446,7 +5446,7 @@ var v = --super.x;
     assertParsedNodeText(node, r'''
 PrefixDecrement
   operator: --
-  target: PropertyAssignmentTarget
+  target: ReceiverPropertyAssignmentTarget
     receiver: SuperExpression
       superKeyword: super
     operator: .
@@ -5555,7 +5555,7 @@ var v = ++super.x;
     assertParsedNodeText(node, r'''
 PrefixIncrement
   operator: ++
-  target: PropertyAssignmentTarget
+  target: ReceiverPropertyAssignmentTarget
     receiver: SuperExpression
       superKeyword: super
     operator: .

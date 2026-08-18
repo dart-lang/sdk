@@ -1005,7 +1005,7 @@ f(){
     var node = result.findNode.postfixIncrement('++;');
     assertResolvedNodeText(node, r'''
 PostfixIncrement
-  target: PropertyAssignmentTarget
+  target: ReceiverPropertyAssignmentTarget
     receiver: ExtensionOverride
       name: E
       argumentList: ArgumentList

@@ -6086,41 +6086,19 @@ final class CascadeIndexV1Impl extends ExpressionImpl
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class CascadePropertyAssignmentTarget
-    implements AssignmentTarget {
-  /// The written property name.
-  Token get propertyName;
-
-  /// The read operation, or `null` if the assignment does not read the target,
-  /// this target has not been resolved, or the cascade target cannot complete.
-  NamedReadResolution? get read;
-
-  /// The write operation, or `null` if this target has not been resolved or
-  /// the cascade target cannot complete.
-  NamedWriteResolution? get write;
-}
+    implements PropertyAssignmentTarget {}
 
 @GenerateNodeImpl(
   api: AstNodeApi.v2,
-  childEntitiesOrder: [GenerateNodeProperty('propertyName')],
+  childEntitiesOrder: [GenerateNodeProperty('propertyName', isSuper: true)],
 )
-final class CascadePropertyAssignmentTargetImpl extends AssignmentTargetImpl
+final class CascadePropertyAssignmentTargetImpl
+    extends PropertyAssignmentTargetImpl
     implements CascadePropertyAssignmentTarget {
-  @generated
-  @override
-  final Token propertyName;
-
-  @DoNotGenerate(reason: 'Stores the canonical typed read resolution')
-  @override
-  NamedReadResolutionImpl? read;
-
-  @DoNotGenerate(reason: 'Stores the canonical typed write resolution')
-  @override
-  NamedWriteResolutionImpl? write;
-
   PropertyAccessImpl? _propertyAccess;
 
   @generated
-  CascadePropertyAssignmentTargetImpl({required this.propertyName});
+  CascadePropertyAssignmentTargetImpl({required super.propertyName});
 
   @generated
   @override
@@ -6135,6 +6113,7 @@ final class CascadePropertyAssignmentTargetImpl extends AssignmentTargetImpl
   }
 
   /// The cached V1 compatibility projection for this target.
+  @override
   PropertyAccessImpl get propertyAccess => _propertyAccess ??=
       PropertyAccessImpl.v1ProjectionFromCascadeAssignmentTarget(this);
 
@@ -6229,33 +6208,18 @@ final class CascadePropertyAssignmentTargetImpl extends AssignmentTargetImpl
 /// enclosing [CascadeExpression] owns the once-evaluated receiver.
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-abstract final class CascadePropertyExtraction implements Expression {
-  /// The selected property name.
-  Token get propertyName;
-
-  /// The resolution of the read, or `null` if this expression has not been
-  /// resolved or the cascade target cannot complete.
-  NamedReadResolution? get resolution;
-}
+abstract final class CascadePropertyExtraction implements PropertyExtraction {}
 
 @GenerateNodeImpl(
   api: AstNodeApi.v2,
-  childEntitiesOrder: [GenerateNodeProperty('propertyName')],
+  childEntitiesOrder: [GenerateNodeProperty('propertyName', isSuper: true)],
 )
-final class CascadePropertyExtractionImpl extends ExpressionImpl
+final class CascadePropertyExtractionImpl extends PropertyExtractionImpl
     implements CascadePropertyExtraction {
-  @generated
-  @override
-  final Token propertyName;
-
-  @DoNotGenerate(reason: 'Stores the canonical typed read resolution')
-  @override
-  NamedReadResolutionImpl? resolution;
-
   PropertyAccessImpl? _propertyAccess;
 
   @generated
-  CascadePropertyExtractionImpl({required this.propertyName});
+  CascadePropertyExtractionImpl({required super.propertyName});
 
   @generated
   @override
@@ -6268,12 +6232,6 @@ final class CascadePropertyExtractionImpl extends ExpressionImpl
   Token get endToken {
     return propertyName;
   }
-
-  @override
-  bool get isAssignable => true;
-
-  @override
-  Precedence get precedence => Precedence.postfix;
 
   /// The cached V1 compatibility projection for this expression.
   PropertyAccessImpl get propertyAccess => _propertyAccess ??=
@@ -6293,12 +6251,6 @@ final class CascadePropertyExtractionImpl extends ExpressionImpl
   @override
   ChildEntities get _childEntities2 =>
       ChildEntities()..addToken('propertyName', propertyName);
-
-  Element? get _legacyReadElement => switch (resolution) {
-    InvalidNamedReadResolutionImpl(:var candidates) => candidates.firstOrNull,
-    NamedReadResolutionWithElementImpl(:var element) => element,
-    _ => null,
-  };
 
   @generated
   @ToBeDeprecated('Use accept2 instead.')
@@ -9723,9 +9675,8 @@ final class CompoundAssignmentV1Impl extends ExpressionImpl
   @override
   ExpressionImpl get leftHandSide => switch (_origin.target) {
     CascadeIndexAssignmentTargetImpl target => target.indexExpression,
-    CascadePropertyAssignmentTargetImpl target => target.propertyAccess,
-    IndexAssignmentTargetImpl target => target.indexExpression,
     PropertyAssignmentTargetImpl target => target.propertyAccess,
+    IndexAssignmentTargetImpl target => target.indexExpression,
     UnqualifiedNameAssignmentTargetImpl target => target.simpleIdentifier,
     InvalidExpressionAssignmentTargetImpl target => V1Projection.toV1Expression(
       target.expression,
@@ -9748,7 +9699,7 @@ final class CompoundAssignmentV1Impl extends ExpressionImpl
     CascadeIndexAssignmentTargetImpl target => target._legacyReadElement,
     CascadePropertyAssignmentTargetImpl target => target._legacyReadElement,
     IndexAssignmentTargetImpl target => target._legacyReadElement,
-    PropertyAssignmentTargetImpl target => target._legacyReadElement,
+    ReceiverPropertyAssignmentTargetImpl target => target._legacyReadElement,
     UnqualifiedNameAssignmentTargetImpl target => target._legacyReadElement,
     InvalidExpressionAssignmentTargetImpl(expression: IdentifierImpl element) =>
       element.element,
@@ -9758,8 +9709,6 @@ final class CompoundAssignmentV1Impl extends ExpressionImpl
   @override
   TypeImpl? get readType => switch (_origin.target) {
     CascadeIndexAssignmentTargetImpl target =>
-      target.read?.type ?? InvalidTypeImpl.instance,
-    CascadePropertyAssignmentTargetImpl target =>
       target.read?.type ?? InvalidTypeImpl.instance,
     IndexAssignmentTargetImpl target => target._legacyReadType,
     PropertyAssignmentTargetImpl target =>
@@ -9785,7 +9734,7 @@ final class CompoundAssignmentV1Impl extends ExpressionImpl
     CascadeIndexAssignmentTargetImpl target => target._legacyWriteElement,
     CascadePropertyAssignmentTargetImpl target => target._legacyWriteElement,
     IndexAssignmentTargetImpl target => target._legacyWriteElement,
-    PropertyAssignmentTargetImpl target => target._legacyWriteElement,
+    ReceiverPropertyAssignmentTargetImpl target => target._legacyWriteElement,
     UnqualifiedNameAssignmentTargetImpl target => target._legacyWriteElement,
     InvalidExpressionAssignmentTargetImpl(expression: IdentifierImpl element) =>
       element.element,
@@ -9796,11 +9745,9 @@ final class CompoundAssignmentV1Impl extends ExpressionImpl
   TypeImpl? get writeType => switch (_origin.target) {
     CascadeIndexAssignmentTargetImpl target =>
       target.write?.acceptedType ?? InvalidTypeImpl.instance,
-    CascadePropertyAssignmentTargetImpl target =>
+    PropertyAssignmentTargetImpl target =>
       target.write?.acceptedType ?? InvalidTypeImpl.instance,
     IndexAssignmentTargetImpl target =>
-      target.write?.acceptedType ?? InvalidTypeImpl.instance,
-    PropertyAssignmentTargetImpl target =>
       target.write?.acceptedType ?? InvalidTypeImpl.instance,
     UnqualifiedNameAssignmentTargetImpl target => target.write?.acceptedType,
     InvalidExpressionAssignmentTargetImpl() => InvalidTypeImpl.instance,
@@ -14040,9 +13987,8 @@ final class DirectAssignmentImpl extends AssignmentExpression2Impl
   InternalFormalParameterElement? get _staticParameterElementForValue {
     var write = switch (target) {
       CascadeIndexAssignmentTargetImpl(:var write) => write,
-      CascadePropertyAssignmentTargetImpl(:var write) => write,
-      IndexAssignmentTargetImpl(:var write) => write,
       PropertyAssignmentTargetImpl(:var write) => write,
+      IndexAssignmentTargetImpl(:var write) => write,
       UnqualifiedNameAssignmentTargetImpl(:var write) => write,
       InvalidExpressionAssignmentTargetImpl() => null,
     };
@@ -14205,9 +14151,8 @@ final class DirectAssignmentV1Impl extends ExpressionImpl
   @override
   ExpressionImpl get leftHandSide => switch (_origin.target) {
     CascadeIndexAssignmentTargetImpl target => target.indexExpression,
-    CascadePropertyAssignmentTargetImpl target => target.propertyAccess,
-    IndexAssignmentTargetImpl target => target.indexExpression,
     PropertyAssignmentTargetImpl target => target.propertyAccess,
+    IndexAssignmentTargetImpl target => target.indexExpression,
     UnqualifiedNameAssignmentTargetImpl target => target.simpleIdentifier,
     InvalidExpressionAssignmentTargetImpl target => V1Projection.toV1Expression(
       target.expression,
@@ -14248,7 +14193,7 @@ final class DirectAssignmentV1Impl extends ExpressionImpl
     CascadeIndexAssignmentTargetImpl target => target._legacyWriteElement,
     CascadePropertyAssignmentTargetImpl target => target._legacyWriteElement,
     IndexAssignmentTargetImpl target => target._legacyWriteElement,
-    PropertyAssignmentTargetImpl target => target._legacyWriteElement,
+    ReceiverPropertyAssignmentTargetImpl target => target._legacyWriteElement,
     UnqualifiedNameAssignmentTargetImpl target => target._legacyWriteElement,
     InvalidExpressionAssignmentTargetImpl(expression: IdentifierImpl element) =>
       element.element,
@@ -14260,7 +14205,7 @@ final class DirectAssignmentV1Impl extends ExpressionImpl
     CascadeIndexAssignmentTargetImpl target => target.write?.acceptedType,
     CascadePropertyAssignmentTargetImpl target => target.write?.acceptedType,
     IndexAssignmentTargetImpl target => target.write?.acceptedType,
-    PropertyAssignmentTargetImpl target =>
+    ReceiverPropertyAssignmentTargetImpl target =>
       target.write?.acceptedType ?? InvalidTypeImpl.instance,
     UnqualifiedNameAssignmentTargetImpl target => target.write?.acceptedType,
     InvalidExpressionAssignmentTargetImpl() => InvalidTypeImpl.instance,
@@ -26415,9 +26360,8 @@ final class IfNullAssignmentImpl extends AssignmentExpression2Impl
   InternalFormalParameterElement? get _staticParameterElementForValue {
     var write = switch (target) {
       CascadeIndexAssignmentTargetImpl(:var write) => write,
-      CascadePropertyAssignmentTargetImpl(:var write) => write,
-      IndexAssignmentTargetImpl(:var write) => write,
       PropertyAssignmentTargetImpl(:var write) => write,
+      IndexAssignmentTargetImpl(:var write) => write,
       UnqualifiedNameAssignmentTargetImpl(:var write) => write,
       InvalidExpressionAssignmentTargetImpl() => null,
     };
@@ -26580,9 +26524,8 @@ final class IfNullAssignmentV1Impl extends ExpressionImpl
   @override
   ExpressionImpl get leftHandSide => switch (_origin.target) {
     CascadeIndexAssignmentTargetImpl target => target.indexExpression,
-    CascadePropertyAssignmentTargetImpl target => target.propertyAccess,
-    IndexAssignmentTargetImpl target => target.indexExpression,
     PropertyAssignmentTargetImpl target => target.propertyAccess,
+    IndexAssignmentTargetImpl target => target.indexExpression,
     UnqualifiedNameAssignmentTargetImpl target => target.simpleIdentifier,
     InvalidExpressionAssignmentTargetImpl target => V1Projection.toV1Expression(
       target.expression,
@@ -26605,7 +26548,7 @@ final class IfNullAssignmentV1Impl extends ExpressionImpl
     CascadeIndexAssignmentTargetImpl target => target._legacyReadElement,
     CascadePropertyAssignmentTargetImpl target => target._legacyReadElement,
     IndexAssignmentTargetImpl target => target._legacyReadElement,
-    PropertyAssignmentTargetImpl target => target._legacyReadElement,
+    ReceiverPropertyAssignmentTargetImpl target => target._legacyReadElement,
     UnqualifiedNameAssignmentTargetImpl target => target._legacyReadElement,
     InvalidExpressionAssignmentTargetImpl(expression: IdentifierImpl element) =>
       element.element,
@@ -26615,8 +26558,6 @@ final class IfNullAssignmentV1Impl extends ExpressionImpl
   @override
   TypeImpl? get readType => switch (_origin.target) {
     CascadeIndexAssignmentTargetImpl target =>
-      target.read?.type ?? InvalidTypeImpl.instance,
-    CascadePropertyAssignmentTargetImpl target =>
       target.read?.type ?? InvalidTypeImpl.instance,
     IndexAssignmentTargetImpl target => target._legacyReadType,
     PropertyAssignmentTargetImpl target =>
@@ -26643,7 +26584,7 @@ final class IfNullAssignmentV1Impl extends ExpressionImpl
     CascadeIndexAssignmentTargetImpl target => target._legacyWriteElement,
     CascadePropertyAssignmentTargetImpl target => target._legacyWriteElement,
     IndexAssignmentTargetImpl target => target._legacyWriteElement,
-    PropertyAssignmentTargetImpl target => target._legacyWriteElement,
+    ReceiverPropertyAssignmentTargetImpl target => target._legacyWriteElement,
     UnqualifiedNameAssignmentTargetImpl target => target._legacyWriteElement,
     InvalidExpressionAssignmentTargetImpl(expression: IdentifierImpl element) =>
       element.element,
@@ -26654,11 +26595,9 @@ final class IfNullAssignmentV1Impl extends ExpressionImpl
   TypeImpl? get writeType => switch (_origin.target) {
     CascadeIndexAssignmentTargetImpl target =>
       target.write?.acceptedType ?? InvalidTypeImpl.instance,
-    CascadePropertyAssignmentTargetImpl target =>
+    PropertyAssignmentTargetImpl target =>
       target.write?.acceptedType ?? InvalidTypeImpl.instance,
     IndexAssignmentTargetImpl target =>
-      target.write?.acceptedType ?? InvalidTypeImpl.instance,
-    PropertyAssignmentTargetImpl target =>
       target.write?.acceptedType ?? InvalidTypeImpl.instance,
     UnqualifiedNameAssignmentTargetImpl target => target.write?.acceptedType,
     InvalidExpressionAssignmentTargetImpl() => InvalidTypeImpl.instance,
@@ -28232,9 +28171,8 @@ abstract base class IncrementOrDecrementExpressionImpl extends ExpressionImpl
 
   ExpressionImpl get _legacyOperand => switch (target) {
     CascadeIndexAssignmentTargetImpl target => target.indexExpression,
-    CascadePropertyAssignmentTargetImpl target => target.propertyAccess,
-    IndexAssignmentTargetImpl target => target.indexExpression,
     PropertyAssignmentTargetImpl target => target.propertyAccess,
+    IndexAssignmentTargetImpl target => target.indexExpression,
     UnqualifiedNameAssignmentTargetImpl target => target.simpleIdentifier,
     InvalidExpressionAssignmentTargetImpl target => V1Projection.toV1Expression(
       target.expression,
@@ -28245,7 +28183,7 @@ abstract base class IncrementOrDecrementExpressionImpl extends ExpressionImpl
     CascadeIndexAssignmentTargetImpl target => target._legacyReadElement,
     CascadePropertyAssignmentTargetImpl target => target._legacyReadElement,
     IndexAssignmentTargetImpl target => target._legacyReadElement,
-    PropertyAssignmentTargetImpl target => target._legacyReadElement,
+    ReceiverPropertyAssignmentTargetImpl target => target._legacyReadElement,
     UnqualifiedNameAssignmentTargetImpl target => target._legacyReadElement,
     InvalidExpressionAssignmentTargetImpl(expression: IdentifierImpl element) =>
       element.element,
@@ -28254,9 +28192,8 @@ abstract base class IncrementOrDecrementExpressionImpl extends ExpressionImpl
 
   TypeImpl? get _legacyReadType => switch (target) {
     CascadeIndexAssignmentTargetImpl target => target.read?.type,
-    CascadePropertyAssignmentTargetImpl target => target.read?.type,
-    IndexAssignmentTargetImpl target => target.read?.type,
     PropertyAssignmentTargetImpl target => target.read?.type,
+    IndexAssignmentTargetImpl target => target.read?.type,
     UnqualifiedNameAssignmentTargetImpl target => target.read?.type,
     InvalidExpressionAssignmentTargetImpl() => InvalidTypeImpl.instance,
   };
@@ -28265,7 +28202,7 @@ abstract base class IncrementOrDecrementExpressionImpl extends ExpressionImpl
     CascadeIndexAssignmentTargetImpl target => target._legacyWriteElement,
     CascadePropertyAssignmentTargetImpl target => target._legacyWriteElement,
     IndexAssignmentTargetImpl target => target._legacyWriteElement,
-    PropertyAssignmentTargetImpl target => target._legacyWriteElement,
+    ReceiverPropertyAssignmentTargetImpl target => target._legacyWriteElement,
     UnqualifiedNameAssignmentTargetImpl target => target._legacyWriteElement,
     InvalidExpressionAssignmentTargetImpl(expression: IdentifierImpl element) =>
       element.element,
@@ -28274,11 +28211,9 @@ abstract base class IncrementOrDecrementExpressionImpl extends ExpressionImpl
 
   TypeImpl? get _legacyWriteType => switch (target) {
     CascadeIndexAssignmentTargetImpl target => target.write?.acceptedType,
-    CascadePropertyAssignmentTargetImpl target =>
-      target.write?.acceptedType ?? InvalidTypeImpl.instance,
-    IndexAssignmentTargetImpl target => target.write?.acceptedType,
     PropertyAssignmentTargetImpl target =>
       target.write?.acceptedType ?? InvalidTypeImpl.instance,
+    IndexAssignmentTargetImpl target => target.write?.acceptedType,
     UnqualifiedNameAssignmentTargetImpl target => target.write?.acceptedType,
     InvalidExpressionAssignmentTargetImpl() => InvalidTypeImpl.instance,
   };
@@ -42886,17 +42821,6 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
     _becomeParentOf12(propertyName);
   }
 
-  PropertyAccessImpl.v1ProjectionFromAssignmentTarget(
-    PropertyAssignmentTargetImpl origin,
-  ) : _target2 = null,
-      _operator = origin.operator,
-      _propertyName = SimpleIdentifierImpl.v1Projection(
-        token: origin.propertyName,
-      ),
-      _v1ProjectionOrigin = origin {
-    _attachV1Children();
-  }
-
   PropertyAccessImpl.v1ProjectionFromCascadeAssignmentTarget(
     CascadePropertyAssignmentTargetImpl origin,
   ) : _target2 = null,
@@ -42917,8 +42841,20 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
     _attachV1Children();
   }
 
-  PropertyAccessImpl.v1ProjectionFromExtraction(PropertyExtractionImpl origin)
-    : _target2 = null,
+  PropertyAccessImpl.v1ProjectionFromReceiverAssignmentTarget(
+    ReceiverPropertyAssignmentTargetImpl origin,
+  ) : _target2 = null,
+      _operator = origin.operator,
+      _propertyName = SimpleIdentifierImpl.v1Projection(
+        token: origin.propertyName,
+      ),
+      _v1ProjectionOrigin = origin {
+    _attachV1Children();
+  }
+
+  PropertyAccessImpl.v1ProjectionFromReceiverExtraction(
+    ReceiverPropertyExtractionImpl origin,
+  ) : _target2 = null,
       _operator = origin.operator,
       _propertyName = SimpleIdentifierImpl.v1Projection(
         token: origin.propertyName,
@@ -42939,7 +42875,6 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
   @override
   InternalFormalParameterElement? get correspondingParameter =>
       switch (_v1ProjectionOrigin) {
-        CascadePropertyExtractionImpl origin => origin.correspondingParameter,
         PropertyExtractionImpl origin => origin.correspondingParameter,
         _ => super.correspondingParameter,
       };
@@ -42952,7 +42887,6 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
 
   @override
   bool get inConstantContext => switch (_v1ProjectionOrigin) {
-    CascadePropertyExtractionImpl origin => origin.inConstantContext,
     PropertyExtractionImpl origin => origin.inConstantContext,
     _ => super.inConstantContext,
   };
@@ -42991,11 +42925,6 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
   @override
   SimpleIdentifierImpl get propertyName {
     switch (_v1ProjectionOrigin) {
-      case CascadePropertyExtractionImpl origin:
-        _propertyName.element = origin._legacyReadElement;
-        _propertyName.setPseudoExpressionStaticType(
-          origin.resolution?.type ?? origin.staticType,
-        );
       case PropertyExtractionImpl origin:
         _propertyName.element = origin._legacyReadElement;
         _propertyName.setPseudoExpressionStaticType(
@@ -43034,7 +42963,6 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
 
   @override
   TypeImpl? get staticType => switch (_v1ProjectionOrigin) {
-    CascadePropertyExtractionImpl origin => origin.staticType,
     PropertyExtractionImpl origin => origin.staticType,
     _ => super.staticType,
   };
@@ -43051,10 +42979,10 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
   @experimental
   @override
   ExpressionImpl? get target2 => switch (_v1ProjectionOrigin) {
-    PropertyAssignmentTargetImpl origin => V1Projection.toV1Expression(
+    ReceiverPropertyAssignmentTargetImpl origin => V1Projection.toV1Expression(
       origin.receiver,
     ),
-    PropertyExtractionImpl origin => V1Projection.toV1Expression(
+    ReceiverPropertyExtractionImpl origin => V1Projection.toV1Expression(
       origin.receiver,
     ),
     _ => _target2,
@@ -43131,7 +43059,6 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
   @override
   AttemptedConstantEvaluationResult? computeConstantValue() =>
       switch (_v1ProjectionOrigin) {
-        CascadePropertyExtractionImpl origin => origin.computeConstantValue(),
         PropertyExtractionImpl origin => origin.computeConstantValue(),
         _ => super.computeConstantValue(),
       };
@@ -43296,52 +43223,25 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
   }
 }
 
-/// A property selected on an explicitly written expression receiver and used
-/// as an assignment destination.
-///
-/// This migration slice supports ordinary `.` and `?.` receiver chains rooted
-/// at a literal, parenthesized expression, explicit instance creation,
-/// ordinary index expression, or explicit `this`. Other receiver forms and
-/// cascades remain on their existing AST shapes.
+/// A property used as an assignment destination.
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class PropertyAssignmentTarget implements AssignmentTarget {
-  /// The property access operator.
-  Token get operator;
-
   /// The written property name.
   Token get propertyName;
 
-  /// The read operation, or `null` if the assignment does not read the target
-  /// or this target has not been resolved.
+  /// The read operation, or `null` if the assignment does not read the target,
+  /// this target has not been resolved, or receiver evaluation prevents the
+  /// access.
   NamedReadResolution? get read;
 
-  /// The expression whose value receives the property selection.
-  Expression get receiver;
-
   /// The write operation, or `null` if this target has not been resolved or
-  /// the receiver makes the property access unreachable.
+  /// receiver evaluation prevents the access.
   NamedWriteResolution? get write;
 }
 
-@GenerateNodeImpl(
-  api: AstNodeApi.v2,
-  childEntitiesOrder: [
-    GenerateNodeProperty('receiver', isInValueExpressionSlot: true),
-    GenerateNodeProperty('operator'),
-    GenerateNodeProperty('propertyName'),
-  ],
-)
-final class PropertyAssignmentTargetImpl extends AssignmentTargetImpl
+sealed class PropertyAssignmentTargetImpl extends AssignmentTargetImpl
     implements PropertyAssignmentTarget {
-  @generated
-  ExpressionImpl _receiver;
-
-  @generated
-  @override
-  final Token operator;
-
-  @generated
   @override
   final Token propertyName;
 
@@ -43353,13 +43253,92 @@ final class PropertyAssignmentTargetImpl extends AssignmentTargetImpl
   @override
   NamedWriteResolutionImpl? write;
 
+  PropertyAssignmentTargetImpl({required this.propertyName});
+
+  /// The cached V1 compatibility projection for this target.
+  PropertyAccessImpl get propertyAccess;
+}
+
+/// A property value selected from a receiver.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class PropertyExtraction implements Expression {
+  /// The selected property name.
+  Token get propertyName;
+
+  /// The resolution of the read, or `null` if this expression has not been
+  /// resolved or receiver evaluation prevents the access.
+  NamedReadResolution? get resolution;
+}
+
+sealed class PropertyExtractionImpl extends ExpressionImpl
+    implements PropertyExtraction {
+  @override
+  final Token propertyName;
+
+  @DoNotGenerate(reason: 'Stores the canonical typed read resolution')
+  @override
+  NamedReadResolutionImpl? resolution;
+
+  PropertyExtractionImpl({required this.propertyName});
+
+  @override
+  bool get isAssignable => true;
+
+  @override
+  Precedence get precedence => Precedence.postfix;
+
+  Element? get _legacyReadElement => switch (resolution) {
+    InvalidNamedReadResolutionImpl(:var candidates) => candidates.firstOrNull,
+    NamedReadResolutionWithElementImpl(:var element) => element,
+    _ => null,
+  };
+}
+
+/// A property selected on an explicitly written expression receiver and used
+/// as an assignment destination.
+///
+/// This migration slice supports ordinary `.` and `?.` receiver chains rooted
+/// at a literal, parenthesized expression, explicit instance creation,
+/// ordinary index expression, or explicit `this`. Other receiver forms remain
+/// on their existing AST shapes. Cascade selections use
+/// [CascadePropertyAssignmentTarget].
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class ReceiverPropertyAssignmentTarget
+    implements PropertyAssignmentTarget {
+  /// The property access operator.
+  Token get operator;
+
+  /// The expression whose value receives the property selection.
+  Expression get receiver;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [
+    GenerateNodeProperty('receiver', isInValueExpressionSlot: true),
+    GenerateNodeProperty('operator'),
+    GenerateNodeProperty('propertyName', isSuper: true),
+  ],
+)
+final class ReceiverPropertyAssignmentTargetImpl
+    extends PropertyAssignmentTargetImpl
+    implements ReceiverPropertyAssignmentTarget {
+  @generated
+  ExpressionImpl _receiver;
+
+  @generated
+  @override
+  final Token operator;
+
   PropertyAccessImpl? _propertyAccess;
 
   @generated
-  PropertyAssignmentTargetImpl({
+  ReceiverPropertyAssignmentTargetImpl({
     required ExpressionImpl receiver,
     required this.operator,
-    required this.propertyName,
+    required super.propertyName,
   }) : _receiver = receiver {
     _becomeParentOf2(receiver);
   }
@@ -43377,8 +43356,9 @@ final class PropertyAssignmentTargetImpl extends AssignmentTargetImpl
   }
 
   /// The cached V1 compatibility projection for this target.
+  @override
   PropertyAccessImpl get propertyAccess => _propertyAccess ??=
-      PropertyAccessImpl.v1ProjectionFromAssignmentTarget(this);
+      PropertyAccessImpl.v1ProjectionFromReceiverAssignmentTarget(this);
 
   @generated
   @override
@@ -43397,7 +43377,9 @@ final class PropertyAssignmentTargetImpl extends AssignmentTargetImpl
   @generated
   @override
   ChildEntities get _childEntities {
-    throw StateError('PropertyAssignmentTarget is not in the V1 AST view.');
+    throw StateError(
+      'ReceiverPropertyAssignmentTarget is not in the V1 AST view.',
+    );
   }
 
   @generated
@@ -43428,14 +43410,16 @@ final class PropertyAssignmentTargetImpl extends AssignmentTargetImpl
   @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) {
-    throw StateError('PropertyAssignmentTarget is not in the V1 AST view.');
+    throw StateError(
+      'ReceiverPropertyAssignmentTarget is not in the V1 AST view.',
+    );
   }
 
   @generated
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
-      visitor.visitPropertyAssignmentTarget(this);
+      visitor.visitReceiverPropertyAssignmentTarget(this);
 
   @generated
   @override
@@ -43468,7 +43452,9 @@ final class PropertyAssignmentTargetImpl extends AssignmentTargetImpl
   @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
-    throw StateError('PropertyAssignmentTarget is not in the V1 AST view.');
+    throw StateError(
+      'ReceiverPropertyAssignmentTarget is not in the V1 AST view.',
+    );
   }
 
   @generated
@@ -43499,7 +43485,9 @@ final class PropertyAssignmentTargetImpl extends AssignmentTargetImpl
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
-    throw StateError('PropertyAssignmentTarget is not in the V1 AST view.');
+    throw StateError(
+      'ReceiverPropertyAssignmentTarget is not in the V1 AST view.',
+    );
   }
 
   @generated
@@ -43516,24 +43504,17 @@ final class PropertyAssignmentTargetImpl extends AssignmentTargetImpl
 ///
 /// This migration slice supports ordinary `.` and `?.` receiver chains rooted
 /// at a literal, parenthesized expression, explicit instance creation,
-/// ordinary index expression, or explicit `this`. Other receiver forms,
-/// language versions without constructor tear-offs, and cascades remain on
-/// their existing AST shapes.
+/// ordinary index expression, or explicit `this`. Other receiver forms and
+/// language versions without constructor tear-offs remain on their existing
+/// AST shapes. Cascade selections use [CascadePropertyExtraction].
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-abstract final class PropertyExtraction implements Expression {
+abstract final class ReceiverPropertyExtraction implements PropertyExtraction {
   /// The property access operator.
   Token get operator;
 
-  /// The written property name.
-  Token get propertyName;
-
   /// The expression whose value receives the property selection.
   Expression get receiver;
-
-  /// The resolution of the read, or `null` if this expression has not been
-  /// resolved or the receiver makes the property access unreachable.
-  NamedReadResolution? get resolution;
 }
 
 @GenerateNodeImpl(
@@ -43541,11 +43522,11 @@ abstract final class PropertyExtraction implements Expression {
   childEntitiesOrder: [
     GenerateNodeProperty('receiver', isInValueExpressionSlot: true),
     GenerateNodeProperty('operator'),
-    GenerateNodeProperty('propertyName'),
+    GenerateNodeProperty('propertyName', isSuper: true),
   ],
 )
-final class PropertyExtractionImpl extends ExpressionImpl
-    implements PropertyExtraction {
+final class ReceiverPropertyExtractionImpl extends PropertyExtractionImpl
+    implements ReceiverPropertyExtraction {
   @generated
   ExpressionImpl _receiver;
 
@@ -43553,21 +43534,13 @@ final class PropertyExtractionImpl extends ExpressionImpl
   @override
   final Token operator;
 
-  @generated
-  @override
-  final Token propertyName;
-
-  @DoNotGenerate(reason: 'Stores the canonical typed read resolution')
-  @override
-  NamedReadResolutionImpl? resolution;
-
-  PropertyExtractionV1Impl? _propertyAccess;
+  PropertyAccessImpl? _propertyAccess;
 
   @generated
-  PropertyExtractionImpl({
+  ReceiverPropertyExtractionImpl({
     required ExpressionImpl receiver,
     required this.operator,
-    required this.propertyName,
+    required super.propertyName,
   }) : _receiver = receiver {
     _becomeParentOf2(receiver);
   }
@@ -43584,15 +43557,9 @@ final class PropertyExtractionImpl extends ExpressionImpl
     return propertyName;
   }
 
-  @override
-  bool get isAssignable => true;
-
-  @override
-  Precedence get precedence => Precedence.postfix;
-
   /// The cached V1 compatibility projection for this expression.
-  PropertyExtractionV1Impl get propertyAccess =>
-      _propertyAccess ??= PropertyExtractionV1Impl._(this);
+  PropertyAccessImpl get propertyAccess => _propertyAccess ??=
+      PropertyAccessImpl.v1ProjectionFromReceiverExtraction(this);
 
   @generated
   @override
@@ -43611,7 +43578,7 @@ final class PropertyExtractionImpl extends ExpressionImpl
   @generated
   @override
   ChildEntities get _childEntities {
-    throw StateError('PropertyExtraction is not in the V1 AST view.');
+    throw StateError('ReceiverPropertyExtraction is not in the V1 AST view.');
   }
 
   @generated
@@ -43621,24 +43588,18 @@ final class PropertyExtractionImpl extends ExpressionImpl
     ..addToken('operator', operator)
     ..addToken('propertyName', propertyName);
 
-  Element? get _legacyReadElement => switch (resolution) {
-    InvalidNamedReadResolutionImpl(:var candidates) => candidates.firstOrNull,
-    NamedReadResolutionWithElementImpl(:var element) => element,
-    _ => null,
-  };
-
   @generated
   @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) {
-    throw StateError('PropertyExtraction is not in the V1 AST view.');
+    throw StateError('ReceiverPropertyExtraction is not in the V1 AST view.');
   }
 
   @generated
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
-      visitor.visitPropertyExtraction(this);
+      visitor.visitReceiverPropertyExtraction(this);
 
   @generated
   @override
@@ -43670,14 +43631,14 @@ final class PropertyExtractionImpl extends ExpressionImpl
   @generated
   @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
-    resolver.visitPropertyExtraction(this, contextType: contextType);
+    resolver.visitReceiverPropertyExtraction(this, contextType: contextType);
   }
 
   @generated
   @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
-    throw StateError('PropertyExtraction is not in the V1 AST view.');
+    throw StateError('ReceiverPropertyExtraction is not in the V1 AST view.');
   }
 
   @generated
@@ -43708,7 +43669,7 @@ final class PropertyExtractionImpl extends ExpressionImpl
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
-    throw StateError('PropertyExtraction is not in the V1 AST view.');
+    throw StateError('ReceiverPropertyExtraction is not in the V1 AST view.');
   }
 
   @generated
@@ -43718,187 +43679,6 @@ final class PropertyExtractionImpl extends ExpressionImpl
       return receiver;
     }
     return null;
-  }
-}
-
-/// The V1 compatibility projection of a [PropertyExtraction].
-@GenerateNodeImpl(
-  api: AstNodeApi.v1,
-  generateConstructor: false,
-  childEntitiesOrder: [
-    GenerateNodeProperty('target'),
-    GenerateNodeProperty('operator'),
-    GenerateNodeProperty('propertyName'),
-  ],
-)
-final class PropertyExtractionV1Impl extends CommentReferableExpressionImpl
-    implements PropertyAccess {
-  final PropertyExtractionImpl _origin;
-
-  @DoNotGenerate(reason: 'Caches the projected V1 property name')
-  late final SimpleIdentifierImpl _propertyName =
-      SimpleIdentifierImpl.v1Projection(token: _origin.propertyName);
-
-  PropertyExtractionV1Impl._(this._origin) {
-    _attachV1Children();
-  }
-
-  @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
-  @override
-  Token get beginToken => _origin.beginToken;
-
-  @override
-  InternalFormalParameterElement? get correspondingParameter =>
-      _origin.correspondingParameter;
-
-  @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
-  @override
-  Token get endToken => _origin.endToken;
-
-  @override
-  bool get inConstantContext => _origin.inConstantContext;
-
-  @override
-  bool get isAssignable => true;
-
-  @override
-  bool get isCascaded => false;
-
-  @override
-  bool get isNullAware => _origin.operator.type == TokenType.QUESTION_PERIOD;
-
-  @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
-  @override
-  Token get operator => _origin.operator;
-
-  @override
-  Precedence get precedence => Precedence.postfix;
-
-  @DoNotGenerate(reason: 'Projects the canonical V2 property name')
-  @override
-  SimpleIdentifierImpl get propertyName {
-    _propertyName.element = _origin._legacyReadElement;
-    _propertyName.setPseudoExpressionStaticType(
-      _origin.resolution?.type ?? _origin.staticType,
-    );
-    return _propertyName;
-  }
-
-  @DoNotGenerate(reason: 'Projects the canonical V2 receiver')
-  @override
-  ExpressionImpl get realTarget => target!;
-
-  @experimental
-  @override
-  ExpressionImpl get realTarget2 => target!;
-
-  @override
-  TypeImpl? get staticType => _origin.staticType;
-
-  @DoNotGenerate(reason: 'Projects the canonical V2 receiver')
-  @override
-  ExpressionImpl? get target => V1Projection.toV1Expression(_origin.receiver);
-
-  @experimental
-  @override
-  ExpressionImpl? get target2 => target;
-
-  @generated
-  @override
-  AstNodeApi get _astNodeApi => AstNodeApi.v1;
-
-  @generated
-  @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addNode('target', target)
-    ..addToken('operator', operator)
-    ..addNode('propertyName', propertyName);
-
-  @generated
-  @override
-  ChildEntities get _childEntities2 {
-    throw StateError('PropertyAccess is not in the V2 AST view.');
-  }
-
-  @generated
-  @ToBeDeprecated('Use accept2 instead.')
-  @override
-  E? accept<E>(AstVisitor<E> visitor) => visitor.visitPropertyAccess(this);
-
-  @generated
-  @experimental
-  @override
-  E? accept2<E>(AstVisitor2<E> visitor) {
-    throw StateError('PropertyAccess is not in the V2 AST view.');
-  }
-
-  @override
-  AttemptedConstantEvaluationResult? computeConstantValue() =>
-      _origin.computeConstantValue();
-
-  @DoNotGenerate(reason: 'V1 projection children are value expressions')
-  @override
-  bool isInValueExpressionSlot(AstNode child) => true;
-
-  @DoNotGenerate(reason: 'A V1 projection cannot be mutated')
-  @override
-  void removeChild(AstNodeImpl oldNode) {
-    throw UnsupportedError('A V1 projection cannot be mutated.');
-  }
-
-  @DoNotGenerate(reason: 'A V1 projection cannot be mutated')
-  @override
-  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    throw UnsupportedError('A V1 projection cannot be mutated.');
-  }
-
-  @DoNotGenerate(reason: 'A V1 projection cannot be resolved')
-  @override
-  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
-    throw StateError('PropertyAccess is a V1 projection.');
-  }
-
-  @override
-  String toSource() => _origin.toSource();
-
-  @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
-  @override
-  void visitChildren(AstVisitor visitor) {
-    target?.accept(visitor);
-    propertyName.accept(visitor);
-  }
-
-  @generated
-  @experimental
-  @override
-  void visitChildren2(AstVisitor2 visitor) {
-    throw StateError('PropertyAccess is not in the V2 AST view.');
-  }
-
-  void _attachV1Children() {
-    _becomeParentOf1(target);
-    _becomeParentOf1(propertyName);
-  }
-
-  @generated
-  @override
-  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
-    if (target case var target?) {
-      if (target._containsOffset(rangeOffset, rangeEnd)) {
-        return target;
-      }
-    }
-    if (propertyName._containsOffset(rangeOffset, rangeEnd)) {
-      return propertyName;
-    }
-    return null;
-  }
-
-  @generated
-  @override
-  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    throw StateError('PropertyAccess is not in the V2 AST view.');
   }
 }
 
@@ -53658,7 +53438,7 @@ enum V1Projection {
     if (node is PrefixIncrementImpl) {
       return node.prefixExpression;
     }
-    if (node is PropertyExtractionImpl) {
+    if (node is ReceiverPropertyExtractionImpl) {
       return node.propertyAccess;
     }
     if (node is UnaryOperatorInvocationImpl) {

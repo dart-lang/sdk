@@ -7346,7 +7346,7 @@ void main() {
     assertResolvedNodeText(node, r'''
 FunctionExpressionInvocation
   function2: PropertyAccess
-    target2: PropertyExtraction
+    target2: ReceiverPropertyExtraction
       receiver: ParenthesizedExpression
         leftParenthesis: (
         expression2: AsExpression

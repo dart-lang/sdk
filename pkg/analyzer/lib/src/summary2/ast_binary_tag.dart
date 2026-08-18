@@ -131,8 +131,8 @@ class Tag {
   static const int UnqualifiedNameAssignmentTarget = 135;
   static const int IfNullAssignment = 136;
   static const int InvalidExpressionAssignmentTarget = 137;
-  static const int PropertyAssignmentTarget = 139;
-  static const int PropertyExtraction = 140;
+  static const int ReceiverPropertyAssignmentTarget = 139;
+  static const int ReceiverPropertyExtraction = 140;
   static const int IndexAssignmentTarget = 141;
   static const int IndexExpression2 = 142;
   static const int CascadeSection = 143;

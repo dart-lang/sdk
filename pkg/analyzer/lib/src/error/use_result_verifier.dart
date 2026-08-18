@@ -12,12 +12,6 @@ class UseResultVerifier {
 
   UseResultVerifier(this._diagnosticReporter);
 
-  void checkCascadePropertyExtraction(CascadePropertyExtractionImpl node) {
-    if (node.resolution case NamedReadResolutionWithElementImpl(:var element)) {
-      _check(node, element);
-    }
-  }
-
   void checkConstructorInvocation(ConstructorInvocation node) {
     var element = node.constructorReference.element;
     if (element == null) {
@@ -54,7 +48,7 @@ class UseResultVerifier {
     _check(node, element);
   }
 
-  void checkPropertyExtraction(PropertyExtractionImpl node) {
+  void checkPropertyExtraction(PropertyExtraction node) {
     if (node.resolution case NamedReadResolutionWithElementImpl(:var element)) {
       _check(node, element);
     }

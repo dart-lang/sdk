@@ -4520,9 +4520,9 @@ extension E on C {
   int m() => this.a;
 }
 ''');
-    var node = result.findNode.propertyExtraction('this.a');
+    var node = result.findNode.receiverPropertyExtraction('this.a');
     assertResolvedNodeText(node, r'''
-PropertyExtraction
+ReceiverPropertyExtraction
   receiver: ThisExpression
     thisKeyword: this
     staticType: C
@@ -4556,9 +4556,9 @@ extension E on C {
 }
 ''');
 
-    var node = result.findNode.singlePropertyExtraction;
+    var node = result.findNode.singleReceiverPropertyExtraction;
     assertResolvedNodeText(node, r'''
-PropertyExtraction
+ReceiverPropertyExtraction
   receiver: ThisExpression
     thisKeyword: this
     staticType: C
@@ -5162,9 +5162,9 @@ extension E on C {
   get c => this.a;
 }
 ''');
-    var node = result.findNode.propertyExtraction('this.a;');
+    var node = result.findNode.receiverPropertyExtraction('this.a;');
     assertResolvedNodeText(node, r'''
-PropertyExtraction
+ReceiverPropertyExtraction
   receiver: ThisExpression
     thisKeyword: this
     staticType: C

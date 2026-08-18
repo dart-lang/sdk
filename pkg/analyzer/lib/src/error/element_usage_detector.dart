@@ -324,13 +324,11 @@ class ElementUsageDetector<TagInfo extends Object> {
       checkUsage(element, target);
     }
     var read = switch (target) {
-      CascadePropertyAssignmentTarget(:var read) => read,
       PropertyAssignmentTarget(:var read) => read,
       UnqualifiedNameAssignmentTarget(:var read) => read,
       _ => null,
     };
     var write = switch (target) {
-      CascadePropertyAssignmentTarget(:var write) => write,
       PropertyAssignmentTarget(:var write) => write,
       UnqualifiedNameAssignmentTarget(:var write) => write,
       _ => null,
@@ -594,12 +592,6 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
     checkUsage(element, node);
   }
 
-  void cascadePropertyExtraction(CascadePropertyExtraction node) {
-    if (node.resolution case NamedReadResolutionWithElement(:var element)) {
-      checkUsage(element, node);
-    }
-  }
-
   /// Reports the usage of [element] at [node] if [element] is in
   /// any of [usagesMetadataOnly] or [usagesArbitrary].
   void checkUsage(Element? element, AstNode node) {
@@ -751,13 +743,11 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
       checkUsage(element, target);
     }
     var read = switch (target) {
-      CascadePropertyAssignmentTarget(:var read) => read,
       PropertyAssignmentTarget(:var read) => read,
       UnqualifiedNameAssignmentTarget(:var read) => read,
       _ => null,
     };
     var write = switch (target) {
-      CascadePropertyAssignmentTarget(:var write) => write,
       PropertyAssignmentTarget(:var write) => write,
       UnqualifiedNameAssignmentTarget(:var write) => write,
       _ => null,
@@ -815,7 +805,6 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
       checkUsage(element, target);
     }
     var write = switch (target) {
-      CascadePropertyAssignmentTarget(:var write) => write,
       PropertyAssignmentTarget(:var write) => write,
       UnqualifiedNameAssignmentTarget(:var write) => write,
       _ => null,
@@ -966,13 +955,11 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
       checkUsage(element, target);
     }
     var read = switch (target) {
-      CascadePropertyAssignmentTarget(:var read) => read,
       PropertyAssignmentTarget(:var read) => read,
       UnqualifiedNameAssignmentTarget(:var read) => read,
       _ => null,
     };
     var write = switch (target) {
-      CascadePropertyAssignmentTarget(:var write) => write,
       PropertyAssignmentTarget(:var write) => write,
       UnqualifiedNameAssignmentTarget(:var write) => write,
       _ => null,

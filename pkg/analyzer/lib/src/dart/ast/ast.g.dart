@@ -780,10 +780,12 @@ abstract class AstVisitor2<R> {
   R? visitPropertyAccess(PropertyAccess node);
 
   @experimental
-  R? visitPropertyAssignmentTarget(PropertyAssignmentTarget node);
+  R? visitReceiverPropertyAssignmentTarget(
+    ReceiverPropertyAssignmentTarget node,
+  );
 
   @experimental
-  R? visitPropertyExtraction(PropertyExtraction node);
+  R? visitReceiverPropertyExtraction(ReceiverPropertyExtraction node);
 
   R? visitRecordLiteral(RecordLiteral node);
 

@@ -387,9 +387,9 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitPropertyExtraction(PropertyExtraction node) {
+  void visitReceiverPropertyExtraction(ReceiverPropertyExtraction node) {
     _useNamedReadResolution(node.resolution, readCountsAsUse: true);
-    super.visitPropertyExtraction(node);
+    super.visitReceiverPropertyExtraction(node);
   }
 
   @override
@@ -665,13 +665,11 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
       return;
     }
     var read = switch (target) {
-      CascadePropertyAssignmentTarget(:var read) => read,
       PropertyAssignmentTarget(:var read) => read,
       UnqualifiedNameAssignmentTarget(:var read) => read,
       _ => null,
     };
     var write = switch (target) {
-      CascadePropertyAssignmentTarget(:var write) => write,
       PropertyAssignmentTarget(:var write) => write,
       UnqualifiedNameAssignmentTarget(:var write) => write,
       _ => null,

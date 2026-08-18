@@ -69,7 +69,7 @@ ExpressionImpl insertCascadeTargetIntoExpression({
       rightBracket: expression.rightBracket,
     );
   } else if (expression is CascadePropertyExtractionImpl) {
-    return PropertyExtractionImpl(
+    return ReceiverPropertyExtractionImpl(
       receiver: cascadeTarget,
       operator: _synthesizeToken(
         cascadeOperator?.type == TokenType.QUESTION_PERIOD_PERIOD
@@ -79,8 +79,8 @@ ExpressionImpl insertCascadeTargetIntoExpression({
       ),
       propertyName: expression.propertyName,
     );
-  } else if (expression is PropertyExtractionImpl) {
-    return PropertyExtractionImpl(
+  } else if (expression is ReceiverPropertyExtractionImpl) {
+    return ReceiverPropertyExtractionImpl(
       receiver: insertCascadeTargetIntoExpression(
         expression: expression.receiver,
         cascadeTarget: cascadeTarget,
@@ -154,7 +154,7 @@ ExpressionImpl insertCascadeTargetIntoExpression({
     }
     if (target is CascadePropertyAssignmentTargetImpl) {
       return DirectAssignmentImpl(
-        target: PropertyAssignmentTargetImpl(
+        target: ReceiverPropertyAssignmentTargetImpl(
           receiver: cascadeTarget,
           operator: _synthesizeToken(
             cascadeOperator?.type == TokenType.QUESTION_PERIOD_PERIOD
@@ -184,13 +184,13 @@ ExpressionImpl insertCascadeTargetIntoExpression({
         value: expression.value,
       );
     }
-    if (target is! PropertyAssignmentTargetImpl) {
+    if (target is! ReceiverPropertyAssignmentTargetImpl) {
       throw UnimplementedError(
         'Unhandled ${target.runtimeType} in $expression',
       );
     }
     return DirectAssignmentImpl(
-      target: PropertyAssignmentTargetImpl(
+      target: ReceiverPropertyAssignmentTargetImpl(
         receiver: insertCascadeTargetIntoExpression(
           expression: target.receiver,
           cascadeTarget: cascadeTarget,

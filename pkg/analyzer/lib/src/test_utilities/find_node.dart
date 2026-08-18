@@ -472,7 +472,7 @@ abstract class _FindNodeBase {
 
   PropertyAccess get singlePropertyAccess => _single();
 
-  PropertyExtraction get singlePropertyExtraction => _single();
+  ReceiverPropertyExtraction get singleReceiverPropertyExtraction => _single();
 
   RecordLiteral get singleRecordLiteral => _single();
 
@@ -1102,8 +1102,8 @@ abstract class _FindNodeBase {
     return _node(search, (n) => n is PropertyAccess);
   }
 
-  PropertyExtraction propertyExtraction(String search) {
-    return _node(search, (n) => n is PropertyExtraction);
+  ReceiverPropertyExtraction receiverPropertyExtraction(String search) {
+    return _node(search, (n) => n is ReceiverPropertyExtraction);
   }
 
   RecordLiteral recordLiteral(String search) {

@@ -675,9 +675,9 @@ void f(A? a) {
 }
 ''');
 
-    var node = result.findNode.propertyExtraction('.length');
+    var node = result.findNode.receiverPropertyExtraction('.length');
     assertResolvedNodeText(node, r'''
-PropertyExtraction
+ReceiverPropertyExtraction
   receiver: IndexExpression2
     receiver: SimpleIdentifier
       token: a

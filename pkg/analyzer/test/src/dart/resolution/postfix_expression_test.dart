@@ -1075,7 +1075,7 @@ void f(A a) {
     var node = result.findNode.singlePostfixIncrement;
     assertResolvedNodeText(node, r'''
 PostfixIncrement
-  target: PropertyAssignmentTarget
+  target: ReceiverPropertyAssignmentTarget
     receiver: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::f::@formalParameter::a
@@ -1129,7 +1129,7 @@ void f(A a) {
     var node = result.findNode.postfixIncrement('x++');
     assertResolvedNodeText(node, r'''
 PostfixIncrement
-  target: PropertyAssignmentTarget
+  target: ReceiverPropertyAssignmentTarget
     receiver: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::f::@formalParameter::a
@@ -1184,7 +1184,7 @@ void f() {
     var node = result.findNode.postfixIncrement('x++');
     assertResolvedNodeText(node, r'''
 PostfixIncrement
-  target: PropertyAssignmentTarget
+  target: ReceiverPropertyAssignmentTarget
     receiver: SimpleIdentifier
       token: p
       element: <testLibraryFragment>::@prefix::p
@@ -1238,7 +1238,7 @@ void f() {
     var node = result.findNode.postfixIncrement('x++');
     assertResolvedNodeText(node, r'''
 PostfixIncrement
-  target: PropertyAssignmentTarget
+  target: ReceiverPropertyAssignmentTarget
     receiver: ConstructorInvocation
       constructorReference: ConstructorReference2
         typeReference: ConstructorTypeReference
@@ -1306,7 +1306,7 @@ void f(A? a) {
     var node = result.findNode.postfixIncrement('foo++');
     assertResolvedNodeText(node, r'''
 PostfixIncrement
-  target: PropertyAssignmentTarget
+  target: ReceiverPropertyAssignmentTarget
     receiver: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::f::@formalParameter::a
@@ -1366,7 +1366,7 @@ class B extends A {
     var node = result.findNode.postfixIncrement('x++');
     assertResolvedNodeText(node, r'''
 PostfixIncrement
-  target: PropertyAssignmentTarget
+  target: ReceiverPropertyAssignmentTarget
     receiver: SuperExpression
       superKeyword: super
       staticType: B
@@ -1419,7 +1419,7 @@ class A {
     var node = result.findNode.postfixIncrement('x++');
     assertResolvedNodeText(node, r'''
 PostfixIncrement
-  target: PropertyAssignmentTarget
+  target: ReceiverPropertyAssignmentTarget
     receiver: ThisExpression
       thisKeyword: this
       staticType: A

@@ -1357,14 +1357,16 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
-  void visitPropertyAssignmentTarget(PropertyAssignmentTarget node) {
+  void visitReceiverPropertyAssignmentTarget(
+    ReceiverPropertyAssignmentTarget node,
+  ) {
     _visitNode(node.receiver);
     sink.write(node.operator.lexeme);
     sink.write(node.propertyName.lexeme);
   }
 
   @override
-  void visitPropertyExtraction(PropertyExtraction node) {
+  void visitReceiverPropertyExtraction(ReceiverPropertyExtraction node) {
     _visitNode(node.receiver);
     sink.write(node.operator.lexeme);
     sink.write(node.propertyName.lexeme);

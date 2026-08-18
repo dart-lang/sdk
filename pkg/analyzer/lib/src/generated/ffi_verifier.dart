@@ -540,7 +540,9 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitPropertyExtraction(covariant PropertyExtractionImpl node) {
+  void visitReceiverPropertyExtraction(
+    covariant ReceiverPropertyExtractionImpl node,
+  ) {
     var element = switch (node.resolution) {
       NamedReadResolutionWithElementImpl(:var element) => element,
       _ => null,
@@ -550,15 +552,15 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
       if (enclosingElement.isNativeStructPointerExtension ||
           enclosingElement.isNativeUnionPointerExtension) {
         if (element.name == 'ref') {
-          _validateRefPropertyExtraction(node);
+          _validateRefReceiverPropertyExtraction(node);
         }
       } else if (enclosingElement.isAddressOfExtension) {
         if (element.name == 'address') {
-          _validateAddressPropertyExtraction(node, element);
+          _validateAddressReceiverPropertyExtraction(node, element);
         }
       }
     }
-    super.visitPropertyExtraction(node);
+    super.visitReceiverPropertyExtraction(node);
   }
 
   @override
@@ -1328,16 +1330,6 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
     _validateAddressReceiver(node, extensionName, receiver, errorNode);
   }
 
-  void _validateAddressPropertyExtraction(
-    PropertyExtraction node,
-    Element element,
-  ) {
-    var errorNode = node.propertyName;
-    _validateAddressPosition(node, errorNode);
-    var extensionName = element.enclosingElement?.name;
-    _validateAddressReceiver(node, extensionName, node.receiver, errorNode);
-  }
-
   void _validateAddressReceiver(
     Expression node,
     String? extensionName,
@@ -1388,6 +1380,16 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
       default:
     }
     _diagnosticReporter.report(diag.addressReceiver.at(errorNode));
+  }
+
+  void _validateAddressReceiverPropertyExtraction(
+    ReceiverPropertyExtraction node,
+    Element element,
+  ) {
+    var errorNode = node.propertyName;
+    _validateAddressPosition(node, errorNode);
+    var extensionName = element.enclosingElement?.name;
+    _validateAddressReceiver(node, extensionName, node.receiver, errorNode);
   }
 
   void _validateAllocate(FunctionExpressionInvocationImpl node) {
@@ -2264,7 +2266,9 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
     }
   }
 
-  void _validateRefPropertyExtraction(PropertyExtractionImpl node) {
+  void _validateRefReceiverPropertyExtraction(
+    ReceiverPropertyExtractionImpl node,
+  ) {
     var targetType = node.receiver.typeOrThrow;
     if (!_isValidFfiNativeType(targetType, allowEmptyStruct: true)) {
       _diagnosticReporter.report(

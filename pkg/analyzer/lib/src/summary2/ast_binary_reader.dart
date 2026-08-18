@@ -1302,10 +1302,10 @@ class AstBinaryReader {
         return _readPrefixedIdentifier();
       case Tag.PropertyAccess:
         return _readPropertyAccess();
-      case Tag.PropertyAssignmentTarget:
-        return _readPropertyAssignmentTarget();
-      case Tag.PropertyExtraction:
-        return _readPropertyExtraction();
+      case Tag.ReceiverPropertyAssignmentTarget:
+        return _readReceiverPropertyAssignmentTarget();
+      case Tag.ReceiverPropertyExtraction:
+        return _readReceiverPropertyExtraction();
       case Tag.RecordLiteral:
         return _readRecordLiteral();
       case Tag.RecordLiteralNamedField:
@@ -1502,11 +1502,11 @@ class AstBinaryReader {
     return node;
   }
 
-  PropertyAssignmentTarget _readPropertyAssignmentTarget() {
+  ReceiverPropertyAssignmentTarget _readReceiverPropertyAssignmentTarget() {
     var receiver = _readNode() as ExpressionImpl;
     var operatorType = UnlinkedTokenType.values[_readByte()];
     var propertyName = _readStringReference();
-    var node = PropertyAssignmentTargetImpl(
+    var node = ReceiverPropertyAssignmentTargetImpl(
       receiver: receiver,
       operator: Tokens.fromType(operatorType),
       propertyName: StringToken(TokenType.STRING, propertyName, -1),
@@ -1516,11 +1516,11 @@ class AstBinaryReader {
     return node;
   }
 
-  PropertyExtraction _readPropertyExtraction() {
+  ReceiverPropertyExtraction _readReceiverPropertyExtraction() {
     var receiver = _readNode() as ExpressionImpl;
     var operatorType = UnlinkedTokenType.values[_readByte()];
     var propertyName = _readStringReference();
-    var node = PropertyExtractionImpl(
+    var node = ReceiverPropertyExtractionImpl(
       receiver: receiver,
       operator: Tokens.fromType(operatorType),
       propertyName: StringToken(TokenType.STRING, propertyName, -1),

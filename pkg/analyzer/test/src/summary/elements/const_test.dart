@@ -1350,7 +1350,7 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic v (nameOffset:32) (firstTokenOffset:32) (offset:32)
           element: <testLibrary>::@topLevelVariable::v
           initializer: expression_0
-            PropertyExtraction
+            ReceiverPropertyExtraction
               receiver: ParenthesizedExpression
                 leftParenthesis: ( @36
                 expression2: SimpleIdentifier
@@ -1495,7 +1495,7 @@ library
         #F3 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic v (nameOffset:60) (firstTokenOffset:60) (offset:60)
           element: <testLibrary>::@topLevelVariable::v
           initializer: expression_1
-            PropertyExtraction
+            ReceiverPropertyExtraction
               receiver: ParenthesizedExpression
                 leftParenthesis: ( @64
                 expression2: SimpleIdentifier
@@ -4898,7 +4898,7 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic v (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::v
           initializer: expression_0
-            PropertyExtraction
+            ReceiverPropertyExtraction
               receiver: SimpleStringLiteral
                 literal: 'abc' @10
               operator: . @15
@@ -10402,7 +10402,7 @@ library
         #F5 hasInitializer isConst isOriginDeclaration isStatic v3 (nameOffset:63) (firstTokenOffset:63) (offset:63)
           element: <testLibrary>::@topLevelVariable::v3
           initializer: expression_2
-            PropertyExtraction
+            ReceiverPropertyExtraction
               receiver: ParenthesizedExpression
                 leftParenthesis: ( @68
                 expression2: BinaryOperatorInvocation

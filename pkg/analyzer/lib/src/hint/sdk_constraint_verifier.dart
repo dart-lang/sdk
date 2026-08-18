@@ -132,19 +132,16 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
       _checkSinceSdkVersion(element, target);
     }
     var read = switch (target) {
-      CascadePropertyAssignmentTarget(:var read) => read,
       PropertyAssignmentTarget(:var read) => read,
       UnqualifiedNameAssignmentTarget(:var read) => read,
       _ => null,
     };
     var write = switch (target) {
-      CascadePropertyAssignmentTarget(:var write) => write,
       PropertyAssignmentTarget(:var write) => write,
       UnqualifiedNameAssignmentTarget(:var write) => write,
       _ => null,
     };
     var errorEntity = switch (target) {
-      CascadePropertyAssignmentTarget() => target.propertyName,
       PropertyAssignmentTarget() => target.propertyName,
       UnqualifiedNameAssignmentTarget() => target.name,
       _ => null,
@@ -200,7 +197,6 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
       _checkSinceSdkVersion(element, target);
     }
     var write = switch (target) {
-      CascadePropertyAssignmentTarget(:var write) => write,
       PropertyAssignmentTarget(:var write) => write,
       UnqualifiedNameAssignmentTarget(:var write) => write,
       _ => null,
@@ -210,7 +206,6 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
         element,
         target,
         errorEntity: switch (target) {
-          CascadePropertyAssignmentTarget() => target.propertyName,
           PropertyAssignmentTarget() => target.propertyName,
           UnqualifiedNameAssignmentTarget() => target.name,
           _ => null,
@@ -326,13 +321,13 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitPropertyExtraction(PropertyExtraction node) {
+  void visitReceiverPropertyExtraction(ReceiverPropertyExtraction node) {
     var element = switch (node.resolution) {
       NamedReadResolutionWithElement(:var element) => element,
       _ => null,
     };
     _checkSinceSdkVersion(element, node);
-    super.visitPropertyExtraction(node);
+    super.visitReceiverPropertyExtraction(node);
   }
 
   @override

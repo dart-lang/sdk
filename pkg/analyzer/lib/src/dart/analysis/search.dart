@@ -1952,7 +1952,9 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitPropertyAssignmentTarget(PropertyAssignmentTarget node) {
+  void visitReceiverPropertyAssignmentTarget(
+    ReceiverPropertyAssignmentTarget node,
+  ) {
     var readMatches = switch (node.read) {
       NamedReadResolutionWithElement(:var element) => _matches(element),
       _ => false,
@@ -1975,7 +1977,7 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitPropertyExtraction(PropertyExtraction node) {
+  void visitReceiverPropertyExtraction(ReceiverPropertyExtraction node) {
     var result = switch (node.resolution) {
       GetterInvocationResolution(:var element) => (
         element,

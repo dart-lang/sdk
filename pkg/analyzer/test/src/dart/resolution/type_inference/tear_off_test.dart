@@ -74,7 +74,7 @@ int Function(int) test() {
     var node = result.findNode.functionReference('f;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function2: PropertyExtraction
+  function2: ReceiverPropertyExtraction
     receiver: ConstructorInvocation
       keyword: new
       constructorReference: ConstructorReference2

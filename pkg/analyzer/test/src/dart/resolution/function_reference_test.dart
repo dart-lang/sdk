@@ -606,7 +606,7 @@ void f(Never? x) {
     var node = result.findNode.functionReference('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function2: PropertyExtraction
+  function2: ReceiverPropertyExtraction
     receiver: ParenthesizedExpression
       leftParenthesis: (
       expression2: SimpleIdentifier
@@ -670,7 +670,7 @@ extension E on A {
     var node = result.findNode.functionReference('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function2: PropertyExtraction
+  function2: ReceiverPropertyExtraction
     receiver: ThisExpression
       thisKeyword: this
       staticType: A
@@ -1777,7 +1777,7 @@ void foo(A a) {
     var node = result.findNode.functionReference('f<String>');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function2: PropertyExtraction
+  function2: ReceiverPropertyExtraction
     receiver: ParenthesizedExpression
       leftParenthesis: (
       expression2: SimpleIdentifier
@@ -2006,7 +2006,7 @@ void f(A a) {
     var node = result.findNode.functionReference('foo<double>');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function2: PropertyExtraction
+  function2: ReceiverPropertyExtraction
     receiver: ParenthesizedExpression
       leftParenthesis: (
       expression2: SimpleIdentifier
@@ -2063,7 +2063,7 @@ void f(A? a, A b) {
     var node = result.findNode.functionReference('(a ?? b).foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function2: PropertyExtraction
+  function2: ReceiverPropertyExtraction
     receiver: ParenthesizedExpression
       leftParenthesis: (
       expression2: IfNull
@@ -2232,8 +2232,8 @@ var a = [].foo.call<int>;
     var node = result.findNode.functionReference('foo.call<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function2: PropertyExtraction
-    receiver: PropertyExtraction
+  function2: ReceiverPropertyExtraction
+    receiver: ReceiverPropertyExtraction
       receiver: ListLiteral
         leftBracket: [
         rightBracket: ]
@@ -2448,7 +2448,7 @@ class A {
     var node = result.findNode.functionReference('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function2: PropertyExtraction
+  function2: ReceiverPropertyExtraction
     receiver: ThisExpression
       thisKeyword: this
       staticType: A
@@ -5332,7 +5332,7 @@ void Function(int) foo(C c) {
     var node = result.findNode.functionReference('(c).f;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function2: PropertyExtraction
+  function2: ReceiverPropertyExtraction
     receiver: ParenthesizedExpression
       leftParenthesis: (
       expression2: SimpleIdentifier

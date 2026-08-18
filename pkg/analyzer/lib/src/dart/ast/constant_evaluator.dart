@@ -666,7 +666,7 @@ class ConstantEvaluator2 extends UnifyingAstVisitor2<Object> {
   Object? visitPropertyAccess(PropertyAccess node) => _getConstantValue(null);
 
   @override
-  Object? visitPropertyExtraction(PropertyExtraction node) =>
+  Object? visitReceiverPropertyExtraction(ReceiverPropertyExtraction node) =>
       _getConstantValue(null);
 
   @override

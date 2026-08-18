@@ -771,10 +771,10 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitPropertyAssignmentTarget(
-    covariant PropertyAssignmentTargetImpl node,
+  void visitReceiverPropertyAssignmentTarget(
+    covariant ReceiverPropertyAssignmentTargetImpl node,
   ) {
-    _writeByte(Tag.PropertyAssignmentTarget);
+    _writeByte(Tag.ReceiverPropertyAssignmentTarget);
     _writeNode(node.receiver);
     _writeByte(TokensWriter.astToBinaryTokenType(node.operator.type).index);
     _writeStringReference(node.propertyName.lexeme);
@@ -783,8 +783,10 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitPropertyExtraction(covariant PropertyExtractionImpl node) {
-    _writeByte(Tag.PropertyExtraction);
+  void visitReceiverPropertyExtraction(
+    covariant ReceiverPropertyExtractionImpl node,
+  ) {
+    _writeByte(Tag.ReceiverPropertyExtraction);
     _writeNode(node.receiver);
     _writeByte(TokensWriter.astToBinaryTokenType(node.operator.type).index);
     _writeStringReference(node.propertyName.lexeme);

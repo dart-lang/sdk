@@ -169,8 +169,8 @@ void f() async {
     assertResolvedNodeText(node, r'''
 AwaitExpression
   awaitKeyword: await
-  expression2: PropertyExtraction
-    receiver: PropertyExtraction
+  expression2: ReceiverPropertyExtraction
+    receiver: ReceiverPropertyExtraction
       receiver: IntegerLiteral
         literal: 0
         staticType: int

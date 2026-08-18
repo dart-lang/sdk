@@ -536,7 +536,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     covariant CascadePropertyExtractionImpl node,
   ) {
     _checkCascadeSectionNullAware(node);
-    _checkUseVerifier.checkCascadePropertyExtraction(node);
+    _checkUseVerifier.checkPropertyExtraction(node);
     super.visitCascadePropertyExtraction(node);
   }
 
@@ -695,10 +695,9 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   void visitCompoundAssignment(covariant CompoundAssignmentImpl node) {
     switch (node.target) {
       case CascadeIndexAssignmentTargetImpl():
-      case CascadePropertyAssignmentTargetImpl():
+      case PropertyAssignmentTargetImpl():
       case IndexAssignmentTargetImpl():
       case InvalidExpressionAssignmentTargetImpl():
-      case PropertyAssignmentTargetImpl():
         break;
       case UnqualifiedNameAssignmentTargetImpl target:
         var readElement = switch (target.read) {
@@ -1561,16 +1560,12 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
         if (read case IndexReadResolutionImpl(:var type)) {
           _checkForDeadNullCoalesce(type, node.value);
         }
-      case CascadePropertyAssignmentTargetImpl(:var read):
+      case PropertyAssignmentTargetImpl(:var read):
         if (read case NamedReadResolutionImpl(:var type)) {
           _checkForDeadNullCoalesce(type, node.value);
         }
       case IndexAssignmentTargetImpl(:var read):
         if (read case IndexReadResolutionImpl(:var type)) {
-          _checkForDeadNullCoalesce(type, node.value);
-        }
-      case PropertyAssignmentTargetImpl(:var read):
-        if (read case NamedReadResolutionImpl(:var type)) {
           _checkForDeadNullCoalesce(type, node.value);
         }
       case UnqualifiedNameAssignmentTargetImpl():
@@ -2132,7 +2127,9 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   @override
-  void visitPropertyAssignmentTarget(PropertyAssignmentTarget node) {
+  void visitReceiverPropertyAssignmentTarget(
+    ReceiverPropertyAssignmentTarget node,
+  ) {
     var ambiguousElement = switch (node.read) {
       InvalidNamedReadResolution(:var candidates) =>
         candidates.whereType<MultiplyDefinedElementImpl>().firstOrNull,
@@ -2154,12 +2151,14 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
         kind: _NullAwareKind.access,
       );
     }
-    super.visitPropertyAssignmentTarget(node);
+    super.visitReceiverPropertyAssignmentTarget(node);
   }
 
   @override
-  void visitPropertyExtraction(covariant PropertyExtractionImpl node) {
-    _constArgumentsVerifier.visitPropertyExtraction(node);
+  void visitReceiverPropertyExtraction(
+    covariant ReceiverPropertyExtractionImpl node,
+  ) {
+    _constArgumentsVerifier.visitReceiverPropertyExtraction(node);
     if (node.operator.type == TokenType.QUESTION_PERIOD) {
       _checkForUnnecessaryNullAware(
         node.receiver,
@@ -2168,7 +2167,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       );
     }
     _checkUseVerifier.checkPropertyExtraction(node);
-    super.visitPropertyExtraction(node);
+    super.visitReceiverPropertyExtraction(node);
   }
 
   @override

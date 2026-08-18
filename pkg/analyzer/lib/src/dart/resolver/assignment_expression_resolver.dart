@@ -39,7 +39,7 @@ class AssignmentExpressionResolver {
 
   void analyzePropertyTargetReceiver(
     AstNode node,
-    PropertyAssignmentTargetImpl target,
+    ReceiverPropertyAssignmentTargetImpl target,
   ) {
     if (target.receiver case ExtensionOverrideImpl receiver) {
       _resolver.visitExtensionOverride(receiver);
@@ -294,11 +294,10 @@ class AssignmentExpressionResolver {
         }
         readType = targetResult.read.type;
         writeAcceptedType = targetResult.write.acceptedType;
-      case PropertyAssignmentTargetImpl():
+      case ReceiverPropertyAssignmentTargetImpl():
         analyzePropertyTargetReceiver(node, target);
-        var targetResult = _resolver.resolvePropertyReadWriteAssignmentTarget(
-          target,
-        );
+        var targetResult = _resolver
+            .resolveReceiverPropertyReadWriteAssignmentTarget(target);
         if (targetResult == null) {
           _resolver.analyzeExpression(
             node.value,
@@ -508,11 +507,10 @@ class AssignmentExpressionResolver {
           return;
         }
         writeAcceptedType = resolution.acceptedType;
-      case PropertyAssignmentTargetImpl():
+      case ReceiverPropertyAssignmentTargetImpl():
         analyzePropertyTargetReceiver(node, target);
-        var resolution = _resolver.resolvePropertyDirectAssignmentTarget(
-          target,
-        );
+        var resolution = _resolver
+            .resolveReceiverPropertyDirectAssignmentTarget(target);
         target.write = resolution;
         if (resolution == null) {
           _resolver.analyzeExpression(
@@ -627,11 +625,10 @@ class AssignmentExpressionResolver {
         }
         readType = targetResult.read.type;
         writeAcceptedType = targetResult.write.acceptedType;
-      case PropertyAssignmentTargetImpl():
+      case ReceiverPropertyAssignmentTargetImpl():
         analyzePropertyTargetReceiver(node, target);
-        var targetResult = _resolver.resolvePropertyReadWriteAssignmentTarget(
-          target,
-        );
+        var targetResult = _resolver
+            .resolveReceiverPropertyReadWriteAssignmentTarget(target);
         if (targetResult == null) {
           _resolver.analyzeExpression(
             node.value,
