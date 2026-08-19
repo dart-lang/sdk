@@ -1616,6 +1616,12 @@ final class NativeInt32x4 implements Int32x4 {
     if (w != this.w && w is! int) throw ArgumentError(w);
   }
 
+  factory NativeInt32x4.splat(int v) {
+    final t = _truncate(v);
+    if (v != t && v is! int) throw ArgumentError(v);
+    return NativeInt32x4._truncated(t, t, t, t);
+  }
+
   NativeInt32x4.bool(bool x, bool y, bool z, bool w)
     : this.x = x ? -1 : 0,
       this.y = y ? -1 : 0,
