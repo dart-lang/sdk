@@ -301,4 +301,22 @@ ISOLATE_UNIT_TEST_CASE(ZoneVerificationScaling) {
   }
 }
 
+#if defined(HOST_ARCH_ARM64)
+ISOLATE_UNIT_TEST_CASE_WITH_EXPECTATION(ZoneWithMemoryTagging, "Crash") {
+  StackZone stack_zone(thread);
+  Zone* zone = stack_zone.GetZone();
+  char* x = zone->Alloc<char>(16);
+  // Without memory tagging, one byte after this object will still be accessible
+  // memory in either the initial chunk or segment. With memory tagging, one
+  // byte after this object will have a different tag and fault on access.
+  x[16] = 0;
+}
+#else
+ISOLATE_UNIT_TEST_CASE(ZoneWithMemoryTagging) {
+  // Once ChkTag or Zimt become available, enable the test for x64 or riscv too.
+  EXPECT(!Zone::memory_tagging_enabled());
+  EXPECT(Zone::use_initial_chunk());
+}
+#endif  // defined(HOST_ARCH_ARM64)
+
 }  // namespace dart

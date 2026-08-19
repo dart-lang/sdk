@@ -138,6 +138,11 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
   return new VirtualMemory(region, reserved);
 }
 
+VirtualMemory* VirtualMemory::AllocateMTE(intptr_t size, const char* name) {
+  UNREACHABLE();
+  return nullptr;
+}
+
 VirtualMemory* VirtualMemory::Reserve(intptr_t size, intptr_t alignment) {
   ASSERT(Utils::IsAligned(size, PageSize()));
   ASSERT(Utils::IsPowerOfTwo(alignment));
