@@ -71,16 +71,16 @@ DART_WARN_UNUSED_RESULT static bool SetAddresses(struct ifaddrs* ifaddr,
   return true;
 }
 
-static void SetNetmask(struct ifaddrs* ifaddr, int family, int prefixlen) {
-  // prefixlen comes from the netlink message (ifa_prefixlen is a u8) and is not
-  // bounded to the address family, so clamp it before using it to index into
-  // the address. Without this a value above 128 walks past the 16-byte
-  // sin6_addr, and a value above 32 shifts by a negative amount below.
-  const int max_prefix = (family == AF_INET6) ? 128 : 32;
-  if (prefixlen < 0 || prefixlen > max_prefix) {
-    prefixlen = max_prefix;
-  }
+DART_WARN_UNUSED_RESULT static bool SetNetmask(struct ifaddrs* ifaddr,
+                                               int family,
+                                               int prefixlen) {
   if (family == AF_INET6) {
+    // prefixlen comes from the netlink message (ifa_prefixlen is a u8) and is
+    // not guaranteed to match the address family, so reject anything that
+    // doesn't fit rather than walking past the 16-byte sin6_addr.
+    if (prefixlen < 0 || prefixlen > 128) {
+      return false;
+    }
     sockaddr_in6* mask = new sockaddr_in6;
     mask->sin6_family = AF_INET6;
     memset(&mask->sin6_addr, 0, sizeof(mask->sin6_addr));
@@ -92,14 +92,18 @@ static void SetNetmask(struct ifaddrs* ifaddr, int family, int prefixlen) {
       m[prefixlen / 8] = 0xFF << (8 - prefixlen % 8);
     }
     ifaddr->ifa_netmask = reinterpret_cast<sockaddr*>(mask);
-    return;
+    return true;
   }
   ASSERT(family == AF_INET);
+  if (prefixlen < 0 || prefixlen > 32) {
+    return false;
+  }
   sockaddr_in* mask = new sockaddr_in;
   mask->sin_family = AF_INET;
   uint32_t m = prefixlen ? (~0u << (32 - prefixlen)) : 0;
   mask->sin_addr.s_addr = htonl(m);
   ifaddr->ifa_netmask = reinterpret_cast<sockaddr*>(mask);
+  return true;
 }
 
 static bool SetIfAddrsFromAddrMsg(struct ifaddrs* ifaddr,
@@ -110,7 +114,9 @@ static bool SetIfAddrsFromAddrMsg(struct ifaddrs* ifaddr,
   if (!SetAddresses(ifaddr, msg->ifa_family, msg->ifa_index, bytes, len)) {
     return false;
   }
-  SetNetmask(ifaddr, msg->ifa_family, msg->ifa_prefixlen);
+  if (!SetNetmask(ifaddr, msg->ifa_family, msg->ifa_prefixlen)) {
+    return false;
+  }
   SetFlags(ifaddr, msg->ifa_flags);
   return SetIfName(ifaddr, msg->ifa_index);
 }
@@ -123,7 +129,9 @@ static bool SetIfAddrsFromInfoMsg(struct ifaddrs* ifaddr,
   if (!SetAddresses(ifaddr, ifi->ifi_family, ifi->ifi_index, bytes, len)) {
     return false;
   }
-  SetNetmask(ifaddr, ifi->ifi_family, 0);
+  if (!SetNetmask(ifaddr, ifi->ifi_family, 0)) {
+    return false;
+  }
   SetFlags(ifaddr, ifi->ifi_flags);
   return SetIfName(ifaddr, ifi->ifi_index);
 }
