@@ -13,11 +13,11 @@ class A extends core::Object {
     ;
   method call() → core::Object?
     ;
-  operator [](positional-parameter index) → core::Object?
+  operator [](core::int index) → core::Object?
     ;
-  operator []=(positional-parameter index, positional-parameter value) → void
+  operator []=(core::int index, core::Object? value) → void
     ;
-  operator +(positional-parameter other) → self::A
+  operator +(self::A other) → self::A
     ;
   operator unary-() → self::A
     ;
