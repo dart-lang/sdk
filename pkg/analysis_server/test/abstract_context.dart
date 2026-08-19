@@ -40,10 +40,6 @@ class AbstractContextTest
   final Map<String, String> _declaredVariables = {};
   AnalysisContextCollectionImpl? _analysisContextCollection;
 
-  /// If not `null`, [getResolvedUnit] will use the context that corresponds
-  /// to this file, instead of the given file.
-  File? fileForContextSelection;
-
   // TODO(scheglov): Stop writing into it. Convert into getter.
   late String testFilePath = '$testPackageLibPath/test.dart';
 
@@ -146,9 +142,7 @@ class AbstractContextTest
   }
 
   Future<ResolvedUnitResult> getResolvedUnit(File file) async {
-    var path = file.path;
-    var session = await sessionFor(fileForContextSelection ?? file);
-    var result = await session.getResolvedUnit(path);
+    var result = await (await session).getResolvedUnit(file.path);
     return result as ResolvedUnitResult;
   }
 

@@ -353,7 +353,6 @@ class D extends C<int> {}
 class ^E extends D {}
     ''';
     addTestSource(content);
-    fileForContextSelection = testFile;
 
     // Walk the tree and collect names at each level.
     var names = <String>[];
