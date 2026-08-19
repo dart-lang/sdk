@@ -779,6 +779,28 @@ f(String s) {}
 ''');
   }
 
+  Future<void>
+  test_getter_unqualified_instance_asNamedInvocationArgument() async {
+    await resolveTestCode('''
+class A {
+  void m() {
+    f(name: test);
+  }
+}
+f({String? name}) {}
+''');
+    await assertHasFix('''
+class A {
+  String? test;
+
+  void m() {
+    f(name: test);
+  }
+}
+f({String? name}) {}
+''');
+  }
+
   Future<void> test_getter_unqualified_instance_assignmentRhs() async {
     await resolveTestCode('''
 class A {
