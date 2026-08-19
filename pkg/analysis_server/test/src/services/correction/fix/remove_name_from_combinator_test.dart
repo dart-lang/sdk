@@ -127,6 +127,52 @@ f(x) {
 ''');
   }
 
+  Future<void> test_invalidExportOfInternalElement() async {
+    writeTestPackageConfig(meta: true);
+    newFile('$testPackageLibPath/src/a.dart', '''
+import 'package:meta/meta.dart';
+class A {}
+@internal
+class B {}
+''');
+    testFilePath = '$testPackageLibPath/b.dart';
+    await resolveTestCode('''
+export 'src/a.dart';
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_invalidExportOfInternalElement_shownName_multiple() async {
+    writeTestPackageConfig(meta: true);
+    newFile('$testPackageLibPath/src/a.dart', '''
+import 'package:meta/meta.dart';
+class A {}
+@internal
+class B {}
+''');
+    testFilePath = '$testPackageLibPath/b.dart';
+    await resolveTestCode('''
+export 'src/a.dart' show A, B;
+''');
+    await assertHasFix('''
+export 'src/a.dart' show A;
+''');
+  }
+
+  Future<void> test_invalidExportOfInternalElement_shownName_single() async {
+    writeTestPackageConfig(meta: true);
+    newFile('$testPackageLibPath/src/a.dart', '''
+import 'package:meta/meta.dart';
+@internal
+class A {}
+''');
+    testFilePath = '$testPackageLibPath/b.dart';
+    await resolveTestCode('''
+export 'src/a.dart' show A;
+''');
+    await assertNoFix();
+  }
+
   Future<void> test_undefinedHiddenName_first() async {
     await resolveTestCode('''
 import 'dart:math' hide aaa, sin, tan;
