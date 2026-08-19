@@ -25,7 +25,7 @@ checkOutput(String encoding, output) {
   }
 }
 
-test(scriptFile, String encoding, stream) {
+test(scriptFile, String encoding, stream) async {
   var enc;
   if (encoding == 'ascii') {
     enc = ascii;
@@ -43,32 +43,38 @@ test(scriptFile, String encoding, stream) {
     ..addAll([scriptFile, encoding, stream]);
 
   if (stream == 'stdout') {
-    Process.run(Platform.executable, args, stdoutEncoding: enc).then((result) {
-      Expect.equals(result.exitCode, 0);
-      Expect.equals(result.stderr, '');
-      checkOutput(encoding, result.stdout);
-    });
+    var result = await Process.run(
+      Platform.executable,
+      args,
+      stdoutEncoding: enc,
+    );
+    Expect.equals(result.exitCode, 0);
+    Expect.equals(result.stderr, '');
+    checkOutput(encoding, result.stdout);
   } else {
-    Process.run(Platform.executable, args, stderrEncoding: enc).then((result) {
-      Expect.equals(result.exitCode, 0);
-      Expect.equals(result.stdout, '');
-      checkOutput(encoding, result.stderr);
-    });
+    var result = await Process.run(
+      Platform.executable,
+      args,
+      stderrEncoding: enc,
+    );
+    Expect.equals(result.exitCode, 0);
+    Expect.equals(result.stdout, '');
+    checkOutput(encoding, result.stderr);
   }
 }
 
-main() {
+main() async {
   var scriptFile = new File("tests/standalone/io/process_std_io_script2.dart");
   if (!scriptFile.existsSync()) {
     scriptFile = new File("../tests/standalone/io/process_std_io_script2.dart");
   }
   Expect.isTrue(scriptFile.existsSync());
-  test(scriptFile.path, 'ascii', 'stdout');
-  test(scriptFile.path, 'ascii', 'stderr');
-  test(scriptFile.path, 'latin1', 'stdout');
-  test(scriptFile.path, 'latin1', 'stderr');
-  test(scriptFile.path, 'utf8', 'stdout');
-  test(scriptFile.path, 'utf8', 'stderr');
-  test(scriptFile.path, 'binary', 'stdout');
-  test(scriptFile.path, 'binary', 'stderr');
+  await test(scriptFile.path, 'ascii', 'stdout');
+  await test(scriptFile.path, 'ascii', 'stderr');
+  await test(scriptFile.path, 'latin1', 'stdout');
+  await test(scriptFile.path, 'latin1', 'stderr');
+  await test(scriptFile.path, 'utf8', 'stdout');
+  await test(scriptFile.path, 'utf8', 'stderr');
+  await test(scriptFile.path, 'binary', 'stdout');
+  await test(scriptFile.path, 'binary', 'stderr');
 }
