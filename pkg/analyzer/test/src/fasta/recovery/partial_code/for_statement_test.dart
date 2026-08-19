@@ -6658,7 +6658,6 @@ f() { for (var }
 // [diag.expectedToken] Expected to find ';'.
 //             ^
 // [diag.missingIdentifier] Expected an identifier.
-// [diag.unexpectedToken] Unexpected text '}'.
 // [diag.expectedToken] Expected to find ')'.
 ''');
     var node = parseResult.findNode.unit;
@@ -6688,22 +6687,11 @@ CompilationUnit
                   condition2: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters2
-                    SimpleIdentifier
-                      token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
                   expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
-              ExpressionStatement
-                expression2: SimpleIdentifier
-                  token: <empty> <synthetic>
-                semicolon: ; <synthetic>
-              ExpressionStatement
-                expression2: SimpleIdentifier
-                  token: <empty> <synthetic>
-                semicolon: ; <synthetic>
             rightBracket: }
 ''');
   }
