@@ -106,6 +106,9 @@ function_callbacks_leaf_test: SkipByDesign # Needs access to Dart executable
 native_assets/*: SkipByDesign # Only intended to run on host oses with AOT binaries available, not available on QEMU.
 vmspecific_enable_ffi_test: SkipByDesign # Needs access to Dart executable.
 
+[ $arch == simarm64_arm64 && $compiler == dart2bytecode ]
+many_listener_callbacks_test: SkipSlow # Interpreter + simulator makes this very slow.
+
 [ $arch != simarm64_arm64 && $simulator ]
 *: Skip # FFI not yet supported on the arm simulator.
 
