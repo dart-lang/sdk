@@ -3746,12 +3746,7 @@ invalid_deprecated_subclass_annotation:
   status: needsFix
   notes: The fix is to remove the annotation.
 invalid_export_of_internal_element:
-  status: needsFix
-  notes: |-
-    Low priority, because this is likely not encountered often.
-
-    The fix is to update the export directive so that the name is no longer
-    exported.
+  status: hasFix
 invalid_export_of_internal_element_indirectly:
   status: needsFix
   notes: |-

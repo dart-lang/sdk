@@ -1030,6 +1030,7 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   diag.duplicateImport: [RemoveUnusedImport.new],
   diag.duplicateShownName: [RemoveNameFromCombinator.new],
   diag.invalidAnnotationTarget: [RemoveAnnotation.new],
+  diag.invalidExportOfInternalElement: [RemoveNameFromCombinator.new],
   diag.invalidInternalAnnotation: [RemoveAnnotation.new],
   diag.invalidLiteralAnnotation: [RemoveAnnotation.new],
   diag.invalidNonVirtualAnnotation: [RemoveAnnotation.new],

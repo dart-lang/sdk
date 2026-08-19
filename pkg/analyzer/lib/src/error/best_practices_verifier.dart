@@ -1163,12 +1163,20 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
     var exportNamespace = NamespaceBuilder().createExportNamespaceForDirective2(
       libraryExport,
     );
-    exportNamespace.definedNames2.forEach((String name, Element element) {
+    exportNamespace.definedNames2.forEach((name, element) {
       if (element.isInternal) {
+        var errorNode =
+            node.combinators
+                .whereType<ShowCombinator>()
+                .map((c) => c.shownNames)
+                .expand((shownNames) => shownNames)
+                .where((n) => n.name == name)
+                .firstOrNull ??
+            node;
         _diagnosticReporter.report(
           diag.invalidExportOfInternalElement
               .withArguments(name: element.displayName)
-              .at(node),
+              .at(errorNode),
         );
         return;
       }
