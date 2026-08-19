@@ -4737,23 +4737,33 @@ void FloatCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   switch (op_kind()) {
     case Token::kEQ:
       __ feqs(result, lhs, rhs);  // lhs op rhs ? 1 : 0
+      __ neg(result, result);     // lhs op rhs ? -1 : 0
       break;
     case Token::kLT:
       __ flts(result, lhs, rhs);
+      __ neg(result, result);
       break;
     case Token::kLTE:
       __ fles(result, lhs, rhs);
+      __ neg(result, result);
       break;
     case Token::kGT:
       __ fgts(result, lhs, rhs);
+      __ neg(result, result);
       break;
     case Token::kGTE:
       __ fges(result, lhs, rhs);
+      __ neg(result, result);
       break;
+
+    case Token::kNE:
+      __ feqs(result, lhs, rhs);    // lhs op rhs ? 0 : 1
+      __ addi(result, result, -1);  // lhs op rhs ? -1 : 0
+      break;
+
     default:
       UNREACHABLE();
   }
-  __ neg(result, result);  // lhs op rhs ? -1 : 0
 }
 
 LocationSummary* InvokeMathCFunctionInstr::MakeLocationSummary(Zone* zone,
@@ -6413,6 +6423,25 @@ void UnaryUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ not_(out, left);
 }
 
+LocationSummary* UnaryInt32OpInstr::MakeLocationSummary(Zone* zone,
+                                                        bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresRegister());
+  summary->set_out(0, Location::RequiresRegister());
+  return summary;
+}
+
+void UnaryInt32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register left = locs()->in(0).reg();
+  Register out = locs()->out(0).reg();
+
+  ASSERT(op_kind() == Token::kBIT_NOT);
+  __ not_(out, left);
+}
+
 #if XLEN == 32
 static void EmitInt32ShiftLeft(FlowGraphCompiler* compiler,
                                BinaryInt32OpInstr* shift_left) {
@@ -6437,6 +6466,7 @@ static void EmitInt32ShiftLeft(FlowGraphCompiler* compiler,
     __ bne(TMP, left, deopt);  // Overflow.
   }
 }
+#endif
 
 LocationSummary* BinaryInt32OpInstr::MakeLocationSummary(Zone* zone,
                                                          bool opt) const {
@@ -6461,6 +6491,7 @@ LocationSummary* BinaryInt32OpInstr::MakeLocationSummary(Zone* zone,
   return summary;
 }
 
+#if XLEN == 32
 void BinaryInt32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (op_kind() == Token::kSHL) {
     EmitInt32ShiftLeft(compiler, this);
@@ -6587,7 +6618,76 @@ void BinaryInt32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 #else
-DEFINE_UNIMPLEMENTED_INSTRUCTION(BinaryInt32OpInstr)
+void BinaryInt32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const Register left = locs()->in(0).reg();
+  const Register result = locs()->out(0).reg();
+  if (CanDeoptimize()) {
+    UNIMPLEMENTED();
+  }
+
+  if (locs()->in(1).IsConstant()) {
+    const Object& constant = locs()->in(1).constant();
+    ASSERT(compiler::target::IsSmi(constant));
+    const intptr_t value = compiler::target::SmiValue(constant);
+    switch (op_kind()) {
+      case Token::kADD: {
+        __ AddImmediate(result, left, value, compiler::kFourBytes);
+        break;
+      }
+      case Token::kSUB: {
+        __ AddImmediate(result, left, -value, compiler::kFourBytes);
+        break;
+      }
+      case Token::kMUL: {
+        const Register right = locs()->temp(0).reg();
+        __ LoadImmediate(right, value);
+        __ mulw(result, left, right);
+        break;
+      }
+      case Token::kBIT_AND: {
+        __ AndImmediate(result, left, value);
+        break;
+      }
+      case Token::kBIT_OR: {
+        __ OrImmediate(result, left, value);
+        break;
+      }
+      case Token::kBIT_XOR: {
+        __ XorImmediate(result, left, value);
+        break;
+      }
+      default:
+        UNREACHABLE();
+        break;
+    }
+    return;
+  }
+
+  const Register right = locs()->in(1).reg();
+  switch (op_kind()) {
+    case Token::kADD:
+      __ addw(result, left, right);
+      break;
+    case Token::kSUB:
+      __ subw(result, left, right);
+      break;
+    case Token::kMUL:
+      __ mulw(result, left, right);
+      break;
+    case Token::kBIT_AND:
+      __ and_(result, left, right);
+      break;
+    case Token::kBIT_OR:
+      __ or_(result, left, right);
+      break;
+    case Token::kBIT_XOR:
+      __ xor_(result, left, right);
+      break;
+    default:
+      UNREACHABLE();
+      break;
+  }
+}
 #endif
 
 LocationSummary* IntConverterInstr::MakeLocationSummary(Zone* zone,

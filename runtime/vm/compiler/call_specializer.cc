@@ -2364,6 +2364,24 @@ class SimdLowering : public ValueObject {
   bool TryInline(MethodRecognizer::Kind kind) {
     switch (kind) {
       // ==== Int32x4 ====
+      case MethodRecognizer::kInt32x4Not:
+        Int32x4Unary(Token::kBIT_NOT);
+        return true;
+      case MethodRecognizer::kInt32x4Add:
+        Int32x4Binary(Token::kADD);
+        return true;
+      case MethodRecognizer::kInt32x4Sub:
+        Int32x4Binary(Token::kSUB);
+        return true;
+      case MethodRecognizer::kInt32x4BitAnd:
+        Int32x4Binary(Token::kBIT_AND);
+        return true;
+      case MethodRecognizer::kInt32x4BitOr:
+        Int32x4Binary(Token::kBIT_OR);
+        return true;
+      case MethodRecognizer::kInt32x4BitXor:
+        Int32x4Binary(Token::kBIT_XOR);
+        return true;
       case MethodRecognizer::kInt32x4FromInts:
         UnboxScalar(0, kUnboxedInt32, 4);
         UnboxScalar(1, kUnboxedInt32, 4);
@@ -2492,6 +2510,9 @@ class SimdLowering : public ValueObject {
       case MethodRecognizer::kFloat32x4Equal:
         Float32x4Compare(Token::kEQ);
         return true;
+      case MethodRecognizer::kFloat32x4NotEqual:
+        Float32x4Compare(Token::kNE);
+        return true;
       case MethodRecognizer::kFloat32x4GreaterThan:
         Float32x4Compare(Token::kGT);
         return true;
@@ -2521,6 +2542,9 @@ class SimdLowering : public ValueObject {
         return true;
       case MethodRecognizer::kFloat32x4Max:
         Float32x4Binary(Token::kMAX);
+        return true;
+      case MethodRecognizer::kFloat32x4Clamp:
+        DoubleClamp(kUnboxedFloat, 4);
         return true;
       case MethodRecognizer::kFloat32x4Scale:
         UnboxVector(0, kUnboxedFloat, kDoubleCid, 4);
@@ -2639,6 +2663,12 @@ class SimdLowering : public ValueObject {
       case MethodRecognizer::kFloat64x2Max:
         Float64x2Binary(Token::kMAX);
         return true;
+      case MethodRecognizer::kFloat64x2Clamp:
+        DoubleClamp(kUnboxedDouble, 2);
+        return true;
+      case MethodRecognizer::kFloat64x2GetSignMask:
+        // TODO(riscv)
+        return false;
       case MethodRecognizer::kFloat64x2Scale:
         UnboxVector(0, kUnboxedDouble, kDoubleCid, 2);
         UnboxScalar(1, kUnboxedDouble, 2);
@@ -2705,11 +2735,23 @@ class SimdLowering : public ValueObject {
         BoxVector(kUnboxedInt32, 4);
         return true;
       default:
+        UNREACHABLE();
         return false;
     }
   }
 
  private:
+  void Int32x4Unary(Token::Kind op) {
+    UnboxVector(0, kUnboxedInt32, kMintCid, 4);
+    UnaryInt32Op(op, 4);
+    BoxVector(kUnboxedInt32, 4);
+  }
+  void Int32x4Binary(Token::Kind op) {
+    UnboxVector(0, kUnboxedInt32, kMintCid, 4);
+    UnboxVector(1, kUnboxedInt32, kMintCid, 4);
+    BinaryInt32Op(op, 4);
+    BoxVector(kUnboxedInt32, 4);
+  }
   void Float32x4Unary(Token::Kind op) {
     UnboxVector(0, kUnboxedFloat, kDoubleCid, 4);
     UnaryDoubleOp(op, kUnboxedFloat, 4);
@@ -2791,6 +2833,23 @@ class SimdLowering : public ValueObject {
     }
   }
 
+  void UnaryInt32Op(Token::Kind op, intptr_t n) {
+    for (intptr_t lane = 0; lane < n; lane++) {
+      op_[lane] = AddDefinition(new (zone()) UnaryInt32OpInstr(
+          op, new (zone()) Value(in_[0][lane]), call_->deopt_id()));
+    }
+  }
+
+  void BinaryInt32Op(Token::Kind op, intptr_t n) {
+    for (intptr_t lane = 0; lane < n; lane++) {
+      auto* binary = new (zone()) BinaryInt32OpInstr(
+          op, new (zone()) Value(in_[0][lane]),
+          new (zone()) Value(in_[1][lane]), call_->deopt_id());
+      binary->mark_truncating();
+      op_[lane] = AddDefinition(binary);
+    }
+  }
+
   void UnaryDoubleOp(Token::Kind op, Representation rep, intptr_t n) {
     for (intptr_t lane = 0; lane < n; lane++) {
       op_[lane] = AddDefinition(new (zone()) UnaryDoubleOpInstr(
@@ -2805,6 +2864,25 @@ class SimdLowering : public ValueObject {
           new (zone()) Value(in_[1][lane]), call_->deopt_id(), call_->source(),
           rep));
     }
+  }
+
+  void DoubleClamp(Representation rep, intptr_t n) {
+    UnboxVector(0, rep, kDoubleCid, n);
+    UnboxVector(1, rep, kDoubleCid, n);
+    UnboxVector(2, rep, kDoubleCid, n);
+
+    for (intptr_t lane = 0; lane < n; lane++) {
+      auto* mid = AddDefinition(new (zone()) BinaryDoubleOpInstr(
+          Token::kMIN, new (zone()) Value(in_[0][lane]),
+          new (zone()) Value(in_[2][lane]), call_->deopt_id(), call_->source(),
+          rep));
+      op_[lane] = AddDefinition(new (zone()) BinaryDoubleOpInstr(
+          Token::kMAX, new (zone()) Value(mid),
+          new (zone()) Value(in_[1][lane]), call_->deopt_id(), call_->source(),
+          rep));
+    }
+
+    BoxVector(rep, n);
   }
 
   void FloatCompare(Token::Kind op) {

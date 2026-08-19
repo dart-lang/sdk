@@ -5821,7 +5821,7 @@ LinterLintCode:
 
       **GOOD:**
       ```dart
-      Future<int> f() => Future.value(1);
+      Future<int> f() => Future.syncValue(1);
       ```
   hashAndEquals:
     type: lint
@@ -16371,7 +16371,7 @@ LinterLintCode:
       **GOOD:**
       ```dart
       class C {
-        new ();
+        new();
         new name();
       }
       ```

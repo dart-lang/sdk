@@ -2709,19 +2709,28 @@ final class AssignmentExpressionImpl extends ExpressionImpl
     with CompoundAssignmentExpressionImpl
     implements AssignmentExpression {
   @generated
-  ExpressionImpl _leftHandSide2;
-
-  @generated
   @override
   final Token operator;
 
-  @generated
+  @DoNotGenerate(reason: 'Some instances are V1 projection objects')
+  ExpressionImpl _leftHandSide2;
+
+  @DoNotGenerate(reason: 'Some instances are V1 projection objects')
   ExpressionImpl _rightHandSide2;
 
-  @override
-  InternalMethodElement? element;
+  InternalMethodElement? _element;
 
-  @generated
+  Element? _readElement;
+
+  TypeImpl? _readType;
+
+  AssignmentExpression2Impl? _v1ProjectionOrigin;
+
+  Element? _writeElement;
+
+  TypeImpl? _writeType;
+
+  @DoNotGenerate(reason: 'Some instances are V1 projection objects')
   AssignmentExpressionImpl({
     required ExpressionImpl leftHandSide2,
     required this.operator,
@@ -2734,31 +2743,85 @@ final class AssignmentExpressionImpl extends ExpressionImpl
     _becomeParentOf1(V1Projection.toV1Expression(rightHandSide2));
   }
 
-  @generated
-  @override
-  Token get beginToken {
-    return leftHandSide2.beginToken;
+  AssignmentExpressionImpl.v1ProjectionFromCompound(
+    CompoundAssignmentImpl origin,
+  ) : _leftHandSide2 = _v1LeftHandSide(origin.target),
+      operator = origin.operator,
+      _rightHandSide2 = origin.value,
+      _v1ProjectionOrigin = origin {
+    _attachV1Children();
   }
 
-  @generated
-  @override
-  Token get endToken {
-    return rightHandSide2.endToken;
+  AssignmentExpressionImpl.v1ProjectionFromDirect(DirectAssignmentImpl origin)
+    : _leftHandSide2 = _v1LeftHandSide(origin.target),
+      operator = origin.operator,
+      _rightHandSide2 = origin.value,
+      _v1ProjectionOrigin = origin {
+    _attachV1Children();
   }
 
-  @generated
+  AssignmentExpressionImpl.v1ProjectionFromIfNull(IfNullAssignmentImpl origin)
+    : _leftHandSide2 = _v1LeftHandSide(origin.target),
+      operator = origin.operator,
+      _rightHandSide2 = origin.value,
+      _v1ProjectionOrigin = origin {
+    _attachV1Children();
+  }
+
+  @DoNotGenerate(reason: 'V1 projections use the projected target token')
+  @override
+  Token get beginToken => leftHandSide.beginToken;
+
+  @override
+  InternalFormalParameterElement? get correspondingParameter =>
+      switch (_v1ProjectionOrigin) {
+        AssignmentExpression2Impl origin => origin.correspondingParameter,
+        null => super.correspondingParameter,
+      };
+
+  @override
+  InternalMethodElement? get element => switch (_v1ProjectionOrigin) {
+    CompoundAssignmentImpl origin => origin.element,
+    DirectAssignmentImpl() || IfNullAssignmentImpl() => null,
+    null => _element,
+    _ => throw StateError('Unexpected assignment projection origin.'),
+  };
+
+  set element(InternalMethodElement? element) {
+    if (_v1ProjectionOrigin != null) {
+      throw UnsupportedError('A V1 projection cannot be mutated.');
+    }
+    _element = element;
+  }
+
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
+  @override
+  Token get endToken =>
+      _v1ProjectionOrigin?.endToken ?? rightHandSide2.endToken;
+
+  @override
+  bool get inConstantContext =>
+      _v1ProjectionOrigin?.inConstantContext ?? super.inConstantContext;
+
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
   @ToBeDeprecated('Use leftHandSide2 instead.')
   @override
   ExpressionImpl get leftHandSide => V1Projection.toV1Expression(leftHandSide2);
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
   @experimental
   @override
-  ExpressionImpl get leftHandSide2 => _leftHandSide2;
+  ExpressionImpl get leftHandSide2 => switch (_v1ProjectionOrigin) {
+    AssignmentExpression2Impl origin => _v1LeftHandSide(origin.target),
+    null => _leftHandSide2,
+  };
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projection objects are read-only')
   @experimental
   set leftHandSide2(ExpressionImpl leftHandSide2) {
+    if (_v1ProjectionOrigin != null) {
+      throw UnsupportedError('A V1 projection cannot be mutated.');
+    }
     _leftHandSide2 = _becomeParentOf2(leftHandSide2);
     _becomeParentOf1(V1Projection.toV1Expression(leftHandSide2));
   }
@@ -2766,23 +2829,123 @@ final class AssignmentExpressionImpl extends ExpressionImpl
   @override
   Precedence get precedence => Precedence.assignment;
 
-  @generated
+  @override
+  Element? get readElement {
+    var origin = _v1ProjectionOrigin;
+    if (origin is DirectAssignmentImpl) {
+      return null;
+    }
+    if (origin != null) {
+      return _v1ReadElement(origin.target);
+    }
+    return _readElement;
+  }
+
+  @override
+  set readElement(Element? element) {
+    if (_v1ProjectionOrigin != null) {
+      throw UnsupportedError('A V1 projection cannot be mutated.');
+    }
+    _readElement = element;
+  }
+
+  @override
+  TypeImpl? get readType {
+    var origin = _v1ProjectionOrigin;
+    if (origin is DirectAssignmentImpl) {
+      return null;
+    }
+    if (origin is CompoundAssignmentImpl) {
+      return _v1CompoundReadType(origin.target);
+    }
+    if (origin is IfNullAssignmentImpl) {
+      return _v1IfNullReadType(origin.target);
+    }
+    return _readType;
+  }
+
+  @override
+  set readType(TypeImpl? type) {
+    if (_v1ProjectionOrigin != null) {
+      throw UnsupportedError('A V1 projection cannot be mutated.');
+    }
+    _readType = type;
+  }
+
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
   @ToBeDeprecated('Use rightHandSide2 instead.')
   @override
   ExpressionImpl get rightHandSide =>
       V1Projection.toV1Expression(rightHandSide2);
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
   @experimental
   @override
-  ExpressionImpl get rightHandSide2 => _rightHandSide2;
+  ExpressionImpl get rightHandSide2 => switch (_v1ProjectionOrigin) {
+    AssignmentExpression2Impl origin => origin.value,
+    null => _rightHandSide2,
+  };
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projection objects are read-only')
   @experimental
   set rightHandSide2(ExpressionImpl rightHandSide2) {
+    if (_v1ProjectionOrigin != null) {
+      throw UnsupportedError('A V1 projection cannot be mutated.');
+    }
     _rightHandSide2 = _becomeParentOf2(rightHandSide2);
     _becomeParentOf1(V1Projection.toV1Expression(rightHandSide2));
   }
+
+  @override
+  TypeImpl? get staticType => switch (_v1ProjectionOrigin) {
+    AssignmentExpression2Impl origin => origin.staticType,
+    null => super.staticType,
+  };
+
+  @override
+  Element? get writeElement {
+    var origin = _v1ProjectionOrigin;
+    if (origin != null) {
+      return _v1WriteElement(origin.target);
+    }
+    return _writeElement;
+  }
+
+  @override
+  set writeElement(Element? element) {
+    if (_v1ProjectionOrigin != null) {
+      throw UnsupportedError('A V1 projection cannot be mutated.');
+    }
+    _writeElement = element;
+  }
+
+  @override
+  TypeImpl? get writeType {
+    var origin = _v1ProjectionOrigin;
+    if (origin is DirectAssignmentImpl) {
+      return _v1DirectWriteType(origin.target);
+    }
+    if (origin is CompoundAssignmentImpl) {
+      return _v1ReadWriteAssignmentWriteType(origin.target);
+    }
+    if (origin is IfNullAssignmentImpl) {
+      return _v1ReadWriteAssignmentWriteType(origin.target);
+    }
+    return _writeType;
+  }
+
+  @override
+  set writeType(TypeImpl? type) {
+    if (_v1ProjectionOrigin != null) {
+      throw UnsupportedError('A V1 projection cannot be mutated.');
+    }
+    _writeType = type;
+  }
+
+  @DoNotGenerate(reason: 'Some instances are V1 projection objects')
+  @override
+  AstNodeApi get _astNodeApi =>
+      _v1ProjectionOrigin == null ? AstNodeApi.shared : AstNodeApi.v1;
 
   @generated
   @override
@@ -2791,12 +2954,17 @@ final class AssignmentExpressionImpl extends ExpressionImpl
     ..addToken('operator', operator)
     ..addNode('rightHandSide', rightHandSide);
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
   @override
-  ChildEntities get _childEntities2 => ChildEntities()
-    ..addNode('leftHandSide2', leftHandSide2)
-    ..addToken('operator', operator)
-    ..addNode('rightHandSide2', rightHandSide2);
+  ChildEntities get _childEntities2 {
+    if (_v1ProjectionOrigin != null) {
+      throw StateError('AssignmentExpression is not in the V2 AST view.');
+    }
+    return ChildEntities()
+      ..addNode('leftHandSide2', leftHandSide2)
+      ..addToken('operator', operator)
+      ..addNode('rightHandSide2', rightHandSide2);
+  }
 
   /// The parameter element representing the parameter to which the value of the
   /// right operand is bound, or `null` if the AST structure is not resolved or
@@ -2831,22 +2999,39 @@ final class AssignmentExpressionImpl extends ExpressionImpl
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitAssignmentExpression(this);
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
   @experimental
   @override
-  E? accept2<E>(AstVisitor2<E> visitor) =>
-      visitor.visitAssignmentExpression(this);
+  E? accept2<E>(AstVisitor2<E> visitor) {
+    if (_v1ProjectionOrigin != null) {
+      throw StateError('AssignmentExpression is not in the V2 AST view.');
+    }
+    return visitor.visitAssignmentExpression(this);
+  }
 
-  @generated
+  @override
+  AttemptedConstantEvaluationResult? computeConstantValue() =>
+      switch (_v1ProjectionOrigin) {
+        AssignmentExpression2Impl origin => origin.computeConstantValue(),
+        null => super.computeConstantValue(),
+      };
+
+  @DoNotGenerate(reason: 'V1 projection children have V1 parent pointers')
   @override
   bool isInValueExpressionSlot(AstNode child) {
+    if (_v1ProjectionOrigin != null) {
+      return identical(rightHandSide, child);
+    }
     assert(identical(child.parent2, this));
     return identical(rightHandSide2, child);
   }
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projection objects are read-only')
   @override
   void removeChild(AstNodeImpl oldNode) {
+    if (_v1ProjectionOrigin != null) {
+      throw UnsupportedError('A V1 projection cannot be mutated.');
+    }
     if (identical(leftHandSide2, oldNode)) {
       throw UnsupportedError("Cannot remove required child 'leftHandSide2'.");
     }
@@ -2856,9 +3041,12 @@ final class AssignmentExpressionImpl extends ExpressionImpl
     super.removeChild(oldNode);
   }
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projection objects are read-only')
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (_v1ProjectionOrigin != null) {
+      throw UnsupportedError('A V1 projection cannot be mutated.');
+    }
     if (identical(leftHandSide2, oldNode)) {
       leftHandSide2 = newNode as ExpressionImpl;
       return;
@@ -2870,11 +3058,17 @@ final class AssignmentExpressionImpl extends ExpressionImpl
     super.replaceChild(oldNode, newNode);
   }
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projection objects cannot be resolved')
   @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+    if (_v1ProjectionOrigin != null) {
+      throw StateError('AssignmentExpression is a V1 projection.');
+    }
     resolver.visitAssignmentExpression(this, contextType: contextType);
   }
+
+  @override
+  String toSource() => _v1ProjectionOrigin?.toSource() ?? super.toSource();
 
   @generated
   @ToBeDeprecated('Use visitChildren2 instead.')
@@ -2884,10 +3078,13 @@ final class AssignmentExpressionImpl extends ExpressionImpl
     rightHandSide.accept(visitor);
   }
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
   @experimental
   @override
   void visitChildren2(AstVisitor2 visitor) {
+    if (_v1ProjectionOrigin != null) {
+      throw StateError('AssignmentExpression is not in the V2 AST view.');
+    }
     leftHandSide2.accept2(visitor);
     rightHandSide2.accept2(visitor);
   }
@@ -2897,13 +3094,16 @@ final class AssignmentExpressionImpl extends ExpressionImpl
   /// If a specific hook is provided for a child, it is called instead of
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
-  @generated
+  @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
   @experimental
   void visitChildrenWithHooks(
     AstVisitor2 visitor, {
     void Function(ExpressionImpl)? visitLeftHandSide2,
     void Function(ExpressionImpl)? visitRightHandSide2,
   }) {
+    if (_v1ProjectionOrigin != null) {
+      throw StateError('AssignmentExpression is not in the V2 AST view.');
+    }
     if (visitLeftHandSide2 != null) {
       visitLeftHandSide2(leftHandSide2);
     } else {
@@ -2914,6 +3114,11 @@ final class AssignmentExpressionImpl extends ExpressionImpl
     } else {
       rightHandSide2.accept2(visitor);
     }
+  }
+
+  void _attachV1Children() {
+    _becomeParentOf1(leftHandSide);
+    _becomeParentOf1(rightHandSide);
   }
 
   @generated
@@ -2928,9 +3133,12 @@ final class AssignmentExpressionImpl extends ExpressionImpl
     return null;
   }
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
   @override
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (_v1ProjectionOrigin != null) {
+      throw StateError('AssignmentExpression is not in the V2 AST view.');
+    }
     if (leftHandSide2._containsOffset(rangeOffset, rangeEnd)) {
       return leftHandSide2;
     }
@@ -2939,6 +3147,90 @@ final class AssignmentExpressionImpl extends ExpressionImpl
     }
     return null;
   }
+
+  static TypeImpl? _v1CompoundReadType(AssignmentTargetImpl target) =>
+      switch (target) {
+        CascadeIndexAssignmentTargetImpl target =>
+          target.read?.type ?? InvalidTypeImpl.instance,
+        IndexAssignmentTargetImpl target => target._legacyReadType,
+        PropertyAssignmentTargetImpl target =>
+          target.read?.type ?? InvalidTypeImpl.instance,
+        UnqualifiedNameAssignmentTargetImpl target => target.read?.type,
+        InvalidExpressionAssignmentTargetImpl() => InvalidTypeImpl.instance,
+      };
+
+  static TypeImpl? _v1DirectWriteType(
+    AssignmentTargetImpl target,
+  ) => switch (target) {
+    CascadeIndexAssignmentTargetImpl target => target.write?.acceptedType,
+    CascadePropertyAssignmentTargetImpl target => target.write?.acceptedType,
+    IndexAssignmentTargetImpl target => target.write?.acceptedType,
+    ReceiverPropertyAssignmentTargetImpl target =>
+      target.write?.acceptedType ?? InvalidTypeImpl.instance,
+    UnqualifiedNameAssignmentTargetImpl target => target.write?.acceptedType,
+    InvalidExpressionAssignmentTargetImpl() => InvalidTypeImpl.instance,
+  };
+
+  static TypeImpl? _v1IfNullReadType(AssignmentTargetImpl target) =>
+      switch (target) {
+        CascadeIndexAssignmentTargetImpl target =>
+          target.read?.type ?? InvalidTypeImpl.instance,
+        IndexAssignmentTargetImpl target => target._legacyReadType,
+        PropertyAssignmentTargetImpl target =>
+          target.read?.type ?? InvalidTypeImpl.instance,
+        UnqualifiedNameAssignmentTargetImpl target => target.read?.type,
+        InvalidExpressionAssignmentTargetImpl target =>
+          target.expression.staticType,
+      };
+
+  static ExpressionImpl _v1LeftHandSide(AssignmentTargetImpl target) =>
+      switch (target) {
+        CascadeIndexAssignmentTargetImpl target => target.indexExpression,
+        PropertyAssignmentTargetImpl target => target.propertyAccess,
+        IndexAssignmentTargetImpl target => target.indexExpression,
+        UnqualifiedNameAssignmentTargetImpl target => target.simpleIdentifier,
+        InvalidExpressionAssignmentTargetImpl target =>
+          V1Projection.toV1Expression(target.expression),
+      };
+
+  static Element? _v1ReadElement(
+    AssignmentTargetImpl target,
+  ) => switch (target) {
+    CascadeIndexAssignmentTargetImpl target => target._legacyReadElement,
+    CascadePropertyAssignmentTargetImpl target => target._legacyReadElement,
+    IndexAssignmentTargetImpl target => target._legacyReadElement,
+    ReceiverPropertyAssignmentTargetImpl target => target._legacyReadElement,
+    UnqualifiedNameAssignmentTargetImpl target => target._legacyReadElement,
+    InvalidExpressionAssignmentTargetImpl(expression: IdentifierImpl element) =>
+      element.element,
+    InvalidExpressionAssignmentTargetImpl() => null,
+  };
+
+  static TypeImpl? _v1ReadWriteAssignmentWriteType(
+    AssignmentTargetImpl target,
+  ) => switch (target) {
+    CascadeIndexAssignmentTargetImpl target =>
+      target.write?.acceptedType ?? InvalidTypeImpl.instance,
+    PropertyAssignmentTargetImpl target =>
+      target.write?.acceptedType ?? InvalidTypeImpl.instance,
+    IndexAssignmentTargetImpl target =>
+      target.write?.acceptedType ?? InvalidTypeImpl.instance,
+    UnqualifiedNameAssignmentTargetImpl target => target.write?.acceptedType,
+    InvalidExpressionAssignmentTargetImpl() => InvalidTypeImpl.instance,
+  };
+
+  static Element? _v1WriteElement(
+    AssignmentTargetImpl target,
+  ) => switch (target) {
+    CascadeIndexAssignmentTargetImpl target => target._legacyWriteElement,
+    CascadePropertyAssignmentTargetImpl target => target._legacyWriteElement,
+    IndexAssignmentTargetImpl target => target._legacyWriteElement,
+    ReceiverPropertyAssignmentTargetImpl target => target._legacyWriteElement,
+    UnqualifiedNameAssignmentTargetImpl target => target._legacyWriteElement,
+    InvalidExpressionAssignmentTargetImpl(expression: IdentifierImpl element) =>
+      element.element,
+    InvalidExpressionAssignmentTargetImpl() => null,
+  };
 }
 
 /// An AST node that denotes the destination of an assignment.
@@ -5866,215 +6158,6 @@ final class CascadeIndexExpressionImpl extends ExpressionImpl
       return index;
     }
     return null;
-  }
-}
-
-/// The V1 compatibility projection of a cascade-start index operation.
-final class CascadeIndexV1Impl extends ExpressionImpl
-    implements IndexExpression {
-  final AstNodeImpl _origin;
-
-  CascadeIndexV1Impl._(this._origin) {
-    _attachV1Children();
-  }
-
-  @override
-  Token get beginToken => period!;
-
-  @override
-  InternalFormalParameterElement? get correspondingParameter =>
-      _origin is CascadeIndexExpressionImpl
-      ? _origin.correspondingParameter
-      : null;
-
-  @override
-  MethodElement? get element => switch (_origin) {
-    CascadeIndexExpressionImpl node => node._legacyReadElement,
-    _ => null,
-  };
-
-  @override
-  Token get endToken => rightBracket;
-
-  @override
-  ExpressionImpl get index => V1Projection.toV1Expression(_originIndex);
-
-  @experimental
-  @override
-  ExpressionImpl get index2 => index;
-
-  @override
-  bool get isAssignable => true;
-
-  @override
-  bool get isCascaded => true;
-
-  @override
-  bool get isNullAware => _cascade.isNullAware;
-
-  @override
-  Token get leftBracket => _originLeftBracket;
-
-  @override
-  Token? get period => _section.operator;
-
-  @override
-  Precedence get precedence => Precedence.postfix;
-
-  @override
-  Token? get question => null;
-
-  @override
-  ExpressionImpl get realTarget =>
-      V1Projection.toV1Expression(_cascade.target2);
-
-  @experimental
-  @override
-  ExpressionImpl get realTarget2 => realTarget;
-
-  @override
-  Token get rightBracket => _originRightBracket;
-
-  @override
-  TypeImpl? get staticType => switch (_origin) {
-    CascadeIndexExpressionImpl node => node.staticType,
-    _ => null,
-  };
-
-  @override
-  ExpressionImpl? get target => null;
-
-  @experimental
-  @override
-  ExpressionImpl? get target2 => null;
-
-  @override
-  AstNodeApi get _astNodeApi => AstNodeApi.v1;
-
-  CascadeExpressionImpl get _cascade =>
-      _section.parent2 as CascadeExpressionImpl;
-
-  @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addNode('target', target)
-    ..addToken('period', period)
-    ..addToken('question', question)
-    ..addToken('leftBracket', leftBracket)
-    ..addNode('index', index)
-    ..addToken('rightBracket', rightBracket);
-
-  @override
-  ChildEntities get _childEntities2 {
-    throw StateError('IndexExpression is not in the V2 AST view.');
-  }
-
-  ExpressionImpl get _originIndex => switch (_origin) {
-    CascadeIndexExpressionImpl node => node.index,
-    CascadeIndexAssignmentTargetImpl node => node.index,
-    _ => throw StateError('Unexpected cascade index origin: $_origin'),
-  };
-
-  Token get _originLeftBracket => switch (_origin) {
-    CascadeIndexExpressionImpl node => node.leftBracket,
-    CascadeIndexAssignmentTargetImpl node => node.leftBracket,
-    _ => throw StateError('Unexpected cascade index origin: $_origin'),
-  };
-
-  Token get _originRightBracket => switch (_origin) {
-    CascadeIndexExpressionImpl node => node.rightBracket,
-    CascadeIndexAssignmentTargetImpl node => node.rightBracket,
-    _ => throw StateError('Unexpected cascade index origin: $_origin'),
-  };
-
-  CascadeSectionImpl get _section {
-    for (
-      AstNodeImpl? ancestor = _origin.parent2;
-      ancestor != null;
-      ancestor = ancestor.parent2
-    ) {
-      if (ancestor is CascadeSectionImpl) {
-        return ancestor;
-      }
-    }
-    throw StateError('Cascade index operation has no CascadeSection.');
-  }
-
-  InternalFormalParameterElement? get _staticParameterElementForIndex =>
-      switch (_origin) {
-        CascadeIndexExpressionImpl node => node._staticParameterElementForIndex,
-        CascadeIndexAssignmentTargetImpl node =>
-          node._staticParameterElementForIndex,
-        _ => null,
-      };
-
-  @override
-  E? accept<E>(AstVisitor<E> visitor) => visitor.visitIndexExpression(this);
-
-  @experimental
-  @override
-  E? accept2<E>(AstVisitor2<E> visitor) {
-    throw StateError('IndexExpression is not in the V2 AST view.');
-  }
-
-  @override
-  bool inGetterContext() => switch (_origin) {
-    CascadeIndexExpressionImpl() => true,
-    CascadeIndexAssignmentTargetImpl node => node.parent2 is! DirectAssignment,
-    _ => false,
-  };
-
-  @override
-  bool inSetterContext() => _origin is CascadeIndexAssignmentTargetImpl;
-
-  @override
-  bool isInValueExpressionSlot(AstNode child) => true;
-
-  @override
-  void removeChild(AstNodeImpl oldNode) {
-    throw UnsupportedError('A V1 projection cannot be mutated.');
-  }
-
-  @override
-  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    throw UnsupportedError('A V1 projection cannot be mutated.');
-  }
-
-  @override
-  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
-    throw StateError('IndexExpression is a V1 projection.');
-  }
-
-  @override
-  String toSource() =>
-      '${period!.lexeme}${_originLeftBracket.lexeme}'
-      '${index.toSource()}${rightBracket.lexeme}';
-
-  @override
-  void visitChildren(AstVisitor visitor) {
-    index.accept(visitor);
-  }
-
-  @experimental
-  @override
-  void visitChildren2(AstVisitor2 visitor) {
-    throw StateError('IndexExpression is not in the V2 AST view.');
-  }
-
-  void _attachV1Children() {
-    _becomeParentOf1(index);
-  }
-
-  @override
-  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
-    if (index._containsOffset(rangeOffset, rangeEnd)) {
-      return index;
-    }
-    return null;
-  }
-
-  @override
-  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    throw StateError('IndexExpression is not in the V2 AST view.');
   }
 }
 
@@ -9432,7 +9515,7 @@ base mixin CompoundAssignmentExpressionImpl
 )
 final class CompoundAssignmentImpl extends AssignmentExpression2Impl
     implements CompoundAssignment {
-  CompoundAssignmentV1Impl? _assignmentExpression;
+  AssignmentExpressionImpl? _assignmentExpression;
 
   @override
   InternalMethodElement? element;
@@ -9448,8 +9531,8 @@ final class CompoundAssignmentImpl extends AssignmentExpression2Impl
   });
 
   /// The cached V1 compatibility projection for this expression.
-  CompoundAssignmentV1Impl get assignmentExpression =>
-      _assignmentExpression ??= CompoundAssignmentV1Impl._(this);
+  AssignmentExpressionImpl get assignmentExpression => _assignmentExpression ??=
+      AssignmentExpressionImpl.v1ProjectionFromCompound(this);
 
   @generated
   @override
@@ -9631,224 +9714,6 @@ final class CompoundAssignmentImpl extends AssignmentExpression2Impl
       return value;
     }
     return null;
-  }
-}
-
-/// The V1 compatibility projection of a [CompoundAssignment].
-@GenerateNodeImpl(
-  api: AstNodeApi.v1,
-  generateConstructor: false,
-  childEntitiesOrder: [
-    GenerateNodeProperty('leftHandSide'),
-    GenerateNodeProperty('operator'),
-    GenerateNodeProperty('rightHandSide'),
-  ],
-)
-final class CompoundAssignmentV1Impl extends ExpressionImpl
-    with CompoundAssignmentExpressionImpl
-    implements AssignmentExpression {
-  final CompoundAssignmentImpl _origin;
-
-  CompoundAssignmentV1Impl._(this._origin) {
-    _attachV1Children();
-  }
-
-  @DoNotGenerate(reason: 'Uses the projected V1 target token')
-  @override
-  Token get beginToken => leftHandSide.beginToken;
-
-  @override
-  InternalFormalParameterElement? get correspondingParameter =>
-      _origin.correspondingParameter;
-
-  @override
-  MethodElement? get element => _origin.element;
-
-  @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
-  @override
-  Token get endToken => _origin.endToken;
-
-  @override
-  bool get inConstantContext => _origin.inConstantContext;
-
-  @DoNotGenerate(reason: 'Projects the canonical V2 target')
-  @override
-  ExpressionImpl get leftHandSide => switch (_origin.target) {
-    CascadeIndexAssignmentTargetImpl target => target.indexExpression,
-    PropertyAssignmentTargetImpl target => target.propertyAccess,
-    IndexAssignmentTargetImpl target => target.indexExpression,
-    UnqualifiedNameAssignmentTargetImpl target => target.simpleIdentifier,
-    InvalidExpressionAssignmentTargetImpl target => V1Projection.toV1Expression(
-      target.expression,
-    ),
-  };
-
-  @experimental
-  @override
-  ExpressionImpl get leftHandSide2 => leftHandSide;
-
-  @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
-  @override
-  Token get operator => _origin.operator;
-
-  @override
-  Precedence get precedence => _origin.precedence;
-
-  @override
-  Element? get readElement => switch (_origin.target) {
-    CascadeIndexAssignmentTargetImpl target => target._legacyReadElement,
-    CascadePropertyAssignmentTargetImpl target => target._legacyReadElement,
-    IndexAssignmentTargetImpl target => target._legacyReadElement,
-    ReceiverPropertyAssignmentTargetImpl target => target._legacyReadElement,
-    UnqualifiedNameAssignmentTargetImpl target => target._legacyReadElement,
-    InvalidExpressionAssignmentTargetImpl(expression: IdentifierImpl element) =>
-      element.element,
-    InvalidExpressionAssignmentTargetImpl() => null,
-  };
-
-  @override
-  TypeImpl? get readType => switch (_origin.target) {
-    CascadeIndexAssignmentTargetImpl target =>
-      target.read?.type ?? InvalidTypeImpl.instance,
-    IndexAssignmentTargetImpl target => target._legacyReadType,
-    PropertyAssignmentTargetImpl target =>
-      target.read?.type ?? InvalidTypeImpl.instance,
-    UnqualifiedNameAssignmentTargetImpl target => target.read?.type,
-    InvalidExpressionAssignmentTargetImpl() => InvalidTypeImpl.instance,
-  };
-
-  @DoNotGenerate(reason: 'Projects the canonical V2 value')
-  @override
-  ExpressionImpl get rightHandSide =>
-      V1Projection.toV1Expression(_origin.value);
-
-  @experimental
-  @override
-  ExpressionImpl get rightHandSide2 => _origin.value;
-
-  @override
-  TypeImpl? get staticType => _origin.staticType;
-
-  @override
-  Element? get writeElement => switch (_origin.target) {
-    CascadeIndexAssignmentTargetImpl target => target._legacyWriteElement,
-    CascadePropertyAssignmentTargetImpl target => target._legacyWriteElement,
-    IndexAssignmentTargetImpl target => target._legacyWriteElement,
-    ReceiverPropertyAssignmentTargetImpl target => target._legacyWriteElement,
-    UnqualifiedNameAssignmentTargetImpl target => target._legacyWriteElement,
-    InvalidExpressionAssignmentTargetImpl(expression: IdentifierImpl element) =>
-      element.element,
-    InvalidExpressionAssignmentTargetImpl() => null,
-  };
-
-  @override
-  TypeImpl? get writeType => switch (_origin.target) {
-    CascadeIndexAssignmentTargetImpl target =>
-      target.write?.acceptedType ?? InvalidTypeImpl.instance,
-    PropertyAssignmentTargetImpl target =>
-      target.write?.acceptedType ?? InvalidTypeImpl.instance,
-    IndexAssignmentTargetImpl target =>
-      target.write?.acceptedType ?? InvalidTypeImpl.instance,
-    UnqualifiedNameAssignmentTargetImpl target => target.write?.acceptedType,
-    InvalidExpressionAssignmentTargetImpl() => InvalidTypeImpl.instance,
-  };
-
-  @generated
-  @override
-  AstNodeApi get _astNodeApi => AstNodeApi.v1;
-
-  @generated
-  @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addNode('leftHandSide', leftHandSide)
-    ..addToken('operator', operator)
-    ..addNode('rightHandSide', rightHandSide);
-
-  @generated
-  @override
-  ChildEntities get _childEntities2 {
-    throw StateError('AssignmentExpression is not in the V2 AST view.');
-  }
-
-  @generated
-  @ToBeDeprecated('Use accept2 instead.')
-  @override
-  E? accept<E>(AstVisitor<E> visitor) =>
-      visitor.visitAssignmentExpression(this);
-
-  @generated
-  @experimental
-  @override
-  E? accept2<E>(AstVisitor2<E> visitor) {
-    throw StateError('AssignmentExpression is not in the V2 AST view.');
-  }
-
-  @override
-  AttemptedConstantEvaluationResult? computeConstantValue() =>
-      _origin.computeConstantValue();
-
-  @DoNotGenerate(reason: 'Only the value is a V1 value expression slot')
-  @override
-  bool isInValueExpressionSlot(AstNode child) =>
-      identical(rightHandSide, child);
-
-  @DoNotGenerate(reason: 'A V1 projection cannot be mutated')
-  @override
-  void removeChild(AstNodeImpl oldNode) {
-    throw UnsupportedError('A V1 projection cannot be mutated.');
-  }
-
-  @DoNotGenerate(reason: 'A V1 projection cannot be mutated')
-  @override
-  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    throw UnsupportedError('A V1 projection cannot be mutated.');
-  }
-
-  @DoNotGenerate(reason: 'A V1 projection cannot be resolved')
-  @override
-  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
-    throw StateError('AssignmentExpression is a V1 projection.');
-  }
-
-  @override
-  String toSource() => _origin.toSource();
-
-  @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
-  @override
-  void visitChildren(AstVisitor visitor) {
-    leftHandSide.accept(visitor);
-    rightHandSide.accept(visitor);
-  }
-
-  @generated
-  @experimental
-  @override
-  void visitChildren2(AstVisitor2 visitor) {
-    throw StateError('AssignmentExpression is not in the V2 AST view.');
-  }
-
-  void _attachV1Children() {
-    _becomeParentOf1(leftHandSide);
-    _becomeParentOf1(rightHandSide);
-  }
-
-  @generated
-  @override
-  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
-    if (leftHandSide._containsOffset(rangeOffset, rangeEnd)) {
-      return leftHandSide;
-    }
-    if (rightHandSide._containsOffset(rangeOffset, rangeEnd)) {
-      return rightHandSide;
-    }
-    return null;
-  }
-
-  @generated
-  @override
-  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    throw StateError('AssignmentExpression is not in the V2 AST view.');
   }
 }
 
@@ -13927,7 +13792,7 @@ abstract final class DirectAssignment implements AssignmentExpression2 {}
 )
 final class DirectAssignmentImpl extends AssignmentExpression2Impl
     implements DirectAssignment {
-  DirectAssignmentV1Impl? _assignmentExpression;
+  AssignmentExpressionImpl? _assignmentExpression;
 
   @generated
   DirectAssignmentImpl({
@@ -13937,8 +13802,8 @@ final class DirectAssignmentImpl extends AssignmentExpression2Impl
   });
 
   /// The cached V1 compatibility projection for this expression.
-  DirectAssignmentV1Impl get assignmentExpression =>
-      _assignmentExpression ??= DirectAssignmentV1Impl._(this);
+  AssignmentExpressionImpl get assignmentExpression => _assignmentExpression ??=
+      AssignmentExpressionImpl.v1ProjectionFromDirect(this);
 
   @generated
   @override
@@ -14107,206 +13972,6 @@ final class DirectAssignmentImpl extends AssignmentExpression2Impl
       return value;
     }
     return null;
-  }
-}
-
-/// The V1 compatibility projection of a [DirectAssignment].
-@GenerateNodeImpl(
-  api: AstNodeApi.v1,
-  generateConstructor: false,
-  childEntitiesOrder: [
-    GenerateNodeProperty('leftHandSide'),
-    GenerateNodeProperty('operator'),
-    GenerateNodeProperty('rightHandSide'),
-  ],
-)
-final class DirectAssignmentV1Impl extends ExpressionImpl
-    with CompoundAssignmentExpressionImpl
-    implements AssignmentExpression {
-  final DirectAssignmentImpl _origin;
-
-  DirectAssignmentV1Impl._(this._origin) {
-    _attachV1Children();
-  }
-
-  @DoNotGenerate(reason: 'Uses the projected V1 target token')
-  @override
-  Token get beginToken => leftHandSide.beginToken;
-
-  @override
-  InternalFormalParameterElement? get correspondingParameter =>
-      _origin.correspondingParameter;
-
-  @override
-  MethodElement? get element => null;
-
-  @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
-  @override
-  Token get endToken => _origin.endToken;
-
-  @override
-  bool get inConstantContext => _origin.inConstantContext;
-
-  @DoNotGenerate(reason: 'Projects the canonical V2 target')
-  @override
-  ExpressionImpl get leftHandSide => switch (_origin.target) {
-    CascadeIndexAssignmentTargetImpl target => target.indexExpression,
-    PropertyAssignmentTargetImpl target => target.propertyAccess,
-    IndexAssignmentTargetImpl target => target.indexExpression,
-    UnqualifiedNameAssignmentTargetImpl target => target.simpleIdentifier,
-    InvalidExpressionAssignmentTargetImpl target => V1Projection.toV1Expression(
-      target.expression,
-    ),
-  };
-
-  @experimental
-  @override
-  ExpressionImpl get leftHandSide2 => leftHandSide;
-
-  @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
-  @override
-  Token get operator => _origin.operator;
-
-  @override
-  Precedence get precedence => _origin.precedence;
-
-  @override
-  Element? get readElement => null;
-
-  @override
-  TypeImpl? get readType => null;
-
-  @DoNotGenerate(reason: 'Projects the canonical V2 value')
-  @override
-  ExpressionImpl get rightHandSide =>
-      V1Projection.toV1Expression(_origin.value);
-
-  @experimental
-  @override
-  ExpressionImpl get rightHandSide2 => _origin.value;
-
-  @override
-  TypeImpl? get staticType => _origin.staticType;
-
-  @override
-  Element? get writeElement => switch (_origin.target) {
-    CascadeIndexAssignmentTargetImpl target => target._legacyWriteElement,
-    CascadePropertyAssignmentTargetImpl target => target._legacyWriteElement,
-    IndexAssignmentTargetImpl target => target._legacyWriteElement,
-    ReceiverPropertyAssignmentTargetImpl target => target._legacyWriteElement,
-    UnqualifiedNameAssignmentTargetImpl target => target._legacyWriteElement,
-    InvalidExpressionAssignmentTargetImpl(expression: IdentifierImpl element) =>
-      element.element,
-    InvalidExpressionAssignmentTargetImpl() => null,
-  };
-
-  @override
-  TypeImpl? get writeType => switch (_origin.target) {
-    CascadeIndexAssignmentTargetImpl target => target.write?.acceptedType,
-    CascadePropertyAssignmentTargetImpl target => target.write?.acceptedType,
-    IndexAssignmentTargetImpl target => target.write?.acceptedType,
-    ReceiverPropertyAssignmentTargetImpl target =>
-      target.write?.acceptedType ?? InvalidTypeImpl.instance,
-    UnqualifiedNameAssignmentTargetImpl target => target.write?.acceptedType,
-    InvalidExpressionAssignmentTargetImpl() => InvalidTypeImpl.instance,
-  };
-
-  @generated
-  @override
-  AstNodeApi get _astNodeApi => AstNodeApi.v1;
-
-  @generated
-  @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addNode('leftHandSide', leftHandSide)
-    ..addToken('operator', operator)
-    ..addNode('rightHandSide', rightHandSide);
-
-  @generated
-  @override
-  ChildEntities get _childEntities2 {
-    throw StateError('AssignmentExpression is not in the V2 AST view.');
-  }
-
-  @generated
-  @ToBeDeprecated('Use accept2 instead.')
-  @override
-  E? accept<E>(AstVisitor<E> visitor) =>
-      visitor.visitAssignmentExpression(this);
-
-  @generated
-  @experimental
-  @override
-  E? accept2<E>(AstVisitor2<E> visitor) {
-    throw StateError('AssignmentExpression is not in the V2 AST view.');
-  }
-
-  @override
-  AttemptedConstantEvaluationResult? computeConstantValue() =>
-      _origin.computeConstantValue();
-
-  @DoNotGenerate(reason: 'Only the value is a V1 value expression slot')
-  @override
-  bool isInValueExpressionSlot(AstNode child) =>
-      identical(rightHandSide, child);
-
-  @DoNotGenerate(reason: 'A V1 projection cannot be mutated')
-  @override
-  void removeChild(AstNodeImpl oldNode) {
-    throw UnsupportedError('A V1 projection cannot be mutated.');
-  }
-
-  @DoNotGenerate(reason: 'A V1 projection cannot be mutated')
-  @override
-  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    throw UnsupportedError('A V1 projection cannot be mutated.');
-  }
-
-  @DoNotGenerate(reason: 'A V1 projection cannot be resolved')
-  @override
-  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
-    throw StateError('AssignmentExpression is a V1 projection.');
-  }
-
-  @override
-  String toSource() => _origin.toSource();
-
-  @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
-  @override
-  void visitChildren(AstVisitor visitor) {
-    leftHandSide.accept(visitor);
-    rightHandSide.accept(visitor);
-  }
-
-  @generated
-  @experimental
-  @override
-  void visitChildren2(AstVisitor2 visitor) {
-    throw StateError('AssignmentExpression is not in the V2 AST view.');
-  }
-
-  void _attachV1Children() {
-    _becomeParentOf1(leftHandSide);
-    _becomeParentOf1(rightHandSide);
-  }
-
-  @generated
-  @override
-  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
-    if (leftHandSide._containsOffset(rangeOffset, rangeEnd)) {
-      return leftHandSide;
-    }
-    if (rightHandSide._containsOffset(rangeOffset, rangeEnd)) {
-      return rightHandSide;
-    }
-    return null;
-  }
-
-  @generated
-  @override
-  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    throw StateError('AssignmentExpression is not in the V2 AST view.');
   }
 }
 
@@ -17336,10 +17001,6 @@ sealed class ExpressionImpl extends InstanceReceiverImpl
         return parent._staticParameterElementForIndex;
       }
     } else if (parent is CascadeIndexAssignmentTargetImpl) {
-      if (identical(parent.index, this)) {
-        return parent._staticParameterElementForIndex;
-      }
-    } else if (parent is CascadeIndexV1Impl) {
       if (identical(parent.index, this)) {
         return parent._staticParameterElementForIndex;
       }
@@ -26300,7 +25961,7 @@ abstract final class IfNullAssignment implements AssignmentExpression2 {}
 )
 final class IfNullAssignmentImpl extends AssignmentExpression2Impl
     implements IfNullAssignment {
-  IfNullAssignmentV1Impl? _assignmentExpression;
+  AssignmentExpressionImpl? _assignmentExpression;
 
   @generated
   IfNullAssignmentImpl({
@@ -26310,8 +25971,8 @@ final class IfNullAssignmentImpl extends AssignmentExpression2Impl
   });
 
   /// The cached V1 compatibility projection for this expression.
-  IfNullAssignmentV1Impl get assignmentExpression =>
-      _assignmentExpression ??= IfNullAssignmentV1Impl._(this);
+  AssignmentExpressionImpl get assignmentExpression => _assignmentExpression ??=
+      AssignmentExpressionImpl.v1ProjectionFromIfNull(this);
 
   @generated
   @override
@@ -26480,225 +26141,6 @@ final class IfNullAssignmentImpl extends AssignmentExpression2Impl
       return value;
     }
     return null;
-  }
-}
-
-/// The V1 compatibility projection of an [IfNullAssignment].
-@GenerateNodeImpl(
-  api: AstNodeApi.v1,
-  generateConstructor: false,
-  childEntitiesOrder: [
-    GenerateNodeProperty('leftHandSide'),
-    GenerateNodeProperty('operator'),
-    GenerateNodeProperty('rightHandSide'),
-  ],
-)
-final class IfNullAssignmentV1Impl extends ExpressionImpl
-    with CompoundAssignmentExpressionImpl
-    implements AssignmentExpression {
-  final IfNullAssignmentImpl _origin;
-
-  IfNullAssignmentV1Impl._(this._origin) {
-    _attachV1Children();
-  }
-
-  @DoNotGenerate(reason: 'Uses the projected V1 target token')
-  @override
-  Token get beginToken => leftHandSide.beginToken;
-
-  @override
-  InternalFormalParameterElement? get correspondingParameter =>
-      _origin.correspondingParameter;
-
-  @override
-  MethodElement? get element => null;
-
-  @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
-  @override
-  Token get endToken => _origin.endToken;
-
-  @override
-  bool get inConstantContext => _origin.inConstantContext;
-
-  @DoNotGenerate(reason: 'Projects the canonical V2 target')
-  @override
-  ExpressionImpl get leftHandSide => switch (_origin.target) {
-    CascadeIndexAssignmentTargetImpl target => target.indexExpression,
-    PropertyAssignmentTargetImpl target => target.propertyAccess,
-    IndexAssignmentTargetImpl target => target.indexExpression,
-    UnqualifiedNameAssignmentTargetImpl target => target.simpleIdentifier,
-    InvalidExpressionAssignmentTargetImpl target => V1Projection.toV1Expression(
-      target.expression,
-    ),
-  };
-
-  @experimental
-  @override
-  ExpressionImpl get leftHandSide2 => leftHandSide;
-
-  @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
-  @override
-  Token get operator => _origin.operator;
-
-  @override
-  Precedence get precedence => _origin.precedence;
-
-  @override
-  Element? get readElement => switch (_origin.target) {
-    CascadeIndexAssignmentTargetImpl target => target._legacyReadElement,
-    CascadePropertyAssignmentTargetImpl target => target._legacyReadElement,
-    IndexAssignmentTargetImpl target => target._legacyReadElement,
-    ReceiverPropertyAssignmentTargetImpl target => target._legacyReadElement,
-    UnqualifiedNameAssignmentTargetImpl target => target._legacyReadElement,
-    InvalidExpressionAssignmentTargetImpl(expression: IdentifierImpl element) =>
-      element.element,
-    InvalidExpressionAssignmentTargetImpl() => null,
-  };
-
-  @override
-  TypeImpl? get readType => switch (_origin.target) {
-    CascadeIndexAssignmentTargetImpl target =>
-      target.read?.type ?? InvalidTypeImpl.instance,
-    IndexAssignmentTargetImpl target => target._legacyReadType,
-    PropertyAssignmentTargetImpl target =>
-      target.read?.type ?? InvalidTypeImpl.instance,
-    UnqualifiedNameAssignmentTargetImpl target => target.read?.type,
-    InvalidExpressionAssignmentTargetImpl target =>
-      target.expression.staticType,
-  };
-
-  @DoNotGenerate(reason: 'Projects the canonical V2 value')
-  @override
-  ExpressionImpl get rightHandSide =>
-      V1Projection.toV1Expression(_origin.value);
-
-  @experimental
-  @override
-  ExpressionImpl get rightHandSide2 => _origin.value;
-
-  @override
-  TypeImpl? get staticType => _origin.staticType;
-
-  @override
-  Element? get writeElement => switch (_origin.target) {
-    CascadeIndexAssignmentTargetImpl target => target._legacyWriteElement,
-    CascadePropertyAssignmentTargetImpl target => target._legacyWriteElement,
-    IndexAssignmentTargetImpl target => target._legacyWriteElement,
-    ReceiverPropertyAssignmentTargetImpl target => target._legacyWriteElement,
-    UnqualifiedNameAssignmentTargetImpl target => target._legacyWriteElement,
-    InvalidExpressionAssignmentTargetImpl(expression: IdentifierImpl element) =>
-      element.element,
-    InvalidExpressionAssignmentTargetImpl() => null,
-  };
-
-  @override
-  TypeImpl? get writeType => switch (_origin.target) {
-    CascadeIndexAssignmentTargetImpl target =>
-      target.write?.acceptedType ?? InvalidTypeImpl.instance,
-    PropertyAssignmentTargetImpl target =>
-      target.write?.acceptedType ?? InvalidTypeImpl.instance,
-    IndexAssignmentTargetImpl target =>
-      target.write?.acceptedType ?? InvalidTypeImpl.instance,
-    UnqualifiedNameAssignmentTargetImpl target => target.write?.acceptedType,
-    InvalidExpressionAssignmentTargetImpl() => InvalidTypeImpl.instance,
-  };
-
-  @generated
-  @override
-  AstNodeApi get _astNodeApi => AstNodeApi.v1;
-
-  @generated
-  @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addNode('leftHandSide', leftHandSide)
-    ..addToken('operator', operator)
-    ..addNode('rightHandSide', rightHandSide);
-
-  @generated
-  @override
-  ChildEntities get _childEntities2 {
-    throw StateError('AssignmentExpression is not in the V2 AST view.');
-  }
-
-  @generated
-  @ToBeDeprecated('Use accept2 instead.')
-  @override
-  E? accept<E>(AstVisitor<E> visitor) =>
-      visitor.visitAssignmentExpression(this);
-
-  @generated
-  @experimental
-  @override
-  E? accept2<E>(AstVisitor2<E> visitor) {
-    throw StateError('AssignmentExpression is not in the V2 AST view.');
-  }
-
-  @override
-  AttemptedConstantEvaluationResult? computeConstantValue() =>
-      _origin.computeConstantValue();
-
-  @DoNotGenerate(reason: 'Only the value is a V1 value expression slot')
-  @override
-  bool isInValueExpressionSlot(AstNode child) =>
-      identical(rightHandSide, child);
-
-  @DoNotGenerate(reason: 'A V1 projection cannot be mutated')
-  @override
-  void removeChild(AstNodeImpl oldNode) {
-    throw UnsupportedError('A V1 projection cannot be mutated.');
-  }
-
-  @DoNotGenerate(reason: 'A V1 projection cannot be mutated')
-  @override
-  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    throw UnsupportedError('A V1 projection cannot be mutated.');
-  }
-
-  @DoNotGenerate(reason: 'A V1 projection cannot be resolved')
-  @override
-  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
-    throw StateError('AssignmentExpression is a V1 projection.');
-  }
-
-  @override
-  String toSource() => _origin.toSource();
-
-  @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
-  @override
-  void visitChildren(AstVisitor visitor) {
-    leftHandSide.accept(visitor);
-    rightHandSide.accept(visitor);
-  }
-
-  @generated
-  @experimental
-  @override
-  void visitChildren2(AstVisitor2 visitor) {
-    throw StateError('AssignmentExpression is not in the V2 AST view.');
-  }
-
-  void _attachV1Children() {
-    _becomeParentOf1(leftHandSide);
-    _becomeParentOf1(rightHandSide);
-  }
-
-  @generated
-  @override
-  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
-    if (leftHandSide._containsOffset(rangeOffset, rangeEnd)) {
-      return leftHandSide;
-    }
-    if (rightHandSide._containsOffset(rangeOffset, rangeEnd)) {
-      return rightHandSide;
-    }
-    return null;
-  }
-
-  @generated
-  @override
-  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    throw StateError('AssignmentExpression is not in the V2 AST view.');
   }
 }
 
@@ -28319,7 +27761,7 @@ final class IndexAssignmentTargetImpl extends AssignmentTargetImpl
   @override
   IndexWriteResolutionImpl? write;
 
-  IndexAssignmentTargetV1Impl? _indexExpression;
+  IndexExpressionImpl? _indexExpression;
 
   @generated
   IndexAssignmentTargetImpl({
@@ -28357,8 +27799,8 @@ final class IndexAssignmentTargetImpl extends AssignmentTargetImpl
   }
 
   /// The cached V1 compatibility projection for this target.
-  IndexAssignmentTargetV1Impl get indexExpression =>
-      _indexExpression ??= IndexAssignmentTargetV1Impl._(this);
+  IndexExpressionImpl get indexExpression => _indexExpression ??=
+      IndexExpressionImpl.v1ProjectionFromAssignmentTarget(this);
 
   @generated
   @override
@@ -28528,194 +27970,6 @@ final class IndexAssignmentTargetImpl extends AssignmentTargetImpl
       return index;
     }
     return null;
-  }
-}
-
-/// The V1 compatibility projection of an [IndexAssignmentTarget].
-@GenerateNodeImpl(
-  api: AstNodeApi.v1,
-  generateConstructor: false,
-  childEntitiesOrder: [
-    GenerateNodeProperty('target'),
-    GenerateNodeProperty('period'),
-    GenerateNodeProperty('question'),
-    GenerateNodeProperty('leftBracket'),
-    GenerateNodeProperty('index'),
-    GenerateNodeProperty('rightBracket'),
-  ],
-)
-final class IndexAssignmentTargetV1Impl extends ExpressionImpl
-    implements IndexExpression {
-  final IndexAssignmentTargetImpl _origin;
-
-  IndexAssignmentTargetV1Impl._(this._origin) {
-    _attachV1Children();
-  }
-
-  @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
-  @override
-  Token get beginToken => _origin.beginToken;
-
-  @override
-  MethodElement? get element => null;
-
-  @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
-  @override
-  Token get endToken => _origin.endToken;
-
-  @DoNotGenerate(reason: 'Projects the canonical V2 index expression')
-  @override
-  ExpressionImpl get index => V1Projection.toV1Expression(_origin.index);
-
-  @experimental
-  @override
-  ExpressionImpl get index2 => index;
-
-  @override
-  bool get isAssignable => true;
-
-  @override
-  bool get isCascaded => false;
-
-  @override
-  bool get isNullAware => _origin.question != null;
-
-  @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
-  @override
-  Token get leftBracket => _origin.leftBracket;
-
-  @DoNotGenerate(reason: 'This migration slice is not cascaded')
-  @override
-  Token? get period => null;
-
-  @override
-  Precedence get precedence => Precedence.postfix;
-
-  @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
-  @override
-  Token? get question => _origin.question;
-
-  @DoNotGenerate(reason: 'Projects the canonical V2 receiver')
-  @override
-  ExpressionImpl get realTarget => target!;
-
-  @experimental
-  @override
-  ExpressionImpl get realTarget2 => target!;
-
-  @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
-  @override
-  Token get rightBracket => _origin.rightBracket;
-
-  @DoNotGenerate(reason: 'Projects the canonical V2 receiver')
-  @override
-  ExpressionImpl? get target => V1Projection.toV1Expression(_origin.receiver);
-
-  @experimental
-  @override
-  ExpressionImpl? get target2 => target;
-
-  @generated
-  @override
-  AstNodeApi get _astNodeApi => AstNodeApi.v1;
-
-  @generated
-  @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addNode('target', target)
-    ..addToken('period', period)
-    ..addToken('question', question)
-    ..addToken('leftBracket', leftBracket)
-    ..addNode('index', index)
-    ..addToken('rightBracket', rightBracket);
-
-  @generated
-  @override
-  ChildEntities get _childEntities2 {
-    throw StateError('IndexExpression is not in the V2 AST view.');
-  }
-
-  @generated
-  @ToBeDeprecated('Use accept2 instead.')
-  @override
-  E? accept<E>(AstVisitor<E> visitor) => visitor.visitIndexExpression(this);
-
-  @generated
-  @experimental
-  @override
-  E? accept2<E>(AstVisitor2<E> visitor) {
-    throw StateError('IndexExpression is not in the V2 AST view.');
-  }
-
-  @override
-  bool inGetterContext() => _origin.parent2 is! DirectAssignment;
-
-  @override
-  bool inSetterContext() => true;
-
-  @DoNotGenerate(reason: 'V1 projection children are value expressions')
-  @override
-  bool isInValueExpressionSlot(AstNode child) => true;
-
-  @DoNotGenerate(reason: 'A V1 projection cannot be mutated')
-  @override
-  void removeChild(AstNodeImpl oldNode) {
-    throw UnsupportedError('A V1 projection cannot be mutated.');
-  }
-
-  @DoNotGenerate(reason: 'A V1 projection cannot be mutated')
-  @override
-  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    throw UnsupportedError('A V1 projection cannot be mutated.');
-  }
-
-  @DoNotGenerate(reason: 'A V1 projection cannot be resolved')
-  @override
-  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
-    throw StateError('IndexExpression is a V1 projection.');
-  }
-
-  @override
-  String toSource() => _origin.toSource();
-
-  @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
-  @override
-  void visitChildren(AstVisitor visitor) {
-    target?.accept(visitor);
-    index.accept(visitor);
-  }
-
-  @generated
-  @experimental
-  @override
-  void visitChildren2(AstVisitor2 visitor) {
-    throw StateError('IndexExpression is not in the V2 AST view.');
-  }
-
-  void _attachV1Children() {
-    _becomeParentOf1(target);
-    _becomeParentOf1(index);
-  }
-
-  @generated
-  @override
-  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
-    if (target case var target?) {
-      if (target._containsOffset(rangeOffset, rangeEnd)) {
-        return target;
-      }
-    }
-    if (index._containsOffset(rangeOffset, rangeEnd)) {
-      return index;
-    }
-    return null;
-  }
-
-  @generated
-  @override
-  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    throw StateError('IndexExpression is not in the V2 AST view.');
   }
 }
 
@@ -29071,209 +28325,6 @@ final class IndexExpression2Impl extends ExpressionImpl
       return index;
     }
     return null;
-  }
-}
-
-/// The V1 compatibility projection of an [IndexExpression2].
-@GenerateNodeImpl(
-  api: AstNodeApi.v1,
-  generateConstructor: false,
-  childEntitiesOrder: [
-    GenerateNodeProperty('target'),
-    GenerateNodeProperty('period'),
-    GenerateNodeProperty('question'),
-    GenerateNodeProperty('leftBracket'),
-    GenerateNodeProperty('index'),
-    GenerateNodeProperty('rightBracket'),
-  ],
-)
-final class IndexExpression2V1Impl extends ExpressionImpl
-    implements IndexExpression {
-  final IndexExpression2Impl _origin;
-
-  IndexExpression2V1Impl._(this._origin) {
-    _attachV1Children();
-  }
-
-  @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
-  @override
-  Token get beginToken => _origin.beginToken;
-
-  @override
-  InternalFormalParameterElement? get correspondingParameter =>
-      _origin.correspondingParameter;
-
-  @DoNotGenerate(reason: 'Projects the canonical typed read resolution')
-  @override
-  MethodElement? get element => _origin._legacyReadElement;
-
-  @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
-  @override
-  Token get endToken => _origin.endToken;
-
-  @override
-  bool get inConstantContext => _origin.inConstantContext;
-
-  @DoNotGenerate(reason: 'Projects the canonical V2 index expression')
-  @override
-  ExpressionImpl get index => V1Projection.toV1Expression(_origin.index);
-
-  @experimental
-  @override
-  ExpressionImpl get index2 => index;
-
-  @override
-  bool get isAssignable => true;
-
-  @override
-  bool get isCascaded => false;
-
-  @override
-  bool get isNullAware => question != null;
-
-  @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
-  @override
-  Token get leftBracket => _origin.leftBracket;
-
-  @DoNotGenerate(reason: 'This migration slice is not cascaded')
-  @override
-  Token? get period => null;
-
-  @override
-  Precedence get precedence => Precedence.postfix;
-
-  @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
-  @override
-  Token? get question => _origin.question;
-
-  @DoNotGenerate(reason: 'Projects the canonical V2 receiver')
-  @override
-  ExpressionImpl get realTarget => target!;
-
-  @experimental
-  @override
-  ExpressionImpl get realTarget2 => target!;
-
-  @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
-  @override
-  Token get rightBracket => _origin.rightBracket;
-
-  @override
-  TypeImpl? get staticType => _origin.staticType;
-
-  @DoNotGenerate(reason: 'Projects the canonical V2 receiver')
-  @override
-  ExpressionImpl? get target => V1Projection.toV1Expression(_origin.receiver);
-
-  @experimental
-  @override
-  ExpressionImpl? get target2 => target;
-
-  @generated
-  @override
-  AstNodeApi get _astNodeApi => AstNodeApi.v1;
-
-  @generated
-  @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addNode('target', target)
-    ..addToken('period', period)
-    ..addToken('question', question)
-    ..addToken('leftBracket', leftBracket)
-    ..addNode('index', index)
-    ..addToken('rightBracket', rightBracket);
-
-  @generated
-  @override
-  ChildEntities get _childEntities2 {
-    throw StateError('IndexExpression is not in the V2 AST view.');
-  }
-
-  @generated
-  @ToBeDeprecated('Use accept2 instead.')
-  @override
-  E? accept<E>(AstVisitor<E> visitor) => visitor.visitIndexExpression(this);
-
-  @generated
-  @experimental
-  @override
-  E? accept2<E>(AstVisitor2<E> visitor) {
-    throw StateError('IndexExpression is not in the V2 AST view.');
-  }
-
-  @override
-  AttemptedConstantEvaluationResult? computeConstantValue() =>
-      _origin.computeConstantValue();
-
-  @override
-  bool inGetterContext() => true;
-
-  @override
-  bool inSetterContext() => false;
-
-  @DoNotGenerate(reason: 'V1 projection children are value expressions')
-  @override
-  bool isInValueExpressionSlot(AstNode child) => true;
-
-  @DoNotGenerate(reason: 'A V1 projection cannot be mutated')
-  @override
-  void removeChild(AstNodeImpl oldNode) {
-    throw UnsupportedError('A V1 projection cannot be mutated.');
-  }
-
-  @DoNotGenerate(reason: 'A V1 projection cannot be mutated')
-  @override
-  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    throw UnsupportedError('A V1 projection cannot be mutated.');
-  }
-
-  @DoNotGenerate(reason: 'A V1 projection cannot be resolved')
-  @override
-  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
-    throw StateError('IndexExpression is a V1 projection.');
-  }
-
-  @override
-  String toSource() => _origin.toSource();
-
-  @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
-  @override
-  void visitChildren(AstVisitor visitor) {
-    target?.accept(visitor);
-    index.accept(visitor);
-  }
-
-  @generated
-  @experimental
-  @override
-  void visitChildren2(AstVisitor2 visitor) {
-    throw StateError('IndexExpression is not in the V2 AST view.');
-  }
-
-  void _attachV1Children() {
-    _becomeParentOf1(target);
-    _becomeParentOf1(index);
-  }
-
-  @generated
-  @override
-  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
-    if (target case var target?) {
-      if (target._containsOffset(rangeOffset, rangeEnd)) {
-        return target;
-      }
-    }
-    if (index._containsOffset(rangeOffset, rangeEnd)) {
-      return index;
-    }
-    return null;
-  }
-
-  @generated
-  @override
-  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    throw StateError('IndexExpression is not in the V2 AST view.');
   }
 }
 
@@ -32885,8 +31936,8 @@ final class LogicalNotImpl extends ExpressionImpl implements LogicalNot {
   Precedence get precedence => Precedence.prefix;
 
   /// The cached V1 compatibility projection for this expression.
-  PrefixExpressionImpl get prefixExpression =>
-      _prefixExpression ??= PrefixExpressionImpl._(this);
+  PrefixExpressionImpl get prefixExpression => _prefixExpression ??=
+      PrefixExpressionImpl.v1ProjectionFromLogicalNot(this);
 
   @generated
   @override
@@ -37485,8 +36536,8 @@ final class NullAssertionExpressionImpl extends ExpressionImpl
   }
 
   /// The cached V1 compatibility projection for this expression.
-  PostfixExpressionImpl get postfixExpression =>
-      _postfixExpression ??= PostfixExpressionImpl._(this);
+  PostfixExpressionImpl get postfixExpression => _postfixExpression ??=
+      PostfixExpressionImpl.v1ProjectionFromNullAssertion(this);
 
   @override
   Precedence get precedence => Precedence.postfix;
@@ -40612,7 +39663,7 @@ abstract final class PostfixDecrement
 final class PostfixDecrementImpl extends IncrementOrDecrementExpressionImpl
     with DotShorthandMixin
     implements PostfixDecrement {
-  PostfixIncrementOrDecrementV1Impl? _postfixExpression;
+  PostfixExpressionImpl? _postfixExpression;
 
   @generated
   PostfixDecrementImpl({required super.target, required super.operator});
@@ -40630,8 +39681,8 @@ final class PostfixDecrementImpl extends IncrementOrDecrementExpressionImpl
   }
 
   /// The cached V1 compatibility projection for this expression.
-  PostfixIncrementOrDecrementV1Impl get postfixExpression =>
-      _postfixExpression ??= PostfixIncrementOrDecrementV1Impl._(this);
+  PostfixExpressionImpl get postfixExpression => _postfixExpression ??=
+      PostfixExpressionImpl.v1ProjectionFromIncrementOrDecrement(this);
 
   @override
   Precedence get precedence => Precedence.postfix;
@@ -40788,9 +39839,17 @@ abstract final class PostfixExpression
 final class PostfixExpressionImpl extends ExpressionImpl
     with CompoundAssignmentExpressionImpl
     implements PostfixExpression {
-  final NullAssertionExpressionImpl _origin;
+  final ExpressionImpl _origin;
 
-  PostfixExpressionImpl._(this._origin) {
+  PostfixExpressionImpl.v1ProjectionFromIncrementOrDecrement(
+    IncrementOrDecrementExpressionImpl origin,
+  ) : _origin = origin {
+    _attachV1Children();
+  }
+
+  PostfixExpressionImpl.v1ProjectionFromNullAssertion(
+    NullAssertionExpressionImpl origin,
+  ) : _origin = origin {
     _attachV1Children();
   }
 
@@ -40803,7 +39862,11 @@ final class PostfixExpressionImpl extends ExpressionImpl
       _origin.correspondingParameter;
 
   @override
-  MethodElement? get element => null;
+  MethodElement? get element => switch (_origin) {
+    IncrementOrDecrementExpressionImpl origin => origin.element,
+    NullAssertionExpressionImpl() => null,
+    _ => throw StateError('Unexpected PostfixExpression origin: $_origin'),
+  };
 
   @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
   @override
@@ -40814,17 +39877,55 @@ final class PostfixExpressionImpl extends ExpressionImpl
 
   @DoNotGenerate(reason: 'Projects the canonical V2 operand')
   @override
-  ExpressionImpl get operand => V1Projection.toV1Expression(_origin.operand);
+  ExpressionImpl get operand => switch (_origin) {
+    IncrementOrDecrementExpressionImpl origin => origin._legacyOperand,
+    NullAssertionExpressionImpl origin => V1Projection.toV1Expression(
+      origin.operand,
+    ),
+    _ => throw StateError('Unexpected PostfixExpression origin: $_origin'),
+  };
 
   @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
   @override
-  Token get operator => _origin.operator;
+  Token get operator => switch (_origin) {
+    IncrementOrDecrementExpressionImpl origin => origin.operator,
+    NullAssertionExpressionImpl origin => origin.operator,
+    _ => throw StateError('Unexpected PostfixExpression origin: $_origin'),
+  };
 
   @override
   Precedence get precedence => Precedence.postfix;
 
   @override
+  Element? get readElement => switch (_origin) {
+    IncrementOrDecrementExpressionImpl origin => origin._legacyReadElement,
+    NullAssertionExpressionImpl() => null,
+    _ => throw StateError('Unexpected PostfixExpression origin: $_origin'),
+  };
+
+  @override
+  TypeImpl? get readType => switch (_origin) {
+    IncrementOrDecrementExpressionImpl origin => origin._legacyReadType,
+    NullAssertionExpressionImpl() => null,
+    _ => throw StateError('Unexpected PostfixExpression origin: $_origin'),
+  };
+
+  @override
   TypeImpl? get staticType => _origin.staticType;
+
+  @override
+  Element? get writeElement => switch (_origin) {
+    IncrementOrDecrementExpressionImpl origin => origin._legacyWriteElement,
+    NullAssertionExpressionImpl() => null,
+    _ => throw StateError('Unexpected PostfixExpression origin: $_origin'),
+  };
+
+  @override
+  TypeImpl? get writeType => switch (_origin) {
+    IncrementOrDecrementExpressionImpl origin => origin._legacyWriteType,
+    NullAssertionExpressionImpl() => null,
+    _ => throw StateError('Unexpected PostfixExpression origin: $_origin'),
+  };
 
   @generated
   @override
@@ -40933,7 +40034,7 @@ abstract final class PostfixIncrement
 final class PostfixIncrementImpl extends IncrementOrDecrementExpressionImpl
     with DotShorthandMixin
     implements PostfixIncrement {
-  PostfixIncrementOrDecrementV1Impl? _postfixExpression;
+  PostfixExpressionImpl? _postfixExpression;
 
   @generated
   PostfixIncrementImpl({required super.target, required super.operator});
@@ -40951,8 +40052,8 @@ final class PostfixIncrementImpl extends IncrementOrDecrementExpressionImpl
   }
 
   /// The cached V1 compatibility projection for this expression.
-  PostfixIncrementOrDecrementV1Impl get postfixExpression =>
-      _postfixExpression ??= PostfixIncrementOrDecrementV1Impl._(this);
+  PostfixExpressionImpl get postfixExpression => _postfixExpression ??=
+      PostfixExpressionImpl.v1ProjectionFromIncrementOrDecrement(this);
 
   @override
   Precedence get precedence => Precedence.postfix;
@@ -41071,134 +40172,6 @@ final class PostfixIncrementImpl extends IncrementOrDecrementExpressionImpl
   }
 }
 
-/// The V1 compatibility projection of an
-/// [IncrementOrDecrementExpression].
-final class PostfixIncrementOrDecrementV1Impl extends ExpressionImpl
-    implements PostfixExpression {
-  final IncrementOrDecrementExpressionImpl _origin;
-
-  PostfixIncrementOrDecrementV1Impl._(this._origin) {
-    _attachV1Children();
-  }
-
-  @override
-  Token get beginToken => _origin.beginToken;
-
-  @override
-  InternalFormalParameterElement? get correspondingParameter =>
-      _origin.correspondingParameter;
-
-  @override
-  MethodElement? get element => _origin.element;
-
-  @override
-  Token get endToken => _origin.endToken;
-
-  @override
-  bool get inConstantContext => _origin.inConstantContext;
-
-  @override
-  ExpressionImpl get operand => _origin._legacyOperand;
-
-  @override
-  Token get operator => _origin.operator;
-
-  @override
-  Precedence get precedence => Precedence.postfix;
-
-  @override
-  Element? get readElement => _origin._legacyReadElement;
-
-  @override
-  TypeImpl? get readType => _origin._legacyReadType;
-
-  @override
-  TypeImpl? get staticType => _origin.staticType;
-
-  @override
-  Element? get writeElement => _origin._legacyWriteElement;
-
-  @override
-  TypeImpl? get writeType => _origin._legacyWriteType;
-
-  @override
-  AstNodeApi get _astNodeApi => AstNodeApi.v1;
-
-  @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addNode('operand', operand)
-    ..addToken('operator', operator);
-
-  @override
-  ChildEntities get _childEntities2 {
-    throw StateError('PostfixExpression is not in the V2 AST view.');
-  }
-
-  @ToBeDeprecated('Use accept2 instead.')
-  @override
-  E? accept<E>(AstVisitor<E> visitor) => visitor.visitPostfixExpression(this);
-
-  @experimental
-  @override
-  E? accept2<E>(AstVisitor2<E> visitor) {
-    throw StateError('PostfixExpression is not in the V2 AST view.');
-  }
-
-  @override
-  AttemptedConstantEvaluationResult? computeConstantValue() =>
-      _origin.computeConstantValue();
-
-  @override
-  bool isInValueExpressionSlot(AstNode child) => false;
-
-  @override
-  void removeChild(AstNodeImpl oldNode) {
-    throw UnsupportedError('A V1 projection cannot be mutated.');
-  }
-
-  @override
-  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    throw UnsupportedError('A V1 projection cannot be mutated.');
-  }
-
-  @override
-  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
-    throw StateError('PostfixExpression is a V1 projection.');
-  }
-
-  @override
-  String toSource() => _origin.toSource();
-
-  @ToBeDeprecated('Use visitChildren2 instead.')
-  @override
-  void visitChildren(AstVisitor visitor) {
-    operand.accept(visitor);
-  }
-
-  @experimental
-  @override
-  void visitChildren2(AstVisitor2 visitor) {
-    throw StateError('PostfixExpression is not in the V2 AST view.');
-  }
-
-  void _attachV1Children() {
-    _becomeParentOf1(operand);
-  }
-
-  @override
-  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
-    if (operand._containsOffset(rangeOffset, rangeEnd)) {
-      return operand;
-    }
-    return null;
-  }
-
-  @override
-  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    throw StateError('PostfixExpression is not in the V2 AST view.');
-  }
-}
-
 /// A prefix decrement expression.
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
@@ -41214,7 +40187,7 @@ abstract final class PrefixDecrement
 )
 final class PrefixDecrementImpl extends IncrementOrDecrementExpressionImpl
     implements PrefixDecrement {
-  PrefixIncrementOrDecrementV1Impl? _prefixExpression;
+  PrefixExpressionImpl? _prefixExpression;
 
   @generated
   PrefixDecrementImpl({required super.operator, required super.target});
@@ -41235,8 +40208,8 @@ final class PrefixDecrementImpl extends IncrementOrDecrementExpressionImpl
   Precedence get precedence => Precedence.prefix;
 
   /// The cached V1 compatibility projection for this expression.
-  PrefixIncrementOrDecrementV1Impl get prefixExpression =>
-      _prefixExpression ??= PrefixIncrementOrDecrementV1Impl._(this);
+  PrefixExpressionImpl get prefixExpression => _prefixExpression ??=
+      PrefixExpressionImpl.v1ProjectionFromIncrementOrDecrement(this);
 
   @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
   set target(AssignmentTargetImpl target) {
@@ -41625,9 +40598,22 @@ abstract final class PrefixExpression
 final class PrefixExpressionImpl extends ExpressionImpl
     with CompoundAssignmentExpressionImpl
     implements PrefixExpression {
-  final LogicalNotImpl _origin;
+  final ExpressionImpl _origin;
 
-  PrefixExpressionImpl._(this._origin) {
+  PrefixExpressionImpl.v1ProjectionFromIncrementOrDecrement(
+    IncrementOrDecrementExpressionImpl origin,
+  ) : _origin = origin {
+    _attachV1Children();
+  }
+
+  PrefixExpressionImpl.v1ProjectionFromLogicalNot(LogicalNotImpl origin)
+    : _origin = origin {
+    _attachV1Children();
+  }
+
+  PrefixExpressionImpl.v1ProjectionFromUnaryOperatorInvocation(
+    UnaryOperatorInvocationImpl origin,
+  ) : _origin = origin {
     _attachV1Children();
   }
 
@@ -41640,7 +40626,12 @@ final class PrefixExpressionImpl extends ExpressionImpl
       _origin.correspondingParameter;
 
   @override
-  MethodElement? get element => null;
+  MethodElement? get element => switch (_origin) {
+    IncrementOrDecrementExpressionImpl origin => origin.element,
+    LogicalNotImpl() => null,
+    UnaryOperatorInvocationImpl origin => origin.element,
+    _ => throw StateError('Unexpected PrefixExpression origin: $_origin'),
+  };
 
   @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
   @override
@@ -41651,17 +40642,57 @@ final class PrefixExpressionImpl extends ExpressionImpl
 
   @DoNotGenerate(reason: 'Projects the canonical V2 operand')
   @override
-  ExpressionImpl get operand => V1Projection.toV1Expression(_origin.operand);
+  ExpressionImpl get operand => switch (_origin) {
+    IncrementOrDecrementExpressionImpl origin => origin._legacyOperand,
+    LogicalNotImpl origin => V1Projection.toV1Expression(origin.operand),
+    UnaryOperatorInvocationImpl origin => V1Projection.toV1Expression(
+      origin.operand as ExpressionImpl,
+    ),
+    _ => throw StateError('Unexpected PrefixExpression origin: $_origin'),
+  };
 
   @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
   @override
-  Token get operator => _origin.operator;
+  Token get operator => switch (_origin) {
+    IncrementOrDecrementExpressionImpl origin => origin.operator,
+    LogicalNotImpl origin => origin.operator,
+    UnaryOperatorInvocationImpl origin => origin.operator,
+    _ => throw StateError('Unexpected PrefixExpression origin: $_origin'),
+  };
 
   @override
   Precedence get precedence => Precedence.prefix;
 
   @override
+  Element? get readElement => switch (_origin) {
+    IncrementOrDecrementExpressionImpl origin => origin._legacyReadElement,
+    LogicalNotImpl() || UnaryOperatorInvocationImpl() => null,
+    _ => throw StateError('Unexpected PrefixExpression origin: $_origin'),
+  };
+
+  @override
+  TypeImpl? get readType => switch (_origin) {
+    IncrementOrDecrementExpressionImpl origin => origin._legacyReadType,
+    LogicalNotImpl() || UnaryOperatorInvocationImpl() => null,
+    _ => throw StateError('Unexpected PrefixExpression origin: $_origin'),
+  };
+
+  @override
   TypeImpl? get staticType => _origin.staticType;
+
+  @override
+  Element? get writeElement => switch (_origin) {
+    IncrementOrDecrementExpressionImpl origin => origin._legacyWriteElement,
+    LogicalNotImpl() || UnaryOperatorInvocationImpl() => null,
+    _ => throw StateError('Unexpected PrefixExpression origin: $_origin'),
+  };
+
+  @override
+  TypeImpl? get writeType => switch (_origin) {
+    IncrementOrDecrementExpressionImpl origin => origin._legacyWriteType,
+    LogicalNotImpl() || UnaryOperatorInvocationImpl() => null,
+    _ => throw StateError('Unexpected PrefixExpression origin: $_origin'),
+  };
 
   @generated
   @override
@@ -41697,7 +40728,11 @@ final class PrefixExpressionImpl extends ExpressionImpl
 
   @DoNotGenerate(reason: 'The operand is a value expression slot')
   @override
-  bool isInValueExpressionSlot(AstNode child) => true;
+  bool isInValueExpressionSlot(AstNode child) => switch (_origin) {
+    IncrementOrDecrementExpressionImpl() => false,
+    LogicalNotImpl() || UnaryOperatorInvocationImpl() => true,
+    _ => throw StateError('Unexpected PrefixExpression origin: $_origin'),
+  };
 
   @DoNotGenerate(reason: 'A V1 projection cannot be mutated')
   @override
@@ -41769,7 +40804,7 @@ abstract final class PrefixIncrement
 )
 final class PrefixIncrementImpl extends IncrementOrDecrementExpressionImpl
     implements PrefixIncrement {
-  PrefixIncrementOrDecrementV1Impl? _prefixExpression;
+  PrefixExpressionImpl? _prefixExpression;
 
   @generated
   PrefixIncrementImpl({required super.operator, required super.target});
@@ -41790,8 +40825,8 @@ final class PrefixIncrementImpl extends IncrementOrDecrementExpressionImpl
   Precedence get precedence => Precedence.prefix;
 
   /// The cached V1 compatibility projection for this expression.
-  PrefixIncrementOrDecrementV1Impl get prefixExpression =>
-      _prefixExpression ??= PrefixIncrementOrDecrementV1Impl._(this);
+  PrefixExpressionImpl get prefixExpression => _prefixExpression ??=
+      PrefixExpressionImpl.v1ProjectionFromIncrementOrDecrement(this);
 
   @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
   set target(AssignmentTargetImpl target) {
@@ -41904,134 +40939,6 @@ final class PrefixIncrementImpl extends IncrementOrDecrementExpressionImpl
       return target;
     }
     return null;
-  }
-}
-
-/// The V1 compatibility projection of an
-/// [IncrementOrDecrementExpression].
-final class PrefixIncrementOrDecrementV1Impl extends ExpressionImpl
-    implements PrefixExpression {
-  final IncrementOrDecrementExpressionImpl _origin;
-
-  PrefixIncrementOrDecrementV1Impl._(this._origin) {
-    _attachV1Children();
-  }
-
-  @override
-  Token get beginToken => _origin.beginToken;
-
-  @override
-  InternalFormalParameterElement? get correspondingParameter =>
-      _origin.correspondingParameter;
-
-  @override
-  MethodElement? get element => _origin.element;
-
-  @override
-  Token get endToken => _origin.endToken;
-
-  @override
-  bool get inConstantContext => _origin.inConstantContext;
-
-  @override
-  ExpressionImpl get operand => _origin._legacyOperand;
-
-  @override
-  Token get operator => _origin.operator;
-
-  @override
-  Precedence get precedence => Precedence.prefix;
-
-  @override
-  Element? get readElement => _origin._legacyReadElement;
-
-  @override
-  TypeImpl? get readType => _origin._legacyReadType;
-
-  @override
-  TypeImpl? get staticType => _origin.staticType;
-
-  @override
-  Element? get writeElement => _origin._legacyWriteElement;
-
-  @override
-  TypeImpl? get writeType => _origin._legacyWriteType;
-
-  @override
-  AstNodeApi get _astNodeApi => AstNodeApi.v1;
-
-  @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addToken('operator', operator)
-    ..addNode('operand', operand);
-
-  @override
-  ChildEntities get _childEntities2 {
-    throw StateError('PrefixExpression is not in the V2 AST view.');
-  }
-
-  @ToBeDeprecated('Use accept2 instead.')
-  @override
-  E? accept<E>(AstVisitor<E> visitor) => visitor.visitPrefixExpression(this);
-
-  @experimental
-  @override
-  E? accept2<E>(AstVisitor2<E> visitor) {
-    throw StateError('PrefixExpression is not in the V2 AST view.');
-  }
-
-  @override
-  AttemptedConstantEvaluationResult? computeConstantValue() =>
-      _origin.computeConstantValue();
-
-  @override
-  bool isInValueExpressionSlot(AstNode child) => false;
-
-  @override
-  void removeChild(AstNodeImpl oldNode) {
-    throw UnsupportedError('A V1 projection cannot be mutated.');
-  }
-
-  @override
-  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    throw UnsupportedError('A V1 projection cannot be mutated.');
-  }
-
-  @override
-  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
-    throw StateError('PrefixExpression is a V1 projection.');
-  }
-
-  @override
-  String toSource() => _origin.toSource();
-
-  @ToBeDeprecated('Use visitChildren2 instead.')
-  @override
-  void visitChildren(AstVisitor visitor) {
-    operand.accept(visitor);
-  }
-
-  @experimental
-  @override
-  void visitChildren2(AstVisitor2 visitor) {
-    throw StateError('PrefixExpression is not in the V2 AST view.');
-  }
-
-  void _attachV1Children() {
-    _becomeParentOf1(operand);
-  }
-
-  @override
-  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
-    if (operand._containsOffset(rangeOffset, rangeEnd)) {
-      return operand;
-    }
-    return null;
-  }
-
-  @override
-  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    throw StateError('PrefixExpression is not in the V2 AST view.');
   }
 }
 
@@ -52793,7 +51700,7 @@ final class UnaryOperatorInvocationImpl extends ExpressionImpl
   @override
   InternalMethodElement? element;
 
-  UnaryOperatorInvocationV1Impl? _prefixExpression;
+  PrefixExpressionImpl? _prefixExpression;
 
   @generated
   UnaryOperatorInvocationImpl({
@@ -52829,8 +51736,8 @@ final class UnaryOperatorInvocationImpl extends ExpressionImpl
   Precedence get precedence => Precedence.prefix;
 
   /// The cached V1 compatibility projection for this expression.
-  UnaryOperatorInvocationV1Impl get prefixExpression =>
-      _prefixExpression ??= UnaryOperatorInvocationV1Impl._(this);
+  PrefixExpressionImpl get prefixExpression => _prefixExpression ??=
+      PrefixExpressionImpl.v1ProjectionFromUnaryOperatorInvocation(this);
 
   @override
   UnaryOperator get unaryOperator {
@@ -52950,123 +51857,6 @@ final class UnaryOperatorInvocationImpl extends ExpressionImpl
       return operand;
     }
     return null;
-  }
-}
-
-/// The V1 compatibility projection of a [UnaryOperatorInvocation].
-final class UnaryOperatorInvocationV1Impl extends ExpressionImpl
-    with CompoundAssignmentExpressionImpl
-    implements PrefixExpression {
-  final UnaryOperatorInvocationImpl _origin;
-
-  UnaryOperatorInvocationV1Impl._(this._origin) {
-    _attachV1Children();
-  }
-
-  @override
-  Token get beginToken => _origin.beginToken;
-
-  @override
-  InternalFormalParameterElement? get correspondingParameter =>
-      _origin.correspondingParameter;
-
-  @override
-  MethodElement? get element => _origin.element;
-
-  @override
-  Token get endToken => _origin.endToken;
-
-  @override
-  bool get inConstantContext => _origin.inConstantContext;
-
-  @override
-  ExpressionImpl get operand =>
-      V1Projection.toV1Expression(_origin.operand as ExpressionImpl);
-
-  @override
-  Token get operator => _origin.operator;
-
-  @override
-  Precedence get precedence => Precedence.prefix;
-
-  @override
-  TypeImpl? get staticType => _origin.staticType;
-
-  @override
-  AstNodeApi get _astNodeApi => AstNodeApi.v1;
-
-  @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addToken('operator', operator)
-    ..addNode('operand', operand);
-
-  @override
-  ChildEntities get _childEntities2 {
-    throw StateError('PrefixExpression is not in the V2 AST view.');
-  }
-
-  @ToBeDeprecated('Use accept2 instead.')
-  @override
-  E? accept<E>(AstVisitor<E> visitor) => visitor.visitPrefixExpression(this);
-
-  @experimental
-  @override
-  E? accept2<E>(AstVisitor2<E> visitor) {
-    throw StateError('PrefixExpression is not in the V2 AST view.');
-  }
-
-  @override
-  AttemptedConstantEvaluationResult? computeConstantValue() =>
-      _origin.computeConstantValue();
-
-  @override
-  bool isInValueExpressionSlot(AstNode child) => true;
-
-  @override
-  void removeChild(AstNodeImpl oldNode) {
-    throw UnsupportedError('A V1 projection cannot be mutated.');
-  }
-
-  @override
-  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    throw UnsupportedError('A V1 projection cannot be mutated.');
-  }
-
-  @override
-  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
-    throw StateError('PrefixExpression is a V1 projection.');
-  }
-
-  @override
-  String toSource() => _origin.toSource();
-
-  @ToBeDeprecated('Use visitChildren2 instead.')
-  @override
-  void visitChildren(AstVisitor visitor) {
-    operand.accept(visitor);
-  }
-
-  @experimental
-  @override
-  void visitChildren2(AstVisitor2 visitor) {
-    throw StateError('PrefixExpression is not in the V2 AST view.');
-  }
-
-  void _attachV1Children() {
-    _becomeParentOf1(operand);
-  }
-
-  @override
-  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
-    if (operand._containsOffset(rangeOffset, rangeEnd)) {
-      return operand;
-    }
-    return null;
-  }
-
-  @override
-  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    throw StateError('PrefixExpression is not in the V2 AST view.');
   }
 }
 

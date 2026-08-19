@@ -96,9 +96,7 @@ MappedMemory* File::Map(MapType type,
       hint = reinterpret_cast<void*>(&Dart_Initialize);
       prot = PROT_READ | PROT_EXEC;
 #if !defined(DART_HOST_OS_IOS)
-      if (IsAtLeastMacOSX10_14()) {
-        map_flags |= (MAP_JIT | MAP_ANONYMOUS);
-      }
+      map_flags |= (MAP_JIT | MAP_ANONYMOUS);
 #endif
       break;
     case kReadWrite:
@@ -114,7 +112,7 @@ MappedMemory* File::Map(MapType type,
   // Due to codesigning restrictions, we cannot map the file as executable
   // directly. We must first copy it into an anonymous mapping and then mark
   // the mapping as executable.
-  const bool should_copy = (type == kReadExecute) && IsAtLeastMacOSX10_14();
+  const bool should_copy = type == kReadExecute;
 #else
   const bool should_copy = false;
 #endif

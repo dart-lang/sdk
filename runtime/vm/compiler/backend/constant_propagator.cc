@@ -1574,6 +1574,11 @@ void ConstantPropagator::VisitUnaryUint32Op(UnaryUint32OpInstr* instr) {
   SetValue(instr, non_constant_);
 }
 
+void ConstantPropagator::VisitUnaryInt32Op(UnaryInt32OpInstr* instr) {
+  // TODO(kmillikin): Handle unary operations.
+  SetValue(instr, non_constant_);
+}
+
 // Insert redefinition for |original| definition which conveys information
 // that |original| is equal to |constant_value| in the dominated code.
 static RedefinitionInstr* InsertRedefinition(FlowGraph* graph,

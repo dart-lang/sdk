@@ -11157,33 +11157,48 @@ void Function::SetKernelLibraryAndEvalScript(
   set_data(data_field);
 }
 
-ScriptPtr Function::script() const {
+ScriptPtr Function::script(FunctionPtr function) {
   // NOTE(turnidge): If you update this function, you probably want to
   // update Class::PatchFieldsAndFunctions() at the same time.
-  if (IsDynamicInvocationForwarder()) {
-    const Function& target = Function::Handle(ForwardingTarget());
-    return target.IsNull() ? Script::null() : target.script();
+  if (function == Function::null()) {
+    return Script::null();
   }
-  if (IsImplicitGetterOrSetter()) {
-    const auto& field = Field::Handle(accessor_field());
-    return field.IsNull() ? Script::null() : field.Script();
+  const UntaggedFunction::Kind kind = KindOf(function);
+  if (kind == UntaggedFunction::kDynamicInvocationForwarder) {
+    const FunctionPtr target = Function::RawCast(
+        WeakSerializationReference::Unwrap(function->untag()->data()));
+    return script(target);
   }
-  if (is_eval_function()) {
-    const auto& fdata = Array::Handle(Array::RawCast(data()));
+  if (kind == UntaggedFunction::kImplicitGetter ||
+      kind == UntaggedFunction::kImplicitSetter ||
+      kind == UntaggedFunction::kImplicitStaticGetter) {
+    const FieldPtr field = Field::RawCast(function->untag()->data());
+    return Field::Script(field);
+  }
+  const ObjectPtr data = function->untag()->data();
+  if (data->IsArray() && Array::LengthOf(Array::RawCast(data)) ==
+                             static_cast<intptr_t>(EvalFunctionData::kLength)) {
+    const Array& fdata = Array::Handle(Array::RawCast(data));
     return Script::RawCast(
         fdata.At(static_cast<intptr_t>(EvalFunctionData::kScript)));
   }
-  const Object& obj = Object::Handle(untag()->owner());
-  if (obj.IsPatchClass()) {
-    return PatchClass::Cast(obj).script();
+  const ObjectPtr obj = function->untag()->owner();
+  if (obj->IsPatchClass()) {
+    return static_cast<PatchClassPtr>(obj)->untag()->script();
   }
-  if (IsClosureFunction()) {
-    const Function& function = Function::Handle(parent_function());
-    if (function.IsNull()) return Script::null();
-    return function.script();
+  if (kind == UntaggedFunction::kClosureFunction) {
+    const ClosureDataPtr closure_data =
+        static_cast<ClosureDataPtr>(function->untag()->data());
+    if (closure_data == ClosureData::null()) {
+      return Script::null();
+    }
+    const FunctionPtr parent =
+        Function::RawCast(WeakSerializationReference::Unwrap(
+            closure_data->untag()->parent_function()));
+    return script(parent);
   }
-  ASSERT(obj.IsClass());
-  return Class::Cast(obj).script();
+  ASSERT(obj->IsClass());
+  return static_cast<ClassPtr>(obj)->untag()->script();
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -12228,17 +12243,22 @@ ClassPtr Field::Owner() const {
   return PatchClass::Cast(obj).wrapped_class();
 }
 
-ScriptPtr Field::Script() const {
+ScriptPtr Field::Script(FieldPtr field) {
   // NOTE(turnidge): If you update this function, you probably want to
   // update Class::PatchFieldsAndFunctions() at the same time.
-  const Field& field = Field::Handle(Original());
-  ASSERT(field.IsOriginal());
-  const Object& obj = Object::Handle(field.untag()->owner());
-  if (obj.IsClass()) {
-    return Class::Cast(obj).script();
+  if (field == Field::null()) {
+    return Script::null();
   }
-  ASSERT(obj.IsPatchClass());
-  return PatchClass::Cast(obj).script();
+  FieldPtr original_field = field;
+  if (field->untag()->owner()->IsField()) {
+    original_field = static_cast<FieldPtr>(field->untag()->owner());
+  }
+  const ObjectPtr obj = original_field->untag()->owner();
+  if (obj->IsClass()) {
+    return static_cast<ClassPtr>(obj)->untag()->script();
+  }
+  ASSERT(obj->IsPatchClass());
+  return static_cast<PatchClassPtr>(obj)->untag()->script();
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)

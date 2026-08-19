@@ -14,6 +14,8 @@ dependencies:
   dtd: any
   json_rpc_2: any
   logging: any
+  path: any
+  shelf: any
   shelf_proxy: any
   vm_service: any
   web_socket_channel: any
