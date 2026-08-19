@@ -1893,7 +1893,7 @@ class NamedParameter extends FunctionParameter {
 /// The variable storage for `this`.
 class ThisVariable extends Variable {
   @override
-  String get cosmeticName => "";
+  String get cosmeticName => "this";
 
   @override
   void set cosmeticName(String? value) {}

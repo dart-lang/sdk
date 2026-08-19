@@ -2,11 +2,11 @@ library;
 import self as self;
 import "dart:core" as core;
 
-static method test1(positional-parameter directCaptured) → dynamic
+static method test1(core::int directCaptured) → dynamic
   ;
-static method test2(positional-parameter directCaptured) → dynamic
+static method test2(core::int directCaptured) → dynamic
   ;
-static method test3(positional-parameter assertCaptured) → dynamic
+static method test3(core::int assertCaptured) → dynamic
   ;
-static method test4(positional-parameter directCaptured) → dynamic
+static method test4(core::int directCaptured) → dynamic
   ;
