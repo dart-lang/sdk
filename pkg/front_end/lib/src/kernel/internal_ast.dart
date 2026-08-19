@@ -1247,7 +1247,7 @@ class InternalLocalFunctionVariable extends InternalDeclaredVariable {
   LocalFunctionVariable get astVariable => _astVariable;
 
   @override
-  String? get cosmeticName => _astVariable.cosmeticName;
+  String? get cosmeticName => _astVariable.name;
 
   @override
   // Coverage-ignore(suite): Not run.

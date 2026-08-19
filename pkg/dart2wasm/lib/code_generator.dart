@@ -2741,7 +2741,7 @@ abstract class AstCodeGenerator
       ParameterInfo.fromLocalFunction(decl.function),
       1,
     );
-    b.comment("Local call of ${decl.variable.cosmeticName}");
+    b.comment("Local call of ${decl.variable.name}");
     return translator.outputOrVoid(translator.callTarget(lambda.callTarget, b));
   }
 

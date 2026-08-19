@@ -427,9 +427,11 @@ class LocalVariable extends DeclaredVariable {
   }
 
   @override
+  @Deprecated('Use LocalVariable.name instead.')
   String? get cosmeticName => name;
 
   @override
+  @Deprecated('Use LocalVariable.name instead.')
   void set cosmeticName(String? value) {
     name = value!;
   }
@@ -687,9 +689,11 @@ class LocalFunctionVariable extends DeclaredVariable {
   }
 
   @override
+  @Deprecated('Use LocalFunctionVariable.name instead.')
   String? get cosmeticName => name;
 
   @override
+  @Deprecated('Use LocalFunctionVariable.name instead.')
   void set cosmeticName(String? value) {
     name = value!;
   }
@@ -949,9 +953,11 @@ class LateVariable extends DeclaredVariable {
   }
 
   @override
+  @Deprecated('Use LateVariable.name instead.')
   String? get cosmeticName => name;
 
   @override
+  @Deprecated('Use LateVariable.name instead.')
   void set cosmeticName(String? value) {
     name = value!;
   }
@@ -1212,9 +1218,11 @@ class ConstVariable extends DeclaredVariable {
   }
 
   @override
+  @Deprecated('Use ConstVariable.name instead.')
   String? get cosmeticName => name;
 
   @override
+  @Deprecated('Use ConstVariable.name instead.')
   void set cosmeticName(String? value) {
     name = value!;
   }
@@ -1257,9 +1265,11 @@ class CatchVariable extends Variable {
   }
 
   @override
+  @Deprecated('Use CatchVariable.catchVariableName instead.')
   String? get cosmeticName => catchVariableName;
 
   @override
+  @Deprecated('Use CatchVariable.catchVariableName instead.')
   void set cosmeticName(String? value) {
     throw new UnsupportedError("${this.runtimeType}.cosmeticName=");
   }
