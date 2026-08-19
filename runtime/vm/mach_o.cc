@@ -58,6 +58,18 @@ DEFINE_FLAG(charp,
             nullptr,
             "The minimum OS version required for MacOS/iOS Mach-O snapshots");
 
+#if defined(DART_TARGET_OS_MACOS_IOS)
+DEFINE_FLAG(bool,
+            macho_platform_simulated,
+            false,
+            "Mark Mach-O snapshots as targeting a simulated platform");
+#endif
+
+DEFINE_FLAG(charp,
+            macho_sdk_version,
+            nullptr,
+            "The SDK version used to build MacOS/iOS Mach-O snapshots");
+
 DEFINE_FLAG(charp,
             macho_rpath,
             nullptr,
@@ -1334,7 +1346,11 @@ class MachOBuildVersion : public MachOCommand {
                      /*in_segment=*/false),
         min_os_(FLAG_macho_min_os_version != nullptr
                     ? Version::FromString(FLAG_macho_min_os_version)
-                    : kDefaultMinOSVersion) {}
+                    : kDefaultMinOSVersion),
+        sdk_(FLAG_macho_sdk_version != nullptr
+                 ? Version::FromString(FLAG_macho_sdk_version)
+                 // Just use the same version as the min OS if unspsecified.
+                 : min_os_) {}
 
   uint32_t cmdsize() const override {
     return sizeof(mach_o::build_version_command);
@@ -1342,18 +1358,15 @@ class MachOBuildVersion : public MachOCommand {
 
   uint32_t platform() const {
 #if defined(DART_TARGET_OS_MACOS_IOS)
-    return mach_o::PLATFORM_IOS;
+    return FLAG_macho_platform_simulated ? mach_o::PLATFORM_IOSSIMULATOR
+                                         : mach_o::PLATFORM_IOS;
 #else
     return mach_o::PLATFORM_MACOS;
 #endif
   }
 
   const Version& minos() const { return min_os_; }
-
-  const Version& sdk() const {
-    // Just use the minimum version as the targeted version.
-    return minos();
-  }
+  const Version& sdk() const { return sdk_; }
 
   void WriteLoadCommand(MachOWriteStream* stream) const override {
     MachOCommand::WriteLoadCommand(stream);
@@ -1369,6 +1382,7 @@ class MachOBuildVersion : public MachOCommand {
 
  private:
   const Version min_os_;
+  const Version sdk_;
 
   DISALLOW_COPY_AND_ASSIGN(MachOBuildVersion);
 };

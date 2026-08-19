@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
+
 import 'package:expect/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
@@ -12,6 +13,7 @@ import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:front_end/src/api_prototype/testing.dart'
     show getMemberName, getEnclosingMember;
 import 'package:kernel/ast.dart' as ir;
+
 import '../equivalence/id_equivalence.dart';
 import '../equivalence/id_equivalence_helper.dart';
 
@@ -137,7 +139,7 @@ class IdTestingDataExtractor extends IrDataExtractor<String> {
   String? computeNodeValue(Id id, ir.TreeNode node) {
     if (node is ir.FunctionDeclaration) {
       return '${computeMemberName(getEnclosingMember(node))}.'
-          '${node.variable.cosmeticName}';
+          '${node.variable.name}';
     } else if (node is ir.FunctionExpression) {
       return '${computeMemberName(getEnclosingMember(node))}.'
           '<anonymous>';

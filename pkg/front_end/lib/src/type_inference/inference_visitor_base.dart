@@ -2892,7 +2892,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           invocationTargetType is InvocationTargetFunctionType,
           "Unknown function type for local function invocation.",
         );
-        localName = variable.cosmeticName!;
+        localName = variable.name;
         expression = new LocalFunctionInvocation(
           variable,
           createArgumentsFromInternalNode(

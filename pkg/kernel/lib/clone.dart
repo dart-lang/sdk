@@ -864,7 +864,7 @@ class CloneVisitorNotMembers
       return setVariableClone(
         node,
         new LocalVariable(
-            name: node.cosmeticName!,
+            name: node.name,
             type: visitOptionalType(node.type),
             initializer: initializer,
           )
@@ -881,7 +881,7 @@ class CloneVisitorNotMembers
         setVariableClone(
           node,
           new LocalFunctionVariable(
-              name: node.cosmeticName!,
+              name: node.name,
               type: visitOptionalType(node.type),
             )
             ..flags = node.flags
@@ -896,7 +896,7 @@ class CloneVisitorNotMembers
         setVariableClone(
           node,
           new ConstVariable(
-              name: node.cosmeticName!,
+              name: node.name,
               type: visitOptionalType(node.type),
               value: cloneOptional(node.value),
             )
@@ -912,7 +912,7 @@ class CloneVisitorNotMembers
       return setVariableClone(
         node,
         new LateVariable(
-            name: node.cosmeticName!,
+            name: node.name,
             type: visitOptionalType(node.type),
             initialValue: initializer,
           )

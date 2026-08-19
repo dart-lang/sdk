@@ -2638,15 +2638,15 @@ class BinaryPrinter
     writeUInt30(node.flags);
     switch (node) {
       case LocalVariable():
-        writeStringReference(node.cosmeticName ?? '');
+        writeStringReference(node.name);
       case LocalFunctionVariable():
-        writeStringReference(node.cosmeticName ?? '');
+        writeStringReference(node.name);
       case LateVariable():
-        writeStringReference(node.cosmeticName ?? '');
+        writeStringReference(node.name);
       case ConstVariable():
-        writeStringReference(node.cosmeticName ?? '');
+        writeStringReference(node.name);
       case CatchVariable():
-        writeStringReference(node.cosmeticName ?? '');
+        writeStringReference(node.catchVariableName);
       case ThisVariable():
         writeStringReference('');
       case SyntheticVariable():
