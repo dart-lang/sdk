@@ -4330,6 +4330,13 @@ abstract final class Float32x4 {
 /// The lanes are "x", "y", "z", and "w" respectively.
 abstract final class Int32x4 {
   external factory Int32x4(int x, int y, int z, int w);
+
+  /// Creates an [Int32x4] with the same 32-bit integer value in all four lanes.
+  ///
+  /// The created value has the same [x], [y], [z] and [w] value, which is the
+  /// low 32 bits of [value].
+  external factory Int32x4.splat(int value);
+
   external factory Int32x4.bool(bool x, bool y, bool z, bool w);
   external factory Int32x4.fromFloat32x4Bits(Float32x4 x);
 

@@ -15,6 +15,8 @@
 
 - Added the bit-wise negation operator `~` to `Int32x4`, which inverts every bit
   of every lane.
+- Added `Int32x4.splat`, which creates an `Int32x4` with the same 32-bit integer
+  value in all four lanes, matching `Float32x4.splat` and `Float64x2.splat`.
 
 #### `dart:js_interop`
 

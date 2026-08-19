@@ -611,6 +611,9 @@ final class I32x4 extends WasmTypedDataBase implements Int32x4 {
   factory I32x4(int x, int y, int z, int w) =>
       I32x4.fromV128(WasmI32x4.fromInts(x, y, z, w).value);
 
+  factory I32x4.splat(int value) =>
+      I32x4.fromV128(WasmI32x4.splat(WasmI32.fromInt(value)));
+
   factory I32x4.bool(bool x, bool y, bool z, bool w) => I32x4.fromV128(
     WasmI32x4.fromInts(x ? -1 : 0, y ? -1 : 0, z ? -1 : 0, w ? -1 : 0).value,
   );

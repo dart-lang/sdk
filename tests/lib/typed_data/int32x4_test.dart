@@ -182,6 +182,28 @@ void testNot() {
   Expect.equals(v.w, nn.w);
 }
 
+void testSplat() {
+  var tests = [
+    [0, 0],
+    [1, 1],
+    [-1, -1],
+    [0x7fffffff, 2147483647],
+    [0x80000000, -2147483648],
+    [0x8901234567890, 0x34567890],
+    [0x89012A4567890, -1537836912],
+  ];
+
+  for (var test in tests) {
+    var input = test[0];
+    var expected = test[1];
+    var v = Int32x4.splat(input);
+    Expect.equals(expected, v.x);
+    Expect.equals(expected, v.y);
+    Expect.equals(expected, v.z);
+    Expect.equals(expected, v.w);
+  }
+}
+
 main() {
   for (int i = 0; i < 20; i++) {
     testBigArguments();
@@ -190,5 +212,6 @@ main() {
     testSetters();
     testGetters();
     testNot();
+    testSplat();
   }
 }

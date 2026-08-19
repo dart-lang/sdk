@@ -3977,6 +3977,10 @@ class Int32x4 {
 
   @patch
   @pragma("vm:prefer-inline")
+  factory Int32x4.splat(int value) => Int32x4(value, value, value, value);
+
+  @patch
+  @pragma("vm:prefer-inline")
   factory Int32x4.bool(bool x, bool y, bool z, bool w) {
     return _Int32x4FromBools(x, y, z, w);
   }
