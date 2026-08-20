@@ -7,6 +7,114 @@ class AliasedElementTag {
   static const int genericFunctionElement = 1;
 }
 
+enum AstNodeTag {
+  AdjacentStrings,
+  Annotation,
+  ArgumentList,
+  AsExpression,
+  AssertInitializer,
+  AssignmentExpression,
+  AwaitExpression,
+  BinaryOperatorInvocation,
+  BooleanLiteral,
+  CascadeExpression,
+  CascadeIndexAssignmentTarget,
+  CascadeIndexExpression,
+  CascadePropertyAssignmentTarget,
+  CascadePropertyExtraction,
+  CascadeSection,
+  CompoundAssignment,
+  ConditionalExpression,
+  ConstructorFieldInitializer,
+  ConstructorInvocation,
+  ConstructorReference2,
+  ConstructorSelector,
+  ConstructorTearOff,
+  ConstructorTypeReference,
+  DeclaredIdentifier,
+  DelimitedFormalParameters,
+  DirectAssignment,
+  DotShorthandConstructorInvocation,
+  DotShorthandInvocation,
+  DotShorthandPropertyAccess,
+  DottedName,
+  DoubleLiteral,
+  ExtensionOverride,
+  FieldFormalParameter,
+  ForEachPartsWithDeclaration,
+  ForElement,
+  ForPartsWithDeclarations,
+  ForPartsWithExpression,
+  FormalParameterList,
+  FunctionExpressionInvocation,
+  FunctionReference,
+  GenericFunctionType,
+  IfElement,
+  IfNull,
+  IfNullAssignment,
+  ImplicitCallReference,
+  ImportPrefixReference,
+  IndexAssignmentTarget,
+  IndexExpression,
+  IndexExpression2,
+  IntegerLiteralNegative,
+  IntegerLiteralNegative1,
+  IntegerLiteralNull,
+  IntegerLiteralPositive,
+  IntegerLiteralPositive1,
+  InterpolationExpression,
+  InterpolationString,
+  InvalidExpressionAssignmentTarget,
+  IsExpression,
+  ListLiteral,
+  LogicalAnd,
+  LogicalNot,
+  LogicalOr,
+  MapLiteralEntry,
+  MethodInvocation,
+  NamedArgument,
+  NamedType,
+  NullAssertionExpression,
+  NullAwareElement,
+  NullLiteral,
+  ParenthesizedExpression,
+  PostfixDecrement,
+  PostfixIncrement,
+  PrefixDecrement,
+  PrefixIncrement,
+  PrefixedIdentifier,
+  PropertyAccess,
+  ReceiverPropertyAssignmentTarget,
+  ReceiverPropertyExtraction,
+  RecordLiteral,
+  RecordLiteralNamedField,
+  RecordTypeAnnotation,
+  RecordTypeAnnotationNamedField,
+  RecordTypeAnnotationNamedFields,
+  RecordTypeAnnotationPositionalField,
+  RedirectingConstructorInvocation,
+  RegularFormalParameter,
+  SetOrMapLiteral,
+  SimpleIdentifier,
+  SimpleStringLiteral,
+  SpreadElement,
+  StringInterpolation,
+  SuperConstructorInvocation,
+  SuperExpression,
+  SuperFormalParameter,
+  SymbolLiteral,
+  ThisExpression,
+  ThrowExpression,
+  TypeArgumentList,
+  TypeLiteral,
+  TypeParameter,
+  TypeParameterList,
+  UnaryOperatorInvocation,
+  UnqualifiedNameAssignmentTarget,
+  VariableDeclaration,
+  VariableDeclarationList,
+}
+
 enum DirectiveUriKind {
   withLibrary,
   withUnit,
@@ -26,6 +134,13 @@ enum ElementTag {
   libraryImportPrefix,
   typeParameter,
   formalParameter,
+}
+
+enum FormalParameterKindTag {
+  requiredPositional,
+  optionalPositional,
+  requiredNamed,
+  optionalNamed,
 }
 
 enum ImportElementPrefixKind { isDeferred, isNotDeferred, isNull }
@@ -52,134 +167,7 @@ enum NamedWriteResolutionTag {
   dynamicPropertyWrite,
 }
 
-class Tag {
-  static const int Nothing = 0;
-  static const int Something = 1;
-
-  static const int AdjacentStrings = 75;
-  static const int Annotation = 2;
-  static const int ArgumentList = 3;
-  static const int AsExpression = 84;
-  static const int AssertInitializer = 82;
-  static const int AssignmentExpression = 96;
-  static const int AwaitExpression = 100;
-  static const int BooleanLiteral = 4;
-  static const int CascadeExpression = 95;
-  static const int CompoundAssignment = 138;
-  static const int ConditionalExpression = 51;
-  static const int ConstructorFieldInitializer = 50;
-  static const int ConstructorTearOff = 101;
-  static const int ConstructorSelector = 120;
-  static const int ConstructorReference2 = 121;
-  static const int ConstructorTypeReference = 122;
-  static const int DeclaredIdentifier = 90;
-  static const int DefaultFormalParameter = 8;
-  static const int DelimitedFormalParameters = 119;
-  static const int DotShorthandConstructorInvocation = 114;
-  static const int DotShorthandInvocation = 115;
-  static const int DotShorthandPropertyAccess = 113;
-  static const int DottedName = 47;
-  static const int DoubleLiteral = 9;
-  static const int ExtensionOverride = 87;
-  static const int FieldFormalParameter = 16;
-  static const int ForEachPartsWithDeclaration = 89;
-  static const int ForElement = 88;
-  static const int ForPartsWithDeclarations = 91;
-  static const int ForPartsWithExpression = 99;
-  static const int FormalParameterList = 17;
-  static const int RegularFormalParameter = 116;
-  static const int FunctionDeclaration_getter = 57;
-  static const int FunctionDeclaration_setter = 58;
-  static const int FunctionExpressionInvocation = 93;
-  static const int FunctionReference = 103;
-  static const int FunctionTypedFormalParameter = 20;
-  static const int GenericFunctionType = 21;
-  static const int HideCombinator = 48;
-  static const int IfElement = 63;
-  static const int ImplicitCallReference = 104;
-  static const int ImportPrefixReference = 110;
-  static const int IndexExpression = 98;
-  static const int ConstructorInvocation = 25;
-  static const int IntegerLiteralNegative = 73;
-  static const int IntegerLiteralNegative1 = 71;
-  static const int IntegerLiteralNull = 97;
-  static const int IntegerLiteralPositive = 72;
-  static const int IntegerLiteralPositive1 = 26;
-  static const int InterpolationExpression = 77;
-  static const int InterpolationString = 78;
-  static const int IsExpression = 83;
-  static const int ListLiteral = 56;
-  static const int MapLiteralEntry = 66;
-  static const int MethodDeclaration_getter = 85;
-  static const int MethodDeclaration_setter = 86;
-  static const int MethodInvocation = 59;
-  static const int NamedArgument = 60;
-  static const int NamedType = 39;
-  static const int NullAwareElement = 44;
-  static const int NullAssertionExpression = 123;
-  static const int LogicalNot = 124;
-  static const int LogicalAnd = 125;
-  static const int LogicalOr = 126;
-  static const int IfNull = 127;
-  static const int UnaryOperatorInvocation = 128;
-  static const int BinaryOperatorInvocation = 129;
-  static const int PostfixDecrement = 132;
-  static const int PostfixIncrement = 130;
-  static const int PrefixDecrement = 133;
-  static const int PrefixIncrement = 131;
-  static const int DirectAssignment = 134;
-  static const int UnqualifiedNameAssignmentTarget = 135;
-  static const int IfNullAssignment = 136;
-  static const int InvalidExpressionAssignmentTarget = 137;
-  static const int ReceiverPropertyAssignmentTarget = 139;
-  static const int ReceiverPropertyExtraction = 140;
-  static const int IndexAssignmentTarget = 141;
-  static const int IndexExpression2 = 142;
-  static const int CascadeSection = 143;
-  static const int CascadeIndexExpression = 144;
-  static const int CascadeIndexAssignmentTarget = 145;
-  static const int CascadePropertyExtraction = 146;
-  static const int CascadePropertyAssignmentTarget = 147;
-  static const int NullLiteral = 49;
-  static const int ParenthesizedExpression = 53;
-  static const int PrefixedIdentifier = 32;
-  static const int PropertyAccess = 62;
-  static const int RecordLiteral = 105;
-  static const int RecordTypeAnnotation = 106;
-  static const int RecordTypeAnnotationNamedField = 107;
-  static const int RecordTypeAnnotationNamedFields = 108;
-  static const int RecordTypeAnnotationPositionalField = 109;
-  static const int RedirectingConstructorInvocation = 54;
-  static const int SetOrMapLiteral = 65;
-  static const int ShowCombinator = 33;
-  static const int SimpleFormalParameter = 34;
-  static const int SimpleIdentifier = 35;
-  static const int SimpleStringLiteral = 36;
-  static const int SpreadElement = 64;
-  static const int StringInterpolation = 76;
-  static const int SuperConstructorInvocation = 69;
-  static const int SuperExpression = 80;
-  static const int SuperFormalParameter = 117;
-  static const int RecordLiteralNamedField = 118;
-  static const int SymbolLiteral = 74;
-  static const int ThisExpression = 70;
-  static const int ThrowExpression = 81;
-  static const int TypeArgumentList = 38;
-  static const int TypeLiteral = 102;
-  static const int TypeParameter = 40;
-  static const int TypeParameterList = 41;
-  static const int VariableDeclaration = 42;
-  static const int VariableDeclarationList = 43;
-
-  static const int RawElement = 0;
-  static const int MemberWithTypeArguments = 3;
-  static const int ImportPrefixElement = 4;
-
-  static const int ParameterKindRequiredPositional = 1;
-  static const int ParameterKindOptionalPositional = 2;
-  static const int ParameterKindRequiredNamed = 3;
-  static const int ParameterKindOptionalNamed = 4;
-}
+enum NamespaceCombinatorTag { hide, show }
 
 enum TypeParameterVarianceTag {
   legacy,
