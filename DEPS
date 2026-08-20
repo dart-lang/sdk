@@ -166,12 +166,12 @@ vars = {
   "download_emscripten": False,
   "emsdk_rev": "e41b8c68a248da5f18ebd03bd0420953945d52ff",
   "emsdk_ver": "3.1.3",
-  "build_devtools_from_sources": False,
+  "build_devtools_from_source": False,
 }
 
 gclient_gn_args_file = Var("dart_root") + '/build/config/gclient_args.gni'
 gclient_gn_args = [
-  "build_devtools_from_sources"
+  "build_devtools_from_source"
 ]
 
 deps = {
@@ -253,7 +253,7 @@ deps = {
   Var("dart_root") + "/third_party/devtools_src": {
       "url": Var("dart_git") + "external/github.com/flutter/devtools.git" +
       "@" + Var("devtools_rev"),
-      "condition": "build_devtools_from_sources",
+      "condition": "build_devtools_from_source",
   },
   Var("dart_root") + "/tests/co19/src": {
       "packages": [{
@@ -304,7 +304,7 @@ deps = {
   Var("dart_root") + "/third_party/flutter": {
       "url": Var("dart_git") + "external/github.com/flutter/flutter.git" +
       "@" + Var("flutter_rev"),
-      "condition": "build_devtools_from_sources",
+      "condition": "build_devtools_from_source",
   },
 
   Var("dart_root") + "/third_party/jinja2":
@@ -503,7 +503,7 @@ deps = {
         "version": "version:" + Var("chrome_tag"),
       }
     ],
-    "condition": "download_chrome",
+    "condition": "download_chrome or build_devtools_from_source",
     "dep_type": "cipd",
   },
 
