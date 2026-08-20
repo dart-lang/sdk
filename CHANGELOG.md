@@ -6,8 +6,10 @@ This is a patch release that:
 
 - Fixes incorrect dart2wasm compilation of constructor invocations when
   the class was determined to be not allocatable. (issue #63809)
+- Deprecates the legacy analyzer plugin system. (issue #62164)
 
 [#63809]: https://github.com/dart-lang/sdk/issues/63809
+[#62164]: https://github.com/dart-lang/sdk/issues/62164
 
 ## 3.13.1
 
@@ -24,21 +26,17 @@ This is a patch release that:
   getter implementation that was inferred to never return.
 - Fixes dart2wasm compiler crash if named parameters in hierarchy have mixed
   "required"-ness. (issue #60583)
-- Deprecates the legacy analyzer plugin system. (issue #62164)
+- Fixes `closure.hashCode` sometimes returning `null`. (issue [#64035])
 
 [#63968]: https://github.com/dart-lang/sdk/issues/63968
 [#63904]: https://github.com/dart-lang/sdk/issues/63904
 [#63843]: https://github.com/dart-lang/sdk/issues/63843
 [#60583]: https://github.com/dart-lang/sdk/issues/60583
-[#62164]: https://github.com/dart-lang/sdk/issues/62164
-
-- Fixes `closure.hashCode` sometimes returning null (issue [#64035]).
-
 [#64035]: https://github.com/dart-lang/sdk/issues/64035
 
 ## 3.13.0
 
-**Released on:** Unreleased
+**Released on:** 2026-08-12
 
 ### Language
 
