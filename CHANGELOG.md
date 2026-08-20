@@ -2,6 +2,13 @@
 
 **Released on:** Unreleased
 
+This is a patch release that:
+
+- Fixes incorrect dart2wasm compilation of constructor invocations when
+  the class was determined to be not allocatable. (issue #63809)
+
+[#63809]: https://github.com/dart-lang/sdk/issues/63809
+
 ## 3.13.1
 
 **Released on:** 2026-08-18
