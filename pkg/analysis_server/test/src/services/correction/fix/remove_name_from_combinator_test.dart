@@ -17,6 +17,9 @@ void main() {
 @reflectiveTest
 class RemoveNameFromCombinatorTest extends FixProcessorTest {
   @override
+  bool get addMetaPackageDep => true;
+
+  @override
   FixKind get kind => DartFixKind.removeNameFromCombinator;
 
   Future<void> test_duplicateHiddenName_last() async {
@@ -128,7 +131,6 @@ f(x) {
   }
 
   Future<void> test_invalidExportOfInternalElement() async {
-    writeTestPackageConfig(meta: true);
     newFile('$testPackageLibPath/src/a.dart', '''
 import 'package:meta/meta.dart';
 class A {}
@@ -143,7 +145,6 @@ export 'src/a.dart';
   }
 
   Future<void> test_invalidExportOfInternalElement_shownName_multiple() async {
-    writeTestPackageConfig(meta: true);
     newFile('$testPackageLibPath/src/a.dart', '''
 import 'package:meta/meta.dart';
 class A {}
@@ -160,7 +161,6 @@ export 'src/a.dart' show A;
   }
 
   Future<void> test_invalidExportOfInternalElement_shownName_single() async {
-    writeTestPackageConfig(meta: true);
     newFile('$testPackageLibPath/src/a.dart', '''
 import 'package:meta/meta.dart';
 @internal

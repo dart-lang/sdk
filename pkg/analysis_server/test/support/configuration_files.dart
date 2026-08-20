@@ -25,6 +25,9 @@ mixin ConfigurationFilesMixin on MockPackagesMixin {
   /// This allows `package:flutter_test/flutter_test.dart` imports to resolve.
   bool get addFlutterTestPackageDep => false;
 
+  /// Adds the 'meta' package as a dependency to the package-under-test.
+  bool get addMetaPackageDep => false;
+
   /// Adds the 'vector_math' package to the package config file for the
   /// package-under-test.
   ///
@@ -54,7 +57,6 @@ mixin ConfigurationFilesMixin on MockPackagesMixin {
     PackageConfigFileBuilder? config,
     String? languageVersion,
     bool flutter = false,
-    bool meta = false,
   }) {
     projectFolderPath = resourceProvider.convertPath(projectFolderPath);
 
@@ -72,7 +74,7 @@ mixin ConfigurationFilesMixin on MockPackagesMixin {
     );
 
     // flutter_test also depends on meta for @isTestGroup / @isTest
-    if (meta || flutter || addFlutterTestPackageDep) {
+    if (addMetaPackageDep || flutter || addFlutterTestPackageDep) {
       var libFolder = addMeta();
       config.add(name: 'meta', rootFolder: libFolder.parent);
     }
@@ -136,7 +138,6 @@ void main() {
     PackageConfigFileBuilder? config,
     String? languageVersion,
     bool flutter = false,
-    bool meta = false,
   }) {
     writePackageConfig(
       testPackageRootPath,
@@ -144,7 +145,6 @@ void main() {
       languageVersion: languageVersion,
       packageName: 'test',
       flutter: flutter,
-      meta: meta,
     );
   }
 }

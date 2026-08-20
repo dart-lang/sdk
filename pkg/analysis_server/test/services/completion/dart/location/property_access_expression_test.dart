@@ -38,6 +38,9 @@ suggestions
 }
 
 mixin PropertyAccessTestCases on AbstractCompletionDriverTest {
+  @override
+  bool get addMetaPackageDep => true;
+
   Future<void> test_afterGetter() async {
     await computeSuggestions('''
 class A { int x; foo() {x.^}}
@@ -251,7 +254,6 @@ class A {
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
         ..add(name: 'other', rootFolder: otherRoot),
-      meta: true,
     );
 
     await computeSuggestions('''
@@ -270,8 +272,6 @@ suggestions
   }
 
   Future<void> test_isInternal_method_samePackage() async {
-    writeTestPackageConfig(meta: true);
-
     newFile('$testPackageLibPath/src/a.dart', r'''
 import 'package:meta/meta.dart';
 
@@ -301,8 +301,6 @@ suggestions
   }
 
   Future<void> test_isProtected_field_otherLibrary_function() async {
-    writeTestPackageConfig(meta: true);
-
     newFile('$testPackageLibPath/a.dart', r'''
 import 'package:meta/meta.dart';
 
@@ -330,8 +328,6 @@ suggestions
   }
 
   Future<void> test_isProtected_field_sameLibrary_function() async {
-    writeTestPackageConfig(meta: true);
-
     await computeSuggestions('''
 import 'package:meta/meta.dart';
 
@@ -357,8 +353,6 @@ suggestions
   }
 
   Future<void> test_isProtected_getter_otherLibrary_function() async {
-    writeTestPackageConfig(meta: true);
-
     newFile('$testPackageLibPath/a.dart', r'''
 import 'package:meta/meta.dart';
 
@@ -386,8 +380,6 @@ suggestions
   }
 
   Future<void> test_isProtected_getter_sameLibrary_function() async {
-    writeTestPackageConfig(meta: true);
-
     await computeSuggestions('''
 import 'package:meta/meta.dart';
 
@@ -413,8 +405,6 @@ suggestions
   }
 
   Future<void> test_isProtected_method_otherLibrary_class_notSubtype() async {
-    writeTestPackageConfig(meta: true);
-
     newFile('$testPackageLibPath/a.dart', r'''
 import 'package:meta/meta.dart';
 
@@ -444,8 +434,6 @@ suggestions
   }
 
   Future<void> test_isProtected_method_otherLibrary_class_subtype() async {
-    writeTestPackageConfig(meta: true);
-
     newFile('$testPackageLibPath/a.dart', r'''
 import 'package:meta/meta.dart';
 
@@ -477,8 +465,6 @@ suggestions
   }
 
   Future<void> test_isProtected_method_otherLibrary_function() async {
-    writeTestPackageConfig(meta: true);
-
     newFile('$testPackageLibPath/a.dart', r'''
 import 'package:meta/meta.dart';
 
@@ -506,8 +492,6 @@ suggestions
   }
 
   Future<void> test_isProtected_method_sameLibrary_function() async {
-    writeTestPackageConfig(meta: true);
-
     await computeSuggestions('''
 import 'package:meta/meta.dart';
 
@@ -533,8 +517,6 @@ suggestions
   }
 
   Future<void> test_isProtected_setter_otherLibrary_function() async {
-    writeTestPackageConfig(meta: true);
-
     newFile('$testPackageLibPath/a.dart', r'''
 import 'package:meta/meta.dart';
 
@@ -562,8 +544,6 @@ suggestions
   }
 
   Future<void> test_isProtected_setter_sameLibrary_function() async {
-    writeTestPackageConfig(meta: true);
-
     await computeSuggestions('''
 import 'package:meta/meta.dart';
 
@@ -604,7 +584,6 @@ class A {
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
         ..add(name: 'other', rootFolder: otherRoot),
-      meta: true,
     );
 
     await computeSuggestions('''
@@ -638,7 +617,6 @@ class A {
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
         ..add(name: 'other', rootFolder: otherRoot),
-      meta: true,
     );
 
     testFilePath = '$testPackageTestPath/test.dart';
@@ -658,8 +636,6 @@ suggestions
   }
 
   Future<void> test_isVisibleForTesting_method_sameLibrary() async {
-    writeTestPackageConfig(meta: true);
-
     await computeSuggestions('''
 import 'package:meta/meta.dart';
 
@@ -686,8 +662,6 @@ suggestions
 
   Future<void>
   test_isVisibleForTesting_method_samePackage_otherLibrary() async {
-    writeTestPackageConfig(meta: true);
-
     newFile('$testPackageLibPath/a.dart', r'''
 import 'package:meta/meta.dart';
 
@@ -716,8 +690,6 @@ suggestions
 
   Future<void>
   test_isVisibleForTesting_method_samePackage_otherLibrary_test() async {
-    writeTestPackageConfig(meta: true);
-
     newFile('$testPackageLibPath/a.dart', r'''
 import 'package:meta/meta.dart';
 

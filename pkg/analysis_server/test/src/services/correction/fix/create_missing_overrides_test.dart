@@ -1044,13 +1044,10 @@ class B extends A {
 @reflectiveTest
 class CreateMissingOverridesMustBeOverriddenClassTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.createMissingOverrides;
+  bool get addMetaPackageDep => true;
 
   @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(meta: true);
-  }
+  FixKind get kind => DartFixKind.createMissingOverrides;
 
   Future<void> test_field() async {
     await resolveTestCode('''

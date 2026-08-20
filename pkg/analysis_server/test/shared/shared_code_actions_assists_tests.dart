@@ -243,9 +243,10 @@ void f() {
 
     // Also ensure there was a single edit that was correctly marked
     // as a LegacySnippetTextEdit.
-    var textEdits = extractTextDocumentEdits(
-      verifier.edit.documentChanges!,
-    ).expand((tde) => tde.edits).map(_extractLegacySnippetTextEdit).toList();
+    var textEdits = extractTextDocumentEdits(verifier.edit.documentChanges!)
+        .expand((tde) => tde.edits)
+        .map(_extractLegacySnippetTextEdit)
+        .toList();
     expect(textEdits, hasLength(1));
     expect(textEdits.first.insertTextFormat, equals(InsertTextFormat.Snippet));
   }
@@ -350,9 +351,10 @@ build() {
 
     // Also ensure there was a single edit that was correctly marked
     // as a LegacySnippetTextEdit.
-    var textEdits = extractTextDocumentEdits(
-      verifier.edit.documentChanges!,
-    ).expand((tde) => tde.edits).map(_extractLegacySnippetTextEdit).toList();
+    var textEdits = extractTextDocumentEdits(verifier.edit.documentChanges!)
+        .expand((tde) => tde.edits)
+        .map(_extractLegacySnippetTextEdit)
+        .toList();
     expect(textEdits, hasLength(1));
     expect(textEdits.first.insertTextFormat, equals(InsertTextFormat.Snippet));
   }
@@ -412,9 +414,9 @@ void f() {
 
     // Also ensure there was a single edit that was correctly marked
     // as a SnippetTextEdit.
-    var textEdits = extractTextDocumentEdits(
-      verifier.edit.documentChanges!,
-    ).expand((tde) => tde.edits).toList();
+    var textEdits = extractTextDocumentEdits(verifier.edit.documentChanges!)
+        .expand((tde) => tde.edits)
+        .toList();
     expect(textEdits, hasLength(1));
     var edit = textEdits.single.map((e) => e, (e) => e, (e) => e, (e) => e);
     expect(edit, isA<SnippetTextEdit>());
@@ -529,9 +531,9 @@ build() {
 
     // Also ensure there was a single edit that was correctly marked
     // as a SnippetTextEdit.
-    var textEdits = extractTextDocumentEdits(
-      verifier.edit.documentChanges!,
-    ).expand((tde) => tde.edits).toList();
+    var textEdits = extractTextDocumentEdits(verifier.edit.documentChanges!)
+        .expand((tde) => tde.edits)
+        .toList();
     expect(textEdits, hasLength(1));
     var edit = textEdits.single.map((e) => e, (e) => e, (e) => e, (e) => e);
     expect(edit, isA<SnippetTextEdit>());
