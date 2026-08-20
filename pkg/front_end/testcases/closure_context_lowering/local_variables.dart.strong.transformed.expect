@@ -125,14 +125,16 @@ static method testForInMapEntryCounterNotCaptured(core::List<core::int> list) �
 ] */ /* scope=[
   #ctx24: not-captured [list2],
 ] */ {
-  core::Map<core::int, core::String> list2 = block {
+  core::Map<core::int, core::String> list2 = block /* scope=[
+    #ctx25: not-captured [#t3],
+  ] */{
     final core::Map<core::int, core::String> #t3 = <core::int, core::String>{};
     {
       synthesized core::Iterator<core::int> :sync-for-iterator = list.{core::Iterable::iterator}{core::Iterator<core::int>};
       for /* scope=[
-        #ctx25: not-captured [:sync-for-iterator],
+        #ctx26: not-captured [:sync-for-iterator],
       ] */ (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; )/* scope=[
-        #ctx26: not-captured [i],
+        #ctx27: not-captured [i],
       ] */ {
         core::int i = :sync-for-iterator.{core::Iterator::current}{core::int};
         #t3.{core::Map::[]=}{Invariant}(i, "${i}"){(core::int, core::String) → void};
@@ -142,21 +144,23 @@ static method testForInMapEntryCounterNotCaptured(core::List<core::int> list) �
   return list2;
 }
 static method testForInMapEntryCounterCaptured(core::List<core::int> list) → dynamic/* scope=[
-  #ctx27: not-captured [list],
+  #ctx28: not-captured [list],
 ] */ /* scope=[
-  #ctx28: not-captured [closures],
+  #ctx29: not-captured [closures],
 ] */ {
-  core::Map<core::int, core::Function> closures = block {
+  core::Map<core::int, core::Function> closures = block /* scope=[
+    #ctx30: not-captured [#t4],
+  ] */{
     final core::Map<core::int, core::Function> #t4 = <core::int, core::Function>{};
     {
       synthesized core::Iterator<core::int> :sync-for-iterator = list.{core::Iterable::iterator}{core::Iterator<core::int>};
       for /* scope=[
-        #ctx29: direct-captured [:sync-for-iterator],
+        #ctx31: direct-captured [:sync-for-iterator],
       ] */ (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; )/* scope=[
-        #ctx30: direct-captured [i],
+        #ctx32: direct-captured [i],
       ] */ {
         core::int i = :sync-for-iterator.{core::Iterator::current}{core::int};
-        #t4.{core::Map::[]=}{Invariant}(i, () /* #ctx29 */ → core::int => i){(core::int, core::Function) → void};
+        #t4.{core::Map::[]=}{Invariant}(i, () /* #ctx31 */ → core::int => i){(core::int, core::Function) → void};
       }
     }
   } =>#t4;

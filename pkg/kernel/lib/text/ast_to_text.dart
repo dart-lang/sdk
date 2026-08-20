@@ -2172,6 +2172,9 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
   @override
   void visitBlockExpression(BlockExpression node) {
     writeSpaced('block');
+    if (node.scope case Scope scope?) {
+      writeScope(scope);
+    }
     writeBlockBody(node.body.statements, asExpression: true);
     writeSymbol(' =>');
     writeExpression(node.value);

@@ -95,26 +95,30 @@ static method testForInMapEntryCounterNotCaptured(core::List<core::int> list) �
 ] */ /* scope=[
   #ctx20: not-captured [list2],
 ] */ {
-  core::Map<core::int, core::String> list2 = block {
+  core::Map<core::int, core::String> list2 = block /* scope=[
+    #ctx21: not-captured [#t3],
+  ] */{
     final core::Map<core::int, core::String> #t3 = <core::int, core::String>{};
     for /* scope=[
-      #ctx21: not-captured [i],
+      #ctx22: not-captured [i],
     ] */ (core::int i in list)
       #t3.{core::Map::[]=}{Invariant}(i, "${i}"){(core::int, core::String) → void};
   } =>#t3;
   return list2;
 }
 static method testForInMapEntryCounterCaptured(core::List<core::int> list) → dynamic/* scope=[
-  #ctx22: not-captured [list],
+  #ctx23: not-captured [list],
 ] */ /* scope=[
-  #ctx23: not-captured [closures],
+  #ctx24: not-captured [closures],
 ] */ {
-  core::Map<core::int, core::Function> closures = block {
+  core::Map<core::int, core::Function> closures = block /* scope=[
+    #ctx25: not-captured [#t4],
+  ] */{
     final core::Map<core::int, core::Function> #t4 = <core::int, core::Function>{};
     for /* scope=[
-      #ctx24: direct-captured [i],
+      #ctx26: direct-captured [i],
     ] */ (core::int i in list)
-      #t4.{core::Map::[]=}{Invariant}(i, () /* #ctx24 */ → core::int => i){(core::int, core::Function) → void};
+      #t4.{core::Map::[]=}{Invariant}(i, () /* #ctx26 */ → core::int => i){(core::int, core::Function) → void};
   } =>#t4;
   return closures;
 }
