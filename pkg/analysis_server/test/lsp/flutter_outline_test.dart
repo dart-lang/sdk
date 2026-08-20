@@ -49,10 +49,7 @@ class FlutterOutlineNonFlutterProjectTest
 @reflectiveTest
 class FlutterOutlineTest extends AbstractLspAnalysisServerTest {
   @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(flutter: true);
-  }
+  bool get addFlutterPackageDep => true;
 
   Future<void> test_afterChange() async {
     var initialContent = '''

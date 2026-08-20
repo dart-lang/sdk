@@ -17,9 +17,5 @@ void main() {
 class EditableArgumentsTest extends AbstractLspAnalysisServerTest
     with LspSharedTestMixin, SharedEditableArgumentsTests {
   @override
-  void setUp() {
-    super.setUp();
-
-    writeTestPackageConfig(flutter: true);
-  }
+  bool get addFlutterPackageDep => true;
 }

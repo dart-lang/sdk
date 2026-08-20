@@ -19,6 +19,9 @@ mixin ConfigurationFilesMixin on MockPackagesMixin {
   /// imports to resolve.
   bool get addFlutterLocalizationsPackageDep => false;
 
+  /// Adds the 'flutter' package as a dependency to the package-under-test.
+  bool get addFlutterPackageDep => false;
+
   /// Adds the 'flutter_test' package to the package config file for the
   /// package-under-test.
   ///
@@ -56,7 +59,6 @@ mixin ConfigurationFilesMixin on MockPackagesMixin {
     String? packageName,
     PackageConfigFileBuilder? config,
     String? languageVersion,
-    bool flutter = false,
   }) {
     projectFolderPath = resourceProvider.convertPath(projectFolderPath);
 
@@ -74,17 +76,21 @@ mixin ConfigurationFilesMixin on MockPackagesMixin {
     );
 
     // flutter_test also depends on meta for @isTestGroup / @isTest
-    if (addMetaPackageDep || flutter || addFlutterTestPackageDep) {
-      var libFolder = addMeta();
-      config.add(name: 'meta', rootFolder: libFolder.parent);
+    if (addMetaPackageDep || addFlutterPackageDep || addFlutterTestPackageDep) {
+      if (!config.hasPackage('meta')) {
+        var libFolder = addMeta();
+        config.add(name: 'meta', rootFolder: libFolder.parent);
+      }
     }
 
-    if (flutter) {
-      var skyEnginePath = addSkyEngine(sdkPath: dartSdkPath).parent.path;
-      config.add(
-        name: 'sky_engine',
-        rootFolder: resourceProvider.getFolder(skyEnginePath),
-      );
+    if (addFlutterPackageDep) {
+      if (!config.hasPackage('sky_engine')) {
+        var skyEnginePath = addSkyEngine(sdkPath: dartSdkPath).parent.path;
+        config.add(
+          name: 'sky_engine',
+          rootFolder: resourceProvider.getFolder(skyEnginePath),
+        );
+      }
 
       var flutterLibFolder = addFlutter();
       config.add(name: 'flutter', rootFolder: flutterLibFolder.parent);
@@ -137,14 +143,12 @@ void main() {
   void writeTestPackageConfig({
     PackageConfigFileBuilder? config,
     String? languageVersion,
-    bool flutter = false,
   }) {
     writePackageConfig(
       testPackageRootPath,
       config: config,
       languageVersion: languageVersion,
       packageName: 'test',
-      flutter: flutter,
     );
   }
 }

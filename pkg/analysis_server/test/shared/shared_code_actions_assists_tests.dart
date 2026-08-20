@@ -29,6 +29,8 @@ mixin SharedAssistsCodeActionsTests
         LspEditHelpersMixin,
         LspVerifyEditHelpersMixin,
         ClientCapabilitiesHelperMixin {
+  bool get addFlutterPackageDep => true;
+
   @override
   Future<void> setUp() async {
     await super.setUp();
@@ -38,8 +40,6 @@ mixin SharedAssistsCodeActionsTests
     setSupportedCodeActionKinds([CodeActionKind.Refactor]);
 
     registerBuiltInAssistGenerators();
-
-    writeTestPackageConfig(flutter: true);
   }
 
   Future<void> test_appliesCorrectEdits_withDocumentChangesSupport() async {

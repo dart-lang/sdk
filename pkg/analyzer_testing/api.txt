@@ -39,6 +39,7 @@ package:analyzer_testing/package_config_file_builder.dart:
     new (constructor: PackageConfigFileBuilder Function())
     add (method: void Function({String? languageVersion, required String name, String packageUriStr, required Folder rootFolder}))
     copy (method: PackageConfigFileBuilder Function())
+    hasPackage (method: bool Function(String))
     toContent (method: String Function())
 package:analyzer_testing/package_root.dart:
   packageRoot (static getter: String)
