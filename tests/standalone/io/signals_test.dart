@@ -12,17 +12,16 @@ import "dart:convert";
 import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
 
-void testSignals(
+testSignals(
   int usr1Expect,
   int usr2Expect, [
   int? usr1Send,
   int? usr2Send,
   bool shouldFail = false,
-]) {
+]) async {
   if (usr1Send == null) usr1Send = usr1Expect;
   if (usr2Send == null) usr2Send = usr2Expect;
-  asyncStart();
-  Process.start(
+  var process = await Process.start(
     Platform.executable,
     []
       ..addAll(Platform.executableArguments)
@@ -32,32 +31,29 @@ void testSignals(
         usr1Expect.toString(),
         usr2Expect.toString(),
       ]),
-  ).then((process) {
-    process.stdin.close();
-    process.stderr.drain();
-    int v = 0;
-    process.stdout.listen((out) {
-      // Send as many signals as 'ready\n' received on stdout
-      int count = out.where((c) => c == '\n'.codeUnitAt(0)).length;
-      for (int i = 0; i < count; i++) {
-        if (v < usr1Send!) {
-          process.kill(ProcessSignal.sigusr1);
-        } else if (v < usr1Send + usr2Send!) {
-          process.kill(ProcessSignal.sigusr2);
-        }
-        v++;
+  );
+  process.stdin.close();
+  var drain = process.stderr.drain();
+  int v = 0;
+  process.stdout.listen((out) {
+    // Send as many signals as 'ready\n' received on stdout
+    int count = out.where((c) => c == '\n'.codeUnitAt(0)).length;
+    for (int i = 0; i < count; i++) {
+      if (v < usr1Send!) {
+        process.kill(ProcessSignal.sigusr1);
+      } else if (v < usr1Send + usr2Send!) {
+        process.kill(ProcessSignal.sigusr2);
       }
-    });
-    process.exitCode.then((exitCode) {
-      Expect.equals(shouldFail, exitCode != 0);
-      asyncEnd();
-    });
+      v++;
+    }
   });
+  var exitCode = await process.exitCode;
+  Expect.equals(shouldFail, exitCode != 0);
+  await drain;
 }
 
-void testSignal(ProcessSignal signal) {
-  asyncStart();
-  Process.start(
+testSignal(ProcessSignal signal) async {
+  var process = await Process.start(
     Platform.executable,
     []
       ..addAll(Platform.executableArguments)
@@ -66,9 +62,41 @@ void testSignal(ProcessSignal signal) {
         Platform.script.resolve('signal_test_script.dart').toFilePath(),
         signal.toString(),
       ]),
-  ).then((process) {
+  );
+  process.stdin.close();
+  var drain = process.stderr.drain();
+
+  var output = "";
+  process.stdout
+      .transform(utf8.decoder)
+      .listen(
+        (str) {
+          output += str;
+          if (output == 'ready\n') {
+            process.kill(signal);
+          }
+        },
+        onDone: () {
+          Expect.equals('ready\n$signal\n', output);
+        },
+      );
+  var exitCode = await process.exitCode;
+  Expect.equals(0, exitCode);
+  await drain;
+}
+
+testMultipleSignals(List<ProcessSignal> signals) async {
+  for (var signal in signals) {
+    var process = await Process.start(
+      Platform.executable,
+      []
+        ..addAll(Platform.executableArguments)
+        ..add('--verbosity=warning')
+        ..add(Platform.script.resolve('signal_test_script.dart').toFilePath())
+        ..addAll(signals.map((s) => s.toString())),
+    );
     process.stdin.close();
-    process.stderr.drain();
+    var drain = process.stderr.drain();
 
     var output = "";
     process.stdout
@@ -84,46 +112,9 @@ void testSignal(ProcessSignal signal) {
             Expect.equals('ready\n$signal\n', output);
           },
         );
-    process.exitCode.then((exitCode) {
-      Expect.equals(0, exitCode);
-      asyncEnd();
-    });
-  });
-}
-
-void testMultipleSignals(List<ProcessSignal> signals) {
-  for (var signal in signals) {
-    asyncStart();
-    Process.start(
-      Platform.executable,
-      []
-        ..addAll(Platform.executableArguments)
-        ..add('--verbosity=warning')
-        ..add(Platform.script.resolve('signal_test_script.dart').toFilePath())
-        ..addAll(signals.map((s) => s.toString())),
-    ).then((process) {
-      process.stdin.close();
-      process.stderr.drain();
-
-      var output = "";
-      process.stdout
-          .transform(utf8.decoder)
-          .listen(
-            (str) {
-              output += str;
-              if (output == 'ready\n') {
-                process.kill(signal);
-              }
-            },
-            onDone: () {
-              Expect.equals('ready\n$signal\n', output);
-            },
-          );
-      process.exitCode.then((exitCode) {
-        Expect.equals(0, exitCode);
-        asyncEnd();
-      });
-    });
+    var exitCode = await process.exitCode;
+    Expect.equals(0, exitCode);
+    await drain;
   }
 }
 
@@ -133,27 +124,29 @@ void testListenCancel() {
   }
 }
 
-void main() {
+main() async {
   testListenCancel();
   if (Platform.isWindows) return;
-  testSignals(0, 0);
-  testSignals(1, 0);
-  testSignals(0, 1);
-  testSignals(1, 1);
-  testSignals(10, 10);
-  testSignals(10, 1);
-  testSignals(1, 10);
-  testSignals(1, 0, 0, 1, true);
-  testSignals(0, 1, 1, 0, true);
 
-  testSignal(ProcessSignal.sighup);
-  testSignal(ProcessSignal.sigint);
-  testSignal(ProcessSignal.sigterm);
-  testSignal(ProcessSignal.sigusr1);
-  testSignal(ProcessSignal.sigusr2);
-  testSignal(ProcessSignal.sigwinch);
+  asyncStart();
+  await testSignals(0, 0);
+  await testSignals(1, 0);
+  await testSignals(0, 1);
+  await testSignals(1, 1);
+  await testSignals(10, 10);
+  await testSignals(10, 1);
+  await testSignals(1, 10);
+  await testSignals(1, 0, 0, 1, true);
+  await testSignals(0, 1, 1, 0, true);
 
-  testMultipleSignals([
+  await testSignal(ProcessSignal.sighup);
+  await testSignal(ProcessSignal.sigint);
+  await testSignal(ProcessSignal.sigterm);
+  await testSignal(ProcessSignal.sigusr1);
+  await testSignal(ProcessSignal.sigusr2);
+  await testSignal(ProcessSignal.sigwinch);
+
+  await testMultipleSignals([
     ProcessSignal.sighup,
     ProcessSignal.sigint,
     ProcessSignal.sigterm,
@@ -161,4 +154,5 @@ void main() {
     ProcessSignal.sigusr2,
     ProcessSignal.sigwinch,
   ]);
+  asyncEnd();
 }

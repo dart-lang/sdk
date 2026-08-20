@@ -102,7 +102,8 @@ class Zone {
   }
 
   // All pointers returned from AllocateUnsafe() and New() have this alignment.
-  static constexpr intptr_t kAlignment = kDoubleSize;
+  // Must be a multiple of the MTE tagging granule.
+  static constexpr intptr_t kAlignment = 16;
 
   static void Init();
   static void Cleanup();
@@ -113,6 +114,28 @@ class Zone {
   // Allow templated containers to check if this allocator supports
   // freeing individual allocations.
   static constexpr bool kSupportsFreeingIndividualAllocations = false;
+
+  static bool memory_tagging_enabled() {
+#if defined(HOST_ARCH_ARM64)
+    return memory_tagging_enabled_;
+#else
+    return false;
+#endif
+  }
+
+  static bool use_initial_chunk() {
+#if defined(HOST_ARCH_ARM64)
+    // `stg` against a page without tagging enabled should be a nop, but on the
+    // Apple M5 faults. (Is this a hardware bug, or is Mac enabling tagging even
+    // on pages without VM_FLAGS_MTE but mapping their tag memory to read-only
+    // memory and vm_region_submap_info lies about it?) So don't use the initial
+    // chunk, which is usually in the stack instead of a page we allocated with
+    // VM_FLAGS_MTE.
+    return !memory_tagging_enabled_;
+#else
+    return true;
+#endif
+  }
 
  private:
   Zone();
@@ -132,6 +155,9 @@ class Zone {
 
   // Total size of current zone segments.
   static RelaxedAtomic<intptr_t> total_size_;
+
+  // Cached lookup for whether MTE is enabled.
+  static bool memory_tagging_enabled_;
 
   // Expand the zone to accommodate an allocation of 'size' bytes.
   uword AllocateExpand(intptr_t size);
@@ -190,10 +216,10 @@ class Zone {
 
   // This buffer is used for allocation before any segments.
   // This would act as the initial stack allocated chunk so that we don't
-  // end up calling malloc/free on zone scopes that allocate less than
-  // kChunkSize
-  COMPILE_ASSERT(kAlignment <= 8);
-  ALIGN8 uint8_t buffer_[kInitialChunkSize];
+  // end up allocating segements on zone scopes that allocate less than
+  // kChunkSize, which is most of them.
+  COMPILE_ASSERT(kAlignment <= 16);
+  ALIGN16 uint8_t buffer_[kInitialChunkSize];
 
   friend class StackZone;
   friend class ApiZone;
@@ -271,8 +297,15 @@ class AllocOnlyStackZone : public ValueObject {
   DISALLOW_COPY_AND_ASSIGN(AllocOnlyStackZone);
 };
 
+#if defined(HOST_ARCH_ARM64) && defined(__GNUC__)
+__attribute__((target("+mte")))
+#endif
 inline uword Zone::AllocUnsafe(intptr_t size) {
-  ASSERT(size >= 0);
+  // Avoid size 0 allocations aliasing later allocations. Using 1 and doing this
+  // before alignment rounding allows for branchless code on most architectures.
+  if (size == 0) size = 1;
+
+  ASSERT(size > 0);
   // Round up the requested size to fit the alignment.
   if (size > (kIntptrMax - kAlignment)) {
     FATAL("Zone::Alloc: 'size' is too large: size=%" Pd "", size);
@@ -292,6 +325,24 @@ inline uword Zone::AllocUnsafe(intptr_t size) {
 
   // Check that the result has the proper alignment and return it.
   ASSERT(Utils::IsAligned(result, kAlignment));
+
+  // Apply memory tagging when available.
+#if defined(HOST_ARCH_ARM64) && defined(__GNUC__)
+  if (memory_tagging_enabled()) {
+    uint8_t* start = reinterpret_cast<uint8_t*>(result);
+    start = __builtin_arm_irg(start, 0);
+    uint8_t* cursor = start;
+    uint8_t* end = start + size;
+    do {
+      __builtin_arm_stg(cursor);
+      cursor += 16;
+      COMPILE_ASSERT(kAlignment >= 16);
+      COMPILE_ASSERT(Utils::IsAligned(kAlignment, 16));
+    } while (cursor < end);
+    return reinterpret_cast<uword>(start);
+  }
+#endif
+
   return result;
 }
 

@@ -4024,6 +4024,14 @@ final class _Int32x4 implements Int32x4 {
   @pragma("vm:exact-result-type", _Int32x4)
   @pragma("vm:external-name", "Int32x4_sub")
   external Int32x4 operator -(Int32x4 other);
+
+  Int32x4 equal(Int32x4 other) => Int32x4(
+    x == other.x ? -1 : 0,
+    y == other.y ? -1 : 0,
+    z == other.z ? -1 : 0,
+    w == other.w ? -1 : 0,
+  );
+
   @pragma("vm:recognized", "other")
   @pragma("vm:external-name", "Int32x4_getX")
   external int get x;
@@ -4039,6 +4047,9 @@ final class _Int32x4 implements Int32x4 {
   @pragma("vm:recognized", "other")
   @pragma("vm:external-name", "Int32x4_getSignMask")
   external int get signMask;
+
+  bool get anyTrue => (x | y | z | w) != 0;
+
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Int32x4)
   @pragma("vm:external-name", "Int32x4_shuffle")

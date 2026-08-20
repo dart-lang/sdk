@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/dart/analysis/features.dart';
@@ -17,14 +16,12 @@ import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/platform.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
-import 'package:analyzer/src/utilities/extensions/file_system.dart';
 import 'package:analyzer_testing/experiments/experiments.dart';
 import 'package:analyzer_testing/mock_packages/mock_packages.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:linter/src/rules.dart';
 import 'package:meta/meta.dart';
-import 'package:test/test.dart';
 
 import 'support/configuration_files.dart';
 
@@ -42,10 +39,6 @@ class AbstractContextTest
 
   final Map<String, String> _declaredVariables = {};
   AnalysisContextCollectionImpl? _analysisContextCollection;
-
-  /// If not `null`, [getResolvedUnit] will use the context that corresponds
-  /// to this file, instead of the given file.
-  File? fileForContextSelection;
 
   // TODO(scheglov): Stop writing into it. Convert into getter.
   late String testFilePath = '$testPackageLibPath/test.dart';
@@ -104,12 +97,6 @@ class AbstractContextTest
     }
   }
 
-  void assertSourceChange(SourceChange sourceChange, String expected) {
-    var buffer = StringBuffer();
-    _writeSourceChangeToBuffer(buffer: buffer, sourceChange: sourceChange);
-    _assertTextExpectation(buffer.toString(), expected);
-  }
-
   /// Returns the existing analysis context that should be used to analyze the
   /// given [file], or throw [StateError] if the [file] is not analyzed in any
   /// of the created analysis contexts.
@@ -155,9 +142,7 @@ class AbstractContextTest
   }
 
   Future<ResolvedUnitResult> getResolvedUnit(File file) async {
-    var path = file.path;
-    var session = await sessionFor(fileForContextSelection ?? file);
-    var result = await session.getResolvedUnit(path);
+    var result = await (await session).getResolvedUnit(file.path);
     return result as ResolvedUnitResult;
   }
 
@@ -238,15 +223,6 @@ class AbstractContextTest
     }
   }
 
-  void _assertTextExpectation(String actual, String expected) {
-    if (actual != expected) {
-      print('-' * 64);
-      print(actual.trimRight());
-      print('-' * 64);
-    }
-    expect(actual, expected);
-  }
-
   /// Create all analysis contexts in [_collectionIncludedPaths].
   void _createAnalysisContexts() {
     if (_analysisContextCollection != null) {
@@ -265,18 +241,5 @@ class AbstractContextTest
 
     _addAnalyzedFilesToDrivers();
     verifyCreatedCollection();
-  }
-
-  void _writeSourceChangeToBuffer({
-    required StringBuffer buffer,
-    required SourceChange sourceChange,
-  }) {
-    for (var fileEdit in sourceChange.edits) {
-      var file = getFile(fileEdit.file);
-      buffer.write('>>>>>>>>>> ${file.posixPath}$testEol');
-      var current = file.readAsStringSync();
-      var updated = SourceEdit.applySequence(current, fileEdit.edits);
-      buffer.write(updated);
-    }
   }
 }

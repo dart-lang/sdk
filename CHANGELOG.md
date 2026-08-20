@@ -17,6 +17,9 @@
   of every lane.
 - Added `Int32x4.splat`, which creates an `Int32x4` with the same 32-bit integer
   value in all four lanes, matching `Float32x4.splat` and `Float64x2.splat`.
+- Added `Int32x4.equal`, a lane-wise equality comparison that returns `-1` in
+  each lane where the operands are equal and `0` elsewhere, and the
+  `Int32x4.anyTrue` getter, which is `true` when any lane is non-zero.
 
 #### `dart:js_interop`
 
