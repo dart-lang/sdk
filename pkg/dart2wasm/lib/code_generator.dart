@@ -1655,14 +1655,6 @@ abstract class AstCodeGenerator
       0,
     );
 
-    if (!translator.isAllocatable(node.target.enclosingClass)) {
-      // Cyclic types cannot be instantiated. Any code that tries to instantiate
-      // them will fail with stack overflow, which is a trap in Wasm. Here we
-      // replace one trap with another.
-      b.unreachable();
-      return expectedType;
-    }
-
     return call(target).single;
   }
 
@@ -3477,12 +3469,12 @@ CodeGenerator getMemberCodeGenerator(
   );
   if (codeGen != null) return codeGen;
 
-  final Class? memberClass = member.enclosingClass;
-  if (memberClass != null && !translator.isAllocatable(memberClass)) {
-    return UnreachableCodeGenerator(translator, functionBuilder.type, member);
-  }
-
   final procedure = member as Procedure;
+
+  assert(
+    !procedure.isInstanceMember ||
+        translator.isAllocatable(member.enclosingClass!),
+  );
 
   if (asyncMarker == AsyncMarker.SyncStar) {
     return SyncStarProcedureCodeGenerator(
@@ -3504,7 +3496,9 @@ CodeGenerator getMemberCodeGenerator(
 CodeGenerator getLambdaCodeGenerator(Translator translator, Lambda lambda) {
   final enclosingMember = lambda.enclosingMember;
   final enclosingClass = enclosingMember.enclosingClass;
-  if (enclosingClass != null && !translator.isAllocatable(enclosingClass)) {
+  if (enclosingClass != null &&
+      !translator.isAllocatable(enclosingClass) &&
+      (enclosingMember.isInstanceMember || lambda.isInConstructorBody)) {
     return UnreachableCodeGenerator(
       translator,
       lambda.callTarget.signature,
@@ -3535,7 +3529,9 @@ CodeGenerator? getInlinableMemberCodeGenerator(
   final Member member = reference.asMember;
 
   final Class? memberClass = member.enclosingClass;
-  if (memberClass != null && !translator.isAllocatable(memberClass)) {
+  if (memberClass != null &&
+      !translator.isAllocatable(memberClass) &&
+      (member.isInstanceMember || reference.isConstructorBodyReference)) {
     return UnreachableCodeGenerator(translator, functionType, member);
   }
 
@@ -4680,6 +4676,11 @@ class ConstructorAllocatorCodeGenerator extends ConstructorCodeGeneratorBase {
         b.local_get(local);
       }
       call(member.initializerReference);
+      if (!translator.isAllocatable(info.cls!)) {
+        b.unreachable();
+        b.end();
+        return;
+      }
       b.struct_new(info.struct);
     } else {
       b.comment('Calling $member initializer function');
@@ -4687,6 +4688,11 @@ class ConstructorAllocatorCodeGenerator extends ConstructorCodeGeneratorBase {
         b.local_get(local);
       }
       call(member.initializerReference);
+      if (!translator.isAllocatable(info.cls!)) {
+        b.unreachable();
+        b.end();
+        return;
+      }
 
       b.comment('Pop all field values to locals');
       final fieldValuesReversed = <w.Local>[];

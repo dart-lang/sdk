@@ -1335,6 +1335,8 @@ class Lambda {
   /// traversal of the member body.
   final int index;
 
+  final bool isInInitializer;
+
   late final LambdaCallTarget callTarget;
 
   Lambda._(
@@ -1343,7 +1345,11 @@ class Lambda {
     this.enclosingMember,
     this.enclosingMemberClosures,
     this.index,
+    this.isInInitializer,
   );
+
+  bool get isInConstructorBody =>
+      enclosingMember is Constructor && !isInInitializer;
 }
 
 /// The context for one or more closures, containing their captured variables.
@@ -1746,6 +1752,7 @@ class _CaptureFinder extends RecursiveVisitor {
       member,
       closures,
       closures.lambdas.length,
+      isInInitializer,
     );
     lambda.callTarget = LambdaCallTarget(
       translator.functions.getLambdaFunctionType(lambda),
