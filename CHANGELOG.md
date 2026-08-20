@@ -7,9 +7,11 @@ This is a patch release that:
 - Fixes incorrect dart2wasm compilation of constructor invocations when
   the class was determined to be not allocatable. (issue #63809)
 - Deprecates the legacy analyzer plugin system. (issue #62164)
+- Fixes dart2js compiler crash when compiling code with nested constants in `record_use` (issue [#64070]).
 
 [#63809]: https://github.com/dart-lang/sdk/issues/63809
 [#62164]: https://github.com/dart-lang/sdk/issues/62164
+[#64070]: https://github.com/dart-lang/sdk/issues/64070
 
 ## 3.13.1
 
