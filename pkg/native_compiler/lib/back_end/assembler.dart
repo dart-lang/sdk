@@ -209,6 +209,9 @@ abstract base class Assembler {
 
   void unimplemented(String message);
   void breakpoint();
+
+  void smiTag(Register rd);
+  void smiUntag(Register rd);
 }
 
 /// Assembler output buffer holding 32-bit instructions.

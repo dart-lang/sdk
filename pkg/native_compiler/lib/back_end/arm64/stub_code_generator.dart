@@ -201,6 +201,10 @@ final class SuspendStub {
   static const Register typeArgsReg = R1;
 }
 
+final class CloneSuspendStateStub {
+  static const Register sourceReg = R0;
+}
+
 final class CallBootstrapNativeStub {
   static const Register argcTagReg = R1;
   static const Register firstArgPointerReg = R2;

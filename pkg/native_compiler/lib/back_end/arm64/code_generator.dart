@@ -31,7 +31,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
 
   late final CFunction _asyncStarStreamControllerAdd = functionRegistry
       .getFunction(
-        GlobalContext.instance.coreTypes.index.getProcedure(
+        GlobalContext.instance.coreLibraries.getProcedure(
           'dart:async',
           '_AsyncStarStreamController',
           'add',
@@ -39,7 +39,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
       );
   late final CFunction _asyncStarStreamControllerAddStream = functionRegistry
       .getFunction(
-        GlobalContext.instance.coreTypes.index.getProcedure(
+        GlobalContext.instance.coreLibraries.getProcedure(
           'dart:async',
           '_AsyncStarStreamController',
           'addStream',
@@ -47,7 +47,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
       );
 
   late final CField _syncStarIteratorCurrent = CField(
-    GlobalContext.instance.coreTypes.index.getField(
+    GlobalContext.instance.coreLibraries.getField(
       'dart:async',
       '_SyncStarIterator',
       '_current',
@@ -55,14 +55,18 @@ final class Arm64CodeGenerator extends CodeGenerator {
   );
 
   late final CField _syncStarIteratorYieldStarIterable = CField(
-    GlobalContext.instance.coreTypes.index.getField(
+    GlobalContext.instance.coreLibraries.getField(
       'dart:async',
       '_SyncStarIterator',
       '_yieldStarIterable',
     ),
   );
 
-  Arm64CodeGenerator(super.backEndState, this.functionRegistry);
+  Arm64CodeGenerator(
+    super.backEndState,
+    super.asmIntrinsics,
+    this.functionRegistry,
+  );
 
   @override
   Assembler createAssembler() => _asm = Arm64Assembler(

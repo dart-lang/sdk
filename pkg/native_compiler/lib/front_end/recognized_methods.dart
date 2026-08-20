@@ -234,7 +234,7 @@ void buildStringBaseCharAt(
   builder.addIntConstant(
     objectLayout.vmOffsets.Symbols_kNumberOfOneCharCodeSymbols,
   );
-  builder.addComparison(.intGreaterOrEqual);
+  builder.addComparison(.intLess);
 
   final oneByteCodeUnitBlock = builder.newTargetBlock();
   final twoByteCodeUnitBlock = builder.newTargetBlock();
@@ -287,6 +287,46 @@ void buildGrowableListCapacity(
 ) {
   builder.addLoadInstanceField(objectLayout.GrowableList_data);
   builder.addLoadInstanceField(objectLayout.Array_length);
+}
+
+void buildEqualsWithSameObjectFastPath(
+  FlowGraphBuilder builder,
+  FunctionRegistry functionRegistry,
+  ObjectLayout objectLayout,
+  CFunction function,
+) {
+  final right = builder.pop();
+  final left = builder.pop();
+
+  builder.push(left);
+  builder.push(right);
+  builder.addComparison(.equal);
+
+  final sameObjectsBlock = builder.newTargetBlock();
+  final differentObjectsBlock = builder.newTargetBlock();
+  builder.addBranch(sameObjectsBlock, differentObjectsBlock);
+
+  final joinBlock = builder.newJoinBlock();
+  final resultVar = builder.declareLocalVariable(
+    '#result',
+    null,
+    const BoolType(),
+  );
+
+  builder.startBlock(sameObjectsBlock);
+  builder.addBoolConstant(true);
+  builder.addStoreLocal(resultVar);
+  builder.addGoto(joinBlock);
+
+  builder.startBlock(differentObjectsBlock);
+  builder.push(left);
+  builder.push(right);
+  buildNativeMethod(builder, functionRegistry, function);
+  builder.addStoreLocal(resultVar);
+  builder.addGoto(joinBlock);
+
+  builder.startBlock(joinBlock);
+  builder.addLoadLocal(resultVar);
 }
 
 /// Build IR for ThreadLocal._hasValue.
@@ -617,6 +657,27 @@ final class VmRecognizedMethods(
         .fixedLengthList, // Backing store array.
         objectLayout.GrowableList_length,
         indirectDataField: objectLayout.GrowableList_data,
+      );
+    },
+    index.getProcedure(
+      'dart:core',
+      '_AbstractType',
+      '==',
+    ): (FlowGraphBuilder builder) {
+      buildEqualsWithSameObjectFastPath(
+        builder,
+        functionRegistry,
+        objectLayout,
+        builder.graph.function,
+      );
+    },
+    index.getProcedure('dart:core', '_Type', '=='): (FlowGraphBuilder builder) {
+      // TODO: add more detailed fast path
+      buildEqualsWithSameObjectFastPath(
+        builder,
+        functionRegistry,
+        objectLayout,
+        builder.graph.function,
       );
     },
 

@@ -190,6 +190,7 @@ class SnapshotSerializer {
     addBaseObject(StubCode.ReturnAsync);
     addBaseObject(StubCode.ReturnAsyncNotFuture);
     addBaseObject(StubCode.ReturnAsyncStar);
+    addBaseObject(StubCode.CloneSuspendState);
     addBaseObject(StubCode.CallBootstrapNative);
     numObjects = numBaseObjects;
   }

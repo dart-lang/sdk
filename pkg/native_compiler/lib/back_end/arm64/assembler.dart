@@ -824,6 +824,16 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
     brk(0);
   }
 
+  @override
+  void smiTag(Register rd, [Register? rn]) {
+    lsl(rd, rn ?? rd, smiShift);
+  }
+
+  @override
+  void smiUntag(Register rd, [Register? rn]) {
+    asr(rd, rn ?? rd, smiShift);
+  }
+
   /// Generate code for inline object allocation.
   void inlineAllocation(
     Register resultReg,
@@ -1795,20 +1805,8 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
   /// Load-Acquire Register.
   void ldar(Register rt, Register rn, [OperandSize sz = OperandSize.s64]) {
     _emitLoadStoreExclusive(
-      B10 |
-          B11 |
-          B12 |
-          B13 |
-          B14 |
-          B15 |
-          B16 |
-          B17 |
-          B18 |
-          B19 |
-          B20 |
-          B22 |
-          B23 |
-          B27,
+      B10 | B11 | B12 | B13 | B14 | B15 | B22 | B23 | B27,
+      ZR,
       rt,
       rn,
       sz,
@@ -1818,27 +1816,41 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
   /// Store-Release Register.
   void stlr(Register rt, Register rn, [OperandSize sz = OperandSize.s64]) {
     _emitLoadStoreExclusive(
-      B10 |
-          B11 |
-          B12 |
-          B13 |
-          B14 |
-          B15 |
-          B16 |
-          B17 |
-          B18 |
-          B19 |
-          B20 |
-          B23 |
-          B27,
+      B10 | B11 | B12 | B13 | B14 | B15 | B23 | B27,
+      ZR,
       rt,
       rn,
       sz,
     );
   }
 
+  /// Load-Exclusive Register.
+  void ldxr(Register rt, Register rn, [OperandSize sz = OperandSize.s64]) {
+    assert(sz.is64 || !sz.isSigned);
+    _emitLoadStoreExclusive(
+      B10 | B11 | B12 | B13 | B14 | B22 | B27,
+      ZR,
+      rt,
+      rn,
+      sz,
+    );
+  }
+
+  /// Store-Exclusive Register.
+  void stxr(
+    Register rs,
+    Register rt,
+    Register rn, [
+    OperandSize sz = OperandSize.s64,
+  ]) {
+    assert(rs != rt);
+    assert(rs != rn || rs == ZR);
+    _emitLoadStoreExclusive(B10 | B11 | B12 | B13 | B14 | B27, rs, rt, rn, sz);
+  }
+
   void _emitLoadStoreExclusive(
     int opcode,
+    Register rs,
     Register rt,
     Register rn,
     OperandSize sz,
@@ -1848,7 +1860,33 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
       opcode |
           rn.encodingRn(allowSP: true) |
           rt.encodingRt() |
+          rs.encodingRs() |
           (sz.log2sizeInBytes << 30),
+    );
+  }
+
+  /// Clear Exclusive Monitor.
+  void clrex() {
+    emit(
+      B0 |
+          B1 |
+          B2 |
+          B3 |
+          B4 |
+          B6 |
+          B8 |
+          B9 |
+          B10 |
+          B11 |
+          B12 |
+          B13 |
+          B16 |
+          B17 |
+          B24 |
+          B26 |
+          B28 |
+          B30 |
+          B31,
     );
   }
 
@@ -2262,6 +2300,7 @@ extension on Register {
   int encodingRn({bool allowSP = false}) => encoding(allowSP: allowSP) << 5;
   int encodingRa({bool allowSP = false}) => encoding(allowSP: allowSP) << 10;
   int encodingRm({bool allowSP = false}) => encoding(allowSP: allowSP) << 16;
+  int encodingRs({bool allowSP = false}) => encoding(allowSP: allowSP) << 16;
   int encodingRt({bool allowSP = false}) => encoding(allowSP: allowSP);
   int encodingRt2({bool allowSP = false}) => encoding(allowSP: allowSP) << 10;
 }
