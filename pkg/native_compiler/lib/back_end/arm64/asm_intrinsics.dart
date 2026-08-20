@@ -72,16 +72,10 @@ final class Arm64AsmIntrinsics(
     final objectReg = R0;
     _asm.ldr(objectReg, _asm.address(stackPointerReg, 0));
 
-    assert(vmOffsets.UntaggedObject_kHashTagPos % 8 == 0);
-    assert(vmOffsets.UntaggedObject_kHashTagPos + 32 == wordSize * 8);
     _asm.ldr(
       R4,
-      _asm.fieldAddress(
-        objectReg,
-        vmOffsets.Object_tags_offset +
-            (vmOffsets.UntaggedObject_kHashTagPos ~/ 8),
-      ),
-      OperandSize.u32,
+      _asm.fieldAddress(objectReg, vmOffsets.Object_hash_offset),
+      .u32,
     );
     _asm.cbz(R4, notYetComputed);
     _asm.smiTag(returnReg, R4);
@@ -116,6 +110,69 @@ final class Arm64AsmIntrinsics(
     _asm.bind(alreadySet);
     _asm.clrex();
     _asm.smiTag(returnReg, R4);
+    _asm.ret();
+    return true;
+  }
+
+  /// Generate code for dart:core::_OneByteString.hashCode.
+  @override
+  bool generateOneByteStringHashCode() {
+    final notYetComputed = Label();
+    final loop = Label();
+    final done = Label();
+    final stringReg = R0;
+    final lengthReg = R1;
+    final dataReg = R2;
+    final endReg = R3;
+    final hashReg = R4;
+    final charReg = R5;
+    _asm.ldr(stringReg, _asm.address(stackPointerReg, 0));
+
+    _asm.ldr(
+      hashReg,
+      _asm.fieldAddress(stringReg, vmOffsets.Object_hash_offset),
+      .u32,
+    );
+    _asm.cbz(hashReg, notYetComputed);
+    _asm.smiTag(returnReg, hashReg);
+    _asm.ret();
+
+    _asm.bind(notYetComputed);
+    _asm.ldr(
+      lengthReg,
+      _asm.fieldAddress(stringReg, vmOffsets.String_length_offset),
+    );
+    _asm.cbz(lengthReg, done);
+
+    _asm.addImmediate(
+      dataReg,
+      stringReg,
+      vmOffsets.OneByteString_data_offset - heapObjectTag,
+    );
+    _asm.add(endReg, dataReg, ShiftedRegOperand(lengthReg, .LSR, smiShift));
+
+    _asm.bind(loop);
+    _asm.ldr(charReg, RegOffsetAddress(dataReg, 0), .u8);
+    _asm.add(dataReg, dataReg, Immediate(1));
+    _asm.combineHashes(hashReg, charReg);
+    _asm.cmp(dataReg, endReg);
+    _asm.branchIf(Condition.notEqual, loop);
+
+    _asm.bind(done);
+    _asm.finalizeHash(vmOffsets.Object_kHashBits, hashReg);
+
+    _asm.sub(stringReg, stringReg, Immediate(heapObjectTag));
+    _asm.lsl(hashReg, hashReg, vmOffsets.UntaggedObject_kHashTagPos);
+
+    final retry = Label();
+    _asm.bind(retry);
+    _asm.ldxr(R2, stringReg);
+    _asm.orr(R2, R2, hashReg);
+    _asm.stxr(R3, R2, stringReg);
+    _asm.cbnz(R3, retry);
+
+    _asm.lsr(hashReg, hashReg, vmOffsets.UntaggedObject_kHashTagPos);
+    _asm.smiTag(returnReg, hashReg);
     _asm.ret();
     return true;
   }

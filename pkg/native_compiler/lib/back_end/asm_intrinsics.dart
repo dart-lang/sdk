@@ -26,6 +26,9 @@ abstract base class AsmIntrinsics(
   /// Generate code for dart:core::_getHash (Object.hashCode / identityHashCode).
   bool generateObjectHashCode();
 
+  /// Generate code for dart:core::_OneByteString.hashCode.
+  bool generateOneByteStringHashCode();
+
   /// Generate code for [function] using [asm].
   /// Return true on success, or false if [function] is not implemented in assembly.
   bool generate(CFunction function, Assembler asm) {
@@ -49,6 +52,14 @@ abstract base class AsmIntrinsics(
         '_getHash',
       ),
     ): generateObjectHashCode,
+    functionRegistry.getFunction(
+      GlobalContext.instance.coreLibraries.getProcedure(
+        'dart:core',
+        '_OneByteString',
+        'get:hashCode',
+      ),
+      isGetter: true,
+    ): generateOneByteStringHashCode,
 
     // dart:async
     functionRegistry.getFunction(

@@ -958,6 +958,7 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
     addImmediate(resultReg, resultReg, heapObjectTag);
   }
 
+  @override
   void loadClassId(Register result, Register object) {
     ldr(result, fieldAddress(object, vmOffsets.Object_tags_offset));
     ubfx(
@@ -966,6 +967,35 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
       vmOffsets.UntaggedObject_kClassIdTagPos,
       vmOffsets.UntaggedObject_kClassIdTagSize,
     );
+  }
+
+  @override
+  void combineHashes(Register hash, Register other) {
+    // hash += other
+    add(hash, hash, other, .u32);
+    // hash += hash << 10
+    add(hash, hash, ShiftedRegOperand(hash, Shift.LSL, 10), .u32);
+    // hash ^= hash >> 6
+    eor(hash, hash, ShiftedRegOperand(hash, Shift.LSR, 6), .u32);
+  }
+
+  @override
+  void finalizeHash(int bitSize, Register hash) {
+    assert(bitSize > 0 && bitSize <= 32);
+    // hash += hash << 3;
+    add(hash, hash, ShiftedRegOperand(hash, Shift.LSL, 3), .u32);
+    // hash ^= hash >> 11;
+    eor(hash, hash, ShiftedRegOperand(hash, Shift.LSR, 11), .u32);
+    // hash += hash << 15;
+    if (bitSize < 32) {
+      add(hash, hash, ShiftedRegOperand(hash, Shift.LSL, 15), .u32);
+      // Size to fit.
+      ands(hash, hash, Immediate((1 << bitSize) - 1), .u32);
+    } else {
+      adds(hash, hash, ShiftedRegOperand(hash, Shift.LSL, 15), .u32);
+    }
+    // return (hash == 0) ? 1 : hash;
+    cinc(hash, hash, .zero);
   }
 
   // [rd] and [rn] can be SP if [o] is Immediate or ExtRegOperand.
@@ -1237,6 +1267,23 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
       condition,
       sz,
     );
+  }
+
+  void cinc(
+    Register rd,
+    Register rn,
+    Condition condition, [
+    OperandSize sz = OperandSize.s64,
+  ]) {
+    csinc(rd, rn, rn, condition.inverted, sz);
+  }
+
+  void cset(
+    Register rd,
+    Condition condition, [
+    OperandSize sz = OperandSize.s64,
+  ]) {
+    csinc(rd, ZR, ZR, condition.inverted, sz);
   }
 
   void csinv(

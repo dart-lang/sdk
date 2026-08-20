@@ -261,6 +261,70 @@ void buildStringBaseCharAt(
   builder.addLoadLocal(resultVar);
 }
 
+void buildOneByteStringSubstringUnchecked(
+  FlowGraphBuilder builder,
+  ObjectLayout objectLayout,
+) {
+  final endIndex = builder.pop();
+  final startIndex = builder.pop();
+  final src = builder.pop();
+  final type = StringType(
+    GlobalContext.instance.coreTypes.nonNullableRawType(
+      GlobalContext.instance.coreLibraries.getClass(
+        'dart:core',
+        '_OneByteString',
+      ),
+    ),
+  );
+
+  builder.push(endIndex);
+  builder.push(startIndex);
+  final len = builder.addBinaryIntOp(.sub);
+  final dst = builder.addAllocateArray(.oneByteString, type);
+
+  final loopBlock = builder.newJoinBlock();
+  final iVar = builder.declareLocalVariable('i', null, const IntType());
+
+  builder.addIntConstant(0);
+  builder.addStoreLocal(iVar);
+  builder.addGoto(loopBlock);
+
+  builder.startBlock(loopBlock);
+
+  // dst[i] = src[startIndex + i];
+  builder.push(dst);
+  builder.addLoadLocal(iVar);
+
+  builder.push(src);
+  builder.push(startIndex);
+  builder.addLoadLocal(iVar);
+  builder.addBinaryIntOp(.add);
+  builder.addLoadArrayElement(.oneByteString, const IntType());
+
+  builder.addStoreArrayElement(.oneByteString);
+
+  // i = i + 1;
+  builder.addLoadLocal(iVar);
+  builder.addIntConstant(1);
+  builder.addBinaryIntOp(.add);
+  builder.addStoreLocal(iVar);
+
+  // if (i < len) continue;
+  builder.addLoadLocal(iVar);
+  builder.push(len);
+  builder.addComparison(.intLess);
+
+  final continueBlock = builder.newTargetBlock();
+  final doneBlock = builder.newTargetBlock();
+  builder.addBranch(continueBlock, doneBlock);
+
+  builder.startBlock(continueBlock);
+  builder.addGoto(loopBlock);
+
+  builder.startBlock(doneBlock);
+  builder.push(dst);
+}
+
 /// Build IR for _GrowableList._withData factory constructor.
 void buildGrowableListWithData(
   FlowGraphBuilder builder,
@@ -526,6 +590,13 @@ final class VmRecognizedMethods(
         objectLayout,
         builder.graph.function,
       );
+    },
+    index.getProcedure(
+      'dart:core',
+      '_OneByteString',
+      '_substringUncheckedNative',
+    ): (FlowGraphBuilder builder) {
+      buildOneByteStringSubstringUnchecked(builder, objectLayout);
     },
 
     index.getProcedure(

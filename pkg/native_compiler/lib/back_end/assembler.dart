@@ -212,6 +212,11 @@ abstract base class Assembler {
 
   void smiTag(Register rd);
   void smiUntag(Register rd);
+
+  void loadClassId(Register result, Register object);
+
+  void combineHashes(Register hash, Register other);
+  void finalizeHash(int bitSize, Register hash);
 }
 
 /// Assembler output buffer holding 32-bit instructions.
