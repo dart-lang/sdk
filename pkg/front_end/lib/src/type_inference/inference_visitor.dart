@@ -5462,6 +5462,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         keyType: keyType,
         valueType: valueType,
         isConst: node.isConst,
+        contextAllocationStrategy: isClosureContextLoweringEnabled
+            ? _contextAllocationStrategy
+            : null,
       ).translate(entries: elements, fileOffset: node.fileOffset);
     } else {
       DartType typeArgument = inferredElementType.expressionType;

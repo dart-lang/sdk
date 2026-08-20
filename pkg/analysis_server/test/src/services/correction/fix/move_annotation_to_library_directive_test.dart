@@ -17,6 +17,9 @@ void main() {
 @reflectiveTest
 class MoveAnnotationToLibraryDirectiveTest extends FixProcessorLintTest {
   @override
+  bool get addMetaPackageDep => true;
+
+  @override
   FixKind get kind => DartFixKind.moveAnnotationToLibraryDirective;
 
   @override
@@ -183,7 +186,6 @@ void f(Completer c) {}
 
   Future<void>
   test_noExistingLibraryDirective_firstDirective_mixedTargets() async {
-    writeTestPackageConfig(meta: true);
     await resolveTestCode('''
 @LibraryOnly()
 @ImportOnly()
@@ -228,7 +230,6 @@ class ImportOnly {
 
   Future<void>
   test_noExistingLibraryDirective_firstDirective_mixedTargets_reversed() async {
-    writeTestPackageConfig(meta: true);
     await resolveTestCode('''
 @ImportOnly()
 @LibraryOnly()

@@ -56,10 +56,7 @@ suggestions
 
   Future<void> test_argDefaults_function_with_optional_positional() async {
     printerConfiguration.withDefaultArgumentList = true;
-    writeTestPackageConfig(meta: true);
     await computeSuggestions('''
-import 'package:meta/meta.dart';
-
 bool f0(int bar, [bool boo, int baz]) => false;
 void f() {h^}
 ''');
@@ -72,10 +69,7 @@ suggestions
 
   Future<void> test_argDefaults_function_with_required_named() async {
     printerConfiguration.withDefaultArgumentList = true;
-    writeTestPackageConfig(meta: true);
     await computeSuggestions('''
-import 'package:meta/meta.dart';
-
 bool f0(int bar, {bool? boo, required int baz}) => false;
 void f() {h^}
 ''');
@@ -88,7 +82,6 @@ suggestions
 
   Future<void> test_argDefaults_inherited_method_with_required_named() async {
     printerConfiguration.withDefaultArgumentList = true;
-    writeTestPackageConfig(meta: true);
     newFile('$testPackageLibPath/b.dart', '''
 library libB;
 
@@ -115,10 +108,7 @@ suggestions
 
   Future<void> test_argDefaults_method_with_required_named() async {
     printerConfiguration.withDefaultArgumentList = true;
-    writeTestPackageConfig(meta: true);
     await computeSuggestions('''
-import 'package:meta/meta.dart';
-
 class A {
   bool f0(int bar, {bool? boo, required int baz}) => false;
   baz() {
@@ -4954,10 +4944,7 @@ suggestions
   }
 
   Future<void> test_localConstructor() async {
-    writeTestPackageConfig(meta: true);
     await computeSuggestions('''
-import 'package:meta/meta.dart';
-
 class A0 {
   A0(int bar, {bool? boo, required int baz});
   baz() {
@@ -4973,7 +4960,6 @@ suggestions
   }
 
   Future<void> test_localConstructor2() async {
-    writeTestPackageConfig(meta: true);
     await computeSuggestions('''
 class A0 {
   A0.named();
@@ -4992,7 +4978,6 @@ suggestions
   }
 
   Future<void> test_localConstructor_abstract() async {
-    writeTestPackageConfig(meta: true);
     await computeSuggestions('''
 abstract class A0 {
   A0();
@@ -5009,7 +4994,6 @@ suggestions
   }
 
   Future<void> test_localConstructor_defaultConstructor() async {
-    writeTestPackageConfig(meta: true);
     await computeSuggestions('''
 class A0 {}
 void f() {
@@ -5026,7 +5010,6 @@ suggestions
   }
 
   Future<void> test_localConstructor_factory() async {
-    writeTestPackageConfig(meta: true);
     await computeSuggestions('''
 abstract class A0 {
   factory A0();
@@ -5045,11 +5028,8 @@ suggestions
   }
 
   Future<void> test_localConstructor_optionalNew() async {
-    writeTestPackageConfig(meta: true);
     printerConfiguration.withDefaultArgumentList = true;
     await computeSuggestions('''
-import 'package:meta/meta.dart';
-
 class A0 {
   A0(int bar, {bool? boo, required int baz});
   baz() {

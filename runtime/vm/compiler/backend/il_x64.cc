@@ -4212,7 +4212,6 @@ Condition DoubleTestOpInstr::EmitConditionCode(FlowGraphCompiler* compiler,
   V(Int32x4BitAnd, andps)                                                      \
   V(Int32x4BitOr, orps)                                                        \
   V(Int32x4BitXor, xorps)                                                      \
-  V(Int32x4Equal, pcmpeqd)                                                     \
   V(Float32x4Equal, cmppseq)                                                   \
   V(Float32x4NotEqual, cmppsneq)                                               \
   V(Float32x4LessThan, cmppslt)                                                \
