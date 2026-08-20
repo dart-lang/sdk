@@ -1,3 +1,7 @@
+## 3.13.2
+
+**Released on:** Unreleased
+
 ## 3.13.1
 
 **Released on:** 2026-08-18

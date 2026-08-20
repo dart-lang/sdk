@@ -1647,8 +1647,6 @@ abstract class AstCodeGenerator
     );
     if (intrinsicResult != null) return intrinsicResult;
 
-    ClassInfo info = translator.classInfo[node.target.enclosingClass]!;
-
     final target = node.targetReference;
     _visitArguments(
       node.arguments,
@@ -1657,7 +1655,7 @@ abstract class AstCodeGenerator
       0,
     );
 
-    if (info.isCyclic) {
+    if (!translator.isAllocatable(node.target.enclosingClass)) {
       // Cyclic types cannot be instantiated. Any code that tries to instantiate
       // them will fail with stack overflow, which is a trap in Wasm. Here we
       // replace one trap with another.
@@ -3480,7 +3478,7 @@ CodeGenerator getMemberCodeGenerator(
   if (codeGen != null) return codeGen;
 
   final Class? memberClass = member.enclosingClass;
-  if (memberClass != null && translator.classInfo[memberClass]!.isCyclic) {
+  if (memberClass != null && !translator.isAllocatable(memberClass)) {
     return UnreachableCodeGenerator(translator, functionBuilder.type, member);
   }
 
@@ -3506,8 +3504,7 @@ CodeGenerator getMemberCodeGenerator(
 CodeGenerator getLambdaCodeGenerator(Translator translator, Lambda lambda) {
   final enclosingMember = lambda.enclosingMember;
   final enclosingClass = enclosingMember.enclosingClass;
-  if (enclosingClass != null &&
-      translator.classInfo[enclosingClass]!.isCyclic) {
+  if (enclosingClass != null && !translator.isAllocatable(enclosingClass)) {
     return UnreachableCodeGenerator(
       translator,
       lambda.callTarget.signature,
@@ -3538,7 +3535,7 @@ CodeGenerator? getInlinableMemberCodeGenerator(
   final Member member = reference.asMember;
 
   final Class? memberClass = member.enclosingClass;
-  if (memberClass != null && translator.classInfo[memberClass]!.isCyclic) {
+  if (memberClass != null && !translator.isAllocatable(memberClass)) {
     return UnreachableCodeGenerator(translator, functionType, member);
   }
 
@@ -5354,8 +5351,9 @@ class SwitchInfo {
           successLabel,
           switchExprLocal.type as w.RefType,
           equalsMemberSignature.inputs[0].withNullability(
-            switchExprLocal.type.nullable,
-          ) as w.RefType,
+                switchExprLocal.type.nullable,
+              )
+              as w.RefType,
         );
         codeGen.b.drop();
       };
