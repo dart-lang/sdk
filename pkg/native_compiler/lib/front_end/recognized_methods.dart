@@ -66,9 +66,26 @@ void buildUnaryIntOp(FlowGraphBuilder builder, UnaryIntOpcode op) {
   builder.addUnaryIntOp(op);
 }
 
+/// Build IR for binary double operations
+void buildBinaryDoubleOp(FlowGraphBuilder builder, BinaryDoubleOpcode op) {
+  builder.addBinaryDoubleOp(op);
+}
+
+/// Build IR for unary double operations
+void buildUnaryDoubleOp(FlowGraphBuilder builder, UnaryDoubleOpcode op) {
+  builder.addUnaryDoubleOp(op);
+}
+
 /// Build IR for comparison operations
 void buildComparisonOp(FlowGraphBuilder builder, ComparisonOpcode op) {
   builder.addComparison(op);
+}
+
+void buildDoubleIsNaN(FlowGraphBuilder builder) {
+  final x = builder.pop();
+  builder.push(x);
+  builder.push(x);
+  builder.addComparison(.doubleNotEqual);
 }
 
 /// Build IR for indexed load of an array element.
@@ -531,10 +548,20 @@ final class VmRecognizedMethods(
     },
     index.getProcedure(
       'dart:core',
+      'Object',
+      'get:runtimeType',
+    ): (FlowGraphBuilder builder) {
+      buildNativeMethod(builder, functionRegistry, builder.graph.function);
+    },
+    index.getProcedure(
+      'dart:core',
       '_Smi',
       'get:hashCode',
     ): (FlowGraphBuilder builder) {
       buildUnaryIntOp(builder, .hash);
+    },
+    index.getProcedure('dart:core', '_Smi', '~'): (FlowGraphBuilder builder) {
+      buildUnaryIntOp(builder, .bitNot);
     },
     index.getProcedure(
       'dart:core',
@@ -549,6 +576,9 @@ final class VmRecognizedMethods(
       'get:hashCode',
     ): (FlowGraphBuilder builder) {
       buildUnaryIntOp(builder, .hash);
+    },
+    index.getProcedure('dart:core', '_Mint', '~'): (FlowGraphBuilder builder) {
+      buildUnaryIntOp(builder, .bitNot);
     },
     index.getProcedure(
       'dart:core',
@@ -564,6 +594,111 @@ final class VmRecognizedMethods(
       '_equalToInteger',
     ): (FlowGraphBuilder builder) {
       buildComparisonOp(builder, .intEqual);
+    },
+    index.getProcedure(
+      'dart:core',
+      '_Double',
+      '_add',
+    ): (FlowGraphBuilder builder) {
+      buildBinaryDoubleOp(builder, .add);
+    },
+    index.getProcedure(
+      'dart:core',
+      '_Double',
+      '_sub',
+    ): (FlowGraphBuilder builder) {
+      buildBinaryDoubleOp(builder, .sub);
+    },
+    index.getProcedure(
+      'dart:core',
+      '_Double',
+      '_mul',
+    ): (FlowGraphBuilder builder) {
+      buildBinaryDoubleOp(builder, .mul);
+    },
+    index.getProcedure(
+      'dart:core',
+      '_Double',
+      '_div',
+    ): (FlowGraphBuilder builder) {
+      buildBinaryDoubleOp(builder, .div);
+    },
+    index.getProcedure(
+      'dart:core',
+      '_Double',
+      '_modulo',
+    ): (FlowGraphBuilder builder) {
+      buildBinaryDoubleOp(builder, .mod);
+    },
+    index.getProcedure(
+      'dart:core',
+      '_Double',
+      '_remainder',
+    ): (FlowGraphBuilder builder) {
+      buildBinaryDoubleOp(builder, .rem);
+    },
+    index.getProcedure(
+      'dart:core',
+      '_Double',
+      'fromInteger',
+    ): (FlowGraphBuilder builder) {
+      buildUnaryIntOp(builder, .toDouble);
+    },
+    index.getProcedure(
+      'dart:core',
+      '_Double',
+      'get:isNaN',
+    ): (FlowGraphBuilder builder) {
+      buildDoubleIsNaN(builder);
+    },
+    index.getProcedure(
+      'dart:core',
+      '_Double',
+      'floor',
+    ): (FlowGraphBuilder builder) {
+      buildUnaryDoubleOp(builder, .floor);
+    },
+    index.getProcedure(
+      'dart:core',
+      '_Double',
+      'ceil',
+    ): (FlowGraphBuilder builder) {
+      buildUnaryDoubleOp(builder, .ceil);
+    },
+    index.getProcedure(
+      'dart:core',
+      '_Double',
+      'toInt',
+    ): (FlowGraphBuilder builder) {
+      buildUnaryDoubleOp(builder, .truncate);
+    },
+    index.getProcedure(
+      'dart:core',
+      '_Double',
+      'roundToDouble',
+    ): (FlowGraphBuilder builder) {
+      buildUnaryDoubleOp(builder, .roundToDouble);
+    },
+    index.getProcedure(
+      'dart:core',
+      '_Double',
+      'floorToDouble',
+    ): (FlowGraphBuilder builder) {
+      buildUnaryDoubleOp(builder, .floorToDouble);
+    },
+    index.getProcedure(
+      'dart:core',
+      '_Double',
+      'ceilToDouble',
+    ): (FlowGraphBuilder builder) {
+      buildUnaryDoubleOp(builder, .ceilToDouble);
+    },
+    index.getProcedure(
+      'dart:core',
+      '_Double',
+      'truncateToDouble',
+    ): (FlowGraphBuilder builder) {
+      buildUnaryDoubleOp(builder, .truncateToDouble);
     },
     index.getProcedure(
       'dart:core',
@@ -847,6 +982,20 @@ final class VmRecognizedMethods(
       'get:_data',
     ): (FlowGraphBuilder builder) {
       buildInstanceGetter(builder, objectLayout.LinkedHashBase_data);
+    },
+    index.getProcedure(
+      'dart:_compact_hash',
+      '_LinkedHashImmutableBase',
+      'get:_indexNullable',
+    ): (FlowGraphBuilder builder) {
+      buildInstanceGetter(builder, objectLayout.LinkedHashImmutableBase_index);
+    },
+    index.getProcedure(
+      'dart:_compact_hash',
+      '_LinkedHashImmutableBase',
+      'set:_index',
+    ): (FlowGraphBuilder builder) {
+      buildInstanceSetter(builder, objectLayout.LinkedHashImmutableBase_index);
     },
 
     // dart:_internal

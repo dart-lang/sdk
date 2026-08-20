@@ -29,6 +29,9 @@ abstract base class AsmIntrinsics(
   /// Generate code for dart:core::_OneByteString.hashCode.
   bool generateOneByteStringHashCode();
 
+  /// Generate code for dart:core::Object.runtimeType.
+  bool generateObjectRuntimeType();
+
   /// Generate code for [function] using [asm].
   /// Return true on success, or false if [function] is not implemented in assembly.
   bool generate(CFunction function, Assembler asm) {
@@ -60,6 +63,14 @@ abstract base class AsmIntrinsics(
       ),
       isGetter: true,
     ): generateOneByteStringHashCode,
+    functionRegistry.getFunction(
+      GlobalContext.instance.coreLibraries.getProcedure(
+        'dart:core',
+        'Object',
+        'get:runtimeType',
+      ),
+      isGetter: true,
+    ): generateObjectRuntimeType,
 
     // dart:async
     functionRegistry.getFunction(
