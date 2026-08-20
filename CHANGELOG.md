@@ -53,6 +53,22 @@
 [#61353]: https://github.com/dart-lang/sdk/issues/61353
 [#62699]: https://github.com/dart-lang/sdk/issues/62699
 
+### Tools
+
+#### Formatter
+
+The following bug fixes are *not* language versioned and apply also when
+formatting Dart 3.13 code:
+
+- Don't crash when formatting an enum with a primary constructor when trailing
+  commas are preserved ([#1885][dart_style #1885]).
+
+- Fix missing trailing comma on enum values when an enum has a primary
+  constructor ([#1888][dart_style #1888]).
+
+[dart_style #1885]: https://github.com/dart-lang/dart_style/issues/1885
+[dart_style #1888]: https://github.com/dart-lang/dart_style/issues/1888
+
 ## 3.13.0
 
 **Released on:** Unreleased

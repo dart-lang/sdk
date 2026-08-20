@@ -14697,7 +14697,7 @@ LinterLintCode:
       ```dart
       enum [!const!] E(final int i) {
         a(1),
-        b(2);
+        b(2),
       }
       ```
 
@@ -14722,7 +14722,7 @@ LinterLintCode:
       ```dart
       enum E(final int i) {
         a(1),
-        b(2);
+        b(2),
       }
       ```
 
