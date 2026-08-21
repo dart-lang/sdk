@@ -1404,6 +1404,38 @@ Declared in `new` in `B` in *package:test/main.dart*.''';
     await assertStringContents(content, equals(expected));
   }
 
+  Future<void> test_this() async {
+    var content = '''
+class A {
+  void a() {
+    [!thi^s!].a();
+  }
+}
+''';
+    var expected = '''
+Type: `A`''';
+    await assertStringContents(content, equals(expected));
+  }
+
+  Future<void> test_this_promoted() async {
+    var content = '''
+class A {
+  void a() {
+    if (this is B) {
+      [!thi^s!].b();
+    }
+  }
+}
+
+class B extends A {
+  void b() {}
+}
+''';
+    var expected = '''
+Type: `B`''';
+    await assertStringContents(content, equals(expected));
+  }
+
   Future<void> test_topLevelFunction_underscore() async {
     var content = '''
 int _() => 1;
