@@ -34,6 +34,10 @@
   wrapping them. Only Dart errors are wrapped in a JS `Error`.
   For more details, see SDK issue [#61353][].
 
+- Added `WrappedPromiseError` to represent the error type produced by
+  `FutureOfJSAnyToJSPromise.toJS` and `FutureOfVoidToJSPromise.toJS` when they
+  wrap a Dart error.
+
 - Added extension methods `JSArray<JSNumber>.toDartDoubleList` and
   `JSArray<JSNumber>.toDartIntList` (`JSArrayOfJSNumberToList`);
   `List<num>.toJS` (`ListOfNumberToJSArray`);
