@@ -143,6 +143,7 @@ import 'ticker.dart' show Ticker;
 import 'uri_translator.dart' show UriTranslator;
 import 'uris.dart' show getPartUri;
 
+// Coverage-ignore(suite): Not run.
 final Uri dartFfiUri = Uri.parse("dart:ffi");
 
 class IncrementalCompiler implements IncrementalKernelGenerator {
@@ -1360,6 +1361,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       // Alternatively (https://github.com/dart-lang/sdk/issues/45899) we might
       // do something else entirely that doesn't require special handling.
       if (_importsFfi()) {
+        // Coverage-ignore-block(suite): Not run.
         for (LibraryBuilder builder in rebuildBodies!) {
           Library lib = builder.library;
           for (LibraryDependency dependency in lib.dependencies) {
@@ -1371,10 +1373,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
               );
               return null;
             }
-            for (Reference exportReference
-                in importLibrary // Coverage-ignore(suite): Not run.
-                    .additionalExports) {
-              // Coverage-ignore-block(suite): Not run.
+            for (Reference exportReference in importLibrary.additionalExports) {
               NamedNode? export = exportReference.node;
               if (export is Class) {
                 Class c = export;
