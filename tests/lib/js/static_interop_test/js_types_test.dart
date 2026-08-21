@@ -998,6 +998,11 @@ Future<void> asyncTests() async {
     Expect.equals('resolved', (await f).toDart);
   }
 
+  {
+    final f = JSPromise.resolve('resolved'.toJS).toDart;
+    Expect.equals('resolved', (await f).toDart);
+  }
+
   // Test resolution with incorrect type.
   // TODO(54214): This type error is not caught in the JS compilers correctly.
   // {
@@ -1029,6 +1034,16 @@ Future<void> asyncTests() async {
   {
     try {
       await getRejectedPromise<JSString>().toDart;
+      Expect.fail('Expected rejected promise to throw.');
+    } catch (e) {
+      final jsError = e as JSObject;
+      Expect.equals('Error: rejected', jsError.toString());
+    }
+  }
+
+  {
+    try {
+      await JSPromise.reject(JSError('rejected')).toDart;
       Expect.fail('Expected rejected promise to throw.');
     } catch (e) {
       final jsError = e as JSObject;

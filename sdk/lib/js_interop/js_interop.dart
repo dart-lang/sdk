@@ -557,6 +557,14 @@ extension type JSArray<T extends JSAny?>._(JSArrayType _jsArray)
 extension type JSPromise<T extends JSAny?>._(JSPromiseType _jsPromise)
     implements JSObject, JSPromiseType {
   external JSPromise(JSFunction executor);
+
+  /// Returns a promise that resolves to [value].
+  @Since('3.14')
+  external static JSPromise<T> resolve<T extends JSAny?>(T value);
+
+  /// Returns a promise that rejects with [reason].
+  @Since('3.14')
+  external static JSPromise<Null> reject(JSAny reason);
 }
 
 /// Exception for when a [JSPromise] that is converted via
