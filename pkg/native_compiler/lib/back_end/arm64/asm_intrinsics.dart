@@ -176,4 +176,94 @@ final class Arm64AsmIntrinsics(
     _asm.ret();
     return true;
   }
+
+  /// Generate code for dart:core::Object.runtimeType.
+  @override
+  bool generateObjectRuntimeType() {
+    final fallback = Label();
+    final useDeclarationType = Label();
+    final notDouble = Label();
+    final notInteger = Label();
+    final notString = Label();
+
+    _asm.ldr(R0, _asm.address(stackPointerReg, 0));
+    _asm.loadClassIdMayBeSmi(R1, R0);
+
+    _asm.cmpImmediate(R1, ClassId.ClosureCid.index);
+    _asm.b(fallback, .equal); // Instance is a closure.
+
+    _asm.cmpImmediate(R1, ClassId.RecordCid.index);
+    _asm.b(fallback, .equal); // Instance is a record.
+
+    _asm.cmpImmediate(R1, ClassId.values.length);
+    _asm.b(useDeclarationType, .unsignedGreater);
+
+    _asm.loadIsolateGroup(R2);
+    _asm.ldr(R2, _asm.address(R2, vmOffsets.IsolateGroup_object_store_offset));
+
+    _asm.cmpImmediate(R1, ClassId.DoubleCid.index);
+    _asm.b(notDouble, .notEqual);
+    _asm.ldr(
+      returnReg,
+      _asm.address(R2, vmOffsets.ObjectStore_double_type_offset),
+    );
+    _asm.ret();
+
+    _asm.bind(notDouble);
+    assert(ClassId.MintCid.index == ClassId.SmiCid.index + 1);
+    _asm.subImmediate(R3, R1, ClassId.SmiCid.index);
+    _asm.cmpImmediate(R3, 1);
+    _asm.b(notInteger, .unsignedGreater);
+    _asm.ldr(
+      returnReg,
+      _asm.address(R2, vmOffsets.ObjectStore_int_type_offset),
+    );
+    _asm.ret();
+
+    _asm.bind(notInteger);
+    assert(
+      ClassId.TwoByteStringCid.index == ClassId.OneByteStringCid.index + 1,
+    );
+    _asm.subImmediate(R3, R1, ClassId.OneByteStringCid.index);
+    _asm.cmpImmediate(R3, 1);
+    _asm.b(notString, .unsignedGreater);
+    _asm.ldr(
+      returnReg,
+      _asm.address(R2, vmOffsets.ObjectStore_string_type_offset),
+    );
+    _asm.ret();
+
+    _asm.bind(notString);
+    assert(ClassId.FunctionTypeCid.index == ClassId.TypeCid.index + 1);
+    assert(ClassId.RecordTypeCid.index == ClassId.TypeCid.index + 2);
+    _asm.subImmediate(R3, R1, ClassId.TypeCid.index);
+    _asm.cmpImmediate(R3, 2);
+    _asm.b(useDeclarationType, .unsignedGreater);
+    _asm.ldr(
+      returnReg,
+      _asm.address(R2, vmOffsets.ObjectStore_type_type_offset),
+    );
+    _asm.ret();
+
+    _asm.bind(useDeclarationType);
+    _asm.loadClassById(R2, R1);
+    _asm.ldr(
+      R3,
+      _asm.fieldAddress(R2, vmOffsets.Class_num_type_arguments_offset),
+      .u16,
+    );
+    _asm.cbnz(R3, fallback);
+
+    _asm.ldr(
+      returnReg,
+      _asm.fieldAddress(R2, vmOffsets.Class_declaration_type_offset),
+    );
+    _asm.cmp(returnReg, nullReg);
+    _asm.b(fallback, .equal);
+    _asm.ret();
+
+    _asm.bind(fallback);
+    // Generate native method body.
+    return false;
+  }
 }

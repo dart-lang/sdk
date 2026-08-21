@@ -834,6 +834,16 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
     asr(rd, rn ?? rd, smiShift);
   }
 
+  @override
+  void branchIfSmi(Register object, Label target) {
+    tbz(object, smiBit, target);
+  }
+
+  @override
+  void branchIfNotSmi(Register object, Label target) {
+    tbnz(object, smiBit, target);
+  }
+
   /// Generate code for inline object allocation.
   void inlineAllocation(
     Register resultReg,
@@ -967,6 +977,32 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
       vmOffsets.UntaggedObject_kClassIdTagPos,
       vmOffsets.UntaggedObject_kClassIdTagSize,
     );
+  }
+
+  @override
+  void loadClassIdMayBeSmi(Register result, Register object) {
+    assert(result != object);
+    final done = Label();
+    loadImmediate(result, ClassId.SmiCid.index);
+    branchIfSmi(object, done);
+    loadClassId(result, object);
+    bind(done);
+  }
+
+  @override
+  void loadIsolateGroup(Register rd) {
+    ldr(rd, address(threadReg, vmOffsets.Thread_isolate_group_offset));
+  }
+
+  @override
+  void loadClassById(Register result, Register classId) {
+    assert(result != classId);
+    loadIsolateGroup(result);
+    ldr(
+      result,
+      address(result, vmOffsets.IsolateGroup_cached_class_table_table_offset),
+    );
+    ldr(result, RegExtRegAddress(result, classId, Extend.UXTX, scaled: true));
   }
 
   @override

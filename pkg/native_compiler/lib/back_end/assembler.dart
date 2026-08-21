@@ -212,8 +212,13 @@ abstract base class Assembler {
 
   void smiTag(Register rd);
   void smiUntag(Register rd);
+  void branchIfSmi(Register object, Label target);
+  void branchIfNotSmi(Register object, Label target);
 
   void loadClassId(Register result, Register object);
+  void loadClassIdMayBeSmi(Register result, Register object);
+  void loadIsolateGroup(Register rd);
+  void loadClassById(Register result, Register classId);
 
   void combineHashes(Register hash, Register other);
   void finalizeHash(int bitSize, Register hash);

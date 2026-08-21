@@ -854,11 +854,25 @@ final class Arm64CodeGenerator extends CodeGenerator {
       );
       return;
     }
-    // TODO: compressed pointers, unboxed fields
-    _asm.ldr(
-      valueReg,
-      _asm.fieldAddress(objectReg, objectLayout.getFieldOffset(instr.field)),
-    );
+    final memoryOrder = objectLayout.getFieldMemoryOrder(instr.field);
+    switch (memoryOrder) {
+      case .relaxed:
+        // TODO: compressed pointers, unboxed fields
+        _asm.ldr(
+          valueReg,
+          _asm.fieldAddress(
+            objectReg,
+            objectLayout.getFieldOffset(instr.field),
+          ),
+        );
+      case .acquireRelease:
+        _asm.addImmediate(
+          tempReg,
+          objectReg,
+          objectLayout.getFieldOffset(instr.field) - heapObjectTag,
+        );
+        _asm.ldar(valueReg, tempReg);
+    }
   }
 
   bool _canSkipWriteBarrier(Definition objectDef, Definition valueDef) =>
@@ -948,11 +962,25 @@ final class Arm64CodeGenerator extends CodeGenerator {
       );
       return;
     }
-    // TODO: unboxed fields
-    _asm.str(
-      valueReg,
-      _asm.fieldAddress(objectReg, objectLayout.getFieldOffset(instr.field)),
-    );
+    final memoryOrder = objectLayout.getFieldMemoryOrder(instr.field);
+    switch (memoryOrder) {
+      case .relaxed:
+        // TODO: compressed pointers, unboxed fields
+        _asm.str(
+          valueReg,
+          _asm.fieldAddress(
+            objectReg,
+            objectLayout.getFieldOffset(instr.field),
+          ),
+        );
+      case .acquireRelease:
+        _asm.addImmediate(
+          tempReg,
+          objectReg,
+          objectLayout.getFieldOffset(instr.field) - heapObjectTag,
+        );
+        _asm.stlr(valueReg, tempReg);
+    }
     if (!_canSkipWriteBarrier(instr.object, instr.value)) {
       _writeBarrier(
         objectReg,

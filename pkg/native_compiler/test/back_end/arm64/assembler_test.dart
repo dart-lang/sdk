@@ -403,6 +403,30 @@ void main() {
       asm.breakpoint();
       expectDisassembly('brk #0x0\n');
     });
+    test('smiTag / smiUntag', () {
+      asm.smiTag(R0, R1);
+      asm.smiTag(R2);
+      asm.smiUntag(R3, R4);
+      asm.smiUntag(R5);
+      expectDisassembly(
+        'lsl r0, r1, #${smiShift}\n'
+        'lsl r2, r2, #${smiShift}\n'
+        'asr r3, r4, #${smiShift}\n'
+        'asr r5, r5, #${smiShift}\n',
+      );
+    });
+    test('branchIfSmi / branchIfNotSmi', () {
+      final label1 = Label();
+      final label2 = Label();
+      asm.branchIfSmi(R0, label1);
+      asm.branchIfNotSmi(R1, label2);
+      asm.bind(label1);
+      asm.bind(label2);
+      expectDisassembly(
+        'tbzw r0, #${smiBit}, +8\n'
+        'tbnzw r1, #${smiBit}, +4\n',
+      );
+    });
     test('inlineAllocation - object size 16', () {
       final slowPath = Label();
       asm.inlineAllocation(
@@ -511,6 +535,34 @@ void main() {
         'ubfm r0, r0, #$lowBit, #$highBit\n'
         'ldr r1, [r5, #${vmOffsets.Object_tags_offset - heapObjectTag}]\n'
         'ubfm r1, r1, #$lowBit, #$highBit\n',
+      );
+    });
+    test('loadClassIdMayBeSmi', () {
+      asm.loadClassIdMayBeSmi(R1, R0);
+      final lowBit = vmOffsets.UntaggedObject_kClassIdTagPos;
+      final highBit =
+          vmOffsets.UntaggedObject_kClassIdTagPos +
+          vmOffsets.UntaggedObject_kClassIdTagSize -
+          1;
+      expectDisassembly(
+        'movz r1, #0x${ClassId.SmiCid.index.toRadixString(16)}\n'
+        'tbzw r0, #${smiBit}, +12\n'
+        'ldr r1, [r0, #${vmOffsets.Object_tags_offset - heapObjectTag}]\n'
+        'ubfm r1, r1, #$lowBit, #$highBit\n',
+      );
+    });
+    test('loadIsolateGroup', () {
+      asm.loadIsolateGroup(R2);
+      expectDisassembly(
+        'ldr r2, [thr, #${vmOffsets.Thread_isolate_group_offset}]\n',
+      );
+    });
+    test('loadClassById', () {
+      asm.loadClassById(R2, R1);
+      expectDisassembly(
+        'ldr r2, [thr, #${vmOffsets.Thread_isolate_group_offset}]\n'
+        'ldr r2, [r2, #${vmOffsets.IsolateGroup_cached_class_table_table_offset}]\n'
+        'ldr r2, [r2, r1 uxtx scaled]\n',
       );
     });
     test('combineHashes', () {
