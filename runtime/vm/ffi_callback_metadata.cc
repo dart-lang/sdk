@@ -23,9 +23,10 @@
 
 namespace dart {
 
-#if defined(SIMULATOR_FFI) && defined(HOST_ARCH_ARM64)
-extern "C" void SimulatorFfiCallbackTrampoline();
-extern "C" void SimulatorFfiCallbackTrampolineEnd();
+#if defined(HOST_ARCH_ARM64) &&                                                \
+    (defined(SIMULATOR_FFI) || defined(DART_DYNAMIC_MODULES))
+extern "C" void FfiCallbackTrampoline();
+extern "C" void FfiCallbackTrampolineEnd();
 #endif
 
 FfiCallbackMetadata::FfiCallbackMetadata() {}
@@ -62,24 +63,30 @@ void FfiCallbackMetadata::EnsureStubPageLocked() {
 
   ASSERT_LESS_OR_EQUAL(VirtualMemory::PageSize(), kPageSize);
 
-  uword code_start, code_end, code_size;
+  uword code_start = 0, code_end = 0;
+  bool initialized = false;
+#if defined(DART_DYNAMIC_MODULES) && defined(HOST_ARCH_ARM64)
+  if (FLAG_interpreter) {
+    code_start = reinterpret_cast<uword>(FfiCallbackTrampoline);
+    code_end = reinterpret_cast<uword>(FfiCallbackTrampolineEnd);
+    initialized = true;
+  }
+#endif
 #if defined(SIMULATOR_FFI) && defined(HOST_ARCH_ARM64)
-  if (FLAG_use_simulator) {
-    code_start = reinterpret_cast<uword>(SimulatorFfiCallbackTrampoline);
-    code_end = reinterpret_cast<uword>(SimulatorFfiCallbackTrampolineEnd);
-    code_size = code_end - code_start;
-  } else {
+  if (!initialized && FLAG_use_simulator) {
+    code_start = reinterpret_cast<uword>(FfiCallbackTrampoline);
+    code_end = reinterpret_cast<uword>(FfiCallbackTrampolineEnd);
+    initialized = true;
+  }
+#endif
+  if (!initialized) {
     const Code& trampoline_code = StubCode::FfiCallbackTrampoline();
     code_start = trampoline_code.EntryPoint();
     code_end = code_start + trampoline_code.Size();
-    code_size = trampoline_code.Size();
   }
-#else
-  const Code& trampoline_code = StubCode::FfiCallbackTrampoline();
-  code_start = trampoline_code.EntryPoint();
-  code_end = code_start + trampoline_code.Size();
-  code_size = trampoline_code.Size();
-#endif
+  ASSERT(code_start > 0);
+  ASSERT(code_end > code_start);
+  uword code_size = code_end - code_start;
   const uword page_start = code_start & ~(VirtualMemory::PageSize() - 1);
   ASSERT_LESS_OR_EQUAL((code_start - page_start) + code_size, RXMappingSize());
 
@@ -240,12 +247,6 @@ VirtualMemory* FfiCallbackMetadata::AllocateTrampolinePage() {
   return new_page;
 }
 
-#if defined(SIMULATOR_FFI) && defined(HOST_ARCH_ARM64)
-struct CallbackContext;
-extern "C" void DoRedirectedFfiCallback(CallbackContext* ctxt,
-                                        uword trampoline);
-#endif
-
 void FfiCallbackMetadata::EnsureFreeListNotEmptyLocked() {
   ASSERT(lock_.IsOwnedByCurrentThread());
   EnsureStubPageLocked();
@@ -263,7 +264,8 @@ void FfiCallbackMetadata::EnsureFreeListNotEmptyLocked() {
   // Fill in the runtime functions.
   FillRuntimeFunction(new_page, kGetFfiCallbackMetadata,
                       reinterpret_cast<void*>(DLRT_GetFfiCallbackMetadata));
-#if defined(SIMULATOR_FFI) && defined(HOST_ARCH_ARM64)
+#if defined(HOST_ARCH_ARM64) &&                                                \
+    (defined(SIMULATOR_FFI) || defined(DART_DYNAMIC_MODULES))
   FillRuntimeFunction(new_page, kDoRedirectedFfiCallback,
                       reinterpret_cast<void*>(DoRedirectedFfiCallback));
 #endif
@@ -283,6 +285,7 @@ FfiCallbackMetadata::Trampoline FfiCallbackMetadata::CreateMetadataEntry(
     IsolateGroup* target_isolate_group,
     TrampolineType trampoline_type,
     uword target_entry_point,
+    PersistentHandle* function_handle,
     uint64_t context,
     MetadataEntry** list_head) {
   MutexLocker locker(&lock_);
@@ -301,11 +304,12 @@ FfiCallbackMetadata::Trampoline FfiCallbackMetadata::CreateMetadataEntry(
   }
   if (target_isolate != nullptr) {
     *entry = MetadataEntry(target_isolate, trampoline_type, target_entry_point,
-                           context, nullptr, next_entry);
+                           function_handle, context, nullptr, next_entry);
   } else {
     ASSERT(target_isolate_group != nullptr);
-    *entry = MetadataEntry(target_isolate_group, trampoline_type,
-                           target_entry_point, context, nullptr, next_entry);
+    *entry =
+        MetadataEntry(target_isolate_group, trampoline_type, target_entry_point,
+                      function_handle, context, nullptr, next_entry);
   }
   *list_head = entry;
   return TrampolineOfMetadataEntry(entry);
@@ -323,12 +327,16 @@ void FfiCallbackMetadata::AddToFreeListLocked(MetadataEntry* entry) {
     free_list_tail_ = entry;
   }
   entry->metadata()->context_ = 0;
+  entry->metadata()->function_handle_ = nullptr;
   entry->metadata()->target_isolate_ = nullptr;
   entry->free_list_next_ = nullptr;
 }
 
 void FfiCallbackMetadata::DeleteCallbackLocked(MetadataEntry* entry) {
   ASSERT(lock_.IsOwnedByCurrentThread());
+  if (auto* const handle = entry->metadata()->function_handle()) {
+    entry->metadata()->api_state()->FreePersistentHandle(handle);
+  }
   if (entry->metadata()->trampoline_type_ != TrampolineType::kAsync &&
       entry->metadata()->context_ != 0) {
     ASSERT(entry->metadata()->target_isolate_ != nullptr);
@@ -376,12 +384,28 @@ uword FfiCallbackMetadata::GetEntryPoint(Zone* zone, const Function& function) {
 }
 
 PersistentHandle* FfiCallbackMetadata::CreatePersistentHandle(
+    Isolate* isolate,
     IsolateGroup* isolate_group,
-    const Closure& closure) {
+    const Object& obj) {
+#if defined(HOST_ARCH_ARM64) && defined(DART_DYNAMIC_MODULES) &&               \
+    !defined(DART_PRECOMPILER) && !defined(DART_PRECOMPILED_RUNTIME)
+  ASSERT(obj.IsNull() || obj.IsClosure() || obj.IsFunction());
+#else
+  // Only DoInterpretedFfiCallback uses the function handle, so it shouldn't
+  // be created in configurations that don't include it.
+  ASSERT(obj.IsNull() || obj.IsClosure());
+#endif
+
+  // Either the isolate or isolate_group must be nullptr, not both.
+  ASSERT((isolate == nullptr) != (isolate_group == nullptr));
+  if (isolate != nullptr) {
+    isolate_group = isolate->group();
+  }
+
   auto* api_state = isolate_group->api_state();
   ASSERT(api_state != nullptr);
   auto* handle = api_state->AllocatePersistentHandle();
-  handle->set_ptr(closure);
+  handle->set_ptr(obj);
   return handle;
 }
 
@@ -415,8 +439,7 @@ FfiCallbackMetadata::Trampoline FfiCallbackMetadata::CreateLocalFfiCallback(
       closure.EnsureDeeplyImmutable(zone);
     }
 
-    handle = CreatePersistentHandle(
-        isolate != nullptr ? isolate->group() : isolate_group, closure);
+    handle = CreatePersistentHandle(isolate, isolate_group, closure);
   }
   return CreateSyncFfiCallbackImpl(isolate, isolate_group, zone, function,
                                    handle, list_head);
@@ -447,8 +470,13 @@ FfiCallbackMetadata::Trampoline FfiCallbackMetadata::CreateSyncFfiCallbackImpl(
   }
 #endif
 
+  PersistentHandle* function_handle = nullptr;
+#if defined(HOST_ARCH_ARM64) && defined(DART_DYNAMIC_MODULES) &&               \
+    !defined(DART_PRECOMPILER) && !defined(DART_PRECOMPILED_RUNTIME)
+  function_handle = CreatePersistentHandle(isolate, isolate_group, function);
+#endif
   return CreateMetadataEntry(isolate, isolate_group, trampoline_type,
-                             GetEntryPoint(zone, function),
+                             GetEntryPoint(zone, function), function_handle,
                              reinterpret_cast<uint64_t>(closure), list_head);
 }
 
@@ -459,10 +487,17 @@ FfiCallbackMetadata::Trampoline FfiCallbackMetadata::CreateAsyncFfiCallback(
     Dart_Port send_port,
     MetadataEntry** list_head) {
   ASSERT(send_function.GetFfiCallbackKind() == FfiCallbackKind::kAsyncCallback);
-  return CreateMetadataEntry(isolate, /*target_isolate_group=*/nullptr,
-                             TrampolineType::kAsync,
+  IsolateGroup* const isolate_group = nullptr;
+  PersistentHandle* function_handle = nullptr;
+#if defined(HOST_ARCH_ARM64) && defined(DART_DYNAMIC_MODULES) &&               \
+    !defined(DART_PRECOMPILER) && !defined(DART_PRECOMPILED_RUNTIME)
+  function_handle =
+      CreatePersistentHandle(isolate, isolate_group, send_function);
+#endif
+  return CreateMetadataEntry(isolate, isolate_group, TrampolineType::kAsync,
                              GetEntryPoint(zone, send_function),
-                             static_cast<uint64_t>(send_port), list_head);
+                             function_handle, static_cast<uint64_t>(send_port),
+                             list_head);
 }
 
 FfiCallbackMetadata::Trampoline FfiCallbackMetadata::TrampolineOfMetadataEntry(
@@ -491,6 +526,14 @@ FfiCallbackMetadata::LookupMetadataForTrampolineUnlocked(
     Trampoline trampoline) const {
   return *MetadataEntryOfTrampoline(trampoline)->metadata();
 }
+
+#if defined(HOST_ARCH_ARM64) && defined(DART_DYNAMIC_MODULES)
+PersistentHandle*
+FfiCallbackMetadata::LookupFunctionHandleForTrampolineUnlocked(
+    Trampoline trampoline) const {
+  return LookupMetadataForTrampolineUnlocked(trampoline).function_handle();
+}
+#endif
 
 ApiState* FfiCallbackMetadata::Metadata::api_state() const {
   return (is_isolate_group_bound() ? target_isolate_group_
