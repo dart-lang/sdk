@@ -1822,8 +1822,18 @@ DEFINE_RUNTIME_ENTRY(FfiCall, 2) {
     FfiCallTrampoline(&args);
   } else {
     PassFfiCallArguments(thread, marshaller, argv, &args, is_leaf);
-    TransitionVMToNative transition(thread);
-    FfiCallTrampoline(&args);
+    {
+      TransitionVMToNative transition(thread);
+      FfiCallTrampoline(&args);
+    }
+    // An FFI callback may have exited the isolate, but the UnwindError was
+    // replaced with the callback's exceptional value on returning to native
+    // code. Resume the unwinding process here. (See DLRT_ExitSafepoint.)
+    if (thread->is_unwind_in_progress()) {
+      thread->SetUnwindErrorInProgress(false);
+      NoSafepointScope no_safepoint;
+      Exceptions::PropagateError(Object::unwind_error());
+    }
   }
   PRINT_IF_TRACING_INTERPRETER("returned from native entry point %#" Px "\n",
                                target);

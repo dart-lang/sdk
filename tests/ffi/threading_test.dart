@@ -219,6 +219,8 @@ int threadMainPinned(Pointer<Void> data) {
   return 0;
 }
 
+final failIfRun = () => Expect.fail("Should not run");
+
 Future<void> testFailRunSyncOnPinnedIsolate() async {
   if (Platform.isWindows) {
     return; // pthread is not available on Windows.
@@ -228,9 +230,7 @@ Future<void> testFailRunSyncOnPinnedIsolate() async {
   final rp = RawReceivePort((Isolate child_isolate) {
     print('received $child_isolate');
     Expect.throws(
-      () => child_isolate.runSync(() {
-        Expect.fail("Should not run");
-      }),
+      () => child_isolate.runSync(failIfRun),
       (e) =>
           e is StateError &&
           e.message.contains("Isolate is pinned to a different thread already"),
@@ -299,9 +299,7 @@ Future<void> testFailRunSyncWithTimeout() async {
       await Future.delayed(Duration(milliseconds: 10));
     }
     Expect.throws(
-      () => child_isolate.runSync(() {
-        Expect.fail("Should not run");
-      }),
+      () => child_isolate.runSync(failIfRun),
       (e) =>
           e is StateError &&
           e.message.contains("Isolate is busy, running on a different thread"),
@@ -346,9 +344,7 @@ Future<void> testFailRunSyncDifferentIsolateGroup() async {
   );
   Expect.isNotNull(isolate);
   Expect.throws(
-    () => isolate.runSync(() {
-      Expect.fail("should not run");
-    }),
+    () => isolate.runSync(failIfRun),
     (e) =>
         e is StateError &&
         e.message.contains(

@@ -569,6 +569,8 @@ class Assembler : public AssemblerBase {
   };
   void roundsd(XmmRegister dst, XmmRegister src, RoundingMode mode);
 
+  void ptest(XmmRegister dst, XmmRegister src);
+
   void CompareImmediate(Register reg,
                         const Immediate& imm,
                         OperandSize width = kEightBytes);

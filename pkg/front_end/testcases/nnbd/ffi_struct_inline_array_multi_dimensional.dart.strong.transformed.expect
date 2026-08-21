@@ -9,7 +9,7 @@ import "dart:ffi";
 import "package:ffi/ffi.dart";
 
 @#C3
-@#C11
+@#C13
 final class StructInlineArrayMultiDimensional extends ffi::Struct {
   synthetic constructor •() → self::StructInlineArrayMultiDimensional
     : super ffi::Struct::•()
@@ -17,34 +17,34 @@ final class StructInlineArrayMultiDimensional extends ffi::Struct {
   constructor #fromTypedDataBase(synthesized core::Object #typedDataBase, synthesized core::int #offsetInBytes) → self::StructInlineArrayMultiDimensional
     : super ffi::Struct::_fromTypedDataBase(#typedDataBase, #offsetInBytes)
     ;
-  @#C13
+  @#C15
   constructor #fromTypedData(synthesized typ::TypedData #typedData, synthesized core::int #offset, synthesized core::int #sizeInBytes) → self::StructInlineArrayMultiDimensional
     : super ffi::Struct::_fromTypedData(#typedData, #offset, #sizeInBytes)
     ;
+  @#C17
   @#C15
-  @#C13
   get a0() → ffi::Array<ffi::Array<ffi::Array<ffi::Uint8>>>
-    return new ffi::Array::_<ffi::Array<ffi::Array<ffi::Uint8>>>(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::StructInlineArrayMultiDimensional::a0#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #C14, #C7, #C16);
+    return new ffi::Array::_<ffi::Array<ffi::Array<ffi::Uint8>>>(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::StructInlineArrayMultiDimensional::a0#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #C16, #C7, #C18);
+  @#C17
   @#C15
-  @#C13
   set a0(synthesized ffi::Array<ffi::Array<ffi::Array<ffi::Uint8>>> #externalFieldValue) → void
-    return ffi::_memCopy(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::StructInlineArrayMultiDimensional::a0#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #externalFieldValue.{ffi::_Compound::_typedDataBase}{core::Object}, #externalFieldValue.{ffi::_Compound::_offsetInBytes}{core::int}, #C17.{core::List::[]}(ffi::_abi()){(core::int) → core::int});
-  @#C13
+    return ffi::_memCopy(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::StructInlineArrayMultiDimensional::a0#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #externalFieldValue.{ffi::_Compound::_typedDataBase}{core::Object}, #externalFieldValue.{ffi::_Compound::_offsetInBytes}{core::int}, #C19.{core::List::[]}(ffi::_abi()){(core::int) → core::int});
+  @#C15
   static synthetic get a0#offsetOf() → core::int
-    return #C19.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
-  @#C13
+    return #C21.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
+  @#C15
   static synthetic get #sizeOf() → core::int
-    return #C17.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
+    return #C19.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 }
 static method main() → dynamic {
-  final ffi::Pointer<self::StructInlineArrayMultiDimensional> pointer = #C20.{ffi::Allocator::allocate}<self::StructInlineArrayMultiDimensional>(self::StructInlineArrayMultiDimensional::#sizeOf){(core::int, {alignment: core::int?}) → ffi::Pointer<self::StructInlineArrayMultiDimensional>};
-  final self::StructInlineArrayMultiDimensional struct = new self::StructInlineArrayMultiDimensional::#fromTypedDataBase(pointer!, #C18);
+  final ffi::Pointer<self::StructInlineArrayMultiDimensional> pointer = #C22.{ffi::Allocator::allocate}<self::StructInlineArrayMultiDimensional>(self::StructInlineArrayMultiDimensional::#sizeOf){(core::int, {alignment: core::int?}) → ffi::Pointer<self::StructInlineArrayMultiDimensional>};
+  final self::StructInlineArrayMultiDimensional struct = new self::StructInlineArrayMultiDimensional::#fromTypedDataBase(pointer!, #C20);
   final ffi::Array<ffi::Array<ffi::Array<ffi::Uint8>>> array = struct.{self::StructInlineArrayMultiDimensional::a0}{ffi::Array<ffi::Array<ffi::Array<ffi::Uint8>>>};
   final ffi::Array<ffi::Array<ffi::Uint8>> subArray = block {
     synthesized ffi::Array<dynamic> #array = array!;
     synthesized core::int #index = 0!;
     #array.{ffi::Array::_checkIndex}(#index){(core::int) → void};
-    synthesized core::int #singleElementSize = #C21;
+    synthesized core::int #singleElementSize = #C23;
     synthesized core::int #elementSize = #singleElementSize.{core::num::*}(#array.{ffi::Array::_nestedDimensionsFlattened}{core::int}){(core::num) → core::num};
     synthesized core::int #offset = #elementSize.{core::num::*}(#index){(core::num) → core::num};
   } =>new ffi::Array::_<ffi::Array<ffi::Uint8>>(#array.{ffi::_Compound::_typedDataBase}{core::Object}, #array.{ffi::_Compound::_offsetInBytes}{core::int}.{core::num::+}(#offset){(core::num) → core::num}, #array.{ffi::Array::_nestedDimensionsFirst}{core::int}, #array.{ffi::Array::_variableLength}{core::bool}, #array.{ffi::Array::_nestedDimensionsRest}{core::List<core::int>});
@@ -52,12 +52,12 @@ static method main() → dynamic {
     synthesized ffi::Array<dynamic> #array##1 = array!;
     synthesized core::int #index##1 = 1!;
     #array##1.{ffi::Array::_checkIndex}(#index##1){(core::int) → void};
-    synthesized core::int #singleElementSize##1 = #C21;
+    synthesized core::int #singleElementSize##1 = #C23;
     synthesized core::int #elementSize##1 = #singleElementSize##1.{core::num::*}(#array##1.{ffi::Array::_nestedDimensionsFlattened}{core::int}){(core::num) → core::num};
     synthesized core::int #offset##1 = #elementSize##1.{core::num::*}(#index##1){(core::num) → core::num};
     synthesized ffi::Array<dynamic> #value = subArray!;
   } =>ffi::_memCopy(#array##1.{ffi::_Compound::_typedDataBase}{core::Object}, #array##1.{ffi::_Compound::_offsetInBytes}{core::int}.{core::num::+}(#offset##1){(core::num) → core::num}, #value.{ffi::_Compound::_typedDataBase}{core::Object}, #value.{ffi::_Compound::_offsetInBytes}{core::int}, #elementSize##1);
-  #C20.{all::CallocAllocator::free}(pointer){(ffi::Pointer<ffi::NativeType>) → void};
+  #C22.{all::CallocAllocator::free}(pointer){(ffi::Pointer<ffi::NativeType>) → void};
 }
 
 constants  {
@@ -70,18 +70,20 @@ constants  {
   #C7 = false
   #C8 = ffi::_FfiInlineArray {elementType:#C5, length:#C6, variableLength:#C7}
   #C9 = <core::Type>[#C8]
-  #C10 = ffi::_FfiStructLayout {fieldTypes:#C9, packing:#C2}
-  #C11 = core::pragma {name:#C4, options:#C10}
-  #C12 = "vm:prefer-inline"
-  #C13 = core::pragma {name:#C12, options:#C2}
-  #C14 = 2
-  #C15 = ffi::_ArraySize<ffi::NativeType> {dimension1:#C14, dimension2:#C14, dimension3:#C14, dimension4:#C2, dimension5:#C2, dimensions:#C2, variableDimension:#C2}
-  #C16 = <core::int>[#C14, #C14]
-  #C17 = <core::int>[#C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6]
-  #C18 = 0
-  #C19 = <core::int>[#C18, #C18, #C18, #C18, #C18, #C18, #C18, #C18, #C18, #C18, #C18, #C18, #C18, #C18, #C18, #C18, #C18, #C18, #C18, #C18, #C18, #C18]
-  #C20 = all::CallocAllocator {}
-  #C21 = 1
+  #C10 = "a0"
+  #C11 = <core::String>[#C10]
+  #C12 = ffi::_FfiStructLayout {fieldTypes:#C9, packing:#C2, fieldNames:#C11}
+  #C13 = core::pragma {name:#C4, options:#C12}
+  #C14 = "vm:prefer-inline"
+  #C15 = core::pragma {name:#C14, options:#C2}
+  #C16 = 2
+  #C17 = ffi::_ArraySize<ffi::NativeType> {dimension1:#C16, dimension2:#C16, dimension3:#C16, dimension4:#C2, dimension5:#C2, dimensions:#C2, variableDimension:#C2}
+  #C18 = <core::int>[#C16, #C16]
+  #C19 = <core::int>[#C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6]
+  #C20 = 0
+  #C21 = <core::int>[#C20, #C20, #C20, #C20, #C20, #C20, #C20, #C20, #C20, #C20, #C20, #C20, #C20, #C20, #C20, #C20, #C20, #C20, #C20, #C20, #C20, #C20]
+  #C22 = all::CallocAllocator {}
+  #C23 = 1
 }
 
 
