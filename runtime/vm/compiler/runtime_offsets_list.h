@@ -117,6 +117,7 @@
   CONSTANT(NativeArguments, kArgcBitsSize)                                     \
   CONSTANT(NativeArguments, kGenericFunctionBitPos)                            \
   CONSTANT(NativeEntry, kNumCallWrapperArguments)                              \
+  CONSTANT(Object, kHashBits)                                                  \
   CONSTANT(Page, kBytesPerCardLog2)                                            \
   CONSTANT(Page, kPageMask)                                                    \
   CONSTANT(Record, kMaxElements)                                               \

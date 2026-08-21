@@ -107,6 +107,9 @@ class ColorComputerTest extends AbstractContextTest {
 
   late ColorComputer computer;
 
+  @override
+  bool get addFlutterPackageDep => true;
+
   /// Tests that all of the known color codes replaced into [code] produce the
   /// expected nested color values.
   ///
@@ -212,7 +215,6 @@ class ColorComputerTest extends AbstractContextTest {
   @override
   void setUp() {
     super.setUp();
-    writeTestPackageConfig(flutter: true);
     testPath = convertPath('$testPackageLibPath/test.dart');
     otherPath = convertPath('$testPackageLibPath/other_file.dart');
   }

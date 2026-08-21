@@ -25,6 +25,9 @@ class ExhaustiveFlutterWidgetPreviewsTest
   @override
   bool get addFlutterLocalizationsPackageDep => true;
 
+  @override
+  bool get addFlutterPackageDep => true;
+
   Future<FlutterWidgetPreviews?> getFlutterWidgetPreviews(Uri uri) {
     var request = makeRequest(
       CustomMethods.getFlutterWidgetPreviews,
@@ -44,7 +47,6 @@ class ExhaustiveFlutterWidgetPreviewsTest
   @override
   void setUp() {
     super.setUp();
-    writeTestPackageConfig(flutter: true);
     addFlutter();
     addSkyEngine(sdkPath: sdkRoot.path);
     failTestOnErrorDiagnostic = false;
@@ -368,7 +370,7 @@ Widget b() => Text('B');
     config.add(name: 'a', rootFolder: getFolder('$projectFolderPath/pkgs/a'));
     config.add(name: 'b', rootFolder: getFolder('$projectFolderPath/pkgs/b'));
 
-    writeTestPackageConfig(config: config, flutter: true);
+    writeTestPackageConfig(config: config);
 
     await initialize();
     var result = await getWorkspaceFlutterWidgetPreviews();

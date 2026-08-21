@@ -22,13 +22,10 @@ void main() {
 @reflectiveTest
 class FlutterRemoveWidgetTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.flutterRemoveWidget;
+  bool get addFlutterPackageDep => true;
 
   @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(flutter: true);
-  }
+  AssistKind get kind => DartAssistKind.flutterRemoveWidget;
 
   Future<void> test_builder_blockFunctionBody() async {
     await resolveTestCode('''
@@ -718,13 +715,10 @@ void f() {
 @reflectiveTest
 class RemoveContainerBulkTest extends BulkFixProcessorTest {
   @override
-  String get lintCode => LintNames.avoid_unnecessary_containers;
+  bool get addFlutterPackageDep => true;
 
   @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(flutter: true);
-  }
+  String get lintCode => LintNames.avoid_unnecessary_containers;
 
   @FailingTest(reason: 'nested row container not being removed')
   Future<void> test_singleFile() async {
@@ -770,16 +764,13 @@ Widget buildRow() {
 @reflectiveTest
 class RemoveContainerTest extends FixProcessorLintTest {
   @override
+  bool get addFlutterPackageDep => true;
+
+  @override
   FixKind get kind => DartFixKind.removeUnnecessaryContainer;
 
   @override
   String get lintCode => LintNames.avoid_unnecessary_containers;
-
-  @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(flutter: true);
-  }
 
   Future<void> test_simple() async {
     await resolveTestCode('''

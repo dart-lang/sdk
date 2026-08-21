@@ -243,7 +243,7 @@ class _BufferingStreamSubscription<T>
   Future<E> asFuture<E>([E? futureValue]) {
     E resultValue;
     if (futureValue == null) {
-      if (!typeAcceptsNull<E>()) {
+      if (null is! E) {
         throw ArgumentError.notNull("futureValue");
       }
       resultValue = futureValue as dynamic;
@@ -783,7 +783,7 @@ class _DoneStreamSubscription<T> implements StreamSubscription<T> {
   Future<E> asFuture<E>([E? futureValue]) {
     E resultValue;
     if (futureValue == null) {
-      if (!typeAcceptsNull<E>()) {
+      if (null is! E) {
         throw ArgumentError.notNull("futureValue");
       }
       resultValue = futureValue as dynamic;

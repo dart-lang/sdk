@@ -81,6 +81,5 @@ abstract interface class SharedTestInterface {
   void writeTestPackageConfig({
     PackageConfigFileBuilder? config,
     String? languageVersion,
-    bool flutter = false,
   });
 }

@@ -502,7 +502,7 @@ abstract mixin class Stream<T> {
     Duration period, [
     T computation(int computationCount)?,
   ]) {
-    if (computation == null && !typeAcceptsNull<T>()) {
+    if (computation == null && null is! T) {
       throw ArgumentError.value(
         null,
         "computation",

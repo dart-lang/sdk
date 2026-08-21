@@ -9,8 +9,28 @@ import 'test_support.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(
+      FlutterStatefulWidgetWithAnimationControllerNotFlutterTest,
+    );
     defineReflectiveTests(FlutterStatefulWidgetWithAnimationControllerTest);
   });
+}
+
+@reflectiveTest
+class FlutterStatefulWidgetWithAnimationControllerNotFlutterTest
+    extends DartSnippetProducerTest {
+  @override
+  final generator = FlutterStatefulWidgetWithAnimationController.new;
+
+  @override
+  String get label => FlutterStatefulWidgetWithAnimationController.label;
+
+  @override
+  String get prefix => FlutterStatefulWidgetWithAnimationController.prefix;
+
+  Future<void> test_notValid_notFlutterProject() async {
+    await expectNotValidSnippet('^');
+  }
 }
 
 @reflectiveTest
@@ -26,7 +46,7 @@ class FlutterStatefulWidgetWithAnimationControllerTest
   String get prefix => FlutterStatefulWidgetWithAnimationController.prefix;
 
   Future<void> test_noSuperParams() async {
-    writeTestPackageConfig(flutter: true, languageVersion: '2.16');
+    writeTestPackageConfig(languageVersion: '2.16');
 
     var code = '^';
     var expectedCode = r'''
@@ -63,15 +83,7 @@ class _/*4*/MyWidgetState extends State</*5*/MyWidget>
     await assertFlutterSnippetResult(code, expectedCode, 'MyWidget');
   }
 
-  Future<void> test_notValid_notFlutterProject() async {
-    writeTestPackageConfig();
-
-    await expectNotValidSnippet('^');
-  }
-
   Future<void> test_valid() async {
-    writeTestPackageConfig(flutter: true);
-
     var code = '^';
     var expectedCode = r'''
 import 'package:flutter/widgets.dart';

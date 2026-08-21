@@ -1959,6 +1959,7 @@ void Deserializer::Deserialize() {
   AddBaseObject(StubCode::ReturnAsync());
   AddBaseObject(StubCode::ReturnAsyncNotFuture());
   AddBaseObject(StubCode::ReturnAsyncStar());
+  AddBaseObject(StubCode::CloneSuspendState());
   AddBaseObject(StubCode::CallBootstrapNative());
 
   if (num_base_objects_ != (next_ref_index_ - kFirstReference)) {

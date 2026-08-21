@@ -18,10 +18,7 @@ void main() {
 @reflectiveTest
 class FlutterTest extends AbstractSingleUnitTest {
   @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(flutter: true);
-  }
+  bool get addFlutterPackageDep => true;
 
   Future<void> test_enclosingWidgetExpression_node_instanceCreation() async {
     await resolveTestCode('''

@@ -11,6 +11,9 @@ import '../../../analysis_server_base.dart';
 @reflectiveTest
 class FlutterBase extends PubPackageAnalysisServerTest {
   @override
+  bool get addFlutterPackageDep => true;
+
+  @override
   bool get addMetaPackageDep => true;
 
   FlutterWidgetProperty getProperty(
@@ -46,8 +49,6 @@ class FlutterBase extends PubPackageAnalysisServerTest {
     super.setUp();
 
     newPubspecYamlFile(testPackageRootPath, '');
-
-    writeTestPackageConfig(flutter: true);
 
     await setRoots(included: [workspaceRootPath], excluded: []);
   }

@@ -336,6 +336,7 @@ class ObjectLayout {
     'predefinedSymbolsAddress',
     _coreTypes.intNonNullableRawType, // Address.
     vmOffsets.Thread_predefined_symbols_address_offset,
+    isUnboxed: true,
   );
 
   // Layout of built-in instances is specified either as

@@ -234,7 +234,7 @@ void buildStringBaseCharAt(
   builder.addIntConstant(
     objectLayout.vmOffsets.Symbols_kNumberOfOneCharCodeSymbols,
   );
-  builder.addComparison(.intGreaterOrEqual);
+  builder.addComparison(.intLess);
 
   final oneByteCodeUnitBlock = builder.newTargetBlock();
   final twoByteCodeUnitBlock = builder.newTargetBlock();
@@ -259,6 +259,70 @@ void buildStringBaseCharAt(
 
   builder.startBlock(joinBlock);
   builder.addLoadLocal(resultVar);
+}
+
+void buildOneByteStringSubstringUnchecked(
+  FlowGraphBuilder builder,
+  ObjectLayout objectLayout,
+) {
+  final endIndex = builder.pop();
+  final startIndex = builder.pop();
+  final src = builder.pop();
+  final type = StringType(
+    GlobalContext.instance.coreTypes.nonNullableRawType(
+      GlobalContext.instance.coreLibraries.getClass(
+        'dart:core',
+        '_OneByteString',
+      ),
+    ),
+  );
+
+  builder.push(endIndex);
+  builder.push(startIndex);
+  final len = builder.addBinaryIntOp(.sub);
+  final dst = builder.addAllocateArray(.oneByteString, type);
+
+  final loopBlock = builder.newJoinBlock();
+  final iVar = builder.declareLocalVariable('i', null, const IntType());
+
+  builder.addIntConstant(0);
+  builder.addStoreLocal(iVar);
+  builder.addGoto(loopBlock);
+
+  builder.startBlock(loopBlock);
+
+  // dst[i] = src[startIndex + i];
+  builder.push(dst);
+  builder.addLoadLocal(iVar);
+
+  builder.push(src);
+  builder.push(startIndex);
+  builder.addLoadLocal(iVar);
+  builder.addBinaryIntOp(.add);
+  builder.addLoadArrayElement(.oneByteString, const IntType());
+
+  builder.addStoreArrayElement(.oneByteString);
+
+  // i = i + 1;
+  builder.addLoadLocal(iVar);
+  builder.addIntConstant(1);
+  builder.addBinaryIntOp(.add);
+  builder.addStoreLocal(iVar);
+
+  // if (i < len) continue;
+  builder.addLoadLocal(iVar);
+  builder.push(len);
+  builder.addComparison(.intLess);
+
+  final continueBlock = builder.newTargetBlock();
+  final doneBlock = builder.newTargetBlock();
+  builder.addBranch(continueBlock, doneBlock);
+
+  builder.startBlock(continueBlock);
+  builder.addGoto(loopBlock);
+
+  builder.startBlock(doneBlock);
+  builder.push(dst);
 }
 
 /// Build IR for _GrowableList._withData factory constructor.
@@ -287,6 +351,46 @@ void buildGrowableListCapacity(
 ) {
   builder.addLoadInstanceField(objectLayout.GrowableList_data);
   builder.addLoadInstanceField(objectLayout.Array_length);
+}
+
+void buildEqualsWithSameObjectFastPath(
+  FlowGraphBuilder builder,
+  FunctionRegistry functionRegistry,
+  ObjectLayout objectLayout,
+  CFunction function,
+) {
+  final right = builder.pop();
+  final left = builder.pop();
+
+  builder.push(left);
+  builder.push(right);
+  builder.addComparison(.equal);
+
+  final sameObjectsBlock = builder.newTargetBlock();
+  final differentObjectsBlock = builder.newTargetBlock();
+  builder.addBranch(sameObjectsBlock, differentObjectsBlock);
+
+  final joinBlock = builder.newJoinBlock();
+  final resultVar = builder.declareLocalVariable(
+    '#result',
+    null,
+    const BoolType(),
+  );
+
+  builder.startBlock(sameObjectsBlock);
+  builder.addBoolConstant(true);
+  builder.addStoreLocal(resultVar);
+  builder.addGoto(joinBlock);
+
+  builder.startBlock(differentObjectsBlock);
+  builder.push(left);
+  builder.push(right);
+  buildNativeMethod(builder, functionRegistry, function);
+  builder.addStoreLocal(resultVar);
+  builder.addGoto(joinBlock);
+
+  builder.startBlock(joinBlock);
+  builder.addLoadLocal(resultVar);
 }
 
 /// Build IR for ThreadLocal._hasValue.
@@ -487,6 +591,13 @@ final class VmRecognizedMethods(
         builder.graph.function,
       );
     },
+    index.getProcedure(
+      'dart:core',
+      '_OneByteString',
+      '_substringUncheckedNative',
+    ): (FlowGraphBuilder builder) {
+      buildOneByteStringSubstringUnchecked(builder, objectLayout);
+    },
 
     index.getProcedure(
       'dart:core',
@@ -617,6 +728,27 @@ final class VmRecognizedMethods(
         .fixedLengthList, // Backing store array.
         objectLayout.GrowableList_length,
         indirectDataField: objectLayout.GrowableList_data,
+      );
+    },
+    index.getProcedure(
+      'dart:core',
+      '_AbstractType',
+      '==',
+    ): (FlowGraphBuilder builder) {
+      buildEqualsWithSameObjectFastPath(
+        builder,
+        functionRegistry,
+        objectLayout,
+        builder.graph.function,
+      );
+    },
+    index.getProcedure('dart:core', '_Type', '=='): (FlowGraphBuilder builder) {
+      // TODO: add more detailed fast path
+      buildEqualsWithSameObjectFastPath(
+        builder,
+        functionRegistry,
+        objectLayout,
+        builder.graph.function,
       );
     },
 

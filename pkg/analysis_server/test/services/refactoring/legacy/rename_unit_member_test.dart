@@ -80,6 +80,9 @@ void f(NewName a) {}
 
 @reflectiveTest
 class RenameUnitMemberTest extends RenameRefactoringTest {
+  @override
+  bool get addFlutterPackageDep => true;
+
   Future<void> test_checkFinalConditions_hasTopLevel_ClassElement() async {
     await indexTestUnit('''
 class Test {}
@@ -508,7 +511,6 @@ class NewName {
   }
 
   Future<void> test_createChange_ClassElement_flutterWidget() async {
-    writeTestPackageConfig(flutter: true);
     await indexTestUnit('''
 import 'package:flutter/material.dart';
 
@@ -550,7 +552,6 @@ class NewPageState extends State<NewPage> {
 
   Future<void>
   test_createChange_ClassElement_flutterWidget_privateBoth() async {
-    writeTestPackageConfig(flutter: true);
     await indexTestUnit('''
 import 'package:flutter/material.dart';
 
@@ -592,7 +593,6 @@ class _NewPageState extends State<_NewPage> {
 
   Future<void>
   test_createChange_ClassElement_flutterWidget_privateState() async {
-    writeTestPackageConfig(flutter: true);
     await indexTestUnit('''
 import 'package:flutter/material.dart';
 

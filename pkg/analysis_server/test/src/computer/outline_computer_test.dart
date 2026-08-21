@@ -46,10 +46,7 @@ class AbstractOutlineComputerTest extends AbstractContextTest {
 @reflectiveTest
 class FlutterOutlineComputerTest extends AbstractOutlineComputerTest {
   @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(flutter: true);
-  }
+  bool get addFlutterPackageDep => true;
 
   Future<void> test_columnWithChildren() async {
     var unitOutline = await _computeOutline('''
