@@ -2105,6 +2105,109 @@ MethodInvocation
 ''');
   }
 
+  test_error_staticAccessToInstanceMember_class_genericGetter_topLevel() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A<T> {
+  T Function() get foo => throw 0;
+}
+
+var x = A.foo();
+//        ^^^
+// [diag.staticAccessToInstanceMember] Instance member 'foo' can't be accessed using static access.
+''');
+
+    var node = result.findNode.variableDeclaration('x =').initializer2!;
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target2: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@class::A
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@class::A::@getter::foo
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_error_staticAccessToInstanceMember_class_genericMethod_topLevel() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A<T> {
+  T foo() => throw 0;
+}
+
+var x = A.foo(a: 0);
+//        ^^^
+// [diag.staticAccessToInstanceMember] Instance member 'foo' can't be accessed using static access.
+//            ^
+// [diag.undefinedNamedParameter] The named parameter 'a' isn't defined.
+''');
+
+    var node = result.findNode.variableDeclaration('x =').initializer2!;
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target2: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@class::A
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@class::A::@method::foo
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      NamedArgument
+        name: a
+        colon: :
+        argumentExpression2: IntegerLiteral
+          literal: 0
+          staticType: int
+        correspondingParameter: <null>
+    rightParenthesis: )
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_error_staticAccessToInstanceMember_extension_genericMethod_topLevel() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+extension E<T> on List<T> {
+  T foo() => throw 0;
+}
+
+var x = E.foo();
+//        ^^^
+// [diag.staticAccessToInstanceMember] Instance member 'foo' can't be accessed using static access.
+''');
+
+    var node = result.findNode.variableDeclaration('x =').initializer2!;
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target2: SimpleIdentifier
+    token: E
+    element: <testLibrary>::@extension::E
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@extension::E::@method::foo
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
   test_error_undefinedFunction() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 main() {
