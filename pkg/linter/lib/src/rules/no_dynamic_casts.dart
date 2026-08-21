@@ -45,6 +45,7 @@ class NoDynamicCasts extends AnalysisRule {
       ..addForEachPartsWithDeclaration(this, visitor)
       ..addForEachPartsWithIdentifier(this, visitor)
       ..addForEachPartsWithPattern(this, visitor)
+      ..addForElement(this, visitor)
       ..addForStatement(this, visitor)
       ..addIfElement(this, visitor)
       ..addIfStatement(this, visitor)
@@ -115,6 +116,16 @@ class _Visitor(final AnalysisRule _rule, final RuleContext _context)
   @override
   void visitForEachPartsWithPattern(ForEachPartsWithPattern node) {
     _checkForEachParts(node);
+  }
+
+  @override
+  void visitForElement(ForElement node) {
+    if (node.forLoopParts case ForParts parts) {
+      var condition = parts.condition;
+      if (condition != null) {
+        _check(condition, _context.typeProvider.boolType);
+      }
+    }
   }
 
   @override
@@ -304,9 +315,7 @@ class _Visitor(final AnalysisRule _rule, final RuleContext _context)
 
   /// Checks [node] for `dynamic`-typed sub-expressions.
   void _checkForEachParts(ForEachParts node) {
-    var forStatement = node.parent;
-    if (forStatement is! ForStatement) return;
-    var isAsync = forStatement.awaitKeyword != null;
+    var isAsync = node.parent.awaitKeyword != null;
     var targetType = isAsync
         ? _context.typeProvider.streamType(_context.typeProvider.dynamicType)
         : _context.typeProvider.iterableType(_context.typeProvider.dynamicType);
