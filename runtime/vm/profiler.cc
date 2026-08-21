@@ -1361,7 +1361,7 @@ void Profiler::SampleThread(Thread* thread,
     uintptr_t lr = state.lr;
 #if defined(DART_INCLUDE_SIMULATOR)
     if (FLAG_use_simulator) {
-      Simulator* simulator = isolate->simulator();
+      Simulator* simulator = thread->simulator();
       sp = simulator->get_register(SPREG);
       fp = simulator->get_register(FPREG);
       pc = simulator->get_pc();
