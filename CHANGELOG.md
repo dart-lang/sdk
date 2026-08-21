@@ -45,6 +45,13 @@
   (`ListOfNullableBoolToJSArray`). These make it easier and more efficient to
   convert between JS and Dart arrays of primitives.
 
+- Added extension methods `FutureOr<JSAny>.toJSPromiseOrValue`
+  (`FutureOrToJSAny`), `FutureOr<JSAny?>.toJSPromiseOrValue`
+  (`FutureOrToNullableJSAny`), `JSAny.toDartFutureOr` (`JSAnyToFutureOr`), and
+  `JSAny?.toDartFutureOr` (`NullableJSAnyToFutureOr`). These make it easier and
+  more efficient to convert between possibly-synchronous values at the Dart/JS
+  boundary.
+
 [#61353]: https://github.com/dart-lang/sdk/issues/61353
 [#62699]: https://github.com/dart-lang/sdk/issues/62699
 
