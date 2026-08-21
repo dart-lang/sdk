@@ -66,6 +66,21 @@ class MyWidget extends StatelessWidget {
 ''');
   }
 
+  test_constructor_implicitSuper_superWithoutKey() async {
+    await assertDiagnosticsFromMarkup(r'''
+import 'package:flutter/widgets.dart';
+
+abstract class ParentWidget extends StatelessWidget {
+  final int? i;
+  [!ParentWidget!]({this.i});
+}
+
+abstract class MyWidget extends ParentWidget {
+  MyWidget();
+}
+''');
+  }
+
   test_constructor_new_withoutKey() async {
     await assertDiagnosticsFromMarkup(r'''
 import 'package:flutter/widgets.dart';
@@ -189,6 +204,65 @@ class W extends StatelessWidget {
 import 'package:flutter/widgets.dart';
 
 abstract class [!NoConstructorWidget!] extends StatefulWidget {}
+''');
+  }
+
+  test_missingConstructor_privateSuperWithoutKey() async {
+    await assertNoDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+
+abstract class _Foo extends StatelessWidget {
+  const _Foo();
+}
+
+abstract class Bar extends _Foo {}
+''');
+  }
+
+  test_missingConstructor_superWithKey() async {
+    await assertDiagnosticsFromMarkup(r'''
+import 'package:flutter/widgets.dart';
+
+abstract class ParentWidget extends StatelessWidget {
+  ParentWidget({Key? key}) : super(key: key);
+}
+
+abstract class [!MyWidget!] extends ParentWidget {}
+''');
+  }
+
+  test_missingConstructor_superWithStringKey() async {
+    await assertDiagnosticsFromMarkup(r'''
+import 'package:flutter/widgets.dart';
+
+abstract class ParentWidget extends StatelessWidget {
+  [!ParentWidget!]({String key = 'abc'});
+}
+
+abstract class MyWidget extends ParentWidget {}
+''');
+  }
+
+  test_missingConstructor_superWithoutKey() async {
+    await assertDiagnosticsFromMarkup(r'''
+import 'package:flutter/widgets.dart';
+
+abstract class [!ParentWidget!] extends StatelessWidget {}
+
+abstract class MyWidget extends ParentWidget {}
+''');
+  }
+
+  test_missingConstructor_superWithoutKey_withField() async {
+    await assertDiagnosticsFromMarkup(r'''
+import 'package:flutter/widgets.dart';
+
+abstract class ParentWidget extends StatelessWidget {
+  final int? i;
+  [!ParentWidget!]({this.i});
+}
+
+abstract class MyWidget extends ParentWidget {}
 ''');
   }
 
