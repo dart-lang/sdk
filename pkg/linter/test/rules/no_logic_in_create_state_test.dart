@@ -156,7 +156,7 @@ class MyState extends State<MyWidget> {
 import 'package:flutter/widgets.dart';
 
 class MyWidget extends StatefulWidget {
-  MyState instance = MyState();
+  final instance = MyState();
   @override
   MyState createState() {
     return [!instance!];
