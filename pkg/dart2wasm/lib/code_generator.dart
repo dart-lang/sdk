@@ -6106,8 +6106,11 @@ extension MacroAssembler on w.InstructionsBuilder {
       return;
     }
 
-    final done = block(const [], const [w.NumType.i32]);
-    final notNull = block(const [], [translator.topTypeNonNullable]);
+    final done = block([translator.topType], const [w.NumType.i32]);
+    final notNull = block(
+      [translator.topType],
+      [translator.topTypeNonNullable],
+    );
     br_on_non_null(notNull);
     i32_const(0);
     br(done);
