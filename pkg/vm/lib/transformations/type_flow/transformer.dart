@@ -391,9 +391,12 @@ class TFADevirtualization extends Devirtualization {
             callSite.isNullableReceiver,
           );
         } else if (!isArtificialNode(singleTarget)) {
+          final bool checkReceiverForNull =
+              callSite.isNullableReceiver &&
+              singleTarget.enclosingClass != coreTypes.objectClass;
           return DirectCallMetadata.targetMember(
             singleTarget,
-            callSite.isNullableReceiver,
+            checkReceiverForNull,
           );
         }
       }

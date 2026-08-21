@@ -158,6 +158,91 @@ library
 ''');
   }
 
+  test_expr_methodInvocation_staticAccessToInstanceMember_generic() async {
+    var library = await buildLibrary(r'''
+class A<T> {
+  T foo() => throw 0;
+}
+
+var x = A.foo();
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          typeParameters
+            #F2 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
+              element: #E0 T
+          constructors
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+          methods
+            #F4 isComplete isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:15) (offset:17)
+              element: <testLibrary>::@class::A::@method::foo
+      topLevelVariables
+        #F5 hasImplicitType hasInitializer isOriginDeclaration isStatic x (nameOffset:42) (firstTokenOffset:42) (offset:42)
+          element: <testLibrary>::@topLevelVariable::x
+          inducedGetter: #F6
+          inducedSetter: #F7
+      getters
+        #F6 isComplete isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
+          element: <testLibrary>::@getter::x
+          inducingVariable: #F5
+      setters
+        #F7 isComplete isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
+          element: <testLibrary>::@setter::x
+          inducingVariable: #F5
+          formalParameters
+            #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
+              element: <testLibrary>::@setter::x::@formalParameter::value
+  classes
+    isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      typeParameters
+        #E0 T
+          firstFragment: #F2
+      constructors
+        hasEnclosingTypeParameterReference isOriginImplicitDefault new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
+      methods
+        hasEnclosingTypeParameterReference isOriginDeclaration foo
+          reference: <testLibrary>::@class::A::@method::foo
+          firstFragment: #F4
+          returnType: T
+  topLevelVariables
+    hasImplicitType hasInitializer isOriginDeclaration isStatic isTypeInferredFromInitializer x
+      reference: <testLibrary>::@topLevelVariable::x
+      firstFragment: #F5
+      type: InvalidType
+      getter: <testLibrary>::@getter::x
+      setter: <testLibrary>::@setter::x
+  getters
+    isOriginVariable isStatic x
+      reference: <testLibrary>::@getter::x
+      firstFragment: #F6
+      returnType: InvalidType
+      variable: <testLibrary>::@topLevelVariable::x
+  setters
+    isOriginVariable isStatic x
+      reference: <testLibrary>::@setter::x
+      firstFragment: #F7
+      formalParameters
+        #E1 requiredPositional value
+          firstFragment: #F8
+          type: InvalidType
+      returnType: void
+      variable: <testLibrary>::@topLevelVariable::x
+''');
+  }
+
   test_infer_generic_typedef_complex() async {
     var library = await buildLibrary(r'''
 typedef F<T> = D<T, U> Function<U>();
