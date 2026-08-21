@@ -67,6 +67,14 @@ void f(dynamic a) {
 ''');
   }
 
+  test_condition_forLoop_element() async {
+    await assertDiagnosticsFromMarkup(r'''
+void f(dynamic a) {
+  [for (; [!a!];) 7];
+}
+''');
+  }
+
   test_condition_ifExpression() async {
     await assertDiagnosticsFromMarkup(r'''
 void f(dynamic a) {
@@ -113,10 +121,26 @@ void f(dynamic a) {
 ''');
   }
 
+  test_forEach_iterable_element() async {
+    await assertDiagnosticsFromMarkup(r'''
+void f(dynamic a) {
+  [for (var x in [!a!]) x];
+}
+''');
+  }
+
   test_forEach_variable() async {
     await assertDiagnosticsFromMarkup(r'''
 void f(List<dynamic> list) {
   for (int x in [!list!]) {}
+}
+''');
+  }
+
+  test_forEach_variable_element() async {
+    await assertDiagnosticsFromMarkup(r'''
+void f(List<dynamic> list) {
+  [for (int x in [!list!]) x];
 }
 ''');
   }

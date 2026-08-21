@@ -44,7 +44,7 @@ class Simulator {
   ~Simulator();
 
   // The currently executing Simulator instance, which is associated to the
-  // current isolate
+  // current thread.
   static Simulator* Current();
 
   // Accessors for register state.
@@ -101,9 +101,12 @@ class Simulator {
                int64_t parameter3,
                bool fp_return = false,
                bool fp_args = false);
+
+#if defined(SIMULATOR_FFI) && defined(HOST_ARCH_ARM64)
   void DoRedirectedFfiCallback(Thread* thread,
                                CallbackContext* ctxt,
                                CallbackMetadata* out);
+#endif
 
   // Runtime and native call support.
   enum CallKind {

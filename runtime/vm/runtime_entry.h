@@ -95,6 +95,23 @@ LEAF_RUNTIME_ENTRY_LIST(DECLARE_LEAF_RUNTIME_ENTRY)
 #undef DECLARE_RUNTIME_ENTRY
 #undef DECLARE_LEAF_RUNTIME_ENTRY
 
+#if defined(HOST_ARCH_ARM64) &&                                                \
+    (defined(SIMULATOR_FFI) || defined(DART_DYNAMIC_MODULES))
+constexpr int kNumCallbackContextIntegerArguments = 8;
+constexpr int kNumCallbackContextDoubleArguments = 8;
+
+// Used for redirected FFI callbacks in the simulator and intepreter on ARM64.
+struct CallbackContext {
+  uword integer_arguments[kNumCallbackContextIntegerArguments];
+  uword double_arguments[kNumCallbackContextDoubleArguments];
+  uword r8;
+  uword sp;
+};
+
+extern "C" void DoRedirectedFfiCallback(CallbackContext* ctxt,
+                                        uword trampoline);
+#endif
+
 // See StubCode::GenerateFfiCallbackTrampolineStub.
 struct CallbackMetadata {
   uword entry_point;

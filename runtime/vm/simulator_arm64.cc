@@ -824,10 +824,6 @@ Simulator::Simulator() : memory_(FLAG_sim_buffer_memory) {
 
 Simulator::~Simulator() {
   delete[] stack_;
-  Isolate* isolate = Isolate::Current();
-  if (isolate != nullptr) {
-    isolate->set_simulator(nullptr);
-  }
 }
 
 // When the generated code calls an external reference we need to catch that in
@@ -927,14 +923,14 @@ uword Simulator::FunctionForRedirect(uword redirect) {
   return Redirection::FunctionForRedirect(redirect);
 }
 
-// Get the active Simulator for the current isolate.
+// Get the active Simulator for the current thread.
 Simulator* Simulator::Current() {
-  Isolate* isolate = Isolate::Current();
-  Simulator* simulator = isolate->simulator();
+  Thread* thread = Thread::Current();
+  Simulator* simulator = thread->simulator();
   if (simulator == nullptr) {
     NoSafepointScope no_safepoint;
     simulator = new Simulator();
-    isolate->set_simulator(simulator);
+    thread->set_simulator(simulator);
   }
   return simulator;
 }
@@ -1817,46 +1813,7 @@ void Simulator::DoRedirectedFfiCall(Instr* instr) {
 #endif
 }
 
-struct CallbackContext {
-  uword integer_arguments[8];
-  uword double_arguments[8];
-  uword r8;
-  uword sp;
-};
-
 #if defined(SIMULATOR_FFI) && defined(HOST_ARCH_ARM64)
-
-extern "C" void DoRedirectedFfiCallback(CallbackContext* ctxt,
-                                        uword trampoline) {
-  // Assumptions in ffi_trampolines_arm64.S
-  COMPILE_ASSERT(sizeof(CallbackContext) == 144);
-  COMPILE_ASSERT(FfiCallbackMetadata::kDoRedirectedFfiCallback == 1);
-#if defined(DART_TARGET_OS_FUCHSIA)
-  COMPILE_ASSERT(FfiCallbackMetadata::kPageSize == 4 * KB);
-  COMPILE_ASSERT(FfiCallbackMetadata::NumCallbackTrampolinesPerPage() == 483);
-#elif defined(DART_TARGET_OS_MACOS)
-  COMPILE_ASSERT(FfiCallbackMetadata::kPageSize == 16 * KB);
-  COMPILE_ASSERT(FfiCallbackMetadata::NumCallbackTrampolinesPerPage() == 2013);
-#else
-  COMPILE_ASSERT(FfiCallbackMetadata::kPageSize == 64 * KB);
-  COMPILE_ASSERT(FfiCallbackMetadata::NumCallbackTrampolinesPerPage() == 8157);
-#endif
-
-  CallbackMetadata out;
-  Thread* thread = DLRT_GetFfiCallbackMetadata(trampoline, &out);
-  if (thread == nullptr) {
-    // If GetFfiCallbackMetadata returned a null thread, it means that the async
-    // callback was invoked after it was deleted. In this case, do nothing.
-    return;
-  }
-
-  Simulator* sim = Simulator::Current();
-  ASSERT(sim != nullptr);
-  sim->DoRedirectedFfiCallback(thread, ctxt, &out);
-}
-
-#endif  // defined(SIMULATOR_FFI) && defined(HOST_ARCH_ARM64)
-
 // Compare FfiCallbackTrampolineStub.
 void Simulator::DoRedirectedFfiCallback(Thread* thread,
                                         CallbackContext* ctxt,
@@ -1933,6 +1890,7 @@ void Simulator::DoRedirectedFfiCallback(Thread* thread,
   auto epilogue = reinterpret_cast<void* (*)(Thread*)>(out->epilogue);
   epilogue(thread);
 }
+#endif  // defined(SIMULATOR_FFI) && defined(HOST_ARCH_ARM64)
 
 void Simulator::ClobberVolatileRegisters() {
   // Clear atomic reservation.

@@ -4,14 +4,6 @@
 
 #include "vm/zone.h"
 
-#if defined(DART_HOST_OS_ANDROID) || defined(DART_HOST_OS_LINUX)
-#include <sys/prctl.h>
-#elif defined(DART_HOST_OS_MACOS)
-#if __has_include(<os/security_config.h>)
-#include <os/security_config.h>
-#endif
-#endif
-
 #include "platform/assert.h"
 #include "platform/leak_sanitizer.h"
 #include "platform/utils.h"
@@ -25,7 +17,6 @@
 namespace dart {
 
 RelaxedAtomic<intptr_t> Zone::total_size_ = {0};
-bool Zone::memory_tagging_enabled_ = false;
 
 // Zone segments represent chunks of memory: They have starting
 // address encoded in the this pointer and a size in bytes. They are
@@ -67,61 +58,6 @@ static intptr_t segment_cache_size = 0;
 void Zone::Init() {
   ASSERT(segment_cache_mutex == nullptr);
   segment_cache_mutex = new Mutex();
-
-#if defined(HOST_ARCH_ARM64) &&                                                \
-    (defined(DART_HOST_OS_ANDROID) || defined(DART_HOST_OS_LINUX))
-
-#if !defined(PR_SET_TAGGED_ADDR_CTRL)
-#define PR_SET_TAGGED_ADDR_CTRL 55
-#endif
-#if !defined(PR_GET_TAGGED_ADDR_CTRL)
-#define PR_GET_TAGGED_ADDR_CTRL 56
-#endif
-#if !defined(PR_TAGGED_ADDR_ENABLE)
-#define PR_TAGGED_ADDR_ENABLE (1UL << 0)
-#endif
-#if !defined(PR_MTE_TCF_SYNC)
-#define PR_MTE_TCF_SYNC (1UL << 1)
-#endif
-#if !defined(PR_MTE_TCF_ASYNC)
-#define PR_MTE_TCF_ASYNC (1UL << 2)
-#endif
-#if !defined(PR_MTE_TAG_SHIFT)
-#define PR_MTE_TAG_SHIFT 3
-#endif
-
-  // Enable memory tagging, with either sync or async failures, with random tag
-  // generation creating any value except 0.
-  prctl(PR_SET_TAGGED_ADDR_CTRL,
-        PR_TAGGED_ADDR_ENABLE | PR_MTE_TCF_SYNC | PR_MTE_TCF_ASYNC |
-            (0xfffe << PR_MTE_TAG_SHIFT),
-        0L, 0L, 0L);
-  int result = prctl(PR_GET_TAGGED_ADDR_CTRL, 0L, 0L, 0L, 0L);
-  if (result == -1) {
-    memory_tagging_enabled_ = false;
-  } else {
-    memory_tagging_enabled_ = (result & PR_TAGGED_ADDR_ENABLE) != 0;
-  }
-#endif
-
-#if defined(HOST_ARCH_ARM64) && defined(DART_HOST_OS_MACOS)
-#if __has_include(<os/security_config.h>)
-  if (__builtin_available(macOS 26, iOS 26, *)) {
-    memory_tagging_enabled_ =
-        (os_security_config_get() & OS_SECURITY_CONFIG_MTE) != 0;
-  } else {
-    memory_tagging_enabled_ = false;
-  }
-#else
-  memory_tagging_enabled_ = false;
-#endif
-#endif
-
-  if (FLAG_trace_zones) {
-    OS::PrintErr("Zone memory_tagging_enabled=%d use_initial_chunk=%d\n",
-                 static_cast<int>(memory_tagging_enabled()),
-                 static_cast<int>(use_initial_chunk()));
-  }
 }
 
 void Zone::Cleanup() {
@@ -139,33 +75,6 @@ void Zone::ClearCache() {
   }
 }
 
-#if defined(HOST_ARCH_ARM64) && defined(__GNUC__)
-__attribute__((target("+mte")))
-#endif
-static void Zap(void* address, size_t size, unsigned char value) {
-#ifdef DEBUG
-  ASAN_UNPOISON(address, size);
-  // If memory tagging is enabled, this will fault.
-  if (!Zone::memory_tagging_enabled()) {
-    memset(address, value, size);
-  }
-#endif
-
-#if defined(HOST_ARCH_ARM64) && defined(__GNUC__)
-  if (Zone::memory_tagging_enabled()) {
-    uint8_t* start = reinterpret_cast<uint8_t*>(address);
-    uint8_t* cursor = start;
-    uint8_t* end = start + size;
-    ASSERT(size > 0);
-    ASSERT(Utils::IsAligned(size, 32));
-    do {
-      __builtin_arm_stg(cursor);
-      cursor += 16;
-    } while (cursor < end);
-  }
-#endif
-}
-
 Zone::Segment* Zone::Segment::New(intptr_t size, Zone::Segment* next) {
   size = Utils::RoundUp(size, VirtualMemory::PageSize());
   VirtualMemory* memory = nullptr;
@@ -178,20 +87,19 @@ Zone::Segment* Zone::Segment::New(intptr_t size, Zone::Segment* next) {
     }
   }
   if (memory == nullptr) {
-    if (memory_tagging_enabled_) {
-      memory = VirtualMemory::AllocateMTE(size, "dart-zone");
-    } else {
-      bool executable = false;
-      memory = VirtualMemory::Allocate(size, executable, "dart-zone");
-    }
+    bool executable = false;
+    memory = VirtualMemory::Allocate(size, executable, "dart-zone");
     total_size_.fetch_add(size);
   }
   if (memory == nullptr) {
     OUT_OF_MEMORY();
   }
   Segment* result = reinterpret_cast<Segment*>(memory->start());
+#ifdef DEBUG
   // Zap the entire allocated segment (including the header).
-  Zap(reinterpret_cast<void*>(result), size, kZapUninitializedByte);
+  ASAN_UNPOISON(reinterpret_cast<void*>(result), size);
+  memset(reinterpret_cast<void*>(result), kZapUninitializedByte, size);
+#endif
   result->next_ = next;
   result->size_ = size;
   result->memory_ = memory;
@@ -208,8 +116,11 @@ void Zone::Segment::DeleteSegmentList(Segment* head) {
     intptr_t size = current->size();
     Segment* next = current->next();
     VirtualMemory* memory = current->memory();
+#ifdef DEBUG
     // Zap the entire current segment (including the header).
-    Zap(reinterpret_cast<void*>(current), current->size(), kZapDeletedByte);
+    ASAN_UNPOISON(reinterpret_cast<void*>(current), current->size());
+    memset(reinterpret_cast<void*>(current), kZapDeletedByte, current->size());
+#endif
     LSAN_UNREGISTER_ROOT_REGION(current, sizeof(*current));
 
     if (size == kSegmentSize) {
@@ -236,11 +147,10 @@ Zone::Zone()
       previous_(nullptr),
       handles_() {
   ASSERT(Utils::IsAligned(position_, kAlignment));
-  if (use_initial_chunk()) {
-    Zap(&buffer_, kInitialChunkSize, kZapUninitializedByte);
-  } else {
-    position_ = limit_ = 0;
-  }
+#ifdef DEBUG
+  // Zap the entire initial buffer.
+  memset(&buffer_, kZapUninitializedByte, kInitialChunkSize);
+#endif
 }
 
 Zone::~Zone() {
@@ -256,13 +166,12 @@ void Zone::Reset() {
   Segment::DeleteSegmentList(segments_);
   segments_ = nullptr;
 
-  if (use_initial_chunk()) {
-    Zap(&buffer_, kInitialChunkSize, kZapDeletedByte);
-    position_ = reinterpret_cast<uword>(&buffer_);
-    limit_ = position_ + kInitialChunkSize;
-  } else {
-    position_ = limit_ = 0;
-  }
+#ifdef DEBUG
+  ASAN_UNPOISON(&buffer_, kInitialChunkSize);
+  memset(&buffer_, kZapDeletedByte, kInitialChunkSize);
+#endif
+  position_ = reinterpret_cast<uword>(&buffer_);
+  limit_ = position_ + kInitialChunkSize;
   size_ = 0;
   small_segment_capacity_ = 0;
   previous_ = nullptr;
