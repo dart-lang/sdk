@@ -498,28 +498,6 @@ int? f() {
 ''');
   }
 
-  Future<void> test_local_assignedInIfWithoutElse() async {
-    // There's no `else` branch, so `result` might still be `null`.
-    await resolveTestCode('''
-int? f() {
-  var result;
-  if (1 == 1) {
-    result = 0;
-  }
-  return result;
-}
-''');
-    await assertHasFix('''
-int? f() {
-  int? result;
-  if (1 == 1) {
-    result = 0;
-  }
-  return result;
-}
-''');
-  }
-
   Future<void> test_local_assignedInIfWithElse() async {
     // Both branches assign, so the assignment is unconditional.
     await resolveTestCode('''
@@ -540,6 +518,28 @@ int f() {
     result = 0;
   } else {
     result = 1;
+  }
+  return result;
+}
+''');
+  }
+
+  Future<void> test_local_assignedInIfWithoutElse() async {
+    // There's no `else` branch, so `result` might still be `null`.
+    await resolveTestCode('''
+int? f() {
+  var result;
+  if (1 == 1) {
+    result = 0;
+  }
+  return result;
+}
+''');
+    await assertHasFix('''
+int? f() {
+  int? result;
+  if (1 == 1) {
+    result = 0;
   }
   return result;
 }
