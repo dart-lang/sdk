@@ -10,6 +10,7 @@
 #include "platform/utils.h"
 #include "vm/allocation.h"
 #include "vm/handles.h"
+#include "vm/tagged_pointer.h"
 #include "vm/memory_region.h"
 #include "vm/thread_state.h"
 
@@ -88,6 +89,10 @@ class Zone {
 
   // Structure for managing handles allocation.
   VMHandles* handles() { return &handles_; }
+
+  // Cached so handle allocation does not need a thread-local lookup.
+  ObjectPtr null_obj() const { return null_obj_; }
+  void set_null_obj(ObjectPtr value) { null_obj_ = value; }
 
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
@@ -187,6 +192,7 @@ class Zone {
 
   // Structure for managing handles allocation.
   VMHandles handles_;
+  ObjectPtr null_obj_ = nullptr;
 
   // This buffer is used for allocation before any segments.
   // This would act as the initial stack allocated chunk so that we don't
