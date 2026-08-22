@@ -589,7 +589,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   bool _filterPending = false;
   bool _filterActive = false;
 
-  _SecureFilter? _secureFilter = _SecureFilter._();
+  _SecureFilter? _secureFilter;
   String? _selectedProtocol;
 
   static Future<_RawSecureSocket> connect(
@@ -654,7 +654,8 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
       ..onCancel = _onSubscriptionStateChange;
     // Throw an ArgumentError if any field is invalid.  After this, all
     // errors will be reported through the future or the stream.
-    final secureFilter = _secureFilter!;
+    final secureFilter = _SecureFilter._(context.secureSocketBufferSize);
+    _secureFilter = secureFilter;
     secureFilter.init();
     secureFilter.registerHandshakeCompleteCallback(
       _secureHandshakeCompleteHandler,
@@ -1419,7 +1420,7 @@ class _ExternalBuffer {
 }
 
 abstract class _SecureFilter {
-  external factory _SecureFilter._();
+  external factory _SecureFilter._(int bufferSize);
 
   void connect(
     String hostName,

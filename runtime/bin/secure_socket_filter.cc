@@ -40,10 +40,6 @@ void SSLFilter::Cleanup() {
   trust_evaluate_reply_port_ = ILLEGAL_PORT;
 }
 
-const intptr_t SSLFilter::kInternalBIOSize = 10 * KB;
-const intptr_t SSLFilter::kApproximateSize =
-    sizeof(SSLFilter) + (2 * SSLFilter::kInternalBIOSize);
-
 static SSLFilter* GetFilter(Dart_NativeArguments args) {
   SSLFilter* filter = nullptr;
   Dart_Handle dart_this = ThrowIfError(Dart_GetNativeArgument(args, 0));
@@ -73,23 +69,23 @@ static Dart_Handle SetFilter(Dart_NativeArguments args, SSLFilter* filter) {
       reinterpret_cast<intptr_t>(filter));
   RETURN_IF_ERROR(err);
   Dart_NewFinalizableHandle(dart_this, reinterpret_cast<void*>(filter),
-                            SSLFilter::kApproximateSize, DeleteFilter);
+                            filter->ApproximateSize(), DeleteFilter);
   return Dart_Null();
 }
 
 void FUNCTION_NAME(SecureSocket_Init)(Dart_NativeArguments args) {
   Dart_Handle dart_this = ThrowIfError(Dart_GetNativeArgument(args, 0));
   SSLFilter* filter = new SSLFilter();
-  Dart_Handle err = SetFilter(args, filter);
+  Dart_Handle err = filter->Init(dart_this);
   if (Dart_IsError(err)) {
+    filter->Destroy();
     filter->Release();
     Dart_PropagateError(err);
   }
-  err = filter->Init(dart_this);
+  err = SetFilter(args, filter);
   if (Dart_IsError(err)) {
-    // The finalizer was set up by SetFilter. It will delete `filter` if there
-    // is an error.
     filter->Destroy();
+    filter->Release();
     Dart_PropagateError(err);
   }
 }
@@ -363,23 +359,21 @@ Dart_Handle SSLFilter::InitializeBuffers(Dart_Handle dart_this) {
   RETURN_IF_ERROR(buffers_string);
   Dart_Handle dart_buffers_object = Dart_GetField(dart_this, buffers_string);
   RETURN_IF_ERROR(dart_buffers_object);
-  Dart_Handle secure_filter_impl_type = Dart_InstanceGetType(dart_this);
-  RETURN_IF_ERROR(secure_filter_impl_type);
-  Dart_Handle size_string = DartUtils::NewString("SIZE");
+  Dart_Handle size_string = DartUtils::NewString("bufferSize");
   RETURN_IF_ERROR(size_string);
-  Dart_Handle dart_buffer_size =
-      Dart_GetField(secure_filter_impl_type, size_string);
+  Dart_Handle dart_buffer_size = Dart_GetField(dart_this, size_string);
   RETURN_IF_ERROR(dart_buffer_size);
 
   int64_t buffer_size = 0;
   Dart_Handle err = Dart_IntegerToInt64(dart_buffer_size, &buffer_size);
   RETURN_IF_ERROR(err);
 
-  Dart_Handle encrypted_size_string = DartUtils::NewString("ENCRYPTED_SIZE");
+  Dart_Handle encrypted_size_string =
+      DartUtils::NewString("encryptedBufferSize");
   RETURN_IF_ERROR(encrypted_size_string);
 
   Dart_Handle dart_encrypted_buffer_size =
-      Dart_GetField(secure_filter_impl_type, encrypted_size_string);
+      Dart_GetField(dart_this, encrypted_size_string);
   RETURN_IF_ERROR(dart_encrypted_buffer_size);
 
   int64_t encrypted_buffer_size = 0;
@@ -389,7 +383,7 @@ Dart_Handle SSLFilter::InitializeBuffers(Dart_Handle dart_this) {
   if (buffer_size <= 0 || buffer_size > 1 * MB) {
     FATAL("Invalid buffer size in _ExternalBuffer");
   }
-  if (encrypted_buffer_size <= 0 || encrypted_buffer_size > 1 * MB) {
+  if (encrypted_buffer_size <= 0 || encrypted_buffer_size > 1 * MB + 2 * KB) {
     FATAL("Invalid encrypted buffer size in _ExternalBuffer");
   }
   buffer_size_ = static_cast<int>(buffer_size);
@@ -501,8 +495,8 @@ void SSLFilter::Connect(const char* hostname,
   int status;
   int error;
   BIO* ssl_side;
-  status = BIO_new_bio_pair(&ssl_side, kInternalBIOSize, &socket_side_,
-                            kInternalBIOSize);
+  status = BIO_new_bio_pair(&ssl_side, encrypted_buffer_size_, &socket_side_,
+                            encrypted_buffer_size_);
   SecureSocketUtils::CheckStatusSSL(status, "TlsException", "BIO_new_bio_pair",
                                     ssl_);
 
