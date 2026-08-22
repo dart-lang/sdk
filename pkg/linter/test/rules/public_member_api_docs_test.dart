@@ -421,9 +421,9 @@ class PublicMemberApiDocsTestPackageTest extends LintRuleTest {
   @override
   void setUp() {
     super.setUp();
-    writePackageConfig(
+    writePackageConfig2(
       '$myPackageRootPath/.dart_tool/package_config.json',
-      PackageConfigFileBuilder(),
+      config: PackageConfigFileBuilder(),
     );
     newPubspecYamlFile(
       myPackageRootPath,
@@ -437,9 +437,9 @@ class PublicMemberApiDocsTestPackageTest extends LintRuleTest {
       ),
     );
     newFolder(fixturePackageLibPath);
-    writePackageConfig(
+    writePackageConfig2(
       '$myPackageRootPath/test/fixture/.dart_tool/package_config.json',
-      PackageConfigFileBuilder()
+      config: PackageConfigFileBuilder()
         ..add(name: 'fixture', rootFolder: getFolder(fixturePackageLibPath)),
     );
   }

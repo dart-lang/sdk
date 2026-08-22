@@ -1,9 +1,11 @@
-// Copyright (c) 2024, the Dart project authors. Please see the AUTHORS file
+// Copyright (c) 2026, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/file_system/file_system.dart';
+// ignore: implementation_imports
 import 'package:analyzer/src/dart/analysis/experiments.dart';
+// ignore: implementation_imports
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_testing/mock_packages/mock_packages.dart';
 import 'package:analyzer_testing/package_config_file_builder.dart';
@@ -11,39 +13,36 @@ import 'package:analyzer_testing/utilities/extensions/resource_provider.dart';
 
 /// A mixin adding functionality to write `.dart_tool/package_config.json`
 /// files along with mock packages to a [ResourceProvider].
-// TODO(srawlins): Remove this in favor of
-// `pkg/analyzer_testing/lib/configuration_files_mixin.dart` and migrate all
-// classes that mix this in.
 mixin ConfigurationFilesMixin on MockPackagesMixin {
-  /// Adds the 'flutter_localizations' package to the package config file for
-  /// the package-under-test.
-  ///
-  /// This allows `package:flutter_localizations/flutter_localizations.dart`
-  /// imports to resolve.
+  /// Adds the 'fixnum' package as a dependency to the package-under-test.
+  bool get addFixnumPackageDep => false;
+
+  /// Adds the 'flutter_localizations' package as a dependency to the
+  /// package-under-test.
   bool get addFlutterLocalizationsPackageDep => false;
 
   /// Adds the 'flutter' package as a dependency to the package-under-test.
   bool get addFlutterPackageDep => false;
 
-  /// Adds the 'flutter_test' package to the package config file for the
+  /// Adds the 'flutter_test' package as a dependency to the
   /// package-under-test.
-  ///
-  /// This allows `package:flutter_test/flutter_test.dart` imports to resolve.
   bool get addFlutterTestPackageDep => false;
 
   /// Adds the 'meta' package as a dependency to the package-under-test.
   bool get addMetaPackageDep => false;
 
-  /// Adds the 'vector_math' package to the package config file for the
+  /// Adds the 'test_reflective_loader' package as a dependency to the
   /// package-under-test.
-  ///
-  /// This allows `package:vector_math/vector_math_64.dart` imports to resolve.
+  bool get addTestReflectiveLoaderPackageDep => false;
+
+  /// Adds the 'vector_math' package as a dependency to the
+  /// package-under-test.
   bool get addVectorMathPackageDep => false;
 
-  String get dartSdkPath;
+  String get dartSdkPath => resourceProvider.convertPath('/sdk');
 
   /// The Dart language version of the test package being used for testing.
-  String get testPackageLanguageVersion => _latestLanguageVersion;
+  String? get testPackageLanguageVersion => _latestLanguageVersion;
 
   /// The path to the test package being used for testing.
   String get testPackageRootPath;
@@ -55,7 +54,7 @@ mixin ConfigurationFilesMixin on MockPackagesMixin {
   /// Writes a package_config.json for the package at [projectFolderPath]. If
   /// [packageName] is not supplied, the last segment of [projectFolderPath] is
   /// used.
-  void writePackageConfig(
+  void writePackageConfig2(
     String projectFolderPath, {
     // The name of this package. If not provided, the last segment of the path
     // will be used.
@@ -72,14 +71,31 @@ mixin ConfigurationFilesMixin on MockPackagesMixin {
     }
 
     // Add this package to its own config.
-    config.add(
-      name: packageName ?? pathContext.basename(projectFolderPath),
-      rootFolder: resourceProvider.getFolder(projectFolderPath),
-      languageVersion: languageVersion ?? testPackageLanguageVersion,
-    );
+    var effectivePackageName =
+        packageName ?? pathContext.basename(projectFolderPath);
+    if (!config.hasPackage(effectivePackageName)) {
+      config.add(
+        name: effectivePackageName,
+        rootFolder: resourceProvider.getFolder(projectFolderPath),
+        languageVersion: languageVersion ?? testPackageLanguageVersion,
+      );
+    }
+
+    if (addFixnumPackageDep) {
+      if (!config.hasPackage('fixnum')) {
+        var fixnumPath = addFixnum().parent.path;
+        config.add(
+          name: 'fixnum',
+          rootFolder: resourceProvider.getFolder(fixnumPath),
+        );
+      }
+    }
 
     // flutter_test also depends on meta for @isTestGroup / @isTest
-    if (addMetaPackageDep || addFlutterPackageDep || addFlutterTestPackageDep) {
+    if (addMetaPackageDep ||
+        addFlutterPackageDep ||
+        addFlutterTestPackageDep ||
+        addMetaPackageDep) {
       if (!config.hasPackage('meta')) {
         var libFolder = addMeta();
         config.add(name: 'meta', rootFolder: libFolder.parent);
@@ -95,18 +111,28 @@ mixin ConfigurationFilesMixin on MockPackagesMixin {
         );
       }
 
-      var flutterLibFolder = addFlutter();
-      config.add(name: 'flutter', rootFolder: flutterLibFolder.parent);
+      if (!config.hasPackage('flutter')) {
+        var flutterLibFolder = addFlutter();
+        config.add(name: 'flutter', rootFolder: flutterLibFolder.parent);
+      }
+    }
+
+    if (addFlutterLocalizationsPackageDep) {
+      if (!config.hasPackage('flutter_localizations')) {
+        var libFolder = addFlutterLocalizations();
+        config.add(name: 'flutter_localizations', rootFolder: libFolder.parent);
+      }
     }
 
     if (addFlutterTestPackageDep) {
-      var flutterTestRootPath = resourceProvider.convertPath(
-        '$packagesRootPath/flutter_test',
-      );
+      if (!config.hasPackage('flutter_test')) {
+        var flutterTestRootPath = resourceProvider.convertPath(
+          '$packagesRootPath/flutter_test',
+        );
 
-      var flutterTestRoot = resourceProvider.getFolder(flutterTestRootPath);
-      var libFolder = flutterTestRoot.getFolder('lib')..create();
-      libFolder.getFile('flutter_test.dart').writeAsStringSync(r'''
+        var flutterTestRoot = resourceProvider.getFolder(flutterTestRootPath);
+        var libFolder = flutterTestRoot.getFolder('lib')..create();
+        libFolder.getFile('flutter_test.dart').writeAsStringSync(r'''
 import 'package:meta/meta.dart';
 
 @isTest
@@ -123,12 +149,25 @@ void main() {
 }
 
 ''');
-      config.add(name: 'flutter_test', rootFolder: flutterTestRoot);
+        config.add(name: 'flutter_test', rootFolder: flutterTestRoot);
+      }
+    }
+
+    if (addTestReflectiveLoaderPackageDep) {
+      if (!config.hasPackage('test_reflective_loader')) {
+        var testReflectiveLoaderPath = addTestReflectiveLoader().parent.path;
+        config.add(
+          name: 'test_reflective_loader',
+          rootFolder: resourceProvider.getFolder(testReflectiveLoaderPath),
+        );
+      }
     }
 
     if (addVectorMathPackageDep) {
-      var libFolder = addVectorMath();
-      config.add(name: 'vector_math', rootFolder: libFolder.parent);
+      if (!config.hasPackage('vector_math')) {
+        var libFolder = addVectorMath();
+        config.add(name: 'vector_math', rootFolder: libFolder.parent);
+      }
     }
 
     var content = config.toContent();
@@ -143,11 +182,11 @@ void main() {
 
   /// Writes a package_config.json for the package under test (considered
   /// 'package:test') that lives in [testPackageRootPath].
-  void writeTestPackageConfig({
+  void writeTestPackageConfig2({
     PackageConfigFileBuilder? config,
     String? languageVersion,
   }) {
-    writePackageConfig(
+    writePackageConfig2(
       testPackageRootPath,
       config: config,
       languageVersion: languageVersion,
