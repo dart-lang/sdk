@@ -34,6 +34,7 @@
 #include "vm/json_stream.h"
 #include "vm/os.h"
 #include "vm/raw_object.h"
+#include "vm/zone.h"
 #include "vm/regexp/regexp-flags.h"
 #include "vm/report.h"
 #include "vm/roots.h"
@@ -132,7 +133,8 @@ class BaseTextBuffer;
         HandleImpl(Thread::Current()->zone(), object::null(), kClassId));      \
   }                                                                            \
   DART_NOINLINE static object& Handle(Zone* zone) {                            \
-    return static_cast<object&>(HandleImpl(zone, object::null(), kClassId));   \
+    return static_cast<object&>(                                               \
+        HandleImpl(zone, NullForZone(zone), kClassId));                        \
   }                                                                            \
   DART_NOINLINE static object& Handle(object##Ptr ptr) {                       \
     return static_cast<object&>(                                               \
@@ -147,7 +149,7 @@ class BaseTextBuffer;
   }                                                                            \
   DART_NOINLINE static object& ZoneHandle(Zone* zone) {                        \
     return static_cast<object&>(                                               \
-        ZoneHandleImpl(zone, object::null(), kClassId));                       \
+        ZoneHandleImpl(zone, NullForZone(zone), kClassId));                    \
   }                                                                            \
   DART_NOINLINE static object& ZoneHandle(object##Ptr ptr) {                   \
     return static_cast<object&>(                                               \
@@ -482,7 +484,7 @@ class KNOWN_VTABLE_DISCRIMINATOR Object {
     return HandleImpl(Thread::Current()->zone(), Roots::null_obj(), kObjectCid);
   }
   static Object& Handle(Zone* zone) {
-    return HandleImpl(zone, Roots::null_obj(), kObjectCid);
+    return HandleImpl(zone, NullForZone(zone), kObjectCid);
   }
   static Object& Handle(ObjectPtr ptr) {
     return HandleImpl(Thread::Current()->zone(), ptr, kObjectCid);
@@ -495,7 +497,7 @@ class KNOWN_VTABLE_DISCRIMINATOR Object {
                           kObjectCid);
   }
   static Object& ZoneHandle(Zone* zone) {
-    return ZoneHandleImpl(zone, Roots::null_obj(), kObjectCid);
+    return ZoneHandleImpl(zone, NullForZone(zone), kObjectCid);
   }
   static Object& ZoneHandle(ObjectPtr ptr) {
     return ZoneHandleImpl(Thread::Current()->zone(), ptr, kObjectCid);
@@ -702,6 +704,15 @@ class KNOWN_VTABLE_DISCRIMINATOR Object {
 
   inline void setPtr(ObjectPtr value, intptr_t default_cid);
   void CheckHandle() const;
+  // Never stale: a Zone never outlives the group entry that filled it.
+  static ObjectPtr NullForZone(Zone* zone) {
+    ObjectPtr cached = zone->null_obj();
+    if (cached == nullptr) {
+      cached = Roots::null_obj();
+      zone->set_null_obj(cached);
+    }
+    return cached;
+  }
   DART_NOINLINE static Object& HandleImpl(Zone* zone,
                                           ObjectPtr ptr,
                                           intptr_t default_cid) {

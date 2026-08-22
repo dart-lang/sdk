@@ -175,6 +175,7 @@ void Zone::Reset() {
   size_ = 0;
   small_segment_capacity_ = 0;
   previous_ = nullptr;
+  null_obj_ = nullptr;
   handles_.Reset();
 }
 
