@@ -36,6 +36,7 @@ library;
 
 import 'dart:_internal' show Since;
 import 'dart:_js_types';
+import 'dart:async';
 import 'dart:js_interop_unsafe';
 import 'dart:typed_data';
 
@@ -256,7 +257,7 @@ extension type JSFunction<T extends Function>._(JSFunctionType _jsFunction)
 /// to convert a Dart function.
 @JS('Function')
 extension type JSExportedDartFunction<T extends Function>._(
-  JSExportedDartFunctionType _jsExportedDartFunction,
+  JSExportedDartFunctionType _jsExportedDartFunction
 ) implements JSFunction<T>, JSExportedDartFunctionType {}
 
 /// The synchronous [JS iterable protocol].
@@ -654,7 +655,7 @@ extension type JSUint8Array._(JSUint8ArrayType _jsUint8Array)
 /// A JavaScript `Uint8ClampedArray`.
 @JS('Uint8ClampedArray')
 extension type JSUint8ClampedArray._(
-  JSUint8ClampedArrayType _jsUint8ClampedArray,
+  JSUint8ClampedArrayType _jsUint8ClampedArray
 ) implements JSTypedArray, JSUint8ClampedArrayType {
   /// Creates a JavaScript `Uint8ClampedArray` with [buffer] as its backing
   /// storage, offset by [byteOffset] bytes, of size [length].
@@ -946,7 +947,7 @@ extension type JSBigInt._(JSBigIntType _jsBigInt)
 /// See [ObjectToExternalDartReference.toExternalReference] to allow an
 /// arbitrary value of type [T] to be passed to JavaScript.
 extension type ExternalDartReference<T extends Object?>._(
-  ExternalDartReferenceType<T> _externalDartReference,
+  ExternalDartReferenceType<T> _externalDartReference
 ) {}
 
 /// JS type equivalent for `undefined` for interop member return types.
@@ -1309,6 +1310,28 @@ extension JSPromiseToFuture<T extends JSAny?> on JSPromise<T> {
   external Future<T> get toDart;
 }
 
+/// Conversions from [JSAny] to [FutureOr].
+@Since('3.14')
+extension JSAnyToFutureOr on JSAny {
+  /// If this is a [JSPromise], returns it as a [Future].
+  ///
+  /// Otherwise, returns it as-is.
+  FutureOr<JSAny> get toDartFutureOr => (this?.isA<JSPromise>() ?? false)
+      ? (this as JSPromise<JSAny>).toDart
+      : this;
+}
+
+/// Conversions from [JSAny?] to [FutureOr].
+@Since('3.14')
+extension NullableJSAnyToFutureOr on JSAny? {
+  /// If this is a [JSPromise], returns it as a [Future].
+  ///
+  /// Otherwise, returns it as-is.
+  FutureOr<JSAny?> get toDartFutureOr => (this?.isA<JSPromise>() ?? false)
+      ? (this as JSPromise<JSAny?>).toDart
+      : this;
+}
+
 JSAny _convertError(Object error, StackTrace stackTrace) {
   if (error.isA<JSAny>()) return error as JSAny;
   final errorConstructor = globalContext['Error'] as JSFunction;
@@ -1373,6 +1396,28 @@ extension FutureOfVoidToJSPromise on Future<void> {
       }.toJS,
     );
   }
+}
+
+/// Conversions from [FutureOr] with a nullable value to [JSAny].
+@Since('3.14')
+extension FutureOrToNullableJSAny<T extends JSAny?> on FutureOr<T> {
+  /// Converts this value to a [JSPromise] or a synchronous value.
+  ///
+  /// If this is a [Future], it's converted to a [JSPromise]. Otherwise, it
+  /// returns this as-is.
+  JSAny? get toJSPromiseOrValue =>
+      this is Future<T> ? (this as Future<T>).toJS : this as JSAny?;
+}
+
+/// Conversions from [FutureOr] with a non-nullable value to [JSAny].
+@Since('3.14')
+extension FutureOrToJSAny<T extends JSAny> on FutureOr<T> {
+  /// Converts this value to a [JSPromise] or a synchronous value.
+  ///
+  /// If this is a [Future], it's converted to a [JSPromise]. Otherwise, it
+  /// returns this as-is.
+  JSAny get toJSPromiseOrValue =>
+      this is Future<T> ? (this as Future<T>).toJS : this as JSAny;
 }
 
 /// Conversions from [JSArrayBuffer] to [ByteBuffer].
