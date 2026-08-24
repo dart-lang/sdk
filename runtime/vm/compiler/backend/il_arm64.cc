@@ -5851,7 +5851,7 @@ void UnaryInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case Token::kPOPCNT: {
       __ fmovdr(VTMP, left);
       __ vcnt(VTMP, VTMP);
-      __ vuaddlv(VTMP, VTMP);
+      __ vuaddlv_8b(VTMP, VTMP);
       __ fmovrs(out, VTMP);
       break;
     }

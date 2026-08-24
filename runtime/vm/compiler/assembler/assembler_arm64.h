@@ -1523,10 +1523,18 @@ class Assembler : public AssemblerBase {
                              (static_cast<int32_t>(vd) << kVdShift);
     Emit(encoding);
   }
-  // UADDLV Hd, Vn.8B: sum across the 8 unsigned byte lanes of Vn into the
-  // 16-bit scalar in the low bits of Vd.
-  void vuaddlv(VRegister vd, VRegister vn) {
+  // UADDLV Hd, Vn.8B: sum the 8 unsigned byte lanes of Vn into the 16-bit
+  // scalar in the low bits of Vd.
+  void vuaddlv_8b(VRegister vd, VRegister vn) {
     const int32_t encoding = 0x2E303800 |
+                             (static_cast<int32_t>(vn) << kVnShift) |
+                             (static_cast<int32_t>(vd) << kVdShift);
+    Emit(encoding);
+  }
+  // UADDLV Dd, Vn.4S: sum the 4 unsigned word lanes of Vn into the 64-bit
+  // scalar in the low bits of Vd.
+  void vuaddlv_4s(VRegister vd, VRegister vn) {
+    const int32_t encoding = 0x2E303800 | (1 << 30) | (2 << 22) |
                              (static_cast<int32_t>(vn) << kVnShift) |
                              (static_cast<int32_t>(vd) << kVdShift);
     Emit(encoding);

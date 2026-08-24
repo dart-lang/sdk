@@ -347,12 +347,15 @@ void DeleteTempDirDetached(const wchar_t* temp_dir_w) {
     len--;
   }
 
+  // `rmdir /s /q` leaves errorlevel 0 when it fails to delete in-use files,
+  // so success is detected by checking that the directory is gone.
   const wchar_t* cmd_fmt =
-      L"cmd.exe /c (for /l %%i in (1,1,10) do (rmdir /s /q \"%s\" 2>&1 && "
-      L"exit /b 0 || timeout /t 1 /nobreak)) > NUL 2>&1";
-  size_t cmd_len = wcslen(cmd_fmt) + wcslen(clean_dir.get()) + 100;
+      L"cmd.exe /c (for /l %%i in (1,1,10) do (rmdir /s /q \"%s\" 2>&1 & "
+      L"if not exist \"%s\" (exit /b 0) else (timeout /t 1 /nobreak))) "
+      L"> NUL 2>&1";
+  size_t cmd_len = wcslen(cmd_fmt) + 2 * wcslen(clean_dir.get()) + 100;
   wchar_t* cmd_line = new wchar_t[cmd_len];
-  swprintf(cmd_line, cmd_len, cmd_fmt, clean_dir.get());
+  swprintf(cmd_line, cmd_len, cmd_fmt, clean_dir.get(), clean_dir.get());
 
   STARTUPINFOW si;
   ZeroMemory(&si, sizeof(si));
@@ -360,10 +363,12 @@ void DeleteTempDirDetached(const wchar_t* temp_dir_w) {
   PROCESS_INFORMATION pi;
   ZeroMemory(&pi, sizeof(pi));
 
-  if (CreateProcessW(
-          nullptr, cmd_line, nullptr, nullptr, FALSE,
-          CREATE_NO_WINDOW | DETACHED_PROCESS | CREATE_BREAKAWAY_FROM_JOB,
-          nullptr, nullptr, &si, &pi)) {
+  // CREATE_NO_WINDOW is ignored when combined with DETACHED_PROCESS. Without
+  // a console to inherit, each timeout.exe would open a visible console
+  // window.
+  if (CreateProcessW(nullptr, cmd_line, nullptr, nullptr, FALSE,
+                     CREATE_NO_WINDOW | CREATE_BREAKAWAY_FROM_JOB, nullptr,
+                     nullptr, &si, &pi)) {
     CloseHandle(pi.hProcess);
     CloseHandle(pi.hThread);
   }

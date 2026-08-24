@@ -2276,7 +2276,7 @@ ASSEMBLER_TEST_GENERATE(VcntUaddlv8B, assembler) {
   __ LoadImmediate(R1, 0xFFFF);
   __ fmovdr(V0, R1);
   __ vcnt(V0, V0);
-  __ vuaddlv(V0, V0);
+  __ vuaddlv_8b(V0, V0);
   __ fmovrs(R0, V0);
   __ ret();
 }
@@ -2290,6 +2290,26 @@ ASSEMBLER_TEST_RUN(VcntUaddlv8B, test) {
       "vcnt v0, v0\n"
       "vuaddlv v0, v0\n"
       "fmovrsw r0, v0\n"
+      "ret\n");
+}
+
+ASSEMBLER_TEST_GENERATE(Uaddlv4S, assembler) {
+  // All four 32-bit lanes = 3; vuaddlv.4S -> 12 in the low 64-bit scalar.
+  __ LoadImmediate(R1, 3);
+  __ vdupw(V0, R1);
+  __ vuaddlv_4s(V0, V0);
+  __ vmovrd(R0, V0, 0);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Uaddlv4S, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(12, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r1, #0x3\n"
+      "vdups v0, r1\n"
+      "vuaddlv v0, v0\n"
+      "vmovrd r0, v0[0]\n"
       "ret\n");
 }
 
