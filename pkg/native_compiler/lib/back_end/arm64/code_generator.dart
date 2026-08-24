@@ -843,35 +843,85 @@ final class Arm64CodeGenerator extends CodeGenerator {
   void visitLoadInstanceField(LoadInstanceField instr) {
     final objectReg = inputReg(instr, 0);
     final valueReg = outputReg(instr);
-    if (instr.field == objectLayout.Object_classId) {
+    final field = instr.field;
+
+    if (field == objectLayout.Object_classId) {
       _asm.loadClassId(valueReg, objectReg);
       return;
     }
-    if (instr.checkInitialized) {
-      // TODO: initialized check for late fields.
-      _asm.unimplemented(
-        'Unimplemented: code generation for LoadInstanceField.checkInitialized',
-      );
-      return;
-    }
-    final memoryOrder = objectLayout.getFieldMemoryOrder(instr.field);
+
+    final fieldOffset = objectLayout.getFieldOffset(field);
+    final memoryOrder = objectLayout.getFieldMemoryOrder(field);
     switch (memoryOrder) {
       case .relaxed:
         // TODO: compressed pointers, unboxed fields
-        _asm.ldr(
-          valueReg,
-          _asm.fieldAddress(
-            objectReg,
-            objectLayout.getFieldOffset(instr.field),
-          ),
-        );
+        _asm.ldr(valueReg, _asm.fieldAddress(objectReg, fieldOffset));
       case .acquireRelease:
-        _asm.addImmediate(
-          tempReg,
-          objectReg,
-          objectLayout.getFieldOffset(instr.field) - heapObjectTag,
-        );
+        _asm.addImmediate(tempReg, objectReg, fieldOffset - heapObjectTag);
         _asm.ldar(valueReg, tempReg);
+    }
+    if (instr.checkInitialized) {
+      assert(valueReg != objectReg);
+      assert(memoryOrder == .relaxed);
+
+      _asm.loadFromPool(tempReg, SentinelConstant());
+      _asm.cmp(valueReg, tempReg);
+
+      final done = Label();
+      Label slowPath = addSlowPath(() {
+        if (hasNonTrivialInitializer(field.astField)) {
+          assert(valueReg == returnReg);
+          assert(stackFrame.maxArgumentsStackSlots >= 1);
+          _asm.str(objectReg, RegOffsetAddress(stackPointerReg, 0));
+          recordOutgoingArgumentsAtSafepoint(.dartCall, 1);
+          _callFunction(
+            functionRegistry.getFunction(field.astField, isInitializer: true),
+          );
+          // Reload object from the stack after the call.
+          _asm.ldr(objectReg, RegOffsetAddress(stackPointerReg, 0));
+
+          // TODO: consider moving this code into field initializer
+          if (field.isLate && field.isFinal) {
+            final ok = Label();
+            final scratch1Reg = temporaryReg(instr, 0);
+            _asm.ldr(scratch1Reg, _asm.fieldAddress(objectReg, fieldOffset));
+            _asm.loadFromPool(tempReg, SentinelConstant());
+            _asm.cmp(scratch1Reg, tempReg);
+            _asm.b(ok, .equal);
+
+            assert(stackFrame.maxArgumentsStackSlots >= 2);
+            _asm.loadFromPool(tempReg, field.astField);
+            _asm.stp(
+              tempReg,
+              nullReg, // Space for result.
+              RegOffsetAddress(stackPointerReg, 0),
+            );
+            _callRuntime(
+              RuntimeEntry.LateFieldAssignedDuringInitializationError,
+              1,
+            );
+            _asm.breakpoint();
+
+            _asm.bind(ok);
+          }
+
+          _asm.str(valueReg, _asm.fieldAddress(objectReg, fieldOffset));
+          _asm.b(done);
+        } else {
+          assert(stackFrame.maxArgumentsStackSlots >= 2);
+          _asm.loadFromPool(tempReg, field.astField);
+          _asm.stp(
+            tempReg,
+            nullReg, // Space for result.
+            RegOffsetAddress(stackPointerReg, 0),
+          );
+          _callRuntime(RuntimeEntry.LateFieldNotInitializedError, 1);
+          _asm.breakpoint();
+        }
+      });
+
+      _asm.b(slowPath, .equal);
+      _asm.bind(done);
     }
   }
 
@@ -1051,24 +1101,42 @@ final class Arm64CodeGenerator extends CodeGenerator {
             isShared: isShared,
           );
 
+          // TODO: consider moving this code into field initializer
           if (field.isLate && field.isFinal) {
             final ok = Label();
             _asm.ldr(scratch2Reg, RegOffsetAddress(scratch1Reg, 0));
             _asm.loadFromPool(tempReg, SentinelConstant());
             _asm.cmp(scratch2Reg, tempReg);
             _asm.b(ok, .equal);
-            _asm.unimplemented(
-              'Unimplemented: already initialized late final field in LoadStaticField',
+
+            assert(stackFrame.maxArgumentsStackSlots >= 2);
+            _asm.loadFromPool(tempReg, field.astField);
+            _asm.stp(
+              tempReg,
+              nullReg, // Space for result.
+              RegOffsetAddress(stackPointerReg, 0),
             );
+            _callRuntime(
+              RuntimeEntry.LateFieldAssignedDuringInitializationError,
+              1,
+            );
+            _asm.breakpoint();
+
             _asm.bind(ok);
           }
 
           _asm.str(valueReg, RegOffsetAddress(scratch1Reg, 0));
           _asm.b(done);
         } else {
-          _asm.unimplemented(
-            'Unimplemented: uninitialized late field without initializer in LoadStaticField',
+          assert(stackFrame.maxArgumentsStackSlots >= 2);
+          _asm.loadFromPool(tempReg, field.astField);
+          _asm.stp(
+            tempReg,
+            nullReg, // Space for result.
+            RegOffsetAddress(stackPointerReg, 0),
           );
+          _callRuntime(RuntimeEntry.LateFieldNotInitializedError, 1);
+          _asm.breakpoint();
         }
       });
 
