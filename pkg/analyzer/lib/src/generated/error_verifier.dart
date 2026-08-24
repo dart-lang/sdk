@@ -974,13 +974,21 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       );
     }
     _requiredParametersVerifier.visitDotShorthandConstructorInvocation(node);
+    _checkUseVerifier.checkDotShorthandConstructorInvocation(node);
     super.visitDotShorthandConstructorInvocation(node);
   }
 
   @override
   void visitDotShorthandInvocation(DotShorthandInvocation node) {
     _requiredParametersVerifier.visitDotShorthandInvocation(node);
+    _checkUseVerifier.checkDotShorthandInvocation(node);
     super.visitDotShorthandInvocation(node);
+  }
+
+  @override
+  void visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
+    _checkUseVerifier.checkDotShorthandPropertyAccess(node);
+    super.visitDotShorthandPropertyAccess(node);
   }
 
   @override
