@@ -2734,6 +2734,9 @@ class SimdLowering : public ValueObject {
         Float32x4ToInt32x4();
         BoxVector(kUnboxedInt32, 4);
         return true;
+      case MethodRecognizer::kInt32x4Equal:
+        // TODO(riscv)
+        return false;
       default:
         UNREACHABLE();
         return false;
@@ -3492,6 +3495,9 @@ bool CallSpecializer::TryInlineRecognizedMethod(
     case MethodRecognizer::kInt32x4BitOr:
     case MethodRecognizer::kInt32x4BitXor:
     case MethodRecognizer::kInt32x4Not:
+#if !defined(TARGET_ARCH_IA32)
+    case MethodRecognizer::kInt32x4Equal:
+#endif
       return InlineSimdOp(flow_graph, is_dynamic_call, call, receiver, kind,
                           graph_entry, entry, last, result);
 
