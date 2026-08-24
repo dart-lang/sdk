@@ -35,12 +35,14 @@ int findIdentifierLength(String search) {
 /// The base class for all [Refactoring] tests.
 abstract class RefactoringTest extends AbstractSingleUnitTest
     with SelectionMixin {
-  late RefactoringWorkspace refactoringWorkspace;
-  late SearchEngine searchEngine;
-
   late SourceChange refactoringChange;
 
   Refactoring get refactoring;
+
+  RefactoringWorkspace get refactoringWorkspace =>
+      RefactoringWorkspace([driverFor(testFile)], searchEngine);
+
+  SearchEngine get searchEngine => SearchEngineImpl([driverFor(testFile)]);
 
   /// Asserts that [refactoringChange] contains a [FileEdit] for the file
   /// with the given [path], and it results the [expectedCode].
@@ -183,14 +185,6 @@ abstract class RefactoringTest extends AbstractSingleUnitTest
 
   Future<void> indexUnit(String file, String code) async {
     newFile(file, code);
-  }
-
-  @override
-  void verifyCreatedCollection() {
-    super.verifyCreatedCollection();
-    var drivers = [driverFor(testFile)];
-    searchEngine = SearchEngineImpl(drivers);
-    refactoringWorkspace = RefactoringWorkspace(drivers, searchEngine);
   }
 
   void _assertTextExpectation(String actual, String expected) {

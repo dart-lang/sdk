@@ -187,8 +187,6 @@ class AbstractContextTest
     newFile(testPubspecPath, content);
   }
 
-  void verifyCreatedCollection() {}
-
   /// Writes string content as an analysis options file.
   void writeAnalysisOptionsFile(String content) {
     newFile(analysisOptionsPath, content);
@@ -233,6 +231,5 @@ class AbstractContextTest
     );
 
     _addAnalyzedFilesToDrivers();
-    verifyCreatedCollection();
   }
 }
