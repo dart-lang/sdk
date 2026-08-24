@@ -13,7 +13,7 @@ import '../type_inference/inference_results.dart';
 import '../type_inference/object_access_target.dart';
 
 abstract class ExpressionEvaluationHelper {
-  ExpressionInferenceResult? visitInternalVariableGet(
+  ExpressionInferenceResult? visitVariableGet(
     InternalVariableGet node,
     DartType typeContext,
     ProblemReporting problemReporting,
@@ -21,7 +21,7 @@ abstract class ExpressionEvaluationHelper {
     Uri fileUri,
   );
 
-  ExpressionInferenceResult? visitInternalVariableSet(
+  ExpressionInferenceResult? visitVariableSet(
     InternalVariableSet node,
     DartType typeContext,
     ProblemReporting problemReporting,

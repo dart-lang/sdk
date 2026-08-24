@@ -254,7 +254,7 @@ class InternalRegularSwitchStatement extends InternalStatement
 
   @override
   StatementInferenceResult acceptInference(InferenceVisitorImpl visitor) {
-    return visitor.visitInternalRegularSwitchStatement(this);
+    return visitor.visitRegularSwitchStatement(this);
   }
 
   @override
@@ -304,7 +304,7 @@ class InternalBreakStatement extends InternalStatement
 
   @override
   StatementInferenceResult acceptInference(InferenceVisitorImpl visitor) {
-    return visitor.visitInternalBreakStatement(this);
+    return visitor.visitBreakStatement(this);
   }
 
   @override
@@ -331,7 +331,7 @@ class InternalContinueStatement extends InternalStatement
 
   @override
   StatementInferenceResult acceptInference(InferenceVisitorImpl visitor) {
-    return visitor.visitInternalContinueStatement(this);
+    return visitor.visitContinueStatement(this);
   }
 
   @override
@@ -945,7 +945,7 @@ class InternalIntLiteral extends InternalExpression {
     InferenceVisitorImpl visitor,
     DartType typeContext,
   ) {
-    return visitor.visitInternalIntLiteral(this, typeContext);
+    return visitor.visitIntLiteral(this, typeContext);
   }
 
   @override
@@ -1042,7 +1042,7 @@ class InternalReturnStatement extends InternalStatement {
 
   @override
   StatementInferenceResult acceptInference(InferenceVisitorImpl visitor) {
-    return visitor.visitInternalReturnStatement(this);
+    return visitor.visitReturnStatement(this);
   }
 
   @override
@@ -2154,7 +2154,7 @@ class InternalLoadLibrary extends InternalExpression {
     InferenceVisitorImpl visitor,
     DartType typeContext,
   ) {
-    return visitor.visitInternalLoadLibrary(this, typeContext);
+    return visitor.visitLoadLibrary(this, typeContext);
   }
 
   @override
@@ -5160,7 +5160,7 @@ class InternalRecordLiteral extends InternalExpression {
     InferenceVisitorImpl visitor,
     DartType typeContext,
   ) {
-    return visitor.visitInternalRecordLiteral(this, typeContext);
+    return visitor.visitRecordLiteral(this, typeContext);
   }
 
   @override
@@ -5412,7 +5412,7 @@ class InternalConstructorInvocation extends InternalExpression {
     InferenceVisitorImpl visitor,
     DartType typeContext,
   ) {
-    return visitor.visitInternalConstructorInvocation(this, typeContext);
+    return visitor.visitConstructorInvocation(this, typeContext);
   }
 
   @override
@@ -5452,7 +5452,7 @@ class InternalStaticInvocation extends InternalExpression {
     InferenceVisitorImpl visitor,
     DartType typeContext,
   ) {
-    return visitor.visitInternalStaticInvocation(this, typeContext);
+    return visitor.visitStaticInvocation(this, typeContext);
   }
 
   @override
@@ -5483,7 +5483,7 @@ class InternalSuperMethodInvocation extends InternalExpression {
     InferenceVisitorImpl visitor,
     DartType typeContext,
   ) {
-    return visitor.visitInternalSuperMethodInvocation(this, typeContext);
+    return visitor.visitSuperMethodInvocation(this, typeContext);
   }
 
   @override
@@ -5504,7 +5504,7 @@ class InternalRedirectingInitializer extends InternalInitializer {
 
   @override
   InitializerInferenceResult acceptInference(InferenceVisitorImpl visitor) {
-    return visitor.visitInternalRedirectingInitializer(this);
+    return visitor.visitRedirectingInitializer(this);
   }
 
   @override
@@ -5534,7 +5534,7 @@ class InternalSuperInitializer extends InternalInitializer {
 
   @override
   InitializerInferenceResult acceptInference(InferenceVisitorImpl visitor) {
-    return visitor.visitInternalSuperInitializer(this);
+    return visitor.visitSuperInitializer(this);
   }
 
   @override
@@ -6367,7 +6367,7 @@ class InternalForInStatement extends InternalLoopStatement {
 
   @override
   StatementInferenceResult acceptInference(InferenceVisitorImpl visitor) {
-    return visitor.visitInternalForInStatement(this);
+    return visitor.visitForInStatement(this);
   }
 
   @override
@@ -6396,7 +6396,7 @@ class InternalVariableGet extends InternalExpression {
     InferenceVisitorImpl visitor,
     DartType typeContext,
   ) {
-    return visitor.visitInternalVariableGet(this, typeContext);
+    return visitor.visitVariableGet(this, typeContext);
   }
 
   @override
@@ -6419,7 +6419,7 @@ class InternalVariableSet extends InternalExpression {
     InferenceVisitorImpl visitor,
     DartType typeContext,
   ) {
-    return visitor.visitInternalVariableSet(this, typeContext);
+    return visitor.visitVariableSet(this, typeContext);
   }
 
   @override
@@ -6543,7 +6543,7 @@ class InternalFunctionExpression extends InternalExpression {
     InferenceVisitorImpl visitor,
     DartType typeContext,
   ) {
-    return visitor.visitInternalFunctionExpression(this, typeContext);
+    return visitor.visitFunctionExpression(this, typeContext);
   }
 
   @override
@@ -6562,7 +6562,7 @@ class InternalFunctionDeclaration extends InternalStatement {
 
   @override
   StatementInferenceResult acceptInference(InferenceVisitorImpl visitor) {
-    return visitor.visitInternalFunctionDeclaration(this);
+    return visitor.visitFunctionDeclaration(this);
   }
 
   @override
@@ -6620,7 +6620,7 @@ class InternalOrPattern extends InternalPattern {
     InferenceVisitorImpl visitor,
     SharedMatchContext context,
   ) {
-    return visitor.visitInternalOrPattern(this, context);
+    return visitor.visitOrPattern(this, context);
   }
 
   @override
@@ -6650,7 +6650,7 @@ class InternalAndPattern extends InternalPattern {
     InferenceVisitorImpl visitor,
     SharedMatchContext context,
   ) {
-    return visitor.visitInternalAndPattern(this, context);
+    return visitor.visitAndPattern(this, context);
   }
 
   @override
@@ -6676,7 +6676,7 @@ class InternalConstantPattern extends InternalPattern {
     InferenceVisitorImpl visitor,
     SharedMatchContext context,
   ) {
-    return visitor.visitInternalConstantPattern(this, context);
+    return visitor.visitConstantPattern(this, context);
   }
 
   @override
@@ -6702,7 +6702,7 @@ class InternalAssignedVariablePattern extends InternalPattern {
     InferenceVisitorImpl visitor,
     SharedMatchContext context,
   ) {
-    return visitor.visitInternalAssignedVariablePattern(this, context);
+    return visitor.visitAssignedVariablePattern(this, context);
   }
 
   @override
@@ -6731,7 +6731,7 @@ class InternalCastPattern extends InternalPattern {
     InferenceVisitorImpl visitor,
     SharedMatchContext context,
   ) {
-    return visitor.visitInternalCastPattern(this, context);
+    return visitor.visitCastPattern(this, context);
   }
 
   @override
@@ -6760,7 +6760,7 @@ class InternalInvalidPattern extends InternalPattern {
     InferenceVisitorImpl visitor,
     SharedMatchContext context,
   ) {
-    return visitor.visitInternalInvalidPattern(this, context);
+    return visitor.visitInvalidPattern(this, context);
   }
 
   @override
@@ -6793,7 +6793,7 @@ class InternalListPattern extends InternalPattern {
     InferenceVisitorImpl visitor,
     SharedMatchContext context,
   ) {
-    return visitor.visitInternalListPattern(this, context);
+    return visitor.visitListPattern(this, context);
   }
 
   @override
@@ -6843,7 +6843,7 @@ class InternalMapPattern extends InternalPattern {
     InferenceVisitorImpl visitor,
     SharedMatchContext context,
   ) {
-    return visitor.visitInternalMapPattern(this, context);
+    return visitor.visitMapPattern(this, context);
   }
 
   @override
@@ -6946,7 +6946,7 @@ class InternalNullAssertPattern extends InternalPattern {
     InferenceVisitorImpl visitor,
     SharedMatchContext context,
   ) {
-    return visitor.visitInternalNullAssertPattern(this, context);
+    return visitor.visitNullAssertPattern(this, context);
   }
 
   @override
@@ -6975,7 +6975,7 @@ class InternalNullCheckPattern extends InternalPattern {
     InferenceVisitorImpl visitor,
     SharedMatchContext context,
   ) {
-    return visitor.visitInternalNullCheckPattern(this, context);
+    return visitor.visitNullCheckPattern(this, context);
   }
 
   @override
@@ -7020,7 +7020,7 @@ class InternalObjectPattern extends InternalPattern {
     InferenceVisitorImpl visitor,
     SharedMatchContext context,
   ) {
-    return visitor.visitInternalObjectPattern(this, context);
+    return visitor.visitObjectPattern(this, context);
   }
 
   @override
@@ -7053,7 +7053,7 @@ class InternalRecordPattern extends InternalPattern {
     InferenceVisitorImpl visitor,
     SharedMatchContext context,
   ) {
-    return visitor.visitInternalRecordPattern(this, context);
+    return visitor.visitRecordPattern(this, context);
   }
 
   @override
@@ -7090,7 +7090,7 @@ class InternalRelationalPattern extends InternalPattern {
     InferenceVisitorImpl visitor,
     SharedMatchContext context,
   ) {
-    return visitor.visitInternalRelationalPattern(this, context);
+    return visitor.visitRelationalPattern(this, context);
   }
 
   @override
@@ -7169,7 +7169,7 @@ class InternalVariablePattern extends InternalPattern {
     InferenceVisitorImpl visitor,
     SharedMatchContext context,
   ) {
-    return visitor.visitInternalVariablePattern(this, context);
+    return visitor.visitVariablePattern(this, context);
   }
 
   @override
@@ -7198,7 +7198,7 @@ class InternalWildcardPattern extends InternalPattern {
     InferenceVisitorImpl visitor,
     SharedMatchContext context,
   ) {
-    return visitor.visitInternalWildcardPattern(this, context);
+    return visitor.visitWildcardPattern(this, context);
   }
 
   @override
@@ -7345,7 +7345,7 @@ class InternalPatternSwitchStatement extends InternalStatement
 
   @override
   StatementInferenceResult acceptInference(InferenceVisitorImpl visitor) {
-    return visitor.visitInternalPatternSwitchStatement(this);
+    return visitor.visitPatternSwitchStatement(this);
   }
 
   @override
@@ -7408,7 +7408,7 @@ class InternalSwitchExpression extends InternalExpression
     InferenceVisitorImpl visitor,
     DartType typeContext,
   ) {
-    return visitor.visitInternalSwitchExpression(this, typeContext);
+    return visitor.visitSwitchExpression(this, typeContext);
   }
 
   @override
@@ -7441,7 +7441,7 @@ class InternalPatternVariableDeclaration extends InternalStatement {
 
   @override
   StatementInferenceResult acceptInference(InferenceVisitorImpl visitor) {
-    return visitor.visitInternalPatternVariableDeclaration(this);
+    return visitor.visitPatternVariableDeclaration(this);
   }
 
   @override
@@ -7474,7 +7474,7 @@ class InternalPatternAssignment extends InternalExpression {
     InferenceVisitorImpl visitor,
     DartType typeContext,
   ) {
-    return visitor.visitInternalPatternAssignment(this, typeContext);
+    return visitor.visitPatternAssignment(this, typeContext);
   }
 
   @override
@@ -7509,7 +7509,7 @@ class InternalIfCaseStatement extends InternalStatement {
 
   @override
   StatementInferenceResult acceptInference(InferenceVisitorImpl visitor) {
-    return visitor.visitInternalIfCaseStatement(this);
+    return visitor.visitIfCaseStatement(this);
   }
 
   @override
@@ -7550,7 +7550,7 @@ class InternalContinueSwitchStatement extends InternalStatement
 
   @override
   StatementInferenceResult acceptInference(InferenceVisitorImpl visitor) {
-    return visitor.visitInternalContinueSwitchStatement(this);
+    return visitor.visitContinueSwitchStatement(this);
   }
 }
 
@@ -7651,7 +7651,7 @@ class InternalVariableStatement extends InternalStatement {
 
   @override
   StatementInferenceResult acceptInference(InferenceVisitorImpl visitor) {
-    return visitor.visitInternalVariableStatement(this);
+    return visitor.visitVariableStatement(this);
   }
 
   @override
@@ -7690,7 +7690,7 @@ class InternalForStatement extends InternalLoopStatement {
 
   @override
   StatementInferenceResult acceptInference(InferenceVisitorImpl visitor) {
-    return visitor.visitInternalForStatement(this);
+    return visitor.visitForStatement(this);
   }
 
   @override
@@ -7735,7 +7735,7 @@ class InternalPatternForStatement extends InternalLoopStatement {
 
   @override
   StatementInferenceResult acceptInference(InferenceVisitorImpl visitor) {
-    return visitor.visitInternalPatternForStatement(this);
+    return visitor.visitPatternForStatement(this);
   }
 
   @override
@@ -7773,7 +7773,7 @@ class InternalLet extends InternalExpression {
     InferenceVisitorImpl visitor,
     DartType typeContext,
   ) {
-    return visitor.visitInternalLet(this, typeContext);
+    return visitor.visitLet(this, typeContext);
   }
 
   @override
@@ -7929,7 +7929,7 @@ class InternalFieldInitializer extends InternalInitializer {
 
   @override
   InitializerInferenceResult acceptInference(InferenceVisitorImpl visitor) {
-    return visitor.visitInternalFieldInitializer(this);
+    return visitor.visitFieldInitializer(this);
   }
 }
 
@@ -7940,7 +7940,7 @@ class InternalAssertInitializer extends InternalInitializer {
 
   @override
   InitializerInferenceResult acceptInference(InferenceVisitorImpl visitor) {
-    return visitor.visitInternalAssertInitializer(this);
+    return visitor.visitAssertInitializer(this);
   }
 
   @override
@@ -7967,7 +7967,7 @@ class InternalInvalidInitializer extends InternalInitializer {
 
   @override
   InitializerInferenceResult acceptInference(InferenceVisitorImpl visitor) {
-    return visitor.visitInternalInvalidInitializer(this);
+    return visitor.visitInvalidInitializer(this);
   }
 
   @override
@@ -8003,7 +8003,7 @@ class InternalAssertStatement extends InternalStatement {
 
   @override
   StatementInferenceResult acceptInference(InferenceVisitorImpl visitor) {
-    return visitor.visitInternalAssertStatement(this);
+    return visitor.visitAssertStatement(this);
   }
 
   @override
@@ -8024,7 +8024,7 @@ class InternalEmptyStatement extends InternalStatement {
 
   @override
   StatementInferenceResult acceptInference(InferenceVisitorImpl visitor) {
-    return visitor.visitInternalEmptyStatement(this);
+    return visitor.visitEmptyStatement(this);
   }
 
   @override
@@ -8041,7 +8041,7 @@ class InternalExpressionStatement extends InternalStatement {
 
   @override
   StatementInferenceResult acceptInference(InferenceVisitorImpl visitor) {
-    return visitor.visitInternalExpressionStatement(this);
+    return visitor.visitExpressionStatement(this);
   }
 
   @override
@@ -8061,7 +8061,7 @@ class InternalIfStatement extends InternalStatement {
 
   @override
   StatementInferenceResult acceptInference(InferenceVisitorImpl visitor) {
-    return visitor.visitInternalIfStatement(this);
+    return visitor.visitIfStatement(this);
   }
 
   @override
@@ -8086,7 +8086,7 @@ class InternalYieldStatement extends InternalStatement {
 
   @override
   StatementInferenceResult acceptInference(InferenceVisitorImpl visitor) {
-    return visitor.visitInternalYieldStatement(this);
+    return visitor.visitYieldStatement(this);
   }
 
   @override
@@ -8111,7 +8111,7 @@ class InternalDoStatement extends InternalLoopStatement {
 
   @override
   StatementInferenceResult acceptInference(InferenceVisitorImpl visitor) {
-    return visitor.visitInternalDoStatement(this);
+    return visitor.visitDoStatement(this);
   }
 
   @override
@@ -8134,7 +8134,7 @@ class InternalWhileStatement extends InternalLoopStatement {
 
   @override
   StatementInferenceResult acceptInference(InferenceVisitorImpl visitor) {
-    return visitor.visitInternalWhileStatement(this);
+    return visitor.visitWhileStatement(this);
   }
 
   @override
@@ -8158,7 +8158,7 @@ class InternalLabeledStatement extends InternalStatement
 
   @override
   StatementInferenceResult acceptInference(InferenceVisitorImpl visitor) {
-    return visitor.visitInternalLabeledStatement(this);
+    return visitor.visitLabeledStatement(this);
   }
 
   @override
@@ -8186,7 +8186,7 @@ class InternalBlock extends InternalStatement {
 
   @override
   StatementInferenceResult acceptInference(InferenceVisitorImpl visitor) {
-    return visitor.visitInternalBlock(this);
+    return visitor.visitBlock(this);
   }
 
   @override
@@ -8219,7 +8219,7 @@ class InternalBlockExpression extends InternalExpression {
     InferenceVisitorImpl visitor,
     DartType typeContext,
   ) {
-    return visitor.visitInternalBlockExpression(this, typeContext);
+    return visitor.visitBlockExpression(this, typeContext);
   }
 
   @override
@@ -8247,7 +8247,7 @@ class InternalAsExpression extends InternalExpression {
     InferenceVisitorImpl visitor,
     DartType typeContext,
   ) {
-    return visitor.visitInternalAsExpression(this, typeContext);
+    return visitor.visitAsExpression(this, typeContext);
   }
 
   @override
@@ -8273,7 +8273,7 @@ class InternalAwaitExpression extends InternalExpression {
     InferenceVisitorImpl visitor,
     DartType typeContext,
   ) {
-    return visitor.visitInternalAwaitExpression(this, typeContext);
+    return visitor.visitAwaitExpression(this, typeContext);
   }
 
   @override
@@ -8294,7 +8294,7 @@ class InternalBoolLiteral extends InternalExpression {
     InferenceVisitorImpl visitor,
     DartType typeContext,
   ) {
-    return visitor.visitInternalBoolLiteral(this, typeContext);
+    return visitor.visitBoolLiteral(this, typeContext);
   }
 
   @override
@@ -8316,7 +8316,7 @@ class InternalConditionalExpression extends InternalExpression {
     InferenceVisitorImpl visitor,
     DartType typeContext,
   ) {
-    return visitor.visitInternalConditionalExpression(this, typeContext);
+    return visitor.visitConditionalExpression(this, typeContext);
   }
 
   @override
@@ -8348,7 +8348,7 @@ class InternalConstructorTearOff extends InternalExpression {
     InferenceVisitorImpl visitor,
     DartType typeContext,
   ) {
-    return visitor.visitInternalConstructorTearOff(this, typeContext);
+    return visitor.visitConstructorTearOff(this, typeContext);
   }
 
   @override
@@ -8368,7 +8368,7 @@ class InternalDoubleLiteral extends InternalExpression {
     InferenceVisitorImpl visitor,
     DartType typeContext,
   ) {
-    return visitor.visitInternalDoubleLiteral(this, typeContext);
+    return visitor.visitDoubleLiteral(this, typeContext);
   }
 
   @override
@@ -8394,7 +8394,7 @@ class InternalFileUriExpression extends InternalExpression {
     InferenceVisitorImpl visitor,
     DartType typeContext,
   ) {
-    return visitor.visitInternalFileUriExpression(this, typeContext);
+    return visitor.visitFileUriExpression(this, typeContext);
   }
 
   @override
@@ -8420,7 +8420,7 @@ class InternalInstantiation extends InternalExpression {
     InferenceVisitorImpl visitor,
     DartType typeContext,
   ) {
-    return visitor.visitInternalInstantiation(this, typeContext);
+    return visitor.visitInstantiation(this, typeContext);
   }
 
   @override
@@ -8442,7 +8442,7 @@ class InternalInvalidExpression extends InternalExpression {
     InferenceVisitorImpl visitor,
     DartType typeContext,
   ) {
-    return visitor.visitInternalInvalidExpression(this, typeContext);
+    return visitor.visitInvalidExpression(this, typeContext);
   }
 
   @override
@@ -8473,7 +8473,7 @@ class InternalIsExpression extends InternalExpression {
     InferenceVisitorImpl visitor,
     DartType typeContext,
   ) {
-    return visitor.visitInternalIsExpression(this, typeContext);
+    return visitor.visitIsExpression(this, typeContext);
   }
 
   @override
@@ -8515,7 +8515,7 @@ class InternalListLiteral extends InternalExpression {
     InferenceVisitorImpl visitor,
     DartType typeContext,
   ) {
-    return visitor.visitInternalListLiteral(this, typeContext);
+    return visitor.visitListLiteral(this, typeContext);
   }
 
   @override
@@ -8547,7 +8547,7 @@ class InternalLogicalExpression extends InternalExpression {
     InferenceVisitorImpl visitor,
     DartType typeContext,
   ) {
-    return visitor.visitInternalLogicalExpression(this, typeContext);
+    return visitor.visitLogicalExpression(this, typeContext);
   }
 
   @override
@@ -8625,7 +8625,7 @@ class InternalNot extends InternalExpression {
     InferenceVisitorImpl visitor,
     DartType typeContext,
   ) {
-    return visitor.visitInternalNot(this, typeContext);
+    return visitor.visitNot(this, typeContext);
   }
 
   @override
@@ -8647,7 +8647,7 @@ class InternalNullCheck extends InternalExpression {
     InferenceVisitorImpl visitor,
     DartType typeContext,
   ) {
-    return visitor.visitInternalNullCheck(this, typeContext);
+    return visitor.visitNullCheck(this, typeContext);
   }
 
   @override
@@ -8667,7 +8667,7 @@ class InternalNullLiteral extends InternalExpression {
     InferenceVisitorImpl visitor,
     DartType typeContext,
   ) {
-    return visitor.visitInternalNullLiteral(this, typeContext);
+    return visitor.visitNullLiteral(this, typeContext);
   }
 
   @override
@@ -8685,7 +8685,7 @@ class InternalRethrow extends InternalExpression {
     InferenceVisitorImpl visitor,
     DartType typeContext,
   ) {
-    return visitor.visitInternalRethrow(this, typeContext);
+    return visitor.visitRethrow(this, typeContext);
   }
 
   @override
@@ -8709,7 +8709,7 @@ class InternalStaticGet extends InternalExpression {
     InferenceVisitorImpl visitor,
     DartType typeContext,
   ) {
-    return visitor.visitInternalStaticGet(this, typeContext);
+    return visitor.visitStaticGet(this, typeContext);
   }
 
   @override
@@ -8734,7 +8734,7 @@ class InternalStaticSet extends InternalExpression {
     InferenceVisitorImpl visitor,
     DartType typeContext,
   ) {
-    return visitor.visitInternalStaticSet(this, typeContext);
+    return visitor.visitStaticSet(this, typeContext);
   }
 
   @override
@@ -8761,7 +8761,7 @@ class InternalStaticTearOff extends InternalExpression {
     InferenceVisitorImpl visitor,
     DartType typeContext,
   ) {
-    return visitor.visitInternalStaticTearOff(this, typeContext);
+    return visitor.visitStaticTearOff(this, typeContext);
   }
 
   @override
@@ -8781,7 +8781,7 @@ class InternalStringConcatenation extends InternalExpression {
     InferenceVisitorImpl visitor,
     DartType typeContext,
   ) {
-    return visitor.visitInternalStringConcatenation(this, typeContext);
+    return visitor.visitStringConcatenation(this, typeContext);
   }
 
   @override
@@ -8811,7 +8811,7 @@ class InternalStringLiteral extends InternalExpression {
     InferenceVisitorImpl visitor,
     DartType typeContext,
   ) {
-    return visitor.visitInternalStringLiteral(this, typeContext);
+    return visitor.visitStringLiteral(this, typeContext);
   }
 
   @override
@@ -8843,7 +8843,7 @@ class InternalSuperPropertyGet extends InternalExpression {
     InferenceVisitorImpl visitor,
     DartType typeContext,
   ) {
-    return visitor.visitInternalSuperPropertyGet(this, typeContext);
+    return visitor.visitSuperPropertyGet(this, typeContext);
   }
 
   @override
@@ -8874,7 +8874,7 @@ class InternalSuperPropertySet extends InternalExpression {
     InferenceVisitorImpl visitor,
     DartType typeContext,
   ) {
-    return visitor.visitInternalSuperPropertySet(this, typeContext);
+    return visitor.visitSuperPropertySet(this, typeContext);
   }
 
   @override
@@ -8897,7 +8897,7 @@ class InternalSymbolLiteral extends InternalExpression {
     InferenceVisitorImpl visitor,
     DartType typeContext,
   ) {
-    return visitor.visitInternalSymbolLiteral(this, typeContext);
+    return visitor.visitSymbolLiteral(this, typeContext);
   }
 
   @override
@@ -8916,7 +8916,7 @@ class InternalThisExpression extends InternalExpression {
     InferenceVisitorImpl visitor,
     DartType typeContext,
   ) {
-    return visitor.visitInternalThisExpression(this, typeContext);
+    return visitor.visitThisExpression(this, typeContext);
   }
 
   @override
@@ -8936,7 +8936,7 @@ class InternalThrow extends InternalExpression {
     InferenceVisitorImpl visitor,
     DartType typeContext,
   ) {
-    return visitor.visitInternalThrow(this, typeContext);
+    return visitor.visitThrow(this, typeContext);
   }
 
   @override
@@ -8964,7 +8964,7 @@ class InternalTypedefTearOff extends InternalExpression {
     InferenceVisitorImpl visitor,
     DartType typeContext,
   ) {
-    return visitor.visitInternalTypedefTearOff(this, typeContext);
+    return visitor.visitTypedefTearOff(this, typeContext);
   }
 
   @override
@@ -8988,7 +8988,7 @@ class InternalTypeLiteral extends InternalExpression {
     InferenceVisitorImpl visitor,
     DartType typeContext,
   ) {
-    return visitor.visitInternalTypeLiteral(this, typeContext);
+    return visitor.visitTypeLiteral(this, typeContext);
   }
 
   @override
@@ -9033,7 +9033,7 @@ class InternalRedirectingFactoryTearOff extends InternalExpression {
     InferenceVisitorImpl visitor,
     DartType typeContext,
   ) {
-    return visitor.visitInternalRedirectingFactoryTearOff(this, typeContext);
+    return visitor.visitRedirectingFactoryTearOff(this, typeContext);
   }
 
   @override
