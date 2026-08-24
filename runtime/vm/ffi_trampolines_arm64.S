@@ -12,11 +12,11 @@
 #define LOCAL_SYMBOL(x) .L##x
 #endif
 
-#if defined(__aarch64__) && (defined(SIMULATOR_FFI) || defined(DART_DYNAMIC_MODULES))
+#if defined(__aarch64__) && (defined(SIMULATOR_FFI) || (defined(DART_DYNAMIC_MODULES) && !defined(DART_PRECOMPILED_RUNTIME)))
 
 .text
 
-#if defined(DART_DYNAMIC_MODULES)
+#if defined(DART_DYNAMIC_MODULES) && !defined(DART_PRECOMPILED_RUNTIME)
 
 #if defined(__APPLE__)
 .globl _FfiCallTrampoline
@@ -72,7 +72,8 @@ LOCAL_SYMBOL(copy1):
 #if !defined(__APPLE__)
 .size FfiCallTrampoline,.-FfiCallTrampoline
 #endif
-#endif  // defined(DART_DYNAMIC_MODULES)
+
+#endif  // defined(DART_DYNAMIC_MODULES) && !defined(DART_PRECOMPILED_RUNTIME)
 
 #if defined(SIMULATOR_FFI)
 
@@ -132,19 +133,15 @@ LOCAL_SYMBOL(copy2):
 #if !defined(__APPLE__)
 .size SimulatorFfiCalloutTrampoline,.-SimulatorFfiCalloutTrampoline
 #endif
-#endif  // defined(SIMULATOR_FFI)
 
-// The FFI callback trampoline is used by both the simulator and
-// the interpreter, with DoRedirectedFfiCallback calling into
-// the simulator or interpreter as appropriate.
 #if defined(__APPLE__)
-.globl _FfiCallbackTrampoline
-.private_extern _FfiCallbackTrampoline
-_FfiCallbackTrampoline:
+.globl _SimulatorFfiCallbackTrampoline
+.private_extern _SimulatorFfiCallbackTrampoline
+_SimulatorFfiCallbackTrampoline:
 #else
-.globl FfiCallbackTrampoline
-.type FfiCallbackTrampoline, %function
-FfiCallbackTrampoline:
+.globl SimulatorFfiCallbackTrampoline
+.type SimulatorFfiCallbackTrampoline, %function
+SimulatorFfiCallbackTrampoline:
 #endif
 LOCAL_SYMBOL(start_before_padding):
   brk 0 // ubsan padding
@@ -209,18 +206,20 @@ LOCAL_SYMBOL(body):
   ldp fp, lr, [sp], #16
   ret
 #if !defined(__APPLE__)
-.size FfiCallbackTrampoline,.-FfiCallbackTrampoline
+.size SimulatorFfiCallbackTrampoline,.-SimulatorFfiCallbackTrampoline
 #endif
 
 #if defined(__APPLE__)
-.globl _FfiCallbackTrampolineEnd
-.private_extern _FfiCallbackTrampolineEnd
-_FfiCallbackTrampolineEnd:
+.globl _SimulatorFfiCallbackTrampolineEnd
+.private_extern _SimulatorFfiCallbackTrampolineEnd
+_SimulatorFfiCallbackTrampolineEnd:
 #else
-.globl FfiCallbackTrampolineEnd
-.type FfiCallbackTrampolineEnd, %function
-FfiCallbackTrampolineEnd:
+.globl SimulatorFfiCallbackTrampolineEnd
+.type SimulatorFfiCallbackTrampolineEnd, %function
+SimulatorFfiCallbackTrampolineEnd:
 #endif
   brk 0
 
-#endif  // defined(__aarch64__) && (defined(SIMULATOR_FFI) || defined(DART_DYNAMIC_MODULES))
+#endif  // defined(SIMULATOR_FFI)
+
+#endif  // defined(__aarch64__) && (defined(SIMULATOR_FFI) || (defined(DART_DYNAMIC_MODULES) && !defined(DART_PRECOMPILED_RUNTIME)))
