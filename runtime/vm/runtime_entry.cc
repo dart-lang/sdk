@@ -1345,149 +1345,6 @@ static void* GetDataAddress(const Instance& inst, intptr_t offset_in_bytes) {
   }
 }
 
-static ObjectPtr FfiConvertPrimitiveToDart(
-    Thread* thread,
-    const compiler::ffi::BaseMarshaller& marshaller,
-    intptr_t arg_index,
-    uword value) {
-  const auto& loc = marshaller.Location(arg_index);
-  const bool is_return = marshaller.ArgumentIndexIsReturn(arg_index);
-  if (marshaller.IsPointerPointer(arg_index)) {
-    return Pointer::New(value);
-  } else if (marshaller.IsTypedDataPointer(arg_index)) {
-    UNREACHABLE();  // Only supported for FFI call arguments.
-  } else if (marshaller.IsCompoundPointer(arg_index)) {
-    UNREACHABLE();  // Only supported for FFI call arguments.
-  } else if (marshaller.IsHandleCType(arg_index)) {
-    return reinterpret_cast<LocalHandle*>(value)->ptr();
-  } else if (marshaller.IsBool(arg_index)) {
-    value = TruncateFfiInt(
-        value, loc.payload_type().AsPrimitive().representation(), is_return);
-    return Bool::Get(value != 0).ptr();
-  } else if (marshaller.IsVoid(arg_index)) {
-    return Object::null();
-  } else {
-    auto const rep = marshaller.RepInDart(arg_index);
-    if (RepresentationUtils::IsUnboxedInteger(rep)) {
-      value = TruncateFfiInt(
-          value, loc.payload_type().AsPrimitive().representation(), is_return);
-      return Integer::New(value);
-    } else if (rep == kUnboxedDouble) {
-      return Double::New(bit_cast<double, uword>(value));
-    } else if (rep == kUnboxedFloat) {
-      float f = bit_cast<float, uint32_t>(static_cast<uint32_t>(value));
-      return Double::New(static_cast<double>(f));
-    } else {
-      UNREACHABLE();
-    }
-  }
-}
-
-static uword FfiConvertPrimitiveToNative(
-    Thread* thread,
-    const compiler::ffi::BaseMarshaller& marshaller,
-    intptr_t arg_index,
-    const Object& obj) {
-  Zone* const zone = thread->zone();
-  // Error values should only be possible for returns in callbacks.
-  ASSERT(!obj.IsError() || arg_index == compiler::ffi::kResultIndex);
-  // First, handle the cases that allow Error values the same as in
-  // FlowGraphBuilder::BuildGraphOfSyncFfiCallback.
-  if (marshaller.IsVoid(arg_index)) {
-    ASSERT_EQUAL(arg_index, compiler::ffi::kResultIndex);
-    // Ignore the return value or exception and return 0.
-    if (obj.IsError()) {
-      PRINT_IF_TRACING_INTERPRETER(
-          "suppressing exception due to void return\n");
-    }
-    return 0;
-  } else if (marshaller.IsPointerPointer(arg_index)) {
-    if (obj.IsError()) {
-      PRINT_IF_TRACING_INTERPRETER("returning nullptr instead\n");
-      return reinterpret_cast<uword>(nullptr);
-    }
-    return Pointer::Cast(obj).NativeAddress();
-  } else if (marshaller.IsHandleCType(arg_index)) {
-    // No special handling needed for Errors.
-    ApiLocalScope* scope = thread->api_top_scope();
-    LocalHandle* handle = scope->local_handles()->AllocateHandle();
-    handle->set_ptr(obj.ptr());
-    return reinterpret_cast<uword>(handle);
-  }
-  // Now handle all cases where Error objects are not allowed.
-  ASSERT(obj.IsInstance());
-  if (marshaller.IsTypedDataPointer(arg_index) ||
-      marshaller.IsCompoundPointer(arg_index)) {
-    // Should only happen for FFI calls (e.g., as arguments, not returns).
-    ASSERT(!marshaller.ArgumentIndexIsReturn(arg_index));
-
-    // Fields needed for working with compound values.
-    auto* const object_store = thread->isolate_group()->object_store();
-    const auto& typed_data_field =
-        Field::Handle(zone, object_store->compound_typed_data_base_field());
-    const auto& offset_in_bytes_field =
-        Field::Handle(zone, object_store->compound_offset_in_bytes_field());
-
-    auto& compound_contents = Instance::CheckedHandle(zone, obj.ptr());
-    intptr_t offset_in_bytes = 0;
-    if (marshaller.IsCompoundPointer(arg_index)) {
-      offset_in_bytes = Smi::Value(
-          Smi::RawCast(compound_contents.GetField(offset_in_bytes_field)));
-      compound_contents ^= compound_contents.GetField(typed_data_field);
-    }
-
-    // Object holding the contents should not be moved by GC. For leaf calls,
-    // the native code is run in a NoSafepointScope, and only Pointers are
-    // allowed for non-leaf calls.
-    ASSERT(thread->no_safepoint_scope_depth() > 0 ||
-           compound_contents.IsPointer());
-    return reinterpret_cast<uword>(
-        GetDataAddress(compound_contents, offset_in_bytes));
-  } else if (marshaller.IsBool(arg_index)) {
-    return static_cast<uword>(Bool::Cast(obj).value());
-  } else {
-    const auto rep = marshaller.RepInDart(arg_index);
-    if (RepresentationUtils::IsUnboxedInteger(rep)) {
-      const auto& loc = marshaller.Location(arg_index);
-      const bool is_return = marshaller.ArgumentIndexIsReturn(arg_index);
-      return TruncateFfiInt(Integer::Cast(obj).Value(),
-                            loc.payload_type().AsPrimitive().representation(),
-                            is_return);
-    } else if (rep == kUnboxedDouble) {
-      return bit_cast<uint64_t, double>(Double::Cast(obj).value());
-    } else if (rep == kUnboxedFloat) {
-      return bit_cast<uint32_t, float>(
-          static_cast<float>(Double::Cast(obj).value()));
-    } else {
-      UNREACHABLE();
-    }
-  }
-}
-
-static void SetLocationInFfiCallArguments(
-    Thread* thread,
-    FfiCallArguments* args,
-    const compiler::ffi::NativeLocation& loc,
-    uword value) {
-  if (loc.IsRegisters()) {
-    ASSERT_EQUAL(loc.AsRegisters().num_regs(), 1);
-    const auto dst_reg = loc.AsRegisters().reg_at(0);
-    ASSERT((dst_reg >= 0) && (dst_reg < kNumberOfCpuRegisters));
-    args->cpu_registers[dst_reg] = value;
-  } else if (loc.IsFpuRegisters()) {
-    const auto dst_reg = loc.AsFpuRegisters().fpu_reg();
-    ASSERT((dst_reg >= 0) && (dst_reg < kNumberOfFpuRegisters));
-    args->fpu_registers[dst_reg] = value;
-  } else if (loc.IsStack()) {
-    const intptr_t offset = loc.AsStack().offset_in_bytes();
-    ASSERT(offset >= 0);
-    ASSERT(args->stack_area + offset + kWordSize <= args->stack_area_end);
-    *reinterpret_cast<uword*>(args->stack_area + offset) = value;
-  } else {
-    FATAL("Unimplemented location %s", loc.ToCString(thread->zone()));
-  }
-}
-
 static void PassFfiCallCompoundArgumentPortion(
     Thread* thread,
     FfiCallArguments* args,
@@ -1523,7 +1380,18 @@ static void PassFfiCallCompoundArgumentPortion(
       auto* const src = GetDataAddress(compound_contents, offset_in_bytes);
       memcpy(&value, src, size);  // NOLINT
     }
-    SetLocationInFfiCallArguments(thread, args, loc, value);
+    if (loc.IsRegisters()) {
+      ASSERT(loc.AsRegisters().num_regs() == 1);
+      const auto dst_reg = loc.AsRegisters().reg_at(0);
+      ASSERT((dst_reg >= 0) && (dst_reg < kNumberOfCpuRegisters));
+      args->cpu_registers[dst_reg] = value;
+    } else if (loc.IsFpuRegisters()) {
+      const FpuRegister dst_reg = loc.AsFpuRegisters().fpu_reg();
+      ASSERT((dst_reg >= 0) && (dst_reg < kNumberOfFpuRegisters));
+      args->fpu_registers[dst_reg] = value;
+    } else {
+      UNIMPLEMENTED();
+    }
   }
 }
 
@@ -1534,6 +1402,9 @@ static void PassFfiCallArguments(
     FfiCallArguments* args,
     bool is_leaf) {
   Zone* zone = thread->zone();
+  ApiLocalScope* scope = thread->api_top_scope();
+  auto* const stack_top = reinterpret_cast<uint8_t*>(args->stack_area);
+  auto* const stack_end = reinterpret_cast<uint8_t*>(args->stack_area_end);
   // Fields needed for working with compound values.
   auto* const object_store = thread->isolate_group()->object_store();
   const auto& typed_data_field =
@@ -1552,11 +1423,8 @@ static void PassFfiCallArguments(
       if (loc.IsPointerToMemory()) {
         const auto& arg_loc = loc.AsPointerToMemory();
         auto const size = arg_loc.payload_type().SizeInBytes();
-        auto const stack_offset = marshaller.PassByPointerStackOffset(i);
-        ASSERT(stack_offset >= 0);
-        ASSERT(args->stack_area + stack_offset + size <= args->stack_area_end);
-        auto* const dst =
-            reinterpret_cast<void*>(args->stack_area + stack_offset);
+        auto* const dst = stack_top + marshaller.PassByPointerStackOffset(i);
+        ASSERT(stack_top <= dst && dst + size <= stack_end);
         // First copy the contents of the struct to the stack area.
         {
           NoSafepointScope scope;
@@ -1565,8 +1433,22 @@ static void PassFfiCallArguments(
         }
         // Then copy the pointer to that memory to the expected location.
         const auto& ptr_loc = arg_loc.pointer_location();
-        const uword ptr = reinterpret_cast<uword>(dst);
-        SetLocationInFfiCallArguments(thread, args, ptr_loc, ptr);
+        uword ptr = reinterpret_cast<uword>(dst);
+        if (ptr_loc.IsRegisters()) {
+          ASSERT(ptr_loc.AsRegisters().num_regs() == 1);
+          // For structs passed by value as pointers to memory, the value
+          // is copied to the stack and the value of the pointer register
+          // is set to the appropriate portion of stack_area.
+          const auto ptr_reg = ptr_loc.AsRegisters().reg_at(0);
+          args->cpu_registers[ptr_reg] = ptr;
+        } else if (ptr_loc.IsStack()) {
+          auto* const ptr_slot =
+              stack_top + ptr_loc.AsStack().offset_in_bytes();
+          ASSERT((stack_top <= ptr_slot) && (ptr_slot <= stack_end));
+          *reinterpret_cast<uword*>(ptr_slot) = ptr;
+        } else {
+          UNIMPLEMENTED();
+        }
       } else {
         PassFfiCallCompoundArgumentPortion(thread, args, loc, compound_contents,
                                            offset_in_bytes);
@@ -1576,9 +1458,62 @@ static void PassFfiCallArguments(
         UNIMPLEMENTED();
       }
       ASSERT(loc.payload_type().SizeInBytes() <= kWordSize);
-      const uword value =
-          FfiConvertPrimitiveToNative(thread, marshaller, i, arg);
-      SetLocationInFfiCallArguments(thread, args, loc, value);
+      uword value;
+      if (marshaller.IsHandleCType(i)) {
+        LocalHandle* handle = scope->local_handles()->AllocateHandle();
+        handle->set_ptr(arg.ptr());
+        value = reinterpret_cast<uword>(handle);
+      } else if (marshaller.IsPointerPointer(i)) {
+        value = Pointer::Cast(arg).NativeAddress();
+      } else if (marshaller.IsTypedDataPointer(i) ||
+                 marshaller.IsCompoundPointer(i)) {
+        compound_contents ^= arg.ptr();
+        intptr_t offset_in_bytes = 0;
+        if (marshaller.IsCompoundPointer(i)) {
+          offset_in_bytes = Smi::Value(
+              Smi::RawCast(compound_contents.GetField(offset_in_bytes_field)));
+          compound_contents ^= compound_contents.GetField(typed_data_field);
+        }
+        // Object holding the contents should not be moved by GC, and only
+        // Pointers are allowed for non-leaf calls.
+        ASSERT(is_leaf || compound_contents.IsPointer());
+        // The caller of PassFfiCallArgument should have set an appropriate
+        // NoSafepointScope if TypedData is a possibility here (the leaf case).
+        value = reinterpret_cast<uword>(
+            GetDataAddress(compound_contents, offset_in_bytes));
+      } else if (marshaller.IsBool(i)) {
+        value = static_cast<uword>(Bool::Cast(arg).value());
+      } else {
+        ASSERT(!marshaller.IsVoid(i));
+        const auto rep = marshaller.RepInDart(i);
+        if (RepresentationUtils::IsUnboxedInteger(rep)) {
+          value =
+              TruncateFfiInt(Integer::Cast(arg).Value(),
+                             loc.payload_type().AsPrimitive().representation(),
+                             /*is_return=*/false);
+        } else if (rep == kUnboxedDouble) {
+          value = bit_cast<uint64_t, double>(Double::Cast(arg).value());
+        } else if (rep == kUnboxedFloat) {
+          value = bit_cast<uint32_t, float>(
+              static_cast<float>(Double::Cast(arg).value()));
+        } else {
+          UNREACHABLE();
+        }
+      }
+      if (loc.IsRegisters()) {
+        ASSERT(loc.AsRegisters().num_regs() == 1);
+        const auto dst_reg = loc.AsRegisters().reg_at(0);
+        ASSERT((dst_reg >= 0) && (dst_reg < kNumberOfCpuRegisters));
+        args->cpu_registers[dst_reg] = value;
+      } else if (loc.IsFpuRegisters()) {
+        const FpuRegister dst_reg = loc.AsFpuRegisters().fpu_reg();
+        ASSERT((dst_reg >= 0) && (dst_reg < kNumberOfFpuRegisters));
+        args->fpu_registers[dst_reg] = value;
+      } else if (loc.IsStack()) {
+        auto* const dst = stack_top + loc.AsStack().offset_in_bytes();
+        ASSERT((stack_top <= dst) && (dst + kWordSize <= stack_end));
+        *reinterpret_cast<uword*>(dst) = value;
+      }
     }
   }
 
@@ -1596,32 +1531,19 @@ static void PassFfiCallArguments(
     const auto& loc = marshaller.Location(arg_index);
     if (loc.IsPointerToMemory()) {
       // Pass a pointer to the space allocated in stack_area to native code.
-      const auto& ptr_loc = loc.AsPointerToMemory().pointer_location();
+      const auto& pointer_loc = loc.AsPointerToMemory().pointer_location();
+      if (!pointer_loc.IsRegisters()) {
+        UNIMPLEMENTED();
+      }
+      ASSERT_EQUAL(pointer_loc.AsRegisters().num_regs(), 1);
+      const Register reg = pointer_loc.AsRegisters().reg_at(0);
+      ASSERT((reg >= 0) && (reg < kNumberOfCpuRegisters));
       const intptr_t offset = marshaller.PassByPointerStackOffset(arg_index);
-      const intptr_t size = loc.payload_type().SizeInBytes();
-      ASSERT(offset >= 0);
-      ASSERT(args->stack_area + offset + size <= args->stack_area_end);
-      const uword ptr = args->stack_area + offset;
-      SetLocationInFfiCallArguments(thread, args, ptr_loc, ptr);
+      ASSERT((offset >= 0) &&
+             (args->stack_area + offset + loc.payload_type().SizeInBytes() <=
+              args->stack_area_end));
+      args->cpu_registers[reg] = args->stack_area + offset;
     }
-  }
-}
-
-static uword RetrieveLocationFromFfiCallArguments(
-    Thread* thread,
-    const FfiCallArguments& args,
-    const compiler::ffi::NativeLocation& loc) {
-  if (loc.IsRegisters()) {
-    ASSERT_EQUAL(loc.AsRegisters().num_regs(), 1);
-    const auto src_reg = loc.AsRegisters().reg_at(0);
-    ASSERT((src_reg >= 0) && (src_reg < kNumberOfCpuRegisters));
-    return args.cpu_registers[src_reg];
-  } else if (loc.IsFpuRegisters()) {
-    const auto src_reg = loc.AsFpuRegisters().fpu_reg();
-    ASSERT((src_reg >= 0) && (src_reg < kNumberOfFpuRegisters));
-    return args.fpu_registers[src_reg];
-  } else {
-    FATAL("Unimplemented location %s", loc.ToCString(thread->zone()));
   }
 }
 
@@ -1630,9 +1552,9 @@ static ObjectPtr ReceiveFfiCallResult(
     const compiler::ffi::CallMarshaller& marshaller,
     const FfiCallArguments& args) {
   const intptr_t arg_index = compiler::ffi::kResultIndex;
-  const auto& loc = marshaller.Location(arg_index);
   if (marshaller.IsCompoundCType(arg_index)) {
     auto* const zone = thread->zone();
+    const auto& loc = marshaller.Location(arg_index);
     const auto& compound_contents = TypedData::Handle(
         zone, TypedData::New(kTypedDataUint8ArrayCid,
                              marshaller.CompoundReturnSizeInBytes()));
@@ -1659,8 +1581,19 @@ static ObjectPtr ReceiveFfiCallResult(
         }
         auto const size = portion.payload_type().SizeInBytes();
         ASSERT(size <= kWordSize);
-        const uword value =
-            RetrieveLocationFromFfiCallArguments(thread, args, portion);
+        uword value;
+        if (portion.IsRegisters()) {
+          ASSERT(portion.AsRegisters().num_regs() == 1);
+          const auto src_reg = portion.AsRegisters().reg_at(0);
+          ASSERT((src_reg >= 0) && (src_reg < kNumberOfCpuRegisters));
+          value = args.cpu_registers[src_reg];
+        } else if (portion.IsFpuRegisters()) {
+          const FpuRegister src_reg = portion.AsFpuRegisters().fpu_reg();
+          ASSERT((src_reg >= 0) && (src_reg < kNumberOfFpuRegisters));
+          value = args.fpu_registers[src_reg];
+        } else {
+          UNIMPLEMENTED();
+        }
         NoSafepointScope scope;
         auto* dst = compound_contents.DataAddr(offset_in_bytes);
         memcpy(dst, &value, size);  // NOLINT
@@ -1687,9 +1620,49 @@ static ObjectPtr ReceiveFfiCallResult(
     wrapper.SetField(offset_in_bytes_field, Smi::Handle(Smi::New(0)));
 
     return wrapper.ptr();
+  } else if (marshaller.IsPointerPointer(arg_index)) {
+    uword value = args.cpu_registers[CallingConventions::kReturnReg];
+    return Pointer::New(value);
+  } else if (marshaller.IsTypedDataPointer(arg_index)) {
+    UNREACHABLE();  // Only supported for FFI call arguments.
+  } else if (marshaller.IsCompoundPointer(arg_index)) {
+    UNREACHABLE();  // Only supported for FFI call arguments.
+  } else if (marshaller.IsHandleCType(arg_index)) {
+    uword value = args.cpu_registers[CallingConventions::kReturnReg];
+    return reinterpret_cast<LocalHandle*>(value)->ptr();
+  } else if (marshaller.IsVoid(arg_index)) {
+    return Object::null();
+  } else if (marshaller.IsBool(arg_index)) {
+    int64_t value =
+        TruncateFfiInt(args.cpu_registers[CallingConventions::kReturnReg],
+                       marshaller.Location(arg_index)
+                           .payload_type()
+                           .AsPrimitive()
+                           .representation(),
+                       /*is_return=*/true);
+    return Bool::Get(value != 0).ptr();
   } else {
-    const uword value = RetrieveLocationFromFfiCallArguments(thread, args, loc);
-    return FfiConvertPrimitiveToDart(thread, marshaller, arg_index, value);
+    const auto rep = marshaller.RepInDart(arg_index);
+    if (RepresentationUtils::IsUnboxedInteger(rep)) {
+      const int64_t value =
+          TruncateFfiInt(args.cpu_registers[CallingConventions::kReturnReg],
+                         marshaller.Location(arg_index)
+                             .payload_type()
+                             .AsPrimitive()
+                             .representation(),
+                         /*is_return=*/true);
+      return Integer::New(value);
+    } else if (rep == kUnboxedDouble) {
+      double value = bit_cast<double, uint64_t>(
+          args.fpu_registers[CallingConventions::kReturnFpuReg]);
+      return Double::New(value);
+    } else if (rep == kUnboxedFloat) {
+      float value = bit_cast<float, uint32_t>(static_cast<uint32_t>(
+          args.fpu_registers[CallingConventions::kReturnFpuReg]));
+      return Double::New(static_cast<double>(value));
+    } else {
+      UNREACHABLE();
+    }
   }
 }
 
@@ -1872,440 +1845,6 @@ DEFINE_RUNTIME_ENTRY(FfiCall, 2) {
   UNREACHABLE();
 #endif  // defined(DART_DYNAMIC_MODULES) && !defined(DART_PRECOMPILED_RUNTIME)
 }
-
-#if defined(HOST_ARCH_ARM64) &&                                                \
-    (defined(SIMULATOR_FFI) || defined(DART_DYNAMIC_MODULES))
-
-#if defined(DART_DYNAMIC_MODULES) && !defined(DART_PRECOMPILED_RUNTIME)
-static void CopyLocationFromCallbackContextStack(
-    void* dst,
-    const CallbackContext& ctxt,
-    const compiler::ffi::NativeStackLocation& loc) {
-  auto* const sp = reinterpret_cast<const uint8_t*>(ctxt.sp);
-  const intptr_t offset = loc.offset_in_bytes();
-  const intptr_t size = loc.payload_type().SizeInBytes();
-  memcpy(dst, sp + offset, size);  // NOLINT
-}
-
-static uword RetrieveLocationFromCallbackContext(
-    Thread* thread,
-    const CallbackContext& ctxt,
-    const compiler::ffi::NativeLocation& loc) {
-  if (loc.IsRegisters()) {
-    ASSERT_EQUAL(loc.AsRegisters().num_regs(), 1);
-    const auto dst_reg = loc.AsRegisters().reg_at(0);
-    ASSERT(dst_reg >= 0);
-    if (dst_reg == R8) {
-      return ctxt.r8;
-    } else {
-      ASSERT_LESS_OR_EQUAL(dst_reg, kNumCallbackContextIntegerArguments - 1);
-      return ctxt.integer_arguments[dst_reg];
-    }
-  } else if (loc.IsFpuRegisters()) {
-    const auto dst_reg = loc.AsFpuRegisters().fpu_reg();
-    ASSERT(dst_reg >= 0);
-    ASSERT_LESS_OR_EQUAL(dst_reg, kNumCallbackContextDoubleArguments - 1);
-    return ctxt.double_arguments[dst_reg];
-  } else if (loc.IsStack()) {
-    ASSERT(loc.payload_type().SizeInBytes() <= kWordSize);
-    uword result;
-    CopyLocationFromCallbackContextStack(&result, ctxt, loc.AsStack());
-    return result;
-  } else {
-    FATAL("Unimplemented location %s", loc.ToCString(thread->zone()));
-  }
-}
-
-static ObjectPtr ReceiveFfiCallbackArgument(
-    Thread* thread,
-    const CallbackContext& ctxt,
-    const compiler::ffi::CallbackMarshaller& marshaller,
-    intptr_t arg_index) {
-  ASSERT(!marshaller.IsVoid(arg_index));
-  auto* const zone = thread->zone();
-  const auto& loc = marshaller.Location(arg_index);
-  if (marshaller.IsCompoundCType(arg_index)) {
-    const intptr_t size_in_bytes = loc.payload_type().SizeInBytes();
-    const auto& compound_contents = TypedData::Handle(
-        zone, TypedData::New(kTypedDataUint8ArrayCid, size_in_bytes));
-    if (loc.IsPointerToMemory()) {
-      const uword ptr = RetrieveLocationFromCallbackContext(
-          thread, ctxt, loc.AsPointerToMemory().pointer_location());
-      auto* const src = reinterpret_cast<const void*>(ptr);
-      NoSafepointScope scope;
-      memcpy(compound_contents.DataAddr(0), src, size_in_bytes);  // NOLINT
-    } else if (loc.IsStack()) {
-      NoSafepointScope scope;
-      CopyLocationFromCallbackContextStack(compound_contents.DataAddr(0), ctxt,
-                                           loc.AsStack());
-    } else {
-      // Copy to the TypedData buffer from a list of native locations.
-      ASSERT(loc.IsMultiple());
-      const auto& multiple = loc.AsMultiple();
-      intptr_t offset_in_bytes = 0;
-
-      for (intptr_t i = 0, n = multiple.locations().length(); i < n; ++i) {
-        const auto& portion = *multiple.locations().At(i);
-        // Only structs small enough to fit in a CPU + FPU register combo
-        // or two FPU registers are sent as multiple locations.
-        if (!portion.payload_type().IsPrimitive()) {
-          UNIMPLEMENTED();
-        }
-        auto const size = portion.payload_type().SizeInBytes();
-        ASSERT(size <= kWordSize);
-        const uword value =
-            RetrieveLocationFromCallbackContext(thread, ctxt, portion);
-        NoSafepointScope scope;
-        auto* dst = compound_contents.DataAddr(offset_in_bytes);
-        memcpy(dst, &value, size);  // NOLINT
-        offset_in_bytes += size;
-      }
-    }
-    // Now that the contents have been collected, time to install the
-    // appropriate wrapper.
-    auto* const object_store = thread->isolate_group()->object_store();
-    const auto& typed_data_field =
-        Field::Handle(zone, object_store->compound_typed_data_base_field());
-    const auto& offset_in_bytes_field =
-        Field::Handle(zone, object_store->compound_offset_in_bytes_field());
-
-    const auto& compound_type =
-        AbstractType::Handle(zone, marshaller.CType(arg_index));
-    const auto& compound_sub_class =
-        Class::Handle(zone, compound_type.type_class());
-    compound_sub_class.EnsureIsFinalized(thread);
-
-    const auto& wrapper =
-        Instance::Handle(zone, Instance::New(compound_sub_class));
-    wrapper.SetField(typed_data_field, compound_contents);
-    wrapper.SetField(offset_in_bytes_field, Smi::Handle(Smi::New(0)));
-
-    return wrapper.ptr();
-  } else {
-    if (!loc.payload_type().IsPrimitive()) {
-      FATAL("Unimplemented location %s", loc.ToCString(zone));
-    }
-    ASSERT(loc.payload_type().SizeInBytes() <= kWordSize);
-    const uword value = RetrieveLocationFromCallbackContext(thread, ctxt, loc);
-    return FfiConvertPrimitiveToDart(thread, marshaller, arg_index, value);
-  }
-}
-
-static void SetLocationInCallbackContext(
-    Thread* thread,
-    CallbackContext* ctxt,
-    const compiler::ffi::NativeLocation& loc,
-    uword value) {
-  if (loc.IsRegisters()) {
-    ASSERT_EQUAL(loc.AsRegisters().num_regs(), 1);
-    const auto dst_reg = loc.AsRegisters().reg_at(0);
-    ASSERT(dst_reg >= 0);
-    ASSERT_LESS_OR_EQUAL(dst_reg, kNumCallbackContextIntegerArguments - 1);
-    ctxt->integer_arguments[dst_reg] = value;
-  } else if (loc.IsFpuRegisters()) {
-    const auto dst_reg = loc.AsFpuRegisters().fpu_reg();
-    ASSERT_LESS_OR_EQUAL(dst_reg, kNumCallbackContextDoubleArguments - 1);
-    ctxt->double_arguments[dst_reg] = value;
-  } else {
-    FATAL("Unimplemented location %s", loc.ToCString(thread->zone()));
-  }
-}
-
-static void PassFfiCallbackCompoundReturnPortion(
-    Thread* thread,
-    CallbackContext* ctxt,
-    const compiler::ffi::NativeLocation& loc,
-    const Instance& compound_contents,
-    intptr_t offset_in_bytes) {
-  auto const size = loc.payload_type().SizeInBytes();
-  if (loc.IsMultiple()) {
-    // Copy from the TypedData to from a list of native locations.
-    const auto& multiple = loc.AsMultiple();
-    for (intptr_t i = 0, n = multiple.locations().length(); i < n; ++i) {
-      const auto& portion = *multiple.locations().At(i);
-      PassFfiCallbackCompoundReturnPortion(thread, ctxt, portion,
-                                           compound_contents, offset_in_bytes);
-      offset_in_bytes += portion.payload_type().SizeInBytes();
-    }
-  } else {
-    if (!loc.payload_type().IsPrimitive()) {
-      FATAL("Unimplemented location %s", loc.ToCString(thread->zone()));
-    }
-    ASSERT(size <= kWordSize);
-    uword value;
-    {
-      NoSafepointScope scope;
-      auto* const src = GetDataAddress(compound_contents, offset_in_bytes);
-      memcpy(&value, src, size);  // NOLINT
-    }
-    SetLocationInCallbackContext(thread, ctxt, loc, value);
-  }
-}
-
-static void PassFfiCallbackResult(
-    Thread* thread,
-    CallbackContext* ctxt,
-    const compiler::ffi::CallbackMarshaller& marshaller,
-    const Object& result) {
-  const intptr_t arg_index = compiler::ffi::kResultIndex;
-  auto* const zone = thread->zone();
-  const auto& loc = marshaller.Location(arg_index);
-  if (marshaller.IsCompoundCType(arg_index)) {
-    auto& compound_contents = Instance::Handle(zone);
-    intptr_t offset_in_bytes = 0;
-
-    if (result.IsInstance()) {
-      auto* const object_store = thread->isolate_group()->object_store();
-      const auto& typed_data_field =
-          Field::Handle(zone, object_store->compound_typed_data_base_field());
-      const auto& offset_in_bytes_field =
-          Field::Handle(zone, object_store->compound_offset_in_bytes_field());
-
-      compound_contents ^= Instance::Cast(result).GetField(typed_data_field);
-      offset_in_bytes = Smi::Value(
-          Smi::RawCast(Instance::Cast(result).GetField(offset_in_bytes_field)));
-    } else {
-      ASSERT(result.IsError());
-      PRINT_IF_TRACING_INTERPRETER("returning a zero-filled struct instead\n");
-      // The exceptional return for a compound type is always zero-filled.
-      const intptr_t container_size = loc.container_type().SizeInBytes();
-      compound_contents =
-          TypedData::New(kTypedDataInt8ArrayCid, container_size);
-    }
-
-    if (loc.IsPointerToMemory()) {
-      // This is a compound value with contents that should be copied into
-      // the space pointed to by the pointer location, instead of replacing
-      // the pointer stored in the pointer location.
-      const auto& ptr_loc = loc.AsPointerToMemory().pointer_location();
-      const uword ptr =
-          RetrieveLocationFromCallbackContext(thread, *ctxt, ptr_loc);
-      auto* const dst = reinterpret_cast<void*>(ptr);
-      NoSafepointScope scope;
-      const void* const src =
-          GetDataAddress(compound_contents, offset_in_bytes);
-      memcpy(dst, src, loc.payload_type().SizeInBytes());  // NOLINT
-    } else {
-      PassFfiCallbackCompoundReturnPortion(thread, ctxt, loc, compound_contents,
-                                           offset_in_bytes);
-    }
-  } else {
-    if (!loc.payload_type().IsPrimitive()) {
-      FATAL("Unimplemented location %s", loc.ToCString(zone));
-    }
-    ASSERT(loc.payload_type().SizeInBytes() <= kWordSize);
-    // FfiConvertPrimitiveToNative handles the exceptional case for
-    // IsVoid and IsPointerPointer.
-    const uword value =
-        FfiConvertPrimitiveToNative(thread, marshaller, arg_index, result);
-    SetLocationInCallbackContext(thread, ctxt, loc, value);
-  }
-}
-
-static void DoInterpretedFfiCallback(Thread* thread,
-                                     uword trampoline,
-                                     CallbackContext* ctxt,
-                                     const CallbackMetadata& metadata) {
-  ASSERT_EQUAL(thread->execution_state(), Thread::kThreadInVM);
-  ASSERT(metadata.type == 0 || metadata.type == 1);
-  const bool is_async = metadata.type == 1;
-  const int64_t context = thread->unboxed_int64_runtime_arg();
-  PRINT_IF_TRACING_INTERPRETER("calling %s FFI callback, context %#" Px64 "\n",
-                               is_async ? "async" : "sync", context);
-
-  // Either this is a callback without an active zone (e.g., isolate
-  // group bound callbacks) or avoid leaking handles in the caller's zone.
-  {
-    StackZone stack_zone(thread);
-    auto* const zone = stack_zone.GetZone();
-
-    auto& closure = Closure::Handle(zone);
-    if (!is_async) {
-      // The context stores a pointer to a persistent handle, if any.
-      if (auto* const handle = reinterpret_cast<PersistentHandle*>(context)) {
-        closure = Closure::RawCast(handle->ptr());
-      }
-    }
-
-    // Retrieve the stored function handle via FfiCallbackMetadata since it's
-    // not part of the CallbackMetadata.
-    // See DLRT_GetFfiCallbackMetadata as to why this is okay without a lock.
-    auto* const function_handle =
-        FfiCallbackMetadata::Instance(trampoline)
-            ->LookupFunctionHandleForTrampolineUnlocked(trampoline);
-    ASSERT(function_handle != nullptr);
-    const auto& function =
-        Function::ZoneHandle(zone, Function::RawCast(function_handle->ptr()));
-    ASSERT(!function.IsNull());
-    ASSERT(function.IsFfiCallbackTrampoline());
-
-    const char* error = nullptr;
-    auto* const marshaller_ptr =
-        compiler::ffi::CallbackMarshaller::FromFunction(zone, function, &error);
-    // AbiSpecificTypes can have an incomplete mapping.
-    if (error != nullptr) {
-      const auto& language_error = Error::Handle(
-          LanguageError::New(String::Handle(String::New(error, Heap::kOld)),
-                             Report::kError, Heap::kOld));
-      Report::LongJump(language_error);
-    }
-    RELEASE_ASSERT(marshaller_ptr != nullptr);
-    const auto& marshaller = *marshaller_ptr;
-
-    const intptr_t type_args_len = 0;
-    const intptr_t num_implicit_args = !closure.IsNull() ? 1 : 0;
-    intptr_t num_args = num_implicit_args + marshaller.num_args();
-    const auto& arguments = Array::Handle(zone, Array::New(num_args));
-    const auto& argdesc = Array::Handle(
-        zone, ArgumentsDescriptor::NewBoxed(type_args_len, num_args));
-
-    // Convert all the native arguments to Dart values.
-    if (!closure.IsNull()) {
-      arguments.SetAt(0, closure);
-    }
-    auto& obj = Object::Handle(zone);
-    for (intptr_t i = num_implicit_args; i < num_args; ++i) {
-      obj = ReceiveFfiCallbackArgument(thread, *ctxt, marshaller,
-                                       i - num_implicit_args);
-      arguments.SetAt(i, obj);
-    }
-
-    // Call the interpreter with the Dart arguments.
-    PRINT_IF_TRACING_INTERPRETER("calling FFI callback %s\n",
-                                 function.ToFullyQualifiedCString());
-    if (is_async) {
-      PRINT_IF_TRACING_INTERPRETER(
-          "sending arguments to listener of async FFI callback\n");
-      // See DRT_FfiAsyncCallbackSend.
-      Dart_Port target_port = static_cast<Dart_Port>(context);
-      const Array& msg_array = Array::Handle(zone, Array::New(3));
-      msg_array.SetAt(0, arguments);
-      PersistentHandle* handle =
-          thread->isolate_group()->api_state()->AllocatePersistentHandle();
-      handle->set_ptr(msg_array);
-      PortMap::PostMessage(
-          Message::New(target_port, handle, Message::kNormalPriority));
-    } else {
-      auto& target = Function::Handle(zone, function.FfiCallbackTarget());
-      if (target.IsNull()) {
-        ASSERT(!closure.IsNull());
-        target = closure.function();
-      }
-      ASSERT(target.ptr() != Object::null());
-      ASSERT(target.IsInterpreted());
-
-      // Interpreter::Current() ensures the current thread has an interpreter,
-      // which it may not if this is an isolate group bound callback with a
-      // fresh isolate.
-      ASSERT(thread == Thread::Current());
-      auto* const interpreter = Interpreter::Current();
-      auto& result = Object::Handle(zone);
-      {
-        TransitionVMToGenerated transition(thread);
-        result = interpreter->Call(target, argdesc, arguments, thread);
-      }
-      if (result.IsError()) {
-        PRINT_IF_TRACING_INTERPRETER("FFI callback threw exception %s\n",
-                                     Error::Cast(result).ToErrorCString());
-        // See catch body in FlowGraphBuilder::BuildGraphOfSyncFfiCallback.
-        if (function.FfiCallbackExceptionalReturn() != Object::null()) {
-          result = function.FfiCallbackExceptionalReturn();
-          PRINT_IF_TRACING_INTERPRETER("returning %s instead\n",
-                                       result.ToCString());
-        } else if (marshaller.IsHandleCType(compiler::ffi::kResultIndex)) {
-          PRINT_IF_TRACING_INTERPRETER("returning exception as handle\n");
-        } else {
-          ASSERT(marshaller.IsVoid(compiler::ffi::kResultIndex) ||
-                 marshaller.IsPointerPointer(compiler::ffi::kResultIndex) ||
-                 marshaller.IsCompoundCType(compiler::ffi::kResultIndex));
-          // PassFfiCallbackResult prints an appropriate trace statement.
-        }
-      } else {
-        PRINT_IF_TRACING_INTERPRETER("returning from FFI callback with %s\n",
-                                     result.ToCString());
-      }
-      PassFfiCallbackResult(thread, ctxt, marshaller, result);
-    }
-  }
-
-  // Now that the StackZone for handling the call has been destructed,
-  // run the epilogue. This may exit the current isolate and/or isolate group
-  // and so is the last action performed by this function.
-  if (is_async) {
-    ASSERT_EQUAL(metadata.epilogue,
-                 reinterpret_cast<uword>(&DLRT_ExitTemporaryIsolate));
-    auto epilogue = reinterpret_cast<void* (*)(Thread*)>(metadata.epilogue);
-    epilogue(thread);
-  } else {
-    auto* const caller_isolate =
-        reinterpret_cast<Isolate*>(metadata.caller_isolate);
-    auto* const caller_isolate_group =
-        reinterpret_cast<IsolateGroup*>(metadata.caller_isolate_group);
-    ASSERT(metadata.epilogue !=
-           reinterpret_cast<uword>(&DLRT_ExitTemporaryIsolate));
-    auto epilogue =
-        reinterpret_cast<void* (*)(Thread*, Isolate*, IsolateGroup*)>(
-            metadata.epilogue);
-    epilogue(thread, caller_isolate, caller_isolate_group);
-  }
-}
-#endif  // defined(DART_DYNAMIC_MODULES) && !defined(DART_PRECOMPILED_RUNTIME)
-
-extern "C" void DoRedirectedFfiCallback(CallbackContext* ctxt,
-                                        uword trampoline) {
-  // Assumptions in ffi_trampolines_arm64.S
-  COMPILE_ASSERT(sizeof(CallbackContext) == 144);
-  COMPILE_ASSERT(FfiCallbackMetadata::kDoRedirectedFfiCallback == 1);
-#if defined(DART_TARGET_OS_FUCHSIA)
-  COMPILE_ASSERT(FfiCallbackMetadata::kPageSize == 4 * KB);
-  COMPILE_ASSERT(FfiCallbackMetadata::NumCallbackTrampolinesPerPage() == 483);
-#elif defined(DART_TARGET_OS_MACOS)
-  COMPILE_ASSERT(FfiCallbackMetadata::kPageSize == 16 * KB);
-  COMPILE_ASSERT(FfiCallbackMetadata::NumCallbackTrampolinesPerPage() == 2013);
-#else
-  COMPILE_ASSERT(FfiCallbackMetadata::kPageSize == 64 * KB);
-  COMPILE_ASSERT(FfiCallbackMetadata::NumCallbackTrampolinesPerPage() == 8157);
-#endif
-
-  CallbackMetadata out;
-  Thread* thread = DLRT_GetFfiCallbackMetadata(trampoline, &out);
-  if (thread == nullptr) {
-    // If GetFfiCallbackMetadata returned a null thread, it means that the async
-    // callback was invoked after it was deleted. In this case, do nothing.
-    return;
-  }
-
-  // Either the interpreter or the simulator are in use if this was called.
-  ASSERT(FLAG_interpreter || FLAG_use_simulator);
-  // Return to the FfiCallbackTrampoline stub immediately after calling
-  // either DoInterpretedFfiCallback or Simulator::DoRedirectedFfiCallback,
-  // as those functions run the epilogue as their last action.
-
-#if defined(DART_DYNAMIC_MODULES)
-  if (FLAG_interpreter) {
-#if !defined(DART_PRECOMPILED_RUNTIME)
-    DoInterpretedFfiCallback(thread, trampoline, ctxt, out);
-    return;
-#else
-    UNREACHABLE();  // Not currently handled for dynamic modules in AOT mode.
-#endif
-  }
-#endif
-
-#if defined(SIMULATOR_FFI)
-  if (FLAG_use_simulator) {
-    Simulator* sim = Simulator::Current();
-    ASSERT(sim != nullptr);
-    sim->DoRedirectedFfiCallback(thread, ctxt, &out);
-    return;
-  }
-#endif
-
-  UNREACHABLE();
-}
-
-#endif  // defined(HOST_ARCH_ARM64) &&
-        // (defined(SIMULATOR_FFI) || defined(DART_DYNAMIC_MODULES))
 
 // Check that argument types are valid for the given function.
 // Arg0: function

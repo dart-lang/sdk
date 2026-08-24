@@ -114,10 +114,6 @@ class FfiCallbackMetadata {
     // safe because Instructions objects are never moved by the GC.
     uword target_entry_point_;
 
-    // A persistent handle to the callback's function if available,
-    // otherwise nullptr.
-    PersistentHandle* function_handle_;
-
     // For async callbacks, this is the send port. For sync callbacks this
     // is a persistent handle to the callback's closure, or null.
     uint64_t context_;
@@ -125,27 +121,31 @@ class FfiCallbackMetadata {
     Metadata(Isolate* target_isolate,
              TrampolineType trampoline_type,
              uword target_entry_point,
-             PersistentHandle* function_handle,
              uint64_t context)
         : target_isolate_(target_isolate),
           trampoline_type_(trampoline_type),
           target_entry_point_(target_entry_point),
-          function_handle_(function_handle),
           context_(context) {}
 
     Metadata(IsolateGroup* target_isolate_group,
              TrampolineType trampoline_type,
              uword target_entry_point,
-             PersistentHandle* function_handle,
              uint64_t context)
         : target_isolate_group_(target_isolate_group),
           trampoline_type_(trampoline_type),
           target_entry_point_(target_entry_point),
-          function_handle_(function_handle),
           context_(context) {}
 
    public:
     friend class FfiCallbackMetadata;
+    bool IsSameCallback(const Metadata& other) const {
+      // Not checking the list links, because they can change when other
+      // callbacks are deleted.
+      return target_isolate_ == other.target_isolate_ &&
+             trampoline_type_ == other.trampoline_type_ &&
+             target_entry_point_ == other.target_entry_point_ &&
+             context_ == other.context_;
+    }
 
     // Whether the callback is still alive.
     bool IsLive() const {
@@ -181,12 +181,6 @@ class FfiCallbackMetadata {
              trampoline_type_ ==
                  TrampolineType::kSyncIsolateGroupBoundStackDelta4);
       return reinterpret_cast<PersistentHandle*>(context_);
-    }
-
-    // The persistent handle to the FFI callback function if available.
-    PersistentHandle* function_handle() const {
-      ASSERT(IsLive());
-      return function_handle_;
     }
 
     bool is_isolate_group_bound() const {
@@ -239,14 +233,12 @@ class FfiCallbackMetadata {
     MetadataEntry(Isolate* target_isolate,
                   TrampolineType trampoline_type,
                   uword target_entry_point,
-                  PersistentHandle* function_handle,
                   uint64_t context,
                   MetadataEntry* list_prev,
                   MetadataEntry* list_next)
         : metadata_(target_isolate,
                     trampoline_type,
                     target_entry_point,
-                    function_handle,
                     context),
           list_prev_(list_prev),
           list_next_(list_next) {}
@@ -254,14 +246,12 @@ class FfiCallbackMetadata {
     MetadataEntry(IsolateGroup* target_isolate_group,
                   TrampolineType trampoline_type,
                   uword target_entry_point,
-                  PersistentHandle* function_handle,
                   uint64_t context,
                   MetadataEntry* list_prev,
                   MetadataEntry* list_next)
         : metadata_(target_isolate_group,
                     trampoline_type,
                     target_entry_point,
-                    function_handle,
                     context),
           list_prev_(list_prev),
           list_next_(list_next) {}
@@ -283,12 +273,6 @@ class FfiCallbackMetadata {
 
   // Returns the Metadata object for the given trampoline.
   Metadata LookupMetadataForTrampolineUnlocked(Trampoline trampoline) const;
-
-#if defined(HOST_ARCH_ARM64) && defined(DART_DYNAMIC_MODULES)
-  // Returns the persistent function handle for the given trampoline.
-  PersistentHandle* LookupFunctionHandleForTrampolineUnlocked(
-      Trampoline trampoline) const;
-#endif
 
   // The number of trampolines that can be stored on a single page.
   static constexpr intptr_t NumCallbackTrampolinesPerPage() {
@@ -399,7 +383,6 @@ class FfiCallbackMetadata {
                                  IsolateGroup* target_isolate_group,
                                  TrampolineType trampoline_type,
                                  uword target_entry_point,
-                                 PersistentHandle* function_handle,
                                  uint64_t context,
                                  MetadataEntry** list_head);
   Trampoline CreateSyncFfiCallbackImpl(Isolate* isolate,
@@ -410,9 +393,8 @@ class FfiCallbackMetadata {
                                        MetadataEntry** list_head);
   Trampoline TryAllocateFromFreeListLocked();
   static uword GetEntryPoint(Zone* zone, const Function& function);
-  static PersistentHandle* CreatePersistentHandle(Isolate* isolate,
-                                                  IsolateGroup* isolate_group,
-                                                  const Object& obj);
+  static PersistentHandle* CreatePersistentHandle(IsolateGroup* isolate_group,
+                                                  const Closure& closure);
 
   static FfiCallbackMetadata* singleton_;
 
