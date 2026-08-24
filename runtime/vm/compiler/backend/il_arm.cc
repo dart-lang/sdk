@@ -4727,6 +4727,9 @@ DEFINE_EMIT(Simd32x4BinaryOp,
     case SimdOpInstr::kInt32x4Sub:
       __ vsubqi(compiler::kFourBytes, result, left, right);
       break;
+    case SimdOpInstr::kInt32x4Equal:
+      __ vceqqi(compiler::kFourBytes, result, left, right);
+      break;
     default:
       UNREACHABLE();
   }
@@ -5224,6 +5227,7 @@ DEFINE_EMIT(Int32x4WithFlag,
   CASE(Int32x4BitXor)                                                          \
   CASE(Int32x4Add)                                                             \
   CASE(Int32x4Sub)                                                             \
+  CASE(Int32x4Equal)                                                           \
   ____(Simd32x4BinaryOp)                                                       \
   CASE(Float64x2Add)                                                           \
   CASE(Float64x2Sub)                                                           \

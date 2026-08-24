@@ -15,7 +15,7 @@ import '../analyzer.dart';
 import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 
-const _desc = r'Define case clauses for all constants in enum-like classes.';
+const _desc = r'Define case clauses for all constants in enum-like types.';
 
 class ExhaustiveCases extends AnalysisRule {
   new() : super(name: LintNames.exhaustive_cases, description: _desc);
@@ -39,11 +39,8 @@ class _Visitor(final AnalysisRule rule) extends SimpleAstVisitor<void> {
     var expressionType = statement.expression.staticType;
     if (expressionType is InterfaceType) {
       var interfaceElement = expressionType.element;
-      // Handled in analyzer.
-      if (interfaceElement is! ClassElement) {
-        return;
-      }
-      var enumDescription = interfaceElement.asEnumLikeClass();
+      // Enums are handled in analyzer.
+      var enumDescription = interfaceElement.asEnumLikeType();
       if (enumDescription == null) {
         return;
       }

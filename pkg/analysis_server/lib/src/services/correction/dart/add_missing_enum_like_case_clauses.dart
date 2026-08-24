@@ -5,11 +5,12 @@
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:linter/src/extensions.dart';
 
 class AddMissingEnumLikeCaseClauses extends ResolvedCorrectionProducer {
   new({required super.context});
@@ -34,16 +35,23 @@ class AddMissingEnumLikeCaseClauses extends ResolvedCorrectionProducer {
       if (expressionType is! InterfaceType) {
         return;
       }
-      var classElement = expressionType.element;
-      var className = classElement.name;
-      if (className == null) {
+      var interfaceElement = expressionType.element;
+      var enumDescription = interfaceElement.asEnumLikeType();
+      if (enumDescription == null) {
         return;
       }
 
-      var caseNames = _caseNames(node);
-      var missingNames = _constantNames(classElement)
-        ..removeWhere((e) => caseNames.contains(e));
-      missingNames.sort();
+      var caseValues = _caseValues(node);
+      var missingFields = <FieldElement>[];
+      for (var entry in enumDescription.enumConstants.entries) {
+        if (!caseValues.contains(entry.key)) {
+          var field = _preferredField(entry.value);
+          if (field.name != null) {
+            missingFields.add(field);
+          }
+        }
+      }
+      missingFields.sort((a, b) => a.name!.compareTo(b.name!));
 
       var statementIndent = utils.getLinePrefix(node.offset);
       var singleIndent = utils.oneIndent;
@@ -57,13 +65,13 @@ class AddMissingEnumLikeCaseClauses extends ResolvedCorrectionProducer {
           leftBracket: node.leftBracket,
           rightBracket: node.rightBracket,
           (builder) {
-            for (var name in missingNames) {
+            for (var field in missingFields) {
               builder.write(statementIndent);
               builder.write(singleIndent);
               builder.write('case ');
-              builder.write(className);
+              builder.writeReference(interfaceElement);
               builder.write('.');
-              builder.write(name);
+              builder.write(field.name!);
               builder.writeln(':');
               builder.write(statementIndent);
               builder.write(singleIndent);
@@ -80,41 +88,44 @@ class AddMissingEnumLikeCaseClauses extends ResolvedCorrectionProducer {
     }
   }
 
-  /// Return the names of the constants already in a case clause in the
+  /// Return the values of the constants already in a case clause in the
   /// [statement].
-  List<String> _caseNames(SwitchStatement statement) {
-    var caseNames = <String>[];
+  static Set<DartObject> _caseValues(SwitchStatement statement) {
+    var caseValues = <DartObject>{};
     for (var member in statement.members) {
+      Expression? expression;
       if (member is SwitchCase) {
-        var expression = member.expression;
-        if (expression is Identifier) {
-          var element = expression.element;
-          if (element is GetterElement) {
-            caseNames.addIfNotNull(element.name);
-          }
-        } else if (expression is PropertyAccess) {
-          caseNames.add(expression.propertyName.name);
+        expression = member.expression.unParenthesized;
+      } else if (member is SwitchPatternCase) {
+        var pattern = member.guardedPattern.pattern.unParenthesized;
+        if (pattern is ConstantPattern) {
+          expression = pattern.expression.unParenthesized;
+        }
+      }
+
+      Element? element = switch (expression) {
+        Identifier(:var element) => element,
+        PropertyAccess(:var propertyName) => propertyName.element,
+        DotShorthandPropertyAccess(:var propertyName) => propertyName.element,
+        _ => null,
+      };
+      if (element is GetterElement) {
+        element = element.variable;
+      }
+      if (element is VariableElement) {
+        var value = element.computeConstantValue();
+        if (value != null) {
+          caseValues.add(value);
         }
       }
     }
-    return caseNames;
+    return caseValues;
   }
 
-  /// Return the names of the constants defined in [classElement].
-  List<String> _constantNames(InterfaceElement classElement) {
-    var type = classElement.thisType;
-    var constantNames = <String>[];
-    for (var field in classElement.fields) {
-      // Ensure static const.
-      if (field.isOriginGetterSetter || !field.isConst || !field.isStatic) {
-        continue;
-      }
-      // Check for type equality.
-      if (field.type != type) {
-        continue;
-      }
-      constantNames.addIfNotNull(field.name);
-    }
-    return constantNames;
+  static FieldElement _preferredField(Set<FieldElement> fields) {
+    return fields.firstWhere(
+      (field) => !field.metadata.hasDeprecated,
+      orElse: () => fields.first,
+    );
   }
 }

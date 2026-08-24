@@ -21,6 +21,35 @@ class UseResultVerifier {
     _check(node, element);
   }
 
+  void checkDotShorthandConstructorInvocation(
+    DotShorthandConstructorInvocation node,
+  ) {
+    var element = node.constructorName.element;
+    if (element == null) {
+      return;
+    }
+
+    _check(node, element);
+  }
+
+  void checkDotShorthandInvocation(DotShorthandInvocation node) {
+    var element = node.memberName.element;
+    if (element == null) {
+      return;
+    }
+
+    _check(node, element);
+  }
+
+  void checkDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
+    var element = node.propertyName.element;
+    if (element == null) {
+      return;
+    }
+
+    _check(node, element);
+  }
+
   void checkFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     var element = node.element;
     if (element == null) {
@@ -60,9 +89,11 @@ class UseResultVerifier {
     }
 
     var parent = node.parent2;
-    // Covered by checkPropertyAccess, checkMethodInvocation
-    // and checkFunctionExpressionInvocation respectively.
-    if (parent is PropertyAccess ||
+    // Covered by the checks for the complete parent expressions.
+    if (parent is DotShorthandConstructorInvocation ||
+        parent is DotShorthandInvocation ||
+        parent is DotShorthandPropertyAccess ||
+        parent is PropertyAccess ||
         parent is MethodInvocation ||
         parent is FunctionExpressionInvocation) {
       return;
@@ -122,7 +153,7 @@ class UseResultVerifier {
   }
 
   bool _passesUsingParam(AstNode node, ElementAnnotation annotation) {
-    if (node is! MethodInvocation) {
+    if (node is! InvocationExpression) {
       return false;
     }
 
@@ -265,6 +296,9 @@ extension on ElementAnnotation {
 
 extension on AstNode {
   AstNode get nodeToAnnotate => switch (this) {
+    DotShorthandConstructorInvocation node => node.constructorName,
+    DotShorthandInvocation node => node.memberName,
+    DotShorthandPropertyAccess node => node.propertyName,
     MethodInvocation node => node.methodName,
     PropertyAccess node => node.propertyName,
     FunctionExpressionInvocation node => node.function2.nodeToAnnotate,

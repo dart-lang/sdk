@@ -59,8 +59,6 @@ class ModuleSnapshot : public AllStatic {
     kClosureRefs,
     kArgumentsDescriptorRefs,
     kRecordShapeRefs,
-    kClosureDatas,
-    kFunctions,
     kInts,
     kDoubles,
     kLists,
@@ -74,6 +72,8 @@ class ModuleSnapshot : public AllStatic {
     kRecordTypes,
     kTypeParameterTypes,
     kTypeArguments,
+    kClosureDatas,
+    kFunctions,
     kCodes,
     kICDatas,
     kSubtypeTestCaches,
@@ -742,9 +742,13 @@ class FunctionDeserializationCluster : public DeserializationCluster {
 
   void PostLoad(Deserializer* d, const Array& refs) override {
     Function& func = Function::Handle(d->zone());
+    FunctionType& signature = FunctionType::Handle(d->zone());
     TypeArguments& type_args = TypeArguments::Handle(d->zone());
     for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
       func ^= refs.At(id);
+      signature = func.signature();
+      signature ^= ClassFinalizer::FinalizeType(signature);
+      func.SetSignature(signature);
       if (func.IsClosureFunction()) {
         const intptr_t local_function_id = func.kernel_offset();
         func.set_kernel_offset(0);
@@ -1293,9 +1297,6 @@ class TypeParameterTypeDeserializationCluster : public DeserializationCluster {
       if (owner->IsClass()) {
         owner = Smi::New(static_cast<ClassPtr>(owner)->untag()->id());
       } else {
-        if (owner->IsFunction()) {
-          owner = Function::RawCast(owner)->untag()->signature();
-        }
         flags =
             UntaggedTypeParameter::IsFunctionTypeParameter::update(true, flags);
       }
