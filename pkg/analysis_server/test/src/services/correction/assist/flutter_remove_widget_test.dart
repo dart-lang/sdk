@@ -720,7 +720,99 @@ class RemoveContainerBulkTest extends BulkFixProcessorTest {
   @override
   String get lintCode => LintNames.avoid_unnecessary_containers;
 
-  @FailingTest(reason: 'nested row container not being removed')
+  Future<void> test_nested_deeperThanIterativeLimit() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+
+Widget build() {
+  return Container(
+    child: Container(
+      child: Container(
+        child: Container(
+          child: Container(
+            child: Text('...'),
+          ),
+        ),
+      ),
+    ),
+  );
+}
+''');
+    await assertHasFix('''
+import 'package:flutter/material.dart';
+
+Widget build() {
+  return Text('...');
+}
+''');
+  }
+
+  Future<void> test_nested_ignoredInner() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+
+Widget build() {
+  return Container(
+    child: Column(
+      children: [
+        // ignore: avoid_unnecessary_containers
+        Container(
+          child: Text('...'),
+        ),
+      ],
+    ),
+  );
+}
+''');
+    await assertHasFix('''
+import 'package:flutter/material.dart';
+
+Widget build() {
+  return Column(
+    children: [
+      // ignore: avoid_unnecessary_containers
+      Container(
+        child: Text('...'),
+      ),
+    ],
+  );
+}
+''');
+  }
+
+  Future<void> test_nested_siblings() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+
+Widget build() {
+  return Container(
+    child: Row(
+      children: [
+        Container(
+          child: Text('a'),
+        ),
+        Container(
+          child: Text('b'),
+        ),
+      ],
+    ),
+  );
+}
+''');
+    await assertHasFix('''
+import 'package:flutter/material.dart';
+
+Widget build() {
+  return Row(
+    children: [
+      Text('a'),
+      Text('b'),
+    ],
+  );
+}
+''');
+  }
+
   Future<void> test_singleFile() async {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
@@ -733,7 +825,7 @@ Widget buildRow() {
           Container(
             child: Row(
               children: [
-                 Text('...'),
+                Text('...'),
               ],
             ),
           )
