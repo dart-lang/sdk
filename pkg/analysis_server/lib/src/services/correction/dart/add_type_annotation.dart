@@ -266,6 +266,14 @@ class AddTypeAnnotation extends ResolvedCorrectionProducer {
 
   /// Returns whether executing [statement] to normal completion is
   /// guaranteed to assign a value to [variable].
+  ///
+  /// This is a heuristic, not a full definite-assignment analysis: in
+  /// particular, the [Block] case doesn't account for a preceding statement
+  /// exiting the block early (for example via `break`, `continue`, `return`,
+  /// or a thrown exception) before an assigning statement is reached. Such a
+  /// case can cause this method to incorrectly report that a variable is
+  /// definitely assigned, which in turn can cause the computed type to be
+  /// non-nullable when it should be nullable.
   static bool _isDefinitelyAssigned(
     Statement statement,
     LocalVariableElement variable,
