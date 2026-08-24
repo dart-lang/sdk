@@ -790,6 +790,27 @@ void main() {
       });
     });
 
+    test('msub', () {
+      asm.msub(R0, R1, R2, R3);
+      asm.msub(R0, R0, R0, R0, .s32);
+      expectDisassembly(
+        'msub r0, r1, r2, r3\n'
+        'msubw r0, r0, r0, r0\n',
+      );
+      expectThrows(() {
+        asm.msub(SP, R1, R2, R3);
+      });
+      expectThrows(() {
+        asm.msub(R0, SP, R2, R3);
+      });
+      expectThrows(() {
+        asm.msub(R0, R1, SP, R3);
+      });
+      expectThrows(() {
+        asm.msub(R0, R1, R2, SP);
+      });
+    });
+
     test('umulh', () {
       asm.umulh(R1, R2, R3);
       asm.umulh(R0, R0, R0);
@@ -945,6 +966,24 @@ void main() {
       });
       expectThrows(() {
         asm.csneg(R0, R1, SP, .negative);
+      });
+    });
+
+    test('cneg', () {
+      asm.cneg(R5, R6, .less);
+      asm.cneg(R0, R0, .unsignedGreater, .s32);
+      expectDisassembly(
+        'cneg r5, r6, lt\n'
+        'cnegw r0, r0, hi\n',
+      );
+      expectThrows(() {
+        asm.cneg(SP, R0, .less);
+      });
+      expectThrows(() {
+        asm.cneg(R0, SP, .less);
+      });
+      expectThrows(() {
+        asm.cneg(R0, R0, .unconditional);
       });
     });
 
@@ -1178,6 +1217,24 @@ void main() {
       });
       expectThrows(() {
         asm.lsrv(R0, R1, SP);
+      });
+    });
+
+    test('sdiv', () {
+      asm.sdiv(R0, R1, R2);
+      asm.sdiv(R3, R4, R5, .s32);
+      expectDisassembly(
+        'sdiv r0, r1, r2\n'
+        'sdivw r3, r4, r5\n',
+      );
+      expectThrows(() {
+        asm.sdiv(SP, R1, R2);
+      });
+      expectThrows(() {
+        asm.sdiv(R0, SP, R2);
+      });
+      expectThrows(() {
+        asm.sdiv(R0, R1, SP);
       });
     });
 

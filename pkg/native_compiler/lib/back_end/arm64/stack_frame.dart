@@ -122,6 +122,9 @@ final class Arm64StackFrame extends StackFrame {
         return 3; // Result + 2 arguments for RangeError runtime call.
       case SubtypeCheck():
         return 6; // Result + 5 arguments for SubtypeCheck call.
+      case BinaryIntOp(:var op)
+          when op == .truncatingDiv || op == .mod || op == .rem:
+        return 1; // Result for IntegerDivisionByZeroException runtime call.
       default:
         return 0;
     }

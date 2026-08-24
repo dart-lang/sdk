@@ -2316,9 +2316,47 @@ final class Arm64CodeGenerator extends CodeGenerator {
       case .truncatingDiv:
       case .mod:
       case .rem:
-        _asm.unimplemented(
-          'Unimplemented: code generation for BinaryIntOp ${instr.op.token}',
-        );
+        final rightReg = inputReg(instr, 1);
+        if (instr.right.canBeZero) {
+          final Label slowPath = addSlowPath(() {
+            assert(stackFrame.maxArgumentsStackSlots >= 1);
+            _asm.str(
+              nullReg, // Space for result.
+              RegOffsetAddress(stackPointerReg, 0),
+            );
+            _callRuntime(RuntimeEntry.IntegerDivisionByZeroException, 0);
+            _asm.breakpoint();
+          });
+          _asm.cbz(rightReg, slowPath);
+        }
+        switch (instr.op) {
+          case .truncatingDiv:
+            // TODO: convert division by constant to multiplication.
+            _asm.sdiv(resultReg, leftReg, rightReg);
+          case .rem:
+            _asm.sdiv(tempReg, leftReg, rightReg);
+            _asm.msub(resultReg, tempReg, rightReg, leftReg);
+          case .mod:
+            final scratch1Reg = (resultReg == rightReg)
+                ? temporaryReg(instr, 0)
+                : resultReg;
+            _asm.sdiv(tempReg, leftReg, rightReg);
+            _asm.msub(scratch1Reg, tempReg, rightReg, leftReg);
+            final done = Label();
+            final Label slowPath = addSlowPath(() {
+              _asm.cmp(rightReg, ZR);
+              _asm.cneg(tempReg, rightReg, .less);
+              _asm.add(resultReg, scratch1Reg, tempReg);
+              _asm.b(done);
+            });
+            _asm.tbnz(scratch1Reg, 63, slowPath);
+            if (scratch1Reg != resultReg) {
+              _asm.mov(resultReg, scratch1Reg);
+            }
+            _asm.bind(done);
+          default:
+            throw "Unexpected division op ${instr.op}";
+        }
         break;
       case .bitOr:
       case .bitAnd:
