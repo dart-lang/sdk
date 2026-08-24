@@ -20,6 +20,7 @@ import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 /// The outcome of executing a package migration step.
 enum ExecutionOutcome {
@@ -42,6 +43,11 @@ class MigrationRunner({
   required AnalysisServer server,
   required final List<PubspecTarget> pubspecTargets,
   required final MigrationSummaryBuilder summaryBuilder,
+
+  /// The target SDK version to migrate toward in a multi-version migration.
+  ///
+  /// When `null`, the runner executes a single version step.
+  final Version? targetSdk,
 }) extends TemporaryOverlayOperation {
   final List<SourceFileEdit> _fileEdits = [];
 
@@ -108,7 +114,7 @@ class MigrationRunner({
     return true;
   }
 
-  /// Applies the pubspec SDK constraint bump edit.
+  /// Applies the pubspec SDK constraint bump edit to [builder].
   Future<void> _bumpPubspecConstraint(
     File pubspecFile,
     PubspecEdit versionBumpEdit,
@@ -131,20 +137,55 @@ class MigrationRunner({
 
     try {
       for (var pubspec in pubspecTargets) {
-        if (runPrepare || runBump) {
-          var prepareAndBumpOutcome = await _executePrepareAndBump(
-            pubspec: pubspec,
-            runPrepare: runPrepare,
-            runBump: runBump,
-          );
-          if (prepareAndBumpOutcome == ExecutionOutcome.exception) {
-            continue;
-          }
+        var pubspecFile = pubspec.file;
+        var initialVersion = minimumSdkConstraint(pubspecFile);
+        if (initialVersion == null) {
+          summaryBuilder.recordPackageSkipped(pubspec, 'Unknown SDK version.');
+          continue;
         }
 
-        if (runCleanup) {
-          var cleanupOutcome = await _executeCleanup(pubspec);
-          if (cleanupOutcome == ExecutionOutcome.exception) continue;
+        var currentVersion = initialVersion;
+
+        // Perform sequential version bumps until the target SDK is reached.
+        // TODO(kallentu): Pass currentVersion/targetVersion to summaryBuilder so
+        // the summary output can report which specific version failed or was
+        // skipped during multi-version migrations.
+        while (!_hasReachedTarget(currentVersion, targetSdk)) {
+          if (runPrepare || runBump) {
+            var nextVersion = nextSdkVersion(currentVersion);
+            if (nextVersion == null) {
+              // TODO(kallentu): Provide a better error message if we aren't
+              // able to calculate the next SDK version.
+              break;
+            }
+
+            // TODO(kallentu): Pass nextVersion computed from knownSdkVersions
+            // to the bump step.
+            var prepareAndBumpOutcome = await _executePrepareAndBump(
+              pubspec: pubspec,
+              runPrepare: runPrepare,
+              runBump: runBump,
+            );
+            if (prepareAndBumpOutcome == ExecutionOutcome.exception) {
+              break;
+            }
+            if (runBump) {
+              currentVersion = nextVersion;
+            }
+          }
+
+          if (runCleanup) {
+            var cleanupOutcome = await _executeCleanup(pubspec, currentVersion);
+            if (cleanupOutcome == ExecutionOutcome.exception) {
+              break;
+            }
+          }
+
+          // Single-step migrations (e.g. without --target-sdk, or single step
+          // operations like --step=prepare) only execute one iteration.
+          if (targetSdk == null) {
+            break;
+          }
         }
       }
     } finally {
@@ -166,21 +207,15 @@ class MigrationRunner({
   /// Applies the clean up edits to the temporary overlays and records the
   /// corresponding file edits. Returns [ExecutionOutcome.exception] if an
   /// error occurs.
-  Future<ExecutionOutcome> _executeCleanup(PubspecTarget pubspec) async {
-    var pubspecFile = pubspec.file;
-    var targetVersion = minimumSdkConstraint(pubspecFile);
-    if (targetVersion == null) {
-      summaryBuilder.recordStepFailure(
-        pubspec,
-        MigrationStep.Cleanup,
-        'Unknown SDK version.',
-      );
-      return ExecutionOutcome.success;
-    }
+  Future<ExecutionOutcome> _executeCleanup(
+    PubspecTarget pubspec,
+    Version targetVersion,
+  ) async {
     if (!cleanUpLintsRegistry.containsKey(targetVersion)) {
       return ExecutionOutcome.success;
     }
 
+    var pubspecFile = pubspec.file;
     // Retrieve the updated analysis context to ensure cleanup fixes are
     // computed against the newly applied overlays and bumped SDK constraint.
     var context = server.contextManager.getContextFor(pubspecFile.path);
@@ -227,7 +262,11 @@ class MigrationRunner({
     var pubspecFile = pubspec.file;
     var context = server.contextManager.getContextFor(pubspecFile.path);
     if (context == null) {
-      summaryBuilder.recordPackageSkipped(pubspec);
+      summaryBuilder.recordPackageSkipped(
+        pubspec,
+        'The package is not being analyzed. Add its directory to your '
+        'workspace.',
+      );
       return ExecutionOutcome.exception;
     }
 
@@ -242,18 +281,13 @@ class MigrationRunner({
 
     // Run preparatory fixes.
     var builder = await _createBuilder();
-    // If we are preparing, we write the edits to the main builder.
-    // If we are bumping without preparing, we only check for edits without
-    // applying them, so we write them to a separate temporary builder to
-    // discard them.
-    var preparatoryStepBuilder = runPrepare ? builder : await _createBuilder();
     var lintCodes =
         preparatoryLintsRegistry[versionBumpEdit.targetVersion] ?? [];
     var preparatoryFixDetails = await _runMigrations(
       context: context,
       pubspec: pubspec,
       lintCodes: lintCodes,
-      builder: preparatoryStepBuilder,
+      builder: builder,
       step: MigrationStep.Prepare,
     );
     if (preparatoryFixDetails == null) {
@@ -305,6 +339,12 @@ class MigrationRunner({
     await _applyAndRecordEdits(builder);
 
     return ExecutionOutcome.success;
+  }
+
+  /// Returns `true` if [currentVersion] has reached or exceeded [targetSdk].
+  bool _hasReachedTarget(Version currentVersion, Version? targetSdk) {
+    if (targetSdk == null) return false;
+    return currentVersion >= Version(targetSdk.major, targetSdk.minor, 0);
   }
 
   /// Runs bulk fixes for the given [lintCodes] in the specified migration

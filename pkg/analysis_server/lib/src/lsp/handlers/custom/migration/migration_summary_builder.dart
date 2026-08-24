@@ -10,6 +10,9 @@ import 'package:path/path.dart' as path;
 
 /// Accumulates migration results across multiple packages to produce a single
 /// markdown summary report.
+// TODO(kallentu): Refactor the migration summary report to group results by
+// package and include version-level details (e.g. at which intermediate SDK
+// version a package was skipped or failed) for multi-version migrations.
 class MigrationSummaryBuilder({
   required final bool apply,
   required final path.Context pathContext,
@@ -28,15 +31,9 @@ class MigrationSummaryBuilder({
   /// Keyed by file path, mapping to diagnostic code names and their count.
   final Map<String, Map<String, int>> _cleanUpChangeDetailsMap = {};
 
-  /// Accumulated bumped package SDK constraints information.
-  final List<
-    ({
-      String packageDisplayName,
-      String originalConstraint,
-      String newConstraint,
-    })
-  >
-  _bumpedConstraints = [];
+  /// Accumulated bumped package SDK constraints information keyed by package name.
+  final Map<String, ({String originalConstraint, String newConstraint})>
+  _bumpedConstraints = {};
 
   /// Constructs and returns the final formatted markdown report combining error
   /// logs, version bumps, and code changes summaries.
@@ -65,10 +62,10 @@ class MigrationSummaryBuilder({
         output.writeln(
           '$action SDK constraints in ${_bumpedConstraints.length} package(s):',
         );
-        for (var bump in _bumpedConstraints) {
+        for (var entry in _bumpedConstraints.entries) {
           output.writeln(
-            '  - ${bump.packageDisplayName}: ${bump.originalConstraint} -> '
-            '${bump.newConstraint}',
+            '  - ${entry.key}: ${entry.value.originalConstraint} -> '
+            '${entry.value.newConstraint}',
           );
         }
       }
@@ -86,16 +83,19 @@ class MigrationSummaryBuilder({
   }
 
   /// Records a successful SDK version bump constraint change for a package.
+  ///
+  /// If the package was already bumped (such as in a multi-version migration),
+  /// the initial constraint is preserved and the target constraint is updated.
   void recordBump(
     String packageDisplayName,
     String originalConstraint,
     String newConstraint,
   ) {
-    _bumpedConstraints.add((
-      packageDisplayName: packageDisplayName,
-      originalConstraint: originalConstraint,
+    var existing = _bumpedConstraints[packageDisplayName];
+    _bumpedConstraints[packageDisplayName] = (
+      originalConstraint: existing?.originalConstraint ?? originalConstraint,
       newConstraint: newConstraint,
-    ));
+    );
   }
 
   /// Records bulk fixes made during the clean up step for a package.
@@ -119,9 +119,10 @@ class MigrationSummaryBuilder({
     );
   }
 
-  /// Records that a package was skipped because it was not analyzed.
-  void recordPackageSkipped(PubspecTarget pubspec) {
-    _recordLog('- ${pubspec.displayName}: Skipped (not analyzed)');
+  /// Records that a package was skipped with a specific [reason].
+  // TODO(kallentu): Record the version at which the package was skipped.
+  void recordPackageSkipped(PubspecTarget pubspec, String reason) {
+    _recordLog('- ${pubspec.displayName}: Skipped ($reason)');
   }
 
   /// Records bulk fixes made during the preparatory step for a package.
