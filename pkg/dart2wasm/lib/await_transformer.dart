@@ -727,11 +727,11 @@ class _ExpressionTransformer extends Transformer {
     return variables[index];
   }
 
-  /// Casts a [VariableGet] with `as dynamic` if its type is not `dynamic`.
+  /// Casts a [VariableGet] with unchecked `as <type>` if [type] is not `dynamic`.
   Expression castVariableGet(Variable variable, DartType type) {
     Expression expr = VariableGet(variable);
     if (type != const DynamicType()) {
-      expr = AsExpression(expr, DynamicType());
+      expr = AsExpression(expr, type)..isUnchecked = true;
     }
     return expr;
   }
