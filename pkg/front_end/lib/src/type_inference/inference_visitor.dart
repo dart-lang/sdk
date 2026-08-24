@@ -12801,13 +12801,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       requiredType: node.requiredType,
     );
 
-    DartType lookupType;
-    if (needsCheck) {
-      lookupType = node.requiredType;
-    } else {
-      lookupType = matchedValueType;
-    }
-
     for (NamedPattern field in fields) {
       ObjectAccessTarget fieldTarget = findInterfaceMember(
         node.requiredType,
@@ -12928,7 +12921,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             fields: fields,
             matchedValueType: matchedValueType,
             needsCheck: needsCheck,
-            lookupType: lookupType,
             fileOffset: node.fileOffset,
           ),
     );
@@ -13513,8 +13505,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     pushRewrite(
       replacement ??
           extern.createAssignedVariablePattern(
-            variable: _unaliasVariable(node.variable.astVariable),
-            setter: node.variable.lateSetter,
+            variableName: node.variableName,
+            variableType: node.variable.type,
+            writeVariable: _unaliasVariable(
+              node.variable.lateSetter ?? node.variable.astVariable,
+            ),
             matchedValueType: matchedValueType,
             needsCast: needsCast,
             hasObservableEffect: hasObservableEffect,

@@ -707,20 +707,6 @@ abstract class _LiteralBuilder(
     return new IfStatement(condition, then, otherwise)..fileOffset = fileOffset;
   }
 
-  IfCaseStatement _createIfCase(
-    int fileOffset,
-    Expression condition,
-    DartType matchedValueType,
-    PatternGuard patternGuard,
-    Statement then, [
-    Statement? otherwise,
-  ]) {
-    assert(fileOffset != TreeNode.noOffset);
-    return new IfCaseStatement(condition, patternGuard, then, otherwise)
-      ..matchedValueType = matchedValueType
-      ..fileOffset = fileOffset;
-  }
-
   AsExpression _createImplicitAs(
     int fileOffset,
     Expression expression,
@@ -1127,13 +1113,13 @@ abstract class _NonConstListOrSetLiteralBuilder(
             // Coverage-ignore(suite): Not run.
             _createBlock(elseStatements);
     }
-    IfCaseStatement ifCaseStatement = _createIfCase(
-      element.fileOffset,
-      element.expression,
-      element.matchedValueType,
-      element.patternGuard,
-      thenBody,
-      elseBody,
+    IfCaseStatement ifCaseStatement = extern.createIfCaseStatement(
+      fileOffset: element.fileOffset,
+      expression: element.expression,
+      matchedValueType: element.matchedValueType,
+      patternGuard: element.patternGuard,
+      then: thenBody,
+      otherwise: elseBody,
     );
     _libraryBuilder.loader.dataForTesting
     // Coverage-ignore(suite): Not run.
@@ -1683,13 +1669,13 @@ class _NonConstMapLiteralBuilder(
             // Coverage-ignore(suite): Not run.
             _createBlock(elseBody);
     }
-    IfCaseStatement ifStatement = _createIfCase(
-      entry.fileOffset,
-      entry.expression,
-      entry.matchedValueType,
-      entry.patternGuard,
-      thenStatement,
-      elseStatement,
+    IfCaseStatement ifStatement = extern.createIfCaseStatement(
+      fileOffset: entry.fileOffset,
+      expression: entry.expression,
+      matchedValueType: entry.matchedValueType,
+      patternGuard: entry.patternGuard,
+      then: thenStatement,
+      otherwise: elseStatement,
     );
     _libraryBuilder.loader.dataForTesting
     // Coverage-ignore(suite): Not run.

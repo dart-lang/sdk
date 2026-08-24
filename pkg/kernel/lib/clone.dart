@@ -1314,9 +1314,14 @@ class CloneVisitorNotMembers
 
   @override
   TreeNode visitAssignedVariablePattern(AssignedVariablePattern node) {
-    return new AssignedVariablePattern(getVariableClone(node.variable)!)
-      ..matchedValueType = visitOptionalType(node.matchedValueType)
-      ..needsCast = node.needsCast;
+    return new AssignedVariablePattern(
+      variableName: node.variableName,
+      variableType: visitType(node.variableType),
+      writeVariable: getVariableClone(node.writeVariable)!,
+      matchedValueType: visitType(node.matchedValueType),
+      needsCast: node.needsCast,
+      hasObservableEffect: node.hasObservableEffect,
+    );
   }
 
   @override
@@ -1326,7 +1331,12 @@ class CloneVisitorNotMembers
 
   @override
   TreeNode visitConstantPattern(ConstantPattern node) {
-    return new ConstantPattern(clone(node.expression));
+    return new ConstantPattern.byReference(
+      expression: clone(node.expression),
+      expressionType: visitType(node.expressionType),
+      equalsTargetReference: node.equalsTargetReference,
+      equalsType: visitType(node.equalsType) as FunctionType,
+    );
   }
 
   @override
@@ -1341,18 +1351,40 @@ class CloneVisitorNotMembers
 
   @override
   TreeNode visitListPattern(ListPattern node) {
-    return new ListPattern(
-      visitOptionalType(node.typeArgument),
-      node.patterns.map(clone).toList(),
+    return new ListPattern.byReference(
+      typeArgument: visitOptionalType(node.typeArgument),
+      patterns: node.patterns.map(clone).toList(),
+      requiredType: visitType(node.requiredType),
+      matchedValueType: visitType(node.matchedValueType),
+      lookupType: visitType(node.lookupType),
+      lengthTargetReference: node.lengthTargetReference,
+      lengthType: visitType(node.lengthType),
+      lengthCheckTargetReference: node.lengthCheckTargetReference,
+      lengthCheckType: visitType(node.lengthCheckType) as FunctionType,
+      sublistTargetReference: node.sublistTargetReference,
+      sublistType: visitType(node.sublistType) as FunctionType,
+      minusTargetReference: node.minusTargetReference,
+      minusType: visitType(node.minusType) as FunctionType,
+      indexGetTargetReference: node.indexGetTargetReference,
+      indexGetType: visitType(node.indexGetType) as FunctionType,
+      flags: node.flags,
     );
   }
 
   @override
   TreeNode visitMapPattern(MapPattern node) {
-    return new MapPattern(
-      visitOptionalType(node.keyType),
-      visitOptionalType(node.valueType),
-      node.entries.map(clone).toList(),
+    return new MapPattern.byReference(
+      keyType: visitOptionalType(node.keyType),
+      valueType: visitOptionalType(node.valueType),
+      entries: node.entries.map(clone).toList(),
+      requiredType: visitType(node.requiredType),
+      matchedValueType: visitType(node.matchedValueType),
+      lookupType: visitType(node.lookupType),
+      containsKeyTargetReference: node.containsKeyTargetReference,
+      containsKeyType: visitType(node.containsKeyType) as FunctionType,
+      indexGetTargetReference: node.indexGetTargetReference,
+      indexGetType: visitType(node.indexGetType) as FunctionType,
+      flags: node.flags,
     );
   }
 
@@ -1384,8 +1416,10 @@ class CloneVisitorNotMembers
   @override
   TreeNode visitObjectPattern(ObjectPattern node) {
     return new ObjectPattern(
-      visitType(node.requiredType),
-      node.fields.map(clone).toList(),
+      requiredType: visitType(node.requiredType),
+      fields: node.fields.map(clone).toList(),
+      matchedValueType: visitType(node.matchedValueType),
+      needsCheck: node.needsCheck,
     );
   }
 
@@ -1402,13 +1436,28 @@ class CloneVisitorNotMembers
 
   @override
   TreeNode visitRecordPattern(RecordPattern node) {
-    return new RecordPattern(node.patterns.map(clone).toList());
+    return new RecordPattern(
+      patterns: node.patterns.map(clone).toList(),
+      requiredType: visitType(node.requiredType) as RecordType,
+      matchedValueType: visitType(node.matchedValueType),
+      needsCheck: node.needsCheck,
+      lookupType: visitType(node.lookupType) as RecordType,
+    );
   }
 
   @override
   TreeNode visitRelationalPattern(RelationalPattern node) {
-    return new RelationalPattern(node.kind, clone(node.expression))
-      ..expressionType = visitOptionalType(node.expressionType);
+    return new RelationalPattern(
+      kind: node.kind,
+      expression: clone(node.expression),
+      expressionType: visitType(node.expressionType),
+      matchedValueType: visitType(node.matchedValueType),
+      accessKind: node.accessKind,
+      name: node.name,
+      target: node.target,
+      typeArguments: node.typeArguments?.map(visitType).toList(),
+      functionType: visitOptionalType(node.functionType) as FunctionType?,
+    );
   }
 
   @override
@@ -1419,8 +1468,9 @@ class CloneVisitorNotMembers
   @override
   TreeNode visitVariablePattern(VariablePattern node) {
     return new VariablePattern(
-      visitOptionalType(node.type),
-      clone(node.variable),
+      type: visitOptionalType(node.type),
+      variable: clone(node.variable),
+      matchedValueType: visitType(node.matchedValueType),
     );
   }
 
@@ -1483,21 +1533,27 @@ class CloneVisitorNotMembers
       clone(node.pattern),
       clone(node.initializer),
       isFinal: node.isFinal,
+      matchedValueType: visitType(node.matchedValueType),
     );
   }
 
   @override
   TreeNode visitPatternAssignment(PatternAssignment node) {
-    return new PatternAssignment(clone(node.pattern), clone(node.expression));
+    return new PatternAssignment(
+      pattern: clone(node.pattern),
+      expression: clone(node.expression),
+      matchedValueType: visitType(node.matchedValueType),
+    );
   }
 
   @override
   TreeNode visitIfCaseStatement(IfCaseStatement node) {
     return new IfCaseStatement(
-      clone(node.expression),
-      clone(node.patternGuard),
-      clone(node.then),
-      cloneOptional(node.otherwise),
+      expression: clone(node.expression),
+      patternGuard: clone(node.patternGuard),
+      then: clone(node.then),
+      otherwise: cloneOptional(node.otherwise),
+      matchedValueType: visitType(node.matchedValueType),
     );
   }
 
