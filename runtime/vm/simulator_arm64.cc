@@ -3696,6 +3696,16 @@ void Simulator::DecodeDPSimd1(Instr* instr) {
       set_vregisterd(vd, 1, 0);
       return;
     }
+    if ((sz == 2) && (Q == 1)) {
+      // Format(instr, "vuaddlv 'dd, 'vn.4S");
+      uint64_t sum = 0;
+      for (int i = 0; i < 4; i++) {
+        sum += static_cast<uint32_t>(get_vregisters(vn, i));
+      }
+      set_vregisterd(vd, 0, static_cast<int64_t>(sum));
+      set_vregisterd(vd, 1, 0);
+      return;
+    }
     UnimplementedInstruction(instr);
     return;
   }

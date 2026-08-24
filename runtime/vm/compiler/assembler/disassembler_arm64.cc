@@ -1567,6 +1567,11 @@ void ARM64Decoder::DecodeDPSimd1(Instr* instr) {
     Format(instr, "vuaddlv 'vd, 'vn");
     return;
   }
+  // UADDLV Dd, Vn.4S (Q=1, U=1, size=10, across-lanes ADDLV form).
+  if ((instr->InstructionBits() & 0xFFFFFC00) == 0x6EB03800) {
+    Format(instr, "vuaddlv 'vd, 'vn");
+    return;
+  }
   if (instr->IsSIMDCopyOp()) {
     DecodeSIMDCopy(instr);
   } else if (instr->IsSIMDThreeSameOp()) {
