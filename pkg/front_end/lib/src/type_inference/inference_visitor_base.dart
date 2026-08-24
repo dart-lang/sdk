@@ -4374,7 +4374,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   }) {
     VariableGet result = readVariable(variable, fileOffset: nameOffset);
     DartType? promotedType;
-    DartType declaredOrInferredType = variable.lateType ?? variable.type;
+    DartType declaredOrInferredType = variable.type;
     ExpressionInfo? expressionInfo;
     if (isExtensionThis(variable.astVariable)) {
       promotedType =
@@ -4442,7 +4442,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         declaredOrInferredType is! InvalidType) {
       if (variable.isLate || variable.lateGetter != null) {
         if (isDefinitelyUnassigned) {
-          String name = variable.lateName ?? variable.cosmeticName!;
+          String name = variable.cosmeticName!;
           Expression error = extern.createInvalidExpressionFromErrorText(
             problemReporting.buildProblem(
               compilerContext: compilerContext,
@@ -4508,7 +4508,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   /// context for the value expression in a local set to [variable].
   (DartType variableType, DartType writeContext)
   computeVariableSetTypeAndWriteContext(InternalVariable variable) {
-    DartType declaredOrInferredType = variable.lateType ?? variable.type;
+    DartType declaredOrInferredType = variable.type;
     DartType? promotedType = flowAnalysis
         .promotedType(variable)
         ?.unwrapTypeView();

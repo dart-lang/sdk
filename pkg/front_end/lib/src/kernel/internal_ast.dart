@@ -1296,6 +1296,8 @@ class InternalLateVariable extends InternalDeclaredVariable {
   @override
   final bool isStaticLate;
 
+  DartType? _type;
+
   new({
     required this.name,
     required DartType? type,
@@ -1306,7 +1308,8 @@ class InternalLateVariable extends InternalDeclaredVariable {
     required super.fileOffset,
     this.isStaticLate = false,
     int fileEqualsOffset = TreeNode.noOffset,
-  }) : _astVariable = extern.createLateVariable(
+  }) : _type = type,
+       _astVariable = extern.createLateVariable(
          name: name,
          type: type,
          isFinal: isFinal,
@@ -1321,7 +1324,7 @@ class InternalLateVariable extends InternalDeclaredVariable {
 
   @override
   @Deprecated('Use InternalLateVariable.name instead.')
-  String? get cosmeticName => _astVariable.cosmeticName;
+  String? get cosmeticName => name;
 
   @override
   bool get hasDeclaredInitializer => _astVariable.hasDeclaredInitializer;
@@ -1348,10 +1351,15 @@ class InternalLateVariable extends InternalDeclaredVariable {
   bool get isWildcard => _astVariable.isWildcard;
 
   @override
-  DartType get type => _astVariable.type;
+  DartType get type => _type ?? const DynamicType();
 
   @override
   void set type(DartType value) {
+    assert(
+      value == _type || _type == null,
+      "Type of $this has already been set.",
+    );
+    _type = value;
     _astVariable.type = value;
   }
 
@@ -1540,9 +1548,7 @@ class InternalLateVariable extends InternalDeclaredVariable {
       functionDeclarations.add(setter);
     }
     isLate = false;
-    lateType = type;
-    type = computeNullable(type);
-    lateName = name;
+    _astVariable.type = computeNullable(type);
     _astVariable.isLowered = true;
     _astVariable.cosmeticName = late_lowering.computeLateLocalName(name);
 
@@ -2059,18 +2065,6 @@ sealed class InternalVariable({required super.fileOffset})
   /// This is set in `InferenceVisitor.visitVariableDeclaration` when late
   /// lowering is enabled.
   bool isLateFinalWithoutInitializer = false;
-
-  /// The original type (declared or inferred) of a lowered late variable.
-  ///
-  /// This is set in `InferenceVisitor.visitVariableDeclaration` when late
-  /// lowering is enabled.
-  DartType? lateType;
-
-  /// The original name of a lowered late variable.
-  ///
-  /// This is set in `InferenceVisitor.visitVariableDeclaration` when late
-  /// lowering is enabled.
-  String? lateName;
 
   String? get cosmeticName;
 
