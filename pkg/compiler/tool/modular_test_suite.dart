@@ -11,6 +11,7 @@ import 'dart:async';
 
 import 'package:modular_test/src/io_pipeline.dart';
 import 'package:modular_test/src/runner.dart';
+
 import 'modular_test_suite_helper.dart';
 
 Future<void> main(List<String> args) async {

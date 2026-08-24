@@ -18,8 +18,9 @@ import '../universe/feature.dart';
 import 'runtime_types_codegen.dart';
 import 'runtime_types_resolution.dart';
 
-typedef OnVariableCallback =
-    js_ast.Expression Function(TypeVariableType variable);
+typedef OnVariableCallback = js_ast.Expression Function(
+  TypeVariableType variable,
+);
 
 /// Interface for the needed runtime type checks.
 abstract class RuntimeTypesChecks {
@@ -792,9 +793,10 @@ ClassFunctionType? _computeFunctionType(
   FunctionEntity? signatureFunction;
   if (cls.isClosure) {
     // Use signature function if available.
-    signatureFunction =
-        elementEnvironment.lookupLocalClassMember(cls, Names.signature)
-            as FunctionEntity?;
+    signatureFunction = elementEnvironment.lookupLocalClassMember(
+      cls,
+      Names.signature,
+    ) as FunctionEntity?;
     if (signatureFunction == null) {
       // In Dart 2, a closure only needs its function type if it has a
       // signature function.

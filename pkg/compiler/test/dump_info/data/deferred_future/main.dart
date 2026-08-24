@@ -129,6 +129,7 @@
 */
 
 import 'dart:async';
+
 import 'lib1.dart' deferred as lib1;
 import 'lib2.dart' as lib2;
 

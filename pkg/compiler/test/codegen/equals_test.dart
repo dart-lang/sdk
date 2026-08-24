@@ -5,7 +5,9 @@
 library equals_test;
 
 import 'dart:async';
+
 import 'package:expect/async_helper.dart';
+
 import '../helpers/compiler_helper.dart';
 
 const String TEST1 = r"""

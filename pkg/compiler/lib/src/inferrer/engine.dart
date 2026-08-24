@@ -660,13 +660,15 @@ class InferrerEngine {
   /// Returns the `call` method on [cls] or the `noSuchMethod` if [cls] doesn't
   /// implement `call`.
   FunctionEntity? _lookupCallMethod(ClassEntity cls) {
-    var function =
-        _elementEnvironment.lookupClassMember(cls, Names.call)
-            as FunctionEntity?;
+    var function = _elementEnvironment.lookupClassMember(
+      cls,
+      Names.call,
+    ) as FunctionEntity?;
     if (function == null || function.isAbstract) {
-      function =
-          _elementEnvironment.lookupClassMember(cls, Names.noSuchMethod_)
-              as FunctionEntity?;
+      function = _elementEnvironment.lookupClassMember(
+        cls,
+        Names.noSuchMethod_,
+      ) as FunctionEntity?;
     }
     return function;
   }

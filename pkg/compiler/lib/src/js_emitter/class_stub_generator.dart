@@ -120,14 +120,12 @@ class ClassStubGenerator {
           arguments.add(js('#', name));
         }
 
-        final function =
-            js('function(#) { return #.#(#); }', [
-                  parameters,
-                  buildGetter(),
-                  closureCallName,
-                  arguments,
-                ])
-                as js_ast.Fun;
+        final function = js('function(#) { return #.#(#); }', [
+          parameters,
+          buildGetter(),
+          closureCallName,
+          arguments,
+        ]) as js_ast.Fun;
 
         generatedStubs[invocationName] = function;
       }

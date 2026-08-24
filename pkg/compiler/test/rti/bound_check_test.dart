@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:expect/async_helper.dart';
+
 import '../helpers/d8_helper.dart';
+
 import 'package:compiler/src/util/memory_compiler.dart';
 
 const String SOURCE1 = r'''

@@ -15,8 +15,9 @@ main() {
 
 /*member: listIndexCall:[null|subclass=Object|powerset={null}{IN}{GFUO}{IMN}]*/
 listIndexCall() {
-  var closure = /*[exact=JSUInt31|powerset={I}{O}{N}]*/
-      ({/*[exact=JSUInt31|powerset={I}{O}{N}]*/ a}) => a;
+  var closure = /*[exact=JSUInt31|powerset={I}{O}{N}]*/ ({
+    /*[exact=JSUInt31|powerset={I}{O}{N}]*/ a,
+  }) => a;
   var a = [closure];
   return a /*Container([exact=JSExtendableArray|powerset={I}{G}{M}], element: [subclass=Closure|powerset={N}{O}{N}], length: 1, powerset: {I}{G}{M})*/ [0](
     a: 0,
@@ -25,8 +26,9 @@ listIndexCall() {
 
 /*member: listIndexExplicitCall:[null|subclass=Object|powerset={null}{IN}{GFUO}{IMN}]*/
 listIndexExplicitCall() {
-  var closure = /*[exact=JSUInt31|powerset={I}{O}{N}]*/
-      ({/*[exact=JSUInt31|powerset={I}{O}{N}]*/ b}) => b;
+  var closure = /*[exact=JSUInt31|powerset={I}{O}{N}]*/ ({
+    /*[exact=JSUInt31|powerset={I}{O}{N}]*/ b,
+  }) => b;
   var a = [closure];
   return a /*Container([exact=JSExtendableArray|powerset={I}{G}{M}], element: [subclass=Closure|powerset={N}{O}{N}], length: 1, powerset: {I}{G}{M})*/ [0]
       .call(b: 0);
@@ -47,8 +49,9 @@ multiListIndex() {
 
 /*member: multiListIndexCall:[null|subclass=Object|powerset={null}{IN}{GFUO}{IMN}]*/
 multiListIndexCall() {
-  var closure = /*[exact=JSUInt31|powerset={I}{O}{N}]*/
-      ({/*[exact=JSUInt31|powerset={I}{O}{N}]*/ c}) => c;
+  var closure = /*[exact=JSUInt31|powerset={I}{O}{N}]*/ ({
+    /*[exact=JSUInt31|powerset={I}{O}{N}]*/ c,
+  }) => c;
   var a = [
     [closure],
   ];
@@ -72,8 +75,9 @@ multiMapIndex() {
 
 /*member: multiMapIndexCall:[null|subclass=Object|powerset={null}{IN}{GFUO}{IMN}]*/
 multiMapIndexCall() {
-  var closure = /*[exact=JSUInt31|powerset={I}{O}{N}]*/
-      ({/*[exact=JSUInt31|powerset={I}{O}{N}]*/ d}) => d;
+  var closure = /*[exact=JSUInt31|powerset={I}{O}{N}]*/ ({
+    /*[exact=JSUInt31|powerset={I}{O}{N}]*/ d,
+  }) => d;
   var a = {
     'a': {'b': closure},
   };
@@ -84,8 +88,9 @@ multiMapIndexCall() {
 
 /*member: multiMapListIndexCall:[null|subclass=Object|powerset={null}{IN}{GFUO}{IMN}]*/
 multiMapListIndexCall() {
-  var closure = /*[exact=JSUInt31|powerset={I}{O}{N}]*/
-      ({/*[exact=JSUInt31|powerset={I}{O}{N}]*/ d}) => d;
+  var closure = /*[exact=JSUInt31|powerset={I}{O}{N}]*/ ({
+    /*[exact=JSUInt31|powerset={I}{O}{N}]*/ d,
+  }) => d;
   var a = {
     'a': [closure],
   };
