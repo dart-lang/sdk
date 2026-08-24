@@ -5560,15 +5560,17 @@ LinterLintCode:
       #### Description
 
       The analyzer produces this diagnostic when a
-      `switch` statement over an instance of an enum-like class is
-      missing a `case` clause for one or more of the class's constants and
+      `switch` statement over an instance of an enum-like type is
+      missing a `case` clause for one or more of the type's constants and
       doesn't have a `default` clause.
 
-      Enum-like classes are non-abstract classes that have:
+      Enum-like types are classes or extension types that have:
 
       - Only private, non-factory constructors.
-      - Two or more `static const` fields whose type is the enclosing class.
-      - No subclasses in the defining library.
+      - Two or more `static const` fields whose type is the enclosing type.
+
+      In addition, an enum-like class must be non-abstract and have no
+      subclasses in the defining library.
 
       #### Example
 
@@ -5588,6 +5590,24 @@ LinterLintCode:
             print('a');
           case .b:
             print('b');
+        }
+      }
+      ```
+
+      Extension types can also be enum-like. The following code produces this
+      diagnostic because the `switch` statement is missing a `case` clause for
+      the constant `E.b`:
+
+      ```dart
+      extension type const E._(int value) {
+        static const E a = ._(1);
+        static const E b = ._(2);
+      }
+
+      void f(E e) {
+        [!switch (e)!] {
+          case .a:
+            print('a');
         }
       }
       ```
@@ -5638,14 +5658,33 @@ LinterLintCode:
       }
       ```
     deprecatedDetails: |-
-      Switching on instances of enum-like classes should be exhaustive.
+      Switching on instances of enum-like types should cover all known
+      constants.
 
-      Enum-like classes are defined as concrete (non-abstract) classes that have:
+      Enum-like types are classes or extension types that have:
         * only private non-factory constructors
-        * two or more static const fields whose type is the enclosing class and
-        * no subclasses of the class in the defining library
+        * two or more static const fields whose type is the enclosing type
 
-      **DO** define case clauses for all constants in enum-like classes.
+      In addition, enum-like classes are concrete (non-abstract) and have no
+      subclasses in the defining library.
+
+      **DO** define case clauses for all constants in enum-like types.
+
+      Extension types can also be enum-like:
+
+      ```dart
+      extension type const E._(int value) {
+        static const E a = E._(1);
+        static const E b = E._(2);
+      }
+
+      void f(E e) {
+        switch (e) { // LINT
+          case E.a:
+            print('a');
+        }
+      }
+      ```
 
       **BAD:**
       ```dart
