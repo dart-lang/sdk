@@ -4,12 +4,11 @@
 
 import 'dart:io';
 
-import 'package:expect/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
-import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
+import 'package:expect/async_helper.dart';
 import 'package:front_end/src/api_prototype/testing.dart'
     show getMemberName, getEnclosingMember;
 import 'package:kernel/ast.dart' as ir;
@@ -36,7 +35,7 @@ class IdTestingDataComputer extends DataComputer<String> {
   void computeMemberData(
     Compiler compiler,
     MemberEntity member,
-    Map<Id, ActualData<String>> actualMap, {
+    ActualDataMap<String> actualMap, {
     bool verbose = false,
   }) {
     KernelFrontendStrategy frontendStrategy = compiler.frontendStrategy;
@@ -49,7 +48,7 @@ class IdTestingDataComputer extends DataComputer<String> {
   void computeClassData(
     Compiler compiler,
     ClassEntity cls,
-    Map<Id, ActualData<String>> actualMap, {
+    ActualDataMap<String> actualMap, {
     required bool verbose,
   }) {
     KernelFrontendStrategy frontendStrategy = compiler.frontendStrategy;
@@ -66,7 +65,7 @@ class IdTestingDataComputer extends DataComputer<String> {
   void computeLibraryData(
     Compiler compiler,
     LibraryEntity library,
-    Map<Id, ActualData<String>> actualMap, {
+    ActualDataMap<String> actualMap, {
     required bool verbose,
   }) {
     KernelFrontendStrategy frontendStrategy = compiler.frontendStrategy;
@@ -102,11 +101,7 @@ class IdTestingDataComputer extends DataComputer<String> {
 class IdTestingDataExtractor extends IrDataExtractor<String> {
   final KernelToElementMap elementMap;
 
-  IdTestingDataExtractor(
-    DiagnosticReporter reporter,
-    Map<Id, ActualData<String>> actualMap,
-    this.elementMap,
-  ) : super(reporter, actualMap);
+  IdTestingDataExtractor(super.reporter, super.actualMap, this.elementMap);
 
   @override
   String computeLibraryValue(Id id, ir.Library library) {
