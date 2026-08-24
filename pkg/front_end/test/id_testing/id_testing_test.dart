@@ -4,7 +4,7 @@
 
 import 'dart:io' show Directory, Platform;
 
-import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
+import 'package:_fe_analyzer_shared/src/testing/id.dart' show Id, ActualDataMap;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart'
     show DataInterpreter, StringDataInterpreter, runTests;
 import 'package:front_end/src/base/messages.dart' show FormattedMessage;
@@ -13,7 +13,6 @@ import 'package:front_end/src/testing/id_testing_helper.dart'
         CfeDataExtractor,
         CfeDataComputer,
         CfeTestResultData,
-        InternalCompilerResult,
         createUriForFileName,
         defaultCfeConfig,
         onFailure,
@@ -46,7 +45,7 @@ class IdTestingDataComputer extends CfeDataComputer<String> {
   void computeMemberData(
     CfeTestResultData testResultData,
     Member member,
-    Map<Id, ActualData<String>> actualMap, {
+    ActualDataMap<String> actualMap, {
     bool? verbose,
   }) {
     member.accept(
@@ -58,7 +57,7 @@ class IdTestingDataComputer extends CfeDataComputer<String> {
   void computeClassData(
     CfeTestResultData testResultData,
     Class cls,
-    Map<Id, ActualData<String>> actualMap, {
+    ActualDataMap<String> actualMap, {
     bool? verbose,
   }) {
     new IdTestingDataExtractor(
@@ -71,7 +70,7 @@ class IdTestingDataComputer extends CfeDataComputer<String> {
   void computeLibraryData(
     CfeTestResultData testResultData,
     Library library,
-    Map<Id, ActualData<String>> actualMap, {
+    ActualDataMap<String> actualMap, {
     bool? verbose,
   }) {
     new IdTestingDataExtractor(
@@ -97,10 +96,7 @@ class IdTestingDataComputer extends CfeDataComputer<String> {
 }
 
 class IdTestingDataExtractor extends CfeDataExtractor<String> {
-  new(
-    InternalCompilerResult compilerResult,
-    Map<Id, ActualData<String>> actualMap,
-  ) : super(compilerResult, actualMap);
+  new(super.compilerResult, super.actualMap);
 
   @override
   String computeLibraryValue(Id id, Library library) {

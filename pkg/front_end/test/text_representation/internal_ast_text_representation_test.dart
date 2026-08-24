@@ -2197,8 +2197,7 @@ late void foo = 0''',
         ..lateGetter = new LocalFunctionVariable(
           name: 'foo#getter',
           type: const DynamicType(),
-        )
-        ..lateType = const DynamicType(),
+        ),
       initializer: new InternalIntLiteral(
         0,
         '0',

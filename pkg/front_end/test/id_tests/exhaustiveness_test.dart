@@ -10,7 +10,7 @@ import 'package:_fe_analyzer_shared/src/exhaustiveness/space.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/test_helper.dart';
 import 'package:_fe_analyzer_shared/src/testing/features.dart';
 import 'package:_fe_analyzer_shared/src/testing/id.dart'
-    show ActualData, Id, IdKind, NodeId;
+    show Id, IdKind, NodeId, ActualDataMap;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart'
     show DataInterpreter, cfeMarker, runTests;
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
@@ -58,7 +58,7 @@ class ExhaustivenessDataComputer extends CfeDataComputer<Features> {
   void computeMemberData(
     CfeTestResultData testResultData,
     Member member,
-    Map<Id, ActualData<Features>> actualMap, {
+    ActualDataMap<Features> actualMap, {
     bool? verbose,
   }) {
     member.accept(
@@ -73,15 +73,12 @@ class ExhaustivenessDataComputer extends CfeDataComputer<Features> {
 class ExhaustivenessDataExtractor extends CfeDataExtractor<Features> {
   final ExhaustivenessDataForTesting _exhaustivenessData;
 
-  new(
-    InternalCompilerResult compilerResult,
-    Map<Id, ActualData<Features>> actualMap,
-  ) : _exhaustivenessData = compilerResult
+  new(super.compilerResult, super.actualMap)
+    : _exhaustivenessData = compilerResult
           .kernelTargetForTesting!
           .loader
           .dataForTesting!
-          .exhaustivenessData,
-      super(compilerResult, actualMap);
+          .exhaustivenessData;
 
   Features? computeExhaustivenessData(TreeNode node) {
     ExhaustivenessResult? result = _exhaustivenessData.switchResults[node];

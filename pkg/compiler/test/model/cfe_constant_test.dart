@@ -3,10 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
+
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/compiler.dart';
-import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/kernel/element_map.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
@@ -15,6 +15,7 @@ import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/class_hierarchy.dart' as ir;
 import 'package:kernel/core_types.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
+
 import '../equivalence/id_equivalence.dart';
 import '../equivalence/id_equivalence_helper.dart';
 import '../helpers/shared_helper.dart';
@@ -60,7 +61,7 @@ class ConstantDataComputer extends DataComputer<String> {
   void computeMemberData(
     Compiler compiler,
     MemberEntity member,
-    Map<Id, ActualData<String>> actualMap, {
+    ActualDataMap<String> actualMap, {
     bool verbose = false,
   }) {
     KernelFrontendStrategy frontendStrategy = compiler.frontendStrategy;
@@ -99,11 +100,11 @@ class ConstantDataExtractor extends IrDataExtractor<String> {
   final MemberEntity member;
 
   ConstantDataExtractor(
-    DiagnosticReporter reporter,
-    Map<Id, ActualData<String>> actualMap,
+    super.reporter,
+    super.actualMap,
     this.elementMap,
     this.member,
-  ) : super(reporter, actualMap);
+  );
 
   @override
   String? computeNodeValue(Id id, ir.TreeNode node) {

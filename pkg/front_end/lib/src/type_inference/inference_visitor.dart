@@ -487,7 +487,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return initializer.acceptInference(this);
   }
 
-  ExpressionInferenceResult visitInternalBlockExpression(
+  ExpressionInferenceResult visitBlockExpression(
     InternalBlockExpression node,
     DartType typeContext,
   ) {
@@ -526,7 +526,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
   }
 
-  ExpressionInferenceResult visitInternalStaticTearOff(
+  ExpressionInferenceResult visitStaticTearOff(
     InternalStaticTearOff node,
     DartType typeContext,
   ) {
@@ -542,7 +542,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
   }
 
-  ExpressionInferenceResult visitInternalFileUriExpression(
+  ExpressionInferenceResult visitFileUriExpression(
     InternalFileUriExpression node,
     DartType typeContext,
   ) {
@@ -561,7 +561,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new ExpressionInferenceResult(result.inferredType, replacement);
   }
 
-  ExpressionInferenceResult visitInternalConstructorTearOff(
+  ExpressionInferenceResult visitConstructorTearOff(
     InternalConstructorTearOff node,
     DartType typeContext,
   ) {
@@ -584,7 +584,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
   }
 
-  ExpressionInferenceResult visitInternalRedirectingFactoryTearOff(
+  ExpressionInferenceResult visitRedirectingFactoryTearOff(
     InternalRedirectingFactoryTearOff node,
     DartType typeContext,
   ) {
@@ -607,7 +607,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
   }
 
-  ExpressionInferenceResult visitInternalTypedefTearOff(
+  ExpressionInferenceResult visitTypedefTearOff(
     InternalTypedefTearOff node,
     DartType typeContext,
   ) {
@@ -660,7 +660,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
   }
 
-  InitializerInferenceResult visitInternalInvalidInitializer(
+  InitializerInferenceResult visitInvalidInitializer(
     InternalInvalidInitializer node,
   ) {
     return new SuccessfulInitializerInferenceResult(
@@ -673,7 +673,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
   }
 
-  ExpressionInferenceResult visitInternalInvalidExpression(
+  ExpressionInferenceResult visitInvalidExpression(
     InternalInvalidExpression node,
     DartType typeContext,
   ) {
@@ -694,7 +694,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new ExpressionInferenceResult(const InvalidType(), replacement);
   }
 
-  ExpressionInferenceResult visitInternalInstantiation(
+  ExpressionInferenceResult visitInstantiation(
     InternalInstantiation node,
     DartType typeContext,
   ) {
@@ -859,7 +859,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new ExpressionInferenceResult(resultType, result);
   }
 
-  ExpressionInferenceResult visitInternalAsExpression(
+  ExpressionInferenceResult visitAsExpression(
     InternalAsExpression node,
     DartType typeContext,
   ) {
@@ -885,7 +885,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new ExpressionInferenceResult(node.type, replacement);
   }
 
-  InitializerInferenceResult visitInternalAssertInitializer(
+  InitializerInferenceResult visitAssertInitializer(
     InternalAssertInitializer node,
   ) {
     InternalAssertStatement statement = node.statement;
@@ -898,9 +898,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
   }
 
-  StatementInferenceResult visitInternalAssertStatement(
-    InternalAssertStatement node,
-  ) {
+  StatementInferenceResult visitAssertStatement(InternalAssertStatement node) {
     flowAnalysis.assert_begin();
     InterfaceType expectedType = coreTypes.boolRawType(Nullability.nonNullable);
     ExpressionInferenceResult conditionResult = inferExpression(
@@ -987,7 +985,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
   }
 
-  ExpressionInferenceResult visitInternalAwaitExpression(
+  ExpressionInferenceResult visitAwaitExpression(
     InternalAwaitExpression node,
     DartType typeContext,
   ) {
@@ -1051,7 +1049,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return result;
   }
 
-  StatementInferenceResult visitInternalBlock(InternalBlock node) {
+  StatementInferenceResult visitBlock(InternalBlock node) {
     ScopeProviderInfo? scopeProviderInfo;
     if (isClosureContextLoweringEnabled) {
       scopeProviderInfo = _contextAllocationStrategy.enterScopeProvider(
@@ -1077,7 +1075,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new StatementInferenceResult.single(replacement);
   }
 
-  ExpressionInferenceResult visitInternalBoolLiteral(
+  ExpressionInferenceResult visitBoolLiteral(
     InternalBoolLiteral node,
     DartType typeContext,
   ) {
@@ -1095,9 +1093,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
   }
 
-  StatementInferenceResult visitInternalBreakStatement(
-    InternalBreakStatement node,
-  ) {
+  StatementInferenceResult visitBreakStatement(InternalBreakStatement node) {
     if (node.error != null) {
       // Coverage-ignore-block(suite): Not run.
       return new StatementInferenceResult.single(
@@ -1118,7 +1114,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new StatementInferenceResult.single(replacement);
   }
 
-  StatementInferenceResult visitInternalContinueStatement(
+  StatementInferenceResult visitContinueStatement(
     InternalContinueStatement node,
   ) {
     if (node.error != null) {
@@ -1249,7 +1245,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       ..fileOffset = expression.fileOffset;
   }
 
-  ExpressionInferenceResult visitInternalConditionalExpression(
+  ExpressionInferenceResult visitConditionalExpression(
     InternalConditionalExpression node,
     DartType typeContext,
   ) {
@@ -1345,7 +1341,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new ExpressionInferenceResult(inferredType, replacement);
   }
 
-  ExpressionInferenceResult visitInternalConstructorInvocation(
+  ExpressionInferenceResult visitConstructorInvocation(
     InternalConstructorInvocation node,
     DartType typeContext,
   ) {
@@ -1394,7 +1390,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
   }
 
-  StatementInferenceResult visitInternalContinueSwitchStatement(
+  StatementInferenceResult visitContinueSwitchStatement(
     InternalContinueSwitchStatement node,
   ) {
     if (node.error != null) {
@@ -2583,7 +2579,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return replacement;
   }
 
-  StatementInferenceResult visitInternalDoStatement(InternalDoStatement node) {
+  StatementInferenceResult visitDoStatement(InternalDoStatement node) {
     flowAnalysis.doStatement_bodyBegin(node);
     StatementInferenceResult bodyResult = inferStatement(node.body);
     Statement body = bodyResult.statement;
@@ -2618,7 +2614,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new StatementInferenceResult.single(replacement);
   }
 
-  ExpressionInferenceResult visitInternalDoubleLiteral(
+  ExpressionInferenceResult visitDoubleLiteral(
     InternalDoubleLiteral node,
     DartType typeContext,
   ) {
@@ -2635,9 +2631,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
   }
 
-  StatementInferenceResult visitInternalEmptyStatement(
-    InternalEmptyStatement node,
-  ) {
+  StatementInferenceResult visitEmptyStatement(InternalEmptyStatement node) {
     Statement replacement = extern.createEmptyStatement(
       fileOffset: node.fileOffset,
     );
@@ -2647,7 +2641,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new StatementInferenceResult.single(replacement);
   }
 
-  StatementInferenceResult visitInternalExpressionStatement(
+  StatementInferenceResult visitExpressionStatement(
     InternalExpressionStatement node,
   ) {
     ExpressionInferenceResult result = inferExpression(
@@ -3236,7 +3230,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
   }
 
-  InitializerInferenceResult visitInternalFieldInitializer(
+  InitializerInferenceResult visitFieldInitializer(
     InternalFieldInitializer node,
   ) {
     DartType fieldType = node.field.type;
@@ -3381,9 +3375,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
   }
 
-  StatementInferenceResult visitInternalForInStatement(
-    InternalForInStatement node,
-  ) {
+  StatementInferenceResult visitForInStatement(InternalForInStatement node) {
     ScopeProviderInfo? scopeProviderInfo;
     if (isClosureContextLoweringEnabled) {
       scopeProviderInfo = _contextAllocationStrategy.enterScopeProvider(
@@ -3587,9 +3579,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return inferredUpdates;
   }
 
-  StatementInferenceResult visitInternalForStatement(
-    InternalForStatement node,
-  ) {
+  StatementInferenceResult visitForStatement(InternalForStatement node) {
     ScopeProviderInfo? scopeProviderInfo;
     if (isClosureContextLoweringEnabled) {
       scopeProviderInfo = _contextAllocationStrategy.enterScopeProvider(
@@ -3639,7 +3629,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new StatementInferenceResult.single(replacement);
   }
 
-  StatementInferenceResult visitInternalPatternForStatement(
+  StatementInferenceResult visitPatternForStatement(
     InternalPatternForStatement node,
   ) {
     ScopeProviderInfo? scopeProviderInfo;
@@ -3711,7 +3701,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new StatementInferenceResult.single(replacement);
   }
 
-  LocalFunctionResult _visitInternalFunctionNode(
+  LocalFunctionResult _visitFunctionNode(
     InternalFunctionNode node, {
     required DartType? typeContext,
     required DartType? returnType,
@@ -3726,7 +3716,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
   }
 
-  StatementInferenceResult visitInternalFunctionDeclaration(
+  StatementInferenceResult visitFunctionDeclaration(
     InternalFunctionDeclaration node,
   ) {
     InternalFunctionNode function = node.function;
@@ -3765,7 +3755,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     InternalLocalFunctionVariable variable = node.variable;
     flowAnalysis.functionExpression_begin(node);
     _returnContexts.push(const StandardReturnContext());
-    LocalFunctionResult localFunctionResult = _visitInternalFunctionNode(
+    LocalFunctionResult localFunctionResult = _visitFunctionNode(
       function,
       typeContext: null,
       returnType: function.returnType,
@@ -3813,7 +3803,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new StatementInferenceResult.single(replacement);
   }
 
-  ExpressionInferenceResult visitInternalFunctionExpression(
+  ExpressionInferenceResult visitFunctionExpression(
     InternalFunctionExpression node,
     DartType typeContext,
   ) {
@@ -3845,7 +3835,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     _inTryOrLocalFunction = true;
     flowAnalysis.functionExpression_begin(node);
     _returnContexts.push(const StandardReturnContext());
-    LocalFunctionResult localFunctionResult = _visitInternalFunctionNode(
+    LocalFunctionResult localFunctionResult = _visitFunctionNode(
       function,
       typeContext: typeContext,
       returnType: function.returnType,
@@ -3982,7 +3972,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new ExpressionInferenceResult(inferredType, replacement);
   }
 
-  StatementInferenceResult visitInternalIfStatement(InternalIfStatement node) {
+  StatementInferenceResult visitIfStatement(InternalIfStatement node) {
     flowAnalysis.ifStatement_conditionBegin();
     InterfaceType expectedType = coreTypes.boolRawType(Nullability.nonNullable);
     ExpressionInferenceResult conditionResult = inferExpression(
@@ -4019,9 +4009,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new StatementInferenceResult.single(replacement);
   }
 
-  StatementInferenceResult visitInternalIfCaseStatement(
-    InternalIfCaseStatement node,
-  ) {
+  StatementInferenceResult visitIfCaseStatement(InternalIfCaseStatement node) {
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
@@ -4090,7 +4078,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
   }
 
-  ExpressionInferenceResult visitInternalIntLiteral(
+  ExpressionInferenceResult visitIntLiteral(
     InternalIntLiteral node,
     DartType typeContext,
   ) {
@@ -4183,7 +4171,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new ExpressionInferenceResult(inferredType, replacement);
   }
 
-  ExpressionInferenceResult visitInternalIsExpression(
+  ExpressionInferenceResult visitIsExpression(
     InternalIsExpression node,
     DartType typeContext,
   ) {
@@ -4222,7 +4210,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
   }
 
-  StatementInferenceResult visitInternalLabeledStatement(
+  StatementInferenceResult visitLabeledStatement(
     InternalLabeledStatement node,
   ) {
     flowAnalysis.labeledStatement_begin(node);
@@ -4419,7 +4407,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
   }
 
-  ExpressionInferenceResult visitInternalListLiteral(
+  ExpressionInferenceResult visitListLiteral(
     InternalListLiteral node,
     DartType typeContext,
   ) {
@@ -4479,7 +4467,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new ExpressionInferenceResult(inferredType, result);
   }
 
-  ExpressionInferenceResult visitInternalLogicalExpression(
+  ExpressionInferenceResult visitLogicalExpression(
     InternalLogicalExpression node,
     DartType typeContext,
   ) {
@@ -5555,10 +5543,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
   }
 
-  ExpressionInferenceResult visitInternalNot(
-    InternalNot node,
-    DartType typeContext,
-  ) {
+  ExpressionInferenceResult visitNot(InternalNot node, DartType typeContext) {
     InterfaceType boolType = coreTypes.boolRawType(Nullability.nonNullable);
     ExpressionInferenceResult operandResult = inferExpression(
       node.operand,
@@ -5584,7 +5569,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new ExpressionInferenceResult(boolType, replacement);
   }
 
-  ExpressionInferenceResult visitInternalNullCheck(
+  ExpressionInferenceResult visitNullCheck(
     InternalNullCheck node,
     DartType typeContext,
   ) {
@@ -9222,7 +9207,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
   }
 
-  ExpressionInferenceResult visitInternalNullLiteral(
+  ExpressionInferenceResult visitNullLiteral(
     InternalNullLiteral node,
     DartType typeContext,
   ) {
@@ -9237,10 +9222,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new ExpressionInferenceResult(nullType, replacement);
   }
 
-  ExpressionInferenceResult visitInternalLet(
-    InternalLet node,
-    DartType typeContext,
-  ) {
+  ExpressionInferenceResult visitLet(InternalLet node, DartType typeContext) {
     ExpressionInferenceResult valueResult = inferExpression(
       node.value,
       node.valueType,
@@ -9752,7 +9734,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return propertyGetInferenceResult.expressionInferenceResult;
   }
 
-  InitializerInferenceResult visitInternalRedirectingInitializer(
+  InitializerInferenceResult visitRedirectingInitializer(
     InternalRedirectingInitializer node,
   ) {
     ensureMemberType(node.target);
@@ -9915,7 +9897,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new SuccessfulInitializerInferenceResult(replacement);
   }
 
-  ExpressionInferenceResult visitInternalRethrow(
+  ExpressionInferenceResult visitRethrow(
     InternalRethrow node,
     DartType typeContext,
   ) {
@@ -9930,9 +9912,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
   }
 
-  StatementInferenceResult visitInternalReturnStatement(
-    InternalReturnStatement node,
-  ) {
+  StatementInferenceResult visitReturnStatement(InternalReturnStatement node) {
     ReturnContext? context = returnContext;
     if (context is AnonymousMethodReturnContext) {
       Expression expression;
@@ -10005,7 +9985,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new StatementInferenceResult.single(replacement);
   }
 
-  ExpressionInferenceResult visitInternalStaticSet(
+  ExpressionInferenceResult visitStaticSet(
     InternalStaticSet node,
     DartType typeContext,
   ) {
@@ -10029,7 +10009,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return result;
   }
 
-  ExpressionInferenceResult visitInternalStaticGet(
+  ExpressionInferenceResult visitStaticGet(
     InternalStaticGet node,
     DartType typeContext,
   ) {
@@ -10045,7 +10025,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return result;
   }
 
-  ExpressionInferenceResult visitInternalStaticInvocation(
+  ExpressionInferenceResult visitStaticInvocation(
     InternalStaticInvocation node,
     DartType typeContext,
   ) {
@@ -10098,7 +10078,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
   }
 
-  ExpressionInferenceResult visitInternalStringConcatenation(
+  ExpressionInferenceResult visitStringConcatenation(
     InternalStringConcatenation node,
     DartType typeContext,
   ) {
@@ -10124,7 +10104,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
   }
 
-  ExpressionInferenceResult visitInternalStringLiteral(
+  ExpressionInferenceResult visitStringLiteral(
     InternalStringLiteral node,
     DartType typeContext,
   ) {
@@ -10138,7 +10118,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
   }
 
-  InitializerInferenceResult visitInternalSuperInitializer(
+  InitializerInferenceResult visitSuperInitializer(
     InternalSuperInitializer node,
   ) {
     ensureMemberType(node.target);
@@ -10207,7 +10187,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
   }
 
-  ExpressionInferenceResult visitInternalSuperMethodInvocation(
+  ExpressionInferenceResult visitSuperMethodInvocation(
     InternalSuperMethodInvocation node,
     DartType typeContext,
   ) {
@@ -10222,7 +10202,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
   }
 
-  ExpressionInferenceResult visitInternalSuperPropertyGet(
+  ExpressionInferenceResult visitSuperPropertyGet(
     InternalSuperPropertyGet node,
     DartType typeContext,
   ) {
@@ -10236,7 +10216,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
   }
 
-  ExpressionInferenceResult visitInternalSuperPropertySet(
+  ExpressionInferenceResult visitSuperPropertySet(
     InternalSuperPropertySet node,
     DartType typeContext,
   ) {
@@ -10272,7 +10252,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
   }
 
-  ExpressionInferenceResult visitInternalSwitchExpression(
+  ExpressionInferenceResult visitSwitchExpression(
     InternalSwitchExpression node,
     DartType typeContext,
   ) {
@@ -10363,7 +10343,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new ExpressionInferenceResult(valueType, result);
   }
 
-  StatementInferenceResult visitInternalRegularSwitchStatement(
+  StatementInferenceResult visitRegularSwitchStatement(
     InternalRegularSwitchStatement node,
   ) {
     int? stackBase;
@@ -10437,7 +10417,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new StatementInferenceResult.single(replacement);
   }
 
-  StatementInferenceResult visitInternalPatternSwitchStatement(
+  StatementInferenceResult visitPatternSwitchStatement(
     InternalPatternSwitchStatement node,
   ) {
     int? stackBase;
@@ -10574,7 +10554,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new StatementInferenceResult.single(replacement);
   }
 
-  ExpressionInferenceResult visitInternalSymbolLiteral(
+  ExpressionInferenceResult visitSymbolLiteral(
     InternalSymbolLiteral node,
     DartType typeContext,
   ) {
@@ -10586,7 +10566,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new ExpressionInferenceResult(inferredType, replacement);
   }
 
-  ExpressionInferenceResult visitInternalThisExpression(
+  ExpressionInferenceResult visitThisExpression(
     InternalThisExpression node,
     DartType typeContext,
   ) {
@@ -10623,7 +10603,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new ExpressionInferenceResult(thisType, loweredExpression);
   }
 
-  ExpressionInferenceResult visitInternalThrow(
+  ExpressionInferenceResult visitThrow(
     InternalThrow node,
     DartType typeContext,
   ) {
@@ -10768,7 +10748,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new StatementInferenceResult.single(result);
   }
 
-  ExpressionInferenceResult visitInternalTypeLiteral(
+  ExpressionInferenceResult visitTypeLiteral(
     InternalTypeLiteral node,
     DartType typeContext,
   ) {
@@ -10780,14 +10760,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new ExpressionInferenceResult(inferredType, replacement);
   }
 
-  ExpressionInferenceResult visitInternalVariableSet(
+  ExpressionInferenceResult visitVariableSet(
     InternalVariableSet node,
     DartType typeContext,
   ) {
     if (expressionEvaluationHelper != null) {
       // Coverage-ignore-block(suite): Not run.
       ExpressionInferenceResult? result = expressionEvaluationHelper
-          ?.visitInternalVariableSet(
+          ?.visitVariableSet(
             node,
             typeContext,
             problemReporting,
@@ -10839,7 +10819,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return variableDeclarationInferenceResult;
   }
 
-  StatementInferenceResult visitInternalVariableStatement(
+  StatementInferenceResult visitVariableStatement(
     InternalVariableStatement node,
   ) {
     return inferVariableDeclaration(
@@ -10848,7 +10828,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     ).toStatementInferenceResult(fileOffset: node.fileOffset);
   }
 
-  StatementInferenceResult visitInternalPatternVariableDeclaration(
+  StatementInferenceResult visitPatternVariableDeclaration(
     InternalPatternVariableDeclaration node,
   ) {
     int? stackBase;
@@ -10889,14 +10869,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
   }
 
-  ExpressionInferenceResult visitInternalVariableGet(
+  ExpressionInferenceResult visitVariableGet(
     InternalVariableGet node,
     DartType typeContext,
   ) {
     if (expressionEvaluationHelper != null) {
       // Coverage-ignore-block(suite): Not run.
       ExpressionInferenceResult? result = expressionEvaluationHelper
-          ?.visitInternalVariableGet(
+          ?.visitVariableGet(
             node,
             typeContext,
             problemReporting,
@@ -10919,9 +10899,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return result;
   }
 
-  StatementInferenceResult visitInternalWhileStatement(
-    InternalWhileStatement node,
-  ) {
+  StatementInferenceResult visitWhileStatement(InternalWhileStatement node) {
     ScopeProviderInfo? scopeProviderInfo;
     if (isClosureContextLoweringEnabled) {
       scopeProviderInfo = _contextAllocationStrategy.enterScopeProvider(
@@ -10967,9 +10945,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new StatementInferenceResult.single(replacement);
   }
 
-  StatementInferenceResult visitInternalYieldStatement(
-    InternalYieldStatement node,
-  ) {
+  StatementInferenceResult visitYieldStatement(InternalYieldStatement node) {
     YieldStatementResult analysisResult = analyzeYieldStatement(
       node,
       node.expression,
@@ -10995,7 +10971,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new StatementInferenceResult.single(replacement);
   }
 
-  ExpressionInferenceResult visitInternalLoadLibrary(
+  ExpressionInferenceResult visitLoadLibrary(
     InternalLoadLibrary node,
     DartType typeContext,
   ) {
@@ -11188,7 +11164,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return inferExpression(node.expression, typeContext, isVoidAllowed: true);
   }
 
-  ExpressionInferenceResult visitInternalRecordLiteral(
+  ExpressionInferenceResult visitRecordLiteral(
     InternalRecordLiteral node,
     DartType typeContext,
   ) {
@@ -12136,7 +12112,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     assert(_rewriteStack.isEmpty);
   }
 
-  PatternResult visitInternalVariablePattern(
+  PatternResult visitVariablePattern(
     InternalVariablePattern node,
     SharedMatchContext context,
   ) {
@@ -12192,7 +12168,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return analysisResult;
   }
 
-  PatternResult visitInternalWildcardPattern(
+  PatternResult visitWildcardPattern(
     InternalWildcardPattern node,
     SharedMatchContext context,
   ) {
@@ -12230,7 +12206,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return analysisResult;
   }
 
-  PatternResult visitInternalConstantPattern(
+  PatternResult visitConstantPattern(
     InternalConstantPattern node,
     SharedMatchContext context,
   ) {
@@ -12292,7 +12268,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return analysisResult;
   }
 
-  PatternResult visitInternalAndPattern(
+  PatternResult visitAndPattern(
     InternalAndPattern node,
     SharedMatchContext context,
   ) {
@@ -12328,7 +12304,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return analysisResult;
   }
 
-  PatternResult visitInternalOrPattern(
+  PatternResult visitOrPattern(
     InternalOrPattern node,
     SharedMatchContext context,
   ) {
@@ -12404,7 +12380,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return analysisResult;
   }
 
-  PatternResult visitInternalCastPattern(
+  PatternResult visitCastPattern(
     InternalCastPattern node,
     SharedMatchContext context,
   ) {
@@ -12436,7 +12412,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return analysisResult;
   }
 
-  PatternResult visitInternalNullAssertPattern(
+  PatternResult visitNullAssertPattern(
     InternalNullAssertPattern node,
     SharedMatchContext context,
   ) {
@@ -12481,7 +12457,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return analysisResult;
   }
 
-  PatternResult visitInternalNullCheckPattern(
+  PatternResult visitNullCheckPattern(
     InternalNullCheckPattern node,
     SharedMatchContext context,
   ) {
@@ -12513,7 +12489,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return analysisResult;
   }
 
-  PatternResult visitInternalListPattern(
+  PatternResult visitListPattern(
     InternalListPattern node,
     SharedMatchContext context,
   ) {
@@ -12743,7 +12719,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         matchedType is DynamicType;
   }
 
-  PatternResult visitInternalObjectPattern(
+  PatternResult visitObjectPattern(
     InternalObjectPattern node,
     SharedMatchContext context,
   ) {
@@ -12961,7 +12937,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return analysisResult;
   }
 
-  PatternResult visitInternalInvalidPattern(
+  PatternResult visitInvalidPattern(
     InternalInvalidPattern node,
     SharedMatchContext context,
   ) {
@@ -12985,7 +12961,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
   }
 
-  PatternResult visitInternalRelationalPattern(
+  PatternResult visitRelationalPattern(
     InternalRelationalPattern node,
     SharedMatchContext context,
   ) {
@@ -13149,7 +13125,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return analysisResult;
   }
 
-  PatternResult visitInternalMapPattern(
+  PatternResult visitMapPattern(
     InternalMapPattern node,
     SharedMatchContext context,
   ) {
@@ -13304,7 +13280,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return analysisResult;
   }
 
-  PatternResult visitInternalRecordPattern(
+  PatternResult visitRecordPattern(
     InternalRecordPattern node,
     SharedMatchContext context,
   ) {
@@ -13404,7 +13380,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return analysisResult;
   }
 
-  ExpressionInferenceResult visitInternalPatternAssignment(
+  ExpressionInferenceResult visitPatternAssignment(
     InternalPatternAssignment node,
     DartType typeContext,
   ) {
@@ -13446,7 +13422,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
   }
 
-  PatternResult visitInternalAssignedVariablePattern(
+  PatternResult visitAssignedVariablePattern(
     InternalAssignedVariablePattern node,
     SharedMatchContext context,
   ) {
@@ -13832,7 +13808,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     SharedTypeView matchedValueType,
   ) {
     // TODO(johnniwinther): Reuse computed values between here and
-    // visitInternalRelationalPattern.
+    // visitRelationalPattern.
     Name operatorName;
     RelationalOperatorKind kind = RelationalOperatorKind.other;
     switch (node.kind) {
