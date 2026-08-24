@@ -7,7 +7,9 @@ import 'dart:async';
 import 'package:analysis_server/src/plugin/plugin_locator.dart';
 import 'package:analysis_server/src/plugin/plugin_watcher.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/analysis_options/analysis_options.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as protocol;
 import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:test/test.dart';
@@ -25,6 +27,13 @@ void main() {
 class PluginWatcherTest extends AbstractContextTest {
   late TestPluginManager manager;
   late PluginWatcher watcher;
+
+  /// Returns the existing analysis driver that should be used to analyze the
+  /// given [file], or throw [StateError] if the [file] is not analyzed in any
+  /// of the created analysis contexts.
+  AnalysisDriver driverFor(File file) {
+    return contextFor(file).driver;
+  }
 
   @override
   void setUp() {

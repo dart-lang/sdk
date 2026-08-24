@@ -134,13 +134,6 @@ class AbstractContextTest
     );
   }
 
-  /// Returns the existing analysis driver that should be used to analyze the
-  /// given [file], or throw [StateError] if the [file] is not analyzed in any
-  /// of the created analysis contexts.
-  AnalysisDriver driverFor(File file) {
-    return contextFor(file).driver;
-  }
-
   Future<ResolvedUnitResult> getResolvedUnit(File file) async {
     var result = await (await session).getResolvedUnit(file.path);
     return result as ResolvedUnitResult;
