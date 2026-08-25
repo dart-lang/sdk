@@ -348,6 +348,11 @@ void syncTests() {
   );
   Expect.throws<JSString>(() => getGenerator().throwError!("oh no".toJS));
 
+  // [JSDisposableProtocol]
+  final generator = getGenerator();
+  generator.dispose();
+  Expect.isTrue(generator.next().isDone);
+
   // Nullish errors should be caught and converted to Dart wrappers. These tests
   // are currently failing due to https://github.com/dart-lang/sdk/issues/63109.
 

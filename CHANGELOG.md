@@ -64,6 +64,11 @@
   more efficient to convert between possibly-synchronous values at the Dart/JS
   boundary.
 
+- Added `JSDisposableProtocol` interface for objects that can be explicitly
+  discarded to free resources.
+
+- Added the static property `JSSymbol.dispose`.
+
 [#61353]: https://github.com/dart-lang/sdk/issues/61353
 [#62699]: https://github.com/dart-lang/sdk/issues/62699
 
