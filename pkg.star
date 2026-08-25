@@ -18,6 +18,7 @@ load(
     "mac",
     "no_reclient",
     "windows",
+    "with_tags",
 )
 load("//lib/helpers.star", "union")
 load("//lib/paths.star", "paths")
@@ -101,7 +102,7 @@ def _devtools_builder(name, category = None, **kwargs):
         category = category,
         triggered_by = ["devtools-gitiles-trigger-%s"],
         location_filters = paths.to_location_filters(paths.devtools),
-        properties = [chrome, build_devtools],
+        properties = [chrome, build_devtools, with_tags],
         **kwargs
     )
 
