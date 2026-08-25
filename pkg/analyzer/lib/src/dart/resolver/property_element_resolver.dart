@@ -2318,6 +2318,7 @@ class PropertyElementResolver with ScopeHelpers {
         SharedTypeView? promotedType;
         (promotedType, expressionInfo) = flow.variableRead(
           readElementRequested,
+          offset: node.offset,
         );
         readType = promotedType?.unwrapTypeView<TypeImpl>() ?? readType;
       }
