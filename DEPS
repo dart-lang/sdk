@@ -563,11 +563,22 @@ deps = {
   Var("dart_root") + "/third_party/fuchsia/sdk/linux": {
     "packages": [
       {
-      "package": "fuchsia/sdk/core/${{platform}}",
+      "package": "fuchsia/sdk/core/linux-amd64",
       "version": Var("fuchsia_sdk_version"),
       }
     ],
     "condition": 'download_fuchsia_deps and host_os == "linux"',
+    "dep_type": "cipd",
+  },
+
+  Var("dart_root") + "/third_party/qemu-linux-arm64": {
+    "packages": [
+      {
+        "package": 'fuchsia/third_party/qemu/linux-arm64',
+        "version": 'go4qfwROMthoOfAh-G1240ysyEx07kIuWBqqkXENA7AC'
+      },
+    ],
+    "condition": "download_fuchsia_deps",
     "dep_type": "cipd",
   },
 
