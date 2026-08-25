@@ -15,17 +15,28 @@
 import 'dart:convert';
 import 'dart:io';
 
-// TODO(dacoharkes): Be able to use test full paths instead of test names.
-// TODO(dacoharkes): Be able to use different filters.
-Future<void> main(List<String> args) async {
-  if (args.contains('--help')) {
-    return printHelp();
-  }
-  final testNames = args;
+import 'package:args/args.dart';
 
-  final configurations = _filterConfigurations({
-    for (final testName in testNames) ...await _testGetConfigurations(testName),
-  });
+Future<void> main(List<String> args) async {
+  final parser = ArgParser()
+    ..addOption('mode', help: 'Filter configurations by mode (e.g. debug, release)')
+    ..addOption('os', help: 'Filter configurations by OS (e.g. linux, win, mac)')
+    ..addFlag('help', abbr: 'h', help: 'Show this help message', negatable: false);
+
+  final parsedArgs = parser.parse(args);
+  if (parsedArgs['help'] as bool) {
+    return printHelp(parser);
+  }
+  final testNames = parsedArgs.rest.map(_cleanTestName).toList();
+
+  final configurations = _filterConfigurations(
+    {
+      for (final testName in testNames)
+        ...await _testGetConfigurations(testName),
+    },
+    mode: parsedArgs['mode'] as String?,
+    os: parsedArgs['os'] as String?,
+  );
   final configurationBuilders = await _configurationBuilders();
   final builders = _filterBuilders({
     for (final config in configurations) configurationBuilders[config]!,
@@ -34,6 +45,17 @@ Future<void> main(List<String> args) async {
 
   final gerritTryList = builders.map((b) => '$b-try').join(',');
   print('Cq-Include-Trybots: dart/try:$gerritTryList');
+}
+
+String _cleanTestName(String path) {
+  var name = path.replaceAll('\\', '/');
+  if (name.startsWith('tests/')) {
+    name = name.substring('tests/'.length);
+  }
+  if (name.endsWith('.dart')) {
+    name = name.substring(0, name.length - '.dart'.length);
+  }
+  return name;
 }
 
 Future<List<String>> _testGetConfigurations(String testName) async {
@@ -45,8 +67,10 @@ Future<List<String>> _testGetConfigurations(String testName) async {
   );
   final response = await _get(requestUrl);
   final object = jsonDecode(response) as Map<String, dynamic>;
+  final results = object['results'] as List?;
+  if (results == null) return [];
   return [
-    for (final result in ((object['results'] as List)).cast<Map>())
+    for (final result in results.cast<Map>())
       result['configuration'],
   ];
 }
@@ -60,17 +84,30 @@ Future<String> _get(Uri requestUrl) async {
   return responseString;
 }
 
-Iterable<String> _filterConfigurations(Set<String> configs) {
+Iterable<String> _filterConfigurations(
+  Set<String> configs, {
+  String? mode,
+  String? os,
+}) {
+  var filtered = configs;
+  if (os != null) {
+    filtered = filtered.where((c) => c.contains(os)).toSet();
+  }
+
+  if (mode != null) {
+    return filtered.where((c) => c.contains(mode)).toList()..sort();
+  }
+
   final result = <String>[];
-  for (final config in configs) {
+  for (final config in filtered) {
     if (config.contains('debug')) {
       result.add(config);
     } else if (config.contains('release') &&
-        !configs.contains(config.replaceFirst('release', 'debug'))) {
+        !filtered.contains(config.replaceFirst('release', 'debug'))) {
       result.add(config);
     } else if (config.contains('profile') &&
-        !configs.contains(config.replaceFirst('profile', 'debug')) &&
-        !configs.contains(config.replaceFirst('profile', 'release'))) {
+        !filtered.contains(config.replaceFirst('profile', 'debug')) &&
+        !filtered.contains(config.replaceFirst('profile', 'release'))) {
       result.add(config);
     }
   }
@@ -124,11 +161,14 @@ Future<Map<String, String>> _configurationBuilders() async {
   };
 }
 
-void printHelp() {
-  print(r'''
+void printHelp(ArgParser parser) {
+  print('''
 A script to find all try jobs for a set of tests.
 
-  Usage: tools/find_builders.dart [selector] [selector2] [...]
+  Usage: tools/find_builders.dart [options] [selector] [selector2] [...]
+
+Options:
+${parser.usage}
 
 Sample output: Cq-Include-Trybots: dart/try:vm-kernel-linux-debug-x64,...
 ''');
