@@ -381,12 +381,11 @@ abstract class CommonElements {
   }) {
     if (library == null) return null;
     return _env.lookupLibraryMember(
-          library,
-          name,
-          setter: setter,
-          required: required,
-        )
-        as T?;
+      library,
+      name,
+      setter: setter,
+      required: required,
+    ) as T?;
   }
 
   T? _findClassMemberOrNull<T extends MemberEntity>(
@@ -394,20 +393,18 @@ abstract class CommonElements {
     String name,
   ) {
     return _env.lookupLocalClassMember(
-          cls,
-          Name(name, cls.library.canonicalUri, isSetter: false),
-          required: false,
-        )
-        as T?;
+      cls,
+      Name(name, cls.library.canonicalUri, isSetter: false),
+      required: false,
+    ) as T?;
   }
 
   T _findClassMember<T extends MemberEntity>(ClassEntity cls, String name) {
     return _env.lookupLocalClassMember(
-          cls,
-          Name(name, cls.library.canonicalUri, isSetter: false),
-          required: true,
-        )
-        as T;
+      cls,
+      Name(name, cls.library.canonicalUri, isSetter: false),
+      required: true,
+    ) as T;
   }
 
   /// Return the raw type of [cls].
@@ -454,16 +451,12 @@ abstract class CommonElements {
   /// Returns the field that holds the internal name in the implementation class
   /// for `Symbol`.
 
-  FieldEntity get symbolField => _symbolImplementationField ??=
-      _env.lookupLocalClassMember(
-            symbolImplementationClass,
-            PrivateName(
-              '_name',
-              symbolImplementationClass.library.canonicalUri,
-            ),
-            required: true,
-          )
-          as FieldEntity;
+  FieldEntity get symbolField =>
+      _symbolImplementationField ??= _env.lookupLocalClassMember(
+        symbolImplementationClass,
+        PrivateName('_name', symbolImplementationClass.library.canonicalUri),
+        required: true,
+      ) as FieldEntity;
 
   InterfaceType get symbolImplementationType =>
       _env.getRawType(symbolImplementationClass);
@@ -496,12 +489,10 @@ abstract class CommonElements {
   late final ConstructorEntity setLiteralConstructorEmpty = _env
       .lookupConstructor(setLiteralClass, '_empty')!;
 
-  late final FunctionEntity? objectNoSuchMethod =
-      _env.lookupLocalClassMember(
-            objectClass,
-            const PublicName(Identifiers.noSuchMethod_),
-          )
-          as FunctionEntity?;
+  late final FunctionEntity? objectNoSuchMethod = _env.lookupLocalClassMember(
+    objectClass,
+    const PublicName(Identifiers.noSuchMethod_),
+  ) as FunctionEntity?;
 
   bool isDefaultNoSuchMethodImplementation(FunctionEntity element) {
     ClassEntity? classElement = element.enclosingClass;
@@ -532,26 +523,20 @@ abstract class CommonElements {
   FunctionEntity get wrapBody =>
       _findAsyncHelperFunction("_wrapJsFunctionForAsync");
 
-  FunctionEntity get yieldStar =>
-      _env.lookupLocalClassMember(
-            _findAsyncHelperClass("_IterationMarker"),
-            const PublicName("yieldStar"),
-          )
-          as FunctionEntity;
+  FunctionEntity get yieldStar => _env.lookupLocalClassMember(
+    _findAsyncHelperClass("_IterationMarker"),
+    const PublicName("yieldStar"),
+  ) as FunctionEntity;
 
-  FunctionEntity get yieldSingle =>
-      _env.lookupLocalClassMember(
-            _findAsyncHelperClass("_IterationMarker"),
-            const PublicName("yieldSingle"),
-          )
-          as FunctionEntity;
+  FunctionEntity get yieldSingle => _env.lookupLocalClassMember(
+    _findAsyncHelperClass("_IterationMarker"),
+    const PublicName("yieldSingle"),
+  ) as FunctionEntity;
 
-  FunctionEntity get syncStarUncaughtError =>
-      _env.lookupLocalClassMember(
-            _findAsyncHelperClass("_IterationMarker"),
-            const PublicName("uncaughtError"),
-          )
-          as FunctionEntity;
+  FunctionEntity get syncStarUncaughtError => _env.lookupLocalClassMember(
+    _findAsyncHelperClass("_IterationMarker"),
+    const PublicName("uncaughtError"),
+  ) as FunctionEntity;
 
   FunctionEntity get asyncStarHelper =>
       _findAsyncHelperFunction("_asyncStarHelper");
@@ -559,12 +544,10 @@ abstract class CommonElements {
   FunctionEntity get streamOfController =>
       _findAsyncHelperFunction("_streamOfController");
 
-  FunctionEntity get endOfIteration =>
-      _env.lookupLocalClassMember(
-            _findAsyncHelperClass("_IterationMarker"),
-            const PublicName("endOfIteration"),
-          )
-          as FunctionEntity;
+  FunctionEntity get endOfIteration => _env.lookupLocalClassMember(
+    _findAsyncHelperClass("_IterationMarker"),
+    const PublicName("endOfIteration"),
+  ) as FunctionEntity;
 
   ClassEntity get syncStarIterable =>
       _findAsyncHelperClass("_SyncStarIterable");

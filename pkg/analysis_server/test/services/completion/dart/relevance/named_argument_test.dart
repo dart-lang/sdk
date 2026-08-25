@@ -18,11 +18,7 @@ class NamedArgumentTest extends CompletionRelevanceTest
 
 mixin NamedArgumentTestCases on CompletionRelevanceTest {
   @override
-  Future<void> setUp() async {
-    writeTestPackageConfig(meta: true);
-
-    await super.setUp();
-  }
+  bool get addMetaPackageDep => true;
 
   Future<void> test_required() async {
     await computeSuggestions('''

@@ -16,6 +16,20 @@ package:analyzer_testing/analysis_rule/analysis_rule.dart:
     unexpectedMessage (method: String Function(List<Diagnostic>))
   PackageBuilder (class extends Object):
     addFile (method: void Function(String, String))
+package:analyzer_testing/configuration_files_mixin.dart:
+  ConfigurationFilesMixin (mixin on MockPackagesMixin):
+    addFixnumPackageDep (getter: bool)
+    addFlutterLocalizationsPackageDep (getter: bool)
+    addFlutterPackageDep (getter: bool)
+    addFlutterTestPackageDep (getter: bool)
+    addMetaPackageDep (getter: bool)
+    addTestReflectiveLoaderPackageDep (getter: bool)
+    addVectorMathPackageDep (getter: bool)
+    dartSdkPath (getter: String)
+    testPackageLanguageVersion (getter: String?)
+    testPackageRootPath (getter: String)
+    writePackageConfig2 (method: void Function(String, {PackageConfigFileBuilder? config, String? languageVersion, String? packageName}))
+    writeTestPackageConfig2 (method: void Function({PackageConfigFileBuilder? config, String? languageVersion}))
 package:analyzer_testing/experiments/experiments.dart:
   experimentalFeaturesForTests (static getter: List<Feature>)
 package:analyzer_testing/mock_packages/mock_packages.dart:
@@ -30,6 +44,7 @@ package:analyzer_testing/mock_packages/mock_packages.dart:
     addFfi (method: Folder Function())
     addFixnum (method: Folder Function())
     addFlutter (method: Folder Function())
+    addFlutterLocalizations (method: Folder Function())
     addMeta (method: Folder Function())
     addSkyEngine (method: Folder Function({required String sdkPath}))
     addTestReflectiveLoader (method: Folder Function())
@@ -39,6 +54,7 @@ package:analyzer_testing/package_config_file_builder.dart:
     new (constructor: PackageConfigFileBuilder Function())
     add (method: void Function({String? languageVersion, required String name, String packageUriStr, required Folder rootFolder}))
     copy (method: PackageConfigFileBuilder Function())
+    hasPackage (method: bool Function(String))
     toContent (method: String Function())
 package:analyzer_testing/package_root.dart:
   packageRoot (static getter: String)

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+
 import 'package:expect/expect.dart';
 import 'package:compiler/compiler_api.dart' as api;
 import 'package:compiler/src/commandline_options.dart';

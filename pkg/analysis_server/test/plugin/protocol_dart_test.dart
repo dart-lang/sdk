@@ -22,6 +22,9 @@ void main() {
 
 @reflectiveTest
 class ConvertElementTest extends AbstractSingleUnitTest {
+  @override
+  bool get addMetaPackageDep => true;
+
   Future<void> test_CLASS() async {
     await resolveTestCode('''
 @deprecated
@@ -80,7 +83,6 @@ class A {
   }
 
   Future<void> test_CONSTRUCTOR_required_parameters_1() async {
-    writeTestPackageConfig(meta: true);
     await resolveTestCode('''
 import 'package:meta/meta.dart';
 class A {
@@ -95,7 +97,6 @@ class A {
 
   /// Verify parameter re-ordering for required params
   Future<void> test_CONSTRUCTOR_required_parameters_2() async {
-    writeTestPackageConfig(meta: true);
     await resolveTestCode('''
 import 'package:meta/meta.dart';
 class A {
@@ -113,7 +114,6 @@ class A {
 
   /// Verify parameter re-ordering for required params
   Future<void> test_CONSTRUCTOR_required_parameters_3() async {
-    writeTestPackageConfig(meta: true);
     verifyNoTestUnitErrors = false;
     await resolveTestCode('''
 import 'package:meta/meta.dart';

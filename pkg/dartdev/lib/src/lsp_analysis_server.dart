@@ -172,9 +172,7 @@ class LspAnalysisServer {
               .map(
                 (rootPath) => WorkspaceFolder(
                   name: path.basename(rootPath),
-                  uri: Uri.file(
-                    rootPath,
-                  ),
+                  uri: Uri.file(rootPath),
                 ),
               )
               .toList()
@@ -211,10 +209,7 @@ class LspAnalysisServer {
       ),
     );
 
-    _sendNotification(
-      Method.initialized,
-      InitializedParams(),
-    );
+    _sendNotification(Method.initialized, InitializedParams());
 
     return process.pid;
   }
@@ -262,6 +257,7 @@ class LspAnalysisServer {
     List<Uri> uris, {
     bool? apply,
     List<MigrationStep>? steps,
+    String? targetSdk,
   }) {
     return _expectSuccessfulResponse(
       CustomMethods.migrate,
@@ -269,6 +265,7 @@ class LspAnalysisServer {
         uris: uris,
         apply: apply,
         steps: steps,
+        targetSdk: targetSdk,
       ),
       DartMigrateResult.fromJson,
     );

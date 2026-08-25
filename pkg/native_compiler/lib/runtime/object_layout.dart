@@ -12,6 +12,15 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/library_index.dart' show LibraryIndex;
 import 'package:native_compiler/runtime/vm_defs.dart';
 
+/// Memory access order for fields accessed concurrently.
+enum MemoryOrder {
+  /// No ordering constraints.
+  relaxed,
+
+  /// Load performs acquire and store performs release.
+  acquireRelease,
+}
+
 /// Computes layout of Dart objects (field offsets and instance size).
 class ObjectLayout {
   final VMOffsets vmOffsets;
@@ -32,6 +41,9 @@ class ObjectLayout {
 
   /// Fields stored as unboxed values.
   final Set<CField> _unboxedFields = {};
+
+  /// Field memory order (if not relaxed).
+  final Map<CField, MemoryOrder> _fieldMemoryOrder = {};
 
   ObjectLayout(
     this.vmOffsets, {
@@ -70,6 +82,10 @@ class ObjectLayout {
   bool isUnboxedField(CField field) {
     // TODO: support unboxed Dart fields.
     return _unboxedFields.contains(field);
+  }
+
+  MemoryOrder getFieldMemoryOrder(CField field) {
+    return _fieldMemoryOrder[field] ?? MemoryOrder.relaxed;
   }
 
   CField? getTypeArgumentsField(ast.Class cls) {
@@ -141,6 +157,7 @@ class ObjectLayout {
     int? offset, {
     bool isFinal = false,
     bool isUnboxed = false,
+    MemoryOrder memoryOrder = .relaxed,
   }) {
     final fieldNode = isFinal
         ? ast.Field.immutable(ast.Name(name), type: type, fileUri: ast.dummyUri)
@@ -152,6 +169,9 @@ class ObjectLayout {
     }
     if (isUnboxed) {
       _unboxedFields.add(field);
+    }
+    if (memoryOrder != .relaxed) {
+      _fieldMemoryOrder[field] = memoryOrder;
     }
     return field;
   }
@@ -174,6 +194,10 @@ class ObjectLayout {
   late final ast.Class _linkedHashBaseClass = _libraryIndex.getClass(
     'dart:_compact_hash',
     '_LinkedHashBase',
+  );
+  late final ast.Class _linkedHashImmutableBaseClass = _libraryIndex.getClass(
+    'dart:_compact_hash',
+    '_LinkedHashImmutableBase',
   );
   late final ast.Class _suspendStateClass = _libraryIndex.getClass(
     'dart:async',
@@ -263,6 +287,13 @@ class ObjectLayout {
     _coreTypes.intNonNullableRawType,
     vmOffsets.LinkedHashBase_deleted_keys_offset,
   );
+  late final CField LinkedHashImmutableBase_index = _createBuiltInField(
+    _linkedHashImmutableBaseClass,
+    'index',
+    _coreTypes.nullableRawType(_uint32ListClass),
+    vmOffsets.LinkedHashBase_index_offset,
+    memoryOrder: .acquireRelease,
+  );
 
   // dart:async
   late final CField SuspendState_functionData = _createBuiltInField(
@@ -336,6 +367,7 @@ class ObjectLayout {
     'predefinedSymbolsAddress',
     _coreTypes.intNonNullableRawType, // Address.
     vmOffsets.Thread_predefined_symbols_address_offset,
+    isUnboxed: true,
   );
 
   // Layout of built-in instances is specified either as

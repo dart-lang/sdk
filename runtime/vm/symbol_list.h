@@ -119,6 +119,7 @@ namespace dart {
   V(FfiDouble, "Double")                                                       \
   V(FfiDynamicLibrary, "DynamicLibrary")                                       \
   V(FfiElementType, "elementType")                                             \
+  V(FfiFieldNames, "fieldNames")                                               \
   V(FfiFieldPacking, "packing")                                                \
   V(FfiFieldTypes, "fieldTypes")                                               \
   V(FfiFloat, "Float")                                                         \

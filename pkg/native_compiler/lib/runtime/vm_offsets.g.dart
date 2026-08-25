@@ -45,6 +45,7 @@ base class VMOffsets {
   int get NativeArguments_kArgcBitsSize => throw 'Unknown';
   int get NativeArguments_kGenericFunctionBitPos => throw 'Unknown';
   int get NativeEntry_kNumCallWrapperArguments => throw 'Unknown';
+  int get Object_kHashBits => throw 'Unknown';
   int get Page_kBytesPerCardLog2 => throw 'Unknown';
   int get Page_kPageMask => throw 'Unknown';
   int get Record_kMaxElements => throw 'Unknown';
@@ -701,6 +702,8 @@ final class Arm64VMOffsets extends VMOffsets {
   int get NativeArguments_kGenericFunctionBitPos => 0x18;
   @override
   int get NativeEntry_kNumCallWrapperArguments => 0x2;
+  @override
+  int get Object_kHashBits => 0x1e;
   @override
   int get Page_kBytesPerCardLog2 => 0x8;
   @override
@@ -1724,6 +1727,8 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   int get NativeArguments_kGenericFunctionBitPos => 0x18;
   @override
   int get NativeEntry_kNumCallWrapperArguments => 0x2;
+  @override
+  int get Object_kHashBits => 0x1e;
   @override
   int get Page_kBytesPerCardLog2 => 0x8;
   @override

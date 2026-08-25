@@ -1,9 +1,9 @@
 enum E1() {
-  a
+  a,
 }
 
 enum const E2() {
-  a
+  a,
 }
 
 enum const E3() {

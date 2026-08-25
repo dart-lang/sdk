@@ -67,8 +67,6 @@ enum PredefinedClusters {
   closureRefs,
   argumentsDescriptorRefs,
   recordShapeRefs,
-  closureDatas,
-  functions,
   ints,
   doubles,
   lists,
@@ -82,6 +80,8 @@ enum PredefinedClusters {
   recordTypes,
   typeParameterTypes,
   typeArguments,
+  closureDatas,
+  functions,
   codes,
   icDatas,
   subtypeTestCaches,
@@ -190,6 +190,7 @@ class SnapshotSerializer {
     addBaseObject(StubCode.ReturnAsync);
     addBaseObject(StubCode.ReturnAsyncNotFuture);
     addBaseObject(StubCode.ReturnAsyncStar);
+    addBaseObject(StubCode.CloneSuspendState);
     addBaseObject(StubCode.CallBootstrapNative);
     numObjects = numBaseObjects;
   }
@@ -1583,17 +1584,8 @@ final class TypeParameterTypeSerializationCluster extends SerializationCluster {
     switch (declaration) {
       case ast.Class():
         return declaration;
-      case ast.Procedure():
-        return serializer.functionRegistry.getFunction(
-          declaration,
-          isGetter: declaration.isGetter,
-          isSetter: declaration.isSetter,
-        );
-      case ast.LocalFunction():
-        return serializer.functionRegistry.getFunction(
-          getEnclosingMember(declaration),
-          localFunction: declaration,
-        );
+      case ast.GenericFunction():
+        return declaration.function.computeThisFunctionType(.nonNullable);
       default:
         throw 'Unexpected type parameter declaration ${declaration.runtimeType} $declaration';
     }

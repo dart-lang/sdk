@@ -22,10 +22,7 @@ class OrganizeDirectivesTest extends AbstractSingleUnitTest {
   late List<Diagnostic> testDiagnostics;
 
   @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(meta: true);
-  }
+  bool get addMetaPackageDep => true;
 
   Future<void> test_docComment_beforeDirective_hasUnresolvedIdentifier() async {
     await _computeUnitAndErrors(r'''

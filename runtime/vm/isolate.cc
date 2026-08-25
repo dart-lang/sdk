@@ -1862,9 +1862,6 @@ Isolate::~Isolate() {
 
   free(name_);
   delete field_table_;
-#if defined(DART_INCLUDE_SIMULATOR)
-  delete simulator_;
-#endif
   delete message_handler_;
   message_handler_ =
       nullptr;  // Fail fast if we send messages to a dead isolate.

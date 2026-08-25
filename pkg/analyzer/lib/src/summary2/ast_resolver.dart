@@ -75,7 +75,12 @@ class AstResolver {
     ElementBindingVisitor(_libraryFragment).bindSubtree(_libraryFragment, node);
     node.accept2(_resolutionVisitor);
     _prepareEnclosingDeclarations();
-    _flowAnalysis.bodyOrInitializer_enter(node, null);
+    _flowAnalysis.bodyOrInitializer_enter(
+      node,
+      null,
+      // Offsets are ignored when doing summary linking.
+      offset: 0,
+    );
     node.accept2(_resolverVisitor);
     _resolverVisitor.checkIdle();
     _flowAnalysis.bodyOrInitializer_exit();
@@ -99,6 +104,8 @@ class AstResolver {
       node,
       element.formalParameters,
       visit: accept,
+      // Offsets are ignored when doing summary linking.
+      offset: 0,
     );
     accept(_resolverVisitor);
     _resolverVisitor.checkIdle();
@@ -121,6 +128,8 @@ class AstResolver {
     _flowAnalysis.bodyOrInitializer_enter(
       node.parent2 as AstNodeImpl,
       inScopePrimaryConstructorParameters,
+      // Offsets are ignored when doing summary linking.
+      offset: 0,
     );
     _resolverVisitor.analyzeExpression(node, SharedTypeSchemaView(contextType));
     _resolverVisitor.popRewrite();
@@ -150,6 +159,8 @@ class AstResolver {
       node,
       element.formalParameters,
       visit: accept,
+      // Offsets are ignored when doing summary linking.
+      offset: 0,
     );
     accept(_resolverVisitor);
     _resolverVisitor.checkIdle();

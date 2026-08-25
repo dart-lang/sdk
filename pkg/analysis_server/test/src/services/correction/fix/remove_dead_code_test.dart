@@ -897,6 +897,15 @@ void f() {
 }
 ''');
   }
+
+  Future<void> test_while_false_emptyStatement() async {
+    await resolveTestCode('''
+void f() {
+  while (false);
+}
+''');
+    await assertNoFix();
+  }
 }
 
 @reflectiveTest

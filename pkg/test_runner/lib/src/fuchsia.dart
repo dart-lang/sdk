@@ -23,6 +23,8 @@ class FuchsiaEmulator {
     assert(daemonIsolateDir == null);
     daemonIsolateDir = Directory.systemTemp.createTempSync();
     envs["FFX_ISOLATE_DIR"] = daemonIsolateDir!.path;
+    envs["QEMU_LD_PREFIX"] = "/usr/x86_64-linux-gnu";
+
     assert(publisher == null);
     var args = <String>[
       "./build/fuchsia/test_env.py",

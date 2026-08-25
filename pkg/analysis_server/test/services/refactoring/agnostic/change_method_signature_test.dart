@@ -598,7 +598,7 @@ formalParameters
 void test(int a, int b) {}
 ''');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'foo', rootFolder: getFolder('$packagesRootPath/foo')),
     );

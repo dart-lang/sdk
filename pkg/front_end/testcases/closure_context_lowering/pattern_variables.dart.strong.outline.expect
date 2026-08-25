@@ -2,7 +2,7 @@ library;
 import self as self;
 import "dart:core" as core;
 
-static method patternVariableAssignment(positional-parameter r) → dynamic
+static method patternVariableAssignment((core::int, core::String) r) → dynamic
   ;
-static method orPatternVariable(positional-parameter x) → dynamic
+static method orPatternVariable(dynamic x) → dynamic
   ;

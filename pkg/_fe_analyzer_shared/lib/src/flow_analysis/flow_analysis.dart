@@ -6130,6 +6130,11 @@ class _FlowAnalysisImpl<
     required SharedTypeView castType,
     int offset = 0,
   }) {
+    // Not all control flow paths make use of `offset`, so to make sure testing
+    // is thorough, don't rely on the code below to validate it; call
+    // `checkOffset` directly.
+    _logBuilder?.checkOffset(offset);
+
     // Depending on types, flow analysis may be able to prove that the `as`
     // expression is guaranteed to fail.
     if (_isTypeCheckGuaranteedToFailWithSoundNullSafety(
@@ -6348,6 +6353,11 @@ class _FlowAnalysisImpl<
     required SharedTypeView matchedValueType,
     int offset = 0,
   }) {
+    // Not all control flow paths make use of `offset`, so to make sure testing
+    // is thorough, don't rely on the code below to validate it; call
+    // `checkOffset` directly.
+    _logBuilder?.checkOffset(offset);
+
     assert(_stack.last is _PatternContext);
     if (patternsEnabled) {
       _handleEqualityCheckPattern(
@@ -7048,6 +7058,11 @@ class _FlowAnalysisImpl<
 
   @override
   void nonNullAssert_end(ExpressionInfo? operandInfo, {int offset = 0}) {
+    // Not all control flow paths make use of `offset`, so to make sure testing
+    // is thorough, don't rely on the code below to validate it; call
+    // `checkOffset` directly.
+    _logBuilder?.checkOffset(offset);
+
     _Reference? operandReference = _getExpressionReference(operandInfo);
     if (operandReference != null) {
       _setCurrent(
@@ -7081,6 +7096,11 @@ class _FlowAnalysisImpl<
 
   @override
   void nullAwareMapEntry_end({required bool isKeyNullAware, int offset = 0}) {
+    // Not all control flow paths make use of `offset`, so to make sure testing
+    // is thorough, don't rely on the code below to validate it; call
+    // `checkOffset` directly.
+    _logBuilder?.checkOffset(offset);
+
     if (!isKeyNullAware) return;
     _NullAwareMapEntryContext context =
         _stack.removeLast() as _NullAwareMapEntryContext;
@@ -7097,6 +7117,11 @@ class _FlowAnalysisImpl<
     required bool isKeyNullAware,
     int offset = 0,
   }) {
+    // Not all control flow paths make use of `offset`, so to make sure testing
+    // is thorough, don't rely on the code below to validate it; call
+    // `checkOffset` directly.
+    _logBuilder?.checkOffset(offset);
+
     if (!isKeyNullAware) return;
     _Reference? keyReference = _getExpressionReference(keyInfo);
     FlowModel shortcutState;
@@ -7136,6 +7161,11 @@ class _FlowAnalysisImpl<
     required SharedTypeView matchedValueType,
     int offset = 0,
   }) {
+    // Not all control flow paths make use of `offset`, so to make sure testing
+    // is thorough, don't rely on the code below to validate it; call
+    // `checkOffset` directly.
+    _logBuilder?.checkOffset(offset);
+
     if (!isAssert) {
       if (typeAnalyzerOptions.soundFlowAnalysisEnabled &&
           operations.classifyType(matchedValueType) ==
@@ -7356,6 +7386,11 @@ class _FlowAnalysisImpl<
     bool matchMayFailEvenIfCorrectType = false,
     int offset = 0,
   }) {
+    // Not all control flow paths make use of `offset`, so to make sure testing
+    // is thorough, don't rely on the code below to validate it; call
+    // `checkOffset` directly.
+    _logBuilder?.checkOffset(offset);
+
     if (knownType is SharedInvalidType) {
       _unmatched = _join(_unmatched!, _current);
       return false;
@@ -7577,6 +7612,11 @@ class _FlowAnalysisImpl<
 
   @override
   void suspension(Node node, {int offset = 0}) {
+    // Not all control flow paths make use of `offset`, so to make sure testing
+    // is thorough, don't rely on the code below to validate it; call
+    // `checkOffset` directly.
+    _logBuilder?.checkOffset(offset);
+
     // During an async suspension or yield, other code may execute. If the
     // current point in flow control is inside a local function, this means that
     // enclosing functions may resume executing.
@@ -7865,6 +7905,11 @@ class _FlowAnalysisImpl<
     // See the "try finally" bullet in
     // https://github.com/dart-lang/language/blob/main/resources/type-system/flow-analysis.md#statements.
 
+    // Not all control flow paths make use of `offset`, so to make sure testing
+    // is thorough, don't rely on the code below to validate it; call
+    // `checkOffset` directly.
+    _logBuilder?.checkOffset(offset);
+
     var _TryFinallyContext(
       _beforeTry: beforeTry,
       _afterTry: afterTry!,
@@ -7927,6 +7972,11 @@ class _FlowAnalysisImpl<
     Variable variable, {
     int offset = 0,
   }) {
+    // Not all control flow paths make use of `offset`, so to make sure testing
+    // is thorough, don't rely on the code below to validate it; call
+    // `checkOffset` directly.
+    _logBuilder?.checkOffset(offset);
+
     SharedTypeView unpromotedType = operations.variableType(variable);
     PromotionKey variableKey = promotionKeyStore.keyForVariable(variable);
     PromotionModel? promotionModel = _current.promotionInfo?.get(
@@ -8470,6 +8520,11 @@ class _FlowAnalysisImpl<
     required SharedTypeView matchedValueType,
     required int offset,
   }) {
+    // Not all control flow paths make use of `offset`, so to make sure testing
+    // is thorough, don't rely on the code below to validate it; call
+    // `checkOffset` directly.
+    _logBuilder?.checkOffset(offset);
+
     assert(identical(matchedValueType, _getMatchedValueType()));
     _PatternContext context = _stack.last as _PatternContext;
     // Create a `_Reference` to represent the matched value; this will be the

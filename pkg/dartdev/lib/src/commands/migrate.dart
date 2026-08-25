@@ -28,6 +28,10 @@ class MigrateCommand extends DartdevCommand {
   MigrateCommand({bool verbose = false})
     : super(cmdName, cmdDescription, verbose, hidden: true) {
     argParser
+      ..addOption(
+        'target-sdk',
+        help: 'The target Dart SDK version to migrate to (e.g., "3.13.0").',
+      )
       ..addFlag(
         'dry-run',
         abbr: 'n',
@@ -72,6 +76,7 @@ class MigrateCommand extends DartdevCommand {
     }
 
     final steps = args.multiOption('step');
+    final targetSdk = args.option('target-sdk');
     final rest = args.rest;
     final targets = _getTargets(rest);
 
@@ -117,6 +122,7 @@ class MigrateCommand extends DartdevCommand {
         targets,
         apply: apply,
         steps: steps,
+        targetSdk: targetSdk,
       );
       if (result == null) return 1;
 
@@ -134,7 +140,7 @@ class MigrateCommand extends DartdevCommand {
         if (apply) {
           _applyWorkspaceEdit(result.edit!);
         } else {
-          _printApplyTip(steps, rest);
+          _printApplyTip(steps, rest, targetSdk);
         }
       }
     } catch (e, st) {
@@ -214,6 +220,7 @@ class MigrateCommand extends DartdevCommand {
     List<io.FileSystemEntity> targets, {
     required bool apply,
     required List<String> steps,
+    String? targetSdk,
   }) async {
     final uris = [for (final target in targets) Uri.file(target.path)];
 
@@ -225,6 +232,7 @@ class MigrateCommand extends DartdevCommand {
         uris,
         apply: apply,
         steps: steps.map(MigrationStep.new).toList(),
+        targetSdk: targetSdk,
       );
     } finally {
       await server.shutdown();
@@ -294,10 +302,19 @@ class MigrateCommand extends DartdevCommand {
 
   /// Prints a command tip instructing the user how to apply the proposed
   /// changes.
-  void _printApplyTip(List<String> steps, List<String> targets) {
+  void _printApplyTip(
+    List<String> steps,
+    List<String> targets,
+    String? targetSdk,
+  ) {
     var targetArgs = '';
     if (targets.isNotEmpty) {
       targetArgs = ' ${targets.join(' ')}';
+    }
+
+    var targetSdkArg = '';
+    if (argResults!.wasParsed('target-sdk') && targetSdk != null) {
+      targetSdkArg = ' --target-sdk=$targetSdk';
     }
 
     // Omit '--step=all' from the suggested command because running all steps is
@@ -310,7 +327,7 @@ class MigrateCommand extends DartdevCommand {
 
     log.stdout('');
     log.stdout('To apply the proposed changes, run:');
-    log.stdout('  dart migrate --apply$stepArg$targetArgs');
+    log.stdout('  dart migrate --apply$targetSdkArg$stepArg$targetArgs');
   }
 }
 

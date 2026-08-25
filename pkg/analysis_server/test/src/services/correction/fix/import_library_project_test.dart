@@ -752,7 +752,7 @@ void f() {
 class Test {}
 ''');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(
           name: 'my_pkg',
@@ -789,7 +789,7 @@ extension E on int {
 }
 ''');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(
           name: 'my_pkg',
@@ -822,7 +822,7 @@ f() {
 class Test {}
 ''');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(
           name: 'my_pkg',
@@ -1364,7 +1364,7 @@ dependencies:
   aaa: any
 ''');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()..add(name: 'aaa', rootFolder: aaaRoot),
     );
 
@@ -1391,7 +1391,7 @@ dev_dependencies:
   aaa: any
 ''');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()..add(name: 'aaa', rootFolder: aaaRoot),
     );
 
@@ -1412,7 +1412,7 @@ class Test {}
 name: test
 ''');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()..add(name: 'aaa', rootFolder: aaaRoot),
     );
 
@@ -1883,7 +1883,7 @@ dependencies:
   aaa: any
 ''');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()..add(name: 'aaa', rootFolder: aaaRoot),
     );
   }
@@ -2322,7 +2322,7 @@ extension IntExtension on int {
 }
 ''');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'aaa', rootFolder: getFolder(pkgRootPath)),
     );
@@ -2355,7 +2355,7 @@ export 'b.dart';
 class Test {}
 ''');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(
           name: 'my_pkg',
@@ -2391,7 +2391,7 @@ export 'src/b.dart';
 class Test {}
 ''');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(
           name: 'my_pkg',
@@ -2429,7 +2429,7 @@ extension E on int {
 }
 ''');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(
           name: 'my_pkg',

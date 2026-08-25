@@ -90,7 +90,7 @@ class PredicateDataComputer extends CfeDataComputer<Features> {
   void computeLibraryData(
     CfeTestResultData testResultData,
     Library library,
-    Map<Id, ActualData<Features>> actualMap, {
+    ActualDataMap<Features> actualMap, {
     bool? verbose,
   }) {
     new PredicateDataExtractor(
@@ -103,7 +103,7 @@ class PredicateDataComputer extends CfeDataComputer<Features> {
   void computeMemberData(
     CfeTestResultData testResultData,
     Member member,
-    Map<Id, ActualData<Features>> actualMap, {
+    ActualDataMap<Features> actualMap, {
     bool? verbose,
   }) {
     member.accept(
@@ -120,10 +120,7 @@ class PredicateDataExtractor extends CfeDataExtractor<Features> {
   Map<Object?, Features> featureMap = {};
   Map<Object?, NodeId> nodeIdMap = {};
 
-  new(
-    InternalCompilerResult compilerResult,
-    Map<Id, ActualData<Features>> actualMap,
-  ) : super(compilerResult, actualMap);
+  new(super.compilerResult, super.actualMap);
 
   @override
   Features? computeLibraryValue(Id id, Library node) {

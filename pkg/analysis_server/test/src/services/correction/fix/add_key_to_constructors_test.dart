@@ -24,13 +24,10 @@ void main() {
 @reflectiveTest
 class AddKeyToConstructorsBulkTest extends BulkFixProcessorTest {
   @override
-  String get lintCode => LintNames.use_key_in_widget_constructors;
+  bool get addFlutterPackageDep => true;
 
   @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(flutter: true);
-  }
+  String get lintCode => LintNames.use_key_in_widget_constructors;
 
   Future<void> test_singleFile() async {
     await resolveTestCode(r'''
@@ -59,10 +56,7 @@ class MyWidget2 extends StatelessWidget {
 @reflectiveTest
 class AddKeyToConstructorsInFileTest extends FixInFileProcessorTest {
   @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(flutter: true);
-  }
+  bool get addFlutterPackageDep => true;
 
   Future<void> test_file() async {
     createAnalysisOptionsFile(
@@ -92,16 +86,13 @@ class MyWidget extends StatelessWidget {
 @reflectiveTest
 class AddKeyToConstructorsTest extends FixProcessorLintTest {
   @override
+  bool get addFlutterPackageDep => true;
+
+  @override
   FixKind get kind => DartFixKind.addKeyToConstructors;
 
   @override
   String get lintCode => LintNames.use_key_in_widget_constructors;
-
-  @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(flutter: true);
-  }
 
   Future<void> test_class_newline() async {
     await resolveTestCode('''
@@ -751,6 +742,9 @@ class MyWidget extends ParentWidget {
 class AddKeyToConstructorsWithoutNamedArgumentsAnywhereTest
     extends FixProcessorLintTest {
   @override
+  bool get addFlutterPackageDep => true;
+
+  @override
   FixKind get kind => DartFixKind.addKeyToConstructors;
 
   @override
@@ -758,12 +752,6 @@ class AddKeyToConstructorsWithoutNamedArgumentsAnywhereTest
 
   @override
   String get testPackageLanguageVersion => '2.16';
-
-  @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(flutter: true);
-  }
 
   Future<void> test_constructor_noParameters_withSuper_nonEmpty() async {
     await resolveTestCode('''
@@ -799,6 +787,9 @@ class B extends A {
 class AddKeyToConstructorsWithoutSuperParametersTest
     extends FixProcessorLintTest {
   @override
+  bool get addFlutterPackageDep => true;
+
+  @override
   FixKind get kind => DartFixKind.addKeyToConstructors;
 
   @override
@@ -806,12 +797,6 @@ class AddKeyToConstructorsWithoutSuperParametersTest
 
   @override
   String get testPackageLanguageVersion => '2.16';
-
-  @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(flutter: true);
-  }
 
   Future<void> test_class_newline() async {
     await resolveTestCode('''

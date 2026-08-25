@@ -729,9 +729,10 @@ class FlutterArgumentListTest extends AbstractCompletionDriverTest
 }
 
 mixin FlutterArgumentListTestCases on AbstractCompletionDriverTest {
-  Future<void> test_afterComma_beforeRightParen_inInstanceCreation_1() async {
-    writeTestPackageConfig(flutter: true);
+  @override
+  bool get addFlutterPackageDep => true;
 
+  Future<void> test_afterComma_beforeRightParen_inInstanceCreation_1() async {
     await computeSuggestions('''
 import 'package:flutter/material.dart';
 
@@ -753,8 +754,6 @@ suggestions
   }
 
   Future<void> test_afterLeftParen_beforeArgument_inInstanceCreation_2() async {
-    writeTestPackageConfig(flutter: true);
-
     await computeSuggestions('''
 import 'package:flutter/material.dart';
 
@@ -778,7 +777,6 @@ suggestions
   Future<void>
   test_afterLeftParen_beforeColon_inInstanceCreation_partial() async {
     // Ensure a trailing comma is not added when only replacing the name.
-    writeTestPackageConfig(flutter: true);
 
     await computeSuggestions('''
 import 'package:flutter/material.dart';
@@ -804,7 +802,6 @@ suggestions
   Future<void>
   test_afterLeftParen_beforeColon_inInstanceCreation_withExistingValue_partial() async {
     // Ensure we don't include list markers if there's already a value.
-    writeTestPackageConfig(flutter: true);
 
     await computeSuggestions('''
 import 'package:flutter/material.dart';
@@ -824,8 +821,6 @@ suggestions
 
   Future<void>
   test_afterLeftParen_beforeRightParen_inInstanceCreation_0() async {
-    writeTestPackageConfig(flutter: true);
-
     await computeSuggestions('''
 import 'package:flutter/widgets.dart';
 
@@ -847,8 +842,6 @@ suggestions
 
   Future<void>
   test_afterLeftParen_beforeRightParen_inInstanceCreation_01() async {
-    writeTestPackageConfig(flutter: true);
-
     await computeSuggestions('''
 import 'package:flutter/material.dart';
 
@@ -874,7 +867,6 @@ suggestions
   test_afterLeftParen_beforeRightParen_inInstanceCreation_children_dynamic() async {
     // Ensure we don't generate unneeded <dynamic> param if a future API doesn't
     // type it's children.
-    writeTestPackageConfig(flutter: true);
 
     await computeSuggestions('''
 import 'package:flutter/material.dart';
@@ -898,7 +890,6 @@ suggestions
   Future<void>
   test_afterLeftParen_beforeRightParen_inInstanceCreation_mapValue() async {
     // Ensure we don't generate Map params for a future API
-    writeTestPackageConfig(flutter: true);
 
     await computeSuggestions('''
 import 'package:flutter/material.dart';
@@ -921,8 +912,6 @@ suggestions
 
   Future<void>
   test_afterLeftParen_beforeRightParen_inInstanceCreation_slivers() async {
-    writeTestPackageConfig(flutter: true);
-
     await computeSuggestions('''
 import 'package:flutter/material.dart';
 
@@ -945,7 +934,6 @@ suggestions
   Future<void>
   test_afterLeftParen_beforeRightParen_inMethodInvocation_nonFlutter() async {
     // Ensure we don't generate params for a non-flutter method invocation.
-    writeTestPackageConfig(flutter: true);
 
     await computeSuggestions('''
 import 'package:flutter/material.dart';

@@ -3969,6 +3969,7 @@ Condition DoubleTestOpInstr::EmitConditionCode(FlowGraphCompiler* compiler,
   V(Int32x4BitAnd, vand)                                                       \
   V(Int32x4BitOr, vorr)                                                        \
   V(Int32x4BitXor, veor)                                                       \
+  V(Int32x4Equal, vceqw)                                                       \
   V(Float32x4Equal, vceqs)                                                     \
   V(Float32x4GreaterThan, vcgts)                                               \
   V(Float32x4GreaterThanOrEqual, vcges)
@@ -4735,13 +4736,13 @@ void FloatToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ fcvtds(result, value);
 }
 
-LocationSummary* FloatCompareInstr::MakeLocationSummary(Zone* zone,
-                                                        bool opt) const {
+LocationSummary* CompareAsMaskInstr::MakeLocationSummary(Zone* zone,
+                                                         bool opt) const {
   UNREACHABLE();
   return NULL;
 }
 
-void FloatCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void CompareAsMaskInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNREACHABLE();
 }
 
@@ -5851,7 +5852,7 @@ void UnaryInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case Token::kPOPCNT: {
       __ fmovdr(VTMP, left);
       __ vcnt(VTMP, VTMP);
-      __ vuaddlv(VTMP, VTMP);
+      __ vuaddlv_8b(VTMP, VTMP);
       __ fmovrs(out, VTMP);
       break;
     }

@@ -7,10 +7,6 @@ import 'dart:_wasm';
 part "class_id.dart";
 part "symbol_patch.dart";
 
-// Compilation to Wasm is always fully null safe.
-@patch
-bool typeAcceptsNull<T>() => null is T;
-
 const bool has63BitSmis = false;
 
 class Lists {

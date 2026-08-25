@@ -12,6 +12,7 @@ import 'dart:math' as math;
 
 import 'package:_fe_analyzer_shared/src/base/analyzer_public_api.dart';
 import 'package:_fe_analyzer_shared/src/base/syntactic_entity.dart';
+import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis_log.dart';
 import 'package:_fe_analyzer_shared/src/parser/util.dart' as shared;
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
@@ -22303,6 +22304,23 @@ sealed class FunctionBody implements AstNode {
   ///
   /// Throws an exception if resolution hasn't been performed.
   bool isPotentiallyMutatedInScope(VariableElement variable);
+
+  /// Queries the promoted type of `this` at the given [offset].
+  ///
+  /// The offset is relative to the beginning of the source file, but must refer
+  /// to a location within the function body in order for the response to be
+  /// accurate.
+  ///
+  /// The bodies of local functions and function literals cannot be queried
+  /// directly; the query must be made using the enclosing non-local function
+  /// body.
+  ///
+  /// If `this` has not been promoted at the given offset, or is not meaningful
+  /// at the given offset, `null` is returned.
+  ///
+  /// Throws an exception if resolution hasn't been performed, or if the query
+  /// is made on the body of a local function or function literal.
+  DartType? lookupPromotedThisType({required int offset});
 }
 
 sealed class FunctionBodyImpl extends AstNodeImpl implements FunctionBody {
@@ -22314,6 +22332,10 @@ sealed class FunctionBodyImpl extends AstNodeImpl implements FunctionBody {
   /// The [BodyInferenceContext] that was used during type inference of this
   /// function body, or `null` if resolution hasn't yet been performed.
   BodyInferenceContext? bodyContext;
+
+  /// The [FlowAnalysisLog] that was collected during type inference of this
+  /// function body, or `null` if resolution hasn't yet been performed.
+  FlowAnalysisLog? flowAnalysisLog;
 
   @override
   bool get isAsynchronous => false;
@@ -22336,6 +22358,19 @@ sealed class FunctionBodyImpl extends AstNodeImpl implements FunctionBody {
       throw StateError('Resolution has not been performed');
     }
     return localVariableInfo!.potentiallyMutatedInScope.contains(variable);
+  }
+
+  @override
+  DartType? lookupPromotedThisType({required int offset}) {
+    if (flowAnalysisLog == null) {
+      throw StateError(
+        'Resolution has not been performed, or the query was made on a local '
+        'function body',
+      );
+    }
+    return flowAnalysisLog!
+        .lookupPromotedThisType(offset: offset)
+        ?.unwrapTypeView<TypeImpl>();
   }
 
   /// Dispatch this function body to the resolver, imposing [imposedType] as the
@@ -32416,6 +32451,7 @@ final class LogicalOrPatternImpl extends DartPatternImpl
       this,
       leftOperand,
       rightOperand,
+      afterLhsOffset: operator.offset,
     );
     resolverVisitor.nullSafetyDeadCodeVerifier.flowEnd(rightOperand);
     inferenceLogWriter?.exitPattern(this);
@@ -37454,6 +37490,7 @@ final class ObjectPatternImpl extends DartPatternImpl implements ObjectPattern {
         fields,
         mustBeNamed: true,
       ),
+      promoteForPatternOffset: leftParenthesis.offset,
     );
 
     resolverVisitor.checkPatternNeverMatchesValueType(

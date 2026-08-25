@@ -18,14 +18,14 @@
 
 namespace dart {
 
-// Get the active Simulator for the current isolate.
+// Get the active Simulator for the current thread.
 Simulator* Simulator::Current() {
-  Isolate* isolate = Isolate::Current();
-  Simulator* simulator = isolate->simulator();
+  Thread* thread = Thread::Current();
+  Simulator* simulator = thread->simulator();
   if (simulator == nullptr) {
     NoSafepointScope no_safepoint;
     simulator = new Simulator();
-    isolate->set_simulator(simulator);
+    thread->set_simulator(simulator);
   }
   return simulator;
 }
@@ -34,12 +34,7 @@ void Simulator::Init() {}
 
 Simulator::Simulator() {}
 
-Simulator::~Simulator() {
-  Isolate* isolate = Isolate::Current();
-  if (isolate != nullptr) {
-    isolate->set_simulator(nullptr);
-  }
-}
+Simulator::~Simulator() {}
 
 int64_t Simulator::Call(int64_t entry,
                         int64_t parameter0,

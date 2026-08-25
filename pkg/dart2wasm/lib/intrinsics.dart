@@ -16,8 +16,10 @@ import 'util.dart';
 
 typedef CodeGenCallback = void Function(AstCodeGenerator);
 
-typedef InlineCodeGenCallback =
-    void Function(AstCodeGenerator, Expression receiver);
+typedef InlineCodeGenCallback = void Function(
+  AstCodeGenerator,
+  Expression receiver,
+);
 
 enum MemberIntrinsic {
   objectEquals('dart:core', 'Object', '=='),
@@ -1051,7 +1053,71 @@ class Intrinsifier {
       return w.NumType.i32;
     }
 
+    // Compare `<obj1>.runtimeType == <obj2>.runtimeType`
+    final leftReceiver = _getRuntimeTypeReceiver(node.left);
+    final rightReceiver = _getRuntimeTypeReceiver(node.right);
+    if (leftReceiver != null && rightReceiver != null) {
+      final leftDartType = dartTypeOf(leftReceiver);
+      final rightDartType = dartTypeOf(rightReceiver);
+
+      if (_hierarchyHasRuntimeTypeDeterminedByClassId(leftDartType) ||
+          _hierarchyHasRuntimeTypeDeterminedByClassId(rightDartType)) {
+        _pushClassIdOrZero(leftReceiver, leftDartType.isPotentiallyNullable);
+        _pushClassIdOrZero(rightReceiver, rightDartType.isPotentiallyNullable);
+        b.i32_eq();
+        return w.NumType.i32;
+      }
+    }
+
     return null;
+  }
+
+  void _pushClassIdOrZero(Expression expr, bool isPotentiallyNullable) {
+    final expressionType = isPotentiallyNullable
+        ? translator.topType
+        : translator.topTypeNonNullable;
+
+    codeGen.translateExpression(expr, expressionType);
+    b.loadClassIdNullable(translator, expressionType);
+  }
+
+  Expression? _getRuntimeTypeReceiver(Expression exp) {
+    if (exp case InstanceGet(:final receiver) || DynamicGet(:final receiver)) {
+      if (translator.singleTarget(exp) == translator.objectRuntimeType) {
+        return receiver;
+      }
+    }
+    return null;
+  }
+
+  bool _hierarchyHasRuntimeTypeDeterminedByClassId(DartType dartType) {
+    if (dartType is! InterfaceType) return false;
+    final functionType = translator.coreTypes.functionNonNullableRawType;
+    if (translator.typeEnvironment.isSubtypeOf(functionType, dartType) ||
+        translator.typeEnvironment.isSubtypeOf(dartType, functionType)) {
+      return false;
+    }
+    final recordType = translator.coreTypes.recordNonNullableRawType;
+    if (translator.typeEnvironment.isSubtypeOf(recordType, dartType) ||
+        translator.typeEnvironment.isSubtypeOf(dartType, recordType)) {
+      return false;
+    }
+    final cls = dartType.classNode;
+    final ranges = translator.classIdNumbering.getConcreteClassIdRange(cls);
+    if (ranges.isEmpty) return false;
+    if (ranges[0].start <
+        translator.classIdNumbering.firstNonMasqueradedInterfaceClassCid) {
+      return false;
+    }
+    for (final range in ranges) {
+      for (int cid = range.start; cid <= range.end; cid++) {
+        final classInfo = translator.classes[cid];
+        if (classInfo.cls != null && classInfo.cls!.typeParameters.isNotEmpty) {
+          return false;
+        }
+      }
+    }
+    return true;
   }
 
   /// Generate inline code for a [StaticGet] if the member is an inlined

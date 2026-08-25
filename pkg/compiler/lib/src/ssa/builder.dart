@@ -2889,9 +2889,9 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     List<HInstruction> arguments = [pop()];
     ClassEntity cls = _commonElements.streamIterator;
     DartType typeArg = _elementMap.getDartType(node.variable.type);
-    final instanceType =
-        localsHandler.substInContext(dartTypes.interfaceType(cls, [typeArg]))
-            as InterfaceType;
+    final instanceType = localsHandler.substInContext(
+      dartTypes.interfaceType(cls, [typeArg]),
+    ) as InterfaceType;
     _addImplicitInstantiation(instanceType);
     final sourceInformation = _sourceInformationBuilder.buildForInIterator(
       node,
@@ -4107,13 +4107,9 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       final sourceInformation = _sourceInformationBuilder.buildListLiteral(
         node,
       );
-      final type =
-          localsHandler.substInContext(
-                _commonElements.listType(
-                  _elementMap.getDartType(node.typeArgument),
-                ),
-              )
-              as InterfaceType;
+      final type = localsHandler.substInContext(
+        _commonElements.listType(_elementMap.getDartType(node.typeArgument)),
+      ) as InterfaceType;
       listInstruction = _setListRuntimeTypeInfoIfNeeded(
         listInstruction,
         type,
@@ -4163,13 +4159,9 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       constructor is ConstructorEntity && constructor.isFactoryConstructor,
     );
 
-    final type =
-        localsHandler.substInContext(
-              _commonElements.setType(
-                _elementMap.getDartType(node.typeArgument),
-              ),
-            )
-            as InterfaceType;
+    final type = localsHandler.substInContext(
+      _commonElements.setType(_elementMap.getDartType(node.typeArgument)),
+    ) as InterfaceType;
     final cls = constructor.enclosingClass!;
 
     if (_rtiNeed.classNeedsTypeArguments(cls)) {
@@ -4251,14 +4243,12 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       constructor is ConstructorEntity && constructor.isFactoryConstructor,
     );
 
-    final type =
-        localsHandler.substInContext(
-              _commonElements.mapType(
-                _elementMap.getDartType(node.keyType),
-                _elementMap.getDartType(node.valueType),
-              ),
-            )
-            as InterfaceType;
+    final type = localsHandler.substInContext(
+      _commonElements.mapType(
+        _elementMap.getDartType(node.keyType),
+        _elementMap.getDartType(node.valueType),
+      ),
+    ) as InterfaceType;
     final cls = constructor.enclosingClass!;
 
     if (_rtiNeed.classNeedsTypeArguments(cls)) {

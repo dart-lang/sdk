@@ -11,10 +11,12 @@ import 'package:cfg/passes/control_flow_optimizations.dart';
 import 'package:cfg/passes/pass.dart';
 import 'package:cfg/passes/simplification.dart';
 import 'package:cfg/passes/value_numbering.dart';
+import 'package:native_compiler/back_end/arm64/asm_intrinsics.dart';
 import 'package:native_compiler/back_end/arm64/code_generator.dart';
 import 'package:native_compiler/back_end/arm64/constraints.dart';
 import 'package:native_compiler/back_end/arm64/stack_frame.dart';
 import 'package:native_compiler/back_end/arm64/stub_code_generator.dart';
+import 'package:native_compiler/back_end/asm_intrinsics.dart';
 import 'package:native_compiler/back_end/back_end_state.dart';
 import 'package:native_compiler/back_end/code.dart';
 import 'package:native_compiler/back_end/code_generator.dart';
@@ -66,6 +68,7 @@ abstract base class Configuration(
     CFunction function,
     FunctionRegistry functionRegistry,
     StubFactory stubFactory,
+    AsmIntrinsics asmIntrinsics,
     CodeConsumer consumeGeneratedCode,
   );
 
@@ -79,9 +82,14 @@ abstract base class Configuration(
 
   CodeGenerator createCodeGenerator(
     BackEndState backEndState,
+    AsmIntrinsics asmIntrinsics,
     FunctionRegistry functionRegistry,
   ) => switch (targetCPU) {
-    TargetCPU.arm64 => Arm64CodeGenerator(backEndState, functionRegistry),
+    TargetCPU.arm64 => Arm64CodeGenerator(
+      backEndState,
+      asmIntrinsics,
+      functionRegistry,
+    ),
   };
 
   StubFactory createStubFactory(CodeConsumer consumeGeneratedCode) =>
@@ -90,6 +98,15 @@ abstract base class Configuration(
           vmOffsets,
           objectLayout,
           consumeGeneratedCode,
+        ),
+      };
+
+  AsmIntrinsics createAsmIntrinsics(FunctionRegistry functionRegistry) =>
+      switch (targetCPU) {
+        TargetCPU.arm64 => Arm64AsmIntrinsics(
+          functionRegistry,
+          vmOffsets,
+          objectLayout,
         ),
       };
 
@@ -133,6 +150,7 @@ final class DevelopmentCompilerConfiguration extends Configuration {
     CFunction function,
     FunctionRegistry functionRegistry,
     StubFactory stubFactory,
+    AsmIntrinsics asmIntrinsics,
     CodeConsumer consumeGeneratedCode,
   ) {
     final unboxing = Unboxing(objectLayout);
@@ -175,7 +193,7 @@ final class DevelopmentCompilerConfiguration extends Configuration {
       ReorderBlocks(backEndState),
       LinearScanRegisterAllocator(backEndState, constraints),
       RegisterAllocationChecker(backEndState, constraints),
-      createCodeGenerator(backEndState, functionRegistry),
+      createCodeGenerator(backEndState, asmIntrinsics, functionRegistry),
     ], afterPass: afterPass);
   }
 }

@@ -48,12 +48,10 @@ runTest(List<String> options, {bool trust = true}) async {
   LibraryEntity helperLibrary = elementEnvironment.lookupLibrary(
     Uris.dartJSHelper,
   )!;
-  final loadDeferredLibrary =
-      elementEnvironment.lookupLibraryMember(
-            helperLibrary,
-            'loadDeferredLibrary',
-          )
-          as FunctionEntity;
+  final loadDeferredLibrary = elementEnvironment.lookupLibraryMember(
+    helperLibrary,
+    'loadDeferredLibrary',
+  ) as FunctionEntity;
   TypeMask typeMask;
 
   KernelToLocalsMap localsMap = compiler
@@ -65,14 +63,10 @@ runTest(List<String> options, {bool trust = true}) async {
     loadDeferredLibrary,
   );
   final procedure = definition.node as ir.Procedure;
-  typeMask =
-      compiler.globalInference.resultsForTesting!.resultOfParameter(
-            localsMap.getLocalVariable(
-              procedure.function.positionalParameters.first,
-            ),
-            closedWorld.elementMap.getMethod(procedure),
-          )
-          as TypeMask;
+  typeMask = compiler.globalInference.resultsForTesting!.resultOfParameter(
+    localsMap.getLocalVariable(procedure.function.positionalParameters.first),
+    closedWorld.elementMap.getMethod(procedure),
+  ) as TypeMask;
 
   Expect.equals(
     trust ? abstractValueDomain.stringType : abstractValueDomain.dynamicType,

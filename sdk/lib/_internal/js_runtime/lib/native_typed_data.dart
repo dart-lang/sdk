@@ -1904,6 +1904,12 @@ final class NativeInt32x4 implements Int32x4 {
     if (w != this.w && w is! int) throw ArgumentError(w);
   }
 
+  factory NativeInt32x4.splat(int v) {
+    final t = _truncate(v);
+    if (v != t && v is! int) throw ArgumentError(v);
+    return NativeInt32x4._truncated(t, t, t, t);
+  }
+
   NativeInt32x4.bool(bool x, bool y, bool z, bool w)
     : this.x = x ? -1 : 0,
       this.y = y ? -1 : 0,
@@ -2010,6 +2016,17 @@ final class NativeInt32x4 implements Int32x4 {
     int mw = (w & 0x80000000) >> 31;
     return mx | my << 1 | mz << 2 | mw << 3;
   }
+
+  Int32x4 equal(Int32x4 other) {
+    return NativeInt32x4._truncated(
+      x == other.x ? -1 : 0,
+      y == other.y ? -1 : 0,
+      z == other.z ? -1 : 0,
+      w == other.w ? -1 : 0,
+    );
+  }
+
+  bool get anyTrue => (x | y | z | w) != 0;
 
   /// Shuffle the lane values. [mask] must be one of the 256 shuffle constants.
   Int32x4 shuffle(int mask) {

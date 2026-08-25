@@ -1226,6 +1226,7 @@ abstract class AnalysisServer {
     pubPackageService.shutdown();
     surveyManager?.shutdown();
     await contextManager.dispose();
+    await _fileByteStore?.flush();
     await analyticsManager.shutdown();
     await shutdownPerfWitness();
     await sessionLogger.shutdown();

@@ -128,9 +128,8 @@ class RecordTypeMask extends TypeMask {
       } else {
         // If the two records have different shapes use the union of their flat
         // mask representations.
-        return toFlatTypeMask(
-          domain,
-        ).union(other.toFlatTypeMask(domain), domain);
+        return toFlatTypeMask(domain)
+            .union(other.toFlatTypeMask(domain), domain);
       }
     }
     if (other is FlatTypeMask) {

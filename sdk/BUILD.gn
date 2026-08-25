@@ -41,8 +41,10 @@ declare_args() {
   # Path to stripped dart binaries relative to build output directory.
   dartvm_stripped_binary = "${stripped_binary_prefix}dartvm"
   dart_stripped_binary = "${stripped_binary_prefix}dart"
-  dart_aotruntime_stripped_binary = "${stripped_binary_prefix}dartaotruntime_product"
-  dart_cliruntime_stripped_binary = "${stripped_binary_prefix}dartcliruntime_product"
+  dart_aotruntime_stripped_binary =
+      "${stripped_binary_prefix}dartaotruntime_product"
+  dart_cliruntime_stripped_binary =
+      "${stripped_binary_prefix}dartcliruntime_product"
   gen_snapshot_stripped_binary = "${stripped_binary_prefix}gen_snapshot_product"
   wasm_opt_stripped_binary = "${stripped_binary_prefix}wasm-opt"
 
@@ -277,7 +279,7 @@ copy_tree("copy_dartdoc_resources") {
   exclude = "{}"
 }
 
-if (defined(build_devtools_from_sources) && build_devtools_from_sources) {
+if (defined(build_devtools_from_source) && build_devtools_from_source) {
   # This action compiles the devtools app from sources.
   action("build_devtools") {
     visibility = [ ":*" ]
@@ -852,7 +854,7 @@ group("create_most_sdk") {
     ":write_version_file",
   ]
 
-  if (defined(build_devtools_from_sources) && build_devtools_from_sources) {
+  if (defined(build_devtools_from_source) && build_devtools_from_source) {
     public_deps += [ ":build_devtools" ]
   } else {
     public_deps += [ ":copy_prebuilt_devtools" ]

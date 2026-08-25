@@ -8,8 +8,10 @@ import 'package:kernel/kernel.dart';
 
 import 'list_factory_specializer.dart';
 
-typedef SpecializerTransformer =
-    TreeNode Function(StaticInvocation node, Member contextMember);
+typedef SpecializerTransformer = TreeNode Function(
+  StaticInvocation node,
+  Member contextMember,
+);
 
 abstract class BaseSpecializer {
   // Populated in constructors of subclasses.

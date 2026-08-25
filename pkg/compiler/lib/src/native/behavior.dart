@@ -18,11 +18,10 @@ import 'js.dart';
 import 'native_throw_behavior.dart';
 export 'native_throw_behavior.dart';
 
-typedef TypeLookup =
-    Object? /*DartType|SpecialType*/ Function(
-      String typeString, {
-      bool required,
-    });
+typedef TypeLookup = Object? /*DartType|SpecialType*/ Function(
+  String typeString, {
+  bool required,
+});
 
 /// This class is a temporary workaround until we get a more powerful DartType.
 class SpecialType {
@@ -628,9 +627,8 @@ class NativeBehavior {
     );
 
     if (!sideEffectsAreEncodedInSpecString) {
-      SideEffectsVisitor(
-        behavior.sideEffects,
-      ).visit(behavior.codeTemplate!.ast);
+      SideEffectsVisitor(behavior.sideEffects)
+          .visit(behavior.codeTemplate!.ast);
     }
     if (!throwBehaviorFromSpecString) {
       behavior.throwBehavior = ThrowBehaviorVisitor().analyze(

@@ -1,0 +1,34 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method test1(core::Map<core::String, dynamic> m) → dynamic/* scope=[
+  #ctx1: not-captured [m],
+] */ {
+  return block /* scope=[
+    #ctx2: not-captured [#t1],
+  ] */{
+    final core::Map<core::String, core::String> #t1 = <core::String, core::String>{};
+    #t1.{core::Map::[]=}{Invariant}("key", "value"){(core::String, core::String) → void};
+    for /* scope=[
+      #ctx3: not-captured [#t2],
+    ] */ (final has-declared-initializer core::MapEntry<dynamic, dynamic> #t2 in m.{core::Map::entries}{core::Iterable<core::MapEntry<core::String, core::String>>})/* scope=[
+      #ctx4: not-captured [#t3,#t4],
+    ] */ {
+      final core::String #t3 = #t2.{core::MapEntry::key}{dynamic} as{TypeError} core::String;
+      final core::String #t4 = #t2.{core::MapEntry::value}{dynamic} as{TypeError} core::String;
+      #t1.{core::Map::[]=}{Invariant}(#t3, #t4){(core::String, core::String) → void};
+    }
+  } =>#t1;
+}
+static method test2(core::Map<core::String, core::String> m) → dynamic/* scope=[
+  #ctx5: not-captured [m],
+] */ {
+  return block /* scope=[
+    #ctx6: not-captured [#t5],
+  ] */{
+    final core::Map<core::String, core::String> #t5 = <core::String, core::String>{};
+    #t5.{core::Map::[]=}{Invariant}("key", "value"){(core::String, core::String) → void};
+    #t5.{core::Map::addAll}{Invariant}(m){(core::Map<core::String, core::String>) → void};
+  } =>#t5;
+}

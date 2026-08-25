@@ -10,31 +10,25 @@ static method opaqueVal() → core::int
 @#C3
 @#C5
 @#C7
-static method callClosure(positional-parameter func) → void/* scope=[
-  #ctx1: not-captured VariableContext([
-    positional-parameter func;
-  ]),
+static method callClosure(() → void func) → void/* scope=[
+  #ctx1: not-captured [func],
 ] */ {
   if(self::opaqueVal() =={core::num::==}{(core::Object) → core::bool} 1)
     func(){() → void};
 }
 static method foo48() → void {
   if(self::opaqueVal() =={core::num::==}{(core::Object) → core::bool} 1)/* scope=[
-    #ctx2: direct-captured VariableContext([
-      local-variable a;
-    ]),
+    #ctx2: direct-captured [a],
   ] */ {
-    a := 10;
+    core::int a = 10;
     self::callClosure(() /* #ctx2 */ → void {
       a = a.{core::num::+}(11){(core::num) → core::int};
     });
   }
   if(self::opaqueVal() =={core::num::==}{(core::Object) → core::bool} 1)/* scope=[
-    #ctx3: direct-captured VariableContext([
-      local-variable b;
-    ]),
+    #ctx3: direct-captured [b],
   ] */ {
-    b := 20;
+    core::int b = 20;
     self::callClosure(() /* #ctx3 */ → void {
       b = b.{core::num::+}(22){(core::num) → core::int};
     });

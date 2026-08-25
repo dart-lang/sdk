@@ -2111,8 +2111,8 @@ String _computeClosureName(ir.TreeNode treeNode) {
       parts.add(anonymous);
       anonymous = '';
     } else if (node is ir.FunctionDeclaration) {
-      final name = node.variable.cosmeticName;
-      if (name != null && name != "") {
+      final name = node.variable.name;
+      if (name != "") {
         parts.add(entity_utils.operatorNameToIdentifier(name)!);
       } else {
         parts.add(anonymous);

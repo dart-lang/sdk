@@ -102,7 +102,7 @@ class UnknownType extends AuxiliaryType implements SharedUnknownType {
 }
 
 // Coverage-ignore(suite): Not run.
-class InvocationStructuralContextType extends AuxiliaryType
+class InvocationStructuralContextType extends UnknownType
     implements SharedInvocationStructuralContextType {
   @override
   final DartType returnType;
@@ -145,7 +145,7 @@ class InvocationStructuralContextType extends AuxiliaryType
   }
 
   @override
-  DartType withDeclaredNullability(Nullability declaredNullability) {
+  UnknownType withDeclaredNullability(Nullability declaredNullability) {
     return this;
   }
 
@@ -156,7 +156,7 @@ class InvocationStructuralContextType extends AuxiliaryType
 }
 
 // Coverage-ignore(suite): Not run.
-class LookupStructuralContextType extends AuxiliaryType
+class LookupStructuralContextType extends UnknownType
     implements SharedLookupStructuralContextType {
   @override
   final String lookupName;
@@ -202,7 +202,7 @@ class LookupStructuralContextType extends AuxiliaryType
   }
 
   @override
-  DartType withDeclaredNullability(Nullability declaredNullability) {
+  UnknownType withDeclaredNullability(Nullability declaredNullability) {
     return this;
   }
 

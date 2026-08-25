@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:expect/async_helper.dart';
+
 import 'analysis_helper.dart';
 
 // TODO(johnniwinther): Remove unneeded dynamic accesses from platform source

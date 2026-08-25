@@ -7,6 +7,7 @@ import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/universe/call_structure.dart';
 import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
+
 import '../helpers/type_test_helper.dart';
 
 List<FunctionTypeData> signatures = const <FunctionTypeData>[

@@ -824,6 +824,26 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
     brk(0);
   }
 
+  @override
+  void smiTag(Register rd, [Register? rn]) {
+    lsl(rd, rn ?? rd, smiShift);
+  }
+
+  @override
+  void smiUntag(Register rd, [Register? rn]) {
+    asr(rd, rn ?? rd, smiShift);
+  }
+
+  @override
+  void branchIfSmi(Register object, Label target) {
+    tbz(object, smiBit, target);
+  }
+
+  @override
+  void branchIfNotSmi(Register object, Label target) {
+    tbnz(object, smiBit, target);
+  }
+
   /// Generate code for inline object allocation.
   void inlineAllocation(
     Register resultReg,
@@ -948,6 +968,7 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
     addImmediate(resultReg, resultReg, heapObjectTag);
   }
 
+  @override
   void loadClassId(Register result, Register object) {
     ldr(result, fieldAddress(object, vmOffsets.Object_tags_offset));
     ubfx(
@@ -956,6 +977,61 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
       vmOffsets.UntaggedObject_kClassIdTagPos,
       vmOffsets.UntaggedObject_kClassIdTagSize,
     );
+  }
+
+  @override
+  void loadClassIdMayBeSmi(Register result, Register object) {
+    assert(result != object);
+    final done = Label();
+    loadImmediate(result, ClassId.SmiCid.index);
+    branchIfSmi(object, done);
+    loadClassId(result, object);
+    bind(done);
+  }
+
+  @override
+  void loadIsolateGroup(Register rd) {
+    ldr(rd, address(threadReg, vmOffsets.Thread_isolate_group_offset));
+  }
+
+  @override
+  void loadClassById(Register result, Register classId) {
+    assert(result != classId);
+    loadIsolateGroup(result);
+    ldr(
+      result,
+      address(result, vmOffsets.IsolateGroup_cached_class_table_table_offset),
+    );
+    ldr(result, RegExtRegAddress(result, classId, Extend.UXTX, scaled: true));
+  }
+
+  @override
+  void combineHashes(Register hash, Register other) {
+    // hash += other
+    add(hash, hash, other, .u32);
+    // hash += hash << 10
+    add(hash, hash, ShiftedRegOperand(hash, Shift.LSL, 10), .u32);
+    // hash ^= hash >> 6
+    eor(hash, hash, ShiftedRegOperand(hash, Shift.LSR, 6), .u32);
+  }
+
+  @override
+  void finalizeHash(int bitSize, Register hash) {
+    assert(bitSize > 0 && bitSize <= 32);
+    // hash += hash << 3;
+    add(hash, hash, ShiftedRegOperand(hash, Shift.LSL, 3), .u32);
+    // hash ^= hash >> 11;
+    eor(hash, hash, ShiftedRegOperand(hash, Shift.LSR, 11), .u32);
+    // hash += hash << 15;
+    if (bitSize < 32) {
+      add(hash, hash, ShiftedRegOperand(hash, Shift.LSL, 15), .u32);
+      // Size to fit.
+      ands(hash, hash, Immediate((1 << bitSize) - 1), .u32);
+    } else {
+      adds(hash, hash, ShiftedRegOperand(hash, Shift.LSL, 15), .u32);
+    }
+    // return (hash == 0) ? 1 : hash;
+    cinc(hash, hash, .zero);
   }
 
   // [rd] and [rn] can be SP if [o] is Immediate or ExtRegOperand.
@@ -1172,6 +1248,16 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
     madd(rd, rn, rm, ZR, sz);
   }
 
+  void msub(
+    Register rd,
+    Register rn,
+    Register rm,
+    Register ra, [
+    OperandSize sz = OperandSize.s64,
+  ]) {
+    _emitMul(B15 | B24 | B25 | B27 | B28, rd, rn, rm, ra, sz);
+  }
+
   void umulh(Register rd, Register rn, Register rm) {
     _emitMul(
       B22 | B23 | B24 | B25 | B27 | B28,
@@ -1229,6 +1315,23 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
     );
   }
 
+  void cinc(
+    Register rd,
+    Register rn,
+    Condition condition, [
+    OperandSize sz = OperandSize.s64,
+  ]) {
+    csinc(rd, rn, rn, condition.inverted, sz);
+  }
+
+  void cset(
+    Register rd,
+    Condition condition, [
+    OperandSize sz = OperandSize.s64,
+  ]) {
+    csinc(rd, ZR, ZR, condition.inverted, sz);
+  }
+
   void csinv(
     Register rd,
     Register rn,
@@ -1269,6 +1372,15 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
       condition,
       sz,
     );
+  }
+
+  void cneg(
+    Register rd,
+    Register rn,
+    Condition condition, [
+    OperandSize sz = OperandSize.s64,
+  ]) {
+    csneg(rd, rn, rn, condition.inverted, sz);
   }
 
   void _emitConditionalSelect(
@@ -1481,7 +1593,7 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
     Register rm, [
     OperandSize sz = OperandSize.s64,
   ]) {
-    _emitVariableShift(B11, rd, rn, rm, sz);
+    _emitDataProcessing2(B11 | B13, rd, rn, rm, sz);
   }
 
   void lslv(
@@ -1490,7 +1602,7 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
     Register rm, [
     OperandSize sz = OperandSize.s64,
   ]) {
-    _emitVariableShift(0, rd, rn, rm, sz);
+    _emitDataProcessing2(B13, rd, rn, rm, sz);
   }
 
   void lsrv(
@@ -1499,10 +1611,19 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
     Register rm, [
     OperandSize sz = OperandSize.s64,
   ]) {
-    _emitVariableShift(B10, rd, rn, rm, sz);
+    _emitDataProcessing2(B10 | B13, rd, rn, rm, sz);
   }
 
-  void _emitVariableShift(
+  void sdiv(
+    Register rd,
+    Register rn,
+    Register rm, [
+    OperandSize sz = OperandSize.s64,
+  ]) {
+    _emitDataProcessing2(B10 | B11, rd, rn, rm, sz);
+  }
+
+  void _emitDataProcessing2(
     int opcode,
     Register rd,
     Register rn,
@@ -1511,7 +1632,7 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
   ) {
     assert(sz.is32or64);
     emit(
-      (B13 | B22 | B23 | B25 | B27 | B28) |
+      (B22 | B23 | B25 | B27 | B28) |
           opcode |
           rd.encodingRd() |
           rn.encodingRn() |
@@ -1795,20 +1916,8 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
   /// Load-Acquire Register.
   void ldar(Register rt, Register rn, [OperandSize sz = OperandSize.s64]) {
     _emitLoadStoreExclusive(
-      B10 |
-          B11 |
-          B12 |
-          B13 |
-          B14 |
-          B15 |
-          B16 |
-          B17 |
-          B18 |
-          B19 |
-          B20 |
-          B22 |
-          B23 |
-          B27,
+      B10 | B11 | B12 | B13 | B14 | B15 | B22 | B23 | B27,
+      ZR,
       rt,
       rn,
       sz,
@@ -1818,27 +1927,41 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
   /// Store-Release Register.
   void stlr(Register rt, Register rn, [OperandSize sz = OperandSize.s64]) {
     _emitLoadStoreExclusive(
-      B10 |
-          B11 |
-          B12 |
-          B13 |
-          B14 |
-          B15 |
-          B16 |
-          B17 |
-          B18 |
-          B19 |
-          B20 |
-          B23 |
-          B27,
+      B10 | B11 | B12 | B13 | B14 | B15 | B23 | B27,
+      ZR,
       rt,
       rn,
       sz,
     );
   }
 
+  /// Load-Exclusive Register.
+  void ldxr(Register rt, Register rn, [OperandSize sz = OperandSize.s64]) {
+    assert(sz.is64 || !sz.isSigned);
+    _emitLoadStoreExclusive(
+      B10 | B11 | B12 | B13 | B14 | B22 | B27,
+      ZR,
+      rt,
+      rn,
+      sz,
+    );
+  }
+
+  /// Store-Exclusive Register.
+  void stxr(
+    Register rs,
+    Register rt,
+    Register rn, [
+    OperandSize sz = OperandSize.s64,
+  ]) {
+    assert(rs != rt);
+    assert(rs != rn || rs == ZR);
+    _emitLoadStoreExclusive(B10 | B11 | B12 | B13 | B14 | B27, rs, rt, rn, sz);
+  }
+
   void _emitLoadStoreExclusive(
     int opcode,
+    Register rs,
     Register rt,
     Register rn,
     OperandSize sz,
@@ -1848,7 +1971,33 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
       opcode |
           rn.encodingRn(allowSP: true) |
           rt.encodingRt() |
+          rs.encodingRs() |
           (sz.log2sizeInBytes << 30),
+    );
+  }
+
+  /// Clear Exclusive Monitor.
+  void clrex() {
+    emit(
+      B0 |
+          B1 |
+          B2 |
+          B3 |
+          B4 |
+          B6 |
+          B8 |
+          B9 |
+          B10 |
+          B11 |
+          B12 |
+          B13 |
+          B16 |
+          B17 |
+          B24 |
+          B26 |
+          B28 |
+          B30 |
+          B31,
     );
   }
 
@@ -2262,6 +2411,7 @@ extension on Register {
   int encodingRn({bool allowSP = false}) => encoding(allowSP: allowSP) << 5;
   int encodingRa({bool allowSP = false}) => encoding(allowSP: allowSP) << 10;
   int encodingRm({bool allowSP = false}) => encoding(allowSP: allowSP) << 16;
+  int encodingRs({bool allowSP = false}) => encoding(allowSP: allowSP) << 16;
   int encodingRt({bool allowSP = false}) => encoding(allowSP: allowSP);
   int encodingRt2({bool allowSP = false}) => encoding(allowSP: allowSP) << 10;
 }

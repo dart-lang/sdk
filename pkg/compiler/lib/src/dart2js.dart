@@ -1338,13 +1338,12 @@ Iterable<String> _readLines(String path) {
 }
 
 typedef ExitFunc = Never Function(int exitCode);
-typedef CompileFunc =
-    Future<api.CompilationResult> Function(
-      CompilerOptions compilerOptions,
-      api.CompilerInput compilerInput,
-      api.CompilerDiagnostics compilerDiagnostics,
-      api.CompilerOutput compilerOutput,
-    );
+typedef CompileFunc = Future<api.CompilationResult> Function(
+  CompilerOptions compilerOptions,
+  api.CompilerInput compilerInput,
+  api.CompilerDiagnostics compilerDiagnostics,
+  api.CompilerOutput compilerOutput,
+);
 
 ExitFunc exitFunc = exit;
 CompileFunc compileFunc = api.compile;

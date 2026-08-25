@@ -17,13 +17,10 @@ void main() {
 @reflectiveTest
 class FlutterMoveDownTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.flutterMoveDown;
+  bool get addFlutterPackageDep => true;
 
   @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(flutter: true);
-  }
+  AssistKind get kind => DartAssistKind.flutterMoveDown;
 
   Future<void> test_first() async {
     await resolveTestCode('''

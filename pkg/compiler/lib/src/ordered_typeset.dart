@@ -51,9 +51,9 @@ class OrderedTypeSet {
         typeLinkBuilder.addLast(source.readDartType() as InterfaceType),
       );
     }
-    final types =
-        typeLinkBuilder.toLink(const Link<InterfaceType>())
-            as LinkEntry<InterfaceType>;
+    final types = typeLinkBuilder.toLink(
+      const Link<InterfaceType>(),
+    ) as LinkEntry<InterfaceType>;
     links.add(const Link<InterfaceType>());
 
     int levelCount = source.readInt();

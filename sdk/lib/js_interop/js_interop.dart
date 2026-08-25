@@ -245,7 +245,17 @@ external JSObjectType _createObjectLiteral();
 /// JavaScript side.
 @JS('Function')
 extension type JSFunction<T extends Function>._(JSFunctionType _jsFunction)
-    implements JSObject, JSFunctionType {}
+    implements JSObject, JSFunctionType {
+  /// The number of arguments declared for this function.
+  @Since('3.14')
+  external int get length;
+
+  /// The name used when declaring this function.
+  ///
+  /// Anonymous functions' names are empty strings.
+  @Since('3.14')
+  external String get name;
+}
 
 /// A JavaScript function created from a Dart function.
 ///

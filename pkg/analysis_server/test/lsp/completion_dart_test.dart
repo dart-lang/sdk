@@ -1540,6 +1540,9 @@ void f(int variable) {
 
 @reflectiveTest
 class CompletionTest extends AbstractCompletionTest {
+  @override
+  bool get addFlutterPackageDep => true;
+
   /// Checks whether the correct types of documentation are returned for
   /// completions based on [preference].
   Future<void> assertDocumentation(
@@ -1692,12 +1695,6 @@ void f() {
     expect(item.textEditText ?? item.label, text);
     expect(item.insertText, isNull);
     expect(item.textEdit, isNull);
-  }
-
-  @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(flutter: true);
   }
 
   Future<void> test_alreadyImported_noImportUris() async {
@@ -5695,18 +5692,15 @@ void f() {
 
 @reflectiveTest
 class FlutterSnippetCompletionTest extends SnippetCompletionTest {
+  @override
+  bool get addFlutterPackageDep => true;
+
   /// Standard import statements expected for basic Widgets.
   String get expectedImports => '''
 import 'package:flutter/widgets.dart';''';
 
   /// Constructor params expected on Widget classes.
   String get expectedWidgetConstructorParams => '({super.key})';
-
-  @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(flutter: true);
-  }
 
   Future<void> test_snippets_flutterStateful() async {
     content = '''

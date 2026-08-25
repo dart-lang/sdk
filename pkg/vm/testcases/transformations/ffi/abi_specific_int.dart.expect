@@ -17,7 +17,7 @@ final class WChar extends ffi::AbiSpecificInteger /*hasConstConstructor*/  {
     return #C68.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 }
 @#C70
-@#C75
+@#C78
 final class WCharStruct extends ffi::Struct {
   synthetic constructor •() → self::WCharStruct
     : super ffi::Struct::•()
@@ -29,34 +29,34 @@ final class WCharStruct extends ffi::Struct {
   constructor #fromTypedData(synthesized typ::TypedData #typedData, synthesized core::int #offset, synthesized core::int #sizeInBytes) → self::WCharStruct
     : super ffi::Struct::_fromTypedData(#typedData, #offset, #sizeInBytes)
     ;
-  @#C76
+  @#C79
   @#C67
   get a0() → core::int
     return ffi::_loadAbiSpecificInt<self::WChar>(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::WCharStruct::a0#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num});
-  @#C76
+  @#C79
   @#C67
   set a0(synthesized core::int #externalFieldValue) → void
     return ffi::_storeAbiSpecificInt<self::WChar>(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::WCharStruct::a0#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #externalFieldValue);
-  @#C76
+  @#C79
   @#C67
   get a1() → core::int
     return ffi::_loadAbiSpecificInt<self::WChar>(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::WCharStruct::a1#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num});
-  @#C76
+  @#C79
   @#C67
   set a1(synthesized core::int #externalFieldValue) → void
     return ffi::_storeAbiSpecificInt<self::WChar>(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::WCharStruct::a1#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #externalFieldValue);
   @#C67
   static synthetic get a0#offsetOf() → core::int
-    return #C77.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
+    return #C80.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
   @#C67
   static synthetic get a1#offsetOf() → core::int
     return #C68.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
   @#C67
   static synthetic get #sizeOf() → core::int
-    return #C79.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
+    return #C82.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 }
 @#C70
-@#C85
+@#C89
 final class WCharArrayStruct extends ffi::Struct {
   synthetic constructor •() → self::WCharArrayStruct
     : super ffi::Struct::•()
@@ -68,33 +68,33 @@ final class WCharArrayStruct extends ffi::Struct {
   constructor #fromTypedData(synthesized typ::TypedData #typedData, synthesized core::int #offset, synthesized core::int #sizeInBytes) → self::WCharArrayStruct
     : super ffi::Struct::_fromTypedData(#typedData, #offset, #sizeInBytes)
     ;
-  @#C86
+  @#C90
   @#C67
   get a0() → ffi::Array<self::WChar>
-    return new ffi::Array::_<self::WChar>(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::WCharArrayStruct::a0#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #C80, #C81, #C87);
-  @#C86
+    return new ffi::Array::_<self::WChar>(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::WCharArrayStruct::a0#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #C83, #C84, #C91);
+  @#C90
   @#C67
   set a0(synthesized ffi::Array<self::WChar> #externalFieldValue) → void
-    return ffi::_memCopy(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::WCharArrayStruct::a0#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #externalFieldValue.{ffi::_Compound::_typedDataBase}{core::Object}, #externalFieldValue.{ffi::_Compound::_offsetInBytes}{core::int}, #C90.{core::List::[]}(ffi::_abi()){(core::int) → core::int});
+    return ffi::_memCopy(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::WCharArrayStruct::a0#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #externalFieldValue.{ffi::_Compound::_typedDataBase}{core::Object}, #externalFieldValue.{ffi::_Compound::_offsetInBytes}{core::int}, #C94.{core::List::[]}(ffi::_abi()){(core::int) → core::int});
   @#C67
   static synthetic get a0#offsetOf() → core::int
-    return #C77.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
+    return #C80.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
   @#C67
   static synthetic get #sizeOf() → core::int
-    return #C90.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
+    return #C94.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 }
 class _DummyAllocator extends core::Object implements ffi::Allocator /*hasConstConstructor*/  {
   const constructor •() → self::_DummyAllocator
     : super core::Object::•()
     ;
-  @#C91
+  @#C95
   method allocate<T extends ffi::NativeType>(core::int byteCount, {core::int? alignment = #C66}) → ffi::Pointer<self::_DummyAllocator::allocate::T> {
     return ffi::Pointer::fromAddress<self::_DummyAllocator::allocate::T>(0);
   }
-  @#C91
+  @#C95
   method free(ffi::Pointer<ffi::NativeType> pointer) → void {}
 }
-static const field self::_DummyAllocator noAlloc = #C92;
+static const field self::_DummyAllocator noAlloc = #C96;
 static method main() → void {
   self::testSizeOf();
   self::testStoreLoad();
@@ -107,29 +107,29 @@ static method testSizeOf() → void {
   core::print(size);
 }
 static method testStoreLoad() → void {
-  final ffi::Pointer<self::WChar> p = #C92.{ffi::Allocator::allocate}<self::WChar>(self::WChar::#sizeOf){(core::int, {alignment: core::int?}) → ffi::Pointer<self::WChar>};
+  final ffi::Pointer<self::WChar> p = #C96.{ffi::Allocator::allocate}<self::WChar>(self::WChar::#sizeOf){(core::int, {alignment: core::int?}) → ffi::Pointer<self::WChar>};
   ffi::_storeAbiSpecificInt<self::WChar>(p, #C1, 10);
   core::print(ffi::_loadAbiSpecificInt<self::WChar>(p, #C1));
-  #C92.{self::_DummyAllocator::free}(p){(ffi::Pointer<ffi::NativeType>) → void};
+  #C96.{self::_DummyAllocator::free}(p){(ffi::Pointer<ffi::NativeType>) → void};
 }
 static method testStoreLoadIndexed() → void {
-  final ffi::Pointer<self::WChar> p = #C92.{ffi::Allocator::allocate}<self::WChar>(2.{core::num::*}(self::WChar::#sizeOf){(core::num) → core::num}){(core::int, {alignment: core::int?}) → ffi::Pointer<self::WChar>};
+  final ffi::Pointer<self::WChar> p = #C96.{ffi::Allocator::allocate}<self::WChar>(2.{core::num::*}(self::WChar::#sizeOf){(core::num) → core::num}){(core::int, {alignment: core::int?}) → ffi::Pointer<self::WChar>};
   ffi::_storeAbiSpecificIntAtIndex<self::WChar>(p, #C1, 0, 10);
   ffi::_storeAbiSpecificIntAtIndex<self::WChar>(p, #C1, 1, 3);
   core::print(ffi::_loadAbiSpecificIntAtIndex<self::WChar>(p, #C1, 0));
   core::print(ffi::_loadAbiSpecificIntAtIndex<self::WChar>(p, #C1, 1));
-  #C92.{self::_DummyAllocator::free}(p){(ffi::Pointer<ffi::NativeType>) → void};
+  #C96.{self::_DummyAllocator::free}(p){(ffi::Pointer<ffi::NativeType>) → void};
 }
 static method testStruct() → void {
-  final ffi::Pointer<self::WCharStruct> p = #C92.{ffi::Allocator::allocate}<self::WCharStruct>(self::WCharStruct::#sizeOf){(core::int, {alignment: core::int?}) → ffi::Pointer<self::WCharStruct>};
+  final ffi::Pointer<self::WCharStruct> p = #C96.{ffi::Allocator::allocate}<self::WCharStruct>(self::WCharStruct::#sizeOf){(core::int, {alignment: core::int?}) → ffi::Pointer<self::WCharStruct>};
   new self::WCharStruct::#fromTypedDataBase(p!, #C1).{self::WCharStruct::a0} = 1;
   core::print(new self::WCharStruct::#fromTypedDataBase(p!, #C1).{self::WCharStruct::a0}{core::int});
   new self::WCharStruct::#fromTypedDataBase(p!, #C1).{self::WCharStruct::a0} = 2;
   core::print(new self::WCharStruct::#fromTypedDataBase(p!, #C1).{self::WCharStruct::a0}{core::int});
-  #C92.{self::_DummyAllocator::free}(p){(ffi::Pointer<ffi::NativeType>) → void};
+  #C96.{self::_DummyAllocator::free}(p){(ffi::Pointer<ffi::NativeType>) → void};
 }
 static method testInlineArray() → void {
-  final ffi::Pointer<self::WCharArrayStruct> p = #C92.{ffi::Allocator::allocate}<self::WCharArrayStruct>(self::WCharArrayStruct::#sizeOf){(core::int, {alignment: core::int?}) → ffi::Pointer<self::WCharArrayStruct>};
+  final ffi::Pointer<self::WCharArrayStruct> p = #C96.{ffi::Allocator::allocate}<self::WCharArrayStruct>(self::WCharArrayStruct::#sizeOf){(core::int, {alignment: core::int?}) → ffi::Pointer<self::WCharArrayStruct>};
   final ffi::Array<self::WChar> array = new self::WCharArrayStruct::#fromTypedDataBase(p!, #C1).{self::WCharArrayStruct::a0}{ffi::Array<self::WChar>};
   for (core::int i = 0; i.{core::num::<}(100){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int}) {
     block {
@@ -145,7 +145,7 @@ static method testInlineArray() → void {
       #array##1.{ffi::Array::_checkIndex}(#index##1){(core::int) → void};
     } =>ffi::_loadAbiSpecificIntAtIndex<self::WChar>(#array##1.{ffi::_Compound::_typedDataBase}{core::Object}, #array##1.{ffi::_Compound::_offsetInBytes}{core::int}, #index##1));
   }
-  #C92.{self::_DummyAllocator::free}(p){(ffi::Pointer<ffi::NativeType>) → void};
+  #C96.{self::_DummyAllocator::free}(p){(ffi::Pointer<ffi::NativeType>) → void};
 }
 constants  {
   #C1 = 0
@@ -221,23 +221,27 @@ constants  {
   #C71 = "vm:ffi:struct-fields"
   #C72 = TypeLiteralConstant(self::WChar)
   #C73 = <core::Type>[#C72, #C72]
-  #C74 = ffi::_FfiStructLayout {fieldTypes:#C73, packing:#C66}
-  #C75 = core::pragma {name:#C71, options:#C74}
-  #C76 = self::WChar {}
-  #C77 = <core::int>[#C1, #C1, #C1, #C1, #C1, #C1, #C1, #C1, #C1, #C1, #C1, #C1, #C1, #C1, #C1, #C1, #C1, #C1, #C1, #C1, #C1, #C1]
-  #C78 = 8
-  #C79 = <core::int>[#C78, #C78, #C78, #C78, #C78, #C78, #C78, #C78, #C78, #C78, #C78, #C78, #C78, #C78, #C78, #C78, #C78, #C78, #C78, #C41, #C41, #C41]
-  #C80 = 100
-  #C81 = false
-  #C82 = ffi::_FfiInlineArray {elementType:#C72, length:#C80, variableLength:#C81}
-  #C83 = <core::Type>[#C82]
-  #C84 = ffi::_FfiStructLayout {fieldTypes:#C83, packing:#C66}
-  #C85 = core::pragma {name:#C71, options:#C84}
-  #C86 = ffi::_ArraySize<ffi::NativeType> {dimension1:#C80, dimension2:#C66, dimension3:#C66, dimension4:#C66, dimension5:#C66, dimensions:#C66, variableDimension:#C66}
-  #C87 = <core::int>[]
-  #C88 = 400
-  #C89 = 200
-  #C90 = <core::int>[#C88, #C88, #C88, #C88, #C88, #C88, #C88, #C88, #C88, #C88, #C88, #C88, #C88, #C88, #C88, #C88, #C88, #C88, #C88, #C89, #C89, #C89]
-  #C91 = core::_Override {}
-  #C92 = self::_DummyAllocator {}
+  #C74 = "a0"
+  #C75 = "a1"
+  #C76 = <core::String>[#C74, #C75]
+  #C77 = ffi::_FfiStructLayout {fieldTypes:#C73, packing:#C66, fieldNames:#C76}
+  #C78 = core::pragma {name:#C71, options:#C77}
+  #C79 = self::WChar {}
+  #C80 = <core::int>[#C1, #C1, #C1, #C1, #C1, #C1, #C1, #C1, #C1, #C1, #C1, #C1, #C1, #C1, #C1, #C1, #C1, #C1, #C1, #C1, #C1, #C1]
+  #C81 = 8
+  #C82 = <core::int>[#C81, #C81, #C81, #C81, #C81, #C81, #C81, #C81, #C81, #C81, #C81, #C81, #C81, #C81, #C81, #C81, #C81, #C81, #C81, #C41, #C41, #C41]
+  #C83 = 100
+  #C84 = false
+  #C85 = ffi::_FfiInlineArray {elementType:#C72, length:#C83, variableLength:#C84}
+  #C86 = <core::Type>[#C85]
+  #C87 = <core::String>[#C74]
+  #C88 = ffi::_FfiStructLayout {fieldTypes:#C86, packing:#C66, fieldNames:#C87}
+  #C89 = core::pragma {name:#C71, options:#C88}
+  #C90 = ffi::_ArraySize<ffi::NativeType> {dimension1:#C83, dimension2:#C66, dimension3:#C66, dimension4:#C66, dimension5:#C66, dimensions:#C66, variableDimension:#C66}
+  #C91 = <core::int>[]
+  #C92 = 400
+  #C93 = 200
+  #C94 = <core::int>[#C92, #C92, #C92, #C92, #C92, #C92, #C92, #C92, #C92, #C92, #C92, #C92, #C92, #C92, #C92, #C92, #C92, #C92, #C92, #C93, #C93, #C93]
+  #C95 = core::_Override {}
+  #C96 = self::_DummyAllocator {}
 }

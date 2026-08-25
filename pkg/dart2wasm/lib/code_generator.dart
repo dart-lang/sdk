@@ -1655,14 +1655,6 @@ abstract class AstCodeGenerator
       0,
     );
 
-    if (!translator.isAllocatable(node.target.enclosingClass)) {
-      // Cyclic types cannot be instantiated. Any code that tries to instantiate
-      // them will fail with stack overflow, which is a trap in Wasm. Here we
-      // replace one trap with another.
-      b.unreachable();
-      return expectedType;
-    }
-
     return call(target).single;
   }
 
@@ -2741,7 +2733,7 @@ abstract class AstCodeGenerator
       ParameterInfo.fromLocalFunction(decl.function),
       1,
     );
-    b.comment("Local call of ${decl.variable.cosmeticName}");
+    b.comment("Local call of ${decl.variable.name}");
     return translator.outputOrVoid(translator.callTarget(lambda.callTarget, b));
   }
 
@@ -3477,12 +3469,12 @@ CodeGenerator getMemberCodeGenerator(
   );
   if (codeGen != null) return codeGen;
 
-  final Class? memberClass = member.enclosingClass;
-  if (memberClass != null && !translator.isAllocatable(memberClass)) {
-    return UnreachableCodeGenerator(translator, functionBuilder.type, member);
-  }
-
   final procedure = member as Procedure;
+
+  assert(
+    !procedure.isInstanceMember ||
+        translator.isAllocatable(member.enclosingClass!),
+  );
 
   if (asyncMarker == AsyncMarker.SyncStar) {
     return SyncStarProcedureCodeGenerator(
@@ -3504,7 +3496,9 @@ CodeGenerator getMemberCodeGenerator(
 CodeGenerator getLambdaCodeGenerator(Translator translator, Lambda lambda) {
   final enclosingMember = lambda.enclosingMember;
   final enclosingClass = enclosingMember.enclosingClass;
-  if (enclosingClass != null && !translator.isAllocatable(enclosingClass)) {
+  if (enclosingClass != null &&
+      !translator.isAllocatable(enclosingClass) &&
+      (enclosingMember.isInstanceMember || lambda.isInConstructorBody)) {
     return UnreachableCodeGenerator(
       translator,
       lambda.callTarget.signature,
@@ -3535,7 +3529,9 @@ CodeGenerator? getInlinableMemberCodeGenerator(
   final Member member = reference.asMember;
 
   final Class? memberClass = member.enclosingClass;
-  if (memberClass != null && !translator.isAllocatable(memberClass)) {
+  if (memberClass != null &&
+      !translator.isAllocatable(memberClass) &&
+      (member.isInstanceMember || reference.isConstructorBodyReference)) {
     return UnreachableCodeGenerator(translator, functionType, member);
   }
 
@@ -4680,6 +4676,11 @@ class ConstructorAllocatorCodeGenerator extends ConstructorCodeGeneratorBase {
         b.local_get(local);
       }
       call(member.initializerReference);
+      if (!translator.isAllocatable(info.cls!)) {
+        b.unreachable();
+        b.end();
+        return;
+      }
       b.struct_new(info.struct);
     } else {
       b.comment('Calling $member initializer function');
@@ -4687,6 +4688,11 @@ class ConstructorAllocatorCodeGenerator extends ConstructorCodeGeneratorBase {
         b.local_get(local);
       }
       call(member.initializerReference);
+      if (!translator.isAllocatable(info.cls!)) {
+        b.unreachable();
+        b.end();
+        return;
+      }
 
       b.comment('Pop all field values to locals');
       final fieldValuesReversed = <w.Local>[];
@@ -6085,6 +6091,32 @@ extension MacroAssembler on w.InstructionsBuilder {
       translator.classInfoCollector.topInfo.struct,
       FieldIndex.classId,
     );
+  }
+
+  /// Load the class ID of the given possibly-nullable object.
+  ///
+  /// If the object is in fact null, then 0 is loaded, not the class ID of the
+  /// Null type. (Any constant will work as long as it's not used for any other
+  /// concrete class).
+  void loadClassIdNullable(Translator translator, w.ValueType receiverType) {
+    assert(receiverType.isSubtypeOf(translator.topType));
+
+    if (!receiverType.nullable) {
+      loadClassId(translator, translator.topTypeNonNullable);
+      return;
+    }
+
+    final done = block([translator.topType], const [w.NumType.i32]);
+    final notNull = block(
+      [translator.topType],
+      [translator.topTypeNonNullable],
+    );
+    br_on_non_null(notNull);
+    i32_const(0);
+    br(done);
+    end(); // notNull
+    loadClassId(translator, translator.topTypeNonNullable);
+    end(); // done
   }
 
   void fillTableRange(

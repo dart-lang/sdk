@@ -58,8 +58,11 @@ class BlockTest extends AbstractCompletionDriverTest with BlockTestCases {}
 
 mixin BlockTestCases on AbstractCompletionDriverTest {
   static final spaces_4 = ' ' * 4;
+
   static final spaces_6 = ' ' * 6;
   static final spaces_8 = ' ' * 8;
+  @override
+  bool get addFlutterPackageDep => true;
 
   Future<void> test_flutter_setState_indent6_hasPrefix() async {
     await _check_flutter_setState(
@@ -111,8 +114,6 @@ $spaces_4});
     required String line,
     required String expected,
   }) async {
-    writeTestPackageConfig(flutter: true);
-
     await computeSuggestions('''
 import 'package:flutter/widgets.dart';
 
