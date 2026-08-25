@@ -395,6 +395,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
         );
         isFirstStage = false;
       }
+      _finishDeferredFunctionLiterals();
     }
 
     if (inferrer != null) {
@@ -530,6 +531,13 @@ class InvocationInferrer<Node extends AstNodeImpl> {
   /// arguments supplied is incorrect.
   final InvocationTarget? target;
 
+  /// The zero-based index of the last argument visited, or -1 if no argument
+  /// has been visited yet.
+  ///
+  /// This is used to detect when
+  /// [FlowAnalysis.recordArgumentVisitOrderException] needs to be called.
+  int lastArgumentVisited = -1;
+
   /// Prepares to perform type inference on an invocation expression of type
   /// [Node].
   InvocationInferrer({
@@ -555,6 +563,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
       _resolveDeferredFunctionLiterals(
         deferredFunctionLiterals: deferredFunctionLiterals,
       );
+      _finishDeferredFunctionLiterals();
     }
   }
 
@@ -563,6 +572,20 @@ class InvocationInferrer<Node extends AstNodeImpl> {
   /// corresponding parameter, but it can be different for certain primitive
   /// numeric operations.
   TypeImpl _computeContextForArgument(TypeImpl parameterType) => parameterType;
+
+  /// Performs any final actions that need to be done after inferring all
+  /// deferred function literals.
+  ///
+  /// This method should be called once after all arguments have been inferred.
+  /// If none of the arguments are function literals, it needn't be called at
+  /// all.
+  void _finishDeferredFunctionLiterals() {
+    if (lastArgumentVisited != argumentList.arguments2.length - 1) {
+      resolver.flowAnalysis.flow?.recordArgumentVisitOrderException(
+        offset: argumentList.rightParenthesis.end,
+      );
+    }
+  }
 
   /// If the invocation being processed is a call to `identical`, informs flow
   /// analysis about it, so that it can do appropriate promotions.
@@ -595,6 +618,12 @@ class InvocationInferrer<Node extends AstNodeImpl> {
     var flow = resolver.flowAnalysis.flow;
     var arguments = argumentList.arguments2;
     for (var deferredArgument in deferredFunctionLiterals) {
+      var argument = arguments[deferredArgument.index];
+      if (lastArgumentVisited != deferredArgument.index - 1) {
+        flow?.recordArgumentVisitOrderException(
+          offset: argument.flowChangeOffset,
+        );
+      }
       var parameter = deferredArgument.parameter;
       TypeImpl parameterContextType;
       if (parameter != null) {
@@ -606,13 +635,13 @@ class InvocationInferrer<Node extends AstNodeImpl> {
       } else {
         parameterContextType = UnknownInferredType.instance;
       }
-      var argument = arguments[deferredArgument.index];
       var expression = argument.argumentExpression2;
       resolver.analyzeExpression(
         expression,
         SharedTypeSchemaView(parameterContextType),
       );
       expression = resolver.popRewrite()!;
+      lastArgumentVisited = deferredArgument.index;
       if (argument is NamedArgumentImpl) {
         argument.argumentExpression2 = expression;
       } else {
@@ -675,6 +704,11 @@ class InvocationInferrer<Node extends AstNodeImpl> {
         // make sense.  So we store an innocuous value in the list.
         whyNotPromotedArguments.add(() => const {});
       } else {
+        if (lastArgumentVisited != i - 1) {
+          flow?.recordArgumentVisitOrderException(
+            offset: argument.flowChangeOffset,
+          );
+        }
         TypeImpl parameterContextType;
         if (parameter != null) {
           var parameterType = parameter.type;
@@ -690,6 +724,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
           SharedTypeSchemaView(parameterContextType),
         );
         var rewritten = resolver.popRewrite()!;
+        lastArgumentVisited = i;
         if (argument is NamedArgumentImpl) {
           argument.argumentExpression2 = rewritten;
         } else {
@@ -894,4 +929,14 @@ class _ParamInfo {
   final InternalFormalParameterElement? parameter;
 
   _ParamInfo(this.parameter);
+}
+
+extension on ArgumentImpl {
+  /// Computes the offset that should be passed to
+  /// [FlowAnalysis.recordArgumentVisitOrderException] just before visiting the
+  /// argument represented by `this`.
+  int get flowChangeOffset => switch (beginToken.previous) {
+    var token? => token.end,
+    null => 0,
+  };
 }

@@ -356,6 +356,7 @@ class IncrementOrDecrementResolver {
             variableElement,
             SharedTypeView(operatorResultType),
             null,
+            offset: node.end,
           ),
         );
       } else {
@@ -363,6 +364,7 @@ class IncrementOrDecrementResolver {
           node,
           variableElement,
           SharedTypeView(operatorResultType),
+          offset: node.operator.offset,
         );
       }
     }

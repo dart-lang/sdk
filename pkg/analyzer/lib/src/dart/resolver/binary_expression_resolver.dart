@@ -96,10 +96,11 @@ class BinaryExpressionResolver {
     flow?.ifNullExpression_rightBegin(
       _resolver.flowAnalysis.getExpressionInfo(left),
       SharedTypeView(t1),
+      offset: node.operator.offset,
     );
     _resolver.analyzeExpression(right, SharedTypeSchemaView(j));
     right = _resolver.popRewrite()!;
-    flow?.ifNullExpression_end();
+    flow?.ifNullExpression_end(offset: node.end);
     var t2 = right.typeOrThrow;
 
     // - Let `T` be `UP(NonNull(T1), T2)`.
@@ -144,6 +145,7 @@ class BinaryExpressionResolver {
       leftOperand: node.leftOperand,
       rightOperand: node.rightOperand,
       isAnd: true,
+      operatorOffset: node.operator.offset,
     );
   }
 
@@ -153,6 +155,7 @@ class BinaryExpressionResolver {
       leftOperand: node.leftOperand,
       rightOperand: node.rightOperand,
       isAnd: false,
+      operatorOffset: node.operator.offset,
     );
   }
 
@@ -265,12 +268,13 @@ class BinaryExpressionResolver {
     required ExpressionImpl leftOperand,
     required ExpressionImpl rightOperand,
     required bool isAnd,
+    required int operatorOffset,
   }) {
     var left = leftOperand;
     var right = rightOperand;
     var flow = _resolver.flowAnalysis.flow;
 
-    flow?.logicalBinaryOp_begin();
+    flow?.logicalBinaryOp_begin(offset: node.offset);
     _resolver.analyzeExpression(
       left,
       SharedTypeSchemaView(_typeProvider.boolType),
@@ -284,6 +288,7 @@ class BinaryExpressionResolver {
       _resolver.flowAnalysis.getExpressionInfo(left),
       node,
       isAnd: isAnd,
+      offset: operatorOffset,
     );
     _resolver.checkUnreachableNode(right);
 
@@ -302,6 +307,7 @@ class BinaryExpressionResolver {
       flow?.logicalBinaryOp_end(
         _resolver.flowAnalysis.getExpressionInfo(right),
         isAnd: isAnd,
+        offset: node.end,
       ),
     );
 
