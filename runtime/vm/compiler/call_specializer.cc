@@ -2382,6 +2382,9 @@ class SimdLowering : public ValueObject {
       case MethodRecognizer::kInt32x4BitXor:
         Int32x4Binary(Token::kBIT_XOR);
         return true;
+      case MethodRecognizer::kInt32x4Equal:
+        Int32x4Compare(Token::kEQ);
+        return true;
       case MethodRecognizer::kInt32x4FromInts:
         UnboxScalar(0, kUnboxedInt32, 4);
         UnboxScalar(1, kUnboxedInt32, 4);
@@ -2734,9 +2737,6 @@ class SimdLowering : public ValueObject {
         Float32x4ToInt32x4();
         BoxVector(kUnboxedInt32, 4);
         return true;
-      case MethodRecognizer::kInt32x4Equal:
-        // TODO(riscv)
-        return false;
       default:
         UNREACHABLE();
         return false;
@@ -2755,6 +2755,12 @@ class SimdLowering : public ValueObject {
     BinaryInt32Op(op, 4);
     BoxVector(kUnboxedInt32, 4);
   }
+  void Int32x4Compare(Token::Kind op) {
+    UnboxVector(0, kUnboxedInt32, kMintCid, 4);
+    UnboxVector(1, kUnboxedInt32, kMintCid, 4);
+    CompareAsMask(kUnboxedInt32, op, 4);
+    BoxVector(kUnboxedInt32, 4);
+  }
   void Float32x4Unary(Token::Kind op) {
     UnboxVector(0, kUnboxedFloat, kDoubleCid, 4);
     UnaryDoubleOp(op, kUnboxedFloat, 4);
@@ -2769,7 +2775,7 @@ class SimdLowering : public ValueObject {
   void Float32x4Compare(Token::Kind op) {
     UnboxVector(0, kUnboxedFloat, kDoubleCid, 4);
     UnboxVector(1, kUnboxedFloat, kDoubleCid, 4);
-    FloatCompare(op);
+    CompareAsMask(kUnboxedFloat, op, 4);
     BoxVector(kUnboxedInt32, 4);
   }
   void Float64x2Unary(Token::Kind op) {
@@ -2888,11 +2894,11 @@ class SimdLowering : public ValueObject {
     BoxVector(rep, n);
   }
 
-  void FloatCompare(Token::Kind op) {
-    for (intptr_t lane = 0; lane < 4; lane++) {
-      op_[lane] = AddDefinition(
-          new (zone()) FloatCompareInstr(op, new (zone()) Value(in_[0][lane]),
-                                         new (zone()) Value(in_[1][lane])));
+  void CompareAsMask(Representation rep, Token::Kind op, intptr_t n) {
+    for (intptr_t lane = 0; lane < n; lane++) {
+      op_[lane] = AddDefinition(new (zone()) CompareAsMaskInstr(
+          rep, op, new (zone()) Value(in_[0][lane]),
+          new (zone()) Value(in_[1][lane])));
     }
   }
 

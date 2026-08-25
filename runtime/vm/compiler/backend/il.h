@@ -489,7 +489,7 @@ struct InstrAttrs {
   M(DoubleToSmi, kNoGC)                                                        \
   M(DoubleToFloat, kNoGC)                                                      \
   M(FloatToDouble, kNoGC)                                                      \
-  M(FloatCompare, kNoGC)                                                       \
+  M(CompareAsMask, kNoGC)                                                      \
   M(CheckClass, kNoGC)                                                         \
   M(CheckClassId, kNoGC)                                                       \
   M(CheckSmi, kNoGC)                                                           \
@@ -9993,10 +9993,13 @@ class FloatToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
 };
 
 // left op right ? -1 : 0
-class FloatCompareInstr : public TemplateDefinition<2, NoThrow, Pure> {
+class CompareAsMaskInstr : public TemplateDefinition<2, NoThrow, Pure> {
  public:
-  FloatCompareInstr(Token::Kind op_kind, Value* left, Value* right)
-      : op_kind_(op_kind) {
+  CompareAsMaskInstr(Representation input_representation,
+                     Token::Kind op_kind,
+                     Value* left,
+                     Value* right)
+      : input_representation_(input_representation), op_kind_(op_kind) {
     SetInputAt(0, left);
     SetInputAt(1, right);
   }
@@ -10004,33 +10007,37 @@ class FloatCompareInstr : public TemplateDefinition<2, NoThrow, Pure> {
   Value* left() const { return inputs_[0]; }
   Value* right() const { return inputs_[1]; }
 
+  Representation input_representation() const { return input_representation_; }
   Token::Kind op_kind() const { return op_kind_; }
 
-  DECLARE_INSTRUCTION(FloatCompare)
+  DECLARE_INSTRUCTION(CompareAsMask)
 
-  DECLARE_ATTRIBUTE(op_kind())
+  DECLARE_ATTRIBUTES_NAMED(("input_representation", "op_kind"),
+                           (input_representation(), op_kind()))
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
   virtual Representation representation() const { return kUnboxedInt32; }
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
-    return kUnboxedFloat;
+    return input_representation_;
   }
 
   virtual bool AttributesEqual(const Instruction& other) const {
-    return other.AsFloatCompare()->op_kind() == op_kind();
+    return other.AsCompareAsMask()->op_kind() == op_kind();
   }
 
-#define FIELD_LIST(F) F(const Token::Kind, op_kind_)
+#define FIELD_LIST(F)                                                          \
+  F(const Representation, input_representation_)                               \
+  F(const Token::Kind, op_kind_)
 
-  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(FloatCompareInstr,
+  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(CompareAsMaskInstr,
                                           TemplateDefinition,
                                           FIELD_LIST)
 #undef FIELD_LIST
 
  private:
-  DISALLOW_COPY_AND_ASSIGN(FloatCompareInstr);
+  DISALLOW_COPY_AND_ASSIGN(CompareAsMaskInstr);
 };
 
 // TODO(sjindel): Replace with FFICallInstr.

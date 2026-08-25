@@ -1352,7 +1352,7 @@ void ConstantPropagator::VisitFloatToDouble(FloatToDoubleInstr* instr) {
   SetValue(instr, non_constant_);
 }
 
-void ConstantPropagator::VisitFloatCompare(FloatCompareInstr* instr) {
+void ConstantPropagator::VisitCompareAsMask(CompareAsMaskInstr* instr) {
   // TODO(riscv)
   SetValue(instr, non_constant_);
 }
