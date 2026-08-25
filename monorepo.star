@@ -307,11 +307,6 @@ _monorepo_builder(
     "android-release-x64",
     "flutter-linux",
 )
-_monorepo_builder(
-    "flutter-linux-android_debug_x86",
-    "android-debug-x86",
-    "flutter-linux",
-)
 _monorepo_builder("flutter-linux-fuchsia_debug_x64", "fuchsia-debug-x64", "flutter-linux")
 _monorepo_builder("flutter-linux-fuchsia_profile_x64", "fuchsia-profile-x64", "flutter-linux")
 _monorepo_builder("flutter-linux-fuchsia_release_x64", "fuchsia-release-x64", "flutter-linux")
@@ -330,9 +325,6 @@ _monorepo_win_builder("flutter-win-host_profile", "host-profile", "flutter-win")
 _monorepo_win_builder("flutter-win-host_release", "host-release", "flutter-win")
 _monorepo_mac_builder("flutter-mac-ios_debug_ddm", "ios-debug-ddm", "flutter-mac")
 _monorepo_mac_builder("flutter-mac-ios_release_ddm", "ios-release-ddm", "flutter-mac")
-_monorepo_win_builder("flutter-win-win_host_debug", "host-debug", "flutter-win")
-_monorepo_win_builder("flutter-win-win_host_profile", "host-profile", "flutter-win")
-_monorepo_win_builder("flutter-win-win_host_release", "host-release", "flutter-win")
 _monorepo_builder("flutter-linux-wasm_release", "wasm", "flutter-web")
 _monorepo_builder("flutter-linux-web_tests-artifacts", "web-tests", None)
 _monorepo_builder(
