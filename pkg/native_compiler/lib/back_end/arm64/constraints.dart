@@ -11,7 +11,6 @@ import 'package:native_compiler/back_end/constraints.dart';
 import 'package:native_compiler/back_end/locations.dart';
 import 'package:native_compiler/back_end/safepoint.dart';
 import 'package:native_compiler/back_end/stack_frame.dart';
-import 'package:native_compiler/runtime/type_utils.dart';
 
 /// Defines arm64 register allocation contraints for
 /// inputs/outputs/temporaries of the IR instructions.
@@ -205,8 +204,19 @@ final class Arm64Constraints extends Constraints {
       throw 'Unexpected StoreLocal';
 
   @override
-  InstructionConstraints? visitLoadInstanceField(LoadInstanceField instr) =>
-      const InstructionConstraints(anyCpuRegister, [anyCpuRegister]);
+  InstructionConstraints? visitLoadInstanceField(LoadInstanceField instr) {
+    if (instr.checkInitialized) {
+      final inputs = const [R1];
+      return InstructionConstraints(
+        returnReg,
+        inputs,
+        // TODO: save registers on slow path
+        allRegistersExcept(returnReg, inputs),
+        Safepoint(),
+      );
+    }
+    return const InstructionConstraints(anyCpuRegister, [anyCpuRegister]);
+  }
 
   @override
   InstructionConstraints? visitStoreInstanceField(StoreInstanceField instr) =>
@@ -219,10 +229,11 @@ final class Arm64Constraints extends Constraints {
 
   @override
   InstructionConstraints? visitLoadStaticField(LoadStaticField instr) =>
-      (instr.checkInitialized && hasNonTrivialInitializer(instr.field.astField))
+      instr.checkInitialized
       ? InstructionConstraints(
           returnReg,
           const [],
+          // TODO: save registers on slow path
           volatileRegistersExceptReturnReg,
           Safepoint(),
         )
@@ -518,10 +529,24 @@ final class Arm64Constraints extends Constraints {
 
   @override
   InstructionConstraints? visitBinaryIntOp(BinaryIntOp instr) =>
-      InstructionConstraints(anyCpuRegister, [
-        anyCpuRegister,
-        anyRegisterOrImmediate(instr.right),
-      ]);
+      switch (instr.op) {
+        .truncatingDiv || .rem => InstructionConstraints(
+          anyCpuRegister,
+          const [anyCpuRegister, anyCpuRegister],
+          const [],
+          instr.right.canBeZero ? Safepoint() : null,
+        ),
+        .mod => InstructionConstraints(
+          anyCpuRegister,
+          const [anyCpuRegister, anyCpuRegister],
+          const [anyCpuRegister],
+          instr.right.canBeZero ? Safepoint() : null,
+        ),
+        _ => InstructionConstraints(anyCpuRegister, [
+          anyCpuRegister,
+          anyRegisterOrImmediate(instr.right),
+        ]),
+      };
 
   @override
   InstructionConstraints? visitUnaryIntOp(UnaryIntOp instr) =>

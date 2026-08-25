@@ -4,9 +4,7 @@ import "dart:core" as core;
 
 class A extends core::Object {
   late field () → self::A f/* scope=[
-    #ctx1: not-captured VariableContext([
-      this-variable final;
-    ]),
+    #ctx1: not-captured [this],
   ] */ = () → self::A => this-variable;
   synthetic constructor •() → self::A
     : super core::Object::•()

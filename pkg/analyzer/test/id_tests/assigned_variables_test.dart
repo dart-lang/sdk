@@ -4,7 +4,7 @@
 
 import 'dart:io';
 
-import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
+import 'package:_fe_analyzer_shared/src/testing/id.dart' show Id, ActualDataMap;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/promotion_key_store.dart';
@@ -45,7 +45,7 @@ class _AssignedVariablesDataComputer extends DataComputer<_Data> {
   void computeUnitData(
     TestingData testingData,
     CompilationUnit unit,
-    Map<Id, ActualData<_Data>> actualMap,
+    ActualDataMap<_Data> actualMap,
   ) {
     var unitElement = unit.declaredFragment!.element;
     var uri = unitElement.firstFragment.source.uri;

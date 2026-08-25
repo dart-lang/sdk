@@ -15,6 +15,11 @@
 
 - Added the bit-wise negation operator `~` to `Int32x4`, which inverts every bit
   of every lane.
+- Added `Int32x4.splat`, which creates an `Int32x4` with the same 32-bit integer
+  value in all four lanes, matching `Float32x4.splat` and `Float64x2.splat`.
+- Added `Int32x4.equal`, a lane-wise equality comparison that returns `-1` in
+  each lane where the operands are equal and `0` elsewhere, and the
+  `Int32x4.anyTrue` getter, which is `true` when any lane is non-zero.
 
 #### `dart:js_interop`
 
@@ -45,10 +50,28 @@
   (`ListOfNullableBoolToJSArray`). These make it easier and more efficient to
   convert between JS and Dart arrays of primitives.
 
+- Added `JSFunction.length` and `.name` getters.
+
 - Added `JSPromise.resolve` and `JSPromise.reject` static methods.
 
 [#61353]: https://github.com/dart-lang/sdk/issues/61353
 [#62699]: https://github.com/dart-lang/sdk/issues/62699
+
+### Tools
+
+#### Formatter
+
+The following bug fixes are *not* language versioned and apply also when
+formatting Dart 3.13 code:
+
+- Don't crash when formatting an enum with a primary constructor when trailing
+  commas are preserved ([#1885][dart_style #1885]).
+
+- Fix missing trailing comma on enum values when an enum has a primary
+  constructor ([#1888][dart_style #1888]).
+
+[dart_style #1885]: https://github.com/dart-lang/dart_style/issues/1885
+[dart_style #1888]: https://github.com/dart-lang/dart_style/issues/1888
 
 ## 3.13.0
 

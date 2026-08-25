@@ -30,11 +30,16 @@ class FunctionExpressionResolver {
     var isClosure = _resolver.flowAnalysis.isActive && !isFunctionDeclaration;
 
     if (isClosure) {
+      // Use typeParameters or parameters for the offset if available, because
+      // they will be visited before the body, and may contain expressions.
+      var enterOffset =
+          (node.typeParameters ?? node.parameters ?? node.body).offset;
       var element = node.declaredFragment!.element;
       _resolver.flowAnalysis.executableDeclaration_enter(
         node,
         element.formalParameters,
         isClosure: true,
+        offset: enterOffset,
       );
     }
 
@@ -67,7 +72,9 @@ class FunctionExpressionResolver {
 
     if (isClosure) {
       _resolver.checkForBodyMayCompleteNormally(body: body, errorNode: body);
-      _resolver.flowAnalysis.flow?.functionExpression_end();
+      _resolver.flowAnalysis.flow?.functionExpression_end(
+        offset: node.body.flowEndOffset,
+      );
       _resolver.nullSafetyDeadCodeVerifier.flowEnd(node);
     }
 

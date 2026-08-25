@@ -7,6 +7,7 @@ import 'package:compiler/src/inferrer/typemasks/masks.dart';
 import 'package:compiler/src/js_model/js_world.dart' show JClosedWorld;
 import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
+
 import '../helpers/type_test_helper.dart';
 
 main() {

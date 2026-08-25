@@ -74,7 +74,7 @@ class _InheritanceDataComputer extends DataComputer<String> {
   void computeUnitData(
     TestingData testingData,
     CompilationUnit unit,
-    Map<Id, ActualData<String>> actualMap,
+    ActualDataMap<String> actualMap,
   ) {
     _InheritanceDataExtractor(
       unit.declaredFragment!.source.uri,

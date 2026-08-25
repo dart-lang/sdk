@@ -11,10 +11,6 @@ import 'dart:_foreign_helper'
     show JS, JS_GET_FLAG, createJsSentinel, isJsSentinel;
 import 'dart:typed_data' show Uint8List;
 
-@patch
-@pragma('dart2js:tryInline')
-bool typeAcceptsNull<T>() => null is T;
-
 /// No-op in dart2js.
 ///
 /// Only used in DDC for hot restart correctness.

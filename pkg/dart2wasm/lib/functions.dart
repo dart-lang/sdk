@@ -379,7 +379,7 @@ class FunctionCollector {
     final member = lambda.enclosingMember;
     final lambdaNode = lambda.functionNode.parent;
     if (lambdaNode is FunctionDeclaration) {
-      final functionNodeName = lambdaNode.variable.cosmeticName;
+      final functionNodeName = lambdaNode.variable.name;
       return "$member closure $functionNodeName at $location";
     }
     assert(lambdaNode is FunctionExpression);

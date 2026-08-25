@@ -91,10 +91,9 @@ Future<void> runTest(
       File.fromUri(goldenUri).writeAsString(result.toString());
       print('-- Updated golden for: $testName ($testGroup) --');
     } else {
-      final expectedOutput =
-          await (goldenFiles.firstWhere((e) => e.path == goldenUri.path)
-                  as File)
-              .readAsString();
+      final expectedOutput = await (goldenFiles.firstWhere(
+        (e) => e.path == goldenUri.path,
+      ) as File).readAsString();
       Expect.equals(expectedOutput, result.toString());
     }
   }

@@ -3591,6 +3591,10 @@
         "description": "This configuration is used for DevTools testing."
       },
       "steps": [
+        {
+          "name": "build devtools",
+          "script": "tools/build_devtools.py"
+        }
       ]
     }
   ],

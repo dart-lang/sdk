@@ -47,6 +47,7 @@ class NullAssertionExpressionResolver {
 
     _resolver.flowAnalysis.flow?.nonNullAssert_end(
       _resolver.flowAnalysis.getExpressionInfo(operand),
+      offset: node.operator.offset,
     );
   }
 }

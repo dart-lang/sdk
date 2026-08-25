@@ -1044,13 +1044,10 @@ class B extends A {
 @reflectiveTest
 class CreateMissingOverridesMustBeOverriddenClassTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.createMissingOverrides;
+  bool get addMetaPackageDep => true;
 
   @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(meta: true);
-  }
+  FixKind get kind => DartFixKind.createMissingOverrides;
 
   Future<void> test_field() async {
     await resolveTestCode('''
@@ -1076,6 +1073,37 @@ class B extends A {
   int f;
 }
 ''');
+  }
+
+  Future<void> test_field_directInterface_generic() async {
+    await resolveTestCode('''
+import 'package:meta/meta.dart';
+
+class A<T> {
+  @mustBeOverridden
+  T? f;
+}
+
+class B implements A<int> {}
+''');
+    await assertHasFix(
+      '''
+import 'package:meta/meta.dart';
+
+class A<T> {
+  @mustBeOverridden
+  T? f;
+}
+
+class B implements A<int> {
+  @override
+  int? f;
+}
+''',
+      filter: (error) =>
+          error.diagnosticCode ==
+          diag.nonAbstractClassInheritsAbstractMemberTwo,
+    );
   }
 
   Future<void> test_field_overriddenWithOnlyGetter() async {
@@ -1110,6 +1138,74 @@ class B extends A {
 ''');
   }
 
+  Future<void> test_method_directInterface() async {
+    await resolveTestCode('''
+import 'package:meta/meta.dart';
+
+class A {
+  @mustBeOverridden
+  void foo() {}
+}
+
+class B implements A {}
+''');
+    await assertHasFix(
+      '''
+import 'package:meta/meta.dart';
+
+class A {
+  @mustBeOverridden
+  void foo() {}
+}
+
+class B implements A {
+  @override
+  void foo() {
+    // TODO: implement foo
+  }
+}
+''',
+      filter: (error) =>
+          error.diagnosticCode ==
+          diag.nonAbstractClassInheritsAbstractMemberOne,
+      matchFixMessage: 'Create 1 missing override',
+    );
+  }
+
+  Future<void> test_method_directInterface_generic() async {
+    await resolveTestCode('''
+import 'package:meta/meta.dart';
+
+class A<T> {
+  @mustBeOverridden
+  T foo(T value) => value;
+}
+
+class B implements A<int> {}
+''');
+    await assertHasFix(
+      '''
+import 'package:meta/meta.dart';
+
+class A<T> {
+  @mustBeOverridden
+  T foo(T value) => value;
+}
+
+class B implements A<int> {
+  @override
+  int foo(int value) {
+    // TODO: implement foo
+    throw UnimplementedError();
+  }
+}
+''',
+      filter: (error) =>
+          error.diagnosticCode ==
+          diag.nonAbstractClassInheritsAbstractMemberOne,
+    );
+  }
+
   Future<void> test_method_directMixin() async {
     await resolveTestCode('''
 import 'package:meta/meta.dart';
@@ -1133,6 +1229,35 @@ class A with M {
   @override
   void m() {
     // TODO: implement m
+  }
+}
+''');
+  }
+
+  Future<void> test_method_directSuperclass_generic() async {
+    await resolveTestCode('''
+import 'package:meta/meta.dart';
+
+class A<T> {
+  @mustBeOverridden
+  T foo(T value) => value;
+}
+
+class B extends A<int> {}
+''');
+    await assertHasFix('''
+import 'package:meta/meta.dart';
+
+class A<T> {
+  @mustBeOverridden
+  T foo(T value) => value;
+}
+
+class B extends A<int> {
+  @override
+  int foo(int value) {
+    // TODO: implement foo
+    throw UnimplementedError();
   }
 }
 ''');
@@ -1183,6 +1308,126 @@ class B extends A {
   @override
   void o() {
     // TODO: implement o
+  }
+}
+''');
+  }
+
+  Future<void> test_method_indirectSuperclass_multipleAnnotations() async {
+    await resolveTestCode('''
+import 'package:meta/meta.dart';
+
+class A<T> {
+  @mustBeOverridden
+  T foo() => throw 0;
+}
+
+class B extends A<num> {
+  @mustBeOverridden
+  @override
+  int foo() => 0;
+}
+
+class C extends B {}
+''');
+    await assertHasFix('''
+import 'package:meta/meta.dart';
+
+class A<T> {
+  @mustBeOverridden
+  T foo() => throw 0;
+}
+
+class B extends A<num> {
+  @mustBeOverridden
+  @override
+  int foo() => 0;
+}
+
+class C extends B {
+  @override
+  int foo() {
+    // TODO: implement foo
+    throw UnimplementedError();
+  }
+}
+''');
+  }
+
+  Future<void>
+  test_method_indirectSuperclass_usesMostSpecificSignature_formalParameters() async {
+    await resolveTestCode('''
+import 'package:meta/meta.dart';
+
+class A {
+  @mustBeOverridden
+  void foo() {}
+}
+
+class B extends A {
+  @override
+  void foo({int? value}) {}
+}
+
+class C extends B {}
+''');
+    await assertHasFix('''
+import 'package:meta/meta.dart';
+
+class A {
+  @mustBeOverridden
+  void foo() {}
+}
+
+class B extends A {
+  @override
+  void foo({int? value}) {}
+}
+
+class C extends B {
+  @override
+  void foo({int? value}) {
+    // TODO: implement foo
+  }
+}
+''');
+  }
+
+  Future<void>
+  test_method_indirectSuperclass_usesMostSpecificSignature_returnType() async {
+    await resolveTestCode('''
+import 'package:meta/meta.dart';
+
+class A<T> {
+  @mustBeOverridden
+  T foo() => throw 0;
+}
+
+class B extends A<num> {
+  @override
+  int foo() => 0;
+}
+
+class C extends B {}
+''');
+    await assertHasFix('''
+import 'package:meta/meta.dart';
+
+class A<T> {
+  @mustBeOverridden
+  T foo() => throw 0;
+}
+
+class B extends A<num> {
+  @override
+  int foo() => 0;
+}
+
+class C extends B {
+  @override
+  int foo() {
+    // TODO: implement foo
+    throw UnimplementedError();
   }
 }
 ''');

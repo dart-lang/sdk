@@ -121,7 +121,7 @@ class AstBinaryReader {
   AssignmentExpression _readAssignmentExpression() {
     var leftHandSide = _readNode() as ExpressionImpl;
     var rightHandSide = _readNode() as ExpressionImpl;
-    var operatorType = UnlinkedTokenType.values[_readByte()];
+    var operatorType = _reader.readEnum(UnlinkedTokenType.values);
     var node = AssignmentExpressionImpl(
       leftHandSide2: leftHandSide,
       operator: Tokens.fromType(operatorType),
@@ -143,7 +143,7 @@ class AstBinaryReader {
   BinaryOperatorInvocation _readBinaryOperatorInvocation() {
     var leftOperand = _readNode() as InstanceReceiverImpl;
     var rightOperand = _readNode() as ExpressionImpl;
-    var operatorType = UnlinkedTokenType.values[_readByte()];
+    var operatorType = _reader.readEnum(UnlinkedTokenType.values);
     var node = BinaryOperatorInvocationImpl(
       leftOperand: leftOperand,
       operator: Tokens.fromType(operatorType),
@@ -239,7 +239,7 @@ class AstBinaryReader {
   CompoundAssignment _readCompoundAssignment() {
     var target = _readNode() as AssignmentTargetImpl;
     var value = _readNode() as ExpressionImpl;
-    var operatorType = UnlinkedTokenType.values[_readByte()];
+    var operatorType = _reader.readEnum(UnlinkedTokenType.values);
     var node = CompoundAssignmentImpl(
       target: target,
       operator: Tokens.fromType(operatorType),
@@ -836,7 +836,7 @@ class AstBinaryReader {
   }
 
   IndexReadResolutionImpl _readIndexReadResolution() {
-    switch (IndexReadResolutionTag.values[_readByte()]) {
+    switch (_reader.readEnum(IndexReadResolutionTag.values)) {
       case IndexReadResolutionTag.dynamic_:
         return const DynamicIndexReadResolutionImpl();
       case IndexReadResolutionTag.invalid:
@@ -854,7 +854,7 @@ class AstBinaryReader {
   }
 
   IndexWriteResolutionImpl _readIndexWriteResolution() {
-    switch (IndexWriteResolutionTag.values[_readByte()]) {
+    switch (_reader.readEnum(IndexWriteResolutionTag.values)) {
       case IndexWriteResolutionTag.dynamic_:
         return const DynamicIndexWriteResolutionImpl();
       case IndexWriteResolutionTag.invalid:
@@ -1058,7 +1058,7 @@ class AstBinaryReader {
   }
 
   NamedReadResolutionImpl _readNamedReadResolution() {
-    switch (NamedReadResolutionTag.values[_readByte()]) {
+    switch (_reader.readEnum(NamedReadResolutionTag.values)) {
       case NamedReadResolutionTag.dynamicPropertyRead:
         return DynamicPropertyReadResolutionImpl();
       case NamedReadResolutionTag.executableTearOff:
@@ -1120,7 +1120,7 @@ class AstBinaryReader {
   }
 
   NamedWriteResolutionImpl _readNamedWriteResolution() {
-    switch (NamedWriteResolutionTag.values[_readByte()]) {
+    switch (_reader.readEnum(NamedWriteResolutionTag.values)) {
       case NamedWriteResolutionTag.invalid:
         var acceptedType = _reader.readType()!;
         var candidates = _reader.readElementList<Element>();
@@ -1148,220 +1148,218 @@ class AstBinaryReader {
   }
 
   AstNode _readNode() {
-    var tag = _readByte();
+    var tag = _reader.readEnum(AstNodeTag.values);
     switch (tag) {
-      case Tag.AdjacentStrings:
+      case AstNodeTag.AdjacentStrings:
         return _readAdjacentStrings();
-      case Tag.Annotation:
+      case AstNodeTag.Annotation:
         return _readAnnotation();
-      case Tag.ArgumentList:
+      case AstNodeTag.ArgumentList:
         return _readArgumentList();
-      case Tag.AsExpression:
+      case AstNodeTag.AsExpression:
         return _readAsExpression();
-      case Tag.AssertInitializer:
+      case AstNodeTag.AssertInitializer:
         return _readAssertInitializer();
-      case Tag.AssignmentExpression:
+      case AstNodeTag.AssignmentExpression:
         return _readAssignmentExpression();
-      case Tag.CompoundAssignment:
+      case AstNodeTag.CompoundAssignment:
         return _readCompoundAssignment();
-      case Tag.DirectAssignment:
+      case AstNodeTag.DirectAssignment:
         return _readDirectAssignment();
-      case Tag.IfNullAssignment:
+      case AstNodeTag.IfNullAssignment:
         return _readIfNullAssignment();
-      case Tag.InvalidExpressionAssignmentTarget:
+      case AstNodeTag.InvalidExpressionAssignmentTarget:
         return _readInvalidExpressionAssignmentTarget();
-      case Tag.AwaitExpression:
+      case AstNodeTag.AwaitExpression:
         return _readAwaitExpression();
-      case Tag.BinaryOperatorInvocation:
+      case AstNodeTag.BinaryOperatorInvocation:
         return _readBinaryOperatorInvocation();
-      case Tag.BooleanLiteral:
+      case AstNodeTag.BooleanLiteral:
         return _readBooleanLiteral();
-      case Tag.CascadeExpression:
+      case AstNodeTag.CascadeExpression:
         return _readCascadeExpression();
-      case Tag.CascadeIndexAssignmentTarget:
+      case AstNodeTag.CascadeIndexAssignmentTarget:
         return _readCascadeIndexAssignmentTarget();
-      case Tag.CascadeIndexExpression:
+      case AstNodeTag.CascadeIndexExpression:
         return _readCascadeIndexExpression();
-      case Tag.CascadePropertyAssignmentTarget:
+      case AstNodeTag.CascadePropertyAssignmentTarget:
         return _readCascadePropertyAssignmentTarget();
-      case Tag.CascadePropertyExtraction:
+      case AstNodeTag.CascadePropertyExtraction:
         return _readCascadePropertyExtraction();
-      case Tag.CascadeSection:
+      case AstNodeTag.CascadeSection:
         return _readCascadeSection();
-      case Tag.ConditionalExpression:
+      case AstNodeTag.ConditionalExpression:
         return _readConditionalExpression();
-      case Tag.ConstructorFieldInitializer:
+      case AstNodeTag.ConstructorFieldInitializer:
         return _readConstructorFieldInitializer();
-      case Tag.ConstructorTearOff:
+      case AstNodeTag.ConstructorTearOff:
         return _readConstructorTearOff();
-      case Tag.ConstructorReference2:
+      case AstNodeTag.ConstructorReference2:
         return _readConstructorReference2();
-      case Tag.ConstructorSelector:
+      case AstNodeTag.ConstructorSelector:
         return _readConstructorSelector();
-      case Tag.ConstructorTypeReference:
+      case AstNodeTag.ConstructorTypeReference:
         return _readConstructorTypeReference();
-      case Tag.DeclaredIdentifier:
+      case AstNodeTag.DeclaredIdentifier:
         return _readDeclaredIdentifier();
-      case Tag.DelimitedFormalParameters:
+      case AstNodeTag.DelimitedFormalParameters:
         return _readDelimitedFormalParameters();
-      case Tag.DotShorthandConstructorInvocation:
+      case AstNodeTag.DotShorthandConstructorInvocation:
         return _readDotShorthandConstructorInvocation();
-      case Tag.DotShorthandInvocation:
+      case AstNodeTag.DotShorthandInvocation:
         return _readDotShorthandInvocation();
-      case Tag.DotShorthandPropertyAccess:
+      case AstNodeTag.DotShorthandPropertyAccess:
         return _readDotShorthandPropertyAccess();
-      case Tag.DottedName:
+      case AstNodeTag.DottedName:
         return _readDottedName();
-      case Tag.DoubleLiteral:
+      case AstNodeTag.DoubleLiteral:
         return _readDoubleLiteral();
-      case Tag.ExtensionOverride:
+      case AstNodeTag.ExtensionOverride:
         return _readExtensionOverride();
-      case Tag.ForEachPartsWithDeclaration:
+      case AstNodeTag.ForEachPartsWithDeclaration:
         return _readForEachPartsWithDeclaration();
-      case Tag.ForElement:
+      case AstNodeTag.ForElement:
         return _readForElement();
-      case Tag.ForPartsWithDeclarations:
+      case AstNodeTag.ForPartsWithDeclarations:
         return _readForPartsWithDeclarations();
-      case Tag.ForPartsWithExpression:
+      case AstNodeTag.ForPartsWithExpression:
         return _readForPartsWithExpression();
-      case Tag.FieldFormalParameter:
+      case AstNodeTag.FieldFormalParameter:
         return _readFieldFormalParameter();
-      case Tag.FormalParameterList:
+      case AstNodeTag.FormalParameterList:
         return _readFormalParameterList();
-      case Tag.FunctionExpressionInvocation:
+      case AstNodeTag.FunctionExpressionInvocation:
         return _readFunctionExpressionInvocation();
-      case Tag.FunctionReference:
+      case AstNodeTag.FunctionReference:
         return _readFunctionReference();
-      case Tag.GenericFunctionType:
+      case AstNodeTag.GenericFunctionType:
         return _readGenericFunctionType();
-      case Tag.RegularFormalParameter:
+      case AstNodeTag.RegularFormalParameter:
         return _readRegularFormalParameter();
-      case Tag.IfElement:
+      case AstNodeTag.IfElement:
         return _readIfElement();
-      case Tag.ImplicitCallReference:
+      case AstNodeTag.ImplicitCallReference:
         return _readImplicitCallReference();
-      case Tag.ImportPrefixReference:
+      case AstNodeTag.ImportPrefixReference:
         return _readImportPrefixReference();
-      case Tag.IndexExpression:
+      case AstNodeTag.IndexExpression:
         return _readIndexExpression();
-      case Tag.IndexExpression2:
+      case AstNodeTag.IndexExpression2:
         return _readIndexExpression2();
-      case Tag.IndexAssignmentTarget:
+      case AstNodeTag.IndexAssignmentTarget:
         return _readIndexAssignmentTarget();
-      case Tag.IntegerLiteralNegative1:
+      case AstNodeTag.IntegerLiteralNegative1:
         return _readIntegerLiteralNegative1();
-      case Tag.IntegerLiteralNull:
+      case AstNodeTag.IntegerLiteralNull:
         return _readIntegerLiteralNull();
-      case Tag.IntegerLiteralPositive1:
+      case AstNodeTag.IntegerLiteralPositive1:
         return _readIntegerLiteralPositive1();
-      case Tag.IntegerLiteralPositive:
+      case AstNodeTag.IntegerLiteralPositive:
         return _readIntegerLiteralPositive();
-      case Tag.IntegerLiteralNegative:
+      case AstNodeTag.IntegerLiteralNegative:
         return _readIntegerLiteralNegative();
-      case Tag.InterpolationExpression:
+      case AstNodeTag.InterpolationExpression:
         return _readInterpolationExpression();
-      case Tag.InterpolationString:
+      case AstNodeTag.InterpolationString:
         return _readInterpolationString();
-      case Tag.IsExpression:
+      case AstNodeTag.IsExpression:
         return _readIsExpression();
-      case Tag.IfNull:
+      case AstNodeTag.IfNull:
         return _readIfNull();
-      case Tag.ListLiteral:
+      case AstNodeTag.ListLiteral:
         return _readListLiteral();
-      case Tag.LogicalAnd:
+      case AstNodeTag.LogicalAnd:
         return _readLogicalAnd();
-      case Tag.MapLiteralEntry:
+      case AstNodeTag.MapLiteralEntry:
         return _readMapLiteralEntry();
-      case Tag.MethodInvocation:
+      case AstNodeTag.MethodInvocation:
         return _readMethodInvocation();
-      case Tag.LogicalNot:
+      case AstNodeTag.LogicalNot:
         return _readLogicalNot();
-      case Tag.LogicalOr:
+      case AstNodeTag.LogicalOr:
         return _readLogicalOr();
-      case Tag.NamedArgument:
+      case AstNodeTag.NamedArgument:
         return _readNamedArgument();
-      case Tag.NullAwareElement:
+      case AstNodeTag.NullAwareElement:
         return _readNullAwareElement();
-      case Tag.NullAssertionExpression:
+      case AstNodeTag.NullAssertionExpression:
         return _readNullAssertionExpression();
-      case Tag.NullLiteral:
+      case AstNodeTag.NullLiteral:
         return _readNullLiteral();
-      case Tag.ConstructorInvocation:
+      case AstNodeTag.ConstructorInvocation:
         return _readConstructorInvocation();
-      case Tag.ParenthesizedExpression:
+      case AstNodeTag.ParenthesizedExpression:
         return _readParenthesizedExpression();
-      case Tag.PostfixDecrement:
+      case AstNodeTag.PostfixDecrement:
         return _readPostfixDecrement();
-      case Tag.PostfixIncrement:
+      case AstNodeTag.PostfixIncrement:
         return _readPostfixIncrement();
-      case Tag.PrefixDecrement:
+      case AstNodeTag.PrefixDecrement:
         return _readPrefixDecrement();
-      case Tag.PrefixIncrement:
+      case AstNodeTag.PrefixIncrement:
         return _readPrefixIncrement();
-      case Tag.PrefixedIdentifier:
+      case AstNodeTag.PrefixedIdentifier:
         return _readPrefixedIdentifier();
-      case Tag.PropertyAccess:
+      case AstNodeTag.PropertyAccess:
         return _readPropertyAccess();
-      case Tag.ReceiverPropertyAssignmentTarget:
+      case AstNodeTag.ReceiverPropertyAssignmentTarget:
         return _readReceiverPropertyAssignmentTarget();
-      case Tag.ReceiverPropertyExtraction:
+      case AstNodeTag.ReceiverPropertyExtraction:
         return _readReceiverPropertyExtraction();
-      case Tag.RecordLiteral:
+      case AstNodeTag.RecordLiteral:
         return _readRecordLiteral();
-      case Tag.RecordLiteralNamedField:
+      case AstNodeTag.RecordLiteralNamedField:
         return _readRecordLiteralNamedField();
-      case Tag.RecordTypeAnnotation:
+      case AstNodeTag.RecordTypeAnnotation:
         return _readRecordTypeAnnotation();
-      case Tag.RecordTypeAnnotationNamedField:
+      case AstNodeTag.RecordTypeAnnotationNamedField:
         return _readRecordTypeAnnotationNamedField();
-      case Tag.RecordTypeAnnotationNamedFields:
+      case AstNodeTag.RecordTypeAnnotationNamedFields:
         return _readRecordTypeAnnotationNamedFields();
-      case Tag.RecordTypeAnnotationPositionalField:
+      case AstNodeTag.RecordTypeAnnotationPositionalField:
         return _readRecordTypeAnnotationPositionalField();
-      case Tag.RedirectingConstructorInvocation:
+      case AstNodeTag.RedirectingConstructorInvocation:
         return _readRedirectingConstructorInvocation();
-      case Tag.SetOrMapLiteral:
+      case AstNodeTag.SetOrMapLiteral:
         return _readSetOrMapLiteral();
-      case Tag.SimpleIdentifier:
+      case AstNodeTag.SimpleIdentifier:
         return _readSimpleIdentifier();
-      case Tag.SimpleStringLiteral:
+      case AstNodeTag.SimpleStringLiteral:
         return _readSimpleStringLiteral();
-      case Tag.SpreadElement:
+      case AstNodeTag.SpreadElement:
         return _readSpreadElement();
-      case Tag.StringInterpolation:
+      case AstNodeTag.StringInterpolation:
         return _readStringInterpolation();
-      case Tag.SuperConstructorInvocation:
+      case AstNodeTag.SuperConstructorInvocation:
         return _readSuperConstructorInvocation();
-      case Tag.SuperExpression:
+      case AstNodeTag.SuperExpression:
         return _readSuperExpression();
-      case Tag.SuperFormalParameter:
+      case AstNodeTag.SuperFormalParameter:
         return _readSuperFormalParameter();
-      case Tag.SymbolLiteral:
+      case AstNodeTag.SymbolLiteral:
         return _readSymbolLiteral();
-      case Tag.ThisExpression:
+      case AstNodeTag.ThisExpression:
         return _readThisExpression();
-      case Tag.ThrowExpression:
+      case AstNodeTag.ThrowExpression:
         return _readThrowExpression();
-      case Tag.TypeArgumentList:
+      case AstNodeTag.TypeArgumentList:
         return _readTypeArgumentList();
-      case Tag.TypeLiteral:
+      case AstNodeTag.TypeLiteral:
         return _readTypeLiteral();
-      case Tag.NamedType:
+      case AstNodeTag.NamedType:
         return _readNamedType();
-      case Tag.TypeParameter:
+      case AstNodeTag.TypeParameter:
         return _readTypeParameter();
-      case Tag.TypeParameterList:
+      case AstNodeTag.TypeParameterList:
         return _readTypeParameterList();
-      case Tag.UnqualifiedNameAssignmentTarget:
+      case AstNodeTag.UnqualifiedNameAssignmentTarget:
         return _readUnqualifiedNameAssignmentTarget();
-      case Tag.UnaryOperatorInvocation:
+      case AstNodeTag.UnaryOperatorInvocation:
         return _readUnaryOperatorInvocation();
-      case Tag.VariableDeclaration:
+      case AstNodeTag.VariableDeclaration:
         return _readVariableDeclaration();
-      case Tag.VariableDeclarationList:
+      case AstNodeTag.VariableDeclarationList:
         return _readVariableDeclarationList();
-      default:
-        throw UnimplementedError('Unexpected tag: $tag');
     }
   }
 
@@ -1396,22 +1394,7 @@ class AstBinaryReader {
   }
 
   AstNode? _readOptionalNode() {
-    if (_readOptionTag()) {
-      return _readNode();
-    } else {
-      return null;
-    }
-  }
-
-  bool _readOptionTag() {
-    var tag = _readByte();
-    if (tag == Tag.Nothing) {
-      return false;
-    } else if (tag == Tag.Something) {
-      return true;
-    } else {
-      throw UnimplementedError('Unexpected option tag: $tag');
-    }
+    return _reader.readOptionalObject(_readNode);
   }
 
   ParenthesizedExpression _readParenthesizedExpression() {
@@ -1504,7 +1487,7 @@ class AstBinaryReader {
 
   ReceiverPropertyAssignmentTarget _readReceiverPropertyAssignmentTarget() {
     var receiver = _readNode() as ExpressionImpl;
-    var operatorType = UnlinkedTokenType.values[_readByte()];
+    var operatorType = _reader.readEnum(UnlinkedTokenType.values);
     var propertyName = _readStringReference();
     var node = ReceiverPropertyAssignmentTargetImpl(
       receiver: receiver,
@@ -1518,7 +1501,7 @@ class AstBinaryReader {
 
   ReceiverPropertyExtraction _readReceiverPropertyExtraction() {
     var receiver = _readNode() as ExpressionImpl;
-    var operatorType = UnlinkedTokenType.values[_readByte()];
+    var operatorType = _reader.readEnum(UnlinkedTokenType.values);
     var propertyName = _readStringReference();
     var node = ReceiverPropertyExtractionImpl(
       receiver: receiver,
@@ -1897,7 +1880,7 @@ class AstBinaryReader {
   }
 
   UnaryOperatorInvocation _readUnaryOperatorInvocation() {
-    var operatorType = UnlinkedTokenType.values[_readByte()];
+    var operatorType = _reader.readEnum(UnlinkedTokenType.values);
     var operand = _readNode() as InstanceReceiverImpl;
     var node = UnaryOperatorInvocationImpl(
       operator: Tokens.fromType(operatorType),

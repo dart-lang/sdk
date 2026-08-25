@@ -2009,11 +2009,14 @@ final class AllocateRecord extends Definition
 
 /// Base class for boxing instructions.
 abstract base class Box extends Definition
-    with CanThrow, Pure, BackendInstruction {
+    with CanThrow, Pure, Idempotent, BackendInstruction {
   Box(super.graph, super.sourcePosition, Definition operand)
     : super(inputCount: 1) {
     setInputAt(0, operand);
   }
+
+  @override
+  bool attributesEqual(Instruction other) => true;
 
   Definition get operand => inputDefAt(0);
 }
@@ -2042,13 +2045,16 @@ final class BoxDouble extends Box {
 
 /// Base class for unboxing instructions.
 abstract base class Unbox extends Definition
-    with NoThrow, Pure, BackendInstruction {
+    with NoThrow, Pure, Idempotent, BackendInstruction {
   Unbox(super.graph, super.sourcePosition, Definition operand)
     : super(inputCount: 1) {
     setInputAt(0, operand);
   }
 
   Definition get operand => inputDefAt(0);
+
+  @override
+  bool attributesEqual(Instruction other) => true;
 }
 
 /// Get raw int value out of the box.

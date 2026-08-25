@@ -25,6 +25,9 @@ void main() {
 class CreateConstructorForFinalFieldsRequiredNamedTest
     extends FixProcessorTest {
   @override
+  bool get addFlutterPackageDep => true;
+
+  @override
   FixKind get kind => DartFixKind.createConstructorForFinalFieldsRequiredNamed;
 
   Future<void> test_class_excludesLate() async {
@@ -45,7 +48,6 @@ class Test {
   }
 
   Future<void> test_class_flutter() async {
-    writeTestPackageConfig(flutter: true);
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
@@ -70,7 +72,6 @@ class Test extends StatelessWidget {
   }
 
   Future<void> test_class_flutter_lint() async {
-    writeTestPackageConfig(flutter: true);
     createAnalysisOptionsFile(
       lints: [LintNames.always_put_required_named_parameters_first],
     );
@@ -98,7 +99,6 @@ class Test extends StatelessWidget {
   }
 
   Future<void> test_class_flutter_lint_notRequired() async {
-    writeTestPackageConfig(flutter: true);
     createAnalysisOptionsFile(
       lints: [LintNames.always_put_required_named_parameters_first],
     );
@@ -417,6 +417,9 @@ enum E {
 class CreateConstructorForFinalFieldsRequiredPositionalTest
     extends FixProcessorTest {
   @override
+  bool get addFlutterPackageDep => true;
+
+  @override
   FixKind get kind => DartFixKind.createConstructorForFinalFields;
 
   Future<void> test_class_excludesLate() async {
@@ -437,7 +440,6 @@ class Test {
   }
 
   Future<void> test_class_flutter() async {
-    writeTestPackageConfig(flutter: true);
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
@@ -466,7 +468,6 @@ class MyWidget extends StatelessWidget {
   }
 
   Future<void> test_class_flutter_childLast() async {
-    writeTestPackageConfig(flutter: true);
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
@@ -495,7 +496,6 @@ class MyWidget extends StatelessWidget {
   }
 
   Future<void> test_class_flutter_childrenLast() async {
-    writeTestPackageConfig(flutter: true);
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
@@ -670,13 +670,15 @@ final int v;
 class CreateConstructorForFinalFieldsWithoutSuperParametersTest
     extends FixProcessorTest {
   @override
+  bool get addFlutterPackageDep => true;
+
+  @override
   FixKind get kind => DartFixKind.createConstructorForFinalFields;
 
   @override
   String get testPackageLanguageVersion => '2.16';
 
   Future<void> test_class_flutter() async {
-    writeTestPackageConfig(flutter: true);
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
@@ -705,7 +707,6 @@ class MyWidget extends StatelessWidget {
   }
 
   Future<void> test_class_flutter_childLast() async {
-    writeTestPackageConfig(flutter: true);
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
@@ -734,7 +735,6 @@ class MyWidget extends StatelessWidget {
   }
 
   Future<void> test_class_flutter_childrenLast() async {
-    writeTestPackageConfig(flutter: true);
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
@@ -763,7 +763,6 @@ class MyWidget extends StatelessWidget {
   }
 
   Future<void> test_class_flutter_private_field() async {
-    writeTestPackageConfig(flutter: true);
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 

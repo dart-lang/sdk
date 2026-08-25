@@ -109,7 +109,7 @@ dependencies:
 class Test {}
 ''');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()..add(name: 'aaa', rootFolder: aaaRoot),
     );
 
@@ -786,7 +786,7 @@ class A01 {}
 class A02 {}
 ''');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'aaa', rootFolder: aaaRoot)
         ..add(name: 'bbb', rootFolder: bbbRoot),
@@ -840,7 +840,7 @@ class A03 {}
 class A04 {}
 ''');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'aaa', rootFolder: aaaRoot)
         ..add(name: 'bbb', rootFolder: bbbRoot),
@@ -890,7 +890,7 @@ class A03 {}
 class A04 {}
 ''');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'aaa', rootFolder: aaaRoot)
         ..add(name: 'bbb', rootFolder: bbbRoot),
@@ -942,7 +942,7 @@ class A01 {}
 class A02 {}
 ''');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'aaa', rootFolder: aaaRoot)
         ..add(name: 'bbb', rootFolder: bbbRoot),

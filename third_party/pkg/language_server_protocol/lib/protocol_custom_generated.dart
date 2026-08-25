@@ -1692,6 +1692,117 @@ class DartDiagnosticServer implements ToJsonable {
   }
 }
 
+class DartGetWorkspaceFixesParams implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    DartGetWorkspaceFixesParams.canParse,
+    DartGetWorkspaceFixesParams.fromJson,
+  );
+
+  /// An optional set of diagnostic codes to filter to.
+  final List<String>? diagnosticCodes;
+
+  DartGetWorkspaceFixesParams({
+    this.diagnosticCodes,
+  });
+
+  @override
+  int get hashCode => lspHashCode(diagnosticCodes);
+
+  @override
+  bool operator ==(Object other) {
+    return other is DartGetWorkspaceFixesParams &&
+        other.runtimeType == DartGetWorkspaceFixesParams &&
+        const DeepCollectionEquality()
+            .equals(diagnosticCodes, other.diagnosticCodes);
+  }
+
+  @override
+  Map<String, Object?> toJson() {
+    var result = <String, Object?>{};
+    if (diagnosticCodes != null) {
+      result['diagnosticCodes'] = diagnosticCodes;
+    }
+    return result;
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      return _canParseListString(obj, reporter, 'diagnosticCodes',
+          allowsUndefined: true, allowsNull: false);
+    } else {
+      reporter.reportError('must be of type DartGetWorkspaceFixesParams');
+      return false;
+    }
+  }
+
+  static DartGetWorkspaceFixesParams fromJson(Map<String, Object?> json) {
+    final diagnosticCodesJson = json['diagnosticCodes'];
+    final diagnosticCodes = (diagnosticCodesJson as List<Object?>?)
+        ?.map((item) => item as String)
+        .toList();
+    return DartGetWorkspaceFixesParams(
+      diagnosticCodes: diagnosticCodes,
+    );
+  }
+}
+
+class DartGetWorkspaceFixesResult implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    DartGetWorkspaceFixesResult.canParse,
+    DartGetWorkspaceFixesResult.fromJson,
+  );
+
+  /// The edits to be applied to the workspace or `null` if there are none.
+  final WorkspaceEdit? edit;
+
+  DartGetWorkspaceFixesResult({
+    this.edit,
+  });
+
+  @override
+  int get hashCode => edit.hashCode;
+
+  @override
+  bool operator ==(Object other) {
+    return other is DartGetWorkspaceFixesResult &&
+        other.runtimeType == DartGetWorkspaceFixesResult &&
+        edit == other.edit;
+  }
+
+  @override
+  Map<String, Object?> toJson() {
+    var result = <String, Object?>{};
+    result['edit'] = edit?.toJson();
+    return result;
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      return _canParseWorkspaceEdit(obj, reporter, 'edit',
+          allowsUndefined: false, allowsNull: true);
+    } else {
+      reporter.reportError('must be of type DartGetWorkspaceFixesResult');
+      return false;
+    }
+  }
+
+  static DartGetWorkspaceFixesResult fromJson(Map<String, Object?> json) {
+    final editJson = json['edit'];
+    final edit = editJson != null
+        ? WorkspaceEdit.fromJson(editJson as Map<String, Object?>)
+        : null;
+    return DartGetWorkspaceFixesResult(
+      edit: edit,
+    );
+  }
+}
+
 class DartMigrateParams implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     DartMigrateParams.canParse,

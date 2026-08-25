@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:_fe_analyzer_shared/src/testing/id.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -44,7 +46,7 @@ abstract class AstDataExtractor<T> extends UnifyingAstVisitor2<void>
   final Uri uri;
 
   @override
-  final Map<Id, ActualData<T>> actualMap;
+  final ActualDataMap<T> actualMap;
 
   AstDataExtractor(this.uri, this.actualMap);
 
@@ -55,59 +57,59 @@ abstract class AstDataExtractor<T> extends UnifyingAstVisitor2<void>
 
   void computeForClass(Declaration node, Id? id) {
     if (id == null) return;
-    T? value = computeNodeValue(id, node);
-    registerValue(uri, _nodeOffset(node), id, value, node);
+    FutureOr<T?> value = computeNodeValue(id, node);
+    asyncRegisterValue(uri, _nodeOffset(node), id, value, node);
   }
 
   void computeForFormalParameter(FormalParameter node, NodeId? id) {
     if (id == null) return;
-    T? value = computeNodeValue(id, node);
-    registerValue(uri, _nodeOffset(node), id, value, node);
+    FutureOr<T?> value = computeNodeValue(id, node);
+    asyncRegisterValue(uri, _nodeOffset(node), id, value, node);
   }
 
   void computeForLibrary(LibraryElement library, Id? id) {
     if (id == null) return;
-    T? value = computeElementValue(id, library);
-    registerValue(uri, 0, id, value, library);
+    FutureOr<T?> value = computeElementValue(id, library);
+    asyncRegisterValue(uri, 0, id, value, library);
   }
 
   void computeForMember(AstNode node, Id? id) {
     if (id == null) return;
-    T? value = computeNodeValue(id, node);
-    registerValue(uri, _nodeOffset(node), id, value, node);
+    FutureOr<T?> value = computeNodeValue(id, node);
+    asyncRegisterValue(uri, _nodeOffset(node), id, value, node);
   }
 
   void computeForNode(AstNode node, NodeId? id) {
     if (id == null) return;
-    T? value = computeNodeValue(id, node);
-    registerValue(uri, _nodeOffset(node), id, value, node);
+    FutureOr<T?> value = computeNodeValue(id, node);
+    asyncRegisterValue(uri, _nodeOffset(node), id, value, node);
   }
 
   void computeForStatement(Statement node, NodeId? id) {
     if (id == null) return;
-    T? value = computeNodeValue(id, node);
-    registerValue(uri, _nodeOffset(node), id, value, node);
+    FutureOr<T?> value = computeNodeValue(id, node);
+    asyncRegisterValue(uri, _nodeOffset(node), id, value, node);
   }
 
   void computeForToken(Token token, NodeId? id) {
     if (id == null) return;
-    T? value = computeTokenValue(id, token);
-    registerValue(uri, token.offset, id, value, token);
+    FutureOr<T?> value = computeTokenValue(id, token);
+    asyncRegisterValue(uri, token.offset, id, value, token);
   }
 
   void computeForVariableDeclaration(VariableDeclaration node, NodeId? id) {
     if (id == null) return;
-    T? value = computeNodeValue(id, node);
-    registerValue(uri, _nodeOffset(node), id, value, node);
+    FutureOr<T?> value = computeNodeValue(id, node);
+    asyncRegisterValue(uri, _nodeOffset(node), id, value, node);
   }
 
   /// Implement this to compute the data corresponding to [node].
   ///
   /// If `null` is returned, [node] has no associated data.
-  T? computeNodeValue(Id id, AstNode node);
+  FutureOr<T?> computeNodeValue(Id id, AstNode node);
 
   /// Computes the data corresponding to [token], if any.
-  T? computeTokenValue(Id id, Token token) => null;
+  FutureOr<T?> computeTokenValue(Id id, Token token) => null;
 
   Id createClassId(Declaration node) {
     var element = node.declaredFragment!.element;

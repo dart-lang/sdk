@@ -4,7 +4,7 @@
 
 import 'dart:io';
 
-import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
+import 'package:_fe_analyzer_shared/src/testing/id.dart' show Id, ActualDataMap;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -45,7 +45,7 @@ class _InferredTypeArgumentsDataComputer extends DataComputer<List<DartType>> {
   void computeUnitData(
     TestingData testingData,
     CompilationUnit unit,
-    Map<Id, ActualData<List<DartType>>> actualMap,
+    ActualDataMap<List<DartType>> actualMap,
   ) {
     var unitUri = unit.declaredFragment!.source.uri;
     _InferredTypeArgumentsDataExtractor(unitUri, actualMap).run(unit);

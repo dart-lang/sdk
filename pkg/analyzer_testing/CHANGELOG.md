@@ -5,6 +5,8 @@
   `experimentalFeaturesForTests`, renames the `analysisOptionsContent`
   `experiments` parameter to `experimentalFeatures`, and replaces the
   `PubPackageResolutionTest.experiments` getter with `experimentalFeatures`.
+- Introduce `writePackageConfig2` and `writeTestPackageConfig2` APIs and
+  deprecate `writePackageConfig` and `writeTestPackageConfig`.
 - Require version `14.2.0-dev` of the `analyzer` package.
 
 ## 0.3.4

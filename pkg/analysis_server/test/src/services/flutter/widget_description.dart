@@ -14,6 +14,9 @@ import '../../../abstract_single_unit.dart';
 class WidgetDescriptionBase extends AbstractSingleUnitTest {
   final descriptions = WidgetDescriptions();
 
+  @override
+  bool get addFlutterPackageDep => true;
+
   void assertExpectedChange(SetPropertyValueResult result, String expected) {
     expect(result.errorCode, isNull);
 
@@ -81,12 +84,6 @@ class WidgetDescriptionBase extends AbstractSingleUnitTest {
 
     var properties = widgetDescription.properties;
     return properties.singleWhere((property) => property.name == name);
-  }
-
-  @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(flutter: true);
   }
 
   void _removeNotInterestingElements(Map<String, dynamic> json) {

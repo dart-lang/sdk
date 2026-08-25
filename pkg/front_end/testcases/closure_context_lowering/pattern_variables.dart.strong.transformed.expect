@@ -2,51 +2,38 @@ library;
 import self as self;
 import "dart:core" as core;
 
-static method patternVariableAssignment(positional-parameter r) → dynamic/* scope=[
-  #ctx1: not-captured VariableContext([
-    positional-parameter r;
-  ]),
+static method patternVariableAssignment((core::int, core::String) r) → dynamic/* scope=[
+  #ctx1: not-captured [r],
 ] */ /* scope=[
-  #ctx2: direct-captured VariableContext([
-    local-variable hoisted x;
-  ]),
-  #ctx3: not-captured VariableContext([
-    local-variable hoisted s;
-  ]),
+  #ctx2: direct-captured [x],
+  #ctx3: not-captured [s],
 ] */ {
-  has-declared-initializer x;
-  has-declared-initializer s;
+  hoisted has-declared-initializer core::int x;
+  hoisted has-declared-initializer core::String s;
   {
-    #0#0 := r;
+    final synthesized(core::int, core::String) #0#0 = r;
     x = #0#0.$1{core::int};
     s = #0#0.$2{core::String};
   }
   return () /* #ctx2 */ → core::int => x;
 }
-static method orPatternVariable(positional-parameter x) → dynamic/* scope=[
-  #ctx4: not-captured VariableContext([
-    positional-parameter x;
-  ]),
+static method orPatternVariable(dynamic x) → dynamic/* scope=[
+  #ctx4: not-captured [x],
 ] */ {
   {
-    #0#0 := x;
-    #0#2;
-    #0#2#isSet := false;
-    #t1;
+    final synthesized dynamic #0#0 = x;
+    synthesized core::int #0#2;
+    synthesized core::bool #0#2#isSet = false;
+    dynamic #t1;
     /* scope=[
-      #ctx5: not-captured VariableContext([
-        local-variable lowered hoisted y#case#0;
-        local-variable lowered hoisted y#case#1;
-      ]),
+      #ctx5: not-captured [y#case#0,y#case#1],
     ] */{
-      y#case#0;
-      y#case#1;
+      lowered hoisted core::int y#case#0;
+      lowered hoisted core::int y#case#1;
       if(#0#0 is core::int && (let final dynamic #t2 = y#case#0 = #0#0{core::int} in true) && (let final dynamic #t3 = #t1 = y#case#0 in true) || #0#0 is core::String && ((#0#2#isSet ?{core::int} #0#2 : let final dynamic #t4 = #0#2#isSet = true in #0#2 = #0#0{core::String}.{core::String::length}{core::int}) is core::int && (let final dynamic #t5 = y#case#1 = #0#2#isSet ?{core::int} #0#2 : let final dynamic #t6 = #0#2#isSet = true in #0#2 = #0#0{core::String}.{core::String::length}{core::int} in true)) && (let final dynamic #t7 = #t1 = y#case#1 in true))/* scope=[
-        #ctx6: direct-captured VariableContext([
-          synthetic-variable y;
-        ]),
+        #ctx6: direct-captured [y],
       ] */ {
-        y := #t1{core::int};
+        core::int y = #t1{core::int};
         {
           return () /* #ctx6 */ → core::int => y;
         }

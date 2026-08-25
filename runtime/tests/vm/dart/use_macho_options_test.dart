@@ -92,8 +92,10 @@ Future<TestCase> compileSnapshot(
   final additionalOptions = [
     if (testType == TestType.AddRunPaths)
       '--macho-rpath=${machORunPaths.join(',')}',
-    if (testType == TestType.MinOSVersion)
-      '--macho-min-os-version=$expectedVersion',
+    if (testType == TestType.MinOSVersion || testType == TestType.BuildVersion)
+      '--macho-min-os-version=$expectedMinOSVersion',
+    if (testType == TestType.SDKVersion || testType == TestType.BuildVersion)
+      '--macho-sdk-version=$expectedSDKVersion',
     if (testType == TestType.NoLinkerSignature) '--no-macho-linker-signature',
     if (testType == TestType.ReplaceInstallName)
       '--macho-install-name=$machoInstallName',
@@ -117,7 +119,8 @@ Future<TestCase> compileSnapshot(
 @pragma('vm:platform-const')
 final isApplePlatform = Platform.isMacOS || Platform.isIOS;
 @pragma('vm:platform-const')
-final expectedVersion = isApplePlatform ? macho.Version(1, 2, 3) : null;
+final expectedMinOSVersion = isApplePlatform ? macho.Version(1, 2, 3) : null;
+final expectedSDKVersion = isApplePlatform ? macho.Version(1, 4, 9) : null;
 const machoInstallName = '@rpath/App.framework/App';
 const machORunPaths = [
   '@executable_path/Frameworks',
@@ -127,6 +130,8 @@ const machORunPaths = [
 enum TestType {
   AddRunPaths,
   MinOSVersion,
+  SDKVersion,
+  BuildVersion,
   NoLinkerSignature,
   ReplaceInstallName,
   Encryptable,
@@ -134,8 +139,12 @@ enum TestType {
 
 @pragma('vm:platform-const')
 final testsToRun = [
-  if (isApplePlatform) TestType.MinOSVersion,
-  if (isApplePlatform) TestType.AddRunPaths,
+  if (isApplePlatform) ...[
+    TestType.MinOSVersion,
+    TestType.SDKVersion,
+    TestType.BuildVersion,
+    TestType.AddRunPaths,
+  ],
   TestType.ReplaceInstallName,
   TestType.NoLinkerSignature,
 ];
@@ -360,8 +369,19 @@ void checkBuildVersion(TestCase testCase) {
       : macho.Platform.PLATFORM_MACOS;
   Expect.equals(expectedPlatform, buildVersion.platform);
   if (testCase.type == TestType.MinOSVersion) {
-    Expect.equals(expectedVersion, buildVersion.minOS);
-    Expect.equals(expectedVersion, buildVersion.sdk);
+    // Without an explicit SDK version, it inherits the minOS version.
+    Expect.equals(expectedMinOSVersion, buildVersion.minOS);
+    Expect.equals(expectedMinOSVersion, buildVersion.sdk);
+  } else if (testCase.type == TestType.SDKVersion) {
+    // Only the SDK version should be set in this case, with the minOS
+    // being the default (which doesn't match the expectedMinOSVersion).
+    Expect.notEquals(expectedMinOSVersion, buildVersion.minOS);
+    Expect.notEquals(expectedSDKVersion, buildVersion.minOS);
+    Expect.equals(expectedSDKVersion, buildVersion.sdk);
+  } else if (testCase.type == TestType.BuildVersion) {
+    // Both should be set independently.
+    Expect.equals(expectedMinOSVersion, buildVersion.minOS);
+    Expect.equals(expectedSDKVersion, buildVersion.sdk);
   }
   Expect.isEmpty(buildVersion.toolVersions);
 }

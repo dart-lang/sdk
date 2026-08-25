@@ -648,9 +648,8 @@ class RunD8 extends IOModularStep {
 
     checkExitCode(result, this, module, _options.verbose);
 
-    await File.fromUri(
-      root.resolveUri(toUri(module, txtId)),
-    ).writeAsString(result.stdout);
+    await File.fromUri(root.resolveUri(toUri(module, txtId)))
+        .writeAsString(result.stdout);
   }
 
   @override
@@ -710,9 +709,9 @@ Future<void> resolveScripts(Options options) async {
         ? sourceUri.toFilePath()
         : sourceUriOrPath;
     if (_options.useSdk) {
-      String snapshot = Uri.file(
-        Platform.resolvedExecutable,
-      ).resolve(relativeSnapshotPath).toFilePath();
+      String snapshot = Uri.file(Platform.resolvedExecutable)
+          .resolve(relativeSnapshotPath)
+          .toFilePath();
       if (await File(snapshot).exists()) {
         return snapshot;
       }
@@ -731,6 +730,6 @@ Future<void> resolveScripts(Options options) async {
   );
 }
 
-String _librarySpecForSnapshot = Uri.file(
-  Platform.resolvedExecutable,
-).resolve('../lib/libraries.json').toFilePath();
+String _librarySpecForSnapshot = Uri.file(Platform.resolvedExecutable)
+    .resolve('../lib/libraries.json')
+    .toFilePath();

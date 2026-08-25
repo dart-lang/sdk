@@ -9,8 +9,10 @@ import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_system.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -242,11 +244,90 @@ class AddTypeAnnotation extends ResolvedCorrectionProducer {
     }
     var statements = block.statements;
     var index = statements.indexOf(statement);
+    var laterStatements = statements.sublist(index + 1);
     var visitor = _AssignedTypeCollector(typeSystem, element);
-    for (var i = index + 1; i < statements.length; i++) {
-      statements[i].accept(visitor);
+    for (var laterStatement in laterStatements) {
+      laterStatement.accept(visitor);
     }
-    return visitor.bestType;
+    var type = visitor.bestType;
+    if (type == null) {
+      return null;
+    }
+    // If none of the later statements is guaranteed to assign a value to
+    // the variable (for example, because the only assignment is inside the
+    // body of a loop, a single-branch `if`, or a `try` block), then the
+    // variable might still hold its implicit initial value, `null`, so the
+    // inferred type needs to be nullable.
+    if (!laterStatements.any((s) => _isDefinitelyAssigned(s, element))) {
+      type = (type as TypeImpl).withNullability(NullabilitySuffix.question);
+    }
+    return type;
+  }
+
+  /// Returns whether executing [statement] to normal completion is
+  /// guaranteed to assign a value to [variable].
+  ///
+  /// This is a heuristic, not a full definite-assignment analysis: in
+  /// particular, the [Block] case doesn't account for a preceding statement
+  /// exiting the block early (for example via `break`, `continue`, `return`,
+  /// or a thrown exception) before an assigning statement is reached. Such a
+  /// case can cause this method to incorrectly report that a variable is
+  /// definitely assigned, which in turn can cause the computed type to be
+  /// non-nullable when it should be nullable.
+  static bool _isDefinitelyAssigned(
+    Statement statement,
+    LocalVariableElement variable,
+  ) {
+    switch (statement) {
+      case ExpressionStatement(:var expression):
+        return switch (expression) {
+          AssignmentExpression(leftHandSide: SimpleIdentifier(:var element)) =>
+            element == variable,
+          _ => _isDefinitelyAssignedByImmediateInvocation(expression, variable),
+        };
+      case Block(:var statements):
+        return statements.any((s) => _isDefinitelyAssigned(s, variable));
+      case IfStatement(:var thenStatement, :var elseStatement):
+        return elseStatement != null &&
+            _isDefinitelyAssigned(thenStatement, variable) &&
+            _isDefinitelyAssigned(elseStatement, variable);
+      case TryStatement(:var finallyBlock):
+        // A `finally` block runs no matter how the `try` statement
+        // completes (including via an exception), so if it definitely
+        // assigns the variable, so does the whole `try` statement.
+        return finallyBlock != null &&
+            _isDefinitelyAssigned(finallyBlock, variable);
+      case DoStatement(:var body):
+        // The body of a `do`-`while` loop always runs at least once.
+        return _isDefinitelyAssigned(body, variable);
+      case LabeledStatement(:var statement):
+        return _isDefinitelyAssigned(statement, variable);
+      default:
+        return false;
+    }
+  }
+
+  /// Returns whether [expression] is the invocation of a synchronous,
+  /// non-generator closure literal that's called immediately (an IIFE), and
+  /// whose body is guaranteed to assign a value to [variable]. Such an
+  /// invocation runs the closure body to completion as part of evaluating
+  /// [expression].
+  static bool _isDefinitelyAssignedByImmediateInvocation(
+    Expression expression,
+    LocalVariableElement variable,
+  ) {
+    if (expression is! FunctionExpressionInvocation) {
+      return false;
+    }
+    var function = expression.function;
+    if (function is! FunctionExpression) {
+      return false;
+    }
+    var body = function.body;
+    if (body is! BlockFunctionBody || !body.isSynchronous || body.isGenerator) {
+      return false;
+    }
+    return _isDefinitelyAssigned(body.block, variable);
   }
 }
 

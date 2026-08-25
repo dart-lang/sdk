@@ -66,9 +66,26 @@ void buildUnaryIntOp(FlowGraphBuilder builder, UnaryIntOpcode op) {
   builder.addUnaryIntOp(op);
 }
 
+/// Build IR for binary double operations
+void buildBinaryDoubleOp(FlowGraphBuilder builder, BinaryDoubleOpcode op) {
+  builder.addBinaryDoubleOp(op);
+}
+
+/// Build IR for unary double operations
+void buildUnaryDoubleOp(FlowGraphBuilder builder, UnaryDoubleOpcode op) {
+  builder.addUnaryDoubleOp(op);
+}
+
 /// Build IR for comparison operations
 void buildComparisonOp(FlowGraphBuilder builder, ComparisonOpcode op) {
   builder.addComparison(op);
+}
+
+void buildDoubleIsNaN(FlowGraphBuilder builder) {
+  final x = builder.pop();
+  builder.push(x);
+  builder.push(x);
+  builder.addComparison(.doubleNotEqual);
 }
 
 /// Build IR for indexed load of an array element.
@@ -234,7 +251,7 @@ void buildStringBaseCharAt(
   builder.addIntConstant(
     objectLayout.vmOffsets.Symbols_kNumberOfOneCharCodeSymbols,
   );
-  builder.addComparison(.intGreaterOrEqual);
+  builder.addComparison(.intLess);
 
   final oneByteCodeUnitBlock = builder.newTargetBlock();
   final twoByteCodeUnitBlock = builder.newTargetBlock();
@@ -259,6 +276,70 @@ void buildStringBaseCharAt(
 
   builder.startBlock(joinBlock);
   builder.addLoadLocal(resultVar);
+}
+
+void buildOneByteStringSubstringUnchecked(
+  FlowGraphBuilder builder,
+  ObjectLayout objectLayout,
+) {
+  final endIndex = builder.pop();
+  final startIndex = builder.pop();
+  final src = builder.pop();
+  final type = StringType(
+    GlobalContext.instance.coreTypes.nonNullableRawType(
+      GlobalContext.instance.coreLibraries.getClass(
+        'dart:core',
+        '_OneByteString',
+      ),
+    ),
+  );
+
+  builder.push(endIndex);
+  builder.push(startIndex);
+  final len = builder.addBinaryIntOp(.sub);
+  final dst = builder.addAllocateArray(.oneByteString, type);
+
+  final loopBlock = builder.newJoinBlock();
+  final iVar = builder.declareLocalVariable('i', null, const IntType());
+
+  builder.addIntConstant(0);
+  builder.addStoreLocal(iVar);
+  builder.addGoto(loopBlock);
+
+  builder.startBlock(loopBlock);
+
+  // dst[i] = src[startIndex + i];
+  builder.push(dst);
+  builder.addLoadLocal(iVar);
+
+  builder.push(src);
+  builder.push(startIndex);
+  builder.addLoadLocal(iVar);
+  builder.addBinaryIntOp(.add);
+  builder.addLoadArrayElement(.oneByteString, const IntType());
+
+  builder.addStoreArrayElement(.oneByteString);
+
+  // i = i + 1;
+  builder.addLoadLocal(iVar);
+  builder.addIntConstant(1);
+  builder.addBinaryIntOp(.add);
+  builder.addStoreLocal(iVar);
+
+  // if (i < len) continue;
+  builder.addLoadLocal(iVar);
+  builder.push(len);
+  builder.addComparison(.intLess);
+
+  final continueBlock = builder.newTargetBlock();
+  final doneBlock = builder.newTargetBlock();
+  builder.addBranch(continueBlock, doneBlock);
+
+  builder.startBlock(continueBlock);
+  builder.addGoto(loopBlock);
+
+  builder.startBlock(doneBlock);
+  builder.push(dst);
 }
 
 /// Build IR for _GrowableList._withData factory constructor.
@@ -287,6 +368,46 @@ void buildGrowableListCapacity(
 ) {
   builder.addLoadInstanceField(objectLayout.GrowableList_data);
   builder.addLoadInstanceField(objectLayout.Array_length);
+}
+
+void buildEqualsWithSameObjectFastPath(
+  FlowGraphBuilder builder,
+  FunctionRegistry functionRegistry,
+  ObjectLayout objectLayout,
+  CFunction function,
+) {
+  final right = builder.pop();
+  final left = builder.pop();
+
+  builder.push(left);
+  builder.push(right);
+  builder.addComparison(.equal);
+
+  final sameObjectsBlock = builder.newTargetBlock();
+  final differentObjectsBlock = builder.newTargetBlock();
+  builder.addBranch(sameObjectsBlock, differentObjectsBlock);
+
+  final joinBlock = builder.newJoinBlock();
+  final resultVar = builder.declareLocalVariable(
+    '#result',
+    null,
+    const BoolType(),
+  );
+
+  builder.startBlock(sameObjectsBlock);
+  builder.addBoolConstant(true);
+  builder.addStoreLocal(resultVar);
+  builder.addGoto(joinBlock);
+
+  builder.startBlock(differentObjectsBlock);
+  builder.push(left);
+  builder.push(right);
+  buildNativeMethod(builder, functionRegistry, function);
+  builder.addStoreLocal(resultVar);
+  builder.addGoto(joinBlock);
+
+  builder.startBlock(joinBlock);
+  builder.addLoadLocal(resultVar);
 }
 
 /// Build IR for ThreadLocal._hasValue.
@@ -427,10 +548,20 @@ final class VmRecognizedMethods(
     },
     index.getProcedure(
       'dart:core',
+      'Object',
+      'get:runtimeType',
+    ): (FlowGraphBuilder builder) {
+      buildNativeMethod(builder, functionRegistry, builder.graph.function);
+    },
+    index.getProcedure(
+      'dart:core',
       '_Smi',
       'get:hashCode',
     ): (FlowGraphBuilder builder) {
       buildUnaryIntOp(builder, .hash);
+    },
+    index.getProcedure('dart:core', '_Smi', '~'): (FlowGraphBuilder builder) {
+      buildUnaryIntOp(builder, .bitNot);
     },
     index.getProcedure(
       'dart:core',
@@ -445,6 +576,9 @@ final class VmRecognizedMethods(
       'get:hashCode',
     ): (FlowGraphBuilder builder) {
       buildUnaryIntOp(builder, .hash);
+    },
+    index.getProcedure('dart:core', '_Mint', '~'): (FlowGraphBuilder builder) {
+      buildUnaryIntOp(builder, .bitNot);
     },
     index.getProcedure(
       'dart:core',
@@ -460,6 +594,111 @@ final class VmRecognizedMethods(
       '_equalToInteger',
     ): (FlowGraphBuilder builder) {
       buildComparisonOp(builder, .intEqual);
+    },
+    index.getProcedure(
+      'dart:core',
+      '_Double',
+      '_add',
+    ): (FlowGraphBuilder builder) {
+      buildBinaryDoubleOp(builder, .add);
+    },
+    index.getProcedure(
+      'dart:core',
+      '_Double',
+      '_sub',
+    ): (FlowGraphBuilder builder) {
+      buildBinaryDoubleOp(builder, .sub);
+    },
+    index.getProcedure(
+      'dart:core',
+      '_Double',
+      '_mul',
+    ): (FlowGraphBuilder builder) {
+      buildBinaryDoubleOp(builder, .mul);
+    },
+    index.getProcedure(
+      'dart:core',
+      '_Double',
+      '_div',
+    ): (FlowGraphBuilder builder) {
+      buildBinaryDoubleOp(builder, .div);
+    },
+    index.getProcedure(
+      'dart:core',
+      '_Double',
+      '_modulo',
+    ): (FlowGraphBuilder builder) {
+      buildBinaryDoubleOp(builder, .mod);
+    },
+    index.getProcedure(
+      'dart:core',
+      '_Double',
+      '_remainder',
+    ): (FlowGraphBuilder builder) {
+      buildBinaryDoubleOp(builder, .rem);
+    },
+    index.getProcedure(
+      'dart:core',
+      '_Double',
+      'fromInteger',
+    ): (FlowGraphBuilder builder) {
+      buildUnaryIntOp(builder, .toDouble);
+    },
+    index.getProcedure(
+      'dart:core',
+      '_Double',
+      'get:isNaN',
+    ): (FlowGraphBuilder builder) {
+      buildDoubleIsNaN(builder);
+    },
+    index.getProcedure(
+      'dart:core',
+      '_Double',
+      'floor',
+    ): (FlowGraphBuilder builder) {
+      buildUnaryDoubleOp(builder, .floor);
+    },
+    index.getProcedure(
+      'dart:core',
+      '_Double',
+      'ceil',
+    ): (FlowGraphBuilder builder) {
+      buildUnaryDoubleOp(builder, .ceil);
+    },
+    index.getProcedure(
+      'dart:core',
+      '_Double',
+      'toInt',
+    ): (FlowGraphBuilder builder) {
+      buildUnaryDoubleOp(builder, .truncate);
+    },
+    index.getProcedure(
+      'dart:core',
+      '_Double',
+      'roundToDouble',
+    ): (FlowGraphBuilder builder) {
+      buildUnaryDoubleOp(builder, .roundToDouble);
+    },
+    index.getProcedure(
+      'dart:core',
+      '_Double',
+      'floorToDouble',
+    ): (FlowGraphBuilder builder) {
+      buildUnaryDoubleOp(builder, .floorToDouble);
+    },
+    index.getProcedure(
+      'dart:core',
+      '_Double',
+      'ceilToDouble',
+    ): (FlowGraphBuilder builder) {
+      buildUnaryDoubleOp(builder, .ceilToDouble);
+    },
+    index.getProcedure(
+      'dart:core',
+      '_Double',
+      'truncateToDouble',
+    ): (FlowGraphBuilder builder) {
+      buildUnaryDoubleOp(builder, .truncateToDouble);
     },
     index.getProcedure(
       'dart:core',
@@ -486,6 +725,13 @@ final class VmRecognizedMethods(
         objectLayout,
         builder.graph.function,
       );
+    },
+    index.getProcedure(
+      'dart:core',
+      '_OneByteString',
+      '_substringUncheckedNative',
+    ): (FlowGraphBuilder builder) {
+      buildOneByteStringSubstringUnchecked(builder, objectLayout);
     },
 
     index.getProcedure(
@@ -619,6 +865,27 @@ final class VmRecognizedMethods(
         indirectDataField: objectLayout.GrowableList_data,
       );
     },
+    index.getProcedure(
+      'dart:core',
+      '_AbstractType',
+      '==',
+    ): (FlowGraphBuilder builder) {
+      buildEqualsWithSameObjectFastPath(
+        builder,
+        functionRegistry,
+        objectLayout,
+        builder.graph.function,
+      );
+    },
+    index.getProcedure('dart:core', '_Type', '=='): (FlowGraphBuilder builder) {
+      // TODO: add more detailed fast path
+      buildEqualsWithSameObjectFastPath(
+        builder,
+        functionRegistry,
+        objectLayout,
+        builder.graph.function,
+      );
+    },
 
     // dart:_compact_hash
     index.getTopLevelProcedure(
@@ -715,6 +982,20 @@ final class VmRecognizedMethods(
       'get:_data',
     ): (FlowGraphBuilder builder) {
       buildInstanceGetter(builder, objectLayout.LinkedHashBase_data);
+    },
+    index.getProcedure(
+      'dart:_compact_hash',
+      '_LinkedHashImmutableBase',
+      'get:_indexNullable',
+    ): (FlowGraphBuilder builder) {
+      buildInstanceGetter(builder, objectLayout.LinkedHashImmutableBase_index);
+    },
+    index.getProcedure(
+      'dart:_compact_hash',
+      '_LinkedHashImmutableBase',
+      'set:_index',
+    ): (FlowGraphBuilder builder) {
+      buildInstanceSetter(builder, objectLayout.LinkedHashImmutableBase_index);
     },
 
     // dart:_internal

@@ -8,6 +8,7 @@ import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/custom/migration/migration_extensions.dart';
+import 'package:analysis_server/src/lsp/handlers/custom/migration/migration_registry.dart';
 import 'package:analysis_server/src/lsp/handlers/custom/migration/migration_runner.dart';
 import 'package:analysis_server/src/lsp/handlers/custom/migration/migration_summary_builder.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
@@ -66,12 +67,11 @@ class MigrateHandler
       pathContext: server.resourceProvider.pathContext,
       steps: steps,
     );
-    // TODO(kallentu): Pass targetSdk to MigrationRunner when multi-version
-    // migration is implemented.
     var migrationRunner = MigrationRunner(
       server: server,
       pubspecTargets: targets,
       summaryBuilder: summaryBuilder,
+      targetSdk: targetSdkResult.resultOrNull,
     );
 
     var fileEditsResult = await migrationRunner.computeEdits(steps);
@@ -197,6 +197,14 @@ class MigrateHandler
         "being migrated to. It's currently $currentServerSdk. Please either "
         'update your Dart SDK first or migrate to a version that is less than '
         'the running version.',
+      );
+    }
+    if (!knownSdkVersions.contains(targetSdk)) {
+      return error(
+        ErrorCodes.InvalidParams,
+        'The target SDK version "$targetSdk" is not supported for migration. '
+        'It must be between ${knownSdkVersions.first} and '
+        '${knownSdkVersions.last}.',
       );
     }
     if (!steps.runAll) {

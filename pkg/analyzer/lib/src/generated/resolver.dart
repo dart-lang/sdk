@@ -731,7 +731,9 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     covariant CollectionElementImpl element,
     covariant CollectionLiteralContext? context,
   ) {
+    flowAnalysis.flow?.checkOffset(element.offset);
     element.resolveElement(this, context);
+    flowAnalysis.flow?.checkOffset(element.end);
     popRewrite();
   }
 
@@ -747,6 +749,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     // https://github.com/dart-lang/sdk/issues/62942.
     // TODO(paulberry): address this.
 
+    flowAnalysis.flow?.checkOffset(expression.offset);
     int? stackDepth;
     assert(() {
       stackDepth = rewriteStackDepth;
@@ -800,6 +803,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       );
       return true;
     }());
+    flowAnalysis.flow?.checkOffset(expression.end);
     return ExpressionTypeAnalysisResult(
       type: SharedTypeView(staticType),
       flowAnalysisInfo: flowAnalysisInfo,
@@ -808,6 +812,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
 
   @override
   PatternResult dispatchPattern(SharedMatchContext context, AstNodeImpl node) {
+    flowAnalysis.flow?.checkOffset(node.offset);
     shared.PatternResult analysisResult;
     if (node is DartPatternImpl) {
       analysisResult = node.resolvePattern(this, context);
@@ -826,6 +831,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       popRewrite();
       // Stack: ()
     }
+    flowAnalysis.flow?.checkOffset(node.end);
     return analysisResult;
   }
 
@@ -836,7 +842,9 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
 
   @override
   void dispatchStatement(Statement statement) {
+    flowAnalysis.flow?.checkOffset(statement.offset);
     statement.accept2(this);
+    flowAnalysis.flow?.checkOffset(statement.end);
   }
 
   @override
@@ -887,16 +895,10 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   }
 
   @override
-  int expressionEndOffset(ExpressionImpl expression) {
-    // TODO(paulberry): implement.
-    return 0;
-  }
+  int expressionEndOffset(ExpressionImpl expression) => expression.end;
 
   @override
-  int expressionStartOffset(ExpressionImpl expression) {
-    // TODO(paulberry): implement.
-    return 0;
-  }
+  int expressionStartOffset(ExpressionImpl expression) => expression.offset;
 
   @override
   void finishExpressionCase(
@@ -996,8 +998,13 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
         pattern: guardedPattern.pattern,
         guard: guardedPattern.whenClause?.expression2,
         variables: guardedPattern.variables,
+        beginAlternativeOffset: guardedPattern.offset,
+        finishJoinedPatternVariablesOffset: guardedPattern.pattern.end,
+        endAlternativeOffset: guardedPattern.end,
       ),
       expression: case_.expression2,
+      beginAlternativeOffset: guardedPattern.offset,
+      endAlternativeOffset: guardedPattern.end,
     );
   }
 
@@ -1012,16 +1019,32 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     CaseHeadOrDefaultInfo<AstNodeImpl, ExpressionImpl, PromotableElementImpl>
     ofMember(SwitchMemberImpl member) {
       switch (member) {
-        case SwitchCaseImpl(:var expression2):
-          return CaseHeadInfo(pattern: expression2, variables: {});
-        case SwitchPatternCaseImpl(:var guardedPattern):
+        case SwitchCaseImpl(:var expression2, :var keyword, :var colon):
+          return CaseHeadInfo(
+            pattern: expression2,
+            variables: {},
+            beginAlternativeOffset: keyword.offset,
+            finishJoinedPatternVariablesOffset: colon.offset,
+            endAlternativeOffset: colon.offset,
+          );
+        case SwitchPatternCaseImpl(
+          :var guardedPattern,
+          :var keyword,
+          :var colon,
+        ):
           return CaseHeadInfo(
             pattern: guardedPattern.pattern,
             variables: guardedPattern.variables,
             guard: guardedPattern.whenClause?.expression2,
+            beginAlternativeOffset: keyword.offset,
+            finishJoinedPatternVariablesOffset: guardedPattern.pattern.end,
+            endAlternativeOffset: colon.offset,
           );
-        case SwitchDefaultImpl():
-          return CaseDefaultInfo();
+        case SwitchDefaultImpl(:var keyword, :var colon):
+          return CaseDefaultInfo(
+            beginAlternativeOffset: keyword.offset,
+            endAlternativeOffset: colon.offset,
+          );
       }
     }
 
@@ -1031,6 +1054,9 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       body: group.statements,
       variables: group.variables,
       hasLabels: group.hasLabels,
+      endOffset: index + 1 < node.memberGroups.length
+          ? node.memberGroups[index + 1].members.first.offset
+          : node.rightBracket.offset,
     );
   }
 
@@ -1311,16 +1337,10 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   }
 
   @override
-  int patternEndOffset(DartPatternImpl pattern) {
-    // TODO(paulberry): implement.
-    return 0;
-  }
+  int patternEndOffset(DartPatternImpl pattern) => pattern.end;
 
   @override
-  int patternStartOffset(DartPatternImpl pattern) {
-    // TODO(paulberry): implement.
-    return 0;
-  }
+  int patternStartOffset(DartPatternImpl pattern) => pattern.offset;
 
   /// Examines the top entry of [_rewriteStack] but does not pop it.
   ExpressionImpl? peekRewrite() => _rewriteStack.last;
@@ -1526,7 +1546,10 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       }
 
       if (node.isNullAware) {
-        _startNullAwareAccess(node.target2);
+        _startNullAwareAccess(
+          node.target2,
+          offset: (node.period ?? node.question ?? node.leftBracket).offset,
+        );
         nullSafetyDeadCodeVerifier.visitNode(node.index2);
       }
 
@@ -1603,7 +1626,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
         popRewrite();
       }
       if (node.isNullAware) {
-        _startNullAwareAccess(node.target2);
+        _startNullAwareAccess(node.target2, offset: node.operator.offset);
         nullSafetyDeadCodeVerifier.visitNode(node.propertyName);
       }
 
@@ -1693,6 +1716,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       node,
       typeArguments: typeArguments,
       elements: node.elements,
+      promoteForPatternOffset: node.leftBracket.offset,
     );
     node.requiredType = result.requiredType.unwrapTypeView();
 
@@ -1938,15 +1962,15 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   }
 
   /// Starts null shorting for a null-aware assignment target.
-  void startNullAwareAssignmentTarget(ExpressionImpl target) {
-    _startNullAwareAccess(target);
+  void startNullAwareAssignmentTarget(
+    ExpressionImpl target, {
+    required int offset,
+  }) {
+    _startNullAwareAccess(target, offset: offset);
   }
 
   @override
-  int statementEndOffset(StatementImpl statement) {
-    // TODO(paulberry): implement.
-    return 0;
-  }
+  int statementEndOffset(StatementImpl statement) => statement.end;
 
   /// Returns the result of an implicit `this.` lookup for the identifier [node]
   /// in a getter context, or `null` if no match was found.
@@ -2007,6 +2031,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     flowAnalysis.withFlowAnalysis(
       node: node,
       formalParameters: null,
+      offset: node.atSign.offset,
       operation: () {
         var whyNotPromotedArguments =
             <Map<SharedTypeView, NonPromotionReason> Function()>[];
@@ -2036,11 +2061,11 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
         imposedType: imposedType,
       );
 
-      flowAnalysis.flow?.anonymousBlockBody_begin();
+      flowAnalysis.flow?.anonymousBlockBody_begin(offset: node.block.offset);
       checkUnreachableNode(node);
       node.visitChildren2(this);
       var returnType = _finishFunctionBodyInference();
-      flowAnalysis.flow?.anonymousBlockBody_end();
+      flowAnalysis.flow?.anonymousBlockBody_end(offset: node.flowEndOffset);
 
       return returnType;
     } finally {
@@ -2090,6 +2115,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
 
     checkUnreachableNode(node.body);
 
+    var afterExpressionOffset = (node.parameters ?? node.body).offset;
     var targetType =
         node.realTarget2.staticType ?? typeProvider.objectQuestionType;
     var isNullAware = node.isNullAware;
@@ -2098,7 +2124,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
         : targetType;
     var parameters = node.parameters;
     if (isNullAware) {
-      _startNullAwareAccess(node.target2);
+      _startNullAwareAccess(node.target2, offset: node.operator.offset);
       nullSafetyDeadCodeVerifier.visitNode(parameters ?? node.body);
     }
     if (parameters != null) {
@@ -2121,6 +2147,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
               element,
               SharedTypeView(element.type),
               initialized: false,
+              offset: afterExpressionOffset,
             );
             flow.initialize(
               element,
@@ -2130,6 +2157,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
               isLate: false,
               isImplicitlyTyped: parameter.type == null,
               inheritPromotableProperties: false,
+              offset: afterExpressionOffset,
             );
           } else {
             // An error will occur because there are multiple parameters, but
@@ -2139,6 +2167,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
               element,
               SharedTypeView(element.type),
               initialized: true,
+              offset: afterExpressionOffset,
             );
           }
         }
@@ -2153,11 +2182,14 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
           : null;
       var body = node.body;
       returnedType = _withUnpromotedThisType(parameterType, () {
-        flowAnalysis.flow?.thisBinding_begin(targetInfo);
+        flowAnalysis.flow?.thisBinding_begin(
+          targetInfo,
+          offset: afterExpressionOffset,
+        );
         try {
           return body.resolve(this, contextType);
         } finally {
-          flowAnalysis.flow?.thisBinding_end();
+          flowAnalysis.flow?.thisBinding_end(offset: node.body.flowEndOffset);
         }
       });
       if (body is AnonymousExpressionBodyImpl) {
@@ -2243,7 +2275,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
 
   @override
   void visitAssertInitializer(covariant AssertInitializerImpl node) {
-    flowAnalysis.flow?.assert_begin();
+    flowAnalysis.flow?.assert_begin(offset: node.assertKeyword.offset);
     analyzeExpression(
       node.condition2,
       SharedTypeSchemaView(typeProvider.boolType),
@@ -2258,19 +2290,20 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     );
     flowAnalysis.flow?.assert_afterCondition(
       flowAnalysis.getExpressionInfo(node.condition2),
+      offset: (node.comma ?? node.rightParenthesis).offset,
     );
     if (node.message2 case var message?) {
       analyzeExpression(message, operations.unknownType);
       popRewrite();
     }
-    flowAnalysis.flow?.assert_end();
+    flowAnalysis.flow?.assert_end(offset: node.end);
   }
 
   @override
   void visitAssertStatement(covariant AssertStatementImpl node) {
     inferenceLogWriter?.enterStatement(node);
     checkUnreachableNode(node);
-    flowAnalysis.flow?.assert_begin();
+    flowAnalysis.flow?.assert_begin(offset: node.assertKeyword.offset);
     analyzeExpression(
       node.condition2,
       SharedTypeSchemaView(typeProvider.boolType),
@@ -2285,12 +2318,13 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     );
     flowAnalysis.flow?.assert_afterCondition(
       flowAnalysis.getExpressionInfo(node.condition2),
+      offset: (node.comma ?? node.rightParenthesis).offset,
     );
     if (node.message2 case var message?) {
       analyzeExpression(message, operations.unknownType);
       popRewrite();
     }
-    flowAnalysis.flow?.assert_end();
+    flowAnalysis.flow?.assert_end(offset: node.rightParenthesis.offset);
     inferenceLogWriter?.exitStatement(node);
   }
 
@@ -2433,6 +2467,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       flowAnalysis.getExpressionInfo(node.target2),
       SharedTypeView(targetType),
       isNullAware: node.isNullAware,
+      offset: node.cascadeSections2.first.offset,
     );
 
     var previousCascade = _activeCascadeExpression;
@@ -2449,7 +2484,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     typeAnalyzer.visitCascadeExpression(node);
 
     if (node.isNullAware) {
-      flowAnalysis.flow!.nullAwareAccess_end();
+      flowAnalysis.flow!.nullAwareAccess_end(offset: node.end);
     }
     flowAnalysis.storeExpressionInfo(
       node,
@@ -2656,7 +2691,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     checkUnreachableNode(node);
     ExpressionImpl condition = node.condition2;
     var flow = flowAnalysis.flow;
-    flow?.conditional_conditionBegin();
+    flow?.conditional_conditionBegin(offset: node.offset);
 
     analyzeExpression(
       node.condition2,
@@ -2675,6 +2710,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       flow.conditional_thenBegin(
         flowAnalysis.getExpressionInfo(condition),
         node,
+        offset: node.question.offset,
       );
       checkUnreachableNode(node.thenExpression2);
     }
@@ -2688,6 +2724,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       flow.conditional_elseBegin(
         flowAnalysis.getExpressionInfo(node.thenExpression2),
         SharedTypeView(node.thenExpression2.typeOrThrow),
+        offset: node.colon.offset,
       );
       checkUnreachableNode(elseExpression);
       analyzeExpression(elseExpression, SharedTypeSchemaView(contextType));
@@ -2704,6 +2741,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
           SharedTypeView(node.typeOrThrow),
           flowAnalysis.getExpressionInfo(elseExpression),
           SharedTypeView(elseExpression.typeOrThrow),
+          offset: node.end,
         ),
       );
       nullSafetyDeadCodeVerifier.flowEnd(elseExpression);
@@ -2731,11 +2769,17 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
         node.metadata.accept2(this);
         node.parameters.accept2(this);
 
-        flowAnalysis.bodyOrInitializer_enter(node, element.formalParameters);
+        var beforeInitializersOffset = (node.separator ?? node.body).offset;
+        flowAnalysis.bodyOrInitializer_enter(
+          node,
+          element.formalParameters,
+          offset: beforeInitializersOffset,
+        );
         flowAnalysis.executableDeclaration_enter(
           node,
           element.formalParameters,
           isClosure: false,
+          offset: beforeInitializersOffset,
         );
 
         node.initializers.accept2(this);
@@ -2746,8 +2790,12 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
         if (node.factoryKeyword != null) {
           checkForBodyMayCompleteNormally(body: node.body, errorNode: node);
         }
-        flowAnalysis.executableDeclaration_exit(node.body, false);
-        flowAnalysis.bodyOrInitializer_exit();
+        flowAnalysis.executableDeclaration_exit(
+          node.body,
+          false,
+          offset: node.body.flowEndOffset,
+        );
+        node.body.flowAnalysisLog = flowAnalysis.bodyOrInitializer_exit();
         nullSafetyDeadCodeVerifier.flowEnd(node);
       });
     });
@@ -2861,10 +2909,12 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
 
     var condition = node.condition2;
 
-    flowAnalysis.flow?.doStatement_bodyBegin(node);
+    flowAnalysis.flow?.doStatement_bodyBegin(node, offset: node.offset);
     node.body.accept2(this);
 
-    flowAnalysis.flow?.doStatement_conditionBegin();
+    flowAnalysis.flow?.doStatement_conditionBegin(
+      offset: node.whileKeyword.offset,
+    );
     analyzeExpression(condition, SharedTypeSchemaView(typeProvider.boolType));
     condition = popRewrite()!;
     var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(
@@ -2877,6 +2927,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
 
     flowAnalysis.flow?.doStatement_end(
       flowAnalysis.getExpressionInfo(condition),
+      offset: node.semicolon.offset,
     );
     inferenceLogWriter?.exitStatement(node);
   }
@@ -3097,6 +3148,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       flowAnalysis.withFlowAnalysis(
         node: node,
         formalParameters: null,
+        offset: arguments.offset,
         operation: () {
           for (var argument in argumentList.arguments2) {
             analyzeExpression(
@@ -3165,7 +3217,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       );
       popRewrite();
 
-      flowAnalysis.flow?.handleReturn();
+      flowAnalysis.flow?.handleReturn(offset: node.flowEndOffset);
 
       bodyContext.addReturnExpression(node.expression2);
       return _finishFunctionBodyInference();
@@ -3292,6 +3344,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     flowAnalysis.withFlowAnalysis(
       node: node,
       formalParameters: null,
+      offset: node.offset,
       operation: () {
         checkUnreachableNode(node);
         node.visitChildren2(this);
@@ -3321,15 +3374,27 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       node.metadata.accept2(this);
       node.returnType?.accept2(this);
 
+      // Use typeParameters or parameters for the offset if available, because
+      // they will be visited before the body, and may contain expressions.
+      var enterOffset =
+          (node.functionExpression.typeParameters ??
+                  node.functionExpression.parameters ??
+                  node.functionExpression.body)
+              .offset;
       if (isLocal) {
-        flowAnalysis.flow!.functionExpression_begin(node);
+        flowAnalysis.flow!.functionExpression_begin(node, offset: enterOffset);
       } else {
-        flowAnalysis.bodyOrInitializer_enter(node, element.formalParameters);
+        flowAnalysis.bodyOrInitializer_enter(
+          node,
+          element.formalParameters,
+          offset: enterOffset,
+        );
       }
       flowAnalysis.executableDeclaration_enter(
         node,
         element.formalParameters,
         isClosure: isLocal,
+        offset: enterOffset,
       );
 
       // node.functionExpression isn't a real expression, so visit it directly
@@ -3350,14 +3415,17 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
           errorNode: node.name,
         );
       }
+      var exitOffset = node.functionExpression.body.flowEndOffset;
       flowAnalysis.executableDeclaration_exit(
         node.functionExpression.body,
         isLocal,
+        offset: exitOffset,
       );
       if (isLocal) {
-        flowAnalysis.flow!.functionExpression_end();
+        flowAnalysis.flow!.functionExpression_end(offset: exitOffset);
       } else {
-        flowAnalysis.bodyOrInitializer_exit();
+        node.functionExpression.body.flowAnalysisLog = flowAnalysis
+            .bodyOrInitializer_exit();
       }
       nullSafetyDeadCodeVerifier.flowEnd(node);
     });
@@ -3490,6 +3558,10 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
         ifTrue: node.thenElement2,
         ifFalse: node.elseElement2,
         context: context,
+        afterExpressionOffset: caseClause.offset,
+        thenBeginOffset: node.rightParenthesis.offset,
+        elseBeginOffset: node.elseKeyword?.offset,
+        endOffset: node.end,
       );
       // Stack: (Expression, Guard)
       popRewrite(); // guard
@@ -3501,6 +3573,9 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
         ifTrue: node.thenElement2,
         ifFalse: node.elseElement2,
         context: context,
+        thenBeginOffset: node.rightParenthesis.offset,
+        elseBeginOffset: node.elseKeyword?.offset,
+        endOffset: node.end,
       );
     }
     inferenceLogWriter?.exitElement(node);
@@ -3552,6 +3627,9 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
         node.thenStatement,
         node.elseStatement,
         guardedPattern.variables,
+        afterExpressionOffset: caseClause.caseKeyword.offset,
+        thenBeginOffset: node.rightParenthesis.offset,
+        elseBeginOffset: node.elseKeyword?.offset,
       );
       // Stack: (Expression, Guard)
       popRewrite(); // guard
@@ -3562,6 +3640,8 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
         node.expression2,
         node.thenStatement,
         node.elseStatement,
+        thenBeginOffset: node.rightParenthesis.offset,
+        elseBeginOffset: node.elseKeyword?.offset,
       );
     }
     inferenceLogWriter?.exitStatement(node);
@@ -3620,7 +3700,10 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     var targetType = node.realTarget2.staticType;
 
     if (node.isNullAware) {
-      _startNullAwareAccess(node.target2);
+      _startNullAwareAccess(
+        node.target2,
+        offset: (node.period ?? node.question ?? node.leftBracket).offset,
+      );
       nullSafetyDeadCodeVerifier.visitNode(node.index2);
     }
 
@@ -3699,8 +3782,8 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
           typeSystem.resolveToBound(node.receiver.typeOrThrow),
           NeverTypeImpl.instance,
         );
-    if (node.question != null && !receiverDoesNotComplete) {
-      _startNullAwareAccess(node.receiver);
+    if (node.question case var question? when !receiverDoesNotComplete) {
+      _startNullAwareAccess(node.receiver, offset: question.offset);
       nullSafetyDeadCodeVerifier.visitNode(node.index);
     }
 
@@ -3902,6 +3985,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       flowAnalysis.getExpressionInfo(node.key2),
       keyType,
       isKeyNullAware: node.keyQuestion != null,
+      offset: node.separator.offset,
     );
 
     // If the value is null-aware, the context of the expression under `?`
@@ -3918,6 +4002,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
 
     flowAnalysis.flow?.nullAwareMapEntry_end(
       isKeyNullAware: node.keyQuestion != null,
+      offset: node.end,
     );
     inferenceLogWriter?.exitElement(node);
   }
@@ -3937,11 +4022,20 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
         node.typeParameters?.accept2(this);
         node.parameters?.accept2(this);
 
-        flowAnalysis.bodyOrInitializer_enter(node, element.formalParameters);
+        // Use typeParameters or parameters for the offset if available, because
+        // they will be visited before the body, and may contain expressions.
+        var enterOffset =
+            (node.typeParameters ?? node.parameters ?? node.body).offset;
+        flowAnalysis.bodyOrInitializer_enter(
+          node,
+          element.formalParameters,
+          offset: enterOffset,
+        );
         flowAnalysis.executableDeclaration_enter(
           node,
           element.formalParameters,
           isClosure: false,
+          offset: enterOffset,
         );
 
         node.body.resolve(this, returnType is DynamicType ? null : returnType);
@@ -3953,8 +4047,12 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
             errorNode: node.name,
           );
         }
-        flowAnalysis.executableDeclaration_exit(node.body, false);
-        flowAnalysis.bodyOrInitializer_exit();
+        flowAnalysis.executableDeclaration_exit(
+          node.body,
+          false,
+          offset: node.body.flowEndOffset,
+        );
+        node.body.flowAnalysisLog = flowAnalysis.bodyOrInitializer_exit();
         nullSafetyDeadCodeVerifier.flowEnd(node);
       });
     });
@@ -3986,7 +4084,10 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     }
 
     if (node.isNullAware) {
-      _startNullAwareAccess(target);
+      _startNullAwareAccess(
+        target,
+        offset: (node.operator ?? node.methodName).offset,
+      );
       nullSafetyDeadCodeVerifier.visitNode(node.methodName);
     }
 
@@ -4197,6 +4298,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       node,
       node.pattern,
       node.expression2,
+      beforeRhsOffset: node.equals.offset,
     );
     node.patternTypeSchema = analysisResult.patternSchema
         .unwrapTypeSchemaView();
@@ -4220,6 +4322,9 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       node.pattern,
       node.expression2,
       isFinal: node.keyword.keyword == Keyword.FINAL,
+      beforePatternOffset: node.keyword.offset,
+      beforeInitializerOffset: node.equals.offset,
+      endOffset: node.end,
     ).patternSchema;
     node.patternTypeSchema = patternSchema.unwrapTypeSchemaView();
     popRewrite(); // expression
@@ -4325,11 +4430,17 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
         node.metadata.accept2(this);
 
         if (primaryConstructorDeclaration != null) {
-          flowAnalysis.bodyOrInitializer_enter(node, element!.formalParameters);
+          var enterOffset = (node.colon ?? node.thisKeyword).offset;
+          flowAnalysis.bodyOrInitializer_enter(
+            node,
+            element!.formalParameters,
+            offset: enterOffset,
+          );
           flowAnalysis.executableDeclaration_enter(
             node,
             element.formalParameters,
             isClosure: false,
+            offset: enterOffset,
           );
         }
 
@@ -4337,8 +4448,12 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
         node.body.resolve(this, returnType is DynamicType ? null : returnType);
 
         if (primaryConstructorDeclaration != null) {
-          flowAnalysis.executableDeclaration_exit(node.body, false);
-          flowAnalysis.bodyOrInitializer_exit();
+          flowAnalysis.executableDeclaration_exit(
+            node.body,
+            false,
+            offset: node.body.flowEndOffset,
+          );
+          node.body.flowAnalysisLog = flowAnalysis.bodyOrInitializer_exit();
         }
         nullSafetyDeadCodeVerifier.flowEnd(node);
       });
@@ -4405,7 +4520,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     node.receiver = popRewrite()!;
 
     if (node.operator.type == TokenType.QUESTION_PERIOD) {
-      _startNullAwareAccess(node.receiver);
+      _startNullAwareAccess(node.receiver, offset: node.operator.offset);
       nullSafetyDeadCodeVerifier.visitNullAwareAccess(node, node.propertyName);
     }
 
@@ -4521,7 +4636,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     checkUnreachableNode(node);
     node.visitChildren2(this);
     typeAnalyzer.visitRethrowExpression(node as RethrowExpressionImpl);
-    flowAnalysis.flow?.handleExit();
+    flowAnalysis.flow?.handleExit(offset: node.end);
     inferenceLogWriter?.exitExpression(node);
   }
 
@@ -4542,7 +4657,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     }
 
     bodyContext?.addReturnExpression(expression);
-    flowAnalysis.flow?.handleReturn();
+    flowAnalysis.flow?.handleReturn(offset: node.semicolon.offset);
     inferenceLogWriter?.exitStatement(node);
   }
 
@@ -4687,6 +4802,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       node.expression2,
       node.cases.length,
       SharedTypeSchemaView(contextType),
+      scrutineeEndOffset: node.rightParenthesis.offset,
     ).type.unwrapTypeView<TypeImpl>();
     node.recordStaticType(staticType, resolver: this);
     popRewrite();
@@ -4701,7 +4817,12 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     checkUnreachableNode(node);
 
     var previousExhaustiveness = legacySwitchExhaustiveness;
-    analyzeSwitchStatement(node, node.expression2, node.memberGroups.length);
+    analyzeSwitchStatement(
+      node,
+      node.expression2,
+      node.memberGroups.length,
+      scrutineeEndOffset: node.rightParenthesis.offset,
+    );
     // Stack: (Expression)
     popRewrite();
     // Stack: ()
@@ -4768,17 +4889,27 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       node.recoveryTypeParameters?.accept2(this);
       node.recoveryFormalParameters?.accept2(this);
 
-      flowAnalysis.bodyOrInitializer_enter(node, element.formalParameters);
+      var enterOffset = node.body.offset;
+      flowAnalysis.bodyOrInitializer_enter(
+        node,
+        element.formalParameters,
+        offset: enterOffset,
+      );
       flowAnalysis.executableDeclaration_enter(
         node,
         element.formalParameters,
         isClosure: false,
+        offset: enterOffset,
       );
 
       node.body.resolve(this, returnType is DynamicType ? null : returnType);
 
       checkForBodyMayCompleteNormally(body: node.body, errorNode: node.name);
-      flowAnalysis.executableDeclaration_exit(node.body, false);
+      flowAnalysis.executableDeclaration_exit(
+        node.body,
+        false,
+        offset: node.body.flowEndOffset,
+      );
       flowAnalysis.bodyOrInitializer_exit();
       nullSafetyDeadCodeVerifier.flowEnd(node);
     });
@@ -4806,7 +4937,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     }
 
     if (catchClauses.isNotEmpty) {
-      flow.tryCatchStatement_bodyBegin();
+      flow.tryCatchStatement_bodyBegin(offset: node.tryKeyword.offset);
     }
     body.accept2(this);
     nullSafetyDeadCodeVerifier.flowEnd(node.body);
@@ -4825,22 +4956,26 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
               as PromotableElementImpl?,
           catchClause.stackTraceParameter?.declaredFragment?.element
               as PromotableElementImpl?,
+          offset: catchClause.body.offset,
         );
         catchClause.accept2(this);
         flow.tryCatchStatement_catchEnd();
         nullSafetyDeadCodeVerifier.flowEnd(catchClause.body);
       }
 
-      flow.tryCatchStatement_end();
+      flow.tryCatchStatement_end(
+        offset: node.finallyKeyword?.offset ?? node.end,
+      );
     }
     nullSafetyDeadCodeVerifier.tryStatementExit(node);
 
     if (finallyBlock != null) {
       flow.tryFinallyStatement_finallyBegin(
         catchClauses.isNotEmpty ? node : body,
+        offset: node.finallyKeyword!.offset,
       );
       finallyBlock.accept2(this);
-      flow.tryFinallyStatement_end();
+      flow.tryFinallyStatement_end(offset: node.end);
     }
     inferenceLogWriter?.exitStatement(node);
   }
@@ -4910,6 +5045,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
         isFinal: parent.isFinal,
         isLate: parent.isLate,
         isImplicitlyTyped: declaredType == null,
+        offset: node.end,
       );
     }
 
@@ -4941,7 +5077,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
 
     ExpressionImpl condition = node.condition2;
 
-    flowAnalysis.flow?.whileStatement_conditionBegin(node);
+    flowAnalysis.flow?.whileStatement_conditionBegin(node, offset: node.offset);
     analyzeExpression(condition, SharedTypeSchemaView(typeProvider.boolType));
     condition = popRewrite()!;
     var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(
@@ -4956,9 +5092,10 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     flowAnalysis.flow?.whileStatement_bodyBegin(
       node,
       flowAnalysis.getExpressionInfo(condition),
+      offset: node.rightParenthesis.offset,
     );
     node.body.accept2(this);
-    flowAnalysis.flow?.whileStatement_end();
+    flowAnalysis.flow?.whileStatement_end(offset: node.end);
     nullSafetyDeadCodeVerifier.flowEnd(node.body);
     // TODO(brianwilkerson): If the loop can only be exited because the condition
     // is false, then propagateFalseState(condition);
@@ -5225,7 +5362,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     PrefixedIdentifierImpl? originalNode,
   }) {
     if (node.isNullAware) {
-      _startNullAwareAccess(node.target2);
+      _startNullAwareAccess(node.target2, offset: node.operator.offset);
       nullSafetyDeadCodeVerifier.visitNode(node.propertyName);
     }
 
@@ -5332,7 +5469,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   ///
   /// Note: there is no corresponding "stop" method. Null shorting will be
   /// automatically stopped by [TypeAnalyzer.analyzeExpression].
-  void _startNullAwareAccess(ExpressionImpl? target) {
+  void _startNullAwareAccess(ExpressionImpl? target, {required int offset}) {
     var flow = flowAnalysis.flow;
     if (flow != null) {
       switch (target) {
@@ -5357,6 +5494,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
               null,
               flowAnalysis.getExpressionInfo(expression),
               SharedTypeView(expression.staticType ?? typeProvider.dynamicType),
+              offset: offset,
             ),
           );
       }
@@ -6019,5 +6157,31 @@ class _WhyNotPromotedVisitor
       length: property.name!.length,
       url: NonPromotionDocumentationLink.fieldPromotionUnavailable.url,
     );
+  }
+}
+
+extension FlowEndAnonymousMethodBodyImpl on AnonymousMethodBodyImpl {
+  int get flowEndOffset {
+    switch (this) {
+      case AnonymousBlockBodyImpl(:var block):
+        return block.rightBracket.offset;
+      case AnonymousExpressionBodyImpl(:var expression2):
+        return expression2.end;
+    }
+  }
+}
+
+extension FlowEndFunctionBodyImpl on FunctionBodyImpl {
+  int get flowEndOffset {
+    switch (this) {
+      case BlockFunctionBodyImpl(:var block):
+        return block.rightBracket.offset;
+      case EmptyFunctionBodyImpl(:var semicolon):
+        return semicolon.offset;
+      case ExpressionFunctionBodyImpl(:var expression2):
+        return expression2.end;
+      case NativeFunctionBodyImpl(:var semicolon):
+        return semicolon.offset;
+    }
   }
 }

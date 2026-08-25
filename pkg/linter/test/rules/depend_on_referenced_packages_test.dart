@@ -90,7 +90,7 @@ class C {}
       name: 'flutter_gen',
       rootFolder: getFolder('$workspaceRootPath/flutter_gen'),
     );
-    writeTestPackageConfig(packageConfigBuilder);
+    writeTestPackageConfig2(config: packageConfigBuilder);
     newFile(testPackagePubspecPath, r'''
 name: test
 version: 1.1.1

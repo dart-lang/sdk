@@ -705,8 +705,10 @@ class MemberUses {
   static const EnumSet<MemberUse> allStatic = EnumSet.fromRawBits(5);
 }
 
-typedef MemberUsedCallback =
-    void Function(MemberEntity member, EnumSet<MemberUse> useSet);
+typedef MemberUsedCallback = void Function(
+  MemberEntity member,
+  EnumSet<MemberUse> useSet,
+);
 
 /// Registry for the observed use of a class [entity] in the open world.
 // TODO(johnniwinther): Merge this with [InstantiationInfo].
@@ -756,8 +758,10 @@ class ClassUses {
   static const EnumSet<ClassUse> all = EnumSet.fromRawBits(3);
 }
 
-typedef ClassUsedCallback =
-    void Function(ClassEntity cls, EnumSet<ClassUse> useSet);
+typedef ClassUsedCallback = void Function(
+  ClassEntity cls,
+  EnumSet<ClassUse> useSet,
+);
 
 /// Object used for tracking parameter use in constructor and method
 /// invocations.

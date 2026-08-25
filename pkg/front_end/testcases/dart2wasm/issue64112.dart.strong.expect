@@ -1,0 +1,20 @@
+library;
+import self as self;
+import "dart:async" as asy;
+import "dart:core" as core;
+
+static method applyState() → asy::Future<core::bool> async /* emittedValueType= core::bool */ 
+  return true;
+static method test() → asy::Future<core::bool> async /* emittedValueType= core::bool */ {
+  core::bool changed = false;
+  try {
+    changed = changed.{core::bool::|}(await self::applyState()){(core::bool) → core::bool};
+    return changed;
+  }
+  finally {
+    core::print("done");
+  }
+}
+static method main() → void async /* emittedValueType= void */ {
+  await self::test();
+}

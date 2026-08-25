@@ -40,7 +40,7 @@ void foo(A a) {
 }
 ''');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'aaa', rootFolder: getFolder('$workspaceRootPath/aaa')),
     );
@@ -1590,7 +1590,7 @@ processObj(p) {
 }
 ''');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'aaa', rootFolder: getFolder('$packagesRootPath/aaa')),
     );

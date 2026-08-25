@@ -32,7 +32,7 @@ class TransformSetManagerTest extends AbstractContextTest {
   Future<void> test_package_folder_with_version() async {
     _addDataFile('p1-1.0');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'p1', rootFolder: getFolder('$workspaceRootPath/p1-1.0')),
     );
@@ -61,7 +61,7 @@ class TransformSetManagerTest extends AbstractContextTest {
     _addDataFileIn('$folder/one.yaml', 'p1');
     _addDataFileIn('$folder/deep/dive/two.yaml', 'p1');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'p1', rootFolder: getFolder('$workspaceRootPath/p1')),
     );
@@ -105,7 +105,7 @@ class TransformSetManagerTest extends AbstractContextTest {
     _addDataFile('p1');
     _addDataFile('p2');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'p1', rootFolder: getFolder('$workspaceRootPath/p1'))
         ..add(name: 'p2', rootFolder: getFolder('$workspaceRootPath/p2')),

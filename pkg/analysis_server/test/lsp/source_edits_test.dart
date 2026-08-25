@@ -51,7 +51,7 @@ var    a = (1, 2);
 
   Future<void> test_format_version_packageConfig() async {
     // 2.19 will not parse/format records.
-    writeTestPackageConfig(languageVersion: '2.19');
+    writeTestPackageConfig2(languageVersion: '2.19');
     const content = '''
 var    a = (1, 2);
 ''';
@@ -61,7 +61,7 @@ var    a = (1, 2);
 
   Future<void> test_format_version_versionToken_overridesPackageConfig() async {
     // 2.19 will not parse/format records.
-    writeTestPackageConfig(languageVersion: '3.0');
+    writeTestPackageConfig2(languageVersion: '3.0');
     const content = '''
 // @dart = 2.19
 var    a = (1, 2);

@@ -431,7 +431,7 @@ abstract interface class Future<T> {
     Duration duration, [
     FutureOr<T> Function()? computation,
   ]) {
-    if (computation == null && !typeAcceptsNull<T>()) {
+    if (computation == null && null is! T) {
       throw ArgumentError.value(
         null,
         "computation",

@@ -6185,7 +6185,14 @@ class AstBuilder extends StackListener {
     if (bodyObject is FunctionBodyImpl) {
       body = bodyObject;
     } else if (bodyObject is _RedirectingFactoryBody) {
-      separator = bodyObject.equalToken;
+      if (separator != null) {
+        // Parser encountered a redirecting factory constructor with
+        // initializers (which is illegal). Leave `separator` pointing to the
+        // `:` to preserve the invariant that `separator` comes before
+        // initializers.
+      } else {
+        separator ??= bodyObject.equalToken;
+      }
       factoryRedirectionTarget = bodyObject.constructorReference;
       body = EmptyFunctionBodyImpl(semicolon: endToken);
     } else {

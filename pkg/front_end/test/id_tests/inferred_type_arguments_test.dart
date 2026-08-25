@@ -4,7 +4,7 @@
 
 import 'dart:io' show Directory, Platform;
 
-import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
+import 'package:_fe_analyzer_shared/src/testing/id.dart' show Id, ActualDataMap;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart'
     show DataInterpreter, runTests;
 import 'package:front_end/src/source/source_loader.dart';
@@ -49,7 +49,7 @@ class InferredTypeArgumentDataComputer extends CfeDataComputer<List<DartType>> {
   void computeMemberData(
     CfeTestResultData testResultData,
     Member member,
-    Map<Id, ActualData<List<DartType>>> actualMap, {
+    ActualDataMap<List<DartType>> actualMap, {
     bool? verbose,
   }) {
     SourceMemberBuilder memberBuilder = lookupMemberBuilder(
@@ -77,11 +77,11 @@ class InferredTypeArgumentDataExtractor
   final TypeInferenceResultForTesting typeInferenceResult;
 
   new(
-    InternalCompilerResult compilerResult,
+    super.compilerResult,
     this.sourceLoaderDataForTesting,
     this.typeInferenceResult,
-    Map<Id, ActualData<List<DartType>>> actualMap,
-  ) : super(compilerResult, actualMap);
+    super.actualMap,
+  );
 
   @override
   List<DartType>? computeNodeValue(Id id, TreeNode node) {

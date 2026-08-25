@@ -2817,7 +2817,7 @@ class ExpressionEvaluationHelperImpl implements ExpressionEvaluationHelper {
   }
 
   @override
-  ExpressionInferenceResult? visitInternalVariableGet(
+  ExpressionInferenceResult? visitVariableGet(
     InternalVariableGet node,
     DartType typeContext,
     ProblemReporting problemReporting,
@@ -2837,7 +2837,7 @@ class ExpressionEvaluationHelperImpl implements ExpressionEvaluationHelper {
   }
 
   @override
-  ExpressionInferenceResult? visitInternalVariableSet(
+  ExpressionInferenceResult? visitVariableSet(
     InternalVariableSet node,
     DartType typeContext,
     ProblemReporting problemReporting,

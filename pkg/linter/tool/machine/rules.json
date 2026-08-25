@@ -1083,7 +1083,7 @@
   },
   {
     "name": "exhaustive_cases",
-    "description": "Define case clauses for all constants in enum-like classes.",
+    "description": "Define case clauses for all constants in enum-like types.",
     "categories": [
       "errorProne"
     ],
@@ -1091,7 +1091,7 @@
     "incompatible": [],
     "sets": [],
     "fixStatus": "hasFix",
-    "details": "Switching on instances of enum-like classes should be exhaustive.\n\nEnum-like classes are defined as concrete (non-abstract) classes that have:\n  * only private non-factory constructors\n  * two or more static const fields whose type is the enclosing class and\n  * no subclasses of the class in the defining library\n\n**DO** define case clauses for all constants in enum-like classes.\n\n**BAD:**\n```dart\nclass EnumLike {\n  final int i;\n  const EnumLike._(this.i);\n\n  static const e = EnumLike._(1);\n  static const f = EnumLike._(2);\n  static const g = EnumLike._(3);\n}\n\nvoid bad(EnumLike e) {\n  // Missing case.\n  switch(e) { // LINT\n    case EnumLike.e :\n      print('e');\n      break;\n    case EnumLike.f :\n      print('f');\n      break;\n  }\n}\n```\n\n**GOOD:**\n```dart\nclass EnumLike {\n  final int i;\n  const EnumLike._(this.i);\n\n  static const e = EnumLike._(1);\n  static const f = EnumLike._(2);\n  static const g = EnumLike._(3);\n}\n\nvoid ok(EnumLike e) {\n  // All cases covered.\n  switch(e) { // OK\n    case EnumLike.e :\n      print('e');\n      break;\n    case EnumLike.f :\n      print('f');\n      break;\n    case EnumLike.g :\n      print('g');\n      break;\n  }\n}\n```",
+    "details": "Switching on instances of enum-like types should cover all known\nconstants.\n\nEnum-like types are classes or extension types that have:\n  * only private non-factory constructors\n  * two or more static const fields whose type is the enclosing type\n\nIn addition, enum-like classes are concrete (non-abstract) and have no\nsubclasses in the defining library.\n\n**DO** define case clauses for all constants in enum-like types.\n\nExtension types can also be enum-like:\n\n```dart\nextension type const E._(int value) {\n  static const E a = E._(1);\n  static const E b = E._(2);\n}\n\nvoid f(E e) {\n  switch (e) { // LINT\n    case E.a:\n      print('a');\n  }\n}\n```\n\n**BAD:**\n```dart\nclass EnumLike {\n  final int i;\n  const EnumLike._(this.i);\n\n  static const e = EnumLike._(1);\n  static const f = EnumLike._(2);\n  static const g = EnumLike._(3);\n}\n\nvoid bad(EnumLike e) {\n  // Missing case.\n  switch(e) { // LINT\n    case EnumLike.e :\n      print('e');\n      break;\n    case EnumLike.f :\n      print('f');\n      break;\n  }\n}\n```\n\n**GOOD:**\n```dart\nclass EnumLike {\n  final int i;\n  const EnumLike._(this.i);\n\n  static const e = EnumLike._(1);\n  static const f = EnumLike._(2);\n  static const g = EnumLike._(3);\n}\n\nvoid ok(EnumLike e) {\n  // All cases covered.\n  switch(e) { // OK\n    case EnumLike.e :\n      print('e');\n      break;\n    case EnumLike.f :\n      print('f');\n      break;\n    case EnumLike.g :\n      print('g');\n      break;\n  }\n}\n```",
     "sinceDartSdk": "2.9"
   },
   {

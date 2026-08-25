@@ -3411,15 +3411,20 @@ class BinaryBuilder {
 
   AssignedVariablePattern _readAssignedVariablePattern() {
     int fileOffset = readOffset();
-    Variable variable = readVariableReference();
-    Variable? setter = readVariableReferenceOption();
-    DartType? matchedType = readDartTypeOption();
-    bool needsCheck = readByte() == 1;
-    return AssignedVariablePattern(variable)
-      ..fileOffset = fileOffset
-      ..matchedValueType = matchedType
-      ..needsCast = needsCheck
-      ..setter = setter;
+    String variableName = readStringReference();
+    DartType variableType = readDartType();
+    Variable writeVariable = readVariableReference();
+    DartType matchedValueType = readDartType();
+    int flags = readByte();
+    return AssignedVariablePattern(
+      variableName: variableName,
+      variableType: variableType,
+      writeVariable: writeVariable,
+      matchedValueType: matchedValueType,
+      needsCast: flags & AssignedVariablePattern.FlagNeedsCast != 0,
+      hasObservableEffect:
+          flags & AssignedVariablePattern.FlagHasObservableEffect != 0,
+    )..fileOffset = fileOffset;
   }
 
   CastPattern _readCastPattern() {
@@ -3431,14 +3436,15 @@ class BinaryBuilder {
   ConstantPattern _readConstantPattern() {
     int fileOffset = readOffset();
     Expression expression = readExpression();
-    DartType? expressionType = readDartTypeOption();
-    Reference? equalsTargetReference = readNullableMemberReference();
-    FunctionType? equalsType = readDartTypeOption() as FunctionType?;
-    return new ConstantPattern(expression)
-      ..expressionType = expressionType
-      ..equalsTargetReference = equalsTargetReference
-      ..equalsType = equalsType
-      ..fileOffset = fileOffset;
+    DartType expressionType = readDartType();
+    Reference equalsTargetReference = readNonNullMemberReference();
+    FunctionType equalsType = readDartType() as FunctionType;
+    return new ConstantPattern.byReference(
+      expression: expression,
+      expressionType: expressionType,
+      equalsTargetReference: equalsTargetReference,
+      equalsType: equalsType,
+    )..fileOffset = fileOffset;
   }
 
   InvalidPattern _readInvalidPattern() {
@@ -3456,36 +3462,38 @@ class BinaryBuilder {
     int fileOffset = readOffset();
     DartType? typeArgument = readDartTypeOption();
     List<Pattern> patterns = _readPatternList();
-    DartType? requiredType = readDartTypeOption();
-    DartType? matchedValueType = readDartTypeOption();
+    DartType requiredType = readDartType();
+    DartType matchedValueType = readDartType();
     int flags = readByte();
-    DartType? lookupType = readDartTypeOption();
-    Reference? lengthTargetReference = readNullableMemberReference();
-    DartType? lengthType = readDartTypeOption();
-    Reference? lengthCheckTargetReference = readNullableMemberReference();
-    FunctionType? lengthCheckType = readDartTypeOption() as FunctionType?;
-    Reference? sublistTargetReference = readNullableMemberReference();
-    FunctionType? sublistType = readDartTypeOption() as FunctionType?;
-    Reference? minusTargetReference = readNullableMemberReference();
-    FunctionType? minusType = readDartTypeOption() as FunctionType?;
-    Reference? indexGetTargetReference = readNullableMemberReference();
-    FunctionType? indexGetType = readDartTypeOption() as FunctionType?;
-    return new ListPattern(typeArgument, patterns)
-      ..requiredType = requiredType
-      ..matchedValueType = matchedValueType
-      ..flags = flags
-      ..lookupType = lookupType
-      ..lengthTargetReference = lengthTargetReference
-      ..lengthType = lengthType
-      ..lengthCheckTargetReference = lengthCheckTargetReference
-      ..lengthCheckType = lengthCheckType
-      ..sublistTargetReference = sublistTargetReference
-      ..sublistType = sublistType
-      ..minusTargetReference = minusTargetReference
-      ..minusType = minusType
-      ..indexGetTargetReference = indexGetTargetReference
-      ..indexGetType = indexGetType
-      ..fileOffset = fileOffset;
+    DartType lookupType = readDartType();
+    Reference lengthTargetReference = readNonNullMemberReference();
+    DartType lengthType = readDartType();
+    Reference lengthCheckTargetReference = readNonNullMemberReference();
+    FunctionType lengthCheckType = readDartType() as FunctionType;
+    Reference sublistTargetReference = readNonNullMemberReference();
+    FunctionType sublistType = readDartType() as FunctionType;
+    Reference minusTargetReference = readNonNullMemberReference();
+    FunctionType minusType = readDartType() as FunctionType;
+    Reference indexGetTargetReference = readNonNullMemberReference();
+    FunctionType indexGetType = readDartType() as FunctionType;
+    return new ListPattern.byReference(
+      typeArgument: typeArgument,
+      patterns: patterns,
+      requiredType: requiredType,
+      matchedValueType: matchedValueType,
+      lookupType: lookupType,
+      lengthTargetReference: lengthTargetReference,
+      lengthType: lengthType,
+      lengthCheckTargetReference: lengthCheckTargetReference,
+      lengthCheckType: lengthCheckType,
+      sublistTargetReference: sublistTargetReference,
+      sublistType: sublistType,
+      minusTargetReference: minusTargetReference,
+      minusType: minusType,
+      indexGetTargetReference: indexGetTargetReference,
+      indexGetType: indexGetType,
+      flags: flags,
+    )..fileOffset = fileOffset;
   }
 
   MapPattern _readMapPattern() {
@@ -3493,24 +3501,27 @@ class BinaryBuilder {
     DartType? keyType = readDartTypeOption();
     DartType? valueType = readDartTypeOption();
     List<MapPatternEntry> entries = _readMapPatternEntryList();
-    DartType? requiredType = readDartTypeOption();
-    DartType? matchedValueType = readDartTypeOption();
+    DartType requiredType = readDartType();
+    DartType matchedValueType = readDartType();
     int flags = readByte();
-    DartType? lookupType = readDartTypeOption();
-    Reference? containsKeyTargetReference = readNullableMemberReference();
-    FunctionType? containsKeyType = readDartTypeOption() as FunctionType?;
-    Reference? indexGetTargetReference = readNullableMemberReference();
-    FunctionType? indexGetType = readDartTypeOption() as FunctionType?;
-    return new MapPattern(keyType, valueType, entries)
-      ..requiredType = requiredType
-      ..matchedValueType = matchedValueType
-      ..flags = flags
-      ..lookupType = lookupType
-      ..containsKeyTargetReference = containsKeyTargetReference
-      ..containsKeyType = containsKeyType
-      ..indexGetTargetReference = indexGetTargetReference
-      ..indexGetType = indexGetType
-      ..fileOffset = fileOffset;
+    DartType lookupType = readDartType();
+    Reference containsKeyTargetReference = readNonNullMemberReference();
+    FunctionType containsKeyType = readDartType() as FunctionType;
+    Reference indexGetTargetReference = readNonNullMemberReference();
+    FunctionType indexGetType = readDartType() as FunctionType;
+    return new MapPattern.byReference(
+      keyType: keyType,
+      valueType: valueType,
+      entries: entries,
+      requiredType: requiredType,
+      matchedValueType: matchedValueType,
+      lookupType: lookupType,
+      containsKeyTargetReference: containsKeyTargetReference,
+      containsKeyType: containsKeyType,
+      indexGetTargetReference: indexGetTargetReference,
+      indexGetType: indexGetType,
+      flags: flags,
+    )..fileOffset = fileOffset;
   }
 
   NamedPattern _readNamedPattern() {
@@ -3523,7 +3534,6 @@ class BinaryBuilder {
     DartType? resultType = readDartTypeOption();
     RecordType? recordType = readDartTypeOption() as RecordType?;
     int recordFieldIndex = readUInt30();
-    FunctionType? functionType = readDartTypeOption() as FunctionType?;
     List<DartType>? typeArguments;
     if (readAndCheckOptionTag()) {
       typeArguments = readDartTypeList();
@@ -3535,7 +3545,6 @@ class BinaryBuilder {
       ..resultType = resultType
       ..recordType = recordType
       ..recordFieldIndex = recordFieldIndex
-      ..functionType = functionType
       ..typeArguments = typeArguments
       ..fileOffset = fileOffset;
   }
@@ -3554,16 +3563,16 @@ class BinaryBuilder {
 
   ObjectPattern _readObjectPattern() {
     int fileOffset = readOffset();
-    DartType type = readDartType();
+    DartType requiredType = readDartType();
     List<NamedPattern> fields = _readNamedPatternList();
-    DartType? matchedType = readDartTypeOption();
+    DartType matchedValueType = readDartType();
     bool needsCheck = readByte() == 1;
-    DartType? objectType = readDartTypeOption();
-    return new ObjectPattern(type, fields)
-      ..matchedValueType = matchedType
-      ..needsCheck = needsCheck
-      ..lookupType = objectType
-      ..fileOffset = fileOffset;
+    return new ObjectPattern(
+      requiredType: requiredType,
+      fields: fields,
+      matchedValueType: matchedValueType,
+      needsCheck: needsCheck,
+    )..fileOffset = fileOffset;
   }
 
   OrPattern _readOrPattern() {
@@ -3582,24 +3591,25 @@ class BinaryBuilder {
   RecordPattern _readRecordPattern() {
     int fileOffset = readOffset();
     List<Pattern> patterns = _readPatternList();
-    RecordType? type = readDartTypeOption() as RecordType?;
-    DartType? matchedType = readDartTypeOption();
+    RecordType requiredType = readDartType() as RecordType;
+    DartType matchedValueType = readDartType();
     bool needsCheck = readByte() == 1;
-    RecordType? recordType = readDartTypeOption() as RecordType?;
-    return new RecordPattern(patterns)
-      ..requiredType = type
-      ..matchedValueType = matchedType
-      ..needsCheck = needsCheck
-      ..lookupType = recordType
-      ..fileOffset = fileOffset;
+    RecordType lookupType = readDartType() as RecordType;
+    return new RecordPattern(
+      patterns: patterns,
+      requiredType: requiredType,
+      matchedValueType: matchedValueType,
+      needsCheck: needsCheck,
+      lookupType: lookupType,
+    )..fileOffset = fileOffset;
   }
 
   RelationalPattern _readRelationalPattern() {
     int fileOffset = readOffset();
     RelationalPatternKind kind = RelationalPatternKind.values[readByte()];
     Expression expression = readExpression();
-    DartType? expressionType = readDartTypeOption();
-    DartType? matchedType = readDartTypeOption();
+    DartType expressionType = readDartType();
+    DartType matchedValueType = readDartType();
     RelationalAccessKind accessKind = RelationalAccessKind.values[readByte()];
     Name name = readName();
     Reference? targetReference = readNullableMemberReference();
@@ -3608,15 +3618,17 @@ class BinaryBuilder {
       typeArguments = readDartTypeList();
     }
     FunctionType? functionType = readDartTypeOption() as FunctionType?;
-    return new RelationalPattern(kind, expression)
-      ..expressionType = expressionType
-      ..matchedValueType = matchedType
-      ..accessKind = accessKind
-      ..name = name
-      ..targetReference = targetReference
-      ..typeArguments = typeArguments
-      ..functionType = functionType
-      ..fileOffset = fileOffset;
+    return new RelationalPattern.byReference(
+      kind: kind,
+      expression: expression,
+      expressionType: expressionType,
+      matchedValueType: matchedValueType,
+      accessKind: accessKind,
+      name: name,
+      targetReference: targetReference,
+      typeArguments: typeArguments,
+      functionType: functionType,
+    )..fileOffset = fileOffset;
   }
 
   RestPattern _readRestPattern() {
@@ -3629,10 +3641,12 @@ class BinaryBuilder {
     int fileOffset = readOffset();
     DartType? type = readDartTypeOption();
     DeclaredVariable variable = readDeclaredVariable();
-    DartType? matchedType = readDartTypeOption();
-    return new VariablePattern(type, variable)
-      ..matchedValueType = matchedType
-      ..fileOffset = fileOffset;
+    DartType matchedValueType = readDartType();
+    return new VariablePattern(
+      type: type,
+      variable: variable,
+      matchedValueType: matchedValueType,
+    )..fileOffset = fileOffset;
   }
 
   WildcardPattern _readWildcardPattern() {
@@ -3707,20 +3721,26 @@ class BinaryBuilder {
     PatternGuard patternGuard = _readPatternGuard();
     Statement then = readStatement();
     Statement? otherwise = readStatementOption();
-    DartType? matchedValueType = readDartTypeOption();
-    return new IfCaseStatement(expression, patternGuard, then, otherwise)
-      ..matchedValueType = matchedValueType
-      ..fileOffset = fileOffset;
+    DartType matchedValueType = readDartType();
+    return new IfCaseStatement(
+      expression: expression,
+      patternGuard: patternGuard,
+      then: then,
+      otherwise: otherwise,
+      matchedValueType: matchedValueType,
+    )..fileOffset = fileOffset;
   }
 
   PatternAssignment _readPatternAssignment() {
     int fileOffset = readOffset();
     Pattern pattern = _readPattern();
     Expression expression = readExpression();
-    DartType? matchedValueType = readDartTypeOption();
-    return new PatternAssignment(pattern, expression)
-      ..matchedValueType = matchedValueType
-      ..fileOffset = fileOffset;
+    DartType matchedValueType = readDartType();
+    return new PatternAssignment(
+      pattern: pattern,
+      expression: expression,
+      matchedValueType: matchedValueType,
+    )..fileOffset = fileOffset;
   }
 
   PatternVariableDeclaration _readPatternVariableDeclaration() {
@@ -3728,10 +3748,13 @@ class BinaryBuilder {
     Pattern pattern = _readPattern();
     Expression expression = readExpression();
     bool isFinal = readByte() == 1;
-    DartType? matchedValueType = readDartTypeOption();
-    return new PatternVariableDeclaration(pattern, expression, isFinal: isFinal)
-      ..matchedValueType = matchedValueType
-      ..fileOffset = fileOffset;
+    DartType matchedValueType = readDartType();
+    return new PatternVariableDeclaration(
+      pattern,
+      expression,
+      isFinal: isFinal,
+      matchedValueType: matchedValueType,
+    )..fileOffset = fileOffset;
   }
 
   PatternSwitchStatement _readPatternSwitchStatement() {

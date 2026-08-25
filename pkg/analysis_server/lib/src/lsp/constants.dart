@@ -158,6 +158,13 @@ abstract final class CustomMethods {
   static const getFlutterWidgetPreviews = Method(
     'dart/textDocument/getFlutterWidgetPreviews',
   );
+
+  /// Gets all fixes (optionally filtered according to arguments) for a
+  /// workspace.
+  ///
+  /// Used by 'dart fix'.
+  static const getWorkspaceFixes = Method('dart/workspace/fixes/get');
+
   static const getWorkspaceFlutterWidgetPreviews = Method(
     'dart/workspace/getFlutterWidgetPreviews',
   );

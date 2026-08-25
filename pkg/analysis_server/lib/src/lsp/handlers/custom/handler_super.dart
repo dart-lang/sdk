@@ -56,9 +56,10 @@ class SuperHandler
       }
 
       // For PrimaryConstructorDeclarations, ElementLocator will return the
-      // class element (unless we're on a constructor name), but we want to
-      // treat a position within parameters as the constructor element, not the
-      // class element.
+      // class element (unless we're on a constructor name). Treat positions in
+      // ordinary parameters as the constructor element; declaring parameters
+      // are selected separately by _canHaveSuper because they also declare
+      // fields.
       //
       //   class Fo^o() extends X {}       // navigate to super class
       //   class Foo(^) extends X {}       // navigate to super constructor
@@ -88,6 +89,13 @@ class SuperHandler
       testNode = list.parent;
     }
 
+    if (testNode is FormalParameter) {
+      var element = testNode.declaredFragment?.element;
+      if (element is FieldFormalParameterElement && element.isDeclaring) {
+        return true;
+      }
+    }
+
     return testNode is ClassDeclaration ||
         testNode is ClassMember ||
         testNode is PrimaryConstructorDeclaration;
@@ -98,6 +106,8 @@ class _SuperComputer {
   Fragment? computeSuper(Element element) {
     return switch (element) {
       ConstructorElement element => _findSuperConstructor(element),
+      FieldFormalParameterElement(isDeclaring: true, :var field?) =>
+        _findSuperMember(field),
       InterfaceElement element => _findSuperClass(element),
       _ => _findSuperMember(element),
     };

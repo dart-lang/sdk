@@ -5427,7 +5427,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   @override
   js_ast.Statement visitFunctionDeclaration(FunctionDeclaration node) {
     var func = node.function;
-    var fn = _emitFunction(func, node.variable.cosmeticName);
+    var fn = _emitFunction(func, node.variable.name);
 
     var name = _emitVariableDef(node.variable);
     js_ast.Statement declareFn;
