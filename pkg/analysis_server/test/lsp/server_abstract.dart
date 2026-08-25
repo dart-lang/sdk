@@ -26,6 +26,7 @@ import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' as plugin;
 import 'package:analyzer_plugin/src/utilities/client_uri_converter.dart';
+import 'package:analyzer_testing/configuration_files_mixin.dart';
 import 'package:analyzer_testing/experiments/experiments.dart';
 import 'package:analyzer_testing/mock_packages/mock_packages.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
@@ -43,7 +44,6 @@ import '../mocks.dart';
 import '../mocks_lsp.dart';
 import '../shared/mixins/analytics_test_mixin.dart';
 import '../shared/shared_test_interface.dart';
-import '../support/configuration_files.dart';
 import '../utils/message_scheduler_test_view.dart';
 import 'request_helpers_mixin.dart';
 
@@ -312,7 +312,7 @@ abstract class AbstractLspAnalysisServerTest
       ),
     );
 
-    writeTestPackageConfig();
+    writeTestPackageConfig2();
   }
 
   Future<void> tearDown() async {

@@ -190,6 +190,344 @@ void f() {
 ''');
   }
 
+  test_dotShorthandCallableGetter_result_invoked() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  static A Function() get factory => A.new;
+}
+
+void f() {
+  A value = .factory();
+  print(value);
+}
+''');
+  }
+
+  test_dotShorthandConstructor_result_assigned() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  A.named();
+}
+
+void f() {
+  A value = .named();
+  print(value);
+}
+''');
+  }
+
+  test_dotShorthandConstructor_result_assignedInDeclarationPattern() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  final int value;
+
+  @useResult
+  A.named(this.value);
+}
+
+void f() {
+  var A(:value) = .named(0);
+  print(value);
+}
+''');
+  }
+
+  test_dotShorthandConstructor_result_returned() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  A.named();
+}
+
+A f() => .named();
+''');
+  }
+
+  test_dotShorthandConstructor_result_usedAsArgument() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  A.named();
+}
+
+void consume(A value) {}
+
+void f() {
+  consume(.named());
+}
+''');
+  }
+
+  test_dotShorthandField_result_assigned() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  static A instance = A();
+}
+
+void f() {
+  A value = .instance;
+  print(value);
+}
+''');
+  }
+
+  test_dotShorthandField_result_returned() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  static A instance = A();
+}
+
+A f() => .instance;
+''');
+  }
+
+  test_dotShorthandGetter_result_assigned() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  static A get instance => A();
+}
+
+void f() {
+  A value = .instance;
+  print(value);
+}
+''');
+  }
+
+  test_dotShorthandGetter_result_assignedInDeclarationPattern() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  final int value;
+
+  A(this.value);
+
+  @useResult
+  static A get instance => A(0);
+}
+
+void f() {
+  var A(:value) = .instance;
+  print(value);
+}
+''');
+  }
+
+  test_dotShorthandGetter_result_usedAsArgument() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  static A get instance => A();
+}
+
+void consume(A value) {}
+
+void f() {
+  consume(.instance);
+}
+''');
+  }
+
+  test_dotShorthandMethod_result_assigned() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  static A make() => A();
+}
+
+void f() {
+  A value = .make();
+  print(value);
+}
+''');
+  }
+
+  test_dotShorthandMethod_result_assigned_parenthesized() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  static A make() => A();
+}
+
+void f() {
+  A value = (.make());
+  print(value);
+}
+''');
+  }
+
+  test_dotShorthandMethod_result_assignedInDeclarationPattern() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  final int value;
+
+  A(this.value);
+
+  @useResult
+  static A make() => A(0);
+}
+
+void f() {
+  var A(:value) = .make();
+  print(value);
+}
+''');
+  }
+
+  test_dotShorthandMethod_result_assignedInPattern() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  final int value;
+
+  A(this.value);
+
+  @useResult
+  static A make() => A(0);
+}
+
+void f(int value) {
+  A(:value) = .make();
+  print(value);
+}
+''');
+  }
+
+  test_dotShorthandMethod_result_customMessage_assigned() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @UseResult('The result must be retained.')
+  static A make() => A();
+}
+
+void f() {
+  A value = .make();
+  print(value);
+}
+''');
+  }
+
+  test_dotShorthandMethod_result_returned() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  static A make() => A();
+}
+
+A f() => .make();
+''');
+  }
+
+  test_dotShorthandMethod_result_unlessParameterDefined() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @UseResult.unless(parameterDefined: 'fallback')
+  static A make({A? fallback}) => fallback ?? A();
+}
+
+void f(A fallback) {
+  A value = .make(fallback: fallback);
+  print(value);
+}
+''');
+  }
+
+  test_dotShorthandMethod_result_unlessParameterNotDefined() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @UseResult.unless(parameterDefined: 'fallback')
+  static A make({A? fallback}) => fallback ?? A();
+}
+
+void f() {
+  A value = .make();
+  print(value);
+}
+''');
+  }
+
+  test_dotShorthandMethod_result_usedAsArgument() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  static A make() => A();
+}
+
+void consume(A value) {}
+
+void f() {
+  consume(.make());
+}
+''');
+  }
+
+  test_dotShorthandMethod_result_usedInEquality() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  static A make() => A();
+}
+
+bool f(A value) => value == .make();
+''');
+  }
+
+  test_dotShorthandMethod_result_usedInIfNull() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  static A make() => A();
+}
+
+A f(A? value) => value ?? .make();
+''');
+  }
+
   test_field_result_assigned() async {
     await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';

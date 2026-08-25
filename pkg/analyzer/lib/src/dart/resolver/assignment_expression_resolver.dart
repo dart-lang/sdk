@@ -61,7 +61,10 @@ class AssignmentExpressionResolver {
     );
     if (target.operator.type == TokenType.QUESTION_PERIOD &&
         !receiverDoesNotComplete) {
-      _resolver.startNullAwareAssignmentTarget(target.receiver);
+      _resolver.startNullAwareAssignmentTarget(
+        target.receiver,
+        offset: target.operator.offset,
+      );
       _resolver.nullSafetyDeadCodeVerifier.visitNullAwareAccess(
         node,
         target.propertyName,
@@ -131,6 +134,7 @@ class AssignmentExpressionResolver {
       flow.ifNullExpression_rightBegin(
         _resolver.flowAnalysis.getExpressionInfo(left),
         SharedTypeView(node.readType!),
+        offset: node.operator.offset,
       );
     }
 
@@ -155,11 +159,12 @@ class AssignmentExpressionResolver {
             writeElement2,
             SharedTypeView(node.typeOrThrow),
             hasRead ? null : _resolver.flowAnalysis.getExpressionInfo(right),
+            offset: node.end,
           ),
         );
       }
       if (isIfNull) {
-        flow.ifNullExpression_end();
+        flow.ifNullExpression_end(offset: node.end);
       }
     }
   }
@@ -373,7 +378,13 @@ class AssignmentExpressionResolver {
     if (variableElement case PromotableElementImpl element) {
       _resolver.flowAnalysis.storeExpressionInfo(
         node,
-        flow.write(node, element, SharedTypeView(operatorResultType), null),
+        flow.write(
+          node,
+          element,
+          SharedTypeView(operatorResultType),
+          null,
+          offset: node.end,
+        ),
       );
     }
   }
@@ -465,8 +476,11 @@ class AssignmentExpressionResolver {
               _typeSystem.resolveToBound(target.receiver.typeOrThrow),
               NeverTypeImpl.instance,
             );
-        if (target.question != null && !receiverDoesNotComplete) {
-          _resolver.startNullAwareAssignmentTarget(target.receiver);
+        if (target.question case var question? when !receiverDoesNotComplete) {
+          _resolver.startNullAwareAssignmentTarget(
+            target.receiver,
+            offset: question.offset,
+          );
           _resolver.nullSafetyDeadCodeVerifier.visitNode(target.index);
         }
         var resolution = _resolver.resolveIndexDirectAssignmentTarget(target);
@@ -566,6 +580,7 @@ class AssignmentExpressionResolver {
           element,
           SharedTypeView(node.typeOrThrow),
           _resolver.flowAnalysis.getExpressionInfo(node.value),
+          offset: node.end,
         ),
       );
     }
@@ -672,6 +687,7 @@ class AssignmentExpressionResolver {
     flow?.ifNullExpression_rightBegin(
       readExpressionInfo,
       SharedTypeView(readType),
+      offset: node.operator.offset,
     );
 
     _resolver.analyzeExpression(node.value, SharedTypeSchemaView(rhsContext));
@@ -698,10 +714,16 @@ class AssignmentExpressionResolver {
     if (variableElement case PromotableElementImpl element) {
       _resolver.flowAnalysis.storeExpressionInfo(
         node,
-        flow.write(node, element, SharedTypeView(node.typeOrThrow), null),
+        flow.write(
+          node,
+          element,
+          SharedTypeView(node.typeOrThrow),
+          null,
+          offset: node.end,
+        ),
       );
     }
-    flow.ifNullExpression_end();
+    flow.ifNullExpression_end(offset: node.end);
   }
 
   ({IndexReadResolutionImpl read, IndexWriteResolutionImpl write})?
@@ -719,8 +741,11 @@ class AssignmentExpressionResolver {
           _typeSystem.resolveToBound(target.receiver.typeOrThrow),
           NeverTypeImpl.instance,
         );
-    if (target.question != null && !receiverDoesNotComplete) {
-      _resolver.startNullAwareAssignmentTarget(target.receiver);
+    if (target.question case var question? when !receiverDoesNotComplete) {
+      _resolver.startNullAwareAssignmentTarget(
+        target.receiver,
+        offset: question.offset,
+      );
       _resolver.nullSafetyDeadCodeVerifier.visitNode(target.index);
     }
 

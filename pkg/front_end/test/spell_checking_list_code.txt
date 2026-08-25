@@ -761,6 +761,7 @@ function's
 fuse
 futured
 futureor
+futures
 fvar
 g
 gain
@@ -1963,6 +1964,7 @@ therein
 thereof
 they'll
 they've
+thorough
 thought
 thread
 thresh

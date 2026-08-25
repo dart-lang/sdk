@@ -445,7 +445,7 @@ AnalysisErrors
 ''');
 
     // Write `package_config.json`, recreate analysis contexts.
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'aaa', rootFolder: getFolder(aaaRootPath)),
     );
@@ -993,7 +993,7 @@ AnalysisErrors
 ''');
 
     // Write `package_config.json`, recreate analysis contexts.
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'aaa', rootFolder: getFolder(aaaRootPath)),
     );
@@ -1324,7 +1324,7 @@ class A {}
 ''');
 
     // Write the empty file, without `package:aaa`.
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'aaa', rootFolder: getFolder(aaaRootPath)),
     );
@@ -1897,7 +1897,7 @@ AnalysisErrors
 class A {}
 ''');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'aaa', rootFolder: getFolder(aaaRootPath)),
     );
@@ -2509,7 +2509,7 @@ class SetSubscriptionsTest extends PubPackageAnalysisServerTest {
 library lib_a;
 class A {}
 ''');
-    writePackageConfig(
+    writePackageConfig2(
       convertPath('/project'),
       config: (PackageConfigFileBuilder()
         ..add(name: 'pkgA', rootFolder: getFolder('/packages/pkgA'))),
@@ -2561,7 +2561,7 @@ void f() {
 library lib_a;
 class A {}
 ''');
-    writePackageConfig(
+    writePackageConfig2(
       convertPath('/project'),
       config: (PackageConfigFileBuilder()
         ..add(name: 'pkgA', rootFolder: getFolder('/packages/pkgA'))),

@@ -149,10 +149,7 @@ const Map<String?, Map<String, FieldRule?>> _fieldRuleMap = {
   'FunctionType': {'typeParameters': FieldRule(isDeclaration: true)},
   'TypeParameterType': {'parameter': FieldRule(isDeclaration: false)},
   'StructuralParameterType': {'parameter': FieldRule(isDeclaration: false)},
-  'AssignedVariablePattern': {
-    'variable': FieldRule(isDeclaration: false),
-    'setter': FieldRule(isDeclaration: false),
-  },
+  'AssignedVariablePattern': {'writeVariable': FieldRule(isDeclaration: false)},
   'InvalidPattern': {'declaredVariables': FieldRule(isDeclaration: true)},
   'OrPattern': {'orPatternJointVariables': FieldRule(isDeclaration: false)},
   'VariablePattern': {'variable': FieldRule(isDeclaration: true)},

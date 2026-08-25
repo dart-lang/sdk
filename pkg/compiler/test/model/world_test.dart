@@ -13,6 +13,7 @@ import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/js_model/js_world.dart' show JClosedWorld;
 import 'package:compiler/src/universe/class_hierarchy.dart';
 import 'package:compiler/src/universe/class_set.dart';
+
 import '../helpers/type_test_helper.dart';
 
 void main() {

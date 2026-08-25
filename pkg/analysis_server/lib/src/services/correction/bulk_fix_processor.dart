@@ -1103,6 +1103,7 @@ class IterativeBulkFixProcessor {
 
   final void Function(SourceFileEdit) _applyTemporaryOverlayEdits;
   final Future<void> Function() _applyOverlays;
+  final List<String>? _diagnosticCodes;
 
   final ByteStore _byteStore;
 
@@ -1118,6 +1119,7 @@ class IterativeBulkFixProcessor {
     required this._byteStore,
     required this._applyTemporaryOverlayEdits,
     required this._applyOverlays,
+    this._diagnosticCodes,
     this._cancellationToken,
   });
 
@@ -1177,6 +1179,7 @@ class IterativeBulkFixProcessor {
       _instrumentationService,
       workspace,
       byteStore: _byteStore,
+      codes: _diagnosticCodes,
       cancellationToken: _cancellationToken,
     );
 
@@ -1235,17 +1238,19 @@ class IterativeBulkFixProcessor {
       }
     }
 
-    // Finally, add any Pubspec fixes.
-    var pubspecResult = await performance.runAsync(
-      '_runFixesIteratively pubspec pass',
-      (_) {
-        var processor = _createProcessor(contexts);
-        return fixPubspecOperation(processor);
-      },
-    );
-    if (pubspecResult.edits.isNotEmpty) {
-      _passesWithEdits++;
-      edits.addAll(pubspecResult.edits);
+    // Finally, add any Pubspec fixes (unless we were just running a subset).
+    if (_diagnosticCodes == null) {
+      var pubspecResult = await performance.runAsync(
+        '_runFixesIteratively pubspec pass',
+        (_) {
+          var processor = _createProcessor(contexts);
+          return fixPubspecOperation(processor);
+        },
+      );
+      if (pubspecResult.edits.isNotEmpty) {
+        _passesWithEdits++;
+        edits.addAll(pubspecResult.edits);
+      }
     }
 
     return IterativeBulkFixRequestResult(edits);

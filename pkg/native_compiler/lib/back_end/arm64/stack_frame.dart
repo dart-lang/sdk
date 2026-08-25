@@ -108,6 +108,10 @@ final class Arm64StackFrame extends StackFrame {
         return 6; // Result + 5 arguments for Instanceof runtime call.
       case Suspend(:var op) when op == .asyncYield || op == .asyncYieldStar:
         return 2; // 2 arguments for _AsyncStarStreamController.add/addStream call.
+      case LoadInstanceField() when instr.checkInitialized:
+        return 2; // Result + 1 argument for LateFieldAssignedDuringInitializationError/LateFieldNotInitializedError runtime call.
+      case LoadStaticField() when instr.checkInitialized:
+        return 2; // Result + 1 argument for LateFieldAssignedDuringInitializationError/LateFieldNotInitializedError runtime call.
       case Throw(kind: .exception):
         return 2; // Result + 1 argument for Throw runtime call.
       case Throw(kind: .rethrowException):
@@ -118,6 +122,9 @@ final class Arm64StackFrame extends StackFrame {
         return 3; // Result + 2 arguments for RangeError runtime call.
       case SubtypeCheck():
         return 6; // Result + 5 arguments for SubtypeCheck call.
+      case BinaryIntOp(:var op)
+          when op == .truncatingDiv || op == .mod || op == .rem:
+        return 1; // Result for IntegerDivisionByZeroException runtime call.
       default:
         return 0;
     }

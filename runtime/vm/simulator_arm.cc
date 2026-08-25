@@ -779,10 +779,6 @@ Simulator::Simulator() : memory_(FLAG_sim_buffer_memory) {
 
 Simulator::~Simulator() {
   delete[] stack_;
-  Isolate* isolate = Isolate::Current();
-  if (isolate != nullptr) {
-    isolate->set_simulator(nullptr);
-  }
 }
 
 // When the generated code calls an external reference we need to catch that in
@@ -882,14 +878,14 @@ uword Simulator::FunctionForRedirect(uword redirect) {
   return Redirection::FunctionForRedirect(redirect);
 }
 
-// Get the active Simulator for the current isolate.
+// Get the active Simulator for the current thread.
 Simulator* Simulator::Current() {
-  Isolate* isolate = Isolate::Current();
-  Simulator* simulator = isolate->simulator();
+  Thread* thread = Thread::Current();
+  Simulator* simulator = thread->simulator();
   if (simulator == nullptr) {
     NoSafepointScope no_safepoint;
     simulator = new Simulator();
-    isolate->set_simulator(simulator);
+    thread->set_simulator(simulator);
   }
   return simulator;
 }
@@ -3451,6 +3447,43 @@ void Simulator::DecodeSIMDDataProcessing(Instr* instr) {
       } else if (size == 2) {
         uint32_t* in = reinterpret_cast<uint32_t*>(&dm_value);
         result = static_cast<uint64_t>(in[0]) + static_cast<uint64_t>(in[1]);
+      } else {
+        UnimplementedInstruction(instr);
+        return;
+      }
+      set_dregister_bits(dd, static_cast<int64_t>(result));
+    } else if ((instr->Bits(8, 4) == 10) && (instr->Bit(4) == 0) &&
+               (instr->Bits(23, 2) == 2)) {
+      // Format(instr, "vpmax.u<sz> 'dd, 'dn, 'dm");
+      DRegister dd = instr->DdField();
+      DRegister dn = instr->DnField();
+      DRegister dm = instr->DmField();
+      const int size = instr->Bits(20, 2);
+      uint64_t dn_value = static_cast<uint64_t>(get_dregister_bits(dn));
+      uint64_t dm_value = static_cast<uint64_t>(get_dregister_bits(dm));
+      uint64_t result = 0;
+      if (size == 0) {
+        uint8_t* n = reinterpret_cast<uint8_t*>(&dn_value);
+        uint8_t* m = reinterpret_cast<uint8_t*>(&dm_value);
+        uint8_t* out = reinterpret_cast<uint8_t*>(&result);
+        for (int i = 0; i < 4; i++) {
+          out[i] = n[2 * i] > n[2 * i + 1] ? n[2 * i] : n[2 * i + 1];
+          out[4 + i] = m[2 * i] > m[2 * i + 1] ? m[2 * i] : m[2 * i + 1];
+        }
+      } else if (size == 1) {
+        uint16_t* n = reinterpret_cast<uint16_t*>(&dn_value);
+        uint16_t* m = reinterpret_cast<uint16_t*>(&dm_value);
+        uint16_t* out = reinterpret_cast<uint16_t*>(&result);
+        for (int i = 0; i < 2; i++) {
+          out[i] = n[2 * i] > n[2 * i + 1] ? n[2 * i] : n[2 * i + 1];
+          out[2 + i] = m[2 * i] > m[2 * i + 1] ? m[2 * i] : m[2 * i + 1];
+        }
+      } else if (size == 2) {
+        uint32_t* n = reinterpret_cast<uint32_t*>(&dn_value);
+        uint32_t* m = reinterpret_cast<uint32_t*>(&dm_value);
+        uint32_t* out = reinterpret_cast<uint32_t*>(&result);
+        out[0] = n[0] > n[1] ? n[0] : n[1];
+        out[1] = m[0] > m[1] ? m[0] : m[1];
       } else {
         UnimplementedInstruction(instr);
         return;

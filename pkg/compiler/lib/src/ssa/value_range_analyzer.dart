@@ -161,12 +161,10 @@ class IntValue extends Value {
   @override
   Value operator &(Value other) {
     if (other is IntValue) {
-      final constant =
-          constant_system.bitAnd.fold(
-                constant_system.createInt(value),
-                constant_system.createInt(other.value),
-              )
-              as IntConstantValue;
+      final constant = constant_system.bitAnd.fold(
+        constant_system.createInt(value),
+        constant_system.createInt(other.value),
+      ) as IntConstantValue;
       return info.newIntValue(constant.intValue);
     }
     return info.unknownValue;

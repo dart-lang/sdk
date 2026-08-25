@@ -409,15 +409,12 @@ class TypeVariableTests {
     //
     // TODO(johnniwinther): Make this dependency visible from code, possibly
     // using generic methods.
-    _getClassNode(
-      _commonElements.jsArrayClass,
-    ).addDependency(_getClassNode(_commonElements.listClass));
-    _getClassNode(
-      _commonElements.setLiteralClass,
-    ).addDependency(_getClassNode(_commonElements.setClass));
-    _getClassNode(
-      _commonElements.mapLiteralClass,
-    ).addDependency(_getClassNode(_commonElements.mapClass));
+    _getClassNode(_commonElements.jsArrayClass)
+        .addDependency(_getClassNode(_commonElements.listClass));
+    _getClassNode(_commonElements.setLiteralClass)
+        .addDependency(_getClassNode(_commonElements.setClass));
+    _getClassNode(_commonElements.mapLiteralClass)
+        .addDependency(_getClassNode(_commonElements.mapClass));
 
     void processCheckedType(DartType type) {
       var typeWithoutNullability = type.withoutNullability;
@@ -632,11 +629,10 @@ class TypeVariableTests {
         _addImplicitCheck(type.typeArguments[entity.index]);
       });
     } else {
-      instantiationsOf(declaration).forEach((
-        GenericInstantiation instantiation,
-      ) {
-        _addImplicitCheck(instantiation.typeArguments[entity.index]);
-      });
+      instantiationsOf(declaration)
+          .forEach((GenericInstantiation instantiation) {
+            _addImplicitCheck(instantiation.typeArguments[entity.index]);
+          });
       _world.forEachStaticTypeArgument((
         Entity function,
         Set<DartType> typeArguments,

@@ -23,8 +23,8 @@ import 'package:analyzer/src/error/inference_error.dart';
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 
-final _missingMustBeOverridden = Expando<List<ExecutableElement>>();
-final _missingOverrides = Expando<List<InternalExecutableElement>>();
+final _missingMustBeOverriddenNames = Expando<Set<Name>>();
+final _missingOverrideNames = Expando<Set<Name>>();
 
 typedef DisallowedClassDiagnosticCode =
     DiagnosticWithArguments<
@@ -236,18 +236,16 @@ class InheritanceOverrideVerifier {
     );
   }
 
-  /// Returns [ExecutableElement] members that are in the interface of the
-  /// given class with `@mustBeOverridden`, but don't have implementations.
-  static List<ExecutableElement> missingMustBeOverridden(
-    CompilationUnitMember node,
-  ) {
-    return _missingMustBeOverridden[node] ?? const [];
+  /// Returns names of members that the given class must override because of
+  /// `@mustBeOverridden`.
+  static List<Name> missingMustBeOverriddenNames(CompilationUnitMember node) {
+    return _missingMustBeOverriddenNames[node]?.toList() ?? const [];
   }
 
-  /// Returns [ExecutableElement] members that are in the interface of the
-  /// given class, but don't have concrete implementations.
-  static List<ExecutableElement> missingOverrides(CompilationUnitMember node) {
-    return _missingOverrides[node] ?? const [];
+  /// Returns names of inherited abstract members that the given class must
+  /// override.
+  static List<Name> missingOverrideNames(CompilationUnitMember node) {
+    return _missingOverrideNames[node]?.toList() ?? const [];
   }
 }
 
@@ -960,7 +958,10 @@ class _ClassVerifier {
       return;
     }
 
-    _missingOverrides[node] = elements;
+    _missingOverrideNames[node] = elements
+        .map(Name.forElement)
+        .nonNulls
+        .toSet();
 
     var descriptions = <String>[];
     for (var element in elements) {
@@ -1064,7 +1065,14 @@ class _ClassVerifier {
         !noSuchMethodDeclaration.isAbstract) {
       return;
     }
-    var notOverridden = <ExecutableElement>[];
+    var notOverriddenNames = <Name, String>{};
+    void addNotOverridden(ExecutableElement element) {
+      notOverriddenNames.putIfAbsent(
+        Name.forElement(element)!,
+        () => element.name!,
+      );
+    }
+
     for (var supertype in classElement.allSupertypes) {
       // TODO(srawlins): This looping may be expensive. Since the vast majority
       // of classes will have zero elements annotated with `@mustBeOverridden`,
@@ -1081,7 +1089,7 @@ class _ClassVerifier {
         if (method.metadata.hasMustBeOverridden) {
           var methodDeclaration = classElement.getMethod(method.lookupName!);
           if (methodDeclaration == null || methodDeclaration.isAbstract) {
-            notOverridden.add(method.baseElement);
+            addNotOverridden(method);
           }
         }
       }
@@ -1096,7 +1104,7 @@ class _ClassVerifier {
             (getter.variable.metadata.hasMustBeOverridden)) {
           var declaration = classElement.getGetter(getter.name!);
           if (declaration == null || declaration.isAbstract) {
-            notOverridden.add(getter);
+            addNotOverridden(getter);
           }
         }
       }
@@ -1111,21 +1119,20 @@ class _ClassVerifier {
             (setter.variable.metadata.hasMustBeOverridden)) {
           var declaration = classElement.getSetter(setter.name!);
           if (declaration == null || declaration.isAbstract) {
-            notOverridden.add(setter);
+            addNotOverridden(setter);
           }
         }
       }
     }
-    if (notOverridden.isEmpty) {
+    if (notOverriddenNames.isEmpty) {
       return;
     }
 
-    _missingMustBeOverridden[node] = notOverridden.toList();
-    var namesForError = notOverridden
-        .map((e) {
-          var name = e.name!;
+    _missingMustBeOverriddenNames[node] = notOverriddenNames.keys.toSet();
+    var namesForError = notOverriddenNames.values
+        .map((name) {
           if (name.endsWith('=')) {
-            name = name.substring(0, name.length - 1);
+            return name.substring(0, name.length - 1);
           }
           return name;
         })

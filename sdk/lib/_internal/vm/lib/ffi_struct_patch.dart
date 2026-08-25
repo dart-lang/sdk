@@ -35,7 +35,11 @@ final class _FfiStructLayout {
   @pragma("wasm:entry-point")
   final int? packing;
 
-  const _FfiStructLayout(this.fieldTypes, this.packing);
+  @pragma("vm:entry-point")
+  @pragma("wasm:entry-point")
+  final List<String> fieldNames;
+
+  const _FfiStructLayout(this.fieldTypes, this.packing, this.fieldNames);
 }
 
 @pragma("vm:entry-point")

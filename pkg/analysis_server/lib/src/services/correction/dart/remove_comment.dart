@@ -30,7 +30,9 @@ class RemoveComment extends ResolvedCorrectionProducer {
 
     var diagnosticOffset = diagnostic.problemMessage.offset;
 
-    var comment = node.commentTokenCovering(diagnosticOffset);
+    var comment =
+        node.commentTokenCovering(diagnosticOffset) ??
+        node.parent?.commentTokenCovering(diagnosticOffset);
     if (comment is! CommentToken) return;
 
     await builder.addDartFileEdit(file, (builder) {

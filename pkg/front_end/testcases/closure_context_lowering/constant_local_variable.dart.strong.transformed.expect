@@ -3,11 +3,9 @@ import self as self;
 import "dart:core" as core;
 
 static method test() → dynamic /* scope=[
-  #ctx1: not-captured VariableContext([
-    const-variable const x;
-  ]),
+  #ctx1: not-captured [x],
 ] */ {
-  x := #C1;
+  const core::String x = #C1;
   return #C1;
 }
 

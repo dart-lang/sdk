@@ -47,6 +47,12 @@ class _Visitor(final AnalysisRule rule) extends SimpleAstVisitor<void> {
         !classElement.metadata.hasVisibleForTesting &&
         classElement.extendsWidget &&
         classElement.constructors.where((e) => e.isOriginDeclaration).isEmpty) {
+      var superConstructor = classElement.superUnnamedConstructor;
+      if (superConstructor != null && !superConstructor.definesKeyParameter) {
+        // The super constructor has no `Key` parameter to forward, so there is
+        // nothing for this class to declare.
+        return;
+      }
       rule.reportAtToken(node.namePart.typeName);
     }
   }
@@ -91,6 +97,20 @@ class _Visitor(final AnalysisRule rule) extends SimpleAstVisitor<void> {
     if (!classElement.extendsWidget) return;
     if (_hasKeySuperParameterInitializerArg(parameters)) return;
     if (!initializers.any((initializer) => initializer.isMissingKey)) {
+      var hasExplicitSuperOrRedirect = initializers.any(
+        (initializer) =>
+            initializer is SuperConstructorInvocation ||
+            initializer is RedirectingConstructorInvocation,
+      );
+      if (!hasExplicitSuperOrRedirect) {
+        // The super constructor is invoked implicitly. If it has no `Key`
+        // parameter to forward, there is nothing for this constructor to
+        // declare.
+        var superConstructor = classElement.superUnnamedConstructor;
+        if (superConstructor != null && !superConstructor.definesKeyParameter) {
+          return;
+        }
+      }
       rule.reportAtSourceRange(errorNode.sourceRange);
     }
   }
@@ -115,6 +135,13 @@ extension on ConstructorInitializer {
     ) => !element.definesKeyParameter || argumentList.containsKeyArgument,
     _ => false,
   };
+}
+
+extension on ClassElement {
+  /// The unnamed constructor of this class's superclass, or `null` if there is
+  /// none.
+  ConstructorElement? get superUnnamedConstructor =>
+      supertype?.element.unnamedConstructor;
 }
 
 extension on ConstructorElement {

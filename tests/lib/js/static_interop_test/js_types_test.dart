@@ -235,7 +235,7 @@ void syncTests() {
     globalThis.obj = {
       'foo': 'bar',
     };
-    globalThis.fun = function(a, b) {
+    globalThis.fun = function fun(a, b) {
       return globalThis.edf(a, b);
     }
     globalThis.nullAny = null;
@@ -258,6 +258,8 @@ void syncTests() {
   // [JSFunction]
   Expect.isTrue(fun is JSFunction);
   Expect.isTrue(confuse(fun) is JSFunction);
+  Expect.equals(2, fun.length);
+  Expect.equals('fun', fun.name);
 
   // [JSExportedDartFunction] <-> [Function]
   final dartFunction = (JSString a, JSString b) {

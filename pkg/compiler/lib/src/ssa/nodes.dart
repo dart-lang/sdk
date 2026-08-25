@@ -5020,10 +5020,12 @@ class HArrayFlagsCheck extends HCheck {
   }
 
   bool alwaysThrows() {
-    if ((arrayFlags, checkFlags) case (
-      HConstant(constant: IntConstantValue(intValue: final arrayBits)),
-      HConstant(constant: IntConstantValue(intValue: final checkBits)),
-    ) when arrayBits & checkBits != BigInt.zero) {
+    if ((arrayFlags, checkFlags)
+        case (
+          HConstant(constant: IntConstantValue(intValue: final arrayBits)),
+          HConstant(constant: IntConstantValue(intValue: final checkBits)),
+        )
+        when arrayBits & checkBits != BigInt.zero) {
       return true;
     }
     return false;

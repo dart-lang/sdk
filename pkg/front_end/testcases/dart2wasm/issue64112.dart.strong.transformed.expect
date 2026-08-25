@@ -1,0 +1,34 @@
+library;
+import self as self;
+import "dart:async" as asy;
+import "dart:core" as core;
+
+static method applyState() → asy::Future<core::bool> /* emittedValueType= core::bool */ /* originally async */ 
+  return asy::Future::value<core::bool>(true);
+static method test() → asy::Future<core::bool> async /* emittedValueType= core::bool */ {
+  core::bool :async_temporary_0;
+  core::bool :async_temporary_1;
+  core::bool changed = false;
+  {
+    core::int #t1 = 0;
+    core::Object #t2;
+    core::StackTrace #t3;
+    try {
+      :async_temporary_1 = changed;
+      :async_temporary_0 = await self::applyState();
+      changed = (:async_temporary_1 as{Unchecked} core::bool).{core::bool::|}(:async_temporary_0 as{Unchecked} core::bool){(core::bool) → core::bool};
+      return changed;
+    }
+    finally {
+      core::print("done");
+      #t1;
+      #t2;
+      #t3;
+    }
+  }
+}
+static method main() → void async /* emittedValueType= void */ {
+  core::bool :async_temporary_0;
+  :async_temporary_0 = await self::test();
+  :async_temporary_0 as{Unchecked} core::bool;
+}

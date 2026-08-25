@@ -15,12 +15,17 @@ import 'dart:_string' show JSStringImpl;
 import 'dart:_wasm';
 import 'dart:_js_interop_wasm';
 
-/// Contains active futures for any entities (either module names or IDs)
-/// currently being loaded.
-final Map<int, Future<void>> _loading = {};
+/// Contains active futures for any load IDs currently being loaded.
+final Map<int, Future<void>> _loadingPrefixes = {};
 
-/// Contains the set of entities (either modules or IDs) already loaded.
-final Set<int> _loaded = {};
+/// Contains the set of load IDs already loaded.
+final Set<int> _loadedPrefixes = {};
+
+/// Contains active futures for any module IDs currently being loaded.
+final Map<int, Future<void>> _loadingModules = {};
+
+/// Contains the set of module IDs already loaded.
+final Set<int> _loadedModules = {};
 
 /// Only used when loading modules directly, will get populated by the compiler.
 ///
@@ -64,7 +69,7 @@ class DeferredLoadIdNotLoadedError extends Error implements NoSuchMethodError {
 // NOTE: We'll inject a `@pragma('wasm:entry-point')` before TFA if we need this
 // method at runtime.
 bool checkLibraryIsLoadedFromLoadId(int loadId) {
-  if (_loaded.contains(loadId)) {
+  if (_loadedPrefixes.contains(loadId)) {
     return true;
   }
   throw DeferredLoadIdNotLoadedError(loadId);
@@ -74,34 +79,37 @@ bool checkLibraryIsLoadedFromLoadId(int loadId) {
 // method at runtime.
 Future<void> loadLibraryFromLoadId(int loadId) {
   if (!deferredLoadingEnabled) {
-    _loaded.add(loadId);
+    _loadedPrefixes.add(loadId);
     return Future.value();
   }
-  if (_loaded.contains(loadId)) {
+  if (_loadedPrefixes.contains(loadId)) {
     return Future.value();
   }
-  final existingFuture = _loading[loadId];
+  final existingFuture = _loadingPrefixes[loadId];
   if (existingFuture != null) {
     return existingFuture;
   }
   final future = deferredLoadingViaEmbedderLoadId
       ? _loadLibraryViaEmbedderLoadId(loadId)
       : _loadLibraryViaEmbedderModuleNames(loadId);
-  return _loading[loadId] = future.then(
-    (_) {
-      _loaded.add(loadId);
-      _loading.remove(loadId);
-    },
-    onError: (e) {
-      if (minify) {
-        throw DeferredLoadException('Error loading load ID: $loadId\n$e');
-      }
-      throw DeferredLoadException(
-        'Error loading ${_prefixName(loadId)} of library '
-        '${_importUri(loadId)}\n$e',
-      );
-    },
-  );
+  return _loadingPrefixes[loadId] = future
+      .then(
+        (_) {
+          _loadedPrefixes.add(loadId);
+        },
+        onError: (e) {
+          if (minify) {
+            throw DeferredLoadException('Error loading load ID: $loadId\n$e');
+          }
+          throw DeferredLoadException(
+            'Error loading ${_prefixName(loadId)} of library '
+            '${_importUri(loadId)}\n$e',
+          );
+        },
+      )
+      .whenComplete(() {
+        _loadingPrefixes.remove(loadId);
+      });
 }
 
 Future<void> _loadLibraryViaEmbedderLoadId(int loadId) {
@@ -116,19 +124,58 @@ Future<void> _loadLibraryViaEmbedderModuleNames(int loadId) {
     // No modules to load.
     return Future.value();
   }
-  final moduleNamesAsList = _decodeEncodedModuleIds('test', encodedModuleIds);
+  final moduleIds = _decodeEncodedModuleIds(encodedModuleIds);
 
-  final promise =
-      (_loadDeferredModules(moduleNamesAsList.toJS.toExternRef!).toJS
-          as JSPromise);
-  return promise.toDart;
+  final pendingFutures = <Future<void>>{};
+  final modulesToLoad = <int>[];
+  for (int i = 0; i < moduleIds.length; ++i) {
+    final moduleId = moduleIds[i];
+    if (_loadedModules.contains(moduleId)) {
+      continue;
+    }
+    final loadingFuture = _loadingModules[moduleId];
+    if (loadingFuture != null) {
+      pendingFutures.add(loadingFuture);
+    } else {
+      modulesToLoad.add(moduleId);
+    }
+  }
+
+  if (modulesToLoad.isNotEmpty) {
+    final prefix = JSStringImpl.fromRefUnchecked(_moduleNamePrefix);
+    final moduleNamesAsList = <JSString>[];
+    for (int i = 0; i < modulesToLoad.length; ++i) {
+      final moduleId = modulesToLoad[i];
+      moduleNamesAsList.add('$prefix$moduleId.wasm'.toJS);
+    }
+
+    final promise =
+        (_loadDeferredModules(moduleNamesAsList.toJS.toExternRef!).toJS
+            as JSPromise);
+    final loadFuture = promise.toDart;
+    final moduleLoadFuture = loadFuture
+        .then((_) {
+          for (int i = 0; i < modulesToLoad.length; ++i) {
+            _loadedModules.add(modulesToLoad[i]);
+          }
+        })
+        .whenComplete(() {
+          for (int i = 0; i < modulesToLoad.length; ++i) {
+            _loadingModules.remove(modulesToLoad[i]);
+          }
+        });
+
+    for (int i = 0; i < modulesToLoad.length; ++i) {
+      final moduleId = modulesToLoad[i];
+      _loadingModules[moduleId] = moduleLoadFuture;
+    }
+    pendingFutures.add(moduleLoadFuture);
+  }
+  return Future.wait(pendingFutures);
 }
 
 /// Keep in sync with pkg/dart2wasm/lib/translator.dart:Translator._patchLoadingMapGetter`
-List<JSString> _decodeEncodedModuleIds(
-  String prefix,
-  WasmArray<WasmI8> encoded,
-) {
+List<int> _decodeEncodedModuleIds(WasmArray<WasmI8> encoded) {
   int offset = 0;
 
   int nextULEB128() {
@@ -144,13 +191,12 @@ List<JSString> _decodeEncodedModuleIds(
   }
 
   final length = nextULEB128();
-  final moduleIds = <JSString>[];
+  final moduleIds = <int>[];
   int previousModuleId = 0;
-  final prefix = JSStringImpl.fromRefUnchecked(_moduleNamePrefix);
   for (int i = 0; i < length; ++i) {
     int diff = nextULEB128();
     final moduleId = previousModuleId + diff;
-    moduleIds.add('$prefix${moduleId.toString()}.wasm'.toJS);
+    moduleIds.add(moduleId);
     previousModuleId = moduleId;
   }
   return moduleIds;

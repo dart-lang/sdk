@@ -470,6 +470,7 @@ class UntaggedTypeParameter : public AllStatic {
 
 class Object : public AllStatic {
  public:
+  static const word kHashBits;
   // Offset of the tags word.
   static word tags_offset();
   static word InstanceSize();

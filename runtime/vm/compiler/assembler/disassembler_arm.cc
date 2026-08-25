@@ -1442,6 +1442,22 @@ void ARMDecoder::DecodeSIMDDataProcessing(Instr* instr) {
     if ((instr->Bits(23, 2) == 3) && (instr->Bits(20, 2) == 3) &&
         (instr->Bits(10, 2) == 2) && (instr->Bit(4) == 0)) {
       Format(instr, "vtbl 'dd, 'dtbllist, 'dm");
+    } else if ((instr->Bits(8, 4) == 10) && (instr->Bit(4) == 0) &&
+               (instr->Bits(23, 2) == 2)) {
+      switch (instr->Bits(20, 2)) {
+        case 0:
+          Format(instr, "vpmax.u8 'dd, 'dn, 'dm");
+          break;
+        case 1:
+          Format(instr, "vpmax.u16 'dd, 'dn, 'dm");
+          break;
+        case 2:
+          Format(instr, "vpmax.u32 'dd, 'dn, 'dm");
+          break;
+        default:
+          Unknown(instr);
+          break;
+      }
     } else {
       Unknown(instr);
     }

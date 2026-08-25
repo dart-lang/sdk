@@ -4212,6 +4212,7 @@ Condition DoubleTestOpInstr::EmitConditionCode(FlowGraphCompiler* compiler,
   V(Int32x4BitAnd, andps)                                                      \
   V(Int32x4BitOr, orps)                                                        \
   V(Int32x4BitXor, xorps)                                                      \
+  V(Int32x4Equal, pcmpeqd)                                                     \
   V(Float32x4Equal, cmppseq)                                                   \
   V(Float32x4NotEqual, cmppsneq)                                               \
   V(Float32x4LessThan, cmppslt)                                                \
@@ -4980,13 +4981,13 @@ void FloatToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ cvtss2sd(locs()->out(0).fpu_reg(), locs()->in(0).fpu_reg());
 }
 
-LocationSummary* FloatCompareInstr::MakeLocationSummary(Zone* zone,
-                                                        bool opt) const {
+LocationSummary* CompareAsMaskInstr::MakeLocationSummary(Zone* zone,
+                                                         bool opt) const {
   UNREACHABLE();
   return NULL;
 }
 
-void FloatCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void CompareAsMaskInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNREACHABLE();
 }
 

@@ -17,13 +17,10 @@ void main() {
 @reflectiveTest
 class FlutterSurroundWithSetStateTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.surroundWithSetState;
+  bool get addFlutterPackageDep => true;
 
   @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(flutter: true);
-  }
+  AssistKind get kind => DartAssistKind.surroundWithSetState;
 
   Future<void> test_noParentNode() async {
     // This code selects the `CompilationUnit` node which has previously

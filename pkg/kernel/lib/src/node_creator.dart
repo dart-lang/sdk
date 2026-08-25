@@ -158,7 +158,14 @@ class NodeCreator {
 
   /// Adds [pattern] to [statements] including any nodes needed in the context.
   void _addPattern(List<Statement> statements, Pattern pattern) {
-    _addExpression(statements, PatternAssignment(pattern, NullLiteral()));
+    _addExpression(
+      statements,
+      PatternAssignment(
+        pattern: pattern,
+        expression: NullLiteral(),
+        matchedValueType: _createDartType(),
+      ),
+    );
   }
 
   /// Generates a list of [Statement] containing all pending in-body nodes.
@@ -251,13 +258,37 @@ class NodeCreator {
           case NodeKind.MapPatternEntry:
             _addPattern(
               statements,
-              MapPattern(null, null, [node as MapPatternEntry]),
+              MapPattern(
+                keyType: null,
+                valueType: null,
+                entries: [node as MapPatternEntry],
+                requiredType: _createDartType(),
+                matchedValueType: _createDartType(),
+                needsCheck: false,
+                lookupType: _createDartType(),
+                containsKeyTarget: _needProcedure(),
+                containsKeyType: _createFunctionType(),
+                indexGetTarget: _needProcedure(),
+                indexGetType: _createFunctionType(),
+              ),
             );
             break;
           case NodeKind.MapPatternRestEntry:
             _addPattern(
               statements,
-              MapPattern(null, null, [node as MapPatternRestEntry]),
+              MapPattern(
+                keyType: null,
+                valueType: null,
+                entries: [node as MapPatternRestEntry],
+                requiredType: _createDartType(),
+                matchedValueType: _createDartType(),
+                needsCheck: false,
+                lookupType: _createDartType(),
+                containsKeyTarget: _needProcedure(),
+                containsKeyType: _createFunctionType(),
+                indexGetTarget: _needProcedure(),
+                indexGetType: _createFunctionType(),
+              ),
             );
             break;
           case NodeKind.NamedExpression:
@@ -1289,8 +1320,11 @@ class NodeCreator {
           ])..fileOffset = _needFileOffset(),
         ]);
       case ExpressionKind.PatternAssignment:
-        return new PatternAssignment(_createPattern(), _createExpression())
-          ..fileOffset = _needFileOffset();
+        return new PatternAssignment(
+          pattern: _createPattern(),
+          expression: _createExpression(),
+          matchedValueType: _createDartType(),
+        )..fileOffset = _needFileOffset();
       case ExpressionKind.RedirectingFactoryInvocation:
         return new RedirectingFactoryInvocation(
           _needRedirectingFactory(),
@@ -1305,8 +1339,12 @@ class NodeCreator {
   /// If there are any pending expressions, one of these is created.
   Pattern _createPattern() {
     if (_pendingPatterns.isEmpty) {
-      return ConstantPattern(NullLiteral()..fileOffset = _needFileOffset())
-        ..fileOffset = _needFileOffset();
+      return ConstantPattern(
+        expression: NullLiteral()..fileOffset = _needFileOffset(),
+        expressionType: _createDartType(),
+        equalsTarget: _needProcedure(),
+        equalsType: _createFunctionType(),
+      )..fileOffset = _needFileOffset();
     }
     PatternKind kind = _pendingPatterns.keys.first;
     return _createPatternFromKind(kind);
@@ -1323,14 +1361,24 @@ class NodeCreator {
         return AndPattern(_createPattern(), _createPattern())
           ..fileOffset = _needFileOffset();
       case PatternKind.AssignedVariablePattern:
-        return AssignedVariablePattern(_needVariable())
-          ..fileOffset = _needFileOffset();
+        return AssignedVariablePattern(
+          variableName: '',
+          variableType: dummyDartType,
+          writeVariable: _needVariable(),
+          matchedValueType: dummyDartType,
+          needsCast: false,
+          hasObservableEffect: false,
+        )..fileOffset = _needFileOffset();
       case PatternKind.CastPattern:
         return CastPattern(_createPattern(), _createDartType())
           ..fileOffset = _needFileOffset();
       case PatternKind.ConstantPattern:
-        return ConstantPattern(_createExpression())
-          ..fileOffset = _needFileOffset();
+        return ConstantPattern.byReference(
+          expression: _createExpression(),
+          expressionType: dummyDartType,
+          equalsTargetReference: dummyReference,
+          equalsType: dummyFunctionType,
+        )..fileOffset = _needFileOffset();
       case PatternKind.NullAssertPattern:
         return NullAssertPattern(_createPattern())
           ..fileOffset = _needFileOffset();
@@ -1342,34 +1390,110 @@ class NodeCreator {
           ..fileOffset = _needFileOffset();
       case PatternKind.ListPattern:
         return _createOneOf(_pendingPatterns, kind, index, [
-          () => ListPattern(null, [])..fileOffset = _needFileOffset(),
-          () =>
-              ListPattern(_createDartType(), [_createPattern()])
-                ..fileOffset = _needFileOffset(),
+          () => ListPattern.byReference(
+            typeArgument: null,
+            patterns: [],
+            requiredType: dummyDartType,
+            matchedValueType: dummyDartType,
+            flags: 0,
+            lookupType: dummyDartType,
+            lengthTargetReference: dummyReference,
+            lengthType: dummyDartType,
+            lengthCheckTargetReference: dummyReference,
+            lengthCheckType: dummyFunctionType,
+            sublistTargetReference: dummyReference,
+            sublistType: dummyFunctionType,
+            minusTargetReference: dummyReference,
+            minusType: dummyFunctionType,
+            indexGetTargetReference: dummyReference,
+            indexGetType: dummyFunctionType,
+          )..fileOffset = _needFileOffset(),
+          () => ListPattern.byReference(
+            typeArgument: _createDartType(),
+            patterns: [_createPattern()],
+            requiredType: dummyDartType,
+            matchedValueType: dummyDartType,
+            flags: 0,
+            lookupType: dummyDartType,
+            lengthTargetReference: dummyReference,
+            lengthType: dummyDartType,
+            lengthCheckTargetReference: dummyReference,
+            lengthCheckType: dummyFunctionType,
+            sublistTargetReference: dummyReference,
+            sublistType: dummyFunctionType,
+            minusTargetReference: dummyReference,
+            minusType: dummyFunctionType,
+            indexGetTargetReference: dummyReference,
+            indexGetType: dummyFunctionType,
+          )..fileOffset = _needFileOffset(),
         ]);
       case PatternKind.MapPattern:
         return _createOneOf(_pendingPatterns, kind, index, [
-          () => MapPattern(null, null, []),
-          () => MapPattern(_createDartType(), _createDartType(), [
-            _createNodeFromKind(NodeKind.MapPatternEntry) as MapPatternEntry,
-          ])..fileOffset = _needFileOffset(),
-          () => MapPattern(_createDartType(), _createDartType(), [
-            _createNodeFromKind(NodeKind.MapPatternEntry) as MapPatternEntry,
-            _createNodeFromKind(NodeKind.MapPatternRestEntry)
-                as MapPatternEntry,
-          ])..fileOffset = _needFileOffset(),
+          () => MapPattern.byReference(
+            keyType: null,
+            valueType: null,
+            entries: [],
+            requiredType: dummyDartType,
+            matchedValueType: dummyDartType,
+            flags: 0,
+            lookupType: dummyDartType,
+            containsKeyTargetReference: dummyReference,
+            containsKeyType: dummyFunctionType,
+            indexGetTargetReference: dummyReference,
+            indexGetType: dummyFunctionType,
+          ),
+          () => MapPattern.byReference(
+            keyType: _createDartType(),
+            valueType: _createDartType(),
+            entries: [
+              _createNodeFromKind(NodeKind.MapPatternEntry) as MapPatternEntry,
+            ],
+            requiredType: dummyDartType,
+            matchedValueType: dummyDartType,
+            flags: 0,
+            lookupType: dummyDartType,
+            containsKeyTargetReference: dummyReference,
+            containsKeyType: dummyFunctionType,
+            indexGetTargetReference: dummyReference,
+            indexGetType: dummyFunctionType,
+          )..fileOffset = _needFileOffset(),
+          () => MapPattern.byReference(
+            keyType: _createDartType(),
+            valueType: _createDartType(),
+            entries: [
+              _createNodeFromKind(NodeKind.MapPatternEntry) as MapPatternEntry,
+              _createNodeFromKind(NodeKind.MapPatternRestEntry)
+                  as MapPatternEntry,
+            ],
+            requiredType: dummyDartType,
+            matchedValueType: dummyDartType,
+            flags: 0,
+            lookupType: dummyDartType,
+            containsKeyTargetReference: dummyReference,
+            containsKeyType: dummyFunctionType,
+            indexGetTargetReference: dummyReference,
+            indexGetType: dummyFunctionType,
+          )..fileOffset = _needFileOffset(),
         ]);
       case PatternKind.NamedPattern:
         return NamedPattern('foo', _createPattern())
           ..fileOffset = _needFileOffset();
       case PatternKind.ObjectPattern:
         return _createOneOf(_pendingPatterns, kind, index, [
-          () =>
-              ObjectPattern(_createDartType(), [])
-                ..fileOffset = _needFileOffset(),
-          () => ObjectPattern(_createDartType(), [
-            _createPatternFromKind(PatternKind.NamedPattern) as NamedPattern,
-          ])..fileOffset = _needFileOffset(),
+          () => ObjectPattern(
+            requiredType: dummyDartType,
+            fields: [],
+            matchedValueType: dummyDartType,
+            needsCheck: false,
+          )..fileOffset = _needFileOffset(),
+          () => ObjectPattern(
+            requiredType: dummyDartType,
+            fields: [
+              _createPatternFromKind(PatternKind.NamedPattern) as NamedPattern,
+            ],
+            matchedValueType: dummyDartType,
+            needsCheck: false,
+          )..fileOffset = _needFileOffset(),
         ]);
       case PatternKind.OrPattern:
         return OrPattern(
@@ -1379,19 +1503,44 @@ class NodeCreator {
         )..fileOffset = _needFileOffset();
       case PatternKind.RecordPattern:
         return _createOneOf(_pendingPatterns, kind, index, [
-          () => RecordPattern([])..fileOffset = _needFileOffset(),
-          () =>
-              RecordPattern([_createPattern()])..fileOffset = _needFileOffset(),
+          () => RecordPattern(
+            patterns: [],
+            requiredType: dummyRecordType,
+            matchedValueType: dummyDartType,
+            needsCheck: false,
+            lookupType: dummyRecordType,
+          )..fileOffset = _needFileOffset(),
+          () => RecordPattern(
+            patterns: [_createPattern()],
+            requiredType: dummyRecordType,
+            matchedValueType: dummyDartType,
+            needsCheck: false,
+            lookupType: dummyRecordType,
+          )..fileOffset = _needFileOffset(),
         ]);
       case PatternKind.RelationalPattern:
         return _createOneOf(_pendingPatterns, kind, index, [
           () => RelationalPattern(
-            RelationalPatternKind.equals,
-            _createExpression(),
+            kind: RelationalPatternKind.equals,
+            expression: _createExpression(),
+            expressionType: dummyDartType,
+            matchedValueType: dummyDartType,
+            accessKind: RelationalAccessKind.Dynamic,
+            name: null,
+            target: null,
+            typeArguments: null,
+            functionType: null,
           )..fileOffset = _needFileOffset(),
           () => RelationalPattern(
-            RelationalPatternKind.lessThan,
-            _createExpression(),
+            kind: RelationalPatternKind.lessThan,
+            expression: _createExpression(),
+            expressionType: dummyDartType,
+            matchedValueType: dummyDartType,
+            accessKind: RelationalAccessKind.Dynamic,
+            name: null,
+            target: null,
+            typeArguments: null,
+            functionType: null,
           )..fileOffset = _needFileOffset(),
         ]);
       case PatternKind.RestPattern:
@@ -1402,14 +1551,18 @@ class NodeCreator {
       case PatternKind.VariablePattern:
         return _createOneOf(_pendingPatterns, kind, index, [
           () => VariablePattern(
-            null,
-            _createVariableFromKind(VariableKind.LocalVariable)
-                as DeclaredVariable,
+            type: null,
+            variable: _createVariableFromKind(
+              VariableKind.LocalVariable,
+            ) as DeclaredVariable,
+            matchedValueType: dummyDartType,
           )..fileOffset = _needFileOffset(),
           () => VariablePattern(
-            _createDartType(),
-            _createVariableFromKind(VariableKind.LocalVariable)
-                as DeclaredVariable,
+            type: _createDartType(),
+            variable: _createVariableFromKind(
+              VariableKind.LocalVariable,
+            ) as DeclaredVariable,
+            matchedValueType: dummyDartType,
           )..fileOffset = _needFileOffset(),
         ]);
       case PatternKind.WildcardPattern:
@@ -1632,15 +1785,20 @@ class NodeCreator {
       case StatementKind.IfCaseStatement:
         return _createOneOf(_pendingStatements, kind, index, [
           () => IfCaseStatement(
-            _createExpression(),
-            _createNodeFromKind(NodeKind.PatternGuard) as PatternGuard,
-            _createStatement(),
+            expression: _createExpression(),
+            patternGuard:
+                _createNodeFromKind(NodeKind.PatternGuard) as PatternGuard,
+            then: _createStatement(),
+            otherwise: null,
+            matchedValueType: _createDartType(),
           )..fileOffset = _needFileOffset(),
           () => IfCaseStatement(
-            _createExpression(),
-            _createNodeFromKind(NodeKind.PatternGuard) as PatternGuard,
-            _createStatement(),
-            _createStatement(),
+            expression: _createExpression(),
+            patternGuard:
+                _createNodeFromKind(NodeKind.PatternGuard) as PatternGuard,
+            then: _createStatement(),
+            otherwise: _createStatement(),
+            matchedValueType: _createDartType(),
           )..fileOffset = _needFileOffset(),
         ]);
       case StatementKind.PatternVariableDeclaration:
@@ -1649,11 +1807,13 @@ class NodeCreator {
             _createPattern(),
             _createExpression(),
             isFinal: false,
+            matchedValueType: _createDartType(),
           )..fileOffset = _needFileOffset(),
           () => new PatternVariableDeclaration(
             _createPattern(),
             _createExpression(),
             isFinal: true,
+            matchedValueType: _createDartType(),
           )..fileOffset = _needFileOffset(),
         ]);
     }

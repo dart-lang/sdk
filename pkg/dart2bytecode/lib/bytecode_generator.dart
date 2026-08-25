@@ -4292,7 +4292,7 @@ class BytecodeGenerator extends RecursiveVisitor {
   @override
   void visitFunctionDeclaration(ast.FunctionDeclaration node) {
     _genPushContextIfCaptured(node.variable);
-    _genClosure(node, node.variable.cosmeticName!, node.function);
+    _genClosure(node, node.variable.name, node.function);
     asm.emitSourcePosition();
     _genStoreVar(node.variable);
   }

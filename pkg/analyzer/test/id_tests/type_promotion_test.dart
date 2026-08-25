@@ -4,7 +4,7 @@
 
 import 'dart:io';
 
-import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
+import 'package:_fe_analyzer_shared/src/testing/id.dart' show Id, ActualDataMap;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -46,7 +46,7 @@ class _TypePromotionDataComputer extends DataComputer<DartType> {
   void computeUnitData(
     TestingData testingData,
     CompilationUnit unit,
-    Map<Id, ActualData<DartType>> actualMap,
+    ActualDataMap<DartType> actualMap,
   ) {
     var unitUri = unit.declaredFragment!.source.uri;
     _TypePromotionDataExtractor(unitUri, actualMap).run(unit);

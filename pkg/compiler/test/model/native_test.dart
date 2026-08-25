@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
+
 import 'package:compiler/src/common/elements.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/js_model/js_world.dart' show JClosedWorld;

@@ -482,7 +482,7 @@ name: test
 dependencies:
   other: any
 ''');
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'other', rootFolder: otherRoot),
     );
@@ -519,7 +519,7 @@ name: test
 dependencies:
   other: any
 ''');
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'other', rootFolder: otherRoot),
     );
@@ -1118,7 +1118,7 @@ name: test
 dependencies:
   other: any
 ''');
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'other', rootFolder: otherRoot),
     );

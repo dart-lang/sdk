@@ -1437,6 +1437,7 @@ analyzer:
     expect(root.packagesFile, packagesFile);
 
     _assertNotAnalyzed(root, [
+      '/test/root/data/foo/f.dart',
       '/test/root/data/aaa/foo/f.dart',
       '/test/root/data/aaa/foo/bar/f.dart',
     ]);
@@ -1444,7 +1445,6 @@ analyzer:
     _assertAnalyzed(root, [
       '/test/root/f.dart',
       '/test/root/data/f.dart',
-      '/test/root/data/foo/f.dart',
       '/test/root/data/aaa/bar/f.dart',
     ]);
   }

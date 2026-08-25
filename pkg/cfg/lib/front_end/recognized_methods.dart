@@ -103,6 +103,28 @@ class const NumDiv() implements RecognizedCallMatcher {
   }
 }
 
+/// Recognizes calls to [num.isNaN].
+class const NumIsNaN() implements RecognizedCallMatcher {
+  @override
+  BuildIR? match(List<CType> args) {
+    switch (args) {
+      case [IntType()]:
+        return (FlowGraphBuilder builder) {
+          builder.pop();
+          builder.addBoolConstant(false);
+        };
+      case [DoubleType()]:
+        return (FlowGraphBuilder builder) {
+          final x = builder.pop();
+          builder.push(x);
+          builder.push(x);
+          builder.addComparison(.doubleNotEqual);
+        };
+    }
+    return null;
+  }
+}
+
 /// Recognizes calls to [num.toDouble].
 class const NumToDouble() implements RecognizedCallMatcher {
   @override
@@ -401,6 +423,7 @@ class CommonRecognizedMethods implements RecognizedMethods {
 
   @override
   late final instanceGetters = <ast.Member, RecognizedCallMatcher>{
+    index.getProcedure('dart:core', 'num', 'get:isNaN'): const NumIsNaN(),
     index.getProcedure('dart:core', 'int', 'get:sign'): const UnaryIntOp(
       UnaryIntOpcode.sign,
     ),

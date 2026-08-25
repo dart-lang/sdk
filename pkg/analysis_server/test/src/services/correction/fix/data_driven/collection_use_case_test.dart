@@ -27,7 +27,7 @@ extension IterableNullableExtension<T extends Object> on Iterable<T?> {
 }
 ''');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'p', rootFolder: getFolder('$workspaceRootPath/p')),
     );
@@ -77,7 +77,7 @@ extension IterableNullableExtension<T extends Object> on Iterable<T?> {
 }
 ''');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'p', rootFolder: getFolder('$workspaceRootPath/p')),
     );

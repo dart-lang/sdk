@@ -727,6 +727,7 @@ class Assembler : public AssemblerBase {
 
   void vcnt(DRegister dd, DRegister dm);
   void vpaddlu(OperandSize sz, DRegister dd, DRegister dm);
+  void vpmaxu(OperandSize sz, DRegister dd, DRegister dn, DRegister dm);
 
   void vceqqi(OperandSize sz, QRegister qd, QRegister qn, QRegister qm);
   void vceqqs(QRegister qd, QRegister qn, QRegister qm);

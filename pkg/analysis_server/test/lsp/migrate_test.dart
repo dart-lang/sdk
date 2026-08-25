@@ -4,7 +4,11 @@
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
+import 'package:analysis_server/src/lsp/handlers/custom/migration/migration_registry.dart';
+import 'package:analysis_server/src/lsp/handlers/custom/migration/migration_runner.dart';
+import 'package:analysis_server/src/lsp/handlers/custom/migration/migration_summary_builder.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
+import 'package:analysis_server/src/utilities/pubspec.dart';
 import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:linter/src/rules.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -18,6 +22,7 @@ import 'server_abstract.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MigrateDependencyConflictTest);
+    defineReflectiveTests(MigrateMultiVersionTest);
     defineReflectiveTests(MigratePackageValidationTest);
     defineReflectiveTests(MigrateStepsTest);
   });
@@ -50,7 +55,7 @@ abstract class AbstractMigrateTest extends AbstractLspAnalysisServerTest {
             if (constraint is VersionRange) {
               var minVersion = constraint.min;
               if (minVersion != null) {
-                writePackageConfig(
+                writePackageConfig2(
                   pathContext.dirname(path),
                   config: packageConfigBuilder,
                   packageName: name,
@@ -136,7 +141,7 @@ environment:
       name: 'dep_package',
       rootFolder: resourceProvider.getFolder(depPath),
     );
-    writeTestPackageConfig(config: builder, languageVersion: '3.12');
+    writeTestPackageConfig2(config: builder, languageVersion: '3.12');
 
     await initialize();
 
@@ -175,7 +180,7 @@ environment:
       name: 'dep_package',
       rootFolder: resourceProvider.getFolder(depPath),
     );
-    writeTestPackageConfig(config: builder, languageVersion: '3.12');
+    writeTestPackageConfig2(config: builder, languageVersion: '3.12');
 
     await initialize();
 
@@ -247,7 +252,7 @@ environment:
       rootFolder: resourceProvider.getFolder(dep4Path),
     );
 
-    writeTestPackageConfig(config: builder, languageVersion: '3.12');
+    writeTestPackageConfig2(config: builder, languageVersion: '3.12');
 
     await initialize();
 
@@ -298,7 +303,7 @@ environment:
       name: 'transitive_dep',
       rootFolder: resourceProvider.getFolder(transitiveDepPath),
     );
-    writeTestPackageConfig(config: builder, languageVersion: '3.12');
+    writeTestPackageConfig2(config: builder, languageVersion: '3.12');
 
     await initialize();
 
@@ -311,6 +316,358 @@ environment:
     - transitive_dep
 
 No SDK constraints were bumped.''',
+    );
+  }
+}
+
+@reflectiveTest
+class MigrateMultiVersionTest extends AbstractMigrateTest {
+  Future<void> test_alreadyAtTargetSdk() async {
+    writePubspecFile(pubspecFilePath, '''
+name: test_project
+environment:
+  sdk: '^3.13.0'
+''');
+    newFile(mainFilePath, '''
+class C {
+  new(int x);
+}
+''');
+
+    await initialize();
+
+    await _assertMigrationResult(
+      steps: [MigrationStep.All],
+      targetSdk: '3.13.0',
+      apply: true,
+      expectedSummary: '''
+Preparatory changes for a version bump:
+  0 changes made in 0 files.
+
+No SDK constraints were bumped.
+
+Cleanup changes after a version bump:
+  0 changes made in 0 files.''',
+    );
+  }
+
+  Future<void> test_dependencyConflictIntermediateStep() async {
+    var depPath = convertPath('/dep_package');
+    writePubspecFile(join(depPath, 'pubspec.yaml'), '''
+name: dep_package
+environment:
+  sdk: '>=3.0.0 <3.13.0'
+''');
+    newFile(join(depPath, 'lib', 'dep.dart'), '');
+
+    var builder = PackageConfigFileBuilder();
+    builder.add(
+      name: 'dep_package',
+      rootFolder: resourceProvider.getFolder(depPath),
+    );
+
+    writePubspecFile(pubspecFilePath, '''
+name: test_project
+environment:
+  sdk: '^3.11.0'
+''', packageConfigBuilder: builder);
+    newFile(mainFilePath, '''
+class A {
+  int x;
+  A(int x) : this.x = x;
+}
+''');
+
+    await initialize();
+
+    await _assertMigrationResult(
+      steps: [MigrationStep.All],
+      targetSdk: '3.13.0',
+      apply: true,
+      expectedSummary: '''
+- test_project: Skipped
+  Incompatible dependencies:
+    - dep_package
+
+Preparatory changes for a version bump:
+  0 changes made in 0 files.
+
+Bumped SDK constraints in 1 package(s):
+  - test_project: ^3.11.0 -> ^3.12.0
+
+Cleanup changes after a version bump:
+  1 change made in 1 file.
+
+  my_project/lib/main.dart
+    prefer_initializing_formals • 1 change''',
+      expectedEdit: '''
+>>>>>>>>>> lib/main.dart
+class A {
+  int x;
+  A(this.x);
+}
+>>>>>>>>>> pubspec.yaml
+name: test_project
+environment:
+  sdk: '^3.12.0'
+''',
+    );
+  }
+
+  Future<void> test_higherThanTargetSdk() async {
+    writePubspecFile(pubspecFilePath, '''
+name: test_project
+environment:
+  sdk: '^3.14.0'
+''');
+    newFile(mainFilePath, '''
+class C {
+  new(int x);
+}
+''');
+
+    await initialize();
+
+    await _assertMigrationResult(
+      steps: [MigrationStep.All],
+      targetSdk: '3.13.0',
+      apply: true,
+      expectedSummary: '''
+Preparatory changes for a version bump:
+  0 changes made in 0 files.
+
+No SDK constraints were bumped.
+
+Cleanup changes after a version bump:
+  0 changes made in 0 files.''',
+    );
+  }
+
+  Future<void> test_multiplePackages() async {
+    var otherPackagePath = convertPath('/home/other_package');
+    var otherPubspecPath = join(otherPackagePath, 'pubspec.yaml');
+    var otherFilePath = join(otherPackagePath, 'lib', 'other.dart');
+
+    writePubspecFile(pubspecFilePath, '''
+name: test_project
+environment:
+  sdk: '^3.11.0'
+''');
+    newFile(mainFilePath, '''
+class A {
+  int x;
+  A(int x) : this.x = x;
+}
+''');
+
+    writePubspecFile(otherPubspecPath, '''
+name: other_package
+environment:
+  sdk: '^3.12.0'
+''');
+    newFile(otherFilePath, '''
+class D {
+  D(final int y);
+}
+''');
+
+    await initialize(
+      workspaceFolders: [projectFolderUri, toUri(otherPackagePath)],
+    );
+
+    await _assertMigrationResult(
+      steps: [MigrationStep.All],
+      uris: [projectFolderUri, toUri(otherPackagePath)],
+      targetSdk: '3.13.0',
+      apply: true,
+      expectedSummary: '''
+Preparatory changes for a version bump:
+  1 change made in 1 file.
+
+  other_package/lib/other.dart
+    avoid_final_parameters • 1 change
+
+Bumped SDK constraints in 2 package(s):
+  - test_project: ^3.11.0 -> ^3.13.0
+  - other_package: ^3.12.0 -> ^3.13.0
+
+Cleanup changes after a version bump:
+  3 changes made in 2 files.
+
+  my_project/lib/main.dart
+    prefer_initializing_formals • 1 change
+    unnecessary_type_name_in_constructor • 1 change
+
+  other_package/lib/other.dart
+    unnecessary_type_name_in_constructor • 1 change''',
+      expectedEdit: '''
+>>>>>>>>>> ../other_package/lib/other.dart
+class D {
+  new(int y);
+}
+>>>>>>>>>> ../other_package/pubspec.yaml
+name: other_package
+environment:
+  sdk: '^3.13.0'
+>>>>>>>>>> lib/main.dart
+class A {
+  int x;
+  new(this.x);
+}
+>>>>>>>>>> pubspec.yaml
+name: test_project
+environment:
+  sdk: '^3.13.0'
+''',
+    );
+  }
+
+  Future<void> test_multiplePackages_oneAlreadyAtTarget() async {
+    var otherPackagePath = convertPath('/home/other_package');
+    var otherPubspecPath = join(otherPackagePath, 'pubspec.yaml');
+    var otherFilePath = join(otherPackagePath, 'lib', 'other.dart');
+
+    writePubspecFile(pubspecFilePath, '''
+name: test_project
+environment:
+  sdk: '^3.11.0'
+''');
+    newFile(mainFilePath, '''
+class A {
+  int x;
+  A(int x) : this.x = x;
+}
+''');
+
+    writePubspecFile(otherPubspecPath, '''
+name: other_package
+environment:
+  sdk: '^3.13.0'
+''');
+    newFile(otherFilePath, '''
+class D {
+  new(int y);
+}
+''');
+
+    await initialize(
+      workspaceFolders: [projectFolderUri, toUri(otherPackagePath)],
+    );
+
+    await _assertMigrationResult(
+      steps: [MigrationStep.All],
+      uris: [projectFolderUri, toUri(otherPackagePath)],
+      targetSdk: '3.13.0',
+      apply: true,
+      expectedSummary: '''
+Preparatory changes for a version bump:
+  0 changes made in 0 files.
+
+Bumped SDK constraints in 1 package(s):
+  - test_project: ^3.11.0 -> ^3.13.0
+
+Cleanup changes after a version bump:
+  2 changes made in 1 file.
+
+  my_project/lib/main.dart
+    prefer_initializing_formals • 1 change
+    unnecessary_type_name_in_constructor • 1 change''',
+      expectedEdit: '''
+>>>>>>>>>> lib/main.dart
+class A {
+  int x;
+  new(this.x);
+}
+>>>>>>>>>> pubspec.yaml
+name: test_project
+environment:
+  sdk: '^3.13.0'
+''',
+    );
+  }
+
+  Future<void> test_singlePackage() async {
+    writePubspecFile(pubspecFilePath, '''
+name: test_project
+environment:
+  sdk: '^3.11.0'
+''');
+    newFile(mainFilePath, '''
+class A {
+  int x;
+  A(int x) : this.x = x;
+}
+
+class C {
+  C(final int x);
+  C.name(final String s);
+}
+''');
+
+    await initialize();
+
+    await _assertMigrationResult(
+      steps: [MigrationStep.All],
+      targetSdk: '3.13.0',
+      apply: true,
+      expectedSummary: '''
+Preparatory changes for a version bump:
+  2 changes made in 1 file.
+
+  my_project/lib/main.dart
+    avoid_final_parameters • 2 changes
+
+Bumped SDK constraints in 1 package(s):
+  - test_project: ^3.11.0 -> ^3.13.0
+
+Cleanup changes after a version bump:
+  4 changes made in 1 file.
+
+  my_project/lib/main.dart
+    prefer_initializing_formals • 1 change
+    unnecessary_type_name_in_constructor • 3 changes''',
+      expectedEdit: '''
+>>>>>>>>>> lib/main.dart
+class A {
+  int x;
+  new(this.x);
+}
+
+class C {
+  new(int x);
+  new name(String s);
+}
+>>>>>>>>>> pubspec.yaml
+name: test_project
+environment:
+  sdk: '^3.13.0'
+''',
+    );
+  }
+
+  Future<void> test_unsupportedPackageSdkVersion() async {
+    writePubspecFile(pubspecFilePath, '''
+name: test_project
+environment:
+  sdk: '^2.19.0'
+''');
+    await initialize();
+
+    await _assertMigrationResult(
+      steps: [MigrationStep.All],
+      targetSdk: '3.13.0',
+      apply: true,
+      expectedSummary:
+          '''
+- test_project: Skipped (The package SDK version "2.19.0" is not supported for migration. It must be between ${knownSdkVersions.first} and ${knownSdkVersions.last}.)
+
+Preparatory changes for a version bump:
+  0 changes made in 0 files.
+
+No SDK constraints were bumped.
+
+Cleanup changes after a version bump:
+  0 changes made in 0 files.''',
     );
   }
 }
@@ -422,6 +779,84 @@ class MigratePackageValidationTest extends AbstractMigrateTest {
         ErrorCodes.InvalidParams,
         message: contains("doesn't exist"),
       ),
+    );
+  }
+
+  Future<void> test_error_packageSdk_alreadyAtLatestKnownSdkVersion() async {
+    writePubspecFile(pubspecFilePath, '''
+name: test_project
+environment:
+  sdk: '^${knownSdkVersions.last}'
+''');
+    await initialize();
+
+    await _assertMigrationResult(
+      steps: [MigrationStep.Bump],
+      apply: true,
+      expectedSummary:
+          '''
+- test_project: Skipped (The package is already at the latest supported SDK version (${knownSdkVersions.last}).)
+
+No SDK constraints were bumped.''',
+    );
+  }
+
+  Future<void> test_error_packageSdk_unsupportedVersion() async {
+    writePubspecFile(pubspecFilePath, '''
+name: test_project
+environment:
+  sdk: '^2.19.0'
+''');
+    await initialize();
+
+    await _assertMigrationResult(
+      steps: [MigrationStep.Bump],
+      apply: true,
+      expectedSummary:
+          '''
+- test_project: Skipped (The package SDK version "2.19.0" is not supported for migration. It must be between ${knownSdkVersions.first} and ${knownSdkVersions.last}.)
+
+No SDK constraints were bumped.''',
+    );
+  }
+
+  Future<void>
+  test_error_packageSdk_unsupportedVersion_multiplePackages() async {
+    var otherPackagePath = convertPath('/home/other_package');
+    var otherPubspecPath = join(otherPackagePath, 'pubspec.yaml');
+
+    writePubspecFile(pubspecFilePath, '''
+name: test_project
+environment:
+  sdk: '^2.19.0'
+''');
+
+    writePubspecFile(otherPubspecPath, '''
+name: other_package
+environment:
+  sdk: '^3.12.0'
+''');
+
+    await initialize(
+      workspaceFolders: [projectFolderUri, toUri(otherPackagePath)],
+    );
+
+    await _assertMigrationResult(
+      uris: [projectFolderUri, toUri(otherPackagePath)],
+      steps: [MigrationStep.Bump],
+      apply: true,
+      expectedSummary:
+          '''
+- test_project: Skipped (The package SDK version "2.19.0" is not supported for migration. It must be between ${knownSdkVersions.first} and ${knownSdkVersions.last}.)
+
+Bumped SDK constraints in 1 package(s):
+  - other_package: ^3.12.0 -> ^3.13.0''',
+      expectedEdit: '''
+>>>>>>>>>> ../other_package/pubspec.yaml
+name: other_package
+environment:
+  sdk: '^3.13.0'
+''',
     );
   }
 
@@ -551,6 +986,32 @@ class MigratePackageValidationTest extends AbstractMigrateTest {
     );
   }
 
+  Future<void> test_error_targetSdk_unsupportedVersion() async {
+    writePubspecFile(pubspecFilePath, 'name: test_project');
+    await initialize();
+
+    var request = makeRequest(
+      CustomMethods.migrate,
+      DartMigrateParams(
+        uris: [projectFolderUri],
+        apply: false,
+        targetSdk: '2.11.0',
+      ),
+    );
+    var response = await sendRequestToServer(request);
+
+    expect(
+      response.error,
+      isResponseError(
+        ErrorCodes.InvalidParams,
+        message:
+            'The target SDK version "2.11.0" is not supported for migration. '
+            'It must be between ${knownSdkVersions.first} and '
+            '${knownSdkVersions.last}.',
+      ),
+    );
+  }
+
   Future<void> test_error_workspacePackage() async {
     await initialize();
 
@@ -573,6 +1034,50 @@ resolution: workspace
           "The directory '$projectFolderPath' is part of a workspace and can't "
           'be migrated independently.',
         ),
+      ),
+    );
+  }
+
+  Future<void> test_internalError_unableToCalculateNextSdkVersion() async {
+    failTestOnAnyErrorNotification = false;
+    writePubspecFile(pubspecFilePath, '''
+name: test_project
+environment:
+  sdk: '^${knownSdkVersions.last}'
+''');
+    await initialize();
+
+    var pubspecFile = resourceProvider.getFile(pubspecFilePath);
+    var pubspecYaml = loadYaml(pubspecFile.readAsStringSync()) as YamlMap;
+    var pubspecTarget = PubspecTarget(file: pubspecFile, pubspec: pubspecYaml);
+
+    var summaryBuilder = MigrationSummaryBuilder(
+      apply: true,
+      pathContext: pathContext,
+      steps: [MigrationStep.All],
+    );
+
+    // Target a version higher than knownSdkVersions.last directly in
+    // MigrationRunner to simulate an internal error where nextSdkVersion
+    // returns null.
+    var targetSdk = Version(
+      knownSdkVersions.last.major,
+      knownSdkVersions.last.minor + 1,
+      0,
+    );
+    var runner = MigrationRunner(
+      server: server,
+      pubspecTargets: [pubspecTarget],
+      summaryBuilder: summaryBuilder,
+      targetSdk: targetSdk,
+    );
+
+    var result = await runner.computeEdits([MigrationStep.All]);
+    expect(result.isError, isFalse);
+    expect(
+      summaryBuilder.generate(),
+      contains(
+        '- test_project: Skipped (Internal error: Unable to calculate next SDK version.)',
       ),
     );
   }
@@ -907,7 +1412,10 @@ name: test_project
     await _assertMigrationResult(
       steps: [MigrationStep.Bump],
       apply: true,
-      expectedSummary: 'No SDK constraints were bumped.',
+      expectedSummary: '''
+- test_project: Skipped (Unknown SDK version.)
+
+No SDK constraints were bumped.''',
     );
   }
 
@@ -937,14 +1445,21 @@ environment:
     var otherPubspecPath = pathContext.join(otherDirPath, 'pubspec.yaml');
 
     await _setupProject(
-      pubspecContent: 'name: other_project',
+      pubspecContent: '''
+name: other_project
+environment:
+  sdk: '^3.12.0'
+''',
       customPubspecFilePath: otherPubspecPath,
     );
     await _assertMigrationResult(
       steps: [MigrationStep.Bump],
       uris: [Uri.file(otherDirPath)],
       apply: true,
-      expectedSummary: contains('- other_project: Skipped (not analyzed)'),
+      expectedSummary: '''
+- other_project: Skipped (The package is not being analyzed. Add its directory to your workspace.)
+
+No SDK constraints were bumped.''',
     );
   }
 
@@ -1088,8 +1603,7 @@ class C {
       steps: [MigrationStep.Cleanup],
       apply: true,
       expectedSummary: '''
-- test_project:
-    Failed cleanup with error: Unknown SDK version.
+- test_project: Skipped (Unknown SDK version.)
 
 Cleanup changes after a version bump:
   0 changes made in 0 files.''',
@@ -1148,7 +1662,7 @@ class C {
     writePubspecFile(pubspecFilePath, '''
 name: test_project
 environment:
-  sdk: '^2.12.0'
+  sdk: '^3.10.0'
 ''');
     newFile(mainFilePath, 'void m(int x) {}\n');
 

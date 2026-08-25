@@ -33,7 +33,7 @@ class CovarianceCheckDataComputer extends CfeDataComputer<String> {
   void computeLibraryData(
     CfeTestResultData testResultData,
     Library library,
-    Map<Id, ActualData<String>> actualMap, {
+    ActualDataMap<String> actualMap, {
     bool? verbose,
   }) {
     new CovarianceCheckDataExtractor(
@@ -46,7 +46,7 @@ class CovarianceCheckDataComputer extends CfeDataComputer<String> {
   void computeMemberData(
     CfeTestResultData testResultData,
     Member member,
-    Map<Id, ActualData<String>> actualMap, {
+    ActualDataMap<String> actualMap, {
     bool? verbose,
   }) {
     member.accept(
@@ -62,10 +62,7 @@ class CovarianceCheckDataComputer extends CfeDataComputer<String> {
 }
 
 class CovarianceCheckDataExtractor extends CfeDataExtractor<String> {
-  new(
-    InternalCompilerResult compilerResult,
-    Map<Id, ActualData<String>> actualMap,
-  ) : super(compilerResult, actualMap);
+  new(super.compilerResult, super.actualMap);
 
   @override
   String? computeNodeValue(Id id, TreeNode node) {

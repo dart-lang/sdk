@@ -116,6 +116,7 @@ static constexpr dart::compiler::target::word
     NativeArguments_kGenericFunctionBitPos = 0x18;
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 0x2;
+static constexpr dart::compiler::target::word Object_kHashBits = 0x1e;
 static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 0x7;
 static constexpr dart::compiler::target::word Page_kPageMask = -0x80000;
 static constexpr dart::compiler::target::word Record_kMaxElements = 0xffff;
@@ -930,6 +931,7 @@ static constexpr dart::compiler::target::word
     NativeArguments_kGenericFunctionBitPos = 0x18;
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 0x2;
+static constexpr dart::compiler::target::word Object_kHashBits = 0x1e;
 static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 0x8;
 static constexpr dart::compiler::target::word Page_kPageMask = -0x80000;
 static constexpr dart::compiler::target::word Record_kMaxElements = 0xffff;
@@ -1750,6 +1752,7 @@ static constexpr dart::compiler::target::word
     NativeArguments_kGenericFunctionBitPos = 0x18;
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 0x2;
+static constexpr dart::compiler::target::word Object_kHashBits = 0x1e;
 static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 0x7;
 static constexpr dart::compiler::target::word Page_kPageMask = -0x80000;
 static constexpr dart::compiler::target::word Record_kMaxElements = 0xffff;
@@ -2563,6 +2566,7 @@ static constexpr dart::compiler::target::word
     NativeArguments_kGenericFunctionBitPos = 0x18;
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 0x2;
+static constexpr dart::compiler::target::word Object_kHashBits = 0x1e;
 static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 0x8;
 static constexpr dart::compiler::target::word Page_kPageMask = -0x80000;
 static constexpr dart::compiler::target::word Record_kMaxElements = 0xffff;
@@ -3386,6 +3390,7 @@ static constexpr dart::compiler::target::word
     NativeArguments_kGenericFunctionBitPos = 0x18;
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 0x2;
+static constexpr dart::compiler::target::word Object_kHashBits = 0x1e;
 static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 0x7;
 static constexpr dart::compiler::target::word Page_kPageMask = -0x80000;
 static constexpr dart::compiler::target::word Record_kMaxElements = 0xffff;
@@ -4205,6 +4210,7 @@ static constexpr dart::compiler::target::word
     NativeArguments_kGenericFunctionBitPos = 0x18;
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 0x2;
+static constexpr dart::compiler::target::word Object_kHashBits = 0x1e;
 static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 0x7;
 static constexpr dart::compiler::target::word Page_kPageMask = -0x80000;
 static constexpr dart::compiler::target::word Record_kMaxElements = 0xffff;
@@ -5025,6 +5031,7 @@ static constexpr dart::compiler::target::word
     NativeArguments_kGenericFunctionBitPos = 0x18;
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 0x2;
+static constexpr dart::compiler::target::word Object_kHashBits = 0x1e;
 static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 0x7;
 static constexpr dart::compiler::target::word Page_kPageMask = -0x80000;
 static constexpr dart::compiler::target::word Record_kMaxElements = 0xffff;
@@ -5840,6 +5847,7 @@ static constexpr dart::compiler::target::word
     NativeArguments_kGenericFunctionBitPos = 0x18;
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 0x2;
+static constexpr dart::compiler::target::word Object_kHashBits = 0x1e;
 static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 0x8;
 static constexpr dart::compiler::target::word Page_kPageMask = -0x80000;
 static constexpr dart::compiler::target::word Record_kMaxElements = 0xffff;
@@ -6658,6 +6666,7 @@ static constexpr dart::compiler::target::word
     NativeArguments_kGenericFunctionBitPos = 0x18;
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 0x2;
+static constexpr dart::compiler::target::word Object_kHashBits = 0x1e;
 static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 0x7;
 static constexpr dart::compiler::target::word Page_kPageMask = -0x80000;
 static constexpr dart::compiler::target::word Record_kMaxElements = 0xffff;
@@ -7464,6 +7473,7 @@ static constexpr dart::compiler::target::word
     NativeArguments_kGenericFunctionBitPos = 0x18;
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 0x2;
+static constexpr dart::compiler::target::word Object_kHashBits = 0x1e;
 static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 0x8;
 static constexpr dart::compiler::target::word Page_kPageMask = -0x80000;
 static constexpr dart::compiler::target::word Record_kMaxElements = 0xffff;
@@ -8276,6 +8286,7 @@ static constexpr dart::compiler::target::word
     NativeArguments_kGenericFunctionBitPos = 0x18;
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 0x2;
+static constexpr dart::compiler::target::word Object_kHashBits = 0x1e;
 static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 0x7;
 static constexpr dart::compiler::target::word Page_kPageMask = -0x80000;
 static constexpr dart::compiler::target::word Record_kMaxElements = 0xffff;
@@ -9081,6 +9092,7 @@ static constexpr dart::compiler::target::word
     NativeArguments_kGenericFunctionBitPos = 0x18;
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 0x2;
+static constexpr dart::compiler::target::word Object_kHashBits = 0x1e;
 static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 0x8;
 static constexpr dart::compiler::target::word Page_kPageMask = -0x80000;
 static constexpr dart::compiler::target::word Record_kMaxElements = 0xffff;
@@ -9896,6 +9908,7 @@ static constexpr dart::compiler::target::word
     NativeArguments_kGenericFunctionBitPos = 0x18;
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 0x2;
+static constexpr dart::compiler::target::word Object_kHashBits = 0x1e;
 static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 0x7;
 static constexpr dart::compiler::target::word Page_kPageMask = -0x80000;
 static constexpr dart::compiler::target::word Record_kMaxElements = 0xffff;
@@ -10707,6 +10720,7 @@ static constexpr dart::compiler::target::word
     NativeArguments_kGenericFunctionBitPos = 0x18;
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 0x2;
+static constexpr dart::compiler::target::word Object_kHashBits = 0x1e;
 static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 0x7;
 static constexpr dart::compiler::target::word Page_kPageMask = -0x80000;
 static constexpr dart::compiler::target::word Record_kMaxElements = 0xffff;
@@ -11519,6 +11533,7 @@ static constexpr dart::compiler::target::word
     NativeArguments_kGenericFunctionBitPos = 0x18;
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 0x2;
+static constexpr dart::compiler::target::word Object_kHashBits = 0x1e;
 static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 0x7;
 static constexpr dart::compiler::target::word Page_kPageMask = -0x80000;
 static constexpr dart::compiler::target::word Record_kMaxElements = 0xffff;
@@ -12326,6 +12341,7 @@ static constexpr dart::compiler::target::word
     NativeArguments_kGenericFunctionBitPos = 0x18;
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 0x2;
+static constexpr dart::compiler::target::word Object_kHashBits = 0x1e;
 static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 0x8;
 static constexpr dart::compiler::target::word Page_kPageMask = -0x80000;
 static constexpr dart::compiler::target::word Record_kMaxElements = 0xffff;
@@ -13152,6 +13168,7 @@ static constexpr dart::compiler::target::word
     AOT_NativeArguments_kGenericFunctionBitPos = 0x18;
 static constexpr dart::compiler::target::word
     AOT_NativeEntry_kNumCallWrapperArguments = 0x2;
+static constexpr dart::compiler::target::word AOT_Object_kHashBits = 0x1e;
 static constexpr dart::compiler::target::word AOT_Page_kBytesPerCardLog2 = 0x7;
 static constexpr dart::compiler::target::word AOT_Page_kPageMask = -0x80000;
 static constexpr dart::compiler::target::word AOT_Record_kMaxElements = 0xffff;
@@ -14056,6 +14073,7 @@ static constexpr dart::compiler::target::word
     AOT_NativeArguments_kGenericFunctionBitPos = 0x18;
 static constexpr dart::compiler::target::word
     AOT_NativeEntry_kNumCallWrapperArguments = 0x2;
+static constexpr dart::compiler::target::word AOT_Object_kHashBits = 0x1e;
 static constexpr dart::compiler::target::word AOT_Page_kBytesPerCardLog2 = 0x8;
 static constexpr dart::compiler::target::word AOT_Page_kPageMask = -0x80000;
 static constexpr dart::compiler::target::word AOT_Record_kMaxElements = 0xffff;
@@ -14971,6 +14989,7 @@ static constexpr dart::compiler::target::word
     AOT_NativeArguments_kGenericFunctionBitPos = 0x18;
 static constexpr dart::compiler::target::word
     AOT_NativeEntry_kNumCallWrapperArguments = 0x2;
+static constexpr dart::compiler::target::word AOT_Object_kHashBits = 0x1e;
 static constexpr dart::compiler::target::word AOT_Page_kBytesPerCardLog2 = 0x8;
 static constexpr dart::compiler::target::word AOT_Page_kPageMask = -0x80000;
 static constexpr dart::compiler::target::word AOT_Record_kMaxElements = 0xffff;
@@ -15882,6 +15901,7 @@ static constexpr dart::compiler::target::word
     AOT_NativeArguments_kGenericFunctionBitPos = 0x18;
 static constexpr dart::compiler::target::word
     AOT_NativeEntry_kNumCallWrapperArguments = 0x2;
+static constexpr dart::compiler::target::word AOT_Object_kHashBits = 0x1e;
 static constexpr dart::compiler::target::word AOT_Page_kBytesPerCardLog2 = 0x7;
 static constexpr dart::compiler::target::word AOT_Page_kPageMask = -0x80000;
 static constexpr dart::compiler::target::word AOT_Record_kMaxElements = 0xffff;
@@ -16793,6 +16813,7 @@ static constexpr dart::compiler::target::word
     AOT_NativeArguments_kGenericFunctionBitPos = 0x18;
 static constexpr dart::compiler::target::word
     AOT_NativeEntry_kNumCallWrapperArguments = 0x2;
+static constexpr dart::compiler::target::word AOT_Object_kHashBits = 0x1e;
 static constexpr dart::compiler::target::word AOT_Page_kBytesPerCardLog2 = 0x7;
 static constexpr dart::compiler::target::word AOT_Page_kPageMask = -0x80000;
 static constexpr dart::compiler::target::word AOT_Record_kMaxElements = 0xffff;
@@ -17706,6 +17727,7 @@ static constexpr dart::compiler::target::word
     AOT_NativeArguments_kGenericFunctionBitPos = 0x18;
 static constexpr dart::compiler::target::word
     AOT_NativeEntry_kNumCallWrapperArguments = 0x2;
+static constexpr dart::compiler::target::word AOT_Object_kHashBits = 0x1e;
 static constexpr dart::compiler::target::word AOT_Page_kBytesPerCardLog2 = 0x7;
 static constexpr dart::compiler::target::word AOT_Page_kPageMask = -0x80000;
 static constexpr dart::compiler::target::word AOT_Record_kMaxElements = 0xffff;
@@ -18611,6 +18633,7 @@ static constexpr dart::compiler::target::word
     AOT_NativeArguments_kGenericFunctionBitPos = 0x18;
 static constexpr dart::compiler::target::word
     AOT_NativeEntry_kNumCallWrapperArguments = 0x2;
+static constexpr dart::compiler::target::word AOT_Object_kHashBits = 0x1e;
 static constexpr dart::compiler::target::word AOT_Page_kBytesPerCardLog2 = 0x8;
 static constexpr dart::compiler::target::word AOT_Page_kPageMask = -0x80000;
 static constexpr dart::compiler::target::word AOT_Record_kMaxElements = 0xffff;
@@ -19518,6 +19541,7 @@ static constexpr dart::compiler::target::word
     AOT_NativeArguments_kGenericFunctionBitPos = 0x18;
 static constexpr dart::compiler::target::word
     AOT_NativeEntry_kNumCallWrapperArguments = 0x2;
+static constexpr dart::compiler::target::word AOT_Object_kHashBits = 0x1e;
 static constexpr dart::compiler::target::word AOT_Page_kBytesPerCardLog2 = 0x7;
 static constexpr dart::compiler::target::word AOT_Page_kPageMask = -0x80000;
 static constexpr dart::compiler::target::word AOT_Record_kMaxElements = 0xffff;
@@ -20413,6 +20437,7 @@ static constexpr dart::compiler::target::word
     AOT_NativeArguments_kGenericFunctionBitPos = 0x18;
 static constexpr dart::compiler::target::word
     AOT_NativeEntry_kNumCallWrapperArguments = 0x2;
+static constexpr dart::compiler::target::word AOT_Object_kHashBits = 0x1e;
 static constexpr dart::compiler::target::word AOT_Page_kBytesPerCardLog2 = 0x8;
 static constexpr dart::compiler::target::word AOT_Page_kPageMask = -0x80000;
 static constexpr dart::compiler::target::word AOT_Record_kMaxElements = 0xffff;
@@ -21319,6 +21344,7 @@ static constexpr dart::compiler::target::word
     AOT_NativeArguments_kGenericFunctionBitPos = 0x18;
 static constexpr dart::compiler::target::word
     AOT_NativeEntry_kNumCallWrapperArguments = 0x2;
+static constexpr dart::compiler::target::word AOT_Object_kHashBits = 0x1e;
 static constexpr dart::compiler::target::word AOT_Page_kBytesPerCardLog2 = 0x8;
 static constexpr dart::compiler::target::word AOT_Page_kPageMask = -0x80000;
 static constexpr dart::compiler::target::word AOT_Record_kMaxElements = 0xffff;
@@ -22221,6 +22247,7 @@ static constexpr dart::compiler::target::word
     AOT_NativeArguments_kGenericFunctionBitPos = 0x18;
 static constexpr dart::compiler::target::word
     AOT_NativeEntry_kNumCallWrapperArguments = 0x2;
+static constexpr dart::compiler::target::word AOT_Object_kHashBits = 0x1e;
 static constexpr dart::compiler::target::word AOT_Page_kBytesPerCardLog2 = 0x7;
 static constexpr dart::compiler::target::word AOT_Page_kPageMask = -0x80000;
 static constexpr dart::compiler::target::word AOT_Record_kMaxElements = 0xffff;
@@ -23123,6 +23150,7 @@ static constexpr dart::compiler::target::word
     AOT_NativeArguments_kGenericFunctionBitPos = 0x18;
 static constexpr dart::compiler::target::word
     AOT_NativeEntry_kNumCallWrapperArguments = 0x2;
+static constexpr dart::compiler::target::word AOT_Object_kHashBits = 0x1e;
 static constexpr dart::compiler::target::word AOT_Page_kBytesPerCardLog2 = 0x7;
 static constexpr dart::compiler::target::word AOT_Page_kPageMask = -0x80000;
 static constexpr dart::compiler::target::word AOT_Record_kMaxElements = 0xffff;
@@ -24027,6 +24055,7 @@ static constexpr dart::compiler::target::word
     AOT_NativeArguments_kGenericFunctionBitPos = 0x18;
 static constexpr dart::compiler::target::word
     AOT_NativeEntry_kNumCallWrapperArguments = 0x2;
+static constexpr dart::compiler::target::word AOT_Object_kHashBits = 0x1e;
 static constexpr dart::compiler::target::word AOT_Page_kBytesPerCardLog2 = 0x7;
 static constexpr dart::compiler::target::word AOT_Page_kPageMask = -0x80000;
 static constexpr dart::compiler::target::word AOT_Record_kMaxElements = 0xffff;
@@ -24923,6 +24952,7 @@ static constexpr dart::compiler::target::word
     AOT_NativeArguments_kGenericFunctionBitPos = 0x18;
 static constexpr dart::compiler::target::word
     AOT_NativeEntry_kNumCallWrapperArguments = 0x2;
+static constexpr dart::compiler::target::word AOT_Object_kHashBits = 0x1e;
 static constexpr dart::compiler::target::word AOT_Page_kBytesPerCardLog2 = 0x8;
 static constexpr dart::compiler::target::word AOT_Page_kPageMask = -0x80000;
 static constexpr dart::compiler::target::word AOT_Record_kMaxElements = 0xffff;

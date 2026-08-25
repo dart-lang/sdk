@@ -687,7 +687,7 @@ class OperationsCfe
     // When late variables get lowered, their type is changed, but the
     // original type is stored in `VariableDeclarationImpl.lateType`, so we
     // use that if it exists.
-    return new SharedTypeView(variable.lateType ?? variable.type);
+    return new SharedTypeView(variable.type);
   }
 
   @override

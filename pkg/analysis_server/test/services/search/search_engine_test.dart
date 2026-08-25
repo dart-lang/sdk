@@ -421,9 +421,9 @@ import 'package:aaa/a.dart';
 int t;
 ''').path;
 
-    var coreLibResult = await driverFor(
-      testFile,
-    ).getLibraryByUri('dart:core') as LibraryElementResult;
+    var driver = contextFor(testFile).driver;
+    var coreLibResult =
+        await driver.getLibraryByUri('dart:core') as LibraryElementResult;
     var intElement = coreLibResult.element.classes.firstWhereOrNull(
       (e) => e.name == 'int',
     )!;
@@ -736,9 +736,9 @@ class B extends A {}
   String _configureForPackage_aaa() {
     var aaaRootPath = '$workspaceRootPath/aaa';
 
-    writePackageConfig(aaaRootPath, config: PackageConfigFileBuilder());
+    writePackageConfig2(aaaRootPath, config: PackageConfigFileBuilder());
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'aaa', rootFolder: getFolder(aaaRootPath)),
     );

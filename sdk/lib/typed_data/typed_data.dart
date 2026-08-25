@@ -4324,12 +4324,26 @@ abstract final class Float32x4 {
   Float32x4 reciprocalSqrt();
 }
 
-/// Int32x4 and operations.
+/// Four 32-bit integer values.
 ///
-/// Int32x4 stores 4 32-bit bit-masks in "lanes".
-/// The lanes are "x", "y", "z", and "w" respectively.
+/// Int32x4 stores four 32-bit integer values in "lanes".
+/// The lanes are named [x], [y], [z], and [w] respectively.
+///
+/// Each lane holds a 32-bit integer value.
+///
+/// Sometimes those integers are used to represent boolean values, where every
+/// bit of a lane is set (the value `-1`) for true and cleared (the value `0`)
+/// for false, for example the results of [equal] and the flag operations.
+/// That choice of values has the advantage of also being usable as a bit mask.
 abstract final class Int32x4 {
   external factory Int32x4(int x, int y, int z, int w);
+
+  /// Creates an [Int32x4] with the same 32-bit integer value in all four lanes.
+  ///
+  /// The created value has the same [x], [y], [z] and [w] value, which is the
+  /// low 32 bits of [value].
+  external factory Int32x4.splat(int value);
+
   external factory Int32x4.bool(bool x, bool y, bool z, bool w);
   external factory Int32x4.fromFloat32x4Bits(Float32x4 x);
 
@@ -4353,6 +4367,15 @@ abstract final class Int32x4 {
   /// Subtraction operator.
   Int32x4 operator -(Int32x4 other);
 
+  /// Lane-wise integer equality comparison.
+  ///
+  /// The result for a lane is a 32-bit signed integer which is -1
+  /// (all bits set) if the value from this object is equal to
+  /// the value from [other], and the result is 0 (all bits cleared) if not.
+  ///
+  /// Returns four values that are always either 0 or -1.
+  Int32x4 equal(Int32x4 other);
+
   /// Extract 32-bit mask from x lane.
   int get x;
 
@@ -4371,6 +4394,14 @@ abstract final class Int32x4 {
   /// "z" lane is bit 2.
   /// "w" lane is bit 3.
   int get signMask;
+
+  /// Whether any of the four lanes has a non-zero value.
+  ///
+  /// Returns `true` if at least one of the [x], [y], [z] or [w] lanes has any
+  /// bit set, and `false` only when all four lanes are zero.
+  ///
+  /// Equivalent to [flagX] || [flagY] || [flagZ] || [flagW].
+  bool get anyTrue;
 
   /// Mask passed to [shuffle] or [shuffleMix].
   static const int xxxx = 0x00;

@@ -801,6 +801,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       node,
       compoundType.members,
       compoundData.packing,
+      [for (final f in compoundData.compoundFields) f.name],
     );
     if (compoundType.members.isEmpty) {
       diagnosticReporter.report(
@@ -969,6 +970,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     Class node,
     List<NativeTypeCfe> types,
     int? packing,
+    List<String> fieldNames,
   ) {
     List<Constant> constants = types
         .map((t) => t.generateConstant(this))
@@ -987,6 +989,13 @@ class _FfiDefinitionTransformer extends FfiTransformer {
                 ffiStructLayoutPackingField.fieldReference: packing == null
                     ? NullConstant()
                     : IntConstant(packing),
+                ffiStructLayoutFieldNamesField.fieldReference: ListConstant(
+                  InterfaceType(
+                    coreTypes.stringNonNullableRawType.classNode,
+                    Nullability.nonNullable,
+                  ),
+                  fieldNames.map((n) => StringConstant(n)).toList(),
+                ),
               }),
         }),
         InterfaceType(pragmaClass, Nullability.nonNullable, []),
@@ -1212,4 +1221,6 @@ class CompoundField {
   final Procedure? setter;
 
   CompoundField(this.type, this.field, this.getter, this.setter);
+
+  String get name => field?.name.text ?? getter!.name.text;
 }

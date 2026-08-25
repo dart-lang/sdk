@@ -762,8 +762,8 @@ class LibraryReader {
       var isFieldFormalParameter = _reader.readBool();
       var isSuperParameter = _reader.readBool();
 
-      var kindIndex = _reader.readByte();
-      var kind = ResolutionReader._formalParameterKind(kindIndex);
+      var kindTag = _reader.readEnum(FormalParameterKindTag.values);
+      var kind = ResolutionReader._formalParameterKind(kindTag);
 
       FormalParameterFragmentImpl fragment;
       if (isFieldFormalParameter) {
@@ -1135,17 +1135,16 @@ class LibraryReader {
   }
 
   NamespaceCombinator _readNamespaceCombinator() {
-    var tag = _reader.readByte();
-    if (tag == Tag.HideCombinator) {
-      var combinator = HideElementCombinatorImpl();
-      combinator.hiddenNames = _reader.readStringReferenceList();
-      return combinator;
-    } else if (tag == Tag.ShowCombinator) {
-      var combinator = ShowElementCombinatorImpl();
-      combinator.shownNames = _reader.readStringReferenceList();
-      return combinator;
-    } else {
-      throw UnimplementedError('tag: $tag');
+    var tag = _reader.readEnum(NamespaceCombinatorTag.values);
+    switch (tag) {
+      case NamespaceCombinatorTag.hide:
+        var combinator = HideElementCombinatorImpl();
+        combinator.hiddenNames = _reader.readStringReferenceList();
+        return combinator;
+      case NamespaceCombinatorTag.show:
+        var combinator = ShowElementCombinatorImpl();
+        combinator.shownNames = _reader.readStringReferenceList();
+        return combinator;
     }
   }
 
@@ -1740,7 +1739,9 @@ class ResolutionReader {
       var fragment = FormalParameterFragmentImpl(
         name: _readFragmentName(),
         nameOffset: null,
-        parameterKind: _formalParameterKind(_reader.readByte()),
+        parameterKind: _formalParameterKind(
+          _reader.readEnum(FormalParameterKindTag.values),
+        ),
       );
       fragment.initElement();
       fragment.element.type = readRequiredType();
@@ -1858,17 +1859,16 @@ class ResolutionReader {
     return typeParameters;
   }
 
-  static ParameterKind _formalParameterKind(int encoding) {
-    if (encoding == Tag.ParameterKindRequiredPositional) {
-      return ParameterKind.REQUIRED;
-    } else if (encoding == Tag.ParameterKindOptionalPositional) {
-      return ParameterKind.POSITIONAL;
-    } else if (encoding == Tag.ParameterKindRequiredNamed) {
-      return ParameterKind.NAMED_REQUIRED;
-    } else if (encoding == Tag.ParameterKindOptionalNamed) {
-      return ParameterKind.NAMED;
-    } else {
-      throw StateError('Unexpected parameter kind encoding: $encoding');
+  static ParameterKind _formalParameterKind(FormalParameterKindTag tag) {
+    switch (tag) {
+      case FormalParameterKindTag.requiredPositional:
+        return ParameterKind.REQUIRED;
+      case FormalParameterKindTag.optionalPositional:
+        return ParameterKind.POSITIONAL;
+      case FormalParameterKindTag.requiredNamed:
+        return ParameterKind.NAMED_REQUIRED;
+      case FormalParameterKindTag.optionalNamed:
+        return ParameterKind.NAMED;
     }
   }
 }

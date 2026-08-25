@@ -33,10 +33,6 @@ part 'print.dart';
 part 'sort.dart';
 part 'symbol.dart';
 
-// Returns true iff `null as T` will succeed based on the
-// execution mode.
-external bool typeAcceptsNull<T>();
-
 /// Unsafely treats [value] as type [T].
 ///
 /// An unsafe cast allows casting any value to any type,

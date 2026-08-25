@@ -44,6 +44,9 @@ native_assets/asset_*: SkipByDesign # Only intended to run from source. https://
 native_assets/infer_native_assets_yaml_*: SkipByDesign # Only intended to run from source. https://dartbug.com/51265
 vmspecific_leaf_call_test: Skip # https://dartbug.com/46125: Snapshot fails to generate.
 
+[ $compiler == dart2bytecode ]
+isolate_group_bound_callback_test/3: SkipSlow # # shared_slow_path_triggers_gc in combination with interpreter makes this test very slow
+
 [ $compiler != dartkp ]
 abi_specific_int_incomplete_aot_test: SkipByDesign # Self-spawns gen_kernel/gen_snapshot, which are only built on AOT (dartkp) bots.
 vmspecific_enable_ffi_test: SkipByDesign # Self-spawns the JIT dart executable, so the harness compiler is irrelevant; runs once on the dartkp bots.
@@ -105,6 +108,9 @@ abi_specific_int_incomplete_aot_test: SkipByDesign # Needs gen_kernel and gen_sn
 function_callbacks_leaf_test: SkipByDesign # Needs access to Dart executable
 native_assets/*: SkipByDesign # Only intended to run on host oses with AOT binaries available, not available on QEMU.
 vmspecific_enable_ffi_test: SkipByDesign # Needs access to Dart executable.
+
+[ $arch == simarm64_arm64 && $compiler == dart2bytecode ]
+many_listener_callbacks_test: SkipSlow # Interpreter + simulator makes this very slow.
 
 [ $arch != simarm64_arm64 && $simulator ]
 *: Skip # FFI not yet supported on the arm simulator.

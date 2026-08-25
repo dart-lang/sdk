@@ -4404,6 +4404,7 @@ LocationSummary* SimdOpInstr::MakeLocationSummary(Zone* zone, bool opt) const {
 #undef CASE
 #undef EMIT
 #undef SIMPLE
+    case SimdOpInstr::kInt32x4Equal:
     case SimdOpInstr::kFloat32x4GreaterThan:
     case SimdOpInstr::kFloat32x4GreaterThanOrEqual:
     case kIllegalSimdOp:
@@ -4425,6 +4426,7 @@ void SimdOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 #undef CASE
 #undef EMIT
 #undef SIMPLE
+    case SimdOpInstr::kInt32x4Equal:
     case SimdOpInstr::kFloat32x4GreaterThan:
     case SimdOpInstr::kFloat32x4GreaterThanOrEqual:
     case kIllegalSimdOp:
@@ -4734,13 +4736,13 @@ void FloatToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ cvtss2sd(locs()->out(0).fpu_reg(), locs()->in(0).fpu_reg());
 }
 
-LocationSummary* FloatCompareInstr::MakeLocationSummary(Zone* zone,
-                                                        bool opt) const {
+LocationSummary* CompareAsMaskInstr::MakeLocationSummary(Zone* zone,
+                                                         bool opt) const {
   UNREACHABLE();
   return NULL;
 }
 
-void FloatCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void CompareAsMaskInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNREACHABLE();
 }
 

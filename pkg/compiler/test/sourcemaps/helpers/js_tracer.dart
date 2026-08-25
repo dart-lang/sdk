@@ -9,6 +9,7 @@ import 'package:compiler/src/io/source_information.dart';
 import 'package:compiler/src/io/position_information.dart';
 import 'package:compiler/src/js/js.dart' as js;
 import 'package:compiler/src/js/js_source_mapping.dart';
+
 import 'sourcemap_helper.dart';
 import 'trace_graph.dart';
 

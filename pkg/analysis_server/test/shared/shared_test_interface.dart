@@ -78,10 +78,8 @@ abstract interface class SharedTestInterface {
 
   /// Writes a package_config.json for the package under test (considered
   /// 'package:test').
-  void writeTestPackageConfig({
+  void writeTestPackageConfig2({
     PackageConfigFileBuilder? config,
     String? languageVersion,
-    bool flutter = false,
-    bool meta = false,
   });
 }
