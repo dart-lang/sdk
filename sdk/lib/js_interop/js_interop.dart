@@ -1415,8 +1415,10 @@ extension FutureOrToNullableJSAny<T extends JSAny?> on FutureOr<T> {
   ///
   /// If this is a [Future], it's converted to a [JSPromise]. Otherwise, it
   /// returns this as-is.
-  JSAny? get toJSPromiseOrValue =>
-      this is Future<T> ? (this as Future<T>).toJS : this as JSAny?;
+  JSAny? get toJSPromiseOrValue => switch (this) {
+    Future<T> future => future.toJS,
+    _ => this as JSAny?,
+  };
 }
 
 /// Conversions from [FutureOr] with a non-nullable value to [JSAny].
@@ -1426,8 +1428,10 @@ extension FutureOrToJSAny<T extends JSAny> on FutureOr<T> {
   ///
   /// If this is a [Future], it's converted to a [JSPromise]. Otherwise, it
   /// returns this as-is.
-  JSAny get toJSPromiseOrValue =>
-      this is Future<T> ? (this as Future<T>).toJS : this as JSAny;
+  JSAny get toJSPromiseOrValue => switch (this) {
+    Future<T> future => future.toJS,
+    _ => this as JSAny,
+  };
 }
 
 /// Conversions from [JSArrayBuffer] to [ByteBuffer].
