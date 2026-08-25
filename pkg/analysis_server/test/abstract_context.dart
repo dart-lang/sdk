@@ -68,7 +68,11 @@ class AbstractContextTest
 
   Folder get sdkRoot => newFolder('/sdk');
 
-  Future<AnalysisSession> get session => sessionFor(testFile);
+  Future<AnalysisSession> get session async {
+    var analysisContext = contextFor(testFile);
+    await analysisContext.applyPendingFileChanges();
+    return analysisContext.currentSession;
+  }
 
   File get testFile => getFile(testFilePath);
 
@@ -152,12 +156,6 @@ class AbstractContextTest
   /// Convenience function to normalize newlines in [code] for the current
   /// platform.
   String normalizeSource(String code) => normalizeNewlinesForPlatform(code);
-
-  Future<AnalysisSession> sessionFor(File file) async {
-    var analysisContext = contextFor(file);
-    await analysisContext.applyPendingFileChanges();
-    return analysisContext.currentSession;
-  }
 
   @mustCallSuper
   void setUp() {

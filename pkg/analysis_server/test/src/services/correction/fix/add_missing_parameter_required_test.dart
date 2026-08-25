@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analysis_server_plugin/src/correction/change_workspace.dart';
-import 'package:analysis_server_plugin/src/correction/dart_change_workspace.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -14,7 +12,6 @@ import 'fix_processor.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AddMissingParameterRequiredTest);
-    defineReflectiveTests(AddMissingParameterRequiredTest_Workspace);
   });
 }
 
@@ -250,6 +247,38 @@ void f() {
     await assertNoFix();
   }
 
+  Future<void> test_function_inLibrary() async {
+    var a = newFile('$testPackageLibPath/a.dart', 'void test() {}').path;
+
+    await resolveTestCode('''
+import 'a.dart';
+
+void f() {
+  test(42);
+}
+''');
+
+    await assertHasFix('void test(int i) {}', target: a);
+  }
+
+  Future<void> test_function_inPackage_external() async {
+    newFile('$packagesRootPath/bbb/lib/b.dart', 'void test() {}');
+
+    writeTestPackageConfig2(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'bbb', rootFolder: getFolder('$packagesRootPath/bbb')),
+    );
+
+    await resolveTestCode('''
+import 'package:bbb/b.dart';
+
+void f() {
+  test(42);
+}
+''');
+    await assertNoFix();
+  }
+
   Future<void> test_method_hasOne() async {
     await resolveTestCode('''
 class A {
@@ -286,56 +315,6 @@ class A {
   }
 }
 ''');
-  }
-}
-
-@reflectiveTest
-class AddMissingParameterRequiredTest_Workspace
-    extends AddMissingParameterRequiredTest {
-  ChangeWorkspace? _workspace;
-
-  @override
-  Future<ChangeWorkspace> get workspace async {
-    return _workspace ?? await super.workspace;
-  }
-
-  Future<void> test_function_inPackage_inWorkspace() async {
-    var a = newFile('/home/aaa/lib/a.dart', 'void test() {}');
-
-    writeTestPackageConfig2(
-      config: PackageConfigFileBuilder()
-        ..add(name: 'aaa', rootFolder: getFolder('$workspaceRootPath/aaa')),
-    );
-
-    _workspace = DartChangeWorkspace([await session, await sessionFor(a)]);
-
-    await resolveTestCode('''
-import 'package:aaa/a.dart';
-
-void f() {
-  test(42);
-}
-''');
-
-    await assertHasFix('void test(int i) {}', target: '/home/aaa/lib/a.dart');
-  }
-
-  Future<void> test_function_inPackage_outsideWorkspace() async {
-    newFile('/home/bbb/lib/b.dart', 'void test() {}');
-
-    writeTestPackageConfig2(
-      config: PackageConfigFileBuilder()
-        ..add(name: 'bbb', rootFolder: getFolder('$workspaceRootPath/bbb')),
-    );
-
-    await resolveTestCode('''
-import 'package:bbb/b.dart';
-
-void f() {
-  test(42);
-}
-''');
-    await assertNoFix();
   }
 
   Future<void> test_method_inSdk() async {

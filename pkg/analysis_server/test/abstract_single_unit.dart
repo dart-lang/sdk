@@ -56,8 +56,9 @@ class AbstractSingleUnitTest extends AbstractContextTest {
 
   Future<ParsedUnitResult> getParsedUnit(File file) async {
     var path = file.path;
-    var session = await sessionFor(file);
-    var result = session.getParsedUnit(path);
+    var analysisContext = contextFor(file);
+    await analysisContext.applyPendingFileChanges();
+    var result = analysisContext.currentSession.getParsedUnit(path);
     return result as ParsedUnitResult;
   }
 
