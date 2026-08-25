@@ -1003,6 +1003,8 @@ Future<void> asyncTests() async {
     Expect.equals('resolved', (await f).toDart);
   }
 
+  Expect.throws(() => JSPromise.resolve(JSPromise.resolve('resolved'.toJS)));
+
   // Test resolution with incorrect type.
   // TODO(54214): This type error is not caught in the JS compilers correctly.
   // {

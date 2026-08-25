@@ -559,8 +559,20 @@ extension type JSPromise<T extends JSAny?>._(JSPromiseType _jsPromise)
   external JSPromise(JSFunction executor);
 
   /// Returns a promise that resolves to [value].
+  ///
+  /// Throws an [ArgumentError] if [value] is already a [JSPromise].
   @Since('3.14')
-  external static JSPromise<T> resolve<T extends JSAny?>(T value);
+  static JSPromise<T> resolve<T extends JSAny?>(T value) =>
+      value.isA<JSPromise>()
+      ? throw ArgumentError.value(
+          value,
+          'value',
+          'JSPromise passed to JSPromise.resolve()',
+        )
+      : value;
+
+  @JS('resolve')
+  external static JSPromise<T> _resolve<T extends JSAny?>(T value);
 
   /// Returns a promise that rejects with [reason].
   @Since('3.14')
