@@ -14,8 +14,10 @@ _DIMENSIONS = {
     "os": "Ubuntu",
     "pool": "luci.dart.try",
 }
+_DART_OSX_CACHE = swarming.cache("osx_sdk", name = "osx_sdk_dart", wait_for_warm_cache = time.minute)
+_FLUTTER_OSX_CACHE = swarming.cache("osx_sdk", name = "osx_sdk_flutter", wait_for_warm_cache = time.minute)
 _CACHES = {
-    "Mac": [swarming.cache("osx_sdk", name = "osx_sdk", wait_for_warm_cache = time.minute)],
+    "Mac": [_DART_OSX_CACHE],
 }
 
 # Swarming has an implicit cache named builder and defining it explicitly makes
@@ -84,3 +86,8 @@ slow_shards = _SLOW_SHARDS
 no_caches = _NO_CACHES
 no_reclient = _NO_RECLIENT
 bisect_failures = _BISECT_FAILURES
+
+# Caches
+
+dart_osx_cache = _DART_OSX_CACHE
+flutter_osx_cache = _FLUTTER_OSX_CACHE

@@ -143,6 +143,7 @@ def _builder(
         name,
         bucket,
         recipe = "dart/neo",
+        caches = None,
         enabled = True,
         category = None,
         channels = [],
@@ -170,6 +171,7 @@ def _builder(
         name: The builder name.
         bucket: The bucket to use (defaults to "try").
         recipe: The recipe to use (defaults to "dart/neo").
+        caches: A list of swarming caches.
         enabled: Whether this builder is currently running or not.
         category: Where to show the builder on the console.
         channels: Which other channels the builder should be added to.
@@ -216,6 +218,7 @@ def _builder(
             _try_builder(
                 name,
                 recipe = recipe,
+                caches = caches,
                 cq_branches = cq_branches,
                 dimensions = dimensions,
                 properties = properties,
@@ -247,11 +250,12 @@ def _builder(
 
             notifies = [notifies] if type(notifies) == type("") else notifies
             adjusted_priority = priority + 10 if channel else priority
+            builder_caches = caches if caches != None else defaults.caches(dimensions["os"])
             luci.builder(
                 name = builder,
                 build_numbers = True,
                 bucket = bucket,
-                caches = defaults.caches(dimensions["os"]),
+                caches = builder_caches,
                 dimensions = dimensions,
                 executable = executable or _recipe(recipe),
                 execution_timeout = execution_timeout,

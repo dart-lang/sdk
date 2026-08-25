@@ -6,7 +6,7 @@ Defines the monorepo builders.
 """
 
 load("//lib/dart.star", "dart")
-load("//lib/defaults.star", "arm64", "defaults", "mac", "windows")
+load("//lib/defaults.star", "arm64", "defaults", "flutter_osx_cache", "mac", "windows")
 load("//lib/helpers.star", "union")
 load("//lib/priority.star", "priority")
 
@@ -114,6 +114,7 @@ dart.try_builder(
 
 dart.ci_sandbox_builder(
     name = "flutter-mac",
+    caches = [flutter_osx_cache],
     channels = [],
     executable = dart.flutter_recipe("engine_v2/engine_v2"),
     execution_timeout = 90 * time.minute,
@@ -137,6 +138,7 @@ luci.console_view_entry(
 )
 dart.try_builder(
     "flutter-mac",
+    caches = [flutter_osx_cache],
     executable = dart.flutter_recipe("engine_v2/engine_v2"),
     execution_timeout = 90 * time.minute,
     dimensions = [mac, arm64],
@@ -218,9 +220,10 @@ dart.try_builder(
     cq_branches = ["main"],
 )
 
-def _monorepo_builder(name, short_name, console, dimensions = [], execution_timeout = 30 * time.minute):
+def _monorepo_builder(name, short_name, console, caches = None, dimensions = [], execution_timeout = 30 * time.minute):
     dart.ci_sandbox_builder(
         name = name,
+        caches = caches,
         channels = [],
         dimensions = union({"pool": "dart.tests"}, dimensions),
         executable = dart.flutter_recipe("engine_v2/builder"),
@@ -233,6 +236,7 @@ def _monorepo_builder(name, short_name, console, dimensions = [], execution_time
     dart.try_builder(
         name,
         bucket = "try.monorepo",
+        caches = caches,
         executable = dart.flutter_recipe("engine_v2/builder"),
         execution_timeout = execution_timeout,
         dimensions = {"pool": "dart.tests"},
@@ -253,7 +257,7 @@ def _monorepo_builder(name, short_name, console, dimensions = [], execution_time
         )
 
 def _monorepo_mac_builder(name, short_name, console):
-    _monorepo_builder(name, short_name, console, dimensions = [mac, arm64])
+    _monorepo_builder(name, short_name, console, caches = [flutter_osx_cache], dimensions = [mac, arm64])
 
 def _monorepo_win_builder(name, short_name, console):
     _monorepo_builder(name, short_name, console, dimensions = [windows], execution_timeout = 40 * time.minute)
