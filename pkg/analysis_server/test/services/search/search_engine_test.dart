@@ -736,9 +736,9 @@ class B extends A {}
   String _configureForPackage_aaa() {
     var aaaRootPath = '$workspaceRootPath/aaa';
 
-    writePackageConfig(aaaRootPath, config: PackageConfigFileBuilder());
+    writePackageConfig2(aaaRootPath, config: PackageConfigFileBuilder());
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'aaa', rootFolder: getFolder(aaaRootPath)),
     );

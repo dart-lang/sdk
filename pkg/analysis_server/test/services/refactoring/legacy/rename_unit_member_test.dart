@@ -26,7 +26,7 @@ class RenameUnitMember_OutsideOfProjectTest extends RenameRefactoringTest {
 class A {}
 ''');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'aaa', rootFolder: getFolder('$workspaceRootPath/aaa')),
     );

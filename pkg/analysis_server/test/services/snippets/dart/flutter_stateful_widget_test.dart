@@ -42,7 +42,7 @@ class FlutterStatefulWidgetTest extends FlutterSnippetProducerTest {
   String get prefix => FlutterStatefulWidget.prefix;
 
   Future<void> test_noSuperParams() async {
-    writeTestPackageConfig(languageVersion: '2.16');
+    writeTestPackageConfig2(languageVersion: '2.16');
 
     var code = '^';
     var expectedCode = r'''

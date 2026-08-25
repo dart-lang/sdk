@@ -251,7 +251,7 @@ class A {
 }
 ''');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'other', rootFolder: otherRoot),
     );
@@ -581,7 +581,7 @@ class A {
 }
 ''');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'other', rootFolder: otherRoot),
     );
@@ -614,7 +614,7 @@ class A {
 }
 ''');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'other', rootFolder: otherRoot),
     );

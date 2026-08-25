@@ -235,7 +235,7 @@ class B {
 }
 ''');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'foo', rootFolder: getFolder('$workspaceRootPath/foo')),
     );
@@ -260,7 +260,7 @@ class Foo {
 }
 ''');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'foo', rootFolder: getFolder('$workspaceRootPath/foo')),
     );
@@ -285,7 +285,7 @@ class Foo {
 }
 ''');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'foo', rootFolder: getFolder('$workspaceRootPath/foo')),
     );
@@ -308,7 +308,7 @@ blankLine() {
 String foo() => '';
 ''');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'foo', rootFolder: getFolder('$workspaceRootPath/foo')),
     );
@@ -331,7 +331,7 @@ blankLine() {
 String foo = '';
 ''');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'foo', rootFolder: getFolder('$workspaceRootPath/foo')),
     );
@@ -354,7 +354,7 @@ blankLine() {
 String foo = '';
 ''');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'foo', rootFolder: getFolder('$workspaceRootPath/foo')),
     );
@@ -379,7 +379,7 @@ class Foo {
 }
 ''');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'foo', rootFolder: getFolder('$workspaceRootPath/foo')),
     );
@@ -405,7 +405,7 @@ class Foo {
 }
 ''');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'foo', rootFolder: getFolder('$workspaceRootPath/foo')),
     );

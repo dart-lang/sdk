@@ -151,7 +151,7 @@ abstract class FlutterSnippetProducerTest extends DartSnippetProducerTest {
   /// prefix, the imports will be inserted at offset 0 and the snippet will
   /// replace from 0 to the end of the typed prefix.
   Future<void> test_valid_importsAndEditsOverlap() async {
-    writeTestPackageConfig();
+    writeTestPackageConfig2();
 
     var snippet = await expectValidSnippet(TestCode.parse('$prefix^'));
     expect(snippet.prefix, prefix);
@@ -169,7 +169,7 @@ abstract class FlutterSnippetProducerTest extends DartSnippetProducerTest {
   }
 
   Future<void> test_valid_suffixReplacement() async {
-    writeTestPackageConfig();
+    writeTestPackageConfig2();
 
     var snippet = await expectValidSnippet(
       TestCode.parse('''

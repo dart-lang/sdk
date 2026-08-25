@@ -22,6 +22,7 @@ import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/platform.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer_testing/configuration_files_mixin.dart';
 import 'package:analyzer_testing/experiments/experiments.dart';
 import 'package:analyzer_testing/mock_packages/mock_packages.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
@@ -33,7 +34,6 @@ import 'package:unified_analytics/unified_analytics.dart';
 
 import 'constants.dart';
 import 'mocks.dart';
-import 'support/configuration_files.dart';
 import 'utils/message_scheduler_test_view.dart';
 
 class BlazeWorkspaceAnalysisServerTest extends ContextResolutionTest {
@@ -294,7 +294,7 @@ class PubPackageAnalysisServerTest extends ContextResolutionTest
 
   @override
   void createDefaultFiles() {
-    writeTestPackageConfig();
+    writeTestPackageConfig2();
     writeTestPackagePubspecYamlFile('name: $testPackageName');
 
     writeTestPackageAnalysisOptionsFile(

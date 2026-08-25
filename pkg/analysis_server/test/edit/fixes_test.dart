@@ -211,7 +211,7 @@ version: 0.0.1
   }
 
   Future<void> test_suggestImportFromDifferentAnalysisRoot() async {
-    writePackageConfig(
+    writePackageConfig2(
       convertPath('$workspaceRootPath/aaa'),
       config: (PackageConfigFileBuilder()
         ..add(name: 'bbb', rootFolder: getFolder('$workspaceRootPath/bbb'))),
@@ -221,7 +221,7 @@ dependencies:
   bbb: any
 ''');
 
-    writePackageConfig(convertPath('$workspaceRootPath/bbb'));
+    writePackageConfig2(convertPath('$workspaceRootPath/bbb'));
     newFile('$workspaceRootPath/bbb/lib/target.dart', 'class Foo() {}');
     newFile(
       '$workspaceRootPath/bbb/lib/target.generated.dart',

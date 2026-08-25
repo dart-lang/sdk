@@ -255,7 +255,7 @@ class C {
 }
 ''');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'pkg', rootFolder: getFolder('$workspaceRootPath/pkg')),
     );

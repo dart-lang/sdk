@@ -52,7 +52,7 @@ abstract class AbstractMigrateTest extends AbstractLspAnalysisServerTest {
             if (constraint is VersionRange) {
               var minVersion = constraint.min;
               if (minVersion != null) {
-                writePackageConfig(
+                writePackageConfig2(
                   pathContext.dirname(path),
                   config: packageConfigBuilder,
                   packageName: name,
@@ -138,7 +138,7 @@ environment:
       name: 'dep_package',
       rootFolder: resourceProvider.getFolder(depPath),
     );
-    writeTestPackageConfig(config: builder, languageVersion: '3.12');
+    writeTestPackageConfig2(config: builder, languageVersion: '3.12');
 
     await initialize();
 
@@ -177,7 +177,7 @@ environment:
       name: 'dep_package',
       rootFolder: resourceProvider.getFolder(depPath),
     );
-    writeTestPackageConfig(config: builder, languageVersion: '3.12');
+    writeTestPackageConfig2(config: builder, languageVersion: '3.12');
 
     await initialize();
 
@@ -249,7 +249,7 @@ environment:
       rootFolder: resourceProvider.getFolder(dep4Path),
     );
 
-    writeTestPackageConfig(config: builder, languageVersion: '3.12');
+    writeTestPackageConfig2(config: builder, languageVersion: '3.12');
 
     await initialize();
 
@@ -300,7 +300,7 @@ environment:
       name: 'transitive_dep',
       rootFolder: resourceProvider.getFolder(transitiveDepPath),
     );
-    writeTestPackageConfig(config: builder, languageVersion: '3.12');
+    writeTestPackageConfig2(config: builder, languageVersion: '3.12');
 
     await initialize();
 

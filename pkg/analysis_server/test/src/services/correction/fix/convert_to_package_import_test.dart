@@ -29,7 +29,7 @@ class ConvertToPackageImport_AlwaysUsePackageImportsBulkTest
   String get lintCode => LintNames.always_use_package_imports;
 
   Future<void> test_singleFile() async {
-    writeTestPackageConfig(config: PackageConfigFileBuilder());
+    writeTestPackageConfig2(config: PackageConfigFileBuilder());
     newFile('$testPackageLibPath/foo.dart', 'class Foo {}');
     newFile('$testPackageLibPath/bar.dart', 'class Bar {}');
 
@@ -88,7 +88,7 @@ class ConvertToPackageImport_AvoidRelativeLibImportsBulkTest
 
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/44673')
   Future<void> test_singleFile() async {
-    writeTestPackageConfig(config: PackageConfigFileBuilder());
+    writeTestPackageConfig2(config: PackageConfigFileBuilder());
     newFile('$testPackageLibPath/bar.dart', 'class Bar {}');
 
     await resolveTestCode('''
