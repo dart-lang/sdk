@@ -516,6 +516,31 @@ final c = const C(C()), f = Future.value(7);
 ''');
   }
 
+  Future<void> test_instanceField_preferConstDeclarations() async {
+    createAnalysisOptionsFile(
+      lints: [
+        LintNames.prefer_const_constructors,
+        LintNames.prefer_const_declarations,
+      ],
+    );
+    await resolveTestCode(r'''
+class C {
+  const C();
+}
+class A {
+  final c = C();
+}
+''');
+    await assertHasFix(r'''
+class C {
+  const C();
+}
+class A {
+  final c = const C();
+}
+''');
+  }
+
   Future<void> test_noKeyword() async {
     await resolveTestCode(r'''
 class C {
@@ -740,6 +765,31 @@ class C {
 void f() {
   const c = C();
   print(c);
+}
+''');
+  }
+
+  Future<void> test_instanceField_preferConstDeclarations() async {
+    createAnalysisOptionsFile(
+      lints: [
+        LintNames.prefer_const_constructors,
+        LintNames.prefer_const_declarations,
+      ],
+    );
+    await resolveTestCode('''
+class C {
+  const C();
+}
+class A {
+  final c = C();
+}
+''');
+    await assertHasFix('''
+class C {
+  const C();
+}
+class A {
+  final c = const C();
 }
 ''');
   }
