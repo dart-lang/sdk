@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
@@ -26,7 +25,6 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   late CompilationUnit testUnit;
   late FindNode findNode;
   late FindElement findElement;
-  late LibraryElement testLibraryElement;
 
   TestCode get parsedTestCode => _parsedTestCode!;
   set parsedTestCode(TestCode value) {
@@ -76,7 +74,6 @@ class AbstractSingleUnitTest extends AbstractContextTest {
       testLibraryResult = libraryResult;
       testAnalysisResult = unitResult;
       testUnit = unitResult.unit;
-      testLibraryElement = testUnit.declaredFragment!.element;
       findNode = FindNode(unitResult.content, testUnit);
       findElement = FindElement(testUnit);
     }

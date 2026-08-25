@@ -32,7 +32,7 @@ abstract class AbstractElementMatcherTest extends DataDrivenFixProcessorTest {
     var matchers = ElementMatcher.matchersForNode(
       node,
       node.beginToken,
-      testLibraryElement,
+      testUnit.declaredFragment!.element,
     );
     var matchedMatchers = <ElementMatcher>[];
     for (var matcher in matchers) {
@@ -75,7 +75,7 @@ abstract class AbstractElementMatcherTest extends DataDrivenFixProcessorTest {
     var matchers = ElementMatcher.matchersForNode(
       node,
       node.beginToken,
-      testLibraryElement,
+      testUnit.declaredFragment!.element,
     );
     expect(matchers, hasLength(1));
     var matcher = matchers[0];
