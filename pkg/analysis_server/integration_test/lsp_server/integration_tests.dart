@@ -142,9 +142,8 @@ abstract class AbstractLspAnalysisServerIntegrationTest
     Duration testTimeout = const Duration(seconds: 30),
   }) async {
     try {
-      // The normal test timeout is 30s but we can't catch that to print the log
-      // so instead add our own 28s timeout, assuming that if we hit 28s we
-      // would hit 30s.
+      // Wait for 2s less than the timeout, so we can catch this and print the
+      // instrumentation log before the test framework tears us down.
       await test().timeout(testTimeout - const Duration(seconds: 2));
     } catch (e) {
       print('Test failed. Instrumentation log:');

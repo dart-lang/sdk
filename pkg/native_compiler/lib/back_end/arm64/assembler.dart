@@ -1248,6 +1248,16 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
     madd(rd, rn, rm, ZR, sz);
   }
 
+  void msub(
+    Register rd,
+    Register rn,
+    Register rm,
+    Register ra, [
+    OperandSize sz = OperandSize.s64,
+  ]) {
+    _emitMul(B15 | B24 | B25 | B27 | B28, rd, rn, rm, ra, sz);
+  }
+
   void umulh(Register rd, Register rn, Register rm) {
     _emitMul(
       B22 | B23 | B24 | B25 | B27 | B28,
@@ -1362,6 +1372,15 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
       condition,
       sz,
     );
+  }
+
+  void cneg(
+    Register rd,
+    Register rn,
+    Condition condition, [
+    OperandSize sz = OperandSize.s64,
+  ]) {
+    csneg(rd, rn, rn, condition.inverted, sz);
   }
 
   void _emitConditionalSelect(
@@ -1574,7 +1593,7 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
     Register rm, [
     OperandSize sz = OperandSize.s64,
   ]) {
-    _emitVariableShift(B11, rd, rn, rm, sz);
+    _emitDataProcessing2(B11 | B13, rd, rn, rm, sz);
   }
 
   void lslv(
@@ -1583,7 +1602,7 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
     Register rm, [
     OperandSize sz = OperandSize.s64,
   ]) {
-    _emitVariableShift(0, rd, rn, rm, sz);
+    _emitDataProcessing2(B13, rd, rn, rm, sz);
   }
 
   void lsrv(
@@ -1592,10 +1611,19 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
     Register rm, [
     OperandSize sz = OperandSize.s64,
   ]) {
-    _emitVariableShift(B10, rd, rn, rm, sz);
+    _emitDataProcessing2(B10 | B13, rd, rn, rm, sz);
   }
 
-  void _emitVariableShift(
+  void sdiv(
+    Register rd,
+    Register rn,
+    Register rm, [
+    OperandSize sz = OperandSize.s64,
+  ]) {
+    _emitDataProcessing2(B10 | B11, rd, rn, rm, sz);
+  }
+
+  void _emitDataProcessing2(
     int opcode,
     Register rd,
     Register rn,
@@ -1604,7 +1632,7 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
   ) {
     assert(sz.is32or64);
     emit(
-      (B13 | B22 | B23 | B25 | B27 | B28) |
+      (B22 | B23 | B25 | B27 | B28) |
           opcode |
           rd.encodingRd() |
           rn.encodingRn() |

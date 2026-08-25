@@ -5,6 +5,7 @@
 /// Helper program that shows the rti data on a dart program.
 
 import 'package:args/args.dart';
+
 import '../equivalence/id_equivalence_helper.dart';
 import '../equivalence/show_helper.dart';
 import 'rti_emission_test_helper.dart';

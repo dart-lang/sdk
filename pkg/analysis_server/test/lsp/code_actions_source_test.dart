@@ -21,6 +21,7 @@ void main() {
     defineReflectiveTests(SortMembersSourceCodeActionsTest);
     defineReflectiveTests(OrganizeImportsSourceCodeActionsTest);
     defineReflectiveTests(FixAllSourceCodeActionsTest);
+    defineReflectiveTests(FlutterFixAllSourceCodeActionsTest);
   });
 }
 
@@ -364,6 +365,70 @@ int? a;
       expectedContent,
       command: Commands.fixAll,
     );
+  }
+}
+
+@reflectiveTest
+class FlutterFixAllSourceCodeActionsTest extends AbstractSourceCodeActionsTest {
+  @override
+  bool get addFlutterPackageDep => true;
+
+  @override
+  Future<void> setUp() async {
+    await super.setUp();
+
+    failTestOnErrorDiagnostic = false;
+    registerBuiltInFixGenerators();
+  }
+
+  Future<void> test_removeNestedContainers_automatic() async {
+    const analysisOptionsContent = '''
+linter:
+  rules:
+    - avoid_unnecessary_containers
+''';
+    const content = '''
+import 'package:flutter/material.dart';
+
+Widget buildRow() {
+  return Container(
+    child: Row(
+      children: [
+        Container(
+          child: Row(
+            children: [Text('...')],
+          ),
+        ),
+      ],
+    ),
+  );
+}
+''';
+    const expectedContent = '''
+import 'package:flutter/material.dart';
+
+Widget buildRow() {
+  return Row(
+    children: [
+      Row(
+        children: [Text('...')],
+      ),
+    ],
+  );
+}
+''';
+
+    registerLintRules();
+    newFile(analysisOptionsPath, analysisOptionsContent);
+
+    var action = await expectCodeActionLiteral(
+      content,
+      command: Commands.fixAll,
+      triggerKind: CodeActionTriggerKind.Automatic,
+    );
+    await verifyCodeActionEdits(CodeAction.t1(action), '''
+>>>>>>>>>> lib/test.dart
+$expectedContent''');
   }
 }
 

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:math' as math;
+
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../inferrer/abstract_value_domain.dart';

@@ -138,19 +138,22 @@ AssertStatement createAssertStatement(
 }
 
 AssignedVariablePattern createAssignedVariablePattern({
-  required Variable variable,
-  required Variable? setter,
+  required String variableName,
+  required DartType variableType,
+  required Variable writeVariable,
   required DartType matchedValueType,
   required bool needsCast,
   required bool hasObservableEffect,
   required int fileOffset,
 }) {
-  return new AssignedVariablePattern(variable)
-    ..setter = setter
-    ..matchedValueType = matchedValueType
-    ..needsCast = needsCast
-    ..hasObservableEffect = hasObservableEffect
-    ..fileOffset = fileOffset;
+  return new AssignedVariablePattern(
+    variableName: variableName,
+    variableType: variableType,
+    writeVariable: writeVariable,
+    matchedValueType: matchedValueType,
+    needsCast: needsCast,
+    hasObservableEffect: hasObservableEffect,
+  )..fileOffset = fileOffset;
 }
 
 Expression createAwaitExpression(
@@ -273,11 +276,12 @@ ConstantPattern createConstantPattern({
   required FunctionType equalsType,
   required int fileOffset,
 }) {
-  return new ConstantPattern(expression)
-    ..expressionType = expressionType
-    ..equalsTarget = equalsTarget
-    ..equalsType = equalsType
-    ..fileOffset = fileOffset;
+  return new ConstantPattern(
+    expression: expression,
+    expressionType: expressionType,
+    equalsTarget: equalsTarget,
+    equalsType: equalsType,
+  )..fileOffset = fileOffset;
 }
 
 Constructor createConstructor(
@@ -620,9 +624,13 @@ IfCaseStatement createIfCaseStatement({
   required DartType matchedValueType,
   required int fileOffset,
 }) {
-  return new IfCaseStatement(expression, patternGuard, then, otherwise)
-    ..matchedValueType = matchedValueType
-    ..fileOffset = fileOffset;
+  return new IfCaseStatement(
+    expression: expression,
+    patternGuard: patternGuard,
+    then: then,
+    otherwise: otherwise,
+    matchedValueType: matchedValueType,
+  )..fileOffset = fileOffset;
 }
 
 /// Creates an if statement with the [condition], [then] branch and [otherwise]
@@ -934,23 +942,25 @@ ListPattern createListPattern({
   required FunctionType indexGetType,
   required int fileOffset,
 }) {
-  return new ListPattern(typeArgument, patterns)
-    ..requiredType = requiredType
-    ..matchedValueType = matchedValueType
-    ..needsCheck = needsCheck
-    ..lookupType = lookupType
-    ..hasRestPattern = hasRestPattern
-    ..lengthTarget = lengthTarget
-    ..lengthType = lengthType
-    ..lengthCheckTarget = lengthCheckTarget
-    ..lengthCheckType = lengthCheckType
-    ..sublistTarget = sublistTarget
-    ..sublistType = sublistType
-    ..minusTarget = minusTarget
-    ..minusType = minusType
-    ..indexGetTarget = indexGetTarget
-    ..indexGetType = indexGetType
-    ..fileOffset = fileOffset;
+  return new ListPattern(
+    typeArgument: typeArgument,
+    patterns: patterns,
+    requiredType: requiredType,
+    matchedValueType: matchedValueType,
+    needsCheck: needsCheck,
+    lookupType: lookupType,
+    hasRestPattern: hasRestPattern,
+    lengthTarget: lengthTarget,
+    lengthType: lengthType,
+    lengthCheckTarget: lengthCheckTarget,
+    lengthCheckType: lengthCheckType,
+    sublistTarget: sublistTarget,
+    sublistType: sublistType,
+    minusTarget: minusTarget,
+    minusType: minusType,
+    indexGetTarget: indexGetTarget,
+    indexGetType: indexGetType,
+  )..fileOffset = fileOffset;
 }
 
 LoadLibrary createLoadLibrary(
@@ -1050,16 +1060,19 @@ MapPattern createMapPattern({
   required FunctionType indexGetType,
   required int fileOffset,
 }) {
-  return new MapPattern(keyType, valueType, entries)
-    ..requiredType = requiredType
-    ..matchedValueType = matchedValueType
-    ..needsCheck = needsCheck
-    ..lookupType = lookupType
-    ..containsKeyTarget = containsKeyTarget
-    ..containsKeyType = containsKeyType
-    ..indexGetTarget = indexGetTarget
-    ..indexGetType = indexGetType
-    ..fileOffset = fileOffset;
+  return new MapPattern(
+    keyType: keyType,
+    valueType: valueType,
+    entries: entries,
+    requiredType: requiredType,
+    matchedValueType: matchedValueType,
+    needsCheck: needsCheck,
+    lookupType: lookupType,
+    containsKeyTarget: containsKeyTarget,
+    containsKeyType: containsKeyType,
+    indexGetTarget: indexGetTarget,
+    indexGetType: indexGetType,
+  )..fileOffset = fileOffset;
 }
 
 MapPatternEntry createMapPatternEntry({
@@ -1199,14 +1212,14 @@ ObjectPattern createObjectPattern({
   required List<NamedPattern> fields,
   required DartType matchedValueType,
   required bool needsCheck,
-  required DartType lookupType,
   required int fileOffset,
 }) {
-  return new ObjectPattern(requiredType, fields)
-    ..matchedValueType = matchedValueType
-    ..needsCheck = needsCheck
-    ..lookupType = lookupType
-    ..fileOffset = fileOffset;
+  return new ObjectPattern(
+    requiredType: requiredType,
+    fields: fields,
+    matchedValueType: matchedValueType,
+    needsCheck: needsCheck,
+  )..fileOffset = fileOffset;
 }
 
 /// Creates a logical or expression of [left] and [right].
@@ -1238,9 +1251,11 @@ PatternAssignment createPatternAssignment({
   required DartType matchedValueType,
   required int fileOffset,
 }) {
-  return new PatternAssignment(pattern, expression)
-    ..matchedValueType = matchedValueType
-    ..fileOffset = fileOffset;
+  return new PatternAssignment(
+    pattern: pattern,
+    expression: expression,
+    matchedValueType: matchedValueType,
+  )..fileOffset = fileOffset;
 }
 
 PatternGuard createPatternGuard({
@@ -1292,9 +1307,12 @@ PatternVariableDeclaration createPatternVariableDeclaration({
   required DartType matchedValueType,
   required int fileOffset,
 }) {
-  return new PatternVariableDeclaration(pattern, initializer, isFinal: isFinal)
-    ..matchedValueType = matchedValueType
-    ..fileOffset = fileOffset;
+  return new PatternVariableDeclaration(
+    pattern,
+    initializer,
+    isFinal: isFinal,
+    matchedValueType: matchedValueType,
+  )..fileOffset = fileOffset;
 }
 
 PositionalParameter createPositionalParameter({
@@ -1376,15 +1394,15 @@ RecordPattern createRecordPattern({
   required DartType matchedValueType,
   required bool needsCheck,
   required RecordType lookupType,
-
   required int fileOffset,
 }) {
-  return new RecordPattern(patterns)
-    ..requiredType = requiredType
-    ..matchedValueType = matchedValueType
-    ..needsCheck = needsCheck
-    ..lookupType = lookupType
-    ..fileOffset = fileOffset;
+  return new RecordPattern(
+    patterns: patterns,
+    requiredType: requiredType,
+    matchedValueType: matchedValueType,
+    needsCheck: needsCheck,
+    lookupType: lookupType,
+  )..fileOffset = fileOffset;
 }
 
 RedirectingFactoryTearOff createRedirectingFactoryTearOff(
@@ -1407,15 +1425,17 @@ RelationalPattern createRelationalPattern({
   required FunctionType? functionType,
   required int fileOffset,
 }) {
-  return new RelationalPattern(kind, expression)
-    ..expressionType = expressionType
-    ..matchedValueType = matchedValueType
-    ..accessKind = accessKind
-    ..name = name
-    ..target = target
-    ..typeArguments = typeArguments
-    ..functionType = functionType
-    ..fileOffset = fileOffset;
+  return new RelationalPattern(
+    kind: kind,
+    expression: expression,
+    expressionType: expressionType,
+    matchedValueType: matchedValueType,
+    accessKind: accessKind,
+    name: name,
+    target: target,
+    typeArguments: typeArguments,
+    functionType: functionType,
+  )..fileOffset = fileOffset;
 }
 
 RestPattern createRestPattern({
@@ -1718,9 +1738,11 @@ VariablePattern createVariablePattern({
   required DartType matchedValueType,
   required int fileOffset,
 }) {
-  return new VariablePattern(type, variable)
-    ..matchedValueType = matchedValueType
-    ..fileOffset = fileOffset;
+  return new VariablePattern(
+    type: type,
+    variable: variable,
+    matchedValueType: matchedValueType,
+  )..fileOffset = fileOffset;
 }
 
 /// Creates a [VariableSet] of [variable] with the [value].

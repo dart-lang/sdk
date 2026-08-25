@@ -93,14 +93,12 @@ class InstantiationStubGenerator {
       );
     }
 
-    js_ast.Fun function =
-        js('function(#) { return this.#.#(#); }', [
-              parameters,
-              _namer.instanceFieldPropertyName(functionField),
-              _namer.invocationName(targetSelector),
-              arguments,
-            ])
-            as js_ast.Fun;
+    js_ast.Fun function = js('function(#) { return this.#.#(#); }', [
+      parameters,
+      _namer.instanceFieldPropertyName(functionField),
+      _namer.invocationName(targetSelector),
+      arguments,
+    ]) as js_ast.Fun;
     // TODO(sra): .withSourceInformation(sourceInformation);
 
     js_ast.Name name = _namer.invocationName(callSelector);
@@ -138,14 +136,13 @@ class InstantiationStubGenerator {
 
   js_ast.Fun _generateSignature(FieldEntity functionField) =>
       js('function() { return #(#(this.#), this.#); }', [
-            _emitter.staticFunctionAccess(
-              _commonElements.instantiatedGenericFunctionType,
-            ),
-            _emitter.staticFunctionAccess(_commonElements.closureFunctionType),
-            _namer.instanceFieldPropertyName(functionField),
-            _namer.rtiFieldJsName,
-          ])
-          as js_ast.Fun;
+        _emitter.staticFunctionAccess(
+          _commonElements.instantiatedGenericFunctionType,
+        ),
+        _emitter.staticFunctionAccess(_commonElements.closureFunctionType),
+        _namer.instanceFieldPropertyName(functionField),
+        _namer.rtiFieldJsName,
+      ]) as js_ast.Fun;
 
   // Returns all stubs for an instantiation class.
   //

@@ -11,8 +11,43 @@ import 'assist_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(AddTypeAnnotationBinTest);
     defineReflectiveTests(AddTypeAnnotationTest);
   });
+}
+
+@reflectiveTest
+class AddTypeAnnotationBinTest extends AssistProcessorTest {
+  @override
+  AssistKind get kind => DartAssistKind.addTypeAnnotation;
+
+  /// The path to the test file, which is in the test package's `bin` directory
+  /// for this class.
+  @override
+  String get testFilePath => convertPath('/home/test/bin/test.dart');
+
+  Future<void> test_local_addImport_relUri() async {
+    newFile('/home/test/bin/aa/bbb/lib_a.dart', r'''
+class MyClass {}
+''');
+    newFile('/home/test/bin/ccc/lib_b.dart', r'''
+import '../aa/bbb/lib_a.dart';
+MyClass newMyClass() => null;
+''');
+    await resolveTestCode('''
+import 'ccc/lib_b.dart';
+void f() {
+  var ^v = newMyClass();
+}
+''');
+    await assertHasAssist('''
+import 'aa/bbb/lib_a.dart';
+import 'ccc/lib_b.dart';
+void f() {
+  MyClass v = newMyClass();
+}
+''');
+  }
 }
 
 @reflectiveTest
@@ -281,30 +316,6 @@ part 'test.dart';
         ],
       },
     );
-  }
-
-  Future<void> test_local_addImport_relUri() async {
-    testFilePath = convertPath('/home/test/bin/test.dart');
-    newFile('/home/test/bin/aa/bbb/lib_a.dart', r'''
-class MyClass {}
-''');
-    newFile('/home/test/bin/ccc/lib_b.dart', r'''
-import '../aa/bbb/lib_a.dart';
-MyClass newMyClass() => null;
-''');
-    await resolveTestCode('''
-import 'ccc/lib_b.dart';
-void f() {
-  var ^v = newMyClass();
-}
-''');
-    await assertHasAssist('''
-import 'aa/bbb/lib_a.dart';
-import 'ccc/lib_b.dart';
-void f() {
-  MyClass v = newMyClass();
-}
-''');
   }
 
   Future<void> test_local_bottom() async {
@@ -1021,7 +1032,6 @@ void f() {
 
   Future<void> test_privateType_variable() async {
     newFile('$testPackageLibPath/my_lib.dart', '''
-library my_lib;
 class A {}
 class _B extends A {}
 _B getValue() => _B();

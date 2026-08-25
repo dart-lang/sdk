@@ -5,7 +5,9 @@
 library;
 
 import 'dart:collection' show IterableMixin;
+
 import 'package:kernel/ast.dart' as ir;
+
 import '../elements/entities.dart';
 import '../ir/util.dart';
 import '../util/util.dart';

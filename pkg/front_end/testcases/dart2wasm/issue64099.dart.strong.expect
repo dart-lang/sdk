@@ -1,0 +1,34 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+static method f(core::int i) → asy::Future<core::bool> async /* emittedValueType= core::bool */ 
+  return i.{core::int::isEven}{core::bool};
+static method getInt() → asy::Future<core::int> async /* emittedValueType= core::int */ 
+  return 42;
+static method getString() → asy::Future<core::String> async /* emittedValueType= core::String */ 
+  return "hello";
+static method testOr(core::int n) → asy::Future<core::bool> async /* emittedValueType= core::bool */ {
+  core::bool v = false;
+  for (core::int i = 0; i.{core::num::<}(n){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int}) {
+    v = v.{core::bool::|}(await self::f(i)){(core::bool) → core::bool};
+  }
+  return v;
+}
+static method testXorRight(core::int n) → asy::Future<core::bool> async /* emittedValueType= core::bool */ {
+  core::bool v = false;
+  for (core::int i = 0; i.{core::num::<}(n){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int}) {
+    v = (await self::f(i)).{core::bool::^}(v){(core::bool) → core::bool};
+  }
+  return v;
+}
+static method testReuse(core::bool cond) → asy::Future<core::int> async /* emittedValueType= core::int */ {
+  return cond ?{core::int} (await self::getInt()).{core::int::abs}(){() → core::int} : (await self::getString()).{core::String::length}{core::int};
+}
+static method main() → void async /* emittedValueType= void */ {
+  await self::testOr(4);
+  await self::testXorRight(4);
+  await self::testReuse(true);
+  await self::testReuse(false);
+}

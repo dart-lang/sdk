@@ -199,9 +199,9 @@ class Article {
   }
 
   String get dataUri {
-    return SwarmUri.encodeComponent(
-      id,
-    )!.replaceAll('%2F', '/').replaceAll('%253A', '%3A');
+    return SwarmUri.encodeComponent(id)!
+        .replaceAll('%2F', '/')
+        .replaceAll('%253A', '%3A');
   }
 
   String? get thumbUrl {

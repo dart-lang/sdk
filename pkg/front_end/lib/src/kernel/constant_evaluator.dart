@@ -993,7 +993,7 @@ class ConstantsTransformer extends RemovingTransformer {
           expressions.add(
             extern.createConstantExpression(
               constantPattern.value!,
-              constantPattern.expressionType!,
+              constantPattern.expressionType,
               fileOffset: constantPattern.expression.fileOffset,
             ),
           );
@@ -1604,7 +1604,7 @@ class ConstantsTransformer extends RemovingTransformer {
         new MatchingExpressionVisitor(matchingCache, typeEnvironment.coreTypes);
     CacheableExpression matchedExpression = matchingCache.createRootExpression(
       node.expression,
-      node.matchedValueType!,
+      node.matchedValueType,
     );
     // This expression is used, even if the matching expression doesn't read it.
     matchedExpression.registerUse();
@@ -1726,7 +1726,7 @@ class ConstantsTransformer extends RemovingTransformer {
     MatchingCache matchingCache = createMatchingCache();
     MatchingExpressionVisitor matchingExpressionVisitor =
         new MatchingExpressionVisitor(matchingCache, typeEnvironment.coreTypes);
-    DartType matchedType = node.matchedValueType!;
+    DartType matchedType = node.matchedValueType;
     CacheableExpression matchedExpression = matchingCache.createRootExpression(
       node.initializer,
       matchedType,
@@ -1822,7 +1822,7 @@ class ConstantsTransformer extends RemovingTransformer {
     MatchingCache matchingCache = createMatchingCache();
     MatchingExpressionVisitor matchingExpressionVisitor =
         new MatchingExpressionVisitor(matchingCache, typeEnvironment.coreTypes);
-    DartType matchedType = node.matchedValueType!;
+    DartType matchedType = node.matchedValueType;
     CacheableExpression matchedExpression = matchingCache.createRootExpression(
       node.expression,
       matchedType,
@@ -2061,7 +2061,7 @@ class ConstantsTransformer extends RemovingTransformer {
         expressions.add(
           extern.createConstantExpression(
             constantPattern.value!,
-            constantPattern.expressionType!,
+            constantPattern.expressionType,
             fileOffset: constantPattern.expression.fileOffset,
           ),
         );

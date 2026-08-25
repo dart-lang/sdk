@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+
 import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:compiler/src/elements/entities.dart';
@@ -11,6 +12,7 @@ import 'package:compiler/src/universe/call_structure.dart';
 import 'package:compiler/src/universe/class_hierarchy.dart';
 import 'package:compiler/src/universe/selector.dart';
 import 'package:compiler/src/js_model/js_world.dart' show JClosedWorld;
+
 import '../helpers/type_test_helper.dart';
 
 void main() {

@@ -529,10 +529,24 @@ final class Arm64Constraints extends Constraints {
 
   @override
   InstructionConstraints? visitBinaryIntOp(BinaryIntOp instr) =>
-      InstructionConstraints(anyCpuRegister, [
-        anyCpuRegister,
-        anyRegisterOrImmediate(instr.right),
-      ]);
+      switch (instr.op) {
+        .truncatingDiv || .rem => InstructionConstraints(
+          anyCpuRegister,
+          const [anyCpuRegister, anyCpuRegister],
+          const [],
+          instr.right.canBeZero ? Safepoint() : null,
+        ),
+        .mod => InstructionConstraints(
+          anyCpuRegister,
+          const [anyCpuRegister, anyCpuRegister],
+          const [anyCpuRegister],
+          instr.right.canBeZero ? Safepoint() : null,
+        ),
+        _ => InstructionConstraints(anyCpuRegister, [
+          anyCpuRegister,
+          anyRegisterOrImmediate(instr.right),
+        ]),
+      };
 
   @override
   InstructionConstraints? visitUnaryIntOp(UnaryIntOp instr) =>

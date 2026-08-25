@@ -207,13 +207,12 @@ class RecordUseCollector {
       });
 
       return _createMemberFromFunction(
-            function,
-            node,
-            extension,
-            parts[1],
-            isInstance: originallyInstance,
-          )
-          as DefinitionWithStaticCalls;
+        function,
+        node,
+        extension,
+        parts[1],
+        isInstance: originallyInstance,
+      ) as DefinitionWithStaticCalls;
     }
 
     final ScopeWithMembers parent = function.enclosingClass != null
@@ -221,13 +220,12 @@ class RecordUseCollector {
         : library;
 
     return _createMemberFromFunction(
-          function,
-          node,
-          parent,
-          name,
-          isInstance: !(function.isStatic || function.isTopLevel),
-        )
-        as DefinitionWithStaticCalls;
+      function,
+      node,
+      parent,
+      name,
+      isInstance: !(function.isStatic || function.isTopLevel),
+    ) as DefinitionWithStaticCalls;
   }
 
   Definition _createMemberFromFunction(

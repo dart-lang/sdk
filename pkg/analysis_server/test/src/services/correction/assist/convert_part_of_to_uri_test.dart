@@ -10,24 +10,27 @@ import 'assist_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(ConvertPartOfToUriNonSiblingTest);
     defineReflectiveTests(ConvertPartOfToUriTest);
   });
 }
 
 @reflectiveTest
-class ConvertPartOfToUriTest extends AssistProcessorTest {
+class ConvertPartOfToUriNonSiblingTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.convertPartOfToUri;
+
+  @override
+  String get testFilePath => convertPath('$testPackageLibPath/src/test.dart');
 
   Future<void> test_nonSibling() async {
     newFile('$testPackageLibPath/foo.dart', '''
 // @dart = 3.4
 // preEnhancedParts
 library foo;
-part 'src/bar.dart';
+part 'src/test.dart';
 ''');
 
-    testFilePath = convertPath('$testPackageLibPath/src/bar.dart');
     addTestSource('''
 // @dart = 3.4
 // preEnhancedParts
@@ -42,16 +45,21 @@ part of f^oo;
 part of '../foo.dart';
 ''');
   }
+}
+
+@reflectiveTest
+class ConvertPartOfToUriTest extends AssistProcessorTest {
+  @override
+  AssistKind get kind => DartAssistKind.convertPartOfToUri;
 
   Future<void> test_sibling() async {
     newFile('$testPackageLibPath/foo.dart', '''
 // @dart = 3.4
 // preEnhancedParts
 library foo;
-part 'bar.dart';
+part 'test.dart';
 ''');
 
-    testFilePath = convertPath('$testPackageLibPath/bar.dart');
     addTestSource('''
 // @dart = 3.4
 // preEnhancedParts

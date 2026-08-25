@@ -37,6 +37,7 @@
 
 import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
+
 import 'lib1.dart' deferred as lib1;
 import 'lib2.dart' deferred as lib2;
 
