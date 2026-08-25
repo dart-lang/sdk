@@ -16,14 +16,13 @@ import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/platform.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer_testing/configuration_files_mixin.dart';
 import 'package:analyzer_testing/experiments/experiments.dart';
 import 'package:analyzer_testing/mock_packages/mock_packages.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:linter/src/rules.dart';
 import 'package:meta/meta.dart';
-
-import 'support/configuration_files.dart';
 
 class AbstractContextTest
     with MockPackagesMixin, ConfigurationFilesMixin, ResourceProviderMixin {
@@ -171,7 +170,7 @@ class AbstractContextTest
 
     createMockSdk(resourceProvider: resourceProvider, root: sdkRoot);
 
-    writeTestPackageConfig();
+    writeTestPackageConfig2();
 
     createAnalysisOptionsFile(experimentalFeatures: experimentalFeatures);
   }

@@ -302,7 +302,7 @@ class AddMissingParameterRequiredTest_Workspace
   Future<void> test_function_inPackage_inWorkspace() async {
     var a = newFile('/home/aaa/lib/a.dart', 'void test() {}');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'aaa', rootFolder: getFolder('$workspaceRootPath/aaa')),
     );
@@ -323,7 +323,7 @@ void f() {
   Future<void> test_function_inPackage_outsideWorkspace() async {
     newFile('/home/bbb/lib/b.dart', 'void test() {}');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'bbb', rootFolder: getFolder('$workspaceRootPath/bbb')),
     );

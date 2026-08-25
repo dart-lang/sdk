@@ -236,7 +236,7 @@ environment:
 ''');
     var config = PackageConfigFileBuilder();
     config.add(name: 'a', rootFolder: getFolder('$projectFolderPath/pkgs/a'));
-    writeTestPackageConfig(config: config);
+    writeTestPackageConfig2(config: config);
 
     var fileUri = toUri(
       join(projectFolderPath, 'pkgs', 'a', 'test', 'one_test.dart'),

@@ -75,7 +75,7 @@ suggestions
   Future<void> test_export_package2() async {
     var fooRootPath = '$workspaceRootPath/foo';
     var barRootPath = '$workspaceRootPath/bar';
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'foo', rootFolder: getFolder(fooRootPath))
         ..add(name: 'bar', rootFolder: getFolder(barRootPath)),
@@ -657,7 +657,7 @@ suggestions
   Future<void> test_import_package() async {
     var fooRootPath = '$workspaceRootPath/foo';
     var barRootPath = '$workspaceRootPath/bar';
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'foo', rootFolder: getFolder(fooRootPath))
         ..add(name: 'bar', rootFolder: getFolder(barRootPath)),
@@ -704,7 +704,7 @@ suggestions
   Future<void> test_import_package2() async {
     var fooRootPath = '$workspaceRootPath/foo';
     var barRootPath = '$workspaceRootPath/bar';
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'foo', rootFolder: getFolder(fooRootPath))
         ..add(name: 'bar', rootFolder: getFolder(barRootPath)),
@@ -735,7 +735,7 @@ suggestions
   Future<void> test_import_package2_raw() async {
     var fooRootPath = '$workspaceRootPath/foo';
     var barRootPath = '$workspaceRootPath/bar';
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'foo', rootFolder: getFolder(fooRootPath))
         ..add(name: 'bar', rootFolder: getFolder(barRootPath)),
@@ -766,7 +766,7 @@ suggestions
   Future<void> test_import_package2_with_trailing() async {
     var fooRootPath = '$workspaceRootPath/foo';
     var barRootPath = '$workspaceRootPath/bar';
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'foo', rootFolder: getFolder(fooRootPath))
         ..add(name: 'bar', rootFolder: getFolder(barRootPath)),
@@ -797,7 +797,7 @@ suggestions
 
   Future<void> test_import_package_missing_lib() async {
     var barRootPath = '$workspaceRootPath/bar';
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'bar', rootFolder: getFolder(barRootPath)),
     );
@@ -826,7 +826,7 @@ suggestions
   Future<void> test_import_package_raw() async {
     var fooRootPath = '$workspaceRootPath/foo';
     var barRootPath = '$workspaceRootPath/bar';
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'foo', rootFolder: getFolder(fooRootPath))
         ..add(name: 'bar', rootFolder: getFolder(barRootPath)),

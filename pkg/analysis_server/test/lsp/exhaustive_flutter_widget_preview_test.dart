@@ -366,11 +366,11 @@ Widget b() => Text('B');
 ''');
 
     var config = PackageConfigFileBuilder();
-    // Do NOT add 'test' package here as writeTestPackageConfig will add it.
+    // Do NOT add 'test' package here as writeTestPackageConfig2 will add it.
     config.add(name: 'a', rootFolder: getFolder('$projectFolderPath/pkgs/a'));
     config.add(name: 'b', rootFolder: getFolder('$projectFolderPath/pkgs/b'));
 
-    writeTestPackageConfig(config: config);
+    writeTestPackageConfig2(config: config);
 
     await initialize();
     var result = await getWorkspaceFlutterWidgetPreviews();

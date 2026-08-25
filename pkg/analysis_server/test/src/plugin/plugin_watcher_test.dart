@@ -60,7 +60,7 @@ analyzer:
     - foo
 ''');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'foo', rootFolder: getFolder('/foo')),
     );
@@ -104,7 +104,7 @@ plugins:
   foo: ^2.0.0
 ''');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'foo', rootFolder: getFolder('/foo')),
     );
@@ -175,7 +175,7 @@ plugins:
   foo: ^1.0.0
 ''');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'foo', rootFolder: getFolder('/foo')),
     );
@@ -252,7 +252,7 @@ plugins:
   foo: ^1.0.0
 ''');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'foo', rootFolder: getFolder('/foo')),
     );
@@ -329,7 +329,7 @@ plugins:
   bar: ^1.0.0
 ''');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'foo', rootFolder: getFolder('/foo'))
         ..add(name: 'bar', rootFolder: getFolder('/bar')),
@@ -394,7 +394,7 @@ plugins:
   foo: ^1.0.0
 ''');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'foo', rootFolder: getFolder('/foo')),
     );
@@ -435,7 +435,7 @@ plugins:
     var innerFolderPath = join(testPackageRootPath, 'inner');
     newFile(join(innerFolderPath, 'analysis_options.yaml'), '');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'foo', rootFolder: getFolder('/foo')),
     );
