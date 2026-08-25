@@ -159,10 +159,9 @@ class MigrationRunner({
               break;
             }
 
-            // TODO(kallentu): Pass nextVersion computed from knownSdkVersions
-            // to the bump step.
             var prepareAndBumpOutcome = await _executePrepareAndBump(
               pubspec: pubspec,
+              targetVersion: nextVersion,
               runPrepare: runPrepare,
               runBump: runBump,
             );
@@ -256,6 +255,7 @@ class MigrationRunner({
   /// error occurs.
   Future<ExecutionOutcome> _executePrepareAndBump({
     required PubspecTarget pubspec,
+    required Version targetVersion,
     required bool runPrepare,
     required bool runBump,
   }) async {
@@ -270,7 +270,7 @@ class MigrationRunner({
       return ExecutionOutcome.exception;
     }
 
-    var versionBumpEdit = computeVersionBumpEdit(pubspecFile);
+    var versionBumpEdit = computeEdit(pubspecFile, targetVersion);
     if (versionBumpEdit == null) {
       return ExecutionOutcome.exception;
     }
