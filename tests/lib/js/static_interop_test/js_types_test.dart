@@ -1309,19 +1309,19 @@ Future<void> asyncTests() async {
     Expect.isNull(await (p as JSPromise<JSString?>).toDart);
   }
 
-  // [JSAny] -> [FutureOr<JSAny>]
+  // [JSAny] -> [FutureOr<JSAny?>]
 
   // Non-promise
   {
     final f = 'value'.toJS.toDartFutureOr;
-    Expect.type<FutureOr<JSAny>>(f);
+    Expect.type<FutureOr<JSAny?>>(f);
     Expect.equals('value'.toJS, f);
   }
 
   // Promise
   {
     final f = getResolvedPromise().toDartFutureOr;
-    expectStaticType<FutureOr<JSAny>>(f);
+    expectStaticType<FutureOr<JSAny?>>(f);
     Expect.equals('resolved'.toJS, await f);
   }
 
@@ -1336,7 +1336,7 @@ Future<void> asyncTests() async {
 
   // Promise
   {
-    final f = resolvePromiseWithNullOrUndefined(true).toDartFutureOr;
+    final f = resolvePromiseWithNullOrUndefined<JSAny?>(true).toDartFutureOr;
     expectStaticType<FutureOr<JSAny?>>(f);
     Expect.isNull(await f);
   }

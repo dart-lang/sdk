@@ -1322,18 +1322,7 @@ extension JSPromiseToFuture<T extends JSAny?> on JSPromise<T> {
 
 /// Conversions from [JSAny] to [FutureOr].
 @Since('3.14')
-extension JSAnyToFutureOr on JSAny {
-  /// If this is a [JSPromise], returns it as a [Future].
-  ///
-  /// Otherwise, returns it as-is.
-  FutureOr<JSAny> get toDartFutureOr => (this?.isA<JSPromise>() ?? false)
-      ? (this as JSPromise<JSAny>).toDart
-      : this;
-}
-
-/// Conversions from [JSAny?] to [FutureOr].
-@Since('3.14')
-extension NullableJSAnyToFutureOr on JSAny? {
+extension JSAnyToFutureOr on JSAny? {
   /// If this is a [JSPromise], returns it as a [Future].
   ///
   /// Otherwise, returns it as-is.
