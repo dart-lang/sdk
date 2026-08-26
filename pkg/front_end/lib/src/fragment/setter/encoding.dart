@@ -627,7 +627,8 @@ mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
       isAbstractOrExternal ? null : extern.createEmptyStatement(),
       typeParameters: typeParameters,
       positionalParameters: [
-        _thisFormal.build(libraryBuilder).astVariable as PositionalParameter,
+        _thisFormal.build(libraryBuilder).functionParameter
+            as PositionalParameter,
       ],
       asyncMarker: _fragment.asyncModifier.kind,
       fileOffset: _fragment.formalsOffset,

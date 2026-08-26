@@ -24,7 +24,6 @@ library;
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart'
     as shared;
 import 'package:kernel/ast.dart';
-import 'package:kernel/core_types.dart';
 import 'package:kernel/names.dart';
 import 'package:kernel/src/printer.dart';
 import 'package:kernel/src/text_util.dart';
@@ -33,7 +32,6 @@ import 'package:kernel/text/ast_to_text.dart' show Precedence;
 import '../base/problems.dart' show unsupported;
 import '../builder/declaration_builders.dart';
 import '../codes/diagnostic.dart' as diag;
-import '../source/source_library_builder.dart';
 import '../type_inference/context_allocation_strategy.dart';
 import '../type_inference/element_inference.dart';
 import '../type_inference/inference_results.dart';
@@ -1114,9 +1112,6 @@ class InternalLocalVariable extends InternalDeclaredVariable {
   bool get isFinal => _astVariable.isFinal;
 
   @override
-  bool get isLate => false;
-
-  @override
   bool get isWildcard => _astVariable.isWildcard;
 
   @override
@@ -1142,6 +1137,8 @@ class InternalPatternVariable extends InternalDeclaredVariable {
   final bool isImplicitlyTyped;
 
   final String name;
+
+  SyntheticVariable? _alias;
 
   new({
     required this.name,
@@ -1195,9 +1192,6 @@ class InternalPatternVariable extends InternalDeclaredVariable {
   }
 
   @override
-  bool get isLate => false;
-
-  @override
   bool get isWildcard => false;
 
   @override
@@ -1215,6 +1209,20 @@ class InternalPatternVariable extends InternalDeclaredVariable {
     }
     return true;
   }
+
+  void setAlias(SyntheticVariable alias) {
+    assert(
+      _alias == null,
+      "InternalPatternVariable $this already has an alias.",
+    );
+    _alias = alias;
+  }
+
+  @override
+  Variable get readVariable => _alias ?? astVariable;
+
+  @override
+  Variable get writeVariable => _alias ?? astVariable;
 }
 
 class InternalLocalFunctionVariable extends InternalDeclaredVariable {
@@ -1267,10 +1275,6 @@ class InternalLocalFunctionVariable extends InternalDeclaredVariable {
   bool get isFinal => true;
 
   @override
-  // Coverage-ignore(suite): Not run.
-  bool get isLate => false;
-
-  @override
   bool get isWildcard => _astVariable.isWildcard;
 
   @override
@@ -1283,6 +1287,24 @@ class InternalLocalFunctionVariable extends InternalDeclaredVariable {
 
   @override
   bool get isAssignable => false;
+
+  @override
+  ExpressionInferenceResult createRead(
+    InferenceVisitorBase visitor, {
+    DartType? typeContext,
+    InternalNode? accessNode,
+    DartType? promotedType,
+    int? fileOffset,
+  }) {
+    return visitor.instantiateTearOff(
+      promotedType ?? type,
+      typeContext ?? const UnknownType(),
+      super
+          .createRead(visitor, typeContext: typeContext, fileOffset: fileOffset)
+          .expression,
+      tearOffNode: accessNode,
+    );
+  }
 }
 
 class InternalLateVariable extends InternalDeclaredVariable {
@@ -1297,6 +1319,18 @@ class InternalLateVariable extends InternalDeclaredVariable {
   final bool isStaticLate;
 
   DartType? _type;
+
+  /// Set to `true` if this variable was declared as a late variable in a
+  /// context that doesn't support late variables. For instance in a
+  /// for-statement initializer.
+  bool _isErroneousLate = false;
+
+  /// The synthesized local getter function for a lowered late variable.
+  LocalFunctionVariable? _lateGetter;
+
+  /// The synthesized local setter function for an assignable lowered late
+  /// variable.
+  LocalFunctionVariable? _lateSetter;
 
   new({
     required this.name,
@@ -1341,10 +1375,11 @@ class InternalLateVariable extends InternalDeclaredVariable {
   bool get isFinal => _astVariable.isFinal;
 
   @override
-  bool get isLate => _astVariable.isLate;
+  bool get isLate => !_isErroneousLate;
 
-  void set isLate(bool value) {
-    _astVariable.isLate = value;
+  void markAsErroneousLate() {
+    _isErroneousLate = true;
+    _astVariable.isLate = false;
   }
 
   @override
@@ -1367,16 +1402,64 @@ class InternalLateVariable extends InternalDeclaredVariable {
   bool get isAssignable {
     if (isStaticLate) return true;
     if (isFinal) {
-      if (isLate) return !hasDeclaredInitializer;
-      return false;
+      return !hasDeclaredInitializer;
     }
     return true;
   }
 
-  VariableDeclarationInferenceResult computeLateLocalLowering({
-    required CoreTypes coreTypes,
-    required SourceLibraryBuilder libraryBuilder,
-    required DartType Function(DartType) computeNullable,
+  @override
+  // Coverage-ignore(suite): Not run.
+  VariableDeclaration createDeclaration({
+    Expression? initializer,
+    List<VariableContext>? capturedContexts,
+    int? fileOffset,
+  }) {
+    assert(
+      _isErroneousLate,
+      "Cannot create a late variable outside a variable statement.",
+    );
+    return super.createDeclaration(
+      initializer: initializer,
+      capturedContexts: capturedContexts,
+      fileOffset: fileOffset,
+    );
+  }
+
+  @override
+  VariableDeclarationInferenceResult createVariableDeclaration(
+    InferenceVisitorBase visitor, {
+    Expression? initializer,
+    List<VariableContext>? capturedContexts,
+    int? fileOffset,
+  }) {
+    if (!_isErroneousLate &&
+        visitor.libraryBuilder.loader.target.backendTarget
+            .isLateLocalLoweringEnabled(
+              hasInitializer: hasDeclaredInitializer,
+              isFinal: isFinal,
+              isPotentiallyNullable: type.isPotentiallyNullable,
+            )) {
+      return _computeLateLocalLowering(
+        visitor,
+        initializer: initializer,
+        capturedContexts: capturedContexts,
+        variableDeclarationFileOffset:
+            fileOffset ?? // Coverage-ignore(suite): Not run.
+            this.fileOffset,
+      );
+    }
+    return new VariableDeclarationInferenceResult.direct(
+      extern.createVariableDeclaration(
+        astVariable,
+        initializer: initializer,
+        capturedContexts: capturedContexts,
+        fileOffset: fileOffset,
+      ),
+    );
+  }
+
+  VariableDeclarationInferenceResult _computeLateLocalLowering(
+    InferenceVisitorBase visitor, {
     required Expression? initializer,
     required List<VariableContext>? capturedContexts,
     required int variableDeclarationFileOffset,
@@ -1387,13 +1470,13 @@ class InternalLateVariable extends InternalDeclaredVariable {
     late_lowering.IsSetEncoding isSetEncoding = late_lowering
         .computeIsSetEncoding(
           type,
-          late_lowering.computeIsSetStrategy(libraryBuilder),
+          late_lowering.computeIsSetStrategy(visitor.libraryBuilder),
         );
 
     Expression? initialValue;
     if (isSetEncoding == late_lowering.IsSetEncoding.useSentinel) {
       initialValue = extern.createStaticInvocation(
-        coreTypes.createSentinelMethod,
+        visitor.coreTypes.createSentinelMethod,
         extern.createArguments([], types: [type], fileOffset: fileOffset),
         fileOffset: fileOffset,
       );
@@ -1411,7 +1494,7 @@ class InternalLateVariable extends InternalDeclaredVariable {
     if (isSetEncoding == late_lowering.IsSetEncoding.useIsSetField) {
       isSetVariable = extern.createVariable(
         new BoolLiteral(false)..fileOffset = fileOffset,
-        coreTypes.boolRawType(Nullability.nonNullable),
+        visitor.coreTypes.boolRawType(Nullability.nonNullable),
         cosmeticName: late_lowering.computeLateLocalIsSetName(name),
         isLowered: true,
         isFinal: false,
@@ -1446,7 +1529,7 @@ class InternalLateVariable extends InternalDeclaredVariable {
       new FunctionNode(
         initializer == null
             ? late_lowering.createGetterBodyWithoutInitializer(
-                coreTypes,
+                visitor.coreTypes,
                 fileOffset,
                 name,
                 type,
@@ -1457,7 +1540,7 @@ class InternalLateVariable extends InternalDeclaredVariable {
               )
             : (isFinal
                   ? late_lowering.createGetterWithInitializerWithRecheck(
-                      coreTypes,
+                      visitor.coreTypes,
                       fileOffset,
                       name,
                       type,
@@ -1470,7 +1553,7 @@ class InternalLateVariable extends InternalDeclaredVariable {
                       forField: false,
                     )
                   : late_lowering.createGetterWithInitializer(
-                      coreTypes,
+                      visitor.coreTypes,
                       fileOffset,
                       name,
                       type,
@@ -1487,7 +1570,7 @@ class InternalLateVariable extends InternalDeclaredVariable {
     getVariable.type = getter.function.computeFunctionType(
       Nullability.nonNullable,
     );
-    lateGetter = getVariable;
+    _lateGetter = getVariable;
     functionDeclarations.add(getter);
 
     bool needsSetter = !isFinal || initializer == null;
@@ -1510,7 +1593,7 @@ class InternalLateVariable extends InternalDeclaredVariable {
         new FunctionNode(
           isFinal
                 ? late_lowering.createSetterBodyFinal(
-                    coreTypes,
+                    visitor.coreTypes,
                     fileOffset,
                     name,
                     setterParameter,
@@ -1524,7 +1607,7 @@ class InternalLateVariable extends InternalDeclaredVariable {
                     forField: false,
                   )
                 : late_lowering.createSetterBody(
-                    coreTypes,
+                    visitor.coreTypes,
                     fileOffset,
                     name,
                     setterParameter,
@@ -1544,11 +1627,11 @@ class InternalLateVariable extends InternalDeclaredVariable {
       setVariable.type = setter.function.computeFunctionType(
         Nullability.nonNullable,
       );
-      lateSetter = setVariable;
+      _lateSetter = setVariable;
       functionDeclarations.add(setter);
     }
-    isLate = false;
-    _astVariable.type = computeNullable(type);
+    _astVariable.isLate = false;
+    _astVariable.type = visitor.computeNullable(type);
     _astVariable.isLowered = true;
     _astVariable.cosmeticName = late_lowering.computeLateLocalName(name);
 
@@ -1558,6 +1641,57 @@ class InternalLateVariable extends InternalDeclaredVariable {
       fileOffset: fileOffset,
     );
   }
+
+  @override
+  ExpressionInferenceResult createRead(
+    InferenceVisitorBase visitor, {
+    DartType? typeContext,
+    InternalNode? accessNode,
+    DartType? promotedType,
+    int? fileOffset,
+  }) {
+    if (_lateGetter != null) {
+      // Coverage-ignore(suite): Not run.
+      fileOffset ??= this.fileOffset;
+      return new ExpressionInferenceResult(
+        promotedType ?? type,
+        new LocalFunctionInvocation(
+          _lateGetter!,
+          new Arguments(<Expression>[])..fileOffset = fileOffset,
+          functionType: _lateGetter!.type as FunctionType,
+        )..fileOffset = fileOffset,
+      );
+    }
+    return super.createRead(
+      visitor,
+      typeContext: typeContext,
+      accessNode: accessNode,
+      promotedType: promotedType,
+      fileOffset: fileOffset,
+    );
+  }
+
+  @override
+  Expression createWrite({required Expression value, required int fileOffset}) {
+    if (_lateSetter != null) {
+      return new LocalFunctionInvocation(
+        _lateSetter!,
+        new Arguments(<Expression>[value])..fileOffset = fileOffset,
+        functionType: _lateSetter!.type as FunctionType,
+      )..fileOffset = fileOffset;
+    }
+    return extern.createVariableSet(
+      writeVariable,
+      value,
+      fileOffset: fileOffset,
+    );
+  }
+
+  @override
+  Variable get readVariable => _lateGetter ?? astVariable;
+
+  @override
+  Variable get writeVariable => _lateSetter ?? astVariable;
 }
 
 class InternalConstVariable extends InternalDeclaredVariable {
@@ -1618,9 +1752,6 @@ class InternalConstVariable extends InternalDeclaredVariable {
   bool get isFinal => _astVariable.isFinal;
 
   @override
-  bool get isLate => _astVariable.isLate;
-
-  @override
   bool get isWildcard => _astVariable.isWildcard;
 
   @override
@@ -1673,9 +1804,6 @@ sealed class InternalFunctionParameter extends InternalVariable
   @override
   bool get isFinal => _astVariable.isFinal;
 
-  @override
-  bool get isLate => false;
-
   bool get isRequired => _astVariable.isRequired;
 
   // Coverage-ignore(suite): Not run.
@@ -1725,6 +1853,8 @@ sealed class InternalFunctionParameter extends InternalVariable
       astVariable.addAnnotation(annotation);
     }
   }
+
+  FunctionParameter get functionParameter;
 }
 
 class InternalPositionalParameter extends InternalFunctionParameter {
@@ -1753,6 +1883,9 @@ class InternalPositionalParameter extends InternalFunctionParameter {
       printer.write("[${modifiers.join(",")}]");
     }
   }
+
+  @override
+  PositionalParameter get functionParameter => astVariable;
 }
 
 class InternalNamedParameter extends InternalFunctionParameter {
@@ -1787,6 +1920,9 @@ class InternalNamedParameter extends InternalFunctionParameter {
   @override
   @Deprecated('Use InternalNamedParameter.parameterName instead.')
   String? get cosmeticName;
+
+  @override
+  NamedParameter get functionParameter => astVariable;
 }
 
 class InternalCatchVariable extends InternalVariable {
@@ -1842,9 +1978,6 @@ class InternalCatchVariable extends InternalVariable {
   @override
   // Coverage-ignore(suite): Not run.
   bool get isFinal => _astVariable.isFinal;
-
-  @override
-  bool get isLate => false;
 
   @override
   bool get isWildcard => _astVariable.isWildcard;
@@ -1931,9 +2064,6 @@ class InternalAnonymousMethodParameter extends InternalDeclaredVariable {
   bool get isFinal => _astVariable.isFinal;
 
   @override
-  bool get isLate => false;
-
-  @override
   DartType get type => _astVariable.type;
 
   @override
@@ -2000,9 +2130,6 @@ class InternalSyntheticVariable extends InternalDeclaredVariable {
   bool get isFinal => _astVariable.isFinal;
 
   @override
-  bool get isLate => false;
-
-  @override
   bool get isWildcard => _astVariable.isWildcard;
 
   @override
@@ -2047,19 +2174,6 @@ sealed class InternalVariable({required super.fileOffset})
   /// used.
   bool get isStaticLate;
 
-  /// The synthesized local getter function for a lowered late variable.
-  ///
-  /// This is set in `InferenceVisitor.visitVariableDeclaration` when late
-  /// lowering is enabled.
-  LocalFunctionVariable? lateGetter;
-
-  /// The synthesized local setter function for an assignable lowered late
-  /// variable.
-  ///
-  /// This is set in `InferenceVisitor.visitVariableDeclaration` when late
-  /// lowering is enabled.
-  LocalFunctionVariable? lateSetter;
-
   /// Is `true` if this a lowered late final variable without an initializer.
   ///
   /// This is set in `InferenceVisitor.visitVariableDeclaration` when late
@@ -2074,13 +2188,65 @@ sealed class InternalVariable({required super.fileOffset})
 
   bool get isFinal;
 
-  bool get isLate;
+  bool get isLate => false;
 
   bool get isWildcard;
 
   abstract DartType type;
 
   bool get isAssignable;
+
+  /// Creates an [ExpressionInferenceResult] with an expression that reads this
+  /// variable along with the static type of the expression.
+  ///
+  /// If provided, [typeContext] is use for inferring the access (this affects
+  /// local function tear-off). If omitted, type unknown context is used.
+  ///
+  /// If provided, [promotedType] is as the static type of the expression. If
+  /// omitted, the declared or inferred variable type is used.
+  ///
+  /// [accessNode] is used to store inference information for testing.
+  ExpressionInferenceResult createRead(
+    InferenceVisitorBase visitor, {
+    DartType? typeContext,
+    InternalNode? accessNode,
+    DartType? promotedType,
+    int? fileOffset,
+  }) {
+    return new ExpressionInferenceResult(
+      promotedType ?? type,
+      extern.createVariableGet(
+        readVariable,
+        promotedType: promotedType,
+        fileOffset: fileOffset,
+      ),
+    );
+  }
+
+  /// Creates an [Expression] that assigns [value] to this variable.
+  Expression createWrite({required Expression value, required int fileOffset}) {
+    return extern.createVariableSet(
+      writeVariable,
+      value,
+      fileOffset: fileOffset,
+    );
+  }
+
+  /// The underlying variable used for reading this variable.
+  ///
+  /// This method should only be used where [createRead] cannot be called.
+  ///
+  /// If this variable is lowered late variable, this is the local function
+  /// variable for the synthesized local getter function.
+  Variable get readVariable => astVariable;
+
+  /// The underlying variable used for writing to this variable.
+  ///
+  /// This method should only be used where [createWrite] cannot be called.
+  ///
+  /// If this variable is lowered late variable, this is the local function
+  /// variable for the synthesized local setter function.
+  Variable get writeVariable => astVariable;
 }
 
 sealed class InternalDeclaredVariable({required super.fileOffset})
@@ -2132,6 +2298,41 @@ sealed class InternalDeclaredVariable({required super.fileOffset})
     for (Expression annotation in annotations) {
       astVariable.addAnnotation(annotation);
     }
+  }
+
+  /// Creates the [VariableDeclaration] containing the declaration of this
+  /// variable with the given [initializer].
+  ///
+  /// This should only be called for variables declared outside a variable
+  /// statement.
+  VariableDeclaration createDeclaration({
+    Expression? initializer,
+    List<VariableContext>? capturedContexts,
+    int? fileOffset,
+  }) {
+    return extern.createVariableDeclaration(
+      astVariable,
+      initializer: initializer,
+      capturedContexts: capturedContexts,
+      fileOffset: fileOffset,
+    );
+  }
+
+  /// Creates the [VariableDeclarationInferenceResult] for the potentially
+  /// lowered declaration of this variable.
+  VariableDeclarationInferenceResult createVariableDeclaration(
+    InferenceVisitorBase visitor, {
+    Expression? initializer,
+    List<VariableContext>? capturedContexts,
+    int? fileOffset,
+  }) {
+    return new VariableDeclarationInferenceResult.direct(
+      createDeclaration(
+        initializer: initializer,
+        capturedContexts: capturedContexts,
+        fileOffset: fileOffset,
+      ),
+    );
   }
 }
 
@@ -5728,10 +5929,7 @@ class SingleVariableDeclarationForInElement extends _BaseForInElement {
   @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
-    printer.writeVariableInitialization(
-      variableDeclaration.variable.astVariable,
-      isImplicitlyTyped: variableDeclaration.variable.isImplicitlyTyped,
-    );
+    variableDeclaration.variable.toTextInternal(printer);
   }
 
   @override
@@ -5766,15 +5964,14 @@ class MultiVariableDeclarationForInElement extends _BaseForInElement {
     for (int i = 0; i < variableDeclarations.length; i++) {
       InternalVariableDeclaration variableDeclaration = variableDeclarations[i];
       if (i == 0) {
-        printer.writeVariableInitialization(
-          variableDeclaration.variable.astVariable,
+        variableDeclaration.variable.toTextInternal(
+          printer,
           includeModifiersAndType: true,
-          isImplicitlyTyped: variableDeclaration.variable.isImplicitlyTyped,
         );
       } else {
         printer.write(', ');
-        printer.writeVariableInitialization(
-          variableDeclaration.variable.astVariable,
+        variableDeclaration.variable.toTextInternal(
+          printer,
           includeModifiersAndType: false,
         );
       }
@@ -5799,8 +5996,7 @@ class MultiVariableDeclarationForInElement extends _BaseForInElement {
         for (InternalVariableDeclaration variableDeclaration
             in variableDeclarations)
           extern.createVariableStatement(
-            extern.createVariableDeclaration(
-              variableDeclaration.variable.astVariable,
+            variableDeclaration.variable.createDeclaration(
               fileOffset: variableDeclaration.fileOffset,
             ),
           ),
@@ -7817,10 +8013,6 @@ class InternalThisVariable extends InternalVariable {
 
   @override
   // Coverage-ignore(suite): Not run.
-  bool get isLate => false;
-
-  @override
-  // Coverage-ignore(suite): Not run.
   bool get isWildcard => false;
 
   @override
@@ -9121,9 +9313,6 @@ class JointVariable extends InternalDeclaredVariable {
 
   @override
   bool get isFinal => _astVariable.isFinal;
-
-  @override
-  bool get isLate => false;
 
   @override
   bool get isWildcard => _astVariable.isWildcard;

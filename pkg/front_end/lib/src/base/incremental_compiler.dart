@@ -2895,7 +2895,7 @@ class ExpressionEvaluationHelperImpl implements ExpressionEvaluationHelper {
         if (registered != null) {
           return new OverwrittenInterfaceMember(
             target: new ExpressionEvaluationParameterTarget(
-              registered.variable.astVariable,
+              registered.variable,
             ),
             name: name,
           );
