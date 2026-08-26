@@ -501,7 +501,8 @@ const char* Directory::CreateTemp(Namespace* namespc, const char* prefix) {
       return nullptr;
     }
     NamespaceScope ns(namespc, path.AsString());
-    const int result = NO_RETRY_EXPECTED(mkdirat(ns.fd(), ns.path(), 0777));
+    // Only the owner may access the directory, matching mkdtemp().
+    const int result = NO_RETRY_EXPECTED(mkdirat(ns.fd(), ns.path(), 0700));
     if (result == 0) {
       return path.AsScopedString();
     } else if (errno == EEXIST) {
