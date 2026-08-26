@@ -19,23 +19,21 @@ import 'package:args/args.dart';
 
 Future<void> main(List<String> args) async {
   final parser = ArgParser()
-    ..addOption('mode', help: 'Filter configurations by mode (e.g. debug, release)')
-    ..addOption('os', help: 'Filter configurations by OS (e.g. linux, win, mac)')
+    ..addMultiOption('only', help: 'Filter configurations (e.g. debug, ia32)')
     ..addFlag('help', abbr: 'h', help: 'Show this help message', negatable: false);
 
   final parsedArgs = parser.parse(args);
   if (parsedArgs['help'] as bool) {
     return printHelp(parser);
   }
-  final testNames = parsedArgs.rest.map(_cleanTestName).toList();
+  final testNames = parsedArgs.rest;
 
   final configurations = _filterConfigurations(
     {
       for (final testName in testNames)
         ...await _testGetConfigurations(testName),
     },
-    mode: parsedArgs['mode'] as String?,
-    os: parsedArgs['os'] as String?,
+    only: parsedArgs['only'] as List<String>,
   );
   final configurationBuilders = await _configurationBuilders();
   final builders = _filterBuilders({
@@ -47,16 +45,7 @@ Future<void> main(List<String> args) async {
   print('Cq-Include-Trybots: dart/try:$gerritTryList');
 }
 
-String _cleanTestName(String path) {
-  var name = path.replaceAll('\\', '/');
-  if (name.startsWith('tests/')) {
-    name = name.substring('tests/'.length);
-  }
-  if (name.endsWith('.dart')) {
-    name = name.substring(0, name.length - '.dart'.length);
-  }
-  return name;
-}
+
 
 Future<List<String>> _testGetConfigurations(String testName) async {
   final requestUrl = Uri(
@@ -86,16 +75,15 @@ Future<String> _get(Uri requestUrl) async {
 
 Iterable<String> _filterConfigurations(
   Set<String> configs, {
-  String? mode,
-  String? os,
+  required List<String> only,
 }) {
   var filtered = configs;
-  if (os != null) {
-    filtered = filtered.where((c) => c.contains(os)).toSet();
+  for (final filter in only) {
+    filtered = filtered.where((c) => c.contains(filter)).toSet();
   }
 
-  if (mode != null) {
-    return filtered.where((c) => c.contains(mode)).toList()..sort();
+  if (only.isNotEmpty) {
+    return filtered.toList()..sort();
   }
 
   final result = <String>[];
