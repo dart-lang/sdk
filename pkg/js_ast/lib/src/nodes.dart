@@ -46,6 +46,7 @@ abstract class NodeVisitor<T> {
   T visitVariableDeclaration(VariableDeclaration node);
   T visitParameter(Parameter node);
   T visitAccess(PropertyAccess node);
+  T visitRestParameter(RestParameter node);
 
   T visitNamedFunction(NamedFunction node);
   T visitFun(Fun node);
@@ -180,6 +181,8 @@ abstract class BaseVisitor<T> implements NodeVisitor<T> {
   T visitParameter(Parameter node) => visitVariableDeclaration(node);
   @override
   T visitThis(This node) => visitParameter(node);
+  @override
+  T visitRestParameter(RestParameter node) => visitNode(node);
 
   @override
   T visitNamedFunction(NamedFunction node) => visitExpression(node);
@@ -313,6 +316,7 @@ abstract class NodeVisitor1<R, A> {
   R visitVariableDeclaration(VariableDeclaration node, A arg);
   R visitParameter(Parameter node, A arg);
   R visitAccess(PropertyAccess node, A arg);
+  R visitRestParameter(RestParameter node, A arg);
 
   R visitNamedFunction(NamedFunction node, A arg);
   R visitFun(Fun node, A arg);
@@ -456,6 +460,8 @@ abstract class BaseVisitor1<R, A> implements NodeVisitor1<R, A> {
       visitVariableDeclaration(node, arg);
   @override
   R visitThis(This node, A arg) => visitParameter(node, arg);
+  @override
+  R visitRestParameter(RestParameter node, A arg) => visitParameter(node, arg);
 
   @override
   R visitNamedFunction(NamedFunction node, A arg) => visitExpression(node, arg);
@@ -1977,6 +1983,20 @@ class Parameter extends VariableDeclaration {
 
   @override
   Parameter _clone() => Parameter(name);
+}
+
+class RestParameter extends Parameter {
+  RestParameter(super.name);
+
+  @override
+  T accept<T>(NodeVisitor<T> visitor) => visitor.visitRestParameter(this);
+
+  @override
+  R accept1<R, A>(NodeVisitor1<R, A> visitor, A arg) =>
+      visitor.visitRestParameter(this, arg);
+
+  @override
+  This _clone() => This();
 }
 
 class This extends Parameter {

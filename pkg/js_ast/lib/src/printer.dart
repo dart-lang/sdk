@@ -1276,6 +1276,12 @@ class Printer implements NodeVisitor<void> {
     out(localNamer.getName(param.name));
   }
 
+  @override
+  void visitRestParameter(RestParameter param) {
+    out('...');
+    visitParameter(param);
+  }
+
   bool isDigit(int charCode) {
     return char_codes.$0 <= charCode && charCode <= char_codes.$9;
   }
@@ -1402,7 +1408,8 @@ class Printer implements NodeVisitor<void> {
     currentNode!.closingPosition = arrowFunctionOut(fun, vars);
   }
 
-  static bool _isIdentifierParameter(Node node) => node is VariableReference;
+  static bool _isIdentifierParameter(Node node) =>
+      node is VariableReference && node is! RestParameter;
 
   int arrowFunctionOut(ArrowFunction fun, VarCollector vars) {
     // TODO: support static, get/set, async, and generators.

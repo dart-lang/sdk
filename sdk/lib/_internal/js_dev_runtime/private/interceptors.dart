@@ -319,6 +319,25 @@ bool isJSExportedDartFunction<T extends Function>(JavaScriptFunction f) {
   return function != null && T == Function ? true : function is T;
 }
 
+JavaScriptFunction dartFunctionToJSVarArgs<T>(Object? Function(T) f) {
+  final result =
+      JS('JavaScriptFunction', '(...args) => #(args)', f) as JavaScriptFunction;
+  JS('', '#.# = #', result, functionToJSProperty, f);
+  return result;
+}
+
+JavaScriptFunction dartFunctionToJSCaptureThisVarArgs<S, T>(
+  Object? Function(S, T) f,
+) {
+  final result = JS('JavaScriptFunction', '''
+        function(...args) {
+          return f(this, args);
+        }
+      ''', f) as JavaScriptFunction;
+  JS('', '#.# = #', result, functionToJSProperty, f);
+  return result;
+}
+
 /// Interceptor for JavaScript BigInt primitive values, i.e. values `x` for
 /// which `typeof x == "bigint"`.
 @JsPeerInterface(name: 'BigInt')
