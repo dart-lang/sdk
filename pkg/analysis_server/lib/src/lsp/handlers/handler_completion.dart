@@ -43,7 +43,7 @@ import 'package:meta/meta.dart';
 typedef _ScoredCompletionItem = ({CompletionItem item, double score});
 
 class CompletionHandler
-    extends LspMessageHandler<CompletionParams, CompletionList>
+    extends SharedMessageHandler<CompletionParams, CompletionList>
     with LspPluginRequestHandlerMixin {
   /// A [Future] used by tests to allow inserting a delay between resolving
   /// the initial unit and the completion code running.
@@ -96,6 +96,9 @@ class CompletionHandler
   @override
   LspJsonHandler<CompletionParams> get jsonHandler =>
       CompletionParams.jsonHandler;
+
+  @override
+  bool get requiresTrustedCaller => false;
 
   @override
   Future<ErrorOr<CompletionList>> handle(

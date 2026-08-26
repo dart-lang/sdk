@@ -10,6 +10,7 @@ import 'code_action_assists_test.dart' as code_action_assists;
 import 'code_action_fixes_test.dart' as code_action_fixes;
 import 'code_action_refactors_test.dart' as code_action_refactors;
 import 'code_action_source_test.dart' as code_action_source;
+import 'completion_test.dart' as completion;
 import 'definition_test.dart' as definition;
 import 'diagnostics_test.dart' as diagnostics;
 import 'document_color_test.dart' as document_color;
@@ -38,6 +39,7 @@ void main() {
     code_action_assists.main();
     code_action_fixes.main();
     code_action_refactors.main();
+    completion.main();
     code_action_source.main();
     definition.main();
     diagnostics.main();
