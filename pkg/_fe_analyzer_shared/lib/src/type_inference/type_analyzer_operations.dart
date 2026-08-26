@@ -529,6 +529,44 @@ abstract interface class TypeAnalyzerOperations<
   /// [listTypeSchema] directly.
   SharedTypeSchemaView listTypeSchema(SharedTypeSchemaView elementTypeSchema);
 
+  /// Looks up the type of the interface member [lookupName] in [type]
+  ///
+  /// [lookupMemberTypeInternal] finds the static type of the expression of the
+  /// form `e.lookupName`, where `e` is an expression of static type [type].
+  /// `null` is returned if there's no such member.
+  ///
+  /// [lookupName] is assumed to be the name of a static method or a static
+  /// getter.  `null` is returned in cases of the setter with the base name
+  /// [lookupName] or a static member with the name [lookupName].
+  ///
+  /// If the member with the name [lookupName] is a method, its function type is
+  /// returned. If the member is a getter, its return type is returned. In both
+  /// cases, the necessary type substitution is applied as in the following
+  /// example:
+  ///
+  ///   class A<X> {
+  ///     X foo(List<X> list) { /* ... */ }
+  ///     Map<X, X> get bar { /* ... */ }
+  ///   }
+  ///
+  /// Invocation of [lookupMemberTypeInternal] with arguments `A<String>`, `foo`
+  /// returns `String Function(List<String>)`; with arguments `A<num>`, `bar` it
+  /// returns `Map<num, num>`.
+  ///
+  /// [lookupName] may refer to any interface getter or member of [type],
+  /// including the ones inherited by its declaration.
+  ///
+  /// In case [type] doesn't refer to a type derived from a membered
+  /// declaration, such as a class or a mixin, accessible members on that type
+  /// are looked up. For example, nullable types, such as `int?` will have the
+  /// members of the `Object` interface, function types will have the `call`
+  /// member, and the type `dynamic` will have a member of any possible name
+  /// with the type `dynamic`.
+  SharedType? lookupMemberTypeInternal(
+    covariant SharedType type,
+    String lookupName,
+  );
+
   /// Computes the least upper bound of [type1] and [type2].
   ///
   /// The concrete classes implementing [TypeAnalyzerOperations] should mix in
@@ -961,44 +999,6 @@ abstract interface class TypeAnalyzerOperations<
 
   /// Converts a type into a corresponding type schema.
   SharedTypeSchemaView typeToSchema(SharedTypeView type);
-
-  /// Looks up the type of the interface member [lookupName] in [type]
-  ///
-  /// [lookupMemberTypeInternal] finds the static type of the expression of the
-  /// form `e.lookupName`, where `e` is an expression of static type [type].
-  /// `null` is returned if there's no such member.
-  ///
-  /// [lookupName] is assumed to be the name of a static method or a static
-  /// getter.  `null` is returned in cases of the setter with the base name
-  /// [lookupName] or a static member with the name [lookupName].
-  ///
-  /// If the member with the name [lookupName] is a method, its function type is
-  /// returned. If the member is a getter, its return type is returned. In both
-  /// cases, the necessary type substitution is applied as in the following
-  /// example:
-  ///
-  ///   class A<X> {
-  ///     X foo(List<X> list) { /* ... */ }
-  ///     Map<X, X> get bar { /* ... */ }
-  ///   }
-  ///
-  /// Invocation of [lookupMemberTypeInternal] with arguments `A<String>`, `foo`
-  /// returns `String Function(List<String>)`; with arguments `A<num>`, `bar` it
-  /// returns `Map<num, num>`.
-  ///
-  /// [lookupName] may refer to any interface getter or member of [type],
-  /// including the ones inherited by its declaration.
-  ///
-  /// In case [type] doesn't refer to a type derived from a membered
-  /// declaration, such as a class or a mixin, accessible members on that type
-  /// are looked up. For example, nullable types, such as `int?` will have the
-  /// members of the `Object` interface, function types will have the `call`
-  /// member, and the type `dynamic` will have a member of any possible name
-  /// with the type `dynamic`.
-  SharedType? lookupMemberTypeInternal(
-    covariant SharedType type,
-    String lookupName,
-  );
 }
 
 mixin TypeAnalyzerOperationsMixin<
