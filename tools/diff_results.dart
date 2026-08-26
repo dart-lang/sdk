@@ -302,15 +302,6 @@ class Result {
         result == other.result;
   }
 
-  @override
-  int get hashCode => name.hashCode ^ builderName.hashCode;
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    if (other is! Result) return false;
-    return name == other.name && builderName == other.builderName;
-  }
 }
 
 String currentDate() {
