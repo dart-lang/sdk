@@ -14,7 +14,7 @@ import 'package:expect/expect.dart';
 testLoadStore(array) {
   Expect.equals(8, array.length);
   Expect.isTrue(array is List<Int32x4>);
-  array[0] = new Int32x4(1, 2, 3, 4);
+  array[0] = Int32x4(1, 2, 3, 4);
   Expect.equals(1, array[0].x);
   Expect.equals(2, array[0].y);
   Expect.equals(3, array[0].z);
@@ -40,8 +40,8 @@ testLoadStoreDeopt(array, index, value) {
 }
 
 testLoadStoreDeoptDriver() {
-  Int32x4List list = new Int32x4List(4);
-  Int32x4 value = new Int32x4(1, 2, 3, 4);
+  Int32x4List list = Int32x4List(4);
+  Int32x4 value = Int32x4(1, 2, 3, 4);
   for (int i = 0; i < 20; i++) {
     testLoadStoreDeopt(list, 0, value);
   }
@@ -82,7 +82,7 @@ testLoadStoreDeoptDriver() {
   }
   try {
     // non-Int32x4List list.
-    testLoadStoreDeopt([new Int32x4(2, 3, 4, 5)], 0, value);
+    testLoadStoreDeopt([Int32x4(2, 3, 4, 5)], 0, value);
   } catch (_) {}
   for (int i = 0; i < 20; i++) {
     testLoadStoreDeopt(list, 0, value);
@@ -90,7 +90,7 @@ testLoadStoreDeoptDriver() {
 }
 
 testListZero() {
-  Int32x4List list = new Int32x4List(1);
+  Int32x4List list = Int32x4List(1);
   Expect.equals(0, list[0].x);
   Expect.equals(0, list[0].y);
   Expect.equals(0, list[0].z);
@@ -149,7 +149,7 @@ void testSpecialValues(array) {
     var input = test[0];
     var expected = test[1];
 
-    int32x4 = new Int32x4(input, 2, 3, 4);
+    int32x4 = Int32x4(input, 2, 3, 4);
     array[0] = int32x4;
     int32x4 = array[0];
     Expect.equals(expected, int32x4.x);
@@ -157,7 +157,7 @@ void testSpecialValues(array) {
     Expect.equals(3, int32x4.z);
     Expect.equals(4, int32x4.w);
 
-    int32x4 = new Int32x4(1, input, 3, 4);
+    int32x4 = Int32x4(1, input, 3, 4);
     array[0] = int32x4;
     int32x4 = array[0];
     Expect.equals(1, int32x4.x);
@@ -165,7 +165,7 @@ void testSpecialValues(array) {
     Expect.equals(3, int32x4.z);
     Expect.equals(4, int32x4.w);
 
-    int32x4 = new Int32x4(1, 2, input, 4);
+    int32x4 = Int32x4(1, 2, input, 4);
     array[0] = int32x4;
     int32x4 = array[0];
     Expect.equals(1, int32x4.x);
@@ -173,7 +173,7 @@ void testSpecialValues(array) {
     Expect.equals(expected, int32x4.z);
     Expect.equals(4, int32x4.w);
 
-    int32x4 = new Int32x4(1, 2, 3, input);
+    int32x4 = Int32x4(1, 2, 3, input);
     array[0] = int32x4;
     int32x4 = array[0];
     Expect.equals(1, int32x4.x);
@@ -186,7 +186,7 @@ void testSpecialValues(array) {
 main() {
   var list;
 
-  list = new Int32x4List(8);
+  list = Int32x4List(8);
   for (int i = 0; i < 20; i++) {
     testLoadStore(list);
   }
@@ -194,11 +194,11 @@ main() {
     testSpecialValues(list);
   }
 
-  Uint32List uint32List = new Uint32List(32);
+  Uint32List uint32List = Uint32List(32);
   for (int i = 0; i < uint32List.length; i++) {
     uint32List[i] = i;
   }
-  list = new Int32x4List.view(uint32List.buffer);
+  list = Int32x4List.view(uint32List.buffer);
   for (int i = 0; i < 20; i++) {
     testView(list);
   }

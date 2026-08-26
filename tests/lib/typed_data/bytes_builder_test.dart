@@ -20,7 +20,7 @@ main() {
       }
     }
 
-    b = new BytesBuilder(copy: copying);
+    b = BytesBuilder(copy: copying);
     testLength(0);
 
     b.addByte(0);
@@ -32,10 +32,10 @@ main() {
     b.add(<int>[4, 5, 6]);
     testLength(7);
 
-    b.add(new Uint8List.fromList([7, 8, 9]));
+    b.add(Uint8List.fromList([7, 8, 9]));
     testLength(10);
 
-    b.add(new Uint16List.fromList([10, 11, 12]));
+    b.add(Uint16List.fromList([10, 11, 12]));
     testLength(13);
 
     var bytes = b.toBytes();

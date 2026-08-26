@@ -1153,9 +1153,8 @@ class NewWorldTest {
     IncrementalCompilerResult compilerResult,
     TestData data,
     int worldNum,
-    Context context, {
-    bool checkExpectFile = false,
-  }) {
+    Context context,
+  ) {
     if (!world.skipClassHierarchyTest) {
       ClassHierarchy? classHierarchy = compilerResult.classHierarchy;
       if (classHierarchy is! ClosedWorldClassHierarchy) {
@@ -1331,33 +1330,6 @@ class NewWorldTest {
             for (Member member in info.lazyInterfaceSetters!) {
               sb.writeln("      - ${member.name.text}");
             }
-          }
-        }
-      }
-      if (checkExpectFile) {
-        String actualClassHierarchy = sb.toString();
-        Uri uri = data.loadedFrom.resolve(
-          data.loadedFrom.pathSegments.last +
-              ".world.$worldNum.class_hierarchy.expect",
-        );
-        String? expected;
-        File file = new File.fromUri(uri);
-        if (file.existsSync()) {
-          expected = file.readAsStringSync();
-        }
-        if (expected != actualClassHierarchy) {
-          if (context.updateExpectations) {
-            file.writeAsStringSync(actualClassHierarchy);
-          } else {
-            String extra = "";
-            if (expected == null) extra = "Expect file did not exist.\n";
-            return new Result<TestData>(
-              data,
-              ClassHierarchyError,
-              "${extra}Unexpected serialized representation. "
-              "Fix or update $uri to contain the below:\n\n"
-              "$actualClassHierarchy",
-            );
           }
         }
       }

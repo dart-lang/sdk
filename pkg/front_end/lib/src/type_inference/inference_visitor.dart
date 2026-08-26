@@ -3792,7 +3792,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       capturedContexts = _contextAllocationStrategy
           .computeCapturedVariableContexts(_capturedVariablesForNode(node));
       scopeProviderInfo = _contextAllocationStrategy.enterScopeProvider(
-        scopeProviderInfoKind: ScopeProviderInfoKind.Loop,
+        scopeProviderInfoKind: ScopeProviderInfoKind.FunctionNode,
       );
       _contextAllocationStrategy.handleDeclarationsOfParameters([
         for (InternalPositionalParameter positionalParameter
@@ -11822,6 +11822,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         );
       case InternalPatternSwitchStatement():
         InternalPatternSwitchCase case_ = node.cases[caseIndex];
+        _contextAllocationStrategy.handleSwitchCaseBeginning();
         if (isClosureContextLoweringEnabled) {
           case_.switchCaseScopeProviderInfo = _contextAllocationStrategy
               .enterScopeProvider(
@@ -11969,18 +11970,20 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     int caseIndex,
     Iterable<InternalVariable> variables,
   ) {
-    if (isClosureContextLoweringEnabled &&
-        node is InternalPatternSwitchStatement) {
-      InternalPatternSwitchCase case_ = node.cases[caseIndex];
-      case_.switchCaseBodyScopeProviderInfo = _contextAllocationStrategy
-          .enterScopeProvider(
-            scopeProviderInfoKind: ScopeProviderInfoKind.Block,
-          );
-      for (InternalVariable joinedVariable in variables) {
-        _contextAllocationStrategy.handleDeclarationOfVariable(
-          joinedVariable.astVariable,
-          captureKind: captureKindForVariable(joinedVariable),
-        );
+    if (node is InternalPatternSwitchStatement) {
+      if (isClosureContextLoweringEnabled) {
+        InternalPatternSwitchCase case_ = node.cases[caseIndex];
+        case_.switchCaseBodyScopeProviderInfo = _contextAllocationStrategy
+            .enterScopeProvider(
+              scopeProviderInfoKind: ScopeProviderInfoKind.Block,
+            );
+        _contextAllocationStrategy.handleAfterCaseHeads([
+          for (InternalVariable variable in variables)
+            new VariableWithCaptureKind(
+              variable.astVariable,
+              captureKindForVariable(variable),
+            ),
+        ]);
       }
     }
   }
@@ -12025,7 +12028,16 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     InternalNode node, {
     required int caseIndex,
     required int subIndex,
-  }) {}
+  }) {
+    if (node is InternalPatternSwitchStatement) {
+      if (isClosureContextLoweringEnabled) {
+        _contextAllocationStrategy.handleSwitchBeforeAlternative(
+          caseIndex: caseIndex,
+          subIndex: subIndex,
+        );
+      }
+    }
+  }
 
   @override
   void handleSwitchScrutinee(SharedTypeView type) {
@@ -12128,9 +12140,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           ),
     );
     if (isClosureContextLoweringEnabled) {
-      _contextAllocationStrategy.handleDeclarationOfVariable(
-        node.variable.astVariable,
-        captureKind: captureKindForVariable(node.variable),
+      _contextAllocationStrategy.handleInternalVariablePattern(
+        new VariableWithCaptureKind(
+          node.variable.astVariable,
+          captureKindForVariable(node.variable),
+        ),
       );
     }
 
@@ -13668,6 +13682,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     required SharedTypeView type,
   }) {
     variable..type = type.unwrapTypeView();
+    if (isClosureContextLoweringEnabled) {
+      _contextAllocationStrategy.handleJoinedPatternVariable(
+        new VariableWithCaptureKind(
+          variable.astVariable,
+          captureKindForVariable(variable),
+        ),
+        location,
+      );
+    }
   }
 
   @override

@@ -19,7 +19,7 @@ main() {
   for (var base in interestingSizes) {
     for (var delta = -32; delta <= 32; delta++) {
       final size = base + delta;
-      final array = new Uint8List(size);
+      final array = Uint8List(size);
       for (var i = 0; i < size; i++) {
         Expect.equals(0, array[i]);
       }
