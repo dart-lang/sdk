@@ -4,5 +4,9 @@ import "dart:core" as core;
 
 static method patternVariableAssignment((core::int, core::String) r) → dynamic
   ;
-static method orPatternVariable(dynamic x) → dynamic
+static method joinedVariableMultipleHeads(dynamic x) → dynamic
+  ;
+static method joinedVariableSingleHead(dynamic x) → dynamic
+  ;
+static method joinedVariableMixed(dynamic x) → dynamic
   ;
