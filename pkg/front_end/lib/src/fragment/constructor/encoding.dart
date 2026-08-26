@@ -780,7 +780,7 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
     if (!_isExternal) {
       InternalDeclaredVariable thisVariable = this.thisVariable!;
       VariableStatement thisVariableStatement = extern.createVariableStatement(
-        extern.createVariableDeclaration(thisVariable.astVariable),
+        thisVariable.createDeclaration(),
       );
       List<Statement> statements = [thisVariableStatement];
       _ExtensionTypeInitializerToStatementConverter visitor =
@@ -799,7 +799,7 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
       }
       statements.add(
         extern.createReturnStatement(
-          extern.createVariableGet(thisVariable.astVariable),
+          extern.createVariableGet(thisVariable.readVariable),
         ),
       );
       // TODO(cstefantsova): Provide a scope here.
@@ -824,10 +824,7 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
       constructorBuilder,
       constructorDeclaration,
       _constructor,
-      new _ExtensionTypeConstructorContext(
-        constructorBuilder,
-        thisVariable!.astVariable,
-      ),
+      new _ExtensionTypeConstructorContext(constructorBuilder, thisVariable!),
     );
   }
 
@@ -1393,14 +1390,14 @@ class _RegularConstructorContext implements ConstructorContext {
   }
 
   @override
-  Variable? get thisVariable => null;
+  InternalDeclaredVariable? get thisVariable => null;
 }
 
 class _ExtensionTypeConstructorContext implements ConstructorContext {
   final SourceConstructorBuilder _builder;
 
   @override
-  final Variable thisVariable;
+  final InternalDeclaredVariable thisVariable;
 
   new(this._builder, this.thisVariable);
 

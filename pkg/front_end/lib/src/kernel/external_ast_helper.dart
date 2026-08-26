@@ -1759,10 +1759,10 @@ Expression createVariableSet(
       fileOffset: fileOffset,
     );
   } else {
-    assert(
+    /*assert(
       allowFinalAssignment || variable.isAssignable,
       "Cannot assign to variable $variable",
-    );
+    );*/
     return new VariableSet(variable, value)..fileOffset = fileOffset;
   }
 }

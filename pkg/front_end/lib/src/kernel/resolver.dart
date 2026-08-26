@@ -1364,10 +1364,10 @@ class Resolver {
       //  along with the thisVariable in the ScopeProviderInfo object in the
       //  call below.
       ScopeProviderInfo? scopeProviderInfo;
-      if (internalThisVariable?.astVariable case var thisVariable?) {
+      if (internalThisVariable != null) {
         scopeProviderInfo = new ScopeProviderInfo(
           kind: ScopeProviderInfoKind.FunctionNodeWithThis,
-        )..thisVariable = thisVariable;
+        )..thisVariable = internalThisVariable.astVariable;
       }
       bodyBuilderContext.registerNoBodyConstructor(
         scopeProviderInfo: scopeProviderInfo,
@@ -1485,7 +1485,7 @@ class Resolver {
       }
     }
 
-    late List<InternalVariable>? parameters = [
+    late List<InternalFunctionParameter>? parameters = [
       for (FormalParameterBuilder formal in bodyBuilderContext.formals ?? [])
         formal.variable,
     ];
@@ -1496,9 +1496,9 @@ class Resolver {
       scopeProviderInfo = contextAllocationStrategy
           .beginClosureContextAllocation(
             [
-              for (InternalVariable parameter in parameters)
+              for (InternalFunctionParameter parameter in parameters)
                 new VariableWithCaptureKind(
-                  parameter.astVariable,
+                  parameter.functionParameter,
                   context.typeInferrer.captureKindForVariable(parameter),
                 ),
             ],

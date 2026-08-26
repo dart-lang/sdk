@@ -5,6 +5,6 @@ import "dart:core" as core;
 static field core::int? i = null;
 static method main() → void {
   let synthesized core::int? anonymous#receiver = self::i in anonymous#receiver == null ?{core::int?} null : let core::int p = anonymous#receiver as core::int in 1;
-  let synthesized core::int? anonymous#receiver##1 = self::i in anonymous#receiver##1 == null ?{core::int?} null : let core::int p##1 = anonymous#receiver##1 as core::int in p##1{core::int};
-  let synthesized core::int? anonymous#receiver##2 = self::i in anonymous#receiver##2 == null ?{core::bool?} null : let core::int p##2 = anonymous#receiver##2 as core::int in p##2{core::int}.{core::int::isEven}{core::bool};
+  let synthesized core::int? anonymous#receiver##1 = self::i in anonymous#receiver##1 == null ?{core::int?} null : let core::int p##1 = anonymous#receiver##1 as core::int in p##1;
+  let synthesized core::int? anonymous#receiver##2 = self::i in anonymous#receiver##2 == null ?{core::bool?} null : let core::int p##2 = anonymous#receiver##2 as core::int in p##2.{core::int::isEven}{core::bool};
 }
