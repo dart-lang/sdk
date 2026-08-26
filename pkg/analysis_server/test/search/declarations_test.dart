@@ -5,7 +5,6 @@
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
-import 'package:analyzer_testing/utilities/extensions/resource_provider.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -227,26 +226,23 @@ void f(bool a, String b) {}
   /// Elements in part files should return paths of the definitions, not the
   /// parent library.
   Future<void> test_parts() async {
-    var a = newFile('$testPackageLibPath/a.dart', "part 'b.dart';").path;
-    var b = testFilePath = resourceProvider.convertPath(
-      '$testPackageLibPath/b.dart',
-    );
+    var b = newFile('$testPackageLibPath/b.dart', "part 'test.dart';").path;
     addTestFile('''
-part of 'a.dart';
+part of 'b.dart';
 class [!A!] {}
 ''');
 
     await _getDeclarations(pattern: 'A');
 
-    expect(declarationsResult.files, isNot(contains(a)));
-    expect(declarationsResult.files, contains(b));
+    expect(declarationsResult.files, isNot(contains(b)));
+    expect(declarationsResult.files, contains(testFile.path));
 
     var declaration = declarationsResult.declarations.singleWhere(
       (d) => d.name == 'A',
     );
     expect(declaration.name, 'A');
     expect(declaration.kind, ElementKind.CLASS);
-    expect(declarationsResult.files[declaration.fileIndex], b);
+    expect(declarationsResult.files[declaration.fileIndex], testFile.path);
     expect(declaration.offset, parsedSourceRange.offset);
     expect(declaration.line, parsedRange.range.start.line + 1);
     expect(declaration.column, parsedRange.range.start.character + 1);

@@ -29,7 +29,7 @@ void main() {
 }
 
 @reflectiveTest
-class ImportLibraryProject1PrefixedTest extends FixProcessorTest {
+class ImportLibraryProject1PrefixedTest extends _ImportLibraryProjectTest {
   @override
   FixKind get kind => DartFixKind.importLibraryProject1Prefixed;
 
@@ -195,7 +195,8 @@ void f() {
 }
 
 @reflectiveTest
-class ImportLibraryProject1PrefixedWithShowTest extends FixProcessorTest {
+class ImportLibraryProject1PrefixedWithShowTest
+    extends _ImportLibraryProjectTest {
   @override
   FixKind get kind => DartFixKind.importLibraryProject1PrefixedShow;
 
@@ -327,7 +328,7 @@ void f() {
 }
 
 @reflectiveTest
-class ImportLibraryProject1Test extends FixProcessorTest {
+class ImportLibraryProject1Test extends _ImportLibraryProjectTest {
   @override
   FixKind get kind => DartFixKind.importLibraryProject1;
 
@@ -1427,7 +1428,7 @@ void f(Test t) {}
 
   Future<void> test_withClass_pub_other_inTest_dependencies() async {
     _createPackageAaa();
-    putTestFileInTestDir();
+    testFilePath = '$testPackageTestPath/test.dart';
     await resolveTestCode(r'''
 void f(Test t) {}
 ''');
@@ -1441,7 +1442,7 @@ void f(Test t) {}
 
   Future<void> test_withClass_pub_other_inTest_devDependencies() async {
     _createPackageAaa();
-    putTestFileInTestDir();
+    testFilePath = '$testPackageTestPath/test.dart';
     await resolveTestCode(r'''
 void f(Test t) {}
 ''');
@@ -1497,7 +1498,7 @@ name: test
 class Test {}
 ''');
 
-    putTestFileInTestDir();
+    testFilePath = '$testPackageTestPath/test.dart';
     await resolveTestCode(r'''
 void f(Test t) {}
 ''');
@@ -1891,7 +1892,7 @@ dependencies:
 }
 
 @reflectiveTest
-class ImportLibraryProject1WithShowTest extends FixProcessorTest {
+class ImportLibraryProject1WithShowTest extends _ImportLibraryProjectTest {
   @override
   FixKind get kind => DartFixKind.importLibraryProject1Show;
 
@@ -2023,7 +2024,7 @@ void f() {
 }
 
 @reflectiveTest
-class ImportLibraryProject2PrefixedTest extends FixProcessorTest {
+class ImportLibraryProject2PrefixedTest extends _ImportLibraryProjectTest {
   @override
   FixKind get kind => DartFixKind.importLibraryProject2Prefixed;
 
@@ -2155,7 +2156,8 @@ void f() {
 }
 
 @reflectiveTest
-class ImportLibraryProject2PrefixedWithShowTest extends FixProcessorTest {
+class ImportLibraryProject2PrefixedWithShowTest
+    extends _ImportLibraryProjectTest {
   @override
   FixKind get kind => DartFixKind.importLibraryProject2PrefixedShow;
 
@@ -2287,7 +2289,7 @@ void f() {
 }
 
 @reflectiveTest
-class ImportLibraryProject2Test extends FixProcessorTest {
+class ImportLibraryProject2Test extends _ImportLibraryProjectTest {
   @override
   FixKind get kind => DartFixKind.importLibraryProject2;
 
@@ -2458,7 +2460,7 @@ f() {
 }
 
 @reflectiveTest
-class ImportLibraryProject2WithShowTest extends FixProcessorTest {
+class ImportLibraryProject2WithShowTest extends _ImportLibraryProjectTest {
   @override
   FixKind get kind => DartFixKind.importLibraryProject2Show;
 
@@ -2590,7 +2592,7 @@ void f() {
 }
 
 @reflectiveTest
-class ImportLibraryProject3PrefixedTest extends FixProcessorTest {
+class ImportLibraryProject3PrefixedTest extends _ImportLibraryProjectTest {
   @override
   FixKind get kind => DartFixKind.importLibraryProject3Prefixed;
 
@@ -2643,7 +2645,7 @@ name: test
 class Test {}
 ''');
 
-    putTestFileInTestDir();
+    testFilePath = '$testPackageTestPath/test.dart';
     await resolveTestCode(r'''
 void f(lib.Test t) {}
 ''');
@@ -2657,7 +2659,8 @@ void f(lib.Test t) {}
 }
 
 @reflectiveTest
-class ImportLibraryProject3PrefixedWithShowTest extends FixProcessorTest {
+class ImportLibraryProject3PrefixedWithShowTest
+    extends _ImportLibraryProjectTest {
   @override
   FixKind get kind => DartFixKind.importLibraryProject3PrefixedShow;
 
@@ -2710,7 +2713,7 @@ name: test
 class Test {}
 ''');
 
-    putTestFileInTestDir();
+    testFilePath = '$testPackageTestPath/test.dart';
     await resolveTestCode(r'''
 void f(lib.Test t) {}
 ''');
@@ -2724,7 +2727,7 @@ void f(lib.Test t) {}
 }
 
 @reflectiveTest
-class ImportLibraryProject3Test extends FixProcessorTest {
+class ImportLibraryProject3Test extends _ImportLibraryProjectTest {
   @override
   FixKind get kind => DartFixKind.importLibraryProject3;
 
@@ -2794,7 +2797,7 @@ name: test
 class Test {}
 ''');
 
-    putTestFileInTestDir();
+    testFilePath = '$testPackageTestPath/test.dart';
     await resolveTestCode(r'''
 void f(Test t) {}
 ''');
@@ -2808,7 +2811,7 @@ void f(Test t) {}
 }
 
 @reflectiveTest
-class ImportLibraryProject3WithShowTest extends FixProcessorTest {
+class ImportLibraryProject3WithShowTest extends _ImportLibraryProjectTest {
   @override
   FixKind get kind => DartFixKind.importLibraryProject3Show;
 
@@ -2861,7 +2864,7 @@ name: test
 class Test {}
 ''');
 
-    putTestFileInTestDir();
+    testFilePath = '$testPackageTestPath/test.dart';
     await resolveTestCode(r'''
 void f(Test t) {}
 ''');
@@ -2875,7 +2878,7 @@ void f(Test t) {}
 }
 
 @reflectiveTest
-class ImportLibraryProject4Test extends FixProcessorTest {
+class ImportLibraryProject4Test extends _ImportLibraryProjectTest {
   @override
   FixKind get kind => DartFixKind.importLibraryProject4;
 
@@ -2914,4 +2917,11 @@ import 'package:test/a.dart';
 void f(Test t) {}
 ''');
   }
+}
+
+/// A base class for these tests, which makes `testFilePath` writable, as many
+/// of the tests require testing with code in different locations.
+abstract class _ImportLibraryProjectTest extends FixProcessorTest {
+  @override
+  late String testFilePath = '$testPackageLibPath/test.dart';
 }
