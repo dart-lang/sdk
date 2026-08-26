@@ -21,8 +21,8 @@ class AddTypeAnnotationBinTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.addTypeAnnotation;
 
-  /// The path to the test file, which is in the test package's `bin` directory
-  /// for this class.
+  /// The path to the test file, which, for this class, is in the test package's
+  /// `bin` directory.
   @override
   String get testFilePath => convertPath('/home/test/bin/test.dart');
 

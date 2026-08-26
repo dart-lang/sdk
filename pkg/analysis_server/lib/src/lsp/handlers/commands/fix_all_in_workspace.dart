@@ -4,19 +4,13 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/lsp_protocol/protocol.dart';
-import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/simple_edit_handler.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
-import 'package:analysis_server/src/lsp/mapping.dart';
+import 'package:analysis_server/src/lsp/operations/fix_all_in_workspace.dart';
 import 'package:analysis_server/src/lsp/progress.dart';
-import 'package:analysis_server/src/lsp/source_edits.dart';
-import 'package:analysis_server/src/lsp/temporary_overlay_operation.dart';
-import 'package:analysis_server/src/services/correction/bulk_fix_processor.dart';
-import 'package:analysis_server/src/utilities/source_change_merger.dart';
 
 abstract class AbstractFixAllInWorkspaceCommandHandler
     extends SimpleEditCommandHandler<LspAnalysisServer> {
@@ -38,8 +32,13 @@ abstract class AbstractFixAllInWorkspaceCommandHandler
     ProgressReporter progress,
     CancellationToken cancellationToken,
   ) async {
+    // This implementation is similar to the `dart/workspace/fixes/get`, but
+    // whereas that returns fixes, this command applies them (by sending a
+    // reverse-request to the editor). It is a command, instead of a request.
+
     // Use the editor capabilities, since we're building edits to send to the
-    // editor regardless of who called us.
+    // editor regardless of who called us. This is different to the
+    // `dart/workspace/fixes/get` request where we return them to the caller.
     var clientCapabilities = server.editorClientCapabilities;
     if (clientCapabilities == null) {
       return serverNotInitializedError;
@@ -59,7 +58,7 @@ abstract class AbstractFixAllInWorkspaceCommandHandler
       );
     }
 
-    var operation = _FixAllOperation(
+    var operation = FixAllInWorkspaceOperation(
       server: server,
       message: message,
       cancellationToken: cancellationToken,
@@ -68,7 +67,7 @@ abstract class AbstractFixAllInWorkspaceCommandHandler
 
     progress.begin('Computing fixes…');
     try {
-      var result = await operation.computeEdits();
+      var result = await operation.compute();
       return await result.mapResult((edit) async {
         if (edit == null) {
           return success(null);
@@ -101,73 +100,4 @@ class PreviewFixAllInWorkspaceCommandHandler
 
   @override
   bool get requireConfirmation => true;
-}
-
-/// Computes edits for iterative fix-all using temporary overlays.
-class _FixAllOperation extends TemporaryOverlayOperation
-    with HandlerHelperMixin<AnalysisServer> {
-  final MessageInfo message;
-  final CancellationToken cancellationToken;
-  final bool requireConfirmation;
-
-  new({
-    required AnalysisServer server,
-    required this.message,
-    required this.cancellationToken,
-    required this.requireConfirmation,
-  }) : super(server);
-
-  Future<ErrorOr<WorkspaceEdit?>> computeEdits() async {
-    return await pauseSchedulerWithTemporaryOverlays(_computeEditsImpl);
-  }
-
-  Future<ErrorOr<WorkspaceEdit?>> _computeEditsImpl() async {
-    if (cancellationToken.isCancellationRequested) {
-      return cancelled(cancellationToken);
-    }
-
-    var contexts = server.contextManager.analysisContexts;
-    var processor = IterativeBulkFixProcessor(
-      instrumentationService: server.instrumentationService,
-      byteStore: server.byteStore,
-      applyTemporaryOverlayEdits: applyTemporaryOverlayEdits,
-      applyOverlays: applyOverlays,
-      cancellationToken: cancellationToken,
-    );
-
-    var result = await processor.fixErrors(message.performance, contexts);
-    var errorMessage = result.errorMessage;
-    if (errorMessage != null) {
-      return ErrorOr.error(
-        ResponseError(code: ErrorCodes.RequestFailed, message: errorMessage),
-      );
-    }
-    var changes = result.edits;
-    if (changes.isEmpty) {
-      return success(null);
-    }
-
-    // We only need to merge if we know we did multiple passes.
-    if (processor.passesWithEdits > 1) {
-      changes = message.performance.run(
-        'SourceChangeMerger.merge',
-        (_) => SourceChangeMerger().merge(changes),
-      );
-    }
-
-    // We must revert overlays before mapping edits, because we need any
-    // LineInfos to reflect the original state while mapping to LSP.
-    await revertOverlays();
-
-    var edit = createPlainWorkspaceEdit(
-      server,
-      server.editorClientCapabilities!,
-      changes,
-      annotateChanges: requireConfirmation
-          ? ChangeAnnotations.requireConfirmation
-          : ChangeAnnotations.include,
-    );
-
-    return success(edit);
-  }
 }

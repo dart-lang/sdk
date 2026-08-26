@@ -5,7 +5,10 @@
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/custom/migration/migration_registry.dart';
+import 'package:analysis_server/src/lsp/handlers/custom/migration/migration_runner.dart';
+import 'package:analysis_server/src/lsp/handlers/custom/migration/migration_summary_builder.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
+import 'package:analysis_server/src/utilities/pubspec.dart';
 import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:linter/src/rules.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -641,6 +644,32 @@ environment:
 ''',
     );
   }
+
+  Future<void> test_unsupportedPackageSdkVersion() async {
+    writePubspecFile(pubspecFilePath, '''
+name: test_project
+environment:
+  sdk: '^2.19.0'
+''');
+    await initialize();
+
+    await _assertMigrationResult(
+      steps: [MigrationStep.All],
+      targetSdk: '3.13.0',
+      apply: true,
+      expectedSummary:
+          '''
+- test_project: Skipped (The package SDK version "2.19.0" is not supported for migration. It must be between ${knownSdkVersions.first} and ${knownSdkVersions.last}.)
+
+Preparatory changes for a version bump:
+  0 changes made in 0 files.
+
+No SDK constraints were bumped.
+
+Cleanup changes after a version bump:
+  0 changes made in 0 files.''',
+    );
+  }
 }
 
 @reflectiveTest
@@ -750,6 +779,84 @@ class MigratePackageValidationTest extends AbstractMigrateTest {
         ErrorCodes.InvalidParams,
         message: contains("doesn't exist"),
       ),
+    );
+  }
+
+  Future<void> test_error_packageSdk_alreadyAtLatestKnownSdkVersion() async {
+    writePubspecFile(pubspecFilePath, '''
+name: test_project
+environment:
+  sdk: '^${knownSdkVersions.last}'
+''');
+    await initialize();
+
+    await _assertMigrationResult(
+      steps: [MigrationStep.Bump],
+      apply: true,
+      expectedSummary:
+          '''
+- test_project: Skipped (The package is already at the latest supported SDK version (${knownSdkVersions.last}).)
+
+No SDK constraints were bumped.''',
+    );
+  }
+
+  Future<void> test_error_packageSdk_unsupportedVersion() async {
+    writePubspecFile(pubspecFilePath, '''
+name: test_project
+environment:
+  sdk: '^2.19.0'
+''');
+    await initialize();
+
+    await _assertMigrationResult(
+      steps: [MigrationStep.Bump],
+      apply: true,
+      expectedSummary:
+          '''
+- test_project: Skipped (The package SDK version "2.19.0" is not supported for migration. It must be between ${knownSdkVersions.first} and ${knownSdkVersions.last}.)
+
+No SDK constraints were bumped.''',
+    );
+  }
+
+  Future<void>
+  test_error_packageSdk_unsupportedVersion_multiplePackages() async {
+    var otherPackagePath = convertPath('/home/other_package');
+    var otherPubspecPath = join(otherPackagePath, 'pubspec.yaml');
+
+    writePubspecFile(pubspecFilePath, '''
+name: test_project
+environment:
+  sdk: '^2.19.0'
+''');
+
+    writePubspecFile(otherPubspecPath, '''
+name: other_package
+environment:
+  sdk: '^3.12.0'
+''');
+
+    await initialize(
+      workspaceFolders: [projectFolderUri, toUri(otherPackagePath)],
+    );
+
+    await _assertMigrationResult(
+      uris: [projectFolderUri, toUri(otherPackagePath)],
+      steps: [MigrationStep.Bump],
+      apply: true,
+      expectedSummary:
+          '''
+- test_project: Skipped (The package SDK version "2.19.0" is not supported for migration. It must be between ${knownSdkVersions.first} and ${knownSdkVersions.last}.)
+
+Bumped SDK constraints in 1 package(s):
+  - other_package: ^3.12.0 -> ^3.13.0''',
+      expectedEdit: '''
+>>>>>>>>>> ../other_package/pubspec.yaml
+name: other_package
+environment:
+  sdk: '^3.13.0'
+''',
     );
   }
 
@@ -927,6 +1034,50 @@ resolution: workspace
           "The directory '$projectFolderPath' is part of a workspace and can't "
           'be migrated independently.',
         ),
+      ),
+    );
+  }
+
+  Future<void> test_internalError_unableToCalculateNextSdkVersion() async {
+    failTestOnAnyErrorNotification = false;
+    writePubspecFile(pubspecFilePath, '''
+name: test_project
+environment:
+  sdk: '^${knownSdkVersions.last}'
+''');
+    await initialize();
+
+    var pubspecFile = resourceProvider.getFile(pubspecFilePath);
+    var pubspecYaml = loadYaml(pubspecFile.readAsStringSync()) as YamlMap;
+    var pubspecTarget = PubspecTarget(file: pubspecFile, pubspec: pubspecYaml);
+
+    var summaryBuilder = MigrationSummaryBuilder(
+      apply: true,
+      pathContext: pathContext,
+      steps: [MigrationStep.All],
+    );
+
+    // Target a version higher than knownSdkVersions.last directly in
+    // MigrationRunner to simulate an internal error where nextSdkVersion
+    // returns null.
+    var targetSdk = Version(
+      knownSdkVersions.last.major,
+      knownSdkVersions.last.minor + 1,
+      0,
+    );
+    var runner = MigrationRunner(
+      server: server,
+      pubspecTargets: [pubspecTarget],
+      summaryBuilder: summaryBuilder,
+      targetSdk: targetSdk,
+    );
+
+    var result = await runner.computeEdits([MigrationStep.All]);
+    expect(result.isError, isFalse);
+    expect(
+      summaryBuilder.generate(),
+      contains(
+        '- test_project: Skipped (Internal error: Unable to calculate next SDK version.)',
       ),
     );
   }
@@ -1511,7 +1662,7 @@ class C {
     writePubspecFile(pubspecFilePath, '''
 name: test_project
 environment:
-  sdk: '^2.12.0'
+  sdk: '^3.10.0'
 ''');
     newFile(mainFilePath, 'void m(int x) {}\n');
 

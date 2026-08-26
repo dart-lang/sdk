@@ -4717,50 +4717,85 @@ void FloatToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ fcvtds(result, value);
 }
 
-LocationSummary* FloatCompareInstr::MakeLocationSummary(Zone* zone,
-                                                        bool opt) const {
+LocationSummary* CompareAsMaskInstr::MakeLocationSummary(Zone* zone,
+                                                         bool opt) const {
   const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = 0;
   LocationSummary* result = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  result->set_in(0, Location::RequiresFpuRegister());
-  result->set_in(1, Location::RequiresFpuRegister());
+  switch (input_representation()) {
+    case kUnboxedInt32:
+      result->set_in(0, Location::RequiresRegister());
+      result->set_in(1, Location::RequiresRegister());
+      break;
+    case kUnboxedFloat:
+      result->set_in(0, Location::RequiresFpuRegister());
+      result->set_in(1, Location::RequiresFpuRegister());
+      break;
+    default:
+      UNREACHABLE();
+  }
   result->set_out(0, Location::RequiresRegister());
   return result;
 }
 
-void FloatCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const FRegister lhs = locs()->in(0).fpu_reg();
-  const FRegister rhs = locs()->in(1).fpu_reg();
+void CompareAsMaskInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register result = locs()->out(0).reg();
 
-  switch (op_kind()) {
-    case Token::kEQ:
-      __ feqs(result, lhs, rhs);  // lhs op rhs ? 1 : 0
-      __ neg(result, result);     // lhs op rhs ? -1 : 0
+  switch (input_representation()) {
+    case kUnboxedInt32: {
+      const Register lhs = locs()->in(0).reg();
+      const Register rhs = locs()->in(1).reg();
+      switch (op_kind()) {
+        case Token::kEQ:
+#if XLEN > 32
+          __ subw(result, lhs, rhs);  // lhs op rhs ? 0 : nz
+#else
+          __ sub(result, lhs, rhs);
+#endif
+          __ snez(result, result);      // lhs op rhs ? 0 : 1
+          __ addi(result, result, -1);  // lhs op rhs ? -1 : 0
+          break;
+        default:
+          UNREACHABLE();
+      }
       break;
-    case Token::kLT:
-      __ flts(result, lhs, rhs);
-      __ neg(result, result);
-      break;
-    case Token::kLTE:
-      __ fles(result, lhs, rhs);
-      __ neg(result, result);
-      break;
-    case Token::kGT:
-      __ fgts(result, lhs, rhs);
-      __ neg(result, result);
-      break;
-    case Token::kGTE:
-      __ fges(result, lhs, rhs);
-      __ neg(result, result);
-      break;
+    }
+    case kUnboxedFloat: {
+      const FRegister lhs = locs()->in(0).fpu_reg();
+      const FRegister rhs = locs()->in(1).fpu_reg();
+      switch (op_kind()) {
+        case Token::kEQ:
+          __ feqs(result, lhs, rhs);  // lhs op rhs ? 1 : 0
+          __ neg(result, result);     // lhs op rhs ? -1 : 0
+          break;
+        case Token::kLT:
+          __ flts(result, lhs, rhs);
+          __ neg(result, result);
+          break;
+        case Token::kLTE:
+          __ fles(result, lhs, rhs);
+          __ neg(result, result);
+          break;
+        case Token::kGT:
+          __ fgts(result, lhs, rhs);
+          __ neg(result, result);
+          break;
+        case Token::kGTE:
+          __ fges(result, lhs, rhs);
+          __ neg(result, result);
+          break;
 
-    case Token::kNE:
-      __ feqs(result, lhs, rhs);    // lhs op rhs ? 0 : 1
-      __ addi(result, result, -1);  // lhs op rhs ? -1 : 0
-      break;
+        case Token::kNE:
+          __ feqs(result, lhs, rhs);    // lhs op rhs ? 0 : 1
+          __ addi(result, result, -1);  // lhs op rhs ? -1 : 0
+          break;
 
+        default:
+          UNREACHABLE();
+      }
+      break;
+    }
     default:
       UNREACHABLE();
   }

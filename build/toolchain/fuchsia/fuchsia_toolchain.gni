@@ -40,8 +40,8 @@ template("fuchsia_toolchain") {
       link_prefix = ""
     }
 
-    toolchain_bin =
-        rebase_path("//buildtools/$host_os-x64/clang/bin", root_out_dir)
+    toolchain_bin = rebase_path("//buildtools/${host_os}-${host_cpu}/clang/bin",
+                                root_out_dir)
     fuchsia_sdk =
         rebase_path("//third_party/fuchsia/sdk/$host_os", root_out_dir)
 

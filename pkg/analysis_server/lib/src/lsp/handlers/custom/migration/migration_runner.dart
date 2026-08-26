@@ -144,6 +144,32 @@ class MigrationRunner({
           continue;
         }
 
+        var normalizedInitialVersion = Version(
+          initialVersion.major,
+          initialVersion.minor,
+          0,
+        );
+        if (!knownSdkVersions.contains(normalizedInitialVersion)) {
+          summaryBuilder.recordPackageSkipped(
+            pubspec,
+            'The package SDK version "$initialVersion" is not supported for '
+            'migration. It must be between ${knownSdkVersions.first} and '
+            '${knownSdkVersions.last}.',
+          );
+          continue;
+        }
+
+        if (targetSdk == null &&
+            (runPrepare || runBump) &&
+            normalizedInitialVersion == knownSdkVersions.last) {
+          summaryBuilder.recordPackageSkipped(
+            pubspec,
+            'The package is already at the latest supported SDK version '
+            '(${knownSdkVersions.last}).',
+          );
+          continue;
+        }
+
         var currentVersion = initialVersion;
 
         // Perform sequential version bumps until the target SDK is reached.
@@ -154,8 +180,20 @@ class MigrationRunner({
           if (runPrepare || runBump) {
             var nextVersion = nextSdkVersion(currentVersion);
             if (nextVersion == null) {
-              // TODO(kallentu): Provide a better error message if we aren't
-              // able to calculate the next SDK version.
+              // This should be unreachable because `initialVersion` and
+              // `targetSdk` have already been verified to be in
+              // `knownSdkVersions`.
+              server.instrumentationService.logException(
+                StateError(
+                  'Unable to calculate the next SDK version after '
+                  '$currentVersion (target: $targetSdk).',
+                ),
+                StackTrace.current,
+              );
+              summaryBuilder.recordPackageSkipped(
+                pubspec,
+                'Internal error: Unable to calculate next SDK version.',
+              );
               break;
             }
 

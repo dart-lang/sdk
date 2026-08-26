@@ -303,13 +303,26 @@ Direction: Client -> Server
 Params: `DartMigrateParams`
 Returns: `DartMigrateResult`
 
-Migrates the provided pub workspace folders or non-pub workspace packages to the
-latest Dart version. For packages that are part of a pub workspace, only the
-workspace root should be passed. Migrating individual packages within a
-workspace independently is not supported.
+Returns edits to migrate the provided pub workspace folders or non-pub workspace
+packages to the latest Dart version. For packages that are part of a pub
+workspace, only the workspace root should be passed. Migrating individual
+packages within a workspace independently is not supported.
 
 The response includes a summary of the results and a `WorkspaceEdit` containing
 the changes to be applied.
+
+### dart/workspace/fixes/get Method (Experimental)
+
+Direction: Client -> Server
+Params: `DartGetWorkspaceFixesParams`
+Returns: `DartGetWorkspaceFixesResult`
+
+Returns edits to apply all fixes for fixable diagnostics in the workspace. This
+is similar to the "Fix All in Workspace" command but instead of asking the
+editor to apply the edits, returns them to the caller.
+
+Options for filtering which fixes are included are available in the parameters
+definition.
 
 ### dart/workspace/analysis/complete Method
 

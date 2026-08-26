@@ -10,8 +10,45 @@ import '../../../../client/completion_driver_test.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(UriInSubfolderTest);
     defineReflectiveTests(UriTest);
   });
+}
+
+@reflectiveTest
+class UriInSubfolderTest extends AbstractCompletionDriverTest {
+  @override
+  bool get includeKeywords => false;
+
+  @override
+  /// The path to the test file, which, for this class, is in the test package's
+  /// `lib/foo` directory.
+  String get testFilePath => getFile('$testPackageLibPath/foo/test.dart').path;
+
+  @override
+  Future<void> setUp() async {
+    await super.setUp();
+    allowedKinds = {CompletionSuggestionKind.IMPORT};
+  }
+
+  Future<void> test_part_file_parent() async {
+    newFile('$testPackageLibPath/a.dart', '');
+    newFile('$testPackageLibPath/bar/b.dart', '');
+    await computeSuggestions('''
+part '../^'
+''');
+    assertResponse(r'''
+replacement
+  left: 3
+suggestions
+  ../a.dart
+    kind: import
+  ../bar/
+    kind: import
+  ../foo/
+    kind: import
+''');
+  }
 }
 
 @reflectiveTest
@@ -1109,26 +1146,6 @@ replacement
   left: 4
 suggestions
   foo/b.dart
-    kind: import
-''');
-  }
-
-  Future<void> test_part_file_parent() async {
-    testFilePath = getFile('$testPackageLibPath/foo/test.dart').path;
-    newFile('$testPackageLibPath/a.dart', '');
-    newFile('$testPackageLibPath/bar/b.dart', '');
-    await computeSuggestions('''
-part '../^'
-''');
-    assertResponse(r'''
-replacement
-  left: 3
-suggestions
-  ../a.dart
-    kind: import
-  ../bar/
-    kind: import
-  ../foo/
     kind: import
 ''');
   }
