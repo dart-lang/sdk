@@ -47,14 +47,14 @@ void readDynamic(dynamic list) {
 }
 
 void main() {
-  var array = new Uint8List(kListSize);
+  var array = Uint8List(kListSize);
   for (var i = 0; i < kLoopSize; i++) {
     readArray(array);
     readPolymorphic(array);
     readDynamic(array);
   }
 
-  var view = new Uint8List.view(array.buffer);
+  var view = Uint8List.view(array.buffer);
   for (var i = 0; i < kLoopSize; i++) {
     readView(view);
     readPolymorphic(view);
@@ -75,21 +75,21 @@ void main() {
     readDynamic(unmodifiableView2);
   }
 
-  var viewOfView1 = new Uint8List.view(view.buffer);
+  var viewOfView1 = Uint8List.view(view.buffer);
   for (var i = 0; i < kLoopSize; i++) {
     readView(viewOfView1);
     readPolymorphic(viewOfView1);
     readDynamic(viewOfView1);
   }
 
-  var viewOfView2 = new Uint8List.view(unmodifiableView1.buffer);
+  var viewOfView2 = Uint8List.view(unmodifiableView1.buffer);
   for (var i = 0; i < kLoopSize; i++) {
     readView(viewOfView2);
     readPolymorphic(viewOfView2);
     readDynamic(viewOfView2);
   }
 
-  var viewOfView3 = new Uint8List.view(unmodifiableView2.buffer);
+  var viewOfView3 = Uint8List.view(unmodifiableView2.buffer);
   for (var i = 0; i < kLoopSize; i++) {
     readView(viewOfView3);
     readDynamic(viewOfView3);
