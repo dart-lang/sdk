@@ -42,25 +42,25 @@ void testTranspose(Float32x4List m, Float32x4List r) {
 }
 
 main() {
-  var A = new Float32x4List(4);
-  A[0] = new Float32x4(1.0, 2.0, 3.0, 4.0);
-  A[1] = new Float32x4(5.0, 6.0, 7.0, 8.0);
-  A[2] = new Float32x4(9.0, 10.0, 11.0, 12.0);
-  A[3] = new Float32x4(13.0, 14.0, 15.0, 16.0);
-  var B = new Float32x4List(4);
-  B[0] = new Float32x4(1.0, 5.0, 9.0, 13.0);
-  B[1] = new Float32x4(2.0, 6.0, 10.0, 14.0);
-  B[2] = new Float32x4(3.0, 7.0, 11.0, 15.0);
-  B[3] = new Float32x4(4.0, 8.0, 12.0, 16.0);
-  var I = new Float32x4List(4);
-  I[0] = new Float32x4(1.0, 0.0, 0.0, 0.0);
-  I[1] = new Float32x4(0.0, 1.0, 0.0, 0.0);
-  I[2] = new Float32x4(0.0, 0.0, 1.0, 0.0);
-  I[3] = new Float32x4(0.0, 0.0, 0.0, 1.0);
+  var A = Float32x4List(4);
+  A[0] = Float32x4(1.0, 2.0, 3.0, 4.0);
+  A[1] = Float32x4(5.0, 6.0, 7.0, 8.0);
+  A[2] = Float32x4(9.0, 10.0, 11.0, 12.0);
+  A[3] = Float32x4(13.0, 14.0, 15.0, 16.0);
+  var B = Float32x4List(4);
+  B[0] = Float32x4(1.0, 5.0, 9.0, 13.0);
+  B[1] = Float32x4(2.0, 6.0, 10.0, 14.0);
+  B[2] = Float32x4(3.0, 7.0, 11.0, 15.0);
+  B[3] = Float32x4(4.0, 8.0, 12.0, 16.0);
+  var I = Float32x4List(4);
+  I[0] = Float32x4(1.0, 0.0, 0.0, 0.0);
+  I[1] = Float32x4(0.0, 1.0, 0.0, 0.0);
+  I[2] = Float32x4(0.0, 0.0, 1.0, 0.0);
+  I[3] = Float32x4(0.0, 0.0, 0.0, 1.0);
   for (int i = 0; i < 20; i++) {
-    var m = new Float32x4List.fromList(I);
+    var m = Float32x4List.fromList(I);
     testTranspose(m, I);
-    m = new Float32x4List.fromList(A);
+    m = Float32x4List.fromList(A);
     testTranspose(m, B);
   }
 }

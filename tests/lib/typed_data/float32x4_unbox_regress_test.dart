@@ -17,9 +17,9 @@ testListStore(array, index, value) {
 
 void testListStoreDeopt() {
   var list;
-  var value = new Float32x4(1.0, 2.0, 3.0, 4.0);
+  var value = Float32x4(1.0, 2.0, 3.0, 4.0);
   var smi = 12;
-  list = new Float32x4List(8);
+  list = Float32x4List(8);
   for (int i = 0; i < 20; i++) {
     testListStore(list, 0, value);
   }
@@ -40,8 +40,8 @@ testAdd(a, b) {
 }
 
 void testAddDeopt() {
-  var a = new Float32x4(1.0, 2.0, 3.0, 4.0);
-  var b = new Float32x4(2.0, 3.0, 4.0, 5.0);
+  var a = Float32x4(1.0, 2.0, 3.0, 4.0);
+  var b = Float32x4(2.0, 3.0, 4.0, 5.0);
   var smi = 12;
   for (int i = 0; i < 20; i++) {
     testAdd(a, b);
@@ -58,7 +58,7 @@ testGet(a) {
 }
 
 void testGetDeopt() {
-  var a = new Float32x4(1.0, 2.0, 3.0, 4.0);
+  var a = Float32x4(1.0, 2.0, 3.0, 4.0);
   var smi = 12;
   for (int i = 0; i < 20; i++) {
     testGet(a);
@@ -82,8 +82,8 @@ void testComparison(a, b) {
 }
 
 void testComparisonDeopt() {
-  var a = new Float32x4(1.0, 2.0, 3.0, 4.0);
-  var b = new Float32x4(1.0, 2.1, 3.1, 4.0);
+  var a = Float32x4(1.0, 2.0, 3.0, 4.0);
+  var b = Float32x4(1.0, 2.1, 3.1, 4.0);
   var smi = 12;
 
   for (int i = 0; i < 20; i++) {

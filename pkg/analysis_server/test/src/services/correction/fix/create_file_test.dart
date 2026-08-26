@@ -11,8 +11,37 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(CreateFileInTestDirectoryTest);
     defineReflectiveTests(CreateFileTest);
   });
+}
+
+@reflectiveTest
+class CreateFileInTestDirectoryTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.createFile;
+
+  /// The path to the test file, which, for this class, is in the test package's
+  /// `test` directory.
+  @override
+  String get testFilePath => convertPath('$testPackageTestPath/test.dart');
+
+  Future<void> test_forImport_inPackage_test() async {
+    await resolveTestCode('''
+import 'a/bb/my_lib.dart';
+''');
+    await assertHasFixWithoutApplying();
+    var fileEdits = change.edits;
+    expect(fileEdits, hasLength(1));
+    var fileEdit = change.edits[0];
+    expect(fileEdit.file, convertPath('/home/test/test/a/bb/my_lib.dart'));
+    expect(fileEdit.fileStamp, -1);
+    expect(fileEdit.edits, hasLength(1));
+    expect(
+      fileEdit.edits[0].replacement,
+      contains('// TODO Implement this library.'),
+    );
+  }
 }
 
 @reflectiveTest
@@ -73,25 +102,6 @@ import 'a/bb/my_lib.dart';
     expect(fileEdits, hasLength(1));
     var fileEdit = change.edits[0];
     expect(fileEdit.file, convertPath('$testPackageLibPath/a/bb/my_lib.dart'));
-    expect(fileEdit.fileStamp, -1);
-    expect(fileEdit.edits, hasLength(1));
-    expect(
-      fileEdit.edits[0].replacement,
-      contains('// TODO Implement this library.'),
-    );
-  }
-
-  Future<void> test_forImport_inPackage_test() async {
-    testFilePath = convertPath('/home/test/test/test.dart');
-    await resolveTestCode('''
-import 'a/bb/my_lib.dart';
-''');
-    await assertHasFixWithoutApplying();
-    // validate change
-    var fileEdits = change.edits;
-    expect(fileEdits, hasLength(1));
-    var fileEdit = change.edits[0];
-    expect(fileEdit.file, convertPath('/home/test/test/a/bb/my_lib.dart'));
     expect(fileEdit.fileStamp, -1);
     expect(fileEdit.edits, hasLength(1));
     expect(

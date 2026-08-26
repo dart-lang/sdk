@@ -10955,7 +10955,7 @@ class BodyBuilderImpl extends StackListenerImpl
       if (variableDeclaration.variable case InternalLateVariable variable) {
         // Late for loop variables are not supported. An error has already been
         // reported by the parser.
-        variable.isLate = false;
+        variable.markAsErroneousLate();
       }
       return [variableDeclaration];
     } else if (variableOrExpression is InternalVariableDeclaration) {
@@ -10963,7 +10963,7 @@ class BodyBuilderImpl extends StackListenerImpl
       if (variableOrExpression.variable case InternalLateVariable variable) {
         // Late for loop variables are not supported. An error has already been
         // reported by the parser.
-        variable.isLate = false;
+        variable.markAsErroneousLate();
       }
       return [variableOrExpression];
     } else if (variableOrExpression is InternalExpression) {
@@ -11036,7 +11036,7 @@ class BodyBuilderImpl extends StackListenerImpl
       if (declaration.variable case InternalLateVariable variable) {
         // Late for-in variables are not supported. An error has already been
         // reported by the parser.
-        variable.isLate = false;
+        variable.markAsErroneousLate();
       }
       InternalInvalidExpression? error;
       if (declaration.variable case InternalConstVariable variable) {
@@ -11063,7 +11063,7 @@ class BodyBuilderImpl extends StackListenerImpl
       if (lvalue.variable case InternalLateVariable variable) {
         // Late for-in variables are not supported. An error has already been
         // reported by the parser.
-        variable.isLate = false;
+        variable.markAsErroneousLate();
       }
       InternalInvalidExpression? error;
       if (lvalue.variable case InternalConstVariable variable) {

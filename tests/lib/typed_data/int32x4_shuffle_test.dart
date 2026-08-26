@@ -12,7 +12,7 @@ import 'dart:typed_data';
 import "package:expect/expect.dart";
 
 void testShuffle() {
-  var m = new Int32x4(1, 2, 3, 4);
+  var m = Int32x4(1, 2, 3, 4);
   var c;
   c = m.shuffle(Int32x4.wzyx);
   Expect.equals(4, c.x);
@@ -22,7 +22,7 @@ void testShuffle() {
 }
 
 void testShuffleNonConstant(mask) {
-  var m = new Int32x4(1, 2, 3, 4);
+  var m = Int32x4(1, 2, 3, 4);
   var c;
   c = m.shuffle(mask);
   if (mask == 1) {
@@ -40,8 +40,8 @@ void testShuffleNonConstant(mask) {
 }
 
 void testShuffleMix() {
-  var m = new Int32x4(1, 2, 3, 4);
-  var n = new Int32x4(5, 6, 7, 8);
+  var m = Int32x4(1, 2, 3, 4);
+  var n = Int32x4(5, 6, 7, 8);
   var c = m.shuffleMix(n, Int32x4.xyxy);
   Expect.equals(1, c.x);
   Expect.equals(2, c.y);

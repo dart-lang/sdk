@@ -26,7 +26,7 @@ void testStoreLoad(l, z) {
 }
 
 main() {
-  var l = new Int64List(4);
+  var l = Int64List(4);
   var zGood = 9223372036854775807;
   var zBad = false;
   for (var i = 0; i < 40; i++) {

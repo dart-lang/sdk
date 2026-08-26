@@ -222,11 +222,6 @@ abstract class ContextResolutionTest with ResourceProviderMixin {
 
 class PubPackageAnalysisServerTest extends ContextResolutionTest
     with MockPackagesMixin, ConfigurationFilesMixin {
-  // TODO(scheglov): Consider turning it back into a getter.
-  late String testFilePath = resourceProvider.convertPath(
-    '$testPackageLibPath/test.dart',
-  );
-
   late String pubspecFilePath = pathContext.normalize(
     resourceProvider.convertPath('$testPackageRootPath/pubspec.yaml'),
   );
@@ -259,6 +254,9 @@ class PubPackageAnalysisServerTest extends ContextResolutionTest
   }
 
   String get testFileContent => testFile.readAsStringSync();
+
+  String get testFilePath =>
+      resourceProvider.convertPath('$testPackageLibPath/test.dart');
 
   String get testPackageLibPath => '$testPackageRootPath/lib';
 

@@ -14,13 +14,13 @@ import 'package:expect/expect.dart';
 var inscrutable = null;
 
 void implementsTypedData() {
-  Expect.isTrue(inscrutable(new Int64List(1)) is TypedData);
-  Expect.isTrue(inscrutable(new Uint64List(1)) is TypedData);
+  Expect.isTrue(inscrutable(Int64List(1)) is TypedData);
+  Expect.isTrue(inscrutable(Uint64List(1)) is TypedData);
 }
 
 void implementsList() {
-  Expect.isTrue(inscrutable(new Int64List(1)) is List<int>);
-  Expect.isTrue(inscrutable(new Uint64List(1)) is List<int>);
+  Expect.isTrue(inscrutable(Int64List(1)) is List<int>);
+  Expect.isTrue(inscrutable(Uint64List(1)) is List<int>);
 }
 
 main() {

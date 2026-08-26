@@ -193,17 +193,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   CfeInferenceStrategy _cfeInferenceStrategy;
 
-  /// Stack of variable aliases.
-  ///
-  /// When lowering pattern for statements/elements, the pattern variables are
-  /// replaced by synthesized loop variables to ensure the right capturing
-  /// semantics. This means that reads/writes to the pattern variables should be
-  /// redirected to the loop variables, the loop variables are therefore marked
-  /// as aliases of their corresponding pattern variable.
-  ///
-  /// This is used by [readVariable] and [writeVariable].
-  LocalStack<Map<Variable, Variable>> _variableAliases = new LocalStack([]);
-
   new(
     super.inferrer,
     super.fileUri,
@@ -216,37 +205,30 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }) : _contextAllocationStrategy = contextAllocationStrategy,
        _cfeInferenceStrategy = cfeInferenceStrategy;
 
-  Variable _unaliasVariable(Variable variable) {
-    if (_variableAliases.isEmpty) {
-      return variable;
-    }
-    for (Map<Variable, Variable> map in _variableAliases) {
-      Variable? alias = map[variable];
-      if (alias != null) {
-        return alias;
-      }
-    }
-    return variable;
-  }
-
   @override
-  VariableGet readVariable(
+  ExpressionInferenceResult readVariable(
     InternalVariable internalVariable, {
-    required int fileOffset,
+    DartType? promotedType,
+    DartType? typeContext,
+    InternalNode? accessNode,
+    int? fileOffset,
   }) {
-    Variable variable = internalVariable.astVariable;
-    return new VariableGet(_unaliasVariable(variable))..fileOffset = fileOffset;
+    return internalVariable.createRead(
+      this,
+      typeContext: typeContext,
+      accessNode: accessNode,
+      promotedType: promotedType,
+      fileOffset: fileOffset,
+    );
   }
 
   @override
-  VariableSet writeVariable(
+  Expression writeVariable(
     InternalVariable internalVariable,
     Expression value, {
     required int fileOffset,
   }) {
-    Variable variable = internalVariable.astVariable;
-    return new VariableSet(_unaliasVariable(variable), value)
-      ..fileOffset = fileOffset;
+    return internalVariable.createWrite(value: value, fileOffset: fileOffset);
   }
 
   @override
@@ -1187,7 +1169,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression replacement = _createBlockExpression(
       node.variable.fileOffset,
       _createBlock(body),
-      extern.createVariableGet(node.variable.astVariable),
+      readVariable(node.variable).expression,
     );
 
     if (nullAwareGuard != null) {
@@ -3483,8 +3465,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           initializer = initializerResult.expression;
           variable.type = initializerResult.inferredType;
         }
-        inferredVariables[index] = extern.createVariableDeclaration(
-          variable.astVariable,
+        inferredVariables[index] = variable.createDeclaration(
           initializer: initializer,
           fileOffset: variableDeclaration.fileOffset,
         );
@@ -3644,7 +3625,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       node: node,
       patternVariableDeclaration: node.patternVariableDeclaration,
     );
-    _variableAliases.push(variablesResult.variableAliases);
 
     Expression? condition = _inferForCondition(
       node: node,
@@ -3661,8 +3641,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       node: node,
       updates: node.updates,
     );
-
-    _variableAliases.pop();
 
     Scope? scope;
     if (scopeProviderInfo != null) {
@@ -3737,14 +3715,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             in node.function.positionalParameters)
           // Coverage-ignore(suite): Not run.
           new VariableWithCaptureKind(
-            positionalParameter.astVariable,
+            positionalParameter.functionParameter,
             captureKindForVariable(positionalParameter),
           ),
         for (InternalNamedParameter namedParameter
             in node.function.namedParameters)
           // Coverage-ignore(suite): Not run.
           new VariableWithCaptureKind(
-            namedParameter.astVariable,
+            namedParameter.functionParameter,
             captureKindForVariable(namedParameter),
           ),
       ]);
@@ -3814,18 +3792,18 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       capturedContexts = _contextAllocationStrategy
           .computeCapturedVariableContexts(_capturedVariablesForNode(node));
       scopeProviderInfo = _contextAllocationStrategy.enterScopeProvider(
-        scopeProviderInfoKind: ScopeProviderInfoKind.Loop,
+        scopeProviderInfoKind: ScopeProviderInfoKind.FunctionNode,
       );
       _contextAllocationStrategy.handleDeclarationsOfParameters([
         for (InternalPositionalParameter positionalParameter
             in function.positionalParameters)
           new VariableWithCaptureKind(
-            positionalParameter.astVariable,
+            positionalParameter.functionParameter,
             captureKindForVariable(positionalParameter),
           ),
         for (InternalNamedParameter namedParameter in function.namedParameters)
           new VariableWithCaptureKind(
-            namedParameter.astVariable,
+            namedParameter.functionParameter,
             captureKindForVariable(namedParameter),
           ),
       ]);
@@ -5079,21 +5057,21 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     List<VariableDeclaration> variables = [];
     List<VariableDeclaration> intermediateVariables = [];
-    Map<Variable, Variable> variableAliases = {};
-    for (DeclaredVariable declaredVariable in pattern.declaredVariables) {
+    for (InternalPatternVariable patternVariable
+        in patternVariableDeclaration.pattern.patternVariables) {
       // We create an intermediate variable to transfer the value from the
       // pattern variable to the loop variable created below. This is done
       // to ensure that we done create an assignment like `var a = a` in the
       // for loop initializer because this confuses DDC.
       SyntheticVariable intermediateVariable = new SyntheticVariable(
         isFinal: true,
-        type: declaredVariable.type,
-      )..fileOffset = declaredVariable.fileOffset;
-      variableAliases[declaredVariable] = intermediateVariable;
+        type: patternVariable.type,
+      )..fileOffset = patternVariable.fileOffset;
+
       intermediateVariables.add(
         extern.createVariableDeclaration(
           intermediateVariable,
-          initializer: extern.createVariableGet(declaredVariable),
+          initializer: readVariable(patternVariable).expression,
         ),
       );
 
@@ -5102,11 +5080,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       // statement/element.
       // TODO(johnniwinther): Should this be a [LocalVariable]?
       SyntheticVariable loopVariable = new SyntheticVariable(
-        cosmeticName: declaredVariable.cosmeticName,
-        type: declaredVariable.type,
+        cosmeticName: patternVariable.name,
+        type: patternVariable.type,
         isSynthesized: false,
-        isFinal: declaredVariable.isFinal,
-      )..fileOffset = declaredVariable.fileOffset;
+        isFinal: patternVariable.isFinal,
+      )..fileOffset = patternVariable.fileOffset;
       variables.add(
         extern.createVariableDeclaration(
           loopVariable,
@@ -5114,7 +5092,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         ),
       );
 
-      variableAliases[declaredVariable] = loopVariable;
+      patternVariable.setAlias(loopVariable);
     }
 
     PatternVariableDeclaration inferredPatternVariableDeclaration = extern
@@ -5129,7 +5107,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new PatternForVariablesResult(
       variables: variables,
       intermediateVariables: intermediateVariables,
-      variableAliases: variableAliases,
       patternVariableDeclaration: inferredPatternVariableDeclaration,
     );
   }
@@ -5142,8 +5119,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       node: node,
       patternVariableDeclaration: node.patternVariableDeclaration,
     );
-
-    _variableAliases.push(variablesResult.variableAliases);
 
     Expression? condition = _inferForCondition(
       node: node,
@@ -5161,8 +5136,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       node: node,
       updates: node.updates,
     );
-
-    _variableAliases.pop();
 
     return new ElementInferenceResult(
       inferredType: bodyResult.inferredType,
@@ -9349,7 +9322,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
       body = extern.createLet(
         cache: expressionCache,
-        body: new VariableGet(node.variable.astVariable),
+        body: readVariable(
+          node.variable,
+          fileOffset: TreeNode.noOffset,
+        ).expression,
         fileOffset: node.fileOffset,
       );
     } else {
@@ -9370,10 +9346,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         return new BlockExpression(
           new Block([
             extern.createVariableStatement(
-              extern.createVariableDeclaration(
-                node.variable.astVariable,
-                initializer: receiver,
-              ),
+              node.variable.createDeclaration(initializer: receiver),
             ),
             extern.createVariableStatement(
               extern.createVariableDeclaration(resultVar),
@@ -9591,10 +9564,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     Block block = new Block([
       extern.createVariableStatement(
-        extern.createVariableDeclaration(
-          node.variable.astVariable,
-          initializer: receiver,
-        ),
+        node.variable.createDeclaration(initializer: receiver),
       ),
       extern.createVariableStatement(
         extern.createVariableDeclaration(resultVar),
@@ -9605,7 +9575,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression replacement = new BlockExpression(
       block,
       node.isCascade
-          ? extern.createVariableGet(node.variable.astVariable)
+          ? readVariable(node.variable).expression
           : new VariableGet(resultVar),
     )..fileOffset = node.fileOffset;
 
@@ -9948,17 +9918,17 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     DartType typeContext = bodyContext.returnContext;
     DartType inferredType;
-    Variable? thisVariable = _constructorContext?.thisVariable;
+    InternalDeclaredVariable? thisVariable = _constructorContext?.thisVariable;
 
     Expression? expression;
     if (bodyContext.isRoot && thisVariable != null) {
       // The constructor is lowered with an explicit variable for `this`. This
       // means that `return;` should be encoded as `return #this;` where `#this`
       // is the [thisVariable].
-      expression = extern.createVariableGet(
+      expression = readVariable(
         thisVariable,
         fileOffset: node.fileOffset,
-      );
+      ).expression;
       inferredType = thisVariable.type;
     } else if (node.expression != null) {
       ExpressionInferenceResult expressionResult = inferExpression(
@@ -11781,7 +11751,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           hasLabel: case_.hasLabel,
           jointVariableDeclarations: [
             for (InternalDeclaredVariable variable in case_.jointVariables)
-              extern.createVariableDeclaration(variable.astVariable),
+              variable.createDeclaration(),
           ],
           jointVariableFirstUseOffsets: case_.jointVariableFirstUseOffsets,
           fileOffset: case_.fileOffset,
@@ -11852,6 +11822,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         );
       case InternalPatternSwitchStatement():
         InternalPatternSwitchCase case_ = node.cases[caseIndex];
+        _contextAllocationStrategy.handleSwitchCaseBeginning();
         if (isClosureContextLoweringEnabled) {
           case_.switchCaseScopeProviderInfo = _contextAllocationStrategy
               .enterScopeProvider(
@@ -11999,18 +11970,20 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     int caseIndex,
     Iterable<InternalVariable> variables,
   ) {
-    if (isClosureContextLoweringEnabled &&
-        node is InternalPatternSwitchStatement) {
-      InternalPatternSwitchCase case_ = node.cases[caseIndex];
-      case_.switchCaseBodyScopeProviderInfo = _contextAllocationStrategy
-          .enterScopeProvider(
-            scopeProviderInfoKind: ScopeProviderInfoKind.Block,
-          );
-      for (InternalVariable joinedVariable in variables) {
-        _contextAllocationStrategy.handleDeclarationOfVariable(
-          joinedVariable.astVariable,
-          captureKind: captureKindForVariable(joinedVariable),
-        );
+    if (node is InternalPatternSwitchStatement) {
+      if (isClosureContextLoweringEnabled) {
+        InternalPatternSwitchCase case_ = node.cases[caseIndex];
+        case_.switchCaseBodyScopeProviderInfo = _contextAllocationStrategy
+            .enterScopeProvider(
+              scopeProviderInfoKind: ScopeProviderInfoKind.Block,
+            );
+        _contextAllocationStrategy.handleAfterCaseHeads([
+          for (InternalVariable variable in variables)
+            new VariableWithCaptureKind(
+              variable.astVariable,
+              captureKindForVariable(variable),
+            ),
+        ]);
       }
     }
   }
@@ -12055,7 +12028,16 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     InternalNode node, {
     required int caseIndex,
     required int subIndex,
-  }) {}
+  }) {
+    if (node is InternalPatternSwitchStatement) {
+      if (isClosureContextLoweringEnabled) {
+        _contextAllocationStrategy.handleSwitchBeforeAlternative(
+          caseIndex: caseIndex,
+          subIndex: subIndex,
+        );
+      }
+    }
+  }
 
   @override
   void handleSwitchScrutinee(SharedTypeView type) {
@@ -12158,9 +12140,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           ),
     );
     if (isClosureContextLoweringEnabled) {
-      _contextAllocationStrategy.handleDeclarationOfVariable(
-        node.variable.astVariable,
-        captureKind: captureKindForVariable(node.variable),
+      _contextAllocationStrategy.handleInternalVariablePattern(
+        new VariableWithCaptureKind(
+          node.variable.astVariable,
+          captureKindForVariable(node.variable),
+        ),
       );
     }
 
@@ -13507,9 +13491,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           extern.createAssignedVariablePattern(
             variableName: node.variableName,
             variableType: node.variable.type,
-            writeVariable: _unaliasVariable(
-              node.variable.lateSetter ?? node.variable.astVariable,
-            ),
+            writeVariable: node.variable.writeVariable,
             matchedValueType: matchedValueType,
             needsCast: needsCast,
             hasObservableEffect: hasObservableEffect,
@@ -13700,6 +13682,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     required SharedTypeView type,
   }) {
     variable..type = type.unwrapTypeView();
+    if (isClosureContextLoweringEnabled) {
+      _contextAllocationStrategy.handleJoinedPatternVariable(
+        new VariableWithCaptureKind(
+          variable.astVariable,
+          captureKindForVariable(variable),
+        ),
+        location,
+      );
+    }
   }
 
   @override
@@ -14460,34 +14451,22 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       );
       initializer = initializerResult.expression;
     }
-    if (internalVariable is InternalLateVariable &&
-        internalVariable.isLate &&
-        libraryBuilder.loader.target.backendTarget.isLateLocalLoweringEnabled(
-          hasInitializer: internalVariable.hasDeclaredInitializer,
-          isFinal: internalVariable.isFinal,
-          isPotentiallyNullable: internalVariable.type.isPotentiallyNullable,
-        )) {
-      return internalVariable.computeLateLocalLowering(
-        coreTypes: coreTypes,
-        libraryBuilder: libraryBuilder,
-        computeNullable: computeNullable,
-        initializer: initializer,
-        capturedContexts: capturedContexts,
-        variableDeclarationFileOffset: variableDeclaration.fileOffset,
-      );
-    } else {
-      libraryBuilder.loader.dataForTesting
-      // Coverage-ignore(suite): Not run.
-      ?.registerExternalNode(internalVariable, internalVariable.astVariable);
-      return new VariableDeclarationInferenceResult.direct(
-        extern.createVariableDeclaration(
-          internalVariable.astVariable,
+    VariableDeclarationInferenceResult result = internalVariable
+        .createVariableDeclaration(
+          this,
           initializer: initializer,
           capturedContexts: capturedContexts,
           fileOffset: variableDeclaration.fileOffset,
-        ),
+        );
+    if (result case DirectVariableDeclarationInferenceResult()
+        when libraryBuilder.loader.dataForTesting != null) {
+      // Coverage-ignore-block(suite): Not run.
+      libraryBuilder.loader.dataForTesting?.registerExternalNode(
+        internalVariable,
+        result.declaration.variable,
       );
     }
+    return result;
   }
 
   @override
@@ -14561,6 +14540,5 @@ class NamedRecordResult({
 class PatternForVariablesResult({
   required final List<VariableDeclaration> variables,
   required final List<VariableDeclaration> intermediateVariables,
-  required final Map<Variable, Variable> variableAliases,
   required final PatternVariableDeclaration patternVariableDeclaration,
 });

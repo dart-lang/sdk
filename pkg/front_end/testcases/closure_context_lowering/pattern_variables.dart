@@ -7,10 +7,29 @@ patternVariableAssignment((int, String) r) {
   return () => x;
 }
 
-orPatternVariable(dynamic x) {
+joinedVariableMultipleHeads(dynamic x) {
   switch (x) {
     case int y:
     case String(length: int y):
+      return () => y;
+    default:
+      return () => 0;
+  }
+}
+
+joinedVariableSingleHead(dynamic x) {
+  switch (x) {
+    case int y || String(length: int y):
+      return () => y;
+    default:
+      return () => 0;
+  }
+}
+
+joinedVariableMixed(dynamic x) {
+  switch (x) {
+    case int y || String(length: int y):
+    case Object(hashCode: int y):
       return () => y;
     default:
       return () => 0;

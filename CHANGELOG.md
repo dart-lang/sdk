@@ -52,6 +52,9 @@
 
 - Added `JSFunction.length` and `.name` getters.
 
+- Added the `JSArray.fromAsync` static method to create an array from an
+  asynchronous generator or a synchronous list of asynchronous values.
+
 - Added `JSPromise.resolve` and `JSPromise.reject` static methods.
 
 [#61353]: https://github.com/dart-lang/sdk/issues/61353

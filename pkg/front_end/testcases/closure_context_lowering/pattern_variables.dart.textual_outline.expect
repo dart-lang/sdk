@@ -1,3 +1,7 @@
 patternVariableAssignment((int, String) r) {}
 
-orPatternVariable(dynamic x) {}
+joinedVariableMultipleHeads(dynamic x) {}
+
+joinedVariableSingleHead(dynamic x) {}
+
+joinedVariableMixed(dynamic x) {}

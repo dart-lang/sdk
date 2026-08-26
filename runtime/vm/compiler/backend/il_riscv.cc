@@ -2154,11 +2154,7 @@ void LoadCodeUnitsInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ lhu(result, element_address);
       break;
     case compiler::kUnsignedFourBytes:
-#if XLEN == 32
-      __ lw(result, element_address);
-#else
       __ lwu(result, element_address);
-#endif
       break;
     default:
       UNREACHABLE();
@@ -4748,11 +4744,7 @@ void CompareAsMaskInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       const Register rhs = locs()->in(1).reg();
       switch (op_kind()) {
         case Token::kEQ:
-#if XLEN > 32
-          __ subw(result, lhs, rhs);  // lhs op rhs ? 0 : nz
-#else
-          __ sub(result, lhs, rhs);
-#endif
+          __ subw(result, lhs, rhs);    // lhs op rhs ? 0 : nz
           __ snez(result, result);      // lhs op rhs ? 0 : 1
           __ addi(result, result, -1);  // lhs op rhs ? -1 : 0
           break;
@@ -6067,18 +6059,10 @@ static void EmitShiftUint32ByConstant(FlowGraphCompiler* compiler,
     switch (op_kind) {
       case Token::kSHR:
       case Token::kUSHR:
-#if XLEN == 32
-        __ srli(out, left, shift);
-#else
         __ srliw(out, left, shift);
-#endif
         break;
       case Token::kSHL:
-#if XLEN == 32
-        __ slli(out, left, shift);
-#else
         __ slliw(out, left, shift);
-#endif
         break;
       default:
         UNREACHABLE();
@@ -6094,18 +6078,10 @@ static void EmitShiftUint32ByRegister(FlowGraphCompiler* compiler,
   switch (op_kind) {
     case Token::kSHR:
     case Token::kUSHR:
-#if XLEN == 32
-      __ srl(out, left, right);
-#else
       __ srlw(out, left, right);
-#endif
       break;
     case Token::kSHL:
-#if XLEN == 32
-      __ sll(out, left, right);
-#else
       __ sllw(out, left, right);
-#endif
       break;
     default:
       UNREACHABLE();
@@ -6417,21 +6393,13 @@ void BinaryUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ xor_(out, left, right);
         break;
       case Token::kADD:
-#if XLEN == 32
-        __ add(out, left, right);
-#elif XLEN > 32
         __ addw(out, left, right);
-#endif
         break;
       case Token::kSUB:
-#if XLEN == 32
-        __ sub(out, left, right);
-#elif XLEN > 32
         __ subw(out, left, right);
-#endif
         break;
       case Token::kMUL:
-        __ mul(out, left, right);
+        __ mulw(out, left, right);
         break;
       default:
         UNREACHABLE();

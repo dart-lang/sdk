@@ -137,7 +137,6 @@ class A {}
 @internal
 class B {}
 ''');
-    testFilePath = '$testPackageLibPath/b.dart';
     await resolveTestCode('''
 export 'src/a.dart';
 ''');
@@ -151,7 +150,6 @@ class A {}
 @internal
 class B {}
 ''');
-    testFilePath = '$testPackageLibPath/b.dart';
     await resolveTestCode('''
 export 'src/a.dart' show A, B;
 ''');
@@ -166,7 +164,6 @@ import 'package:meta/meta.dart';
 @internal
 class A {}
 ''');
-    testFilePath = '$testPackageLibPath/b.dart';
     await resolveTestCode('''
 export 'src/a.dart' show A;
 ''');

@@ -1055,6 +1055,36 @@ abstract final class DartFixKind {
     DartFixKindPriority.standard + 3,
     "Import library '{0}' with 'show'",
   );
+
+  /// {@template dart.fix.import.libraryProject4}
+  /// Import a deprecated library or declaration.
+  /// {@endtemplate}
+  static const importLibraryProject4 = FixKind(
+    'dart.fix.import.libraryProject4',
+    DartFixKindPriority.standard + 2,
+    "Import deprecated library '{0}'",
+  );
+
+  /// {@macro dart.fix.import.libraryProject4}
+  static const importLibraryProject4Prefixed = FixKind(
+    'dart.fix.import.libraryProject4Prefixed',
+    DartFixKindPriority.standard + 2,
+    "Import deprecated library '{0}' with prefix '{1}'",
+  );
+
+  /// {@macro dart.fix.import.libraryProject4}
+  static const importLibraryProject4PrefixedShow = FixKind(
+    'dart.fix.import.libraryProject4PrefixedShow',
+    DartFixKindPriority.standard + 2,
+    "Import deprecated library '{0}' with prefix '{1}' and 'show'",
+  );
+
+  /// {@macro dart.fix.import.libraryProject4}
+  static const importLibraryProject4Show = FixKind(
+    'dart.fix.import.libraryProject4Show',
+    DartFixKindPriority.standard + 2,
+    "Import deprecated library '{0}' with 'show'",
+  );
   static const importLibraryRemoveShow = FixKind(
     'dart.fix.import.libraryRemoveShow',
     DartFixKindPriority.standard - 1,

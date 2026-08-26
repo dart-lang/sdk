@@ -111,10 +111,6 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     findElement = FindElement(testUnit);
   }
 
-  void putTestFileInTestDir() {
-    testFilePath = '$testPackageTestPath/test.dart';
-  }
-
   Future<void> resolveTestCode(
     String code, {
     List<DiagnosticCode>? ignore,

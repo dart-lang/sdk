@@ -2166,15 +2166,11 @@ late void foo = 0''',
   testVariableDeclaration(
     new InternalVariableDeclaration(
       new InternalLateVariable(
-          name: 'foo',
-          type: const VoidType(),
-          isImplicitlyTyped: false,
-          fileOffset: TreeNode.noOffset,
-        )
-        ..lateGetter = new LocalFunctionVariable(
-          name: 'foo#getter',
-          type: const VoidType(),
-        ),
+        name: 'foo',
+        type: const VoidType(),
+        isImplicitlyTyped: false,
+        fileOffset: TreeNode.noOffset,
+      ),
       initializer: new InternalIntLiteral(
         0,
         '0',
@@ -2189,15 +2185,11 @@ late void foo = 0''',
   testVariableDeclaration(
     new InternalVariableDeclaration(
       new InternalLateVariable(
-          name: 'foo',
-          type: const DynamicType(),
-          isImplicitlyTyped: false,
-          fileOffset: TreeNode.noOffset,
-        )
-        ..lateGetter = new LocalFunctionVariable(
-          name: 'foo#getter',
-          type: const DynamicType(),
-        ),
+        name: 'foo',
+        type: const DynamicType(),
+        isImplicitlyTyped: false,
+        fileOffset: TreeNode.noOffset,
+      ),
       initializer: new InternalIntLiteral(
         0,
         '0',
