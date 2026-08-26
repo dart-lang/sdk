@@ -24,6 +24,7 @@ void main() {
     defineReflectiveTests(ImportLibraryProject3PrefixedWithShowTest);
     defineReflectiveTests(ImportLibraryProject3Test);
     defineReflectiveTests(ImportLibraryProject3WithShowTest);
+    defineReflectiveTests(ImportLibraryProject4Test);
   });
 }
 
@@ -2867,6 +2868,48 @@ void f(Test t) {}
 
     await assertHasFix('''
 import 'package:test/src/a.dart' show Test;
+
+void f(Test t) {}
+''');
+  }
+}
+
+@reflectiveTest
+class ImportLibraryProject4Test extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.importLibraryProject4;
+
+  Future<void> test_deprecatedClass() async {
+    newFile('$testPackageLibPath/a.dart', '''
+@deprecated
+class Test {}
+''');
+
+    await resolveTestCode('''
+void f(Test t) {}
+''');
+
+    await assertHasFix('''
+import 'package:test/a.dart';
+
+void f(Test t) {}
+''');
+  }
+
+  Future<void> test_deprecatedLibrary() async {
+    newFile('$testPackageLibPath/a.dart', '''
+@deprecated
+library a;
+
+class Test {}
+''');
+
+    await resolveTestCode('''
+void f(Test t) {}
+''');
+
+    await assertHasFix('''
+import 'package:test/a.dart';
 
 void f(Test t) {}
 ''');
