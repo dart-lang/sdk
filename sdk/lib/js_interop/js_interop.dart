@@ -587,7 +587,7 @@ extension type JSPromise<T extends JSAny?>._(JSPromiseType _jsPromise)
           'value',
           'JSPromise passed to JSPromise.resolve()',
         )
-      : value;
+      : _resolve<T>(value);
 
   @JS('resolve')
   external static JSPromise<T> _resolve<T extends JSAny?>(T value);
