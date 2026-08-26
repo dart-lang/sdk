@@ -18,6 +18,9 @@ import 'package:analysis_server/src/lsp/handlers/handler_execute_command.dart'
     as lsp;
 import 'package:analysis_server/src/lsp/handlers/handler_states.dart' as lsp;
 import 'package:analysis_server/src/lsp/handlers/handlers.dart' as lsp;
+import 'package:analysis_server/src/lsp/lsp_analysis_server.dart'
+    as lsp
+    show LspInitializationOptions;
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_isolate.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
@@ -508,6 +511,9 @@ abstract class AnalysisServer {
   /// configured by the client, but matches what legacy protocol editors expect
   /// when using LSP-over-Legacy.
   lsp.LspClientCapabilities? get editorClientCapabilities;
+
+  /// The initialization options provided by the client for LSP initialization.
+  lsp.LspInitializationOptions? get initializationOptions;
 
   /// The configuration (user/workspace settings) from the LSP client.
   ///

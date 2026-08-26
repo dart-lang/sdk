@@ -5481,7 +5481,6 @@ void Assembler::BranchOnMonomorphicCheckedEntryJIT(Label* label) {
 }
 
 void Assembler::CombineHashes(Register hash, Register other) {
-#if XLEN >= 64
   // hash += other_hash
   addw(hash, hash, other);
   // hash += hash << 10
@@ -5490,16 +5489,6 @@ void Assembler::CombineHashes(Register hash, Register other) {
   // hash ^= hash >> 6
   srliw(other, hash, 6);
   xor_(hash, hash, other);
-#else
-  // hash += other_hash
-  add(hash, hash, other);
-  // hash += hash << 10
-  slli(other, hash, 10);
-  add(hash, hash, other);
-  // hash ^= hash >> 6
-  srli(other, hash, 6);
-  xor_(hash, hash, other);
-#endif
 }
 
 void Assembler::FinalizeHashForSize(intptr_t bit_size,
@@ -5510,7 +5499,6 @@ void Assembler::FinalizeHashForSize(intptr_t bit_size,
   // reasonably expect that the returned values fill the entire bit space.
   ASSERT(bit_size <= kBitsPerInt32);
   ASSERT(scratch != kNoRegister);
-#if XLEN >= 64
   // hash += hash << 3;
   slliw(scratch, hash, 3);
   addw(hash, hash, scratch);
@@ -5520,17 +5508,6 @@ void Assembler::FinalizeHashForSize(intptr_t bit_size,
   // hash += hash << 15;
   slliw(scratch, hash, 15);
   addw(hash, hash, scratch);
-#else
-  // hash += hash << 3;
-  slli(scratch, hash, 3);
-  add(hash, hash, scratch);
-  // hash ^= hash >> 11;  // Logical shift, unsigned hash.
-  srli(scratch, hash, 11);
-  xor_(hash, hash, scratch);
-  // hash += hash << 15;
-  slli(scratch, hash, 15);
-  add(hash, hash, scratch);
-#endif
   // Size to fit.
   if (bit_size < kBitsPerInt32) {
     AndImmediate(hash, hash, Utils::NBitMask(bit_size));

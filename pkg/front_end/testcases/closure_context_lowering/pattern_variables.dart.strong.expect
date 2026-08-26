@@ -17,7 +17,7 @@ static method patternVariableAssignment((core::int, core::String) r) → dynamic
   }
   return () /* #ctx2 */ → core::int => x;
 }
-static method orPatternVariable(dynamic x) → dynamic/* scope=[
+static method joinedVariableMultipleHeads(dynamic x) → dynamic/* scope=[
   #ctx4: not-captured [x],
 ] */ {
   {
@@ -36,6 +36,65 @@ static method orPatternVariable(dynamic x) → dynamic/* scope=[
         core::int y = #t1{core::int};
         {
           return () /* #ctx6 */ → core::int => y;
+        }
+      }
+    }
+    {
+      {
+        {
+          return () → core::int => 0;
+        }
+      }
+    }
+  }
+}
+static method joinedVariableSingleHead(dynamic x) → dynamic/* scope=[
+  #ctx7: not-captured [x],
+] */ {
+  {
+    final synthesized dynamic #0#0 = x;
+    synthesized core::int #0#2;
+    synthesized core::bool #0#2#isSet = false;
+    /* scope=[
+      #ctx8: direct-captured [y],
+    ] */{
+      hoisted core::int y;
+      if(#0#0 is core::int && (let final dynamic #t8 = y = #0#0{core::int} in true) || #0#0 is core::String && ((#0#2#isSet ?{core::int} #0#2 : let final dynamic #t9 = #0#2#isSet = true in #0#2 = #0#0{core::String}.{core::String::length}{core::int}) is core::int && (let final dynamic #t10 = y = #0#2#isSet ?{core::int} #0#2 : let final dynamic #t11 = #0#2#isSet = true in #0#2 = #0#0{core::String}.{core::String::length}{core::int} in true))) {
+        {
+          return () /* #ctx8 */ → core::int => y;
+        }
+      }
+    }
+    {
+      {
+        {
+          return () → core::int => 0;
+        }
+      }
+    }
+  }
+}
+static method joinedVariableMixed(dynamic x) → dynamic/* scope=[
+  #ctx9: not-captured [x],
+] */ {
+  {
+    final synthesized dynamic #0#0 = x;
+    synthesized core::int #0#2;
+    synthesized core::bool #0#2#isSet = false;
+    synthesized core::int #0#4;
+    synthesized core::bool #0#4#isSet = false;
+    dynamic #t12;
+    /* scope=[
+      #ctx10: not-captured [y#case#0,y#case#1],
+    ] */{
+      lowered hoisted core::int y#case#0;
+      lowered hoisted core::int y#case#1;
+      if((#0#0 is core::int && (let final dynamic #t13 = y#case#0 = #0#0{core::int} in true) || #0#0 is core::String && ((#0#2#isSet ?{core::int} #0#2 : let final dynamic #t14 = #0#2#isSet = true in #0#2 = #0#0{core::String}.{core::String::length}{core::int}) is core::int && (let final dynamic #t15 = y#case#0 = #0#2#isSet ?{core::int} #0#2 : let final dynamic #t16 = #0#2#isSet = true in #0#2 = #0#0{core::String}.{core::String::length}{core::int} in true))) && (let final dynamic #t17 = #t12 = y#case#0 in true) || #0#0 is core::Object && ((#0#4#isSet ?{core::int} #0#4 : let final dynamic #t18 = #0#4#isSet = true in #0#4 = #0#0{core::Object}.{core::Object::hashCode}{core::int}) is core::int && (let final dynamic #t19 = y#case#1 = #0#4#isSet ?{core::int} #0#4 : let final dynamic #t20 = #0#4#isSet = true in #0#4 = #0#0{core::Object}.{core::Object::hashCode}{core::int} in true)) && (let final dynamic #t21 = #t12 = y#case#1 in true))/* scope=[
+        #ctx11: direct-captured [y],
+      ] */ {
+        core::int y = #t12{core::int};
+        {
+          return () /* #ctx11 */ → core::int => y;
         }
       }
     }

@@ -55,6 +55,7 @@ static_weak_reference_*: SkipByDesign # 'weak-tearoff-reference' pragma is suppo
 function_type/*: Skip # Needs checked mode.
 
 [ $compiler == dart2wasm && $runtime == safari ]
+stack_trace/demangle_ctors_test: Skip # Unstable on Safari https://dartbug.com/63543
 stack_trace/full3_test: Skip # Unstable on Safari https://dartbug.com/63543
 stack_trace/rethrow_error_test: Skip # Unstable on Safari https://dartbug.com/63543
 stack_trace/rethrow_nonerror_test: Skip # Unstable on Safari https://dartbug.com/63543

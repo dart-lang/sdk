@@ -15,13 +15,13 @@ initialize(a) {
 }
 
 makeInt16View(buffer, byteOffset, length) =>
-    new Int16List.view(buffer, byteOffset, length);
+    Int16List.view(buffer, byteOffset, length);
 
 makeUint16View(buffer, byteOffset, length) =>
-    new Uint16List.view(buffer, byteOffset, length);
+    Uint16List.view(buffer, byteOffset, length);
 
-makeInt16List(length) => new Int16List(length);
-makeUint16List(length) => new Uint16List(length);
+makeInt16List(length) => Int16List(length);
+makeUint16List(length) => Uint16List(length);
 
 checkSameSize(constructor0, constructor1, constructor2) {
   // Typed lists a1 and a2 share a buffer as follows (bytes):

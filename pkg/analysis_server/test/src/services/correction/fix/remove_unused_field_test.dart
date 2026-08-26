@@ -174,6 +174,33 @@ class A {
 ''');
   }
 
+  Future<void> test_referencedInOtherFieldInitializer() async {
+    await resolveTestCode(r'''
+int compute(int x) => x + 1;
+class A {
+  final int _a;
+  final int _b;
+  A(this._a) : _b = compute(_a);
+  int get b => _b;
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void>
+  test_referencedInOtherFieldInitializer_primaryConstructor() async {
+    await resolveTestCode(r'''
+int compute(int x) => x + 1;
+class A(this._a) {
+  final int _a;
+  final int _b;
+  this : _b = compute(_a);
+  int get b => _b;
+}
+''');
+    await assertNoFix();
+  }
+
   Future<void> test_unusedField_notUsed_assign() async {
     await resolveTestCode(r'''
 class A {
@@ -305,6 +332,23 @@ class A {
   A() {
     print(x);
   }
+}
+''');
+  }
+
+  Future<void>
+  test_unusedField_primaryConstructorFieldInitializer_multiple() async {
+    await resolveTestCode(r'''
+class A() {
+  int _a;
+  int b;
+  this : _a = 1, b = 2;
+}
+''');
+    await assertHasFix(r'''
+class A() {
+  int b;
+  this : b = 2;
 }
 ''');
   }

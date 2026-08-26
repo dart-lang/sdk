@@ -726,5 +726,5 @@ abstract class ConstructorContext {
   FunctionSignature get signature;
 
   /// The variable used for `this`, if any.
-  Variable? get thisVariable;
+  InternalDeclaredVariable? get thisVariable;
 }

@@ -12,9 +12,9 @@ import 'dart:typed_data';
 import 'package:expect/expect.dart';
 
 void testClampLowerGreaterThanUpper() {
-  Float32x4 l = new Float32x4(1.0, 1.0, 1.0, 1.0);
-  Float32x4 u = new Float32x4(-1.0, -1.0, -1.0, -1.0);
-  Float32x4 z = new Float32x4.zero();
+  Float32x4 l = Float32x4(1.0, 1.0, 1.0, 1.0);
+  Float32x4 u = Float32x4(-1.0, -1.0, -1.0, -1.0);
+  Float32x4 z = Float32x4.zero();
   Float32x4 a = z.clamp(l, u);
   Expect.equals(a.x, 1.0);
   Expect.equals(a.y, 1.0);
@@ -23,9 +23,9 @@ void testClampLowerGreaterThanUpper() {
 }
 
 void testClamp() {
-  Float32x4 l = new Float32x4(-1.0, -1.0, -1.0, -1.0);
-  Float32x4 u = new Float32x4(1.0, 1.0, 1.0, 1.0);
-  Float32x4 z = new Float32x4.zero();
+  Float32x4 l = Float32x4(-1.0, -1.0, -1.0, -1.0);
+  Float32x4 u = Float32x4(1.0, 1.0, 1.0, 1.0);
+  Float32x4 z = Float32x4.zero();
   Float32x4 a = z.clamp(l, u);
   Expect.equals(a.x, 0.0);
   Expect.equals(a.y, 0.0);

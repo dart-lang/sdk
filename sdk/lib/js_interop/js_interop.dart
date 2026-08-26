@@ -527,6 +527,14 @@ extension type JSArray<T extends JSAny?>._(JSArrayType _jsArray)
   @Since('3.6')
   external static JSArray<T> from<T extends JSAny>(JSObject arrayLike);
 
+  /// Creates a new, shallow-copied JavaScript `Array` instance from an
+  /// JavaScript asynchronous iterable or array-like object that may contain
+  /// JavaScript promises.
+  @Since('3.14')
+  external static JSPromise<JSArray<T>> fromAsync<T extends JSAny>(
+    JSObject arrayLike,
+  );
+
   /// The length in elements of this `Array`.
   @Since('3.6')
   external int get length;
@@ -568,6 +576,26 @@ extension type JSArray<T extends JSAny?>._(JSArrayType _jsArray)
 extension type JSPromise<T extends JSAny?>._(JSPromiseType _jsPromise)
     implements JSObject, JSPromiseType {
   external JSPromise(JSFunction executor);
+
+  /// Returns a promise that resolves to [value].
+  ///
+  /// Throws an [ArgumentError] if [value] is already a [JSPromise].
+  @Since('3.14')
+  static JSPromise<T> resolve<T extends JSAny?>(T value) =>
+      value.isA<JSPromise>()
+      ? throw ArgumentError.value(
+          value,
+          'value',
+          'JSPromise passed to JSPromise.resolve()',
+        )
+      : _resolve<T>(value);
+
+  @JS('resolve')
+  external static JSPromise<T> _resolve<T extends JSAny?>(T value);
+
+  /// Returns a promise that rejects with [reason].
+  @Since('3.14')
+  external static JSPromise<Null> reject(JSAny reason);
 }
 
 /// Exception for when a [JSPromise] that is converted via

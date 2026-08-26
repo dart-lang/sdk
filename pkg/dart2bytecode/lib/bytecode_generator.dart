@@ -2189,7 +2189,18 @@ class BytecodeGenerator extends RecursiveVisitor {
         }
       }
 
-      asm.emitFrame(locals.frameSize - locals.numParameters);
+      // Frame(rD) initializes the frame slots which are not initialized yet,
+      // so rD is the frame size minus the number of slots already covered by
+      // the entry opcode. EntryOptional copies `numParameters` parameters,
+      // but EntrySuspendable covers one more slot: it nulls the reserved
+      // SuspendState local FP[kKBCSuspendStateSlotFromFp] and then copies the
+      // parameters into locals 1..numParameters. `numParameters` doesn't
+      // account for that reserved slot, so it is subtracted separately.
+      asm.emitFrame(
+        locals.frameSize -
+            locals.numParameters -
+            (locals.isSuspendableFunction ? 1 : 0),
+      );
     } else {
       asm.emitEntry(locals.frameSize);
     }

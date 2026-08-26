@@ -39,9 +39,6 @@ class AbstractContextTest
   final Map<String, String> _declaredVariables = {};
   AnalysisContextCollectionImpl? _analysisContextCollection;
 
-  // TODO(scheglov): Stop writing into it. Convert into getter.
-  late String testFilePath = '$testPackageLibPath/test.dart';
-
   List<AnalysisDriver> get allDrivers {
     _createAnalysisContexts();
     return _analysisContextCollection!.contexts.map((e) => e.driver).toList();
@@ -75,6 +72,8 @@ class AbstractContextTest
   }
 
   File get testFile => getFile(testFilePath);
+
+  String get testFilePath => '$testPackageLibPath/test.dart';
 
   String get testPackageLibPath => '$testPackageRootPath/lib';
 

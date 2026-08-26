@@ -52,6 +52,11 @@
 
 - Added `JSFunction.length` and `.name` getters.
 
+- Added the `JSArray.fromAsync` static method to create an array from an
+  asynchronous generator or a synchronous list of asynchronous values.
+
+- Added `JSPromise.resolve` and `JSPromise.reject` static methods.
+
 - Added extension methods `FutureOr<JSAny>.toJSPromiseOrValue`
   (`FutureOrToJSAny`), `FutureOr<JSAny?>.toJSPromiseOrValue`
   (`FutureOrToNullableJSAny`), `JSAny.toDartFutureOr` (`JSAnyToFutureOr`), and

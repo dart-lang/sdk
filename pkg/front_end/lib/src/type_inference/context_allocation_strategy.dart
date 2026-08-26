@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart';
 import 'package:kernel/ast.dart';
 
 import '../util/local_stack.dart';
@@ -47,6 +48,9 @@ abstract class ContextAllocationStrategy<Info extends ScopeProviderInfo> {
   StringBuffer? _debugLog;
 
   Info? get _currentScopeProviderInfo => _scopeProviderInfoStack.currentOrNull;
+
+  PatternScopeListener<Info> _patternScopeBuilder =
+      new PatternScopeListener<Info>();
 
   void _writeDebugLine(String line) {
     if (_enableDebugLogging) {
@@ -100,9 +104,8 @@ abstract class ContextAllocationStrategy<Info extends ScopeProviderInfo> {
     _scopeProviderInfoStack.pop();
   }
 
-  Scope _ensureCurrentScope() {
-    assert(_currentScopeProviderInfo != null);
-    return _currentScopeProviderInfo!.scope ??= new Scope(contexts: []);
+  static Scope _ensureScope(ScopeProviderInfo info) {
+    return info.scope ??= new Scope(contexts: []);
   }
 
   Scope _ensureScopeWithThis() {
@@ -121,7 +124,16 @@ abstract class ContextAllocationStrategy<Info extends ScopeProviderInfo> {
   VariableContext _ensureVariableContextInCurrentScope({
     required CaptureKind captureKind,
   }) {
-    Scope scope = _ensureCurrentScope();
+    return ensureVariableContextInScopeProviderInfo(
+      info: _currentScopeProviderInfo!,
+      captureKind: captureKind,
+    );
+  }
+
+  static VariableContext ensureVariableContextInScopeProviderInfo<
+    Info extends ScopeProviderInfo
+  >({required Info info, required CaptureKind captureKind}) {
+    Scope scope = _ensureScope(info);
     VariableContext? context = _fetchVariableContextOfScope(
       scope: scope,
       captureKind: captureKind,
@@ -135,7 +147,7 @@ abstract class ContextAllocationStrategy<Info extends ScopeProviderInfo> {
     }
   }
 
-  VariableContext? _fetchVariableContextOfScope({
+  static VariableContext? _fetchVariableContextOfScope({
     required Scope scope,
     required CaptureKind captureKind,
   }) {
@@ -214,6 +226,49 @@ abstract class ContextAllocationStrategy<Info extends ScopeProviderInfo> {
         captureKind: parameter.captureKind,
       );
     }
+  }
+
+  void handleAfterCaseHeads(
+    List<VariableWithCaptureKind<VariableBase>> variables,
+  ) {
+    _patternScopeBuilder.handleAfterCaseHeads(
+      _currentScopeProviderInfo!,
+      variables,
+    );
+  }
+
+  void handleSwitchCaseBeginning() {
+    _patternScopeBuilder.handleSwitchCaseBeginning();
+  }
+
+  void handleInternalVariablePattern(
+    VariableWithCaptureKind<VariableBase> variable,
+  ) {
+    _patternScopeBuilder.handleInternalVariablePattern(
+      _currentScopeProviderInfo!,
+      variable,
+    );
+  }
+
+  void handleJoinedPatternVariable(
+    VariableWithCaptureKind<VariableBase> variable,
+    JoinedPatternVariableLocation location,
+  ) {
+    _patternScopeBuilder.handleJoinedPatternVariable(
+      _currentScopeProviderInfo!,
+      variable,
+      location,
+    );
+  }
+
+  void handleSwitchBeforeAlternative({
+    required int caseIndex,
+    required int subIndex,
+  }) {
+    _patternScopeBuilder.handleSwitchBeforeAlternative(
+      caseIndex: caseIndex,
+      subIndex: subIndex,
+    );
   }
 }
 
@@ -314,7 +369,7 @@ class LoopDepthAllocationStrategy
         captureKind != CaptureKind.notCaptured &&
         currentScope.capturedVariableCollector != null;
     if (delegateToCollector) {
-      _fetchVariableContextOfScope(
+      ContextAllocationStrategy._fetchVariableContextOfScope(
         scope: currentScope.capturedVariableCollector!.scope!,
         captureKind: captureKind,
       )!.addVariable(variable);
@@ -340,4 +395,283 @@ class LoopDepthAllocationStrategy
 class VariableWithCaptureKind<Variable extends VariableBase>(
   var Variable variable,
   var CaptureKind captureKind,
-);
+) {
+  @override
+  String toString() {
+    return "VariableWithCaptureKind(variable=${variable}, "
+        "captureKind=${captureKind})";
+  }
+}
+
+/// The root of the hierarchy of events to build scopes and allocate variables.
+sealed class PatternScopeBuilderEvent<Info extends ScopeProviderInfo> {
+  void allocateVariables();
+
+  void _allocateVariableInScopeProviderInfo(
+    ScopeProviderInfo info,
+    VariableWithCaptureKind variable,
+  ) {
+    // TODO(cstefantsova): Should this be delegated to
+    //  [ContextAllocationStrategy].
+    ContextAllocationStrategy.ensureVariableContextInScopeProviderInfo(
+      info: info,
+      captureKind: variable.captureKind,
+    ).addVariable(variable.variable);
+  }
+}
+
+/// The event of reaching the end of all heads of a switch case.
+class AfterCaseHeadsEvent<Info extends ScopeProviderInfo>
+    extends PatternScopeBuilderEvent<Info> {
+  final ScopeProviderInfo info;
+  final List<VariableWithCaptureKind<VariableBase>> variables;
+
+  new(this.info, this.variables);
+
+  @override
+  void allocateVariables() {
+    for (VariableWithCaptureKind variable in variables) {
+      _allocateVariableInScopeProviderInfo(info, variable);
+    }
+  }
+
+  @override
+  String toString() {
+    return "AfterCaseHeadsEvent(info=${info}, variables=${variables})";
+  }
+}
+
+/// The event of an [InternalVariablePattern] occurring.
+class InternalVariablePatternEvent<Info extends ScopeProviderInfo>
+    extends PatternScopeBuilderEvent<Info> {
+  final ScopeProviderInfo info;
+  final VariableWithCaptureKind<VariableBase> variable;
+
+  new(this.info, this.variable);
+
+  @override
+  void allocateVariables() {
+    _allocateVariableInScopeProviderInfo(info, variable);
+  }
+
+  @override
+  String toString() {
+    return "InternalVariablePatternEvent(info=${info}, variable=${variable})";
+  }
+}
+
+/// The event of a joined pattern variable being created.
+class JoinedPatternVariableEvent<Info extends ScopeProviderInfo>
+    extends PatternScopeBuilderEvent<Info> {
+  final ScopeProviderInfo info;
+  final VariableWithCaptureKind<VariableBase> variable;
+  final JoinedPatternVariableLocation location;
+
+  new(this.info, this.variable, this.location);
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void allocateVariables() {
+    _allocateVariableInScopeProviderInfo(info, variable);
+  }
+
+  @override
+  String toString() {
+    return "JoinedPatternVariableEvent(info=${info}, variable=${variable}, "
+        "location=${location})";
+  }
+}
+
+/// The builder for a single case head within a pattern switch case.
+class PatternSwitchCaseHeadScopeBuilder<Info extends ScopeProviderInfo> {
+  List<PatternScopeBuilderEvent<Info>> _events = [];
+  JoinedPatternVariableEvent<Info>? _joinedPatternVariableEvent;
+
+  /// Handle a variable pattern event as a part of the head's pattern.
+  void handleInternalVariablePatternEvent(
+    InternalVariablePatternEvent<Info> event,
+  ) {
+    _events.add(event);
+  }
+
+  // Coverage-ignore(suite): Not run.
+  /// Handle a joint variable in the case head.
+  ///
+  /// A joint variable appears when there is or-pattern, and each of the
+  /// alternatives declares an identical variable.
+  void handleJoinedPatternVariableEvent(
+    JoinedPatternVariableEvent<Info> event,
+  ) {
+    _joinedPatternVariableEvent = event;
+  }
+
+  /// Allocates the variables of the case head in the current context.
+  ///
+  /// If the head has a joint variable, that is, if the pattern in the head
+  /// contains or-pattern, where each of the alternatives declares the joint
+  /// variable, only the joint variable is allocated. Otherwise, all of the
+  /// variables in the pattern are allocated.
+  void allocateVariables() {
+    if (_joinedPatternVariableEvent case var joinedPatternVariableEvent?) {
+      // Coverage-ignore-block(suite): Not run.
+      joinedPatternVariableEvent.allocateVariables();
+    } else {
+      for (PatternScopeBuilderEvent<Info> event in _events) {
+        event.allocateVariables();
+      }
+    }
+  }
+}
+
+/// The builder for a pattern switch case.
+class PatternSwitchCaseScopeBuilder<Info extends ScopeProviderInfo> {
+  List<PatternSwitchCaseHeadScopeBuilder<Info>> _headBuilders = [];
+
+  PatternSwitchCaseHeadScopeBuilder<Info> get _currentHeadBuilder {
+    return _headBuilders.last;
+  }
+
+  /// Handle the end of all case heads.
+  ///
+  /// This is supposed to be the last event handled by the
+  /// [PatternSwitchCaseScopeBuilder].
+  void handleAfterCaseHeads(
+    Info info,
+    List<VariableWithCaptureKind<VariableBase>> variables,
+  ) {
+    for (PatternSwitchCaseHeadScopeBuilder<Info> headBuilder in _headBuilders) {
+      headBuilder.allocateVariables();
+    }
+
+    PatternScopeBuilderEvent<Info> event = new AfterCaseHeadsEvent<Info>(
+      info,
+      variables,
+    );
+
+    event.allocateVariables();
+  }
+
+  /// Handle a variable pattern event as a part of the head's pattern.
+  void handleInternalVariablePatternEvent(
+    InternalVariablePatternEvent<Info> event,
+  ) {
+    _currentHeadBuilder.handleInternalVariablePatternEvent(event);
+  }
+
+  /// Handle a joined pattern variable.
+  ///
+  /// This event is emitted either at the end of a head containing an
+  /// or-pattern with a joint variable or at the end of all heads, all of which
+  /// contain a reference to the joint variable. [location] is the
+  /// differentiator between the cases.
+  void handleJoinedPatternVariable(
+    Info info,
+    VariableWithCaptureKind<VariableBase> variable,
+    JoinedPatternVariableLocation location,
+  ) {
+    JoinedPatternVariableEvent<Info> event = new JoinedPatternVariableEvent(
+      info,
+      variable,
+      location,
+    );
+
+    switch (location) {
+      case JoinedPatternVariableLocation.singlePattern:
+        // Coverage-ignore(suite): Not run.
+        // This is the case for the joint variable of a single pattern of a
+        // case head. Let the head builder handle it.
+        _currentHeadBuilder.handleJoinedPatternVariableEvent(event);
+      case JoinedPatternVariableLocation.sharedCaseScope:
+      // This is the case of a joint variable among all of the case heads. It
+      // also means that the end of the case heads is reached. Do nothing,
+      // since [handleAfterCaseHeads] handles the joint variables too.
+    }
+  }
+
+  /// Handle a new switch case head.
+  void handleSwitchBeforeAlternative({
+    required int caseIndex,
+    required int subIndex,
+  }) {
+    _headBuilders.add(new PatternSwitchCaseHeadScopeBuilder<Info>());
+  }
+}
+
+/// The builder for a variable pattern.
+class InternalVariablePatternScopeBuilder<Info extends ScopeProviderInfo> {
+  PatternSwitchCaseScopeBuilder<Info>? patternSwitchCaseScopeBuilder;
+
+  new(this.patternSwitchCaseScopeBuilder);
+
+  /// Handle the internal variable pattern depending on the context.
+  ///
+  /// In case [patternSwitchCaseScopeBuilder] is null, the internal variable
+  /// pattern stands on its own, and its variable should be allocated in the
+  /// current scope. Otherwise, let the enclosing pattern handle it.
+  void handleInternalVariablePattern(
+    Info info,
+    VariableWithCaptureKind<VariableBase> variable,
+  ) {
+    InternalVariablePatternEvent<Info> event =
+        new InternalVariablePatternEvent<Info>(info, variable);
+
+    if (patternSwitchCaseScopeBuilder case var patternSwitchCaseScopeBuilder?) {
+      patternSwitchCaseScopeBuilder.handleInternalVariablePatternEvent(event);
+    } else {
+      event.allocateVariables();
+    }
+  }
+}
+
+/// Listens to events and builds scopes and allocates variables.
+///
+/// This is a listener object that manages the scope builder objects.
+class PatternScopeListener<Info extends ScopeProviderInfo> {
+  PatternSwitchCaseScopeBuilder<Info>? patternSwitchCaseScopeBuilder;
+
+  /// The event of the beginning of a switch case.
+  void handleSwitchCaseBeginning() {
+    patternSwitchCaseScopeBuilder = new PatternSwitchCaseScopeBuilder<Info>();
+  }
+
+  /// The event of reaching the end of all heads of a switch case.
+  void handleAfterCaseHeads(
+    Info info,
+    List<VariableWithCaptureKind<VariableBase>> variables,
+  ) {
+    return patternSwitchCaseScopeBuilder!.handleAfterCaseHeads(info, variables);
+  }
+
+  /// The event of an [InternalVariablePattern] occurring.
+  void handleInternalVariablePattern(
+    Info info,
+    VariableWithCaptureKind<VariableBase> variable,
+  ) {
+    new InternalVariablePatternScopeBuilder<Info>(patternSwitchCaseScopeBuilder)
+        .handleInternalVariablePattern(info, variable);
+  }
+
+  /// The event of a joined pattern variable being created.
+  void handleJoinedPatternVariable(
+    Info info,
+    VariableWithCaptureKind<VariableBase> variable,
+    JoinedPatternVariableLocation location,
+  ) {
+    patternSwitchCaseScopeBuilder!.handleJoinedPatternVariable(
+      info,
+      variable,
+      location,
+    );
+  }
+
+  /// The event of a new case head beginning.
+  void handleSwitchBeforeAlternative({
+    required int caseIndex,
+    required int subIndex,
+  }) {
+    patternSwitchCaseScopeBuilder!.handleSwitchBeforeAlternative(
+      caseIndex: caseIndex,
+      subIndex: subIndex,
+    );
+  }
+}

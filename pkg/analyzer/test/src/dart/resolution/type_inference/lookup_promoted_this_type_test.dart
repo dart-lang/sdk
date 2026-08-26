@@ -10,9 +10,12 @@ library;
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../../util/diff.dart';
 import '../context_collection_resolution.dart';
 import '../node_text_expectations.dart';
 
@@ -27,313 +30,207 @@ main() {
 /// Test cases that are run with anonymous methods disabled.
 @reflectiveTest
 class LookupPromotedThisTypeTest extends PubPackageResolutionTest {
+  static final _promotedThisTypeExpectation = RegExp(
+    r'/\*this:\s*([^*]*?)\s*\*/',
+  );
+
+  Future<void> assertPromotedThisTypes(String code) async {
+    // These markers identify the ranges to rewrite in the original test code,
+    // preserving any diagnostic expectations that it contains.
+    var expectedMarkers = _promotedThisTypeExpectation
+        .allMatches(code)
+        .toList();
+
+    if (expectedMarkers.isEmpty) {
+      fail('Expected at least one promoted-this type marker.');
+    }
+
+    var result = await resolveTestCodeWithDiagnostics(code);
+
+    // These markers provide query offsets in the code that was actually
+    // resolved, after diagnostic expectations have been removed.
+    var resolvedMarkers = _promotedThisTypeExpectation
+        .allMatches(result.content)
+        .toList();
+    if (resolvedMarkers.length != expectedMarkers.length) {
+      fail(
+        'Expected ${expectedMarkers.length} promoted-this type markers in the '
+        'resolved code, found ${resolvedMarkers.length}.',
+      );
+    }
+
+    var actualCode = StringBuffer();
+    var previousEnd = 0;
+    for (var i = 0; i < expectedMarkers.length; i++) {
+      var expectedMarker = expectedMarkers[i];
+      var resolvedMarker = resolvedMarkers[i];
+      var node = NodeLocator2(resolvedMarker.start).searchWithin(result.unit);
+      if (node == null) {
+        fail('No AST node at offset ${resolvedMarker.start}.');
+      }
+
+      // Local function bodies cannot be queried directly, so use the outermost
+      // enclosing body whose flow analysis log covers the marker.
+      FunctionBody? outermostBody;
+      for (var ancestor in node.withAncestors2.whereType<FunctionBody>()) {
+        outermostBody = ancestor;
+      }
+      if (outermostBody == null) {
+        fail('No enclosing function body at offset ${resolvedMarker.start}.');
+      }
+
+      var type = outermostBody.lookupPromotedThisType(
+        offset: resolvedMarker.start,
+      );
+      var typeText = type == null ? 'null' : typeString(type);
+
+      actualCode
+        ..write(code.substring(previousEnd, expectedMarker.start))
+        ..write('/*this: $typeText*/');
+      previousEnd = expectedMarker.end;
+    }
+    actualCode.write(code.substring(previousEnd));
+
+    var actual = actualCode.toString();
+    if (actual != code) {
+      NodeTextExpectationsCollector.add(actual);
+      if (NodeTextExpectationsCollector.shouldPrintFailureDetails) {
+        printPrettyDiff(code, actual);
+      }
+      fail('See the difference above.');
+    }
+  }
+
   test_thisPromotion_inFactoryConstructor() async {
     // Factory constructors don't have access to `this`, but it's still
     // important to make sure that querying the promoted type of `this` doesn't
     // lead to a crash.
-    var result = await resolveTestCodeWithDiagnostics(r'''
+    await assertPromotedThisTypes(r'''
 class C {
   factory C() {
-    /* target */
+    /*this: null*/
     throw '';
   }
 }
 ''');
-    var body = result.findNode.singleConstructorDeclaration.body;
-    expect(
-      body.lookupPromotedThisType(
-        offset: result.content.indexOf('/* target */'),
-      ),
-      isNull,
-    );
   }
 
   test_thisPromotion_inForLoop() async {
     // This test verifies that the `lookupPromotedThisType` query properly
     // understands that in a `for` loop, the "updaters" part executes *after*
     // the body.
-    var result = await resolveTestCodeWithDiagnostics(r'''
+    await assertPromotedThisTypes(r'''
 class C {
   f() {
-    for (int i = 0; i < 10 /* target 1 */; /* target 2 */ i++) {
-      /* target 3 */
+    for (int i = 0; i < 10 /*this: null*/; /*this: D*/ i++) {
+      /*this: null*/
       this as D;
-      /* target 4 */
+      /*this: D*/
     }
-    /* target 5 */
+    /*this: null*/
   }
 }
 class D extends C {}
 ''');
-    var body = result.findNode.singleMethodDeclaration.body;
-    expect(
-      body.lookupPromotedThisType(
-        offset: result.content.indexOf('/* target 1 */'),
-      ),
-      isNull,
-    );
-    expect(
-      body
-          .lookupPromotedThisType(
-            offset: result.content.indexOf('/* target 2 */'),
-          )!
-          .toString(),
-      'D',
-    );
-    expect(
-      body.lookupPromotedThisType(
-        offset: result.content.indexOf('/* target 3 */'),
-      ),
-      isNull,
-    );
-    expect(
-      body
-          .lookupPromotedThisType(
-            offset: result.content.indexOf('/* target 4 */'),
-          )!
-          .toString(),
-      'D',
-    );
-    expect(
-      body.lookupPromotedThisType(
-        offset: result.content.indexOf('/* target 5 */'),
-      ),
-      isNull,
-    );
   }
 
   test_thisPromotion_inGenerativeConstructor() async {
-    var result = await resolveTestCodeWithDiagnostics(r'''
+    await assertPromotedThisTypes(r'''
 class C {
   C() {
-    /* target 1 */
+    /*this: null*/
     if (this is D) {
-      /* target 2 */
+      /*this: D*/
     }
-    /* target 3 */
+    /*this: null*/
   }
 }
 class D extends C {}
 ''');
-    var body = result.findNode.singleConstructorDeclaration.body;
-    expect(
-      body.lookupPromotedThisType(
-        offset: result.content.indexOf('/* target 1 */'),
-      ),
-      isNull,
-    );
-    expect(
-      body
-          .lookupPromotedThisType(
-            offset: result.content.indexOf('/* target 2 */'),
-          )!
-          .toString(),
-      'D',
-    );
-    expect(
-      body.lookupPromotedThisType(
-        offset: result.content.indexOf('/* target 3 */'),
-      ),
-      isNull,
-    );
   }
 
   test_thisPromotion_inMethod() async {
-    var result = await resolveTestCodeWithDiagnostics(r'''
+    await assertPromotedThisTypes(r'''
 class C {
   f() {
-    /* target 1 */
+    /*this: null*/
     if (this is D) {
-      /* target 2 */
+      /*this: D*/
     }
-    /* target 3 */
+    /*this: null*/
   }
 }
 class D extends C {}
 ''');
-    var body = result.findNode.singleMethodDeclaration.body;
-    expect(
-      body.lookupPromotedThisType(
-        offset: result.content.indexOf('/* target 1 */'),
-      ),
-      isNull,
-    );
-    expect(
-      body
-          .lookupPromotedThisType(
-            offset: result.content.indexOf('/* target 2 */'),
-          )!
-          .toString(),
-      'D',
-    );
-    expect(
-      body.lookupPromotedThisType(
-        offset: result.content.indexOf('/* target 3 */'),
-      ),
-      isNull,
-    );
   }
 
   test_thisPromotion_inPatternAssignment() async {
     // This test verifies that the `lookupPromotedThisType` query properly
     // understands that in a pattern assignment, the pattern executes *after*
     // the RHS.
-    var result = await resolveTestCodeWithDiagnostics(r'''
+    await assertPromotedThisTypes(r'''
 class C {
   f() {
-    (/* target 1 */ _ as D /* target 2 */) = /* target 3 */ this;
-    /* target 4 */
+    (/*this: null*/ _ as D /*this: D*/) = /*this: null*/ this;
+    /*this: D*/
   }
 }
 class D extends C {}
 ''');
-    var body = result.findNode.singleMethodDeclaration.body;
-    expect(
-      body.lookupPromotedThisType(
-        offset: result.content.indexOf('/* target 1 */'),
-      ),
-      isNull,
-    );
-    expect(
-      body
-          .lookupPromotedThisType(
-            offset: result.content.indexOf('/* target 2 */'),
-          )!
-          .toString(),
-      'D',
-    );
-    expect(
-      body.lookupPromotedThisType(
-        offset: result.content.indexOf('/* target 3 */'),
-      ),
-      isNull,
-    );
-    expect(
-      body
-          .lookupPromotedThisType(
-            offset: result.content.indexOf('/* target 4 */'),
-          )!
-          .toString(),
-      'D',
-    );
   }
 
   test_thisPromotion_inPatternVariableDeclaration() async {
     // This test verifies that the `lookupPromotedThisType` query properly
     // understands that in a pattern variable declaration, the pattern executes
     // *after* the initializer.
-    var result = await resolveTestCodeWithDiagnostics(r'''
+    await assertPromotedThisTypes(r'''
 class C {
   f() {
-    var (/* target 1 */ _ as D /* target 2 */) = /* target 3 */ this;
-    /* target 4 */
+    var (/*this: null*/ _ as D /*this: D*/) = /*this: null*/ this;
+    /*this: D*/
   }
 }
 class D extends C {}
 ''');
-    var body = result.findNode.singleMethodDeclaration.body;
-    expect(
-      body.lookupPromotedThisType(
-        offset: result.content.indexOf('/* target 1 */'),
-      ),
-      isNull,
-    );
-    expect(
-      body
-          .lookupPromotedThisType(
-            offset: result.content.indexOf('/* target 2 */'),
-          )!
-          .toString(),
-      'D',
-    );
-    expect(
-      body.lookupPromotedThisType(
-        offset: result.content.indexOf('/* target 3 */'),
-      ),
-      isNull,
-    );
-    expect(
-      body
-          .lookupPromotedThisType(
-            offset: result.content.indexOf('/* target 4 */'),
-          )!
-          .toString(),
-      'D',
-    );
   }
 
   test_thisPromotion_inPrimaryConstructorBody() async {
-    var result = await resolveTestCodeWithDiagnostics(r'''
+    await assertPromotedThisTypes(r'''
 class C() {
   this {
-    /* target 1 */
+    /*this: null*/
     if (this is D) {
-      /* target 2 */
+      /*this: D*/
     }
-    /* target 3 */
+    /*this: null*/
   }
 }
 class D extends C {}
 ''');
-    var body = result.findNode.singlePrimaryConstructorBody.body;
-    expect(
-      body.lookupPromotedThisType(
-        offset: result.content.indexOf('/* target 1 */'),
-      ),
-      isNull,
-    );
-    expect(
-      body
-          .lookupPromotedThisType(
-            offset: result.content.indexOf('/* target 2 */'),
-          )!
-          .toString(),
-      'D',
-    );
-    expect(
-      body.lookupPromotedThisType(
-        offset: result.content.indexOf('/* target 3 */'),
-      ),
-      isNull,
-    );
   }
 
   test_thisPromotion_inStaticMethod() async {
     // Static methods don't have access to `this`, but it's still important to
     // make sure that querying the promoted type of `this` doesn't lead to a
     // crash.
-    var result = await resolveTestCodeWithDiagnostics(r'''
+    await assertPromotedThisTypes(r'''
 class C {
   static f() {
-    /* target */
+    /*this: null*/
   }
 }
 ''');
-    var body = result.findNode.singleMethodDeclaration.body;
-    expect(
-      body.lookupPromotedThisType(
-        offset: result.content.indexOf('/* target */'),
-      ),
-      isNull,
-    );
   }
 
   test_thisPromotion_inTopLevelFunction() async {
     // `this` isn't meaningful in a top level function, but it's still important
     // to make sure that querying the promoted type of `this` doesn't lead to a
     // crash.
-    var result = await resolveTestCodeWithDiagnostics(r'''
+    await assertPromotedThisTypes(r'''
 f() {
-  /* target */
+  /*this: null*/
 }
 ''');
-    var body = result.findNode.singleFunctionBody;
-    expect(
-      body.lookupPromotedThisType(
-        offset: result.content.indexOf('/* target */'),
-      ),
-      isNull,
-    );
   }
 
   test_thisPromotion_withHorizontalInference_firstArgument() async {
@@ -341,54 +238,17 @@ f() {
     // be visited after all other arguments, so a promotion in a
     // non-function-literal argument can affect the type of `this` in an earlier
     // function literal argument.
-    var result = await resolveTestCodeWithDiagnostics(r'''
+    await assertPromotedThisTypes(r'''
 class C {
   f() {
-    g /* target 1 */ (
-      () { /* target 2 */ }, /* target 3 */ this as D /* target 4 */)
-      /* target 5 */ ;
+    g /*this: null*/ (
+      () { /*this: D*/ }, /*this: null*/ this as D /*this: D*/)
+      /*this: D*/ ;
   }
 }
 class D extends C {}
 g(Object? x, Object? y) {}
 ''');
-    var body = result.findNode.singleMethodDeclaration.body;
-    expect(
-      body.lookupPromotedThisType(
-        offset: result.content.indexOf('/* target 1 */'),
-      ),
-      isNull,
-    );
-    expect(
-      body
-          .lookupPromotedThisType(
-            offset: result.content.indexOf('/* target 2 */'),
-          )!
-          .toString(),
-      'D',
-    );
-    expect(
-      body.lookupPromotedThisType(
-        offset: result.content.indexOf('/* target 3 */'),
-      ),
-      isNull,
-    );
-    expect(
-      body
-          .lookupPromotedThisType(
-            offset: result.content.indexOf('/* target 4 */'),
-          )!
-          .toString(),
-      'D',
-    );
-    expect(
-      body
-          .lookupPromotedThisType(
-            offset: result.content.indexOf('/* target 5 */'),
-          )!
-          .toString(),
-      'D',
-    );
   }
 
   test_thisPromotion_withHorizontalInference_notFirstArgument() async {
@@ -396,54 +256,17 @@ g(Object? x, Object? y) {}
     // be visited after all other arguments, so a promotion in a
     // non-function-literal argument can affect the type of `this` in an earlier
     // function literal argument.
-    var result = await resolveTestCodeWithDiagnostics(r'''
+    await assertPromotedThisTypes(r'''
 class C {
   f() {
-    g(0 /* target 1 */,
-      () { /* target 2 */ }, /* target 3 */ this as D /* target 4 */)
-      /* target 5 */ ;
+    g(0 /*this: null*/,
+      () { /*this: D*/ }, /*this: null*/ this as D /*this: D*/)
+      /*this: D*/ ;
   }
 }
 class D extends C {}
 g(Object? x, Object? y, Object? z) {}
 ''');
-    var body = result.findNode.singleMethodDeclaration.body;
-    expect(
-      body.lookupPromotedThisType(
-        offset: result.content.indexOf('/* target 1 */'),
-      ),
-      isNull,
-    );
-    expect(
-      body
-          .lookupPromotedThisType(
-            offset: result.content.indexOf('/* target 2 */'),
-          )!
-          .toString(),
-      'D',
-    );
-    expect(
-      body.lookupPromotedThisType(
-        offset: result.content.indexOf('/* target 3 */'),
-      ),
-      isNull,
-    );
-    expect(
-      body
-          .lookupPromotedThisType(
-            offset: result.content.indexOf('/* target 4 */'),
-          )!
-          .toString(),
-      'D',
-    );
-    expect(
-      body
-          .lookupPromotedThisType(
-            offset: result.content.indexOf('/* target 5 */'),
-          )!
-          .toString(),
-      'D',
-    );
   }
 }
 
@@ -461,354 +284,132 @@ class LookupPromotedThisTypeTestWithAnonymousMethods
   ];
 
   test_thisPromotion_expressionBodiedAnonymousMethod() async {
-    var result = await resolveTestCodeWithDiagnostics(r'''
+    await assertPromotedThisTypes(r'''
 class C {
   f() {
-    /* target 1 */
+    /*this: null*/
     (0 as num).=> [
-      /* target 2 */
+      /*this: null*/
       this as int,
-      /* target 3 */
+      /*this: int*/
     ];
-    /* target 4 */
+    /*this: null*/
   }
 }
 ''');
-    var body = result.findNode.singleMethodDeclaration.body;
-    expect(
-      body.lookupPromotedThisType(
-        offset: result.content.indexOf('/* target 1 */'),
-      ),
-      isNull,
-    );
-    expect(
-      body.lookupPromotedThisType(
-        offset: result.content.indexOf('/* target 2 */'),
-      ),
-      isNull,
-    );
-    expect(
-      body
-          .lookupPromotedThisType(
-            offset: result.content.indexOf('/* target 3 */'),
-          )!
-          .toString(),
-      'int',
-    );
-    expect(
-      body.lookupPromotedThisType(
-        offset: result.content.indexOf('/* target 4 */'),
-      ),
-      isNull,
-    );
   }
 
   test_thisPromotion_inFactoryConstructor_anonymousMethod() async {
-    var result = await resolveTestCodeWithDiagnostics(r'''
+    await assertPromotedThisTypes(r'''
 class C {
   factory C() {
-    /* target 1 */
+    /*this: null*/
     (0 as num).{
-      /* target 2 */
+      /*this: null*/
       this as int;
-      /* target 3 */
+      /*this: int*/
     };
-    /* target 4 */
+    /*this: null*/
     throw '';
   }
 }
 ''');
-    var body = result.findNode.singleConstructorDeclaration.body;
-    expect(
-      body.lookupPromotedThisType(
-        offset: result.content.indexOf('/* target 1 */'),
-      ),
-      isNull,
-    );
-    expect(
-      body.lookupPromotedThisType(
-        offset: result.content.indexOf('/* target 2 */'),
-      ),
-      isNull,
-    );
-    expect(
-      body
-          .lookupPromotedThisType(
-            offset: result.content.indexOf('/* target 3 */'),
-          )!
-          .toString(),
-      'int',
-    );
-    expect(
-      body.lookupPromotedThisType(
-        offset: result.content.indexOf('/* target 4 */'),
-      ),
-      isNull,
-    );
   }
 
   test_thisPromotion_inGenerativeConstructor_anonymousMethod() async {
-    var result = await resolveTestCodeWithDiagnostics(r'''
+    await assertPromotedThisTypes(r'''
 class C {
   C() {
-    /* target 1 */
+    /*this: null*/
     (0 as num).{
-      /* target 2 */
+      /*this: null*/
       this as int;
-      /* target 3 */
+      /*this: int*/
     };
-    /* target 4 */
+    /*this: null*/
   }
 }
 ''');
-    var body = result.findNode.singleConstructorDeclaration.body;
-    expect(
-      body.lookupPromotedThisType(
-        offset: result.content.indexOf('/* target 1 */'),
-      ),
-      isNull,
-    );
-    expect(
-      body.lookupPromotedThisType(
-        offset: result.content.indexOf('/* target 2 */'),
-      ),
-      isNull,
-    );
-    expect(
-      body
-          .lookupPromotedThisType(
-            offset: result.content.indexOf('/* target 3 */'),
-          )!
-          .toString(),
-      'int',
-    );
-    expect(
-      body.lookupPromotedThisType(
-        offset: result.content.indexOf('/* target 4 */'),
-      ),
-      isNull,
-    );
   }
 
   test_thisPromotion_inMethod_anonymousMethod() async {
-    var result = await resolveTestCodeWithDiagnostics(r'''
+    await assertPromotedThisTypes(r'''
 class C {
   f() {
-    /* target 1 */
+    /*this: null*/
     (0 as num).{
-      /* target 2 */
+      /*this: null*/
       this as int;
-      /* target 3 */
+      /*this: int*/
     };
-    /* target 4 */
+    /*this: null*/
   }
 }
 ''');
-    var body = result.findNode.singleMethodDeclaration.body;
-    expect(
-      body.lookupPromotedThisType(
-        offset: result.content.indexOf('/* target 1 */'),
-      ),
-      isNull,
-    );
-    expect(
-      body.lookupPromotedThisType(
-        offset: result.content.indexOf('/* target 2 */'),
-      ),
-      isNull,
-    );
-    expect(
-      body
-          .lookupPromotedThisType(
-            offset: result.content.indexOf('/* target 3 */'),
-          )!
-          .toString(),
-      'int',
-    );
-    expect(
-      body.lookupPromotedThisType(
-        offset: result.content.indexOf('/* target 4 */'),
-      ),
-      isNull,
-    );
   }
 
   test_thisPromotion_inPrimaryConstructorBody_anonymousMethod() async {
-    var result = await resolveTestCodeWithDiagnostics(r'''
+    await assertPromotedThisTypes(r'''
 class C() {
   this {
-    /* target 1 */
+    /*this: null*/
     (0 as num).{
-      /* target 2 */
+      /*this: null*/
       this as int;
-      /* target 3 */
+      /*this: int*/
     };
-    /* target 4 */
+    /*this: null*/
   }
 }
 ''');
-    var body = result.findNode.singlePrimaryConstructorBody.body;
-    expect(
-      body.lookupPromotedThisType(
-        offset: result.content.indexOf('/* target 1 */'),
-      ),
-      isNull,
-    );
-    expect(
-      body.lookupPromotedThisType(
-        offset: result.content.indexOf('/* target 2 */'),
-      ),
-      isNull,
-    );
-    expect(
-      body
-          .lookupPromotedThisType(
-            offset: result.content.indexOf('/* target 3 */'),
-          )!
-          .toString(),
-      'int',
-    );
-    expect(
-      body.lookupPromotedThisType(
-        offset: result.content.indexOf('/* target 4 */'),
-      ),
-      isNull,
-    );
   }
 
   test_thisPromotion_inStaticMethod_anonymousMethod() async {
-    var result = await resolveTestCodeWithDiagnostics(r'''
+    await assertPromotedThisTypes(r'''
 class C {
   static f() {
-    /* target 1 */
+    /*this: null*/
     (0 as num).{
-      /* target 2 */
+      /*this: null*/
       this as int;
-      /* target 3 */
+      /*this: int*/
     };
-    /* target 4 */
+    /*this: null*/
   }
 }
 ''');
-    var body = result.findNode.singleMethodDeclaration.body;
-    expect(
-      body.lookupPromotedThisType(
-        offset: result.content.indexOf('/* target 1 */'),
-      ),
-      isNull,
-    );
-    expect(
-      body.lookupPromotedThisType(
-        offset: result.content.indexOf('/* target 2 */'),
-      ),
-      isNull,
-    );
-    expect(
-      body
-          .lookupPromotedThisType(
-            offset: result.content.indexOf('/* target 3 */'),
-          )!
-          .toString(),
-      'int',
-    );
-    expect(
-      body.lookupPromotedThisType(
-        offset: result.content.indexOf('/* target 4 */'),
-      ),
-      isNull,
-    );
   }
 
   test_thisPromotion_inTopLevelFunction_anonymousMethod() async {
-    var result = await resolveTestCodeWithDiagnostics(r'''
+    await assertPromotedThisTypes(r'''
 f() {
-    /* target 1 */
+    /*this: null*/
     (0 as num).{
-      /* target 2 */
+      /*this: null*/
       this as int;
-      /* target 3 */
+      /*this: int*/
     };
-    /* target 4 */
+    /*this: null*/
 }
 ''');
-    var body = result.findNode.singleFunctionBody;
-    expect(
-      body.lookupPromotedThisType(
-        offset: result.content.indexOf('/* target 1 */'),
-      ),
-      isNull,
-    );
-    expect(
-      body.lookupPromotedThisType(
-        offset: result.content.indexOf('/* target 2 */'),
-      ),
-      isNull,
-    );
-    expect(
-      body
-          .lookupPromotedThisType(
-            offset: result.content.indexOf('/* target 3 */'),
-          )!
-          .toString(),
-      'int',
-    );
-    expect(
-      body.lookupPromotedThisType(
-        offset: result.content.indexOf('/* target 4 */'),
-      ),
-      isNull,
-    );
   }
 
   test_thisPromotion_nonThisBindingAnonymousMethod() async {
-    var result = await resolveTestCodeWithDiagnostics(r'''
+    await assertPromotedThisTypes(r'''
 class C {
   f() {
     this as D;
-    /* target 1 */
+    /*this: D*/
     0.(x) {
-      /* target 2 */
+      /*this: D*/
       this as E;
-      /* target 3 */
+      /*this: E*/
     };
-    /* target 4 */
+    /*this: E*/
   }
 }
 class D extends C {}
 class E extends D {}
 ''');
-    var body = result.findNode.singleMethodDeclaration.body;
-    expect(
-      body
-          .lookupPromotedThisType(
-            offset: result.content.indexOf('/* target 1 */'),
-          )
-          .toString(),
-      'D',
-    );
-    expect(
-      body
-          .lookupPromotedThisType(
-            offset: result.content.indexOf('/* target 2 */'),
-          )
-          .toString(),
-      'D',
-    );
-    expect(
-      body
-          .lookupPromotedThisType(
-            offset: result.content.indexOf('/* target 3 */'),
-          )!
-          .toString(),
-      'E',
-    );
-    expect(
-      body
-          .lookupPromotedThisType(
-            offset: result.content.indexOf('/* target 4 */'),
-          )
-          .toString(),
-      'E',
-    );
   }
 }
