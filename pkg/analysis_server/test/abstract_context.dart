@@ -90,15 +90,6 @@ class AbstractContextTest
 
   List<String> get _collectionIncludedPaths => [workspaceRootPath];
 
-  Future<void> analyzeTestPackageFiles() async {
-    var analysisContext = contextFor(testFile);
-    var files = analysisContext.contextRoot.analyzedFiles().toList();
-    for (var path in files) {
-      await analysisContext.applyPendingFileChanges();
-      await analysisContext.currentSession.getResolvedUnit(path);
-    }
-  }
-
   /// Returns the existing analysis context that should be used to analyze the
   /// given [file], or throw [StateError] if the [file] is not analyzed in any
   /// of the created analysis contexts.
