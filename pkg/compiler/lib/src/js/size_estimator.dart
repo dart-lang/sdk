@@ -10,6 +10,8 @@ import 'package:js_ast/src/characters.dart' as char_codes;
 // ignore: implementation_imports
 import 'package:js_ast/src/precedence.dart';
 
+import '../common/codegen.dart' show ModularName;
+import '../js/js.dart' as js;
 import '../js_backend/deferred_holder_expression.dart';
 import '../js_backend/string_reference.dart';
 import '../js_backend/type_reference.dart';
@@ -20,6 +22,29 @@ int estimateSize(Node node) {
   var estimator = SizeEstimator();
   estimator.visit(node);
   return estimator.charCount;
+}
+
+/// Whether [name].name can be read without throwing.
+///
+/// Some [Name] nodes report [Name.isFinalized] before the underlying text is
+/// available. For example, a [ModularName] can be assigned a [Name.value] that
+/// is not yet finalized, [CompoundName.isFinalized] can be true when a part is
+/// such a [ModularName], and [DeferredHolderParameter.name] is only set during
+/// holder finalization after pre-fragment size estimation.
+bool _hasReadableNameText(Name name) {
+  if (!name.isFinalized) return false;
+  if (name is ModularName) {
+    return _hasReadableNameText(name.value);
+  }
+  if (name is js.AstContainer) {
+    final container = name as js.AstContainer;
+    for (final node in container.containedNodes) {
+      if (node is Name && !_hasReadableNameText(node)) {
+        return false;
+      }
+    }
+  }
+  return true;
 }
 
 /// [SizeEstimator] is a [NodeVisitor] designed to produce a consistent size
@@ -75,6 +100,11 @@ class SizeEstimator implements NodeVisitor<void> {
   }
 
   String literalStringToString(LiteralString node) {
+    if (node is LiteralStringFromName &&
+        !_hasReadableNameText(node.name)) {
+      // LiteralStringFromName may report isFinalized before name text is readable.
+      return nameSizeEstimate;
+    }
     if (node.isFinalized) {
       return node.value;
     } else {
