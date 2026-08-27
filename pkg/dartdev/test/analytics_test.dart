@@ -237,8 +237,7 @@ void main() {
     test('getDartStorageDirectory resolves user .dart directory', () {
       final dir = getDartStorageDirectory();
       expect(dir, isNotNull);
-      // Ensure the directory exists and its basename is '.dart'.
-      expect(dir!.existsSync(), isTrue);
+      expect(dir!.path, path.join(homeDir!.path, '.dart'));
       expect(path.basename(dir.path), '.dart');
     });
   });
