@@ -84,6 +84,20 @@ class ColorComputerTest extends AbstractContextTest {
     'CupertinoColors.activeBlue.darkHighContrastColor': 0xFF409CFF,
     'CupertinoColors.activeBlue.elevatedColor': 0xFF007AFF,
     'CupertinoColors.activeBlue.darkElevatedColor': 0xFF0A84FF,
+    // withX() helpers.
+    'Colors.white.withAlpha(100)': 0x64FFFFFF,
+    'Colors.white.withRed(100)': 0xFF64FFFF,
+    'Colors.white.withGreen(100)': 0xFFFF64FF,
+    'Colors.white.withBlue(100)': 0xFFFFFF64,
+    'Colors.white.withValues(alpha: 0.5, red: 0.6, green: 0.7, blue: 0.8)':
+        0x8099B3CC,
+    // withX calls chained on self and constructors.
+    'Colors.red.shade100.withRed(0)': 0xFF00CDD2,
+    'Color(0xFFFFFFFF).withRed(100).withBlue(100)': 0xFF64FF64,
+    'Colors.white.withRed(100).withBlue(100)': 0xFF64FF64,
+    // Invalid values get clamped.
+    'Colors.white.withValues(alpha: -2, red: -2, green: 2, blue: 2).withRed(-100).withGreen(300)':
+        0x0000FFFF,
   };
 
   /// A map of Dart source code that creates multiple nested color references.
@@ -370,6 +384,23 @@ void f() {
 }
 ''';
     await checkAllColors(testCode);
+  }
+
+  Future<void> test_noStackOverflow() async {
+    // While manual testing, this code previously triggered a StackOverflow so
+    // this test just verifies it doesn't happen.
+    // We don't compute a color for .background because ColorScheme is not
+    // const here.
+    const testCode = '''
+class ColorScheme {
+    final Color background;
+    ColorScheme(this.background);
+}
+
+var x = ColorScheme(Colors.white).background;
+''';
+
+    await expectColors(testCode, {'Colors.white': 0xFFFFFFFF});
   }
 
   Future<void> test_nullAwareElement_inList_const() async {
