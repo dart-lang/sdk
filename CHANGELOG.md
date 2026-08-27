@@ -143,14 +143,22 @@ class Point {
 To learn more about the feature, check out the
 [feature specification][primary-constructor-spec].
 
-[primary-constructor-spec]: https://github.com/dart-lang/language/blob/main/accepted/future-releases/primary-constructors/feature-specification.md
+[primary-constructor-spec]: https://github.com/dart-lang/language/blob/main/accepted/3.13/primary-constructors/feature-specification.md
 
 #### Other changes
 
+- **Breaking change**: You can no longer use `final` or `var` on non-declaring
+  parameters. Dart now reserves both for
+  [declaring parameters in primary constructors][declaring-parameters].
+  Remove `final` or `var` from affected parameter declarations. If you still
+  want to prevent parameter reassignment, you can use the
+  [`parameter_assignments`][] lint rule.
 - **Breaking change**: A minor change has been made to type promotion to avoid
   unsound behavior. See SDK issue [#62889][] for details.
 
 [#62889]: https://github.com/dart-lang/sdk/issues/62889
+[declaring-parameters]: https://dart.dev/language/primary-constructors#field-declarations-in-parameters
+[`parameter_assignments`]: https://dart.dev/tools/linter-rules/parameter_assignments
 
 ### Libraries
 
