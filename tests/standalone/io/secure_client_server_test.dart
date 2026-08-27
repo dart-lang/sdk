@@ -48,7 +48,11 @@ void checkServerCertificate(X509Certificate serverCert) {
   String serverCertString = serverCert.pem;
   String certFile = new File(localFile('certificates/server_chain.pem'))
       .readAsStringSync();
-  Expect.isTrue(certFile.contains(serverCertString));
+  Expect.isTrue(
+    certFile
+        .replaceAll('\r\n', '\n')
+        .contains(serverCertString.replaceAll('\r\n', '\n')),
+  );
 
   // Computed with:
   // openssl x509 -noout -sha1 -fingerprint -in certificates/server_chain.pem

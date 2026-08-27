@@ -519,22 +519,44 @@ abstract interface class X509Certificate {
 }
 
 class _FilterStatus {
-  bool progress = false; // The filter read or wrote data to the buffers.
-  bool readEmpty = true; // The read buffers and decryption filter are empty.
-  bool writeEmpty = true; // The write buffers and encryption filter are empty.
+  bool progress = false; // The filter made buffer or transport progress.
+  bool readEmpty = true; // The plaintext and prefetched input are empty.
+  bool writeEmpty = true; // The plaintext and TLS transport are empty.
   // These are set if a buffer changes state from empty or full.
   bool readPlaintextNoLongerEmpty = false;
   bool writePlaintextNoLongerFull = false;
-  bool readEncryptedNoLongerFull = false;
-  bool writeEncryptedNoLongerEmpty = false;
+  bool wantsWrite = false;
+  bool hasPendingSocketWrite = false;
+  bool hasPendingPlaintext = false;
 
   _FilterStatus();
+}
+
+class _DartRawSocketTransport {
+  final RawSocket socket;
+  bool _readClosed = false;
+  bool writePending = false;
+
+  _DartRawSocketTransport(this.socket);
+
+  Uint8List? read(int length) => _readClosed ? null : socket.read(length);
+
+  void closeRead() => _readClosed = true;
+
+  int write(Uint8List data) {
+    final written = socket.write(data);
+    if (Platform.isWindows && written > 0) writePending = true;
+    return written;
+  }
 }
 
 // Interface used by [RawSecureServerSocket] and [_RawSecureSocket] that exposes
 // members of [_NativeSocket].
 abstract interface class _RawSocketBase {
   bool get _closedReadEventSent;
+  Object? get _nativeSocket;
+  void _syncNativeSocketState(bool wantsWrite, bool hasPendingWrite);
+  void _recordNativeSocketIO(int readBytes, int writeBytes);
   void set _owner(owner);
 }
 
@@ -545,19 +567,20 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   static const int connectedStatus = 202;
   static const int closedStatus = 203;
 
+  // BoringSSL SSL_ERROR_* values returned by _SecureFilter.handshake.
+  static const int sslErrorWantWrite = 3;
+  static const int sslErrorWantCertificateVerify = 16;
+
   // Buffer identifiers.
   // These must agree with those in the native C++ implementation.
   static const int readPlaintextId = 0;
   static const int writePlaintextId = 1;
-  static const int readEncryptedId = 2;
-  static const int writeEncryptedId = 3;
-  static const int bufferCount = 4;
-
-  // Is a buffer identifier for an encrypted buffer?
-  static bool _isBufferEncrypted(int identifier) =>
-      identifier >= readEncryptedId;
+  static const int bufferCount = 2;
 
   final RawSocket _socket;
+  late final _RawSocketBase? _rawSocketBase;
+  late final Object? _nativeTransport;
+  late final _DartRawSocketTransport? _dartTransport;
   final Completer<_RawSecureSocket> _handshakeComplete =
       Completer<_RawSecureSocket>();
   final _controller = StreamController<RawSocketEvent>(sync: true);
@@ -578,6 +601,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   bool _readEventsEnabled = true;
   int _pauseCount = 0;
   bool _pendingReadEvent = false;
+  bool _pendingWriteEvent = false;
   bool _socketClosedRead = false; // The network socket is closed for reading.
   bool _socketClosedWrite = false; // The network socket is closed for writing.
   bool _closedRead = false; // The secure socket has fired an onClosed event.
@@ -588,6 +612,11 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   bool _connectPending = true;
   bool _filterPending = false;
   bool _filterActive = false;
+  bool _handshakePending = false;
+  bool _handshakeActive = false;
+  Completer<void>? _handshakeRun;
+  bool _hasNativePrefetchedData = false;
+  bool _secureFilterConnected = false;
 
   _SecureFilter? _secureFilter = _SecureFilter._();
   String? _selectedProtocol;
@@ -647,6 +676,13 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     this.keyLog,
     List<String>? supportedProtocols,
   ) {
+    _rawSocketBase = _socket is _RawSocketBase
+        ? _socket as _RawSocketBase
+        : null;
+    _nativeTransport = _rawSocketBase?._nativeSocket;
+    _dartTransport = _nativeTransport == null
+        ? _DartRawSocketTransport(_socket)
+        : null;
     _controller
       ..onListen = _onSubscriptionStateChange
       ..onPause = _onPauseStateChange
@@ -681,6 +717,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     }
     _socket.readEventsEnabled = true;
     _socket.writeEventsEnabled = false;
+    var closedReadEventSent = false;
     if (subscription == null) {
       // If a current subscription is provided use this otherwise
       // create a new one.
@@ -695,11 +732,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
         _socket.close();
         throw ArgumentError("Subscription passed to TLS upgrade is paused");
       }
-      // If we are upgrading a socket that is already closed for read,
-      // report an error as if we received readClosed during the handshake.
-      if (_closedReadEventSent) {
-        _eventDispatcher(RawSocketEvent.readClosed);
-      }
+      closedReadEventSent = _closedReadEventSent;
       _socketSubscription
         ..onData(_eventDispatcher)
         ..onError(_reportError)
@@ -716,8 +749,26 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
         requestClientCertificate || requireClientCertificate,
         requireClientCertificate,
         encodedProtocols,
+        _nativeTransport,
+        _dartTransport?.read,
+        _dartTransport?.write,
       );
-      _secureHandshake();
+      _secureFilterConnected = true;
+      if (closedReadEventSent) {
+        _markSocketClosedRead();
+      }
+      if (_socketClosedRead) {
+        if (_bufferedData == null || _bufferedData!.isEmpty) {
+          _reportError(
+            HandshakeException('Connection terminated during handshake'),
+            null,
+          );
+        } else {
+          _closeHandler();
+        }
+      } else {
+        _secureHandshake();
+      }
     } catch (e, s) {
       _reportError(e, s);
     }
@@ -758,11 +809,62 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
 
   int get remotePort => _socket.remotePort;
 
-  bool get _closedReadEventSent =>
-      (_socket as _RawSocketBase)._closedReadEventSent;
+  static _RawSocketBase? _extractRawSocketBase(RawSocket socket) {
+    if (socket is _RawSocketBase) return socket as _RawSocketBase;
+    try {
+      final dynamic dynamicSocket = socket;
+      final dynamic target = dynamicSocket.socket;
+      if (target is RawSocket) {
+        return _extractRawSocketBase(target as RawSocket);
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  bool get _closedReadEventSent {
+    if (_closedRead || _socketClosedRead) return true;
+    final base = _rawSocketBase ?? _extractRawSocketBase(_socket);
+    if (base != null) return base._closedReadEventSent;
+    try {
+      final dynamic dynamicSocket = _socket;
+      final dynamic closed = dynamicSocket._closedReadEventSent;
+      if (closed is bool) return closed;
+    } catch (_) {}
+    return false;
+  }
+
+  // A RawSecureSocket is itself a public RawSocket transport. Returning null
+  // keeps a second TLS layer on top of this one instead of bypassing it and
+  // attaching the inner BIO to the original native socket.
+  Object? get _nativeSocket => null;
+
+  void _syncNativeSocketState(bool wantsWrite, bool hasPendingWrite) {
+    // This implementation is exposed as a non-native transport to another
+    // SecureSocket. Its own native transport is synchronized below.
+  }
+
+  void _recordNativeSocketIO(int readBytes, int writeBytes) {
+    // A TLS layer using this object as a transport calls its public read/write
+    // methods, so the innermost native transport records the bytes once.
+  }
+
+  void _syncNativeTransportState(bool wantsWrite, bool hasPendingWrite) {
+    if (_nativeTransport == null) return;
+    _rawSocketBase!._syncNativeSocketState(wantsWrite, hasPendingWrite);
+  }
+
+  void _recordNativeTransportIO(int readBytes, int writeBytes) {
+    if (_nativeTransport == null) return;
+    _rawSocketBase!._recordNativeSocketIO(readBytes, writeBytes);
+  }
+
+  void _markSocketClosedRead() {
+    _socketClosedRead = true;
+    _dartTransport?.closeRead();
+  }
 
   void set _owner(owner) {
-    (_socket as _RawSocketBase)._owner = owner;
+    _rawSocketBase?._owner = owner;
   }
 
   int available() {
@@ -780,22 +882,34 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     if (!_closeCompleter.isCompleted) _closeCompleter.complete(this);
   }
 
+  void _destroyFilterIfInactive() {
+    if (_status != closedStatus ||
+        _filterActive ||
+        _handshakeActive ||
+        _secureFilter == null) {
+      return;
+    }
+    _secureFilter!.destroy();
+    _secureFilter = null;
+  }
+
   void _close() {
+    if (_status == closedStatus) {
+      _destroyFilterIfInactive();
+      return;
+    }
+    _status = closedStatus;
     _closedWrite = true;
     _closedRead = true;
     _socket.close().then(_completeCloseCompleter);
     _socketClosedWrite = true;
-    _socketClosedRead = true;
-    if (!_filterActive && _secureFilter != null) {
-      _secureFilter!.destroy();
-      _secureFilter = null;
-    }
+    _markSocketClosedRead();
+    _destroyFilterIfInactive();
     keyLogPort?.close();
     if (_socketSubscription != null) {
       _socketSubscription.cancel();
     }
     _controller.close();
-    _status = closedStatus;
   }
 
   void shutdown(SocketDirection direction) {
@@ -813,7 +927,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     if (direction == SocketDirection.receive ||
         direction == SocketDirection.both) {
       _closedRead = true;
-      _socketClosedRead = true;
+      _markSocketClosedRead();
       _socket.shutdown(SocketDirection.receive);
       if (_socketClosedWrite) {
         _close();
@@ -826,7 +940,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   void set writeEventsEnabled(bool value) {
     _writeEventsEnabled = value;
     if (value) {
-      Timer.run(() => _sendWriteEvent());
+      _scheduleWriteEvent();
     }
   }
 
@@ -834,7 +948,10 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
 
   void set readEventsEnabled(bool value) {
     _readEventsEnabled = value;
-    _socket.readEventsEnabled = value;
+    _socket.readEventsEnabled =
+        value &&
+        _secureFilter != null &&
+        _secureFilter!.buffers![readPlaintextId].free > 0;
     _scheduleReadEvent();
   }
 
@@ -850,8 +967,18 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     if (_status != connectedStatus) {
       return null;
     }
-    var result = _secureFilter!.buffers![readPlaintextId].read(length);
-    _scheduleFilter();
+    // A public RawSocket implementation is invoked synchronously by the
+    // custom BIO. It may reenter this socket before the native filter call has
+    // returned. Keep the positions and backing allocation passed to native
+    // code immutable for the duration of that call.
+    if (_filterActive) return null;
+    final buffer = _secureFilter!.buffers![readPlaintextId];
+    var result = buffer.read(length);
+    if (_socketClosedRead && buffer.isEmpty) {
+      scheduleMicrotask(_scheduleFilter);
+    } else {
+      _scheduleFilter();
+    }
     return result;
   }
 
@@ -872,10 +999,20 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
       );
     }
     if (_closedWrite) {
-      _controller.addError(SocketException("Writing to a closed socket"));
+      // A filter error closes the controller before an already scheduled
+      // write event can be delivered. Do not replace the original TLS error
+      // with StateError from adding to that closed controller.
+      if (!_controller.isClosed) {
+        _controller.addError(SocketException("Writing to a closed socket"));
+      }
       return 0;
     }
     if (_status != connectedStatus) return 0;
+    // Treat a write reentered from a custom BIO transport callback as
+    // backpressure. Growing or otherwise mutating this ring while SSL_write is
+    // using its current generation would invalidate native pointers and ring
+    // positions.
+    if (_filterActive) return 0;
     bytes ??= data.length - offset;
 
     int written = _secureFilter!.buffers![writePlaintextId].write(
@@ -935,13 +1072,21 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   }
 
   void _readHandler() {
-    _readSocket();
-    _scheduleFilter();
+    if (_status == handshakeStatus) {
+      _secureHandshake();
+    } else {
+      _scheduleFilter();
+    }
   }
 
   void _writeHandler() {
-    _writeSocket();
-    _scheduleFilter();
+    final dartTransport = _dartTransport;
+    if (dartTransport != null) dartTransport.writePending = false;
+    if (_status == handshakeStatus) {
+      _secureHandshake();
+    } else {
+      _scheduleFilter();
+    }
   }
 
   void _doneHandler() {
@@ -967,21 +1112,19 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   void _closeHandler() async {
     if (_status == connectedStatus) {
       if (_closedRead) return;
-      _socketClosedRead = true;
-      if (_filterStatus.readEmpty) {
-        _closedRead = true;
-        _controller.add(RawSocketEvent.readClosed);
-        if (_socketClosedWrite) {
-          _close();
-        }
-      } else {
-        await _scheduleFilter();
-      }
+      _markSocketClosedRead();
+      _socket.readEventsEnabled = false;
+      await _scheduleFilter();
+      _scheduleReadEvent();
     } else if (_status == handshakeStatus) {
-      _socketClosedRead = true;
-      // The other party might have disconnected, but if there still
-      // bytes available we can continue handshake.
-      if (_filterStatus.readEmpty) {
+      _markSocketClosedRead();
+      if (!_secureFilterConnected) return;
+      // Drain bytes delivered with the close event before declaring the
+      // handshake truncated.
+      await _secureHandshake();
+      if (_status == handshakeStatus &&
+          _bufferedData == null &&
+          !_hasNativePrefetchedData) {
         _reportError(
           HandshakeException('Connection terminated during handshake'),
           null,
@@ -990,20 +1133,79 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     }
   }
 
+  void _finishClosedRead() {
+    if (_status != connectedStatus || _closedRead || !_socketClosedRead) return;
+    _closedRead = true;
+    _filterStatus.readEmpty = true;
+    _controller.add(RawSocketEvent.readClosed);
+    if (_socketClosedWrite) {
+      _close();
+    }
+  }
+
   Future<void> _secureHandshake() async {
+    _handshakePending = true;
+    if (_handshakeActive) {
+      await _handshakeRun!.future;
+      return;
+    }
+    _handshakeActive = true;
+    final run = Completer<void>();
+    _handshakeRun = run;
     try {
-      bool needRetryHandshake = await _secureFilter!.handshake();
-      if (needRetryHandshake) {
-        // Some certificates have been evaluated, need to retry handshake.
-        await _secureHandshake();
-      } else {
-        _filterStatus.writeEmpty = false;
-        _readSocket();
-        _writeSocket();
-        await _scheduleFilter();
+      while (_status == handshakeStatus &&
+          _secureFilter != null &&
+          _handshakePending) {
+        _handshakePending = false;
+        _queuePrefetchedData();
+        final result = await _secureFilter!.handshake();
+        final error = result[0] as int;
+        final hasPrefetchedData = result[1] as bool;
+        final hasPendingWrite =
+            result[2] as bool || (_dartTransport?.writePending ?? false);
+        final readBytes = result[3] as int;
+        final writeBytes = result[4] as int;
+        _recordNativeTransportIO(readBytes, writeBytes);
+        _hasNativePrefetchedData = hasPrefetchedData;
+        _syncNativeTransportState(error == sslErrorWantWrite, hasPendingWrite);
+        if (!hasPendingWrite && (readBytes > 0 || writeBytes > 0)) {
+          // A positive partial socket operation is progress, but it is not
+          // guaranteed to produce another transport event. Retry until the
+          // BIO actually blocks.
+          _handshakePending = true;
+        }
+        if (error == sslErrorWantCertificateVerify) {
+          // Certificate evaluation completed while awaiting handshake().
+          _handshakePending = true;
+          continue;
+        }
+        if (!hasPrefetchedData && _bufferedData != null) {
+          // A bounded prefetched chunk was consumed. Queue the next one before
+          // waiting for another socket event.
+          _handshakePending = true;
+          continue;
+        }
+        if (_status == connectedStatus) {
+          _socket.writeEventsEnabled = false;
+          await _scheduleFilter();
+        } else {
+          _socket.readEventsEnabled = true;
+          _socket.writeEventsEnabled =
+              error == sslErrorWantWrite || hasPendingWrite;
+        }
+        if (_handshakePending) continue;
+        break;
       }
     } catch (e, stackTrace) {
       _reportError(e, stackTrace);
+    } finally {
+      _handshakeActive = false;
+      _handshakeRun = null;
+      try {
+        _destroyFilterIfInactive();
+      } finally {
+        run.complete();
+      }
     }
   }
 
@@ -1078,16 +1280,23 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
         _filterActive = true;
         _filterPending = false;
 
-        _filterStatus = await _pushAllFilterStages();
-        _filterActive = false;
+        try {
+          _filterStatus = _pushAllFilterStages();
+        } finally {
+          _filterActive = false;
+        }
         if (_status == closedStatus) {
-          _secureFilter!.destroy();
-          _secureFilter = null;
+          _destroyFilterIfInactive();
           return;
         }
-        if (_readEventsEnabled) {
-          _socket.readEventsEnabled = true;
-        }
+        _socket.readEventsEnabled =
+            _readEventsEnabled &&
+            _secureFilter!.buffers![readPlaintextId].free > 0;
+        _socket.writeEventsEnabled =
+            _filterStatus.hasPendingSocketWrite ||
+            (_filterStatus.wantsWrite &&
+                (_secureFilter!.buffers![readPlaintextId].free > 0 ||
+                    !_secureFilter!.buffers![writePlaintextId].isEmpty));
         if (_filterStatus.writeEmpty && _closedWrite && !_socketClosedWrite) {
           // Checks for and handles all cases of partially closed sockets.
           shutdown(SocketDirection.send);
@@ -1095,83 +1304,56 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
             return;
           }
         }
-        if (_filterStatus.readEmpty && _socketClosedRead && !_closedRead) {
-          if (_status == handshakeStatus) {
-            _secureFilter!.handshake();
-            if (_status == handshakeStatus) {
-              throw HandshakeException(
-                'Connection terminated during handshake',
-              );
-            }
-          }
-          _closeHandler();
+        if (_socketClosedRead && !_closedRead && _filterStatus.readEmpty) {
+          _finishClosedRead();
         }
         if (_status == closedStatus) {
           return;
         }
         if (_filterStatus.progress) {
           _filterPending = true;
-          if (_filterStatus.writeEncryptedNoLongerEmpty) {
-            _writeSocket();
-          }
           if (_filterStatus.writePlaintextNoLongerFull) {
-            _sendWriteEvent();
-          }
-          if (_filterStatus.readEncryptedNoLongerFull) {
-            _readSocket();
+            // Do not invoke user code before the current filter turn returns.
+            // _filterActive is cleared after the native call, so a synchronous
+            // write event here could start a nested filter turn.
+            _scheduleWriteEvent();
           }
           if (_filterStatus.readPlaintextNoLongerEmpty) {
             _scheduleReadEvent();
           }
-          if (_status == handshakeStatus) {
-            await _secureHandshake();
-          }
         }
       }
     } catch (e, st) {
-      _reportError(e, st);
+      // Preserve RawSecureSocket's asynchronous error delivery and avoid
+      // closing the stream reentrantly from write().
+      scheduleMicrotask(() => _reportError(e, st));
+    } finally {
+      // If _close() was invoked while _filterActive was true, the filter
+      // destruction was deferred. Ensure the native filter and its socket fd
+      // are cleaned up immediately when the filter turn completes.
+      _destroyFilterIfInactive();
     }
   }
 
-  List<int>? _readSocketOrBufferedData(int bytes) {
+  bool _queuePrefetchedData() {
     final bufferedData = _bufferedData;
-    if (bufferedData != null) {
-      if (bytes > bufferedData.length - _bufferedDataIndex) {
-        bytes = bufferedData.length - _bufferedDataIndex;
-      }
-      var result = bufferedData.sublist(
-        _bufferedDataIndex,
-        _bufferedDataIndex + bytes,
-      );
-      _bufferedDataIndex += bytes;
+    if (bufferedData == null) return false;
+    if (_bufferedDataIndex >= bufferedData.length) {
+      _bufferedData = null;
+      return false;
+    }
+    final queued = _secureFilter!.queuePrefetchedData(
+      bufferedData,
+      _bufferedDataIndex,
+    );
+    if (queued > 0) {
+      _bufferedDataIndex += queued;
       if (bufferedData.length == _bufferedDataIndex) {
         _bufferedData = null;
       }
-      return result;
-    } else if (!_socketClosedRead) {
-      return _socket.read(bytes);
-    } else {
-      return null;
+      return true;
     }
-  }
-
-  void _readSocket() {
-    if (_status == closedStatus) return;
-    var buffer = _secureFilter!.buffers![readEncryptedId];
-    if (buffer.writeFromSource(_readSocketOrBufferedData) > 0) {
-      _filterStatus.readEmpty = false;
-    } else {
-      _socket.readEventsEnabled = false;
-    }
-  }
-
-  void _writeSocket() {
-    if (_socketClosedWrite) return;
-    var buffer = _secureFilter!.buffers![writeEncryptedId];
-    if (buffer.readToSocket(_socket)) {
-      // Returns true if blocked
-      _socket.writeEventsEnabled = true;
-    }
+    return false;
   }
 
   // If a read event should be sent, add it to the controller.
@@ -1201,6 +1383,15 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   }
 
   // If a write event should be sent, add it to the controller.
+  void _scheduleWriteEvent() {
+    if (_pendingWriteEvent) return;
+    _pendingWriteEvent = true;
+    Timer.run(() {
+      _pendingWriteEvent = false;
+      _sendWriteEvent();
+    });
+  }
+
   _sendWriteEvent() {
     if (!_closedWrite &&
         _writeEventsEnabled &&
@@ -1212,51 +1403,47 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     }
   }
 
-  Future<_FilterStatus> _pushAllFilterStages() async {
-    bool wasInHandshake = _status != connectedStatus;
-    List args = List<dynamic>.filled(2 + bufferCount * 2, null);
-    args[0] = _secureFilter!._pointer();
-    args[1] = wasInHandshake;
+  _FilterStatus _pushAllFilterStages() {
+    final queuedPrefetchedData = _queuePrefetchedData();
     var bufs = _secureFilter!.buffers!;
+    final positions = List<int>.filled(bufferCount * 3, 0);
     for (var i = 0; i < bufferCount; ++i) {
-      args[2 * i + 2] = bufs[i].start;
-      args[2 * i + 3] = bufs[i].end;
+      positions[3 * i] = bufs[i].start;
+      positions[3 * i + 1] = bufs[i].end;
+      positions[3 * i + 2] = bufs[i].size;
     }
 
-    var response = (await _IOService._dispatch(
-      _IOService.sslProcessFilter,
-      args,
-    )) as List<Object?>;
-    if (response.length == 2) {
-      if (wasInHandshake) {
-        // If we're in handshake, throw a handshake error.
-        _reportError(
-          HandshakeException('${response[1]} error ${response[0]}'),
-          null,
-        );
-      } else {
-        // If we're connected, throw a TLS error.
-        _reportError(TlsException('${response[1]} error ${response[0]}'), null);
-      }
-    }
+    final response = _secureFilter!.process(positions);
     int start(int index) => response[2 * index] as int;
     int end(int index) => response[2 * index + 1] as int;
+    final wantsWrite = response[bufferCount * 2] as bool;
+    final hasPrefetchedData = response[bufferCount * 2 + 1] as bool;
+    final hasPendingWrite =
+        response[bufferCount * 2 + 2] as bool ||
+        (_dartTransport?.writePending ?? false);
+    final readBytes = response[bufferCount * 2 + 3] as int;
+    final writeBytes = response[bufferCount * 2 + 4] as int;
+    final hasPendingPlaintext = response[bufferCount * 2 + 5] as bool;
+    _recordNativeTransportIO(readBytes, writeBytes);
+    _hasNativePrefetchedData = hasPrefetchedData;
+    _syncNativeTransportState(wantsWrite, hasPendingWrite);
 
     _FilterStatus status = _FilterStatus();
-    // Compute writeEmpty as "write plaintext buffer and write encrypted
-    // buffer were empty when we started and are empty now".
+    status.wantsWrite = wantsWrite;
+    status.hasPendingSocketWrite = hasPendingWrite;
+    status.hasPendingPlaintext = hasPendingPlaintext;
     status.writeEmpty =
-        bufs[writePlaintextId].isEmpty &&
-        start(writeEncryptedId) == end(writeEncryptedId);
-    // If we were in handshake when this started, _writeEmpty may be false
-    // because the handshake wrote data after we checked.
-    if (wasInHandshake) status.writeEmpty = false;
-
-    // Compute readEmpty as "both read buffers were empty when we started
-    // and are empty now".
+        bufs[writePlaintextId].isEmpty && !wantsWrite && !hasPendingWrite;
     status.readEmpty =
-        bufs[readEncryptedId].isEmpty &&
-        start(readPlaintextId) == end(readPlaintextId);
+        start(readPlaintextId) == end(readPlaintextId) &&
+        _bufferedData == null &&
+        !hasPrefetchedData &&
+        !hasPendingPlaintext;
+    status.progress =
+        queuedPrefetchedData ||
+        (!hasPrefetchedData && _bufferedData != null) ||
+        readBytes > 0 ||
+        writeBytes > 0;
 
     _ExternalBuffer buffer = bufs[writePlaintextId];
     int new_start = start(writePlaintextId);
@@ -1265,46 +1452,31 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
       if (buffer.free == 0) {
         status.writePlaintextNoLongerFull = true;
       }
-      buffer.start = new_start;
-    }
-    buffer = bufs[readEncryptedId];
-    new_start = start(readEncryptedId);
-    if (new_start != buffer.start) {
-      status.progress = true;
-      if (buffer.free == 0) {
-        status.readEncryptedNoLongerFull = true;
-      }
-      buffer.start = new_start;
-    }
-    buffer = bufs[writeEncryptedId];
-    int new_end = end(writeEncryptedId);
-    if (new_end != buffer.end) {
-      status.progress = true;
-      if (buffer.length == 0) {
-        status.writeEncryptedNoLongerEmpty = true;
-      }
-      buffer.end = new_end;
+      buffer.setStart(new_start);
     }
     buffer = bufs[readPlaintextId];
-    new_end = end(readPlaintextId);
+    int new_end = end(readPlaintextId);
     if (new_end != buffer.end) {
       status.progress = true;
       if (buffer.length == 0) {
         status.readPlaintextNoLongerEmpty = true;
       }
-      buffer.end = new_end;
+      buffer.setEnd(new_end);
+      if (buffer.free == 0 && buffer.grow()) {
+        status.progress = true;
+      }
     }
     return status;
   }
 }
 
-/// A circular buffer backed by an external byte array.  Accessed from
-/// both C++ and Dart code in an unsynchronized way, with one reading
-/// and one writing.  All updates to start and end are done by Dart code.
+/// A plaintext circular buffer backed by an external byte array. Native TLS
+/// processing is serialized on the isolate, and Dart applies the returned
+/// start/end positions after each native call.
 class _ExternalBuffer {
   // This will be an ExternalByteArray, backed by C allocated data.
   @pragma("vm:entry-point")
-  List<int>? data;
+  Uint8List? data;
 
   @pragma("vm:entry-point")
   int start;
@@ -1312,9 +1484,43 @@ class _ExternalBuffer {
   @pragma("vm:entry-point")
   int end;
 
-  final int size;
+  final int maxSize;
 
-  _ExternalBuffer(int size) : size = size, start = size ~/ 2, end = size ~/ 2;
+  @pragma("vm:entry-point")
+  int size;
+
+  final Uint8List Function(int start, int end, int oldSize, int newSize)
+  _growBacking;
+
+  _ExternalBuffer(
+    this.maxSize, {
+    required int initialSize,
+    required Uint8List Function(int start, int end, int oldSize, int newSize)
+    growBacking,
+  }) : assert(initialSize >= 2),
+       assert(initialSize <= maxSize),
+       size = initialSize,
+       _growBacking = growBacking,
+       start = 0,
+       end = 0;
+
+  void _resetIfEmpty() {
+    if (start == end) {
+      start = 0;
+      end = 0;
+    }
+  }
+
+  void setStart(int value) {
+    assert(value >= 0 && value < size);
+    start = value;
+    _resetIfEmpty();
+  }
+
+  void setEnd(int value) {
+    assert(value >= 0 && value < size);
+    end = value;
+  }
 
   void advanceStart(int bytes) {
     assert(start > end || start + bytes <= end);
@@ -1324,6 +1530,7 @@ class _ExternalBuffer {
       assert(start <= end);
       assert(start < size);
     }
+    _resetIfEmpty();
   }
 
   void advanceEnd(int bytes) {
@@ -1350,6 +1557,27 @@ class _ExternalBuffer {
     return size - end;
   }
 
+  bool grow([int requiredFree = 1]) {
+    if (requiredFree <= free) return false;
+    final requiredSize = min(maxSize, length + requiredFree + 1);
+    if (requiredSize <= size) return false;
+
+    // Start small for low-traffic connections, then move through a 4 KiB
+    // working ring before allocating one maximum-size TLS plaintext record.
+    final fourKiB = 4 * 1024 + 1;
+    final newSize = size < fourKiB ? fourKiB : maxSize;
+    final used = length;
+    final newData = _growBacking(start, end, size, newSize);
+    if (newData.length != newSize) {
+      throw StateError('Invalid SecureSocket backing buffer size');
+    }
+    data = newData;
+    size = newSize;
+    start = 0;
+    end = used;
+    return true;
+  }
+
   Uint8List? read(int? bytes) {
     if (bytes == null) {
       bytes = length;
@@ -1370,6 +1598,7 @@ class _ExternalBuffer {
   }
 
   int write(List<int> inputData, int offset, int bytes) {
+    grow(bytes);
     if (bytes > free) {
       bytes = free;
     }
@@ -1385,37 +1614,6 @@ class _ExternalBuffer {
     }
     return written;
   }
-
-  int writeFromSource(List<int>? getData(int requested)) {
-    int written = 0;
-    int toWrite = linearFree;
-    // Loop over zero, one, or two linear data ranges.
-    while (toWrite > 0) {
-      // Source returns at most toWrite bytes, and it returns null when empty.
-      var inputData = getData(toWrite);
-      if (inputData == null || inputData.length == 0) break;
-      var len = inputData.length;
-      data!.setRange(end, end + len, inputData);
-      advanceEnd(len);
-      written += len;
-      toWrite = linearFree;
-    }
-    return written;
-  }
-
-  bool readToSocket(RawSocket socket) {
-    // Loop over zero, one, or two linear data ranges.
-    while (true) {
-      var toWrite = linearLength;
-      if (toWrite == 0) return false;
-      int bytes = socket.write(data!, start, toWrite);
-      advanceStart(bytes);
-      if (bytes < toWrite) {
-        // The socket has blocked while we have data to write.
-        return true;
-      }
-    }
-  }
 }
 
 abstract class _SecureFilter {
@@ -1428,22 +1626,22 @@ abstract class _SecureFilter {
     bool requestClientCertificate,
     bool requireClientCertificate,
     Uint8List protocols,
+    Object? nativeSocket,
+    Uint8List? Function(int)? transportRead,
+    int Function(Uint8List)? transportWrite,
   );
   void destroy();
-  Future<bool> handshake();
+  Future<List<Object?>> handshake();
   String? selectedProtocol();
   void rehandshake();
   void init();
   X509Certificate? get peerCertificate;
   int processBuffer(int bufferIndex);
+  List<Object?> process(List<int> positions);
+  int queuePrefetchedData(List<int> data, int offset);
   void registerBadCertificateCallback(bool Function(X509Certificate) callback);
   void registerHandshakeCompleteCallback(Function handshakeCompleteHandler);
   void registerKeyLogPort(SendPort port);
-
-  // This call may cause a reference counted pointer in the native
-  // implementation to be retained. It should only be called when the resulting
-  // value is passed to the IO service through a call to dispatch().
-  int _pointer();
 
   List<_ExternalBuffer>? get buffers;
 }
