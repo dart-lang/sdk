@@ -20,6 +20,7 @@ import 'package:dwds/src/utilities/dart_uri.dart';
 import 'package:dwds/src/utilities/server.dart';
 import 'package:http/http.dart';
 import 'package:http/io_client.dart';
+import 'package:http/retry.dart';
 import 'package:logging/logging.dart' as logging;
 import 'package:path/path.dart' as p;
 import 'package:shelf/shelf.dart' as shelf;
@@ -80,6 +81,8 @@ abstract class TestContext {
 
   Process get chromeDriver => _chromeDriver!;
   Process? _chromeDriver;
+  Process? fesProcess;
+  bool lastBuildFailed = false;
 
   WebkitDebugger get webkitDebugger => _webkitDebugger!;
   late WebkitDebugger? _webkitDebugger;
@@ -162,11 +165,17 @@ abstract class TestContext {
 
       configureLogWriter();
 
-      _client = IOClient(
-        HttpClient()
-          ..maxConnectionsPerHost = 200
-          ..idleTimeout = const Duration(seconds: 30)
-          ..connectionTimeout = const Duration(seconds: 30),
+      _client = RetryClient(
+        IOClient(
+          HttpClient()
+            ..maxConnectionsPerHost = 200
+            ..idleTimeout = const Duration(seconds: 30)
+            ..connectionTimeout = const Duration(seconds: 30),
+        ),
+        whenError: (error, stackTrace) {
+          _logger.warning('Retrying request due to network error: $error');
+          return true;
+        },
       );
 
       final systemTempDir = Directory.systemTemp;
@@ -427,9 +436,11 @@ abstract class TestContext {
     // clear the state for next setup
     _webDriver = null;
     _chromeDriver = null;
+
     _testServer = null;
     _client = null;
     _outputDir = null;
+    lastBuildFailed = false;
   }
 
   /// Given a list of edits, use file IO to write them to the file system.
@@ -448,7 +459,7 @@ abstract class TestContext {
     if (Platform.isWindows) {
       await Future<void>.delayed(const Duration(seconds: 1));
     }
-    _reloadedSources.clear();
+    reloadedSources.clear();
     for (var (:file, :originalString, :newString) in edits) {
       if (file == project.dartEntryFileName) {
         file = project.dartEntryFilePath;
@@ -509,7 +520,7 @@ abstract class TestContext {
       );
     }
 
-    _reloadedSources.add({
+    reloadedSources.add({
       'src': '/$srcPath.ddc.js',
       'module': moduleName,
       'libraries': [libUri],
@@ -520,7 +531,7 @@ abstract class TestContext {
   ///
   /// Used by the DDC Library Bundle module system to record changed files for
   /// hot restart/reload.
-  final _reloadedSources = <Map<String, Object>>[];
+  final reloadedSources = <Map<String, Object>>[];
 
   void addLibraryFile({required String libFileName, required String contents}) {
     final file = File(project.dartLibFilePath(libFileName));
@@ -536,7 +547,10 @@ abstract class TestContext {
     return (request) {
       final path = request.url.path;
       if (path.endsWith(reloadedSourcesFileName)) {
-        return shelf.Response.ok(jsonEncode(_reloadedSources));
+        if (lastBuildFailed) {
+          return shelf.Response.notFound('Build failed');
+        }
+        return shelf.Response.ok(jsonEncode(reloadedSources));
       }
       return proxy(request);
     };
@@ -549,6 +563,7 @@ abstract class TestContext {
   Future<void> waitForSuccessfulBuild({
     Duration? timeout,
     bool propagateToBrowser = false,
+    bool allowFailure = false,
   }) => throw UnsupportedError(
     'waitForSuccessfulBuild is only supported in Build Daemon mode',
   );
