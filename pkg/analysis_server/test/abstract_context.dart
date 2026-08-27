@@ -34,7 +34,7 @@ class AbstractContextTest
 
   static bool _lintRulesAreRegistered = false;
 
-  final ByteStore byteStore = _sharedByteStore;
+  final ByteStore _byteStore = _sharedByteStore;
 
   final Map<String, String> _declaredVariables = {};
   AnalysisContextCollectionImpl? _analysisContextCollection;
@@ -217,7 +217,7 @@ class AbstractContextTest
     }
 
     _analysisContextCollection = AnalysisContextCollectionImpl(
-      byteStore: byteStore,
+      byteStore: _byteStore,
       declaredVariables: _declaredVariables,
       enableIndex: true,
       includedPaths: _collectionIncludedPaths.map(convertPath).toList(),
