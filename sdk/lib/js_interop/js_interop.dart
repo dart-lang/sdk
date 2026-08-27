@@ -1364,11 +1364,7 @@ JSAny _convertError(Object error, StackTrace stackTrace) {
 extension FutureOfJSAnyToJSPromise<T extends JSAny?> on Future<T> {
   /// A [JSPromise] that either resolves with the result of the completed
   /// [Future] or rejects with its error if it is a JS value and otherwise
-  /// rejects with a JS `Error` that wraps its Dart error value.
-  ///
-  /// The rejected object contains the original error as a [JSBoxedDartObject]
-  /// in the property `error` and the original stack trace as a [String] in the
-  /// property `stack`.
+  /// rejects with a [WrappedPromiseerror] that wraps its Dart error value.
   JSPromise<T> get toJS {
     return JSPromise<T>(
       (JSFunction resolve, JSFunction reject) {
@@ -1392,11 +1388,8 @@ extension FutureOfJSAnyToJSPromise<T extends JSAny?> on Future<T> {
 /// a value.
 extension FutureOfVoidToJSPromise on Future<void> {
   /// A [JSPromise] that either resolves once this [Future] completes or rejects
-  /// with an object that contains its error.
-  ///
-  /// The rejected object contains the original error as a [JSBoxedDartObject]
-  /// in the property `error` and the original stack trace as a [String] in the
-  /// property `stack`.
+  /// with its error if it is a JS value and otherwise rejects with a
+  /// [WrappedPromiseerror] that wraps its Dart error value.
   JSPromise get toJS {
     return JSPromise(
       (JSFunction resolve, JSFunction reject) {
@@ -1411,6 +1404,38 @@ extension FutureOfVoidToJSPromise on Future<void> {
       }.toJS,
     );
   }
+}
+
+@JS('Object.getOwnPropertyNames')
+external JSArray<JSString> _getOwnPropertyNames(JSObject object);
+
+/// The type of error produced when [FutureOfJSAnyToJSPromise.toJS] or
+/// [FutureOfVoidToJSPromise.toJS] catches a Dart exception.
+@Since('3.14')
+extension type WrappedPromiseError._(JSObject _) implements JSObject {
+  /// The Dart error that was originally thrown.
+  external JSBoxedDartObject get error;
+
+  /// The Dart stack trace, serialized to a string.
+  external String get stack;
+
+  /// Returns whether [value] matches the expected structure of a
+  /// [WrappedPromiseError].
+  static bool isA(JSAny? value) {
+    if (!value.isA<JSObject>()) return false;
+    var object = value as JSObject;
+    return _getOwnPropertyNames(object).length == 3 &&
+        object.has('error') &&
+        object.has('message') &&
+        object['stack'].isA<JSString>();
+  }
+
+  /// If [value] matches the expected structure of a [WrappedPromiseError],
+  /// returns it, and returns null otherwise.
+  ///
+  /// This is intended for use with pattern matching.
+  static WrappedPromiseError? asA(JSAny? value) =>
+      isA(value) ? value as WrappedPromiseError : null;
 }
 
 /// Conversions from [JSArrayBuffer] to [ByteBuffer].
