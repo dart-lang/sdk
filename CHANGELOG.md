@@ -1,3 +1,13 @@
+## 3.13.3
+
+This is a patch release that:
+
+- Fixes an issue where Windows to Linux cross compilation produced incorrect
+  executables if the applicatios used build hooks to link native code.
+  (issue [#63953])
+
+[#63953]: https://github.com/dart-lang/sdk/issues/63953
+
 ## 3.13.2
 
 **Released on:** 2026-08-25
