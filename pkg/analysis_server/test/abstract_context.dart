@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/assist_internal.dart';
-import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
@@ -21,7 +19,6 @@ import 'package:analyzer_testing/experiments/experiments.dart';
 import 'package:analyzer_testing/mock_packages/mock_packages.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:analyzer_testing/utilities/utilities.dart';
-import 'package:linter/src/rules.dart';
 import 'package:meta/meta.dart';
 
 class AbstractContextTest
@@ -31,8 +28,6 @@ class AbstractContextTest
   /// However nothing is preserved between Dart VM runs, so changes to the
   /// implementation are still fully verified.
   static final MemoryByteStore _sharedByteStore = MemoryByteStore();
-
-  static bool _lintRulesAreRegistered = false;
 
   final ByteStore _byteStore = _sharedByteStore;
 
@@ -149,13 +144,6 @@ class AbstractContextTest
 
   @mustCallSuper
   void setUp() {
-    if (!_lintRulesAreRegistered) {
-      registerLintRules();
-      _lintRulesAreRegistered = true;
-      registerBuiltInAssistGenerators();
-      registerBuiltInFixGenerators();
-    }
-
     createMockSdk(resourceProvider: resourceProvider, root: sdkRoot);
 
     writeTestPackageConfig2();
