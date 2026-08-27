@@ -67,6 +67,7 @@ class DartDevcFrontendServerClient implements FrontendServerClient {
     String fileSystemScheme =
         'org-dartlang-root', // Custom scheme for virtual `fileSystemRoots`.
     String? frontendServerPath, // Defaults to the snapshot in the sdk.
+    String? librariesSpec,
     String packagesJson = '.dart_tool/package_config.json',
     String? platformKernel, // Defaults to the dartdevc platform from the sdk.
     String? sdkRoot, // Defaults to the current SDK root.
@@ -83,6 +84,7 @@ class DartDevcFrontendServerClient implements FrontendServerClient {
       fileSystemRoots: fileSystemRoots,
       fileSystemScheme: fileSystemScheme,
       frontendServerPath: frontendServerPath,
+      librariesSpec: librariesSpec,
       packagesJson: packagesJson,
       sdkRoot: sdkRoot,
       target: 'dartdevc',

@@ -575,6 +575,26 @@ extension type JSArray<T extends JSAny?>._(JSArrayType _jsArray)
 extension type JSPromise<T extends JSAny?>._(JSPromiseType _jsPromise)
     implements JSObject, JSPromiseType {
   external JSPromise(JSFunction executor);
+
+  /// Returns a promise that resolves to [value].
+  ///
+  /// Throws an [ArgumentError] if [value] is already a [JSPromise].
+  @Since('3.14')
+  static JSPromise<T> resolve<T extends JSAny?>(T value) =>
+      value.isA<JSPromise>()
+      ? throw ArgumentError.value(
+          value,
+          'value',
+          'JSPromise passed to JSPromise.resolve()',
+        )
+      : _resolve<T>(value);
+
+  @JS('resolve')
+  external static JSPromise<T> _resolve<T extends JSAny?>(T value);
+
+  /// Returns a promise that rejects with [reason].
+  @Since('3.14')
+  external static JSPromise<Null> reject(JSAny reason);
 }
 
 /// Exception for when a [JSPromise] that is converted via

@@ -81,6 +81,7 @@ import 'package:analysis_server/src/lsp/client_capabilities.dart' as lsp;
 import 'package:analysis_server/src/lsp/client_configuration.dart' as lsp;
 import 'package:analysis_server/src/lsp/constants.dart' as lsp;
 import 'package:analysis_server/src/lsp/handlers/handler_states.dart';
+import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/operation/operation_analysis.dart';
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart' as server;
@@ -518,6 +519,10 @@ class LegacyAnalysisServer extends AnalysisServer {
   @override
   lsp.LspClientCapabilities get editorClientCapabilities =>
       _editorClientCapabilities;
+
+  @override
+  // Currently, we don't support this for LSP-over-Legacy.
+  LspInitializationOptions? get initializationOptions => null;
 
   @override
   NotificationManager get notificationManager =>

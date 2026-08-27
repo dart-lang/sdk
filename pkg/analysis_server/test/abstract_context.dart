@@ -34,13 +34,10 @@ class AbstractContextTest
 
   static bool _lintRulesAreRegistered = false;
 
-  final ByteStore byteStore = _sharedByteStore;
+  final ByteStore _byteStore = _sharedByteStore;
 
   final Map<String, String> _declaredVariables = {};
   AnalysisContextCollectionImpl? _analysisContextCollection;
-
-  // TODO(scheglov): Stop writing into it. Convert into getter.
-  late String testFilePath = '$testPackageLibPath/test.dart';
 
   List<AnalysisDriver> get allDrivers {
     _createAnalysisContexts();
@@ -75,6 +72,8 @@ class AbstractContextTest
   }
 
   File get testFile => getFile(testFilePath);
+
+  String get testFilePath => '$testPackageLibPath/test.dart';
 
   String get testPackageLibPath => '$testPackageRootPath/lib';
 
@@ -218,7 +217,7 @@ class AbstractContextTest
     }
 
     _analysisContextCollection = AnalysisContextCollectionImpl(
-      byteStore: byteStore,
+      byteStore: _byteStore,
       declaredVariables: _declaredVariables,
       enableIndex: true,
       includedPaths: _collectionIncludedPaths.map(convertPath).toList(),

@@ -240,6 +240,7 @@ class LspAnalysisServer extends AnalysisServer {
 
   /// Initialization options provided by the LSP client. Allows opting in/out of
   /// specific server functionality. Will be null prior to initialization.
+  @override
   LspInitializationOptions? get initializationOptions => _initializationOptions;
 
   /// Whether the server has transitioned into the shutting down state.

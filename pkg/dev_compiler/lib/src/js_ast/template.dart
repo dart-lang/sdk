@@ -628,9 +628,8 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     String? op = node.op;
     Instantiator makeValue = visit(node.value);
     return (arguments) {
-      return makeValue(
-            arguments,
-          ).toAssignExpression(makeLeftHandSide(arguments), op)
+      return makeValue(arguments)
+              .toAssignExpression(makeLeftHandSide(arguments), op)
           as Expression;
     };
   }
