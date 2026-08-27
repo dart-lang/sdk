@@ -102,9 +102,8 @@ class TestDriver {
   }
 
   Future<ModuleSymbols> compileAndGetSymbols() async {
-    var result = await TestCompiler(
-      options,
-    ).compile(input: input, packages: packages);
+    var result = await TestCompiler(options)
+        .compile(input: input, packages: packages);
     var symbols = result.symbols;
     if (symbols == null) {
       throw Exception('No symbols found in compilation result.');

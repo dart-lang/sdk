@@ -14,9 +14,9 @@ import 'package:test/test.dart';
 Directory tmp = Directory.systemTemp.createTempSync('ddc_worker_test');
 File file(String path) => File.fromUri(tmp.uri.resolve(path));
 String _resolvePath(String executableRelativePath) {
-  return Uri.file(
-    Platform.resolvedExecutable,
-  ).resolve(executableRelativePath).toFilePath();
+  return Uri.file(Platform.resolvedExecutable)
+      .resolve(executableRelativePath)
+      .toFilePath();
 }
 
 void main() {
