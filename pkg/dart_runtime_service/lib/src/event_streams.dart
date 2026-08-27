@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
@@ -61,7 +62,33 @@ abstract base class StreamEvent extends StreamEventBase {
 
 /// A class for sending non-JSON-RPC compliant binary events on [streamId].
 final class BinaryStreamEvent extends StreamEventBase {
-  const BinaryStreamEvent({required super.streamId, required this.data});
+  const BinaryStreamEvent({required this.data, required super.streamId});
+
+  /// Creates a [BinaryStreamEvent] by parsing the stream ID from the binary
+  /// event's leading JSON metadata.
+  factory BinaryStreamEvent.fromData(Uint8List data) {
+    final bytesView = ByteData.view(
+      data.buffer,
+      data.offsetInBytes,
+      data.lengthInBytes,
+    );
+    const metadataOffset = 4;
+    final dataOffset = bytesView.getUint32(0, Endian.little);
+    final metadataLength = dataOffset - metadataOffset;
+    final metadata = utf8.decode(
+      Uint8List.view(
+        bytesView.buffer,
+        bytesView.offsetInBytes + metadataOffset,
+        metadataLength,
+      ),
+    );
+    if (json.decode(metadata) case {
+      'params': {'streamId': final String streamId},
+    }) {
+      return BinaryStreamEvent(data: data, streamId: streamId);
+    }
+    throw const FormatException('Invalid BinaryStreamEvent metadata format');
+  }
 
   final Uint8List data;
 
@@ -208,14 +235,11 @@ class EventStreamManager implements EventStreamMethods {
         EventStreams.kHeapSnapshot,
         EventStreams.kLogging,
       }.contains(streamId)) {
-        String eventString;
-        if (data is Uint8List) {
-          eventString = '<binary data>';
-        } else if (data is StreamEvent) {
-          eventString = data.toJson().toString();
-        } else {
-          eventString = '<unknown>';
-        }
+        final eventString = switch (data) {
+          Uint8List _ => '<binary data>',
+          final StreamEvent event => event.toJson().toString(),
+          _ => '<unknown>',
+        };
         streamLogger.info(
           'Sending event to ${listeners.length} clients: $eventString.',
         );
