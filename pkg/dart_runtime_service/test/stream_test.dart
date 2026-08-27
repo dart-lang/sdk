@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:dart_runtime_service/src/dart_runtime_service_options.dart';
 import 'package:dart_runtime_service/src/dart_runtime_service_rpcs.dart';
@@ -177,6 +179,34 @@ void main() {
       // subscribed.
       await pumpEventQueue();
       expect(client1ServiceRegisteredEventCount, equals(0));
+    });
+
+    test('BinaryStreamEvent.fromData parses streamId and payload', () {
+      final header = json.encode(<String, Object?>{
+        'jsonrpc': '2.0',
+        'method': 'streamNotify',
+        'params': <String, Object?>{
+          'streamId': 'BinaryStream',
+          'event': <String, Object?>{
+            'type': 'Event',
+            'kind': 'BinaryData',
+            'timestamp': 123456789,
+          },
+        },
+      });
+      final headerBytes = utf8.encode(header);
+      const metadataOffset = 4;
+      final dataOffset = metadataOffset + headerBytes.length;
+      final payload = <int>[10, 20, 30, 40];
+      final buffer = Uint8List(dataOffset + payload.length);
+      final byteData = ByteData.view(buffer.buffer);
+      byteData.setUint32(0, dataOffset, Endian.little);
+      buffer.setRange(metadataOffset, dataOffset, headerBytes);
+      buffer.setRange(dataOffset, buffer.length, payload);
+
+      final event = BinaryStreamEvent.fromData(buffer);
+      expect(event.streamId, equals('BinaryStream'));
+      expect(event.data, equals(buffer));
     });
   });
 }

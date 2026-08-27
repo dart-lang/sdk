@@ -26,6 +26,15 @@ class MoveFileTest extends RefactoringTest {
   @override
   late String testFilePath;
 
+  Future<void> analyzeTestPackageFiles() async {
+    var analysisContext = contextFor(testFile);
+    var files = analysisContext.contextRoot.analyzedFiles().toList();
+    for (var path in files) {
+      await analysisContext.applyPendingFileChanges();
+      await analysisContext.currentSession.getResolvedUnit(path);
+    }
+  }
+
   @override
   void setUp() {
     testFilePath = convertPath('$testPackageLibPath/test.dart');
