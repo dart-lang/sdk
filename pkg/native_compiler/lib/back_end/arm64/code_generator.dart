@@ -212,9 +212,13 @@ final class Arm64CodeGenerator extends CodeGenerator {
       FP,
       ShiftedRegOperand(tempReg, .LSL, log2wordSize - smiShift),
     );
-    // Offset of the first argument, relative to argPtrReg.
-    final int baseOffset =
-        Arm64StackFrame.lastParameterOffsetFromFP + (typeArg - 1) * wordSize;
+    // Offset of the first argument (without type args), relative to argPtrReg.
+    // Used when accessing named arguments as their positions do not count type args.
+    final int baseOffsetWithoutTypeArgs =
+        Arm64StackFrame.lastParameterOffsetFromFP - wordSize;
+    // Offset of the first argument (with type args), relative to argPtrReg.
+    // Used when accessing positional arguments.
+    final int baseOffset = baseOffsetWithoutTypeArgs + typeArg * wordSize;
 
     var i = 0;
     final int numArgsToLoadInPairs = math.min(
@@ -328,7 +332,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
         argPtrReg,
         ShiftedRegOperand(tempReg, .LSL, log2wordSize - smiShift),
       );
-      _asm.ldr(destReg, RegOffsetAddress(tempReg, baseOffset));
+      _asm.ldr(destReg, _asm.address(tempReg, baseOffsetWithoutTypeArgs));
       if (proceed != null) {
         _asm.bind(proceed);
       }
