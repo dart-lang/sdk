@@ -114,6 +114,13 @@ class _ContextLocator {
   /// A parse session for one context-location operation.
   final AnalysisOptionsParseSession _analysisOptionsParseSession = .new();
 
+  /// Parsed package configurations reused by this operation.
+  final Map<File, Packages> _packagesByFile = {};
+
+  /// Package-config workspace snapshots reused by this operation.
+  late final PackageConfigWorkspaceFindSession
+  _packageConfigWorkspaceFindSession = .new(_resourceProvider);
+
   /// The list of context roots ultimately returned by [_locateRoots].
   final _roots = <ContextRootImpl>[];
 
@@ -423,9 +430,15 @@ class _ContextLocator {
       }
     }
 
-    Packages packages = packageConfigFile != null
-        ? parsePackageConfigJsonFile(_resourceProvider, packageConfigFile)
-        : Packages.empty;
+    Packages? providedPackages = packageConfigFile != null
+        ? _packagesByFile.putIfAbsent(
+            packageConfigFile,
+            () => parsePackageConfigJsonFile(
+              _resourceProvider,
+              packageConfigFile,
+            ),
+          )
+        : null;
 
     var rootPath = folder.path;
 
@@ -435,10 +448,17 @@ class _ContextLocator {
         rootPath,
         lookForBuildFileSubstitutes: false,
       ),
-      PackageConfigWorkspace.find(_resourceProvider, packages, rootPath),
+      _packageConfigWorkspaceFindSession.find(
+        rootPath,
+        providedPackages: providedPackages,
+      ),
     );
     return workspace ??
-        BasicWorkspace.find(_resourceProvider, packages, rootPath);
+        BasicWorkspace.find(
+          _resourceProvider,
+          providedPackages ?? Packages.empty,
+          rootPath,
+        );
   }
 
   File? _findBuildGnFile(Folder folder) {
@@ -700,12 +720,17 @@ class _ContextLocator {
       _createContextRootsIn({}, folder, root, rootEnabledLegacyPlugins);
     }
 
+    var fileLocationByParent = <Folder, _RootLocation>{};
     for (File file in includedFiles) {
       Folder parent = file.parent;
 
-      var location = _contextRootLocation(
+      // Files with the same parent have the same context location, so reuse it.
+      var location = fileLocationByParent.putIfAbsent(
         parent,
-        defaultRootFolder: () => _fileSystemRoot(parent),
+        () => _contextRootLocation(
+          parent,
+          defaultRootFolder: () => _fileSystemRoot(parent),
+        ),
       );
 
       ContextRootImpl? root;
