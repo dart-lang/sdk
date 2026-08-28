@@ -303,12 +303,24 @@ def _CheckLayering(input_api, output_api):
     return []
 
 
+def _ClangToolPath(name):
+    """Returns the clang tool path for this host, or None if not enabled here."""
+    system, machine = platform.system(), platform.machine()
+    if system == 'Linux' and machine == 'x86_64':
+        plat = 'linux-x64'
+    elif system == 'Darwin':
+        plat = 'mac-arm64' if machine == 'arm64' else 'mac-x64'
+    elif system == 'Windows':
+        plat = 'win-x64'
+        name = name + '.exe'
+    else:
+        return None
+    path = 'buildtools/%s/clang/bin/%s' % (plat, name)
+    return path if os.path.isfile(path) else None
+
+
 def _CheckClangTidy(input_api, output_api):
     """Run clang-tidy on VM changes."""
-
-    # Only run clang-tidy on linux x64.
-    if platform.system() != 'Linux' or platform.machine() != 'x86_64':
-        return []
 
     # Run only for modified .cc or .h files.
     files = []
@@ -318,6 +330,13 @@ def _CheckClangTidy(input_api, output_api):
 
     if not files:
         return []
+
+    # clang-tidy currently only runs on linux-x64.
+    if platform.system() != 'Linux' or platform.machine() != 'x86_64':
+        return [
+            output_api.PresubmitNotifyResult(
+                'clang-tidy not enabled on this platform.')
+        ]
 
     args = [
         'tools/sdks/dart-sdk/bin/dart',
@@ -338,10 +357,6 @@ def _CheckClangTidy(input_api, output_api):
 def _CheckClangFormat(input_api, output_api):
     """Run clang-format on VM changes."""
 
-    # Only run clang-format on linux x64.
-    if platform.system() != 'Linux' or platform.machine() != 'x86_64':
-        return []
-
     # Run only for modified .cc or .h files, except for DEPS changes.
     files = []
     is_deps = False
@@ -355,6 +370,16 @@ def _CheckClangFormat(input_api, output_api):
         if is_cpp_file(path) and os.path.isfile(
                 path) and not path.startswith('third_party/'):
             files.append(path)
+
+    if not is_deps and not files:
+        return []
+
+    clang_format = _ClangToolPath('clang-format')
+    if clang_format is None:
+        return [
+            output_api.PresubmitNotifyResult(
+                'clang-format not enabled on this platform.')
+        ]
 
     if is_deps:
         find_args = [
@@ -372,7 +397,7 @@ def _CheckClangFormat(input_api, output_api):
         return []
 
     args = [
-        'buildtools/linux-x64/clang/bin/clang-format',
+        clang_format,
         '--dry-run',
         '--Werror',
     ]
