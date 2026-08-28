@@ -83,11 +83,6 @@ class WideToUtf8Scope {
   DISALLOW_IMPLICIT_CONSTRUCTORS(WideToUtf8Scope);
 };
 
-// On Windows, loaded DLLs are locked by the OS until the process exits (see
-// https://github.com/dart-lang/sdk/issues/55521).
-// Spawn a detached background process that waits for exit and deletes the dir.
-void DeleteTempDirDetached(const wchar_t* temp_dir_w);
-
 std::unique_ptr<wchar_t[]> Utf8ToWideChar(const char* path);
 
 }  // namespace bin

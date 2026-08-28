@@ -14,6 +14,7 @@
 #include "bin/crashpad.h"
 #include "bin/dartdev_options.h"
 #include "bin/dartutils.h"
+#include "bin/directory.h"
 #include "bin/error_exit.h"
 #include "bin/eventhandler.h"
 #include "bin/exe_utils.h"
@@ -594,14 +595,6 @@ class DartDev {
     for (intptr_t i = 0; i < argc_; ++i) {
       argv_[i] = Utils::StrDup(dart_args[i]->value.as_string);
     }
-
-    if (message->value.as_array.length > 5) {
-      auto item5 = GetArrayItem(message, 5);
-      if (item5->type == Dart_CObject_kString) {
-        Options::set_delete_temp_dir_on_shutdown(
-            Utils::StrDup(item5->value.as_string));
-      }
-    }
   }
 
   // Process the DartDev_Result_RunExec result message produced by
@@ -676,9 +669,15 @@ class DartDev {
     if (item2->type == Dart_CObject_kString) {
       argc_++;
     }
+#if defined(DART_HOST_OS_WINDOWS)
+    if (delete_temp_dir_on_shutdown != nullptr) {
+      delete_temp_dir_on_shutdown_ = Utils::StrDup(delete_temp_dir_on_shutdown);
+    }
+#else
     if (delete_temp_dir_on_shutdown != nullptr) {
       argc_++;
     }
+#endif
 
     // Array of arguments to be passed to the script being execed.
     argv_ = std::unique_ptr<char*[], void (*)(char**)>(new char*[argc_ + 1],
@@ -747,17 +746,12 @@ class DartDev {
 #endif
     }
 
+#if !defined(DART_HOST_OS_WINDOWS)
     if (delete_temp_dir_on_shutdown != nullptr) {
-#if defined(DART_HOST_OS_WINDOWS)
-      char* delete_arg = Utils::SCreate("--delete_temp_dir_on_shutdown=%s",
-                                        delete_temp_dir_on_shutdown);
-      argv_[idx++] = StringUtilsWin::ArgumentEscape(delete_arg);
-      free(delete_arg);
-#else
       argv_[idx++] = Utils::SCreate("--delete_temp_dir_on_shutdown=%s",
                                     delete_temp_dir_on_shutdown);
-#endif
     }
+#endif
 
     // Copy in name of the script to run.
     argv_[idx++] = Utils::StrDup(GetArrayItem(message, 1)->value.as_string);
@@ -893,6 +887,7 @@ class DartDev {
                      &flags, dart_options);
         free(script_name_);
         free(package_config_override_);
+        ASSERT(delete_temp_dir_on_shutdown_ == nullptr);
         break;
       }
       case DartDev_Result_RunExec: {
@@ -900,6 +895,7 @@ class DartDev {
         break;
       }
       case DartDev_Result_Exit: {
+        ASSERT(delete_temp_dir_on_shutdown_ == nullptr);
         // Nothing to do here, the process will terminate with the exit code
         // set earlier.
         break;
@@ -1027,6 +1023,14 @@ class DartDev {
     int ret = Process::Exec(nullptr, script_name,
                             const_cast<const char**>(argv_.get()), argc_,
                             nullptr, err_msg, sizeof(err_msg));
+#if defined(DART_HOST_OS_WINDOWS)
+    if (delete_temp_dir_on_shutdown_ != nullptr) {
+      dart::bin::Directory::Delete(nullptr, delete_temp_dir_on_shutdown_,
+                                   /*recursive=*/true);
+      free(delete_temp_dir_on_shutdown_);
+      delete_temp_dir_on_shutdown_ = nullptr;
+    }
+#endif
     if (ret != 0) {
       Syslog::PrintErr("%s.\n", err_msg);
       Process::SetGlobalExitCode(ret);
@@ -1044,6 +1048,7 @@ class DartDev {
   static DartDev_Result result_;
   static char* script_name_;
   static char* package_config_override_;
+  static char* delete_temp_dir_on_shutdown_;
   static CommandLineOptions* dart_vm_options_;
   static std::unique_ptr<char*[], void (*)(char**)> argv_;
   static intptr_t argc_;
@@ -1054,6 +1059,7 @@ bool DartDev::exited_ = false;
 DartDev::DartDev_Result DartDev::result_ = DartDev::DartDev_Result_Unknown;
 char* DartDev::script_name_ = nullptr;
 char* DartDev::package_config_override_ = nullptr;
+char* DartDev::delete_temp_dir_on_shutdown_ = nullptr;
 CommandLineOptions* DartDev::dart_vm_options_ = nullptr;
 std::unique_ptr<char*[], void (*)(char**)> DartDev::argv_ =
     std::unique_ptr<char*[], void (*)(char**)>(nullptr, [](char**) {});
