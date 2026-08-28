@@ -35,3 +35,10 @@ joinedVariableMixed(dynamic x) {
       return () => 0;
   }
 }
+
+joinedVariableSwitchExpression(dynamic x) {
+  return switch (x) {
+    int y || String(length: int y) => () => y,
+    _ => () => 0,
+  };
+}

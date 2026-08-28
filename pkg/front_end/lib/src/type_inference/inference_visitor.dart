@@ -11559,14 +11559,21 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       ]),
     );
 
+    InternalSwitchExpressionCase case_ = node.cases[caseIndex];
+    if (isClosureContextLoweringEnabled) {
+      _contextAllocationStrategy.exitScopeProvider(
+        case_.switchCaseScopeProviderInfo!,
+      );
+    }
+
     Expression expression = popRewrite() as Expression;
     PatternGuard patternGuard = popRewrite() as PatternGuard;
     pushRewrite(
       extern.createSwitchExpressionCase(
         patternGuard: patternGuard,
         expression: expression,
-        fileOffset: node.cases[caseIndex].fileOffset,
-      ),
+        fileOffset: case_.fileOffset,
+      )..scope = case_.switchCaseScopeProviderInfo?.scope,
     );
 
     assert(checkStack(node, stackBase, [ValueKinds.SwitchExpressionCase]));
@@ -11781,6 +11788,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   getSwitchExpressionMemberInfo(InternalExpression node, int index) {
     InternalSwitchExpressionCase switchExpressionCase =
         (node as InternalSwitchExpression).cases[index];
+    if (isClosureContextLoweringEnabled) {
+      _contextAllocationStrategy.handleSwitchCaseBeginning();
+      switchExpressionCase.switchCaseScopeProviderInfo =
+          _contextAllocationStrategy.enterScopeProvider(
+            scopeProviderInfoKind: ScopeProviderInfoKind.Block,
+          );
+    }
     InternalPattern pattern = switchExpressionCase.patternGuard.pattern;
     Map<String, InternalVariable> variables = {
       for (InternalPatternVariable patternVariable in pattern.patternVariables)
@@ -11822,8 +11836,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         );
       case InternalPatternSwitchStatement():
         InternalPatternSwitchCase case_ = node.cases[caseIndex];
-        _contextAllocationStrategy.handleSwitchCaseBeginning();
         if (isClosureContextLoweringEnabled) {
+          _contextAllocationStrategy.handleSwitchCaseBeginning();
           case_.switchCaseScopeProviderInfo = _contextAllocationStrategy
               .enterScopeProvider(
                 scopeProviderInfoKind: ScopeProviderInfoKind.Block,
@@ -11961,6 +11975,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             fileOffset: case_.patternGuard.fileOffset,
           ),
         );
+
+        if (isClosureContextLoweringEnabled) {
+          _contextAllocationStrategy.handleAfterCaseHeads([]);
+        }
     }
   }
 
@@ -12029,7 +12047,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     required int caseIndex,
     required int subIndex,
   }) {
-    if (node is InternalPatternSwitchStatement) {
+    if (node is InternalPatternSwitchStatement ||
+        node is InternalSwitchExpression) {
       if (isClosureContextLoweringEnabled) {
         _contextAllocationStrategy.handleSwitchBeforeAlternative(
           caseIndex: caseIndex,

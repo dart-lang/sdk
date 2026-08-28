@@ -2229,7 +2229,7 @@ class ConstantsTransformer extends RemovingTransformer {
               ], fileOffset: switchCase.fileOffset),
               fileOffset: switchCase.fileOffset,
             ),
-          ], fileOffset: switchCase.fileOffset),
+          ], fileOffset: switchCase.fileOffset)..scope = switchCase.scope,
         );
       }
       bool forUnsoundness = false;
