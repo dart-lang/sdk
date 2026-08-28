@@ -2313,6 +2313,81 @@ ASSEMBLER_TEST_RUN(Uaddlv4S, test) {
       "ret\n");
 }
 
+ASSEMBLER_TEST_GENERATE(Umaxp4S, assembler) {
+  // Vn = {3, 9, 3, 3}, Vm = {5, 5, 5, 5}. umaxp pairs adjacent lanes:
+  // V0 = {max(3,9), max(3,3), max(5,5), max(5,5)} = {9, 3, 5, 5}.
+  // Pack one lane per byte into r0 = 0x05050309 to check every lane.
+  __ LoadImmediate(R1, 3);
+  __ vdupw(V1, R1);
+  __ LoadImmediate(R2, 9);
+  __ vinsw(V1, 1, R2);
+  __ LoadImmediate(R3, 5);
+  __ vdupw(V2, R3);
+  __ vumaxp_4s(V0, V1, V2);
+  __ vmovrs(R0, V0, 0);
+  __ vmovrs(R1, V0, 1);
+  __ vmovrs(R2, V0, 2);
+  __ vmovrs(R3, V0, 3);
+  __ orr(R0, R0, Operand(R1, LSL, 8));
+  __ orr(R0, R0, Operand(R2, LSL, 16));
+  __ orr(R0, R0, Operand(R3, LSL, 24));
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Umaxp4S, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(0x05050309, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r1, #0x3\n"
+      "vdups v1, r1\n"
+      "movz r2, #0x9\n"
+      "vinss v1[1], r2\n"
+      "movz r3, #0x5\n"
+      "vdups v2, r3\n"
+      "vumaxp v0, v1, v2\n"
+      "vmovrs r0, v0[0]\n"
+      "vmovrs r1, v0[1]\n"
+      "vmovrs r2, v0[2]\n"
+      "vmovrs r3, v0[3]\n"
+      "orr r0, r0, r1 lsl #8\n"
+      "orr r0, r0, r2 lsl #16\n"
+      "orr r0, r0, r3 lsl #24\n"
+      "ret\n");
+}
+
+ASSEMBLER_TEST_GENERATE(Uminv4S, assembler) {
+  // Vn = {8, 4, 6, 2}. uminv = min across lanes = 2 (last lane, proving a full
+  // scan, and distinct from the max 8).
+  __ LoadImmediate(R1, 8);
+  __ vdupw(V0, R1);
+  __ LoadImmediate(R2, 4);
+  __ vinsw(V0, 1, R2);
+  __ LoadImmediate(R3, 6);
+  __ vinsw(V0, 2, R3);
+  __ LoadImmediate(R4, 2);
+  __ vinsw(V0, 3, R4);
+  __ vuminv_4s(V0, V0);
+  __ fmovrs(R0, V0);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Uminv4S, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(2, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r1, #0x8\n"
+      "vdups v0, r1\n"
+      "movz r2, #0x4\n"
+      "vinss v0[1], r2\n"
+      "movz r3, #0x6\n"
+      "vinss v0[2], r3\n"
+      "movz r4, #0x2\n"
+      "vinss v0[3], r4\n"
+      "vuminv v0, v0\n"
+      "fmovrsw r0, v0\n"
+      "ret\n");
+}
+
 // Comparisons, branching.
 ASSEMBLER_TEST_GENERATE(BranchALForward, assembler) {
   Label l;
