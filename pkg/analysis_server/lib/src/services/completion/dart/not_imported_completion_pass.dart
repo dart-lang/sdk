@@ -104,11 +104,14 @@ class NotImportedCompletionPass {
     var analysisDriver = request.analysisContext.driver;
 
     var fsState = analysisDriver.fsState;
-    var filter = FileStateFilter(fsState.getFileForPath(request.path));
+    var targetFile = fsState.getFileForPath(request.path);
+    var filter = FileStateFilter(targetFile);
 
     try {
-      performance.run('discoverAvailableFiles', (_) {
-        analysisDriver.discoverAvailableFiles();
+      await performance.runAsync('discoverAvailableFilesFor', (_) async {
+        await analysisDriver
+            .discoverAvailableFilesFor(targetFile)
+            .timeout(budget.left);
       });
     } on TimeoutException {
       _collector.isIncomplete = true;

@@ -221,10 +221,10 @@ class FindDeclarations {
 
   Future<void> compute([CancellationToken? cancellationToken]) async {
     if (!onlyAnalyzed) {
-      performance.run('discoverAvailableFiles', (performance) {
-        for (var driver in drivers) {
-          driver.discoverAvailableFiles();
-        }
+      await performance.runAsync('discoverAvailableFiles', (performance) {
+        return Future.wait(
+          drivers.map((driver) => driver.discoverAvailableFiles()),
+        );
       });
     }
 
@@ -408,7 +408,7 @@ class Search {
     }
 
     var checkedLibraries = <FileState>{};
-    for (var file in _filesForSearch()) {
+    for (var file in await _filesForSearch()) {
       if (!file.definedClassMemberNames.contains(name)) {
         continue;
       }
@@ -586,7 +586,7 @@ class Search {
     }
 
     var checkedLibraries = <FileState>{};
-    for (var file in _filesForSearch()) {
+    for (var file in await _filesForSearch()) {
       var libraryFile = file.kind.library?.file;
       if (libraryFile == null || !checkedLibraries.add(libraryFile)) {
         continue;
@@ -620,7 +620,7 @@ class Search {
 
     // Check the index of every file that references the element name.
     List<SearchResult> results = [];
-    for (var file in _filesForSearch()) {
+    for (var file in await _filesForSearch()) {
       if (!file.referencedNames.contains(name)) {
         continue;
       }
@@ -698,7 +698,7 @@ class Search {
     // Prepare the list of files that reference one of the names that can
     // syntactically denote the element.
     if (!name.startsWith('_')) {
-      for (var file in _filesForSearch()) {
+      for (var file in await _filesForSearch()) {
         if (referenceNames.any(file.referencedNames.contains)) {
           files.add(file);
         }
@@ -760,12 +760,12 @@ class Search {
   }) async {
     List<DirectSubtypeWithMembers> results = [];
 
-    _driver.discoverAvailableFiles();
+    await _driver.discoverAvailableFiles();
 
     var subtypingFiles = _driver.fsState.getFilesSubtypingName(name);
 
     if (subtypingFiles != null) {
-      for (var file in _filesForSearch()) {
+      for (var file in await _filesForSearch()) {
         if (!subtypingFiles.contains(file)) {
           continue;
         }
@@ -781,8 +781,8 @@ class Search {
     return results;
   }
 
-  Iterable<FileState> _filesForSearch() {
-    _driver.discoverAvailableFiles();
+  Future<List<FileState>> _filesForSearch() async {
+    await _driver.discoverAvailableFiles();
 
     return _driver.ownedFiles?.filesFor(_driver) ?? const <FileState>[];
   }
@@ -859,7 +859,7 @@ class Search {
   Future<List<SearchResult>> _searchReferences_CompilationUnit(
     LibraryFragmentImpl fragment,
   ) async {
-    _driver.discoverAvailableFiles();
+    await _driver.discoverAvailableFiles();
 
     var source = fragment.source;
     var file = source.tryCast<FileSource>()?.file;
