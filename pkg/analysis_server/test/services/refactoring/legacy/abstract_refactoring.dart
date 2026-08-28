@@ -13,6 +13,7 @@ import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/utilities/extensions/file_system.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show RefactoringProblemSeverity, SourceChange, SourceEdit;
+import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 
 import '../../../abstract_single_unit.dart';
@@ -185,6 +186,12 @@ abstract class RefactoringTest extends AbstractSingleUnitTest
 
   Future<void> indexUnit(String file, String code) async {
     newFile(file, code);
+  }
+
+  @override
+  void setUp() {
+    registerLintRules();
+    super.setUp();
   }
 
   void _assertTextExpectation(String actual, String expected) {

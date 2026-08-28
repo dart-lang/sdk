@@ -8,6 +8,7 @@ import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/element/element.dart' as engine;
 import 'package:analyzer/error/error.dart' as engine;
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -23,6 +24,12 @@ void main() {
 
 @reflectiveTest
 class AnalysisErrorTest extends AbstractContextTest {
+  @override
+  void setUp() {
+    registerLintRules();
+    super.setUp();
+  }
+
   void test_fromEngine_hasContextMessage() async {
     var content = r'''
 void f() {

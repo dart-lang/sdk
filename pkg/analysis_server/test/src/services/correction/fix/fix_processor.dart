@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/bulk_fix_processor.dart';
+import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analysis_server_plugin/edit/dart/dart_fix_kind_priority.dart';
 import 'package:analysis_server_plugin/edit/fix/dart_fix_context.dart';
 import 'package:analysis_server_plugin/edit/fix/fix.dart';
@@ -18,6 +19,7 @@ import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer/src/util/sdk.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError;
+import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 
 import '../../../../abstract_single_unit.dart';
@@ -41,6 +43,8 @@ abstract class BaseFixProcessorTest extends AbstractSingleUnitTest {
 
   @override
   void setUp() {
+    registerLintRules();
+    registerBuiltInFixGenerators();
     super.setUp();
     verifyNoTestUnitErrors = false;
   }
@@ -232,6 +236,8 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
 
   @override
   void setUp() {
+    registerLintRules();
+    registerBuiltInFixGenerators();
     super.setUp();
     verifyNoTestUnitErrors = false;
     _createAnalysisOptionsFile();
