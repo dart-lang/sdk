@@ -378,6 +378,13 @@ final class FlowGraphChecker extends Pass implements InstructionVisitor<void> {
   }
 
   @override
+  void visitCopyArrayElements(CopyArrayElements instr) {
+    assert(instr.srcStart.type is IntType);
+    assert(instr.dstStart.type is IntType);
+    assert(instr.length.type is IntType);
+  }
+
+  @override
   void visitThrow(Throw instr) {
     assert(instr.next == null);
     assert(instr.block!.successors.isEmpty);

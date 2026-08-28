@@ -299,47 +299,12 @@ void buildOneByteStringSubstringUnchecked(
   final len = builder.addBinaryIntOp(.sub);
   final dst = builder.addAllocateArray(.oneByteString, type);
 
-  final loopBlock = builder.newJoinBlock();
-  final iVar = builder.declareLocalVariable('i', null, const IntType());
-
-  builder.addIntConstant(0);
-  builder.addStoreLocal(iVar);
-  builder.addGoto(loopBlock);
-
-  builder.startBlock(loopBlock);
-
-  // dst[i] = src[startIndex + i];
-  builder.push(dst);
-  builder.addLoadLocal(iVar);
-
   builder.push(src);
   builder.push(startIndex);
-  builder.addLoadLocal(iVar);
-  builder.addBinaryIntOp(.add);
-  builder.addLoadArrayElement(.oneByteString, const IntType());
-
-  builder.addStoreArrayElement(.oneByteString);
-
-  // i = i + 1;
-  builder.addLoadLocal(iVar);
-  builder.addIntConstant(1);
-  builder.addBinaryIntOp(.add);
-  builder.addStoreLocal(iVar);
-
-  // if (i < len) continue;
-  builder.addLoadLocal(iVar);
-  builder.push(len);
-  builder.addComparison(.intLess);
-
-  final continueBlock = builder.newTargetBlock();
-  final doneBlock = builder.newTargetBlock();
-  builder.addBranch(continueBlock, doneBlock);
-
-  builder.startBlock(continueBlock);
-  builder.addGoto(loopBlock);
-
-  builder.startBlock(doneBlock);
   builder.push(dst);
+  builder.addIntConstant(0);
+  builder.push(len);
+  builder.addCopyArrayElements(.oneByteString, canOverlap: false);
 }
 
 /// Build IR for _GrowableList._withData factory constructor.
@@ -408,6 +373,24 @@ void buildEqualsWithSameObjectFastPath(
 
   builder.startBlock(joinBlock);
   builder.addLoadLocal(resultVar);
+}
+
+/// Build IR for _TypedListBase._memMove{1,2,4,8,16}
+void buildTypedDataMemMove(FlowGraphBuilder builder, ArrayKind kind) {
+  final skipCount = builder.pop();
+  final src = builder.pop();
+  final count = builder.pop();
+  final start = builder.pop();
+  final dst = builder.pop();
+
+  builder.push(src);
+  builder.push(skipCount);
+  builder.push(dst);
+  builder.push(start);
+  builder.push(count);
+  builder.addCopyArrayElements(kind, canOverlap: true);
+
+  builder.addNullConstant();
 }
 
 /// Build IR for ThreadLocal._hasValue.
@@ -499,6 +482,14 @@ extension on ArrayKind {
     .fixedLengthList ||
     .oneByteString ||
     .twoByteString => throw 'ArrayKind.elementName is not defined for $this',
+  };
+  int get elementSize => switch (this) {
+    .uint8List => 1,
+    .uint16List => 2,
+    .uint32List => 4,
+    .uint64List => 8,
+    // TODO: .int32x4List => 16,
+    _ => throw 'ArrayKind.elementSizeInBytes is not defined for $this',
   };
 }
 
@@ -1202,6 +1193,21 @@ final class VmRecognizedMethods(
           arrayKind,
           index.getClass('dart:typed_data', '${arrayKind.elementName}List'),
         );
+      },
+
+    for (ArrayKind arrayKind in [
+      .uint8List,
+      .uint16List,
+      .uint32List,
+      .uint64List,
+      // TODO: .int32x4List
+    ])
+      index.getProcedure(
+        'dart:typed_data',
+        '_TypedListBase',
+        '_memMove${arrayKind.elementSize}',
+      ): (FlowGraphBuilder builder) {
+        buildTypedDataMemMove(builder, arrayKind);
       },
 
     // dart:_vm

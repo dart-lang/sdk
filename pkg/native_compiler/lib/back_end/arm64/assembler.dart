@@ -136,6 +136,23 @@ const Set<Register> allRegisters = {
   ZR,
 };
 
+/// Argument registers according to C ABI.
+const List<Register> abiArgumentRegisters = [R0, R1, R2, R3, R4, R5, R6, R7];
+
+/// Registers preserved by a call according to C ABI.
+const List<Register> abiPreservedRegisters = [
+  R19,
+  R20,
+  R21,
+  R22,
+  R23,
+  R24,
+  R25,
+  R26,
+  R27,
+  R28,
+];
+
 const Set<Register> reservedRegisters = {
   stackPointerReg,
   tempReg,
@@ -786,7 +803,25 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
 
   @override
   void callLeafRuntime(LeafRuntimeEntry entry) {
-    unimplemented("callLeafRuntime $entry");
+    final savedSP = abiPreservedRegisters.first;
+    mov(savedSP, SP);
+    mov(SP, stackPointerReg);
+
+    ldr(
+      LR,
+      address(
+        threadReg,
+        vmOffsets.Thread_leaf_runtime_entry_offset(entry, wordSize),
+      ),
+    );
+    str(LR, address(threadReg, vmOffsets.Thread_vm_tag_offset));
+
+    blr(LR);
+
+    loadImmediate(LR, vmOffsets.VMTag_kDartTagId);
+    str(LR, address(threadReg, vmOffsets.Thread_vm_tag_offset));
+
+    mov(SP, savedSP);
   }
 
   @override

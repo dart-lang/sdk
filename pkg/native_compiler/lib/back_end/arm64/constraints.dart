@@ -290,6 +290,18 @@ final class Arm64Constraints extends Constraints {
   ]);
 
   @override
+  InstructionConstraints? visitCopyArrayElements(CopyArrayElements instr) {
+    final inputs = allocatableRegisters.take(instr.inputCount).toList();
+    return InstructionConstraints(
+      null,
+      inputs,
+      // TODO: save registers on slow path
+      allRegistersExcept(null, inputs),
+      Safepoint(),
+    );
+  }
+
+  @override
   InstructionConstraints? visitThrow(Throw instr) {
     final inputs = allocatableRegisters.take(instr.inputCount).toList();
     return InstructionConstraints(

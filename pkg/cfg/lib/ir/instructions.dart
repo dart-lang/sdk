@@ -1958,6 +1958,44 @@ final class LoadExternalArrayElement extends Definition
   R accept<R>(InstructionVisitor<R> v) => v.visitLoadExternalArrayElement(this);
 }
 
+/// Copy array elements from one array into another.
+///
+/// [CopyArrayElements] assumes source and destination regions are within array bounds.
+final class CopyArrayElements extends Instruction
+    with NoThrow, HasSideEffects, BackendInstruction {
+  final ArrayKind kind;
+
+  /// Whether the source and destination regions can overlap.
+  bool canOverlap;
+
+  CopyArrayElements(
+    super.graph,
+    super.sourcePosition,
+    this.kind,
+    Definition srcArray,
+    Definition srcStart,
+    Definition dstArray,
+    Definition dstStart,
+    Definition length, {
+    required this.canOverlap,
+  }) : super(inputCount: 5) {
+    setInputAt(0, srcArray);
+    setInputAt(1, srcStart);
+    setInputAt(2, dstArray);
+    setInputAt(3, dstStart);
+    setInputAt(4, length);
+  }
+
+  Definition get srcArray => inputDefAt(0);
+  Definition get srcStart => inputDefAt(1);
+  Definition get dstArray => inputDefAt(2);
+  Definition get dstStart => inputDefAt(3);
+  Definition get length => inputDefAt(4);
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitCopyArrayElements(this);
+}
+
 /// Allocate an array (built-in list or typed data list) of given length.
 ///
 /// When creating built-in lists, [AllocateArray] can optionally take type arguments

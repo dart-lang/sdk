@@ -1276,6 +1276,119 @@ final class Arm64CodeGenerator extends CodeGenerator {
   }
 
   @override
+  void visitCopyArrayElements(CopyArrayElements instr) {
+    final srcArrayReg = inputReg(instr, 0);
+    final srcStartReg = inputReg(instr, 1);
+    final dstArrayReg = inputReg(instr, 2);
+    final dstStartReg = inputReg(instr, 3);
+    final lengthReg = inputReg(instr, 4);
+    final scratch1Reg = temporaryReg(instr, 0);
+
+    assert(instr.kind != .fixedLengthList);
+    final OperandSize sz = instr.kind.elementSize(objectLayout);
+    final dataFieldOffset = instr.kind.dataFieldOffset(vmOffsets);
+    final done = Label();
+    final loop = Label();
+
+    _asm.cbz(lengthReg, done);
+
+    void loadElementAddress(Register array, Register start) {
+      if (dataFieldOffset != null) {
+        // Use 'data' field as we don't know actual type of the typed data list.
+        _asm.ldr(array, _asm.fieldAddress(array, dataFieldOffset));
+      } else {
+        _asm.addImmediate(
+          array,
+          array,
+          instr.kind.dataOffset(vmOffsets) - heapObjectTag,
+        );
+      }
+      _asm.add(
+        array,
+        array,
+        ShiftedRegOperand(start, .LSL, sz.log2sizeInBytes),
+      );
+    }
+
+    loadElementAddress(srcArrayReg, srcStartReg);
+    loadElementAddress(dstArrayReg, dstStartReg);
+
+    Label slowPath = addSlowPath(() {
+      assert(srcArrayReg == R0);
+      assert(dstArrayReg == R2);
+      assert(lengthReg == R4);
+      _asm.mov(R1, srcArrayReg);
+      _asm.mov(R0, dstArrayReg);
+      _asm.lsl(R2, lengthReg, sz.log2sizeInBytes);
+      // memmove(dst, src, n).
+      _asm.callLeafRuntime(LeafRuntimeEntry.MemoryMove);
+      _asm.b(done);
+    });
+
+    const maxElementsToCopy = 256;
+    _asm.cmpImmediate(lengthReg, maxElementsToCopy);
+    _asm.b(slowPath, .greater);
+
+    if (instr.canOverlap) {
+      _asm.cmp(dstArrayReg, srcArrayReg);
+      _asm.b(loop, .unsignedLessOrEqual);
+
+      _asm.add(
+        tempReg,
+        srcArrayReg,
+        ShiftedRegOperand(lengthReg, .LSL, sz.log2sizeInBytes),
+      );
+      _asm.cmp(dstArrayReg, tempReg);
+      _asm.b(slowPath, .unsignedLess);
+    }
+
+    _asm.bind(loop);
+    if (sz.is128) {
+      _asm.ldp(
+        tempReg,
+        scratch1Reg,
+        WritebackRegOffsetAddress(
+          srcArrayReg,
+          sz.sizeInBytes,
+          isPostIndexed: true,
+        ),
+      );
+      _asm.stp(
+        tempReg,
+        scratch1Reg,
+        WritebackRegOffsetAddress(
+          dstArrayReg,
+          sz.sizeInBytes,
+          isPostIndexed: true,
+        ),
+      );
+    } else {
+      _asm.ldr(
+        tempReg,
+        WritebackRegOffsetAddress(
+          srcArrayReg,
+          sz.sizeInBytes,
+          isPostIndexed: true,
+        ),
+        sz,
+      );
+      _asm.str(
+        tempReg,
+        WritebackRegOffsetAddress(
+          dstArrayReg,
+          sz.sizeInBytes,
+          isPostIndexed: true,
+        ),
+        sz,
+      );
+    }
+    _asm.subImmediate(lengthReg, lengthReg, 1);
+    _asm.cbnz(lengthReg, loop);
+
+    _asm.bind(done);
+  }
+
+  @override
   void visitThrow(Throw instr) {
     switch (instr.kind) {
       case .exception:
