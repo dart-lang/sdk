@@ -16,7 +16,7 @@ static method test() → asy::Future<core::bool> async /* emittedValueType= core
     try {
       :async_temporary_1 = changed;
       :async_temporary_0 = await self::applyState();
-      changed = (:async_temporary_1 as{Unchecked} core::bool).{core::bool::|}(:async_temporary_0 as{Unchecked} core::bool){(core::bool) → core::bool};
+      changed = :async_temporary_1.{core::bool::|}(:async_temporary_0){(core::bool) → core::bool};
       return changed;
     }
     finally {
@@ -30,5 +30,5 @@ static method test() → asy::Future<core::bool> async /* emittedValueType= core
 static method main() → void async /* emittedValueType= void */ {
   core::bool :async_temporary_0;
   :async_temporary_0 = await self::test();
-  :async_temporary_0 as{Unchecked} core::bool;
+  :async_temporary_0;
 }
