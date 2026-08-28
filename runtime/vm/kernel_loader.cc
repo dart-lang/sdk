@@ -390,6 +390,9 @@ void KernelLoader::InitializeFields(UriToSourceTable* uri_to_source_table) {
   Reader reader(binary);
   reader.set_offset(program_->string_table_offset());
   intptr_t count = reader.ReadUInt() + 1;
+  if (count < 0 || count > reader.size()) {
+    FATAL("Invalid kernel binary: string table count out of range");
+  }
   const auto& offsets = TypedData::Handle(
       Z, TypedData::New(kTypedDataUint32ArrayCid, count, Heap::kOld));
   offsets.SetUint32(0, 0);
@@ -400,6 +403,9 @@ void KernelLoader::InitializeFields(UriToSourceTable* uri_to_source_table) {
   }
 
   // Create view of the string data.
+  if (end_offset < 0 || reader.offset() + end_offset > reader.size()) {
+    FATAL("Invalid kernel binary: string table end offset out of range");
+  }
   const auto& string_data = TypedDataView::Handle(
       reader.ViewFromTo(reader.offset(), reader.offset() + end_offset));
 
@@ -680,6 +686,10 @@ void KernelLoader::walk_incremental_kernel(BitVector* modified_libs,
     }
     if (collect_library_stats) {
       intptr_t library_end = library_offset(i + 1);
+      if (library_end < kernel_offset ||
+          library_end > helper_.reader_.size()) {
+        FATAL("Invalid kernel binary: library offset out of range");
+      }
       library_kernel_data_ =
           helper_.reader_.ViewFromTo(kernel_offset, library_end);
       LibraryIndex library_index(library_kernel_data_);
