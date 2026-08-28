@@ -241,6 +241,7 @@ namespace dart {
   V(Int32x4_setZ, 2)                                                           \
   V(Int32x4_setW, 2)                                                           \
   V(Int32x4_getSignMask, 1)                                                    \
+  V(Int32x4_getAnyTrue, 1)                                                     \
   V(Int32x4_shuffle, 2)                                                        \
   V(Int32x4_shuffleMix, 3)                                                     \
   V(Int32x4_getFlagX, 1)                                                       \
