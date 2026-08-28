@@ -4496,6 +4496,15 @@ DEFINE_EMIT(Int32x4GetFlag, (Register out, XmmRegister value)) {
   EmitToBoolean(compiler, out);
 }
 
+DEFINE_EMIT(Int32x4AnyTrue, (Register out, XmmRegister value)) {
+  ASSERT_BOOL_FALSE_FOLLOWS_BOOL_TRUE();
+  __ ptest(value, value);
+  __ setcc(EQUAL, ByteRegisterOf(out));
+  __ movzxb(out, out);
+  __ movq(out,
+          compiler::Address(THR, out, TIMES_8, Thread::bool_true_offset()));
+}
+
 DEFINE_EMIT(
     Int32x4WithFlag,
     (SameAsFirstInput, XmmRegister mask, Register flag, Temp<Register> temp)) {
@@ -4595,6 +4604,8 @@ DEFINE_EMIT(Int32x4Select,
   CASE(Int32x4GetFlagZ)                                                        \
   CASE(Int32x4GetFlagW)                                                        \
   ____(Int32x4GetFlag)                                                         \
+  CASE(Int32x4AnyTrue)                                                         \
+  ____(Int32x4AnyTrue)                                                         \
   CASE(Int32x4WithFlagX)                                                       \
   CASE(Int32x4WithFlagY)                                                       \
   CASE(Int32x4WithFlagZ)                                                       \

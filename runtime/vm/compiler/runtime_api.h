@@ -1399,6 +1399,13 @@ class IsolateGroup : public AllStatic {
   static word cached_class_table_table_offset();
 };
 
+class VMTag : public AllStatic {
+ public:
+  static const word kDartTagId;
+  static const word kRuntimeTagId;
+  static const word kNativeTagId;
+};
+
 class ClassTable : public AllStatic {
  public:
 #if !defined(PRODUCT)

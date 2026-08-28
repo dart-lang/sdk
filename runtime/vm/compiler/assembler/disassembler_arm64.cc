@@ -1572,6 +1572,16 @@ void ARM64Decoder::DecodeDPSimd1(Instr* instr) {
     Format(instr, "vuaddlv 'vd, 'vn");
     return;
   }
+  // UMAXP Vd.4S, Vn.4S, Vm.4S (Q=1, U=1, size=10, three-same MAXP form).
+  if ((instr->InstructionBits() & 0xFFE0FC00) == 0x6EA0A400) {
+    Format(instr, "vumaxp 'vd, 'vn, 'vm");
+    return;
+  }
+  // UMINV Sd, Vn.4S (Q=1, U=1, size=10, across-lanes MINV form).
+  if ((instr->InstructionBits() & 0xFFFFFC00) == 0x6EB1A800) {
+    Format(instr, "vuminv 'vd, 'vn");
+    return;
+  }
   if (instr->IsSIMDCopyOp()) {
     DecodeSIMDCopy(instr);
   } else if (instr->IsSIMDThreeSameOp()) {

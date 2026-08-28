@@ -32,9 +32,6 @@
 #include "bin/uri.h"
 #include "bin/utils.h"
 #include "bin/vmservice_impl.h"
-#if defined(DART_HOST_OS_WINDOWS)
-#include "bin/utils_win.h"
-#endif
 #include "include/bin/dart_io_api.h"
 #include "include/bin/native_assets_api.h"
 #include "include/dart_api.h"
@@ -170,15 +167,7 @@ static void WriteDepsFile() {
 static void DeleteTempDirOnShutdown() {
   if (Options::delete_temp_dir_on_shutdown() != nullptr) {
     const char* temp_dir = Options::delete_temp_dir_on_shutdown();
-    if (!dart::bin::Directory::Delete(nullptr, temp_dir,
-                                      /* recursive= */ true)) {
-#if defined(DART_HOST_OS_WINDOWS)
-      auto temp_dir_w = Utf8ToWideChar(temp_dir);
-      if (temp_dir_w != nullptr) {
-        DeleteTempDirDetached(temp_dir_w.get());
-      }
-#endif
-    }
+    dart::bin::Directory::Delete(nullptr, temp_dir, /* recursive= */ true);
   }
 }
 

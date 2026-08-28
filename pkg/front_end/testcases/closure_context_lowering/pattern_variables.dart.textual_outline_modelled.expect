@@ -4,4 +4,6 @@ joinedVariableMultipleHeads(dynamic x) {}
 
 joinedVariableSingleHead(dynamic x) {}
 
+joinedVariableSwitchExpression(dynamic x) {}
+
 patternVariableAssignment((int, String) r) {}

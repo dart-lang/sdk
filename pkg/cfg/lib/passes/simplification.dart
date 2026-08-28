@@ -220,6 +220,9 @@ final class Simplification extends Pass
       instr;
 
   @override
+  Instruction visitCopyArrayElements(CopyArrayElements instr) => instr;
+
+  @override
   Instruction visitThrow(Throw instr) => instr;
 
   @override

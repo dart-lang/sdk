@@ -62,6 +62,7 @@ abstract interface class InstructionVisitor<R> {
   R visitExternalCall(ExternalCall instr);
   R visitLoadExternalField(LoadExternalField instr);
   R visitLoadExternalArrayElement(LoadExternalArrayElement instr);
+  R visitCopyArrayElements(CopyArrayElements instr);
   R visitAllocateArray(AllocateArray instr);
   R visitAllocateRecord(AllocateRecord instr);
   R visitBoxInt(BoxInt instr);
@@ -152,6 +153,8 @@ abstract mixin class DefaultInstructionVisitor<R>
   R visitLoadExternalField(LoadExternalField instr) =>
       defaultBackendInstruction(instr);
   R visitLoadExternalArrayElement(LoadExternalArrayElement instr) =>
+      defaultBackendInstruction(instr);
+  R visitCopyArrayElements(CopyArrayElements instr) =>
       defaultBackendInstruction(instr);
   R visitAllocateArray(AllocateArray instr) => defaultBackendInstruction(instr);
   R visitAllocateRecord(AllocateRecord instr) =>

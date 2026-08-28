@@ -2020,9 +2020,12 @@ class PatternSwitchStatement extends Statement implements SwitchStatement {
   }
 }
 
-class SwitchExpressionCase extends TreeNode {
+class SwitchExpressionCase extends TreeNode implements ScopeProvider {
   PatternGuard patternGuard;
   Expression expression;
+
+  @override
+  Scope? scope;
 
   new(this.patternGuard, this.expression) {
     patternGuard.parent = this;

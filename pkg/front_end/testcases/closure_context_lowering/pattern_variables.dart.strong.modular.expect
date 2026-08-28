@@ -107,3 +107,31 @@ static method joinedVariableMixed(dynamic x) → dynamic/* scope=[
     }
   }
 }
+static method joinedVariableSwitchExpression(dynamic x) → dynamic/* scope=[
+  #ctx12: not-captured [x],
+] */ {
+  return block {
+    () → core::int #t22;
+    final synthesized dynamic #0#0 = x;
+    synthesized core::int #0#2;
+    synthesized core::bool #0#2#isSet = false;
+    #L1:
+    {
+      /* scope=[
+        #ctx13: direct-captured [y],
+      ] */{
+        hoisted core::int y;
+        if(#0#0 is core::int && (let final dynamic #t23 = y = #0#0{core::int} in true) || #0#0 is core::String && ((#0#2#isSet ?{core::int} #0#2 : let final dynamic #t24 = #0#2#isSet = true in #0#2 = #0#0{core::String}.{core::String::length}{core::int}) is core::int && (let final dynamic #t25 = y = #0#2#isSet ?{core::int} #0#2 : let final dynamic #t26 = #0#2#isSet = true in #0#2 = #0#0{core::String}.{core::String::length}{core::int} in true))) {
+          #t22 = () /* #ctx13 */ → core::int => y;
+          break #L1;
+        }
+      }
+      {
+        if(true) {
+          #t22 = () → core::int => 0;
+          break #L1;
+        }
+      }
+    }
+  } =>#t22;
+}

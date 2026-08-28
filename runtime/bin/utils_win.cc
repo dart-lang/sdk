@@ -337,45 +337,6 @@ void TimerUtils::Sleep(int64_t millis) {
   ::Sleep(millis);
 }
 
-void DeleteTempDirDetached(const wchar_t* temp_dir_w) {
-  size_t len = wcslen(temp_dir_w);
-  auto clean_dir = std::make_unique<wchar_t[]>(len + 1);
-  wcscpy(clean_dir.get(), temp_dir_w);
-  while (len > 0 &&
-         (clean_dir[len - 1] == L'\\' || clean_dir[len - 1] == L'/')) {
-    clean_dir[len - 1] = L'\0';
-    len--;
-  }
-
-  // `rmdir /s /q` leaves errorlevel 0 when it fails to delete in-use files,
-  // so success is detected by checking that the directory is gone.
-  const wchar_t* cmd_fmt =
-      L"cmd.exe /c (for /l %%i in (1,1,10) do (rmdir /s /q \"%s\" 2>&1 & "
-      L"if not exist \"%s\" (exit /b 0) else (timeout /t 1 /nobreak))) "
-      L"> NUL 2>&1";
-  size_t cmd_len = wcslen(cmd_fmt) + 2 * wcslen(clean_dir.get()) + 100;
-  wchar_t* cmd_line = new wchar_t[cmd_len];
-  swprintf(cmd_line, cmd_len, cmd_fmt, clean_dir.get(), clean_dir.get());
-
-  STARTUPINFOW si;
-  ZeroMemory(&si, sizeof(si));
-  si.cb = sizeof(si);
-  PROCESS_INFORMATION pi;
-  ZeroMemory(&pi, sizeof(pi));
-
-  // CREATE_NO_WINDOW is ignored when combined with DETACHED_PROCESS. Without
-  // a console to inherit, each timeout.exe would open a visible console
-  // window.
-  if (CreateProcessW(nullptr, cmd_line, nullptr, nullptr, FALSE,
-                     CREATE_NO_WINDOW | CREATE_BREAKAWAY_FROM_JOB, nullptr,
-                     nullptr, &si, &pi)) {
-    CloseHandle(pi.hProcess);
-    CloseHandle(pi.hThread);
-  }
-
-  delete[] cmd_line;
-}
-
 std::unique_ptr<wchar_t[]> Utf8ToWideChar(const char* path) {
   int wide_len = MultiByteToWideChar(CP_UTF8, 0, path, -1, nullptr, 0);
   auto result = std::make_unique<wchar_t[]>(wide_len);

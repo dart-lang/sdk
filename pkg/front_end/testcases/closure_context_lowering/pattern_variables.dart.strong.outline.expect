@@ -10,3 +10,5 @@ static method joinedVariableSingleHead(dynamic x) → dynamic
   ;
 static method joinedVariableMixed(dynamic x) → dynamic
   ;
+static method joinedVariableSwitchExpression(dynamic x) → dynamic
+  ;

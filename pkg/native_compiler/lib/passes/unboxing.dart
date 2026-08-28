@@ -61,6 +61,8 @@ final class Unboxing extends Pass {
       LoadArrayElement() => inputIndex == 1,
       StoreArrayElement() =>
         inputIndex == 1 || (inputIndex == 2 && instr.kind != .fixedLengthList),
+      CopyArrayElements() =>
+        inputIndex == 1 || inputIndex == 3 || inputIndex == 4,
       StoreInstanceField() =>
         inputIndex == 1 && objectLayout.isUnboxedField(instr.field),
       CallInstruction() => false, // TODO: support unboxed parameters.

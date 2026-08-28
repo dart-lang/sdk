@@ -470,7 +470,6 @@ class JoinedPatternVariableEvent<Info extends ScopeProviderInfo>
   new(this.info, this.variable, this.location);
 
   @override
-  // Coverage-ignore(suite): Not run.
   void allocateVariables() {
     _allocateVariableInScopeProviderInfo(info, variable);
   }
@@ -494,7 +493,6 @@ class PatternSwitchCaseHeadScopeBuilder<Info extends ScopeProviderInfo> {
     _events.add(event);
   }
 
-  // Coverage-ignore(suite): Not run.
   /// Handle a joint variable in the case head.
   ///
   /// A joint variable appears when there is or-pattern, and each of the
@@ -513,7 +511,6 @@ class PatternSwitchCaseHeadScopeBuilder<Info extends ScopeProviderInfo> {
   /// variables in the pattern are allocated.
   void allocateVariables() {
     if (_joinedPatternVariableEvent case var joinedPatternVariableEvent?) {
-      // Coverage-ignore-block(suite): Not run.
       joinedPatternVariableEvent.allocateVariables();
     } else {
       for (PatternScopeBuilderEvent<Info> event in _events) {
@@ -577,7 +574,6 @@ class PatternSwitchCaseScopeBuilder<Info extends ScopeProviderInfo> {
 
     switch (location) {
       case JoinedPatternVariableLocation.singlePattern:
-        // Coverage-ignore(suite): Not run.
         // This is the case for the joint variable of a single pattern of a
         // case head. Let the head builder handle it.
         _currentHeadBuilder.handleJoinedPatternVariableEvent(event);

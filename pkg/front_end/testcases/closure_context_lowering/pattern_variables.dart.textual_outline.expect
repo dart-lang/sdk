@@ -5,3 +5,5 @@ joinedVariableMultipleHeads(dynamic x) {}
 joinedVariableSingleHead(dynamic x) {}
 
 joinedVariableMixed(dynamic x) {}
+
+joinedVariableSwitchExpression(dynamic x) {}

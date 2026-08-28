@@ -826,18 +826,25 @@ dev_dependencies:
 
     var aaaRoot = getFolder('$workspaceRootPath/packages/aaa');
     newFile('${aaaRoot.path}/lib/f.dart', '''
+part 'src/part.dart';
+
 class A01 {}
 ''');
-    newFile('${aaaRoot.path}/lib/src/f.dart', '''
+    newFile('${aaaRoot.path}/lib/src/part.dart', '''
+part of '../f.dart';
+
 class A02 {}
+''');
+    newFile('${aaaRoot.path}/lib/src/f.dart', '''
+class A03 {}
 ''');
 
     var bbbRoot = getFolder('$workspaceRootPath/packages/bbb');
     newFile('${bbbRoot.path}/lib/f.dart', '''
-class A03 {}
+class A04 {}
 ''');
     newFile('${bbbRoot.path}/lib/src/f.dart', '''
-class A04 {}
+class A05 {}
 ''');
 
     writeTestPackageConfig2(
@@ -859,6 +866,10 @@ replacement
   left: 2
 suggestions
   A01
+    kind: class
+    isNotImported: true
+    libraryUri: package:aaa/f.dart
+  A02
     kind: class
     isNotImported: true
     libraryUri: package:aaa/f.dart

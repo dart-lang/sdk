@@ -7566,6 +7566,9 @@ class InternalSwitchExpressionCase extends InternalNode {
   final InternalPatternGuard patternGuard;
   final InternalExpression expression;
 
+  /// Scope information for the overall switch expression case.
+  ScopeProviderInfo? switchCaseScopeProviderInfo;
+
   new({
     required this.patternGuard,
     required this.expression,

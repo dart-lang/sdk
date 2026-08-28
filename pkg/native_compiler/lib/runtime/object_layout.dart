@@ -402,6 +402,17 @@ class ObjectLayout {
     ),
   };
 
+  late final Map<String, Object> _dartNativewrappersInstanceLayout = {
+    'NativeFieldWrapperClass1':
+        vmOffsets.Instance_InstanceSize + compressedWordSize,
+    'NativeFieldWrapperClass2':
+        vmOffsets.Instance_InstanceSize + compressedWordSize,
+    'NativeFieldWrapperClass3':
+        vmOffsets.Instance_InstanceSize + compressedWordSize,
+    'NativeFieldWrapperClass4':
+        vmOffsets.Instance_InstanceSize + compressedWordSize,
+  };
+
   late final Map<String, Object> _dartVmInstanceLayout = {'#Thread': 0};
 
   late final ast.Library _typedDataLibrary = _libraryIndex.getLibrary(
@@ -409,6 +420,9 @@ class ObjectLayout {
   );
   late final ast.Library _compactHashLibrary = _libraryIndex.getLibrary(
     'dart:_compact_hash',
+  );
+  late final ast.Library _nativewrappersLibrary = _libraryIndex.getLibrary(
+    'dart:nativewrappers',
   );
   late final ast.Library _vmLibrary = _libraryIndex.getLibrary('dart:_vm');
 
@@ -424,6 +438,8 @@ class ObjectLayout {
       layout = _dartTypedDataInstanceLayout[cls.name];
     } else if (library == _compactHashLibrary) {
       layout = _dartCompactHashInstanceLayout[cls.name];
+    } else if (library == _nativewrappersLibrary) {
+      layout = _dartNativewrappersInstanceLayout[cls.name];
     } else if (library == _vmLibrary) {
       layout = _dartVmInstanceLayout[cls.name];
     }

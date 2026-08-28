@@ -48,7 +48,7 @@ static method asyncMethod(final asy::Stream<core::int> stream) → asy::Stream<c
             #controller.{asy::StreamController::add}(1){(core::Object?) → void};
             if(#controller.{asy::StreamController::isPaused}{core::bool}) {
               :async_temporary_0 = await(#paused = asy::Completer::•<void>()).{asy::Completer::future}{asy::Future<void>};
-              :async_temporary_0 as{Unchecked} void;
+              :async_temporary_0;
             }
             if(#controller.{asy::StreamController::hasListener}{core::bool}) {
             }
@@ -59,7 +59,7 @@ static method asyncMethod(final asy::Stream<core::int> stream) → asy::Stream<c
             #controller.{asy::StreamController::add}(2){(core::Object?) → void};
             if(#controller.{asy::StreamController::isPaused}{core::bool}) {
               :async_temporary_1 = await(#paused = asy::Completer::•<void>()).{asy::Completer::future}{asy::Future<void>};
-              :async_temporary_1 as{Unchecked} void;
+              :async_temporary_1;
             }
             if(#controller.{asy::StreamController::hasListener}{core::bool}) {
             }

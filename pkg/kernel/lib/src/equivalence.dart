@@ -6004,6 +6004,9 @@ class EquivalenceStrategy {
     if (!checkSwitchExpressionCase_expression(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
+    if (!checkSwitchExpressionCase_scope(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
     if (!checkSwitchExpressionCase_fileOffset(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
@@ -13428,6 +13431,15 @@ class EquivalenceStrategy {
     SwitchExpressionCase other,
   ) {
     return visitor.checkNodes(node.expression, other.expression, 'expression');
+  }
+
+  bool checkSwitchExpressionCase_scope(
+    EquivalenceVisitor visitor,
+    SwitchExpressionCase node,
+    SwitchExpressionCase other,
+  ) {
+    'scope';
+    return checkScope(visitor, node.scope, other.scope);
   }
 
   bool checkSwitchExpressionCase_fileOffset(

@@ -102,6 +102,9 @@ base class VMOffsets {
   int get UntaggedPcDescriptors_kTryIndexBitsSize => throw 'Unknown';
   int get UntaggedPcDescriptors_kYieldIndexBitsPos => throw 'Unknown';
   int get UntaggedPcDescriptors_kYieldIndexBitsSize => throw 'Unknown';
+  int get VMTag_kDartTagId => throw 'Unknown';
+  int get VMTag_kRuntimeTagId => throw 'Unknown';
+  int get VMTag_kNativeTagId => throw 'Unknown';
   int get AbstractType_flags_offset => throw 'Unknown';
   int get AbstractType_hash_offset => throw 'Unknown';
   int get AbstractType_type_test_stub_entry_point_offset => throw 'Unknown';
@@ -810,6 +813,12 @@ final class Arm64VMOffsets extends VMOffsets {
   int get UntaggedPcDescriptors_kYieldIndexBitsPos => 0xd;
   @override
   int get UntaggedPcDescriptors_kYieldIndexBitsSize => 0x13;
+  @override
+  int get VMTag_kDartTagId => 0x8;
+  @override
+  int get VMTag_kRuntimeTagId => 0xd;
+  @override
+  int get VMTag_kNativeTagId => 0xe;
   @override
   int get AbstractType_flags_offset => 0x10;
   @override
@@ -1835,6 +1844,12 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   int get UntaggedPcDescriptors_kYieldIndexBitsPos => 0xd;
   @override
   int get UntaggedPcDescriptors_kYieldIndexBitsSize => 0x13;
+  @override
+  int get VMTag_kDartTagId => 0x8;
+  @override
+  int get VMTag_kRuntimeTagId => 0xd;
+  @override
+  int get VMTag_kNativeTagId => 0xe;
   @override
   int get AbstractType_flags_offset => 0x10;
   @override

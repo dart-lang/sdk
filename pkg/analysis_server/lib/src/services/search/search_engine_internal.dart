@@ -46,7 +46,7 @@ class SearchEngineImpl implements SearchEngine {
   @override
   Future<Set<String>?> membersOfSubtypes(InterfaceElement type) async {
     var drivers = _drivers.toList();
-    _discoverAvailableFiles(drivers);
+    await _discoverAvailableFiles(drivers);
 
     var libraryFile = type.library.firstFragment.source.mustBeFile;
 
@@ -96,7 +96,7 @@ class SearchEngineImpl implements SearchEngine {
   ) async {
     var allResults = <LibraryFragmentSearchMatch>[];
     var drivers = _drivers.toList();
-    _discoverAvailableFiles(drivers);
+    await _discoverAvailableFiles(drivers);
     for (var driver in drivers) {
       var results = await driver.search.referencesLibraryFragment(fragment);
       allResults.addAll(results);
@@ -110,7 +110,7 @@ class SearchEngineImpl implements SearchEngine {
   ) async {
     var allResults = <LibraryFragmentSearchMatch>[];
     var drivers = _drivers.toList();
-    _discoverAvailableFiles(drivers);
+    await _discoverAvailableFiles(drivers);
     for (var driver in drivers) {
       var results = await driver.search.referencesLibraryImport(import);
       allResults.addAll(results);
@@ -122,7 +122,7 @@ class SearchEngineImpl implements SearchEngine {
   Future<List<SearchMatch>> searchMemberDeclarations(String name) async {
     var allDeclarations = <SearchMatch>[];
     var drivers = _drivers.toList();
-    _discoverAvailableFiles(drivers);
+    await _discoverAvailableFiles(drivers);
     for (var driver in drivers) {
       var elements = await driver.search.classMembers(name);
       allDeclarations.addAll(elements.map(SearchMatchImpl.forElement));
@@ -134,7 +134,7 @@ class SearchEngineImpl implements SearchEngine {
   Future<List<SearchMatch>> searchMemberReferences(String name) async {
     var allResults = <SearchResult>[];
     var drivers = _drivers.toList();
-    _discoverAvailableFiles(drivers);
+    await _discoverAvailableFiles(drivers);
     for (var driver in drivers) {
       var results = await driver.search.unresolvedMemberReferences(name);
       allResults.addAll(results);
@@ -156,7 +156,7 @@ class SearchEngineImpl implements SearchEngine {
   Future<List<SearchMatch>> searchReferences(Element element) async {
     var allResults = <SearchResult>[];
     var drivers = _drivers.toList();
-    _discoverAvailableFiles(drivers);
+    await _discoverAvailableFiles(drivers);
     for (var driver in drivers) {
       var results = await driver.search.references(element);
       allResults.addAll(results);
@@ -179,7 +179,7 @@ class SearchEngineImpl implements SearchEngine {
     var allMatches = <SearchMatch>[];
     var regExp = RegExp(pattern);
     var drivers = _drivers.toList();
-    _discoverAvailableFiles(drivers);
+    await _discoverAvailableFiles(drivers);
     for (var driver in drivers) {
       var elements = await driver.search.topLevelElements(regExp);
       allMatches.addAll(elements.map(SearchMatchImpl.forElement));
@@ -187,10 +187,10 @@ class SearchEngineImpl implements SearchEngine {
     return allMatches;
   }
 
-  void _discoverAvailableFiles(List<AnalysisDriver> drivers) {
-    for (var driver in drivers) {
-      driver.discoverAvailableFiles();
-    }
+  Future<void> _discoverAvailableFiles(List<AnalysisDriver> drivers) {
+    return Future.wait(
+      drivers.map((driver) => driver.discoverAvailableFiles()),
+    );
   }
 
   Future<List<SearchResult>> _searchDirectSubtypes(
@@ -200,7 +200,7 @@ class SearchEngineImpl implements SearchEngine {
     var allResults = <SearchResult>[];
 
     var drivers = _drivers.toList();
-    _discoverAvailableFiles(drivers);
+    await _discoverAvailableFiles(drivers);
     for (var driver in drivers) {
       var results = await performance.runAsync(
         'directSubtypeReferences',

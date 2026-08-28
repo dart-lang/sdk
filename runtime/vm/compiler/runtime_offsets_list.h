@@ -171,6 +171,9 @@
   CONSTANT(UntaggedPcDescriptors, kTryIndexBitsSize)                           \
   CONSTANT(UntaggedPcDescriptors, kYieldIndexBitsPos)                          \
   CONSTANT(UntaggedPcDescriptors, kYieldIndexBitsSize)                         \
+  CONSTANT(VMTag, kDartTagId)                                                  \
+  CONSTANT(VMTag, kRuntimeTagId)                                               \
+  CONSTANT(VMTag, kNativeTagId)                                                \
   FIELD(AbstractType, flags_offset)                                            \
   FIELD(AbstractType, hash_offset)                                             \
   FIELD(AbstractType, type_test_stub_entry_point_offset)                       \

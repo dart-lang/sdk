@@ -493,6 +493,31 @@ class FlowGraphBuilder {
     return instr;
   }
 
+  /// Append [CopyArrayElements] to the graph.
+  CopyArrayElements addCopyArrayElements(
+    ArrayKind kind, {
+    required bool canOverlap,
+  }) {
+    final length = pop();
+    final dstStart = pop();
+    final dstArray = pop();
+    final srcStart = pop();
+    final srcArray = pop();
+    final instr = CopyArrayElements(
+      graph,
+      currentSourcePosition,
+      kind,
+      srcArray,
+      srcStart,
+      dstArray,
+      dstStart,
+      length,
+      canOverlap: canOverlap,
+    );
+    appendInstruction(instr);
+    return instr;
+  }
+
   /// Append [Throw] to the graph.
   /// Ends current block.
   void addThrow(ThrowKind kind, int inputCount) {
