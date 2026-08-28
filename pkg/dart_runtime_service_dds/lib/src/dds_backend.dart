@@ -187,10 +187,7 @@ class DartRuntimeServiceDdsBackend
       (String message) => _webSocketChannel.sink.add(message),
     );
 
-    _isolateManager = DdsIsolateManager(
-      backend: this,
-      vmServiceClient: _vmServiceClient,
-    );
+    _isolateManager = DdsIsolateManager(vmServiceClient: _vmServiceClient);
     await _isolateManager.initializeIsolates();
 
     _rpcHandlers = DdsRpcHandlers(this);
