@@ -93,6 +93,28 @@ class InferredType {
   int get flags => _flags;
 
   @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is InferredType &&
+        _flags == other._flags &&
+        _closureId == other._closureId &&
+        _concreteClassReference == other._concreteClassReference &&
+        _closureMemberReference == other._closureMemberReference &&
+        _constantValue == other._constantValue &&
+        exactType == other.exactType;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    _flags,
+    _closureId,
+    _concreteClassReference,
+    _closureMemberReference,
+    _constantValue,
+    exactType,
+  );
+
+  @override
   String toString() {
     final StringBuffer buf = new StringBuffer();
     final exactType = this.exactType;
@@ -144,6 +166,14 @@ class InferredTypeMetadataRepository extends MetadataRepository<InferredType> {
   @override
   final Map<TreeNode, InferredType> mapping = <TreeNode, InferredType>{};
 
+  final Map<InferredType, InferredType> _canonicalPool;
+
+  InferredTypeMetadataRepository([
+    Map<InferredType, InferredType>? canonicalPool,
+  ]) : _canonicalPool = canonicalPool ?? <InferredType, InferredType>{};
+
+  InferredType canonicalize(InferredType type) => _canonicalPool[type] ??= type;
+
   @override
   void writeToBinary(InferredType metadata, Node node, BinarySink sink) {
     final flags = metadata._flags;
@@ -188,7 +218,8 @@ class InferredTypeMetadataRepository extends MetadataRepository<InferredType> {
     final closureId = (flags & InferredType.flagClosure) != 0
         ? source.readUInt30()
         : 0;
-    return new InferredType._byReference(
+
+    final candidate = InferredType._byReference(
       exactType,
       concreteClassReference,
       constantValue,
@@ -196,12 +227,15 @@ class InferredTypeMetadataRepository extends MetadataRepository<InferredType> {
       closureId,
       flags,
     );
+    return canonicalize(candidate);
   }
 }
 
 /// Repository for incoming argument [InferredType].
 class InferredArgTypeMetadataRepository extends InferredTypeMetadataRepository {
   static const String repositoryTag = 'vm.inferred-arg-type.metadata';
+
+  InferredArgTypeMetadataRepository([super.canonicalPool]);
 
   @override
   String get tag => repositoryTag;
@@ -211,6 +245,8 @@ class InferredArgTypeMetadataRepository extends InferredTypeMetadataRepository {
 class InferredReturnTypeMetadataRepository
     extends InferredTypeMetadataRepository {
   static const String repositoryTag = 'vm.inferred-return-type.metadata';
+
+  InferredReturnTypeMetadataRepository([super.canonicalPool]);
 
   @override
   String get tag => repositoryTag;
