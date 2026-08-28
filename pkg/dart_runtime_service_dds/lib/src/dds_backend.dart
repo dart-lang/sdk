@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:collection';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:dart_runtime_service/dart_runtime_service.dart';
 import 'package:devtools_shared/devtools_extensions_io.dart';
@@ -20,6 +21,7 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 
 import 'dds_isolate_manager.dart';
 import 'dds_rpcs.dart';
+import 'dds_stream_manager.dart';
 
 final _logger = Logger('DartRuntimeServiceDdsBackend');
 
@@ -65,12 +67,15 @@ class DartRuntimeServiceDdsBackend
   late final shelf.Handler _httpHandler;
 
   late final DdsIsolateManager _isolateManager;
+  late final DdsStreamManager _streamManager;
   late final WebSocketChannel _webSocketChannel;
   late final vm.VmService _vmServiceClient;
   late final DdsRpcHandlers _rpcHandlers;
 
   @override
   DdsIsolateManager get isolateManager => _isolateManager;
+
+  DdsStreamManager get streamManager => _streamManager;
 
   vm.VmService get vmServiceClient => _vmServiceClient;
 
@@ -182,18 +187,57 @@ class DartRuntimeServiceDdsBackend
     final wsUri = _convertToWebSocketUri(remoteVmServiceUri);
     _webSocketChannel = WebSocketChannel.connect(wsUri);
 
-    _vmServiceClient = vm.VmService(
-      _webSocketChannel.stream.cast<String>(),
-      (String message) => _webSocketChannel.sink.add(message),
+    final stringStreamController = StreamController<String>();
+    _webSocketChannel.stream.listen(
+      (Object? data) {
+        switch (data) {
+          case final String text:
+            stringStreamController.add(text);
+          case final Uint8List binaryData:
+            try {
+              final binaryEvent = BinaryStreamEvent.fromData(binaryData);
+              frontend.eventStreams.streamNotify(
+                data: binaryEvent,
+                streamId: binaryEvent.streamId,
+              );
+            } catch (e, st) {
+              _logger.warning(
+                'Failed to handle binary event from target VM',
+                e,
+                st,
+              );
+            }
+        }
+      },
+      onError: stringStreamController.addError,
+      onDone: stringStreamController.close,
     );
 
-    _isolateManager = DdsIsolateManager(
-      backend: this,
-      vmServiceClient: _vmServiceClient,
+    _vmServiceClient = vm.VmService(
+      stringStreamController.stream,
+      (String message) => _webSocketChannel.sink.add(message),
+      disposeHandler: () async {
+        await _webSocketChannel.sink.close();
+      },
     );
-    await _isolateManager.initializeIsolates();
+
+    unawaited(
+      _vmServiceClient.onDone.then(
+        (_) => frontend.shutdown(),
+        onError: (e, st) => frontend.shutdown(),
+      ),
+    );
+
+    _isolateManager = DdsIsolateManager(vmServiceClient: _vmServiceClient);
+
+    _streamManager = DdsStreamManager(backend: this);
 
     _rpcHandlers = DdsRpcHandlers(this);
+
+    // 5. Initialize DDS core streams and logging repositories.
+    await _streamManager.initialize();
+
+    await _isolateManager.initializeIsolates();
   }
 
   @override
@@ -201,6 +245,7 @@ class DartRuntimeServiceDdsBackend
 
   @override
   Future<void> shutdown() async {
+    await _streamManager.shutdown();
     await _vmServiceClient.dispose();
     await _webSocketChannel.sink.close();
   }
@@ -239,6 +284,21 @@ class DartRuntimeServiceDdsBackend
 
   @override
   Future<void> onServerShutdown() async {}
+
+  @override
+  void onClientSubscribe(Client client, String streamId) {
+    _streamManager.onClientSubscribe(client, streamId);
+  }
+
+  @override
+  Future<bool> onStreamListen({
+    required Map<String, Object?> params,
+    required String streamId,
+  }) => _streamManager.onStreamListen(params: params, streamId: streamId);
+
+  @override
+  Future<void> onStreamCancel({required String streamId}) =>
+      _streamManager.onStreamCancel(streamId: streamId);
 
   Uri _convertToWebSocketUri(Uri uri) {
     var scheme = uri.scheme;
