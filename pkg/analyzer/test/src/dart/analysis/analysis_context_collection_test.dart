@@ -969,6 +969,75 @@ workspaces
     );
   }
 
+  test_packageConfigWorkspace_multipleFiles_sameWorkspace_differentOptions() async {
+    configuration
+      ..withIncludedPaths = true
+      ..withOptionFilesForContext = true;
+
+    var packageRootPath = '/home/test';
+    newPubspecYamlFile(packageRootPath, r'''
+name: test
+''');
+    newSinglePackageConfigJsonFile(packagePath: packageRootPath, name: 'test');
+
+    var fooPath = '$packageRootPath/lib/foo';
+    newAnalysisOptionsYamlFile(fooPath, '');
+    var fooA = newFile('$fooPath/a.dart', '');
+    var fooB = newFile('$fooPath/b.dart', '');
+    newFile('$fooPath/not_included.dart', '');
+
+    var barPath = '$packageRootPath/lib/bar';
+    newAnalysisOptionsYamlFile(barPath, '');
+    var barC = newFile('$barPath/c.dart', '');
+
+    var collection = AnalysisContextCollectionImpl(
+      resourceProvider: resourceProvider,
+      sdkPath: sdkRoot.path,
+      includedPaths: [fooA.path, fooB.path, barC.path],
+      withFineDependencies: true,
+    );
+
+    _assertCollectionText(collection, r'''
+contexts
+  /home/test/lib/foo
+    includedPaths
+      /home/test/lib/foo/a.dart
+      /home/test/lib/foo/b.dart
+    packagesFile: /home/test/.dart_tool/package_config.json
+    optionsFile: /home/test/lib/foo/analysis_options.yaml
+    workspace: workspace_0
+    analyzedFiles
+      /home/test/lib/foo/a.dart
+        uri: package:test/foo/a.dart
+        analysisOptions_0
+        workspacePackage_0_0
+      /home/test/lib/foo/b.dart
+        uri: package:test/foo/b.dart
+        analysisOptions_0
+        workspacePackage_0_0
+  /home/test/lib/bar
+    includedPaths
+      /home/test/lib/bar/c.dart
+    packagesFile: /home/test/.dart_tool/package_config.json
+    optionsFile: /home/test/lib/bar/analysis_options.yaml
+    workspace: workspace_0
+    analyzedFiles
+      /home/test/lib/bar/c.dart
+        uri: package:test/bar/c.dart
+        analysisOptions_1
+        workspacePackage_0_0
+analysisOptions
+  analysisOptions_0: /home/test/lib/foo/analysis_options.yaml
+  analysisOptions_1: /home/test/lib/bar/analysis_options.yaml
+workspaces
+  workspace_0: PackageConfigWorkspace
+    root: /home/test
+    pubPackages
+      workspacePackage_0_0: PubPackage
+        root: /home/test
+''');
+  }
+
   test_packageConfigWorkspace_multiplePackageConfigs() async {
     var workspaceRootPath = '/home';
     var testPackageRootPath = '$workspaceRootPath/test';
@@ -1911,6 +1980,16 @@ class _AnalysisContextCollectionPrinter {
 
     sink.writelnWithIndent(contextRoot.root.posixPath);
     sink.withIndent(() {
+      if (configuration.withIncludedPaths) {
+        sink.writeElements(
+          'includedPaths',
+          contextRoot.includedPaths.toList(),
+          (String path) {
+            var resource = resourceProvider.getResource(path);
+            sink.writelnWithIndent(resource.posixPath);
+          },
+        );
+      }
       _writeNamedFile('packagesFile', contextRoot.packagesFile);
       if (configuration.withOptionFilesForContext) {
         _writeNamedFile('optionsFile', contextRoot.optionsFile);
@@ -2065,6 +2144,7 @@ class _AnalysisContextCollectionPrinterConfiguration {
   bool withEmptyContextRoots = false;
   bool withEnabledFeatures = false;
   bool withLintRules = false;
+  bool withIncludedPaths = false;
   bool withOptionFilesForContext = false;
   bool withExcludedGlobs = false;
 }
