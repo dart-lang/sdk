@@ -6,6 +6,8 @@ import 'dart:convert' as json;
 import 'dart:io';
 
 import 'package:expect/expect.dart';
+import 'package:compiler/src/common/codegen.dart'
+    show ModularName, ModularNameKind;
 import 'package:compiler/src/js/js.dart';
 import 'package:compiler/src/js/size_estimator.dart';
 
@@ -123,5 +125,14 @@ void main(List<String> args) {
     ).writeAsStringSync(json.JsonEncoder.withIndent('  ').convert(newGoldens));
   } else {
     testGoldens(currentGoldens, testSuites);
+    testLiteralStringFromName();
   }
+}
+
+void testLiteralStringFromName() {
+  // Verifies that unfinalized LiteralStringFromName nodes (such as those
+  // wrapping ModularName) do not crash during size estimation (Issue 64150).
+  var name = ModularName(ModularNameKind.asName, data: 'unfinalizedName');
+  var literal = LiteralStringFromName(name);
+  Expect.equals(5, estimateSize(literal)); // '"' + '###' + '"'
 }
