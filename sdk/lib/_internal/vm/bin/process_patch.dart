@@ -330,9 +330,9 @@ base class _ProcessImpl extends _ProcessImplNativeWrapper implements _Process {
     List<String> shellArguments = [];
     if (Platform.isWindows) {
       shellArguments.add('/c');
-      shellArguments.add(executable);
+      shellArguments.add(_escapeWindowsShellMetacharacters(executable));
       for (var arg in arguments) {
-        shellArguments.add(arg);
+        shellArguments.add(_escapeWindowsShellMetacharacters(arg));
       }
     } else {
       var commandLine = StringBuffer();
@@ -346,6 +346,27 @@ base class _ProcessImpl extends _ProcessImplNativeWrapper implements _Process {
       shellArguments.add(commandLine.toString());
     }
     return shellArguments;
+  }
+
+  // When running through cmd.exe (runInShell: true on Windows), arguments must
+  // be neutralized against cmd.exe's own parsing, which happens before the C
+  // runtime argv parsing handled by _windowsArgumentEscape. Without this, an
+  // argument such as "a & calc" lets cmd.exe run "calc" as a separate command
+  // (CWE-78). Each cmd.exe metacharacter is prefixed with the '^' escape
+  // character in a single pass, so an embedded '^' becomes '^^' rather than
+  // being re-escaped. This mirrors the single-quoting the POSIX branch already
+  // applies to make arguments inert.
+  static String _escapeWindowsShellMetacharacters(String argument) {
+    const cmdMetacharacters = '&|<>^%()!';
+    var sb = StringBuffer();
+    for (var i = 0; i < argument.length; i++) {
+      var char = argument[i];
+      if (cmdMetacharacters.contains(char)) {
+        sb.write('^');
+      }
+      sb.write(char);
+    }
+    return sb.toString();
   }
 
   String _windowsArgumentEscape(String argument) {
