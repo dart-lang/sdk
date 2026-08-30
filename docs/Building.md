@@ -130,6 +130,16 @@ The environment variable `DART_BUILD_NOTIFICATION_DELAY` controls if `build.py` 
 
 A notification is a small transient non-modal window, for now, only supported on Mac and Linux.
 
+### Running from the build directory
+
+On Linux and macOS, if you wish to use the `dart` tool uninstalled after building the Dart SDK, the subdirectory `sdk/bin/` contains a `dart` launcher script which will generate correct paths to the `dart` executable when invoking it. This directory should be added to your `PATH`, rather than the build output directory. If `dart` is run from the output directory, some tools (such as `dart run`) will generate incorrect paths when executing other tools. To set the correct `PATH` for running uninstalled, after building Dart SDK:
+```bash
+
+# From within the "dart-sdk/sdk" directory.
+export PATH="$PATH:$(pwd)/sdk/bin"
+dart --version
+```
+
 ## Special note for Windows users using Visual Studio Community Edition:
 Your Visual Studio executable command may have a different name from the standard Visual Studio installations. You can specify the name for that executable by passing the additional flag "--executable=$VS\_EXECUTABLE\_NAME" to build.py. The executable name will probably be something like "VSExpress.exe".
 
