@@ -88,10 +88,10 @@ class A {
 ''');
     await assertHasFix('''
 class A {
-
   A();
 
   A._();
+
   X() {}
 
   Y() {}
@@ -154,6 +154,74 @@ class A() {
   this;
   A.named() : this();
   void foo() {}
+}
+''');
+  }
+
+  Future<void> test_crlfLineEndings() async {
+    await resolveTestCode(
+      '''
+class A {
+  final String foo;
+
+  const A({required this.foo});
+}
+'''
+          .replaceAll('\n', '\r\n'),
+    );
+    await assertHasFix(
+      '''
+class A {
+  const A({required this.foo});
+
+  final String foo;
+}
+'''
+          .replaceAll('\n', '\r\n'),
+    );
+  }
+
+  Future<void> test_enum_blankLineAddedAroundRelocatedConstructor() async {
+    await resolveTestCode('''
+enum A {
+  bar('Open'),
+  baz('Accepted Provisionally');
+  final String value;
+
+  const A(this.value);
+}
+''');
+    await assertHasFix('''
+enum A {
+  bar('Open'),
+  baz('Accepted Provisionally');
+
+  const A(this.value);
+
+  final String value;
+}
+''');
+  }
+
+  Future<void> test_enum_blankLineAfterSemicolon() async {
+    await resolveTestCode('''
+enum A {
+  bar('Open'),
+  baz('Accepted Provisionally');
+
+  final String value;
+
+  const A(this.value);
+}
+''');
+    await assertHasFix('''
+enum A {
+  bar('Open'),
+  baz('Accepted Provisionally');
+
+  const A(this.value);
+
+  final String value;
 }
 ''');
   }
@@ -367,6 +435,23 @@ class A {
 class A {
   new();
   void m() {}
+}
+''');
+  }
+
+  Future<void> test_noBlankLineAfterOpeningBrace() async {
+    await resolveTestCode('''
+class A {
+  final String foo;
+
+  const A({required this.foo});
+}
+''');
+    await assertHasFix('''
+class A {
+  const A({required this.foo});
+
+  final String foo;
 }
 ''');
   }
