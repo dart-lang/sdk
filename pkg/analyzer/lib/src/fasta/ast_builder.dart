@@ -4904,6 +4904,12 @@ class AstBuilder extends StackListener {
   }
 
   @override
+  void handleInvocationWithoutTypeArguments(Token beginToken, Token endToken) {
+    var argumentList = pop() as ArgumentListImpl;
+    doInvocation(null, argumentList);
+  }
+
+  @override
   void handleIsOperator(Token isOperator, Token? not) {
     assert(optional('is', isOperator));
     assert(optionalOrNull('!', not));
@@ -5821,6 +5827,13 @@ class AstBuilder extends StackListener {
       doPropertyGet();
     }
   }
+
+  @override
+  void handleSendWithoutArguments(
+    Token beginToken,
+    Token endToken,
+    Token nextToken,
+  ) {}
 
   @override
   void handleSpreadExpression(Token spreadToken) {

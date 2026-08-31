@@ -716,6 +716,30 @@ class AnnotationsListener extends StackListener {
   }
 
   @override
+  void handleSendWithoutArguments(
+    Token beginToken,
+    Token endToken,
+    Token nextToken,
+  ) {
+    assert(checkState(beginToken, [/* receiver */ _ValueKinds._Proto]));
+    Proto proto = pop() as Proto;
+    push(proto.instantiate(null).invoke(null));
+  }
+
+  @override
+  void handleInvocationWithoutTypeArguments(Token beginToken, Token endToken) {
+    assert(
+      checkState(beginToken, [
+        /* arguments */ _ValueKinds._ArgumentsOrNull,
+        /* receiver */ _ValueKinds._Proto,
+      ]),
+    );
+    List<Argument>? arguments = pop(_NullValues.Arguments) as List<Argument>?;
+    Proto proto = pop() as Proto;
+    push(proto.instantiate(null).invoke(arguments));
+  }
+
+  @override
   void handleNoArguments(Token token) {
     push(_NullValues.Arguments);
   }
