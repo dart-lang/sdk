@@ -22323,6 +22323,7 @@ sealed class FunctionBody implements AstNode {
   ///
   /// Throws an exception if resolution hasn't been performed, or if the query
   /// is made on the body of a local function or function literal.
+  @experimental
   DartType? lookupPromotedThisType({required int offset});
 }
 

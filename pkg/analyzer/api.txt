@@ -1807,7 +1807,7 @@ package:analyzer/dart/ast/ast.dart:
     keyword (getter: Token?)
     star (getter: Token?)
     isPotentiallyMutatedInScope (method: bool Function(VariableElement))
-    lookupPromotedThisType (method: DartType? Function({required int offset}))
+    lookupPromotedThisType (method: DartType? Function({required int offset}), experimental)
   FunctionCallTearOffResolution (class extends Object implements NamedReadResolution, abstract, final, experimental):
     associatedFunctionType (getter: FunctionType)
     type (getter: DartType)
