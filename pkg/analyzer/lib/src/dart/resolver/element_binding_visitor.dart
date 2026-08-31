@@ -757,7 +757,6 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
     }
 
     if (node.defaultClause case var defaultClause?) {
-      fragment.constantInitializer2 = defaultClause.value2;
       _withElementHolder(ElementHolder(fragment), () {
         defaultClause.value2.accept2(this);
       });
