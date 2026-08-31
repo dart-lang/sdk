@@ -11164,18 +11164,18 @@ ScriptPtr Function::script(FunctionPtr function) {
     return Script::null();
   }
   const UntaggedFunction::Kind kind = KindOf(function);
+  const ObjectPtr data = function->untag()->data<std::memory_order_acquire>();
   if (kind == UntaggedFunction::kDynamicInvocationForwarder) {
-    const FunctionPtr target = Function::RawCast(
-        WeakSerializationReference::Unwrap(function->untag()->data()));
+    const FunctionPtr target =
+        Function::RawCast(WeakSerializationReference::Unwrap(data));
     return script(target);
   }
   if (kind == UntaggedFunction::kImplicitGetter ||
       kind == UntaggedFunction::kImplicitSetter ||
       kind == UntaggedFunction::kImplicitStaticGetter) {
-    const FieldPtr field = Field::RawCast(function->untag()->data());
+    const FieldPtr field = Field::RawCast(data);
     return Field::Script(field);
   }
-  const ObjectPtr data = function->untag()->data();
   if (data->IsArray() && Array::LengthOf(Array::RawCast(data)) ==
                              static_cast<intptr_t>(EvalFunctionData::kLength)) {
     const Array& fdata = Array::Handle(Array::RawCast(data));
@@ -11187,8 +11187,7 @@ ScriptPtr Function::script(FunctionPtr function) {
     return static_cast<PatchClassPtr>(obj)->untag()->script();
   }
   if (kind == UntaggedFunction::kClosureFunction) {
-    const ClosureDataPtr closure_data =
-        static_cast<ClosureDataPtr>(function->untag()->data());
+    const ClosureDataPtr closure_data = static_cast<ClosureDataPtr>(data);
     if (closure_data == ClosureData::null()) {
       return Script::null();
     }

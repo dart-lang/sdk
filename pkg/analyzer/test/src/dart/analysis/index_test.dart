@@ -98,9 +98,9 @@ class IndexTest extends PubPackageResolutionTest {
 
   test_analyzer_diagnosticCode() async {
     var analyzerPackageRootPath = '$workspaceRootPath/pkg/analyzer';
-    writePackageConfig(
+    writePackageConfig2(
       analyzerPackageRootPath,
-      PackageConfigFileBuilder()
+      config: PackageConfigFileBuilder()
         ..add(name: 'analyzer', rootFolder: getFolder(analyzerPackageRootPath)),
     );
 

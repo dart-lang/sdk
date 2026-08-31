@@ -1300,17 +1300,24 @@ class _AstIndexerAndIgnoreCollectorBody extends RecursiveParserAstVisitor {
   ) {
     List<ParserAstNode>? children = node.children;
     if (children != null &&
-        children.length >= 5 &&
+        children.length >= 4 &&
         children[1] is IdentifierHandle) {
       IdentifierHandle identifier = children[1] as IdentifierHandle;
+      // Invocations without explicit type arguments can be represented by
+      // either the individual listener events or a single event.
+      bool isInvocationWithoutTypeArguments =
+          (children.length >= 5 &&
+              children[2] is NoTypeArgumentsHandle &&
+              children[3] is ArgumentsEnd &&
+              children[4] is SendHandle) ||
+          (children[2] is ArgumentsEnd &&
+              children[3] is InvocationWithoutTypeArgumentsHandle);
       if ((identifier.token.lexeme == "internalProblem" ||
               identifier.token.lexeme == "unimplemented" ||
               identifier.token.lexeme == "unhandled" ||
               identifier.token.lexeme == "unexpected" ||
               identifier.token.lexeme == "unsupported") &&
-          children[2] is NoTypeArgumentsHandle &&
-          children[3] is ArgumentsEnd &&
-          children[4] is SendHandle) {
+          isInvocationWithoutTypeArguments) {
         // This is (probably) a call to `internalProblem`/`unimplemented`/etc
         // inside an if block --- we don't expect these to happen
         // so we'll ignore them.

@@ -394,11 +394,11 @@ deps = {
       "condition": "host_os == linux",
       "dep_type": "cipd",
   },
-  Var("dart_root") + "/buildtools/sysroot/focal": {
+  Var("dart_root") + "/buildtools/sysroot/jammy": {
       "packages": [
           {
-              "package": "fuchsia/third_party/sysroot/focal",
-              "version": "git_revision:fa7a5a9710540f30ff98ae48b62f2cdf72ed2acd",
+              "package": "fuchsia/third_party/sysroot/jammy",
+              "version": "git_revision:1d35e3be9be587ed0de81ea4208be7cc01a7748c",
           },
       ],
       "condition": "host_os == linux",

@@ -3524,6 +3524,9 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
   ChildEntities get _childEntities2 => _childEntities;
 
   void detachFromParent() {
+    if (this case ExpressionImpl expression) {
+      V1Projection._cachedV1Expression(expression)?.detachFromParent();
+    }
     _parent = null;
     _parent2 = null;
   }
@@ -52211,67 +52214,7 @@ enum V1Projection {
   }
 
   static ExpressionImpl toV1Expression(ExpressionImpl node) {
-    if (node is ConstructorInvocationImpl) {
-      return node.instanceCreationExpression;
-    }
-    if (node is ConstructorTearOffImpl) {
-      return node.constructorReference;
-    }
-    if (node is CompoundAssignmentImpl) {
-      return node.assignmentExpression;
-    }
-    if (node is DirectAssignmentImpl) {
-      return node.assignmentExpression;
-    }
-    if (node is BinaryOperatorInvocationImpl) {
-      return node.binaryExpression;
-    }
-    if (node is IfNullImpl) {
-      return node.binaryExpression;
-    }
-    if (node is IfNullAssignmentImpl) {
-      return node.assignmentExpression;
-    }
-    if (node is CascadeIndexExpressionImpl) {
-      return node.indexExpression;
-    }
-    if (node is CascadePropertyExtractionImpl) {
-      return node.propertyAccess;
-    }
-    if (node is IndexExpression2Impl) {
-      return node.indexExpression;
-    }
-    if (node is LogicalNotImpl) {
-      return node.prefixExpression;
-    }
-    if (node is LogicalAndImpl) {
-      return node.binaryExpression;
-    }
-    if (node is LogicalOrImpl) {
-      return node.binaryExpression;
-    }
-    if (node is NullAssertionExpressionImpl) {
-      return node.postfixExpression;
-    }
-    if (node is PostfixDecrementImpl) {
-      return node.postfixExpression;
-    }
-    if (node is PostfixIncrementImpl) {
-      return node.postfixExpression;
-    }
-    if (node is PrefixDecrementImpl) {
-      return node.prefixExpression;
-    }
-    if (node is PrefixIncrementImpl) {
-      return node.prefixExpression;
-    }
-    if (node is ReceiverPropertyExtractionImpl) {
-      return node.propertyAccess;
-    }
-    if (node is UnaryOperatorInvocationImpl) {
-      return node.prefixExpression;
-    }
-    return node;
+    return _toV1Expression(node, createIfAbsent: true)!;
   }
 
   static RecordLiteralFieldImpl toV1RecordLiteralField(
@@ -52279,6 +52222,93 @@ enum V1Projection {
   ) {
     if (node is ExpressionImpl) {
       return toV1Expression(node);
+    }
+    return node;
+  }
+
+  /// Returns the cached V1 projection of [node], without creating one.
+  ///
+  /// A canonical V2 node and its V1 projection have distinct parent fields.
+  /// Code that detaches the canonical node must also detach an existing
+  /// projection, or the projection can retain the original compilation unit.
+  static ExpressionImpl? _cachedV1Expression(ExpressionImpl node) {
+    var result = _toV1Expression(node, createIfAbsent: false);
+    return identical(result, node) ? null : result;
+  }
+
+  static ExpressionImpl? _toV1Expression(
+    ExpressionImpl node, {
+    required bool createIfAbsent,
+  }) {
+    if (node is ConstructorInvocationImpl) {
+      return createIfAbsent
+          ? node.instanceCreationExpression
+          : node._instanceCreationExpression;
+    }
+    if (node is ConstructorTearOffImpl) {
+      return createIfAbsent
+          ? node.constructorReference
+          : node._constructorReference;
+    }
+    if (node is CompoundAssignmentImpl) {
+      return createIfAbsent
+          ? node.assignmentExpression
+          : node._assignmentExpression;
+    }
+    if (node is DirectAssignmentImpl) {
+      return createIfAbsent
+          ? node.assignmentExpression
+          : node._assignmentExpression;
+    }
+    if (node is BinaryOperatorInvocationImpl) {
+      return createIfAbsent ? node.binaryExpression : node._binaryExpression;
+    }
+    if (node is IfNullImpl) {
+      return createIfAbsent ? node.binaryExpression : node._binaryExpression;
+    }
+    if (node is IfNullAssignmentImpl) {
+      return createIfAbsent
+          ? node.assignmentExpression
+          : node._assignmentExpression;
+    }
+    if (node is CascadeIndexExpressionImpl) {
+      return createIfAbsent ? node.indexExpression : node._indexExpression;
+    }
+    if (node is CascadePropertyExtractionImpl) {
+      return createIfAbsent ? node.propertyAccess : node._propertyAccess;
+    }
+    if (node is IndexExpression2Impl) {
+      return createIfAbsent ? node.indexExpression : node._indexExpression;
+    }
+    if (node is LogicalNotImpl) {
+      return createIfAbsent ? node.prefixExpression : node._prefixExpression;
+    }
+    if (node is LogicalAndImpl) {
+      return createIfAbsent ? node.binaryExpression : node._binaryExpression;
+    }
+    if (node is LogicalOrImpl) {
+      return createIfAbsent ? node.binaryExpression : node._binaryExpression;
+    }
+    if (node is NullAssertionExpressionImpl) {
+      return createIfAbsent ? node.postfixExpression : node._postfixExpression;
+    }
+    if (node is PostfixDecrementImpl) {
+      return createIfAbsent ? node.postfixExpression : node._postfixExpression;
+    }
+    if (node is PostfixIncrementImpl) {
+      return createIfAbsent ? node.postfixExpression : node._postfixExpression;
+    }
+    if (node is PrefixDecrementImpl) {
+      return createIfAbsent ? node.prefixExpression : node._prefixExpression;
+    }
+    if (node is PrefixIncrementImpl) {
+      return createIfAbsent ? node.prefixExpression : node._prefixExpression;
+    }
+    if (node is ReceiverPropertyExtractionImpl) {
+      return createIfAbsent ? node.propertyAccess : node._propertyAccess;
+    }
+    if (node is UnaryOperatorInvocationImpl) {
+      return createIfAbsent ? node.prefixExpression : node._prefixExpression;
     }
     return node;
   }
