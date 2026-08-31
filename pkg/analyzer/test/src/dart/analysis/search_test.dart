@@ -1271,9 +1271,9 @@ class A {}
 ''');
 
     // Configure `package:my`.
-    writePackageConfig(
+    writePackageConfig2(
       myRoot.path,
-      PackageConfigFileBuilder()..add(name: 'my', rootFolder: myRoot),
+      config: PackageConfigFileBuilder()..add(name: 'my', rootFolder: myRoot),
     );
 
     var mySession = contextFor(myFile).currentSession;
@@ -1999,9 +1999,9 @@ class C {
 
   test_searchReferences_analyzer_diagnosticCode() async {
     var analyzerPackageRootPath = '$workspaceRootPath/pkg/analyzer';
-    writePackageConfig(
+    writePackageConfig2(
       analyzerPackageRootPath,
-      PackageConfigFileBuilder()
+      config: PackageConfigFileBuilder()
         ..add(name: 'analyzer', rootFolder: getFolder(analyzerPackageRootPath)),
     );
 
