@@ -2330,7 +2330,7 @@ class NodeCreator {
       case NodeKind.LibraryPart:
         // TODO(johnniwinther): Add non-trivial cases.
         // TODO(johnniwinther): Do we need to use a valid part uri?
-        return LibraryPart([], 'foo')..fileOffset = _needFileOffset();
+        return LibraryPart([], 'foo', _uri)..fileOffset = _needFileOffset();
       case NodeKind.MapLiteralEntry:
         return MapLiteralEntry(_createExpression(), _createExpression())
           ..fileOffset = _needFileOffset();

@@ -3724,6 +3724,80 @@ e() {
       }
     }, timeout: new Timeout.factor(8));
 
+    test(
+      'invalidating part that is not included in the output library',
+      () async {
+        // https://github.com/dart-lang/test/issues/2731
+        // Previously, when initializing from a dill where a library claims a
+        // part which doesn't point correctly back, the frontend_server would
+        // not invalidate the part file if it had changed because the part was
+        // not included in the uri-to-source table in kernel.
+        // This verifies that we can now fix the compile error by making the
+        // part file point correctly when initializing from a dill with the
+        // error.
+        File dillFile = new File('${tempDir.path}/full.dill');
+        File incrementalDillFile = new File('${tempDir.path}/incremental.dill');
+        expect(dillFile.existsSync(), equals(false));
+        final List<String> args = <String>[
+          '--sdk-root=${sdkRoot.toFilePath()}',
+          '--incremental',
+          '--platform=${platformKernel.path}',
+          '--output-dill=${dillFile.path}',
+          '--output-incremental-dill=${incrementalDillFile.path}',
+        ];
+        File main = new File('${tempDir.path}/main.dart');
+        main.writeAsStringSync("""
+part "part.dart";
+
+main() {
+  fromPart();
+}
+""");
+        File part = new File('${tempDir.path}/part.dart');
+        part.writeAsStringSync("""
+part of "main.dart";
+fromPart() {
+  print("hello from part");
+}
+""");
+
+        for (int serverCloses = 0; serverCloses <= 2; serverCloses++) {
+          print("Restart #$serverCloses");
+          FrontendServer frontendServer = new FrontendServer();
+          Future<int> result = frontendServer.open(args);
+          frontendServer.compile(main.path);
+          frontendServer.listen((Result compiledResult) {
+            expect(dillFile.existsSync(), equals(true));
+            CompilationResult result = new CompilationResult.parse(
+              compiledResult.status,
+            );
+            if (serverCloses == 0) {
+              expect(result.errorsCount, equals(0));
+              part.writeAsStringSync("""
+part of "nonexisting.dart";
+fromPart() {
+  print("hello from part");
+}
+""");
+            } else if (serverCloses == 1) {
+              expect(result.errorsCount, isNot(0));
+              part.writeAsStringSync("""
+part of "main.dart";
+fromPart() {
+  print("hello from part");
+}
+""");
+            } else if (serverCloses == 2) {
+              expect(result.errorsCount, equals(0));
+            }
+            frontendServer.quit();
+          });
+          expect(await result, 0);
+          frontendServer.close();
+        }
+      },
+    );
+
     group('compile with(out) warning', () {
       Future<void> runTests({
         required String moduleFormat,

@@ -4647,6 +4647,9 @@ class EquivalenceStrategy {
     if (!checkLibraryPart_partUri(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
+    if (!checkLibraryPart_fileUri(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
     if (!checkLibraryPart_fileOffset(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
@@ -11367,6 +11370,14 @@ class EquivalenceStrategy {
     LibraryPart other,
   ) {
     return visitor.checkValues(node.partUri, other.partUri, 'partUri');
+  }
+
+  bool checkLibraryPart_fileUri(
+    EquivalenceVisitor visitor,
+    LibraryPart node,
+    LibraryPart other,
+  ) {
+    return visitor.checkValues(node.fileUri, other.fileUri, 'fileUri');
   }
 
   bool checkLibraryPart_fileOffset(

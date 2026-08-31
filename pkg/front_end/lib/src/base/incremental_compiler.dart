@@ -141,7 +141,7 @@ import 'name_space.dart' show NameSpace, areNameSpacesEquivalent;
 import 'processed_options.dart' show ProcessedOptions;
 import 'ticker.dart' show Ticker;
 import 'uri_translator.dart' show UriTranslator;
-import 'uris.dart' show getPartUri;
+import 'uris.dart' show getPartImportUri;
 
 final Uri dartFfiUri = Uri.parse("dart:ffi");
 
@@ -1257,11 +1257,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
       List<Uri> builderUris = [builder.fileUri];
       for (LibraryPart part in builder.library.parts) {
-        Uri? fileUri = uriTranslator.getPartFileUri(
-          builder.library.fileUri,
-          part,
-        );
-        if (fileUri != null) builderUris.add(fileUri);
+        builderUris.add(part.fileUri);
       }
 
       for (Uri uri in builderUris) {
@@ -1700,8 +1696,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       if (library.parts.isNotEmpty) {
         for (int partIndex = 0; partIndex < library.parts.length; partIndex++) {
           LibraryPart part = library.parts[partIndex];
-          Uri partUri = getPartUri(library.importUri, part);
-          partUriToLibraryImportUri[partUri] = library.importUri;
+          Uri partImportUri = getPartImportUri(library.importUri, part);
+          partUriToLibraryImportUri[partImportUri] = library.importUri;
         }
       }
       if (library.importUri.isScheme("dart")) {
@@ -1753,11 +1749,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             inputLibrariesFiltered?.add(library);
           }
           for (LibraryPart part in library.parts) {
-            Uri? partFileUri = uriTranslator.getPartFileUri(
-              library.fileUri,
-              part,
-            );
-            partsUsed.add(partFileUri);
+            partsUsed.add(part.fileUri);
           }
         }
       }
@@ -1835,7 +1827,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     uriToSourceExtra?.remove(builder.fileUri);
     Library lib = builder.library;
     for (LibraryPart part in lib.parts) {
-      Uri? partFileUri = uriTranslator.getPartFileUri(lib.fileUri, part);
+      Uri partFileUri = part.fileUri;
       if (partsUsed != null &&
           // Coverage-ignore(suite): Not run.
           partsUsed.contains(partFileUri)) {
@@ -2646,22 +2638,19 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         invalidatedImportUris.add(uri);
       }
       for (LibraryPart part in libraryBuilder.library.parts) {
-        Uri partUri = getPartUri(libraryBuilder.importUri, part);
-        Uri? fileUri = uriTranslator.getPartFileUri(
-          libraryBuilder.library.fileUri,
-          part,
-        );
-        partUriToParent[partUri] = libraryBuilder;
-        partUriToParent[fileUri] = libraryBuilder;
+        Uri partImportUri = getPartImportUri(libraryBuilder.importUri, part);
+        Uri partFileUri = part.fileUri;
+        partUriToParent[partImportUri] = libraryBuilder;
+        partUriToParent[partFileUri] = libraryBuilder;
 
-        if (isInvalidated(partUri, fileUri)) {
-          invalidatedImportUris.add(partUri);
-          if (builders[partUri] == null) {
+        if (isInvalidated(partImportUri, partFileUri)) {
+          invalidatedImportUris.add(partImportUri);
+          if (builders[partImportUri] == null) {
             // Only add if entry doesn't already exist.
             // For good cases it shouldn't exist, but if one library claims
             // another library is a part (when it's not) we don't want to
             // overwrite the real library builder.
-            builders[partUri] = libraryBuilder;
+            builders[partImportUri] = libraryBuilder;
           }
         }
       }
@@ -3499,8 +3488,7 @@ class _ComponentProblems {
       // Remove parts too.
       for (LibraryPart part in lib.parts) {
         // Coverage-ignore-block(suite): Not run.
-        Uri? partFileUri = uriTranslator.getPartFileUri(lib.fileUri, part);
-        _remainingComponentProblems.remove(partFileUri);
+        _remainingComponentProblems.remove(part.fileUri);
       }
     }
   }
@@ -3573,20 +3561,6 @@ class _ComponentProblems {
   }
 }
 
-extension on UriTranslator {
-  Uri? getPartFileUri(Uri parentFileUri, LibraryPart part) {
-    Uri? fileUri = getPartUri(parentFileUri, part);
-    if (fileUri.isScheme("package")) {
-      // Coverage-ignore-block(suite): Not run.
-      // Part was specified via package URI and the resolve above thus
-      // did not go as expected. Translate the package URI to get the
-      // actual file URI.
-      fileUri = translate(fileUri, false);
-    }
-    return fileUri;
-  }
-}
-
 // Coverage-ignore(suite): Not run.
 /// Translate a script uri provided as a package uri to a file uri.
 /// Otherwise return as is.
@@ -3627,16 +3601,16 @@ extension on UriTranslator {
 ///       Uri.parse("package:foo/c.dart"),
 ///       fileUri: Uri.parse("file://a/b/c.dart"),
 ///       parts: [
-///         LibraryPart([], "d.dart"),
-///         LibraryPart([], "e.dart"),
-///         LibraryPart([], "f.dart"),
+///         LibraryPart([], "d.dart", Uri.parse("file://a/b/d.dart")),
+///         LibraryPart([], "e.dart", Uri.parse("file://a/b/e.dart")),
+///         LibraryPart([], "f.dart", Uri.parse("file://a/b/f.dart")),
 ///       ],
 ///     ),
 ///   ),
 ///   Uri.parse("file://a/b/e.dart"),
 /// )
 ///
-/// // Part uri can be package uri too though :(
+/// // Part uri can be package uri too though.
 /// DartDocTest(
 ///   _processScriptUri(
 ///     Uri.parse("package:foo/e.dart"),
@@ -3645,14 +3619,18 @@ extension on UriTranslator {
 ///       Uri.parse("package:foo/c.dart"),
 ///       fileUri: Uri.parse("file://a/b/c.dart"),
 ///       parts: [
-///         LibraryPart([], "d.dart"),
-///         LibraryPart([], "package:foo/e.dart"),
-///         LibraryPart([], "f.dart"),
+///         LibraryPart([], "d.dart", Uri.parse("file://a/b/d.dart")),
+///         LibraryPart(
+///           [],
+///           "package:foo/e.dart",
+///           Uri.parse("file://foo/lib/e.dart"),
+///         ),
+///         LibraryPart([], "f.dart", Uri.parse("file://a/b/f.dart")),
 ///       ],
 ///     ),
 ///   ),
-///   Uri.parse("package:foo/e.dart"),
-/// )
+///   Uri.parse("file://foo/lib/e.dart"),
+/// );
 /// ```
 Uri _processScriptUri(
   Uri scriptUriAsUri,
@@ -3675,17 +3653,14 @@ Uri _processScriptUri(
 
   // If we still don't have an answer it's probably a part file.
   for (LibraryPart part in library.parts) {
-    Uri partImportUri = getPartUri(library.importUri, part);
+    Uri partImportUri = getPartImportUri(library.importUri, part);
     if (partImportUri == scriptUriAsUri) {
-      return getPartUri(library.fileUri, part);
+      return part.fileUri;
     }
   }
 
-  // We failed. Likely there's no packages file, it's a part and the part is
-  // specified with a package uri.
-  // TODO(jensj): What more can we do? We might be able to find the data we want
-  // from the components `uriToSource`. If that has been removed it might be ok
-  // for expression compilation not to work?
+  // We failed somehow. It's not the library, nor from a part.
+  // This shouldn't happen.
   return scriptUriAsUri;
 }
 

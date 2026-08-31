@@ -106,12 +106,18 @@ Inequivalent references:
       c.libraries.add(l);
       l.parts
         ..add(
-          new LibraryPart([], first ? '${fileUri2}' : '${fileUri3}')
-            ..parent = l,
+          new LibraryPart(
+            [],
+            first ? '$fileUri2' : '$fileUri3',
+            first ? fileUri2 : fileUri3,
+          )..parent = l,
         )
         ..add(
-          new LibraryPart([], first ? '${fileUri3}' : '${fileUri2}')
-            ..parent = l,
+          new LibraryPart(
+            [],
+            first ? '$fileUri3' : '$fileUri2',
+            first ? fileUri3 : fileUri2,
+          )..parent = l,
         );
       return c;
     },
@@ -121,11 +127,21 @@ Values file://uri2/ and file://uri3/ are not equivalent
  Component.libraries[0]
   Library(library import://uri1).parts[0]
    LibraryPart.partUri
+Values file://uri2/ and file://uri3/ are not equivalent
+.root
+ Component.libraries[0]
+  Library(library import://uri1).parts[0]
+   LibraryPart.fileUri
 Values file://uri3/ and file://uri2/ are not equivalent
 .root
  Component.libraries[0]
   Library(library import://uri1).parts[1]
    LibraryPart.partUri
+Values file://uri3/ and file://uri2/ are not equivalent
+.root
+ Component.libraries[0]
+  Library(library import://uri1).parts[1]
+   LibraryPart.fileUri
 ''',
     unorderedParts: true,
   ),

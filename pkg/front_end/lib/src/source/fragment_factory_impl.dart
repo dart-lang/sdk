@@ -760,17 +760,7 @@ class FragmentFactoryImpl implements FragmentFactory {
     );
   }
 
-  Uri _resolve(Uri baseUri, String? uri, int uriOffset, {bool isPart = false}) {
-    if (uri == null) {
-      // Coverage-ignore-block(suite): Not run.
-      _problemReporting.addProblem(
-        diag.expectedUri,
-        uriOffset,
-        noLength,
-        _compilationUnit.fileUri,
-      );
-      return new Uri(scheme: MALFORMED_URI_SCHEME);
-    }
+  Uri _resolve(Uri baseUri, String uri, int uriOffset, {bool isPart = false}) {
     Uri parsedUri;
     try {
       parsedUri = Uri.parse(uri);
@@ -841,7 +831,7 @@ class FragmentFactoryImpl implements FragmentFactory {
     );
 
     // TODO(ahe): [metadata] should be stored, evaluated, and added to [part].
-    LibraryPart part = new LibraryPart(<Expression>[], uri)
+    LibraryPart part = new LibraryPart(<Expression>[], uri, newFileUri)
       ..fileOffset = charOffset;
     _compilationUnitRegistry.registerLibraryPart(part);
     offsetMap.registerPart(partKeyword, part);
