@@ -152,13 +152,13 @@ constants  {
   #C1 = "vm:ffi:abi-specific-mapping"
   #C2 = null
   #C3 = TypeLiteralConstant(ffi::Uint32)
-  #C4 = <core::Type?>[#C2, #C2, #C2, #C2, #C2, #C2, #C2, #C2, #C2, #C2, #C2, #C3, #C3, #C3, #C3, #C2, #C2, #C2, #C2, #C2, #C2, #C2]
+  #C4 = <core::Type?>[#C2, #C2, #C2, #C2, #C2, #C2, #C2, #C2, #C2, #C2, #C2, #C2, #C3, #C3, #C3, #C3, #C2, #C2, #C2, #C2, #C2, #C2, #C2, #C2]
   #C5 = ffi::_FfiAbiSpecificMapping {nativeTypes:#C4}
   #C6 = core::pragma {name:#C1, options:#C5}
   #C7 = "vm:prefer-inline"
   #C8 = core::pragma {name:#C7, options:#C2}
   #C9 = 4
-  #C10 = <core::int?>[#C2, #C2, #C2, #C2, #C2, #C2, #C2, #C2, #C2, #C2, #C2, #C9, #C9, #C9, #C9, #C2, #C2, #C2, #C2, #C2, #C2, #C2]
+  #C10 = <core::int?>[#C2, #C2, #C2, #C2, #C2, #C2, #C2, #C2, #C2, #C2, #C2, #C2, #C9, #C9, #C9, #C9, #C2, #C2, #C2, #C2, #C2, #C2, #C2, #C2]
   #C11 = "vm:deeply-immutable"
   #C12 = core::pragma {name:#C11, options:#C2}
   #C13 = "vm:ffi:struct-fields"
@@ -170,9 +170,9 @@ constants  {
   #C19 = ffi::_FfiStructLayout {fieldTypes:#C15, packing:#C2, fieldNames:#C18}
   #C20 = core::pragma {name:#C13, options:#C19}
   #C21 = 0
-  #C22 = <core::int>[#C21, #C21, #C21, #C21, #C21, #C21, #C21, #C21, #C21, #C21, #C21, #C21, #C21, #C21, #C21, #C21, #C21, #C21, #C21, #C21, #C21, #C21]
+  #C22 = <core::int>[#C21, #C21, #C21, #C21, #C21, #C21, #C21, #C21, #C21, #C21, #C21, #C21, #C21, #C21, #C21, #C21, #C21, #C21, #C21, #C21, #C21, #C21, #C21, #C21]
   #C23 = 8
-  #C24 = <core::int?>[#C2, #C2, #C2, #C2, #C2, #C2, #C2, #C2, #C2, #C2, #C2, #C23, #C23, #C23, #C23, #C2, #C2, #C2, #C2, #C2, #C2, #C2]
+  #C24 = <core::int?>[#C2, #C2, #C2, #C2, #C2, #C2, #C2, #C2, #C2, #C2, #C2, #C2, #C23, #C23, #C23, #C23, #C2, #C2, #C2, #C2, #C2, #C2, #C2, #C2]
   #C25 = 100
   #C26 = false
   #C27 = ffi::_FfiInlineArray {elementType:#C14, length:#C25, variableLength:#C26}
@@ -182,6 +182,6 @@ constants  {
   #C31 = core::pragma {name:#C13, options:#C30}
   #C32 = <core::int>[]
   #C33 = 400
-  #C34 = <core::int?>[#C2, #C2, #C2, #C2, #C2, #C2, #C2, #C2, #C2, #C2, #C2, #C33, #C33, #C33, #C33, #C2, #C2, #C2, #C2, #C2, #C2, #C2]
+  #C34 = <core::int?>[#C2, #C2, #C2, #C2, #C2, #C2, #C2, #C2, #C2, #C2, #C2, #C2, #C33, #C33, #C33, #C33, #C2, #C2, #C2, #C2, #C2, #C2, #C2, #C2]
   #C35 = self::_DummyAllocator {}
 }

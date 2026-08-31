@@ -6,14 +6,14 @@ import "dart:_internal" as _in;
 
 import "dart:ffi";
 
-@#C7
+@#C8
 abstract final class WChar extends ffi::AbiSpecificInteger /*hasConstConstructor*/  {
 
   [@vm.inferred-return-type.metadata=dart.core::_Smi]
   [@vm.unboxing-info.metadata=()->i]
   @#C10
   static synthetic get #sizeOf() → core::int
-    return #C13.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
+    return [@vm.inferred-type.metadata=dart.core::_Smi] ffi::_checkAbiSpecificIntegerMapping<core::int>(#C13.{core::List::[]}(ffi::_abi()){(core::int) → core::int?});
 }
 @#C15
 @#C23
@@ -45,7 +45,7 @@ final class WCharStruct extends ffi::Struct {
   [@vm.unboxing-info.metadata=()->i]
   @#C10
   static synthetic get #sizeOf() → core::int
-    return #C27.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
+    return [@vm.inferred-type.metadata=dart.core::_Smi] ffi::_checkAbiSpecificIntegerMapping<core::int>(#C27.{core::List::[]}(ffi::_abi()){(core::int) → core::int?});
 }
 @#C15
 @#C34
@@ -70,7 +70,7 @@ final class WCharArrayStruct extends ffi::Struct {
   [@vm.unboxing-info.metadata=()->i]
   @#C10
   static synthetic get #sizeOf() → core::int
-    return #C38.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
+    return [@vm.inferred-type.metadata=dart.core::_Smi] ffi::_checkAbiSpecificIntegerMapping<core::int>(#C38.{core::List::[]}(ffi::_abi()){(core::int) → core::int?});
 }
 class _DummyAllocator extends core::Object implements ffi::Allocator /*hasConstConstructor*/  {
 
@@ -152,40 +152,40 @@ constants  {
   #C1 = "vm:ffi:abi-specific-mapping"
   #C2 = TypeLiteralConstant(ffi::Uint32)
   #C3 = TypeLiteralConstant(ffi::Int32)
-  #C4 = TypeLiteralConstant(ffi::Uint16)
-  #C5 = <core::Type?>[#C2, #C2, #C2, #C2, #C3, #C2, #C2, #C2, #C2, #C2, #C2, #C2, #C2, #C3, #C3, #C3, #C3, #C2, #C2, #C4, #C4, #C4]
-  #C6 = ffi::_FfiAbiSpecificMapping {nativeTypes:#C5}
-  #C7 = core::pragma {name:#C1, options:#C6}
-  #C8 = "vm:prefer-inline"
-  #C9 = null
-  #C10 = core::pragma {name:#C8, options:#C9}
+  #C4 = null
+  #C5 = TypeLiteralConstant(ffi::Uint16)
+  #C6 = <core::Type?>[#C2, #C2, #C2, #C2, #C3, #C2, #C2, #C2, #C2, #C2, #C4, #C2, #C2, #C2, #C3, #C3, #C3, #C3, #C2, #C4, #C2, #C5, #C5, #C5]
+  #C7 = ffi::_FfiAbiSpecificMapping {nativeTypes:#C6}
+  #C8 = core::pragma {name:#C1, options:#C7}
+  #C9 = "vm:prefer-inline"
+  #C10 = core::pragma {name:#C9, options:#C4}
   #C11 = 4
   #C12 = 2
-  #C13 = <core::int>[#C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C12, #C12, #C12]
+  #C13 = <core::int?>[#C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C4, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C4, #C11, #C12, #C12, #C12]
   #C14 = "vm:deeply-immutable"
-  #C15 = core::pragma {name:#C14, options:#C9}
+  #C15 = core::pragma {name:#C14, options:#C4}
   #C16 = "vm:ffi:struct-fields"
   #C17 = TypeLiteralConstant(self::WChar)
   #C18 = <core::Type>[#C17, #C17]
   #C19 = "a0"
   #C20 = "a1"
   #C21 = <core::String>[#C19, #C20]
-  #C22 = ffi::_FfiStructLayout {fieldTypes:#C18, packing:#C9, fieldNames:#C21}
+  #C22 = ffi::_FfiStructLayout {fieldTypes:#C18, packing:#C4, fieldNames:#C21}
   #C23 = core::pragma {name:#C16, options:#C22}
   #C24 = 0
-  #C25 = <core::int>[#C24, #C24, #C24, #C24, #C24, #C24, #C24, #C24, #C24, #C24, #C24, #C24, #C24, #C24, #C24, #C24, #C24, #C24, #C24, #C24, #C24, #C24]
+  #C25 = <core::int>[#C24, #C24, #C24, #C24, #C24, #C24, #C24, #C24, #C24, #C24, #C24, #C24, #C24, #C24, #C24, #C24, #C24, #C24, #C24, #C24, #C24, #C24, #C24, #C24]
   #C26 = 8
-  #C27 = <core::int>[#C26, #C26, #C26, #C26, #C26, #C26, #C26, #C26, #C26, #C26, #C26, #C26, #C26, #C26, #C26, #C26, #C26, #C26, #C26, #C11, #C11, #C11]
+  #C27 = <core::int?>[#C26, #C26, #C26, #C26, #C26, #C26, #C26, #C26, #C26, #C26, #C4, #C26, #C26, #C26, #C26, #C26, #C26, #C26, #C26, #C4, #C26, #C11, #C11, #C11]
   #C28 = 100
   #C29 = false
   #C30 = ffi::_FfiInlineArray {elementType:#C17, length:#C28, variableLength:#C29}
   #C31 = <core::Type>[#C30]
   #C32 = <core::String>[#C19]
-  #C33 = ffi::_FfiStructLayout {fieldTypes:#C31, packing:#C9, fieldNames:#C32}
+  #C33 = ffi::_FfiStructLayout {fieldTypes:#C31, packing:#C4, fieldNames:#C32}
   #C34 = core::pragma {name:#C16, options:#C33}
   #C35 = <core::int>[]
   #C36 = 400
   #C37 = 200
-  #C38 = <core::int>[#C36, #C36, #C36, #C36, #C36, #C36, #C36, #C36, #C36, #C36, #C36, #C36, #C36, #C36, #C36, #C36, #C36, #C36, #C36, #C37, #C37, #C37]
+  #C38 = <core::int?>[#C36, #C36, #C36, #C36, #C36, #C36, #C36, #C36, #C36, #C36, #C4, #C36, #C36, #C36, #C36, #C36, #C36, #C36, #C36, #C4, #C36, #C37, #C37, #C37]
   #C39 = self::_DummyAllocator {}
 }

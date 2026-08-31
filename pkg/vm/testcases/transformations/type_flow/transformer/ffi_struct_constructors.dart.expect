@@ -212,7 +212,7 @@ constants  {
   #C17 = core::pragma {name:#C4, options:#C16}
   #C18 = "vm:prefer-inline"
   #C19 = core::pragma {name:#C18, options:#C2}
-  #C20 = <core::int>[#C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11]
+  #C20 = <core::int>[#C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11]
   #C21 = static-tearoff self::useStruct3
   #C22 = static-tearoff self::returnStruct7
   #C23 = 1
