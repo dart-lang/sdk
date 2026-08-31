@@ -40,18 +40,27 @@ def _nightly_builder(name, notifies = None, **kwargs):
     elif contains("-msan-"):
         hour = 6
         minute = 20
-    elif contains("-asan-") or contains("-lsan-") or contains("-ubsan-"):
+    elif contains("-asan-") or contains("-hwasan-") or contains("-lsan-"):
         hour = 6
         minute = 0
+    elif contains("-ubsan-"):
+        hour = 5
+        minute = 40
     elif contains("-aot-"):
         hour = 5
-        minute = 30
+        minute = 20
     elif contains("vm-"):
         hour = 5
         minute = 0
     else:
         hour = 4
         minute = 40
+
+    # Stagger Android and Fuchsia builders, which compete for the limited KVM
+    # machines. The Fuchsia builders complete faster.
+    if contains("-fuchsia-"):
+        hour -= 1
+
     dart.ci_sandbox_builder(
         name,
         notifies = notifies or [luci.notifier(
