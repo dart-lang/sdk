@@ -8,6 +8,7 @@ import 'extensions/test_all.dart' as extensions;
 import 'flutter_test.dart' as flutter;
 import 'import_analyzer_test.dart' as import_analyzer;
 import 'json_test.dart' as json;
+import 'navigation/test_all.dart' as navigation;
 import 'package_config_test.dart' as package_config;
 import 'profiling_test.dart' as profiling;
 import 'pubspec_test.dart' as pubspec;
@@ -22,6 +23,7 @@ void main() {
     flutter.main();
     json.main();
     import_analyzer.main();
+    navigation.main();
     package_config.main();
     profiling.main();
     pubspec.main();
