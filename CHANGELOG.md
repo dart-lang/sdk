@@ -1,5 +1,7 @@
 ## 3.13.3
 
+**Released on:** 2026-09-01
+
 This is a patch release that:
 
 - Fixes an issue where Windows to Linux cross compilation produced incorrect
