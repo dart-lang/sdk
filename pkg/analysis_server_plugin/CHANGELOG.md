@@ -1,3 +1,8 @@
+## 0.3.23-dev
+
+- Require version `14.4.0-dev` of the `analyzer` package.
+- Require version `0.14.17-dev` of the `analyzer_plugin` package.
+
 ## 0.3.22
 
 - Require version `14.3.0` of the `analyzer` package.
