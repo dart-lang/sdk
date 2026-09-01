@@ -1120,7 +1120,7 @@ abstract class _NonConstListOrSetLiteralBuilder(
       patternGuard: element.patternGuard,
       then: thenBody,
       otherwise: elseBody,
-    );
+    )..scope = element.scope;
     _libraryBuilder.loader.dataForTesting
     // Coverage-ignore(suite): Not run.
     ?.registerExternalNode(element.nodeForTesting, ifCaseStatement);

@@ -701,6 +701,7 @@ class PatternSwitchCaseScopeBuilder<Info extends ScopeProviderInfo> {
     for (PatternSwitchCaseHeadScopeBuilder<Info> headBuilder in _headBuilders) {
       headBuilder.allocateVariables();
     }
+    _headBuilders.clear();
 
     PatternScopeBuilderEvent<Info> event = new AfterCaseHeadsEvent<Info>(
       info,

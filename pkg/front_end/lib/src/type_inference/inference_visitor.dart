@@ -3933,6 +3933,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
+    _contextAllocationStrategy.handleSwitchCaseBeginning();
+    node.scopeProviderInfo = _contextAllocationStrategy.enterScopeProvider(
+      scopeProviderInfoKind: ScopeProviderInfoKind.Block,
+    );
+    _contextAllocationStrategy.handleSwitchBeforeAlternative(
+      caseIndex: 0,
+      subIndex: 0,
+    );
+
     IfCaseStatementResult<InvalidExpression> analysisResult =
         analyzeIfCaseStatement(
           node,
@@ -3994,7 +4003,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         otherwise: otherwise,
         matchedValueType: matchedValueType,
         fileOffset: node.fileOffset,
-      ),
+      )..scope = node.scopeProviderInfo?.scope,
     );
   }
 
@@ -4855,6 +4864,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
+    _contextAllocationStrategy.handleSwitchCaseBeginning();
+    node.scopeProviderInfo = _contextAllocationStrategy.enterScopeProvider(
+      scopeProviderInfoKind: ScopeProviderInfoKind.Block,
+    );
+    _contextAllocationStrategy.handleSwitchBeforeAlternative(
+      caseIndex: 0,
+      subIndex: 0,
+    );
+
     IfCaseStatementResult<InvalidExpression> analysisResult =
         analyzeIfCaseElement(
           node: node,
@@ -4921,7 +4939,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       matchedValueType: matchedValueType,
       nodeForTesting: node,
       fileOffset: node.fileOffset,
-    );
+    )..scope = node.scopeProviderInfo?.scope;
     return new ElementInferenceResult(
       inferredType: otherwiseType == null
           ? thenType
@@ -11889,6 +11907,29 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
+  void handle_ifCaseStatement_afterPattern({required InternalStatement node}) {
+    if (node is InternalIfCaseStatement) {
+      _contextAllocationStrategy.handleAfterCaseHeads([]);
+    }
+  }
+
+  @override
+  void handle_ifStatement_thenEnd(InternalNode node, InternalNode ifTrue) {
+    if (node case InternalIfCaseStatement(
+      scopeProviderInfo: var scopeProviderInfo?,
+    )) {
+      _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
+    }
+  }
+
+  @override
+  void handle_ifElement_thenEnd(InternalNode node, InternalNode ifTrue) {
+    if (node case IfCaseElement(scopeProviderInfo: var scopeProviderInfo?)) {
+      _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
+    }
+  }
+
+  @override
   void handleDefault(
     InternalNode node, {
     required int caseIndex,
@@ -13538,6 +13579,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   @override
   void dispatchCollectionElement(InternalNode element, Object? context) {
+    _contextAllocationStrategy.handleAfterCaseHeads([]);
     context as ElementInferenceContext;
     element as InternalElement;
     pushRewrite(inferElement(element, context));

@@ -5519,6 +5519,9 @@ class EquivalenceStrategy {
     if (!checkIfCaseStatement_matchedValueType(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
+    if (!checkIfCaseStatement_scope(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
     if (!checkIfCaseStatement_fileOffset(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
@@ -12873,6 +12876,15 @@ class EquivalenceStrategy {
       other.matchedValueType,
       'matchedValueType',
     );
+  }
+
+  bool checkIfCaseStatement_scope(
+    EquivalenceVisitor visitor,
+    IfCaseStatement node,
+    IfCaseStatement other,
+  ) {
+    'scope';
+    return checkScope(visitor, node.scope, other.scope);
   }
 
   bool checkIfCaseStatement_fileOffset(
