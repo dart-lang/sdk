@@ -73,10 +73,43 @@ Future<int> runFromSnapshot({
 /// `dart --disable-analytics` as there is special handling.  Any flags
 /// added here should also be tested by hand with a compiled SDK as unit tests
 /// running `dartdev.dart` directly do not hit that code path.
+///
+/// The option name for inline code evaluation.
+const String evalOption = 'eval';
+
+/// The option name for specifying package dependencies for inline evaluation.
+const String packageConstraintOption = 'package-constraint';
+
+/// The option name for offline pub resolution.
+const String offlineOption = 'offline';
+
+/// The MIME type for in-memory Dart evaluation data URIs.
+const String dartMimeType = 'application/dart';
+
 ArgParser globalDartdevOptionsParser({bool verbose = false}) {
   var argParser = ArgParser(
     usageLineLength: dartdevUsageLineLength,
     allowTrailingOptions: false,
+  );
+  argParser.addOption(
+    evalOption,
+    abbr: 'e',
+    help: 'Evaluate a Dart code snippet.',
+    valueHelp: 'code',
+  );
+  argParser.addMultiOption(
+    packageConstraintOption,
+    abbr: 'P',
+    help:
+        'Specific constraints for resolution of a single package '
+        '(e.g. "http", "path:^1.8.0").\n'
+        'See https://dart.dev/to/package-descriptors for more details.',
+    valueHelp: 'package-spec',
+  );
+  argParser.addFlag(
+    offlineOption,
+    negatable: false,
+    help: 'Run offline without querying network services.',
   );
   argParser.addFlag(
     'verbose',
@@ -172,6 +205,20 @@ extension LineInfoPositionExtension on LineInfo {
     }
     return getOffsetOfLine(position.line) + position.character;
   }
+}
+
+/// Extension methods for working with package URIs.
+extension PackageUriExtension on Uri {
+  /// The package name if this is a valid `package:` URI with a non-empty
+  /// package name, or `null`.
+  String? get packageName {
+    if (!isScheme('package')) return null;
+    final first = pathSegments.firstOrNull;
+    return (first != null && first.isNotEmpty) ? first : null;
+  }
+
+  /// Whether this is a valid `package:` URI with a non-empty package name.
+  bool get isPackage => packageName != null;
 }
 
 /// Wraps [text] to the given [width], if provided.
