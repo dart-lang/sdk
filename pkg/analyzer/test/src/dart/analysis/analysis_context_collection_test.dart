@@ -3647,12 +3647,12 @@ name: test
 
     _assertCollectionText(collection, r'''
 contexts
-  /home/test/lib/foo
+  /home/test
     includedPaths
       /home/test/lib/foo/a.dart
       /home/test/lib/foo/b.dart
+      /home/test/lib/bar/c.dart
     packagesFile: /home/test/.dart_tool/package_config.json
-    optionsFile: /home/test/lib/foo/analysis_options.yaml
     workspace: workspace_0
     analyzedFiles
       /home/test/lib/foo/a.dart
@@ -3663,15 +3663,78 @@ contexts
         uri: package:test/foo/b.dart
         analysisOptions_0
         workspacePackage_0_0
+      /home/test/lib/bar/c.dart
+        uri: package:test/bar/c.dart
+        analysisOptions_1
+        workspacePackage_0_0
+analysisOptions
+  analysisOptions_0: /home/test/lib/foo/analysis_options.yaml
+  analysisOptions_1: /home/test/lib/bar/analysis_options.yaml
+workspaces
+  workspace_0: PackageConfigWorkspace
+    root: /home/test
+    pubPackages
+      workspacePackage_0_0: PubPackage
+        root: /home/test
+''');
+  }
+
+  test_packageConfigWorkspace_multipleFiles_sameWorkspace_legacyPlugins() async {
+    configuration
+      ..withIncludedPaths = true
+      ..withOptionFilesForContext = true;
+
+    var packageRootPath = '/home/test';
+    newPubspecYamlFile(packageRootPath, r'''
+name: test
+''');
+    newSinglePackageConfigJsonFile(packagePath: packageRootPath, name: 'test');
+
+    var fooPath = '$packageRootPath/lib/foo';
+    newAnalysisOptionsYamlFile(fooPath, r'''
+analyzer:
+  plugins:
+    - foo_plugin
+''');
+    var fooA = newFile('$fooPath/a.dart', '');
+
+    var barPath = '$packageRootPath/lib/bar';
+    newAnalysisOptionsYamlFile(barPath, r'''
+analyzer:
+  plugins:
+    - bar_plugin
+''');
+    var barB = newFile('$barPath/b.dart', '');
+
+    var collection = AnalysisContextCollectionImpl(
+      resourceProvider: resourceProvider,
+      sdkPath: sdkRoot.path,
+      includedPaths: [fooA.path, barB.path],
+      withFineDependencies: true,
+    );
+
+    _assertCollectionText(collection, r'''
+contexts
+  /home/test/lib/foo
+    includedPaths
+      /home/test/lib/foo/a.dart
+    packagesFile: /home/test/.dart_tool/package_config.json
+    optionsFile: /home/test/lib/foo/analysis_options.yaml
+    workspace: workspace_0
+    analyzedFiles
+      /home/test/lib/foo/a.dart
+        uri: package:test/foo/a.dart
+        analysisOptions_0
+        workspacePackage_0_0
   /home/test/lib/bar
     includedPaths
-      /home/test/lib/bar/c.dart
+      /home/test/lib/bar/b.dart
     packagesFile: /home/test/.dart_tool/package_config.json
     optionsFile: /home/test/lib/bar/analysis_options.yaml
     workspace: workspace_0
     analyzedFiles
-      /home/test/lib/bar/c.dart
-        uri: package:test/bar/c.dart
+      /home/test/lib/bar/b.dart
+        uri: package:test/bar/b.dart
         analysisOptions_1
         workspacePackage_0_0
 analysisOptions

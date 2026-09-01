@@ -136,6 +136,92 @@ class _ContextLocator {
        _defaultOptionsFile = defaultOptionsFile,
        _defaultPackageConfigFile = defaultPackageConfigFile;
 
+  /// Adds individually included files to contexts. Unlike an options file,
+  /// workspace and package configuration affect how every library reachable
+  /// from a file is resolved. Files that share those driver-wide inputs can
+  /// therefore use one context and select their path-local options through the
+  /// context's options map.
+  void _addIncludedFiles(List<File> includedFiles) {
+    var fileLocationByParent = <Folder, _RootLocation>{};
+
+    for (var file in includedFiles) {
+      var parent = file.parent;
+
+      // Files with the same parent have the same context location, so reuse it.
+      var location = fileLocationByParent.putIfAbsent(
+        parent,
+        () => _contextRootLocation(
+          parent,
+          defaultRootFolder: () => _fileSystemRoot(parent),
+        ),
+      );
+      var optionsFile = _effectiveOptionsFile(location);
+      var enabledLegacyPlugins = _getEnabledLegacyPlugins(
+        location.workspace,
+        optionsFile,
+      );
+
+      ContextRootImpl? existingRoot;
+      for (var root in _roots) {
+        if (root.root.isOrContains(file.path) &&
+            _hasSameResolution(root, location) &&
+            const SetEquality<String>().equals(
+              _getEnabledLegacyPlugins(root.workspace, root.optionsFile),
+              enabledLegacyPlugins,
+            )) {
+          existingRoot = root;
+          break;
+        }
+      }
+
+      var rootFolder = enabledLegacyPlugins.isEmpty
+          ? location.resolutionRootFolder
+          : location.contextRootFolder;
+      var optionsApplyToWholeContext =
+          _defaultOptionsFile != null ||
+          (location.optionsFile == null &&
+              location.workspace is WorkspaceWithDefaultAnalysisOptions) ||
+          (optionsFile?.parent.isOrContains(rootFolder.path) ?? false);
+      var root = existingRoot;
+      root ??= _createContextRoot(
+        rootFolder: rootFolder,
+        optionsFile: optionsApplyToWholeContext ? optionsFile : null,
+        location: location,
+        useWorkspaceDefaultOptions: false,
+      );
+      _addOptionsMapping(
+        root,
+        optionsFile,
+        mappingFolder: optionsApplyToWholeContext ? root.root : null,
+      );
+      if (!root.isAnalyzed(file.path)) {
+        root.included.add(file);
+      }
+    }
+  }
+
+  /// Adds the path-local configuration represented by [optionsFile] to
+  /// [root]. Options outside the root apply at the root; options inside it
+  /// apply only below their own directory.
+  void _addOptionsMapping(
+    ContextRootImpl root,
+    File? optionsFile, {
+    Folder? mappingFolder,
+  }) {
+    if (optionsFile == null) return;
+
+    var optionsFolder = optionsFile.parent;
+    mappingFolder ??= root.root.isOrContains(optionsFolder.path)
+        ? optionsFolder
+        : root.root;
+    var mappingFolders = root.optionsFileMap.putIfAbsent(optionsFile, () => {});
+    if (mappingFolders.add(mappingFolder)) {
+      root.excludedGlobs.addAll(
+        _getExcludedGlobs(optionsFile, root.workspace.partialSourceFactory),
+      );
+    }
+  }
+
   /// Returns the location of a context root for a file in the [parent].
   ///
   /// If [_defaultOptionsFile] is non-`null`, it will be used, not a file found
@@ -180,37 +266,56 @@ class _ContextLocator {
       buildGnFile: buildGnFile,
     );
 
-    var rootFolder = _lowest([
-      optionsFolderToChooseRoot,
+    var resolutionRootFolder = _lowest([
       buildGnFile?.parent,
       if (workspace is! BasicWorkspace)
         _resourceProvider.getFolder(workspace.root),
+    ]);
+    var contextRootFolder = _lowest([
+      optionsFolderToChooseRoot,
+      resolutionRootFolder,
     ]);
 
     if (workspace is PackageConfigWorkspace) {
       packageConfigFile ??= workspace.packageConfigFile;
       // If the default packages folder is a parent of the workspace root,
-      // choose that as the root.
-      if (rootFolder != null && packagesFolderToChooseRoot != null) {
-        if (packagesFolderToChooseRoot.contains(rootFolder.path)) {
-          rootFolder = packagesFolderToChooseRoot;
+      // choose that as the context root.
+      if (contextRootFolder != null && packagesFolderToChooseRoot != null) {
+        if (packagesFolderToChooseRoot.contains(contextRootFolder.path)) {
+          contextRootFolder = packagesFolderToChooseRoot;
         }
+      }
+      // A default package config applies to every included file, so if its
+      // folder is above the workspace root, use that folder as the resolution
+      // root.
+      if (resolutionRootFolder != null &&
+          packagesFolderToChooseRoot != null &&
+          packagesFolderToChooseRoot.contains(resolutionRootFolder.path)) {
+        resolutionRootFolder = packagesFolderToChooseRoot;
       }
     }
 
-    if (rootFolder == null) {
-      rootFolder = defaultRootFolder();
+    if (contextRootFolder == null) {
+      contextRootFolder = defaultRootFolder();
       if (workspace is BasicWorkspace) {
         workspace = _createWorkspace(
-          folder: rootFolder,
+          folder: contextRootFolder,
           packageConfigFile: packageConfigFile,
           buildGnFile: buildGnFile,
         );
       }
     }
 
+    // If no resolution root was found, this is a basic workspace with no
+    // marker-defined boundary, so retain the path-local root.
+    if (resolutionRootFolder == null) {
+      assert(workspace is BasicWorkspace);
+      resolutionRootFolder = contextRootFolder;
+    }
+
     return _RootLocation(
-      rootFolder: rootFolder,
+      contextRootFolder: contextRootFolder,
+      resolutionRootFolder: resolutionRootFolder,
       workspace: workspace,
       optionsFile: optionsFile,
       packageConfigFile: packageConfigFile,
@@ -221,9 +326,12 @@ class _ContextLocator {
     required Folder rootFolder,
     required File? optionsFile,
     required _RootLocation location,
+    bool useWorkspaceDefaultOptions = true,
   }) {
-    if (location.workspace is WorkspaceWithDefaultAnalysisOptions) {
-      optionsFile ??= _findDefaultOptionsFile(
+    if (optionsFile == null &&
+        useWorkspaceDefaultOptions &&
+        location.workspace is WorkspaceWithDefaultAnalysisOptions) {
+      optionsFile = _findDefaultOptionsFile(
         location.workspace.partialSourceFactory,
       );
     }
@@ -235,13 +343,7 @@ class _ContextLocator {
       optionsFile: optionsFile,
       packagesFile: location.packageConfigFile,
     );
-    if (optionsFile != null) {
-      root.optionsFileMap.putIfAbsent(optionsFile, () => {}).add(rootFolder);
-    }
-
-    root.excludedGlobs.addAll(
-      _getExcludedGlobs(optionsFile, location.workspace.partialSourceFactory),
-    );
+    _addOptionsMapping(root, optionsFile, mappingFolder: rootFolder);
     _roots.add(root);
     return root;
   }
@@ -461,6 +563,16 @@ class _ContextLocator {
         );
   }
 
+  File? _effectiveOptionsFile(_RootLocation location) {
+    if (location.optionsFile case var optionsFile?) {
+      return optionsFile;
+    }
+    if (location.workspace is WorkspaceWithDefaultAnalysisOptions) {
+      return _findDefaultOptionsFile(location.workspace.partialSourceFactory);
+    }
+    return null;
+  }
+
   File? _findBuildGnFile(Folder folder) {
     for (var current in folder.withAncestors) {
       var file = current.getExistingFile(file_paths.buildGn);
@@ -578,6 +690,11 @@ class _ContextLocator {
     }
 
     return null;
+  }
+
+  bool _hasSameResolution(ContextRootImpl root, _RootLocation location) {
+    return root.packagesFile == location.packageConfigFile &&
+        _sameWorkspace(root.workspace, location.workspace);
   }
 
   /// Load the `workspace` paths from the pubspec file in the given [root].
@@ -720,38 +837,7 @@ class _ContextLocator {
       _createContextRootsIn({}, folder, root, rootEnabledLegacyPlugins);
     }
 
-    var fileLocationByParent = <Folder, _RootLocation>{};
-    for (File file in includedFiles) {
-      Folder parent = file.parent;
-
-      // Files with the same parent have the same context location, so reuse it.
-      var location = fileLocationByParent.putIfAbsent(
-        parent,
-        () => _contextRootLocation(
-          parent,
-          defaultRootFolder: () => _fileSystemRoot(parent),
-        ),
-      );
-
-      ContextRootImpl? root;
-      for (var existingRoot in _roots) {
-        if (existingRoot.root.isOrContains(file.path) &&
-            _matchRootWithLocation(existingRoot, location)) {
-          root = existingRoot;
-          break;
-        }
-      }
-
-      root ??= _createContextRoot(
-        rootFolder: location.rootFolder,
-        optionsFile: location.optionsFile,
-        location: location,
-      );
-
-      if (!root.isAnalyzed(file.path)) {
-        root.included.add(file);
-      }
-    }
+    _addIncludedFiles(includedFiles);
     return _roots;
   }
 
@@ -765,6 +851,18 @@ class _ContextLocator {
     if (second == null) return first;
     var pathContext = _resourceProvider.pathContext;
     return pathContext.isWithin(first.root, second.root) ? second : first;
+  }
+
+  /// Returns whether [first] and [second] define the same workspace-wide
+  /// resolution semantics.
+  bool _sameWorkspace(Workspace first, Workspace second) {
+    if (first.runtimeType != second.runtimeType) return false;
+
+    // BasicWorkspace has no marker-defined configuration. Containment and the
+    // package-config comparison decide whether an existing context can be used.
+    if (first is BasicWorkspace) return true;
+
+    return first.root == second.root;
   }
 
   /// Sorts [includedFolders] into either pub workspace resolution or not.
@@ -865,10 +963,9 @@ class _ContextLocator {
     // BasicWorkspace has no special meaning, so can be ignored.
     // Other workspaces have semantic meaning, so must match.
     var workspace = location.workspace;
-    if (workspace is! BasicWorkspace) {
-      if (existingRoot.workspace.root != workspace.root) {
-        return false;
-      }
+    if (workspace is! BasicWorkspace &&
+        existingRoot.workspace.root != workspace.root) {
+      return false;
     }
 
     return true;
@@ -876,13 +973,25 @@ class _ContextLocator {
 }
 
 class _RootLocation {
-  final Folder rootFolder;
+  /// The context root selected from both resolution configuration and the
+  /// effective analysis options file.
+  ///
+  /// Unlike [resolutionRootFolder], this can be lowered to the options file's
+  /// directory. Directory includes use this root; explicitly included files
+  /// can share [resolutionRootFolder] when their options are path-local.
+  final Folder contextRootFolder;
+
+  /// The root selected by configuration that affects URI and package
+  /// resolution, without lowering it to the directory of an options file.
+  final Folder resolutionRootFolder;
+
   final Workspace workspace;
   final File? optionsFile;
   final File? packageConfigFile;
 
   _RootLocation({
-    required this.rootFolder,
+    required this.contextRootFolder,
+    required this.resolutionRootFolder,
     required this.workspace,
     required this.optionsFile,
     required this.packageConfigFile,
