@@ -44,12 +44,23 @@ abstract class ContextAllocationStrategy<Info extends ScopeProviderInfo> {
   final ScopeProviderInfoStack<Info> _scopeProviderInfoStack =
       new ScopeProviderInfoStack<Info>(<Info>[]);
 
-  bool _enableDebugLogging = true;
+  static ContextAllocationStrategy<ScopeProviderInfo>
+  createContextAllocationStrategy({
+    required bool isClosureContextLoweringEnabled,
+  }) {
+    if (isClosureContextLoweringEnabled) {
+      return new TrivialContextAllocationStrategy();
+    } else {
+      return new EmptyContextAllocationStrategy();
+    }
+  }
+
+  final bool _enableDebugLogging = true;
   StringBuffer? _debugLog;
 
   Info? get _currentScopeProviderInfo => _scopeProviderInfoStack.currentOrNull;
 
-  PatternScopeListener<Info> _patternScopeBuilder =
+  final PatternScopeListener<Info> _patternScopeBuilder =
       new PatternScopeListener<Info>();
 
   void _writeDebugLine(String line) {
@@ -388,6 +399,157 @@ class LoopDepthAllocationStrategy
         currentScope.capturedVariableCollector = currentScope;
       }
     }
+  }
+}
+
+class EmptyContextAllocationStrategy
+    implements ContextAllocationStrategy<ScopeProviderInfo> {
+  static final ScopeProviderInfo _emptyScopeProviderInfo =
+      new ScopeProviderInfo(kind: ScopeProviderInfoKind.Block);
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  ScopeProviderInfo createScopeProviderInfo({
+    required ScopeProviderInfoKind scopeProviderInfoKind,
+  }) {
+    return _emptyScopeProviderInfo;
+  }
+
+  @override
+  ScopeProviderInfo enterScopeProvider({
+    required ScopeProviderInfoKind scopeProviderInfoKind,
+  }) {
+    return _emptyScopeProviderInfo;
+  }
+
+  @override
+  void handleDeclarationOfVariable(
+    Variable variable, {
+    required CaptureKind captureKind,
+  }) {}
+
+  @override
+  StringBuffer? get _debugLog {
+    throw new UnsupportedError("EmptyContextAllocationStrategy._debugLog");
+  }
+
+  @override
+  void set _debugLog(StringBuffer? value) {
+    throw new UnsupportedError("EmptyContextAllocationStrategy._debugLog=");
+  }
+
+  @override
+  bool get _enableDebugLogging {
+    throw new UnsupportedError(
+      "EmptyContextAllocationStrategy._enableDebugLogging",
+    );
+  }
+
+  @override
+  PatternScopeListener<ScopeProviderInfo> get _patternScopeBuilder {
+    throw new UnsupportedError(
+      "EmptyContextAllocationStrategy._patternScopeBuilder",
+    );
+  }
+
+  @override
+  ScopeProviderInfo? get _currentScopeProviderInfo {
+    throw new UnsupportedError(
+      "EmptyContextAllocationStrategy._currentScopeProviderInfo",
+    );
+  }
+
+  @override
+  Scope _ensureScopeWithThis() {
+    throw new UnsupportedError(
+      "EmptyContextAllocationStrategy._ensureScopeWithThis",
+    );
+  }
+
+  @override
+  VariableContext _ensureVariableContextInCurrentScope({
+    required CaptureKind captureKind,
+  }) {
+    throw new UnsupportedError(
+      "EmptyContextAllocationStrategy._ensureVariableContextInCurrentScope",
+    );
+  }
+
+  @override
+  String _readDebugLog() {
+    throw new UnsupportedError("EmptyContextAllocationStrategy._readDebugLog");
+  }
+
+  @override
+  ScopeProviderInfoStack<ScopeProviderInfo> get _scopeProviderInfoStack {
+    throw new UnsupportedError(
+      "EmptyContextAllocationStrategy._scopeProviderInfoStack",
+    );
+  }
+
+  @override
+  void _writeDebugLine(String line) {
+    throw new UnsupportedError(
+      "EmptyContextAllocationStrategy._writeDebugLine",
+    );
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  ScopeProviderInfo beginClosureContextAllocation(
+    List<VariableWithCaptureKind<Variable>> parameters, {
+    required VariableWithCaptureKind<ThisVariable>? thisVariable,
+  }) {
+    return _emptyScopeProviderInfo;
+  }
+
+  @override
+  List<VariableContext> computeCapturedVariableContexts(
+    List<VariableBase> variables,
+  ) {
+    return const [];
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void endClosureContextAllocation(ScopeProviderInfo scopeProviderInfo) {}
+
+  @override
+  void exitScopeProvider(ScopeProviderInfo scopeProviderInfo) {}
+
+  @override
+  void handleAfterCaseHeads(
+    List<VariableWithCaptureKind<VariableBase>> variables,
+  ) {}
+
+  @override
+  void handleDeclarationsOfParameters(
+    List<VariableWithCaptureKind<Variable>> parameters,
+  ) {}
+
+  @override
+  void handleInternalVariablePattern(
+    VariableWithCaptureKind<VariableBase> variable,
+  ) {}
+
+  @override
+  void handleJoinedPatternVariable(
+    VariableWithCaptureKind<VariableBase> variable,
+    JoinedPatternVariableLocation location,
+  ) {}
+
+  @override
+  void handleSwitchBeforeAlternative({
+    required int caseIndex,
+    required int subIndex,
+  }) {}
+
+  @override
+  void handleSwitchCaseBeginning() {}
+
+  @override
+  ThisVariable get thisVariable {
+    throw new UnsupportedError("EmptyContextAllocationStrategy.thisVariable");
   }
 }
 
