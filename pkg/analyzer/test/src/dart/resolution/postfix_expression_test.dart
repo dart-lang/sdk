@@ -84,9 +84,9 @@ void f(Map<String, int> a) {
 }
 ''');
 
-    var node1 = result.findNode.indexExpression2('a[');
+    var node1 = result.findNode.receiverIndexExpression('a[');
     assertResolvedNodeText(node1, r'''
-IndexExpression2
+ReceiverIndexExpression
   receiver: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
@@ -120,7 +120,7 @@ V1: IndexExpression
     var node2 = result.findNode.nullAssertion(']!');
     assertResolvedNodeText(node2, r'''
 NullAssertionExpression
-  operand: IndexExpression2
+  operand: ReceiverIndexExpression
     receiver: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::f::@formalParameter::a
@@ -699,7 +699,7 @@ void f(A a) {
     var node = result.findNode.postfixIncrement('a[0]++');
     assertResolvedNodeText(node, r'''
 PostfixIncrement
-  target: IndexAssignmentTarget
+  target: ReceiverIndexAssignmentTarget
     receiver: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::f::@formalParameter::a
@@ -761,7 +761,7 @@ void f(A? a) {
     var node = result.findNode.postfixIncrement('a?[0]++');
     assertResolvedNodeText(node, r'''
 PostfixIncrement
-  target: IndexAssignmentTarget
+  target: ReceiverIndexAssignmentTarget
     receiver: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::f::@formalParameter::a
@@ -827,7 +827,7 @@ class B extends A {
     var node = result.findNode.postfixIncrement('[0]++');
     assertResolvedNodeText(node, r'''
 PostfixIncrement
-  target: IndexAssignmentTarget
+  target: ReceiverIndexAssignmentTarget
     receiver: SuperExpression
       superKeyword: super
       staticType: B
@@ -887,7 +887,7 @@ class A {
     var node = result.findNode.postfixIncrement('[0]++');
     assertResolvedNodeText(node, r'''
 PostfixIncrement
-  target: IndexAssignmentTarget
+  target: ReceiverIndexAssignmentTarget
     receiver: ThisExpression
       thisKeyword: this
       staticType: A

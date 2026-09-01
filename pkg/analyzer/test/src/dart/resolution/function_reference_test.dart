@@ -5113,7 +5113,7 @@ void Function(int) foo(List<void Function<T>(T)> f) {
     var node = result.findNode.functionReference('f[0];');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function2: IndexExpression2
+  function2: ReceiverIndexExpression
     receiver: SimpleIdentifier
       token: f
       element: <testLibrary>::@function::foo::@formalParameter::f

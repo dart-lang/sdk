@@ -470,16 +470,6 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitIndexAssignmentTarget(covariant IndexAssignmentTargetImpl node) {
-    _sink.writeEnum(AstNodeTag.IndexAssignmentTarget);
-    _writeByte(AstBinaryFlags.encode(hasQuestion: node.question != null));
-    _writeNode(node.receiver);
-    _writeNode(node.index);
-    _sink.writeOptionalObject(node.read, _writeIndexReadResolution);
-    _sink.writeOptionalObject(node.write, _writeIndexWriteResolution);
-  }
-
-  @override
   void visitIndexExpression(IndexExpression node) {
     _sink.writeEnum(AstNodeTag.IndexExpression);
     _writeByte(
@@ -493,16 +483,6 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
 
     _sink.writeElement(node.element);
 
-    _storeExpression(node);
-  }
-
-  @override
-  void visitIndexExpression2(covariant IndexExpression2Impl node) {
-    _sink.writeEnum(AstNodeTag.IndexExpression2);
-    _writeByte(AstBinaryFlags.encode(hasQuestion: node.question != null));
-    _writeNode(node.receiver);
-    _writeNode(node.index);
-    _sink.writeOptionalObject(node.resolution, _writeIndexReadResolution);
     _storeExpression(node);
   }
 
@@ -769,6 +749,30 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
     _writeOptionalNode(node.target2);
     _writeNode(node.propertyName);
     // TODO(scheglov): Get from the property?
+    _storeExpression(node);
+  }
+
+  @override
+  void visitReceiverIndexAssignmentTarget(
+    covariant ReceiverIndexAssignmentTargetImpl node,
+  ) {
+    _sink.writeEnum(AstNodeTag.ReceiverIndexAssignmentTarget);
+    _writeByte(AstBinaryFlags.encode(hasQuestion: node.question != null));
+    _writeNode(node.receiver);
+    _writeNode(node.index);
+    _sink.writeOptionalObject(node.read, _writeIndexReadResolution);
+    _sink.writeOptionalObject(node.write, _writeIndexWriteResolution);
+  }
+
+  @override
+  void visitReceiverIndexExpression(
+    covariant ReceiverIndexExpressionImpl node,
+  ) {
+    _sink.writeEnum(AstNodeTag.ReceiverIndexExpression);
+    _writeByte(AstBinaryFlags.encode(hasQuestion: node.question != null));
+    _writeNode(node.receiver);
+    _writeNode(node.index);
+    _sink.writeOptionalObject(node.resolution, _writeIndexReadResolution);
     _storeExpression(node);
   }
 

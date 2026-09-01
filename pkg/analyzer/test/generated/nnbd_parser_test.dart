@@ -330,7 +330,7 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression2: IndexExpression2
+      expression2: ReceiverIndexExpression
         receiver: NullAssertionExpression
           operand: SimpleIdentifier
             token: a
@@ -1201,7 +1201,7 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression2: IndexExpression2
+      expression2: ReceiverIndexExpression
         receiver: SimpleIdentifier
           token: a
         leftBracket: [
@@ -1232,7 +1232,7 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression2: IndexExpression2
+      expression2: ReceiverIndexExpression
         receiver: SimpleIdentifier
           token: a
         question: ?
@@ -1931,7 +1931,7 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression2: IndexExpression2
+      expression2: ReceiverIndexExpression
         receiver: PropertyAccess
           target2: NullAssertionExpression
             operand: PrefixedIdentifier
@@ -2104,7 +2104,7 @@ Block
             equals: =
             initializer2: BinaryOperatorInvocation
               leftOperand: NullAssertionExpression
-                operand: IndexExpression2
+                operand: ReceiverIndexExpression
                   receiver: SimpleIdentifier
                     token: y
                   leftBracket: [
@@ -2154,7 +2154,7 @@ Block
             equals: =
             initializer2: BinaryOperatorInvocation
               leftOperand: NullAssertionExpression
-                operand: IndexExpression2
+                operand: ReceiverIndexExpression
                   receiver: PropertyAccess
                     target2: SuperExpression
                       superKeyword: super
@@ -2492,7 +2492,7 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression2: IndexExpression2
+      expression2: ReceiverIndexExpression
         receiver: NullAssertionExpression
           operand: SimpleIdentifier
             token: obj
@@ -2527,9 +2527,9 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression2: IndexExpression2
+      expression2: ReceiverIndexExpression
         receiver: NullAssertionExpression
-          operand: IndexExpression2
+          operand: ReceiverIndexExpression
             receiver: NullAssertionExpression
               operand: SimpleIdentifier
                 token: obj
@@ -2576,7 +2576,7 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression2: IndexExpression2
+      expression2: ReceiverIndexExpression
         receiver: NullAssertionExpression
           operand: PrefixedIdentifier
             prefix: SimpleIdentifier
@@ -2619,7 +2619,7 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression2: IndexExpression2
+      expression2: ReceiverIndexExpression
         receiver: NullAssertionExpression
           operand: PropertyAccess
             target2: NullAssertionExpression
@@ -2670,9 +2670,9 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression2: IndexExpression2
+      expression2: ReceiverIndexExpression
         receiver: NullAssertionExpression
-          operand: IndexExpression2
+          operand: ReceiverIndexExpression
             receiver: NullAssertionExpression
               operand: PrefixedIdentifier
                 prefix: SimpleIdentifier
@@ -2727,9 +2727,9 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression2: IndexExpression2
+      expression2: ReceiverIndexExpression
         receiver: NullAssertionExpression
-          operand: IndexExpression2
+          operand: ReceiverIndexExpression
             receiver: NullAssertionExpression
               operand: PropertyAccess
                 target2: NullAssertionExpression

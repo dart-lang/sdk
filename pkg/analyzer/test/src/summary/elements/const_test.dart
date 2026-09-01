@@ -1673,7 +1673,7 @@ library
         #F5 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic c (nameOffset:34) (firstTokenOffset:34) (offset:34)
           element: <testLibrary>::@topLevelVariable::c
           initializer: expression_2
-            IndexExpression2
+            ReceiverIndexExpression
               receiver: SimpleIdentifier
                 token: a @38
                 element: <testLibrary>::@getter::a
@@ -1781,7 +1781,7 @@ library
         #F5 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic c (nameOffset:45) (firstTokenOffset:45) (offset:45)
           element: <testLibrary>::@topLevelVariable::c
           initializer: expression_2
-            IndexExpression2
+            ReceiverIndexExpression
               receiver: SimpleIdentifier
                 token: a @49
                 element: <testLibrary>::@getter::a

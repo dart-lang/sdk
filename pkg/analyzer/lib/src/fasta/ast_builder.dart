@@ -761,7 +761,7 @@ class AstBuilder extends StackListener {
       return initializerObject;
     }
 
-    if (initializerObject is IndexExpression2Impl) {
+    if (initializerObject is ReceiverIndexExpressionImpl) {
       return buildInitializerTargetExpressionRecovery(
         initializerObject.receiver,
         initializerObject,
@@ -3808,7 +3808,7 @@ class AstBuilder extends StackListener {
           index: index,
           rightBracket: rightBracket,
         ),
-      IndexExpression2Impl(
+      ReceiverIndexExpressionImpl(
         :var receiver,
         :var question,
         :var leftBracket,
@@ -3816,7 +3816,7 @@ class AstBuilder extends StackListener {
         :var rightBracket,
       )
           when !lhs.isDotShorthand =>
-        IndexAssignmentTargetImpl(
+        ReceiverIndexAssignmentTargetImpl(
           receiver: receiver,
           question: question,
           leftBracket: leftBracket,
@@ -3832,7 +3832,7 @@ class AstBuilder extends StackListener {
         :var rightBracket,
       )
           when !lhs.isDotShorthand =>
-        IndexAssignmentTargetImpl(
+        ReceiverIndexAssignmentTargetImpl(
           receiver: receiver,
           question: null,
           leftBracket: leftBracket,
@@ -4814,7 +4814,7 @@ class AstBuilder extends StackListener {
       push(expression);
     } else {
       push(
-        IndexExpression2Impl(
+        ReceiverIndexExpressionImpl(
           receiver: target,
           question: question,
           leftBracket: leftBracket,
@@ -6671,7 +6671,7 @@ class AstBuilder extends StackListener {
       case ParenthesizedExpressionImpl():
       case ConstructorInvocationImpl():
       case InstanceCreationExpressionImpl():
-      case IndexExpression2Impl():
+      case ReceiverIndexExpressionImpl():
       case ThisExpressionImpl():
         return true;
       case PropertyAccessImpl(target2: var target?, operator: var operator)
@@ -6757,8 +6757,9 @@ class AstBuilder extends StackListener {
   ) {
     // Ordinary index reads are canonical V2 nodes. Move their children into
     // the corresponding read/write target used by `++` and `--`.
-    if (expression is IndexExpression2Impl && !expression.isDotShorthand) {
-      return IndexAssignmentTargetImpl(
+    if (expression is ReceiverIndexExpressionImpl &&
+        !expression.isDotShorthand) {
+      return ReceiverIndexAssignmentTargetImpl(
         receiver: expression.receiver,
         question: expression.question,
         leftBracket: expression.leftBracket,
@@ -6768,13 +6769,13 @@ class AstBuilder extends StackListener {
     }
 
     // Recovery can still produce a legacy, non-cascade index expression.
-    // Keep accepting it until all parser paths produce IndexExpression2.
+    // Keep accepting it until all parser paths produce ReceiverIndexExpression.
     if (expression is IndexExpressionImpl) {
       var receiver = expression.target2;
       if (receiver != null &&
           expression.period == null &&
           !expression.isDotShorthand) {
-        return IndexAssignmentTargetImpl(
+        return ReceiverIndexAssignmentTargetImpl(
           receiver: receiver,
           question: expression.question,
           leftBracket: expression.leftBracket,

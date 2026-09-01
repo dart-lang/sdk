@@ -59,7 +59,7 @@ ExpressionImpl insertCascadeTargetIntoExpression({
       rightHandSide2: expression.rightHandSide2,
     );
   } else if (expression is CascadeIndexExpressionImpl) {
-    return IndexExpression2Impl(
+    return ReceiverIndexExpressionImpl(
       receiver: cascadeTarget,
       question: cascadeOperator?.type == TokenType.QUESTION_PERIOD_PERIOD
           ? _synthesizeToken(TokenType.QUESTION, cascadeOperator!)
@@ -88,8 +88,8 @@ ExpressionImpl insertCascadeTargetIntoExpression({
       operator: expression.operator,
       propertyName: expression.propertyName,
     );
-  } else if (expression is IndexExpression2Impl) {
-    return IndexExpression2Impl(
+  } else if (expression is ReceiverIndexExpressionImpl) {
+    return ReceiverIndexExpressionImpl(
       receiver: insertCascadeTargetIntoExpression(
         expression: expression.receiver,
         cascadeTarget: cascadeTarget,
@@ -139,7 +139,7 @@ ExpressionImpl insertCascadeTargetIntoExpression({
     var target = expression.target;
     if (target is CascadeIndexAssignmentTargetImpl) {
       return DirectAssignmentImpl(
-        target: IndexAssignmentTargetImpl(
+        target: ReceiverIndexAssignmentTargetImpl(
           receiver: cascadeTarget,
           question: cascadeOperator?.type == TokenType.QUESTION_PERIOD_PERIOD
               ? _synthesizeToken(TokenType.QUESTION, cascadeOperator!)
@@ -168,9 +168,9 @@ ExpressionImpl insertCascadeTargetIntoExpression({
         value: expression.value,
       );
     }
-    if (target is IndexAssignmentTargetImpl) {
+    if (target is ReceiverIndexAssignmentTargetImpl) {
       return DirectAssignmentImpl(
-        target: IndexAssignmentTargetImpl(
+        target: ReceiverIndexAssignmentTargetImpl(
           receiver: insertCascadeTargetIntoExpression(
             expression: target.receiver,
             cascadeTarget: cascadeTarget,

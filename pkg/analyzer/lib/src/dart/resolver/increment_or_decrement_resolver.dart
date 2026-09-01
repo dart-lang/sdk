@@ -64,7 +64,7 @@ class IncrementOrDecrementResolver {
         throw StateError(
           'A cascade section cannot be an increment or decrement target',
         );
-      case IndexAssignmentTargetImpl():
+      case ReceiverIndexAssignmentTargetImpl():
         var result = _assignmentResolver.resolveIndexReadWriteTarget(target);
         if (result == null) {
           node.operatorResultType = NeverTypeImpl.instance;

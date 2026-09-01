@@ -1090,37 +1090,12 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
-  void visitIndexAssignmentTarget(covariant IndexAssignmentTargetImpl node) {
-    _sink.writeln('IndexAssignmentTarget');
-    _sink.withIndent(() {
-      _writeNamedChildEntities(node);
-      if (_withResolution) {
-        _writeIndexReadResolution('read', node.read);
-        _writeIndexWriteResolution('write', node.write);
-      }
-    });
-  }
-
-  @override
   void visitIndexExpression(IndexExpression node) {
     _sink.writeln('IndexExpression');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
       _writeParameterElement(node);
       _writeElement('element', node.element);
-      _writeType('staticType', node.staticType);
-    });
-  }
-
-  @override
-  void visitIndexExpression2(covariant IndexExpression2Impl node) {
-    _sink.writeln('IndexExpression2');
-    _sink.withIndent(() {
-      _writeNamedChildEntities(node);
-      if (_withResolution) {
-        _writeIndexReadResolution('resolution', node.resolution);
-      }
-      _writeParameterElement(node);
       _writeType('staticType', node.staticType);
     });
   }
@@ -1647,6 +1622,35 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     _sink.writeln('PropertyAccess');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
+      _writeParameterElement(node);
+      _writeType('staticType', node.staticType);
+    });
+  }
+
+  @override
+  void visitReceiverIndexAssignmentTarget(
+    covariant ReceiverIndexAssignmentTargetImpl node,
+  ) {
+    _sink.writeln('ReceiverIndexAssignmentTarget');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      if (_withResolution) {
+        _writeIndexReadResolution('read', node.read);
+        _writeIndexWriteResolution('write', node.write);
+      }
+    });
+  }
+
+  @override
+  void visitReceiverIndexExpression(
+    covariant ReceiverIndexExpressionImpl node,
+  ) {
+    _sink.writeln('ReceiverIndexExpression');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      if (_withResolution) {
+        _writeIndexReadResolution('resolution', node.resolution);
+      }
       _writeParameterElement(node);
       _writeType('staticType', node.staticType);
     });
@@ -2711,8 +2715,6 @@ Expected parent: (${parent.runtimeType}) $parent
             parent is BinaryExpression && parent.rightOperand2 == node ||
             parent is BinaryOperatorInvocation && parent.rightOperand == node ||
             parent is CompoundAssignment && parent.value == node ||
-            parent is CascadeIndexAssignmentTarget && parent.index == node ||
-            parent is CascadeIndexExpression && parent.index == node ||
             parent is DirectAssignment && parent.value == node ||
             parent is IfNullAssignment && parent.value == node ||
             parent is IndexAssignmentTarget && parent.index == node ||

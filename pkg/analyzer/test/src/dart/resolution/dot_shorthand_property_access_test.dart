@@ -904,7 +904,7 @@ void f(Object o) {
     assertResolvedNodeText(node, r'''
 PostfixDecrement
   target: InvalidExpressionAssignmentTarget
-    expression: IndexExpression2
+    expression: ReceiverIndexExpression
       receiver: DotShorthandPropertyAccess
         period: .
         propertyName: SimpleIdentifier
@@ -995,7 +995,7 @@ void f(Object o) {
 PrefixDecrement
   operator: --
   target: InvalidExpressionAssignmentTarget
-    expression: IndexExpression2
+    expression: ReceiverIndexExpression
       receiver: DotShorthandPropertyAccess
         period: .
         propertyName: SimpleIdentifier

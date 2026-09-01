@@ -648,13 +648,7 @@ abstract class AstVisitor2<R> {
 
   R? visitImportPrefixReference(ImportPrefixReference node);
 
-  @experimental
-  R? visitIndexAssignmentTarget(IndexAssignmentTarget node);
-
   R? visitIndexExpression(IndexExpression node);
-
-  @experimental
-  R? visitIndexExpression2(IndexExpression2 node);
 
   R? visitIntegerLiteral(IntegerLiteral node);
 
@@ -778,6 +772,12 @@ abstract class AstVisitor2<R> {
   R? visitPrimaryConstructorName(PrimaryConstructorName node);
 
   R? visitPropertyAccess(PropertyAccess node);
+
+  @experimental
+  R? visitReceiverIndexAssignmentTarget(ReceiverIndexAssignmentTarget node);
+
+  @experimental
+  R? visitReceiverIndexExpression(ReceiverIndexExpression node);
 
   @experimental
   R? visitReceiverPropertyAssignmentTarget(

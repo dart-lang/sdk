@@ -786,22 +786,6 @@ class AstBinaryReader {
     _readExpressionResolution(node);
   }
 
-  IndexAssignmentTarget _readIndexAssignmentTarget() {
-    var flags = _readByte();
-    var receiver = _readNode() as ExpressionImpl;
-    var index = _readNode() as ExpressionImpl;
-    var node = IndexAssignmentTargetImpl(
-      receiver: receiver,
-      question: AstBinaryFlags.hasQuestion(flags) ? Tokens.question() : null,
-      leftBracket: Tokens.openSquareBracket(),
-      index: index,
-      rightBracket: Tokens.closeSquareBracket(),
-    );
-    node.read = _reader.readOptionalObject(_readIndexReadResolution);
-    node.write = _reader.readOptionalObject(_readIndexWriteResolution);
-    return node;
-  }
-
   IndexExpression _readIndexExpression() {
     var flags = _readByte();
     var target = _readOptionalNode() as ExpressionImpl?;
@@ -815,22 +799,6 @@ class AstBinaryReader {
       rightBracket: Tokens.closeSquareBracket(),
     );
     node.element = _reader.readElement() as MethodElement?;
-    _readExpressionResolution(node);
-    return node;
-  }
-
-  IndexExpression2 _readIndexExpression2() {
-    var flags = _readByte();
-    var receiver = _readNode() as ExpressionImpl;
-    var index = _readNode() as ExpressionImpl;
-    var node = IndexExpression2Impl(
-      receiver: receiver,
-      question: AstBinaryFlags.hasQuestion(flags) ? Tokens.question() : null,
-      leftBracket: Tokens.openSquareBracket(),
-      index: index,
-      rightBracket: Tokens.closeSquareBracket(),
-    );
-    node.resolution = _reader.readOptionalObject(_readIndexReadResolution);
     _readExpressionResolution(node);
     return node;
   }
@@ -1244,10 +1212,10 @@ class AstBinaryReader {
         return _readImportPrefixReference();
       case AstNodeTag.IndexExpression:
         return _readIndexExpression();
-      case AstNodeTag.IndexExpression2:
-        return _readIndexExpression2();
-      case AstNodeTag.IndexAssignmentTarget:
-        return _readIndexAssignmentTarget();
+      case AstNodeTag.ReceiverIndexExpression:
+        return _readReceiverIndexExpression();
+      case AstNodeTag.ReceiverIndexAssignmentTarget:
+        return _readReceiverIndexAssignmentTarget();
       case AstNodeTag.IntegerLiteralNegative1:
         return _readIntegerLiteralNegative1();
       case AstNodeTag.IntegerLiteralNull:
@@ -1481,6 +1449,38 @@ class AstBinaryReader {
       operator: operator,
       propertyName: propertyName,
     );
+    _readExpressionResolution(node);
+    return node;
+  }
+
+  ReceiverIndexAssignmentTarget _readReceiverIndexAssignmentTarget() {
+    var flags = _readByte();
+    var receiver = _readNode() as ExpressionImpl;
+    var index = _readNode() as ExpressionImpl;
+    var node = ReceiverIndexAssignmentTargetImpl(
+      receiver: receiver,
+      question: AstBinaryFlags.hasQuestion(flags) ? Tokens.question() : null,
+      leftBracket: Tokens.openSquareBracket(),
+      index: index,
+      rightBracket: Tokens.closeSquareBracket(),
+    );
+    node.read = _reader.readOptionalObject(_readIndexReadResolution);
+    node.write = _reader.readOptionalObject(_readIndexWriteResolution);
+    return node;
+  }
+
+  ReceiverIndexExpression _readReceiverIndexExpression() {
+    var flags = _readByte();
+    var receiver = _readNode() as ExpressionImpl;
+    var index = _readNode() as ExpressionImpl;
+    var node = ReceiverIndexExpressionImpl(
+      receiver: receiver,
+      question: AstBinaryFlags.hasQuestion(flags) ? Tokens.question() : null,
+      leftBracket: Tokens.openSquareBracket(),
+      index: index,
+      rightBracket: Tokens.closeSquareBracket(),
+    );
+    node.resolution = _reader.readOptionalObject(_readIndexReadResolution);
     _readExpressionResolution(node);
     return node;
   }

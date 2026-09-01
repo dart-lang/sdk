@@ -754,22 +754,7 @@ class _IndexContributor extends UnifyingAstVisitor2 {
 
   @override
   void visitCascadeIndexExpression(CascadeIndexExpression node) {
-    var element = switch (node.resolution) {
-      MethodIndexReadResolution(:var element) => element,
-      InvalidIndexReadResolution(
-        recovery: MethodIndexReadResolution(:var element),
-      ) =>
-        element,
-      _ => null,
-    };
-    if (element is MethodElement) {
-      recordRelationToken(
-        element,
-        IndexRelationKind.IS_INVOKED_BY,
-        node.leftBracket,
-      );
-    }
-    super.visitCascadeIndexExpression(node);
+    _visitIndexExpression2(node);
   }
 
   @override
@@ -911,8 +896,6 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   void visitCompoundAssignment(CompoundAssignment node) {
     recordOperatorReference(node.operator, node.element);
     switch (node.target as AssignmentTargetImpl) {
-      case CascadeIndexAssignmentTargetImpl target:
-        _recordIndexReadWriteTarget(target);
       case PropertyAssignmentTargetImpl target:
         _recordPropertyReadWriteTarget(target);
       case IndexAssignmentTargetImpl target:
@@ -1023,8 +1006,6 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   @override
   void visitDirectAssignment(DirectAssignment node) {
     switch (node.target as AssignmentTargetImpl) {
-      case CascadeIndexAssignmentTargetImpl target:
-        _recordIndexReadWriteTarget(target);
       case PropertyAssignmentTargetImpl target:
         switch (target.write) {
           case SetterInvocationResolutionImpl(element: var element):
@@ -1268,8 +1249,6 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   @override
   void visitIfNullAssignment(IfNullAssignment node) {
     switch (node.target as AssignmentTargetImpl) {
-      case CascadeIndexAssignmentTargetImpl target:
-        _recordIndexReadWriteTarget(target);
       case PropertyAssignmentTargetImpl target:
         _recordPropertyReadWriteTarget(target);
       case IndexAssignmentTargetImpl target:
@@ -1313,26 +1292,6 @@ class _IndexContributor extends UnifyingAstVisitor2 {
       recordRelationToken(element, IndexRelationKind.IS_INVOKED_BY, operator);
     }
     super.visitIndexExpression(node);
-  }
-
-  @override
-  void visitIndexExpression2(IndexExpression2 node) {
-    var element = switch (node.resolution) {
-      MethodIndexReadResolution(:var element) => element,
-      InvalidIndexReadResolution(
-        recovery: MethodIndexReadResolution(:var element),
-      ) =>
-        element,
-      _ => null,
-    };
-    if (element is MethodElement) {
-      recordRelationToken(
-        element,
-        IndexRelationKind.IS_INVOKED_BY,
-        node.leftBracket,
-      );
-    }
-    super.visitIndexExpression2(node);
   }
 
   @override
@@ -1470,6 +1429,11 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   @override
   void visitPrefixIncrement(covariant PrefixIncrementImpl node) {
     _visitIncrementOrDecrementExpression(node);
+  }
+
+  @override
+  void visitReceiverIndexExpression(ReceiverIndexExpression node) {
+    _visitIndexExpression2(node);
   }
 
   @override
@@ -1861,20 +1825,10 @@ class _IndexContributor extends UnifyingAstVisitor2 {
     );
   }
 
-  void _recordIndexReadWriteTarget(AstNode target) {
-    var (read, write, leftBracket) = switch (target) {
-      CascadeIndexAssignmentTargetImpl target => (
-        target.read,
-        target.write,
-        target.leftBracket,
-      ),
-      IndexAssignmentTargetImpl target => (
-        target.read,
-        target.write,
-        target.leftBracket,
-      ),
-      _ => throw StateError('Not an index assignment target: $target'),
-    };
+  void _recordIndexReadWriteTarget(IndexAssignmentTargetImpl target) {
+    var read = target.read;
+    var write = target.write;
+    var leftBracket = target.leftBracket;
     if (read case MethodIndexReadResolutionImpl(:var element)) {
       recordRelationToken(
         element,
@@ -2023,6 +1977,25 @@ class _IndexContributor extends UnifyingAstVisitor2 {
         break;
       case UnqualifiedNameAssignmentTargetImpl target:
         _recordUnqualifiedNameReadWriteTarget(target);
+    }
+    node.visitChildren2(this);
+  }
+
+  void _visitIndexExpression2(IndexExpression2 node) {
+    var element = switch (node.resolution) {
+      MethodIndexReadResolution(:var element) => element,
+      InvalidIndexReadResolution(
+        recovery: MethodIndexReadResolution(:var element),
+      ) =>
+        element,
+      _ => null,
+    };
+    if (element is MethodElement) {
+      recordRelationToken(
+        element,
+        IndexRelationKind.IS_INVOKED_BY,
+        node.leftBracket,
+      );
     }
     node.visitChildren2(this);
   }

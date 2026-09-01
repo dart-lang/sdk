@@ -542,7 +542,7 @@ var v = (x)[y];
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-IndexExpression2
+ReceiverIndexExpression
   receiver: ParenthesizedExpression
     leftParenthesis: (
     expression2: SimpleIdentifier
@@ -673,7 +673,7 @@ var v = x[y];
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-IndexExpression2
+ReceiverIndexExpression
   receiver: SimpleIdentifier
     token: x
   leftBracket: [
@@ -726,7 +726,7 @@ var v = super[y];
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-IndexExpression2
+ReceiverIndexExpression
   receiver: SuperExpression
     superKeyword: super
   leftBracket: [
@@ -764,7 +764,7 @@ var v = x[x];
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-IndexExpression2
+ReceiverIndexExpression
   receiver: SimpleIdentifier
     token: x
   leftBracket: [
@@ -2423,7 +2423,7 @@ CompilationUnit
             statements
               ExpressionStatement
                 expression2: FunctionExpressionInvocation
-                  function2: IndexExpression2
+                  function2: ReceiverIndexExpression
                     receiver: SimpleIdentifier
                       token: factories
                     leftBracket: [
@@ -3212,7 +3212,7 @@ var v = [1][1];
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-IndexExpression2
+ReceiverIndexExpression
   receiver: ListLiteral
     leftBracket: [
     elements2
@@ -3727,7 +3727,7 @@ var v = a[0];
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-IndexExpression2
+ReceiverIndexExpression
   receiver: SimpleIdentifier
     token: a
   leftBracket: [
@@ -4026,7 +4026,7 @@ FunctionExpression
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression2: IndexExpression2
+    expression2: ReceiverIndexExpression
       receiver: SimpleIdentifier
         token: m
       leftBracket: [
@@ -5388,7 +5388,7 @@ var v = --a[0];
     assertParsedNodeText(node, r'''
 PrefixDecrement
   operator: --
-  target: IndexAssignmentTarget
+  target: ReceiverIndexAssignmentTarget
     receiver: SimpleIdentifier
       token: a
     leftBracket: [
@@ -5484,7 +5484,7 @@ var v = ++a[0];
     assertParsedNodeText(node, r'''
 PrefixIncrement
   operator: ++
-  target: IndexAssignmentTarget
+  target: ReceiverIndexAssignmentTarget
     receiver: SimpleIdentifier
       token: a
     leftBracket: [
@@ -5528,7 +5528,7 @@ var v = ++super[0];
     assertParsedNodeText(node, r'''
 PrefixIncrement
   operator: ++
-  target: IndexAssignmentTarget
+  target: ReceiverIndexAssignmentTarget
     receiver: SuperExpression
       superKeyword: super
     leftBracket: [
@@ -5579,7 +5579,7 @@ var v = -a[0];
     assertParsedNodeText(node, r'''
 UnaryOperatorInvocation
   operator: -
-  operand: IndexExpression2
+  operand: ReceiverIndexExpression
     receiver: SimpleIdentifier
       token: a
     leftBracket: [
@@ -5715,7 +5715,7 @@ var v = ~a[0];
     assertParsedNodeText(node, r'''
 UnaryOperatorInvocation
   operator: ~
-  operand: IndexExpression2
+  operand: ReceiverIndexExpression
     receiver: SimpleIdentifier
       token: a
     leftBracket: [

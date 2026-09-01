@@ -1669,7 +1669,7 @@ var x = x[0]<a, b>;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 FunctionReference
-  function2: IndexExpression2
+  function2: ReceiverIndexExpression
     receiver: SimpleIdentifier
       token: x
     leftBracket: [
@@ -1702,7 +1702,7 @@ var x = x[0]!<a, b>;
     assertParsedNodeText(node, r'''
 FunctionReference
   function2: NullAssertionExpression
-    operand: IndexExpression2
+    operand: ReceiverIndexExpression
       receiver: SimpleIdentifier
         token: x
       leftBracket: [
@@ -1738,7 +1738,7 @@ var x = x[0]()<a, b>;
     assertParsedNodeText(node, r'''
 FunctionReference
   function2: FunctionExpressionInvocation
-    function2: IndexExpression2
+    function2: ReceiverIndexExpression
       receiver: SimpleIdentifier
         token: x
       leftBracket: [
@@ -1773,7 +1773,7 @@ var x = x?[0]<a, b>;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 FunctionReference
-  function2: IndexExpression2
+  function2: ReceiverIndexExpression
     receiver: SimpleIdentifier
       token: x
     question: ?

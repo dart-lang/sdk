@@ -15,7 +15,7 @@ import 'package:analyzer/src/dart/ast/ast.dart'
         CascadeIndexAssignmentTargetImpl,
         CascadePropertyAssignmentTargetImpl,
         GetterInvocationResolutionImpl,
-        IndexAssignmentTargetImpl,
+        ReceiverIndexAssignmentTargetImpl,
         InvalidExpressionAssignmentTargetImpl,
         ReceiverPropertyAssignmentTargetImpl,
         ReceiverPropertyExtractionImpl,
@@ -158,7 +158,9 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
 
   _LValueTemplates dispatchAssignmentTarget(AssignmentTarget target) =>
       switch (target) {
-        IndexAssignmentTarget() => _indexAssignmentTarget(target),
+        ReceiverIndexAssignmentTarget() => _receiverIndexAssignmentTarget(
+          target,
+        ),
         ReceiverPropertyAssignmentTarget() => _receiverPropertyAssignmentTarget(
           target,
         ),
@@ -478,8 +480,8 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
         throw UnimplementedError('Cascade index assignment target');
       case CascadePropertyAssignmentTargetImpl():
         throw UnimplementedError('Cascade property assignment target');
-      case IndexAssignmentTargetImpl():
-        lValueTemplates = _indexAssignmentTarget(target);
+      case ReceiverIndexAssignmentTargetImpl():
+        lValueTemplates = _receiverIndexAssignmentTarget(target);
       case InvalidExpressionAssignmentTargetImpl():
         throw UnimplementedError('Invalid expression assignment target');
       case ReceiverPropertyAssignmentTargetImpl():
@@ -548,8 +550,8 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
         throw UnimplementedError('Cascade index assignment target');
       case CascadePropertyAssignmentTargetImpl():
         throw UnimplementedError('Cascade property assignment target');
-      case IndexAssignmentTargetImpl():
-        lValueTemplates = _indexAssignmentTarget(target);
+      case ReceiverIndexAssignmentTargetImpl():
+        lValueTemplates = _receiverIndexAssignmentTarget(target);
       case InvalidExpressionAssignmentTargetImpl():
         throw UnimplementedError('Invalid expression assignment target');
       case ReceiverPropertyAssignmentTargetImpl():
@@ -737,8 +739,8 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
         throw UnimplementedError('Cascade index assignment target');
       case CascadePropertyAssignmentTargetImpl():
         throw UnimplementedError('Cascade property assignment target');
-      case IndexAssignmentTargetImpl():
-        lValueTemplates = _indexAssignmentTarget(target);
+      case ReceiverIndexAssignmentTargetImpl():
+        lValueTemplates = _receiverIndexAssignmentTarget(target);
       case InvalidExpressionAssignmentTargetImpl():
         throw UnimplementedError('Invalid expression assignment target');
       case ReceiverPropertyAssignmentTargetImpl():
@@ -1192,7 +1194,9 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
     }
   }
 
-  _LValueTemplates _indexAssignmentTarget(IndexAssignmentTarget node) {
+  _LValueTemplates _receiverIndexAssignmentTarget(
+    ReceiverIndexAssignmentTarget node,
+  ) {
     var previousNestingLevel = ir.nestingLevel;
     dispatchNode(node.receiver, terminateNullShorting: false);
     if (node.question != null) {
@@ -1345,7 +1349,9 @@ class _IndexAssignmentTemplates extends _LValueTemplates {
 
   @override
   void simpleRead(_AstToIRVisitor visitor) {
-    throw StateError('IndexAssignmentTarget cannot be read as an expression.');
+    throw StateError(
+      'ReceiverIndexAssignmentTarget cannot be read as an expression.',
+    );
   }
 
   @override

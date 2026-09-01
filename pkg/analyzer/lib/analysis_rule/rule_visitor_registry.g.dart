@@ -803,13 +803,7 @@ abstract class RuleVisitorRegistry2 {
 
   void addImportPrefixReference(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
-  @experimental
-  void addIndexAssignmentTarget(AbstractAnalysisRule rule, AstVisitor2 visitor);
-
   void addIndexExpression(AbstractAnalysisRule rule, AstVisitor2 visitor);
-
-  @experimental
-  void addIndexExpression2(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addIntegerLiteral(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
@@ -959,6 +953,18 @@ abstract class RuleVisitorRegistry2 {
   );
 
   void addPropertyAccess(AbstractAnalysisRule rule, AstVisitor2 visitor);
+
+  @experimental
+  void addReceiverIndexAssignmentTarget(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
+
+  @experimental
+  void addReceiverIndexExpression(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
 
   @experimental
   void addReceiverPropertyAssignmentTarget(

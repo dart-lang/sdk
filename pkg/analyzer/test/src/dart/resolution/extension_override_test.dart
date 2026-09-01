@@ -460,9 +460,9 @@ void f(int? a) {
 }
 ''');
 
-    var node = result.findNode.indexExpression2('[0]');
+    var node = result.findNode.receiverIndexExpression('[0]');
     assertResolvedNodeText(node, r'''
-IndexExpression2
+ReceiverIndexExpression
   receiver: ExtensionOverride
     name: E
     argumentList: ArgumentList
@@ -530,7 +530,7 @@ void f(int? a) {
     var node = result.findNode.directAssignment('[0] =');
     assertResolvedNodeText(node, r'''
 DirectAssignment
-  target: IndexAssignmentTarget
+  target: ReceiverIndexAssignmentTarget
     receiver: ExtensionOverride
       name: E
       argumentList: ArgumentList

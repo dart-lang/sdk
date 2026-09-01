@@ -42,7 +42,7 @@ void Function(int) foo(C c) {
     assertResolvedNodeText(node, r'''
 ImplicitCallReference
   expression2: DirectAssignment
-    target: IndexAssignmentTarget
+    target: ReceiverIndexAssignmentTarget
       receiver: SimpleIdentifier
         token: map
         element: map@83

@@ -400,8 +400,15 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R? visitIncrementOrDecrementExpression(IncrementOrDecrementExpression node) =>
       visitExpression(node);
 
+  @experimental
+  R? visitIndexAssignmentTarget(IndexAssignmentTarget node) =>
+      visitAssignmentTarget(node);
+
   @override
   R? visitIndexExpression(IndexExpression node) => visitExpression(node);
+
+  @experimental
+  R? visitIndexExpression2(IndexExpression2 node) => visitExpression(node);
 
   @override
   R? visitInstanceCreationExpression(InstanceCreationExpression node) =>
@@ -2562,22 +2569,8 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
     return null;
   }
 
-  @experimental
-  @override
-  R? visitIndexAssignmentTarget(IndexAssignmentTarget node) {
-    node.visitChildren2(this);
-    return null;
-  }
-
   @override
   R? visitIndexExpression(IndexExpression node) {
-    node.visitChildren2(this);
-    return null;
-  }
-
-  @experimental
-  @override
-  R? visitIndexExpression2(IndexExpression2 node) {
     node.visitChildren2(this);
     return null;
   }
@@ -2917,6 +2910,20 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitPropertyAccess(PropertyAccess node) {
+    node.visitChildren2(this);
+    return null;
+  }
+
+  @experimental
+  @override
+  R? visitReceiverIndexAssignmentTarget(ReceiverIndexAssignmentTarget node) {
+    node.visitChildren2(this);
+    return null;
+  }
+
+  @experimental
+  @override
+  R? visitReceiverIndexExpression(ReceiverIndexExpression node) {
     node.visitChildren2(this);
     return null;
   }
@@ -4185,16 +4192,8 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitImportPrefixReference(ImportPrefixReference node) => null;
 
-  @experimental
-  @override
-  R? visitIndexAssignmentTarget(IndexAssignmentTarget node) => null;
-
   @override
   R? visitIndexExpression(IndexExpression node) => null;
-
-  @experimental
-  @override
-  R? visitIndexExpression2(IndexExpression2 node) => null;
 
   @override
   R? visitIntegerLiteral(IntegerLiteral node) => null;
@@ -4373,6 +4372,15 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitPropertyAccess(PropertyAccess node) => null;
+
+  @experimental
+  @override
+  R? visitReceiverIndexAssignmentTarget(ReceiverIndexAssignmentTarget node) =>
+      null;
+
+  @experimental
+  @override
+  R? visitReceiverIndexExpression(ReceiverIndexExpression node) => null;
 
   @experimental
   @override
@@ -5516,16 +5524,8 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitImportPrefixReference(ImportPrefixReference node) => _throw(node);
 
-  @experimental
-  @override
-  R? visitIndexAssignmentTarget(IndexAssignmentTarget node) => _throw(node);
-
   @override
   R? visitIndexExpression(IndexExpression node) => _throw(node);
-
-  @experimental
-  @override
-  R? visitIndexExpression2(IndexExpression2 node) => _throw(node);
 
   @override
   R? visitIntegerLiteral(IntegerLiteral node) => _throw(node);
@@ -5705,6 +5705,15 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitPropertyAccess(PropertyAccess node) => _throw(node);
+
+  @experimental
+  @override
+  R? visitReceiverIndexAssignmentTarget(ReceiverIndexAssignmentTarget node) =>
+      _throw(node);
+
+  @experimental
+  @override
+  R? visitReceiverIndexExpression(ReceiverIndexExpression node) => _throw(node);
 
   @experimental
   @override
@@ -8263,28 +8272,10 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
     return result;
   }
 
-  @experimental
-  @override
-  T? visitIndexAssignmentTarget(IndexAssignmentTarget node) {
-    stopwatch.start();
-    T? result = _baseVisitor.visitIndexAssignmentTarget(node);
-    stopwatch.stop();
-    return result;
-  }
-
   @override
   T? visitIndexExpression(IndexExpression node) {
     stopwatch.start();
     T? result = _baseVisitor.visitIndexExpression(node);
-    stopwatch.stop();
-    return result;
-  }
-
-  @experimental
-  @override
-  T? visitIndexExpression2(IndexExpression2 node) {
-    stopwatch.start();
-    T? result = _baseVisitor.visitIndexExpression2(node);
     stopwatch.stop();
     return result;
   }
@@ -8732,6 +8723,24 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
   T? visitPropertyAccess(PropertyAccess node) {
     stopwatch.start();
     T? result = _baseVisitor.visitPropertyAccess(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @experimental
+  @override
+  T? visitReceiverIndexAssignmentTarget(ReceiverIndexAssignmentTarget node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitReceiverIndexAssignmentTarget(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @experimental
+  @override
+  T? visitReceiverIndexExpression(ReceiverIndexExpression node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitReceiverIndexExpression(node);
     stopwatch.stop();
     return result;
   }
@@ -10168,16 +10177,8 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitImportPrefixReference(ImportPrefixReference node) => visitNode(node);
 
-  @experimental
-  @override
-  R? visitIndexAssignmentTarget(IndexAssignmentTarget node) => visitNode(node);
-
   @override
   R? visitIndexExpression(IndexExpression node) => visitNode(node);
-
-  @experimental
-  @override
-  R? visitIndexExpression2(IndexExpression2 node) => visitNode(node);
 
   @override
   R? visitIntegerLiteral(IntegerLiteral node) => visitNode(node);
@@ -10368,6 +10369,16 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitPropertyAccess(PropertyAccess node) => visitNode(node);
+
+  @experimental
+  @override
+  R? visitReceiverIndexAssignmentTarget(ReceiverIndexAssignmentTarget node) =>
+      visitNode(node);
+
+  @experimental
+  @override
+  R? visitReceiverIndexExpression(ReceiverIndexExpression node) =>
+      visitNode(node);
 
   @experimental
   @override
