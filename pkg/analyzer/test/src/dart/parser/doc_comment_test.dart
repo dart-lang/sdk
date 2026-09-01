@@ -904,6 +904,38 @@ Comment
 ''');
   }
 
+  test_fencedCodeBlock_atStart() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+/// ```
+/// Two.
+/// ```
+class A {}
+''');
+
+    var node = parseResult.findNode.comment('Two.');
+    assertParsedNodeText(node, r'''
+Comment
+  tokens
+    /// ```
+    /// Two.
+    /// ```
+  codeBlocks
+    MdCodeBlock
+      infoString: <empty>
+      type: CodeBlockType.fenced
+      lines
+        MdCodeBlockLine
+          offset: 3
+          length: 4
+        MdCodeBlockLine
+          offset: 11
+          length: 5
+        MdCodeBlockLine
+          offset: 20
+          length: 4
+''');
+  }
+
   test_fencedCodeBlock_blockComment() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 /**
@@ -961,6 +993,42 @@ Comment
           length: 5
         MdCodeBlockLine
           offset: 73
+          length: 3
+''');
+  }
+
+  test_fencedCodeBlock_blockComment_atStart() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+/**
+ * ```
+ * a[i] = b[i];
+ * ```
+ */
+class A {}
+''');
+
+    var node = parseResult.findNode.comment('a[i]');
+    assertParsedNodeText(node, r'''
+Comment
+  tokens
+    /**
+ * ```
+ * a[i] = b[i];
+ * ```
+ */
+  codeBlocks
+    MdCodeBlock
+      infoString: <empty>
+      type: CodeBlockType.fenced
+      lines
+        MdCodeBlockLine
+          offset: 7
+          length: 3
+        MdCodeBlockLine
+          offset: 14
+          length: 12
+        MdCodeBlockLine
+          offset: 30
           length: 3
 ''');
   }
@@ -1339,6 +1407,54 @@ Comment
   tokens
     /// Text.
     ///    a[i] = b[i];
+''');
+  }
+
+  test_indentedCodeBlock_atStart() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+///     Two.
+class A {}
+''');
+
+    var node = parseResult.findNode.comment('Two.');
+    assertParsedNodeText(node, r'''
+Comment
+  tokens
+    ///     Two.
+  codeBlocks
+    MdCodeBlock
+      infoString: <empty>
+      type: CodeBlockType.indented
+      lines
+        MdCodeBlockLine
+          offset: 3
+          length: 9
+''');
+  }
+
+  test_indentedCodeBlock_blockComment_atStart() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+/**
+ *     a[i] = b[i];
+ */
+class A {}
+''');
+
+    var node = parseResult.findNode.comment('a[i]');
+    assertParsedNodeText(node, r'''
+Comment
+  tokens
+    /**
+ *     a[i] = b[i];
+ */
+  codeBlocks
+    MdCodeBlock
+      infoString: <empty>
+      type: CodeBlockType.indented
+      lines
+        MdCodeBlockLine
+          offset: 7
+          length: 16
 ''');
   }
 

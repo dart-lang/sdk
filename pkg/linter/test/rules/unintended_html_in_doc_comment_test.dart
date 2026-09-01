@@ -198,6 +198,121 @@ class C {}
 ''');
   }
 
+  test_unintendedHtml_javaDoc_multiline_fenced() async {
+    await assertNoDiagnostics(r'''
+/**
+ * Text
+ *
+ * ```
+ * List<int>
+ * ```
+ *
+ * Text
+ */
+class C {}
+''');
+  }
+
+  test_unintendedHtml_javaDoc_multiline_fenced_atStart() async {
+    await assertNoDiagnostics(r'''
+/**
+ * ```
+ * List<int>
+ * ```
+ */
+class C {}
+''');
+  }
+
+  test_unintendedHtml_javaDoc_multiline_indented() async {
+    await assertNoDiagnostics(r'''
+/**
+ * Text
+ *
+ *     List<int>
+ *
+ * Text
+ */
+class C {}
+''');
+  }
+
+  test_unintendedHtml_javaDoc_multiline_indented_atStart() async {
+    await assertNoDiagnostics(r'''
+/**
+ *     List<int>
+ */
+class C {}
+''');
+  }
+
+  test_unintendedHtml_javaDoc_multiline_indentedMember() async {
+    await assertDiagnosticsFromMarkup(r'''
+class C {
+  /**
+   *  Text List[!<int>!].
+   */
+  void member() {}
+}
+''');
+  }
+
+  test_unintendedHtml_javaDoc_multiline_indentedMember_fenced() async {
+    await assertNoDiagnostics(r'''
+class C {
+  /**
+   * Text
+   *
+   * ```
+   * List<int>
+   * ```
+   *
+   * Text
+   */
+  void member() {}
+}
+''');
+  }
+
+  test_unintendedHtml_javaDoc_multiline_indentedMember_fenced_atStart() async {
+    await assertNoDiagnostics(r'''
+class C {
+  /**
+   * ```
+   * List<int>
+   * ```
+   */
+  void member() {}
+}
+''');
+  }
+
+  test_unintendedHtml_javaDoc_multiline_indentedMember_indented() async {
+    await assertNoDiagnostics(r'''
+class C {
+  /**
+   * Text
+   *
+   *     List<int>
+   *
+   * Text
+   */
+  void member() {}
+}
+''');
+  }
+
+  test_unintendedHtml_javaDoc_multiline_indentedMember_indented_atStart() async {
+    await assertNoDiagnostics(r'''
+class C {
+  /**
+   *     List<int>
+   */
+  void member() {}
+}
+''');
+  }
+
   test_unintendedHtml_multipleDocComments() async {
     await assertDiagnosticsFromMarkup(r'''
 /// Text List.
