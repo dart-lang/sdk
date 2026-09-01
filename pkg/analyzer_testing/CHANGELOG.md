@@ -1,3 +1,7 @@
+## 0.4.1
+
+- Require version `14.3.0` of the `analyzer` package.
+
 ## 0.4.0
 
 - Breaking change: use `Feature` objects instead of strings when configuring
