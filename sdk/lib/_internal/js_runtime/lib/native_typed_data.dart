@@ -7,7 +7,7 @@
 library dart.typed_data.implementation;
 
 import 'dart:collection' show ListMixin;
-import 'dart:_internal' show FixedLengthListMixin hide Symbol;
+import 'dart:_internal' show FixedLengthListMixin;
 import "dart:_internal" show UnmodifiableListMixin;
 import 'dart:_interceptors'
     show JavaScriptObject, JSIndexable, JSUInt32, JSUInt31;
