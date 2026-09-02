@@ -121,6 +121,10 @@ nnbd/injected_late_field_checks/main: SemiFuzzFailure
 nnbd/platform_definite_assignment/main: SemiFuzzFailure
 nnbd/platform_nonnullable_fields/main: SemiFuzzFailure
 nnbd/platform_optional_parameters/main: SemiFuzzFailure
+# Augmentations cannot be applied before the introductory declaration.
+augmentations/class_declarations: SemiFuzzFailure
+augmentations/mixin_declarations: SemiFuzzFailure
+augmentations/top_level_declarations: SemiFuzzFailure
 
 # Unclear exactly what is going on here - but target none isn't super important.
 none/issue_63440: SemiFuzzFailure

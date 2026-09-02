@@ -238,6 +238,7 @@ abstract class FragmentFactory {
   void addEnum({
     required OffsetMap offsetMap,
     required List<MetadataBuilder>? metadata,
+    required Modifiers modifiers,
     required Identifier identifier,
     required List<TypeParameterFragment>? typeParameters,
     required List<TypeBuilder>? mixins,

@@ -12,7 +12,6 @@ class ExtensionFragment extends DeclarationFragmentImpl implements Fragment {
   SourceExtensionBuilder? _builder;
 
   late final List<MetadataBuilder>? metadata;
-  late final Modifiers modifiers;
   late final TypeBuilder onType;
   late final int startOffset;
   late final int endOffset;

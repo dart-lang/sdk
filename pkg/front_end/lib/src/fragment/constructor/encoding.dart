@@ -4,6 +4,7 @@
 
 import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart';
 import 'package:kernel/ast.dart';
+import 'package:kernel/ast.dart' as ast;
 import 'package:kernel/type_algebra.dart';
 
 import '../../api_prototype/lowering_predicates.dart';
@@ -958,7 +959,7 @@ class ExtensionTypeConstructorEncoding
     SourceExtensionTypeDeclarationBuilder declarationBuilder,
     List<DartType> typeArguments,
   ) {
-    ExtensionTypeDeclaration extensionTypeDeclaration =
+    ast.ExtensionTypeDeclaration extensionTypeDeclaration =
         declarationBuilder.extensionTypeDeclaration;
     return new ExtensionType(
       extensionTypeDeclaration,

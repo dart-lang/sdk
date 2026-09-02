@@ -14,7 +14,6 @@ class EnumFragment extends DeclarationFragmentImpl implements Fragment {
 
   late final LookupScope compilationUnitScope;
   late final List<MetadataBuilder>? metadata;
-  late final Modifiers modifiers;
   late final List<TypeBuilder>? mixins;
   late final List<TypeBuilder>? interfaces;
   late final int startOffset;

@@ -1744,6 +1744,7 @@ extensionTypeAugmentationSpecifiesRepresentationField:
   analyzerCode: extensionTypeAugmentationSpecifiesRepresentationField
   hasPublishedDocs: false
   experiments: augmentations
+  exampleAllowOtherCodes: true
   script: |
     augment extension type E(int x) {}
   comment: No parameters.

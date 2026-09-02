@@ -6140,6 +6140,8 @@ class Parser {
           break;
         case DeclarationKind.Extension:
           if (bodyStart.isA(TokenType.SEMICOLON) && externalToken == null) {
+            // TODO(johnniwinther): Stop reporting this in the parser. It is not
+            // valid when the member is augmented.
             reportRecoverableError(
               isOperator ? name.next! : name,
               diag.extensionDeclaresAbstractMember,
@@ -6148,6 +6150,8 @@ class Parser {
           break;
         case DeclarationKind.ExtensionType:
           if (bodyStart.isA(TokenType.SEMICOLON) && externalToken == null) {
+            // TODO(johnniwinther): Stop reporting this in the parser. It is not
+            // valid when the member is augmented.
             reportRecoverableError(
               isOperator ? name.next! : name,
               diag.extensionTypeDeclaresAbstractMember,

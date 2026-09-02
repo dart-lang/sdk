@@ -1061,6 +1061,7 @@ class FragmentFactoryImpl implements FragmentFactory {
   void addEnum({
     required OffsetMap offsetMap,
     required List<MetadataBuilder>? metadata,
+    required Modifiers modifiers,
     required Identifier identifier,
     required List<TypeParameterFragment>? typeParameters,
     required List<TypeBuilder>? mixins,
@@ -1070,7 +1071,6 @@ class FragmentFactoryImpl implements FragmentFactory {
   }) {
     EnumFragment declarationFragment = endEnumDeclaration();
 
-    Modifiers modifiers = Modifiers.empty;
     if (declarationFragment.declaresConstConstructor) {
       modifiers |= Modifiers.DeclaresConstConstructor;
     }
