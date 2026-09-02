@@ -4031,6 +4031,11 @@ final class _Int32x4 implements Int32x4 {
   external Int32x4 equal(Int32x4 other);
 
   @pragma("vm:recognized", "other")
+  @pragma("vm:exact-result-type", _Int32x4)
+  @pragma("vm:external-name", "Int32x4_notEqual")
+  external Int32x4 notEqual(Int32x4 other);
+
+  @pragma("vm:recognized", "other")
   @pragma("vm:external-name", "Int32x4_getX")
   external int get x;
   @pragma("vm:recognized", "other")

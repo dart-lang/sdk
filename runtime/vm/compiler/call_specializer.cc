@@ -2385,6 +2385,9 @@ class SimdLowering : public ValueObject {
       case MethodRecognizer::kInt32x4Equal:
         Int32x4Compare(Token::kEQ);
         return true;
+      case MethodRecognizer::kInt32x4NotEqual:
+        Int32x4Compare(Token::kNE);
+        return true;
       case MethodRecognizer::kInt32x4FromInts:
         UnboxScalar(0, kUnboxedInt32, 4);
         UnboxScalar(1, kUnboxedInt32, 4);
@@ -3506,6 +3509,7 @@ bool CallSpecializer::TryInlineRecognizedMethod(
     case MethodRecognizer::kInt32x4Not:
 #if !defined(TARGET_ARCH_IA32)
     case MethodRecognizer::kInt32x4Equal:
+    case MethodRecognizer::kInt32x4NotEqual:
 #endif
       return InlineSimdOp(flow_graph, is_dynamic_call, call, receiver, kind,
                           graph_entry, entry, last, result);

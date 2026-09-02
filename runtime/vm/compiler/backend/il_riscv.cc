@@ -4748,6 +4748,15 @@ void CompareAsMaskInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           __ snez(result, result);      // lhs op rhs ? 0 : 1
           __ addi(result, result, -1);  // lhs op rhs ? -1 : 0
           break;
+        case Token::kNE:
+#if XLEN > 32
+          __ subw(result, lhs, rhs);  // lhs op rhs ? 0 : nz
+#else
+          __ sub(result, lhs, rhs);
+#endif
+          __ snez(result, result);  // lhs op rhs ? 0 : 1
+          __ neg(result, result);   // lhs op rhs ? 0 : -1
+          break;
         default:
           UNREACHABLE();
       }

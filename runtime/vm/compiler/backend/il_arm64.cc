@@ -4298,6 +4298,13 @@ DEFINE_EMIT(Int32x4AnyTrue, (Register out, VRegister value)) {
   __ csel(out, TMP, out, EQ);
 }
 
+DEFINE_EMIT(Int32x4NotEqual,
+            (VRegister result, VRegister left, VRegister right)) {
+  // Compare-equal, then invert to get not-equal.
+  __ vceqw(result, left, right);
+  __ vnot(result, result);
+}
+
 DEFINE_EMIT(Int32x4Select,
             (VRegister out,
              VRegister mask,
@@ -4356,6 +4363,8 @@ DEFINE_EMIT(Int32x4WithFlag,
   CASE(Float64x2FromDoubles)                                                   \
   CASE(Float64x2Scale)                                                         \
   ____(SimdBinaryOp)                                                           \
+  CASE(Int32x4NotEqual)                                                        \
+  ____(Int32x4NotEqual)                                                        \
   SIMD_OP_SIMPLE_UNARY(CASE)                                                   \
   CASE(Float32x4GetX)                                                          \
   CASE(Float32x4GetY)                                                          \

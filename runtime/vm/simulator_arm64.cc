@@ -3710,6 +3710,18 @@ void Simulator::DecodeDPSimd1(Instr* instr) {
     return;
   }
 
+  // SSHR Vd.4S, Vn.4S, #shift — signed (arithmetic) shift right of word lanes.
+  if ((instr->InstructionBits() & 0xFFE0FC00) == 0x4F200400) {
+    const VRegister vd = instr->VdField();
+    const VRegister vn = instr->VnField();
+    const int shift = 64 - instr->Bits(16, 7);
+    for (int i = 0; i < 4; i++) {
+      const int64_t v = get_vregisters(vn, i);
+      set_vregisters(vd, i, static_cast<int32_t>(v >> shift));
+    }
+    return;
+  }
+
   // UMAXP Vd.4S, Vn.4S, Vm.4S — unsigned pairwise maximum of the word lanes.
   if ((instr->InstructionBits() & 0xFFE0FC00) == 0x6EA0A400) {
     const VRegister vd = instr->VdField();

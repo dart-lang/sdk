@@ -4547,6 +4547,13 @@ DEFINE_EMIT(Int32x4Select,
   __ orps(mask, temp);
 }
 
+DEFINE_EMIT(Int32x4NotEqual,
+            (SameAsFirstInput, XmmRegister left, XmmRegister right)) {
+  // Compare-equal, then invert to get not-equal.
+  __ pcmpeqd(left, right);
+  __ notps(left, left);
+}
+
 // Map SimdOpInstr::Kind-s to corresponding emit functions. Uses the following
 // format:
 //
@@ -4567,6 +4574,8 @@ DEFINE_EMIT(Int32x4Select,
   CASE(Float32x4WithZ)                                                         \
   CASE(Float32x4WithW)                                                         \
   ____(SimdBinaryOp)                                                           \
+  CASE(Int32x4NotEqual)                                                        \
+  ____(Int32x4NotEqual)                                                        \
   SIMD_OP_SIMPLE_UNARY(CASE)                                                   \
   CASE(Float32x4GetX)                                                          \
   CASE(Float32x4GetY)                                                          \

@@ -35,6 +35,7 @@ import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
+import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
@@ -370,62 +371,17 @@ class PluginServer {
     });
   }
 
-  /// Computes and returns [protocol.AnalysisError]s for each of the parts in
-  /// the library at [libraryPath].
-  Future<Map<String, List<protocol.AnalysisError>>> _computeAnalysisErrors(
-    AnalysisContext analysisContext,
-    String libraryPath, {
+  /// Analyzes the compilation units in [diagnosticsContext] with the enabled
+  /// plugin rules and sends analysis error notifications for each compilation
+  /// unit.
+  Future<void> _analyzeAndSendDiagnostics({
+    required AnalysisContext analysisContext,
     required AnalysisOptionsImpl analysisOptions,
+    required _LibraryDiagnosticsContext diagnosticsContext,
   }) async {
-    var libraryResult = await analysisContext.currentSession.getResolvedLibrary(
-      libraryPath,
-    );
-    if (libraryResult is! ResolvedLibraryResult) {
-      // We only handle analyzing at the library-level. Below, we work through
-      // each of the compilation units found in `libraryResult`.
-      return const {};
-    }
-
-    var diagnosticListeners = {
-      for (var unitResult in libraryResult.units)
-        unitResult: RecordingDiagnosticListener(),
-    };
-
-    RuleContextUnit? definingContextUnit;
-    var definingUnit =
-        (libraryResult.element as LibraryElementImpl).firstFragment;
-    var allUnits = <RuleContextUnit>[];
-
-    for (var unitResult in libraryResult.units) {
-      var contextUnit = RuleContextUnit(
-        file: unitResult.file,
-        content: unitResult.content,
-        diagnosticReporter: DiagnosticReporter(
-          diagnosticListeners[unitResult]!,
-          unitResult.libraryElement.firstFragment.source,
-        ),
-        unit: unitResult.unit,
-      );
-      allUnits.add(contextUnit);
-      if (unitResult.unit.declaredFragment == definingUnit) {
-        definingContextUnit = contextUnit;
-      }
-    }
-    // Just a fallback value. We shouldn't get into this situation, but this is
-    // a safe default.
-    definingContextUnit ??= allUnits.first;
-
-    var package = analysisContext.contextRoot.workspace.findPackageFor(
-      libraryPath,
-    );
-
-    var context = RuleContextWithResolvedResults(
-      allUnits,
-      definingContextUnit,
-      libraryResult.element.typeProvider,
-      libraryResult.element.typeSystem as TypeSystemImpl,
-      package,
-    );
+    var context = diagnosticsContext.ruleContext;
+    var allUnits = diagnosticsContext.allUnits;
+    var diagnosticListeners = diagnosticsContext.diagnosticListeners;
 
     // A mapping from each diagnostic code to its corresponding plugin.
     var pluginCodeMapping = <DiagnosticCode, String>{};
@@ -434,7 +390,7 @@ class PluginServer {
     var severityMapping = <DiagnosticCode, protocol.AnalysisErrorSeverity?>{};
 
     var protocolConfigs = _getConfigurationsForFile(
-      definingContextUnit.file.path,
+      context.definingUnit.file.path,
     );
     var configurations = [
       if (protocolConfigs != null)
@@ -470,8 +426,11 @@ class PluginServer {
     var diagnosticsAndAnalysisErrors =
         <({Diagnostic diagnostic, protocol.AnalysisError analysisError})>[];
 
-    diagnosticListeners.forEach((unitResult, listener) {
-      var ignoreInfo = IgnoreInfo.forDart(unitResult.unit, unitResult.content);
+    diagnosticListeners.forEach((unitContext, listener) {
+      var ignoreInfo = IgnoreInfo.forDart(
+        unitContext.unit,
+        unitContext.content,
+      );
       var diagnostics = listener.diagnostics.where((e) {
         var pluginName = pluginCodeMapping[e.diagnosticCode];
         if (pluginName == null) {
@@ -494,7 +453,7 @@ class PluginServer {
             severityMapping[diagnostic.diagnosticCode] ??
                 protocol.AnalysisErrorSeverity.INFO,
             protocol.AnalysisErrorType.STATIC_WARNING,
-            _locationFor(unitResult.unit, unitResult.path, diagnostic),
+            _locationFor(unitContext.unit, unitContext.file.path, diagnostic),
             diagnostic.message,
             diagnostic.diagnosticCode.lowerCaseName,
             correction: diagnostic.correctionMessage,
@@ -503,8 +462,8 @@ class PluginServer {
                   (message) => newDiagnosticMessage(
                     message,
                     analysisContext.currentSession,
-                    lineInfo: message.filePath == unitResult.path
-                        ? unitResult.lineInfo
+                    lineInfo: message.filePath == unitContext.file.path
+                        ? unitContext.unit.lineInfo
                         : null,
                   ),
                 )
@@ -516,7 +475,7 @@ class PluginServer {
         ));
       }
 
-      _recentState[unitResult.path] = (
+      _recentState[unitContext.file.path] = (
         analysisContext: analysisContext,
         errors: [...unitDiagnosticsAndAnalysisErrors],
       );
@@ -529,12 +488,49 @@ class PluginServer {
     // notification for each unit, even if there are no analysis errors to
     // report.
     var analysisErrorsByPath = <String, List<protocol.AnalysisError>>{
-      for (var unitResult in libraryResult.units) unitResult.path: [],
+      for (var unit in allUnits) unit.file.path: [],
     };
     for (var (diagnostic: _, :analysisError) in diagnosticsAndAnalysisErrors) {
       analysisErrorsByPath[analysisError.location.file]!.add(analysisError);
     }
-    return analysisErrorsByPath;
+    for (var MapEntry(key: path, value: analysisErrors)
+        in analysisErrorsByPath.entries) {
+      _channel.sendNotification(
+        protocol.AnalysisErrorsParams(path, analysisErrors).toNotification(),
+      );
+    }
+  }
+
+  /// Whether this plugin isolate can rely on _parsed_ analysis results to
+  /// analyze [libraryPath], such that none of the enabled rules require full
+  /// resolution.
+  bool _canUseParsedResult(
+    AnalysisOptionsImpl analysisOptions,
+    String libraryPath,
+  ) {
+    var protocolConfigs = _getConfigurationsForFile(libraryPath);
+    var configurations = [
+      if (protocolConfigs != null)
+        for (var entry in protocolConfigs.entries)
+          _toAnalyzerConfiguration(entry.key, entry.value)
+      else
+        ...analysisOptions.pluginConfigurations,
+    ];
+
+    for (var configuration in configurations) {
+      if (!configuration.isEnabled) continue;
+      RegistryBase? registry = registries[configuration.name.toLowerCase()];
+      if (registry == null) {
+        if (!_useGlobalRegistry) continue;
+        registry = Registry.ruleRegistry;
+      }
+      var rules = registry.enabled({
+        for (var entry in configuration.diagnosticConfigs.entries)
+          entry.key.toLowerCase(): entry.value,
+      });
+      if (rules.any((r) => !r.canUseParsedResult)) return false;
+    }
+    return true;
   }
 
   /// Computes diagnostics for the plugin configured with [configuration].
@@ -547,7 +543,7 @@ class PluginServer {
     required AnalysisContext analysisContext,
     required List<RuleContextUnit> allUnits,
     required RuleVisitorRegistryImpl ruleVisitorRegistry,
-    required RuleContextWithResolvedResults context,
+    required RuleContext context,
     required Map<DiagnosticCode, String> pluginCodeMapping,
     required Map<DiagnosticCode, protocol.AnalysisErrorSeverity?>
     severityMapping,
@@ -593,7 +589,11 @@ class PluginServer {
         rule.reporter = currentUnit.diagnosticReporter;
       }
 
-      context.currentUnit = currentUnit;
+      if (context is RuleContextWithResolvedResults) {
+        context.currentUnit = currentUnit;
+      } else if (context is RuleContextWithParsedResults) {
+        context.currentUnit = currentUnit;
+      }
       currentUnit.unit.accept(
         AnalysisRuleVisitor(
           ruleVisitorRegistry,
@@ -604,6 +604,11 @@ class PluginServer {
 
     // Now that all lint rules have visited the code in each of the compilation
     // units, we can accept each lint rule's `afterLibrary` hook.
+    if (context is RuleContextWithResolvedResults) {
+      context.currentUnit = context.definingUnit;
+    } else if (context is RuleContextWithParsedResults) {
+      context.currentUnit = context.definingUnit;
+    }
     AnalysisRuleVisitor(ruleVisitorRegistry).afterLibrary();
   }
 
@@ -986,14 +991,36 @@ class PluginServer {
     var path = event.path;
     var session = event.session;
     var analysisContext = session.analysisContext;
-    if (analysisContext is DriverBasedAnalysisContext) {
-      if (analysisContext.contextRoot.isAnalyzed(path)) {
-        var activeSession = _filesBeingResolved[path];
-        if (activeSession != session) {
-          _filesBeingResolved[path] = session;
-          analysisContext.driver.getResolvedUnit(path);
-        }
+    if (analysisContext is! DriverBasedAnalysisContext) return;
+    if (!analysisContext.contextRoot.isAnalyzed(path)) return;
+
+    var file = _resourceProvider.getFile(path);
+    var analysisOptions =
+        analysisContext.getAnalysisOptionsForFile(file) as AnalysisOptionsImpl;
+    if (_canUseParsedResult(analysisOptions, path)) {
+      var fileState = analysisContext.driver.fsState.getFileForPath(path);
+      var libraryPath = switch (fileState.kind) {
+        PartFileKind(:var library?) => library.file.path,
+        _ => path,
+      };
+      var diagnosticsContext = _LibraryDiagnosticsContext.forParsedLibrary(
+        analysisContext,
+        libraryPath,
+        _resourceProvider,
+      );
+      if (diagnosticsContext != null) {
+        _analyzeAndSendDiagnostics(
+          analysisContext: analysisContext,
+          analysisOptions: analysisOptions,
+          diagnosticsContext: diagnosticsContext,
+        );
       }
+      return;
+    }
+    var activeSession = _filesBeingResolved[path];
+    if (activeSession != session) {
+      _filesBeingResolved[path] = session;
+      analysisContext.driver.getResolvedUnit(path);
     }
   }
 
@@ -1049,15 +1076,19 @@ class PluginServer {
     try {
       var file = _resourceProvider.getFile(unitResult.path);
       var analysisOptions = analysisContext.getAnalysisOptionsForFile(file);
-      var analysisErrorsByPath = await _computeAnalysisErrors(
+      var libraryResult = await analysisContext.currentSession
+          .getResolvedLibrary(unitResult.path);
+      if (libraryResult is! ResolvedLibraryResult) return;
+
+      var diagnosticsContext = _LibraryDiagnosticsContext.forResolvedLibrary(
         analysisContext,
-        unitResult.path,
-        analysisOptions: analysisOptions as AnalysisOptionsImpl,
+        libraryResult,
       );
-      for (var MapEntry(key: path, value: analysisErrors)
-          in analysisErrorsByPath.entries) {
-        _channel.sendNotification(
-          protocol.AnalysisErrorsParams(path, analysisErrors).toNotification(),
+      if (diagnosticsContext != null) {
+        await _analyzeAndSendDiagnostics(
+          analysisContext: analysisContext,
+          analysisOptions: analysisOptions as AnalysisOptionsImpl,
+          diagnosticsContext: diagnosticsContext,
         );
       }
     } on InconsistentAnalysisException {
@@ -1149,6 +1180,124 @@ class PluginServer {
       startLocation.columnNumber,
       endLine: endLocation.lineNumber,
       endColumn: endLocation.columnNumber,
+    );
+  }
+}
+
+/// Encapsulates the compilation units, diagnostic listeners, and [RuleContext]
+/// for analyzing a library in [PluginServer].
+final class _LibraryDiagnosticsContext {
+  final RuleContext ruleContext;
+  final List<RuleContextUnit> allUnits;
+  final Map<RuleContextUnit, RecordingDiagnosticListener> diagnosticListeners;
+
+  _LibraryDiagnosticsContext._({
+    required this.ruleContext,
+    required this.allUnits,
+    required this.diagnosticListeners,
+  });
+
+  /// Builds a [_LibraryDiagnosticsContext] using parsed (unresolved)
+  /// compilation units.
+  static _LibraryDiagnosticsContext? forParsedLibrary(
+    DriverBasedAnalysisContext analysisContext,
+    String libraryPath,
+    ResourceProvider resourceProvider,
+  ) {
+    var fileState = analysisContext.driver.fsState.getFileForPath(libraryPath);
+    var libraryKind = fileState.kind.library ?? fileState.kind.asLibrary;
+
+    var allUnits = <RuleContextUnit>[];
+    var diagnosticListeners = <RuleContextUnit, RecordingDiagnosticListener>{};
+    RuleContextUnit? definingContextUnit;
+
+    for (var fileKind in libraryKind.fileKinds) {
+      var path = fileKind.file.path;
+      var file = resourceProvider.getFile(path);
+      String content;
+      try {
+        content = file.readAsStringSync();
+      } catch (_) {
+        continue;
+      }
+      var parsedUnitResult = analysisContext.currentSession.getParsedUnit(path);
+      if (parsedUnitResult is! ParsedUnitResult) continue;
+
+      var listener = RecordingDiagnosticListener();
+      var contextUnit = RuleContextUnit(
+        file: file,
+        content: content,
+        diagnosticReporter: DiagnosticReporter(listener, fileKind.file.source),
+        unit: parsedUnitResult.unit,
+      );
+      diagnosticListeners[contextUnit] = listener;
+      allUnits.add(contextUnit);
+      if (path == libraryPath) {
+        definingContextUnit = contextUnit;
+      }
+    }
+    definingContextUnit ??= allUnits.firstOrNull;
+    if (definingContextUnit == null) return null;
+
+    var package = analysisContext.contextRoot.workspace.findPackageFor(
+      libraryPath,
+    );
+    return _LibraryDiagnosticsContext._(
+      ruleContext: RuleContextWithParsedResults(
+        allUnits,
+        definingContextUnit,
+        package,
+      ),
+      allUnits: allUnits,
+      diagnosticListeners: diagnosticListeners,
+    );
+  }
+
+  /// Builds a diagnostics context using a resolved library.
+  static _LibraryDiagnosticsContext? forResolvedLibrary(
+    AnalysisContext analysisContext,
+    ResolvedLibraryResult libraryResult,
+  ) {
+    var allUnits = <RuleContextUnit>[];
+    var diagnosticListeners = <RuleContextUnit, RecordingDiagnosticListener>{};
+    RuleContextUnit? definingContextUnit;
+    var definingUnit =
+        (libraryResult.element as LibraryElementImpl).firstFragment;
+
+    for (var unitResult in libraryResult.units) {
+      var listener = RecordingDiagnosticListener();
+      var contextUnit = RuleContextUnit(
+        file: unitResult.file,
+        content: unitResult.content,
+        diagnosticReporter: DiagnosticReporter(
+          listener,
+          unitResult.libraryElement.firstFragment.source,
+        ),
+        unit: unitResult.unit,
+      );
+      diagnosticListeners[contextUnit] = listener;
+      allUnits.add(contextUnit);
+      if (unitResult.unit.declaredFragment == definingUnit) {
+        definingContextUnit = contextUnit;
+      }
+    }
+    definingContextUnit ??= allUnits.firstOrNull;
+    if (definingContextUnit == null) return null;
+
+    var definingPath = libraryResult.element.firstFragment.source.fullName;
+    var package = analysisContext.contextRoot.workspace.findPackageFor(
+      definingPath,
+    );
+    return _LibraryDiagnosticsContext._(
+      ruleContext: RuleContextWithResolvedResults(
+        allUnits,
+        definingContextUnit,
+        libraryResult.element.typeProvider,
+        libraryResult.element.typeSystem as TypeSystemImpl,
+        package,
+      ),
+      allUnits: allUnits,
+      diagnosticListeners: diagnosticListeners,
     );
   }
 }

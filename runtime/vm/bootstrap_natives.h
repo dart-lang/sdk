@@ -227,6 +227,7 @@ namespace dart {
   V(Int32x4_fromFloat32x4Bits, 1)                                              \
   V(Int32x4_or, 2)                                                             \
   V(Int32x4_equal, 2)                                                          \
+  V(Int32x4_notEqual, 2)                                                       \
   V(Int32x4_and, 2)                                                            \
   V(Int32x4_xor, 2)                                                            \
   V(Int32x4_not, 1)                                                            \

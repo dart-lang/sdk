@@ -20,6 +20,8 @@
 - Added `Int32x4.equal`, a lane-wise equality comparison that returns `-1` in
   each lane where the operands are equal and `0` elsewhere, and the
   `Int32x4.anyTrue` getter, which is `true` when any lane is non-zero.
+- Added `Int32x4.notEqual`, a lane-wise inequality comparison that returns `-1`
+  in each lane where the operands differ and `0` elsewhere.
 
 #### `dart:js_interop`
 
