@@ -3752,6 +3752,14 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitImportPrefixedFunctionInvocation(
+    covariant ImportPrefixedFunctionInvocationImpl node, {
+    TypeImpl contextType = UnknownInferredType.instance,
+  }) {
+    _resolveDirectNamedFunctionInvocation(node, contextType: contextType);
+  }
+
+  @override
   void visitIndexExpression(
     covariant IndexExpressionImpl node, {
     TypeImpl contextType = UnknownInferredType.instance,
@@ -4102,6 +4110,21 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     ExpressionImpl resolvedNode = peekRewrite()!;
     if (identical(resolvedNode, node) && node.isCascaded) {
       resolvedNode = _rewriteCascadeMethodInvocation(node);
+    } else if (identical(resolvedNode, node) && node.target2 == null) {
+      resolvedNode = _rewriteUnqualifiedFunctionInvocation(node);
+    } else if (identical(resolvedNode, node)) {
+      var target = node.target2;
+      if (target is SimpleIdentifierImpl) {
+        var prefixElement = target.element;
+        if (prefixElement is PrefixElement) {
+          if (node.operator?.type == TokenType.PERIOD) {
+            resolvedNode = _rewriteImportPrefixedFunctionInvocation(
+              node,
+              prefixElement,
+            );
+          }
+        }
+      }
     }
 
     var replacement = insertGenericFunctionInstantiation(
@@ -5111,6 +5134,14 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitUnqualifiedFunctionInvocation(
+    covariant UnqualifiedFunctionInvocationImpl node, {
+    TypeImpl contextType = UnknownInferredType.instance,
+  }) {
+    _resolveDirectNamedFunctionInvocation(node, contextType: contextType);
+  }
+
+  @override
   void visitVariableDeclaration(covariant VariableDeclarationImpl node) {
     var fragment = node.declaredFragment!;
 
@@ -5439,6 +5470,79 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     callReference.setPseudoExpressionStaticType(callMethodType);
   }
 
+  void _resolveDirectNamedFunctionInvocation(
+    NamedFunctionInvocationImpl node, {
+    required TypeImpl contextType,
+  }) {
+    inferenceLogWriter?.enterExpression(node, contextType);
+    checkUnreachableNode(node);
+    node.typeArguments?.accept2(this);
+
+    var previousResolution = node.resolution;
+    var previousInvokeType = node.staticInvokeType;
+    InvocationTarget? target = switch (previousResolution) {
+      ExecutableInvocationResolutionImpl(:var element) =>
+        InvocationTargetExecutableElement(element),
+      FunctionCallInvocationResolutionImpl(:var invokeType) =>
+        InvocationTargetFunctionTypedExpression(invokeType),
+      InvalidInvocationResolutionImpl(
+        recovery: ExecutableInvocationResolutionImpl(:var element),
+      ) =>
+        InvocationTargetExecutableElement(element),
+      InvalidInvocationResolutionImpl(
+        recovery: FunctionCallInvocationResolutionImpl(:var invokeType),
+      ) =>
+        InvocationTargetFunctionTypedExpression(invokeType),
+      _ => null,
+    };
+
+    var whyNotPromotedArguments =
+        <Map<SharedTypeView, NonPromotionReason> Function()>[];
+    var inferredType =
+        NamedFunctionInvocationInferrer(
+              resolver: this,
+              node: node,
+              argumentList: node.argumentList,
+              whyNotPromotedArguments: whyNotPromotedArguments,
+              contextType: contextType,
+              target: target,
+            ).resolveInvocation()
+            as TypeImpl;
+
+    node.resolution = switch (previousResolution) {
+      ExecutableInvocationResolutionImpl(:var element) =>
+        ExecutableInvocationResolutionImpl(
+          element: element,
+          invokeType: node.staticInvokeType as FunctionTypeImpl,
+          type: inferredType,
+        ),
+      FunctionCallInvocationResolutionImpl() =>
+        FunctionCallInvocationResolutionImpl(
+          invokeType: node.staticInvokeType as FunctionTypeImpl,
+          type: inferredType,
+        ),
+      _ => previousResolution,
+    };
+    if (target == null) {
+      node.staticInvokeType = previousInvokeType;
+    }
+    node.recordStaticType(
+      node.resolution?.type ?? node.typeOrThrow,
+      resolver: this,
+    );
+
+    var replacement = insertGenericFunctionInstantiation(
+      node,
+      contextType: contextType,
+    );
+    checkForArgumentTypesNotAssignableInList(
+      node.argumentList,
+      whyNotPromotedArguments,
+    );
+    _insertImplicitCallReference(replacement, contextType: contextType);
+    inferenceLogWriter?.exitExpression(node);
+  }
+
   void _resolvePropertyAccessRhs(
     PropertyAccessImpl node,
     TypeImpl contextType, {
@@ -5577,6 +5681,44 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     return invocation;
   }
 
+  ImportPrefixedFunctionInvocationImpl _rewriteImportPrefixedFunctionInvocation(
+    MethodInvocationImpl node,
+    PrefixElement prefixElement,
+  ) {
+    var target = node.target2 as SimpleIdentifierImpl;
+    var invocation = ImportPrefixedFunctionInvocationImpl(
+      importPrefix: ImportPrefixReferenceImpl(
+        name: target.token,
+        period: node.operator!,
+      )..element = prefixElement,
+      name: node.methodName.token,
+      typeArguments: node.typeArguments,
+      argumentList: node.argumentList,
+    );
+    _transferNamedFunctionInvocationResolution(node, invocation);
+    replaceExpression(node, invocation);
+    flowAnalysis.transferExpressionInfo(node, invocation);
+    flowAnalysis.transferTestData(node, invocation);
+    inferenceHelper.transferTestData(node, invocation);
+    return invocation;
+  }
+
+  UnqualifiedFunctionInvocationImpl _rewriteUnqualifiedFunctionInvocation(
+    MethodInvocationImpl node,
+  ) {
+    var invocation = UnqualifiedFunctionInvocationImpl(
+      name: node.methodName.token,
+      typeArguments: node.typeArguments,
+      argumentList: node.argumentList,
+    );
+    _transferNamedFunctionInvocationResolution(node, invocation);
+    replaceExpression(node, invocation);
+    flowAnalysis.transferExpressionInfo(node, invocation);
+    flowAnalysis.transferTestData(node, invocation);
+    inferenceHelper.transferTestData(node, invocation);
+    return invocation;
+  }
+
   bool _shouldSkipImplicitCallReferenceDueToForm(
     Expression expression,
     AstNode? parent,
@@ -5640,6 +5782,63 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
           );
       }
     }
+  }
+
+  void _transferNamedFunctionInvocationResolution(
+    MethodInvocationImpl source,
+    NamedFunctionInvocationImpl destination,
+  ) {
+    var resultType = source.typeOrThrow;
+    var invokeType = source.staticInvokeType;
+    var element = source.methodName.element;
+    if (element == null) {
+      var scopeElement = source.methodName.scopeLookupResult?.getter;
+      if (scopeElement is InternalExecutableElement) {
+        element = scopeElement;
+      }
+    }
+    var candidateElement = source.methodName.writeOrReadElement2;
+
+    ValidInvocationResolutionImpl? recovery;
+    if (invokeType is FunctionTypeImpl) {
+      recovery = switch (element) {
+        InternalExecutableElement() => ExecutableInvocationResolutionImpl(
+          element: element,
+          invokeType: invokeType,
+          type: resultType,
+        ),
+        _ => FunctionCallInvocationResolutionImpl(
+          invokeType: invokeType,
+          type: resultType,
+        ),
+      };
+    }
+
+    InvocationResolutionImpl resolution;
+    if (candidateElement is MultiplyDefinedElement) {
+      resolution = InvalidInvocationResolutionImpl(
+        candidates: [candidateElement],
+        recovery: recovery,
+        type: resultType,
+      );
+    } else {
+      resolution = switch ((resultType, invokeType, recovery)) {
+        (InvalidTypeImpl(), _, _) ||
+        (_, InvalidTypeImpl(), _) => InvalidInvocationResolutionImpl(
+          candidates: [?candidateElement],
+          recovery: recovery,
+          type: resultType,
+        ),
+        (_, _, var recovery?) => recovery,
+        _ => DynamicInvocationResolutionImpl(type: resultType),
+      };
+    }
+
+    destination
+      ..resolution = resolution
+      ..staticInvokeType = invokeType
+      ..typeArgumentTypes = source.typeArgumentTypes
+      ..setPseudoExpressionStaticType(resultType);
   }
 
   void _visitFormalParameter(FormalParameterImpl node) {

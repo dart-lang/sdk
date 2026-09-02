@@ -1344,9 +1344,19 @@ extension E2<T extends B> on T {
   }
 }
 ''');
-    var node = result.findNode.methodInvocation('m();');
+    var node = result.findNode.unqualifiedFunctionInvocation('m();');
     assertResolvedNodeText(node, r'''
-MethodInvocation
+UnqualifiedFunctionInvocation
+  name: m
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@extension::E1::@method::m
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: m
     element: <testLibrary>::@extension::E1::@method::m
@@ -1371,9 +1381,19 @@ extension E2 on B {
   }
 }
 ''');
-    var node = result.findNode.methodInvocation('a();');
+    var node = result.findNode.unqualifiedFunctionInvocation('a();');
     assertResolvedNodeText(node, r'''
-MethodInvocation
+UnqualifiedFunctionInvocation
+  name: a
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@extension::E1::@method::a
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: a
     element: <testLibrary>::@extension::E1::@method::a
@@ -1397,9 +1417,19 @@ extension E<T extends B> on T {
   }
 }
 ''');
-    var node = result.findNode.methodInvocation('m();');
+    var node = result.findNode.unqualifiedFunctionInvocation('m();');
     assertResolvedNodeText(node, r'''
-MethodInvocation
+UnqualifiedFunctionInvocation
+  name: m
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@class::B::@method::m
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: m
     element: <testLibrary>::@class::B::@method::m
@@ -1423,9 +1453,19 @@ extension E on B {
   void a() {}
 }
 ''');
-    var node = result.findNode.methodInvocation('a();');
+    var node = result.findNode.unqualifiedFunctionInvocation('a();');
     assertResolvedNodeText(node, r'''
-MethodInvocation
+UnqualifiedFunctionInvocation
+  name: a
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@extension::E::@method::a
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: a
     element: <testLibrary>::@extension::E::@method::a
@@ -4705,9 +4745,19 @@ extension E on C {
   void b() { a(); }
 }
 ''');
-    var node = result.findNode.methodInvocation('a();');
+    var node = result.findNode.unqualifiedFunctionInvocation('a();');
     assertResolvedNodeText(node, r'''
-MethodInvocation
+UnqualifiedFunctionInvocation
+  name: a
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@extension::E::@method::a
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: a
     element: <testLibrary>::@extension::E::@method::a
@@ -5380,9 +5430,19 @@ extension E on C {
   void b() { a(); }
 }
 ''');
-    var node = result.findNode.methodInvocation('a();');
+    var node = result.findNode.unqualifiedFunctionInvocation('a();');
     assertResolvedNodeText(node, r'''
-MethodInvocation
+UnqualifiedFunctionInvocation
+  name: a
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@extension::E::@method::a
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: a
     element: <testLibrary>::@extension::E::@method::a
@@ -5403,9 +5463,19 @@ extension E on C {
   static void b() { a(); }
 }
 ''');
-    var node = result.findNode.methodInvocation('a();');
+    var node = result.findNode.unqualifiedFunctionInvocation('a();');
     assertResolvedNodeText(node, r'''
-MethodInvocation
+UnqualifiedFunctionInvocation
+  name: a
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@extension::E::@method::a
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: a
     element: <testLibrary>::@extension::E::@method::a
@@ -5532,9 +5602,19 @@ extension E on C {
   }
 }
 ''');
-    var node = result.findNode.methodInvocation('a();');
+    var node = result.findNode.unqualifiedFunctionInvocation('a();');
     assertResolvedNodeText(node, r'''
-MethodInvocation
+UnqualifiedFunctionInvocation
+  name: a
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@function::a
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::a
@@ -5561,9 +5641,19 @@ extension E on C {
   }
 }
 ''');
-    var node = result.findNode.methodInvocation('a();');
+    var node = result.findNode.unqualifiedFunctionInvocation('a();');
     assertResolvedNodeText(node, r'''
-MethodInvocation
+UnqualifiedFunctionInvocation
+  name: a
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@function::a
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::a

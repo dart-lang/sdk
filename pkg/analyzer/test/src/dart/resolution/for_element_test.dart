@@ -146,7 +146,19 @@ ForElement
       element: <testLibrary>::@class::C::@setter::x
       staticType: int
     inKeyword: in
-    iterable2: MethodInvocation
+    iterable2: UnqualifiedFunctionInvocation
+      name: g
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      resolution: ExecutableInvocationResolution
+        element: <testLibrary>::@function::g
+        invokeType: Iterable<int> Function()
+        type: Iterable<int>
+      staticType: Iterable<int>
+      typeArgumentTypes
+        Iterable<int>
+    iterable(v1): MethodInvocation
       methodName: SimpleIdentifier
         token: g
         element: <testLibrary>::@function::g
@@ -191,7 +203,19 @@ ForElement
       element: <testLibrary>::@setter::x
       staticType: int
     inKeyword: in
-    iterable2: MethodInvocation
+    iterable2: UnqualifiedFunctionInvocation
+      name: g
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      resolution: ExecutableInvocationResolution
+        element: <testLibrary>::@function::g
+        invokeType: Iterable<int> Function()
+        type: Iterable<int>
+      staticType: Iterable<int>
+      typeArgumentTypes
+        Iterable<int>
+    iterable(v1): MethodInvocation
       methodName: SimpleIdentifier
         token: g
         element: <testLibrary>::@function::g
@@ -393,7 +417,19 @@ ForElement
       rightParenthesis: )
       matchedValueType: int
     inKeyword: in
-    iterable2: MethodInvocation
+    iterable2: UnqualifiedFunctionInvocation
+      name: g
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      resolution: ExecutableInvocationResolution
+        element: <testLibrary>::@function::g
+        invokeType: Iterable<int> Function()
+        type: Iterable<int>
+      staticType: Iterable<int>
+      typeArgumentTypes
+        Iterable<int>
+    iterable(v1): MethodInvocation
       methodName: SimpleIdentifier
         token: g
         element: <testLibrary>::@function::g
@@ -439,7 +475,19 @@ ForElement
       rightParenthesis: )
       matchedValueType: Object?
     inKeyword: in
-    iterable2: MethodInvocation
+    iterable2: UnqualifiedFunctionInvocation
+      name: g
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      resolution: ExecutableInvocationResolution
+        element: <testLibrary>::@function::g
+        invokeType: Iterable<Object?> Function()
+        type: Iterable<Object?>
+      staticType: Iterable<Object?>
+      typeArgumentTypes
+        Iterable<Object?>
+    iterable(v1): MethodInvocation
       methodName: SimpleIdentifier
         token: g
         element: <testLibrary>::@function::g
@@ -750,7 +798,19 @@ ForElement
       rightParenthesis: )
       matchedValueType: int
     inKeyword: in
-    iterable2: MethodInvocation
+    iterable2: UnqualifiedFunctionInvocation
+      name: g
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      resolution: ExecutableInvocationResolution
+        element: <testLibrary>::@function::g
+        invokeType: Stream<int> Function()
+        type: Stream<int>
+      staticType: Stream<int>
+      typeArgumentTypes
+        Stream<int>
+    iterable(v1): MethodInvocation
       methodName: SimpleIdentifier
         token: g
         element: <testLibrary>::@function::g
@@ -797,7 +857,19 @@ ForElement
       rightParenthesis: )
       matchedValueType: Object?
     inKeyword: in
-    iterable2: MethodInvocation
+    iterable2: UnqualifiedFunctionInvocation
+      name: g
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      resolution: ExecutableInvocationResolution
+        element: <testLibrary>::@function::g
+        invokeType: Stream<Object?> Function()
+        type: Stream<Object?>
+      staticType: Stream<Object?>
+      typeArgumentTypes
+        Stream<Object?>
+    iterable(v1): MethodInvocation
       methodName: SimpleIdentifier
         token: g
         element: <testLibrary>::@function::g

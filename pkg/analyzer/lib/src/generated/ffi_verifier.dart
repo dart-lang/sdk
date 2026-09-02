@@ -439,6 +439,14 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitImportPrefixedFunctionInvocation(
+    covariant ImportPrefixedFunctionInvocationImpl node,
+  ) {
+    _visitDirectNamedFunctionInvocation(node);
+    super.visitImportPrefixedFunctionInvocation(node);
+  }
+
+  @override
   void visitIndexExpression(covariant IndexExpressionImpl node) {
     var element = node.element;
     if (element is MethodElement) {
@@ -493,15 +501,15 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
   @override
   void visitMethodInvocation(covariant MethodInvocationImpl node) {
     var element = node.methodName.element;
+    var invocation = _FfiInvocation(
+      node: node,
+      name: node.methodName.token,
+      target: node.realTarget2,
+      typeArguments: node.typeArguments,
+      argumentList: node.argumentList,
+      typeArgumentTypes: node.typeArgumentTypes,
+    );
     if (element is InternalMethodElement) {
-      var invocation = _FfiInvocation(
-        node: node,
-        name: node.methodName.token,
-        target: node.realTarget2,
-        typeArguments: node.typeArguments,
-        argumentList: node.argumentList,
-        typeArgumentTypes: node.typeArgumentTypes,
-      );
       var enclosingElement = element.enclosingElement;
       if (enclosingElement.isPointer) {
         if (element.name == 'fromFunction') {
@@ -534,7 +542,7 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
     } else if (element is TopLevelFunctionElement) {
       if (element.library.name == 'dart.ffi') {
         if (element.name == 'sizeOf') {
-          _validateSizeOf(node);
+          _validateSizeOf(invocation);
         }
       }
     }
@@ -658,6 +666,14 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
       }
     }
     super.visitTopLevelVariableDeclaration(node);
+  }
+
+  @override
+  void visitUnqualifiedFunctionInvocation(
+    covariant UnqualifiedFunctionInvocationImpl node,
+  ) {
+    _visitDirectNamedFunctionInvocation(node);
+    super.visitUnqualifiedFunctionInvocation(node);
   }
 
   TypeImpl? _canonicalFfiTypeForDartType(TypeImpl dartType) {
@@ -1373,9 +1389,12 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
       parent = parent.parent2;
     }
     var grandParent = parent?.parent2;
-    if (parent is! ArgumentList ||
-        grandParent is! MethodInvocation ||
-        !grandParent.isNativeLeafInvocation) {
+    var isNativeLeafInvocation = switch (grandParent) {
+      MethodInvocation node => node.isNativeLeafInvocation,
+      NamedFunctionInvocation node => node.isNativeLeafInvocation,
+      _ => false,
+    };
+    if (parent is! ArgumentList || !isNativeLeafInvocation) {
       _diagnosticReporter.report(diag.addressPosition.at(errorNode));
     }
   }
@@ -2358,8 +2377,8 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
     }
   }
 
-  void _validateSizeOf(MethodInvocationImpl node) {
-    var typeArgumentTypes = node.typeArgumentTypes;
+  void _validateSizeOf(_FfiInvocation invocation) {
+    var typeArgumentTypes = invocation.typeArgumentTypes;
     if (typeArgumentTypes == null || typeArgumentTypes.length != 1) {
       return;
     }
@@ -2368,7 +2387,7 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
       _diagnosticReporter.report(
         diag.nonConstantTypeArgument
             .withArguments(executableName: 'sizeOf')
-            .at(node),
+            .at(invocation.node),
       );
     }
   }
@@ -2485,6 +2504,31 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
       return true;
     }
     return false;
+  }
+
+  void _visitDirectNamedFunctionInvocation(NamedFunctionInvocationImpl node) {
+    var element = switch (node.resolution) {
+      ExecutableInvocationResolution(:var element) => element,
+      InvalidInvocationResolution(
+        recovery: ExecutableInvocationResolution(:var element),
+      ) =>
+        element,
+      _ => null,
+    };
+    if (element is TopLevelFunctionElement &&
+        element.library.name == 'dart.ffi' &&
+        element.name == 'sizeOf') {
+      _validateSizeOf(
+        _FfiInvocation(
+          node: node,
+          name: node.name,
+          target: null,
+          typeArguments: node.typeArguments,
+          argumentList: node.argumentList,
+          typeArgumentTypes: node.typeArgumentTypes,
+        ),
+      );
+    }
   }
 }
 
@@ -2669,6 +2713,21 @@ extension on MethodInvocation {
       return element.isNativeLeaf;
     }
     return false;
+  }
+}
+
+extension on NamedFunctionInvocation {
+  /// Calls an external function annotated with `@Native(isLeaf: true)`.
+  bool get isNativeLeafInvocation {
+    var element = switch (resolution) {
+      ExecutableInvocationResolution(:var element) => element,
+      _ => null,
+    };
+    return switch (element) {
+      TopLevelFunctionElement element => element.isNativeLeaf,
+      MethodElement element => element.isNativeLeaf,
+      _ => false,
+    };
   }
 }
 

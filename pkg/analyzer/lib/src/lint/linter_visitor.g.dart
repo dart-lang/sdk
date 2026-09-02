@@ -1862,6 +1862,15 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
     node.visitChildren2(this);
   }
 
+  @experimental
+  @override
+  void visitImportPrefixedFunctionInvocation(
+    ImportPrefixedFunctionInvocation node,
+  ) {
+    _runSubscriptions(node, _registry._forImportPrefixedFunctionInvocation);
+    node.visitChildren2(this);
+  }
+
   @override
   void visitImportPrefixReference(ImportPrefixReference node) {
     _runSubscriptions(node, _registry._forImportPrefixReference);
@@ -2497,6 +2506,13 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
   @override
   void visitUnaryOperatorInvocation(UnaryOperatorInvocation node) {
     _runSubscriptions(node, _registry._forUnaryOperatorInvocation);
+    node.visitChildren2(this);
+  }
+
+  @experimental
+  @override
+  void visitUnqualifiedFunctionInvocation(UnqualifiedFunctionInvocation node) {
+    _runSubscriptions(node, _registry._forUnqualifiedFunctionInvocation);
     node.visitChildren2(this);
   }
 
@@ -4608,6 +4624,9 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
 
   final List<_Subscription2<ImportDirective>> _forImportDirective = [];
 
+  final List<_Subscription2<ImportPrefixedFunctionInvocation>>
+  _forImportPrefixedFunctionInvocation = [];
+
   final List<_Subscription2<ImportPrefixReference>> _forImportPrefixReference =
       [];
 
@@ -4838,6 +4857,9 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
 
   final List<_Subscription2<UnaryOperatorInvocation>>
   _forUnaryOperatorInvocation = [];
+
+  final List<_Subscription2<UnqualifiedFunctionInvocation>>
+  _forUnqualifiedFunctionInvocation = [];
 
   final List<_Subscription2<UnqualifiedNameAssignmentTarget>>
   _forUnqualifiedNameAssignmentTarget = [];
@@ -5663,6 +5685,17 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   }
 
   @override
+  void addImportPrefixedFunctionInvocation(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
+    _hasNodeProcessors = true;
+    _forImportPrefixedFunctionInvocation.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
+  }
+
+  @override
   void addImportPrefixReference(
     AbstractAnalysisRule rule,
     AstVisitor2 visitor,
@@ -6397,6 +6430,17 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   ) {
     _hasNodeProcessors = true;
     _forUnaryOperatorInvocation.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
+  }
+
+  @override
+  void addUnqualifiedFunctionInvocation(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
+    _hasNodeProcessors = true;
+    _forUnqualifiedFunctionInvocation.add(
       _Subscription2(rule, visitor, _getTimer(rule)),
     );
   }

@@ -166,7 +166,17 @@ FieldDeclaration
       VariableDeclaration
         name: b
         equals: =
-        initializer2: MethodInvocation
+        initializer2: UnqualifiedFunctionInvocation
+          name: a
+          argumentList: ArgumentList
+            leftParenthesis: (
+            rightParenthesis: )
+          resolution: ExecutableInvocationResolution
+            element: <testLibrary>::@class::A::@method::a
+            invokeType: int Function()
+            type: int
+          staticType: int
+        initializer(v1): MethodInvocation
           methodName: SimpleIdentifier
             token: a
             element: <testLibrary>::@class::A::@method::a

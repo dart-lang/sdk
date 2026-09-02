@@ -944,7 +944,20 @@ PatternVariableDeclaration
     rightParenthesis: )
     matchedValueType: (int, String)
   equals: =
-  expression2: MethodInvocation
+  expression2: UnqualifiedFunctionInvocation
+    name: g
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    resolution: ExecutableInvocationResolution
+      element: <testLibrary>::@function::g
+      invokeType: (int, String) Function()
+      type: (int, String)
+    staticType: (int, String)
+    typeArgumentTypes
+      int
+      String
+  expression(v1): MethodInvocation
     methodName: SimpleIdentifier
       token: g
       element: <testLibrary>::@function::g

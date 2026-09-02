@@ -76,6 +76,7 @@ V1: BinaryExpression
       literal: 2
       correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
       staticType: int
+    correspondingParameter: <null>
     element: dart:core::@class::num::@method::+
     staticInvokeType: num Function(num)
     staticType: int
@@ -135,6 +136,7 @@ V1: BinaryExpression
       literal: 2
       correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
       staticType: int
+    correspondingParameter: <null>
     element: dart:core::@class::num::@method::+
     staticInvokeType: num Function(num)
     staticType: int
@@ -270,6 +272,7 @@ V1: BinaryExpression
       literal: 2
       correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
       staticType: int
+    correspondingParameter: dart:core::@class::Object::@method::==::@formalParameter::other
     element: dart:core::@class::num::@method::+
     staticInvokeType: num Function(num)
     staticType: int
@@ -644,6 +647,7 @@ V1: AssignmentExpression
       literal: 2
       correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
       staticType: int
+    correspondingParameter: <null>
     element: dart:core::@class::num::@method::+
     staticInvokeType: num Function(num)
     staticType: int
@@ -722,6 +726,7 @@ V1: AssignmentExpression
       literal: 2
       correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
       staticType: int
+    correspondingParameter: <null>
     element: dart:core::@class::num::@method::+
     staticInvokeType: num Function(num)
     staticType: int
@@ -982,6 +987,7 @@ V1: AssignmentExpression
       literal: 2
       correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
       staticType: int
+    correspondingParameter: <null>
     element: dart:core::@class::num::@method::+
     staticInvokeType: num Function(num)
     staticType: int
@@ -1060,6 +1066,7 @@ V1: AssignmentExpression
       literal: 2
       correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
       staticType: int
+    correspondingParameter: <null>
     element: dart:core::@class::num::@method::+
     staticInvokeType: num Function(num)
     staticType: int

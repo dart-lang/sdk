@@ -1071,6 +1071,7 @@ V1: PostfixExpression
     element: <null>
     staticType: InvalidType
   operator: --
+  correspondingParameter: <null>
   readElement: <null>
   readType: InvalidType
   writeElement: <null>
@@ -1161,6 +1162,7 @@ V1: PrefixExpression
     rightBracket: ]
     element: <null>
     staticType: InvalidType
+  correspondingParameter: <null>
   readElement: <null>
   readType: InvalidType
   writeElement: <null>

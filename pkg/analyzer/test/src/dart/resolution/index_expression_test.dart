@@ -32,9 +32,22 @@ void f(A a) {
 T g<T>() => throw 0;
 ''');
 
-    var node = result.findNode.methodInvocation('g()');
+    var node = result.findNode.unqualifiedFunctionInvocation('g()');
     assertResolvedNodeText(node, r'''
-MethodInvocation
+UnqualifiedFunctionInvocation
+  name: g
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@function::g
+    invokeType: int Function()
+    type: int
+  correspondingParameter: <testLibrary>::@class::A::@method::[]::@formalParameter::index
+  staticType: int
+  typeArgumentTypes
+    int
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: g
     element: <testLibrary>::@function::g
@@ -64,9 +77,22 @@ void f(A a) {
 T g<T>() => throw 0;
 ''');
 
-    var node = result.findNode.methodInvocation('g()');
+    var node = result.findNode.unqualifiedFunctionInvocation('g()');
     assertResolvedNodeText(node, r'''
-MethodInvocation
+UnqualifiedFunctionInvocation
+  name: g
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@function::g
+    invokeType: int Function()
+    type: int
+  correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
+  staticType: int
+  typeArgumentTypes
+    int
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: g
     element: <testLibrary>::@function::g
@@ -98,9 +124,22 @@ void f(A a) {
 T g<T>() => throw 0;
 ''');
 
-    var node = result.findNode.methodInvocation('g()');
+    var node = result.findNode.unqualifiedFunctionInvocation('g()');
     assertResolvedNodeText(node, r'''
-MethodInvocation
+UnqualifiedFunctionInvocation
+  name: g
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@function::g
+    invokeType: num Function()
+    type: num
+  correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
+  staticType: num
+  typeArgumentTypes
+    num
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: g
     element: <testLibrary>::@function::g
@@ -130,9 +169,22 @@ void f(A a) {
 T g<T>() => throw 0;
 ''');
 
-    var node = result.findNode.methodInvocation('g()');
+    var node = result.findNode.unqualifiedFunctionInvocation('g()');
     assertResolvedNodeText(node, r'''
-MethodInvocation
+UnqualifiedFunctionInvocation
+  name: g
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@function::g
+    invokeType: String Function()
+    type: String
+  correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
+  staticType: String
+  typeArgumentTypes
+    String
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: g
     element: <testLibrary>::@function::g

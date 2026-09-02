@@ -670,6 +670,16 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitImportPrefixedFunctionInvocation(
+    covariant ImportPrefixedFunctionInvocationImpl node,
+  ) {
+    _elementUsageFrontierDetector.namedFunctionInvocation(node);
+    _deprecatedFunctionalityVerifier.namedFunctionInvocation(node);
+    _invalidAccessVerifier.verifyNamedFunctionInvocation(node);
+    super.visitImportPrefixedFunctionInvocation(node);
+  }
+
+  @override
   void visitIndexExpression(IndexExpression node) {
     _elementUsageFrontierDetector.indexExpression(node);
     super.visitIndexExpression(node);
@@ -1019,6 +1029,16 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
   void visitUnaryOperatorInvocation(UnaryOperatorInvocation node) {
     _elementUsageFrontierDetector.unaryOperatorInvocation(node);
     super.visitUnaryOperatorInvocation(node);
+  }
+
+  @override
+  void visitUnqualifiedFunctionInvocation(
+    covariant UnqualifiedFunctionInvocationImpl node,
+  ) {
+    _elementUsageFrontierDetector.namedFunctionInvocation(node);
+    _deprecatedFunctionalityVerifier.namedFunctionInvocation(node);
+    _invalidAccessVerifier.verifyNamedFunctionInvocation(node);
+    super.visitUnqualifiedFunctionInvocation(node);
   }
 
   /// Checks for the passed [IsExpression] for the unnecessary type check
@@ -1685,6 +1705,15 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
       }
     } else if (expression is MethodInvocation) {
       element = expression.methodName.element;
+    } else if (expression is NamedFunctionInvocation) {
+      element = switch (expression.resolution) {
+        ExecutableInvocationResolution(:var element) => element,
+        InvalidInvocationResolution(
+          recovery: ExecutableInvocationResolution(:var element),
+        ) =>
+          element,
+        _ => null,
+      };
     } else if (expression is Identifier) {
       element = expression.element;
       // Tear-off.
@@ -1936,6 +1965,16 @@ class _InvalidAccessVerifier {
     );
 
     _checkForOtherInvalidAccess(node, element);
+  }
+
+  void verifyNamedFunctionInvocation(NamedFunctionInvocation node) {
+    var element = switch (node.resolution) {
+      ExecutableInvocationResolution(:var element) => element,
+      InvalidInvocationResolution(:var candidates) when candidates.isNotEmpty =>
+        candidates.first,
+      _ => null,
+    };
+    _verify(node: node, nameToken: node.name, element: element?.baseElement);
   }
 
   void verifyNamedType(NamedType node) {
@@ -2312,6 +2351,9 @@ class _InvalidAccessVerifier {
     } else if (node is NamedType) {
       name = node.name.lexeme;
     } else if (node is NamedArgument) {
+      name = node.name.lexeme;
+      errorEntity = node.name;
+    } else if (node is NamedFunctionInvocation) {
       name = node.name.lexeme;
       errorEntity = node.name;
     } else if (node is PatternFieldImpl) {

@@ -78,10 +78,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
 
   @override
   void visitCascadeMethodInvocation(CascadeMethodInvocation node) {
-    if (node.resolution case ExecutableInvocationResolution(:var element)) {
-      usedElements.addElement(element);
-      _addParametersForArguments(node.argumentList);
-    }
+    _recordNamedFunctionInvocation(node);
     super.visitCascadeMethodInvocation(node);
   }
 
@@ -295,6 +292,14 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
   void visitIfNullAssignment(IfNullAssignment node) {
     _useReadWriteAssignmentTarget(node.target, readCountsAsUse: true);
     super.visitIfNullAssignment(node);
+  }
+
+  @override
+  void visitImportPrefixedFunctionInvocation(
+    ImportPrefixedFunctionInvocation node,
+  ) {
+    _recordNamedFunctionInvocation(node);
+    super.visitImportPrefixedFunctionInvocation(node);
   }
 
   @override
@@ -525,6 +530,12 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitUnqualifiedFunctionInvocation(UnqualifiedFunctionInvocation node) {
+    _recordNamedFunctionInvocation(node);
+    super.visitUnqualifiedFunctionInvocation(node);
+  }
+
+  @override
   void visitVariableDeclarationList(VariableDeclarationList node) {
     node.metadata.accept2(this);
     var enclosingVariableDeclarationOld = _enclosingVariableDeclaration;
@@ -552,6 +563,13 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
     for (var argument in argumentList.arguments2) {
       var parameter = argument.correspondingParameter;
       usedElements.addElement(parameter);
+    }
+  }
+
+  void _recordNamedFunctionInvocation(NamedFunctionInvocation node) {
+    if (node.resolution case ExecutableInvocationResolution(:var element)) {
+      _useIdentifierElement(element);
+      _addParametersForArguments(node.argumentList);
     }
   }
 

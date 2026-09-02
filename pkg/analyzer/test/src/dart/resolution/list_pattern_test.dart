@@ -520,7 +520,19 @@ PatternVariableDeclaration
     matchedValueType: List<int>
     requiredType: List<int>
   equals: =
-  expression2: MethodInvocation
+  expression2: UnqualifiedFunctionInvocation
+    name: g
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    resolution: ExecutableInvocationResolution
+      element: <testLibrary>::@function::g
+      invokeType: List<int> Function()
+      type: List<int>
+    staticType: List<int>
+    typeArgumentTypes
+      List<int>
+  expression(v1): MethodInvocation
     methodName: SimpleIdentifier
       token: g
       element: <testLibrary>::@function::g
@@ -567,7 +579,19 @@ PatternVariableDeclaration
     matchedValueType: List<int>
     requiredType: List<int>
   equals: =
-  expression2: MethodInvocation
+  expression2: UnqualifiedFunctionInvocation
+    name: g
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    resolution: ExecutableInvocationResolution
+      element: <testLibrary>::@function::g
+      invokeType: List<int> Function()
+      type: List<int>
+    staticType: List<int>
+    typeArgumentTypes
+      List<int>
+  expression(v1): MethodInvocation
     methodName: SimpleIdentifier
       token: g
       element: <testLibrary>::@function::g

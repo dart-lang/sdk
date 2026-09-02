@@ -114,6 +114,8 @@ enum AstNodeTag {
   VariableDeclaration,
   VariableDeclarationList,
   CascadeMethodInvocation,
+  UnqualifiedFunctionInvocation,
+  ImportPrefixedFunctionInvocation,
 }
 
 enum DirectiveUriKind {

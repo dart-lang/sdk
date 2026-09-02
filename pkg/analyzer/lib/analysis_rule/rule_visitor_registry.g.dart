@@ -805,6 +805,12 @@ abstract class RuleVisitorRegistry2 {
 
   void addImportDirective(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
+  @experimental
+  void addImportPrefixedFunctionInvocation(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
+
   void addImportPrefixReference(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addIndexExpression(AbstractAnalysisRule rule, AstVisitor2 visitor);
@@ -1093,6 +1099,12 @@ abstract class RuleVisitorRegistry2 {
 
   @experimental
   void addUnaryOperatorInvocation(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
+
+  @experimental
+  void addUnqualifiedFunctionInvocation(
     AbstractAnalysisRule rule,
     AstVisitor2 visitor,
   );

@@ -57,7 +57,17 @@ SwitchExpression
           name: _
           matchedValueType: Object?
       arrow: =>
-      expression2: MethodInvocation
+      expression2: UnqualifiedFunctionInvocation
+        name: g
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        resolution: ExecutableInvocationResolution
+          element: <testLibrary>::@function::g
+          invokeType: void Function()
+          type: void
+        staticType: void
+      expression(v1): MethodInvocation
         methodName: SimpleIdentifier
           token: g
           element: <testLibrary>::@function::g
@@ -125,7 +135,19 @@ SwitchExpression
           name: _
           matchedValueType: Object?
       arrow: =>
-      expression2: MethodInvocation
+      expression2: UnqualifiedFunctionInvocation
+        name: foo
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        resolution: ExecutableInvocationResolution
+          element: <testLibrary>::@class::A::@method::foo
+          invokeType: int Function()
+          type: int
+        staticType: int
+        typeArgumentTypes
+          int
+      expression(v1): MethodInvocation
         methodName: SimpleIdentifier
           token: foo
           element: <testLibrary>::@class::A::@method::foo

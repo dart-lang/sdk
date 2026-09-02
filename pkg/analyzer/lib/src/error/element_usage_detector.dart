@@ -138,6 +138,8 @@ class ElementUsageDetector<TagInfo extends Object> {
       errorEntity = node.name;
     } else if (node is ConstructorTypeReference) {
       errorEntity = node.name;
+    } else if (node is NamedFunctionInvocation) {
+      errorEntity = node.name;
     } else if (node is NamedArgument) {
       errorEntity = node.name;
     } else if (node is PatternFieldImpl) {
@@ -636,6 +638,8 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
       errorEntity = node.name;
     } else if (node is ConstructorTypeReference) {
       errorEntity = node.name;
+    } else if (node is NamedFunctionInvocation) {
+      errorEntity = node.name;
     } else if (node is NamedArgument) {
       errorEntity = node.name;
     } else if (node is PatternFieldImpl) {
@@ -932,7 +936,7 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
       ExecutableInvocationResolution(:var element) => element,
       _ => null,
     };
-    checkUsage(element, node);
+    checkUsage(element?.baseElement, node);
     _invocationArguments(element, node.argumentList);
   }
 

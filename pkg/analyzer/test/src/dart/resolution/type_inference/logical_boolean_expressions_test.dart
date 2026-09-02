@@ -30,15 +30,15 @@ T b<T>() => throw '';
     var node = result.findNode.singleLogicalAnd;
     assertResolvedNodeText(node, r'''
 LogicalAnd
-  leftOperand: MethodInvocation
-    methodName: SimpleIdentifier
-      token: a
-      element: <testLibrary>::@function::a
-      staticType: T Function<T>()
+  leftOperand: UnqualifiedFunctionInvocation
+    name: a
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
-    staticInvokeType: bool Function()
+    resolution: ExecutableInvocationResolution
+      element: <testLibrary>::@function::a
+      invokeType: bool Function()
+      type: bool
     staticType: bool
     typeArgumentTypes
       bool
@@ -140,15 +140,15 @@ T b<T>() => throw '';
     var node = result.findNode.singleLogicalOr;
     assertResolvedNodeText(node, r'''
 LogicalOr
-  leftOperand: MethodInvocation
-    methodName: SimpleIdentifier
-      token: a
-      element: <testLibrary>::@function::a
-      staticType: T Function<T>()
+  leftOperand: UnqualifiedFunctionInvocation
+    name: a
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
-    staticInvokeType: bool Function()
+    resolution: ExecutableInvocationResolution
+      element: <testLibrary>::@function::a
+      invokeType: bool Function()
+      type: bool
     staticType: bool
     typeArgumentTypes
       bool

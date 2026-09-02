@@ -18,6 +18,12 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
 
   ConstArgumentsVerifier(this._diagnosticReporter);
 
+  void verifyNamedFunctionInvocation(NamedFunctionInvocation node) {
+    if (node.resolution is StaticInvocationResolution) {
+      _check(arguments: node.argumentList.arguments2, errorNode: node);
+    }
+  }
+
   @override
   void visitAnonymousMethodInvocation(AnonymousMethodInvocation node) {
     var parameters = node.parameters?.parameters;
@@ -62,9 +68,7 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
 
   @override
   void visitCascadeMethodInvocation(CascadeMethodInvocation node) {
-    if (node.resolution is StaticInvocationResolution) {
-      _check(arguments: node.argumentList.arguments2, errorNode: node);
-    }
+    verifyNamedFunctionInvocation(node);
   }
 
   @override
@@ -94,6 +98,13 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
   @override
   void visitIfNullAssignment(IfNullAssignment node) {
     _check(arguments: [node.value], errorNode: node.operator);
+  }
+
+  @override
+  void visitImportPrefixedFunctionInvocation(
+    ImportPrefixedFunctionInvocation node,
+  ) {
+    verifyNamedFunctionInvocation(node);
   }
 
   @override
@@ -159,6 +170,11 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
       arguments: node.argumentList.arguments2,
       errorNode: node.constructorSelector?.name2 ?? node.superKeyword,
     );
+  }
+
+  @override
+  void visitUnqualifiedFunctionInvocation(UnqualifiedFunctionInvocation node) {
+    verifyNamedFunctionInvocation(node);
   }
 
   void _check({

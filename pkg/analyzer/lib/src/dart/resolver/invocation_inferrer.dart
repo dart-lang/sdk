@@ -859,7 +859,8 @@ class MethodInvocationInferrer
 
   @override
   bool get _isIdentical {
-    var invokedMethod = node.methodName.element;
+    var invokedMethod =
+        node.methodName.element ?? node.methodName.scopeLookupResult?.getter;
     return invokedMethod is TopLevelFunctionElement &&
         invokedMethod.isDartCoreIdentical &&
         node.argumentList.arguments2.length == 2;
@@ -891,6 +892,49 @@ class MethodInvocationInferrer
           ], returnType);
     }
     return returnType;
+  }
+}
+
+/// Performs invocation inference when a canonical direct named function
+/// invocation is encountered again, as happens during the second resolution
+/// pass for a top-level initializer.
+class NamedFunctionInvocationInferrer<Node extends NamedFunctionInvocationImpl>
+    extends FullInvocationInferrer<Node> {
+  NamedFunctionInvocationInferrer({
+    required super.resolver,
+    required super.node,
+    required super.argumentList,
+    required super.contextType,
+    required super.whyNotPromotedArguments,
+    required super.target,
+  }) : super._();
+
+  @override
+  bool get _isIdentical {
+    var invokedFunction = switch (node.resolution) {
+      ExecutableInvocationResolutionImpl(:var element) => element,
+      InvalidInvocationResolutionImpl(
+        recovery: ExecutableInvocationResolutionImpl(:var element),
+      ) =>
+        element,
+      _ => null,
+    };
+    return invokedFunction is TopLevelFunctionElementImpl &&
+        invokedFunction.isDartCoreIdentical &&
+        node.argumentList.arguments2.length == 2;
+  }
+
+  @override
+  TypeArgumentListImpl? get _typeArguments => node.typeArguments;
+
+  @override
+  List<FormalParameterElement>? _storeResult(
+    List<TypeImpl>? typeArgumentTypes,
+    FunctionTypeImpl? invokeType,
+  ) {
+    node.typeArgumentTypes = typeArgumentTypes;
+    node.staticInvokeType = invokeType ?? DynamicTypeImpl.instance;
+    return super._storeResult(typeArgumentTypes, invokeType);
   }
 }
 

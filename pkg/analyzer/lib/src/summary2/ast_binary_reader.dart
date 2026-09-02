@@ -786,6 +786,24 @@ class AstBinaryReader {
     return node;
   }
 
+  ImportPrefixedFunctionInvocation _readImportPrefixedFunctionInvocation() {
+    var importPrefix = _readNode() as ImportPrefixReferenceImpl;
+    var name = _readStringReference();
+    var typeArguments = _readOptionalNode() as TypeArgumentListImpl?;
+    var arguments = _readNode() as ArgumentListImpl;
+    var node = ImportPrefixedFunctionInvocationImpl(
+      importPrefix: importPrefix,
+      name: StringToken(TokenType.STRING, name, -1),
+      typeArguments: typeArguments,
+      argumentList: arguments,
+    );
+    node.staticInvokeType = _reader.readType();
+    node.typeArgumentTypes = _reader.readOptionalTypeList();
+    node.resolution = _reader.readOptionalObject(_readInvocationResolution);
+    _readExpressionResolution(node);
+    return node;
+  }
+
   ImportPrefixReferenceImpl _readImportPrefixReference() {
     var name = _readStringReference();
 
@@ -1272,6 +1290,8 @@ class AstBinaryReader {
         return _readImplicitCallReference();
       case AstNodeTag.ImportPrefixReference:
         return _readImportPrefixReference();
+      case AstNodeTag.ImportPrefixedFunctionInvocation:
+        return _readImportPrefixedFunctionInvocation();
       case AstNodeTag.IndexExpression:
         return _readIndexExpression();
       case AstNodeTag.ReceiverIndexExpression:
@@ -1384,6 +1404,8 @@ class AstBinaryReader {
         return _readTypeParameterList();
       case AstNodeTag.UnqualifiedNameAssignmentTarget:
         return _readUnqualifiedNameAssignmentTarget();
+      case AstNodeTag.UnqualifiedFunctionInvocation:
+        return _readUnqualifiedFunctionInvocation();
       case AstNodeTag.UnaryOperatorInvocation:
         return _readUnaryOperatorInvocation();
       case AstNodeTag.VariableDeclaration:
@@ -1950,6 +1972,22 @@ class AstBinaryReader {
     );
     _readExpressionResolution(node);
     node.element = _reader.readElement() as InternalMethodElement?;
+    return node;
+  }
+
+  UnqualifiedFunctionInvocation _readUnqualifiedFunctionInvocation() {
+    var name = _readStringReference();
+    var typeArguments = _readOptionalNode() as TypeArgumentListImpl?;
+    var arguments = _readNode() as ArgumentListImpl;
+    var node = UnqualifiedFunctionInvocationImpl(
+      name: StringToken(TokenType.STRING, name, -1),
+      typeArguments: typeArguments,
+      argumentList: arguments,
+    );
+    node.staticInvokeType = _reader.readType();
+    node.typeArgumentTypes = _reader.readOptionalTypeList();
+    node.resolution = _reader.readOptionalObject(_readInvocationResolution);
+    _readExpressionResolution(node);
     return node;
   }
 

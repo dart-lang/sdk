@@ -32,11 +32,8 @@ final x = f(g, (z) => z.length);
 VariableDeclaration
   name: x
   equals: =
-  initializer2: MethodInvocation
-    methodName: SimpleIdentifier
-      token: f
-      element: <testLibrary>::@function::f
-      staticType: T? Function<T>(T Function(), int Function(T))
+  initializer2: UnqualifiedFunctionInvocation
+    name: f
     argumentList: ArgumentList
       leftParenthesis: (
       arguments2
@@ -87,6 +84,59 @@ VariableDeclaration
             substitution: {T: String}
           staticType: InvalidType Function(Object?)
       rightParenthesis: )
+    resolution: ExecutableInvocationResolution
+      element: <testLibrary>::@function::f
+      invokeType: String? Function(String Function(), int Function(String))
+      type: String?
+    staticType: String?
+    typeArgumentTypes
+      String
+  initializer(v1): MethodInvocation
+    methodName: SimpleIdentifier
+      token: f
+      element: <testLibrary>::@function::f
+      staticType: T? Function<T>(T Function(), int Function(T))
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: g
+          correspondingParameter: SubstitutedFormalParameterElementImpl
+            baseElement: <testLibrary>::@function::f::@formalParameter::a
+            substitution: {T: String}
+          element: <testLibrary>::@function::g
+          staticType: String Function()
+        FunctionExpression
+          parameters: FormalParameterList
+            leftParenthesis: (
+            parameter: RegularFormalParameter
+              name: z
+              declaredFragment: <testLibraryFragment> z@102
+                element: hasImplicitType isPublic
+                  type: Object?
+            rightParenthesis: )
+          body: ExpressionFunctionBody
+            functionDefinition: =>
+            expression: PrefixedIdentifier
+              prefix: SimpleIdentifier
+                token: z
+                element: z@102
+                staticType: Object?
+              period: .
+              identifier: SimpleIdentifier
+                token: length
+                element: <null>
+                staticType: InvalidType
+              element: <null>
+              staticType: InvalidType
+          declaredFragment: <testLibraryFragment> null@null
+            element: null@null
+              type: InvalidType Function(Object?)
+          correspondingParameter: SubstitutedFormalParameterElementImpl
+            baseElement: <testLibrary>::@function::f::@formalParameter::b
+            substitution: {T: String}
+          staticType: InvalidType Function(Object?)
+      rightParenthesis: )
     staticInvokeType: String? Function(String Function(), int Function(String))
     staticType: String?
     typeArgumentTypes
@@ -108,11 +158,8 @@ final String? x = f(g, (z) => z.length);
 VariableDeclaration
   name: x
   equals: =
-  initializer2: MethodInvocation
-    methodName: SimpleIdentifier
-      token: f
-      element: <testLibrary>::@function::f
-      staticType: T? Function<T>(T Function(), int Function(T))
+  initializer2: UnqualifiedFunctionInvocation
+    name: f
     argumentList: ArgumentList
       leftParenthesis: (
       arguments2
@@ -144,6 +191,59 @@ VariableDeclaration
           body: ExpressionFunctionBody
             functionDefinition: =>
             expression2: PrefixedIdentifier
+              prefix: SimpleIdentifier
+                token: z
+                element: z@110
+                staticType: String
+              period: .
+              identifier: SimpleIdentifier
+                token: length
+                element: dart:core::@class::String::@getter::length
+                staticType: int
+              element: dart:core::@class::String::@getter::length
+              staticType: int
+          declaredFragment: <testLibraryFragment> null@null
+            element: null@null
+              type: int Function(String)
+          correspondingParameter: SubstitutedFormalParameterElementImpl
+            baseElement: <testLibrary>::@function::f::@formalParameter::b
+            substitution: {T: String}
+          staticType: int Function(String)
+      rightParenthesis: )
+    resolution: ExecutableInvocationResolution
+      element: <testLibrary>::@function::f
+      invokeType: String? Function(String Function(), int Function(String))
+      type: String?
+    staticType: String?
+    typeArgumentTypes
+      String
+  initializer(v1): MethodInvocation
+    methodName: SimpleIdentifier
+      token: f
+      element: <testLibrary>::@function::f
+      staticType: T? Function<T>(T Function(), int Function(T))
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: g
+          correspondingParameter: SubstitutedFormalParameterElementImpl
+            baseElement: <testLibrary>::@function::f::@formalParameter::a
+            substitution: {T: String}
+          element: <testLibrary>::@function::g
+          staticType: String Function()
+        FunctionExpression
+          parameters: FormalParameterList
+            leftParenthesis: (
+            parameter: RegularFormalParameter
+              name: z
+              declaredFragment: <testLibraryFragment> z@110
+                element: hasImplicitType isPublic
+                  type: String
+            rightParenthesis: )
+          body: ExpressionFunctionBody
+            functionDefinition: =>
+            expression: PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: z
                 element: z@110

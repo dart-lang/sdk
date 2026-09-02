@@ -650,6 +650,11 @@ abstract class AstVisitor2<R> {
 
   R? visitImportDirective(ImportDirective node);
 
+  @experimental
+  R? visitImportPrefixedFunctionInvocation(
+    ImportPrefixedFunctionInvocation node,
+  );
+
   R? visitImportPrefixReference(ImportPrefixReference node);
 
   R? visitIndexExpression(IndexExpression node);
@@ -879,6 +884,9 @@ abstract class AstVisitor2<R> {
 
   @experimental
   R? visitUnaryOperatorInvocation(UnaryOperatorInvocation node);
+
+  @experimental
+  R? visitUnqualifiedFunctionInvocation(UnqualifiedFunctionInvocation node);
 
   @experimental
   R? visitUnqualifiedNameAssignmentTarget(UnqualifiedNameAssignmentTarget node);

@@ -329,7 +329,17 @@ foo() {
     assertResolvedNodeText(node, r'''
 FunctionReference
   function2: PropertyAccess
-    target2: MethodInvocation
+    target2: UnqualifiedFunctionInvocation
+      name: f
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      resolution: ExecutableInvocationResolution
+        element: <testLibrary>::@function::f
+        invokeType: dynamic Function()
+        type: dynamic
+      staticType: dynamic
+    target(v1): MethodInvocation
       methodName: SimpleIdentifier
         token: f
         element: <testLibrary>::@function::f

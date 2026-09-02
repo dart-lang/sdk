@@ -354,6 +354,13 @@ class _ElementCollector extends UnifyingAstVisitor2<void> {
   }
 
   @override
+  void visitImportPrefixedFunctionInvocation(
+    ImportPrefixedFunctionInvocation node,
+  ) {
+    _visitNamedFunctionInvocation(node);
+  }
+
+  @override
   void visitImportPrefixReference(ImportPrefixReference node) {
     _addElement(node.element);
   }
@@ -529,6 +536,11 @@ class _ElementCollector extends UnifyingAstVisitor2<void> {
     _addElement(node.element);
   }
 
+  @override
+  void visitUnqualifiedFunctionInvocation(UnqualifiedFunctionInvocation node) {
+    _visitNamedFunctionInvocation(node);
+  }
+
   void _addElement(Element? element) {
     ManifestAstElementKind kind;
     int rawIndex;
@@ -581,6 +593,19 @@ class _ElementCollector extends UnifyingAstVisitor2<void> {
         _addElement(element.variable);
       }
     }
+  }
+
+  void _visitNamedFunctionInvocation(NamedFunctionInvocation node) {
+    var element = switch (node.resolution) {
+      ExecutableInvocationResolution(:var element) => element,
+      _ => null,
+    };
+    if (element is TopLevelFunctionElement && element.isDartCoreIdentical) {
+      _addElement(element);
+      node.visitChildren2(this);
+      return;
+    }
+    isValid = false;
   }
 }
 

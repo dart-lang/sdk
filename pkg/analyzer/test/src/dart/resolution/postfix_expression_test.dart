@@ -215,11 +215,8 @@ int g() => f(null)!;
     var node = result.findNode.nullAssertion('f(null)!');
     assertResolvedNodeText(node, r'''
 NullAssertionExpression
-  operand: MethodInvocation
-    methodName: SimpleIdentifier
-      token: f
-      element: <testLibrary>::@function::f
-      staticType: T Function<T>(T)
+  operand: UnqualifiedFunctionInvocation
+    name: f
     argumentList: ArgumentList
       leftParenthesis: (
       arguments2
@@ -230,7 +227,10 @@ NullAssertionExpression
             substitution: {T: int?}
           staticType: Null
       rightParenthesis: )
-    staticInvokeType: int? Function(int?)
+    resolution: ExecutableInvocationResolution
+      element: <testLibrary>::@function::f
+      invokeType: int? Function(int?)
+      type: int?
     staticType: int?
     typeArgumentTypes
       int?

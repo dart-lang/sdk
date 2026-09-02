@@ -84,6 +84,9 @@ class FindNode2 extends _FindNodeBase {
 
   IfNullAssignment get singleIfNullAssignment => _single();
 
+  ImportPrefixedFunctionInvocation get singleImportPrefixedFunctionInvocation =>
+      _single();
+
   LogicalAnd get singleLogicalAnd => _single();
 
   LogicalNot get singleLogicalNot => _single();
@@ -95,6 +98,9 @@ class FindNode2 extends _FindNodeBase {
   TopLevelGetterDeclaration get singleTopLevelGetterDeclaration => _single();
 
   UnaryOperatorInvocation get singleUnaryOperatorInvocation => _single();
+
+  UnqualifiedFunctionInvocation get singleUnqualifiedFunctionInvocation =>
+      _single();
 
   @override
   AssignmentExpression assignment(String search) {
@@ -137,6 +143,12 @@ class FindNode2 extends _FindNodeBase {
     return _node(search, (node) => node is IfNullAssignment);
   }
 
+  ImportPrefixedFunctionInvocation importPrefixedFunctionInvocation(
+    String search,
+  ) {
+    return _node(search, (node) => node is ImportPrefixedFunctionInvocation);
+  }
+
   LogicalAnd logicalAnd(String search) {
     return _node(search, (node) => node is LogicalAnd);
   }
@@ -175,6 +187,10 @@ class FindNode2 extends _FindNodeBase {
 
   UnaryOperatorInvocation unaryOperatorInvocation(String search) {
     return _node(search, (node) => node is UnaryOperatorInvocation);
+  }
+
+  UnqualifiedFunctionInvocation unqualifiedFunctionInvocation(String search) {
+    return _node(search, (node) => node is UnqualifiedFunctionInvocation);
   }
 
   UnqualifiedNameAssignmentTarget unqualifiedNameAssignmentTarget(

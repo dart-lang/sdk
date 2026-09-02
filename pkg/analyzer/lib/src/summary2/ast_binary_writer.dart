@@ -482,6 +482,21 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   }
 
   @override
+  void visitImportPrefixedFunctionInvocation(
+    covariant ImportPrefixedFunctionInvocationImpl node,
+  ) {
+    _sink.writeEnum(AstNodeTag.ImportPrefixedFunctionInvocation);
+    _writeNode(node.importPrefix);
+    _writeStringReference(node.name.lexeme);
+    _writeOptionalNode(node.typeArguments);
+    _writeNode(node.argumentList);
+    _sink.writeType(node.staticInvokeType);
+    _sink.writeOptionalTypeList(node.typeArgumentTypes);
+    _sink.writeOptionalObject(node.resolution, _writeInvocationResolution);
+    _storeExpression(node);
+  }
+
+  @override
   void visitImportPrefixReference(ImportPrefixReference node) {
     _sink.writeEnum(AstNodeTag.ImportPrefixReference);
     _writeStringReference(node.name.lexeme);
@@ -1044,6 +1059,20 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
 
     _storeExpression(node);
     _sink.writeElement(node.element);
+  }
+
+  @override
+  void visitUnqualifiedFunctionInvocation(
+    covariant UnqualifiedFunctionInvocationImpl node,
+  ) {
+    _sink.writeEnum(AstNodeTag.UnqualifiedFunctionInvocation);
+    _writeStringReference(node.name.lexeme);
+    _writeOptionalNode(node.typeArguments);
+    _writeNode(node.argumentList);
+    _sink.writeType(node.staticInvokeType);
+    _sink.writeOptionalTypeList(node.typeArgumentTypes);
+    _sink.writeOptionalObject(node.resolution, _writeInvocationResolution);
+    _storeExpression(node);
   }
 
   @override

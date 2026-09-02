@@ -902,6 +902,16 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
+  void visitImportPrefixedFunctionInvocation(
+    ImportPrefixedFunctionInvocation node,
+  ) {
+    _visitNode(node.importPrefix);
+    _visitToken(node.name);
+    _visitNode(node.typeArguments);
+    _visitNode(node.argumentList);
+  }
+
+  @override
   void visitImportPrefixReference(ImportPrefixReference node) {
     sink.write(node.name.lexeme);
     sink.write('.');
@@ -1711,6 +1721,13 @@ class ToSourceVisitor implements AstVisitor2<void> {
   void visitUnaryOperatorInvocation(UnaryOperatorInvocation node) {
     sink.write(node.operator.lexeme);
     _writeOperand(node, node.operand as Expression);
+  }
+
+  @override
+  void visitUnqualifiedFunctionInvocation(UnqualifiedFunctionInvocation node) {
+    _visitToken(node.name);
+    _visitNode(node.typeArguments);
+    _visitNode(node.argumentList);
   }
 
   @override

@@ -107,16 +107,16 @@ CompoundAssignment
       element: <testLibrary>::@function::g::@formalParameter::a
       acceptedType: int
   operator: +=
-  value: MethodInvocation
-    methodName: SimpleIdentifier
-      token: f
-      element: <testLibrary>::@function::f
-      staticType: T Function<T>()
+  value: UnqualifiedFunctionInvocation
+    name: f
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
+    resolution: ExecutableInvocationResolution
+      element: <testLibrary>::@function::f
+      invokeType: int Function()
+      type: int
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
-    staticInvokeType: int Function()
     staticType: int
     typeArgumentTypes
       int
@@ -189,16 +189,16 @@ CompoundAssignment
       invokeType: void Function(int, int)
       acceptedType: int
   operator: +=
-  value: MethodInvocation
-    methodName: SimpleIdentifier
-      token: f
-      element: <testLibrary>::@function::f
-      staticType: T Function<T>()
+  value: UnqualifiedFunctionInvocation
+    name: f
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
+    resolution: ExecutableInvocationResolution
+      element: <testLibrary>::@function::f
+      invokeType: int Function()
+      type: int
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
-    staticInvokeType: int Function()
     staticType: int
     typeArgumentTypes
       int
@@ -271,16 +271,16 @@ CompoundAssignment
       element: <testLibrary>::@function::g::@formalParameter::a
       acceptedType: num
   operator: +=
-  value: MethodInvocation
-    methodName: SimpleIdentifier
-      token: f
-      element: <testLibrary>::@function::f
-      staticType: T Function<T>()
+  value: UnqualifiedFunctionInvocation
+    name: f
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
+    resolution: ExecutableInvocationResolution
+      element: <testLibrary>::@function::f
+      invokeType: int Function()
+      type: int
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
-    staticInvokeType: int Function()
     staticType: int
     typeArgumentTypes
       int
@@ -345,7 +345,19 @@ CompoundAssignment
       element: <testLibrary>::@function::g::@formalParameter::b
       staticType: bool
     question: ?
-    thenExpression2: MethodInvocation
+    thenExpression2: UnqualifiedFunctionInvocation
+      name: f
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      resolution: ExecutableInvocationResolution
+        element: <testLibrary>::@function::f
+        invokeType: int Function()
+        type: int
+      staticType: int
+      typeArgumentTypes
+        int
+    thenExpression(v1): MethodInvocation
       methodName: SimpleIdentifier
         token: f
         element: <testLibrary>::@function::f
@@ -2644,16 +2656,16 @@ IfNullAssignment
       element: <testLibrary>::@function::g::@formalParameter::a
       acceptedType: int?
   operator: ??=
-  value: MethodInvocation
-    methodName: SimpleIdentifier
-      token: f
-      element: <testLibrary>::@function::f
-      staticType: T Function<T>()
+  value: UnqualifiedFunctionInvocation
+    name: f
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
+    resolution: ExecutableInvocationResolution
+      element: <testLibrary>::@function::f
+      invokeType: int? Function()
+      type: int?
     correspondingParameter: <null>
-    staticInvokeType: int? Function()
     staticType: int?
     typeArgumentTypes
       int?
@@ -7551,6 +7563,7 @@ V1: AssignmentExpression
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
+    correspondingParameter: <null>
     staticType: C
   readElement: <testLibrary>::@function::f::@formalParameter::x
   readType: B?
@@ -8211,16 +8224,16 @@ CompoundAssignment
       element: <testLibrary>::@class::C::@setter::x
       acceptedType: num
   operator: +=
-  value: MethodInvocation
-    methodName: SimpleIdentifier
-      token: valueOfType
-      element: <testLibrary>::@function::valueOfType
-      staticType: T Function<T>()
+  value: UnqualifiedFunctionInvocation
+    name: valueOfType
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
+    resolution: ExecutableInvocationResolution
+      element: <testLibrary>::@function::valueOfType
+      invokeType: num Function()
+      type: num
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
-    staticInvokeType: num Function()
     staticType: num
     typeArgumentTypes
       num
@@ -8526,6 +8539,7 @@ V1: AssignmentExpression
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
+    correspondingParameter: <testLibrary>::@setter::x::@formalParameter::_
     staticType: C
   readElement: <testLibrary>::@getter::x
   readType: B?

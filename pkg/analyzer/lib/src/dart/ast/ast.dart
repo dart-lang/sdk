@@ -6261,7 +6261,7 @@ final class CascadeMethodInvocationImpl extends NamedFunctionInvocationImpl
 
   /// The cached V1 compatibility projection for this invocation.
   MethodInvocationImpl get methodInvocation => _methodInvocation ??=
-      MethodInvocationImpl.v1ProjectionFromCascadeMethodInvocation(this);
+      MethodInvocationImpl.v1ProjectionFromNamedFunctionInvocation(this);
 
   @generated
   @override
@@ -23784,8 +23784,14 @@ sealed class FunctionInvocationImpl extends ExpressionImpl
   set argumentList(ArgumentListImpl argumentList) {
     _argumentList = _becomeParentOf2(argumentList);
     _functionExpressionInvocation?._attachV1Children();
-    if (this case CascadeMethodInvocationImpl invocation) {
-      invocation._methodInvocation?._attachV1Children();
+    switch (this) {
+      case CascadeMethodInvocationImpl invocation:
+        invocation._methodInvocation?._attachV1Children();
+      case ImportPrefixedFunctionInvocationImpl invocation:
+        invocation._methodInvocation?._attachV1Children();
+      case UnqualifiedFunctionInvocationImpl invocation:
+        invocation._methodInvocation?._attachV1Children();
+      case CallInvocationImpl():
     }
   }
 
@@ -23793,8 +23799,8 @@ sealed class FunctionInvocationImpl extends ExpressionImpl
   FunctionExpressionInvocationImpl get functionExpressionInvocation =>
       _functionExpressionInvocation ??= switch (this) {
         CallInvocationImpl origin => FunctionExpressionInvocationImpl._(origin),
-        CascadeMethodInvocationImpl() => throw StateError(
-          'CascadeMethodInvocation projects to MethodInvocation.',
+        NamedFunctionInvocationImpl() => throw StateError(
+          'NamedFunctionInvocation projects to MethodInvocation.',
         ),
       };
 
@@ -23807,8 +23813,14 @@ sealed class FunctionInvocationImpl extends ExpressionImpl
   set typeArguments(TypeArgumentListImpl? typeArguments) {
     _typeArguments = _becomeParentOf2(typeArguments);
     _functionExpressionInvocation?._attachV1Children();
-    if (this case CascadeMethodInvocationImpl invocation) {
-      invocation._methodInvocation?._attachV1Children();
+    switch (this) {
+      case CascadeMethodInvocationImpl invocation:
+        invocation._methodInvocation?._attachV1Children();
+      case ImportPrefixedFunctionInvocationImpl invocation:
+        invocation._methodInvocation?._attachV1Children();
+      case UnqualifiedFunctionInvocationImpl invocation:
+        invocation._methodInvocation?._attachV1Children();
+      case CallInvocationImpl():
     }
   }
 }
@@ -27910,6 +27922,231 @@ final class ImportDirectiveImpl extends NamespaceDirectiveImpl
     }
 
     return true;
+  }
+}
+
+/// A direct invocation of a top-level function through an import prefix.
+///
+/// The [importPrefix] owns the written `prefix.` qualifier, while [name]
+/// identifies the imported function.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class ImportPrefixedFunctionInvocation
+    implements NamedFunctionInvocation {
+  /// The import prefix through which the function is selected.
+  ImportPrefixReference get importPrefix;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [
+    GenerateNodeProperty('importPrefix'),
+    GenerateNodeProperty('name', isSuper: true),
+    GenerateNodeProperty('typeArguments', isSuper: true),
+    GenerateNodeProperty('argumentList', isSuper: true),
+  ],
+)
+final class ImportPrefixedFunctionInvocationImpl
+    extends NamedFunctionInvocationImpl
+    implements ImportPrefixedFunctionInvocation {
+  @generated
+  ImportPrefixReferenceImpl _importPrefix;
+
+  MethodInvocationImpl? _methodInvocation;
+
+  @generated
+  ImportPrefixedFunctionInvocationImpl({
+    required ImportPrefixReferenceImpl importPrefix,
+    required super.name,
+    required super.typeArguments,
+    required super.argumentList,
+  }) : _importPrefix = importPrefix {
+    _becomeParentOf2(importPrefix);
+  }
+
+  @generated
+  @override
+  Token get beginToken {
+    return importPrefix.beginToken;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return argumentList.endToken;
+  }
+
+  @generated
+  @override
+  ImportPrefixReferenceImpl get importPrefix => _importPrefix;
+
+  @generated
+  set importPrefix(ImportPrefixReferenceImpl importPrefix) {
+    _importPrefix = _becomeParentOf2(importPrefix);
+  }
+
+  /// The cached V1 compatibility projection for this invocation.
+  MethodInvocationImpl get methodInvocation => _methodInvocation ??=
+      MethodInvocationImpl.v1ProjectionFromNamedFunctionInvocation(this);
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @generated
+  @override
+  ChildEntities get _childEntities {
+    throw StateError(
+      'ImportPrefixedFunctionInvocation is not in the V1 AST view.',
+    );
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('importPrefix', importPrefix)
+    ..addToken('name', name)
+    ..addNode('typeArguments', typeArguments)
+    ..addNode('argumentList', argumentList);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError(
+      'ImportPrefixedFunctionInvocation is not in the V1 AST view.',
+    );
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitImportPrefixedFunctionInvocation(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent2, this));
+    return false;
+  }
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    if (identical(importPrefix, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'importPrefix'.");
+    }
+    if (identical(typeArguments, oldNode)) {
+      typeArguments = null;
+      return;
+    }
+    if (identical(argumentList, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'argumentList'.");
+    }
+    super.removeChild(oldNode);
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (identical(importPrefix, oldNode)) {
+      importPrefix = newNode as ImportPrefixReferenceImpl;
+      return;
+    }
+    if (identical(typeArguments, oldNode)) {
+      typeArguments = newNode as TypeArgumentListImpl?;
+      return;
+    }
+    if (identical(argumentList, oldNode)) {
+      argumentList = newNode as ArgumentListImpl;
+      return;
+    }
+    super.replaceChild(oldNode, newNode);
+  }
+
+  @generated
+  @override
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+    resolver.visitImportPrefixedFunctionInvocation(
+      this,
+      contextType: contextType,
+    );
+  }
+
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError(
+      'ImportPrefixedFunctionInvocation is not in the V1 AST view.',
+    );
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    importPrefix.accept2(visitor);
+    typeArguments?.accept2(visitor);
+    argumentList.accept2(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(
+    AstVisitor2 visitor, {
+    void Function(ImportPrefixReferenceImpl)? visitImportPrefix,
+    void Function(TypeArgumentListImpl)? visitTypeArguments,
+    void Function(ArgumentListImpl)? visitArgumentList,
+  }) {
+    if (visitImportPrefix != null) {
+      visitImportPrefix(importPrefix);
+    } else {
+      importPrefix.accept2(visitor);
+    }
+    if (typeArguments case var typeArguments?) {
+      if (visitTypeArguments != null) {
+        visitTypeArguments(typeArguments);
+      } else {
+        typeArguments.accept2(visitor);
+      }
+    }
+    if (visitArgumentList != null) {
+      visitArgumentList(argumentList);
+    } else {
+      argumentList.accept2(visitor);
+    }
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError(
+      'ImportPrefixedFunctionInvocation is not in the V1 AST view.',
+    );
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (importPrefix._containsOffset(rangeOffset, rangeEnd)) {
+      return importPrefix;
+    }
+    if (typeArguments case var typeArguments?) {
+      if (typeArguments._containsOffset(rangeOffset, rangeEnd)) {
+        return typeArguments;
+      }
+    }
+    if (argumentList._containsOffset(rangeOffset, rangeEnd)) {
+      return argumentList;
+    }
+    return null;
   }
 }
 
@@ -34318,7 +34555,7 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
   @DoNotGenerate(reason: 'Some instances are V1 projection objects')
   SimpleIdentifierImpl _methodName;
 
-  CascadeMethodInvocationImpl? _v1ProjectionOrigin;
+  NamedFunctionInvocationImpl? _v1ProjectionOrigin;
 
   /// The invoke type of the [methodName] if the target element is a getter,
   /// or `null` otherwise.
@@ -34342,10 +34579,14 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
     _becomeParentOf12(methodName);
   }
 
-  MethodInvocationImpl.v1ProjectionFromCascadeMethodInvocation(
-    CascadeMethodInvocationImpl origin,
-  ) : _target2 = null,
-      _operator = null,
+  MethodInvocationImpl.v1ProjectionFromNamedFunctionInvocation(
+    NamedFunctionInvocationImpl origin,
+  ) : _target2 = _v1TargetOf(origin),
+      _operator = switch (origin) {
+        ImportPrefixedFunctionInvocationImpl(:var importPrefix) =>
+          importPrefix.period,
+        _ => null,
+      },
       _methodName = SimpleIdentifierImpl.v1Projection(token: origin.name),
       _v1ProjectionOrigin = origin,
       super.v1Projection(
@@ -34420,12 +34661,26 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
       _methodName.element = switch (origin.resolution) {
         ExecutableInvocationResolutionImpl(:var element) => element,
         InvalidInvocationResolutionImpl(
+          :var candidates,
           recovery: ExecutableInvocationResolutionImpl(:var element),
         ) =>
-          element,
+          candidates.whereType<MultiplyDefinedElement>().firstOrNull ?? element,
+        InvalidInvocationResolutionImpl(:var candidates) =>
+          candidates.whereType<MultiplyDefinedElement>().firstOrNull,
         _ => null,
       };
-      _methodName.setPseudoExpressionStaticType(origin.staticInvokeType);
+      var methodNameType = switch (origin) {
+        CascadeMethodInvocationImpl() => origin.staticInvokeType,
+        _ => switch (origin.resolution) {
+          ExecutableInvocationResolutionImpl(:var element) => element.type,
+          InvalidInvocationResolutionImpl(
+            recovery: ExecutableInvocationResolutionImpl(:var element),
+          ) =>
+            element.type,
+          _ => origin.staticInvokeType,
+        },
+      };
+      _methodName.setPseudoExpressionStaticType(methodNameType);
     }
     return _methodName;
   }
@@ -34453,10 +34708,12 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
     _methodNameType = methodNameType;
   }
 
-  @DoNotGenerate(reason: 'Cascade V1 projections derive the enclosing token')
+  @DoNotGenerate(reason: 'V1 projections derive the written operator')
   @override
   Token? get operator => switch (_v1ProjectionOrigin) {
-    var origin? => _cascadeSectionOf(origin).operator,
+    CascadeMethodInvocationImpl origin => _cascadeSectionOf(origin).operator,
+    ImportPrefixedFunctionInvocationImpl origin => origin.importPrefix.period,
+    UnqualifiedFunctionInvocationImpl() => null,
     null => _operator,
   };
 
@@ -34518,7 +34775,14 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
   @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
   @experimental
   @override
-  ExpressionImpl? get target2 => _target2;
+  ExpressionImpl? get target2 {
+    if (_v1ProjectionOrigin case ImportPrefixedFunctionInvocationImpl(
+      :var importPrefix,
+    )) {
+      (_target2 as SimpleIdentifierImpl).element = importPrefix.element;
+    }
+    return _target2;
+  }
 
   @DoNotGenerate(reason: 'V1 projection objects are read-only')
   @experimental
@@ -34618,6 +34882,13 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
     return visitor.visitMethodInvocation(this);
   }
 
+  @override
+  AttemptedConstantEvaluationResult? computeConstantValue() =>
+      switch (_v1ProjectionOrigin) {
+        var origin? => origin.computeConstantValue(),
+        null => super.computeConstantValue(),
+      };
+
   @DoNotGenerate(reason: 'V1 projection children are value expressions')
   @override
   bool isInValueExpressionSlot(AstNode child) {
@@ -34684,6 +34955,9 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
     }
     resolver.visitMethodInvocation(this, contextType: contextType);
   }
+
+  @override
+  String toSource() => _v1ProjectionOrigin?.toSource() ?? super.toSource();
 
   @generated
   @ToBeDeprecated('Use visitChildren2 instead.')
@@ -34752,6 +35026,7 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
   }
 
   void _attachV1Children() {
+    _becomeParentOf1(target);
     _becomeParentOf1(methodName);
     _becomeParentOf1(typeArguments);
     _becomeParentOf1(argumentList);
@@ -34815,6 +35090,16 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
       }
     }
     throw StateError('Cascade method invocation has no CascadeSection.');
+  }
+
+  static ExpressionImpl? _v1TargetOf(NamedFunctionInvocationImpl origin) {
+    return switch (origin) {
+      ImportPrefixedFunctionInvocationImpl(:var importPrefix) =>
+        SimpleIdentifierImpl.v1Projection(token: importPrefix.name)
+          ..element = importPrefix.element,
+      CascadeMethodInvocationImpl() ||
+      UnqualifiedFunctionInvocationImpl() => null,
+    };
   }
 }
 
@@ -52602,6 +52887,188 @@ final class UnaryOperatorInvocationImpl extends ExpressionImpl
   }
 }
 
+/// A direct invocation through an unqualified function or method name.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class UnqualifiedFunctionInvocation
+    implements NamedFunctionInvocation {}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [
+    GenerateNodeProperty('name', isSuper: true),
+    GenerateNodeProperty('typeArguments', isSuper: true),
+    GenerateNodeProperty('argumentList', isSuper: true),
+  ],
+)
+final class UnqualifiedFunctionInvocationImpl
+    extends NamedFunctionInvocationImpl
+    implements UnqualifiedFunctionInvocation {
+  MethodInvocationImpl? _methodInvocation;
+
+  @generated
+  UnqualifiedFunctionInvocationImpl({
+    required super.name,
+    required super.typeArguments,
+    required super.argumentList,
+  });
+
+  @generated
+  @override
+  Token get beginToken {
+    return name;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return argumentList.endToken;
+  }
+
+  /// The cached V1 compatibility projection for this invocation.
+  MethodInvocationImpl get methodInvocation => _methodInvocation ??=
+      MethodInvocationImpl.v1ProjectionFromNamedFunctionInvocation(this);
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @generated
+  @override
+  ChildEntities get _childEntities {
+    throw StateError(
+      'UnqualifiedFunctionInvocation is not in the V1 AST view.',
+    );
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('name', name)
+    ..addNode('typeArguments', typeArguments)
+    ..addNode('argumentList', argumentList);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError(
+      'UnqualifiedFunctionInvocation is not in the V1 AST view.',
+    );
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitUnqualifiedFunctionInvocation(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent2, this));
+    return false;
+  }
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    if (identical(typeArguments, oldNode)) {
+      typeArguments = null;
+      return;
+    }
+    if (identical(argumentList, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'argumentList'.");
+    }
+    super.removeChild(oldNode);
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (identical(typeArguments, oldNode)) {
+      typeArguments = newNode as TypeArgumentListImpl?;
+      return;
+    }
+    if (identical(argumentList, oldNode)) {
+      argumentList = newNode as ArgumentListImpl;
+      return;
+    }
+    super.replaceChild(oldNode, newNode);
+  }
+
+  @generated
+  @override
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+    resolver.visitUnqualifiedFunctionInvocation(this, contextType: contextType);
+  }
+
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError(
+      'UnqualifiedFunctionInvocation is not in the V1 AST view.',
+    );
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    typeArguments?.accept2(visitor);
+    argumentList.accept2(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(
+    AstVisitor2 visitor, {
+    void Function(TypeArgumentListImpl)? visitTypeArguments,
+    void Function(ArgumentListImpl)? visitArgumentList,
+  }) {
+    if (typeArguments case var typeArguments?) {
+      if (visitTypeArguments != null) {
+        visitTypeArguments(typeArguments);
+      } else {
+        typeArguments.accept2(visitor);
+      }
+    }
+    if (visitArgumentList != null) {
+      visitArgumentList(argumentList);
+    } else {
+      argumentList.accept2(visitor);
+    }
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError(
+      'UnqualifiedFunctionInvocation is not in the V1 AST view.',
+    );
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (typeArguments case var typeArguments?) {
+      if (typeArguments._containsOffset(rangeOffset, rangeEnd)) {
+        return typeArguments;
+      }
+    }
+    if (argumentList._containsOffset(rangeOffset, rangeEnd)) {
+      return argumentList;
+    }
+    return null;
+  }
+}
+
 /// An assignment target consisting of one unqualified name.
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
@@ -52950,6 +53417,9 @@ enum V1Projection {
           ? node.functionExpressionInvocation
           : node._functionExpressionInvocation;
     }
+    if (node is ImportPrefixedFunctionInvocationImpl) {
+      return createIfAbsent ? node.methodInvocation : node._methodInvocation;
+    }
     if (node is ConstructorInvocationImpl) {
       return createIfAbsent
           ? node.instanceCreationExpression
@@ -53019,6 +53489,9 @@ enum V1Projection {
     }
     if (node is UnaryOperatorInvocationImpl) {
       return createIfAbsent ? node.prefixExpression : node._prefixExpression;
+    }
+    if (node is UnqualifiedFunctionInvocationImpl) {
+      return createIfAbsent ? node.methodInvocation : node._methodInvocation;
     }
     return node;
   }

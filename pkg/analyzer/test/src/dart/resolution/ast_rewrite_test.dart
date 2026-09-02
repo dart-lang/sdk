@@ -884,9 +884,43 @@ f() {
   A<int, String>(0);
 }
 ''');
-    var node = result.findNode.methodInvocation('A<int, String>(0);');
+    var node = result.findNode.unqualifiedFunctionInvocation(
+      'A<int, String>(0);',
+    );
     assertResolvedNodeText(node, r'''
-MethodInvocation
+UnqualifiedFunctionInvocation
+  name: A
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+      NamedType
+        name: String
+        element: dart:core::@class::String
+        type: String
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: <testLibrary>::@function::A::@formalParameter::a
+          substitution: {T: int, U: String}
+        staticType: int
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@function::A
+    invokeType: void Function(int)
+    type: void
+  staticType: void
+  typeArgumentTypes
+    int
+    String
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: A
     element: <testLibrary>::@function::A
@@ -905,7 +939,7 @@ MethodInvocation
     rightBracket: >
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -1012,8 +1046,7 @@ void f() {
 // [diag.invocationOfNonFunction] 'X' isn't a function.
 }
 ''');
-    // Not rewritten.
-    result.findNode.methodInvocation('X(0)');
+    result.findNode.unqualifiedFunctionInvocation('X(0)');
   }
 
   test_targetPrefixedIdentifier_prefix_class_constructor() async {
@@ -1851,10 +1884,48 @@ f() {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('A<int, String>(0);');
+    var node = result.findNode.importPrefixedFunctionInvocation(
+      'A<int, String>(0);',
+    );
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ImportPrefixedFunctionInvocation
+  importPrefix: ImportPrefixReference
+    name: prefix
+    period: .
+    element: <testLibraryFragment>::@prefix::prefix
+  name: A
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+      NamedType
+        name: String
+        element: dart:core::@class::String
+        type: String
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: package:test/a.dart::@function::A::@formalParameter::a
+          substitution: {T: int, U: String}
+        staticType: int
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: package:test/a.dart::@function::A
+    invokeType: void Function(int)
+    type: void
+  staticType: void
+  typeArgumentTypes
+    int
+    String
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: prefix
     element: <testLibraryFragment>::@prefix::prefix
     staticType: null
@@ -1877,7 +1948,7 @@ MethodInvocation
     rightBracket: >
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -2019,6 +2090,7 @@ V1: ConstructorReference
       element: <testLibrary>::@class::C::@constructor::new
       staticType: null
     element: <testLibrary>::@class::C::@constructor::new
+  correspondingParameter: <testLibrary>::@setter::f::@formalParameter::value
   staticType: C Function()
 ''');
   }

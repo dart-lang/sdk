@@ -102,11 +102,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
 
   @override
   void visitCascadeMethodInvocation(CascadeMethodInvocation node) {
-    var element = switch (node.resolution) {
-      ExecutableInvocationResolution(:var element) => element,
-      _ => null,
-    };
-    _checkSinceSdkVersion(element, node, errorEntity: node.name);
+    _checkNamedFunctionInvocation(node);
     super.visitCascadeMethodInvocation(node);
   }
 
@@ -243,6 +239,14 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitImportPrefixedFunctionInvocation(
+    ImportPrefixedFunctionInvocation node,
+  ) {
+    _checkNamedFunctionInvocation(node);
+    super.visitImportPrefixedFunctionInvocation(node);
+  }
+
+  @override
   void visitIndexExpression(IndexExpression node) {
     _checkSinceSdkVersion(node.element, node);
     super.visitIndexExpression(node);
@@ -319,6 +323,12 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
     _checkSinceSdkVersion(node.element, node);
   }
 
+  @override
+  void visitUnqualifiedFunctionInvocation(UnqualifiedFunctionInvocation node) {
+    _checkNamedFunctionInvocation(node);
+    super.visitUnqualifiedFunctionInvocation(node);
+  }
+
   void _checkIndexRead(IndexExpression2 node) {
     var element = switch (node.resolution) {
       MethodIndexReadResolution(:var element) => element,
@@ -329,6 +339,14 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
       _ => null,
     };
     _checkSinceSdkVersion(element, node);
+  }
+
+  void _checkNamedFunctionInvocation(NamedFunctionInvocation node) {
+    var element = switch (node.resolution) {
+      ExecutableInvocationResolution(:var element) => element,
+      _ => null,
+    };
+    _checkSinceSdkVersion(element, node, errorEntity: node.name);
   }
 
   void _checkSinceSdkVersion(

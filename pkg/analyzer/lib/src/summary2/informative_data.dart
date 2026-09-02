@@ -2088,6 +2088,16 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitImportPrefixedFunctionInvocation(
+    ImportPrefixedFunctionInvocation node,
+  ) {
+    node.importPrefix.accept2(this);
+    _tokenOrNull(node.name);
+    node.typeArguments?.accept2(this);
+    node.argumentList.accept2(this);
+  }
+
+  @override
   void visitImportPrefixReference(ImportPrefixReference node) {
     _tokenOrNull(node.name);
     _tokenOrNull(node.period);
@@ -2398,6 +2408,13 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
   void visitUnaryOperatorInvocation(UnaryOperatorInvocation node) {
     _tokenOrNull(node.operator);
     super.visitUnaryOperatorInvocation(node);
+  }
+
+  @override
+  void visitUnqualifiedFunctionInvocation(UnqualifiedFunctionInvocation node) {
+    _tokenOrNull(node.name);
+    node.typeArguments?.accept2(this);
+    node.argumentList.accept2(this);
   }
 
   @override

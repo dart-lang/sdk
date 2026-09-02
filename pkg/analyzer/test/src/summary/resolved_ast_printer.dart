@@ -1111,6 +1111,22 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitImportPrefixedFunctionInvocation(
+    covariant ImportPrefixedFunctionInvocationImpl node,
+  ) {
+    _sink.writeln('ImportPrefixedFunctionInvocation');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      if (_withResolution) {
+        _writeInvocationResolution('resolution', node.resolution);
+      }
+      _writeParameterElement(node);
+      _writeType('staticType', node.staticType);
+      _writeTypeList('typeArgumentTypes', node.typeArgumentTypes);
+    });
+  }
+
+  @override
   void visitImportPrefixReference(ImportPrefixReference node) {
     _sink.writeln('ImportPrefixReference');
     _sink.withIndent(() {
@@ -2084,6 +2100,22 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitUnqualifiedFunctionInvocation(
+    covariant UnqualifiedFunctionInvocationImpl node,
+  ) {
+    _sink.writeln('UnqualifiedFunctionInvocation');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      if (_withResolution) {
+        _writeInvocationResolution('resolution', node.resolution);
+      }
+      _writeParameterElement(node);
+      _writeType('staticType', node.staticType);
+      _writeTypeList('typeArgumentTypes', node.typeArgumentTypes);
+    });
+  }
+
+  @override
   void visitUnqualifiedNameAssignmentTarget(
     covariant UnqualifiedNameAssignmentTargetImpl node,
   ) {
@@ -2254,6 +2286,33 @@ Expected parent: (${parent.runtimeType}) $parent
       return '<null>';
     }
     return _tokenIdMap[token] ??= 'T${_tokenIdMap.length}';
+  }
+
+  bool _isCorrespondingParameterValue(AstNode parent, Expression node) {
+    return switch (parent) {
+      AssignmentExpression parent => identical(switch (_view) {
+        _AstView.v1 => parent.rightHandSide,
+        _AstView.v2 => parent.rightHandSide2,
+      }, node),
+      BinaryExpression parent => identical(switch (_view) {
+        _AstView.v1 => parent.rightOperand,
+        _AstView.v2 => parent.rightOperand2,
+      }, node),
+      DirectAssignment(:var value) ||
+      IfNullAssignment(:var value) ||
+      CompoundAssignment(:var value) => identical(value, node),
+      BinaryOperatorInvocation(:var rightOperand) => identical(
+        rightOperand,
+        node,
+      ),
+      IndexAssignmentTarget(:var index) ||
+      IndexExpression2(:var index) => identical(index, node),
+      IndexExpression parent => identical(switch (_view) {
+        _AstView.v1 => parent.index,
+        _AstView.v2 => parent.index2,
+      }, node),
+      _ => false,
+    };
   }
 
   Iterable<SyntacticEntity> _viewChildEntities(AstNode node) {
@@ -2787,17 +2846,7 @@ Expected parent: (${parent.runtimeType}) $parent
 
       if (node is Expression) {
         var parent = _viewParent(node);
-        if (parent is AssignmentExpression && parent.rightHandSide2 == node ||
-            parent is DirectAssignment && parent.value == node ||
-            parent is IfNullAssignment && parent.value == node ||
-            parent is BinaryExpression && parent.rightOperand2 == node ||
-            parent is BinaryOperatorInvocation && parent.rightOperand == node ||
-            parent is CompoundAssignment && parent.value == node ||
-            parent is DirectAssignment && parent.value == node ||
-            parent is IfNullAssignment && parent.value == node ||
-            parent is IndexAssignmentTarget && parent.index == node ||
-            parent is IndexExpression && parent.index2 == node ||
-            parent is IndexExpression2 && parent.index == node) {
+        if (parent != null && _isCorrespondingParameterValue(parent, node)) {
           _writeElement('correspondingParameter', node.correspondingParameter);
         }
       }

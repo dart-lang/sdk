@@ -1039,6 +1039,11 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
   }
 
   @override
+  Constant visitImportPrefixedFunctionInvocation(
+    ImportPrefixedFunctionInvocation node,
+  ) => _visitNamedFunctionInvocation(node);
+
+  @override
   Constant visitIntegerLiteral(IntegerLiteral node) {
     return _evaluateIntegerLiteral(node, negated: false);
   }
@@ -1511,6 +1516,11 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
       ),
     };
   }
+
+  @override
+  Constant visitUnqualifiedFunctionInvocation(
+    UnqualifiedFunctionInvocation node,
+  ) => _visitNamedFunctionInvocation(node);
 
   /// Builds a list constant by adding the evaluated entries of [elements] to
   /// the given [list].
@@ -2369,6 +2379,26 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
     } else {
       return _dartObjectComputer.lazyOr(node, leftResult, computeRightOperand);
     }
+  }
+
+  Constant _visitNamedFunctionInvocation(NamedFunctionInvocation node) {
+    var element = switch (node.resolution) {
+      ExecutableInvocationResolution(:var element) => element,
+      _ => null,
+    };
+    if (element is TopLevelFunctionElementImpl && element.isDartCoreIdentical) {
+      var arguments = node.argumentList.arguments2;
+      var leftArgument = evaluateConstant(arguments[0]);
+      if (leftArgument is! DartObjectImpl) {
+        return leftArgument;
+      }
+      var rightArgument = evaluateConstant(arguments[1]);
+      if (rightArgument is! DartObjectImpl) {
+        return rightArgument;
+      }
+      return _dartObjectComputer.isIdentical(node, leftArgument, rightArgument);
+    }
+    return _invalidConstantForMethodInvocation(node);
   }
 }
 

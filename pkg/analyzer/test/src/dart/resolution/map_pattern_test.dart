@@ -681,7 +681,19 @@ PatternVariableDeclaration
     matchedValueType: Map<bool, int>
     requiredType: Map<bool, int>
   equals: =
-  expression2: MethodInvocation
+  expression2: UnqualifiedFunctionInvocation
+    name: g
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    resolution: ExecutableInvocationResolution
+      element: <testLibrary>::@function::g
+      invokeType: Map<bool, int> Function()
+      type: Map<bool, int>
+    staticType: Map<bool, int>
+    typeArgumentTypes
+      Map<bool, int>
+  expression(v1): MethodInvocation
     methodName: SimpleIdentifier
       token: g
       element: <testLibrary>::@function::g
@@ -733,7 +745,19 @@ PatternVariableDeclaration
     matchedValueType: Map<Object?, int>
     requiredType: Map<Object?, int>
   equals: =
-  expression2: MethodInvocation
+  expression2: UnqualifiedFunctionInvocation
+    name: g
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    resolution: ExecutableInvocationResolution
+      element: <testLibrary>::@function::g
+      invokeType: Map<Object?, int> Function()
+      type: Map<Object?, int>
+    staticType: Map<Object?, int>
+    typeArgumentTypes
+      Map<Object?, int>
+  expression(v1): MethodInvocation
     methodName: SimpleIdentifier
       token: g
       element: <testLibrary>::@function::g

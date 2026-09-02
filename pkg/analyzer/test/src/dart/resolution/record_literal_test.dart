@@ -411,6 +411,97 @@ T g<T>() => throw 0;
 RecordLiteral
   leftParenthesis: (
   fields2
+    UnqualifiedFunctionInvocation
+      name: g
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      resolution: ExecutableInvocationResolution
+        element: <testLibrary>::@function::g
+        invokeType: A1 Function()
+        type: A1
+      staticType: A1
+      typeArgumentTypes
+        A1
+    RecordLiteralNamedField
+      name: f1
+      colon: :
+      fieldExpression2: UnqualifiedFunctionInvocation
+        name: g
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        resolution: ExecutableInvocationResolution
+          element: <testLibrary>::@function::g
+          invokeType: A4 Function()
+          type: A4
+        staticType: A4
+        typeArgumentTypes
+          A4
+      fieldExpression(v1): MethodInvocation
+        methodName: SimpleIdentifier
+          token: g
+          element: <testLibrary>::@function::g
+          staticType: T Function<T>()
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        staticInvokeType: A4 Function()
+        staticType: A4
+        typeArgumentTypes
+          A4
+    UnqualifiedFunctionInvocation
+      name: g
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      resolution: ExecutableInvocationResolution
+        element: <testLibrary>::@function::g
+        invokeType: A2 Function()
+        type: A2
+      staticType: A2
+      typeArgumentTypes
+        A2
+    RecordLiteralNamedField
+      name: f2
+      colon: :
+      fieldExpression2: UnqualifiedFunctionInvocation
+        name: g
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        resolution: ExecutableInvocationResolution
+          element: <testLibrary>::@function::g
+          invokeType: A5 Function()
+          type: A5
+        staticType: A5
+        typeArgumentTypes
+          A5
+      fieldExpression(v1): MethodInvocation
+        methodName: SimpleIdentifier
+          token: g
+          element: <testLibrary>::@function::g
+          staticType: T Function<T>()
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        staticInvokeType: A5 Function()
+        staticType: A5
+        typeArgumentTypes
+          A5
+    UnqualifiedFunctionInvocation
+      name: g
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      resolution: ExecutableInvocationResolution
+        element: <testLibrary>::@function::g
+        invokeType: A3 Function()
+        type: A3
+      staticType: A3
+      typeArgumentTypes
+        A3
+  fields(v1)
     MethodInvocation
       methodName: SimpleIdentifier
         token: g
@@ -426,7 +517,7 @@ RecordLiteral
     RecordLiteralNamedField
       name: f1
       colon: :
-      fieldExpression2: MethodInvocation
+      fieldExpression: MethodInvocation
         methodName: SimpleIdentifier
           token: g
           element: <testLibrary>::@function::g
@@ -453,7 +544,7 @@ RecordLiteral
     RecordLiteralNamedField
       name: f2
       colon: :
-      fieldExpression2: MethodInvocation
+      fieldExpression: MethodInvocation
         methodName: SimpleIdentifier
           token: g
           element: <testLibrary>::@function::g
@@ -501,7 +592,19 @@ RecordLiteral
     RecordLiteralNamedField
       name: f1
       colon: :
-      fieldExpression2: MethodInvocation
+      fieldExpression2: UnqualifiedFunctionInvocation
+        name: g
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        resolution: ExecutableInvocationResolution
+          element: <testLibrary>::@function::g
+          invokeType: dynamic Function()
+          type: dynamic
+        staticType: dynamic
+        typeArgumentTypes
+          dynamic
+      fieldExpression(v1): MethodInvocation
         methodName: SimpleIdentifier
           token: g
           element: <testLibrary>::@function::g
@@ -534,6 +637,46 @@ T g<T>() => throw 0;
 RecordLiteral
   leftParenthesis: (
   fields2
+    UnqualifiedFunctionInvocation
+      name: g
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      resolution: ExecutableInvocationResolution
+        element: <testLibrary>::@function::g
+        invokeType: dynamic Function()
+        type: dynamic
+      staticType: dynamic
+      typeArgumentTypes
+        dynamic
+    RecordLiteralNamedField
+      name: f2
+      colon: :
+      fieldExpression2: UnqualifiedFunctionInvocation
+        name: g
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        resolution: ExecutableInvocationResolution
+          element: <testLibrary>::@function::g
+          invokeType: dynamic Function()
+          type: dynamic
+        staticType: dynamic
+        typeArgumentTypes
+          dynamic
+      fieldExpression(v1): MethodInvocation
+        methodName: SimpleIdentifier
+          token: g
+          element: <testLibrary>::@function::g
+          staticType: T Function<T>()
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        staticInvokeType: dynamic Function()
+        staticType: dynamic
+        typeArgumentTypes
+          dynamic
+  fields(v1)
     MethodInvocation
       methodName: SimpleIdentifier
         token: g
@@ -549,7 +692,7 @@ RecordLiteral
     RecordLiteralNamedField
       name: f2
       colon: :
-      fieldExpression2: MethodInvocation
+      fieldExpression: MethodInvocation
         methodName: SimpleIdentifier
           token: g
           element: <testLibrary>::@function::g
@@ -582,6 +725,19 @@ T g<T>() => throw 0;
 RecordLiteral
   leftParenthesis: (
   fields2
+    UnqualifiedFunctionInvocation
+      name: g
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      resolution: ExecutableInvocationResolution
+        element: <testLibrary>::@function::g
+        invokeType: dynamic Function()
+        type: dynamic
+      staticType: dynamic
+      typeArgumentTypes
+        dynamic
+  fields(v1)
     MethodInvocation
       methodName: SimpleIdentifier
         token: g
@@ -614,7 +770,19 @@ RecordLiteral
     RecordLiteralNamedField
       name: f1
       colon: :
-      fieldExpression2: MethodInvocation
+      fieldExpression2: UnqualifiedFunctionInvocation
+        name: g
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        resolution: ExecutableInvocationResolution
+          element: <testLibrary>::@function::g
+          invokeType: int Function()
+          type: int
+        staticType: int
+        typeArgumentTypes
+          int
+      fieldExpression(v1): MethodInvocation
         methodName: SimpleIdentifier
           token: g
           element: <testLibrary>::@function::g
@@ -629,7 +797,19 @@ RecordLiteral
     RecordLiteralNamedField
       name: f2
       colon: :
-      fieldExpression2: MethodInvocation
+      fieldExpression2: UnqualifiedFunctionInvocation
+        name: g
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        resolution: ExecutableInvocationResolution
+          element: <testLibrary>::@function::g
+          invokeType: String Function()
+          type: String
+        staticType: String
+        typeArgumentTypes
+          String
+      fieldExpression(v1): MethodInvocation
         methodName: SimpleIdentifier
           token: g
           element: <testLibrary>::@function::g
@@ -661,7 +841,19 @@ RecordLiteral
     RecordLiteralNamedField
       name: f2
       colon: :
-      fieldExpression2: MethodInvocation
+      fieldExpression2: UnqualifiedFunctionInvocation
+        name: g
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        resolution: ExecutableInvocationResolution
+          element: <testLibrary>::@function::g
+          invokeType: String Function()
+          type: String
+        staticType: String
+        typeArgumentTypes
+          String
+      fieldExpression(v1): MethodInvocation
         methodName: SimpleIdentifier
           token: g
           element: <testLibrary>::@function::g
@@ -676,7 +868,19 @@ RecordLiteral
     RecordLiteralNamedField
       name: f1
       colon: :
-      fieldExpression2: MethodInvocation
+      fieldExpression2: UnqualifiedFunctionInvocation
+        name: g
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        resolution: ExecutableInvocationResolution
+          element: <testLibrary>::@function::g
+          invokeType: int Function()
+          type: int
+        staticType: int
+        typeArgumentTypes
+          int
+      fieldExpression(v1): MethodInvocation
         methodName: SimpleIdentifier
           token: g
           element: <testLibrary>::@function::g
@@ -712,7 +916,19 @@ RecordLiteral
     RecordLiteralNamedField
       name: f1
       colon: :
-      fieldExpression2: MethodInvocation
+      fieldExpression2: UnqualifiedFunctionInvocation
+        name: g
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        resolution: ExecutableInvocationResolution
+          element: <testLibrary>::@function::g
+          invokeType: dynamic Function()
+          type: dynamic
+        staticType: dynamic
+        typeArgumentTypes
+          dynamic
+      fieldExpression(v1): MethodInvocation
         methodName: SimpleIdentifier
           token: g
           element: <testLibrary>::@function::g
@@ -748,7 +964,19 @@ RecordLiteral
     RecordLiteralNamedField
       name: f1
       colon: :
-      fieldExpression2: MethodInvocation
+      fieldExpression2: UnqualifiedFunctionInvocation
+        name: g
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        resolution: ExecutableInvocationResolution
+          element: <testLibrary>::@function::g
+          invokeType: dynamic Function()
+          type: dynamic
+        staticType: dynamic
+        typeArgumentTypes
+          dynamic
+      fieldExpression(v1): MethodInvocation
         methodName: SimpleIdentifier
           token: g
           element: <testLibrary>::@function::g
@@ -763,7 +991,19 @@ RecordLiteral
     RecordLiteralNamedField
       name: f2
       colon: :
-      fieldExpression2: MethodInvocation
+      fieldExpression2: UnqualifiedFunctionInvocation
+        name: g
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        resolution: ExecutableInvocationResolution
+          element: <testLibrary>::@function::g
+          invokeType: dynamic Function()
+          type: dynamic
+        staticType: dynamic
+        typeArgumentTypes
+          dynamic
+      fieldExpression(v1): MethodInvocation
         methodName: SimpleIdentifier
           token: g
           element: <testLibrary>::@function::g
@@ -835,6 +1075,31 @@ T g<T>() => throw 0;
 RecordLiteral
   leftParenthesis: (
   fields2
+    UnqualifiedFunctionInvocation
+      name: g
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      resolution: ExecutableInvocationResolution
+        element: <testLibrary>::@function::g
+        invokeType: dynamic Function()
+        type: dynamic
+      staticType: dynamic
+      typeArgumentTypes
+        dynamic
+    UnqualifiedFunctionInvocation
+      name: g
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      resolution: ExecutableInvocationResolution
+        element: <testLibrary>::@function::g
+        invokeType: dynamic Function()
+        type: dynamic
+      staticType: dynamic
+      typeArgumentTypes
+        dynamic
+  fields(v1)
     MethodInvocation
       methodName: SimpleIdentifier
         token: g
@@ -876,6 +1141,31 @@ T g<T>() => throw 0;
 RecordLiteral
   leftParenthesis: (
   fields2
+    UnqualifiedFunctionInvocation
+      name: g
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      resolution: ExecutableInvocationResolution
+        element: <testLibrary>::@function::g
+        invokeType: int Function()
+        type: int
+      staticType: int
+      typeArgumentTypes
+        int
+    UnqualifiedFunctionInvocation
+      name: g
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      resolution: ExecutableInvocationResolution
+        element: <testLibrary>::@function::g
+        invokeType: String Function()
+        type: String
+      staticType: String
+      typeArgumentTypes
+        String
+  fields(v1)
     MethodInvocation
       methodName: SimpleIdentifier
         token: g
@@ -921,6 +1211,19 @@ T g<T>() => throw 0;
 RecordLiteral
   leftParenthesis: (
   fields2
+    UnqualifiedFunctionInvocation
+      name: g
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      resolution: ExecutableInvocationResolution
+        element: <testLibrary>::@function::g
+        invokeType: dynamic Function()
+        type: dynamic
+      staticType: dynamic
+      typeArgumentTypes
+        dynamic
+  fields(v1)
     MethodInvocation
       methodName: SimpleIdentifier
         token: g
@@ -954,6 +1257,31 @@ T g<T>() => throw 0;
 RecordLiteral
   leftParenthesis: (
   fields2
+    UnqualifiedFunctionInvocation
+      name: g
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      resolution: ExecutableInvocationResolution
+        element: <testLibrary>::@function::g
+        invokeType: dynamic Function()
+        type: dynamic
+      staticType: dynamic
+      typeArgumentTypes
+        dynamic
+    UnqualifiedFunctionInvocation
+      name: g
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      resolution: ExecutableInvocationResolution
+        element: <testLibrary>::@function::g
+        invokeType: dynamic Function()
+        type: dynamic
+      staticType: dynamic
+      typeArgumentTypes
+        dynamic
+  fields(v1)
     MethodInvocation
       methodName: SimpleIdentifier
         token: g
@@ -1120,6 +1448,17 @@ g() => (f(),);
 RecordLiteral
   leftParenthesis: (
   fields2
+    UnqualifiedFunctionInvocation
+      name: f
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      resolution: ExecutableInvocationResolution
+        element: <testLibrary>::@function::f
+        invokeType: void Function()
+        type: void
+      staticType: void
+  fields(v1)
     MethodInvocation
       methodName: SimpleIdentifier
         token: f

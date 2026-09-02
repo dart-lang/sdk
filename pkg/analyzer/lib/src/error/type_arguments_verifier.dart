@@ -202,6 +202,30 @@ class TypeArgumentsVerifier {
     }
   }
 
+  void checkFunctionInvocation(FunctionInvocation node) {
+    var functionType = switch (node.resolution) {
+      ExecutableInvocationResolution(:var element) => element.type,
+      InvalidInvocationResolution(
+        recovery: ExecutableInvocationResolution(:var element),
+      ) =>
+        element.type,
+      _ => null,
+    };
+    var invokeType = switch (node.resolution) {
+      StaticInvocationResolution(:var invokeType) => invokeType,
+      InvalidInvocationResolution(
+        recovery: StaticInvocationResolution(:var invokeType),
+      ) =>
+        invokeType,
+      _ => null,
+    };
+    _checkInvocationTypeArguments(
+      node.typeArguments?.arguments,
+      functionType,
+      invokeType,
+    );
+  }
+
   void checkFunctionReference(FunctionReference node) {
     _checkInvocationTypeArguments(
       node.typeArguments?.arguments,
