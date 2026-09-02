@@ -290,6 +290,14 @@ enum ExperimentalFlag {
     experimentReleasedVersion: const Version(2, 0),
   ),
 
+  singleCombinators(
+    name: 'single-combinators',
+    isEnabledByDefault: false,
+    isExpired: false,
+    experimentEnabledVersion: defaultLanguageVersion,
+    experimentReleasedVersion: defaultLanguageVersion,
+  ),
+
   soundFlowAnalysis(
     name: 'sound-flow-analysis',
     isEnabledByDefault: true,

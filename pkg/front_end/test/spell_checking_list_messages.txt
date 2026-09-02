@@ -29,6 +29,7 @@ backed
 c
 cast
 collide
+combinator
 compilercontext.runincontext
 compilesdk
 compounds
