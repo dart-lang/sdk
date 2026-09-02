@@ -71,6 +71,7 @@ class ConvertToCascade extends ResolvedCorrectionProducer {
       Token? previousOperator;
       Token? semicolon;
       Expression? initializer;
+      AssignmentExpression? initializerToParenthesize;
       var previous = cascadeStatements[index - 1];
       if (previous is ExpressionStatement) {
         semicolon = previous.semicolon;
