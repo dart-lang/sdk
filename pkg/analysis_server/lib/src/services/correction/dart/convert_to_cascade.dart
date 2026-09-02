@@ -126,9 +126,11 @@ class ConvertToCascade extends ResolvedCorrectionProducer {
           builder.addSimpleInsertion(previousOperator.offset, '.');
         }
         if (initializerToParenthesize != null) {
-          builder.addSimpleInsertion(
-              initializerToParenthesize.offset, '(');
-          builder.addSimpleInsertion(initializerToParenthesize.end, ')');
+        builder.addSimpleInsertion(
+          initializerToParenthesize.offset,
+          '(',
+        );
+        builder.addSimpleInsertion(initializerToParenthesize.end, ')');
         }
         if (semicolon != null) {
           builder.addDeletion(range.token(semicolon));
