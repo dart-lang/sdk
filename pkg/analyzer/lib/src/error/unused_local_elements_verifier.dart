@@ -318,6 +318,18 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitIncrementOrDecrementExpression(
+    IncrementOrDecrementExpression node,
+  ) {
+    usedElements.addMember(node.element);
+    _useReadWriteAssignmentTarget(
+      node.target,
+      readCountsAsUse: node.parent2 is! ExpressionStatement,
+    );
+    super.visitIncrementOrDecrementExpression(node);
+  }
+
+  @override
   void visitIndexExpression(IndexExpression node) {
     var element = node.writeOrReadElement2;
     usedElements.addMember(element);
@@ -369,30 +381,6 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
     usedElements.addMember(node.element);
     usedElements.addReadMember(node.element);
     super.visitPatternField(node);
-  }
-
-  @override
-  void visitPostfixDecrement(PostfixDecrement node) {
-    _visitIncrementOrDecrementExpression(node);
-    super.visitPostfixDecrement(node);
-  }
-
-  @override
-  void visitPostfixIncrement(PostfixIncrement node) {
-    _visitIncrementOrDecrementExpression(node);
-    super.visitPostfixIncrement(node);
-  }
-
-  @override
-  void visitPrefixDecrement(PrefixDecrement node) {
-    _visitIncrementOrDecrementExpression(node);
-    super.visitPrefixDecrement(node);
-  }
-
-  @override
-  void visitPrefixIncrement(PrefixIncrement node) {
-    _visitIncrementOrDecrementExpression(node);
-    super.visitPrefixIncrement(node);
   }
 
   @override
@@ -736,16 +724,6 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
         }
       }
     }
-  }
-
-  void _visitIncrementOrDecrementExpression(
-    IncrementOrDecrementExpression node,
-  ) {
-    usedElements.addMember(node.element);
-    _useReadWriteAssignmentTarget(
-      node.target,
-      readCountsAsUse: node.parent2 is! ExpressionStatement,
-    );
   }
 
   /// Returns whether the value of [node] is _only_ being read at this position.

@@ -1175,6 +1175,22 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitIncrementOrDecrementExpression(
+    IncrementOrDecrementExpression node,
+  ) {
+    _sink.writeln('IncrementOrDecrementExpression');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _sink.writelnWithIndent('operation: ${node.operation.name}');
+      _sink.writelnWithIndent('position: ${node.position.name}');
+      _writeParameterElement(node);
+      _writeElement('element', node.element);
+      _writeType('operatorResultType', node.operatorResultType);
+      _writeType('staticType', node.staticType);
+    });
+  }
+
+  @override
   void visitIndexExpression(IndexExpression node) {
     _sink.writeln('IndexExpression');
     _sink.withIndent(() {
@@ -1585,18 +1601,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
-  void visitPostfixDecrement(PostfixDecrement node) {
-    _sink.writeln('PostfixDecrement');
-    _sink.withIndent(() {
-      _writeNamedChildEntities(node);
-      _writeParameterElement(node);
-      _writeElement('element', node.element);
-      _writeType('operatorResultType', node.operatorResultType);
-      _writeType('staticType', node.staticType);
-    });
-  }
-
-  @override
   void visitPostfixExpression(PostfixExpression node) {
     _sink.writeln('PostfixExpression');
     _sink.withIndent(() {
@@ -1609,30 +1613,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
         _writeType('writeType', node.writeType);
       }
       _writeElement('element', node.element);
-      _writeType('staticType', node.staticType);
-    });
-  }
-
-  @override
-  void visitPostfixIncrement(PostfixIncrement node) {
-    _sink.writeln('PostfixIncrement');
-    _sink.withIndent(() {
-      _writeNamedChildEntities(node);
-      _writeParameterElement(node);
-      _writeElement('element', node.element);
-      _writeType('operatorResultType', node.operatorResultType);
-      _writeType('staticType', node.staticType);
-    });
-  }
-
-  @override
-  void visitPrefixDecrement(PrefixDecrement node) {
-    _sink.writeln('PrefixDecrement');
-    _sink.withIndent(() {
-      _writeNamedChildEntities(node);
-      _writeParameterElement(node);
-      _writeElement('element', node.element);
-      _writeType('operatorResultType', node.operatorResultType);
       _writeType('staticType', node.staticType);
     });
   }
@@ -1661,18 +1641,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
         _writeType('writeType', node.writeType);
       }
       _writeElement('element', node.element);
-      _writeType('staticType', node.staticType);
-    });
-  }
-
-  @override
-  void visitPrefixIncrement(PrefixIncrement node) {
-    _sink.writeln('PrefixIncrement');
-    _sink.withIndent(() {
-      _writeNamedChildEntities(node);
-      _writeParameterElement(node);
-      _writeElement('element', node.element);
-      _writeType('operatorResultType', node.operatorResultType);
       _writeType('staticType', node.staticType);
     });
   }

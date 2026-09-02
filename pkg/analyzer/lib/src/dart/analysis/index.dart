@@ -1334,6 +1334,24 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   }
 
   @override
+  void visitIncrementOrDecrementExpression(
+    covariant IncrementOrDecrementExpressionImpl node,
+  ) {
+    recordOperatorReference(node.operator, node.element);
+    switch (node.target) {
+      case PropertyAssignmentTargetImpl target:
+        _recordPropertyReadWriteTarget(target);
+      case IndexAssignmentTargetImpl target:
+        _recordIndexReadWriteTarget(target);
+      case InvalidExpressionAssignmentTargetImpl():
+        break;
+      case UnqualifiedNameAssignmentTargetImpl target:
+        _recordUnqualifiedNameReadWriteTarget(target);
+    }
+    node.visitChildren2(this);
+  }
+
+  @override
   void visitIndexExpression(IndexExpression node) {
     var element = node.writeOrReadElement2;
     if (element is MethodElement) {
@@ -1461,21 +1479,6 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   }
 
   @override
-  void visitPostfixDecrement(covariant PostfixDecrementImpl node) {
-    _visitIncrementOrDecrementExpression(node);
-  }
-
-  @override
-  void visitPostfixIncrement(covariant PostfixIncrementImpl node) {
-    _visitIncrementOrDecrementExpression(node);
-  }
-
-  @override
-  void visitPrefixDecrement(covariant PrefixDecrementImpl node) {
-    _visitIncrementOrDecrementExpression(node);
-  }
-
-  @override
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
     var element = node.element;
     var prefixElement = node.prefix.element;
@@ -1483,11 +1486,6 @@ class _IndexContributor extends UnifyingAstVisitor2 {
       assembler.addPrefixForElement(element, prefix: prefixElement);
     }
     super.visitPrefixedIdentifier(node);
-  }
-
-  @override
-  void visitPrefixIncrement(covariant PrefixIncrementImpl node) {
-    _visitIncrementOrDecrementExpression(node);
   }
 
   @override
@@ -2019,25 +2017,6 @@ class _IndexContributor extends UnifyingAstVisitor2 {
         false,
       );
     }
-  }
-
-  void _visitIncrementOrDecrementExpression(
-    IncrementOrDecrementExpressionImpl node,
-  ) {
-    recordOperatorReference(node.operator, node.element);
-    switch (node.target) {
-      case CascadeIndexAssignmentTargetImpl target:
-        _recordIndexReadWriteTarget(target);
-      case PropertyAssignmentTargetImpl target:
-        _recordPropertyReadWriteTarget(target);
-      case IndexAssignmentTargetImpl target:
-        _recordIndexReadWriteTarget(target);
-      case InvalidExpressionAssignmentTargetImpl():
-        break;
-      case UnqualifiedNameAssignmentTargetImpl target:
-        _recordUnqualifiedNameReadWriteTarget(target);
-    }
-    node.visitChildren2(this);
   }
 
   void _visitIndexExpression2(IndexExpression2 node) {

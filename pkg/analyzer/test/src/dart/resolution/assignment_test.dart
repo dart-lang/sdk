@@ -2170,7 +2170,7 @@ void f(num x, int y) {
     var node = result.findNode.assignment('= y');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide2: PostfixIncrement
+  leftHandSide2: IncrementOrDecrementExpression
     target: UnqualifiedNameAssignmentTarget
       name: x
       read: VariableReadResolution
@@ -2180,6 +2180,8 @@ AssignmentExpression
         element: <testLibrary>::@function::f::@formalParameter::x
         acceptedType: num
     operator: ++
+    operation: increment
+    position: postfix
     element: dart:core::@class::num::@method::+
     operatorResultType: num
     staticType: num
@@ -2224,7 +2226,7 @@ void f(num x, int y) {
     assertResolvedNodeText(node, r'''
 IfNullAssignment
   target: InvalidExpressionAssignmentTarget
-    expression: PostfixIncrement
+    expression: IncrementOrDecrementExpression
       target: UnqualifiedNameAssignmentTarget
         name: x
         read: VariableReadResolution
@@ -2234,6 +2236,8 @@ IfNullAssignment
           element: <testLibrary>::@function::f::@formalParameter::x
           acceptedType: num
       operator: ++
+      operation: increment
+      position: postfix
       element: dart:core::@class::num::@method::+
       operatorResultType: num
       staticType: num
@@ -2286,7 +2290,7 @@ void f(num x, int y) {
     assertResolvedNodeText(node, r'''
 DirectAssignment
   target: InvalidExpressionAssignmentTarget
-    expression: PostfixIncrement
+    expression: IncrementOrDecrementExpression
       target: UnqualifiedNameAssignmentTarget
         name: x
         read: VariableReadResolution
@@ -2296,6 +2300,8 @@ DirectAssignment
           element: <testLibrary>::@function::f::@formalParameter::x
           acceptedType: num
       operator: ++
+      operation: increment
+      position: postfix
       element: dart:core::@class::num::@method::+
       operatorResultType: num
       staticType: num
@@ -2347,7 +2353,7 @@ void f(num x, int y) {
     var node = result.findNode.assignment('= y');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide2: PrefixIncrement
+  leftHandSide2: IncrementOrDecrementExpression
     operator: ++
     target: UnqualifiedNameAssignmentTarget
       name: x
@@ -2357,6 +2363,8 @@ AssignmentExpression
       write: VariableWriteResolution
         element: <testLibrary>::@function::f::@formalParameter::x
         acceptedType: num
+    operation: increment
+    position: prefix
     element: dart:core::@class::num::@method::+
     operatorResultType: num
     staticType: num
@@ -2401,7 +2409,7 @@ void f(num x, int y) {
     assertResolvedNodeText(node, r'''
 IfNullAssignment
   target: InvalidExpressionAssignmentTarget
-    expression: PrefixIncrement
+    expression: IncrementOrDecrementExpression
       operator: ++
       target: UnqualifiedNameAssignmentTarget
         name: x
@@ -2411,6 +2419,8 @@ IfNullAssignment
         write: VariableWriteResolution
           element: <testLibrary>::@function::f::@formalParameter::x
           acceptedType: num
+      operation: increment
+      position: prefix
       element: dart:core::@class::num::@method::+
       operatorResultType: num
       staticType: num
@@ -2463,7 +2473,7 @@ void f(num x, int y) {
     assertResolvedNodeText(node, r'''
 DirectAssignment
   target: InvalidExpressionAssignmentTarget
-    expression: PrefixIncrement
+    expression: IncrementOrDecrementExpression
       operator: ++
       target: UnqualifiedNameAssignmentTarget
         name: x
@@ -2473,6 +2483,8 @@ DirectAssignment
         write: VariableWriteResolution
           element: <testLibrary>::@function::f::@formalParameter::x
           acceptedType: num
+      operation: increment
+      position: prefix
       element: dart:core::@class::num::@method::+
       operatorResultType: num
       staticType: num

@@ -2279,13 +2279,15 @@ var v = --a.b == c;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: PrefixDecrement
+  leftOperand: IncrementOrDecrementExpression
     operator: --
     target: ReceiverPropertyAssignmentTarget
       receiver: SimpleIdentifier
         token: a
       operator: .
       propertyName: b
+    operation: decrement
+    position: prefix
   operator: ==
   rightOperand: SimpleIdentifier
     token: c
@@ -2745,13 +2747,15 @@ var v = --a.b == c;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: PrefixDecrement
+  leftOperand: IncrementOrDecrementExpression
     operator: --
     target: ReceiverPropertyAssignmentTarget
       receiver: SimpleIdentifier
         token: a
       operator: .
       propertyName: b
+    operation: decrement
+    position: prefix
   operator: ==
   rightOperand: SimpleIdentifier
     token: c
@@ -2838,10 +2842,12 @@ FunctionExpression
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression2: PostfixIncrement
+    expression2: IncrementOrDecrementExpression
       target: UnqualifiedNameAssignmentTarget
         name: i
       operator: ++
+      operation: increment
+      position: postfix
     expression(v1): PostfixExpression
       operand: SimpleIdentifier
         token: i
@@ -2881,10 +2887,12 @@ FunctionExpression
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression2: PostfixIncrement
+    expression2: IncrementOrDecrementExpression
       target: UnqualifiedNameAssignmentTarget
         name: i
       operator: ++
+      operation: increment
+      position: postfix
     expression(v1): PostfixExpression
       operand: SimpleIdentifier
         token: i
@@ -2949,10 +2957,12 @@ FunctionExpression
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression2: PostfixIncrement
+    expression2: IncrementOrDecrementExpression
       target: UnqualifiedNameAssignmentTarget
         name: i
       operator: ++
+      operation: increment
+      position: postfix
     expression(v1): PostfixExpression
       operand: SimpleIdentifier
         token: i
@@ -3806,10 +3816,12 @@ var v = i--;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-PostfixDecrement
+IncrementOrDecrementExpression
   target: UnqualifiedNameAssignmentTarget
     name: i
   operator: --
+  operation: decrement
+  position: postfix
 V1: PostfixExpression
   operand: SimpleIdentifier
     token: i
@@ -3823,10 +3835,12 @@ var v = i++;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-PostfixIncrement
+IncrementOrDecrementExpression
   target: UnqualifiedNameAssignmentTarget
     name: i
   operator: ++
+  operation: increment
+  position: postfix
 V1: PostfixExpression
   operand: SimpleIdentifier
     token: i
@@ -5499,7 +5513,7 @@ var v = --a[0];
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-PrefixDecrement
+IncrementOrDecrementExpression
   operator: --
   target: ReceiverIndexAssignmentTarget
     receiver: SimpleIdentifier
@@ -5508,6 +5522,8 @@ PrefixDecrement
     index: IntegerLiteral
       literal: 0
     rightBracket: ]
+  operation: decrement
+  position: prefix
 V1: PrefixExpression
   operator: --
   operand: IndexExpression
@@ -5526,10 +5542,12 @@ var v = --x;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-PrefixDecrement
+IncrementOrDecrementExpression
   operator: --
   target: UnqualifiedNameAssignmentTarget
     name: x
+  operation: decrement
+  position: prefix
 V1: PrefixExpression
   operator: --
   operand: SimpleIdentifier
@@ -5557,13 +5575,15 @@ var v = --super.x;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-PrefixDecrement
+IncrementOrDecrementExpression
   operator: --
   target: ReceiverPropertyAssignmentTarget
     receiver: SuperExpression
       superKeyword: super
     operator: .
     propertyName: x
+  operation: decrement
+  position: prefix
 V1: PrefixExpression
   operator: --
   operand: PropertyAccess
@@ -5595,7 +5615,7 @@ var v = ++a[0];
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-PrefixIncrement
+IncrementOrDecrementExpression
   operator: ++
   target: ReceiverIndexAssignmentTarget
     receiver: SimpleIdentifier
@@ -5604,6 +5624,8 @@ PrefixIncrement
     index: IntegerLiteral
       literal: 0
     rightBracket: ]
+  operation: increment
+  position: prefix
 V1: PrefixExpression
   operator: ++
   operand: IndexExpression
@@ -5622,10 +5644,12 @@ var v = ++x;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-PrefixIncrement
+IncrementOrDecrementExpression
   operator: ++
   target: UnqualifiedNameAssignmentTarget
     name: x
+  operation: increment
+  position: prefix
 V1: PrefixExpression
   operator: ++
   operand: SimpleIdentifier
@@ -5639,7 +5663,7 @@ var v = ++super[0];
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-PrefixIncrement
+IncrementOrDecrementExpression
   operator: ++
   target: ReceiverIndexAssignmentTarget
     receiver: SuperExpression
@@ -5648,6 +5672,8 @@ PrefixIncrement
     index: IntegerLiteral
       literal: 0
     rightBracket: ]
+  operation: increment
+  position: prefix
 V1: PrefixExpression
   operator: ++
   operand: IndexExpression
@@ -5666,13 +5692,15 @@ var v = ++super.x;
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-PrefixIncrement
+IncrementOrDecrementExpression
   operator: ++
   target: ReceiverPropertyAssignmentTarget
     receiver: SuperExpression
       superKeyword: super
     operator: .
     propertyName: x
+  operation: increment
+  position: prefix
 V1: PrefixExpression
   operator: ++
   operand: PropertyAccess

@@ -6391,7 +6391,7 @@ library
         #F3 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic b (nameOffset:19) (firstTokenOffset:19) (offset:19)
           element: <testLibrary>::@topLevelVariable::b
           initializer: expression_1
-            PostfixIncrement
+            IncrementOrDecrementExpression
               target: UnqualifiedNameAssignmentTarget
                 name: a @23
                 read: GetterInvocationResolution
@@ -6404,6 +6404,8 @@ library
                     candidate: <testLibrary>::@getter::a
                   recovery: <null>
               operator: ++ @24
+              operation: increment
+              position: postfix
               element: dart:core::@class::num::@method::+
               operatorResultType: int
               staticType: int
@@ -6594,7 +6596,7 @@ library
         #F3 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic b (nameOffset:19) (firstTokenOffset:19) (offset:19)
           element: <testLibrary>::@topLevelVariable::b
           initializer: expression_1
-            PrefixIncrement
+            IncrementOrDecrementExpression
               operator: ++ @23
               target: UnqualifiedNameAssignmentTarget
                 name: a @25
@@ -6607,6 +6609,8 @@ library
                   candidates
                     candidate: <testLibrary>::@getter::a
                   recovery: <null>
+              operation: increment
+              position: prefix
               element: dart:core::@class::num::@method::+
               operatorResultType: int
               staticType: int

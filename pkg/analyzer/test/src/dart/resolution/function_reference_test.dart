@@ -5234,7 +5234,7 @@ void Function(int) foo(void Function<T>(T) f) {
     var node = result.findNode.functionReference('f++');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function2: PostfixIncrement
+  function2: IncrementOrDecrementExpression
     target: UnqualifiedNameAssignmentTarget
       name: f
       read: VariableReadResolution
@@ -5244,6 +5244,8 @@ FunctionReference
         element: <testLibrary>::@function::foo::@formalParameter::f
         acceptedType: void Function<T>(T)
     operator: ++
+    operation: increment
+    position: postfix
     element: <testLibrary>::@extension::#0::@method::+
     operatorResultType: void Function<T>(T)
     staticType: void Function<T>(T)
@@ -5313,7 +5315,7 @@ void Function(int) foo(void Function<T>(T) f) {
     var node = result.findNode.functionReference('++f');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function2: PrefixIncrement
+  function2: IncrementOrDecrementExpression
     operator: ++
     target: UnqualifiedNameAssignmentTarget
       name: f
@@ -5323,6 +5325,8 @@ FunctionReference
       write: VariableWriteResolution
         element: <testLibrary>::@function::foo::@formalParameter::f
         acceptedType: void Function<T>(T)
+    operation: increment
+    position: prefix
     element: <testLibrary>::@extension::#0::@method::+
     operatorResultType: void Function<T>(T)
     staticType: void Function<T>(T)

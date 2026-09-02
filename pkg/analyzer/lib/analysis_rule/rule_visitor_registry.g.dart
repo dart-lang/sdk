@@ -825,6 +825,12 @@ abstract class RuleVisitorRegistry2 {
 
   void addImportPrefixReference(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
+  @experimental
+  void addIncrementOrDecrementExpression(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
+
   void addIndexExpression(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addIntegerLiteral(AbstractAnalysisRule rule, AstVisitor2 visitor);
@@ -945,19 +951,7 @@ abstract class RuleVisitorRegistry2 {
     AstVisitor2 visitor,
   );
 
-  @experimental
-  void addPostfixDecrement(AbstractAnalysisRule rule, AstVisitor2 visitor);
-
-  @experimental
-  void addPostfixIncrement(AbstractAnalysisRule rule, AstVisitor2 visitor);
-
-  @experimental
-  void addPrefixDecrement(AbstractAnalysisRule rule, AstVisitor2 visitor);
-
   void addPrefixedIdentifier(AbstractAnalysisRule rule, AstVisitor2 visitor);
-
-  @experimental
-  void addPrefixIncrement(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addPrimaryConstructorBody(
     AbstractAnalysisRule rule,

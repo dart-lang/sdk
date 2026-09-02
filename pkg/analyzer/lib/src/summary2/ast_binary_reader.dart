@@ -847,12 +847,23 @@ class AstBinaryReader {
     return node;
   }
 
-  void _readIncrementOrDecrementResolution(
-    IncrementOrDecrementExpressionImpl node,
-  ) {
+  IncrementOrDecrementExpression _readIncrementOrDecrementExpression() {
+    var operation = _reader.readEnum(IncrementOrDecrementOperation.values);
+    var position = _reader.readEnum(IncrementOrDecrementPosition.values);
+    var target = _readNode() as AssignmentTargetImpl;
+    var operatorType = switch (operation) {
+      IncrementOrDecrementOperation.increment => UnlinkedTokenType.PLUS_PLUS,
+      IncrementOrDecrementOperation.decrement => UnlinkedTokenType.MINUS_MINUS,
+    };
+    var node = IncrementOrDecrementExpressionImpl(
+      position: position,
+      operator: Tokens.fromType(operatorType),
+      target: target,
+    );
     node.element = _reader.readElement() as InternalMethodElement?;
     node.operatorResultType = _reader.readType();
     _readExpressionResolution(node);
+    return node;
   }
 
   IndexExpression _readIndexExpression() {
@@ -1378,14 +1389,8 @@ class AstBinaryReader {
         return _readConstructorInvocation();
       case AstNodeTag.ParenthesizedExpression:
         return _readParenthesizedExpression();
-      case AstNodeTag.PostfixDecrement:
-        return _readPostfixDecrement();
-      case AstNodeTag.PostfixIncrement:
-        return _readPostfixIncrement();
-      case AstNodeTag.PrefixDecrement:
-        return _readPrefixDecrement();
-      case AstNodeTag.PrefixIncrement:
-        return _readPrefixIncrement();
+      case AstNodeTag.IncrementOrDecrementExpression:
+        return _readIncrementOrDecrementExpression();
       case AstNodeTag.PrefixedIdentifier:
         return _readPrefixedIdentifier();
       case AstNodeTag.PropertyAccess:
@@ -1498,36 +1503,6 @@ class AstBinaryReader {
     return node;
   }
 
-  PostfixDecrement _readPostfixDecrement() {
-    var target = _readNode() as AssignmentTargetImpl;
-    var node = PostfixDecrementImpl(
-      target: target,
-      operator: Tokens.fromType(UnlinkedTokenType.MINUS_MINUS),
-    );
-    _readIncrementOrDecrementResolution(node);
-    return node;
-  }
-
-  PostfixIncrement _readPostfixIncrement() {
-    var target = _readNode() as AssignmentTargetImpl;
-    var node = PostfixIncrementImpl(
-      target: target,
-      operator: Tokens.fromType(UnlinkedTokenType.PLUS_PLUS),
-    );
-    _readIncrementOrDecrementResolution(node);
-    return node;
-  }
-
-  PrefixDecrement _readPrefixDecrement() {
-    var target = _readNode() as AssignmentTargetImpl;
-    var node = PrefixDecrementImpl(
-      operator: Tokens.fromType(UnlinkedTokenType.MINUS_MINUS),
-      target: target,
-    );
-    _readIncrementOrDecrementResolution(node);
-    return node;
-  }
-
   PrefixedIdentifierImpl _readPrefixedIdentifier() {
     var prefix = _readNode() as SimpleIdentifierImpl;
     var identifier = _readNode() as SimpleIdentifierImpl;
@@ -1537,16 +1512,6 @@ class AstBinaryReader {
       identifier: identifier,
     );
     _readExpressionResolution(node);
-    return node;
-  }
-
-  PrefixIncrement _readPrefixIncrement() {
-    var target = _readNode() as AssignmentTargetImpl;
-    var node = PrefixIncrementImpl(
-      operator: Tokens.fromType(UnlinkedTokenType.PLUS_PLUS),
-      target: target,
-    );
-    _readIncrementOrDecrementResolution(node);
     return node;
   }
 

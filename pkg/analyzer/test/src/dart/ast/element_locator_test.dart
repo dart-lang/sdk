@@ -1588,7 +1588,7 @@ dart:core::@class::int::@getter::isEven
     var result = await resolveTestCodeWithDiagnostics(r'''
 int addOne(int x) => x++;
 ''');
-    var node = result.findNode.postfixIncrement('x++');
+    var node = result.findNode.incrementOrDecrement('x++');
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 dart:core::@class::num::@method::+
@@ -1638,7 +1638,7 @@ void f(int a) {
     var result = await resolveTestCodeWithDiagnostics(r'''
 int addOne(int x) => ++x;
 ''');
-    var node = result.findNode.prefixIncrement('++x');
+    var node = result.findNode.incrementOrDecrement('++x');
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 dart:core::@class::num::@method::+

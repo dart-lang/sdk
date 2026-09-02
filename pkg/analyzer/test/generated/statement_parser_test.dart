@@ -1299,10 +1299,12 @@ Block
             token: count
         rightSeparator: ;
         updaters2
-          PostfixIncrement
+          IncrementOrDecrementExpression
             target: UnqualifiedNameAssignmentTarget
               name: i
             operator: ++
+            operation: increment
+            position: postfix
         updaters(v1)
           PostfixExpression
             operand: SimpleIdentifier
@@ -1347,10 +1349,12 @@ Block
             token: count
         rightSeparator: ;
         updaters2
-          PostfixIncrement
+          IncrementOrDecrementExpression
             target: UnqualifiedNameAssignmentTarget
               name: i
             operator: ++
+            operation: increment
+            position: postfix
         updaters(v1)
           PostfixExpression
             operand: SimpleIdentifier
@@ -1379,10 +1383,12 @@ Block
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForPartsWithExpression
-        initialization2: PostfixDecrement
+        initialization2: IncrementOrDecrementExpression
           target: UnqualifiedNameAssignmentTarget
             name: i
           operator: --
+          operation: decrement
+          position: postfix
         initialization(v1): PostfixExpression
           operand: SimpleIdentifier
             token: i
@@ -1403,10 +1409,12 @@ Block
             token: count
         rightSeparator: ;
         updaters2
-          PostfixIncrement
+          IncrementOrDecrementExpression
             target: UnqualifiedNameAssignmentTarget
               name: i
             operator: ++
+            operation: increment
+            position: postfix
         updaters(v1)
           PostfixExpression
             operand: SimpleIdentifier
@@ -1435,10 +1443,12 @@ Block
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForPartsWithExpression
-        initialization2: PostfixDecrement
+        initialization2: IncrementOrDecrementExpression
           target: UnqualifiedNameAssignmentTarget
             name: i
           operator: --
+          operation: decrement
+          position: postfix
         initialization(v1): PostfixExpression
           operand: SimpleIdentifier
             token: i
@@ -1459,10 +1469,12 @@ Block
             token: count
         rightSeparator: ;
         updaters2
-          PostfixIncrement
+          IncrementOrDecrementExpression
             target: UnqualifiedNameAssignmentTarget
               name: i
             operator: ++
+            operation: increment
+            position: postfix
         updaters(v1)
           PostfixExpression
             operand: SimpleIdentifier
@@ -1749,10 +1761,12 @@ Block
             token: count
         rightSeparator: ;
         updaters2
-          PostfixIncrement
+          IncrementOrDecrementExpression
             target: UnqualifiedNameAssignmentTarget
               name: i
             operator: ++
+            operation: increment
+            position: postfix
         updaters(v1)
           PostfixExpression
             operand: SimpleIdentifier
@@ -1805,10 +1819,12 @@ Block
             token: count
         rightSeparator: ;
         updaters2
-          PostfixIncrement
+          IncrementOrDecrementExpression
             target: UnqualifiedNameAssignmentTarget
               name: i
             operator: ++
+            operation: increment
+            position: postfix
         updaters(v1)
           PostfixExpression
             operand: SimpleIdentifier
@@ -1867,14 +1883,18 @@ Block
             token: j
         rightSeparator: ;
         updaters2
-          PostfixIncrement
+          IncrementOrDecrementExpression
             target: UnqualifiedNameAssignmentTarget
               name: i
             operator: ++
-          PostfixDecrement
+            operation: increment
+            position: postfix
+          IncrementOrDecrementExpression
             target: UnqualifiedNameAssignmentTarget
               name: j
             operator: --
+            operation: decrement
+            position: postfix
         updaters(v1)
           PostfixExpression
             operand: SimpleIdentifier
@@ -1937,14 +1957,18 @@ Block
             token: j
         rightSeparator: ;
         updaters2
-          PostfixIncrement
+          IncrementOrDecrementExpression
             target: UnqualifiedNameAssignmentTarget
               name: i
             operator: ++
-          PostfixDecrement
+            operation: increment
+            position: postfix
+          IncrementOrDecrementExpression
             target: UnqualifiedNameAssignmentTarget
               name: j
             operator: --
+            operation: decrement
+            position: postfix
         updaters(v1)
           PostfixExpression
             operand: SimpleIdentifier
@@ -1988,10 +2012,12 @@ Block
         leftSeparator: ;
         rightSeparator: ;
         updaters2
-          PostfixIncrement
+          IncrementOrDecrementExpression
             target: UnqualifiedNameAssignmentTarget
               name: i
             operator: ++
+            operation: increment
+            position: postfix
         updaters(v1)
           PostfixExpression
             operand: SimpleIdentifier
@@ -2031,10 +2057,12 @@ Block
         leftSeparator: ;
         rightSeparator: ;
         updaters2
-          PostfixIncrement
+          IncrementOrDecrementExpression
             target: UnqualifiedNameAssignmentTarget
               name: i
             operator: ++
+            operation: increment
+            position: postfix
         updaters(v1)
           PostfixExpression
             operand: SimpleIdentifier
@@ -2066,10 +2094,12 @@ Block
         leftSeparator: ;
         rightSeparator: ;
         updaters2
-          PostfixIncrement
+          IncrementOrDecrementExpression
             target: UnqualifiedNameAssignmentTarget
               name: i
             operator: ++
+            operation: increment
+            position: postfix
         updaters(v1)
           PostfixExpression
             operand: SimpleIdentifier
@@ -2101,10 +2131,12 @@ Block
         leftSeparator: ;
         rightSeparator: ;
         updaters2
-          PostfixIncrement
+          IncrementOrDecrementExpression
             target: UnqualifiedNameAssignmentTarget
               name: i
             operator: ++
+            operation: increment
+            position: postfix
         updaters(v1)
           PostfixExpression
             operand: SimpleIdentifier

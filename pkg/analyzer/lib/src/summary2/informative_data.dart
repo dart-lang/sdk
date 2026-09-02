@@ -2118,6 +2118,14 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitIncrementOrDecrementExpression(
+    IncrementOrDecrementExpression node,
+  ) {
+    _tokenOrNull(node.operator);
+    super.visitIncrementOrDecrementExpression(node);
+  }
+
+  @override
   void visitIndexExpression(IndexExpression node) {
     _tokenOrNull(node.leftBracket);
     _tokenOrNull(node.rightBracket);
@@ -2228,34 +2236,10 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitPostfixDecrement(PostfixDecrement node) {
-    _tokenOrNull(node.operator);
-    super.visitPostfixDecrement(node);
-  }
-
-  @override
-  void visitPostfixIncrement(PostfixIncrement node) {
-    _tokenOrNull(node.operator);
-    super.visitPostfixIncrement(node);
-  }
-
-  @override
-  void visitPrefixDecrement(PrefixDecrement node) {
-    _tokenOrNull(node.operator);
-    super.visitPrefixDecrement(node);
-  }
-
-  @override
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
     node.prefix.accept2(this);
     _tokenOrNull(node.period);
     node.identifier.accept2(this);
-  }
-
-  @override
-  void visitPrefixIncrement(PrefixIncrement node) {
-    _tokenOrNull(node.operator);
-    super.visitPrefixIncrement(node);
   }
 
   @override

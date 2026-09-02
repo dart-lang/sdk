@@ -61,6 +61,20 @@ class MixinSuperInvokedNamesCollector extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitIncrementOrDecrementExpression(
+    IncrementOrDecrementExpression node,
+  ) {
+    if (node.position == IncrementOrDecrementPosition.prefix) {
+      if (node.target case InvalidExpressionAssignmentTarget(
+        expression: SuperExpression(),
+      )) {
+        _names.add(node.operation.binaryOperatorName);
+      }
+    }
+    node.visitChildren2(this);
+  }
+
+  @override
   void visitIndexExpression(IndexExpression node) {
     if (node.target2 is SuperExpression) {
       if (node.inGetterContext()) {
@@ -79,16 +93,6 @@ class MixinSuperInvokedNamesCollector extends RecursiveAstVisitor2<void> {
       _names.add(node.methodName.name);
     }
     super.visitMethodInvocation(node);
-  }
-
-  @override
-  void visitPrefixDecrement(PrefixDecrement node) {
-    _visitPrefixIncrementOrDecrement(node, '-');
-  }
-
-  @override
-  void visitPrefixIncrement(PrefixIncrement node) {
-    _visitPrefixIncrementOrDecrement(node, '+');
   }
 
   @override
@@ -145,17 +149,5 @@ class MixinSuperInvokedNamesCollector extends RecursiveAstVisitor2<void> {
       if (ancestor is CascadeExpression) return ancestor.target2;
     }
     return null;
-  }
-
-  void _visitPrefixIncrementOrDecrement(
-    IncrementOrDecrementExpression node,
-    String operatorName,
-  ) {
-    if (node.target case InvalidExpressionAssignmentTarget(
-      expression: SuperExpression(),
-    )) {
-      _names.add(operatorName);
-    }
-    node.visitChildren2(this);
   }
 }

@@ -28852,6 +28852,9 @@ abstract final class IncrementOrDecrementExpression implements Expression {
   /// `null` if this node hasn't been resolved or no method was selected.
   MethodElement? get element;
 
+  /// The operation derived from [operator].
+  IncrementOrDecrementOperation get operation;
+
   /// The written `++` or `--` token.
   Token get operator;
 
@@ -28862,32 +28865,122 @@ abstract final class IncrementOrDecrementExpression implements Expression {
   /// complete expression produces the value read before the update.
   DartType? get operatorResultType;
 
+  /// Whether [operator] occurs before or after [target].
+  IncrementOrDecrementPosition get position;
+
   /// The location that is read and then written by this operation.
   AssignmentTarget get target;
 }
 
-abstract base class IncrementOrDecrementExpressionImpl extends ExpressionImpl
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [
+    GenerateNodeProperty('position'),
+    GenerateNodeProperty('operator'),
+    GenerateNodeProperty('target'),
+  ],
+)
+final class IncrementOrDecrementExpressionImpl extends ExpressionImpl
+    with DotShorthandMixin
     implements IncrementOrDecrementExpression {
+  @generated
+  @override
+  final IncrementOrDecrementPosition position;
+
+  @generated
+  @override
+  final Token operator;
+
+  @generated
+  AssignmentTargetImpl _target;
+
   @override
   InternalMethodElement? element;
 
   @override
-  final Token operator;
-
-  AssignmentTargetImpl _target;
-
-  @override
   TypeImpl? operatorResultType;
 
+  ExpressionImpl? _v1Projection;
+
+  @generated
   IncrementOrDecrementExpressionImpl({
+    required this.position,
     required this.operator,
     required AssignmentTargetImpl target,
   }) : _target = target {
     _becomeParentOf2(target);
   }
 
+  @DoNotGenerate(reason: 'The operator position determines the first token')
+  @override
+  Token get beginToken => switch (position) {
+    IncrementOrDecrementPosition.prefix => operator,
+    IncrementOrDecrementPosition.postfix => target.beginToken,
+  };
+
+  @DoNotGenerate(reason: 'The operator position determines the last token')
+  @override
+  Token get endToken => switch (position) {
+    IncrementOrDecrementPosition.prefix => target.endToken,
+    IncrementOrDecrementPosition.postfix => operator,
+  };
+
+  @override
+  IncrementOrDecrementOperation get operation => switch (operator.type) {
+    TokenType.PLUS_PLUS => IncrementOrDecrementOperation.increment,
+    TokenType.MINUS_MINUS => IncrementOrDecrementOperation.decrement,
+    _ => throw StateError(
+      'Unexpected increment or decrement operator ${operator.lexeme}',
+    ),
+  };
+
+  @override
+  Precedence get precedence => switch (position) {
+    IncrementOrDecrementPosition.prefix => Precedence.prefix,
+    IncrementOrDecrementPosition.postfix => Precedence.postfix,
+  };
+
+  @generated
   @override
   AssignmentTargetImpl get target => _target;
+
+  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  set target(AssignmentTargetImpl target) {
+    _target = _becomeParentOf2(target);
+    _attachV1ProjectionChildren();
+  }
+
+  ExpressionImpl get v1Projection => _v1Projection ??= switch (position) {
+    IncrementOrDecrementPosition.prefix =>
+      PrefixExpressionImpl.v1ProjectionFromIncrementOrDecrement(this),
+    IncrementOrDecrementPosition.postfix =>
+      PostfixExpressionImpl.v1ProjectionFromIncrementOrDecrement(this),
+  };
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @generated
+  @override
+  ChildEntities get _childEntities {
+    throw StateError(
+      'IncrementOrDecrementExpression is not in the V1 AST view.',
+    );
+  }
+
+  @DoNotGenerate(reason: 'The operator position determines source order')
+  @override
+  ChildEntities get _childEntities2 => switch (position) {
+    IncrementOrDecrementPosition.prefix =>
+      ChildEntities()
+        ..addToken('operator', operator)
+        ..addNode('target', target),
+    IncrementOrDecrementPosition.postfix =>
+      ChildEntities()
+        ..addNode('target', target)
+        ..addToken('operator', operator),
+  };
 
   ExpressionImpl get _legacyOperand => switch (target) {
     PropertyAssignmentTargetImpl target => target.propertyAccess,
@@ -28947,19 +29040,138 @@ abstract base class IncrementOrDecrementExpressionImpl extends ExpressionImpl
     return parameters[0];
   }
 
-  void _attachV1ProjectionChildren() {
-    switch (this) {
-      case PostfixDecrementImpl node:
-        node._postfixExpression?._attachV1Children();
-      case PostfixIncrementImpl node:
-        node._postfixExpression?._attachV1Children();
-      case PrefixDecrementImpl node:
-        node._prefixExpression?._attachV1Children();
-      case PrefixIncrementImpl node:
-        node._prefixExpression?._attachV1Children();
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError(
+      'IncrementOrDecrementExpression is not in the V1 AST view.',
+    );
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitIncrementOrDecrementExpression(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent2, this));
+    return false;
+  }
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    if (identical(target, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'target'.");
+    }
+    super.removeChild(oldNode);
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (identical(target, oldNode)) {
+      target = newNode as AssignmentTargetImpl;
+      return;
+    }
+    super.replaceChild(oldNode, newNode);
+  }
+
+  @DoNotGenerate(reason: 'Dispatches the canonical V2 node to the resolver')
+  @override
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+    resolver.visitIncrementOrDecrementExpression(
+      this,
+      contextType: contextType,
+    );
+  }
+
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError(
+      'IncrementOrDecrementExpression is not in the V1 AST view.',
+    );
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    target.accept2(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(
+    AstVisitor2 visitor, {
+    void Function(AssignmentTargetImpl)? visitTarget,
+  }) {
+    if (visitTarget != null) {
+      visitTarget(target);
+    } else {
+      target.accept2(visitor);
     }
   }
+
+  void _attachV1ProjectionChildren() {
+    switch (_v1Projection) {
+      case PrefixExpressionImpl projection:
+        projection._attachV1Children();
+      case PostfixExpressionImpl projection:
+        projection._attachV1Children();
+      case ExpressionImpl projection:
+        throw StateError('Unexpected V1 projection: $projection');
+      case null:
+        break;
+    }
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError(
+      'IncrementOrDecrementExpression is not in the V1 AST view.',
+    );
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (target._containsOffset(rangeOffset, rangeEnd)) {
+      return target;
+    }
+    return null;
+  }
 }
+
+/// The operation performed by an [IncrementOrDecrementExpression].
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+enum IncrementOrDecrementOperation {
+  increment('+'),
+  decrement('-');
+
+  /// The name of the binary operator implicitly invoked by this operation.
+  final String binaryOperatorName;
+
+  const IncrementOrDecrementOperation(this.binaryOperatorName);
+}
+
+/// The position of the operator in an [IncrementOrDecrementExpression].
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+enum IncrementOrDecrementPosition { prefix, postfix }
 
 /// An indexed location used as an assignment destination.
 @experimental
@@ -40852,166 +41064,12 @@ final class PatternVariableDeclarationStatementImpl extends StatementImpl
   }
 }
 
-/// A postfix decrement expression.
-@experimental
-@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-abstract final class PostfixDecrement
-    implements IncrementOrDecrementExpression {}
-
-@GenerateNodeImpl(
-  api: AstNodeApi.v2,
-  childEntitiesOrder: [
-    GenerateNodeProperty('target', isSuper: true),
-    GenerateNodeProperty('operator', isSuper: true),
-  ],
-)
-final class PostfixDecrementImpl extends IncrementOrDecrementExpressionImpl
-    with DotShorthandMixin
-    implements PostfixDecrement {
-  PostfixExpressionImpl? _postfixExpression;
-
-  @generated
-  PostfixDecrementImpl({required super.target, required super.operator});
-
-  @generated
-  @override
-  Token get beginToken {
-    return target.beginToken;
-  }
-
-  @generated
-  @override
-  Token get endToken {
-    return operator;
-  }
-
-  /// The cached V1 compatibility projection for this expression.
-  PostfixExpressionImpl get postfixExpression => _postfixExpression ??=
-      PostfixExpressionImpl.v1ProjectionFromIncrementOrDecrement(this);
-
-  @override
-  Precedence get precedence => Precedence.postfix;
-
-  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
-  set target(AssignmentTargetImpl target) {
-    _target = _becomeParentOf2(target);
-    _postfixExpression?._attachV1Children();
-  }
-
-  @generated
-  @override
-  AstNodeApi get _astNodeApi => AstNodeApi.v2;
-
-  @generated
-  @override
-  ChildEntities get _childEntities {
-    throw StateError('PostfixDecrement is not in the V1 AST view.');
-  }
-
-  @generated
-  @override
-  ChildEntities get _childEntities2 => ChildEntities()
-    ..addNode('target', target)
-    ..addToken('operator', operator);
-
-  @generated
-  @ToBeDeprecated('Use accept2 instead.')
-  @override
-  E? accept<E>(AstVisitor<E> visitor) {
-    throw StateError('PostfixDecrement is not in the V1 AST view.');
-  }
-
-  @generated
-  @experimental
-  @override
-  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitPostfixDecrement(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
-  void removeChild(AstNodeImpl oldNode) {
-    if (identical(target, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'target'.");
-    }
-    super.removeChild(oldNode);
-  }
-
-  @generated
-  @override
-  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(target, oldNode)) {
-      target = newNode as AssignmentTargetImpl;
-      return;
-    }
-    super.replaceChild(oldNode, newNode);
-  }
-
-  @DoNotGenerate(reason: 'Dispatches the canonical V2 node to the resolver')
-  @override
-  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
-    resolver.visitPostfixDecrement(this, contextType: contextType);
-  }
-
-  @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
-  @override
-  void visitChildren(AstVisitor visitor) {
-    throw StateError('PostfixDecrement is not in the V1 AST view.');
-  }
-
-  @generated
-  @experimental
-  @override
-  void visitChildren2(AstVisitor2 visitor) {
-    target.accept2(visitor);
-  }
-
-  /// Visits the children of this node.
-  ///
-  /// If a specific hook is provided for a child, it is called instead of
-  /// dispatching the [visitor] to the child. It is the responsibility of the
-  /// hook to visit the child.
-  @generated
-  @experimental
-  void visitChildrenWithHooks(
-    AstVisitor2 visitor, {
-    void Function(AssignmentTargetImpl)? visitTarget,
-  }) {
-    if (visitTarget != null) {
-      visitTarget(target);
-    } else {
-      target.accept2(visitor);
-    }
-  }
-
-  @generated
-  @override
-  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
-    throw StateError('PostfixDecrement is not in the V1 AST view.');
-  }
-
-  @generated
-  @override
-  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    if (target._containsOffset(rangeOffset, rangeEnd)) {
-      return target;
-    }
-    return null;
-  }
-}
-
 /// A postfix unary expression.
 ///
 ///    postfixExpression ::=
 ///        [Expression] [Token]
 @ToBeDeprecated(
-  'Use NullAssertionExpression, PostfixIncrement, or PostfixDecrement instead.',
+  'Use NullAssertionExpression or IncrementOrDecrementExpression instead.',
 )
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class PostfixExpression
@@ -41220,313 +41278,6 @@ final class PostfixExpressionImpl extends ExpressionImpl
   @override
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     throw StateError('PostfixExpression is not in the V2 AST view.');
-  }
-}
-
-/// A postfix increment expression.
-@experimental
-@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-abstract final class PostfixIncrement
-    implements IncrementOrDecrementExpression {}
-
-@GenerateNodeImpl(
-  api: AstNodeApi.v2,
-  childEntitiesOrder: [
-    GenerateNodeProperty('target', isSuper: true),
-    GenerateNodeProperty('operator', isSuper: true),
-  ],
-)
-final class PostfixIncrementImpl extends IncrementOrDecrementExpressionImpl
-    with DotShorthandMixin
-    implements PostfixIncrement {
-  PostfixExpressionImpl? _postfixExpression;
-
-  @generated
-  PostfixIncrementImpl({required super.target, required super.operator});
-
-  @generated
-  @override
-  Token get beginToken {
-    return target.beginToken;
-  }
-
-  @generated
-  @override
-  Token get endToken {
-    return operator;
-  }
-
-  /// The cached V1 compatibility projection for this expression.
-  PostfixExpressionImpl get postfixExpression => _postfixExpression ??=
-      PostfixExpressionImpl.v1ProjectionFromIncrementOrDecrement(this);
-
-  @override
-  Precedence get precedence => Precedence.postfix;
-
-  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
-  set target(AssignmentTargetImpl target) {
-    _target = _becomeParentOf2(target);
-    _postfixExpression?._attachV1Children();
-  }
-
-  @generated
-  @override
-  AstNodeApi get _astNodeApi => AstNodeApi.v2;
-
-  @generated
-  @override
-  ChildEntities get _childEntities {
-    throw StateError('PostfixIncrement is not in the V1 AST view.');
-  }
-
-  @generated
-  @override
-  ChildEntities get _childEntities2 => ChildEntities()
-    ..addNode('target', target)
-    ..addToken('operator', operator);
-
-  @generated
-  @ToBeDeprecated('Use accept2 instead.')
-  @override
-  E? accept<E>(AstVisitor<E> visitor) {
-    throw StateError('PostfixIncrement is not in the V1 AST view.');
-  }
-
-  @generated
-  @experimental
-  @override
-  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitPostfixIncrement(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
-  void removeChild(AstNodeImpl oldNode) {
-    if (identical(target, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'target'.");
-    }
-    super.removeChild(oldNode);
-  }
-
-  @generated
-  @override
-  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(target, oldNode)) {
-      target = newNode as AssignmentTargetImpl;
-      return;
-    }
-    super.replaceChild(oldNode, newNode);
-  }
-
-  @DoNotGenerate(reason: 'Dispatches the canonical V2 node to the resolver')
-  @override
-  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
-    resolver.visitPostfixIncrement(this, contextType: contextType);
-  }
-
-  @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
-  @override
-  void visitChildren(AstVisitor visitor) {
-    throw StateError('PostfixIncrement is not in the V1 AST view.');
-  }
-
-  @generated
-  @experimental
-  @override
-  void visitChildren2(AstVisitor2 visitor) {
-    target.accept2(visitor);
-  }
-
-  /// Visits the children of this node.
-  ///
-  /// If a specific hook is provided for a child, it is called instead of
-  /// dispatching the [visitor] to the child. It is the responsibility of the
-  /// hook to visit the child.
-  @generated
-  @experimental
-  void visitChildrenWithHooks(
-    AstVisitor2 visitor, {
-    void Function(AssignmentTargetImpl)? visitTarget,
-  }) {
-    if (visitTarget != null) {
-      visitTarget(target);
-    } else {
-      target.accept2(visitor);
-    }
-  }
-
-  @generated
-  @override
-  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
-    throw StateError('PostfixIncrement is not in the V1 AST view.');
-  }
-
-  @generated
-  @override
-  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    if (target._containsOffset(rangeOffset, rangeEnd)) {
-      return target;
-    }
-    return null;
-  }
-}
-
-/// A prefix decrement expression.
-@experimental
-@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-abstract final class PrefixDecrement
-    implements IncrementOrDecrementExpression {}
-
-@GenerateNodeImpl(
-  api: AstNodeApi.v2,
-  childEntitiesOrder: [
-    GenerateNodeProperty('operator', isSuper: true),
-    GenerateNodeProperty('target', isSuper: true),
-  ],
-)
-final class PrefixDecrementImpl extends IncrementOrDecrementExpressionImpl
-    implements PrefixDecrement {
-  PrefixExpressionImpl? _prefixExpression;
-
-  @generated
-  PrefixDecrementImpl({required super.operator, required super.target});
-
-  @generated
-  @override
-  Token get beginToken {
-    return operator;
-  }
-
-  @generated
-  @override
-  Token get endToken {
-    return target.endToken;
-  }
-
-  @override
-  Precedence get precedence => Precedence.prefix;
-
-  /// The cached V1 compatibility projection for this expression.
-  PrefixExpressionImpl get prefixExpression => _prefixExpression ??=
-      PrefixExpressionImpl.v1ProjectionFromIncrementOrDecrement(this);
-
-  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
-  set target(AssignmentTargetImpl target) {
-    _target = _becomeParentOf2(target);
-    _prefixExpression?._attachV1Children();
-  }
-
-  @generated
-  @override
-  AstNodeApi get _astNodeApi => AstNodeApi.v2;
-
-  @generated
-  @override
-  ChildEntities get _childEntities {
-    throw StateError('PrefixDecrement is not in the V1 AST view.');
-  }
-
-  @generated
-  @override
-  ChildEntities get _childEntities2 => ChildEntities()
-    ..addToken('operator', operator)
-    ..addNode('target', target);
-
-  @generated
-  @ToBeDeprecated('Use accept2 instead.')
-  @override
-  E? accept<E>(AstVisitor<E> visitor) {
-    throw StateError('PrefixDecrement is not in the V1 AST view.');
-  }
-
-  @generated
-  @experimental
-  @override
-  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitPrefixDecrement(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
-  void removeChild(AstNodeImpl oldNode) {
-    if (identical(target, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'target'.");
-    }
-    super.removeChild(oldNode);
-  }
-
-  @generated
-  @override
-  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(target, oldNode)) {
-      target = newNode as AssignmentTargetImpl;
-      return;
-    }
-    super.replaceChild(oldNode, newNode);
-  }
-
-  @DoNotGenerate(reason: 'Dispatches the canonical V2 node to the resolver')
-  @override
-  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
-    resolver.visitPrefixDecrement(this, contextType: contextType);
-  }
-
-  @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
-  @override
-  void visitChildren(AstVisitor visitor) {
-    throw StateError('PrefixDecrement is not in the V1 AST view.');
-  }
-
-  @generated
-  @experimental
-  @override
-  void visitChildren2(AstVisitor2 visitor) {
-    target.accept2(visitor);
-  }
-
-  /// Visits the children of this node.
-  ///
-  /// If a specific hook is provided for a child, it is called instead of
-  /// dispatching the [visitor] to the child. It is the responsibility of the
-  /// hook to visit the child.
-  @generated
-  @experimental
-  void visitChildrenWithHooks(
-    AstVisitor2 visitor, {
-    void Function(AssignmentTargetImpl)? visitTarget,
-  }) {
-    if (visitTarget != null) {
-      visitTarget(target);
-    } else {
-      target.accept2(visitor);
-    }
-  }
-
-  @generated
-  @override
-  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
-    throw StateError('PrefixDecrement is not in the V1 AST view.');
-  }
-
-  @generated
-  @override
-  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    if (target._containsOffset(rangeOffset, rangeEnd)) {
-      return target;
-    }
-    return null;
   }
 }
 
@@ -41769,8 +41520,8 @@ final class PrefixedIdentifierImpl extends IdentifierImpl
 ///    prefixExpression ::=
 ///        [Token] [Expression]
 @ToBeDeprecated(
-  'Use LogicalNot, UnaryOperatorInvocation, PrefixIncrement, or '
-  'PrefixDecrement instead.',
+  'Use LogicalNot, UnaryOperatorInvocation, or '
+  'IncrementOrDecrementExpression instead.',
 )
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class PrefixExpression
@@ -41991,159 +41742,6 @@ final class PrefixExpressionImpl extends ExpressionImpl
   @override
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     throw StateError('PrefixExpression is not in the V2 AST view.');
-  }
-}
-
-/// A prefix increment expression.
-@experimental
-@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-abstract final class PrefixIncrement
-    implements IncrementOrDecrementExpression {}
-
-@GenerateNodeImpl(
-  api: AstNodeApi.v2,
-  childEntitiesOrder: [
-    GenerateNodeProperty('operator', isSuper: true),
-    GenerateNodeProperty('target', isSuper: true),
-  ],
-)
-final class PrefixIncrementImpl extends IncrementOrDecrementExpressionImpl
-    implements PrefixIncrement {
-  PrefixExpressionImpl? _prefixExpression;
-
-  @generated
-  PrefixIncrementImpl({required super.operator, required super.target});
-
-  @generated
-  @override
-  Token get beginToken {
-    return operator;
-  }
-
-  @generated
-  @override
-  Token get endToken {
-    return target.endToken;
-  }
-
-  @override
-  Precedence get precedence => Precedence.prefix;
-
-  /// The cached V1 compatibility projection for this expression.
-  PrefixExpressionImpl get prefixExpression => _prefixExpression ??=
-      PrefixExpressionImpl.v1ProjectionFromIncrementOrDecrement(this);
-
-  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
-  set target(AssignmentTargetImpl target) {
-    _target = _becomeParentOf2(target);
-    _prefixExpression?._attachV1Children();
-  }
-
-  @generated
-  @override
-  AstNodeApi get _astNodeApi => AstNodeApi.v2;
-
-  @generated
-  @override
-  ChildEntities get _childEntities {
-    throw StateError('PrefixIncrement is not in the V1 AST view.');
-  }
-
-  @generated
-  @override
-  ChildEntities get _childEntities2 => ChildEntities()
-    ..addToken('operator', operator)
-    ..addNode('target', target);
-
-  @generated
-  @ToBeDeprecated('Use accept2 instead.')
-  @override
-  E? accept<E>(AstVisitor<E> visitor) {
-    throw StateError('PrefixIncrement is not in the V1 AST view.');
-  }
-
-  @generated
-  @experimental
-  @override
-  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitPrefixIncrement(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
-  void removeChild(AstNodeImpl oldNode) {
-    if (identical(target, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'target'.");
-    }
-    super.removeChild(oldNode);
-  }
-
-  @generated
-  @override
-  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(target, oldNode)) {
-      target = newNode as AssignmentTargetImpl;
-      return;
-    }
-    super.replaceChild(oldNode, newNode);
-  }
-
-  @DoNotGenerate(reason: 'Dispatches the canonical V2 node to the resolver')
-  @override
-  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
-    resolver.visitPrefixIncrement(this, contextType: contextType);
-  }
-
-  @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
-  @override
-  void visitChildren(AstVisitor visitor) {
-    throw StateError('PrefixIncrement is not in the V1 AST view.');
-  }
-
-  @generated
-  @experimental
-  @override
-  void visitChildren2(AstVisitor2 visitor) {
-    target.accept2(visitor);
-  }
-
-  /// Visits the children of this node.
-  ///
-  /// If a specific hook is provided for a child, it is called instead of
-  /// dispatching the [visitor] to the child. It is the responsibility of the
-  /// hook to visit the child.
-  @generated
-  @experimental
-  void visitChildrenWithHooks(
-    AstVisitor2 visitor, {
-    void Function(AssignmentTargetImpl)? visitTarget,
-  }) {
-    if (visitTarget != null) {
-      visitTarget(target);
-    } else {
-      target.accept2(visitor);
-    }
-  }
-
-  @generated
-  @override
-  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
-    throw StateError('PrefixIncrement is not in the V1 AST view.');
-  }
-
-  @generated
-  @override
-  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    if (target._containsOffset(rangeOffset, rangeEnd)) {
-      return target;
-    }
-    return null;
   }
 }
 
@@ -54302,17 +53900,8 @@ enum V1Projection {
     if (node is NullAssertionExpressionImpl) {
       return createIfAbsent ? node.postfixExpression : node._postfixExpression;
     }
-    if (node is PostfixDecrementImpl) {
-      return createIfAbsent ? node.postfixExpression : node._postfixExpression;
-    }
-    if (node is PostfixIncrementImpl) {
-      return createIfAbsent ? node.postfixExpression : node._postfixExpression;
-    }
-    if (node is PrefixDecrementImpl) {
-      return createIfAbsent ? node.prefixExpression : node._prefixExpression;
-    }
-    if (node is PrefixIncrementImpl) {
-      return createIfAbsent ? node.prefixExpression : node._prefixExpression;
+    if (node is IncrementOrDecrementExpressionImpl) {
+      return createIfAbsent ? node.v1Projection : node._v1Projection;
     }
     if (node is ReceiverMethodInvocationImpl) {
       return createIfAbsent ? node.methodInvocation : node._methodInvocation;

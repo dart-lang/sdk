@@ -3515,7 +3515,7 @@ int f() {
   $code;
 }
 ''');
-    var node = parseResult.findNode.singlePostfixIncrement;
+    var node = parseResult.findNode.singleIncrementOrDecrement;
     _assertSource(code, node);
   }
 

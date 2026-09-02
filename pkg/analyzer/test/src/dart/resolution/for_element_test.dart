@@ -1203,7 +1203,7 @@ ForElement
       staticType: dynamic
     rightSeparator: ;
     updaters2
-      PostfixIncrement
+      IncrementOrDecrementExpression
         target: UnqualifiedNameAssignmentTarget
           name: i
           read: VariableReadResolution
@@ -1213,6 +1213,8 @@ ForElement
             element: i@28
             acceptedType: dynamic
         operator: ++
+        operation: increment
+        position: postfix
         element: <null>
         operatorResultType: dynamic
         staticType: dynamic
@@ -1292,7 +1294,7 @@ ForElement
       staticType: bool
     rightSeparator: ;
     updaters2
-      PrefixIncrement
+      IncrementOrDecrementExpression
         operator: ++
         target: UnqualifiedNameAssignmentTarget
           name: i2
@@ -1302,6 +1304,8 @@ ForElement
           write: VariableWriteResolution
             element: i2@28
             acceptedType: int
+        operation: increment
+        position: prefix
         element: dart:core::@class::num::@method::+
         operatorResultType: int
         staticType: int
@@ -1390,7 +1394,7 @@ ForElement
       staticType: bool
     rightSeparator: ;
     updaters2
-      PostfixIncrement
+      IncrementOrDecrementExpression
         target: UnqualifiedNameAssignmentTarget
           name: j
           read: VariableReadResolution
@@ -1400,6 +1404,8 @@ ForElement
             element: j@30
             acceptedType: int
         operator: ++
+        operation: increment
+        position: postfix
         element: dart:core::@class::num::@method::+
         operatorResultType: int
         staticType: int
@@ -1550,7 +1556,7 @@ ForElement
       staticType: bool
     rightSeparator: ;
     updaters2
-      PostfixDecrement
+      IncrementOrDecrementExpression
         target: UnqualifiedNameAssignmentTarget
           name: a
           read: VariableReadResolution
@@ -1560,6 +1566,8 @@ ForElement
             element: a@37
             acceptedType: int
         operator: --
+        operation: decrement
+        position: postfix
         element: dart:core::@class::num::@method::-
         operatorResultType: int
         staticType: int
@@ -1633,7 +1641,7 @@ ForElement
       staticType: bool
     rightSeparator: ;
     updaters2
-      PostfixDecrement
+      IncrementOrDecrementExpression
         target: UnqualifiedNameAssignmentTarget
           name: a
           read: VariableReadResolution
@@ -1643,6 +1651,8 @@ ForElement
             element: a@37
             acceptedType: int
         operator: --
+        operation: decrement
+        position: postfix
         element: dart:core::@class::num::@method::-
         operatorResultType: int
         staticType: int
@@ -1715,7 +1725,7 @@ ForElement
       staticType: InvalidType
     rightSeparator: ;
     updaters2
-      PostfixDecrement
+      IncrementOrDecrementExpression
         target: UnqualifiedNameAssignmentTarget
           name: a
           read: VariableReadResolution
@@ -1725,6 +1735,8 @@ ForElement
             element: a@37
             acceptedType: InvalidType
         operator: --
+        operation: decrement
+        position: postfix
         element: <null>
         operatorResultType: dynamic
         staticType: InvalidType
@@ -1797,7 +1809,7 @@ ForElement
       staticType: bool
     rightSeparator: ;
     updaters2
-      PostfixDecrement
+      IncrementOrDecrementExpression
         target: UnqualifiedNameAssignmentTarget
           name: a2
           read: VariableReadResolution
@@ -1807,6 +1819,8 @@ ForElement
             element: a2@37
             acceptedType: int
         operator: --
+        operation: decrement
+        position: postfix
         element: dart:core::@class::num::@method::-
         operatorResultType: int
         staticType: int

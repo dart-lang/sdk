@@ -1449,9 +1449,9 @@ void f() {
   b++;
 }
 ''');
-    _assertReplacementForChildren<PostfixIncrement>(
-      destination: parseResult.findNode.postfixIncrement('a++'),
-      source: parseResult.findNode.postfixIncrement('b++'),
+    _assertReplacementForChildren<IncrementOrDecrementExpression>(
+      destination: parseResult.findNode.incrementOrDecrement('a++'),
+      source: parseResult.findNode.incrementOrDecrement('b++'),
       childAccessors: [(node) => node.target],
     );
   }
@@ -1477,9 +1477,9 @@ void f() {
   ++b;
 }
 ''');
-    _assertReplacementForChildren<PrefixIncrement>(
-      destination: parseResult.findNode.prefixIncrement('++a'),
-      source: parseResult.findNode.prefixIncrement('++b'),
+    _assertReplacementForChildren<IncrementOrDecrementExpression>(
+      destination: parseResult.findNode.incrementOrDecrement('++a'),
+      source: parseResult.findNode.incrementOrDecrement('++b'),
       childAccessors: [(node) => node.target],
     );
   }

@@ -1237,6 +1237,15 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitIncrementOrDecrementExpression(
+    IncrementOrDecrementExpression node,
+  ) {
+    _readAssignmentTarget(node.target);
+    node.visitChildren2(this);
+    _writeAssignmentTarget(node.target);
+  }
+
+  @override
   void visitLogicalAnd(LogicalAnd node) {
     node.leftOperand.accept2(this);
     assignedVariables.beginNode();
@@ -1257,26 +1266,6 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
       assignedVariables.declare(variable);
     }
     super.visitPatternVariableDeclaration(node);
-  }
-
-  @override
-  void visitPostfixDecrement(PostfixDecrement node) {
-    _visitIncrementOrDecrementExpression(node);
-  }
-
-  @override
-  void visitPostfixIncrement(PostfixIncrement node) {
-    _visitIncrementOrDecrementExpression(node);
-  }
-
-  @override
-  void visitPrefixDecrement(PrefixDecrement node) {
-    _visitIncrementOrDecrementExpression(node);
-  }
-
-  @override
-  void visitPrefixIncrement(PrefixIncrement node) {
-    _visitIncrementOrDecrementExpression(node);
   }
 
   @override
@@ -1461,14 +1450,6 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
       assignedVariables.endNode(node);
       node.ifFalse2?.accept2(this);
     }
-  }
-
-  void _visitIncrementOrDecrementExpression(
-    IncrementOrDecrementExpression node,
-  ) {
-    _readAssignmentTarget(node.target);
-    node.visitChildren2(this);
-    _writeAssignmentTarget(node.target);
   }
 
   void _writeAssignmentTarget(AssignmentTarget target) {

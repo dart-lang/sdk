@@ -663,6 +663,9 @@ abstract class AstVisitor2<R> {
 
   R? visitImportPrefixReference(ImportPrefixReference node);
 
+  @experimental
+  R? visitIncrementOrDecrementExpression(IncrementOrDecrementExpression node);
+
   R? visitIndexExpression(IndexExpression node);
 
   R? visitIntegerLiteral(IntegerLiteral node);
@@ -766,19 +769,7 @@ abstract class AstVisitor2<R> {
     PatternVariableDeclarationStatement node,
   );
 
-  @experimental
-  R? visitPostfixDecrement(PostfixDecrement node);
-
-  @experimental
-  R? visitPostfixIncrement(PostfixIncrement node);
-
-  @experimental
-  R? visitPrefixDecrement(PrefixDecrement node);
-
   R? visitPrefixedIdentifier(PrefixedIdentifier node);
-
-  @experimental
-  R? visitPrefixIncrement(PrefixIncrement node);
 
   R? visitPrimaryConstructorBody(PrimaryConstructorBody node);
 

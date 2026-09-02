@@ -1668,6 +1668,65 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   @override
+  void visitIncrementOrDecrementExpression(
+    covariant IncrementOrDecrementExpressionImpl node,
+  ) {
+    if (node.target case UnqualifiedNameAssignmentTarget(
+      :var read,
+      :var write,
+    )) {
+      _checkForUnqualifiedReferenceToNonLocalStaticMember2(
+        entity: node.target,
+        element: switch (write) {
+          NamedWriteResolutionWithElement(:var element) => element,
+          _ => switch (read) {
+            NamedReadResolutionWithElement(:var element) => element,
+            _ => null,
+          },
+        },
+      );
+    }
+    var writeElement = switch (node.target) {
+      IndexAssignmentTarget(write: MethodIndexWriteResolution(:var element)) =>
+        element,
+      PropertyAssignmentTarget(
+        write: NamedWriteResolutionWithElement(:var element),
+      ) ||
+      UnqualifiedNameAssignmentTarget(
+        write: NamedWriteResolutionWithElement(:var element),
+      ) => element,
+      _ => null,
+    };
+    if (node.target case UnqualifiedNameAssignmentTarget(
+      :var name,
+      :var read,
+    )) {
+      var readElement = switch (read) {
+        NamedReadResolutionWithElement(:var element) => element,
+        _ => null,
+      };
+      for (var element in {readElement, writeElement}) {
+        _checkForReferenceBeforeDeclaration(element: element, nameToken: name);
+      }
+    }
+    _checkForAssignmentToPrimaryConstructorParameter(
+      node.target,
+      element: writeElement,
+    );
+    var readType = switch (node.target) {
+      IndexAssignmentTarget(:var read) => read?.type,
+      PropertyAssignmentTarget(:var read) => read?.type,
+      UnqualifiedNameAssignmentTarget(:var read) => read?.type,
+      _ => null,
+    };
+    if (node.position == IncrementOrDecrementPosition.prefix &&
+        readType is VoidType) {
+      diagnosticReporter.report(diag.useOfVoidResult.at(node.target));
+    }
+    node.visitChildren2(this);
+  }
+
+  @override
   void visitIndexExpression(IndexExpression node) {
     // Note: `node.isNullAware` produces the wrong behavior because it considers
     // all sections of a null-aware cascade to be null-aware, so it's necessary
@@ -1985,21 +2044,6 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   @override
-  void visitPostfixDecrement(covariant PostfixDecrementImpl node) {
-    _visitIncrementOrDecrement(node, isPrefix: false);
-  }
-
-  @override
-  void visitPostfixIncrement(covariant PostfixIncrementImpl node) {
-    _visitIncrementOrDecrement(node, isPrefix: false);
-  }
-
-  @override
-  void visitPrefixDecrement(covariant PrefixDecrementImpl node) {
-    _visitIncrementOrDecrement(node, isPrefix: true);
-  }
-
-  @override
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
     _constArgumentsVerifier.visitPrefixedIdentifier(node);
     if (node.parent2 is! Annotation) {
@@ -2009,11 +2053,6 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       _checkForInstanceAccessToStaticMember(typeReference, node.prefix, name);
     }
     super.visitPrefixedIdentifier(node);
-  }
-
-  @override
-  void visitPrefixIncrement(covariant PrefixIncrementImpl node) {
-    _visitIncrementOrDecrement(node, isPrefix: true);
   }
 
   @override
@@ -8943,64 +8982,6 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     _requiredParametersVerifier.verifyNamedFunctionInvocation(node);
     _constArgumentsVerifier.verifyNamedFunctionInvocation(node);
     _checkUseVerifier.checkNamedFunctionInvocation(node);
-  }
-
-  void _visitIncrementOrDecrement(
-    IncrementOrDecrementExpressionImpl node, {
-    required bool isPrefix,
-  }) {
-    if (node.target case UnqualifiedNameAssignmentTarget(
-      :var read,
-      :var write,
-    )) {
-      _checkForUnqualifiedReferenceToNonLocalStaticMember2(
-        entity: node.target,
-        element: switch (write) {
-          NamedWriteResolutionWithElement(:var element) => element,
-          _ => switch (read) {
-            NamedReadResolutionWithElement(:var element) => element,
-            _ => null,
-          },
-        },
-      );
-    }
-    var writeElement = switch (node.target) {
-      IndexAssignmentTarget(write: MethodIndexWriteResolution(:var element)) =>
-        element,
-      PropertyAssignmentTarget(
-        write: NamedWriteResolutionWithElement(:var element),
-      ) ||
-      UnqualifiedNameAssignmentTarget(
-        write: NamedWriteResolutionWithElement(:var element),
-      ) => element,
-      _ => null,
-    };
-    if (node.target case UnqualifiedNameAssignmentTarget(
-      :var name,
-      :var read,
-    )) {
-      var readElement = switch (read) {
-        NamedReadResolutionWithElement(:var element) => element,
-        _ => null,
-      };
-      for (var element in {readElement, writeElement}) {
-        _checkForReferenceBeforeDeclaration(element: element, nameToken: name);
-      }
-    }
-    _checkForAssignmentToPrimaryConstructorParameter(
-      node.target,
-      element: writeElement,
-    );
-    var readType = switch (node.target) {
-      IndexAssignmentTarget(:var read) => read?.type,
-      PropertyAssignmentTarget(:var read) => read?.type,
-      UnqualifiedNameAssignmentTarget(:var read) => read?.type,
-      _ => null,
-    };
-    if (isPrefix && readType is VoidType) {
-      diagnosticReporter.report(diag.useOfVoidResult.at(node.target));
-    }
-    node.visitChildren2(this);
   }
 
   void _withEnclosingExecutable(

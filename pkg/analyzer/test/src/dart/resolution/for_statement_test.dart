@@ -2470,7 +2470,7 @@ BlockFunctionBody
             staticType: bool
           rightSeparator: ;
           updaters2
-            PostfixIncrement
+            IncrementOrDecrementExpression
               target: UnqualifiedNameAssignmentTarget
                 name: i
                 read: VariableReadResolution
@@ -2480,6 +2480,8 @@ BlockFunctionBody
                   element: i@27
                   acceptedType: int
               operator: ++
+              operation: increment
+              position: postfix
               element: dart:core::@class::num::@method::+
               operatorResultType: int
               staticType: int
@@ -2567,7 +2569,7 @@ ForStatement
       staticType: bool
     rightSeparator: ;
     updaters2
-      PrefixIncrement
+      IncrementOrDecrementExpression
         operator: ++
         target: UnqualifiedNameAssignmentTarget
           name: i
@@ -2577,6 +2579,8 @@ ForStatement
           write: VariableWriteResolution
             element: i@33
             acceptedType: int
+        operation: increment
+        position: prefix
         element: dart:core::@class::num::@method::+
         operatorResultType: int
         staticType: int
@@ -2676,7 +2680,7 @@ ForStatement
       staticType: bool
     rightSeparator: ;
     updaters2
-      PostfixIncrement
+      IncrementOrDecrementExpression
         target: UnqualifiedNameAssignmentTarget
           name: i
           read: VariableReadResolution
@@ -2686,6 +2690,8 @@ ForStatement
             element: i@22
             acceptedType: int
         operator: ++
+        operation: increment
+        position: postfix
         element: dart:core::@class::num::@method::+
         operatorResultType: int
         staticType: int
@@ -2775,7 +2781,7 @@ ForStatement
       staticType: dynamic
     rightSeparator: ;
     updaters2
-      PostfixIncrement
+      IncrementOrDecrementExpression
         target: UnqualifiedNameAssignmentTarget
           name: i
           read: VariableReadResolution
@@ -2785,6 +2791,8 @@ ForStatement
             element: i@27
             acceptedType: dynamic
         operator: ++
+        operation: increment
+        position: postfix
         element: <null>
         operatorResultType: dynamic
         staticType: dynamic
@@ -2863,7 +2871,7 @@ ForStatement
       staticType: bool
     rightSeparator: ;
     updaters2
-      PrefixIncrement
+      IncrementOrDecrementExpression
         operator: ++
         target: UnqualifiedNameAssignmentTarget
           name: i2
@@ -2873,6 +2881,8 @@ ForStatement
           write: VariableWriteResolution
             element: i2@27
             acceptedType: int
+        operation: increment
+        position: prefix
         element: dart:core::@class::num::@method::+
         operatorResultType: int
         staticType: int
@@ -2960,7 +2970,7 @@ ForStatement
       staticType: bool
     rightSeparator: ;
     updaters2
-      PostfixIncrement
+      IncrementOrDecrementExpression
         target: UnqualifiedNameAssignmentTarget
           name: j
           read: VariableReadResolution
@@ -2970,6 +2980,8 @@ ForStatement
             element: j@29
             acceptedType: int
         operator: ++
+        operation: increment
+        position: postfix
         element: dart:core::@class::num::@method::+
         operatorResultType: int
         staticType: int
@@ -3135,7 +3147,7 @@ ForStatement
       staticType: bool
     rightSeparator: ;
     updaters2
-      PostfixIncrement
+      IncrementOrDecrementExpression
         target: UnqualifiedNameAssignmentTarget
           name: i
           read: VariableReadResolution
@@ -3145,6 +3157,8 @@ ForStatement
             element: i@17
             acceptedType: int
         operator: ++
+        operation: increment
+        position: postfix
         element: dart:core::@class::num::@method::+
         operatorResultType: int
         staticType: int
@@ -3295,7 +3309,7 @@ ForStatement
       staticType: bool
     rightSeparator: ;
     updaters2
-      PostfixIncrement
+      IncrementOrDecrementExpression
         target: UnqualifiedNameAssignmentTarget
           name: a
           read: VariableReadResolution
@@ -3305,6 +3319,8 @@ ForStatement
             element: a@35
             acceptedType: int
         operator: ++
+        operation: increment
+        position: postfix
         element: dart:core::@class::num::@method::+
         operatorResultType: int
         staticType: int
@@ -3411,7 +3427,7 @@ ForStatement
       staticType: bool
     rightSeparator: ;
     updaters2
-      PostfixIncrement
+      IncrementOrDecrementExpression
         target: UnqualifiedNameAssignmentTarget
           name: a
           read: VariableReadResolution
@@ -3421,6 +3437,8 @@ ForStatement
             element: a@40
             acceptedType: int
         operator: ++
+        operation: increment
+        position: postfix
         element: dart:core::@class::num::@method::+
         operatorResultType: int
         staticType: int
@@ -3505,7 +3523,7 @@ BlockFunctionBody
             staticType: bool
           rightSeparator: ;
           updaters2
-            PostfixDecrement
+            IncrementOrDecrementExpression
               target: UnqualifiedNameAssignmentTarget
                 name: a
                 read: VariableReadResolution
@@ -3515,6 +3533,8 @@ BlockFunctionBody
                   element: a@43
                   acceptedType: int
               operator: --
+              operation: decrement
+              position: postfix
               element: dart:core::@class::num::@method::-
               operatorResultType: int
               staticType: int
@@ -3597,7 +3617,7 @@ ForStatement
       staticType: bool
     rightSeparator: ;
     updaters2
-      PostfixDecrement
+      IncrementOrDecrementExpression
         target: UnqualifiedNameAssignmentTarget
           name: a
           read: VariableReadResolution
@@ -3607,6 +3627,8 @@ ForStatement
             element: a@36
             acceptedType: int
         operator: --
+        operation: decrement
+        position: postfix
         element: dart:core::@class::num::@method::-
         operatorResultType: int
         staticType: int
@@ -3701,7 +3723,7 @@ ForStatement
       staticType: bool
     rightSeparator: ;
     updaters2
-      PostfixDecrement
+      IncrementOrDecrementExpression
         target: UnqualifiedNameAssignmentTarget
           name: a
           read: VariableReadResolution
@@ -3711,6 +3733,8 @@ ForStatement
             element: a@36
             acceptedType: int
         operator: --
+        operation: decrement
+        position: postfix
         element: dart:core::@class::num::@method::-
         operatorResultType: int
         staticType: int
@@ -3793,7 +3817,7 @@ ForStatement
       staticType: bool
     rightSeparator: ;
     updaters2
-      PostfixDecrement
+      IncrementOrDecrementExpression
         target: UnqualifiedNameAssignmentTarget
           name: a
           read: VariableReadResolution
@@ -3803,6 +3827,8 @@ ForStatement
             element: a@36
             acceptedType: int
         operator: --
+        operation: decrement
+        position: postfix
         element: dart:core::@class::num::@method::-
         operatorResultType: int
         staticType: int
@@ -3889,7 +3915,7 @@ ForStatement
       staticType: InvalidType
     rightSeparator: ;
     updaters2
-      PostfixDecrement
+      IncrementOrDecrementExpression
         target: UnqualifiedNameAssignmentTarget
           name: a
           read: VariableReadResolution
@@ -3899,6 +3925,8 @@ ForStatement
             element: a@36
             acceptedType: InvalidType
         operator: --
+        operation: decrement
+        position: postfix
         element: <null>
         operatorResultType: dynamic
         staticType: InvalidType
@@ -3986,7 +4014,7 @@ ForStatement
       staticType: bool
     rightSeparator: ;
     updaters2
-      PostfixIncrement
+      IncrementOrDecrementExpression
         target: UnqualifiedNameAssignmentTarget
           name: a
           read: VariableReadResolution
@@ -3996,6 +4024,8 @@ ForStatement
             element: a@23
             acceptedType: int
         operator: ++
+        operation: increment
+        position: postfix
         element: dart:core::@class::num::@method::+
         operatorResultType: int
         staticType: int

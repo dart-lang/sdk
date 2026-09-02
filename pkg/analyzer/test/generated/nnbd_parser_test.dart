@@ -779,10 +779,12 @@ Block
             literal: 7
         rightSeparator: ;
         updaters2
-          PrefixIncrement
+          IncrementOrDecrementExpression
             operator: ++
             target: UnqualifiedNameAssignmentTarget
               name: x
+            operation: increment
+            position: prefix
         updaters(v1)
           PrefixExpression
             operator: ++
@@ -856,10 +858,12 @@ Block
             literal: 10
         rightSeparator: ;
         updaters2
-          PrefixIncrement
+          IncrementOrDecrementExpression
             operator: ++
             target: UnqualifiedNameAssignmentTarget
               name: y
+            operation: increment
+            position: prefix
         updaters(v1)
           PrefixExpression
             operator: ++
@@ -914,10 +918,12 @@ Block
             literal: 7
         rightSeparator: ;
         updaters2
-          PrefixIncrement
+          IncrementOrDecrementExpression
             operator: ++
             target: UnqualifiedNameAssignmentTarget
               name: x
+            operation: increment
+            position: prefix
         updaters(v1)
           PrefixExpression
             operator: ++
@@ -3473,10 +3479,12 @@ Block
   statements
     ExpressionStatement
       expression2: NullAssertionExpression
-        operand: PostfixIncrement
+        operand: IncrementOrDecrementExpression
           target: UnqualifiedNameAssignmentTarget
             name: x
           operator: ++
+          operation: increment
+          position: postfix
         operator: !
       expression(v1): PostfixExpression
         operand: PostfixExpression

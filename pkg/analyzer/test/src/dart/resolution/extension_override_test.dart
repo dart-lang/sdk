@@ -1172,9 +1172,9 @@ f(){
 }
 ''');
 
-    var node = result.findNode.postfixIncrement('++;');
+    var node = result.findNode.incrementOrDecrement('++;');
     assertResolvedNodeText(node, r'''
-PostfixIncrement
+IncrementOrDecrementExpression
   target: ReceiverPropertyAssignmentTarget
     receiver: ExtensionOverride
       name: E
@@ -1200,6 +1200,8 @@ PostfixIncrement
         candidate: <testLibrary>::@extension::E::@method::v
       recovery: <null>
   operator: ++
+  operation: increment
+  position: postfix
   element: <null>
   operatorResultType: dynamic
   staticType: dynamic Function()
