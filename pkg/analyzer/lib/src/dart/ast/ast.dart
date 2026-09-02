@@ -19290,12 +19290,12 @@ final class ExtensionOverrideImpl extends ExpressionImpl
 
 /// The declaration of an extension type.
 ///
-///    <extensionTypeDeclaration> ::=
-///        'extension' 'type' 'const'? <typeIdentifier> <typeParameters>?
-///        <representationDeclaration> <interfaces>?
-///        '{'
-///            (<metadata> <extensionTypeMemberDeclaration>)*
-///        '}'
+///     <extensionTypeDeclaration> ::=
+///         'extension' 'type' 'const'? <typeIdentifier> <typeParameters>?
+///         <representationDeclaration> <interfaces>?
+///         '{'
+///             (<metadata> <extensionTypeMemberDeclaration>)*
+///         '}'
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ExtensionTypeDeclaration implements CompilationUnitMember {
   /// The `augment` keyword, or `null` if the keyword was absent.
@@ -19616,18 +19616,18 @@ final class ExtensionTypeDeclarationImpl extends CompilationUnitMemberImpl
 
 /// The declaration of one or more fields of the same type.
 ///
-///    fieldDeclaration ::=
-///        'static' 'const' <type>? <staticFinalDeclarationList>
-///      | 'static' 'final' <type>? <staticFinalDeclarationList>
-///      | 'static' 'late' 'final' <type>? <initializedIdentifierList>
-///      | 'static' 'late'? <varOrType> <initializedIdentifierList>
-///      | 'covariant' 'late'? <varOrType> <initializedIdentifierList>
-///      | 'late'? 'final' <type>? <initializedIdentifierList>
-///      | 'late'? <varOrType> <initializedIdentifierList>
-///      | 'external' ('static'? <finalVarOrType> | 'covariant' <varOrType>)
-///            <identifierList>
-///      | 'abstract' (<finalVarOrType> | 'covariant' <varOrType>)
-///            <identifierList>
+///     fieldDeclaration ::=
+///         'static' 'const' <type>? <staticFinalDeclarationList>
+///       | 'static' 'final' <type>? <staticFinalDeclarationList>
+///       | 'static' 'late' 'final' <type>? <initializedIdentifierList>
+///       | 'static' 'late'? <varOrType> <initializedIdentifierList>
+///       | 'covariant' 'late'? <varOrType> <initializedIdentifierList>
+///       | 'late'? 'final' <type>? <initializedIdentifierList>
+///       | 'late'? <varOrType> <initializedIdentifierList>
+///       | 'external' ('static'? <finalVarOrType> | 'covariant' <varOrType>)
+///             <identifierList>
+///       | 'abstract' (<finalVarOrType> | 'covariant' <varOrType>)
+///             <identifierList>
 ///
 /// (Note: there's no `<fieldDeclaration>` production in the grammar; this is a
 /// subset of the grammar production `<declaration>`, which encompasses
@@ -38043,7 +38043,7 @@ final class NullAssertPatternImpl extends DartPatternImpl
 
 /// A null-aware element in a list or set literal.
 ///
-///    <nullAwareExpressionElement> ::= '?' <expression>
+///     <nullAwareExpressionElement> ::= '?' <expression>
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class NullAwareElement implements CollectionElement {
   /// The question mark before the expression.
@@ -52150,11 +52150,11 @@ final class TopLevelGetterFunctionExpressionV1Impl extends ExpressionImpl
 
 /// The declaration of one or more top-level variables of the same type.
 ///
-///    topLevelVariableDeclaration ::=
-///        ('final' | 'const') <type>? <staticFinalDeclarationList> ';'
-///      | 'late' 'final' <type>? <initializedIdentifierList> ';'
-///      | 'late'? <varOrType> <initializedIdentifierList> ';'
-///      | 'external' <finalVarOrType> <identifierList> ';'
+///     topLevelVariableDeclaration ::=
+///         ('final' | 'const') <type>? <staticFinalDeclarationList> ';'
+///       | 'late' 'final' <type>? <initializedIdentifierList> ';'
+///       | 'late'? <varOrType> <initializedIdentifierList> ';'
+///       | 'external' <finalVarOrType> <identifierList> ';'
 ///
 /// (Note: there's no `<topLevelVariableDeclaration>` production in the grammar;
 /// this is a subset of the grammar production `<topLevelDeclaration>`, which
@@ -52716,8 +52716,8 @@ sealed class TypeAnnotationImpl extends AstNodeImpl implements TypeAnnotation {
 
 /// A list of type arguments.
 ///
-///    typeArguments ::=
-///        '<' typeName (',' typeName)* '>'
+///     typeArguments ::=
+///         '<' typeName (',' typeName)* '>'
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class TypeArgumentList implements AstNode {
   /// The type arguments associated with the type.
@@ -53336,8 +53336,8 @@ final class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
 
 /// Type parameters within a declaration.
 ///
-///    typeParameterList ::=
-///        '<' [TypeParameter] (',' [TypeParameter])* '>'
+///     typeParameterList ::=
+///         '<' [TypeParameter] (',' [TypeParameter])* '>'
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class TypeParameterList implements AstNode {
   /// The left angle bracket.
