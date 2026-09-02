@@ -357,18 +357,6 @@ CompoundAssignment
       staticType: int
       typeArgumentTypes
         int
-    thenExpression(v1): MethodInvocation
-      methodName: SimpleIdentifier
-        token: f
-        element: <testLibrary>::@function::f
-        staticType: T Function<T>()
-      argumentList: ArgumentList
-        leftParenthesis: (
-        rightParenthesis: )
-      staticInvokeType: int Function()
-      staticType: int
-      typeArgumentTypes
-        int
     colon: :
     elseExpression2: DoubleLiteral
       literal: 1.0
@@ -2126,19 +2114,6 @@ DirectAssignment
           staticType: int
         binaryOperator: add
         element: dart:core::@class::num::@method::+
-        staticType: int
-      expression(v1): BinaryExpression
-        leftOperand: SimpleIdentifier
-          token: a
-          element: <testLibrary>::@function::f::@formalParameter::a
-          staticType: int
-        operator: +
-        rightOperand: IntegerLiteral
-          literal: 0
-          correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
-          staticType: int
-        element: dart:core::@class::num::@method::+
-        staticInvokeType: num Function(num)
         staticType: int
       rightParenthesis: )
       staticType: int

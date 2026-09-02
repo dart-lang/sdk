@@ -874,17 +874,6 @@ ReceiverIndexExpression
             leftParenthesis: (
             rightParenthesis: )
           staticType: A
-        expression(v1): InstanceCreationExpression
-          constructorName: ConstructorName
-            type: NamedType
-              name: A
-              element: <testLibrary>::@class::A
-              type: A
-            element: <testLibrary>::@class::A::@constructor::new
-          argumentList: ArgumentList
-            leftParenthesis: (
-            rightParenthesis: )
-          staticType: A
     rightBracket: }
     staticType: A
   leftBracket: [
@@ -1943,17 +1932,6 @@ DirectAssignment
           expression2: ConstructorInvocation
             constructorReference: ConstructorReference2
               typeReference: ConstructorTypeReference
-                name: A
-                element: <testLibrary>::@class::A
-                type: A
-              element: <testLibrary>::@class::A::@constructor::new
-            argumentList: ArgumentList
-              leftParenthesis: (
-              rightParenthesis: )
-            staticType: A
-          expression(v1): InstanceCreationExpression
-            constructorName: ConstructorName
-              type: NamedType
                 name: A
                 element: <testLibrary>::@class::A
                 type: A

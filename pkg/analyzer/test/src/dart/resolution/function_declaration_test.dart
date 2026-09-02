@@ -400,7 +400,7 @@ TopLevelGetterDeclaration
   declaredFragment: <testLibraryFragment> foo@8
     element: <testLibrary>::@getter::foo
       type: int Function(double)
-FunctionDeclaration
+V1: FunctionDeclaration
   returnType: NamedType
     name: int
     element: dart:core::@class::int

@@ -480,33 +480,6 @@ UnqualifiedFunctionInvocation
               staticType: double
               typeArgumentTypes
                 double
-          arguments(v1)
-            MethodInvocation
-              methodName: SimpleIdentifier
-                token: f
-                element: <testLibrary>::@function::f
-                staticType: T Function<T>()
-              argumentList: ArgumentList
-                leftParenthesis: (
-                rightParenthesis: )
-              correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::lowerLimit
-              staticInvokeType: double Function()
-              staticType: double
-              typeArgumentTypes
-                double
-            MethodInvocation
-              methodName: SimpleIdentifier
-                token: f
-                element: <testLibrary>::@function::f
-                staticType: T Function<T>()
-              argumentList: ArgumentList
-                leftParenthesis: (
-                rightParenthesis: )
-              correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::upperLimit
-              staticInvokeType: double Function()
-              staticType: double
-              typeArgumentTypes
-                double
           rightParenthesis: )
         correspondingParameter: <testLibrary>::@function::h::@formalParameter::x
         staticInvokeType: num Function(num, num)
@@ -628,33 +601,6 @@ UnqualifiedFunctionInvocation
                 invokeType: num Function()
                 type: num
               correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::upperLimit
-              staticType: num
-              typeArgumentTypes
-                num
-          arguments(v1)
-            MethodInvocation
-              methodName: SimpleIdentifier
-                token: f
-                element: <testLibrary>::@function::f
-                staticType: T Function<T>()
-              argumentList: ArgumentList
-                leftParenthesis: (
-                rightParenthesis: )
-              correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::lowerLimit
-              staticInvokeType: num Function()
-              staticType: num
-              typeArgumentTypes
-                num
-            MethodInvocation
-              methodName: SimpleIdentifier
-                token: f
-                element: <testLibrary>::@function::f
-                staticType: T Function<T>()
-              argumentList: ArgumentList
-                leftParenthesis: (
-                rightParenthesis: )
-              correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::upperLimit
-              staticInvokeType: num Function()
               staticType: num
               typeArgumentTypes
                 num
@@ -1016,33 +962,6 @@ UnqualifiedFunctionInvocation
               staticType: num
               typeArgumentTypes
                 num
-          arguments(v1)
-            MethodInvocation
-              methodName: SimpleIdentifier
-                token: f
-                element: <testLibrary>::@function::f
-                staticType: T Function<T>()
-              argumentList: ArgumentList
-                leftParenthesis: (
-                rightParenthesis: )
-              correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::lowerLimit
-              staticInvokeType: num Function()
-              staticType: num
-              typeArgumentTypes
-                num
-            MethodInvocation
-              methodName: SimpleIdentifier
-                token: f
-                element: <testLibrary>::@function::f
-                staticType: T Function<T>()
-              argumentList: ArgumentList
-                leftParenthesis: (
-                rightParenthesis: )
-              correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::upperLimit
-              staticInvokeType: num Function()
-              staticType: num
-              typeArgumentTypes
-                num
           rightParenthesis: )
         correspondingParameter: <testLibrary>::@function::h::@formalParameter::x
         staticInvokeType: num Function(num, num)
@@ -1162,33 +1081,6 @@ UnqualifiedFunctionInvocation
                 invokeType: int Function()
                 type: int
               correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::upperLimit
-              staticType: int
-              typeArgumentTypes
-                int
-          arguments(v1)
-            MethodInvocation
-              methodName: SimpleIdentifier
-                token: f
-                element: <testLibrary>::@function::f
-                staticType: T Function<T>()
-              argumentList: ArgumentList
-                leftParenthesis: (
-                rightParenthesis: )
-              correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::lowerLimit
-              staticInvokeType: int Function()
-              staticType: int
-              typeArgumentTypes
-                int
-            MethodInvocation
-              methodName: SimpleIdentifier
-                token: f
-                element: <testLibrary>::@function::f
-                staticType: T Function<T>()
-              argumentList: ArgumentList
-                leftParenthesis: (
-                rightParenthesis: )
-              correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::upperLimit
-              staticInvokeType: int Function()
               staticType: int
               typeArgumentTypes
                 int
@@ -1928,33 +1820,6 @@ UnqualifiedFunctionInvocation
                 invokeType: String Function()
                 type: String
               correspondingParameter: <testLibrary>::@class::A::@method::clamp::@formalParameter::y
-              staticType: String
-              typeArgumentTypes
-                String
-          arguments(v1)
-            MethodInvocation
-              methodName: SimpleIdentifier
-                token: f
-                element: <testLibrary>::@function::f
-                staticType: T Function<T>()
-              argumentList: ArgumentList
-                leftParenthesis: (
-                rightParenthesis: )
-              correspondingParameter: <testLibrary>::@class::A::@method::clamp::@formalParameter::x
-              staticInvokeType: String Function()
-              staticType: String
-              typeArgumentTypes
-                String
-            MethodInvocation
-              methodName: SimpleIdentifier
-                token: f
-                element: <testLibrary>::@function::f
-                staticType: T Function<T>()
-              argumentList: ArgumentList
-                leftParenthesis: (
-                rightParenthesis: )
-              correspondingParameter: <testLibrary>::@class::A::@method::clamp::@formalParameter::y
-              staticInvokeType: String Function()
               staticType: String
               typeArgumentTypes
                 String
@@ -4759,20 +4624,6 @@ ImportPrefixedFunctionInvocation
         correspondingParameter: <null>
         binaryOperator: add
         element: dart:core::@class::num::@method::+
-        staticType: int
-    arguments(v1)
-      BinaryExpression
-        leftOperand: IntegerLiteral
-          literal: 1
-          staticType: int
-        operator: +
-        rightOperand: IntegerLiteral
-          literal: 2
-          correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
-          staticType: int
-        correspondingParameter: <null>
-        element: dart:core::@class::num::@method::+
-        staticInvokeType: num Function(num)
         staticType: int
     rightParenthesis: )
   resolution: ExecutableInvocationResolution
@@ -8248,18 +8099,6 @@ UnqualifiedFunctionInvocation
           staticType: C?
           typeArgumentTypes
             C?
-        argumentExpression(v1): MethodInvocation
-          methodName: SimpleIdentifier
-            token: g3
-            element: <testLibrary>::@function::g3
-            staticType: T Function<T>()
-          argumentList: ArgumentList
-            leftParenthesis: (
-            rightParenthesis: )
-          staticInvokeType: C? Function()
-          staticType: C?
-          typeArgumentTypes
-            C?
         correspondingParameter: <testLibrary>::@function::foo::@formalParameter::c
       UnqualifiedFunctionInvocation
         name: g2
@@ -8286,77 +8125,6 @@ UnqualifiedFunctionInvocation
             element: <testLibrary>::@function::g4
             invokeType: D? Function()
             type: D?
-          staticType: D?
-          typeArgumentTypes
-            D?
-        argumentExpression(v1): MethodInvocation
-          methodName: SimpleIdentifier
-            token: g4
-            element: <testLibrary>::@function::g4
-            staticType: T Function<T>()
-          argumentList: ArgumentList
-            leftParenthesis: (
-            rightParenthesis: )
-          staticInvokeType: D? Function()
-          staticType: D?
-          typeArgumentTypes
-            D?
-        correspondingParameter: <testLibrary>::@function::foo::@formalParameter::d
-    arguments(v1)
-      MethodInvocation
-        methodName: SimpleIdentifier
-          token: g1
-          element: <testLibrary>::@function::g1
-          staticType: T Function<T>()
-        argumentList: ArgumentList
-          leftParenthesis: (
-          rightParenthesis: )
-        correspondingParameter: <testLibrary>::@function::foo::@formalParameter::a
-        staticInvokeType: A Function()
-        staticType: A
-        typeArgumentTypes
-          A
-      NamedArgument
-        name: c
-        colon: :
-        argumentExpression: MethodInvocation
-          methodName: SimpleIdentifier
-            token: g3
-            element: <testLibrary>::@function::g3
-            staticType: T Function<T>()
-          argumentList: ArgumentList
-            leftParenthesis: (
-            rightParenthesis: )
-          staticInvokeType: C? Function()
-          staticType: C?
-          typeArgumentTypes
-            C?
-        correspondingParameter: <testLibrary>::@function::foo::@formalParameter::c
-      MethodInvocation
-        methodName: SimpleIdentifier
-          token: g2
-          element: <testLibrary>::@function::g2
-          staticType: T Function<T>()
-        argumentList: ArgumentList
-          leftParenthesis: (
-          rightParenthesis: )
-        correspondingParameter: <testLibrary>::@function::foo::@formalParameter::b
-        staticInvokeType: B Function()
-        staticType: B
-        typeArgumentTypes
-          B
-      NamedArgument
-        name: d
-        colon: :
-        argumentExpression: MethodInvocation
-          methodName: SimpleIdentifier
-            token: g4
-            element: <testLibrary>::@function::g4
-            staticType: T Function<T>()
-          argumentList: ArgumentList
-            leftParenthesis: (
-            rightParenthesis: )
-          staticInvokeType: D? Function()
           staticType: D?
           typeArgumentTypes
             D?
@@ -10191,28 +9959,6 @@ CallInvocation
         invokeType: A Function()
         type: A
       staticType: A
-    target(v1): PropertyAccess
-      target: ParenthesizedExpression
-        leftParenthesis: (
-        expression: AsExpression
-          expression: NullLiteral
-            literal: null
-            staticType: Null
-          asOperator: as
-          type: NamedType
-            name: B
-            question: ?
-            element: <testLibrary>::@class::B
-            type: B?
-          staticType: B?
-        rightParenthesis: )
-        staticType: B?
-      operator: ?.
-      propertyName: SimpleIdentifier
-        token: a
-        element: <testLibrary>::@class::B::@getter::a
-        staticType: A
-      staticType: A
     operator: .
     propertyName: SimpleIdentifier
       token: content
@@ -10537,29 +10283,6 @@ UnqualifiedFunctionInvocation
       ListLiteral
         leftBracket: [
         elements2
-          IntegerLiteral
-            literal: 0
-            staticType: int
-        rightBracket: ]
-        correspondingParameter: <null>
-        staticType: List<int>
-    arguments(v1)
-      BinaryExpression
-        leftOperand: IntegerLiteral
-          literal: 1
-          staticType: int
-        operator: +
-        rightOperand: IntegerLiteral
-          literal: 2
-          correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
-          staticType: int
-        correspondingParameter: <null>
-        element: dart:core::@class::num::@method::+
-        staticInvokeType: num Function(num)
-        staticType: int
-      ListLiteral
-        leftBracket: [
-        elements
           IntegerLiteral
             literal: 0
             staticType: int

@@ -2415,11 +2415,6 @@ CallInvocation
         RegularFormalParameter
           name: a
       rightParenthesis: )
-    parameters(v1): FormalParameterList
-      leftParenthesis: (
-      parameter: RegularFormalParameter
-        name: a
-      rightParenthesis: )
     body: BlockFunctionBody
       block: Block
         leftBracket: {
@@ -2433,12 +2428,6 @@ CallInvocation
               rightOperand: SimpleIdentifier
                 token: a
               binaryOperator: add
-            expression(v1): BinaryExpression
-              leftOperand: SimpleIdentifier
-                token: a
-              operator: +
-              rightOperand: SimpleIdentifier
-                token: a
             semicolon: ;
         rightBracket: }
   argumentList: ArgumentList

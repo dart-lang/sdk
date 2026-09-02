@@ -32,6 +32,12 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
 
   _AstView _view = _AstView.v2;
 
+  /// Whether to print the V1 view of child entities alongside their V2 view.
+  ///
+  /// This inline V1 view is needed when the root is shared between the two AST
+  /// views. It is redundant when a distinct V1 root is printed separately.
+  bool _includeInlineV1ChildEntities = true;
+
   final Map<Token, String> _tokenIdMap = Map.identity();
 
   ResolvedAstPrinter({
@@ -2266,16 +2272,21 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   /// Writes [node] and its V1 compatibility view when the V2 root has a
   /// distinct projection.
   void writeNodeWithV1Projection(AstNode node) {
-    writeNode(node);
+    AstNode? v1;
     if (node case TopLevelDeclarationImpl declaration) {
-      writeNode(V1Projection.toV1CompilationUnitMember(declaration));
+      v1 = V1Projection.toV1CompilationUnitMember(declaration);
     } else if (node case ExpressionImpl expression) {
-      var v1 = V1Projection.toV1Expression(expression);
-      if (!identical(v1, expression)) {
-        _sink.writeWithIndent('V1: ');
-        writeNode(v1);
-      }
+      v1 = V1Projection.toV1Expression(expression);
     }
+
+    if (v1 == null || identical(v1, node)) {
+      writeNode(node);
+      return;
+    }
+
+    _withInlineV1ChildEntities(false, () => writeNode(node));
+    _sink.writeWithIndent('V1: ');
+    writeNode(v1);
   }
 
   void _acceptInView(AstNode node) {
@@ -2376,6 +2387,16 @@ Expected parent: (${parent.runtimeType}) $parent
       _AstView.v1 => node.parent,
       _AstView.v2 => node.parent2,
     };
+  }
+
+  T _withInlineV1ChildEntities<T>(bool value, T Function() operation) {
+    var previousValue = _includeInlineV1ChildEntities;
+    _includeInlineV1ChildEntities = value;
+    try {
+      return operation();
+    } finally {
+      _includeInlineV1ChildEntities = previousValue;
+    }
   }
 
   T _withView<T>(_AstView view, T Function() operation) {
@@ -2677,7 +2698,8 @@ Expected parent: (${parent.runtimeType}) $parent
     }
 
     var entities2 = node.namedChildEntities2.toList();
-    var entities = node.astNodeApi == AstNodeApi.v2
+    var entities =
+        !_includeInlineV1ChildEntities || node.astNodeApi == AstNodeApi.v2
         ? <ChildEntity>[]
         : node.namedChildEntities.toList();
     var entitiesByName = {for (var entity in entities) entity.name: entity};

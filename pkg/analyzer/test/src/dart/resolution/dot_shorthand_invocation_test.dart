@@ -883,20 +883,6 @@ CallInvocation
             type: C
           correspondingParameter: <testLibrary>::@class::C::@method::member::@formalParameter::c
           staticType: C
-      arguments(v1)
-        DotShorthandInvocation
-          period: .
-          memberName: SimpleIdentifier
-            token: one
-            element: <testLibrary>::@class::C::@method::one
-            staticType: C Function()
-          argumentList: ArgumentList
-            leftParenthesis: (
-            rightParenthesis: )
-          isDotShorthand: true
-          correspondingParameter: <testLibrary>::@class::C::@method::member::@formalParameter::c
-          staticInvokeType: C Function()
-          staticType: C
       rightParenthesis: )
     isDotShorthand: false
     resolution: ExecutableInvocationResolution
@@ -1153,22 +1139,6 @@ DotShorthandMethodInvocation
               correspondingParameter: SubstitutedFieldFormalParameterElementImpl
                 baseElement: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
                 substitution: {T: C<dynamic>}
-              staticType: C<int>
-          arguments(v1)
-            DotShorthandInvocation
-              period: .
-              memberName: SimpleIdentifier
-                token: member
-                element: <testLibrary>::@class::C::@method::member
-                staticType: C<int> Function()
-              argumentList: ArgumentList
-                leftParenthesis: (
-                rightParenthesis: )
-              isDotShorthand: true
-              correspondingParameter: SubstitutedFieldFormalParameterElementImpl
-                baseElement: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
-                substitution: {T: C<dynamic>}
-              staticInvokeType: C<int> Function()
               staticType: C<int>
           rightParenthesis: )
         isDotShorthand: true
