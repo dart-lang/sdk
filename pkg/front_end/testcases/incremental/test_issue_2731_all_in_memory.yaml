@@ -1,0 +1,61 @@
+# Copyright (c) 2026, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# https://github.com/dart-lang/test/issues/2731
+# A part file changes its "part of" uri to a non-existing file which means
+# it's no longer included in the output (but _is_ still mentioned as a part).
+# The "parent" file has an error.
+# Fixing the part file should make the error go away.
+# This version keeps everything in memory.
+
+type: newworld
+worlds:
+  - entry: main.dart
+    sources:
+      main.dart: |
+        part "part.dart";
+
+        main() {
+          fromPart();
+        }
+      part.dart: |
+        part of "main.dart";
+        fromPart() {
+          print("hello from part");
+        }
+    expectedLibraryCount: 1
+
+  - entry: main.dart
+    worldType: updated
+    expectInitializeFromDill: false
+    # We compile several times, but because of what's cached we don't always
+    # get an error about "nonexisting.dart" not existing (as the file trying to
+    # use it is not part of the output).
+    noErrorWarningCheckOnExtraCompiles: true
+    invalidate:
+      - part.dart
+    sources:
+      part.dart: |
+        part of "nonexisting.dart";
+        fromPart() {
+          print("hello from part");
+        }
+    expectedLibraryCount: 1
+    errors: true
+    advancedInvalidation: outlineChange
+
+  - entry: main.dart
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - part.dart
+    sources:
+      part.dart: |
+        part of "main.dart";
+        fromPart() {
+          print("hello from part");
+        }
+    expectedLibraryCount: 1
+    errors: false
+    advancedInvalidation: problemsInLibrary

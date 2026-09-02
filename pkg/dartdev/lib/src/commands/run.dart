@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/args.dart';
@@ -15,11 +16,13 @@ import 'package:front_end/src/api_prototype/compiler_options.dart'
     show Verbosity;
 import 'package:frontend_server/resident_frontend_server_utils.dart'
     show invokeReplaceCachedDill;
+import 'package:package_config/package_config.dart';
 import 'package:path/path.dart';
 import 'package:pub/pub.dart';
 import 'package:yaml/yaml.dart';
 
 import '../core.dart';
+import '../eval_packages.dart';
 import '../experiments.dart';
 import '../generate_kernel.dart';
 import '../native_assets.dart';
@@ -94,6 +97,26 @@ Running a remote package executable:
 
 See https://dart.dev/to/package-descriptors for more details.''', verbose) {
     argParser
+      ..addOption(
+        evalOption,
+        abbr: 'e',
+        help: 'Evaluate a Dart code snippet.',
+        valueHelp: 'code',
+      )
+      ..addMultiOption(
+        packageConstraintOption,
+        abbr: 'P',
+        help:
+            'Specific constraints for resolution of a single package '
+            '(e.g. "http", "path:^1.8.0").\n'
+            'See https://dart.dev/to/package-descriptors for more details.',
+        valueHelp: 'package-spec',
+      )
+      ..addFlag(
+        offlineOption,
+        negatable: false,
+        help: 'Run offline without querying network services.',
+      )
       ..addFlag(
         residentOption,
         abbr: 'r',
@@ -443,6 +466,9 @@ See https://dart.dev/to/package-descriptors for more details.''', verbose) {
   @override
   FutureOr<int> run() async {
     final args = argResults!;
+    if (args.wasParsed(evalOption)) {
+      return runEval(args);
+    }
     var mainCommand = '';
     var runArgs = <String>[];
     if (args.rest.isNotEmpty) {
@@ -456,6 +482,50 @@ See https://dart.dev/to/package-descriptors for more details.''', verbose) {
       return _runRemote(args, mainCommand, runArgs);
     }
     return _runLocal(args, mainCommand, runArgs);
+  }
+
+  /// Evaluates the Dart code snippet provided via the [--eval] option.
+  Future<int> runEval(ArgResults args) async {
+    final code = args.option(evalOption);
+    if (code == null || code.isEmpty) {
+      log.stderr('Error: Expected a code snippet for --$evalOption.');
+      return errorExitCode;
+    }
+    final runArgs = args.rest;
+    final scriptUri = Uri.dataFromString(
+      code,
+      mimeType: dartMimeType,
+      encoding: utf8,
+    );
+
+    final packageSpecs = <String>[
+      if (args.wasParsed(packageConstraintOption))
+        ...args.multiOption(packageConstraintOption),
+    ];
+    final offline = args.flag(offlineOption);
+
+    final String? packageConfigOverride;
+    if (args.wasParsed(packageString)) {
+      packageConfigOverride = args.option(packageString);
+    } else {
+      final configAndFile = await findPackageConfigAndFile(Directory.current);
+      packageConfigOverride = configAndFile?.file.path;
+    }
+
+    final finalConfigPath = await EvalPackageResolver.resolvePackageConfig(
+      code,
+      packageConstraints: packageSpecs.isNotEmpty ? packageSpecs : null,
+      localPackageConfig: packageConfigOverride,
+      offline: offline,
+    );
+
+    VmInteropHandler.run(
+      scriptUri.toString(),
+      runArgs,
+      packageConfigOverride: finalConfigPath,
+      useExecProcess: true,
+    );
+    return 0;
   }
 
   FutureOr<int> _runLocal(
@@ -789,6 +859,10 @@ String? getPackageForCommand(String descriptor) {
   }
   if (!File(join(root, 'pubspec.yaml')).existsSync()) {
     return null;
+  }
+  final descriptorUri = Uri.tryParse(descriptor);
+  if (descriptorUri != null && descriptorUri.isPackage) {
+    return descriptorUri.packageName;
   }
   final String package;
   if (descriptor.contains(':')) {

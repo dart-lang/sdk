@@ -1370,8 +1370,20 @@ void f(bool Function() a) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  expression2: FunctionExpressionInvocation
-    function2: SimpleIdentifier
+  expression2: CallInvocation
+    receiver: SimpleIdentifier
+      token: a
+      element: <testLibrary>::@function::f::@formalParameter::a
+      staticType: bool Function()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    resolution: FunctionTypeInvocationResolution
+      invokeType: bool Function()
+      type: bool
+    staticType: bool
+  expression(v1): FunctionExpressionInvocation
+    function: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::f::@formalParameter::a
       staticType: bool Function()
@@ -1400,8 +1412,20 @@ void f(int Function() a) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  expression2: FunctionExpressionInvocation
-    function2: SimpleIdentifier
+  expression2: CallInvocation
+    receiver: SimpleIdentifier
+      token: a
+      element: <testLibrary>::@function::f::@formalParameter::a
+      staticType: int Function()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    resolution: FunctionTypeInvocationResolution
+      invokeType: int Function()
+      type: int
+    staticType: int
+  expression(v1): FunctionExpressionInvocation
+    function: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::f::@formalParameter::a
       staticType: int Function()
@@ -1452,8 +1476,20 @@ IfStatement
         matchedValueType: dynamic
       whenClause: WhenClause
         whenKeyword: when
-        expression2: FunctionExpressionInvocation
-          function2: SimpleIdentifier
+        expression2: CallInvocation
+          receiver: SimpleIdentifier
+            token: a
+            element: <testLibrary>::@function::f::@formalParameter::a
+            staticType: bool Function()
+          argumentList: ArgumentList
+            leftParenthesis: (
+            rightParenthesis: )
+          resolution: FunctionTypeInvocationResolution
+            invokeType: bool Function()
+            type: bool
+          staticType: bool
+        expression(v1): FunctionExpressionInvocation
+          function: SimpleIdentifier
             token: a
             element: <testLibrary>::@function::f::@formalParameter::a
             staticType: bool Function()

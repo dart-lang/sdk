@@ -535,7 +535,7 @@ class A {
 }
 
 const A x = .a;
-''', (result) => result.findNode.dotShorthandPropertyAccess('.a'));
+''', (result) => result.findNode.dotShorthandNameExpression('.a'));
   }
 
   test_dotShorthandPropertyAccess_nonConst() async {
@@ -548,7 +548,7 @@ class A {
 A x = .a;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.simple('a;')],
+      (result) => [result.findNodeV1.simple('a;')],
     );
   }
 
@@ -877,7 +877,7 @@ const b = 0;
 var x = foo(a, b);
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.methodInvocation('foo')],
+      (result) => [result.findNode.unqualifiedFunctionInvocation('foo')],
     );
   }
 

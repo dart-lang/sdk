@@ -139,15 +139,13 @@ class TypePropertyResolver {
         } else if (parentNode is MethodInvocation ||
             parentNode is MethodReferenceExpression ||
             parentNode is CompoundAssignment ||
-            parentNode is CascadeIndexAssignmentTarget ||
-            parentNode is CascadeIndexExpression ||
             parentNode is IndexAssignmentTarget ||
             parentNode is IndexExpression2 ||
             parentNode is IncrementOrDecrementExpression ||
             parentNode is UnaryOperatorInvocation) {
           locatableDiagnostic = diag.uncheckedMethodInvocationOfNullableValue
               .withArguments(name: name);
-        } else if (parentNode is FunctionExpressionInvocation) {
+        } else if (parentNode is CallInvocation) {
           locatableDiagnostic = diag.uncheckedInvocationOfNullableValue;
         } else {
           locatableDiagnostic = diag.uncheckedPropertyAccessOfNullableValue

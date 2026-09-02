@@ -9,11 +9,12 @@
 
 ## Running the Server
 
-Start the language server using the `dart language-server` command. Pass the `--client-id` and `--client-version` flags to identify your editor/plugin and version:
+Start the language server using the `dart language-server` command. Set the following environment variables to identify your editor/plugin and version:
 
-```
-dart language-server --client-id my-editor.my-plugin --client-version 1.2
-```
+- `DASH__IDE_NAME` - The name of the IDE that the user launched (for example "VS Code", "Antigravity")
+- `DASH__IDE_VERSION` - The version of the software named in `DASH__IDE_NAME`
+- `DASH__PLUGIN_NAME` - The name of the plugin that provides the integration with Dart/Flutter tools (for example "Dart-Code")
+- `DASH__PLUGIN_VERSION` - The version of the software named in `DASH__PLUGIN_NAME`
 
 Note: In LSP the client makes the first request so there is no obvious confirmation that the server is working correctly until the client sends an `initialize` request. Unlike standard JSON RPC, [LSP requires that headers are sent](https://microsoft.github.io/language-server-protocol/specification).
 

@@ -57,7 +57,17 @@ SwitchExpression
           name: _
           matchedValueType: Object?
       arrow: =>
-      expression2: MethodInvocation
+      expression2: UnqualifiedFunctionInvocation
+        name: g
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        resolution: ExecutableInvocationResolution
+          element: <testLibrary>::@function::g
+          invokeType: void Function()
+          type: void
+        staticType: void
+      expression(v1): MethodInvocation
         methodName: SimpleIdentifier
           token: g
           element: <testLibrary>::@function::g
@@ -125,7 +135,19 @@ SwitchExpression
           name: _
           matchedValueType: Object?
       arrow: =>
-      expression2: MethodInvocation
+      expression2: UnqualifiedFunctionInvocation
+        name: foo
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        resolution: ExecutableInvocationResolution
+          element: <testLibrary>::@class::A::@method::foo
+          invokeType: int Function()
+          type: int
+        staticType: int
+        typeArgumentTypes
+          int
+      expression(v1): MethodInvocation
         methodName: SimpleIdentifier
           token: foo
           element: <testLibrary>::@class::A::@method::foo
@@ -291,8 +313,20 @@ SwitchExpressionCase
       name: _
       matchedValueType: Object?
   arrow: =>
-  expression2: FunctionExpressionInvocation
-    function2: SimpleIdentifier
+  expression2: CallInvocation
+    receiver: SimpleIdentifier
+      token: a
+      element: <testLibrary>::@function::f::@formalParameter::a
+      staticType: int Function()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    resolution: FunctionTypeInvocationResolution
+      invokeType: int Function()
+      type: int
+    staticType: int
+  expression(v1): FunctionExpressionInvocation
+    function: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::f::@formalParameter::a
       staticType: int Function()
@@ -376,8 +410,20 @@ SwitchExpressionCase
       matchedValueType: Object?
     whenClause: WhenClause
       whenKeyword: when
-      expression2: FunctionExpressionInvocation
-        function2: SimpleIdentifier
+      expression2: CallInvocation
+        receiver: SimpleIdentifier
+          token: a
+          element: <testLibrary>::@function::f::@formalParameter::a
+          staticType: bool Function()
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        resolution: FunctionTypeInvocationResolution
+          invokeType: bool Function()
+          type: bool
+        staticType: bool
+      expression(v1): FunctionExpressionInvocation
+        function: SimpleIdentifier
           token: a
           element: <testLibrary>::@function::f::@formalParameter::a
           staticType: bool Function()
@@ -408,8 +454,20 @@ void f(int Function() a) {
 SwitchExpression
   switchKeyword: switch
   leftParenthesis: (
-  expression2: FunctionExpressionInvocation
-    function2: SimpleIdentifier
+  expression2: CallInvocation
+    receiver: SimpleIdentifier
+      token: a
+      element: <testLibrary>::@function::f::@formalParameter::a
+      staticType: int Function()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    resolution: FunctionTypeInvocationResolution
+      invokeType: int Function()
+      type: int
+    staticType: int
+  expression(v1): FunctionExpressionInvocation
+    function: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::f::@formalParameter::a
       staticType: int Function()

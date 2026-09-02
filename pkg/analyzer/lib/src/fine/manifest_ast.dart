@@ -306,6 +306,20 @@ class _ElementCollector extends UnifyingAstVisitor2<void> {
   }
 
   @override
+  void visitDotShorthandMethodInvocation(DotShorthandMethodInvocation node) {
+    _visitNamedFunctionInvocation(node);
+  }
+
+  @override
+  void visitDotShorthandNameExpression(DotShorthandNameExpression node) {
+    var element = switch (node.resolution) {
+      NamedReadResolutionWithElement(:var element) => element,
+      _ => null,
+    };
+    _addElement(element);
+  }
+
+  @override
   void visitDoubleLiteral(DoubleLiteral node) {}
 
   @override
@@ -351,6 +365,13 @@ class _ElementCollector extends UnifyingAstVisitor2<void> {
   @override
   void visitIfNull(IfNull node) {
     node.visitChildren2(this);
+  }
+
+  @override
+  void visitImportPrefixedFunctionInvocation(
+    ImportPrefixedFunctionInvocation node,
+  ) {
+    _visitNamedFunctionInvocation(node);
   }
 
   @override
@@ -451,6 +472,11 @@ class _ElementCollector extends UnifyingAstVisitor2<void> {
   }
 
   @override
+  void visitReceiverMethodInvocation(ReceiverMethodInvocation node) {
+    _visitNamedFunctionInvocation(node);
+  }
+
+  @override
   void visitReceiverPropertyExtraction(ReceiverPropertyExtraction node) {
     node.visitChildren2(this);
     var element = switch (node.resolution) {
@@ -529,6 +555,11 @@ class _ElementCollector extends UnifyingAstVisitor2<void> {
     _addElement(node.element);
   }
 
+  @override
+  void visitUnqualifiedFunctionInvocation(UnqualifiedFunctionInvocation node) {
+    _visitNamedFunctionInvocation(node);
+  }
+
   void _addElement(Element? element) {
     ManifestAstElementKind kind;
     int rawIndex;
@@ -581,6 +612,19 @@ class _ElementCollector extends UnifyingAstVisitor2<void> {
         _addElement(element.variable);
       }
     }
+  }
+
+  void _visitNamedFunctionInvocation(NamedFunctionInvocation node) {
+    var element = switch (node.resolution) {
+      ExecutableInvocationResolution(:var element) => element,
+      _ => null,
+    };
+    if (element is TopLevelFunctionElement && element.isDartCoreIdentical) {
+      _addElement(element);
+      node.visitChildren2(this);
+      return;
+    }
+    isValid = false;
   }
 }
 

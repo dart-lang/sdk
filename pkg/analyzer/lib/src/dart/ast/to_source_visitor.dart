@@ -171,6 +171,13 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
+  void visitCallInvocation(CallInvocation node) {
+    _visitNode(node.receiver);
+    _visitNode(node.typeArguments);
+    _visitNode(node.argumentList);
+  }
+
+  @override
   void visitCascadeExpression(CascadeExpression node) {
     _visitNode(node.target2);
     _visitNodeList(node.sections);
@@ -188,6 +195,13 @@ class ToSourceVisitor implements AstVisitor2<void> {
     _visitToken(node.leftBracket);
     _visitNode(node.index);
     _visitToken(node.rightBracket);
+  }
+
+  @override
+  void visitCascadeMethodInvocation(CascadeMethodInvocation node) {
+    _visitToken(node.name);
+    _visitNode(node.typeArguments);
+    _visitNode(node.argumentList);
   }
 
   @override
@@ -472,6 +486,20 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
+  void visitDotShorthandMethodInvocation(DotShorthandMethodInvocation node) {
+    _visitToken(node.period);
+    _visitToken(node.name);
+    _visitNode(node.typeArguments);
+    _visitNode(node.argumentList);
+  }
+
+  @override
+  void visitDotShorthandNameExpression(DotShorthandNameExpression node) {
+    _visitToken(node.period);
+    _visitToken(node.name);
+  }
+
+  @override
   void visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
     _visitToken(node.period);
     _visitNode(node.propertyName);
@@ -748,13 +776,6 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
-  void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    _visitNode(node.function2);
-    _visitNode(node.typeArguments);
-    _visitNode(node.argumentList);
-  }
-
-  @override
   void visitFunctionReference(FunctionReference node) {
     _visitNode(node.function2);
     _visitNode(node.typeArguments);
@@ -895,18 +916,19 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
-  void visitImportPrefixReference(ImportPrefixReference node) {
-    sink.write(node.name.lexeme);
-    sink.write('.');
+  void visitImportPrefixedFunctionInvocation(
+    ImportPrefixedFunctionInvocation node,
+  ) {
+    _visitNode(node.importPrefix);
+    _visitToken(node.name);
+    _visitNode(node.typeArguments);
+    _visitNode(node.argumentList);
   }
 
   @override
-  void visitIndexAssignmentTarget(IndexAssignmentTarget node) {
-    _visitNode(node.receiver);
-    _visitToken(node.question);
-    _visitToken(node.leftBracket);
-    _visitNode(node.index);
-    _visitToken(node.rightBracket);
+  void visitImportPrefixReference(ImportPrefixReference node) {
+    sink.write(node.name.lexeme);
+    sink.write('.');
   }
 
   @override
@@ -919,15 +941,6 @@ class ToSourceVisitor implements AstVisitor2<void> {
     _visitToken(node.question);
     _visitToken(node.leftBracket);
     _visitNode(node.index2);
-    _visitToken(node.rightBracket);
-  }
-
-  @override
-  void visitIndexExpression2(IndexExpression2 node) {
-    _visitNode(node.receiver);
-    _visitToken(node.question);
-    _visitToken(node.leftBracket);
-    _visitNode(node.index);
     _visitToken(node.rightBracket);
   }
 
@@ -1357,6 +1370,33 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
+  void visitReceiverIndexAssignmentTarget(ReceiverIndexAssignmentTarget node) {
+    _visitNode(node.receiver);
+    _visitToken(node.question);
+    _visitToken(node.leftBracket);
+    _visitNode(node.index);
+    _visitToken(node.rightBracket);
+  }
+
+  @override
+  void visitReceiverIndexExpression(ReceiverIndexExpression node) {
+    _visitNode(node.receiver);
+    _visitToken(node.question);
+    _visitToken(node.leftBracket);
+    _visitNode(node.index);
+    _visitToken(node.rightBracket);
+  }
+
+  @override
+  void visitReceiverMethodInvocation(ReceiverMethodInvocation node) {
+    _visitNode(node.receiver);
+    _visitToken(node.operator);
+    _visitToken(node.name);
+    _visitNode(node.typeArguments);
+    _visitNode(node.argumentList);
+  }
+
+  @override
   void visitReceiverPropertyAssignmentTarget(
     ReceiverPropertyAssignmentTarget node,
   ) {
@@ -1704,6 +1744,13 @@ class ToSourceVisitor implements AstVisitor2<void> {
   void visitUnaryOperatorInvocation(UnaryOperatorInvocation node) {
     sink.write(node.operator.lexeme);
     _writeOperand(node, node.operand as Expression);
+  }
+
+  @override
+  void visitUnqualifiedFunctionInvocation(UnqualifiedFunctionInvocation node) {
+    _visitToken(node.name);
+    _visitNode(node.typeArguments);
+    _visitNode(node.argumentList);
   }
 
   @override

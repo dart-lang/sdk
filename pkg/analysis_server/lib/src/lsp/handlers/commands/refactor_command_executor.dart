@@ -43,6 +43,7 @@ class RefactorCommandExecutor extends SimpleEditCommandHandler<AnalysisServer>
     List<Object?> arguments,
   ) async {
     try {
+      // ignore: unawaited_futures
       progress.begin('Refactoring…');
       return await _performRefactor(
         library,
@@ -52,6 +53,7 @@ class RefactorCommandExecutor extends SimpleEditCommandHandler<AnalysisServer>
         arguments,
       );
     } finally {
+      // ignore: unawaited_futures
       progress.end();
     }
   }

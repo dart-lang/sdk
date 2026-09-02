@@ -6,6 +6,7 @@ import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:collection/collection.dart';
@@ -203,19 +204,30 @@ class _Visitor(final AnalysisRule rule) extends SimpleAstVisitor<void> {
         .flattened;
 
     for (var token in node.tokens) {
-      // Make sure that the current doc comment line isn't contained in a code
-      // block.
-      var offsetAfterSlash = token.offset + 3;
-      var inCodeBlock = codeBlockLines.any(
-        (codeBlockLine) =>
-            codeBlockLine.offset <= offsetAfterSlash &&
-            offsetAfterSlash <= codeBlockLine.offset + codeBlockLine.length,
-      );
-      if (inCodeBlock) continue;
+      var lineOffset = token.offset;
+      // Split lines, because a multiline comment may have multiple lines in a
+      // single token and markdown code lines have already been split by line.
+      for (var line in token.lexeme.split('\n')) {
+        // Make sure that the current doc comment line isn't contained in a code
+        // block.
+        var lineOffsetAfterMarker = _getCommentPrefixLength(token.type, line);
+        var offsetAfterMarker = lineOffset + lineOffsetAfterMarker;
+        var inCodeBlock = codeBlockLines.any(
+          (codeBlockLine) =>
+              codeBlockLine.offset <= offsetAfterMarker &&
+              offsetAfterMarker <= codeBlockLine.offset + codeBlockLine.length,
+        );
 
-      var tags = _findUnintendedHtmlTags(token.lexeme);
-      for (var tag in tags) {
-        rule.reportAtOffset(token.offset + tag.offset, tag.length);
+        if (!inCodeBlock) {
+          var tags = _findUnintendedHtmlTags(line);
+          for (var tag in tags) {
+            rule.reportAtOffset(lineOffset + tag.offset, tag.length);
+          }
+        }
+
+        // Track the current line offset since we don't get offsets from
+        // splitting on newlines.
+        lineOffset += line.length + 1; // +1 for the `\n` we split on
       }
     }
   }
@@ -231,4 +243,40 @@ class _Visitor(final AnalysisRule rule) extends SimpleAstVisitor<void> {
     }
     return matches;
   }
+
+  /// Get the length of the comment marker prefix (including any indentation
+  /// before it and the first optional trailing space after it) for [line].
+  int _getCommentPrefixLength(TokenType type, String line) {
+    // Skip any leading indentation.
+    var index = 0;
+    while (index < line.length && line.codeUnitAt(index).isWhitespace) {
+      index++;
+    }
+
+    // Skip the comment markers.
+    switch (type) {
+      case TokenType.SINGLE_LINE_COMMENT:
+        // Consume the `///`
+        index += 3;
+      case TokenType.MULTI_LINE_COMMENT:
+        // Consume the `*`
+        index++;
+      default:
+        assert(false, 'Unable to compute comment prefix for non-comment');
+        return 0;
+    }
+
+    // Skip an optional space after the comment marker.
+    if (index < line.length && line.codeUnitAt(index).isSpace) {
+      index++;
+    }
+
+    return index;
+  }
+}
+
+extension on int {
+  bool get isSpace => this == 0x20;
+  bool get isTab => this == 0x09;
+  bool get isWhitespace => isSpace || isTab;
 }

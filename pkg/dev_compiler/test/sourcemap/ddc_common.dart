@@ -213,17 +213,16 @@ void createHtmlWrapper({
   File.fromUri(outputFile.resolve('$outputFilename.html.js')).writeAsStringSync(
     jsContent.replaceFirst("from 'dart_sdk.js'", "from '$jsRootDart'"),
   );
-  File.fromUri(
-    outputFile.resolve('$outputFilename.html.html'),
-  ).writeAsStringSync(
-    getWrapperHtmlContent(
-      inputFile: inputFile,
-      jsRootDart: jsRootDart,
-      outFileRootBuild: '/root_build/$outputFilename.html.js',
-      moduleFormat: moduleFormat,
-      canary: canary,
-    ),
-  );
+  File.fromUri(outputFile.resolve('$outputFilename.html.html'))
+      .writeAsStringSync(
+        getWrapperHtmlContent(
+          inputFile: inputFile,
+          jsRootDart: jsRootDart,
+          outFileRootBuild: '/root_build/$outputFilename.html.js',
+          moduleFormat: moduleFormat,
+          canary: canary,
+        ),
+      );
 
   print(
     'You should now be able to run\n\n'

@@ -1,0 +1,58 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/augmentations/enum_declarations.dart:39:14: Error: An enum declaration can't be empty.
+// augment enum Enum {
+//              ^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Enum extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::Enum a = #C3;
+  static const field core::List<self::Enum> values = #C4;
+  const synthetic constructor •(core::int #index, core::String #name) → self::Enum
+    : super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "Enum.${this.{core::_Enum::_name}{core::String}}";
+  method instanceMethod1() → void {}
+  get instanceGetter1() → core::int
+    return 0;
+  set instanceSetter1(core::int value) → void {}
+  static method staticMethod1() → void {}
+  static get staticGetter1() → core::int
+    return 0;
+  static set staticSetter1(core::int value) → void {}
+  method instanceMethod2() → void {}
+  get instanceGetter2() → core::int
+    return 0;
+  set instanceSetter2(core::int value) → void {}
+  method instanceMethod3() → void {}
+  get instanceGetter3() → core::int
+    return 0;
+  set instanceSetter3(core::int value) → void {}
+  static method staticMethod2() → void {}
+  static get staticGetter2() → core::int
+    return 0;
+  static set staticSetter2(core::int value) → void {}
+  static method staticMethod3() → void {}
+  static get staticGetter3() → core::int
+    return 0;
+  static set staticSetter3(core::int value) → void {}
+}
+
+constants  {
+  #C1 = 0
+  #C2 = "a"
+  #C3 = self::Enum {index:#C1, _name:#C2}
+  #C4 = <self::Enum>[#C3]
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///enum_declarations.dart:
+- Enum. (from org-dartlang-testcase:///enum_declarations.dart:5:6)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
@@ -11,6 +12,12 @@ class UseResultVerifier {
   final DiagnosticReporter _diagnosticReporter;
 
   UseResultVerifier(this._diagnosticReporter);
+
+  void checkCallInvocation(CallInvocation node) {
+    if (node.resolution case ExecutableInvocationResolution(:var element)) {
+      _check(node, element);
+    }
+  }
 
   void checkConstructorInvocation(ConstructorInvocation node) {
     var element = node.constructorReference.element;
@@ -50,15 +57,6 @@ class UseResultVerifier {
     _check(node, element);
   }
 
-  void checkFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    var element = node.element;
-    if (element == null) {
-      return;
-    }
-
-    _check(node, element);
-  }
-
   void checkMethodInvocation(MethodInvocation node) {
     var element = node.methodName.element;
     if (element == null) {
@@ -66,6 +64,12 @@ class UseResultVerifier {
     }
 
     _check(node, element);
+  }
+
+  void checkNamedFunctionInvocation(NamedFunctionInvocation node) {
+    if (node.resolution case ExecutableInvocationResolution(:var element)) {
+      _check(node, element, nameToken: node.name);
+    }
   }
 
   void checkPropertyAccess(PropertyAccess node) {
@@ -95,7 +99,7 @@ class UseResultVerifier {
         parent is DotShorthandPropertyAccess ||
         parent is PropertyAccess ||
         parent is MethodInvocation ||
-        parent is FunctionExpressionInvocation) {
+        parent is CallInvocation) {
       return;
     }
 
@@ -107,7 +111,7 @@ class UseResultVerifier {
     _check(node, element);
   }
 
-  void _check(AstNode node, Element element) {
+  void _check(AstNode node, Element element, {Token? nameToken}) {
     var parent = node.parent2;
     if (parent is PrefixedIdentifier) {
       parent = parent.parent2;
@@ -133,10 +137,12 @@ class UseResultVerifier {
       return;
     }
 
-    var toAnnotate = node.nodeToAnnotate;
-    var displayName = toAnnotate is SimpleIdentifier
-        ? toAnnotate.name
-        : element.displayName;
+    var toAnnotate = nameToken ?? node.nodeToAnnotate;
+    var displayName = switch (toAnnotate) {
+      Token(:var lexeme) => lexeme,
+      SimpleIdentifier(:var name) => name,
+      _ => element.displayName,
+    };
 
     var message = annotation.useResultMessage;
     if (message == null || message.isEmpty) {
@@ -153,16 +159,18 @@ class UseResultVerifier {
   }
 
   bool _passesUsingParam(AstNode node, ElementAnnotation annotation) {
-    if (node is! InvocationExpression) {
-      return false;
-    }
+    var argumentList = switch (node) {
+      FunctionInvocation(:var argumentList) => argumentList,
+      InvocationExpression(:var argumentList) => argumentList,
+      _ => null,
+    };
+    if (argumentList is! ArgumentListImpl) return false;
 
     var unlessParam = annotation.useResultUnlessParameter;
     if (unlessParam == null) {
       return false;
     }
 
-    var argumentList = node.argumentList as ArgumentListImpl;
     var parameters = argumentList.correspondingStaticParameters;
     if (parameters == null) {
       return false;
@@ -250,7 +258,7 @@ class UseResultVerifier {
         parent is ExpressionFunctionBody ||
         parent is ForEachParts ||
         parent is ForLoopParts ||
-        parent is FunctionExpressionInvocation ||
+        parent is CallInvocation ||
         parent is IfStatement ||
         parent is IndexAssignmentTarget ||
         parent is IndexExpression ||
@@ -266,6 +274,7 @@ class UseResultVerifier {
         parent is PropertyExtraction ||
         parent is RecordLiteral ||
         parent is RecordLiteralNamedField ||
+        parent is ReceiverMethodInvocation ||
         parent is ReturnStatement ||
         parent is SetOrMapLiteral ||
         parent is SwitchExpression ||
@@ -301,7 +310,7 @@ extension on AstNode {
     DotShorthandPropertyAccess node => node.propertyName,
     MethodInvocation node => node.methodName,
     PropertyAccess node => node.propertyName,
-    FunctionExpressionInvocation node => node.function2.nodeToAnnotate,
+    CallInvocation node => node.receiver.nodeToAnnotate,
     _ => this,
   };
 }

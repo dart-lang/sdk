@@ -70,6 +70,8 @@ class FindNode2 extends _FindNodeBase {
 
   BinaryOperatorInvocation get singleBinaryOperatorInvocation => _single();
 
+  CallInvocation get singleCallInvocation => _single();
+
   CompoundAssignment get singleCompoundAssignment => _single();
 
   ConstructorInvocation get singleConstructorInvocation => _single();
@@ -78,9 +80,17 @@ class FindNode2 extends _FindNodeBase {
 
   DirectAssignment get singleDirectAssignment => _single();
 
+  DotShorthandMethodInvocation get singleDotShorthandMethodInvocation =>
+      _single();
+
+  DotShorthandNameExpression get singleDotShorthandNameExpression => _single();
+
   IfNull get singleIfNull => _single();
 
   IfNullAssignment get singleIfNullAssignment => _single();
+
+  ImportPrefixedFunctionInvocation get singleImportPrefixedFunctionInvocation =>
+      _single();
 
   LogicalAnd get singleLogicalAnd => _single();
 
@@ -90,9 +100,14 @@ class FindNode2 extends _FindNodeBase {
 
   NullAssertionExpression get singleNullAssertionExpression => _single();
 
+  ReceiverMethodInvocation get singleReceiverMethodInvocation => _single();
+
   TopLevelGetterDeclaration get singleTopLevelGetterDeclaration => _single();
 
   UnaryOperatorInvocation get singleUnaryOperatorInvocation => _single();
+
+  UnqualifiedFunctionInvocation get singleUnqualifiedFunctionInvocation =>
+      _single();
 
   @override
   AssignmentExpression assignment(String search) {
@@ -105,6 +120,10 @@ class FindNode2 extends _FindNodeBase {
 
   BinaryOperatorInvocation binaryOperatorInvocation(String search) {
     return _node(search, (node) => node is BinaryOperatorInvocation);
+  }
+
+  CallInvocation callInvocation(String search) {
+    return _node(search, (node) => node is CallInvocation);
   }
 
   CompoundAssignment compoundAssignment(String search) {
@@ -123,12 +142,26 @@ class FindNode2 extends _FindNodeBase {
     return _node(search, (node) => node is DirectAssignment);
   }
 
+  DotShorthandMethodInvocation dotShorthandMethodInvocation(String search) {
+    return _node(search, (node) => node is DotShorthandMethodInvocation);
+  }
+
+  DotShorthandNameExpression dotShorthandNameExpression(String search) {
+    return _node(search, (node) => node is DotShorthandNameExpression);
+  }
+
   IfNull ifNull(String search) {
     return _node(search, (node) => node is IfNull);
   }
 
   IfNullAssignment ifNullAssignment(String search) {
     return _node(search, (node) => node is IfNullAssignment);
+  }
+
+  ImportPrefixedFunctionInvocation importPrefixedFunctionInvocation(
+    String search,
+  ) {
+    return _node(search, (node) => node is ImportPrefixedFunctionInvocation);
   }
 
   LogicalAnd logicalAnd(String search) {
@@ -163,12 +196,20 @@ class FindNode2 extends _FindNodeBase {
     return _node(search, (node) => node is PrefixIncrement);
   }
 
+  ReceiverMethodInvocation receiverMethodInvocation(String search) {
+    return _node(search, (node) => node is ReceiverMethodInvocation);
+  }
+
   TopLevelGetterDeclaration topLevelGetterDeclaration(String search) {
     return _node(search, (node) => node is TopLevelGetterDeclaration);
   }
 
   UnaryOperatorInvocation unaryOperatorInvocation(String search) {
     return _node(search, (node) => node is UnaryOperatorInvocation);
+  }
+
+  UnqualifiedFunctionInvocation unqualifiedFunctionInvocation(String search) {
+    return _node(search, (node) => node is UnqualifiedFunctionInvocation);
   }
 
   UnqualifiedNameAssignmentTarget unqualifiedNameAssignmentTarget(
@@ -386,8 +427,6 @@ abstract class _FindNodeBase {
 
   IndexExpression get singleIndexExpression => _single();
 
-  IndexExpression2 get singleIndexExpression2 => _single();
-
   IntegerLiteral get singleIntegerLiteral => _single();
 
   InterpolationExpression get singleInterpolationExpression => _single();
@@ -471,6 +510,8 @@ abstract class _FindNodeBase {
       _single();
 
   PropertyAccess get singlePropertyAccess => _single();
+
+  ReceiverIndexExpression get singleReceiverIndexExpression => _single();
 
   ReceiverPropertyExtraction get singleReceiverPropertyExtraction => _single();
 
@@ -624,6 +665,10 @@ abstract class _FindNodeBase {
 
   CascadeIndexExpression cascadeIndexExpression(String search) {
     return _node(search, (n) => n is CascadeIndexExpression);
+  }
+
+  CascadeMethodInvocation cascadeMethodInvocation(String search) {
+    return _node(search, (n) => n is CascadeMethodInvocation);
   }
 
   CascadePropertyAssignmentTarget cascadePropertyAssignmentTarget(
@@ -923,10 +968,6 @@ abstract class _FindNodeBase {
     return _node(search, (n) => n is IndexExpression);
   }
 
-  IndexExpression2 indexExpression2(String search) {
-    return _node(search, (n) => n is IndexExpression2);
-  }
-
   IntegerLiteral integerLiteral(String search) {
     return _node(search, (n) => n is IntegerLiteral);
   }
@@ -1100,6 +1141,10 @@ abstract class _FindNodeBase {
 
   PropertyAccess propertyAccess(String search) {
     return _node(search, (n) => n is PropertyAccess);
+  }
+
+  ReceiverIndexExpression receiverIndexExpression(String search) {
+    return _node(search, (n) => n is ReceiverIndexExpression);
   }
 
   ReceiverPropertyExtraction receiverPropertyExtraction(String search) {

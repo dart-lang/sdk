@@ -267,7 +267,19 @@ PatternVariableDeclarationStatement
       rightParenthesis: )
       matchedValueType: int
     equals: =
-    expression2: MethodInvocation
+    expression2: UnqualifiedFunctionInvocation
+      name: g
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      resolution: ExecutableInvocationResolution
+        element: <testLibrary>::@function::g
+        invokeType: int Function()
+        type: int
+      staticType: int
+      typeArgumentTypes
+        int
+    expression(v1): MethodInvocation
       methodName: SimpleIdentifier
         token: g
         element: <testLibrary>::@function::g
@@ -390,17 +402,38 @@ PatternVariableDeclarationStatement
       rightParenthesis: )
       matchedValueType: (int,)
     equals: =
-    expression2: MethodInvocation
-      methodName: SimpleIdentifier
-        token: g
-        element: <testLibrary>::@function::g
-        staticType: T Function<T>(T)
+    expression2: UnqualifiedFunctionInvocation
+      name: g
       argumentList: ArgumentList
         leftParenthesis: (
         arguments2
           RecordLiteral
             leftParenthesis: (
             fields2
+              IntegerLiteral
+                literal: 0
+                staticType: int
+            rightParenthesis: )
+            staticType: (int,)
+        rightParenthesis: )
+      resolution: ExecutableInvocationResolution
+        element: <testLibrary>::@function::g
+        invokeType: (int,) Function((int,))
+        type: (int,)
+      staticType: (int,)
+      typeArgumentTypes
+        (int,)
+    expression(v1): MethodInvocation
+      methodName: SimpleIdentifier
+        token: g
+        element: <testLibrary>::@function::g
+        staticType: T Function<T>(T)
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
+          RecordLiteral
+            leftParenthesis: (
+            fields
               IntegerLiteral
                 literal: 0
                 staticType: int

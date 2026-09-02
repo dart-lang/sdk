@@ -312,26 +312,17 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
   Element? visitCascadeIndexAssignmentTarget(
     CascadeIndexAssignmentTarget node,
   ) {
-    return switch (node.write) {
-      MethodIndexWriteResolution(:var element) => element,
-      InvalidIndexWriteResolution(
-        recovery: MethodIndexWriteResolution(:var element),
-      ) =>
-        element,
-      _ => null,
-    };
+    return _visitIndexAssignmentTarget(node);
   }
 
   @override
   Element? visitCascadeIndexExpression(CascadeIndexExpression node) {
-    return switch (node.resolution) {
-      MethodIndexReadResolution(:var element) => element,
-      InvalidIndexReadResolution(
-        recovery: MethodIndexReadResolution(:var element),
-      ) =>
-        element,
-      _ => null,
-    };
+    return _visitIndexExpression2(node);
+  }
+
+  @override
+  Element? visitCascadeMethodInvocation(CascadeMethodInvocation node) {
+    return _visitNamedFunctionInvocation(node);
   }
 
   @override
@@ -416,6 +407,29 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
   }
 
   @override
+  Element? visitDotShorthandMethodInvocation(
+    DotShorthandMethodInvocation node,
+  ) => switch (node.resolution) {
+    ExecutableInvocationResolution(:var element) => element,
+    InvalidInvocationResolution(
+      recovery: ExecutableInvocationResolution(:var element),
+    ) =>
+      element,
+    _ => null,
+  };
+
+  @override
+  Element? visitDotShorthandNameExpression(DotShorthandNameExpression node) =>
+      switch (node.resolution) {
+        NamedReadResolutionWithElement(:var element) => element,
+        InvalidNamedReadResolution(
+          recovery: NamedReadResolutionWithElement(:var element),
+        ) =>
+          element,
+        _ => null,
+      };
+
+  @override
   Element? visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
     return node.propertyName.element;
   }
@@ -455,37 +469,20 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
   }
 
   @override
+  Element? visitImportPrefixedFunctionInvocation(
+    ImportPrefixedFunctionInvocation node,
+  ) {
+    return _visitNamedFunctionInvocation(node);
+  }
+
+  @override
   Element? visitImportPrefixReference(ImportPrefixReference node) {
     return node.element;
   }
 
   @override
-  Element? visitIndexAssignmentTarget(IndexAssignmentTarget node) {
-    return switch (node.write) {
-      MethodIndexWriteResolution(:var element) => element,
-      InvalidIndexWriteResolution(
-        recovery: MethodIndexWriteResolution(:var element),
-      ) =>
-        element,
-      _ => null,
-    };
-  }
-
-  @override
   Element? visitIndexExpression(IndexExpression node) {
     return node.element;
-  }
-
-  @override
-  Element? visitIndexExpression2(IndexExpression2 node) {
-    return switch (node.resolution) {
-      MethodIndexReadResolution(:var element) => element,
-      InvalidIndexReadResolution(
-        recovery: MethodIndexReadResolution(:var element),
-      ) =>
-        element,
-      _ => null,
-    };
   }
 
   @override
@@ -582,6 +579,23 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
   }
 
   @override
+  Element? visitReceiverIndexAssignmentTarget(
+    ReceiverIndexAssignmentTarget node,
+  ) {
+    return _visitIndexAssignmentTarget(node);
+  }
+
+  @override
+  Element? visitReceiverIndexExpression(ReceiverIndexExpression node) {
+    return _visitIndexExpression2(node);
+  }
+
+  @override
+  Element? visitReceiverMethodInvocation(ReceiverMethodInvocation node) {
+    return _visitNamedFunctionInvocation(node);
+  }
+
+  @override
   Element? visitReceiverPropertyAssignmentTarget(
     ReceiverPropertyAssignmentTarget node,
   ) {
@@ -602,6 +616,13 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
   @override
   Element? visitUnaryOperatorInvocation(UnaryOperatorInvocation node) {
     return node.element;
+  }
+
+  @override
+  Element? visitUnqualifiedFunctionInvocation(
+    UnqualifiedFunctionInvocation node,
+  ) {
+    return _visitNamedFunctionInvocation(node);
   }
 
   @override
@@ -658,6 +679,39 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
       return parent.prefix.element;
     }
     return node.writeOrReadElement2;
+  }
+
+  Element? _visitIndexAssignmentTarget(IndexAssignmentTarget node) {
+    return switch (node.write) {
+      MethodIndexWriteResolution(:var element) => element,
+      InvalidIndexWriteResolution(
+        recovery: MethodIndexWriteResolution(:var element),
+      ) =>
+        element,
+      _ => null,
+    };
+  }
+
+  Element? _visitIndexExpression2(IndexExpression2 node) {
+    return switch (node.resolution) {
+      MethodIndexReadResolution(:var element) => element,
+      InvalidIndexReadResolution(
+        recovery: MethodIndexReadResolution(:var element),
+      ) =>
+        element,
+      _ => null,
+    };
+  }
+
+  Element? _visitNamedFunctionInvocation(NamedFunctionInvocation node) {
+    return switch (node.resolution) {
+      ExecutableInvocationResolution(:var element) => element,
+      InvalidInvocationResolution(
+        recovery: ExecutableInvocationResolution(:var element),
+      ) =>
+        element,
+      _ => null,
+    };
   }
 
   Element? _visitStringLiteral(StringLiteral node) {

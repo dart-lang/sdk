@@ -4448,6 +4448,7 @@ enum V128Instruction with Instruction {
   i8x16Eq(0x23, 'i8x16.eq'),
   i16x8Eq(0x2D, 'i16x8.eq'),
   i32x4Eq(0x37, 'i32x4.eq'),
+  i32x4Ne(0x38, 'i32x4.ne'),
   f32x4Eq(0x41, 'f32x4.eq'),
   f32x4Ne(0x42, 'f32x4.ne'),
   f32x4Lt(0x43, 'f32x4.lt'),

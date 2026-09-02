@@ -539,7 +539,9 @@ class LibraryPart extends TreeNode implements Annotatable {
 
   final String partUri;
 
-  new(this.annotations, this.partUri) {
+  final Uri fileUri;
+
+  new(this.annotations, this.partUri, this.fileUri) {
     setParents(annotations, this);
   }
 

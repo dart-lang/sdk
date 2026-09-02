@@ -46,7 +46,7 @@ enum AstNodeTag {
   ForPartsWithDeclarations,
   ForPartsWithExpression,
   FormalParameterList,
-  FunctionExpressionInvocation,
+  CallInvocation,
   FunctionReference,
   GenericFunctionType,
   IfElement,
@@ -54,9 +54,9 @@ enum AstNodeTag {
   IfNullAssignment,
   ImplicitCallReference,
   ImportPrefixReference,
-  IndexAssignmentTarget,
+  ReceiverIndexAssignmentTarget,
   IndexExpression,
-  IndexExpression2,
+  ReceiverIndexExpression,
   IntegerLiteralNegative,
   IntegerLiteralNegative1,
   IntegerLiteralNull,
@@ -113,6 +113,12 @@ enum AstNodeTag {
   UnqualifiedNameAssignmentTarget,
   VariableDeclaration,
   VariableDeclarationList,
+  CascadeMethodInvocation,
+  UnqualifiedFunctionInvocation,
+  ImportPrefixedFunctionInvocation,
+  ReceiverMethodInvocation,
+  DotShorthandMethodInvocation,
+  DotShorthandNameExpression,
 }
 
 enum DirectiveUriKind {
@@ -148,6 +154,15 @@ enum ImportElementPrefixKind { isDeferred, isNotDeferred, isNull }
 enum IndexReadResolutionTag { dynamic_, invalid, method }
 
 enum IndexWriteResolutionTag { dynamic_, invalid, method }
+
+enum InvocationResolutionTag {
+  dynamic_,
+  executable,
+  functionCall,
+  functionInterface,
+  functionType,
+  invalid,
+}
 
 enum NamedReadResolutionTag {
   getterInvocation,

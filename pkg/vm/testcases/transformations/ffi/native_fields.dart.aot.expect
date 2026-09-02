@@ -152,9 +152,9 @@ constants  {
   #C12 = "vm:prefer-inline"
   #C13 = core::pragma {name:#C12, options:#C2}
   #C14 = 0
-  #C15 = <core::int>[#C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14]
+  #C15 = <core::int>[#C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14]
   #C16 = 8
-  #C17 = <core::int>[#C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16]
+  #C17 = <core::int>[#C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16, #C16]
   #C18 = TypeLiteralConstant(self::Vec2d)
   #C19 = TypeLiteralConstant(ffi::Pointer<core::Object>)
   #C20 = <core::Type>[#C18, #C19]
@@ -185,7 +185,7 @@ constants  {
   #C45 = 3
   #C46 = <core::int>[#C44, #C45]
   #C47 = 48
-  #C48 = <core::int>[#C47, #C47, #C47, #C47, #C47, #C47, #C47, #C47, #C47, #C47, #C47, #C47, #C47, #C47, #C47, #C47, #C47, #C47, #C47, #C47, #C47, #C47]
+  #C48 = <core::int>[#C47, #C47, #C47, #C47, #C47, #C47, #C47, #C47, #C47, #C47, #C47, #C47, #C47, #C47, #C47, #C47, #C47, #C47, #C47, #C47, #C47, #C47, #C47, #C47]
   #C49 = "anotherInt"
   #C50 = ffi::Native<ffi::Int> {symbol:#C49, assetId:#C28, isLeaf:#C29}
 }

@@ -192,6 +192,7 @@ class WebDevFS {
       recompileRestart: fullRestart,
     );
     if (compilerOutput == null || compilerOutput.errorCount > 0) {
+      assetServer.deleteFile('reloaded_sources.json');
       return UpdateFSReport(success: false);
     }
     sources = compilerOutput.sources;

@@ -15,6 +15,8 @@ enum DeclarationFragmentKind {
 abstract class DeclarationFragmentImpl implements DeclarationFragment {
   final Uri fileUri;
 
+  late final Modifiers modifiers;
+
   /// The scope in which the declaration is declared.
   ///
   /// This is the scope of the enclosing compilation unit and it's used for
@@ -42,10 +44,9 @@ abstract class DeclarationFragmentImpl implements DeclarationFragment {
     required this.typeParameters,
     required this.enclosingScope,
     required this.typeParameterScope,
-    required NominalParameterNameSpace nominalParameterNameSpace,
+    required this.nominalParameterNameSpace,
     required this.enclosingCompilationUnit,
-  }) : nominalParameterNameSpace = nominalParameterNameSpace,
-       bodyScope = new DeclarationBuilderScope(typeParameterScope);
+  }) : bodyScope = new DeclarationBuilderScope(typeParameterScope);
 
   String get name;
 

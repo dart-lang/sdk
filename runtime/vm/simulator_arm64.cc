@@ -3710,6 +3710,50 @@ void Simulator::DecodeDPSimd1(Instr* instr) {
     return;
   }
 
+  // SSHR Vd.4S, Vn.4S, #shift — signed (arithmetic) shift right of word lanes.
+  if ((instr->InstructionBits() & 0xFFE0FC00) == 0x4F200400) {
+    const VRegister vd = instr->VdField();
+    const VRegister vn = instr->VnField();
+    const int shift = 64 - instr->Bits(16, 7);
+    for (int i = 0; i < 4; i++) {
+      const int64_t v = get_vregisters(vn, i);
+      set_vregisters(vd, i, static_cast<int32_t>(v >> shift));
+    }
+    return;
+  }
+
+  // UMAXP Vd.4S, Vn.4S, Vm.4S — unsigned pairwise maximum of the word lanes.
+  if ((instr->InstructionBits() & 0xFFE0FC00) == 0x6EA0A400) {
+    const VRegister vd = instr->VdField();
+    const VRegister vn = instr->VnField();
+    const VRegister vm = instr->VmField();
+    uint32_t n[4], m[4];
+    for (int i = 0; i < 4; i++) {
+      n[i] = static_cast<uint32_t>(get_vregisters(vn, i));
+      m[i] = static_cast<uint32_t>(get_vregisters(vm, i));
+    }
+    const uint32_t res[4] = {
+        Utils::Maximum(n[0], n[1]), Utils::Maximum(n[2], n[3]),
+        Utils::Maximum(m[0], m[1]), Utils::Maximum(m[2], m[3])};
+    for (int i = 0; i < 4; i++) {
+      set_vregisters(vd, i, static_cast<int32_t>(res[i]));
+    }
+    return;
+  }
+
+  // UMINV Sd, Vn.4S — unsigned minimum across the four word lanes.
+  if ((instr->InstructionBits() & 0xFFFFFC00) == 0x6EB1A800) {
+    const VRegister vd = instr->VdField();
+    const VRegister vn = instr->VnField();
+    uint32_t mn = static_cast<uint32_t>(get_vregisters(vn, 0));
+    for (int i = 1; i < 4; i++) {
+      mn = Utils::Minimum(mn, static_cast<uint32_t>(get_vregisters(vn, i)));
+    }
+    set_vregisterd(vd, 0, static_cast<int64_t>(mn));
+    set_vregisterd(vd, 1, 0);
+    return;
+  }
+
   if (instr->IsSIMDCopyOp()) {
     DecodeSIMDCopy(instr);
   } else if (instr->IsSIMDThreeSameOp()) {

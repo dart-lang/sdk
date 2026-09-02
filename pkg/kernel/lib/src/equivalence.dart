@@ -4647,6 +4647,9 @@ class EquivalenceStrategy {
     if (!checkLibraryPart_partUri(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
+    if (!checkLibraryPart_fileUri(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
     if (!checkLibraryPart_fileOffset(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
@@ -5516,6 +5519,9 @@ class EquivalenceStrategy {
     if (!checkIfCaseStatement_matchedValueType(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
+    if (!checkIfCaseStatement_scope(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
     if (!checkIfCaseStatement_fileOffset(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
@@ -6002,6 +6008,9 @@ class EquivalenceStrategy {
       result = visitor.resultOnInequivalence;
     }
     if (!checkSwitchExpressionCase_expression(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkSwitchExpressionCase_scope(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkSwitchExpressionCase_fileOffset(visitor, node, other)) {
@@ -11366,6 +11375,14 @@ class EquivalenceStrategy {
     return visitor.checkValues(node.partUri, other.partUri, 'partUri');
   }
 
+  bool checkLibraryPart_fileUri(
+    EquivalenceVisitor visitor,
+    LibraryPart node,
+    LibraryPart other,
+  ) {
+    return visitor.checkValues(node.fileUri, other.fileUri, 'fileUri');
+  }
+
   bool checkLibraryPart_fileOffset(
     EquivalenceVisitor visitor,
     LibraryPart node,
@@ -12861,6 +12878,15 @@ class EquivalenceStrategy {
     );
   }
 
+  bool checkIfCaseStatement_scope(
+    EquivalenceVisitor visitor,
+    IfCaseStatement node,
+    IfCaseStatement other,
+  ) {
+    'scope';
+    return checkScope(visitor, node.scope, other.scope);
+  }
+
   bool checkIfCaseStatement_fileOffset(
     EquivalenceVisitor visitor,
     IfCaseStatement node,
@@ -13428,6 +13454,15 @@ class EquivalenceStrategy {
     SwitchExpressionCase other,
   ) {
     return visitor.checkNodes(node.expression, other.expression, 'expression');
+  }
+
+  bool checkSwitchExpressionCase_scope(
+    EquivalenceVisitor visitor,
+    SwitchExpressionCase node,
+    SwitchExpressionCase other,
+  ) {
+    'scope';
+    return checkScope(visitor, node.scope, other.scope);
   }
 
   bool checkSwitchExpressionCase_fileOffset(

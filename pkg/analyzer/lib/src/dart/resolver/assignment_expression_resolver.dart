@@ -285,7 +285,7 @@ class AssignmentExpressionResolver {
         }
         readType = targetResult.read.type;
         writeAcceptedType = targetResult.write.acceptedType;
-      case IndexAssignmentTargetImpl():
+      case ReceiverIndexAssignmentTargetImpl():
         var targetResult = resolveIndexReadWriteTarget(target);
         if (targetResult == null) {
           _resolver.analyzeExpression(
@@ -463,7 +463,7 @@ class AssignmentExpressionResolver {
           return;
         }
         writeAcceptedType = resolution.acceptedType;
-      case IndexAssignmentTargetImpl():
+      case ReceiverIndexAssignmentTargetImpl():
         _resolver.analyzeExpression(
           target.receiver,
           SharedTypeSchemaView(UnknownInferredType.instance),
@@ -627,7 +627,7 @@ class AssignmentExpressionResolver {
         readType = targetResult.read.type;
         writeAcceptedType = targetResult.write.acceptedType;
         readExpressionInfo = targetResult.readExpressionInfo;
-      case IndexAssignmentTargetImpl():
+      case ReceiverIndexAssignmentTargetImpl():
         var targetResult = resolveIndexReadWriteTarget(target);
         if (targetResult == null) {
           _resolver.analyzeExpression(
@@ -727,7 +727,7 @@ class AssignmentExpressionResolver {
   }
 
   ({IndexReadResolutionImpl read, IndexWriteResolutionImpl write})?
-  resolveIndexReadWriteTarget(IndexAssignmentTargetImpl target) {
+  resolveIndexReadWriteTarget(ReceiverIndexAssignmentTargetImpl target) {
     _resolver.analyzeExpression(
       target.receiver,
       SharedTypeSchemaView(UnknownInferredType.instance),
@@ -854,6 +854,8 @@ class AssignmentExpressionResolver {
     if (expression is MethodInvocation) {
       SimpleIdentifier methodName = expression.methodName;
       _diagnosticReporter.report(diag.useOfVoidResult.at(methodName));
+    } else if (expression is NamedFunctionInvocation) {
+      _diagnosticReporter.report(diag.useOfVoidResult.at(expression.name));
     } else {
       _diagnosticReporter.report(diag.useOfVoidResult.at(expression));
     }

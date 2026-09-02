@@ -338,11 +338,8 @@ int g() => f(null) ?? 0;
     var node = result.findNode.ifNull('?? 0');
     assertResolvedNodeText(node, r'''
 IfNull
-  leftOperand: MethodInvocation
-    methodName: SimpleIdentifier
-      token: f
-      element: <testLibrary>::@function::f
-      staticType: T Function<T>(T)
+  leftOperand: UnqualifiedFunctionInvocation
+    name: f
     argumentList: ArgumentList
       leftParenthesis: (
       arguments2
@@ -353,7 +350,10 @@ IfNull
             substitution: {T: int?}
           staticType: Null
       rightParenthesis: )
-    staticInvokeType: int? Function(int?)
+    resolution: ExecutableInvocationResolution
+      element: <testLibrary>::@function::f
+      invokeType: int? Function(int?)
+      type: int?
     staticType: int?
     typeArgumentTypes
       int?
@@ -433,6 +433,7 @@ V1: BinaryExpression
     correspondingParameter: <null>
     element: <testLibrary>::@function::f::@formalParameter::c2
     staticType: C2
+  correspondingParameter: <null>
   element: <null>
   staticInvokeType: null
   staticType: A
@@ -1530,9 +1531,22 @@ g(int a) {
 h(int x) {}
 ''');
 
-    var node = result.findNode.methodInvocation('f()');
+    var node = result.findNode.unqualifiedFunctionInvocation('f()');
     assertResolvedNodeText(node, r'''
-MethodInvocation
+UnqualifiedFunctionInvocation
+  name: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@function::f
+    invokeType: int Function()
+    type: int
+  correspondingParameter: dart:core::@class::num::@method::-::@formalParameter::other
+  staticType: int
+  typeArgumentTypes
+    int
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: f
     element: <testLibrary>::@function::f
@@ -1637,9 +1651,22 @@ g(int a) {
 h(int x) {}
 ''');
 
-    var node = result.findNode.methodInvocation('f()');
+    var node = result.findNode.unqualifiedFunctionInvocation('f()');
     assertResolvedNodeText(node, r'''
-MethodInvocation
+UnqualifiedFunctionInvocation
+  name: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@function::f
+    invokeType: int Function()
+    type: int
+  correspondingParameter: dart:core::@class::num::@method::%::@formalParameter::other
+  staticType: int
+  typeArgumentTypes
+    int
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: f
     element: <testLibrary>::@function::f
@@ -1744,9 +1771,22 @@ g(double a) {
 h(double x) {}
 ''');
 
-    var node = result.findNode.methodInvocation('f()');
+    var node = result.findNode.unqualifiedFunctionInvocation('f()');
     assertResolvedNodeText(node, r'''
-MethodInvocation
+UnqualifiedFunctionInvocation
+  name: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@function::f
+    invokeType: num Function()
+    type: num
+  correspondingParameter: dart:core::@class::double::@method::+::@formalParameter::other
+  staticType: num
+  typeArgumentTypes
+    num
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: f
     element: <testLibrary>::@function::f
@@ -1772,9 +1812,22 @@ g(double a) {
 }
 h(int x) {}
 ''');
-    var node = result.findNode.methodInvocation('f()');
+    var node = result.findNode.unqualifiedFunctionInvocation('f()');
     assertResolvedNodeText(node, r'''
-MethodInvocation
+UnqualifiedFunctionInvocation
+  name: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@function::f
+    invokeType: num Function()
+    type: num
+  correspondingParameter: dart:core::@class::double::@method::+::@formalParameter::other
+  staticType: num
+  typeArgumentTypes
+    num
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: f
     element: <testLibrary>::@function::f
@@ -1797,9 +1850,22 @@ g(double a) {
   a + f();
 }
 ''');
-    var node = result.findNode.methodInvocation('f()');
+    var node = result.findNode.unqualifiedFunctionInvocation('f()');
     assertResolvedNodeText(node, r'''
-MethodInvocation
+UnqualifiedFunctionInvocation
+  name: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@function::f
+    invokeType: num Function()
+    type: num
+  correspondingParameter: dart:core::@class::double::@method::+::@formalParameter::other
+  staticType: num
+  typeArgumentTypes
+    num
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: f
     element: <testLibrary>::@function::f
@@ -1862,9 +1928,22 @@ g(int a) {
 }
 h(double x) {}
 ''');
-    var node = result.findNode.methodInvocation('f()');
+    var node = result.findNode.unqualifiedFunctionInvocation('f()');
     assertResolvedNodeText(node, r'''
-MethodInvocation
+UnqualifiedFunctionInvocation
+  name: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@function::f
+    invokeType: double Function()
+    type: double
+  correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+  staticType: double
+  typeArgumentTypes
+    double
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: f
     element: <testLibrary>::@function::f
@@ -1888,9 +1967,22 @@ g(int a) {
 }
 h(int x) {}
 ''');
-    var node = result.findNode.methodInvocation('f()');
+    var node = result.findNode.unqualifiedFunctionInvocation('f()');
     assertResolvedNodeText(node, r'''
-MethodInvocation
+UnqualifiedFunctionInvocation
+  name: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@function::f
+    invokeType: int Function()
+    type: int
+  correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+  staticType: int
+  typeArgumentTypes
+    int
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: f
     element: <testLibrary>::@function::f
@@ -1914,9 +2006,22 @@ g(int Function() a) {
 }
 h(int x) {}
 ''');
-    var node = result.findNode.methodInvocation('f()');
+    var node = result.findNode.unqualifiedFunctionInvocation('f()');
     assertResolvedNodeText(node, r'''
-MethodInvocation
+UnqualifiedFunctionInvocation
+  name: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@function::f
+    invokeType: int Function()
+    type: int
+  correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+  staticType: int
+  typeArgumentTypes
+    int
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: f
     element: <testLibrary>::@function::f
@@ -1945,9 +2050,22 @@ g(int a) {
 }
 h(int x) {}
 ''');
-    var node = result.findNode.methodInvocation('f()');
+    var node = result.findNode.unqualifiedFunctionInvocation('f()');
     assertResolvedNodeText(node, r'''
-MethodInvocation
+UnqualifiedFunctionInvocation
+  name: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@function::f
+    invokeType: num Function()
+    type: num
+  correspondingParameter: <testLibrary>::@extension::E::@method::+::@formalParameter::x
+  staticType: num
+  typeArgumentTypes
+    num
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: f
     element: <testLibrary>::@function::f
@@ -1970,9 +2088,22 @@ g(int a) {
   a + f();
 }
 ''');
-    var node = result.findNode.methodInvocation('f()');
+    var node = result.findNode.unqualifiedFunctionInvocation('f()');
     assertResolvedNodeText(node, r'''
-MethodInvocation
+UnqualifiedFunctionInvocation
+  name: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@function::f
+    invokeType: num Function()
+    type: num
+  correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+  staticType: num
+  typeArgumentTypes
+    num
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: f
     element: <testLibrary>::@function::f
@@ -2114,16 +2245,17 @@ f(int Function() a, int b) {
     var node = result.findNode.binaryOperatorInvocation('a() + b');
     assertResolvedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: FunctionExpressionInvocation
-    function2: SimpleIdentifier
+  leftOperand: CallInvocation
+    receiver: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::f::@formalParameter::a
       staticType: int Function()
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
-    element: <null>
-    staticInvokeType: int Function()
+    resolution: FunctionTypeInvocationResolution
+      invokeType: int Function()
+      type: int
     staticType: int
   operator: +
   rightOperand: SimpleIdentifier
@@ -2356,9 +2488,22 @@ g(num a) {
 h(int x) {}
 ''');
 
-    var node = result.findNode.methodInvocation('f()');
+    var node = result.findNode.unqualifiedFunctionInvocation('f()');
     assertResolvedNodeText(node, r'''
-MethodInvocation
+UnqualifiedFunctionInvocation
+  name: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@function::f
+    invokeType: num Function()
+    type: num
+  correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+  staticType: num
+  typeArgumentTypes
+    num
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: f
     element: <testLibrary>::@function::f
@@ -2388,9 +2533,22 @@ g(A a) {
 h(int x) {}
 ''');
 
-    var node = result.findNode.methodInvocation('f()');
+    var node = result.findNode.unqualifiedFunctionInvocation('f()');
     assertResolvedNodeText(node, r'''
-MethodInvocation
+UnqualifiedFunctionInvocation
+  name: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@function::f
+    invokeType: String Function()
+    type: String
+  correspondingParameter: <testLibrary>::@class::A::@method::+::@formalParameter::x
+  staticType: String
+  typeArgumentTypes
+    String
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: f
     element: <testLibrary>::@function::f
@@ -2421,9 +2579,22 @@ g(A a) {
 h(int x) {}
 ''');
 
-    var node = result.findNode.methodInvocation('f()');
+    var node = result.findNode.unqualifiedFunctionInvocation('f()');
     assertResolvedNodeText(node, r'''
-MethodInvocation
+UnqualifiedFunctionInvocation
+  name: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@function::f
+    invokeType: num Function()
+    type: num
+  correspondingParameter: <testLibrary>::@extension::E::@method::+::@formalParameter::x
+  staticType: num
+  typeArgumentTypes
+    num
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: f
     element: <testLibrary>::@function::f
@@ -2454,9 +2625,22 @@ g(A a) {
 h(int x) {}
 ''');
 
-    var node = result.findNode.methodInvocation('f()');
+    var node = result.findNode.unqualifiedFunctionInvocation('f()');
     assertResolvedNodeText(node, r'''
-MethodInvocation
+UnqualifiedFunctionInvocation
+  name: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@function::f
+    invokeType: num Function()
+    type: num
+  correspondingParameter: <testLibrary>::@extension::E::@method::+::@formalParameter::x
+  staticType: num
+  typeArgumentTypes
+    num
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: f
     element: <testLibrary>::@function::f
@@ -2748,9 +2932,22 @@ g(int a) {
 h(int x) {}
 ''');
 
-    var node = result.findNode.methodInvocation('f()');
+    var node = result.findNode.unqualifiedFunctionInvocation('f()');
     assertResolvedNodeText(node, r'''
-MethodInvocation
+UnqualifiedFunctionInvocation
+  name: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@function::f
+    invokeType: int Function()
+    type: int
+  correspondingParameter: dart:core::@class::num::@method::*::@formalParameter::other
+  staticType: int
+  typeArgumentTypes
+    int
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: f
     element: <testLibrary>::@function::f
@@ -2935,6 +3132,7 @@ V1: BinaryExpression
     correspondingParameter: <null>
     element: <testLibrary>::@function::f::@formalParameter::c1
     staticType: C1
+  correspondingParameter: <null>
   element: <null>
   staticInvokeType: null
   staticType: B2
@@ -2979,6 +3177,7 @@ V1: BinaryExpression
     correspondingParameter: <null>
     element: <testLibrary>::@function::f::@formalParameter::b2
     staticType: B2
+  correspondingParameter: <null>
   element: <null>
   staticInvokeType: null
   staticType: B2

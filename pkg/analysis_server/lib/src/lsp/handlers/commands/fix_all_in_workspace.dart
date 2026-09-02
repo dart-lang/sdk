@@ -65,6 +65,7 @@ abstract class AbstractFixAllInWorkspaceCommandHandler
       requireConfirmation: requireConfirmation,
     );
 
+    // ignore: unawaited_futures
     progress.begin('Computing fixes…');
     try {
       var result = await operation.compute();
@@ -75,6 +76,7 @@ abstract class AbstractFixAllInWorkspaceCommandHandler
         return await sendWorkspaceEditToClient(edit);
       });
     } finally {
+      // ignore: unawaited_futures
       progress.end();
     }
   }

@@ -1929,6 +1929,13 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitCascadeMethodInvocation(CascadeMethodInvocation node) {
+    _tokenOrNull(node.name);
+    node.typeArguments?.accept2(this);
+    node.argumentList.accept2(this);
+  }
+
+  @override
   void visitCascadePropertyAssignmentTarget(
     CascadePropertyAssignmentTarget node,
   ) {
@@ -1942,7 +1949,14 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
 
   @override
   void visitCascadeSection(CascadeSection node) {
-    _tokenOrNull(node.operator);
+    // TODO(scheglov): Remove this compatibility branch when cascade bodies no
+    // longer use parser-produced nodes that own the section operator.
+    // A transitional parser-produced cascade body can still own the section
+    // operator. Avoid recording it twice so that its offset stream has the
+    // same shape as the canonical V2 body read back from a summary.
+    if (!identical(node.body.beginToken, node.operator)) {
+      _tokenOrNull(node.operator);
+    }
     super.visitCascadeSection(node);
   }
 
@@ -2023,6 +2037,20 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitDotShorthandMethodInvocation(DotShorthandMethodInvocation node) {
+    _tokenOrNull(node.period);
+    _tokenOrNull(node.name);
+    node.typeArguments?.accept2(this);
+    node.argumentList.accept2(this);
+  }
+
+  @override
+  void visitDotShorthandNameExpression(DotShorthandNameExpression node) {
+    _tokenOrNull(node.period);
+    _tokenOrNull(node.name);
+  }
+
+  @override
   void visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
     _tokenOrNull(node.period);
     node.propertyName.accept2(this);
@@ -2074,16 +2102,19 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitImportPrefixReference(ImportPrefixReference node) {
+  void visitImportPrefixedFunctionInvocation(
+    ImportPrefixedFunctionInvocation node,
+  ) {
+    node.importPrefix.accept2(this);
     _tokenOrNull(node.name);
-    _tokenOrNull(node.period);
+    node.typeArguments?.accept2(this);
+    node.argumentList.accept2(this);
   }
 
   @override
-  void visitIndexAssignmentTarget(IndexAssignmentTarget node) {
-    _tokenOrNull(node.leftBracket);
-    _tokenOrNull(node.rightBracket);
-    super.visitIndexAssignmentTarget(node);
+  void visitImportPrefixReference(ImportPrefixReference node) {
+    _tokenOrNull(node.name);
+    _tokenOrNull(node.period);
   }
 
   @override
@@ -2091,14 +2122,6 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
     _tokenOrNull(node.leftBracket);
     _tokenOrNull(node.rightBracket);
     super.visitIndexExpression(node);
-  }
-
-  @override
-  void visitIndexExpression2(IndexExpression2 node) {
-    _tokenOrNull(node.question);
-    _tokenOrNull(node.leftBracket);
-    _tokenOrNull(node.rightBracket);
-    super.visitIndexExpression2(node);
   }
 
   @override
@@ -2243,6 +2266,30 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitReceiverIndexAssignmentTarget(ReceiverIndexAssignmentTarget node) {
+    _tokenOrNull(node.leftBracket);
+    _tokenOrNull(node.rightBracket);
+    super.visitReceiverIndexAssignmentTarget(node);
+  }
+
+  @override
+  void visitReceiverIndexExpression(ReceiverIndexExpression node) {
+    _tokenOrNull(node.question);
+    _tokenOrNull(node.leftBracket);
+    _tokenOrNull(node.rightBracket);
+    super.visitReceiverIndexExpression(node);
+  }
+
+  @override
+  void visitReceiverMethodInvocation(ReceiverMethodInvocation node) {
+    node.receiver.accept2(this);
+    _tokenOrNull(node.operator);
+    _tokenOrNull(node.name);
+    node.typeArguments?.accept2(this);
+    node.argumentList.accept2(this);
+  }
+
+  @override
   void visitReceiverPropertyAssignmentTarget(
     ReceiverPropertyAssignmentTarget node,
   ) {
@@ -2384,6 +2431,13 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
   void visitUnaryOperatorInvocation(UnaryOperatorInvocation node) {
     _tokenOrNull(node.operator);
     super.visitUnaryOperatorInvocation(node);
+  }
+
+  @override
+  void visitUnqualifiedFunctionInvocation(UnqualifiedFunctionInvocation node) {
+    _tokenOrNull(node.name);
+    node.typeArguments?.accept2(this);
+    node.argumentList.accept2(this);
   }
 
   @override

@@ -4289,6 +4289,22 @@ DEFINE_EMIT(Int32x4GetFlag, (Register result, VRegister value)) {
   __ csel(result, TMP, result, EQ);
 }
 
+DEFINE_EMIT(Int32x4AnyTrue, (Register out, VRegister value)) {
+  __ vumaxp_4s(VTMP, value, value);
+  __ vmovrd(out, VTMP, 0);
+  __ tst(out, compiler::Operand(out));
+  __ LoadObject(out, Bool::True());
+  __ LoadObject(TMP, Bool::False());
+  __ csel(out, TMP, out, EQ);
+}
+
+DEFINE_EMIT(Int32x4NotEqual,
+            (VRegister result, VRegister left, VRegister right)) {
+  // Compare-equal, then invert to get not-equal.
+  __ vceqw(result, left, right);
+  __ vnot(result, result);
+}
+
 DEFINE_EMIT(Int32x4Select,
             (VRegister out,
              VRegister mask,
@@ -4347,6 +4363,8 @@ DEFINE_EMIT(Int32x4WithFlag,
   CASE(Float64x2FromDoubles)                                                   \
   CASE(Float64x2Scale)                                                         \
   ____(SimdBinaryOp)                                                           \
+  CASE(Int32x4NotEqual)                                                        \
+  ____(Int32x4NotEqual)                                                        \
   SIMD_OP_SIMPLE_UNARY(CASE)                                                   \
   CASE(Float32x4GetX)                                                          \
   CASE(Float32x4GetY)                                                          \
@@ -4400,6 +4418,8 @@ DEFINE_EMIT(Int32x4WithFlag,
   CASE(Int32x4GetFlagZ)                                                        \
   CASE(Int32x4GetFlagW)                                                        \
   ____(Int32x4GetFlag)                                                         \
+  CASE(Int32x4AnyTrue)                                                         \
+  ____(Int32x4AnyTrue)                                                         \
   CASE(Int32x4Select)                                                          \
   ____(Int32x4Select)                                                          \
   CASE(Int32x4WithFlagX)                                                       \

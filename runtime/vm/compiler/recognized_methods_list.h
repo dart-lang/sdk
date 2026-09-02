@@ -525,6 +525,7 @@ namespace dart {
     0x45555da1)                                                                \
   V(TypedDataLibrary, _Int32x4, ~, Int32x4Not, 0xa87e0b04)                     \
   V(TypedDataLibrary, _Int32x4, equal, Int32x4Equal, 0xdd016cce)               \
+  V(TypedDataLibrary, _Int32x4, notEqual, Int32x4NotEqual, 0xfcf5b49b)         \
   V(TypedDataLibrary, _Int32x4, get:x, Int32x4GetX, 0x55b951d5)                \
   V(TypedDataLibrary, _Int32x4, get:y, Int32x4GetY, 0x434aacf8)                \
   V(TypedDataLibrary, _Int32x4, get:z, Int32x4GetZ, 0x7916188e)                \
@@ -534,6 +535,7 @@ namespace dart {
   V(TypedDataLibrary, _Int32x4, get:flagZ, Int32x4GetFlagZ, 0xeb9bbe4b)        \
   V(TypedDataLibrary, _Int32x4, get:flagW, Int32x4GetFlagW, 0xf4bbd08c)        \
   V(TypedDataLibrary, _Int32x4, get:signMask, Int32x4GetSignMask, 0x7c4dfa2a)  \
+  V(TypedDataLibrary, _Int32x4, get:anyTrue, Int32x4AnyTrue, 0xd7e59064)       \
   V(TypedDataLibrary, _Int32x4, shuffle, Int32x4Shuffle, 0x4044fa13)           \
   V(TypedDataLibrary, _Int32x4, shuffleMix, Int32x4ShuffleMix, 0x4fcb1cdc)     \
   V(TypedDataLibrary, _Int32x4, select, Int32x4Select, 0x68ad87e0)             \

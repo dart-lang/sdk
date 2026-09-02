@@ -206,9 +206,30 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitCallInvocation(CallInvocation node) {
+    _elementUsageFrontierDetector.callInvocation(node);
+    super.visitCallInvocation(node);
+  }
+
+  @override
   void visitCascadeIndexExpression(CascadeIndexExpression node) {
-    _elementUsageFrontierDetector.cascadeIndexExpression(node);
+    _elementUsageFrontierDetector.indexExpression2(node);
     super.visitCascadeIndexExpression(node);
+  }
+
+  @override
+  void visitCascadeMethodInvocation(
+    covariant CascadeMethodInvocationImpl node,
+  ) {
+    _elementUsageFrontierDetector.namedFunctionInvocation(node);
+    _deprecatedFunctionalityVerifier.namedFunctionInvocation(node);
+    if (node.parent2 case CascadeSectionImpl(
+      parent2: CascadeExpressionImpl(:var target2),
+    )) {
+      _errorHandlerVerifier.verifyNamedFunctionInvocation(node, target2);
+      _nullSafeApiVerifier.namedFunctionInvocation(node, target2);
+    }
+    super.visitCascadeMethodInvocation(node);
   }
 
   @override
@@ -410,6 +431,21 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitDotShorthandMethodInvocation(DotShorthandMethodInvocation node) {
+    _elementUsageFrontierDetector.dotShorthandMethodInvocation(node);
+    _deprecatedFunctionalityVerifier.namedFunctionInvocation(node);
+    _invalidAccessVerifier.verifyNamedFunctionInvocation(node);
+    super.visitDotShorthandMethodInvocation(node);
+  }
+
+  @override
+  void visitDotShorthandNameExpression(DotShorthandNameExpression node) {
+    _elementUsageFrontierDetector.dotShorthandNameExpression(node);
+    _invalidAccessVerifier.verifyDotShorthandNameExpression(node);
+    super.visitDotShorthandNameExpression(node);
+  }
+
+  @override
   void visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
     _elementUsageFrontierDetector.dotShorthandPropertyAccess(node);
     super.visitDotShorthandPropertyAccess(node);
@@ -583,12 +619,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    _elementUsageFrontierDetector.functionExpressionInvocation(node);
-    super.visitFunctionExpressionInvocation(node);
-  }
-
-  @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
     _checkStrictInferenceReturnType(node.returnType, node, node.name.lexeme);
     _checkStrictInferenceInParameters(node.parameters);
@@ -655,15 +685,19 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitIndexExpression(IndexExpression node) {
-    _elementUsageFrontierDetector.indexExpression(node);
-    super.visitIndexExpression(node);
+  void visitImportPrefixedFunctionInvocation(
+    covariant ImportPrefixedFunctionInvocationImpl node,
+  ) {
+    _elementUsageFrontierDetector.namedFunctionInvocation(node);
+    _deprecatedFunctionalityVerifier.namedFunctionInvocation(node);
+    _invalidAccessVerifier.verifyNamedFunctionInvocation(node);
+    super.visitImportPrefixedFunctionInvocation(node);
   }
 
   @override
-  void visitIndexExpression2(IndexExpression2 node) {
-    _elementUsageFrontierDetector.indexExpression2(node);
-    super.visitIndexExpression2(node);
+  void visitIndexExpression(IndexExpression node) {
+    _elementUsageFrontierDetector.indexExpression(node);
+    super.visitIndexExpression(node);
   }
 
   @override
@@ -880,6 +914,24 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitReceiverIndexExpression(ReceiverIndexExpression node) {
+    _elementUsageFrontierDetector.indexExpression2(node);
+    super.visitReceiverIndexExpression(node);
+  }
+
+  @override
+  void visitReceiverMethodInvocation(
+    covariant ReceiverMethodInvocationImpl node,
+  ) {
+    _elementUsageFrontierDetector.namedFunctionInvocation(node);
+    _deprecatedFunctionalityVerifier.namedFunctionInvocation(node);
+    _errorHandlerVerifier.verifyNamedFunctionInvocation(node, node.receiver);
+    _nullSafeApiVerifier.namedFunctionInvocation(node, node.receiver);
+    _invalidAccessVerifier.verifyNamedFunctionInvocation(node);
+    super.visitReceiverMethodInvocation(node);
+  }
+
+  @override
   void visitReceiverPropertyExtraction(ReceiverPropertyExtraction node) {
     _elementUsageFrontierDetector.propertyExtraction(node);
     _invalidAccessVerifier.verifyPropertyExtraction(node);
@@ -1004,6 +1056,16 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
   void visitUnaryOperatorInvocation(UnaryOperatorInvocation node) {
     _elementUsageFrontierDetector.unaryOperatorInvocation(node);
     super.visitUnaryOperatorInvocation(node);
+  }
+
+  @override
+  void visitUnqualifiedFunctionInvocation(
+    covariant UnqualifiedFunctionInvocationImpl node,
+  ) {
+    _elementUsageFrontierDetector.namedFunctionInvocation(node);
+    _deprecatedFunctionalityVerifier.namedFunctionInvocation(node);
+    _invalidAccessVerifier.verifyNamedFunctionInvocation(node);
+    super.visitUnqualifiedFunctionInvocation(node);
   }
 
   /// Checks for the passed [IsExpression] for the unnecessary type check
@@ -1670,6 +1732,15 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
       }
     } else if (expression is MethodInvocation) {
       element = expression.methodName.element;
+    } else if (expression is NamedFunctionInvocation) {
+      element = switch (expression.resolution) {
+        ExecutableInvocationResolution(:var element) => element,
+        InvalidInvocationResolution(
+          recovery: ExecutableInvocationResolution(:var element),
+        ) =>
+          element,
+        _ => null,
+      };
     } else if (expression is Identifier) {
       element = expression.element;
       // Tear-off.
@@ -1887,6 +1958,16 @@ class _InvalidAccessVerifier {
     _checkForOtherInvalidAccess(node, element);
   }
 
+  void verifyDotShorthandNameExpression(DotShorthandNameExpression node) {
+    var element = switch (node.resolution) {
+      InvalidNamedReadResolution(:var candidates) when candidates.isNotEmpty =>
+        candidates.first,
+      NamedReadResolutionWithElement(:var element) => element,
+      _ => null,
+    };
+    _verify(node: node, nameToken: node.name, element: element);
+  }
+
   void verifyImport(ImportDirective node) {
     var importedLibrary = node.libraryImport?.importedLibrary;
     if (importedLibrary != null &&
@@ -1921,6 +2002,16 @@ class _InvalidAccessVerifier {
     );
 
     _checkForOtherInvalidAccess(node, element);
+  }
+
+  void verifyNamedFunctionInvocation(NamedFunctionInvocation node) {
+    var element = switch (node.resolution) {
+      ExecutableInvocationResolution(:var element) => element,
+      InvalidInvocationResolution(:var candidates) when candidates.isNotEmpty =>
+        candidates.first,
+      _ => null,
+    };
+    _verify(node: node, nameToken: node.name, element: element?.baseElement);
   }
 
   void verifyNamedType(NamedType node) {
@@ -2297,6 +2388,12 @@ class _InvalidAccessVerifier {
     } else if (node is NamedType) {
       name = node.name.lexeme;
     } else if (node is NamedArgument) {
+      name = node.name.lexeme;
+      errorEntity = node.name;
+    } else if (node is DotShorthandNameExpression) {
+      name = node.name.lexeme;
+      errorEntity = node.name;
+    } else if (node is NamedFunctionInvocation) {
       name = node.name.lexeme;
       errorEntity = node.name;
     } else if (node is PatternFieldImpl) {

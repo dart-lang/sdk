@@ -8402,6 +8402,52 @@ class BodyBuilderImpl extends StackListenerImpl
     debugEvent("Send");
     Object? arguments = pop();
     List<TypeBuilder>? typeArgumentBuilders = pop() as List<TypeBuilder>?;
+    _handleSend(beginToken, arguments, typeArgumentBuilders);
+  }
+
+  @override
+  void handleSendWithoutArguments(
+    Token beginToken,
+    Token endToken,
+    Token nextToken,
+  ) {
+    assert(
+      checkState(beginToken, [
+        unionOfKinds([
+          ValueKinds.Expression,
+          ValueKinds.Generator,
+          ValueKinds.Identifier,
+          ValueKinds.ParserRecovery,
+        ]),
+      ]),
+    );
+    debugEvent("SendWithoutArguments");
+    _handleSend(beginToken, null, null);
+  }
+
+  @override
+  void handleInvocationWithoutTypeArguments(Token beginToken, Token endToken) {
+    assert(
+      checkState(beginToken, [
+        unionOfKinds([ValueKinds.ArgumentsOrNull, ValueKinds.ParserRecovery]),
+        unionOfKinds([
+          ValueKinds.Expression,
+          ValueKinds.Generator,
+          ValueKinds.Identifier,
+          ValueKinds.ParserRecovery,
+        ]),
+      ]),
+    );
+    debugEvent("InvocationWithoutTypeArguments");
+    Object? arguments = pop();
+    _handleSend(beginToken, arguments, null);
+  }
+
+  void _handleSend(
+    Token beginToken,
+    Object? arguments,
+    List<TypeBuilder>? typeArgumentBuilders,
+  ) {
     Object receiver = pop()!;
     // Delay adding [typeArgumentBuilders] to [forest] for type aliases: They
     // must be unaliased to the type arguments of the denoted type.

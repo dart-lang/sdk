@@ -10,3 +10,9 @@ static method joinedVariableSingleHead(dynamic x) → dynamic
   ;
 static method joinedVariableMixed(dynamic x) → dynamic
   ;
+static method joinedVariableSwitchExpression(dynamic x) → dynamic
+  ;
+static method joinedVariableIfCaseStatement(dynamic x) → dynamic
+  ;
+static method joinedVariableIfCaseElement(dynamic x) → dynamic
+  ;

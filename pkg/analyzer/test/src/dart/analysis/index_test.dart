@@ -98,9 +98,9 @@ class IndexTest extends PubPackageResolutionTest {
 
   test_analyzer_diagnosticCode() async {
     var analyzerPackageRootPath = '$workspaceRootPath/pkg/analyzer';
-    writePackageConfig(
+    writePackageConfig2(
       analyzerPackageRootPath,
-      PackageConfigFileBuilder()
+      config: PackageConfigFileBuilder()
         ..add(name: 'analyzer', rootFolder: getFolder(analyzerPackageRootPath)),
     );
 
@@ -5938,7 +5938,7 @@ void useFoo() {
   M m = .foo();
 //  ^
 // [diag.unusedLocalVariable] The value of the local variable 'm' isn't used.
-//      ^^^^^^
+//       ^^^
 // [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
 }
 ''');
@@ -6003,68 +6003,6 @@ void useOperator(A a) {
    ^^ IS_INVOKED_BY qualified
 }
 ''');
-  }
-
-  test_MethodElement_operator_ofClass_indexAssignmentTarget() async {
-    var result = await _indexTestCode('''
-class A {
-  num operator [](int i) => 0;
-  void operator []=(int i, num v) {}
-}
-class B {
-  num? operator [](int i) => 0;
-  void operator []=(int i, num v) {}
-}
-void useOperator(A a, A? nullableA, B b, B? nullableB) {
-  a[0] = 1;
-  nullableA?[1] = 2;
-  a[2] += 3;
-  nullableA?[3] += 4;
-  b[4] ??= 5;
-  nullableB?[5] ??= 6;
-}
-''');
-
-    assertElementsIndexText(
-      result,
-      {
-        'aRead': result.findElement.method('[]', of: 'A'),
-        'aWrite': result.findElement.method('[]=', of: 'A'),
-        'bRead': result.findElement.method('[]', of: 'B'),
-        'bWrite': result.findElement.method('[]=', of: 'B'),
-        'num.+': result.resolvedUnit.typeProvider.numElement.getMethod('+')!,
-      },
-      r'''
-class A {
-  num operator [](int i) => 0;
-  void operator []=(int i, num v) {}
-}
-class B {
-  num? operator [](int i) => 0;
-  void operator []=(int i, num v) {}
-}
-void useOperator(A a, A? nullableA, B b, B? nullableB) {
-  a[0] = 1;
-   ^ aWrite IS_INVOKED_BY qualified
-  nullableA?[1] = 2;
-            ^ aWrite IS_INVOKED_BY qualified
-  a[2] += 3;
-   ^ aRead IS_INVOKED_BY qualified
-   ^ aWrite IS_INVOKED_BY qualified
-       ^^ num.+ IS_INVOKED_BY qualified
-  nullableA?[3] += 4;
-            ^ aRead IS_INVOKED_BY qualified
-            ^ aWrite IS_INVOKED_BY qualified
-                ^^ num.+ IS_INVOKED_BY qualified
-  b[4] ??= 5;
-   ^ bRead IS_INVOKED_BY qualified
-   ^ bWrite IS_INVOKED_BY qualified
-  nullableB?[5] ??= 6;
-            ^ bRead IS_INVOKED_BY qualified
-            ^ bWrite IS_INVOKED_BY qualified
-}
-''',
-    );
   }
 
   test_MethodElement_operator_ofClass_indexCascadeSections() async {
@@ -6169,6 +6107,68 @@ void useOperator(A a) {
   ^ IS_INVOKED_BY qualified
 }
 ''');
+  }
+
+  test_MethodElement_operator_ofClass_receiverIndexAssignmentTarget() async {
+    var result = await _indexTestCode('''
+class A {
+  num operator [](int i) => 0;
+  void operator []=(int i, num v) {}
+}
+class B {
+  num? operator [](int i) => 0;
+  void operator []=(int i, num v) {}
+}
+void useOperator(A a, A? nullableA, B b, B? nullableB) {
+  a[0] = 1;
+  nullableA?[1] = 2;
+  a[2] += 3;
+  nullableA?[3] += 4;
+  b[4] ??= 5;
+  nullableB?[5] ??= 6;
+}
+''');
+
+    assertElementsIndexText(
+      result,
+      {
+        'aRead': result.findElement.method('[]', of: 'A'),
+        'aWrite': result.findElement.method('[]=', of: 'A'),
+        'bRead': result.findElement.method('[]', of: 'B'),
+        'bWrite': result.findElement.method('[]=', of: 'B'),
+        'num.+': result.resolvedUnit.typeProvider.numElement.getMethod('+')!,
+      },
+      r'''
+class A {
+  num operator [](int i) => 0;
+  void operator []=(int i, num v) {}
+}
+class B {
+  num? operator [](int i) => 0;
+  void operator []=(int i, num v) {}
+}
+void useOperator(A a, A? nullableA, B b, B? nullableB) {
+  a[0] = 1;
+   ^ aWrite IS_INVOKED_BY qualified
+  nullableA?[1] = 2;
+            ^ aWrite IS_INVOKED_BY qualified
+  a[2] += 3;
+   ^ aRead IS_INVOKED_BY qualified
+   ^ aWrite IS_INVOKED_BY qualified
+       ^^ num.+ IS_INVOKED_BY qualified
+  nullableA?[3] += 4;
+            ^ aRead IS_INVOKED_BY qualified
+            ^ aWrite IS_INVOKED_BY qualified
+                ^^ num.+ IS_INVOKED_BY qualified
+  b[4] ??= 5;
+   ^ bRead IS_INVOKED_BY qualified
+   ^ bWrite IS_INVOKED_BY qualified
+  nullableB?[5] ??= 6;
+            ^ bRead IS_INVOKED_BY qualified
+            ^ bWrite IS_INVOKED_BY qualified
+}
+''',
+    );
   }
 
   test_MethodElement_operator_ofEnum_binary() async {

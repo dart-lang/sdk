@@ -3151,8 +3151,6 @@ final class AssignmentExpressionImpl extends ExpressionImpl
 
   static TypeImpl? _v1CompoundReadType(AssignmentTargetImpl target) =>
       switch (target) {
-        CascadeIndexAssignmentTargetImpl target =>
-          target.read?.type ?? InvalidTypeImpl.instance,
         IndexAssignmentTargetImpl target => target._legacyReadType,
         PropertyAssignmentTargetImpl target =>
           target.read?.type ?? InvalidTypeImpl.instance,
@@ -3163,7 +3161,6 @@ final class AssignmentExpressionImpl extends ExpressionImpl
   static TypeImpl? _v1DirectWriteType(
     AssignmentTargetImpl target,
   ) => switch (target) {
-    CascadeIndexAssignmentTargetImpl target => target.write?.acceptedType,
     CascadePropertyAssignmentTargetImpl target => target.write?.acceptedType,
     IndexAssignmentTargetImpl target => target.write?.acceptedType,
     ReceiverPropertyAssignmentTargetImpl target =>
@@ -3174,8 +3171,6 @@ final class AssignmentExpressionImpl extends ExpressionImpl
 
   static TypeImpl? _v1IfNullReadType(AssignmentTargetImpl target) =>
       switch (target) {
-        CascadeIndexAssignmentTargetImpl target =>
-          target.read?.type ?? InvalidTypeImpl.instance,
         IndexAssignmentTargetImpl target => target._legacyReadType,
         PropertyAssignmentTargetImpl target =>
           target.read?.type ?? InvalidTypeImpl.instance,
@@ -3186,7 +3181,6 @@ final class AssignmentExpressionImpl extends ExpressionImpl
 
   static ExpressionImpl _v1LeftHandSide(AssignmentTargetImpl target) =>
       switch (target) {
-        CascadeIndexAssignmentTargetImpl target => target.indexExpression,
         PropertyAssignmentTargetImpl target => target.propertyAccess,
         IndexAssignmentTargetImpl target => target.indexExpression,
         UnqualifiedNameAssignmentTargetImpl target => target.simpleIdentifier,
@@ -3197,7 +3191,6 @@ final class AssignmentExpressionImpl extends ExpressionImpl
   static Element? _v1ReadElement(
     AssignmentTargetImpl target,
   ) => switch (target) {
-    CascadeIndexAssignmentTargetImpl target => target._legacyReadElement,
     CascadePropertyAssignmentTargetImpl target => target._legacyReadElement,
     IndexAssignmentTargetImpl target => target._legacyReadElement,
     ReceiverPropertyAssignmentTargetImpl target => target._legacyReadElement,
@@ -3210,8 +3203,6 @@ final class AssignmentExpressionImpl extends ExpressionImpl
   static TypeImpl? _v1ReadWriteAssignmentWriteType(
     AssignmentTargetImpl target,
   ) => switch (target) {
-    CascadeIndexAssignmentTargetImpl target =>
-      target.write?.acceptedType ?? InvalidTypeImpl.instance,
     PropertyAssignmentTargetImpl target =>
       target.write?.acceptedType ?? InvalidTypeImpl.instance,
     IndexAssignmentTargetImpl target =>
@@ -3223,7 +3214,6 @@ final class AssignmentExpressionImpl extends ExpressionImpl
   static Element? _v1WriteElement(
     AssignmentTargetImpl target,
   ) => switch (target) {
-    CascadeIndexAssignmentTargetImpl target => target._legacyWriteElement,
     CascadePropertyAssignmentTargetImpl target => target._legacyWriteElement,
     IndexAssignmentTargetImpl target => target._legacyWriteElement,
     ReceiverPropertyAssignmentTargetImpl target => target._legacyWriteElement,
@@ -3524,6 +3514,9 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
   ChildEntities get _childEntities2 => _childEntities;
 
   void detachFromParent() {
+    if (this case ExpressionImpl expression) {
+      V1Projection._cachedV1Expression(expression)?.detachFromParent();
+    }
     _parent = null;
     _parent2 = null;
   }
@@ -5477,6 +5470,207 @@ final class BreakStatementImpl extends StatementImpl implements BreakStatement {
   }
 }
 
+/// An invocation of a function value or an implicitly selected `call` method.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class CallInvocation implements FunctionInvocation {
+  /// The receiver to which the argument list is applied.
+  InstanceReceiver get receiver;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [
+    GenerateNodeProperty('receiver'),
+    GenerateNodeProperty('typeArguments', isSuper: true),
+    GenerateNodeProperty('argumentList', isSuper: true),
+  ],
+)
+final class CallInvocationImpl extends FunctionInvocationImpl
+    with DotShorthandMixin
+    implements RewrittenMethodInvocationImpl, CallInvocation {
+  @generated
+  InstanceReceiverImpl _receiver;
+
+  @generated
+  CallInvocationImpl({
+    required InstanceReceiverImpl receiver,
+    required super.typeArguments,
+    required super.argumentList,
+  }) : _receiver = receiver {
+    _becomeParentOf2(receiver);
+  }
+
+  @generated
+  @override
+  Token get beginToken {
+    return receiver.beginToken;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return argumentList.endToken;
+  }
+
+  @generated
+  @override
+  InstanceReceiverImpl get receiver => _receiver;
+
+  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  set receiver(InstanceReceiverImpl receiver) {
+    _receiver = _becomeParentOf2(receiver);
+    _functionExpressionInvocation?._attachV1Children();
+  }
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @generated
+  @override
+  ChildEntities get _childEntities {
+    throw StateError('CallInvocation is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('receiver', receiver)
+    ..addNode('typeArguments', typeArguments)
+    ..addNode('argumentList', argumentList);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('CallInvocation is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitCallInvocation(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent2, this));
+    return false;
+  }
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    if (identical(receiver, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'receiver'.");
+    }
+    if (identical(typeArguments, oldNode)) {
+      typeArguments = null;
+      return;
+    }
+    if (identical(argumentList, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'argumentList'.");
+    }
+    super.removeChild(oldNode);
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (identical(receiver, oldNode)) {
+      receiver = newNode as InstanceReceiverImpl;
+      return;
+    }
+    if (identical(typeArguments, oldNode)) {
+      typeArguments = newNode as TypeArgumentListImpl?;
+      return;
+    }
+    if (identical(argumentList, oldNode)) {
+      argumentList = newNode as ArgumentListImpl;
+      return;
+    }
+    super.replaceChild(oldNode, newNode);
+  }
+
+  @generated
+  @override
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+    resolver.visitCallInvocation(this, contextType: contextType);
+  }
+
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError('CallInvocation is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    receiver.accept2(visitor);
+    typeArguments?.accept2(visitor);
+    argumentList.accept2(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(
+    AstVisitor2 visitor, {
+    void Function(InstanceReceiverImpl)? visitReceiver,
+    void Function(TypeArgumentListImpl)? visitTypeArguments,
+    void Function(ArgumentListImpl)? visitArgumentList,
+  }) {
+    if (visitReceiver != null) {
+      visitReceiver(receiver);
+    } else {
+      receiver.accept2(visitor);
+    }
+    if (typeArguments case var typeArguments?) {
+      if (visitTypeArguments != null) {
+        visitTypeArguments(typeArguments);
+      } else {
+        typeArguments.accept2(visitor);
+      }
+    }
+    if (visitArgumentList != null) {
+      visitArgumentList(argumentList);
+    } else {
+      argumentList.accept2(visitor);
+    }
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError('CallInvocation is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (receiver._containsOffset(rangeOffset, rangeEnd)) {
+      return receiver;
+    }
+    if (typeArguments case var typeArguments?) {
+      if (typeArguments._containsOffset(rangeOffset, rangeEnd)) {
+        return typeArguments;
+      }
+    }
+    if (argumentList._containsOffset(rangeOffset, rangeEnd)) {
+      return argumentList;
+    }
+    return null;
+  }
+}
+
 /// A sequence of cascaded expressions: expressions that share a common target.
 ///
 /// There are three kinds of expressions that can be used in a cascade
@@ -5499,6 +5693,7 @@ abstract final class CascadeExpression implements Expression {
   @ToBeDeprecated('Use cascadeSections2 instead.')
   NodeList<Expression> get cascadeSections;
 
+  // TODO(scheglov): Remove after all users migrate to [sections].
   @experimental
   NodeList<Expression> get cascadeSections2;
 
@@ -5742,64 +5937,25 @@ final class CascadeExpressionImpl extends ExpressionImpl
 /// An indexed location at the start of a cascade section.
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-abstract final class CascadeIndexAssignmentTarget implements AssignmentTarget {
-  /// The expression used to compute the index.
-  Expression get index;
-
-  /// The left square bracket.
-  Token get leftBracket;
-
-  /// The read operation, or `null` if the enclosing operation does not read,
-  /// this target has not been resolved, or the cascade target cannot complete.
-  IndexReadResolution? get read;
-
-  /// The right square bracket.
-  Token get rightBracket;
-
-  /// The write operation, or `null` if this target has not been resolved or
-  /// the cascade target cannot complete.
-  IndexWriteResolution? get write;
-}
+abstract final class CascadeIndexAssignmentTarget
+    implements IndexAssignmentTarget {}
 
 @GenerateNodeImpl(
   api: AstNodeApi.v2,
   childEntitiesOrder: [
-    GenerateNodeProperty('leftBracket'),
-    GenerateNodeProperty('index', isInValueExpressionSlot: true),
-    GenerateNodeProperty('rightBracket'),
+    GenerateNodeProperty('leftBracket', isSuper: true),
+    GenerateNodeProperty('index', isSuper: true, isInValueExpressionSlot: true),
+    GenerateNodeProperty('rightBracket', isSuper: true),
   ],
 )
-final class CascadeIndexAssignmentTargetImpl extends AssignmentTargetImpl
+final class CascadeIndexAssignmentTargetImpl extends IndexAssignmentTargetImpl
     implements CascadeIndexAssignmentTarget {
   @generated
-  @override
-  final Token leftBracket;
-
-  @generated
-  ExpressionImpl _index;
-
-  @generated
-  @override
-  final Token rightBracket;
-
-  @DoNotGenerate(reason: 'Stores the canonical typed read resolution')
-  @override
-  IndexReadResolutionImpl? read;
-
-  @DoNotGenerate(reason: 'Stores the canonical typed write resolution')
-  @override
-  IndexWriteResolutionImpl? write;
-
-  IndexExpressionImpl? _indexExpression;
-
-  @generated
   CascadeIndexAssignmentTargetImpl({
-    required this.leftBracket,
-    required ExpressionImpl index,
-    required this.rightBracket,
-  }) : _index = index {
-    _becomeParentOf2(index);
-  }
+    required super.leftBracket,
+    required super.index,
+    required super.rightBracket,
+  });
 
   @generated
   @override
@@ -5812,20 +5968,6 @@ final class CascadeIndexAssignmentTargetImpl extends AssignmentTargetImpl
   Token get endToken {
     return rightBracket;
   }
-
-  @generated
-  @override
-  ExpressionImpl get index => _index;
-
-  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
-  set index(ExpressionImpl index) {
-    _index = _becomeParentOf2(index);
-    _indexExpression?._attachV1Children();
-  }
-
-  /// The cached V1 compatibility projection for this target.
-  IndexExpressionImpl get indexExpression => _indexExpression ??=
-      IndexExpressionImpl.v1ProjectionFromCascadeAssignmentTarget(this);
 
   @generated
   @override
@@ -5843,27 +5985,6 @@ final class CascadeIndexAssignmentTargetImpl extends AssignmentTargetImpl
     ..addToken('leftBracket', leftBracket)
     ..addNode('index', index)
     ..addToken('rightBracket', rightBracket);
-
-  InternalMethodElement? get _legacyReadElement => switch (read) {
-    MethodIndexReadResolutionImpl(:var element) => element,
-    InvalidIndexReadResolutionImpl(
-      recovery: MethodIndexReadResolutionImpl(:var element),
-    ) =>
-      element,
-    _ => null,
-  };
-
-  InternalMethodElement? get _legacyWriteElement => switch (write) {
-    MethodIndexWriteResolutionImpl(:var element) => element,
-    InvalidIndexWriteResolutionImpl(
-      recovery: MethodIndexWriteResolutionImpl(:var element),
-    ) =>
-      element,
-    _ => null,
-  };
-
-  InternalFormalParameterElement? get _staticParameterElementForIndex =>
-      (_legacyWriteElement ?? _legacyReadElement)?.formalParameters.firstOrNull;
 
   @generated
   @ToBeDeprecated('Use accept2 instead.')
@@ -5956,56 +6077,24 @@ final class CascadeIndexAssignmentTargetImpl extends AssignmentTargetImpl
 /// A value produced by indexing the target at the start of a cascade section.
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-abstract final class CascadeIndexExpression implements Expression {
-  /// The expression used to compute the index.
-  Expression get index;
-
-  /// The left square bracket.
-  Token get leftBracket;
-
-  /// The resolution of the read, or `null` if this expression has not been
-  /// resolved or the cascade target cannot complete.
-  IndexReadResolution? get resolution;
-
-  /// The right square bracket.
-  Token get rightBracket;
-}
+abstract final class CascadeIndexExpression implements IndexExpression2 {}
 
 @GenerateNodeImpl(
   api: AstNodeApi.v2,
   childEntitiesOrder: [
-    GenerateNodeProperty('leftBracket'),
-    GenerateNodeProperty('index', isInValueExpressionSlot: true),
-    GenerateNodeProperty('rightBracket'),
+    GenerateNodeProperty('leftBracket', isSuper: true),
+    GenerateNodeProperty('index', isSuper: true, isInValueExpressionSlot: true),
+    GenerateNodeProperty('rightBracket', isSuper: true),
   ],
 )
-final class CascadeIndexExpressionImpl extends ExpressionImpl
+final class CascadeIndexExpressionImpl extends IndexExpression2Impl
     implements CascadeIndexExpression {
   @generated
-  @override
-  final Token leftBracket;
-
-  @generated
-  ExpressionImpl _index;
-
-  @generated
-  @override
-  final Token rightBracket;
-
-  @DoNotGenerate(reason: 'Stores the canonical typed read resolution')
-  @override
-  IndexReadResolutionImpl? resolution;
-
-  IndexExpressionImpl? _indexExpression;
-
-  @generated
   CascadeIndexExpressionImpl({
-    required this.leftBracket,
-    required ExpressionImpl index,
-    required this.rightBracket,
-  }) : _index = index {
-    _becomeParentOf2(index);
-  }
+    required super.leftBracket,
+    required super.index,
+    required super.rightBracket,
+  });
 
   @generated
   @override
@@ -6018,26 +6107,6 @@ final class CascadeIndexExpressionImpl extends ExpressionImpl
   Token get endToken {
     return rightBracket;
   }
-
-  @generated
-  @override
-  ExpressionImpl get index => _index;
-
-  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
-  set index(ExpressionImpl index) {
-    _index = _becomeParentOf2(index);
-    _indexExpression?._attachV1Children();
-  }
-
-  /// The cached V1 compatibility projection for this expression.
-  IndexExpressionImpl get indexExpression => _indexExpression ??=
-      IndexExpressionImpl.v1ProjectionFromCascadeExpression(this);
-
-  @override
-  bool get isAssignable => true;
-
-  @override
-  Precedence get precedence => Precedence.postfix;
 
   @generated
   @override
@@ -6055,18 +6124,6 @@ final class CascadeIndexExpressionImpl extends ExpressionImpl
     ..addToken('leftBracket', leftBracket)
     ..addNode('index', index)
     ..addToken('rightBracket', rightBracket);
-
-  InternalMethodElement? get _legacyReadElement => switch (resolution) {
-    MethodIndexReadResolutionImpl(:var element) => element,
-    InvalidIndexReadResolutionImpl(
-      recovery: MethodIndexReadResolutionImpl(:var element),
-    ) =>
-      element,
-    _ => null,
-  };
-
-  InternalFormalParameterElement? get _staticParameterElementForIndex =>
-      _legacyReadElement?.formalParameters.firstOrNull;
 
   @generated
   @ToBeDeprecated('Use accept2 instead.')
@@ -6157,6 +6214,182 @@ final class CascadeIndexExpressionImpl extends ExpressionImpl
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     if (index._containsOffset(rangeOffset, rangeEnd)) {
       return index;
+    }
+    return null;
+  }
+}
+
+/// A direct method invocation at the start of a cascade section.
+///
+/// The enclosing [CascadeSection] owns the `..` or `?..` token and the
+/// enclosing [CascadeExpression] owns the once-evaluated receiver.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class CascadeMethodInvocation
+    implements NamedFunctionInvocation {}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [
+    GenerateNodeProperty('name', isSuper: true),
+    GenerateNodeProperty('typeArguments', isSuper: true),
+    GenerateNodeProperty('argumentList', isSuper: true),
+  ],
+)
+final class CascadeMethodInvocationImpl extends NamedFunctionInvocationImpl
+    implements CascadeMethodInvocation {
+  MethodInvocationImpl? _methodInvocation;
+
+  @generated
+  CascadeMethodInvocationImpl({
+    required super.name,
+    required super.typeArguments,
+    required super.argumentList,
+  });
+
+  @generated
+  @override
+  Token get beginToken {
+    return name;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return argumentList.endToken;
+  }
+
+  /// The cached V1 compatibility projection for this invocation.
+  MethodInvocationImpl get methodInvocation => _methodInvocation ??=
+      MethodInvocationImpl.v1ProjectionFromNamedFunctionInvocation(this);
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @generated
+  @override
+  ChildEntities get _childEntities {
+    throw StateError('CascadeMethodInvocation is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('name', name)
+    ..addNode('typeArguments', typeArguments)
+    ..addNode('argumentList', argumentList);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('CascadeMethodInvocation is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitCascadeMethodInvocation(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent2, this));
+    return false;
+  }
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    if (identical(typeArguments, oldNode)) {
+      typeArguments = null;
+      return;
+    }
+    if (identical(argumentList, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'argumentList'.");
+    }
+    super.removeChild(oldNode);
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (identical(typeArguments, oldNode)) {
+      typeArguments = newNode as TypeArgumentListImpl?;
+      return;
+    }
+    if (identical(argumentList, oldNode)) {
+      argumentList = newNode as ArgumentListImpl;
+      return;
+    }
+    super.replaceChild(oldNode, newNode);
+  }
+
+  @generated
+  @override
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+    resolver.visitCascadeMethodInvocation(this, contextType: contextType);
+  }
+
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError('CascadeMethodInvocation is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    typeArguments?.accept2(visitor);
+    argumentList.accept2(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(
+    AstVisitor2 visitor, {
+    void Function(TypeArgumentListImpl)? visitTypeArguments,
+    void Function(ArgumentListImpl)? visitArgumentList,
+  }) {
+    if (typeArguments case var typeArguments?) {
+      if (visitTypeArguments != null) {
+        visitTypeArguments(typeArguments);
+      } else {
+        typeArguments.accept2(visitor);
+      }
+    }
+    if (visitArgumentList != null) {
+      visitArgumentList(argumentList);
+    } else {
+      argumentList.accept2(visitor);
+    }
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError('CascadeMethodInvocation is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (typeArguments case var typeArguments?) {
+      if (typeArguments._containsOffset(rangeOffset, rangeEnd)) {
+        return typeArguments;
+      }
+    }
+    if (argumentList._containsOffset(rangeOffset, rangeEnd)) {
+      return argumentList;
     }
     return null;
   }
@@ -6440,9 +6673,12 @@ final class CascadeSectionImpl extends AstNodeImpl implements CascadeSection {
   @override
   ExpressionImpl get body => _body;
 
-  @generated
+  @DoNotGenerate(reason: 'Reattaches a rewritten body in the flat V1 view')
   set body(ExpressionImpl body) {
     _body = _becomeParentOf2(body);
+    if (parent2 case CascadeExpressionImpl cascade) {
+      cascade._becomeParentOf1(V1Projection.toV1Expression(body));
+    }
   }
 
   @generated
@@ -13852,7 +14088,6 @@ final class DirectAssignmentImpl extends AssignmentExpression2Impl
   @override
   InternalFormalParameterElement? get _staticParameterElementForValue {
     var write = switch (target) {
-      CascadeIndexAssignmentTargetImpl(:var write) => write,
       PropertyAssignmentTargetImpl(:var write) => write,
       IndexAssignmentTargetImpl(:var write) => write,
       UnqualifiedNameAssignmentTargetImpl(:var write) => write,
@@ -14549,7 +14784,7 @@ final class DotShorthandConstructorInvocationImpl
   }
 }
 
-/// A node that represents a dot shorthand static method or constructor
+/// A V1 node that represents a dot shorthand static method or constructor
 /// invocation.
 ///
 /// For example, `.parse('42')`.
@@ -14580,8 +14815,10 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
   @override
   final Token period;
 
-  @generated
+  @DoNotGenerate(reason: 'Some instances are V1 projection objects')
   SimpleIdentifierImpl _memberName;
+
+  DotShorthandMethodInvocationImpl? _v1ProjectionOrigin;
 
   @generated
   DotShorthandInvocationImpl({
@@ -14593,13 +14830,45 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
     _becomeParentOf12(memberName);
   }
 
+  DotShorthandInvocationImpl.v1ProjectionFromMethodInvocation(
+    DotShorthandMethodInvocationImpl origin,
+  ) : period = origin.period,
+      _memberName = SimpleIdentifierImpl.v1Projection(token: origin.name),
+      _v1ProjectionOrigin = origin,
+      super.v1Projection(
+        typeArguments: origin.typeArguments,
+        argumentList: origin.argumentList,
+      ) {
+    isDotShorthand = origin.isDotShorthand;
+    _attachV1Children();
+  }
+
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
+  @override
+  ArgumentListImpl get argumentList =>
+      _v1ProjectionOrigin?.argumentList ?? super.argumentList;
+
+  @DoNotGenerate(reason: 'V1 projection objects are read-only')
+  @override
+  set argumentList(ArgumentListImpl argumentList) {
+    if (_v1ProjectionOrigin != null) {
+      throw UnsupportedError('A V1 projection cannot be mutated.');
+    }
+    super.argumentList = argumentList;
+  }
+
   @generated
   @override
   Token get beginToken {
     return period;
   }
 
-  @generated
+  @override
+  InternalFormalParameterElement? get correspondingParameter =>
+      _v1ProjectionOrigin?.correspondingParameter ??
+      super.correspondingParameter;
+
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
   @override
   Token get endToken {
     return argumentList.endToken;
@@ -14608,17 +14877,91 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
   @override
   ExpressionImpl get function => memberName;
 
-  @generated
   @override
-  SimpleIdentifierImpl get memberName => _memberName;
+  bool get inConstantContext =>
+      _v1ProjectionOrigin?.inConstantContext ?? super.inConstantContext;
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projections update from their V2 origin')
+  @override
+  SimpleIdentifierImpl get memberName {
+    if (_v1ProjectionOrigin case var origin?) {
+      _memberName.element = switch (origin.resolution) {
+        ExecutableInvocationResolutionImpl(:var element) => element,
+        InvalidInvocationResolutionImpl(
+          recovery: ExecutableInvocationResolutionImpl(:var element),
+        ) =>
+          element,
+        _ => null,
+      };
+      _memberName.setPseudoExpressionStaticType(switch (origin.resolution) {
+        ExecutableInvocationResolutionImpl(:var element) => element.type,
+        InvalidInvocationResolutionImpl(
+          recovery: ExecutableInvocationResolutionImpl(:var element),
+        ) =>
+          element.type,
+        _ => origin.staticInvokeType,
+      });
+    }
+    return _memberName;
+  }
+
+  @DoNotGenerate(reason: 'V1 projection objects are read-only')
   set memberName(SimpleIdentifierImpl memberName) {
+    if (_v1ProjectionOrigin != null) {
+      throw UnsupportedError('A V1 projection cannot be mutated.');
+    }
     _memberName = _becomeParentOf12(memberName);
   }
 
   @override
   Precedence get precedence => Precedence.postfix;
+
+  @override
+  TypeImpl? get staticInvokeType =>
+      _v1ProjectionOrigin?.staticInvokeType ?? super.staticInvokeType;
+
+  @override
+  set staticInvokeType(TypeImpl? staticInvokeType) {
+    if (_v1ProjectionOrigin != null) {
+      throw UnsupportedError('A V1 projection cannot be mutated.');
+    }
+    super.staticInvokeType = staticInvokeType;
+  }
+
+  @override
+  TypeImpl? get staticType =>
+      _v1ProjectionOrigin?.staticType ?? super.staticType;
+
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
+  @override
+  TypeArgumentListImpl? get typeArguments =>
+      _v1ProjectionOrigin?.typeArguments ?? super.typeArguments;
+
+  @DoNotGenerate(reason: 'V1 projection objects are read-only')
+  @override
+  set typeArguments(TypeArgumentListImpl? typeArguments) {
+    if (_v1ProjectionOrigin != null) {
+      throw UnsupportedError('A V1 projection cannot be mutated.');
+    }
+    super.typeArguments = typeArguments;
+  }
+
+  @override
+  List<TypeImpl>? get typeArgumentTypes =>
+      _v1ProjectionOrigin?.typeArgumentTypes ?? super.typeArgumentTypes;
+
+  @override
+  set typeArgumentTypes(List<TypeImpl>? typeArgumentTypes) {
+    if (_v1ProjectionOrigin != null) {
+      throw UnsupportedError('A V1 projection cannot be mutated.');
+    }
+    super.typeArgumentTypes = typeArgumentTypes;
+  }
+
+  @DoNotGenerate(reason: 'Some instances are V1 projection objects')
+  @override
+  AstNodeApi get _astNodeApi =>
+      _v1ProjectionOrigin == null ? AstNodeApi.shared : AstNodeApi.v1;
 
   @generated
   @override
@@ -14628,13 +14971,18 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
     ..addNode('typeArguments', typeArguments)
     ..addNode('argumentList', argumentList);
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
   @override
-  ChildEntities get _childEntities2 => ChildEntities()
-    ..addToken('period', period)
-    ..addNode('memberName', memberName)
-    ..addNode('typeArguments', typeArguments)
-    ..addNode('argumentList', argumentList);
+  ChildEntities get _childEntities2 {
+    if (_v1ProjectionOrigin != null) {
+      throw StateError('DotShorthandInvocation is not in the V2 AST view.');
+    }
+    return ChildEntities()
+      ..addToken('period', period)
+      ..addNode('memberName', memberName)
+      ..addNode('typeArguments', typeArguments)
+      ..addNode('argumentList', argumentList);
+  }
 
   @generated
   @ToBeDeprecated('Use accept2 instead.')
@@ -14642,22 +14990,39 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitDotShorthandInvocation(this);
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
   @experimental
   @override
-  E? accept2<E>(AstVisitor2<E> visitor) =>
-      visitor.visitDotShorthandInvocation(this);
+  E? accept2<E>(AstVisitor2<E> visitor) {
+    if (_v1ProjectionOrigin != null) {
+      throw StateError('DotShorthandInvocation is not in the V2 AST view.');
+    }
+    return visitor.visitDotShorthandInvocation(this);
+  }
 
-  @generated
+  @override
+  AttemptedConstantEvaluationResult? computeConstantValue() =>
+      switch (_v1ProjectionOrigin) {
+        var origin? => origin.computeConstantValue(),
+        null => super.computeConstantValue(),
+      };
+
+  @DoNotGenerate(reason: 'V1 projection children use V1 parent pointers')
   @override
   bool isInValueExpressionSlot(AstNode child) {
+    if (_v1ProjectionOrigin != null) {
+      return true;
+    }
     assert(identical(child.parent2, this));
     return false;
   }
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projection objects are read-only')
   @override
   void removeChild(AstNodeImpl oldNode) {
+    if (_v1ProjectionOrigin != null) {
+      throw UnsupportedError('A V1 projection cannot be mutated.');
+    }
     if (identical(memberName, oldNode)) {
       throw UnsupportedError("Cannot remove required child 'memberName'.");
     }
@@ -14671,9 +15036,12 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
     super.removeChild(oldNode);
   }
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projection objects are read-only')
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (_v1ProjectionOrigin != null) {
+      throw UnsupportedError('A V1 projection cannot be mutated.');
+    }
     if (identical(memberName, oldNode)) {
       memberName = newNode as SimpleIdentifierImpl;
       return;
@@ -14689,11 +15057,17 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
     super.replaceChild(oldNode, newNode);
   }
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projection objects cannot be resolved')
   @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+    if (_v1ProjectionOrigin != null) {
+      throw StateError('DotShorthandInvocation is a V1 projection.');
+    }
     resolver.visitDotShorthandInvocation(this, contextType: contextType);
   }
+
+  @override
+  String toSource() => _v1ProjectionOrigin?.toSource() ?? super.toSource();
 
   @generated
   @ToBeDeprecated('Use visitChildren2 instead.')
@@ -14704,10 +15078,13 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
     argumentList.accept(visitor);
   }
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
   @experimental
   @override
   void visitChildren2(AstVisitor2 visitor) {
+    if (_v1ProjectionOrigin != null) {
+      throw StateError('DotShorthandInvocation is not in the V2 AST view.');
+    }
     memberName.accept2(visitor);
     typeArguments?.accept2(visitor);
     argumentList.accept2(visitor);
@@ -14718,7 +15095,7 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
   /// If a specific hook is provided for a child, it is called instead of
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
-  @generated
+  @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
   @experimental
   void visitChildrenWithHooks(
     AstVisitor2 visitor, {
@@ -14726,6 +15103,9 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
     void Function(TypeArgumentListImpl)? visitTypeArguments,
     void Function(ArgumentListImpl)? visitArgumentList,
   }) {
+    if (_v1ProjectionOrigin != null) {
+      throw StateError('DotShorthandInvocation is not in the V2 AST view.');
+    }
     if (visitMemberName != null) {
       visitMemberName(memberName);
     } else {
@@ -14745,6 +15125,12 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
     }
   }
 
+  void _attachV1Children() {
+    _becomeParentOf1(memberName);
+    _becomeParentOf1(typeArguments);
+    _becomeParentOf1(argumentList);
+  }
+
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
@@ -14762,9 +15148,12 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
     return null;
   }
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
   @override
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (_v1ProjectionOrigin != null) {
+      throw StateError('DotShorthandInvocation is not in the V2 AST view.');
+    }
     if (memberName._containsOffset(rangeOffset, rangeEnd)) {
       return memberName;
     }
@@ -14780,11 +15169,200 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
   }
 }
 
+/// A dot-shorthand invocation of a static method.
+///
+/// Constructor invocations use [DotShorthandConstructorInvocation]. Invoking
+/// the value of a static getter or field uses [CallInvocation] with a
+/// [DotShorthandNameExpression] receiver.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class DotShorthandMethodInvocation
+    implements NamedFunctionInvocation {
+  /// The period before [name].
+  Token get period;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [
+    GenerateNodeProperty('period'),
+    GenerateNodeProperty('name', isSuper: true),
+    GenerateNodeProperty('typeArguments', isSuper: true),
+    GenerateNodeProperty('argumentList', isSuper: true),
+  ],
+)
+final class DotShorthandMethodInvocationImpl extends NamedFunctionInvocationImpl
+    with DotShorthandMixin
+    implements DotShorthandMethodInvocation {
+  @generated
+  @override
+  final Token period;
+
+  DotShorthandInvocationImpl? _dotShorthandInvocation;
+
+  @generated
+  DotShorthandMethodInvocationImpl({
+    required this.period,
+    required super.name,
+    required super.typeArguments,
+    required super.argumentList,
+  });
+
+  @generated
+  @override
+  Token get beginToken {
+    return period;
+  }
+
+  /// The cached V1 compatibility projection for this invocation.
+  DotShorthandInvocationImpl get dotShorthandInvocation =>
+      _dotShorthandInvocation ??=
+          DotShorthandInvocationImpl.v1ProjectionFromMethodInvocation(this);
+
+  @generated
+  @override
+  Token get endToken {
+    return argumentList.endToken;
+  }
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @generated
+  @override
+  ChildEntities get _childEntities {
+    throw StateError('DotShorthandMethodInvocation is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('period', period)
+    ..addToken('name', name)
+    ..addNode('typeArguments', typeArguments)
+    ..addNode('argumentList', argumentList);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('DotShorthandMethodInvocation is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitDotShorthandMethodInvocation(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent2, this));
+    return false;
+  }
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    if (identical(typeArguments, oldNode)) {
+      typeArguments = null;
+      return;
+    }
+    if (identical(argumentList, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'argumentList'.");
+    }
+    super.removeChild(oldNode);
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (identical(typeArguments, oldNode)) {
+      typeArguments = newNode as TypeArgumentListImpl?;
+      return;
+    }
+    if (identical(argumentList, oldNode)) {
+      argumentList = newNode as ArgumentListImpl;
+      return;
+    }
+    super.replaceChild(oldNode, newNode);
+  }
+
+  @generated
+  @override
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+    resolver.visitDotShorthandMethodInvocation(this, contextType: contextType);
+  }
+
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError('DotShorthandMethodInvocation is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    typeArguments?.accept2(visitor);
+    argumentList.accept2(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(
+    AstVisitor2 visitor, {
+    void Function(TypeArgumentListImpl)? visitTypeArguments,
+    void Function(ArgumentListImpl)? visitArgumentList,
+  }) {
+    if (typeArguments case var typeArguments?) {
+      if (visitTypeArguments != null) {
+        visitTypeArguments(typeArguments);
+      } else {
+        typeArguments.accept2(visitor);
+      }
+    }
+    if (visitArgumentList != null) {
+      visitArgumentList(argumentList);
+    } else {
+      argumentList.accept2(visitor);
+    }
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError('DotShorthandMethodInvocation is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (typeArguments case var typeArguments?) {
+      if (typeArguments._containsOffset(rangeOffset, rangeEnd)) {
+        return typeArguments;
+      }
+    }
+    if (argumentList._containsOffset(rangeOffset, rangeEnd)) {
+      return argumentList;
+    }
+    return null;
+  }
+}
+
 base mixin DotShorthandMixin on ExpressionImpl {
   /// Whether the AST node is a dot shorthand and has a dot shorthand head
-  /// ([DotShorthandInvocation], [DotShorthandConstructorInvocation] or
-  /// [DotShorthandPropertyAccess]) as its
-  /// inner-most target.
+  /// ([DotShorthandInvocation], [DotShorthandMethodInvocation],
+  /// [DotShorthandNameExpression], [DotShorthandConstructorInvocation] or
+  /// [DotShorthandPropertyAccess]) as its inner-most target.
   ///
   /// This is `false` and remains `false` when there is no dot shorthand head as
   /// its inner-most target. When we are parsing and notice that we have a dot
@@ -14796,10 +15374,156 @@ base mixin DotShorthandMixin on ExpressionImpl {
   bool isDotShorthand = false;
 }
 
-/// A node that represents a dot shorthand property access of a field or a
-/// static getter.
+/// The value-producing dot-shorthand form `.name`.
 ///
-/// For example, `.zero`.
+/// Depending on resolution, the name can invoke a static getter, including a
+/// synthetic getter for a field, or denote a static method or constructor
+/// tear-off. An immediately invoked static method or constructor uses the
+/// corresponding invocation node.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class DotShorthandNameExpression implements Expression {
+  /// The written name.
+  Token get name;
+
+  /// The period before [name].
+  Token get period;
+
+  /// The resolution of the read, or `null` if this expression has not been
+  /// resolved.
+  NamedReadResolution? get resolution;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [
+    GenerateNodeProperty('period'),
+    GenerateNodeProperty('name'),
+  ],
+)
+final class DotShorthandNameExpressionImpl extends ExpressionImpl
+    with DotShorthandMixin
+    implements DotShorthandNameExpression {
+  @generated
+  @override
+  final Token period;
+
+  @generated
+  @override
+  final Token name;
+
+  @DoNotGenerate(reason: 'Stores the canonical typed read resolution')
+  @override
+  NamedReadResolutionImpl? resolution;
+
+  DotShorthandPropertyAccessImpl? _dotShorthandPropertyAccess;
+
+  @generated
+  DotShorthandNameExpressionImpl({required this.period, required this.name});
+
+  @generated
+  @override
+  Token get beginToken {
+    return period;
+  }
+
+  /// The cached V1 compatibility projection for this expression.
+  DotShorthandPropertyAccessImpl get dotShorthandPropertyAccess =>
+      _dotShorthandPropertyAccess ??=
+          DotShorthandPropertyAccessImpl.v1ProjectionFromNameExpression(this);
+
+  @generated
+  @override
+  Token get endToken {
+    return name;
+  }
+
+  @override
+  Precedence get precedence => Precedence.postfix;
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @generated
+  @override
+  ChildEntities get _childEntities {
+    throw StateError('DotShorthandNameExpression is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('period', period)
+    ..addToken('name', name);
+
+  Element? get _legacyReadElement => switch (resolution) {
+    InvalidNamedReadResolutionImpl(:var candidates, :var recovery) =>
+      recovery?.element ?? candidates.firstOrNull,
+    NamedReadResolutionWithElementImpl(:var element) => element,
+    _ => null,
+  };
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('DotShorthandNameExpression is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitDotShorthandNameExpression(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent2, this));
+    return false;
+  }
+
+  @generated
+  @override
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+    resolver.visitDotShorthandNameExpression(this, contextType: contextType);
+  }
+
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError('DotShorthandNameExpression is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {}
+
+  /// Visits the children of this node.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(AstVisitor2 visitor) {}
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError('DotShorthandNameExpression is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    return null;
+  }
+}
+
+/// A V1 node that represents a dot-shorthand name expression.
+///
+/// The canonical V2 node is [DotShorthandNameExpression], whose resolution can
+/// also select a static method or constructor tear-off.
 ///
 ///    dotShorthandHead ::= '.' [SimpleIdentifier]
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
@@ -14824,8 +15548,10 @@ final class DotShorthandPropertyAccessImpl extends ExpressionImpl
   @override
   final Token period;
 
-  @generated
+  @DoNotGenerate(reason: 'Some instances are V1 projection objects')
   SimpleIdentifierImpl _propertyName;
+
+  DotShorthandNameExpressionImpl? _v1ProjectionOrigin;
 
   @generated
   DotShorthandPropertyAccessImpl({
@@ -14835,29 +15561,71 @@ final class DotShorthandPropertyAccessImpl extends ExpressionImpl
     _becomeParentOf12(propertyName);
   }
 
+  DotShorthandPropertyAccessImpl.v1ProjectionFromNameExpression(
+    DotShorthandNameExpressionImpl origin,
+  ) : period = origin.period,
+      _propertyName = SimpleIdentifierImpl.v1Projection(token: origin.name),
+      _v1ProjectionOrigin = origin {
+    isDotShorthand = origin.isDotShorthand;
+    _attachV1Children();
+  }
+
   @generated
   @override
   Token get beginToken {
     return period;
   }
 
-  @generated
+  @override
+  InternalFormalParameterElement? get correspondingParameter =>
+      _v1ProjectionOrigin?.correspondingParameter ??
+      super.correspondingParameter;
+
+  @DoNotGenerate(reason: 'V1 projections use the projected property name')
   @override
   Token get endToken {
     return propertyName.endToken;
   }
 
   @override
+  bool get inConstantContext =>
+      _v1ProjectionOrigin?.inConstantContext ?? super.inConstantContext;
+
+  @override
   Precedence get precedence => Precedence.postfix;
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projections update from their V2 origin')
   @override
-  SimpleIdentifierImpl get propertyName => _propertyName;
+  SimpleIdentifierImpl get propertyName {
+    if (_v1ProjectionOrigin case var origin?) {
+      var element = origin._legacyReadElement;
+      _propertyName.element = switch (element) {
+        InternalConstructorElement() => element.baseElement,
+        _ => element,
+      };
+      _propertyName.setPseudoExpressionStaticType(
+        origin.resolution?.type ?? origin.staticType,
+      );
+    }
+    return _propertyName;
+  }
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projection objects are read-only')
   set propertyName(SimpleIdentifierImpl propertyName) {
+    if (_v1ProjectionOrigin != null) {
+      throw UnsupportedError('A V1 projection cannot be mutated.');
+    }
     _propertyName = _becomeParentOf12(propertyName);
   }
+
+  @override
+  TypeImpl? get staticType =>
+      _v1ProjectionOrigin?.staticType ?? super.staticType;
+
+  @DoNotGenerate(reason: 'Some instances are V1 projection objects')
+  @override
+  AstNodeApi get _astNodeApi =>
+      _v1ProjectionOrigin == null ? AstNodeApi.shared : AstNodeApi.v1;
 
   @generated
   @override
@@ -14865,11 +15633,16 @@ final class DotShorthandPropertyAccessImpl extends ExpressionImpl
     ..addToken('period', period)
     ..addNode('propertyName', propertyName);
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
   @override
-  ChildEntities get _childEntities2 => ChildEntities()
-    ..addToken('period', period)
-    ..addNode('propertyName', propertyName);
+  ChildEntities get _childEntities2 {
+    if (_v1ProjectionOrigin != null) {
+      throw StateError('DotShorthandPropertyAccess is not in the V2 AST view.');
+    }
+    return ChildEntities()
+      ..addToken('period', period)
+      ..addNode('propertyName', propertyName);
+  }
 
   @generated
   @ToBeDeprecated('Use accept2 instead.')
@@ -14877,31 +15650,51 @@ final class DotShorthandPropertyAccessImpl extends ExpressionImpl
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitDotShorthandPropertyAccess(this);
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
   @experimental
   @override
-  E? accept2<E>(AstVisitor2<E> visitor) =>
-      visitor.visitDotShorthandPropertyAccess(this);
+  E? accept2<E>(AstVisitor2<E> visitor) {
+    if (_v1ProjectionOrigin != null) {
+      throw StateError('DotShorthandPropertyAccess is not in the V2 AST view.');
+    }
+    return visitor.visitDotShorthandPropertyAccess(this);
+  }
 
-  @generated
+  @override
+  AttemptedConstantEvaluationResult? computeConstantValue() =>
+      switch (_v1ProjectionOrigin) {
+        var origin? => origin.computeConstantValue(),
+        null => super.computeConstantValue(),
+      };
+
+  @DoNotGenerate(reason: 'V1 projection children are not value expressions')
   @override
   bool isInValueExpressionSlot(AstNode child) {
+    if (_v1ProjectionOrigin != null) {
+      return false;
+    }
     assert(identical(child.parent2, this));
     return false;
   }
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projection objects are read-only')
   @override
   void removeChild(AstNodeImpl oldNode) {
+    if (_v1ProjectionOrigin != null) {
+      throw UnsupportedError('A V1 projection cannot be mutated.');
+    }
     if (identical(propertyName, oldNode)) {
       throw UnsupportedError("Cannot remove required child 'propertyName'.");
     }
     super.removeChild(oldNode);
   }
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projection objects are read-only')
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (_v1ProjectionOrigin != null) {
+      throw UnsupportedError('A V1 projection cannot be mutated.');
+    }
     if (identical(propertyName, oldNode)) {
       propertyName = newNode as SimpleIdentifierImpl;
       return;
@@ -14909,11 +15702,17 @@ final class DotShorthandPropertyAccessImpl extends ExpressionImpl
     super.replaceChild(oldNode, newNode);
   }
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projection objects cannot be resolved')
   @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+    if (_v1ProjectionOrigin != null) {
+      throw StateError('DotShorthandPropertyAccess is a V1 projection.');
+    }
     resolver.visitDotShorthandPropertyAccess(this, contextType: contextType);
   }
+
+  @override
+  String toSource() => _v1ProjectionOrigin?.toSource() ?? super.toSource();
 
   @generated
   @ToBeDeprecated('Use visitChildren2 instead.')
@@ -14922,10 +15721,13 @@ final class DotShorthandPropertyAccessImpl extends ExpressionImpl
     propertyName.accept(visitor);
   }
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
   @experimental
   @override
   void visitChildren2(AstVisitor2 visitor) {
+    if (_v1ProjectionOrigin != null) {
+      throw StateError('DotShorthandPropertyAccess is not in the V2 AST view.');
+    }
     propertyName.accept2(visitor);
   }
 
@@ -14934,17 +15736,24 @@ final class DotShorthandPropertyAccessImpl extends ExpressionImpl
   /// If a specific hook is provided for a child, it is called instead of
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
-  @generated
+  @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
   @experimental
   void visitChildrenWithHooks(
     AstVisitor2 visitor, {
     void Function(SimpleIdentifierImpl)? visitPropertyName,
   }) {
+    if (_v1ProjectionOrigin != null) {
+      throw StateError('DotShorthandPropertyAccess is not in the V2 AST view.');
+    }
     if (visitPropertyName != null) {
       visitPropertyName(propertyName);
     } else {
       propertyName.accept2(visitor);
     }
+  }
+
+  void _attachV1Children() {
+    _becomeParentOf1(propertyName);
   }
 
   @generated
@@ -14956,9 +15765,12 @@ final class DotShorthandPropertyAccessImpl extends ExpressionImpl
     return null;
   }
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
   @override
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (_v1ProjectionOrigin != null) {
+      throw StateError('DotShorthandPropertyAccess is not in the V2 AST view.');
+    }
     if (propertyName._containsOffset(rangeOffset, rangeEnd)) {
       return propertyName;
     }
@@ -15192,6 +16004,24 @@ final class DynamicIndexWriteResolutionImpl extends IndexWriteResolutionImpl
 
   @override
   TypeImpl get indexContextType => UnknownInferredType.instance;
+}
+
+/// A dynamically dispatched invocation.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class DynamicInvocationResolution
+    implements ValidInvocationResolution {
+  @override
+  DartType get type;
+}
+
+final class DynamicInvocationResolutionImpl
+    extends ValidInvocationResolutionImpl
+    implements DynamicInvocationResolution {
+  @override
+  final TypeImpl type;
+
+  DynamicInvocationResolutionImpl({required this.type});
 }
 
 /// A property read whose getter is selected dynamically at runtime.
@@ -16397,6 +17227,40 @@ final class EnumDeclarationImpl extends CompilationUnitMemberImpl
   }
 }
 
+/// An invocation resolved to an executable declaration.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class ExecutableInvocationResolution
+    implements StaticInvocationResolution {
+  /// The selected executable after receiver and type substitution.
+  ExecutableElement get element;
+
+  @override
+  FunctionType get invokeType;
+
+  @override
+  DartType get type;
+}
+
+final class ExecutableInvocationResolutionImpl
+    extends StaticInvocationResolutionImpl
+    implements ExecutableInvocationResolution {
+  @override
+  final InternalExecutableElement element;
+
+  @override
+  final FunctionTypeImpl invokeType;
+
+  @override
+  final TypeImpl type;
+
+  ExecutableInvocationResolutionImpl({
+    required this.element,
+    required this.invokeType,
+    required this.type,
+  });
+}
+
 /// A read that produces the tear-off of an executable declaration.
 ///
 /// The [element] is the executable selected for this occurrence after applying
@@ -16997,14 +17861,6 @@ sealed class ExpressionImpl extends InstanceReceiverImpl
     var parent = parentInPrimaryView ?? _parent2 ?? _parent;
     if (parent is ArgumentListImpl) {
       return parent._getStaticParameterElementFor(this);
-    } else if (parent is CascadeIndexExpressionImpl) {
-      if (identical(parent.index, this)) {
-        return parent._staticParameterElementForIndex;
-      }
-    } else if (parent is CascadeIndexAssignmentTargetImpl) {
-      if (identical(parent.index, this)) {
-        return parent._staticParameterElementForIndex;
-      }
     } else if (parent is IndexExpression2Impl) {
       if (identical(parent.index, this)) {
         return parent._staticParameterElementForIndex;
@@ -18434,12 +19290,12 @@ final class ExtensionOverrideImpl extends ExpressionImpl
 
 /// The declaration of an extension type.
 ///
-///    <extensionTypeDeclaration> ::=
-///        'extension' 'type' 'const'? <typeIdentifier> <typeParameters>?
-///        <representationDeclaration> <interfaces>?
-///        '{'
-///            (<metadata> <extensionTypeMemberDeclaration>)*
-///        '}'
+///     <extensionTypeDeclaration> ::=
+///         'extension' 'type' 'const'? <typeIdentifier> <typeParameters>?
+///         <representationDeclaration> <interfaces>?
+///         '{'
+///             (<metadata> <extensionTypeMemberDeclaration>)*
+///         '}'
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ExtensionTypeDeclaration implements CompilationUnitMember {
   /// The `augment` keyword, or `null` if the keyword was absent.
@@ -18760,18 +19616,18 @@ final class ExtensionTypeDeclarationImpl extends CompilationUnitMemberImpl
 
 /// The declaration of one or more fields of the same type.
 ///
-///    fieldDeclaration ::=
-///        'static' 'const' <type>? <staticFinalDeclarationList>
-///      | 'static' 'final' <type>? <staticFinalDeclarationList>
-///      | 'static' 'late' 'final' <type>? <initializedIdentifierList>
-///      | 'static' 'late'? <varOrType> <initializedIdentifierList>
-///      | 'covariant' 'late'? <varOrType> <initializedIdentifierList>
-///      | 'late'? 'final' <type>? <initializedIdentifierList>
-///      | 'late'? <varOrType> <initializedIdentifierList>
-///      | 'external' ('static'? <finalVarOrType> | 'covariant' <varOrType>)
-///            <identifierList>
-///      | 'abstract' (<finalVarOrType> | 'covariant' <varOrType>)
-///            <identifierList>
+///     fieldDeclaration ::=
+///         'static' 'const' <type>? <staticFinalDeclarationList>
+///       | 'static' 'final' <type>? <staticFinalDeclarationList>
+///       | 'static' 'late' 'final' <type>? <initializedIdentifierList>
+///       | 'static' 'late'? <varOrType> <initializedIdentifierList>
+///       | 'covariant' 'late'? <varOrType> <initializedIdentifierList>
+///       | 'late'? 'final' <type>? <initializedIdentifierList>
+///       | 'late'? <varOrType> <initializedIdentifierList>
+///       | 'external' ('static'? <finalVarOrType> | 'covariant' <varOrType>)
+///             <identifierList>
+///       | 'abstract' (<finalVarOrType> | 'covariant' <varOrType>)
+///             <identifierList>
 ///
 /// (Note: there's no `<fieldDeclaration>` production in the grammar; this is a
 /// subset of the grammar production `<declaration>`, which encompasses
@@ -22320,6 +23176,7 @@ sealed class FunctionBody implements AstNode {
   ///
   /// Throws an exception if resolution hasn't been performed, or if the query
   /// is made on the body of a local function or function literal.
+  @experimental
   DartType? lookupPromotedThisType({required int offset});
 }
 
@@ -22378,6 +23235,34 @@ sealed class FunctionBodyImpl extends AstNodeImpl implements FunctionBody {
   ///
   /// Returns value is the actual return type of the method.
   TypeImpl resolve(ResolverVisitor resolver, TypeImpl? imposedType);
+}
+
+/// A direct invocation of the language-defined `call` method of a function
+/// type.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class FunctionCallInvocationResolution
+    implements StaticInvocationResolution {
+  @override
+  FunctionType get invokeType;
+
+  @override
+  DartType get type;
+}
+
+final class FunctionCallInvocationResolutionImpl
+    extends StaticInvocationResolutionImpl
+    implements FunctionCallInvocationResolution {
+  @override
+  final FunctionTypeImpl invokeType;
+
+  @override
+  final TypeImpl type;
+
+  FunctionCallInvocationResolutionImpl({
+    required this.invokeType,
+    required this.type,
+  });
 }
 
 /// A tear-off of the language-defined `call` method of a function-typed value.
@@ -23148,7 +24033,7 @@ final class FunctionExpressionImpl extends ExpressionImpl
   }
 }
 
-/// The invocation of a function resulting from evaluating an expression.
+/// The V1 compatibility view of invoking a function-valued expression.
 ///
 /// Invocations of methods and other forms of functions are represented by
 /// [MethodInvocation] nodes. Invocations of getters and setters are represented
@@ -23175,67 +24060,106 @@ abstract final class FunctionExpressionInvocation
   Expression get function2;
 }
 
+/// The V1 compatibility projection of a canonical V2 [CallInvocation].
 @GenerateNodeImpl(
+  api: AstNodeApi.v1,
+  generateConstructor: false,
   childEntitiesOrder: [
-    GenerateNodeProperty(
-      'function2',
-      v1Name: 'function',
-      v1Projection: V1Projection.expression,
-    ),
-    GenerateNodeProperty('typeArguments', isSuper: true),
-    GenerateNodeProperty('argumentList', isSuper: true),
+    GenerateNodeProperty('function'),
+    GenerateNodeProperty('typeArguments'),
+    GenerateNodeProperty('argumentList'),
   ],
 )
 final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
     with DotShorthandMixin
-    implements RewrittenMethodInvocationImpl, FunctionExpressionInvocation {
-  @generated
-  ExpressionImpl _function2;
+    implements FunctionExpressionInvocation {
+  final CallInvocationImpl _origin;
 
-  @override
-  ExecutableElement? element;
-
-  @generated
-  FunctionExpressionInvocationImpl({
-    required ExpressionImpl function2,
-    required super.typeArguments,
-    required super.argumentList,
-  }) : _function2 = function2 {
-    _becomeParentOf2(function2);
-    _becomeParentOf1(V1Projection.toV1Expression(function2));
+  FunctionExpressionInvocationImpl._(CallInvocationImpl origin)
+    : _origin = origin,
+      super.v1Projection(
+        typeArguments: origin.typeArguments,
+        argumentList: origin.argumentList,
+      ) {
+    _becomeParentOf1(function);
   }
 
-  @generated
+  @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
   @override
-  Token get beginToken {
-    return function2.beginToken;
-  }
+  ArgumentListImpl get argumentList => _origin.argumentList;
 
-  @generated
+  @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
   @override
-  Token get endToken {
-    return argumentList.endToken;
-  }
+  Token get beginToken => _origin.beginToken;
 
-  @generated
+  @override
+  InternalFormalParameterElement? get correspondingParameter =>
+      _origin.correspondingParameter;
+
+  @override
+  ExecutableElement? get element => switch (_origin.resolution) {
+    ExecutableInvocationResolutionImpl(:var element) => element,
+    InvalidInvocationResolutionImpl(
+      recovery: ExecutableInvocationResolutionImpl(:var element),
+    ) =>
+      element,
+    _ => null,
+  };
+
+  @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
+  @override
+  Token get endToken => _origin.endToken;
+
+  @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
   @ToBeDeprecated('Use function2 instead.')
   @override
-  ExpressionImpl get function => V1Projection.toV1Expression(function2);
+  ExpressionImpl get function => function2;
 
-  @generated
   @experimental
   @override
-  ExpressionImpl get function2 => _function2;
+  ExpressionImpl get function2 =>
+      V1Projection.toV1Expression(_origin.receiver as ExpressionImpl);
 
-  @generated
-  @experimental
-  set function2(ExpressionImpl function2) {
-    _function2 = _becomeParentOf2(function2);
-    _becomeParentOf1(V1Projection.toV1Expression(function2));
+  @override
+  bool get inConstantContext => _origin.inConstantContext;
+
+  @override
+  bool get isDotShorthand => _origin.isDotShorthand;
+
+  @override
+  set isDotShorthand(bool isDotShorthand) {
+    throw UnsupportedError('A V1 projection cannot be mutated.');
   }
 
   @override
   Precedence get precedence => Precedence.postfix;
+
+  @override
+  TypeImpl? get staticInvokeType => _origin.staticInvokeType;
+
+  @override
+  set staticInvokeType(TypeImpl? staticInvokeType) {
+    throw UnsupportedError('A V1 projection cannot be mutated.');
+  }
+
+  @override
+  TypeImpl? get staticType => _origin.staticType;
+
+  @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
+  @override
+  TypeArgumentListImpl? get typeArguments => _origin.typeArguments;
+
+  @override
+  List<TypeImpl>? get typeArgumentTypes => _origin.typeArgumentTypes;
+
+  @override
+  set typeArgumentTypes(List<TypeImpl>? typeArgumentTypes) {
+    throw UnsupportedError('A V1 projection cannot be mutated.');
+  }
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v1;
 
   @generated
   @override
@@ -23246,10 +24170,9 @@ final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
 
   @generated
   @override
-  ChildEntities get _childEntities2 => ChildEntities()
-    ..addNode('function2', function2)
-    ..addNode('typeArguments', typeArguments)
-    ..addNode('argumentList', argumentList);
+  ChildEntities get _childEntities2 {
+    throw StateError('FunctionExpressionInvocation is not in the V2 AST view.');
+  }
 
   @generated
   @ToBeDeprecated('Use accept2 instead.')
@@ -23260,55 +24183,41 @@ final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
   @generated
   @experimental
   @override
-  E? accept2<E>(AstVisitor2<E> visitor) =>
-      visitor.visitFunctionExpressionInvocation(this);
+  E? accept2<E>(AstVisitor2<E> visitor) {
+    throw StateError('FunctionExpressionInvocation is not in the V2 AST view.');
+  }
+
+  @override
+  AttemptedConstantEvaluationResult? computeConstantValue() =>
+      _origin.computeConstantValue();
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
+    assert(identical(child.parent, this));
     return false;
   }
 
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(function2, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'function2'.");
-    }
-    if (identical(typeArguments, oldNode)) {
-      typeArguments = null;
-      return;
-    }
-    if (identical(argumentList, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'argumentList'.");
-    }
-    super.removeChild(oldNode);
+    throw UnsupportedError('A V1 projection cannot be mutated.');
   }
 
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(function2, oldNode)) {
-      function2 = newNode as ExpressionImpl;
-      return;
-    }
-    if (identical(typeArguments, oldNode)) {
-      typeArguments = newNode as TypeArgumentListImpl?;
-      return;
-    }
-    if (identical(argumentList, oldNode)) {
-      argumentList = newNode as ArgumentListImpl;
-      return;
-    }
-    super.replaceChild(oldNode, newNode);
+    throw UnsupportedError('A V1 projection cannot be mutated.');
   }
 
   @generated
   @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
-    resolver.visitFunctionExpressionInvocation(this, contextType: contextType);
+    throw StateError('FunctionExpressionInvocation is a V1 projection.');
   }
+
+  @override
+  String toSource() => _origin.toSource();
 
   @generated
   @ToBeDeprecated('Use visitChildren2 instead.')
@@ -23323,41 +24232,13 @@ final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
   @experimental
   @override
   void visitChildren2(AstVisitor2 visitor) {
-    function2.accept2(visitor);
-    typeArguments?.accept2(visitor);
-    argumentList.accept2(visitor);
+    throw StateError('FunctionExpressionInvocation is not in the V2 AST view.');
   }
 
-  /// Visits the children of this node.
-  ///
-  /// If a specific hook is provided for a child, it is called instead of
-  /// dispatching the [visitor] to the child. It is the responsibility of the
-  /// hook to visit the child.
-  @generated
-  @experimental
-  void visitChildrenWithHooks(
-    AstVisitor2 visitor, {
-    void Function(ExpressionImpl)? visitFunction2,
-    void Function(TypeArgumentListImpl)? visitTypeArguments,
-    void Function(ArgumentListImpl)? visitArgumentList,
-  }) {
-    if (visitFunction2 != null) {
-      visitFunction2(function2);
-    } else {
-      function2.accept2(visitor);
-    }
-    if (typeArguments case var typeArguments?) {
-      if (visitTypeArguments != null) {
-        visitTypeArguments(typeArguments);
-      } else {
-        typeArguments.accept2(visitor);
-      }
-    }
-    if (visitArgumentList != null) {
-      visitArgumentList(argumentList);
-    } else {
-      argumentList.accept2(visitor);
-    }
+  void _attachV1Children() {
+    _becomeParentOf1(function);
+    _becomeParentOf1(typeArguments);
+    _becomeParentOf1(argumentList);
   }
 
   @generated
@@ -23380,18 +24261,7 @@ final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
   @generated
   @override
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    if (function2._containsOffset(rangeOffset, rangeEnd)) {
-      return function2;
-    }
-    if (typeArguments case var typeArguments?) {
-      if (typeArguments._containsOffset(rangeOffset, rangeEnd)) {
-        return typeArguments;
-      }
-    }
-    if (argumentList._containsOffset(rangeOffset, rangeEnd)) {
-      return argumentList;
-    }
-    return null;
+    throw StateError('FunctionExpressionInvocation is not in the V2 AST view.');
   }
 }
 
@@ -23416,6 +24286,128 @@ final class FunctionInterfaceCallTearOffResolutionImpl
   final TypeImpl type;
 
   FunctionInterfaceCallTearOffResolutionImpl({required this.type});
+}
+
+/// An invocation permitted through core `Function` without a known signature.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class FunctionInterfaceInvocationResolution
+    implements ValidInvocationResolution {
+  @override
+  DartType get type;
+}
+
+final class FunctionInterfaceInvocationResolutionImpl
+    extends ValidInvocationResolutionImpl
+    implements FunctionInterfaceInvocationResolution {
+  @override
+  final TypeImpl type;
+
+  FunctionInterfaceInvocationResolutionImpl({required this.type});
+}
+
+/// An expression that applies an argument list to a function or method.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class FunctionInvocation implements Expression {
+  /// The arguments applied by this invocation.
+  ArgumentList get argumentList;
+
+  /// The resolution of this invocation.
+  ///
+  /// This is `null` if the invocation has not been resolved, or if evaluation
+  /// of its receiver cannot complete and therefore no invocation occurs.
+  InvocationResolution? get resolution;
+
+  /// The explicitly written type arguments, or `null` if none were written.
+  TypeArgumentList? get typeArguments;
+}
+
+sealed class FunctionInvocationImpl extends ExpressionImpl
+    implements FunctionInvocation {
+  ArgumentListImpl _argumentList;
+
+  TypeArgumentListImpl? _typeArguments;
+
+  @DoNotGenerate(reason: 'Stores the canonical typed invocation resolution')
+  @override
+  InvocationResolutionImpl? resolution;
+
+  /// The inferred or explicit type arguments exposed through the V1 view.
+  ///
+  /// This compatibility payload is not part of the canonical V2 API.
+  List<TypeImpl>? typeArgumentTypes;
+
+  /// The effective invoke type exposed through the V1 view.
+  ///
+  /// Unlike [StaticInvocationResolution.invokeType], the legacy API also uses
+  /// `dynamic` and core `Function` here.
+  TypeImpl? staticInvokeType;
+
+  FunctionExpressionInvocationImpl? _functionExpressionInvocation;
+
+  FunctionInvocationImpl({
+    required TypeArgumentListImpl? typeArguments,
+    required ArgumentListImpl argumentList,
+  }) : _typeArguments = typeArguments,
+       _argumentList = argumentList {
+    _becomeParentOf2(typeArguments);
+    _becomeParentOf2(argumentList);
+  }
+
+  @override
+  ArgumentListImpl get argumentList => _argumentList;
+
+  set argumentList(ArgumentListImpl argumentList) {
+    _argumentList = _becomeParentOf2(argumentList);
+    _functionExpressionInvocation?._attachV1Children();
+    switch (this) {
+      case CascadeMethodInvocationImpl invocation:
+        invocation._methodInvocation?._attachV1Children();
+      case ImportPrefixedFunctionInvocationImpl invocation:
+        invocation._methodInvocation?._attachV1Children();
+      case DotShorthandMethodInvocationImpl invocation:
+        invocation._dotShorthandInvocation?._attachV1Children();
+      case ReceiverMethodInvocationImpl invocation:
+        invocation._methodInvocation?._attachV1Children();
+      case UnqualifiedFunctionInvocationImpl invocation:
+        invocation._methodInvocation?._attachV1Children();
+      case CallInvocationImpl():
+    }
+  }
+
+  /// The cached V1 compatibility projection for this invocation.
+  FunctionExpressionInvocationImpl get functionExpressionInvocation =>
+      _functionExpressionInvocation ??= switch (this) {
+        CallInvocationImpl origin => FunctionExpressionInvocationImpl._(origin),
+        NamedFunctionInvocationImpl() => throw StateError(
+          'NamedFunctionInvocation projects to MethodInvocation.',
+        ),
+      };
+
+  @override
+  Precedence get precedence => Precedence.postfix;
+
+  @override
+  TypeArgumentListImpl? get typeArguments => _typeArguments;
+
+  set typeArguments(TypeArgumentListImpl? typeArguments) {
+    _typeArguments = _becomeParentOf2(typeArguments);
+    _functionExpressionInvocation?._attachV1Children();
+    switch (this) {
+      case CascadeMethodInvocationImpl invocation:
+        invocation._methodInvocation?._attachV1Children();
+      case ImportPrefixedFunctionInvocationImpl invocation:
+        invocation._methodInvocation?._attachV1Children();
+      case DotShorthandMethodInvocationImpl invocation:
+        invocation._dotShorthandInvocation?._attachV1Children();
+      case ReceiverMethodInvocationImpl invocation:
+        invocation._methodInvocation?._attachV1Children();
+      case UnqualifiedFunctionInvocationImpl invocation:
+        invocation._methodInvocation?._attachV1Children();
+      case CallInvocationImpl():
+    }
+  }
 }
 
 /// An expression representing a reference to a function, possibly with type
@@ -24164,6 +25156,33 @@ final class FunctionTypedFormalParameterSuffixImpl extends AstNodeImpl
     }
     return null;
   }
+}
+
+/// An invocation that directly applies an exact function type.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class FunctionTypeInvocationResolution
+    implements StaticInvocationResolution {
+  @override
+  FunctionType get invokeType;
+
+  @override
+  DartType get type;
+}
+
+final class FunctionTypeInvocationResolutionImpl
+    extends StaticInvocationResolutionImpl
+    implements FunctionTypeInvocationResolution {
+  @override
+  final FunctionTypeImpl invokeType;
+
+  @override
+  final TypeImpl type;
+
+  FunctionTypeInvocationResolutionImpl({
+    required this.invokeType,
+    required this.type,
+  });
 }
 
 class GenerateNodeImpl {
@@ -26055,7 +27074,6 @@ final class IfNullAssignmentImpl extends AssignmentExpression2Impl
   @override
   InternalFormalParameterElement? get _staticParameterElementForValue {
     var write = switch (target) {
-      CascadeIndexAssignmentTargetImpl(:var write) => write,
       PropertyAssignmentTargetImpl(:var write) => write,
       IndexAssignmentTargetImpl(:var write) => write,
       UnqualifiedNameAssignmentTargetImpl(:var write) => write,
@@ -27492,6 +28510,231 @@ final class ImportDirectiveImpl extends NamespaceDirectiveImpl
   }
 }
 
+/// A direct invocation of a top-level function through an import prefix.
+///
+/// The [importPrefix] owns the written `prefix.` qualifier, while [name]
+/// identifies the imported function.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class ImportPrefixedFunctionInvocation
+    implements NamedFunctionInvocation {
+  /// The import prefix through which the function is selected.
+  ImportPrefixReference get importPrefix;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [
+    GenerateNodeProperty('importPrefix'),
+    GenerateNodeProperty('name', isSuper: true),
+    GenerateNodeProperty('typeArguments', isSuper: true),
+    GenerateNodeProperty('argumentList', isSuper: true),
+  ],
+)
+final class ImportPrefixedFunctionInvocationImpl
+    extends NamedFunctionInvocationImpl
+    implements ImportPrefixedFunctionInvocation {
+  @generated
+  ImportPrefixReferenceImpl _importPrefix;
+
+  MethodInvocationImpl? _methodInvocation;
+
+  @generated
+  ImportPrefixedFunctionInvocationImpl({
+    required ImportPrefixReferenceImpl importPrefix,
+    required super.name,
+    required super.typeArguments,
+    required super.argumentList,
+  }) : _importPrefix = importPrefix {
+    _becomeParentOf2(importPrefix);
+  }
+
+  @generated
+  @override
+  Token get beginToken {
+    return importPrefix.beginToken;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return argumentList.endToken;
+  }
+
+  @generated
+  @override
+  ImportPrefixReferenceImpl get importPrefix => _importPrefix;
+
+  @generated
+  set importPrefix(ImportPrefixReferenceImpl importPrefix) {
+    _importPrefix = _becomeParentOf2(importPrefix);
+  }
+
+  /// The cached V1 compatibility projection for this invocation.
+  MethodInvocationImpl get methodInvocation => _methodInvocation ??=
+      MethodInvocationImpl.v1ProjectionFromNamedFunctionInvocation(this);
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @generated
+  @override
+  ChildEntities get _childEntities {
+    throw StateError(
+      'ImportPrefixedFunctionInvocation is not in the V1 AST view.',
+    );
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('importPrefix', importPrefix)
+    ..addToken('name', name)
+    ..addNode('typeArguments', typeArguments)
+    ..addNode('argumentList', argumentList);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError(
+      'ImportPrefixedFunctionInvocation is not in the V1 AST view.',
+    );
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitImportPrefixedFunctionInvocation(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent2, this));
+    return false;
+  }
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    if (identical(importPrefix, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'importPrefix'.");
+    }
+    if (identical(typeArguments, oldNode)) {
+      typeArguments = null;
+      return;
+    }
+    if (identical(argumentList, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'argumentList'.");
+    }
+    super.removeChild(oldNode);
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (identical(importPrefix, oldNode)) {
+      importPrefix = newNode as ImportPrefixReferenceImpl;
+      return;
+    }
+    if (identical(typeArguments, oldNode)) {
+      typeArguments = newNode as TypeArgumentListImpl?;
+      return;
+    }
+    if (identical(argumentList, oldNode)) {
+      argumentList = newNode as ArgumentListImpl;
+      return;
+    }
+    super.replaceChild(oldNode, newNode);
+  }
+
+  @generated
+  @override
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+    resolver.visitImportPrefixedFunctionInvocation(
+      this,
+      contextType: contextType,
+    );
+  }
+
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError(
+      'ImportPrefixedFunctionInvocation is not in the V1 AST view.',
+    );
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    importPrefix.accept2(visitor);
+    typeArguments?.accept2(visitor);
+    argumentList.accept2(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(
+    AstVisitor2 visitor, {
+    void Function(ImportPrefixReferenceImpl)? visitImportPrefix,
+    void Function(TypeArgumentListImpl)? visitTypeArguments,
+    void Function(ArgumentListImpl)? visitArgumentList,
+  }) {
+    if (visitImportPrefix != null) {
+      visitImportPrefix(importPrefix);
+    } else {
+      importPrefix.accept2(visitor);
+    }
+    if (typeArguments case var typeArguments?) {
+      if (visitTypeArguments != null) {
+        visitTypeArguments(typeArguments);
+      } else {
+        typeArguments.accept2(visitor);
+      }
+    }
+    if (visitArgumentList != null) {
+      visitArgumentList(argumentList);
+    } else {
+      argumentList.accept2(visitor);
+    }
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError(
+      'ImportPrefixedFunctionInvocation is not in the V1 AST view.',
+    );
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (importPrefix._containsOffset(rangeOffset, rangeEnd)) {
+      return importPrefix;
+    }
+    if (typeArguments case var typeArguments?) {
+      if (typeArguments._containsOffset(rangeOffset, rangeEnd)) {
+        return typeArguments;
+      }
+    }
+    if (argumentList._containsOffset(rangeOffset, rangeEnd)) {
+      return argumentList;
+    }
+    return null;
+  }
+}
+
 /// Reference to an import prefix name.
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ImportPrefixReference implements AstNode {
@@ -27647,7 +28890,6 @@ abstract base class IncrementOrDecrementExpressionImpl extends ExpressionImpl
   AssignmentTargetImpl get target => _target;
 
   ExpressionImpl get _legacyOperand => switch (target) {
-    CascadeIndexAssignmentTargetImpl target => target.indexExpression,
     PropertyAssignmentTargetImpl target => target.propertyAccess,
     IndexAssignmentTargetImpl target => target.indexExpression,
     UnqualifiedNameAssignmentTargetImpl target => target.simpleIdentifier,
@@ -27657,7 +28899,6 @@ abstract base class IncrementOrDecrementExpressionImpl extends ExpressionImpl
   };
 
   Element? get _legacyReadElement => switch (target) {
-    CascadeIndexAssignmentTargetImpl target => target._legacyReadElement,
     CascadePropertyAssignmentTargetImpl target => target._legacyReadElement,
     IndexAssignmentTargetImpl target => target._legacyReadElement,
     ReceiverPropertyAssignmentTargetImpl target => target._legacyReadElement,
@@ -27668,7 +28909,6 @@ abstract base class IncrementOrDecrementExpressionImpl extends ExpressionImpl
   };
 
   TypeImpl? get _legacyReadType => switch (target) {
-    CascadeIndexAssignmentTargetImpl target => target.read?.type,
     PropertyAssignmentTargetImpl target => target.read?.type,
     IndexAssignmentTargetImpl target => target.read?.type,
     UnqualifiedNameAssignmentTargetImpl target => target.read?.type,
@@ -27676,7 +28916,6 @@ abstract base class IncrementOrDecrementExpressionImpl extends ExpressionImpl
   };
 
   Element? get _legacyWriteElement => switch (target) {
-    CascadeIndexAssignmentTargetImpl target => target._legacyWriteElement,
     CascadePropertyAssignmentTargetImpl target => target._legacyWriteElement,
     IndexAssignmentTargetImpl target => target._legacyWriteElement,
     ReceiverPropertyAssignmentTargetImpl target => target._legacyWriteElement,
@@ -27687,7 +28926,6 @@ abstract base class IncrementOrDecrementExpressionImpl extends ExpressionImpl
   };
 
   TypeImpl? get _legacyWriteType => switch (target) {
-    CascadeIndexAssignmentTargetImpl target => target.write?.acceptedType,
     PropertyAssignmentTargetImpl target =>
       target.write?.acceptedType ?? InvalidTypeImpl.instance,
     IndexAssignmentTargetImpl target => target.write?.acceptedType,
@@ -27724,10 +28962,6 @@ abstract base class IncrementOrDecrementExpressionImpl extends ExpressionImpl
 }
 
 /// An indexed location used as an assignment destination.
-///
-/// This migration slice supports ordinary non-cascade direct, compound, and
-/// if-null assignments, and prefix and postfix increment and decrement.
-/// Cascade indexing remains on its existing AST shape.
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class IndexAssignmentTarget implements AssignmentTarget {
@@ -27737,17 +28971,10 @@ abstract final class IndexAssignmentTarget implements AssignmentTarget {
   /// The left square bracket.
   Token get leftBracket;
 
-  /// The question mark before the left square bracket, or `null` if this
-  /// target isn't null aware.
-  Token? get question;
-
   /// The read operation, or `null` if the enclosing operation does not read,
   /// this target has not been resolved, or receiver evaluation prevents the
   /// index operation.
   IndexReadResolution? get read;
-
-  /// The expression whose value is indexed.
-  Expression get receiver;
 
   /// The right square bracket.
   Token get rightBracket;
@@ -27758,33 +28985,13 @@ abstract final class IndexAssignmentTarget implements AssignmentTarget {
   IndexWriteResolution? get write;
 }
 
-@GenerateNodeImpl(
-  api: AstNodeApi.v2,
-  childEntitiesOrder: [
-    GenerateNodeProperty('receiver', isInValueExpressionSlot: true),
-    GenerateNodeProperty('question'),
-    GenerateNodeProperty('leftBracket'),
-    GenerateNodeProperty('index', isInValueExpressionSlot: true),
-    GenerateNodeProperty('rightBracket'),
-  ],
-)
-final class IndexAssignmentTargetImpl extends AssignmentTargetImpl
+sealed class IndexAssignmentTargetImpl extends AssignmentTargetImpl
     implements IndexAssignmentTarget {
-  @generated
-  ExpressionImpl _receiver;
-
-  @generated
-  @override
-  final Token? question;
-
-  @generated
   @override
   final Token leftBracket;
 
-  @generated
   ExpressionImpl _index;
 
-  @generated
   @override
   final Token rightBracket;
 
@@ -27798,73 +29005,30 @@ final class IndexAssignmentTargetImpl extends AssignmentTargetImpl
 
   IndexExpressionImpl? _indexExpression;
 
-  @generated
   IndexAssignmentTargetImpl({
-    required ExpressionImpl receiver,
-    required this.question,
     required this.leftBracket,
     required ExpressionImpl index,
     required this.rightBracket,
-  }) : _receiver = receiver,
-       _index = index {
-    _becomeParentOf2(receiver);
+  }) : _index = index {
     _becomeParentOf2(index);
   }
 
-  @generated
-  @override
-  Token get beginToken {
-    return receiver.beginToken;
-  }
-
-  @generated
-  @override
-  Token get endToken {
-    return rightBracket;
-  }
-
-  @generated
   @override
   ExpressionImpl get index => _index;
 
-  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
   set index(ExpressionImpl index) {
     _index = _becomeParentOf2(index);
     _indexExpression?._attachV1Children();
   }
 
   /// The cached V1 compatibility projection for this target.
-  IndexExpressionImpl get indexExpression => _indexExpression ??=
-      IndexExpressionImpl.v1ProjectionFromAssignmentTarget(this);
-
-  @generated
-  @override
-  ExpressionImpl get receiver => _receiver;
-
-  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
-  set receiver(ExpressionImpl receiver) {
-    _receiver = _becomeParentOf2(receiver);
-    _indexExpression?._attachV1Children();
-  }
-
-  @generated
-  @override
-  AstNodeApi get _astNodeApi => AstNodeApi.v2;
-
-  @generated
-  @override
-  ChildEntities get _childEntities {
-    throw StateError('IndexAssignmentTarget is not in the V1 AST view.');
-  }
-
-  @generated
-  @override
-  ChildEntities get _childEntities2 => ChildEntities()
-    ..addNode('receiver', receiver)
-    ..addToken('question', question)
-    ..addToken('leftBracket', leftBracket)
-    ..addNode('index', index)
-    ..addToken('rightBracket', rightBracket);
+  IndexExpressionImpl get indexExpression =>
+      _indexExpression ??= switch (this) {
+        CascadeIndexAssignmentTargetImpl origin =>
+          IndexExpressionImpl.v1ProjectionFromCascadeAssignmentTarget(origin),
+        ReceiverIndexAssignmentTargetImpl origin =>
+          IndexExpressionImpl.v1ProjectionFromReceiverAssignmentTarget(origin),
+      };
 
   InternalMethodElement? get _legacyReadElement => switch (read) {
     MethodIndexReadResolutionImpl(:var element) => element,
@@ -27876,18 +29040,16 @@ final class IndexAssignmentTargetImpl extends AssignmentTargetImpl
   };
 
   /// The read type exposed by the V1 [AssignmentExpression] projection.
-  ///
-  /// A `Never` receiver prevents the index operation, so [read] is absent,
-  /// but the corresponding V1 index read still has the receiver's `Never`
-  /// type. Returning the receiver type also preserves type aliases of `Never`.
   TypeImpl get _legacyReadType {
     if (read case IndexReadResolutionImpl(:var type)) {
       return type;
     }
-    var receiverType = receiver.typeOrThrow;
-    if (receiverType is NeverTypeImpl &&
-        receiverType.nullabilitySuffix == NullabilitySuffix.none) {
-      return receiverType;
+    if (this case ReceiverIndexAssignmentTargetImpl(:var receiver)) {
+      var receiverType = receiver.typeOrThrow;
+      if (receiverType is NeverTypeImpl &&
+          receiverType.nullabilitySuffix == NullabilitySuffix.none) {
+        return receiverType;
+      }
     }
     return InvalidTypeImpl.instance;
   }
@@ -27903,109 +29065,6 @@ final class IndexAssignmentTargetImpl extends AssignmentTargetImpl
 
   InternalFormalParameterElement? get _staticParameterElementForIndex =>
       (_legacyWriteElement ?? _legacyReadElement)?.formalParameters.firstOrNull;
-
-  @generated
-  @ToBeDeprecated('Use accept2 instead.')
-  @override
-  E? accept<E>(AstVisitor<E> visitor) {
-    throw StateError('IndexAssignmentTarget is not in the V1 AST view.');
-  }
-
-  @generated
-  @experimental
-  @override
-  E? accept2<E>(AstVisitor2<E> visitor) =>
-      visitor.visitIndexAssignmentTarget(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return true;
-  }
-
-  @generated
-  @override
-  void removeChild(AstNodeImpl oldNode) {
-    if (identical(receiver, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'receiver'.");
-    }
-    if (identical(index, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'index'.");
-    }
-    super.removeChild(oldNode);
-  }
-
-  @generated
-  @override
-  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(receiver, oldNode)) {
-      receiver = newNode as ExpressionImpl;
-      return;
-    }
-    if (identical(index, oldNode)) {
-      index = newNode as ExpressionImpl;
-      return;
-    }
-    super.replaceChild(oldNode, newNode);
-  }
-
-  @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
-  @override
-  void visitChildren(AstVisitor visitor) {
-    throw StateError('IndexAssignmentTarget is not in the V1 AST view.');
-  }
-
-  @generated
-  @experimental
-  @override
-  void visitChildren2(AstVisitor2 visitor) {
-    receiver.accept2(visitor);
-    index.accept2(visitor);
-  }
-
-  /// Visits the children of this node.
-  ///
-  /// If a specific hook is provided for a child, it is called instead of
-  /// dispatching the [visitor] to the child. It is the responsibility of the
-  /// hook to visit the child.
-  @generated
-  @experimental
-  void visitChildrenWithHooks(
-    AstVisitor2 visitor, {
-    void Function(ExpressionImpl)? visitReceiver,
-    void Function(ExpressionImpl)? visitIndex,
-  }) {
-    if (visitReceiver != null) {
-      visitReceiver(receiver);
-    } else {
-      receiver.accept2(visitor);
-    }
-    if (visitIndex != null) {
-      visitIndex(index);
-    } else {
-      index.accept2(visitor);
-    }
-  }
-
-  @generated
-  @override
-  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
-    throw StateError('IndexAssignmentTarget is not in the V1 AST view.');
-  }
-
-  @generated
-  @override
-  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    if (receiver._containsOffset(rangeOffset, rangeEnd)) {
-      return receiver;
-    }
-    if (index._containsOffset(rangeOffset, rangeEnd)) {
-      return index;
-    }
-    return null;
-  }
 }
 
 /// An index expression.
@@ -28094,11 +29153,7 @@ abstract final class IndexExpression implements MethodReferenceExpression {
   bool inSetterContext();
 }
 
-/// A value produced by invoking `operator []` on an explicitly written
-/// expression receiver.
-///
-/// This migration slice supports ordinary non-cascade index expressions.
-/// Cascade index expressions remain on [IndexExpression].
+/// A value produced by invoking `operator []`.
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class IndexExpression2 implements Expression {
@@ -28108,13 +29163,6 @@ abstract final class IndexExpression2 implements Expression {
   /// The left square bracket.
   Token get leftBracket;
 
-  /// The question mark before the left square bracket, or `null` if this
-  /// expression isn't null aware.
-  Token? get question;
-
-  /// The expression whose value is indexed.
-  Expression get receiver;
-
   /// The resolution of the read, or `null` if this expression has not been
   /// resolved or receiver evaluation prevents the index operation.
   IndexReadResolution? get resolution;
@@ -28123,34 +29171,13 @@ abstract final class IndexExpression2 implements Expression {
   Token get rightBracket;
 }
 
-@GenerateNodeImpl(
-  api: AstNodeApi.v2,
-  childEntitiesOrder: [
-    GenerateNodeProperty('receiver', isInValueExpressionSlot: true),
-    GenerateNodeProperty('question'),
-    GenerateNodeProperty('leftBracket'),
-    GenerateNodeProperty('index', isInValueExpressionSlot: true),
-    GenerateNodeProperty('rightBracket'),
-  ],
-)
-final class IndexExpression2Impl extends ExpressionImpl
-    with DotShorthandMixin
+sealed class IndexExpression2Impl extends ExpressionImpl
     implements IndexExpression2 {
-  @generated
-  ExpressionImpl _receiver;
-
-  @generated
-  @override
-  final Token? question;
-
-  @generated
   @override
   final Token leftBracket;
 
-  @generated
   ExpressionImpl _index;
 
-  @generated
   @override
   final Token rightBracket;
 
@@ -28160,79 +29187,36 @@ final class IndexExpression2Impl extends ExpressionImpl
 
   IndexExpressionImpl? _indexExpression;
 
-  @generated
   IndexExpression2Impl({
-    required ExpressionImpl receiver,
-    required this.question,
     required this.leftBracket,
     required ExpressionImpl index,
     required this.rightBracket,
-  }) : _receiver = receiver,
-       _index = index {
-    _becomeParentOf2(receiver);
+  }) : _index = index {
     _becomeParentOf2(index);
   }
 
-  @generated
-  @override
-  Token get beginToken {
-    return receiver.beginToken;
-  }
-
-  @generated
-  @override
-  Token get endToken {
-    return rightBracket;
-  }
-
-  @generated
   @override
   ExpressionImpl get index => _index;
 
-  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
   set index(ExpressionImpl index) {
     _index = _becomeParentOf2(index);
     _indexExpression?._attachV1Children();
   }
 
   /// The cached V1 compatibility projection for this expression.
-  IndexExpressionImpl get indexExpression => _indexExpression ??=
-      IndexExpressionImpl.v1ProjectionFromIndexExpression2(this);
+  IndexExpressionImpl get indexExpression =>
+      _indexExpression ??= switch (this) {
+        CascadeIndexExpressionImpl origin =>
+          IndexExpressionImpl.v1ProjectionFromCascadeExpression(origin),
+        ReceiverIndexExpressionImpl origin =>
+          IndexExpressionImpl.v1ProjectionFromReceiverExpression(origin),
+      };
 
   @override
   bool get isAssignable => true;
 
   @override
   Precedence get precedence => Precedence.postfix;
-
-  @generated
-  @override
-  ExpressionImpl get receiver => _receiver;
-
-  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
-  set receiver(ExpressionImpl receiver) {
-    _receiver = _becomeParentOf2(receiver);
-    _indexExpression?._attachV1Children();
-  }
-
-  @generated
-  @override
-  AstNodeApi get _astNodeApi => AstNodeApi.v2;
-
-  @generated
-  @override
-  ChildEntities get _childEntities {
-    throw StateError('IndexExpression2 is not in the V1 AST view.');
-  }
-
-  @generated
-  @override
-  ChildEntities get _childEntities2 => ChildEntities()
-    ..addNode('receiver', receiver)
-    ..addToken('question', question)
-    ..addToken('leftBracket', leftBracket)
-    ..addNode('index', index)
-    ..addToken('rightBracket', rightBracket);
 
   InternalMethodElement? get _legacyReadElement => switch (resolution) {
     MethodIndexReadResolutionImpl(:var element) => element,
@@ -28245,122 +29229,6 @@ final class IndexExpression2Impl extends ExpressionImpl
 
   InternalFormalParameterElement? get _staticParameterElementForIndex =>
       _legacyReadElement?.formalParameters.firstOrNull;
-
-  @generated
-  @ToBeDeprecated('Use accept2 instead.')
-  @override
-  E? accept<E>(AstVisitor<E> visitor) {
-    throw StateError('IndexExpression2 is not in the V1 AST view.');
-  }
-
-  @generated
-  @experimental
-  @override
-  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitIndexExpression2(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return true;
-  }
-
-  @override
-  void recordNullShortedType(TypeImpl type) {
-    super.recordNullShortedType(type);
-    if (resolution case MethodIndexReadResolutionImpl(:var element)) {
-      resolution = MethodIndexReadResolutionImpl(element: element, type: type);
-    }
-  }
-
-  @generated
-  @override
-  void removeChild(AstNodeImpl oldNode) {
-    if (identical(receiver, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'receiver'.");
-    }
-    if (identical(index, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'index'.");
-    }
-    super.removeChild(oldNode);
-  }
-
-  @generated
-  @override
-  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(receiver, oldNode)) {
-      receiver = newNode as ExpressionImpl;
-      return;
-    }
-    if (identical(index, oldNode)) {
-      index = newNode as ExpressionImpl;
-      return;
-    }
-    super.replaceChild(oldNode, newNode);
-  }
-
-  @generated
-  @override
-  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
-    resolver.visitIndexExpression2(this, contextType: contextType);
-  }
-
-  @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
-  @override
-  void visitChildren(AstVisitor visitor) {
-    throw StateError('IndexExpression2 is not in the V1 AST view.');
-  }
-
-  @generated
-  @experimental
-  @override
-  void visitChildren2(AstVisitor2 visitor) {
-    receiver.accept2(visitor);
-    index.accept2(visitor);
-  }
-
-  /// Visits the children of this node.
-  ///
-  /// If a specific hook is provided for a child, it is called instead of
-  /// dispatching the [visitor] to the child. It is the responsibility of the
-  /// hook to visit the child.
-  @generated
-  @experimental
-  void visitChildrenWithHooks(
-    AstVisitor2 visitor, {
-    void Function(ExpressionImpl)? visitReceiver,
-    void Function(ExpressionImpl)? visitIndex,
-  }) {
-    if (visitReceiver != null) {
-      visitReceiver(receiver);
-    } else {
-      receiver.accept2(visitor);
-    }
-    if (visitIndex != null) {
-      visitIndex(index);
-    } else {
-      index.accept2(visitor);
-    }
-  }
-
-  @generated
-  @override
-  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
-    throw StateError('IndexExpression2 is not in the V1 AST view.');
-  }
-
-  @generated
-  @override
-  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    if (receiver._containsOffset(rangeOffset, rangeEnd)) {
-      return receiver;
-    }
-    if (index._containsOffset(rangeOffset, rangeEnd)) {
-      return index;
-    }
-    return null;
-  }
 }
 
 @GenerateNodeImpl(
@@ -28431,18 +29299,6 @@ final class IndexExpressionImpl extends ExpressionImpl
     _becomeParentOf1(V1Projection.toV1Expression(index2));
   }
 
-  IndexExpressionImpl.v1ProjectionFromAssignmentTarget(
-    IndexAssignmentTargetImpl origin,
-  ) : _target2 = null,
-      _period = null,
-      question = origin.question,
-      leftBracket = origin.leftBracket,
-      _index2 = origin.index,
-      rightBracket = origin.rightBracket,
-      _v1ProjectionOrigin = origin {
-    _attachV1Children();
-  }
-
   IndexExpressionImpl.v1ProjectionFromCascadeAssignmentTarget(
     CascadeIndexAssignmentTargetImpl origin,
   ) : _target2 = null,
@@ -28467,8 +29323,20 @@ final class IndexExpressionImpl extends ExpressionImpl
     _attachV1Children();
   }
 
-  IndexExpressionImpl.v1ProjectionFromIndexExpression2(
-    IndexExpression2Impl origin,
+  IndexExpressionImpl.v1ProjectionFromReceiverAssignmentTarget(
+    ReceiverIndexAssignmentTargetImpl origin,
+  ) : _target2 = null,
+      _period = null,
+      question = origin.question,
+      leftBracket = origin.leftBracket,
+      _index2 = origin.index,
+      rightBracket = origin.rightBracket,
+      _v1ProjectionOrigin = origin {
+    _attachV1Children();
+  }
+
+  IndexExpressionImpl.v1ProjectionFromReceiverExpression(
+    ReceiverIndexExpressionImpl origin,
   ) : _target2 = null,
       _period = null,
       question = origin.question,
@@ -28497,7 +29365,6 @@ final class IndexExpressionImpl extends ExpressionImpl
   @override
   InternalFormalParameterElement? get correspondingParameter =>
       switch (_v1ProjectionOrigin) {
-        CascadeIndexExpressionImpl origin => origin.correspondingParameter,
         IndexExpression2Impl origin => origin.correspondingParameter,
         _ => super.correspondingParameter,
       };
@@ -28507,7 +29374,6 @@ final class IndexExpressionImpl extends ExpressionImpl
   /// operator couldn't be resolved.
   @override
   MethodElement? get element => switch (_v1ProjectionOrigin) {
-    CascadeIndexExpressionImpl origin => origin._legacyReadElement,
     IndexExpression2Impl origin => origin._legacyReadElement,
     null => _element,
     _ => null,
@@ -28541,12 +29407,6 @@ final class IndexExpressionImpl extends ExpressionImpl
   @experimental
   @override
   ExpressionImpl get index2 => switch (_v1ProjectionOrigin) {
-    CascadeIndexAssignmentTargetImpl origin => V1Projection.toV1Expression(
-      origin.index,
-    ),
-    CascadeIndexExpressionImpl origin => V1Projection.toV1Expression(
-      origin.index,
-    ),
     IndexAssignmentTargetImpl origin => V1Projection.toV1Expression(
       origin.index,
     ),
@@ -28611,7 +29471,6 @@ final class IndexExpressionImpl extends ExpressionImpl
 
   @override
   TypeImpl? get staticType => switch (_v1ProjectionOrigin) {
-    CascadeIndexExpressionImpl origin => origin.staticType,
     IndexExpression2Impl origin => origin.staticType,
     _ => super.staticType,
   };
@@ -28628,10 +29487,12 @@ final class IndexExpressionImpl extends ExpressionImpl
   @experimental
   @override
   ExpressionImpl? get target2 => switch (_v1ProjectionOrigin) {
-    IndexAssignmentTargetImpl origin => V1Projection.toV1Expression(
+    ReceiverIndexAssignmentTargetImpl origin => V1Projection.toV1Expression(
       origin.receiver,
     ),
-    IndexExpression2Impl origin => V1Projection.toV1Expression(origin.receiver),
+    ReceiverIndexExpressionImpl origin => V1Projection.toV1Expression(
+      origin.receiver,
+    ),
     _ => _target2,
   };
 
@@ -28701,10 +29562,10 @@ final class IndexExpressionImpl extends ExpressionImpl
   /// or the function being invoked is not known based on static type
   /// information.
   InternalFormalParameterElement? get _staticParameterElementForIndex {
-    if (_v1ProjectionOrigin case CascadeIndexAssignmentTargetImpl origin) {
+    if (_v1ProjectionOrigin case IndexAssignmentTargetImpl origin) {
       return origin._staticParameterElementForIndex;
     }
-    if (_v1ProjectionOrigin case CascadeIndexExpressionImpl origin) {
+    if (_v1ProjectionOrigin case IndexExpression2Impl origin) {
       return origin._staticParameterElementForIndex;
     }
     Element? element = this.element;
@@ -28766,11 +29627,8 @@ final class IndexExpressionImpl extends ExpressionImpl
 
   @override
   bool inSetterContext() {
-    if (_v1ProjectionOrigin is CascadeIndexAssignmentTargetImpl) {
+    if (_v1ProjectionOrigin is IndexAssignmentTargetImpl) {
       return true;
-    }
-    if (_v1ProjectionOrigin is CascadeIndexExpressionImpl) {
-      return false;
     }
     if (_v1ProjectionOrigin is IndexExpression2Impl) {
       return false;
@@ -29989,6 +30847,39 @@ final class InvalidIndexWriteResolutionImpl extends IndexWriteResolutionImpl
       recovery?.indexContextType ?? UnknownInferredType.instance;
 }
 
+/// An unsuccessful invocation resolution.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class InvalidInvocationResolution
+    implements InvocationResolution {
+  /// Elements considered while resolving this invocation.
+  List<Element> get candidates;
+
+  /// A complete hypothetical valid resolution used for recovery.
+  ValidInvocationResolution? get recovery;
+
+  @override
+  DartType get type;
+}
+
+final class InvalidInvocationResolutionImpl extends InvocationResolutionImpl
+    implements InvalidInvocationResolution {
+  @override
+  final List<Element> candidates;
+
+  @override
+  final ValidInvocationResolutionImpl? recovery;
+
+  @override
+  final TypeImpl type;
+
+  InvalidInvocationResolutionImpl({
+    required List<Element> candidates,
+    required this.recovery,
+    required this.type,
+  }) : candidates = List.unmodifiable(candidates);
+}
+
 /// An unsuccessful named read resolution.
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
@@ -30049,7 +30940,7 @@ final class InvalidNamedWriteResolutionImpl extends NamedWriteResolutionImpl
 
 /// The invocation of a function or method.
 ///
-/// This will either be a [FunctionExpressionInvocation], a [MethodInvocation],
+/// This will either be a [FunctionInvocation], a [MethodInvocation],
 /// a [DotShorthandConstructorInvocation], or a [DotShorthandInvocation].
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class InvocationExpression implements Expression {
@@ -30112,6 +31003,16 @@ sealed class InvocationExpressionImpl extends ExpressionImpl
     _becomeParentOf12(_argumentList);
   }
 
+  /// Initializes a V1 projection whose children are owned in V2 by its origin.
+  InvocationExpressionImpl.v1Projection({
+    required TypeArgumentListImpl? typeArguments,
+    required ArgumentListImpl argumentList,
+  }) : _typeArguments = typeArguments,
+       _argumentList = argumentList {
+    _becomeParentOf1(_typeArguments);
+    _becomeParentOf1(_argumentList);
+  }
+
   @override
   ArgumentListImpl get argumentList => _argumentList;
 
@@ -30125,6 +31026,21 @@ sealed class InvocationExpressionImpl extends ExpressionImpl
   set typeArguments(TypeArgumentListImpl? typeArguments) {
     _typeArguments = _becomeParentOf12(typeArguments);
   }
+}
+
+/// The result of resolving a function invocation.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class InvocationResolution {
+  /// The type produced if the invocation executes.
+  DartType get type;
+}
+
+sealed class InvocationResolutionImpl implements InvocationResolution {
+  const InvocationResolutionImpl();
+
+  @override
+  TypeImpl get type;
 }
 
 /// An is expression.
@@ -34141,7 +35057,7 @@ final class MethodIndexWriteResolutionImpl extends IndexWriteResolutionImpl
 /// The invocation of either a function or a method.
 ///
 /// Invocations of functions resulting from evaluating an expression are
-/// represented by [FunctionExpressionInvocation] nodes. Invocations of getters
+/// represented by [CallInvocation] nodes. Invocations of getters
 /// and setters are represented by either [PrefixedIdentifier] or
 /// [PropertyAccess] nodes.
 ///
@@ -34215,28 +35131,30 @@ abstract final class MethodInvocation implements InvocationExpression {
 final class MethodInvocationImpl extends InvocationExpressionImpl
     with DotShorthandMixin
     implements MethodInvocation {
-  @generated
+  @DoNotGenerate(reason: 'Some instances are V1 projection objects')
   ExpressionImpl? _target2;
 
-  @generated
-  @override
-  Token? operator;
+  @DoNotGenerate(reason: 'Some instances are V1 projection objects')
+  Token? _operator;
 
-  @generated
+  @DoNotGenerate(reason: 'Some instances are V1 projection objects')
   SimpleIdentifierImpl _methodName;
+
+  NamedFunctionInvocationImpl? _v1ProjectionOrigin;
 
   /// The invoke type of the [methodName] if the target element is a getter,
   /// or `null` otherwise.
   DartType? _methodNameType;
 
-  @generated
+  @DoNotGenerate(reason: 'Initializes fields shared with V1 projections')
   MethodInvocationImpl({
     required ExpressionImpl? target2,
-    required this.operator,
+    required Token? operator,
     required SimpleIdentifierImpl methodName,
     required super.typeArguments,
     required super.argumentList,
   }) : _target2 = target2,
+       _operator = operator,
        _methodName = methodName {
     _becomeParentOf2(target2);
     _becomeParentOf1(switch (target2) {
@@ -34246,7 +35164,39 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
     _becomeParentOf12(methodName);
   }
 
-  @generated
+  MethodInvocationImpl.v1ProjectionFromNamedFunctionInvocation(
+    NamedFunctionInvocationImpl origin,
+  ) : _target2 = _v1TargetOf(origin),
+      _operator = switch (origin) {
+        ImportPrefixedFunctionInvocationImpl(:var importPrefix) =>
+          importPrefix.period,
+        ReceiverMethodInvocationImpl(:var operator) => operator,
+        _ => null,
+      },
+      _methodName = SimpleIdentifierImpl.v1Projection(token: origin.name),
+      _v1ProjectionOrigin = origin,
+      super.v1Projection(
+        typeArguments: origin.typeArguments,
+        argumentList: origin.argumentList,
+      ) {
+    _attachV1Children();
+  }
+
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
+  @override
+  ArgumentListImpl get argumentList =>
+      _v1ProjectionOrigin?.argumentList ?? super.argumentList;
+
+  @DoNotGenerate(reason: 'V1 projection objects are read-only')
+  @override
+  set argumentList(ArgumentListImpl argumentList) {
+    if (_v1ProjectionOrigin != null) {
+      throw UnsupportedError('A V1 projection cannot be mutated.');
+    }
+    super.argumentList = argumentList;
+  }
+
+  @DoNotGenerate(reason: 'V1 projections have custom token ownership')
   @override
   Token get beginToken {
     if (target2 case var target2?) {
@@ -34258,14 +35208,21 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
     return methodName.beginToken;
   }
 
-  @generated
   @override
-  Token get endToken {
-    return argumentList.endToken;
-  }
+  InternalFormalParameterElement? get correspondingParameter =>
+      _v1ProjectionOrigin?.correspondingParameter ??
+      super.correspondingParameter;
+
+  @DoNotGenerate(reason: 'V1 projections have custom token ownership')
+  @override
+  Token get endToken => argumentList.endToken;
 
   @override
   ExpressionImpl get function => methodName;
+
+  @override
+  bool get inConstantContext =>
+      _v1ProjectionOrigin?.inConstantContext ?? super.inConstantContext;
 
   @override
   bool get isCascaded =>
@@ -34283,12 +35240,42 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
             operator!.type == TokenType.QUESTION_PERIOD_PERIOD);
   }
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projections update from their V2 origin')
   @override
-  SimpleIdentifierImpl get methodName => _methodName;
+  SimpleIdentifierImpl get methodName {
+    if (_v1ProjectionOrigin case var origin?) {
+      _methodName.element = switch (origin.resolution) {
+        ExecutableInvocationResolutionImpl(:var element) => element,
+        InvalidInvocationResolutionImpl(
+          :var candidates,
+          recovery: ExecutableInvocationResolutionImpl(:var element),
+        ) =>
+          candidates.whereType<MultiplyDefinedElement>().firstOrNull ?? element,
+        InvalidInvocationResolutionImpl(:var candidates) =>
+          candidates.whereType<MultiplyDefinedElement>().firstOrNull,
+        _ => null,
+      };
+      var methodNameType = switch (origin) {
+        CascadeMethodInvocationImpl() => origin.staticInvokeType,
+        _ => switch (origin.resolution) {
+          ExecutableInvocationResolutionImpl(:var element) => element.type,
+          InvalidInvocationResolutionImpl(
+            recovery: ExecutableInvocationResolutionImpl(:var element),
+          ) =>
+            element.type,
+          _ => origin.staticInvokeType,
+        },
+      };
+      _methodName.setPseudoExpressionStaticType(methodNameType);
+    }
+    return _methodName;
+  }
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projection objects are read-only')
   set methodName(SimpleIdentifierImpl methodName) {
+    if (_v1ProjectionOrigin != null) {
+      throw UnsupportedError('A V1 projection cannot be mutated.');
+    }
     _methodName = _becomeParentOf12(methodName);
   }
 
@@ -34307,6 +35294,27 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
     _methodNameType = methodNameType;
   }
 
+  @DoNotGenerate(reason: 'V1 projections derive the written operator')
+  @override
+  Token? get operator => switch (_v1ProjectionOrigin) {
+    CascadeMethodInvocationImpl origin => _cascadeSectionOf(origin).operator,
+    DotShorthandMethodInvocationImpl() => throw StateError(
+      'DotShorthandMethodInvocation projects to DotShorthandInvocation.',
+    ),
+    ImportPrefixedFunctionInvocationImpl origin => origin.importPrefix.period,
+    ReceiverMethodInvocationImpl origin => origin.operator,
+    UnqualifiedFunctionInvocationImpl() => null,
+    null => _operator,
+  };
+
+  @DoNotGenerate(reason: 'V1 projection objects are read-only')
+  set operator(Token? operator) {
+    if (_v1ProjectionOrigin != null) {
+      throw UnsupportedError('A V1 projection cannot be mutated.');
+    }
+    _operator = operator;
+  }
+
   @override
   Precedence get precedence => Precedence.postfix;
 
@@ -34322,12 +35330,31 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
   @override
   ExpressionImpl? get realTarget2 {
     if (isCascaded) {
-      return _ancestorCascade.target2;
+      var target = _ancestorCascade.target2;
+      return _v1ProjectionOrigin == null
+          ? target
+          : V1Projection.toV1Expression(target);
     }
     return _target2;
   }
 
-  @generated
+  @override
+  TypeImpl? get staticInvokeType =>
+      _v1ProjectionOrigin?.staticInvokeType ?? super.staticInvokeType;
+
+  @override
+  set staticInvokeType(TypeImpl? staticInvokeType) {
+    if (_v1ProjectionOrigin != null) {
+      throw UnsupportedError('A V1 projection cannot be mutated.');
+    }
+    super.staticInvokeType = staticInvokeType;
+  }
+
+  @override
+  TypeImpl? get staticType =>
+      _v1ProjectionOrigin?.staticType ?? super.staticType;
+
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
   @ToBeDeprecated('Use target2 instead.')
   @override
   ExpressionImpl? get target => switch (target2) {
@@ -34335,14 +35362,24 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
     _ => null,
   };
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
   @experimental
   @override
-  ExpressionImpl? get target2 => _target2;
+  ExpressionImpl? get target2 {
+    if (_v1ProjectionOrigin case ImportPrefixedFunctionInvocationImpl(
+      :var importPrefix,
+    )) {
+      (_target2 as SimpleIdentifierImpl).element = importPrefix.element;
+    }
+    return _target2;
+  }
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projection objects are read-only')
   @experimental
   set target2(ExpressionImpl? target2) {
+    if (_v1ProjectionOrigin != null) {
+      throw UnsupportedError('A V1 projection cannot be mutated.');
+    }
     _target2 = _becomeParentOf2(target2);
     _becomeParentOf1(switch (target2) {
       var node? => V1Projection.toV1Expression(node),
@@ -34350,17 +35387,52 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
     });
   }
 
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
+  @override
+  TypeArgumentListImpl? get typeArguments =>
+      _v1ProjectionOrigin?.typeArguments ?? super.typeArguments;
+
+  @DoNotGenerate(reason: 'V1 projection objects are read-only')
+  @override
+  set typeArguments(TypeArgumentListImpl? typeArguments) {
+    if (_v1ProjectionOrigin != null) {
+      throw UnsupportedError('A V1 projection cannot be mutated.');
+    }
+    super.typeArguments = typeArguments;
+  }
+
+  @override
+  List<TypeImpl>? get typeArgumentTypes =>
+      _v1ProjectionOrigin?.typeArgumentTypes ?? super.typeArgumentTypes;
+
+  @override
+  set typeArgumentTypes(List<TypeImpl>? typeArgumentTypes) {
+    if (_v1ProjectionOrigin != null) {
+      throw UnsupportedError('A V1 projection cannot be mutated.');
+    }
+    super.typeArgumentTypes = typeArgumentTypes;
+  }
+
   /// The cascade that contains this [IndexExpression].
   ///
   /// We expect that [isCascaded] is `true`.
   CascadeExpressionImpl get _ancestorCascade {
     assert(isCascaded);
-    for (var ancestor = parent2!; ; ancestor = ancestor.parent2!) {
+    for (
+      var ancestor = (_v1ProjectionOrigin ?? this).parent2!;
+      ;
+      ancestor = ancestor.parent2!
+    ) {
       if (ancestor is CascadeExpressionImpl) {
         return ancestor;
       }
     }
   }
+
+  @DoNotGenerate(reason: 'Some instances are V1 projection objects')
+  @override
+  AstNodeApi get _astNodeApi =>
+      _v1ProjectionOrigin == null ? AstNodeApi.shared : AstNodeApi.v1;
 
   @generated
   @override
@@ -34371,35 +35443,58 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
     ..addNode('typeArguments', typeArguments)
     ..addNode('argumentList', argumentList);
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
   @override
-  ChildEntities get _childEntities2 => ChildEntities()
-    ..addNode('target2', target2)
-    ..addToken('operator', operator)
-    ..addNode('methodName', methodName)
-    ..addNode('typeArguments', typeArguments)
-    ..addNode('argumentList', argumentList);
+  ChildEntities get _childEntities2 {
+    if (_v1ProjectionOrigin != null) {
+      throw StateError('MethodInvocation is not in the V2 AST view.');
+    }
+    return ChildEntities()
+      ..addNode('target2', target2)
+      ..addToken('operator', operator)
+      ..addNode('methodName', methodName)
+      ..addNode('typeArguments', typeArguments)
+      ..addNode('argumentList', argumentList);
+  }
 
   @generated
   @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitMethodInvocation(this);
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
   @experimental
   @override
-  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitMethodInvocation(this);
+  E? accept2<E>(AstVisitor2<E> visitor) {
+    if (_v1ProjectionOrigin != null) {
+      throw StateError('MethodInvocation is not in the V2 AST view.');
+    }
+    return visitor.visitMethodInvocation(this);
+  }
 
-  @generated
+  @override
+  AttemptedConstantEvaluationResult? computeConstantValue() =>
+      switch (_v1ProjectionOrigin) {
+        var origin? => origin.computeConstantValue(),
+        null => super.computeConstantValue(),
+      };
+
+  @DoNotGenerate(reason: 'V1 projection children are value expressions')
   @override
   bool isInValueExpressionSlot(AstNode child) {
+    if (_v1ProjectionOrigin != null) {
+      return true;
+    }
     assert(identical(child.parent2, this));
     return false;
   }
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projection objects are read-only')
   @override
   void removeChild(AstNodeImpl oldNode) {
+    if (_v1ProjectionOrigin != null) {
+      throw UnsupportedError('A V1 projection cannot be mutated.');
+    }
     if (identical(target2, oldNode)) {
       target2 = null;
       return;
@@ -34417,9 +35512,12 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
     super.removeChild(oldNode);
   }
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projection objects are read-only')
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (_v1ProjectionOrigin != null) {
+      throw UnsupportedError('A V1 projection cannot be mutated.');
+    }
     if (identical(target2, oldNode)) {
       target2 = newNode as ExpressionImpl?;
       return;
@@ -34439,11 +35537,17 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
     super.replaceChild(oldNode, newNode);
   }
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projection objects cannot be resolved')
   @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+    if (_v1ProjectionOrigin != null) {
+      throw StateError('MethodInvocation is a V1 projection.');
+    }
     resolver.visitMethodInvocation(this, contextType: contextType);
   }
+
+  @override
+  String toSource() => _v1ProjectionOrigin?.toSource() ?? super.toSource();
 
   @generated
   @ToBeDeprecated('Use visitChildren2 instead.')
@@ -34455,10 +35559,13 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
     argumentList.accept(visitor);
   }
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
   @experimental
   @override
   void visitChildren2(AstVisitor2 visitor) {
+    if (_v1ProjectionOrigin != null) {
+      throw StateError('MethodInvocation is not in the V2 AST view.');
+    }
     target2?.accept2(visitor);
     methodName.accept2(visitor);
     typeArguments?.accept2(visitor);
@@ -34470,7 +35577,7 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
   /// If a specific hook is provided for a child, it is called instead of
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
-  @generated
+  @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
   @experimental
   void visitChildrenWithHooks(
     AstVisitor2 visitor, {
@@ -34479,6 +35586,9 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
     void Function(TypeArgumentListImpl)? visitTypeArguments,
     void Function(ArgumentListImpl)? visitArgumentList,
   }) {
+    if (_v1ProjectionOrigin != null) {
+      throw StateError('MethodInvocation is not in the V2 AST view.');
+    }
     if (target2 case var target2?) {
       if (visitTarget2 != null) {
         visitTarget2(target2);
@@ -34505,6 +35615,13 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
     }
   }
 
+  void _attachV1Children() {
+    _becomeParentOf1(target);
+    _becomeParentOf1(methodName);
+    _becomeParentOf1(typeArguments);
+    _becomeParentOf1(argumentList);
+  }
+
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
@@ -34527,9 +35644,12 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
     return null;
   }
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
   @override
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (_v1ProjectionOrigin != null) {
+      throw StateError('MethodInvocation is not in the V2 AST view.');
+    }
     if (target2 case var target2?) {
       if (target2._containsOffset(rangeOffset, rangeEnd)) {
         return target2;
@@ -34547,6 +35667,34 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
       return argumentList;
     }
     return null;
+  }
+
+  static CascadeSectionImpl _cascadeSectionOf(AstNodeImpl origin) {
+    for (
+      AstNodeImpl? ancestor = origin.parent2;
+      ancestor != null;
+      ancestor = ancestor.parent2
+    ) {
+      if (ancestor is CascadeSectionImpl) {
+        return ancestor;
+      }
+    }
+    throw StateError('Cascade method invocation has no CascadeSection.');
+  }
+
+  static ExpressionImpl? _v1TargetOf(NamedFunctionInvocationImpl origin) {
+    return switch (origin) {
+      ImportPrefixedFunctionInvocationImpl(:var importPrefix) =>
+        SimpleIdentifierImpl.v1Projection(token: importPrefix.name)
+          ..element = importPrefix.element,
+      ReceiverMethodInvocationImpl(:var receiver) =>
+        V1Projection.toV1Expression(receiver),
+      DotShorthandMethodInvocationImpl() => throw StateError(
+        'DotShorthandMethodInvocation projects to DotShorthandInvocation.',
+      ),
+      CascadeMethodInvocationImpl() ||
+      UnqualifiedFunctionInvocationImpl() => null,
+    };
   }
 }
 
@@ -35272,6 +36420,26 @@ final class NamedArgumentImpl extends AstNodeImpl
     }
     return null;
   }
+}
+
+/// A direct invocation through a written function or method name.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class NamedFunctionInvocation implements FunctionInvocation {
+  /// The written function or method name.
+  Token get name;
+}
+
+sealed class NamedFunctionInvocationImpl extends FunctionInvocationImpl
+    implements NamedFunctionInvocation {
+  @override
+  final Token name;
+
+  NamedFunctionInvocationImpl({
+    required this.name,
+    required super.typeArguments,
+    required super.argumentList,
+  });
 }
 
 /// The resolution of a named read.
@@ -36875,7 +38043,7 @@ final class NullAssertPatternImpl extends DartPatternImpl
 
 /// A null-aware element in a list or set literal.
 ///
-///    <nullAwareExpressionElement> ::= '?' <expression>
+///     <nullAwareExpressionElement> ::= '?' <expression>
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class NullAwareElement implements CollectionElement {
   /// The question mark before the expression.
@@ -42239,6 +43407,630 @@ sealed class PropertyExtractionImpl extends ExpressionImpl
   };
 }
 
+/// An indexed location on an explicitly written receiver.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class ReceiverIndexAssignmentTarget
+    implements IndexAssignmentTarget {
+  /// The question mark before the left square bracket, or `null` if this
+  /// target isn't null aware.
+  Token? get question;
+
+  /// The expression whose value is indexed.
+  Expression get receiver;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [
+    GenerateNodeProperty('receiver', isInValueExpressionSlot: true),
+    GenerateNodeProperty('question'),
+    GenerateNodeProperty('leftBracket', isSuper: true),
+    GenerateNodeProperty('index', isSuper: true, isInValueExpressionSlot: true),
+    GenerateNodeProperty('rightBracket', isSuper: true),
+  ],
+)
+final class ReceiverIndexAssignmentTargetImpl extends IndexAssignmentTargetImpl
+    implements ReceiverIndexAssignmentTarget {
+  @generated
+  ExpressionImpl _receiver;
+
+  @generated
+  @override
+  final Token? question;
+
+  @generated
+  ReceiverIndexAssignmentTargetImpl({
+    required ExpressionImpl receiver,
+    required this.question,
+    required super.leftBracket,
+    required super.index,
+    required super.rightBracket,
+  }) : _receiver = receiver {
+    _becomeParentOf2(receiver);
+  }
+
+  @generated
+  @override
+  Token get beginToken {
+    return receiver.beginToken;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return rightBracket;
+  }
+
+  @generated
+  @override
+  ExpressionImpl get receiver => _receiver;
+
+  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  set receiver(ExpressionImpl receiver) {
+    _receiver = _becomeParentOf2(receiver);
+    _indexExpression?._attachV1Children();
+  }
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @generated
+  @override
+  ChildEntities get _childEntities {
+    throw StateError(
+      'ReceiverIndexAssignmentTarget is not in the V1 AST view.',
+    );
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('receiver', receiver)
+    ..addToken('question', question)
+    ..addToken('leftBracket', leftBracket)
+    ..addNode('index', index)
+    ..addToken('rightBracket', rightBracket);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError(
+      'ReceiverIndexAssignmentTarget is not in the V1 AST view.',
+    );
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitReceiverIndexAssignmentTarget(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent2, this));
+    return true;
+  }
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    if (identical(receiver, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'receiver'.");
+    }
+    if (identical(index, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'index'.");
+    }
+    super.removeChild(oldNode);
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (identical(receiver, oldNode)) {
+      receiver = newNode as ExpressionImpl;
+      return;
+    }
+    if (identical(index, oldNode)) {
+      index = newNode as ExpressionImpl;
+      return;
+    }
+    super.replaceChild(oldNode, newNode);
+  }
+
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError(
+      'ReceiverIndexAssignmentTarget is not in the V1 AST view.',
+    );
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    receiver.accept2(visitor);
+    index.accept2(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(
+    AstVisitor2 visitor, {
+    void Function(ExpressionImpl)? visitReceiver,
+    void Function(ExpressionImpl)? visitIndex,
+  }) {
+    if (visitReceiver != null) {
+      visitReceiver(receiver);
+    } else {
+      receiver.accept2(visitor);
+    }
+    if (visitIndex != null) {
+      visitIndex(index);
+    } else {
+      index.accept2(visitor);
+    }
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError(
+      'ReceiverIndexAssignmentTarget is not in the V1 AST view.',
+    );
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (receiver._containsOffset(rangeOffset, rangeEnd)) {
+      return receiver;
+    }
+    if (index._containsOffset(rangeOffset, rangeEnd)) {
+      return index;
+    }
+    return null;
+  }
+}
+
+/// A value produced by invoking `operator []` on an explicitly written
+/// expression receiver.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class ReceiverIndexExpression implements IndexExpression2 {
+  /// The question mark before the left square bracket, or `null` if this
+  /// expression isn't null aware.
+  Token? get question;
+
+  /// The expression whose value is indexed.
+  Expression get receiver;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [
+    GenerateNodeProperty('receiver', isInValueExpressionSlot: true),
+    GenerateNodeProperty('question'),
+    GenerateNodeProperty('leftBracket', isSuper: true),
+    GenerateNodeProperty('index', isSuper: true, isInValueExpressionSlot: true),
+    GenerateNodeProperty('rightBracket', isSuper: true),
+  ],
+)
+final class ReceiverIndexExpressionImpl extends IndexExpression2Impl
+    with DotShorthandMixin
+    implements ReceiverIndexExpression {
+  @generated
+  ExpressionImpl _receiver;
+
+  @generated
+  @override
+  final Token? question;
+
+  @generated
+  ReceiverIndexExpressionImpl({
+    required ExpressionImpl receiver,
+    required this.question,
+    required super.leftBracket,
+    required super.index,
+    required super.rightBracket,
+  }) : _receiver = receiver {
+    _becomeParentOf2(receiver);
+  }
+
+  @generated
+  @override
+  Token get beginToken {
+    return receiver.beginToken;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return rightBracket;
+  }
+
+  @generated
+  @override
+  ExpressionImpl get receiver => _receiver;
+
+  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  set receiver(ExpressionImpl receiver) {
+    _receiver = _becomeParentOf2(receiver);
+    _indexExpression?._attachV1Children();
+  }
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @generated
+  @override
+  ChildEntities get _childEntities {
+    throw StateError('ReceiverIndexExpression is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('receiver', receiver)
+    ..addToken('question', question)
+    ..addToken('leftBracket', leftBracket)
+    ..addNode('index', index)
+    ..addToken('rightBracket', rightBracket);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('ReceiverIndexExpression is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitReceiverIndexExpression(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent2, this));
+    return true;
+  }
+
+  @override
+  void recordNullShortedType(TypeImpl type) {
+    super.recordNullShortedType(type);
+    if (resolution case MethodIndexReadResolutionImpl(:var element)) {
+      resolution = MethodIndexReadResolutionImpl(element: element, type: type);
+    }
+  }
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    if (identical(receiver, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'receiver'.");
+    }
+    if (identical(index, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'index'.");
+    }
+    super.removeChild(oldNode);
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (identical(receiver, oldNode)) {
+      receiver = newNode as ExpressionImpl;
+      return;
+    }
+    if (identical(index, oldNode)) {
+      index = newNode as ExpressionImpl;
+      return;
+    }
+    super.replaceChild(oldNode, newNode);
+  }
+
+  @generated
+  @override
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+    resolver.visitReceiverIndexExpression(this, contextType: contextType);
+  }
+
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError('ReceiverIndexExpression is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    receiver.accept2(visitor);
+    index.accept2(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(
+    AstVisitor2 visitor, {
+    void Function(ExpressionImpl)? visitReceiver,
+    void Function(ExpressionImpl)? visitIndex,
+  }) {
+    if (visitReceiver != null) {
+      visitReceiver(receiver);
+    } else {
+      receiver.accept2(visitor);
+    }
+    if (visitIndex != null) {
+      visitIndex(index);
+    } else {
+      index.accept2(visitor);
+    }
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError('ReceiverIndexExpression is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (receiver._containsOffset(rangeOffset, rangeEnd)) {
+      return receiver;
+    }
+    if (index._containsOffset(rangeOffset, rangeEnd)) {
+      return index;
+    }
+    return null;
+  }
+}
+
+/// A direct method invocation on an explicitly written expression receiver.
+///
+/// This migration slice supports receivers whose value-producing role is
+/// structurally unambiguous. Other receiver forms remain on their existing AST
+/// shapes until named receivers and parser-only chains are implemented.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class ReceiverMethodInvocation
+    implements NamedFunctionInvocation {
+  /// The operator separating the receiver from the method name.
+  Token get operator;
+
+  /// The expression whose value receives the method invocation.
+  Expression get receiver;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [
+    GenerateNodeProperty('receiver', isInValueExpressionSlot: true),
+    GenerateNodeProperty('operator'),
+    GenerateNodeProperty('name', isSuper: true),
+    GenerateNodeProperty('typeArguments', isSuper: true),
+    GenerateNodeProperty('argumentList', isSuper: true),
+  ],
+)
+final class ReceiverMethodInvocationImpl extends NamedFunctionInvocationImpl
+    implements ReceiverMethodInvocation {
+  @generated
+  ExpressionImpl _receiver;
+
+  @generated
+  @override
+  final Token operator;
+
+  MethodInvocationImpl? _methodInvocation;
+
+  @generated
+  ReceiverMethodInvocationImpl({
+    required ExpressionImpl receiver,
+    required this.operator,
+    required super.name,
+    required super.typeArguments,
+    required super.argumentList,
+  }) : _receiver = receiver {
+    _becomeParentOf2(receiver);
+  }
+
+  @generated
+  @override
+  Token get beginToken {
+    return receiver.beginToken;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return argumentList.endToken;
+  }
+
+  /// The cached V1 compatibility projection for this invocation.
+  MethodInvocationImpl get methodInvocation => _methodInvocation ??=
+      MethodInvocationImpl.v1ProjectionFromNamedFunctionInvocation(this);
+
+  @generated
+  @override
+  ExpressionImpl get receiver => _receiver;
+
+  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  set receiver(ExpressionImpl receiver) {
+    _receiver = _becomeParentOf2(receiver);
+    _methodInvocation?._attachV1Children();
+  }
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @generated
+  @override
+  ChildEntities get _childEntities {
+    throw StateError('ReceiverMethodInvocation is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('receiver', receiver)
+    ..addToken('operator', operator)
+    ..addToken('name', name)
+    ..addNode('typeArguments', typeArguments)
+    ..addNode('argumentList', argumentList);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('ReceiverMethodInvocation is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitReceiverMethodInvocation(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent2, this));
+    return identical(receiver, child);
+  }
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    if (identical(receiver, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'receiver'.");
+    }
+    if (identical(typeArguments, oldNode)) {
+      typeArguments = null;
+      return;
+    }
+    if (identical(argumentList, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'argumentList'.");
+    }
+    super.removeChild(oldNode);
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (identical(receiver, oldNode)) {
+      receiver = newNode as ExpressionImpl;
+      return;
+    }
+    if (identical(typeArguments, oldNode)) {
+      typeArguments = newNode as TypeArgumentListImpl?;
+      return;
+    }
+    if (identical(argumentList, oldNode)) {
+      argumentList = newNode as ArgumentListImpl;
+      return;
+    }
+    super.replaceChild(oldNode, newNode);
+  }
+
+  @generated
+  @override
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+    resolver.visitReceiverMethodInvocation(this, contextType: contextType);
+  }
+
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError('ReceiverMethodInvocation is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    receiver.accept2(visitor);
+    typeArguments?.accept2(visitor);
+    argumentList.accept2(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(
+    AstVisitor2 visitor, {
+    void Function(ExpressionImpl)? visitReceiver,
+    void Function(TypeArgumentListImpl)? visitTypeArguments,
+    void Function(ArgumentListImpl)? visitArgumentList,
+  }) {
+    if (visitReceiver != null) {
+      visitReceiver(receiver);
+    } else {
+      receiver.accept2(visitor);
+    }
+    if (typeArguments case var typeArguments?) {
+      if (visitTypeArguments != null) {
+        visitTypeArguments(typeArguments);
+      } else {
+        typeArguments.accept2(visitor);
+      }
+    }
+    if (visitArgumentList != null) {
+      visitArgumentList(argumentList);
+    } else {
+      argumentList.accept2(visitor);
+    }
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError('ReceiverMethodInvocation is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (receiver._containsOffset(rangeOffset, rangeEnd)) {
+      return receiver;
+    }
+    if (typeArguments case var typeArguments?) {
+      if (typeArguments._containsOffset(rangeOffset, rangeEnd)) {
+        return typeArguments;
+      }
+    }
+    if (argumentList._containsOffset(rangeOffset, rangeEnd)) {
+      return argumentList;
+    }
+    return null;
+  }
+}
+
 /// A property selected on an explicitly written expression receiver and used
 /// as an assignment destination.
 ///
@@ -45293,8 +47085,8 @@ final class ReturnStatementImpl extends StatementImpl
 
 /// A resolved dot shorthand invocation.
 ///
-/// Either a [FunctionExpressionInvocationImpl], a static method invocation, or
-/// a [DotShorthandConstructorInvocationImpl], a constructor invocation.
+/// Either a [CallInvocationImpl], a static method invocation, or a
+/// [DotShorthandConstructorInvocationImpl], a constructor invocation.
 sealed class RewrittenMethodInvocationImpl implements ExpressionImpl {}
 
 /// A script tag that can optionally occur at the beginning of a compilation
@@ -46873,6 +48665,24 @@ abstract final class Statement implements AstNode {
 sealed class StatementImpl extends AstNodeImpl implements Statement {
   @override
   StatementImpl get unlabeled => this;
+}
+
+/// A successful invocation with a statically known function signature.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class StaticInvocationResolution
+    implements ValidInvocationResolution {
+  /// The effective function type used to check the invocation.
+  FunctionType get invokeType;
+}
+
+sealed class StaticInvocationResolutionImpl
+    extends ValidInvocationResolutionImpl
+    implements StaticInvocationResolution {
+  const StaticInvocationResolutionImpl();
+
+  @override
+  FunctionTypeImpl get invokeType;
 }
 
 /// A string interpolation literal.
@@ -50340,11 +52150,11 @@ final class TopLevelGetterFunctionExpressionV1Impl extends ExpressionImpl
 
 /// The declaration of one or more top-level variables of the same type.
 ///
-///    topLevelVariableDeclaration ::=
-///        ('final' | 'const') <type>? <staticFinalDeclarationList> ';'
-///      | 'late' 'final' <type>? <initializedIdentifierList> ';'
-///      | 'late'? <varOrType> <initializedIdentifierList> ';'
-///      | 'external' <finalVarOrType> <identifierList> ';'
+///     topLevelVariableDeclaration ::=
+///         ('final' | 'const') <type>? <staticFinalDeclarationList> ';'
+///       | 'late' 'final' <type>? <initializedIdentifierList> ';'
+///       | 'late'? <varOrType> <initializedIdentifierList> ';'
+///       | 'external' <finalVarOrType> <identifierList> ';'
 ///
 /// (Note: there's no `<topLevelVariableDeclaration>` production in the grammar;
 /// this is a subset of the grammar production `<topLevelDeclaration>`, which
@@ -50906,8 +52716,8 @@ sealed class TypeAnnotationImpl extends AstNodeImpl implements TypeAnnotation {
 
 /// A list of type arguments.
 ///
-///    typeArguments ::=
-///        '<' typeName (',' typeName)* '>'
+///     typeArguments ::=
+///         '<' typeName (',' typeName)* '>'
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class TypeArgumentList implements AstNode {
   /// The type arguments associated with the type.
@@ -51526,8 +53336,8 @@ final class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
 
 /// Type parameters within a declaration.
 ///
-///    typeParameterList ::=
-///        '<' [TypeParameter] (',' [TypeParameter])* '>'
+///     typeParameterList ::=
+///         '<' [TypeParameter] (',' [TypeParameter])* '>'
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class TypeParameterList implements AstNode {
   /// The left angle bracket.
@@ -51897,6 +53707,188 @@ final class UnaryOperatorInvocationImpl extends ExpressionImpl
   }
 }
 
+/// A direct invocation through an unqualified function or method name.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class UnqualifiedFunctionInvocation
+    implements NamedFunctionInvocation {}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [
+    GenerateNodeProperty('name', isSuper: true),
+    GenerateNodeProperty('typeArguments', isSuper: true),
+    GenerateNodeProperty('argumentList', isSuper: true),
+  ],
+)
+final class UnqualifiedFunctionInvocationImpl
+    extends NamedFunctionInvocationImpl
+    implements UnqualifiedFunctionInvocation {
+  MethodInvocationImpl? _methodInvocation;
+
+  @generated
+  UnqualifiedFunctionInvocationImpl({
+    required super.name,
+    required super.typeArguments,
+    required super.argumentList,
+  });
+
+  @generated
+  @override
+  Token get beginToken {
+    return name;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return argumentList.endToken;
+  }
+
+  /// The cached V1 compatibility projection for this invocation.
+  MethodInvocationImpl get methodInvocation => _methodInvocation ??=
+      MethodInvocationImpl.v1ProjectionFromNamedFunctionInvocation(this);
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @generated
+  @override
+  ChildEntities get _childEntities {
+    throw StateError(
+      'UnqualifiedFunctionInvocation is not in the V1 AST view.',
+    );
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('name', name)
+    ..addNode('typeArguments', typeArguments)
+    ..addNode('argumentList', argumentList);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError(
+      'UnqualifiedFunctionInvocation is not in the V1 AST view.',
+    );
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitUnqualifiedFunctionInvocation(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent2, this));
+    return false;
+  }
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    if (identical(typeArguments, oldNode)) {
+      typeArguments = null;
+      return;
+    }
+    if (identical(argumentList, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'argumentList'.");
+    }
+    super.removeChild(oldNode);
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (identical(typeArguments, oldNode)) {
+      typeArguments = newNode as TypeArgumentListImpl?;
+      return;
+    }
+    if (identical(argumentList, oldNode)) {
+      argumentList = newNode as ArgumentListImpl;
+      return;
+    }
+    super.replaceChild(oldNode, newNode);
+  }
+
+  @generated
+  @override
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+    resolver.visitUnqualifiedFunctionInvocation(this, contextType: contextType);
+  }
+
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError(
+      'UnqualifiedFunctionInvocation is not in the V1 AST view.',
+    );
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    typeArguments?.accept2(visitor);
+    argumentList.accept2(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(
+    AstVisitor2 visitor, {
+    void Function(TypeArgumentListImpl)? visitTypeArguments,
+    void Function(ArgumentListImpl)? visitArgumentList,
+  }) {
+    if (typeArguments case var typeArguments?) {
+      if (visitTypeArguments != null) {
+        visitTypeArguments(typeArguments);
+      } else {
+        typeArguments.accept2(visitor);
+      }
+    }
+    if (visitArgumentList != null) {
+      visitArgumentList(argumentList);
+    } else {
+      argumentList.accept2(visitor);
+    }
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError(
+      'UnqualifiedFunctionInvocation is not in the V1 AST view.',
+    );
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (typeArguments case var typeArguments?) {
+      if (typeArguments._containsOffset(rangeOffset, rangeEnd)) {
+        return typeArguments;
+      }
+    }
+    if (argumentList._containsOffset(rangeOffset, rangeEnd)) {
+      return argumentList;
+    }
+    return null;
+  }
+}
+
 /// An assignment target consisting of one unqualified name.
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
@@ -52211,67 +54203,7 @@ enum V1Projection {
   }
 
   static ExpressionImpl toV1Expression(ExpressionImpl node) {
-    if (node is ConstructorInvocationImpl) {
-      return node.instanceCreationExpression;
-    }
-    if (node is ConstructorTearOffImpl) {
-      return node.constructorReference;
-    }
-    if (node is CompoundAssignmentImpl) {
-      return node.assignmentExpression;
-    }
-    if (node is DirectAssignmentImpl) {
-      return node.assignmentExpression;
-    }
-    if (node is BinaryOperatorInvocationImpl) {
-      return node.binaryExpression;
-    }
-    if (node is IfNullImpl) {
-      return node.binaryExpression;
-    }
-    if (node is IfNullAssignmentImpl) {
-      return node.assignmentExpression;
-    }
-    if (node is CascadeIndexExpressionImpl) {
-      return node.indexExpression;
-    }
-    if (node is CascadePropertyExtractionImpl) {
-      return node.propertyAccess;
-    }
-    if (node is IndexExpression2Impl) {
-      return node.indexExpression;
-    }
-    if (node is LogicalNotImpl) {
-      return node.prefixExpression;
-    }
-    if (node is LogicalAndImpl) {
-      return node.binaryExpression;
-    }
-    if (node is LogicalOrImpl) {
-      return node.binaryExpression;
-    }
-    if (node is NullAssertionExpressionImpl) {
-      return node.postfixExpression;
-    }
-    if (node is PostfixDecrementImpl) {
-      return node.postfixExpression;
-    }
-    if (node is PostfixIncrementImpl) {
-      return node.postfixExpression;
-    }
-    if (node is PrefixDecrementImpl) {
-      return node.prefixExpression;
-    }
-    if (node is PrefixIncrementImpl) {
-      return node.prefixExpression;
-    }
-    if (node is ReceiverPropertyExtractionImpl) {
-      return node.propertyAccess;
-    }
-    if (node is UnaryOperatorInvocationImpl) {
-      return node.prefixExpression;
-    }
-    return node;
+    return _toV1Expression(node, createIfAbsent: true)!;
   }
 
   static RecordLiteralFieldImpl toV1RecordLiteralField(
@@ -52279,6 +54211,120 @@ enum V1Projection {
   ) {
     if (node is ExpressionImpl) {
       return toV1Expression(node);
+    }
+    return node;
+  }
+
+  /// Returns the cached V1 projection of [node], without creating one.
+  ///
+  /// A canonical V2 node and its V1 projection have distinct parent fields.
+  /// Code that detaches the canonical node must also detach an existing
+  /// projection, or the projection can retain the original compilation unit.
+  static ExpressionImpl? _cachedV1Expression(ExpressionImpl node) {
+    var result = _toV1Expression(node, createIfAbsent: false);
+    return identical(result, node) ? null : result;
+  }
+
+  static ExpressionImpl? _toV1Expression(
+    ExpressionImpl node, {
+    required bool createIfAbsent,
+  }) {
+    if (node is CascadeMethodInvocationImpl) {
+      return createIfAbsent ? node.methodInvocation : node._methodInvocation;
+    }
+    if (node is CallInvocationImpl) {
+      return createIfAbsent
+          ? node.functionExpressionInvocation
+          : node._functionExpressionInvocation;
+    }
+    if (node is DotShorthandMethodInvocationImpl) {
+      return createIfAbsent
+          ? node.dotShorthandInvocation
+          : node._dotShorthandInvocation;
+    }
+    if (node is DotShorthandNameExpressionImpl) {
+      return createIfAbsent
+          ? node.dotShorthandPropertyAccess
+          : node._dotShorthandPropertyAccess;
+    }
+    if (node is ImportPrefixedFunctionInvocationImpl) {
+      return createIfAbsent ? node.methodInvocation : node._methodInvocation;
+    }
+    if (node is ConstructorInvocationImpl) {
+      return createIfAbsent
+          ? node.instanceCreationExpression
+          : node._instanceCreationExpression;
+    }
+    if (node is ConstructorTearOffImpl) {
+      return createIfAbsent
+          ? node.constructorReference
+          : node._constructorReference;
+    }
+    if (node is CompoundAssignmentImpl) {
+      return createIfAbsent
+          ? node.assignmentExpression
+          : node._assignmentExpression;
+    }
+    if (node is DirectAssignmentImpl) {
+      return createIfAbsent
+          ? node.assignmentExpression
+          : node._assignmentExpression;
+    }
+    if (node is BinaryOperatorInvocationImpl) {
+      return createIfAbsent ? node.binaryExpression : node._binaryExpression;
+    }
+    if (node is IfNullImpl) {
+      return createIfAbsent ? node.binaryExpression : node._binaryExpression;
+    }
+    if (node is IfNullAssignmentImpl) {
+      return createIfAbsent
+          ? node.assignmentExpression
+          : node._assignmentExpression;
+    }
+    if (node is CascadeIndexExpressionImpl) {
+      return createIfAbsent ? node.indexExpression : node._indexExpression;
+    }
+    if (node is CascadePropertyExtractionImpl) {
+      return createIfAbsent ? node.propertyAccess : node._propertyAccess;
+    }
+    if (node is IndexExpression2Impl) {
+      return createIfAbsent ? node.indexExpression : node._indexExpression;
+    }
+    if (node is LogicalNotImpl) {
+      return createIfAbsent ? node.prefixExpression : node._prefixExpression;
+    }
+    if (node is LogicalAndImpl) {
+      return createIfAbsent ? node.binaryExpression : node._binaryExpression;
+    }
+    if (node is LogicalOrImpl) {
+      return createIfAbsent ? node.binaryExpression : node._binaryExpression;
+    }
+    if (node is NullAssertionExpressionImpl) {
+      return createIfAbsent ? node.postfixExpression : node._postfixExpression;
+    }
+    if (node is PostfixDecrementImpl) {
+      return createIfAbsent ? node.postfixExpression : node._postfixExpression;
+    }
+    if (node is PostfixIncrementImpl) {
+      return createIfAbsent ? node.postfixExpression : node._postfixExpression;
+    }
+    if (node is PrefixDecrementImpl) {
+      return createIfAbsent ? node.prefixExpression : node._prefixExpression;
+    }
+    if (node is PrefixIncrementImpl) {
+      return createIfAbsent ? node.prefixExpression : node._prefixExpression;
+    }
+    if (node is ReceiverMethodInvocationImpl) {
+      return createIfAbsent ? node.methodInvocation : node._methodInvocation;
+    }
+    if (node is ReceiverPropertyExtractionImpl) {
+      return createIfAbsent ? node.propertyAccess : node._propertyAccess;
+    }
+    if (node is UnaryOperatorInvocationImpl) {
+      return createIfAbsent ? node.prefixExpression : node._prefixExpression;
+    }
+    if (node is UnqualifiedFunctionInvocationImpl) {
+      return createIfAbsent ? node.methodInvocation : node._methodInvocation;
     }
     return node;
   }
@@ -52294,6 +54340,17 @@ abstract final class ValidIndexReadResolution implements IndexReadResolution {}
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ValidIndexWriteResolution
     implements IndexWriteResolution {}
+
+/// A successful invocation resolution.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class ValidInvocationResolution
+    implements InvocationResolution {}
+
+sealed class ValidInvocationResolutionImpl extends InvocationResolutionImpl
+    implements ValidInvocationResolution {
+  const ValidInvocationResolutionImpl();
+}
 
 /// An identifier that has an initial value associated with it.
 ///

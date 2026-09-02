@@ -316,10 +316,23 @@ f() {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('0.a()');
+    var node = result.findNode.receiverMethodInvocation('0.a()');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: IntegerLiteral
+ReceiverMethodInvocation
+  receiver: IntegerLiteral
+    literal: 0
+    staticType: int
+  operator: .
+  name: a
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: MethodInvocation
+  target: IntegerLiteral
     literal: 0
     staticType: int
   operator: .

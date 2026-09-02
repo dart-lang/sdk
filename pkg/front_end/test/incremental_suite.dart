@@ -2076,12 +2076,14 @@ class NewWorldTest {
         newWorldTestData.newestWholeComponentData!,
         thisWholeComponent,
       );
-      _checkErrorsAndWarnings(
-        prevFormattedErrors,
-        worldTestData.formattedErrors,
-        prevFormattedWarnings,
-        worldTestData.formattedWarnings,
-      );
+      if (!world.noErrorWarningCheckOnExtraCompiles) {
+        _checkErrorsAndWarnings(
+          prevFormattedErrors,
+          worldTestData.formattedErrors,
+          prevFormattedWarnings,
+          worldTestData.formattedWarnings,
+        );
+      }
       newestWholeComponent = componentLocal;
 
       Result<List<int>?> serializationResult = _checkIncrementalSerialization(
@@ -3153,6 +3155,7 @@ class World {
   final List<String>? modules;
   final bool updateWorldType;
   final bool noFullComponent;
+  final bool noErrorWarningCheckOnExtraCompiles;
   final bool? expectInitializeFromDill;
   final Map<String, String?> sources;
   final bool useBadSdk;
@@ -3207,6 +3210,7 @@ class World {
     required this.modules,
     required this.updateWorldType,
     required this.noFullComponent,
+    required this.noErrorWarningCheckOnExtraCompiles,
     required this.expectInitializeFromDill,
     required this.sources,
     required this.useBadSdk,
@@ -3257,6 +3261,9 @@ class World {
     bool updateWorldType = worldType == WorldProperties.worldType_updated;
 
     bool noFullComponent = WorldProperties.noFullComponent.read(world, keys);
+    bool noErrorWarningCheckOnExtraCompiles = WorldProperties
+        .noErrorWarningCheckOnExtraCompiles
+        .read(world, keys);
 
     bool? expectInitializeFromDill = WorldProperties.expectInitializeFromDill
         .read(world, keys);
@@ -3407,6 +3414,7 @@ class World {
       modules: modules,
       updateWorldType: updateWorldType,
       noFullComponent: noFullComponent,
+      noErrorWarningCheckOnExtraCompiles: noErrorWarningCheckOnExtraCompiles,
       expectInitializeFromDill: expectInitializeFromDill,
       sources: sources,
       useBadSdk: useBadSdk,
@@ -3471,6 +3479,13 @@ class WorldProperties {
     BoolValue(),
     defaultValue: false,
   );
+
+  static const Property<bool> noErrorWarningCheckOnExtraCompiles =
+      Property.optional(
+        'noErrorWarningCheckOnExtraCompiles',
+        BoolValue(),
+        defaultValue: false,
+      );
 
   static const Property<bool?> expectInitializeFromDill = Property.optional(
     'expectInitializeFromDill',

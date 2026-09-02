@@ -4,10 +4,12 @@
 
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/constant/value.dart' show GenericState;
 import 'package:analyzer/src/utilities/extensions/flutter.dart';
 import 'package:collection/collection.dart';
@@ -33,52 +35,18 @@ class ColorComputer {
     return _colors;
   }
 
-  /// Tries to add a color for the [expression].
-  ///
-  /// If [target] is supplied, will be used instead of [expression] allowing
-  /// a value to be read from the member [memberName] or from a swatch value
-  /// with index [index].
-  bool tryAddColor(
-    Expression expression, {
-    Expression? target,
-    String? memberName,
-    int? index,
-  }) {
-    if (!expression.staticType.isColor) return false;
-
-    target ??= expression;
-
-    // Try to evaluate the constant target.
-    var colorConstResult = target.computeConstantValue();
-    var colorConst = colorConstResult?.value;
-    if (colorConstResult == null ||
-        colorConstResult.diagnostics.isNotEmpty ||
-        colorConst == null) {
-      return false;
-    }
-
-    // If we want a specific member or swatch index, read that.
-    if (memberName != null) {
-      colorConst = _getMember(colorConst, memberName);
-    } else if (index != null) {
-      colorConst = _getSwatchColor(colorConst, index);
-    }
-
-    return _tryRecordColor(expression, colorConst);
-  }
-
-  /// Tries to add a color for the instance creation [expression].
+  /// Extracts color information for the instance creation [expression].
   ///
   /// This handles constructor calls that cannot be evaluated (for example
   /// because they are not const) but are simple well-known dart:ui/Flutter
   /// color constructors that we can manually parse.
-  bool tryAddKnownColorConstructor(
+  ColorInformation? getConstructorInvocationColorInformation(
     // InvocationExpression or InstanceCreationExpression
     Expression expression,
     ConstructorReferenceNode? constructor,
     ArgumentList argumentList,
   ) {
-    if (!expression.staticType.isColor) return false;
+    if (!expression.staticType.isColor) return null;
 
     var classElement = constructor?.element?.enclosingElement;
     var className = classElement?.name;
@@ -100,7 +68,160 @@ class ColorComputer {
       color = _getFlutterMaterialAccentColor(constructorName, constructorArgs);
     }
 
-    return _tryRecordColorInformation(expression, color);
+    return color;
+  }
+
+  /// Extract the [ColorInformation] for an expression.
+  ///
+  /// Handles invocations such as constructors and withX() calls, as well as
+  /// static constants (via [getExpressionColorObject]). This method calls
+  /// itself recusrively to handle expressions like
+  /// `Color.fromARGB(...).withRed(...)`.
+  ColorInformation? getExpressionColorInformation(Expression expression) {
+    var colorObject = getExpressionColorObject(expression);
+    if (colorObject != null) {
+      return getColorForObject(colorObject);
+    }
+
+    // Otherwise, see if we are a supported invocation.
+    if (expression is InstanceCreationExpression) {
+      return getConstructorInvocationColorInformation(
+        expression,
+        expression.constructorName,
+        expression.argumentList,
+      );
+    } else if (expression is DotShorthandConstructorInvocation) {
+      return getConstructorInvocationColorInformation(
+        expression,
+        expression,
+        expression.argumentList,
+      );
+    } else if (expression case MethodInvocation(:var realTarget?)) {
+      var baseColor = getExpressionColorInformation(realTarget);
+      return baseColor != null
+          ? getInvocationModifiedColor(baseColor, expression)
+          : null;
+    }
+
+    // Otherwise, we can't handle this expression.
+    return null;
+  }
+
+  /// Extract the [DartObject] representing the colour of an expression.
+  ///
+  /// If [memberName] or [index] are provided, the color will be read from the
+  /// member or indexer. This method calls itself recursively to handle member
+  /// access so the caller does not usually need to provide these values.
+  ///
+  /// This method only extracts underlying [DartObject]s and therefore does not
+  /// handle invocations that cannot be computed as constants. Use
+  /// [getExpressionColorInformation] to handle all expressions (which calls
+  /// here).
+  DartObject? getExpressionColorObject(
+    Expression expression, {
+    String? memberName,
+    int? index,
+  }) {
+    // Exit out early if we are an expression that is not a color, but only
+    // if we will not try to read a member/index.
+    if (!expression.staticType.isColor && memberName == null && index == null) {
+      return null;
+    }
+
+    // Try to evaluate the constant target.
+    var colorConstResult = expression.computeConstantValue();
+    var colorConst = colorConstResult?.value;
+    if (colorConstResult == null ||
+        colorConstResult.diagnostics.isNotEmpty ||
+        colorConst == null) {
+      // If we failed to compute a constant, try handling member access.
+      if (expression is PrefixedIdentifier) {
+        // MyThemeClass().instanceField
+        return getExpressionColorObject(
+          expression.prefix,
+          memberName: expression.identifier.name,
+        );
+      } else if (expression is IndexExpression) {
+        // Colors.redAccent[500]
+        var index = expression.index;
+        var indexValue = index is IntegerLiteral ? index.value : null;
+        if (indexValue != null) {
+          return getExpressionColorObject(
+            expression.realTarget,
+            index: indexValue,
+          );
+        }
+      } else if (expression is PropertyAccess) {
+        // CupertinoColors.activeBlue.darkColor
+        return getExpressionColorObject(
+          expression.realTarget,
+          memberName: expression.propertyName.name,
+        );
+      }
+
+      return null;
+    }
+
+    // If we want a specific member or swatch index, read that.
+    if (memberName != null) {
+      colorConst = _getMember(colorConst, memberName);
+    } else if (index != null) {
+      colorConst = _getSwatchColor(colorConst, index);
+    }
+
+    return colorConst;
+  }
+
+  /// Returns a color modified by an invocation, such as `withRed(...)` or
+  /// `withValues(...)`.
+  ///
+  /// Returns null if [methodInvocation] is not a known/valid modifier or the
+  /// arguments are not valid.
+  ColorInformation? getInvocationModifiedColor(
+    ColorInformation baseColor,
+    MethodInvocation methodInvocation,
+  ) {
+    var methodName = methodInvocation.methodName.name;
+
+    // We only support some specific methods.
+    var isSupportedMethod = const {
+      'withAlpha',
+      'withRed',
+      'withGreen',
+      'withBlue',
+      'withValues',
+    }.contains(methodName);
+    if (!isSupportedMethod) {
+      return null;
+    }
+
+    var args = methodInvocation.argumentList;
+    if (methodName == 'withValues') {
+      // withValues is named args.
+      var alpha = args.byName('alpha')?.doubleValueOrNull;
+      var red = args.byName('red')?.doubleValueOrNull;
+      var green = args.byName('green')?.doubleValueOrNull;
+      var blue = args.byName('blue')?.doubleValueOrNull;
+
+      return baseColor.withValues(alpha, red, green, blue);
+    } else {
+      // All other methods are a single positional int arg.
+      var intArg = args.elementAtOrNull(0)?.integerValueOrNull;
+
+      return switch (methodName) {
+        'withAlpha' => baseColor.withAlpha(intArg),
+        'withRed' => baseColor.withRed(intArg),
+        'withGreen' => baseColor.withGreen(intArg),
+        'withBlue' => baseColor.withBlue(intArg),
+        _ => null,
+      };
+    }
+  }
+
+  /// Tries to add a color for the [expression].
+  bool tryAddColor(Expression expression) {
+    var colorInformation = getExpressionColorInformation(expression);
+    return _tryRecordColorInformation(expression, colorInformation);
   }
 
   /// Extracts the color information from dart:ui Color constructor args.
@@ -166,7 +287,7 @@ class ColorComputer {
           : arg3 is DoubleLiteral
           ? arg3.value
           : null;
-      var alpha = opacity != null ? (opacity * 255).toInt() : null;
+      var alpha = opacity != null ? (opacity * 255).round() : null;
 
       return alpha != null && red != null && green != null && blue != null
           ? ColorInformation(alpha, red, green, blue)
@@ -242,12 +363,6 @@ class ColorComputer {
   bool _isFlutterPainting(Element? element) =>
       element?.library?.identifier ==
       'package:flutter/src/painting/colors.dart';
-
-  /// Tries to record a color from [colorConst] for [expression].
-  ///
-  /// Returns whether a valid color was found and recorded.
-  bool _tryRecordColor(Expression expression, DartObject? colorConst) =>
-      _tryRecordColorInformation(expression, getColorForObject(colorConst));
 
   /// Tries to record the [color] for [expression].
   ///
@@ -326,7 +441,60 @@ class ColorInformation {
   /// Blue as a value from 0 to 255.
   final int blue;
 
-  new(this.alpha, this.red, this.green, this.blue);
+  new(int alpha, int red, int green, int blue)
+    : alpha = _clamp(alpha),
+      red = _clamp(red),
+      green = _clamp(green),
+      blue = _clamp(blue);
+
+  ColorInformation? withAlpha(int? newAlpha) {
+    return newAlpha != null
+        ? ColorInformation(newAlpha, red, green, blue)
+        : null;
+  }
+
+  ColorInformation? withBlue(int? newBlue) {
+    return newBlue != null
+        ? ColorInformation(alpha, red, green, newBlue)
+        : null;
+  }
+
+  ColorInformation? withGreen(int? newGreen) {
+    return newGreen != null
+        ? ColorInformation(alpha, red, newGreen, blue)
+        : null;
+  }
+
+  ColorInformation? withRed(int? newRed) {
+    return newRed != null ? ColorInformation(alpha, newRed, green, blue) : null;
+  }
+
+  ColorInformation? withValues(
+    double? newAlpha,
+    double? newRed,
+    double? newGreen,
+    double? newBlue,
+  ) {
+    int getNew(double? newValue, int existingValue) {
+      return newValue != null ? (newValue * 255).round() : existingValue;
+    }
+
+    return ColorInformation(
+      getNew(newAlpha, alpha),
+      getNew(newRed, red),
+      getNew(newGreen, green),
+      getNew(newBlue, blue),
+    );
+  }
+
+  /// Clamp a number to 0-255.
+  static int _clamp(int i) {
+    return i < 0
+        ? 0
+        : i > 255
+        ? 255
+        : i;
+  }
 }
 
 /// Information about a specific known location of a [ColorInformation]
@@ -348,62 +516,43 @@ class _ColorBuilder extends RecursiveAstVisitor<void> {
   void visitDotShorthandConstructorInvocation(
     DotShorthandConstructorInvocation node,
   ) {
-    if (!computer.tryAddColor(node)) {
-      // If we couldn't evaluate the constant, try the well-known color
-      // constructors for dart:ui/Flutter.
-      computer.tryAddKnownColorConstructor(node, node, node.argumentList);
-    }
+    // Usually we return after finding a color, but constructors can
+    // have nested colors in their arguments so do not return early.
+    computer.tryAddColor(node);
 
     super.visitDotShorthandConstructorInvocation(node);
   }
 
   @override
   void visitIndexExpression(IndexExpression node) {
-    // Colors.redAccent[500].
-    var index = node.index;
-    var indexValue = index is IntegerLiteral ? index.value : null;
-    if (indexValue != null) {
-      if (computer.tryAddColor(
-        node,
-        target: node.realTarget,
-        index: indexValue,
-      )) {
-        return;
-      }
+    if (computer.tryAddColor(node)) {
+      return;
     }
+
     super.visitIndexExpression(node);
   }
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     // Usually we return after finding a color, but constructors can
-    // have nested colors in their arguments so we walk all the way down.
-    if (!computer.tryAddColor(node)) {
-      // If we couldn't evaluate the constant, try the well-known color
-      // constructors for dart:ui/Flutter.
-      computer.tryAddKnownColorConstructor(
-        node,
-        node.constructorName,
-        node.argumentList,
-      );
-    }
+    // have nested colors in their arguments so do not return early.
+    computer.tryAddColor(node);
 
     super.visitInstanceCreationExpression(node);
   }
 
   @override
-  void visitPrefixedIdentifier(PrefixedIdentifier node) {
-    // Try the whole node as a constant (eg. `MyThemeClass.staticField`).
+  void visitMethodInvocation(MethodInvocation node) {
     if (computer.tryAddColor(node)) {
       return;
     }
 
-    // Try a field of a static, (eg. `const MyThemeClass().instanceField`).
-    if (computer.tryAddColor(
-      node,
-      target: node.prefix,
-      memberName: node.identifier.name,
-    )) {
+    super.visitMethodInvocation(node);
+  }
+
+  @override
+  void visitPrefixedIdentifier(PrefixedIdentifier node) {
+    if (computer.tryAddColor(node)) {
       return;
     }
 
@@ -412,14 +561,7 @@ class _ColorBuilder extends RecursiveAstVisitor<void> {
 
   @override
   void visitPropertyAccess(PropertyAccess node) {
-    // Handle things like CupertinoColors.activeBlue.darkColor where we can't
-    // evaluate the whole expression, but can evaluate CupertinoColors.activeBlue
-    // and read the darkColor.
-    if (computer.tryAddColor(
-      node,
-      target: node.realTarget,
-      memberName: node.propertyName.name,
-    )) {
+    if (computer.tryAddColor(node)) {
       return;
     }
 
@@ -431,6 +573,40 @@ class _ColorBuilder extends RecursiveAstVisitor<void> {
     computer.tryAddColor(node);
 
     super.visitSimpleIdentifier(node);
+  }
+}
+
+extension on Argument {
+  /// Gets the double value of this argument or `null`.
+  double? get doubleValueOrNull {
+    var arg = argumentExpression;
+
+    var isNegated = false;
+    if (arg is PrefixExpression) {
+      isNegated = arg.operator.type == TokenType.MINUS;
+      arg = arg.operand;
+    }
+
+    var value = arg is DoubleLiteral
+        ? arg.value
+        : arg is IntegerLiteral
+        ? arg.value?.toDouble()
+        : null;
+    return isNegated && value != null ? -value : value;
+  }
+
+  /// Gets the integer value of this argument or `null`.
+  int? get integerValueOrNull {
+    var arg = argumentExpression;
+
+    var isNegated = false;
+    if (arg is PrefixExpression) {
+      isNegated = arg.operator.type == TokenType.MINUS;
+      arg = arg.operand;
+    }
+
+    var value = arg is IntegerLiteral ? arg.value : null;
+    return isNegated && value != null ? -value : value;
   }
 }
 

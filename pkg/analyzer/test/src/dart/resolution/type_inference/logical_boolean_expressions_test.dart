@@ -30,29 +30,29 @@ T b<T>() => throw '';
     var node = result.findNode.singleLogicalAnd;
     assertResolvedNodeText(node, r'''
 LogicalAnd
-  leftOperand: MethodInvocation
-    methodName: SimpleIdentifier
-      token: a
-      element: <testLibrary>::@function::a
-      staticType: T Function<T>()
+  leftOperand: UnqualifiedFunctionInvocation
+    name: a
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
-    staticInvokeType: bool Function()
+    resolution: ExecutableInvocationResolution
+      element: <testLibrary>::@function::a
+      invokeType: bool Function()
+      type: bool
     staticType: bool
     typeArgumentTypes
       bool
   operator: &&
-  rightOperand: FunctionExpressionInvocation
-    function2: SimpleIdentifier
+  rightOperand: CallInvocation
+    receiver: SimpleIdentifier
       token: b
       element: <testLibrary>::@function::f::@formalParameter::b
       staticType: dynamic
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
-    element: <null>
-    staticInvokeType: dynamic
+    resolution: DynamicInvocationResolution
+      type: dynamic
     staticType: dynamic
   staticType: bool
 V1: BinaryExpression
@@ -140,29 +140,29 @@ T b<T>() => throw '';
     var node = result.findNode.singleLogicalOr;
     assertResolvedNodeText(node, r'''
 LogicalOr
-  leftOperand: MethodInvocation
-    methodName: SimpleIdentifier
-      token: a
-      element: <testLibrary>::@function::a
-      staticType: T Function<T>()
+  leftOperand: UnqualifiedFunctionInvocation
+    name: a
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
-    staticInvokeType: bool Function()
+    resolution: ExecutableInvocationResolution
+      element: <testLibrary>::@function::a
+      invokeType: bool Function()
+      type: bool
     staticType: bool
     typeArgumentTypes
       bool
   operator: ||
-  rightOperand: FunctionExpressionInvocation
-    function2: SimpleIdentifier
+  rightOperand: CallInvocation
+    receiver: SimpleIdentifier
       token: b
       element: <testLibrary>::@function::f::@formalParameter::b
       staticType: dynamic
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
-    element: <null>
-    staticInvokeType: dynamic
+    resolution: DynamicInvocationResolution
+      type: dynamic
     staticType: dynamic
   staticType: bool
 V1: BinaryExpression

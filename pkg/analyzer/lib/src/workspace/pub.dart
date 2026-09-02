@@ -380,22 +380,10 @@ class PackageConfigWorkspace extends SimpleWorkspace {
     Packages packages,
     String filePath,
   ) {
-    var start = provider.getFolder(filePath);
-    for (var current in start.withAncestors) {
-      var packageConfigFile = current
-          .getFolder(file_paths.dotDartTool)
-          .getFile(file_paths.packageConfigJson);
-      if (packageConfigFile.exists) {
-        var root = current.path;
-        return PackageConfigWorkspace(
-          provider,
-          root,
-          packageConfigFile,
-          packages,
-        );
-      }
-    }
-    return null;
+    return PackageConfigWorkspaceFindSession(provider).find(
+      filePath,
+      providedPackages: packages == Packages.empty ? null : packages,
+    );
   }
 
   /// See https://buganizer.corp.google.com/issues/273584249
@@ -409,6 +397,56 @@ class PackageConfigWorkspace extends SimpleWorkspace {
     return pathComponents.length > 4 &&
         pathComponents[pathComponents.length - 3] == 'dart' &&
         pathComponents[pathComponents.length - 4] == 'third_party';
+  }
+}
+
+/// Finds package-config workspaces during one filesystem discovery operation.
+///
+/// A session must not outlive the operation because each cached workspace is a
+/// snapshot of its package configuration and pubspec.
+final class PackageConfigWorkspaceFindSession {
+  final ResourceProvider _resourceProvider;
+
+  /// Workspaces are configuration snapshots, so reuse them only within this
+  /// discovery operation. The [Packages] identity distinguishes a mapping
+  /// supplied by the caller from the mapping parsed from the discovered file.
+  final Map<
+    ({File packageConfigFile, Packages? providedPackages}),
+    PackageConfigWorkspace
+  >
+  _workspaces = {};
+
+  PackageConfigWorkspaceFindSession(this._resourceProvider);
+
+  /// Finds the package config workspace containing [filePath].
+  ///
+  /// If [providedPackages] is `null`, the discovered package config file is
+  /// parsed. Otherwise, the supplied package mapping is used.
+  PackageConfigWorkspace? find(String filePath, {Packages? providedPackages}) {
+    var start = _resourceProvider.getFolder(filePath);
+    for (var current in start.withAncestors) {
+      var packageConfigFile = current
+          .getFolder(file_paths.dotDartTool)
+          .getFile(file_paths.packageConfigJson);
+      if (packageConfigFile.exists) {
+        var key = (
+          packageConfigFile: packageConfigFile,
+          providedPackages: providedPackages,
+        );
+        return _workspaces.putIfAbsent(key, () {
+          var packages =
+              providedPackages ??
+              parsePackageConfigJsonFile(_resourceProvider, packageConfigFile);
+          return PackageConfigWorkspace._(
+            _resourceProvider,
+            packages,
+            current.path,
+            packageConfigFile,
+          );
+        });
+      }
+    }
+    return null;
   }
 }
 

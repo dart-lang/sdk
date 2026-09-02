@@ -2040,60 +2040,60 @@ ConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
-      MethodInvocation
-        methodName: SimpleIdentifier
-          token: g1
-          element: <testLibrary>::@function::g1
-          staticType: T Function<T>()
+      UnqualifiedFunctionInvocation
+        name: g1
         argumentList: ArgumentList
           leftParenthesis: (
           rightParenthesis: )
+        resolution: ExecutableInvocationResolution
+          element: <testLibrary>::@function::g1
+          invokeType: A Function()
+          type: A
         correspondingParameter: <testLibrary>::@class::X::@constructor::new::@formalParameter::a
-        staticInvokeType: A Function()
         staticType: A
         typeArgumentTypes
           A
       NamedArgument
         name: c
         colon: :
-        argumentExpression2: MethodInvocation
-          methodName: SimpleIdentifier
-            token: g3
-            element: <testLibrary>::@function::g3
-            staticType: T Function<T>()
+        argumentExpression2: UnqualifiedFunctionInvocation
+          name: g3
           argumentList: ArgumentList
             leftParenthesis: (
             rightParenthesis: )
-          staticInvokeType: C? Function()
+          resolution: ExecutableInvocationResolution
+            element: <testLibrary>::@function::g3
+            invokeType: C? Function()
+            type: C?
           staticType: C?
           typeArgumentTypes
             C?
         correspondingParameter: <testLibrary>::@class::X::@constructor::new::@formalParameter::c
-      MethodInvocation
-        methodName: SimpleIdentifier
-          token: g2
-          element: <testLibrary>::@function::g2
-          staticType: T Function<T>()
+      UnqualifiedFunctionInvocation
+        name: g2
         argumentList: ArgumentList
           leftParenthesis: (
           rightParenthesis: )
+        resolution: ExecutableInvocationResolution
+          element: <testLibrary>::@function::g2
+          invokeType: B Function()
+          type: B
         correspondingParameter: <testLibrary>::@class::X::@constructor::new::@formalParameter::b
-        staticInvokeType: B Function()
         staticType: B
         typeArgumentTypes
           B
       NamedArgument
         name: d
         colon: :
-        argumentExpression2: MethodInvocation
-          methodName: SimpleIdentifier
-            token: g4
-            element: <testLibrary>::@function::g4
-            staticType: T Function<T>()
+        argumentExpression2: UnqualifiedFunctionInvocation
+          name: g4
           argumentList: ArgumentList
             leftParenthesis: (
             rightParenthesis: )
-          staticInvokeType: D? Function()
+          resolution: ExecutableInvocationResolution
+            element: <testLibrary>::@function::g4
+            invokeType: D? Function()
+            type: D?
           staticType: D?
           typeArgumentTypes
             D?

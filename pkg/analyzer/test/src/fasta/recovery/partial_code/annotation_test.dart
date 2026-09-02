@@ -1348,12 +1348,22 @@ CompilationUnit
                       arguments: ArgumentList
                         leftParenthesis: (
                         arguments2
-                          FunctionExpressionInvocation
-                            function2: SimpleIdentifier
+                          CallInvocation
+                            receiver: SimpleIdentifier
                               token: assert
                             argumentList: ArgumentList
                               leftParenthesis: (
                               arguments2
+                                BooleanLiteral
+                                  literal: true
+                              rightParenthesis: )
+                        arguments(v1)
+                          FunctionExpressionInvocation
+                            function: SimpleIdentifier
+                              token: assert
+                            argumentList: ArgumentList
+                              leftParenthesis: (
+                              arguments
                                 BooleanLiteral
                                   literal: true
                               rightParenthesis: )

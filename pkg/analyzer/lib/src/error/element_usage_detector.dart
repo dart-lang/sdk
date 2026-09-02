@@ -65,18 +65,6 @@ class ElementUsageDetector<TagInfo extends Object> {
     checkUsage(node.element, node);
   }
 
-  void cascadeIndexExpression(CascadeIndexExpression node) {
-    var element = switch (node.resolution) {
-      MethodIndexReadResolution(:var element) => element,
-      InvalidIndexReadResolution(
-        recovery: MethodIndexReadResolution(:var element),
-      ) =>
-        element,
-      _ => null,
-    };
-    checkUsage(element, node);
-  }
-
   void cascadePropertyExtraction(CascadePropertyExtraction node) {
     if (node.resolution case NamedReadResolutionWithElement(:var element)) {
       checkUsage(element, node);
@@ -149,6 +137,8 @@ class ElementUsageDetector<TagInfo extends Object> {
     } else if (node is NamedType) {
       errorEntity = node.name;
     } else if (node is ConstructorTypeReference) {
+      errorEntity = node.name;
+    } else if (node is NamedFunctionInvocation) {
       errorEntity = node.name;
     } else if (node is NamedArgument) {
       errorEntity = node.name;
@@ -303,16 +293,6 @@ class ElementUsageDetector<TagInfo extends Object> {
 
   void incrementOrDecrement(IncrementOrDecrementExpressionImpl node) {
     var target = node.target;
-    if (target case CascadeIndexAssignmentTarget(
-      read: MethodIndexReadResolution(:var element),
-    )) {
-      checkUsage(element, target);
-    }
-    if (target case CascadeIndexAssignmentTarget(
-      write: MethodIndexWriteResolution(:var element),
-    )) {
-      checkUsage(element, target);
-    }
     if (target case IndexAssignmentTarget(
       read: MethodIndexReadResolution(:var element),
     )) {
@@ -580,16 +560,15 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
     checkUsage(node.element, node);
   }
 
-  void cascadeIndexExpression(CascadeIndexExpression node) {
-    var element = switch (node.resolution) {
-      MethodIndexReadResolution(:var element) => element,
-      InvalidIndexReadResolution(
-        recovery: MethodIndexReadResolution(:var element),
-      ) =>
-        element,
+  void callInvocation(CallInvocation node) {
+    var callElement = switch (node.resolution) {
+      ExecutableInvocationResolution(:var element) => element,
       _ => null,
     };
-    checkUsage(element, node);
+    if (callElement is MethodElement &&
+        callElement.name == MethodElement.CALL_METHOD_NAME) {
+      checkUsage(callElement, node);
+    }
   }
 
   /// Reports the usage of [element] at [node] if [element] is in
@@ -659,6 +638,10 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
       errorEntity = node.name;
     } else if (node is ConstructorTypeReference) {
       errorEntity = node.name;
+    } else if (node is DotShorthandNameExpression) {
+      errorEntity = node.name;
+    } else if (node is NamedFunctionInvocation) {
+      errorEntity = node.name;
     } else if (node is NamedArgument) {
       errorEntity = node.name;
     } else if (node is PatternFieldImpl) {
@@ -722,16 +705,6 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
 
   void compoundAssignment(CompoundAssignment node) {
     var target = node.target;
-    if (target case CascadeIndexAssignmentTarget(
-      read: MethodIndexReadResolution(:var element),
-    )) {
-      checkUsage(element, target);
-    }
-    if (target case CascadeIndexAssignmentTarget(
-      write: MethodIndexWriteResolution(:var element),
-    )) {
-      checkUsage(element, target);
-    }
     if (target case IndexAssignmentTarget(
       read: MethodIndexReadResolution(:var element),
     )) {
@@ -794,11 +767,6 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
 
   void directAssignment(DirectAssignment node) {
     var target = node.target;
-    if (target case CascadeIndexAssignmentTarget(
-      write: MethodIndexWriteResolution(:var element),
-    )) {
-      checkUsage(element, target);
-    }
     if (target case IndexAssignmentTarget(
       write: MethodIndexWriteResolution(:var element),
     )) {
@@ -832,6 +800,34 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
       checkUsage(interfaceElement, node);
     }
     _invocationArguments(node.memberName.element, node.argumentList);
+  }
+
+  void dotShorthandMethodInvocation(DotShorthandMethodInvocation node) {
+    var element = switch (node.resolution) {
+      ExecutableInvocationResolution(:var element) => element,
+      InvalidInvocationResolution(
+        recovery: ExecutableInvocationResolution(:var element),
+      ) =>
+        element,
+      _ => null,
+    };
+    if (element?.enclosingElement case var interfaceElement?) {
+      // A dot-shorthand method invocation contains an implicit reference to
+      // the interface on which the static method was declared.
+      checkUsage(interfaceElement, node);
+    }
+    namedFunctionInvocation(node);
+  }
+
+  void dotShorthandNameExpression(DotShorthandNameExpression node) {
+    if (node.resolution case NamedReadResolutionWithElement(:var element)) {
+      if (element.enclosingElement case var interfaceElement?) {
+        // A dot-shorthand name contains an implicit reference to the
+        // declaration whose static namespace supplies the name.
+        checkUsage(interfaceElement, node);
+      }
+      checkUsage(element, node);
+    }
   }
 
   void dotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
@@ -888,26 +884,8 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
     }
   }
 
-  void functionExpressionInvocation(FunctionExpressionInvocation node) {
-    var callElement = node.element;
-    if (callElement is MethodElement &&
-        callElement.name == MethodElement.CALL_METHOD_NAME) {
-      checkUsage(callElement, node);
-    }
-  }
-
   void ifNullAssignment(IfNullAssignment node) {
     var target = node.target;
-    if (target case CascadeIndexAssignmentTarget(
-      read: MethodIndexReadResolution(:var element),
-    )) {
-      checkUsage(element, target);
-    }
-    if (target case CascadeIndexAssignmentTarget(
-      write: MethodIndexWriteResolution(:var element),
-    )) {
-      checkUsage(element, target);
-    }
     if (target case IndexAssignmentTarget(
       read: MethodIndexReadResolution(:var element),
     )) {
@@ -934,16 +912,6 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
 
   void incrementOrDecrement(IncrementOrDecrementExpressionImpl node) {
     var target = node.target;
-    if (target case CascadeIndexAssignmentTarget(
-      read: MethodIndexReadResolution(:var element),
-    )) {
-      checkUsage(element, target);
-    }
-    if (target case CascadeIndexAssignmentTarget(
-      write: MethodIndexWriteResolution(:var element),
-    )) {
-      checkUsage(element, target);
-    }
     if (target case IndexAssignmentTarget(
       read: MethodIndexReadResolution(:var element),
     )) {
@@ -991,6 +959,15 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
 
   void methodInvocation(MethodInvocation node) {
     _invocationArguments(node.methodName.element, node.argumentList);
+  }
+
+  void namedFunctionInvocation(NamedFunctionInvocation node) {
+    var element = switch (node.resolution) {
+      ExecutableInvocationResolution(:var element) => element,
+      _ => null,
+    };
+    checkUsage(element?.baseElement, node);
+    _invocationArguments(element, node.argumentList);
   }
 
   void namedType(NamedType node) {

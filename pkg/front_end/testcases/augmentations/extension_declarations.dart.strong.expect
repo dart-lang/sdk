@@ -1,0 +1,150 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/augmentations/extension_declarations.dart:6:8: Error: Extensions can't declare abstract members.
+// Try providing an implementation for the member.
+//   void instanceMethod1();
+//        ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/augmentations/extension_declarations.dart:9:11: Error: Extensions can't declare abstract members.
+// Try providing an implementation for the member.
+//   int get instanceGetter1;
+//           ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/augmentations/extension_declarations.dart:12:12: Error: Extensions can't declare abstract members.
+// Try providing an implementation for the member.
+//   void set instanceSetter1(int value);
+//            ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/augmentations/extension_declarations.dart:15:8: Error: Extensions can't declare abstract members.
+// Try providing an implementation for the member.
+//   void instanceMethod2();
+//        ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/augmentations/extension_declarations.dart:17:11: Error: Extensions can't declare abstract members.
+// Try providing an implementation for the member.
+//   int get instanceGetter2;
+//           ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/augmentations/extension_declarations.dart:19:12: Error: Extensions can't declare abstract members.
+// Try providing an implementation for the member.
+//   void set instanceSetter2(int value);
+//            ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/augmentations/extension_declarations.dart:21:15: Error: Extensions can't declare abstract members.
+// Try providing an implementation for the member.
+//   static void staticMethod1();
+//               ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/augmentations/extension_declarations.dart:24:18: Error: Extensions can't declare abstract members.
+// Try providing an implementation for the member.
+//   static int get staticGetter1;
+//                  ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/augmentations/extension_declarations.dart:27:19: Error: Extensions can't declare abstract members.
+// Try providing an implementation for the member.
+//   static void set staticSetter1(int value);
+//                   ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/augmentations/extension_declarations.dart:30:15: Error: Extensions can't declare abstract members.
+// Try providing an implementation for the member.
+//   static void staticMethod2();
+//               ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/augmentations/extension_declarations.dart:32:18: Error: Extensions can't declare abstract members.
+// Try providing an implementation for the member.
+//   static int get staticGetter2;
+//                  ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/augmentations/extension_declarations.dart:34:19: Error: Extensions can't declare abstract members.
+// Try providing an implementation for the member.
+//   static void set staticSetter2(int value);
+//                   ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/augmentations/extension_declarations.dart:44:6: Error: Extensions can't declare abstract members.
+// Try providing an implementation for the member.
+// void instanceMethod3();
+//      ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/augmentations/extension_declarations.dart:47:9: Error: Extensions can't declare abstract members.
+// Try providing an implementation for the member.
+// int get instanceGetter3;
+//         ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/augmentations/extension_declarations.dart:50:10: Error: Extensions can't declare abstract members.
+// Try providing an implementation for the member.
+// void set instanceSetter3(int value);
+//          ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/augmentations/extension_declarations.dart:59:13: Error: Extensions can't declare abstract members.
+// Try providing an implementation for the member.
+// static void staticMethod3();
+//             ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/augmentations/extension_declarations.dart:62:16: Error: Extensions can't declare abstract members.
+// Try providing an implementation for the member.
+// static int get staticGetter3;
+//                ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/augmentations/extension_declarations.dart:65:17: Error: Extensions can't declare abstract members.
+// Try providing an implementation for the member.
+// static void set staticSetter3(int value);
+//                 ^^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+extension Extension on core::int {
+  method instanceMethod1 = self::Extension|instanceMethod1;
+  method tearoff instanceMethod1 = self::Extension|get#instanceMethod1;
+  get instanceGetter1 = self::Extension|get#instanceGetter1;
+  set instanceSetter1 = self::Extension|set#instanceSetter1;
+  method instanceMethod2 = self::Extension|instanceMethod2;
+  method tearoff instanceMethod2 = self::Extension|get#instanceMethod2;
+  get instanceGetter2 = self::Extension|get#instanceGetter2;
+  set instanceSetter2 = self::Extension|set#instanceSetter2;
+  static method staticMethod1 = self::Extension|staticMethod1;
+  static get staticGetter1 = get self::Extension|staticGetter1;
+  static set staticSetter1 = set self::Extension|staticSetter1;
+  static method staticMethod2 = self::Extension|staticMethod2;
+  static get staticGetter2 = get self::Extension|staticGetter2;
+  static set staticSetter2 = set self::Extension|staticSetter2;
+  method instanceMethod3 = self::Extension|instanceMethod3;
+  method tearoff instanceMethod3 = self::Extension|get#instanceMethod3;
+  get instanceGetter3 = self::Extension|get#instanceGetter3;
+  set instanceSetter3 = self::Extension|set#instanceSetter3;
+  static method staticMethod3 = self::Extension|staticMethod3;
+  static get staticGetter3 = get self::Extension|staticGetter3;
+  static set staticSetter3 = set self::Extension|staticSetter3;
+}
+static extension-member method Extension|instanceMethod1(lowered final core::int #this) → void {}
+static extension-member method Extension|get#instanceMethod1(lowered final core::int #this) → () → void
+  return () → void => self::Extension|instanceMethod1(#this);
+static extension-member method Extension|get#instanceGetter1(lowered final core::int #this) → core::int
+  return 0;
+static extension-member method Extension|set#instanceSetter1(lowered final core::int #this, core::int value) → void {}
+static extension-member method Extension|staticMethod1() → void {}
+static extension-member get Extension|staticGetter1() → core::int
+  return 0;
+static extension-member set Extension|staticSetter1(core::int value) → void {}
+static extension-member method Extension|instanceMethod2(lowered final core::int #this) → void {}
+static extension-member method Extension|get#instanceMethod2(lowered final core::int #this) → () → void
+  return () → void => self::Extension|instanceMethod2(#this);
+static extension-member method Extension|get#instanceGetter2(lowered final core::int #this) → core::int
+  return 0;
+static extension-member method Extension|set#instanceSetter2(lowered final core::int #this, core::int value) → void {}
+static extension-member method Extension|instanceMethod3(lowered final core::int #this) → void {}
+static extension-member method Extension|get#instanceMethod3(lowered final core::int #this) → () → void
+  return () → void => self::Extension|instanceMethod3(#this);
+static extension-member method Extension|get#instanceGetter3(lowered final core::int #this) → core::int
+  return 0;
+static extension-member method Extension|set#instanceSetter3(lowered final core::int #this, core::int value) → void {}
+static extension-member method Extension|staticMethod2() → void {}
+static extension-member get Extension|staticGetter2() → core::int
+  return 0;
+static extension-member set Extension|staticSetter2(core::int value) → void {}
+static extension-member method Extension|staticMethod3() → void {}
+static extension-member get Extension|staticGetter3() → core::int
+  return 0;
+static extension-member set Extension|staticSetter3(core::int value) → void {}

@@ -179,7 +179,7 @@ void main() {
 // [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
 }
 ''');
-    var node = result.findNode.singleDotShorthandInvocation;
+    var node = result.findNodeV1.singleDotShorthandInvocation;
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A::@method::foo
@@ -198,7 +198,7 @@ void main() {
 // [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
 }
 ''');
-    var node = result.findNode.singleDotShorthandPropertyAccess;
+    var node = result.findNodeV1.singleDotShorthandPropertyAccess;
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A::@getter::foo
@@ -589,7 +589,7 @@ void f() {
   A().call(1);
 }
 ''');
-    var node = result.findNode.methodInvocation('call(1)').methodName;
+    var node = result.findNodeV1.methodInvocation('call(1)').methodName;
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A::@method::call
@@ -632,7 +632,7 @@ void main() {
  new A().foo();
 }
 ''');
-    var node = result.findNode.methodInvocation('foo();');
+    var node = result.findNodeV1.methodInvocation('foo();');
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A::@method::foo
@@ -647,7 +647,7 @@ void main() {
  foo(0);
 }
 ''');
-    var node = result.findNode.methodInvocation('foo(0)');
+    var node = result.findNodeV1.methodInvocation('foo(0)');
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@function::foo
@@ -1151,7 +1151,7 @@ void main() {
 ''');
   }
 
-  test_locate_DotShorthandInvocation() async {
+  test_locate_DotShorthandMethodInvocation() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   static A foo() => A();
@@ -1163,14 +1163,14 @@ void main() {
 // [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
 }
 ''');
-    var node = result.findNode.singleDotShorthandInvocation;
+    var node = result.findNode.singleDotShorthandMethodInvocation;
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A::@method::foo
 ''');
   }
 
-  test_locate_DotShorthandPropertyAccess() async {
+  test_locate_DotShorthandNameExpression() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   static A foo = A();
@@ -1182,7 +1182,7 @@ void main() {
 // [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
 }
 ''');
-    var node = result.findNode.singleDotShorthandPropertyAccess;
+    var node = result.findNode.singleDotShorthandNameExpression;
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A::@getter::foo
@@ -1402,23 +1402,6 @@ dart:core
 ''');
   }
 
-  test_locate_IndexAssignmentTarget() async {
-    var result = await resolveTestCode(r'''
-class A {
-  void operator []=(int index, num value) {}
-}
-
-void f(A a) {
-  a[0] = 1;
-}
-''');
-    var node = result.findNode.directAssignment('[0] = 1').target;
-    var element = ElementLocatorV2.locate(node);
-    _assertElement(element, r'''
-<testLibrary>::@class::A::@method::[]=
-''');
-  }
-
   test_locate_IndexExpression() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 void main() {
@@ -1428,7 +1411,7 @@ void main() {
 // [diag.unusedLocalVariable] The value of the local variable 'y' isn't used.
 }
 ''');
-    var node = result.findNode.indexExpression2('[0]');
+    var node = result.findNode.receiverIndexExpression('[0]');
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 SubstitutedMethodElementImpl
@@ -1497,7 +1480,7 @@ void f() {
   A().call(1);
 }
 ''');
-    var node = result.findNode.methodInvocation('call(1)').methodName;
+    var node = result.findNode.singleReceiverMethodInvocation;
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A::@method::call
@@ -1540,7 +1523,7 @@ void main() {
  new A().foo();
 }
 ''');
-    var node = result.findNode.methodInvocation('foo();');
+    var node = result.findNode.singleReceiverMethodInvocation;
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A::@method::foo
@@ -1555,10 +1538,25 @@ void main() {
  foo(0);
 }
 ''');
-    var node = result.findNode.methodInvocation('foo(0)');
+    var node = result.findNode.unqualifiedFunctionInvocation('foo(0)');
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@function::foo
+''');
+  }
+
+  test_locate_MethodInvocation_topLevel_importPrefix() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+import 'dart:math' as math;
+
+void f() {
+  math.max(0, 1);
+}
+''');
+    var node = result.findNode.singleImportPrefixedFunctionInvocation;
+    var element = ElementLocatorV2.locate(node);
+    _assertElement(element, r'''
+dart:math::@function::max
 ''');
   }
 
@@ -1701,6 +1699,23 @@ class A.named() {}
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A::@constructor::named
+''');
+  }
+
+  test_locate_ReceiverIndexAssignmentTarget() async {
+    var result = await resolveTestCode(r'''
+class A {
+  void operator []=(int index, num value) {}
+}
+
+void f(A a) {
+  a[0] = 1;
+}
+''');
+    var node = result.findNode.directAssignment('[0] = 1').target;
+    var element = ElementLocatorV2.locate(node);
+    _assertElement(element, r'''
+<testLibrary>::@class::A::@method::[]=
 ''');
   }
 

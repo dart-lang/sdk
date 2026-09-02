@@ -14,11 +14,16 @@ import 'package:analyzer/src/dart/ast/ast.dart'
         AssignmentTargetImpl,
         CascadeIndexAssignmentTargetImpl,
         CascadePropertyAssignmentTargetImpl,
+        DotShorthandMethodInvocationImpl,
         GetterInvocationResolutionImpl,
-        IndexAssignmentTargetImpl,
+        ImportPrefixedFunctionInvocationImpl,
+        NamedFunctionInvocationImpl,
+        ReceiverIndexAssignmentTargetImpl,
         InvalidExpressionAssignmentTargetImpl,
+        ReceiverMethodInvocationImpl,
         ReceiverPropertyAssignmentTargetImpl,
         ReceiverPropertyExtractionImpl,
+        UnqualifiedFunctionInvocationImpl,
         UnqualifiedNameAssignmentTargetImpl;
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/wolf/ir/call_descriptor.dart';
@@ -158,7 +163,9 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
 
   _LValueTemplates dispatchAssignmentTarget(AssignmentTarget target) =>
       switch (target) {
-        IndexAssignmentTarget() => _indexAssignmentTarget(target),
+        ReceiverIndexAssignmentTarget() => _receiverIndexAssignmentTarget(
+          target,
+        ),
         ReceiverPropertyAssignmentTarget() => _receiverPropertyAssignmentTarget(
           target,
         ),
@@ -478,8 +485,8 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
         throw UnimplementedError('Cascade index assignment target');
       case CascadePropertyAssignmentTargetImpl():
         throw UnimplementedError('Cascade property assignment target');
-      case IndexAssignmentTargetImpl():
-        lValueTemplates = _indexAssignmentTarget(target);
+      case ReceiverIndexAssignmentTargetImpl():
+        lValueTemplates = _receiverIndexAssignmentTarget(target);
       case InvalidExpressionAssignmentTargetImpl():
         throw UnimplementedError('Invalid expression assignment target');
       case ReceiverPropertyAssignmentTargetImpl():
@@ -548,8 +555,8 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
         throw UnimplementedError('Cascade index assignment target');
       case CascadePropertyAssignmentTargetImpl():
         throw UnimplementedError('Cascade property assignment target');
-      case IndexAssignmentTargetImpl():
-        lValueTemplates = _indexAssignmentTarget(target);
+      case ReceiverIndexAssignmentTargetImpl():
+        lValueTemplates = _receiverIndexAssignmentTarget(target);
       case InvalidExpressionAssignmentTargetImpl():
         throw UnimplementedError('Invalid expression assignment target');
       case ReceiverPropertyAssignmentTargetImpl():
@@ -593,6 +600,12 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
     ir.end();
     // Stack: (empty)
   }
+
+  @override
+  Null visitDotShorthandMethodInvocation(DotShorthandMethodInvocation node) =>
+      _visitDirectNamedFunctionInvocation(
+        node as DotShorthandMethodInvocationImpl,
+      );
 
   @override
   Null visitDoubleLiteral(DoubleLiteral node) {
@@ -737,8 +750,8 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
         throw UnimplementedError('Cascade index assignment target');
       case CascadePropertyAssignmentTargetImpl():
         throw UnimplementedError('Cascade property assignment target');
-      case IndexAssignmentTargetImpl():
-        lValueTemplates = _indexAssignmentTarget(target);
+      case ReceiverIndexAssignmentTargetImpl():
+        lValueTemplates = _receiverIndexAssignmentTarget(target);
       case InvalidExpressionAssignmentTargetImpl():
         throw UnimplementedError('Invalid expression assignment target');
       case ReceiverPropertyAssignmentTargetImpl():
@@ -803,6 +816,13 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
       // Stack: (empty)
     }
   }
+
+  @override
+  Null visitImportPrefixedFunctionInvocation(
+    ImportPrefixedFunctionInvocation node,
+  ) => _visitDirectNamedFunctionInvocation(
+    node as ImportPrefixedFunctionInvocationImpl,
+  );
 
   @override
   Null visitIntegerLiteral(IntegerLiteral node) {
@@ -1033,6 +1053,14 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
   }
 
   @override
+  Null visitReceiverMethodInvocation(ReceiverMethodInvocation node) =>
+      _visitDirectNamedFunctionInvocation(
+        node as ReceiverMethodInvocationImpl,
+        receiver: node.receiver,
+        isNullAware: node.operator.type == TokenType.QUESTION_PERIOD,
+      );
+
+  @override
   _LValueTemplates visitReceiverPropertyExtraction(
     covariant ReceiverPropertyExtractionImpl node,
   ) {
@@ -1105,6 +1133,12 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
 
   @override
   Null visitThisExpression(ThisExpression node) => this_();
+
+  @override
+  Null visitUnqualifiedFunctionInvocation(UnqualifiedFunctionInvocation node) =>
+      _visitDirectNamedFunctionInvocation(
+        node as UnqualifiedFunctionInvocationImpl,
+      );
 
   @override
   Null visitVariableDeclarationList(VariableDeclarationList variables) {
@@ -1192,7 +1226,9 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
     }
   }
 
-  _LValueTemplates _indexAssignmentTarget(IndexAssignmentTarget node) {
+  _LValueTemplates _receiverIndexAssignmentTarget(
+    ReceiverIndexAssignmentTarget node,
+  ) {
     var previousNestingLevel = ir.nestingLevel;
     dispatchNode(node.receiver, terminateNullShorting: false);
     if (node.question != null) {
@@ -1286,6 +1322,78 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
     }
   }
 
+  Null _visitDirectNamedFunctionInvocation(
+    NamedFunctionInvocationImpl node, {
+    Expression? receiver,
+    bool isNullAware = false,
+  }) {
+    var previousNestingLevel = ir.nestingLevel;
+    var argumentNames = <String?>[];
+    var element = switch (node.resolution) {
+      ExecutableInvocationResolution(:var element) => element,
+      _ => null,
+    };
+    switch (element) {
+      case TopLevelFunctionElement():
+        _handleInvocationArgs(
+          argumentList: node.argumentList,
+          argumentNames: argumentNames,
+          isNullAware: false,
+          previousNestingLevel: previousNestingLevel,
+        );
+        if (element.library.isDartCore && element.name == 'identical') {
+          ir.identical();
+        } else {
+          ir.call(
+            ir.encodeCallDescriptor(
+              ElementCallDescriptor(
+                element,
+                typeArguments: node.typeArgumentTypes!,
+              ),
+            ),
+            ir.encodeArgumentNames(argumentNames),
+          );
+        }
+      case MethodElement(isStatic: false):
+        if (receiver == null) {
+          this_();
+        } else {
+          dispatchNode(receiver, terminateNullShorting: false);
+        }
+        argumentNames.add(null);
+        _handleInvocationArgs(
+          argumentList: node.argumentList,
+          argumentNames: argumentNames,
+          isNullAware: isNullAware,
+          previousNestingLevel: previousNestingLevel,
+        );
+        instanceCall(
+          element,
+          node.name.lexeme,
+          node.typeArgumentTypes!,
+          ir.encodeArgumentNames(argumentNames),
+        );
+      case MethodElement(isStatic: true):
+        _handleInvocationArgs(
+          argumentList: node.argumentList,
+          argumentNames: argumentNames,
+          isNullAware: false,
+          previousNestingLevel: previousNestingLevel,
+        );
+        ir.call(
+          ir.encodeCallDescriptor(
+            ElementCallDescriptor(
+              element,
+              typeArguments: node.typeArgumentTypes!,
+            ),
+          ),
+          ir.encodeArgumentNames(argumentNames),
+        );
+      case dynamic(:var runtimeType):
+        throw UnimplementedError('TODO(paulberry): $runtimeType: $element');
+    }
+  }
+
   Null _visitPostfixIncrementOrDecrement(IncrementOrDecrementExpression node) {
     var lValueTemplates = dispatchAssignmentTarget(node.target);
     // Stack: lValue
@@ -1345,7 +1453,9 @@ class _IndexAssignmentTemplates extends _LValueTemplates {
 
   @override
   void simpleRead(_AstToIRVisitor visitor) {
-    throw StateError('IndexAssignmentTarget cannot be read as an expression.');
+    throw StateError(
+      'ReceiverIndexAssignmentTarget cannot be read as an expression.',
+    );
   }
 
   @override

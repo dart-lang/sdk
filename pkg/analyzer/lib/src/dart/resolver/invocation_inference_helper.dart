@@ -204,4 +204,16 @@ class InvocationInferenceHelper {
     ).resolveInvocation();
     node.recordStaticType(returnType, resolver: _resolver);
   }
+
+  /// Moves inference instrumentation when resolution replaces an AST node.
+  void transferTestData(AstNodeImpl from, AstNodeImpl to) {
+    var dataForTesting = this.dataForTesting;
+    if (dataForTesting == null) {
+      return;
+    }
+    var constraints = dataForTesting.generatedTypeConstraints.remove(from);
+    if (constraints != null) {
+      dataForTesting.generatedTypeConstraints[to] = constraints;
+    }
+  }
 }

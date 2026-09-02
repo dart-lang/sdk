@@ -920,6 +920,32 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
   }
 
   @override
+  Constant visitDotShorthandMethodInvocation(
+    DotShorthandMethodInvocation node,
+  ) => _visitNamedFunctionInvocation(node);
+
+  @override
+  Constant visitDotShorthandNameExpression(
+    covariant DotShorthandNameExpressionImpl node,
+  ) {
+    var element = switch (node.resolution) {
+      NamedReadResolutionWithElementImpl(:var element) => element,
+      InvalidNamedReadResolutionImpl(
+        recovery: NamedReadResolutionWithElementImpl(:var element),
+      ) =>
+        element,
+      InvalidNamedReadResolutionImpl(:var candidates) => candidates.firstOrNull,
+      _ => null,
+    };
+    return _getConstantValue(
+      errorNode: node,
+      expression: node,
+      identifier: node.dotShorthandPropertyAccess.propertyName,
+      element: element,
+    );
+  }
+
+  @override
   Constant visitDotShorthandPropertyAccess(
     covariant DotShorthandPropertyAccessImpl node,
   ) {
@@ -1037,6 +1063,11 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
       () => evaluateConstant(node.rightOperand),
     );
   }
+
+  @override
+  Constant visitImportPrefixedFunctionInvocation(
+    ImportPrefixedFunctionInvocation node,
+  ) => _visitNamedFunctionInvocation(node);
 
   @override
   Constant visitIntegerLiteral(IntegerLiteral node) {
@@ -1305,6 +1336,10 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
   }
 
   @override
+  Constant visitReceiverMethodInvocation(ReceiverMethodInvocation node) =>
+      _visitNamedFunctionInvocation(node);
+
+  @override
   Constant visitReceiverPropertyExtraction(
     covariant ReceiverPropertyExtractionImpl node,
   ) {
@@ -1511,6 +1546,11 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
       ),
     };
   }
+
+  @override
+  Constant visitUnqualifiedFunctionInvocation(
+    UnqualifiedFunctionInvocation node,
+  ) => _visitNamedFunctionInvocation(node);
 
   /// Builds a list constant by adding the evaluated entries of [elements] to
   /// the given [list].
@@ -2369,6 +2409,26 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
     } else {
       return _dartObjectComputer.lazyOr(node, leftResult, computeRightOperand);
     }
+  }
+
+  Constant _visitNamedFunctionInvocation(NamedFunctionInvocation node) {
+    var element = switch (node.resolution) {
+      ExecutableInvocationResolution(:var element) => element,
+      _ => null,
+    };
+    if (element is TopLevelFunctionElementImpl && element.isDartCoreIdentical) {
+      var arguments = node.argumentList.arguments2;
+      var leftArgument = evaluateConstant(arguments[0]);
+      if (leftArgument is! DartObjectImpl) {
+        return leftArgument;
+      }
+      var rightArgument = evaluateConstant(arguments[1]);
+      if (rightArgument is! DartObjectImpl) {
+        return rightArgument;
+      }
+      return _dartObjectComputer.isIdentical(node, leftArgument, rightArgument);
+    }
+    return _invalidConstantForMethodInvocation(node);
   }
 }
 

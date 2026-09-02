@@ -1698,7 +1698,7 @@ class ConstantsTransformer extends RemovingTransformer {
           otherwise: node.otherwise,
           fileOffset: node.fileOffset,
         ),
-      ], fileOffset: node.fileOffset);
+      ], fileOffset: node.fileOffset)..scope = node.scope;
     } else {
       ifStatement = extern.createIfStatement(
         condition,
@@ -2229,7 +2229,7 @@ class ConstantsTransformer extends RemovingTransformer {
               ], fileOffset: switchCase.fileOffset),
               fileOffset: switchCase.fileOffset,
             ),
-          ], fileOffset: switchCase.fileOffset),
+          ], fileOffset: switchCase.fileOffset)..scope = switchCase.scope,
         );
       }
       bool forUnsoundness = false;

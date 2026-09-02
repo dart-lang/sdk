@@ -7,7 +7,7 @@
 library dart.typed_data.implementation;
 
 import 'dart:collection' show ListMixin;
-import 'dart:_internal' show FixedLengthListMixin hide Symbol;
+import 'dart:_internal' show FixedLengthListMixin;
 import "dart:_internal" show UnmodifiableListMixin;
 import 'dart:_interceptors'
     show JavaScriptObject, JSIndexable, JSUInt32, JSUInt31;
@@ -2023,6 +2023,15 @@ final class NativeInt32x4 implements Int32x4 {
       y == other.y ? -1 : 0,
       z == other.z ? -1 : 0,
       w == other.w ? -1 : 0,
+    );
+  }
+
+  Int32x4 notEqual(Int32x4 other) {
+    return NativeInt32x4._truncated(
+      x != other.x ? -1 : 0,
+      y != other.y ? -1 : 0,
+      z != other.z ? -1 : 0,
+      w != other.w ? -1 : 0,
     );
   }
 

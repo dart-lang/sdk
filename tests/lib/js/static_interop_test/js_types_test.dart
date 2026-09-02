@@ -4,6 +4,7 @@
 
 // Check that JS types work.
 
+import 'dart:async';
 import 'dart:collection';
 import 'dart:js_interop';
 import 'dart:js_interop_unsafe';
@@ -223,6 +224,10 @@ class DartObject {
 @pragma('dart2js:never-inline')
 @pragma('dart2js:assumeDynamic')
 confuse(x) => x;
+
+/// A no-op function that will fail to compile if the static type of [value]
+/// isn't a subtype of [T].
+void expectStaticType<T>(T value) {}
 
 // TODO(srujzs): Split this test into multiple tests.
 void syncTests() {
@@ -1329,6 +1334,74 @@ Future<void> asyncTests() async {
       final jsError = error as JSError;
       Expect.isTrue((jsError['error'] as JSBoxedDartObject).toDart);
     }
+  }
+
+  // [FutureOr<JSAny>] -> [JSAny]
+
+  // Non-future
+  {
+    final FutureOr<JSString> f = 'value'.toJS;
+    final p = f.toJSPromiseOrValue;
+    expectStaticType<JSAny>(p);
+    Expect.equals('value'.toJS, p);
+  }
+
+  // Future
+  {
+    final FutureOr<JSString> f = Future.value('value'.toJS);
+    final p = f.toJSPromiseOrValue;
+    expectStaticType<JSAny>(p);
+    Expect.type<JSPromise>(p);
+    Expect.equals('value'.toJS, await (p as JSPromise<JSString>).toDart);
+  }
+
+  // [FutureOr<JSAny?>] -> [JSAny?]
+
+  // Non-future
+  {
+    final FutureOr<JSString?> f = null;
+    final p = f.toJSPromiseOrValue;
+    Expect.isNull(p);
+  }
+
+  // Future
+  {
+    final FutureOr<JSString?> f = Future.value(null);
+    final p = f.toJSPromiseOrValue;
+    Expect.type<JSPromise>(p);
+    Expect.isNull(await (p as JSPromise<JSString?>).toDart);
+  }
+
+  // [JSAny] -> [FutureOr<JSAny?>]
+
+  // Non-promise
+  {
+    final f = 'value'.toJS.toDartFutureOr;
+    Expect.type<FutureOr<JSAny?>>(f);
+    Expect.equals('value'.toJS, f);
+  }
+
+  // Promise
+  {
+    final f = getResolvedPromise().toDartFutureOr;
+    expectStaticType<FutureOr<JSAny?>>(f);
+    Expect.equals('resolved'.toJS, await f);
+  }
+
+  // [JSAny?] -> [FutureOr<JSAny?>]
+
+  // Non-promise
+  {
+    final f = null.toDartFutureOr;
+    Expect.type<FutureOr<JSAny?>>(f);
+    Expect.isNull(f);
+  }
+
+  // Promise
+  {
+    final f = resolvePromiseWithNullOrUndefined<JSAny?>(true).toDartFutureOr;
+    expectStaticType<FutureOr<JSAny?>>(f);
+    Expect.isNull(await f);
   }
 }
 

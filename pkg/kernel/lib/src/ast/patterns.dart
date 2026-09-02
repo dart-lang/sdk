@@ -2020,9 +2020,12 @@ class PatternSwitchStatement extends Statement implements SwitchStatement {
   }
 }
 
-class SwitchExpressionCase extends TreeNode {
+class SwitchExpressionCase extends TreeNode implements ScopeProvider {
   PatternGuard patternGuard;
   Expression expression;
+
+  @override
+  Scope? scope;
 
   new(this.patternGuard, this.expression) {
     patternGuard.parent = this;
@@ -2280,7 +2283,7 @@ class PatternAssignment extends Expression {
 ///     if (expression case pattern when guard) then
 ///     if (expression case pattern when guard) then else otherwise
 ///
-class IfCaseStatement extends Statement {
+class IfCaseStatement extends Statement implements ScopeProvider {
   Expression expression;
   PatternGuard patternGuard;
   Statement then;
@@ -2288,6 +2291,9 @@ class IfCaseStatement extends Statement {
 
   /// The type of the expression against which this pattern is matched.
   DartType matchedValueType;
+
+  @override
+  Scope? scope;
 
   new({
     required this.expression,

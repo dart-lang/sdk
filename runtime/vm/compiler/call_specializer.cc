@@ -2385,6 +2385,9 @@ class SimdLowering : public ValueObject {
       case MethodRecognizer::kInt32x4Equal:
         Int32x4Compare(Token::kEQ);
         return true;
+      case MethodRecognizer::kInt32x4NotEqual:
+        Int32x4Compare(Token::kNE);
+        return true;
       case MethodRecognizer::kInt32x4FromInts:
         UnboxScalar(0, kUnboxedInt32, 4);
         UnboxScalar(1, kUnboxedInt32, 4);
@@ -2737,6 +2740,9 @@ class SimdLowering : public ValueObject {
         Float32x4ToInt32x4();
         BoxVector(kUnboxedInt32, 4);
         return true;
+      case MethodRecognizer::kInt32x4AnyTrue:
+        // TODO(riscv)
+        return false;
       default:
         UNREACHABLE();
         return false;
@@ -3503,9 +3509,23 @@ bool CallSpecializer::TryInlineRecognizedMethod(
     case MethodRecognizer::kInt32x4Not:
 #if !defined(TARGET_ARCH_IA32)
     case MethodRecognizer::kInt32x4Equal:
+    case MethodRecognizer::kInt32x4NotEqual:
 #endif
       return InlineSimdOp(flow_graph, is_dynamic_call, call, receiver, kind,
                           graph_entry, entry, last, result);
+
+#if !defined(TARGET_ARCH_IA32)
+    case MethodRecognizer::kInt32x4AnyTrue:
+#if defined(TARGET_ARCH_X64)
+      // The inline emit uses PTEST, so fall back to the native when SSE4.1 is
+      // unavailable.
+      if (!TargetCPUFeatures::sse4_1_supported()) {
+        return false;
+      }
+#endif
+      return InlineSimdOp(flow_graph, is_dynamic_call, call, receiver, kind,
+                          graph_entry, entry, last, result);
+#endif
 
     case MethodRecognizer::kMathIntPow:
       return InlineMathIntPow(flow_graph, call, graph_entry, entry, last,

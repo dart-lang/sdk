@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/services/correction/bulk_fix_processor.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -40,7 +41,7 @@ var a = new A();
     var processor = BulkFixProcessor(
       TestInstrumentationService(),
       changeWorkspace,
-      byteStore: byteStore,
+      byteStore: MemoryByteStore(),
       additionalEnabledCodes: [LintNames.unnecessary_new],
     );
 
@@ -75,7 +76,7 @@ var a = new A();
     var processor = BulkFixProcessor(
       TestInstrumentationService(),
       changeWorkspace,
-      byteStore: byteStore,
+      byteStore: MemoryByteStore(),
       additionalEnabledCodes: [LintNames.unnecessary_new],
     );
 
@@ -104,7 +105,7 @@ var a = new A();
     var processor = BulkFixProcessor(
       TestInstrumentationService(),
       changeWorkspace,
-      byteStore: byteStore,
+      byteStore: MemoryByteStore(),
       additionalEnabledCodes: ['some_fake_lint_that_doesnt_exist'],
     );
 
@@ -132,7 +133,7 @@ var a = new A();
     var processor = BulkFixProcessor(
       TestInstrumentationService(),
       changeWorkspace,
-      byteStore: byteStore,
+      byteStore: MemoryByteStore(),
       additionalEnabledCodes: [LintNames.unnecessary_new],
     );
 
@@ -188,7 +189,7 @@ var a = new A();
     var processor = BulkFixProcessor(
       TestInstrumentationService(),
       changeWorkspace,
-      byteStore: byteStore,
+      byteStore: MemoryByteStore(),
       cancellationToken: token,
     );
 

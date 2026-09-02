@@ -238,7 +238,7 @@ TopLevelGetterDeclaration
     block: Block
       leftBracket: {
       rightBracket: }
-FunctionDeclaration
+V1: FunctionDeclaration
   returnType: NamedType
     name: int
   propertyKeyword: get
@@ -269,7 +269,7 @@ TopLevelGetterDeclaration
     block: Block
       leftBracket: {
       rightBracket: }
-FunctionDeclaration
+V1: FunctionDeclaration
   returnType: NamedType
     name: int
   propertyKeyword: get
@@ -300,7 +300,7 @@ TopLevelGetterDeclaration
     expression2: IntegerLiteral
       literal: 0
     semicolon: ;
-FunctionDeclaration
+V1: FunctionDeclaration
   augmentKeyword: augment
   returnType: NamedType
     name: int
@@ -333,7 +333,7 @@ TopLevelGetterDeclaration
     expression2: IntegerLiteral
       literal: 0
     semicolon: ;
-FunctionDeclaration
+V1: FunctionDeclaration
   propertyKeyword: get
   name: foo
   functionExpression: FunctionExpression
@@ -360,7 +360,7 @@ TopLevelGetterDeclaration
   name: foo
   body: EmptyFunctionBody
     semicolon: ;
-FunctionDeclaration
+V1: FunctionDeclaration
   augmentKeyword: augment
   returnType: NamedType
     name: int
@@ -388,7 +388,7 @@ TopLevelGetterDeclaration
   name: foo
   body: EmptyFunctionBody
     semicolon: ;
-FunctionDeclaration
+V1: FunctionDeclaration
   augmentKeyword: augment
   externalKeyword: external
   returnType: NamedType
@@ -415,7 +415,7 @@ TopLevelGetterDeclaration
   name: foo
   body: EmptyFunctionBody
     semicolon: ;
-FunctionDeclaration
+V1: FunctionDeclaration
   returnType: NamedType
     name: int
   propertyKeyword: get
@@ -443,7 +443,7 @@ TopLevelGetterDeclaration
   name: foo
   body: EmptyFunctionBody
     semicolon: ;
-FunctionDeclaration
+V1: FunctionDeclaration
   returnType: NamedType
     name: int
   propertyKeyword: get

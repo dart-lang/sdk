@@ -638,8 +638,8 @@ class AstBuilder extends StackListener {
   }
 
   ConstructorInitializerImpl? buildInitializer(Object initializerObject) {
-    if (initializerObject is FunctionExpressionInvocationImpl) {
-      var function = initializerObject.function2;
+    if (initializerObject is CallInvocationImpl) {
+      var function = initializerObject.receiver;
       if (function is SuperExpressionImpl) {
         return SuperConstructorInvocationImpl(
           superKeyword: function.superKeyword,
@@ -761,7 +761,7 @@ class AstBuilder extends StackListener {
       return initializerObject;
     }
 
-    if (initializerObject is IndexExpression2Impl) {
+    if (initializerObject is ReceiverIndexExpressionImpl) {
       return buildInitializerTargetExpressionRecovery(
         initializerObject.receiver,
         initializerObject,
@@ -791,9 +791,9 @@ class AstBuilder extends StackListener {
   ) {
     ArgumentListImpl? argumentList;
     while (true) {
-      if (target is FunctionExpressionInvocationImpl) {
+      if (target is CallInvocationImpl) {
         argumentList = target.argumentList;
-        target = target.function2;
+        target = target.receiver as ExpressionImpl;
       } else if (target is MethodInvocationImpl) {
         argumentList = target.argumentList;
         target = target.target2;
@@ -956,8 +956,8 @@ class AstBuilder extends StackListener {
         );
       default:
         push(
-          FunctionExpressionInvocationImpl(
-            function2: receiver,
+          CallInvocationImpl(
+            receiver: receiver,
             typeArguments: typeArguments,
             argumentList: argumentList,
           ),
@@ -1083,8 +1083,8 @@ class AstBuilder extends StackListener {
           arguments.add(message);
         }
         push(
-          FunctionExpressionInvocationImpl(
-            function2: SimpleIdentifierImpl(token: assertKeyword),
+          CallInvocationImpl(
+            receiver: SimpleIdentifierImpl(token: assertKeyword),
             typeArguments: null,
             argumentList: ArgumentListImpl(
               leftParenthesis: leftParenthesis,
@@ -3808,7 +3808,7 @@ class AstBuilder extends StackListener {
           index: index,
           rightBracket: rightBracket,
         ),
-      IndexExpression2Impl(
+      ReceiverIndexExpressionImpl(
         :var receiver,
         :var question,
         :var leftBracket,
@@ -3816,7 +3816,7 @@ class AstBuilder extends StackListener {
         :var rightBracket,
       )
           when !lhs.isDotShorthand =>
-        IndexAssignmentTargetImpl(
+        ReceiverIndexAssignmentTargetImpl(
           receiver: receiver,
           question: question,
           leftBracket: leftBracket,
@@ -3832,7 +3832,7 @@ class AstBuilder extends StackListener {
         :var rightBracket,
       )
           when !lhs.isDotShorthand =>
-        IndexAssignmentTargetImpl(
+        ReceiverIndexAssignmentTargetImpl(
           receiver: receiver,
           question: null,
           leftBracket: leftBracket,
@@ -4814,7 +4814,7 @@ class AstBuilder extends StackListener {
       push(expression);
     } else {
       push(
-        IndexExpression2Impl(
+        ReceiverIndexExpressionImpl(
           receiver: target,
           question: question,
           leftBracket: leftBracket,
@@ -4901,6 +4901,12 @@ class AstBuilder extends StackListener {
         'node is an instance of ${node.runtimeType} in handleInvalidTypeArguments',
       );
     }
+  }
+
+  @override
+  void handleInvocationWithoutTypeArguments(Token beginToken, Token endToken) {
+    var argumentList = pop() as ArgumentListImpl;
+    doInvocation(null, argumentList);
   }
 
   @override
@@ -5823,6 +5829,13 @@ class AstBuilder extends StackListener {
   }
 
   @override
+  void handleSendWithoutArguments(
+    Token beginToken,
+    Token endToken,
+    Token nextToken,
+  ) {}
+
+  @override
   void handleSpreadExpression(Token spreadToken) {
     var expression = pop() as ExpressionImpl;
     push(
@@ -6658,7 +6671,7 @@ class AstBuilder extends StackListener {
       case ParenthesizedExpressionImpl():
       case ConstructorInvocationImpl():
       case InstanceCreationExpressionImpl():
-      case IndexExpression2Impl():
+      case ReceiverIndexExpressionImpl():
       case ThisExpressionImpl():
         return true;
       case PropertyAccessImpl(target2: var target?, operator: var operator)
@@ -6744,8 +6757,9 @@ class AstBuilder extends StackListener {
   ) {
     // Ordinary index reads are canonical V2 nodes. Move their children into
     // the corresponding read/write target used by `++` and `--`.
-    if (expression is IndexExpression2Impl && !expression.isDotShorthand) {
-      return IndexAssignmentTargetImpl(
+    if (expression is ReceiverIndexExpressionImpl &&
+        !expression.isDotShorthand) {
+      return ReceiverIndexAssignmentTargetImpl(
         receiver: expression.receiver,
         question: expression.question,
         leftBracket: expression.leftBracket,
@@ -6755,13 +6769,13 @@ class AstBuilder extends StackListener {
     }
 
     // Recovery can still produce a legacy, non-cascade index expression.
-    // Keep accepting it until all parser paths produce IndexExpression2.
+    // Keep accepting it until all parser paths produce ReceiverIndexExpression.
     if (expression is IndexExpressionImpl) {
       var receiver = expression.target2;
       if (receiver != null &&
           expression.period == null &&
           !expression.isDotShorthand) {
-        return IndexAssignmentTargetImpl(
+        return ReceiverIndexAssignmentTargetImpl(
           receiver: receiver,
           question: expression.question,
           leftBracket: expression.leftBracket,

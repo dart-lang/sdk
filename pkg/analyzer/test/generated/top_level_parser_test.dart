@@ -131,7 +131,7 @@ CompilationUnit
                 fieldName(v1): SimpleIdentifier
                   token: a
                 equals: =
-                expression2: IndexExpression2
+                expression2: ReceiverIndexExpression
                   receiver: SimpleIdentifier
                     token: x
                   leftBracket: [

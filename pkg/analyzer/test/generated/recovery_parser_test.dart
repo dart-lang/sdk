@@ -234,7 +234,7 @@ var v = a.b[];
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-IndexExpression2
+ReceiverIndexExpression
   receiver: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
@@ -2115,7 +2115,7 @@ CompilationUnit
                             statements
                               ExpressionStatement
                                 expression2: DirectAssignment
-                                  target: IndexAssignmentTarget
+                                  target: ReceiverIndexAssignmentTarget
                                     receiver: SimpleIdentifier
                                       token: result
                                     leftBracket: [

@@ -286,6 +286,20 @@ void f(C c) {
 ''');
   }
 
+  test_argumentOmitted_methodInvocation_cascade() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class C {
+  void m({@Deprecated.optional() int? p}) {}
+}
+
+void f(C c) {
+  c..m();
+//   ^
+// [diag.deprecatedOptional] Omitting an argument for the 'p' parameter is deprecated.
+}
+''');
+  }
+
   test_argumentOmitted_named() async {
     await resolveTestCodeWithDiagnostics(r'''
 void f({@Deprecated.optional() int? p}) {}

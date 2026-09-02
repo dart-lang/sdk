@@ -37,7 +37,6 @@ part 'src/test.dart';
 part of f^oo;
 ''');
 
-    await analyzeTestPackageFiles();
     await resolveTestFile();
     await assertHasAssist('''
 // @dart = 3.4
@@ -66,7 +65,6 @@ part 'test.dart';
 part of f^oo;
 ''');
 
-    await analyzeTestPackageFiles();
     await resolveTestFile();
     await assertHasAssist('''
 // @dart = 3.4

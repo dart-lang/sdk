@@ -379,6 +379,16 @@ class FlowAnalysisHelper {
     _expressionInfoMap[expression] = expressionInfo;
   }
 
+  /// Moves flow information when resolution replaces an expression node.
+  void transferExpressionInfo(
+    Expression oldExpression,
+    Expression newExpression,
+  ) {
+    if (_expressionInfoMap.containsKey(oldExpression)) {
+      _expressionInfoMap[newExpression] = _expressionInfoMap[oldExpression];
+    }
+  }
+
   /// Transfers any test data that was recorded for [oldNode] so that it is now
   /// associated with [newNode].  We need to do this when doing AST rewriting,
   /// so that test data can be found using the rewritten tree.

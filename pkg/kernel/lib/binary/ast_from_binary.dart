@@ -1559,7 +1559,8 @@ class BinaryBuilder {
   LibraryPart readLibraryPart() {
     List<Expression> annotations = readExpressionList();
     String partUri = readStringReference();
-    return new LibraryPart(annotations, partUri);
+    Uri fileUri = readUriReference();
+    return new LibraryPart(annotations, partUri, fileUri);
   }
 
   Typedef readTypedef() {

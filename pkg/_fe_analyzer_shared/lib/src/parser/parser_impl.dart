@@ -6140,6 +6140,8 @@ class Parser {
           break;
         case DeclarationKind.Extension:
           if (bodyStart.isA(TokenType.SEMICOLON) && externalToken == null) {
+            // TODO(johnniwinther): Stop reporting this in the parser. It is not
+            // valid when the member is augmented.
             reportRecoverableError(
               isOperator ? name.next! : name,
               diag.extensionDeclaresAbstractMember,
@@ -6148,6 +6150,8 @@ class Parser {
           break;
         case DeclarationKind.ExtensionType:
           if (bodyStart.isA(TokenType.SEMICOLON) && externalToken == null) {
+            // TODO(johnniwinther): Stop reporting this in the parser. It is not
+            // valid when the member is augmented.
             reportRecoverableError(
               isOperator ? name.next! : name,
               diag.extensionTypeDeclaresAbstractMember,
@@ -9417,8 +9421,6 @@ class Parser {
 
     if (typeArg != noTypeParamOrArg) {
       token = typeArg.parseArguments(token, this);
-    } else {
-      listener.handleNoTypeArguments(token.next!);
     }
     if (constantPatternContext == ConstantPatternContext.explicit &&
         !(token.next!.isA(TokenType.PERIOD) ||
@@ -9430,6 +9432,15 @@ class Parser {
       reportRecoverableError(token, diag.invalidConstantPatternConstPrefix);
       // Avoid subsequent errors.
       constantPatternContext = ConstantPatternContext.none;
+    }
+    if (typeArg == noTypeParamOrArg && !token.next!.isA(TokenType.OPEN_PAREN)) {
+      listener.handleSendWithoutArguments(beginToken, token, token.next!);
+      return token;
+    }
+    if (typeArg == noTypeParamOrArg) {
+      token = parseArgumentsOpt(token);
+      listener.handleInvocationWithoutTypeArguments(beginToken, token);
+      return token;
     }
     token = parseArgumentsOpt(token);
     listener.handleSend(beginToken, token);
@@ -9550,9 +9561,7 @@ class Parser {
             // Shortcut common cases:
             // "IDENTIFIER COMMA" and "IDENTIFIER CLOSE_PAREN"
             listener.handleIdentifier(next1, IdentifierContext.expression);
-            listener.handleNoTypeArguments(next2);
-            listener.handleNoArguments(next2);
-            listener.handleSend(next1, next1);
+            listener.handleSendWithoutArguments(next1, next1, next2);
             token = next1;
             expressionHandled = true;
           } else if (next2.isA(TokenType.PERIOD)) {
@@ -9565,16 +9574,12 @@ class Parser {
                 // "IDENTIFIER DOT IDENTIFIER COMMA" and
                 // "IDENTIFIER DOT IDENTIFIER CLOSE_PAREN"
                 listener.handleIdentifier(next1, IdentifierContext.expression);
-                listener.handleNoTypeArguments(next2);
-                listener.handleNoArguments(next2);
-                listener.handleSend(next1, next1);
+                listener.handleSendWithoutArguments(next1, next1, next2);
                 listener.handleIdentifier(
                   next3,
                   IdentifierContext.expressionContinuation,
                 );
-                listener.handleNoTypeArguments(next4);
-                listener.handleNoArguments(next4);
-                listener.handleSend(next3, next3);
+                listener.handleSendWithoutArguments(next3, next3, next4);
                 listener.handleDotAccess(
                   next2,
                   next3,

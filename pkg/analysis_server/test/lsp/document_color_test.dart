@@ -505,6 +505,8 @@ const white = [!Color(0xFFFFFFFF)!];
   }
 }
 
+/// More tests for detection of colours are in
+/// test/src/computer/color_computer_test.dart.
 @reflectiveTest
 class DocumentColorTest extends AbstractLspAnalysisServerTest {
   @override

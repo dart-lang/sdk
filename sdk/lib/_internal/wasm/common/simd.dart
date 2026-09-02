@@ -653,7 +653,10 @@ final class I32x4 extends WasmTypedDataBase implements Int32x4 {
   Int32x4 equal(Int32x4 other) =>
       I32x4.fromV128(WasmI32x4(_bits).eq(WasmI32x4((other as I32x4)._bits)));
 
-  bool get anyTrue => (x | y | z | w) != 0;
+  Int32x4 notEqual(Int32x4 other) =>
+      I32x4.fromV128(WasmI32x4(_bits).ne(WasmI32x4((other as I32x4)._bits)));
+
+  bool get anyTrue => _bits.anyTrue;
 
   Int32x4 shuffle(int mask) {
     // mask < 0 || mask > 255

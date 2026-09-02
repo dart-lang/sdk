@@ -120,6 +120,19 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   }
 
   @override
+  void visitCallInvocation(covariant CallInvocationImpl node) {
+    _sink.writeEnum(AstNodeTag.CallInvocation);
+
+    _writeNode(node.receiver);
+    _writeOptionalNode(node.typeArguments);
+    _writeNode(node.argumentList);
+    _sink.writeType(node.staticInvokeType);
+    _sink.writeOptionalTypeList(node.typeArgumentTypes);
+    _sink.writeOptionalObject(node.resolution, _writeInvocationResolution);
+    _storeExpression(node);
+  }
+
+  @override
   void visitCascadeExpression(CascadeExpression node) {
     _sink.writeEnum(AstNodeTag.CascadeExpression);
     _writeNode(node.target2);
@@ -141,6 +154,20 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
     _sink.writeEnum(AstNodeTag.CascadeIndexExpression);
     _writeNode(node.index);
     _sink.writeOptionalObject(node.resolution, _writeIndexReadResolution);
+    _storeExpression(node);
+  }
+
+  @override
+  void visitCascadeMethodInvocation(
+    covariant CascadeMethodInvocationImpl node,
+  ) {
+    _sink.writeEnum(AstNodeTag.CascadeMethodInvocation);
+    _writeStringReference(node.name.lexeme);
+    _writeOptionalNode(node.typeArguments);
+    _writeNode(node.argumentList);
+    _sink.writeType(node.staticInvokeType);
+    _sink.writeOptionalTypeList(node.typeArgumentTypes);
+    _sink.writeOptionalObject(node.resolution, _writeInvocationResolution);
     _storeExpression(node);
   }
 
@@ -314,6 +341,32 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   }
 
   @override
+  void visitDotShorthandMethodInvocation(
+    covariant DotShorthandMethodInvocationImpl node,
+  ) {
+    _sink.writeEnum(AstNodeTag.DotShorthandMethodInvocation);
+    _writeByte(AstBinaryFlags.encode(isDotShorthand: node.isDotShorthand));
+    _writeStringReference(node.name.lexeme);
+    _writeOptionalNode(node.typeArguments);
+    _writeNode(node.argumentList);
+    _sink.writeType(node.staticInvokeType);
+    _sink.writeOptionalTypeList(node.typeArgumentTypes);
+    _sink.writeOptionalObject(node.resolution, _writeInvocationResolution);
+    _storeExpression(node);
+  }
+
+  @override
+  void visitDotShorthandNameExpression(
+    covariant DotShorthandNameExpressionImpl node,
+  ) {
+    _sink.writeEnum(AstNodeTag.DotShorthandNameExpression);
+    _writeByte(AstBinaryFlags.encode(isDotShorthand: node.isDotShorthand));
+    _writeStringReference(node.name.lexeme);
+    _sink.writeOptionalObject(node.resolution, _writeNamedReadResolution);
+    _storeExpression(node);
+  }
+
+  @override
   void visitDotShorthandPropertyAccess(
     covariant DotShorthandPropertyAccessImpl node,
   ) {
@@ -395,14 +448,6 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    _sink.writeEnum(AstNodeTag.FunctionExpressionInvocation);
-
-    _writeNode(node.function2);
-    _storeInvocationExpression(node);
-  }
-
-  @override
   void visitFunctionReference(FunctionReference node) {
     _sink.writeEnum(AstNodeTag.FunctionReference);
     _writeNode(node.function2);
@@ -463,20 +508,25 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   }
 
   @override
+  void visitImportPrefixedFunctionInvocation(
+    covariant ImportPrefixedFunctionInvocationImpl node,
+  ) {
+    _sink.writeEnum(AstNodeTag.ImportPrefixedFunctionInvocation);
+    _writeNode(node.importPrefix);
+    _writeStringReference(node.name.lexeme);
+    _writeOptionalNode(node.typeArguments);
+    _writeNode(node.argumentList);
+    _sink.writeType(node.staticInvokeType);
+    _sink.writeOptionalTypeList(node.typeArgumentTypes);
+    _sink.writeOptionalObject(node.resolution, _writeInvocationResolution);
+    _storeExpression(node);
+  }
+
+  @override
   void visitImportPrefixReference(ImportPrefixReference node) {
     _sink.writeEnum(AstNodeTag.ImportPrefixReference);
     _writeStringReference(node.name.lexeme);
     _sink.writeElement(node.element);
-  }
-
-  @override
-  void visitIndexAssignmentTarget(covariant IndexAssignmentTargetImpl node) {
-    _sink.writeEnum(AstNodeTag.IndexAssignmentTarget);
-    _writeByte(AstBinaryFlags.encode(hasQuestion: node.question != null));
-    _writeNode(node.receiver);
-    _writeNode(node.index);
-    _sink.writeOptionalObject(node.read, _writeIndexReadResolution);
-    _sink.writeOptionalObject(node.write, _writeIndexWriteResolution);
   }
 
   @override
@@ -493,16 +543,6 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
 
     _sink.writeElement(node.element);
 
-    _storeExpression(node);
-  }
-
-  @override
-  void visitIndexExpression2(covariant IndexExpression2Impl node) {
-    _sink.writeEnum(AstNodeTag.IndexExpression2);
-    _writeByte(AstBinaryFlags.encode(hasQuestion: node.question != null));
-    _writeNode(node.receiver);
-    _writeNode(node.index);
-    _sink.writeOptionalObject(node.resolution, _writeIndexReadResolution);
     _storeExpression(node);
   }
 
@@ -773,6 +813,46 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   }
 
   @override
+  void visitReceiverIndexAssignmentTarget(
+    covariant ReceiverIndexAssignmentTargetImpl node,
+  ) {
+    _sink.writeEnum(AstNodeTag.ReceiverIndexAssignmentTarget);
+    _writeByte(AstBinaryFlags.encode(hasQuestion: node.question != null));
+    _writeNode(node.receiver);
+    _writeNode(node.index);
+    _sink.writeOptionalObject(node.read, _writeIndexReadResolution);
+    _sink.writeOptionalObject(node.write, _writeIndexWriteResolution);
+  }
+
+  @override
+  void visitReceiverIndexExpression(
+    covariant ReceiverIndexExpressionImpl node,
+  ) {
+    _sink.writeEnum(AstNodeTag.ReceiverIndexExpression);
+    _writeByte(AstBinaryFlags.encode(hasQuestion: node.question != null));
+    _writeNode(node.receiver);
+    _writeNode(node.index);
+    _sink.writeOptionalObject(node.resolution, _writeIndexReadResolution);
+    _storeExpression(node);
+  }
+
+  @override
+  void visitReceiverMethodInvocation(
+    covariant ReceiverMethodInvocationImpl node,
+  ) {
+    _sink.writeEnum(AstNodeTag.ReceiverMethodInvocation);
+    _writeNode(node.receiver);
+    _writeByte(TokensWriter.astToBinaryTokenType(node.operator.type).index);
+    _writeStringReference(node.name.lexeme);
+    _writeOptionalNode(node.typeArguments);
+    _writeNode(node.argumentList);
+    _sink.writeType(node.staticInvokeType);
+    _sink.writeOptionalTypeList(node.typeArgumentTypes);
+    _sink.writeOptionalObject(node.resolution, _writeInvocationResolution);
+    _storeExpression(node);
+  }
+
+  @override
   void visitReceiverPropertyAssignmentTarget(
     covariant ReceiverPropertyAssignmentTargetImpl node,
   ) {
@@ -1024,6 +1104,20 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   }
 
   @override
+  void visitUnqualifiedFunctionInvocation(
+    covariant UnqualifiedFunctionInvocationImpl node,
+  ) {
+    _sink.writeEnum(AstNodeTag.UnqualifiedFunctionInvocation);
+    _writeStringReference(node.name.lexeme);
+    _writeOptionalNode(node.typeArguments);
+    _writeNode(node.argumentList);
+    _sink.writeType(node.staticInvokeType);
+    _sink.writeOptionalTypeList(node.typeArgumentTypes);
+    _sink.writeOptionalObject(node.resolution, _writeInvocationResolution);
+    _storeExpression(node);
+  }
+
+  @override
   void visitUnqualifiedNameAssignmentTarget(
     covariant UnqualifiedNameAssignmentTargetImpl node,
   ) {
@@ -1188,6 +1282,38 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
       case MethodIndexWriteResolutionImpl(:var element):
         _sink.writeEnum(IndexWriteResolutionTag.method);
         _sink.writeElement(element);
+    }
+  }
+
+  void _writeInvocationResolution(InvocationResolutionImpl resolution) {
+    switch (resolution) {
+      case DynamicInvocationResolutionImpl():
+        _sink.writeEnum(InvocationResolutionTag.dynamic_);
+        _sink.writeType(resolution.type);
+      case ExecutableInvocationResolutionImpl():
+        _sink.writeEnum(InvocationResolutionTag.executable);
+        _sink.writeElement(resolution.element);
+        _sink.writeType(resolution.invokeType);
+        _sink.writeType(resolution.type);
+      case FunctionCallInvocationResolutionImpl():
+        _sink.writeEnum(InvocationResolutionTag.functionCall);
+        _sink.writeType(resolution.invokeType);
+        _sink.writeType(resolution.type);
+      case FunctionInterfaceInvocationResolutionImpl():
+        _sink.writeEnum(InvocationResolutionTag.functionInterface);
+        _sink.writeType(resolution.type);
+      case FunctionTypeInvocationResolutionImpl():
+        _sink.writeEnum(InvocationResolutionTag.functionType);
+        _sink.writeType(resolution.invokeType);
+        _sink.writeType(resolution.type);
+      case InvalidInvocationResolutionImpl():
+        _sink.writeEnum(InvocationResolutionTag.invalid);
+        _sink.writeType(resolution.type);
+        _sink.writeList(resolution.candidates, _sink.writeElement);
+        _sink.writeOptionalObject(
+          resolution.recovery,
+          _writeInvocationResolution,
+        );
     }
   }
 

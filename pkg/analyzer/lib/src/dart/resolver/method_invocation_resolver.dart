@@ -255,7 +255,7 @@ class MethodInvocationResolver with ScopeHelpers {
 
   /// Resolves the dot shorthand invocation, [node].
   ///
-  /// If [node] is rewritten to be a [FunctionExpressionInvocation] or a
+  /// If [node] is rewritten to be a [CallInvocation] or a
   /// [DotShorthandConstructorInvocation] in the process, then returns that new
   /// node. Otherwise, returns `null`.
   RewrittenMethodInvocationImpl? resolveDotShorthand(
@@ -528,7 +528,7 @@ class MethodInvocationResolver with ScopeHelpers {
           contextType: contextType,
         );
       } else if (element is InternalPropertyAccessorElement) {
-        _rewriteAsFunctionExpressionInvocation(
+        _rewriteAsCallInvocation(
           node,
           node.target2,
           node.operator,
@@ -614,7 +614,7 @@ class MethodInvocationResolver with ScopeHelpers {
     nameNode.element = member;
 
     if (member is InternalPropertyAccessorElement) {
-      _rewriteAsFunctionExpressionInvocation(
+      _rewriteAsCallInvocation(
         node,
         node.target2,
         node.operator,
@@ -783,7 +783,7 @@ class MethodInvocationResolver with ScopeHelpers {
         element = element.conflictingElements[0];
       }
       if (element is InternalPropertyAccessorElement) {
-        _rewriteAsFunctionExpressionInvocation(
+        _rewriteAsCallInvocation(
           node,
           node.target2,
           node.operator,
@@ -813,7 +813,7 @@ class MethodInvocationResolver with ScopeHelpers {
           nameNode,
           isRead: true,
         );
-        _rewriteAsFunctionExpressionInvocation(
+        _rewriteAsCallInvocation(
           node,
           node.target2,
           node.operator,
@@ -954,7 +954,7 @@ class MethodInvocationResolver with ScopeHelpers {
     }
 
     if (element is InternalPropertyAccessorElement) {
-      _rewriteAsFunctionExpressionInvocation(
+      _rewriteAsCallInvocation(
         node,
         node.target2,
         node.operator,
@@ -1020,7 +1020,7 @@ class MethodInvocationResolver with ScopeHelpers {
     if (target != null) {
       nameNode.element = target;
       if (target is InternalPropertyAccessorElement) {
-        _rewriteAsFunctionExpressionInvocation(
+        _rewriteAsCallInvocation(
           node,
           node.target2,
           node.operator,
@@ -1139,7 +1139,7 @@ class MethodInvocationResolver with ScopeHelpers {
 
     var recordField = result.recordField;
     if (recordField != null) {
-      _rewriteAsFunctionExpressionInvocation(
+      _rewriteAsCallInvocation(
         node,
         node.target2,
         node.operator,
@@ -1163,7 +1163,7 @@ class MethodInvocationResolver with ScopeHelpers {
       }
 
       if (target is PropertyAccessorElement) {
-        _rewriteAsFunctionExpressionInvocation(
+        _rewriteAsCallInvocation(
           node,
           node.target2,
           node.operator,
@@ -1243,7 +1243,7 @@ class MethodInvocationResolver with ScopeHelpers {
             contextType: contextType,
           );
         } else if (element is InternalPropertyAccessorElement) {
-          _rewriteAsFunctionExpressionInvocation(
+          _rewriteAsCallInvocation(
             node,
             node.target2,
             node.operator,
@@ -1287,7 +1287,7 @@ class MethodInvocationResolver with ScopeHelpers {
   /// Resolves the dot shorthand invocation, [node], as an method invocation
   /// with a type literal target.
   ///
-  /// If [node] is rewritten to be a [FunctionExpressionInvocation] or a
+  /// If [node] is rewritten to be a [CallInvocation] or a
   /// [DotShorthandConstructorInvocation] in the process, then returns that new
   /// node. Otherwise, returns `null`.
   RewrittenMethodInvocationImpl? _resolveReceiverTypeLiteralForDotShorthand(
@@ -1302,7 +1302,7 @@ class MethodInvocationResolver with ScopeHelpers {
     if (element is InternalExecutableElement && element.isStatic) {
       node.memberName.element = element;
       if (element is InternalPropertyAccessorElement) {
-        return _rewriteAsFunctionExpressionInvocation(
+        return _rewriteAsCallInvocation(
           node,
           null,
           node.period,
@@ -1361,14 +1361,14 @@ class MethodInvocationResolver with ScopeHelpers {
     return null;
   }
 
-  /// Rewrites [node] as a [FunctionExpressionInvocation].
+  /// Rewrites [node] as a [CallInvocation].
   ///
   /// We have identified that [node] is not a real [MethodInvocation],
   /// because it does not invoke a method, but instead invokes the result
   /// of a getter execution, or implicitly invokes the `call` method of
   /// an [InterfaceType]. So, it should be represented as instead as a
-  /// [FunctionExpressionInvocation].
-  FunctionExpressionInvocationImpl _rewriteAsFunctionExpressionInvocation(
+  /// [CallInvocation].
+  CallInvocationImpl _rewriteAsCallInvocation(
     ExpressionImpl node,
     ExpressionImpl? target,
     Token? operator,
@@ -1384,17 +1384,31 @@ class MethodInvocationResolver with ScopeHelpers {
     var targetType = getterReturnType;
 
     ExpressionImpl functionExpression;
-    if (target == null) {
-      if (node is DotShorthandInvocationImpl) {
-        functionExpression = DotShorthandPropertyAccessImpl(
-          period: node.period,
-          propertyName: node.memberName,
+    if (isCascaded) {
+      var propertyExtraction = CascadePropertyExtractionImpl(
+        propertyName: methodName.token,
+      );
+      var result = _resolver.resolveCascadeProperty(
+        propertyExtraction,
+        propertyExtraction.propertyName,
+        hasRead: true,
+        hasWrite: false,
+      );
+      propertyExtraction.resolution = result?.read;
+      targetType = result?.read?.type ?? NeverTypeImpl.instance;
+      propertyExtraction.setPseudoExpressionStaticType(targetType);
+      if (result?.readExpressionInfo case var expressionInfo?) {
+        _resolver.flowAnalysis.storeExpressionInfo(
+          propertyExtraction,
+          expressionInfo,
         );
-      } else if (isCascaded) {
-        functionExpression = PropertyAccessImpl(
-          target2: null,
-          operator: operator!,
-          propertyName: methodName,
+      }
+      functionExpression = propertyExtraction;
+    } else if (target == null) {
+      if (node is DotShorthandInvocationImpl) {
+        functionExpression = DotShorthandNameExpressionImpl(
+          period: node.period,
+          name: node.memberName.token,
         );
       } else {
         functionExpression = methodName;
@@ -1406,9 +1420,7 @@ class MethodInvocationResolver with ScopeHelpers {
           !element.isStatic) {
         if (_resolver.flowAnalysis.flow case var flow?) {
           var (wrappedPromotedType, expressionInfo) = flow.propertyGet(
-            isCascaded
-                ? CascadePropertyTarget.singleton
-                : ThisPropertyTarget.singleton,
+            ThisPropertyTarget.singleton,
             methodName.name,
             element,
             SharedTypeView(getterReturnType),
@@ -1462,15 +1474,31 @@ class MethodInvocationResolver with ScopeHelpers {
     if (functionExpression != methodName) {
       functionExpression.setPseudoExpressionStaticType(targetType);
     }
+    if (functionExpression case DotShorthandNameExpressionImpl expression) {
+      expression.resolution = switch (methodName.element) {
+        InternalGetterElement element => GetterInvocationResolutionImpl(
+          element: element,
+          type: targetType,
+        ),
+        InternalExecutableElement element => ExecutableTearOffResolutionImpl(
+          element: element,
+        ),
+        var element => InvalidNamedReadResolutionImpl(
+          candidates: [?element],
+          recovery: null,
+          type: InvalidTypeImpl.instance,
+        ),
+      };
+    }
 
-    var invocation = FunctionExpressionInvocationImpl(
-      function2: functionExpression,
+    var invocation = CallInvocationImpl(
+      receiver: functionExpression,
       typeArguments: typeArguments,
       argumentList: argumentList,
     );
     _resolver.replaceExpression(node, invocation);
     _resolver.flowAnalysis.transferTestData(node, invocation);
-    _resolver.functionExpressionInvocationResolver.resolve(
+    _resolver.callInvocationResolver.resolve(
       invocation,
       whyNotPromotedArguments,
       contextType: contextType,

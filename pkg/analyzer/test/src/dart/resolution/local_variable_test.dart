@@ -176,12 +176,28 @@ f() {
 }
 ''');
 
-    var node = result.findNode.simple('_();');
+    var node = result.findNode.unqualifiedFunctionInvocation('_();');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
-  token: _
-  element: _@24
-  staticType: Null Function()
+UnqualifiedFunctionInvocation
+  name: _
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: _@24
+    invokeType: Null Function()
+    type: Null
+  staticType: Null
+V1: MethodInvocation
+  methodName: SimpleIdentifier
+    token: _
+    element: _@24
+    staticType: Null Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: Null Function()
+  staticType: Null
 ''');
   }
 

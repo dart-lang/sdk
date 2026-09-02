@@ -38,7 +38,7 @@ CompilationUnit
             statements
               ExpressionStatement
                 expression2: DirectAssignment
-                  target: IndexAssignmentTarget
+                  target: ReceiverIndexAssignmentTarget
                     receiver: SimpleIdentifier
                       token: intList
                     leftBracket: [
@@ -86,7 +86,7 @@ CompilationUnit
             statements
               ExpressionStatement
                 expression2: DirectAssignment
-                  target: IndexAssignmentTarget
+                  target: ReceiverIndexAssignmentTarget
                     receiver: SimpleIdentifier
                       token: intList
                     leftBracket: [
@@ -134,7 +134,7 @@ CompilationUnit
             statements
               ExpressionStatement
                 expression2: DirectAssignment
-                  target: IndexAssignmentTarget
+                  target: ReceiverIndexAssignmentTarget
                     receiver: SimpleIdentifier
                       token: intList
                     leftBracket: [
@@ -182,7 +182,7 @@ CompilationUnit
             statements
               ExpressionStatement
                 expression2: DirectAssignment
-                  target: IndexAssignmentTarget
+                  target: ReceiverIndexAssignmentTarget
                     receiver: SimpleIdentifier
                       token: intList
                     leftBracket: [
@@ -230,7 +230,7 @@ CompilationUnit
             statements
               ExpressionStatement
                 expression2: DirectAssignment
-                  target: IndexAssignmentTarget
+                  target: ReceiverIndexAssignmentTarget
                     receiver: SimpleIdentifier
                       token: intList
                     leftBracket: [
@@ -281,7 +281,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression2
+                expression2: ReceiverIndexExpression
                   receiver: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -330,7 +330,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression2
+                expression2: ReceiverIndexExpression
                   receiver: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -378,7 +378,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression2
+                expression2: ReceiverIndexExpression
                   receiver: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -426,7 +426,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression2
+                expression2: ReceiverIndexExpression
                   receiver: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -473,7 +473,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression2
+                expression2: ReceiverIndexExpression
                   receiver: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -526,7 +526,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression2
+                expression2: ReceiverIndexExpression
                   receiver: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -570,7 +570,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression2
+                expression2: ReceiverIndexExpression
                   receiver: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -628,7 +628,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression2
+                expression2: ReceiverIndexExpression
                   receiver: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -679,7 +679,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression2
+                expression2: ReceiverIndexExpression
                   receiver: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -731,7 +731,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression2
+                expression2: ReceiverIndexExpression
                   receiver: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -788,7 +788,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression2
+                expression2: ReceiverIndexExpression
                   receiver: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -845,7 +845,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression2
+                expression2: ReceiverIndexExpression
                   receiver: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -896,7 +896,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression2
+                expression2: ReceiverIndexExpression
                   receiver: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -943,7 +943,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression2
+                expression2: ReceiverIndexExpression
                   receiver: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -995,7 +995,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression2
+                expression2: ReceiverIndexExpression
                   receiver: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -1048,7 +1048,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression2
+                expression2: ReceiverIndexExpression
                   receiver: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -1097,12 +1097,12 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression2
+                expression2: ReceiverIndexExpression
                   receiver: SimpleIdentifier
                     token: intList
                   leftBracket: [
-                  index: FunctionExpressionInvocation
-                    function2: SimpleIdentifier
+                  index: CallInvocation
+                    receiver: SimpleIdentifier
                       token: assert
                     argumentList: ArgumentList
                       leftParenthesis: (
@@ -1153,7 +1153,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression2
+                expression2: ReceiverIndexExpression
                   receiver: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -1203,7 +1203,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression2
+                expression2: ReceiverIndexExpression
                   receiver: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -1252,7 +1252,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression2
+                expression2: ReceiverIndexExpression
                   receiver: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -1300,7 +1300,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression2
+                expression2: ReceiverIndexExpression
                   receiver: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -1354,7 +1354,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression2
+                expression2: ReceiverIndexExpression
                   receiver: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -1399,7 +1399,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression2
+                expression2: ReceiverIndexExpression
                   receiver: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -1458,7 +1458,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression2
+                expression2: ReceiverIndexExpression
                   receiver: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -1511,7 +1511,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression2
+                expression2: ReceiverIndexExpression
                   receiver: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -1562,7 +1562,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression2
+                expression2: ReceiverIndexExpression
                   receiver: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -1618,7 +1618,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression2
+                expression2: ReceiverIndexExpression
                   receiver: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -1675,7 +1675,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression2
+                expression2: ReceiverIndexExpression
                   receiver: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -1725,7 +1725,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression2
+                expression2: ReceiverIndexExpression
                   receiver: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -1767,7 +1767,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression2
+                expression2: ReceiverIndexExpression
                   receiver: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -1824,7 +1824,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression2
+                expression2: ReceiverIndexExpression
                   receiver: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -1878,7 +1878,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression2
+                expression2: ReceiverIndexExpression
                   receiver: SimpleIdentifier
                     token: intList
                   leftBracket: [

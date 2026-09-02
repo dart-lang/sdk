@@ -320,3 +320,29 @@ class _NoTypeAnnotationsVisitor extends SimpleAstVisitor<void> {
     );
   }
 }
+
+class ParsedOnlyRule extends AnalysisRule {
+  static const LintCode code = LintCode(
+    'parsed_only',
+    'Parsed only rule message',
+    uniqueName: 'LintCode.parsed_only',
+  );
+
+  ParsedOnlyRule()
+    : super(name: 'parsed_only', description: 'Parsed only rule');
+
+  @override
+  DiagnosticCode get diagnosticCode => code;
+
+  @override
+  bool get canUseParsedResult => true;
+
+  @override
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
+    var visitor = _NoBoolsVisitor(this);
+    registry.addBooleanLiteral(this, visitor);
+  }
+}

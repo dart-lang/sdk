@@ -6,6 +6,8 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/ast.dart'
+    show DotShorthandNameExpressionImpl;
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 
@@ -71,6 +73,18 @@ class _Collector {
       return;
     }
 
+    if (node is DotShorthandNameExpressionImpl) {
+      switch (node.resolution) {
+        case GetterInvocationResolution(:var element)
+            when element.variable.isConst:
+        case ExecutableTearOffResolution():
+          return;
+        default:
+          nodes.add(node.dotShorthandPropertyAccess.propertyName);
+          return;
+      }
+    }
+
     if (node is DotShorthandPropertyAccess) {
       return _identifier(node.propertyName);
     }
@@ -117,6 +131,10 @@ class _Collector {
 
     if (node is MethodInvocation) {
       return _methodInvocation(node);
+    }
+
+    if (node is NamedFunctionInvocation) {
+      return _namedFunctionInvocation(node);
     }
 
     if (node is NamedArgument) {
@@ -332,6 +350,21 @@ class _Collector {
         collect(arguments[0]);
         collect(arguments[1]);
         return;
+      }
+    }
+    // TODO(srawlins): collect type arguments.
+    nodes.add(node);
+  }
+
+  void _namedFunctionInvocation(NamedFunctionInvocation node) {
+    var arguments = node.argumentList.arguments2;
+    if (arguments.length == 2) {
+      if (node.resolution case ExecutableInvocationResolution(:var element)) {
+        if (element is TopLevelFunctionElement && element.isDartCoreIdentical) {
+          collect(arguments[0]);
+          collect(arguments[1]);
+          return;
+        }
       }
     }
     // TODO(srawlins): collect type arguments.

@@ -624,12 +624,21 @@ CompilationUnit
             statements
               ReturnStatement
                 returnKeyword: return
-                expression2: FunctionExpressionInvocation
-                  function2: SimpleIdentifier
+                expression2: CallInvocation
+                  receiver: SimpleIdentifier
                     token: assert
                   argumentList: ArgumentList
                     leftParenthesis: (
                     arguments2
+                      BooleanLiteral
+                        literal: true
+                    rightParenthesis: )
+                expression(v1): FunctionExpressionInvocation
+                  function: SimpleIdentifier
+                    token: assert
+                  argumentList: ArgumentList
+                    leftParenthesis: (
+                    arguments
                       BooleanLiteral
                         literal: true
                     rightParenthesis: )

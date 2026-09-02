@@ -27,6 +27,17 @@ void f() => Completer<int>().complete();
 ''');
   }
 
+  test_absent_cascade() async {
+    await resolveTestCodeWithDiagnostics('''
+import 'dart:async';
+void f(Completer<int> c) {
+  c..complete();
+//   ^^^^^^^^^^
+// [diag.nullArgumentToNonNullType] 'Completer.complete' shouldn't be called with a 'null' argument for the non-nullable type argument 'int'.
+}
+''');
+  }
+
   test_dynamic() async {
     await resolveTestCodeWithDiagnostics('''
 import 'dart:async';

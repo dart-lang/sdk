@@ -294,7 +294,6 @@ void f() {
 
     var appPath = convertPath('$testPackageLibPath/app.dart');
     newFile(appPath, appCode);
-    await analyzeTestPackageFiles();
     await resolveTestFile();
 
     await assertHasAssist(

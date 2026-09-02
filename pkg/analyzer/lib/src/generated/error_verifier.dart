@@ -498,6 +498,21 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   @override
+  void visitCallInvocation(CallInvocation node) {
+    var functionExpression = node.receiver;
+
+    if (functionExpression is ExtensionOverride) {
+      return super.visitCallInvocation(node);
+    }
+
+    _typeArgumentsVerifier.checkCallInvocation(node);
+    _requiredParametersVerifier.visitCallInvocation(node);
+    _constArgumentsVerifier.visitCallInvocation(node);
+    _checkUseVerifier.checkCallInvocation(node);
+    super.visitCallInvocation(node);
+  }
+
+  @override
   void visitCascadeIndexAssignmentTarget(CascadeIndexAssignmentTarget node) {
     _checkCascadeIndexNullAwareOperator(node);
     super.visitCascadeIndexAssignmentTarget(node);
@@ -507,6 +522,13 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   void visitCascadeIndexExpression(CascadeIndexExpression node) {
     _checkCascadeIndexNullAwareOperator(node);
     super.visitCascadeIndexExpression(node);
+  }
+
+  @override
+  void visitCascadeMethodInvocation(CascadeMethodInvocation node) {
+    _checkCascadeSectionNullAware(node);
+    _verifyNamedFunctionInvocation(node);
+    super.visitCascadeMethodInvocation(node);
   }
 
   @override
@@ -694,7 +716,6 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   @override
   void visitCompoundAssignment(covariant CompoundAssignmentImpl node) {
     switch (node.target) {
-      case CascadeIndexAssignmentTargetImpl():
       case PropertyAssignmentTargetImpl():
       case IndexAssignmentTargetImpl():
       case InvalidExpressionAssignmentTargetImpl():
@@ -983,6 +1004,18 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     _requiredParametersVerifier.visitDotShorthandInvocation(node);
     _checkUseVerifier.checkDotShorthandInvocation(node);
     super.visitDotShorthandInvocation(node);
+  }
+
+  @override
+  void visitDotShorthandMethodInvocation(DotShorthandMethodInvocation node) {
+    _verifyNamedFunctionInvocation(node);
+    super.visitDotShorthandMethodInvocation(node);
+  }
+
+  @override
+  void visitDotShorthandNameExpression(DotShorthandNameExpression node) {
+    _constArgumentsVerifier.visitDotShorthandNameExpression(node);
+    super.visitDotShorthandNameExpression(node);
   }
 
   @override
@@ -1487,21 +1520,6 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   @override
-  void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    var functionExpression = node.function2;
-
-    if (functionExpression is ExtensionOverride) {
-      return super.visitFunctionExpressionInvocation(node);
-    }
-
-    _typeArgumentsVerifier.checkFunctionExpressionInvocation(node);
-    _requiredParametersVerifier.visitFunctionExpressionInvocation(node);
-    _constArgumentsVerifier.visitFunctionExpressionInvocation(node);
-    _checkUseVerifier.checkFunctionExpressionInvocation(node);
-    super.visitFunctionExpressionInvocation(node);
-  }
-
-  @override
   void visitFunctionReference(FunctionReference node) {
     _constArgumentsVerifier.visitFunctionReference(node);
     _typeArgumentsVerifier.checkFunctionReference(node);
@@ -1564,10 +1582,6 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       return;
     }
     switch (target) {
-      case CascadeIndexAssignmentTargetImpl(:var read):
-        if (read case IndexReadResolutionImpl(:var type)) {
-          _checkForDeadNullCoalesce(type, node.value);
-        }
       case PropertyAssignmentTargetImpl(:var read):
         if (read case NamedReadResolutionImpl(:var type)) {
           _checkForDeadNullCoalesce(type, node.value);
@@ -1638,25 +1652,19 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   @override
+  void visitImportPrefixedFunctionInvocation(
+    ImportPrefixedFunctionInvocation node,
+  ) {
+    _verifyNamedFunctionInvocation(node);
+    super.visitImportPrefixedFunctionInvocation(node);
+  }
+
+  @override
   void visitImportPrefixReference(ImportPrefixReference node) {
     _checkForReferenceBeforeDeclaration(
       element: node.element,
       nameToken: node.name,
     );
-  }
-
-  @override
-  void visitIndexAssignmentTarget(IndexAssignmentTarget node) {
-    var question = node.question;
-    if (question != null) {
-      _checkForUnnecessaryNullAware(
-        node.receiver,
-        question,
-        kind: _NullAwareKind.indexExpression,
-      );
-    }
-
-    super.visitIndexAssignmentTarget(node);
   }
 
   @override
@@ -1678,20 +1686,6 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     }
 
     super.visitIndexExpression(node);
-  }
-
-  @override
-  void visitIndexExpression2(IndexExpression2 node) {
-    var question = node.question;
-    if (question != null) {
-      _checkForUnnecessaryNullAware(
-        node.receiver,
-        question,
-        kind: _NullAwareKind.indexExpression,
-      );
-    }
-
-    super.visitIndexExpression2(node);
   }
 
   @override
@@ -2132,6 +2126,47 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     }
     _checkUseVerifier.checkPropertyAccess(node);
     super.visitPropertyAccess(node);
+  }
+
+  @override
+  void visitReceiverIndexAssignmentTarget(ReceiverIndexAssignmentTarget node) {
+    var question = node.question;
+    if (question != null) {
+      _checkForUnnecessaryNullAware(
+        node.receiver,
+        question,
+        kind: _NullAwareKind.indexExpression,
+      );
+    }
+
+    super.visitReceiverIndexAssignmentTarget(node);
+  }
+
+  @override
+  void visitReceiverIndexExpression(ReceiverIndexExpression node) {
+    var question = node.question;
+    if (question != null) {
+      _checkForUnnecessaryNullAware(
+        node.receiver,
+        question,
+        kind: _NullAwareKind.indexExpression,
+      );
+    }
+
+    super.visitReceiverIndexExpression(node);
+  }
+
+  @override
+  void visitReceiverMethodInvocation(ReceiverMethodInvocation node) {
+    if (node.operator.type == TokenType.QUESTION_PERIOD) {
+      _checkForUnnecessaryNullAware(
+        node.receiver,
+        node.operator,
+        kind: _NullAwareKind.access,
+      );
+    }
+    _verifyNamedFunctionInvocation(node);
+    super.visitReceiverMethodInvocation(node);
   }
 
   @override
@@ -2583,6 +2618,12 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     checkForUseOfVoidResult(operand);
     _checkForIntNotAssignable(operand);
     super.visitUnaryOperatorInvocation(node);
+  }
+
+  @override
+  void visitUnqualifiedFunctionInvocation(UnqualifiedFunctionInvocation node) {
+    _verifyNamedFunctionInvocation(node);
+    super.visitUnqualifiedFunctionInvocation(node);
   }
 
   @override
@@ -6222,7 +6263,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   void _checkForInvalidInstanceMemberAccess2({
-    required AstNode entity,
+    required SyntacticEntity entity,
     required String name,
     required Element? element,
   }) {
@@ -7909,7 +7950,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
           var realTarget = target.realTarget2;
           return previousShortCircuitingOperator(realTarget) ?? target.question;
         }
-      } else if (target is IndexExpression2) {
+      } else if (target is ReceiverIndexExpression) {
         if (target.question != null) {
           return previousShortCircuitingOperator(target.receiver) ??
               target.question;
@@ -7920,6 +7961,11 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
         if (type == TokenType.QUESTION_PERIOD) {
           var realTarget = target.realTarget2;
           return previousShortCircuitingOperator(realTarget) ?? operator;
+        }
+      } else if (target is ReceiverMethodInvocation) {
+        var operator = target.operator;
+        if (operator.type == TokenType.QUESTION_PERIOD) {
+          return previousShortCircuitingOperator(target.receiver) ?? operator;
         }
       }
       return null;
@@ -8007,7 +8053,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   void _checkForUnqualifiedReferenceToNonLocalStaticMember2({
-    required AstNode entity,
+    required SyntacticEntity entity,
     required Element? element,
   }) {
     if (element == null || element is TypeParameterElement) {
@@ -8028,12 +8074,14 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     if (element is ExecutableElement && !element.isStatic) {
       return;
     }
-    if (entity.parent2 case MethodInvocation(
-      :var methodName,
-    ) when entity == methodName) {
-      // Invalid methods are reported in
-      // [MethodInvocationResolver._reportInstanceAccessToStaticMember].
-      return;
+    if (entity is AstNode) {
+      if (entity.parent2 case MethodInvocation(
+        :var methodName,
+      ) when entity == methodName) {
+        // Invalid methods are reported in
+        // [MethodInvocationResolver._reportInstanceAccessToStaticMember].
+        return;
+      }
     }
     if (_enclosingInstanceElement is ExtensionElementImpl) {
       diagnosticReporter.report(
@@ -8854,6 +8902,47 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
         );
       }
     }
+  }
+
+  void _verifyNamedFunctionInvocation(NamedFunctionInvocation node) {
+    var element = switch (node.resolution) {
+      ExecutableInvocationResolution(:var element) => element,
+      InvalidInvocationResolution(
+        recovery: ExecutableInvocationResolution(:var element),
+      ) =>
+        element,
+      InvalidInvocationResolution(:var candidates) => candidates.singleOrNull,
+      _ => null,
+    };
+    var ambiguousElement = switch (node.resolution) {
+      InvalidInvocationResolution(:var candidates) =>
+        candidates.whereType<MultiplyDefinedElementImpl>().firstOrNull,
+      _ => null,
+    };
+    _checkForAmbiguousImport(element: ambiguousElement, name: node.name);
+    if (node is UnqualifiedFunctionInvocation) {
+      _checkForReferenceBeforeDeclaration(
+        element: element,
+        nameToken: node.name,
+      );
+      _checkForInvalidInstanceMemberAccess2(
+        entity: node.name,
+        name: node.name.lexeme,
+        element: element,
+      );
+      _checkForTypeParameterReferencedByStatic(
+        element: element,
+        name: node.name,
+      );
+      _checkForUnqualifiedReferenceToNonLocalStaticMember2(
+        entity: node.name,
+        element: element,
+      );
+    }
+    _typeArgumentsVerifier.checkFunctionInvocation(node);
+    _requiredParametersVerifier.verifyNamedFunctionInvocation(node);
+    _constArgumentsVerifier.verifyNamedFunctionInvocation(node);
+    _checkUseVerifier.checkNamedFunctionInvocation(node);
   }
 
   void _visitIncrementOrDecrement(

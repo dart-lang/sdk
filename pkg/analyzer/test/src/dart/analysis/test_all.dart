@@ -9,7 +9,6 @@ import 'analysis_options_map_test.dart' as analysis_options_map;
 import 'byte_store_test.dart' as byte_store_test;
 import 'cache_test.dart' as cache_test;
 import 'context_builder_test.dart' as context_builder;
-import 'context_locator_test.dart' as context_locator;
 import 'context_root_test.dart' as context_root;
 import 'defined_names_test.dart' as defined_names;
 import 'driver_caching_test.dart' as driver_caching;
@@ -36,7 +35,6 @@ main() {
     byte_store_test.main();
     cache_test.main();
     context_builder.main();
-    context_locator.main();
     context_root.main();
     defined_names.main();
     driver.main();

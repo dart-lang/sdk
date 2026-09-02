@@ -4652,6 +4652,17 @@ class InstructionsBuilder with Builder<ir.Instructions> {
     _add(ir.V128Instruction.i32x4Eq);
   }
 
+  void i32x4_ne() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i32x4.ne'],
+      ),
+    );
+    _add(ir.V128Instruction.i32x4Ne);
+  }
+
   void i64x2_eq() {
     assert(
       _verifyTypes(

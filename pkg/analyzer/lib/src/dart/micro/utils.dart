@@ -442,6 +442,11 @@ class ReferencesCollector extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitCascadeMethodInvocation(CascadeMethodInvocation node) {
+    _visitNamedFunctionInvocation(node);
+  }
+
+  @override
   visitCommentReference(CommentReference node) {
     var expression = node.expression2;
     if (expression is Identifier) {
@@ -699,6 +704,13 @@ class ReferencesCollector extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitImportPrefixedFunctionInvocation(
+    ImportPrefixedFunctionInvocation node,
+  ) {
+    _visitNamedFunctionInvocation(node);
+  }
+
+  @override
   void visitNamedType(NamedType node) {
     if (node.element == element) {
       references.add(
@@ -725,6 +737,11 @@ class ReferencesCollector extends RecursiveAstVisitor2<void> {
       }
     }
     super.visitPrimaryConstructorDeclaration(node);
+  }
+
+  @override
+  void visitReceiverMethodInvocation(ReceiverMethodInvocation node) {
+    _visitNamedFunctionInvocation(node);
   }
 
   @override
@@ -782,6 +799,11 @@ class ReferencesCollector extends RecursiveAstVisitor2<void> {
     }
   }
 
+  @override
+  void visitUnqualifiedFunctionInvocation(UnqualifiedFunctionInvocation node) {
+    _visitNamedFunctionInvocation(node);
+  }
+
   MatchKind _constructorReferenceKind(ConstructorReference2 node) {
     return switch (node.parent2) {
       ConstructorInvocation() => MatchKind.INVOCATION,
@@ -790,5 +812,15 @@ class ReferencesCollector extends RecursiveAstVisitor2<void> {
         'Unexpected ConstructorReference2 parent: ${node.parent2.runtimeType}',
       ),
     };
+  }
+
+  void _visitNamedFunctionInvocation(NamedFunctionInvocation node) {
+    var invokedElement = ElementLocatorV2.locate(node)?.baseElement;
+    if (invokedElement == element) {
+      references.add(
+        MatchInfo(node.name.offset, node.name.length, MatchKind.REFERENCE),
+      );
+    }
+    node.visitChildren2(this);
   }
 }

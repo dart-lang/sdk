@@ -292,6 +292,12 @@ DEFINE_NATIVE_ENTRY(Int32x4_getSignMask, 0, 1) {
   return Integer::New(value);
 }
 
+DEFINE_NATIVE_ENTRY(Int32x4_getAnyTrue, 0, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, self, arguments->NativeArgAt(0));
+  bool value = (self.x() | self.y() | self.z() | self.w()) != 0;
+  return Bool::Get(value).ptr();
+}
+
 DEFINE_NATIVE_ENTRY(Float32x4_shuffle, 0, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, self, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, mask, arguments->NativeArgAt(1));
@@ -453,6 +459,16 @@ DEFINE_NATIVE_ENTRY(Int32x4_equal, 0, 2) {
   int32_t _y = self.y() == other.y() ? 0xFFFFFFFF : 0;
   int32_t _z = self.z() == other.z() ? 0xFFFFFFFF : 0;
   int32_t _w = self.w() == other.w() ? 0xFFFFFFFF : 0;
+  return Int32x4::New(_x, _y, _z, _w);
+}
+
+DEFINE_NATIVE_ENTRY(Int32x4_notEqual, 0, 2) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, self, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, other, arguments->NativeArgAt(1));
+  int32_t _x = self.x() != other.x() ? 0xFFFFFFFF : 0;
+  int32_t _y = self.y() != other.y() ? 0xFFFFFFFF : 0;
+  int32_t _z = self.z() != other.z() ? 0xFFFFFFFF : 0;
+  int32_t _w = self.w() != other.w() ? 0xFFFFFFFF : 0;
   return Int32x4::New(_x, _y, _z, _w);
 }
 

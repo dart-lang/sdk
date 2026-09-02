@@ -230,9 +230,9 @@ class TypeVariableTests {
   ///
   /// This can also involve generic methods:
   ///
-  ///    class A<T> {}
-  ///    method<T>() => A<T>();
-  ///    main() => method<int>() is A<int>();
+  ///     class A<T> {}
+  ///     method<T>() => A<T>();
+  ///     main() => method<int>() is A<int>();
   ///
   /// Here `method` need type arguments at runtime because the key entity `A`
   /// needs it in order to generate the check against `A<int>`.
@@ -746,13 +746,13 @@ abstract class RuntimeTypesNeed {
   ///
   /// This is for instance the case for generic classes used in a type test:
   ///
-  ///   ```
-  ///   class C<T> {}
-  ///   main() {
-  ///     C<int>() is C<int>;
-  ///     C<String>() is C<String>;
-  ///   }
-  ///   ```
+  /// ```
+  /// class C<T> {}
+  /// main() {
+  ///   C<int>() is C<int>;
+  ///   C<String>() is C<String>;
+  /// }
+  /// ```
   ///
   bool classNeedsTypeArguments(ClassEntity cls);
 
@@ -764,13 +764,13 @@ abstract class RuntimeTypesNeed {
   ///
   /// This is for instance the case for generic methods that use type tests:
   ///
-  ///   ```
-  ///   method<T>(T t) => t is T;
-  ///   main() {
-  ///     method<int>(0);
-  ///     method<String>('');
-  ///   }
-  ///   ```
+  /// ```
+  /// method<T>(T t) => t is T;
+  /// main() {
+  ///   method<int>(0);
+  ///   method<String>('');
+  /// }
+  /// ```
   ///
   bool methodNeedsTypeArguments(FunctionEntity method);
 

@@ -2622,13 +2622,13 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
   ///
   /// In this case we build:
   ///
-  ///    int end = a.length;
-  ///    for (int i = 0;
-  ///         i < a.length;
-  ///         checkConcurrentModificationError(a.length == end, a), ++i) {
-  ///      <declaredIdentifier> = a[i];
-  ///      <body>
-  ///    }
+  ///     int end = a.length;
+  ///     for (int i = 0;
+  ///          i < a.length;
+  ///          checkConcurrentModificationError(a.length == end, a), ++i) {
+  ///       <declaredIdentifier> = a[i];
+  ///       <body>
+  ///     }
   void _buildForInIndexable(ir.ForInStatement node) {
     SyntheticLocal indexVariable = localsHandler.createLocal('_i');
 

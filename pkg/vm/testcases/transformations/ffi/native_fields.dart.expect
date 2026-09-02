@@ -282,11 +282,11 @@ constants  {
   #C13 = core::pragma {name:#C12, options:#C2}
   #C14 = ffi::Double {}
   #C15 = 0
-  #C16 = <core::int>[#C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15]
+  #C16 = <core::int>[#C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15]
   #C17 = 8
-  #C18 = <core::int>[#C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17]
+  #C18 = <core::int>[#C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17]
   #C19 = 16
-  #C20 = <core::int>[#C19, #C19, #C19, #C19, #C19, #C19, #C19, #C19, #C19, #C19, #C19, #C19, #C19, #C19, #C19, #C19, #C19, #C19, #C19, #C19, #C19, #C19]
+  #C20 = <core::int>[#C19, #C19, #C19, #C19, #C19, #C19, #C19, #C19, #C19, #C19, #C19, #C19, #C19, #C19, #C19, #C19, #C19, #C19, #C19, #C19, #C19, #C19, #C19, #C19]
   #C21 = TypeLiteralConstant(ffi::Uint8)
   #C22 = true
   #C23 = ffi::_FfiInlineArray {elementType:#C21, length:#C15, variableLength:#C22}
@@ -303,7 +303,7 @@ constants  {
   #C34 = ffi::_FfiStructLayout {fieldTypes:#C33, packing:#C2, fieldNames:#C26}
   #C35 = core::pragma {name:#C4, options:#C34}
   #C36 = ffi::_ArraySize<ffi::NativeType> {dimension1:#C31, dimension2:#C2, dimension3:#C2, dimension4:#C2, dimension5:#C2, dimensions:#C2, variableDimension:#C31}
-  #C37 = <core::int>[#C31, #C31, #C31, #C31, #C31, #C31, #C31, #C31, #C31, #C31, #C31, #C31, #C31, #C31, #C31, #C31, #C31, #C31, #C31, #C31, #C31, #C31]
+  #C37 = <core::int>[#C31, #C31, #C31, #C31, #C31, #C31, #C31, #C31, #C31, #C31, #C31, #C31, #C31, #C31, #C31, #C31, #C31, #C31, #C31, #C31, #C31, #C31, #C31, #C31]
   #C38 = 2
   #C39 = <core::int>[#C31, #C38]
   #C40 = ffi::_ArraySize<ffi::NativeType> {dimension1:#C2, dimension2:#C2, dimension3:#C2, dimension4:#C2, dimension5:#C2, dimensions:#C39, variableDimension:#C15}
@@ -312,7 +312,7 @@ constants  {
   #C43 = ffi::_FfiStructLayout {fieldTypes:#C42, packing:#C2, fieldNames:#C26}
   #C44 = core::pragma {name:#C4, options:#C43}
   #C45 = ffi::_ArraySize<ffi::NativeType> {dimension1:#C2, dimension2:#C2, dimension3:#C2, dimension4:#C2, dimension5:#C2, dimensions:#C39, variableDimension:#C31}
-  #C46 = <core::int>[#C38, #C38, #C38, #C38, #C38, #C38, #C38, #C38, #C38, #C38, #C38, #C38, #C38, #C38, #C38, #C38, #C38, #C38, #C38, #C38, #C38, #C38]
+  #C46 = <core::int>[#C38, #C38, #C38, #C38, #C38, #C38, #C38, #C38, #C38, #C38, #C38, #C38, #C38, #C38, #C38, #C38, #C38, #C38, #C38, #C38, #C38, #C38, #C38, #C38]
   #C47 = TypeLiteralConstant(self::Vec2d)
   #C48 = TypeLiteralConstant(ffi::Pointer<core::Object>)
   #C49 = <core::Type>[#C47, #C48]
@@ -345,5 +345,5 @@ constants  {
   #C76 = core::pragma {name:#C55, options:#C75}
   #C77 = <core::int>[#C38, #C72]
   #C78 = 48
-  #C79 = <core::int>[#C78, #C78, #C78, #C78, #C78, #C78, #C78, #C78, #C78, #C78, #C78, #C78, #C78, #C78, #C78, #C78, #C78, #C78, #C78, #C78, #C78, #C78]
+  #C79 = <core::int>[#C78, #C78, #C78, #C78, #C78, #C78, #C78, #C78, #C78, #C78, #C78, #C78, #C78, #C78, #C78, #C78, #C78, #C78, #C78, #C78, #C78, #C78, #C78, #C78]
 }

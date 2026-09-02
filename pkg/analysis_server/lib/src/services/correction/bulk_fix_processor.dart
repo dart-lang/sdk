@@ -179,6 +179,14 @@ class BulkFixProcessor {
   /// invalid).
   final CancellationToken? _cancellationToken;
 
+  /// The set of codes that that can be passed that will cause Pubspec fixes
+  /// to be applied (in addition to when no codes are supplied).
+  final _pubspecFixDiagnosticCodes = {
+    diag.missingDependency.lowerCaseName,
+    diag.dependOnReferencedPackages.lowerCaseName,
+    diag.migrateDesignWidgets.lowerCaseName,
+  };
+
   /// Initialize a newly created processor to create fixes for diagnostics in
   /// libraries in the [_workspace].
   new(
@@ -393,6 +401,17 @@ class BulkFixProcessor {
       onlyForFile == null || contexts.length == 1,
       'When fixing pubspec issues only for one file, only one context should be provided',
     );
+
+    // If we were filtered to a set or codes that doesn't include codes that
+    // should make pubspec fixes, don't compute any fixes.
+    //
+    // Note: Currently, any of these codes will result in all dependencies being
+    // fixed even if they did not produce the specific code requested. This is a
+    // consequence of how these fixes are currently applied (that is, they are
+    // not driven by the diagnostics).
+    if (_codes != null && !_codes.any(_pubspecFixDiagnosticCodes.contains)) {
+      return (edits: <SourceFileEdit>[], details: <BulkFix>[]);
+    }
 
     var fixes = <SourceFileEdit>[];
     var details = <BulkFix>[];
@@ -1238,19 +1257,17 @@ class IterativeBulkFixProcessor {
       }
     }
 
-    // Finally, add any Pubspec fixes (unless we were just running a subset).
-    if (_diagnosticCodes == null) {
-      var pubspecResult = await performance.runAsync(
-        '_runFixesIteratively pubspec pass',
-        (_) {
-          var processor = _createProcessor(contexts);
-          return fixPubspecOperation(processor);
-        },
-      );
-      if (pubspecResult.edits.isNotEmpty) {
-        _passesWithEdits++;
-        edits.addAll(pubspecResult.edits);
-      }
+    // Finally, add any Pubspec fixes.
+    var pubspecResult = await performance.runAsync(
+      '_runFixesIteratively pubspec pass',
+      (_) {
+        var processor = _createProcessor(contexts);
+        return fixPubspecOperation(processor);
+      },
+    );
+    if (pubspecResult.edits.isNotEmpty) {
+      _passesWithEdits++;
+      edits.addAll(pubspecResult.edits);
     }
 
     return IterativeBulkFixRequestResult(edits);

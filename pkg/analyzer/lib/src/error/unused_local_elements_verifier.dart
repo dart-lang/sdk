@@ -63,17 +63,23 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitCallInvocation(CallInvocation node) {
+    if (node.resolution case ExecutableInvocationResolution(:var element)) {
+      usedElements.addElement(element);
+    }
+    super.visitCallInvocation(node);
+  }
+
+  @override
   void visitCascadeIndexExpression(CascadeIndexExpression node) {
-    var element = switch (node.resolution) {
-      MethodIndexReadResolution(:var element) => element,
-      InvalidIndexReadResolution(
-        recovery: MethodIndexReadResolution(:var element),
-      ) =>
-        element,
-      _ => null,
-    };
-    usedElements.addMember(element);
+    _useIndexReadResolution(node.resolution);
     super.visitCascadeIndexExpression(node);
+  }
+
+  @override
+  void visitCascadeMethodInvocation(CascadeMethodInvocation node) {
+    _recordNamedFunctionInvocation(node);
+    super.visitCascadeMethodInvocation(node);
   }
 
   @override
@@ -231,6 +237,21 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitDotShorthandMethodInvocation(DotShorthandMethodInvocation node) {
+    _recordNamedFunctionInvocation(node);
+    super.visitDotShorthandMethodInvocation(node);
+  }
+
+  @override
+  void visitDotShorthandNameExpression(DotShorthandNameExpression node) {
+    if (node.resolution case NamedReadResolutionWithElement(:var element)) {
+      usedElements.addElement(element.enclosingElement);
+    }
+    _useNamedReadResolution(node.resolution, readCountsAsUse: true);
+    super.visitDotShorthandNameExpression(node);
+  }
+
+  @override
   void visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
     usedElements.addElement(node.propertyName.element?.enclosingElement);
     super.visitDotShorthandPropertyAccess(node);
@@ -268,12 +289,6 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    usedElements.addElement(node.element);
-    super.visitFunctionExpressionInvocation(node);
-  }
-
-  @override
   void visitGenericTypeAlias(GenericTypeAlias node) {
     if (!Identifier.isPrivateName(node.name.lexeme)) {
       var type = node.type.type;
@@ -295,24 +310,18 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitImportPrefixedFunctionInvocation(
+    ImportPrefixedFunctionInvocation node,
+  ) {
+    _recordNamedFunctionInvocation(node);
+    super.visitImportPrefixedFunctionInvocation(node);
+  }
+
+  @override
   void visitIndexExpression(IndexExpression node) {
     var element = node.writeOrReadElement2;
     usedElements.addMember(element);
     super.visitIndexExpression(node);
-  }
-
-  @override
-  void visitIndexExpression2(IndexExpression2 node) {
-    var element = switch (node.resolution) {
-      MethodIndexReadResolution(:var element) => element,
-      InvalidIndexReadResolution(
-        recovery: MethodIndexReadResolution(:var element),
-      ) =>
-        element,
-      _ => null,
-    };
-    usedElements.addMember(element);
-    super.visitIndexExpression2(node);
   }
 
   @override
@@ -384,6 +393,18 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
   void visitPrefixIncrement(PrefixIncrement node) {
     _visitIncrementOrDecrementExpression(node);
     super.visitPrefixIncrement(node);
+  }
+
+  @override
+  void visitReceiverIndexExpression(ReceiverIndexExpression node) {
+    _useIndexReadResolution(node.resolution);
+    super.visitReceiverIndexExpression(node);
+  }
+
+  @override
+  void visitReceiverMethodInvocation(ReceiverMethodInvocation node) {
+    _recordNamedFunctionInvocation(node);
+    super.visitReceiverMethodInvocation(node);
   }
 
   @override
@@ -530,6 +551,12 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitUnqualifiedFunctionInvocation(UnqualifiedFunctionInvocation node) {
+    _recordNamedFunctionInvocation(node);
+    super.visitUnqualifiedFunctionInvocation(node);
+  }
+
+  @override
   void visitVariableDeclarationList(VariableDeclarationList node) {
     node.metadata.accept2(this);
     var enclosingVariableDeclarationOld = _enclosingVariableDeclaration;
@@ -557,6 +584,13 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
     for (var argument in argumentList.arguments2) {
       var parameter = argument.correspondingParameter;
       usedElements.addElement(parameter);
+    }
+  }
+
+  void _recordNamedFunctionInvocation(NamedFunctionInvocation node) {
+    if (node.resolution case ExecutableInvocationResolution(:var element)) {
+      _useIdentifierElement(element);
+      _addParametersForArguments(node.argumentList);
     }
   }
 
@@ -601,6 +635,18 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
       return;
     }
     usedElements.addElement(element);
+  }
+
+  void _useIndexReadResolution(IndexReadResolution? resolution) {
+    var element = switch (resolution) {
+      MethodIndexReadResolution(:var element) => element,
+      InvalidIndexReadResolution(
+        recovery: MethodIndexReadResolution(:var element),
+      ) =>
+        element,
+      _ => null,
+    };
+    usedElements.addMember(element);
   }
 
   void _useNamedReadResolution(
@@ -651,7 +697,6 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
     required bool readCountsAsUse,
   }) {
     var indexResolutions = switch (target) {
-      CascadeIndexAssignmentTarget(:var read, :var write) => (read, write),
       IndexAssignmentTarget(:var read, :var write) => (read, write),
       _ => null,
     };

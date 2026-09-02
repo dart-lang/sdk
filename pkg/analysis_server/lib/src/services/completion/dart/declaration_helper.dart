@@ -491,7 +491,8 @@ class DeclarationHelper {
       }
     }
     if (topLevelMember != null && !mustBeStatic && !mustBeType) {
-      _addInheritedMembers(topLevelMember);
+      var thisType = node.thisTypeAt(offset);
+      _addInheritedMembers(topLevelMember, thisType);
     }
   }
 
@@ -1116,7 +1117,13 @@ class DeclarationHelper {
 
   /// Adds suggestions for any instance members inherited by the
   /// [containingMember].
-  void _addInheritedMembers(CompilationUnitMember containingMember) {
+  ///
+  /// If `this` has been promoted, then type promoted type should be passed in
+  /// as [thisType].
+  void _addInheritedMembers(
+    CompilationUnitMember containingMember,
+    DartType? thisType,
+  ) {
     var fragment = switch (containingMember) {
       ClassDeclaration() => containingMember.declaredFragment,
       EnumDeclaration() => containingMember.declaredFragment,
@@ -1127,16 +1134,16 @@ class DeclarationHelper {
       GenericTypeAlias() => containingMember.declaredFragment,
       _ => null,
     };
-    var element = fragment?.element;
-    if (!mustBeStatic && element is ExtensionElement) {
-      var thisType = element.thisType;
+    var enclosingElement = fragment?.element;
+    if (!mustBeStatic && enclosingElement is ExtensionElement) {
+      thisType ??= enclosingElement.thisType;
       if (thisType is InterfaceType) {
         // These members own the `this.` form of their names inside the
         // extension body, so the extension's own declarations of those names
         // must not shadow them here. `_addMembersOfEnclosingInstance` has
         // already kept the extension's own members from claiming that form.
         _namesOwnedByEnclosingInstance.removeAll(
-          _namesOfExtendedTypeMembers(element),
+          _namesOfExtendedTypeMembers(enclosingElement),
         );
         // Unqualified position, so a shadowed member of the extended type can
         // be reached via `this.`, or via `this?.` when the extended type is
@@ -1152,11 +1159,20 @@ class DeclarationHelper {
       }
       return;
     }
-    if (element is! InterfaceElement) {
+    if (enclosingElement is! InterfaceElement) {
       return;
     }
-    var referencingInterface = _referencingInterfaceFor(element);
-    var members = element.inheritedMembers;
+    var thisTypeElement = thisType?.element;
+    if (thisTypeElement is! InterfaceElement) {
+      thisTypeElement = enclosingElement;
+    }
+    var referencingInterface = _referencingInterfaceFor(thisTypeElement);
+    // We include the members of the `enclosingElement`, even though we've
+    // already examined them as part of following the local scope. This should
+    // be safe because we'll treat them as being shadowed. The reason is so that
+    // we can include the members of the `thisTypeElement` when those two
+    // elements are different.
+    var members = thisTypeElement.interfaceMembers;
     // Unqualified position, so a shadowed member can be reached via `this.`.
     _thisPrefixAllowed = .regular;
     for (var member in members.values) {
@@ -3228,6 +3244,25 @@ enum ThisPrefix {
   final String? text;
 
   new(this.text);
+}
+
+extension on AstNode {
+  /// Returns the type of `this` at the given [offset].
+  ///
+  /// Assumes that the receiver is inside the same function body as the
+  /// [offset].
+  DartType? thisTypeAt(int offset) {
+    FunctionBody? outermostFunctionBody;
+    AstNode? currentNode = this;
+    while (currentNode != null) {
+      if (currentNode is FunctionBody) {
+        outermostFunctionBody = currentNode;
+      }
+      currentNode = currentNode.parent;
+    }
+    // ignore: experimental_member_use
+    return outermostFunctionBody?.lookupPromotedThisType(offset: offset);
+  }
 }
 
 extension on GetterElement {

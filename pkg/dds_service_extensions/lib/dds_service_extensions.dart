@@ -536,6 +536,16 @@ class ResumePermissionsRequired extends Response {
       : onPauseStart = json['onPauseStart'],
         onPauseExit = json['onPauseExit'];
 
+  @override
+  String get type => 'ResumePermissionsRequired';
+
   final bool onPauseStart;
   final bool onPauseExit;
+
+  @override
+  Map<String, Object?> toJson() => {
+        ...super.toJson(),
+        'onPauseStart': onPauseStart,
+        'onPauseExit': onPauseExit,
+      };
 }

@@ -362,6 +362,9 @@ final class ConstantPropagation extends Pass
   }
 
   @override
+  void visitCopyArrayElements(CopyArrayElements instr) {}
+
+  @override
   void visitThrow(Throw instr) {}
 
   @override

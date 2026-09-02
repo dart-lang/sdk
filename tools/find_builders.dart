@@ -15,17 +15,26 @@
 import 'dart:convert';
 import 'dart:io';
 
-// TODO(dacoharkes): Be able to use test full paths instead of test names.
-// TODO(dacoharkes): Be able to use different filters.
-Future<void> main(List<String> args) async {
-  if (args.contains('--help')) {
-    return printHelp();
-  }
-  final testNames = args;
+import 'package:args/args.dart';
 
-  final configurations = _filterConfigurations({
-    for (final testName in testNames) ...await _testGetConfigurations(testName),
-  });
+Future<void> main(List<String> args) async {
+  final parser = ArgParser()
+    ..addMultiOption('only', help: 'Filter configurations (e.g. debug, ia32)')
+    ..addFlag('help', abbr: 'h', help: 'Show this help message', negatable: false);
+
+  final parsedArgs = parser.parse(args);
+  if (parsedArgs['help'] as bool) {
+    return printHelp(parser);
+  }
+  final testNames = parsedArgs.rest;
+
+  final configurations = _filterConfigurations(
+    {
+      for (final testName in testNames)
+        ...await _testGetConfigurations(testName),
+    },
+    only: parsedArgs['only'] as List<String>,
+  );
   final configurationBuilders = await _configurationBuilders();
   final builders = _filterBuilders({
     for (final config in configurations) configurationBuilders[config]!,
@@ -36,6 +45,8 @@ Future<void> main(List<String> args) async {
   print('Cq-Include-Trybots: dart/try:$gerritTryList');
 }
 
+
+
 Future<List<String>> _testGetConfigurations(String testName) async {
   final requestUrl = Uri(
     scheme: 'https',
@@ -45,8 +56,10 @@ Future<List<String>> _testGetConfigurations(String testName) async {
   );
   final response = await _get(requestUrl);
   final object = jsonDecode(response) as Map<String, dynamic>;
+  final results = object['results'] as List?;
+  if (results == null) return [];
   return [
-    for (final result in ((object['results'] as List)).cast<Map>())
+    for (final result in results.cast<Map>())
       result['configuration'],
   ];
 }
@@ -60,17 +73,29 @@ Future<String> _get(Uri requestUrl) async {
   return responseString;
 }
 
-Iterable<String> _filterConfigurations(Set<String> configs) {
+Iterable<String> _filterConfigurations(
+  Set<String> configs, {
+  required List<String> only,
+}) {
+  var filtered = configs;
+  for (final filter in only) {
+    filtered = filtered.where((c) => c.contains(filter)).toSet();
+  }
+
+  if (only.isNotEmpty) {
+    return filtered.toList()..sort();
+  }
+
   final result = <String>[];
-  for (final config in configs) {
+  for (final config in filtered) {
     if (config.contains('debug')) {
       result.add(config);
     } else if (config.contains('release') &&
-        !configs.contains(config.replaceFirst('release', 'debug'))) {
+        !filtered.contains(config.replaceFirst('release', 'debug'))) {
       result.add(config);
     } else if (config.contains('profile') &&
-        !configs.contains(config.replaceFirst('profile', 'debug')) &&
-        !configs.contains(config.replaceFirst('profile', 'release'))) {
+        !filtered.contains(config.replaceFirst('profile', 'debug')) &&
+        !filtered.contains(config.replaceFirst('profile', 'release'))) {
       result.add(config);
     }
   }
@@ -124,11 +149,14 @@ Future<Map<String, String>> _configurationBuilders() async {
   };
 }
 
-void printHelp() {
-  print(r'''
+void printHelp(ArgParser parser) {
+  print('''
 A script to find all try jobs for a set of tests.
 
-  Usage: tools/find_builders.dart [selector] [selector2] [...]
+  Usage: tools/find_builders.dart [options] [selector] [selector2] [...]
+
+Options:
+${parser.usage}
 
 Sample output: Cq-Include-Trybots: dart/try:vm-kernel-linux-debug-x64,...
 ''');
