@@ -32,9 +32,18 @@ void main() {
 }
 ''');
 
-    var node = result.findNode.singleDotShorthandPropertyAccess;
+    var node = result.findNode.singleDotShorthandNameExpression;
     assertResolvedNodeText(node, r'''
-DotShorthandPropertyAccess
+DotShorthandNameExpression
+  period: .
+  name: member
+  isDotShorthand: false
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::C::@getter::member
+    invokeType: C Function()
+    type: C
+  staticType: C
+V1: DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
     token: member
@@ -60,9 +69,18 @@ void main() {
 }
 ''');
 
-    var node = result.findNode.singleDotShorthandPropertyAccess;
+    var node = result.findNode.singleDotShorthandNameExpression;
     assertResolvedNodeText(node, r'''
-DotShorthandPropertyAccess
+DotShorthandNameExpression
+  period: .
+  name: member
+  isDotShorthand: false
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::C::@getter::member
+    invokeType: C Function()
+    type: C
+  staticType: C
+V1: DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
     token: member
@@ -87,9 +105,18 @@ void main() {
 }
 ''');
 
-    var node = result.findNode.singleDotShorthandPropertyAccess;
+    var node = result.findNode.singleDotShorthandNameExpression;
     assertResolvedNodeText(node, r'''
-DotShorthandPropertyAccess
+DotShorthandNameExpression
+  period: .
+  name: member
+  isDotShorthand: true
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::C::@getter::member
+    invokeType: C Function()
+    type: C
+  staticType: C
+V1: DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
     token: member
@@ -114,9 +141,19 @@ class CAssert {
 }
 ''');
 
-    var node = result.findNode.singleDotShorthandPropertyAccess;
+    var node = result.findNode.singleDotShorthandNameExpression;
     assertResolvedNodeText(node, r'''
-DotShorthandPropertyAccess
+DotShorthandNameExpression
+  period: .
+  name: one
+  isDotShorthand: true
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::Integer::@getter::one
+    invokeType: Integer Function()
+    type: Integer
+  correspondingParameter: dart:core::@class::Object::@method::==::@formalParameter::other
+  staticType: Integer
+V1: DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
     token: one
@@ -137,9 +174,19 @@ class CAssert {
 }
 ''');
 
-    var node = result.findNode.singleDotShorthandPropertyAccess;
+    var node = result.findNode.singleDotShorthandNameExpression;
     assertResolvedNodeText(node, r'''
-DotShorthandPropertyAccess
+DotShorthandNameExpression
+  period: .
+  name: blue
+  isDotShorthand: true
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@enum::Color::@getter::blue
+    invokeType: Color Function()
+    type: Color
+  correspondingParameter: dart:core::@class::Object::@method::==::@formalParameter::other
+  staticType: Color
+V1: DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
     token: blue
@@ -166,9 +213,18 @@ void main() {
 }
 ''');
 
-    var node = result.findNode.singleDotShorthandPropertyAccess;
+    var node = result.findNode.singleDotShorthandNameExpression;
     assertResolvedNodeText(node, r'''
-DotShorthandPropertyAccess
+DotShorthandNameExpression
+  period: .
+  name: member
+  isDotShorthand: true
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::C::@getter::member
+    invokeType: C Function()
+    type: C
+  staticType: C
+V1: DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
     token: member
@@ -189,9 +245,18 @@ void main() {
 }
 ''');
 
-    var node = result.findNode.singleDotShorthandPropertyAccess;
+    var node = result.findNode.singleDotShorthandNameExpression;
     assertResolvedNodeText(node, r'''
-DotShorthandPropertyAccess
+DotShorthandNameExpression
+  period: .
+  name: blue
+  isDotShorthand: true
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@enum::Color::@getter::blue
+    invokeType: Color Function()
+    type: Color
+  staticType: Color
+V1: DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
     token: blue
@@ -215,9 +280,18 @@ void main() {
 }
 ''');
 
-    var node = result.findNode.singleDotShorthandPropertyAccess;
+    var node = result.findNode.singleDotShorthandNameExpression;
     assertResolvedNodeText(node, r'''
-DotShorthandPropertyAccess
+DotShorthandNameExpression
+  period: .
+  name: member
+  isDotShorthand: true
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@extensionType::C::@getter::member
+    invokeType: C Function()
+    type: C
+  staticType: C
+V1: DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
     token: member
@@ -238,9 +312,18 @@ void main() {
 }
 ''');
 
-    var node = result.findNode.singleDotShorthandPropertyAccess;
+    var node = result.findNode.singleDotShorthandNameExpression;
     assertResolvedNodeText(node, r'''
-DotShorthandPropertyAccess
+DotShorthandNameExpression
+  period: .
+  name: red
+  isDotShorthand: true
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@enum::C::@getter::red
+    invokeType: C Function()
+    type: C
+  staticType: C
+V1: DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
     token: red
@@ -266,9 +349,19 @@ void main() {
 }
 ''');
 
-    var node = result.findNode.singleDotShorthandPropertyAccess;
+    var node = result.findNode.singleDotShorthandNameExpression;
     assertResolvedNodeText(node, r'''
-DotShorthandPropertyAccess
+DotShorthandNameExpression
+  period: .
+  name: member
+  isDotShorthand: true
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::C::@getter::member
+    invokeType: C Function()
+    type: C
+  correspondingParameter: dart:core::@class::Object::@method::==::@formalParameter::other
+  staticType: C
+V1: DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
     token: member
@@ -321,9 +414,18 @@ void main() {
 }
 ''');
 
-    var node = result.findNode.singleDotShorthandPropertyAccess;
+    var node = result.findNode.singleDotShorthandNameExpression;
     assertResolvedNodeText(node, r'''
-DotShorthandPropertyAccess
+DotShorthandNameExpression
+  period: .
+  name: instances
+  isDotShorthand: false
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::C::@getter::instances
+    invokeType: List<C> Function()
+    type: List<C>
+  staticType: List<C>
+V1: DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
     token: instances
@@ -347,9 +449,18 @@ main() {
 }
 ''');
 
-    var node = result.findNode.singleDotShorthandPropertyAccess;
+    var node = result.findNode.singleDotShorthandNameExpression;
     assertResolvedNodeText(node, r'''
-DotShorthandPropertyAccess
+DotShorthandNameExpression
+  period: .
+  name: nullable
+  isDotShorthand: false
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::C::@getter::nullable
+    invokeType: C? Function()
+    type: C?
+  staticType: C?
+V1: DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
     token: nullable
@@ -374,9 +485,18 @@ main() {
 }
 ''');
 
-    var node = result.findNode.singleDotShorthandPropertyAccess;
+    var node = result.findNode.singleDotShorthandNameExpression;
     assertResolvedNodeText(node, r'''
-DotShorthandPropertyAccess
+DotShorthandNameExpression
+  period: .
+  name: nullable
+  isDotShorthand: false
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::C::@getter::nullable
+    invokeType: C? Function()
+    type: C?
+  staticType: C?
+V1: DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
     token: nullable
@@ -397,9 +517,18 @@ void main() {
 }
 ''');
 
-    var node = result.findNode.singleDotShorthandPropertyAccess;
+    var node = result.findNode.singleDotShorthandNameExpression;
     assertResolvedNodeText(node, r'''
-DotShorthandPropertyAccess
+DotShorthandNameExpression
+  period: .
+  name: blue
+  isDotShorthand: true
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@enum::Color::@getter::blue
+    invokeType: Color Function()
+    type: Color
+  staticType: Color
+V1: DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
     token: blue
@@ -494,6 +623,42 @@ void main() {
 ''');
   }
 
+  test_error_unresolved_setterOnly() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {
+  static set value(C value) {}
+}
+
+void main() {
+  C c = .value;
+//       ^^^^^
+// [diag.dotShorthandUndefinedGetter] The static getter 'value' isn't defined for the context type 'C'.
+  print(c);
+}
+''');
+
+    var node = result.findNode.singleDotShorthandNameExpression;
+    assertResolvedNodeText(node, r'''
+DotShorthandNameExpression
+  period: .
+  name: value
+  isDotShorthand: true
+  resolution: InvalidNamedReadResolution
+    type: InvalidType
+    candidates
+    recovery: <null>
+  staticType: InvalidType
+V1: DotShorthandPropertyAccess
+  period: .
+  propertyName: SimpleIdentifier
+    token: value
+    element: <null>
+    staticType: InvalidType
+  isDotShorthand: true
+  staticType: InvalidType
+''');
+  }
+
   test_extensionType() async {
     var result = await resolveTestCodeWithDiagnostics('''
 extension type C(int integer) {
@@ -506,9 +671,18 @@ void main() {
 }
 ''');
 
-    var node = result.findNode.singleDotShorthandPropertyAccess;
+    var node = result.findNode.singleDotShorthandNameExpression;
     assertResolvedNodeText(node, r'''
-DotShorthandPropertyAccess
+DotShorthandNameExpression
+  period: .
+  name: one
+  isDotShorthand: true
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@extensionType::C::@getter::one
+    invokeType: C Function()
+    type: C
+  staticType: C
+V1: DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
     token: one
@@ -534,13 +708,14 @@ void main() {
     var node = result.findNode.singleCallInvocation;
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: DotShorthandPropertyAccess
+  receiver: DotShorthandNameExpression
     period: .
-    propertyName: SimpleIdentifier
-      token: field
-      element: <testLibrary>::@class::C::@getter::field
-      staticType: C
+    name: field
     isDotShorthand: false
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@class::C::@getter::field
+      invokeType: C Function()
+      type: C
     staticType: C
   argumentList: ArgumentList
     leftParenthesis: (
@@ -596,13 +771,14 @@ void main() {
     var node = result.findNode.singleCallInvocation;
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: DotShorthandPropertyAccess
+  receiver: DotShorthandNameExpression
     period: .
-    propertyName: SimpleIdentifier
-      token: field
-      element: <testLibrary>::@class::C::@getter::field
-      staticType: C
+    name: field
     isDotShorthand: false
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@class::C::@getter::field
+      invokeType: C Function()
+      type: C
     staticType: C
   argumentList: ArgumentList
     leftParenthesis: (
@@ -648,13 +824,14 @@ void main() {
     var node = result.findNode.singleCallInvocation;
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: DotShorthandPropertyAccess
+  receiver: DotShorthandNameExpression
     period: .
-    propertyName: SimpleIdentifier
-      token: getter
-      element: <testLibrary>::@class::C::@getter::getter
-      staticType: C
+    name: getter
     isDotShorthand: false
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@class::C::@getter::getter
+      invokeType: C Function()
+      type: C
     staticType: C
   argumentList: ArgumentList
     leftParenthesis: (
@@ -697,13 +874,14 @@ void main() {
     var node = result.findNode.singleCallInvocation;
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: DotShorthandPropertyAccess
+  receiver: DotShorthandNameExpression
     period: .
-    propertyName: SimpleIdentifier
-      token: field
-      element: <testLibrary>::@class::C::@getter::field
-      staticType: C
+    name: field
     isDotShorthand: false
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@class::C::@getter::field
+      invokeType: C Function()
+      type: C
     staticType: C
   argumentList: ArgumentList
     leftParenthesis: (
@@ -746,13 +924,14 @@ void main() {
     var node = result.findNode.singleCallInvocation;
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: DotShorthandPropertyAccess
+  receiver: DotShorthandNameExpression
     period: .
-    propertyName: SimpleIdentifier
-      token: field
-      element: <testLibrary>::@class::C::@getter::field
-      staticType: C
+    name: field
     isDotShorthand: false
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@class::C::@getter::field
+      invokeType: C Function()
+      type: C
     staticType: C
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -829,13 +1008,14 @@ void main() {
     var node = result.findNode.singleCallInvocation;
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: DotShorthandPropertyAccess
+  receiver: DotShorthandNameExpression
     period: .
-    propertyName: SimpleIdentifier
-      token: getter
-      element: <testLibrary>::@class::C::@getter::getter
-      staticType: C
+    name: getter
     isDotShorthand: false
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@class::C::@getter::getter
+      invokeType: C Function()
+      type: C
     staticType: C
   argumentList: ArgumentList
     leftParenthesis: (
@@ -911,9 +1091,17 @@ main() {
 }
 ''');
 
-    var node = result.findNode.singleDotShorthandPropertyAccess;
+    var node = result.findNode.singleDotShorthandNameExpression;
     assertResolvedNodeText(node, r'''
-DotShorthandPropertyAccess
+DotShorthandNameExpression
+  period: .
+  name: foo
+  isDotShorthand: false
+  resolution: ExecutableTearOffResolution
+    element: <testLibrary>::@class::C::@method::foo
+    type: String Function<X>()
+  staticType: String Function<X>()
+V1: DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
     token: foo
@@ -936,9 +1124,18 @@ void main() {
 }
 ''');
 
-    var node = result.findNode.singleDotShorthandPropertyAccess;
+    var node = result.findNode.singleDotShorthandNameExpression;
     assertResolvedNodeText(node, r'''
-DotShorthandPropertyAccess
+DotShorthandNameExpression
+  period: .
+  name: red
+  isDotShorthand: true
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@enum::C::@getter::red
+    invokeType: C Function()
+    type: C
+  staticType: C
+V1: DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
     token: red
@@ -961,9 +1158,18 @@ void main() {
 }
 ''');
 
-    var node = result.findNode.singleDotShorthandPropertyAccess;
+    var node = result.findNode.singleDotShorthandNameExpression;
     assertResolvedNodeText(node, r'''
-DotShorthandPropertyAccess
+DotShorthandNameExpression
+  period: .
+  name: red
+  isDotShorthand: true
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@enum::C::@getter::red
+    invokeType: C Function()
+    type: C
+  staticType: C
+V1: DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
     token: red
@@ -996,9 +1202,18 @@ void main() {
 
 ''');
 
-    var node = result.findNode.singleDotShorthandPropertyAccess;
+    var node = result.findNode.singleDotShorthandNameExpression;
     assertResolvedNodeText(node, r'''
-DotShorthandPropertyAccess
+DotShorthandNameExpression
+  period: .
+  name: mixinOne
+  isDotShorthand: true
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@mixin::CMixin::@getter::mixinOne
+    invokeType: CMixin Function()
+    type: CMixin
+  staticType: CMixin
+V1: DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
     token: mixinOne
@@ -1029,13 +1244,14 @@ void f(Object o) {
 PostfixDecrement
   target: InvalidExpressionAssignmentTarget
     expression: ReceiverIndexExpression
-      receiver: DotShorthandPropertyAccess
+      receiver: DotShorthandNameExpression
         period: .
-        propertyName: SimpleIdentifier
-          token: values
-          element: <null>
-          staticType: InvalidType
+        name: values
         isDotShorthand: false
+        resolution: InvalidNamedReadResolution
+          type: InvalidType
+          candidates
+          recovery: <null>
         staticType: InvalidType
       leftBracket: [
       index: IntegerLiteral
@@ -1121,13 +1337,14 @@ PrefixDecrement
   operator: --
   target: InvalidExpressionAssignmentTarget
     expression: ReceiverIndexExpression
-      receiver: DotShorthandPropertyAccess
+      receiver: DotShorthandNameExpression
         period: .
-        propertyName: SimpleIdentifier
-          token: values
-          element: <null>
-          staticType: InvalidType
+        name: values
         isDotShorthand: false
+        resolution: InvalidNamedReadResolution
+          type: InvalidType
+          candidates
+          recovery: <null>
         staticType: InvalidType
       leftBracket: [
       index: IntegerLiteral
@@ -1229,9 +1446,19 @@ void main() {
 }
 ''');
 
-    var node = result.findNode.singleDotShorthandPropertyAccess;
+    var node = result.findNode.singleDotShorthandNameExpression;
     assertResolvedNodeText(node, r'''
-DotShorthandPropertyAccess
+DotShorthandNameExpression
+  period: .
+  name: getter
+  isDotShorthand: true
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::_Private::@getter::getter
+    invokeType: _Private Function()
+    type: _Private
+  correspondingParameter: <null>
+  staticType: _Private
+V1: DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
     token: getter
@@ -1277,9 +1504,19 @@ void main() {
 }
 ''');
 
-    var node = result.findNode.singleDotShorthandPropertyAccess;
+    var node = result.findNode.singleDotShorthandNameExpression;
     assertResolvedNodeText(node, r'''
-DotShorthandPropertyAccess
+DotShorthandNameExpression
+  period: .
+  name: two
+  isDotShorthand: true
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@enum::_Private::@getter::two
+    invokeType: _Private Function()
+    type: _Private
+  correspondingParameter: <null>
+  staticType: _Private
+V1: DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
     token: two
@@ -1329,9 +1566,19 @@ void main() {
 }
 ''');
 
-    var node = result.findNode.singleDotShorthandPropertyAccess;
+    var node = result.findNode.singleDotShorthandNameExpression;
     assertResolvedNodeText(node, r'''
-DotShorthandPropertyAccess
+DotShorthandNameExpression
+  period: .
+  name: getter
+  isDotShorthand: true
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@extensionType::_Private::@getter::getter
+    invokeType: _Private Function()
+    type: _Private
+  correspondingParameter: <null>
+  staticType: _Private
+V1: DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
     token: getter
@@ -1383,9 +1630,19 @@ void main() {
 }
 ''');
 
-    var node = result.findNode.singleDotShorthandPropertyAccess;
+    var node = result.findNode.singleDotShorthandNameExpression;
     assertResolvedNodeText(node, r'''
-DotShorthandPropertyAccess
+DotShorthandNameExpression
+  period: .
+  name: getter
+  isDotShorthand: true
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@mixin::_Private::@getter::getter
+    invokeType: _Private Function()
+    type: _Private
+  correspondingParameter: <null>
+  staticType: _Private
+V1: DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
     token: getter
@@ -1412,9 +1669,18 @@ main() {
 }
 ''');
 
-    var node = result.findNode.singleDotShorthandPropertyAccess;
+    var node = result.findNode.singleDotShorthandNameExpression;
     assertResolvedNodeText(node, r'''
-DotShorthandPropertyAccess
+DotShorthandNameExpression
+  period: .
+  name: id
+  isDotShorthand: true
+  resolution: ExecutableTearOffResolution
+    element: <testLibrary>::@class::C1::@constructor::id
+    type: C1 Function()
+  correspondingParameter: <testLibrary>::@class::C1::@method::==::@formalParameter::other
+  staticType: C1 Function()
+V1: DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
     token: id
@@ -1455,9 +1721,20 @@ void main() {
 }
 ''');
 
-    var node = result.findNode.singleDotShorthandPropertyAccess;
+    var node = result.findNode.singleDotShorthandNameExpression;
     assertResolvedNodeText(node, r'''
-DotShorthandPropertyAccess
+DotShorthandNameExpression
+  period: .
+  name: new
+  isDotShorthand: true
+  resolution: ExecutableTearOffResolution
+    element: SubstitutedConstructorElementImpl
+      baseElement: <testLibrary>::@class::C::@constructor::new
+      substitution: {T: T}
+    type: C<T> Function(T)
+  correspondingParameter: <null>
+  staticType: C<T> Function(T)
+V1: DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
     token: new
@@ -1477,9 +1754,17 @@ void main() {
 }
 ''');
 
-    var node = result.findNode.singleDotShorthandPropertyAccess;
+    var node = result.findNode.singleDotShorthandNameExpression;
     assertResolvedNodeText(node, r'''
-DotShorthandPropertyAccess
+DotShorthandNameExpression
+  period: .
+  name: new
+  isDotShorthand: true
+  resolution: ExecutableTearOffResolution
+    element: dart:core::@class::Object::@constructor::new
+    type: Object Function()
+  staticType: Object Function()
+V1: DotShorthandPropertyAccess
   period: .
   propertyName: SimpleIdentifier
     token: new

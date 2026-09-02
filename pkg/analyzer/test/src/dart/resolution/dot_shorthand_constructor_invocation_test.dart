@@ -1530,6 +1530,19 @@ DotShorthandConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      DotShorthandNameExpression
+        period: .
+        name: member
+        isDotShorthand: true
+        resolution: GetterInvocationResolution
+          element: <testLibrary>::@class::C::@getter::member
+          invokeType: C<dynamic> Function()
+          type: C<dynamic>
+        correspondingParameter: SubstitutedFieldFormalParameterElementImpl
+          baseElement: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
+          substitution: {T: C<dynamic>}
+        staticType: C<dynamic>
+    arguments(v1)
       DotShorthandPropertyAccess
         period: .
         propertyName: SimpleIdentifier

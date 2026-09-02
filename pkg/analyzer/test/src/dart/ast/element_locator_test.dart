@@ -198,7 +198,7 @@ void main() {
 // [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
 }
 ''');
-    var node = result.findNode.singleDotShorthandPropertyAccess;
+    var node = result.findNodeV1.singleDotShorthandPropertyAccess;
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A::@getter::foo
@@ -1170,7 +1170,7 @@ void main() {
 ''');
   }
 
-  test_locate_DotShorthandPropertyAccess() async {
+  test_locate_DotShorthandNameExpression() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   static A foo = A();
@@ -1182,7 +1182,7 @@ void main() {
 // [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
 }
 ''');
-    var node = result.findNode.singleDotShorthandPropertyAccess;
+    var node = result.findNode.singleDotShorthandNameExpression;
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A::@getter::foo

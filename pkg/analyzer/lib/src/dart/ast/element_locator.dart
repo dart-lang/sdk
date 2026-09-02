@@ -419,6 +419,17 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
   };
 
   @override
+  Element? visitDotShorthandNameExpression(DotShorthandNameExpression node) =>
+      switch (node.resolution) {
+        NamedReadResolutionWithElement(:var element) => element,
+        InvalidNamedReadResolution(
+          recovery: NamedReadResolutionWithElement(:var element),
+        ) =>
+          element,
+        _ => null,
+      };
+
+  @override
   Element? visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
     return node.propertyName.element;
   }

@@ -100,6 +100,16 @@ Map<E, String> a = {.one};
 SetOrMapLiteral
   leftBracket: {
   elements2
+    DotShorthandNameExpression
+      period: .
+      name: one
+      isDotShorthand: true
+      resolution: GetterInvocationResolution
+        element: <testLibrary>::@enum::E::@getter::one
+        invokeType: E Function()
+        type: E
+      staticType: E
+  elements(v1)
     DotShorthandPropertyAccess
       period: .
       propertyName: SimpleIdentifier
@@ -131,6 +141,16 @@ Map<E, String> a = {.};
 SetOrMapLiteral
   leftBracket: {
   elements2
+    DotShorthandNameExpression
+      period: .
+      name: <empty> <synthetic>
+      isDotShorthand: true
+      resolution: InvalidNamedReadResolution
+        type: InvalidType
+        candidates
+        recovery: <null>
+      staticType: InvalidType
+  elements(v1)
     DotShorthandPropertyAccess
       period: .
       propertyName: SimpleIdentifier

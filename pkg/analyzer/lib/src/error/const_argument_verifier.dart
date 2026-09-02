@@ -101,6 +101,15 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
   }
 
   @override
+  void visitDotShorthandNameExpression(DotShorthandNameExpression node) {
+    var element = switch (node.resolution) {
+      NamedReadResolutionWithElement(:var element) => element,
+      _ => null,
+    };
+    _checkTearoff(node, element);
+  }
+
+  @override
   void visitIfNullAssignment(IfNullAssignment node) {
     _check(arguments: [node.value], errorNode: node.operator);
   }
@@ -264,6 +273,7 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
   bool _isTearOff(Expression node) {
     if (node is ConstructorTearOff) return true;
     if (node is FunctionReference) return true;
+    if (node is DotShorthandNameExpression) return true;
     if (node is DotShorthandPropertyAccess) return true;
     if (node.inCommentReference2) return false;
     if (node is SimpleIdentifier) {

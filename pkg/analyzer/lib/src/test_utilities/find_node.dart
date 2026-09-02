@@ -83,6 +83,8 @@ class FindNode2 extends _FindNodeBase {
   DotShorthandMethodInvocation get singleDotShorthandMethodInvocation =>
       _single();
 
+  DotShorthandNameExpression get singleDotShorthandNameExpression => _single();
+
   IfNull get singleIfNull => _single();
 
   IfNullAssignment get singleIfNullAssignment => _single();
@@ -142,6 +144,10 @@ class FindNode2 extends _FindNodeBase {
 
   DotShorthandMethodInvocation dotShorthandMethodInvocation(String search) {
     return _node(search, (node) => node is DotShorthandMethodInvocation);
+  }
+
+  DotShorthandNameExpression dotShorthandNameExpression(String search) {
+    return _node(search, (node) => node is DotShorthandNameExpression);
   }
 
   IfNull ifNull(String search) {

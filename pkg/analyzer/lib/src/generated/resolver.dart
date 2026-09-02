@@ -3144,33 +3144,45 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitDotShorthandNameExpression(
+    covariant DotShorthandNameExpressionImpl node, {
+    TypeImpl contextType = UnknownInferredType.instance,
+  }) {
+    inferenceLogWriter?.enterExpression(node, contextType);
+    _resolveDotShorthandNameExpression(node, contextType);
+    inferenceLogWriter?.exitExpression(node);
+  }
+
+  @override
   void visitDotShorthandPropertyAccess(
     covariant DotShorthandPropertyAccessImpl node, {
     TypeImpl contextType = UnknownInferredType.instance,
   }) {
     inferenceLogWriter?.enterExpression(node, contextType);
-
-    // If [isDotShorthand] is set, cache the context type for resolution.
-    if (isDotShorthand(node)) {
+    var hasDotShorthandContext = isDotShorthand(node);
+    if (hasDotShorthandContext) {
+      // Preserve the parser node as the context-stack key. This both reuses a
+      // context already cached specifically for this shorthand (for example,
+      // on the right of `==`) and distinguishes this shorthand from an outer
+      // shorthand whose argument happens to contain it.
       pushDotShorthandContext(node, SharedTypeSchemaView(contextType));
     }
-
-    checkUnreachableNode(node);
-    var result = _propertyElementResolver.resolveDotShorthand(
-      node,
-      contextType: contextType,
-    );
-    _resolvePropertyAccessRhs_common(
-      result,
-      node,
-      node.propertyName,
+    var replacement = DotShorthandNameExpressionImpl(
+      period: node.period,
+      name: node.propertyName.token,
+    )..isDotShorthand = node.isDotShorthand;
+    replaceExpression(node, replacement);
+    flowAnalysis.transferExpressionInfo(node, replacement);
+    flowAnalysis.transferTestData(node, replacement);
+    inferenceHelper.transferTestData(node, replacement);
+    _resolveDotShorthandNameExpression(
+      replacement,
       contextType,
+      cacheContext: false,
     );
-
-    if (isDotShorthand(node)) {
+    if (hasDotShorthandContext) {
       popDotShorthandContext();
     }
-
     inferenceLogWriter?.exitExpression(node);
   }
 
@@ -5595,6 +5607,36 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     inferenceLogWriter?.exitExpression(node);
   }
 
+  void _resolveDotShorthandNameExpression(
+    DotShorthandNameExpressionImpl node,
+    TypeImpl contextType, {
+    bool cacheContext = true,
+  }) {
+    // If [isDotShorthand] is set, cache the context type for resolution.
+    var hasDotShorthandContext = cacheContext && isDotShorthand(node);
+    if (hasDotShorthandContext) {
+      pushDotShorthandContext(node, SharedTypeSchemaView(contextType));
+    }
+
+    checkUnreachableNode(node);
+    var resolution = _propertyElementResolver.resolveDotShorthand(
+      node,
+      contextType: contextType,
+    );
+    node.resolution = resolution;
+    node.recordStaticType(resolution.type, resolver: this);
+
+    var replacement = insertGenericFunctionInstantiation(
+      node,
+      contextType: contextType,
+    );
+    _insertImplicitCallReference(replacement, contextType: contextType);
+
+    if (hasDotShorthandContext) {
+      popDotShorthandContext();
+    }
+  }
+
   void _resolvePropertyAccessRhs(
     PropertyAccessImpl node,
     TypeImpl contextType, {
@@ -5621,8 +5663,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     nullSafetyDeadCodeVerifier.verifyPropertyAccess(node);
   }
 
-  /// Common logic for resolving dot shorthands property accesses and
-  /// [_resolvePropertyAccessRhs].
+  /// Common logic for resolving the V1 property-access representations.
   void _resolvePropertyAccessRhs_common(
     PropertyElementResolverResult resolverResult,
     ExpressionImpl node,

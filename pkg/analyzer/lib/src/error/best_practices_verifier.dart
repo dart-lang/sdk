@@ -439,6 +439,13 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitDotShorthandNameExpression(DotShorthandNameExpression node) {
+    _elementUsageFrontierDetector.dotShorthandNameExpression(node);
+    _invalidAccessVerifier.verifyDotShorthandNameExpression(node);
+    super.visitDotShorthandNameExpression(node);
+  }
+
+  @override
   void visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
     _elementUsageFrontierDetector.dotShorthandPropertyAccess(node);
     super.visitDotShorthandPropertyAccess(node);
@@ -1951,6 +1958,16 @@ class _InvalidAccessVerifier {
     _checkForOtherInvalidAccess(node, element);
   }
 
+  void verifyDotShorthandNameExpression(DotShorthandNameExpression node) {
+    var element = switch (node.resolution) {
+      InvalidNamedReadResolution(:var candidates) when candidates.isNotEmpty =>
+        candidates.first,
+      NamedReadResolutionWithElement(:var element) => element,
+      _ => null,
+    };
+    _verify(node: node, nameToken: node.name, element: element);
+  }
+
   void verifyImport(ImportDirective node) {
     var importedLibrary = node.libraryImport?.importedLibrary;
     if (importedLibrary != null &&
@@ -2371,6 +2388,9 @@ class _InvalidAccessVerifier {
     } else if (node is NamedType) {
       name = node.name.lexeme;
     } else if (node is NamedArgument) {
+      name = node.name.lexeme;
+      errorEntity = node.name;
+    } else if (node is DotShorthandNameExpression) {
       name = node.name.lexeme;
       errorEntity = node.name;
     } else if (node is NamedFunctionInvocation) {

@@ -1111,6 +1111,45 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   }
 
   @override
+  void visitDotShorthandNameExpression(
+    covariant DotShorthandNameExpressionImpl node,
+  ) {
+    switch (node.resolution) {
+      case GetterInvocationResolutionImpl(:var element):
+        recordRelation(
+          element,
+          IndexRelationKind.IS_INVOKED_BY,
+          node.name,
+          true,
+        );
+      case ExecutableTearOffResolutionImpl(:var element):
+        if (element is InternalConstructorElement) {
+          recordRelation(
+            _getActualConstructorElement(element),
+            IndexRelationKind
+                .IS_REFERENCED_BY_DOT_SHORTHAND_CONSTRUCTOR_TEAR_OFF,
+            node.name,
+            true,
+          );
+        } else {
+          recordRelation(
+            element,
+            IndexRelationKind.IS_REFERENCED_BY,
+            node.name,
+            true,
+          );
+        }
+      default:
+        assembler.addNameRelation(
+          node.name.lexeme,
+          IndexRelationKind.IS_READ_BY,
+          node.name.offset,
+          true,
+        );
+    }
+  }
+
+  @override
   void visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
     IndexRelationKind kind;
     var element = node.propertyName.element;

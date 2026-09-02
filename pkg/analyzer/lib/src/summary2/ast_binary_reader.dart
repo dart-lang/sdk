@@ -491,6 +491,19 @@ class AstBinaryReader {
     return node;
   }
 
+  DotShorthandNameExpression _readDotShorthandNameExpression() {
+    var flags = _readByte();
+    var name = _readStringReference();
+    var node = DotShorthandNameExpressionImpl(
+      period: Tokens.period(),
+      name: StringToken(TokenType.STRING, name, -1),
+    );
+    node.resolution = _reader.readOptionalObject(_readNamedReadResolution);
+    node.isDotShorthand = AstBinaryFlags.isDotShorthand(flags);
+    _readExpressionResolution(node);
+    return node;
+  }
+
   DotShorthandPropertyAccess _readDotShorthandPropertyAccess() {
     var flags = _readByte();
     var propertyName = _readNode() as SimpleIdentifierImpl;
@@ -1321,6 +1334,8 @@ class AstBinaryReader {
         return _readReceiverMethodInvocation();
       case AstNodeTag.DotShorthandMethodInvocation:
         return _readDotShorthandMethodInvocation();
+      case AstNodeTag.DotShorthandNameExpression:
+        return _readDotShorthandNameExpression();
       case AstNodeTag.IntegerLiteralNegative1:
         return _readIntegerLiteralNegative1();
       case AstNodeTag.IntegerLiteralNull:

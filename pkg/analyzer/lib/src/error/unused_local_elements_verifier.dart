@@ -243,6 +243,15 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitDotShorthandNameExpression(DotShorthandNameExpression node) {
+    if (node.resolution case NamedReadResolutionWithElement(:var element)) {
+      usedElements.addElement(element.enclosingElement);
+    }
+    _useNamedReadResolution(node.resolution, readCountsAsUse: true);
+    super.visitDotShorthandNameExpression(node);
+  }
+
+  @override
   void visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
     usedElements.addElement(node.propertyName.element?.enclosingElement);
     super.visitDotShorthandPropertyAccess(node);

@@ -6,6 +6,8 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/ast.dart'
+    show DotShorthandNameExpressionImpl;
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 
@@ -69,6 +71,18 @@ class _Collector {
         collect(string);
       }
       return;
+    }
+
+    if (node is DotShorthandNameExpressionImpl) {
+      switch (node.resolution) {
+        case GetterInvocationResolution(:var element)
+            when element.variable.isConst:
+        case ExecutableTearOffResolution():
+          return;
+        default:
+          nodes.add(node.dotShorthandPropertyAccess.propertyName);
+          return;
+      }
     }
 
     if (node is DotShorthandPropertyAccess) {

@@ -1406,9 +1406,9 @@ class MethodInvocationResolver with ScopeHelpers {
       functionExpression = propertyExtraction;
     } else if (target == null) {
       if (node is DotShorthandInvocationImpl) {
-        functionExpression = DotShorthandPropertyAccessImpl(
+        functionExpression = DotShorthandNameExpressionImpl(
           period: node.period,
-          propertyName: node.memberName,
+          name: node.memberName.token,
         );
       } else {
         functionExpression = methodName;
@@ -1473,6 +1473,22 @@ class MethodInvocationResolver with ScopeHelpers {
 
     if (functionExpression != methodName) {
       functionExpression.setPseudoExpressionStaticType(targetType);
+    }
+    if (functionExpression case DotShorthandNameExpressionImpl expression) {
+      expression.resolution = switch (methodName.element) {
+        InternalGetterElement element => GetterInvocationResolutionImpl(
+          element: element,
+          type: targetType,
+        ),
+        InternalExecutableElement element => ExecutableTearOffResolutionImpl(
+          element: element,
+        ),
+        var element => InvalidNamedReadResolutionImpl(
+          candidates: [?element],
+          recovery: null,
+          type: InvalidTypeImpl.instance,
+        ),
+      };
     }
 
     var invocation = CallInvocationImpl(

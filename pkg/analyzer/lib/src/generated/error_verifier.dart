@@ -1013,6 +1013,12 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   @override
+  void visitDotShorthandNameExpression(DotShorthandNameExpression node) {
+    _constArgumentsVerifier.visitDotShorthandNameExpression(node);
+    super.visitDotShorthandNameExpression(node);
+  }
+
+  @override
   void visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
     _checkUseVerifier.checkDotShorthandPropertyAccess(node);
     super.visitDotShorthandPropertyAccess(node);

@@ -1222,13 +1222,14 @@ library
         #F5 hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:60) (firstTokenOffset:60) (offset:60)
           element: <testLibrary>::@topLevelVariable::a
           initializer: expression_1
-            DotShorthandPropertyAccess
+            DotShorthandNameExpression
               period: . @64
-              propertyName: SimpleIdentifier
-                token: a @65
-                element: <testLibrary>::@class::A::@getter::a
-                staticType: A
+              name: a @65
               isDotShorthand: true
+              resolution: GetterInvocationResolution
+                element: <testLibrary>::@class::A::@getter::a
+                invokeType: A Function()
+                type: A
               staticType: A
           inducedGetter: #F6
       getters
