@@ -321,6 +321,18 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
   }
 
   @override
+  Element? visitCascadeMethodInvocation(CascadeMethodInvocation node) {
+    return switch (node.resolution) {
+      ExecutableInvocationResolution(:var element) => element,
+      InvalidInvocationResolution(
+        recovery: ExecutableInvocationResolution(:var element),
+      ) =>
+        element,
+      _ => null,
+    };
+  }
+
+  @override
   Element? visitCascadePropertyAssignmentTarget(
     CascadePropertyAssignmentTarget node,
   ) {

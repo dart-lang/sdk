@@ -276,16 +276,16 @@ library
                       type: bool
                     staticType: bool
                 CascadeSection
-                  body: MethodInvocation
-                    operator: .. @25
-                    methodName: SimpleIdentifier
-                      token: abs @27
-                      element: dart:core::@class::int::@method::abs
-                      staticType: int Function()
+                  operator: .. @25
+                  body: CascadeMethodInvocation
+                    name: abs @27
                     argumentList: ArgumentList
                       leftParenthesis: ( @30
                       rightParenthesis: ) @31
-                    staticInvokeType: int Function()
+                    resolution: ExecutableInvocationResolution
+                      element: dart:core::@class::int::@method::abs
+                      invokeType: int Function()
+                      type: int
                     staticType: int
               cascadeSections
                 PropertyAccess
@@ -10173,16 +10173,16 @@ library
                 staticType: int?
               sections
                 CascadeSection
-                  body: MethodInvocation
-                    operator: ?.. @29
-                    methodName: SimpleIdentifier
-                      token: toString @32
-                      element: dart:core::@class::int::@method::toString
-                      staticType: String Function()
+                  operator: ?.. @29
+                  body: CascadeMethodInvocation
+                    name: toString @32
                     argumentList: ArgumentList
                       leftParenthesis: ( @40
                       rightParenthesis: ) @41
-                    staticInvokeType: String Function()
+                    resolution: ExecutableInvocationResolution
+                      element: dart:core::@class::int::@method::toString
+                      invokeType: String Function()
+                      type: String
                     staticType: String
               cascadeSections
                 MethodInvocation

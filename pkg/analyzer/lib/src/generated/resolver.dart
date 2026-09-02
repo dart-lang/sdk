@@ -2587,6 +2587,84 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitCascadeMethodInvocation(
+    covariant CascadeMethodInvocationImpl node, {
+    TypeImpl contextType = UnknownInferredType.instance,
+  }) {
+    inferenceLogWriter?.enterExpression(node, contextType);
+    checkUnreachableNode(node);
+    node.typeArguments?.accept2(this);
+
+    var previousResolution = node.resolution;
+    var previousInvokeType = node.staticInvokeType;
+    var cascadeTargetType = typeSystem.resolveToBound(
+      _activeCascadeExpression!.target2.typeOrThrow,
+    );
+    InvocationTarget? target = switch (previousResolution) {
+      ExecutableInvocationResolutionImpl(:var element) =>
+        InvocationTargetExecutableElement(element),
+      FunctionCallInvocationResolutionImpl()
+          when cascadeTargetType is FunctionTypeImpl =>
+        InvocationTargetFunctionTypedExpression(cascadeTargetType),
+      InvalidInvocationResolutionImpl(
+        recovery: ExecutableInvocationResolutionImpl(:var element),
+      ) =>
+        InvocationTargetExecutableElement(element),
+      InvalidInvocationResolutionImpl(
+        recovery: FunctionCallInvocationResolutionImpl(:var invokeType),
+      ) =>
+        InvocationTargetFunctionTypedExpression(invokeType),
+      _ => null,
+    };
+
+    var whyNotPromotedArguments =
+        <Map<SharedTypeView, NonPromotionReason> Function()>[];
+    var inferredType =
+        CascadeMethodInvocationInferrer(
+              resolver: this,
+              node: node,
+              argumentList: node.argumentList,
+              whyNotPromotedArguments: whyNotPromotedArguments,
+              contextType: contextType,
+              target: target,
+            ).resolveInvocation()
+            as TypeImpl;
+
+    node.resolution = switch (previousResolution) {
+      ExecutableInvocationResolutionImpl(:var element) =>
+        ExecutableInvocationResolutionImpl(
+          element: element,
+          invokeType: node.staticInvokeType as FunctionTypeImpl,
+          type: inferredType,
+        ),
+      FunctionCallInvocationResolutionImpl() =>
+        FunctionCallInvocationResolutionImpl(
+          invokeType: node.staticInvokeType as FunctionTypeImpl,
+          type: inferredType,
+        ),
+      _ => previousResolution,
+    };
+    if (target == null) {
+      node.staticInvokeType = previousInvokeType;
+    }
+    node.recordStaticType(
+      node.resolution?.type ?? node.typeOrThrow,
+      resolver: this,
+    );
+
+    var replacement = insertGenericFunctionInstantiation(
+      node,
+      contextType: contextType,
+    );
+    checkForArgumentTypesNotAssignableInList(
+      node.argumentList,
+      whyNotPromotedArguments,
+    );
+    _insertImplicitCallReference(replacement, contextType: contextType);
+    inferenceLogWriter?.exitExpression(node);
+  }
+
+  @override
   void visitCascadePropertyExtraction(
     covariant CascadePropertyExtractionImpl node, {
     TypeImpl contextType = UnknownInferredType.instance,
@@ -4021,8 +4099,13 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       contextType: contextType,
     );
 
+    ExpressionImpl resolvedNode = peekRewrite()!;
+    if (identical(resolvedNode, node) && node.isCascaded) {
+      resolvedNode = _rewriteCascadeMethodInvocation(node);
+    }
+
     var replacement = insertGenericFunctionInstantiation(
-      node,
+      resolvedNode,
       contextType: contextType,
     );
     checkForArgumentTypesNotAssignableInList(
@@ -5434,6 +5517,64 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     );
 
     _insertImplicitCallReference(replacement, contextType: contextType);
+  }
+
+  CascadeMethodInvocationImpl _rewriteCascadeMethodInvocation(
+    MethodInvocationImpl node,
+  ) {
+    var resultType = node.typeOrThrow;
+    var invokeType = node.staticInvokeType;
+    var element = node.methodName.element;
+
+    ValidInvocationResolutionImpl? validResolution;
+    if (invokeType is FunctionTypeImpl) {
+      validResolution = switch (element) {
+        InternalExecutableElement() => ExecutableInvocationResolutionImpl(
+          element: element,
+          invokeType: invokeType,
+          type: resultType,
+        ),
+        _ => FunctionCallInvocationResolutionImpl(
+          invokeType: invokeType,
+          type: resultType,
+        ),
+      };
+    }
+
+    InvocationResolutionImpl? resolution;
+    if (resultType is NeverTypeImpl &&
+        resultType.nullabilitySuffix == NullabilitySuffix.none) {
+      resolution = null;
+    } else if (resultType is InvalidTypeImpl || invokeType is InvalidTypeImpl) {
+      resolution = InvalidInvocationResolutionImpl(
+        candidates: [?element],
+        recovery: validResolution,
+        type: resultType,
+      );
+    } else if (validResolution != null) {
+      resolution = validResolution;
+    } else if (node.methodName.name == MethodElement.CALL_METHOD_NAME &&
+        typeSystem
+            .resolveToBound(_activeCascadeExpression!.target2.typeOrThrow)
+            .isDartCoreFunction) {
+      resolution = FunctionInterfaceInvocationResolutionImpl(type: resultType);
+    } else {
+      resolution = DynamicInvocationResolutionImpl(type: resultType);
+    }
+
+    var invocation = CascadeMethodInvocationImpl(
+      name: node.methodName.token,
+      typeArguments: node.typeArguments,
+      argumentList: node.argumentList,
+    );
+    invocation
+      ..resolution = resolution
+      ..staticInvokeType = invokeType
+      ..typeArgumentTypes = node.typeArgumentTypes
+      ..setPseudoExpressionStaticType(resultType);
+    replaceExpression(node, invocation);
+    flowAnalysis.transferTestData(node, invocation);
+    return invocation;
   }
 
   bool _shouldSkipImplicitCallReferenceDueToForm(

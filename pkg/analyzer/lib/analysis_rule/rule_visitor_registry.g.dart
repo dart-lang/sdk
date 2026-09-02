@@ -563,6 +563,12 @@ abstract class RuleVisitorRegistry2 {
   );
 
   @experimental
+  void addCascadeMethodInvocation(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
+
+  @experimental
   void addCascadePropertyAssignmentTarget(
     AbstractAnalysisRule rule,
     AstVisitor2 visitor,

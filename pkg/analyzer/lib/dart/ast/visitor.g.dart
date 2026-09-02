@@ -493,6 +493,10 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   @override
   R? visitNamedArgument(NamedArgument node) => visitNode(node);
 
+  @experimental
+  R? visitNamedFunctionInvocation(NamedFunctionInvocation node) =>
+      visitFunctionInvocation(node);
+
   @override
   R? visitNamedType(NamedType node) => visitTypeAnnotation(node);
 
@@ -2063,6 +2067,13 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
   @experimental
   @override
   R? visitCascadeIndexExpression(CascadeIndexExpression node) {
+    node.visitChildren2(this);
+    return null;
+  }
+
+  @experimental
+  @override
+  R? visitCascadeMethodInvocation(CascadeMethodInvocation node) {
     node.visitChildren2(this);
     return null;
   }
@@ -3933,6 +3944,10 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
 
   @experimental
   @override
+  R? visitCascadeMethodInvocation(CascadeMethodInvocation node) => null;
+
+  @experimental
+  @override
   R? visitCascadePropertyAssignmentTarget(
     CascadePropertyAssignmentTarget node,
   ) => null;
@@ -5253,6 +5268,10 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
   @experimental
   @override
   R? visitCascadeIndexExpression(CascadeIndexExpression node) => _throw(node);
+
+  @experimental
+  @override
+  R? visitCascadeMethodInvocation(CascadeMethodInvocation node) => _throw(node);
 
   @experimental
   @override
@@ -7611,6 +7630,15 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
 
   @experimental
   @override
+  T? visitCascadeMethodInvocation(CascadeMethodInvocation node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitCascadeMethodInvocation(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @experimental
+  @override
   T? visitCascadePropertyAssignmentTarget(
     CascadePropertyAssignmentTarget node,
   ) {
@@ -9899,6 +9927,11 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
   @experimental
   @override
   R? visitCascadeIndexExpression(CascadeIndexExpression node) =>
+      visitNode(node);
+
+  @experimental
+  @override
+  R? visitCascadeMethodInvocation(CascadeMethodInvocation node) =>
       visitNode(node);
 
   @experimental

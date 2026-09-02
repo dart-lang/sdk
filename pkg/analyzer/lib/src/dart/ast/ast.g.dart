@@ -470,6 +470,9 @@ abstract class AstVisitor2<R> {
   R? visitCascadeIndexExpression(CascadeIndexExpression node);
 
   @experimental
+  R? visitCascadeMethodInvocation(CascadeMethodInvocation node);
+
+  @experimental
   R? visitCascadePropertyAssignmentTarget(CascadePropertyAssignmentTarget node);
 
   @experimental

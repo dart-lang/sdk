@@ -132,6 +132,19 @@ class DeprecatedFunctionalityVerifier {
     _checkForDeprecatedImplement(node.onClause?.superclassConstraints);
   }
 
+  void namedFunctionInvocation(NamedFunctionInvocation node) {
+    var method = switch (node.resolution) {
+      ExecutableInvocationResolution(:var element) => element,
+      _ => null,
+    };
+    if (method is! ExecutableElement || method is LocalFunctionElement) return;
+    _checkForDeprecatedOptional(
+      element: method,
+      argumentList: node.argumentList,
+      errorEntity: node.name,
+    );
+  }
+
   void primaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
     _checkForDeprecatedOptionalSuperParameters(
       parameters: node.formalParameters,

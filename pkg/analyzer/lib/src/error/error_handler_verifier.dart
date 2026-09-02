@@ -64,116 +64,24 @@ class ErrorHandlerVerifier {
     if (target == null) {
       return;
     }
+    _verifyInvocation(
+      node,
+      target: target,
+      methodName: node.methodName.name,
+      argumentList: node.argumentList,
+    );
+  }
 
-    if (node.argumentList.arguments2.isEmpty) {
-      return;
-    }
-
-    var targetType = target.staticType;
-    if (targetType == null) {
-      return;
-    }
-    var methodName = node.methodName.name;
-    if (methodName == 'catchError' && targetType.isDartAsyncFuture) {
-      var callback = node.argumentList.arguments2.first;
-      if (callback is NamedArgument) {
-        // TODO(srawlins): The comment below is wrong, given
-        // `named-arguments-anywhere`.
-        // This implies that no positional arguments are passed.
-        return;
-      }
-      _checkFutureCatchErrorOnError(target, callback.argumentExpression2);
-      return;
-    }
-
-    if (methodName == 'then' && targetType.isDartAsyncFuture) {
-      var callback = node.argumentList.arguments2
-          .whereType<NamedArgument>()
-          .firstWhereOrNull((argument) => argument.name.lexeme == 'onError');
-      if (callback == null) {
-        return;
-      }
-      _checkFutureThenOnError(node, callback.argumentExpression2);
-      return;
-    }
-
-    if (methodName == 'handleError' &&
-        _isDartCoreAsyncType(targetType, 'Stream')) {
-      var callback = node.argumentList.arguments2.first;
-      if (callback is NamedArgument) {
-        // This implies that no positional arguments are passed.
-        return;
-      }
-      var callbackType = callback.argumentExpression2.staticType;
-      if (callbackType == null) {
-        return;
-      }
-      if (callbackType is FunctionTypeImpl) {
-        _checkErrorHandlerFunctionType(
-          callback,
-          callback.argumentExpression2,
-          callbackType,
-          _typeProvider.voidType,
-          checkFirstParameterType:
-              callback.argumentExpression2 is FunctionExpression,
-        );
-        return;
-      }
-      // [callbackType] might be dart:core's Function, or something not
-      // assignable to Function, in which case an error is reported elsewhere.
-    }
-
-    if (methodName == 'listen' && _isDartCoreAsyncType(targetType, 'Stream')) {
-      var callback = node.argumentList.arguments2
-          .whereType<NamedArgument>()
-          .firstWhereOrNull((argument) => argument.name.lexeme == 'onError');
-      if (callback == null) {
-        return;
-      }
-      var callbackType = callback.argumentExpression2.staticType;
-      if (callbackType == null) {
-        return;
-      }
-      if (callbackType is FunctionTypeImpl) {
-        _checkErrorHandlerFunctionType(
-          callback,
-          callback.argumentExpression2,
-          callbackType,
-          _typeProvider.voidType,
-          checkFirstParameterType:
-              callback.argumentExpression2 is FunctionExpression,
-        );
-        return;
-      }
-      // [callbackType] might be dart:core's Function, or something not
-      // assignable to Function, in which case an error is reported elsewhere.
-    }
-
-    if (methodName == 'onError' &&
-        _isDartCoreAsyncType(targetType, 'StreamSubscription')) {
-      var callback = node.argumentList.arguments2.first;
-      if (callback is NamedArgument) {
-        // This implies that no positional arguments are passed.
-        return;
-      }
-      var callbackType = callback.argumentExpression2.staticType;
-      if (callbackType == null) {
-        return;
-      }
-      if (callbackType is FunctionTypeImpl) {
-        _checkErrorHandlerFunctionType(
-          callback,
-          callback.argumentExpression2,
-          callbackType,
-          _typeProvider.voidType,
-          checkFirstParameterType:
-              callback.argumentExpression2 is FunctionExpression,
-        );
-        return;
-      }
-      // [callbackType] might be dart:core's Function, or something not
-      // assignable to Function, in which case an error is reported elsewhere.
-    }
+  void verifyNamedFunctionInvocation(
+    NamedFunctionInvocation node,
+    Expression target,
+  ) {
+    _verifyInvocation(
+      node,
+      target: target,
+      methodName: node.name.lexeme,
+      argumentList: node.argumentList,
+    );
   }
 
   /// Checks that [expression], a function with static type [expressionType], is
@@ -290,7 +198,7 @@ class ErrorHandlerVerifier {
     }
   }
 
-  void _checkFutureThenOnError(MethodInvocation node, Expression callback) {
+  void _checkFutureThenOnError(Expression node, Expression callback) {
     var nodeType = node.staticType as InterfaceTypeImpl;
     var targetFutureType = nodeType.typeArguments.first;
     var expectedReturnType = _typeProvider.futureOrType(targetFutureType);
@@ -388,6 +296,122 @@ class ErrorHandlerVerifier {
       type is InterfaceType &&
       type.element.name == typeName &&
       type.element.library.isDartAsync;
+
+  void _verifyInvocation(
+    Expression node, {
+    required Expression target,
+    required String methodName,
+    required ArgumentList argumentList,
+  }) {
+    if (argumentList.arguments2.isEmpty) {
+      return;
+    }
+
+    var targetType = target.staticType;
+    if (targetType == null) {
+      return;
+    }
+    if (methodName == 'catchError' && targetType.isDartAsyncFuture) {
+      var callback = argumentList.arguments2.first;
+      if (callback is NamedArgument) {
+        // TODO(srawlins): The comment below is wrong, given
+        // `named-arguments-anywhere`.
+        // This implies that no positional arguments are passed.
+        return;
+      }
+      _checkFutureCatchErrorOnError(target, callback.argumentExpression2);
+      return;
+    }
+
+    if (methodName == 'then' && targetType.isDartAsyncFuture) {
+      var callback = argumentList.arguments2
+          .whereType<NamedArgument>()
+          .firstWhereOrNull((argument) => argument.name.lexeme == 'onError');
+      if (callback == null) {
+        return;
+      }
+      _checkFutureThenOnError(node, callback.argumentExpression2);
+      return;
+    }
+
+    if (methodName == 'handleError' &&
+        _isDartCoreAsyncType(targetType, 'Stream')) {
+      var callback = argumentList.arguments2.first;
+      if (callback is NamedArgument) {
+        // This implies that no positional arguments are passed.
+        return;
+      }
+      var callbackType = callback.argumentExpression2.staticType;
+      if (callbackType == null) {
+        return;
+      }
+      if (callbackType is FunctionTypeImpl) {
+        _checkErrorHandlerFunctionType(
+          callback,
+          callback.argumentExpression2,
+          callbackType,
+          _typeProvider.voidType,
+          checkFirstParameterType:
+              callback.argumentExpression2 is FunctionExpression,
+        );
+        return;
+      }
+      // [callbackType] might be dart:core's Function, or something not
+      // assignable to Function, in which case an error is reported elsewhere.
+    }
+
+    if (methodName == 'listen' && _isDartCoreAsyncType(targetType, 'Stream')) {
+      var callback = argumentList.arguments2
+          .whereType<NamedArgument>()
+          .firstWhereOrNull((argument) => argument.name.lexeme == 'onError');
+      if (callback == null) {
+        return;
+      }
+      var callbackType = callback.argumentExpression2.staticType;
+      if (callbackType == null) {
+        return;
+      }
+      if (callbackType is FunctionTypeImpl) {
+        _checkErrorHandlerFunctionType(
+          callback,
+          callback.argumentExpression2,
+          callbackType,
+          _typeProvider.voidType,
+          checkFirstParameterType:
+              callback.argumentExpression2 is FunctionExpression,
+        );
+        return;
+      }
+      // [callbackType] might be dart:core's Function, or something not
+      // assignable to Function, in which case an error is reported elsewhere.
+    }
+
+    if (methodName == 'onError' &&
+        _isDartCoreAsyncType(targetType, 'StreamSubscription')) {
+      var callback = argumentList.arguments2.first;
+      if (callback is NamedArgument) {
+        // This implies that no positional arguments are passed.
+        return;
+      }
+      var callbackType = callback.argumentExpression2.staticType;
+      if (callbackType == null) {
+        return;
+      }
+      if (callbackType is FunctionTypeImpl) {
+        _checkErrorHandlerFunctionType(
+          callback,
+          callback.argumentExpression2,
+          callbackType,
+          _typeProvider.voidType,
+          checkFirstParameterType:
+              callback.argumentExpression2 is FunctionExpression,
+        );
+        return;
+      }
+      // [callbackType] might be dart:core's Function, or something not
+      // assignable to Function, in which case an error is reported elsewhere.
+    }
+  }
 
   static bool _isVoidOrDynamic(DartType type) {
     return type is VoidType ||

@@ -1384,17 +1384,31 @@ class MethodInvocationResolver with ScopeHelpers {
     var targetType = getterReturnType;
 
     ExpressionImpl functionExpression;
-    if (target == null) {
+    if (isCascaded) {
+      var propertyExtraction = CascadePropertyExtractionImpl(
+        propertyName: methodName.token,
+      );
+      var result = _resolver.resolveCascadeProperty(
+        propertyExtraction,
+        propertyExtraction.propertyName,
+        hasRead: true,
+        hasWrite: false,
+      );
+      propertyExtraction.resolution = result?.read;
+      targetType = result?.read?.type ?? NeverTypeImpl.instance;
+      propertyExtraction.setPseudoExpressionStaticType(targetType);
+      if (result?.readExpressionInfo case var expressionInfo?) {
+        _resolver.flowAnalysis.storeExpressionInfo(
+          propertyExtraction,
+          expressionInfo,
+        );
+      }
+      functionExpression = propertyExtraction;
+    } else if (target == null) {
       if (node is DotShorthandInvocationImpl) {
         functionExpression = DotShorthandPropertyAccessImpl(
           period: node.period,
           propertyName: node.memberName,
-        );
-      } else if (isCascaded) {
-        functionExpression = PropertyAccessImpl(
-          target2: null,
-          operator: operator!,
-          propertyName: methodName,
         );
       } else {
         functionExpression = methodName;
@@ -1406,9 +1420,7 @@ class MethodInvocationResolver with ScopeHelpers {
           !element.isStatic) {
         if (_resolver.flowAnalysis.flow case var flow?) {
           var (wrappedPromotedType, expressionInfo) = flow.propertyGet(
-            isCascaded
-                ? CascadePropertyTarget.singleton
-                : ThisPropertyTarget.singleton,
+            ThisPropertyTarget.singleton,
             methodName.name,
             element,
             SharedTypeView(getterReturnType),

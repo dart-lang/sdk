@@ -77,6 +77,15 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitCascadeMethodInvocation(CascadeMethodInvocation node) {
+    if (node.resolution case ExecutableInvocationResolution(:var element)) {
+      usedElements.addElement(element);
+      _addParametersForArguments(node.argumentList);
+    }
+    super.visitCascadeMethodInvocation(node);
+  }
+
+  @override
   void visitCascadePropertyExtraction(CascadePropertyExtraction node) {
     _useNamedReadResolution(node.resolution, readCountsAsUse: true);
     super.visitCascadePropertyExtraction(node);

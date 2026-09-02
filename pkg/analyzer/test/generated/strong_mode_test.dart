@@ -223,7 +223,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
 
     CascadeExpression cascade = fetch(0);
     _isInstantiationOf(_hasElement(elementA))([_isInt])(cascade.typeOrThrow);
-    var invoke = cascade.cascadeSections2[0] as MethodInvocation;
+    var invoke = cascade.sections[0].body as CascadeMethodInvocation;
     var function = invoke.argumentList.arguments2[1] as FunctionExpression;
     ExecutableElement f0 = function.declaredFragment!.element;
     _isListOf(_isInt)(f0.type.returnType as InterfaceType);

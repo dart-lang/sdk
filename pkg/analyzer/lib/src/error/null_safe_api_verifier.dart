@@ -47,18 +47,44 @@ class NullSafeApiVerifier {
   /// `T` and an argument that is effectively `null`.
   void methodInvocation(MethodInvocationImpl node) {
     var targetType = node.realTarget2?.staticType;
+    _checkMethodInvocation(
+      node,
+      targetType: targetType,
+      methodName: node.methodName.name,
+      argumentList: node.argumentList,
+    );
+  }
+
+  void namedFunctionInvocation(
+    NamedFunctionInvocationImpl node,
+    ExpressionImpl target,
+  ) {
+    _checkMethodInvocation(
+      node,
+      targetType: target.staticType,
+      methodName: node.name.lexeme,
+      argumentList: node.argumentList,
+    );
+  }
+
+  void _checkMethodInvocation(
+    ExpressionImpl node, {
+    required DartType? targetType,
+    required String methodName,
+    required ArgumentListImpl argumentList,
+  }) {
     if (targetType is! InterfaceTypeImpl) return;
 
     var targetClass = targetType.element;
 
     if (targetClass.library.isDartAsync &&
         targetClass.name == 'Completer' &&
-        node.methodName.name == 'complete') {
+        methodName == 'complete') {
       _checkTypes(
         node,
         'Completer.complete',
         targetType.typeArguments.single,
-        node.argumentList,
+        argumentList,
       );
     }
   }

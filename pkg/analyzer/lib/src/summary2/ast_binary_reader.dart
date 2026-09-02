@@ -216,6 +216,22 @@ class AstBinaryReader {
     return node;
   }
 
+  CascadeMethodInvocation _readCascadeMethodInvocation() {
+    var name = _readStringReference();
+    var typeArguments = _readOptionalNode() as TypeArgumentListImpl?;
+    var arguments = _readNode() as ArgumentListImpl;
+    var node = CascadeMethodInvocationImpl(
+      name: StringToken(TokenType.STRING, name, -1),
+      typeArguments: typeArguments,
+      argumentList: arguments,
+    );
+    node.staticInvokeType = _reader.readType();
+    node.typeArgumentTypes = _reader.readOptionalTypeList();
+    node.resolution = _reader.readOptionalObject(_readInvocationResolution);
+    _readExpressionResolution(node);
+    return node;
+  }
+
   CascadePropertyAssignmentTarget _readCascadePropertyAssignmentTarget() {
     var propertyName = _readStringReference();
     var node = CascadePropertyAssignmentTargetImpl(
@@ -1194,6 +1210,8 @@ class AstBinaryReader {
         return _readCascadeIndexAssignmentTarget();
       case AstNodeTag.CascadeIndexExpression:
         return _readCascadeIndexExpression();
+      case AstNodeTag.CascadeMethodInvocation:
+        return _readCascadeMethodInvocation();
       case AstNodeTag.CascadePropertyAssignmentTarget:
         return _readCascadePropertyAssignmentTarget();
       case AstNodeTag.CascadePropertyExtraction:

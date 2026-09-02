@@ -80,12 +80,12 @@ void f(C c) {
     var node = result.findNode.callInvocation('_field()');
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: PropertyAccess
-    operator: ..
-    propertyName: SimpleIdentifier
-      token: _field
+  receiver: CascadePropertyExtraction
+    propertyName: _field
+    resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::_field
-      staticType: int Function()
+      invokeType: Object? Function()
+      type: int Function()
     staticType: int Function()
   argumentList: ArgumentList
     leftParenthesis: (

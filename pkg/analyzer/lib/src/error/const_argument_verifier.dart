@@ -61,6 +61,13 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
   }
 
   @override
+  void visitCascadeMethodInvocation(CascadeMethodInvocation node) {
+    if (node.resolution is StaticInvocationResolution) {
+      _check(arguments: node.argumentList.arguments2, errorNode: node);
+    }
+  }
+
+  @override
   void visitCompoundAssignment(CompoundAssignment node) {
     _check(arguments: [node.value], errorNode: node.operator);
   }

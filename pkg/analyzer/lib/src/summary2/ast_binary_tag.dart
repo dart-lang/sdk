@@ -113,6 +113,7 @@ enum AstNodeTag {
   UnqualifiedNameAssignmentTarget,
   VariableDeclaration,
   VariableDeclarationList,
+  CascadeMethodInvocation,
 }
 
 enum DirectiveUriKind {

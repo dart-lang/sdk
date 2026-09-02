@@ -758,6 +758,29 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   }
 
   @override
+  void visitCascadeMethodInvocation(CascadeMethodInvocation node) {
+    var element = switch (node.resolution) {
+      ExecutableInvocationResolution(:var element) => element,
+      InvalidInvocationResolution(
+        recovery: ExecutableInvocationResolution(:var element),
+      ) =>
+        element,
+      _ => null,
+    };
+    if (element == null) {
+      assembler.addNameRelation(
+        node.name.lexeme,
+        IndexRelationKind.IS_INVOKED_BY,
+        node.name.offset,
+        true,
+      );
+    } else {
+      recordRelation(element, IndexRelationKind.IS_INVOKED_BY, node.name, true);
+    }
+    node.visitChildren2(this);
+  }
+
+  @override
   void visitCascadePropertyExtraction(
     covariant CascadePropertyExtractionImpl node,
   ) {

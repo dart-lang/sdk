@@ -163,28 +163,28 @@ CascadeExpression
     staticType: A
   sections
     CascadeSection
-      body: MethodInvocation
-        operator: ..
-        methodName: SimpleIdentifier
-          token: foo
-          element: <testLibrary>::@class::A::@method::foo
-          staticType: void Function()
+      operator: ..
+      body: CascadeMethodInvocation
+        name: foo
         argumentList: ArgumentList
           leftParenthesis: (
           rightParenthesis: )
-        staticInvokeType: void Function()
+        resolution: ExecutableInvocationResolution
+          element: <testLibrary>::@class::A::@method::foo
+          invokeType: void Function()
+          type: void
         staticType: void
     CascadeSection
-      body: MethodInvocation
-        operator: ..
-        methodName: SimpleIdentifier
-          token: bar
-          element: <testLibrary>::@class::A::@method::bar
-          staticType: void Function()
+      operator: ..
+      body: CascadeMethodInvocation
+        name: bar
         argumentList: ArgumentList
           leftParenthesis: (
           rightParenthesis: )
-        staticInvokeType: void Function()
+        resolution: ExecutableInvocationResolution
+          element: <testLibrary>::@class::A::@method::bar
+          invokeType: void Function()
+          type: void
         staticType: void
   cascadeSections
     MethodInvocation
@@ -210,6 +210,183 @@ CascadeExpression
       staticInvokeType: void Function()
       staticType: void
   staticType: A
+''');
+  }
+
+  test_cascadeMethod_dynamic() async {
+    var result = await resolveTestCode(r'''
+void f(dynamic a) {
+  a..foo(0);
+}
+''');
+
+    var node = result.findNode.cascadeMethodInvocation('foo(0)');
+    assertResolvedNodeText(node, r'''
+CascadeMethodInvocation
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <null>
+        staticType: int
+    rightParenthesis: )
+  resolution: DynamicInvocationResolution
+    type: dynamic
+  staticType: dynamic
+V1: MethodInvocation
+  operator: ..
+  methodName: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <null>
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+  }
+
+  test_cascadeMethod_functionCall() async {
+    var result = await resolveTestCode(r'''
+void f(int Function(int) a) {
+  a..call(0);
+}
+''');
+
+    var node = result.findNode.cascadeMethodInvocation('call(0)');
+    assertResolvedNodeText(node, r'''
+CascadeMethodInvocation
+  name: call
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <null-name>@null
+        staticType: int
+    rightParenthesis: )
+  resolution: FunctionCallInvocationResolution
+    invokeType: int Function(int)
+    type: int
+  staticType: int
+V1: MethodInvocation
+  operator: ..
+  methodName: SimpleIdentifier
+    token: call
+    element: <null>
+    staticType: int Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <null-name>@null
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: int Function(int)
+  staticType: int
+''');
+  }
+
+  test_cascadeMethod_functionInterface() async {
+    var result = await resolveTestCode(r'''
+void f(Function a) {
+  a..call(0);
+}
+''');
+
+    var node = result.findNode.cascadeMethodInvocation('call(0)');
+    assertResolvedNodeText(node, r'''
+CascadeMethodInvocation
+  name: call
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <null>
+        staticType: int
+    rightParenthesis: )
+  resolution: FunctionInterfaceInvocationResolution
+    type: dynamic
+  staticType: dynamic
+V1: MethodInvocation
+  operator: ..
+  methodName: SimpleIdentifier
+    token: call
+    element: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <null>
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: dynamic
+''');
+  }
+
+  test_cascadeMethod_topLevelInitializer_secondResolution() async {
+    var result = await resolveTestCode(r'''
+class C {
+  T id<T>(T value) => value;
+}
+
+var x = C()..id(0);
+''');
+
+    var node = result.findNode.cascadeMethodInvocation('id(0)');
+    assertResolvedNodeText(node, r'''
+CascadeMethodInvocation
+  name: id
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: <testLibrary>::@class::C::@method::id::@formalParameter::value
+          substitution: {T: int}
+        staticType: int
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@class::C::@method::id
+    invokeType: int Function(int)
+    type: int
+  staticType: int
+  typeArgumentTypes
+    int
+V1: MethodInvocation
+  operator: ..
+  methodName: SimpleIdentifier
+    token: id
+    element: <testLibrary>::@class::C::@method::id
+    staticType: int Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: <testLibrary>::@class::C::@method::id::@formalParameter::value
+          substitution: {T: int}
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: int Function(int)
+  staticType: int
+  typeArgumentTypes
+    int
 ''');
   }
 
@@ -1062,9 +1239,30 @@ f(int a, int b, int c) {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('clamp');
+    var node = result.findNode.cascadeMethodInvocation('clamp');
     assertResolvedNodeText(node, r'''
-MethodInvocation
+CascadeMethodInvocation
+  name: clamp
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      SimpleIdentifier
+        token: b
+        correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::lowerLimit
+        element: <testLibrary>::@function::f::@formalParameter::b
+        staticType: int
+      SimpleIdentifier
+        token: c
+        correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::upperLimit
+        element: <testLibrary>::@function::f::@formalParameter::c
+        staticType: int
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: dart:core::@class::num::@method::clamp
+    invokeType: num Function(num, num)
+    type: int
+  staticType: int
+V1: MethodInvocation
   operator: ..
   methodName: SimpleIdentifier
     token: clamp
@@ -1072,7 +1270,7 @@ MethodInvocation
     staticType: num Function(num, num)
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       SimpleIdentifier
         token: b
         correspondingParameter: dart:core::@class::num::@method::clamp::@formalParameter::lowerLimit
@@ -3244,9 +3442,18 @@ main() {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('toString()');
+    var node = result.findNode.cascadeMethodInvocation('toString()');
     assertResolvedNodeText(node, r'''
-MethodInvocation
+CascadeMethodInvocation
+  name: toString
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: MethodInvocation
   operator: ..
   methodName: SimpleIdentifier
     token: toString
@@ -4205,12 +4412,12 @@ var v = C()..foo(0) = 0;
     var node = result.findNode.callInvocation('foo(0)');
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: PropertyAccess
-    operator: ..
-    propertyName: SimpleIdentifier
-      token: foo
+  receiver: CascadePropertyExtraction
+    propertyName: foo
+    resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::foo
-      staticType: double Function(int)
+      invokeType: double Function(int) Function()
+      type: double Function(int)
     staticType: double Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -7519,28 +7726,28 @@ CascadeExpression
     staticType: A?
   sections
     CascadeSection
-      body: MethodInvocation
-        operator: ?..
-        methodName: SimpleIdentifier
-          token: foo
-          element: <testLibrary>::@class::A::@method::foo
-          staticType: int Function()
+      operator: ?..
+      body: CascadeMethodInvocation
+        name: foo
         argumentList: ArgumentList
           leftParenthesis: (
           rightParenthesis: )
-        staticInvokeType: int Function()
+        resolution: ExecutableInvocationResolution
+          element: <testLibrary>::@class::A::@method::foo
+          invokeType: int Function()
+          type: int
         staticType: int
     CascadeSection
-      body: MethodInvocation
-        operator: ..
-        methodName: SimpleIdentifier
-          token: bar
-          element: <testLibrary>::@class::A::@method::bar
-          staticType: int Function()
+      operator: ..
+      body: CascadeMethodInvocation
+        name: bar
         argumentList: ArgumentList
           leftParenthesis: (
           rightParenthesis: )
-        staticInvokeType: int Function()
+        resolution: ExecutableInvocationResolution
+          element: <testLibrary>::@class::A::@method::bar
+          invokeType: int Function()
+          type: int
         staticType: int
   cascadeSections
     MethodInvocation
@@ -7599,16 +7806,16 @@ CascadeExpression
           type: int
         staticType: int
     CascadeSection
-      body: MethodInvocation
-        operator: ..
-        methodName: SimpleIdentifier
-          token: bar
-          element: <testLibrary>::@class::A::@method::bar
-          staticType: int Function()
+      operator: ..
+      body: CascadeMethodInvocation
+        name: bar
         argumentList: ArgumentList
           leftParenthesis: (
           rightParenthesis: )
-        staticInvokeType: int Function()
+        resolution: ExecutableInvocationResolution
+          element: <testLibrary>::@class::A::@method::bar
+          invokeType: int Function()
+          type: int
         staticType: int
   cascadeSections
     PropertyAccess
@@ -7672,8 +7879,19 @@ CascadeExpression
     staticType: A
   sections
     CascadeSection
+      operator: ..
       body: MethodInvocation
-        target2: MethodInvocation
+        target2: CascadeMethodInvocation
+          name: foo
+          argumentList: ArgumentList
+            leftParenthesis: (
+            rightParenthesis: )
+          resolution: ExecutableInvocationResolution
+            element: <testLibrary>::@class::A::@method::foo
+            invokeType: int? Function()
+            type: int?
+          staticType: int?
+        target(v1): MethodInvocation
           operator: ..
           methodName: SimpleIdentifier
             token: foo

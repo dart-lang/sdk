@@ -632,6 +632,10 @@ abstract class _FindNodeBase {
     return _node(search, (n) => n is CascadeIndexExpression);
   }
 
+  CascadeMethodInvocation cascadeMethodInvocation(String search) {
+    return _node(search, (n) => n is CascadeMethodInvocation);
+  }
+
   CascadePropertyAssignmentTarget cascadePropertyAssignmentTarget(
     String search,
   ) {

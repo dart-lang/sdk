@@ -525,6 +525,15 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   @override
+  void visitCascadeMethodInvocation(CascadeMethodInvocation node) {
+    _checkCascadeSectionNullAware(node);
+    _requiredParametersVerifier.visitCascadeMethodInvocation(node);
+    _constArgumentsVerifier.visitCascadeMethodInvocation(node);
+    _checkUseVerifier.checkNamedFunctionInvocation(node);
+    super.visitCascadeMethodInvocation(node);
+  }
+
+  @override
   void visitCascadePropertyAssignmentTarget(
     CascadePropertyAssignmentTarget node,
   ) {

@@ -418,16 +418,16 @@ ImplicitCallReference
       staticType: C
     sections
       CascadeSection
-        body: MethodInvocation
-          operator: ..
-          methodName: SimpleIdentifier
-            token: m
-            element: <testLibrary>::@class::C::@method::m
-            staticType: void Function()
+        operator: ..
+        body: CascadeMethodInvocation
+          name: m
           argumentList: ArgumentList
             leftParenthesis: (
             rightParenthesis: )
-          staticInvokeType: void Function()
+          resolution: ExecutableInvocationResolution
+            element: <testLibrary>::@class::C::@method::m
+            invokeType: void Function()
+            type: void
           staticType: void
     cascadeSections
       MethodInvocation
@@ -729,9 +729,19 @@ f(A a) {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('foo();');
+    var node = result.findNode.cascadeMethodInvocation('foo();');
     assertResolvedNodeText(node, r'''
-MethodInvocation
+CascadeMethodInvocation
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@class::A::@method::foo
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: MethodInvocation
   operator: ..
   methodName: SimpleIdentifier
     token: foo

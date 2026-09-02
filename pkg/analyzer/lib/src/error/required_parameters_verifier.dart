@@ -45,6 +45,17 @@ class RequiredParametersVerifier extends SimpleAstVisitor2<void> {
   }
 
   @override
+  void visitCascadeMethodInvocation(CascadeMethodInvocation node) {
+    if (node.resolution case StaticInvocationResolution(:var invokeType)) {
+      _check(
+        parameters: invokeType.formalParameters,
+        arguments: node.argumentList.arguments2,
+        errorEntity: node,
+      );
+    }
+  }
+
+  @override
   void visitConstructorInvocation(ConstructorInvocation node) {
     _check(
       parameters: node.constructorReference.element?.formalParameters,
