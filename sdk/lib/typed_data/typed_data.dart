@@ -4376,6 +4376,15 @@ abstract final class Int32x4 {
   /// Returns four values that are always either 0 or -1.
   Int32x4 equal(Int32x4 other);
 
+  /// Lane-wise integer inequality comparison.
+  ///
+  /// The result for a lane is a 32-bit signed integer which is -1
+  /// (all bits set) if the value from this object is not equal to
+  /// the value from [other], and the result is 0 (all bits cleared) if it is.
+  ///
+  /// Returns four values that are always either 0 or -1.
+  Int32x4 notEqual(Int32x4 other);
+
   /// Extract 32-bit mask from x lane.
   int get x;
 

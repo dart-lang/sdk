@@ -2026,6 +2026,15 @@ final class NativeInt32x4 implements Int32x4 {
     );
   }
 
+  Int32x4 notEqual(Int32x4 other) {
+    return NativeInt32x4._truncated(
+      x != other.x ? -1 : 0,
+      y != other.y ? -1 : 0,
+      z != other.z ? -1 : 0,
+      w != other.w ? -1 : 0,
+    );
+  }
+
   bool get anyTrue => (x | y | z | w) != 0;
 
   /// Shuffle the lane values. [mask] must be one of the 256 shuffle constants.
