@@ -2114,16 +2114,17 @@ f(int Function() a, int b) {
     var node = result.findNode.binaryOperatorInvocation('a() + b');
     assertResolvedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: FunctionExpressionInvocation
-    function2: SimpleIdentifier
+  leftOperand: CallInvocation
+    receiver: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::f::@formalParameter::a
       staticType: int Function()
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
-    element: <null>
-    staticInvokeType: int Function()
+    resolution: FunctionTypeInvocationResolution
+      invokeType: int Function()
+      type: int
     staticType: int
   operator: +
   rightOperand: SimpleIdentifier

@@ -1036,10 +1036,30 @@ void main() {
 }
 ''');
 
-    var node = result.findNode.singleFunctionExpressionInvocation;
+    var node = result.findNode.singleCallInvocation;
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: DotShorthandConstructorInvocation
+CallInvocation
+  receiver: DotShorthandConstructorInvocation
+    period: .
+    constructorName: SimpleIdentifier
+      token: new
+      element: <testLibrary>::@class::C::@constructor::new
+      staticType: null
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    isDotShorthand: false
+    staticType: C
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@class::C::@method::call
+    invokeType: C Function()
+    type: C
+  staticType: C
+V1: FunctionExpressionInvocation
+  function: DotShorthandConstructorInvocation
     period: .
     constructorName: SimpleIdentifier
       token: new
@@ -1070,10 +1090,10 @@ void main() {
 }
 ''');
 
-    var node = result.findNode.singleFunctionExpressionInvocation;
+    var node = result.findNode.singleCallInvocation;
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: DotShorthandConstructorInvocation
+CallInvocation
+  receiver: DotShorthandConstructorInvocation
     period: .
     constructorName: SimpleIdentifier
       token: new
@@ -1087,6 +1107,31 @@ FunctionExpressionInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <testLibrary>::@class::C::@method::call::@formalParameter::x
+        staticType: int
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@class::C::@method::call
+    invokeType: C Function(int)
+    type: C
+  staticType: C
+V1: FunctionExpressionInvocation
+  function: DotShorthandConstructorInvocation
+    period: .
+    constructorName: SimpleIdentifier
+      token: new
+      element: <testLibrary>::@class::C::@constructor::new
+      staticType: null
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    isDotShorthand: false
+    staticType: C
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: <testLibrary>::@class::C::@method::call::@formalParameter::x
@@ -1111,10 +1156,30 @@ void main() {
 }
 ''');
 
-    var node = result.findNode.singleFunctionExpressionInvocation;
+    var node = result.findNode.singleCallInvocation;
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: DotShorthandConstructorInvocation
+CallInvocation
+  receiver: DotShorthandConstructorInvocation
+    period: .
+    constructorName: SimpleIdentifier
+      token: new
+      element: <testLibrary>::@class::C::@constructor::new
+      staticType: null
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    isDotShorthand: false
+    staticType: C
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@extension::CallC::@method::call
+    invokeType: C Function()
+    type: C
+  staticType: C
+V1: FunctionExpressionInvocation
+  function: DotShorthandConstructorInvocation
     period: .
     constructorName: SimpleIdentifier
       token: new
@@ -1145,10 +1210,10 @@ void main() {
 }
 ''');
 
-    var node = result.findNode.singleFunctionExpressionInvocation;
+    var node = result.findNode.singleCallInvocation;
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: DotShorthandConstructorInvocation
+CallInvocation
+  receiver: DotShorthandConstructorInvocation
     period: .
     constructorName: SimpleIdentifier
       token: new
@@ -1177,6 +1242,43 @@ FunctionExpressionInvocation
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@class::C::@method::call
+    invokeType: C Function(int)
+    type: C
+  staticType: C
+  typeArgumentTypes
+    int
+V1: FunctionExpressionInvocation
+  function: DotShorthandConstructorInvocation
+    period: .
+    constructorName: SimpleIdentifier
+      token: new
+      element: <testLibrary>::@class::C::@constructor::new
+      staticType: null
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    isDotShorthand: false
+    staticType: C
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: <testLibrary>::@class::C::@method::call::@formalParameter::t
+          substitution: {T: int}
+        staticType: int
+    rightParenthesis: )
   element: <testLibrary>::@class::C::@method::call
   staticInvokeType: C Function(int)
   staticType: C
@@ -1197,10 +1299,30 @@ void main() {
 }
 ''');
 
-    var node = result.findNode.singleFunctionExpressionInvocation;
+    var node = result.findNode.singleCallInvocation;
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: DotShorthandConstructorInvocation
+CallInvocation
+  receiver: DotShorthandConstructorInvocation
+    period: .
+    constructorName: SimpleIdentifier
+      token: named
+      element: <testLibrary>::@class::C::@constructor::named
+      staticType: null
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    isDotShorthand: false
+    staticType: C
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@class::C::@method::call
+    invokeType: C Function()
+    type: C
+  staticType: C
+V1: FunctionExpressionInvocation
+  function: DotShorthandConstructorInvocation
     period: .
     constructorName: SimpleIdentifier
       token: named
@@ -1233,10 +1355,10 @@ void main() {
 }
 ''');
 
-    var node = result.findNode.singleFunctionExpressionInvocation;
+    var node = result.findNode.singleCallInvocation;
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: DotShorthandConstructorInvocation
+CallInvocation
+  receiver: DotShorthandConstructorInvocation
     period: .
     constructorName: SimpleIdentifier
       token: new
@@ -1245,6 +1367,39 @@ FunctionExpressionInvocation
     argumentList: ArgumentList
       leftParenthesis: (
       arguments2
+        DotShorthandConstructorInvocation
+          period: .
+          constructorName: SimpleIdentifier
+            token: a
+            element: <testLibrary>::@class::C::@constructor::a
+            staticType: null
+          argumentList: ArgumentList
+            leftParenthesis: (
+            rightParenthesis: )
+          isDotShorthand: true
+          correspondingParameter: <testLibrary>::@class::C::@constructor::new::@formalParameter::c
+          staticType: C
+      rightParenthesis: )
+    isDotShorthand: false
+    staticType: C
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@class::C::@method::call
+    invokeType: C Function()
+    type: C
+  staticType: C
+V1: FunctionExpressionInvocation
+  function: DotShorthandConstructorInvocation
+    period: .
+    constructorName: SimpleIdentifier
+      token: new
+      element: <testLibrary>::@class::C::@constructor::new
+      staticType: null
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
         DotShorthandConstructorInvocation
           period: .
           constructorName: SimpleIdentifier

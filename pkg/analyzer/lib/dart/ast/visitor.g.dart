@@ -349,6 +349,9 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R? visitFunctionExpressionInvocation(FunctionExpressionInvocation node) =>
       visitInvocationExpression(node);
 
+  @experimental
+  R? visitFunctionInvocation(FunctionInvocation node) => visitExpression(node);
+
   @override
   R? visitFunctionReference(FunctionReference node) =>
       visitCommentReferableExpression(node);
@@ -2037,6 +2040,13 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
     return null;
   }
 
+  @experimental
+  @override
+  R? visitCallInvocation(CallInvocation node) {
+    node.visitChildren2(this);
+    return null;
+  }
+
   @override
   R? visitCascadeExpression(CascadeExpression node) {
     node.visitChildren2(this);
@@ -2458,12 +2468,6 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitFunctionExpression(FunctionExpression node) {
-    node.visitChildren2(this);
-    return null;
-  }
-
-  @override
-  R? visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     node.visitChildren2(this);
     return null;
   }
@@ -3911,6 +3915,10 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitBreakStatement(BreakStatement node) => null;
 
+  @experimental
+  @override
+  R? visitCallInvocation(CallInvocation node) => null;
+
   @override
   R? visitCascadeExpression(CascadeExpression node) => null;
 
@@ -4134,10 +4142,6 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitFunctionExpression(FunctionExpression node) => null;
-
-  @override
-  R? visitFunctionExpressionInvocation(FunctionExpressionInvocation node) =>
-      null;
 
   @override
   R? visitFunctionReference(FunctionReference node) => null;
@@ -5234,6 +5238,10 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitBreakStatement(BreakStatement node) => _throw(node);
 
+  @experimental
+  @override
+  R? visitCallInvocation(CallInvocation node) => _throw(node);
+
   @override
   R? visitCascadeExpression(CascadeExpression node) => _throw(node);
 
@@ -5466,10 +5474,6 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitFunctionExpression(FunctionExpression node) => _throw(node);
-
-  @override
-  R? visitFunctionExpressionInvocation(FunctionExpressionInvocation node) =>
-      _throw(node);
 
   @override
   R? visitFunctionReference(FunctionReference node) => _throw(node);
@@ -7570,6 +7574,15 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
     return result;
   }
 
+  @experimental
+  @override
+  T? visitCallInvocation(CallInvocation node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitCallInvocation(node);
+    stopwatch.stop();
+    return result;
+  }
+
   @override
   T? visitCascadeExpression(CascadeExpression node) {
     stopwatch.start();
@@ -8127,14 +8140,6 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
   T? visitFunctionExpression(FunctionExpression node) {
     stopwatch.start();
     T? result = _baseVisitor.visitFunctionExpression(node);
-    stopwatch.stop();
-    return result;
-  }
-
-  @override
-  T? visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    stopwatch.start();
-    T? result = _baseVisitor.visitFunctionExpressionInvocation(node);
     stopwatch.stop();
     return result;
   }
@@ -9879,6 +9884,10 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitBreakStatement(BreakStatement node) => visitNode(node);
 
+  @experimental
+  @override
+  R? visitCallInvocation(CallInvocation node) => visitNode(node);
+
   @override
   R? visitCascadeExpression(CascadeExpression node) => visitNode(node);
 
@@ -10119,10 +10128,6 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitFunctionExpression(FunctionExpression node) => visitNode(node);
-
-  @override
-  R? visitFunctionExpressionInvocation(FunctionExpressionInvocation node) =>
-      visitNode(node);
 
   @override
   R? visitFunctionReference(FunctionReference node) => visitNode(node);

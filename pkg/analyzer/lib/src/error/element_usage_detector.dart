@@ -558,6 +558,17 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
     checkUsage(node.element, node);
   }
 
+  void callInvocation(CallInvocation node) {
+    var callElement = switch (node.resolution) {
+      ExecutableInvocationResolution(:var element) => element,
+      _ => null,
+    };
+    if (callElement is MethodElement &&
+        callElement.name == MethodElement.CALL_METHOD_NAME) {
+      checkUsage(callElement, node);
+    }
+  }
+
   /// Reports the usage of [element] at [node] if [element] is in
   /// any of [usagesMetadataOnly] or [usagesArbitrary].
   void checkUsage(Element? element, AstNode node) {
@@ -836,14 +847,6 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
           checkUsage(redirectedParameter, node);
         }
       }
-    }
-  }
-
-  void functionExpressionInvocation(FunctionExpressionInvocation node) {
-    var callElement = node.element;
-    if (callElement is MethodElement &&
-        callElement.name == MethodElement.CALL_METHOD_NAME) {
-      checkUsage(callElement, node);
     }
   }
 

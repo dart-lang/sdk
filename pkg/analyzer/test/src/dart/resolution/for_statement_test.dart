@@ -2915,8 +2915,20 @@ ForStatement
   leftParenthesis: (
   forLoopParts: ForPartsWithExpression
     leftSeparator: ;
-    condition2: FunctionExpressionInvocation
-      function2: SimpleIdentifier
+    condition2: CallInvocation
+      receiver: SimpleIdentifier
+        token: b
+        element: <testLibrary>::@function::f::@formalParameter::b
+        staticType: bool Function()
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      resolution: FunctionTypeInvocationResolution
+        invokeType: bool Function()
+        type: bool
+      staticType: bool
+    condition(v1): FunctionExpressionInvocation
+      function: SimpleIdentifier
         token: b
         element: <testLibrary>::@function::f::@formalParameter::b
         staticType: bool Function()

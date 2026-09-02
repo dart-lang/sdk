@@ -251,18 +251,25 @@ Block
             name: f1
       semicolon: ;
     ExpressionStatement
-      expression2: FunctionExpressionInvocation
-        function2: NullAssertionExpression
-          operand: SimpleIdentifier
-            token: f1
-          operator: !
-        function(v1): PostfixExpression
+      expression2: CallInvocation
+        receiver: NullAssertionExpression
           operand: SimpleIdentifier
             token: f1
           operator: !
         argumentList: ArgumentList
           leftParenthesis: (
           arguments2
+            IntegerLiteral
+              literal: 42
+          rightParenthesis: )
+      expression(v1): FunctionExpressionInvocation
+        function: PostfixExpression
+          operand: SimpleIdentifier
+            token: f1
+          operator: !
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments
             IntegerLiteral
               literal: 42
           rightParenthesis: )
@@ -292,12 +299,8 @@ Block
             name: f2
       semicolon: ;
     ExpressionStatement
-      expression2: FunctionExpressionInvocation
-        function2: NullAssertionExpression
-          operand: SimpleIdentifier
-            token: f2
-          operator: !
-        function(v1): PostfixExpression
+      expression2: CallInvocation
+        receiver: NullAssertionExpression
           operand: SimpleIdentifier
             token: f2
           operator: !
@@ -310,6 +313,23 @@ Block
         argumentList: ArgumentList
           leftParenthesis: (
           arguments2
+            IntegerLiteral
+              literal: 42
+          rightParenthesis: )
+      expression(v1): FunctionExpressionInvocation
+        function: PostfixExpression
+          operand: SimpleIdentifier
+            token: f2
+          operator: !
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: int
+          rightBracket: >
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments
             IntegerLiteral
               literal: 42
           rightParenthesis: )
@@ -3053,18 +3073,25 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression2: FunctionExpressionInvocation
-        function2: NullAssertionExpression
-          operand: SimpleIdentifier
-            token: obj
-          operator: !
-        function(v1): PostfixExpression
+      expression2: CallInvocation
+        receiver: NullAssertionExpression
           operand: SimpleIdentifier
             token: obj
           operator: !
         argumentList: ArgumentList
           leftParenthesis: (
           arguments2
+            SimpleIdentifier
+              token: arg
+          rightParenthesis: )
+      expression(v1): FunctionExpressionInvocation
+        function: PostfixExpression
+          operand: SimpleIdentifier
+            token: obj
+          operator: !
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments
             SimpleIdentifier
               token: arg
           rightParenthesis: )
@@ -3085,14 +3112,10 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression2: FunctionExpressionInvocation
-        function2: NullAssertionExpression
-          operand: FunctionExpressionInvocation
-            function2: NullAssertionExpression
-              operand: SimpleIdentifier
-                token: obj
-              operator: !
-            function(v1): PostfixExpression
+      expression2: CallInvocation
+        receiver: NullAssertionExpression
+          operand: CallInvocation
+            receiver: NullAssertionExpression
               operand: SimpleIdentifier
                 token: obj
               operator: !
@@ -3103,7 +3126,14 @@ Block
                   token: arg
               rightParenthesis: )
           operator: !
-        function(v1): PostfixExpression
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments2
+            SimpleIdentifier
+              token: arg2
+          rightParenthesis: )
+      expression(v1): FunctionExpressionInvocation
+        function: PostfixExpression
           operand: FunctionExpressionInvocation
             function: PostfixExpression
               operand: SimpleIdentifier
@@ -3118,7 +3148,7 @@ Block
           operator: !
         argumentList: ArgumentList
           leftParenthesis: (
-          arguments2
+          arguments
             SimpleIdentifier
               token: arg2
           rightParenthesis: )

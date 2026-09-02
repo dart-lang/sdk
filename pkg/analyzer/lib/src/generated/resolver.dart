@@ -228,8 +228,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   late final BinaryExpressionResolver _binaryExpressionResolver;
   late final ConstructorTearOffResolver _constructorTearOffResolver =
       ConstructorTearOffResolver(this);
-  late final FunctionExpressionInvocationResolver
-  functionExpressionInvocationResolver;
+  late final CallInvocationResolver callInvocationResolver;
   late final FunctionExpressionResolver _functionExpressionResolver;
   late final ForResolver _forResolver;
   late final IncrementOrDecrementResolver _incrementOrDecrementResolver;
@@ -376,9 +375,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
           : null,
     );
     _binaryExpressionResolver = BinaryExpressionResolver(resolver: this);
-    functionExpressionInvocationResolver = FunctionExpressionInvocationResolver(
-      resolver: this,
-    );
+    callInvocationResolver = CallInvocationResolver(resolver: this);
     _functionExpressionResolver = FunctionExpressionResolver(resolver: this);
     _forResolver = ForResolver(resolver: this);
     _incrementOrDecrementResolver = IncrementOrDecrementResolver(
@@ -2455,6 +2452,49 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitCallInvocation(
+    covariant CallInvocationImpl node, {
+    TypeImpl contextType = UnknownInferredType.instance,
+  }) {
+    inferenceLogWriter?.enterExpression(node, contextType);
+
+    // If [isDotShorthand] is set, cache the context type for resolution.
+    if (isDotShorthand(node)) {
+      pushDotShorthandContext(node, SharedTypeSchemaView(contextType));
+    }
+
+    analyzeExpression(
+      node.receiver as ExpressionImpl,
+      SharedTypeSchemaView(UnknownInferredType.instance),
+      continueNullShorting: true,
+    );
+    node.receiver = popRewrite()!;
+
+    var whyNotPromotedArguments =
+        <Map<SharedTypeView, NonPromotionReason> Function()>[];
+    callInvocationResolver.resolve(
+      node,
+      whyNotPromotedArguments,
+      contextType: contextType,
+    );
+    var replacement = insertGenericFunctionInstantiation(
+      node,
+      contextType: contextType,
+    );
+    checkForArgumentTypesNotAssignableInList(
+      node.argumentList,
+      whyNotPromotedArguments,
+    );
+    _insertImplicitCallReference(replacement, contextType: contextType);
+
+    if (isDotShorthand(node)) {
+      popDotShorthandContext();
+    }
+
+    inferenceLogWriter?.exitExpression(node);
+  }
+
+  @override
   void visitCascadeExpression(
     covariant CascadeExpressionImpl node, {
     TypeImpl contextType = UnknownInferredType.instance,
@@ -2983,7 +3023,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
 
     // TODO(paulberry): why don't we do this for
     // DotShorthandConstructorInvocationImpl?
-    if (rewrittenExpression is FunctionExpressionInvocationImpl ||
+    if (rewrittenExpression is CallInvocationImpl ||
         rewrittenExpression == null) {
       var replacement = insertGenericFunctionInstantiation(
         node,
@@ -3452,49 +3492,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       _functionExpressionResolver.resolve(node, contextType: contextType);
       insertGenericFunctionInstantiation(node, contextType: contextType);
     });
-    inferenceLogWriter?.exitExpression(node);
-  }
-
-  @override
-  void visitFunctionExpressionInvocation(
-    covariant FunctionExpressionInvocationImpl node, {
-    TypeImpl contextType = UnknownInferredType.instance,
-  }) {
-    inferenceLogWriter?.enterExpression(node, contextType);
-
-    // If [isDotShorthand] is set, cache the context type for resolution.
-    if (isDotShorthand(node)) {
-      pushDotShorthandContext(node, SharedTypeSchemaView(contextType));
-    }
-
-    analyzeExpression(
-      node.function2,
-      SharedTypeSchemaView(UnknownInferredType.instance),
-      continueNullShorting: true,
-    );
-    node.function2 = popRewrite()!;
-
-    var whyNotPromotedArguments =
-        <Map<SharedTypeView, NonPromotionReason> Function()>[];
-    functionExpressionInvocationResolver.resolve(
-      node,
-      whyNotPromotedArguments,
-      contextType: contextType,
-    );
-    var replacement = insertGenericFunctionInstantiation(
-      node,
-      contextType: contextType,
-    );
-    checkForArgumentTypesNotAssignableInList(
-      node.argumentList,
-      whyNotPromotedArguments,
-    );
-    _insertImplicitCallReference(replacement, contextType: contextType);
-
-    if (isDotShorthand(node)) {
-      popDotShorthandContext();
-    }
-
     inferenceLogWriter?.exitExpression(node);
   }
 
@@ -5782,8 +5779,8 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       }
     } else if (nameNode is MethodInvocation) {
       name = nameNode.methodName.name;
-    } else if (nameNode is FunctionExpressionInvocation) {
-      var function = nameNode.function2;
+    } else if (nameNode is CallInvocation) {
+      var function = nameNode.receiver;
       if (function is SimpleIdentifier) {
         name = function.name;
       }

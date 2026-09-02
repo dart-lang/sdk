@@ -43,16 +43,16 @@ LogicalAnd
     typeArgumentTypes
       bool
   operator: &&
-  rightOperand: FunctionExpressionInvocation
-    function2: SimpleIdentifier
+  rightOperand: CallInvocation
+    receiver: SimpleIdentifier
       token: b
       element: <testLibrary>::@function::f::@formalParameter::b
       staticType: dynamic
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
-    element: <null>
-    staticInvokeType: dynamic
+    resolution: DynamicInvocationResolution
+      type: dynamic
     staticType: dynamic
   staticType: bool
 V1: BinaryExpression
@@ -153,16 +153,16 @@ LogicalOr
     typeArgumentTypes
       bool
   operator: ||
-  rightOperand: FunctionExpressionInvocation
-    function2: SimpleIdentifier
+  rightOperand: CallInvocation
+    receiver: SimpleIdentifier
       token: b
       element: <testLibrary>::@function::f::@formalParameter::b
       staticType: dynamic
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
-    element: <null>
-    staticInvokeType: dynamic
+    resolution: DynamicInvocationResolution
+      type: dynamic
     staticType: dynamic
   staticType: bool
 V1: BinaryExpression

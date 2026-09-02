@@ -12,6 +12,12 @@ class UseResultVerifier {
 
   UseResultVerifier(this._diagnosticReporter);
 
+  void checkCallInvocation(CallInvocation node) {
+    if (node.resolution case ExecutableInvocationResolution(:var element)) {
+      _check(node, element);
+    }
+  }
+
   void checkConstructorInvocation(ConstructorInvocation node) {
     var element = node.constructorReference.element;
     if (element == null) {
@@ -43,15 +49,6 @@ class UseResultVerifier {
 
   void checkDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
     var element = node.propertyName.element;
-    if (element == null) {
-      return;
-    }
-
-    _check(node, element);
-  }
-
-  void checkFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    var element = node.element;
     if (element == null) {
       return;
     }
@@ -95,7 +92,7 @@ class UseResultVerifier {
         parent is DotShorthandPropertyAccess ||
         parent is PropertyAccess ||
         parent is MethodInvocation ||
-        parent is FunctionExpressionInvocation) {
+        parent is CallInvocation) {
       return;
     }
 
@@ -250,7 +247,7 @@ class UseResultVerifier {
         parent is ExpressionFunctionBody ||
         parent is ForEachParts ||
         parent is ForLoopParts ||
-        parent is FunctionExpressionInvocation ||
+        parent is CallInvocation ||
         parent is IfStatement ||
         parent is IndexAssignmentTarget ||
         parent is IndexExpression ||
@@ -301,7 +298,7 @@ extension on AstNode {
     DotShorthandPropertyAccess node => node.propertyName,
     MethodInvocation node => node.methodName,
     PropertyAccess node => node.propertyName,
-    FunctionExpressionInvocation node => node.function2.nodeToAnnotate,
+    CallInvocation node => node.receiver.nodeToAnnotate,
     _ => this,
   };
 }

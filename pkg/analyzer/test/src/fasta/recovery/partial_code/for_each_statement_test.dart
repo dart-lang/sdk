@@ -47,12 +47,21 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in
-                  iterable2: FunctionExpressionInvocation
-                    function2: SimpleIdentifier
+                  iterable2: CallInvocation
+                    receiver: SimpleIdentifier
                       token: assert
                     argumentList: ArgumentList
                       leftParenthesis: (
                       arguments2
+                        BooleanLiteral
+                          literal: true
+                      rightParenthesis: )
+                  iterable(v1): FunctionExpressionInvocation
+                    function: SimpleIdentifier
+                      token: assert
+                    argumentList: ArgumentList
+                      leftParenthesis: (
+                      arguments
                         BooleanLiteral
                           literal: true
                       rightParenthesis: )
@@ -1601,12 +1610,21 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForPartsWithExpression
-                  initialization2: FunctionExpressionInvocation
-                    function2: SimpleIdentifier
+                  initialization2: CallInvocation
+                    receiver: SimpleIdentifier
                       token: assert
                     argumentList: ArgumentList
                       leftParenthesis: (
                       arguments2
+                        BooleanLiteral
+                          literal: true
+                      rightParenthesis: )
+                  initialization(v1): FunctionExpressionInvocation
+                    function: SimpleIdentifier
+                      token: assert
+                    argumentList: ArgumentList
+                      leftParenthesis: (
+                      arguments
                         BooleanLiteral
                           literal: true
                       rightParenthesis: )
@@ -3118,12 +3136,21 @@ CompilationUnit
                       name: A
                     name: a
                   inKeyword: in <synthetic>
-                  iterable2: FunctionExpressionInvocation
-                    function2: SimpleIdentifier
+                  iterable2: CallInvocation
+                    receiver: SimpleIdentifier
                       token: assert
                     argumentList: ArgumentList
                       leftParenthesis: (
                       arguments2
+                        BooleanLiteral
+                          literal: true
+                      rightParenthesis: )
+                  iterable(v1): FunctionExpressionInvocation
+                    function: SimpleIdentifier
+                      token: assert
+                    argumentList: ArgumentList
+                      leftParenthesis: (
+                      arguments
                         BooleanLiteral
                           literal: true
                       rightParenthesis: )
@@ -3915,12 +3942,21 @@ CompilationUnit
                   identifier(v1): SimpleIdentifier
                     token: a
                   inKeyword: in <synthetic>
-                  iterable2: FunctionExpressionInvocation
-                    function2: SimpleIdentifier
+                  iterable2: CallInvocation
+                    receiver: SimpleIdentifier
                       token: assert
                     argumentList: ArgumentList
                       leftParenthesis: (
                       arguments2
+                        BooleanLiteral
+                          literal: true
+                      rightParenthesis: )
+                  iterable(v1): FunctionExpressionInvocation
+                    function: SimpleIdentifier
+                      token: assert
+                    argumentList: ArgumentList
+                      leftParenthesis: (
+                      arguments
                         BooleanLiteral
                           literal: true
                       rightParenthesis: )
@@ -4689,12 +4725,21 @@ CompilationUnit
                     keyword: var
                     name: a
                   inKeyword: in
-                  iterable2: FunctionExpressionInvocation
-                    function2: SimpleIdentifier
+                  iterable2: CallInvocation
+                    receiver: SimpleIdentifier
                       token: assert
                     argumentList: ArgumentList
                       leftParenthesis: (
                       arguments2
+                        BooleanLiteral
+                          literal: true
+                      rightParenthesis: )
+                  iterable(v1): FunctionExpressionInvocation
+                    function: SimpleIdentifier
+                      token: assert
+                    argumentList: ArgumentList
+                      leftParenthesis: (
+                      arguments
                         BooleanLiteral
                           literal: true
                       rightParenthesis: )

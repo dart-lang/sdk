@@ -127,6 +127,22 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
   });
 
   @override
+  void visitCallInvocation(covariant CallInvocationImpl node) {
+    var element = switch (node.resolution) {
+      ExecutableInvocationResolution(:var element) => element,
+      _ => null,
+    };
+    if (element is InternalMethodElement) {
+      var enclosingElement = element.enclosingElement;
+      if (enclosingElement.isAllocatorExtension &&
+          element.name == _allocateExtensionMethodName) {
+        _validateAllocate(node);
+      }
+    }
+    super.visitCallInvocation(node);
+  }
+
+  @override
   void visitCascadeIndexExpression(covariant CascadeIndexExpressionImpl node) {
     var element = switch (node.resolution) {
       MethodIndexReadResolutionImpl(:var element) => element,
@@ -365,21 +381,6 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
       isExternal: node.externalKeyword != null,
     );
     super.visitFunctionDeclaration(node);
-  }
-
-  @override
-  void visitFunctionExpressionInvocation(
-    covariant FunctionExpressionInvocationImpl node,
-  ) {
-    var element = node.element;
-    if (element is InternalMethodElement) {
-      var enclosingElement = element.enclosingElement;
-      if (enclosingElement.isAllocatorExtension &&
-          element.name == _allocateExtensionMethodName) {
-        _validateAllocate(node);
-      }
-    }
-    super.visitFunctionExpressionInvocation(node);
   }
 
   @override
@@ -1394,7 +1395,7 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
     _validateAddressReceiver(node, extensionName, node.receiver, errorNode);
   }
 
-  void _validateAllocate(FunctionExpressionInvocationImpl node) {
+  void _validateAllocate(CallInvocationImpl node) {
     var typeArgumentTypes = node.typeArgumentTypes;
     if (typeArgumentTypes == null || typeArgumentTypes.length != 1) {
       return;

@@ -9,6 +9,7 @@ import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
+import 'package:analyzer/src/dart/ast/ast.dart' show FunctionInvocationImpl;
 import 'package:analyzer/src/util/ast_data_extractor.dart';
 
 import '../util/id_testing_helper.dart';
@@ -63,6 +64,9 @@ class _InferredTypeArgumentsDataExtractor
     if (node is ConstructorInvocation) {
       typeArguments = node.constructorReference.typeReference.typeArguments;
       typeArgumentTypes = (node.staticType as InterfaceType).typeArguments;
+    } else if (node is FunctionInvocation) {
+      typeArguments = node.typeArguments;
+      typeArgumentTypes = (node as FunctionInvocationImpl).typeArgumentTypes!;
     } else if (node is InvocationExpression) {
       typeArguments = node.typeArguments;
       typeArgumentTypes = node.typeArgumentTypes!;

@@ -109,6 +109,36 @@ class AnnotationInferrer extends FullInvocationInferrer<AnnotationImpl> {
   }
 }
 
+/// Specialization of [InvocationInferrer] for applying an argument list to a
+/// value or implicit `call` receiver.
+class CallInvocationInferrer
+    extends FullInvocationInferrer<CallInvocationImpl> {
+  CallInvocationInferrer({
+    required super.resolver,
+    required super.node,
+    required super.argumentList,
+    required super.contextType,
+    required super.whyNotPromotedArguments,
+    required super.target,
+  }) : super._();
+
+  @override
+  ExpressionImpl get _errorEntity => node.receiver as ExpressionImpl;
+
+  @override
+  TypeArgumentListImpl? get _typeArguments => node.typeArguments;
+
+  @override
+  List<FormalParameterElement>? _storeResult(
+    List<TypeImpl>? typeArgumentTypes,
+    FunctionTypeImpl? invokeType,
+  ) {
+    node.typeArgumentTypes = typeArgumentTypes;
+    node.staticInvokeType = invokeType ?? DynamicTypeImpl.instance;
+    return super._storeResult(typeArgumentTypes, invokeType);
+  }
+}
+
 /// Specialization of [InvocationInferrer] for performing type inference on AST
 /// nodes of type [ConstructorInvocation].
 class ConstructorInvocationInferrer
@@ -462,23 +492,6 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
   ) {
     return invokeType?.formalParameters;
   }
-}
-
-/// Specialization of [InvocationInferrer] for performing type inference on AST
-/// nodes of type [FunctionExpressionInvocation].
-class FunctionExpressionInvocationInferrer
-    extends InvocationExpressionInferrer<FunctionExpressionInvocationImpl> {
-  FunctionExpressionInvocationInferrer({
-    required super.resolver,
-    required super.node,
-    required super.argumentList,
-    required super.contextType,
-    required super.whyNotPromotedArguments,
-    required super.target,
-  }) : super._();
-
-  @override
-  ExpressionImpl get _errorEntity => node.function2;
 }
 
 /// Specialization of [InvocationInferrer] for performing type inference on AST

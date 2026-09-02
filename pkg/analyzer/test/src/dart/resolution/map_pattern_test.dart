@@ -564,8 +564,20 @@ MapPattern
   leftBracket: {
   elements
     MapPatternEntry
-      key2: FunctionExpressionInvocation
-        function2: SimpleIdentifier
+      key2: CallInvocation
+        receiver: SimpleIdentifier
+          token: a
+          element: <testLibrary>::@function::f::@formalParameter::a
+          staticType: bool Function()
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        resolution: FunctionTypeInvocationResolution
+          invokeType: bool Function()
+          type: bool
+        staticType: bool
+      key(v1): FunctionExpressionInvocation
+        function: SimpleIdentifier
           token: a
           element: <testLibrary>::@function::f::@formalParameter::a
           staticType: bool Function()

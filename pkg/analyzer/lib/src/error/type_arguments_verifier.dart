@@ -42,6 +42,24 @@ class TypeArgumentsVerifier {
   TypeSystemImpl get _typeSystem =>
       _libraryElement.typeSystem as TypeSystemImpl;
 
+  void checkCallInvocation(CallInvocation node) {
+    var functionType = switch (node.resolution) {
+      ExecutableInvocationResolution(:var element) => element.type,
+      _ => switch (node.receiver) {
+        Expression(:var staticType) => staticType,
+        _ => null,
+      },
+    };
+    _checkInvocationTypeArguments(
+      node.typeArguments?.arguments,
+      functionType,
+      switch (node.resolution) {
+        StaticInvocationResolution(:var invokeType) => invokeType,
+        _ => null,
+      },
+    );
+  }
+
   void checkConstructorTearOff(ConstructorTearOffImpl node) {
     var classElement = node.typeReference.element;
     List<TypeParameterElementImpl> typeParameters;
@@ -182,20 +200,6 @@ class TypeArgumentsVerifier {
         );
       }
     }
-  }
-
-  void checkFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    // For some function expressions, like an implicit 'call' invocation, the
-    // function type is on `node`'s `element`. For anonymous function
-    // expressions, the function is on `node`'s `function`.
-    // TODO(srawlins): It seems that `node.function`, the Expression, should
-    // always have the static type of the `call` method.
-    var functionType = node.element?.type ?? node.function2.staticType;
-    _checkInvocationTypeArguments(
-      node.typeArguments?.arguments,
-      functionType,
-      node.staticInvokeType,
-    );
   }
 
   void checkFunctionReference(FunctionReference node) {

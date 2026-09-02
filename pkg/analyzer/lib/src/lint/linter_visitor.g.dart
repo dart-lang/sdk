@@ -1328,6 +1328,13 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
     node.visitChildren2(this);
   }
 
+  @experimental
+  @override
+  void visitCallInvocation(CallInvocation node) {
+    _runSubscriptions(node, _registry._forCallInvocation);
+    node.visitChildren2(this);
+  }
+
   @override
   void visitCascadeExpression(CascadeExpression node) {
     _runSubscriptions(node, _registry._forCascadeExpression);
@@ -1750,12 +1757,6 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
   @override
   void visitFunctionExpression(FunctionExpression node) {
     _runSubscriptions(node, _registry._forFunctionExpression);
-    node.visitChildren2(this);
-  }
-
-  @override
-  void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    _runSubscriptions(node, _registry._forFunctionExpressionInvocation);
     node.visitChildren2(this);
   }
 
@@ -4398,6 +4399,8 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
 
   final List<_Subscription2<BreakStatement>> _forBreakStatement = [];
 
+  final List<_Subscription2<CallInvocation>> _forCallInvocation = [];
+
   final List<_Subscription2<CascadeExpression>> _forCascadeExpression = [];
 
   final List<_Subscription2<CascadeIndexAssignmentTarget>>
@@ -4562,9 +4565,6 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   _forFunctionDeclarationStatement = [];
 
   final List<_Subscription2<FunctionExpression>> _forFunctionExpression = [];
-
-  final List<_Subscription2<FunctionExpressionInvocation>>
-  _forFunctionExpressionInvocation = [];
 
   final List<_Subscription2<FunctionReference>> _forFunctionReference = [];
 
@@ -4989,6 +4989,12 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   void addBreakStatement(AbstractAnalysisRule rule, AstVisitor2 visitor) {
     _hasNodeProcessors = true;
     _forBreakStatement.add(_Subscription2(rule, visitor, _getTimer(rule)));
+  }
+
+  @override
+  void addCallInvocation(AbstractAnalysisRule rule, AstVisitor2 visitor) {
+    _hasNodeProcessors = true;
+    _forCallInvocation.add(_Subscription2(rule, visitor, _getTimer(rule)));
   }
 
   @override
@@ -5533,17 +5539,6 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   void addFunctionExpression(AbstractAnalysisRule rule, AstVisitor2 visitor) {
     _hasNodeProcessors = true;
     _forFunctionExpression.add(_Subscription2(rule, visitor, _getTimer(rule)));
-  }
-
-  @override
-  void addFunctionExpressionInvocation(
-    AbstractAnalysisRule rule,
-    AstVisitor2 visitor,
-  ) {
-    _hasNodeProcessors = true;
-    _forFunctionExpressionInvocation.add(
-      _Subscription2(rule, visitor, _getTimer(rule)),
-    );
   }
 
   @override

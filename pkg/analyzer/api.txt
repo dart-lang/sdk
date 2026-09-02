@@ -333,6 +333,7 @@ package:analyzer/analysis_rule/rule_visitor_registry.dart:
     addBlockFunctionBody (method: void Function(AbstractAnalysisRule, AstVisitor2<dynamic>))
     addBooleanLiteral (method: void Function(AbstractAnalysisRule, AstVisitor2<dynamic>))
     addBreakStatement (method: void Function(AbstractAnalysisRule, AstVisitor2<dynamic>))
+    addCallInvocation (method: void Function(AbstractAnalysisRule, AstVisitor2<dynamic>), experimental)
     addCascadeExpression (method: void Function(AbstractAnalysisRule, AstVisitor2<dynamic>))
     addCascadeIndexAssignmentTarget (method: void Function(AbstractAnalysisRule, AstVisitor2<dynamic>), experimental)
     addCascadeIndexExpression (method: void Function(AbstractAnalysisRule, AstVisitor2<dynamic>), experimental)
@@ -401,7 +402,6 @@ package:analyzer/analysis_rule/rule_visitor_registry.dart:
     addFunctionDeclaration (method: void Function(AbstractAnalysisRule, AstVisitor2<dynamic>))
     addFunctionDeclarationStatement (method: void Function(AbstractAnalysisRule, AstVisitor2<dynamic>))
     addFunctionExpression (method: void Function(AbstractAnalysisRule, AstVisitor2<dynamic>))
-    addFunctionExpressionInvocation (method: void Function(AbstractAnalysisRule, AstVisitor2<dynamic>))
     addFunctionReference (method: void Function(AbstractAnalysisRule, AstVisitor2<dynamic>))
     addFunctionTypeAlias (method: void Function(AbstractAnalysisRule, AstVisitor2<dynamic>))
     addFunctionTypedFormalParameterSuffix (method: void Function(AbstractAnalysisRule, AstVisitor2<dynamic>))
@@ -1103,6 +1103,7 @@ package:analyzer/dart/ast/ast.dart:
     visitBlockFunctionBody (method: R? Function(BlockFunctionBody))
     visitBooleanLiteral (method: R? Function(BooleanLiteral))
     visitBreakStatement (method: R? Function(BreakStatement))
+    visitCallInvocation (method: R? Function(CallInvocation), experimental)
     visitCascadeExpression (method: R? Function(CascadeExpression))
     visitCascadeIndexAssignmentTarget (method: R? Function(CascadeIndexAssignmentTarget), experimental)
     visitCascadeIndexExpression (method: R? Function(CascadeIndexExpression), experimental)
@@ -1171,7 +1172,6 @@ package:analyzer/dart/ast/ast.dart:
     visitFunctionDeclaration (method: R? Function(FunctionDeclaration))
     visitFunctionDeclarationStatement (method: R? Function(FunctionDeclarationStatement))
     visitFunctionExpression (method: R? Function(FunctionExpression))
-    visitFunctionExpressionInvocation (method: R? Function(FunctionExpressionInvocation))
     visitFunctionReference (method: R? Function(FunctionReference))
     visitFunctionTypeAlias (method: R? Function(FunctionTypeAlias))
     visitFunctionTypedFormalParameterSuffix (method: R? Function(FunctionTypedFormalParameterSuffix))
@@ -1355,6 +1355,8 @@ package:analyzer/dart/ast/ast.dart:
     label (getter: LabelReference?)
     semicolon (getter: Token)
     target (getter: AstNode?)
+  CallInvocation (class extends Object implements FunctionInvocation, abstract, final, experimental):
+    receiver (getter: InstanceReceiver)
   CascadeExpression (class extends Object implements Expression, abstract, final):
     cascadeSections (getter: NodeList<Expression>)
     cascadeSections2 (getter: NodeList<Expression>, experimental)
@@ -1607,6 +1609,8 @@ package:analyzer/dart/ast/ast.dart:
     value (getter: double)
   DynamicIndexReadResolution (class extends Object implements ValidIndexReadResolution, abstract, final, experimental)
   DynamicIndexWriteResolution (class extends Object implements ValidIndexWriteResolution, abstract, final, experimental)
+  DynamicInvocationResolution (class extends Object implements ValidInvocationResolution, abstract, final, experimental):
+    type (getter: DartType)
   DynamicPropertyReadResolution (class extends Object implements NamedReadResolution, abstract, final, experimental)
   DynamicPropertyWriteResolution (class extends Object implements NamedWriteResolution, abstract, final, experimental)
   EmptyClassBody (class extends Object implements ClassBody, sealed (immediate subtypes: EmptyClassBodyImpl)):
@@ -1638,6 +1642,10 @@ package:analyzer/dart/ast/ast.dart:
     implementsClause (getter: ImplementsClause?)
     namePart (getter: ClassNamePart)
     withClause (getter: WithClause?)
+  ExecutableInvocationResolution (class extends Object implements StaticInvocationResolution, abstract, final, experimental):
+    element (getter: ExecutableElement)
+    invokeType (getter: FunctionType)
+    type (getter: DartType)
   ExecutableTearOffResolution (class extends Object implements NamedReadResolutionWithElement, abstract, final, experimental):
     element (getter: ExecutableElement)
   ExportDirective (class extends Object implements NamespaceDirective, abstract, final):
@@ -1799,6 +1807,9 @@ package:analyzer/dart/ast/ast.dart:
     star (getter: Token?)
     isPotentiallyMutatedInScope (method: bool Function(VariableElement))
     lookupPromotedThisType (method: DartType? Function({required int offset}), experimental)
+  FunctionCallInvocationResolution (class extends Object implements StaticInvocationResolution, abstract, final, experimental):
+    invokeType (getter: FunctionType)
+    type (getter: DartType)
   FunctionCallTearOffResolution (class extends Object implements NamedReadResolution, abstract, final, experimental):
     associatedFunctionType (getter: FunctionType)
     type (getter: DartType)
@@ -1826,6 +1837,12 @@ package:analyzer/dart/ast/ast.dart:
     function2 (getter: Expression, experimental)
   FunctionInterfaceCallTearOffResolution (class extends Object implements NamedReadResolution, abstract, final, experimental):
     type (getter: DartType)
+  FunctionInterfaceInvocationResolution (class extends Object implements ValidInvocationResolution, abstract, final, experimental):
+    type (getter: DartType)
+  FunctionInvocation (class extends Object implements Expression, abstract, final, experimental):
+    argumentList (getter: ArgumentList)
+    resolution (getter: InvocationResolution?)
+    typeArguments (getter: TypeArgumentList?)
   FunctionReference (class extends Object implements Expression, CommentReferableExpression, abstract, final):
     function (getter: Expression)
     function2 (getter: Expression, experimental)
@@ -1836,6 +1853,9 @@ package:analyzer/dart/ast/ast.dart:
     parameters (getter: FormalParameterList)
     returnType (getter: TypeAnnotation?)
     typeParameters (getter: TypeParameterList?)
+  FunctionTypeInvocationResolution (class extends Object implements StaticInvocationResolution, abstract, final, experimental):
+    invokeType (getter: FunctionType)
+    type (getter: DartType)
   FunctionTypedFormalParameterSuffix (class extends Object implements AstNode, abstract, final):
     formalParameters (getter: FormalParameterList)
     question (getter: Token?)
@@ -1989,6 +2009,10 @@ package:analyzer/dart/ast/ast.dart:
     recovery (getter: ValidIndexReadResolution?)
   InvalidIndexWriteResolution (class extends Object implements IndexWriteResolution, abstract, final, experimental):
     recovery (getter: ValidIndexWriteResolution?)
+  InvalidInvocationResolution (class extends Object implements InvocationResolution, abstract, final, experimental):
+    candidates (getter: List<Element>)
+    recovery (getter: ValidInvocationResolution?)
+    type (getter: DartType)
   InvalidNamedReadResolution (class extends Object implements NamedReadResolution, abstract, final, experimental):
     candidates (getter: List<Element>)
     recovery (getter: NamedReadResolutionWithElement?)
@@ -2002,6 +2026,8 @@ package:analyzer/dart/ast/ast.dart:
     staticInvokeType (getter: DartType?)
     typeArgumentTypes (getter: List<DartType>?)
     typeArguments (getter: TypeArgumentList?)
+  InvocationResolution (class extends Object, abstract, final, experimental):
+    type (getter: DartType)
   IsExpression (class extends Object implements Expression, abstract, final):
     expression (getter: Expression)
     expression2 (getter: Expression, experimental)
@@ -2419,6 +2445,8 @@ package:analyzer/dart/ast/ast.dart:
     spreadOperator (getter: Token)
   Statement (class extends Object implements AstNode, abstract, final):
     unlabeled (getter: Statement)
+  StaticInvocationResolution (class extends Object implements ValidInvocationResolution, abstract, final, experimental):
+    invokeType (getter: FunctionType)
   StringInterpolation (class extends Object implements SingleStringLiteral, abstract, final):
     elements (getter: NodeList<InterpolationElement>)
     firstString (getter: InterpolationString)
@@ -2547,6 +2575,7 @@ package:analyzer/dart/ast/ast.dart:
     uri (getter: StringLiteral)
   ValidIndexReadResolution (class extends Object implements IndexReadResolution, abstract, final, experimental)
   ValidIndexWriteResolution (class extends Object implements IndexWriteResolution, abstract, final, experimental)
+  ValidInvocationResolution (class extends Object implements InvocationResolution, abstract, final, experimental)
   VariableDeclaration (class extends Object implements Declaration, abstract, final):
     declaredFragment (getter: VariableFragment?)
     equals (getter: Token?)
@@ -3086,6 +3115,7 @@ package:analyzer/dart/ast/visitor.dart:
     visitFunctionDeclarationStatement (method: R? Function(FunctionDeclarationStatement))
     visitFunctionExpression (method: R? Function(FunctionExpression))
     visitFunctionExpressionInvocation (method: R? Function(FunctionExpressionInvocation))
+    visitFunctionInvocation (method: R? Function(FunctionInvocation), experimental)
     visitFunctionReference (method: R? Function(FunctionReference))
     visitFunctionTypeAlias (method: R? Function(FunctionTypeAlias))
     visitFunctionTypedFormalParameterSuffix (method: R? Function(FunctionTypedFormalParameterSuffix))
@@ -3422,6 +3452,7 @@ package:analyzer/dart/ast/visitor.dart:
     visitBlockFunctionBody (method: R? Function(BlockFunctionBody))
     visitBooleanLiteral (method: R? Function(BooleanLiteral))
     visitBreakStatement (method: R? Function(BreakStatement))
+    visitCallInvocation (method: R? Function(CallInvocation), experimental)
     visitCascadeExpression (method: R? Function(CascadeExpression))
     visitCascadeIndexAssignmentTarget (method: R? Function(CascadeIndexAssignmentTarget), experimental)
     visitCascadeIndexExpression (method: R? Function(CascadeIndexExpression), experimental)
@@ -3490,7 +3521,6 @@ package:analyzer/dart/ast/visitor.dart:
     visitFunctionDeclaration (method: R? Function(FunctionDeclaration))
     visitFunctionDeclarationStatement (method: R? Function(FunctionDeclarationStatement))
     visitFunctionExpression (method: R? Function(FunctionExpression))
-    visitFunctionExpressionInvocation (method: R? Function(FunctionExpressionInvocation))
     visitFunctionReference (method: R? Function(FunctionReference))
     visitFunctionTypeAlias (method: R? Function(FunctionTypeAlias))
     visitFunctionTypedFormalParameterSuffix (method: R? Function(FunctionTypedFormalParameterSuffix))
@@ -3822,6 +3852,7 @@ package:analyzer/dart/ast/visitor.dart:
     visitBlockFunctionBody (method: R? Function(BlockFunctionBody))
     visitBooleanLiteral (method: R? Function(BooleanLiteral))
     visitBreakStatement (method: R? Function(BreakStatement))
+    visitCallInvocation (method: R? Function(CallInvocation), experimental)
     visitCascadeExpression (method: R? Function(CascadeExpression))
     visitCascadeIndexAssignmentTarget (method: R? Function(CascadeIndexAssignmentTarget), experimental)
     visitCascadeIndexExpression (method: R? Function(CascadeIndexExpression), experimental)
@@ -3890,7 +3921,6 @@ package:analyzer/dart/ast/visitor.dart:
     visitFunctionDeclaration (method: R? Function(FunctionDeclaration))
     visitFunctionDeclarationStatement (method: R? Function(FunctionDeclarationStatement))
     visitFunctionExpression (method: R? Function(FunctionExpression))
-    visitFunctionExpressionInvocation (method: R? Function(FunctionExpressionInvocation))
     visitFunctionReference (method: R? Function(FunctionReference))
     visitFunctionTypeAlias (method: R? Function(FunctionTypeAlias))
     visitFunctionTypedFormalParameterSuffix (method: R? Function(FunctionTypedFormalParameterSuffix))
@@ -4222,6 +4252,7 @@ package:analyzer/dart/ast/visitor.dart:
     visitBlockFunctionBody (method: R? Function(BlockFunctionBody))
     visitBooleanLiteral (method: R? Function(BooleanLiteral))
     visitBreakStatement (method: R? Function(BreakStatement))
+    visitCallInvocation (method: R? Function(CallInvocation), experimental)
     visitCascadeExpression (method: R? Function(CascadeExpression))
     visitCascadeIndexAssignmentTarget (method: R? Function(CascadeIndexAssignmentTarget), experimental)
     visitCascadeIndexExpression (method: R? Function(CascadeIndexExpression), experimental)
@@ -4290,7 +4321,6 @@ package:analyzer/dart/ast/visitor.dart:
     visitFunctionDeclaration (method: R? Function(FunctionDeclaration))
     visitFunctionDeclarationStatement (method: R? Function(FunctionDeclarationStatement))
     visitFunctionExpression (method: R? Function(FunctionExpression))
-    visitFunctionExpressionInvocation (method: R? Function(FunctionExpressionInvocation))
     visitFunctionReference (method: R? Function(FunctionReference))
     visitFunctionTypeAlias (method: R? Function(FunctionTypeAlias))
     visitFunctionTypedFormalParameterSuffix (method: R? Function(FunctionTypedFormalParameterSuffix))
@@ -4624,6 +4654,7 @@ package:analyzer/dart/ast/visitor.dart:
     visitBlockFunctionBody (method: T? Function(BlockFunctionBody))
     visitBooleanLiteral (method: T? Function(BooleanLiteral))
     visitBreakStatement (method: T? Function(BreakStatement))
+    visitCallInvocation (method: T? Function(CallInvocation), experimental)
     visitCascadeExpression (method: T? Function(CascadeExpression))
     visitCascadeIndexAssignmentTarget (method: T? Function(CascadeIndexAssignmentTarget), experimental)
     visitCascadeIndexExpression (method: T? Function(CascadeIndexExpression), experimental)
@@ -4692,7 +4723,6 @@ package:analyzer/dart/ast/visitor.dart:
     visitFunctionDeclaration (method: T? Function(FunctionDeclaration))
     visitFunctionDeclarationStatement (method: T? Function(FunctionDeclarationStatement))
     visitFunctionExpression (method: T? Function(FunctionExpression))
-    visitFunctionExpressionInvocation (method: T? Function(FunctionExpressionInvocation))
     visitFunctionReference (method: T? Function(FunctionReference))
     visitFunctionTypeAlias (method: T? Function(FunctionTypeAlias))
     visitFunctionTypedFormalParameterSuffix (method: T? Function(FunctionTypedFormalParameterSuffix))
@@ -5025,6 +5055,7 @@ package:analyzer/dart/ast/visitor.dart:
     visitBlockFunctionBody (method: R? Function(BlockFunctionBody))
     visitBooleanLiteral (method: R? Function(BooleanLiteral))
     visitBreakStatement (method: R? Function(BreakStatement))
+    visitCallInvocation (method: R? Function(CallInvocation), experimental)
     visitCascadeExpression (method: R? Function(CascadeExpression))
     visitCascadeIndexAssignmentTarget (method: R? Function(CascadeIndexAssignmentTarget), experimental)
     visitCascadeIndexExpression (method: R? Function(CascadeIndexExpression), experimental)
@@ -5093,7 +5124,6 @@ package:analyzer/dart/ast/visitor.dart:
     visitFunctionDeclaration (method: R? Function(FunctionDeclaration))
     visitFunctionDeclarationStatement (method: R? Function(FunctionDeclarationStatement))
     visitFunctionExpression (method: R? Function(FunctionExpression))
-    visitFunctionExpressionInvocation (method: R? Function(FunctionExpressionInvocation))
     visitFunctionReference (method: R? Function(FunctionReference))
     visitFunctionTypeAlias (method: R? Function(FunctionTypeAlias))
     visitFunctionTypedFormalParameterSuffix (method: R? Function(FunctionTypedFormalParameterSuffix))

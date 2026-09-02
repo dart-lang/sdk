@@ -330,9 +330,7 @@ import 'a.dart' as helper;
 main() {
   helper.toString();
 }''');
-    assertTypeDynamic(
-      result.findNode.functionExpressionInvocation('helper.toString()'),
-    );
+    assertTypeDynamic(result.findNode.callInvocation('helper.toString()'));
   }
 
   test_objectMethodInference_disabled_for_local_function() async {

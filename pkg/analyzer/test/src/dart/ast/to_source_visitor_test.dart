@@ -2284,7 +2284,7 @@ void f() {
   $code;
 }
 ''');
-    var node = parseResult.findNode.singleFunctionExpressionInvocation;
+    var node = parseResult.findNode.singleCallInvocation;
     _assertSource(code, node);
   }
 
@@ -2295,7 +2295,7 @@ void f() {
   $code;
 }
 ''');
-    var node = parseResult.findNode.singleFunctionExpressionInvocation;
+    var node = parseResult.findNode.singleCallInvocation;
     _assertSource(code, node);
   }
 

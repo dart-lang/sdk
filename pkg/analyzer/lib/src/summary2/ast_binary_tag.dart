@@ -46,7 +46,7 @@ enum AstNodeTag {
   ForPartsWithDeclarations,
   ForPartsWithExpression,
   FormalParameterList,
-  FunctionExpressionInvocation,
+  CallInvocation,
   FunctionReference,
   GenericFunctionType,
   IfElement,
@@ -148,6 +148,15 @@ enum ImportElementPrefixKind { isDeferred, isNotDeferred, isNull }
 enum IndexReadResolutionTag { dynamic_, invalid, method }
 
 enum IndexWriteResolutionTag { dynamic_, invalid, method }
+
+enum InvocationResolutionTag {
+  dynamic_,
+  executable,
+  functionCall,
+  functionInterface,
+  functionType,
+  invalid,
+}
 
 enum NamedReadResolutionTag {
   getterInvocation,

@@ -646,7 +646,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     );
     DartType literal(int i) {
       var stmt = statements[i] as ExpressionStatement;
-      var invk = stmt.expression2 as FunctionExpressionInvocation;
+      var invk = stmt.expression2 as CallInvocation;
       var exp = invk.argumentList.arguments2[0] as FunctionExpression;
       return exp.declaredFragment!.element.type;
     }
@@ -687,7 +687,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     );
     DartType literal(int i) {
       var stmt = statements[i] as ExpressionStatement;
-      var invk = stmt.expression2 as FunctionExpressionInvocation;
+      var invk = stmt.expression2 as CallInvocation;
       var exp = invk.argumentList.arguments2[0] as FunctionExpression;
       return exp.declaredFragment!.element.type;
     }

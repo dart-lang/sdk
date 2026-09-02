@@ -70,6 +70,8 @@ class FindNode2 extends _FindNodeBase {
 
   BinaryOperatorInvocation get singleBinaryOperatorInvocation => _single();
 
+  CallInvocation get singleCallInvocation => _single();
+
   CompoundAssignment get singleCompoundAssignment => _single();
 
   ConstructorInvocation get singleConstructorInvocation => _single();
@@ -105,6 +107,10 @@ class FindNode2 extends _FindNodeBase {
 
   BinaryOperatorInvocation binaryOperatorInvocation(String search) {
     return _node(search, (node) => node is BinaryOperatorInvocation);
+  }
+
+  CallInvocation callInvocation(String search) {
+    return _node(search, (node) => node is CallInvocation);
   }
 
   CompoundAssignment compoundAssignment(String search) {

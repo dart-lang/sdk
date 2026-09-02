@@ -1019,10 +1019,22 @@ f(bool Function() b) {
 }
 ''');
 
-    var node = result.findNode.functionExpressionInvocation('b()');
+    var node = result.findNode.callInvocation('b()');
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: SimpleIdentifier
+CallInvocation
+  receiver: SimpleIdentifier
+    token: b
+    element: <testLibrary>::@function::f::@formalParameter::b
+    staticType: bool Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: FunctionTypeInvocationResolution
+    invokeType: bool Function()
+    type: bool
+  staticType: bool
+V1: FunctionExpressionInvocation
+  function: SimpleIdentifier
     token: b
     element: <testLibrary>::@function::f::@formalParameter::b
     staticType: bool Function()

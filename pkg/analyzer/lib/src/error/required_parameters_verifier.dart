@@ -34,6 +34,17 @@ class RequiredParametersVerifier extends SimpleAstVisitor2<void> {
   }
 
   @override
+  void visitCallInvocation(CallInvocation node) {
+    if (node.resolution case StaticInvocationResolution(:var invokeType)) {
+      _check(
+        parameters: invokeType.formalParameters,
+        arguments: node.argumentList.arguments2,
+        errorEntity: node,
+      );
+    }
+  }
+
+  @override
   void visitConstructorInvocation(ConstructorInvocation node) {
     _check(
       parameters: node.constructorReference.element?.formalParameters,
@@ -72,18 +83,6 @@ class RequiredParametersVerifier extends SimpleAstVisitor2<void> {
       arguments: node.arguments?.argumentList.arguments2 ?? <Argument>[],
       errorEntity: node.name,
     );
-  }
-
-  @override
-  void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    var type = node.staticInvokeType;
-    if (type is FunctionType) {
-      _check(
-        parameters: type.formalParameters,
-        arguments: node.argumentList.arguments2,
-        errorEntity: node,
-      );
-    }
   }
 
   @override

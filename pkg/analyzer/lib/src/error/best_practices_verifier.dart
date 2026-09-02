@@ -206,6 +206,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitCallInvocation(CallInvocation node) {
+    _elementUsageFrontierDetector.callInvocation(node);
+    super.visitCallInvocation(node);
+  }
+
+  @override
   void visitCascadeIndexExpression(CascadeIndexExpression node) {
     _elementUsageFrontierDetector.indexExpression2(node);
     super.visitCascadeIndexExpression(node);
@@ -580,12 +586,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
     }
     _checkForUnnecessarySetLiteral(body, node);
     super.visitFunctionExpression(node);
-  }
-
-  @override
-  void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    _elementUsageFrontierDetector.functionExpressionInvocation(node);
-    super.visitFunctionExpressionInvocation(node);
   }
 
   @override

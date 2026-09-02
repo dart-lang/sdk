@@ -1687,10 +1687,67 @@ void f(C c) {
 }
 ''');
 
-    var node = result.findNode.functionExpressionInvocation('c();');
+    var node = result.findNode.callInvocation('c();');
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: SimpleIdentifier
+CallInvocation
+  receiver: SimpleIdentifier
+    token: c
+    element: <testLibrary>::@function::f::@formalParameter::c
+    staticType: C
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    candidates
+      candidate: <testLibrary>::@class::C::@getter::call
+    recovery: <null>
+  staticType: InvalidType
+V1: FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: c
+    element: <testLibrary>::@function::f::@formalParameter::c
+    staticType: C
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  element: <null>
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_error_invocationOfNonFunction_interface_hasCall_setter() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class C {
+  set call(void Function() _) {}
+}
+
+void f(C c) {
+  c();
+//^
+// [diag.invocationOfNonFunctionExpression] The expression doesn't evaluate to a function, so it can't be invoked.
+}
+''');
+
+    var node = result.findNode.callInvocation('c();');
+    assertResolvedNodeText(node, r'''
+CallInvocation
+  receiver: SimpleIdentifier
+    token: c
+    element: <testLibrary>::@function::f::@formalParameter::c
+    staticType: C
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    candidates
+      candidate: <testLibrary>::@class::C::@setter::call
+    recovery: <null>
+  staticType: InvalidType
+V1: FunctionExpressionInvocation
+  function: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::f::@formalParameter::c
     staticType: C
@@ -1714,11 +1771,29 @@ void f(C c) {
 }
 ''');
 
-    var node = result.findNode.functionExpressionInvocation('foo();');
+    var node = result.findNode.callInvocation('foo();');
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: PropertyAccess
+CallInvocation
+  receiver: PropertyAccess
     target2: SimpleIdentifier
+      token: c
+      element: <testLibrary>::@function::f::@formalParameter::c
+      staticType: C
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      element: <testLibrary>::@class::C::@getter::foo
+      staticType: dynamic
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: DynamicInvocationResolution
+    type: dynamic
+  staticType: dynamic
+V1: FunctionExpressionInvocation
+  function: PropertyAccess
+    target: SimpleIdentifier
       token: c
       element: <testLibrary>::@function::f::@formalParameter::c
       staticType: C
@@ -1750,10 +1825,21 @@ class B extends A {
 }
 ''');
 
-    var node = result.findNode.functionExpressionInvocation('foo();');
+    var node = result.findNode.callInvocation('foo();');
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: SimpleIdentifier
+CallInvocation
+  receiver: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@class::A::@getter::foo
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: DynamicInvocationResolution
+    type: dynamic
+  staticType: dynamic
+V1: FunctionExpressionInvocation
+  function: SimpleIdentifier
     token: foo
     element: <testLibrary>::@class::A::@getter::foo
     staticType: dynamic
@@ -1777,10 +1863,21 @@ class C {
 }
 ''');
 
-    var node = result.findNode.functionExpressionInvocation('foo();');
+    var node = result.findNode.callInvocation('foo();');
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: SimpleIdentifier
+CallInvocation
+  receiver: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@class::C::@getter::foo
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: DynamicInvocationResolution
+    type: dynamic
+  staticType: dynamic
+V1: FunctionExpressionInvocation
+  function: SimpleIdentifier
     token: foo
     element: <testLibrary>::@class::C::@getter::foo
     staticType: dynamic
@@ -1800,16 +1897,36 @@ f(Function foo) {
 }
 ''');
 
-    var node = result.findNode.functionExpressionInvocation('foo(1, 2);');
+    var node = result.findNode.callInvocation('foo(1, 2);');
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: SimpleIdentifier
+CallInvocation
+  receiver: SimpleIdentifier
     token: foo
     element: <testLibrary>::@function::f::@formalParameter::foo
     staticType: Function
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      IntegerLiteral
+        literal: 1
+        correspondingParameter: <null>
+        staticType: int
+      IntegerLiteral
+        literal: 2
+        correspondingParameter: <null>
+        staticType: int
+    rightParenthesis: )
+  resolution: FunctionInterfaceInvocationResolution
+    type: dynamic
+  staticType: dynamic
+V1: FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@function::f::@formalParameter::foo
+    staticType: Function
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       IntegerLiteral
         literal: 1
         correspondingParameter: <null>
@@ -1839,10 +1956,10 @@ class C<T extends MyFunction> {
 }
 ''');
 
-    var node = result.findNode.functionExpressionInvocation('foo(0);');
+    var node = result.findNode.callInvocation('foo(0);');
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: SimpleIdentifier
+CallInvocation
+  receiver: SimpleIdentifier
     token: foo
     element: SubstitutedGetterElementImpl
       baseElement: <testLibrary>::@class::C::@getter::foo
@@ -1851,6 +1968,26 @@ FunctionExpressionInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: _@null
+        staticType: int
+    rightParenthesis: )
+  resolution: FunctionTypeInvocationResolution
+    invokeType: double Function(int)
+      alias: <testLibrary>::@typeAlias::MyFunction
+    type: double
+  staticType: double
+V1: FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: foo
+    element: SubstitutedGetterElementImpl
+      baseElement: <testLibrary>::@class::C::@getter::foo
+      substitution: {T: T}
+    staticType: T
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: _@null
@@ -1872,10 +2009,22 @@ main(Object foo) {
 }
 ''');
 
-    var node = result.findNode.functionExpressionInvocation('foo();');
+    var node = result.findNode.callInvocation('foo();');
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: SimpleIdentifier
+CallInvocation
+  receiver: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@function::main::@formalParameter::foo
+    staticType: Object
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: FunctionExpressionInvocation
+  function: SimpleIdentifier
     token: foo
     element: <testLibrary>::@function::main::@formalParameter::foo
     staticType: Object
@@ -1895,10 +2044,21 @@ main(foo) {
 }
 ''');
 
-    var node = result.findNode.functionExpressionInvocation('foo();');
+    var node = result.findNode.callInvocation('foo();');
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: SimpleIdentifier
+CallInvocation
+  receiver: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@function::main::@formalParameter::foo
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: DynamicInvocationResolution
+    type: dynamic
+  staticType: dynamic
+V1: FunctionExpressionInvocation
+  function: SimpleIdentifier
     token: foo
     element: <testLibrary>::@function::main::@formalParameter::foo
     staticType: dynamic
@@ -1924,11 +2084,30 @@ main() {
 }
 ''');
 
-    var node = result.findNode.functionExpressionInvocation('foo();');
+    var node = result.findNode.callInvocation('foo();');
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: PropertyAccess
+CallInvocation
+  receiver: PropertyAccess
     target2: SimpleIdentifier
+      token: C
+      element: <testLibrary>::@class::C
+      staticType: null
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      element: <testLibrary>::@class::C::@getter::foo
+      staticType: int
+    staticType: int
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: FunctionExpressionInvocation
+  function: PropertyAccess
+    target: SimpleIdentifier
       token: C
       element: <testLibrary>::@class::C
       staticType: null
@@ -1960,10 +2139,22 @@ class C {
 }
 ''');
 
-    var node = result.findNode.functionExpressionInvocation('foo();');
+    var node = result.findNode.callInvocation('foo();');
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: SimpleIdentifier
+CallInvocation
+  receiver: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@class::C::@getter::foo
+    staticType: int
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: FunctionExpressionInvocation
+  function: SimpleIdentifier
     token: foo
     element: <testLibrary>::@class::C::@getter::foo
     staticType: int
@@ -1991,11 +2182,29 @@ class B extends A {
 }
 ''');
 
-    var node = result.findNode.functionExpressionInvocation('foo();');
+    var node = result.findNode.callInvocation('foo();');
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: PropertyAccess
+CallInvocation
+  receiver: PropertyAccess
     target2: SuperExpression
+      superKeyword: super
+      staticType: B
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      element: <testLibrary>::@class::A::@getter::foo
+      staticType: int
+    staticType: int
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: FunctionExpressionInvocation
+  function: PropertyAccess
+    target: SuperExpression
       superKeyword: super
       staticType: B
     operator: .
@@ -2849,11 +3058,31 @@ void f(C<void> c) {
 }
 ''');
 
-    var node = result.findNode.functionExpressionInvocation('foo();');
+    var node = result.findNode.callInvocation('foo();');
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: PropertyAccess
+CallInvocation
+  receiver: PropertyAccess
     target2: SimpleIdentifier
+      token: c
+      element: <testLibrary>::@function::f::@formalParameter::c
+      staticType: C<void>
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      element: SubstitutedGetterElementImpl
+        baseElement: <testLibrary>::@class::C::@getter::foo
+        substitution: {T: void}
+      staticType: void
+    staticType: void
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: DynamicInvocationResolution
+    type: dynamic
+  staticType: dynamic
+V1: FunctionExpressionInvocation
+  function: PropertyAccess
+    target: SimpleIdentifier
       token: c
       element: <testLibrary>::@function::f::@formalParameter::c
       staticType: C<void>
@@ -2884,10 +3113,21 @@ main() {
 }
 ''');
 
-    var node = result.findNode.functionExpressionInvocation('foo();');
+    var node = result.findNode.callInvocation('foo();');
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: SimpleIdentifier
+CallInvocation
+  receiver: SimpleIdentifier
+    token: foo
+    element: foo@16
+    staticType: void
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: DynamicInvocationResolution
+    type: dynamic
+  staticType: dynamic
+V1: FunctionExpressionInvocation
+  function: SimpleIdentifier
     token: foo
     element: foo@16
     staticType: void
@@ -2937,10 +3177,21 @@ main() {
 }
 ''');
 
-    var node = result.findNode.functionExpressionInvocation('foo();');
+    var node = result.findNode.callInvocation('foo();');
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: SimpleIdentifier
+CallInvocation
+  receiver: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@getter::foo
+    staticType: void
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: DynamicInvocationResolution
+    type: dynamic
+  staticType: dynamic
+V1: FunctionExpressionInvocation
+  function: SimpleIdentifier
     token: foo
     element: <testLibrary>::@getter::foo
     staticType: void
@@ -3245,10 +3496,10 @@ main() {
 }
 ''');
 
-    var node = result.findNode.functionExpressionInvocation('foo(0);');
+    var node = result.findNode.callInvocation('foo(0);');
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: PropertyAccess
+CallInvocation
+  receiver: PropertyAccess
     target2: SimpleIdentifier
       token: C
       element: <testLibrary>::@class::C
@@ -3262,6 +3513,30 @@ FunctionExpressionInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <null-name>@null
+        staticType: int
+    rightParenthesis: )
+  resolution: FunctionTypeInvocationResolution
+    invokeType: double Function(int)
+    type: double
+  staticType: double
+V1: FunctionExpressionInvocation
+  function: PropertyAccess
+    target: SimpleIdentifier
+      token: C
+      element: <testLibrary>::@class::C
+      staticType: null
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      element: <testLibrary>::@class::C::@getter::foo
+      staticType: double Function(int)
+    staticType: double Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: <null-name>@null
@@ -3448,10 +3723,10 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.singleFunctionExpressionInvocation;
+    var node = result.findNode.singleCallInvocation;
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: PropertyAccess
+CallInvocation
+  receiver: PropertyAccess
     target2: SimpleIdentifier
       token: A
       element: <testLibrary>::@extension::A
@@ -3465,6 +3740,30 @@ FunctionExpressionInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <null-name>@null
+        staticType: int
+    rightParenthesis: )
+  resolution: FunctionTypeInvocationResolution
+    invokeType: double Function(int)
+    type: double
+  staticType: double
+V1: FunctionExpressionInvocation
+  function: PropertyAccess
+    target: SimpleIdentifier
+      token: A
+      element: <testLibrary>::@extension::A
+      staticType: null
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      element: <testLibrary>::@extension::A::@getter::foo
+      staticType: double Function(int)
+    staticType: double Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: <null-name>@null
@@ -3676,10 +3975,10 @@ main() {
 }
 ''');
 
-    var node = result.findNode.functionExpressionInvocation('foo(1, 2);');
+    var node = result.findNode.callInvocation('foo(1, 2);');
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: PrefixedIdentifier
+CallInvocation
+  receiver: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: prefix
       element: <testLibraryFragment>::@prefix::prefix
@@ -3694,6 +3993,41 @@ FunctionExpressionInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      IntegerLiteral
+        literal: 1
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: a@null
+          substitution: {T: int}
+        staticType: int
+      IntegerLiteral
+        literal: 2
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: b@null
+          substitution: {T: int}
+        staticType: int
+    rightParenthesis: )
+  resolution: FunctionTypeInvocationResolution
+    invokeType: int Function(int, int)
+    type: int
+  staticType: int
+  typeArgumentTypes
+    int
+V1: FunctionExpressionInvocation
+  function: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: prefix
+      element: <testLibraryFragment>::@prefix::prefix
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: package:test/a.dart::@getter::foo
+      staticType: T Function<T>(T, T)
+    element: package:test/a.dart::@getter::foo
+    staticType: T Function<T>(T, T)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       IntegerLiteral
         literal: 1
         correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -3794,10 +4128,10 @@ void f(C c) {
 }
 ''');
 
-    var node = result.findNode.functionExpressionInvocation('foo(0);');
+    var node = result.findNode.callInvocation('foo(0);');
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: PropertyAccess
+CallInvocation
+  receiver: PropertyAccess
     target2: SimpleIdentifier
       token: c
       element: <testLibrary>::@function::f::@formalParameter::c
@@ -3811,6 +4145,30 @@ FunctionExpressionInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <null-name>@null
+        staticType: int
+    rightParenthesis: )
+  resolution: FunctionTypeInvocationResolution
+    invokeType: double Function(int)
+    type: double
+  staticType: double
+V1: FunctionExpressionInvocation
+  function: PropertyAccess
+    target: SimpleIdentifier
+      token: c
+      element: <testLibrary>::@function::f::@formalParameter::c
+      staticType: C
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      element: <testLibrary>::@class::C::@getter::foo
+      staticType: double Function(int)
+    staticType: double Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: <null-name>@null
@@ -3844,10 +4202,10 @@ var v = C()..foo(0) = 0;
 // [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
 ''');
 
-    var node = result.findNode.functionExpressionInvocation('foo(0)');
+    var node = result.findNode.callInvocation('foo(0)');
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: PropertyAccess
+CallInvocation
+  receiver: PropertyAccess
     operator: ..
     propertyName: SimpleIdentifier
       token: foo
@@ -3857,6 +4215,26 @@ FunctionExpressionInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <null-name>@null
+        staticType: int
+    rightParenthesis: )
+  resolution: FunctionTypeInvocationResolution
+    invokeType: double Function(int)
+    type: double
+  staticType: double
+V1: FunctionExpressionInvocation
+  function: PropertyAccess
+    operator: ..
+    propertyName: SimpleIdentifier
+      token: foo
+      element: <testLibrary>::@class::C::@getter::foo
+      staticType: double Function(int)
+    staticType: double Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: <null-name>@null
@@ -3882,11 +4260,30 @@ void f(C c) {
 }
 ''');
 
-    var node = result.findNode.functionExpressionInvocation('foo()');
+    var node = result.findNode.callInvocation('foo()');
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: PropertyAccess
+CallInvocation
+  receiver: PropertyAccess
     target2: SimpleIdentifier
+      token: c
+      element: <testLibrary>::@function::f::@formalParameter::c
+      staticType: C
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      element: <testLibrary>::@class::C::@getter::foo
+      staticType: int Function()
+    staticType: int Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: FunctionTypeInvocationResolution
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: FunctionExpressionInvocation
+  function: PropertyAccess
+    target: SimpleIdentifier
       token: c
       element: <testLibrary>::@function::f::@formalParameter::c
       staticType: C
@@ -4180,10 +4577,10 @@ void f(C? c) {
 }
 ''');
 
-    var node = result.findNode.functionExpressionInvocation('foo(c);');
+    var node = result.findNode.callInvocation('foo(c);');
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: PropertyAccess
+CallInvocation
+  receiver: PropertyAccess
     target2: SimpleIdentifier
       token: c
       element: <testLibrary>::@function::f::@formalParameter::c
@@ -4197,6 +4594,31 @@ FunctionExpressionInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      SimpleIdentifier
+        token: c
+        correspondingParameter: <null-name>@null
+        element: <testLibrary>::@function::f::@formalParameter::c
+        staticType: C
+    rightParenthesis: )
+  resolution: FunctionTypeInvocationResolution
+    invokeType: void Function(C)
+    type: void
+  staticType: void
+V1: FunctionExpressionInvocation
+  function: PropertyAccess
+    target: SimpleIdentifier
+      token: c
+      element: <testLibrary>::@function::f::@formalParameter::c
+      staticType: C?
+    operator: ?.
+    propertyName: SimpleIdentifier
+      token: foo
+      element: <testLibrary>::@class::C::@getter::foo
+      staticType: void Function(C)
+    staticType: void Function(C)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       SimpleIdentifier
         token: c
         correspondingParameter: <null-name>@null
@@ -4934,10 +5356,10 @@ main() {
 }
 ''');
 
-    var node = result.findNode.functionExpressionInvocation('foo(0);');
+    var node = result.findNode.callInvocation('foo(0);');
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: PropertyAccess
+CallInvocation
+  receiver: PropertyAccess
     target2: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: prefix
@@ -4959,6 +5381,38 @@ FunctionExpressionInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <null-name>@null
+        staticType: int
+    rightParenthesis: )
+  resolution: FunctionTypeInvocationResolution
+    invokeType: double Function(int)
+    type: double
+  staticType: double
+V1: FunctionExpressionInvocation
+  function: PropertyAccess
+    target: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: prefix
+        element: <testLibraryFragment>::@prefix::prefix
+        staticType: null
+      period: .
+      identifier: SimpleIdentifier
+        token: C
+        element: package:test/a.dart::@class::C
+        staticType: null
+      element: package:test/a.dart::@class::C
+      staticType: null
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      element: package:test/a.dart::@class::C::@getter::foo
+      staticType: double Function(int)
+    staticType: double Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: <null-name>@null
@@ -5299,10 +5753,10 @@ class B extends A {
 }
 ''');
 
-    var node = result.findNode.functionExpressionInvocation('foo(0);');
+    var node = result.findNode.callInvocation('foo(0);');
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: PropertyAccess
+CallInvocation
+  receiver: PropertyAccess
     target2: SuperExpression
       superKeyword: super
       staticType: B
@@ -5315,6 +5769,29 @@ FunctionExpressionInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <null-name>@null
+        staticType: int
+    rightParenthesis: )
+  resolution: FunctionTypeInvocationResolution
+    invokeType: double Function(int)
+    type: double
+  staticType: double
+V1: FunctionExpressionInvocation
+  function: PropertyAccess
+    target: SuperExpression
+      superKeyword: super
+      staticType: B
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      element: <testLibrary>::@class::A::@getter::foo
+      staticType: double Function(int)
+    staticType: double Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: <null-name>@null
@@ -5578,16 +6055,33 @@ class A {
 }
 ''');
 
-    var node = result.findNode.functionExpressionInvocation('foo(0)');
+    var node = result.findNode.callInvocation('foo(0)');
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: SimpleIdentifier
+CallInvocation
+  receiver: SimpleIdentifier
     token: foo
     element: <testLibrary>::@class::A::@getter::foo
     staticType: int
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <null>
+        staticType: int
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@class::A::@getter::foo
+    staticType: int
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: <null>
@@ -5610,16 +6104,32 @@ class A {
 }
 ''');
 
-    var node = result.findNode.functionExpressionInvocation('foo(0)');
+    var node = result.findNode.callInvocation('foo(0)');
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: SimpleIdentifier
+CallInvocation
+  receiver: SimpleIdentifier
     token: foo
     element: <testLibrary>::@class::A::@getter::foo
     staticType: dynamic
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <null>
+        staticType: int
+    rightParenthesis: )
+  resolution: DynamicInvocationResolution
+    type: dynamic
+  staticType: dynamic
+V1: FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@class::A::@getter::foo
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: <null>
@@ -5642,16 +6152,32 @@ class A {
 }
 ''');
 
-    var node = result.findNode.functionExpressionInvocation('foo(0)');
+    var node = result.findNode.callInvocation('foo(0)');
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: SimpleIdentifier
+CallInvocation
+  receiver: SimpleIdentifier
     token: foo
     element: <testLibrary>::@class::A::@getter::foo
     staticType: dynamic
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <null>
+        staticType: int
+    rightParenthesis: )
+  resolution: DynamicInvocationResolution
+    type: dynamic
+  staticType: dynamic
+V1: FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@class::A::@getter::foo
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: <null>
@@ -5670,16 +6196,32 @@ void f(foo) {
 }
 ''');
 
-    var node = result.findNode.functionExpressionInvocation('foo(0)');
+    var node = result.findNode.callInvocation('foo(0)');
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: SimpleIdentifier
+CallInvocation
+  receiver: SimpleIdentifier
     token: foo
     element: <testLibrary>::@function::f::@formalParameter::foo
     staticType: dynamic
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <null>
+        staticType: int
+    rightParenthesis: )
+  resolution: DynamicInvocationResolution
+    type: dynamic
+  staticType: dynamic
+V1: FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@function::f::@formalParameter::foo
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: <null>
@@ -5746,16 +6288,33 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.functionExpressionInvocation('foo(0)');
+    var node = result.findNode.callInvocation('foo(0)');
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: SimpleIdentifier
+CallInvocation
+  receiver: SimpleIdentifier
     token: foo
     element: <testLibrary>::@getter::foo
     staticType: int
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <null>
+        staticType: int
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@getter::foo
+    staticType: int
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: <null>
@@ -5776,16 +6335,32 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.functionExpressionInvocation('foo(0)');
+    var node = result.findNode.callInvocation('foo(0)');
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: SimpleIdentifier
+CallInvocation
+  receiver: SimpleIdentifier
     token: foo
     element: <testLibrary>::@getter::foo
     staticType: dynamic
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <null>
+        staticType: int
+    rightParenthesis: )
+  resolution: DynamicInvocationResolution
+    type: dynamic
+  staticType: dynamic
+V1: FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@getter::foo
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: <null>
@@ -6376,16 +6951,33 @@ class B extends A {
 }
 ''');
 
-    var node = result.findNode.functionExpressionInvocation('foo(0);');
+    var node = result.findNode.callInvocation('foo(0);');
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: SimpleIdentifier
+CallInvocation
+  receiver: SimpleIdentifier
     token: foo
     element: <testLibrary>::@class::A::@getter::foo
     staticType: double Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <null-name>@null
+        staticType: int
+    rightParenthesis: )
+  resolution: FunctionTypeInvocationResolution
+    invokeType: double Function(int)
+    type: double
+  staticType: double
+V1: FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@class::A::@getter::foo
+    staticType: double Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: <null-name>@null
@@ -6408,16 +7000,33 @@ class C {
 }
 ''');
 
-    var node = result.findNode.functionExpressionInvocation('foo(0);');
+    var node = result.findNode.callInvocation('foo(0);');
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: SimpleIdentifier
+CallInvocation
+  receiver: SimpleIdentifier
     token: foo
     element: <testLibrary>::@class::C::@getter::foo
     staticType: double Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <null-name>@null
+        staticType: int
+    rightParenthesis: )
+  resolution: FunctionTypeInvocationResolution
+    invokeType: double Function(int)
+    type: double
+  staticType: double
+V1: FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@class::C::@getter::foo
+    staticType: double Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: <null-name>@null
@@ -6495,16 +7104,34 @@ void f(C c) {
 }
 ''');
 
-    var node = result.findNode.functionExpressionInvocation('c(0);');
+    var node = result.findNode.callInvocation('c(0);');
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: SimpleIdentifier
+CallInvocation
+  receiver: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::f::@formalParameter::c
     staticType: C
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <testLibrary>::@class::C::@method::call::@formalParameter::_
+        staticType: int
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@class::C::@method::call
+    invokeType: void Function(int)
+    type: void
+  staticType: void
+V1: FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: c
+    element: <testLibrary>::@function::f::@formalParameter::c
+    staticType: C
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: <testLibrary>::@class::C::@method::call::@formalParameter::_
@@ -6526,16 +7153,33 @@ main() {
 }
 ''');
 
-    var node = result.findNode.functionExpressionInvocation('foo(0);');
+    var node = result.findNode.callInvocation('foo(0);');
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: SimpleIdentifier
+CallInvocation
+  receiver: SimpleIdentifier
     token: foo
     element: foo@15
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <null-name>@null
+        staticType: int
+    rightParenthesis: )
+  resolution: FunctionTypeInvocationResolution
+    invokeType: void Function(int)
+    type: void
+  staticType: void
+V1: FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: foo
+    element: foo@15
+    staticType: void Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: <null-name>@null
@@ -6618,16 +7262,33 @@ void f(void Function(int) foo) {
 }
 ''');
 
-    var node = result.findNode.functionExpressionInvocation('foo(0);');
+    var node = result.findNode.callInvocation('foo(0);');
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: SimpleIdentifier
+CallInvocation
+  receiver: SimpleIdentifier
     token: foo
     element: <testLibrary>::@function::f::@formalParameter::foo
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <null-name>@null
+        staticType: int
+    rightParenthesis: )
+  resolution: FunctionTypeInvocationResolution
+    invokeType: void Function(int)
+    type: void
+  staticType: void
+V1: FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@function::f::@formalParameter::foo
+    staticType: void Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: <null-name>@null
@@ -6682,10 +7343,24 @@ void f(F a) {
 }
 ''');
 
-    var node = result.findNode.functionExpressionInvocation('a();');
+    var node = result.findNode.callInvocation('a();');
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: SimpleIdentifier
+CallInvocation
+  receiver: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: void Function()
+      alias: <testLibrary>::@typeAlias::F
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: FunctionTypeInvocationResolution
+    invokeType: void Function()
+      alias: <testLibrary>::@typeAlias::F
+    type: void
+  staticType: void
+V1: FunctionExpressionInvocation
+  function: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: void Function()
@@ -6738,16 +7413,33 @@ main() {
 }
 ''');
 
-    var node = result.findNode.functionExpressionInvocation('foo(0);');
+    var node = result.findNode.callInvocation('foo(0);');
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: SimpleIdentifier
+CallInvocation
+  receiver: SimpleIdentifier
     token: foo
     element: <testLibrary>::@getter::foo
     staticType: double Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <null-name>@null
+        staticType: int
+    rightParenthesis: )
+  resolution: FunctionTypeInvocationResolution
+    invokeType: double Function(int)
+    type: double
+  staticType: double
+V1: FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@getter::foo
+    staticType: double Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: <null-name>@null
@@ -6768,16 +7460,33 @@ main() {
 }
 ''');
 
-    var node = result.findNode.functionExpressionInvocation('foo(0);');
+    var node = result.findNode.callInvocation('foo(0);');
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: SimpleIdentifier
+CallInvocation
+  receiver: SimpleIdentifier
     token: foo
     element: <testLibrary>::@getter::foo
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <null-name>@null
+        staticType: int
+    rightParenthesis: )
+  resolution: FunctionTypeInvocationResolution
+    invokeType: void Function(int)
+    type: void
+  staticType: void
+V1: FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@getter::foo
+    staticType: void Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: <null-name>@null
@@ -7333,8 +8042,20 @@ f(int Function() a, int b) {
     var node = result.findNode.methodInvocation('remainder');
     assertResolvedNodeText(node, r'''
 MethodInvocation
-  target2: FunctionExpressionInvocation
-    function2: SimpleIdentifier
+  target2: CallInvocation
+    receiver: SimpleIdentifier
+      token: a
+      element: <testLibrary>::@function::f::@formalParameter::a
+      staticType: int Function()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    resolution: FunctionTypeInvocationResolution
+      invokeType: int Function()
+      type: int
+    staticType: int
+  target(v1): FunctionExpressionInvocation
+    function: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::f::@formalParameter::a
       staticType: int Function()
@@ -7445,10 +8166,10 @@ void main() {
   (null as B?)?.a.content();
 }
 ''');
-    var node = result.findNode.functionExpressionInvocation('content()');
+    var node = result.findNode.callInvocation('content()');
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: PropertyAccess
+CallInvocation
+  receiver: PropertyAccess
     target2: ReceiverPropertyExtraction
       receiver: ParenthesizedExpression
         leftParenthesis: (
@@ -7503,6 +8224,43 @@ FunctionExpressionInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
+  resolution: FunctionTypeInvocationResolution
+    invokeType: String Function()
+    type: String
+  staticType: String?
+V1: FunctionExpressionInvocation
+  function: PropertyAccess
+    target: PropertyAccess
+      target: ParenthesizedExpression
+        leftParenthesis: (
+        expression: AsExpression
+          expression: NullLiteral
+            literal: null
+            staticType: Null
+          asOperator: as
+          type: NamedType
+            name: B
+            question: ?
+            element: <testLibrary>::@class::B
+            type: B?
+          staticType: B?
+        rightParenthesis: )
+        staticType: B?
+      operator: ?.
+      propertyName: SimpleIdentifier
+        token: a
+        element: <testLibrary>::@class::B::@getter::a
+        staticType: A
+      staticType: A
+    operator: .
+    propertyName: SimpleIdentifier
+      token: content
+      element: <testLibrary>::@class::A::@getter::content
+      staticType: String Function()
+    staticType: String Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
   element: <null>
   staticInvokeType: String Function()
   staticType: String?
@@ -7516,11 +8274,31 @@ test<T extends Function>(List<T> x) {
 }
 ''');
 
-    var node = result.findNode.functionExpressionInvocation('x.first()');
+    var node = result.findNode.callInvocation('x.first()');
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: PropertyAccess
+CallInvocation
+  receiver: PropertyAccess
     target2: SimpleIdentifier
+      token: x
+      element: <testLibrary>::@function::test::@formalParameter::x
+      staticType: List<T>
+    operator: .
+    propertyName: SimpleIdentifier
+      token: first
+      element: SubstitutedGetterElementImpl
+        baseElement: dart:core::@class::Iterable::@getter::first
+        substitution: {E: T}
+      staticType: T
+    staticType: T
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: FunctionInterfaceInvocationResolution
+    type: dynamic
+  staticType: dynamic
+V1: FunctionExpressionInvocation
+  function: PropertyAccess
+    target: SimpleIdentifier
       token: x
       element: <testLibrary>::@function::test::@formalParameter::x
       staticType: List<T>
@@ -7550,10 +8328,23 @@ extension E<T extends Function> on List<T> {
 }
 ''');
 
-    var node = result.findNode.functionExpressionInvocation('first()');
+    var node = result.findNode.callInvocation('first()');
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: SimpleIdentifier
+CallInvocation
+  receiver: SimpleIdentifier
+    token: first
+    element: SubstitutedGetterElementImpl
+      baseElement: dart:core::@class::Iterable::@getter::first
+      substitution: {E: T}
+    staticType: T
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: FunctionInterfaceInvocationResolution
+    type: dynamic
+  staticType: dynamic
+V1: FunctionExpressionInvocation
+  function: SimpleIdentifier
     token: first
     element: SubstitutedGetterElementImpl
       baseElement: dart:core::@class::Iterable::@getter::first

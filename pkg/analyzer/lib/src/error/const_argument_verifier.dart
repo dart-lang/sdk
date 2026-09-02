@@ -6,7 +6,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
@@ -55,6 +54,13 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
   }
 
   @override
+  void visitCallInvocation(CallInvocation node) {
+    if (node.resolution is StaticInvocationResolution) {
+      _check(arguments: node.argumentList.arguments2, errorNode: node);
+    }
+  }
+
+  @override
   void visitCompoundAssignment(CompoundAssignment node) {
     _check(arguments: [node.value], errorNode: node.operator);
   }
@@ -76,13 +82,6 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
   @override
   void visitDirectAssignment(DirectAssignment node) {
     _check(arguments: [node.value], errorNode: node.operator);
-  }
-
-  @override
-  void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    if (node.staticInvokeType is FunctionType) {
-      _check(arguments: node.argumentList.arguments2, errorNode: node);
-    }
   }
 
   @override

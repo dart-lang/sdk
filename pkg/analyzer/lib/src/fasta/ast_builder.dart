@@ -638,8 +638,8 @@ class AstBuilder extends StackListener {
   }
 
   ConstructorInitializerImpl? buildInitializer(Object initializerObject) {
-    if (initializerObject is FunctionExpressionInvocationImpl) {
-      var function = initializerObject.function2;
+    if (initializerObject is CallInvocationImpl) {
+      var function = initializerObject.receiver;
       if (function is SuperExpressionImpl) {
         return SuperConstructorInvocationImpl(
           superKeyword: function.superKeyword,
@@ -791,9 +791,9 @@ class AstBuilder extends StackListener {
   ) {
     ArgumentListImpl? argumentList;
     while (true) {
-      if (target is FunctionExpressionInvocationImpl) {
+      if (target is CallInvocationImpl) {
         argumentList = target.argumentList;
-        target = target.function2;
+        target = target.receiver as ExpressionImpl;
       } else if (target is MethodInvocationImpl) {
         argumentList = target.argumentList;
         target = target.target2;
@@ -956,8 +956,8 @@ class AstBuilder extends StackListener {
         );
       default:
         push(
-          FunctionExpressionInvocationImpl(
-            function2: receiver,
+          CallInvocationImpl(
+            receiver: receiver,
             typeArguments: typeArguments,
             argumentList: argumentList,
           ),
@@ -1083,8 +1083,8 @@ class AstBuilder extends StackListener {
           arguments.add(message);
         }
         push(
-          FunctionExpressionInvocationImpl(
-            function2: SimpleIdentifierImpl(token: assertKeyword),
+          CallInvocationImpl(
+            receiver: SimpleIdentifierImpl(token: assertKeyword),
             typeArguments: null,
             argumentList: ArgumentListImpl(
               leftParenthesis: leftParenthesis,

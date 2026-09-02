@@ -213,6 +213,20 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitCallInvocation(covariant CallInvocationImpl node) {
+    _sink.writeln('CallInvocation');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      if (_withResolution) {
+        _writeInvocationResolution('resolution', node.resolution);
+      }
+      _writeParameterElement(node);
+      _writeType('staticType', node.staticType);
+      _writeTypeList('typeArgumentTypes', node.typeArgumentTypes);
+    });
+  }
+
+  @override
   void visitCascadeExpression(CascadeExpression node) {
     _sink.writeln('CascadeExpression');
     _sink.withIndent(() {
@@ -2457,6 +2471,54 @@ Expected parent: (${parent.runtimeType}) $parent
           _writeElement('element', resolution.element);
           _writeType('invokeType', resolution.invokeType);
           _writeType('acceptedType', resolution.acceptedType);
+        });
+    }
+  }
+
+  void _writeInvocationResolution(
+    String name,
+    InvocationResolutionImpl? resolution,
+  ) {
+    switch (resolution) {
+      case null:
+        _sink.writelnWithIndent('$name: <null>');
+      case DynamicInvocationResolutionImpl():
+        _sink.writelnWithIndent('$name: DynamicInvocationResolution');
+        _sink.withIndent(() {
+          _writeType('type', resolution.type);
+        });
+      case ExecutableInvocationResolutionImpl():
+        _sink.writelnWithIndent('$name: ExecutableInvocationResolution');
+        _sink.withIndent(() {
+          _writeElement('element', resolution.element);
+          _writeType('invokeType', resolution.invokeType);
+          _writeType('type', resolution.type);
+        });
+      case FunctionCallInvocationResolutionImpl():
+        _sink.writelnWithIndent('$name: FunctionCallInvocationResolution');
+        _sink.withIndent(() {
+          _writeType('invokeType', resolution.invokeType);
+          _writeType('type', resolution.type);
+        });
+      case FunctionInterfaceInvocationResolutionImpl():
+        _sink.writelnWithIndent('$name: FunctionInterfaceInvocationResolution');
+        _sink.withIndent(() {
+          _writeType('type', resolution.type);
+        });
+      case FunctionTypeInvocationResolutionImpl():
+        _sink.writelnWithIndent('$name: FunctionTypeInvocationResolution');
+        _sink.withIndent(() {
+          _writeType('invokeType', resolution.invokeType);
+          _writeType('type', resolution.type);
+        });
+      case InvalidInvocationResolutionImpl():
+        _sink.writelnWithIndent('$name: InvalidInvocationResolution');
+        _sink.withIndent(() {
+          _writeType('type', resolution.type);
+          _sink.writeElements('candidates', resolution.candidates, (candidate) {
+            _writeElement('candidate', candidate);
+          });
+          _writeInvocationResolution('recovery', resolution.recovery);
         });
     }
   }

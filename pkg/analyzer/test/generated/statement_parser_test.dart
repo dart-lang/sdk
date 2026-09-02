@@ -29,11 +29,30 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression2: FunctionExpressionInvocation
-        function2: FunctionExpressionInvocation
-          function2: ParenthesizedExpression
+      expression2: CallInvocation
+        receiver: CallInvocation
+          receiver: ParenthesizedExpression
             leftParenthesis: (
             expression2: SimpleIdentifier
+              token: f
+            rightParenthesis: )
+          argumentList: ArgumentList
+            leftParenthesis: (
+            rightParenthesis: )
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: int
+          rightBracket: >
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+      expression(v1): FunctionExpressionInvocation
+        function: FunctionExpressionInvocation
+          function: ParenthesizedExpression
+            leftParenthesis: (
+            expression: SimpleIdentifier
               token: f
             rightParenthesis: )
           argumentList: ArgumentList
@@ -2917,8 +2936,8 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression2: FunctionExpressionInvocation
-        function2: FunctionExpression
+      expression2: CallInvocation
+        receiver: FunctionExpression
           parameters: FormalParameterList
             leftParenthesis: (
             requiredPositionalFormalParameters
@@ -2954,6 +2973,33 @@ Block
         argumentList: ArgumentList
           leftParenthesis: (
           arguments2
+            IntegerLiteral
+              literal: 3
+          rightParenthesis: )
+      expression(v1): FunctionExpressionInvocation
+        function: FunctionExpression
+          parameters: FormalParameterList
+            leftParenthesis: (
+            parameter: RegularFormalParameter
+              name: a
+            rightParenthesis: )
+          body: BlockFunctionBody
+            block: Block
+              leftBracket: {
+              statements
+                ReturnStatement
+                  returnKeyword: return
+                  expression: BinaryExpression
+                    leftOperand: SimpleIdentifier
+                      token: a
+                    operator: +
+                    rightOperand: SimpleIdentifier
+                      token: a
+                  semicolon: ;
+              rightBracket: }
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments
             IntegerLiteral
               literal: 3
           rightParenthesis: )

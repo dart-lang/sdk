@@ -458,6 +458,9 @@ abstract class AstVisitor2<R> {
 
   R? visitBreakStatement(BreakStatement node);
 
+  @experimental
+  R? visitCallInvocation(CallInvocation node);
+
   R? visitCascadeExpression(CascadeExpression node);
 
   @experimental
@@ -608,8 +611,6 @@ abstract class AstVisitor2<R> {
   R? visitFunctionDeclarationStatement(FunctionDeclarationStatement node);
 
   R? visitFunctionExpression(FunctionExpression node);
-
-  R? visitFunctionExpressionInvocation(FunctionExpressionInvocation node);
 
   R? visitFunctionReference(FunctionReference node);
 

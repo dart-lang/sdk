@@ -768,12 +768,21 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: FunctionExpressionInvocation
-                          function2: SimpleIdentifier
+                        initializer2: CallInvocation
+                          receiver: SimpleIdentifier
                             token: assert
                           argumentList: ArgumentList
                             leftParenthesis: (
                             arguments2
+                              BooleanLiteral
+                                literal: true
+                            rightParenthesis: )
+                        initializer(v1): FunctionExpressionInvocation
+                          function: SimpleIdentifier
+                            token: assert
+                          argumentList: ArgumentList
+                            leftParenthesis: (
+                            arguments
                               BooleanLiteral
                                 literal: true
                             rightParenthesis: )
@@ -1637,12 +1646,21 @@ CompilationUnit
                         initializer2: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
-                  condition2: FunctionExpressionInvocation
-                    function2: SimpleIdentifier
+                  condition2: CallInvocation
+                    receiver: SimpleIdentifier
                       token: assert
                     argumentList: ArgumentList
                       leftParenthesis: (
                       arguments2
+                        BooleanLiteral
+                          literal: true
+                      rightParenthesis: )
+                  condition(v1): FunctionExpressionInvocation
+                    function: SimpleIdentifier
+                      token: assert
+                    argumentList: ArgumentList
+                      leftParenthesis: (
+                      arguments
                         BooleanLiteral
                           literal: true
                       rightParenthesis: )
@@ -2513,12 +2531,21 @@ CompilationUnit
                         initializer2: IntegerLiteral
                           literal: 0
                   leftSeparator: ; <synthetic>
-                  condition2: FunctionExpressionInvocation
-                    function2: SimpleIdentifier
+                  condition2: CallInvocation
+                    receiver: SimpleIdentifier
                       token: assert
                     argumentList: ArgumentList
                       leftParenthesis: (
                       arguments2
+                        BooleanLiteral
+                          literal: true
+                      rightParenthesis: )
+                  condition(v1): FunctionExpressionInvocation
+                    function: SimpleIdentifier
+                      token: assert
+                    argumentList: ArgumentList
+                      leftParenthesis: (
+                      arguments
                         BooleanLiteral
                           literal: true
                       rightParenthesis: )
@@ -4072,12 +4099,21 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForPartsWithExpression
-                  initialization2: FunctionExpressionInvocation
-                    function2: SimpleIdentifier
+                  initialization2: CallInvocation
+                    receiver: SimpleIdentifier
                       token: assert
                     argumentList: ArgumentList
                       leftParenthesis: (
                       arguments2
+                        BooleanLiteral
+                          literal: true
+                      rightParenthesis: )
+                  initialization(v1): FunctionExpressionInvocation
+                    function: SimpleIdentifier
+                      token: assert
+                    argumentList: ArgumentList
+                      leftParenthesis: (
+                      arguments
                         BooleanLiteral
                           literal: true
                       rightParenthesis: )
@@ -5581,12 +5617,22 @@ CompilationUnit
                   leftSeparator: ;
                   rightSeparator: ;
                   updaters2
-                    FunctionExpressionInvocation
-                      function2: SimpleIdentifier
+                    CallInvocation
+                      receiver: SimpleIdentifier
                         token: assert
                       argumentList: ArgumentList
                         leftParenthesis: (
                         arguments2
+                          BooleanLiteral
+                            literal: true
+                        rightParenthesis: )
+                  updaters(v1)
+                    FunctionExpressionInvocation
+                      function: SimpleIdentifier
+                        token: assert
+                      argumentList: ArgumentList
+                        leftParenthesis: (
+                        arguments
                           BooleanLiteral
                             literal: true
                         rightParenthesis: )
@@ -6422,12 +6468,21 @@ CompilationUnit
                       VariableDeclaration
                         name: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
-                  condition2: FunctionExpressionInvocation
-                    function2: SimpleIdentifier
+                  condition2: CallInvocation
+                    receiver: SimpleIdentifier
                       token: assert
                     argumentList: ArgumentList
                       leftParenthesis: (
                       arguments2
+                        BooleanLiteral
+                          literal: true
+                      rightParenthesis: )
+                  condition(v1): FunctionExpressionInvocation
+                    function: SimpleIdentifier
+                      token: assert
+                    argumentList: ArgumentList
+                      leftParenthesis: (
+                      arguments
                         BooleanLiteral
                           literal: true
                       rightParenthesis: )
@@ -7256,12 +7311,21 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                   leftSeparator: ; <synthetic>
-                  condition2: FunctionExpressionInvocation
-                    function2: SimpleIdentifier
+                  condition2: CallInvocation
+                    receiver: SimpleIdentifier
                       token: assert
                     argumentList: ArgumentList
                       leftParenthesis: (
                       arguments2
+                        BooleanLiteral
+                          literal: true
+                      rightParenthesis: )
+                  condition(v1): FunctionExpressionInvocation
+                    function: SimpleIdentifier
+                      token: assert
+                    argumentList: ArgumentList
+                      leftParenthesis: (
+                      arguments
                         BooleanLiteral
                           literal: true
                       rightParenthesis: )

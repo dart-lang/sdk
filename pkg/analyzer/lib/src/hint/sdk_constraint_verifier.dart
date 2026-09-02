@@ -87,6 +87,14 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitCallInvocation(CallInvocation node) {
+    if (node.resolution case ExecutableInvocationResolution(:var element)) {
+      _checkSinceSdkVersion(element, node);
+    }
+    super.visitCallInvocation(node);
+  }
+
+  @override
   void visitCascadeIndexExpression(CascadeIndexExpression node) {
     _checkIndexRead(node);
     super.visitCascadeIndexExpression(node);
@@ -193,12 +201,6 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
       );
     }
     super.visitDirectAssignment(node);
-  }
-
-  @override
-  void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    _checkSinceSdkVersion(node.element, node);
-    super.visitFunctionExpressionInvocation(node);
   }
 
   @override
@@ -336,7 +338,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
           }
           if (target is ExtensionOverride) {
             errorEntity = target.name;
-          } else if (target is FunctionExpressionInvocation) {
+          } else if (target is CallInvocation) {
             errorEntity = target.argumentList;
           } else if (target is IndexExpression2) {
             errorEntity = target.leftBracket;

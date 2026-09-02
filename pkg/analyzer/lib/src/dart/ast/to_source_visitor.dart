@@ -171,6 +171,13 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
+  void visitCallInvocation(CallInvocation node) {
+    _visitNode(node.receiver);
+    _visitNode(node.typeArguments);
+    _visitNode(node.argumentList);
+  }
+
+  @override
   void visitCascadeExpression(CascadeExpression node) {
     _visitNode(node.target2);
     _visitNodeList(node.sections);
@@ -745,13 +752,6 @@ class ToSourceVisitor implements AstVisitor2<void> {
     _visitNode(node.typeParameters);
     _visitNode(node.parameters);
     _visitFunctionBody(node.body);
-  }
-
-  @override
-  void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    _visitNode(node.function2);
-    _visitNode(node.typeArguments);
-    _visitNode(node.argumentList);
   }
 
   @override

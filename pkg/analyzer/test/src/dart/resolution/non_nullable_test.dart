@@ -226,8 +226,8 @@ m<T extends Function>() {
 }
 ''');
     // Do not assert no test errors. Deliberately invokes nullable type.
-    var invocation = result.findNode.functionExpressionInvocation('first()');
-    assertType(invocation.function2, 'T?');
+    var invocation = result.findNode.callInvocation('first()');
+    assertType(invocation.receiver, 'T?');
   }
 
   test_mixin_hierarchy() async {

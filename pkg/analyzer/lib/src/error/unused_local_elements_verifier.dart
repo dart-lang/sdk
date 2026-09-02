@@ -63,6 +63,14 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitCallInvocation(CallInvocation node) {
+    if (node.resolution case ExecutableInvocationResolution(:var element)) {
+      usedElements.addElement(element);
+    }
+    super.visitCallInvocation(node);
+  }
+
+  @override
   void visitCascadeIndexExpression(CascadeIndexExpression node) {
     _useIndexReadResolution(node.resolution);
     super.visitCascadeIndexExpression(node);
@@ -257,12 +265,6 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
       usedElements.addElement(node.declaredFragment?.element);
     }
     super.visitFunctionExpression(node);
-  }
-
-  @override
-  void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    usedElements.addElement(node.element);
-    super.visitFunctionExpressionInvocation(node);
   }
 
   @override

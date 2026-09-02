@@ -461,8 +461,8 @@ var v = (x)(y).z;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 PropertyAccess
-  target2: FunctionExpressionInvocation
-    function2: ParenthesizedExpression
+  target2: CallInvocation
+    receiver: ParenthesizedExpression
       leftParenthesis: (
       expression2: SimpleIdentifier
         token: x
@@ -470,6 +470,18 @@ PropertyAccess
     argumentList: ArgumentList
       leftParenthesis: (
       arguments2
+        SimpleIdentifier
+          token: y
+      rightParenthesis: )
+  target(v1): FunctionExpressionInvocation
+    function: ParenthesizedExpression
+      leftParenthesis: (
+      expression: SimpleIdentifier
+        token: x
+      rightParenthesis: )
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
         SimpleIdentifier
           token: y
       rightParenthesis: )
@@ -486,8 +498,8 @@ var v = (x)<F>(y).z;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 PropertyAccess
-  target2: FunctionExpressionInvocation
-    function2: ParenthesizedExpression
+  target2: CallInvocation
+    receiver: ParenthesizedExpression
       leftParenthesis: (
       expression2: SimpleIdentifier
         token: x
@@ -501,6 +513,24 @@ PropertyAccess
     argumentList: ArgumentList
       leftParenthesis: (
       arguments2
+        SimpleIdentifier
+          token: y
+      rightParenthesis: )
+  target(v1): FunctionExpressionInvocation
+    function: ParenthesizedExpression
+      leftParenthesis: (
+      expression: SimpleIdentifier
+        token: x
+      rightParenthesis: )
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: F
+      rightBracket: >
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
         SimpleIdentifier
           token: y
       rightParenthesis: )
@@ -1017,14 +1047,8 @@ CascadeExpression
   sections
     CascadeSection
       operator: ..
-      body: FunctionExpressionInvocation
-        function2: CascadeIndexExpression
-          leftBracket: [
-          index: SimpleIdentifier
-            token: i
-          rightBracket: ]
-        function(v1): IndexExpression
-          period: ..
+      body: CallInvocation
+        receiver: CascadeIndexExpression
           leftBracket: [
           index: SimpleIdentifier
             token: i
@@ -1064,14 +1088,8 @@ CascadeExpression
   sections
     CascadeSection
       operator: ..
-      body: FunctionExpressionInvocation
-        function2: CascadeIndexExpression
-          leftBracket: [
-          index: SimpleIdentifier
-            token: i
-          rightBracket: ]
-        function(v1): IndexExpression
-          period: ..
+      body: CallInvocation
+        receiver: CascadeIndexExpression
           leftBracket: [
           index: SimpleIdentifier
             token: i
@@ -1518,8 +1536,8 @@ CascadeExpression
     literal: null
   sections
     CascadeSection
-      body: FunctionExpressionInvocation
-        function2: MethodInvocation
+      body: CallInvocation
+        receiver: MethodInvocation
           operator: ..
           methodName: SimpleIdentifier
             token: a
@@ -1567,8 +1585,8 @@ CascadeExpression
     literal: null
   sections
     CascadeSection
-      body: FunctionExpressionInvocation
-        function2: MethodInvocation
+      body: CallInvocation
+        receiver: MethodInvocation
           operator: ..
           methodName: SimpleIdentifier
             token: a
@@ -1640,10 +1658,10 @@ CascadeExpression
     literal: null
   sections
     CascadeSection
-      body: FunctionExpressionInvocation
-        function2: MethodInvocation
-          target2: FunctionExpressionInvocation
-            function2: MethodInvocation
+      body: CallInvocation
+        receiver: MethodInvocation
+          target2: CallInvocation
+            receiver: MethodInvocation
               operator: ..
               methodName: SimpleIdentifier
                 token: a
@@ -1656,6 +1674,23 @@ CascadeExpression
             argumentList: ArgumentList
               leftParenthesis: (
               arguments2
+                SimpleIdentifier
+                  token: c
+              rightParenthesis: )
+          target(v1): FunctionExpressionInvocation
+            function: MethodInvocation
+              operator: ..
+              methodName: SimpleIdentifier
+                token: a
+              argumentList: ArgumentList
+                leftParenthesis: (
+                arguments
+                  SimpleIdentifier
+                    token: b
+                rightParenthesis: )
+            argumentList: ArgumentList
+              leftParenthesis: (
+              arguments
                 SimpleIdentifier
                   token: c
               rightParenthesis: )
@@ -1723,10 +1758,10 @@ CascadeExpression
     literal: null
   sections
     CascadeSection
-      body: FunctionExpressionInvocation
-        function2: MethodInvocation
-          target2: FunctionExpressionInvocation
-            function2: MethodInvocation
+      body: CallInvocation
+        receiver: MethodInvocation
+          target2: CallInvocation
+            receiver: MethodInvocation
               operator: ..
               methodName: SimpleIdentifier
                 token: a
@@ -1751,6 +1786,35 @@ CascadeExpression
             argumentList: ArgumentList
               leftParenthesis: (
               arguments2
+                SimpleIdentifier
+                  token: c
+              rightParenthesis: )
+          target(v1): FunctionExpressionInvocation
+            function: MethodInvocation
+              operator: ..
+              methodName: SimpleIdentifier
+                token: a
+              typeArguments: TypeArgumentList
+                leftBracket: <
+                arguments
+                  NamedType
+                    name: E
+                rightBracket: >
+              argumentList: ArgumentList
+                leftParenthesis: (
+                arguments
+                  SimpleIdentifier
+                    token: b
+                rightParenthesis: )
+            typeArguments: TypeArgumentList
+              leftBracket: <
+              arguments
+                NamedType
+                  name: F
+              rightBracket: >
+            argumentList: ArgumentList
+              leftParenthesis: (
+              arguments
                 SimpleIdentifier
                   token: c
               rightParenthesis: )
@@ -2343,8 +2407,8 @@ var v = (a) {
 ''');
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: FunctionExpression
+CallInvocation
+  receiver: FunctionExpression
     parameters: FormalParameterList
       leftParenthesis: (
       requiredPositionalFormalParameters
@@ -2380,6 +2444,33 @@ FunctionExpressionInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      IntegerLiteral
+        literal: 3
+    rightParenthesis: )
+V1: FunctionExpressionInvocation
+  function: FunctionExpression
+    parameters: FormalParameterList
+      leftParenthesis: (
+      parameter: RegularFormalParameter
+        name: a
+      rightParenthesis: )
+    body: BlockFunctionBody
+      block: Block
+        leftBracket: {
+        statements
+          ReturnStatement
+            returnKeyword: return
+            expression: BinaryExpression
+              leftOperand: SimpleIdentifier
+                token: a
+              operator: +
+              rightOperand: SimpleIdentifier
+                token: a
+            semicolon: ;
+        rightBracket: }
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       IntegerLiteral
         literal: 3
     rightParenthesis: )
@@ -2422,15 +2513,27 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: FunctionExpressionInvocation
-                  function2: ReceiverIndexExpression
+                expression2: CallInvocation
+                  receiver: ReceiverIndexExpression
                     receiver: SimpleIdentifier
                       token: factories
                     leftBracket: [
                     index: SimpleIdentifier
                       token: C
                     rightBracket: ]
-                  function(v1): IndexExpression
+                  typeArguments: TypeArgumentList
+                    leftBracket: <
+                    arguments
+                      NamedType
+                        name: num
+                      NamedType
+                        name: int
+                    rightBracket: >
+                  argumentList: ArgumentList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                expression(v1): FunctionExpressionInvocation
+                  function: IndexExpression
                     target: SimpleIdentifier
                       token: factories
                     leftBracket: [
@@ -2474,13 +2577,34 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: FunctionExpressionInvocation
-                  function2: MethodInvocation
+                expression2: CallInvocation
+                  receiver: MethodInvocation
                     methodName: SimpleIdentifier
                       token: factories
                     argumentList: ArgumentList
                       leftParenthesis: (
                       arguments2
+                        SimpleIdentifier
+                          token: C
+                      rightParenthesis: )
+                  typeArguments: TypeArgumentList
+                    leftBracket: <
+                    arguments
+                      NamedType
+                        name: num
+                      NamedType
+                        name: int
+                    rightBracket: >
+                  argumentList: ArgumentList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                expression(v1): FunctionExpressionInvocation
+                  function: MethodInvocation
+                    methodName: SimpleIdentifier
+                      token: factories
+                    argumentList: ArgumentList
+                      leftParenthesis: (
+                      arguments
                         SimpleIdentifier
                           token: C
                       rightParenthesis: )

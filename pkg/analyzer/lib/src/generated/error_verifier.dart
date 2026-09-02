@@ -498,6 +498,21 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   @override
+  void visitCallInvocation(CallInvocation node) {
+    var functionExpression = node.receiver;
+
+    if (functionExpression is ExtensionOverride) {
+      return super.visitCallInvocation(node);
+    }
+
+    _typeArgumentsVerifier.checkCallInvocation(node);
+    _requiredParametersVerifier.visitCallInvocation(node);
+    _constArgumentsVerifier.visitCallInvocation(node);
+    _checkUseVerifier.checkCallInvocation(node);
+    super.visitCallInvocation(node);
+  }
+
+  @override
   void visitCascadeIndexAssignmentTarget(CascadeIndexAssignmentTarget node) {
     _checkCascadeIndexNullAwareOperator(node);
     super.visitCascadeIndexAssignmentTarget(node);
@@ -1483,21 +1498,6 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     }
 
     _isInLateLocalVariable.removeLast();
-  }
-
-  @override
-  void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    var functionExpression = node.function2;
-
-    if (functionExpression is ExtensionOverride) {
-      return super.visitFunctionExpressionInvocation(node);
-    }
-
-    _typeArgumentsVerifier.checkFunctionExpressionInvocation(node);
-    _requiredParametersVerifier.visitFunctionExpressionInvocation(node);
-    _constArgumentsVerifier.visitFunctionExpressionInvocation(node);
-    _checkUseVerifier.checkFunctionExpressionInvocation(node);
-    super.visitFunctionExpressionInvocation(node);
   }
 
   @override

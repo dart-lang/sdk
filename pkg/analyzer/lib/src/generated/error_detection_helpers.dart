@@ -75,9 +75,7 @@ mixin ErrorDetectionHelpers {
       correspondingParameterType = parameter.type;
     } else if (argument.parent2
         case ArgumentListImpl(
-          parent2: FunctionExpressionInvocationImpl(
-            function2: Expression(:var staticType),
-          ),
+          parent2: CallInvocationImpl(receiver: Expression(:var staticType)),
         )
         when identical(staticType, DynamicTypeImpl.instance) ||
             identical(staticType, NeverTypeImpl.instance) ||

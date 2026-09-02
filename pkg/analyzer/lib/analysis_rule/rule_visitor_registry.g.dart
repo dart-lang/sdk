@@ -545,6 +545,9 @@ abstract class RuleVisitorRegistry2 {
 
   void addBreakStatement(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
+  @experimental
+  void addCallInvocation(AbstractAnalysisRule rule, AstVisitor2 visitor);
+
   void addCascadeExpression(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   @experimental
@@ -759,11 +762,6 @@ abstract class RuleVisitorRegistry2 {
   );
 
   void addFunctionExpression(AbstractAnalysisRule rule, AstVisitor2 visitor);
-
-  void addFunctionExpressionInvocation(
-    AbstractAnalysisRule rule,
-    AstVisitor2 visitor,
-  );
 
   void addFunctionReference(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
