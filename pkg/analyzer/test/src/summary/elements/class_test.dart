@@ -24335,7 +24335,17 @@ library
                 element: <testLibrary>::@class::C::@field::x
                 staticType: null
               equals: = @37
-              expression2: MethodInvocation
+              expression2: UnqualifiedFunctionInvocation
+                name: foo @39
+                argumentList: ArgumentList
+                  leftParenthesis: ( @42
+                  rightParenthesis: ) @43
+                resolution: ExecutableInvocationResolution
+                  element: <testLibrary>::@function::foo
+                  invokeType: int Function()
+                  type: int
+                staticType: int
+              expression(v1): MethodInvocation
                 methodName: SimpleIdentifier
                   token: foo @39
                   element: <testLibrary>::@function::foo
@@ -29584,15 +29594,14 @@ library
             #F5 hasInitializer isAugmentation isConst isOriginDeclaration isStatic foo (nameOffset:87) (firstTokenOffset:87) (offset:87)
               element: <testLibrary>::@class::A::@field::foo
               initializer: expression_1
-                MethodInvocation
-                  methodName: SimpleIdentifier
-                    token: augmented @93
-                    element: <null>
-                    staticType: InvalidType
+                UnqualifiedFunctionInvocation
+                  name: augmented @93
                   argumentList: ArgumentList
                     leftParenthesis: ( @102
                     rightParenthesis: ) @103
-                  staticInvokeType: InvalidType
+                  resolution: InvalidInvocationResolution
+                    type: InvalidType
+                    recovery: <null>
                   staticType: InvalidType
               inducedGetter: #F7
               previousFragment: #F3

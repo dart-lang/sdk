@@ -1578,10 +1578,22 @@ class A(final int A()) {
 }
 ''');
 
-    var node = result.findNode.singleFunctionExpressionInvocation;
+    var node = result.findNode.singleCallInvocation;
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: SimpleIdentifier
+CallInvocation
+  receiver: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@class::A::@constructor::new::@formalParameter::A
+    staticType: int Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: FunctionTypeInvocationResolution
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: FunctionExpressionInvocation
+  function: SimpleIdentifier
     token: A
     element: <testLibrary>::@class::A::@constructor::new::@formalParameter::A
     staticType: int Function()
@@ -1633,10 +1645,22 @@ class B(this.A) {
 }
 ''');
 
-    var node = result.findNode.singleFunctionExpressionInvocation;
+    var node = result.findNode.singleCallInvocation;
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: SimpleIdentifier
+CallInvocation
+  receiver: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@class::B::@constructor::new::@formalParameter::A
+    staticType: int Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: FunctionTypeInvocationResolution
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: FunctionExpressionInvocation
+  function: SimpleIdentifier
     token: A
     element: <testLibrary>::@class::B::@constructor::new::@formalParameter::A
     staticType: int Function()
@@ -1710,10 +1734,22 @@ class B(super.A) extends A {
 }
 ''');
 
-    var node = result.findNode.singleFunctionExpressionInvocation;
+    var node = result.findNode.singleCallInvocation;
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: SimpleIdentifier
+CallInvocation
+  receiver: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@class::B::@constructor::new::@formalParameter::A
+    staticType: int Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: FunctionTypeInvocationResolution
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: FunctionExpressionInvocation
+  function: SimpleIdentifier
     token: A
     element: <testLibrary>::@class::B::@constructor::new::@formalParameter::A
     staticType: int Function()

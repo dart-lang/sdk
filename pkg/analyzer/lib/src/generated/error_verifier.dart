@@ -498,6 +498,21 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   @override
+  void visitCallInvocation(CallInvocation node) {
+    var functionExpression = node.receiver;
+
+    if (functionExpression is ExtensionOverride) {
+      return super.visitCallInvocation(node);
+    }
+
+    _typeArgumentsVerifier.checkCallInvocation(node);
+    _requiredParametersVerifier.visitCallInvocation(node);
+    _constArgumentsVerifier.visitCallInvocation(node);
+    _checkUseVerifier.checkCallInvocation(node);
+    super.visitCallInvocation(node);
+  }
+
+  @override
   void visitCascadeIndexAssignmentTarget(CascadeIndexAssignmentTarget node) {
     _checkCascadeIndexNullAwareOperator(node);
     super.visitCascadeIndexAssignmentTarget(node);
@@ -507,6 +522,13 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   void visitCascadeIndexExpression(CascadeIndexExpression node) {
     _checkCascadeIndexNullAwareOperator(node);
     super.visitCascadeIndexExpression(node);
+  }
+
+  @override
+  void visitCascadeMethodInvocation(CascadeMethodInvocation node) {
+    _checkCascadeSectionNullAware(node);
+    _verifyNamedFunctionInvocation(node);
+    super.visitCascadeMethodInvocation(node);
   }
 
   @override
@@ -1486,21 +1508,6 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   @override
-  void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    var functionExpression = node.function2;
-
-    if (functionExpression is ExtensionOverride) {
-      return super.visitFunctionExpressionInvocation(node);
-    }
-
-    _typeArgumentsVerifier.checkFunctionExpressionInvocation(node);
-    _requiredParametersVerifier.visitFunctionExpressionInvocation(node);
-    _constArgumentsVerifier.visitFunctionExpressionInvocation(node);
-    _checkUseVerifier.checkFunctionExpressionInvocation(node);
-    super.visitFunctionExpressionInvocation(node);
-  }
-
-  @override
   void visitFunctionReference(FunctionReference node) {
     _constArgumentsVerifier.visitFunctionReference(node);
     _typeArgumentsVerifier.checkFunctionReference(node);
@@ -1630,6 +1637,14 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
 
     _reportForMultipleCombinators(node);
     super.visitImportDirective(node);
+  }
+
+  @override
+  void visitImportPrefixedFunctionInvocation(
+    ImportPrefixedFunctionInvocation node,
+  ) {
+    _verifyNamedFunctionInvocation(node);
+    super.visitImportPrefixedFunctionInvocation(node);
   }
 
   @override
@@ -2578,6 +2593,12 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     checkForUseOfVoidResult(operand);
     _checkForIntNotAssignable(operand);
     super.visitUnaryOperatorInvocation(node);
+  }
+
+  @override
+  void visitUnqualifiedFunctionInvocation(UnqualifiedFunctionInvocation node) {
+    _verifyNamedFunctionInvocation(node);
+    super.visitUnqualifiedFunctionInvocation(node);
   }
 
   @override
@@ -6217,7 +6238,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   void _checkForInvalidInstanceMemberAccess2({
-    required AstNode entity,
+    required SyntacticEntity entity,
     required String name,
     required Element? element,
   }) {
@@ -8002,7 +8023,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   void _checkForUnqualifiedReferenceToNonLocalStaticMember2({
-    required AstNode entity,
+    required SyntacticEntity entity,
     required Element? element,
   }) {
     if (element == null || element is TypeParameterElement) {
@@ -8023,12 +8044,14 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     if (element is ExecutableElement && !element.isStatic) {
       return;
     }
-    if (entity.parent2 case MethodInvocation(
-      :var methodName,
-    ) when entity == methodName) {
-      // Invalid methods are reported in
-      // [MethodInvocationResolver._reportInstanceAccessToStaticMember].
-      return;
+    if (entity is AstNode) {
+      if (entity.parent2 case MethodInvocation(
+        :var methodName,
+      ) when entity == methodName) {
+        // Invalid methods are reported in
+        // [MethodInvocationResolver._reportInstanceAccessToStaticMember].
+        return;
+      }
     }
     if (_enclosingInstanceElement is ExtensionElementImpl) {
       diagnosticReporter.report(
@@ -8849,6 +8872,47 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
         );
       }
     }
+  }
+
+  void _verifyNamedFunctionInvocation(NamedFunctionInvocation node) {
+    var element = switch (node.resolution) {
+      ExecutableInvocationResolution(:var element) => element,
+      InvalidInvocationResolution(
+        recovery: ExecutableInvocationResolution(:var element),
+      ) =>
+        element,
+      InvalidInvocationResolution(:var candidates) => candidates.singleOrNull,
+      _ => null,
+    };
+    var ambiguousElement = switch (node.resolution) {
+      InvalidInvocationResolution(:var candidates) =>
+        candidates.whereType<MultiplyDefinedElementImpl>().firstOrNull,
+      _ => null,
+    };
+    _checkForAmbiguousImport(element: ambiguousElement, name: node.name);
+    if (node is UnqualifiedFunctionInvocation) {
+      _checkForReferenceBeforeDeclaration(
+        element: element,
+        nameToken: node.name,
+      );
+      _checkForInvalidInstanceMemberAccess2(
+        entity: node.name,
+        name: node.name.lexeme,
+        element: element,
+      );
+      _checkForTypeParameterReferencedByStatic(
+        element: element,
+        name: node.name,
+      );
+      _checkForUnqualifiedReferenceToNonLocalStaticMember2(
+        entity: node.name,
+        element: element,
+      );
+    }
+    _typeArgumentsVerifier.checkFunctionInvocation(node);
+    _requiredParametersVerifier.verifyNamedFunctionInvocation(node);
+    _constArgumentsVerifier.verifyNamedFunctionInvocation(node);
+    _checkUseVerifier.checkNamedFunctionInvocation(node);
   }
 
   void _visitIncrementOrDecrement(

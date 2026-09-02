@@ -545,6 +545,9 @@ abstract class RuleVisitorRegistry2 {
 
   void addBreakStatement(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
+  @experimental
+  void addCallInvocation(AbstractAnalysisRule rule, AstVisitor2 visitor);
+
   void addCascadeExpression(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   @experimental
@@ -555,6 +558,12 @@ abstract class RuleVisitorRegistry2 {
 
   @experimental
   void addCascadeIndexExpression(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
+
+  @experimental
+  void addCascadeMethodInvocation(
     AbstractAnalysisRule rule,
     AstVisitor2 visitor,
   );
@@ -760,11 +769,6 @@ abstract class RuleVisitorRegistry2 {
 
   void addFunctionExpression(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
-  void addFunctionExpressionInvocation(
-    AbstractAnalysisRule rule,
-    AstVisitor2 visitor,
-  );
-
   void addFunctionReference(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addFunctionTypeAlias(AbstractAnalysisRule rule, AstVisitor2 visitor);
@@ -800,6 +804,12 @@ abstract class RuleVisitorRegistry2 {
   void addImplicitCallReference(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addImportDirective(AbstractAnalysisRule rule, AstVisitor2 visitor);
+
+  @experimental
+  void addImportPrefixedFunctionInvocation(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
 
   void addImportPrefixReference(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
@@ -1089,6 +1099,12 @@ abstract class RuleVisitorRegistry2 {
 
   @experimental
   void addUnaryOperatorInvocation(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
+
+  @experimental
+  void addUnqualifiedFunctionInvocation(
     AbstractAnalysisRule rule,
     AstVisitor2 visitor,
   );

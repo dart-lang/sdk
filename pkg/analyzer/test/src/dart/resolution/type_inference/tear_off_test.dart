@@ -234,16 +234,35 @@ void test() {
 }
 ''');
 
-    var node = result.findNode.singleMethodInvocation;
+    var node = result.findNode.singleUnqualifiedFunctionInvocation;
     assertResolvedNodeText(node, r'''
-MethodInvocation
+UnqualifiedFunctionInvocation
+  name: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: <testLibrary>::@function::f::@formalParameter::x
+          substitution: {T: int}
+        staticType: int
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@function::f
+    invokeType: int Function(int)
+    type: int
+  staticType: int
+  typeArgumentTypes
+    int
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: f
     element: <testLibrary>::@function::f
     staticType: T Function<T>(T)
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: SubstitutedFormalParameterElementImpl

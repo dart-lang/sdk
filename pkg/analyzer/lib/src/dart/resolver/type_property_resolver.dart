@@ -145,7 +145,7 @@ class TypePropertyResolver {
             parentNode is UnaryOperatorInvocation) {
           locatableDiagnostic = diag.uncheckedMethodInvocationOfNullableValue
               .withArguments(name: name);
-        } else if (parentNode is FunctionExpressionInvocation) {
+        } else if (parentNode is CallInvocation) {
           locatableDiagnostic = diag.uncheckedInvocationOfNullableValue;
         } else {
           locatableDiagnostic = diag.uncheckedPropertyAccessOfNullableValue

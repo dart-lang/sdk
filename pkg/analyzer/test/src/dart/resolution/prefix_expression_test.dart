@@ -27,9 +27,21 @@ main() {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('f();');
+    var node = result.findNode.unqualifiedFunctionInvocation('f();');
     assertResolvedNodeText(node, r'''
-MethodInvocation
+UnqualifiedFunctionInvocation
+  name: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@function::f
+    invokeType: bool Function()
+    type: bool
+  staticType: bool
+  typeArgumentTypes
+    bool
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: f
     element: <testLibrary>::@function::f

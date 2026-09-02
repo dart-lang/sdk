@@ -2234,12 +2234,21 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: FunctionExpressionInvocation
-                  function2: SimpleIdentifier
+                condition2: CallInvocation
+                  receiver: SimpleIdentifier
                     token: assert
                   argumentList: ArgumentList
                     leftParenthesis: (
                     arguments2
+                      BooleanLiteral
+                        literal: true
+                    rightParenthesis: )
+                condition(v1): FunctionExpressionInvocation
+                  function: SimpleIdentifier
+                    token: assert
+                  argumentList: ArgumentList
+                    leftParenthesis: (
+                    arguments
                       BooleanLiteral
                         literal: true
                     rightParenthesis: )

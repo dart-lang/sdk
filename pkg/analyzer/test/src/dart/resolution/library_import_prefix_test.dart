@@ -148,12 +148,12 @@ main() {
 }
 ''');
 
-    var node = result.findNode.simple('p.max');
+    var node = result.findNode.importPrefixReference('p.max');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
-  token: p
+ImportPrefixReference
+  name: p
+  period: .
   element: <testLibraryFragment>::@prefix::p
-  staticType: null
 ''');
   }
 

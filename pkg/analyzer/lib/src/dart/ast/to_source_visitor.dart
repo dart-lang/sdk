@@ -171,6 +171,13 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
+  void visitCallInvocation(CallInvocation node) {
+    _visitNode(node.receiver);
+    _visitNode(node.typeArguments);
+    _visitNode(node.argumentList);
+  }
+
+  @override
   void visitCascadeExpression(CascadeExpression node) {
     _visitNode(node.target2);
     _visitNodeList(node.sections);
@@ -188,6 +195,13 @@ class ToSourceVisitor implements AstVisitor2<void> {
     _visitToken(node.leftBracket);
     _visitNode(node.index);
     _visitToken(node.rightBracket);
+  }
+
+  @override
+  void visitCascadeMethodInvocation(CascadeMethodInvocation node) {
+    _visitToken(node.name);
+    _visitNode(node.typeArguments);
+    _visitNode(node.argumentList);
   }
 
   @override
@@ -748,13 +762,6 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
-  void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    _visitNode(node.function2);
-    _visitNode(node.typeArguments);
-    _visitNode(node.argumentList);
-  }
-
-  @override
   void visitFunctionReference(FunctionReference node) {
     _visitNode(node.function2);
     _visitNode(node.typeArguments);
@@ -892,6 +899,16 @@ class ToSourceVisitor implements AstVisitor2<void> {
     _visitToken(node.prefixName, prefix: ' as ');
     _visitNodeList(node.combinators, prefix: ' ', separator: ' ');
     sink.write(';');
+  }
+
+  @override
+  void visitImportPrefixedFunctionInvocation(
+    ImportPrefixedFunctionInvocation node,
+  ) {
+    _visitNode(node.importPrefix);
+    _visitToken(node.name);
+    _visitNode(node.typeArguments);
+    _visitNode(node.argumentList);
   }
 
   @override
@@ -1704,6 +1721,13 @@ class ToSourceVisitor implements AstVisitor2<void> {
   void visitUnaryOperatorInvocation(UnaryOperatorInvocation node) {
     sink.write(node.operator.lexeme);
     _writeOperand(node, node.operand as Expression);
+  }
+
+  @override
+  void visitUnqualifiedFunctionInvocation(UnqualifiedFunctionInvocation node) {
+    _visitToken(node.name);
+    _visitNode(node.typeArguments);
+    _visitNode(node.argumentList);
   }
 
   @override

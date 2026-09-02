@@ -531,10 +531,10 @@ void main() {
 }
 ''');
 
-    var node = result.findNode.singleFunctionExpressionInvocation;
+    var node = result.findNode.singleCallInvocation;
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: DotShorthandPropertyAccess
+CallInvocation
+  receiver: DotShorthandPropertyAccess
     period: .
     propertyName: SimpleIdentifier
       token: field
@@ -545,6 +545,28 @@ FunctionExpressionInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      IntegerLiteral
+        literal: 1
+        correspondingParameter: <testLibrary>::@class::C::@method::call::@formalParameter::a
+        staticType: int
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@class::C::@method::call
+    invokeType: C Function(int)
+    type: C
+  staticType: C
+V1: FunctionExpressionInvocation
+  function: DotShorthandPropertyAccess
+    period: .
+    propertyName: SimpleIdentifier
+      token: field
+      element: <testLibrary>::@class::C::@getter::field
+      staticType: C
+    isDotShorthand: false
+    staticType: C
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       IntegerLiteral
         literal: 1
         correspondingParameter: <testLibrary>::@class::C::@method::call::@formalParameter::a
@@ -571,10 +593,27 @@ void main() {
 }
 ''');
 
-    var node = result.findNode.singleFunctionExpressionInvocation;
+    var node = result.findNode.singleCallInvocation;
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: DotShorthandPropertyAccess
+CallInvocation
+  receiver: DotShorthandPropertyAccess
+    period: .
+    propertyName: SimpleIdentifier
+      token: field
+      element: <testLibrary>::@class::C::@getter::field
+      staticType: C
+    isDotShorthand: false
+    staticType: C
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@extension::CallC::@method::call
+    invokeType: C Function()
+    type: C
+  staticType: C
+V1: FunctionExpressionInvocation
+  function: DotShorthandPropertyAccess
     period: .
     propertyName: SimpleIdentifier
       token: field
@@ -606,10 +645,27 @@ void main() {
 }
 ''');
 
-    var node = result.findNode.singleFunctionExpressionInvocation;
+    var node = result.findNode.singleCallInvocation;
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: DotShorthandPropertyAccess
+CallInvocation
+  receiver: DotShorthandPropertyAccess
+    period: .
+    propertyName: SimpleIdentifier
+      token: getter
+      element: <testLibrary>::@class::C::@getter::getter
+      staticType: C
+    isDotShorthand: false
+    staticType: C
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@extension::CallC::@method::call
+    invokeType: C Function()
+    type: C
+  staticType: C
+V1: FunctionExpressionInvocation
+  function: DotShorthandPropertyAccess
     period: .
     propertyName: SimpleIdentifier
       token: getter
@@ -638,10 +694,27 @@ void main() {
 }
 ''');
 
-    var node = result.findNode.singleFunctionExpressionInvocation;
+    var node = result.findNode.singleCallInvocation;
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: DotShorthandPropertyAccess
+CallInvocation
+  receiver: DotShorthandPropertyAccess
+    period: .
+    propertyName: SimpleIdentifier
+      token: field
+      element: <testLibrary>::@class::C::@getter::field
+      staticType: C
+    isDotShorthand: false
+    staticType: C
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@class::C::@method::call
+    invokeType: C Function()
+    type: C
+  staticType: C
+V1: FunctionExpressionInvocation
+  function: DotShorthandPropertyAccess
     period: .
     propertyName: SimpleIdentifier
       token: field
@@ -670,10 +743,10 @@ void main() {
 }
 ''');
 
-    var node = result.findNode.singleFunctionExpressionInvocation;
+    var node = result.findNode.singleCallInvocation;
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: DotShorthandPropertyAccess
+CallInvocation
+  receiver: DotShorthandPropertyAccess
     period: .
     propertyName: SimpleIdentifier
       token: field
@@ -692,6 +765,40 @@ FunctionExpressionInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      IntegerLiteral
+        literal: 1
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: <testLibrary>::@class::C::@method::call::@formalParameter::t
+          substitution: {T: int}
+        staticType: int
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@class::C::@method::call
+    invokeType: C Function(int)
+    type: C
+  staticType: C
+  typeArgumentTypes
+    int
+V1: FunctionExpressionInvocation
+  function: DotShorthandPropertyAccess
+    period: .
+    propertyName: SimpleIdentifier
+      token: field
+      element: <testLibrary>::@class::C::@getter::field
+      staticType: C
+    isDotShorthand: false
+    staticType: C
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       IntegerLiteral
         literal: 1
         correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -719,10 +826,27 @@ void main() {
 }
 ''');
 
-    var node = result.findNode.singleFunctionExpressionInvocation;
+    var node = result.findNode.singleCallInvocation;
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: DotShorthandPropertyAccess
+CallInvocation
+  receiver: DotShorthandPropertyAccess
+    period: .
+    propertyName: SimpleIdentifier
+      token: getter
+      element: <testLibrary>::@class::C::@getter::getter
+      staticType: C
+    isDotShorthand: false
+    staticType: C
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@class::C::@method::call
+    invokeType: C Function()
+    type: C
+  staticType: C
+V1: FunctionExpressionInvocation
+  function: DotShorthandPropertyAccess
     period: .
     propertyName: SimpleIdentifier
       token: getter
@@ -947,6 +1071,7 @@ V1: PostfixExpression
     element: <null>
     staticType: InvalidType
   operator: --
+  correspondingParameter: <null>
   readElement: <null>
   readType: InvalidType
   writeElement: <null>
@@ -1037,6 +1162,7 @@ V1: PrefixExpression
     rightBracket: ]
     element: <null>
     staticType: InvalidType
+  correspondingParameter: <null>
   readElement: <null>
   readType: InvalidType
   writeElement: <null>

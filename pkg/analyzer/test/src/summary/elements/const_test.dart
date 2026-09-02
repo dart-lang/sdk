@@ -276,16 +276,16 @@ library
                       type: bool
                     staticType: bool
                 CascadeSection
-                  body: MethodInvocation
-                    operator: .. @25
-                    methodName: SimpleIdentifier
-                      token: abs @27
-                      element: dart:core::@class::int::@method::abs
-                      staticType: int Function()
+                  operator: .. @25
+                  body: CascadeMethodInvocation
+                    name: abs @27
                     argumentList: ArgumentList
                       leftParenthesis: ( @30
                       rightParenthesis: ) @31
-                    staticInvokeType: int Function()
+                    resolution: ExecutableInvocationResolution
+                      element: dart:core::@class::int::@method::abs
+                      invokeType: int Function()
+                      type: int
                     staticType: int
               cascadeSections
                 PropertyAccess
@@ -2074,15 +2074,15 @@ library
                     literal: 1 @29
                     staticType: int
                   operator: + @31
-                  rightOperand: MethodInvocation
-                    methodName: SimpleIdentifier
-                      token: foo @33
-                      element: <testLibrary>::@function::foo
-                      staticType: int Function()
+                  rightOperand: UnqualifiedFunctionInvocation
+                    name: foo @33
                     argumentList: ArgumentList
                       leftParenthesis: ( @36
                       rightParenthesis: ) @37
-                    staticInvokeType: int Function()
+                    resolution: ExecutableInvocationResolution
+                      element: <testLibrary>::@function::foo
+                      invokeType: int Function()
+                      type: int
                     staticType: int
                   binaryOperator: add
                   element: dart:core::@class::num::@method::+
@@ -2699,15 +2699,15 @@ library
                 literal: 1 @10
                 staticType: int
               operator: + @12
-              rightOperand: MethodInvocation
-                methodName: SimpleIdentifier
-                  token: foo @14
-                  element: <testLibrary>::@function::foo
-                  staticType: int Function()
+              rightOperand: UnqualifiedFunctionInvocation
+                name: foo @14
                 argumentList: ArgumentList
                   leftParenthesis: ( @17
                   rightParenthesis: ) @18
-                staticInvokeType: int Function()
+                resolution: ExecutableInvocationResolution
+                  element: <testLibrary>::@function::foo
+                  invokeType: int Function()
+                  type: int
                 staticType: int
               binaryOperator: add
               element: dart:core::@class::num::@method::+
@@ -5831,11 +5831,8 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic b (nameOffset:24) (firstTokenOffset:24) (offset:24)
           element: <testLibrary>::@topLevelVariable::b
           initializer: expression_0
-            MethodInvocation
-              methodName: SimpleIdentifier
-                token: f @28
-                element: <testLibrary>::@function::f
-                staticType: T Function<T>(T)
+            UnqualifiedFunctionInvocation
+              name: f @28
               typeArguments: TypeArgumentList
                 leftBracket: < @29
                 arguments
@@ -5851,7 +5848,10 @@ library
                     literal: 0 @35
                     staticType: int
                 rightParenthesis: ) @36
-              staticInvokeType: int Function(int)
+              resolution: ExecutableInvocationResolution
+                element: <testLibrary>::@function::f
+                invokeType: int Function(int)
+                type: int
               staticType: int
               typeArgumentTypes
                 int
@@ -10173,16 +10173,16 @@ library
                 staticType: int?
               sections
                 CascadeSection
-                  body: MethodInvocation
-                    operator: ?.. @29
-                    methodName: SimpleIdentifier
-                      token: toString @32
-                      element: dart:core::@class::int::@method::toString
-                      staticType: String Function()
+                  operator: ?.. @29
+                  body: CascadeMethodInvocation
+                    name: toString @32
                     argumentList: ArgumentList
                       leftParenthesis: ( @40
                       rightParenthesis: ) @41
-                    staticInvokeType: String Function()
+                    resolution: ExecutableInvocationResolution
+                      element: dart:core::@class::int::@method::toString
+                      invokeType: String Function()
+                      type: String
                     staticType: String
               cascadeSections
                 MethodInvocation

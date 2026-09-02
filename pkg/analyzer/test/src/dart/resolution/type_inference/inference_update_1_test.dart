@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -141,15 +143,7 @@ test() {
 ''');
     }
     assertType(
-      result.findNode.methodInvocation('f(').typeArgumentTypes![0],
-      'int Function()',
-    );
-    assertType(
-      result.findNode.methodInvocation('f(').typeArgumentTypes![1],
-      _isEnabled ? 'List<int>' : 'List<InvalidType>',
-    );
-    assertType(
-      result.findNode.methodInvocation('f(').staticInvokeType,
+      _invokeType(result),
       _isEnabled
           ? 'List<int> Function(int Function(), '
                 'List<int> Function(int Function()))'
@@ -223,15 +217,7 @@ test() {
 }
 ''');
     assertType(
-      result.findNode.methodInvocation('f(').typeArgumentTypes![0],
-      'int',
-    );
-    assertType(
-      result.findNode.methodInvocation('f(').typeArgumentTypes![1],
-      _isEnabled ? 'List<int>' : 'List<Object?>',
-    );
-    assertType(
-      result.findNode.methodInvocation('f(').staticInvokeType,
+      _invokeType(result),
       _isEnabled
           ? 'List<int> Function(List<int> Function(int), int Function())'
           : 'List<Object?> Function(List<Object?> Function(int), int Function())',
@@ -260,15 +246,7 @@ test() {
 }
 ''');
     assertType(
-      result.findNode.methodInvocation('f(').typeArgumentTypes![0],
-      'int',
-    );
-    assertType(
-      result.findNode.methodInvocation('f(').typeArgumentTypes![1],
-      _isEnabled ? 'List<int>' : 'List<Object?>',
-    );
-    assertType(
-      result.findNode.methodInvocation('f(').staticInvokeType,
+      _invokeType(result),
       _isEnabled
           ? 'List<int> Function(int Function(), List<int> Function(int))'
           : 'List<Object?> Function(int Function(), List<Object?> Function(int))',
@@ -297,15 +275,7 @@ test() {
 }
 ''');
     assertType(
-      result.findNode.methodInvocation('f(').typeArgumentTypes![0],
-      'int',
-    );
-    assertType(
-      result.findNode.methodInvocation('f(').typeArgumentTypes![1],
-      _isEnabled ? 'List<int>' : 'List<Object?>',
-    );
-    assertType(
-      result.findNode.methodInvocation('f(').staticInvokeType,
+      _invokeType(result),
       _isEnabled
           ? 'List<int> Function(int, List<int> Function(int))'
           : 'List<Object?> Function(int, List<Object?> Function(int))',
@@ -329,14 +299,7 @@ test() {
 void f<T>(T t, void Function(T) g) {}
 test() => f(0, (x) {});
 ''');
-    assertType(
-      result.findNode.methodInvocation('f(').typeArgumentTypes!.single,
-      'int',
-    );
-    assertType(
-      result.findNode.methodInvocation('f(').staticInvokeType,
-      'void Function(int, void Function(int))',
-    );
+    assertType(_invokeType(result), 'void Function(int, void Function(int))');
     assertType(
       result.findNode
           .regularFormalParameter('x')
@@ -353,11 +316,7 @@ void f<T>({required T t, required void Function(T) g}) {}
 test() => f(t: 0, g: (x) {});
 ''');
     assertType(
-      result.findNode.methodInvocation('f(').typeArgumentTypes!.single,
-      'int',
-    );
-    assertType(
-      result.findNode.methodInvocation('f(').staticInvokeType,
+      _invokeType(result),
       'void Function({required void Function(int) g, required int t})',
     );
     assertType(
@@ -375,14 +334,7 @@ test() => f(t: 0, g: (x) {});
 void f<T>(T t, void Function(T) g) {}
 test() => f(0, ((x) {}));
 ''');
-    assertType(
-      result.findNode.methodInvocation('f(').typeArgumentTypes!.single,
-      'int',
-    );
-    assertType(
-      result.findNode.methodInvocation('f(').staticInvokeType,
-      'void Function(int, void Function(int))',
-    );
+    assertType(_invokeType(result), 'void Function(int, void Function(int))');
     assertType(
       result.findNode
           .regularFormalParameter('x')
@@ -399,11 +351,7 @@ void f<T>({required T t, required void Function(T) g}) {}
 test() => f(t: 0, g: ((x) {}));
 ''');
     assertType(
-      result.findNode.methodInvocation('f(').typeArgumentTypes!.single,
-      'int',
-    );
-    assertType(
-      result.findNode.methodInvocation('f(').staticInvokeType,
+      _invokeType(result),
       'void Function({required void Function(int) g, required int t})',
     );
     assertType(
@@ -421,14 +369,7 @@ test() => f(t: 0, g: ((x) {}));
 void f<T>(T t, void Function(T) g) {}
 test() => f(0, (((x) {})));
 ''');
-    assertType(
-      result.findNode.methodInvocation('f(').typeArgumentTypes!.single,
-      'int',
-    );
-    assertType(
-      result.findNode.methodInvocation('f(').staticInvokeType,
-      'void Function(int, void Function(int))',
-    );
+    assertType(_invokeType(result), 'void Function(int, void Function(int))');
     assertType(
       result.findNode
           .regularFormalParameter('x')
@@ -445,11 +386,7 @@ void f<T>({required T t, required void Function(T) g}) {}
 test() => f(t: 0, g: (((x) {})));
 ''');
     assertType(
-      result.findNode.methodInvocation('f(').typeArgumentTypes!.single,
-      'int',
-    );
-    assertType(
-      result.findNode.methodInvocation('f(').staticInvokeType,
+      _invokeType(result),
       'void Function({required void Function(int) g, required int t})',
     );
     assertType(
@@ -519,14 +456,7 @@ test() {
 void f<T>(T Function() g, T t) {}
 test() => f(() => 0, null);
 ''');
-    assertType(
-      result.findNode.methodInvocation('f(').typeArgumentTypes!.single,
-      'int?',
-    );
-    assertType(
-      result.findNode.methodInvocation('f(').staticInvokeType,
-      'void Function(int? Function(), int?)',
-    );
+    assertType(_invokeType(result), 'void Function(int? Function(), int?)');
   }
 
   test_horizontal_inference_with_callback() async {
@@ -614,5 +544,10 @@ class C extends B {
     // yet write captured and retains its promoted value.  With the experiment
     // disabled, it is write captured immediately.
     assertType(result.findNode.simple('i);'), _isEnabled ? 'int' : 'int?');
+  }
+
+  FunctionType _invokeType(TestResolvedUnitResult result) {
+    var invocation = result.findNode.unqualifiedFunctionInvocation('f(');
+    return (invocation.resolution as StaticInvocationResolution).invokeType;
   }
 }

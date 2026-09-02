@@ -877,7 +877,7 @@ const b = 0;
 var x = foo(a, b);
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.methodInvocation('foo')],
+      (result) => [result.findNode.unqualifiedFunctionInvocation('foo')],
     );
   }
 

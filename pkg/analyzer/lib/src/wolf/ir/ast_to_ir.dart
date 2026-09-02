@@ -15,10 +15,13 @@ import 'package:analyzer/src/dart/ast/ast.dart'
         CascadeIndexAssignmentTargetImpl,
         CascadePropertyAssignmentTargetImpl,
         GetterInvocationResolutionImpl,
+        ImportPrefixedFunctionInvocationImpl,
+        NamedFunctionInvocationImpl,
         ReceiverIndexAssignmentTargetImpl,
         InvalidExpressionAssignmentTargetImpl,
         ReceiverPropertyAssignmentTargetImpl,
         ReceiverPropertyExtractionImpl,
+        UnqualifiedFunctionInvocationImpl,
         UnqualifiedNameAssignmentTargetImpl;
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/wolf/ir/call_descriptor.dart';
@@ -807,6 +810,13 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
   }
 
   @override
+  Null visitImportPrefixedFunctionInvocation(
+    ImportPrefixedFunctionInvocation node,
+  ) => _visitDirectNamedFunctionInvocation(
+    node as ImportPrefixedFunctionInvocationImpl,
+  );
+
+  @override
   Null visitIntegerLiteral(IntegerLiteral node) {
     // TODO(paulberry): do we need to handle out of range integers?
     ir.literal(ir.encodeLiteral(node.value!));
@@ -1109,6 +1119,12 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
   Null visitThisExpression(ThisExpression node) => this_();
 
   @override
+  Null visitUnqualifiedFunctionInvocation(UnqualifiedFunctionInvocation node) =>
+      _visitDirectNamedFunctionInvocation(
+        node as UnqualifiedFunctionInvocationImpl,
+      );
+
+  @override
   Null visitVariableDeclarationList(VariableDeclarationList variables) {
     for (var variable in variables.variables) {
       var initializer = variable.initializer2;
@@ -1284,6 +1300,70 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
             _ => null,
           },
           writeElement: element,
+        );
+      case dynamic(:var runtimeType):
+        throw UnimplementedError('TODO(paulberry): $runtimeType: $element');
+    }
+  }
+
+  Null _visitDirectNamedFunctionInvocation(NamedFunctionInvocationImpl node) {
+    var previousNestingLevel = ir.nestingLevel;
+    var argumentNames = <String?>[];
+    var element = switch (node.resolution) {
+      ExecutableInvocationResolution(:var element) => element,
+      _ => null,
+    };
+    switch (element) {
+      case TopLevelFunctionElement():
+        _handleInvocationArgs(
+          argumentList: node.argumentList,
+          argumentNames: argumentNames,
+          isNullAware: false,
+          previousNestingLevel: previousNestingLevel,
+        );
+        if (element.library.isDartCore && element.name == 'identical') {
+          ir.identical();
+        } else {
+          ir.call(
+            ir.encodeCallDescriptor(
+              ElementCallDescriptor(
+                element,
+                typeArguments: node.typeArgumentTypes!,
+              ),
+            ),
+            ir.encodeArgumentNames(argumentNames),
+          );
+        }
+      case MethodElement(isStatic: false):
+        this_();
+        argumentNames.add(null);
+        _handleInvocationArgs(
+          argumentList: node.argumentList,
+          argumentNames: argumentNames,
+          isNullAware: false,
+          previousNestingLevel: previousNestingLevel,
+        );
+        instanceCall(
+          element,
+          node.name.lexeme,
+          node.typeArgumentTypes!,
+          ir.encodeArgumentNames(argumentNames),
+        );
+      case MethodElement(isStatic: true):
+        _handleInvocationArgs(
+          argumentList: node.argumentList,
+          argumentNames: argumentNames,
+          isNullAware: false,
+          previousNestingLevel: previousNestingLevel,
+        );
+        ir.call(
+          ir.encodeCallDescriptor(
+            ElementCallDescriptor(
+              element,
+              typeArguments: node.typeArgumentTypes!,
+            ),
+          ),
+          ir.encodeArgumentNames(argumentNames),
         );
       case dynamic(:var runtimeType):
         throw UnimplementedError('TODO(paulberry): $runtimeType: $element');

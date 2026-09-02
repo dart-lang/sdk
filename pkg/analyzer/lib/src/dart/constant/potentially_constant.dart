@@ -119,6 +119,10 @@ class _Collector {
       return _methodInvocation(node);
     }
 
+    if (node is NamedFunctionInvocation) {
+      return _namedFunctionInvocation(node);
+    }
+
     if (node is NamedArgument) {
       return collect(node.argumentExpression2);
     }
@@ -332,6 +336,21 @@ class _Collector {
         collect(arguments[0]);
         collect(arguments[1]);
         return;
+      }
+    }
+    // TODO(srawlins): collect type arguments.
+    nodes.add(node);
+  }
+
+  void _namedFunctionInvocation(NamedFunctionInvocation node) {
+    var arguments = node.argumentList.arguments2;
+    if (arguments.length == 2) {
+      if (node.resolution case ExecutableInvocationResolution(:var element)) {
+        if (element is TopLevelFunctionElement && element.isDartCoreIdentical) {
+          collect(arguments[0]);
+          collect(arguments[1]);
+          return;
+        }
       }
     }
     // TODO(srawlins): collect type arguments.

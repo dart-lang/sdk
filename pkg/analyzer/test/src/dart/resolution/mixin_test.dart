@@ -275,10 +275,24 @@ class C<T> {}
 mixin M<T> on C<T> {}
 ''');
 
-    var node = result.findNode.functionExpressionInvocation('f()');
+    var node = result.findNode.callInvocation('f()');
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: SimpleIdentifier
+CallInvocation
+  receiver: SimpleIdentifier
+    token: f
+    element: <testLibrary>::@function::g::@formalParameter::f
+    staticType: M<T> Function<T>()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: FunctionTypeInvocationResolution
+    invokeType: M<int> Function()
+    type: M<int>
+  staticType: M<int>
+  typeArgumentTypes
+    int
+V1: FunctionExpressionInvocation
+  function: SimpleIdentifier
     token: f
     element: <testLibrary>::@function::g::@formalParameter::f
     staticType: M<T> Function<T>()

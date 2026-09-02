@@ -291,6 +291,29 @@ class ImportElementReferencesVisitor extends RecursiveAstVisitor2<void> {
   void visitImportDirective(ImportDirective node) {}
 
   @override
+  void visitImportPrefixedFunctionInvocation(
+    ImportPrefixedFunctionInvocation node,
+  ) {
+    var element = switch (node.resolution) {
+      ExecutableInvocationResolution(:var element) => element.baseElement,
+      InvalidInvocationResolution(
+        recovery: ExecutableInvocationResolution(:var element),
+      ) =>
+        element.baseElement,
+      _ => null,
+    };
+    var prefixFragment = import.prefix;
+    if (importedElements.contains(element) &&
+        prefixFragment != null &&
+        node.importPrefix.element == prefixFragment.element) {
+      var offset = node.importPrefix.offset;
+      _addResult(offset, node.importPrefix.period.end - offset);
+    }
+    node.typeArguments?.accept2(this);
+    node.argumentList.accept2(this);
+  }
+
+  @override
   void visitNamedType(NamedType node) {
     if (importedElements.contains(node.element)) {
       var prefixFragment = import.prefix;
@@ -340,6 +363,23 @@ class ImportElementReferencesVisitor extends RecursiveAstVisitor2<void> {
         _addResult(node.offset, 0);
       }
     }
+  }
+
+  @override
+  void visitUnqualifiedFunctionInvocation(UnqualifiedFunctionInvocation node) {
+    var element = switch (node.resolution) {
+      ExecutableInvocationResolution(:var element) => element.baseElement,
+      InvalidInvocationResolution(
+        recovery: ExecutableInvocationResolution(:var element),
+      ) =>
+        element.baseElement,
+      _ => null,
+    };
+    if (import.prefix == null && importedElements.contains(element)) {
+      _addResult(node.name.offset, 0);
+    }
+    node.typeArguments?.accept2(this);
+    node.argumentList.accept2(this);
   }
 
   void _addResult(int offset, int length) {
@@ -1851,6 +1891,11 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitCascadeMethodInvocation(CascadeMethodInvocation node) {
+    _visitNamedFunctionInvocation(node);
+  }
+
+  @override
   void visitCascadePropertyAssignmentTarget(
     CascadePropertyAssignmentTarget node,
   ) {
@@ -1914,6 +1959,13 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor2<void> {
       );
     }
     node.iterable2.accept2(this);
+  }
+
+  @override
+  void visitImportPrefixedFunctionInvocation(
+    ImportPrefixedFunctionInvocation node,
+  ) {
+    _visitNamedFunctionInvocation(node);
   }
 
   @override
@@ -2028,6 +2080,11 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitUnqualifiedFunctionInvocation(UnqualifiedFunctionInvocation node) {
+    _visitNamedFunctionInvocation(node);
+  }
+
+  @override
   void visitUnqualifiedNameAssignmentTarget(
     UnqualifiedNameAssignmentTarget node,
   ) {
@@ -2093,6 +2150,25 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor2<void> {
   bool _matches(Element element) =>
       elements.contains(element) ||
       element is PropertyAccessorElement && elements.contains(element.variable);
+
+  void _visitNamedFunctionInvocation(NamedFunctionInvocation node) {
+    var element = switch (node.resolution) {
+      ExecutableInvocationResolution(:var element) => element.baseElement,
+      InvalidInvocationResolution(
+        recovery: ExecutableInvocationResolution(:var element),
+      ) =>
+        element.baseElement,
+      _ => null,
+    };
+    if (element != null && _matches(element)) {
+      _addResultImpl(
+        node.name,
+        SearchResultKind.INVOCATION,
+        isQualified: node is! UnqualifiedFunctionInvocation,
+      );
+    }
+    node.visitChildren2(this);
+  }
 }
 
 /// The marker class that is thrown to stop adding declarations.

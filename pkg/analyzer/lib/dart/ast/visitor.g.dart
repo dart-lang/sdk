@@ -349,6 +349,9 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R? visitFunctionExpressionInvocation(FunctionExpressionInvocation node) =>
       visitInvocationExpression(node);
 
+  @experimental
+  R? visitFunctionInvocation(FunctionInvocation node) => visitExpression(node);
+
   @override
   R? visitFunctionReference(FunctionReference node) =>
       visitCommentReferableExpression(node);
@@ -489,6 +492,10 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitNamedArgument(NamedArgument node) => visitNode(node);
+
+  @experimental
+  R? visitNamedFunctionInvocation(NamedFunctionInvocation node) =>
+      visitFunctionInvocation(node);
 
   @override
   R? visitNamedType(NamedType node) => visitTypeAnnotation(node);
@@ -2037,6 +2044,13 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
     return null;
   }
 
+  @experimental
+  @override
+  R? visitCallInvocation(CallInvocation node) {
+    node.visitChildren2(this);
+    return null;
+  }
+
   @override
   R? visitCascadeExpression(CascadeExpression node) {
     node.visitChildren2(this);
@@ -2053,6 +2067,13 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
   @experimental
   @override
   R? visitCascadeIndexExpression(CascadeIndexExpression node) {
+    node.visitChildren2(this);
+    return null;
+  }
+
+  @experimental
+  @override
+  R? visitCascadeMethodInvocation(CascadeMethodInvocation node) {
     node.visitChildren2(this);
     return null;
   }
@@ -2463,12 +2484,6 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
   }
 
   @override
-  R? visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    node.visitChildren2(this);
-    return null;
-  }
-
-  @override
   R? visitFunctionReference(FunctionReference node) {
     node.visitChildren2(this);
     return null;
@@ -2559,6 +2574,15 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitImportDirective(ImportDirective node) {
+    node.visitChildren2(this);
+    return null;
+  }
+
+  @experimental
+  @override
+  R? visitImportPrefixedFunctionInvocation(
+    ImportPrefixedFunctionInvocation node,
+  ) {
     node.visitChildren2(this);
     return null;
   }
@@ -3195,6 +3219,13 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
   @experimental
   @override
   R? visitUnaryOperatorInvocation(UnaryOperatorInvocation node) {
+    node.visitChildren2(this);
+    return null;
+  }
+
+  @experimental
+  @override
+  R? visitUnqualifiedFunctionInvocation(UnqualifiedFunctionInvocation node) {
     node.visitChildren2(this);
     return null;
   }
@@ -3911,6 +3942,10 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitBreakStatement(BreakStatement node) => null;
 
+  @experimental
+  @override
+  R? visitCallInvocation(CallInvocation node) => null;
+
   @override
   R? visitCascadeExpression(CascadeExpression node) => null;
 
@@ -3922,6 +3957,10 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
   @experimental
   @override
   R? visitCascadeIndexExpression(CascadeIndexExpression node) => null;
+
+  @experimental
+  @override
+  R? visitCascadeMethodInvocation(CascadeMethodInvocation node) => null;
 
   @experimental
   @override
@@ -4136,10 +4175,6 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
   R? visitFunctionExpression(FunctionExpression node) => null;
 
   @override
-  R? visitFunctionExpressionInvocation(FunctionExpressionInvocation node) =>
-      null;
-
-  @override
   R? visitFunctionReference(FunctionReference node) => null;
 
   @override
@@ -4188,6 +4223,12 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitImportDirective(ImportDirective node) => null;
+
+  @experimental
+  @override
+  R? visitImportPrefixedFunctionInvocation(
+    ImportPrefixedFunctionInvocation node,
+  ) => null;
 
   @override
   R? visitImportPrefixReference(ImportPrefixReference node) => null;
@@ -4524,6 +4565,11 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
   @experimental
   @override
   R? visitUnaryOperatorInvocation(UnaryOperatorInvocation node) => null;
+
+  @experimental
+  @override
+  R? visitUnqualifiedFunctionInvocation(UnqualifiedFunctionInvocation node) =>
+      null;
 
   @experimental
   @override
@@ -5234,6 +5280,10 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitBreakStatement(BreakStatement node) => _throw(node);
 
+  @experimental
+  @override
+  R? visitCallInvocation(CallInvocation node) => _throw(node);
+
   @override
   R? visitCascadeExpression(CascadeExpression node) => _throw(node);
 
@@ -5245,6 +5295,10 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
   @experimental
   @override
   R? visitCascadeIndexExpression(CascadeIndexExpression node) => _throw(node);
+
+  @experimental
+  @override
+  R? visitCascadeMethodInvocation(CascadeMethodInvocation node) => _throw(node);
 
   @experimental
   @override
@@ -5468,10 +5522,6 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
   R? visitFunctionExpression(FunctionExpression node) => _throw(node);
 
   @override
-  R? visitFunctionExpressionInvocation(FunctionExpressionInvocation node) =>
-      _throw(node);
-
-  @override
   R? visitFunctionReference(FunctionReference node) => _throw(node);
 
   @override
@@ -5520,6 +5570,12 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitImportDirective(ImportDirective node) => _throw(node);
+
+  @experimental
+  @override
+  R? visitImportPrefixedFunctionInvocation(
+    ImportPrefixedFunctionInvocation node,
+  ) => _throw(node);
 
   @override
   R? visitImportPrefixReference(ImportPrefixReference node) => _throw(node);
@@ -5861,6 +5917,11 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
   @experimental
   @override
   R? visitUnaryOperatorInvocation(UnaryOperatorInvocation node) => _throw(node);
+
+  @experimental
+  @override
+  R? visitUnqualifiedFunctionInvocation(UnqualifiedFunctionInvocation node) =>
+      _throw(node);
 
   @experimental
   @override
@@ -7570,6 +7631,15 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
     return result;
   }
 
+  @experimental
+  @override
+  T? visitCallInvocation(CallInvocation node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitCallInvocation(node);
+    stopwatch.stop();
+    return result;
+  }
+
   @override
   T? visitCascadeExpression(CascadeExpression node) {
     stopwatch.start();
@@ -7592,6 +7662,15 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
   T? visitCascadeIndexExpression(CascadeIndexExpression node) {
     stopwatch.start();
     T? result = _baseVisitor.visitCascadeIndexExpression(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @experimental
+  @override
+  T? visitCascadeMethodInvocation(CascadeMethodInvocation node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitCascadeMethodInvocation(node);
     stopwatch.stop();
     return result;
   }
@@ -8132,14 +8211,6 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
   }
 
   @override
-  T? visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    stopwatch.start();
-    T? result = _baseVisitor.visitFunctionExpressionInvocation(node);
-    stopwatch.stop();
-    return result;
-  }
-
-  @override
   T? visitFunctionReference(FunctionReference node) {
     stopwatch.start();
     T? result = _baseVisitor.visitFunctionReference(node);
@@ -8260,6 +8331,17 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
   T? visitImportDirective(ImportDirective node) {
     stopwatch.start();
     T? result = _baseVisitor.visitImportDirective(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @experimental
+  @override
+  T? visitImportPrefixedFunctionInvocation(
+    ImportPrefixedFunctionInvocation node,
+  ) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitImportPrefixedFunctionInvocation(node);
     stopwatch.stop();
     return result;
   }
@@ -9104,6 +9186,15 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
 
   @experimental
   @override
+  T? visitUnqualifiedFunctionInvocation(UnqualifiedFunctionInvocation node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitUnqualifiedFunctionInvocation(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @experimental
+  @override
   T? visitUnqualifiedNameAssignmentTarget(
     UnqualifiedNameAssignmentTarget node,
   ) {
@@ -9879,6 +9970,10 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitBreakStatement(BreakStatement node) => visitNode(node);
 
+  @experimental
+  @override
+  R? visitCallInvocation(CallInvocation node) => visitNode(node);
+
   @override
   R? visitCascadeExpression(CascadeExpression node) => visitNode(node);
 
@@ -9890,6 +9985,11 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
   @experimental
   @override
   R? visitCascadeIndexExpression(CascadeIndexExpression node) =>
+      visitNode(node);
+
+  @experimental
+  @override
+  R? visitCascadeMethodInvocation(CascadeMethodInvocation node) =>
       visitNode(node);
 
   @experimental
@@ -10121,10 +10221,6 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
   R? visitFunctionExpression(FunctionExpression node) => visitNode(node);
 
   @override
-  R? visitFunctionExpressionInvocation(FunctionExpressionInvocation node) =>
-      visitNode(node);
-
-  @override
   R? visitFunctionReference(FunctionReference node) => visitNode(node);
 
   @override
@@ -10173,6 +10269,12 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitImportDirective(ImportDirective node) => visitNode(node);
+
+  @experimental
+  @override
+  R? visitImportPrefixedFunctionInvocation(
+    ImportPrefixedFunctionInvocation node,
+  ) => visitNode(node);
 
   @override
   R? visitImportPrefixReference(ImportPrefixReference node) => visitNode(node);
@@ -10528,6 +10630,11 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
   @experimental
   @override
   R? visitUnaryOperatorInvocation(UnaryOperatorInvocation node) =>
+      visitNode(node);
+
+  @experimental
+  @override
+  R? visitUnqualifiedFunctionInvocation(UnqualifiedFunctionInvocation node) =>
       visitNode(node);
 
   @experimental

@@ -70,6 +70,8 @@ class FindNode2 extends _FindNodeBase {
 
   BinaryOperatorInvocation get singleBinaryOperatorInvocation => _single();
 
+  CallInvocation get singleCallInvocation => _single();
+
   CompoundAssignment get singleCompoundAssignment => _single();
 
   ConstructorInvocation get singleConstructorInvocation => _single();
@@ -81,6 +83,9 @@ class FindNode2 extends _FindNodeBase {
   IfNull get singleIfNull => _single();
 
   IfNullAssignment get singleIfNullAssignment => _single();
+
+  ImportPrefixedFunctionInvocation get singleImportPrefixedFunctionInvocation =>
+      _single();
 
   LogicalAnd get singleLogicalAnd => _single();
 
@@ -94,6 +99,9 @@ class FindNode2 extends _FindNodeBase {
 
   UnaryOperatorInvocation get singleUnaryOperatorInvocation => _single();
 
+  UnqualifiedFunctionInvocation get singleUnqualifiedFunctionInvocation =>
+      _single();
+
   @override
   AssignmentExpression assignment(String search) {
     var node = _node<AstNode>(
@@ -105,6 +113,10 @@ class FindNode2 extends _FindNodeBase {
 
   BinaryOperatorInvocation binaryOperatorInvocation(String search) {
     return _node(search, (node) => node is BinaryOperatorInvocation);
+  }
+
+  CallInvocation callInvocation(String search) {
+    return _node(search, (node) => node is CallInvocation);
   }
 
   CompoundAssignment compoundAssignment(String search) {
@@ -129,6 +141,12 @@ class FindNode2 extends _FindNodeBase {
 
   IfNullAssignment ifNullAssignment(String search) {
     return _node(search, (node) => node is IfNullAssignment);
+  }
+
+  ImportPrefixedFunctionInvocation importPrefixedFunctionInvocation(
+    String search,
+  ) {
+    return _node(search, (node) => node is ImportPrefixedFunctionInvocation);
   }
 
   LogicalAnd logicalAnd(String search) {
@@ -169,6 +187,10 @@ class FindNode2 extends _FindNodeBase {
 
   UnaryOperatorInvocation unaryOperatorInvocation(String search) {
     return _node(search, (node) => node is UnaryOperatorInvocation);
+  }
+
+  UnqualifiedFunctionInvocation unqualifiedFunctionInvocation(String search) {
+    return _node(search, (node) => node is UnqualifiedFunctionInvocation);
   }
 
   UnqualifiedNameAssignmentTarget unqualifiedNameAssignmentTarget(
@@ -624,6 +646,10 @@ abstract class _FindNodeBase {
 
   CascadeIndexExpression cascadeIndexExpression(String search) {
     return _node(search, (n) => n is CascadeIndexExpression);
+  }
+
+  CascadeMethodInvocation cascadeMethodInvocation(String search) {
+    return _node(search, (n) => n is CascadeMethodInvocation);
   }
 
   CascadePropertyAssignmentTarget cascadePropertyAssignmentTarget(

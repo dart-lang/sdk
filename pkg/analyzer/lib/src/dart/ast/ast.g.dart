@@ -458,6 +458,9 @@ abstract class AstVisitor2<R> {
 
   R? visitBreakStatement(BreakStatement node);
 
+  @experimental
+  R? visitCallInvocation(CallInvocation node);
+
   R? visitCascadeExpression(CascadeExpression node);
 
   @experimental
@@ -465,6 +468,9 @@ abstract class AstVisitor2<R> {
 
   @experimental
   R? visitCascadeIndexExpression(CascadeIndexExpression node);
+
+  @experimental
+  R? visitCascadeMethodInvocation(CascadeMethodInvocation node);
 
   @experimental
   R? visitCascadePropertyAssignmentTarget(CascadePropertyAssignmentTarget node);
@@ -609,8 +615,6 @@ abstract class AstVisitor2<R> {
 
   R? visitFunctionExpression(FunctionExpression node);
 
-  R? visitFunctionExpressionInvocation(FunctionExpressionInvocation node);
-
   R? visitFunctionReference(FunctionReference node);
 
   R? visitFunctionTypeAlias(FunctionTypeAlias node);
@@ -645,6 +649,11 @@ abstract class AstVisitor2<R> {
   R? visitImplicitCallReference(ImplicitCallReference node);
 
   R? visitImportDirective(ImportDirective node);
+
+  @experimental
+  R? visitImportPrefixedFunctionInvocation(
+    ImportPrefixedFunctionInvocation node,
+  );
 
   R? visitImportPrefixReference(ImportPrefixReference node);
 
@@ -875,6 +884,9 @@ abstract class AstVisitor2<R> {
 
   @experimental
   R? visitUnaryOperatorInvocation(UnaryOperatorInvocation node);
+
+  @experimental
+  R? visitUnqualifiedFunctionInvocation(UnqualifiedFunctionInvocation node);
 
   @experimental
   R? visitUnqualifiedNameAssignmentTarget(UnqualifiedNameAssignmentTarget node);

@@ -213,6 +213,20 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitCallInvocation(covariant CallInvocationImpl node) {
+    _sink.writeln('CallInvocation');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      if (_withResolution) {
+        _writeInvocationResolution('resolution', node.resolution);
+      }
+      _writeParameterElement(node);
+      _writeType('staticType', node.staticType);
+      _writeTypeList('typeArgumentTypes', node.typeArgumentTypes);
+    });
+  }
+
+  @override
   void visitCascadeExpression(CascadeExpression node) {
     _sink.writeln('CascadeExpression');
     _sink.withIndent(() {
@@ -246,6 +260,22 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
       }
       _writeParameterElement(node);
       _writeType('staticType', node.staticType);
+    });
+  }
+
+  @override
+  void visitCascadeMethodInvocation(
+    covariant CascadeMethodInvocationImpl node,
+  ) {
+    _sink.writeln('CascadeMethodInvocation');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      if (_withResolution) {
+        _writeInvocationResolution('resolution', node.resolution);
+      }
+      _writeParameterElement(node);
+      _writeType('staticType', node.staticType);
+      _writeTypeList('typeArgumentTypes', node.typeArgumentTypes);
     });
   }
 
@@ -1077,6 +1107,22 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
       if (_withResolution) {
         _elementPrinter.writeLibraryImport('libraryImport', node.libraryImport);
       }
+    });
+  }
+
+  @override
+  void visitImportPrefixedFunctionInvocation(
+    covariant ImportPrefixedFunctionInvocationImpl node,
+  ) {
+    _sink.writeln('ImportPrefixedFunctionInvocation');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      if (_withResolution) {
+        _writeInvocationResolution('resolution', node.resolution);
+      }
+      _writeParameterElement(node);
+      _writeType('staticType', node.staticType);
+      _writeTypeList('typeArgumentTypes', node.typeArgumentTypes);
     });
   }
 
@@ -2054,6 +2100,22 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitUnqualifiedFunctionInvocation(
+    covariant UnqualifiedFunctionInvocationImpl node,
+  ) {
+    _sink.writeln('UnqualifiedFunctionInvocation');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      if (_withResolution) {
+        _writeInvocationResolution('resolution', node.resolution);
+      }
+      _writeParameterElement(node);
+      _writeType('staticType', node.staticType);
+      _writeTypeList('typeArgumentTypes', node.typeArgumentTypes);
+    });
+  }
+
+  @override
   void visitUnqualifiedNameAssignmentTarget(
     covariant UnqualifiedNameAssignmentTargetImpl node,
   ) {
@@ -2224,6 +2286,33 @@ Expected parent: (${parent.runtimeType}) $parent
       return '<null>';
     }
     return _tokenIdMap[token] ??= 'T${_tokenIdMap.length}';
+  }
+
+  bool _isCorrespondingParameterValue(AstNode parent, Expression node) {
+    return switch (parent) {
+      AssignmentExpression parent => identical(switch (_view) {
+        _AstView.v1 => parent.rightHandSide,
+        _AstView.v2 => parent.rightHandSide2,
+      }, node),
+      BinaryExpression parent => identical(switch (_view) {
+        _AstView.v1 => parent.rightOperand,
+        _AstView.v2 => parent.rightOperand2,
+      }, node),
+      DirectAssignment(:var value) ||
+      IfNullAssignment(:var value) ||
+      CompoundAssignment(:var value) => identical(value, node),
+      BinaryOperatorInvocation(:var rightOperand) => identical(
+        rightOperand,
+        node,
+      ),
+      IndexAssignmentTarget(:var index) ||
+      IndexExpression2(:var index) => identical(index, node),
+      IndexExpression parent => identical(switch (_view) {
+        _AstView.v1 => parent.index,
+        _AstView.v2 => parent.index2,
+      }, node),
+      _ => false,
+    };
   }
 
   Iterable<SyntacticEntity> _viewChildEntities(AstNode node) {
@@ -2457,6 +2546,54 @@ Expected parent: (${parent.runtimeType}) $parent
           _writeElement('element', resolution.element);
           _writeType('invokeType', resolution.invokeType);
           _writeType('acceptedType', resolution.acceptedType);
+        });
+    }
+  }
+
+  void _writeInvocationResolution(
+    String name,
+    InvocationResolutionImpl? resolution,
+  ) {
+    switch (resolution) {
+      case null:
+        _sink.writelnWithIndent('$name: <null>');
+      case DynamicInvocationResolutionImpl():
+        _sink.writelnWithIndent('$name: DynamicInvocationResolution');
+        _sink.withIndent(() {
+          _writeType('type', resolution.type);
+        });
+      case ExecutableInvocationResolutionImpl():
+        _sink.writelnWithIndent('$name: ExecutableInvocationResolution');
+        _sink.withIndent(() {
+          _writeElement('element', resolution.element);
+          _writeType('invokeType', resolution.invokeType);
+          _writeType('type', resolution.type);
+        });
+      case FunctionCallInvocationResolutionImpl():
+        _sink.writelnWithIndent('$name: FunctionCallInvocationResolution');
+        _sink.withIndent(() {
+          _writeType('invokeType', resolution.invokeType);
+          _writeType('type', resolution.type);
+        });
+      case FunctionInterfaceInvocationResolutionImpl():
+        _sink.writelnWithIndent('$name: FunctionInterfaceInvocationResolution');
+        _sink.withIndent(() {
+          _writeType('type', resolution.type);
+        });
+      case FunctionTypeInvocationResolutionImpl():
+        _sink.writelnWithIndent('$name: FunctionTypeInvocationResolution');
+        _sink.withIndent(() {
+          _writeType('invokeType', resolution.invokeType);
+          _writeType('type', resolution.type);
+        });
+      case InvalidInvocationResolutionImpl():
+        _sink.writelnWithIndent('$name: InvalidInvocationResolution');
+        _sink.withIndent(() {
+          _writeType('type', resolution.type);
+          _sink.writeElements('candidates', resolution.candidates, (candidate) {
+            _writeElement('candidate', candidate);
+          });
+          _writeInvocationResolution('recovery', resolution.recovery);
         });
     }
   }
@@ -2709,17 +2846,7 @@ Expected parent: (${parent.runtimeType}) $parent
 
       if (node is Expression) {
         var parent = _viewParent(node);
-        if (parent is AssignmentExpression && parent.rightHandSide2 == node ||
-            parent is DirectAssignment && parent.value == node ||
-            parent is IfNullAssignment && parent.value == node ||
-            parent is BinaryExpression && parent.rightOperand2 == node ||
-            parent is BinaryOperatorInvocation && parent.rightOperand == node ||
-            parent is CompoundAssignment && parent.value == node ||
-            parent is DirectAssignment && parent.value == node ||
-            parent is IfNullAssignment && parent.value == node ||
-            parent is IndexAssignmentTarget && parent.index == node ||
-            parent is IndexExpression && parent.index2 == node ||
-            parent is IndexExpression2 && parent.index == node) {
+        if (parent != null && _isCorrespondingParameterValue(parent, node)) {
           _writeElement('correspondingParameter', node.correspondingParameter);
         }
       }

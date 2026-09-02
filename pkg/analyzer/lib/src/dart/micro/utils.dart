@@ -33,8 +33,12 @@ Element? getElementOfNode(AstNode? node) {
       element = node.element;
     case ConstructorDeclaration():
       return node.declaredFragment?.element;
+    case ImportPrefixedFunctionInvocation():
+      return _getElementOfNamedFunctionInvocation(node);
     case PrimaryConstructorDeclaration():
       return node.declaredFragment?.element;
+    case UnqualifiedFunctionInvocation():
+      return _getElementOfNamedFunctionInvocation(node);
     default:
       element = ElementLocatorV2.locate(node);
   }
@@ -124,6 +128,20 @@ ConstructorElement? _getActualConstructorElement(
     }
   }
   return constructor;
+}
+
+// TODO(scheglov): remove after fixing _ElementMapperV2
+ExecutableElement? _getElementOfNamedFunctionInvocation(
+  NamedFunctionInvocation node,
+) {
+  return switch (node.resolution) {
+    ExecutableInvocationResolution(:var element) => element,
+    InvalidInvocationResolution(
+      recovery: ExecutableInvocationResolution(:var element),
+    ) =>
+      element,
+    _ => null,
+  };
 }
 
 /// Returns the [MockLibraryImportElement] that is referenced by [prefixNode]
@@ -442,6 +460,11 @@ class ReferencesCollector extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitCascadeMethodInvocation(CascadeMethodInvocation node) {
+    _visitNamedFunctionInvocation(node);
+  }
+
+  @override
   visitCommentReference(CommentReference node) {
     var expression = node.expression2;
     if (expression is Identifier) {
@@ -699,6 +722,13 @@ class ReferencesCollector extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitImportPrefixedFunctionInvocation(
+    ImportPrefixedFunctionInvocation node,
+  ) {
+    _visitNamedFunctionInvocation(node);
+  }
+
+  @override
   void visitNamedType(NamedType node) {
     if (node.element == element) {
       references.add(
@@ -782,6 +812,11 @@ class ReferencesCollector extends RecursiveAstVisitor2<void> {
     }
   }
 
+  @override
+  void visitUnqualifiedFunctionInvocation(UnqualifiedFunctionInvocation node) {
+    _visitNamedFunctionInvocation(node);
+  }
+
   MatchKind _constructorReferenceKind(ConstructorReference2 node) {
     return switch (node.parent2) {
       ConstructorInvocation() => MatchKind.INVOCATION,
@@ -790,5 +825,17 @@ class ReferencesCollector extends RecursiveAstVisitor2<void> {
         'Unexpected ConstructorReference2 parent: ${node.parent2.runtimeType}',
       ),
     };
+  }
+
+  void _visitNamedFunctionInvocation(NamedFunctionInvocation node) {
+    var invokedElement = _getElementOfNamedFunctionInvocation(
+      node,
+    )?.baseElement;
+    if (invokedElement == element) {
+      references.add(
+        MatchInfo(node.name.offset, node.name.length, MatchKind.REFERENCE),
+      );
+    }
+    node.visitChildren2(this);
   }
 }

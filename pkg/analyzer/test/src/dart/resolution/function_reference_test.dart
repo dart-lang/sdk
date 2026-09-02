@@ -329,7 +329,17 @@ foo() {
     assertResolvedNodeText(node, r'''
 FunctionReference
   function2: PropertyAccess
-    target2: MethodInvocation
+    target2: UnqualifiedFunctionInvocation
+      name: f
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      resolution: ExecutableInvocationResolution
+        element: <testLibrary>::@function::f
+        invokeType: dynamic Function()
+        type: dynamic
+      staticType: dynamic
+    target(v1): MethodInvocation
       methodName: SimpleIdentifier
         token: f
         element: <testLibrary>::@function::f
@@ -5034,10 +5044,26 @@ void Function(int) foo(void Function<T>(T) Function() f) {
     var node = result.findNode.functionReference('(f)()');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function2: FunctionExpressionInvocation
-    function2: ParenthesizedExpression
+  function2: CallInvocation
+    receiver: ParenthesizedExpression
       leftParenthesis: (
       expression2: SimpleIdentifier
+        token: f
+        element: <testLibrary>::@function::foo::@formalParameter::f
+        staticType: void Function<T>(T) Function()
+      rightParenthesis: )
+      staticType: void Function<T>(T) Function()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    resolution: FunctionTypeInvocationResolution
+      invokeType: void Function<T>(T) Function()
+      type: void Function<T>(T)
+    staticType: void Function<T>(T)
+  function(v1): FunctionExpressionInvocation
+    function: ParenthesizedExpression
+      leftParenthesis: (
+      expression: SimpleIdentifier
         token: f
         element: <testLibrary>::@function::foo::@formalParameter::f
         staticType: void Function<T>(T) Function()

@@ -17,6 +17,16 @@ class RequiredParametersVerifier extends SimpleAstVisitor2<void> {
 
   RequiredParametersVerifier(this._errorReporter);
 
+  void verifyNamedFunctionInvocation(NamedFunctionInvocation node) {
+    if (node.resolution case StaticInvocationResolution(:var invokeType)) {
+      _check(
+        parameters: invokeType.formalParameters,
+        arguments: node.argumentList.arguments2,
+        errorEntity: node.name,
+      );
+    }
+  }
+
   @override
   void visitAnnotation(Annotation node) {
     var element = node.element;
@@ -31,6 +41,22 @@ class RequiredParametersVerifier extends SimpleAstVisitor2<void> {
         );
       }
     }
+  }
+
+  @override
+  void visitCallInvocation(CallInvocation node) {
+    if (node.resolution case StaticInvocationResolution(:var invokeType)) {
+      _check(
+        parameters: invokeType.formalParameters,
+        arguments: node.argumentList.arguments2,
+        errorEntity: node,
+      );
+    }
+  }
+
+  @override
+  void visitCascadeMethodInvocation(CascadeMethodInvocation node) {
+    verifyNamedFunctionInvocation(node);
   }
 
   @override
@@ -75,15 +101,10 @@ class RequiredParametersVerifier extends SimpleAstVisitor2<void> {
   }
 
   @override
-  void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    var type = node.staticInvokeType;
-    if (type is FunctionType) {
-      _check(
-        parameters: type.formalParameters,
-        arguments: node.argumentList.arguments2,
-        errorEntity: node,
-      );
-    }
+  void visitImportPrefixedFunctionInvocation(
+    ImportPrefixedFunctionInvocation node,
+  ) {
+    verifyNamedFunctionInvocation(node);
   }
 
   @override
@@ -129,6 +150,11 @@ class RequiredParametersVerifier extends SimpleAstVisitor2<void> {
       arguments: node.argumentList.arguments2,
       errorEntity: node,
     );
+  }
+
+  @override
+  void visitUnqualifiedFunctionInvocation(UnqualifiedFunctionInvocation node) {
+    verifyNamedFunctionInvocation(node);
   }
 
   void _check({

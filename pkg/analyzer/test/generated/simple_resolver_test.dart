@@ -1263,12 +1263,28 @@ class C extends B with M1, M2 {
 }
 ''');
 
-    var node5 = result.findNode.simple('f();');
+    var node5 = result.findNode.unqualifiedFunctionInvocation('f();');
     assertResolvedNodeText(node5, r'''
-SimpleIdentifier
-  token: f
-  element: <testLibrary>::@mixin::M2::@method::f
-  staticType: void Function()
+UnqualifiedFunctionInvocation
+  name: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@mixin::M2::@method::f
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: MethodInvocation
+  methodName: SimpleIdentifier
+    token: f
+    element: <testLibrary>::@mixin::M2::@method::f
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
 ''');
   }
 
@@ -1382,7 +1398,7 @@ main() {
     var g = result.findElement.method('g');
     var parameters = g.formalParameters;
 
-    var invocation = result.findNode.methodInvocation(');');
+    var invocation = result.findNode.unqualifiedFunctionInvocation(');');
 
     var arguments = invocation.argumentList.arguments2;
 

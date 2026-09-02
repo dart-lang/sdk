@@ -854,6 +854,8 @@ class AssignmentExpressionResolver {
     if (expression is MethodInvocation) {
       SimpleIdentifier methodName = expression.methodName;
       _diagnosticReporter.report(diag.useOfVoidResult.at(methodName));
+    } else if (expression is NamedFunctionInvocation) {
+      _diagnosticReporter.report(diag.useOfVoidResult.at(expression.name));
     } else {
       _diagnosticReporter.report(diag.useOfVoidResult.at(expression));
     }

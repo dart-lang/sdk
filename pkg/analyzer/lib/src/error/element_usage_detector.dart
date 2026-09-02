@@ -138,6 +138,8 @@ class ElementUsageDetector<TagInfo extends Object> {
       errorEntity = node.name;
     } else if (node is ConstructorTypeReference) {
       errorEntity = node.name;
+    } else if (node is NamedFunctionInvocation) {
+      errorEntity = node.name;
     } else if (node is NamedArgument) {
       errorEntity = node.name;
     } else if (node is PatternFieldImpl) {
@@ -558,6 +560,17 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
     checkUsage(node.element, node);
   }
 
+  void callInvocation(CallInvocation node) {
+    var callElement = switch (node.resolution) {
+      ExecutableInvocationResolution(:var element) => element,
+      _ => null,
+    };
+    if (callElement is MethodElement &&
+        callElement.name == MethodElement.CALL_METHOD_NAME) {
+      checkUsage(callElement, node);
+    }
+  }
+
   /// Reports the usage of [element] at [node] if [element] is in
   /// any of [usagesMetadataOnly] or [usagesArbitrary].
   void checkUsage(Element? element, AstNode node) {
@@ -624,6 +637,8 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
     } else if (node is NamedType) {
       errorEntity = node.name;
     } else if (node is ConstructorTypeReference) {
+      errorEntity = node.name;
+    } else if (node is NamedFunctionInvocation) {
       errorEntity = node.name;
     } else if (node is NamedArgument) {
       errorEntity = node.name;
@@ -839,14 +854,6 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
     }
   }
 
-  void functionExpressionInvocation(FunctionExpressionInvocation node) {
-    var callElement = node.element;
-    if (callElement is MethodElement &&
-        callElement.name == MethodElement.CALL_METHOD_NAME) {
-      checkUsage(callElement, node);
-    }
-  }
-
   void ifNullAssignment(IfNullAssignment node) {
     var target = node.target;
     if (target case IndexAssignmentTarget(
@@ -922,6 +929,15 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
 
   void methodInvocation(MethodInvocation node) {
     _invocationArguments(node.methodName.element, node.argumentList);
+  }
+
+  void namedFunctionInvocation(NamedFunctionInvocation node) {
+    var element = switch (node.resolution) {
+      ExecutableInvocationResolution(:var element) => element,
+      _ => null,
+    };
+    checkUsage(element?.baseElement, node);
+    _invocationArguments(element, node.argumentList);
   }
 
   void namedType(NamedType node) {

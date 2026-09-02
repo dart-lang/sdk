@@ -287,6 +287,8 @@ abstract class AstDataExtractor<T> extends UnifyingAstVisitor2<void>
       offset = node.operator.offset;
     } else if (node is ConstructorInvocation) {
       offset = node.argumentList.leftParenthesis.offset;
+    } else if (node is FunctionInvocation) {
+      offset = node.argumentList.leftParenthesis.offset;
     } else if (node is InvocationExpression) {
       offset = node.argumentList.leftParenthesis.offset;
     } else if (node is PrefixedIdentifier) {

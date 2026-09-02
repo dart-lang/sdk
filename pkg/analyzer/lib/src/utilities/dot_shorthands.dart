@@ -35,36 +35,27 @@ bool hasDependentDotShorthand(AstNode node) {
     typeArguments: null,
     argumentList: ArgumentList(:var arguments2),
   )) {
-    // When the static type of the method invocation is a generic function type
-    // with no explicit type arguments given, we will be inferring those types.
-    var typeParameters = staticType.typeParameters;
-    if (typeParameters.isEmpty) return false;
-
-    // The type parameters that are dependent on type inference are in the
-    // return type. We populate those type parameters.
-    //
-    // As an optimization, we filter the type parameters to only include the
-    // type parameters declared on the method invocation.
-    var returnType = staticType.returnType;
-    var dependentTypeParameters = _findTypeParametersForType(
-      returnType,
-    ).where((element) => typeParameters.contains(element));
-    if (dependentTypeParameters.isEmpty) return false;
-
-    // Then looking at every argument in the method invocation, we recursively
-    // check the arguments of parameters that have type parameters that are in
-    // the set of dependent type parameters that we calculated above.
-    for (var argument in arguments2) {
-      var parameterTypeParameters = _findTypeParametersForFormalParameter(
-        argument.correspondingParameter,
-      );
-      if (parameterTypeParameters.isEmpty) continue;
-
-      if (parameterTypeParameters.any(
-        (type) => dependentTypeParameters.contains(type),
-      )) {
-        if (hasDependentDotShorthand(argument)) return true;
-      }
+    return _invocationHasDependentDotShorthand(staticType, arguments2);
+  } else if (node case NamedFunctionInvocation(
+    :var resolution,
+    typeArguments: null,
+    argumentList: ArgumentList(:var arguments2),
+  )) {
+    var staticType = switch (resolution) {
+      ExecutableInvocationResolution(:var element) => element.type,
+      InvalidInvocationResolution(
+        recovery: ExecutableInvocationResolution(:var element),
+      ) =>
+        element.type,
+      FunctionCallInvocationResolution(:var invokeType) => invokeType,
+      InvalidInvocationResolution(
+        recovery: FunctionCallInvocationResolution(:var invokeType),
+      ) =>
+        invokeType,
+      _ => null,
+    };
+    if (staticType is FunctionType) {
+      return _invocationHasDependentDotShorthand(staticType, arguments2);
     }
   } else if (node
       case ListLiteral(typeArguments: null, :var elements2) ||
@@ -137,6 +128,34 @@ Set<TypeParameterElement> _findTypeParametersForType(DartType type) {
   var typeParameterVisitor = _TypeParameterVisitor();
   type.accept(typeParameterVisitor);
   return typeParameterVisitor.typeParameters;
+}
+
+bool _invocationHasDependentDotShorthand(
+  FunctionType staticType,
+  Iterable<Argument> arguments,
+) {
+  // When the static type of the invocation is a generic function type with no
+  // explicit type arguments, its type arguments are inferred.
+  var typeParameters = staticType.typeParameters;
+  if (typeParameters.isEmpty) return false;
+
+  // Only type parameters used by the return type can make the invocation's
+  // context affect an argument.
+  var dependentTypeParameters = _findTypeParametersForType(
+    staticType.returnType,
+  ).where(typeParameters.contains);
+  if (dependentTypeParameters.isEmpty) return false;
+
+  for (var argument in arguments) {
+    var parameterTypeParameters = _findTypeParametersForFormalParameter(
+      argument.correspondingParameter,
+    );
+    if (parameterTypeParameters.any(dependentTypeParameters.contains) &&
+        hasDependentDotShorthand(argument)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 class _TypeParameterVisitor extends RecursiveTypeVisitor {

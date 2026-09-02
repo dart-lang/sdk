@@ -27,10 +27,10 @@ void f(A a) {
 }
 ''');
 
-    var node = result.findNode.functionExpressionInvocation('E(a)');
+    var node = result.findNode.callInvocation('E(a)');
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: ExtensionOverride
+CallInvocation
+  receiver: ExtensionOverride
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
@@ -47,6 +47,32 @@ FunctionExpressionInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      SimpleStringLiteral
+        literal: ''
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@extension::E::@method::call
+    invokeType: int Function(String)
+    type: int
+  staticType: int
+V1: FunctionExpressionInvocation
+  function: ExtensionOverride
+    name: E
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: a
+          correspondingParameter: <null>
+          element: <testLibrary>::@function::f::@formalParameter::a
+          staticType: A
+      rightParenthesis: )
+    element: <testLibrary>::@extension::E
+    extendedType: A
+    staticType: null
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       SimpleStringLiteral
         literal: ''
     rightParenthesis: )
@@ -68,10 +94,10 @@ void f(A a) {
 }
 ''');
 
-    var node = result.findNode.functionExpressionInvocation('(a)');
+    var node = result.findNode.callInvocation('(a)');
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: ExtensionOverride
+CallInvocation
+  receiver: ExtensionOverride
     name: E
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -98,6 +124,44 @@ FunctionExpressionInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      SimpleStringLiteral
+        literal: ''
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: SubstitutedMethodElementImpl
+      baseElement: <testLibrary>::@extension::E::@method::call
+      substitution: {T: String}
+    invokeType: int Function(String)
+    type: int
+  staticType: int
+V1: FunctionExpressionInvocation
+  function: ExtensionOverride
+    name: E
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: String
+          element: dart:core::@class::String
+          type: String
+      rightBracket: >
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: a
+          correspondingParameter: <null>
+          element: <testLibrary>::@function::f::@formalParameter::a
+          staticType: A
+      rightParenthesis: )
+    element: <testLibrary>::@extension::E
+    extendedType: A
+    staticType: null
+    typeArgumentTypes
+      String
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       SimpleStringLiteral
         literal: ''
     rightParenthesis: )
@@ -123,10 +187,10 @@ void f(p.A a) {
 }
 ''');
 
-    var node = result.findNode.functionExpressionInvocation('E(a)');
+    var node = result.findNode.callInvocation('E(a)');
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: ExtensionOverride
+CallInvocation
+  receiver: ExtensionOverride
     importPrefix: ImportPrefixReference
       name: p
       period: .
@@ -147,6 +211,36 @@ FunctionExpressionInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      SimpleStringLiteral
+        literal: ''
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: package:test/lib.dart::@extension::E::@method::call
+    invokeType: int Function(String)
+    type: int
+  staticType: int
+V1: FunctionExpressionInvocation
+  function: ExtensionOverride
+    importPrefix: ImportPrefixReference
+      name: p
+      period: .
+      element: <testLibraryFragment>::@prefix::p
+    name: E
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: a
+          correspondingParameter: <null>
+          element: <testLibrary>::@function::f::@formalParameter::a
+          staticType: A
+      rightParenthesis: )
+    element: package:test/lib.dart::@extension::E
+    extendedType: A
+    staticType: null
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       SimpleStringLiteral
         literal: ''
     rightParenthesis: )
@@ -171,10 +265,10 @@ void f(p.A a) {
 }
 ''');
 
-    var node = result.findNode.functionExpressionInvocation('(a)');
+    var node = result.findNode.callInvocation('(a)');
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: ExtensionOverride
+CallInvocation
+  receiver: ExtensionOverride
     importPrefix: ImportPrefixReference
       name: p
       period: .
@@ -205,6 +299,48 @@ FunctionExpressionInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      SimpleStringLiteral
+        literal: ''
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: SubstitutedMethodElementImpl
+      baseElement: package:test/lib.dart::@extension::E::@method::call
+      substitution: {T: String}
+    invokeType: int Function(String)
+    type: int
+  staticType: int
+V1: FunctionExpressionInvocation
+  function: ExtensionOverride
+    importPrefix: ImportPrefixReference
+      name: p
+      period: .
+      element: <testLibraryFragment>::@prefix::p
+    name: E
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: String
+          element: dart:core::@class::String
+          type: String
+      rightBracket: >
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: a
+          correspondingParameter: <null>
+          element: <testLibrary>::@function::f::@formalParameter::a
+          staticType: A
+      rightParenthesis: )
+    element: package:test/lib.dart::@extension::E
+    extendedType: A
+    staticType: null
+    typeArgumentTypes
+      String
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       SimpleStringLiteral
         literal: ''
     rightParenthesis: )
@@ -266,10 +402,10 @@ void f(A a) {
 }
 ''');
 
-    var node = result.findNode.functionExpressionInvocation('E(a)');
+    var node = result.findNode.callInvocation('E(a)');
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: PropertyAccess
+CallInvocation
+  receiver: PropertyAccess
     target2: ExtensionOverride
       name: E
       argumentList: ArgumentList
@@ -293,6 +429,40 @@ FunctionExpressionInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <null-name>@null
+        staticType: int
+    rightParenthesis: )
+  resolution: FunctionTypeInvocationResolution
+    invokeType: double Function(int)
+    type: double
+  staticType: double
+V1: FunctionExpressionInvocation
+  function: PropertyAccess
+    target: ExtensionOverride
+      name: E
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
+          SimpleIdentifier
+            token: a
+            correspondingParameter: <null>
+            element: <testLibrary>::@function::f::@formalParameter::a
+            staticType: A
+        rightParenthesis: )
+      element: <testLibrary>::@extension::E
+      extendedType: A
+      staticType: null
+    operator: .
+    propertyName: SimpleIdentifier
+      token: g
+      element: <testLibrary>::@extension::E::@getter::g
+      staticType: double Function(int)
+    staticType: double Function(int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: <null-name>@null

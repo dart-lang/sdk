@@ -50,6 +50,16 @@ Element? declaredNamedArgumentParameter(
       if (executable is ExecutableElement) {
         return namedParameterElement(executable);
       }
+    } else if (invocation is NamedFunctionInvocation) {
+      var executable = switch (invocation.resolution) {
+        ExecutableInvocationResolution(:var element) => element,
+        InvalidInvocationResolution(
+          recovery: ExecutableInvocationResolution(:var element),
+        ) =>
+          element,
+        _ => null,
+      };
+      return namedParameterElement(executable);
     } else if (invocation is RedirectingConstructorInvocation) {
       return namedParameterElement(invocation.element);
     } else if (invocation is SuperConstructorInvocation) {
@@ -758,6 +768,11 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   }
 
   @override
+  void visitCascadeMethodInvocation(CascadeMethodInvocation node) {
+    _visitNamedFunctionInvocation(node);
+  }
+
+  @override
   void visitCascadePropertyExtraction(
     covariant CascadePropertyExtractionImpl node,
   ) {
@@ -1285,6 +1300,13 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   }
 
   @override
+  void visitImportPrefixedFunctionInvocation(
+    ImportPrefixedFunctionInvocation node,
+  ) {
+    _visitNamedFunctionInvocation(node);
+  }
+
+  @override
   void visitIndexExpression(IndexExpression node) {
     var element = node.writeOrReadElement2;
     if (element is MethodElement) {
@@ -1634,6 +1656,11 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   void visitUnaryOperatorInvocation(UnaryOperatorInvocation node) {
     recordOperatorReference(node.operator, node.element);
     super.visitUnaryOperatorInvocation(node);
+  }
+
+  @override
+  void visitUnqualifiedFunctionInvocation(UnqualifiedFunctionInvocation node) {
+    _visitNamedFunctionInvocation(node);
   }
 
   @override
@@ -1995,6 +2022,34 @@ class _IndexContributor extends UnifyingAstVisitor2 {
         element,
         IndexRelationKind.IS_INVOKED_BY,
         node.leftBracket,
+      );
+    }
+    node.visitChildren2(this);
+  }
+
+  void _visitNamedFunctionInvocation(NamedFunctionInvocation node) {
+    var element = switch (node.resolution) {
+      ExecutableInvocationResolution(:var element) => element,
+      InvalidInvocationResolution(
+        recovery: ExecutableInvocationResolution(:var element),
+      ) =>
+        element,
+      _ => null,
+    };
+    var isQualified = node is! UnqualifiedFunctionInvocation;
+    if (element == null) {
+      assembler.addNameRelation(
+        node.name.lexeme,
+        IndexRelationKind.IS_INVOKED_BY,
+        node.name.offset,
+        isQualified,
+      );
+    } else {
+      recordRelation(
+        element,
+        IndexRelationKind.IS_INVOKED_BY,
+        node.name,
+        isQualified,
       );
     }
     node.visitChildren2(this);

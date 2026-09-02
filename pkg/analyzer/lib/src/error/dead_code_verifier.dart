@@ -411,6 +411,7 @@ class NullSafetyDeadCodeVerifier {
     if (body is CascadePropertyExtraction ||
         body is PropertyAccess ||
         body is MethodInvocation ||
+        body is CascadeMethodInvocation ||
         body is CascadeIndexExpression) {
       _verifyUnassignedSimpleIdentifier(node, node.target2, first!.operator);
     }

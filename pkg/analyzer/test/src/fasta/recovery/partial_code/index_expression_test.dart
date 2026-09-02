@@ -1101,8 +1101,8 @@ CompilationUnit
                   receiver: SimpleIdentifier
                     token: intList
                   leftBracket: [
-                  index: FunctionExpressionInvocation
-                    function2: SimpleIdentifier
+                  index: CallInvocation
+                    receiver: SimpleIdentifier
                       token: assert
                     argumentList: ArgumentList
                       leftParenthesis: (

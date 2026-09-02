@@ -1473,7 +1473,7 @@ void f(int i) {
 }
 int g() => 0;
 ''');
-    node as SimpleIdentifier;
+    node as UnqualifiedFunctionInvocation;
   }
 
   Future<void> test_between_classMembers() async {
@@ -1506,7 +1506,7 @@ void f(int i) {
 }
 void g() {}
 ''');
-    node as SimpleIdentifier;
+    node as UnqualifiedFunctionInvocation;
   }
 
   Future<void> test_between_commaAndComma_arguments_synthetic() async {

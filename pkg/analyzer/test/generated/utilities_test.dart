@@ -308,6 +308,24 @@ void f() {
     );
   }
 
+  void test_callInvocation() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+void f() {
+  (g)<int>(0);
+  (h)<double>(1);
+}
+''');
+    _assertReplacementForChildren<CallInvocation>(
+      destination: parseResult.findNode.callInvocation('<int>'),
+      source: parseResult.findNode.callInvocation('<double>'),
+      childAccessors: [
+        (node) => node.receiver,
+        (node) => node.typeArguments!,
+        (node) => node.argumentList,
+      ],
+    );
+  }
+
   void test_cascadeExpression() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
@@ -956,24 +974,6 @@ void g<U>(double b) {
     _assertRemovalForNullableChild<FunctionExpression>(
       destination: destination,
       childAccessor: (node) => node.typeParameters,
-    );
-  }
-
-  void test_functionExpressionInvocation() {
-    var parseResult = parseTestCodeWithDiagnostics(r'''
-void f() {
-  (g)<int>(0);
-  (h)<double>(1);
-}
-''');
-    _assertReplacementForChildren<FunctionExpressionInvocation>(
-      destination: parseResult.findNode.functionExpressionInvocation('<int>'),
-      source: parseResult.findNode.functionExpressionInvocation('<double>'),
-      childAccessors: [
-        (node) => node.function2,
-        (node) => node.typeArguments!,
-        (node) => node.argumentList,
-      ],
     );
   }
 

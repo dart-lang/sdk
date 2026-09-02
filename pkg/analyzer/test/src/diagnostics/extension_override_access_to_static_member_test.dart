@@ -28,14 +28,36 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.functionExpressionInvocation('();');
+    var node = result.findNode.callInvocation('();');
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: ExtensionOverride
+CallInvocation
+  receiver: ExtensionOverride
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
       arguments2
+        IntegerLiteral
+          literal: 0
+          correspondingParameter: <null>
+          staticType: int
+      rightParenthesis: )
+    element: <testLibrary>::@extension::E
+    extendedType: int
+    staticType: null
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@extension::E::@method::call
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: FunctionExpressionInvocation
+  function: ExtensionOverride
+    name: E
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
         IntegerLiteral
           literal: 0
           correspondingParameter: <null>
