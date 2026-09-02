@@ -1254,6 +1254,8 @@ class AstIndexerAndIgnoreCollector extends AstIndexer {
         positionStartEndIndex[firstIndex * 2 + 0],
         node.endToken.charEnd,
       );
+    } else {
+      node.accept(_collectorBody);
     }
   }
 
