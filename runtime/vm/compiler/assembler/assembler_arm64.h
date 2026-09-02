@@ -1539,6 +1539,16 @@ class Assembler : public AssemblerBase {
                              (static_cast<int32_t>(vd) << kVdShift);
     Emit(encoding);
   }
+  // SSHR Vd.4S, Vn.4S, #shift: arithmetic (sign-propagating) shift right of the
+  // four word lanes of Vn by shift in [1, 32].
+  void vsshr_4s(VRegister vd, VRegister vn, int32_t shift) {
+    ASSERT(shift >= 1 && shift <= 32);
+    const int32_t immhb = 64 - shift;
+    const int32_t encoding = 0x4F000400 | (immhb << 16) |
+                             (static_cast<int32_t>(vn) << kVnShift) |
+                             (static_cast<int32_t>(vd) << kVdShift);
+    Emit(encoding);
+  }
   // UMAXP Vd.4S, Vn.4S, Vm.4S: lane-wise unsigned pairwise maximum of the four
   // word lanes of Vn and Vm. The low 64 bits of Vd hold the folded maxima of
   // Vn's pairs, the high 64 bits those of Vm's pairs.
