@@ -322,14 +322,7 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
 
   @override
   Element? visitCascadeMethodInvocation(CascadeMethodInvocation node) {
-    return switch (node.resolution) {
-      ExecutableInvocationResolution(:var element) => element,
-      InvalidInvocationResolution(
-        recovery: ExecutableInvocationResolution(:var element),
-      ) =>
-        element,
-      _ => null,
-    };
+    return _visitNamedFunctionInvocation(node);
   }
 
   @override
@@ -453,6 +446,13 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
   }
 
   @override
+  Element? visitImportPrefixedFunctionInvocation(
+    ImportPrefixedFunctionInvocation node,
+  ) {
+    return _visitNamedFunctionInvocation(node);
+  }
+
+  @override
   Element? visitImportPrefixReference(ImportPrefixReference node) {
     return node.element;
   }
@@ -568,6 +568,11 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
   }
 
   @override
+  Element? visitReceiverMethodInvocation(ReceiverMethodInvocation node) {
+    return _visitNamedFunctionInvocation(node);
+  }
+
+  @override
   Element? visitReceiverPropertyAssignmentTarget(
     ReceiverPropertyAssignmentTarget node,
   ) {
@@ -588,6 +593,13 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
   @override
   Element? visitUnaryOperatorInvocation(UnaryOperatorInvocation node) {
     return node.element;
+  }
+
+  @override
+  Element? visitUnqualifiedFunctionInvocation(
+    UnqualifiedFunctionInvocation node,
+  ) {
+    return _visitNamedFunctionInvocation(node);
   }
 
   @override
@@ -662,6 +674,17 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
       MethodIndexReadResolution(:var element) => element,
       InvalidIndexReadResolution(
         recovery: MethodIndexReadResolution(:var element),
+      ) =>
+        element,
+      _ => null,
+    };
+  }
+
+  Element? _visitNamedFunctionInvocation(NamedFunctionInvocation node) {
+    return switch (node.resolution) {
+      ExecutableInvocationResolution(:var element) => element,
+      InvalidInvocationResolution(
+        recovery: ExecutableInvocationResolution(:var element),
       ) =>
         element,
       _ => null,

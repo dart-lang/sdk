@@ -759,9 +759,16 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     inferenceLogWriter?.assertExpressionWasRecorded(expression);
     assert(rewriteStackDepth == stackDepth! + 1);
     var replacementExpression = peekRewrite()!;
-    assert(
-      identical(_replacements[expression] ?? expression, replacementExpression),
-    );
+    assert(() {
+      // A single dispatch can compose multiple expression rewrites.
+      AstNode expectedReplacement = expression;
+      while (true) {
+        var replacement = _replacements[expectedReplacement];
+        if (replacement == null) break;
+        expectedReplacement = replacement;
+      }
+      return identical(expectedReplacement, replacementExpression);
+    }());
     var staticType = replacementExpression.staticType;
     if (staticType == null) {
       var shouldHaveType = true;
@@ -4125,6 +4132,14 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
           }
         }
       }
+      if (identical(resolvedNode, node) &&
+          target != null &&
+          !isDotShorthand(node) &&
+          (node.operator?.type == TokenType.PERIOD ||
+              node.operator?.type == TokenType.QUESTION_PERIOD) &&
+          _isSupportedReceiverMethodInvocationReceiver(target)) {
+        resolvedNode = _rewriteReceiverMethodInvocation(node, target);
+      }
     }
 
     var replacement = insertGenericFunctionInstantiation(
@@ -4609,6 +4624,14 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     }
 
     inferenceLogWriter?.exitExpression(node);
+  }
+
+  @override
+  void visitReceiverMethodInvocation(
+    covariant ReceiverMethodInvocationImpl node, {
+    TypeImpl contextType = UnknownInferredType.instance,
+  }) {
+    _resolveDirectNamedFunctionInvocation(node, contextType: contextType);
   }
 
   @override
@@ -5470,6 +5493,20 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     callReference.setPseudoExpressionStaticType(callMethodType);
   }
 
+  /// Whether [receiver] is in the receiver-method migration slice.
+  ///
+  /// Parentheses establish an expression boundary even when the expression
+  /// inside them requires resolution. The other cases are already canonical
+  /// V2 value-producing receiver forms.
+  bool _isSupportedReceiverMethodInvocationReceiver(ExpressionImpl receiver) =>
+      receiver is LiteralImpl ||
+      receiver is ParenthesizedExpressionImpl ||
+      receiver is ConstructorInvocationImpl ||
+      receiver is ReceiverIndexExpressionImpl ||
+      receiver is ReceiverPropertyExtractionImpl ||
+      receiver is FunctionInvocationImpl ||
+      receiver is ThisExpressionImpl;
+
   void _resolveDirectNamedFunctionInvocation(
     NamedFunctionInvocationImpl node, {
     required TypeImpl contextType,
@@ -5703,6 +5740,25 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     return invocation;
   }
 
+  ReceiverMethodInvocationImpl _rewriteReceiverMethodInvocation(
+    MethodInvocationImpl node,
+    ExpressionImpl receiver,
+  ) {
+    var invocation = ReceiverMethodInvocationImpl(
+      receiver: receiver,
+      operator: node.operator!,
+      name: node.methodName.token,
+      typeArguments: node.typeArguments,
+      argumentList: node.argumentList,
+    );
+    _transferReceiverMethodInvocationResolution(node, invocation);
+    replaceExpression(node, invocation);
+    flowAnalysis.transferExpressionInfo(node, invocation);
+    flowAnalysis.transferTestData(node, invocation);
+    inferenceHelper.transferTestData(node, invocation);
+    return invocation;
+  }
+
   UnqualifiedFunctionInvocationImpl _rewriteUnqualifiedFunctionInvocation(
     MethodInvocationImpl node,
   ) {
@@ -5839,6 +5895,28 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       ..staticInvokeType = invokeType
       ..typeArgumentTypes = source.typeArgumentTypes
       ..setPseudoExpressionStaticType(resultType);
+  }
+
+  void _transferReceiverMethodInvocationResolution(
+    MethodInvocationImpl source,
+    ReceiverMethodInvocationImpl destination,
+  ) {
+    var receiverType = typeSystem.resolveToBound(
+      destination.receiver.typeOrThrow,
+    );
+    var hasNoInvocation =
+        (receiverType is NeverType &&
+            receiverType.nullabilitySuffix == NullabilitySuffix.none) ||
+        (source.isNullAware && typeSystem.isNull(receiverType));
+    if (hasNoInvocation) {
+      destination
+        ..resolution = null
+        ..staticInvokeType = source.staticInvokeType
+        ..typeArgumentTypes = source.typeArgumentTypes
+        ..setPseudoExpressionStaticType(source.typeOrThrow);
+    } else {
+      _transferNamedFunctionInvocationResolution(source, destination);
+    }
   }
 
   void _visitFormalParameter(FormalParameterImpl node) {

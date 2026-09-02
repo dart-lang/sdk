@@ -19,6 +19,7 @@ import 'package:analyzer/src/dart/ast/ast.dart'
         NamedFunctionInvocationImpl,
         ReceiverIndexAssignmentTargetImpl,
         InvalidExpressionAssignmentTargetImpl,
+        ReceiverMethodInvocationImpl,
         ReceiverPropertyAssignmentTargetImpl,
         ReceiverPropertyExtractionImpl,
         UnqualifiedFunctionInvocationImpl,
@@ -1045,6 +1046,14 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
   }
 
   @override
+  Null visitReceiverMethodInvocation(ReceiverMethodInvocation node) =>
+      _visitDirectNamedFunctionInvocation(
+        node as ReceiverMethodInvocationImpl,
+        receiver: node.receiver,
+        isNullAware: node.operator.type == TokenType.QUESTION_PERIOD,
+      );
+
+  @override
   _LValueTemplates visitReceiverPropertyExtraction(
     covariant ReceiverPropertyExtractionImpl node,
   ) {
@@ -1306,7 +1315,11 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
     }
   }
 
-  Null _visitDirectNamedFunctionInvocation(NamedFunctionInvocationImpl node) {
+  Null _visitDirectNamedFunctionInvocation(
+    NamedFunctionInvocationImpl node, {
+    Expression? receiver,
+    bool isNullAware = false,
+  }) {
     var previousNestingLevel = ir.nestingLevel;
     var argumentNames = <String?>[];
     var element = switch (node.resolution) {
@@ -1335,12 +1348,16 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
           );
         }
       case MethodElement(isStatic: false):
-        this_();
+        if (receiver == null) {
+          this_();
+        } else {
+          dispatchNode(receiver, terminateNullShorting: false);
+        }
         argumentNames.add(null);
         _handleInvocationArgs(
           argumentList: node.argumentList,
           argumentNames: argumentNames,
-          isNullAware: false,
+          isNullAware: isNullAware,
           previousNestingLevel: previousNestingLevel,
         );
         instanceCall(

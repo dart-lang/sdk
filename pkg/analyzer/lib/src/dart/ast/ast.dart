@@ -23789,6 +23789,8 @@ sealed class FunctionInvocationImpl extends ExpressionImpl
         invocation._methodInvocation?._attachV1Children();
       case ImportPrefixedFunctionInvocationImpl invocation:
         invocation._methodInvocation?._attachV1Children();
+      case ReceiverMethodInvocationImpl invocation:
+        invocation._methodInvocation?._attachV1Children();
       case UnqualifiedFunctionInvocationImpl invocation:
         invocation._methodInvocation?._attachV1Children();
       case CallInvocationImpl():
@@ -23817,6 +23819,8 @@ sealed class FunctionInvocationImpl extends ExpressionImpl
       case CascadeMethodInvocationImpl invocation:
         invocation._methodInvocation?._attachV1Children();
       case ImportPrefixedFunctionInvocationImpl invocation:
+        invocation._methodInvocation?._attachV1Children();
+      case ReceiverMethodInvocationImpl invocation:
         invocation._methodInvocation?._attachV1Children();
       case UnqualifiedFunctionInvocationImpl invocation:
         invocation._methodInvocation?._attachV1Children();
@@ -34585,6 +34589,7 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
       _operator = switch (origin) {
         ImportPrefixedFunctionInvocationImpl(:var importPrefix) =>
           importPrefix.period,
+        ReceiverMethodInvocationImpl(:var operator) => operator,
         _ => null,
       },
       _methodName = SimpleIdentifierImpl.v1Projection(token: origin.name),
@@ -34713,6 +34718,7 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
   Token? get operator => switch (_v1ProjectionOrigin) {
     CascadeMethodInvocationImpl origin => _cascadeSectionOf(origin).operator,
     ImportPrefixedFunctionInvocationImpl origin => origin.importPrefix.period,
+    ReceiverMethodInvocationImpl origin => origin.operator,
     UnqualifiedFunctionInvocationImpl() => null,
     null => _operator,
   };
@@ -35097,6 +35103,8 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
       ImportPrefixedFunctionInvocationImpl(:var importPrefix) =>
         SimpleIdentifierImpl.v1Projection(token: importPrefix.name)
           ..element = importPrefix.element,
+      ReceiverMethodInvocationImpl(:var receiver) =>
+        V1Projection.toV1Expression(receiver),
       CascadeMethodInvocationImpl() ||
       UnqualifiedFunctionInvocationImpl() => null,
     };
@@ -43206,6 +43214,231 @@ final class ReceiverIndexExpressionImpl extends IndexExpression2Impl
     }
     if (index._containsOffset(rangeOffset, rangeEnd)) {
       return index;
+    }
+    return null;
+  }
+}
+
+/// A direct method invocation on an explicitly written expression receiver.
+///
+/// This migration slice supports receivers whose value-producing role is
+/// structurally unambiguous. Other receiver forms remain on their existing AST
+/// shapes until named receivers and parser-only chains are implemented.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class ReceiverMethodInvocation
+    implements NamedFunctionInvocation {
+  /// The operator separating the receiver from the method name.
+  Token get operator;
+
+  /// The expression whose value receives the method invocation.
+  Expression get receiver;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [
+    GenerateNodeProperty('receiver', isInValueExpressionSlot: true),
+    GenerateNodeProperty('operator'),
+    GenerateNodeProperty('name', isSuper: true),
+    GenerateNodeProperty('typeArguments', isSuper: true),
+    GenerateNodeProperty('argumentList', isSuper: true),
+  ],
+)
+final class ReceiverMethodInvocationImpl extends NamedFunctionInvocationImpl
+    implements ReceiverMethodInvocation {
+  @generated
+  ExpressionImpl _receiver;
+
+  @generated
+  @override
+  final Token operator;
+
+  MethodInvocationImpl? _methodInvocation;
+
+  @generated
+  ReceiverMethodInvocationImpl({
+    required ExpressionImpl receiver,
+    required this.operator,
+    required super.name,
+    required super.typeArguments,
+    required super.argumentList,
+  }) : _receiver = receiver {
+    _becomeParentOf2(receiver);
+  }
+
+  @generated
+  @override
+  Token get beginToken {
+    return receiver.beginToken;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return argumentList.endToken;
+  }
+
+  /// The cached V1 compatibility projection for this invocation.
+  MethodInvocationImpl get methodInvocation => _methodInvocation ??=
+      MethodInvocationImpl.v1ProjectionFromNamedFunctionInvocation(this);
+
+  @generated
+  @override
+  ExpressionImpl get receiver => _receiver;
+
+  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  set receiver(ExpressionImpl receiver) {
+    _receiver = _becomeParentOf2(receiver);
+    _methodInvocation?._attachV1Children();
+  }
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @generated
+  @override
+  ChildEntities get _childEntities {
+    throw StateError('ReceiverMethodInvocation is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('receiver', receiver)
+    ..addToken('operator', operator)
+    ..addToken('name', name)
+    ..addNode('typeArguments', typeArguments)
+    ..addNode('argumentList', argumentList);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('ReceiverMethodInvocation is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitReceiverMethodInvocation(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent2, this));
+    return identical(receiver, child);
+  }
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    if (identical(receiver, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'receiver'.");
+    }
+    if (identical(typeArguments, oldNode)) {
+      typeArguments = null;
+      return;
+    }
+    if (identical(argumentList, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'argumentList'.");
+    }
+    super.removeChild(oldNode);
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (identical(receiver, oldNode)) {
+      receiver = newNode as ExpressionImpl;
+      return;
+    }
+    if (identical(typeArguments, oldNode)) {
+      typeArguments = newNode as TypeArgumentListImpl?;
+      return;
+    }
+    if (identical(argumentList, oldNode)) {
+      argumentList = newNode as ArgumentListImpl;
+      return;
+    }
+    super.replaceChild(oldNode, newNode);
+  }
+
+  @generated
+  @override
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+    resolver.visitReceiverMethodInvocation(this, contextType: contextType);
+  }
+
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError('ReceiverMethodInvocation is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    receiver.accept2(visitor);
+    typeArguments?.accept2(visitor);
+    argumentList.accept2(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(
+    AstVisitor2 visitor, {
+    void Function(ExpressionImpl)? visitReceiver,
+    void Function(TypeArgumentListImpl)? visitTypeArguments,
+    void Function(ArgumentListImpl)? visitArgumentList,
+  }) {
+    if (visitReceiver != null) {
+      visitReceiver(receiver);
+    } else {
+      receiver.accept2(visitor);
+    }
+    if (typeArguments case var typeArguments?) {
+      if (visitTypeArguments != null) {
+        visitTypeArguments(typeArguments);
+      } else {
+        typeArguments.accept2(visitor);
+      }
+    }
+    if (visitArgumentList != null) {
+      visitArgumentList(argumentList);
+    } else {
+      argumentList.accept2(visitor);
+    }
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError('ReceiverMethodInvocation is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (receiver._containsOffset(rangeOffset, rangeEnd)) {
+      return receiver;
+    }
+    if (typeArguments case var typeArguments?) {
+      if (typeArguments._containsOffset(rangeOffset, rangeEnd)) {
+        return typeArguments;
+      }
+    }
+    if (argumentList._containsOffset(rangeOffset, rangeEnd)) {
+      return argumentList;
     }
     return null;
   }
@@ -53483,6 +53716,9 @@ enum V1Projection {
     }
     if (node is PrefixIncrementImpl) {
       return createIfAbsent ? node.prefixExpression : node._prefixExpression;
+    }
+    if (node is ReceiverMethodInvocationImpl) {
+      return createIfAbsent ? node.methodInvocation : node._methodInvocation;
     }
     if (node is ReceiverPropertyExtractionImpl) {
       return createIfAbsent ? node.propertyAccess : node._propertyAccess;

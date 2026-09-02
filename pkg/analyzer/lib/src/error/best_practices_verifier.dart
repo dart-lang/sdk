@@ -905,6 +905,18 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitReceiverMethodInvocation(
+    covariant ReceiverMethodInvocationImpl node,
+  ) {
+    _elementUsageFrontierDetector.namedFunctionInvocation(node);
+    _deprecatedFunctionalityVerifier.namedFunctionInvocation(node);
+    _errorHandlerVerifier.verifyNamedFunctionInvocation(node, node.receiver);
+    _nullSafeApiVerifier.namedFunctionInvocation(node, node.receiver);
+    _invalidAccessVerifier.verifyNamedFunctionInvocation(node);
+    super.visitReceiverMethodInvocation(node);
+  }
+
+  @override
   void visitReceiverPropertyExtraction(ReceiverPropertyExtraction node) {
     _elementUsageFrontierDetector.propertyExtraction(node);
     _invalidAccessVerifier.verifyPropertyExtraction(node);

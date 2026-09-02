@@ -1310,6 +1310,10 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
   }
 
   @override
+  Constant visitReceiverMethodInvocation(ReceiverMethodInvocation node) =>
+      _visitNamedFunctionInvocation(node);
+
+  @override
   Constant visitReceiverPropertyExtraction(
     covariant ReceiverPropertyExtractionImpl node,
   ) {

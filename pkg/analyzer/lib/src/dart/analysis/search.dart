@@ -337,6 +337,24 @@ class ImportElementReferencesVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitReceiverMethodInvocation(ReceiverMethodInvocation node) {
+    var element = switch (node.resolution) {
+      ExecutableInvocationResolution(:var element) => element.baseElement,
+      InvalidInvocationResolution(
+        recovery: ExecutableInvocationResolution(:var element),
+      ) =>
+        element.baseElement,
+      _ => null,
+    };
+    if (import.prefix == null && importedElements.contains(element)) {
+      _addResult(node.name.offset, 0);
+    }
+    node.receiver.accept2(this);
+    node.typeArguments?.accept2(this);
+    node.argumentList.accept2(this);
+  }
+
+  @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     if (node.inDeclarationContext()) {
       return;
@@ -2001,6 +2019,11 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor2<void> {
 
     node.importPrefix?.accept2(this);
     node.typeArguments?.accept2(this);
+  }
+
+  @override
+  void visitReceiverMethodInvocation(ReceiverMethodInvocation node) {
+    _visitNamedFunctionInvocation(node);
   }
 
   @override

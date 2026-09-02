@@ -1374,6 +1374,15 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
+  void visitReceiverMethodInvocation(ReceiverMethodInvocation node) {
+    _visitNode(node.receiver);
+    _visitToken(node.operator);
+    _visitToken(node.name);
+    _visitNode(node.typeArguments);
+    _visitNode(node.argumentList);
+  }
+
+  @override
   void visitReceiverPropertyAssignmentTarget(
     ReceiverPropertyAssignmentTarget node,
   ) {

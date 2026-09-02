@@ -387,6 +387,12 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitReceiverMethodInvocation(ReceiverMethodInvocation node) {
+    _recordNamedFunctionInvocation(node);
+    super.visitReceiverMethodInvocation(node);
+  }
+
+  @override
   void visitReceiverPropertyExtraction(ReceiverPropertyExtraction node) {
     _useNamedReadResolution(node.resolution, readCountsAsUse: true);
     super.visitReceiverPropertyExtraction(node);

@@ -768,11 +768,6 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   }
 
   @override
-  void visitCascadeMethodInvocation(CascadeMethodInvocation node) {
-    _visitNamedFunctionInvocation(node);
-  }
-
-  @override
   void visitCascadePropertyExtraction(
     covariant CascadePropertyExtractionImpl node,
   ) {
@@ -1300,13 +1295,6 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   }
 
   @override
-  void visitImportPrefixedFunctionInvocation(
-    ImportPrefixedFunctionInvocation node,
-  ) {
-    _visitNamedFunctionInvocation(node);
-  }
-
-  @override
   void visitIndexExpression(IndexExpression node) {
     var element = node.writeOrReadElement2;
     if (element is MethodElement) {
@@ -1381,6 +1369,16 @@ class _IndexContributor extends UnifyingAstVisitor2 {
     );
 
     node.typeArguments?.accept2(this);
+  }
+
+  @override
+  void visitNode(AstNode node) {
+    switch (node) {
+      case NamedFunctionInvocation():
+        _visitNamedFunctionInvocation(node);
+      default:
+        super.visitNode(node);
+    }
   }
 
   @override
@@ -1656,11 +1654,6 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   void visitUnaryOperatorInvocation(UnaryOperatorInvocation node) {
     recordOperatorReference(node.operator, node.element);
     super.visitUnaryOperatorInvocation(node);
-  }
-
-  @override
-  void visitUnqualifiedFunctionInvocation(UnqualifiedFunctionInvocation node) {
-    _visitNamedFunctionInvocation(node);
   }
 
   @override

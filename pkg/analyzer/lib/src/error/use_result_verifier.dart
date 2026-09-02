@@ -274,6 +274,7 @@ class UseResultVerifier {
         parent is PropertyExtraction ||
         parent is RecordLiteral ||
         parent is RecordLiteralNamedField ||
+        parent is ReceiverMethodInvocation ||
         parent is ReturnStatement ||
         parent is SetOrMapLiteral ||
         parent is SwitchExpression ||

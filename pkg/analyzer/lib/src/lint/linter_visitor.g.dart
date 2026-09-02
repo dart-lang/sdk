@@ -2238,6 +2238,13 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
 
   @experimental
   @override
+  void visitReceiverMethodInvocation(ReceiverMethodInvocation node) {
+    _runSubscriptions(node, _registry._forReceiverMethodInvocation);
+    node.visitChildren2(this);
+  }
+
+  @experimental
+  @override
   void visitReceiverPropertyAssignmentTarget(
     ReceiverPropertyAssignmentTarget node,
   ) {
@@ -4757,6 +4764,9 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   final List<_Subscription2<ReceiverIndexExpression>>
   _forReceiverIndexExpression = [];
 
+  final List<_Subscription2<ReceiverMethodInvocation>>
+  _forReceiverMethodInvocation = [];
+
   final List<_Subscription2<ReceiverPropertyAssignmentTarget>>
   _forReceiverPropertyAssignmentTarget = [];
 
@@ -6106,6 +6116,17 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   ) {
     _hasNodeProcessors = true;
     _forReceiverIndexExpression.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
+  }
+
+  @override
+  void addReceiverMethodInvocation(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
+    _hasNodeProcessors = true;
+    _forReceiverMethodInvocation.add(
       _Subscription2(rule, visitor, _getTimer(rule)),
     );
   }

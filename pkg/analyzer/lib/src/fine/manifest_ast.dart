@@ -458,6 +458,11 @@ class _ElementCollector extends UnifyingAstVisitor2<void> {
   }
 
   @override
+  void visitReceiverMethodInvocation(ReceiverMethodInvocation node) {
+    _visitNamedFunctionInvocation(node);
+  }
+
+  @override
   void visitReceiverPropertyExtraction(ReceiverPropertyExtraction node) {
     node.visitChildren2(this);
     var element = switch (node.resolution) {

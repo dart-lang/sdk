@@ -977,6 +977,12 @@ abstract class RuleVisitorRegistry2 {
   );
 
   @experimental
+  void addReceiverMethodInvocation(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
+
+  @experimental
   void addReceiverPropertyAssignmentTarget(
     AbstractAnalysisRule rule,
     AstVisitor2 visitor,

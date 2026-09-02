@@ -288,6 +288,7 @@ export 'package:analyzer/src/dart/ast/ast.dart'
         PropertyExtraction,
         ReceiverIndexAssignmentTarget,
         ReceiverIndexExpression,
+        ReceiverMethodInvocation,
         ReceiverPropertyAssignmentTarget,
         ReceiverPropertyExtraction,
         RecordFieldReadResolution,

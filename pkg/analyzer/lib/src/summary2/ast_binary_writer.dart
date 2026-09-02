@@ -811,6 +811,22 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   }
 
   @override
+  void visitReceiverMethodInvocation(
+    covariant ReceiverMethodInvocationImpl node,
+  ) {
+    _sink.writeEnum(AstNodeTag.ReceiverMethodInvocation);
+    _writeNode(node.receiver);
+    _writeByte(TokensWriter.astToBinaryTokenType(node.operator.type).index);
+    _writeStringReference(node.name.lexeme);
+    _writeOptionalNode(node.typeArguments);
+    _writeNode(node.argumentList);
+    _sink.writeType(node.staticInvokeType);
+    _sink.writeOptionalTypeList(node.typeArgumentTypes);
+    _sink.writeOptionalObject(node.resolution, _writeInvocationResolution);
+    _storeExpression(node);
+  }
+
+  @override
   void visitReceiverPropertyAssignmentTarget(
     covariant ReceiverPropertyAssignmentTargetImpl node,
   ) {

@@ -33,12 +33,8 @@ Element? getElementOfNode(AstNode? node) {
       element = node.element;
     case ConstructorDeclaration():
       return node.declaredFragment?.element;
-    case ImportPrefixedFunctionInvocation():
-      return _getElementOfNamedFunctionInvocation(node);
     case PrimaryConstructorDeclaration():
       return node.declaredFragment?.element;
-    case UnqualifiedFunctionInvocation():
-      return _getElementOfNamedFunctionInvocation(node);
     default:
       element = ElementLocatorV2.locate(node);
   }
@@ -128,20 +124,6 @@ ConstructorElement? _getActualConstructorElement(
     }
   }
   return constructor;
-}
-
-// TODO(scheglov): remove after fixing _ElementMapperV2
-ExecutableElement? _getElementOfNamedFunctionInvocation(
-  NamedFunctionInvocation node,
-) {
-  return switch (node.resolution) {
-    ExecutableInvocationResolution(:var element) => element,
-    InvalidInvocationResolution(
-      recovery: ExecutableInvocationResolution(:var element),
-    ) =>
-      element,
-    _ => null,
-  };
 }
 
 /// Returns the [MockLibraryImportElement] that is referenced by [prefixNode]
@@ -758,6 +740,11 @@ class ReferencesCollector extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitReceiverMethodInvocation(ReceiverMethodInvocation node) {
+    _visitNamedFunctionInvocation(node);
+  }
+
+  @override
   void visitRedirectingConstructorInvocation(
     RedirectingConstructorInvocation node,
   ) {
@@ -828,9 +815,7 @@ class ReferencesCollector extends RecursiveAstVisitor2<void> {
   }
 
   void _visitNamedFunctionInvocation(NamedFunctionInvocation node) {
-    var invokedElement = _getElementOfNamedFunctionInvocation(
-      node,
-    )?.baseElement;
+    var invokedElement = ElementLocatorV2.locate(node)?.baseElement;
     if (invokedElement == element) {
       references.add(
         MatchInfo(node.name.offset, node.name.length, MatchKind.REFERENCE),

@@ -1541,6 +1541,31 @@ test(String? s) => s?.contains(f());
     check(fCalled).isFalse;
   }
 
+  test_methodInvocation_nullAware_receiverMethod() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+external String f();
+test(String? s) => (s)?.contains(f());
+''');
+    analyze(result, result.findNode.functionDeclaration('test'));
+    check(astNodes)[result.findNode.singleReceiverMethodInvocation]
+      ..containsSubrange(astNodes[result.findNode.parenthesized('(s)')]!)
+      ..containsSubrange(
+        astNodes[result.findNode.unqualifiedFunctionInvocation('f())')]!,
+      );
+    late bool fCalled;
+    _callHandlers['f'] = nullaryFunction(() {
+      check(fCalled).isFalse();
+      fCalled = true;
+      return 'bcd';
+    });
+    fCalled = false;
+    check(runInterpreter(result, ['abcde'])).equals(true);
+    check(fCalled).isTrue;
+    fCalled = false;
+    check(runInterpreter(result, [null])).equals(null);
+    check(fCalled).isFalse;
+  }
+
   test_methodInvocation_staticMethod() async {
     var result = await resolveTestCodeWithDiagnostics('''
 test(String s) => int.parse(s);

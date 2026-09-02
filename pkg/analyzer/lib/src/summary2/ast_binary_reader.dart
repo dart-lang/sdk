@@ -1298,6 +1298,8 @@ class AstBinaryReader {
         return _readReceiverIndexExpression();
       case AstNodeTag.ReceiverIndexAssignmentTarget:
         return _readReceiverIndexAssignmentTarget();
+      case AstNodeTag.ReceiverMethodInvocation:
+        return _readReceiverMethodInvocation();
       case AstNodeTag.IntegerLiteralNegative1:
         return _readIntegerLiteralNegative1();
       case AstNodeTag.IntegerLiteralNull:
@@ -1565,6 +1567,26 @@ class AstBinaryReader {
       rightBracket: Tokens.closeSquareBracket(),
     );
     node.resolution = _reader.readOptionalObject(_readIndexReadResolution);
+    _readExpressionResolution(node);
+    return node;
+  }
+
+  ReceiverMethodInvocation _readReceiverMethodInvocation() {
+    var receiver = _readNode() as ExpressionImpl;
+    var operatorType = UnlinkedTokenType.values[_readByte()];
+    var name = _readStringReference();
+    var typeArguments = _readOptionalNode() as TypeArgumentListImpl?;
+    var arguments = _readNode() as ArgumentListImpl;
+    var node = ReceiverMethodInvocationImpl(
+      receiver: receiver,
+      operator: Tokens.fromType(operatorType),
+      name: StringToken(TokenType.STRING, name, -1),
+      typeArguments: typeArguments,
+      argumentList: arguments,
+    );
+    node.staticInvokeType = _reader.readType();
+    node.typeArgumentTypes = _reader.readOptionalTypeList();
+    node.resolution = _reader.readOptionalObject(_readInvocationResolution);
     _readExpressionResolution(node);
     return node;
   }

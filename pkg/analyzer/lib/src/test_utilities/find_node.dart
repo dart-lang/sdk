@@ -95,6 +95,8 @@ class FindNode2 extends _FindNodeBase {
 
   NullAssertionExpression get singleNullAssertionExpression => _single();
 
+  ReceiverMethodInvocation get singleReceiverMethodInvocation => _single();
+
   TopLevelGetterDeclaration get singleTopLevelGetterDeclaration => _single();
 
   UnaryOperatorInvocation get singleUnaryOperatorInvocation => _single();
@@ -179,6 +181,10 @@ class FindNode2 extends _FindNodeBase {
 
   PrefixIncrement prefixIncrement(String search) {
     return _node(search, (node) => node is PrefixIncrement);
+  }
+
+  ReceiverMethodInvocation receiverMethodInvocation(String search) {
+    return _node(search, (node) => node is ReceiverMethodInvocation);
   }
 
   TopLevelGetterDeclaration topLevelGetterDeclaration(String search) {

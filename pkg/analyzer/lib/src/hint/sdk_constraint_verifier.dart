@@ -301,6 +301,12 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitReceiverMethodInvocation(ReceiverMethodInvocation node) {
+    _checkNamedFunctionInvocation(node);
+    super.visitReceiverMethodInvocation(node);
+  }
+
+  @override
   void visitReceiverPropertyExtraction(ReceiverPropertyExtraction node) {
     var element = switch (node.resolution) {
       NamedReadResolutionWithElement(:var element) => element,

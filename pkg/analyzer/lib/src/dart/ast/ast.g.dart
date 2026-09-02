@@ -789,6 +789,9 @@ abstract class AstVisitor2<R> {
   R? visitReceiverIndexExpression(ReceiverIndexExpression node);
 
   @experimental
+  R? visitReceiverMethodInvocation(ReceiverMethodInvocation node);
+
+  @experimental
   R? visitReceiverPropertyAssignmentTarget(
     ReceiverPropertyAssignmentTarget node,
   );

@@ -2598,14 +2598,11 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::a
           initializer: expression_0
-            MethodInvocation
-              target2: SimpleStringLiteral
+            ReceiverMethodInvocation
+              receiver: SimpleStringLiteral
                 literal: 'abc' @10
               operator: . @15
-              methodName: SimpleIdentifier
-                token: codeUnitAt @16
-                element: dart:core::@class::String::@method::codeUnitAt
-                staticType: int Function(int)
+              name: codeUnitAt @16
               argumentList: ArgumentList
                 leftParenthesis: ( @26
                 arguments2
@@ -2613,7 +2610,10 @@ library
                     literal: 0 @27
                     staticType: int
                 rightParenthesis: ) @28
-              staticInvokeType: int Function(int)
+              resolution: ExecutableInvocationResolution
+                element: dart:core::@class::String::@method::codeUnitAt
+                invokeType: int Function(int)
+                type: int
               staticType: int
           inducedGetter: #F2
       getters

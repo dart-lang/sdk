@@ -1273,14 +1273,31 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('toString()');
+    var node = result.findNode.singleReceiverMethodInvocation;
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: ParenthesizedExpression
+ReceiverMethodInvocation
+  receiver: ParenthesizedExpression
     leftParenthesis: (
     expression2: ThrowExpression
       throwKeyword: throw
       expression2: SimpleStringLiteral
+        literal: ''
+      staticType: Never
+    rightParenthesis: )
+    staticType: Never
+  operator: .
+  name: toString
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: <null>
+  staticType: Never
+V1: MethodInvocation
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: ThrowExpression
+      throwKeyword: throw
+      expression: SimpleStringLiteral
         literal: ''
       staticType: Never
     rightParenthesis: )

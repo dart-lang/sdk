@@ -2954,6 +2954,13 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
 
   @experimental
   @override
+  R? visitReceiverMethodInvocation(ReceiverMethodInvocation node) {
+    node.visitChildren2(this);
+    return null;
+  }
+
+  @experimental
+  @override
   R? visitReceiverPropertyAssignmentTarget(
     ReceiverPropertyAssignmentTarget node,
   ) {
@@ -4425,6 +4432,10 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
 
   @experimental
   @override
+  R? visitReceiverMethodInvocation(ReceiverMethodInvocation node) => null;
+
+  @experimental
+  @override
   R? visitReceiverPropertyAssignmentTarget(
     ReceiverPropertyAssignmentTarget node,
   ) => null;
@@ -5770,6 +5781,11 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
   @experimental
   @override
   R? visitReceiverIndexExpression(ReceiverIndexExpression node) => _throw(node);
+
+  @experimental
+  @override
+  R? visitReceiverMethodInvocation(ReceiverMethodInvocation node) =>
+      _throw(node);
 
   @experimental
   @override
@@ -8829,6 +8845,15 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
 
   @experimental
   @override
+  T? visitReceiverMethodInvocation(ReceiverMethodInvocation node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitReceiverMethodInvocation(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @experimental
+  @override
   T? visitReceiverPropertyAssignmentTarget(
     ReceiverPropertyAssignmentTarget node,
   ) {
@@ -10480,6 +10505,11 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
   @experimental
   @override
   R? visitReceiverIndexExpression(ReceiverIndexExpression node) =>
+      visitNode(node);
+
+  @experimental
+  @override
+  R? visitReceiverMethodInvocation(ReceiverMethodInvocation node) =>
       visitNode(node);
 
   @experimental

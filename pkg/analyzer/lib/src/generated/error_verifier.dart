@@ -2145,6 +2145,19 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   @override
+  void visitReceiverMethodInvocation(ReceiverMethodInvocation node) {
+    if (node.operator.type == TokenType.QUESTION_PERIOD) {
+      _checkForUnnecessaryNullAware(
+        node.receiver,
+        node.operator,
+        kind: _NullAwareKind.access,
+      );
+    }
+    _verifyNamedFunctionInvocation(node);
+    super.visitReceiverMethodInvocation(node);
+  }
+
+  @override
   void visitReceiverPropertyAssignmentTarget(
     ReceiverPropertyAssignmentTarget node,
   ) {
@@ -7936,6 +7949,11 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
         if (type == TokenType.QUESTION_PERIOD) {
           var realTarget = target.realTarget2;
           return previousShortCircuitingOperator(realTarget) ?? operator;
+        }
+      } else if (target is ReceiverMethodInvocation) {
+        var operator = target.operator;
+        if (operator.type == TokenType.QUESTION_PERIOD) {
+          return previousShortCircuitingOperator(target.receiver) ?? operator;
         }
       }
       return null;

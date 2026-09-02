@@ -1595,10 +1595,24 @@ void f() {
     });
     var result = results[b]!;
 
-    var node = result.findNode.singleMethodInvocation;
+    var node = result.findNode.singleReceiverMethodInvocation;
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: IntegerLiteral
+ReceiverMethodInvocation
+  receiver: IntegerLiteral
+    literal: 0
+    staticType: int
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: package:test/x.dart::@extension::E::@method::foo
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: MethodInvocation
+  target: IntegerLiteral
     literal: 0
     staticType: int
   operator: .
@@ -1689,10 +1703,24 @@ f(int? a) {
   null.foo();
 }
 ''');
-    var node = result.findNode.methodInvocation('null.foo()');
+    var node = result.findNode.receiverMethodInvocation('null.foo()');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: NullLiteral
+ReceiverMethodInvocation
+  receiver: NullLiteral
+    literal: null
+    staticType: Null
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@extension::E::@method::foo
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: MethodInvocation
+  target: NullLiteral
     literal: null
     staticType: Null
   operator: .
@@ -1748,10 +1776,24 @@ f() {
   null.foo();
 }
 ''');
-    var node = result.findNode.methodInvocation('null.foo()');
+    var node = result.findNode.receiverMethodInvocation('null.foo()');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: NullLiteral
+ReceiverMethodInvocation
+  receiver: NullLiteral
+    literal: null
+    staticType: Null
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@extension::E::@method::foo
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: MethodInvocation
+  target: NullLiteral
     literal: null
     staticType: Null
   operator: .
@@ -1777,10 +1819,24 @@ void f() {
   0._foo();
 }
 ''');
-    var node = result.findNode.methodInvocation('_foo();');
+    var node = result.findNode.receiverMethodInvocation('_foo();');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: IntegerLiteral
+ReceiverMethodInvocation
+  receiver: IntegerLiteral
+    literal: 0
+    staticType: int
+  operator: .
+  name: _foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@extension::E::@method::_foo
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: MethodInvocation
+  target: IntegerLiteral
     literal: 0
     staticType: int
   operator: .
@@ -1813,10 +1869,24 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('_foo();');
+    var node = result.findNode.receiverMethodInvocation('_foo();');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: IntegerLiteral
+ReceiverMethodInvocation
+  receiver: IntegerLiteral
+    literal: 0
+    staticType: int
+  operator: .
+  name: _foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@extension::E::@method::_foo
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: MethodInvocation
+  target: IntegerLiteral
     literal: 0
     staticType: int
   operator: .
@@ -4780,10 +4850,24 @@ extension E on C {
   void b() { this.a(); }
 }
 ''');
-    var node = result.findNode.methodInvocation('this.a');
+    var node = result.findNode.receiverMethodInvocation('this.a');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: ThisExpression
+ReceiverMethodInvocation
+  receiver: ThisExpression
+    thisKeyword: this
+    staticType: C
+  operator: .
+  name: a
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@class::C::@method::a
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: MethodInvocation
+  target: ThisExpression
     thisKeyword: this
     staticType: C
   operator: .
@@ -4807,10 +4891,24 @@ extension E on C {
   void b() { this.a(); }
 }
 ''');
-    var node = result.findNode.methodInvocation('this.a');
+    var node = result.findNode.receiverMethodInvocation('this.a');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: ThisExpression
+ReceiverMethodInvocation
+  receiver: ThisExpression
+    thisKeyword: this
+    staticType: C
+  operator: .
+  name: a
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@extension::E::@method::a
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: MethodInvocation
+  target: ThisExpression
     thisKeyword: this
     staticType: C
   operator: .
