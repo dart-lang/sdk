@@ -405,6 +405,14 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitDotShorthandMethodInvocation(
+    covariant DotShorthandMethodInvocationImpl node,
+  ) {
+    _visitDirectNamedFunctionInvocation(node);
+    super.visitDotShorthandMethodInvocation(node);
+  }
+
+  @override
   void visitFieldDeclaration(FieldDeclaration node) {
     if (inCompound) {
       _validateFieldsInCompound(node);
@@ -514,8 +522,6 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
       if (enclosingElement.isPointer) {
         if (element.name == 'fromFunction') {
           _validateFromFunction(node, element);
-        } else if (element.name == 'elementAt') {
-          _validateElementAt(invocation);
         }
       } else if (enclosingElement.isStruct || enclosingElement.isUnion) {
         if (element.name == 'create') {
@@ -525,20 +531,8 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
         if (element.name == 'addressOf') {
           _validateNativeAddressOf(node);
         }
-      } else if (enclosingElement.isNativeFunctionPointerExtension) {
-        if (element.name == 'asFunction') {
-          _validateAsFunction(invocation);
-        }
-      } else if (enclosingElement.isDynamicLibraryExtension) {
-        if (element.name == 'lookupFunction') {
-          _validateLookupFunction(invocation);
-        }
-      } else if (enclosingElement.isNativeStructPointerExtension ||
-          enclosingElement.isNativeUnionPointerExtension) {
-        if (element.name == 'refWithFinalizer') {
-          _validateRefWithFinalizer(invocation);
-        }
       }
+      _validateFfiInstanceMethodInvocation(invocation, element);
     } else if (element is TopLevelFunctionElement) {
       if (element.library.name == 'dart.ffi') {
         if (element.name == 'sizeOf') {
@@ -611,6 +605,34 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
       }
     }
     super.visitReceiverIndexExpression(node);
+  }
+
+  @override
+  void visitReceiverMethodInvocation(
+    covariant ReceiverMethodInvocationImpl node,
+  ) {
+    var element = switch (node.resolution) {
+      ExecutableInvocationResolution(:var element) => element,
+      InvalidInvocationResolution(
+        recovery: ExecutableInvocationResolution(:var element),
+      ) =>
+        element,
+      _ => null,
+    };
+    if (element is InternalMethodElement) {
+      _validateFfiInstanceMethodInvocation(
+        _FfiInvocation(
+          node: node,
+          name: node.name,
+          target: node.receiver,
+          typeArguments: node.typeArguments,
+          argumentList: node.argumentList,
+          typeArgumentTypes: node.typeArgumentTypes,
+        ),
+        element,
+      );
+    }
+    super.visitReceiverMethodInvocation(node);
   }
 
   @override
@@ -1381,12 +1403,21 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
     var parent = node.parent2;
     // Since we are allowing .address.cast(), we need to traverse up one level
     // to get the ffi Invocation (.cast() nested down one level the expression)
-    if (parent is MethodInvocation &&
-        parent.methodName.element is MethodElement &&
-        parent.methodName.name == "cast" &&
-        parent.methodName.element?.enclosingElement is ClassElement &&
-        parent.methodName.element!.enclosingElement.isPointer) {
-      parent = parent.parent2;
+    var castElement = switch (parent) {
+      MethodInvocation(:var methodName) when methodName.name == 'cast' =>
+        methodName.element,
+      ReceiverMethodInvocation(:var name, :var resolution)
+          when name.lexeme == 'cast' =>
+        switch (resolution) {
+          ExecutableInvocationResolution(:var element) => element,
+          _ => null,
+        },
+      _ => null,
+    };
+    if (castElement is MethodElement &&
+        castElement.enclosingElement is ClassElement &&
+        castElement.enclosingElement.isPointer) {
+      parent = parent?.parent2;
     }
     var grandParent = parent?.parent2;
     var isNativeLeafInvocation = switch (grandParent) {
@@ -1758,6 +1789,31 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
               .withArguments(executableName: 'elementAt')
               .at(invocation.node),
         );
+      }
+    }
+  }
+
+  void _validateFfiInstanceMethodInvocation(
+    _FfiInvocation invocation,
+    InternalMethodElement element,
+  ) {
+    var enclosingElement = element.enclosingElement;
+    if (enclosingElement.isPointer) {
+      if (element.name == 'elementAt') {
+        _validateElementAt(invocation);
+      }
+    } else if (enclosingElement.isNativeFunctionPointerExtension) {
+      if (element.name == 'asFunction') {
+        _validateAsFunction(invocation);
+      }
+    } else if (enclosingElement.isDynamicLibraryExtension) {
+      if (element.name == 'lookupFunction') {
+        _validateLookupFunction(invocation);
+      }
+    } else if (enclosingElement.isNativeStructPointerExtension ||
+        enclosingElement.isNativeUnionPointerExtension) {
+      if (element.name == 'refWithFinalizer') {
+        _validateRefWithFinalizer(invocation);
       }
     }
   }

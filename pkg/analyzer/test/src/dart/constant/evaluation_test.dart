@@ -304,6 +304,28 @@ E
 ''');
   }
 
+  test_dotShorthand_propertyAccess_imported() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  const A();
+  static const A field = A();
+}
+''');
+
+    var unitResult = await resolveTestCodeWithDiagnostics('''
+import 'a.dart';
+
+const A a = .field;
+''');
+    var result = _topLevelVar(unitResult, 'a');
+    assertDartObjectText(result, r'''
+A
+  constructorInvocation
+    constructor: package:test/a.dart::@class::A::@constructor::new
+  variable: <testLibrary>::@topLevelVariable::a
+''');
+  }
+
   test_enum_argument_methodInvocation() async {
     await resolveTestCodeWithDiagnostics('''
 enum E {

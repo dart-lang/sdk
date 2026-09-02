@@ -237,6 +237,21 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitDotShorthandMethodInvocation(DotShorthandMethodInvocation node) {
+    _recordNamedFunctionInvocation(node);
+    super.visitDotShorthandMethodInvocation(node);
+  }
+
+  @override
+  void visitDotShorthandNameExpression(DotShorthandNameExpression node) {
+    if (node.resolution case NamedReadResolutionWithElement(:var element)) {
+      usedElements.addElement(element.enclosingElement);
+    }
+    _useNamedReadResolution(node.resolution, readCountsAsUse: true);
+    super.visitDotShorthandNameExpression(node);
+  }
+
+  @override
   void visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
     usedElements.addElement(node.propertyName.element?.enclosingElement);
     super.visitDotShorthandPropertyAccess(node);
@@ -384,6 +399,12 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
   void visitReceiverIndexExpression(ReceiverIndexExpression node) {
     _useIndexReadResolution(node.resolution);
     super.visitReceiverIndexExpression(node);
+  }
+
+  @override
+  void visitReceiverMethodInvocation(ReceiverMethodInvocation node) {
+    _recordNamedFunctionInvocation(node);
+    super.visitReceiverMethodInvocation(node);
   }
 
   @override

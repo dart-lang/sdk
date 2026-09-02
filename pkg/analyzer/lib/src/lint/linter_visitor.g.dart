@@ -1569,6 +1569,20 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
     node.visitChildren2(this);
   }
 
+  @experimental
+  @override
+  void visitDotShorthandMethodInvocation(DotShorthandMethodInvocation node) {
+    _runSubscriptions(node, _registry._forDotShorthandMethodInvocation);
+    node.visitChildren2(this);
+  }
+
+  @experimental
+  @override
+  void visitDotShorthandNameExpression(DotShorthandNameExpression node) {
+    _runSubscriptions(node, _registry._forDotShorthandNameExpression);
+    node.visitChildren2(this);
+  }
+
   @override
   void visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
     _runSubscriptions(node, _registry._forDotShorthandPropertyAccess);
@@ -2233,6 +2247,13 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
   @override
   void visitReceiverIndexExpression(ReceiverIndexExpression node) {
     _runSubscriptions(node, _registry._forReceiverIndexExpression);
+    node.visitChildren2(this);
+  }
+
+  @experimental
+  @override
+  void visitReceiverMethodInvocation(ReceiverMethodInvocation node) {
+    _runSubscriptions(node, _registry._forReceiverMethodInvocation);
     node.visitChildren2(this);
   }
 
@@ -4512,6 +4533,12 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   final List<_Subscription2<DotShorthandInvocation>>
   _forDotShorthandInvocation = [];
 
+  final List<_Subscription2<DotShorthandMethodInvocation>>
+  _forDotShorthandMethodInvocation = [];
+
+  final List<_Subscription2<DotShorthandNameExpression>>
+  _forDotShorthandNameExpression = [];
+
   final List<_Subscription2<DotShorthandPropertyAccess>>
   _forDotShorthandPropertyAccess = [];
 
@@ -4756,6 +4783,9 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
 
   final List<_Subscription2<ReceiverIndexExpression>>
   _forReceiverIndexExpression = [];
+
+  final List<_Subscription2<ReceiverMethodInvocation>>
+  _forReceiverMethodInvocation = [];
 
   final List<_Subscription2<ReceiverPropertyAssignmentTarget>>
   _forReceiverPropertyAssignmentTarget = [];
@@ -5318,6 +5348,28 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   ) {
     _hasNodeProcessors = true;
     _forDotShorthandInvocation.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
+  }
+
+  @override
+  void addDotShorthandMethodInvocation(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
+    _hasNodeProcessors = true;
+    _forDotShorthandMethodInvocation.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
+  }
+
+  @override
+  void addDotShorthandNameExpression(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
+    _hasNodeProcessors = true;
+    _forDotShorthandNameExpression.add(
       _Subscription2(rule, visitor, _getTimer(rule)),
     );
   }
@@ -6106,6 +6158,17 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   ) {
     _hasNodeProcessors = true;
     _forReceiverIndexExpression.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
+  }
+
+  @override
+  void addReceiverMethodInvocation(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
+    _hasNodeProcessors = true;
+    _forReceiverMethodInvocation.add(
       _Subscription2(rule, visitor, _getTimer(rule)),
     );
   }

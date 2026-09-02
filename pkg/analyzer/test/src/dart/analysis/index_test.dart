@@ -5938,7 +5938,7 @@ void useFoo() {
   M m = .foo();
 //  ^
 // [diag.unusedLocalVariable] The value of the local variable 'm' isn't used.
-//      ^^^^^^
+//       ^^^
 // [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
 }
 ''');

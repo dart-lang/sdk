@@ -768,11 +768,6 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   }
 
   @override
-  void visitCascadeMethodInvocation(CascadeMethodInvocation node) {
-    _visitNamedFunctionInvocation(node);
-  }
-
-  @override
   void visitCascadePropertyExtraction(
     covariant CascadePropertyExtractionImpl node,
   ) {
@@ -1116,6 +1111,45 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   }
 
   @override
+  void visitDotShorthandNameExpression(
+    covariant DotShorthandNameExpressionImpl node,
+  ) {
+    switch (node.resolution) {
+      case GetterInvocationResolutionImpl(:var element):
+        recordRelation(
+          element,
+          IndexRelationKind.IS_INVOKED_BY,
+          node.name,
+          true,
+        );
+      case ExecutableTearOffResolutionImpl(:var element):
+        if (element is InternalConstructorElement) {
+          recordRelation(
+            _getActualConstructorElement(element),
+            IndexRelationKind
+                .IS_REFERENCED_BY_DOT_SHORTHAND_CONSTRUCTOR_TEAR_OFF,
+            node.name,
+            true,
+          );
+        } else {
+          recordRelation(
+            element,
+            IndexRelationKind.IS_REFERENCED_BY,
+            node.name,
+            true,
+          );
+        }
+      default:
+        assembler.addNameRelation(
+          node.name.lexeme,
+          IndexRelationKind.IS_READ_BY,
+          node.name.offset,
+          true,
+        );
+    }
+  }
+
+  @override
   void visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
     IndexRelationKind kind;
     var element = node.propertyName.element;
@@ -1300,13 +1334,6 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   }
 
   @override
-  void visitImportPrefixedFunctionInvocation(
-    ImportPrefixedFunctionInvocation node,
-  ) {
-    _visitNamedFunctionInvocation(node);
-  }
-
-  @override
   void visitIndexExpression(IndexExpression node) {
     var element = node.writeOrReadElement2;
     if (element is MethodElement) {
@@ -1381,6 +1408,16 @@ class _IndexContributor extends UnifyingAstVisitor2 {
     );
 
     node.typeArguments?.accept2(this);
+  }
+
+  @override
+  void visitNode(AstNode node) {
+    switch (node) {
+      case NamedFunctionInvocation():
+        _visitNamedFunctionInvocation(node);
+      default:
+        super.visitNode(node);
+    }
   }
 
   @override
@@ -1656,11 +1693,6 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   void visitUnaryOperatorInvocation(UnaryOperatorInvocation node) {
     recordOperatorReference(node.operator, node.element);
     super.visitUnaryOperatorInvocation(node);
-  }
-
-  @override
-  void visitUnqualifiedFunctionInvocation(UnqualifiedFunctionInvocation node) {
-    _visitNamedFunctionInvocation(node);
   }
 
   @override

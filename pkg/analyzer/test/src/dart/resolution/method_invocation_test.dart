@@ -2185,10 +2185,24 @@ augment class A {
 
     var result = results[a]!;
 
-    var node = result.findNode.singleMethodInvocation;
+    var node = result.findNode.singleReceiverMethodInvocation;
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: ThisExpression
+ReceiverMethodInvocation
+  receiver: ThisExpression
+    thisKeyword: this
+    staticType: A
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@class::A::@method::foo
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: MethodInvocation
+  target: ThisExpression
     thisKeyword: this
     staticType: A
   operator: .
@@ -3582,10 +3596,28 @@ main() {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('foo(0);');
+    var node = result.findNode.receiverMethodInvocation('foo(0);');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: IntegerLiteral
+ReceiverMethodInvocation
+  receiver: IntegerLiteral
+    literal: 42
+    staticType: int
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <null>
+        staticType: int
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: MethodInvocation
+  target: IntegerLiteral
     literal: 42
     staticType: int
   operator: .
@@ -3595,7 +3627,7 @@ MethodInvocation
     staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: <null>
@@ -3740,10 +3772,23 @@ main() {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('foo();');
+    var node = result.findNode.receiverMethodInvocation('foo();');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: NullLiteral
+ReceiverMethodInvocation
+  receiver: NullLiteral
+    literal: null
+    staticType: Null
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: MethodInvocation
+  target: NullLiteral
     literal: null
     staticType: Null
   operator: .
@@ -4461,10 +4506,24 @@ extension type A(int it) {
 }
 ''');
 
-    var node = result.findNode.singleMethodInvocation;
+    var node = result.findNode.singleReceiverMethodInvocation;
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: ThisExpression
+ReceiverMethodInvocation
+  receiver: ThisExpression
+    thisKeyword: this
+    staticType: A
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@extensionType::A::@method::foo
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: MethodInvocation
+  target: ThisExpression
     thisKeyword: this
     staticType: A
   operator: .
@@ -6116,10 +6175,24 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.singleMethodInvocation;
+    var node = result.findNode.singleReceiverMethodInvocation;
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: IntegerLiteral
+ReceiverMethodInvocation
+  receiver: IntegerLiteral
+    literal: 0
+    staticType: int
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@extension::E::@method::foo
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: MethodInvocation
+  target: IntegerLiteral
     literal: 0
     staticType: int
   operator: .
@@ -7802,10 +7875,29 @@ const b = 'abc'.codeUnitAt(a);
 // [diag.constEvalMethodInvocation] Methods can't be invoked in constant expressions.
 ''');
 
-    var node = result.findNode.singleMethodInvocation;
+    var node = result.findNode.singleReceiverMethodInvocation;
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleStringLiteral
+ReceiverMethodInvocation
+  receiver: SimpleStringLiteral
+    literal: 'abc'
+  operator: .
+  name: codeUnitAt
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      SimpleIdentifier
+        token: a
+        correspondingParameter: dart:core::@class::String::@method::codeUnitAt::@formalParameter::index
+        element: <testLibrary>::@getter::a
+        staticType: int
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: dart:core::@class::String::@method::codeUnitAt
+    invokeType: int Function(int)
+    type: int
+  staticType: int
+V1: MethodInvocation
+  target: SimpleStringLiteral
     literal: 'abc'
   operator: .
   methodName: SimpleIdentifier
@@ -7814,7 +7906,7 @@ MethodInvocation
     staticType: int Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       SimpleIdentifier
         token: a
         correspondingParameter: dart:core::@class::String::@method::codeUnitAt::@formalParameter::index
@@ -9219,8 +9311,8 @@ CascadeExpression
   sections
     CascadeSection
       operator: ..
-      body: MethodInvocation
-        target2: CascadeMethodInvocation
+      body: ReceiverMethodInvocation
+        receiver: CascadeMethodInvocation
           name: foo
           argumentList: ArgumentList
             leftParenthesis: (
@@ -9230,26 +9322,15 @@ CascadeExpression
             invokeType: int? Function()
             type: int?
           staticType: int?
-        target(v1): MethodInvocation
-          operator: ..
-          methodName: SimpleIdentifier
-            token: foo
-            element: <testLibrary>::@class::A::@method::foo
-            staticType: int? Function()
-          argumentList: ArgumentList
-            leftParenthesis: (
-            rightParenthesis: )
-          staticInvokeType: int? Function()
-          staticType: int?
         operator: ?.
-        methodName: SimpleIdentifier
-          token: abs
-          element: dart:core::@class::int::@method::abs
-          staticType: int Function()
+        name: abs
         argumentList: ArgumentList
           leftParenthesis: (
           rightParenthesis: )
-        staticInvokeType: int Function()
+        resolution: ExecutableInvocationResolution
+          element: dart:core::@class::int::@method::abs
+          invokeType: int Function()
+          type: int
         staticType: int?
   cascadeSections
     MethodInvocation
@@ -9382,6 +9463,258 @@ void f() {
     var element = result.findNode.namedArgument('a:').correspondingParameter!;
     var libraryFragment2 = element.firstFragment.libraryFragment!;
     expect(libraryFragment2.source, isNotNull);
+  }
+
+  test_receiverMethod_implicitCallReference() async {
+    var result = await resolveTestCode(r'''
+class C {
+  void call() {}
+}
+
+class C2 {
+  C something() => C();
+}
+
+void f(void Function() callback) {}
+
+void g() {
+  f(C2().something());
+}
+''');
+
+    var node = result.findNode.singleImplicitCallReference;
+    assertResolvedNodeText(node, r'''
+ImplicitCallReference
+  expression2: ReceiverMethodInvocation
+    receiver: ConstructorInvocation
+      constructorReference: ConstructorReference2
+        typeReference: ConstructorTypeReference
+          name: C2
+          element: <testLibrary>::@class::C2
+          type: C2
+        element: <testLibrary>::@class::C2::@constructor::new
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      staticType: C2
+    operator: .
+    name: something
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    resolution: ExecutableInvocationResolution
+      element: <testLibrary>::@class::C2::@method::something
+      invokeType: C Function()
+      type: C
+    staticType: C
+  expression(v1): MethodInvocation
+    target: InstanceCreationExpression
+      constructorName: ConstructorName
+        type: NamedType
+          name: C2
+          element: <testLibrary>::@class::C2
+          type: C2
+        element: <testLibrary>::@class::C2::@constructor::new
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      staticType: C2
+    operator: .
+    methodName: SimpleIdentifier
+      token: something
+      element: <testLibrary>::@class::C2::@method::something
+      staticType: C Function()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticInvokeType: C Function()
+    staticType: C
+  correspondingParameter: <testLibrary>::@function::f::@formalParameter::callback
+  element: <testLibrary>::@class::C::@method::call
+  staticType: void Function()
+''');
+  }
+
+  test_receiverMethod_parenthesizedExpression_neverAlias() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef N = Never;
+
+N get never => throw 0;
+
+void f() {
+  (never).foo();
+//^^^^^^^
+// [diag.receiverOfTypeNever] The receiver is of type 'Never', and will never complete with a value.
+//           ^^^
+// [diag.deadCode] Dead code.
+}
+''');
+
+    var node = result.findNode.singleReceiverMethodInvocation;
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: ParenthesizedExpression
+    leftParenthesis: (
+    expression2: SimpleIdentifier
+      token: never
+      element: <testLibrary>::@getter::never
+      staticType: Never
+        alias: <testLibrary>::@typeAlias::N
+    rightParenthesis: )
+    staticType: Never
+      alias: <testLibrary>::@typeAlias::N
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: <null>
+  staticType: Never
+V1: MethodInvocation
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: SimpleIdentifier
+      token: never
+      element: <testLibrary>::@getter::never
+      staticType: Never
+        alias: <testLibrary>::@typeAlias::N
+    rightParenthesis: )
+    staticType: Never
+      alias: <testLibrary>::@typeAlias::N
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: dynamic
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: dynamic
+  staticType: Never
+''');
+  }
+
+  test_receiverMethod_parenthesizedExpression_nullAware_null() async {
+    var result = await resolveTestCode(r'''
+void f(Null a) {
+  (a)?.foo();
+}
+''');
+
+    var node = result.findNode.singleReceiverMethodInvocation;
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: ParenthesizedExpression
+    leftParenthesis: (
+    expression2: SimpleIdentifier
+      token: a
+      element: <testLibrary>::@function::f::@formalParameter::a
+      staticType: Null
+    rightParenthesis: )
+    staticType: Null
+  operator: ?.
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: <null>
+  staticType: InvalidType
+V1: MethodInvocation
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: SimpleIdentifier
+      token: a
+      element: <testLibrary>::@function::f::@formalParameter::a
+      staticType: Null
+    rightParenthesis: )
+    staticType: Null
+  operator: ?.
+  methodName: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_receiverMethod_topLevelInitializer_secondResolution() async {
+    var result = await resolveTestCode(r'''
+class C {
+  T id<T>(T value) => value;
+}
+
+var x = C().id(0);
+''');
+
+    var node = result.findNode.singleReceiverMethodInvocation;
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: ConstructorInvocation
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: C
+        element: <testLibrary>::@class::C
+        type: C
+      element: <testLibrary>::@class::C::@constructor::new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: C
+  operator: .
+  name: id
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: <testLibrary>::@class::C::@method::id::@formalParameter::value
+          substitution: {T: int}
+        staticType: int
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@class::C::@method::id
+    invokeType: int Function(int)
+    type: int
+  staticType: int
+  typeArgumentTypes
+    int
+V1: MethodInvocation
+  target: InstanceCreationExpression
+    constructorName: ConstructorName
+      type: NamedType
+        name: C
+        element: <testLibrary>::@class::C
+        type: C
+      element: <testLibrary>::@class::C::@constructor::new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: C
+  operator: .
+  methodName: SimpleIdentifier
+    token: id
+    element: <testLibrary>::@class::C::@method::id
+    staticType: T Function<T>(T)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: <testLibrary>::@class::C::@method::id::@formalParameter::value
+          substitution: {T: int}
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: int Function(int)
+  staticType: int
+  typeArgumentTypes
+    int
+''');
   }
 
   test_remainder_int_context_cascaded() async {
@@ -9661,10 +9994,10 @@ f(int Function() a, int b) {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('remainder');
+    var node = result.findNode.receiverMethodInvocation('remainder');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: CallInvocation
+ReceiverMethodInvocation
+  receiver: CallInvocation
     receiver: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::f::@formalParameter::a
@@ -9676,7 +10009,24 @@ MethodInvocation
       invokeType: int Function()
       type: int
     staticType: int
-  target(v1): FunctionExpressionInvocation
+  operator: .
+  name: remainder
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      SimpleIdentifier
+        token: b
+        correspondingParameter: dart:core::@class::num::@method::remainder::@formalParameter::other
+        element: <testLibrary>::@function::f::@formalParameter::b
+        staticType: int
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: dart:core::@class::num::@method::remainder
+    invokeType: num Function(num)
+    type: int
+  staticType: int
+V1: MethodInvocation
+  target: FunctionExpressionInvocation
     function: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::f::@formalParameter::a
@@ -9694,7 +10044,7 @@ MethodInvocation
     staticType: num Function(num)
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       SimpleIdentifier
         token: b
         correspondingParameter: dart:core::@class::num::@method::remainder::@formalParameter::other

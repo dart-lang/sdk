@@ -179,7 +179,7 @@ void main() {
 // [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
 }
 ''');
-    var node = result.findNode.singleDotShorthandInvocation;
+    var node = result.findNodeV1.singleDotShorthandInvocation;
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A::@method::foo
@@ -198,7 +198,7 @@ void main() {
 // [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
 }
 ''');
-    var node = result.findNode.singleDotShorthandPropertyAccess;
+    var node = result.findNodeV1.singleDotShorthandPropertyAccess;
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A::@getter::foo
@@ -589,7 +589,7 @@ void f() {
   A().call(1);
 }
 ''');
-    var node = result.findNode.methodInvocation('call(1)').methodName;
+    var node = result.findNodeV1.methodInvocation('call(1)').methodName;
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A::@method::call
@@ -632,7 +632,7 @@ void main() {
  new A().foo();
 }
 ''');
-    var node = result.findNode.methodInvocation('foo();');
+    var node = result.findNodeV1.methodInvocation('foo();');
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A::@method::foo
@@ -1151,7 +1151,7 @@ void main() {
 ''');
   }
 
-  test_locate_DotShorthandInvocation() async {
+  test_locate_DotShorthandMethodInvocation() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   static A foo() => A();
@@ -1163,14 +1163,14 @@ void main() {
 // [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
 }
 ''');
-    var node = result.findNode.singleDotShorthandInvocation;
+    var node = result.findNode.singleDotShorthandMethodInvocation;
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A::@method::foo
 ''');
   }
 
-  test_locate_DotShorthandPropertyAccess() async {
+  test_locate_DotShorthandNameExpression() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
   static A foo = A();
@@ -1182,7 +1182,7 @@ void main() {
 // [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
 }
 ''');
-    var node = result.findNode.singleDotShorthandPropertyAccess;
+    var node = result.findNode.singleDotShorthandNameExpression;
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A::@getter::foo
@@ -1480,7 +1480,7 @@ void f() {
   A().call(1);
 }
 ''');
-    var node = result.findNode.methodInvocation('call(1)').methodName;
+    var node = result.findNode.singleReceiverMethodInvocation;
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A::@method::call
@@ -1523,17 +1523,13 @@ void main() {
  new A().foo();
 }
 ''');
-    var node = result.findNode.methodInvocation('foo();');
+    var node = result.findNode.singleReceiverMethodInvocation;
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A::@method::foo
 ''');
   }
 
-  @FailingTest(
-    reason: 'To land https://dart-review.googlesource.com/c/sdk/+/537160 as is',
-  )
-  // TODO(scheglov): fix it!
   test_locate_MethodInvocation_topLevel() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 foo(x) {}
@@ -1546,6 +1542,21 @@ void main() {
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@function::foo
+''');
+  }
+
+  test_locate_MethodInvocation_topLevel_importPrefix() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+import 'dart:math' as math;
+
+void f() {
+  math.max(0, 1);
+}
+''');
+    var node = result.findNode.singleImportPrefixedFunctionInvocation;
+    var element = ElementLocatorV2.locate(node);
+    _assertElement(element, r'''
+dart:math::@function::max
 ''');
   }
 

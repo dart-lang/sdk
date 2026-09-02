@@ -1127,17 +1127,17 @@ library
         #F4 hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:49) (firstTokenOffset:49) (offset:49)
           element: <testLibrary>::@topLevelVariable::a
           initializer: expression_0
-            DotShorthandInvocation
+            DotShorthandMethodInvocation
               period: . @53
-              memberName: SimpleIdentifier
-                token: method @54
-                element: <testLibrary>::@class::A::@method::method
-                staticType: A Function()
+              name: method @54
               argumentList: ArgumentList
                 leftParenthesis: ( @60
                 rightParenthesis: ) @61
               isDotShorthand: true
-              staticInvokeType: A Function()
+              resolution: ExecutableInvocationResolution
+                element: <testLibrary>::@class::A::@method::method
+                invokeType: A Function()
+                type: A
               staticType: A
           inducedGetter: #F5
       getters
@@ -1222,13 +1222,14 @@ library
         #F5 hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:60) (firstTokenOffset:60) (offset:60)
           element: <testLibrary>::@topLevelVariable::a
           initializer: expression_1
-            DotShorthandPropertyAccess
+            DotShorthandNameExpression
               period: . @64
-              propertyName: SimpleIdentifier
-                token: a @65
-                element: <testLibrary>::@class::A::@getter::a
-                staticType: A
+              name: a @65
               isDotShorthand: true
+              resolution: GetterInvocationResolution
+                element: <testLibrary>::@class::A::@getter::a
+                invokeType: A Function()
+                type: A
               staticType: A
           inducedGetter: #F6
       getters
@@ -2598,14 +2599,11 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::a
           initializer: expression_0
-            MethodInvocation
-              target2: SimpleStringLiteral
+            ReceiverMethodInvocation
+              receiver: SimpleStringLiteral
                 literal: 'abc' @10
               operator: . @15
-              methodName: SimpleIdentifier
-                token: codeUnitAt @16
-                element: dart:core::@class::String::@method::codeUnitAt
-                staticType: int Function(int)
+              name: codeUnitAt @16
               argumentList: ArgumentList
                 leftParenthesis: ( @26
                 arguments2
@@ -2613,7 +2611,10 @@ library
                     literal: 0 @27
                     staticType: int
                 rightParenthesis: ) @28
-              staticInvokeType: int Function(int)
+              resolution: ExecutableInvocationResolution
+                element: dart:core::@class::String::@method::codeUnitAt
+                invokeType: int Function(int)
+                type: int
               staticType: int
           inducedGetter: #F2
       getters

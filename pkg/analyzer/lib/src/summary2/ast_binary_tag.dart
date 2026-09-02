@@ -116,6 +116,9 @@ enum AstNodeTag {
   CascadeMethodInvocation,
   UnqualifiedFunctionInvocation,
   ImportPrefixedFunctionInvocation,
+  ReceiverMethodInvocation,
+  DotShorthandMethodInvocation,
+  DotShorthandNameExpression,
 }
 
 enum DirectiveUriKind {

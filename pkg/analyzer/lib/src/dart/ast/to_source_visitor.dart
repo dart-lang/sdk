@@ -486,6 +486,20 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
+  void visitDotShorthandMethodInvocation(DotShorthandMethodInvocation node) {
+    _visitToken(node.period);
+    _visitToken(node.name);
+    _visitNode(node.typeArguments);
+    _visitNode(node.argumentList);
+  }
+
+  @override
+  void visitDotShorthandNameExpression(DotShorthandNameExpression node) {
+    _visitToken(node.period);
+    _visitToken(node.name);
+  }
+
+  @override
   void visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
     _visitToken(node.period);
     _visitNode(node.propertyName);
@@ -1371,6 +1385,15 @@ class ToSourceVisitor implements AstVisitor2<void> {
     _visitToken(node.leftBracket);
     _visitNode(node.index);
     _visitToken(node.rightBracket);
+  }
+
+  @override
+  void visitReceiverMethodInvocation(ReceiverMethodInvocation node) {
+    _visitNode(node.receiver);
+    _visitToken(node.operator);
+    _visitToken(node.name);
+    _visitNode(node.typeArguments);
+    _visitNode(node.argumentList);
   }
 
   @override

@@ -549,6 +549,12 @@ abstract class AstVisitor2<R> {
 
   R? visitDotShorthandInvocation(DotShorthandInvocation node);
 
+  @experimental
+  R? visitDotShorthandMethodInvocation(DotShorthandMethodInvocation node);
+
+  @experimental
+  R? visitDotShorthandNameExpression(DotShorthandNameExpression node);
+
   R? visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node);
 
   R? visitDottedName(DottedName node);
@@ -787,6 +793,9 @@ abstract class AstVisitor2<R> {
 
   @experimental
   R? visitReceiverIndexExpression(ReceiverIndexExpression node);
+
+  @experimental
+  R? visitReceiverMethodInvocation(ReceiverMethodInvocation node);
 
   @experimental
   R? visitReceiverPropertyAssignmentTarget(

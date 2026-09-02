@@ -13,7 +13,6 @@ class ClassFragment extends DeclarationFragmentImpl implements Fragment {
   SourceClassBuilder? _builder;
 
   late final List<MetadataBuilder>? metadata;
-  late final Modifiers modifiers;
   late final TypeBuilder? supertype;
   late final List<TypeBuilder>? mixins;
   late final List<TypeBuilder>? interfaces;

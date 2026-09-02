@@ -3,7 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:front_end/src/codes/diagnostic.dart' as diag;
-import 'package:kernel/ast.dart';
+import 'package:kernel/ast.dart' as ast;
+import 'package:kernel/ast.dart' hide ExtensionTypeDeclaration;
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/reference_from_index.dart';
@@ -21,10 +22,10 @@ import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
-import '../builder/metadata_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../builder/record_type_builder.dart';
 import '../builder/type_builder.dart';
+import '../fragment/extension_type/declaration.dart';
 import '../fragment/fragment.dart';
 import '../kernel/body_builder_context.dart';
 import '../kernel/hierarchy/hierarchy_builder.dart';
@@ -61,7 +62,7 @@ class SourceExtensionTypeDeclarationBuilder
 
   final List<ConstructorReferenceBuilder> constructorReferences;
 
-  late final ExtensionTypeDeclaration _extensionTypeDeclaration;
+  late final ast.ExtensionTypeDeclaration _extensionTypeDeclaration;
 
   final DeclarationNameSpaceBuilder _nameSpaceBuilder;
 
@@ -75,9 +76,11 @@ class SourceExtensionTypeDeclarationBuilder
   @override
   List<TypeBuilder>? interfaceBuilders;
 
-  final ExtensionTypeFragment _introductory;
+  final ExtensionTypeDeclaration _introductory;
 
   PrimaryConstructorFieldFragment? _representationFieldFragment;
+
+  final List<ExtensionTypeDeclaration> _augmentations;
 
   final IndexedContainer? indexedContainer;
 
@@ -91,29 +94,25 @@ class SourceExtensionTypeDeclarationBuilder
     required int startOffset,
     required int nameOffset,
     required int endOffset,
-    required ExtensionTypeFragment fragment,
+    required this._modifiers,
+    required this.typeParameters,
+    required this.interfaceBuilders,
+    required this._nameSpaceBuilder,
+    required this._introductory,
+    required this._augmentations,
     required this.indexedContainer,
-    required PrimaryConstructorFieldFragment? representationFieldFragment,
+    required this._representationFieldFragment,
   }) : parent = enclosingLibraryBuilder,
-       fileOffset = nameOffset,
-       _modifiers = fragment.modifiers,
-       typeParameters = fragment.typeParameters?.builders,
-       interfaceBuilders = fragment.interfaces,
-       _introductory = fragment,
-       _nameSpaceBuilder = fragment.toDeclarationNameSpaceBuilder(),
-       _representationFieldFragment = representationFieldFragment {
-    _introductory.builder = this;
-    _introductory.bodyScope.declarationBuilder = this;
-
+       fileOffset = nameOffset {
     _representationFieldFragment?.type.registerInferredTypeListener(this);
 
     // TODO(johnniwinther): Move this to the [build] once augmentations are
     // handled through fragments.
-    _extensionTypeDeclaration = new ExtensionTypeDeclaration(
+    _extensionTypeDeclaration = new ast.ExtensionTypeDeclaration(
       name: name,
       fileUri: fileUri,
       typeParameters: SourceNominalParameterBuilder.typeParametersFromBuilders(
-        fragment.typeParameters?.builders,
+        typeParameters,
       ),
       reference: indexedContainer?.reference,
     )..fileOffset = nameOffset;
@@ -145,12 +144,9 @@ class SourceExtensionTypeDeclarationBuilder
 
   @override
   int resolveConstructors(SourceLibraryBuilder library) {
-    int count = 0;
-    if (constructorReferences.isNotEmpty) {
-      for (ConstructorReferenceBuilder ref in constructorReferences) {
-        ref.resolveIn(_introductory.bodyScope, library);
-      }
-      count += constructorReferences.length;
+    int count = _introductory.resolveConstructors(library);
+    for (ExtensionTypeDeclaration augmentation in _augmentations) {
+      count += augmentation.resolveConstructors(library);
     }
     if (count > 0) {
       Iterator<SourceFactoryBuilder> iterator = filteredConstructorsIterator(
@@ -206,7 +202,7 @@ class SourceExtensionTypeDeclarationBuilder
       _representationFieldFragment?.type;
 
   @override
-  ExtensionTypeDeclaration get extensionTypeDeclaration =>
+  ast.ExtensionTypeDeclaration get extensionTypeDeclaration =>
       _extensionTypeDeclaration;
 
   @override
@@ -216,15 +212,16 @@ class SourceExtensionTypeDeclarationBuilder
     return fileOffset.compareTo(other.fileOffset);
   }
 
-  /// Builds the [ExtensionTypeDeclaration] for this extension type declaration
-  /// builder and inserts the members into the [Library] of [libraryBuilder].
+  /// Builds the [ast.ExtensionTypeDeclaration] for this extension type
+  /// declaration builder and inserts the members into the [Library] of
+  /// [libraryBuilder].
   ///
   /// [addMembersToLibrary] is `true` if the extension type members should be
   /// added to the library. This is `false` if the extension type declaration is
   /// in conflict with another library member. In this case, the extension type
   /// member should not be added to the library to avoid name clashes with other
   /// members in the library.
-  ExtensionTypeDeclaration build(
+  ast.ExtensionTypeDeclaration build(
     LibraryBuilder coreLibrary, {
     required bool addMembersToLibrary,
   }) {
@@ -857,25 +854,19 @@ class SourceExtensionTypeDeclarationBuilder
     List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
   ) {
     BodyBuilderContext bodyBuilderContext = createBodyBuilderContext();
-    MetadataBuilder.buildAnnotations(
-      annotatable: extensionTypeDeclaration,
-      annotatableFileUri: extensionTypeDeclaration.fileUri,
-      metadata: _introductory.metadata,
-      annotationsFileUri: _introductory.fileUri,
-      bodyBuilderContext: bodyBuilderContext,
+    _introductory.buildOutlineExpressions(
       libraryBuilder: libraryBuilder,
-      extensionScope: _introductory.enclosingCompilationUnit.extensionScope,
-      scope: _introductory.enclosingScope,
+      extensionTypeDeclaration: extensionTypeDeclaration,
+      classHierarchy: classHierarchy,
+      bodyBuilderContext: bodyBuilderContext,
     );
-
-    if (_introductory.typeParameters != null) {
-      for (int i = 0; i < _introductory.typeParameters!.length; i++) {
-        _introductory.typeParameters![i].builder.buildOutlineExpressions(
-          libraryBuilder,
-          bodyBuilderContext,
-          classHierarchy,
-        );
-      }
+    for (ExtensionTypeDeclaration augmentation in _augmentations) {
+      augmentation.buildOutlineExpressions(
+        libraryBuilder: libraryBuilder,
+        extensionTypeDeclaration: extensionTypeDeclaration,
+        classHierarchy: classHierarchy,
+        bodyBuilderContext: bodyBuilderContext,
+      );
     }
 
     Iterator<SourceMemberBuilder> iterator = filteredMembersIterator(

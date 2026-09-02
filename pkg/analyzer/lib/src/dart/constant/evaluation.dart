@@ -920,6 +920,32 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
   }
 
   @override
+  Constant visitDotShorthandMethodInvocation(
+    DotShorthandMethodInvocation node,
+  ) => _visitNamedFunctionInvocation(node);
+
+  @override
+  Constant visitDotShorthandNameExpression(
+    covariant DotShorthandNameExpressionImpl node,
+  ) {
+    var element = switch (node.resolution) {
+      NamedReadResolutionWithElementImpl(:var element) => element,
+      InvalidNamedReadResolutionImpl(
+        recovery: NamedReadResolutionWithElementImpl(:var element),
+      ) =>
+        element,
+      InvalidNamedReadResolutionImpl(:var candidates) => candidates.firstOrNull,
+      _ => null,
+    };
+    return _getConstantValue(
+      errorNode: node,
+      expression: node,
+      identifier: node.dotShorthandPropertyAccess.propertyName,
+      element: element,
+    );
+  }
+
+  @override
   Constant visitDotShorthandPropertyAccess(
     covariant DotShorthandPropertyAccessImpl node,
   ) {
@@ -1308,6 +1334,10 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
       element: node.propertyName.element,
     );
   }
+
+  @override
+  Constant visitReceiverMethodInvocation(ReceiverMethodInvocation node) =>
+      _visitNamedFunctionInvocation(node);
 
   @override
   Constant visitReceiverPropertyExtraction(

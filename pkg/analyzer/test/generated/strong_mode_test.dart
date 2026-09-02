@@ -810,7 +810,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     );
     DartType literal(int i) {
       var stmt = statements[i] as ExpressionStatement;
-      var invk = stmt.expression2 as MethodInvocation;
+      var invk = stmt.expression2 as NamedFunctionInvocation;
       var exp = invk.argumentList.arguments2[0] as FunctionExpression;
       return exp.declaredFragment!.element.type;
     }
@@ -851,7 +851,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     );
     DartType literal(int i) {
       var stmt = statements[i] as ExpressionStatement;
-      var invk = stmt.expression2 as MethodInvocation;
+      var invk = stmt.expression2 as NamedFunctionInvocation;
       var exp = invk.argumentList.arguments2[0] as FunctionExpression;
       return exp.declaredFragment!.element.type;
     }
@@ -4985,10 +4985,10 @@ class C<T> {
 }
 ''');
 
-    var node1 = result.findNode.methodInvocation('f<int>(3);');
+    var node1 = result.findNode.receiverMethodInvocation('f<int>(3);');
     assertResolvedNodeText(node1, r'''
-MethodInvocation
-  target2: ConstructorInvocation
+ReceiverMethodInvocation
+  receiver: ConstructorInvocation
     keyword: new
     constructorReference: ConstructorReference2
       typeReference: ConstructorTypeReference
@@ -5010,7 +5010,37 @@ MethodInvocation
       leftParenthesis: (
       rightParenthesis: )
     staticType: C<S>
-  target(v1): InstanceCreationExpression
+  operator: .
+  name: f
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 3
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: x@null
+          substitution: {S: int}
+        staticType: int
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: SubstitutedMethodElementImpl
+      baseElement: <testLibrary>::@class::C::@method::f
+      substitution: {T: S, S: S}
+    invokeType: S Function(int)
+    type: S
+  staticType: S
+  typeArgumentTypes
+    int
+V1: MethodInvocation
+  target: InstanceCreationExpression
     keyword: new
     constructorName: ConstructorName
       type: NamedType
@@ -5049,7 +5079,7 @@ MethodInvocation
     rightBracket: >
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 3
         correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -5079,10 +5109,10 @@ class C<T> {
 }
 ''');
 
-    var node1 = result.findNode.methodInvocation('f<int>(3);');
+    var node1 = result.findNode.receiverMethodInvocation('f<int>(3);');
     assertResolvedNodeText(node1, r'''
-MethodInvocation
-  target2: ConstructorInvocation
+ReceiverMethodInvocation
+  receiver: ConstructorInvocation
     keyword: new
     constructorReference: ConstructorReference2
       typeReference: ConstructorTypeReference
@@ -5104,7 +5134,37 @@ MethodInvocation
       leftParenthesis: (
       rightParenthesis: )
     staticType: C<S>
-  target(v1): InstanceCreationExpression
+  operator: .
+  name: f
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 3
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: x@null
+          substitution: {S: int}
+        staticType: int
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: SubstitutedMethodElementImpl
+      baseElement: <testLibrary>::@class::C::@method::f
+      substitution: {T: S, S: S}
+    invokeType: S Function(int)
+    type: S
+  staticType: S
+  typeArgumentTypes
+    int
+V1: MethodInvocation
+  target: InstanceCreationExpression
     keyword: new
     constructorName: ConstructorName
       type: NamedType
@@ -5143,7 +5203,7 @@ MethodInvocation
     rightBracket: >
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 3
         correspondingParameter: SubstitutedFormalParameterElementImpl

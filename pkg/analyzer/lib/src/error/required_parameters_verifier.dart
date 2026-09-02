@@ -92,6 +92,11 @@ class RequiredParametersVerifier extends SimpleAstVisitor2<void> {
   }
 
   @override
+  void visitDotShorthandMethodInvocation(DotShorthandMethodInvocation node) {
+    verifyNamedFunctionInvocation(node);
+  }
+
+  @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
     _check(
       parameters: node.constructorElement?.formalParameters,
@@ -126,6 +131,11 @@ class RequiredParametersVerifier extends SimpleAstVisitor2<void> {
       arguments: node.argumentList.arguments2,
       errorEntity: node.methodName,
     );
+  }
+
+  @override
+  void visitReceiverMethodInvocation(ReceiverMethodInvocation node) {
+    verifyNamedFunctionInvocation(node);
   }
 
   @override

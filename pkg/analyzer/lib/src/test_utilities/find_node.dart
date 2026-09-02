@@ -80,6 +80,11 @@ class FindNode2 extends _FindNodeBase {
 
   DirectAssignment get singleDirectAssignment => _single();
 
+  DotShorthandMethodInvocation get singleDotShorthandMethodInvocation =>
+      _single();
+
+  DotShorthandNameExpression get singleDotShorthandNameExpression => _single();
+
   IfNull get singleIfNull => _single();
 
   IfNullAssignment get singleIfNullAssignment => _single();
@@ -94,6 +99,8 @@ class FindNode2 extends _FindNodeBase {
   LogicalOr get singleLogicalOr => _single();
 
   NullAssertionExpression get singleNullAssertionExpression => _single();
+
+  ReceiverMethodInvocation get singleReceiverMethodInvocation => _single();
 
   TopLevelGetterDeclaration get singleTopLevelGetterDeclaration => _single();
 
@@ -133,6 +140,14 @@ class FindNode2 extends _FindNodeBase {
 
   DirectAssignment directAssignment(String search) {
     return _node(search, (node) => node is DirectAssignment);
+  }
+
+  DotShorthandMethodInvocation dotShorthandMethodInvocation(String search) {
+    return _node(search, (node) => node is DotShorthandMethodInvocation);
+  }
+
+  DotShorthandNameExpression dotShorthandNameExpression(String search) {
+    return _node(search, (node) => node is DotShorthandNameExpression);
   }
 
   IfNull ifNull(String search) {
@@ -179,6 +194,10 @@ class FindNode2 extends _FindNodeBase {
 
   PrefixIncrement prefixIncrement(String search) {
     return _node(search, (node) => node is PrefixIncrement);
+  }
+
+  ReceiverMethodInvocation receiverMethodInvocation(String search) {
+    return _node(search, (node) => node is ReceiverMethodInvocation);
   }
 
   TopLevelGetterDeclaration topLevelGetterDeclaration(String search) {

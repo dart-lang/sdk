@@ -283,14 +283,14 @@ class PropertyElementResolver with ScopeHelpers {
     );
   }
 
-  PropertyElementResolverResult resolveDotShorthand(
-    DotShorthandPropertyAccessImpl node, {
+  NamedReadResolutionImpl resolveDotShorthand(
+    DotShorthandNameExpressionImpl node, {
     required TypeImpl contextType,
   }) {
     if (_resolver.isDotShorthandContextEmpty) {
       assert(
         false,
-        'DotShorthandPropertyAccessImpl is not enclosed in an expression for '
+        'DotShorthandNameExpressionImpl is not enclosed in an expression for '
         'which DotShorthandMixin.isDotShorthand is true',
       );
     }
@@ -305,7 +305,7 @@ class PropertyElementResolver with ScopeHelpers {
 
     if (context is InterfaceTypeImpl &&
         context.element.isAccessibleIn(_definingLibrary)) {
-      var identifier = node.propertyName;
+      var identifier = SimpleIdentifierImpl(token: node.name);
       // Find constructor tearoffs.
       var element = context.lookUpConstructor(
         identifier.name,
@@ -344,22 +344,15 @@ class PropertyElementResolver with ScopeHelpers {
             elementToInfer.element.baseElement,
             inferredType as InterfaceType,
           );
-          node.propertyName.element = constructorElement.baseElement;
-          return PropertyElementResolverResult(
-            readElementRequested2: node.propertyName.element,
-            getType: inferred.returnType,
-          );
+          return ExecutableTearOffResolutionImpl(element: constructorElement);
         }
 
-        return PropertyElementResolverResult(
-          readElementRequested2: element,
-          getType: element.returnType,
-        );
+        return ExecutableTearOffResolutionImpl(element: element);
       }
 
       // Didn't find any constructor tearoffs, look for static getters.
       var contextElement = context.element;
-      return _resolveTargetInterfaceElement(
+      var result = _resolveTargetInterfaceElement(
         typeReference: contextElement,
         isCascaded: false,
         propertyName: identifier,
@@ -367,10 +360,15 @@ class PropertyElementResolver with ScopeHelpers {
         hasWrite: false,
         resolvingDotShorthand: true,
       );
+      return _dotShorthandReadResolution(result);
     }
 
     diagnosticReporter.report(diag.dotShorthandMissingContext.at(node));
-    return PropertyElementResolverResult();
+    return InvalidNamedReadResolutionImpl(
+      candidates: const [],
+      recovery: null,
+      type: InvalidTypeImpl.instance,
+    );
   }
 
   NamedWriteResolutionImpl resolveForEachPartsWithIdentifier(
@@ -1550,6 +1548,38 @@ class PropertyElementResolver with ScopeHelpers {
       return RecordFieldReadResolutionImpl(type: type);
     }
     return null;
+  }
+
+  NamedReadResolutionImpl _dotShorthandReadResolution(
+    PropertyElementResolverResult result,
+  ) {
+    TypeImpl? readType(Element? element) {
+      return switch (element) {
+        InternalGetterElement() =>
+          result.getType as TypeImpl? ?? element.returnType,
+        InternalExecutableElement() => element.type,
+        _ => _namedReadType(element),
+      };
+    }
+
+    var requestedElement = result.readElementRequested2;
+    var requestedResolution = _createNamedReadResolutionWithElement(
+      requestedElement,
+      type: readType(requestedElement),
+    );
+    if (requestedResolution != null) {
+      return requestedResolution;
+    }
+
+    var recoveryElement = result.readElementRecovery2;
+    return InvalidNamedReadResolutionImpl(
+      candidates: [?requestedElement, ?recoveryElement],
+      recovery: _createNamedReadResolutionWithElement(
+        recoveryElement,
+        type: readType(recoveryElement),
+      ),
+      type: InvalidTypeImpl.instance,
+    );
   }
 
   NamedReadResolutionImpl? _functionCallTearOffResolution({

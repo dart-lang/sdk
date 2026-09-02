@@ -1007,6 +1007,18 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   @override
+  void visitDotShorthandMethodInvocation(DotShorthandMethodInvocation node) {
+    _verifyNamedFunctionInvocation(node);
+    super.visitDotShorthandMethodInvocation(node);
+  }
+
+  @override
+  void visitDotShorthandNameExpression(DotShorthandNameExpression node) {
+    _constArgumentsVerifier.visitDotShorthandNameExpression(node);
+    super.visitDotShorthandNameExpression(node);
+  }
+
+  @override
   void visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
     _checkUseVerifier.checkDotShorthandPropertyAccess(node);
     super.visitDotShorthandPropertyAccess(node);
@@ -2142,6 +2154,19 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     }
 
     super.visitReceiverIndexExpression(node);
+  }
+
+  @override
+  void visitReceiverMethodInvocation(ReceiverMethodInvocation node) {
+    if (node.operator.type == TokenType.QUESTION_PERIOD) {
+      _checkForUnnecessaryNullAware(
+        node.receiver,
+        node.operator,
+        kind: _NullAwareKind.access,
+      );
+    }
+    _verifyNamedFunctionInvocation(node);
+    super.visitReceiverMethodInvocation(node);
   }
 
   @override
@@ -7936,6 +7961,11 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
         if (type == TokenType.QUESTION_PERIOD) {
           var realTarget = target.realTarget2;
           return previousShortCircuitingOperator(realTarget) ?? operator;
+        }
+      } else if (target is ReceiverMethodInvocation) {
+        var operator = target.operator;
+        if (operator.type == TokenType.QUESTION_PERIOD) {
+          return previousShortCircuitingOperator(target.receiver) ?? operator;
         }
       }
       return null;

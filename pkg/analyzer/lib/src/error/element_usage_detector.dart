@@ -638,6 +638,8 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
       errorEntity = node.name;
     } else if (node is ConstructorTypeReference) {
       errorEntity = node.name;
+    } else if (node is DotShorthandNameExpression) {
+      errorEntity = node.name;
     } else if (node is NamedFunctionInvocation) {
       errorEntity = node.name;
     } else if (node is NamedArgument) {
@@ -798,6 +800,34 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
       checkUsage(interfaceElement, node);
     }
     _invocationArguments(node.memberName.element, node.argumentList);
+  }
+
+  void dotShorthandMethodInvocation(DotShorthandMethodInvocation node) {
+    var element = switch (node.resolution) {
+      ExecutableInvocationResolution(:var element) => element,
+      InvalidInvocationResolution(
+        recovery: ExecutableInvocationResolution(:var element),
+      ) =>
+        element,
+      _ => null,
+    };
+    if (element?.enclosingElement case var interfaceElement?) {
+      // A dot-shorthand method invocation contains an implicit reference to
+      // the interface on which the static method was declared.
+      checkUsage(interfaceElement, node);
+    }
+    namedFunctionInvocation(node);
+  }
+
+  void dotShorthandNameExpression(DotShorthandNameExpression node) {
+    if (node.resolution case NamedReadResolutionWithElement(:var element)) {
+      if (element.enclosingElement case var interfaceElement?) {
+        // A dot-shorthand name contains an implicit reference to the
+        // declaration whose static namespace supplies the name.
+        checkUsage(interfaceElement, node);
+      }
+      checkUsage(element, node);
+    }
   }
 
   void dotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
