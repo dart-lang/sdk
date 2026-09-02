@@ -74,7 +74,26 @@ int Function(int) test() {
     var node = result.findNode.functionReference('f;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: PropertyAccess
+  function2: ReceiverPropertyExtraction
+    receiver: ConstructorInvocation
+      keyword: new
+      constructorReference: ConstructorReference2
+        typeReference: ConstructorTypeReference
+          name: C
+          element: <testLibrary>::@class::C
+          type: C
+        element: <testLibrary>::@class::C::@constructor::new
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      staticType: C
+    operator: .
+    propertyName: f
+    resolution: ExecutableTearOffResolution
+      element: <testLibrary>::@class::C::@method::f
+      type: T Function<T>(T)
+    staticType: T Function<T>(T)
+  function(v1): PropertyAccess
     target: InstanceCreationExpression
       keyword: new
       constructorName: ConstructorName
@@ -110,7 +129,7 @@ int Function(int) test() {
     var node = result.findNode.functionReference('f;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: SimpleIdentifier
+  function2: SimpleIdentifier
     token: f
     element: f@31
     staticType: T Function<T>(T)
@@ -134,7 +153,7 @@ int Function(int) test() {
     var node = result.findNode.functionReference('f;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: PrefixedIdentifier
+  function2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: C
       element: <testLibrary>::@class::C
@@ -168,8 +187,8 @@ class D extends C {
     var node = result.findNode.functionReference('f;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: PropertyAccess
-    target: SuperExpression
+  function2: PropertyAccess
+    target2: SuperExpression
       superKeyword: super
       staticType: D
     operator: .
@@ -196,7 +215,7 @@ int Function(int) test() {
     var node = result.findNode.functionReference('f;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function: SimpleIdentifier
+  function2: SimpleIdentifier
     token: f
     element: <testLibrary>::@function::f
     staticType: T Function<T>(T)
@@ -215,9 +234,28 @@ void test() {
 }
 ''');
 
-    var node = result.findNode.singleMethodInvocation;
+    var node = result.findNode.singleUnqualifiedFunctionInvocation;
     assertResolvedNodeText(node, r'''
-MethodInvocation
+UnqualifiedFunctionInvocation
+  name: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: <testLibrary>::@function::f::@formalParameter::x
+          substitution: {T: int}
+        staticType: int
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@function::f
+    invokeType: int Function(int)
+    type: int
+  staticType: int
+  typeArgumentTypes
+    int
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: f
     element: <testLibrary>::@function::f

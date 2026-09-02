@@ -15,6 +15,7 @@ import 'package:front_end/src/api_prototype/lowering_predicates.dart';
 import 'package:kernel/ast.dart' as ir;
 
 import '../helpers/args_helper.dart';
+
 import 'package:compiler/src/util/memory_compiler.dart';
 
 const String pathPrefix = 'sdk/tests/web/native/';

@@ -1031,6 +1031,14 @@ const MessageCode extensionAugmentationHasOnClause = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode extensionAugmentationWithoutName = const MessageCode(
+  "ExtensionAugmentationWithoutName",
+  sharedCode: SharedCode.extensionAugmentationWithoutName,
+  problemMessage: """An extension augmentation must have a name.""",
+  correctionMessage: """Try adding the name of the extension to augment.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode extensionDeclaresAbstractMember = const MessageCode(
   "ExtensionDeclaresAbstractMember",
   sharedCode: SharedCode.extensionDeclaresAbstractMember,
@@ -1577,6 +1585,15 @@ const MessageCode initializedVariableInForEach = const MessageCode(
       """The loop variable in a for-each loop can't be initialized.""",
   correctionMessage:
       """Try removing the initializer, or using a different kind of loop.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode initializingDeclaringParameter = const MessageCode(
+  "InitializingDeclaringParameter",
+  sharedCode: SharedCode.initializingDeclaringParameter,
+  problemMessage: """Declaring parameters can't be initializing.""",
+  correctionMessage:
+      """Try removing the `this.` prefix or making the parameter non-declaring.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2141,6 +2158,14 @@ const MessageCode mixinApplicationClassAugmentation = const MessageCode(
   "MixinApplicationClassAugmentation",
   sharedCode: SharedCode.mixinApplicationClassAugmentation,
   problemMessage: """A mixin application class can't be augmented.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode mixinAugmentationHasOnClause = const MessageCode(
+  "MixinAugmentationHasOnClause",
+  sharedCode: SharedCode.mixinAugmentationHasOnClause,
+  problemMessage: """Mixin augmentations can't have 'on' clauses.""",
+  correctionMessage: """Try removing the 'on' clause.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2732,6 +2757,15 @@ const MessageCode staticOperator = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode superInitializingDeclaringParameter = const MessageCode(
+  "SuperInitializingDeclaringParameter",
+  sharedCode: SharedCode.superInitializingDeclaringParameter,
+  problemMessage: """Declaring parameters can't be super parameters.""",
+  correctionMessage:
+      """Try removing the `super.` prefix or making the parameter non-declaring.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode superNullAware = const MessageCode(
   "SuperNullAware",
   sharedCode: SharedCode.invalidOperatorQuestionmarkPeriodForSuper,
@@ -3156,6 +3190,7 @@ enum SharedCode {
   experimentNotEnabledOffByDefault,
   exportDirectiveAfterPartDirective,
   extensionAugmentationHasOnClause,
+  extensionAugmentationWithoutName,
   extensionDeclaresAbstractMember,
   extensionDeclaresConstructor,
   extensionPrimaryConstructor,
@@ -3197,6 +3232,7 @@ enum SharedCode {
   implementsBeforeWith,
   importDirectiveAfterPartDirective,
   initializedVariableInForEach,
+  initializingDeclaringParameter,
   interfaceEnum,
   interfaceMixin,
   interfaceMixinClass,
@@ -3240,6 +3276,7 @@ enum SharedCode {
   missingPrimaryConstructorParameters,
   missingStatement,
   mixinApplicationClassAugmentation,
+  mixinAugmentationHasOnClause,
   mixinDeclaresConstructor,
   mixinPrimaryConstructor,
   mixinWithClause,
@@ -3276,6 +3313,7 @@ enum SharedCode {
   stackOverflow,
   staticConstructor,
   staticOperator,
+  superInitializingDeclaringParameter,
   switchHasCaseAfterDefaultCase,
   switchHasMultipleDefaultCases,
   topLevelOperator,

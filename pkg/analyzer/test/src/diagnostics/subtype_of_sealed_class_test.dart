@@ -62,24 +62,26 @@ class Bar implements Foo {}
   }
 
   test_mixinApplicationOfSealedClass() async {
-    writeTestPackageConfig(
-      PackageConfigFileBuilder()
-        ..add(name: 'foo', rootFolder: getFolder('$workspaceRootPath/foo')),
-      meta: true,
-    );
+    var fooRoot = getFolder('$workspaceRootPath/foo');
+    var packageConfig = PackageConfigFileBuilder()
+      ..add(name: 'foo', rootFolder: fooRoot)
+      ..add(name: 'meta', rootFolder: addMeta().parent);
+    writeTestPackageConfig(packageConfig);
+    writePackageConfig2(fooRoot.path, config: packageConfig);
 
-    newFile('$workspaceRootPath/foo/lib/foo.dart', r'''
-// @dart = 2.19
+    await resolveFilesWithDiagnostics({
+      getFile('$workspaceRootPath/foo/lib/foo.dart'): r'''
+// %before-language-feature: class-modifiers
 import 'package:meta/meta.dart';
 @sealed class Foo {}
-''');
-
-    await resolveTestCodeWithDiagnostics(r'''
+''',
+      testFile: r'''
 import 'package:foo/foo.dart';
 class Bar1 {}
 class Bar2 = Bar1 with Foo;
 // [diag.subtypeOfSealedClass][column 1][length 27] The class 'Foo' shouldn't be extended, mixed in, or implemented because it's sealed.
-''');
+''',
+    });
   }
 
   test_mixinApplicationOfSealedMixin() async {
@@ -140,9 +142,9 @@ mixin Bar implements Foo {}
 ''');
   }
 
-  test_withinLibrary_language219() async {
+  test_withinLibrary_beforeClassModifiers() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
+// %before-language-feature: class-modifiers
 import 'package:meta/meta.dart';
 @sealed class Foo {}
 
@@ -153,35 +155,31 @@ mixin Bar5 implements Foo {}
 ''');
   }
 
-  test_withinPackageLibDirectory_language219() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-// @dart = 2.19
+  test_withinPackageLibDirectory_beforeClassModifiers() async {
+    await resolveFilesWithDiagnostics({
+      getFile('$testPackageLibPath/a.dart'): r'''
+// %before-language-feature: class-modifiers
 import 'package:meta/meta.dart';
 @sealed class Foo {}
-''');
-
-    await resolveFileWithDiagnostics(
-      getFile('$testPackageLibPath/src/b.dart'),
-      r'''
+''',
+      getFile('$testPackageLibPath/src/b.dart'): r'''
 import '../a.dart';
 class Bar1 extends Foo {}
 class Bar2 implements Foo {}
 class Bar4 = Bar1 with Foo;
 mixin Bar5 implements Foo {}
 ''',
-    );
+    });
   }
 
-  test_withinPackageTestDirectory_language219() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-// @dart = 2.19
+  test_withinPackageTestDirectory_beforeClassModifiers() async {
+    await resolveFilesWithDiagnostics({
+      getFile('$testPackageLibPath/a.dart'): r'''
+// %before-language-feature: class-modifiers
 import 'package:meta/meta.dart';
 @sealed class Foo {}
-''');
-
-    await resolveFileWithDiagnostics(
-      getFile('$testPackageRootPath/test/test.dart'),
-      r'''
+''',
+      getFile('$testPackageRootPath/test/test.dart'): r'''
 import 'package:test/a.dart';
 
 class Bar1 extends Foo {}
@@ -189,22 +187,22 @@ class Bar2 implements Foo {}
 class Bar4 = Bar1 with Foo;
 mixin Bar5 implements Foo {}
 ''',
-    );
+    });
   }
 
-  test_withinPart_language219() async {
+  test_withinPart_beforeClassModifiers() async {
     var lib = getFile('$testPackageLibPath/a.dart');
     var part = getFile('$testPackageLibPath/b.dart');
 
     await resolveFilesWithDiagnostics({
       lib: r'''
-// @dart = 2.19
+// %before-language-feature: class-modifiers
 import 'package:meta/meta.dart';
 part 'b.dart';
 @sealed class Foo {}
 ''',
       part: r'''
-// @dart = 2.19
+// %before-language-feature: class-modifiers
 part of 'a.dart';
 class Bar1 extends Foo {}
 class Bar2 implements Foo {}

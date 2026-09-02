@@ -16,9 +16,13 @@ import '../test_helpers.dart';
 void main() {
   final component = readVmPlatformKernelFile();
   final coreTypes = CoreTypes(component);
+  final coreLibraries = coreTypes.index;
   final classHierarchy = ClassHierarchy(component, coreTypes);
   final typeEnvironment = TypeEnvironment(coreTypes, classHierarchy);
-  final globalContext = GlobalContext(typeEnvironment: typeEnvironment);
+  final globalContext = GlobalContext(
+    typeEnvironment: typeEnvironment,
+    coreLibraries: coreLibraries,
+  );
   late FunctionRegistry functionRegistry;
 
   setUp(() {
@@ -195,7 +199,7 @@ void main() {
     final member = coreTypes.futureValueFactory;
     final enclosingFunction = functionRegistry.getFunction(member);
     final localFunction = ast.FunctionDeclaration(
-      ast.LocalVariable(name: 'foo', type: const ast.DynamicType()),
+      ast.LocalFunctionVariable(name: 'foo', type: const ast.DynamicType()),
       ast.FunctionNode(
         ast.Block([]),
         returnType: coreTypes.boolNonNullableRawType,

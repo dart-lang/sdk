@@ -26,7 +26,7 @@ static method main() → void {
   core::int v = c.call{(core::int) → core::int}(1){(core::int) → core::int};
   ({call: (core::int) → core::int}) c2 = #C2;
   core::int v2 = c2.call{(core::int) → core::int}(1){(core::int) → core::int};
-  ({call: <T extends core::Object? = dynamic>(T%) → T%}) c3 = ({call: <T extends core::Object? = dynamic>(T% x) → T% => x});
+  ({call: <T extends core::Object? = dynamic>(T%) → T%}) c3 = ({call: <T extends core::Object? = dynamic>(T% x##1) → T% => x##1});
   core::int v3a = c3.call{<T extends core::Object? = dynamic>(T%) → T%}<core::int>(1){(core::int) → core::int};
   core::String v3b = c3.call{<T extends core::Object? = dynamic>(T%) → T%}<core::String>("a"){(core::String) → core::String};
 }

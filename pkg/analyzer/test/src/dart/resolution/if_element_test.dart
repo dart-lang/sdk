@@ -28,7 +28,7 @@ void f(Object x) {
 IfElement
   ifKeyword: if
   leftParenthesis: (
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object
@@ -36,16 +36,16 @@ IfElement
     caseKeyword: case
     guardedPattern: GuardedPattern
       pattern: ConstantPattern
-        expression: IntegerLiteral
+        expression2: IntegerLiteral
           literal: 0
           staticType: int
         matchedValueType: Object
   rightParenthesis: )
-  thenElement: IntegerLiteral
+  thenElement2: IntegerLiteral
     literal: 1
     staticType: int
   elseKeyword: else
-  elseElement: IntegerLiteral
+  elseElement2: IntegerLiteral
     literal: 2
     staticType: int
 ''');
@@ -62,7 +62,7 @@ final y = [ if (x case var a) a ];
 IfElement
   ifKeyword: if
   leftParenthesis: (
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: x
     element: <testLibrary>::@getter::x
     staticType: int
@@ -77,7 +77,7 @@ IfElement
             type: int
         matchedValueType: int
   rightParenthesis: )
-  thenElement: SimpleIdentifier
+  thenElement2: SimpleIdentifier
     token: a
     element: a@40
     staticType: int
@@ -113,7 +113,7 @@ void f(Object x) {
 IfElement
   ifKeyword: if
   leftParenthesis: (
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object
@@ -135,7 +135,7 @@ IfElement
             matchedValueType: Object?
           RelationalPattern
             operator: ==
-            operand: SimpleIdentifier
+            operand2: SimpleIdentifier
               token: a
               element: a@56
               staticType: int
@@ -146,7 +146,20 @@ IfElement
         requiredType: List<Object?>
       whenClause: WhenClause
         whenKeyword: when
-        expression: BinaryExpression
+        expression2: BinaryOperatorInvocation
+          leftOperand: SimpleIdentifier
+            token: a
+            element: a@56
+            staticType: int
+          operator: >
+          rightOperand: IntegerLiteral
+            literal: 0
+            correspondingParameter: dart:core::@class::num::@method::>::@formalParameter::other
+            staticType: int
+          binaryOperator: greaterThan
+          element: dart:core::@class::num::@method::>
+          staticType: bool
+        expression(v1): BinaryExpression
           leftOperand: SimpleIdentifier
             token: a
             element: a@56
@@ -160,12 +173,12 @@ IfElement
           staticInvokeType: bool Function(num)
           staticType: bool
   rightParenthesis: )
-  thenElement: SimpleIdentifier
+  thenElement2: SimpleIdentifier
     token: a
     element: a@56
     staticType: int
   elseKeyword: else
-  elseElement: SimpleIdentifier
+  elseElement2: SimpleIdentifier
     token: a
     element: <testLibrary>::@getter::a
     staticType: int
@@ -191,7 +204,7 @@ void f(Object x) {
 IfElement
   ifKeyword: if
   leftParenthesis: (
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object
@@ -210,7 +223,20 @@ IfElement
         matchedValueType: Object
       whenClause: WhenClause
         whenKeyword: when
-        expression: BinaryExpression
+        expression2: BinaryOperatorInvocation
+          leftOperand: SimpleIdentifier
+            token: a
+            element: a@42
+            staticType: int
+          operator: >
+          rightOperand: IntegerLiteral
+            literal: 0
+            correspondingParameter: dart:core::@class::num::@method::>::@formalParameter::other
+            staticType: int
+          binaryOperator: greaterThan
+          element: dart:core::@class::num::@method::>
+          staticType: bool
+        expression(v1): BinaryExpression
           leftOperand: SimpleIdentifier
             token: a
             element: a@42
@@ -224,12 +250,12 @@ IfElement
           staticInvokeType: bool Function(num)
           staticType: bool
   rightParenthesis: )
-  thenElement: SimpleIdentifier
+  thenElement2: SimpleIdentifier
     token: a
     element: a@42
     staticType: int
   elseKeyword: else
-  elseElement: SimpleIdentifier
+  elseElement2: SimpleIdentifier
     token: a
     element: <null>
     staticType: InvalidType
@@ -253,15 +279,15 @@ class A {
 IfElement
   ifKeyword: if
   leftParenthesis: (
-  expression: SuperExpression
+  expression2: SuperExpression
     superKeyword: super
     staticType: A
   rightParenthesis: )
-  thenElement: IntegerLiteral
+  thenElement2: IntegerLiteral
     literal: 0
     staticType: int
   elseKeyword: else
-  elseElement: IntegerLiteral
+  elseElement2: IntegerLiteral
     literal: 1
     staticType: int
 ''');
@@ -283,7 +309,7 @@ class A {
 IfElement
   ifKeyword: if
   leftParenthesis: (
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object
@@ -292,7 +318,18 @@ IfElement
     guardedPattern: GuardedPattern
       pattern: ConstantPattern
         constKeyword: const
-        expression: InstanceCreationExpression
+        expression2: ConstructorInvocation
+          constructorReference: ConstructorReference2
+            typeReference: ConstructorTypeReference
+              name: A
+              element: <testLibrary>::@class::A
+              type: A
+            element: <testLibrary>::@class::A::@constructor::new
+          argumentList: ArgumentList
+            leftParenthesis: (
+            rightParenthesis: )
+          staticType: A
+        expression(v1): InstanceCreationExpression
           constructorName: ConstructorName
             type: NamedType
               name: A
@@ -305,7 +342,7 @@ IfElement
           staticType: A
         matchedValueType: Object
   rightParenthesis: )
-  thenElement: IntegerLiteral
+  thenElement2: IntegerLiteral
     literal: 0
     staticType: int
 ''');
@@ -323,7 +360,19 @@ void f(bool Function() a) {
 IfElement
   ifKeyword: if
   leftParenthesis: (
-  expression: FunctionExpressionInvocation
+  expression2: CallInvocation
+    receiver: SimpleIdentifier
+      token: a
+      element: <testLibrary>::@function::f::@formalParameter::a
+      staticType: bool Function()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    resolution: FunctionTypeInvocationResolution
+      invokeType: bool Function()
+      type: bool
+    staticType: bool
+  expression(v1): FunctionExpressionInvocation
     function: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::f::@formalParameter::a
@@ -335,7 +384,7 @@ IfElement
     staticInvokeType: bool Function()
     staticType: bool
   rightParenthesis: )
-  thenElement: IntegerLiteral
+  thenElement2: IntegerLiteral
     literal: 0
     staticType: int
 ''');
@@ -353,7 +402,19 @@ void f(int Function() a) {
 IfElement
   ifKeyword: if
   leftParenthesis: (
-  expression: FunctionExpressionInvocation
+  expression2: CallInvocation
+    receiver: SimpleIdentifier
+      token: a
+      element: <testLibrary>::@function::f::@formalParameter::a
+      staticType: int Function()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    resolution: FunctionTypeInvocationResolution
+      invokeType: int Function()
+      type: int
+    staticType: int
+  expression(v1): FunctionExpressionInvocation
     function: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::f::@formalParameter::a
@@ -368,12 +429,12 @@ IfElement
     caseKeyword: case
     guardedPattern: GuardedPattern
       pattern: ConstantPattern
-        expression: IntegerLiteral
+        expression2: IntegerLiteral
           literal: 0
           staticType: int
         matchedValueType: int
   rightParenthesis: )
-  thenElement: IntegerLiteral
+  thenElement2: IntegerLiteral
     literal: 1
     staticType: int
 ''');
@@ -391,7 +452,7 @@ void f(Object x, bool Function() a) {
 IfElement
   ifKeyword: if
   leftParenthesis: (
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object
@@ -399,13 +460,25 @@ IfElement
     caseKeyword: case
     guardedPattern: GuardedPattern
       pattern: ConstantPattern
-        expression: IntegerLiteral
+        expression2: IntegerLiteral
           literal: 0
           staticType: int
         matchedValueType: Object
       whenClause: WhenClause
         whenKeyword: when
-        expression: FunctionExpressionInvocation
+        expression2: CallInvocation
+          receiver: SimpleIdentifier
+            token: a
+            element: <testLibrary>::@function::f::@formalParameter::a
+            staticType: bool Function()
+          argumentList: ArgumentList
+            leftParenthesis: (
+            rightParenthesis: )
+          resolution: FunctionTypeInvocationResolution
+            invokeType: bool Function()
+            type: bool
+          staticType: bool
+        expression(v1): FunctionExpressionInvocation
           function: SimpleIdentifier
             token: a
             element: <testLibrary>::@function::f::@formalParameter::a
@@ -417,7 +490,7 @@ IfElement
           staticInvokeType: bool Function()
           staticType: bool
   rightParenthesis: )
-  thenElement: IntegerLiteral
+  thenElement2: IntegerLiteral
     literal: 1
     staticType: int
 ''');
@@ -435,7 +508,7 @@ void f(Object x) {
 IfElement
   ifKeyword: if
   leftParenthesis: (
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object
@@ -443,21 +516,21 @@ IfElement
     caseKeyword: case
     guardedPattern: GuardedPattern
       pattern: ConstantPattern
-        expression: IntegerLiteral
+        expression2: IntegerLiteral
           literal: 0
           staticType: int
         matchedValueType: Object
       whenClause: WhenClause
         whenKeyword: when
-        expression: BooleanLiteral
+        expression2: BooleanLiteral
           literal: true
           staticType: bool
   rightParenthesis: )
-  thenElement: IntegerLiteral
+  thenElement2: IntegerLiteral
     literal: 1
     staticType: int
   elseKeyword: else
-  elseElement: IntegerLiteral
+  elseElement2: IntegerLiteral
     literal: 2
     staticType: int
 ''');

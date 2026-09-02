@@ -3,10 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
-import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
-import 'package:analyzer_testing/experiments/experiments.dart';
 import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -23,10 +21,6 @@ void main() {
 
 @reflectiveTest
 class HoverTest extends AbstractLspAnalysisServerTest {
-  @override
-  AnalysisServerOptions get serverOptions =>
-      AnalysisServerOptions()..enabledExperiments = experimentsForTests;
-
   /// Checks whether the correct types of documentation are returned in a Hover
   /// based on [preference].
   Future<void> assertDocumentation(
@@ -43,7 +37,7 @@ class HoverTest extends AbstractLspAnalysisServerTest {
 
     await provideConfig(initialize, {'documentation': ?preference});
     await openFile(mainFileUri, code.code);
-    await initialAnalysis;
+    await workspaceAnalysisComplete();
     var hover = await getHover(mainFileUri, code.position.position);
     var hoverContents = _getStringContents(hover!);
 
@@ -67,7 +61,7 @@ class HoverTest extends AbstractLspAnalysisServerTest {
 
     await initialize();
     await openFile(mainFileUri, code.code);
-    await initialAnalysis;
+    await workspaceAnalysisComplete();
     var hover = await getHover(mainFileUri, code.position.position);
     expect(hover, isNotNull);
     expect(hover!.range, equals(code.range.range));
@@ -84,14 +78,18 @@ class HoverTest extends AbstractLspAnalysisServerTest {
   }) async {
     var code = TestCode.parse(content);
 
-    var initialAnalysis = waitForAnalysis ? waitForAnalysisComplete() : null;
     await initialize();
     if (withOpenFile) {
       await openFile(mainFileUri, code.code);
     } else {
       newFile(mainFilePath, code.code);
+      if (waitForAnalysis) {
+        await pumpEventQueue(times: 5000); // Allow server to see watch event.
+      }
     }
-    await initialAnalysis;
+    if (waitForAnalysis) {
+      await workspaceAnalysisComplete();
+    }
     var hover = await getHover(mainFileUri, code.position.position);
     expect(hover, isNull);
   }
@@ -102,7 +100,7 @@ class HoverTest extends AbstractLspAnalysisServerTest {
 
     await initialize();
     await openFile(mainFileUri, code.code);
-    await initialAnalysis;
+    await workspaceAnalysisComplete();
     var hover = await getHover(mainFileUri, code.position.position);
     expect(hover, isNotNull);
     expect(hover!.range, equals(code.range.range));
@@ -123,14 +121,18 @@ class HoverTest extends AbstractLspAnalysisServerTest {
 
     var code = TestCode.parse(content);
 
-    var initialAnalysis = waitForAnalysis ? waitForAnalysisComplete() : null;
     await initialize();
     if (withOpenFile) {
       await openFile(fileUri, code.code);
     } else {
       newFile(mainFilePath, code.code);
+      if (waitForAnalysis) {
+        await pumpEventQueue(times: 5000); // Allow server to see watch event.
+      }
     }
-    await initialAnalysis;
+    if (waitForAnalysis) {
+      await workspaceAnalysisComplete();
+    }
     var hover = await getHover(fileUri, code.position.position);
     expect(hover, isNotNull);
     expect(hover!.range, equals(code.range.range));
@@ -234,7 +236,7 @@ environment:
 ''');
     var config = PackageConfigFileBuilder();
     config.add(name: 'a', rootFolder: getFolder('$projectFolderPath/pkgs/a'));
-    writeTestPackageConfig(config: config, flutter: true);
+    writeTestPackageConfig2(config: config);
 
     var fileUri = toUri(
       join(projectFolderPath, 'pkgs', 'a', 'test', 'one_test.dart'),
@@ -515,7 +517,9 @@ void f() {
 ```dart
 String iii
 ```
-Type: `String`''';
+Type: `String`
+
+Declared in `f` in *package:test/main.dart*.''';
     await assertStringContents(content, equals(expected));
   }
 
@@ -531,7 +535,9 @@ void f() {
 ```dart
 String iii
 ```
-Type: `String`''';
+Type: `String`
+
+Declared in `f` in *package:test/main.dart*.''';
     await assertStringContents(content, equals(expected));
   }
 
@@ -653,11 +659,23 @@ f() {
   int [!^_!] = 0;
 }
 ''';
+    await assertNullHover(content);
+  }
+
+  Future<void> test_localVariable_wildcard_beforeFeature() async {
+    var content = '''
+// @dart=3.6
+f() {
+  int [!^_!] = 0;
+}
+''';
     var expected = '''
 ```dart
 int _
 ```
-Type: `int`''';
+Type: `int`
+
+Declared in `f` in *package:test/main.dart*.''';
     await assertStringContents(content, equals(expected));
   }
 
@@ -839,11 +857,21 @@ Declared in *package:test/main.dart*.
     var content = '''
 f(int [!^_!]) { }
 ''';
+    await assertNullHover(content);
+  }
+
+  Future<void> test_parameter_wildcard_beforeFeature() async {
+    var content = '''
+// @dart=3.6
+f(int [!^_!]) { }
+''';
     var expected = '''
 ```dart
 int _
 ```
-Type: `int`''';
+Type: `int`
+
+Declared in `f` in *package:test/main.dart*.''';
     await assertStringContents(content, equals(expected));
   }
 
@@ -984,17 +1012,15 @@ void f(aaa) {
     print([!aa^a!]);
   }
 }
-    ''';
+''';
 
-    var expectedHoverContent =
-        '''
+    var expectedHoverContent = '''
 ```dart
 dynamic aaa
 ```
 Type: `String`
-    '''
-            .trim();
 
+Declared in `f` in *package:test/main.dart*.''';
     await assertStringContents(content, equals(expectedHoverContent));
   }
 
@@ -1350,6 +1376,8 @@ int a
 ```
 Type: `int`
 
+Declared in `new` in `C` in *package:test/main.dart*.
+
 ---
 The field a.''';
     await assertStringContents(content, equals(expected));
@@ -1370,7 +1398,41 @@ class B extends A {
 ```dart
 int a
 ```
-Type: `int`''';
+Type: `int`
+
+Declared in `new` in `B` in *package:test/main.dart*.''';
+    await assertStringContents(content, equals(expected));
+  }
+
+  Future<void> test_this() async {
+    var content = '''
+class A {
+  void a() {
+    [!thi^s!].a();
+  }
+}
+''';
+    var expected = '''
+Type: `A`''';
+    await assertStringContents(content, equals(expected));
+  }
+
+  Future<void> test_this_promoted() async {
+    var content = '''
+class A {
+  void a() {
+    if (this is B) {
+      [!thi^s!].b();
+    }
+  }
+}
+
+class B extends A {
+  void b() {}
+}
+''';
+    var expected = '''
+Type: `B`''';
     await assertStringContents(content, equals(expected));
   }
 
@@ -1414,7 +1476,9 @@ void foo() {
 ```dart
 Exception error
 ```
-Type: `Exception`''';
+Type: `Exception`
+
+Declared in `foo` in *package:test/main.dart*.''';
     await assertStringContents(content, equals(expected));
   }
 
@@ -1428,15 +1492,106 @@ void foo() {
 ```dart
 StackTrace stack
 ```
-Type: `StackTrace`''';
+Type: `StackTrace`
+
+Declared in `foo` in *package:test/main.dart*.''';
     await assertStringContents(content, equals(expected));
   }
 
-  Future<void> test_typeParameter() async {
+  Future<void> test_typeParameter_class() async {
     var content = '''
-class C<[!^T!]> {}
+class C<T> {
+  late [!^T!] f;
+}
 ''';
-    await assertNullHover(content);
+    var expected = '''
+```dart
+<T>
+```
+Declared in `C` in *package:test/main.dart*.''';
+    await assertStringContents(content, equals(expected));
+  }
+
+  Future<void> test_typeParameter_closureInFunction() async {
+    var content = '''
+void foo() {
+  <O extends int>() {
+    late [!^O!] o;
+  };
+}
+''';
+    var expected = '''
+```dart
+<O extends int>
+```
+Declared in `<unnamed>` in `foo` in *package:test/main.dart*.''';
+    await assertStringContents(content, equals(expected));
+  }
+
+  Future<void> test_typeParameter_function() async {
+    var content = '''
+void foo<T, O extends T>() {
+  foo<T, [!^O!]>();
+}
+''';
+    var expected = '''
+```dart
+<O extends T>
+```
+Declared in `foo` in *package:test/main.dart*.''';
+    await assertStringContents(content, equals(expected));
+  }
+
+  Future<void> test_typeParameter_functionInFunction() async {
+    var content = '''
+void foo() {
+  void f<O extends int>() {
+    late [!^O!] o;
+  }
+}
+''';
+    var expected = '''
+```dart
+<O extends int>
+```
+Declared in `f` in `foo` in *package:test/main.dart*.''';
+    await assertStringContents(content, equals(expected));
+  }
+
+  Future<void> test_typeParameter_functionTyped_parameter() async {
+    var content = '''
+void foo([!^T!] Function<T extends int>() f) {}
+''';
+    var expected = '''
+```dart
+<T extends int>
+```
+Declared in `f` in `foo` in *package:test/main.dart*.''';
+    await assertStringContents(content, equals(expected));
+  }
+
+  Future<void> test_typeParameter_functionTyped_return() async {
+    var content = '''
+[!^T!] Function<T extends int>(T p) f() => <T extends int>(T p) => p;
+''';
+    var expected = '''
+```dart
+<T extends int>
+```
+Declared in `f` in *package:test/main.dart*.''';
+    await assertStringContents(content, equals(expected));
+  }
+
+  Future<void> test_typeParameter_functionTyped_typedef() async {
+    var content = '''
+typedef F = [!^T!] Function<T extends int>();
+''';
+    var expected = '''
+```dart
+<T extends int>
+```
+Declared in `F` in *package:test/main.dart*.''';
+    await assertStringContents(content, equals(expected));
   }
 
   Future<void> test_typeParameter_wildcard() async {

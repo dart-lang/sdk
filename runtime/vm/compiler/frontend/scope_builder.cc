@@ -819,6 +819,7 @@ void ScopeBuilder::VisitExpression() {
       helper_.SkipName();      // read name.
       VisitArguments();        // read arguments.
       helper_.SkipDartType();  // read function_type.
+      helper_.SkipDartType();  // read result_type.
       // read interface_target_reference.
       helper_.SkipInterfaceMemberNameReference();
       return;

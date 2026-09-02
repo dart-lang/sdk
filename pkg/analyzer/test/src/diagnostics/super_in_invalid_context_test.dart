@@ -272,7 +272,7 @@ class B extends A {
     var node = result.findNode.methodInvocation('super.m()');
     assertResolvedNodeText(node, r'''
 MethodInvocation
-  target: SuperExpression
+  target2: SuperExpression
     superKeyword: super
     staticType: B
   operator: .
@@ -303,7 +303,7 @@ class B extends A {
     var node = result.findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
-  target: SuperExpression
+  target2: SuperExpression
     superKeyword: super
     staticType: B
   operator: .

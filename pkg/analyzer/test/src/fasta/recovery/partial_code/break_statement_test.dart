@@ -26,7 +26,7 @@ f() { break assert (true); }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -43,7 +43,7 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: BooleanLiteral
+                condition2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -61,7 +61,7 @@ f() { break {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -94,7 +94,7 @@ f() { break break; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -127,7 +127,7 @@ f() { break continue; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -158,7 +158,7 @@ f() { break do {} while (true); }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -179,7 +179,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition: BooleanLiteral
+                condition2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -197,7 +197,7 @@ f() { break }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -225,7 +225,7 @@ f() { break for (var x in y) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -247,7 +247,7 @@ CompilationUnit
                     keyword: var
                     name: x
                   inKeyword: in
-                  iterable: SimpleIdentifier
+                  iterable2: SimpleIdentifier
                     token: y
                 rightParenthesis: )
                 body: Block
@@ -267,7 +267,7 @@ f() { break if (true) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -284,7 +284,7 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression: BooleanLiteral
+                expression2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 thenStatement: Block
@@ -306,7 +306,7 @@ f() { break l: {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -323,7 +323,7 @@ CompilationUnit
                   name: l
                 semicolon: ; <synthetic>
               ExpressionStatement
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ; <synthetic>
               Block
@@ -342,7 +342,7 @@ f() { break int f() {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -383,7 +383,7 @@ f() { break void f() {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -424,7 +424,7 @@ f() { break var x; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -459,7 +459,7 @@ f() { break return; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -490,7 +490,7 @@ f() { break switch (x) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -507,7 +507,7 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: x
                 rightParenthesis: )
                 leftBracket: {
@@ -526,7 +526,7 @@ f() { break try {} finally {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -563,7 +563,7 @@ f() { break while (true) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -580,7 +580,7 @@ CompilationUnit
               WhileStatement
                 whileKeyword: while
                 leftParenthesis: (
-                condition: BooleanLiteral
+                condition2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 body: Block
@@ -599,7 +599,7 @@ f() { break a assert (true); }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -618,7 +618,7 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: BooleanLiteral
+                condition2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -635,7 +635,7 @@ f() { break a {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -669,7 +669,7 @@ f() { break a break; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -703,7 +703,7 @@ f() { break a continue; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -735,7 +735,7 @@ f() { break a do {} while (true); }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -758,7 +758,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition: BooleanLiteral
+                condition2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -775,7 +775,7 @@ f() { break a }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -804,7 +804,7 @@ f() { break a for (var x in y) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -828,7 +828,7 @@ CompilationUnit
                     keyword: var
                     name: x
                   inKeyword: in
-                  iterable: SimpleIdentifier
+                  iterable2: SimpleIdentifier
                     token: y
                 rightParenthesis: )
                 body: Block
@@ -847,7 +847,7 @@ f() { break a if (true) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -866,7 +866,7 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression: BooleanLiteral
+                expression2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 thenStatement: Block
@@ -885,7 +885,7 @@ f() { break a l: {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -922,7 +922,7 @@ f() { break a int f() {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -964,7 +964,7 @@ f() { break a void f() {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1006,7 +1006,7 @@ f() { break a var x; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1042,7 +1042,7 @@ f() { break a return; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1074,7 +1074,7 @@ f() { break a switch (x) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1093,7 +1093,7 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: x
                 rightParenthesis: )
                 leftBracket: {
@@ -1111,7 +1111,7 @@ f() { break a try {} finally {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1149,7 +1149,7 @@ f() { break a while (true) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1168,7 +1168,7 @@ CompilationUnit
               WhileStatement
                 whileKeyword: while
                 leftParenthesis: (
-                condition: BooleanLiteral
+                condition2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 body: Block

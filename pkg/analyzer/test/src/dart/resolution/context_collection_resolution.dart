@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/sdk/build_sdk_summary.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/analysis_options/analysis_options.dart';
@@ -21,6 +22,7 @@ import 'package:analyzer/src/workspace/basic.dart';
 import 'package:analyzer/src/workspace/blaze.dart';
 import 'package:analyzer/src/workspace/gn.dart';
 import 'package:analyzer/src/workspace/pub.dart';
+import 'package:analyzer_testing/configuration_files_mixin.dart';
 import 'package:analyzer_testing/experiments/experiments.dart';
 import 'package:analyzer_testing/mock_packages/mock_packages.dart';
 import 'package:analyzer_testing/package_config_file_builder.dart';
@@ -33,6 +35,7 @@ import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
 import '../../../util/diff.dart';
+import '../../../util/language_feature_directive_lowering.dart';
 import '../analysis/analyzer_state_printer.dart';
 import 'node_text_expectations.dart';
 import 'resolution.dart';
@@ -43,6 +46,36 @@ export 'package:analyzer_testing/src/analysis_rule/pub_package_resolution.dart'
 
 export 'resolution.dart'
     show ResolvedUnitResultExtension, TestResolvedUnitResult;
+
+String _beforeLanguageFeature(String featureName) {
+  var version = LanguageFeatureDirectiveLowering.languageVersionBefore(
+    featureName,
+  );
+  return '${version.major}.${version.minor}';
+}
+
+mixin BeforeConstructorTearoffsMixin on PubPackageResolutionTest {
+  @override
+  String? get testPackageLanguageVersion =>
+      _beforeLanguageFeature('constructor-tearoffs');
+}
+
+mixin BeforeEnhancedEnumsMixin on PubPackageResolutionTest {
+  @override
+  String? get testPackageLanguageVersion =>
+      _beforeLanguageFeature('enhanced-enums');
+}
+
+mixin BeforePatternsMixin on PubPackageResolutionTest {
+  @override
+  String? get testPackageLanguageVersion => _beforeLanguageFeature('patterns');
+}
+
+mixin BeforePrivateNamedParametersMixin on PubPackageResolutionTest {
+  @override
+  String? get testPackageLanguageVersion =>
+      _beforeLanguageFeature('private-named-parameters');
+}
 
 class BlazeWorkspaceResolutionTest extends ContextResolutionTest {
   @override
@@ -280,7 +313,7 @@ abstract class ContextResolutionTest
 }
 
 class PubPackageResolutionTest extends ContextResolutionTest
-    with MockPackagesMixin {
+    with MockPackagesMixin, ConfigurationFilesMixin {
   AnalysisOptionsImpl get analysisOptions {
     return contextFor(testFile).getAnalysisOptionsForFile(testFile)
         as AnalysisOptionsImpl;
@@ -289,7 +322,7 @@ class PubPackageResolutionTest extends ContextResolutionTest
   @override
   List<String> get collectionIncludedPaths => [workspaceRootPath];
 
-  List<String> get experiments => experimentsForTests;
+  List<Feature> get experimentalFeatures => experimentalFeaturesForTests;
 
   @override
   String get packagesRootPath => '/packages';
@@ -297,11 +330,12 @@ class PubPackageResolutionTest extends ContextResolutionTest
   @override
   File get testFile => getFile('$testPackageLibPath/test.dart');
 
-  /// The language version to use by default for `package:test`.
+  @override
   String? get testPackageLanguageVersion => null;
 
   String get testPackageLibPath => '$testPackageRootPath/lib';
 
+  @override
   String get testPackageRootPath => '$workspaceRootPath/test';
 
   String get workspaceRootPath => '/home';
@@ -312,9 +346,10 @@ class PubPackageResolutionTest extends ContextResolutionTest
   }) async {
     var rootFolder = getFolder('$workspaceRootPath/foo');
 
-    writePackageConfig(
+    writePackageConfig2(
       rootFolder.path,
-      PackageConfigFileBuilder()..add(name: 'foo', rootFolder: rootFolder),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'foo', rootFolder: rootFolder),
     );
 
     for (var entry in files.entries) {
@@ -343,17 +378,9 @@ class PubPackageResolutionTest extends ContextResolutionTest
   void setUp() {
     super.setUp();
     writeTestPackageAnalysisOptionsFile(
-      analysisOptionsContent(experiments: experiments),
+      analysisOptionsContent(experimentalFeatures: experimentalFeatures),
     );
     writeTestPackageConfig(PackageConfigFileBuilder());
-  }
-
-  void writePackageConfig(
-    String directoryPath,
-    PackageConfigFileBuilder config,
-  ) {
-    var content = config.toContent();
-    newPackageConfigJsonFile(directoryPath, content);
   }
 
   Future<File> writeSdkSummary() async {
@@ -428,7 +455,11 @@ class _VisibleOutsideTemplate {
       config.add(name: 'meta', rootFolder: getFolder(metaPath));
     }
 
-    writePackageConfig(testPackageRootPath, config);
+    writePackageConfig2(
+      testPackageRootPath,
+      packageName: 'test',
+      config: config,
+    );
   }
 
   void writeTestPackageConfigWithMeta() {
@@ -438,26 +469,6 @@ class _VisibleOutsideTemplate {
   void writeTestPackagePubspecYamlFile(String content) {
     newPubspecYamlFile(testPackageRootPath, content);
   }
-}
-
-mixin WithLanguage219Mixin on PubPackageResolutionTest {
-  @override
-  String? get testPackageLanguageVersion => '2.19';
-}
-
-mixin WithoutConstructorTearoffsMixin on PubPackageResolutionTest {
-  @override
-  String? get testPackageLanguageVersion => '2.14';
-}
-
-mixin WithoutEnhancedEnumsMixin on PubPackageResolutionTest {
-  @override
-  String? get testPackageLanguageVersion => '2.16';
-}
-
-mixin WithoutPrivateNamedParametersMixin on PubPackageResolutionTest {
-  @override
-  String? get testPackageLanguageVersion => '3.9';
 }
 
 mixin WithStrictCastsMixin on PubPackageResolutionTest {
@@ -471,7 +482,10 @@ mixin WithStrictCastsMixin on PubPackageResolutionTest {
     await disposeAnalysisContextCollection();
 
     writeTestPackageAnalysisOptionsFile(
-      analysisOptionsContent(experiments: experiments, strictCasts: true),
+      analysisOptionsContent(
+        experimentalFeatures: experimentalFeatures,
+        strictCasts: true,
+      ),
     );
 
     await resolveTestCodeWithDiagnostics(code);

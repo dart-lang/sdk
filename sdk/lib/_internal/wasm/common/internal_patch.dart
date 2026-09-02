@@ -7,10 +7,6 @@ import 'dart:_wasm';
 part "class_id.dart";
 part "symbol_patch.dart";
 
-// Compilation to Wasm is always fully null safe.
-@patch
-bool typeAcceptsNull<T>() => null is T;
-
 const bool has63BitSmis = false;
 
 class Lists {
@@ -82,14 +78,25 @@ int mix64(int n) {
   return n;
 }
 
-@pragma("wasm:intrinsic")
-external int floatToIntBits(double value);
-@pragma("wasm:intrinsic")
-external double intBitsToFloat(int value);
-@pragma("wasm:intrinsic")
-external int doubleToIntBits(double value);
-@pragma("wasm:intrinsic")
-external double intBitsToDouble(int value);
+@pragma("wasm:prefer-inline")
+int floatToIntBits(double value) {
+  return value.toWasmF32().asWasmI32.toIntUnsigned();
+}
+
+@pragma("wasm:prefer-inline")
+double intBitsToFloat(int value) {
+  return value.toWasmI32().asWasmF32.toDouble();
+}
+
+@pragma("wasm:prefer-inline")
+int doubleToIntBits(double value) {
+  return value.toWasmF64().asWasmI64.toInt();
+}
+
+@pragma("wasm:prefer-inline")
+double intBitsToDouble(int value) {
+  return value.toWasmI64().asWasmF64.toDouble();
+}
 
 /// Whether to check bounds in [IndexErrorUtils.checkIndex],
 /// which are  used in list and typed data implementations.

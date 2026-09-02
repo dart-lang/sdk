@@ -276,6 +276,7 @@ abstract class AbstractScanner implements Scanner {
    * Note that [extraOffset] can only be used if the covered character(s) are
    * known to be ASCII.
    */
+  @pragma('vm:prefer-inline')
   void appendSubstringToken(
     TokenType type,
     int start,
@@ -348,6 +349,7 @@ abstract class AbstractScanner implements Scanner {
    * An operator token represent operators like ':', '.', ';', '&&', '==', '--',
    * '=>', etc.
    */
+  @pragma('vm:prefer-inline')
   void appendPrecedenceToken(TokenType type) {
     appendToken(new Token(type, tokenStart, comments));
   }
@@ -556,6 +558,7 @@ abstract class AbstractScanner implements Scanner {
    * Appends a token that begins a new group, represented by [type].
    * Group begin tokens are '{', '(', '[', '<' and '${'.
    */
+  @pragma('vm:prefer-inline')
   void appendBeginGroup(TokenType type) {
     BeginToken token = new BeginToken(type, tokenStart, comments);
     appendToken(token);
@@ -875,6 +878,7 @@ abstract class AbstractScanner implements Scanner {
    * something which cannot possibly be part of a type parameter/argument
    * list, like the '=' in the above example.
    */
+  @pragma('vm:prefer-inline')
   void discardOpenLt() {
     while (!groupingStack.isEmpty && groupingStack.head.kind == LT_TOKEN) {
       groupingStack = groupingStack.tail!;
@@ -954,22 +958,7 @@ abstract class AbstractScanner implements Scanner {
   @override
   Token tokenize() {
     while (!atEndOfFile()) {
-      int next = advance();
-
-      // Scan the header looking for a language version
-      if (next != $EOF) {
-        Token oldTail = tail;
-        next = bigHeaderSwitch(next);
-        if (next != $EOF && tail.kind == SCRIPT_TOKEN) {
-          oldTail = tail;
-          next = bigHeaderSwitch(next);
-        }
-        while (next != $EOF && tail == oldTail) {
-          next = bigHeaderSwitch(next);
-        }
-        next = next;
-      }
-
+      int next = _scanHeaderLookingForLanguageVersion(advance());
       while (next != $EOF) {
         next = bigSwitch(next);
       }
@@ -980,6 +969,88 @@ abstract class AbstractScanner implements Scanner {
     // Always pretend that there's a line at the end of the file.
     lineStarts.add(stringOffset + 1);
 
+    return firstToken();
+  }
+
+  int _scanHeaderLookingForLanguageVersion(int next) {
+    // Scan the header looking for a language version
+    if (next != $EOF) {
+      Token oldTail = tail;
+      next = bigHeaderSwitch(next);
+      if (next != $EOF && tail.kind == SCRIPT_TOKEN) {
+        oldTail = tail;
+        next = bigHeaderSwitch(next);
+      }
+      while (next != $EOF && tail == oldTail) {
+        next = bigHeaderSwitch(next);
+      }
+    }
+    return next;
+  }
+
+  /// Scan directives and as little as possible after the directives.
+  Token tokenizeDirectives() {
+    int next = _scanHeaderLookingForLanguageVersion(advance());
+
+    // If the first token can't be the start of a directive we can stop now.
+    Token? theFirstToken = tokens.next;
+    if (theFirstToken != null) {
+      if (theFirstToken.kind == SCRIPT_TOKEN) {
+        // A script token is OK - but we scanned further, _that_ has to be the
+        // start of a directive or we can stop now.
+        if (!_isTokenPossibleStartOfDirective(theFirstToken.next)) {
+          return _tokenizeDirectivesEndHelper(
+            !(theFirstToken.next?.isEof ?? true),
+          );
+        }
+      } else {
+        if (!_isTokenPossibleStartOfDirective(theFirstToken)) {
+          return _tokenizeDirectivesEndHelper(true);
+        }
+      }
+    }
+
+    while (next != $EOF) {
+      Token oldTail = tail;
+      next = bigSwitch(next);
+      if (!identical(oldTail, tail)) {
+        if (oldTail.isA(TokenType.SEMICOLON)) {
+          if (!_isTokenPossibleStartOfDirective(oldTail.next)) {
+            return _tokenizeDirectivesEndHelper(true);
+          }
+        }
+      }
+    }
+
+    return _tokenizeDirectivesEndHelper(false);
+  }
+
+  bool _isTokenPossibleStartOfDirective(Token? token) {
+    String? stringValue = token?.stringValue;
+    if (identical("@", stringValue) ||
+        identical("part", stringValue) ||
+        identical("library", stringValue) ||
+        identical("import", stringValue) ||
+        identical("export", stringValue)) {
+      return true;
+    }
+    return false;
+  }
+
+  Token _tokenizeDirectivesEndHelper(bool removeLast) {
+    if (removeLast) {
+      tail = tail.previous!;
+      tail.next = null;
+    }
+
+    // Clear grouping stack to avoid UnmatchedTokens.
+    while (!groupingStack.isEmpty) {
+      groupingStack = groupingStack.tail!;
+    }
+    appendEofToken();
+
+    // We pretend there's a line here.
+    lineStarts.add(stringOffset + 1);
     return firstToken();
   }
 
@@ -1978,6 +2049,7 @@ abstract class AbstractScanner implements Scanner {
   /**
    * Append the given token to the [tail] of the current stream of tokens.
    */
+  @pragma('vm:prefer-inline')
   void appendToken(Token token) {
     tail.next = token;
     token.previous = tail;
@@ -2525,6 +2597,7 @@ class LineStarts extends Object with ListMixin<int> {
 
   // Specialize methods from [ListMixin].
   @override
+  @pragma('vm:prefer-inline')
   void add(int value) {
     if (arrayLength >= array.length) {
       grow(/* newLengthMinimum = */ 0);

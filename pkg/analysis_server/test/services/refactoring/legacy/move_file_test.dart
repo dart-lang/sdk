@@ -20,6 +20,27 @@ class MoveFileTest extends RefactoringTest {
   @override
   late MoveFileRefactoring refactoring;
 
+  /// Here we make `testFilePath` writable for each test case. Many test
+  /// cases are testing different test locations, and choose a different test
+  /// file path.
+  @override
+  late String testFilePath;
+
+  Future<void> analyzeTestPackageFiles() async {
+    var analysisContext = contextFor(testFile);
+    var files = analysisContext.contextRoot.analyzedFiles().toList();
+    for (var path in files) {
+      await analysisContext.applyPendingFileChanges();
+      await analysisContext.currentSession.getResolvedUnit(path);
+    }
+  }
+
+  @override
+  void setUp() {
+    testFilePath = convertPath('$testPackageLibPath/test.dart');
+    super.setUp();
+  }
+
   Future<void> test_file_containing_imports_exports_parts() async {
     var root = '/home/test/000/1111';
     testFilePath = convertPath('$root/test.dart');

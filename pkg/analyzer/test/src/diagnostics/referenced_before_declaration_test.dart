@@ -173,9 +173,9 @@ SimpleIdentifier
 ''');
   }
 
-  test_hideInSwitchCase_function_language219() async {
+  test_hideInSwitchCase_function_beforePatterns() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
+// %before-language-feature: patterns
 var v = 0;
 
 void f(int a) {
@@ -226,9 +226,9 @@ SimpleIdentifier
 ''');
   }
 
-  test_hideInSwitchCase_local_language219() async {
+  test_hideInSwitchCase_local_beforePatterns() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
+// %before-language-feature: patterns
 var v = 0;
 
 void f(int a) {
@@ -279,9 +279,9 @@ SimpleIdentifier
 ''');
   }
 
-  test_hideInSwitchDefault_function_language219() async {
+  test_hideInSwitchDefault_function_beforePatterns() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
+// %before-language-feature: patterns
 var v = 0;
 
 void f(int a) {
@@ -332,9 +332,9 @@ SimpleIdentifier
 ''');
   }
 
-  test_hideInSwitchDefault_local_language219() async {
+  test_hideInSwitchDefault_local_beforePatterns() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
+// %before-language-feature: patterns
 var v = 0;
 
 void f(int a) {
@@ -379,6 +379,33 @@ main() {
 // [context 1] The declaration of 'v' is here.
 //        ^
 // [diag.referencedBeforeDeclaration][context 1] Local variable 'v' can't be referenced before it is declared.
+}
+''');
+  }
+
+  test_inInitializer_incrementOrDecrement() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f() {
+  var a = ++a;
+//    ^
+// [context 1] The declaration of 'a' is here.
+//          ^
+// [diag.referencedBeforeDeclaration][context 1] Local variable 'a' can't be referenced before it is declared.
+  var b = --b;
+//    ^
+// [context 2] The declaration of 'b' is here.
+//          ^
+// [diag.referencedBeforeDeclaration][context 2] Local variable 'b' can't be referenced before it is declared.
+  var c = c++;
+//    ^
+// [context 3] The declaration of 'c' is here.
+//        ^
+// [diag.referencedBeforeDeclaration][context 3] Local variable 'c' can't be referenced before it is declared.
+  var d = d--;
+//    ^
+// [context 4] The declaration of 'd' is here.
+//        ^
+// [diag.referencedBeforeDeclaration][context 4] Local variable 'd' can't be referenced before it is declared.
 }
 ''');
   }

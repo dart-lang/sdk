@@ -3,26 +3,66 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 /// Visitor that collects super-invoked names in a mixin declaration.
-class MixinSuperInvokedNamesCollector extends RecursiveAstVisitor<void> {
+class MixinSuperInvokedNamesCollector extends RecursiveAstVisitor2<void> {
   final Set<String> _names;
 
   MixinSuperInvokedNamesCollector(this._names);
 
   @override
-  void visitBinaryExpression(BinaryExpression node) {
+  void visitBinaryOperatorInvocation(BinaryOperatorInvocation node) {
     if (node.leftOperand is SuperExpression) {
       _names.add(node.operator.lexeme);
     }
-    super.visitBinaryExpression(node);
+    super.visitBinaryOperatorInvocation(node);
+  }
+
+  @override
+  void visitCascadeIndexAssignmentTarget(CascadeIndexAssignmentTarget node) {
+    if (_cascadeTarget(node) is SuperExpression) {
+      if (node.hasRead) {
+        _names.add('[]');
+      }
+      _names.add('[]=');
+    }
+    super.visitCascadeIndexAssignmentTarget(node);
+  }
+
+  @override
+  void visitCascadeIndexExpression(CascadeIndexExpression node) {
+    if (_cascadeTarget(node) is SuperExpression) {
+      _names.add('[]');
+    }
+    super.visitCascadeIndexExpression(node);
+  }
+
+  @override
+  void visitCascadePropertyAssignmentTarget(
+    CascadePropertyAssignmentTarget node,
+  ) {
+    if (_cascadeTarget(node) is SuperExpression) {
+      if (node.parent2 is CompoundAssignment ||
+          node.parent2 is IfNullAssignment) {
+        _names.add(node.propertyName.lexeme);
+      }
+      _names.add('${node.propertyName.lexeme}=');
+    }
+    super.visitCascadePropertyAssignmentTarget(node);
+  }
+
+  @override
+  void visitCascadePropertyExtraction(CascadePropertyExtraction node) {
+    if (_cascadeTarget(node) is SuperExpression) {
+      _names.add(node.propertyName.lexeme);
+    }
+    super.visitCascadePropertyExtraction(node);
   }
 
   @override
   void visitIndexExpression(IndexExpression node) {
-    if (node.target is SuperExpression) {
+    if (node.target2 is SuperExpression) {
       if (node.inGetterContext()) {
         _names.add('[]');
       }
@@ -35,28 +75,25 @@ class MixinSuperInvokedNamesCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
-    if (node.target is SuperExpression) {
+    if (node.target2 is SuperExpression) {
       _names.add(node.methodName.name);
     }
     super.visitMethodInvocation(node);
   }
 
   @override
-  void visitPrefixExpression(PrefixExpression node) {
-    if (node.operand is SuperExpression) {
-      TokenType operatorType = node.operator.type;
-      if (operatorType == TokenType.MINUS) {
-        _names.add('unary-');
-      } else if (operatorType == TokenType.TILDE) {
-        _names.add('~');
-      }
-    }
-    super.visitPrefixExpression(node);
+  void visitPrefixDecrement(PrefixDecrement node) {
+    _visitPrefixIncrementOrDecrement(node, '-');
+  }
+
+  @override
+  void visitPrefixIncrement(PrefixIncrement node) {
+    _visitPrefixIncrementOrDecrement(node, '+');
   }
 
   @override
   void visitPropertyAccess(PropertyAccess node) {
-    if (node.target is SuperExpression) {
+    if (node.target2 is SuperExpression) {
       var name = node.propertyName.name;
       if (node.propertyName.inGetterContext()) {
         _names.add(name);
@@ -66,5 +103,59 @@ class MixinSuperInvokedNamesCollector extends RecursiveAstVisitor<void> {
       }
     }
     super.visitPropertyAccess(node);
+  }
+
+  @override
+  void visitReceiverIndexAssignmentTarget(ReceiverIndexAssignmentTarget node) {
+    if (node.receiver is SuperExpression) {
+      if (node.parent2 is CompoundAssignment ||
+          node.parent2 is IfNullAssignment) {
+        _names.add('[]');
+      }
+      _names.add('[]=');
+    }
+    super.visitReceiverIndexAssignmentTarget(node);
+  }
+
+  @override
+  void visitReceiverIndexExpression(ReceiverIndexExpression node) {
+    if (node.receiver is SuperExpression) {
+      _names.add('[]');
+    }
+    super.visitReceiverIndexExpression(node);
+  }
+
+  @override
+  void visitUnaryOperatorInvocation(UnaryOperatorInvocation node) {
+    if (node.operand is SuperExpression) {
+      _names.add(switch (node.unaryOperator) {
+        UnaryOperator.negate => 'unary-',
+        UnaryOperator.bitwiseComplement => '~',
+      });
+    }
+    super.visitUnaryOperatorInvocation(node);
+  }
+
+  Expression? _cascadeTarget(AstNode node) {
+    for (
+      AstNode? ancestor = node.parent2;
+      ancestor != null;
+      ancestor = ancestor.parent2
+    ) {
+      if (ancestor is CascadeExpression) return ancestor.target2;
+    }
+    return null;
+  }
+
+  void _visitPrefixIncrementOrDecrement(
+    IncrementOrDecrementExpression node,
+    String operatorName,
+  ) {
+    if (node.target case InvalidExpressionAssignmentTarget(
+      expression: SuperExpression(),
+    )) {
+      _names.add(operatorName);
+    }
+    node.visitChildren2(this);
   }
 }

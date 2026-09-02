@@ -1,0 +1,70 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static const field core::Map<core::int, core::String>? nullableIntMap1 = #C7;
+static const field core::Map<core::int, core::String>? nullableIntMap2 = #C8;
+static const field core::List<core::int> intList = #C12;
+static const field core::Map<core::int, core::String> intMap = #C19;
+static const field core::Map<core::num, core::String> numMap = #C26;
+static const field core::List<(core::int, core::int)> intIntList = #C33;
+static const field core::num? nullableNum1 = #C34;
+static const field core::num? nullableNum2 = #C8;
+static const field core::num? nullableNum3 = #C35;
+static const field core::String? nullableString1 = #C36;
+static const field core::String? nullableString2 = #C8;
+static method main() → dynamic {
+  const core::bool b1 = #C37;
+  const core::bool b2 = #C38;
+  #C47;
+}
+
+constants  {
+  #C1 = 0
+  #C2 = "0"
+  #C3 = 1
+  #C4 = "1"
+  #C5 = 2
+  #C6 = "2"
+  #C7 = <core::int, core::String>{#C1:#C2, #C3:#C4, #C5:#C6}
+  #C8 = null
+  #C9 = 3
+  #C10 = 4
+  #C11 = 5
+  #C12 = <core::int>[#C9, #C10, #C11]
+  #C13 = 6
+  #C14 = "6"
+  #C15 = 7
+  #C16 = "7"
+  #C17 = 8
+  #C18 = "8"
+  #C19 = <core::int, core::String>{#C13:#C14, #C15:#C16, #C17:#C18}
+  #C20 = 9
+  #C21 = "9"
+  #C22 = 10
+  #C23 = "10"
+  #C24 = 11
+  #C25 = "11"
+  #C26 = <core::num, core::String>{#C20:#C21, #C22:#C23, #C24:#C25}
+  #C27 = 12
+  #C28 = 13
+  #C29 = (#C27, #C28)
+  #C30 = 14
+  #C31 = 15
+  #C32 = (#C30, #C31)
+  #C33 = <(core::int, core::int)>[#C29, #C32]
+  #C34 = 16
+  #C35 = 17
+  #C36 = "18"
+  #C37 = true
+  #C38 = false
+  #C39 = 19
+  #C40 = "19"
+  #C41 = "20"
+  #C42 = 22
+  #C43 = 24
+  #C44 = "24"
+  #C45 = 26
+  #C46 = "26"
+  #C47 = <core::num, core::String>{#C39:#C40, #C34:#C41, #C42:#C36, #C43:#C44, #C45:#C46, #C13:#C14, #C15:#C16, #C17:#C18, #C20:#C21, #C22:#C23, #C24:#C25, #C1:#C2, #C3:#C4, #C5:#C6}
+}

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:collection';
 import 'dart:math';
 import 'dart:typed_data';
 
@@ -13,6 +14,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/analysis_options/analysis_options.dart';
 import 'package:analyzer/src/context/packages.dart';
@@ -23,6 +25,7 @@ import 'package:analyzer/src/dart/analysis/driver_event.dart' as events;
 import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/dart/analysis/file_state_filter.dart';
 import 'package:analyzer/src/dart/analysis/file_tracker.dart';
 import 'package:analyzer/src/dart/analysis/index.dart';
 import 'package:analyzer/src/dart/analysis/library_analyzer.dart';
@@ -109,7 +112,7 @@ testFineAfterLibraryAnalyzerHook;
 // TODO(scheglov): Clean up the list of implicitly analyzed files.
 class AnalysisDriver {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 644;
+  static const int DATA_VERSION = 694;
 
   /// The number of exception contexts allowed to write. Once this field is
   /// zero, we stop writing any new exception contexts in this process.
@@ -201,8 +204,8 @@ class AnalysisDriver {
   /// The queue of requests for completion.
   final List<_ResolveForCompletionRequest> _resolveForCompletionRequests = [];
 
-  /// Set to `true` after first [discoverAvailableFiles].
-  bool _hasAvailableFilesDiscovered = false;
+  /// The task that incrementally discovers files available to this driver.
+  _DiscoverAvailableFilesTask? _discoverAvailableFilesTask;
 
   /// The requests to compute files defining a class member with the name.
   final _definingClassMemberNameRequests =
@@ -491,6 +494,9 @@ class AnalysisDriver {
     if (_unitElementRequestedFiles.isNotEmpty) {
       return AnalysisDriverPriority.interactive;
     }
+    if (_hasPendingAvailableFilesDiscovery) {
+      return AnalysisDriverPriority.interactive;
+    }
     if (_priorityFiles.isNotEmpty) {
       for (String path in _priorityFiles) {
         if (_fileTracker.isFilePending(path)) {
@@ -539,7 +545,12 @@ class AnalysisDriver {
         _referencingNameRequests.isNotEmpty ||
         _indexRequestedFiles.isNotEmpty ||
         _unitElementRequestedFiles.isNotEmpty ||
+        _hasPendingAvailableFilesDiscovery ||
         _disposeRequests.isNotEmpty;
+  }
+
+  bool get _hasPendingAvailableFilesDiscovery {
+    return _discoverAvailableFilesTask?.hasPendingWork ?? false;
   }
 
   /// Add the file with the given [path] to the set of files that are explicitly
@@ -688,50 +699,36 @@ class AnalysisDriver {
     libraryContext.elementFactory.discardLibraryManifestInstances();
   }
 
-  /// Discovers all files that are potentially available, so that they are
-  /// included in [knownFiles].
-  void discoverAvailableFiles() {
-    if (_hasAvailableFilesDiscovered) {
-      return;
+  /// Completes after all potentially available files have been added to
+  /// [knownFiles]. Discovery is performed incrementally by the driver
+  /// scheduler so that large or slow package trees do not monopolize the
+  /// isolate.
+  Future<void> discoverAvailableFiles() {
+    var task = _discoverAvailableFilesTask ??= _DiscoverAvailableFilesTask(
+      this,
+    );
+    var result = task.discoverAvailableFiles();
+    if (task.hasPendingWork) {
+      _scheduler.notify();
     }
-    _hasAvailableFilesDiscovered = true;
+    return result;
+  }
 
-    // Discover added files.
-    for (var path in addedFiles) {
-      _fsState.getFileForPath(path);
+  /// Completes after files that can be accessed by the [targetFile] have been
+  /// added to [knownFiles].
+  ///
+  /// For a file in a Pub package, this discovers files from the same package,
+  /// public files from direct dependencies, and SDK libraries. Other workspace
+  /// kinds fall back to discovering all available files.
+  Future<void> discoverAvailableFilesFor(FileState targetFile) {
+    var task = _discoverAvailableFilesTask ??= _DiscoverAvailableFilesTask(
+      this,
+    );
+    var result = task.discoverAvailableFilesFor(targetFile);
+    if (task.hasPendingWork) {
+      _scheduler.notify();
     }
-
-    // Discover SDK libraries.
-    if (_sourceFactory.dartSdk case var dartSdk?) {
-      for (var sdkLibrary in dartSdk.sdkLibraries) {
-        var source = dartSdk.mapDartUri(sdkLibrary.shortName);
-        var path = source!.fullName;
-        _fsState.getFileForPath(path);
-      }
-    }
-
-    void discoverRecursively(Folder folder) {
-      try {
-        var pathContext = resourceProvider.pathContext;
-        for (var child in folder.getChildren()) {
-          if (child is File) {
-            var path = child.path;
-            if (file_paths.isDart(pathContext, path)) {
-              _fsState.getFileForPath(path);
-            }
-          } else if (child is Folder) {
-            discoverRecursively(child);
-          }
-        }
-      } catch (_) {}
-    }
-
-    // Discover files in package/lib folders.
-    if (_sourceFactory.packageMap case var packageMap?) {
-      for (var folder in packageMap.values) {
-        discoverRecursively(folder);
-      }
-    }
+    return result;
   }
 
   /// Notify the driver that the client is going to stop using it.
@@ -780,6 +777,8 @@ class AnalysisDriver {
       completer.completeError(DisposedAnalysisContextResult());
     }
     _pendingFileChangesCompleters.clear();
+
+    _discoverAvailableFilesTask?.complete();
 
     _scheduler.notify();
     return completer.future;
@@ -834,7 +833,7 @@ class AnalysisDriver {
 
   /// Completes with files that define a class member with the [name].
   Future<List<FileState>> getFilesDefiningClassMemberName(String name) async {
-    discoverAvailableFiles();
+    await discoverAvailableFiles();
     var request = _GetFilesDefiningClassMemberNameRequest(name);
     _definingClassMemberNameRequests.add(request);
     _scheduler.notify();
@@ -846,7 +845,7 @@ class AnalysisDriver {
     if (names.isEmpty) {
       return const [];
     }
-    discoverAvailableFiles();
+    await discoverAvailableFiles();
     var request = _GetFilesReferencingNamesRequest(names);
     _referencingNameRequests.add(request);
     _scheduler.notify();
@@ -1227,6 +1226,14 @@ class AnalysisDriver {
       return;
     }
 
+    // Explicit requests above take precedence over discovery.
+    if (_discoverAvailableFilesTask case var task?) {
+      if (task.hasPendingWork) {
+        task.perform();
+        return;
+      }
+    }
+
     // Compute files defining a class member.
     if (_definingClassMemberNameRequests.removeLastOrNull() case var request?) {
       await _getFilesDefiningClassMemberName(request);
@@ -1574,6 +1581,7 @@ class AnalysisDriver {
           _fileTracker.changeFile(path);
         case FileChangeKind.remove:
           _fileTracker.removeFile(path);
+          _resetAvailableFilesDiscovery();
           // TODO(scheglov): We have to do this because we discard files.
           // But this is not right, we need to handle removing better.
           clearLibraryContext();
@@ -2329,6 +2337,18 @@ class AnalysisDriver {
     );
   }
 
+  void _resetAvailableFilesDiscovery() {
+    var task = _discoverAvailableFilesTask;
+    if (task == null) {
+      return;
+    }
+    if (task.hasPendingWork) {
+      task.reset();
+    } else {
+      _discoverAvailableFilesTask = null;
+    }
+  }
+
   ResolvedForCompletionResultImpl? _resolveForCompletion(
     _ResolveForCompletionRequest request,
   ) {
@@ -3048,6 +3068,246 @@ abstract class SchedulerWorker {
 
   /// Perform a single chunk of work.
   Future<void> performWork();
+}
+
+/// Incrementally adds files selected by [filter] to the file-system state.
+///
+/// Directory listing and file-state creation use synchronous APIs. Keeping
+/// each invocation bounded does not make an individual I/O operation
+/// interruptible, but it prevents a large package graph from monopolizing the
+/// isolate across thousands of such operations.
+class _DiscoverAvailableFilesJob {
+  static const _workInterval = Duration(milliseconds: 5);
+
+  final AnalysisDriver driver;
+  final FileStateFilter? filter;
+  final Completer<void> completer = Completer<void>();
+
+  final Queue<File> _files = Queue<File>();
+  final Queue<({Folder folder, bool excludeSrc})> _folders = Queue();
+  final Set<File> _seenFiles = <File>{};
+  final Set<({Folder folder, bool excludeSrc})> _seenFolders = {};
+
+  bool _isInitialized = false;
+
+  _DiscoverAvailableFilesJob(this.driver, this.filter);
+
+  bool get isCompleted => completer.isCompleted;
+
+  void complete() {
+    if (!isCompleted) {
+      _clearPending();
+      completer.complete();
+    }
+  }
+
+  void perform() {
+    if (isCompleted) {
+      return;
+    }
+    _initialize();
+
+    var timer = Stopwatch()..start();
+    while (true) {
+      if (_files.isNotEmpty) {
+        driver._fsState.getFileForPath(_files.removeFirst().path);
+      } else if (_folders.isNotEmpty) {
+        _discoverChildren(_folders.removeFirst());
+      } else {
+        complete();
+        return;
+      }
+
+      if (timer.elapsed >= _workInterval) {
+        return;
+      }
+    }
+  }
+
+  /// Restarts an in-progress job after the file-system state was cleared.
+  /// The existing completer deliberately remains pending so callers never
+  /// observe a "complete" discovery whose results have just been discarded.
+  void reset() {
+    if (isCompleted) {
+      throw StateError('Cannot reset completed discovery.');
+    }
+    _clearPending();
+    _isInitialized = false;
+  }
+
+  void _addFile(File file) {
+    if (_seenFiles.add(file)) {
+      _files.addLast(file);
+    }
+  }
+
+  void _addFolder(Folder folder, {required bool excludeSrc}) {
+    var request = (folder: folder, excludeSrc: excludeSrc);
+    if (_seenFolders.add(request)) {
+      _folders.addLast(request);
+    }
+  }
+
+  void _clearPending() {
+    _folders.clear();
+    _files.clear();
+    _seenFolders.clear();
+    _seenFiles.clear();
+  }
+
+  void _discoverChildren(({Folder folder, bool excludeSrc}) request) {
+    try {
+      var pathContext = driver.resourceProvider.pathContext;
+      for (var child in request.folder.getChildren()) {
+        if (child is File) {
+          if (file_paths.isDart(pathContext, child.path)) {
+            _addFile(child);
+          }
+        } else if (child is Folder) {
+          if (!request.excludeSrc || child.shortName != 'src') {
+            _addFolder(child, excludeSrc: false);
+          }
+        }
+      }
+    } catch (_) {}
+  }
+
+  void _initialize() {
+    if (_isInitialized) {
+      return;
+    }
+    _isInitialized = true;
+
+    for (var path in driver.addedFiles) {
+      var file = driver.resourceProvider.getFile(path);
+      _addFile(file);
+    }
+
+    if (driver._sourceFactory.dartSdk case var dartSdk?) {
+      for (var sdkLibrary in dartSdk.sdkLibraries) {
+        var source = dartSdk.mapDartUri(sdkLibrary.shortName);
+        if (source is FileSource) {
+          _addFile(source.file);
+        }
+      }
+    }
+
+    if (driver._sourceFactory.packageMap case var packageMap?) {
+      for (var MapEntry(key: packageName, value: folder)
+          in packageMap.entries) {
+        if (filter case var filter?) {
+          if (filter.shouldIncludePackage(packageName)) {
+            _addFolder(
+              folder,
+              excludeSrc: !filter.shouldIncludePackageSrc(packageName),
+            );
+          }
+        } else {
+          _addFolder(folder, excludeSrc: false);
+        }
+      }
+    }
+  }
+}
+
+/// Schedules incremental discovery of files available to this driver.
+///
+/// Requests scoped to a target file take precedence over complete discovery.
+/// This lets interactive operations avoid waiting for transitive dependencies,
+/// while searches can still request every available file.
+class _DiscoverAvailableFilesTask {
+  final AnalysisDriver driver;
+  final Queue<_DiscoverAvailableFilesJob> _pendingScopedJobs = Queue();
+  final Map<FileStateFilter, _DiscoverAvailableFilesJob> _scopedJobs = {};
+
+  _DiscoverAvailableFilesJob? _allFilesJob;
+  bool _isStopped = false;
+
+  _DiscoverAvailableFilesTask(this.driver);
+
+  bool get hasPendingWork {
+    return _pendingScopedJobs.any((job) => !job.isCompleted) ||
+        (_allFilesJob?.isCompleted == false);
+  }
+
+  void complete() {
+    if (_isStopped) {
+      return;
+    }
+    _isStopped = true;
+    _allFilesJob?.complete();
+    for (var job in _scopedJobs.values) {
+      job.complete();
+    }
+    _pendingScopedJobs.clear();
+  }
+
+  Future<void> discoverAvailableFiles() {
+    if (_isStopped) {
+      return Future.value();
+    }
+    var job = _allFilesJob ??= _DiscoverAvailableFilesJob(driver, null);
+    return job.completer.future;
+  }
+
+  Future<void> discoverAvailableFilesFor(FileState targetFile) {
+    if (_isStopped) {
+      return Future.value();
+    }
+
+    if (_allFilesJob case var allFilesJob?) {
+      if (allFilesJob.isCompleted) {
+        return allFilesJob.completer.future;
+      }
+    }
+
+    var filter = FileStateFilter(targetFile);
+    if (filter.includesAllPackages) {
+      return discoverAvailableFiles();
+    }
+
+    var job = _scopedJobs[filter];
+    if (job == null) {
+      job = _DiscoverAvailableFilesJob(driver, filter);
+      _scopedJobs[filter] = job;
+      _pendingScopedJobs.addLast(job);
+    }
+    return job.completer.future;
+  }
+
+  void perform() {
+    while (_pendingScopedJobs.isNotEmpty &&
+        _pendingScopedJobs.first.isCompleted) {
+      _pendingScopedJobs.removeFirst();
+    }
+
+    if (_pendingScopedJobs.firstOrNull case var job?) {
+      job.perform();
+      return;
+    }
+
+    _allFilesJob?.perform();
+  }
+
+  void reset() {
+    if (_isStopped) {
+      throw StateError('Cannot reset stopped discovery.');
+    }
+
+    _scopedJobs.removeWhere((_, job) => job.isCompleted);
+    _pendingScopedJobs.removeWhere((job) => job.isCompleted);
+    for (var job in _pendingScopedJobs) {
+      job.reset();
+    }
+
+    if (_allFilesJob case var job?) {
+      if (job.isCompleted) {
+        _allFilesJob = null;
+      } else {
+        job.reset();
+      }
+    }
+  }
 }
 
 class _GetFilesDefiningClassMemberNameRequest {

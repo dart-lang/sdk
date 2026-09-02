@@ -248,6 +248,8 @@ abstract final class LintNames {
 
   static const String flutter_style_todos = 'flutter_style_todos';
 
+  static const String future_sync_value = 'future_sync_value';
+
   static const String hash_and_equals = 'hash_and_equals';
 
   static const String implementation_imports = 'implementation_imports';
@@ -292,6 +294,8 @@ abstract final class LintNames {
       'literal_only_boolean_expressions';
 
   static const String matching_super_parameters = 'matching_super_parameters';
+
+  static const String migrate_design_widgets = 'migrate_design_widgets';
 
   static const String missing_code_block_language_in_doc_comment =
       'missing_code_block_language_in_doc_comment';
@@ -595,6 +599,8 @@ abstract final class LintNames {
       'unnecessary_string_interpolations';
 
   static const String unnecessary_this = 'unnecessary_this';
+
+  static const String unnecessary_this_alias = 'unnecessary_this_alias';
 
   static const String unnecessary_to_list_in_spreads =
       'unnecessary_to_list_in_spreads';

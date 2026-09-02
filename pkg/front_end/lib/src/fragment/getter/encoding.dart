@@ -33,6 +33,7 @@ import '../../source/source_property_builder.dart';
 import '../../source/source_type_parameter_builder.dart';
 import '../../source/stack_listener_impl.dart';
 import '../../source/type_parameter_factory.dart';
+import '../../type_inference/context_allocation_strategy.dart';
 import '../fragment.dart';
 
 class ExtensionInstanceGetterEncoding extends GetterEncoding
@@ -174,10 +175,9 @@ sealed class GetterEncoding implements InferredTypeListener {
 
   void registerFunctionBody({
     required Statement? body,
-    required Scope? scope,
     required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
-    required ThisVariable? thisVariable,
+    required ScopeProviderInfo? scopeProviderInfo,
   });
 }
 
@@ -457,10 +457,9 @@ mixin _DirectGetterEncodingMixin implements GetterEncoding {
   @override
   void registerFunctionBody({
     required Statement? body,
-    required Scope? scope,
     required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
-    required ThisVariable? thisVariable,
+    required ScopeProviderInfo? scopeProviderInfo,
   }) {
     if (body != null) {
       function.registerFunctionBody(
@@ -469,10 +468,7 @@ mixin _DirectGetterEncodingMixin implements GetterEncoding {
         emittedValueType: emittedValueType,
       );
     }
-    function.scope = scope;
-    function.thisVariable =
-        // Coverage-ignore(suite): Not run.
-        thisVariable?..parent = function;
+    function.registerScopeProviderInfo(scopeProviderInfo);
   }
 }
 
@@ -613,7 +609,8 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
       isAbstractOrExternal ? null : extern.createEmptyStatement(),
       typeParameters: typeParameters,
       positionalParameters: [
-        _thisFormal.build(libraryBuilder).astVariable as PositionalParameter,
+        _thisFormal.build(libraryBuilder).functionParameter
+            as PositionalParameter,
       ],
       asyncMarker: _fragment.asyncModifier.kind,
       fileOffset: _fragment.formalsOffset,
@@ -809,10 +806,9 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
   @override
   void registerFunctionBody({
     required Statement? body,
-    required Scope? scope,
     required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
-    required ThisVariable? thisVariable,
+    required ScopeProviderInfo? scopeProviderInfo,
   }) {
     if (body != null) {
       function.registerFunctionBody(
@@ -821,9 +817,6 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
         emittedValueType: emittedValueType,
       );
     }
-    function.scope = scope;
-    function.thisVariable =
-        // Coverage-ignore(suite): Not run.
-        thisVariable?..parent = function;
+    function.registerScopeProviderInfo(scopeProviderInfo);
   }
 }

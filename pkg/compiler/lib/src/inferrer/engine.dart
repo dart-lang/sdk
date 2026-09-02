@@ -660,13 +660,15 @@ class InferrerEngine {
   /// Returns the `call` method on [cls] or the `noSuchMethod` if [cls] doesn't
   /// implement `call`.
   FunctionEntity? _lookupCallMethod(ClassEntity cls) {
-    var function =
-        _elementEnvironment.lookupClassMember(cls, Names.call)
-            as FunctionEntity?;
+    var function = _elementEnvironment.lookupClassMember(
+      cls,
+      Names.call,
+    ) as FunctionEntity?;
     if (function == null || function.isAbstract) {
-      function =
-          _elementEnvironment.lookupClassMember(cls, Names.noSuchMethod_)
-              as FunctionEntity?;
+      function = _elementEnvironment.lookupClassMember(
+        cls,
+        Names.noSuchMethod_,
+      ) as FunctionEntity?;
     }
     return function;
   }
@@ -1021,9 +1023,11 @@ class InferrerEngine {
     }
   }
 
-  void _addOverrideParameterEdges(MemberEntity parent, MemberEntity override) {
-    final method = parent as FunctionEntity;
-    ParameterStructure parameterStructure = method.parameterStructure;
+  void _addOverrideParameterEdges(
+    FunctionEntity parent,
+    FunctionEntity override,
+  ) {
+    final ParameterStructure parameterStructure = parent.parameterStructure;
     int parameterIndex = 0;
     // Collect the parent parameter type infos.
     final List<TypeInformation> positional = [];
@@ -1042,13 +1046,11 @@ class InferrerEngine {
       }
       parameterIndex++;
     });
-    parameterIndex = 0;
 
+    parameterIndex = 0;
     // Add the parent parameter type infos as inputs to the override's
     // parameters.
-    types.strategy.forEachParameter(override as FunctionEntity, (
-      Local parameter,
-    ) {
+    types.strategy.forEachParameter(override, (Local parameter) {
       TypeInformation? parentParamInfo;
       if (parameterIndex < parameterStructure.requiredPositionalParameters) {
         parentParamInfo = positional[parameterIndex];
@@ -1057,15 +1059,36 @@ class InferrerEngine {
       } else if (parameterIndex < positional.length) {
         parentParamInfo = positional[parameterIndex];
       }
-      // If the override includes parameters that the parent doesn't
-      // (optional parameters) then use the override's default type as any
-      // default value will be used within the body of the override.
-      parentParamInfo ??= getDefaultTypeOfParameter(parameter);
+
       TypeInformation overrideParamInfo = types.getInferredTypeOfParameter(
         parameter,
         isVirtual: true,
       );
-      overrideParamInfo.addInput(parentParamInfo);
+      if (parentParamInfo != null) {
+        overrideParamInfo.addInput(parentParamInfo);
+      }
+
+      // An override can have extra parameters, make required parameters
+      // optional, or have a different default values. Make the default value an
+      // input to cover these cases. The default value is not used when every
+      // call site passes an argument in an optional position, but there is not
+      // a convenient test for this, so this causes a conservative inclusion of
+      // the default value when sometimes not strictly necessary.
+      final ParameterStructure overrideStructure = override.parameterStructure;
+      final bool isOptional;
+      if (parameterIndex < overrideStructure.requiredPositionalParameters) {
+        isOptional = false;
+      } else if (overrideStructure.namedParameters.isNotEmpty) {
+        isOptional = !overrideStructure.requiredNamedParameters.contains(
+          parameter.name,
+        );
+      } else {
+        isOptional = true; // Optional positional.
+      }
+      if (parentParamInfo == null || isOptional) {
+        overrideParamInfo.addInput(getDefaultTypeOfParameter(parameter));
+      }
+
       parameterIndex++;
     });
   }
@@ -1111,7 +1134,10 @@ class InferrerEngine {
       parentType.addInput(overrideType);
     } else if (parent.isSetter) {
       if (override.isSetter) {
-        _addOverrideParameterEdges(parent, override);
+        _addOverrideParameterEdges(
+          parent as FunctionEntity,
+          override as FunctionEntity,
+        );
       } else {
         assert(override is FieldEntity);
         types.strategy.forEachParameter(parent as FunctionEntity, (
@@ -1127,7 +1153,10 @@ class InferrerEngine {
     } else {
       assert(parent.isFunction && override.isFunction);
       parentType.addInput(overrideType);
-      _addOverrideParameterEdges(parent, override);
+      _addOverrideParameterEdges(
+        parent as FunctionEntity,
+        override as FunctionEntity,
+      );
     }
   }
 

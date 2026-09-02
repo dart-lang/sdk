@@ -62,19 +62,22 @@ const FPRegister invalidFPReg = FPRegister(-1, 'INVALID');
 
 /// Base class for all stack locations.
 sealed class const StackLocation() implements Location {
+  /// Index of the stack slot in frame.
+  int get stackSlotIndex;
+
   @override
   Location get physicalLocation => this;
 }
 
 /// Spill slot.
 final class SpillSlot extends StackLocation {
-  /// Index of the spill slot (0, 1, ...).
-  final int index;
+  @override
+  final int stackSlotIndex;
 
-  const SpillSlot(this.index);
+  const SpillSlot(this.stackSlotIndex) : assert(stackSlotIndex >= 0);
 
   @override
-  String toString() => 'stack[$index]';
+  String toString() => 'stack[$stackSlotIndex]';
 }
 
 /// Constraint and location for the parameter passed on the stack.
@@ -82,10 +85,19 @@ final class ParameterStackLocation extends StackLocation implements Constraint {
   /// Parameter index (0, 1, ..., function.numberOfParameters-1).
   final int paramIndex;
 
+  /// Index of the stack slot in frame.
+  /// Can be negative for incoming parameters which belong to a caller frame.
+  @override
+  final int stackSlotIndex;
+
   @override
   final RegisterClass registerClass;
 
-  const ParameterStackLocation(this.paramIndex, this.registerClass);
+  const ParameterStackLocation(
+    this.paramIndex,
+    this.stackSlotIndex,
+    this.registerClass,
+  );
 
   @override
   String toString() => 'param[$paramIndex]';

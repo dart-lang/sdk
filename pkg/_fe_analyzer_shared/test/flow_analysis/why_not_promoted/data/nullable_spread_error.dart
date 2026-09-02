@@ -161,6 +161,6 @@ map_from_set_question_type_disambiguate_by_literal_args(C c) {
   return <int, int>{
     ...c
         .
-        /*analyzer.notPromoted(propertyNotPromotedForInherentReason(target: member:C.setQuestion))*/ setQuestion,
+        /*notPromoted(propertyNotPromotedForInherentReason(target: member:C.setQuestion))*/setQuestion,
   };
 }

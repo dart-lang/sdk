@@ -17,6 +17,7 @@
 #include "bin/crashpad.h"
 #include "bin/dartutils.h"
 #include "bin/dfe.h"
+#include "bin/directory.h"
 #include "bin/error_exit.h"
 #include "bin/exe_utils.h"
 #include "bin/file.h"
@@ -28,6 +29,7 @@
 #include "bin/platform.h"
 #include "bin/process.h"
 #include "bin/snapshot_utils.h"
+#include "bin/uri.h"
 #include "bin/utils.h"
 #include "bin/vmservice_impl.h"
 #include "include/bin/dart_io_api.h"
@@ -42,7 +44,7 @@
 
 extern "C" {
 extern const uint8_t kDartCoreSnapshotData[];
-extern const uint8_t kDartCoreSnapshotText[];
+extern void kDartCoreSnapshotText();
 }
 
 namespace dart {
@@ -50,7 +52,8 @@ namespace bin {
 
 // Snapshot pieces we link in a snapshot.
 const uint8_t* core_snapshot_data = kDartCoreSnapshotData;
-const uint8_t* core_snapshot_text = kDartCoreSnapshotText;
+const uint8_t* core_snapshot_text =
+    reinterpret_cast<const uint8_t*>(kDartCoreSnapshotText);
 
 /**
  * Global state used to control and store generation of application snapshots.
@@ -68,6 +71,40 @@ static const uint8_t* app_snapshot_text = nullptr;
 static bool kernel_isolate_is_running = false;
 
 static Dart_Isolate main_isolate = nullptr;
+
+#if defined(DART_PRECOMPILED_RUNTIME) && defined(DART_CLI_RUNTIME) &&          \
+    defined(DART_HOST_OS_LINUX)
+static CStringUniquePtr BuildCliSnapshotPath(const char* executable_path,
+                                             const char* executable_name) {
+  const char* executable_basename = strrchr(executable_name, '/');
+  executable_basename = executable_basename == nullptr
+                            ? executable_name
+                            : executable_basename + 1;
+  if (executable_basename[0] == '\0') {
+    return CStringUniquePtr();
+  }
+
+  CStringUniquePtr snapshot_path(
+      Utils::SCreate("../lib/libdartaot%s.so", executable_basename));
+  return ResolvePath(snapshot_path.get(), executable_path);
+}
+
+static CStringUniquePtr ResolveCliSnapshotPath(const char* executable_path,
+                                               const char* argv0) {
+  auto candidate = BuildCliSnapshotPath(executable_path, argv0);
+  if (candidate != nullptr && File::Exists(nullptr, candidate.get())) {
+    return candidate;
+  }
+
+  candidate = BuildCliSnapshotPath(executable_path, executable_path);
+  if (candidate != nullptr && File::Exists(nullptr, candidate.get())) {
+    return candidate;
+  }
+
+  return CStringUniquePtr();
+}
+#endif  // defined(DART_PRECOMPILED_RUNTIME) && defined(DART_CLI_RUNTIME) &&
+        // defined(DART_HOST_OS_LINUX)
 
 #define SAVE_ERROR_AND_EXIT(result)                                            \
   *error = Utils::StrDup(Dart_GetError(result));                               \
@@ -127,19 +164,30 @@ static void WriteDepsFile() {
   file->Release();
 }
 
-static void OnExitHook(int64_t exit_code) {
-  if (Dart_CurrentIsolate() != main_isolate) {
-    Syslog::PrintErr(
-        "A snapshot was requested, but a secondary isolate "
-        "performed a hard exit (%" Pd64 ").\n",
-        exit_code);
-    Platform::Exit(kErrorExitCode);
+static void DeleteTempDirOnShutdown() {
+  if (Options::delete_temp_dir_on_shutdown() != nullptr) {
+    const char* temp_dir = Options::delete_temp_dir_on_shutdown();
+    dart::bin::Directory::Delete(nullptr, temp_dir, /* recursive= */ true);
   }
-  if (exit_code == 0) {
-    if (Options::gen_snapshot_kind() == kAppJIT) {
-      Snapshot::GenerateAppJIT(Options::snapshot_filename());
+}
+
+static void OnExitHook(int64_t exit_code) {
+  DeleteTempDirOnShutdown();
+  if ((Options::gen_snapshot_kind() == kAppJIT) ||
+      (Options::depfile() != nullptr)) {
+    if (Dart_CurrentIsolate() != main_isolate) {
+      Syslog::PrintErr(
+          "A snapshot was requested, but a secondary isolate "
+          "performed a hard exit (%" Pd64 ").\n",
+          exit_code);
+      Platform::Exit(kErrorExitCode);
     }
-    WriteDepsFile();
+    if (exit_code == 0) {
+      if (Options::gen_snapshot_kind() == kAppJIT) {
+        Snapshot::GenerateAppJIT(Options::snapshot_filename());
+      }
+      WriteDepsFile();
+    }
   }
 }
 
@@ -380,12 +428,10 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
   }
 
-  if (Options::load_module_snapshot() != nullptr) {
-    auto snapshot =
-        Snapshot::TryReadAppSnapshot(Options::load_module_snapshot());
+  for (const char* filename : Options::load_module_snapshots()) {
+    auto snapshot = Snapshot::TryReadAppSnapshot(filename);
     if (snapshot == nullptr) {
-      Syslog::PrintErr("Unable to load module snapshot %s.\n",
-                       Options::load_module_snapshot());
+      Syslog::PrintErr("Unable to load module snapshot %s.\n", filename);
       Dart_ExitScope();
       Dart_ShutdownIsolate();
       return nullptr;
@@ -412,6 +458,7 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
   native_assets.dlopen_executable = &NativeAssets::DlopenExecutable;
   native_assets.dlopen_process = &NativeAssets::DlopenProcess;
   native_assets.dlsym = &NativeAssets::Dlsym;
+  native_assets.dlclose = &NativeAssets::Dlclose;
   Dart_InitializeNativeAssetsResolver(&native_assets);
 #endif  // !defined(DART_PRECOMPILER)
 
@@ -530,24 +577,90 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
       new IsolateGroupData(script_uri, /*asset_resolution_base=*/nullptr,
                            packages_config, nullptr, false);
   ASSERT(flags != nullptr);
+  flags->is_service_isolate = true;
+  flags->is_system_isolate = true;
 
   const uint8_t* snapshot_data = nullptr;
   const uint8_t* snapshot_text = nullptr;
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  uint8_t* kernel_buffer = nullptr;
+  intptr_t kernel_buffer_size = 0;
+#endif
 
 #if defined(EXPERIMENTAL_VM_SERVICE)
-  if (Options::experimental_vm_service()) {
+  if (!Options::disable_experimental_vm_service()) {
     VmService::enable_experimental_vm_service = true;
+    const bool vm_service_explicitly_requested =
+        (Options::vm_service_server_port() >= 0);
     auto [app_snapshot, script_name] = Snapshot::TryReadSDKSnapshot(
-#if defined(DART_PRECOMIPLED_RUNTIME)
-        "dart_runtime_service_vm_aot.dart.snapshot");
+#if defined(DART_PRECOMPILED_RUNTIME)
+        "dart_runtime_service_vm_aot.dart.snapshot",
 #else
-        "dart_runtime_service_vm.dart.snapshot");
+        "dart_runtime_service_vm.dart.snapshot",
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
+        /*verbose=*/vm_service_explicitly_requested);
     if (app_snapshot == nullptr) {
-      Platform::Exit(kErrorExitCode);
+      // This situation can happen when bootstrapping the VM service snapshot
+      // itself, or on clean builds before the snapshot has been generated.
+      // If the service was not explicitly requested, we fail silently and
+      // run without the service isolate. If it was explicitly requested, we
+      // fail fatally.
+      if (vm_service_explicitly_requested) {
+        Syslog::PrintErr("Error: Unable to find VM service snapshot.\n");
+        if (error != nullptr) {
+          *error = Utils::StrDup("Unable to find VM service snapshot.");
+        }
+        delete isolate_group_data;
+        Platform::Exit(kErrorExitCode);
+      } else {
+        delete isolate_group_data;
+        return nullptr;
+      }
     }
-    app_snapshot->SetBuffers(&snapshot_data, &snapshot_text);
+    // The VM service can be loaded from different types of snapshots depending
+    // on how the SDK was built and the current execution mode:
+    //
+    // 1. JIT/AOT Snapshot: If we have a pre-compiled AppJIT or AOT snapshot
+    //    for the VM service (e.g. dart_runtime_service_vm.dart.snapshot), we
+    //    load it directly. The buffers are owned by the loaded snapshot
+    //    object, which we register with the isolate group to keep it alive.
+    if (app_snapshot->IsJITorAOT()) {
+      app_snapshot->SetBuffers(&snapshot_data, &snapshot_text);
+      isolate_group_data->AddLoadedSnapshot(app_snapshot);
+    } else {
+      // 2. Kernel: If the snapshot file is a Kernel (Dill) file. This
+      //    happens on simulator and cross-compiled builds (where
+      //    dart_snapshot_kind is set to "kernel" to cut down on build time).
+      //    In this case, we load the VM service from the Kernel buffer read
+      //    from the script file.
+      if (app_snapshot->IsKernel()) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+        File* file = File::Open(nullptr, script_name.get(), File::kRead);
+        if (file != nullptr) {
+          kernel_buffer_size = file->Length();
+          kernel_buffer =
+              reinterpret_cast<uint8_t*>(malloc(kernel_buffer_size));
+          if (file->ReadFully(kernel_buffer, kernel_buffer_size)) {
+            isolate_group_data->SetKernelBufferNewlyOwned(kernel_buffer,
+                                                          kernel_buffer_size);
+          } else {
+            free(kernel_buffer);
+            kernel_buffer = nullptr;
+            kernel_buffer_size = 0;
+          }
+          file->Close();
+          file->Release();
+        }
+        snapshot_data = core_snapshot_data;
+        snapshot_text = core_snapshot_text;
+#else
+        UNREACHABLE();
+#endif
+      }
+      delete app_snapshot;
+    }
   } else {
+    VmService::enable_experimental_vm_service = false;
 #endif  // defined(EXPERIMENTAL_VM_SERVICE)
 #if defined(DART_PRECOMPILED_RUNTIME)
     // AOT: The service isolate is included in any AOT snapshot in non-PRODUCT
@@ -575,6 +688,14 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
   }
 
   Dart_EnterScope();
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  if (kernel_buffer != nullptr) {
+    Dart_Handle result =
+        Dart_LoadScriptFromKernel(kernel_buffer, kernel_buffer_size);
+    CHECK_RESULT(result);
+  }
+#endif
 
   Dart_Handle result = Dart_SetLibraryTagHandler(Loader::LibraryTagHandler);
   CHECK_RESULT(result);
@@ -1181,6 +1302,7 @@ void main(int argc, char** argv) {
 
   AppSnapshot* app_snapshot = nullptr;
 #if defined(DART_PRECOMPILED_RUNTIME)
+  CStringUniquePtr cli_snapshot_path;
   // If the executable binary contains the runtime together with an appended
   // snapshot, load and run that.
   // Any arguments passed to such an executable are meant for the actual
@@ -1189,10 +1311,7 @@ void main(int argc, char** argv) {
   const size_t kPathBufSize = PATH_MAX + 1;
   char executable_path[kPathBufSize];
   if (Platform::ResolveExecutablePathInto(executable_path, kPathBufSize) > 0) {
-    app_snapshot = Snapshot::TryReadAppendedAppSnapshot(executable_path);
-    if (app_snapshot != nullptr) {
-      script_name = argv[0];
-
+    auto prepare_app_snapshot = [&]() {
       char* error = nullptr;
       asset_resolution_base = ResolveSymlinks(executable_path, &error);
       if (error != nullptr) {
@@ -1202,31 +1321,43 @@ void main(int argc, char** argv) {
         Platform::Exit(kErrorExitCode);
       }
 
-      // Store the executable name.
       Platform::SetExecutableName(argv[0]);
 
-      // Parse out options to be passed to dart main.
       for (int i = 1; i < argc; i++) {
         dart_options.AddArgument(argv[i]);
       }
 
-      // Parse DART_VM_OPTIONS options.
       int env_argc = 0;
       char** env_argv = Options::GetEnvArguments(argv[0], &env_argc);
       if (env_argv != nullptr) {
-        // Any Dart options that are generated based on parsing DART_VM_OPTIONS
-        // are useless, so we'll throw them away rather than passing them along.
+        // Discard Dart options produced while parsing DART_VM_OPTIONS.
         CommandLineOptions tmp_options(env_argc + EXTRA_VM_ARGUMENTS);
         vm_options.EnsureCapacity(env_argc + EXTRA_VM_ARGUMENTS);
         parse_arguments(env_argc, env_argv, &vm_options, &tmp_options,
                         /*parsing_dart_vm_options=*/true);
       }
+    };
+
+    app_snapshot = Snapshot::TryReadAppendedAppSnapshot(executable_path);
+    if (app_snapshot != nullptr) {
+      script_name = argv[0];
+      prepare_app_snapshot();
     }
+
+#if defined(DART_CLI_RUNTIME) && defined(DART_HOST_OS_LINUX)
+    if (app_snapshot == nullptr) {
+      cli_snapshot_path = ResolveCliSnapshotPath(executable_path, argv[0]);
+      script_name = cli_snapshot_path.get();
+      if (script_name != nullptr) {
+        prepare_app_snapshot();
+      }
+    }
+#endif  // defined(DART_CLI_RUNTIME) && defined(DART_HOST_OS_LINUX)
   }
 #endif
 
   // Parse command line arguments.
-  if (app_snapshot == nullptr) {
+  if (app_snapshot == nullptr && script_name == nullptr) {
     parse_arguments(argc, argv, &vm_options, &dart_options,
                     /*parsing_dart_vm_options=*/false);
   }
@@ -1296,10 +1427,19 @@ void main(int argc, char** argv) {
 #endif
   }
 
-  // If we need to write an app-jit snapshot or a depfile, then add an exit
-  // hook that writes the snapshot and/or depfile as appropriate.
+  // --delete_temp_dir_on_shutdown would otherwise point into argv, whose
+  // strings main() frees before returning. Own a copy instead, kept for the
+  // lifetime of the process.
+  if (Options::delete_temp_dir_on_shutdown() != nullptr) {
+    Options::set_delete_temp_dir_on_shutdown(
+        Utils::StrDup(Options::delete_temp_dir_on_shutdown()));
+  }
+
+  // If we need to write an app-jit snapshot, a depfile, or delete a temp dir,
+  // then add an exit hook.
   if ((Options::gen_snapshot_kind() == kAppJIT) ||
-      (Options::depfile() != nullptr)) {
+      (Options::depfile() != nullptr) ||
+      (Options::delete_temp_dir_on_shutdown() != nullptr)) {
     Process::SetExitHook(OnExitHook);
   }
 
@@ -1423,6 +1563,8 @@ void main(int argc, char** argv) {
   delete app_snapshot;
   free(app_script_uri);
   asset_resolution_base.reset();
+
+  DeleteTempDirOnShutdown();
 
   // Free copied argument strings if converted.
   if (argv_converted) {

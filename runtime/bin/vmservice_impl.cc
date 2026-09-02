@@ -20,7 +20,11 @@ namespace bin {
 
 #if !defined(PRODUCT)
 
+#if defined(EXPERIMENTAL_VM_SERVICE)
+bool VmService::enable_experimental_vm_service = true;
+#else
 bool VmService::enable_experimental_vm_service = false;
+#endif
 
 #define RETURN_ERROR_HANDLE(handle)                                            \
   if (Dart_IsError(handle)) {                                                  \
@@ -109,9 +113,6 @@ char VmService::server_uri_[kServerUriStringBufferSize];
 static constexpr const char* kVMServiceIOLibraryUri = "dart:vmservice_io";
 
 void VmService::SetNativeResolver() {
-  if (enable_experimental_vm_service) {
-    return;
-  }
   Dart_Handle url = DartUtils::NewString(kVMServiceIOLibraryUri);
   Dart_Handle library = Dart_LookupLibrary(url);
   if (!Dart_IsError(library)) {
@@ -124,7 +125,7 @@ static constexpr const char* DEFAULT_VM_SERVICE_SERVER_IP = "localhost";
 
 bool VmService::Setup(const char* server_ip,
                       intptr_t server_port,
-                      bool dev_mode_server,
+                      bool origin_check_disabled,
                       bool auth_codes_disabled,
                       const char* write_service_info_filename,
                       bool trace_loading,
@@ -202,7 +203,7 @@ bool VmService::Setup(const char* server_ip,
                          Dart_NewBoolean(auto_start));
   SHUTDOWN_ON_ERROR(result);
   result = Dart_SetField(library, DartUtils::NewString("_originCheckDisabled"),
-                         Dart_NewBoolean(dev_mode_server));
+                         Dart_NewBoolean(origin_check_disabled));
   SHUTDOWN_ON_ERROR(result);
 
   result = Dart_SetField(library, DartUtils::NewString("_authCodesDisabled"),

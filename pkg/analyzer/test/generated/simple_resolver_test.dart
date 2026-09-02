@@ -127,7 +127,7 @@ main() {
 class A {
   set sss(x) {}
 }''');
-    var rhs = result.findNode.assignment(' = 0;').rightHandSide;
+    var rhs = result.findNode.assignment(' = 0;').rightHandSide2;
     expect(rhs.correspondingParameter, result.findElement.parameter('x'));
   }
 
@@ -143,7 +143,7 @@ class A {
 class B {
   set sss(x) {}
 }''');
-    var rhs = result.findNode.assignment(' = 0;').rightHandSide;
+    var rhs = result.findNode.assignment(' = 0;').rightHandSide2;
     expect(rhs.correspondingParameter, result.findElement.parameter('x'));
   }
 
@@ -156,7 +156,7 @@ main() {
 class A {
   set sss(x) {}
 }''');
-    var rhs = result.findNode.assignment(' = 0;').rightHandSide;
+    var rhs = result.findNode.assignment(' = 0;').rightHandSide2;
     expect(rhs.correspondingParameter, result.findElement.parameter('x'));
   }
 
@@ -172,7 +172,7 @@ class A {
 class B {
   set sss(x) {}
 }''');
-    var rhs = result.findNode.assignment(' = 0;').rightHandSide;
+    var rhs = result.findNode.assignment(' = 0;').rightHandSide2;
     expect(rhs.correspondingParameter, result.findElement.parameter('x'));
   }
 
@@ -253,9 +253,9 @@ void f() {
     expect(breakStatement.target, same(switchStatement));
   }
 
-  test_breakTarget_unlabeledBreakFromSwitch_language219() async {
+  test_breakTarget_unlabeledBreakFromSwitch_beforePatterns() async {
     var result = await resolveTestCode(r'''
-// @dart = 2.19
+// %before-language-feature: patterns
 void f() {
   while (true) {
     switch (0) {
@@ -406,9 +406,9 @@ void f() {
     expect(continueStatement.target, same(whileStatement));
   }
 
-  test_continueTarget_unlabeledContinueSkipsSwitch_language219() async {
+  test_continueTarget_unlabeledContinueSkipsSwitch_beforePatterns() async {
     var result = await resolveTestCode(r'''
-// @dart = 2.19
+// %before-language-feature: patterns
 void f() {
   while (true) {
     switch (0) {
@@ -604,7 +604,7 @@ void main() {
 
     // Verify that the getter for "x" in "new C().x" refers to the getter
     // defined in M2.
-    var node3 = result.findNode.simple('x;');
+    var node3 = result.findNodeV1.simple('x;');
     assertResolvedNodeText(node3, r'''
 SimpleIdentifier
   token: x
@@ -657,9 +657,13 @@ import 'missing.dart' as p;
 int a = p.q + p.r.s;
 String b = p.t(a) + p.u(v: 0);
 p.T c = new p.T();
+//            ^
+// [diag.newWithNonType] The name 'T' isn't a class.
 class D<E> extends p.T {
   D(int i) : super(i);
   p.U f = new p.V();
+//              ^
+// [diag.newWithNonType] The name 'V' isn't a class.
 }
 class F implements p.T {
   p.T m(p.U u) => null;
@@ -684,9 +688,13 @@ import 'missing.dart' show q, r, t, u, T, U, V, W;
 int a = q + r.s;
 String b = t(a) + u(v: 0);
 T c = new T();
+//        ^
+// [diag.newWithNonType] The name 'T' isn't a class.
 class D<E> extends T {
   D(int i) : super(i);
   U f = new V();
+//          ^
+// [diag.newWithNonType] The name 'V' isn't a class.
 }
 class F implements T {
   T m(U u) => null;
@@ -837,9 +845,9 @@ void doSwitch(int target) {
 }''');
   }
 
-  test_labels_switch_language219() async {
+  test_labels_switch_beforePatterns() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
+// %before-language-feature: patterns
 void doSwitch(int target) {
   switch (target) {
     l0: case 0:
@@ -1230,12 +1238,54 @@ void main() {
 }
 ''');
 
-    var node4 = result.findNode.simple('f();');
+    var node4 = result.findNode.singleReceiverMethodInvocation;
     assertResolvedNodeText(node4, r'''
-SimpleIdentifier
-  token: f
-  element: <testLibrary>::@mixin::M2::@method::f
-  staticType: void Function()
+ReceiverMethodInvocation
+  receiver: ConstructorInvocation
+    keyword: new
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: C
+        element: <testLibrary>::@class::C
+        type: C
+      element: <testLibrary>::@class::C::@constructor::new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: C
+  operator: .
+  name: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@mixin::M2::@method::f
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: MethodInvocation
+  target: InstanceCreationExpression
+    keyword: new
+    constructorName: ConstructorName
+      type: NamedType
+        name: C
+        element: <testLibrary>::@class::C
+        type: C
+      element: <testLibrary>::@class::C::@constructor::new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: C
+  operator: .
+  methodName: SimpleIdentifier
+    token: f
+    element: <testLibrary>::@mixin::M2::@method::f
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
 ''');
   }
 
@@ -1255,12 +1305,28 @@ class C extends B with M1, M2 {
 }
 ''');
 
-    var node5 = result.findNode.simple('f();');
+    var node5 = result.findNode.unqualifiedFunctionInvocation('f();');
     assertResolvedNodeText(node5, r'''
-SimpleIdentifier
-  token: f
-  element: <testLibrary>::@mixin::M2::@method::f
-  staticType: void Function()
+UnqualifiedFunctionInvocation
+  name: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@mixin::M2::@method::f
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: MethodInvocation
+  methodName: SimpleIdentifier
+    token: f
+    element: <testLibrary>::@mixin::M2::@method::f
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
 ''');
   }
 
@@ -1279,12 +1345,54 @@ void main() {
 }
 ''');
 
-    var node6 = result.findNode.simple('f();');
+    var node6 = result.findNode.singleReceiverMethodInvocation;
     assertResolvedNodeText(node6, r'''
-SimpleIdentifier
-  token: f
-  element: <testLibrary>::@mixin::M2::@method::f
-  staticType: void Function()
+ReceiverMethodInvocation
+  receiver: ConstructorInvocation
+    keyword: new
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: C
+        element: <testLibrary>::@class::C
+        type: C
+      element: <testLibrary>::@class::C::@constructor::new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: C
+  operator: .
+  name: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@mixin::M2::@method::f
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: MethodInvocation
+  target: InstanceCreationExpression
+    keyword: new
+    constructorName: ConstructorName
+      type: NamedType
+        name: C
+        element: <testLibrary>::@class::C
+        type: C
+      element: <testLibrary>::@class::C::@constructor::new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: C
+  operator: .
+  methodName: SimpleIdentifier
+    token: f
+    element: <testLibrary>::@mixin::M2::@method::f
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
 ''');
   }
 
@@ -1374,9 +1482,9 @@ main() {
     var g = result.findElement.method('g');
     var parameters = g.formalParameters;
 
-    var invocation = result.findNode.methodInvocation(');');
+    var invocation = result.findNode.unqualifiedFunctionInvocation(');');
 
-    var arguments = invocation.argumentList.arguments;
+    var arguments = invocation.argumentList.arguments2;
 
     var argumentCount = arguments.length;
     expect(argumentCount, indices.length);

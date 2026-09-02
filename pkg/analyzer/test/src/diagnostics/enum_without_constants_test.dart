@@ -16,7 +16,6 @@ main() {
 
 @reflectiveTest
 class EnumWithoutConstantsTest extends PubPackageResolutionTest {
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_hasConstants_inAugmentation() async {
     await resolveTestCodeWithDiagnostics(r'''
 enum E {}
@@ -34,7 +33,7 @@ enum E {}
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
+  @FailingTest() // TODO(scheglov): implement augmentation
   test_noConstants_hasAugmentation() async {
     await resolveTestCodeWithDiagnostics(r'''
 enum E {}

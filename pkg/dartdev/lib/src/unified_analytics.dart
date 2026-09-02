@@ -115,15 +115,13 @@ bool _isRunningOnBot() {
     return false;
   }
 
-  // TODO(jwren): Azure detection -- each call for this detection requires an
-  // http connection, the flutter cli tool captures the result on the first run,
-  // we should consider the same caching here.
-
-  return env.containsKey('BOT')
+  return env.containsKey('BOT') ||
+      // https://docs.microsoft.com/en-us/azure/devops/pipelines/build/variables
+      env.containsKey('TF_BUILD') ||
+      env.containsKey('AZURE_HTTP_USER_AGENT') ||
       // https://docs.travis-ci.com/user/environment-variables/
       // Example .travis.yml file:
       // https://github.com/flutter/devtools/blob/master/.travis.yml
-      ||
       env['TRAVIS'] == 'true' ||
       env['CONTINUOUS_INTEGRATION'] == 'true' ||
       env.containsKey('CI') // Travis and AppVeyor

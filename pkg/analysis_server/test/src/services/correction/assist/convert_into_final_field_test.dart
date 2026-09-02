@@ -19,6 +19,32 @@ class ConvertIntoFinalFieldTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.convertIntoFinalField;
 
+  Future<void> test_abstractGetter_inClass() async {
+    await resolveTestCode('''
+abstract class A {
+  int ^get foo;
+}
+''');
+    await assertHasAssist('''
+abstract class A {
+  abstract final int foo;
+}
+''');
+  }
+
+  Future<void> test_abstractGetter_inMixin() async {
+    await resolveTestCode('''
+mixin M {
+  int ^get foo;
+}
+''');
+    await assertHasAssist('''
+mixin M {
+  abstract final int foo;
+}
+''');
+  }
+
   Future<void> test_blockBody_onlyReturnStatement() async {
     await resolveTestCode('''
 class A {

@@ -12,9 +12,9 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/assignment_expression_resolver.dart';
+import 'package:analyzer/src/dart/resolver/property_element_resolver.dart';
 import 'package:analyzer/src/dart/resolver/typed_literal_resolver.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
-import 'package:analyzer/src/generated/inference_log.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
 /// Helper for resolving [ForStatement]s and [ForElement]s.
@@ -28,34 +28,53 @@ class ForResolver {
   void resolveElement(ForElementImpl node, CollectionLiteralContext? context) {
     var forLoopParts = node.forLoopParts;
     void visitBody() {
-      node.body.resolveElement(_resolver, context);
-      _resolver.popRewrite();
+      _resolver.dispatchCollectionElement(node.body2, context);
     }
 
     if (forLoopParts is ForPartsImpl) {
-      _forParts(node, forLoopParts, visitBody);
+      _forParts(
+        node,
+        forLoopParts,
+        visitBody,
+        rightParenOffset: node.rightParenthesis.offset,
+        endOffset: node.end,
+      );
     } else if (forLoopParts is ForEachPartsWithPatternImpl) {
       _analyzePatternForIn(
         node: node,
         awaitKeyword: node.awaitKeyword,
         forLoopParts: forLoopParts,
         dispatchBody: () {
-          _resolver.dispatchCollectionElement(node.body, context);
+          _resolver.dispatchCollectionElement(node.body2, context);
         },
+        rightParenthesisOffset: node.rightParenthesis.offset,
       );
     } else if (forLoopParts is ForEachPartsImpl) {
-      _forEachParts(node, node.awaitKeyword != null, forLoopParts, visitBody);
+      _forEachParts(
+        node,
+        node.awaitKeyword != null,
+        forLoopParts,
+        visitBody,
+        rightParenthesisOffset: node.rightParenthesis.offset,
+        bodyEndOffset: node.body.end,
+      );
     }
   }
 
   void resolveStatement(ForStatementImpl node) {
     var forLoopParts = node.forLoopParts;
     void visitBody() {
-      node.body.accept(_resolver);
+      node.body.accept2(_resolver);
     }
 
     if (forLoopParts is ForPartsImpl) {
-      _forParts(node, forLoopParts, visitBody);
+      _forParts(
+        node,
+        forLoopParts,
+        visitBody,
+        rightParenOffset: node.rightParenthesis.offset,
+        endOffset: node.end,
+      );
     } else if (forLoopParts is ForEachPartsWithPatternImpl) {
       _analyzePatternForIn(
         node: node,
@@ -64,9 +83,17 @@ class ForResolver {
         dispatchBody: () {
           _resolver.dispatchStatement(node.body);
         },
+        rightParenthesisOffset: node.rightParenthesis.offset,
       );
     } else if (forLoopParts is ForEachPartsImpl) {
-      _forEachParts(node, node.awaitKeyword != null, forLoopParts, visitBody);
+      _forEachParts(
+        node,
+        node.awaitKeyword != null,
+        forLoopParts,
+        visitBody,
+        rightParenthesisOffset: node.rightParenthesis.offset,
+        bodyEndOffset: node.body.end,
+      );
     }
   }
 
@@ -75,19 +102,24 @@ class ForResolver {
     required Token? awaitKeyword,
     required ForEachPartsWithPatternImpl forLoopParts,
     required void Function() dispatchBody,
+    required int rightParenthesisOffset,
   }) {
-    forLoopParts.metadata.accept(_resolver);
+    forLoopParts.metadata.accept2(_resolver);
     _resolver.analyzePatternForIn(
       node: node,
       hasAwait: awaitKeyword != null,
       pattern: forLoopParts.pattern,
-      expression: forLoopParts.iterable,
+      expression: forLoopParts.iterable2,
       dispatchBody: dispatchBody,
+      beforePatternOffset: node.offset,
+      beforeExpressionOffset: forLoopParts.inKeyword.offset,
+      bodyBeginOffset: rightParenthesisOffset,
+      endOffset: node.end,
     );
     _resolver.popRewrite();
     _resolver.nullableDereferenceVerifier.expression(
       diag.uncheckedUseOfNullableValueAsIterator,
-      forLoopParts.iterable,
+      forLoopParts.iterable2,
     );
   }
 
@@ -122,25 +154,34 @@ class ForResolver {
     AstNodeImpl node,
     bool isAsync,
     ForEachPartsImpl forEachParts,
-    void Function() visitBody,
-  ) {
-    ExpressionImpl iterable = forEachParts.iterable;
+    void Function() visitBody, {
+    required int rightParenthesisOffset,
+    required int bodyEndOffset,
+  }) {
+    ExpressionImpl iterable = forEachParts.iterable2;
     DeclaredIdentifierImpl? loopVariable;
-    SimpleIdentifierImpl? identifier;
+    ForEachPartsWithIdentifierImpl? identifierParts;
     Element? identifierElement;
     if (forEachParts is ForEachPartsWithDeclarationImpl) {
       loopVariable = forEachParts.loopVariable;
     } else if (forEachParts is ForEachPartsWithIdentifierImpl) {
-      identifier = forEachParts.identifier;
-      // TODO(scheglov): replace with lexical lookup
-      inferenceLogWriter?.setExpressionVisitCodePath(
-        identifier,
-        ExpressionVisitCodePath.forEachIdentifier,
-      );
-      identifier.accept(_resolver);
+      identifierParts = forEachParts;
+      var write = PropertyElementResolver(
+        _resolver,
+      ).resolveForEachPartsWithIdentifier(forEachParts);
+      forEachParts.write = write;
       AssignmentExpressionShared(
         resolver: _resolver,
-      ).checkFinalAlreadyAssigned(identifier, isForEachIdentifier: true);
+      ).checkFinalForEachIdentifier(forEachParts);
+      identifierElement = forEachParts.writeElement;
+
+      var identifierStaticType = switch (write) {
+        VariableWriteResolutionImpl(:var element) =>
+          _resolver.localVariableTypeProvider.getWriteType(element),
+        SetterInvocationResolutionImpl(:var acceptedType) => acceptedType,
+        _ => InvalidTypeImpl.instance,
+      };
+      forEachParts.setIdentifierStaticType(identifierStaticType);
     }
 
     TypeImpl? valueType;
@@ -148,19 +189,12 @@ class ForResolver {
       var typeAnnotation = loopVariable.type;
       valueType = typeAnnotation?.type ?? UnknownInferredType.instance;
     }
-    if (identifier != null) {
-      identifierElement = identifier.element;
-      if (identifierElement is VariableElement) {
-        valueType = _resolver.localVariableTypeProvider.getType(
-          identifier,
-          isRead: false,
-        );
-      } else if (identifierElement is InternalSetterElement) {
-        var parameters = identifierElement.formalParameters;
-        if (parameters.isNotEmpty) {
-          valueType = parameters[0].type;
-        }
-      }
+    if (identifierParts?.write case VariableWriteResolutionImpl(:var element)) {
+      valueType = _resolver.localVariableTypeProvider.getWriteType(element);
+    } else if (identifierParts?.write case SetterInvocationResolutionImpl(
+      :var acceptedType,
+    )) {
+      valueType = acceptedType;
     }
     InterfaceTypeImpl? targetType;
     if (valueType != null) {
@@ -180,7 +214,7 @@ class ForResolver {
       iterable,
     );
 
-    loopVariable?.accept(_resolver);
+    loopVariable?.accept2(_resolver);
     var elementType = _computeForEachElementType(iterable, isAsync);
     if (loopVariable != null && loopVariable.type == null) {
       var loopVariableElement =
@@ -194,10 +228,14 @@ class ForResolver {
         declaredElement,
         SharedTypeView(declaredElement.type),
         initialized: true,
+        offset: rightParenthesisOffset,
       );
     }
 
-    _resolver.flowAnalysis.flow?.forEach_bodyBegin(node);
+    _resolver.flowAnalysis.flow?.forEach_bodyBegin(
+      node,
+      offset: rightParenthesisOffset,
+    );
     if (identifierElement is PromotableElementImpl &&
         forEachParts is ForEachPartsWithIdentifier) {
       _resolver.flowAnalysis.flow?.write(
@@ -205,23 +243,26 @@ class ForResolver {
         identifierElement,
         SharedTypeView(elementType),
         null,
+        offset: rightParenthesisOffset,
       );
     }
 
     visitBody();
 
-    _resolver.flowAnalysis.flow?.forEach_end();
+    _resolver.flowAnalysis.flow?.forEach_end(offset: bodyEndOffset);
   }
 
   void _forParts(
     AstNodeImpl node,
     ForPartsImpl forParts,
-    void Function() visitBody,
-  ) {
+    void Function() visitBody, {
+    required int rightParenOffset,
+    required int endOffset,
+  }) {
     if (forParts is ForPartsWithDeclarationsImpl) {
-      forParts.variables.accept(_resolver);
+      forParts.variables.accept2(_resolver);
     } else if (forParts is ForPartsWithExpressionImpl) {
-      if (forParts.initialization case var initialization?) {
+      if (forParts.initialization2 case var initialization?) {
         _resolver.analyzeExpression(
           initialization,
           _resolver.operations.unknownType,
@@ -229,14 +270,17 @@ class ForResolver {
         _resolver.popRewrite();
       }
     } else if (forParts is ForPartsWithPatternImpl) {
-      forParts.variables.accept(_resolver);
+      forParts.variables.accept2(_resolver);
     } else {
       throw StateError('Unrecognized for loop parts');
     }
 
-    _resolver.flowAnalysis.for_conditionBegin(node);
+    _resolver.flowAnalysis.for_conditionBegin(
+      node,
+      offset: forParts.leftSeparator.offset,
+    );
 
-    var condition = forParts.condition;
+    var condition = forParts.condition2;
     if (condition != null) {
       _resolver.analyzeExpression(
         condition,
@@ -244,7 +288,7 @@ class ForResolver {
       );
       condition = _resolver.popRewrite()!;
       var whyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(
-        _resolver.flowAnalysis.flow?.getExpressionInfo(condition),
+        _resolver.flowAnalysis.getExpressionInfo(condition),
       );
       _resolver.boolExpressionVerifier.checkForNonBoolCondition(
         condition,
@@ -254,19 +298,25 @@ class ForResolver {
 
     var deadCodeForPartsState = _resolver.nullSafetyDeadCodeVerifier
         .for_conditionEnd();
-    _resolver.flowAnalysis.for_bodyBegin(node, condition);
+    _resolver.flowAnalysis.for_bodyBegin(
+      node,
+      condition,
+      offset: rightParenOffset,
+    );
     visitBody();
 
-    _resolver.flowAnalysis.flow?.for_updaterBegin();
+    _resolver.flowAnalysis.flow?.for_updaterBegin(
+      offset: forParts.rightSeparator.offset,
+    );
     _resolver.nullSafetyDeadCodeVerifier.for_updaterBegin(
-      forParts.updaters,
+      forParts.updaters2,
       deadCodeForPartsState,
     );
-    for (var updater in forParts.updaters) {
+    for (var updater in forParts.updaters2) {
       _resolver.analyzeExpression(updater, _resolver.operations.unknownType);
       _resolver.popRewrite();
     }
 
-    _resolver.flowAnalysis.flow?.for_end();
+    _resolver.flowAnalysis.flow?.for_end(offset: endOffset);
   }
 }

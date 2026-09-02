@@ -15,6 +15,8 @@ namespace dart {
   V(AllocateFloat64x2)                                                         \
   V(AllocateInt32x4)                                                           \
   V(AllocateTypedData)                                                         \
+  V(AllocateOneByteString)                                                     \
+  V(AllocateTwoByteString)                                                     \
   V(AllocateClosure)                                                           \
   V(AllocateContext)                                                           \
   V(AllocateObject)                                                            \
@@ -92,7 +94,8 @@ namespace dart {
   V(InitializeSharedField)                                                     \
   V(FatalError)                                                                \
   V(EnsureDeeplyImmutable)                                                     \
-  V(AllocateBytecodeCoverageArray)
+  V(AllocateBytecodeCoverageArray)                                             \
+  V(ResolveNativeFunction)
 
 // Note: Leaf runtime function have C linkage, so they cannot pass C++ struct
 // values like ObjectPtr.

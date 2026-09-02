@@ -615,7 +615,7 @@ var a = o.A^.a;
 
     newFile(fromUri(fileUri ?? mainFileUri), code.code);
     await initialize();
-    await initialAnalysis;
+    await workspaceAnalysisComplete();
     var res = await getImports(fileUri ?? mainFileUri, code.position.position);
 
     expect(res ?? [], expectedLocations);

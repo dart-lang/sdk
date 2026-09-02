@@ -653,6 +653,35 @@ void typeParameterContext<C extends Color, T extends Object>(C color, T value) {
   }
 }
 
+void dynamicAndVoidContext(dynamic d, void v) {
+  if (d == .blue) print('not ok');
+  //       ^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+  //        ^
+  // [cfe] No type was provided to find the dot shorthand 'blue'.
+  if (d != .blue) print('not ok');
+  //       ^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+  //        ^
+  // [cfe] No type was provided to find the dot shorthand 'blue'.
+  if (v == .blue) print('not ok');
+  //  ^
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [cfe] This expression has type 'void' and can't be used.
+  //       ^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+  //        ^
+  // [cfe] No type was provided to find the dot shorthand 'blue'.
+  if (v != .blue) print('not ok');
+  //  ^
+  // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
+  // [cfe] This expression has type 'void' and can't be used.
+  //       ^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+  //        ^
+  // [cfe] No type was provided to find the dot shorthand 'blue'.
+}
+
 void main() {
   Color color = .blue;
   Integer integer = .one;
@@ -663,6 +692,7 @@ void main() {
   rhsNeedsToBeShorthand(color, integer, integerExt, integerMixin, true);
   rhsNeedsToBeShorthand(color, integer, integerExt, integerMixin, false);
   objectContextType(color, integer, integerExt, integerMixin);
+  dynamicAndVoidContext(color, null);
 
   typeParameterContext(color, integer);
   typeParameterContext(color, Color.red);

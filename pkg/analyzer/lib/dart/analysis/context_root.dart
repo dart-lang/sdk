@@ -30,8 +30,12 @@ abstract class ContextRoot {
   /// directory.
   Iterable<String> get includedPaths;
 
-  /// The analysis options file that should be used when analyzing the files
-  /// within this context root, or `null` if there is no options file.
+  /// The analysis options file that applies at the [root], or `null` if there
+  /// is no such options file.
+  ///
+  /// Files nested within this context root can use other options files. Use
+  /// `AnalysisContext.getAnalysisOptionsForFile` to obtain the options for a
+  /// specific file.
   File? get optionsFile;
 
   /// The packages file that should be used when analyzing the files within this

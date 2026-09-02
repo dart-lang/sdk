@@ -33,9 +33,8 @@ PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_INDEX)
   // Number of one character symbols being predefined in the predefined_ array.
   static constexpr int kNumberOfOneCharCodeSymbols =
       (kMaxPredefinedId - kNullCharId);
-
-  // Offset of Null character which is the predefined character symbol.
-  static constexpr int kNullCharCodeSymbolOffset = 0;
+  static_assert(kNumberOfOneCharCodeSymbols > kMaxUint8,
+                "Should have symbols for all one-byte characters");
 
   static const String& Symbol(intptr_t index) {
     ASSERT((index >= 0) && (index < kMaxPredefinedId));
@@ -82,7 +81,9 @@ PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_INDEX)
 
 // Access methods for handles of the predefined symbols.
 #define DEFINE_SYMBOL_HANDLE_ACCESSOR(symbol, literal)                         \
-  static const String& symbol() { return Symbol(k##symbol##Id); }
+  static const String& symbol() {                                              \
+    return Symbol(k##symbol##Id);                                              \
+  }
   PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_HANDLE_ACCESSOR)
 #undef DEFINE_SYMBOL_HANDLE_ACCESSOR
 

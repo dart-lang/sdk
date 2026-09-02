@@ -215,6 +215,9 @@ struct simd128_value_t {
 #elif defined(_M_ARM64) || defined(__aarch64__)
 #define HOST_ARCH_ARM64 1
 #define ARCH_IS_64_BIT 1
+#if defined(__arm64e__)
+#define HOST_ARCH_ARM64E 1
+#endif
 #elif defined(__riscv)
 #if __SIZEOF_POINTER__ == 4
 #define HOST_ARCH_RISCV32 1
@@ -642,8 +645,8 @@ constexpr double MicrosecondsToMilliseconds(int64_t micros) {
 
 // The USE(x) template is used to silence C++ compiler warnings issued
 // for unused variables.
-template <typename T>
-static inline void USE(T&&) {}
+template <typename... T>
+static DART_FORCE_INLINE void USE(T&&...) {}
 
 using std::bit_cast;
 
@@ -739,6 +742,8 @@ DART_FORCE_INLINE D bit_copy(const S& source) {
 
 #if defined(TARGET_ARCH_ARM)
 #define kTargetArchitectureName "arm"
+#elif defined(TARGET_ARCH_ARM64E)
+#define kTargetArchitectureName "arm64e"
 #elif defined(TARGET_ARCH_ARM64)
 #define kTargetArchitectureName "arm64"
 #elif defined(TARGET_ARCH_IA32)

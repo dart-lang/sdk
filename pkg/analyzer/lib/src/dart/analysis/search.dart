@@ -221,10 +221,10 @@ class FindDeclarations {
 
   Future<void> compute([CancellationToken? cancellationToken]) async {
     if (!onlyAnalyzed) {
-      performance.run('discoverAvailableFiles', (performance) {
-        for (var driver in drivers) {
-          driver.discoverAvailableFiles();
-        }
+      await performance.runAsync('discoverAvailableFiles', (performance) {
+        return Future.wait(
+          drivers.map((driver) => driver.discoverAvailableFiles()),
+        );
       });
     }
 
@@ -248,7 +248,7 @@ class FindDeclarations {
 }
 
 /// Visitor that adds [SearchResult]s for references to the [import].
-class ImportElementReferencesVisitor extends RecursiveAstVisitor<void> {
+class ImportElementReferencesVisitor extends RecursiveAstVisitor2<void> {
   final List<SearchResult> results = <SearchResult>[];
 
   final LibraryImport import;
@@ -264,10 +264,86 @@ class ImportElementReferencesVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitConstructorTypeReference(ConstructorTypeReference node) {
+    if (importedElements.contains(node.element)) {
+      var prefixFragment = import.prefix;
+      var importPrefix = node.importPrefix;
+      if (prefixFragment == null) {
+        if (importPrefix == null) {
+          _addResult(node.offset, 0);
+        }
+      } else if (importPrefix != null &&
+          importPrefix.element == prefixFragment.element) {
+        var offset = importPrefix.offset;
+        var end = importPrefix.period.end;
+        _addResult(offset, end - offset);
+      }
+    }
+
+    node.importPrefix?.accept2(this);
+    node.typeArguments?.accept2(this);
+  }
+
+  @override
+  void visitDotShorthandMethodInvocation(DotShorthandMethodInvocation node) {
+    var element = switch (node.resolution) {
+      ExecutableInvocationResolution(:var element) => element.baseElement,
+      InvalidInvocationResolution(
+        recovery: ExecutableInvocationResolution(:var element),
+      ) =>
+        element.baseElement,
+      _ => null,
+    };
+    if (import.prefix == null && importedElements.contains(element)) {
+      _addResult(node.name.offset, 0);
+    }
+    node.typeArguments?.accept2(this);
+    node.argumentList.accept2(this);
+  }
+
+  @override
+  void visitDotShorthandNameExpression(DotShorthandNameExpression node) {
+    var element = switch (node.resolution) {
+      NamedReadResolutionWithElement(:var element) => element.baseElement,
+      InvalidNamedReadResolution(
+        recovery: NamedReadResolutionWithElement(:var element),
+      ) =>
+        element.baseElement,
+      _ => null,
+    };
+    if (import.prefix == null && importedElements.contains(element)) {
+      _addResult(node.name.offset, 0);
+    }
+  }
+
+  @override
   void visitExportDirective(ExportDirective node) {}
 
   @override
   void visitImportDirective(ImportDirective node) {}
+
+  @override
+  void visitImportPrefixedFunctionInvocation(
+    ImportPrefixedFunctionInvocation node,
+  ) {
+    var element = switch (node.resolution) {
+      ExecutableInvocationResolution(:var element) => element.baseElement,
+      InvalidInvocationResolution(
+        recovery: ExecutableInvocationResolution(:var element),
+      ) =>
+        element.baseElement,
+      _ => null,
+    };
+    var prefixFragment = import.prefix;
+    if (importedElements.contains(element) &&
+        prefixFragment != null &&
+        node.importPrefix.element == prefixFragment.element) {
+      var offset = node.importPrefix.offset;
+      _addResult(offset, node.importPrefix.period.end - offset);
+    }
+    node.typeArguments?.accept2(this);
+    node.argumentList.accept2(this);
+  }
 
   @override
   void visitNamedType(NamedType node) {
@@ -288,8 +364,26 @@ class ImportElementReferencesVisitor extends RecursiveAstVisitor<void> {
       }
     }
 
-    node.importPrefix?.accept(this);
-    node.typeArguments?.accept(this);
+    node.importPrefix?.accept2(this);
+    node.typeArguments?.accept2(this);
+  }
+
+  @override
+  void visitReceiverMethodInvocation(ReceiverMethodInvocation node) {
+    var element = switch (node.resolution) {
+      ExecutableInvocationResolution(:var element) => element.baseElement,
+      InvalidInvocationResolution(
+        recovery: ExecutableInvocationResolution(:var element),
+      ) =>
+        element.baseElement,
+      _ => null,
+    };
+    if (import.prefix == null && importedElements.contains(element)) {
+      _addResult(node.name.offset, 0);
+    }
+    node.receiver.accept2(this);
+    node.typeArguments?.accept2(this);
+    node.argumentList.accept2(this);
   }
 
   @override
@@ -299,14 +393,14 @@ class ImportElementReferencesVisitor extends RecursiveAstVisitor<void> {
     }
     if (import.prefix != null) {
       if (node.element == import.prefix?.element) {
-        var parent = node.parent;
+        var parent = node.parent2;
         if (parent is PrefixedIdentifier && parent.prefix == node) {
-          var element = parent.writeOrReadElement?.baseElement;
+          var element = parent.writeOrReadElement2?.baseElement;
           if (importedElements.contains(element)) {
             _addResultForPrefix(node, parent.identifier);
           }
         }
-        if (parent is MethodInvocation && parent.target == node) {
+        if (parent is MethodInvocation && parent.target2 == node) {
           var element = parent.methodName.element?.baseElement;
           if (importedElements.contains(element)) {
             _addResultForPrefix(node, parent.methodName);
@@ -314,11 +408,28 @@ class ImportElementReferencesVisitor extends RecursiveAstVisitor<void> {
         }
       }
     } else {
-      var element = node.writeOrReadElement?.baseElement;
+      var element = node.writeOrReadElement2?.baseElement;
       if (importedElements.contains(element)) {
         _addResult(node.offset, 0);
       }
     }
+  }
+
+  @override
+  void visitUnqualifiedFunctionInvocation(UnqualifiedFunctionInvocation node) {
+    var element = switch (node.resolution) {
+      ExecutableInvocationResolution(:var element) => element.baseElement,
+      InvalidInvocationResolution(
+        recovery: ExecutableInvocationResolution(:var element),
+      ) =>
+        element.baseElement,
+      _ => null,
+    };
+    if (import.prefix == null && importedElements.contains(element)) {
+      _addResult(node.name.offset, 0);
+    }
+    node.typeArguments?.accept2(this);
+    node.argumentList.accept2(this);
   }
 
   void _addResult(int offset, int length) {
@@ -387,7 +498,7 @@ class Search {
     }
 
     var checkedLibraries = <FileState>{};
-    for (var file in _filesForSearch()) {
+    for (var file in await _filesForSearch()) {
       if (!file.definedClassMemberNames.contains(name)) {
         continue;
       }
@@ -509,7 +620,7 @@ class Search {
             n is FunctionBody ||
             n is TopLevelVariableDeclaration ||
             n is SwitchExpression ||
-            n.parent is CompilationUnit,
+            n.parent2 is CompilationUnit,
       );
     } else if (element is LibraryElementImpl) {
       return _searchReferences_Library(element);
@@ -520,7 +631,7 @@ class Search {
     } else if (element is TypeParameterElement) {
       return _searchReferences_Local(
         element,
-        (n) => n.parent is CompilationUnit,
+        (n) => n.parent2 is CompilationUnit,
       );
     }
     return const <SearchResult>[];
@@ -565,7 +676,7 @@ class Search {
     }
 
     var checkedLibraries = <FileState>{};
-    for (var file in _filesForSearch()) {
+    for (var file in await _filesForSearch()) {
       var libraryFile = file.kind.library?.file;
       if (libraryFile == null || !checkedLibraries.add(libraryFile)) {
         continue;
@@ -599,7 +710,7 @@ class Search {
 
     // Check the index of every file that references the element name.
     List<SearchResult> results = [];
-    for (var file in _filesForSearch()) {
+    for (var file in await _filesForSearch()) {
       if (!file.referencedNames.contains(name)) {
         continue;
       }
@@ -677,7 +788,7 @@ class Search {
     // Prepare the list of files that reference one of the names that can
     // syntactically denote the element.
     if (!name.startsWith('_')) {
-      for (var file in _filesForSearch()) {
+      for (var file in await _filesForSearch()) {
         if (referenceNames.any(file.referencedNames.contains)) {
           files.add(file);
         }
@@ -739,12 +850,12 @@ class Search {
   }) async {
     List<DirectSubtypeWithMembers> results = [];
 
-    _driver.discoverAvailableFiles();
+    await _driver.discoverAvailableFiles();
 
     var subtypingFiles = _driver.fsState.getFilesSubtypingName(name);
 
     if (subtypingFiles != null) {
-      for (var file in _filesForSearch()) {
+      for (var file in await _filesForSearch()) {
         if (!subtypingFiles.contains(file)) {
           continue;
         }
@@ -760,8 +871,8 @@ class Search {
     return results;
   }
 
-  Iterable<FileState> _filesForSearch() {
-    _driver.discoverAvailableFiles();
+  Future<List<FileState>> _filesForSearch() async {
+    await _driver.discoverAvailableFiles();
 
     return _driver.ownedFiles?.filesFor(_driver) ?? const <FileState>[];
   }
@@ -838,7 +949,7 @@ class Search {
   Future<List<SearchResult>> _searchReferences_CompilationUnit(
     LibraryFragmentImpl fragment,
   ) async {
-    _driver.discoverAvailableFiles();
+    await _driver.discoverAvailableFiles();
 
     var source = fragment.source;
     var file = source.tryCast<FileSource>()?.file;
@@ -917,18 +1028,81 @@ class Search {
     }
     if (getter != null) {
       await _addResults(results, getter, const {
-        IndexRelationKind.IS_REFERENCED_BY: SearchResultKind.READ,
+        IndexRelationKind.IS_REFERENCED_BY: SearchResultKind.REFERENCE,
         IndexRelationKind.IS_REFERENCED_BY_PATTERN_FIELD:
             SearchResultKind.REFERENCE_IN_PATTERN_FIELD,
-        IndexRelationKind.IS_INVOKED_BY: SearchResultKind.INVOCATION,
+        IndexRelationKind.IS_INVOKED_BY: SearchResultKind.READ,
       });
     }
     if (setter != null) {
       await _addResults(results, setter, const {
-        IndexRelationKind.IS_REFERENCED_BY: SearchResultKind.WRITE,
+        IndexRelationKind.IS_REFERENCED_BY: SearchResultKind.REFERENCE,
+        IndexRelationKind.IS_INVOKED_BY: SearchResultKind.WRITE,
       });
     }
-    return results;
+
+    // A non-invocation reference, such as an import combinator, can be
+    // recorded against both synthetic accessors of the field.
+    var uniqueResults = {
+      for (var result in results)
+        (
+          result.enclosingFragment,
+          result.kind,
+          result.offset,
+          result.length,
+          result.isResolved,
+          result.isQualified,
+        ): result,
+    }.values;
+
+    var resultsByLocation =
+        <(Fragment, int, int, bool, bool), List<SearchResult>>{};
+    for (var result in uniqueResults) {
+      var key = (
+        result.enclosingFragment,
+        result.offset,
+        result.length,
+        result.isResolved,
+        result.isQualified,
+      );
+      resultsByLocation.add(key, result);
+    }
+
+    var mergedResults = <SearchResult>[];
+    for (var locationResults in resultsByLocation.values) {
+      SearchResult? readResult;
+      SearchResult? writeResult;
+      for (var result in locationResults) {
+        switch (result.kind) {
+          case SearchResultKind.READ:
+            readResult = result;
+          case SearchResultKind.WRITE:
+            writeResult = result;
+          default:
+            mergedResults.add(result);
+        }
+      }
+      if (readResult != null && writeResult != null) {
+        mergedResults.add(
+          SearchResult._(
+            readResult.enclosingFragment,
+            SearchResultKind.READ_WRITE,
+            readResult.offset,
+            readResult.length,
+            readResult.isResolved,
+            readResult.isQualified,
+          ),
+        );
+      } else {
+        if (readResult != null) {
+          mergedResults.add(readResult);
+        }
+        if (writeResult != null) {
+          mergedResults.add(writeResult);
+        }
+      }
+    }
+    return mergedResults;
   }
 
   Future<List<SearchResult>> _searchReferences_Function(Element element) async {
@@ -969,7 +1143,7 @@ class Search {
       var unitResult = await _driver.getResolvedUnit(unitPath);
       if (unitResult is ResolvedUnitResult) {
         var visitor = ImportElementReferencesVisitor(element, libraryFragment);
-        unitResult.unit.accept(visitor);
+        unitResult.unit.accept2(visitor);
         results.addAll(visitor.results);
       }
     }
@@ -1026,13 +1200,13 @@ class Search {
     }
     var unit = unitResult.unit;
 
-    var node = unit.nodeCovering(offset: element.firstFragment.nameOffset!);
+    var node = unit.nodeCovering2(offset: element.firstFragment.nameOffset!);
     if (node == null) {
       return const <SearchResult>[];
     }
 
     // Prepare the enclosing node.
-    var enclosingNode = node.thisOrAncestorMatching(
+    var enclosingNode = node.thisOrAncestorMatching2(
       (node) => isRootNode(node) || node is CompilationUnit,
     );
     assert(
@@ -1047,7 +1221,7 @@ class Search {
 
     // Find the matches.
     var visitor = _LocalReferencesVisitor({element}, unit.declaredFragment!);
-    enclosingNode.accept(visitor);
+    enclosingNode.accept2(visitor);
     return visitor.results;
   }
 
@@ -1058,7 +1232,7 @@ class Search {
     if (element.enclosingElement is LocalFunctionElement) {
       results.addAll(
         await _searchReferences_Local(element, (node) {
-          return node is Block || node.parent is CompilationUnit;
+          return node is Block || node.parent2 is CompilationUnit;
         }),
       );
     } else {
@@ -1089,7 +1263,7 @@ class Search {
     }
 
     // Prepare the root node for search.
-    var rootNode = bindElement.node.thisOrAncestorMatching(
+    var rootNode = bindElement.node.thisOrAncestorMatching2(
       (node) =>
           node is SwitchExpression ||
           node is Block ||
@@ -1104,7 +1278,7 @@ class Search {
       transitiveVariables.toSet(),
       bindElement.firstFragment.libraryFragment,
     );
-    rootNode.accept(visitor);
+    rootNode.accept2(visitor);
     return visitor.results;
   }
 
@@ -1122,7 +1296,7 @@ class Search {
       var unitResult = await _driver.getResolvedUnit(unitPath);
       if (unitResult is ResolvedUnitResult) {
         var visitor = _LocalReferencesVisitor({element}, libraryFragment);
-        unitResult.unit.accept(visitor);
+        unitResult.unit.accept2(visitor);
         results.addAll(visitor.results);
       }
     }
@@ -1749,7 +1923,7 @@ class _IndexRequest {
 /// Visitor that adds [SearchResult]s for local elements of a block, method,
 /// class or a library - labels, local functions, local variables and
 /// parameters, type parameters, import prefixes.
-class _LocalReferencesVisitor extends RecursiveAstVisitor<void> {
+class _LocalReferencesVisitor extends RecursiveAstVisitor2<void> {
   final List<SearchResult> results = <SearchResult>[];
 
   final Set<Element> elements;
@@ -1767,10 +1941,104 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitCascadeMethodInvocation(CascadeMethodInvocation node) {
+    _visitNamedFunctionInvocation(node);
+  }
+
+  @override
+  void visitCascadePropertyAssignmentTarget(
+    CascadePropertyAssignmentTarget node,
+  ) {
+    var readMatches = switch (node.read) {
+      NamedReadResolutionWithElement(:var element) => _matches(element),
+      _ => false,
+    };
+    var writeMatches = switch (node.write) {
+      NamedWriteResolutionWithElement(:var element) => _matches(element),
+      _ => false,
+    };
+    var kind = switch ((readMatches, writeMatches)) {
+      (true, true) => SearchResultKind.READ_WRITE,
+      (true, false) => SearchResultKind.READ,
+      (false, true) => SearchResultKind.WRITE,
+      (false, false) => null,
+    };
+    if (kind != null) {
+      _addResultImpl(node.propertyName, kind, isQualified: true);
+    }
+  }
+
+  @override
+  void visitCascadePropertyExtraction(CascadePropertyExtraction node) {
+    var result = switch (node.resolution) {
+      GetterInvocationResolution(:var element) => (
+        element,
+        SearchResultKind.INVOCATION,
+      ),
+      ExecutableTearOffResolution(:var element) => (
+        element,
+        SearchResultKind.REFERENCE,
+      ),
+      _ => null,
+    };
+    if (result != null && _matches(result.$1)) {
+      _addResultImpl(node.propertyName, result.$2, isQualified: true);
+    }
+  }
+
+  @override
+  void visitDotShorthandMethodInvocation(DotShorthandMethodInvocation node) {
+    _visitNamedFunctionInvocation(node);
+  }
+
+  @override
+  void visitDotShorthandNameExpression(DotShorthandNameExpression node) {
+    var result = switch (node.resolution) {
+      GetterInvocationResolution(:var element) => (
+        element: element,
+        kind: SearchResultKind.INVOCATION,
+      ),
+      ExecutableTearOffResolution(:var element) => (
+        element: element,
+        kind: SearchResultKind.REFERENCE,
+      ),
+      _ => null,
+    };
+    if (result != null && _matches(result.element)) {
+      _addResultImpl(node.name, result.kind, isQualified: true);
+    }
+  }
+
+  @override
   void visitExtensionOverride(ExtensionOverride node) {
-    node.importPrefix?.accept(this);
-    node.typeArguments?.accept(this);
-    node.argumentList.accept(this);
+    node.importPrefix?.accept2(this);
+    node.typeArguments?.accept2(this);
+    node.argumentList.accept2(this);
+  }
+
+  @override
+  void visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
+    var element = switch (node.write) {
+      InvalidNamedWriteResolution(:var candidates) =>
+        candidates.isEmpty ? null : candidates.first,
+      NamedWriteResolutionWithElement(:var element) => element,
+      _ => null,
+    };
+    if (elements.contains(element)) {
+      _addResultImpl(
+        node.identifier2,
+        SearchResultKind.WRITE,
+        isQualified: false,
+      );
+    }
+    node.iterable2.accept2(this);
+  }
+
+  @override
+  void visitImportPrefixedFunctionInvocation(
+    ImportPrefixedFunctionInvocation node,
+  ) {
+    _visitNamedFunctionInvocation(node);
   }
 
   @override
@@ -1804,8 +2072,57 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor<void> {
       _addResult(node.name, SearchResultKind.REFERENCE);
     }
 
-    node.importPrefix?.accept(this);
-    node.typeArguments?.accept(this);
+    node.importPrefix?.accept2(this);
+    node.typeArguments?.accept2(this);
+  }
+
+  @override
+  void visitReceiverMethodInvocation(ReceiverMethodInvocation node) {
+    _visitNamedFunctionInvocation(node);
+  }
+
+  @override
+  void visitReceiverPropertyAssignmentTarget(
+    ReceiverPropertyAssignmentTarget node,
+  ) {
+    var readMatches = switch (node.read) {
+      NamedReadResolutionWithElement(:var element) => _matches(element),
+      _ => false,
+    };
+    var writeMatches = switch (node.write) {
+      NamedWriteResolutionWithElement(:var element) => _matches(element),
+      _ => false,
+    };
+
+    var kind = switch ((readMatches, writeMatches)) {
+      (true, true) => SearchResultKind.READ_WRITE,
+      (true, false) => SearchResultKind.READ,
+      (false, true) => SearchResultKind.WRITE,
+      (false, false) => null,
+    };
+    if (kind != null) {
+      _addResultImpl(node.propertyName, kind, isQualified: true);
+    }
+    node.receiver.accept2(this);
+  }
+
+  @override
+  void visitReceiverPropertyExtraction(ReceiverPropertyExtraction node) {
+    var result = switch (node.resolution) {
+      GetterInvocationResolution(:var element) => (
+        element,
+        SearchResultKind.INVOCATION,
+      ),
+      ExecutableTearOffResolution(:var element) => (
+        element,
+        SearchResultKind.REFERENCE,
+      ),
+      _ => null,
+    };
+    if (result != null && _matches(result.$1)) {
+      _addResultImpl(node.propertyName, result.$2, isQualified: true);
+    }
+    node.receiver.accept2(this);
   }
 
   @override
@@ -1815,7 +2132,7 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor<void> {
     }
     var element = node.element;
     if (elements.contains(element)) {
-      var parent = node.parent;
+      var parent = node.parent2;
       SearchResultKind kind = SearchResultKind.REFERENCE;
       if (element is LocalFunctionElement) {
         if (parent is MethodInvocation && parent.methodName == node) {
@@ -1840,8 +2157,46 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor<void> {
     }
   }
 
+  @override
+  void visitUnqualifiedFunctionInvocation(UnqualifiedFunctionInvocation node) {
+    _visitNamedFunctionInvocation(node);
+  }
+
+  @override
+  void visitUnqualifiedNameAssignmentTarget(
+    UnqualifiedNameAssignmentTarget node,
+  ) {
+    var readMatches = switch (node.read) {
+      NamedReadResolutionWithElement(:var element) => _matches(element),
+      _ => false,
+    };
+    var writeMatches = switch (node.write) {
+      NamedWriteResolutionWithElement(:var element) => _matches(element),
+      _ => false,
+    };
+
+    var kind = switch ((readMatches, writeMatches)) {
+      (true, true) => SearchResultKind.READ_WRITE,
+      (true, false) => SearchResultKind.READ,
+      (false, true) => SearchResultKind.WRITE,
+      (false, false) => null,
+    };
+
+    if (kind == null) {
+      if (node.write case InvalidNamedWriteResolution(:var candidates)) {
+        if (candidates.any(_matches)) {
+          kind = SearchResultKind.REFERENCE;
+        }
+      }
+    }
+
+    if (kind != null) {
+      _addResult(node, kind);
+    }
+  }
+
   void _addResult(SyntacticEntity entity, SearchResultKind kind) {
-    bool isQualified = entity is AstNode && entity.parent is Label;
+    bool isQualified = entity is AstNode && entity.parent2 is Label;
     _addResultImpl(entity, kind, isQualified: isQualified);
   }
 
@@ -1868,6 +2223,29 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor<void> {
 
   void _addResultToken(Token token, SearchResultKind kind) {
     _addResultImpl(token, kind, isQualified: true);
+  }
+
+  bool _matches(Element element) =>
+      elements.contains(element) ||
+      element is PropertyAccessorElement && elements.contains(element.variable);
+
+  void _visitNamedFunctionInvocation(NamedFunctionInvocation node) {
+    var element = switch (node.resolution) {
+      ExecutableInvocationResolution(:var element) => element.baseElement,
+      InvalidInvocationResolution(
+        recovery: ExecutableInvocationResolution(:var element),
+      ) =>
+        element.baseElement,
+      _ => null,
+    };
+    if (element != null && _matches(element)) {
+      _addResultImpl(
+        node.name,
+        SearchResultKind.INVOCATION,
+        isQualified: node is! UnqualifiedFunctionInvocation,
+      );
+    }
+    node.visitChildren2(this);
   }
 }
 

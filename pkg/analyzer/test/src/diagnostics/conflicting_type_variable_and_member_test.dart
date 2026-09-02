@@ -79,10 +79,9 @@ class A<_> {
 ''');
   }
 
-  test_method_wildcard_preWildcards() async {
+  test_method_wildcard_beforeWildcardVariables() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.4
-// (pre wildcard-variables)
+// %before-language-feature: wildcard-variables
 
 class A<_> {
 //      ^

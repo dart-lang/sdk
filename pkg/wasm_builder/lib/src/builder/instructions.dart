@@ -4894,6 +4894,17 @@ class InstructionsBuilder with Builder<ir.Instructions> {
     _add(ir.V128Instruction.i8x16AllTrue);
   }
 
+  void i8x16_bitmask() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128],
+        const [ir.NumType.i32],
+        trace: const ['i8x16.bitmask'],
+      ),
+    );
+    _add(ir.V128Instruction.i8x16Bitmask);
+  }
+
   void i16x8_all_true() {
     assert(
       _verifyTypes(
@@ -4903,6 +4914,17 @@ class InstructionsBuilder with Builder<ir.Instructions> {
       ),
     );
     _add(ir.V128Instruction.i16x8AllTrue);
+  }
+
+  void i16x8_bitmask() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128],
+        const [ir.NumType.i32],
+        trace: const ['i16x8.bitmask'],
+      ),
+    );
+    _add(ir.V128Instruction.i16x8Bitmask);
   }
 
   void i32x4_all_true() {
@@ -4916,6 +4938,17 @@ class InstructionsBuilder with Builder<ir.Instructions> {
     _add(ir.V128Instruction.i32x4AllTrue);
   }
 
+  void i32x4_bitmask() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128],
+        const [ir.NumType.i32],
+        trace: const ['i32x4.bitmask'],
+      ),
+    );
+    _add(ir.V128Instruction.i32x4Bitmask);
+  }
+
   void i64x2_all_true() {
     assert(
       _verifyTypes(
@@ -4925,6 +4958,17 @@ class InstructionsBuilder with Builder<ir.Instructions> {
       ),
     );
     _add(ir.V128Instruction.i64x2AllTrue);
+  }
+
+  void i64x2_bitmask() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128],
+        const [ir.NumType.i32],
+        trace: const ['i64x2.bitmask'],
+      ),
+    );
+    _add(ir.V128Instruction.i64x2Bitmask);
   }
 
   void i8x16_shuffle(List<int> lanes) {

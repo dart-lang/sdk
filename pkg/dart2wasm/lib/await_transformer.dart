@@ -336,7 +336,7 @@ class _AwaitTransformer extends Transformer {
     // variables before the updates.
     //
     // temps.first is the flag 'first'.
-    List<Variable> temps = <Variable>[
+    List<SyntheticVariable> temps = <SyntheticVariable>[
       SyntheticVariable(initializer: BoolLiteral(true), isSynthesized: false),
     ];
     List<Statement> loopBody = <Statement>[];
@@ -393,7 +393,8 @@ class _AwaitTransformer extends Transformer {
     labeled.body = WhileStatement(BoolLiteral(true), Block(loopBody))
       ..parent = labeled;
     return Block(<Statement>[
-      for (Variable temp in temps) VariableStatement(VariableDeclaration(temp)),
+      for (SyntheticVariable temp in temps)
+        VariableStatement(VariableDeclaration(temp)),
       labeled,
     ]);
   }
@@ -660,27 +661,8 @@ class _ExpressionTransformer extends Transformer {
   /// [statements] to a fresh empty list before transforming those children.
   List<Statement> statements = <Statement>[];
 
-  /// The number of currently live named intermediate values.
-  ///
-  /// This index is used to allocate names to temporary values.  Because
-  /// children are visited right-to-left, names are assigned in reverse order
-  /// of index.
-  ///
-  /// When an assignment is emitted into [statements] to name an expression
-  /// before visiting its children, the index is not immediately reserved
-  /// because a child can freely use the same name as its parent.  In practice,
-  /// this will be the rightmost named child.
-  ///
-  /// After visiting the children of a named expression, [nameIndex] is set to
-  /// indicate one more live value (the value of the expression) than before
-  /// visiting the expression.
-  ///
-  /// After visiting the children of an expression that is not named,
-  /// [nameIndex] may still account for names of subexpressions.
-  int nameIndex = 0;
-
   /// Variables created for temporaries.
-  final List<Variable> variables = <Variable>[];
+  final List<SyntheticVariable> variables = <SyntheticVariable>[];
 
   final _AwaitTransformer _statementTransformer;
 
@@ -699,40 +681,20 @@ class _ExpressionTransformer extends Transformer {
   /// Name an expression by emitting an assignment to a temporary variable.
   Expression name(Expression expr) {
     final DartType type = expr.getStaticType(staticTypeContext);
-    final Variable temp = allocateTemporary(nameIndex, type);
+    final Variable temp = createTemporary(type);
     statements.add(ExpressionStatement(VariableSet(temp, expr)));
-    return castVariableGet(temp, type);
+    return VariableGet(temp);
   }
 
-  Variable allocateTemporary(int index, [DartType type = const DynamicType()]) {
-    if (variables.length > index) {
-      // Re-using a temporary. Re-type it to dynamic if we detect reuse with
-      // different type.
-      if (variables[index].type != const DynamicType() &&
-          variables[index].type != type) {
-        variables[index].type = const DynamicType();
-      }
-      return variables[index];
-    }
-    for (var i = variables.length; i <= index; i++) {
-      variables.add(
-        SyntheticVariable(
-          cosmeticName: ":async_temporary_$i",
-          type: type,
-          isSynthesized: false,
-        ),
-      );
-    }
-    return variables[index];
-  }
-
-  /// Casts a [VariableGet] with `as dynamic` if its type is not `dynamic`.
-  Expression castVariableGet(Variable variable, DartType type) {
-    Expression expr = VariableGet(variable);
-    if (type != const DynamicType()) {
-      expr = AsExpression(expr, DynamicType());
-    }
-    return expr;
+  Variable createTemporary(DartType type) {
+    variables.add(
+      SyntheticVariable(
+        cosmeticName: ":async_temporary_${variables.length}",
+        type: type,
+        isSynthesized: false,
+      ),
+    );
+    return variables.last;
   }
 
   // Expressions
@@ -809,7 +771,6 @@ class _ExpressionTransformer extends Transformer {
   Expression nullary(Expression expr) {
     if (seenAwait) {
       expr = name(expr);
-      ++nameIndex;
     }
     return expr;
   }
@@ -836,7 +797,6 @@ class _ExpressionTransformer extends Transformer {
     // evaluated after an await to its right.
     if (seenAwait && !expr.variable.isFinal && !expr.variable.isConst) {
       result = name(expr);
-      ++nameIndex;
     }
     return result;
   }
@@ -855,25 +815,12 @@ class _ExpressionTransformer extends Transformer {
     // a temporary variable before transforming the children.
     final Expression result = shouldName ? name(expr) : expr;
 
-    // 2. Remember the number of live temporaries before transforming the
-    // children.
-    final int index = nameIndex;
-
-    // 3. Transform the children. Initially they do not have an await in a
+    // 2. Transform the children. Initially they do not have an await in a
     // sibling to their right.
     seenAwait = false;
     action();
 
-    // 4. If the expression was named then the variables used for children are
-    // no longer live but the variable used for the expression is. On the other
-    // hand, a sibling to the left (yet to be processed) cannot reuse any of
-    // the variables used here, as the assignments in the children (here) would
-    // overwrite assignments in the siblings to the left, possibly before the
-    // use of the overwritten values.
     if (shouldName) {
-      if (index + 1 > nameIndex) {
-        nameIndex = index + 1;
-      }
       seenAwait = true;
     }
 
@@ -1131,7 +1078,7 @@ class _ExpressionTransformer extends Transformer {
     final Block rightBody = blockOf(rightStatements);
     final InterfaceType type = staticTypeContext.typeEnvironment.coreTypes
         .boolRawType(staticTypeContext.nonNullable);
-    final Variable result = allocateTemporary(nameIndex, type);
+    final Variable result = createTemporary(type);
     rightBody.addStatement(
       ExpressionStatement(VariableSet(result, expr.right)),
     );
@@ -1158,7 +1105,6 @@ class _ExpressionTransformer extends Transformer {
       ),
     );
 
-    nameIndex += 1;
     seenAwait = seenAwait || rightAwait;
     return VariableGet(result);
   }
@@ -1169,16 +1115,11 @@ class _ExpressionTransformer extends Transformer {
     // evaluated.
     final bool shouldName = seenAwait;
 
-    final int savedNameIndex = nameIndex;
-
     final thenStatements = <Statement>[];
     seenAwait = false;
     expr.then = delimit(() => transform(expr.then), thenStatements)
       ..parent = expr;
     final thenAwait = seenAwait;
-
-    final thenNameIndex = nameIndex;
-    nameIndex = savedNameIndex;
 
     final List<Statement> otherwiseStatements = [];
     seenAwait = false;
@@ -1187,12 +1128,6 @@ class _ExpressionTransformer extends Transformer {
       otherwiseStatements,
     )..parent = expr;
     final otherwiseAwait = seenAwait;
-
-    // Only one side of this branch will get executed at a time, so just make
-    // sure we have enough temps for either, not both at the same time.
-    if (thenNameIndex > nameIndex) {
-      nameIndex = thenNameIndex;
-    }
 
     if (thenStatements.isEmpty && otherwiseStatements.isEmpty) {
       // Easy case: neither then nor otherwise emitted any statements.
@@ -1211,7 +1146,7 @@ class _ExpressionTransformer extends Transformer {
     // } else {
     //   t = [right];
     // }
-    final result = allocateTemporary(nameIndex, expr.staticType);
+    final result = createTemporary(expr.staticType);
     final thenBody = blockOf(thenStatements);
     final otherwiseBody = blockOf(otherwiseStatements);
     thenBody.addStatement(ExpressionStatement(VariableSet(result, expr.then)));
@@ -1224,9 +1159,8 @@ class _ExpressionTransformer extends Transformer {
     seenAwait = false;
     branch.condition = transform(branch.condition)..parent = branch;
 
-    nameIndex += 1;
     seenAwait = seenAwait || thenAwait || otherwiseAwait;
-    return castVariableGet(result, expr.staticType);
+    return VariableGet(result);
   }
 
   // Await expression
@@ -1259,7 +1193,7 @@ class _ExpressionTransformer extends Transformer {
   @override
   TreeNode visitLet(Let expr) {
     final body = transform(expr.body);
-    final Variable variable = expr.variable;
+    final SyntheticVariable variable = expr.variable;
     if (seenAwait) {
       // There is an await in the body of `let var x = initializer in body` or
       // to its right.  We will produce the sequence of statements:
@@ -1270,15 +1204,8 @@ class _ExpressionTransformer extends Transformer {
       //
       // and return the body's value.
       statements.add(VariableStatement(VariableDeclaration(variable)));
-      var index = nameIndex;
       seenAwait = false;
-      variable.initializer = transform(variable.initializer!)
-        ..parent = variable;
-      // Temporaries used in the initializer or the body are not live but the
-      // temporary used for the body is.
-      if (index + 1 > nameIndex) {
-        nameIndex = index + 1;
-      }
+      expr.value = transform(expr.value)..parent = variable;
       seenAwait = true;
       return body;
     } else {
@@ -1287,8 +1214,7 @@ class _ExpressionTransformer extends Transformer {
       return transformTreeNode(expr, () {
         // The body has already been translated.
         expr.body = body..parent = expr;
-        variable.initializer = transform(variable.initializer!)
-          ..parent = variable;
+        expr.value = transform(expr.value)..parent = variable;
       });
     }
   }

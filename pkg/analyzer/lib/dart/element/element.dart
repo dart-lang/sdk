@@ -57,8 +57,10 @@ import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source.dart';
+import 'package:analyzer/src/dart/ast/ast.dart' show ToBeDeprecated;
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart' show Name;
 import 'package:analyzer/src/dart/resolver/scope.dart';
+import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 export 'package:analyzer/src/dart/element/inheritance_manager3.dart' show Name;
@@ -3383,7 +3385,16 @@ abstract class VariableElement implements Element {
   ///
   /// Is `null` if this variable is not a constant, or does not have the
   /// initializer or the default value specified.
+  @ToBeDeprecated('Use constantInitializer2 instead.')
   Expression? get constantInitializer;
+
+  /// The constant initializer for this constant variable, or the default
+  /// value for this formal parameter.
+  ///
+  /// Is `null` if this variable is not a constant, or does not have the
+  /// initializer or the default value specified.
+  @experimental
+  Expression? get constantInitializer2;
 
   @override
   VariableFragment get firstFragment;

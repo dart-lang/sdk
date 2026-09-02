@@ -23,6 +23,7 @@ import '../fragment/getter/declaration.dart';
 import '../fragment/setter/declaration.dart';
 import '../kernel/hierarchy/class_member.dart';
 import '../kernel/hierarchy/members_builder.dart';
+import '../kernel/internal_ast.dart';
 import '../kernel/kernel_helper.dart';
 import '../kernel/member_covariance.dart';
 import '../kernel/type_algorithms.dart';
@@ -584,9 +585,9 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
   /// field value.
   ///
   /// This is only used for instance fields.
-  List<Initializer> buildInitializer(
+  List<InternalInitializer> buildInitializer(
     int fileOffset,
-    Expression value, {
+    InternalExpression value, {
     required bool isSynthetic,
   }) {
     return _introductoryField!.buildInitializer(

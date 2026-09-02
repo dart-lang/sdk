@@ -6,6 +6,7 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analysis_server_plugin/src/utilities/selection.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -69,17 +70,26 @@ class ConvertToCascade extends ResolvedCorrectionProducer {
 
       Token? previousOperator;
       Token? semicolon;
-      Expression? initializerToParenthesize;
+      Expression? initializer;
       var previous = cascadeStatements[index - 1];
       if (previous is ExpressionStatement) {
         semicolon = previous.semicolon;
-        previousOperator = (index == 1)
-            ? _getTargetAndOperator(previous.expression)?.operator
-            : null;
+        if (index == 1) {
+          previousOperator = _getTargetAndOperator(previous.expression)
+              ?.operator;
+          if (previous.expression case AssignmentExpression(
+            :var rightHandSide,
+          )) {
+            initializer = rightHandSide;
+          }
+        }
       } else if (previous is VariableDeclarationStatement) {
         // Single variable declaration.
         if (previous.variables.variables.length != 1) {
           return;
+        }
+        if (index == 1) {
+          initializer = previous.variables.variables.first.initializer;
         }
         semicolon = previous.endToken;
         // If the initializer is an AssignmentExpression, the cascade operator
@@ -107,6 +117,11 @@ class ConvertToCascade extends ResolvedCorrectionProducer {
       var targetReplacement = expression is CascadeExpression ? '' : '.';
 
       await builder.addDartFileEdit(file, (builder) {
+        if (initializer != null &&
+            initializer.precedence < Precedence.postfix) {
+          builder.addSimpleInsertion(initializer.offset, '(');
+          builder.addSimpleInsertion(initializer.end, ')');
+        }
         if (previousOperator != null) {
           builder.addSimpleInsertion(previousOperator.offset, '.');
         }

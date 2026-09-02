@@ -2,11 +2,15 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+import("../../build/dart/dart_action.gni")
 import("../../runtime/runtime_args.gni")
 import("../aot_snapshot.gni")
 
 group("modular_aot_compiler") {
-  public_deps = [ ":modular_aot_compiler_snapshot" ]
+  public_deps = [
+    ":modular_aot_compiler_snapshot",
+    ":modular_aot_platform",
+  ]
 }
 
 aot_snapshot("modular_aot_compiler_snapshot") {
@@ -18,7 +22,27 @@ aot_snapshot("modular_aot_compiler_snapshot") {
   # dartaotruntime has dart_product_config applied to it, so it is built in
   # product mode in both release and product builds, and is only built in debug
   # mode in debug builds. The following line ensures that the dartaotruntime and
-  # modular_aot_compiler.dart.snapshot in an SDK build are always compatible with
-  # each other.
+  # modular_aot_compiler.dart.snapshot in an SDK build are always compatible
+  # with each other.
   force_product_mode = !dart_debug
+}
+
+prebuilt_dart_action("modular_aot_platform") {
+  deps = [ "../../runtime/vm:vm_platform" ]
+
+  script = "../../pkg/native_compiler/bin/modular_aot_compiler.dart"
+  packages = "../../.dart_tool/package_config.json"
+  platform_dill = "$root_out_dir/vm_platform.dill"
+  output = "$root_gen_dir/platform.dylib"
+
+  inputs = [ platform_dill ]
+  outputs = [ output ]
+
+  args = [
+    "--compile-platform",
+    "--platform=" + rebase_path(platform_dill, root_build_dir),
+    "--output=" + rebase_path(output, root_build_dir),
+  ]
+
+  vm_args = [ "--enable-asserts" ]
 }

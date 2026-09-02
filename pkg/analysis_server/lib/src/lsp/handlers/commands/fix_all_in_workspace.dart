@@ -2,17 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'dart:async';
+
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/simple_edit_handler.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
-import 'package:analysis_server/src/lsp/mapping.dart';
+import 'package:analysis_server/src/lsp/operations/fix_all_in_workspace.dart';
 import 'package:analysis_server/src/lsp/progress.dart';
-import 'package:analysis_server/src/lsp/source_edits.dart';
-import 'package:analysis_server/src/services/correction/bulk_fix_processor.dart';
-import 'package:analysis_server_plugin/src/correction/dart_change_workspace.dart';
 
 abstract class AbstractFixAllInWorkspaceCommandHandler
     extends SimpleEditCommandHandler<LspAnalysisServer> {
@@ -34,8 +32,13 @@ abstract class AbstractFixAllInWorkspaceCommandHandler
     ProgressReporter progress,
     CancellationToken cancellationToken,
   ) async {
+    // This implementation is similar to the `dart/workspace/fixes/get`, but
+    // whereas that returns fixes, this command applies them (by sending a
+    // reverse-request to the editor). It is a command, instead of a request.
+
     // Use the editor capabilities, since we're building edits to send to the
-    // editor regardless of who called us.
+    // editor regardless of who called us. This is different to the
+    // `dart/workspace/fixes/get` request where we return them to the caller.
     var clientCapabilities = server.editorClientCapabilities;
     if (clientCapabilities == null) {
       return serverNotInitializedError;
@@ -55,40 +58,25 @@ abstract class AbstractFixAllInWorkspaceCommandHandler
       );
     }
 
-    var workspace = DartChangeWorkspace(await server.currentSessions);
-    var processor = BulkFixProcessor(
-      server.instrumentationService,
-      workspace,
-      byteStore: server.byteStore,
+    var operation = FixAllInWorkspaceOperation(
+      server: server,
+      message: message,
+      cancellationToken: cancellationToken,
+      requireConfirmation: requireConfirmation,
     );
 
+    // ignore: unawaited_futures
     progress.begin('Computing fixes…');
     try {
-      var result = await processor.fixErrors(
-        server.contextManager.analysisContexts,
-      );
-
-      var errorMessage = result.errorMessage;
-      if (errorMessage != null) {
-        return error(ErrorCodes.RequestFailed, errorMessage);
-      }
-
-      var changeBuilder = result.builder!;
-      var change = changeBuilder.sourceChange;
-      if (change.edits.isEmpty) {
-        return success(null);
-      }
-
-      var edit = createWorkspaceEdit(
-        server,
-        clientCapabilities,
-        change,
-        annotateChanges: requireConfirmation
-            ? ChangeAnnotations.requireConfirmation
-            : ChangeAnnotations.include,
-      );
-      return await sendWorkspaceEditToClient(edit);
+      var result = await operation.compute();
+      return await result.mapResult((edit) async {
+        if (edit == null) {
+          return success(null);
+        }
+        return await sendWorkspaceEditToClient(edit);
+      });
     } finally {
+      // ignore: unawaited_futures
       progress.end();
     }
   }

@@ -613,9 +613,24 @@ void f(A a) {
 }
 ''');
 
-    var node = result.findNode.propertyAccess('.foo');
+    var node = result.findNode.receiverPropertyExtraction('.foo');
     assertResolvedNodeText(node, r'''
-PropertyAccess
+ReceiverPropertyExtraction
+  receiver: ParenthesizedExpression
+    leftParenthesis: (
+    expression2: SimpleIdentifier
+      token: a
+      element: <testLibrary>::@function::f::@formalParameter::a
+      staticType: A
+    rightParenthesis: )
+    staticType: A
+  operator: .
+  propertyName: foo
+  resolution: ExecutableTearOffResolution
+    element: dart:foo::@class::A::@method::foo
+    type: void Function()
+  staticType: void Function()
+V1: PropertyAccess
   target: ParenthesizedExpression
     leftParenthesis: (
     expression: SimpleIdentifier
@@ -1112,6 +1127,26 @@ void f() {
   foo();
 //^^^
 // [diag.sdkVersionSince] This API is available since SDK 2.15.0, but constraints '>=2.14.0' don't guarantee it.
+}
+''');
+  }
+
+  test_topLevelGetter_invalidWrite() async {
+    _addDartFooLibrary(r'''
+import 'dart:_internal';
+
+@Since('2.15')
+int get foo => 0;
+''');
+
+    writeTestPackagePubspecYamlFile(pubspecYamlContent(sdkVersion: '>=2.14.0'));
+    await resolveTestCodeWithDiagnostics('''
+import 'dart:foo';
+
+void f() {
+  foo = 0;
+//^^^
+// [diag.assignmentToFinal] 'foo' can't be used as a setter because it's final.
 }
 ''');
   }

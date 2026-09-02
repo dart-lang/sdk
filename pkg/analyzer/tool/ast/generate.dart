@@ -17,6 +17,8 @@ void main() async {
   await GeneratedContent.generateAll(pkg_root.packageRoot, await allTargets);
 }
 
+const _astVersionPolicy = _AstVersionPolicy.v2MigrationPublishExperimental;
+
 Future<List<GeneratedContent>> get allTargets async {
   var astLibrary = await _getAstLibrary();
   return <GeneratedContent>[
@@ -99,6 +101,70 @@ Future<LibraryElement> _getAstLibrary() async {
   return libraryResult.element;
 }
 
+void _writeV2ExperimentalAnnotation(StringBuffer out) {
+  if (_astVersionPolicy.v2ApiIsExperimental) {
+    out.write('@experimental\n');
+  }
+}
+
+enum _AstNodeApi { v1, v2, shared }
+
+enum _AstVersionPolicy {
+  /// Generates only the canonical, unsuffixed V1 AST API, with no V2 tree view
+  /// or V1 compatibility projection.
+  v1Only,
+
+  /// Generates the dual tree views used while migrating SDK code: V2 is the
+  /// experimental implementation view, and V1 projection APIs are deprecated
+  /// so that their remaining SDK uses are reported.
+  v2MigrationSdk,
+
+  /// Generates the dual tree views for publication while V2 is experimental;
+  /// V1 projection APIs are marked `@ToBeDeprecated` rather than directing
+  /// clients to experimental replacements.
+  v2MigrationPublishExperimental,
+
+  /// Generates the dual tree views once V2 is stable: V2 is the public
+  /// replacement view, and V1 projection APIs are deprecated.
+  v2MigrationPublishStable,
+
+  /// Generates the canonical, unsuffixed V1 tree after rebaseline; any
+  /// retained V2 APIs are aliases to that tree, not a separate tree view.
+  v2AliasesOnly;
+
+  bool get hasV2TreeApi {
+    return switch (this) {
+      v1Only => false,
+      v2MigrationSdk => true,
+      v2MigrationPublishExperimental => true,
+      v2MigrationPublishStable => true,
+      v2AliasesOnly => false,
+    };
+  }
+
+  bool get v2ApiIsExperimental {
+    return switch (this) {
+      v1Only => false,
+      v2MigrationSdk => true,
+      v2MigrationPublishExperimental => true,
+      v2MigrationPublishStable => false,
+      v2AliasesOnly => false,
+    };
+  }
+
+  String v1AnnotationCode(String v2Name) {
+    return switch (this) {
+      v1Only || v2AliasesOnly => throw StateError(
+        'No V1 migration annotations in $this.',
+      ),
+      v2MigrationSdk ||
+      v2MigrationPublishStable => "@Deprecated('Use $v2Name instead')",
+      v2MigrationPublishExperimental =>
+        "@ToBeDeprecated('Use $v2Name instead')",
+    };
+  }
+}
+
 class _AstVisitorGenerator {
   final LibraryElement astLibrary;
 
@@ -118,6 +184,7 @@ part of 'ast.dart';
 
   Future<String> generate() async {
     _writeAstVisitor();
+    _writeAstVisitor2();
 
     var resultPath = normalize(
       join(_analyzerPath, 'lib', 'src', 'dart', 'ast', 'ast.g.dart'),
@@ -139,10 +206,50 @@ part of 'ast.dart';
 /// - ThrowingAstVisitor which implements every visit method by throwing an
 ///   exception.
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+${_astVersionPolicy.v1AnnotationCode('AstVisitor2')}
 abstract class AstVisitor<R> {
 ''');
     for (var node in astLibrary.nodes) {
-      if (node.isConcrete) {
+      if (node.isConcrete && node.isV1ViewNode) {
+        var name = node.apiElementName;
+        if (node.isExperimental) {
+          out.writeln('  @experimental');
+        }
+        if (node.isDeprecated) {
+          out.writeln('  // ignore: deprecated_member_use_from_same_package');
+        }
+        out.writeln('''
+  R? visit$name($name node);
+''');
+      }
+    }
+    out.writeln('}');
+  }
+
+  void _writeAstVisitor2() {
+    if (!_astVersionPolicy.hasV2TreeApi) {
+      return;
+    }
+    out.write('''
+/// An object that can be used to visit an AST structure.
+///
+/// Clients may not extend, implement or mix-in this class. There are classes
+/// that implement this interface that provide useful default behaviors in
+/// `package:analyzer/dart/ast/visitor.dart`. A couple of the most useful
+/// include
+/// - SimpleAstVisitor2 which implements every visit method by doing nothing,
+/// - RecursiveAstVisitor2 which causes every node in a structure to be visited,
+///   and
+/// - ThrowingAstVisitor2 which implements every visit method by throwing an
+///   exception.
+''');
+    _writeV2ExperimentalAnnotation(out);
+    out.write('''
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract class AstVisitor2<R> {
+''');
+    for (var node in astLibrary.nodes) {
+      if (node.isConcrete && node.isV2ViewNode) {
         var name = node.apiElementName;
         if (node.isExperimental) {
           out.writeln('  @experimental');
@@ -179,10 +286,15 @@ part of 'visitor.dart';
   Future<String> generate() async {
     _writeGeneralizing();
     _writeRecursive();
+    _writeRecursive2();
     _writeSimple();
+    _writeSimple2();
     _writeTimed();
+    _writeTimed2();
     _writeThrowing();
+    _writeThrowing2();
     _writeUnifying();
+    _writeUnifying2();
 
     var resultPath = normalize(
       join(_analyzerPath, 'lib', 'dart', 'ast', 'visitor.g.dart'),
@@ -209,6 +321,7 @@ part of 'visitor.dart';
 /// invoked and will cause the children of the visited node to not be visited.
 ///
 /// Clients may extend this class.
+@ToBeDeprecated()
 class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   /// Initialize a newly created visitor.
   const GeneralizingAstVisitor();
@@ -219,6 +332,9 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   }
 ''');
     for (var node in astLibrary.nodes) {
+      if (!node.isV1ViewNode) {
+        continue;
+      }
       var name = node.apiElementName;
       var superNode = node.superNode;
       if (superNode == null) {
@@ -262,7 +378,7 @@ R? visit$name($name node) => visit${superNode.apiElementName}(node);
   }
 
   void _writeRecursive() {
-    out.writeln(r'''
+    out.write(r'''
 /// An AST visitor that will recursively visit all of the nodes in an AST
 /// structure. For example, using an instance of this class to visit a [Block]
 /// will also cause all of the statements in the block to be visited.
@@ -273,12 +389,14 @@ R? visit$name($name node) => visit${superNode.apiElementName}(node);
 /// visited.
 ///
 /// Clients may extend this class.
-class RecursiveAstVisitor<R> implements AstVisitor<R> {
+''');
+    out.writeln(_astVersionPolicy.v1AnnotationCode('RecursiveAstVisitor2'));
+    out.writeln(r'''class RecursiveAstVisitor<R> implements AstVisitor<R> {
   /// Initialize a newly created visitor.
   const RecursiveAstVisitor();
 ''');
     for (var node in astLibrary.nodes) {
-      if (node.isConcrete) {
+      if (node.isConcrete && node.isV1ViewNode) {
         var name = node.apiElementName;
         if (node.isExperimental) {
           out.writeln('  @experimental');
@@ -298,7 +416,84 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
     out.writeln('}');
   }
 
+  void _writeRecursive2() {
+    if (!_astVersionPolicy.hasV2TreeApi) {
+      return;
+    }
+    out.write(r'''
+/// An AST visitor that will recursively visit all of the nodes in an AST
+/// structure. For example, using an instance of this class to visit a [Block]
+/// will also cause all of the statements in the block to be visited.
+///
+/// Subclasses that override a visit method must either invoke the overridden
+/// visit method or must explicitly ask the visited node to visit its children.
+/// Failure to do so will cause the children of the visited node to not be
+/// visited.
+///
+/// Clients may extend this class.
+''');
+    _writeV2ExperimentalAnnotation(out);
+    out.writeln(r'''
+class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
+  /// Initialize a newly created visitor.
+  const RecursiveAstVisitor2();
+''');
+    for (var node in astLibrary.nodes) {
+      if (node.isConcrete && node.isV2ViewNode) {
+        var name = node.apiElementName;
+        if (node.isExperimental) {
+          out.writeln('  @experimental');
+        }
+        out.writeln('  @override');
+        if (node.isDeprecated) {
+          out.writeln('  // ignore: deprecated_member_use_from_same_package');
+        }
+        out.writeln('''
+  R? visit$name($name node) {
+    node.visitChildren2(this);
+    return null;
+  }
+''');
+      }
+    }
+    out.writeln('}');
+  }
+
   void _writeSimple() {
+    out.writeln('''
+/// An AST visitor that will do nothing when visiting an AST node. It is
+/// intended to be a superclass for classes that use the visitor pattern
+/// primarily as a dispatch mechanism (and hence don't need to recursively visit
+/// a whole structure) and that only need to visit a small number of node types.
+///
+/// Clients may extend this class.
+${_astVersionPolicy.v1AnnotationCode('SimpleAstVisitor2')}
+class SimpleAstVisitor<R> implements AstVisitor<R> {
+  /// Initialize a newly created visitor.
+  const SimpleAstVisitor();
+''');
+    for (var node in astLibrary.nodes) {
+      if (node.isConcrete && node.isV1ViewNode) {
+        var name = node.apiElementName;
+        if (node.isExperimental) {
+          out.writeln('  @experimental');
+        }
+        out.writeln('  @override');
+        if (node.isDeprecated) {
+          out.writeln('  // ignore: deprecated_member_use_from_same_package');
+        }
+        out.writeln('''
+  R? visit$name($name node) => null;
+''');
+      }
+    }
+    out.writeln('}');
+  }
+
+  void _writeSimple2() {
+    if (!_astVersionPolicy.hasV2TreeApi) {
+      return;
+    }
     out.write('''
 /// An AST visitor that will do nothing when visiting an AST node. It is
 /// intended to be a superclass for classes that use the visitor pattern
@@ -306,12 +501,15 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
 /// a whole structure) and that only need to visit a small number of node types.
 ///
 /// Clients may extend this class.
-class SimpleAstVisitor<R> implements AstVisitor<R> {
+    ''');
+    _writeV2ExperimentalAnnotation(out);
+    out.writeln('''
+class SimpleAstVisitor2<R> implements AstVisitor2<R> {
   /// Initialize a newly created visitor.
-  const SimpleAstVisitor();
+  const SimpleAstVisitor2();
 ''');
     for (var node in astLibrary.nodes) {
-      if (node.isConcrete) {
+      if (node.isConcrete && node.isV2ViewNode) {
         var name = node.apiElementName;
         if (node.isExperimental) {
           out.writeln('  @experimental');
@@ -329,7 +527,7 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   }
 
   void _writeThrowing() {
-    out.writeln(r'''
+    out.write(r'''
 /// An AST visitor that will throw an exception if any of the visit methods that
 /// are invoked have not been overridden. It is intended to be a superclass for
 /// classes that implement the visitor pattern and need to (a) override all of
@@ -337,7 +535,9 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
 /// want to catch when any other visit methods have been invoked.
 ///
 /// Clients may extend this class.
-class ThrowingAstVisitor<R> implements AstVisitor<R> {
+''');
+    out.writeln(_astVersionPolicy.v1AnnotationCode('ThrowingAstVisitor2'));
+    out.write(r'''class ThrowingAstVisitor<R> implements AstVisitor<R> {
   /// Initialize a newly created visitor.
   const ThrowingAstVisitor();
 
@@ -350,7 +550,52 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
   }
 ''');
     for (var node in astLibrary.nodes) {
-      if (node.isConcrete) {
+      if (node.isConcrete && node.isV1ViewNode) {
+        var name = node.apiElementName;
+        if (node.isExperimental) {
+          out.writeln('  @experimental');
+        }
+        out.writeln('  @override');
+        if (node.isDeprecated) {
+          out.writeln('  // ignore: deprecated_member_use_from_same_package');
+        }
+        out.writeln('''
+  R? visit$name($name node) => _throw(node);
+''');
+      }
+    }
+    out.writeln('}');
+  }
+
+  void _writeThrowing2() {
+    if (!_astVersionPolicy.hasV2TreeApi) {
+      return;
+    }
+    out.write(r'''
+/// An AST visitor that will throw an exception if any of the visit methods that
+/// are invoked have not been overridden. It is intended to be a superclass for
+/// classes that implement the visitor pattern and need to (a) override all of
+/// the visit methods or (b) need to override a subset of the visit method and
+/// want to catch when any other visit methods have been invoked.
+///
+/// Clients may extend this class.
+''');
+    _writeV2ExperimentalAnnotation(out);
+    out.writeln(r'''
+class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
+  /// Initialize a newly created visitor.
+  const ThrowingAstVisitor2();
+
+  Never _throw(AstNode node) {
+    var typeName = node.runtimeType.toString();
+    if (typeName.endsWith('Impl')) {
+      typeName = typeName.substring(0, typeName.length - 4);
+    }
+    throw Exception('Missing implementation of visit$typeName');
+  }
+''');
+    for (var node in astLibrary.nodes) {
+      if (node.isConcrete && node.isV2ViewNode) {
         var name = node.apiElementName;
         if (node.isExperimental) {
           out.writeln('  @experimental');
@@ -368,11 +613,13 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
   }
 
   void _writeTimed() {
-    out.writeln(r'''
+    out.write(r'''
 /// An AST visitor that captures visit call timings.
 ///
 /// Clients may not extend, implement or mix-in this class.
-class TimedAstVisitor<T> implements AstVisitor<T> {
+''');
+    out.writeln(_astVersionPolicy.v1AnnotationCode('TimedAstVisitor2'));
+    out.writeln(r'''class TimedAstVisitor<T> implements AstVisitor<T> {
   /// The base visitor whose visit methods will be timed.
   final AstVisitor<T> _baseVisitor;
 
@@ -385,7 +632,53 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
     : stopwatch = watch ?? Stopwatch();
 ''');
     for (var node in astLibrary.nodes) {
-      if (node.isConcrete) {
+      if (node.isConcrete && node.isV1ViewNode) {
+        var name = node.apiElementName;
+        if (node.isExperimental) {
+          out.writeln('  @experimental');
+        }
+        out.writeln('  @override');
+        if (node.isDeprecated) {
+          out.writeln('  // ignore: deprecated_member_use_from_same_package');
+        }
+        out.writeln('''
+  T? visit$name($name node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visit$name(node);
+    stopwatch.stop();
+    return result;
+  }
+''');
+      }
+    }
+    out.writeln('}');
+  }
+
+  void _writeTimed2() {
+    if (!_astVersionPolicy.hasV2TreeApi) {
+      return;
+    }
+    out.write(r'''
+/// An AST visitor that captures visit call timings.
+///
+/// Clients may not extend, implement or mix-in this class.
+''');
+    _writeV2ExperimentalAnnotation(out);
+    out.writeln(r'''
+class TimedAstVisitor2<T> implements AstVisitor2<T> {
+  /// The base visitor whose visit methods will be timed.
+  final AstVisitor2<T> _baseVisitor;
+
+  /// Collects elapsed time for visit calls.
+  final Stopwatch stopwatch;
+
+  /// Initialize a newly created visitor to time calls to the given base
+  /// visitor's visits.
+  TimedAstVisitor2(this._baseVisitor, [Stopwatch? watch])
+    : stopwatch = watch ?? Stopwatch();
+''');
+    for (var node in astLibrary.nodes) {
+      if (node.isConcrete && node.isV2ViewNode) {
         var name = node.apiElementName;
         if (node.isExperimental) {
           out.writeln('  @experimental');
@@ -408,7 +701,7 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   }
 
   void _writeUnifying() {
-    out.writeln(r'''
+    out.write(r'''
 /// An AST visitor that will recursively visit all of the nodes in an AST
 /// structure (like instances of the class [RecursiveAstVisitor]). In addition,
 /// every node will also be visited by using a single unified [visitNode]
@@ -420,7 +713,9 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
 /// visited.
 ///
 /// Clients may extend this class.
-class UnifyingAstVisitor<R> implements AstVisitor<R> {
+''');
+    out.writeln(_astVersionPolicy.v1AnnotationCode('UnifyingAstVisitor2'));
+    out.writeln(r'''class UnifyingAstVisitor<R> implements AstVisitor<R> {
   /// Initialize a newly created visitor.
   const UnifyingAstVisitor();
 
@@ -430,7 +725,53 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
   }
 ''');
     for (var node in astLibrary.nodes) {
-      if (node.isConcrete) {
+      if (node.isConcrete && node.isV1ViewNode) {
+        var name = node.apiElementName;
+        if (node.isExperimental) {
+          out.writeln('  @experimental');
+        }
+        out.writeln('  @override');
+        if (node.isDeprecated) {
+          out.writeln('  // ignore: deprecated_member_use_from_same_package');
+        }
+        out.writeln('''
+  R? visit$name($name node) => visitNode(node);
+''');
+      }
+    }
+    out.writeln('}');
+  }
+
+  void _writeUnifying2() {
+    if (!_astVersionPolicy.hasV2TreeApi) {
+      return;
+    }
+    out.write(r'''
+/// An AST visitor that will recursively visit all of the nodes in an AST
+/// structure (like instances of the class [RecursiveAstVisitor2]). In addition,
+/// every node will also be visited by using a single unified [visitNode]
+/// method.
+///
+/// Subclasses that override a visit method must either invoke the overridden
+/// visit method or explicitly invoke the more general [visitNode] method.
+/// Failure to do so will cause the children of the visited node to not be
+/// visited.
+///
+/// Clients may extend this class.
+''');
+    _writeV2ExperimentalAnnotation(out);
+    out.writeln(r'''
+class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
+  /// Initialize a newly created visitor.
+  const UnifyingAstVisitor2();
+
+  R? visitNode(AstNode node) {
+    node.visitChildren2(this);
+    return null;
+  }
+''');
+    for (var node in astLibrary.nodes) {
+      if (node.isConcrete && node.isV2ViewNode) {
         var name = node.apiElementName;
         if (node.isExperimental) {
           out.writeln('  @experimental');
@@ -467,7 +808,9 @@ part of 'linter_visitor.dart';
 
   Future<String> generate() async {
     _writeLinterVisitor();
+    _writeLinterVisitor2();
     _writeRuleVisitorRegistryImpl();
+    _writeRuleVisitorRegistryImpl2();
 
     var resultPath = normalize(
       join(_analyzerPath, 'lib', 'src', 'lint', 'linter_visitor.g.dart'),
@@ -478,6 +821,7 @@ part of 'linter_visitor.dart';
   void _writeLinterVisitor() {
     out.write('''
 /// The AST visitor that runs handlers for nodes from the [_registry].
+${_astVersionPolicy.v1AnnotationCode('AnalysisRuleVisitor2')}
 class AnalysisRuleVisitor implements AstVisitor<void> {
   final RuleVisitorRegistryImpl _registry;
 
@@ -532,6 +876,7 @@ class AnalysisRuleVisitor implements AstVisitor<void> {
     buffer.write('Exception while using a \${visitor.runtimeType} to visit a ');
     AstNode? currentNode = node;
     var first = true;
+    // AnalysisRuleVisitor uses V1 traversal, so keep this parent walk in V1.
     while (currentNode != null) {
       if (first) {
         first = false;
@@ -548,7 +893,7 @@ class AnalysisRuleVisitor implements AstVisitor<void> {
   }
 ''');
     for (var node in astLibrary.nodes) {
-      if (node.isConcrete) {
+      if (node.isConcrete && node.isV1ViewNode) {
         var name = node.apiElementName;
         if (node.isExperimental) {
           out.writeln('  @experimental');
@@ -568,14 +913,113 @@ class AnalysisRuleVisitor implements AstVisitor<void> {
     out.writeln('}');
   }
 
+  void _writeLinterVisitor2() {
+    out.write('''
+/// The AST visitor that runs [AstVisitor2] handlers from the [_registry].
+class AnalysisRuleVisitor2 implements AstVisitor2<void> {
+  final RuleVisitorRegistryImpl2 _registry;
+
+  /// Whether exceptions should be propagated (by rethrowing them).
+  final bool _shouldPropagateExceptions;
+
+  AnalysisRuleVisitor2(
+    this._registry, {
+    bool shouldPropagateExceptions = false,
+  }) : _shouldPropagateExceptions = shouldPropagateExceptions;
+
+  void afterLibrary() {
+    _runAfterLibrarySubscriptions(_registry._afterLibrary);
+  }
+
+  void _runAfterLibrarySubscriptions(
+    List<_AfterLibrarySubscription> subscriptions,
+  ) {
+    for (var subscription in subscriptions) {
+      var timer = subscription.timer;
+      timer?.start();
+      subscription.callback();
+      timer?.stop();
+    }
+  }
+
+  void _runSubscriptions<T extends AstNode>(
+    T node,
+    List<_Subscription2<T>> subscriptions,
+  ) {
+    for (var subscription in subscriptions) {
+      var timer = subscription.timer;
+      timer?.start();
+      try {
+        node.accept2(subscription.visitor);
+      } catch (exception, stackTrace) {
+        _logException(node, subscription.rule, exception, stackTrace);
+        if (_shouldPropagateExceptions) {
+          rethrow;
+        }
+      }
+      timer?.stop();
+    }
+  }
+
+  /// Handles exceptions that occur during the execution of an [AnalysisRule].
+  void _logException(
+    AstNode node,
+    AbstractAnalysisRule visitor,
+    Object exception,
+    StackTrace stackTrace,
+  ) {
+    var buffer = StringBuffer();
+    buffer.write('Exception while using a \${visitor.runtimeType} to visit a ');
+    AstNode? currentNode = node;
+    var first = true;
+    while (currentNode != null) {
+      if (first) {
+        first = false;
+      } else {
+        buffer.write(' in ');
+      }
+      buffer.write(currentNode.runtimeType);
+      currentNode = currentNode.parent2;
+    }
+    // TODO(39284): should this exception be silent?
+    AnalysisEngine.instance.instrumentationService.logException(
+      SilentException(buffer.toString(), exception, stackTrace),
+    );
+  }
+''');
+    for (var node in astLibrary.nodes) {
+      if (node.isConcrete && node.isV2ViewNode) {
+        var name = node.apiElementName;
+        if (node.isExperimental) {
+          out.writeln('  @experimental');
+        }
+        out.writeln('  @override');
+        if (node.isDeprecated) {
+          out.writeln('  // ignore: deprecated_member_use_from_same_package');
+        }
+        out.writeln('''
+  void visit$name($name node) {
+    _runSubscriptions(node, _registry._for$name);
+    node.visitChildren2(this);
+  }
+''');
+      }
+    }
+    out.writeln('}');
+  }
+
   void _writeRuleVisitorRegistryImpl() {
     out.write('''
+${_astVersionPolicy.v1AnnotationCode('RuleVisitorRegistryImpl2')}
 class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
   final bool _enableTiming;
   final List<_AfterLibrarySubscription> _afterLibrary = [];
+  bool _hasNodeProcessors = false;
+
+  bool get hasNodeProcessors => _hasNodeProcessors;
 
   RuleVisitorRegistryImpl({required bool enableTiming})
-  : _enableTiming = enableTiming;
+    : _enableTiming = enableTiming;
 
   /// Get the timer associated with the given [rule].
   Stopwatch? _getTimer(AbstractAnalysisRule rule) {
@@ -594,7 +1038,7 @@ class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
   }
 ''');
     for (var node in astLibrary.nodes) {
-      if (node.isConcrete) {
+      if (node.isConcrete && node.isV1ViewNode) {
         var name = node.apiElementName;
         if (node.isDeprecated) {
           out.writeln('  // ignore: deprecated_member_use_from_same_package');
@@ -609,7 +1053,61 @@ class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
         }
         out.writeln('''
   void add$name(AbstractAnalysisRule rule, AstVisitor visitor) {
+    _hasNodeProcessors = true;
     _for$name.add(_Subscription(rule, visitor, _getTimer(rule)));
+  }
+''');
+      }
+    }
+    out.writeln('}');
+  }
+
+  void _writeRuleVisitorRegistryImpl2() {
+    out.write('''
+class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
+  final bool _enableTiming;
+  final List<_AfterLibrarySubscription> _afterLibrary = [];
+  bool _hasNodeProcessors = false;
+
+  bool get hasNodeProcessors => _hasNodeProcessors;
+
+  RuleVisitorRegistryImpl2({required bool enableTiming})
+    : _enableTiming = enableTiming;
+
+  /// Get the timer associated with the given [rule].
+  Stopwatch? _getTimer(AbstractAnalysisRule rule) {
+    if (_enableTiming) {
+      return analysisRuleTimers.getTimer(rule);
+    } else {
+      return null;
+    }
+  }
+
+  @override
+  void afterLibrary(AbstractAnalysisRule rule, void Function() callback) {
+    _afterLibrary.add(
+      _AfterLibrarySubscription(rule, callback, _getTimer(rule)),
+    );
+  }
+''');
+    for (var node in astLibrary.nodes) {
+      if (node.isConcrete && node.isV2ViewNode) {
+        var name = node.apiElementName;
+        if (node.isDeprecated) {
+          out.writeln('  // ignore: deprecated_member_use_from_same_package');
+        }
+        out.writeln('  final List<_Subscription2<$name>> _for$name = [];');
+
+        out.writeln();
+
+        out.writeln('  @override');
+        if (node.isDeprecated) {
+          out.writeln('  // ignore: deprecated_member_use_from_same_package');
+        }
+        out.writeln('''
+  void add$name(AbstractAnalysisRule rule, AstVisitor2 visitor) {
+    _hasNodeProcessors = true;
+    _for$name.add(_Subscription2(rule, visitor, _getTimer(rule)));
   }
 ''');
       }
@@ -621,11 +1119,13 @@ class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
 class _Node {
   final ClassElement implElement;
   final ClassElement apiElement;
+  final _AstNodeApi api;
   final String apiElementName;
 
   _Node({
     required this.implElement,
     required this.apiElement,
+    required this.api,
     required this.apiElementName,
   });
 
@@ -637,6 +1137,12 @@ class _Node {
 
   bool get isExperimental {
     return apiElement.metadata.hasExperimental;
+  }
+
+  bool get isV1ViewNode => api != _AstNodeApi.v2;
+
+  bool get isV2ViewNode {
+    return _astVersionPolicy.hasV2TreeApi && api != _AstNodeApi.v1;
   }
 
   _Node? get superNode {
@@ -664,6 +1170,7 @@ part of 'rule_visitor_registry.dart';
 
   Future<String> generate() async {
     _writeRuleVisitor();
+    _writeRuleVisitor2();
 
     var resultPath = normalize(
       join(
@@ -686,11 +1193,12 @@ part of 'rule_visitor_registry.dart';
 /// [AbstractAnalysisRule.registerNodeProcessors] and calls `add*` for each of
 /// the node types it needs to visit with an [AstVisitor], which registers that
 /// visitor.
+${_astVersionPolicy.v1AnnotationCode('RuleVisitorRegistry2')}
 abstract class RuleVisitorRegistry {
   void afterLibrary(AbstractAnalysisRule rule, void Function() callback);
 ''');
     for (var node in astLibrary.nodes) {
-      if (node.isConcrete) {
+      if (node.isConcrete && node.isV1ViewNode) {
         var name = node.apiElementName;
         if (node.isExperimental) {
           out.writeln('@experimental');
@@ -700,6 +1208,36 @@ abstract class RuleVisitorRegistry {
         }
         out.writeln('''
 void add$name(AbstractAnalysisRule rule, AstVisitor visitor);
+''');
+      }
+    }
+    out.writeln('}');
+  }
+
+  void _writeRuleVisitor2() {
+    out.write('''
+/// The container to register [AstVisitor2]s for separate AST node types.
+///
+/// Each analysis rule using this visitor API overrides
+/// [AbstractAnalysisRule.registerNodeProcessors2] and calls `add*` for each
+/// node type it needs to visit with an [AstVisitor2].
+''');
+    _writeV2ExperimentalAnnotation(out);
+    out.write('''
+abstract class RuleVisitorRegistry2 {
+  void afterLibrary(AbstractAnalysisRule rule, void Function() callback);
+''');
+    for (var node in astLibrary.nodes) {
+      if (node.isConcrete && node.isV2ViewNode) {
+        var name = node.apiElementName;
+        if (node.isExperimental) {
+          out.writeln('@experimental');
+        }
+        if (node.isDeprecated) {
+          out.writeln("@Deprecated('See ${node.apiElementName} for details')");
+        }
+        out.writeln('''
+void add$name(AbstractAnalysisRule rule, AstVisitor2 visitor);
 ''');
       }
     }
@@ -722,12 +1260,25 @@ extension on ClassElement {
           return _Node(
             implElement: this,
             apiElement: apiElement,
+            api: generateNodeApi,
             apiElementName: apiElementName,
           );
         }
       }
     }
     return null;
+  }
+
+  _AstNodeApi get generateNodeApi {
+    for (var annotation in metadata.annotations) {
+      var value = annotation.computeConstantValue();
+      if (value?.type?.element?.name == 'GenerateNodeImpl') {
+        return _AstNodeApi.values.byName(
+          value!.getField('api')!.variable!.name!,
+        );
+      }
+    }
+    return _AstNodeApi.shared;
   }
 
   /// Whether the class is a subtype of [AstNodeImpl].

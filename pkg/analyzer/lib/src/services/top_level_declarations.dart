@@ -36,7 +36,7 @@ class TopLevelDeclarations {
 
     var analysisDriver = _analysisContext.driver;
     var fsState = analysisDriver.fsState;
-    analysisDriver.discoverAvailableFiles();
+    await analysisDriver.discoverAvailableFiles();
 
     var declarationFile = fsState.getFileForPath(declarationFilePath);
     var declarationPackage = declarationFile.uriProperties.packageName;
@@ -71,10 +71,10 @@ class TopLevelDeclarations {
   /// corresponding top-level variable is returned.
   Future<Map<LibraryElement, Element>> withName(String baseName) async {
     var analysisDriver = _analysisContext.driver;
-    analysisDriver.discoverAvailableFiles();
-
     var fsState = analysisDriver.fsState;
-    var filter = FileStateFilter(fsState.getFileForPath(resolvedUnit.path));
+    var targetFile = fsState.getFileForPath(resolvedUnit.path);
+    var filter = FileStateFilter(targetFile);
+    await analysisDriver.discoverAvailableFilesFor(targetFile);
 
     var result = <LibraryElement, Element>{};
 

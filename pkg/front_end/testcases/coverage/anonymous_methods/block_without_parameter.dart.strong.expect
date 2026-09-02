@@ -16,11 +16,11 @@ static method main() → void {
     }
   }
   {
-    final synthesized core::int anonymous#this = 1;
+    final synthesized core::int anonymous#this##1 = 1;
     Null #t2;
     #L2:
     {
-      anonymous#this;
+      anonymous#this##1;
       {
         #t2 = null;
         break #L2;
@@ -28,11 +28,11 @@ static method main() → void {
     }
   }
   {
-    final synthesized core::int anonymous#this = 1;
+    final synthesized core::int anonymous#this##2 = 1;
     Null #t3;
     #L3:
     {
-      anonymous#this.{core::int::isEven}{core::bool};
+      anonymous#this##2.{core::int::isEven}{core::bool};
       {
         #t3 = null;
         break #L3;
@@ -40,11 +40,11 @@ static method main() → void {
     }
   }
   {
-    final synthesized core::int anonymous#this = 1;
+    final synthesized core::int anonymous#this##3 = 1;
     Null #t4;
     #L4:
     {
-      anonymous#this.{core::int::isEven}{core::bool};
+      anonymous#this##3.{core::int::isEven}{core::bool};
       {
         #t4 = null;
         break #L4;
@@ -52,7 +52,7 @@ static method main() → void {
     }
   }
   {
-    final synthesized core::int anonymous#this = 1;
+    final synthesized core::int anonymous#this##4 = 1;
     core::int #t5;
     #L5:
     {
@@ -63,34 +63,34 @@ static method main() → void {
     }
   }
   {
-    final synthesized core::int anonymous#this = 1;
+    final synthesized core::int anonymous#this##5 = 1;
     core::int #t6;
     #L6:
     {
       {
-        #t6 = anonymous#this;
+        #t6 = anonymous#this##5;
         break #L6;
       }
     }
   }
   {
-    final synthesized core::int anonymous#this = 1;
+    final synthesized core::int anonymous#this##6 = 1;
     core::bool #t7;
     #L7:
     {
       {
-        #t7 = anonymous#this.{core::int::isEven}{core::bool};
+        #t7 = anonymous#this##6.{core::int::isEven}{core::bool};
         break #L7;
       }
     }
   }
   {
-    final synthesized core::int anonymous#this = 1;
+    final synthesized core::int anonymous#this##7 = 1;
     core::bool #t8;
     #L8:
     {
       {
-        #t8 = anonymous#this.{core::int::isEven}{core::bool};
+        #t8 = anonymous#this##7.{core::int::isEven}{core::bool};
         break #L8;
       }
     }

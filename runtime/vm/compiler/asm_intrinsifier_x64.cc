@@ -1503,9 +1503,7 @@ void AsmIntrinsifier::StringBaseCharAt(Assembler* assembler,
   __ j(GREATER_EQUAL, normal_ir_body);
   __ movq(RAX,
           Address(THR, target::Thread::predefined_symbols_address_offset()));
-  __ movq(RAX, Address(RAX, RCX, TIMES_8,
-                       target::Symbols::kNullCharCodeSymbolOffset *
-                           target::kWordSize));
+  __ movq(RAX, Address(RAX, RCX, TIMES_8, 0));
   __ ret();
 
   __ Bind(&try_two_byte_string);
@@ -1524,9 +1522,7 @@ void AsmIntrinsifier::StringBaseCharAt(Assembler* assembler,
   __ j(GREATER_EQUAL, normal_ir_body);
   __ movq(RAX,
           Address(THR, target::Thread::predefined_symbols_address_offset()));
-  __ movq(RAX, Address(RAX, RCX, TIMES_8,
-                       target::Symbols::kNullCharCodeSymbolOffset *
-                           target::kWordSize));
+  __ movq(RAX, Address(RAX, RCX, TIMES_8, 0));
   __ ret();
 
   __ Bind(normal_ir_body);
@@ -1605,6 +1601,12 @@ static void TryAllocateString(Assembler* assembler,
                               Label* failure,
                               Register length_reg) {
   ASSERT(cid == kOneByteStringCid || cid == kTwoByteStringCid);
+
+  if (!UseInlineAllocation()) {
+    __ jmp(failure);
+    return;
+  }
+
   // _Mint length: call to runtime to produce error.
   __ BranchIfNotSmi(length_reg, failure);
   // negative length: call to runtime to produce error.

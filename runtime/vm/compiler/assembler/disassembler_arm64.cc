@@ -993,6 +993,22 @@ void ARM64Decoder::DecodeSystem(Instr* instr) {
     Format(instr, "clrex");
     return;
   }
+  if (instr->InstructionBits() == BTI) {
+    Format(instr, "bti");
+    return;
+  }
+  if (instr->InstructionBits() == BTI_C) {
+    Format(instr, "bti c");
+    return;
+  }
+  if (instr->InstructionBits() == BTI_J) {
+    Format(instr, "bti j");
+    return;
+  }
+  if (instr->InstructionBits() == BTI_JC) {
+    Format(instr, "bti jc");
+    return;
+  }
 
   if (instr->InstructionBits() == kDMB_ISH) {
     Format(instr, "dmb ish");
@@ -1017,20 +1033,67 @@ void ARM64Decoder::DecodeSystem(Instr* instr) {
 }
 
 void ARM64Decoder::DecodeUnconditionalBranchReg(Instr* instr) {
-  if ((instr->Bits(0, 5) == 0) && (instr->Bits(10, 5) == 0) &&
-      (instr->Bits(16, 5) == 0x1f)) {
-    switch (instr->Bits(21, 4)) {
+  if ((instr->Bits(12, 4) == 0) && (instr->Bits(16, 5) == 0x1f)) {
+    switch (instr->Bits(21, 2)) {
       case 0:
-        Format(instr, "br 'rn");
+        if (instr->Bit(11) == 0) {
+          Format(instr, "br 'rn");
+        } else {
+          if (instr->Bit(24) == 0) {
+            if (instr->Bit(10) == 0) {
+              Format(instr, "braaz 'rn");
+            } else {
+              Format(instr, "brabz 'rn");
+            }
+          } else {
+            if (instr->Bit(10) == 0) {
+              Format(instr, "braa 'rn, 'rt");
+            } else {
+              Format(instr, "brab 'rn, 'rt");
+            }
+          }
+        }
         break;
       case 1:
-        Format(instr, "blr 'rn");
+        if (instr->Bit(11) == 0) {
+          Format(instr, "blr 'rn");
+        } else {
+          if (instr->Bit(24) == 0) {
+            if (instr->Bit(10) == 0) {
+              Format(instr, "blraaz 'rn");
+            } else {
+              Format(instr, "blrabz 'rn");
+            }
+          } else {
+            if (instr->Bit(10) == 0) {
+              Format(instr, "blraa 'rn, 'rt");
+            } else {
+              Format(instr, "blrab 'rn, 'rt");
+            }
+          }
+        }
         break;
       case 2:
-        if (instr->RnField() == LINK_REGISTER) {
-          Format(instr, "ret");
+        if (instr->Bit(11) == 0) {
+          if (instr->RnField() == LINK_REGISTER) {
+            Format(instr, "ret");
+          } else {
+            Format(instr, "ret 'rn");
+          }
         } else {
-          Format(instr, "ret 'rn");
+          if (instr->Bit(10) == 0) {
+            if (instr->RnField() == LINK_REGISTER) {
+              Format(instr, "retaa");
+            } else {
+              Format(instr, "retaa 'rn");
+            }
+          } else {
+            if (instr->RnField() == LINK_REGISTER) {
+              Format(instr, "retab");
+            } else {
+              Format(instr, "retab 'rn");
+            }
+          }
         }
         break;
       default:
@@ -1398,6 +1461,8 @@ void ARM64Decoder::DecodeSIMDThreeSame(Instr* instr) {
     }
   } else if ((U == 1) && (opcode == 0x3)) {
     Format(instr, "veor 'vd, 'vn, 'vm");
+  } else if ((U == 1) && (opcode == 0x11)) {
+    Format(instr, "vceq'vsz 'vd, 'vn, 'vm");
   } else if ((U == 0) && (opcode == 0x10)) {
     Format(instr, "vadd'vsz 'vd, 'vn, 'vm");
   } else if ((U == 1) && (opcode == 0x10)) {
@@ -1500,6 +1565,21 @@ void ARM64Decoder::DecodeDPSimd1(Instr* instr) {
   // UADDLV Hd, Vn.8B (Q=0, U=1, size=00, across-lanes ADDLV form).
   if ((instr->InstructionBits() & 0xFFFFFC00) == 0x2E303800) {
     Format(instr, "vuaddlv 'vd, 'vn");
+    return;
+  }
+  // UADDLV Dd, Vn.4S (Q=1, U=1, size=10, across-lanes ADDLV form).
+  if ((instr->InstructionBits() & 0xFFFFFC00) == 0x6EB03800) {
+    Format(instr, "vuaddlv 'vd, 'vn");
+    return;
+  }
+  // UMAXP Vd.4S, Vn.4S, Vm.4S (Q=1, U=1, size=10, three-same MAXP form).
+  if ((instr->InstructionBits() & 0xFFE0FC00) == 0x6EA0A400) {
+    Format(instr, "vumaxp 'vd, 'vn, 'vm");
+    return;
+  }
+  // UMINV Sd, Vn.4S (Q=1, U=1, size=10, across-lanes MINV form).
+  if ((instr->InstructionBits() & 0xFFFFFC00) == 0x6EB1A800) {
+    Format(instr, "vuminv 'vd, 'vn");
     return;
   }
   if (instr->IsSIMDCopyOp()) {

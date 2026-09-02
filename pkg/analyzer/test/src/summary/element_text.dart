@@ -5,6 +5,8 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/ast.dart'
+    show ExpressionImpl, V1Projection;
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/field_name_non_promotability_info.dart';
 import 'package:analyzer/src/error/inference_error.dart';
@@ -208,7 +210,7 @@ abstract class _AbstractElementWriter {
 
   void _writeNode(AstNode node) {
     _sink.writeIndent();
-    node.accept(_createAstPrinter());
+    _createAstPrinter().writeNode(node);
   }
 
   void _writeReference(ElementImpl e) {
@@ -329,6 +331,21 @@ class _Element2Writer extends _AbstractElementWriter {
   }
 
   void _writeConstantInitializerExpression(String name, Expression expression) {
+    expect(
+      expression.thisOrAncestorOfType2<CompilationUnit>(),
+      isNull,
+      reason: 'Element constant initializers must be detached.',
+    );
+
+    var v1 = V1Projection.toV1Expression(expression as ExpressionImpl);
+    if (!identical(v1, expression)) {
+      expect(
+        v1.thisOrAncestorOfType<CompilationUnit>(),
+        isNull,
+        reason: 'V1 projections of element initializers must be detached.',
+      );
+    }
+
     if (_idMap.existingExpressionId(expression) case var id?) {
       _sink.writelnWithIndent('$name: $id');
     } else {
@@ -1040,6 +1057,13 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeElementReference('element', f.element);
       _writeFragmentReference('previousFragment', f.previousFragment);
       _writeFragmentReference('nextFragment', f.nextFragment);
+      if (f is InterfaceFragmentImpl && f.withClauseMixinStartIndex != 0) {
+        _sink.writeIndentedLine(() {
+          _sink.write(
+            'withClauseMixinStartIndex: ${f.withClauseMixinStartIndex}',
+          );
+        });
+      }
 
       _writeFragmentList(
         'typeParameters',
@@ -1696,6 +1720,17 @@ class _Element2Writer extends _AbstractElementWriter {
         _sink.withIndent(() {
           _sink.writelnWithIndent('arguments: $cycle');
         });
+      case TopLevelInferenceErrorDifferentGetterAndSetterTypes(
+        :var getterType,
+        :var setterType,
+      ):
+        _sink.writelnWithIndent(
+          'typeInferenceError: differentGetterAndSetterTypes',
+        );
+        _sink.withIndent(() {
+          _sink.writelnWithIndent('getterType: $getterType');
+          _sink.writelnWithIndent('setterType: $setterType');
+        });
       case TopLevelInferenceErrorNoCombinedSuperSignature():
         _sink.writelnWithIndent(
           'typeInferenceError: overrideNoCombinedSuperSignature',
@@ -1758,7 +1793,7 @@ class _Element2Writer extends _AbstractElementWriter {
   }
 
   void _writeVariableElementConstantInitializer(VariableElementImpl e) {
-    if (e.constantInitializer2 case var initializer?) {
+    if (e.constantInitializerData case var initializer?) {
       _sink.writelnWithIndent('constantInitializer');
       _sink.withIndent(() {
         _writeFragmentReference('fragment', initializer.fragment);

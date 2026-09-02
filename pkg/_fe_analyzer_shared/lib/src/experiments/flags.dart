@@ -6,7 +6,7 @@
 //
 // Instead modify 'tools/experimental_features.yaml' and run
 // 'dart pkg/front_end/tool/cfe.dart generate-experimental-flags' to update.
-const Version defaultLanguageVersion = const Version(3, 13);
+const Version defaultLanguageVersion = const Version(3, 14);
 
 /// Enum for experimental flags shared between the CFE and the analyzer.
 enum ExperimentalFlag {
@@ -250,12 +250,20 @@ enum ExperimentalFlag {
     experimentReleasedVersion: const Version(3, 12),
   ),
 
-  recordUse(
-    name: 'record-use',
+  receiverTypeInference(
+    name: 'receiver-type-inference',
     isEnabledByDefault: false,
     isExpired: false,
     experimentEnabledVersion: defaultLanguageVersion,
     experimentReleasedVersion: defaultLanguageVersion,
+  ),
+
+  recordUse(
+    name: 'record-use',
+    isEnabledByDefault: true,
+    isExpired: false,
+    experimentEnabledVersion: const Version(3, 13),
+    experimentReleasedVersion: const Version(3, 13),
   ),
 
   records(

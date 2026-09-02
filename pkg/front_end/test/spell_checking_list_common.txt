@@ -105,6 +105,7 @@ alignment
 alike
 all
 allocated
+allocates
 allocating
 allocation
 allocations
@@ -914,6 +915,7 @@ differ
 difference
 differences
 different
+differentiator
 differently
 dig
 digit
@@ -1463,6 +1465,7 @@ have
 haven't
 having
 head
+head's
 header
 headers
 heading
@@ -2260,6 +2263,7 @@ padding
 page
 pain
 pair
+paired
 pairs
 pairwise
 paragraph

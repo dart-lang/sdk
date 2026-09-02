@@ -38,7 +38,26 @@ class C {
 AssertInitializer
   assertKeyword: assert
   leftParenthesis: (
-  condition: MethodInvocation
+  condition2: UnqualifiedFunctionInvocation
+    name: foo
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        IntegerLiteral
+          literal: 0
+          correspondingParameter: SubstitutedFormalParameterElementImpl
+            baseElement: <testLibrary>::@function::foo::@formalParameter::_
+            substitution: {T: bool}
+          staticType: int
+      rightParenthesis: )
+    resolution: ExecutableInvocationResolution
+      element: <testLibrary>::@function::foo
+      invokeType: bool Function(int)
+      type: bool
+    staticType: bool
+    typeArgumentTypes
+      bool
+  condition(v1): MethodInvocation
     methodName: SimpleIdentifier
       token: foo
       element: <testLibrary>::@function::foo
@@ -58,7 +77,26 @@ AssertInitializer
     typeArgumentTypes
       bool
   comma: ,
-  message: MethodInvocation
+  message2: UnqualifiedFunctionInvocation
+    name: foo
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        IntegerLiteral
+          literal: 1
+          correspondingParameter: SubstitutedFormalParameterElementImpl
+            baseElement: <testLibrary>::@function::foo::@formalParameter::_
+            substitution: {T: dynamic}
+          staticType: int
+      rightParenthesis: )
+    resolution: ExecutableInvocationResolution
+      element: <testLibrary>::@function::foo
+      invokeType: dynamic Function(int)
+      type: dynamic
+    staticType: dynamic
+    typeArgumentTypes
+      dynamic
+  message(v1): MethodInvocation
     methodName: SimpleIdentifier
       token: foo
       element: <testLibrary>::@function::foo
@@ -95,7 +133,26 @@ void f() {
 AssertStatement
   assertKeyword: assert
   leftParenthesis: (
-  condition: MethodInvocation
+  condition2: UnqualifiedFunctionInvocation
+    name: foo
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        IntegerLiteral
+          literal: 0
+          correspondingParameter: SubstitutedFormalParameterElementImpl
+            baseElement: <testLibrary>::@function::foo::@formalParameter::_
+            substitution: {T: bool}
+          staticType: int
+      rightParenthesis: )
+    resolution: ExecutableInvocationResolution
+      element: <testLibrary>::@function::foo
+      invokeType: bool Function(int)
+      type: bool
+    staticType: bool
+    typeArgumentTypes
+      bool
+  condition(v1): MethodInvocation
     methodName: SimpleIdentifier
       token: foo
       element: <testLibrary>::@function::foo
@@ -115,7 +172,26 @@ AssertStatement
     typeArgumentTypes
       bool
   comma: ,
-  message: MethodInvocation
+  message2: UnqualifiedFunctionInvocation
+    name: foo
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        IntegerLiteral
+          literal: 1
+          correspondingParameter: SubstitutedFormalParameterElementImpl
+            baseElement: <testLibrary>::@function::foo::@formalParameter::_
+            substitution: {T: dynamic}
+          staticType: int
+      rightParenthesis: )
+    resolution: ExecutableInvocationResolution
+      element: <testLibrary>::@function::foo
+      invokeType: dynamic Function(int)
+      type: dynamic
+    staticType: dynamic
+    typeArgumentTypes
+      dynamic
+  message(v1): MethodInvocation
     methodName: SimpleIdentifier
       token: foo
       element: <testLibrary>::@function::foo
@@ -213,7 +289,7 @@ class C {
   }
 }''');
     void assertInvocationType(String prefix) {
-      var invocation = result.findNode.methodInvocation(prefix);
+      var invocation = result.findNode.unqualifiedFunctionInvocation(prefix);
       assertType(invocation, 'Iterable<A>');
     }
 
@@ -260,7 +336,7 @@ void test(List<A> listA, List<B> listB) {
       var element = node.declaredFragment?.element as LocalVariableElement;
       assertType(element.type, vType);
 
-      var invocation = result.findNode.methodInvocation(fSearch);
+      var invocation = result.findNode.unqualifiedFunctionInvocation(fSearch);
       assertType(invocation, fType);
     }
 
@@ -349,9 +425,36 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.singleBinaryExpression;
+    var node = result.findNode.singleLogicalAnd;
     assertResolvedNodeText(node, r'''
-BinaryExpression
+LogicalAnd
+  leftOperand: UnqualifiedFunctionInvocation
+    name: foo
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    resolution: ExecutableInvocationResolution
+      element: <testLibrary>::@function::foo
+      invokeType: bool Function()
+      type: bool
+    staticType: bool
+    typeArgumentTypes
+      bool
+  operator: &&
+  rightOperand: UnqualifiedFunctionInvocation
+    name: foo
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    resolution: ExecutableInvocationResolution
+      element: <testLibrary>::@function::foo
+      invokeType: bool Function()
+      type: bool
+    staticType: bool
+    typeArgumentTypes
+      bool
+  staticType: bool
+V1: BinaryExpression
   leftOperand: MethodInvocation
     methodName: SimpleIdentifier
       token: foo
@@ -393,9 +496,36 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.singleBinaryExpression;
+    var node = result.findNode.singleLogicalOr;
     assertResolvedNodeText(node, r'''
-BinaryExpression
+LogicalOr
+  leftOperand: UnqualifiedFunctionInvocation
+    name: foo
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    resolution: ExecutableInvocationResolution
+      element: <testLibrary>::@function::foo
+      invokeType: bool Function()
+      type: bool
+    staticType: bool
+    typeArgumentTypes
+      bool
+  operator: ||
+  rightOperand: UnqualifiedFunctionInvocation
+    name: foo
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    resolution: ExecutableInvocationResolution
+      element: <testLibrary>::@function::foo
+      invokeType: bool Function()
+      type: bool
+    staticType: bool
+    typeArgumentTypes
+      bool
+  staticType: bool
+V1: BinaryExpression
   leftOperand: MethodInvocation
     methodName: SimpleIdentifier
       token: foo
@@ -442,13 +572,13 @@ void test(C<int> x) {
       break;
   }
 }''');
-    var node = result.findNode.instanceCreation('C():');
+    var node = result.findNode.constructorInvocation('C():');
     assertType(node, 'C<int>');
   }
 
-  test_switchExpression_asContext_forCases_language219() async {
+  test_switchExpression_asContext_forCases_beforePatterns() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
+// %before-language-feature: patterns
 class C<T> {
   const C();
 }
@@ -461,7 +591,7 @@ void test(C<int> x) {
       break;
   }
 }''');
-    var node = result.findNode.instanceCreation('const C():');
+    var node = result.findNode.constructorInvocation('const C():');
     assertType(node, 'C<int>');
   }
 
@@ -528,7 +658,7 @@ main() {
       }
     }
 
-    unit.accept(
+    unit.accept2(
       FunctionAstVisitor(
         simpleIdentifier: (node) {
           var comment = node.token.precedingComments;

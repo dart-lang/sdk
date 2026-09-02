@@ -24,13 +24,10 @@ void main() {
 @reflectiveTest
 class AddKeyToConstructorsBulkTest extends BulkFixProcessorTest {
   @override
-  String get lintCode => LintNames.use_key_in_widget_constructors;
+  bool get addFlutterPackageDep => true;
 
   @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(flutter: true);
-  }
+  String get lintCode => LintNames.use_key_in_widget_constructors;
 
   Future<void> test_singleFile() async {
     await resolveTestCode(r'''
@@ -59,10 +56,7 @@ class MyWidget2 extends StatelessWidget {
 @reflectiveTest
 class AddKeyToConstructorsInFileTest extends FixInFileProcessorTest {
   @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(flutter: true);
-  }
+  bool get addFlutterPackageDep => true;
 
   Future<void> test_file() async {
     createAnalysisOptionsFile(
@@ -92,16 +86,13 @@ class MyWidget extends StatelessWidget {
 @reflectiveTest
 class AddKeyToConstructorsTest extends FixProcessorLintTest {
   @override
+  bool get addFlutterPackageDep => true;
+
+  @override
   FixKind get kind => DartFixKind.addKeyToConstructors;
 
   @override
   String get lintCode => LintNames.use_key_in_widget_constructors;
-
-  @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(flutter: true);
-  }
 
   Future<void> test_class_newline() async {
     await resolveTestCode('''
@@ -401,6 +392,29 @@ class MyWidget extends StatelessWidget {
 ''');
   }
 
+  Future<void> test_initializer_final_constant_identifier() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+
+const int value = 3;
+
+class MyWidget extends StatelessWidget {
+  final int x = value;
+}
+''');
+    await assertHasFix('''
+import 'package:flutter/material.dart';
+
+const int value = 3;
+
+class MyWidget extends StatelessWidget {
+  final int x = value;
+
+  const MyWidget({super.key});
+}
+''');
+  }
+
   Future<void> test_initializer_final_not_constant() async {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
@@ -416,6 +430,71 @@ class MyWidget extends StatelessWidget {
   final c = Container();
 
   MyWidget({super.key});
+}
+''');
+  }
+
+  Future<void> test_initializer_final_not_constant_identifier() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+
+int value = 3;
+
+class MyWidget extends StatelessWidget {
+  final int x = value;
+}
+''');
+    await assertHasFix('''
+import 'package:flutter/material.dart';
+
+int value = 3;
+
+class MyWidget extends StatelessWidget {
+  final int x = value;
+
+  MyWidget({super.key});
+}
+''');
+  }
+
+  Future<void> test_initializer_final_not_constant_listLiteral() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  final List<int> l = [1, 2];
+}
+''');
+    await assertHasFix('''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  final List<int> l = [1, 2];
+
+  MyWidget({super.key});
+}
+''');
+  }
+
+  Future<void> test_initializer_final_not_constant_methodInvocation() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  final String txt = getNonConstString();
+
+  static String getNonConstString() => 'Hello World';
+}
+''');
+    await assertHasFix('''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  final String txt = getNonConstString();
+
+  MyWidget({super.key});
+
+  static String getNonConstString() => 'Hello World';
 }
 ''');
   }
@@ -477,6 +556,25 @@ class MyWidget extends StatelessWidget {
   static Text t = const Text('');
 
   const MyWidget({super.key});
+}
+''');
+  }
+
+  Future<void> test_lateField() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  late final int x = 5;
+}
+''');
+    await assertHasFix('''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  late final int x = 5;
+
+  MyWidget({super.key});
 }
 ''');
   }
@@ -644,6 +742,9 @@ class MyWidget extends ParentWidget {
 class AddKeyToConstructorsWithoutNamedArgumentsAnywhereTest
     extends FixProcessorLintTest {
   @override
+  bool get addFlutterPackageDep => true;
+
+  @override
   FixKind get kind => DartFixKind.addKeyToConstructors;
 
   @override
@@ -651,12 +752,6 @@ class AddKeyToConstructorsWithoutNamedArgumentsAnywhereTest
 
   @override
   String get testPackageLanguageVersion => '2.16';
-
-  @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(flutter: true);
-  }
 
   Future<void> test_constructor_noParameters_withSuper_nonEmpty() async {
     await resolveTestCode('''
@@ -692,6 +787,9 @@ class B extends A {
 class AddKeyToConstructorsWithoutSuperParametersTest
     extends FixProcessorLintTest {
   @override
+  bool get addFlutterPackageDep => true;
+
+  @override
   FixKind get kind => DartFixKind.addKeyToConstructors;
 
   @override
@@ -699,12 +797,6 @@ class AddKeyToConstructorsWithoutSuperParametersTest
 
   @override
   String get testPackageLanguageVersion => '2.16';
-
-  @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(flutter: true);
-  }
 
   Future<void> test_class_newline() async {
     await resolveTestCode('''
@@ -947,6 +1039,29 @@ class MyWidget extends StatelessWidget {
 ''');
   }
 
+  Future<void> test_initializer_final_constant_identifier() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+
+const int value = 3;
+
+class MyWidget extends StatelessWidget {
+  final int x = value;
+}
+''');
+    await assertHasFix('''
+import 'package:flutter/material.dart';
+
+const int value = 3;
+
+class MyWidget extends StatelessWidget {
+  final int x = value;
+
+  const MyWidget({Key? key}) : super(key: key);
+}
+''');
+  }
+
   Future<void> test_initializer_final_not_constant() async {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
@@ -962,6 +1077,71 @@ class MyWidget extends StatelessWidget {
   final c = Container();
 
   MyWidget({Key? key}) : super(key: key);
+}
+''');
+  }
+
+  Future<void> test_initializer_final_not_constant_identifier() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+
+int value = 3;
+
+class MyWidget extends StatelessWidget {
+  final int x = value;
+}
+''');
+    await assertHasFix('''
+import 'package:flutter/material.dart';
+
+int value = 3;
+
+class MyWidget extends StatelessWidget {
+  final int x = value;
+
+  MyWidget({Key? key}) : super(key: key);
+}
+''');
+  }
+
+  Future<void> test_initializer_final_not_constant_listLiteral() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  final List<int> l = [1, 2];
+}
+''');
+    await assertHasFix('''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  final List<int> l = [1, 2];
+
+  MyWidget({Key? key}) : super(key: key);
+}
+''');
+  }
+
+  Future<void> test_initializer_final_not_constant_methodInvocation() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  final String txt = getNonConstString();
+
+  static String getNonConstString() => 'Hello World';
+}
+''');
+    await assertHasFix('''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  final String txt = getNonConstString();
+
+  MyWidget({Key? key}) : super(key: key);
+
+  static String getNonConstString() => 'Hello World';
 }
 ''');
   }
@@ -1023,6 +1203,25 @@ class MyWidget extends StatelessWidget {
   static Text t = const Text('');
 
   const MyWidget({Key? key}) : super(key: key);
+}
+''');
+  }
+
+  Future<void> test_lateField() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  late final int x = 5;
+}
+''');
+    await assertHasFix('''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  late final int x = 5;
+
+  MyWidget({Key? key}) : super(key: key);
 }
 ''');
   }

@@ -26,6 +26,7 @@ class WillRenameFilesTest extends LspOverLegacyTest {
   /// request.
   Future<void> test_cancellation() async {
     var testFileNewPath = join(testPackageLibPath, 'test_new.dart');
+    await initializeServer();
 
     await addOverlay(testFilePath, 'original');
     // Don't await, need to send cancellation.
@@ -50,6 +51,7 @@ class WillRenameFilesTest extends LspOverLegacyTest {
 
   Future<void> test_inconsistentAnalysis() async {
     var testFileNewPath = join(testPackageLibPath, 'test_new.dart');
+    await initializeServer();
 
     // Use a Completer to control when the refactor finishes computing so that
     // we can ensure the overlay modification had time to be applied and trigger
@@ -99,7 +101,7 @@ part '../dest2/other.dart';<<<<<<<<<<
 
     newFile(testFilePath, mainContent);
     newFile(otherFilePath, otherContent);
-    await pumpEventQueue(times: 5000);
+    await initializeServer();
 
     var edit = await onWillRename([
       FileRename(
@@ -138,7 +140,7 @@ final a = A();
 
     newFile(testFilePath, mainContent);
     newFile(otherFilePath, otherContent);
-    await pumpEventQueue(times: 5000);
+    await initializeServer();
 
     var edit = await onWillRename([
       FileRename(

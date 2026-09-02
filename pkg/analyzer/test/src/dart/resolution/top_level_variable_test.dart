@@ -18,9 +18,9 @@ main() {
 @reflectiveTest
 class TopLevelVariableResolutionTest extends PubPackageResolutionTest {
   /// See https://github.com/dart-lang/sdk/issues/51137
-  test_initializer_contextType_dontUseInferredType() async {
+  test_initializer_contextType_dontUseInferredType_beforeInferenceUpdate1() async {
     var result = await resolveTestCodeWithDiagnostics('''
-// @dart=2.17
+// %before-language-feature: inference-update-1
 T? f<T>(T Function() a, int Function(T) b) => null;
 String g() => '';
 final x = f(g, (z) => z.length);
@@ -32,7 +32,66 @@ final x = f(g, (z) => z.length);
 VariableDeclaration
   name: x
   equals: =
-  initializer: MethodInvocation
+  initializer2: UnqualifiedFunctionInvocation
+    name: f
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        SimpleIdentifier
+          token: g
+          correspondingParameter: SubstitutedFormalParameterElementImpl
+            baseElement: <testLibrary>::@function::f::@formalParameter::a
+            substitution: {T: String}
+          element: <testLibrary>::@function::g
+          staticType: String Function()
+        FunctionExpression
+          parameters: FormalParameterList
+            leftParenthesis: (
+            requiredPositionalFormalParameters
+              RegularFormalParameter
+                name: z
+                declaredFragment: <testLibraryFragment> z@102
+                  element: hasImplicitType isPublic
+                    type: Object?
+            rightParenthesis: )
+          parameters(v1): FormalParameterList
+            leftParenthesis: (
+            parameter: RegularFormalParameter
+              name: z
+              declaredFragment: <testLibraryFragment> z@102
+                element: hasImplicitType isPublic
+                  type: Object?
+            rightParenthesis: )
+          body: ExpressionFunctionBody
+            functionDefinition: =>
+            expression2: PrefixedIdentifier
+              prefix: SimpleIdentifier
+                token: z
+                element: z@102
+                staticType: Object?
+              period: .
+              identifier: SimpleIdentifier
+                token: length
+                element: <null>
+                staticType: InvalidType
+              element: <null>
+              staticType: InvalidType
+          declaredFragment: <testLibraryFragment> null@null
+            element: null@null
+              type: InvalidType Function(Object?)
+          correspondingParameter: SubstitutedFormalParameterElementImpl
+            baseElement: <testLibrary>::@function::f::@formalParameter::b
+            substitution: {T: String}
+          staticType: InvalidType Function(Object?)
+      rightParenthesis: )
+    resolution: ExecutableInvocationResolution
+      element: <testLibrary>::@function::f
+      invokeType: String? Function(String Function(), int Function(String))
+      type: String?
+    staticType: String?
+    typeArgumentTypes
+      String
+  initializer(v1): MethodInvocation
     methodName: SimpleIdentifier
       token: f
       element: <testLibrary>::@function::f
@@ -52,7 +111,7 @@ VariableDeclaration
             leftParenthesis: (
             parameter: RegularFormalParameter
               name: z
-              declaredFragment: <testLibraryFragment> z@100
+              declaredFragment: <testLibraryFragment> z@102
                 element: hasImplicitType isPublic
                   type: Object?
             rightParenthesis: )
@@ -61,7 +120,7 @@ VariableDeclaration
             expression: PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: z
-                element: z@100
+                element: z@102
                 staticType: Object?
               period: .
               identifier: SimpleIdentifier
@@ -82,14 +141,14 @@ VariableDeclaration
     staticType: String?
     typeArgumentTypes
       String
-  declaredFragment: <testLibraryFragment> x@90
+  declaredFragment: <testLibraryFragment> x@92
 ''');
   }
 
   /// See https://github.com/dart-lang/sdk/issues/51137
-  test_initializer_contextType_typeAnnotation() async {
+  test_initializer_contextType_typeAnnotation_beforeInferenceUpdate1() async {
     var result = await resolveTestCodeWithDiagnostics('''
-// @dart=2.17
+// %before-language-feature: inference-update-1
 T? f<T>(T Function() a, int Function(T) b) => null;
 String g() => '';
 final String? x = f(g, (z) => z.length);
@@ -99,7 +158,66 @@ final String? x = f(g, (z) => z.length);
 VariableDeclaration
   name: x
   equals: =
-  initializer: MethodInvocation
+  initializer2: UnqualifiedFunctionInvocation
+    name: f
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        SimpleIdentifier
+          token: g
+          correspondingParameter: SubstitutedFormalParameterElementImpl
+            baseElement: <testLibrary>::@function::f::@formalParameter::a
+            substitution: {T: String}
+          element: <testLibrary>::@function::g
+          staticType: String Function()
+        FunctionExpression
+          parameters: FormalParameterList
+            leftParenthesis: (
+            requiredPositionalFormalParameters
+              RegularFormalParameter
+                name: z
+                declaredFragment: <testLibraryFragment> z@110
+                  element: hasImplicitType isPublic
+                    type: String
+            rightParenthesis: )
+          parameters(v1): FormalParameterList
+            leftParenthesis: (
+            parameter: RegularFormalParameter
+              name: z
+              declaredFragment: <testLibraryFragment> z@110
+                element: hasImplicitType isPublic
+                  type: String
+            rightParenthesis: )
+          body: ExpressionFunctionBody
+            functionDefinition: =>
+            expression2: PrefixedIdentifier
+              prefix: SimpleIdentifier
+                token: z
+                element: z@110
+                staticType: String
+              period: .
+              identifier: SimpleIdentifier
+                token: length
+                element: dart:core::@class::String::@getter::length
+                staticType: int
+              element: dart:core::@class::String::@getter::length
+              staticType: int
+          declaredFragment: <testLibraryFragment> null@null
+            element: null@null
+              type: int Function(String)
+          correspondingParameter: SubstitutedFormalParameterElementImpl
+            baseElement: <testLibrary>::@function::f::@formalParameter::b
+            substitution: {T: String}
+          staticType: int Function(String)
+      rightParenthesis: )
+    resolution: ExecutableInvocationResolution
+      element: <testLibrary>::@function::f
+      invokeType: String? Function(String Function(), int Function(String))
+      type: String?
+    staticType: String?
+    typeArgumentTypes
+      String
+  initializer(v1): MethodInvocation
     methodName: SimpleIdentifier
       token: f
       element: <testLibrary>::@function::f
@@ -119,7 +237,7 @@ VariableDeclaration
             leftParenthesis: (
             parameter: RegularFormalParameter
               name: z
-              declaredFragment: <testLibraryFragment> z@108
+              declaredFragment: <testLibraryFragment> z@110
                 element: hasImplicitType isPublic
                   type: String
             rightParenthesis: )
@@ -128,7 +246,7 @@ VariableDeclaration
             expression: PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: z
-                element: z@108
+                element: z@110
                 staticType: String
               period: .
               identifier: SimpleIdentifier
@@ -149,7 +267,7 @@ VariableDeclaration
     staticType: String?
     typeArgumentTypes
       String
-  declaredFragment: <testLibraryFragment> x@98
+  declaredFragment: <testLibraryFragment> x@100
 ''');
   }
 

@@ -24,9 +24,9 @@ class C {
 ''');
   }
 
-  test_noTypeOrModifier_before() async {
+  test_noTypeOrModifier_beforePrimaryConstructors() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart=2.12
+// %before-language-feature: primary-constructors
 class C {
   factory() => throw 0;
 //^^^^^^^
@@ -44,9 +44,9 @@ class C {
 ''');
   }
 
-  test_withAnnotation_before() async {
+  test_withAnnotation_beforePrimaryConstructors() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart=2.12
+// %before-language-feature: primary-constructors
 class C {
   @deprecated
   factory() => throw 0;
@@ -66,48 +66,36 @@ class C {
 ''');
   }
 
-  test_withModifier_augment_before() async {
-    // TODO(brianwilkerson): The diagnostic produced here is expected to
-    //  change to `deprecatedFactoryMethod` when `augmentations` is enabled
-    //  for tests.
+  test_withModifier_augment_beforePrimaryConstructors() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart=2.12
+// %before-language-feature: primary-constructors
 class C {
   augment factory() => throw 0;
 //^^^^^^^
-// [diag.undefinedClass] Undefined class 'augment'.
+// [diag.augmentationWithoutDeclaration] The declaration being augmented doesn't exist.
+//        ^^^^^^^
+// [diag.deprecatedFactoryMethod] Methods named 'factory' will become constructors when the primary_constructors feature is enabled.
 }
 ''');
   }
 
   test_withModifier_augmentAndExternal_after() async {
-    // TODO(brianwilkerson): The `conflictingModifiers` diagnostic should not
-    //  be produced here.
     await resolveTestCodeWithDiagnostics(r'''
 class C {
   augment external factory();
 //^^^^^^^
 // [diag.augmentationWithoutDeclaration] The declaration being augmented doesn't exist.
-//        ^^^^^^^^
-// [diag.conflictingModifiers] Members can't be declared to be both 'external' and 'augment'.
 }
 ''');
   }
 
-  test_withModifier_augmentAndExternal_before() async {
-    // TODO(brianwilkerson): The `deprecatedFactoryMethod` diagnostic is
-    //  expected to be the only diagnostic when `augmentations` is enabled for
-    //  tests.
+  test_withModifier_augmentAndExternal_beforePrimaryConstructors() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart=2.12
+// %before-language-feature: primary-constructors
 class C {
   augment external factory();
 //^^^^^^^
-// [diag.undefinedClass] Undefined class 'augment'.
-//        ^^^^^^^^
-// [diag.expectedToken] Expected to find ';'.
-//                 ^^^^^^^^^^
-// [diag.concreteClassWithAbstractMember] 'factory' must have a method body because 'C' isn't abstract.
+// [diag.augmentationWithoutDeclaration] The declaration being augmented doesn't exist.
 //                 ^^^^^^^
 // [diag.deprecatedFactoryMethod] Methods named 'factory' will become constructors when the primary_constructors feature is enabled.
 }
@@ -122,9 +110,9 @@ class C {
 ''');
   }
 
-  test_withModifier_external_before() async {
+  test_withModifier_external_beforePrimaryConstructors() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart=2.12
+// %before-language-feature: primary-constructors
 class C {
   external factory();
 //         ^^^^^^^
@@ -141,9 +129,9 @@ class C {
 ''');
   }
 
-  test_withModifier_static_before() async {
+  test_withModifier_static_beforePrimaryConstructors() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart=2.12
+// %before-language-feature: primary-constructors
 class C {
   static factory() {}
 }
@@ -158,9 +146,9 @@ class C {
 ''');
   }
 
-  test_withType_before() async {
+  test_withType_beforePrimaryConstructors() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart=2.12
+// %before-language-feature: primary-constructors
 class C {
   int factory() => 0;
 }

@@ -123,6 +123,7 @@ import 'erase_dart_type_extension_types_test.dart'
 import 'exhaustive_cases_test.dart' as exhaustive_cases;
 import 'file_names_test.dart' as file_names;
 import 'flutter_style_todos_test.dart' as flutter_style_todos;
+import 'future_sync_value_test.dart' as future_sync_value;
 import 'hash_and_equals_test.dart' as hash_and_equals;
 import 'implementation_imports_test.dart' as implementation_imports;
 import 'implicit_call_tearoffs_test.dart' as implicit_call_tearoffs;
@@ -144,6 +145,7 @@ import 'lines_longer_than_80_chars_test.dart' as lines_longer_than_80_chars;
 import 'literal_only_boolean_expressions_test.dart'
     as literal_only_boolean_expressions;
 import 'matching_super_parameters_test.dart' as matching_super_parameters;
+import 'migrate_design_widgets_test.dart' as migrate_design_widgets;
 import 'missing_code_block_language_in_doc_comment_test.dart'
     as missing_code_block_language_in_doc_comment;
 import 'missing_whitespace_between_adjacent_strings_test.dart'
@@ -302,6 +304,7 @@ import 'unnecessary_statements_test.dart' as unnecessary_statements;
 import 'unnecessary_string_escapes_test.dart' as unnecessary_string_escapes;
 import 'unnecessary_string_interpolations_test.dart'
     as unnecessary_string_interpolations;
+import 'unnecessary_this_alias_test.dart' as unnecessary_this_alias;
 import 'unnecessary_this_test.dart' as unnecessary_this;
 import 'unnecessary_to_list_in_spreads_test.dart'
     as unnecessary_to_list_in_spreads;
@@ -433,6 +436,7 @@ void main() {
   exhaustive_cases.main();
   file_names.main();
   flutter_style_todos.main();
+  future_sync_value.main();
   hash_and_equals.main();
   implementation_imports.main();
   implicit_call_tearoffs.main();
@@ -449,6 +453,7 @@ void main() {
   lines_longer_than_80_chars.main();
   literal_only_boolean_expressions.main();
   matching_super_parameters.main();
+  migrate_design_widgets.main();
   missing_code_block_language_in_doc_comment.main();
   missing_whitespace_between_adjacent_strings.main();
   no_adjacent_strings_in_list.main();
@@ -569,6 +574,7 @@ void main() {
   unnecessary_statements.main();
   unnecessary_string_escapes.main();
   unnecessary_string_interpolations.main();
+  unnecessary_this_alias.main();
   unnecessary_this.main();
   unnecessary_to_list_in_spreads.main();
   unnecessary_type_name_in_constructor.main();

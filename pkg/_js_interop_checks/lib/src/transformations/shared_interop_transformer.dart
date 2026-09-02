@@ -26,6 +26,7 @@ class SharedInteropTransformer extends Transformer {
   final ExportChecker _exportChecker;
   final ExtensionIndex _extensionIndex;
   final Procedure _functionToJS;
+  final Procedure _functionToJSCaptureThis;
   final Procedure _getProperty;
   final Procedure _globalContext;
   late bool _inIsATearoff;
@@ -37,6 +38,8 @@ class SharedInteropTransformer extends Transformer {
   final Procedure _isJSBoxedDartObject;
   final Procedure _isJSExportedDartFunction;
   final Procedure _isJSObject;
+  final Procedure _isJSArray;
+  final Procedure _isNullableJSArray;
   final Procedure _isJSTypedArray;
   final Procedure _isNullableJSAny;
   final Procedure _isNullableJSBoxedDartObject;
@@ -45,6 +48,7 @@ class SharedInteropTransformer extends Transformer {
   final Procedure _isNullableJSTypedArray;
   final ExtensionTypeDeclaration _jsAny;
   final ExtensionTypeDeclaration _jsObject;
+  final ExtensionTypeDeclaration _jsPromise;
   final Procedure _setProperty;
   final Procedure _stringToJS;
   final StaticInteropMockValidator _staticInteropMockValidator;
@@ -75,6 +79,11 @@ class SharedInteropTransformer extends Transformer {
         'dart:js_interop',
         'FunctionToJSExportedDartFunction|get#toJS',
       ),
+      _functionToJSCaptureThis = _typeEnvironment.coreTypes.index
+          .getTopLevelProcedure(
+            'dart:js_interop',
+            'FunctionToJSExportedDartFunction|get#toJSCaptureThis',
+          ),
       _getProperty = _typeEnvironment.coreTypes.index.getTopLevelProcedure(
         'dart:js_interop_unsafe',
         'JSObjectUnsafeUtilExtension|[]',
@@ -107,6 +116,10 @@ class SharedInteropTransformer extends Transformer {
         'dart:js_interop',
         '_isJSObject',
       ),
+      _isJSArray = _typeEnvironment.coreTypes.index.getTopLevelProcedure(
+        'dart:js_interop',
+        '_isJSArray',
+      ),
       _isJSTypedArray = _typeEnvironment.coreTypes.index.getTopLevelProcedure(
         'dart:js_interop',
         '_isJSTypedArray',
@@ -127,6 +140,8 @@ class SharedInteropTransformer extends Transformer {
           ),
       _isNullableJSObject = _typeEnvironment.coreTypes.index
           .getTopLevelProcedure('dart:js_interop', '_isNullableJSObject'),
+      _isNullableJSArray = _typeEnvironment.coreTypes.index
+          .getTopLevelProcedure('dart:js_interop', '_isNullableJSArray'),
       _isNullableJSTypedArray = _typeEnvironment.coreTypes.index
           .getTopLevelProcedure('dart:js_interop', '_isNullableJSTypedArray'),
       _jsAny = _typeEnvironment.coreTypes.index.getExtensionType(
@@ -136,6 +151,10 @@ class SharedInteropTransformer extends Transformer {
       _jsObject = _typeEnvironment.coreTypes.index.getExtensionType(
         'dart:js_interop',
         'JSObject',
+      ),
+      _jsPromise = _typeEnvironment.coreTypes.index.getExtensionType(
+        'dart:js_interop',
+        'JSPromise',
       ),
       _setProperty = _typeEnvironment.coreTypes.index.getTopLevelProcedure(
         'dart:js_interop_unsafe',
@@ -162,6 +181,16 @@ class SharedInteropTransformer extends Transformer {
       .coreTypes
       .index
       .getTopLevelProcedure('dart:js_util', 'createStaticInteropMock');
+  late final Procedure _futureOfJSAnyToJS = _typeEnvironment.coreTypes.index
+      .getTopLevelProcedure(
+        'dart:js_interop',
+        'FutureOfJSAnyToJSPromise|get#toJS',
+      );
+  late final Procedure _futureOfVoidToJS = _typeEnvironment.coreTypes.index
+      .getTopLevelProcedure(
+        'dart:js_interop',
+        'FutureOfVoidToJSPromise|get#toJS',
+      );
 
   @override
   TreeNode visitLibrary(Library node) {
@@ -260,10 +289,103 @@ class SharedInteropTransformer extends Transformer {
         invocation.name.text.length,
         invocation.location?.file,
       );
+    } else if (target == _functionToJS || target == _functionToJSCaptureThis) {
+      replacement = _transformFunctionToJS(invocation);
     }
     replacement.transformChildren(this);
     _invocation = null;
     return replacement;
+  }
+
+  /// Transforms `fn.toJS` or `fn.toJSCaptureThis` when `fn` is a
+  /// function returning `Future<T>`.
+  ///
+  /// Wraps the function call in a closure that converts the returned
+  /// `Future<T>` to a `JSPromise<T>` using `Future.toJS`.
+  TreeNode _transformFunctionToJS(StaticInvocation invocation) {
+    final receiver = invocation.arguments.positional[0];
+    final funcType = receiver.getStaticType(_staticTypeContext);
+    if (funcType is! FunctionType) return invocation;
+
+    // TODO(#63496): Handle FutureOr<T> return types
+    final futureType = funcType.returnType;
+    if (futureType is! InterfaceType ||
+        futureType.classNode != _typeEnvironment.coreTypes.futureClass) {
+      return invocation;
+    }
+
+    if (funcType.positionalParameters.length >
+        funcType.requiredParameterCount) {
+      _diagnosticReporter.report(
+        diag.jsInteropFunctionToJSReturnFutureOptionalParameters.withArguments(
+          conversion: invocation.target == _functionToJSCaptureThis
+              ? 'toJSCaptureThis'
+              : 'toJS',
+          type: futureType,
+        ),
+        invocation.fileOffset,
+        invocation.name.text.length,
+        invocation.location?.file,
+      );
+      return invocation;
+    }
+
+    final typeArgument = futureType.typeArguments[0];
+    final isVoid = typeArgument is VoidType;
+
+    final parameters = <PositionalParameter>[];
+    final callArguments = <Expression>[];
+    for (var i = 0; i < funcType.positionalParameters.length; i++) {
+      final paramType = funcType.positionalParameters[i];
+      final param = PositionalParameter(
+        parameterName: '#param$i',
+        type: paramType,
+        isSynthesized: true,
+      )..fileOffset = invocation.fileOffset;
+      parameters.add(param);
+      callArguments.add(VariableGet(param));
+    }
+
+    assert(funcType.namedParameters.isEmpty);
+    assert(funcType.typeParameters.isEmpty);
+
+    final originalCall = FunctionInvocation(
+      // `.toJS` is disallowed on FunctionAccessKind.Function
+      FunctionAccessKind.FunctionType,
+      receiver,
+      Arguments(callArguments),
+      functionType: funcType,
+    )..fileOffset = invocation.fileOffset;
+
+    final futureToJSInvocation = StaticInvocation(
+      isVoid ? _futureOfVoidToJS : _futureOfJSAnyToJS,
+      Arguments([originalCall], types: isVoid ? const [] : [typeArgument]),
+    )..fileOffset = invocation.fileOffset;
+
+    final funcNode = FunctionNode(
+      ReturnStatement(futureToJSInvocation)..fileOffset = invocation.fileOffset,
+      positionalParameters: parameters,
+      requiredParameterCount: funcType.requiredParameterCount,
+      returnType: ExtensionType(_jsPromise, Nullability.nonNullable, [
+        typeArgument,
+      ]),
+    )..fileOffset = invocation.fileOffset;
+
+    final funcExpr = FunctionExpression(funcNode)
+      ..fileOffset = invocation.fileOffset;
+
+    final newFuncType = FunctionType(
+      funcType.positionalParameters,
+      funcNode.returnType,
+      funcType.nullability,
+      typeParameters: funcType.typeParameters,
+      requiredParameterCount: funcType.requiredParameterCount,
+    );
+
+    return StaticInvocation(
+      invocation.target,
+      Arguments([funcExpr], types: [newFuncType]),
+    )..fileOffset = invocation.fileOffset;
   }
 
   @override
@@ -507,7 +629,7 @@ class SharedInteropTransformer extends Transformer {
         }
         if (setter != null) {
           var setterParameter = PositionalParameter(
-            cosmeticName: '#val',
+            parameterName: '#val',
             type: _staticInteropMockValidator.typeParameterResolver.resolve(
               setter.setterType,
             ),
@@ -599,20 +721,22 @@ class SharedInteropTransformer extends Transformer {
         receiverInteropTypeDeclaration is ExtensionTypeDeclaration
         ? _extensionIndex.isJSType(receiverInteropTypeDeclaration)
         : false;
-    final SyntheticVariable? letVariable;
+    final CachedExpression? receiverCache;
     final Variable receiverVar;
     if (receiver is VariableGet) {
       receiverVar = receiver.variable;
-      letVariable = null;
+      receiverCache = null;
     } else {
       // Synthesize declaration to avoid re-evaluating expressions.
-      receiverVar = letVariable = SyntheticVariable(
-        initializer: receiver,
+      receiverCache = CachedExpression.fromValue(
+        value: receiver,
         type: receiverIsJSType
             ? ExtensionType(_jsAny, Nullability.nullable)
             : receiverStaticType,
+        fileOffset: invocation.fileOffset,
         isFinal: true,
-      )..fileOffset = invocation.fileOffset;
+      );
+      receiverVar = receiverCache.variable;
     }
     final receiverVarAsJSAny =
         receiverIsJSType
@@ -690,6 +814,16 @@ class SharedInteropTransformer extends Transformer {
             [VariableGet(receiverVar)],
             types: [interopType.typeArguments.first],
           ),
+        );
+        break;
+      case 'JSArray' when interopTypeDecl == jsType:
+        // Only do this special case when users are referring directly to the
+        // `dart:js_interop` type and not some wrapper.
+        isJSAnyCheck = null;
+        nullChecksNeeded = false;
+        check = StaticInvocation(
+          interopTypeNullable ? _isNullableJSArray : _isJSArray,
+          Arguments([VariableGet(receiverVar)]),
         );
         break;
       case 'JSTypedArray' when interopTypeDecl == jsType:
@@ -814,9 +948,12 @@ class SharedInteropTransformer extends Transformer {
       check = BoolLiteral(true);
     }
 
-    return letVariable == null ? check : Let(letVariable, check)
-      ..fileOffset = invocation.fileOffset
-      ..parent = invocation.parent;
+    return receiverCache == null
+        ? check
+        : (receiverCache.createLet(
+            body: check,
+            fileOffset: invocation.fileOffset,
+          )..parent = invocation.parent);
   }
 
   // Various shared helpers to make calls to `dart:js_interop`/

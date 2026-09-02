@@ -2,8 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:_fe_analyzer_shared/src/testing/id.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 
@@ -36,14 +39,14 @@ MemberId computeMemberId(Element element) {
   );
 }
 
-/// Abstract IR visitor for computing data corresponding to a node or element,
-/// and record it with a generic [Id]
-abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<void>
+/// Abstract IR visitor for computing data corresponding to a node, token, or
+/// element, and recording it with a generic [Id].
+abstract class AstDataExtractor<T> extends UnifyingAstVisitor2<void>
     with DataRegistry<T> {
   final Uri uri;
 
   @override
-  final Map<Id, ActualData<T>> actualMap;
+  final ActualDataMap<T> actualMap;
 
   AstDataExtractor(this.uri, this.actualMap);
 
@@ -54,50 +57,59 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<void>
 
   void computeForClass(Declaration node, Id? id) {
     if (id == null) return;
-    T? value = computeNodeValue(id, node);
-    registerValue(uri, _nodeOffset(node), id, value, node);
+    FutureOr<T?> value = computeNodeValue(id, node);
+    asyncRegisterValue(uri, _nodeOffset(node), id, value, node);
   }
 
   void computeForFormalParameter(FormalParameter node, NodeId? id) {
     if (id == null) return;
-    T? value = computeNodeValue(id, node);
-    registerValue(uri, _nodeOffset(node), id, value, node);
+    FutureOr<T?> value = computeNodeValue(id, node);
+    asyncRegisterValue(uri, _nodeOffset(node), id, value, node);
   }
 
   void computeForLibrary(LibraryElement library, Id? id) {
     if (id == null) return;
-    T? value = computeElementValue(id, library);
-    registerValue(uri, 0, id, value, library);
+    FutureOr<T?> value = computeElementValue(id, library);
+    asyncRegisterValue(uri, 0, id, value, library);
   }
 
-  void computeForMember(Declaration node, Id? id) {
+  void computeForMember(AstNode node, Id? id) {
     if (id == null) return;
-    T? value = computeNodeValue(id, node);
-    registerValue(uri, _nodeOffset(node), id, value, node);
+    FutureOr<T?> value = computeNodeValue(id, node);
+    asyncRegisterValue(uri, _nodeOffset(node), id, value, node);
   }
 
   void computeForNode(AstNode node, NodeId? id) {
     if (id == null) return;
-    T? value = computeNodeValue(id, node);
-    registerValue(uri, _nodeOffset(node), id, value, node);
+    FutureOr<T?> value = computeNodeValue(id, node);
+    asyncRegisterValue(uri, _nodeOffset(node), id, value, node);
   }
 
   void computeForStatement(Statement node, NodeId? id) {
     if (id == null) return;
-    T? value = computeNodeValue(id, node);
-    registerValue(uri, _nodeOffset(node), id, value, node);
+    FutureOr<T?> value = computeNodeValue(id, node);
+    asyncRegisterValue(uri, _nodeOffset(node), id, value, node);
+  }
+
+  void computeForToken(Token token, NodeId? id) {
+    if (id == null) return;
+    FutureOr<T?> value = computeTokenValue(id, token);
+    asyncRegisterValue(uri, token.offset, id, value, token);
   }
 
   void computeForVariableDeclaration(VariableDeclaration node, NodeId? id) {
     if (id == null) return;
-    T? value = computeNodeValue(id, node);
-    registerValue(uri, _nodeOffset(node), id, value, node);
+    FutureOr<T?> value = computeNodeValue(id, node);
+    asyncRegisterValue(uri, _nodeOffset(node), id, value, node);
   }
 
   /// Implement this to compute the data corresponding to [node].
   ///
   /// If `null` is returned, [node] has no associated data.
-  T? computeNodeValue(Id id, AstNode node);
+  FutureOr<T?> computeNodeValue(Id id, AstNode node);
+
+  /// Computes the data corresponding to [token], if any.
+  FutureOr<T?> computeTokenValue(Id id, Token token) => null;
 
   Id createClassId(Declaration node) {
     var element = node.declaredFragment!.element;
@@ -113,7 +125,7 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<void>
     return LibraryId(uri);
   }
 
-  Id createMemberId(Declaration node) {
+  Id createMemberId(FragmentDeclaringNode node) {
     var element = node.declaredFragment!.element;
     return computeMemberId(element);
   }
@@ -133,7 +145,13 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<void>
   }
 
   void run(CompilationUnit unit) {
-    unit.accept(this);
+    unit.accept2(this);
+  }
+
+  @override
+  void visitCascadePropertyExtraction(CascadePropertyExtraction node) {
+    var propertyName = node.propertyName;
+    computeForToken(propertyName, NodeId(propertyName.offset, IdKind.node));
   }
 
   @override
@@ -156,9 +174,9 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<void>
   }
 
   @override
-  void visitExpression(Expression node) {
+  void visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
     computeForNode(node, computeDefaultNodeId(node));
-    super.visitExpression(node);
+    super.visitForEachPartsWithIdentifier(node);
   }
 
   @override
@@ -168,14 +186,8 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<void>
   }
 
   @override
-  void visitFormalParameter(FormalParameter node) {
-    computeForFormalParameter(node, computeDefaultNodeId(node));
-    super.visitFormalParameter(node);
-  }
-
-  @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
-    if (node.parent is CompilationUnit) {
+    if (node.parent2 is CompilationUnit) {
       computeForMember(node, createMemberId(node));
     }
     super.visitFunctionDeclaration(node);
@@ -200,9 +212,35 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<void>
   }
 
   @override
+  void visitNode(AstNode node) {
+    switch (node) {
+      case Expression():
+        computeForNode(node, computeDefaultNodeId(node));
+      case FormalParameter():
+        computeForFormalParameter(node, computeDefaultNodeId(node));
+      case ExpressionStatement():
+        computeForStatement(node, createStatementId(node));
+      case Statement():
+        computeForStatement(node, computeDefaultNodeId(node));
+      case SwitchMember():
+        computeForNode(node, computeDefaultNodeId(node));
+    }
+    super.visitNode(node);
+  }
+
+  @override
   void visitNullAwareElement(NullAwareElement node) {
     computeForNode(node, computeDefaultNodeId(node));
     super.visitNullAwareElement(node);
+  }
+
+  @override
+  void visitReceiverPropertyExtraction(ReceiverPropertyExtraction node) {
+    // The property name is token-valued, but is a source location to which
+    // `IdKind.node` annotations can be attached.
+    var propertyName = node.propertyName;
+    computeForToken(propertyName, NodeId(propertyName.offset, IdKind.node));
+    super.visitReceiverPropertyExtraction(node);
   }
 
   @override
@@ -212,33 +250,22 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<void>
   }
 
   @override
-  void visitStatement(Statement node) {
-    computeForStatement(
-      node,
-      node is ExpressionStatement
-          ? createStatementId(node)
-          : computeDefaultNodeId(node),
-    );
-    super.visitStatement(node);
-  }
-
-  @override
   void visitSwitchExpressionCase(SwitchExpressionCase node) {
     computeForNode(node, computeDefaultNodeId(node));
     super.visitSwitchExpressionCase(node);
   }
 
   @override
-  void visitSwitchMember(SwitchMember node) {
-    computeForNode(node, computeDefaultNodeId(node));
-    super.visitSwitchMember(node);
+  void visitTopLevelGetterDeclaration(TopLevelGetterDeclaration node) {
+    computeForMember(node, createMemberId(node));
+    super.visitTopLevelGetterDeclaration(node);
   }
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
-    if (node.parent!.parent is TopLevelVariableDeclaration) {
+    if (node.parent2!.parent2 is TopLevelVariableDeclaration) {
       computeForMember(node, createMemberId(node));
-    } else if (node.parent!.parent is FieldDeclaration) {
+    } else if (node.parent2!.parent2 is FieldDeclaration) {
       computeForMember(node, createMemberId(node));
     } else {
       computeForVariableDeclaration(node, computeDefaultNodeId(node));
@@ -250,9 +277,17 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<void>
     int offset;
     if (node is ConditionalExpression) {
       offset = node.question.offset;
-    } else if (node is BinaryExpression) {
+    } else if (node is BinaryOperatorInvocation) {
       offset = node.operator.offset;
-    } else if (node is InstanceCreationExpression) {
+    } else if (node is IfNull) {
+      offset = node.operator.offset;
+    } else if (node is LogicalAnd) {
+      offset = node.operator.offset;
+    } else if (node is LogicalOr) {
+      offset = node.operator.offset;
+    } else if (node is ConstructorInvocation) {
+      offset = node.argumentList.leftParenthesis.offset;
+    } else if (node is FunctionInvocation) {
       offset = node.argumentList.leftParenthesis.offset;
     } else if (node is InvocationExpression) {
       offset = node.argumentList.leftParenthesis.offset;

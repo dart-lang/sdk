@@ -11,10 +11,12 @@ import 'package:cfg/passes/control_flow_optimizations.dart';
 import 'package:cfg/passes/pass.dart';
 import 'package:cfg/passes/simplification.dart';
 import 'package:cfg/passes/value_numbering.dart';
+import 'package:native_compiler/back_end/arm64/asm_intrinsics.dart';
 import 'package:native_compiler/back_end/arm64/code_generator.dart';
 import 'package:native_compiler/back_end/arm64/constraints.dart';
 import 'package:native_compiler/back_end/arm64/stack_frame.dart';
 import 'package:native_compiler/back_end/arm64/stub_code_generator.dart';
+import 'package:native_compiler/back_end/asm_intrinsics.dart';
 import 'package:native_compiler/back_end/back_end_state.dart';
 import 'package:native_compiler/back_end/code.dart';
 import 'package:native_compiler/back_end/code_generator.dart';
@@ -51,6 +53,7 @@ abstract base class Configuration(
   final TargetCPU targetCPU,
   final ImageFormat imageFormat, {
   required final bool enableAsserts,
+  required final bool compilePlatform,
   required final bool useAstScopes,
   required final String outputLibraryName,
   required final String? printFlowGraph,
@@ -65,11 +68,12 @@ abstract base class Configuration(
     CFunction function,
     FunctionRegistry functionRegistry,
     StubFactory stubFactory,
+    AsmIntrinsics asmIntrinsics,
     CodeConsumer consumeGeneratedCode,
   );
 
-  Constraints createConstraints() => switch (targetCPU) {
-    TargetCPU.arm64 => Arm64Constraints(),
+  Constraints createConstraints(StackFrame stackFrame) => switch (targetCPU) {
+    TargetCPU.arm64 => Arm64Constraints(stackFrame),
   };
 
   StackFrame createStackFrame(CFunction function) => switch (targetCPU) {
@@ -78,9 +82,14 @@ abstract base class Configuration(
 
   CodeGenerator createCodeGenerator(
     BackEndState backEndState,
+    AsmIntrinsics asmIntrinsics,
     FunctionRegistry functionRegistry,
   ) => switch (targetCPU) {
-    TargetCPU.arm64 => Arm64CodeGenerator(backEndState, functionRegistry),
+    TargetCPU.arm64 => Arm64CodeGenerator(
+      backEndState,
+      asmIntrinsics,
+      functionRegistry,
+    ),
   };
 
   StubFactory createStubFactory(CodeConsumer consumeGeneratedCode) =>
@@ -89,6 +98,15 @@ abstract base class Configuration(
           vmOffsets,
           objectLayout,
           consumeGeneratedCode,
+        ),
+      };
+
+  AsmIntrinsics createAsmIntrinsics(FunctionRegistry functionRegistry) =>
+      switch (targetCPU) {
+        TargetCPU.arm64 => Arm64AsmIntrinsics(
+          functionRegistry,
+          vmOffsets,
+          objectLayout,
         ),
       };
 
@@ -105,6 +123,7 @@ final class DevelopmentCompilerConfiguration extends Configuration {
     super.targetCPU,
     super.imageFormat, {
     required super.enableAsserts,
+    required super.compilePlatform,
     required super.useAstScopes,
     required super.outputLibraryName,
     required super.printFlowGraph,
@@ -131,17 +150,19 @@ final class DevelopmentCompilerConfiguration extends Configuration {
     CFunction function,
     FunctionRegistry functionRegistry,
     StubFactory stubFactory,
+    AsmIntrinsics asmIntrinsics,
     CodeConsumer consumeGeneratedCode,
   ) {
-    final unboxing = Unboxing();
+    final unboxing = Unboxing(objectLayout);
+    final stackFrame = createStackFrame(function);
     final backEndState = BackEndState();
     backEndState.vmOffsets = vmOffsets;
     backEndState.objectLayout = objectLayout;
     backEndState.stubFactory = stubFactory;
     backEndState.unboxing = unboxing;
-    backEndState.stackFrame = createStackFrame(function);
+    backEndState.stackFrame = stackFrame;
     backEndState.consumeGeneratedCode = consumeGeneratedCode;
-    final constraints = createConstraints();
+    final constraints = createConstraints(stackFrame);
 
     void Function(Pass)? afterPass;
     if (printFlowGraphFor(function)) {
@@ -172,7 +193,7 @@ final class DevelopmentCompilerConfiguration extends Configuration {
       ReorderBlocks(backEndState),
       LinearScanRegisterAllocator(backEndState, constraints),
       RegisterAllocationChecker(backEndState, constraints),
-      createCodeGenerator(backEndState, functionRegistry),
+      createCodeGenerator(backEndState, asmIntrinsics, functionRegistry),
     ], afterPass: afterPass);
   }
 }

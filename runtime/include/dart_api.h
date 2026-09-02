@@ -3350,18 +3350,14 @@ typedef void* (*Dart_NativeAssetsDlopenCallback)(const char* path,
 typedef void* (*Dart_NativeAssetsDlopenCallbackNoPath)(char** error);
 
 /**
- * Callback provided by the embedder that is used by the VM to resolve asset
- * ids.
+ * Callback provided by the embedder that is used by the VM to load a native
+ * asset by id.
  *
- * The embedder can freely chose how to bundle asset id to asset path mappings
+ * The embedder can freely choose how to bundle asset id to asset path mappings
  * and how to perform this lookup.
  *
- * If the embedder provides this callback, it must also provide
- * `Dart_NativeAssetsAvailableAssets`.
- *
- * If provided, takes prescedence over `Dart_NativeAssetsDlopenCallback`.
- *
- * \param asset_id The asset id requested in the `@Native` external function.
+ * \param asset_id The asset id requested by an `@Native` external function or
+ *                 `DynamicLibrary.codeAsset`.
  *
  * \param error Returns NULL if successful, an error message otherwise. The
  *   caller is responsible for calling free() on the error message.
@@ -3371,6 +3367,20 @@ typedef void* (*Dart_NativeAssetsDlopenCallbackNoPath)(char** error);
  */
 typedef void* (*Dart_NativeAssetsDlopenAssetId)(const char* asset_id,
                                                 char** error);
+
+/**
+ * Callback provided by the embedder that is used by the VM to determine
+ * whether a native asset id is registered.
+ *
+ * The embedder can freely choose how to bundle asset id to asset path mappings
+ * and how to perform this lookup.
+ *
+ * \param asset_id The asset id requested by an `@Native` external function or
+ *                 `DynamicLibrary.codeAsset`.
+ *
+ * \return Whether the asset id is registered with the embedder.
+ */
+typedef bool (*Dart_NativeAssetsContainsAsset)(const char* asset_id);
 
 /**
  * Callback provided by the embedder that is used  by the VM to request a
@@ -3387,9 +3397,8 @@ typedef char* (*Dart_NativeAssetsAvailableAssets)(void);
  * If no callback is provided, using `@Native`s with `native_asset.yaml`s will
  * fail.
  *
- * \param handle The library handle returned from a
- *               `Dart_NativeAssetsDlopenCallback` or
- *               `Dart_NativeAssetsDlopenCallbackNoPath`.
+ * \param handle The library handle returned from one of the native assets
+ *               dlopen callbacks.
  *
  * \param symbol The symbol to look up. Is a string.
  *
@@ -3404,6 +3413,19 @@ typedef void* (*Dart_NativeAssetsDlsymCallback)(void* handle,
                                                 const char* symbol,
                                                 char** error);
 
+/**
+ * Callback provided by the embedder that is used by the VM to close native
+ * code asset library handles.
+ *
+ * \param handle The library handle returned from one of the native assets
+ *               dlopen callbacks.
+ *
+ * \param error Returns NULL if successful, an error message otherwise. If the
+ *   handle cannot be closed, the embedder should return an error message. The
+ *   caller is responsible for calling free() on the error message.
+ */
+typedef void (*Dart_NativeAssetsDlcloseCallback)(void* handle, char** error);
+
 typedef struct {
   Dart_NativeAssetsDlopenCallback dlopen_absolute;
   Dart_NativeAssetsDlopenCallback dlopen_relative;
@@ -3411,8 +3433,43 @@ typedef struct {
   Dart_NativeAssetsDlopenCallbackNoPath dlopen_process;
   Dart_NativeAssetsDlopenCallbackNoPath dlopen_executable;
   Dart_NativeAssetsDlsymCallback dlsym;
+  Dart_NativeAssetsDlcloseCallback dlclose;
+
+  /*
+   * Loads a native asset by id for `@Native` resolution.
+   *
+   * If provided, takes precedence over the path-based dlopen callbacks and
+   * must be accompanied by `available_assets`.
+   *
+   * This callback cannot distinguish a missing asset from a valid `NULL`
+   * handle and is not used by `DynamicLibrary.codeAsset`.
+   */
   Dart_NativeAssetsDlopenAssetId dlopen;
   Dart_NativeAssetsAvailableAssets available_assets;
+
+  /*
+   * Determines whether a native asset id is registered.
+   *
+   * Must be provided together with `dlopen_asset`. If both are provided, they
+   * take precedence over `dlopen`.
+   *
+   * A missing asset is not a loading error. `@Native` falls back to process
+   * lookup, while `DynamicLibrary.codeAsset` reports that the asset does not
+   * exist.
+   */
+  Dart_NativeAssetsContainsAsset contains_asset;
+
+  /*
+   * Loads a native asset that `contains_asset` reported as registered.
+   *
+   * Must be provided together with `contains_asset` and must be accompanied
+   * by `available_assets`. Together, `contains_asset` and `dlopen_asset` take
+   * precedence over `dlopen`.
+   *
+   * Any error is a hard loading failure. A successful process or executable
+   * lookup may return a `NULL` handle.
+   */
+  Dart_NativeAssetsDlopenAssetId dlopen_asset;
 } NativeAssetsApi;
 
 /**
@@ -4091,6 +4148,8 @@ typedef enum {
   Dart_AotBinaryFormat_Elf = 0,
   Dart_AotBinaryFormat_Assembly = 1,
   Dart_AotBinaryFormat_MachO_Dylib = 2,
+  /* PE/COFF object output is only supported when targeting Windows x64. */
+  Dart_AotBinaryFormat_PECoff_Obj = 3,
 } Dart_AotBinaryFormat;
 
 /**
@@ -4128,7 +4187,7 @@ typedef enum {
  * \return A valid handle if no error occurs during the operation.
  */
 DART_EXPORT DART_API_WARN_UNUSED_RESULT Dart_Handle
-Dart_CreateAppAOTSnapshotAsBinary(Dart_AotBinaryFormat format,
+Dart_CreateAppAOTSnapshotAsBinary(Dart_AotBinaryFormat snapshot_format,
                                   Dart_StreamingWriteCallback callback,
                                   void* callback_data,
                                   bool stripped,

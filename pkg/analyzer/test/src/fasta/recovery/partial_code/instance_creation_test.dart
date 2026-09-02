@@ -26,7 +26,7 @@ f() => const;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -35,7 +35,15 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: InstanceCreationExpression
+          expression2: ConstructorInvocation
+            keyword: const
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                name: <empty> <synthetic>
+            argumentList: ArgumentList
+              leftParenthesis: ( <synthetic>
+              rightParenthesis: ) <synthetic>
+          expression(v1): InstanceCreationExpression
             keyword: const
             constructorName: ConstructorName
               type: NamedType
@@ -57,7 +65,7 @@ f() => const A.b(;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -66,7 +74,21 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: InstanceCreationExpression
+          expression2: ConstructorInvocation
+            keyword: const
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                importPrefix: ImportPrefixReference
+                  name: A
+                  period: .
+                name: b
+            argumentList: ArgumentList
+              leftParenthesis: (
+              arguments2
+                SimpleIdentifier
+                  token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+          expression(v1): InstanceCreationExpression
             keyword: const
             constructorName: ConstructorName
               type: NamedType
@@ -94,7 +116,7 @@ f() => const A(;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -103,7 +125,18 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: InstanceCreationExpression
+          expression2: ConstructorInvocation
+            keyword: const
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                name: A
+            argumentList: ArgumentList
+              leftParenthesis: (
+              arguments2
+                SimpleIdentifier
+                  token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+          expression(v1): InstanceCreationExpression
             keyword: const
             constructorName: ConstructorName
               type: NamedType
@@ -128,7 +161,7 @@ f() => const A.;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -137,7 +170,18 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: InstanceCreationExpression
+          expression2: ConstructorInvocation
+            keyword: const
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                importPrefix: ImportPrefixReference
+                  name: A
+                  period: .
+                name: <empty> <synthetic>
+            argumentList: ArgumentList
+              leftParenthesis: ( <synthetic>
+              rightParenthesis: ) <synthetic>
+          expression(v1): InstanceCreationExpression
             keyword: const
             constructorName: ConstructorName
               type: NamedType
@@ -161,7 +205,7 @@ f() => const A.b;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -170,7 +214,18 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: InstanceCreationExpression
+          expression2: ConstructorInvocation
+            keyword: const
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                importPrefix: ImportPrefixReference
+                  name: A
+                  period: .
+                name: b
+            argumentList: ArgumentList
+              leftParenthesis: ( <synthetic>
+              rightParenthesis: ) <synthetic>
+          expression(v1): InstanceCreationExpression
             keyword: const
             constructorName: ConstructorName
               type: NamedType
@@ -194,7 +249,7 @@ f() => const A;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -203,7 +258,15 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: InstanceCreationExpression
+          expression2: ConstructorInvocation
+            keyword: const
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                name: A
+            argumentList: ArgumentList
+              leftParenthesis: ( <synthetic>
+              rightParenthesis: ) <synthetic>
+          expression(v1): InstanceCreationExpression
             keyword: const
             constructorName: ConstructorName
               type: NamedType
@@ -225,7 +288,7 @@ f() => new;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -234,7 +297,15 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: InstanceCreationExpression
+          expression2: ConstructorInvocation
+            keyword: new
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                name: <empty> <synthetic>
+            argumentList: ArgumentList
+              leftParenthesis: ( <synthetic>
+              rightParenthesis: ) <synthetic>
+          expression(v1): InstanceCreationExpression
             keyword: new
             constructorName: ConstructorName
               type: NamedType
@@ -256,7 +327,7 @@ f() => new A.b(;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -265,7 +336,21 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: InstanceCreationExpression
+          expression2: ConstructorInvocation
+            keyword: new
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                importPrefix: ImportPrefixReference
+                  name: A
+                  period: .
+                name: b
+            argumentList: ArgumentList
+              leftParenthesis: (
+              arguments2
+                SimpleIdentifier
+                  token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+          expression(v1): InstanceCreationExpression
             keyword: new
             constructorName: ConstructorName
               type: NamedType
@@ -293,7 +378,7 @@ f() => new A(;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -302,7 +387,18 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: InstanceCreationExpression
+          expression2: ConstructorInvocation
+            keyword: new
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                name: A
+            argumentList: ArgumentList
+              leftParenthesis: (
+              arguments2
+                SimpleIdentifier
+                  token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+          expression(v1): InstanceCreationExpression
             keyword: new
             constructorName: ConstructorName
               type: NamedType
@@ -327,7 +423,7 @@ f() => new A.;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -336,7 +432,18 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: InstanceCreationExpression
+          expression2: ConstructorInvocation
+            keyword: new
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                importPrefix: ImportPrefixReference
+                  name: A
+                  period: .
+                name: <empty> <synthetic>
+            argumentList: ArgumentList
+              leftParenthesis: ( <synthetic>
+              rightParenthesis: ) <synthetic>
+          expression(v1): InstanceCreationExpression
             keyword: new
             constructorName: ConstructorName
               type: NamedType
@@ -360,7 +467,7 @@ f() => new A.b;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -369,7 +476,18 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: InstanceCreationExpression
+          expression2: ConstructorInvocation
+            keyword: new
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                importPrefix: ImportPrefixReference
+                  name: A
+                  period: .
+                name: b
+            argumentList: ArgumentList
+              leftParenthesis: ( <synthetic>
+              rightParenthesis: ) <synthetic>
+          expression(v1): InstanceCreationExpression
             keyword: new
             constructorName: ConstructorName
               type: NamedType
@@ -393,7 +511,7 @@ f() => new A;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -402,7 +520,15 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: InstanceCreationExpression
+          expression2: ConstructorInvocation
+            keyword: new
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                name: A
+            argumentList: ArgumentList
+              leftParenthesis: ( <synthetic>
+              rightParenthesis: ) <synthetic>
+          expression(v1): InstanceCreationExpression
             keyword: new
             constructorName: ConstructorName
               type: NamedType

@@ -146,19 +146,16 @@ class InstanceMemberInferrer {
     );
     overriddenSetters ??= const [];
 
-    TypeImpl combinedGetterType() {
+    TypeImpl? combinedGetterType() {
       var combinedGetterType = inheritance.combineSignatureTypes(
         typeSystem: typeSystem,
         candidates: overriddenGetters!,
         name: getterName,
       );
-      if (combinedGetterType != null) {
-        return combinedGetterType.returnType;
-      }
-      return DynamicTypeImpl.instance;
+      return combinedGetterType?.returnType;
     }
 
-    TypeImpl combinedSetterType() {
+    TypeImpl? combinedSetterType() {
       var combinedSetterType = inheritance.combineSignatureTypes(
         typeSystem: typeSystem,
         candidates: overriddenSetters!,
@@ -170,12 +167,24 @@ class InstanceMemberInferrer {
           return parameters[0].type;
         }
       }
-      return DynamicTypeImpl.instance;
+      return null;
+    }
+
+    void setFieldType(FieldElementImpl field, TypeImpl? inferredType) {
+      var type = inferredType ?? DynamicTypeImpl.instance;
+      field.type = type;
+      field.isTypeInferredFromOverride = inferredType != null;
     }
 
     if (getter != null) {
       if (!getter.hasImplicitReturnType) {
         return;
+      }
+
+      void setGetterReturnType(TypeImpl? inferredType) {
+        var field = getter.variable as FieldElementImpl;
+        setFieldType(field, inferredType);
+        getter.returnType = field.type;
       }
 
       // The return type of a getter, parameter type of a setter or type of a
@@ -187,10 +196,8 @@ class InstanceMemberInferrer {
       // and a getter is inferred to be the return type of the combined member
       // signature of said getter in the direct superinterfaces.
       if (overriddenGetters.isNotEmpty) {
-        var returnType = combinedGetterType();
-        getter.returnType = returnType;
-        var fieldElement = getter.variable as FieldElementImpl;
-        fieldElement.type = returnType;
+        var inferredType = combinedGetterType();
+        setGetterReturnType(inferredType);
         return;
       }
 
@@ -199,10 +206,8 @@ class InstanceMemberInferrer {
       // to be the parameter type of the combined member signature of said
       // setter in the direct superinterfaces.
       if (overriddenGetters.isEmpty && overriddenSetters.isNotEmpty) {
-        var returnType = combinedSetterType();
-        getter.returnType = returnType;
-        var fieldElement = getter.variable as FieldElementImpl;
-        fieldElement.type = returnType;
+        var inferredType = combinedSetterType();
+        setGetterReturnType(inferredType);
         return;
       }
 
@@ -220,11 +225,12 @@ class InstanceMemberInferrer {
         return;
       }
 
-      void setSetterValueType(TypeImpl valueType) {
+      void setSetterValueType(TypeImpl? inferredType) {
+        var valueType = inferredType ?? DynamicTypeImpl.instance;
         valueFormalParameter.type = valueType;
         var field = setter.variable as FieldElementImpl;
         if (field.getter == null) {
-          field.type = valueType;
+          setFieldType(field, inferredType);
         }
       }
 
@@ -233,8 +239,8 @@ class InstanceMemberInferrer {
       // to be the return type of the combined member signature of said getter
       // in the direct superinterfaces.
       if (overriddenGetters.isNotEmpty && overriddenSetters.isEmpty) {
-        var valueType = combinedGetterType();
-        setSetterValueType(valueType);
+        var inferredType = combinedGetterType();
+        setSetterValueType(inferredType);
         return;
       }
 
@@ -247,8 +253,8 @@ class InstanceMemberInferrer {
       // setter and a getter is inferred to be the parameter type of the
       // combined member signature of said setter in the direct superinterfaces.
       if (overriddenSetters.isNotEmpty) {
-        var valueType = combinedSetterType();
-        setSetterValueType(valueType);
+        var inferredType = combinedSetterType();
+        setSetterValueType(inferredType);
         return;
       }
 
@@ -272,7 +278,8 @@ class InstanceMemberInferrer {
       // to be the return type of the combined member signature of said getter
       // in the direct superinterfaces.
       if (overriddenGetters.isNotEmpty && overriddenSetters.isEmpty) {
-        field.type = combinedGetterType();
+        var inferredType = combinedGetterType();
+        setFieldType(field, inferredType);
         return;
       }
 
@@ -281,7 +288,8 @@ class InstanceMemberInferrer {
       // to be the parameter type of the combined member signature of said
       // setter in the direct superinterfaces.
       if (overriddenGetters.isEmpty && overriddenSetters.isNotEmpty) {
-        field.type = combinedSetterType();
+        var inferredType = combinedSetterType();
+        setFieldType(field, inferredType);
         return;
       }
 
@@ -290,7 +298,8 @@ class InstanceMemberInferrer {
         // and a getter is inferred to be the return type of the combined
         // member signature of said getter in the direct superinterfaces.
         if (field.isFinal) {
-          field.type = combinedGetterType();
+          var inferredType = combinedGetterType();
+          setFieldType(field, inferredType);
           return;
         }
 
@@ -304,8 +313,14 @@ class InstanceMemberInferrer {
           var getterType = combinedGetterType();
           var setterType = combinedSetterType();
 
-          if (getterType == setterType) {
-            field.type = getterType;
+          if (getterType != null && getterType == setterType) {
+            setFieldType(field, getterType);
+          } else if (getterType != null && setterType != null) {
+            field.typeInferenceError =
+                TopLevelInferenceErrorDifferentGetterAndSetterTypes(
+                  getterType: getterType.getDisplayString(),
+                  setterType: setterType.getDisplayString(),
+                );
           }
           return;
         }
@@ -511,7 +526,7 @@ class InstanceMemberInferrer {
         var initializer = initializers.single as SuperConstructorInvocation;
         forCorrespondingPairs<FormalParameterElementImpl, Argument>(
           constructor.formalParameters.cast(),
-          initializer.argumentList.arguments,
+          initializer.argumentList.arguments2,
           (parameter, argument) {
             (argument as SimpleIdentifierImpl).setPseudoExpressionStaticType(
               parameter.type,

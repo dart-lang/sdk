@@ -35,7 +35,7 @@ class C extends core::Object {
 }
 static method f1({has-declared-initializer core::int _}) → void
   ;
-static method f2({has-declared-initializer core::int _, has-declared-initializer core::String _}) → void
+static method f2({has-declared-initializer core::int _, has-declared-initializer core::String _##1}) → void
   ;
 static method test() → dynamic
   ;

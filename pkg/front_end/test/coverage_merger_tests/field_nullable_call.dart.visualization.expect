@@ -1,0 +1,5 @@
+package:front_end/main.dart: 69% (4 misses)
+package:front_end/main.dart:10:
+In 'Foo.lateListLengths':
+  late final List<int>? lateListLengths = list?.map((x) => x.length).toList();
+                                                ^^^ ^        ^^^^^^  ^^^^^^

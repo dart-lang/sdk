@@ -11,10 +11,41 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NewWithUndefinedConstructorTest);
     defineReflectiveTests(
-      NewWithUndefinedConstructorWithoutConstructorTearoffsTest,
+      NewWithUndefinedConstructorBeforeConstructorTearoffsTest,
     );
     defineReflectiveTests(UpdateNodeTextExpectations);
   });
+}
+
+@reflectiveTest
+class NewWithUndefinedConstructorBeforeConstructorTearoffsTest
+    extends PubPackageResolutionTest
+    with BeforeConstructorTearoffsMixin {
+  test_defaultViaNew() async {
+    await resolveTestCodeWithDiagnostics('''
+class A {
+  A.new() {}
+//  ^^^
+// [diag.experimentNotEnabled] This requires the 'constructor-tearoffs' language feature to be enabled.
+}
+f() {
+  A();
+}
+''');
+  }
+
+  test_unnamedViaNew() async {
+    await resolveTestCodeWithDiagnostics('''
+class A {
+  A.named() {}
+}
+f() {
+  A.new();
+//  ^^^
+// [diag.experimentNotEnabled] This requires the 'constructor-tearoffs' language feature to be enabled.
+}
+''');
+  }
 }
 
 @reflectiveTest
@@ -184,37 +215,6 @@ void f() {
   new A<int>._named();
 //           ^^^^^^
 // [diag.newWithUndefinedConstructor] The class 'A' doesn't have a constructor named '_named'.
-}
-''');
-  }
-}
-
-@reflectiveTest
-class NewWithUndefinedConstructorWithoutConstructorTearoffsTest
-    extends PubPackageResolutionTest
-    with WithoutConstructorTearoffsMixin {
-  test_defaultViaNew() async {
-    await resolveTestCodeWithDiagnostics('''
-class A {
-  A.new() {}
-//  ^^^
-// [diag.experimentNotEnabled] This requires the 'constructor-tearoffs' language feature to be enabled.
-}
-f() {
-  A();
-}
-''');
-  }
-
-  test_unnamedViaNew() async {
-    await resolveTestCodeWithDiagnostics('''
-class A {
-  A.named() {}
-}
-f() {
-  A.new();
-//  ^^^
-// [diag.experimentNotEnabled] This requires the 'constructor-tearoffs' language feature to be enabled.
 }
 ''');
   }

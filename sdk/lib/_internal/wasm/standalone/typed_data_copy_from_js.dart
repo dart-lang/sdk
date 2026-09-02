@@ -10,7 +10,7 @@ import 'dart:_internal' show patch;
 @patch
 bool tryCopyExternalIntTypedData(
   Iterable<int> from,
-  _IntListMixin to,
+  TypedDataList<int> to,
   int start,
   int skipCount,
   int count,
@@ -21,7 +21,7 @@ bool tryCopyExternalIntTypedData(
 @patch
 bool tryCopyExternalFloatTypedData(
   Iterable<double> from,
-  _DoubleListMixin to,
+  TypedDataList<double> to,
   int start,
   int skipCount,
   int count,

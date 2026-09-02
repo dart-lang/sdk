@@ -21,7 +21,8 @@ import 'constant_pattern_test.dart' as constant_pattern;
 import 'constant_test.dart' as constant;
 import 'constructor_field_initializer_test.dart'
     as constructor_field_initializer;
-import 'constructor_reference_test.dart' as constructor_reference;
+import 'constructor_invocation_test.dart' as constructor_invocation;
+import 'constructor_tear_off_test.dart' as constructor_tear_off;
 import 'constructor_test.dart' as constructor;
 import 'declared_variable_pattern_test.dart' as declared_variable_pattern;
 import 'dot_shorthand_constructor_invocation_test.dart'
@@ -43,8 +44,7 @@ import 'function_body_test.dart' as function_body;
 import 'function_declaration_statement_test.dart'
     as function_declaration_statement;
 import 'function_declaration_test.dart' as function_declaration;
-import 'function_expression_invocation_test.dart'
-    as function_expression_invocation;
+import 'function_expression_invocation_test.dart' as call_invocation;
 import 'function_expression_test.dart' as function_expression;
 import 'function_reference_test.dart' as function_reference;
 import 'function_type_alias_test.dart' as function_type_alias;
@@ -55,7 +55,6 @@ import 'generic_type_alias_test.dart' as generic_type_alias;
 import 'if_element_test.dart' as if_element;
 import 'if_statement_test.dart' as if_statement;
 import 'index_expression_test.dart' as index_expression;
-import 'instance_creation_test.dart' as instance_creation;
 import 'instance_member_inference_class_test.dart'
     as instance_member_inference_class;
 import 'instance_member_inference_mixin_test.dart'
@@ -139,7 +138,7 @@ main() {
     comment.main();
     constant.main();
     constructor_field_initializer.main();
-    constructor_reference.main();
+    constructor_tear_off.main();
     constructor.main();
     declared_variable_pattern.main();
     dot_shorthand_constructor_invocation.main();
@@ -159,7 +158,7 @@ main() {
     function_declaration_statement.main();
     function_declaration.main();
     function_expression.main();
-    function_expression_invocation.main();
+    call_invocation.main();
     function_reference.main();
     function_type_alias.main();
     function_typed_formal_parameter.main();
@@ -168,7 +167,7 @@ main() {
     if_element.main();
     if_statement.main();
     index_expression.main();
-    instance_creation.main();
+    constructor_invocation.main();
     instance_member_inference_class.main();
     instance_member_inference_mixin.main();
     interpolation_string.main();

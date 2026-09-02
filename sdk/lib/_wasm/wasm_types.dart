@@ -6,10 +6,6 @@
 
 library dart._wasm;
 
-// TODO(63166): Remove this export after migrating Flutter to import that
-// library directly.
-export 'dart:_js_interop_wasm';
-
 part 'memory.dart';
 
 // A collection a special Dart types that are mapped directly to Wasm types
@@ -202,6 +198,12 @@ class WasmI32 extends _WasmBase {
   external bool gtU(WasmI32 other);
 }
 
+extension WasmI32Extension on WasmI32 {
+  /// Wasm `f32.reinterpret_i32` instruction.
+  @pragma("wasm:intrinsic")
+  external WasmF32 get asWasmF32;
+}
+
 /// The Wasm `i64` type.
 @pragma("wasm:entry-point")
 class WasmI64 extends _WasmBase {
@@ -248,6 +250,12 @@ class WasmI64 extends _WasmBase {
   external WasmI64 maxS(WasmI64 other);
 }
 
+extension WasmI64Extension on WasmI64 {
+  /// Wasm `f64.reinterpret_i64` instruction.
+  @pragma("wasm:intrinsic")
+  external WasmF64 get asWasmF64;
+}
+
 /// The Wasm `f32` type.
 @pragma("wasm:entry-point")
 class WasmF32 extends _WasmBase {
@@ -262,6 +270,12 @@ class WasmF32 extends _WasmBase {
   external factory WasmF32.fromDouble(double value);
 
   external double toDouble();
+}
+
+extension WasmF32Extension on WasmF32 {
+  /// Wasm `i32.reinterpret_f32` instruction.
+  @pragma("wasm:intrinsic")
+  external WasmI32 get asWasmI32;
 }
 
 /// The Wasm `f64` type.
@@ -293,6 +307,12 @@ class WasmF64 extends _WasmBase {
 
   /// Wasm `f64.max` instruction.
   external WasmF64 max(WasmF64 other);
+}
+
+extension WasmF64Extension on WasmF64 {
+  /// Wasm `i64.reinterpret_f64` instruction.
+  @pragma("wasm:intrinsic")
+  external WasmI64 get asWasmI64;
 }
 
 /// The Wasm `v128` type.
@@ -490,6 +510,9 @@ extension type const WasmI8x16(WasmV128 value) implements WasmV128 {
 
   @pragma("wasm:intrinsic")
   external WasmI8x16 eq(WasmI8x16 other);
+
+  @pragma("wasm:intrinsic")
+  external WasmI32 get bitmask;
 }
 
 extension type const WasmI16x8(WasmV128 value) implements WasmV128 {
@@ -530,6 +553,9 @@ extension type const WasmI16x8(WasmV128 value) implements WasmV128 {
 
   @pragma("wasm:intrinsic")
   external WasmI16x8 eq(WasmI16x8 other);
+
+  @pragma("wasm:intrinsic")
+  external WasmI32 get bitmask;
 }
 
 extension type const WasmI32x4(WasmV128 value) implements WasmV128 {
@@ -555,6 +581,9 @@ extension type const WasmI32x4(WasmV128 value) implements WasmV128 {
 
   @pragma("wasm:intrinsic")
   external WasmI32x4 eq(WasmI32x4 other);
+
+  @pragma("wasm:intrinsic")
+  external WasmI32 get bitmask;
 }
 
 extension type const WasmI64x2(WasmV128 value) implements WasmV128 {
@@ -582,6 +611,9 @@ extension type const WasmI64x2(WasmV128 value) implements WasmV128 {
   external WasmI64x2 eq(WasmI64x2 other);
   @pragma("wasm:intrinsic")
   external bool get allTrue;
+
+  @pragma("wasm:intrinsic")
+  external WasmI32 get bitmask;
 }
 
 extension type const WasmF32x4(WasmV128 value) implements WasmV128 {

@@ -14,6 +14,7 @@ import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/target/changed_structure_notifier.dart';
 import 'package:kernel/target/targets.dart' show DiagnosticReporter;
 import 'package:kernel/util/graph.dart';
+import 'package:vm/modular/transformations/pragma.dart';
 
 import 'abi.dart';
 import 'common.dart';
@@ -313,7 +314,9 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         node.addAnnotation(
           ConstantExpression(
             InstanceConstant(pragmaClass.reference, [], {
-              pragmaName.fieldReference: StringConstant("vm:deeply-immutable"),
+              pragmaName.fieldReference: StringConstant(
+                vmDeeplyImmutablePragmaName,
+              ),
               pragmaOptions.fieldReference: NullConstant(),
             }),
           ),
@@ -591,12 +594,12 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     ///   super._fromTypedDataBase(#typedDataBase, #offsetInBytes);
     /// ```
     final PositionalParameter typedDataBase = PositionalParameter(
-      cosmeticName: "#typedDataBase",
+      parameterName: "#typedDataBase",
       type: coreTypes.objectNonNullableRawType,
       isSynthesized: true,
     );
     final PositionalParameter offsetInBytes = PositionalParameter(
-      cosmeticName: "#offsetInBytes",
+      parameterName: "#offsetInBytes",
       type: coreTypes.intNonNullableRawType,
       isSynthesized: true,
     );
@@ -637,7 +640,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       /// ) : super._fromTypedData();
       /// ```
       final PositionalParameter typedData = PositionalParameter(
-        cosmeticName: "#typedData",
+        parameterName: "#typedData",
         type: InterfaceType(
           typedDataClass,
           Nullability.nonNullable,
@@ -646,12 +649,12 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         isSynthesized: true,
       );
       final PositionalParameter offset = PositionalParameter(
-        cosmeticName: "#offset",
+        parameterName: "#offset",
         type: coreTypes.intNonNullableRawType,
         isSynthesized: true,
       );
       final PositionalParameter sizeInBytes = PositionalParameter(
-        cosmeticName: "#sizeInBytes",
+        parameterName: "#sizeInBytes",
         type: coreTypes.intNonNullableRawType,
         isSynthesized: true,
       );
@@ -798,6 +801,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       node,
       compoundType.members,
       compoundData.packing,
+      [for (final f in compoundData.compoundFields) f.name],
     );
     if (compoundType.members.isEmpty) {
       diagnosticReporter.report(
@@ -966,6 +970,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     Class node,
     List<NativeTypeCfe> types,
     int? packing,
+    List<String> fieldNames,
   ) {
     List<Constant> constants = types
         .map((t) => t.generateConstant(this))
@@ -984,6 +989,13 @@ class _FfiDefinitionTransformer extends FfiTransformer {
                 ffiStructLayoutPackingField.fieldReference: packing == null
                     ? NullConstant()
                     : IntConstant(packing),
+                ffiStructLayoutFieldNamesField.fieldReference: ListConstant(
+                  InterfaceType(
+                    coreTypes.stringNonNullableRawType.classNode,
+                    Nullability.nonNullable,
+                  ),
+                  fieldNames.map((n) => StringConstant(n)).toList(),
+                ),
               }),
         }),
         InterfaceType(pragmaClass, Nullability.nonNullable, []),
@@ -1096,7 +1108,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         "Unexpected setter reference for ${field}, found $setterReference.",
       );
       final PositionalParameter argument = PositionalParameter(
-        cosmeticName: '#v',
+        parameterName: '#v',
         type: field.type,
         isSynthesized: true,
       )..fileOffset = field.fileOffset;
@@ -1209,4 +1221,6 @@ class CompoundField {
   final Procedure? setter;
 
   CompoundField(this.type, this.field, this.getter, this.setter);
+
+  String get name => field?.name.text ?? getter!.name.text;
 }

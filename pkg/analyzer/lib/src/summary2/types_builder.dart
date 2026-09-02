@@ -17,39 +17,13 @@ import 'package:analyzer/src/summary2/interface_cycles.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/type_builder.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
-
-/// Return `true` if [type] can be used as an interface or a mixin.
-bool isInterfaceTypeInterface(InterfaceType type) {
-  if (type.element is EnumElement) {
-    return false;
-  }
-  if (type.element is ExtensionTypeElement) {
-    return false;
-  }
-  if (type.isDartCoreFunction || type.isDartCoreNull) {
-    return false;
-  }
-  if (type.nullabilitySuffix == NullabilitySuffix.question) {
-    return false;
-  }
-  return true;
-}
-
-/// Return `true` if [type] can be used as a class.
-bool _isInterfaceTypeClass(InterfaceType type) {
-  if (type.element is! ClassElement) {
-    return false;
-  }
-  return isInterfaceTypeInterface(type);
-}
 
 List<InterfaceTypeImpl> _toInterfaceTypeList(List<NamedType>? nodeList) {
   if (nodeList != null) {
     return nodeList
         .map((e) => e.type)
         .whereType<InterfaceTypeImpl>()
-        .where(isInterfaceTypeInterface)
+        .where((type) => type.isValidSuperinterface)
         .toList();
   }
   return const [];
@@ -119,7 +93,7 @@ class TypesBuilder {
     var formalParameters = _formalParameters(formalParameterList);
 
     return FunctionTypeImpl(
-      typeParameters: typeParameters.map((f) => f.asElement2).toList(),
+      typeParameters: typeParameters.map((f) => f.element).toList(),
       formalParameters: formalParameters,
       returnType: returnType,
       nullabilitySuffix: nullabilitySuffix,
@@ -134,7 +108,7 @@ class TypesBuilder {
       var extendsClause = node.extendsClause;
       if (extendsClause != null) {
         var type = extendsClause.superclass.type;
-        if (type is InterfaceTypeImpl && _isInterfaceTypeClass(type)) {
+        if (type is InterfaceTypeImpl && type._isValidSuperclass) {
           element.supertype = type;
         }
       }
@@ -153,7 +127,7 @@ class TypesBuilder {
     var element = fragment.element;
 
     var superType = node.superclass.type;
-    if (superType is InterfaceTypeImpl && _isInterfaceTypeClass(superType)) {
+    if (superType is InterfaceTypeImpl && superType._isValidSuperclass) {
       element.supertype = superType;
     }
 
@@ -190,6 +164,8 @@ class TypesBuilder {
       _fieldFormalParameter(node);
     } else if (node is FunctionDeclarationImpl) {
       _functionDeclaration(node);
+    } else if (node is TopLevelGetterDeclarationImpl) {
+      _topLevelGetterDeclaration(node);
     } else if (node is FunctionTypeAliasImpl) {
       _functionTypeAlias(node);
     } else if (node is RegularFormalParameterImpl) {
@@ -455,6 +431,16 @@ class TypesBuilder {
     }
   }
 
+  void _topLevelGetterDeclaration(TopLevelGetterDeclarationImpl node) {
+    var fragment = node.declaredFragment!;
+    var element = fragment.element;
+
+    if (fragment.previousFragment == null) {
+      element.returnType = node.returnType?.type ?? _dynamicType;
+      _setSyntheticVariableType(element);
+    }
+  }
+
   void _typeParameter(TypeParameterImpl node) {
     var fragment = node.declaredFragment!;
     if (fragment.previousFragment == null) {
@@ -524,7 +510,7 @@ class _MixinInference {
     var result = <InterfaceTypeImpl>[];
     for (var mixinNode in withClause.mixinTypes) {
       var mixinType = _inferSingle(mixinNode);
-      if (mixinType != null && isInterfaceTypeInterface(mixinType)) {
+      if (mixinType != null && mixinType.isValidSuperinterface) {
         result.add(mixinType);
         interfacesMerger.addWithSupertypes(mixinType);
       }
@@ -650,7 +636,7 @@ class _MixinInference {
   }
 
   InterfaceTypeImpl? _interfaceType(DartType type) {
-    if (type is InterfaceTypeImpl && isInterfaceTypeInterface(type)) {
+    if (type is InterfaceTypeImpl && type.isValidSuperinterface) {
       return type;
     }
     return null;
@@ -716,10 +702,12 @@ class _MixinsInference {
         library.featureSet,
         typeSystemOperations: typeSystemOperations,
       );
-      element.mixins = [
-        for (var fragment in declaration.fragments)
-          ...inference.perform(fragment.withClause),
-      ];
+      var mixins = <InterfaceTypeImpl>[];
+      for (var fragment in declaration.fragments) {
+        fragment.fragment.withClauseMixinStartIndex = mixins.length;
+        mixins.addAll(inference.perform(fragment.withClause));
+      }
+      element.mixins = mixins;
     } finally {
       element.mixinInferenceCallback = null;
     }
@@ -750,4 +738,11 @@ class _ToInferMixins {
   final List<_ToInferFragmentMixins> fragments = [];
 
   _ToInferMixins(this.element);
+}
+
+extension on InterfaceTypeImpl {
+  /// Return `true` if this type can be used as a class.
+  bool get _isValidSuperclass {
+    return element is ClassElement && isValidSuperinterface;
+  }
 }

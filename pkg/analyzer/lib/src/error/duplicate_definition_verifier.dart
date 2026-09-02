@@ -55,7 +55,7 @@ class DuplicateDefinitionVerifier {
   /// Check that all of the parameters have unique names.
   void checkParameters(FormalParameterListImpl node) {
     var scope = _FormalParameterDuplicateIdentifierScope(this);
-    for (var parameter in node.parameters) {
+    for (var parameter in node.allFormalParameters) {
       // The identifier can be null if this is a parameter list for a generic
       // function type.
       var identifier = parameter.name;
@@ -68,7 +68,7 @@ class DuplicateDefinitionVerifier {
 
     // For private named parameters, also look for collisions with their public
     // name and other parameters.
-    for (var parameter in node.parameters) {
+    for (var parameter in node.allFormalParameters) {
       if (parameter.declaredFragment
           case FieldFormalParameterFragment fragment) {
         if (fragment.privateName != null) {
@@ -200,7 +200,7 @@ class DuplicateDefinitionVerifier {
       addWithoutChecking(libraryFragment);
     }
 
-    for (var member in node.declarations) {
+    for (var member in node.declarations2) {
       switch (member) {
         case ClassDeclarationImpl():
           var declaredFragment = member.declaredFragment!;
@@ -257,6 +257,15 @@ class DuplicateDefinitionVerifier {
                 fragment: declaredFragment,
               );
             }
+          }
+        case TopLevelGetterDeclarationImpl():
+          var declaredFragment = member.declaredFragment!;
+          if (!declaredFragment.isAugmentation) {
+            _checkDuplicateFragmentIdentifier(
+              definedGetters,
+              member.name,
+              fragment: declaredFragment,
+            );
           }
         case MixinDeclarationImpl():
           var declaredFragment = member.declaredFragment!;

@@ -45,7 +45,7 @@ class FlowAnalysisTestHarness extends Harness with FlowModelHelper {
   FlowAnalysisOperations<Var> get typeOperations => typeAnalyzer.operations;
 
   @override
-  bool isFinal(int variableKey) {
+  bool isFinal(PromotionKey variableKey) {
     Var? variable = promotionKeyStore.variableForKey(variableKey);
     if (variable != null && operations.isFinal(variable)) return true;
     return false;
@@ -87,7 +87,7 @@ class _GetExpressionInfo extends Expression {
   _GetExpressionInfo(this.target, this.callback, {required super.location});
 
   @override
-  void preVisit(PreVisitor visitor) {
+  void preVisitInternal(PreVisitor visitor) {
     target.preVisit(visitor);
   }
 
@@ -108,7 +108,7 @@ class _GetSsaNodes extends Expression {
   _GetSsaNodes(this.callback, {required super.location});
 
   @override
-  void preVisit(PreVisitor visitor) {}
+  void preVisitInternal(PreVisitor visitor) {}
 
   @override
   ExpressionTypeAnalysisResult visit(Harness h, SharedTypeSchemaView schema) {
@@ -128,7 +128,7 @@ class _WhyNotPromoted extends Expression {
   _WhyNotPromoted(this.target, this.callback, {required super.location});
 
   @override
-  void preVisit(PreVisitor visitor) {
+  void preVisitInternal(PreVisitor visitor) {
     target.preVisit(visitor);
   }
 
@@ -158,7 +158,7 @@ class _WhyNotPromoted_ImplicitThis extends Expression {
   });
 
   @override
-  void preVisit(PreVisitor visitor) {}
+  void preVisitInternal(PreVisitor visitor) {}
 
   @override
   String toString() => 'implicit this (whyNotPromoted)';

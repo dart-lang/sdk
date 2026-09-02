@@ -1,0 +1,17 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Square extends core::Object {
+  final field core::double length;
+  constructor •(final initializing-formal core::double length) → self::Square
+    ;
+  get areaAsDouble() → core::double
+    ;
+  get areaAsInt() → core::int
+    ;
+}
+static method main() → dynamic
+  ;
+static method expect<T extends core::Object? = dynamic>(core::List<self::expect::T%> expected, core::List<self::expect::T%> actual) → dynamic
+  ;

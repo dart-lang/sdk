@@ -115,6 +115,14 @@ final class Lowering extends Pass with DefaultInstructionVisitor<void> {
           }
         }
       }
+      // Simplify identical with Smi constant to equal.
+    } else if (op == .identical || op == .notIdentical) {
+      final right = instr.right;
+      if (right is Constant &&
+          right.value.isInt &&
+          objectLayout.isSmi(right.value.intValue)) {
+        instr.op = (op == .identical) ? .equal : .notEqual;
+      }
     }
   }
 
@@ -275,16 +283,20 @@ final class Lowering extends Pass with DefaultInstructionVisitor<void> {
     // List literals up to 8 elements are lowered in the front-end
     // (pkg/vm/lib/transformations/list_literals_lowering.dart)
     assert(instr.length > 8);
-    final argument = AllocateList(
+    final argument = AllocateArray(
       graph,
       instr.sourcePosition,
+      .fixedLengthList,
+      StaticType(GlobalContext.instance.coreTypes.listNonNullableRawType),
+      null,
       graph.getConstant(ConstantValue.fromInt(instr.length)),
     );
     argument.insertBefore(instr);
     for (int i = 0, n = instr.length; i < n; ++i) {
-      final setElem = SetListElement(
+      final setElem = StoreArrayElement(
         graph,
         instr.sourcePosition,
+        .fixedLengthList,
         argument,
         graph.getConstant(ConstantValue.fromInt(i)),
         instr.elementAt(i),
@@ -312,24 +324,29 @@ final class Lowering extends Pass with DefaultInstructionVisitor<void> {
     if (instr.length == 0) {
       argument = graph.getConstant(_emptyList);
     } else {
-      argument = AllocateList(
+      argument = AllocateArray(
         graph,
         instr.sourcePosition,
+        .fixedLengthList,
+        StaticType(GlobalContext.instance.coreTypes.listNonNullableRawType),
+        null,
         graph.getConstant(ConstantValue.fromInt(instr.length << 1)),
       );
       argument.insertBefore(instr);
       for (int i = 0, n = instr.length; i < n; ++i) {
-        final setKey = SetListElement(
+        final setKey = StoreArrayElement(
           graph,
           instr.sourcePosition,
+          .fixedLengthList,
           argument,
           graph.getConstant(ConstantValue.fromInt((i << 1) + 0)),
           instr.keyAt(i),
         );
         setKey.insertBefore(instr);
-        final setValue = SetListElement(
+        final setValue = StoreArrayElement(
           graph,
           instr.sourcePosition,
+          .fixedLengthList,
           argument,
           graph.getConstant(ConstantValue.fromInt((i << 1) + 1)),
           instr.valueAt(i),
@@ -381,16 +398,20 @@ final class Lowering extends Pass with DefaultInstructionVisitor<void> {
     if (isSingle) {
       argument = instr.inputDefAt(0);
     } else {
-      argument = AllocateList(
+      argument = AllocateArray(
         graph,
         instr.sourcePosition,
+        .fixedLengthList,
+        StaticType(GlobalContext.instance.coreTypes.listNonNullableRawType),
+        null,
         graph.getConstant(ConstantValue.fromInt(instr.inputCount)),
       );
       argument.insertBefore(instr);
       for (int i = 0, n = instr.inputCount; i < n; ++i) {
-        final setElem = SetListElement(
+        final setElem = StoreArrayElement(
           graph,
           instr.sourcePosition,
+          .fixedLengthList,
           argument,
           graph.getConstant(ConstantValue.fromInt(i)),
           instr.inputDefAt(i),

@@ -1616,9 +1616,8 @@ class DDCKernelGenerator {
   final TestProjectConfiguration config;
   final bool verbose;
   static final dart = Platform.resolvedExecutable;
-  static final sdkPath = computePlatformBinariesLocation(
-    forceBuildDir: true,
-  ).toFilePath();
+  static final sdkPath = computePlatformBinariesLocation(forceBuildDir: true)
+      .toFilePath();
   static var dartExecutable = p.join(
     sdkPath,
     'dart-sdk',

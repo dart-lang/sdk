@@ -9,83 +9,99 @@ import '../dot_shorthand_helper.dart';
 
 void notSymmetrical(StaticMember member, StaticMemberExt memberExt) {
   bool eq = .member() == member;
-  //         ^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  //        ^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+  //         ^
   // [cfe] No type was provided to find the dot shorthand 'member'.
 
   bool eqType = .memberType<String, int>('s') == member;
-  //             ^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  //            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+  //             ^
   // [cfe] No type was provided to find the dot shorthand 'memberType'.
 
   bool neq = .member() != member;
-  //          ^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  //         ^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+  //          ^
   // [cfe] No type was provided to find the dot shorthand 'member'.
 
   bool neqType = .memberType<String, int>('s') != member;
-  //              ^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  //             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+  //              ^
   // [cfe] No type was provided to find the dot shorthand 'memberType'.
 
   bool eqExt = .member() == memberExt;
-  //            ^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  //           ^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+  //            ^
   // [cfe] No type was provided to find the dot shorthand 'member'.
 
   bool eqTypeExt = .memberType<String, int>('s') == memberExt;
-  //                ^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  //               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+  //                ^
   // [cfe] No type was provided to find the dot shorthand 'memberType'.
 
   bool neqExt = .member() != memberExt;
-  //             ^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  //            ^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+  //             ^
   // [cfe] No type was provided to find the dot shorthand 'member'.
 
   bool neqTypeExt = .memberType<String, int>('s') != memberExt;
-  //                 ^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  //                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+  //                 ^
   // [cfe] No type was provided to find the dot shorthand 'memberType'.
 
   if (.member() == member) print('not ok');
-  //   ^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  //  ^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+  //   ^
   // [cfe] No type was provided to find the dot shorthand 'member'.
 
   if (.memberType<String, int>('s') == member) print('not ok');
-  //   ^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  //  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+  //   ^
   // [cfe] No type was provided to find the dot shorthand 'memberType'.
 
   if (.member() != member) print('not ok');
-  //   ^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  //  ^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+  //   ^
   // [cfe] No type was provided to find the dot shorthand 'member'.
 
   if (.memberType<String, int>('s') != member) print('not ok');
-  //   ^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  //  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+  //   ^
   // [cfe] No type was provided to find the dot shorthand 'memberType'.
 
   if (.member() == memberExt) print('not ok');
-  //   ^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  //  ^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+  //   ^
   // [cfe] No type was provided to find the dot shorthand 'member'.
 
   if (.memberType<String, int>('s') == memberExt) print('not ok');
-  //   ^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  //  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+  //   ^
   // [cfe] No type was provided to find the dot shorthand 'memberType'.
 
   if (.member() != memberExt) print('not ok');
-  //   ^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  //  ^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+  //   ^
   // [cfe] No type was provided to find the dot shorthand 'member'.
 
   if (.memberType<String, int>('s') != memberExt) print('not ok');
-  //   ^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  //  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+  //   ^
   // [cfe] No type was provided to find the dot shorthand 'memberType'.
 }
 
@@ -95,55 +111,65 @@ void rhsNeedsToBeShorthand(
   bool condition,
 ) {
   if (member == (.member())) {
-    //            ^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+    //           ^^^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+    //            ^
     // [cfe] No type was provided to find the dot shorthand 'member'.
     print('not ok');
   }
 
   if (member != (.member())) {
-    //            ^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+    //           ^^^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+    //            ^
     // [cfe] No type was provided to find the dot shorthand 'member'.
     print('not ok');
   }
 
   if (member == (condition ? .member() : .memberType<String, int>('s'))) {
-    //                        ^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+    //                       ^^^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+    //                        ^
     // [cfe] No type was provided to find the dot shorthand 'member'.
-    //                                    ^^^^^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+    //                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+    //                                    ^
     // [cfe] No type was provided to find the dot shorthand 'memberType'.
     print('not ok');
   }
 
   if (member != (condition ? .member() : .memberType<String, int>('s'))) {
-    //                        ^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+    //                       ^^^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+    //                        ^
     // [cfe] No type was provided to find the dot shorthand 'member'.
-    //                                    ^^^^^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+    //                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+    //                                    ^
     // [cfe] No type was provided to find the dot shorthand 'memberType'.
     print('not ok');
   }
 
   if (memberExt == (condition ? .member() : .memberType<String, int>('s'))) {
-    //                           ^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+    //                          ^^^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+    //                           ^
     // [cfe] No type was provided to find the dot shorthand 'member'.
-    //                                       ^^^^^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+    //                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+    //                                       ^
     // [cfe] No type was provided to find the dot shorthand 'memberType'.
     print('not ok');
   }
 
   if (memberExt != (condition ? .member() : .memberType<String, int>('s'))) {
-    //                           ^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+    //                          ^^^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+    //                           ^
     // [cfe] No type was provided to find the dot shorthand 'member'.
-    //                                       ^^^^^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+    //                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+    //                                       ^
     // [cfe] No type was provided to find the dot shorthand 'memberType'.
     print('not ok');
   }

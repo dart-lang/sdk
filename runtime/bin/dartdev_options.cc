@@ -34,6 +34,15 @@ static bool PotentialDartdevCommand(const char* script_uri) {
   // This should be kept in sync with the commands in
   // `pkg/dartdev/lib/dartdev.dart`.
   return (
+      (strcmp(script_uri, "-e") == 0) || (strcmp(script_uri, "--eval") == 0) ||
+      (strncmp(script_uri, "-e=", 3) == 0) ||
+      (strncmp(script_uri, "--eval=", 7) == 0) ||
+      (strcmp(script_uri, "-P") == 0) ||
+      (strcmp(script_uri, "--package-constraint") == 0) ||
+      (strncmp(script_uri, "-P=", 3) == 0) ||
+      (strncmp(script_uri, "--package-constraint=", 21) == 0) ||
+      (strcmp(script_uri, "--offline") == 0) ||
+      (strncmp(script_uri, "--offline=", 10) == 0) ||
       (strcmp(script_uri, "analyze") == 0) ||
       (strcmp(script_uri, "compilation-server") == 0) ||
       (strcmp(script_uri, "build") == 0) ||
@@ -45,6 +54,7 @@ static bool PotentialDartdevCommand(const char* script_uri) {
       (strcmp(script_uri, "format") == 0) ||
       (strcmp(script_uri, "info") == 0) ||
       (strcmp(script_uri, "mcp-server") == 0) ||
+      (strcmp(script_uri, "migrate") == 0) ||
       (strcmp(script_uri, "pub") == 0) || (strcmp(script_uri, "run") == 0) ||
       (strcmp(script_uri, "test") == 0) || (strcmp(script_uri, "info") == 0) ||
       (strcmp(script_uri, "language-server") == 0) ||

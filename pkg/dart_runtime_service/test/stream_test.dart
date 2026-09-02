@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:dart_runtime_service/src/dart_runtime_service_options.dart';
 import 'package:dart_runtime_service/src/dart_runtime_service_rpcs.dart';
@@ -100,6 +102,111 @@ void main() {
         () async => await client.streamCancel(HelloWorldEvent.kStreamId),
         throwsStreamNotSubscribedRPCError,
       );
+    });
+
+    test('hasListeners returns true when subscribed', () async {
+      final service = await createDartRuntimeServiceForTest(
+        config: const DartRuntimeServiceOptions(enableLogging: true),
+      );
+
+      final client = await vmServiceConnectUri(service.uri.toString());
+      expect(
+        service.eventStreamManager.hasListeners(HelloWorldEvent.kStreamId),
+        isFalse,
+      );
+
+      await client.streamListen(HelloWorldEvent.kStreamId);
+      expect(
+        service.eventStreamManager.hasListeners(HelloWorldEvent.kStreamId),
+        isTrue,
+      );
+
+      await client.streamCancel(HelloWorldEvent.kStreamId);
+      expect(
+        service.eventStreamManager.hasListeners(HelloWorldEvent.kStreamId),
+        isFalse,
+      );
+    });
+
+    test('Service stream catch-up on streamListen', () async {
+      final service = await createDartRuntimeServiceForTest(
+        config: const DartRuntimeServiceOptions(enableLogging: true),
+      );
+
+      final client1 = await vmServiceConnectUri(service.uri.toString());
+      await client1.streamListen(EventStreams.kService);
+
+      var client1ServiceRegisteredEventCount = 0;
+      client1.onServiceEvent.listen((event) {
+        if (event.kind == EventKind.kServiceRegistered) {
+          client1ServiceRegisteredEventCount++;
+        }
+      });
+
+      const serviceName = 'testService';
+      const serviceAlias = 'testAlias';
+
+      client1.registerServiceCallback(
+        serviceName,
+        (params) async => <String, dynamic>{},
+      );
+      await client1.registerService(serviceName, serviceAlias);
+
+      final client2 = await vmServiceConnectUri(service.uri.toString());
+      final client2EventCompleter = Completer<Event>();
+
+      client2.onServiceEvent.listen((event) {
+        if (event.kind == EventKind.kServiceRegistered &&
+            event.service == serviceName) {
+          client2EventCompleter.complete(event);
+        }
+      });
+
+      await client2.streamListen(EventStreams.kService);
+      final event = await client2EventCompleter.future;
+
+      // client1 receives 0 ServiceRegistered events for its own service
+      // registration.
+      expect(client1ServiceRegisteredEventCount, equals(0));
+
+      // client2 receives 1 ServiceRegistered event on catch-up when
+      // subscribing.
+      expect(event.kind, EventKind.kServiceRegistered);
+      expect(event.service, serviceName);
+      expect(event.alias, serviceAlias);
+
+      // Verify client1 did not receive a duplicate event when client2
+      // subscribed.
+      await pumpEventQueue();
+      expect(client1ServiceRegisteredEventCount, equals(0));
+    });
+
+    test('BinaryStreamEvent.fromData parses streamId and payload', () {
+      final header = json.encode(<String, Object?>{
+        'jsonrpc': '2.0',
+        'method': 'streamNotify',
+        'params': <String, Object?>{
+          'streamId': 'BinaryStream',
+          'event': <String, Object?>{
+            'type': 'Event',
+            'kind': 'BinaryData',
+            'timestamp': 123456789,
+          },
+        },
+      });
+      final headerBytes = utf8.encode(header);
+      const metadataOffset = 4;
+      final dataOffset = metadataOffset + headerBytes.length;
+      final payload = <int>[10, 20, 30, 40];
+      final buffer = Uint8List(dataOffset + payload.length);
+      final byteData = ByteData.view(buffer.buffer);
+      byteData.setUint32(0, dataOffset, Endian.little);
+      buffer.setRange(metadataOffset, dataOffset, headerBytes);
+      buffer.setRange(dataOffset, buffer.length, payload);
+
+      final event = BinaryStreamEvent.fromData(buffer);
+      expect(event.streamId, equals('BinaryStream'));
+      expect(event.data, equals(buffer));
     });
   });
 }

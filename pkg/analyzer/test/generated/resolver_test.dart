@@ -228,12 +228,55 @@ main() {
   helper.max(10, 10); // marker
 }''');
 
-    var node = result.findNode.simple('max(10, 10)');
+    var node = result.findNode.importPrefixedFunctionInvocation('max(10, 10)');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
-  token: max
-  element: package:test/a.dart::@function::max
-  staticType: int Function(int, int)
+ImportPrefixedFunctionInvocation
+  importPrefix: ImportPrefixReference
+    name: helper
+    period: .
+    element: <testLibraryFragment>::@prefix::helper
+  name: max
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 10
+        correspondingParameter: package:test/a.dart::@function::max::@formalParameter::x
+        staticType: int
+      IntegerLiteral
+        literal: 10
+        correspondingParameter: package:test/a.dart::@function::max::@formalParameter::y
+        staticType: int
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: package:test/a.dart::@function::max
+    invokeType: int Function(int, int)
+    type: int
+  staticType: int
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: helper
+    element: <testLibraryFragment>::@prefix::helper
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: max
+    element: package:test/a.dart::@function::max
+    staticType: int Function(int, int)
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 10
+        correspondingParameter: package:test/a.dart::@function::max::@formalParameter::x
+        staticType: int
+      IntegerLiteral
+        literal: 10
+        correspondingParameter: package:test/a.dart::@function::max::@formalParameter::y
+        staticType: int
+    rightParenthesis: )
+  staticInvokeType: int Function(int, int)
+  staticType: int
 ''');
   }
 
@@ -253,7 +296,7 @@ A f(A p) {
     var node = result.findNode.methodInvocation('p.m()');
     assertResolvedNodeText(node, r'''
 MethodInvocation
-  target: SimpleIdentifier
+  target2: SimpleIdentifier
     token: p
     element: <testLibrary>::@function::f::@formalParameter::p
     staticType: B
@@ -330,9 +373,7 @@ import 'a.dart' as helper;
 main() {
   helper.toString();
 }''');
-    assertTypeDynamic(
-      result.findNode.functionExpressionInvocation('helper.toString()'),
-    );
+    assertTypeDynamic(result.findNode.callInvocation('helper.toString()'));
   }
 
   test_objectMethodInference_disabled_for_local_function() async {

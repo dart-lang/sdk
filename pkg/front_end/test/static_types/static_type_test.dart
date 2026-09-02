@@ -32,7 +32,7 @@ class StaticTypeDataComputer extends CfeDataComputer<String> {
   void computeLibraryData(
     CfeTestResultData testResultData,
     Library library,
-    Map<Id, ActualData<String>> actualMap, {
+    ActualDataMap<String> actualMap, {
     bool? verbose,
   }) {
     new StaticTypeDataExtractor(
@@ -45,7 +45,7 @@ class StaticTypeDataComputer extends CfeDataComputer<String> {
   void computeMemberData(
     CfeTestResultData testResultData,
     Member member,
-    Map<Id, ActualData<String>> actualMap, {
+    ActualDataMap<String> actualMap, {
     bool? verbose,
   }) {
     member.accept(
@@ -61,14 +61,11 @@ class StaticTypeDataExtractor extends CfeDataExtractor<String> {
   final TypeEnvironment _environment;
   StaticTypeContext? _staticTypeContext;
 
-  new(
-    InternalCompilerResult compilerResult,
-    Map<Id, ActualData<String>> actualMap,
-  ) : _environment = new TypeEnvironment(
+  new(super.compilerResult, super.actualMap)
+    : _environment = new TypeEnvironment(
         compilerResult.coreTypes!,
         compilerResult.classHierarchy!,
-      ),
-      super(compilerResult, actualMap);
+      );
 
   @override
   void visitField(Field node) {
@@ -149,7 +146,7 @@ class StaticTypeDataExtractor extends CfeDataExtractor<String> {
 
   bool isReachabilityErrorLet(object) {
     return object is Let &&
-        (isThrowReachabilityError(object.variable.initializer) ||
+        (isThrowReachabilityError(object.value) ||
             isThrowReachabilityError(object.body));
   }
 

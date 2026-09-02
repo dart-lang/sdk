@@ -2,34 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:kernel/ast.dart' as ast_helper show isThisExpression;
 import 'package:kernel/ast.dart';
-import 'package:kernel/src/printer.dart';
 
-import '../base/problems.dart' show unsupported;
-import '../type_inference/type_schema.dart';
+import '../builder/declaration_builders.dart';
+import '../source/check_helper.dart';
 import 'body_builder.dart';
-import 'collections.dart'
-    show
-        ForElement,
-        ForInElement,
-        ForInMapEntry,
-        ForMapEntry,
-        IfCaseElement,
-        IfCaseMapEntry,
-        IfElement,
-        IfMapEntry,
-        NullAwareElement,
-        NullAwareMapEntry,
-        PatternForElement,
-        PatternForMapEntry,
-        SpreadElement;
 import 'external_ast_helper.dart' as extern;
 import 'internal_ast.dart';
-
-Expression checkLibraryIsLoaded(int fileOffset, LibraryDependency dependency) {
-  return new CheckLibraryIsLoaded(dependency)..fileOffset = fileOffset;
-}
 
 InternalPattern createAndPattern(
   int fileOffset,
@@ -37,6 +16,74 @@ InternalPattern createAndPattern(
   InternalPattern right,
 ) {
   return new InternalAndPattern(left, right, fileOffset: fileOffset);
+}
+
+AnonymousMethodBlock createAnonymousMethodBlock({
+  required InternalAnonymousMethodParameter variable,
+  required InternalExpression receiver,
+  required InternalStatement body,
+  required bool isImplicitlyTyped,
+  required bool isNullAware,
+  required bool isCascade,
+  required bool isParameterless,
+  required int typeOffset,
+  required int fileOffset,
+}) {
+  return new AnonymousMethodBlock(
+    variable: variable,
+    receiver: receiver,
+    body: body,
+    isImplicitlyTyped: isImplicitlyTyped,
+    isNullAware: isNullAware,
+    isCascade: isCascade,
+    isParameterless: isParameterless,
+    typeOffset: typeOffset,
+    fileOffset: fileOffset,
+  );
+}
+
+AnonymousMethodExpression createAnonymousMethodExpression({
+  required InternalAnonymousMethodParameter variable,
+  required InternalExpression receiver,
+  required InternalExpression body,
+  required bool isImplicitlyTyped,
+  required bool isNullAware,
+  required bool isCascade,
+  required bool isParameterless,
+  required int typeOffset,
+  required int fileOffset,
+}) {
+  return new AnonymousMethodExpression(
+    variable: variable,
+    receiver: receiver,
+    body: body,
+    isImplicitlyTyped: isImplicitlyTyped,
+    isNullAware: isNullAware,
+    isCascade: isCascade,
+    isParameterless: isParameterless,
+    typeOffset: typeOffset,
+    fileOffset: fileOffset,
+  );
+}
+
+InternalAnonymousMethodParameter createAnonymousMethodParameter({
+  required String name,
+  required DartType type,
+  required int fileOffset,
+  required bool isImplicitlyTyped,
+  required bool isWildcard,
+  required bool isFinal,
+  required bool isSynthesized,
+}) {
+  return new InternalAnonymousMethodParameter(
+    name: name,
+    type: type,
+    isSynthesized: isSynthesized,
+    isFinal: isFinal,
+    isImplicitlyTyped: isImplicitlyTyped,
+    isWildcard: isWildcard,
+    fileOffset: fileOffset,
+  );
 }
 
 ActualArguments createArguments(
@@ -49,7 +96,8 @@ ActualArguments createArguments(
     argumentList: arguments,
     hasNamedBeforePositional: hasNamedBeforePositional,
     positionalCount: positionalCount,
-  )..fileOffset = fileOffset;
+    fileOffset: fileOffset,
+  );
 }
 
 ActualArguments createArgumentsEmpty(int fileOffset) {
@@ -61,40 +109,38 @@ ActualArguments createArgumentsEmpty(int fileOffset) {
   );
 }
 
-Expression createAsExpression(
+InternalExpression createAsExpression(
   int fileOffset,
-  Expression expression,
-  DartType type, {
-  bool forDynamic = false,
-}) {
-  return new AsExpression(expression, type)
-    ..fileOffset = fileOffset
-    ..isForDynamic = forDynamic;
+  InternalExpression expression,
+  DartType type,
+) {
+  return new InternalAsExpression(expression, type, fileOffset: fileOffset);
 }
 
 /// Return a representation of an assert that appears in a constructor's
 /// initializer list.
-AssertInitializer createAssertInitializer(
-  int fileOffset,
-  AssertStatement assertStatement,
-) {
-  return new AssertInitializer(assertStatement)..fileOffset = fileOffset;
+InternalAssertInitializer createAssertInitializer(
+  InternalAssertStatement assertStatement, {
+  required int fileOffset,
+}) {
+  return new InternalAssertInitializer(assertStatement, fileOffset: fileOffset);
 }
 
 /// Return a representation of an assert that appears as a statement.
-AssertStatement createAssertStatement(
+InternalAssertStatement createAssertStatement(
   int fileOffset,
-  Expression condition,
-  Expression? message,
+  InternalExpression condition,
+  InternalExpression? message,
   int conditionStartOffset,
   int conditionEndOffset,
 ) {
-  return new AssertStatement(
+  return new InternalAssertStatement(
     condition,
     conditionStartOffset: conditionStartOffset,
     conditionEndOffset: conditionEndOffset,
     message: message,
-  )..fileOffset = fileOffset;
+    fileOffset: fileOffset,
+  );
 }
 
 InternalPattern createAssignedVariablePattern(
@@ -104,31 +150,34 @@ InternalPattern createAssignedVariablePattern(
   return new InternalAssignedVariablePattern(variable, fileOffset: fileOffset);
 }
 
-Expression createAwaitExpression(int fileOffset, Expression operand) {
-  return new AwaitExpression(operand)..fileOffset = fileOffset;
+InternalExpression createAwaitExpression(
+  int fileOffset,
+  InternalExpression operand,
+) {
+  return new InternalAwaitExpression(operand, fileOffset: fileOffset);
 }
 
 BinaryExpression createBinary(
   int fileOffset,
-  Expression left,
+  InternalExpression left,
   Name binaryName,
-  Expression right,
+  InternalExpression right,
 ) {
-  return new BinaryExpression(left, binaryName, right)..fileOffset = fileOffset;
+  return new BinaryExpression(left, binaryName, right, fileOffset: fileOffset);
 }
 
 /// Return a representation of a block of [statements] at the given
 /// [fileOffset].
-Block createBlock(
-  List<Statement> statements, {
+InternalBlock createBlock(
+  List<InternalStatement> statements, {
   required int fileOffset,
   required int fileEndOffset,
 }) {
-  List<Statement>? copy;
+  List<InternalStatement>? copy;
   for (int i = 0; i < statements.length; i++) {
-    Statement statement = statements[i];
-    if (statement is _VariablesDeclaration) {
-      copy ??= new List<Statement>.of(statements.getRange(0, i));
+    InternalStatement statement = statements[i];
+    if (statement is MultiVariableDeclaration) {
+      copy ??= new List<InternalStatement>.of(statements.getRange(0, i));
       for (InternalVariableDeclaration declaration in statement.declarations) {
         copy.add(createVariableStatement(declaration));
       }
@@ -136,27 +185,29 @@ Block createBlock(
       copy.add(statement);
     }
   }
-  return new Block(copy ?? statements)
-    ..fileOffset = fileOffset
-    ..fileEndOffset = fileEndOffset;
+  return new InternalBlock(
+    copy ?? statements,
+    fileOffset: fileOffset,
+    fileEndOffset: fileEndOffset,
+  );
 }
 
-BlockExpression createBlockExpression(
-  Block body,
-  Expression value, {
+InternalBlockExpression createBlockExpression(
+  InternalBlock body,
+  InternalExpression value, {
   required int fileOffset,
 }) {
-  return new BlockExpression(body, value)..fileOffset = fileOffset;
+  return new InternalBlockExpression(body, value, fileOffset: fileOffset);
 }
 
 /// Return a representation of a boolean literal at the given [fileOffset].
 /// The literal has the given [value].
-BoolLiteral createBoolLiteral(int fileOffset, bool value) {
-  return new BoolLiteral(value)..fileOffset = fileOffset;
+InternalExpression createBoolLiteral(bool value, {required int fileOffset}) {
+  return new InternalBoolLiteral(value, fileOffset: fileOffset);
 }
 
 /// Return a representation of a break statement.
-Statement createBreakStatement(int fileOffset, String? label) {
+InternalBreakStatement createBreakStatement(int fileOffset, String? label) {
   return new InternalBreakStatement(label: label, fileOffset: fileOffset);
 }
 
@@ -175,7 +226,7 @@ InternalCatch createCatch(
   InternalCatchVariable? exceptionParameter,
   InternalCatchVariable? stackTraceParameter,
   DartType stackTraceType,
-  Statement body,
+  InternalStatement body,
 ) {
   return new InternalCatch(
     exception: exceptionParameter,
@@ -195,15 +246,62 @@ InternalCatchVariable createCatchVariable({
   required int fileOffset,
 }) {
   return new InternalCatchVariable(
-    astVariable: extern.createCatchVariable(
-      name: name,
-      type: type,
-      isWildcard: isWildcard,
-      isFinal: isFinal,
-      fileOffset: fileOffset,
-    ),
+    name: name,
+    type: type,
+    isWildcard: isWildcard,
+    isFinal: isFinal,
     isImplicitlyTyped: isImplicitlyTyped,
     fileOffset: fileOffset,
+  );
+}
+
+InternalExpression createCompoundIndexSet({
+  required InternalExpression receiver,
+  required InternalExpression index,
+  required Name binaryName,
+  required InternalExpression value,
+  required int readOffset,
+  required int binaryOffset,
+  required int writeOffset,
+  required bool forEffect,
+  required bool forPostIncDec,
+  required bool isNullAware,
+}) {
+  return new CompoundIndexSet(
+    receiver: receiver,
+    index: index,
+    binaryName: binaryName,
+    value: value,
+    readOffset: readOffset,
+    binaryOffset: binaryOffset,
+    writeOffset: writeOffset,
+    forEffect: forEffect,
+    forPostIncDec: forPostIncDec,
+    isNullAware: isNullAware,
+  );
+}
+
+InternalExpression createCompoundPropertySet({
+  required InternalExpression receiver,
+  required Name propertyName,
+  required Name binaryName,
+  required InternalExpression value,
+  required bool forEffect,
+  required int readOffset,
+  required int binaryOffset,
+  required int writeOffset,
+  required bool isNullAware,
+}) {
+  return new CompoundPropertySet(
+    receiver: receiver,
+    propertyName: propertyName,
+    binaryName: binaryName,
+    value: value,
+    forEffect: forEffect,
+    readOffset: readOffset,
+    binaryOffset: binaryOffset,
+    writeOffset: writeOffset,
+    isNullAware: isNullAware,
   );
 }
 
@@ -211,58 +309,103 @@ InternalCatchVariable createCatchVariable({
 /// [fileOffset]. The [condition] is the expression preceding the question
 /// mark. The [thenExpression] is the expression following the question mark.
 /// The [elseExpression] is the expression following the colon.
-ConditionalExpression createConditionalExpression(
+InternalExpression createConditionalExpression(
   int fileOffset,
-  Expression condition,
-  Expression thenExpression,
-  Expression elseExpression,
+  InternalExpression condition,
+  InternalExpression thenExpression,
+  InternalExpression elseExpression,
 ) {
-  return new ConditionalExpression(
+  return new InternalConditionalExpression(
     condition,
     thenExpression,
     elseExpression,
-    const UnknownType(),
-  )..fileOffset = fileOffset;
+    fileOffset: fileOffset,
+  );
 }
 
-InternalPattern createConstantPattern(Expression expression) {
+InternalPattern createConstantPattern(InternalExpression expression) {
   return new InternalConstantPattern(
     expression: expression,
     fileOffset: expression.fileOffset,
   );
 }
 
-ConstructorTearOff createConstructorTearOff(int fileOffset, Member target) {
+InternalExpression createConstructorInvocation({
+  required Constructor target,
+  required TypeArguments? typeArguments,
+  required ActualArguments arguments,
+  required bool isConst,
+  required int fileOffset,
+}) {
+  return new InternalConstructorInvocation(
+    target: target,
+    typeArguments: typeArguments,
+    arguments: arguments,
+    isConst: isConst,
+    fileOffset: fileOffset,
+  );
+}
+
+InternalExpression createConstructorTearOff(int fileOffset, Member target) {
   assert(
     target is Constructor || (target is Procedure && target.isFactory),
     "Unexpected constructor tear off target: $target",
   );
-  return new ConstructorTearOff(target)..fileOffset = fileOffset;
+  return new InternalConstructorTearOff(target, fileOffset: fileOffset);
+}
+
+InternalConstVariable createConstVariable({
+  required String name,
+  required DartType? type,
+  bool isFinal = false,
+  bool isWildcard = false,
+  required int fileOffset,
+  bool hasDeclaredInitializer = false,
+  bool isImplicitlyTyped = false,
+  int fileEqualsOffset = TreeNode.noOffset,
+  Expression? value,
+}) {
+  return new InternalConstVariable(
+    name: name,
+    type: type,
+    isFinal: isFinal,
+    isWildcard: isWildcard,
+    hasDeclaredInitializer: hasDeclaredInitializer,
+    fileOffset: fileOffset,
+    fileEqualsOffset: fileEqualsOffset,
+    isImplicitlyTyped: isImplicitlyTyped,
+    value: value,
+  );
 }
 
 /// Return a representation of a continue statement.
-Statement createContinueStatement(int fileOffset, String? label) {
+InternalContinueStatement createContinueStatement(
+  int fileOffset,
+  String? label,
+) {
   return new InternalContinueStatement(label: label, fileOffset: fileOffset);
 }
 
-Statement createContinueSwitchStatement({required int fileOffset}) {
+InternalContinueSwitchStatement createContinueSwitchStatement({
+  required int fileOffset,
+}) {
   return new InternalContinueSwitchStatement(fileOffset: fileOffset);
 }
 
 /// Return a representation of a do statement.
-Statement createDoStatement(
+InternalLoopStatement createDoStatement(
   int fileOffset,
-  Statement body,
-  Expression condition,
+  InternalStatement body,
+  InternalExpression condition,
 ) {
-  return new DoStatement(body, condition)..fileOffset = fileOffset;
+  return new InternalDoStatement(body, condition, fileOffset: fileOffset);
 }
 
 DotShorthand createDotShorthandContext(
   int fileOffset,
-  Expression innerExpression,
+  InternalExpression innerExpression,
 ) {
-  return new DotShorthand(innerExpression)..fileOffset = fileOffset;
+  return new DotShorthand(innerExpression, fileOffset: fileOffset);
 }
 
 DotShorthandInvocation createDotShorthandInvocation(
@@ -279,7 +422,8 @@ DotShorthandInvocation createDotShorthandInvocation(
     arguments,
     nameOffset: nameOffset,
     isConst: isConst,
-  )..fileOffset = fileOffset;
+    fileOffset: fileOffset,
+  );
 }
 
 DotShorthandPropertyGet createDotShorthandPropertyGet(
@@ -287,129 +431,164 @@ DotShorthandPropertyGet createDotShorthandPropertyGet(
   Name name, {
   required int nameOffset,
 }) {
-  return new DotShorthandPropertyGet(name, nameOffset: nameOffset)
-    ..fileOffset = fileOffset;
-}
-
-/// Return a representation of a double literal at the given [fileOffset]. The
-/// literal has the given [value].
-DoubleLiteral createDoubleLiteral(int fileOffset, double value) {
-  return new DoubleLiteral(value)..fileOffset = fileOffset;
-}
-
-/// Return a representation of an empty statement  at the given [fileOffset].
-Statement createEmptyStatement(int fileOffset) {
-  return new EmptyStatement()..fileOffset = fileOffset;
-}
-
-EqualsExpression createEquals(
-  int fileOffset,
-  Expression left,
-  Expression right, {
-  required bool isNot,
-}) {
-  return new EqualsExpression(left, right, isNot: isNot)
-    ..fileOffset = fileOffset;
-}
-
-Expression createExpressionInvocation(
-  int fileOffset,
-  Expression expression,
-  TypeArguments? typeArguments,
-  ActualArguments arguments,
-) {
-  return new ExpressionInvocation(expression, typeArguments, arguments)
-    ..fileOffset = fileOffset;
-}
-
-/// Return a representation of an expression statement at the given
-/// [fileOffset] containing the [expression].
-Statement createExpressionStatement(
-  Expression expression, {
-  required int fileOffset,
-}) {
-  return new ExpressionStatement(expression)..fileOffset = fileOffset;
-}
-
-ForElement createForElement(
-  int fileOffset,
-  List<InternalVariableDeclaration> variables,
-  Expression? condition,
-  List<Expression> updates,
-  Expression body,
-) {
-  return new ForElement(variables, condition, updates, body)
-    ..fileOffset = fileOffset;
-}
-
-ForInElement createForInElement(
-  InternalForInElement element,
-  Expression iterable,
-  Expression body, {
-  required bool isAsync,
-  required int forOffset,
-  required int fileOffset,
-}) {
-  return new ForInElement(
-    element,
-    iterable,
-    body,
-    isAsync: isAsync,
-    forOffset: forOffset,
+  return new DotShorthandPropertyGet(
+    name,
+    nameOffset: nameOffset,
     fileOffset: fileOffset,
   );
 }
 
-ForInMapEntry createForInMapEntry(
-  InternalForInElement element,
-  Expression iterable,
-  MapLiteralEntry body, {
-  required bool isAsync,
-  required int forOffset,
+/// Return a representation of a double literal at the given [fileOffset]. The
+/// literal has the given [value].
+InternalExpression createDoubleLiteral(int fileOffset, double value) {
+  return new InternalDoubleLiteral(value, fileOffset: fileOffset);
+}
+
+/// Return a representation of an empty statement  at the given [fileOffset].
+InternalStatement createEmptyStatement(int fileOffset) {
+  return new InternalEmptyStatement(fileOffset: fileOffset);
+}
+
+EqualsExpression createEquals(
+  int fileOffset,
+  InternalExpression left,
+  InternalExpression right, {
+  required bool isNot,
+}) {
+  return new EqualsExpression(
+    left,
+    right,
+    isNot: isNot,
+    fileOffset: fileOffset,
+  );
+}
+
+InternalElement createExpressionElement(InternalExpression expression) {
+  return new ExpressionElement(
+    expression: expression,
+    fileOffset: expression.fileOffset,
+  );
+}
+
+InternalExpression createExpressionInvocation(
+  int fileOffset,
+  InternalExpression expression,
+  TypeArguments? typeArguments,
+  ActualArguments arguments,
+) {
+  return new ExpressionInvocation(
+    expression,
+    typeArguments,
+    arguments,
+    fileOffset: fileOffset,
+  );
+}
+
+/// Return a representation of an expression statement at the given
+/// [fileOffset] containing the [expression].
+InternalStatement createExpressionStatement(
+  InternalExpression expression, {
   required int fileOffset,
 }) {
-  return new ForInMapEntry(
-    element,
-    iterable,
-    body,
-    isAsync: isAsync,
-    forOffset: forOffset,
+  return new InternalExpressionStatement(expression, fileOffset: fileOffset);
+}
+
+ExtensionTypeRedirectingInitializer createExtensionTypeRedirectingInitializer({
+  required Procedure target,
+  required ActualArguments arguments,
+  required int fileOffset,
+}) {
+  return new ExtensionTypeRedirectingInitializer(
+    target,
+    arguments,
     fileOffset: fileOffset,
   );
 }
 
 // Coverage-ignore(suite): Not run.
-ForInStatement createForInStatement(
-  Variable variable,
-  Expression expression,
-  Statement body, {
-  required bool isAsync,
+InternalExpression createFactoryConstructorInvocation({
+  required Procedure target,
+  required TypeArguments? typeArguments,
+  required ActualArguments arguments,
+  required bool isConst,
   required int fileOffset,
-  required int bodyOffset,
 }) {
-  return new ForInStatement(variable, expression, body, isAsync: isAsync)
-    ..fileOffset = fileOffset
-    ..bodyOffset = bodyOffset;
+  return new FactoryConstructorInvocation(
+    target: target,
+    typeArguments: typeArguments,
+    arguments: arguments,
+    isConst: isConst,
+    fileOffset: fileOffset,
+  );
 }
 
-ForMapEntry createForMapEntry(
-  int fileOffset,
-  List<InternalVariableDeclaration> variables,
-  Expression? condition,
-  List<Expression> updates,
-  MapLiteralEntry body,
-) {
-  return new ForMapEntry(variables, condition, updates, body)
-    ..fileOffset = fileOffset;
+InternalFieldInitializer createFieldInitializer(
+  Field field,
+  InternalExpression value, {
+  required int fileOffset,
+  required bool isSynthetic,
+}) {
+  return new InternalFieldInitializer(
+    field,
+    value,
+    isSynthetic: isSynthetic,
+    fileOffset: fileOffset,
+  );
+}
+
+InternalExpression createFileUriExpression({
+  required InternalExpression expression,
+  required Uri fileUri,
+  required int fileOffset,
+}) {
+  return new InternalFileUriExpression(
+    expression: expression,
+    fileUri: fileUri,
+    fileOffset: fileOffset,
+  );
+}
+
+InternalElement createForElement({
+  required List<InternalVariableDeclaration> variables,
+  required InternalExpression? condition,
+  required List<InternalExpression> updates,
+  required InternalElement body,
+  required int fileOffset,
+}) {
+  return new ForElement(
+    variables: variables,
+    condition: condition,
+    updates: updates,
+    body: body,
+    fileOffset: fileOffset,
+  );
+}
+
+ForInElement createForInElement({
+  required InternalForInElement element,
+  required InternalExpression iterable,
+  required InternalElement body,
+  required bool isAsync,
+  required int forOffset,
+  required int fileOffset,
+}) {
+  return new ForInElement(
+    element: element,
+    iterable: iterable,
+    body: body,
+    isAsync: isAsync,
+    forOffset: forOffset,
+    fileOffset: fileOffset,
+  );
 }
 
 /// Return a representation of a for statement.
-Statement createForStatement(
+InternalLoopStatement createForStatement(
   int fileOffset,
   List<InternalVariableDeclaration>? variables,
-  Expression? condition,
-  List<Expression> updaters,
-  Statement body,
+  InternalExpression? condition,
+  List<InternalExpression> updaters,
+  InternalStatement body,
 ) {
   return new InternalForStatement(
     variables ?? // Coverage-ignore(suite): Not run.
@@ -417,11 +596,48 @@ Statement createForStatement(
     condition,
     updaters,
     body,
-  )..fileOffset = fileOffset;
+    fileOffset: fileOffset,
+  );
+}
+
+InternalLoopStatement createPatternForStatement({
+  required InternalPatternVariableDeclaration patternVariableDeclaration,
+  required InternalExpression? condition,
+  required List<InternalExpression> updates,
+  required InternalStatement body,
+  required int fileOffset,
+}) {
+  return new InternalPatternForStatement(
+    patternVariableDeclaration,
+    condition,
+    updates,
+    body,
+    fileOffset: fileOffset,
+  );
+}
+
+InternalStatement createFunctionDeclaration({
+  required InternalLocalFunctionVariable variable,
+  required int fileOffset,
+}) {
+  return new InternalFunctionDeclaration(
+    variable: variable,
+    fileOffset: fileOffset,
+  );
+}
+
+InternalExpression createFunctionExpression({
+  required InternalFunctionNode function,
+  required int fileOffset,
+}) {
+  return new InternalFunctionExpression(
+    function: function,
+    fileOffset: fileOffset,
+  );
 }
 
 InternalFunctionNode createFunctionNode({
-  required Statement? body,
+  required InternalStatement? body,
   required List<TypeParameter>? typeParameters,
   required List<InternalPositionalParameter> positionalParameters,
   required List<InternalNamedParameter> namedParameters,
@@ -444,66 +660,28 @@ InternalFunctionNode createFunctionNode({
   );
 }
 
-Statement createFunctionDeclaration({
-  required InternalVariable variable,
-  required int fileOffset,
-}) {
-  return new InternalFunctionDeclaration(
-    variable: variable,
-    fileOffset: fileOffset,
-  );
-}
-
-Expression createFunctionExpression({
-  required InternalFunctionNode function,
-  required int fileOffset,
-}) {
-  return new InternalFunctionExpression(
-    function: function,
-    fileOffset: fileOffset,
-  );
-}
-
-Expression createIfCaseElement(
-  int fileOffset, {
-  required List<Statement> prelude,
-  required Expression expression,
+InternalElement createIfCaseElement({
+  required InternalExpression expression,
   required InternalPatternGuard patternGuard,
-  required Expression then,
-  Expression? otherwise,
+  required InternalElement then,
+  required InternalElement? otherwise,
+  required int fileOffset,
 }) {
   return new IfCaseElement(
-    prelude: prelude,
     expression: expression,
-    internalPatternGuard: patternGuard,
+    patternGuard: patternGuard,
     then: then,
     otherwise: otherwise,
-  )..fileOffset = fileOffset;
+    fileOffset: fileOffset,
+  );
 }
 
-MapLiteralEntry createIfCaseMapEntry(
-  int fileOffset, {
-  required List<Statement> prelude,
-  required Expression expression,
-  required InternalPatternGuard patternGuard,
-  required MapLiteralEntry then,
-  MapLiteralEntry? otherwise,
-}) {
-  return new IfCaseMapEntry(
-    prelude: prelude,
-    expression: expression,
-    internalPatternGuard: patternGuard,
-    then: then,
-    otherwise: otherwise,
-  )..fileOffset = fileOffset;
-}
-
-Statement createIfCaseStatement(
+InternalStatement createIfCaseStatement(
   int fileOffset,
-  Expression expression,
+  InternalExpression expression,
   InternalPatternGuard patternGuard,
-  Statement then,
-  Statement? otherwise,
+  InternalStatement then,
+  InternalStatement? otherwise,
 ) {
   return new InternalIfCaseStatement(
     expression: expression,
@@ -514,50 +692,142 @@ Statement createIfCaseStatement(
   );
 }
 
-Expression createIfElement(
-  int fileOffset,
-  Expression condition,
-  Expression then, [
-  Expression? otherwise,
-]) {
-  return new IfElement(condition, then, otherwise)..fileOffset = fileOffset;
+InternalElement createIfElement({
+  required InternalExpression condition,
+  required InternalElement then,
+  required InternalElement? otherwise,
+  required int fileOffset,
+}) {
+  return new IfElement(
+    condition: condition,
+    then: then,
+    otherwise: otherwise,
+    fileOffset: fileOffset,
+  );
 }
 
-MapLiteralEntry createIfMapEntry(
-  int fileOffset,
-  Expression condition,
-  MapLiteralEntry then, [
-  MapLiteralEntry? otherwise,
-]) {
-  return new IfMapEntry(condition, then, otherwise)..fileOffset = fileOffset;
+InternalExpression createIfNullExpression({
+  required InternalExpression left,
+  required InternalExpression right,
+  required int fileOffset,
+}) {
+  return new IfNullExpression(left, right, fileOffset: fileOffset);
+}
+
+InternalExpression createIfNullIndexSet({
+  required InternalExpression receiver,
+  required InternalExpression index,
+  required InternalExpression value,
+  required int readOffset,
+  required int testOffset,
+  required int writeOffset,
+  required bool forEffect,
+  required bool isNullAware,
+}) {
+  return new IfNullIndexSet(
+    receiver: receiver,
+    index: index,
+    value: value,
+    readOffset: readOffset,
+    testOffset: testOffset,
+    writeOffset: writeOffset,
+    forEffect: forEffect,
+    isNullAware: isNullAware,
+  );
+}
+
+InternalExpression createIfNullPropertySet({
+  required InternalExpression receiver,
+  required Name propertyName,
+  required InternalExpression rhs,
+  required bool forEffect,
+  required int readOffset,
+  required int writeOffset,
+  required bool isNullAware,
+  required int fileOffset,
+}) {
+  return new IfNullPropertySet(
+    receiver: receiver,
+    propertyName: propertyName,
+    rhs: rhs,
+    forEffect: forEffect,
+    readOffset: readOffset,
+    writeOffset: writeOffset,
+    isNullAware: isNullAware,
+    fileOffset: fileOffset,
+  );
+}
+
+InternalExpression createIfNullSet({
+  required InternalExpression read,
+  required InternalExpression write,
+  required bool forEffect,
+  required int fileOffset,
+}) {
+  return new IfNullSet(
+    read: read,
+    write: write,
+    forEffect: forEffect,
+    fileOffset: fileOffset,
+  );
+}
+
+InternalExpression createIfNullSuperIndexSet({
+  required Member? getter,
+  required Member? setter,
+  required InternalExpression index,
+  required InternalExpression value,
+  required int readOffset,
+  required int testOffset,
+  required int writeOffset,
+  required bool forEffect,
+}) {
+  return new IfNullSuperIndexSet(
+    getter: getter,
+    setter: setter,
+    index: index,
+    value: value,
+    readOffset: readOffset,
+    testOffset: testOffset,
+    writeOffset: writeOffset,
+    forEffect: forEffect,
+  );
 }
 
 /// Return a representation of an `if` statement.
-Statement createIfStatement(
+InternalStatement createIfStatement(
   int fileOffset,
-  Expression condition,
-  Statement thenStatement,
-  Statement? elseStatement,
+  InternalExpression condition,
+  InternalStatement thenStatement,
+  InternalStatement? elseStatement,
 ) {
-  return new IfStatement(condition, thenStatement, elseStatement)
-    ..fileOffset = fileOffset;
+  return new InternalIfStatement(
+    condition,
+    thenStatement,
+    elseStatement,
+    fileOffset: fileOffset,
+  );
 }
 
 IndexGet createIndexGet(
   int fileOffset,
-  Expression receiver,
-  Expression index, {
+  InternalExpression receiver,
+  InternalExpression index, {
   required bool isNullAware,
 }) {
-  return new IndexGet(receiver, index, isNullAware: isNullAware)
-    ..fileOffset = fileOffset;
+  return new IndexGet(
+    receiver,
+    index,
+    isNullAware: isNullAware,
+    fileOffset: fileOffset,
+  );
 }
 
 IndexSet createIndexSet(
   int fileOffset,
-  Expression receiver,
-  Expression index,
-  Expression value, {
+  InternalExpression receiver,
+  InternalExpression index,
+  InternalExpression value, {
   required bool forEffect,
   required bool isNullAware,
 }) {
@@ -567,24 +837,33 @@ IndexSet createIndexSet(
     value,
     forEffect: forEffect,
     isNullAware: isNullAware,
-  )..fileOffset = fileOffset;
+    fileOffset: fileOffset,
+  );
 }
 
-Instantiation createInstantiation(
-  Expression expression,
+InternalExpression createInstantiation(
+  InternalExpression expression,
   List<DartType> typeArguments, {
   required int fileOffset,
 }) {
-  return new Instantiation(expression, typeArguments)..fileOffset = fileOffset;
+  return new InternalInstantiation(
+    expression,
+    typeArguments,
+    fileOffset: fileOffset,
+  );
 }
 
 /// Return a representation of an integer literal at the given [fileOffset].
 /// The literal has the given [value].
-Expression createIntLiteral(int fileOffset, int value, [String? literal]) {
+InternalExpression createIntLiteral({
+  required int fileOffset,
+  required int value,
+  String? literal,
+}) {
   return new InternalIntLiteral(value, literal, fileOffset: fileOffset);
 }
 
-Expression createIntLiteralLarge(
+InternalExpression createIntLiteralLarge(
   int fileOffset,
   String strippedLiteral,
   String literal,
@@ -592,14 +871,75 @@ Expression createIntLiteralLarge(
   return new LargeIntLiteral(strippedLiteral, literal, fileOffset: fileOffset);
 }
 
+InternalInvalidExpression createInvalidExpression(
+  String message, {
+  InternalExpression? expression,
+  required int fileOffset,
+}) {
+  return new InternalInvalidExpression(
+    message,
+    expression: expression,
+    fileOffset: fileOffset,
+  );
+}
+
+InternalInvalidExpression createInvalidExpressionFromErrorText(
+  ErrorText errorText, {
+  InternalExpression? expression,
+}) {
+  return new InternalInvalidExpression(
+    errorText.message,
+    expression: expression,
+    fileOffset: errorText.fileOffset,
+  );
+}
+
+InternalInvalidInitializer createInvalidInitializer(
+  InternalInvalidExpression expression, {
+  bool isSuperInitializer = false,
+  bool isRedirectingInitializer = false,
+}) {
+  return new InternalInvalidInitializer(
+    expression.message,
+    fileOffset: expression.fileOffset,
+    isSuperInitializer: isSuperInitializer,
+    isRedirectingInitializer: isRedirectingInitializer,
+  );
+}
+
+InternalInvalidInitializer createInvalidInitializerFromErrorText(
+  ErrorText errorText, {
+  bool isSuperInitializer = false,
+  bool isRedirectingInitializer = false,
+}) {
+  return new InternalInvalidInitializer(
+    errorText.message,
+    fileOffset: errorText.fileOffset,
+    isSuperInitializer: isSuperInitializer,
+    isRedirectingInitializer: isRedirectingInitializer,
+  );
+}
+
 InternalPattern createInvalidPattern(
-  Expression expression, {
-  required List<InternalVariable> declaredVariables,
+  InternalInvalidExpression expression, {
+  required List<InternalPatternVariable> declaredVariables,
 }) {
   return new InternalInvalidPattern(
     invalidExpression: expression,
-    declaredVariables: declaredVariables,
+    patternVariables: declaredVariables,
     fileOffset: expression.fileOffset,
+  );
+}
+
+// Coverage-ignore(suite): Not run.
+InternalPattern createInvalidPatternFromErrorText(
+  ErrorText errorText, {
+  required List<InternalPatternVariable> declaredVariables,
+}) {
+  return new InternalInvalidPattern(
+    invalidExpression: createInvalidExpressionFromErrorText(errorText),
+    patternVariables: declaredVariables,
+    fileOffset: errorText.fileOffset,
   );
 }
 
@@ -607,88 +947,79 @@ InternalPattern createInvalidPattern(
 /// The [operand] is the representation of the left operand. The [type] is a
 /// representation of the type that is the right operand. If [notFileOffset]
 /// is non-null the test is negated the that file offset.
-Expression createIsExpression(
+InternalExpression createIsExpression(
   int fileOffset,
-  Expression operand,
+  InternalExpression operand,
   DartType type, {
   int? notFileOffset,
 }) {
-  Expression result = new IsExpression(operand, type)..fileOffset = fileOffset;
-  if (notFileOffset != null) {
-    result = createNot(notFileOffset, result);
-  }
-  return result;
+  return new InternalIsExpression(
+    operand,
+    type,
+    notFileOffset: notFileOffset,
+    fileOffset: fileOffset,
+  );
 }
 
 /// The given [statement] is being used as the target of either a break or
 /// continue statement. Return the statement that should be used as the actual
 /// target.
-LabeledStatement createLabeledStatement(Statement statement) {
-  return new LabeledStatement(statement)..fileOffset = statement.fileOffset;
+InternalLabeledStatement createLabeledStatement(InternalStatement statement) {
+  return new InternalLabeledStatement(
+    statement,
+    fileOffset: statement.fileOffset,
+  );
 }
 
-InternalVariable createLateVariable({
+InternalLateVariable createLateVariable({
   required String name,
   required DartType? type,
   bool isFinal = false,
-  bool isConst = false,
   bool isWildcard = false,
   required int fileOffset,
-  Expression? initializer,
   bool hasDeclaredInitializer = false,
-  bool forSyntheticToken = false,
   bool isImplicitlyTyped = false,
   bool isStaticLate = false,
   int fileEqualsOffset = TreeNode.noOffset,
 }) {
   return new InternalLateVariable(
-    astVariable: extern.createLateVariable(
-      name: name,
-      type: type,
-      isFinal: isFinal,
-      isConst: isConst,
-      isWildcard: isWildcard,
-      hasDeclaredInitializer: initializer != null,
-      fileOffset: fileOffset,
-      initializer: initializer,
-      fileEqualsOffset: fileEqualsOffset,
-    ),
-    forSyntheticToken: forSyntheticToken,
+    name: name,
+    type: type,
+    isFinal: isFinal,
+    isWildcard: isWildcard,
+    hasDeclaredInitializer: hasDeclaredInitializer,
+    fileOffset: fileOffset,
+    fileEqualsOffset: fileEqualsOffset,
     isImplicitlyTyped: isImplicitlyTyped,
     isStaticLate: isStaticLate,
-    fileOffset: fileOffset,
   );
 }
 
 InternalLet createLetForEffect({
-  required Expression effect,
+  required InternalExpression effect,
   required DartType effectType,
-  required Expression expression,
+  required InternalExpression expression,
 }) {
   return new InternalLet(
-    createSyntheticVariableForValue(effect, type: effectType),
-    expression,
-  )..fileOffset = effect.fileOffset;
+    valueType: effectType,
+    value: effect,
+    body: expression,
+    fileOffset: effect.fileOffset,
+  );
 }
 
-/// Return a representation of a list literal at the given [fileOffset]. The
-/// [isConst] is `true` if the literal is either explicitly or implicitly a
-/// constant. The [typeArgument] is the representation of the single valid
-/// type argument preceding the list literal, or `null` if there is no type
-/// argument, there is more than one type argument, or if the type argument
-/// cannot be resolved. The list of [expressions] is a list of the
-/// representations of the list elements.
-ListLiteral createListLiteral(
-  int fileOffset,
-  DartType typeArgument,
-  List<Expression> expressions, {
+InternalExpression createListLiteral({
+  required DartType? typeArgument,
+  required List<InternalElement> elements,
   required bool isConst,
+  required int fileOffset,
 }) {
-  return new ListLiteral(
-    expressions,
+  return new InternalListLiteral(
+    elements: elements,
     typeArgument: typeArgument,
     isConst: isConst,
-  )..fileOffset = fileOffset;
+    fileOffset: fileOffset,
+  );
 }
 
 InternalPattern createListPattern(
@@ -703,46 +1034,71 @@ InternalPattern createListPattern(
   );
 }
 
-LoadLibrary createLoadLibrary(
-  int fileOffset,
-  LibraryDependency dependency,
-  ActualArguments? arguments,
-) {
-  return new LoadLibraryImpl(dependency, arguments)..fileOffset = fileOffset;
+InternalLoadLibrary createLoadLibrary({
+  required LibraryDependency import,
+  required ActualArguments? arguments,
+  required int fileOffset,
+}) {
+  return new InternalLoadLibrary(import, arguments, fileOffset: fileOffset);
 }
 
-InternalVariable createLocalVariable({
+InternalLocalFunctionVariable createLocalFunctionVariable({
+  required String name,
+  required DartType? type,
+  bool isWildcard = false,
+  required int fileOffset,
+  bool isImplicitlyTyped = false,
+  bool isStaticLate = false,
+  int fileEqualsOffset = TreeNode.noOffset,
+}) {
+  return new InternalLocalFunctionVariable(
+    name: name,
+    type: type,
+    isWildcard: isWildcard,
+    isImplicitlyTyped: isImplicitlyTyped,
+    fileOffset: fileOffset,
+    fileEqualsOffset: fileEqualsOffset,
+  );
+}
+
+InternalExpression createLocalIncDec({
+  required InternalVariable variable,
+  required bool forEffect,
+  required bool isPost,
+  required bool isInc,
+  required int nameOffset,
+  required int operatorOffset,
+}) {
+  return new LocalIncDec(
+    variable: variable,
+    forEffect: forEffect,
+    isPost: isPost,
+    isInc: isInc,
+    nameOffset: nameOffset,
+    operatorOffset: operatorOffset,
+  );
+}
+
+InternalLocalVariable createLocalVariable({
   required String name,
   required DartType? type,
   bool isFinal = false,
-  bool isConst = false,
   bool isWildcard = false,
   required int fileOffset,
-  Expression? initializer,
   bool hasDeclaredInitializer = false,
-  bool forSyntheticToken = false,
   bool isImplicitlyTyped = false,
   bool isStaticLate = false,
-  bool isLocalFunction = false,
   int fileEqualsOffset = TreeNode.noOffset,
 }) {
   return new InternalLocalVariable(
-    astVariable: extern.createLocalVariable(
-      name: name,
-      type: type,
-      isFinal: isFinal,
-      isConst: isConst,
-      isWildcard: isWildcard,
-      initializer: initializer,
-      hasDeclaredInitializer: hasDeclaredInitializer,
-      fileOffset: fileOffset,
-      fileEqualsOffset: fileEqualsOffset,
-    ),
-    forSyntheticToken: forSyntheticToken,
+    name: name,
+    type: type,
+    isFinal: isFinal,
+    isWildcard: isWildcard,
+    hasDeclaredInitializer: hasDeclaredInitializer,
     isImplicitlyTyped: isImplicitlyTyped,
     fileOffset: fileOffset,
     isStaticLate: isStaticLate,
-    isLocalFunction: isLocalFunction,
     fileEqualsOffset: fileEqualsOffset,
   );
 }
@@ -750,11 +1106,11 @@ InternalVariable createLocalVariable({
 /// Return a representation of a logical expression at the given [fileOffset]
 /// having the [leftOperand], [rightOperand] and the [operatorString]
 /// (either `&&` or `||`).
-Expression createLogicalExpression(
+InternalExpression createLogicalExpression(
   int fileOffset,
-  Expression leftOperand,
+  InternalExpression leftOperand,
   String operatorString,
-  Expression rightOperand,
+  InternalExpression rightOperand,
 ) {
   LogicalExpressionOperator operator;
   if (operatorString == '&&') {
@@ -765,52 +1121,42 @@ Expression createLogicalExpression(
     throw new UnsupportedError("Unhandled logical operator '$operatorString'");
   }
 
-  return new LogicalExpression(leftOperand, operator, rightOperand)
-    ..fileOffset = fileOffset;
+  return new InternalLogicalExpression(
+    leftOperand,
+    operator,
+    rightOperand,
+    fileOffset: fileOffset,
+  );
 }
 
-/// Return a representation of a key/value pair in a literal map at the given
-/// [fileOffset]. The [key] is the representation of the expression used to
-/// compute the key. The [value] is the representation of the expression used
-/// to compute the value.
-MapLiteralEntry createMapEntry(
-  int fileOffset,
-  Expression key,
-  Expression value,
-) {
-  return new MapLiteralEntry(key, value)..fileOffset = fileOffset;
-}
-
-/// Return a representation of a map literal at the given [fileOffset]. The
-/// [isConst] is `true` if the literal is either explicitly or implicitly a
-/// constant. The [keyType] is the representation of the first type argument
-/// preceding the map literal, or `null` if there are not exactly two type
-/// arguments or if the first type argument cannot be resolved. The
-/// [valueType] is the representation of the second type argument preceding
-/// the map literal, or `null` if there are not exactly two type arguments or
-/// if the second type argument cannot be resolved. The list of [entries] is a
-/// list of the representations of the map entries.
-MapLiteral createMapLiteral(
-  int fileOffset,
-  DartType keyType,
-  DartType valueType,
-  List<MapLiteralEntry> entries, {
-  required bool isConst,
-}) {
-  return new MapLiteral(
-    entries,
-    keyType: keyType,
-    valueType: valueType,
-    isConst: isConst,
-  )..fileOffset = fileOffset;
-}
-
-MapLiteralEntry createMapLiteralEntry(
-  Expression key,
-  Expression value, {
+InternalElement createMapEntryElement({
+  required bool isKeyNullAware,
+  required InternalExpression key,
+  required bool isValueNullAware,
+  required InternalExpression value,
   required int fileOffset,
 }) {
-  return new MapLiteralEntry(key, value)..fileOffset = fileOffset;
+  return new MapEntryElement(
+    isKeyNullAware: isKeyNullAware,
+    key: key,
+    isValueNullAware: isValueNullAware,
+    value: value,
+    fileOffset: fileOffset,
+  );
+}
+
+InternalExpression createMapOrSetLiteral({
+  required List<DartType>? typeArguments,
+  required List<InternalElement> elements,
+  required bool isConst,
+  required int fileOffset,
+}) {
+  return new MapOrSetLiteral(
+    elements: elements,
+    typeArguments: typeArguments,
+    isConst: isConst,
+    fileOffset: fileOffset,
+  );
 }
 
 InternalPattern createMapPattern(
@@ -829,7 +1175,7 @@ InternalPattern createMapPattern(
 
 InternalMapPatternEntry createMapPatternEntry(
   int fileOffset,
-  Expression key,
+  InternalExpression key,
   InternalPattern value,
 ) {
   return new InternalMapPatternEntry(
@@ -843,13 +1189,14 @@ InternalMapPatternRestEntry createMapPatternRestEntry(int fileOffset) {
   return new InternalMapPatternRestEntry(fileOffset: fileOffset);
 }
 
-Expression createMethodInvocation(
+InternalExpression createMethodInvocation(
   int fileOffset,
-  Expression expression,
+  InternalExpression expression,
   Name name,
   TypeArguments? typeArguments,
   ActualArguments arguments, {
   required bool isNullAware,
+  required bool isImplicitThis,
 }) {
   return new MethodInvocation(
     expression,
@@ -857,21 +1204,34 @@ Expression createMethodInvocation(
     typeArguments,
     arguments,
     isNullAware: isNullAware,
-  )..fileOffset = fileOffset;
+    isImplicitThis: isImplicitThis,
+    fileOffset: fileOffset,
+  );
 }
 
-NamedExpression createNamedExpression(
-  String name,
-  Expression value, {
+MultiVariableDeclaration createMultiVariableDeclaration(
+  List<InternalVariableDeclaration> declarations, {
   required int fileOffset,
 }) {
-  return new NamedExpression(name, value)..fileOffset = fileOffset;
+  return new MultiVariableDeclaration(declarations, fileOffset: fileOffset);
+}
+
+InternalNamedExpression createNamedExpression(
+  String name,
+  InternalExpression value, {
+  required int fileOffset,
+}) {
+  return new InternalNamedExpression(
+    name: name,
+    value: value,
+    fileOffset: fileOffset,
+  );
 }
 
 InternalNamedParameter createNamedParameter({
   required String parameterName,
   required DartType type,
-  Expression? defaultValue,
+  InternalExpression? defaultValue,
   bool isCovariantByDeclaration = false,
   bool isRequired = false,
   bool isInitializingFormal = false,
@@ -879,7 +1239,6 @@ InternalNamedParameter createNamedParameter({
   bool isFinal = false,
   bool hasDeclaredDefaultValue = false,
   bool isLowered = false,
-  bool isSynthesized = false,
   bool isWildcard = false,
   bool isRenamedPrivateNamedParameter = false,
   required int fileOffset,
@@ -887,23 +1246,21 @@ InternalNamedParameter createNamedParameter({
   bool forSyntheticToken = false,
 }) {
   return new InternalNamedParameter(
+    defaultValue: defaultValue,
     astVariable: extern.createNamedParameter(
       parameterName: parameterName,
       type: type,
-      defaultValue: defaultValue,
       isCovariantByDeclaration: isCovariantByDeclaration,
       isRequired: isRequired,
       isInitializingFormal: isInitializingFormal,
       isSuperInitializingFormal: isSuperInitializingFormal,
       isFinal: isFinal,
       hasDeclaredDefaultValue: hasDeclaredDefaultValue,
-      isSynthesized: isSynthesized,
       isWildcard: isWildcard,
       isRenamedPrivateNamedParameter: isRenamedPrivateNamedParameter,
       fileOffset: fileOffset,
     ),
     isImplicitlyTyped: isImplicitlyTyped,
-    forSyntheticToken: forSyntheticToken,
     fileOffset: fileOffset,
   );
 }
@@ -920,8 +1277,8 @@ InternalPattern createNamedPattern(
   );
 }
 
-Expression createNot(int fileOffset, Expression operand) {
-  return new Not(operand)..fileOffset = fileOffset;
+InternalExpression createNot(int fileOffset, InternalExpression operand) {
+  return new InternalNot(operand, fileOffset: fileOffset);
 }
 
 InternalPattern createNullAssertPattern(
@@ -934,32 +1291,18 @@ InternalPattern createNullAssertPattern(
   );
 }
 
-Expression createNullAwareElement(int fileOffset, Expression expression) {
-  return new NullAwareElement(expression)..fileOffset = fileOffset;
-}
-
-/// Return a representation of a null-aware key/value pair, were either the
-/// key or the value might be `null`, in a literal map at the given
-/// [fileOffset]. The [key] is the representation of the expression used to
-/// compute the key. The [value] is the representation of the expression used
-/// to compute the value.
-NullAwareMapEntry createNullAwareMapEntry(
-  int fileOffset, {
-  required bool isKeyNullAware,
-  required Expression key,
-  required bool isValueNullAware,
-  required Expression value,
+InternalElement createNullAwareElement({
+  required InternalExpression expression,
+  required int fileOffset,
 }) {
-  return new NullAwareMapEntry(
-    isKeyNullAware: isKeyNullAware,
-    key: key,
-    isValueNullAware: isValueNullAware,
-    value: value,
-  )..fileOffset = fileOffset;
+  return new NullAwareElement(expression: expression, fileOffset: fileOffset);
 }
 
-NullCheck createNullCheck(int fileOffset, Expression expression) {
-  return new NullCheck(expression)..fileOffset = fileOffset;
+InternalExpression createNullCheck(
+  int fileOffset,
+  InternalExpression expression,
+) {
+  return new InternalNullCheck(expression, fileOffset: fileOffset);
 }
 
 InternalPattern createNullCheckPattern(
@@ -970,22 +1313,8 @@ InternalPattern createNullCheckPattern(
 }
 
 /// Return a representation of a null literal at the given [fileOffset].
-NullLiteral createNullLiteral(int fileOffset) {
-  return new NullLiteral()..fileOffset = fileOffset;
-}
-
-InternalPattern createOrPattern(
-  int fileOffset,
-  InternalPattern left,
-  InternalPattern right, {
-  required List<InternalVariable> orPatternJointVariables,
-}) {
-  return new InternalOrPattern(
-    left,
-    right,
-    orPatternJointVariables: orPatternJointVariables,
-    fileOffset: fileOffset,
-  );
+InternalExpression createNullLiteral(int fileOffset) {
+  return new InternalNullLiteral(fileOffset: fileOffset);
 }
 
 InternalPattern createObjectPattern({
@@ -1004,17 +1333,31 @@ InternalPattern createObjectPattern({
   );
 }
 
-ParenthesizedExpression createParenthesized(
+InternalPattern createOrPattern(
   int fileOffset,
-  Expression expression,
-) {
-  return new ParenthesizedExpression(expression)..fileOffset = fileOffset;
+  InternalPattern left,
+  InternalPattern right, {
+  required List<InternalPatternVariable> orPatternJointVariables,
+}) {
+  return new InternalOrPattern(
+    left,
+    right,
+    orPatternJointVariables: orPatternJointVariables,
+    fileOffset: fileOffset,
+  );
 }
 
-Expression createPatternAssignment(
+ParenthesizedExpression createParenthesized(
+  int fileOffset,
+  InternalExpression expression,
+) {
+  return new ParenthesizedExpression(expression, fileOffset: fileOffset);
+}
+
+InternalExpression createPatternAssignment(
   int fileOffset,
   InternalPattern pattern,
-  Expression expression,
+  InternalExpression expression,
 ) {
   return new InternalPatternAssignment(
     pattern: pattern,
@@ -1023,48 +1366,30 @@ Expression createPatternAssignment(
   );
 }
 
-PatternForElement createPatternForElement(
-  int fileOffset, {
+InternalElement createPatternForElement({
   required InternalPatternVariableDeclaration patternVariableDeclaration,
-  required List<InternalVariableDeclaration> intermediateVariables,
-  required List<InternalVariableDeclaration> variables,
-  required Expression? condition,
-  required List<Expression> updates,
-  required Expression body,
+  //required List<InternalVariableDeclaration> intermediateVariables,
+  //required List<InternalVariableDeclaration> variables,
+  required InternalExpression? condition,
+  required List<InternalExpression> updates,
+  required InternalElement body,
+  required int fileOffset,
 }) {
   return new PatternForElement(
-    internalPatternVariableDeclaration: patternVariableDeclaration,
-    intermediateVariables: intermediateVariables,
-    internalVariables: variables,
+    patternVariableDeclaration: patternVariableDeclaration,
+    //intermediateVariables: intermediateVariables,
+    //variables: variables,
     condition: condition,
     updates: updates,
     body: body,
-  )..fileOffset = fileOffset;
-}
-
-PatternForMapEntry createPatternForMapEntry(
-  int fileOffset, {
-  required InternalPatternVariableDeclaration patternVariableDeclaration,
-  required List<InternalVariableDeclaration> intermediateVariables,
-  required List<InternalVariableDeclaration> variableInitializations,
-  required Expression? condition,
-  required List<Expression> updates,
-  required MapLiteralEntry body,
-}) {
-  return new PatternForMapEntry(
-    internalPatternVariableDeclaration: patternVariableDeclaration,
-    intermediateVariables: intermediateVariables,
-    internalVariables: variableInitializations,
-    condition: condition,
-    updates: updates,
-    body: body,
-  )..fileOffset = fileOffset;
+    fileOffset: fileOffset,
+  );
 }
 
 InternalPatternGuard createPatternGuard(
   int fileOffset,
   InternalPattern pattern, [
-  Expression? guard,
+  InternalExpression? guard,
 ]) {
   return new InternalPatternGuard(
     pattern: pattern,
@@ -1077,10 +1402,10 @@ InternalPatternSwitchCase createPatternSwitchCase(
   int fileOffset,
   List<int> caseOffsets,
   List<InternalPatternGuard> patternGuards,
-  Statement body, {
+  InternalStatement body, {
   required bool isDefault,
   required List<Label>? labels,
-  required List<InternalVariable>? jointVariables,
+  required List<JointVariable>? jointVariables,
   required List<int>? jointVariableFirstUseOffsets,
 }) {
   return new InternalPatternSwitchCase(
@@ -1095,9 +1420,9 @@ InternalPatternSwitchCase createPatternSwitchCase(
   );
 }
 
-Statement createPatternSwitchStatement(
+InternalSwitchStatement createPatternSwitchStatement(
   int fileOffset,
-  Expression expression,
+  InternalExpression expression,
   List<InternalPatternSwitchCase> cases,
 ) {
   return new InternalPatternSwitchStatement(
@@ -1107,10 +1432,24 @@ Statement createPatternSwitchStatement(
   );
 }
 
-Statement createPatternVariableDeclaration(
+InternalPatternVariable createPatternVariable({
+  required String name,
+  required DartType? type,
+  bool isFinal = false,
+  required int fileOffset,
+}) {
+  return new InternalPatternVariable(
+    name: name,
+    type: type,
+    isFinal: isFinal,
+    fileOffset: fileOffset,
+  );
+}
+
+InternalPatternVariableDeclaration createPatternVariableDeclaration(
   int fileOffset,
   InternalPattern pattern,
-  Expression initializer, {
+  InternalExpression initializer, {
   required bool isFinal,
 }) {
   return new InternalPatternVariableDeclaration(
@@ -1122,10 +1461,10 @@ Statement createPatternVariableDeclaration(
 }
 
 InternalPositionalParameter createPositionalParameter({
-  String? cosmeticName,
+  required String parameterName,
   required DartType type,
   bool isImplicitlyTyped = false,
-  Expression? defaultValue,
+  InternalExpression? defaultValue,
   bool hasDeclaredDefaultValue = false,
   bool isCovariantByDeclaration = false,
   bool isRequired = false,
@@ -1133,50 +1472,78 @@ InternalPositionalParameter createPositionalParameter({
   bool isSuperInitializingFormal = false,
   bool isFinal = false,
   bool isLowered = false,
-  bool isSynthesized = false,
   bool isWildcard = false,
   required int fileOffset,
   bool forSyntheticToken = false,
 }) {
   return new InternalPositionalParameter(
+    defaultValue: defaultValue,
     astVariable: extern.createPositionalParameter(
-      cosmeticName: cosmeticName,
+      parameterName: parameterName,
       type: type,
-      defaultValue: defaultValue,
       isCovariantByDeclaration: isCovariantByDeclaration,
       isInitializingFormal: isInitializingFormal,
       isSuperInitializingFormal: isSuperInitializingFormal,
       isFinal: isFinal,
       hasDeclaredDefaultValue: hasDeclaredDefaultValue,
       isLowered: isLowered,
-      isSynthesized: isSynthesized,
       isWildcard: isWildcard,
       fileOffset: fileOffset,
     ),
-    forSyntheticToken: forSyntheticToken,
     isImplicitlyTyped: isImplicitlyTyped,
     fileOffset: fileOffset,
   );
 }
 
-Expression createPropertyGet(
+InternalExpression createPropertyGet(
   int fileOffset,
-  Expression receiver,
+  InternalExpression receiver,
   Name name, {
   required bool isNullAware,
+  required bool isImplicitThis,
 }) {
-  return new PropertyGet(receiver, name, isNullAware: isNullAware)
-    ..fileOffset = fileOffset;
+  return new PropertyGet(
+    receiver,
+    name,
+    isNullAware: isNullAware,
+    isImplicitThis: isImplicitThis,
+    fileOffset: fileOffset,
+  );
 }
 
-Expression createPropertySet(
+InternalExpression createPropertyIncDec({
+  required InternalExpression receiver,
+  required Name name,
+  required bool forEffect,
+  required bool isPost,
+  required bool isInc,
+  required bool isNullAware,
+  required int nameOffset,
+  required int operatorOffset,
+  required bool isImplicitThis,
+}) {
+  return new PropertyIncDec(
+    receiver: receiver,
+    name: name,
+    forEffect: forEffect,
+    isPost: isPost,
+    isInc: isInc,
+    isNullAware: isNullAware,
+    nameOffset: nameOffset,
+    operatorOffset: operatorOffset,
+    isImplicitThis: isImplicitThis,
+  );
+}
+
+InternalExpression createPropertySet(
   int fileOffset,
-  Expression receiver,
+  InternalExpression receiver,
   Name name,
-  Expression value, {
+  InternalExpression value, {
   required bool forEffect,
   bool readOnlyReceiver = false,
   required bool isNullAware,
+  required isImplicitThis,
 }) {
   return new PropertySet(
     receiver,
@@ -1185,7 +1552,24 @@ Expression createPropertySet(
     forEffect: forEffect,
     readOnlyReceiver: readOnlyReceiver,
     isNullAware: isNullAware,
-  )..fileOffset = fileOffset;
+    isImplicitThis: isImplicitThis,
+    fileOffset: fileOffset,
+  );
+}
+
+// Coverage-ignore(suite): Not run.
+InternalExpression createRecordLiteral({
+  required List<PositionalRecordField> fields,
+  required Map<String, NamedRecordField>? namedFields,
+  required bool isConst,
+  required int fileOffset,
+}) {
+  return new InternalRecordLiteral(
+    fields: fields,
+    namedFields: namedFields,
+    isConst: isConst,
+    fileOffset: fileOffset,
+  );
 }
 
 InternalPattern createRecordPattern(
@@ -1195,18 +1579,33 @@ InternalPattern createRecordPattern(
   return new InternalRecordPattern(patterns: patterns, fileOffset: fileOffset);
 }
 
-RedirectingFactoryTearOff createRedirectingFactoryTearOff(
+InternalExpression createRedirectingFactoryTearOff(
   int fileOffset,
   Procedure procedure,
 ) {
   assert(procedure.isRedirectingFactory);
-  return new RedirectingFactoryTearOff(procedure)..fileOffset = fileOffset;
+  return new InternalRedirectingFactoryTearOff(
+    procedure,
+    fileOffset: fileOffset,
+  );
+}
+
+InternalRedirectingInitializer createRedirectingInitializer({
+  required Constructor target,
+  required ActualArguments arguments,
+  required int fileOffset,
+}) {
+  return new InternalRedirectingInitializer(
+    target,
+    arguments,
+    fileOffset: fileOffset,
+  );
 }
 
 InternalPattern createRelationalPattern(
   int fileOffset,
   RelationalPatternKind kind,
-  Expression expression,
+  InternalExpression expression,
 ) {
   return new InternalRelationalPattern(
     kind: kind,
@@ -1222,69 +1621,87 @@ InternalPattern createRestPattern(int fileOffset, InternalPattern? subPattern) {
   );
 }
 
+InternalExpression createRethrow({required int fileOffset}) {
+  return new InternalRethrow(fileOffset: fileOffset);
+}
+
 /// Return a representation of a rethrow statement consisting of the
 /// rethrow at [rethrowFileOffset] and the statement at [statementFileOffset].
-Statement createRethrowStatement(
+InternalStatement createRethrowStatement(
   int rethrowFileOffset,
   int statementFileOffset,
 ) {
-  return new ExpressionStatement(new Rethrow()..fileOffset = rethrowFileOffset)
-    ..fileOffset = statementFileOffset;
+  return new InternalExpressionStatement(
+    createRethrow(fileOffset: rethrowFileOffset),
+    fileOffset: statementFileOffset,
+  );
 }
 
 /// Return a representation of a return statement.
-Statement createReturnStatement(
-  int fileOffset,
-  Expression? expression, {
+InternalReturnStatement createReturnStatement({
+  InternalExpression? expression,
   bool isArrow = true,
-}) {
-  return new ReturnStatementImpl(isArrow, expression)..fileOffset = fileOffset;
-}
-
-/// Return a representation of a set literal at the given [fileOffset]. The
-/// [isConst] is `true` if the literal is either explicitly or implicitly a
-/// constant. The [typeArgument] is the representation of the single valid
-/// type argument preceding the set literal, or `null` if there is no type
-/// argument, there is more than one type argument, or if the type argument
-/// cannot be resolved. The list of [expressions] is a list of the
-/// representations of the set elements.
-SetLiteral createSetLiteral(
-  int fileOffset,
-  DartType typeArgument,
-  List<Expression> expressions, {
-  required bool isConst,
-}) {
-  return new SetLiteral(
-    expressions,
-    typeArgument: typeArgument,
-    isConst: isConst,
-  )..fileOffset = fileOffset;
-}
-
-Expression createSpreadElement(
-  int fileOffset,
-  Expression expression, {
-  required bool isNullAware,
-}) {
-  return new SpreadElement(expression, isNullAware: isNullAware)
-    ..fileOffset = fileOffset;
-}
-
-StaticGet createStaticGet(int fileOffset, Member target) {
-  assert(target is Field || (target is Procedure && target.isGetter));
-  return new StaticGet(target)..fileOffset = fileOffset;
-}
-
-StaticSet createStaticSet(
-  Member target,
-  Expression value, {
   required int fileOffset,
 }) {
-  assert(target is Field || (target is Procedure && target.isSetter));
-  return new StaticSet(target, value)..fileOffset = fileOffset;
+  return new InternalReturnStatement(
+    expression: expression,
+    isArrow: isArrow,
+    fileOffset: fileOffset,
+  );
 }
 
-StaticTearOff createStaticTearOff(int fileOffset, Procedure procedure) {
+InternalElement createSpreadElement({
+  required InternalExpression expression,
+  required bool isNullAware,
+  required int fileOffset,
+}) {
+  return new SpreadElement(
+    expression: expression,
+    isNullAware: isNullAware,
+    fileOffset: fileOffset,
+  );
+}
+
+InternalExpression createStaticGet(int fileOffset, Member target) {
+  assert(target is Field || (target is Procedure && target.isGetter));
+  return new InternalStaticGet(target, fileOffset: fileOffset);
+}
+
+InternalExpression createStaticIncDec({
+  required Member getter,
+  required Member setter,
+  required Name name,
+  required bool forEffect,
+  required bool isPost,
+  required bool isInc,
+  required int nameOffset,
+  required int operatorOffset,
+}) {
+  return new StaticIncDec(
+    getter: getter,
+    setter: setter,
+    name: name,
+    forEffect: forEffect,
+    isPost: isPost,
+    isInc: isInc,
+    nameOffset: nameOffset,
+    operatorOffset: operatorOffset,
+  );
+}
+
+InternalExpression createStaticSet(
+  Member target,
+  InternalExpression value, {
+  required int fileOffset,
+}) {
+  assert(
+    target is Field || (target is Procedure && target.isSetter),
+    "Unexpected static set target $target",
+  );
+  return new InternalStaticSet(target, value, fileOffset: fileOffset);
+}
+
+InternalExpression createStaticTearOff(int fileOffset, Procedure procedure) {
   assert(
     procedure.kind == ProcedureKind.Method,
     "Unexpected static tear off target: $procedure",
@@ -1293,62 +1710,125 @@ StaticTearOff createStaticTearOff(int fileOffset, Procedure procedure) {
     !procedure.isRedirectingFactory,
     "Unexpected static tear off target: $procedure",
   );
-  return new StaticTearOff(procedure)..fileOffset = fileOffset;
+  return new InternalStaticTearOff(procedure, fileOffset: fileOffset);
 }
 
-Expression createStringConcatenation(
+InternalExpression createStringConcatenation(
   int fileOffset,
-  List<Expression> expressions,
+  List<InternalExpression> expressions,
 ) {
   assert(fileOffset != TreeNode.noOffset);
-  return new StringConcatenation(expressions)..fileOffset = fileOffset;
+  return new InternalStringConcatenation(expressions, fileOffset: fileOffset);
 }
 
 /// Return a representation of a simple string literal at the given
 /// [fileOffset]. The literal has the given [value]. This does not include
 /// either adjacent strings or interpolated strings.
-StringLiteral createStringLiteral(int fileOffset, String value) {
-  return new StringLiteral(value)..fileOffset = fileOffset;
+InternalExpression createStringLiteral(int fileOffset, String value) {
+  return new InternalStringLiteral(value, fileOffset: fileOffset);
 }
 
-Expression createSuperMethodInvocation(
-  int fileOffset,
-  Name name,
-  Procedure procedure,
-  TypeArguments? typeArguments,
-  ActualArguments arguments,
-) {
+InternalExpression createSuperIncDec({
+  required InternalThisExpression receiver,
+  required Member getter,
+  required Member setter,
+  required Name name,
+  required bool forEffect,
+  required bool isPost,
+  required bool isInc,
+  required int nameOffset,
+  required int operatorOffset,
+}) {
+  return new SuperIncDec(
+    receiver: receiver,
+    getter: getter,
+    setter: setter,
+    name: name,
+    forEffect: forEffect,
+    isPost: isPost,
+    isInc: isInc,
+    nameOffset: nameOffset,
+    operatorOffset: operatorOffset,
+  );
+}
+
+InternalExpression createSuperIndexSet({
+  required Member setter,
+  required InternalExpression index,
+  required InternalExpression value,
+  required int fileOffset,
+}) {
+  return new SuperIndexSet(
+    setter: setter,
+    index: index,
+    value: value,
+    fileOffset: fileOffset,
+  );
+}
+
+InternalSuperInitializer createSuperInitializer({
+  required Constructor target,
+  required ActualArguments arguments,
+  required bool isSynthetic,
+  required int fileOffset,
+}) {
+  return new InternalSuperInitializer(
+    target,
+    arguments,
+    isSynthetic: isSynthetic,
+    fileOffset: fileOffset,
+  );
+}
+
+InternalExpression createSuperMethodInvocation({
+  required Name name,
+  required Procedure procedure,
+  required TypeArguments? typeArguments,
+  required ActualArguments arguments,
+  required int fileOffset,
+}) {
   return new InternalSuperMethodInvocation(
     name,
     typeArguments,
     arguments,
     procedure,
-  )..fileOffset = fileOffset;
+    fileOffset: fileOffset,
+  );
 }
 
-SuperPropertyGet createSuperPropertyGet(
-  Expression receiver,
+InternalExpression createSuperPropertyGet(
+  InternalThisExpression receiver,
   Name name,
   Member target, {
   required int fileOffset,
 }) {
-  return new SuperPropertyGet(receiver, name, target)..fileOffset = fileOffset;
+  return new InternalSuperPropertyGet(
+    receiver: receiver,
+    name: name,
+    interfaceTarget: target,
+    fileOffset: fileOffset,
+  );
 }
 
-SuperPropertySet createSuperPropertySet(
-  Expression receiver,
+InternalExpression createSuperPropertySet(
+  InternalThisExpression receiver,
   Name name,
   Member target,
-  Expression value, {
+  InternalExpression value, {
   required int fileOffset,
 }) {
-  return new SuperPropertySet(receiver, name, value, target)
-    ..fileOffset = fileOffset;
+  return new InternalSuperPropertySet(
+    receiver: receiver,
+    name: name,
+    value: value,
+    interfaceTarget: target,
+    fileOffset: fileOffset,
+  );
 }
 
-Expression createSwitchExpression(
+InternalExpression createSwitchExpression(
   int fileOffset,
-  Expression expression,
+  InternalExpression expression,
   List<InternalSwitchExpressionCase> cases,
 ) {
   return new InternalSwitchExpression(
@@ -1361,7 +1841,7 @@ Expression createSwitchExpression(
 InternalSwitchExpressionCase createSwitchExpressionCase(
   int fileOffset,
   InternalPatternGuard patternGuard,
-  Expression expression,
+  InternalExpression expression,
 ) {
   return new InternalSwitchExpressionCase(
     patternGuard: patternGuard,
@@ -1370,8 +1850,8 @@ InternalSwitchExpressionCase createSwitchExpressionCase(
   );
 }
 
-Statement createSwitchStatement(
-  Expression expression,
+InternalSwitchStatement createSwitchStatement(
+  InternalExpression expression,
   List<InternalSwitchStatementCase> cases, {
   required int fileOffset,
 }) {
@@ -1383,9 +1863,9 @@ Statement createSwitchStatement(
 }
 
 InternalSwitchStatementCase createSwitchStatementCase({
-  required List<Expression> expressions,
+  required List<InternalExpression> expressions,
   required List<int> expressionOffsets,
-  required Statement body,
+  required InternalStatement body,
   required bool isDefault,
   required List<int> caseOffsets,
   required List<Label>? labels,
@@ -1404,28 +1884,16 @@ InternalSwitchStatementCase createSwitchStatementCase({
 
 /// Return a representation of a symbol literal defined by [value] at the
 /// given [fileOffset].
-SymbolLiteral createSymbolLiteral(int fileOffset, String value) {
-  return new SymbolLiteral(value)..fileOffset = fileOffset;
+InternalExpression createSymbolLiteral(int fileOffset, String value) {
+  return new InternalSymbolLiteral(value, fileOffset: fileOffset);
 }
 
-InternalAnonymousMethodParameter createAnonymousMethodParameter({
+InternalPatternVariable createSyntheticPatternVariable({
   required String name,
-  required DartType type,
   required int fileOffset,
-  required bool isImplicitlyTyped,
-  required bool isWildcard,
-  required bool isFinal,
-  required bool isSynthesized,
 }) {
-  return new InternalAnonymousMethodParameter(
-    astVariable: new SyntheticVariable(
-      cosmeticName: name,
-      isFinal: isFinal,
-      isSynthesized: isSynthesized,
-      type: type,
-    )..fileOffset = fileOffset,
-    isImplicitlyTyped: isImplicitlyTyped,
-    isWildcard: isWildcard,
+  return new InternalPatternVariable.synthetic(
+    name: name,
     fileOffset: fileOffset,
   );
 }
@@ -1434,92 +1902,115 @@ InternalSyntheticVariable createSyntheticVariable({
   String? name,
   DartType? type,
   required int fileOffset,
-  Expression? initializer,
   bool isFinal = false,
   bool isLowered = false,
   bool isSynthesized = true,
 }) {
   return new InternalSyntheticVariable(
-    astVariable: new SyntheticVariable(
-      cosmeticName: name,
-      type: type ?? const DynamicType(),
-      isFinal: isFinal,
-      isLowered: isLowered,
-      isSynthesized: isSynthesized,
-      initializer: initializer,
-    )..fileOffset = fileOffset,
+    name: name,
+    type: type ?? const DynamicType(),
+    isFinal: isFinal,
+    isLowered: isLowered,
+    isSynthesized: isSynthesized,
     isImplicitlyTyped: type == null,
     fileOffset: fileOffset,
   );
 }
 
-InternalVariable createSyntheticVariableForEffect(Expression expression) {
-  return createSyntheticVariable(
-    initializer: expression,
-    isFinal: true,
-    fileOffset: expression.fileOffset,
-    type: const DynamicType(),
-    isSynthesized: true,
-  );
-}
-
-InternalSyntheticVariable createSyntheticVariableForValue(
-  Expression initializer, {
-  DartType? type,
-  String? name,
-  int? fileOffset,
+JointVariable createJointVariable({
+  required String name,
+  required bool isFinal,
+  required int fileOffset,
 }) {
-  return createSyntheticVariable(
+  return new JointVariable(
     name: name,
-    initializer: initializer,
-    isFinal: true,
-    fileOffset: fileOffset ?? initializer.fileOffset,
-    type: type,
-    isSynthesized: true,
+    isFinal: isFinal,
+    fileOffset: fileOffset,
   );
 }
 
-Expression createThisExpression({required int fileOffset}) {
-  return new ThisExpression()..fileOffset = fileOffset;
+InternalThisExpression createThisExpression({required int fileOffset}) {
+  return new InternalThisExpression(fileOffset: fileOffset);
 }
 
 InternalThisVariable createThisVariable({
   required DartType type,
   required int fileOffset,
 }) {
-  return new InternalThisVariable(
-    astVariable: new ThisVariable(type: type)..fileOffset = fileOffset,
+  return new InternalThisVariable(type: type, fileOffset: fileOffset);
+}
+
+/// Return a representation of a throw expression at the given [fileOffset].
+InternalExpression createThrow(int fileOffset, InternalExpression expression) {
+  return new InternalThrow(expression, fileOffset: fileOffset);
+}
+
+InternalStatement createTryStatement(
+  int fileOffset,
+  InternalStatement tryBlock,
+  List<InternalCatch>? catchBlocks,
+  InternalStatement? finallyBlock,
+) {
+  return new TryStatement(
+    tryBlock,
+    catchBlocks ?? [],
+    finallyBlock,
     fileOffset: fileOffset,
   );
 }
 
-/// Return a representation of a throw expression at the given [fileOffset].
-Expression createThrow(int fileOffset, Expression expression) {
-  return new Throw(expression)..fileOffset = fileOffset;
+InternalExpression createTypeAliasedConstructorInvocation({
+  required TypeAliasBuilder typeAliasBuilder,
+  required Constructor target,
+  required TypeArguments? typeArguments,
+  required ActualArguments arguments,
+  required bool isConst,
+  required int fileOffset,
+}) {
+  return new TypeAliasedConstructorInvocation(
+    typeAliasBuilder: typeAliasBuilder,
+    target: target,
+    typeArguments: typeArguments,
+    arguments: arguments,
+    isConst: isConst,
+    fileOffset: fileOffset,
+  );
 }
 
-Statement createTryStatement(
-  int fileOffset,
-  Statement tryBlock,
-  List<InternalCatch>? catchBlocks,
-  Statement? finallyBlock,
-) {
-  return new TryStatement(tryBlock, catchBlocks ?? [], finallyBlock)
-    ..fileOffset = fileOffset;
+InternalExpression createTypeAliasedFactoryInvocation({
+  required TypeAliasBuilder typeAliasBuilder,
+  required Procedure target,
+  required TypeArguments? typeArguments,
+  required ActualArguments arguments,
+  required bool isConst,
+  required int fileOffset,
+}) {
+  return new TypeAliasedFactoryInvocation(
+    typeAliasBuilder: typeAliasBuilder,
+    target: target,
+    typeArguments: typeArguments,
+    arguments: arguments,
+    isConst: isConst,
+    fileOffset: fileOffset,
+  );
 }
 
-TypedefTearOff createTypedefTearOff(
+InternalExpression createTypedefTearOff(
   int fileOffset,
-  List<StructuralParameter> typeParameters,
-  Expression expression,
+  List<StructuralParameter> structuralParameters,
+  InternalExpression expression,
   List<DartType> typeArguments,
 ) {
-  return new TypedefTearOff(typeParameters, expression, typeArguments)
-    ..fileOffset = fileOffset;
+  return new InternalTypedefTearOff(
+    structuralParameters: structuralParameters,
+    expression: expression,
+    typeArguments: typeArguments,
+    fileOffset: fileOffset,
+  );
 }
 
-TypeLiteral createTypeLiteral(int fileOffset, DartType type) {
-  return new TypeLiteral(type)..fileOffset = fileOffset;
+InternalExpression createTypeLiteral(int fileOffset, DartType type) {
+  return new InternalTypeLiteral(type, fileOffset: fileOffset);
 }
 
 TypeParameterType createTypeParameterTypeWithDefaultNullabilityForLibrary(
@@ -1532,30 +2023,35 @@ TypeParameterType createTypeParameterTypeWithDefaultNullabilityForLibrary(
 UnaryExpression createUnary(
   int fileOffset,
   Name unaryName,
-  Expression expression,
+  InternalExpression expression,
 ) {
-  return new UnaryExpression(unaryName, expression)..fileOffset = fileOffset;
+  return new UnaryExpression(unaryName, expression, fileOffset: fileOffset);
 }
 
 InternalVariableDeclaration createVariableDeclaration(
-  InternalVariable variable, {
-  int? fileOffset,
+  InternalDeclaredVariable variable, {
+  required InternalExpression? initializer,
+  int? nameOffset,
+  int? equalsOffset,
 }) {
-  return new InternalVariableDeclaration(variable)
-    ..fileOffset = fileOffset ?? variable.fileOffset;
+  return new InternalVariableDeclaration(
+    variable,
+    initializer: initializer,
+    nameOffset: nameOffset ?? variable.fileOffset,
+  );
 }
 
 InternalVariableGet createVariableGet(
   InternalVariable variable, {
   required int fileOffset,
 }) {
-  return new InternalVariableGet(variable)..fileOffset = fileOffset;
+  return new InternalVariableGet(variable, fileOffset: fileOffset);
 }
 
 InternalPattern createVariablePattern(
   int fileOffset,
   DartType? type,
-  InternalVariable variable,
+  InternalPatternVariable variable,
 ) {
   return new InternalVariablePattern(
     type: type,
@@ -1566,28 +2062,30 @@ InternalPattern createVariablePattern(
 
 InternalVariableSet createVariableSet(
   InternalVariable variable,
-  Expression value, {
+  InternalExpression value, {
   required int fileOffset,
 }) {
-  return new InternalVariableSet(variable, value)..fileOffset = fileOffset;
+  return new InternalVariableSet(variable, value, fileOffset: fileOffset);
 }
 
 InternalVariableStatement createVariableStatement(
   InternalVariableDeclaration declaration, {
   int? fileOffset,
 }) {
-  return new InternalVariableStatement(declaration)
-    ..fileOffset = fileOffset ?? declaration.fileOffset;
+  return new InternalVariableStatement(
+    declaration,
+    fileOffset: fileOffset ?? declaration.fileOffset,
+  );
 }
 
 /// Return a representation of a while statement at the given [fileOffset]
 /// consisting of the given [condition] and [body].
-Statement createWhileStatement(
+InternalLoopStatement createWhileStatement(
   int fileOffset,
-  Expression condition,
-  Statement body,
+  InternalExpression condition,
+  InternalStatement body,
 ) {
-  return new WhileStatement(condition, body)..fileOffset = fileOffset;
+  return new InternalWhileStatement(condition, body, fileOffset: fileOffset);
 }
 
 InternalPattern createWildcardPattern(int fileOffset, DartType? type) {
@@ -1597,123 +2095,39 @@ InternalPattern createWildcardPattern(int fileOffset, DartType? type) {
 /// Return a representation of a yield statement at the given [fileOffset]
 /// of the given [expression]. If [isYieldStar] is `true` the created
 /// statement is a yield* statement.
-Statement createYieldStatement(
+InternalStatement createYieldStatement(
   int fileOffset,
-  Expression expression, {
+  InternalExpression expression, {
   required bool isYieldStar,
 }) {
-  return new YieldStatement(expression, isYieldStar: isYieldStar)
-    ..fileOffset = fileOffset;
+  return new InternalYieldStatement(
+    expression,
+    isYieldStar: isYieldStar,
+    fileOffset: fileOffset,
+  );
 }
 
-bool isErroneousNode(Object? node) {
-  if (node is ExpressionStatement) {
-    // Coverage-ignore-block(suite): Not run.
-    ExpressionStatement statement = node;
-    node = statement.expression;
-  }
-  if (node is Variable) {
-    // Coverage-ignore-block(suite): Not run.
-    Variable variable = node;
-    node = variable.initializer;
-  }
-  if (node is Let) {
-    // Coverage-ignore-block(suite): Not run.
-    Let let = node;
-    node = let.variable.initializer;
-  }
-  return node is InvalidExpression;
-}
+// TODO(johnniwinther): This has been broken for some time. Do we need it?
+bool isThisExpression(Object node) => false;
 
-bool isThisExpression(Object node) =>
-    node is Expression && ast_helper.isThisExpression(node);
-
-bool isVariablesDeclaration(Object? node) => node is _VariablesDeclaration;
-
-_VariablesDeclaration variablesDeclaration(
-  List<InternalVariableDeclaration> declarations,
-  Uri uri,
-) {
-  return new _VariablesDeclaration(declarations, uri);
-}
-
-List<InternalVariableDeclaration> variablesDeclarationExtractDeclarations(
-  Object? variablesDeclaration,
-) {
-  return (variablesDeclaration as _VariablesDeclaration).declarations;
-}
-
-Statement wrapVariables(Statement statement) {
-  if (statement is _VariablesDeclaration) {
-    return new Block(
-      new List<Statement>.generate(
+InternalStatement wrapVariables(InternalStatement statement) {
+  if (statement is MultiVariableDeclaration) {
+    return createBlock(
+      new List<InternalStatement>.generate(
         statement.declarations.length,
         (int index) => createVariableStatement(statement.declarations[index]),
         growable: true,
       ),
-    )..fileOffset = statement.fileOffset;
+      fileOffset: statement.fileOffset,
+      fileEndOffset: TreeNode.noOffset,
+    );
   } else if (statement is InternalVariableStatement) {
-    return new Block(<Statement>[statement])..fileOffset = statement.fileOffset;
+    return createBlock(
+      <InternalStatement>[statement],
+      fileOffset: statement.fileOffset,
+      fileEndOffset: TreeNode.noOffset,
+    );
   } else {
     return statement;
-  }
-}
-
-class _VariablesDeclaration extends AuxiliaryStatement {
-  final List<InternalVariableDeclaration> declarations;
-  final Uri uri;
-
-  new(this.declarations, this.uri) {
-    setParents(declarations, this);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  R accept<R>(v) {
-    throw unsupported("accept", fileOffset, uri);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  R accept1<R, A>(v, arg) {
-    throw unsupported("accept1", fileOffset, uri);
-  }
-
-  @override
-  String toString() {
-    return "_VariablesDeclaration(${toStringInternal()})";
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void toTextInternal(AstPrinter printer) {
-    for (int index = 0; index < declarations.length; index++) {
-      if (index > 0) {
-        printer.write(', ');
-      }
-      printer.writeVariableInitialization(
-        declarations[index].variable.astVariable,
-        includeModifiersAndType: index == 0,
-      );
-    }
-    printer.write(';');
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  Never transformChildren(v) {
-    throw unsupported("transformChildren", fileOffset, uri);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  Never transformOrRemoveChildren(v) {
-    throw unsupported("transformOrRemoveChildren", fileOffset, uri);
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  Never visitChildren(v) {
-    throw unsupported("visitChildren", fileOffset, uri);
   }
 }

@@ -67,7 +67,7 @@ class YieldStatementResolver {
     YieldStatement node, {
     required bool isYieldEach,
   }) {
-    var expression = node.expression;
+    var expression = node.expression2;
     var expressionType = expression.typeOrThrow;
 
     TypeImpl impliedReturnType;
@@ -159,15 +159,16 @@ class YieldStatementResolver {
   ) {
     _resolver.analyzeYieldStatement(
       node,
-      node.expression,
+      node.expression2,
       isYieldStar: node.star != null,
+      suspensionOffset: node.semicolon.offset,
     );
     _resolver.popRewrite();
 
     if (node.star != null) {
       _resolver.nullableDereferenceVerifier.expression(
         diag.uncheckedUseOfNullableValueInYieldEach,
-        node.expression,
+        node.expression2,
       );
     }
 
@@ -178,12 +179,12 @@ class YieldStatementResolver {
       node,
       isYieldEach: node.star != null,
     );
-    _checkForUseOfVoidResult(node.expression);
+    _checkForUseOfVoidResult(node.expression2);
   }
 
   void _resolve_notGenerator(YieldStatementImpl node) {
     _resolver.analyzeExpression(
-      node.expression,
+      node.expression2,
       _resolver.operations.unknownType,
     );
     _resolver.popRewrite();
@@ -195,6 +196,6 @@ class YieldStatementResolver {
           .at(node),
     );
 
-    _checkForUseOfVoidResult(node.expression);
+    _checkForUseOfVoidResult(node.expression2);
   }
 }

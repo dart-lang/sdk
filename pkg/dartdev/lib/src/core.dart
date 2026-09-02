@@ -13,6 +13,7 @@ import 'package:path/path.dart' as path;
 
 import 'experiments.dart';
 import 'utils.dart';
+import 'vm_interop_handler.dart';
 
 // Initialize a default logger. We'll replace this with a verbose logger if
 // necessary once we start parsing.
@@ -84,6 +85,26 @@ abstract class DartdevCommand extends Command<int> {
   /// Subclasses can override this in order to create a customized ArgParser.
   ArgParser createArgParser() =>
       ArgParser(usageLineLength: dartdevUsageLineLength);
+
+  /// Returns a [FileSystemEntity] (either [Directory] or [File]) corresponding
+  /// to the single path specified in [arguments], or the current working
+  /// directory if [arguments] is empty.
+  ///
+  /// Throws a [UsageException] if more than one argument is provided.
+  FileSystemEntity getTarget(List<String> arguments) {
+    final argumentCount = arguments.length;
+    if (argumentCount > 1) {
+      usageException('Only one file or directory is expected.');
+    }
+
+    final basePath = argumentCount == 0
+        ? Directory.current.absolute.path
+        : arguments.first;
+    final normalizedPath = path.canonicalize(path.normalize(basePath));
+    return FileSystemEntity.isDirectorySync(normalizedPath)
+        ? Directory(normalizedPath)
+        : File(normalizedPath);
+  }
 }
 
 enum CommandCategory {
@@ -114,9 +135,10 @@ extension DartDevCommand<T> on Command<T> {
 
 Future<int> runProcess(
   List<String> command, {
-  bool logToTrace = false,
-  void Function(String str)? listener,
   String? cwd,
+  Map<String, String>? environment,
+  void Function(String str)? listener,
+  bool logToTrace = false,
 }) async {
   Future<void> forward(Stream<List<int>> output, bool isStderr) {
     return _streamLineTransform(output, (line) {
@@ -133,6 +155,10 @@ Future<int> runProcess(
     command.first,
     command.skip(1).toList(),
     workingDirectory: cwd,
+    environment: {
+      ...VmInteropHandler.environmentOverrides,
+      ...?environment,
+    },
   );
   final (_, _, exitCode) = await (
     forward(process.stdout, false),

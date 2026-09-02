@@ -36,6 +36,28 @@ MixinDeclaration
 ''');
   }
 
+  test_augment_onClause() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+augment mixin M on A {}
+//              ^^
+// [diag.mixinAugmentationHasOnClause] Mixin augmentations can't have 'on' clauses.
+''');
+    assertParsedNodeText(parseResult.findNode.singleMixinDeclaration, r'''
+MixinDeclaration
+  augmentKeyword: augment
+  mixinKeyword: mixin
+  name: M
+  onClause: MixinOnClause
+    onKeyword: on
+    superclassConstraints
+      NamedType
+        name: A
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
   test_augment_typeParameters_withBound() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 augment mixin M<T extends int> {}
@@ -106,7 +128,7 @@ MixinDeclaration
             VariableDeclaration
               name: F
               equals: =
-              initializer: IntegerLiteral
+              initializer2: IntegerLiteral
                 literal: 0
         semicolon: ;
     rightBracket: }
@@ -134,7 +156,7 @@ MixinDeclaration
         name: foo
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: IntegerLiteral
+          expression2: IntegerLiteral
             literal: 0
           semicolon: ;
     rightBracket: }
@@ -212,6 +234,14 @@ MixinDeclaration
         name: foo
         parameters: FormalParameterList
           leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              type: NamedType
+                name: int
+              name: _
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
+          leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
               name: int
@@ -240,9 +270,9 @@ MixinDeclaration
 ''');
   }
 
-  test_emptyBody_language310() {
+  test_emptyBody_beforePrimaryConstructors() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 mixin M;
 //     ^
 // [diag.experimentNotEnabled] This requires the 'primary-constructors' language feature to be enabled.
@@ -281,7 +311,7 @@ MixinDeclaration
             VariableDeclaration
               name: x
               equals: =
-              initializer: IntegerLiteral
+              initializer2: IntegerLiteral
                 literal: 0
         semicolon: ;
     rightBracket: }
@@ -312,7 +342,7 @@ MixinDeclaration
             VariableDeclaration
               name: x
               equals: =
-              initializer: IntegerLiteral
+              initializer2: IntegerLiteral
                 literal: 0
         semicolon: ;
     rightBracket: }
@@ -344,7 +374,7 @@ MixinDeclaration
             VariableDeclaration
               name: x
               equals: =
-              initializer: IntegerLiteral
+              initializer2: IntegerLiteral
                 literal: 0
         semicolon: ;
     rightBracket: }
@@ -373,7 +403,7 @@ MixinDeclaration
         name: foo
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: IntegerLiteral
+          expression2: IntegerLiteral
             literal: 0
           semicolon: ;
     rightBracket: }
@@ -403,7 +433,7 @@ MixinDeclaration
         name: foo
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: IntegerLiteral
+          expression2: IntegerLiteral
             literal: 0
           semicolon: ;
     rightBracket: }
@@ -642,6 +672,14 @@ MixinDeclaration
         name: +
         parameters: FormalParameterList
           leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              type: NamedType
+                name: int
+              name: other
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
+          leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
               name: int
@@ -649,7 +687,7 @@ MixinDeclaration
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: IntegerLiteral
+          expression2: IntegerLiteral
             literal: 0
           semicolon: ;
     rightBracket: }
@@ -674,9 +712,9 @@ MixinDeclaration
 ''');
   }
 
-  test_primaryConstructor_const_typeName_formalParameters_language310() {
+  test_primaryConstructor_const_typeName_formalParameters_beforePrimaryConstructors() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart=3.10
+// %before-language-feature: primary-constructors
 mixin const A() {}
 //    ^^^^^
 // [diag.unexpectedToken] Unexpected text 'const'.
@@ -711,9 +749,9 @@ MixinDeclaration
 ''');
   }
 
-  test_primaryConstructor_const_typeName_noFormalParameters_language310() {
+  test_primaryConstructor_const_typeName_noFormalParameters_beforePrimaryConstructors() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart=3.10
+// %before-language-feature: primary-constructors
 mixin const A {}
 //    ^^^^^
 // [diag.unexpectedToken] Unexpected text 'const'.
@@ -748,9 +786,9 @@ MixinDeclaration
 ''');
   }
 
-  test_primaryConstructor_const_typeName_periodName_formalParameters_language310() {
+  test_primaryConstructor_const_typeName_periodName_formalParameters_beforePrimaryConstructors() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart=3.10
+// %before-language-feature: primary-constructors
 mixin const A.name() {}
 //    ^^^^^
 // [diag.unexpectedToken] Unexpected text 'const'.
@@ -785,9 +823,9 @@ MixinDeclaration
 ''');
   }
 
-  test_primaryConstructor_typeName_formalParameters_language310() {
+  test_primaryConstructor_typeName_formalParameters_beforePrimaryConstructors() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart=3.10
+// %before-language-feature: primary-constructors
 mixin A() {}
 //     ^
 // [diag.unexpectedToken] Unexpected text '('.
@@ -822,9 +860,9 @@ MixinDeclaration
 ''');
   }
 
-  test_primaryConstructor_typeName_periodName_formalParameters_language310() {
+  test_primaryConstructor_typeName_periodName_formalParameters_beforePrimaryConstructors() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart=3.10
+// %before-language-feature: primary-constructors
 mixin A.name() {}
 //     ^
 // [diag.unexpectedToken] Unexpected text '.'.
@@ -861,6 +899,14 @@ MixinDeclaration
         name: foo
         parameters: FormalParameterList
           leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              type: NamedType
+                name: int
+              name: x
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
+          leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
               name: int
@@ -894,6 +940,14 @@ MixinDeclaration
         propertyKeyword: set
         name: foo
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              type: NamedType
+                name: int
+              name: x
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType

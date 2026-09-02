@@ -465,7 +465,7 @@ var x = a ? b : c;
     );
   }
 
-  test_constructorReference_explicitTypeArguments() async {
+  test_constructorTearOff_explicitTypeArguments() async {
     await _assertConst('''
 class A {
   final B Function() x;
@@ -473,10 +473,10 @@ class A {
 }
 
 class B<T> {}
-''', (result) => result.findNode.constructorReference('B<int>.new'));
+''', (result) => result.findNode.constructorTearOff('B<int>.new'));
   }
 
-  test_constructorReference_explicitTypeArguments_nonConst() async {
+  test_constructorTearOff_explicitTypeArguments_nonConst() async {
     await _assertNotConst(
       '''
 import '' deferred as self;
@@ -487,12 +487,12 @@ class A {
 
 class B<T> {}
 ''',
-      (result) => result.findNode.constructorReference('B<self.A>.new'),
+      (result) => result.findNode.constructorTearOff('B<self.A>.new'),
       (result) => [result.findNode.typeAnnotation('self.A')],
     );
   }
 
-  test_constructorReference_noTypeArguments() async {
+  test_constructorTearOff_noTypeArguments() async {
     await _assertConst('''
 class A {
   final B Function() x;
@@ -500,7 +500,7 @@ class A {
 }
 
 class B {}
-''', (result) => result.findNode.constructorReference('B.new'));
+''', (result) => result.findNode.constructorTearOff('B.new'));
   }
 
   test_dotShorthandConstructorInvocation_const() async {
@@ -535,7 +535,7 @@ class A {
 }
 
 const A x = .a;
-''', (result) => result.findNode.dotShorthandPropertyAccess('.a'));
+''', (result) => result.findNode.dotShorthandNameExpression('.a'));
   }
 
   test_dotShorthandPropertyAccess_nonConst() async {
@@ -548,7 +548,7 @@ class A {
 A x = .a;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.simple('a;')],
+      (result) => [result.findNodeV1.simple('a;')],
     );
   }
 
@@ -629,7 +629,7 @@ class A {
 var x = new A(); // x
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.instanceCreation('A(); // x')],
+      (result) => [result.findNode.constructorInvocation('A(); // x')],
     );
   }
 
@@ -877,7 +877,7 @@ const b = 0;
 var x = foo(a, b);
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.methodInvocation('foo')],
+      (result) => [result.findNode.unqualifiedFunctionInvocation('foo')],
     );
   }
 
@@ -924,7 +924,7 @@ const a = 0;
 var x = a++;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.postfix('a++')],
+      (result) => [result.findNode.postfixIncrement('a++')],
     );
   }
 
@@ -1105,7 +1105,7 @@ const a = 0;
 var x = ++a;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.prefix('++a')],
+      (result) => [result.findNode.prefixIncrement('++a')],
     );
   }
 
@@ -1409,7 +1409,7 @@ class const C(int a) {
   late final int f = a + 1;
 }
 ''',
-      (result) => result.findNode.variableDeclaration('f =').initializer!,
+      (result) => result.findNode.variableDeclaration('f =').initializer2!,
       (result) => [result.findNode.simple('a +')],
     );
   }
@@ -1419,7 +1419,7 @@ class const C(int a) {
 class const C(int a) {
   final int f = a + 1;
 }
-''', (result) => result.findNode.variableDeclaration('f =').initializer!);
+''', (result) => result.findNode.variableDeclaration('f =').initializer2!);
   }
 
   test_simpleIdentifier_parameterOfConstPrimaryConstructor_inFieldInitializer_static() async {
@@ -1429,18 +1429,22 @@ class const C(int a) {
   static final int f = a + 1;
 }
 ''',
-      (result) => result.findNode.variableDeclaration('f =').initializer!,
+      (result) => result.findNode.variableDeclaration('f =').initializer2!,
       (result) => [result.findNode.simple('a +')],
     );
   }
 
   test_simpleIdentifier_parameterOfConstPrimaryConstructor_inInitializer() async {
-    await _assertConst(r'''
+    await _assertConst(
+      r'''
 class const C(int a) {
   final int f;
   this : f = a + 1;
 }
-''', (result) => result.findNode.constructorFieldInitializer('f =').expression);
+''',
+      (result) =>
+          result.findNode.constructorFieldInitializer('f =').expression2,
+    );
   }
 
   test_simpleIdentifier_parameterOfConstSecondaryConstructor_inBody() async {
@@ -1458,12 +1462,16 @@ class C {
   }
 
   test_simpleIdentifier_parameterOfConstSecondaryConstructor_inInitializer() async {
-    await _assertConst(r'''
+    await _assertConst(
+      r'''
 class C {
   final int f;
   const C(int a) : f = a + 1;
 }
-''', (result) => result.findNode.constructorFieldInitializer('f =').expression);
+''',
+      (result) =>
+          result.findNode.constructorFieldInitializer('f =').expression2,
+    );
   }
 
   test_simpleIdentifier_parameterOfNotConstPrimaryConstructor_inConstructorFieldInitializer() async {
@@ -1474,7 +1482,8 @@ class C(int a) {
   this : f = a + 1;
 }
 ''',
-      (result) => result.findNode.constructorFieldInitializer('f =').expression,
+      (result) =>
+          result.findNode.constructorFieldInitializer('f =').expression2,
       (result) => [result.findNode.simple('a +')],
     );
   }
@@ -1486,7 +1495,7 @@ class C(int a) {
   final int f = a + 1;
 }
 ''',
-      (result) => result.findNode.variableDeclaration('f =').initializer!,
+      (result) => result.findNode.variableDeclaration('f =').initializer2!,
       (result) => [result.findNode.simple('a +')],
     );
   }
@@ -1499,7 +1508,8 @@ class C {
   C(int a) : f = a + 1;
 }
 ''',
-      (result) => result.findNode.constructorFieldInitializer('f =').expression,
+      (result) =>
+          result.findNode.constructorFieldInitializer('f =').expression2,
       (result) => [result.findNode.simple('a +')],
     );
   }
@@ -1610,10 +1620,10 @@ class A<T> {
 ''', (result) => result.findNode.typeLiteral('T;'));
   }
 
-  test_typeLiteral_typeParameter_class_214() async {
+  test_typeLiteral_typeParameter_class_beforeConstructorTearoffs() async {
     await _assertNotConst(
       r'''
-// @dart = 2.14
+// %before-language-feature: constructor-tearoffs
 class A<T> {
   final Object f;
   A() : f = T;
@@ -1654,6 +1664,6 @@ class A<T> {
   }
 
   Expression _xInitializer(TestResolvedUnitResult result) {
-    return result.findNode.variableDeclaration('x = ').initializer!;
+    return result.findNode.variableDeclaration('x = ').initializer2!;
   }
 }

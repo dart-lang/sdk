@@ -1790,6 +1790,13 @@ class LibraryManifestPrinter extends ManifestPrinter {
       case TopLevelInferenceErrorDependencyCycle(:var cycle):
         sink.writelnWithIndent('$name: dependencyCycle(${cycle.join(', ')})');
         throw UnimplementedError();
+      case TopLevelInferenceErrorDifferentGetterAndSetterTypes(
+        :var getterType,
+        :var setterType,
+      ):
+        sink.writelnWithIndent(
+          '$name: differentGetterAndSetterTypes($getterType, $setterType)',
+        );
       case TopLevelInferenceErrorNoCombinedSuperSignature(
         :var candidateSignatures,
       ):
@@ -2110,13 +2117,11 @@ class ResolvedUnitResultPrinter {
       var nodeToWrite = configuration.nodeSelector(result);
       if (nodeToWrite != null) {
         sink.writeWithIndent('selectedNode: ');
-        nodeToWrite.accept(
-          ResolvedAstPrinter(
-            sink: sink,
-            elementPrinter: elementPrinter,
-            configuration: configuration.nodeConfiguration,
-          ),
-        );
+        ResolvedAstPrinter(
+          sink: sink,
+          elementPrinter: elementPrinter,
+          configuration: configuration.nodeConfiguration,
+        ).writeNode(nodeToWrite);
       }
 
       var typesToWrite = configuration.typesSelector(result);

@@ -1,6 +1,7 @@
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 // VMOptions=--max_deoptimization_counter_threshold=1000 --optimization-counter-threshold=10 --no-background-compilation
 
 // Library tag to be able to run in html test framework.
@@ -11,7 +12,7 @@ import 'dart:typed_data';
 import 'package:expect/expect.dart';
 
 double testUnboxPhi(Float32x4List data) {
-  var res = new Float32x4.zero();
+  var res = Float32x4.zero();
   for (int i = 0; i < data.length; i++) {
     res += data[i];
   }
@@ -19,8 +20,8 @@ double testUnboxPhi(Float32x4List data) {
 }
 
 main() {
-  Float32x4List list = new Float32x4List(10);
-  Float32List floatList = new Float32List.view(list.buffer);
+  Float32x4List list = Float32x4List(10);
+  Float32List floatList = Float32List.view(list.buffer);
   for (int i = 0; i < floatList.length; i++) {
     floatList[i] = i.toDouble();
   }

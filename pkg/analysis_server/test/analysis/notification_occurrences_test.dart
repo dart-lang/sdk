@@ -318,6 +318,14 @@ void f(E e) {
 ''');
   }
 
+  Future<void> test_extensionType_parameter() async {
+    await assertOccurrences(kind: ElementKind.FIELD, '''
+extension type E(int /*[0*/it/*0]*/) {
+  int get value => /*[1*/it/*1]*/;
+}
+''');
+  }
+
   Future<void> test_extensionType_setter() async {
     await assertOccurrences(kind: ElementKind.SETTER, '''
 extension type E(int it) {

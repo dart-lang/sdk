@@ -16,6 +16,7 @@ import 'package:analysis_server/src/lsp/handlers/custom/handler_command_resolve.
 import 'package:analysis_server/src/lsp/handlers/custom/handler_connect_to_dtd.dart';
 import 'package:analysis_server/src/lsp/handlers/custom/handler_diagnostic_server.dart';
 import 'package:analysis_server/src/lsp/handlers/custom/handler_experimental_echo.dart';
+import 'package:analysis_server/src/lsp/handlers/custom/handler_get_fixes.dart';
 import 'package:analysis_server/src/lsp/handlers/custom/handler_get_widget_previews.dart';
 import 'package:analysis_server/src/lsp/handlers/custom/handler_imports.dart';
 import 'package:analysis_server/src/lsp/handlers/custom/handler_migrate.dart';
@@ -23,6 +24,7 @@ import 'package:analysis_server/src/lsp/handlers/custom/handler_reanalyze.dart';
 import 'package:analysis_server/src/lsp/handlers/custom/handler_summary.dart';
 import 'package:analysis_server/src/lsp/handlers/custom/handler_super.dart';
 import 'package:analysis_server/src/lsp/handlers/custom/handler_update_diagnostic_information.dart';
+import 'package:analysis_server/src/lsp/handlers/custom/handler_workspace_analysis_complete.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_call_hierarchy.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_change_workspace_folders.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_code_actions.dart';
@@ -89,11 +91,8 @@ class InitializedLspStateMessageHandler extends InitializedStateMessageHandler {
         TextDocumentOpenHandler.new,
         TextDocumentChangeHandler.new,
         TextDocumentCloseHandler.new,
-        CompletionHandler.new,
         CompletionResolveHandler.new,
-        DefinitionHandler.new,
         DocumentLinkHandler.new,
-        ReferencesHandler.new,
         ChangeWorkspaceFoldersHandler.new,
         PrepareRenameHandler.new,
         RenameHandler.new,
@@ -103,7 +102,6 @@ class InitializedLspStateMessageHandler extends InitializedStateMessageHandler {
         SelectionRangeHandler.new,
         SemanticTokensFullHandler.new,
         SemanticTokensRangeHandler.new,
-        InlayHintHandler.new,
       ];
 
   new(LspAnalysisServer server) : super(server) {
@@ -127,7 +125,9 @@ class InitializedStateMessageHandler extends ServerStateMessageHandler {
         CodeActionHandler.new,
         CodeLensHandler.new,
         CommandResolveHandler.new,
+        CompletionHandler.new,
         ConnectToDtdHandler.new,
+        DefinitionHandler.new,
         DiagnosticServerHandler.new,
         DocumentColorHandler.new,
         DocumentColorPresentationHandler.new,
@@ -141,15 +141,18 @@ class InitializedStateMessageHandler extends ServerStateMessageHandler {
         FormatOnTypeHandler.new,
         FormatRangeHandler.new,
         FormattingHandler.new,
+        GetFixesHandler.new,
         HoverHandler.new,
         ImportsHandler.new,
         ImplementationHandler.new,
         IncomingCallHierarchyHandler.new,
+        InlayHintHandler.new,
         InlineValueHandler.new,
         MigrateHandler.new,
         OutgoingCallHierarchyHandler.new,
         PrepareCallHierarchyHandler.new,
         PrepareTypeHierarchyHandler.new,
+        ReferencesHandler.new,
         SignatureHelpHandler.new,
         SummaryHandler.new,
         SuperHandler.new,
@@ -158,6 +161,7 @@ class InitializedStateMessageHandler extends ServerStateMessageHandler {
         TypeHierarchySupertypesHandler.new,
         UpdateDiagnosticInformationHandler.new,
         WillRenameFilesHandler.new,
+        WorkspaceAnalysisCompleteHandler.new,
         WorkspaceFlutterWidgetPreviewsHandler.new,
         WorkspaceSymbolHandler.new,
       ];

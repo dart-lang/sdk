@@ -1031,6 +1031,75 @@ dart_executable("dartaotruntime_product") {
   ]
 }
 
+if (is_linux) {
+  dart_executable("dartcliruntime") {
+    extra_configs = [
+      "..:dart_aotruntime_config",
+      "..:add_empty_macho_section_config",
+    ]
+    extra_defines = [ "DART_CLI_RUNTIME" ]
+    extra_deps = [
+      ":icudtl_cc",
+      "..:libdart_aotruntime",
+      "../platform:libdart_platform_aotruntime",
+    ]
+    extra_sources = [
+      "common_options.h",
+      "gzip.cc",
+      "gzip.h",
+      "loader.cc",
+      "loader.h",
+      "main.cc",
+      "main_impl.cc",
+      "main_options.cc",
+      "main_options.h",
+      "snapshot_empty.cc",
+    ]
+
+    if (dart_runtime_mode == "release") {
+      extra_deps += [
+        ":native_assets_api_product",
+        ":shared_object_loaders_product",
+      ]
+    } else {
+      extra_deps += [
+        ":native_assets_api",
+        ":shared_object_loaders",
+      ]
+    }
+  }
+
+  dart_executable("dartcliruntime_product") {
+    use_product_mode = true
+    extra_configs = [
+      "..:dart_aotruntime_config",
+      "..:add_empty_macho_section_config",
+    ]
+    extra_defines = [ "DART_CLI_RUNTIME" ]
+    extra_deps = [
+      "..:libdart_aotruntime_product",
+      "../platform:libdart_platform_aotruntime_product",
+    ]
+    extra_sources = [
+      "common_options.h",
+      "gzip.cc",
+      "gzip.h",
+      "loader.cc",
+      "loader.h",
+      "main.cc",
+      "main_impl.cc",
+      "main_options.cc",
+      "main_options.h",
+      "snapshot_empty.cc",
+    ]
+
+    extra_deps += [
+      ":native_assets_api_product",
+      ":shared_object_loaders_product",
+    ]
+  }
+}
+
 if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
   dart_executable("dart") {
     use_product_mode = true
@@ -1097,15 +1166,18 @@ if (build_analyze_snapshot) {
 }
 
 executable("process_test") {
+  configs += [ "..:dart_arch_config" ]
   sources = [ "process_test.cc" ]
 }
 
 executable("abstract_socket_test") {
+  configs += [ "..:dart_arch_config" ]
   sources = [ "abstract_socket_test.cc" ]
   include_dirs = [ ".." ]
 }
 
 executable("create_process_test_helper") {
+  configs += [ "..:dart_arch_config" ]
   sources = [ "create_process_test_helper.cc" ]
   include_dirs = [ ".." ]
 }
@@ -1207,6 +1279,7 @@ executable("run_vm_tests") {
 }
 
 shared_library("entrypoints_verification_test") {
+  configs += [ "..:dart_arch_config" ]
   deps = [ ":dartvm" ]
   sources = [ "entrypoints_verification_test.cc" ]
   if (is_win) {
@@ -1216,12 +1289,14 @@ shared_library("entrypoints_verification_test") {
 }
 
 shared_library("ffi_test_dynamic_library") {
+  configs += [ "..:dart_arch_config" ]
   deps = [ ":dartvm" ]
   sources = [ "ffi_test/ffi_test_dynamic_library.cc" ]
   include_dirs = [ ".." ]
 }
 
 shared_library("ffi_test_functions") {
+  configs += [ "..:dart_arch_config" ]
   deps = [ ":dartvm" ]
 
   sources = [

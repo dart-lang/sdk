@@ -45,81 +45,87 @@ testInitStrings() async {
     ..listen((e) {
       print('e: $e');
     });
-  final completer = Completer();
-  int counter = 0;
-  rp.listen((data) {
-    counter++;
-    print('got $data, counter: $counter');
-    Expect.equals("165", data);
-    if (counter == nWorkers) {
-      completer.complete(data);
+  final isolateBody = (sendPort) {
+    @pragma('vm:shared')
+    final sp = sendPort;
+    IsolateGroup.runSync(() {
+      sp.send(shared_late_final_string);
+    });
+  };
+  {
+    final completer = Completer();
+    int counter = 0;
+    rp.listen((data) {
+      counter++;
+      print('got $data, counter: $counter');
+      Expect.equals("165", data);
+      if (counter == nWorkers) {
+        completer.complete(data);
+      }
+    });
+    for (int i = 0; i < nWorkers; i++) {
+      await Isolate.spawn(
+        isolateBody,
+        rp.sendPort,
+        onExit: rpExitAndErrors.sendPort,
+        onError: rpExitAndErrors.sendPort,
+      );
+      print("spawned isolate #$i");
     }
-  });
-  for (int i = 0; i < nWorkers; i++) {
-    await Isolate.spawn(
-      (sendPort) {
-        @pragma('vm:shared')
-        final sp = sendPort;
-        IsolateGroup.runSync(() {
-          sp.send(shared_late_final_string);
-        });
-      },
-      rp.sendPort,
-      onExit: rpExitAndErrors.sendPort,
-      onError: rpExitAndErrors.sendPort,
-    );
-    print("spawned isolate #$i");
+    Expect.equals("165", await completer.future);
+    rpExitAndErrors.close();
+    rp.close();
   }
-  Expect.equals("165", await completer.future);
-  rpExitAndErrors.close();
-  rp.close();
 }
 
 testInitThrows() async {
   const int nWorkers = 100;
   final rp = ReceivePort();
-  int exitCounter = 0;
-  final completer = Completer();
-  ReceivePort rpExits = ReceivePort()
-    ..listen((e) {
-      exitCounter++;
-      print('exitCounter: $exitCounter, exit: $e');
-      if (exitCounter == nWorkers) {
-        completer.complete(true);
+  final isolateBody = (sendPort) {
+    @pragma('vm:shared')
+    final sp = sendPort;
+    IsolateGroup.runSync(() {
+      try {
+        sp.send(shared_late_final_throw);
+      } catch (e) {
+        Expect.equals("165", e);
+        rethrow;
       }
     });
-  int errorCounter = 0;
-  ReceivePort rpErrors = ReceivePort()
-    ..listen((e) {
-      errorCounter++;
-      Expect.equals("165", e[0]);
-      print('errorCounter: $errorCounter, error: $e');
-    });
-  for (int i = 0; i < nWorkers; i++) {
-    await Isolate.spawn(
-      (sendPort) {
-        @pragma('vm:shared')
-        final sp = sendPort;
-        IsolateGroup.runSync(() {
-          try {
-            sp.send(shared_late_final_throw);
-          } catch (e) {
-            Expect.equals("165", e);
-            rethrow;
-          }
-        });
-      },
-      rp.sendPort,
-      onExit: rpExits.sendPort,
-      onError: rpErrors.sendPort,
-    );
-    print("spawned isolate #$i");
+  };
+  {
+    int exitCounter = 0;
+    final completer = Completer();
+    ReceivePort rpExits = ReceivePort()
+      ..listen((e) {
+        exitCounter++;
+        print('exitCounter: $exitCounter, exit: $e');
+        if (exitCounter == nWorkers) {
+          completer.complete(true);
+        }
+      });
+    int errorCounter = 0;
+    ReceivePort rpErrors = ReceivePort()
+      ..listen((e) {
+        errorCounter++;
+        Expect.equals("165", e[0]);
+        print('errorCounter: $errorCounter, error: $e');
+      });
+    for (int i = 0; i < nWorkers; i++) {
+      await Isolate.spawn(
+        isolateBody,
+        rp.sendPort,
+        onExit: rpExits.sendPort,
+        onError: rpErrors.sendPort,
+      );
+      print("spawned isolate #$i");
+    }
+    await completer.future;
+    Expect.equals(nWorkers, errorCounter);
+    rpErrors.close();
+    rpExits.close();
+    rp.close();
   }
-  await completer.future;
-  Expect.equals(nWorkers, errorCounter);
-  rpErrors.close();
-  rpExits.close();
-  rp.close();
 }
 
 @pragma('vm:shared')

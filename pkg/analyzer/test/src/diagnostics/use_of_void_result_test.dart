@@ -359,7 +359,7 @@ void f(List<void> values) {
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): review this
+  @FailingTest() // TODO(scheglov): review this
   test_forIn_loopVariable_typeVoid_error() async {
     await resolveTestCodeWithDiagnostics('''
 void f(void x) {
@@ -545,6 +545,18 @@ void f(void value) {
 ''');
   }
 
+  test_nullAssertionExpression_operand_error() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+f(void x) {
+  x!;
+//^^
+// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
+}
+''');
+
+    assertType(result.findNode.nullAssertion('x!'), 'void');
+  }
+
   test_nullAwareElement_list_error() async {
     await resolveTestCodeWithDiagnostics('''
 void f(void value) {
@@ -563,18 +575,6 @@ void f(void value) {
 // [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
 }
 ''');
-  }
-
-  test_postfixExpression_bang_operand_error() async {
-    var result = await resolveTestCodeWithDiagnostics(r'''
-f(void x) {
-  x!;
-//^^
-// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
-}
-''');
-
-    assertType(result.findNode.postfix('x!'), 'void');
   }
 
   test_prefixExpression_bang_operand_error() async {
@@ -651,7 +651,7 @@ void f(void x) {
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): review this
+  @FailingTest() // TODO(scheglov): review this
   test_returnStatement_nonVoidFunction_error() async {
     // TODO(mfairhurst): Get this test to pass once codebase is compliant.
     await resolveTestCodeWithDiagnostics('''

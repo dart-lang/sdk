@@ -177,6 +177,37 @@ class LaneSumSimd extends SimdBench {
   }
 }
 
+class SignMaskScalar extends SimdBench {
+  SignMaskScalar() : super('signMaskScalar');
+  @override
+  void run() {
+    final n = a.length;
+    int acc = 0;
+    for (int i = 0; i < n; i += 4) {
+      // Mirrors the VM's Int32x4_getSignMask fallback (runtime/lib/simd128.cc).
+      acc ^=
+          ((a[i] & 0x80000000) >> 31) |
+          (((a[i + 1] & 0x80000000) >> 31) << 1) |
+          (((a[i + 2] & 0x80000000) >> 31) << 2) |
+          (((a[i + 3] & 0x80000000) >> 31) << 3);
+    }
+    if (acc == 0x12345678) throw 'unreachable';
+  }
+}
+
+class SignMaskSimd extends SimdBench {
+  SignMaskSimd() : super('signMaskSimd');
+  @override
+  void run() {
+    final la = Int32x4List.view(a.buffer, a.offsetInBytes, a.length >> 2);
+    int acc = 0;
+    for (int j = 0; j < la.length; j++) {
+      acc ^= la[j].signMask;
+    }
+    if (acc == 0x12345678) throw 'unreachable';
+  }
+}
+
 void main() {
   final benchmarks = <BenchmarkBase Function()>[
     OrScalar.new,
@@ -191,6 +222,8 @@ void main() {
     SubSimd.new,
     LaneSumScalar.new,
     LaneSumSimd.new,
+    SignMaskScalar.new,
+    SignMaskSimd.new,
   ];
 
   for (final bm in benchmarks) {

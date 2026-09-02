@@ -1976,8 +1976,6 @@ void OneByteStringFromCharCodeInstr::EmitNativeCode(
       result,
       compiler::Address(
           THR, compiler::target::Thread::predefined_symbols_address_offset()));
-  __ AddImmediate(
-      result, Symbols::kNullCharCodeSymbolOffset * compiler::target::kWordSize);
   __ ldr(result,
          compiler::Address(result, char_code, LSL, 1));  // Char code is a smi.
 }
@@ -3121,7 +3119,7 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 
   compiler::Label slow_path, done;
-  if (!FLAG_use_slow_path && FLAG_inline_alloc) {
+  if (UseInlineAllocation()) {
     if (compiler->is_optimizing() && !FLAG_precompiled_mode &&
         num_elements()->BindsToConstant() &&
         compiler::target::IsSmi(num_elements()->BoundConstant())) {
@@ -3197,7 +3195,7 @@ void AllocateUninitializedContextInstr::EmitNativeCode(
   compiler->AddSlowPathCode(slow_path);
   intptr_t instance_size = Context::InstanceSize(num_context_variables());
 
-  if (!FLAG_use_slow_path && FLAG_inline_alloc) {
+  if (UseInlineAllocation()) {
     __ TryAllocateArray(kContextCid, instance_size, slow_path->entry_label(),
                         result,  // instance
                         temp0, temp1, temp2);
@@ -4729,6 +4727,9 @@ DEFINE_EMIT(Simd32x4BinaryOp,
     case SimdOpInstr::kInt32x4Sub:
       __ vsubqi(compiler::kFourBytes, result, left, right);
       break;
+    case SimdOpInstr::kInt32x4Equal:
+      __ vceqqi(compiler::kFourBytes, result, left, right);
+      break;
     default:
       UNREACHABLE();
   }
@@ -4870,6 +4871,9 @@ DEFINE_EMIT(Float32x4Sqrt,
 
 DEFINE_EMIT(Float32x4Unary, (QRegister result, QRegister left)) {
   switch (instr->kind()) {
+    case SimdOpInstr::kInt32x4Not:
+      __ vmvnq(result, left);
+      break;
     case SimdOpInstr::kFloat32x4Negate:
       __ vnegqs(result, left);
       break;
@@ -5157,6 +5161,19 @@ DEFINE_EMIT(Int32x4GetFlag, (Register result, FixedQRegisterView<Q6> value)) {
   __ LoadObject(result, Bool::False(), EQ);
 }
 
+DEFINE_EMIT(Int32x4AnyTrue,
+            (Register result,
+             FixedQRegisterView<Q5> value,
+             Temp<QRegister> temp)) {
+  const DRegister dtemp = EvenDRegisterOf(temp);
+  __ vpmaxu(compiler::kFourBytes, dtemp, value.d(0), value.d(1));
+  __ vpmaxu(compiler::kFourBytes, dtemp, dtemp, dtemp);
+  __ vmovrs(result, EvenSRegisterOf(dtemp));
+  __ tst(result, compiler::Operand(result));
+  __ LoadObject(result, Bool::True(), NE);
+  __ LoadObject(result, Bool::False(), EQ);
+}
+
 DEFINE_EMIT(Int32x4Select,
             (QRegister out,
              QRegister mask,
@@ -5223,6 +5240,7 @@ DEFINE_EMIT(Int32x4WithFlag,
   CASE(Int32x4BitXor)                                                          \
   CASE(Int32x4Add)                                                             \
   CASE(Int32x4Sub)                                                             \
+  CASE(Int32x4Equal)                                                           \
   ____(Simd32x4BinaryOp)                                                       \
   CASE(Float64x2Add)                                                           \
   CASE(Float64x2Sub)                                                           \
@@ -5246,6 +5264,7 @@ DEFINE_EMIT(Int32x4WithFlag,
   SIMPLE(Float32x4Zero)                                                        \
   SIMPLE(Float32x4Splat)                                                       \
   SIMPLE(Float32x4Sqrt)                                                        \
+  CASE(Int32x4Not)                                                             \
   CASE(Float32x4Negate)                                                        \
   CASE(Float32x4Abs)                                                           \
   CASE(Float32x4Reciprocal)                                                    \
@@ -5292,6 +5311,8 @@ DEFINE_EMIT(Int32x4WithFlag,
   CASE(Int32x4GetFlagZ)                                                        \
   CASE(Int32x4GetFlagW)                                                        \
   ____(Int32x4GetFlag)                                                         \
+  CASE(Int32x4AnyTrue)                                                         \
+  ____(Int32x4AnyTrue)                                                         \
   SIMPLE(Int32x4Select)                                                        \
   CASE(Int32x4WithFlagX)                                                       \
   CASE(Int32x4WithFlagY)                                                       \
@@ -5617,13 +5638,13 @@ void FloatToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ vcvtds(result, value);
 }
 
-LocationSummary* FloatCompareInstr::MakeLocationSummary(Zone* zone,
-                                                        bool opt) const {
+LocationSummary* CompareAsMaskInstr::MakeLocationSummary(Zone* zone,
+                                                         bool opt) const {
   UNREACHABLE();
   return NULL;
 }
 
-void FloatCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void CompareAsMaskInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNREACHABLE();
 }
 
@@ -6883,6 +6904,27 @@ LocationSummary* UnaryUint32OpInstr::MakeLocationSummary(Zone* zone,
 }
 
 void UnaryUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register left = locs()->in(0).reg();
+  Register out = locs()->out(0).reg();
+  ASSERT(left != out);
+
+  ASSERT(op_kind() == Token::kBIT_NOT);
+
+  __ mvn_(out, compiler::Operand(left));
+}
+
+LocationSummary* UnaryInt32OpInstr::MakeLocationSummary(Zone* zone,
+                                                        bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresRegister());
+  summary->set_out(0, Location::RequiresRegister());
+  return summary;
+}
+
+void UnaryInt32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register left = locs()->in(0).reg();
   Register out = locs()->out(0).reg();
   ASSERT(left != out);

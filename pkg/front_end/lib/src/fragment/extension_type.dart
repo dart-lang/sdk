@@ -12,7 +12,6 @@ class ExtensionTypeFragment extends DeclarationFragmentImpl
   final int nameOffset;
 
   late final List<MetadataBuilder>? metadata;
-  late final Modifiers modifiers;
   late final List<TypeBuilder>? interfaces;
   late final int startOffset;
   late final int endOffset;

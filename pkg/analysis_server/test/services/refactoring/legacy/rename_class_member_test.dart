@@ -13,6 +13,7 @@ import 'abstract_rename.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(RenameClassMemberClass_OutsideOfProjectTest);
     defineReflectiveTests(RenameClassMemberClassTest);
     defineReflectiveTests(
       RenameClassMemberClassTest_WithoutPrivateNamedParameters,
@@ -20,6 +21,100 @@ void main() {
     defineReflectiveTests(RenameClassMemberEnumTest);
     defineReflectiveTests(RenameClassMemberExtensionTypeTest);
   });
+}
+
+@reflectiveTest
+class RenameClassMemberClass_OutsideOfProjectTest
+    extends RenameRefactoringTest {
+  @override
+  String get testFilePath => convertPath('/home/test/bin/test.dart');
+
+  Future<void> test_createChange_declarationInPackage() async {
+    newFile('$workspaceRootPath/aaa/lib/aaa.dart', r'''
+class A {
+  void test() {}
+}
+
+void foo(A a) {
+  a.test();
+}
+''');
+
+    writeTestPackageConfig2(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootFolder: getFolder('$workspaceRootPath/aaa')),
+    );
+
+    await indexTestUnit('''
+import 'package:aaa/aaa.dart';
+
+class B extends A {
+  void te^st() {}
+}
+
+void f(A a, B b) {
+  a.test();
+  b.test();
+}
+''');
+    createRenameRefactoring();
+    refactoring.newName = 'newName';
+
+    await assertSuccessfulRefactoring('''
+import 'package:aaa/aaa.dart';
+
+class B extends A {
+  void newName() {}
+}
+
+void f(A a, B b) {
+  a.newName();
+  b.newName();
+}
+''');
+
+    expect(refactoringChange.edits, hasLength(1));
+    expect(refactoringChange.edits.first.file, testFile.path);
+  }
+
+  Future<void> test_createChange_referenceInPart() async {
+    newFile('/home/part.dart', r'''
+part of 'test/bin/test.dart';
+
+void foo(A a) {
+  a.test();
+}
+''');
+
+    await indexTestUnit('''
+part '../../part.dart';
+
+class A {
+  void tes^t() {}
+}
+
+void f(A a) {
+  a.test();
+}
+''');
+    createRenameRefactoring();
+    refactoring.newName = 'newName';
+
+    await assertSuccessfulRefactoring('''
+part '../../part.dart';
+
+class A {
+  void newName() {}
+}
+
+void f(A a) {
+  a.newName();
+}
+''');
+
+    expect(refactoringChange.edits, hasLength(1));
+    expect(refactoringChange.edits.first.file, testFile.path);
+  }
 }
 
 @reflectiveTest
@@ -1416,6 +1511,47 @@ void f() {
 ''');
   }
 
+  /// The local `test` does not "shadow" the dot shorthand `.test`, so the
+  /// reference in the other library must be renamed too.
+  Future<void>
+  test_createChange_MethodElement_dotShorthand_otherFile_localWithSameName() async {
+    newFile('$testPackageLibPath/lib.dart', r'''
+import 'test.dart';
+
+void f() {
+  var test = 0;
+  print(test);
+  g(.test());
+}
+''');
+
+    await indexTestUnit('''
+class A {
+  static A te^st() => A();
+}
+void g(A a) {}
+''');
+
+    createRenameRefactoring();
+    refactoring.newName = 'newName';
+
+    await assertSuccessfulRefactoring2(r'''
+>>>>>>>>>> /home/test/lib/test.dart
+class A {
+  static A newName() => A();
+}
+void g(A a) {}
+>>>>>>>>>> /home/test/lib/lib.dart
+import 'test.dart';
+
+void f() {
+  var test = 0;
+  print(test);
+  g(.newName());
+}
+''');
+  }
+
   Future<void> test_createChange_MethodElement_potential() async {
     await indexTestUnit('''
 class A {
@@ -1454,7 +1590,7 @@ processObj(p) {
 }
 ''');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'aaa', rootFolder: getFolder('$packagesRootPath/aaa')),
     );
@@ -1524,96 +1660,6 @@ void f(a) {
 }
 ''');
     assertNoFileChange('/lib.dart');
-  }
-
-  Future<void> test_createChange_outsideOfProject_declarationInPackage() async {
-    newFile('$workspaceRootPath/aaa/lib/aaa.dart', r'''
-class A {
-  void test() {}
-}
-
-void foo(A a) {
-  a.test();
-}
-''');
-
-    writeTestPackageConfig(
-      config: PackageConfigFileBuilder()
-        ..add(name: 'aaa', rootFolder: getFolder('$workspaceRootPath/aaa')),
-    );
-
-    await indexTestUnit('''
-import 'package:aaa/aaa.dart';
-
-class B extends A {
-  void te^st() {}
-}
-
-void f(A a, B b) {
-  a.test();
-  b.test();
-}
-''');
-    createRenameRefactoring();
-    refactoring.newName = 'newName';
-
-    await assertSuccessfulRefactoring('''
-import 'package:aaa/aaa.dart';
-
-class B extends A {
-  void newName() {}
-}
-
-void f(A a, B b) {
-  a.newName();
-  b.newName();
-}
-''');
-
-    expect(refactoringChange.edits, hasLength(1));
-    expect(refactoringChange.edits.first.file, testFile.path);
-  }
-
-  Future<void> test_createChange_outsideOfProject_referenceInPart() async {
-    newFile('/home/part.dart', r'''
-part of 'test/bin/test.dart';
-
-void foo(A a) {
-  a.test();
-}
-''');
-
-    // To use file:// URI.
-    testFilePath = convertPath('/home/test/bin/test.dart');
-
-    await indexTestUnit('''
-part '../../part.dart';
-
-class A {
-  void tes^t() {}
-}
-
-void f(A a) {
-  a.test();
-}
-''');
-    createRenameRefactoring();
-    refactoring.newName = 'newName';
-
-    await assertSuccessfulRefactoring('''
-part '../../part.dart';
-
-class A {
-  void newName() {}
-}
-
-void f(A a) {
-  a.newName();
-}
-''');
-
-    expect(refactoringChange.edits, hasLength(1));
-    expect(refactoringChange.edits.first.file, testFile.path);
   }
 
   Future<void> test_createChange_PropertyAccessorElement_getter() async {
@@ -2282,7 +2328,7 @@ void f() {
 }
 ''');
     // configure refactoring
-    var element = findElement2.field('field');
+    var element = findElement.field('field');
     createRenameRefactoringForElement2(element);
     expect(refactoring.refactoringName, 'Rename Field');
     expect(refactoring.oldName, 'field');
@@ -2762,7 +2808,7 @@ void f() {
 }
 ''');
     // configure refactoring
-    var element = findElement2.field('field');
+    var element = findElement.field('field');
     createRenameRefactoringForElement2(element);
     expect(refactoring.refactoringName, 'Rename Field');
     expect(refactoring.oldName, 'field');
@@ -2792,7 +2838,7 @@ void f() {
 }
 ''');
     // configure refactoring
-    var element = findElement2.field('field');
+    var element = findElement.field('field');
     createRenameRefactoringForElement2(element);
     expect(refactoring.refactoringName, 'Rename Field');
     expect(refactoring.oldName, 'field');

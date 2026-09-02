@@ -21,10 +21,21 @@
 #include "bin/file.h"
 #include "bin/socket_base_linux.h"
 #include "bin/thread.h"
+#include "platform/memory_sanitizer.h"
 #include "platform/signal_blocker.h"
 
 namespace dart {
 namespace bin {
+
+static int fstat64_fixed(int fd, struct stat64* __restrict statbuf) {
+  int result = ::fstat64(fd, statbuf);
+  if (result == 0) {
+    // MSAN only intercepts the old symbol name.
+    MSAN_UNPOISON(statbuf, sizeof(*statbuf));
+  }
+  return result;
+}
+static int fstat64(int fd, struct stat64* __restrict statbuf) = delete;
 
 void SocketBase::GetError(intptr_t fd, OSError* os_error) {
   int len = sizeof(errno);
@@ -37,7 +48,7 @@ void SocketBase::GetError(intptr_t fd, OSError* os_error) {
 
 int SocketBase::GetType(intptr_t fd) {
   struct stat64 buf;
-  int result = TEMP_FAILURE_RETRY(fstat64(fd, &buf));
+  int result = TEMP_FAILURE_RETRY(fstat64_fixed(fd, &buf));
   if (result == -1) {
     return -1;
   }
@@ -63,12 +74,40 @@ AddressList<SocketAddress>* SocketBase::LookupAddress(const char* host,
   hints.ai_socktype = SOCK_STREAM;
   hints.ai_flags = AI_ADDRCONFIG;
   hints.ai_protocol = IPPROTO_TCP;
+
+  // Check if host is valid dotted-quad IPv4 address or valid IPv6 address.
+  struct in_addr ipv4_bin;
+  struct in6_addr ipv6_bin;
+  if (inet_pton(AF_INET, host, &ipv4_bin) == 1
+#ifdef INET_PTON_FLAWED
+      // Android accepts `0177.0.0.1` as IPv4.
+      // Reject leading zero digits that could be intended as octal.
+      && SocketBase::IsIPv4WithoutLeadingZeros(host)
+#endif
+  ) {
+    // If it is a valid strict IPv4, parse it safely as a numeric host.
+    hints.ai_family = AF_INET;
+    hints.ai_flags |= AI_NUMERICHOST;  // Safe local parsing
+  } else if (inet_pton(AF_INET6, host, &ipv6_bin) == 1) {
+    // 2. If it is a valid strict IPv6, parse it safely as a numeric host.
+    hints.ai_family = AF_INET6;
+    hints.ai_flags |= AI_NUMERICHOST;  // Safe local parsing
+  } else if (inet_aton(host, &ipv4_bin) != 0) {
+    // Reject legacy inet_aton strings (like "127.1", "0x7f.1")
+    // If inet_aton accepts and inet_pton does not, it's a malformed IP.
+    ASSERT(*os_error == nullptr);
+    int status = EAI_NONAME;
+    *os_error =
+        new OSError(status, gai_strerror(status), OSError::kGetAddressInfo);
+    return nullptr;
+  }
+
   struct addrinfo* info = nullptr;
   int status = NO_RETRY_EXPECTED(getaddrinfo(host, nullptr, &hints, &info));
   if (status != 0) {
     // We failed, try without AI_ADDRCONFIG. This can happen when looking up
     // e.g. '::1', when there are no global IPv6 addresses.
-    hints.ai_flags = 0;
+    hints.ai_flags &= ~AI_ADDRCONFIG;
     status = NO_RETRY_EXPECTED(getaddrinfo(host, nullptr, &hints, &info));
     if (status != 0) {
       ASSERT(*os_error == nullptr);

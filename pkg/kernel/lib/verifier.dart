@@ -866,6 +866,7 @@ class _VerifyingVisitor extends RecursiveResultVisitor<void> {
       _findExtensionTypeMember(node);
     }
     classTypeParametersAreInScope = !node.isStatic;
+    node.thisVariable?.accept(this);
     node.initializer?.accept(this);
     node.type.accept(this);
     classTypeParametersAreInScope = false;
@@ -1287,7 +1288,17 @@ class _VerifyingVisitor extends RecursiveResultVisitor<void> {
   }
 
   @override
+  void visitLocalFunctionVariable(LocalFunctionVariable node) {
+    _verifyVariable(node);
+  }
+
+  @override
   void visitLateVariable(LateVariable node) {
+    _verifyVariable(node);
+  }
+
+  @override
+  void visitConstVariable(ConstVariable node) {
     _verifyVariable(node);
   }
 
@@ -1915,8 +1926,6 @@ class _VerifyingVisitor extends RecursiveResultVisitor<void> {
   //  outline/general/multiple_class_patches/main
   //  outline/general/patch_extends_implements/main
   //  outline/nnbd/platform_optional_parameters/main
-  //  pkg/front_end/test/macros/application/macro_application_test.dart -p \
-  //    subtypes.dart
   static const bool doTestLocation = false;
 
   void testLocation(TreeNode node) {
@@ -2261,10 +2270,18 @@ class _VerifyingVisitor extends RecursiveResultVisitor<void> {
   }
 }
 
+class StaticTypeError {
+  TreeNode context;
+  String message;
+
+  new({required this.context, required this.message});
+}
+
 class VerifyGetStaticType extends RecursiveVisitor {
   final TypeEnvironment env;
   Member? currentMember;
   final StatefulStaticTypeContext _staticTypeContext;
+  final List<StaticTypeError> errors = [];
 
   new(this.env)
     : _staticTypeContext = new StatefulStaticTypeContext.stacked(env);
@@ -2310,6 +2327,22 @@ class VerifyGetStaticType extends RecursiveVisitor {
   }
 
   @override
+  void visitAsExpression(AsExpression node) {
+    if (node.isCovarianceCheck &&
+        node.operand.getStaticType(_staticTypeContext) == node.type) {
+      String message =
+          "The operand of the as-check with isCovarianceCheck flag set has the "
+          "same static type as the target type of the check. "
+          "Operand node kind is '${node.operand.runtimeType}'. Target check "
+          "type is '${node.type}'.";
+      errors.add(new StaticTypeError(context: node, message: message));
+      // TODO(cstefantsova): Make sure the 'errors' are reported, then remove
+      // the throw statement below.
+      throw message;
+    }
+  }
+
+  @override
   void visitInvalidExpression(InvalidExpression node) {
     return;
   }
@@ -2334,7 +2367,7 @@ void checkInitializers(Constructor constructor) {
 }
 
 bool _isCompileTimeErrorEncoding(TreeNode? node) {
-  return node is Let && node.variable.initializer is InvalidExpression;
+  return node is Let && node.value is InvalidExpression;
 }
 
 class AllowedTypes implements DartTypeVisitor<bool> {

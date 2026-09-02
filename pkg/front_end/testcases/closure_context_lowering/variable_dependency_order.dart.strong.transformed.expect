@@ -1,0 +1,38 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+abstract class M extends core::Object /*isMixinDeclaration*/  {
+  method foo() → dynamic/* scope=[
+    #ctx1: not-captured [this],
+  ] */ /* scope=[
+    #ctx2: direct-captured [x,z],
+    #ctx3: not-captured [y],
+  ] */ {
+    core::int x = 0;
+    core::int y = 0;
+    core::int z = y;
+    return () /* #ctx2 */ → core::int => x.{core::num::+}(z){(core::num) → core::int};
+  }
+}
+class A extends self::_A&Object&M {
+  synthetic constructor •() → self::A
+    : super self::_A&Object&M::•()
+    ;
+}
+abstract class _A&Object&M extends core::Object implements self::M /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_A&Object&M
+    : super core::Object::•()
+    ;
+  method foo() → dynamic/* scope=[
+    #ctx4: not-captured [this],
+  ] */ /* scope=[
+    #ctx5: direct-captured [x,z],
+    #ctx6: not-captured [y],
+  ] */ {
+    core::int x = 0;
+    core::int y = 0;
+    core::int z = y;
+    return () /* #ctx5 */ → core::int => x.{core::num::+}(z){(core::num) → core::int};
+  }
+}

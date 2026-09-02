@@ -26,7 +26,7 @@ void f(x) {
     assertResolvedNodeText(node, r'''
 GuardedPattern
   pattern: ConstantPattern
-    expression: BooleanLiteral
+    expression2: BooleanLiteral
       literal: true
       staticType: bool
     matchedValueType: dynamic
@@ -48,7 +48,7 @@ void f(x) {
     assertResolvedNodeText(node, r'''
 GuardedPattern
   pattern: ConstantPattern
-    expression: PrefixedIdentifier
+    expression2: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: A
         element: <testLibrary>::@class::A
@@ -89,7 +89,7 @@ void f(x) {
     assertResolvedNodeText(node, r'''
 GuardedPattern
   pattern: ConstantPattern
-    expression: DoubleLiteral
+    expression2: DoubleLiteral
       literal: 1.2
       staticType: double
     matchedValueType: dynamic
@@ -115,8 +115,8 @@ void f(x) {
     assertResolvedNodeText(node, r'''
 GuardedPattern
   pattern: ConstantPattern
-    expression: PropertyAccess
-      target: PrefixedIdentifier
+    expression2: PropertyAccess
+      target2: PrefixedIdentifier
         prefix: SimpleIdentifier
           token: prefix
           element: <testLibraryFragment>::@prefix::prefix
@@ -157,8 +157,8 @@ void f(x) {
     assertResolvedNodeText(node, r'''
 GuardedPattern
   pattern: ConstantPattern
-    expression: PropertyAccess
-      target: PrefixedIdentifier
+    expression2: PropertyAccess
+      target2: PrefixedIdentifier
         prefix: SimpleIdentifier
           token: prefix
           element: <testLibraryFragment>::@prefix::prefix
@@ -196,7 +196,18 @@ void f(x) {
 GuardedPattern
   pattern: ConstantPattern
     constKeyword: const
-    expression: InstanceCreationExpression
+    expression2: ConstructorInvocation
+      constructorReference: ConstructorReference2
+        typeReference: ConstructorTypeReference
+          name: A
+          element: <testLibrary>::@class::A
+          type: A
+        element: <testLibrary>::@class::A::@constructor::new
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      staticType: A
+    expression(v1): InstanceCreationExpression
       constructorName: ConstructorName
         type: NamedType
           name: A
@@ -222,7 +233,7 @@ void f(x) {
     assertResolvedNodeText(node, r'''
 GuardedPattern
   pattern: ConstantPattern
-    expression: IntegerLiteral
+    expression2: IntegerLiteral
       literal: 0
       staticType: int
     matchedValueType: dynamic
@@ -241,9 +252,9 @@ void f(x) {
 GuardedPattern
   pattern: ConstantPattern
     constKeyword: const
-    expression: ListLiteral
+    expression2: ListLiteral
       leftBracket: [
-      elements
+      elements2
         IntegerLiteral
           literal: 0
           staticType: int
@@ -266,9 +277,9 @@ void f(x) {
 GuardedPattern
   pattern: ConstantPattern
     constKeyword: const
-    expression: ListLiteral
+    expression2: ListLiteral
       leftBracket: [
-      elements
+      elements2
         SimpleIdentifier
           token: a
           element: a@20
@@ -302,7 +313,7 @@ void f(x) {
     assertResolvedNodeText(node, r'''
 GuardedPattern
   pattern: ConstantPattern
-    expression: SimpleIdentifier
+    expression2: SimpleIdentifier
       token: a
       element: a@20
       staticType: int
@@ -333,15 +344,15 @@ void f(x) {
 GuardedPattern
   pattern: ConstantPattern
     constKeyword: const
-    expression: SetOrMapLiteral
+    expression2: SetOrMapLiteral
       leftBracket: {
-      elements
+      elements2
         MapLiteralEntry
-          key: IntegerLiteral
+          key2: IntegerLiteral
             literal: 0
             staticType: int
           separator: :
-          value: IntegerLiteral
+          value2: IntegerLiteral
             literal: 1
             staticType: int
       rightBracket: }
@@ -364,16 +375,16 @@ void f(x) {
 GuardedPattern
   pattern: ConstantPattern
     constKeyword: const
-    expression: SetOrMapLiteral
+    expression2: SetOrMapLiteral
       leftBracket: {
-      elements
+      elements2
         MapLiteralEntry
-          key: SimpleIdentifier
+          key2: SimpleIdentifier
             token: a
             element: a@20
             staticType: int
           separator: :
-          value: IntegerLiteral
+          value2: IntegerLiteral
             literal: 1
             staticType: int
       rightBracket: }
@@ -407,15 +418,15 @@ void f(x) {
 GuardedPattern
   pattern: ConstantPattern
     constKeyword: const
-    expression: SetOrMapLiteral
+    expression2: SetOrMapLiteral
       leftBracket: {
-      elements
+      elements2
         MapLiteralEntry
-          key: IntegerLiteral
+          key2: IntegerLiteral
             literal: 0
             staticType: int
           separator: :
-          value: SimpleIdentifier
+          value2: SimpleIdentifier
             token: a
             element: a@20
             staticType: int
@@ -437,6 +448,50 @@ void f(x) {
 ''');
   }
 
+  test_postfixDecrement_localVariable_notConst() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(x) {
+  var a = 0;
+  if (x case a--) {}
+//           ^^^
+// [diag.constantPatternWithNonConstantExpression] The expression of a constant pattern must be a valid constant.
+}
+''');
+  }
+
+  test_postfixIncrement_localVariable_notConst() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(x) {
+  var a = 0;
+  if (x case a++) {}
+//           ^^^
+// [diag.constantPatternWithNonConstantExpression] The expression of a constant pattern must be a valid constant.
+}
+''');
+  }
+
+  test_prefixDecrement_localVariable_notConst() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(x) {
+  var a = 0;
+  if (x case --a) {}
+//           ^^^
+// [diag.constantPatternWithNonConstantExpression] The expression of a constant pattern must be a valid constant.
+}
+''');
+  }
+
+  test_prefixIncrement_localVariable_notConst() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(x) {
+  var a = 0;
+  if (x case ++a) {}
+//           ^^^
+// [diag.constantPatternWithNonConstantExpression] The expression of a constant pattern must be a valid constant.
+}
+''');
+  }
+
   test_setLiteral_element_intLiteral() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 void f(x) {
@@ -449,9 +504,9 @@ void f(x) {
 GuardedPattern
   pattern: ConstantPattern
     constKeyword: const
-    expression: SetOrMapLiteral
+    expression2: SetOrMapLiteral
       leftBracket: {
-      elements
+      elements2
         IntegerLiteral
           literal: 0
           staticType: int
@@ -475,9 +530,9 @@ void f(x) {
 GuardedPattern
   pattern: ConstantPattern
     constKeyword: const
-    expression: SetOrMapLiteral
+    expression2: SetOrMapLiteral
       leftBracket: {
-      elements
+      elements2
         SimpleIdentifier
           token: a
           element: a@20
@@ -515,7 +570,7 @@ void f(x) {
     assertResolvedNodeText(node, r'''
 GuardedPattern
   pattern: ConstantPattern
-    expression: SimpleIdentifier
+    expression2: SimpleIdentifier
       token: a
       element: <testLibrary>::@getter::a
       staticType: int
@@ -538,7 +593,7 @@ void f(x) {
     assertResolvedNodeText(node, r'''
 GuardedPattern
   pattern: ConstantPattern
-    expression: SimpleIdentifier
+    expression2: SimpleIdentifier
       token: a
       element: <testLibrary>::@getter::a
       staticType: int
@@ -559,7 +614,7 @@ void f(Object? x) {
     assertResolvedNodeText(node, r'''
 GuardedPattern
   pattern: ConstantPattern
-    expression: SimpleIdentifier
+    expression2: SimpleIdentifier
       token: foo
       element: <null>
       staticType: InvalidType

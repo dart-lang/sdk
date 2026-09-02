@@ -22,11 +22,11 @@ jobs:
       contents: read
     steps:
       - name: "Checkout code"
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
       - name: "Set up python"
-        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
         with:
           python-version: '3.13.3' # Install the python version needed.
       - name: "Extract deps, find commit hash, pass to osv-scanner"
@@ -42,7 +42,7 @@ jobs:
     name: Vulnerability scanning
     needs:
       extract-deps
-    uses: "google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@fa4ff678dd5d0a4fa3d628e57af8162873e93cd6"
+    uses: "google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@8e5cf47b818121e8b405931c82126c2630b0b20d"
     with:
       # Download the artifact uploaded in the extract-deps step.
       download-artifact: osv-lockfile-${{github.sha}}
@@ -53,4 +53,5 @@ jobs:
     permissions:
       # Needed to upload the SARIF results to the code-scanning dashboard.
       security-events: write
+      actions: read
       contents: read

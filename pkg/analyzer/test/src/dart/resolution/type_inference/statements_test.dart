@@ -28,9 +28,21 @@ void f() {
 T a<T>() => throw '';
 ''');
 
-    var node = result.findNode.singleMethodInvocation;
+    var node = result.findNode.singleUnqualifiedFunctionInvocation;
     assertResolvedNodeText(node, r'''
-MethodInvocation
+UnqualifiedFunctionInvocation
+  name: a
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@function::a
+    invokeType: bool Function()
+    type: bool
+  staticType: bool
+  typeArgumentTypes
+    bool
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::a
@@ -56,9 +68,21 @@ void f() {
 T a<T>() => throw '';
 ''');
 
-    var node = result.findNode.singleMethodInvocation;
+    var node = result.findNode.singleUnqualifiedFunctionInvocation;
     assertResolvedNodeText(node, r'''
-MethodInvocation
+UnqualifiedFunctionInvocation
+  name: a
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@function::a
+    invokeType: bool Function()
+    type: bool
+  staticType: bool
+  typeArgumentTypes
+    bool
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::a
@@ -86,9 +110,21 @@ void f() async {
 T a<T>() => throw '';
 ''');
 
-    var node = result.findNode.singleMethodInvocation;
+    var node = result.findNode.singleUnqualifiedFunctionInvocation;
     assertResolvedNodeText(node, r'''
-MethodInvocation
+UnqualifiedFunctionInvocation
+  name: a
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@function::a
+    invokeType: Stream<int> Function()
+    type: Stream<int>
+  staticType: Stream<int>
+  typeArgumentTypes
+    Stream<int>
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::a
@@ -113,9 +149,21 @@ void f() async {
 T a<T>() => throw '';
 ''');
 
-    var node = result.findNode.singleMethodInvocation;
+    var node = result.findNode.singleUnqualifiedFunctionInvocation;
     assertResolvedNodeText(node, r'''
-MethodInvocation
+UnqualifiedFunctionInvocation
+  name: a
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@function::a
+    invokeType: Stream<Object?> Function()
+    type: Stream<Object?>
+  staticType: Stream<Object?>
+  typeArgumentTypes
+    Stream<Object?>
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::a
@@ -149,9 +197,21 @@ void f() {
 T a<T>() => throw '';
 ''');
 
-    var node = result.findNode.singleMethodInvocation;
+    var node = result.findNode.singleUnqualifiedFunctionInvocation;
     assertResolvedNodeText(node, r'''
-MethodInvocation
+UnqualifiedFunctionInvocation
+  name: a
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@function::a
+    invokeType: bool Function()
+    type: bool
+  staticType: bool
+  typeArgumentTypes
+    bool
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::a
@@ -176,9 +236,21 @@ void f() {
 T a<T>() => throw '';
 ''');
 
-    var node = result.findNode.singleMethodInvocation;
+    var node = result.findNode.singleUnqualifiedFunctionInvocation;
     assertResolvedNodeText(node, r'''
-MethodInvocation
+UnqualifiedFunctionInvocation
+  name: a
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@function::a
+    invokeType: Iterable<Object?> Function()
+    type: Iterable<Object?>
+  staticType: Iterable<Object?>
+  typeArgumentTypes
+    Iterable<Object?>
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::a
@@ -203,9 +275,21 @@ void f() {
 T a<T>() => throw '';
 ''');
 
-    var node = result.findNode.singleMethodInvocation;
+    var node = result.findNode.singleUnqualifiedFunctionInvocation;
     assertResolvedNodeText(node, r'''
-MethodInvocation
+UnqualifiedFunctionInvocation
+  name: a
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@function::a
+    invokeType: Iterable<int> Function()
+    type: Iterable<int>
+  staticType: Iterable<int>
+  typeArgumentTypes
+    Iterable<int>
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::a
@@ -242,9 +326,21 @@ void f() {
 T a<T>() => throw '';
 ''');
 
-    var node = result.findNode.singleMethodInvocation;
+    var node = result.findNode.singleUnqualifiedFunctionInvocation;
     assertResolvedNodeText(node, r'''
-MethodInvocation
+UnqualifiedFunctionInvocation
+  name: a
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@function::a
+    invokeType: bool Function()
+    type: bool
+  staticType: bool
+  typeArgumentTypes
+    bool
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::a
@@ -270,9 +366,21 @@ void f() {
 T a<T>() => throw '';
 ''');
 
-    var node = result.findNode.singleMethodInvocation;
+    var node = result.findNode.singleUnqualifiedFunctionInvocation;
     assertResolvedNodeText(node, r'''
-MethodInvocation
+UnqualifiedFunctionInvocation
+  name: a
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@function::a
+    invokeType: bool Function()
+    type: bool
+  staticType: bool
+  typeArgumentTypes
+    bool
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::a

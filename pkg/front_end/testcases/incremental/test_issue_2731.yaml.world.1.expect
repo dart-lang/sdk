@@ -1,0 +1,11 @@
+main = main::main;
+library from "org-dartlang-test:///main.dart" as main {
+
+  part part.dart;
+  static method main() → dynamic {
+    main::fromPart();
+  }
+  static method /* from org-dartlang-test:///part.dart */ fromPart() → dynamic {
+    dart.core::print("hello from part");
+  }
+}

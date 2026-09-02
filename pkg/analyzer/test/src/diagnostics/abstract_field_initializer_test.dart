@@ -16,6 +16,15 @@ main() {
 
 @reflectiveTest
 class AbstractFieldInitializerTest extends PubPackageResolutionTest {
+  test_abstract_field_augmentation_initializer() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  abstract int x;
+  augment int x = 0;
+}
+''');
+  }
+
   test_abstract_field_final_initializer() async {
     await resolveTestCodeWithDiagnostics(r'''
 abstract class A {

@@ -35,7 +35,7 @@ void main() {
     return variable;
   }, (Node? node) => "${errorPrefix}Variable '$node' used out of scope.");
   negative1Test('Variable block scope', (TestHarness test) {
-    Variable variable = test.makeVariable();
+    DeclaredVariable variable = test.makeVariable();
     test.addNode(
       Block([
         new Block([new VariableStatement(VariableDeclaration(variable))]),
@@ -48,7 +48,11 @@ void main() {
     SyntheticVariable variable = test.makeVariable();
     test.addNode(
       LogicalExpression(
-        new Let(variable, new VariableGet(variable)),
+        new Let(
+          variable: variable,
+          value: new NullLiteral(),
+          body: new VariableGet(variable),
+        ),
         LogicalExpressionOperator.AND,
         new VariableGet(variable),
       ),
@@ -56,7 +60,7 @@ void main() {
     return variable;
   }, (Node? node) => "${errorPrefix}Variable '$node' used out of scope.");
   negative1Test('Variable redeclared', (TestHarness test) {
-    PositionalParameter variable = test.makePositionalParameter();
+    PositionalParameter variable = test.makePositionalParameter('p');
     test.addNode(
       Procedure(
         new Name('bar'),
@@ -328,7 +332,7 @@ void main() {
       ProcedureKind.Method,
       new FunctionNode(
         new EmptyStatement(),
-        positionalParameters: [new PositionalParameter(cosmeticName: 'p')],
+        positionalParameters: [new PositionalParameter(parameterName: 'p')],
       ),
       isStatic: true,
       fileUri: dummyUri,
@@ -364,7 +368,7 @@ void main() {
         ProcedureKind.Method,
         new FunctionNode(
           new EmptyStatement(),
-          positionalParameters: [new PositionalParameter(cosmeticName: 'p')],
+          positionalParameters: [new PositionalParameter(parameterName: 'p')],
         ),
         isStatic: true,
         fileUri: dummyUri,
@@ -785,7 +789,7 @@ void main() {
     },
     (Node? foo) =>
         "${errorPrefix}"
-        "Unset bound on type parameter NominalTypeParameter(Foo.T)",
+        "Unset bound on type parameter NominalParameter(Foo.T)",
   );
   negative1Test(
     'Unset default type typedef Foo<T> = dynamic',
@@ -803,7 +807,7 @@ void main() {
     },
     (Node? foo) =>
         "${errorPrefix}"
-        "Unset default type on type parameter NominalTypeParameter(Foo.T)",
+        "Unset default type on type parameter NominalParameter(Foo.T)",
   );
   negative1Test(
     'Non-static top-level field',
@@ -936,7 +940,8 @@ class TestHarness {
 
   SyntheticVariable makeVariable() => new SyntheticVariable();
 
-  PositionalParameter makePositionalParameter() => new PositionalParameter();
+  PositionalParameter makePositionalParameter(String parameterName) =>
+      new PositionalParameter(parameterName: parameterName);
 
   TypeParameter makeTypeParameter([String? name]) {
     return new TypeParameter(name, objectRawType, const DynamicType());

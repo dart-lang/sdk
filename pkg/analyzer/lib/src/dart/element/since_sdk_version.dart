@@ -51,7 +51,7 @@ class SinceSdkVersionComputer {
     Version? result;
     for (var annotation in annotations) {
       if (annotation.isDartInternalSince) {
-        var arguments = annotation.annotationAst.arguments?.arguments;
+        var arguments = annotation.annotationAst.arguments?.arguments2;
         var versionNode = arguments?.singleOrNull;
         if (versionNode is SimpleStringLiteralImpl) {
           var versionStr = versionNode.value;

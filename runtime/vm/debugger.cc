@@ -1690,42 +1690,45 @@ void Debugger::DeoptimizeWorld() {
   const intptr_t num_classes = class_table.NumCids();
   const intptr_t num_tlc_classes = class_table.NumTopLevelCids();
   SafepointWriteRwLocker ml(thread, isolate_group->program_lock());
-  for (intptr_t i = 1; i < num_classes + num_tlc_classes; i++) {
+  for (intptr_t i = kInstanceCid; i < num_classes + num_tlc_classes; i++) {
     const intptr_t cid =
         i < num_classes ? i : ClassTable::CidFromTopLevelIndex(i - num_classes);
-    if (class_table.HasValidClassAt(cid)) {
-      cls = class_table.At(cid);
+    if (!class_table.HasValidClassAt(cid)) {
+      continue;
+    }
 
-      // Disable optimized functions.
-      functions = cls.functions();
-      if (!functions.IsNull()) {
-        intptr_t num_functions = functions.Length();
-        for (intptr_t pos = 0; pos < num_functions; pos++) {
-          function ^= functions.At(pos);
-          ASSERT(!function.IsNull());
-          // Force-optimized functions don't have unoptimized code and can't
-          // deoptimize. Their optimized codes are still valid.
-          if (!function.ForceOptimize()) {
-            if (function.HasOptimizedCode()) {
-              function.SwitchToUnoptimizedCode();
-            }
-            code = function.unoptimized_code();
-            if (!code.IsNull()) {
-              resetter.ResetSwitchableCalls(code);
-            }
+    cls = class_table.At(cid);
+
+    HANDLESCOPE(thread);
+
+    // Disable optimized functions.
+    functions = cls.functions();
+    ASSERT(!functions.IsNull());
+    intptr_t num_functions = functions.Length();
+    for (intptr_t pos = 0; pos < num_functions; pos++) {
+      function ^= functions.At(pos);
+      ASSERT(!function.IsNull());
+      // Force-optimized functions don't have unoptimized code and can't
+      // deoptimize. Their optimized codes are still valid.
+      if (!function.ForceOptimize()) {
+        if (function.HasOptimizedCode()) {
+          function.SwitchToUnoptimizedCode();
+        }
+        code = function.unoptimized_code();
+        if (!code.IsNull()) {
+          resetter.ResetSwitchableCalls(code);
+        }
+      }
+      // Also disable any optimized implicit closure functions.
+      if (function.HasImplicitClosureFunction()) {
+        function = function.ImplicitClosureFunction();
+        if (!function.ForceOptimize()) {
+          if (function.HasOptimizedCode()) {
+            function.SwitchToUnoptimizedCode();
           }
-          // Also disable any optimized implicit closure functions.
-          if (function.HasImplicitClosureFunction()) {
-            function = function.ImplicitClosureFunction();
-            if (!function.ForceOptimize()) {
-              if (function.HasOptimizedCode()) {
-                function.SwitchToUnoptimizedCode();
-              }
-              code = function.unoptimized_code();
-              if (!code.IsNull()) {
-                resetter.ResetSwitchableCalls(code);
-              }
-            }
+          code = function.unoptimized_code();
+          if (!code.IsNull()) {
+            resetter.ResetSwitchableCalls(code);
           }
         }
       }
@@ -2130,6 +2133,11 @@ bool Debugger::ShouldPauseOnException(DebuggerStackTrace* stack_trace,
   }
   // Exceptions coming from invalid token positions should be skipped
   ActivationFrame* top_frame = stack_trace->FrameAt(0);
+  // If this is an async awaiter stack trace, skip over
+  // an initial async suspend marker.
+  if (top_frame->kind() == ActivationFrame::kAsyncSuspensionMarker) {
+    top_frame = stack_trace->FrameAt(1);
+  }
   if (!top_frame->TokenPos().IsReal() && top_frame->TryIndex() != -1) {
     return false;
   }
@@ -2621,114 +2629,125 @@ ErrorPtr Debugger::FindAndCompileMatchingFunctions(
     GrowableObjectArray& code_function_list) const {
   auto thread = Thread::Current();
   auto zone = thread->zone();
+  HANDLESCOPE(thread);
   Script& script = Script::Handle(zone);
   Object& ensure_has_code_result = Object::Handle(zone);
+  Class& cls = Class::Handle(zone);
+  Array& functions = Array::Handle(zone);
+  Function& function = Function::Handle(zone);
+  Array& fields = Array::Handle(zone);
+  Field& field = Field::Handle(zone);
+
+  const ClassTable& class_table = *isolate_->group()->class_table();
+  const intptr_t num_classes = class_table.NumCids();
+  const intptr_t num_tlc_classes = class_table.NumTopLevelCids();
+
   for (intptr_t i = 0; i < scripts.length(); ++i) {
     script = scripts.At(i).ptr();
-    ClosureFunctionsCache::ForAllClosureFunctions(
-        [&](const Function& function) {
-          ASSERT(!function.IsNull());
-          if ((function.token_pos() == start_pos) &&
-              (function.end_token_pos() == end_pos) &&
-              (function.script() == script.ptr()) && function.is_debuggable()) {
-            // If we've found a matching function, ensure it's compiled so
-            // the breakpoint currently being set can be resolved immediately.
-            ensure_has_code_result = function.EnsureHasCodeNoThrow();
-            if (ensure_has_code_result.IsError()) {
-              return false;  // Stop iterating.
-            }
-            code_function_list.Add(function);
-            ASSERT(!function.HasImplicitClosureFunction());
-          }
-          return true;  // Continue iterating.
-        });
-    if (ensure_has_code_result.IsError()) {
-      return Error::Cast(ensure_has_code_result).ptr();
-    }
 
-    Class& cls = Class::Handle(zone);
-    Array& functions = Array::Handle(zone);
-    Function& function = Function::Handle(zone);
-    Array& fields = Array::Handle(zone);
-    Field& field = Field::Handle(zone);
-
-    const ClassTable& class_table = *isolate_->group()->class_table();
-    const intptr_t num_classes = class_table.NumCids();
-    const intptr_t num_tlc_classes = class_table.NumTopLevelCids();
-    for (intptr_t i = 1; i < num_classes + num_tlc_classes; i++) {
-      const intptr_t cid =
-          i < num_classes ? i
-                          : ClassTable::CidFromTopLevelIndex(i - num_classes);
-      if (class_table.HasValidClassAt(cid)) {
-        cls = class_table.At(cid);
-        // If the class is not finalized, e.g. if it hasn't been parsed
-        // yet entirely, we can ignore it. If it contains a function with
-        // an unresolved breakpoint, we will detect it if and when the
-        // function gets compiled.
-        if (!cls.is_finalized()) {
-          continue;
-        }
-        // Note: we need to check the functions of this class even if
-        // the class is defined in a different 'script'. There could
-        // be mixin functions from the given script in this class.
-        functions = cls.current_functions();
-        if (!functions.IsNull()) {
-          const intptr_t num_functions = functions.Length();
-          for (intptr_t pos = 0; pos < num_functions; pos++) {
-            function ^= functions.At(pos);
+    {
+      HANDLESCOPE(thread);
+      ClosureFunctionsCache::ForAllClosureFunctions(
+          [&](const Function& function) {
             ASSERT(!function.IsNull());
-            bool function_added = false;
-            if (function.is_debuggable() && function.token_pos() == start_pos &&
-                function.end_token_pos() == end_pos &&
-                function.script() == script.ptr()) {
+            if ((function.token_pos() == start_pos) &&
+                (function.end_token_pos() == end_pos) &&
+                (function.script() == script.ptr()) &&
+                function.is_debuggable()) {
               // If we've found a matching function, ensure it's compiled so
               // the breakpoint currently being set can be resolved immediately.
               ensure_has_code_result = function.EnsureHasCodeNoThrow();
               if (ensure_has_code_result.IsError()) {
-                return Error::Cast(ensure_has_code_result).ptr();
+                return false;  // Stop iterating.
               }
               code_function_list.Add(function);
-              function_added = true;
+              ASSERT(!function.HasImplicitClosureFunction());
             }
-            if (function_added && function.HasImplicitClosureFunction()) {
-              function = function.ImplicitClosureFunction();
-              if (function.is_debuggable()) {
-                // Ensure that the implicit closure function is compiled so the
-                // breakpoint currently being set can be resolved immediately.
-                ensure_has_code_result = function.EnsureHasCodeNoThrow();
-                if (ensure_has_code_result.IsError()) {
-                  return Error::Cast(ensure_has_code_result).ptr();
-                }
-                code_function_list.Add(function);
-              }
+            return true;  // Continue iterating.
+          });
+    }
+    if (ensure_has_code_result.IsError()) {
+      return Error::Cast(ensure_has_code_result).ptr();
+    }
+
+    for (intptr_t i = kInstanceCid; i < num_classes + num_tlc_classes; i++) {
+      const intptr_t cid =
+          i < num_classes ? i
+                          : ClassTable::CidFromTopLevelIndex(i - num_classes);
+      if (!class_table.HasValidClassAt(cid)) {
+        continue;
+      }
+      cls = class_table.At(cid);
+
+      // If the class is not finalized, e.g. if it hasn't been parsed
+      // yet entirely, we can ignore it. If it contains a function with
+      // an unresolved breakpoint, we will detect it if and when the
+      // function gets compiled.
+      if (!cls.is_finalized()) {
+        continue;
+      }
+
+      HANDLESCOPE(thread);
+
+      // Note: we need to check the functions of this class even if
+      // the class is defined in a different 'script'. There could
+      // be mixin functions from the given script in this class.
+      functions = cls.current_functions();
+      ASSERT(!functions.IsNull());
+      const intptr_t num_functions = functions.Length();
+      for (intptr_t pos = 0; pos < num_functions; pos++) {
+        function ^= functions.At(pos);
+        ASSERT(!function.IsNull());
+        bool function_added = false;
+        if (function.is_debuggable() && function.token_pos() == start_pos &&
+            function.end_token_pos() == end_pos &&
+            function.script() == script.ptr()) {
+          // If we've found a matching function, ensure it's compiled so
+          // the breakpoint currently being set can be resolved immediately.
+          ensure_has_code_result = function.EnsureHasCodeNoThrow();
+          if (ensure_has_code_result.IsError()) {
+            return Error::Cast(ensure_has_code_result).ptr();
+          }
+          code_function_list.Add(function);
+          function_added = true;
+        }
+        if (function_added && function.HasImplicitClosureFunction()) {
+          function = function.ImplicitClosureFunction();
+          if (function.is_debuggable()) {
+            // Ensure that the implicit closure function is compiled so the
+            // breakpoint currently being set can be resolved immediately.
+            ensure_has_code_result = function.EnsureHasCodeNoThrow();
+            if (ensure_has_code_result.IsError()) {
+              return Error::Cast(ensure_has_code_result).ptr();
             }
+            code_function_list.Add(function);
           }
         }
-        fields = cls.fields();
-        if (!fields.IsNull()) {
-          const intptr_t num_fields = fields.Length();
-          for (intptr_t pos = 0; pos < num_fields; pos++) {
-            field ^= fields.At(pos);
-            ASSERT(!field.IsNull());
-            if (field.Script() != script.ptr()) {
-              continue;
-            }
-            if (!field.has_nontrivial_initializer()) {
-              continue;
-            }
-            function = field.EnsureInitializerFunction();
-            ASSERT(!function.IsNull());
-            if (function.is_debuggable() && function.HasCode() &&
-                function.token_pos() == start_pos &&
-                function.end_token_pos() == end_pos &&
-                function.script() == script.ptr()) {
-              ensure_has_code_result = function.EnsureHasCodeNoThrow();
-              if (ensure_has_code_result.IsError()) {
-                return Error::Cast(ensure_has_code_result).ptr();
-              }
-              code_function_list.Add(function);
-            }
+      }
+
+      fields = cls.fields();
+      ASSERT(!fields.IsNull());
+      const intptr_t num_fields = fields.Length();
+      for (intptr_t pos = 0; pos < num_fields; pos++) {
+        field ^= fields.At(pos);
+        ASSERT(!field.IsNull());
+        if (field.Script() != script.ptr()) {
+          continue;
+        }
+        if (!field.has_nontrivial_initializer()) {
+          continue;
+        }
+        function = field.EnsureInitializerFunction();
+        ASSERT(!function.IsNull());
+        if (function.is_debuggable() && function.HasCode() &&
+            function.token_pos() == start_pos &&
+            function.end_token_pos() == end_pos &&
+            function.script() == script.ptr()) {
+          ensure_has_code_result = function.EnsureHasCodeNoThrow();
+          if (ensure_has_code_result.IsError()) {
+            return Error::Cast(ensure_has_code_result).ptr();
           }
+          code_function_list.Add(function);
         }
       }
     }
@@ -2759,7 +2778,20 @@ bool Debugger::FindBestFit(const Script& script,
   auto thread = Thread::Current();
   auto isolate_group = thread->isolate_group();
   Zone* zone = thread->zone();
+
+  Library& lib = Library::Handle(zone);
   Class& cls = Class::Handle(zone);
+  Array& functions = Array::Handle(zone);
+  Function& function = Function::Handle(zone);
+  Array& fields = Array::Handle(zone);
+  Field& field = Field::Handle(zone);
+  Array& scripts = Array::Handle(zone);
+  String& script_url = String::Handle(zone);
+  Error& error = Error::Handle(zone);
+
+  const ClassTable& class_table = *isolate_->group()->class_table();
+  const intptr_t num_classes = class_table.NumCids();
+  const intptr_t num_tlc_classes = class_table.NumTopLevelCids();
 
   // A single script can belong to several libraries because of mixins.
   // Go through all libraries and for each that contains the script, try to find
@@ -2768,11 +2800,10 @@ bool Debugger::FindBestFit(const Script& script,
   // process the next one.
   const GrowableObjectArray& libs = GrowableObjectArray::Handle(
       zone, isolate_group->object_store()->libraries());
-  Library& lib = Library::Handle(zone);
   for (int i = 0; i < libs.Length(); i++) {
     lib ^= libs.At(i);
     ASSERT(!lib.IsNull());
-    const Array& scripts = Array::Handle(zone, lib.LoadedScripts());
+    scripts = lib.LoadedScripts();
     bool lib_has_script = false;
     for (intptr_t j = 0; j < scripts.Length(); j++) {
       if (scripts.At(j) == script.ptr()) {
@@ -2792,15 +2823,19 @@ bool Debugger::FindBestFit(const Script& script,
       continue;
     }
 
-    const String& script_url = String::Handle(zone, script.url());
-    ClosureFunctionsCache::ForAllClosureFunctions([&](const Function& fun) {
-      if (fun.script() == script.ptr() &&
-          FunctionOverlaps(fun, script_url, token_pos, last_token_pos)) {
-        // Select the inner most closure.
-        UpdateBestFit(best_fit, fun);
-      }
-      return true;  // Continue iteration
-    });
+    script_url = script.url();
+
+    {
+      HANDLESCOPE(thread);
+      ClosureFunctionsCache::ForAllClosureFunctions([&](const Function& fun) {
+        if (fun.script() == script.ptr() &&
+            FunctionOverlaps(fun, script_url, token_pos, last_token_pos)) {
+          // Select the inner most closure.
+          UpdateBestFit(best_fit, fun);
+        }
+        return true;  // Continue iteration
+      });
+    }
 
     if (!best_fit->IsNull()) {
       // The inner most closure found will be the best fit. Going
@@ -2809,16 +2844,7 @@ bool Debugger::FindBestFit(const Script& script,
       return true;
     }
 
-    Array& functions = Array::Handle(zone);
-    Function& function = Function::Handle(zone);
-    Array& fields = Array::Handle(zone);
-    Field& field = Field::Handle(zone);
-    Error& error = Error::Handle(zone);
-
-    const ClassTable& class_table = *isolate_->group()->class_table();
-    const intptr_t num_classes = class_table.NumCids();
-    const intptr_t num_tlc_classes = class_table.NumTopLevelCids();
-    for (intptr_t i = 1; i < num_classes + num_tlc_classes; i++) {
+    for (intptr_t i = kInstanceCid; i < num_classes + num_tlc_classes; i++) {
       const intptr_t cid =
           i < num_classes ? i
                           : ClassTable::CidFromTopLevelIndex(i - num_classes);
@@ -2826,6 +2852,7 @@ bool Debugger::FindBestFit(const Script& script,
         continue;
       }
       cls = class_table.At(cid);
+
       // This class is relevant to us only if it belongs to the
       // library to which |script| belongs.
       if (cls.library() != lib.ptr()) {
@@ -2840,56 +2867,57 @@ bool Debugger::FindBestFit(const Script& script,
         // is no longjump base on the stack.
         continue;
       }
+
+      HANDLESCOPE(thread);
+
       functions = cls.current_functions();
-      if (!functions.IsNull()) {
-        const intptr_t num_functions = functions.Length();
-        for (intptr_t pos = 0; pos < num_functions; pos++) {
-          function ^= functions.At(pos);
-          ASSERT(!function.IsNull());
-          if (IsImplicitFunction(function) || function.is_synthetic() ||
-              !function.token_pos().IsReal() ||
-              !function.end_token_pos().IsReal() || !function.is_debuggable()) {
-            // We skip implicit functions and synthetic functions because they
-            // do not have user specifiable source locations. We also skip
-            // functions marked as undebuggable.
-            continue;
-          }
-          if (FunctionOverlaps(function, script_url, token_pos,
-                               last_token_pos)) {
-            // Closures and inner functions within a class method are not
-            // present in the functions of a class. Hence, we can return
-            // right away as looking through other functions of a class
-            // will not narrow down to any inner function/closure.
-            *best_fit = function.ptr();
-            return true;
-          }
+      ASSERT(!functions.IsNull());
+      const intptr_t num_functions = functions.Length();
+      for (intptr_t pos = 0; pos < num_functions; pos++) {
+        function ^= functions.At(pos);
+        ASSERT(!function.IsNull());
+        if (IsImplicitFunction(function) || function.is_synthetic() ||
+            !function.token_pos().IsReal() ||
+            !function.end_token_pos().IsReal() || !function.is_debuggable()) {
+          // We skip implicit functions and synthetic functions because they
+          // do not have user specifiable source locations. We also skip
+          // functions marked as undebuggable.
+          continue;
+        }
+        if (FunctionOverlaps(function, script_url, token_pos, last_token_pos)) {
+          // Closures and inner functions within a class method are not
+          // present in the functions of a class. Hence, we can return
+          // right away as looking through other functions of a class
+          // will not narrow down to any inner function/closure.
+          *best_fit = function.ptr();
+          return true;
         }
       }
+
       // If none of the functions in the class contain token_pos, then we check
       // if it falls within a function literal initializer of a field.
       fields = cls.fields();
-      if (!fields.IsNull()) {
-        const intptr_t num_fields = fields.Length();
-        for (intptr_t pos = 0; pos < num_fields; pos++) {
-          TokenPosition start = TokenPosition::kNoSource;
-          TokenPosition end = TokenPosition::kNoSource;
-          field ^= fields.At(pos);
-          ASSERT(!field.IsNull());
-          if (field.Script() != script.ptr()) {
-            // The field should be defined in the script we want to set
-            // the breakpoint in.
-            continue;
-          }
-          if (!field.has_nontrivial_initializer()) {
-            continue;
-          }
-          start = field.token_pos();
-          end = field.end_token_pos();
-          if (token_pos.IsWithin(start, end) ||
-              start.IsWithin(token_pos, last_token_pos)) {
-            *best_fit = field.EnsureInitializerFunction();
-            return true;
-          }
+      ASSERT(!fields.IsNull());
+      const intptr_t num_fields = fields.Length();
+      for (intptr_t pos = 0; pos < num_fields; pos++) {
+        TokenPosition start = TokenPosition::kNoSource;
+        TokenPosition end = TokenPosition::kNoSource;
+        field ^= fields.At(pos);
+        ASSERT(!field.IsNull());
+        if (field.Script() != script.ptr()) {
+          // The field should be defined in the script we want to set
+          // the breakpoint in.
+          continue;
+        }
+        if (!field.has_nontrivial_initializer()) {
+          continue;
+        }
+        start = field.token_pos();
+        end = field.end_token_pos();
+        if (token_pos.IsWithin(start, end) ||
+            start.IsWithin(token_pos, last_token_pos)) {
+          *best_fit = field.EnsureInitializerFunction();
+          return true;
         }
       }
     }
@@ -3277,6 +3305,7 @@ ErrorPtr Debugger::BreakpointLocationAtLineCol(
   Error& error = Error::Handle();
   while ((*result_breakpoint_location == nullptr) &&
          (first_token_idx <= last_token_idx)) {
+    HANDLESCOPE(Thread::Current());
     error = SetBreakpoint(scripts, first_token_idx, last_token_idx, line_number,
                           column_number, Function::Handle(),
                           result_breakpoint_location);

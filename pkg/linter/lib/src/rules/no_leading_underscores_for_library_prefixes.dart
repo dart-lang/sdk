@@ -12,11 +12,12 @@ import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../diagnostic.dart' as diag;
+import '../extensions.dart';
 import '../util/ascii_utils.dart';
 
 const _desc = r'Avoid leading underscores for library prefixes.';
 
-class NoLeadingUnderscoresForLibraryPrefixes extends AnalysisRule {
+class NoLeadingUnderscoresForLibraryPrefixes extends MultiAnalysisRule {
   new()
     : super(
         name: LintNames.no_leading_underscores_for_library_prefixes,
@@ -24,8 +25,10 @@ class NoLeadingUnderscoresForLibraryPrefixes extends AnalysisRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      diag.noLeadingUnderscoresForLibraryPrefixes;
+  List<DiagnosticCode> get diagnosticCodes => const [
+    diag.noLeadingUnderscoresForLibraryPrefixes,
+    diag.noLeadingUnderscoresForLibraryPrefixesShadowed,
+  ];
 
   @override
   void registerNodeProcessors(
@@ -37,16 +40,12 @@ class NoLeadingUnderscoresForLibraryPrefixes extends AnalysisRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
+class _Visitor(final MultiAnalysisRule rule, RuleContext context)
+    extends SimpleAstVisitor<void> {
   /// Whether the `wildcard_variables` feature is enabled.
-  final bool _wildCardVariablesEnabled;
-
-  final AnalysisRule rule;
-
-  new(this.rule, RuleContext context)
-    : _wildCardVariablesEnabled = context.isFeatureEnabled(
-        Feature.wildcard_variables,
-      );
+  final bool _wildCardVariablesEnabled = context.isFeatureEnabled(
+    Feature.wildcard_variables,
+  );
 
   void checkIdentifier(SimpleIdentifier? id) {
     if (id == null) return;
@@ -54,14 +53,32 @@ class _Visitor extends SimpleAstVisitor<void> {
     var name = id.name;
 
     if (_wildCardVariablesEnabled && name == '_') return;
+    if (!name.hasLeadingUnderscore) return;
 
-    if (name.hasLeadingUnderscore) {
-      rule.reportAtNode(id, arguments: [id.name]);
-    }
+    rule.reportAtNode(
+      id,
+      arguments: [id.name],
+      diagnosticCode: _isShadowing(name, id)
+          ? diag.noLeadingUnderscoresForLibraryPrefixesShadowed
+          : diag.noLeadingUnderscoresForLibraryPrefixes,
+    );
   }
 
   @override
   void visitImportDirective(ImportDirective node) {
     checkIdentifier(node.prefix);
+  }
+
+  /// Whether removing the leading underscore from [name] would, at some
+  /// reference to the prefix declared by [id], make that reference resolve
+  /// to a different element.
+  bool _isShadowing(String name, SimpleIdentifier id) {
+    var newName = name.substring(1);
+    if (newName.isEmpty) return false;
+
+    var element = id.element;
+    if (element == null) return false;
+
+    return id.enclosingBody.isShadowedAtSomeReference(newName, element);
   }
 }

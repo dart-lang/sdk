@@ -51,17 +51,11 @@ class A extends core::Object {
     invalid-expression "pkg/front_end/testcases/general/bad_setter_abstract.dart:10:8: Error: A setter should have exactly one formal parameter.
   set a();
        ^";
-    ;
   }
   set d(dynamic #synthetic) → void {
     invalid-expression "pkg/front_end/testcases/general/bad_setter_abstract.dart:11:8: Error: A setter should have exactly one formal parameter.
   set d(x, y);
        ^";
-    {
-      dynamic x;
-      dynamic y;
-      ;
-    }
   }
 }
 abstract class B extends core::Object {
@@ -72,34 +66,22 @@ abstract class B extends core::Object {
     invalid-expression "pkg/front_end/testcases/general/bad_setter_abstract.dart:15:8: Error: A setter should have exactly one formal parameter.
   set a();
        ^";
-    ;
   }
   set d(dynamic #synthetic) → void {
     invalid-expression "pkg/front_end/testcases/general/bad_setter_abstract.dart:16:8: Error: A setter should have exactly one formal parameter.
   set d(x, y);
        ^";
-    {
-      dynamic x;
-      dynamic y;
-      ;
-    }
   }
 }
 static set b(dynamic #synthetic) → void {
   invalid-expression "pkg/front_end/testcases/general/bad_setter_abstract.dart:5:6: Error: A setter should have exactly one formal parameter.
 set b();
      ^";
-  ;
 }
 static set c(dynamic #synthetic) → void {
   invalid-expression "pkg/front_end/testcases/general/bad_setter_abstract.dart:7:6: Error: A setter should have exactly one formal parameter.
 set c(x, y);
      ^";
-  {
-    dynamic x;
-    dynamic y;
-    ;
-  }
 }
 static method test() → dynamic {
   core::bool threw = false;
@@ -118,7 +100,7 @@ static method test() → dynamic {
     new self::A::•().{self::A::d} = null;
     threw = false;
   }
-  on core::Object catch(final core::Object e) {
+  on core::Object catch(final core::Object e##1) {
   }
   if(!threw) {
     throw "Expected an error above.";
@@ -128,7 +110,7 @@ static method test() → dynamic {
     self::b = null;
     threw = false;
   }
-  on core::Object catch(final core::Object e) {
+  on core::Object catch(final core::Object e##2) {
   }
   if(!threw) {
     throw "Expected an error above.";
@@ -141,7 +123,7 @@ static method test() → dynamic {
     self::c = null;
     threw = false;
   }
-  on core::Object catch(final core::Object e) {
+  on core::Object catch(final core::Object e##3) {
   }
   if(!threw) {
     throw "Expected an error above.";

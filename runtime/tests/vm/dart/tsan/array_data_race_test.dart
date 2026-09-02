@@ -11,13 +11,18 @@ import "package:expect/expect.dart";
 
 import '../dylib_utils.dart';
 
+// This is effectively shared, which is currently not allowed, but
+// we still want to have tests that shows tsan diagnostic in presence
+// of data races accessing list elements.
+List<dynamic> box = getObjectFromAddr(boxAddr);
+
 @pragma("vm:entry-point")
 @pragma("vm:shared")
-List<dynamic>? box;
+final int boxAddr = getAddrFromObject(List<dynamic>.filled(1, 0));
 
 @pragma("vm:never-inline")
 dataRaceFromMain() {
-  final localBox = box!;
+  final localBox = box;
   for (var i = 0; i < 50000; i++) {
     usleep(100);
     var t = localBox[0];
@@ -28,7 +33,7 @@ dataRaceFromMain() {
 
 @pragma("vm:never-inline")
 dataRaceFromChild() {
-  final localBox = box!;
+  final localBox = box;
   for (var i = 0; i < 50000; i++) {
     usleep(100);
     var t = localBox[0];
@@ -42,18 +47,22 @@ child(replyPort) {
   replyPort.send(null);
 }
 
-final nativeLib = dlopenPlatformSpecific('ffi_test_functions');
-
-final getRootLibraryUrl = nativeLib
-    .lookupFunction<Handle Function(), Object Function()>('GetRootLibraryUrl');
-
 final setFfiNativeResolverForTest = nativeLib
     .lookupFunction<Void Function(Handle), void Function(Object)>(
       'SetFfiNativeResolverForTest',
     );
 
-@Native<IntPtr Function(Handle, Handle, Handle)>(symbol: 'UnsafeSetSharedTo')
-external int unsafeSetSharedTo(Object library_name, String name, Object value);
+final nativeLib = dlopenPlatformSpecific('ffi_test_functions');
+final getAddrFromObject = nativeLib
+    .lookupFunction<IntPtr Function(Handle), int Function(List)>(
+      'GetAddrFromObject',
+    );
+final getObjectFromAddr = nativeLib
+    .lookupFunction<Handle Function(IntPtr), List Function(int)>(
+      'GetObjectFromAddr',
+    );
+final releaseAddr = nativeLib
+    .lookupFunction<Void Function(IntPtr), void Function(int)>('ReleaseAddr');
 
 // Leaf: we don't want the two threads to synchronize via safepoint.
 final usleep = DynamicLibrary.process()
@@ -64,11 +73,6 @@ final usleep = DynamicLibrary.process()
 
 main(List<String> arguments) {
   if (arguments.contains("--testee")) {
-    setFfiNativeResolverForTest(getRootLibraryUrl());
-    // At this point List is not allowed to be stored in shaded fields.
-    // Still we want to use it here to test data race detection.
-    unsafeSetSharedTo(getRootLibraryUrl(), "box", List<dynamic>.filled(1, 0));
-
     // Avoid synchronizing via lazy compilation and initialization.
     usleep(0);
     box![0] += 0;
@@ -77,6 +81,7 @@ main(List<String> arguments) {
     port.handler = (_) => port.close();
     Isolate.spawn(child, port.sendPort);
     dataRaceFromMain();
+    releaseAddr(boxAddr);
     return;
   }
 

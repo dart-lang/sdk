@@ -69,7 +69,17 @@ sealed class const CType() {
   bool isSubtypeOf(CType other) => GlobalContext.instance.typeEnvironment
       .isSubtypeOf(this.dartType, other.dartType);
 
-  /// Returns true if value of this type can be `null`.
+  /// Returns true if this type is potentially nullable, i.e.
+  /// value of this type can potentially be `null`.
+  ///
+  /// Type is potentially nullable if it is either nullable
+  /// or its nullability is unknown at compile time and
+  /// it can become nullable at runtime (for example,
+  /// type parameter T with a nullable bound).
+  bool get canBeNull;
+
+  /// Returns true if this type is nullable and
+  /// `null` is assignable to this type.
   bool get isNullable;
 
   /// Return non-nullable variant of this type (if possible).
@@ -77,6 +87,12 @@ sealed class const CType() {
 
   /// Returns true if value of this type can be `int`.
   bool get canBeInt;
+
+  /// Returns true if value of this type can be `double`.
+  bool get canBeDouble;
+
+  /// Returns true if value of this type can be `num`.
+  bool get canBeNum => canBeInt || canBeDouble;
 
   /// Returns true if value of this type can be `Future`.
   bool get canBeFuture;
@@ -101,6 +117,9 @@ final class const IntType([final ast.DartType? _dartType]) extends CType {
       _dartType ?? GlobalContext.instance.coreTypes.intNonNullableRawType;
 
   @override
+  bool get canBeNull => false;
+
+  @override
   bool get isNullable => false;
 
   @override
@@ -108,6 +127,9 @@ final class const IntType([final ast.DartType? _dartType]) extends CType {
 
   @override
   bool get canBeInt => true;
+
+  @override
+  bool get canBeDouble => false;
 
   @override
   bool get canBeFuture => false;
@@ -126,6 +148,9 @@ final class const DoubleType([final ast.DartType? _dartType]) extends CType {
       _dartType ?? GlobalContext.instance.coreTypes.doubleNonNullableRawType;
 
   @override
+  bool get canBeNull => false;
+
+  @override
   bool get isNullable => false;
 
   @override
@@ -133,6 +158,9 @@ final class const DoubleType([final ast.DartType? _dartType]) extends CType {
 
   @override
   bool get canBeInt => false;
+
+  @override
+  bool get canBeDouble => true;
 
   @override
   bool get canBeFuture => false;
@@ -151,6 +179,9 @@ final class const BoolType([final ast.DartType? _dartType]) extends CType {
       _dartType ?? GlobalContext.instance.coreTypes.boolNonNullableRawType;
 
   @override
+  bool get canBeNull => false;
+
+  @override
   bool get isNullable => false;
 
   @override
@@ -158,6 +189,9 @@ final class const BoolType([final ast.DartType? _dartType]) extends CType {
 
   @override
   bool get canBeInt => false;
+
+  @override
+  bool get canBeDouble => false;
 
   @override
   bool get canBeFuture => false;
@@ -176,6 +210,9 @@ final class const StringType([final ast.DartType? _dartType]) extends CType {
       _dartType ?? GlobalContext.instance.coreTypes.stringNonNullableRawType;
 
   @override
+  bool get canBeNull => false;
+
+  @override
   bool get isNullable => false;
 
   @override
@@ -183,6 +220,9 @@ final class const StringType([final ast.DartType? _dartType]) extends CType {
 
   @override
   bool get canBeInt => false;
+
+  @override
+  bool get canBeDouble => false;
 
   @override
   bool get canBeFuture => false;
@@ -233,6 +273,9 @@ final class RecordType extends CType {
   int get numFields => dartType.positional.length + dartType.named.length;
 
   @override
+  bool get canBeNull => false;
+
+  @override
   bool get isNullable => false;
 
   @override
@@ -240,6 +283,9 @@ final class RecordType extends CType {
 
   @override
   bool get canBeInt => false;
+
+  @override
+  bool get canBeDouble => false;
 
   @override
   bool get canBeFuture => false;
@@ -258,6 +304,9 @@ final class const ObjectType([final ast.DartType? _dartType]) extends CType {
       _dartType ?? GlobalContext.instance.coreTypes.objectNonNullableRawType;
 
   @override
+  bool get canBeNull => false;
+
+  @override
   bool get isNullable => false;
 
   @override
@@ -265,6 +314,9 @@ final class const ObjectType([final ast.DartType? _dartType]) extends CType {
 
   @override
   bool get canBeInt => true;
+
+  @override
+  bool get canBeDouble => true;
 
   @override
   bool get canBeFuture => true;
@@ -282,6 +334,9 @@ final class const NullType() extends CType {
   ast.DartType get dartType => const ast.NullType();
 
   @override
+  bool get canBeNull => true;
+
+  @override
   bool get isNullable => true;
 
   @override
@@ -289,6 +344,9 @@ final class const NullType() extends CType {
 
   @override
   bool get canBeInt => false;
+
+  @override
+  bool get canBeDouble => false;
 
   @override
   bool get canBeFuture => false;
@@ -306,6 +364,9 @@ final class const NeverType() extends CType {
   ast.DartType get dartType => const ast.NeverType.nonNullable();
 
   @override
+  bool get canBeNull => false;
+
+  @override
   bool get isNullable => false;
 
   @override
@@ -313,6 +374,9 @@ final class const NeverType() extends CType {
 
   @override
   bool get canBeInt => false;
+
+  @override
+  bool get canBeDouble => false;
 
   @override
   bool get canBeFuture => false;
@@ -330,6 +394,9 @@ final class const TopType([final ast.DartType? _dartType]) extends CType {
   ast.DartType get dartType => _dartType ?? const ast.DynamicType();
 
   @override
+  bool get canBeNull => true;
+
+  @override
   bool get isNullable => true;
 
   @override
@@ -337,6 +404,9 @@ final class const TopType([final ast.DartType? _dartType]) extends CType {
 
   @override
   bool get canBeInt => true;
+
+  @override
+  bool get canBeDouble => true;
 
   @override
   bool get canBeFuture => true;
@@ -351,28 +421,25 @@ final class StaticType(final ast.DartType dartType) extends CType {
   TypeKind get kind => TypeKind.otherDartType;
 
   @override
-  bool get isNullable => dartType.isPotentiallyNullable;
+  bool get canBeNull => dartType.isPotentiallyNullable;
+
+  @override
+  bool get isNullable => dartType.nullability == .nullable;
 
   @override
   CType get toNonNullableType => CType.fromStaticType(dartType.toNonNull());
 
-  @override
-  bool get canBeInt {
-    ast.DartType type = dartType;
+  ast.DartType _unwrapType(ast.DartType type) {
     for (;;) {
       switch (type) {
-        case ast.InterfaceType():
-          return GlobalContext.instance.typeEnvironment.isSubtypeOf(
-            GlobalContext.instance.coreTypes.intNonNullableRawType,
-            type,
-          );
-        case ast.RecordType() ||
+        case ast.InterfaceType() ||
+            ast.RecordType() ||
             ast.FunctionType() ||
             ast.NeverType() ||
-            ast.NullType():
-          return false;
-        case ast.DynamicType() || ast.VoidType():
-          return true;
+            ast.NullType() ||
+            ast.DynamicType() ||
+            ast.VoidType():
+          return type;
         case ast.ClassTypeParameterType():
           type = type.parameter.bound;
           break;
@@ -402,6 +469,37 @@ final class StaticType(final ast.DartType dartType) extends CType {
     }
   }
 
+  bool _canBeSealedType(ast.DartType sealedType) {
+    final type = _unwrapType(dartType);
+    switch (type) {
+      case ast.InterfaceType():
+        final typeEnvironment = GlobalContext.instance.typeEnvironment;
+        return
+        // sealed type or supertype of sealed type
+        typeEnvironment.isSubtypeOf(sealedType, type) ||
+            // implementation subtype of the sealed type
+            typeEnvironment.isSubtypeOf(type, sealedType);
+      case ast.RecordType() ||
+          ast.FunctionType() ||
+          ast.NeverType() ||
+          ast.NullType():
+        return false;
+      case ast.DynamicType() || ast.VoidType():
+        return true;
+      default:
+        throw 'Unexpected type ${type.runtimeType} $type';
+    }
+  }
+
+  @override
+  bool get canBeInt =>
+      _canBeSealedType(GlobalContext.instance.coreTypes.intNonNullableRawType);
+
+  @override
+  bool get canBeDouble => _canBeSealedType(
+    GlobalContext.instance.coreTypes.doubleNonNullableRawType,
+  );
+
   @override
   bool get canBeFuture => true;
 
@@ -421,6 +519,9 @@ sealed class const ExtendedType() extends CType {
   bool isSubtypeOf(CType other) => this == other;
 
   @override
+  bool get canBeNull => false;
+
+  @override
   bool get isNullable => false;
 
   @override
@@ -428,6 +529,9 @@ sealed class const ExtendedType() extends CType {
 
   @override
   bool get canBeInt => false;
+
+  @override
+  bool get canBeDouble => false;
 
   @override
   bool get canBeFuture => false;

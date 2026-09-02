@@ -22,13 +22,13 @@ import 'package:wasm_builder/wasm_builder.dart' as w;
 import 'class_info.dart';
 import 'closures.dart';
 import 'code_generator.dart';
+import 'compiler_options.dart';
 import 'constants.dart';
 import 'constructor_info.dart';
 import 'dispatch_table.dart';
 import 'dynamic_dispatch_table.dart';
 import 'dynamic_dispatchers.dart';
 import 'functions.dart';
-import 'generate_wasm.dart';
 import 'globals.dart';
 import 'kernel_nodes.dart';
 import 'modules.dart';
@@ -74,12 +74,12 @@ class TranslatorOptions {
   bool enableProtobufMixinTreeShaker = false;
   int inliningLimit = 0;
   int? sharedMemoryMaxPages;
-  bool requireJsStringBuiltin = false;
   List<int> watchPoints = [];
 
   bool get inlining => inliningOverride ?? optimizationLevel >= 1;
   bool get minify => minifyOverride ?? optimizationLevel >= 2;
-  bool get omitErrorDetails => omitErrorDetailsOverride ?? optimizationLevel >= 2;
+  bool get omitErrorDetails =>
+      omitErrorDetailsOverride ?? optimizationLevel >= 2;
   bool get omitImplicitTypeChecks =>
       omitImplicitTypeChecksOverride ?? optimizationLevel >= 3;
   bool get omitBoundsChecks =>
@@ -189,7 +189,7 @@ class Translator with KernelNodes {
   final Map<(w.ModuleBuilder, String), w.Global> _internalizedStringGlobals =
       {};
 
-  final Map<w.HeapType, ClassInfo> classForHeapType = {};
+  final Map<w.HeapType, bool> _isCyclicHeapType = {};
   final Map<Field, int> fieldIndex = {};
   final Map<TypeParameter, int> typeParameterIndex = {};
   final Map<Reference, ParameterInfo> staticParamInfo = {};
@@ -288,14 +288,6 @@ class Translator with KernelNodes {
   late final w.RefType stackTraceTypeNullable = stackTraceType.withNullability(
     true,
   );
-
-  // The wasm type used to hold values of `Type`
-  late final w.RefType runtimeTypeType =
-      translateType(coreTypes.typeNonNullableRawType) as w.RefType;
-
-  // The wasm type used to hold values of `Type?`
-  late final w.RefType runtimeTypeTypeNullable = runtimeTypeType
-      .withNullability(true);
 
   // The wasm type used to hold values of `String`
   late final w.RefType stringType =
@@ -568,13 +560,24 @@ class Translator with KernelNodes {
     }
     _printFunction(mainModule.startFunction, "init");
 
+    final neededForLoadList = <ModuleMetadata>{
+      for (
+        int loadId = 0;
+        loadId < loadingMap.dominatingLoadIds.length;
+        ++loadId
+      )
+        if (loadingMap.dominatingLoadIds[loadId]?.isNotEmpty ?? false)
+          loadingMap.dedicatedModule[loadId]!,
+    };
+
     // Remove empty modules.
     _outputToBuilder.removeWhere((outputModule, moduleBuilder) {
       if (moduleBuilder == mainModule) {
         assert(!moduleBuilder.hasNoEffect);
         return false;
       }
-      return moduleBuilder.hasNoEffect;
+      return moduleBuilder.hasNoEffect &&
+          !neededForLoadList.contains(outputModule);
     });
 
     // Now that we know which modules we're going to emit, let's prune the
@@ -645,6 +648,7 @@ class Translator with KernelNodes {
     // Make a global containing the load id -> module id list table.
     final loadingMapGlobal = mainModule.globals.define(
       w.GlobalType(w.RefType(arrayOfNullableByteArray, nullable: false)),
+      'deferredLoadLists',
     );
     loadingMapGlobal.initializer
       ..i32_const(moduleMap.length)
@@ -657,43 +661,38 @@ class Translator with KernelNodes {
       ..end();
 
     // Emit code to initialize the load id -> module id list table.
-    final startFunction = mainModule.startFunction.body;
-    final encodedSegment = mainModule.dataSegments.define();
-    for (int i = 0; i < moduleMap.length; ++i) {
-      final moduleNames = moduleMap[i];
-      if (moduleNames.isEmpty) continue;
-
-      // We sort the module ids increasingly, thereby allowing us to encode them
-      // via delta to previous module id.
-      final moduleIds = <int>[];
-      for (int k = 0; k < moduleNames.length; ++k) {
-        final moduleId = WasmCompilerOptions.idFromDeferredModuleFilename(
-          moduleNames[k].moduleName,
-        );
-        moduleIds.add(moduleId);
+    final encodedSegments = <w.ModuleBuilder, w.DataSegmentBuilder>{};
+    for (int loadId = 0; loadId < moduleMap.length; ++loadId) {
+      final moduleList = moduleMap[loadId];
+      final domLoadId = loadingMap.dominatingLoadId[loadId];
+      if (domLoadId == null) {
+        assert(moduleList.isEmpty);
+        // This must be the root module. It has only one module and it's loaded
+        // by the application loader, so nothing to do here.
+        continue;
       }
-      moduleIds.sort();
 
-      // Make the encoded list of module ids.
-      final moduleIdsEncoded = BytesBuilder();
-      moduleIdsEncoded.writeULEB128(moduleNames.length);
-      int lastId = 0;
-      for (int i = 0; i < moduleIds.length; ++i) {
-        final moduleId = moduleIds[i];
-        final diff = moduleId - lastId;
-        moduleIdsEncoded.writeULEB128(diff);
-        lastId = moduleId;
-      }
+      if (moduleList.isEmpty) continue;
+
+      final moduleIdsEncoded = encodeLoadList(moduleList);
+
+      final dominatorModuleMetadata = loadingMap.dedicatedModule[domLoadId]!;
+      final dominatorModuleBuilder = _outputToBuilder[dominatorModuleMetadata]!;
+      final startFunction = dominatorModuleBuilder.startFunction.body;
+      final dataSegment = encodedSegments.putIfAbsent(
+        dominatorModuleBuilder,
+        () => dominatorModuleBuilder.dataSegments.define(),
+      );
 
       // Append the encoded module id list to the data segment & make start
       // function patch the runtime with the list.
-      startFunction.global_get(loadingMapGlobal);
-      startFunction.i32_const(i);
+      globals.readGlobal(startFunction, loadingMapGlobal);
+      startFunction.i32_const(loadId);
       {
-        startFunction.i32_const(encodedSegment.length);
+        startFunction.i32_const(dataSegment.length);
         startFunction.i32_const(moduleIdsEncoded.length);
-        startFunction.array_new_data(byteArrayType, encodedSegment);
-        encodedSegment.append(moduleIdsEncoded.takeBytes());
+        startFunction.array_new_data(byteArrayType, dataSegment);
+        dataSegment.append(moduleIdsEncoded);
       }
       startFunction.array_set(arrayOfNullableByteArray);
     }
@@ -710,6 +709,31 @@ class Translator with KernelNodes {
     _replaceBody(prefixGetter)
       ..global_get(getInternalizedStringGlobal(mainModule, prefix))
       ..end();
+  }
+
+  Uint8List encodeLoadList(List<ModuleMetadata> moduleList) {
+    // We sort the module ids increasingly, thereby allowing us to encode them
+    // via delta to previous module id.
+    final moduleIds = <int>[];
+    for (int k = 0; k < moduleList.length; ++k) {
+      final moduleId = WasmCompilerOptions.idFromDeferredModuleFilename(
+        moduleList[k].moduleName,
+      );
+      moduleIds.add(moduleId);
+    }
+    moduleIds.sort();
+
+    // Make the encoded list of module ids.
+    final moduleIdsEncoded = BytesBuilder();
+    moduleIdsEncoded.writeULEB128(moduleList.length);
+    int lastId = 0;
+    for (int idIndex = 0; idIndex < moduleIds.length; ++idIndex) {
+      final moduleId = moduleIds[idIndex];
+      final diff = moduleId - lastId;
+      moduleIdsEncoded.writeULEB128(diff);
+      lastId = moduleId;
+    }
+    return moduleIdsEncoded.takeBytes();
   }
 
   void _patchLoadingMapNamesGetter(w.FunctionBuilder function) {
@@ -2007,7 +2031,11 @@ class Translator with KernelNodes {
     return inferredTypeMetadata[node]?.skipCheck ?? false;
   }
 
-  DartType typeOfParameterVariable(Variable node, bool isRequired) {
+  DartType typeOfParameterVariable(
+    Variable node,
+    bool isRequired, {
+    bool isNoSuchMethodForwarder = false,
+  }) {
     // We have a guarantee that inferred types are correct.
     final inferredType = _inferredTypeOfParameterVariable(node);
     if (inferredType != null) {
@@ -2031,7 +2059,22 @@ class Translator with KernelNodes {
       return coreTypes.objectNullableRawType;
     }
 
-    return node.type;
+    // Special case for NSM forwarders: A method with a non-nullable optional
+    // parameter requires an implementation to (normally) have a default value,
+    // in case a call site didn't pass the optional parameter.
+    //
+    // Though an implementation may be done via defining a `noSuchMethod`
+    // method, which will make CFE auto generate all unimplemented methods via
+    // no-such-method forwarder functions. Those may not have a sensible
+    // default. To make this still work we use `null` as default which will then
+    // be in the `Invocation` object passed to the `noSuchMethod` call.
+    //
+    // See
+    //   * https://github.com/dart-lang/language/issues/3331
+    //   * https://github.com/dart-lang/sdk/issues/63958
+    return (!isRequired && isNoSuchMethodForwarder)
+        ? node.type.withDeclaredNullability(Nullability.nullable)
+        : node.type;
   }
 
   // The type to use assuming the argument was already checked (in case a
@@ -2056,8 +2099,19 @@ class Translator with KernelNodes {
     return _inferredTypeOfField(node) ?? node.type;
   }
 
-  w.ValueType translateTypeOfParameter(Variable node, bool isRequired) {
-    return translateType(typeOfParameterVariable(node, isRequired));
+  w.ValueType translateTypeOfParameter(
+    Variable node,
+    bool isRequired,
+    Member member,
+  ) {
+    return translateType(
+      typeOfParameterVariable(
+        node,
+        isRequired,
+        isNoSuchMethodForwarder:
+            member is Procedure && member.isNoSuchMethodForwarder,
+      ),
+    );
   }
 
   w.ValueType translateTypeOfField(Field node) {
@@ -2065,10 +2119,10 @@ class Translator with KernelNodes {
   }
 
   w.ValueType translateTypeOfLocalVariable(Variable node) {
-    DartType dartType = _inferredTypeOfLocalVariable(node) ?? node.type;
-    if (dartType is InterfaceType) {
-      final info = classInfo[dartType.classNode];
-      if (info != null && info.isCyclic) {
+    final dartType = _inferredTypeOfLocalVariable(node) ?? node.type;
+    final wasmType = translateType(dartType);
+    if (wasmType case w.RefType(nullable: false, heapType: final heapType)) {
+      if (isCyclicHeapType(heapType)) {
         // Cyclic types can't be instantiated, so locals with cyclic types won't
         // be assigned and we can give them a more general type. Returning a
         // nullable type here makes dummy initialization of the variable
@@ -2076,7 +2130,7 @@ class Translator with KernelNodes {
         return topType;
       }
     }
-    return translateType(dartType);
+    return wasmType;
   }
 
   DartType? _inferredTypeOfParameterVariable(Variable node) {
@@ -2094,12 +2148,22 @@ class Translator with KernelNodes {
     return _filterInferredType(node.type, inferredTypeMetadata[node]);
   }
 
-  DartType? _inferredTypeOfLocalVariable(Variable node) {
-    InferredType? inferredType = inferredTypeMetadata[node];
-    if (node.isFinal) {
-      inferredType ??= inferredTypeMetadata[node.initializer];
+  DartType? _inferredTypeOfLocalVariable(Variable variable) {
+    InferredType? inferredType = inferredTypeMetadata[variable];
+    if (variable.isFinal) {
+      if (variable.parent is Let && variable.type is VoidType) {
+        // This is most likely a CFE desugaring construct of index setters where
+        // the result of the `[]=` call is stored in a let variable of void type
+        // and never used. Since `[]=` calls don't have an actual return value we
+        // use top type for the (unused) variable for which we can synthesize a
+        // `null`.
+        //
+        // See also http://dartbug.com/63360
+        return null;
+      }
+      inferredType ??= inferredTypeMetadata[variable.initializer];
     }
-    return _filterInferredType(node.type, inferredType);
+    return _filterInferredType(variable.type, inferredType);
   }
 
   DartType? _filterInferredType(
@@ -2613,6 +2677,31 @@ class Translator with KernelNodes {
       }
     }
   }
+
+  /// Whether we can have an instance of [klass] or any of its transitive
+  /// subclasses.
+  bool isAllocatable(Class klass) =>
+      !isCyclicHeapType(classInfo[klass]!.repr.heapType);
+
+  bool isCyclicHeapType(w.HeapType type) {
+    final alreadyCalculated = _isCyclicHeapType[type];
+    if (alreadyCalculated != null) return alreadyCalculated;
+
+    _isCyclicHeapType[type] = true;
+    if (type is w.StructType) {
+      for (final field in type.fields) {
+        if (field.type case w.RefType(
+          nullable: false,
+          heapType: final fieldHeapType,
+        )) {
+          if (isCyclicHeapType(fieldHeapType)) {
+            return _isCyclicHeapType[type] = true;
+          }
+        }
+      }
+    }
+    return _isCyclicHeapType[type] = false;
+  }
 }
 
 class CompilationQueue {
@@ -2805,13 +2894,11 @@ class _ClosureTrampolineGenerator implements CodeGenerator {
     assert(argNameIndex == argNames.length);
 
     final outputs = translator.callTarget(target, b);
-    if (outputs.isNotEmpty) {
-      translator.convertType(
-        b,
-        outputs.single,
-        translator.outputOrVoid(trampoline.type.outputs),
-      );
-    }
+    translator.convertType(
+      b,
+      translator.outputOrVoid(outputs),
+      translator.outputOrVoid(trampoline.type.outputs),
+    );
     b.end();
   }
 }
@@ -3002,13 +3089,11 @@ class _ClosureDynamicEntryGenerator implements CodeGenerator {
     }
 
     final outputs = translator.callTarget(target, b);
-    if (outputs.isNotEmpty) {
-      translator.convertType(
-        b,
-        outputs.single,
-        translator.outputOrVoid(function.type.outputs),
-      );
-    }
+    translator.convertType(
+      b,
+      translator.outputOrVoid(outputs),
+      translator.outputOrVoid(function.type.outputs),
+    );
 
     b.end(); // end function
   }
@@ -3396,7 +3481,7 @@ class NodeCounter extends VisitorDefault<void> with VisitorVoidMixin {
 
   @override
   void visitLocalInitializer(LocalInitializer node) {
-    node.variable.initializer!.accept(this);
+    node.value.accept(this);
   }
 
   @override
@@ -3857,6 +3942,9 @@ void instantiateDummyValue(
       break;
     case w.NumType.f64:
       b.f64_const(0);
+      break;
+    case w.NumType.v128:
+      b.v128_const_i32x4(0, 0, 0, 0);
       break;
     default:
       if (type is w.RefType) {

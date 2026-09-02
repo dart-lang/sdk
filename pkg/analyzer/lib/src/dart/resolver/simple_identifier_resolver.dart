@@ -71,17 +71,11 @@ class SimpleIdentifierResolver with ScopeHelpers {
   ///
   // TODO(scheglov): this is duplicate
   bool _isExpressionIdentifier(Identifier node) {
-    var parent = node.parent;
+    var parent = node.parent2;
     if (node is SimpleIdentifier && node.inDeclarationContext()) {
       return false;
     }
-    if (parent is ConstructorDeclarationImpl) {
-      if (parent.typeName == node) {
-        return false;
-      }
-    }
-    if (parent is ConstructorNameImpl ||
-        parent is MethodInvocationImpl ||
+    if (parent is MethodInvocationImpl ||
         parent is PrefixedIdentifierImpl && parent.prefix == node ||
         parent is PropertyAccessImpl ||
         parent is NamedTypeImpl) {
@@ -94,13 +88,13 @@ class SimpleIdentifierResolver with ScopeHelpers {
   /// * it is the prefix in an import directive, or
   /// * it is the prefix in a prefixed identifier.
   bool _isValidAsPrefix(SimpleIdentifier node) {
-    var parent = node.parent;
+    var parent = node.parent2;
     if (parent is ImportDirectiveImpl) {
       return identical(parent.prefix, node);
     } else if (parent is PrefixedIdentifierImpl) {
       return true;
     } else if (parent is MethodInvocationImpl) {
-      return identical(parent.target, node) &&
+      return identical(parent.target2, node) &&
           parent.operator?.type == TokenType.PERIOD;
     }
     return false;
@@ -139,11 +133,8 @@ class SimpleIdentifierResolver with ScopeHelpers {
         node.element is FormalParameterElement) {
       return null;
     }
-    var parent = node.parent;
+    var parent = node.parent2;
     if (parent is FieldFormalParameterImpl) {
-      return null;
-    } else if (parent is ConstructorFieldInitializerImpl &&
-        parent.fieldName == node) {
       return null;
     } else if (parent is AnnotationImpl && parent.constructorName == node) {
       return null;
@@ -153,23 +144,11 @@ class SimpleIdentifierResolver with ScopeHelpers {
     // Otherwise, the node should be resolved.
     //
 
-    // TODO(scheglov): Special-case resolution of ForStatement, don't use this.
-    var hasRead = true;
-    var hasWrite = false;
-    {
-      var parent = node.parent;
-      if (parent is ForEachPartsWithIdentifierImpl &&
-          parent.identifier == node) {
-        hasRead = false;
-        hasWrite = true;
-      }
-    }
-
     var resolver = PropertyElementResolver(_resolver);
     var result = resolver.resolveSimpleIdentifier(
       node: node,
-      hasRead: hasRead,
-      hasWrite: hasWrite,
+      hasRead: true,
+      hasWrite: false,
     );
 
     var callFunctionType = result.functionTypeCallType;
@@ -192,17 +171,9 @@ class SimpleIdentifierResolver with ScopeHelpers {
       return null;
     }
 
-    var element = hasRead ? result.readElement2 : result.writeElement2;
+    var element = result.readElement2;
 
-    var enclosingClass = _resolver.enclosingClass;
-    if (_isFactoryConstructorReturnType(node) &&
-        !identical(element, enclosingClass)) {
-      diagnosticReporter.report(diag.invalidFactoryNameNotAClass.at(node));
-    } else if (_isConstructorReturnType(node) &&
-        !identical(element, enclosingClass)) {
-      // This error is now reported by the parser.
-      element = null;
-    } else if (element is PrefixElement && !_isValidAsPrefix(node)) {
+    if (element is PrefixElement && !_isValidAsPrefix(node)) {
       if (element.name case var name?) {
         diagnosticReporter.report(
           diag.prefixIdentifierNotFollowedByDot
@@ -212,7 +183,8 @@ class SimpleIdentifierResolver with ScopeHelpers {
       }
     } else if (element == null) {
       // TODO(brianwilkerson): Recover from this error.
-      if (node.name == "await" && _resolver.enclosingFunction != null) {
+      if (node.name == "await" &&
+          _resolver.enclosingExecutableElement != null) {
         diagnosticReporter.report(diag.undefinedIdentifierAwait.at(node));
       } else if (!_resolver.libraryFragment.shouldIgnoreUndefinedIdentifier(
         node,
@@ -273,9 +245,9 @@ class SimpleIdentifierResolver with ScopeHelpers {
         isRead: node.inGetterContext(),
       );
     } else if (element is PrefixElement) {
-      var parent = node.parent;
+      var parent = node.parent2;
       if (parent is PrefixedIdentifierImpl && parent.prefix == node ||
-          parent is MethodInvocationImpl && parent.target == node) {
+          parent is MethodInvocationImpl && parent.target2 == node) {
         inferenceLogWriter?.recordExpressionWithNoType(node);
         return;
       }
@@ -311,17 +283,17 @@ class SimpleIdentifierResolver with ScopeHelpers {
       return;
     }
 
-    var parent = node.parent;
+    var parent = node.parent2;
 
     if (parent is PrefixedIdentifierImpl && parent.identifier == node) {
       node = parent;
-      parent = node.parent;
+      parent = node.parent2;
     }
 
     if (parent is CommentReferenceImpl ||
-        parent is MethodInvocationImpl && parent.target == node ||
+        parent is MethodInvocationImpl && parent.target2 == node ||
         parent is PrefixedIdentifierImpl && parent.prefix == node ||
-        parent is PropertyAccessImpl && parent.target == node) {
+        parent is PropertyAccessImpl && parent.target2 == node) {
       return;
     }
 
@@ -335,26 +307,5 @@ class SimpleIdentifierResolver with ScopeHelpers {
     } else if (node is SimpleIdentifier) {
       node.setPseudoExpressionStaticType(DynamicTypeImpl.instance);
     }
-  }
-
-  /// Return `true` if the given [identifier] is the return type of a
-  /// constructor declaration.
-  static bool _isConstructorReturnType(SimpleIdentifier identifier) {
-    var parent = identifier.parent;
-    if (parent is ConstructorDeclarationImpl) {
-      return identical(parent.typeName, identifier);
-    }
-    return false;
-  }
-
-  /// Return `true` if the given [identifier] is the return type of a factory
-  /// constructor.
-  static bool _isFactoryConstructorReturnType(SimpleIdentifier identifier) {
-    var parent = identifier.parent;
-    if (parent is ConstructorDeclarationImpl) {
-      return identical(parent.typeName, identifier) &&
-          parent.factoryKeyword != null;
-    }
-    return false;
   }
 }

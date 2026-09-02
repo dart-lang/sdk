@@ -53,7 +53,7 @@ abstract class AnalysisResultImpl implements AnalysisResult {
 ///
 /// The returned node may be something like a [PrimaryConstructorDeclaration]
 /// which declares a primary constructor but not a subclass of [Declaration].
-class DeclarationByElementLocator extends UnifyingAstVisitor<void> {
+class DeclarationByElementLocator extends UnifyingAstVisitor2<void> {
   // TODO(srawlins): This visitor could be further optimized by special casing each static
   // type of [element]. For example, for library-level elements (classes etc),
   // we can iterate over the compilation unit's declarations.
@@ -97,10 +97,7 @@ class DeclarationByElementLocator extends UnifyingAstVisitor<void> {
     } else if (fragment is ConstructorFragment) {
       var token = switch (node) {
         ConstructorDeclaration() =>
-          node.name ??
-              node.typeName?.token ??
-              node.newKeyword ??
-              node.factoryKeyword,
+          node.name ?? node.typeName2 ?? node.newKeyword ?? node.factoryKeyword,
         PrimaryConstructorDeclaration() =>
           node.constructorName?.name ?? node.typeName,
         _ => null,
@@ -145,7 +142,11 @@ class DeclarationByElementLocator extends UnifyingAstVisitor<void> {
         result = node;
       }
     } else if (fragment is PropertyAccessorFragment) {
-      if (node is FunctionDeclaration) {
+      if (node is TopLevelGetterDeclarationImpl) {
+        if (_hasOffset(node.name)) {
+          result = node;
+        }
+      } else if (node is FunctionDeclaration) {
         if (_hasOffset(node.name)) {
           result = node;
         }
@@ -167,7 +168,7 @@ class DeclarationByElementLocator extends UnifyingAstVisitor<void> {
     }
 
     if (result == null) {
-      node.visitChildren(this);
+      node.visitChildren2(this);
     }
   }
 
@@ -301,6 +302,18 @@ class ParsedLibraryResultImpl extends AnalysisResultImpl
 
   @override
   ElementDeclarationResultImpl? getFragmentDeclaration(Fragment fragment) {
+    return _getFragmentDeclaration(fragment, useV2: false);
+  }
+
+  @override
+  ElementDeclarationResultImpl? getFragmentDeclaration2(Fragment fragment) {
+    return _getFragmentDeclaration(fragment, useV2: true);
+  }
+
+  ElementDeclarationResultImpl? _getFragmentDeclaration(
+    Fragment fragment, {
+    required bool useV2,
+  }) {
     var nameOffset = _getFragmentNameOffset(fragment);
     if (fragment is LibraryFragment || nameOffset == null) {
       return null;
@@ -319,11 +332,14 @@ class ParsedLibraryResultImpl extends AnalysisResultImpl
     );
 
     var locator = DeclarationByElementLocator(fragment, nameOffset);
-    unitResult.unit.accept(locator);
+    unitResult.unit.accept2(locator);
     var declaration = locator.result;
 
     if (declaration == null) {
       return null;
+    }
+    if (!useV2 && declaration is TopLevelGetterDeclarationImpl) {
+      declaration = V1Projection.toV1CompilationUnitMember(declaration);
     }
 
     return ElementDeclarationResultImpl(
@@ -432,6 +448,28 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
 
   @override
   ElementDeclarationResultImpl? getFragmentDeclaration(Fragment fragment) {
+    return _getFragmentDeclaration(fragment, useV2: false);
+  }
+
+  @override
+  ElementDeclarationResultImpl? getFragmentDeclaration2(Fragment fragment) {
+    return _getFragmentDeclaration(fragment, useV2: true);
+  }
+
+  @override
+  ResolvedUnitResult? unitWithPath(String path) {
+    for (var unit in units) {
+      if (unit.path == path) {
+        return unit;
+      }
+    }
+    return null;
+  }
+
+  ElementDeclarationResultImpl? _getFragmentDeclaration(
+    Fragment fragment, {
+    required bool useV2,
+  }) {
     var nameOffset = _getFragmentNameOffset(fragment);
     if (fragment is LibraryFragment || nameOffset == null) {
       return null;
@@ -452,11 +490,14 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
     );
 
     var locator = DeclarationByElementLocator(fragment, nameOffset);
-    unitResult.unit.accept(locator);
+    unitResult.unit.accept2(locator);
     var declaration = locator.result;
 
     if (declaration == null) {
       return null;
+    }
+    if (!useV2 && declaration is TopLevelGetterDeclarationImpl) {
+      declaration = V1Projection.toV1CompilationUnitMember(declaration);
     }
 
     return ElementDeclarationResultImpl(
@@ -465,16 +506,6 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
       null,
       unitResult,
     );
-  }
-
-  @override
-  ResolvedUnitResult? unitWithPath(String path) {
-    for (var unit in units) {
-      if (unit.path == path) {
-        return unit;
-      }
-    }
-    return null;
   }
 }
 

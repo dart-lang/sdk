@@ -447,9 +447,6 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   LocalVariable* LookupVariable(intptr_t kernel_offset);
 
   // Build type argument type checks for the current function.
-  // ParsedFunction should have the following information:
-  //  - is_forwarding_stub()
-  //  - forwarding_stub_super_target()
   // Scope should be populated with parameter variables including
   //  - needs_type_check()
   //  - is_explicit_covariant_parameter()
@@ -457,9 +454,6 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
                                    Fragment* implicit_checks);
 
   // Build argument type checks for the current function.
-  // ParsedFunction should have the following information:
-  //  - is_forwarding_stub()
-  //  - forwarding_stub_super_target()
   // Scope should be populated with parameter variables including
   //  - needs_type_check()
   //  - is_explicit_covariant_parameter()
@@ -475,8 +469,6 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   //
   // ParsedFunction should have the following information:
   //  - default_parameter_values()
-  //  - is_forwarding_stub()
-  //  - forwarding_stub_super_target()
   //
   // Scope should be populated with parameter variables including
   //  - needs_type_check()
@@ -514,8 +506,6 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   //  - DefaultFunctionTypeArguments()
   //  - function_type_arguments()
   //  - default_parameter_values()
-  //  - is_forwarding_stub()
-  //  - forwarding_stub_super_target()
   //
   // Scope should be populated with parameter variables including
   //  - needs_type_check()
@@ -540,8 +530,6 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   //  - DefaultFunctionTypeArguments()
   //  - function_type_arguments()
   //  - default_parameter_values()
-  //  - is_forwarding_stub()
-  //  - forwarding_stub_super_target()
   //
   // Scope should be populated with parameter variables including
   //  - needs_type_check()

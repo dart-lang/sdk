@@ -4,6 +4,7 @@
 
 import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart';
 import 'package:kernel/ast.dart';
+import 'package:kernel/ast.dart' as ast;
 import 'package:kernel/type_algebra.dart';
 
 import '../../api_prototype/lowering_predicates.dart';
@@ -31,6 +32,7 @@ import '../../source/source_loader.dart';
 import '../../source/source_member_builder.dart';
 import '../../source/source_type_parameter_builder.dart';
 import '../../source/type_parameter_factory.dart';
+import '../../type_inference/context_allocation_strategy.dart';
 import '../../type_inference/type_inferrer.dart';
 import '../../type_inference/type_schema.dart';
 import '../fragment.dart';
@@ -92,11 +94,12 @@ abstract class ConstructorEncoding {
 
   void registerFunctionBody({
     required Statement? body,
-    Scope? scope,
-    required ThisVariable? thisVariable,
+    required ScopeProviderInfo? scopeProviderInfo,
   });
 
-  void registerNoBodyConstructor({required ThisVariable? thisVariable});
+  void registerNoBodyConstructor({
+    required ScopeProviderInfo? scopeProviderInfo,
+  });
 
   void addSuperParameterDefaultValueCloners({
     required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
@@ -138,25 +141,28 @@ class RegularConstructorEncoding implements ConstructorEncoding {
   @override
   void registerFunctionBody({
     required Statement? body,
-    Scope? scope,
-    required ThisVariable? thisVariable,
+    required ScopeProviderInfo? scopeProviderInfo,
   }) {
     if (body != null) {
       _constructor.function.registerFunctionBody(body);
     }
-    _constructor.function.scope = scope;
-    _constructor.function.thisVariable = thisVariable
-      ?..parent = _constructor.function;
+    _constructor.function.registerScopeProviderInfo(scopeProviderInfo);
   }
 
   @override
-  void registerNoBodyConstructor({required ThisVariable? thisVariable}) {
+  void registerNoBodyConstructor({
+    required ScopeProviderInfo? scopeProviderInfo,
+  }) {
     if (!_isExternal) {
+      // null is passed for scopeProviderInfo in the call below since the
+      // scopeProviderInfo object is registered outside of the if-statement
+      // later in the method.
       registerFunctionBody(
         body: extern.createEmptyStatement(),
-        thisVariable: thisVariable,
+        scopeProviderInfo: null,
       );
     }
+    _constructor.function.registerScopeProviderInfo(scopeProviderInfo);
   }
 
   @override
@@ -507,7 +513,7 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
   /// If this procedure is an extension instance member or extension type
   /// instance member, [_thisVariable] holds the synthetically added `this`
   /// parameter.
-  InternalVariable? _thisVariable;
+  InternalDeclaredVariable? _thisVariable;
 
   /// If this procedure is an extension instance member or extension type
   /// instance member, [_thisTypeParameters] holds the type parameters copied
@@ -531,26 +537,28 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
   @override
   void registerFunctionBody({
     required Statement? body,
-    Scope? scope,
-    required ThisVariable? thisVariable,
+    required ScopeProviderInfo? scopeProviderInfo,
   }) {
     if (body != null) {
       _constructor.function.registerFunctionBody(body);
     }
-    _constructor.function.scope = scope;
-    _constructor.function.thisVariable =
-        // Coverage-ignore(suite): Not run.
-        thisVariable?..parent = _constructor.function;
+    _constructor.function.registerScopeProviderInfo(scopeProviderInfo);
   }
 
   @override
-  void registerNoBodyConstructor({required ThisVariable? thisVariable}) {
+  void registerNoBodyConstructor({
+    required ScopeProviderInfo? scopeProviderInfo,
+  }) {
     if (!_hasBuiltBody && !_isExternal) {
+      // null is passed for scopeProviderInfo below since registering of the
+      // scopeProviderInfo object is done outside of the if-statement, later in
+      // the method.
       registerFunctionBody(
         body: extern.createEmptyStatement(),
-        thisVariable: thisVariable,
+        scopeProviderInfo: null,
       );
     }
+    _constructor.function.registerScopeProviderInfo(scopeProviderInfo);
   }
 
   @override
@@ -703,7 +711,7 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
   }
 
   @override
-  InternalVariable? get thisVariable {
+  InternalDeclaredVariable? get thisVariable {
     assert(
       _thisVariable != null,
       "ProcedureBuilder.thisVariable has not been set.",
@@ -771,9 +779,9 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
       return;
     }
     if (!_isExternal) {
-      InternalVariable thisVariable = this.thisVariable!;
+      InternalDeclaredVariable thisVariable = this.thisVariable!;
       VariableStatement thisVariableStatement = extern.createVariableStatement(
-        extern.createVariableDeclaration(thisVariable.astVariable),
+        thisVariable.createDeclaration(),
       );
       List<Statement> statements = [thisVariableStatement];
       _ExtensionTypeInitializerToStatementConverter visitor =
@@ -792,7 +800,7 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
       }
       statements.add(
         extern.createReturnStatement(
-          extern.createVariableGet(thisVariable.astVariable),
+          extern.createVariableGet(thisVariable.readVariable),
         ),
       );
       // TODO(cstefantsova): Provide a scope here.
@@ -802,7 +810,7 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
           fileOffset: fileOffset,
           fileEndOffset: endOffset,
         ),
-        thisVariable: null,
+        scopeProviderInfo: null,
       );
     }
     _hasBuiltBody = true;
@@ -817,10 +825,7 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
       constructorBuilder,
       constructorDeclaration,
       _constructor,
-      new _ExtensionTypeConstructorContext(
-        constructorBuilder,
-        thisVariable!.astVariable,
-      ),
+      new _ExtensionTypeConstructorContext(constructorBuilder, thisVariable!),
     );
   }
 
@@ -862,18 +867,14 @@ class _ExtensionTypeInitializerToStatementConverter
 
   @override
   void visitAuxiliaryInitializer(AuxiliaryInitializer node) {
-    if (node is ExtensionTypeRedirectingInitializer) {
+    if (node is ExternalExtensionTypeRedirectingInitializer) {
       statements.add(
         extern.createExpressionStatement(
           extern.createVariableSet(
             thisVariableStatement.declaration.variable,
             extern.createStaticInvocation(
               node.target,
-              node.arguments.toArguments(
-                node.inferredTypeArguments,
-                node.positional,
-                node.named,
-              ),
+              node.arguments,
               fileOffset: node.fileOffset,
             ),
             fileOffset: node.fileOffset,
@@ -883,7 +884,7 @@ class _ExtensionTypeInitializerToStatementConverter
         ),
       );
       return;
-    } else if (node is ExtensionTypeRepresentationFieldInitializer) {
+    } else if (node is ExternalExtensionTypeRepresentationFieldInitializer) {
       thisVariableStatement.declaration.variable
         ..initializer = (node.value
           ..parent = thisVariableStatement.declaration.variable)
@@ -958,7 +959,7 @@ class ExtensionTypeConstructorEncoding
     SourceExtensionTypeDeclarationBuilder declarationBuilder,
     List<DartType> typeArguments,
   ) {
-    ExtensionTypeDeclaration extensionTypeDeclaration =
+    ast.ExtensionTypeDeclaration extensionTypeDeclaration =
         declarationBuilder.extensionTypeDeclaration;
     return new ExtensionType(
       extensionTypeDeclaration,
@@ -1390,14 +1391,14 @@ class _RegularConstructorContext implements ConstructorContext {
   }
 
   @override
-  Variable? get thisVariable => null;
+  InternalDeclaredVariable? get thisVariable => null;
 }
 
 class _ExtensionTypeConstructorContext implements ConstructorContext {
   final SourceConstructorBuilder _builder;
 
   @override
-  final Variable thisVariable;
+  final InternalDeclaredVariable thisVariable;
 
   new(this._builder, this.thisVariable);
 

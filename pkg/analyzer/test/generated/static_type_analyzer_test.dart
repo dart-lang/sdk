@@ -112,17 +112,7 @@ test(bool b) => b ? 1 : 0;
     );
   }
 
-  test_visitDoubleLiteral() async {
-    var result = await resolveTestCodeWithDiagnostics('''
-test() => 4.33;
-''');
-    expect(
-      result.findNode.doubleLiteral('4.33').staticType,
-      same(result.typeProvider.doubleType),
-    );
-  }
-
-  test_visitInstanceCreationExpression_named() async {
+  test_visitConstructorInvocation_named() async {
     var result = await resolveTestCodeWithDiagnostics('''
 class C {
   C.m();
@@ -131,10 +121,13 @@ test() => new C.m();
 late C c;
 ''');
     var cType = result.findElement.topVar('c').type;
-    expect(result.findNode.instanceCreation('new C.m()').staticType, cType);
+    expect(
+      result.findNode.constructorInvocation('new C.m()').staticType,
+      cType,
+    );
   }
 
-  test_visitInstanceCreationExpression_typeParameters() async {
+  test_visitConstructorInvocation_typeParameters() async {
     var result = await resolveTestCodeWithDiagnostics('''
 class C<E> {}
 class I {}
@@ -143,21 +136,31 @@ late I i;
 ''');
     var iType = result.findElement.topVar('i').type;
     InterfaceType type =
-        result.findNode.instanceCreation('new C<I>()').staticType
+        result.findNode.constructorInvocation('new C<I>()').staticType
             as InterfaceType;
     List<DartType> typeArgs = type.typeArguments;
     expect(typeArgs.length, 1);
     expect(typeArgs[0], iType);
   }
 
-  test_visitInstanceCreationExpression_unnamed() async {
+  test_visitConstructorInvocation_unnamed() async {
     var result = await resolveTestCodeWithDiagnostics('''
 class C {}
 test() => new C();
 late C c;
 ''');
     var cType = result.findElement.topVar('c').type;
-    expect(result.findNode.instanceCreation('new C()').staticType, cType);
+    expect(result.findNode.constructorInvocation('new C()').staticType, cType);
+  }
+
+  test_visitDoubleLiteral() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+test() => 4.33;
+''');
+    expect(
+      result.findNode.doubleLiteral('4.33').staticType,
+      same(result.typeProvider.doubleType),
+    );
   }
 
   test_visitIntegerLiteral() async {

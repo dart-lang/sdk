@@ -35,6 +35,20 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+          name: it
+          declaredFragment: <testLibraryFragment> it@58
+            element: isFinal isPublic
+              type: int
+              field: <testLibrary>::@extensionType::A::@field::it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: int
@@ -73,7 +87,23 @@ ConstructorDeclaration
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression: InstanceCreationExpression
+    expression2: ConstructorInvocation
+      constructorReference: ConstructorReference2
+        typeReference: ConstructorTypeReference
+          name: A
+          element: <testLibrary>::@extensionType::A
+          type: A
+        element: <testLibrary>::@extensionType::A::@constructor::new
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments2
+          IntegerLiteral
+            literal: 0
+            correspondingParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
+            staticType: int
+        rightParenthesis: )
+      staticType: A
+    expression(v1): InstanceCreationExpression
       constructorName: ConstructorName
         type: NamedType
           name: A
@@ -111,6 +141,19 @@ ConstructorDeclaration
   name: named
   parameters: FormalParameterList
     leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+        name: it
+        declaredFragment: <testLibraryFragment> it@59
+          element: isPublic
+            type: int
+    rightParenthesis: )
+  parameters(v1): FormalParameterList
+    leftParenthesis: (
     parameter: RegularFormalParameter
       type: NamedType
         name: int
@@ -122,14 +165,20 @@ ConstructorDeclaration
           type: int
     rightParenthesis: )
   separator: =
-  redirectedConstructor: ConstructorName
-    type: NamedType
+  factoryRedirectionTarget: ConstructorReference2
+    typeReference: ConstructorTypeReference
       name: A
       element: <testLibrary>::@extensionType::A
       type: A
     element: <testLibrary>::@extensionType::A::@constructor::new
   body: EmptyFunctionBody
     semicolon: ;
+  redirectedConstructor: ConstructorName
+    type: NamedType
+      name: A
+      element: <testLibrary>::@extensionType::A
+      type: A
+    element: <testLibrary>::@extensionType::A::@constructor::new
   declaredFragment: <testLibraryFragment> named@49
     element: <testLibrary>::@extensionType::A::@constructor::named
       type: A Function(int)
@@ -152,7 +201,26 @@ ConstructorDeclaration
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression: InstanceCreationExpression
+    expression2: ConstructorInvocation
+      constructorReference: ConstructorReference2
+        typeReference: ConstructorTypeReference
+          name: A
+          element: <testLibrary>::@extensionType::A
+          type: A
+        selector: ConstructorSelector
+          period: .
+          name2: named
+        element: <testLibrary>::@extensionType::A::@constructor::named
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments2
+          IntegerLiteral
+            literal: 0
+            correspondingParameter: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::it
+            staticType: int
+        rightParenthesis: )
+      staticType: A
+    expression(v1): InstanceCreationExpression
       constructorName: ConstructorName
         type: NamedType
           name: A
@@ -192,11 +260,25 @@ extension type const A.named(int it) {
 ConstructorDeclaration
   constKeyword: const
   factoryKeyword: factory
-  typeName: SimpleIdentifier
+  typeName2: A
+  typeName(v1): SimpleIdentifier
     token: A
     element: <testLibrary>::@extensionType::A
     staticType: null
   parameters: FormalParameterList
+    leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+        name: it
+        declaredFragment: <testLibraryFragment> it@61
+          element: isPublic
+            type: int
+    rightParenthesis: )
+  parameters(v1): FormalParameterList
     leftParenthesis: (
     parameter: RegularFormalParameter
       type: NamedType
@@ -209,6 +291,17 @@ ConstructorDeclaration
           type: int
     rightParenthesis: )
   separator: =
+  factoryRedirectionTarget: ConstructorReference2
+    typeReference: ConstructorTypeReference
+      name: A
+      element: <testLibrary>::@extensionType::A
+      type: A
+    selector: ConstructorSelector
+      period: .
+      name2: named
+    element: <testLibrary>::@extensionType::A::@constructor::named
+  body: EmptyFunctionBody
+    semicolon: ;
   redirectedConstructor: ConstructorName
     type: NamedType
       name: A
@@ -220,8 +313,6 @@ ConstructorDeclaration
       element: <testLibrary>::@extensionType::A::@constructor::named
       staticType: null
     element: <testLibrary>::@extensionType::A::@constructor::named
-  body: EmptyFunctionBody
-    semicolon: ;
   declaredFragment: <testLibraryFragment> new@null
     element: <testLibrary>::@extensionType::A::@constructor::new
       type: A Function(int)
@@ -248,14 +339,16 @@ ConstructorDeclaration
     ConstructorFieldInitializer
       thisKeyword: this
       period: .
-      fieldName: SimpleIdentifier
+      fieldName2: it
+      fieldName(v1): SimpleIdentifier
         token: it
         element: <testLibrary>::@extensionType::A::@field::it
         staticType: null
       equals: =
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 0
         staticType: int
+      fieldElement: <testLibrary>::@extensionType::A::@field::it
   body: EmptyFunctionBody
     semicolon: ;
   declaredFragment: <testLibraryFragment> named@33
@@ -285,14 +378,16 @@ ConstructorDeclaration
     ConstructorFieldInitializer
       thisKeyword: this
       period: .
-      fieldName: SimpleIdentifier
+      fieldName2: it
+      fieldName(v1): SimpleIdentifier
         token: it
         element: <testLibrary>::@extensionType::A::@field::it
         staticType: null
       equals: =
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 0
         staticType: int
+      fieldElement: <testLibrary>::@extensionType::A::@field::it
   body: EmptyFunctionBody
     semicolon: ;
   declaredFragment: <testLibraryFragment> named@39
@@ -320,14 +415,16 @@ ConstructorDeclaration
     ConstructorFieldInitializer
       thisKeyword: this
       period: .
-      fieldName: SimpleIdentifier
+      fieldName2: it
+      fieldName(v1): SimpleIdentifier
         token: it
         element: <testLibrary>::@extensionType::A::@field::it
         staticType: null
       equals: =
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 0
         staticType: int
+      fieldElement: <testLibrary>::@extensionType::A::@field::it
   body: EmptyFunctionBody
     semicolon: ;
   declaredFragment: <testLibraryFragment> new@null
@@ -356,14 +453,16 @@ ConstructorDeclaration
     ConstructorFieldInitializer
       thisKeyword: this
       period: .
-      fieldName: SimpleIdentifier
+      fieldName2: it
+      fieldName(v1): SimpleIdentifier
         token: it
         element: <testLibrary>::@extensionType::A::@field::it
         staticType: null
       equals: =
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 0
         staticType: int
+      fieldElement: <testLibrary>::@extensionType::A::@field::it
   body: EmptyFunctionBody
     semicolon: ;
   declaredFragment: <testLibraryFragment> new@null
@@ -383,7 +482,8 @@ extension type A(int it) {
     assertResolvedNodeText(node, r'''
 ConstructorDeclaration
   factoryKeyword: factory
-  typeName: SimpleIdentifier
+  typeName2: A
+  typeName(v1): SimpleIdentifier
     token: A
     element: <testLibrary>::@extensionType::A
     staticType: null
@@ -394,7 +494,23 @@ ConstructorDeclaration
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression: InstanceCreationExpression
+    expression2: ConstructorInvocation
+      constructorReference: ConstructorReference2
+        typeReference: ConstructorTypeReference
+          name: A
+          element: <testLibrary>::@extensionType::A
+          type: A
+        element: <testLibrary>::@extensionType::A::@constructor::new
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments2
+          IntegerLiteral
+            literal: 0
+            correspondingParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
+            staticType: int
+        rightParenthesis: )
+      staticType: A
+    expression(v1): InstanceCreationExpression
       constructorName: ConstructorName
         type: NamedType
           name: A
@@ -428,7 +544,8 @@ extension type A.named(int it) {
     assertResolvedNodeText(node, r'''
 ConstructorDeclaration
   factoryKeyword: factory
-  typeName: SimpleIdentifier
+  typeName2: A
+  typeName(v1): SimpleIdentifier
     token: A
     element: <testLibrary>::@extensionType::A
     staticType: null
@@ -437,7 +554,26 @@ ConstructorDeclaration
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression: InstanceCreationExpression
+    expression2: ConstructorInvocation
+      constructorReference: ConstructorReference2
+        typeReference: ConstructorTypeReference
+          name: A
+          element: <testLibrary>::@extensionType::A
+          type: A
+        selector: ConstructorSelector
+          period: .
+          name2: named
+        element: <testLibrary>::@extensionType::A::@constructor::named
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments2
+          IntegerLiteral
+            literal: 0
+            correspondingParameter: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::it
+            staticType: int
+        rightParenthesis: )
+      staticType: A
+    expression(v1): InstanceCreationExpression
       constructorName: ConstructorName
         type: NamedType
           name: A
@@ -475,7 +611,8 @@ extension type A(int it) {
     var node = result.findNode.singleConstructorDeclaration;
     assertResolvedNodeText(node, r'''
 ConstructorDeclaration
-  typeName: SimpleIdentifier
+  typeName2: A
+  typeName(v1): SimpleIdentifier
     token: A
     element: <testLibrary>::@extensionType::A
     staticType: null
@@ -489,14 +626,16 @@ ConstructorDeclaration
     ConstructorFieldInitializer
       thisKeyword: this
       period: .
-      fieldName: SimpleIdentifier
+      fieldName2: it
+      fieldName(v1): SimpleIdentifier
         token: it
         element: <testLibrary>::@extensionType::A::@field::it
         staticType: null
       equals: =
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 0
         staticType: int
+      fieldElement: <testLibrary>::@extensionType::A::@field::it
   body: EmptyFunctionBody
     semicolon: ;
   declaredFragment: <testLibraryFragment> named@31
@@ -515,7 +654,8 @@ extension type A.named(int it) {
     var node = result.findNode.singleConstructorDeclaration;
     assertResolvedNodeText(node, r'''
 ConstructorDeclaration
-  typeName: SimpleIdentifier
+  typeName2: A
+  typeName(v1): SimpleIdentifier
     token: A
     element: <testLibrary>::@extensionType::A
     staticType: null
@@ -527,14 +667,16 @@ ConstructorDeclaration
     ConstructorFieldInitializer
       thisKeyword: this
       period: .
-      fieldName: SimpleIdentifier
+      fieldName2: it
+      fieldName(v1): SimpleIdentifier
         token: it
         element: <testLibrary>::@extensionType::A::@field::it
         staticType: null
       equals: =
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 0
         staticType: int
+      fieldElement: <testLibrary>::@extensionType::A::@field::it
   body: EmptyFunctionBody
     semicolon: ;
   declaredFragment: <testLibraryFragment> new@null
@@ -559,6 +701,20 @@ ExtensionTypeDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: String
+            element: dart:core::@class::String
+            type: String
+          name: it
+          declaredFragment: <testLibraryFragment> it@24
+            element: isFinal isPublic
+              type: String
+              field: <testLibrary>::@extensionType::A::@field::it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -589,7 +745,7 @@ ExtensionTypeDeclaration
             VariableDeclaration
               name: foo
               equals: =
-              initializer: IntegerLiteral
+              initializer2: IntegerLiteral
                 literal: 0
                 staticType: int
               declaredFragment: <testLibraryFragment> foo@49
@@ -607,7 +763,7 @@ ExtensionTypeDeclaration
             VariableDeclaration
               name: bar
               equals: =
-              initializer: IntegerLiteral
+              initializer2: IntegerLiteral
                 literal: 1
                 staticType: int
               declaredFragment: <testLibraryFragment> bar@77
@@ -631,6 +787,20 @@ ExtensionTypeDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+          name: it
+          declaredFragment: <testLibraryFragment> it@21
+            element: isFinal isPublic
+              type: int
+              field: <testLibrary>::@extensionType::A::@field::it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -688,6 +858,28 @@ MethodDeclaration
     rightBracket: >
   parameters: FormalParameterList
     leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: T
+          element: #E0 T
+          type: T
+        name: t
+        declaredFragment: <testLibraryFragment> t@46
+          element: isPublic
+            type: T
+      RegularFormalParameter
+        type: NamedType
+          name: U
+          element: #E1 U
+          type: U
+        name: u
+        declaredFragment: <testLibraryFragment> u@51
+          element: isPublic
+            type: U
+    rightParenthesis: )
+  parameters(v1): FormalParameterList
+    leftParenthesis: (
     parameter: RegularFormalParameter
       type: NamedType
         name: T
@@ -712,7 +904,7 @@ MethodDeclaration
       leftBracket: {
       statements
         ExpressionStatement
-          expression: TypeLiteral
+          expression2: TypeLiteral
             type: NamedType
               name: T
               element: #E0 T
@@ -720,7 +912,7 @@ MethodDeclaration
             staticType: Type
           semicolon: ;
         ExpressionStatement
-          expression: TypeLiteral
+          expression2: TypeLiteral
             type: NamedType
               name: U
               element: #E1 U
@@ -747,6 +939,28 @@ ExtensionTypeDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: {
+        formalParameters
+          RegularFormalParameter
+            type: NamedType
+              name: int
+              element: dart:core::@class::int
+              type: int
+            name: a
+            defaultClause: FormalParameterDefaultClause
+              separator: =
+              value2: IntegerLiteral
+                literal: 0
+                staticType: int
+            declaredFragment: <testLibraryFragment> a@22
+              element: isFinal isPublic
+                type: int
+                field: <testLibrary>::@extensionType::A::@field::a
+        rightDelimiter: }
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
       parameter: RegularFormalParameter
@@ -789,6 +1003,28 @@ ExtensionTypeDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: [
+        formalParameters
+          RegularFormalParameter
+            type: NamedType
+              name: int
+              element: dart:core::@class::int
+              type: int
+            name: a
+            defaultClause: FormalParameterDefaultClause
+              separator: =
+              value2: IntegerLiteral
+                literal: 0
+                staticType: int
+            declaredFragment: <testLibraryFragment> a@22
+              element: isFinal isPublic
+                type: int
+                field: <testLibrary>::@extensionType::A::@field::a
+        rightDelimiter: ]
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       leftDelimiter: [
       parameter: RegularFormalParameter
@@ -834,6 +1070,18 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        FieldFormalParameter
+          thisKeyword: this
+          period: .
+          name: it
+          declaredFragment: <testLibraryFragment> it@22
+            element: hasImplicitType isFinal isPublic
+              type: dynamic
+              field: <null>
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: FieldFormalParameter
         thisKeyword: this
         period: .
@@ -853,9 +1101,9 @@ ExtensionTypeDeclaration
 ''');
   }
 
-  test_primaryConstructor_formalParameters_fieldFormalParameter_language310() async {
+  test_primaryConstructor_formalParameters_fieldFormalParameter_beforePrimaryConstructors() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A(this.it) {}
 //               ^^^^
 // [diag.expectedRepresentationField] Expected a representation field.
@@ -869,6 +1117,18 @@ ExtensionTypeDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        FieldFormalParameter
+          thisKeyword: this
+          period: .
+          name: it
+          declaredFragment: <testLibraryFragment> it@38
+            element: hasImplicitType isFinal isPublic
+              type: dynamic
+              field: <null>
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: FieldFormalParameter
         thisKeyword: this
@@ -903,6 +1163,24 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+          name: it
+          functionTypedSuffix: FunctionTypedFormalParameterSuffix
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+          declaredFragment: <testLibraryFragment> it@21
+            element: isFinal isPublic
+              type: int Function()
+              field: <testLibrary>::@extensionType::A::@field::it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: int
@@ -928,9 +1206,9 @@ ExtensionTypeDeclaration
 ''');
   }
 
-  test_primaryConstructor_formalParameters_functionTypedFormalParameter_language310() async {
+  test_primaryConstructor_formalParameters_functionTypedFormalParameter_beforePrimaryConstructors() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A(int it()) {}
 //               ^^^
 // [diag.expectedRepresentationField] Expected a representation field.
@@ -944,6 +1222,24 @@ ExtensionTypeDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+          name: it
+          functionTypedSuffix: FunctionTypedFormalParameterSuffix
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+          declaredFragment: <testLibraryFragment> it@37
+            element: isFinal isPublic
+              type: int Function()
+              field: <testLibrary>::@extensionType::A::@field::it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -986,6 +1282,21 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          constFinalOrVarKeyword: const
+          type: NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+          name: it
+          declaredFragment: <testLibraryFragment> it@27
+            element: isFinal isPublic
+              type: int
+              field: <testLibrary>::@extensionType::A::@field::it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         constFinalOrVarKeyword: const
         type: NamedType
@@ -1008,9 +1319,9 @@ ExtensionTypeDeclaration
 ''');
   }
 
-  test_primaryConstructor_formalParameters_keyword_const_language310() async {
+  test_primaryConstructor_formalParameters_keyword_const_beforePrimaryConstructors() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A(const int it) {}
 //               ^^^^^
 // [diag.extraneousModifier] Can't have modifier 'const' here.
@@ -1024,6 +1335,21 @@ ExtensionTypeDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          constFinalOrVarKeyword: const
+          type: NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+          name: it
+          declaredFragment: <testLibraryFragment> it@43
+            element: isFinal isPublic
+              type: int
+              field: <testLibrary>::@extensionType::A::@field::it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         constFinalOrVarKeyword: const
@@ -1063,6 +1389,21 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          covariantKeyword: covariant
+          type: NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+          name: it
+          declaredFragment: <testLibraryFragment> it@31
+            element: isFinal isPublic
+              type: int
+              field: <testLibrary>::@extensionType::A::@field::it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         covariantKeyword: covariant
         type: NamedType
@@ -1085,9 +1426,9 @@ ExtensionTypeDeclaration
 ''');
   }
 
-  test_primaryConstructor_formalParameters_keyword_covariant_language310() async {
+  test_primaryConstructor_formalParameters_keyword_covariant_beforePrimaryConstructors() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A(covariant int it) {}
 //               ^^^^^^^^^
 // [diag.extraneousModifierInPrimaryConstructor] Can't have modifier 'covariant' in a primary constructor.
@@ -1101,6 +1442,21 @@ ExtensionTypeDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          covariantKeyword: covariant
+          type: NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+          name: it
+          declaredFragment: <testLibraryFragment> it@47
+            element: isFinal isPublic
+              type: int
+              field: <testLibrary>::@extensionType::A::@field::it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         covariantKeyword: covariant
@@ -1138,6 +1494,21 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          constFinalOrVarKeyword: final
+          type: NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+          name: it
+          declaredFragment: <testLibraryFragment> it@27
+            element: isFinal isPublic
+              type: int
+              field: <testLibrary>::@extensionType::A::@field::it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         constFinalOrVarKeyword: final
         type: NamedType
@@ -1160,9 +1531,9 @@ ExtensionTypeDeclaration
 ''');
   }
 
-  test_primaryConstructor_formalParameters_keyword_final_hasType_language310() async {
+  test_primaryConstructor_formalParameters_keyword_final_hasType_beforePrimaryConstructors() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A(final int it) {}
 //               ^^^^^
 // [diag.representationFieldModifier] Representation fields can't have the modifier 'var'.
@@ -1176,6 +1547,21 @@ ExtensionTypeDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          constFinalOrVarKeyword: final
+          type: NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+          name: it
+          declaredFragment: <testLibraryFragment> it@43
+            element: isFinal isPublic
+              type: int
+              field: <testLibrary>::@extensionType::A::@field::it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         constFinalOrVarKeyword: final
@@ -1213,6 +1599,17 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          constFinalOrVarKeyword: final
+          name: it
+          declaredFragment: <testLibraryFragment> it@23
+            element: hasImplicitType isFinal isPublic
+              type: Object?
+              field: <testLibrary>::@extensionType::A::@field::it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         constFinalOrVarKeyword: final
         name: it
@@ -1231,9 +1628,9 @@ ExtensionTypeDeclaration
 ''');
   }
 
-  test_primaryConstructor_formalParameters_keyword_final_noType_language310() async {
+  test_primaryConstructor_formalParameters_keyword_final_noType_beforePrimaryConstructors() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A(final it) {}
 //               ^^^^^
 // [diag.representationFieldModifier] Representation fields can't have the modifier 'var'.
@@ -1249,6 +1646,17 @@ ExtensionTypeDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          constFinalOrVarKeyword: final
+          name: it
+          declaredFragment: <testLibraryFragment> it@39
+            element: hasImplicitType isFinal isPublic
+              type: Object?
+              field: <testLibrary>::@extensionType::A::@field::it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         constFinalOrVarKeyword: final
@@ -1283,6 +1691,21 @@ ExtensionTypeDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          requiredKeyword: required
+          type: NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+          name: it
+          declaredFragment: <testLibraryFragment> it@30
+            element: isFinal isPublic
+              type: int
+              field: <testLibrary>::@extensionType::A::@field::it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         requiredKeyword: required
@@ -1322,6 +1745,20 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+          name: it
+          declaredFragment: <testLibraryFragment> it@28
+            element: isFinal isPublic
+              type: int
+              field: <testLibrary>::@extensionType::A::@field::it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: int
@@ -1359,6 +1796,17 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          constFinalOrVarKeyword: var
+          name: it
+          declaredFragment: <testLibraryFragment> it@21
+            element: hasImplicitType isFinal isPublic
+              type: Object?
+              field: <testLibrary>::@extensionType::A::@field::it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         constFinalOrVarKeyword: var
         name: it
@@ -1377,9 +1825,9 @@ ExtensionTypeDeclaration
 ''');
   }
 
-  test_primaryConstructor_formalParameters_keyword_var_language310() async {
+  test_primaryConstructor_formalParameters_keyword_var_beforePrimaryConstructors() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A(var it) {}
 //               ^^^
 // [diag.representationFieldModifier] Representation fields can't have the modifier 'var'.
@@ -1395,6 +1843,17 @@ ExtensionTypeDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          constFinalOrVarKeyword: var
+          name: it
+          declaredFragment: <testLibraryFragment> it@37
+            element: hasImplicitType isFinal isPublic
+              type: Object?
+              field: <testLibrary>::@extensionType::A::@field::it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         constFinalOrVarKeyword: var
@@ -1428,6 +1887,24 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: {
+        formalParameters
+          RegularFormalParameter
+            type: NamedType
+              name: int
+              question: ?
+              element: dart:core::@class::int
+              type: int?
+            name: it
+            declaredFragment: <testLibraryFragment> it@23
+              element: isFinal isPublic
+                type: int?
+                field: <testLibrary>::@extensionType::A::@field::it
+        rightDelimiter: }
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       leftDelimiter: {
       parameter: RegularFormalParameter
         type: NamedType
@@ -1452,9 +1929,9 @@ ExtensionTypeDeclaration
 ''');
   }
 
-  test_primaryConstructor_formalParameters_kind_optionalNamed_language310() async {
+  test_primaryConstructor_formalParameters_kind_optionalNamed_beforePrimaryConstructors() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A({int? it}) {}
 //               ^
 // [diag.expectedRepresentationField] Expected a representation field.
@@ -1468,6 +1945,24 @@ ExtensionTypeDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: {
+        formalParameters
+          RegularFormalParameter
+            type: NamedType
+              name: int
+              question: ?
+              element: dart:core::@class::int
+              type: int?
+            name: it
+            declaredFragment: <testLibraryFragment> it@39
+              element: isFinal isPublic
+                type: int?
+                field: <testLibrary>::@extensionType::A::@field::it
+        rightDelimiter: }
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
       parameter: RegularFormalParameter
@@ -1509,6 +2004,34 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: {
+        formalParameters
+          RegularFormalParameter
+            type: NamedType
+              name: int
+              question: ?
+              element: dart:core::@class::int
+              type: int?
+            name: a
+            declaredFragment: <testLibraryFragment> a@23
+              element: isFinal isPublic
+                type: int?
+                field: <testLibrary>::@extensionType::A::@field::a
+          RegularFormalParameter
+            type: NamedType
+              name: int
+              question: ?
+              element: dart:core::@class::int
+              type: int?
+            name: b
+            declaredFragment: <testLibraryFragment> b@31
+              element: isPublic
+                type: int?
+        rightDelimiter: }
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       leftDelimiter: {
       parameter: RegularFormalParameter
         type: NamedType
@@ -1543,9 +2066,9 @@ ExtensionTypeDeclaration
 ''');
   }
 
-  test_primaryConstructor_formalParameters_kind_optionalNamed_optionalNamed_language310() async {
+  test_primaryConstructor_formalParameters_kind_optionalNamed_optionalNamed_beforePrimaryConstructors() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A({int? a, int? b}) {}
 //                      ^
 // [diag.multipleRepresentationFields] Each extension type should have exactly one representation field.
@@ -1559,6 +2082,34 @@ ExtensionTypeDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: {
+        formalParameters
+          RegularFormalParameter
+            type: NamedType
+              name: int
+              question: ?
+              element: dart:core::@class::int
+              type: int?
+            name: a
+            declaredFragment: <testLibraryFragment> a@39
+              element: isFinal isPublic
+                type: int?
+                field: <testLibrary>::@extensionType::A::@field::a
+          RegularFormalParameter
+            type: NamedType
+              name: int
+              question: ?
+              element: dart:core::@class::int
+              type: int?
+            name: b
+            declaredFragment: <testLibraryFragment> b@47
+              element: isPublic
+                type: int?
+        rightDelimiter: }
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
       parameter: RegularFormalParameter
@@ -1610,6 +2161,34 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: {
+        formalParameters
+          RegularFormalParameter
+            type: NamedType
+              name: int
+              question: ?
+              element: dart:core::@class::int
+              type: int?
+            name: a
+            declaredFragment: <testLibraryFragment> a@23
+              element: isFinal isPublic
+                type: int?
+                field: <testLibrary>::@extensionType::A::@field::a
+          RegularFormalParameter
+            requiredKeyword: required
+            type: NamedType
+              name: int
+              element: dart:core::@class::int
+              type: int
+            name: b
+            declaredFragment: <testLibraryFragment> b@39
+              element: isPublic
+                type: int
+        rightDelimiter: }
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       leftDelimiter: {
       parameter: RegularFormalParameter
         type: NamedType
@@ -1658,6 +2237,24 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: [
+        formalParameters
+          RegularFormalParameter
+            type: NamedType
+              name: int
+              question: ?
+              element: dart:core::@class::int
+              type: int?
+            name: it
+            declaredFragment: <testLibraryFragment> it@23
+              element: isFinal isPublic
+                type: int?
+                field: <testLibrary>::@extensionType::A::@field::it
+        rightDelimiter: ]
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       leftDelimiter: [
       parameter: RegularFormalParameter
         type: NamedType
@@ -1682,9 +2279,9 @@ ExtensionTypeDeclaration
 ''');
   }
 
-  test_primaryConstructor_formalParameters_kind_optionalPositional_language310() async {
+  test_primaryConstructor_formalParameters_kind_optionalPositional_beforePrimaryConstructors() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A([int? it]) {}
 //               ^
 // [diag.expectedRepresentationField] Expected a representation field.
@@ -1698,6 +2295,24 @@ ExtensionTypeDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: [
+        formalParameters
+          RegularFormalParameter
+            type: NamedType
+              name: int
+              question: ?
+              element: dart:core::@class::int
+              type: int?
+            name: it
+            declaredFragment: <testLibraryFragment> it@39
+              element: isFinal isPublic
+                type: int?
+                field: <testLibrary>::@extensionType::A::@field::it
+        rightDelimiter: ]
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       leftDelimiter: [
       parameter: RegularFormalParameter
@@ -1739,6 +2354,34 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: [
+        formalParameters
+          RegularFormalParameter
+            type: NamedType
+              name: int
+              question: ?
+              element: dart:core::@class::int
+              type: int?
+            name: a
+            declaredFragment: <testLibraryFragment> a@23
+              element: isFinal isPublic
+                type: int?
+                field: <testLibrary>::@extensionType::A::@field::a
+          RegularFormalParameter
+            type: NamedType
+              name: int
+              question: ?
+              element: dart:core::@class::int
+              type: int?
+            name: b
+            declaredFragment: <testLibraryFragment> b@31
+              element: isPublic
+                type: int?
+        rightDelimiter: ]
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       leftDelimiter: [
       parameter: RegularFormalParameter
         type: NamedType
@@ -1773,9 +2416,9 @@ ExtensionTypeDeclaration
 ''');
   }
 
-  test_primaryConstructor_formalParameters_kind_optionalPositional_optionalPositional_language310() async {
+  test_primaryConstructor_formalParameters_kind_optionalPositional_optionalPositional_beforePrimaryConstructors() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A([int? a, int? b]) {}
 //                      ^
 // [diag.multipleRepresentationFields] Each extension type should have exactly one representation field.
@@ -1789,6 +2432,34 @@ ExtensionTypeDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: [
+        formalParameters
+          RegularFormalParameter
+            type: NamedType
+              name: int
+              question: ?
+              element: dart:core::@class::int
+              type: int?
+            name: a
+            declaredFragment: <testLibraryFragment> a@39
+              element: isFinal isPublic
+                type: int?
+                field: <testLibrary>::@extensionType::A::@field::a
+          RegularFormalParameter
+            type: NamedType
+              name: int
+              question: ?
+              element: dart:core::@class::int
+              type: int?
+            name: b
+            declaredFragment: <testLibraryFragment> b@47
+              element: isPublic
+                type: int?
+        rightDelimiter: ]
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       leftDelimiter: [
       parameter: RegularFormalParameter
@@ -1838,6 +2509,24 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: {
+        formalParameters
+          RegularFormalParameter
+            requiredKeyword: required
+            type: NamedType
+              name: int
+              element: dart:core::@class::int
+              type: int
+            name: it
+            declaredFragment: <testLibraryFragment> it@31
+              element: isFinal isPublic
+                type: int
+                field: <testLibrary>::@extensionType::A::@field::it
+        rightDelimiter: }
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       leftDelimiter: {
       parameter: RegularFormalParameter
         requiredKeyword: required
@@ -1862,9 +2551,9 @@ ExtensionTypeDeclaration
 ''');
   }
 
-  test_primaryConstructor_formalParameters_kind_requiredNamed_language310() async {
+  test_primaryConstructor_formalParameters_kind_requiredNamed_beforePrimaryConstructors() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A({required int it}) {}
 //               ^
 // [diag.expectedRepresentationField] Expected a representation field.
@@ -1878,6 +2567,24 @@ ExtensionTypeDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: {
+        formalParameters
+          RegularFormalParameter
+            requiredKeyword: required
+            type: NamedType
+              name: int
+              element: dart:core::@class::int
+              type: int
+            name: it
+            declaredFragment: <testLibraryFragment> it@47
+              element: isFinal isPublic
+                type: int
+                field: <testLibrary>::@extensionType::A::@field::it
+        rightDelimiter: }
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
       parameter: RegularFormalParameter
@@ -1918,6 +2625,34 @@ ExtensionTypeDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: {
+        formalParameters
+          RegularFormalParameter
+            requiredKeyword: required
+            type: NamedType
+              name: int
+              element: dart:core::@class::int
+              type: int
+            name: a
+            declaredFragment: <testLibraryFragment> a@31
+              element: isFinal isPublic
+                type: int
+                field: <testLibrary>::@extensionType::A::@field::a
+          RegularFormalParameter
+            type: NamedType
+              name: int
+              question: ?
+              element: dart:core::@class::int
+              type: int?
+            name: b
+            declaredFragment: <testLibraryFragment> b@39
+              element: isPublic
+                type: int?
+        rightDelimiter: }
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
       parameter: RegularFormalParameter
@@ -1969,6 +2704,34 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: {
+        formalParameters
+          RegularFormalParameter
+            requiredKeyword: required
+            type: NamedType
+              name: int
+              element: dart:core::@class::int
+              type: int
+            name: a
+            declaredFragment: <testLibraryFragment> a@31
+              element: isFinal isPublic
+                type: int
+                field: <testLibrary>::@extensionType::A::@field::a
+          RegularFormalParameter
+            requiredKeyword: required
+            type: NamedType
+              name: int
+              element: dart:core::@class::int
+              type: int
+            name: b
+            declaredFragment: <testLibraryFragment> b@47
+              element: isPublic
+                type: int
+        rightDelimiter: }
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       leftDelimiter: {
       parameter: RegularFormalParameter
         requiredKeyword: required
@@ -2017,6 +2780,20 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+          name: it
+          declaredFragment: <testLibraryFragment> it@21
+            element: isFinal isPublic
+              type: int
+              field: <testLibrary>::@extensionType::A::@field::it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: int
@@ -2038,9 +2815,9 @@ ExtensionTypeDeclaration
 ''');
   }
 
-  test_primaryConstructor_formalParameters_kind_requiredPositional_language310() async {
+  test_primaryConstructor_formalParameters_kind_requiredPositional_beforePrimaryConstructors() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A(int it) {}
 ''');
 
@@ -2052,6 +2829,20 @@ ExtensionTypeDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+          name: it
+          declaredFragment: <testLibraryFragment> it@37
+            element: isFinal isPublic
+              type: int
+              field: <testLibrary>::@extensionType::A::@field::it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -2090,6 +2881,34 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+          name: a
+          declaredFragment: <testLibraryFragment> a@21
+            element: isFinal isPublic
+              type: int
+              field: <testLibrary>::@extensionType::A::@field::a
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: {
+        formalParameters
+          RegularFormalParameter
+            type: NamedType
+              name: int
+              question: ?
+              element: dart:core::@class::int
+              type: int?
+            name: b
+            declaredFragment: <testLibraryFragment> b@30
+              element: isPublic
+                type: int?
+        rightDelimiter: }
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: int
@@ -2123,9 +2942,9 @@ ExtensionTypeDeclaration
 ''');
   }
 
-  test_primaryConstructor_formalParameters_kind_requiredPositional_optionalNamed_language310() async {
+  test_primaryConstructor_formalParameters_kind_requiredPositional_optionalNamed_beforePrimaryConstructors() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A(int a, {int? b}) {}
 //                    ^
 // [diag.multipleRepresentationFields] Each extension type should have exactly one representation field.
@@ -2139,6 +2958,34 @@ ExtensionTypeDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+          name: a
+          declaredFragment: <testLibraryFragment> a@37
+            element: isFinal isPublic
+              type: int
+              field: <testLibrary>::@extensionType::A::@field::a
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: {
+        formalParameters
+          RegularFormalParameter
+            type: NamedType
+              name: int
+              question: ?
+              element: dart:core::@class::int
+              type: int?
+            name: b
+            declaredFragment: <testLibraryFragment> b@46
+              element: isPublic
+                type: int?
+        rightDelimiter: }
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -2189,6 +3036,34 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+          name: a
+          declaredFragment: <testLibraryFragment> a@21
+            element: isFinal isPublic
+              type: int
+              field: <testLibrary>::@extensionType::A::@field::a
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: {
+        formalParameters
+          RegularFormalParameter
+            type: NamedType
+              name: int
+              question: ?
+              element: dart:core::@class::int
+              type: int?
+            name: b
+            declaredFragment: <testLibraryFragment> b@30
+              element: isPublic
+                type: int?
+        rightDelimiter: }
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: int
@@ -2222,9 +3097,9 @@ ExtensionTypeDeclaration
 ''');
   }
 
-  test_primaryConstructor_formalParameters_kind_requiredPositional_optionalPositional_language310() async {
+  test_primaryConstructor_formalParameters_kind_requiredPositional_optionalPositional_beforePrimaryConstructors() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A(int a, {int? b}) {}
 //                    ^
 // [diag.multipleRepresentationFields] Each extension type should have exactly one representation field.
@@ -2238,6 +3113,34 @@ ExtensionTypeDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+          name: a
+          declaredFragment: <testLibraryFragment> a@37
+            element: isFinal isPublic
+              type: int
+              field: <testLibrary>::@extensionType::A::@field::a
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: {
+        formalParameters
+          RegularFormalParameter
+            type: NamedType
+              name: int
+              question: ?
+              element: dart:core::@class::int
+              type: int?
+            name: b
+            declaredFragment: <testLibraryFragment> b@46
+              element: isPublic
+                type: int?
+        rightDelimiter: }
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -2288,6 +3191,29 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+          name: a
+          declaredFragment: <testLibraryFragment> a@21
+            element: isFinal isPublic
+              type: int
+              field: <testLibrary>::@extensionType::A::@field::a
+        RegularFormalParameter
+          type: NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+          name: b
+          declaredFragment: <testLibraryFragment> b@28
+            element: isPublic
+              type: int
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: int
@@ -2318,9 +3244,9 @@ ExtensionTypeDeclaration
 ''');
   }
 
-  test_primaryConstructor_formalParameters_kind_requiredPositional_requiredPositional_language310() async {
+  test_primaryConstructor_formalParameters_kind_requiredPositional_requiredPositional_beforePrimaryConstructors() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A(int a, int b) {}
 //                    ^
 // [diag.multipleRepresentationFields] Each extension type should have exactly one representation field.
@@ -2334,6 +3260,29 @@ ExtensionTypeDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+          name: a
+          declaredFragment: <testLibraryFragment> a@37
+            element: isFinal isPublic
+              type: int
+              field: <testLibrary>::@extensionType::A::@field::a
+        RegularFormalParameter
+          type: NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+          name: b
+          declaredFragment: <testLibraryFragment> b@44
+            element: isPublic
+              type: int
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -2381,6 +3330,20 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+          name: A
+          declaredFragment: <testLibraryFragment> A@21
+            element: isFinal isPublic
+              type: int
+              field: <testLibrary>::@extensionType::A::@field::A
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: int
@@ -2402,9 +3365,9 @@ ExtensionTypeDeclaration
 ''');
   }
 
-  test_primaryConstructor_formalParameters_memberWithClassName_language310() async {
+  test_primaryConstructor_formalParameters_memberWithClassName_beforePrimaryConstructors() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A(int A) {}
 //                   ^
 // [diag.memberWithClassName] A class member can't have the same name as the enclosing class.
@@ -2418,6 +3381,20 @@ ExtensionTypeDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+          name: A
+          declaredFragment: <testLibraryFragment> A@37
+            element: isFinal isPublic
+              type: int
+              field: <testLibrary>::@extensionType::A::@field::A
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -2453,6 +3430,28 @@ ExtensionTypeDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          metadata
+            Annotation
+              atSign: @
+              name: SimpleIdentifier
+                token: deprecated
+                element: dart:core::@getter::deprecated
+                staticType: null
+              element: dart:core::@getter::deprecated
+          type: NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+          name: it
+          declaredFragment: <testLibraryFragment> it@33
+            element: isFinal isPublic
+              type: int
+              field: <testLibrary>::@extensionType::A::@field::it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         metadata
@@ -2510,9 +3509,9 @@ ExtensionTypeDeclaration
 ''');
   }
 
-  test_primaryConstructor_formalParameters_noFormalParameters_language310() async {
+  test_primaryConstructor_formalParameters_noFormalParameters_beforePrimaryConstructors() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A() {}
 //               ^
 // [diag.expectedRepresentationField] Expected a representation field.
@@ -2552,6 +3551,16 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          name: it
+          declaredFragment: <testLibraryFragment> it@17
+            element: hasImplicitType isFinal isPublic
+              type: Object?
+              field: <testLibrary>::@extensionType::A::@field::it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         name: it
         declaredFragment: <testLibraryFragment> it@17
@@ -2569,9 +3578,9 @@ ExtensionTypeDeclaration
 ''');
   }
 
-  test_primaryConstructor_formalParameters_noTypeAnnotation_language310() async {
+  test_primaryConstructor_formalParameters_noTypeAnnotation_beforePrimaryConstructors() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A(it) {}
 //               ^^
 // [diag.expectedRepresentationType] Expected a representation type.
@@ -2585,6 +3594,16 @@ ExtensionTypeDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          name: it
+          declaredFragment: <testLibraryFragment> it@33
+            element: hasImplicitType isFinal isPublic
+              type: Object?
+              field: <testLibrary>::@extensionType::A::@field::it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         name: it
@@ -2617,6 +3636,24 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          metadata
+            Annotation
+              atSign: @
+              name: SimpleIdentifier
+                token: deprecated
+                element: dart:core::@getter::deprecated
+                staticType: null
+              element: dart:core::@getter::deprecated
+          name: it
+          declaredFragment: <testLibraryFragment> it@29
+            element: hasImplicitType isFinal isPublic
+              type: Object?
+              field: <testLibrary>::@extensionType::A::@field::it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         metadata
           Annotation
@@ -2642,9 +3679,9 @@ ExtensionTypeDeclaration
 ''');
   }
 
-  test_primaryConstructor_formalParameters_noTypeAnnotation_withMetadata_language310() async {
+  test_primaryConstructor_formalParameters_noTypeAnnotation_withMetadata_beforePrimaryConstructors() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A(@deprecated it) {}
 //                           ^^
 // [diag.expectedRepresentationType] Expected a representation type.
@@ -2658,6 +3695,24 @@ ExtensionTypeDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          metadata
+            Annotation
+              atSign: @
+              name: SimpleIdentifier
+                token: deprecated
+                element: dart:core::@getter::deprecated
+                staticType: null
+              element: dart:core::@getter::deprecated
+          name: it
+          declaredFragment: <testLibraryFragment> it@45
+            element: hasImplicitType isFinal isPublic
+              type: Object?
+              field: <testLibrary>::@extensionType::A::@field::it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         metadata
@@ -2702,6 +3757,20 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+            element: <testLibrary>::@extensionType::A::@getter::int
+            type: InvalidType
+          name: it
+          declaredFragment: <testLibraryFragment> it@21
+            element: isFinal isPublic
+              type: InvalidType
+              field: <testLibrary>::@extensionType::A::@field::it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: int
@@ -2731,7 +3800,7 @@ ExtensionTypeDeclaration
             VariableDeclaration
               name: int
               equals: =
-              initializer: SimpleStringLiteral
+              initializer2: SimpleStringLiteral
                 literal: 'not a type'
               declaredFragment: <testLibraryFragment> int@49
         semicolon: ;
@@ -2741,9 +3810,9 @@ ExtensionTypeDeclaration
 ''');
   }
 
-  test_primaryConstructor_formalParameters_scope_language310() async {
+  test_primaryConstructor_formalParameters_scope_beforePrimaryConstructors() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A(int it) {
   static const String int = 'not a type';
 }
@@ -2757,6 +3826,20 @@ ExtensionTypeDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+          name: it
+          declaredFragment: <testLibraryFragment> it@37
+            element: isFinal isPublic
+              type: int
+              field: <testLibrary>::@extensionType::A::@field::it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -2787,7 +3870,7 @@ ExtensionTypeDeclaration
             VariableDeclaration
               name: int
               equals: =
-              initializer: SimpleStringLiteral
+              initializer2: SimpleStringLiteral
                 literal: 'not a type'
               declaredFragment: <testLibraryFragment> int@65
         semicolon: ;
@@ -2813,6 +3896,17 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        SuperFormalParameter
+          superKeyword: super
+          period: .
+          name: it
+          declaredFragment: <testLibraryFragment> it@23
+            element: hasImplicitType isFinal isPublic
+              type: dynamic
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: SuperFormalParameter
         superKeyword: super
         period: .
@@ -2831,9 +3925,9 @@ ExtensionTypeDeclaration
 ''');
   }
 
-  test_primaryConstructor_formalParameters_superFormalParameter_language310() async {
+  test_primaryConstructor_formalParameters_superFormalParameter_beforePrimaryConstructors() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A(super.it) {}
 //               ^^^^^
 // [diag.expectedRepresentationField] Expected a representation field.
@@ -2847,6 +3941,17 @@ ExtensionTypeDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        SuperFormalParameter
+          superKeyword: super
+          period: .
+          name: it
+          declaredFragment: <testLibraryFragment> it@39
+            element: hasImplicitType isFinal isPublic
+              type: dynamic
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: SuperFormalParameter
         superKeyword: super
@@ -2880,6 +3985,20 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+          name: it
+          declaredFragment: <testLibraryFragment> it@21
+            element: isFinal isPublic
+              type: int
+              field: <testLibrary>::@extensionType::A::@field::it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: int
@@ -2901,9 +4020,9 @@ ExtensionTypeDeclaration
 ''');
   }
 
-  test_primaryConstructor_formalParameters_trailingComma_language310() async {
+  test_primaryConstructor_formalParameters_trailingComma_beforePrimaryConstructors() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A(int it,) {}
 //                     ^
 // [diag.representationFieldTrailingComma] The representation field can't have a trailing comma.
@@ -2917,6 +4036,20 @@ ExtensionTypeDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+          name: it
+          declaredFragment: <testLibraryFragment> it@37
+            element: isFinal isPublic
+              type: int
+              field: <testLibrary>::@extensionType::A::@field::it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -2985,6 +4118,20 @@ ExtensionTypeDeclaration
       name: named
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+          name: it
+          declaredFragment: <testLibraryFragment> it@27
+            element: isFinal isPublic
+              type: int
+              field: <testLibrary>::@extensionType::A::@field::it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: int
@@ -3035,6 +4182,37 @@ PrimaryConstructorDeclaration
           defaultType: dynamic
     rightBracket: >
   formalParameters: FormalParameterList
+    leftParenthesis: (
+    delimitedFormalParameters: DelimitedFormalParameters
+      leftDelimiter: [
+      formalParameters
+        RegularFormalParameter
+          metadata
+            Annotation
+              atSign: @
+              name: SimpleIdentifier
+                token: foo
+                element: <testLibrary>::@extensionType::E::@getter::foo
+                staticType: null
+              element: <testLibrary>::@extensionType::E::@getter::foo
+          type: NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+          name: it
+          defaultClause: FormalParameterDefaultClause
+            separator: =
+            value2: SimpleIdentifier
+              token: foo
+              element: <testLibrary>::@extensionType::E::@getter::foo
+              staticType: int
+          declaredFragment: <testLibraryFragment> it@50
+            element: isFinal isPublic
+              type: int
+              field: <testLibrary>::@extensionType::E::@field::it
+      rightDelimiter: ]
+    rightParenthesis: )
+  formalParameters(v1): FormalParameterList
     leftParenthesis: (
     leftDelimiter: [
     parameter: RegularFormalParameter
@@ -3102,6 +4280,20 @@ PrimaryConstructorDeclaration
     rightBracket: >
   formalParameters: FormalParameterList
     leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: T
+          element: #E1 T
+          type: T
+        name: it
+        declaredFragment: <testLibraryFragment> it@47
+          element: isFinal isPublic
+            type: T
+            field: <testLibrary>::@extensionType::E::@field::it
+    rightParenthesis: )
+  formalParameters(v1): FormalParameterList
+    leftParenthesis: (
     parameter: RegularFormalParameter
       type: NamedType
         name: T
@@ -3142,6 +4334,28 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: {
+        formalParameters
+          RegularFormalParameter
+            type: NamedType
+              name: bool
+              element: dart:core::@class::bool
+              type: bool
+            name: it
+            defaultClause: FormalParameterDefaultClause
+              separator: =
+              value2: BooleanLiteral
+                literal: false
+                staticType: bool
+            declaredFragment: <testLibraryFragment> it@23
+              element: isFinal isPublic
+                type: bool
+                field: <testLibrary>::@extensionType::A::@field::it
+        rightDelimiter: }
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       leftDelimiter: {
       parameter: RegularFormalParameter
         type: NamedType
@@ -3173,7 +4387,7 @@ ExtensionTypeDeclaration
           AssertInitializer
             assertKeyword: assert
             leftParenthesis: (
-            condition: SimpleIdentifier
+            condition2: SimpleIdentifier
               token: it
               element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
               staticType: bool
@@ -3183,7 +4397,7 @@ ExtensionTypeDeclaration
             leftBracket: {
             statements
               ExpressionStatement
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: it
                   element: <testLibrary>::@extensionType::A::@getter::it
                   staticType: bool
@@ -3196,7 +4410,14 @@ ExtensionTypeDeclaration
           AssertInitializer
             assertKeyword: assert
             leftParenthesis: (
-            condition: PrefixExpression
+            condition2: LogicalNot
+              operator: !
+              operand: SimpleIdentifier
+                token: it
+                element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
+                staticType: bool
+              staticType: bool
+            condition(v1): PrefixExpression
               operator: !
               operand: SimpleIdentifier
                 token: it
@@ -3210,7 +4431,7 @@ ExtensionTypeDeclaration
             leftBracket: {
             statements
               ExpressionStatement
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: it
                   element: <testLibrary>::@extensionType::A::@getter::it
                   staticType: bool
@@ -3262,7 +4483,7 @@ PrimaryConstructorBody
     AssertInitializer
       assertKeyword: assert
       leftParenthesis: (
-      condition: SimpleIdentifier
+      condition2: SimpleIdentifier
         token: it
         element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
         staticType: bool
@@ -3288,7 +4509,7 @@ PrimaryConstructorBody
     AssertInitializer
       assertKeyword: assert
       leftParenthesis: (
-      condition: SimpleIdentifier
+      condition2: SimpleIdentifier
         token: it
         element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
         staticType: bool
@@ -3318,13 +4539,13 @@ PrimaryConstructorBody
       leftBracket: {
       statements
         ExpressionStatement
-          expression: SimpleIdentifier
+          expression2: SimpleIdentifier
             token: it
             element: <testLibrary>::@extensionType::A::@getter::it
             staticType: int
           semicolon: ;
         ExpressionStatement
-          expression: SimpleIdentifier
+          expression2: SimpleIdentifier
             token: foo
             element: <testLibrary>::@extensionType::A::@method::foo
             staticType: void Function()
@@ -3349,6 +4570,20 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+          name: it
+          declaredFragment: <testLibraryFragment> it@21
+            element: isFinal isPublic
+              type: int
+              field: <testLibrary>::@extensionType::A::@field::it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: int
@@ -3367,13 +4602,26 @@ ExtensionTypeDeclaration
     leftBracket: {
     members
       ConstructorDeclaration
-        typeName: SimpleIdentifier
+        typeName2: A
+        typeName(v1): SimpleIdentifier
           token: A
           element: <testLibrary>::@extensionType::A
           staticType: null
         period: .
         name: named
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            FieldFormalParameter
+              thisKeyword: this
+              period: .
+              name: it
+              declaredFragment: <testLibraryFragment> it@42
+                element: hasImplicitType isFinal isPublic
+                  type: int
+                  field: <testLibrary>::@extensionType::A::@field::it
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: FieldFormalParameter
             thisKeyword: this
@@ -3410,6 +4658,20 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: num
+            element: dart:core::@class::num
+            type: num
+          name: it
+          declaredFragment: <testLibraryFragment> it@21
+            element: isFinal isPublic
+              type: num
+              field: <testLibrary>::@extensionType::A::@field::it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: num
@@ -3429,13 +4691,27 @@ ExtensionTypeDeclaration
     members
       ConstructorDeclaration
         constKeyword: const
-        typeName: SimpleIdentifier
+        typeName2: A
+        typeName(v1): SimpleIdentifier
           token: A
           element: <testLibrary>::@extensionType::A
           staticType: null
         period: .
         name: named
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              type: NamedType
+                name: int
+                element: dart:core::@class::int
+                type: int
+              name: a
+              declaredFragment: <testLibraryFragment> a@47
+                element: isPublic
+                  type: int
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
@@ -3450,15 +4726,17 @@ ExtensionTypeDeclaration
         separator: :
         initializers
           ConstructorFieldInitializer
-            fieldName: SimpleIdentifier
+            fieldName2: it
+            fieldName(v1): SimpleIdentifier
               token: it
               element: <testLibrary>::@extensionType::A::@field::it
               staticType: null
             equals: =
-            expression: SimpleIdentifier
+            expression2: SimpleIdentifier
               token: a
               element: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::a
               staticType: int
+            fieldElement: <testLibrary>::@extensionType::A::@field::it
         body: EmptyFunctionBody
           semicolon: ;
         declaredFragment: <testLibraryFragment> named@37
@@ -3510,6 +4788,32 @@ ExtensionTypeDeclaration
             defaultType: dynamic
       rightBracket: >
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: Map
+            typeArguments: TypeArgumentList
+              leftBracket: <
+              arguments
+                NamedType
+                  name: T
+                  element: #E0 T
+                  type: T
+                NamedType
+                  name: U
+                  element: #E1 U
+                  type: U
+              rightBracket: >
+            element: dart:core::@class::Map
+            type: Map<T, U>
+          name: it
+          declaredFragment: <testLibraryFragment> it@33
+            element: isFinal isPublic
+              type: Map<T, U>
+              field: <testLibrary>::@extensionType::A::@field::it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -3578,6 +4882,20 @@ ExtensionTypeDeclaration
             defaultType: num
       rightBracket: >
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+          name: _
+          declaredFragment: <testLibraryFragment> _@43
+            element: isFinal isPrivate
+              type: int
+              field: <testLibrary>::@extensionType::ET::@field::_
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType

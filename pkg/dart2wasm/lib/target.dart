@@ -117,6 +117,7 @@ class WasmTarget extends Target {
   Class? _wasmImmutableMap;
   Class? _wasmImmutableSet;
   Class? _stringImpl;
+  Class? _symbol;
   Class? _closure;
   Class? _boxedInt;
   Class? _boxedDouble;
@@ -612,6 +613,11 @@ class WasmTarget extends Target {
       'dart:_compact_hash',
       '_ConstSet',
     );
+  }
+
+  @override
+  Class concreteConstSymbolLiteralClass(CoreTypes coreTypes) {
+    return _symbol ??= coreTypes.index.getClass('dart:_internal', 'Symbol');
   }
 
   @override

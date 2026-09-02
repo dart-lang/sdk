@@ -1143,13 +1143,15 @@ void StubCodeCompiler::GenerateSlowTypeTestStub() {
 
   // If the subtype-cache is null, it needs to be lazily-created by the runtime.
   __ CompareObject(TypeTestABI::kSubtypeTestCacheReg, NullObject());
-  __ BranchIf(EQUAL, &call_runtime);
+  __ BranchIf(EQUAL, &call_runtime, Assembler::kFarJump);
 
   // Use the number of inputs used by the STC to determine which stub to call.
-  Label call_2, call_3, call_4, call_6;
+  Label call_1, call_2, call_3, call_4, call_6;
   __ Comment("Check number of STC inputs");
   __ LoadFromSlot(TypeTestABI::kScratchReg, TypeTestABI::kSubtypeTestCacheReg,
                   Slot::SubtypeTestCache_num_inputs());
+  __ CompareImmediate(TypeTestABI::kScratchReg, 1);
+  __ BranchIf(EQUAL, &call_1, Assembler::kFarJump);
   __ CompareImmediate(TypeTestABI::kScratchReg, 2);
   __ BranchIf(EQUAL, &call_2, Assembler::kNearJump);
   __ CompareImmediate(TypeTestABI::kScratchReg, 3);
@@ -1165,8 +1167,8 @@ void StubCodeCompiler::GenerateSlowTypeTestStub() {
     __ Call(StubCodeSubtype7TestCache());
     __ CompareObject(TypeTestABI::kSubtypeTestCacheResultReg,
                      CastHandle<Object>(TrueObject()));
-    __ BranchIf(EQUAL, &done);  // Cache said: yes.
-    __ Jump(&call_runtime, Assembler::kNearJump);
+    __ BranchIf(EQUAL, &done, Assembler::kFarJump);  // Cache said: yes.
+    __ Jump(&call_runtime, Assembler::kFarJump);
   }
 
   __ Bind(&call_6);
@@ -1175,7 +1177,7 @@ void StubCodeCompiler::GenerateSlowTypeTestStub() {
     __ Call(StubCodeSubtype6TestCache());
     __ CompareObject(TypeTestABI::kSubtypeTestCacheResultReg,
                      CastHandle<Object>(TrueObject()));
-    __ BranchIf(EQUAL, &done);  // Cache said: yes.
+    __ BranchIf(EQUAL, &done, Assembler::kFarJump);  // Cache said: yes.
     __ Jump(&call_runtime, Assembler::kNearJump);
   }
 
@@ -1203,6 +1205,16 @@ void StubCodeCompiler::GenerateSlowTypeTestStub() {
   {
     __ Comment("Call 2 input STC check");
     __ Call(StubCodeSubtype2TestCache());
+    __ CompareObject(TypeTestABI::kSubtypeTestCacheResultReg,
+                     CastHandle<Object>(TrueObject()));
+    __ BranchIf(EQUAL, &done);  // Cache said: yes.
+    __ Jump(&call_runtime, Assembler::kNearJump);
+  }
+
+  __ Bind(&call_1);
+  {
+    __ Comment("Call 1 input STC check");
+    __ Call(StubCodeSubtype1TestCache());
     __ CompareObject(TypeTestABI::kSubtypeTestCacheResultReg,
                      CastHandle<Object>(TrueObject()));
     __ BranchIf(EQUAL, &done);  // Cache said: yes.
@@ -1249,7 +1261,7 @@ void StubCodeCompiler::GenerateAllocateClosureStub(intptr_t num_elements) {
   __ EnsureHasClassIdInDEBUG(kFunctionCid, AllocateClosureABI::kFunctionReg,
                              scratch_reg);
 
-  if (!FLAG_use_slow_path && FLAG_inline_alloc) {
+  if (UseInlineAllocation()) {
     Label slow_case;
     __ Comment("Inline allocation of uninitialized closure");
 #if defined(DEBUG)
@@ -1335,7 +1347,7 @@ void StubCodeCompiler::GenerateAllocateClosureStub(intptr_t num_elements) {
   // AllocateClosureABI::kResultReg: new object
   __ Ret();
 
-  if (FLAG_use_slow_path || !FLAG_inline_alloc) {
+  if (!UseInlineAllocation()) {
     // Make sure AllocateClosureN stubs have different code as
     // precompiler chokes on distinct stub Code objects with the same
     // (de-duplicated) instructions.
@@ -1369,7 +1381,7 @@ void StubCodeCompiler::GenerateAllocateGrowableArrayStub() {
   const intptr_t instance_size = target::RoundedAllocationSize(
       target::GrowableObjectArray::InstanceSize());
 
-  if (!FLAG_use_slow_path && FLAG_inline_alloc) {
+  if (UseInlineAllocation()) {
     Label slow_case;
     __ Comment("Inline allocation of GrowableList");
     __ TryAllocateObject(kGrowableObjectArrayCid, instance_size, &slow_case,
@@ -1399,7 +1411,7 @@ void StubCodeCompiler::GenerateAllocateRecordStub() {
   const Register temp_reg = AllocateRecordABI::kTemp1Reg;
   const Register new_top_reg = AllocateRecordABI::kTemp2Reg;
 
-  if (!FLAG_use_slow_path && FLAG_inline_alloc) {
+  if (UseInlineAllocation()) {
     Label slow_case;
 
     // Check for allocation tracing.
@@ -1763,7 +1775,7 @@ void StubCodeCompiler::GenerateNotLoadedStub() {
 #define EMIT_BOX_ALLOCATION(Name)                                              \
   void StubCodeCompiler::GenerateAllocate##Name##Stub() {                      \
     Label call_runtime;                                                        \
-    if (!FLAG_use_slow_path && FLAG_inline_alloc) {                            \
+    if (UseInlineAllocation()) {                                               \
       __ TryAllocate(compiler::Name##Class(), &call_runtime,                   \
                      Assembler::kNearJump, AllocateBoxABI::kResultReg,         \
                      AllocateBoxABI::kTempReg);                                \
@@ -1793,7 +1805,7 @@ static void GenerateBoxFpuValueStub(Assembler* assembler,
                                                                    Register,
                                                                    int32_t)) {
   Label call_runtime;
-  if (!FLAG_use_slow_path && FLAG_inline_alloc) {
+  if (UseInlineAllocation()) {
     __ TryAllocate(cls, &call_runtime, compiler::Assembler::kFarJump,
                    BoxDoubleStubABI::kResultReg, BoxDoubleStubABI::kTempReg);
     (assembler->*store_value)(
@@ -1922,7 +1934,7 @@ static void GenerateAllocateSuspendState(Assembler* assembler,
                                          Register result_reg,
                                          Register frame_size_reg,
                                          Register temp_reg) {
-  if (FLAG_use_slow_path || !FLAG_inline_alloc) {
+  if (!UseInlineAllocation()) {
     __ Jump(slow_case);
     return;
   }

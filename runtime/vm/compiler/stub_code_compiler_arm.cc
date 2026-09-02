@@ -215,6 +215,7 @@ void StubCodeCompiler::GenerateEnterSafepointStub() {
   SPILLS_LR_TO_FRAME(__ EnterFrame((1 << FP) | (1 << LR), 0));
   __ ReserveAlignedFrameSpace(0);
   __ ldr(R0, Address(THR, kEnterSafepointRuntimeEntry.OffsetFromThread()));
+  __ Comment("Leaf runtime call: %s", kEnterSafepointRuntimeEntry.name());
   __ blx(R0);
   RESTORES_LR_FROM_FRAME(__ LeaveFrame((1 << FP) | (1 << LR), 0));
 
@@ -233,6 +234,7 @@ void StubCodeCompiler::GenerateExitSafepointStub() {
   __ VerifyNotInGenerated(R0);
 
   __ ldr(R0, Address(THR, kExitSafepointRuntimeEntry.OffsetFromThread()));
+  __ Comment("Leaf runtime call: %s", kExitSafepointRuntimeEntry.name());
   __ blx(R0);
   RESTORES_LR_FROM_FRAME(__ LeaveFrame((1 << FP) | (1 << LR), 0));
 
@@ -299,6 +301,12 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 #else
   Label body;
 
+  // Padding for ubsan target function pointer validation
+  __ Breakpoint();
+  __ Breakpoint();
+  ASSERT_EQUAL(FfiCallbackMetadata::kUbsanTargetValidationPaddingSize,
+               __ CodeSize());
+
   // TMP is volatile and not used for passing any arguments.
   COMPILE_ASSERT(!IsCalleeSavedRegister(TMP) && !IsArgumentRegister(TMP));
   for (intptr_t i = 0; i < FfiCallbackMetadata::NumCallbackTrampolinesPerPage();
@@ -310,19 +318,22 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   }
 
   ASSERT(__ CodeSize() ==
-         FfiCallbackMetadata::kNativeCallbackTrampolineSize *
-             FfiCallbackMetadata::NumCallbackTrampolinesPerPage());
+         FfiCallbackMetadata::kUbsanTargetValidationPaddingSize +
+             FfiCallbackMetadata::kNativeCallbackTrampolineSize *
+                 FfiCallbackMetadata::NumCallbackTrampolinesPerPage());
 
   __ Bind(&body);
 
   const intptr_t shared_stub_start = __ CodeSize();
 
-  // Save LR, FP, THR (callee-saved) & R4 (temporaries, callee-saved).
-  COMPILE_ASSERT(FfiCallbackMetadata::kNativeCallbackTrampolineStackDelta == 4);
+  // Save LR, FP, THR (callee-saved) & R4, R8, R9 (temporaries, callee-saved).
+  COMPILE_ASSERT(FfiCallbackMetadata::kNativeCallbackTrampolineStackDelta == 6);
   SPILLS_LR_TO_FRAME(__ EnterFrame((1 << FP) | (1 << LR), 0));
-  __ PushList((1 << THR) | (1 << R4));
+  __ PushList((1 << THR) | (1 << R4) | (1 << R8) | (1 << R9));
 
   COMPILE_ASSERT(IsCalleeSavedRegister(R4));
+  COMPILE_ASSERT(IsCalleeSavedRegister(R8));
+  COMPILE_ASSERT(IsCalleeSavedRegister(R9));
   COMPILE_ASSERT(!IsArgumentRegister(THR));
 
   RegisterSet argument_registers;
@@ -333,7 +344,7 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   // We exit the safepoint inside DLRT_GetFfiCallbackMetadata in order to save
   // code size on this shared stub.
   {
-    __ PushRegistersAligned(argument_registers, 3 * target::kWordSize);
+    __ PushRegistersAligned(argument_registers, 5 * target::kWordSize);
     __ mov(R0, Operand(TMP));
     __ mov(R1, Operand(SP));
 
@@ -346,8 +357,10 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
     __ ldr(TMP, Address(SP, 0 * target::kWordSize));              // entry_point
     CLOBBERS_LR(__ ldr(LR, Address(SP, 1 * target::kWordSize)));  // is_tail
     __ ldr(R4, Address(SP, 2 * target::kWordSize));               // epilogue
+    __ ldr(R8, Address(SP, 3 * target::kWordSize));  // caller_isolate
+    __ ldr(R9, Address(SP, 4 * target::kWordSize));  // caller_isolate_group
 
-    __ PopRegistersAligned(argument_registers, 3 * target::kWordSize);
+    __ PopRegistersAligned(argument_registers, 5 * target::kWordSize);
   }
 
   Label tail;
@@ -363,12 +376,14 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
     __ blx(TMP);  // entry_point
     __ PushRegistersAligned(return_registers, 0);
     __ mov(R0, Operand(THR));
+    __ mov(R1, Operand(R8));
+    __ mov(R2, Operand(R9));
     __ blx(R4);  // DLRT_ExitSyncCallback, etc
     if (FLAG_target_memory_sanitizer) {
       __ blx(R0);  // dart_msan_unpoison_retval
     }
     __ PopRegistersAligned(return_registers, 0);
-    __ PopList((1 << THR) | (1 << R4));
+    __ PopList((1 << THR) | (1 << R4) | (1 << R8) | (1 << R9));
     // Returns.
     RESTORES_LR_FROM_FRAME(__ PopList((1 << PC) | (1 << FP)));
     __ Breakpoint();
@@ -380,7 +395,7 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
     __ blx(TMP);  // entry_point
     __ mov(R0, Operand(THR));
     __ mov(R1, Operand(R4));
-    __ PopList((1 << THR) | (1 << R4));
+    __ PopList((1 << THR) | (1 << R4) | (1 << R8) | (1 << R9));
     RESTORES_LR_FROM_FRAME(__ PopList((1 << LR) | (1 << FP)));
     // Tail-call DLRT_ExitTemporaryIsolate. It is not safe to return to this
     // stub, since it might be deleted once DLRT_ExitTemporaryIsolate proceeds
@@ -390,7 +405,8 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   }
 
   ASSERT_LESS_OR_EQUAL(__ CodeSize() - shared_stub_start,
-                       FfiCallbackMetadata::kNativeCallbackSharedStubSize);
+                       FfiCallbackMetadata::kUbsanTargetValidationPaddingSize +
+                           FfiCallbackMetadata::kNativeCallbackSharedStubSize);
   ASSERT_LESS_OR_EQUAL(__ CodeSize(), FfiCallbackMetadata::kPageSize);
 
 #if defined(DEBUG)
@@ -981,7 +997,7 @@ void StubCodeCompiler::GenerateNoSuchMethodDispatcherStub() {
 // Clobbered:
 //   R3, R4, R8, R9
 void StubCodeCompiler::GenerateAllocateArrayStub() {
-  if (!FLAG_use_slow_path && FLAG_inline_alloc) {
+  if (UseInlineAllocation()) {
     Label slow_case;
     // Compute the size to be allocated, it is based on the array length
     // and is computed as:
@@ -1114,7 +1130,7 @@ void StubCodeCompiler::GenerateAllocateArrayStub() {
 // Called for allocation of Mint.
 void StubCodeCompiler::GenerateAllocateMintSharedWithFPURegsStub() {
   // For test purpose call allocation stub without inline allocation attempt.
-  if (!FLAG_use_slow_path && FLAG_inline_alloc) {
+  if (UseInlineAllocation()) {
     Label slow_case;
     __ TryAllocate(compiler::MintClass(), &slow_case, Assembler::kNearJump,
                    AllocateMintABI::kResultReg, AllocateMintABI::kTempReg);
@@ -1133,7 +1149,7 @@ void StubCodeCompiler::GenerateAllocateMintSharedWithFPURegsStub() {
 // Called for allocation of Mint.
 void StubCodeCompiler::GenerateAllocateMintSharedWithoutFPURegsStub() {
   // For test purpose call allocation stub without inline allocation attempt.
-  if (!FLAG_use_slow_path && FLAG_inline_alloc) {
+  if (UseInlineAllocation()) {
     Label slow_case;
     __ TryAllocate(compiler::MintClass(), &slow_case, Assembler::kNearJump,
                    AllocateMintABI::kResultReg, AllocateMintABI::kTempReg);
@@ -1500,7 +1516,7 @@ static void GenerateAllocateContext(Assembler* assembler, Label* slow_case) {
 // Clobbered:
 //   Potentially any since is can go to runtime.
 void StubCodeCompiler::GenerateAllocateContextStub() {
-  if (!FLAG_use_slow_path && FLAG_inline_alloc) {
+  if (UseInlineAllocation()) {
     Label slow_case;
 
     GenerateAllocateContext(assembler, &slow_case);
@@ -1561,7 +1577,7 @@ void StubCodeCompiler::GenerateAllocateContextStub() {
 // Clobbered:
 //   Potentially any since it can go to runtime.
 void StubCodeCompiler::GenerateCloneContextStub() {
-  if (!FLAG_use_slow_path && FLAG_inline_alloc) {
+  if (UseInlineAllocation()) {
     Label slow_case;
 
     // Load num. variable in the existing context.
@@ -2009,8 +2025,7 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
 
   __ LoadImmediate(kTagsReg, tags);
 
-  if (!FLAG_use_slow_path && FLAG_inline_alloc &&
-      !target::Class::TraceAllocation(cls) &&
+  if (UseInlineAllocation() && !target::Class::TraceAllocation(cls) &&
       target::SizeFitsInSizeTag(instance_size)) {
     RELEASE_ASSERT(AllocateObjectInstr::WillAllocateNewOrRemembered(cls));
     RELEASE_ASSERT(target::Heap::IsAllocatableInNewSpace(instance_size));
@@ -3392,7 +3407,7 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(intptr_t cid) {
   COMPILE_ASSERT(AllocateTypedDataArrayABI::kLengthReg == R4);
   COMPILE_ASSERT(AllocateTypedDataArrayABI::kResultReg == R0);
 
-  if (!FLAG_use_slow_path && FLAG_inline_alloc) {
+  if (UseInlineAllocation()) {
     Label call_runtime;
     NOT_IN_PRODUCT(__ MaybeTraceAllocation(cid, &call_runtime, R2));
     __ mov(R2, Operand(AllocateTypedDataArrayABI::kLengthReg));

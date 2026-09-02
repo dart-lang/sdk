@@ -29,10 +29,101 @@ class TemporaryOverlayOperationTest extends AbstractLspAnalysisServerTest {
     expect(actual, expected);
   }
 
+  Future<void> test_applyTemporaryOverlay_noContext() async {
+    await initialize();
+    await workspaceAnalysisComplete();
+
+    var unanalyzedPath = join(
+      projectFolderPath,
+      '.dart_tool',
+      'package_config.json',
+    );
+    newFile(unanalyzedPath, '// DISK');
+    expect(server.contextManager.getContextFor(unanalyzedPath), isNull);
+
+    late _TestTemporaryOverlayOperation operation;
+    operation = _TestTemporaryOverlayOperation(server, () async {
+      operation.applyTemporaryOverlay(
+        unanalyzedPath,
+        '// TEMPORARY OVERLAY',
+        '// DISK',
+      );
+      expectOverlayContent(unanalyzedPath, '// TEMPORARY OVERLAY');
+    });
+    await operation.doWork();
+
+    // After reverting, the temporary overlay should be removed.
+    expect(server.resourceProvider.hasOverlay(unanalyzedPath), isFalse);
+    expect(
+      server.resourceProvider.getFile(unanalyzedPath).readAsStringSync(),
+      '// DISK',
+    );
+  }
+
+  Future<void> test_applyTemporaryOverlay_noContext_existingOverlay() async {
+    await initialize();
+    await workspaceAnalysisComplete();
+
+    var unanalyzedPath = join(
+      projectFolderPath,
+      '.dart_tool',
+      'package_config.json',
+    );
+    newFile(unanalyzedPath, '// DISK');
+    server.resourceProvider.setOverlay(
+      unanalyzedPath,
+      content: '// ORIGINAL OVERLAY',
+      modificationStamp: -1,
+    );
+    expect(server.contextManager.getContextFor(unanalyzedPath), isNull);
+
+    late _TestTemporaryOverlayOperation operation;
+    operation = _TestTemporaryOverlayOperation(server, () async {
+      operation.applyTemporaryOverlay(
+        unanalyzedPath,
+        '// TEMPORARY OVERLAY',
+        '// ORIGINAL OVERLAY',
+      );
+      expectOverlayContent(unanalyzedPath, '// TEMPORARY OVERLAY');
+    });
+    await operation.doWork();
+
+    // After reverting, the original overlay should be restored.
+    expectOverlayContent(unanalyzedPath, '// ORIGINAL OVERLAY');
+  }
+
+  Future<void> test_applyTemporaryOverlay_nonExistentFile() async {
+    await initialize();
+    await workspaceAnalysisComplete();
+
+    var nonExistentPath = join(
+      projectFolderPath,
+      '.dart_tool',
+      'non_existent_file.json',
+    );
+    expect(server.resourceProvider.getFile(nonExistentPath).exists, isFalse);
+
+    late _TestTemporaryOverlayOperation operation;
+    operation = _TestTemporaryOverlayOperation(server, () async {
+      operation.applyTemporaryOverlay(
+        nonExistentPath,
+        '// TEMPORARY OVERLAY',
+        '',
+      );
+      expectOverlayContent(nonExistentPath, '// TEMPORARY OVERLAY');
+    });
+    await operation.doWork();
+
+    // After reverting, the temporary overlay should be removed and the file
+    // remains non-existent on disk.
+    expect(server.resourceProvider.hasOverlay(nonExistentPath), isFalse);
+    expect(server.resourceProvider.getFile(nonExistentPath).exists, isFalse);
+  }
+
   Future<void> test_noIntermediateAnalysisResults() async {
     newFile(mainFilePath, '');
     await initialize();
-    await initialAnalysis;
+    await workspaceAnalysisComplete();
 
     // Modify the overlays to have invalid code, which will then be reverted.
     // At no point should diagnostics or closing labels be transmitted for the
@@ -48,7 +139,7 @@ class TemporaryOverlayOperationTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_pausesRequestQueue() async {
     await initialize();
-    await initialAnalysis;
+    await workspaceAnalysisComplete();
     await openFile(mainFileUri, '// ORIGINAL');
 
     await _TestTemporaryOverlayOperation(server, () async {
@@ -62,7 +153,7 @@ class TemporaryOverlayOperationTest extends AbstractLspAnalysisServerTest {
     }).doWork();
 
     // Ensure we processed the update afterwards.
-    await pumpEventQueue(times: 5000);
+    await workspaceAnalysisComplete();
     expectFsStateContent(mainFilePath, '// CHANGED');
     expectOverlayContent(mainFilePath, '// CHANGED');
   }
@@ -70,7 +161,7 @@ class TemporaryOverlayOperationTest extends AbstractLspAnalysisServerTest {
   Future<void> test_pausesWatcherEvents() async {
     var mainFile = newFile(mainFilePath, '// ORIGINAL');
     await initialize();
-    await initialAnalysis;
+    await workspaceAnalysisComplete();
 
     await _TestTemporaryOverlayOperation(server, () async {
       // Modify the file to trigger watcher events
@@ -89,7 +180,7 @@ class TemporaryOverlayOperationTest extends AbstractLspAnalysisServerTest {
   Future<void> test_restoresOverlays() async {
     newFile(mainFilePath, '// DISK');
     await initialize();
-    await initialAnalysis;
+    await workspaceAnalysisComplete();
     await openFile(mainFileUri, '// ORIGINAL OVERLAY');
 
     late _TestTemporaryOverlayOperation operation;
@@ -101,14 +192,14 @@ class TemporaryOverlayOperationTest extends AbstractLspAnalysisServerTest {
     });
     await operation.doWork();
 
-    await pumpEventQueue(times: 5000);
+    await workspaceAnalysisComplete();
     expectOverlayContent(mainFilePath, '// ORIGINAL OVERLAY');
   }
 
   Future<void> test_temporarilyRemovesAddedFiles() async {
     newFile(mainFilePath, '');
     await initialize();
-    await initialAnalysis;
+    await workspaceAnalysisComplete();
 
     expect(server.driverMap.values.single.addedFiles, isNotEmpty);
 

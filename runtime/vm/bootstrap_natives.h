@@ -226,8 +226,10 @@ namespace dart {
   V(Int32x4_fromBools, 4)                                                      \
   V(Int32x4_fromFloat32x4Bits, 1)                                              \
   V(Int32x4_or, 2)                                                             \
+  V(Int32x4_equal, 2)                                                          \
   V(Int32x4_and, 2)                                                            \
   V(Int32x4_xor, 2)                                                            \
+  V(Int32x4_not, 1)                                                            \
   V(Int32x4_add, 2)                                                            \
   V(Int32x4_sub, 2)                                                            \
   V(Int32x4_getX, 1)                                                           \
@@ -239,6 +241,7 @@ namespace dart {
   V(Int32x4_setZ, 2)                                                           \
   V(Int32x4_setW, 2)                                                           \
   V(Int32x4_getSignMask, 1)                                                    \
+  V(Int32x4_getAnyTrue, 1)                                                     \
   V(Int32x4_shuffle, 2)                                                        \
   V(Int32x4_shuffleMix, 3)                                                     \
   V(Int32x4_getFlagX, 1)                                                       \
@@ -304,6 +307,11 @@ namespace dart {
   V(VMService_OnServerAddressChange, 1)                                        \
   V(VMService_ListenStream, 2)                                                 \
   V(VMService_CancelStream, 1)                                                 \
+  V(Ffi_nativeCallbackFunction, 2)                                             \
+  V(Ffi_nativeAsyncCallbackFunction, 0)                                        \
+  V(Ffi_nativeIsolateLocalCallbackFunction, 1)                                 \
+  V(Ffi_nativeIsolateGroupBoundCallbackFunction, 2)                            \
+  V(Ffi_nativeIsolateGroupBoundClosureFunction, 1)                             \
   V(Ffi_createNativeCallableListener, 2)                                       \
   V(Ffi_createNativeCallableIsolateLocal, 3)                                   \
   V(Ffi_createNativeCallableIsolateGroupBound, 2)                              \
@@ -311,6 +319,7 @@ namespace dart {
   V(Ffi_deleteIsolateGroupNativeCallable, 1)                                   \
   V(Ffi_updateNativeCallableKeepIsolateAliveCounter, 1)                        \
   V(Ffi_dl_open, 1)                                                            \
+  V(Ffi_dl_codeAsset, 1)                                                       \
   V(Ffi_dl_close, 1)                                                           \
   V(Ffi_dl_lookup, 2)                                                          \
   V(Ffi_dl_getHandle, 1)                                                       \

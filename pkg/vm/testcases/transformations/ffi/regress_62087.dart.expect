@@ -7,7 +7,7 @@ import "dart:typed_data" as typ;
 import "dart:ffi";
 
 @#C3
-@#C8
+@#C10
 final class UA_DataTypeMember extends ffi::Struct {
   synthetic constructor •() → self::UA_DataTypeMember
     : super ffi::Struct::•()
@@ -15,25 +15,25 @@ final class UA_DataTypeMember extends ffi::Struct {
   constructor #fromTypedDataBase(synthesized core::Object #typedDataBase, synthesized core::int #offsetInBytes) → self::UA_DataTypeMember
     : super ffi::Struct::_fromTypedDataBase(#typedDataBase, #offsetInBytes)
     ;
-  @#C10
+  @#C12
   constructor #fromTypedData(synthesized typ::TypedData #typedData, synthesized core::int #offset, synthesized core::int #sizeInBytes) → self::UA_DataTypeMember
     : super ffi::Struct::_fromTypedData(#typedData, #offset, #sizeInBytes)
     ;
-  @#C10
+  @#C12
   get memberType() → ffi::Pointer<self::UA_DataType>
     return ffi::_loadPointer<self::UA_DataType>(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::UA_DataTypeMember::memberType#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num});
-  @#C10
+  @#C12
   set memberType(synthesized ffi::Pointer<self::UA_DataType> #externalFieldValue) → void
     return ffi::_storePointer<self::UA_DataType>(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::UA_DataTypeMember::memberType#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #externalFieldValue);
-  @#C10
+  @#C12
   static synthetic get memberType#offsetOf() → core::int
-    return #C12.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
-  @#C10
+    return #C14.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
+  @#C12
   static synthetic get #sizeOf() → core::int
-    return #C15.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
+    return #C17.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 }
 @#C3
-@#C8
+@#C21
 final class UA_DataType extends ffi::Struct {
   synthetic constructor •() → self::UA_DataType
     : super ffi::Struct::•()
@@ -41,30 +41,30 @@ final class UA_DataType extends ffi::Struct {
   constructor #fromTypedDataBase(synthesized core::Object #typedDataBase, synthesized core::int #offsetInBytes) → self::UA_DataType
     : super ffi::Struct::_fromTypedDataBase(#typedDataBase, #offsetInBytes)
     ;
-  @#C10
+  @#C12
   constructor #fromTypedData(synthesized typ::TypedData #typedData, synthesized core::int #offset, synthesized core::int #sizeInBytes) → self::UA_DataType
     : super ffi::Struct::_fromTypedData(#typedData, #offset, #sizeInBytes)
     ;
-  @#C10
+  @#C12
   get members() → ffi::Pointer<self::UA_DataTypeMember>
     return ffi::_loadPointer<self::UA_DataTypeMember>(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::UA_DataType::members#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num});
-  @#C10
+  @#C12
   set members(synthesized ffi::Pointer<self::UA_DataTypeMember> #externalFieldValue) → void
     return ffi::_storePointer<self::UA_DataTypeMember>(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::UA_DataType::members#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #externalFieldValue);
-  @#C10
+  @#C12
   static synthetic get members#offsetOf() → core::int
-    return #C12.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
-  @#C10
+    return #C14.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
+  @#C12
   static synthetic get #sizeOf() → core::int
-    return #C15.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
+    return #C17.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 }
-@#C18
 @#C24
+@#C30
 static get UA_TYPES() → ffi::Array<self::UA_DataType>
-  return new ffi::Array::_<self::UA_DataType>(ffi::Native::_addressOf<ffi::Array<self::UA_DataType>>(#C23), #C11, #C16, #C22, #C25);
-@#C18
+  return new ffi::Array::_<self::UA_DataType>(ffi::Native::_addressOf<ffi::Array<self::UA_DataType>>(#C29), #C13, #C22, #C28, #C31);
+@#C24
 static set UA_TYPES(synthesized ffi::Array<self::UA_DataType> #externalFieldValue) → void
-  ffi::_memCopy(ffi::Native::_addressOf<ffi::Array<self::UA_DataType>>(#C23), #C11, #externalFieldValue.{ffi::_Compound::_typedDataBase}{core::Object}, #externalFieldValue.{ffi::_Compound::_offsetInBytes}{core::int}, #C16.{core::num::*}(self::UA_DataType::#sizeOf){(core::num) → core::num});
+  ffi::_memCopy(ffi::Native::_addressOf<ffi::Array<self::UA_DataType>>(#C29), #C13, #externalFieldValue.{ffi::_Compound::_typedDataBase}{core::Object}, #externalFieldValue.{ffi::_Compound::_offsetInBytes}{core::int}, #C22.{core::num::*}(self::UA_DataType::#sizeOf){(core::num) → core::num});
 static method main() → void {}
 constants  {
   #C1 = "vm:deeply-immutable"
@@ -73,23 +73,29 @@ constants  {
   #C4 = "vm:ffi:struct-fields"
   #C5 = TypeLiteralConstant(ffi::Pointer<core::Object>)
   #C6 = <core::Type>[#C5]
-  #C7 = ffi::_FfiStructLayout {fieldTypes:#C6, packing:#C2}
-  #C8 = core::pragma {name:#C4, options:#C7}
-  #C9 = "vm:prefer-inline"
-  #C10 = core::pragma {name:#C9, options:#C2}
-  #C11 = 0
-  #C12 = <core::int>[#C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11]
-  #C13 = 4
-  #C14 = 8
-  #C15 = <core::int>[#C13, #C14, #C13, #C14, #C14, #C14, #C14, #C14, #C13, #C14, #C14, #C13, #C14, #C13, #C14, #C13, #C14, #C14, #C14, #C14, #C13, #C14]
-  #C16 = 42
-  #C17 = <core::int>[#C16]
-  #C18 = ffi::_ArraySize<ffi::NativeType> {dimension1:#C2, dimension2:#C2, dimension3:#C2, dimension4:#C2, dimension5:#C2, dimensions:#C17, variableDimension:#C2}
-  #C19 = "cfe:ffi:native-marker"
-  #C20 = "UA_TYPES"
-  #C21 = "#lib"
-  #C22 = false
-  #C23 = ffi::Native<ffi::Array<self::UA_DataType>> {symbol:#C20, assetId:#C21, isLeaf:#C22}
-  #C24 = core::pragma {name:#C19, options:#C23}
-  #C25 = <core::int>[]
+  #C7 = "memberType"
+  #C8 = <core::String>[#C7]
+  #C9 = ffi::_FfiStructLayout {fieldTypes:#C6, packing:#C2, fieldNames:#C8}
+  #C10 = core::pragma {name:#C4, options:#C9}
+  #C11 = "vm:prefer-inline"
+  #C12 = core::pragma {name:#C11, options:#C2}
+  #C13 = 0
+  #C14 = <core::int>[#C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13]
+  #C15 = 4
+  #C16 = 8
+  #C17 = <core::int>[#C15, #C16, #C15, #C16, #C16, #C16, #C16, #C16, #C15, #C16, #C16, #C16, #C15, #C16, #C15, #C16, #C15, #C16, #C16, #C16, #C16, #C16, #C15, #C16]
+  #C18 = "members"
+  #C19 = <core::String>[#C18]
+  #C20 = ffi::_FfiStructLayout {fieldTypes:#C6, packing:#C2, fieldNames:#C19}
+  #C21 = core::pragma {name:#C4, options:#C20}
+  #C22 = 42
+  #C23 = <core::int>[#C22]
+  #C24 = ffi::_ArraySize<ffi::NativeType> {dimension1:#C2, dimension2:#C2, dimension3:#C2, dimension4:#C2, dimension5:#C2, dimensions:#C23, variableDimension:#C2}
+  #C25 = "cfe:ffi:native-marker"
+  #C26 = "UA_TYPES"
+  #C27 = "#lib"
+  #C28 = false
+  #C29 = ffi::Native<ffi::Array<self::UA_DataType>> {symbol:#C26, assetId:#C27, isLeaf:#C28}
+  #C30 = core::pragma {name:#C25, options:#C29}
+  #C31 = <core::int>[]
 }

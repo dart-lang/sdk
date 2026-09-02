@@ -22,7 +22,7 @@ class ReadWriteTest extends PubPackageResolutionTest {
 
   test_final_definitelyAssigned_read() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 void f(final x) {
   x;
 }
@@ -32,7 +32,7 @@ void f(final x) {
 
   test_final_definitelyAssigned_read_prefixNegate() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 void f(final x) {
   -x;
 }
@@ -42,7 +42,7 @@ void f(final x) {
 
   test_final_definitelyAssigned_readWrite_compoundAssignment() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 void f(final x) {
   x += 1;
 //^
@@ -54,7 +54,7 @@ void f(final x) {
 
   test_final_definitelyAssigned_readWrite_postfixIncrement() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 void f(final x) {
   x++;
 //^
@@ -66,7 +66,7 @@ void f(final x) {
 
   test_final_definitelyAssigned_readWrite_prefixIncrement() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 void f(final x) {
   ++x;
 //  ^
@@ -78,7 +78,7 @@ void f(final x) {
 
   test_final_definitelyAssigned_write() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 void f(final x) {
   x = 0;
 //^
@@ -90,7 +90,7 @@ void f(final x) {
 
   test_final_definitelyAssigned_write_forEachLoop_identifier() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 void f(final x) {
   for (x in [0, 1, 2]) {
 //     ^
@@ -1202,7 +1202,7 @@ void f(bool b) {
     required bool assigned,
     required bool unassigned,
   }) {
-    var node = result.findNode.simple(search);
+    var node = result.findNode.any(search);
 
     var testingData = driverFor(testFile).testingData!;
     var unitData = testingData.uriToFlowAnalysisData[result.uri]!;

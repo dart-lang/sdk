@@ -132,7 +132,7 @@ library from "org-dartlang-test:///main.dart" as main {
   static field foo::Foo extensionBaz = foo::FooExtension|baz(null);
   static field foo::Foo extensionBoz = foo::FooExtension|boz(null, $creationLocationd_0dea112b090073317d4: #C46);
   static field foo::Foo extensionGetterFoo = foo::FooExtension|get#getterFoo(null, $creationLocationd_0dea112b090073317d4: #C50);
-  static field () → Null extensionSetterFoo = () → Null => let final has-declared-initializer Null #t1 = null in let final void #t2 = foo::FooExtension|set#setterFoo(null, #t1, $creationLocationd_0dea112b090073317d4: #C54) in #t1;
+  static field () → Null extensionSetterFoo = () → Null => let final Null #t1 = null in let final void #t2 = foo::FooExtension|set#setterFoo(null, #t1, $creationLocationd_0dea112b090073317d4: #C54) in #t1;
   static field foo::Foo extensionOperatorFoo = foo::FooExtension|unary-(null, $creationLocationd_0dea112b090073317d4: #C57);
   static field foo::Foo extensionStaticFoo = foo::FooExtension|staticFoo();
 }
@@ -205,11 +205,11 @@ org-dartlang-test:///foo.dart:
 - Widget. (from org-dartlang-test:///flutter/lib/src/widgets/framework.dart:7:9)
 - Bar. (from org-dartlang-test:///flutter/lib/src/widgets/framework.dart:4:9)
 
-org-dartlang-test:///flutter/lib/src/widgets/widget_inspector.dart:
-- _WidgetFactory. (from org-dartlang-test:///flutter/lib/src/widgets/widget_inspector.dart:27:9)
-- Object. (from org-dartlang-sdk:///lib/core/object.dart)
-
 org-dartlang-test:///main.dart:
 - _Location. (from org-dartlang-test:///flutter/lib/src/widgets/widget_inspector.dart:7:9)
+- Object. (from org-dartlang-sdk:///lib/core/object.dart)
+
+org-dartlang-test:///flutter/lib/src/widgets/widget_inspector.dart:
+- _WidgetFactory. (from org-dartlang-test:///flutter/lib/src/widgets/widget_inspector.dart:27:9)
 - Object. (from org-dartlang-sdk:///lib/core/object.dart)
 

@@ -232,12 +232,12 @@ void f(A a) {
     assertHasResult(SearchResultKind.WRITE, 'fff = 1;');
     // m()
     assertHasResult(SearchResultKind.WRITE, 'fff = 2;');
-    assertHasResult(SearchResultKind.WRITE, 'fff += 3;');
+    assertHasResult(SearchResultKind.READ_WRITE, 'fff += 3;');
     assertHasResult(SearchResultKind.READ, 'fff); // in m()');
     assertHasResult(SearchResultKind.READ, 'fff(); // in m()');
     // f()
     assertHasResult(SearchResultKind.WRITE, 'fff = 20;');
-    assertHasResult(SearchResultKind.WRITE, 'fff += 30;');
+    assertHasResult(SearchResultKind.READ_WRITE, 'fff += 30;');
     assertHasResult(SearchResultKind.READ, 'fff); // in f()');
     assertHasResult(SearchResultKind.READ, 'fff(); // in f()');
   }
@@ -354,6 +354,25 @@ void f() {
     assertHasResult(SearchResultKind.REFERENCE, 'mmm);');
   }
 
+  Future<void> test_class_operator_unary() async {
+    addTestFile('''
+class A {
+  void operator -() {}
+}
+
+void f(A a) {
+  -a; // 1
+  -a; // 2
+  a - a;
+}
+''');
+    await findElementReferences(search: '-() {}', false);
+    expect(searchElement!.kind, ElementKind.METHOD);
+    expect(results, hasLength(2));
+    assertHasResult(SearchResultKind.INVOCATION, '-a; // 1', 1);
+    assertHasResult(SearchResultKind.INVOCATION, '-a; // 2', 1);
+  }
+
   Future<void> test_enum_constructor_named() async {
     addTestFile('''
 /// [new E.named] 1
@@ -421,12 +440,12 @@ void f(E e) {
     assertHasResult(SearchResultKind.WRITE, 'fff = 0; // 03');
     // foo()
     assertHasResult(SearchResultKind.WRITE, 'fff = 0; // 04');
-    assertHasResult(SearchResultKind.WRITE, 'fff += 0; // 05');
+    assertHasResult(SearchResultKind.READ_WRITE, 'fff += 0; // 05');
     assertHasResult(SearchResultKind.READ, 'fff; // 06');
     assertHasResult(SearchResultKind.READ, 'fff(); // 07');
     // f()
     assertHasResult(SearchResultKind.WRITE, 'fff = 0; // 08');
-    assertHasResult(SearchResultKind.WRITE, 'fff += 0; // 09');
+    assertHasResult(SearchResultKind.READ_WRITE, 'fff += 0; // 09');
     assertHasResult(SearchResultKind.READ, 'fff; // 10');
     assertHasResult(SearchResultKind.READ, 'fff(); // 11');
   }
@@ -536,12 +555,12 @@ void f() {
     expect(results, hasLength(8));
     // m()
     assertHasResult(SearchResultKind.WRITE, 'fff = 2;');
-    assertHasResult(SearchResultKind.WRITE, 'fff += 3;');
+    assertHasResult(SearchResultKind.READ_WRITE, 'fff += 3;');
     assertHasResult(SearchResultKind.READ, 'fff); // in m()');
     assertHasResult(SearchResultKind.READ, 'fff(); // in m()');
     // f()
     assertHasResult(SearchResultKind.WRITE, 'fff = 20;');
-    assertHasResult(SearchResultKind.WRITE, 'fff += 30;');
+    assertHasResult(SearchResultKind.READ_WRITE, 'fff += 30;');
     assertHasResult(SearchResultKind.READ, 'fff); // in f()');
     assertHasResult(SearchResultKind.READ, 'fff(); // in f()');
   }
@@ -709,12 +728,12 @@ void f() {
     assertHasResult(SearchResultKind.READ, 'foo; // in m()');
     assertHasResult(SearchResultKind.READ, 'foo(); // in m()');
     assertHasResult(SearchResultKind.WRITE, 'foo = 1;');
-    assertHasResult(SearchResultKind.WRITE, 'foo += 2;');
+    assertHasResult(SearchResultKind.READ_WRITE, 'foo += 2;');
     // f()
     assertHasResult(SearchResultKind.READ, 'foo; // in f()');
     assertHasResult(SearchResultKind.READ, 'foo(); // in f()');
     assertHasResult(SearchResultKind.WRITE, 'foo = 10;');
-    assertHasResult(SearchResultKind.WRITE, 'foo += 20;');
+    assertHasResult(SearchResultKind.READ_WRITE, 'foo += 20;');
   }
 
   Future<void> test_extensionType_field_implicit() async {
@@ -1516,7 +1535,7 @@ void f() {
     expect(searchElement!.kind, ElementKind.TOP_LEVEL_VARIABLE);
     expect(results, hasLength(4));
     assertHasResult(SearchResultKind.READ, 'vvv);');
-    assertHasResult(SearchResultKind.WRITE, 'vvv += 3');
+    assertHasResult(SearchResultKind.READ_WRITE, 'vvv += 3');
     assertHasResult(SearchResultKind.WRITE, 'vvv = 2');
     assertHasResult(SearchResultKind.READ, 'vvv();');
   }

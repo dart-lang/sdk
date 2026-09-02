@@ -49,13 +49,8 @@ class _CountVisitor extends RecursiveAstVisitor<void> {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final AnalysisRule rule;
-
-  final RuleContext context;
-
-  new(this.rule, this.context);
-
+class _Visitor(final AnalysisRule rule, final RuleContext context)
+    extends SimpleAstVisitor<void> {
   @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
     _countAndReport(node.name);

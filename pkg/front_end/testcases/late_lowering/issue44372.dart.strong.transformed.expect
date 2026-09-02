@@ -27,8 +27,8 @@ static method main(core::List<core::String> args) → dynamic {
     return 3;
   }){(() → core::int) → dynamic};
   self::throws(() → Null {
-    core::int val = #local#get(){() → core::int};
-    core::print("Final local has value ${val}");
+    core::int val##1 = #local#get(){() → core::int};
+    core::print("Final local has value ${val##1}");
   }, "Read local");
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {

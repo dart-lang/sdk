@@ -36,6 +36,7 @@ int get _intPtrSize => (const [
   8, // fuchsiaRiscv64,
   4, // iosArm,
   8, // iosArm64,
+  8, // iosArm64e,
   8, // iosX64,
   4, // linuxArm,
   8, // linuxArm64,
@@ -44,6 +45,7 @@ int get _intPtrSize => (const [
   4, // linuxRiscv32,
   8, // linuxRiscv64,
   8, // macosArm64,
+  8, // macosArm64e,
   8, // macosX64,
   8, // windowsArm64,
   4, // windowsIA32,
@@ -236,6 +238,7 @@ external dynamic _nativeIsolateGroupBoundClosureFunction<NS extends Function>(
 @pragma("vm:entry-point")
 final class Pointer<T extends NativeType> implements SizedNativeType {
   @patch
+  @pragma('dyn-module:language-impl:callable')
   factory Pointer.fromAddress(int ptr) => _fromAddress(ptr);
 
   // All static calls to this method are replaced by the FE into

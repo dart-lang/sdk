@@ -17,7 +17,11 @@ Future<ChainContext> createContext(
   Chain suite,
   Map<String, String> environment,
 ) async {
-  return SourceMapContext(environment);
+  return SourceMapContext(
+    environment: environment,
+    moduleFormat: 'es6',
+    canary: false,
+  );
 }
 
 class SourceMapContext extends ChainContextWithCleanupHelper
@@ -26,7 +30,14 @@ class SourceMapContext extends ChainContextWithCleanupHelper
   @override
   fe.InitializedCompilerState? compilerState;
 
-  SourceMapContext(this.environment);
+  final String moduleFormat;
+  final bool canary;
+
+  SourceMapContext({
+    required this.environment,
+    required this.moduleFormat,
+    required this.canary,
+  });
 
   List<Step>? _steps;
 
@@ -34,7 +45,14 @@ class SourceMapContext extends ChainContextWithCleanupHelper
   List<Step> get steps {
     return _steps ??= <Step>[
       const Setup(),
-      Compile(DevCompilerRunner(this, debugging: debugging())),
+      Compile(
+        DevCompilerRunner(
+          this,
+          debugging: debugging(),
+          moduleFormat: moduleFormat,
+          canary: canary,
+        ),
+      ),
       const StepWithD8(),
       CheckSteps(debugging()),
     ];

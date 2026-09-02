@@ -13,6 +13,7 @@ import 'package:compiler/src/universe/record_shape.dart';
 import 'package:compiler/src/universe/selector.dart';
 import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
+
 import '../helpers/type_test_helper.dart';
 
 main() {
@@ -154,28 +155,30 @@ main() {
         RecordTypeMask.createRecord(domain, [aMask], shape1) as RecordTypeMask;
     final recordBMask =
         RecordTypeMask.createRecord(domain, [bMask], shape1) as RecordTypeMask;
-    final recordStringMask =
-        RecordTypeMask.createRecord(domain, [stringMask], shape1)
-            as RecordTypeMask;
-    final recordAStringMask =
-        RecordTypeMask.createRecord(domain, [aMask, stringMask], shape2)
-            as RecordTypeMask;
-    final recordStringBMask =
-        RecordTypeMask.createRecord(domain, [stringMask, bMask], shape2)
-            as RecordTypeMask;
-    final recordAFooStringMask =
-        RecordTypeMask.createRecord(domain, [aMask, stringMask], shape1Foo)
-            as RecordTypeMask;
-    final recordBStringMask =
-        RecordTypeMask.createRecord(domain, [bMask, stringMask], shape2)
-            as RecordTypeMask;
-    final uninstantiatedRecordMask =
-        RecordTypeMask.createRecord(domain, [
-              aMask,
-              aMask,
-              aMask,
-            ], uninstantiatedShape)
-            as RecordTypeMask;
+    final recordStringMask = RecordTypeMask.createRecord(domain, [
+      stringMask,
+    ], shape1) as RecordTypeMask;
+    final recordAStringMask = RecordTypeMask.createRecord(domain, [
+      aMask,
+      stringMask,
+    ], shape2) as RecordTypeMask;
+    final recordStringBMask = RecordTypeMask.createRecord(domain, [
+      stringMask,
+      bMask,
+    ], shape2) as RecordTypeMask;
+    final recordAFooStringMask = RecordTypeMask.createRecord(domain, [
+      aMask,
+      stringMask,
+    ], shape1Foo) as RecordTypeMask;
+    final recordBStringMask = RecordTypeMask.createRecord(domain, [
+      bMask,
+      stringMask,
+    ], shape2) as RecordTypeMask;
+    final uninstantiatedRecordMask = RecordTypeMask.createRecord(domain, [
+      aMask,
+      aMask,
+      aMask,
+    ], uninstantiatedShape) as RecordTypeMask;
 
     // Record member names
     final position1GetterName = Name('\$1', null);

@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -42,10 +41,10 @@ import 'package:analyzer/src/utilities/extensions/object.dart';
 ///    The identifiers within directives are exceptions to this rule and are
 ///    covered below.
 /// 2. Every node containing a token representing an operator that can be
-///    overridden ( [BinaryExpression], [PrefixExpression], [PostfixExpression])
-///    should resolve to the element representing the method invoked by that
-///    operator (a [MethodElement]).
-/// 3. Every [FunctionExpressionInvocation] should resolve to the element
+///    overridden ([BinaryOperatorInvocation], [UnaryOperatorInvocation], and
+///    [IncrementOrDecrementExpression]) should resolve to the element
+///    representing the method invoked by that operator (a [MethodElement]).
+/// 3. Every [FunctionInvocation] should resolve to the element
 ///    representing the function being invoked (a [ExecutableElement]). This
 ///    will be the same element as that to which the name is resolved if the
 ///    function has a name, but is provided for those cases where an unnamed
@@ -110,7 +109,7 @@ class ElementResolver {
 
   void visitConstructorDeclaration(ConstructorDeclarationImpl node) {
     var element = node.declaredFragment!.element;
-    var redirectedNode = node.redirectedConstructor;
+    var redirectedNode = node.factoryRedirectionTarget;
     if (redirectedNode != null) {
       // set redirected factory constructor
       var redirectedElement = redirectedNode.element;
@@ -126,24 +125,25 @@ class ElementResolver {
     }
   }
 
-  void visitConstructorName(covariant ConstructorNameImpl node) {
-    var type = node.type.type;
-    if (type == null) {
-      return;
+  void visitConstructorInvocation(covariant ConstructorInvocationImpl node) {
+    var invokedConstructor = node.constructorReference.element;
+    var argumentList = node.argumentList;
+    var parameters = _resolveArgumentsToFunction(
+      argumentList,
+      invokedConstructor,
+    );
+    if (parameters != null) {
+      argumentList.correspondingStaticParameters = parameters;
     }
-    if (type is DynamicType) {
-      // Nothing to do.
-    } else if (type is InterfaceTypeImpl) {
-      // look up ConstructorElement
-      InternalConstructorElement? constructor;
-      var name = node.name;
-      if (name == null) {
-        constructor = type.lookUpConstructor(null, _definingLibrary);
-      } else {
-        constructor = type.lookUpConstructor(name.name, _definingLibrary);
-        name.element = constructor;
-      }
-      node.element = constructor;
+  }
+
+  void visitConstructorReference2(covariant ConstructorReference2Impl node) {
+    var type = node.typeReference.type;
+    if (type is InterfaceTypeImpl) {
+      node.element = type.lookUpConstructor(
+        node.selector?.name2.lexeme,
+        _definingLibrary,
+      );
     }
   }
 
@@ -165,7 +165,7 @@ class ElementResolver {
 
   /// Resolves the dot shorthand invocation, [node].
   ///
-  /// If [node] is rewritten to be a [FunctionExpressionInvocation] or a
+  /// If [node] is rewritten to be a [CallInvocation] or a
   /// [DotShorthandConstructorInvocation] in the process, then returns that new
   /// node. Otherwise, returns `null`.
   RewrittenMethodInvocationImpl? visitDotShorthandInvocation(
@@ -210,19 +210,6 @@ class ElementResolver {
   void visitGenericTypeAlias(GenericTypeAlias node) {}
 
   void visitImportDirective(covariant ImportDirectiveImpl node) {
-    var prefixNode = node.prefix;
-    if (prefixNode != null) {
-      String prefixName = prefixNode.name;
-      var prefixes = _resolver.libraryFragment.prefixes;
-      int count = prefixes.length;
-      for (int i = 0; i < count; i++) {
-        var prefixElement = prefixes[i];
-        if (prefixElement.displayName == prefixName) {
-          prefixNode.element = prefixElement;
-          break;
-        }
-      }
-    }
     var importElement = node.libraryImport;
     if (importElement != null) {
       // The element is null when the URI is invalid
@@ -230,20 +217,6 @@ class ElementResolver {
       if (library != null) {
         _resolveCombinators(library, node.combinators);
       }
-    }
-  }
-
-  void visitInstanceCreationExpression(
-    covariant InstanceCreationExpressionImpl node,
-  ) {
-    var invokedConstructor = node.constructorName.element;
-    var argumentList = node.argumentList;
-    var parameters = _resolveArgumentsToFunction(
-      argumentList,
-      invokedConstructor,
-    );
-    if (parameters != null) {
-      argumentList.correspondingStaticParameters = parameters;
     }
   }
 
@@ -282,26 +255,25 @@ class ElementResolver {
   void visitRedirectingConstructorInvocation(
     covariant RedirectingConstructorInvocationImpl node,
   ) {
-    var enclosingClass = _resolver.enclosingClass;
-    if (enclosingClass is! InterfaceElementImpl) {
+    var enclosingInterface = _resolver.enclosingInstanceElement;
+    if (enclosingInterface is! InterfaceElementImpl) {
       // TODO(brianwilkerson): Report this error.
       return;
     }
     ConstructorElementImpl? element;
-    var name = node.constructorName;
+    var selector = node.constructorSelector;
+    var name = selector?.name2.lexeme;
     if (name == null) {
-      element = enclosingClass.unnamedConstructor;
+      element = enclosingInterface.unnamedConstructor;
     } else {
-      element = enclosingClass.getNamedConstructor(name.name);
+      element = enclosingInterface.getNamedConstructor(name);
     }
     if (element == null) {
       // TODO(brianwilkerson): Report this error and decide what element to
       // associate with the node.
       return;
     }
-    if (name != null) {
-      name.element = element;
-    }
+    selector?.name.element = element;
     node.element = element;
     var argumentList = node.argumentList;
     var parameters = _resolveArgumentsToFunction(argumentList, element);
@@ -315,24 +287,24 @@ class ElementResolver {
   void visitSuperConstructorInvocation(
     covariant SuperConstructorInvocationImpl node,
   ) {
-    var enclosingClass = _resolver.enclosingClass;
-    if (enclosingClass is! InterfaceElementImpl) {
+    var enclosingInterface = _resolver.enclosingInstanceElement;
+    if (enclosingInterface is! InterfaceElementImpl) {
       // TODO(brianwilkerson): Report this error.
       return;
     }
-    var superType = enclosingClass.supertype;
+    var superType = enclosingInterface.supertype;
     if (superType == null) {
       // TODO(brianwilkerson): Report this error.
       return;
     }
-    var name = node.constructorName;
-    var superName = name?.name;
+    var selector = node.constructorSelector;
+    var superName = selector?.name2.lexeme;
     var element = superType.lookUpConstructor(superName, _definingLibrary);
     if (element == null || !element.isAccessibleIn(_definingLibrary)) {
-      if (name != null) {
+      if (superName != null) {
         _diagnosticReporter.report(
           diag.undefinedConstructorInInitializer
-              .withArguments(type: superType, constructorName: name.name)
+              .withArguments(type: superType, constructorName: superName)
               .at(node),
         );
       } else {
@@ -356,13 +328,11 @@ class ElementResolver {
         );
       }
     }
-    if (name != null) {
-      name.element = element;
-    }
+    selector?.name.element = element;
     node.element = element;
     // TODO(brianwilkerson): Defer this check until we know there's an error (by
     // in-lining _resolveArgumentsToFunction below).
-    var declaration = node.thisOrAncestorOfType<ClassDeclaration>();
+    var declaration = node.thisOrAncestorOfType2<ClassDeclaration>();
     var extendedNamedType = declaration?.extendsClause?.superclass;
     if (extendedNamedType != null &&
         _resolver.libraryFragment.shouldIgnoreUndefinedNamedType(
@@ -375,8 +345,8 @@ class ElementResolver {
       argumentList,
       element,
       enclosingConstructorFormalParameterList:
-          node.parent.tryCast<ConstructorDeclarationImpl>()?.parameters ??
-          node.parent
+          node.parent2.tryCast<ConstructorDeclarationImpl>()?.parameters ??
+          node.parent2
               .tryCast<PrimaryConstructorBodyImpl>()
               ?.declaration
               ?.formalParameters,
@@ -432,7 +402,7 @@ class ElementResolver {
   /// [library].
   void _resolveCombinators(
     LibraryElementImpl? library,
-    NodeList<Combinator> combinators,
+    NodeList<CombinatorImpl> combinators,
   ) {
     if (library == null) {
       //
@@ -442,26 +412,11 @@ class ElementResolver {
       return;
     }
     Namespace namespace = library.exportNamespace;
-    for (Combinator combinator in combinators) {
-      NodeList<SimpleIdentifier> names;
-      if (combinator is HideCombinator) {
-        names = combinator.hiddenNames;
-      } else {
-        names = (combinator as ShowCombinator).shownNames;
-      }
-      for (var name in names) {
-        name as SimpleIdentifierImpl;
-        String nameStr = name.name;
-        var element = namespace.get2(nameStr) ?? namespace.get2("$nameStr=");
-        if (element != null) {
-          // Ensure that the name always resolves to a top-level variable
-          // rather than a getter or setter
-          if (element is PropertyAccessorElement) {
-            name.element = element.variable;
-          } else {
-            name.element = element;
-          }
-        }
+    for (var combinator in combinators) {
+      for (var name in combinator.names) {
+        var nameStr = name.name.lexeme;
+        name.element = namespace.get2(nameStr);
+        name.setterElement = namespace.get2('$nameStr=');
       }
     }
   }

@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/services/correction/bulk_fix_processor.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -24,7 +25,10 @@ void main() {
 class AdditionalEnabledCodesTest extends BulkFixProcessorTest {
   Future<void> test_additionalEnabledCodes_areApplied() async {
     // Deliberately DO NOT enable the lint in the options file
-    createAnalysisOptionsFile(experiments: experiments, lints: []);
+    createAnalysisOptionsFile(
+      experimentalFeatures: experimentalFeatures,
+      lints: [],
+    );
 
     await resolveTestCode('''
 class A { }
@@ -37,7 +41,7 @@ var a = new A();
     var processor = BulkFixProcessor(
       TestInstrumentationService(),
       changeWorkspace,
-      byteStore: byteStore,
+      byteStore: MemoryByteStore(),
       additionalEnabledCodes: [LintNames.unnecessary_new],
     );
 
@@ -51,7 +55,7 @@ var a = new A();
   Future<void>
   test_additionalEnabledCodes_doesNotFilterOutOriginalLints() async {
     createAnalysisOptionsFile(
-      experiments: experiments,
+      experimentalFeatures: experimentalFeatures,
       lints: [LintNames.annotate_overrides],
     );
 
@@ -72,7 +76,7 @@ var a = new A();
     var processor = BulkFixProcessor(
       TestInstrumentationService(),
       changeWorkspace,
-      byteStore: byteStore,
+      byteStore: MemoryByteStore(),
       additionalEnabledCodes: [LintNames.unnecessary_new],
     );
 
@@ -85,7 +89,10 @@ var a = new A();
   }
 
   Future<void> test_additionalEnabledCodes_invalidCodesIgnored() async {
-    createAnalysisOptionsFile(experiments: experiments, lints: []);
+    createAnalysisOptionsFile(
+      experimentalFeatures: experimentalFeatures,
+      lints: [],
+    );
 
     await resolveTestCode('''
 class A { }
@@ -98,7 +105,7 @@ var a = new A();
     var processor = BulkFixProcessor(
       TestInstrumentationService(),
       changeWorkspace,
-      byteStore: byteStore,
+      byteStore: MemoryByteStore(),
       additionalEnabledCodes: ['some_fake_lint_that_doesnt_exist'],
     );
 
@@ -110,7 +117,10 @@ var a = new A();
 
   Future<void>
   test_additionalEnabledCodes_originalContextRemainsUnchanged() async {
-    createAnalysisOptionsFile(experiments: experiments, lints: []);
+    createAnalysisOptionsFile(
+      experimentalFeatures: experimentalFeatures,
+      lints: [],
+    );
 
     await resolveTestCode('''
 class A { }
@@ -123,7 +133,7 @@ var a = new A();
     var processor = BulkFixProcessor(
       TestInstrumentationService(),
       changeWorkspace,
-      byteStore: byteStore,
+      byteStore: MemoryByteStore(),
       additionalEnabledCodes: [LintNames.unnecessary_new],
     );
 
@@ -143,7 +153,7 @@ var a = new A();
 class ChangeMapTest extends BulkFixProcessorTest {
   Future<void> test_changeMap() async {
     createAnalysisOptionsFile(
-      experiments: experiments,
+      experimentalFeatures: experimentalFeatures,
       lints: [LintNames.annotate_overrides, LintNames.unnecessary_new],
     );
 
@@ -163,7 +173,7 @@ var aa = new A();
 
   Future<void> test_changeMap_cancelled() async {
     createAnalysisOptionsFile(
-      experiments: experiments,
+      experimentalFeatures: experimentalFeatures,
       lints: [LintNames.unnecessary_new],
     );
 
@@ -179,7 +189,7 @@ var a = new A();
     var processor = BulkFixProcessor(
       TestInstrumentationService(),
       changeWorkspace,
-      byteStore: byteStore,
+      byteStore: MemoryByteStore(),
       cancellationToken: token,
     );
 
@@ -198,7 +208,7 @@ var a = new A();
 class HasFixesTest extends BulkFixProcessorTest {
   Future<void> test_hasFixes() async {
     createAnalysisOptionsFile(
-      experiments: experiments,
+      experimentalFeatures: experimentalFeatures,
       lints: [LintNames.annotate_overrides, LintNames.unnecessary_new],
     );
 
@@ -213,7 +223,7 @@ var a = new A();
 
   Future<void> test_hasFixes_in_part() async {
     createAnalysisOptionsFile(
-      experiments: experiments,
+      experimentalFeatures: experimentalFeatures,
       lints: [LintNames.unnecessary_new],
     );
 
@@ -234,7 +244,7 @@ part 'a.dart';
 
   Future<void> test_hasFixes_in_part_and_library() async {
     createAnalysisOptionsFile(
-      experiments: experiments,
+      experimentalFeatures: experimentalFeatures,
       lints: [LintNames.unnecessary_new],
     );
 
@@ -271,7 +281,7 @@ var a = new A();
   Future<void> test_hasFixes_in_part_and_library2() async {
     // https://github.com/dart-lang/sdk/issues/59572
     createAnalysisOptionsFile(
-      experiments: experiments,
+      experimentalFeatures: experimentalFeatures,
       lints: [LintNames.empty_statements, LintNames.prefer_const_constructors],
     );
 
@@ -306,7 +316,7 @@ void a() {
 
   Future<void> test_hasFixes_stoppedAfterFirst() async {
     createAnalysisOptionsFile(
-      experiments: experiments,
+      experimentalFeatures: experimentalFeatures,
       lints: [LintNames.annotate_overrides, LintNames.unnecessary_new],
     );
 
@@ -325,7 +335,7 @@ var a = new A();
 
   Future<void> test_noFixes() async {
     createAnalysisOptionsFile(
-      experiments: experiments,
+      experimentalFeatures: experimentalFeatures,
       lints: [LintNames.avoid_catching_errors],
     );
 
@@ -343,7 +353,7 @@ void bad() {
 
   Future<void> test_override_first() async {
     createAnalysisOptionsFile(
-      experiments: experiments,
+      experimentalFeatures: experimentalFeatures,
       lints: [
         LintNames.annotate_overrides,
         LintNames.always_declare_return_types,
@@ -371,7 +381,7 @@ class NoFixTest extends BulkFixProcessorTest {
   /// See: https://github.com/dart-lang/sdk/issues/45177
   Future<void> test_noFix() async {
     createAnalysisOptionsFile(
-      experiments: experiments,
+      experimentalFeatures: experimentalFeatures,
       lints: [LintNames.avoid_catching_errors],
     );
 
@@ -457,6 +467,65 @@ void f() {
 ''');
 
     await getResolvedUnit(testFile);
+    await assertFixPubspec(content, expected);
+  }
+
+  Future<void> test_existingDependencies_noTrailingNewline() async {
+    var content = '''
+name: test
+dependencies:
+  x: any''';
+    var expected = '''
+name: test
+dependencies:
+  x: any
+  a: any
+''';
+    updateTestPubspecFile(content);
+
+    await resolveTestCode("import 'package:a/a.dart';");
+    await assertFixPubspec(content, expected);
+  }
+
+  Future<void> test_existingDependencies_withTrailingNewline() async {
+    var content = '''
+name: test
+dependencies:
+  x: any
+''';
+    var expected = '''
+name: test
+dependencies:
+  x: any
+  a: any
+''';
+    updateTestPubspecFile(content);
+
+    await resolveTestCode("import 'package:a/a.dart';");
+    await assertFixPubspec(content, expected);
+  }
+
+  Future<void> test_fileHasParts() async {
+    var content = '''
+name: test
+''';
+    var expected = '''
+name: test
+dependencies:
+  a: any
+''';
+
+    updateTestPubspecFile(content);
+    // Include a non-library file, testing whether the bulk fix processor chokes
+    // over the presense of a non-library file.
+    newFile('$testPackageLibPath/part.dart', '''
+part of 'lib.dart';
+''');
+
+    await resolveTestCode('''
+import 'package:a/a.dart';
+''');
+
     await assertFixPubspec(content, expected);
   }
 
@@ -636,6 +705,34 @@ void bad() {
 }
 ''');
 
+    await assertFixPubspec(content, expected);
+  }
+
+  Future<void> test_noExistingDependencies_noTrailingNewline() async {
+    var content = 'name: test';
+    var expected = '''
+name: test
+dependencies:
+  a: any
+''';
+    updateTestPubspecFile(content);
+
+    await resolveTestCode("import 'package:a/a.dart';");
+    await assertFixPubspec(content, expected);
+  }
+
+  Future<void> test_noExistingDependencies_withTrailingNewline() async {
+    var content = '''
+name: test
+''';
+    var expected = '''
+name: test
+dependencies:
+  a: any
+''';
+    updateTestPubspecFile(content);
+
+    await resolveTestCode("import 'package:a/a.dart';");
     await assertFixPubspec(content, expected);
   }
 }

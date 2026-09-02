@@ -1352,7 +1352,7 @@ void ConstantPropagator::VisitFloatToDouble(FloatToDoubleInstr* instr) {
   SetValue(instr, non_constant_);
 }
 
-void ConstantPropagator::VisitFloatCompare(FloatCompareInstr* instr) {
+void ConstantPropagator::VisitCompareAsMask(CompareAsMaskInstr* instr) {
   // TODO(riscv)
   SetValue(instr, non_constant_);
 }
@@ -1570,6 +1570,11 @@ void ConstantPropagator::VisitLoadThread(LoadThreadInstr* instr) {
 }
 
 void ConstantPropagator::VisitUnaryUint32Op(UnaryUint32OpInstr* instr) {
+  // TODO(kmillikin): Handle unary operations.
+  SetValue(instr, non_constant_);
+}
+
+void ConstantPropagator::VisitUnaryInt32Op(UnaryInt32OpInstr* instr) {
   // TODO(kmillikin): Handle unary operations.
   SetValue(instr, non_constant_);
 }

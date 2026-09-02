@@ -1329,10 +1329,10 @@ final B1 = A1;
         (result) {
           return switch (result.uriStr) {
             'package:test/a.dart' => [
-              result.findElement2.topVar('A1'),
-              result.findElement2.topVar('A2'),
+              result.findElement.topVar('A1'),
+              result.findElement.topVar('A2'),
             ],
-            'package:test/b.dart' => [result.findElement2.topVar('B1')],
+            'package:test/b.dart' => [result.findElement.topVar('B1')],
             _ => [],
           };
         };
@@ -1414,7 +1414,7 @@ final A2 = B1;
         (result) {
           switch (result.uriStr) {
             case 'package:test/a.dart':
-              return [result.findElement2.topVar('V')];
+              return [result.findElement.topVar('V')];
             default:
               return [];
           }
@@ -1486,7 +1486,7 @@ final v = 2;
     expect(session2, isNot(session1));
   }
 
-  test_discoverAvailableFiles_packages() {
+  test_discoverAvailableFiles_packages() async {
     writeTestPackageConfig(
       PackageConfigFileBuilder()
         ..add(name: 'aaa', rootFolder: getFolder('$packagesRootPath/aaa'))
@@ -1501,11 +1501,15 @@ final v = 2;
     var c1 = newFile('$packagesRootPath/ccc/lib/c1.dart', '');
 
     var driver = driverFor(testFile);
+
+    // Add only the explicit file.
+    //
+    // Don't add `a1`, `a2`, or `b1`; they should be discovered. `a3` is not a
+    // Dart file, and `c1` is not in the package config, so neither should be
+    // discovered.
     driver.addFile2(t1);
 
-    // Don't add `a1`, `a2`, or `b1` - they should be discovered.
-    // And `c` is not in the package config, so should not be discovered.
-    driver.discoverAvailableFiles();
+    await driver.discoverAvailableFiles();
 
     var knownFiles = driver.knownFiles.resources;
     expect(knownFiles, contains(t1));
@@ -1516,12 +1520,34 @@ final v = 2;
     expect(knownFiles, isNot(contains(c1)));
 
     // We can wait for discovery more than once.
-    driver.discoverAvailableFiles();
+    await driver.discoverAvailableFiles();
   }
 
-  test_discoverAvailableFiles_sdk() {
+  test_discoverAvailableFiles_resetAfterRemove() async {
+    writeTestPackageConfig(
+      PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootFolder: getFolder('$packagesRootPath/aaa')),
+    );
+
+    var t1 = newFile('$testPackageLibPath/t1.dart', '');
+    var a1 = newFile('$packagesRootPath/aaa/lib/a1.dart', '');
+
     var driver = driverFor(testFile);
-    driver.discoverAvailableFiles();
+    driver.addFile2(t1);
+    await driver.discoverAvailableFiles();
+    expect(driver.knownFiles.resources, contains(a1));
+
+    var a2 = newFile('$packagesRootPath/aaa/lib/a2.dart', '');
+    driver.removeFile2(t1);
+    await driver.applyPendingFileChanges();
+
+    await driver.discoverAvailableFiles();
+    expect(driver.knownFiles.resources, contains(a2));
+  }
+
+  test_discoverAvailableFiles_sdk() async {
+    var driver = driverFor(testFile);
+    await driver.discoverAvailableFiles();
     expect(
       driver.knownFiles.resources,
       containsAll([
@@ -1531,6 +1557,109 @@ final v = 2;
         sdkRoot.getFile('lib/math/math.dart'),
       ]),
     );
+  }
+
+  test_discoverAvailableFilesFor_devDependencies() async {
+    writeTestPackagePubspecYamlFile(r'''
+name: test
+dependencies:
+  aaa: any
+dev_dependencies:
+  bbb: any
+''');
+    writeTestPackageConfig(
+      PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootFolder: getFolder('$packagesRootPath/aaa'))
+        ..add(name: 'bbb', rootFolder: getFolder('$packagesRootPath/bbb')),
+    );
+
+    var target = newFile('$testPackageRootPath/test/target.dart', '');
+    var a1 = newFile('$packagesRootPath/aaa/lib/a1.dart', '');
+    var b1 = newFile('$packagesRootPath/bbb/lib/b1.dart', '');
+    var b2 = newFile('$packagesRootPath/bbb/lib/src/b2.dart', '');
+
+    var driver = driverFor(target);
+    var targetState = driver.fsState.getFileForPath(target.path);
+
+    await driver.discoverAvailableFilesFor(targetState);
+
+    expect(driver.knownFiles.resources, containsAll([a1, b1]));
+    expect(driver.knownFiles.resources, isNot(contains(b2)));
+  }
+
+  test_discoverAvailableFilesFor_directDependencies() async {
+    writeTestPackagePubspecYamlFile(r'''
+name: test
+dependencies:
+  aaa: any
+''');
+    writeTestPackageConfig(
+      PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootFolder: getFolder('$packagesRootPath/aaa'))
+        ..add(name: 'bbb', rootFolder: getFolder('$packagesRootPath/bbb')),
+    );
+
+    var target = newFile('$testPackageLibPath/target.dart', '');
+    var target2 = newFile('$testPackageLibPath/target2.dart', '');
+    var ownPrivate = newFile('$testPackageLibPath/src/own_private.dart', '');
+    var ownTest = newFile('$testPackageRootPath/test/own_test.dart', '');
+    var a1 = newFile('$packagesRootPath/aaa/lib/a1.dart', '');
+    var a2 = newFile('$packagesRootPath/aaa/lib/public/a2.dart', '');
+    var a3 = newFile('$packagesRootPath/aaa/lib/src/a3.dart', '');
+    var aTest = newFile('$packagesRootPath/aaa/test/a_test.dart', '');
+    var b1 = newFile('$packagesRootPath/bbb/lib/b1.dart', '');
+
+    var driver = driverFor(target);
+    driver.addFile2(ownTest);
+    var targetState = driver.fsState.getFileForPath(target.path);
+    var targetState2 = driver.fsState.getFileForPath(target2.path);
+
+    var discovery = driver.discoverAvailableFilesFor(targetState);
+    expect(driver.discoverAvailableFilesFor(targetState2), same(discovery));
+    await discovery;
+
+    expect(
+      driver.knownFiles.resources,
+      containsAll([target, target2, ownPrivate, ownTest, a1, a2]),
+    );
+    expect(driver.knownFiles.resources, isNot(contains(a3)));
+    expect(driver.knownFiles.resources, isNot(contains(aTest)));
+    expect(driver.knownFiles.resources, isNot(contains(b1)));
+
+    await driver.discoverAvailableFiles();
+
+    expect(driver.knownFiles.resources, containsAll([a3, b1]));
+    expect(driver.knownFiles.resources, isNot(contains(aTest)));
+  }
+
+  test_discoverAvailableFilesFor_resetAfterRemove() async {
+    writeTestPackagePubspecYamlFile(r'''
+name: test
+dependencies:
+  aaa: any
+''');
+    writeTestPackageConfig(
+      PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootFolder: getFolder('$packagesRootPath/aaa')),
+    );
+
+    var target = newFile('$testPackageLibPath/target.dart', '');
+    var marker = newFile('$testPackageLibPath/marker.dart', '');
+    var a1 = newFile('$packagesRootPath/aaa/lib/a1.dart', '');
+
+    var driver = driverFor(target);
+    driver.addFile2(marker);
+    var targetState = driver.fsState.getFileForPath(target.path);
+    await driver.discoverAvailableFilesFor(targetState);
+    expect(driver.knownFiles.resources, contains(a1));
+
+    var a2 = newFile('$packagesRootPath/aaa/lib/a2.dart', '');
+    driver.removeFile2(marker);
+    await driver.applyPendingFileChanges();
+
+    targetState = driver.fsState.getFileForPath(target.path);
+    await driver.discoverAvailableFilesFor(targetState);
+    expect(driver.knownFiles.resources, contains(a2));
   }
 
   test_getCachedResolvedUnit() async {
@@ -3036,7 +3165,7 @@ final foo = 0;
 
     configuration.libraryConfiguration.unitConfiguration.variableTypesSelector =
         (result) {
-          return [result.findElement2.topVar('foo')];
+          return [result.findElement.topVar('foo')];
         };
 
     // The extension of the file does not matter.
@@ -3491,7 +3620,7 @@ final B = A;
         (result) {
           switch (result.uriStr) {
             case 'package:test/b.dart':
-              return [result.findElement2.topVar('B')];
+              return [result.findElement.topVar('B')];
             default:
               return [];
           }
@@ -3645,7 +3774,7 @@ driver
         (result) {
           switch (result.uriStr) {
             case 'package:test/a.dart':
-              return [result.findElement2.topVar('V')];
+              return [result.findElement.topVar('V')];
             default:
               return [];
           }
@@ -3880,7 +4009,7 @@ class A {}
       var result = driver.parseFileSync2(a) as ParsedUnitResult;
       assertParsedNodeText(result.unit, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -3929,7 +4058,7 @@ class A {}
     var result = driver.parseFileSync2(a) as ParsedUnitResult;
     assertParsedNodeText(result.unit, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -3945,20 +4074,24 @@ CompilationUnit
   test_partOfName_getErrors_afterLibrary() async {
     // Note, we put the library into a different directory.
     // Otherwise we will discover it.
-    var a = newFile('$testPackageLibPath/hidden/a.dart', r'''
-// @dart = 3.4
-// preEnhancedParts
+    var a = newFileWithLanguageFeatureDirective(
+      '$testPackageLibPath/hidden/a.dart',
+      r'''
+// %before-language-feature: enhanced-parts
 library a;
 part '../b.dart';
 class A {}
-''');
+''',
+    );
 
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-// @dart = 3.4
-// preEnhancedParts
+    var b = newFileWithLanguageFeatureDirective(
+      '$testPackageLibPath/b.dart',
+      r'''
+// %before-language-feature: enhanced-parts
 part of a;
 final a = A();
-''');
+''',
+    );
 
     var driver = driverFor(testFile);
     var collector = DriverEventCollector(driver);
@@ -4006,20 +4139,24 @@ final a = A();
   }
 
   test_partOfName_getErrors_beforeLibrary_addedFiles() async {
-    var a = newFile('$testPackageLibPath/hidden/a.dart', r'''
-// @dart = 3.4
-// preEnhancedParts
+    var a = newFileWithLanguageFeatureDirective(
+      '$testPackageLibPath/hidden/a.dart',
+      r'''
+// %before-language-feature: enhanced-parts
 library a;
 part '../b.dart';
 class A {}
-''');
+''',
+    );
 
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-// preEnhancedParts
-// @dart = 3.4
+    var b = newFileWithLanguageFeatureDirective(
+      '$testPackageLibPath/b.dart',
+      r'''
+// %before-language-feature: enhanced-parts
 part of a;
 final a = A();
-''');
+''',
+    );
 
     var driver = driverFor(testFile);
     var collector = DriverEventCollector(driver);
@@ -4056,20 +4193,21 @@ final a = A();
   }
 
   test_partOfName_getErrors_beforeLibrary_discovered() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-// @dart = 3.4
-// preEnhancedParts
+    newFileWithLanguageFeatureDirective('$testPackageLibPath/a.dart', r'''
+// %before-language-feature: enhanced-parts
 library a;
 part 'b.dart';
 class A {}
 ''');
 
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-// @dart = 3.4
-// preEnhancedParts
+    var b = newFileWithLanguageFeatureDirective(
+      '$testPackageLibPath/b.dart',
+      r'''
+// %before-language-feature: enhanced-parts
 part of a;
 final a = new A();
-''');
+''',
+    );
 
     var driver = driverFor(testFile);
     var collector = DriverEventCollector(driver);
@@ -4103,20 +4241,24 @@ final a = new A();
   }
 
   test_partOfName_getErrors_beforeLibrary_notDiscovered() async {
-    newFile('$testPackageLibPath/hidden/a.dart', r'''
-// @dart = 3.4
-// preEnhancedParts
+    newFileWithLanguageFeatureDirective(
+      '$testPackageLibPath/hidden/a.dart',
+      r'''
+// %before-language-feature: enhanced-parts
 library a;
 part '../b.dart';
 class A {}
-''');
+''',
+    );
 
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-// @dart = 3.4
-// preEnhancedParts
+    var b = newFileWithLanguageFeatureDirective(
+      '$testPackageLibPath/b.dart',
+      r'''
+// %before-language-feature: enhanced-parts
 part of a;
 final a = new A();
-''');
+''',
+    );
 
     var driver = driverFor(testFile);
     var collector = DriverEventCollector(driver);
@@ -4137,7 +4279,7 @@ final a = new A();
     uri: package:test/b.dart
     flags: exists isPart
     errors
-      60 +1 CREATION_WITH_NON_TYPE
+      40 +1 CREATION_WITH_NON_TYPE
 [status] idle
 [future] getErrors B1
   ErrorsResult #1
@@ -4145,25 +4287,29 @@ final a = new A();
     uri: package:test/b.dart
     flags: isPart
     errors
-      60 +1 CREATION_WITH_NON_TYPE
+      40 +1 CREATION_WITH_NON_TYPE
 ''');
   }
 
   test_partOfName_getResolvedUnit_afterLibrary() async {
-    var a = newFile('$testPackageLibPath/hidden/a.dart', r'''
-// @dart = 3.4
-// preEnhancedParts
+    var a = newFileWithLanguageFeatureDirective(
+      '$testPackageLibPath/hidden/a.dart',
+      r'''
+// %before-language-feature: enhanced-parts
 library a;
 part '../b.dart';
 class A {}
-''');
+''',
+    );
 
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-// @dart = 3.4
-// preEnhancedParts
+    var b = newFileWithLanguageFeatureDirective(
+      '$testPackageLibPath/b.dart',
+      r'''
+// %before-language-feature: enhanced-parts
 part of a;
 final a = new A();
-''');
+''',
+    );
 
     var driver = driverFor(testFile);
     var collector = DriverEventCollector(driver);
@@ -4214,20 +4360,24 @@ final a = new A();
   }
 
   test_partOfName_getResolvedUnit_beforeLibrary_addedFiles() async {
-    var a = newFile('$testPackageLibPath/hidden/a.dart', r'''
-// @dart = 3.4
-// preEnhancedParts
+    var a = newFileWithLanguageFeatureDirective(
+      '$testPackageLibPath/hidden/a.dart',
+      r'''
+// %before-language-feature: enhanced-parts
 library a;
 part '../b.dart';
 class A {}
-''');
+''',
+    );
 
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-// @dart = 3.4
-// preEnhancedParts
+    var b = newFileWithLanguageFeatureDirective(
+      '$testPackageLibPath/b.dart',
+      r'''
+// %before-language-feature: enhanced-parts
 part of a;
 final a = new A();
-''');
+''',
+    );
 
     var driver = driverFor(testFile);
     var collector = DriverEventCollector(driver);
@@ -4260,20 +4410,24 @@ final a = new A();
   }
 
   test_partOfName_getResolvedUnit_beforeLibrary_notDiscovered() async {
-    newFile('$testPackageLibPath/hidden/a.dart', r'''
-// @dart = 3.4
-// preEnhancedParts
+    newFileWithLanguageFeatureDirective(
+      '$testPackageLibPath/hidden/a.dart',
+      r'''
+// %before-language-feature: enhanced-parts
 library a;
 part '../b.dart';
 class A {}
-''');
+''',
+    );
 
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-// @dart = 3.4
-// preEnhancedParts
+    var b = newFileWithLanguageFeatureDirective(
+      '$testPackageLibPath/b.dart',
+      r'''
+// %before-language-feature: enhanced-parts
 part of a;
 final a = new A();
-''');
+''',
+    );
 
     var driver = driverFor(testFile);
     var collector = DriverEventCollector(driver);
@@ -4292,7 +4446,7 @@ final a = new A();
     uri: package:test/b.dart
     flags: exists isPart
     errors
-      60 +1 CREATION_WITH_NON_TYPE
+      40 +1 CREATION_WITH_NON_TYPE
 [status] idle
 [future] getResolvedUnit B1
   ResolvedUnitResult #0
@@ -4300,12 +4454,14 @@ final a = new A();
   }
 
   test_partOfName_getResolvedUnit_changePart_invalidatesLibraryCycle() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-// @dart = 3.4
-// preEnhancedParts
+    var a = newFileWithLanguageFeatureDirective(
+      '$testPackageLibPath/a.dart',
+      r'''
+// %before-language-feature: enhanced-parts
 import 'dart:async';
 part 'b.dart';
-''');
+''',
+    );
 
     var driver = driverFor(testFile);
     var collector = DriverEventCollector(driver);
@@ -4324,20 +4480,22 @@ part 'b.dart';
     uri: package:test/a.dart
     flags: exists isLibrary
     errors
-      61 +8 URI_DOES_NOT_EXIST
-      42 +12 UNUSED_IMPORT
+      41 +8 URI_DOES_NOT_EXIST
+      22 +12 UNUSED_IMPORT
 [status] idle
 ''');
 
     // Create the part file.
     // This should invalidate library file state (specifically the library
     // cycle), so that we can re-link the library, and get new dependencies.
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-// @dart = 3.4
-// preEnhancedParts
+    var b = newFileWithLanguageFeatureDirective(
+      '$testPackageLibPath/b.dart',
+      r'''
+// %before-language-feature: enhanced-parts
 part of 'a.dart';
 Future<int>? f;
-''');
+''',
+    );
     driver.changeFile2(b);
 
     // This should not crash.
@@ -4364,18 +4522,22 @@ Future<int>? f;
   }
 
   test_partOfName_getResolvedUnit_hasLibrary_noPart() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-// @dart = 3.4
-// preEnhancedParts
+    var a = newFileWithLanguageFeatureDirective(
+      '$testPackageLibPath/a.dart',
+      r'''
+// %before-language-feature: enhanced-parts
 library my.lib;
-''');
+''',
+    );
 
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-// @dart = 3.4
-// preEnhancedParts
+    var b = newFileWithLanguageFeatureDirective(
+      '$testPackageLibPath/b.dart',
+      r'''
+// %before-language-feature: enhanced-parts
 part of my.lib;
 final a = new A();
-''');
+''',
+    );
 
     var driver = driverFor(testFile);
     var collector = DriverEventCollector(driver);
@@ -4396,7 +4558,7 @@ final a = new A();
     uri: package:test/b.dart
     flags: exists isPart
     errors
-      65 +1 CREATION_WITH_NON_TYPE
+      45 +1 CREATION_WITH_NON_TYPE
 [status] idle
 [future] getResolvedUnit B1
   ResolvedUnitResult #0
@@ -4404,12 +4566,14 @@ final a = new A();
   }
 
   test_partOfName_getResolvedUnit_noLibrary() async {
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-// @dart = 3.4
-// preEnhancedParts
+    var b = newFileWithLanguageFeatureDirective(
+      '$testPackageLibPath/b.dart',
+      r'''
+// %before-language-feature: enhanced-parts
 part of my.lib;
 var a = new A();
-''');
+''',
+    );
 
     var driver = driverFor(testFile);
     var collector = DriverEventCollector(driver);
@@ -4427,7 +4591,7 @@ var a = new A();
     uri: package:test/b.dart
     flags: exists isPart
     errors
-      63 +1 CREATION_WITH_NON_TYPE
+      43 +1 CREATION_WITH_NON_TYPE
 [status] idle
 [future] getResolvedUnit B1
   ResolvedUnitResult #0
@@ -4435,20 +4599,24 @@ var a = new A();
   }
 
   test_partOfName_getUnitElement_afterLibrary() async {
-    var a = newFile('$testPackageLibPath/hidden/a.dart', r'''
-// @dart = 3.4
-// preEnhancedParts
+    var a = newFileWithLanguageFeatureDirective(
+      '$testPackageLibPath/hidden/a.dart',
+      r'''
+// %before-language-feature: enhanced-parts
 library a;
 part '../b.dart';
 class A {}
-''');
+''',
+    );
 
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-// @dart = 3.4
-// preEnhancedParts
+    var b = newFileWithLanguageFeatureDirective(
+      '$testPackageLibPath/b.dart',
+      r'''
+// %before-language-feature: enhanced-parts
 part of a;
 final a = new A();
-''');
+''',
+    );
 
     var driver = driverFor(testFile);
     var collector = DriverEventCollector(driver);
@@ -4489,20 +4657,24 @@ final a = new A();
   }
 
   test_partOfName_getUnitElement_beforeLibrary_addedFiles() async {
-    var a = newFile('$testPackageLibPath/hidden/a.dart', r'''
-// @dart = 3.4
-// preEnhancedParts
+    var a = newFileWithLanguageFeatureDirective(
+      '$testPackageLibPath/hidden/a.dart',
+      r'''
+// %before-language-feature: enhanced-parts
 library a;
 part '../b.dart';
 class A {}
-''');
+''',
+    );
 
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-// @dart = 3.4
-// preEnhancedParts
+    var b = newFileWithLanguageFeatureDirective(
+      '$testPackageLibPath/b.dart',
+      r'''
+// %before-language-feature: enhanced-parts
 part of a;
 final a = new A();
-''');
+''',
+    );
 
     var driver = driverFor(testFile);
     var collector = DriverEventCollector(driver);
@@ -4538,12 +4710,14 @@ final a = new A();
   }
 
   test_partOfName_getUnitElement_noLibrary() async {
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-// @dart = 3.4
-// preEnhancedParts
+    var b = newFileWithLanguageFeatureDirective(
+      '$testPackageLibPath/b.dart',
+      r'''
+// %before-language-feature: enhanced-parts
 part of a;
 final a = new A();
-''');
+''',
+    );
 
     var driver = driverFor(testFile);
     var collector = DriverEventCollector(driver);
@@ -4565,20 +4739,24 @@ final a = new A();
   test_partOfName_results_afterLibrary() async {
     // Note, we put the library into a different directory.
     // Otherwise we will discover it.
-    var a = newFile('$testPackageLibPath/hidden/a.dart', r'''
-// @dart = 3.4
-// preEnhancedParts
+    var a = newFileWithLanguageFeatureDirective(
+      '$testPackageLibPath/hidden/a.dart',
+      r'''
+// %before-language-feature: enhanced-parts
 library a;
 part '../b.dart';
 class A {}
-''');
+''',
+    );
 
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-// @dart = 3.4
-// preEnhancedParts
+    var b = newFileWithLanguageFeatureDirective(
+      '$testPackageLibPath/b.dart',
+      r'''
+// %before-language-feature: enhanced-parts
 part of a;
 final a = new A();
-''');
+''',
+    );
 
     var driver = driverFor(testFile);
     var collector = DriverEventCollector(driver);
@@ -4612,20 +4790,24 @@ final a = new A();
   test_partOfName_results_beforeLibrary() async {
     // Note, we put the library into a different directory.
     // Otherwise we will discover it.
-    var a = newFile('$testPackageLibPath/hidden/a.dart', r'''
-// @dart = 3.4
-// preEnhancedParts
+    var a = newFileWithLanguageFeatureDirective(
+      '$testPackageLibPath/hidden/a.dart',
+      r'''
+// %before-language-feature: enhanced-parts
 library a;
 part '../b.dart';
 class A {}
-''');
+''',
+    );
 
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-// @dart = 3.4
-// preEnhancedParts
+    var b = newFileWithLanguageFeatureDirective(
+      '$testPackageLibPath/b.dart',
+      r'''
+// %before-language-feature: enhanced-parts
 part of a;
 final a = new A();
-''');
+''',
+    );
 
     var driver = driverFor(testFile);
     var collector = DriverEventCollector(driver);
@@ -4659,20 +4841,24 @@ final a = new A();
   test_partOfName_results_beforeLibrary_priority() async {
     // Note, we put the library into a different directory.
     // Otherwise we will discover it.
-    var a = newFile('$testPackageLibPath/hidden/a.dart', r'''
-// @dart = 3.4
-// preEnhancedParts
+    var a = newFileWithLanguageFeatureDirective(
+      '$testPackageLibPath/hidden/a.dart',
+      r'''
+// %before-language-feature: enhanced-parts
 library a;
 part '../b.dart';
 class A {}
-''');
+''',
+    );
 
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-// @dart = 3.4
-// preEnhancedParts
+    var b = newFileWithLanguageFeatureDirective(
+      '$testPackageLibPath/b.dart',
+      r'''
+// %before-language-feature: enhanced-parts
 part of a;
 final a = new A();
-''');
+''',
+    );
 
     var driver = driverFor(testFile);
     var collector = DriverEventCollector(driver);
@@ -4705,12 +4891,14 @@ final a = new A();
   }
 
   test_partOfName_results_noLibrary() async {
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-// @dart = 3.4
-// preEnhancedParts
+    var b = newFileWithLanguageFeatureDirective(
+      '$testPackageLibPath/b.dart',
+      r'''
+// %before-language-feature: enhanced-parts
 part of a;
 final a = new A();
-''');
+''',
+    );
 
     var driver = driverFor(testFile);
     var collector = DriverEventCollector(driver);
@@ -4732,18 +4920,20 @@ final a = new A();
     uri: package:test/b.dart
     flags: exists isPart
     errors
-      60 +1 CREATION_WITH_NON_TYPE
+      40 +1 CREATION_WITH_NON_TYPE
 [status] idle
 ''');
   }
 
   test_partOfName_results_noLibrary_priority() async {
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-// @dart = 3.4
-// preEnhancedParts
+    var b = newFileWithLanguageFeatureDirective(
+      '$testPackageLibPath/b.dart',
+      r'''
+// %before-language-feature: enhanced-parts
 part of a;
 final a = new A();
-''');
+''',
+    );
 
     var driver = driverFor(testFile);
     var collector = DriverEventCollector(driver);
@@ -4764,7 +4954,7 @@ final a = new A();
     uri: package:test/b.dart
     flags: exists isPart
     errors
-      60 +1 CREATION_WITH_NON_TYPE
+      40 +1 CREATION_WITH_NON_TYPE
 [status] idle
 ''');
   }
@@ -4884,17 +5074,17 @@ class B2 {}
   test_priorities_changedAll() async {
     // Make sure that `test2` is its own analysis context.
     var test1Path = '$workspaceRootPath/test1';
-    writePackageConfig(
+    writePackageConfig2(
       test1Path,
-      PackageConfigFileBuilder()
+      config: PackageConfigFileBuilder()
         ..add(name: 'test1', rootFolder: getFolder(test1Path)),
     );
 
     // Make sure that `test2` is its own analysis context.
     var test2Path = '$workspaceRootPath/test2';
-    writePackageConfig(
+    writePackageConfig2(
       test2Path,
-      PackageConfigFileBuilder()
+      config: PackageConfigFileBuilder()
         ..add(name: 'test2', rootFolder: getFolder(test2Path)),
     );
 
@@ -4956,17 +5146,17 @@ class B2 {}
   test_priorities_getResolvedUnit_beforePriority() async {
     // Make sure that `test1` is its own analysis context.
     var test1Path = '$workspaceRootPath/test1';
-    writePackageConfig(
+    writePackageConfig2(
       test1Path,
-      PackageConfigFileBuilder()
+      config: PackageConfigFileBuilder()
         ..add(name: 'test1', rootFolder: getFolder(test1Path)),
     );
 
     // Make sure that `test2` is its own analysis context.
     var test2Path = '$workspaceRootPath/test2';
-    writePackageConfig(
+    writePackageConfig2(
       test2Path,
-      PackageConfigFileBuilder()
+      config: PackageConfigFileBuilder()
         ..add(name: 'test2', rootFolder: getFolder(test2Path)),
     );
 
@@ -5023,17 +5213,17 @@ class B2 {}
   test_priorities_priority_rest() async {
     // Make sure that `test1` is its own analysis context.
     var test1Path = '$workspaceRootPath/test1';
-    writePackageConfig(
+    writePackageConfig2(
       test1Path,
-      PackageConfigFileBuilder()
+      config: PackageConfigFileBuilder()
         ..add(name: 'test1', rootFolder: getFolder(test1Path)),
     );
 
     // Make sure that `test2` is its own analysis context.
     var test2Path = '$workspaceRootPath/test2';
-    writePackageConfig(
+    writePackageConfig2(
       test2Path,
-      PackageConfigFileBuilder()
+      config: PackageConfigFileBuilder()
         ..add(name: 'test2', rootFolder: getFolder(test2Path)),
     );
 
@@ -5221,9 +5411,9 @@ final B = 0;
         (result) {
           switch (result.uriStr) {
             case 'package:test/a.dart':
-              return [result.findElement2.topVar('A')];
+              return [result.findElement.topVar('A')];
             case 'package:test/b.dart':
-              return [result.findElement2.topVar('B')];
+              return [result.findElement.topVar('B')];
             default:
               return [];
           }
@@ -23840,13 +24030,6 @@ export 'dart:core' show int, dynamic, Never;
       package:test/a.dart
         libraryMetadataId: #M5
         exportMapId: #M2
-        exportMap
-          Never: <null>
-          Never=: <null>
-          dynamic: <null>
-          dynamic=: <null>
-          int: <null>
-          int=: <null>
 [status] idle
 ''',
       updatedA: r'''
@@ -76931,6 +77114,68 @@ const b = 0;
     );
   }
 
+  test_manifest_constInitializer_nullAssertionExpression() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+const a = 0!;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H0
+    declaredGetters
+      a: #M0
+        flags: isOriginVariable isSimplyBounded isStatic
+        returnType: int @ dart:core
+    declaredVariables
+      a: #M1
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
+        type: int @ dart:core
+        constInitializer
+          tokenBuffer: 0!
+          tokenLengthList: [1, 1]
+    exportMapId: #M2
+    exportMap
+      a: #M0
+''',
+      updatedCode: r'''
+const a = 0!;
+const b = 0;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredGetters
+      a: #M0
+        flags: isOriginVariable isSimplyBounded isStatic
+        returnType: int @ dart:core
+      b: #M3
+        flags: isOriginVariable isSimplyBounded isStatic
+        returnType: int @ dart:core
+    declaredVariables
+      a: #M1
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
+        type: int @ dart:core
+        constInitializer
+          tokenBuffer: 0!
+          tokenLengthList: [1, 1]
+      b: #M4
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
+        type: int @ dart:core
+        constInitializer
+          tokenBuffer: 0
+          tokenLengthList: [1]
+    exportMapId: #M5
+    exportMap
+      a: #M0
+      b: #M3
+''',
+    );
+  }
+
   test_manifest_constInitializer_postfixExpression_increment() async {
     configuration.withElementManifests = true;
     await _runLibraryManifestScenario(
@@ -77009,66 +77254,6 @@ const c = 0;
       a: #M0
       b: #M1
       c: #M5
-''',
-    );
-  }
-
-  test_manifest_constInitializer_postfixExpression_nullAssert() async {
-    configuration.withElementManifests = true;
-    await _runLibraryManifestScenario(
-      initialCode: r'''
-const a = 0!;
-''',
-      expectedInitialEvents: r'''
-[operation] linkLibraryCycle SDK
-[operation] linkLibraryCycle
-  package:test/test.dart
-    hashForRequirements: #H0
-    declaredGetters
-      a: #M0
-        flags: isOriginVariable isSimplyBounded isStatic
-        returnType: int @ dart:core
-    declaredVariables
-      a: #M1
-        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
-        type: int @ dart:core
-        constInitializer
-          isValid: false
-    exportMapId: #M2
-    exportMap
-      a: #M0
-''',
-      updatedCode: r'''
-const a = 0!;
-const b = 0;
-''',
-      expectedUpdatedEvents: r'''
-[operation] linkLibraryCycle
-  package:test/test.dart
-    hashForRequirements: #H1
-    declaredGetters
-      a: #M0
-        flags: isOriginVariable isSimplyBounded isStatic
-        returnType: int @ dart:core
-      b: #M3
-        flags: isOriginVariable isSimplyBounded isStatic
-        returnType: int @ dart:core
-    declaredVariables
-      a: #M4
-        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
-        type: int @ dart:core
-        constInitializer
-          isValid: false
-      b: #M5
-        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
-        type: int @ dart:core
-        constInitializer
-          tokenBuffer: 0
-          tokenLengthList: [1]
-    exportMapId: #M6
-    exportMap
-      a: #M0
-      b: #M3
 ''',
     );
   }
@@ -84889,17 +85074,19 @@ import 'package:foo/foo.dart';
 class B extends A {}
 ''');
 
-    writePackageConfig(
+    writePackageConfig2(
       '$workspaceRootPath/test_1',
-      PackageConfigFileBuilder()
+      packageName: 'test',
+      config: PackageConfigFileBuilder()
         ..add(name: 'foo', rootFolder: getFolder('/packages/foo_v1'))
         ..add(name: 'bar', rootFolder: getFolder('/packages/bar'))
         ..add(name: 'test', rootFolder: getFolder('$workspaceRootPath/test_1')),
     );
 
-    writePackageConfig(
+    writePackageConfig2(
       '$workspaceRootPath/test_2',
-      PackageConfigFileBuilder()
+      packageName: 'test',
+      config: PackageConfigFileBuilder()
         ..add(name: 'foo', rootFolder: getFolder('/packages/foo_v2'))
         ..add(name: 'bar', rootFolder: getFolder('/packages/bar'))
         ..add(name: 'test', rootFolder: getFolder('$workspaceRootPath/test_2')),
@@ -85036,16 +85223,18 @@ import 'package:foo/foo.dart';
 class B extends A {}
 ''');
 
-    writePackageConfig(
+    writePackageConfig2(
       '$workspaceRootPath/test_1',
-      PackageConfigFileBuilder()
+      packageName: 'test',
+      config: PackageConfigFileBuilder()
         ..add(name: 'foo', rootFolder: getFolder('/packages/foo'))
         ..add(name: 'test', rootFolder: getFolder('$workspaceRootPath/test_1')),
     );
 
-    writePackageConfig(
+    writePackageConfig2(
       '$workspaceRootPath/test_2',
-      PackageConfigFileBuilder()
+      packageName: 'test',
+      config: PackageConfigFileBuilder()
         ..add(name: 'foo', rootFolder: getFolder('/packages/foo'))
         ..add(name: 'bar', rootFolder: getFolder('/packages/bar'))
         ..add(name: 'test', rootFolder: getFolder('$workspaceRootPath/test_2')),
@@ -102821,8 +103010,8 @@ class _AlwaysReportedLint extends AnalysisRule {
   DiagnosticCode get diagnosticCode => code;
 
   @override
-  void registerNodeProcessors(
-    RuleVisitorRegistry registry,
+  void registerNodeProcessors2(
+    RuleVisitorRegistry2 registry,
     RuleContext context,
   ) {
     var visitor = _AlwaysReportedLintVisitor(this);
@@ -102831,7 +103020,7 @@ class _AlwaysReportedLint extends AnalysisRule {
 }
 
 /// A visitor for [_AlwaysReportedLint] that reports the lint for all files.
-class _AlwaysReportedLintVisitor extends SimpleAstVisitor<void> {
+class _AlwaysReportedLintVisitor extends SimpleAstVisitor2<void> {
   final AnalysisRule rule;
 
   _AlwaysReportedLintVisitor(this.rule);

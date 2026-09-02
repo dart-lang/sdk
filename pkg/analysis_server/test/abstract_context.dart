@@ -2,10 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/protocol_server.dart';
-import 'package:analysis_server/src/services/correction/assist_internal.dart';
-import 'package:analysis_server/src/services/correction/fix_internal.dart';
-import 'package:analyzer/dart/analysis/analysis_context.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -17,39 +14,38 @@ import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/platform.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
-import 'package:analyzer/src/utilities/extensions/file_system.dart';
+import 'package:analyzer_testing/configuration_files_mixin.dart';
 import 'package:analyzer_testing/experiments/experiments.dart';
 import 'package:analyzer_testing/mock_packages/mock_packages.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:analyzer_testing/utilities/utilities.dart';
-import 'package:linter/src/rules.dart';
 import 'package:meta/meta.dart';
-import 'package:test/test.dart';
 
-import 'support/configuration_files.dart';
-
+/// A base class for various analysis server tests.
+///
+/// Sets up an in-memory file system with a stub SDK, package configuration,
+/// and default analysis options. Provides helper methods and properties for
+/// creating test files, configuring analysis contexts, and obtaining resolved
+/// ASTs.
 class AbstractContextTest
     with MockPackagesMixin, ConfigurationFilesMixin, ResourceProviderMixin {
-  /// The byte store that is reused between tests. This allows reusing all
-  /// unlinked and linked summaries for SDK, so that tests run much faster.
-  /// However nothing is preserved between Dart VM runs, so changes to the
-  /// implementation are still fully verified.
+  /// The byte store that is reused between tests.
+  ///
+  /// This allows reusing all unlinked and linked summaries for SDK, so that
+  /// tests run much faster. However nothing is preserved between Dart VM runs,
+  /// so changes to the implementation are still fully verified.
   static final MemoryByteStore _sharedByteStore = MemoryByteStore();
 
-  static bool _lintRulesAreRegistered = false;
-
-  final ByteStore byteStore = _sharedByteStore;
+  final ByteStore _byteStore = _sharedByteStore;
 
   final Map<String, String> _declaredVariables = {};
   AnalysisContextCollectionImpl? _analysisContextCollection;
 
-  /// If not `null`, [getResolvedUnit] will use the context that corresponds
-  /// to this file, instead of the given file.
-  File? fileForContextSelection;
-
-  // TODO(scheglov): Stop writing into it. Convert into getter.
-  late String testFilePath = '$testPackageLibPath/test.dart';
-
+  /// A list of all [AnalysisDriver] instances across all created analysis
+  /// contexts.
+  ///
+  /// This is primarily used by intermediate classes or server-wide services
+  /// (such as search engine tests) rather than individual test cases.
   List<AnalysisDriver> get allDrivers {
     _createAnalysisContexts();
     return _analysisContextCollection!.contexts.map((e) => e.driver).toList();
@@ -60,72 +56,76 @@ class AbstractContextTest
   String get analysisOptionsPath =>
       convertPath('$testPackageRootPath/analysis_options.yaml');
 
-  List<String> get collectionIncludedPaths => [workspaceRootPath];
-
+  /// The file system path to the mock SDK root directory.
   @override
   String get dartSdkPath => sdkRoot.path;
 
   /// The line terminator being used for test files and to be expected in edits.
   String get eol => testEol;
 
-  /// Return a list of the experiments that are to be enabled for tests in this
-  /// class, an empty list if there are no experiments that should be enabled.
-  List<String> get experiments => experimentsForTests;
+  /// Return a list of the experimental features that are to be enabled for
+  /// tests in this class.
+  List<Feature> get experimentalFeatures => experimentalFeaturesForTests;
 
   /// The path that is not in [workspaceRootPath], contains external packages.
   @override
   String get packagesRootPath => '/packages';
 
+  /// The [Folder] representing the stub SDK root directory.
+  ///
+  /// Can be overridden by subclasses that require a custom SDK setup.
   Folder get sdkRoot => newFolder('/sdk');
 
-  Future<AnalysisSession> get session => sessionFor(testFile);
+  /// The [AnalysisSession] for the test package's [testFile], after applying
+  /// any pending file changes.
+  Future<AnalysisSession> get session async {
+    var analysisContext = contextFor(testFile);
+    await analysisContext.applyPendingFileChanges();
+    return analysisContext.currentSession;
+  }
 
+  /// The default [File] for testing, located at [testFilePath].
+  ///
+  /// Most single-file tests write source code to this file.
   File get testFile => getFile(testFilePath);
 
+  /// The file system path of [testFile].
+  String get testFilePath => '$testPackageLibPath/test.dart';
+
+  /// The file system path of the `lib` directory of the package-under-test.
   String get testPackageLibPath => '$testPackageRootPath/lib';
 
+  /// The file system path of the root of the package-under-test.
   @override
   String get testPackageRootPath => '$workspaceRootPath/test';
 
+  /// The file system path to the `test` directory of the package-under-test.
+  ///
+  /// Rarely used except when a test specifically tests files situated inside a
+  /// package's `test` directory.
   String get testPackageTestPath => '$testPackageRootPath/test';
 
   /// The file system specific path for `pubspec.yaml` in [testPackageRootPath].
   String get testPubspecPath =>
       convertPath('$testPackageRootPath/pubspec.yaml');
 
+  /// The file system path of the root of the workspace.
   String get workspaceRootPath => '/home';
 
-  Future<void> analyzeTestPackageFiles() async {
-    var analysisContext = contextFor(testFile);
-    var files = analysisContext.contextRoot.analyzedFiles().toList();
-    for (var path in files) {
-      await analysisContext.applyPendingFileChanges();
-      await analysisContext.currentSession.getResolvedUnit(path);
-    }
-  }
-
-  void assertSourceChange(SourceChange sourceChange, String expected) {
-    var buffer = StringBuffer();
-    _writeSourceChangeToBuffer(buffer: buffer, sourceChange: sourceChange);
-    _assertTextExpectation(buffer.toString(), expected);
-  }
-
-  void changeFile(File file) {
-    var path = file.path;
-    driverFor(file).changeFile(path);
-  }
+  List<String> get _collectionIncludedPaths => [workspaceRootPath];
 
   /// Returns the existing analysis context that should be used to analyze the
   /// given [file], or throw [StateError] if the [file] is not analyzed in any
   /// of the created analysis contexts.
-  AnalysisContext contextFor(File file) {
-    return _contextFor(file);
+  DriverBasedAnalysisContext contextFor(File file) {
+    _createAnalysisContexts();
+    return _analysisContextCollection!.contextFor(file.path);
   }
 
   /// Create an analysis options file based on the given arguments.
   void createAnalysisOptionsFile({
     List<String> includes = const [],
-    List<String> experiments = const [],
+    List<Feature> experimentalFeatures = const [],
     List<String> legacyPlugins = const [],
     List<String> cannotIgnore = const [],
     List<String> lints = const [],
@@ -138,7 +138,7 @@ class AbstractContextTest
     writeAnalysisOptionsFile(
       analysisOptionsContent(
         includes: includes,
-        experiments: experiments,
+        experimentalFeatures: experimentalFeatures,
         legacyPlugins: legacyPlugins,
         propagateLinterExceptions: propagateLinterExceptions,
         rules: lints,
@@ -151,31 +151,20 @@ class AbstractContextTest
     );
   }
 
-  /// Returns the existing analysis driver that should be used to analyze the
-  /// given [file], or throw [StateError] if the [file] is not analyzed in any
-  /// of the created analysis contexts.
-  AnalysisDriver driverFor(File file) {
-    return _contextFor(file).driver;
-  }
-
-  Future<ParsedUnitResult> getParsedUnit(File file) async {
-    var path = file.path;
-    var session = await sessionFor(fileForContextSelection ?? file);
-    var result = session.getParsedUnit(path);
-    return result as ParsedUnitResult;
-  }
-
+  /// Resolves and returns the [ResolvedUnitResult] for the given [file].
   Future<ResolvedUnitResult> getResolvedUnit(File file) async {
-    var path = file.path;
-    var session = await sessionFor(fileForContextSelection ?? file);
-    var result = await session.getResolvedUnit(path);
+    var result = await (await session).getResolvedUnit(file.path);
     return result as ResolvedUnitResult;
   }
 
-  void makeFilePriority(File file) {
-    driverFor(file).priorityFiles2 = [file];
-  }
-
+  /// Creates or updates a file at [path] with the given [content].
+  ///
+  /// Line endings in [content] are normalized using [normalizeSource], and the
+  /// file is added to relevant analysis drivers if analysis contexts have
+  /// already been created.
+  ///
+  /// Throws a [StateError] if a non-Dart file is modified after the analysis
+  /// context collection has already been initialized.
   @override
   File newFile(String path, String content) {
     if (_analysisContextCollection != null && !path.endsWith('.dart')) {
@@ -187,48 +176,33 @@ class AbstractContextTest
     return file;
   }
 
-  /// Convenience function to normalize newlines in [code] for the current
-  /// platform.
+  /// Normalizes newlines in [code] for the current platform.
   String normalizeSource(String code) => normalizeNewlinesForPlatform(code);
 
-  Future<AnalysisSession> sessionFor(File file) async {
-    var analysisContext = _contextFor(file);
-    await analysisContext.applyPendingFileChanges();
-    return analysisContext.currentSession;
-  }
-
+  /// Initializes the test environment before each test.
   @mustCallSuper
   void setUp() {
-    if (!_lintRulesAreRegistered) {
-      registerLintRules();
-      _lintRulesAreRegistered = true;
-      registerBuiltInAssistGenerators();
-      registerBuiltInFixGenerators();
-    }
-
-    setupResourceProvider();
-
     createMockSdk(resourceProvider: resourceProvider, root: sdkRoot);
 
-    writeTestPackageConfig();
+    writeTestPackageConfig2();
 
-    createAnalysisOptionsFile(experiments: experiments);
+    createAnalysisOptionsFile(experimentalFeatures: experimentalFeatures);
   }
 
-  void setupResourceProvider() {}
-
+  /// Disposes of the test environment after each test.
+  ///
+  /// Clears analysis engine caches and disposes of the analysis context
+  /// collection.
   @mustCallSuper
   Future<void> tearDown() async {
     AnalysisEngine.instance.clearCaches();
     await _analysisContextCollection?.dispose();
   }
 
-  /// Update `pubspec.yaml` and create the driver.
+  /// Updates `pubspec.yaml` and create the driver.
   void updateTestPubspecFile(String content) {
     newFile(testPubspecPath, content);
   }
-
-  void verifyCreatedCollection() {}
 
   /// Writes string content as an analysis options file.
   void writeAnalysisOptionsFile(String content) {
@@ -257,50 +231,22 @@ class AbstractContextTest
     }
   }
 
-  void _assertTextExpectation(String actual, String expected) {
-    if (actual != expected) {
-      print('-' * 64);
-      print(actual.trimRight());
-      print('-' * 64);
-    }
-    expect(actual, expected);
-  }
-
-  DriverBasedAnalysisContext _contextFor(File file) {
-    _createAnalysisContexts();
-    return _analysisContextCollection!.contextFor(file.path);
-  }
-
-  /// Create all analysis contexts in [collectionIncludedPaths].
+  /// Create all analysis contexts in [_collectionIncludedPaths].
   void _createAnalysisContexts() {
     if (_analysisContextCollection != null) {
       return;
     }
 
     _analysisContextCollection = AnalysisContextCollectionImpl(
-      byteStore: byteStore,
+      byteStore: _byteStore,
       declaredVariables: _declaredVariables,
       enableIndex: true,
-      includedPaths: collectionIncludedPaths.map(convertPath).toList(),
+      includedPaths: _collectionIncludedPaths.map(convertPath).toList(),
       resourceProvider: resourceProvider,
       sdkPath: sdkRoot.path,
       withFineDependencies: true,
     );
 
     _addAnalyzedFilesToDrivers();
-    verifyCreatedCollection();
-  }
-
-  void _writeSourceChangeToBuffer({
-    required StringBuffer buffer,
-    required SourceChange sourceChange,
-  }) {
-    for (var fileEdit in sourceChange.edits) {
-      var file = getFile(fileEdit.file);
-      buffer.write('>>>>>>>>>> ${file.posixPath}$testEol');
-      var current = file.readAsStringSync();
-      var updated = SourceEdit.applySequence(current, fileEdit.edits);
-      buffer.write(updated);
-    }
   }
 }

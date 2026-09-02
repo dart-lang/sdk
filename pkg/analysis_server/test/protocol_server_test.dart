@@ -2,14 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:mirrors';
-
 import 'package:analysis_server/src/protocol_server.dart'
     hide DiagnosticMessage, Enum;
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/element/element.dart' as engine;
 import 'package:analyzer/error/error.dart' as engine;
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -25,6 +24,12 @@ void main() {
 
 @reflectiveTest
 class AnalysisErrorTest extends AbstractContextTest {
+  @override
+  void setUp() {
+    registerLintRules();
+    super.setUp();
+  }
+
   void test_fromEngine_hasContextMessage() async {
     var content = r'''
 void f() {
@@ -237,6 +242,7 @@ void f() {
 class EnumTest {
   void test_AnalysisErrorSeverity() {
     EnumTester<engine.DiagnosticSeverity, AnalysisErrorSeverity>().run(
+      engine.DiagnosticSeverity.values,
       (engineSeverity) =>
           AnalysisErrorSeverity.values.byName(engineSeverity.name),
       exceptions: {engine.DiagnosticSeverity.NONE: null},
@@ -245,6 +251,7 @@ class EnumTest {
 
   void test_AnalysisErrorType() {
     EnumTester<engine.DiagnosticType, AnalysisErrorType>().run(
+      engine.DiagnosticType.values,
       (engineErrorType) =>
           AnalysisErrorType.values.byName(engineErrorType.name),
     );
@@ -252,6 +259,7 @@ class EnumTest {
 
   void test_ElementKind() {
     EnumTester<engine.ElementKind, ElementKind>().run(
+      engine.ElementKind.values,
       convertElementKind,
       exceptions: {
         // TODO(paulberry): do any of the exceptions below constitute bugs?
@@ -277,6 +285,7 @@ class EnumTest {
     // TODO(paulberry): why does the MatchKind class exist at all?  Can't we
     // use SearchResultKind inside the analysis server?
     EnumTester<MatchKind, SearchResultKind>().run(
+      MatchKind.values,
       newSearchResultKind_fromEngine,
       exceptions: {
         MatchKind.REFERENCE_BY_NAMED_ARGUMENT: SearchResultKind.REFERENCE,
@@ -307,20 +316,11 @@ class EnumTester<EngineEnum, ApiEnum> {
   /// If the corresponding value is an [ApiEnum], then we check that converting
   /// the given key results in the given value.
   void run(
+    List<EngineEnum> engineValues,
     ApiEnum Function(EngineEnum) convert, {
     Map<EngineEnum, ApiEnum?> exceptions = const {},
   }) {
-    var engineClass = reflectClass(EngineEnum);
-    engineClass.staticMembers.forEach((Symbol symbol, MethodMirror method) {
-      if (symbol == #values) {
-        return;
-      }
-      if (!method.isGetter) {
-        return;
-      }
-      var enumName = MirrorSystem.getName(symbol);
-      var engineValue = engineClass.getField(symbol).reflectee as EngineEnum;
-      expect(engineValue, TypeMatcher<EngineEnum>());
+    for (var engineValue in engineValues) {
       if (exceptions.containsKey(engineValue)) {
         var expectedResult = exceptions[engineValue];
         if (expectedResult == null) {
@@ -333,9 +333,18 @@ class EnumTester<EngineEnum, ApiEnum> {
         }
       } else {
         var apiValue = convert(engineValue);
+        String enumName;
+        if (engineValue is Enum) {
+          enumName = engineValue.name;
+        } else {
+          // TODO(srawlins): Remove dynamic invocation if/when analyzer's
+          // pseudo-enums (DiagnosticSeverity, DiagnosticType, ElementKind)
+          // define `EngineEnum extends Enum` or are converted to real enums.
+          enumName = (engineValue as dynamic).name as String;
+        }
         expect((apiValue as Enum).name, equals(enumName));
         expect((apiValue as Enum).name, equals(engineValue.toString()));
       }
-    });
+    }
   }
 }

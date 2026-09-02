@@ -15,7 +15,7 @@ import 'package:analyzer/src/error/listener.dart';
 import 'package:meta/meta.dart';
 
 /// Checks whether a declaration violates the rules of [immutable].
-class ImmutableVerifier extends SimpleAstVisitor<void> {
+class ImmutableVerifier extends SimpleAstVisitor2<void> {
   final DiagnosticReporter _diagnosticReporter;
 
   ImmutableVerifier(this._diagnosticReporter);

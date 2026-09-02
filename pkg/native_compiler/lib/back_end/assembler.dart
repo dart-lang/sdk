@@ -111,6 +111,16 @@ enum Condition {
   static const Condition notZero = notEqual;
 }
 
+enum CallSiteKind {
+  dartCall,
+  stubCall,
+  runtimeCall,
+  leafRuntimeCall,
+  // FatalError runtime call doesn't need to have a safepoint.
+  fatalError,
+  exceptionHandler,
+}
+
 /// Base class for architecture-specific assembler.
 ///
 /// Contains declarations of macro-instructions
@@ -118,7 +128,7 @@ enum Condition {
 abstract base class Assembler {
   final VMOffsets vmOffsets;
   final ObjectPool objectPool = ObjectPool();
-  final void Function()? addCallSiteMetadata;
+  final void Function(CallSiteKind kind)? addCallSiteMetadata;
 
   Assembler(this.vmOffsets, this.addCallSiteMetadata);
 
@@ -199,6 +209,19 @@ abstract base class Assembler {
 
   void unimplemented(String message);
   void breakpoint();
+
+  void smiTag(Register rd);
+  void smiUntag(Register rd);
+  void branchIfSmi(Register object, Label target);
+  void branchIfNotSmi(Register object, Label target);
+
+  void loadClassId(Register result, Register object);
+  void loadClassIdMayBeSmi(Register result, Register object);
+  void loadIsolateGroup(Register rd);
+  void loadClassById(Register result, Register classId);
+
+  void combineHashes(Register hash, Register other);
+  void finalizeHash(int bitSize, Register hash);
 }
 
 /// Assembler output buffer holding 32-bit instructions.

@@ -390,7 +390,9 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   void Shutdown();
 
 #define ISOLATE_METRIC_ACCESSOR(type, variable, name, unit)                    \
-  type* Get##variable##Metric() { return &metric_##variable##_; }
+  type* Get##variable##Metric() {                                              \
+    return &metric_##variable##_;                                              \
+  }
   ISOLATE_GROUP_METRIC_LIST(ISOLATE_METRIC_ACCESSOR);
 #undef ISOLATE_METRIC_ACCESSOR
 
@@ -1288,9 +1290,6 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
     isolate_flags_.UpdateBool<ErrorsFatalBit>(value);
   }
 
-  Simulator* simulator() const { return simulator_; }
-  void set_simulator(Simulator* value) { simulator_ = value; }
-
   void IncrementSpawnCount();
   void DecrementSpawnCount();
   void WaitForOutstandingSpawns();
@@ -1435,7 +1434,9 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
 
 #if !defined(PRODUCT)
 #define ISOLATE_METRIC_ACCESSOR(type, variable, name, unit)                    \
-  type* Get##variable##Metric() { return &metric_##variable##_; }
+  type* Get##variable##Metric() {                                              \
+    return &metric_##variable##_;                                              \
+  }
   ISOLATE_METRIC_LIST(ISOLATE_METRIC_ACCESSOR);
 #undef ISOLATE_METRIC_ACCESSOR
 #endif  // !defined(PRODUCT)
@@ -1704,7 +1705,6 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
   uint64_t terminate_capability_ = 0;
   void* init_callback_data_ = nullptr;
   Dart_EnvironmentCallback environment_callback_ = nullptr;
-  Simulator* simulator_ = nullptr;
   Mutex mutex_;  // Protects compiler stats.
   IsolateMessageHandler* message_handler_ = nullptr;
   intptr_t defer_finalization_count_ = 0;

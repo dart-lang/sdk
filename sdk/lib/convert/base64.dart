@@ -337,9 +337,8 @@ class _Base64Encoder {
     assert(start <= end);
     assert(end <= bytes.length);
     var length = end - start;
-
     var count = _stateCount(_state);
-    var byteCount = (count + length);
+    var byteCount = count + length;
     var fullChunks = byteCount ~/ 3;
     var partialChunkLength = byteCount - fullChunks * 3;
     var bufferLength = fullChunks * 4;
@@ -375,7 +374,7 @@ class _Base64Encoder {
   ) {
     var bits = _stateBits(state);
     // Count number of missing bytes in three-byte chunk.
-    var expectedChars = 3 - _stateCount(state);
+    var expectedBytes = 3 - _stateCount(state);
 
     // The input must be a list of bytes (integers in the range 0..255).
     // The value of `byteOr` will be the bitwise or of all the values in
@@ -385,22 +384,22 @@ class _Base64Encoder {
       var byte = bytes[i];
       byteOr |= byte;
       bits = ((bits << 8) | byte) & 0xFFFFFF; // Never store more than 24 bits.
-      expectedChars--;
-      if (expectedChars == 0) {
+      expectedBytes--;
+      if (expectedBytes == 0) {
         output[outputIndex++] = alphabet.codeUnitAt((bits >> 18) & _sixBitMask);
         output[outputIndex++] = alphabet.codeUnitAt((bits >> 12) & _sixBitMask);
         output[outputIndex++] = alphabet.codeUnitAt((bits >> 6) & _sixBitMask);
         output[outputIndex++] = alphabet.codeUnitAt(bits & _sixBitMask);
-        expectedChars = 3;
+        expectedBytes = 3;
         bits = 0;
       }
     }
     if (byteOr >= 0 && byteOr <= 255) {
-      if (isLast && expectedChars < 3) {
-        writeFinalChunk(alphabet, output, outputIndex, 3 - expectedChars, bits);
+      if (isLast && expectedBytes < 3) {
+        writeFinalChunk(alphabet, output, outputIndex, 3 - expectedBytes, bits);
         return 0;
       }
-      return _encodeState(3 - expectedChars, bits);
+      return _encodeState(3 - expectedBytes, bits);
     }
 
     // There was an invalid byte value somewhere in the input - find it!
@@ -509,6 +508,8 @@ class _Utf8Base64EncoderSink extends _Base64EncoderSink {
     var buffer = _encoder.encode(source, start, end, isLast);
     if (buffer != null) {
       _sink.addSlice(buffer, 0, buffer.length, isLast);
+    } else if (isLast) {
+      _sink.close();
     }
   }
 }

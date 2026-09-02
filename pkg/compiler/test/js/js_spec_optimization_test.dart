@@ -5,7 +5,9 @@
 import 'package:compiler/src/elements/entities.dart';
 import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
+
 import '../helpers/compiler_helper.dart';
+
 import 'package:compiler/src/util/memory_compiler.dart';
 
 const String TEST_1 = r"""

@@ -27,7 +27,7 @@ class C { m(B b, {}) @annotation var f; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -38,6 +38,20 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: {
+                formalParameters
+                  RegularFormalParameter
+                    name: <empty> <synthetic>
+                rightDelimiter: }
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -79,7 +93,7 @@ class C { m(B b, {}) }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -90,6 +104,20 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: {
+                formalParameters
+                  RegularFormalParameter
+                    name: <empty> <synthetic>
+                rightDelimiter: }
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -119,7 +147,7 @@ class C { m(B b, {}) var f; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -130,6 +158,20 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: {
+                formalParameters
+                  RegularFormalParameter
+                    name: <empty> <synthetic>
+                rightDelimiter: }
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -166,7 +208,7 @@ class C { m(B b, {}) const f = 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -177,6 +219,20 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: {
+                formalParameters
+                  RegularFormalParameter
+                    name: <empty> <synthetic>
+                rightDelimiter: }
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -198,7 +254,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer: IntegerLiteral
+                  initializer2: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -216,7 +272,7 @@ class C { m(B b, {}) final f = 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -227,6 +283,20 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: {
+                formalParameters
+                  RegularFormalParameter
+                    name: <empty> <synthetic>
+                rightDelimiter: }
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -248,7 +318,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer: IntegerLiteral
+                  initializer2: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -266,7 +336,7 @@ class C { m(B b, {}) int get a => 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -277,6 +347,20 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: {
+                formalParameters
+                  RegularFormalParameter
+                    name: <empty> <synthetic>
+                rightDelimiter: }
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -298,7 +382,7 @@ CompilationUnit
             name: a
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -316,7 +400,7 @@ class C { m(B b, {}) int a(b) => 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -327,6 +411,20 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: {
+                formalParameters
+                  RegularFormalParameter
+                    name: <empty> <synthetic>
+                rightDelimiter: }
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -347,12 +445,18 @@ CompilationUnit
             name: a
             parameters: FormalParameterList
               leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -370,7 +474,7 @@ class C { m(B b, {}) void a(b) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -381,6 +485,20 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: {
+                formalParameters
+                  RegularFormalParameter
+                    name: <empty> <synthetic>
+                rightDelimiter: }
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -400,6 +518,12 @@ CompilationUnit
               name: void
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -423,7 +547,7 @@ class C { m(B b, {}) set a(b) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -434,6 +558,20 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: {
+                formalParameters
+                  RegularFormalParameter
+                    name: <empty> <synthetic>
+                rightDelimiter: }
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -452,6 +590,12 @@ CompilationUnit
             propertyKeyword: set
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -475,7 +619,7 @@ class C { m(B b, []) @annotation var f; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -486,6 +630,20 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: [
+                formalParameters
+                  RegularFormalParameter
+                    name: <empty> <synthetic>
+                rightDelimiter: ]
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -527,7 +685,7 @@ class C { m(B b, []) }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -538,6 +696,20 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: [
+                formalParameters
+                  RegularFormalParameter
+                    name: <empty> <synthetic>
+                rightDelimiter: ]
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -567,7 +739,7 @@ class C { m(B b, []) var f; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -578,6 +750,20 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: [
+                formalParameters
+                  RegularFormalParameter
+                    name: <empty> <synthetic>
+                rightDelimiter: ]
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -614,7 +800,7 @@ class C { m(B b, []) const f = 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -625,6 +811,20 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: [
+                formalParameters
+                  RegularFormalParameter
+                    name: <empty> <synthetic>
+                rightDelimiter: ]
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -646,7 +846,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer: IntegerLiteral
+                  initializer2: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -664,7 +864,7 @@ class C { m(B b, []) final f = 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -675,6 +875,20 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: [
+                formalParameters
+                  RegularFormalParameter
+                    name: <empty> <synthetic>
+                rightDelimiter: ]
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -696,7 +910,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer: IntegerLiteral
+                  initializer2: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -714,7 +928,7 @@ class C { m(B b, []) int get a => 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -725,6 +939,20 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: [
+                formalParameters
+                  RegularFormalParameter
+                    name: <empty> <synthetic>
+                rightDelimiter: ]
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -746,7 +974,7 @@ CompilationUnit
             name: a
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -764,7 +992,7 @@ class C { m(B b, []) int a(b) => 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -775,6 +1003,20 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: [
+                formalParameters
+                  RegularFormalParameter
+                    name: <empty> <synthetic>
+                rightDelimiter: ]
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -795,12 +1037,18 @@ CompilationUnit
             name: a
             parameters: FormalParameterList
               leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -818,7 +1066,7 @@ class C { m(B b, []) void a(b) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -829,6 +1077,20 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: [
+                formalParameters
+                  RegularFormalParameter
+                    name: <empty> <synthetic>
+                rightDelimiter: ]
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -848,6 +1110,12 @@ CompilationUnit
               name: void
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -871,7 +1139,7 @@ class C { m(B b, []) set a(b) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -882,6 +1150,20 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: [
+                formalParameters
+                  RegularFormalParameter
+                    name: <empty> <synthetic>
+                rightDelimiter: ]
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -900,6 +1182,12 @@ CompilationUnit
             propertyKeyword: set
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -923,7 +1211,7 @@ class C { m( @annotation var f; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -934,6 +1222,18 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  metadata
+                    Annotation
+                      atSign: @
+                      name: SimpleIdentifier
+                        token: annotation
+                  constFinalOrVarKeyword: var
+                  name: f
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 metadata
@@ -960,7 +1260,7 @@ class C { m( }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -992,7 +1292,7 @@ class C { m( var f; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -1003,6 +1303,13 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  constFinalOrVarKeyword: var
+                  name: f
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 constFinalOrVarKeyword: var
@@ -1027,7 +1334,7 @@ class C { m( const f = 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -1038,6 +1345,17 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  constFinalOrVarKeyword: const
+                  name: f
+                  defaultClause: FormalParameterDefaultClause
+                    separator: =
+                    value2: IntegerLiteral
+                      literal: 0
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 constFinalOrVarKeyword: const
@@ -1066,7 +1384,7 @@ class C { m( final f = 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -1077,6 +1395,17 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  constFinalOrVarKeyword: final
+                  name: f
+                  defaultClause: FormalParameterDefaultClause
+                    separator: =
+                    value2: IntegerLiteral
+                      literal: 0
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 constFinalOrVarKeyword: final
@@ -1102,7 +1431,7 @@ class C { m( int get a => 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -1114,6 +1443,14 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: int
+                  name: get
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: int
@@ -1121,7 +1458,7 @@ CompilationUnit
               rightParenthesis: ) <synthetic>
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -1137,7 +1474,7 @@ class C { m( int a(b) => 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -1148,6 +1485,26 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: int
+                  name: a
+                  functionTypedSuffix: FunctionTypedFormalParameterSuffix
+                    formalParameters: FormalParameterList
+                      leftParenthesis: (
+                      requiredPositionalFormalParameters
+                        RegularFormalParameter
+                          name: b
+                      rightParenthesis: )
+                    formalParameters(v1): FormalParameterList
+                      leftParenthesis: (
+                      parameter: RegularFormalParameter
+                        name: b
+                      rightParenthesis: )
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -1162,7 +1519,7 @@ CompilationUnit
               rightParenthesis: ) <synthetic>
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -1178,7 +1535,7 @@ class C { m( void a(b) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -1189,6 +1546,26 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: void
+                  name: a
+                  functionTypedSuffix: FunctionTypedFormalParameterSuffix
+                    formalParameters: FormalParameterList
+                      leftParenthesis: (
+                      requiredPositionalFormalParameters
+                        RegularFormalParameter
+                          name: b
+                      rightParenthesis: )
+                    formalParameters(v1): FormalParameterList
+                      leftParenthesis: (
+                      parameter: RegularFormalParameter
+                        name: b
+                      rightParenthesis: )
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -1219,7 +1596,7 @@ class C { m( set a(b) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -1231,6 +1608,12 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: set
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: set
               rightParenthesis: ) <synthetic>
@@ -1241,6 +1624,12 @@ CompilationUnit
           MethodDeclaration
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -1262,7 +1651,7 @@ class C { m() @annotation var f; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -1304,7 +1693,7 @@ class C { m() }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -1334,7 +1723,7 @@ class C { m() var f; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -1371,7 +1760,7 @@ class C { m() const f = 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -1395,7 +1784,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer: IntegerLiteral
+                  initializer2: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -1411,7 +1800,7 @@ class C { m() final f = 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -1435,7 +1824,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer: IntegerLiteral
+                  initializer2: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -1451,7 +1840,7 @@ class C { m() int get a => 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -1475,7 +1864,7 @@ CompilationUnit
             name: a
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -1491,7 +1880,7 @@ class C { m() int a(b) => 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -1514,12 +1903,18 @@ CompilationUnit
             name: a
             parameters: FormalParameterList
               leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -1535,7 +1930,7 @@ class C { m() void a(b) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -1558,6 +1953,12 @@ CompilationUnit
             name: a
             parameters: FormalParameterList
               leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               rightParenthesis: )
@@ -1578,7 +1979,7 @@ class C { m() set a(b) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -1599,6 +2000,12 @@ CompilationUnit
             propertyKeyword: set
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -1622,7 +2029,7 @@ class C { m(B b, @annotation var f; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -1633,6 +2040,22 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  metadata
+                    Annotation
+                      atSign: @
+                      name: SimpleIdentifier
+                        token: annotation
+                  constFinalOrVarKeyword: var
+                  name: f
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -1663,7 +2086,7 @@ class C { m(B b, }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -1674,6 +2097,14 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -1699,7 +2130,7 @@ class C { m(B b, var f; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -1710,6 +2141,17 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  constFinalOrVarKeyword: var
+                  name: f
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -1738,7 +2180,7 @@ class C { m(B b, const f = 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -1749,6 +2191,21 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  constFinalOrVarKeyword: const
+                  name: f
+                  defaultClause: FormalParameterDefaultClause
+                    separator: =
+                    value2: IntegerLiteral
+                      literal: 0
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -1781,7 +2238,7 @@ class C { m(B b, final f = 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -1792,6 +2249,21 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  constFinalOrVarKeyword: final
+                  name: f
+                  defaultClause: FormalParameterDefaultClause
+                    separator: =
+                    value2: IntegerLiteral
+                      literal: 0
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -1821,7 +2293,7 @@ class C { m(B b, int get a => 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -1832,6 +2304,18 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  type: NamedType
+                    name: int
+                  name: get
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -1844,7 +2328,7 @@ CompilationUnit
               rightParenthesis: ) <synthetic>
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -1860,7 +2344,7 @@ class C { m(B b, int a(b) => 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -1871,6 +2355,30 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  type: NamedType
+                    name: int
+                  name: a
+                  functionTypedSuffix: FunctionTypedFormalParameterSuffix
+                    formalParameters: FormalParameterList
+                      leftParenthesis: (
+                      requiredPositionalFormalParameters
+                        RegularFormalParameter
+                          name: b
+                      rightParenthesis: )
+                    formalParameters(v1): FormalParameterList
+                      leftParenthesis: (
+                      parameter: RegularFormalParameter
+                        name: b
+                      rightParenthesis: )
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -1889,7 +2397,7 @@ CompilationUnit
               rightParenthesis: ) <synthetic>
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -1905,7 +2413,7 @@ class C { m(B b, void a(b) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -1916,6 +2424,30 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  type: NamedType
+                    name: void
+                  name: a
+                  functionTypedSuffix: FunctionTypedFormalParameterSuffix
+                    formalParameters: FormalParameterList
+                      leftParenthesis: (
+                      requiredPositionalFormalParameters
+                        RegularFormalParameter
+                          name: b
+                      rightParenthesis: )
+                    formalParameters(v1): FormalParameterList
+                      leftParenthesis: (
+                      parameter: RegularFormalParameter
+                        name: b
+                      rightParenthesis: )
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -1950,7 +2482,7 @@ class C { m(B b, set a(b) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -1961,6 +2493,16 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: set
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -1976,6 +2518,12 @@ CompilationUnit
           MethodDeclaration
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -1998,7 +2546,7 @@ class C { m(B @annotation var f; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -2009,6 +2557,12 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: B
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: B
@@ -2043,7 +2597,7 @@ class C { m(B }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -2054,6 +2608,12 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: B
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: B
@@ -2077,7 +2637,7 @@ class C { m(B var f; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -2088,6 +2648,12 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: B
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: B
@@ -2118,7 +2684,7 @@ class C { m(B const f = 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -2129,6 +2695,12 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: B
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: B
@@ -2144,7 +2716,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer: IntegerLiteral
+                  initializer2: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -2162,7 +2734,7 @@ class C { m(B final f = 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -2173,6 +2745,12 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: B
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: B
@@ -2188,7 +2766,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer: IntegerLiteral
+                  initializer2: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -2206,7 +2784,7 @@ class C { m(B int get a => 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -2217,6 +2795,14 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: int
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -2232,7 +2818,7 @@ CompilationUnit
             name: a
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -2249,7 +2835,7 @@ class C { m(B int a(b) => 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -2260,6 +2846,14 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: int
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -2274,12 +2868,18 @@ CompilationUnit
             name: a
             parameters: FormalParameterList
               leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -2297,7 +2897,7 @@ class C { m(B void a(b) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -2308,6 +2908,12 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: B
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: B
@@ -2321,6 +2927,12 @@ CompilationUnit
               name: void
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -2343,7 +2955,7 @@ class C { m(B set a(b) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -2354,6 +2966,14 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: set
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -2367,6 +2987,12 @@ CompilationUnit
           MethodDeclaration
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -2388,7 +3014,7 @@ class C { m(b, c) @annotation var f; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -2399,6 +3025,14 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+                RegularFormalParameter
+                  name: c
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -2434,7 +3068,7 @@ class C { m(b, c) }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -2445,6 +3079,14 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+                RegularFormalParameter
+                  name: c
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -2468,7 +3110,7 @@ class C { m(b, c) var f; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -2479,6 +3121,14 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+                RegularFormalParameter
+                  name: c
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -2509,7 +3159,7 @@ class C { m(b, c) const f = 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -2520,6 +3170,14 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+                RegularFormalParameter
+                  name: c
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -2537,7 +3195,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer: IntegerLiteral
+                  initializer2: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -2553,7 +3211,7 @@ class C { m(b, c) final f = 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -2564,6 +3222,14 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+                RegularFormalParameter
+                  name: c
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -2581,7 +3247,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer: IntegerLiteral
+                  initializer2: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -2597,7 +3263,7 @@ class C { m(b, c) int get a => 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -2608,6 +3274,14 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+                RegularFormalParameter
+                  name: c
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -2625,7 +3299,7 @@ CompilationUnit
             name: a
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -2641,7 +3315,7 @@ class C { m(b, c) int a(b) => 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -2652,6 +3326,14 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+                RegularFormalParameter
+                  name: c
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -2668,12 +3350,18 @@ CompilationUnit
             name: a
             parameters: FormalParameterList
               leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -2689,7 +3377,7 @@ class C { m(b, c) void a(b) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -2700,6 +3388,14 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+                RegularFormalParameter
+                  name: c
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -2715,6 +3411,12 @@ CompilationUnit
               name: void
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -2736,7 +3438,7 @@ class C { m(b, c) set a(b) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -2747,6 +3449,14 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+                RegularFormalParameter
+                  name: c
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -2761,6 +3471,12 @@ CompilationUnit
             propertyKeyword: set
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -2783,7 +3499,7 @@ class C { m(B b @annotation var f; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -2794,6 +3510,14 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -2830,7 +3554,7 @@ class C { m(B b }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -2841,6 +3565,14 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -2866,7 +3598,7 @@ class C { m(B b var f; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -2877,6 +3609,14 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -2909,7 +3649,7 @@ class C { m(B b const f = 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -2920,6 +3660,14 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -2937,7 +3685,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer: IntegerLiteral
+                  initializer2: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -2955,7 +3703,7 @@ class C { m(B b final f = 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -2966,6 +3714,14 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -2983,7 +3739,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer: IntegerLiteral
+                  initializer2: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -3001,7 +3757,7 @@ class C { m(B b int get a => 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -3012,6 +3768,14 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -3029,7 +3793,7 @@ CompilationUnit
             name: a
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -3047,7 +3811,7 @@ class C { m(B b int a(b) => 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -3058,6 +3822,14 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -3074,12 +3846,18 @@ CompilationUnit
             name: a
             parameters: FormalParameterList
               leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -3097,7 +3875,7 @@ class C { m(B b void a(b) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -3108,6 +3886,14 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -3123,6 +3909,12 @@ CompilationUnit
               name: void
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -3146,7 +3938,7 @@ class C { m(B b set a(b) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -3157,6 +3949,14 @@ CompilationUnit
           MethodDeclaration
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -3171,6 +3971,12 @@ CompilationUnit
             propertyKeyword: set
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -3194,7 +4000,7 @@ class C { static m(B b, {}) @annotation var f; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -3206,6 +4012,20 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: {
+                formalParameters
+                  RegularFormalParameter
+                    name: <empty> <synthetic>
+                rightDelimiter: }
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -3247,7 +4067,7 @@ class C { static m(B b, {}) }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -3259,6 +4079,20 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: {
+                formalParameters
+                  RegularFormalParameter
+                    name: <empty> <synthetic>
+                rightDelimiter: }
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -3288,7 +4122,7 @@ class C { static m(B b, {}) var f; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -3300,6 +4134,20 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: {
+                formalParameters
+                  RegularFormalParameter
+                    name: <empty> <synthetic>
+                rightDelimiter: }
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -3336,7 +4184,7 @@ class C { static m(B b, {}) const f = 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -3348,6 +4196,20 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: {
+                formalParameters
+                  RegularFormalParameter
+                    name: <empty> <synthetic>
+                rightDelimiter: }
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -3369,7 +4231,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer: IntegerLiteral
+                  initializer2: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -3387,7 +4249,7 @@ class C { static m(B b, {}) final f = 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -3399,6 +4261,20 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: {
+                formalParameters
+                  RegularFormalParameter
+                    name: <empty> <synthetic>
+                rightDelimiter: }
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -3420,7 +4296,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer: IntegerLiteral
+                  initializer2: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -3438,7 +4314,7 @@ class C { static m(B b, {}) int get a => 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -3450,6 +4326,20 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: {
+                formalParameters
+                  RegularFormalParameter
+                    name: <empty> <synthetic>
+                rightDelimiter: }
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -3471,7 +4361,7 @@ CompilationUnit
             name: a
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -3489,7 +4379,7 @@ class C { static m(B b, {}) int a(b) => 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -3501,6 +4391,20 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: {
+                formalParameters
+                  RegularFormalParameter
+                    name: <empty> <synthetic>
+                rightDelimiter: }
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -3521,12 +4425,18 @@ CompilationUnit
             name: a
             parameters: FormalParameterList
               leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -3544,7 +4454,7 @@ class C { static m(B b, {}) void a(b) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -3556,6 +4466,20 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: {
+                formalParameters
+                  RegularFormalParameter
+                    name: <empty> <synthetic>
+                rightDelimiter: }
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -3575,6 +4499,12 @@ CompilationUnit
               name: void
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -3598,7 +4528,7 @@ class C { static m(B b, {}) set a(b) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -3610,6 +4540,20 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: {
+                formalParameters
+                  RegularFormalParameter
+                    name: <empty> <synthetic>
+                rightDelimiter: }
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -3628,6 +4572,12 @@ CompilationUnit
             propertyKeyword: set
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -3651,7 +4601,7 @@ class C { static m(B b, []) @annotation var f; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -3663,6 +4613,20 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: [
+                formalParameters
+                  RegularFormalParameter
+                    name: <empty> <synthetic>
+                rightDelimiter: ]
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -3704,7 +4668,7 @@ class C { static m(B b, []) }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -3716,6 +4680,20 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: [
+                formalParameters
+                  RegularFormalParameter
+                    name: <empty> <synthetic>
+                rightDelimiter: ]
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -3745,7 +4723,7 @@ class C { static m(B b, []) var f; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -3757,6 +4735,20 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: [
+                formalParameters
+                  RegularFormalParameter
+                    name: <empty> <synthetic>
+                rightDelimiter: ]
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -3793,7 +4785,7 @@ class C { static m(B b, []) const f = 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -3805,6 +4797,20 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: [
+                formalParameters
+                  RegularFormalParameter
+                    name: <empty> <synthetic>
+                rightDelimiter: ]
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -3826,7 +4832,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer: IntegerLiteral
+                  initializer2: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -3844,7 +4850,7 @@ class C { static m(B b, []) final f = 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -3856,6 +4862,20 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: [
+                formalParameters
+                  RegularFormalParameter
+                    name: <empty> <synthetic>
+                rightDelimiter: ]
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -3877,7 +4897,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer: IntegerLiteral
+                  initializer2: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -3895,7 +4915,7 @@ class C { static m(B b, []) int get a => 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -3907,6 +4927,20 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: [
+                formalParameters
+                  RegularFormalParameter
+                    name: <empty> <synthetic>
+                rightDelimiter: ]
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -3928,7 +4962,7 @@ CompilationUnit
             name: a
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -3946,7 +4980,7 @@ class C { static m(B b, []) int a(b) => 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -3958,6 +4992,20 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: [
+                formalParameters
+                  RegularFormalParameter
+                    name: <empty> <synthetic>
+                rightDelimiter: ]
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -3978,12 +5026,18 @@ CompilationUnit
             name: a
             parameters: FormalParameterList
               leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -4001,7 +5055,7 @@ class C { static m(B b, []) void a(b) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -4013,6 +5067,20 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: [
+                formalParameters
+                  RegularFormalParameter
+                    name: <empty> <synthetic>
+                rightDelimiter: ]
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -4032,6 +5100,12 @@ CompilationUnit
               name: void
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -4055,7 +5129,7 @@ class C { static m(B b, []) set a(b) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -4067,6 +5141,20 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: [
+                formalParameters
+                  RegularFormalParameter
+                    name: <empty> <synthetic>
+                rightDelimiter: ]
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -4085,6 +5173,12 @@ CompilationUnit
             propertyKeyword: set
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -4108,7 +5202,7 @@ class C { static m( @annotation var f; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -4120,6 +5214,18 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  metadata
+                    Annotation
+                      atSign: @
+                      name: SimpleIdentifier
+                        token: annotation
+                  constFinalOrVarKeyword: var
+                  name: f
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 metadata
@@ -4146,7 +5252,7 @@ class C { static m( }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -4179,7 +5285,7 @@ class C { static m( var f; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -4191,6 +5297,13 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  constFinalOrVarKeyword: var
+                  name: f
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 constFinalOrVarKeyword: var
@@ -4215,7 +5328,7 @@ class C { static m( const f = 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -4227,6 +5340,17 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  constFinalOrVarKeyword: const
+                  name: f
+                  defaultClause: FormalParameterDefaultClause
+                    separator: =
+                    value2: IntegerLiteral
+                      literal: 0
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 constFinalOrVarKeyword: const
@@ -4255,7 +5379,7 @@ class C { static m( final f = 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -4267,6 +5391,17 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  constFinalOrVarKeyword: final
+                  name: f
+                  defaultClause: FormalParameterDefaultClause
+                    separator: =
+                    value2: IntegerLiteral
+                      literal: 0
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 constFinalOrVarKeyword: final
@@ -4292,7 +5427,7 @@ class C { static m( int get a => 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -4305,6 +5440,14 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: int
+                  name: get
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: int
@@ -4312,7 +5455,7 @@ CompilationUnit
               rightParenthesis: ) <synthetic>
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -4328,7 +5471,7 @@ class C { static m( int a(b) => 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -4340,6 +5483,26 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: int
+                  name: a
+                  functionTypedSuffix: FunctionTypedFormalParameterSuffix
+                    formalParameters: FormalParameterList
+                      leftParenthesis: (
+                      requiredPositionalFormalParameters
+                        RegularFormalParameter
+                          name: b
+                      rightParenthesis: )
+                    formalParameters(v1): FormalParameterList
+                      leftParenthesis: (
+                      parameter: RegularFormalParameter
+                        name: b
+                      rightParenthesis: )
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -4354,7 +5517,7 @@ CompilationUnit
               rightParenthesis: ) <synthetic>
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -4370,7 +5533,7 @@ class C { static m( void a(b) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -4382,6 +5545,26 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: void
+                  name: a
+                  functionTypedSuffix: FunctionTypedFormalParameterSuffix
+                    formalParameters: FormalParameterList
+                      leftParenthesis: (
+                      requiredPositionalFormalParameters
+                        RegularFormalParameter
+                          name: b
+                      rightParenthesis: )
+                    formalParameters(v1): FormalParameterList
+                      leftParenthesis: (
+                      parameter: RegularFormalParameter
+                        name: b
+                      rightParenthesis: )
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -4412,7 +5595,7 @@ class C { static m( set a(b) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -4425,6 +5608,12 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: set
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: set
               rightParenthesis: ) <synthetic>
@@ -4435,6 +5624,12 @@ CompilationUnit
           MethodDeclaration
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -4456,7 +5651,7 @@ class C { static m() @annotation var f; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -4499,7 +5694,7 @@ class C { static m() }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -4530,7 +5725,7 @@ class C { static m() var f; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -4568,7 +5763,7 @@ class C { static m() const f = 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -4593,7 +5788,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer: IntegerLiteral
+                  initializer2: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -4609,7 +5804,7 @@ class C { static m() final f = 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -4634,7 +5829,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer: IntegerLiteral
+                  initializer2: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -4650,7 +5845,7 @@ class C { static m() int get a => 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -4675,7 +5870,7 @@ CompilationUnit
             name: a
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -4691,7 +5886,7 @@ class C { static m() int a(b) => 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -4715,12 +5910,18 @@ CompilationUnit
             name: a
             parameters: FormalParameterList
               leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -4736,7 +5937,7 @@ class C { static m() void a(b) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -4760,6 +5961,12 @@ CompilationUnit
             name: a
             parameters: FormalParameterList
               leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               rightParenthesis: )
@@ -4780,7 +5987,7 @@ class C { static m() set a(b) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -4802,6 +6009,12 @@ CompilationUnit
             propertyKeyword: set
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -4825,7 +6038,7 @@ class C { static m(B b, @annotation var f; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -4837,6 +6050,22 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  metadata
+                    Annotation
+                      atSign: @
+                      name: SimpleIdentifier
+                        token: annotation
+                  constFinalOrVarKeyword: var
+                  name: f
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -4867,7 +6096,7 @@ class C { static m(B b, }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -4879,6 +6108,14 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -4904,7 +6141,7 @@ class C { static m(B b, var f; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -4916,6 +6153,17 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  constFinalOrVarKeyword: var
+                  name: f
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -4944,7 +6192,7 @@ class C { static m(B b, const f = 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -4956,6 +6204,21 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  constFinalOrVarKeyword: const
+                  name: f
+                  defaultClause: FormalParameterDefaultClause
+                    separator: =
+                    value2: IntegerLiteral
+                      literal: 0
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -4988,7 +6251,7 @@ class C { static m(B b, final f = 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -5000,6 +6263,21 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  constFinalOrVarKeyword: final
+                  name: f
+                  defaultClause: FormalParameterDefaultClause
+                    separator: =
+                    value2: IntegerLiteral
+                      literal: 0
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -5029,7 +6307,7 @@ class C { static m(B b, int get a => 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -5042,6 +6320,18 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  type: NamedType
+                    name: int
+                  name: get
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -5053,7 +6343,7 @@ CompilationUnit
               rightParenthesis: ) <synthetic>
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -5069,7 +6359,7 @@ class C { static m(B b, int a(b) => 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -5081,6 +6371,30 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  type: NamedType
+                    name: int
+                  name: a
+                  functionTypedSuffix: FunctionTypedFormalParameterSuffix
+                    formalParameters: FormalParameterList
+                      leftParenthesis: (
+                      requiredPositionalFormalParameters
+                        RegularFormalParameter
+                          name: b
+                      rightParenthesis: )
+                    formalParameters(v1): FormalParameterList
+                      leftParenthesis: (
+                      parameter: RegularFormalParameter
+                        name: b
+                      rightParenthesis: )
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -5099,7 +6413,7 @@ CompilationUnit
               rightParenthesis: ) <synthetic>
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -5115,7 +6429,7 @@ class C { static m(B b, void a(b) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -5127,6 +6441,30 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  type: NamedType
+                    name: void
+                  name: a
+                  functionTypedSuffix: FunctionTypedFormalParameterSuffix
+                    formalParameters: FormalParameterList
+                      leftParenthesis: (
+                      requiredPositionalFormalParameters
+                        RegularFormalParameter
+                          name: b
+                      rightParenthesis: )
+                    formalParameters(v1): FormalParameterList
+                      leftParenthesis: (
+                      parameter: RegularFormalParameter
+                        name: b
+                      rightParenthesis: )
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -5161,7 +6499,7 @@ class C { static m(B b, set a(b) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -5173,6 +6511,16 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: set
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -5188,6 +6536,12 @@ CompilationUnit
           MethodDeclaration
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -5210,7 +6564,7 @@ class C { static m(B @annotation var f; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -5222,6 +6576,12 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: B
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: B
@@ -5256,7 +6616,7 @@ class C { static m(B }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -5268,6 +6628,12 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: B
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: B
@@ -5291,7 +6657,7 @@ class C { static m(B var f; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -5303,6 +6669,12 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: B
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: B
@@ -5333,7 +6705,7 @@ class C { static m(B const f = 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -5345,6 +6717,12 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: B
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: B
@@ -5360,7 +6738,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer: IntegerLiteral
+                  initializer2: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -5378,7 +6756,7 @@ class C { static m(B final f = 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -5390,6 +6768,12 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: B
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: B
@@ -5405,7 +6789,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer: IntegerLiteral
+                  initializer2: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -5423,7 +6807,7 @@ class C { static m(B int get a => 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -5435,6 +6819,14 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: int
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -5450,7 +6842,7 @@ CompilationUnit
             name: a
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -5467,7 +6859,7 @@ class C { static m(B int a(b) => 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -5479,6 +6871,14 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: int
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -5493,12 +6893,18 @@ CompilationUnit
             name: a
             parameters: FormalParameterList
               leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -5516,7 +6922,7 @@ class C { static m(B void a(b) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -5528,6 +6934,12 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: B
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: B
@@ -5541,6 +6953,12 @@ CompilationUnit
               name: void
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -5563,7 +6981,7 @@ class C { static m(B set a(b) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -5575,6 +6993,14 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: set
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -5588,6 +7014,12 @@ CompilationUnit
           MethodDeclaration
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -5609,7 +7041,7 @@ class C { static m(b, c) @annotation var f; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -5621,6 +7053,14 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+                RegularFormalParameter
+                  name: c
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -5656,7 +7096,7 @@ class C { static m(b, c) }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -5668,6 +7108,14 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+                RegularFormalParameter
+                  name: c
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -5691,7 +7139,7 @@ class C { static m(b, c) var f; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -5703,6 +7151,14 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+                RegularFormalParameter
+                  name: c
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -5733,7 +7189,7 @@ class C { static m(b, c) const f = 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -5745,6 +7201,14 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+                RegularFormalParameter
+                  name: c
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -5762,7 +7226,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer: IntegerLiteral
+                  initializer2: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -5778,7 +7242,7 @@ class C { static m(b, c) final f = 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -5790,6 +7254,14 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+                RegularFormalParameter
+                  name: c
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -5807,7 +7279,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer: IntegerLiteral
+                  initializer2: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -5823,7 +7295,7 @@ class C { static m(b, c) int get a => 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -5835,6 +7307,14 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+                RegularFormalParameter
+                  name: c
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -5852,7 +7332,7 @@ CompilationUnit
             name: a
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -5868,7 +7348,7 @@ class C { static m(b, c) int a(b) => 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -5880,6 +7360,14 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+                RegularFormalParameter
+                  name: c
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -5896,12 +7384,18 @@ CompilationUnit
             name: a
             parameters: FormalParameterList
               leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -5917,7 +7411,7 @@ class C { static m(b, c) void a(b) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -5929,6 +7423,14 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+                RegularFormalParameter
+                  name: c
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -5944,6 +7446,12 @@ CompilationUnit
               name: void
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -5965,7 +7473,7 @@ class C { static m(b, c) set a(b) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -5977,6 +7485,14 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+                RegularFormalParameter
+                  name: c
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -5991,6 +7507,12 @@ CompilationUnit
             propertyKeyword: set
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -6013,7 +7535,7 @@ class C { static m(B b @annotation var f; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -6025,6 +7547,14 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -6061,7 +7591,7 @@ class C { static m(B b }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -6073,6 +7603,14 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -6098,7 +7636,7 @@ class C { static m(B b var f; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -6110,6 +7648,14 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -6142,7 +7688,7 @@ class C { static m(B b const f = 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -6154,6 +7700,14 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -6171,7 +7725,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer: IntegerLiteral
+                  initializer2: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -6189,7 +7743,7 @@ class C { static m(B b final f = 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -6201,6 +7755,14 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -6218,7 +7780,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer: IntegerLiteral
+                  initializer2: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -6236,7 +7798,7 @@ class C { static m(B b int get a => 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -6248,6 +7810,14 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -6265,7 +7835,7 @@ CompilationUnit
             name: a
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -6283,7 +7853,7 @@ class C { static m(B b int a(b) => 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -6295,6 +7865,14 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -6311,12 +7889,18 @@ CompilationUnit
             name: a
             parameters: FormalParameterList
               leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -6334,7 +7918,7 @@ class C { static m(B b void a(b) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -6346,6 +7930,14 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -6361,6 +7953,12 @@ CompilationUnit
               name: void
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -6384,7 +7982,7 @@ class C { static m(B b set a(b) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -6396,6 +7994,14 @@ CompilationUnit
             modifierKeyword: static
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -6410,6 +8016,12 @@ CompilationUnit
             propertyKeyword: set
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -6433,7 +8045,7 @@ class C { static A m(B b, {}) @annotation var f; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -6447,6 +8059,20 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: {
+                formalParameters
+                  RegularFormalParameter
+                    name: <empty> <synthetic>
+                rightDelimiter: }
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -6488,7 +8114,7 @@ class C { static A m(B b, {}) }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -6502,6 +8128,20 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: {
+                formalParameters
+                  RegularFormalParameter
+                    name: <empty> <synthetic>
+                rightDelimiter: }
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -6531,7 +8171,7 @@ class C { static A m(B b, {}) var f; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -6545,6 +8185,20 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: {
+                formalParameters
+                  RegularFormalParameter
+                    name: <empty> <synthetic>
+                rightDelimiter: }
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -6581,7 +8235,7 @@ class C { static A m(B b, {}) const f = 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -6595,6 +8249,20 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: {
+                formalParameters
+                  RegularFormalParameter
+                    name: <empty> <synthetic>
+                rightDelimiter: }
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -6616,7 +8284,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer: IntegerLiteral
+                  initializer2: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -6634,7 +8302,7 @@ class C { static A m(B b, {}) final f = 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -6648,6 +8316,20 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: {
+                formalParameters
+                  RegularFormalParameter
+                    name: <empty> <synthetic>
+                rightDelimiter: }
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -6669,7 +8351,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer: IntegerLiteral
+                  initializer2: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -6687,7 +8369,7 @@ class C { static A m(B b, {}) int get a => 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -6701,6 +8383,20 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: {
+                formalParameters
+                  RegularFormalParameter
+                    name: <empty> <synthetic>
+                rightDelimiter: }
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -6722,7 +8418,7 @@ CompilationUnit
             name: a
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -6740,7 +8436,7 @@ class C { static A m(B b, {}) int a(b) => 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -6754,6 +8450,20 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: {
+                formalParameters
+                  RegularFormalParameter
+                    name: <empty> <synthetic>
+                rightDelimiter: }
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -6774,12 +8484,18 @@ CompilationUnit
             name: a
             parameters: FormalParameterList
               leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -6797,7 +8513,7 @@ class C { static A m(B b, {}) void a(b) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -6811,6 +8527,20 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: {
+                formalParameters
+                  RegularFormalParameter
+                    name: <empty> <synthetic>
+                rightDelimiter: }
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -6830,6 +8560,12 @@ CompilationUnit
               name: void
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -6853,7 +8589,7 @@ class C { static A m(B b, {}) set a(b) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -6867,6 +8603,20 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: {
+                formalParameters
+                  RegularFormalParameter
+                    name: <empty> <synthetic>
+                rightDelimiter: }
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -6885,6 +8635,12 @@ CompilationUnit
             propertyKeyword: set
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -6908,7 +8664,7 @@ class C { static A m(B b, []) @annotation var f; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -6922,6 +8678,20 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: [
+                formalParameters
+                  RegularFormalParameter
+                    name: <empty> <synthetic>
+                rightDelimiter: ]
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -6963,7 +8733,7 @@ class C { static A m(B b, []) }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -6977,6 +8747,20 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: [
+                formalParameters
+                  RegularFormalParameter
+                    name: <empty> <synthetic>
+                rightDelimiter: ]
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -7006,7 +8790,7 @@ class C { static A m(B b, []) var f; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -7020,6 +8804,20 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: [
+                formalParameters
+                  RegularFormalParameter
+                    name: <empty> <synthetic>
+                rightDelimiter: ]
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -7056,7 +8854,7 @@ class C { static A m(B b, []) const f = 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -7070,6 +8868,20 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: [
+                formalParameters
+                  RegularFormalParameter
+                    name: <empty> <synthetic>
+                rightDelimiter: ]
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -7091,7 +8903,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer: IntegerLiteral
+                  initializer2: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -7109,7 +8921,7 @@ class C { static A m(B b, []) final f = 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -7123,6 +8935,20 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: [
+                formalParameters
+                  RegularFormalParameter
+                    name: <empty> <synthetic>
+                rightDelimiter: ]
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -7144,7 +8970,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer: IntegerLiteral
+                  initializer2: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -7162,7 +8988,7 @@ class C { static A m(B b, []) int get a => 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -7176,6 +9002,20 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: [
+                formalParameters
+                  RegularFormalParameter
+                    name: <empty> <synthetic>
+                rightDelimiter: ]
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -7197,7 +9037,7 @@ CompilationUnit
             name: a
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -7215,7 +9055,7 @@ class C { static A m(B b, []) int a(b) => 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -7229,6 +9069,20 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: [
+                formalParameters
+                  RegularFormalParameter
+                    name: <empty> <synthetic>
+                rightDelimiter: ]
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -7249,12 +9103,18 @@ CompilationUnit
             name: a
             parameters: FormalParameterList
               leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -7272,7 +9132,7 @@ class C { static A m(B b, []) void a(b) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -7286,6 +9146,20 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: [
+                formalParameters
+                  RegularFormalParameter
+                    name: <empty> <synthetic>
+                rightDelimiter: ]
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -7305,6 +9179,12 @@ CompilationUnit
               name: void
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -7328,7 +9208,7 @@ class C { static A m(B b, []) set a(b) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -7342,6 +9222,20 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: [
+                formalParameters
+                  RegularFormalParameter
+                    name: <empty> <synthetic>
+                rightDelimiter: ]
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -7360,6 +9254,12 @@ CompilationUnit
             propertyKeyword: set
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -7383,7 +9283,7 @@ class C { static A m( @annotation var f; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -7397,6 +9297,18 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  metadata
+                    Annotation
+                      atSign: @
+                      name: SimpleIdentifier
+                        token: annotation
+                  constFinalOrVarKeyword: var
+                  name: f
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 metadata
@@ -7423,7 +9335,7 @@ class C { static A m( }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -7458,7 +9370,7 @@ class C { static A m( var f; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -7472,6 +9384,13 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  constFinalOrVarKeyword: var
+                  name: f
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 constFinalOrVarKeyword: var
@@ -7496,7 +9415,7 @@ class C { static A m( const f = 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -7510,6 +9429,17 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  constFinalOrVarKeyword: const
+                  name: f
+                  defaultClause: FormalParameterDefaultClause
+                    separator: =
+                    value2: IntegerLiteral
+                      literal: 0
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 constFinalOrVarKeyword: const
@@ -7538,7 +9468,7 @@ class C { static A m( final f = 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -7552,6 +9482,17 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  constFinalOrVarKeyword: final
+                  name: f
+                  defaultClause: FormalParameterDefaultClause
+                    separator: =
+                    value2: IntegerLiteral
+                      literal: 0
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 constFinalOrVarKeyword: final
@@ -7577,7 +9518,7 @@ class C { static A m( int get a => 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -7592,6 +9533,14 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: int
+                  name: get
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: int
@@ -7599,7 +9548,7 @@ CompilationUnit
               rightParenthesis: ) <synthetic>
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -7615,7 +9564,7 @@ class C { static A m( int a(b) => 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -7630,6 +9579,26 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: int
+                  name: a
+                  functionTypedSuffix: FunctionTypedFormalParameterSuffix
+                    formalParameters: FormalParameterList
+                      leftParenthesis: (
+                      requiredPositionalFormalParameters
+                        RegularFormalParameter
+                          name: b
+                      rightParenthesis: )
+                    formalParameters(v1): FormalParameterList
+                      leftParenthesis: (
+                      parameter: RegularFormalParameter
+                        name: b
+                      rightParenthesis: )
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: int
@@ -7643,7 +9612,7 @@ CompilationUnit
               rightParenthesis: ) <synthetic>
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -7659,7 +9628,7 @@ class C { static A m( void a(b) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -7673,6 +9642,26 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: void
+                  name: a
+                  functionTypedSuffix: FunctionTypedFormalParameterSuffix
+                    formalParameters: FormalParameterList
+                      leftParenthesis: (
+                      requiredPositionalFormalParameters
+                        RegularFormalParameter
+                          name: b
+                      rightParenthesis: )
+                    formalParameters(v1): FormalParameterList
+                      leftParenthesis: (
+                      parameter: RegularFormalParameter
+                        name: b
+                      rightParenthesis: )
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -7703,7 +9692,7 @@ class C { static A m( set a(b) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -7718,6 +9707,12 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: set
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: set
               rightParenthesis: ) <synthetic>
@@ -7728,6 +9723,12 @@ CompilationUnit
           MethodDeclaration
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -7749,7 +9750,7 @@ class C { static A m() @annotation var f; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -7794,7 +9795,7 @@ class C { static A m() }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -7827,7 +9828,7 @@ class C { static A m() var f; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -7867,7 +9868,7 @@ class C { static A m() const f = 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -7894,7 +9895,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer: IntegerLiteral
+                  initializer2: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -7910,7 +9911,7 @@ class C { static A m() final f = 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -7937,7 +9938,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer: IntegerLiteral
+                  initializer2: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -7953,7 +9954,7 @@ class C { static A m() int get a => 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -7980,7 +9981,7 @@ CompilationUnit
             name: a
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -7996,7 +9997,7 @@ class C { static A m() int a(b) => 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -8022,12 +10023,18 @@ CompilationUnit
             name: a
             parameters: FormalParameterList
               leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -8043,7 +10050,7 @@ class C { static A m() void a(b) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -8069,6 +10076,12 @@ CompilationUnit
             name: a
             parameters: FormalParameterList
               leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               rightParenthesis: )
@@ -8089,7 +10102,7 @@ class C { static A m() set a(b) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -8114,6 +10127,12 @@ CompilationUnit
             name: a
             parameters: FormalParameterList
               leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               rightParenthesis: )
@@ -8136,7 +10155,7 @@ class C { static A m(B b, @annotation var f; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -8150,6 +10169,22 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  metadata
+                    Annotation
+                      atSign: @
+                      name: SimpleIdentifier
+                        token: annotation
+                  constFinalOrVarKeyword: var
+                  name: f
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -8180,7 +10215,7 @@ class C { static A m(B b, }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -8194,6 +10229,14 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -8219,7 +10262,7 @@ class C { static A m(B b, var f; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -8233,6 +10276,17 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  constFinalOrVarKeyword: var
+                  name: f
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -8261,7 +10315,7 @@ class C { static A m(B b, const f = 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -8275,6 +10329,21 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  constFinalOrVarKeyword: const
+                  name: f
+                  defaultClause: FormalParameterDefaultClause
+                    separator: =
+                    value2: IntegerLiteral
+                      literal: 0
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -8307,7 +10376,7 @@ class C { static A m(B b, final f = 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -8321,6 +10390,21 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  constFinalOrVarKeyword: final
+                  name: f
+                  defaultClause: FormalParameterDefaultClause
+                    separator: =
+                    value2: IntegerLiteral
+                      literal: 0
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -8350,7 +10434,7 @@ class C { static A m(B b, int get a => 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -8365,6 +10449,18 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  type: NamedType
+                    name: int
+                  name: get
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -8376,7 +10472,7 @@ CompilationUnit
               rightParenthesis: ) <synthetic>
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -8392,7 +10488,7 @@ class C { static A m(B b, int a(b) => 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -8406,6 +10502,30 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  type: NamedType
+                    name: int
+                  name: a
+                  functionTypedSuffix: FunctionTypedFormalParameterSuffix
+                    formalParameters: FormalParameterList
+                      leftParenthesis: (
+                      requiredPositionalFormalParameters
+                        RegularFormalParameter
+                          name: b
+                      rightParenthesis: )
+                    formalParameters(v1): FormalParameterList
+                      leftParenthesis: (
+                      parameter: RegularFormalParameter
+                        name: b
+                      rightParenthesis: )
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -8424,7 +10544,7 @@ CompilationUnit
               rightParenthesis: ) <synthetic>
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -8440,7 +10560,7 @@ class C { static A m(B b, void a(b) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -8454,6 +10574,30 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  type: NamedType
+                    name: void
+                  name: a
+                  functionTypedSuffix: FunctionTypedFormalParameterSuffix
+                    formalParameters: FormalParameterList
+                      leftParenthesis: (
+                      requiredPositionalFormalParameters
+                        RegularFormalParameter
+                          name: b
+                      rightParenthesis: )
+                    formalParameters(v1): FormalParameterList
+                      leftParenthesis: (
+                      parameter: RegularFormalParameter
+                        name: b
+                      rightParenthesis: )
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -8488,7 +10632,7 @@ class C { static A m(B b, set a(b) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -8502,6 +10646,16 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: set
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -8517,6 +10671,12 @@ CompilationUnit
           MethodDeclaration
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -8539,7 +10699,7 @@ class C { static A m(B @annotation var f; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -8553,6 +10713,12 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: B
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: B
@@ -8587,7 +10753,7 @@ class C { static A m(B }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -8601,6 +10767,12 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: B
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: B
@@ -8624,7 +10796,7 @@ class C { static A m(B var f; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -8638,6 +10810,12 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: B
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: B
@@ -8668,7 +10846,7 @@ class C { static A m(B const f = 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -8682,6 +10860,12 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: B
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: B
@@ -8697,7 +10881,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer: IntegerLiteral
+                  initializer2: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -8715,7 +10899,7 @@ class C { static A m(B final f = 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -8729,6 +10913,12 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: B
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: B
@@ -8744,7 +10934,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer: IntegerLiteral
+                  initializer2: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -8762,7 +10952,7 @@ class C { static A m(B int get a => 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -8776,6 +10966,14 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: int
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -8791,7 +10989,7 @@ CompilationUnit
             name: a
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -8808,7 +11006,7 @@ class C { static A m(B int a(b) => 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -8823,6 +11021,14 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: int
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -8836,12 +11042,18 @@ CompilationUnit
             name: a
             parameters: FormalParameterList
               leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -8859,7 +11071,7 @@ class C { static A m(B void a(b) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -8874,6 +11086,12 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: B
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: B
               rightParenthesis: ) <synthetic>
@@ -8886,6 +11104,12 @@ CompilationUnit
               name: void
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -8908,7 +11132,7 @@ class C { static A m(B set a(b) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -8923,6 +11147,14 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: set
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -8935,6 +11167,12 @@ CompilationUnit
           MethodDeclaration
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -8956,7 +11194,7 @@ class C { static A m(b, c) @annotation var f; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -8970,6 +11208,14 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+                RegularFormalParameter
+                  name: c
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -9005,7 +11251,7 @@ class C { static A m(b, c) }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -9019,6 +11265,14 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+                RegularFormalParameter
+                  name: c
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -9042,7 +11296,7 @@ class C { static A m(b, c) var f; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -9056,6 +11310,14 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+                RegularFormalParameter
+                  name: c
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -9086,7 +11348,7 @@ class C { static A m(b, c) const f = 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -9100,6 +11362,14 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+                RegularFormalParameter
+                  name: c
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -9117,7 +11387,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer: IntegerLiteral
+                  initializer2: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -9133,7 +11403,7 @@ class C { static A m(b, c) final f = 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -9147,6 +11417,14 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+                RegularFormalParameter
+                  name: c
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -9164,7 +11442,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer: IntegerLiteral
+                  initializer2: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -9180,7 +11458,7 @@ class C { static A m(b, c) int get a => 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -9194,6 +11472,14 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+                RegularFormalParameter
+                  name: c
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -9211,7 +11497,7 @@ CompilationUnit
             name: a
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -9227,7 +11513,7 @@ class C { static A m(b, c) int a(b) => 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -9241,6 +11527,14 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+                RegularFormalParameter
+                  name: c
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -9257,12 +11551,18 @@ CompilationUnit
             name: a
             parameters: FormalParameterList
               leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -9278,7 +11578,7 @@ class C { static A m(b, c) void a(b) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -9292,6 +11592,14 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+                RegularFormalParameter
+                  name: c
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -9307,6 +11615,12 @@ CompilationUnit
               name: void
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -9328,7 +11642,7 @@ class C { static A m(b, c) set a(b) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -9343,6 +11657,14 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+                RegularFormalParameter
+                  name: c
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               parameter: RegularFormalParameter
@@ -9356,6 +11678,12 @@ CompilationUnit
             propertyKeyword: set
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -9378,7 +11706,7 @@ class C { static A m(B b @annotation var f; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -9392,6 +11720,14 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -9428,7 +11764,7 @@ class C { static A m(B b }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -9442,6 +11778,14 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -9467,7 +11811,7 @@ class C { static A m(B b var f; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -9481,6 +11825,14 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -9513,7 +11865,7 @@ class C { static A m(B b const f = 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -9527,6 +11879,14 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -9544,7 +11904,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer: IntegerLiteral
+                  initializer2: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -9562,7 +11922,7 @@ class C { static A m(B b final f = 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -9576,6 +11936,14 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -9593,7 +11961,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer: IntegerLiteral
+                  initializer2: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -9611,7 +11979,7 @@ class C { static A m(B b int get a => 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -9625,6 +11993,14 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -9642,7 +12018,7 @@ CompilationUnit
             name: a
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -9660,7 +12036,7 @@ class C { static A m(B b int a(b) => 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -9674,6 +12050,14 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -9690,12 +12074,18 @@ CompilationUnit
             name: a
             parameters: FormalParameterList
               leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -9713,7 +12103,7 @@ class C { static A m(B b void a(b) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -9727,6 +12117,14 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -9742,6 +12140,12 @@ CompilationUnit
               name: void
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -9765,7 +12169,7 @@ class C { static A m(B b set a(b) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -9780,6 +12184,14 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -9793,6 +12205,12 @@ CompilationUnit
             propertyKeyword: set
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -9816,7 +12234,7 @@ class C { A m(B b, {}) @annotation var f; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -9829,6 +12247,20 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: {
+                formalParameters
+                  RegularFormalParameter
+                    name: <empty> <synthetic>
+                rightDelimiter: }
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -9870,7 +12302,7 @@ class C { A m(B b, {}) }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -9883,6 +12315,20 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: {
+                formalParameters
+                  RegularFormalParameter
+                    name: <empty> <synthetic>
+                rightDelimiter: }
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -9912,7 +12358,7 @@ class C { A m(B b, {}) var f; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -9925,6 +12371,20 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: {
+                formalParameters
+                  RegularFormalParameter
+                    name: <empty> <synthetic>
+                rightDelimiter: }
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -9961,7 +12421,7 @@ class C { A m(B b, {}) const f = 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -9974,6 +12434,20 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: {
+                formalParameters
+                  RegularFormalParameter
+                    name: <empty> <synthetic>
+                rightDelimiter: }
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -9995,7 +12469,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer: IntegerLiteral
+                  initializer2: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -10013,7 +12487,7 @@ class C { A m(B b, {}) final f = 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -10026,6 +12500,20 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: {
+                formalParameters
+                  RegularFormalParameter
+                    name: <empty> <synthetic>
+                rightDelimiter: }
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -10047,7 +12535,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer: IntegerLiteral
+                  initializer2: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -10065,7 +12553,7 @@ class C { A m(B b, {}) int get a => 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -10078,6 +12566,20 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: {
+                formalParameters
+                  RegularFormalParameter
+                    name: <empty> <synthetic>
+                rightDelimiter: }
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -10099,7 +12601,7 @@ CompilationUnit
             name: a
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -10117,7 +12619,7 @@ class C { A m(B b, {}) int a(b) => 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -10130,6 +12632,20 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: {
+                formalParameters
+                  RegularFormalParameter
+                    name: <empty> <synthetic>
+                rightDelimiter: }
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -10150,12 +12666,18 @@ CompilationUnit
             name: a
             parameters: FormalParameterList
               leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -10173,7 +12695,7 @@ class C { A m(B b, {}) void a(b) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -10186,6 +12708,20 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: {
+                formalParameters
+                  RegularFormalParameter
+                    name: <empty> <synthetic>
+                rightDelimiter: }
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -10205,6 +12741,12 @@ CompilationUnit
               name: void
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -10228,7 +12770,7 @@ class C { A m(B b, {}) set a(b) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -10241,6 +12783,20 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: {
+                formalParameters
+                  RegularFormalParameter
+                    name: <empty> <synthetic>
+                rightDelimiter: }
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -10259,6 +12815,12 @@ CompilationUnit
             propertyKeyword: set
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -10282,7 +12844,7 @@ class C { A m(B b, []) @annotation var f; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -10295,6 +12857,20 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: [
+                formalParameters
+                  RegularFormalParameter
+                    name: <empty> <synthetic>
+                rightDelimiter: ]
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -10336,7 +12912,7 @@ class C { A m(B b, []) }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -10349,6 +12925,20 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: [
+                formalParameters
+                  RegularFormalParameter
+                    name: <empty> <synthetic>
+                rightDelimiter: ]
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -10378,7 +12968,7 @@ class C { A m(B b, []) var f; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -10391,6 +12981,20 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: [
+                formalParameters
+                  RegularFormalParameter
+                    name: <empty> <synthetic>
+                rightDelimiter: ]
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -10427,7 +13031,7 @@ class C { A m(B b, []) const f = 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -10440,6 +13044,20 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: [
+                formalParameters
+                  RegularFormalParameter
+                    name: <empty> <synthetic>
+                rightDelimiter: ]
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -10461,7 +13079,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer: IntegerLiteral
+                  initializer2: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -10479,7 +13097,7 @@ class C { A m(B b, []) final f = 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -10492,6 +13110,20 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: [
+                formalParameters
+                  RegularFormalParameter
+                    name: <empty> <synthetic>
+                rightDelimiter: ]
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -10513,7 +13145,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer: IntegerLiteral
+                  initializer2: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -10531,7 +13163,7 @@ class C { A m(B b, []) int get a => 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -10544,6 +13176,20 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: [
+                formalParameters
+                  RegularFormalParameter
+                    name: <empty> <synthetic>
+                rightDelimiter: ]
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -10565,7 +13211,7 @@ CompilationUnit
             name: a
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -10583,7 +13229,7 @@ class C { A m(B b, []) int a(b) => 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -10596,6 +13242,20 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: [
+                formalParameters
+                  RegularFormalParameter
+                    name: <empty> <synthetic>
+                rightDelimiter: ]
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -10616,12 +13276,18 @@ CompilationUnit
             name: a
             parameters: FormalParameterList
               leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -10639,7 +13305,7 @@ class C { A m(B b, []) void a(b) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -10652,6 +13318,20 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: [
+                formalParameters
+                  RegularFormalParameter
+                    name: <empty> <synthetic>
+                rightDelimiter: ]
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -10671,6 +13351,12 @@ CompilationUnit
               name: void
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -10694,7 +13380,7 @@ class C { A m(B b, []) set a(b) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -10707,6 +13393,20 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: [
+                formalParameters
+                  RegularFormalParameter
+                    name: <empty> <synthetic>
+                rightDelimiter: ]
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -10725,6 +13425,12 @@ CompilationUnit
             propertyKeyword: set
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -10748,7 +13454,7 @@ class C { A m( @annotation var f; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -10761,6 +13467,18 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  metadata
+                    Annotation
+                      atSign: @
+                      name: SimpleIdentifier
+                        token: annotation
+                  constFinalOrVarKeyword: var
+                  name: f
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 metadata
@@ -10787,7 +13505,7 @@ class C { A m( }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -10821,7 +13539,7 @@ class C { A m( var f; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -10834,6 +13552,13 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  constFinalOrVarKeyword: var
+                  name: f
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 constFinalOrVarKeyword: var
@@ -10858,7 +13583,7 @@ class C { A m( const f = 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -10871,6 +13596,17 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  constFinalOrVarKeyword: const
+                  name: f
+                  defaultClause: FormalParameterDefaultClause
+                    separator: =
+                    value2: IntegerLiteral
+                      literal: 0
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 constFinalOrVarKeyword: const
@@ -10899,7 +13635,7 @@ class C { A m( final f = 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -10912,6 +13648,17 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  constFinalOrVarKeyword: final
+                  name: f
+                  defaultClause: FormalParameterDefaultClause
+                    separator: =
+                    value2: IntegerLiteral
+                      literal: 0
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 constFinalOrVarKeyword: final
@@ -10937,7 +13684,7 @@ class C { A m( int get a => 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -10951,6 +13698,14 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: int
+                  name: get
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: int
@@ -10958,7 +13713,7 @@ CompilationUnit
               rightParenthesis: ) <synthetic>
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -10974,7 +13729,7 @@ class C { A m( int a(b) => 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -10987,6 +13742,26 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: int
+                  name: a
+                  functionTypedSuffix: FunctionTypedFormalParameterSuffix
+                    formalParameters: FormalParameterList
+                      leftParenthesis: (
+                      requiredPositionalFormalParameters
+                        RegularFormalParameter
+                          name: b
+                      rightParenthesis: )
+                    formalParameters(v1): FormalParameterList
+                      leftParenthesis: (
+                      parameter: RegularFormalParameter
+                        name: b
+                      rightParenthesis: )
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -11001,7 +13776,7 @@ CompilationUnit
               rightParenthesis: ) <synthetic>
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -11017,7 +13792,7 @@ class C { A m( void a(b) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -11030,6 +13805,26 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: void
+                  name: a
+                  functionTypedSuffix: FunctionTypedFormalParameterSuffix
+                    formalParameters: FormalParameterList
+                      leftParenthesis: (
+                      requiredPositionalFormalParameters
+                        RegularFormalParameter
+                          name: b
+                      rightParenthesis: )
+                    formalParameters(v1): FormalParameterList
+                      leftParenthesis: (
+                      parameter: RegularFormalParameter
+                        name: b
+                      rightParenthesis: )
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -11060,7 +13855,7 @@ class C { A m( set a(b) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -11074,6 +13869,12 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: set
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: set
               rightParenthesis: ) <synthetic>
@@ -11084,6 +13885,12 @@ CompilationUnit
           MethodDeclaration
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -11105,7 +13912,7 @@ class C { A m() @annotation var f; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -11149,7 +13956,7 @@ class C { A m() }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -11181,7 +13988,7 @@ class C { A m() var f; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -11220,7 +14027,7 @@ class C { A m() const f = 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -11246,7 +14053,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer: IntegerLiteral
+                  initializer2: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -11262,7 +14069,7 @@ class C { A m() final f = 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -11288,7 +14095,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer: IntegerLiteral
+                  initializer2: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -11304,7 +14111,7 @@ class C { A m() int get a => 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -11330,7 +14137,7 @@ CompilationUnit
             name: a
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -11346,7 +14153,7 @@ class C { A m() int a(b) => 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -11371,12 +14178,18 @@ CompilationUnit
             name: a
             parameters: FormalParameterList
               leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -11392,7 +14205,7 @@ class C { A m() void a(b) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -11417,6 +14230,12 @@ CompilationUnit
             name: a
             parameters: FormalParameterList
               leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               rightParenthesis: )
@@ -11437,7 +14256,7 @@ class C { A m() set a(b) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -11461,6 +14280,12 @@ CompilationUnit
             name: a
             parameters: FormalParameterList
               leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               rightParenthesis: )
@@ -11483,7 +14308,7 @@ class C { A m(B b, @annotation var f; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -11496,6 +14321,22 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  metadata
+                    Annotation
+                      atSign: @
+                      name: SimpleIdentifier
+                        token: annotation
+                  constFinalOrVarKeyword: var
+                  name: f
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -11526,7 +14367,7 @@ class C { A m(B b, }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -11539,6 +14380,14 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -11564,7 +14413,7 @@ class C { A m(B b, var f; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -11577,6 +14426,17 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  constFinalOrVarKeyword: var
+                  name: f
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -11605,7 +14465,7 @@ class C { A m(B b, const f = 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -11618,6 +14478,21 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  constFinalOrVarKeyword: const
+                  name: f
+                  defaultClause: FormalParameterDefaultClause
+                    separator: =
+                    value2: IntegerLiteral
+                      literal: 0
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -11650,7 +14525,7 @@ class C { A m(B b, final f = 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -11663,6 +14538,21 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  constFinalOrVarKeyword: final
+                  name: f
+                  defaultClause: FormalParameterDefaultClause
+                    separator: =
+                    value2: IntegerLiteral
+                      literal: 0
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -11692,7 +14582,7 @@ class C { A m(B b, int get a => 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -11706,6 +14596,18 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  type: NamedType
+                    name: int
+                  name: get
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -11717,7 +14619,7 @@ CompilationUnit
               rightParenthesis: ) <synthetic>
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -11733,7 +14635,7 @@ class C { A m(B b, int a(b) => 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -11746,6 +14648,30 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  type: NamedType
+                    name: int
+                  name: a
+                  functionTypedSuffix: FunctionTypedFormalParameterSuffix
+                    formalParameters: FormalParameterList
+                      leftParenthesis: (
+                      requiredPositionalFormalParameters
+                        RegularFormalParameter
+                          name: b
+                      rightParenthesis: )
+                    formalParameters(v1): FormalParameterList
+                      leftParenthesis: (
+                      parameter: RegularFormalParameter
+                        name: b
+                      rightParenthesis: )
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -11764,7 +14690,7 @@ CompilationUnit
               rightParenthesis: ) <synthetic>
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -11780,7 +14706,7 @@ class C { A m(B b, void a(b) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -11793,6 +14719,30 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  type: NamedType
+                    name: void
+                  name: a
+                  functionTypedSuffix: FunctionTypedFormalParameterSuffix
+                    formalParameters: FormalParameterList
+                      leftParenthesis: (
+                      requiredPositionalFormalParameters
+                        RegularFormalParameter
+                          name: b
+                      rightParenthesis: )
+                    formalParameters(v1): FormalParameterList
+                      leftParenthesis: (
+                      parameter: RegularFormalParameter
+                        name: b
+                      rightParenthesis: )
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -11827,7 +14777,7 @@ class C { A m(B b, set a(b) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -11840,6 +14790,16 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+                RegularFormalParameter
+                  name: set
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -11855,6 +14815,12 @@ CompilationUnit
           MethodDeclaration
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -11877,7 +14843,7 @@ class C { A m(B @annotation var f; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -11890,6 +14856,12 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: B
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: B
@@ -11924,7 +14896,7 @@ class C { A m(B }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -11937,6 +14909,12 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: B
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: B
@@ -11960,7 +14938,7 @@ class C { A m(B var f; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -11973,6 +14951,12 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: B
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: B
@@ -12003,7 +14987,7 @@ class C { A m(B const f = 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -12016,6 +15000,12 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: B
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: B
@@ -12031,7 +15021,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer: IntegerLiteral
+                  initializer2: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -12049,7 +15039,7 @@ class C { A m(B final f = 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -12062,6 +15052,12 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: B
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: B
@@ -12077,7 +15073,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer: IntegerLiteral
+                  initializer2: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -12095,7 +15091,7 @@ class C { A m(B int get a => 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -12108,6 +15104,14 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: int
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -12123,7 +15127,7 @@ CompilationUnit
             name: a
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -12140,7 +15144,7 @@ class C { A m(B int a(b) => 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -12153,6 +15157,14 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: int
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -12167,12 +15179,18 @@ CompilationUnit
             name: a
             parameters: FormalParameterList
               leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -12190,7 +15208,7 @@ class C { A m(B void a(b) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -12204,6 +15222,12 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: B
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: B
               rightParenthesis: ) <synthetic>
@@ -12216,6 +15240,12 @@ CompilationUnit
               name: void
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -12238,7 +15268,7 @@ class C { A m(B set a(b) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -12252,6 +15282,14 @@ CompilationUnit
             name: m
             parameters: FormalParameterList
               leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: set
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: B
@@ -12264,6 +15302,12 @@ CompilationUnit
           MethodDeclaration
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -12285,7 +15329,7 @@ class C { A m(b, c) @annotation var f; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -12298,6 +15342,14 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+                RegularFormalParameter
+                  name: c
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -12333,7 +15385,7 @@ class C { A m(b, c) }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -12346,6 +15398,14 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+                RegularFormalParameter
+                  name: c
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -12369,7 +15429,7 @@ class C { A m(b, c) var f; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -12382,6 +15442,14 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+                RegularFormalParameter
+                  name: c
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -12412,7 +15480,7 @@ class C { A m(b, c) const f = 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -12425,6 +15493,14 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+                RegularFormalParameter
+                  name: c
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -12442,7 +15518,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer: IntegerLiteral
+                  initializer2: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -12458,7 +15534,7 @@ class C { A m(b, c) final f = 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -12471,6 +15547,14 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+                RegularFormalParameter
+                  name: c
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -12488,7 +15572,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer: IntegerLiteral
+                  initializer2: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -12504,7 +15588,7 @@ class C { A m(b, c) int get a => 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -12517,6 +15601,14 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+                RegularFormalParameter
+                  name: c
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -12534,7 +15626,7 @@ CompilationUnit
             name: a
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -12550,7 +15642,7 @@ class C { A m(b, c) int a(b) => 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -12563,6 +15655,14 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+                RegularFormalParameter
+                  name: c
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -12579,12 +15679,18 @@ CompilationUnit
             name: a
             parameters: FormalParameterList
               leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -12600,7 +15706,7 @@ class C { A m(b, c) void a(b) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -12613,6 +15719,14 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+                RegularFormalParameter
+                  name: c
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -12628,6 +15742,12 @@ CompilationUnit
               name: void
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -12649,7 +15769,7 @@ class C { A m(b, c) set a(b) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -12662,6 +15782,14 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+                RegularFormalParameter
+                  name: c
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -12676,6 +15804,12 @@ CompilationUnit
             propertyKeyword: set
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -12698,7 +15832,7 @@ class C { A m(B b @annotation var f; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -12711,6 +15845,14 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -12747,7 +15889,7 @@ class C { A m(B b }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -12760,6 +15902,14 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -12785,7 +15935,7 @@ class C { A m(B b var f; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -12798,6 +15948,14 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -12830,7 +15988,7 @@ class C { A m(B b const f = 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -12843,6 +16001,14 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -12860,7 +16026,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer: IntegerLiteral
+                  initializer2: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -12878,7 +16044,7 @@ class C { A m(B b final f = 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -12891,6 +16057,14 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -12908,7 +16082,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer: IntegerLiteral
+                  initializer2: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -12926,7 +16100,7 @@ class C { A m(B b int get a => 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -12939,6 +16113,14 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -12956,7 +16138,7 @@ CompilationUnit
             name: a
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -12974,7 +16156,7 @@ class C { A m(B b int a(b) => 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -12987,6 +16169,14 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -13003,12 +16193,18 @@ CompilationUnit
             name: a
             parameters: FormalParameterList
               leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -13026,7 +16222,7 @@ class C { A m(B b void a(b) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -13039,6 +16235,14 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -13054,6 +16258,12 @@ CompilationUnit
               name: void
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -13077,7 +16287,7 @@ class C { A m(B b set a(b) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -13090,6 +16300,14 @@ CompilationUnit
               name: A
             name: m
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: B
+                  name: b
+              rightParenthesis: ) <synthetic>
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
@@ -13104,6 +16322,12 @@ CompilationUnit
             propertyKeyword: set
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b

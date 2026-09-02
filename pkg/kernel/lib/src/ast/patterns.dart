@@ -9,7 +9,7 @@ sealed class Pattern extends TreeNode {
   ///
   /// These variables are initialized to the values captured by the variable
   /// patterns nested in the pattern.
-  List<Variable> get declaredVariables;
+  List<DeclaredVariable> get declaredVariables;
 
   @override
   R accept<R>(PatternVisitor<R> visitor);
@@ -33,38 +33,51 @@ class ConstantPattern extends Pattern {
   Expression expression;
 
   /// Static type of the expression as computed during inference.
-  DartType? expressionType;
+  DartType expressionType;
 
   /// Reference to the `operator ==` procedure on [expression].
-  ///
-  /// This is set during inference.
-  Reference? equalsTargetReference;
+  Reference equalsTargetReference;
 
   /// The type of the `operator ==` procedure on [expression].
-  ///
-  /// This is set during inference.
-  FunctionType? equalsType;
+  FunctionType equalsType;
 
   /// The [Constant] value for this constant pattern.
   ///
   /// This is set during constant evaluation.
   Constant? value;
 
-  new(this.expression) {
+  new({
+    required Expression expression,
+    required DartType expressionType,
+    required Procedure equalsTarget,
+    required FunctionType equalsType,
+  }) : this.byReference(
+         expression: expression,
+         expressionType: expressionType,
+         equalsTargetReference: equalsTarget.reference,
+         equalsType: equalsType,
+       );
+
+  new byReference({
+    required this.expression,
+    required this.expressionType,
+    required this.equalsTargetReference,
+    required this.equalsType,
+  }) {
     expression.parent = this;
   }
 
   /// The `operator ==` procedure on [expression].
   ///
   /// This is set during inference.
-  Procedure get equalsTarget => equalsTargetReference!.asProcedure;
+  Procedure get equalsTarget => equalsTargetReference.asProcedure;
 
   void set equalsTarget(Procedure value) {
     equalsTargetReference = value.reference;
   }
 
   @override
-  List<Variable> get declaredVariables => const [];
+  List<DeclaredVariable> get declaredVariables => const [];
 
   @override
   R accept<R>(PatternVisitor<R> visitor) => visitor.visitConstantPattern(this);
@@ -105,7 +118,7 @@ class AndPattern extends Pattern {
   Pattern right;
 
   @override
-  List<Variable> get declaredVariables => [
+  List<DeclaredVariable> get declaredVariables => [
     ...left.declaredVariables,
     ...right.declaredVariables,
   ];
@@ -158,13 +171,16 @@ class OrPattern extends Pattern {
   Pattern left;
   Pattern right;
 
-  final List<Variable> orPatternJointVariables;
+  final List<DeclaredVariable> orPatternJointVariables;
 
   @override
-  List<Variable> get declaredVariables => orPatternJointVariables;
+  List<DeclaredVariable> get declaredVariables => orPatternJointVariables;
 
-  new(this.left, this.right, {required List<Variable> orPatternJointVariables})
-    : orPatternJointVariables = orPatternJointVariables {
+  new(
+    this.left,
+    this.right, {
+    required List<DeclaredVariable> orPatternJointVariables,
+  }) : orPatternJointVariables = orPatternJointVariables {
     left.parent = this;
     right.parent = this;
   }
@@ -220,7 +236,7 @@ class CastPattern extends Pattern {
   String? get variableName => pattern.variableName;
 
   @override
-  List<Variable> get declaredVariables => pattern.declaredVariables;
+  List<DeclaredVariable> get declaredVariables => pattern.declaredVariables;
 
   @override
   R accept<R>(PatternVisitor<R> visitor) => visitor.visitCastPattern(this);
@@ -272,7 +288,7 @@ class NullAssertPattern extends Pattern {
   String? get variableName => pattern.variableName;
 
   @override
-  List<Variable> get declaredVariables => pattern.declaredVariables;
+  List<DeclaredVariable> get declaredVariables => pattern.declaredVariables;
 
   @override
   R accept<R>(PatternVisitor<R> visitor) =>
@@ -321,7 +337,7 @@ class NullCheckPattern extends Pattern {
   String? get variableName => pattern.variableName;
 
   @override
-  List<Variable> get declaredVariables => pattern.declaredVariables;
+  List<DeclaredVariable> get declaredVariables => pattern.declaredVariables;
 
   @override
   R accept<R>(PatternVisitor<R> visitor) => visitor.visitNullCheckPattern(this);
@@ -373,18 +389,12 @@ class ListPattern extends Pattern {
   ///
   /// This is the type the matched expression is checked against, if the
   /// [matchedValueType] is not already a subtype of [requiredType].
-  ///
-  /// This is set during inference.
-  DartType? requiredType;
+  DartType requiredType;
 
   /// The type of the expression against which this pattern is matched.
-  ///
-  /// This is set during inference.
-  DartType? matchedValueType;
+  DartType matchedValueType;
 
   /// If `true`, the matched expression must be checked to be a `List`.
-  ///
-  /// This is set during inference.
   bool get needsCheck => flags & FlagNeedsCheck != 0;
   void set needsCheck(bool value) {
     flags = value ? (flags | FlagNeedsCheck) : (flags & ~FlagNeedsCheck);
@@ -395,13 +405,9 @@ class ListPattern extends Pattern {
   /// [requiredType].
   ///
   /// This is the type on which pattern accesses from [patterns] are looked up.
-  ///
-  /// This is set during inference.
-  DartType? lookupType;
+  DartType lookupType;
 
   /// If `true`, this list pattern contains a rest pattern.
-  ///
-  /// This is set during inference.
   bool get hasRestPattern => flags & FlagHasRestPattern != 0;
   void set hasRestPattern(bool value) {
     flags = value
@@ -410,83 +416,117 @@ class ListPattern extends Pattern {
   }
 
   /// Reference to the target of the `length` property of the list.
-  ///
-  /// This is set during inference.
-  Reference? lengthTargetReference;
+  Reference lengthTargetReference;
 
   /// The type of the `length` property of the list.
-  ///
-  /// This is set during inference.
-  DartType? lengthType;
+  DartType lengthType;
 
   /// Reference to the method used to check the `length` of the list.
   ///
   /// If this pattern has a rest pattern, this is an `operator >=` method.
   /// Otherwise this is an `operator ==` method.
-  ///
-  /// This is set during inference.
-  Reference? lengthCheckTargetReference;
+  Reference lengthCheckTargetReference;
 
   /// The type of the method used to check the `length` of the list.
   ///
   /// If this pattern has a rest pattern, this is an `operator >=` method.
   /// Otherwise this is an `operator ==` method.
-  ///
-  /// This is set during inference.
-  FunctionType? lengthCheckType;
+  FunctionType lengthCheckType;
 
   /// Reference to the target of the `sublist` method of the list.
   ///
   /// This is used if this pattern has a rest pattern with a subpattern.
-  ///
-  /// This is set during inference.
-  Reference? sublistTargetReference;
+  Reference sublistTargetReference;
 
   /// The type of the `sublist` method of the list.
   ///
   /// This is used if this pattern has a rest pattern with a subpattern.
-  ///
-  /// This is set during inference.
-  FunctionType? sublistType;
+  FunctionType sublistType;
 
   /// Reference to the target of the `minus` method of the `length` of this
   /// list.
   ///
   /// This is used to compute tail indices if this pattern has a rest pattern.
-  ///
-  /// This is set during inference.
-  Reference? minusTargetReference;
+  Reference minusTargetReference;
 
   /// The type of the `minus` method of the `length` of this list.
   ///
   /// This is used to compute tail indices if this pattern has a rest pattern.
-  ///
-  /// This is set during inference.
-  FunctionType? minusType;
+  FunctionType minusType;
 
   /// Reference to the target of the `operator []` method of the list.
-  ///
-  /// This is set during inference.
-  Reference? indexGetTargetReference;
+  Reference indexGetTargetReference;
 
   /// The type of the `operator []` method of the list.
-  ///
-  /// This is set during inference.
-  FunctionType? indexGetType;
+  FunctionType indexGetType;
 
   @override
-  List<Variable> get declaredVariables => [
+  List<DeclaredVariable> get declaredVariables => [
     for (Pattern pattern in patterns) ...pattern.declaredVariables,
   ];
 
-  new(this.typeArgument, this.patterns) {
+  new({
+    required DartType? typeArgument,
+    required List<Pattern> patterns,
+    required DartType requiredType,
+    required DartType matchedValueType,
+    required bool needsCheck,
+    required DartType lookupType,
+    required bool hasRestPattern,
+    required Member lengthTarget,
+    required DartType lengthType,
+    required Procedure lengthCheckTarget,
+    required FunctionType lengthCheckType,
+    required Procedure sublistTarget,
+    required FunctionType sublistType,
+    required Procedure minusTarget,
+    required FunctionType minusType,
+    required Procedure indexGetTarget,
+    required FunctionType indexGetType,
+  }) : this.byReference(
+         typeArgument: typeArgument,
+         patterns: patterns,
+         requiredType: requiredType,
+         matchedValueType: matchedValueType,
+         lookupType: lookupType,
+         lengthTargetReference: lengthTarget.reference,
+         lengthType: lengthType,
+         lengthCheckTargetReference: lengthCheckTarget.reference,
+         lengthCheckType: lengthCheckType,
+         sublistTargetReference: sublistTarget.reference,
+         sublistType: sublistType,
+         minusTargetReference: minusTarget.reference,
+         minusType: minusType,
+         indexGetTargetReference: indexGetTarget.reference,
+         indexGetType: indexGetType,
+         flags:
+             (needsCheck ? FlagNeedsCheck : 0) |
+             (hasRestPattern ? FlagHasRestPattern : 0),
+       );
+
+  new byReference({
+    required this.typeArgument,
+    required this.patterns,
+    required this.requiredType,
+    required this.matchedValueType,
+    required this.lookupType,
+    required this.lengthTargetReference,
+    required this.lengthType,
+    required this.lengthCheckTargetReference,
+    required this.lengthCheckType,
+    required this.sublistTargetReference,
+    required this.sublistType,
+    required this.minusTargetReference,
+    required this.minusType,
+    required this.indexGetTargetReference,
+    required this.indexGetType,
+    required this.flags,
+  }) {
     setParents(patterns, this);
   }
 
   /// The target of the `length` property of the list.
-  ///
-  /// This is set during inference.
-  Member get lengthTarget => lengthTargetReference!.asMember;
+  Member get lengthTarget => lengthTargetReference.asMember;
 
   void set lengthTarget(Member value) {
     lengthTargetReference = value.reference;
@@ -497,9 +537,7 @@ class ListPattern extends Pattern {
   /// If this pattern has a rest pattern, this is an `operator >=` method. If
   /// this is the empty list pattern, this an `operator <=` method. Otherwise
   /// this is an `operator ==` method.
-  ///
-  /// This is set during inference.
-  Procedure get lengthCheckTarget => lengthCheckTargetReference!.asProcedure;
+  Procedure get lengthCheckTarget => lengthCheckTargetReference.asProcedure;
 
   void set lengthCheckTarget(Procedure value) {
     lengthCheckTargetReference = value.reference;
@@ -508,9 +546,7 @@ class ListPattern extends Pattern {
   /// The target of the `sublist` method of the list.
   ///
   /// This is used if this pattern has a rest pattern with a subpattern.
-  ///
-  /// This is set during inference.
-  Procedure get sublistTarget => sublistTargetReference!.asProcedure;
+  Procedure get sublistTarget => sublistTargetReference.asProcedure;
 
   void set sublistTarget(Procedure value) {
     sublistTargetReference = value.reference;
@@ -519,9 +555,7 @@ class ListPattern extends Pattern {
   /// The target of the `minus` method of the `length` of this list.
   ///
   /// This is used to compute tail indices if this pattern has a rest pattern.
-  ///
-  /// This is set during inference.
-  Procedure get minusTarget => minusTargetReference!.asProcedure;
+  Procedure get minusTarget => minusTargetReference.asProcedure;
 
   void set minusTarget(Procedure value) {
     minusTargetReference = value.reference;
@@ -530,7 +564,7 @@ class ListPattern extends Pattern {
   /// The target of the `operator []` method of the list.
   ///
   /// This is set during inference.
-  Procedure get indexGetTarget => indexGetTargetReference!.asProcedure;
+  Procedure get indexGetTarget => indexGetTargetReference.asProcedure;
 
   void set indexGetTarget(Procedure value) {
     indexGetTargetReference = value.reference;
@@ -609,23 +643,20 @@ class ObjectPattern extends Pattern {
   /// The type of the expression against which this pattern is matched.
   ///
   /// This is set during inference.
-  DartType? matchedValueType;
+  DartType matchedValueType;
 
   /// If `true`, the matched expression must be checked to be of type
   /// [requiredType].
   ///
   /// This is set during inference.
-  bool needsCheck = false;
+  bool needsCheck;
 
-  /// The most specific type of the matched expression. Either the
-  /// [requiredType] or the [matchedValueType] if it is a subtype of
-  /// [requiredType].
-  ///
-  /// This is set during inference.
-  // TODO(johnniwinther): Remove this field. It is no longer used.
-  DartType? lookupType;
-
-  new(this.requiredType, this.fields) {
+  new({
+    required this.requiredType,
+    required this.fields,
+    required this.matchedValueType,
+    required this.needsCheck,
+  }) {
     setParents(fields, this);
   }
 
@@ -655,7 +686,7 @@ class ObjectPattern extends Pattern {
   }
 
   @override
-  List<Variable> get declaredVariables {
+  List<DeclaredVariable> get declaredVariables {
     return [for (NamedPattern field in fields) ...field.declaredVariables];
   }
 
@@ -694,46 +725,32 @@ class RelationalPattern extends Pattern {
   Expression expression;
 
   /// The type of the [expression].
-  ///
-  /// This is set during inference.
-  DartType? expressionType;
+  DartType expressionType;
 
   /// The type of the expression against which this pattern is matched.
-  ///
-  /// This is set during inference.
-  DartType? matchedValueType;
+  DartType matchedValueType;
 
   /// The access kind for performing the relational operation of this pattern.
-  ///
-  /// This is set during inference.
-  RelationalAccessKind accessKind = RelationalAccessKind.Invalid;
+  RelationalAccessKind accessKind;
 
   /// The name of the relational operation called by this pattern.
-  ///
-  /// This is set during inference.
   Name? name;
 
   /// Reference to the target [Procedure] called by this pattern.
   ///
   /// This is used for [RelationalAccessKind.Instance] and
   /// [RelationalAccessKind.Static].
-  ///
-  /// This is set during inference.
   Reference? targetReference;
 
   /// The type arguments passed to [target].
   ///
   /// This is used for [RelationalAccessKind.Static].
-  ///
-  /// This is set during inference.
   List<DartType>? typeArguments;
 
   /// The type of [target].
   ///
   /// This is used for [RelationalAccessKind.Instance] and
   /// [RelationalAccessKind.Static].
-  ///
-  /// This is set during inference.
   FunctionType? functionType;
 
   /// The [Constant] value for the [expression].
@@ -741,7 +758,39 @@ class RelationalPattern extends Pattern {
   /// This is set during constant evaluation.
   Constant? expressionValue;
 
-  new(this.kind, this.expression) {
+  new({
+    required RelationalPatternKind kind,
+    required Expression expression,
+    required DartType expressionType,
+    required DartType matchedValueType,
+    required RelationalAccessKind accessKind,
+    required Name? name,
+    required Procedure? target,
+    required List<DartType>? typeArguments,
+    required FunctionType? functionType,
+  }) : this.byReference(
+         kind: kind,
+         expression: expression,
+         expressionType: expressionType,
+         matchedValueType: matchedValueType,
+         accessKind: accessKind,
+         name: name,
+         targetReference: target?.reference,
+         typeArguments: typeArguments,
+         functionType: functionType,
+       );
+
+  new byReference({
+    required this.kind,
+    required this.expression,
+    required this.expressionType,
+    required this.matchedValueType,
+    required this.accessKind,
+    required this.name,
+    required this.targetReference,
+    required this.typeArguments,
+    required this.functionType,
+  }) {
     expression.parent = this;
   }
 
@@ -758,7 +807,7 @@ class RelationalPattern extends Pattern {
   }
 
   @override
-  List<Variable> get declaredVariables => const [];
+  List<DeclaredVariable> get declaredVariables => const [];
 
   @override
   R accept<R>(PatternVisitor<R> visitor) =>
@@ -820,7 +869,7 @@ class WildcardPattern extends Pattern {
   new(this.type);
 
   @override
-  List<Variable> get declaredVariables => const [];
+  List<DeclaredVariable> get declaredVariables => const [];
 
   @override
   R accept<R>(PatternVisitor<R> visitor) => visitor.visitWildcardPattern(this);
@@ -869,22 +918,29 @@ class WildcardPattern extends Pattern {
 }
 
 class AssignedVariablePattern extends Pattern {
-  final Variable variable;
+  static const int FlagNeedsCast = 1 << 0;
+  static const int FlagHasObservableEffect = 1 << 1;
 
-  /// If [variable] is a lowered late variable, [setter] holds the variable of
-  /// the local function that should be used for assignment.
-  Variable? setter;
+  /// The name of the assigned variable.
+  @override
+  final String variableName;
+
+  /// The declared type of the assigned variable.
+  final DartType variableType;
+
+  /// The variable used to write to the underlying variable.
+  ///
+  /// If the variable is lowered late variable, this is the
+  /// [LocalFunctionVariable] for the local function that writes to the
+  /// underlying variable. Otherwise this is the underlying variable itself.
+  final Variable writeVariable;
 
   /// The type of the expression against which this pattern is matched.
-  ///
-  /// This is set during inference.
-  DartType? matchedValueType;
+  final DartType matchedValueType;
 
   /// If `true`, the matched expression must be checked to be of the type
   /// of [variable].
-  ///
-  /// This is set during inference.
-  bool needsCast = false;
+  final bool needsCast;
 
   /// If `true`, the assignment occurs in a context where effects can be
   /// observed and must therefore be postponed until the whole pattern has been
@@ -915,9 +971,16 @@ class AssignedVariablePattern extends Pattern {
   ///
   /// Here the assignment to `b2` has an observable effect where as `b1` has
   /// not.
-  bool hasObservableEffect = true;
+  final bool hasObservableEffect;
 
-  new(this.variable);
+  new({
+    required this.variableName,
+    required this.variableType,
+    required this.writeVariable,
+    required this.matchedValueType,
+    required this.needsCast,
+    required this.hasObservableEffect,
+  });
 
   @override
   R accept<R>(PatternVisitor<R> visitor) =>
@@ -937,14 +1000,11 @@ class AssignedVariablePattern extends Pattern {
   void visitChildren(Visitor v) {}
 
   @override
-  List<Variable> get declaredVariables => const [];
-
-  @override
-  String? get variableName => variable.cosmeticName!;
+  List<DeclaredVariable> get declaredVariables => const [];
 
   @override
   void toTextInternal(AstPrinter printer) {
-    printer.write(variable.cosmeticName!);
+    printer.write(variableName);
   }
 
   @override
@@ -970,14 +1030,10 @@ class MapPattern extends Pattern {
   ///
   /// This is the type the matched expression is checked against, if the
   /// [matchedValueType] is not already a subtype of [requiredType].
-  ///
-  /// This is set during inference.
-  DartType? requiredType;
+  DartType requiredType;
 
   /// The type of the expression against which this pattern is matched.
-  ///
-  /// This is set during inference.
-  DartType? matchedValueType;
+  DartType matchedValueType;
 
   /// If `true`, the matched expression must be checked to be a `Map`.
   ///
@@ -992,54 +1048,77 @@ class MapPattern extends Pattern {
   /// [requiredType].
   ///
   /// This is the type on which pattern accesses from [entries] are looked up.
-  ///
-  /// This is set during inference.
-  DartType? lookupType;
+  DartType lookupType;
 
   /// Reference to the target of the `containsKey` method of the map.
-  ///
-  /// This is set during inference.
-  Reference? containsKeyTargetReference;
+  Reference containsKeyTargetReference;
 
   /// The type of the `containsKey` method of the map.
-  ///
-  /// This is set during inference.
-  FunctionType? containsKeyType;
+  FunctionType containsKeyType;
 
   /// Reference to the target of the `operator []` method of the map.
-  ///
-  /// This is set during inference.
-  Reference? indexGetTargetReference;
+  Reference indexGetTargetReference;
 
   /// The type of the `operator []` method of the map.
-  ///
-  /// This is set during inference.
-  FunctionType? indexGetType;
+  FunctionType indexGetType;
 
   @override
-  List<Variable> get declaredVariables => [
+  List<DeclaredVariable> get declaredVariables => [
     for (MapPatternEntry entry in entries)
       if (entry is! MapPatternRestEntry) ...entry.value.declaredVariables,
   ];
 
-  new(this.keyType, this.valueType, this.entries)
-    : assert((keyType == null) == (valueType == null)) {
+  new({
+    required DartType? keyType,
+    required DartType? valueType,
+    required List<MapPatternEntry> entries,
+    required DartType requiredType,
+    required DartType matchedValueType,
+    required bool needsCheck,
+    required DartType lookupType,
+    required Procedure containsKeyTarget,
+    required FunctionType containsKeyType,
+    required Procedure indexGetTarget,
+    required FunctionType indexGetType,
+  }) : this.byReference(
+         keyType: keyType,
+         valueType: valueType,
+         entries: entries,
+         requiredType: requiredType,
+         matchedValueType: matchedValueType,
+         lookupType: lookupType,
+         containsKeyTargetReference: containsKeyTarget.reference,
+         containsKeyType: containsKeyType,
+         indexGetTargetReference: indexGetTarget.reference,
+         indexGetType: indexGetType,
+         flags: needsCheck ? FlagNeedsCheck : 0,
+       );
+
+  new byReference({
+    required this.keyType,
+    required this.valueType,
+    required this.entries,
+    required this.requiredType,
+    required this.matchedValueType,
+    required this.lookupType,
+    required this.containsKeyTargetReference,
+    required this.containsKeyType,
+    required this.indexGetTargetReference,
+    required this.indexGetType,
+    required this.flags,
+  }) : assert((keyType == null) == (valueType == null)) {
     setParents(entries, this);
   }
 
   /// The target of the `containsKey` method of the map.
-  ///
-  /// This is set during inference.
-  Procedure get containsKeyTarget => containsKeyTargetReference!.asProcedure;
+  Procedure get containsKeyTarget => containsKeyTargetReference.asProcedure;
 
   void set containsKeyTarget(Procedure value) {
     containsKeyTargetReference = value.reference;
   }
 
   /// The target of the `operator []` method of the map.
-  ///
-  /// This is set during inference.
-  Procedure get indexGetTarget => indexGetTargetReference!.asProcedure;
+  Procedure get indexGetTarget => indexGetTargetReference.asProcedure;
   void set indexGetTarget(Procedure value) {
     indexGetTargetReference = value.reference;
   }
@@ -1167,13 +1246,6 @@ class NamedPattern extends Pattern {
   /// This is set during inference.
   int recordFieldIndex = -1;
 
-  /// When used in an object pattern, this holds the function type of [target]
-  /// called to read the property for this pattern.
-  ///
-  /// This is set during inference.
-  // TODO(johnniwinther): Remove this. This is no longer used.
-  FunctionType? functionType;
-
   /// When used in an object pattern, this holds the type arguments used when
   /// called the [target] to read the property for this pattern.
   ///
@@ -1183,7 +1255,7 @@ class NamedPattern extends Pattern {
   List<DartType>? typeArguments;
 
   @override
-  List<Variable> get declaredVariables => pattern.declaredVariables;
+  List<DeclaredVariable> get declaredVariables => pattern.declaredVariables;
 
   new(this.name, this.pattern) {
     pattern.parent = this;
@@ -1244,36 +1316,34 @@ class RecordPattern extends Pattern {
   ///
   /// This is the type the matched expression is checked against, if the
   /// [matchedValueType] is not already a subtype of [requiredType].
-  ///
-  /// This is set during inference.
-  RecordType? requiredType;
+  RecordType requiredType;
 
   /// The type of the expression against which this pattern is matched.
-  ///
-  /// This is set during inference.
-  DartType? matchedValueType;
+  DartType matchedValueType;
 
   /// If `true`, the matched expression must be checked to be of type
   /// [requiredType].
-  ///
-  /// This is set during inference.
-  bool needsCheck = false;
+  bool needsCheck;
 
   /// The most specific type of the matched expression. Either the
   /// [requiredType] or the [matchedValueType] if it is a subtype of
   /// [requiredType].
   ///
   /// This is the type on which pattern accesses from [patterns] are looked up.
-  ///
-  /// This is set during inference.
-  RecordType? lookupType;
+  RecordType lookupType;
 
   @override
-  List<Variable> get declaredVariables => [
+  List<DeclaredVariable> get declaredVariables => [
     for (Pattern pattern in patterns) ...pattern.declaredVariables,
   ];
 
-  new(this.patterns) {
+  new({
+    required this.patterns,
+    required this.requiredType,
+    required this.matchedValueType,
+    required this.needsCheck,
+    required this.lookupType,
+  }) {
     setParents(patterns, this);
   }
 
@@ -1320,17 +1390,19 @@ class RecordPattern extends Pattern {
 class VariablePattern extends Pattern {
   // TODO(johnniwinther): Should this be accessed through [variable] instead?
   DartType? type;
-  Variable variable;
+  DeclaredVariable variable;
 
   /// The type of the expression against which this pattern is matched.
-  ///
-  /// This is set during inference.
-  DartType? matchedValueType;
+  DartType matchedValueType;
 
   @override
-  List<Variable> get declaredVariables => [variable];
+  List<DeclaredVariable> get declaredVariables => [variable];
 
-  new(this.type, this.variable) {
+  new({
+    required this.type,
+    required this.variable,
+    required this.matchedValueType,
+  }) {
     variable.parent = this;
   }
 
@@ -1422,7 +1494,7 @@ class RestPattern extends Pattern {
   }
 
   @override
-  List<Variable> get declaredVariables =>
+  List<DeclaredVariable> get declaredVariables =>
       subPattern?.declaredVariables ?? const [];
 
   @override
@@ -1443,7 +1515,7 @@ class InvalidPattern extends Pattern {
   Expression invalidExpression;
 
   @override
-  final List<Variable> declaredVariables;
+  final List<DeclaredVariable> declaredVariables;
 
   new(this.invalidExpression, {required this.declaredVariables}) {
     invalidExpression.parent = this;
@@ -1736,7 +1808,7 @@ class PatternGuard extends TreeNode {
   String toString() => 'PatternGuard(${toStringInternal()})';
 }
 
-class PatternSwitchCase extends TreeNode implements SwitchCase {
+class PatternSwitchCase extends TreeNode implements SwitchCase, ScopeProvider {
   final List<int> caseOffsets;
   final List<PatternGuard> patternGuards;
   // TODO(johnniwinther): Handle this through serialization. Currently this
@@ -1753,10 +1825,13 @@ class PatternSwitchCase extends TreeNode implements SwitchCase {
 
   bool hasLabel;
 
-  final List<Variable> jointVariables;
+  final List<VariableDeclaration> jointVariableDeclarations;
 
   // TODO(johnniwinther): Serialize this field.
   final List<int>? jointVariableFirstUseOffsets;
+
+  @override
+  Scope? scope;
 
   new(
     this.caseOffsets,
@@ -1764,11 +1839,11 @@ class PatternSwitchCase extends TreeNode implements SwitchCase {
     this.body, {
     required this.isDefault,
     required this.hasLabel,
-    required this.jointVariables,
+    required this.jointVariableDeclarations,
     required this.jointVariableFirstUseOffsets,
   }) {
     setParents(patternGuards, this);
-    setParents(jointVariables, this);
+    setParents(jointVariableDeclarations, this);
     body.parent = this;
   }
 
@@ -1945,9 +2020,12 @@ class PatternSwitchStatement extends Statement implements SwitchStatement {
   }
 }
 
-class SwitchExpressionCase extends TreeNode {
+class SwitchExpressionCase extends TreeNode implements ScopeProvider {
   PatternGuard patternGuard;
   Expression expression;
+
+  @override
+  Scope? scope;
 
   new(this.patternGuard, this.expression) {
     patternGuard.parent = this;
@@ -2077,11 +2155,14 @@ class PatternVariableDeclaration extends Statement {
   final bool isFinal;
 
   /// The type of the expression against which this pattern is matched.
-  ///
-  /// This is set during inference.
-  DartType? matchedValueType;
+  DartType matchedValueType;
 
-  new(this.pattern, this.initializer, {required this.isFinal}) {
+  new(
+    this.pattern,
+    this.initializer, {
+    required this.isFinal,
+    required this.matchedValueType,
+  }) {
     pattern.parent = this;
     initializer.parent = this;
   }
@@ -2138,11 +2219,13 @@ class PatternAssignment extends Expression {
   Expression expression;
 
   /// The type of the expression against which this pattern is matched.
-  ///
-  /// This is set during inference.
-  DartType? matchedValueType;
+  DartType matchedValueType;
 
-  new(this.pattern, this.expression) {
+  new({
+    required this.pattern,
+    required this.expression,
+    required this.matchedValueType,
+  }) {
     pattern.parent = this;
     expression.parent = this;
   }
@@ -2200,18 +2283,25 @@ class PatternAssignment extends Expression {
 ///     if (expression case pattern when guard) then
 ///     if (expression case pattern when guard) then else otherwise
 ///
-class IfCaseStatement extends Statement {
+class IfCaseStatement extends Statement implements ScopeProvider {
   Expression expression;
   PatternGuard patternGuard;
   Statement then;
   Statement? otherwise;
 
   /// The type of the expression against which this pattern is matched.
-  ///
-  /// This is set during inference.
-  DartType? matchedValueType;
+  DartType matchedValueType;
 
-  new(this.expression, this.patternGuard, this.then, [this.otherwise]) {
+  @override
+  Scope? scope;
+
+  new({
+    required this.expression,
+    required this.patternGuard,
+    required this.then,
+    required this.otherwise,
+    required this.matchedValueType,
+  }) {
     expression.parent = this;
     patternGuard.parent = this;
     then.parent = this;
@@ -2276,7 +2366,24 @@ class IfCaseStatement extends Statement {
   }
 }
 
-final Pattern dummyPattern = new ConstantPattern(dummyExpression);
+final Pattern dummyPattern = new ConstantPattern.byReference(
+  expression: dummyExpression,
+  expressionType: dummyDartType,
+  equalsTargetReference: dummyReference,
+  equalsType: dummyFunctionType,
+);
+
+final FunctionType dummyFunctionType = new FunctionType(
+  [],
+  dummyDartType,
+  Nullability.nonNullable,
+);
+
+final RecordType dummyRecordType = new RecordType(
+  [],
+  [],
+  Nullability.nonNullable,
+);
 
 final NamedPattern dummyNamedPattern = new NamedPattern('', dummyPattern);
 
@@ -2293,7 +2400,7 @@ final PatternSwitchCase dummyPatternSwitchCase = new PatternSwitchCase(
   dummyStatement,
   isDefault: true,
   hasLabel: false,
-  jointVariables: [],
+  jointVariableDeclarations: [],
   jointVariableFirstUseOffsets: null,
 );
 

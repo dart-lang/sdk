@@ -158,6 +158,13 @@ abstract final class CustomMethods {
   static const getFlutterWidgetPreviews = Method(
     'dart/textDocument/getFlutterWidgetPreviews',
   );
+
+  /// Gets all fixes (optionally filtered according to arguments) for a
+  /// workspace.
+  ///
+  /// Used by 'dart fix'.
+  static const getWorkspaceFixes = Method('dart/workspace/fixes/get');
+
   static const getWorkspaceFlutterWidgetPreviews = Method(
     'dart/workspace/getFlutterWidgetPreviews',
   );
@@ -202,6 +209,15 @@ abstract final class CustomMethods {
   /// An experimental 'echo' handler that can used by tests to verify
   /// experimental handlers only show up when requested.
   static const experimentalEcho = Method('experimental/echo');
+
+  /// A request that a client can call when they want to wait for the server to
+  /// complete analysis (and any prior steps like analysis context builds).
+  ///
+  /// This can be used as an indicator that all current code has been analyzed
+  /// and all diagnostics pushed.
+  static const workspaceAnalysisComplete = Method(
+    'dart/workspace/analysis/complete',
+  );
 }
 
 abstract final class CustomSemanticTokenModifiers {
@@ -259,6 +275,10 @@ abstract final class CustomSemanticTokenModifiers {
   /// declarations to distinguish them from top-levels.
   static const instance = SemanticTokenModifiers('instance');
 
+  /// A modifier applied to plain source code, such as that surrounded by
+  /// triple backticks in comments.
+  static const source = SemanticTokenModifiers('source');
+
   /// A modifier applied to the void keyword to allow users to color it
   /// differently (for example as a type).
   static const void_ = SemanticTokenModifiers('void');
@@ -277,6 +297,7 @@ abstract final class CustomSemanticTokenModifiers {
     constructor,
     escape,
     interpolation,
+    source,
     void_,
     wildcard,
   ];
@@ -286,23 +307,8 @@ abstract final class CustomSemanticTokenTypes {
   static const annotation = SemanticTokenTypes('annotation');
   static const boolean = SemanticTokenTypes('boolean');
 
-  /// A token type for labels.
-  ///
-  /// This is different to [CustomSemanticTokenModifiers.label] which is for
-  /// parameter name labels.
-  ///
-  /// 'label' is listed as a standard VS Code token type at
-  /// https://code.visualstudio.com/api/language-extensions/semantic-highlight-guide
-  /// and therefore may be used by theme authors, but it's currently not defined
-  /// by LSP (and therefore missing from the code-generated SemanticTokenTypes)
-  /// so we have to define it here.
-  ///
-  /// This can be removed once
-  /// https://github.com/microsoft/language-server-protocol/issues/2137 is
-  /// resolved.
-  static const label = SemanticTokenTypes('label');
-
-  /// A placeholder token type for basic source code that is not usually colored.
+  /// A placeholder token type for basic source code that is not usually
+  /// colored.
   ///
   /// This is used only where clients might otherwise provide their own coloring
   /// (for example coloring whole strings that may include interpolated code).
@@ -312,18 +318,20 @@ abstract final class CustomSemanticTokenTypes {
   /// the reason for this token and allow specific coloring if desired.
   static const source = SemanticTokenTypes('source');
 
-  /// All custom semantic token types, used to populate the LSP Legend which must
-  /// include all used types.
-  static const values = [annotation, boolean, label, source];
+  /// All custom semantic token types, used to populate the LSP Legend which
+  /// must include all used types.
+  static const values = [annotation, boolean, source];
 }
 
-/// CodeActionKinds supported by the server that are not declared in the LSP spec.
+/// CodeActionKinds supported by the server that are not declared in the LSP
+/// spec.
 abstract final class DartCodeActionKind {
   /// A list of all supported CodeAction kinds, supplied to the client during
   /// initialization to allow enabling features based upon them.
   static const serverSupportedKinds = [
     CodeActionKind.Source,
-    // We have to explicitly list this for the client to enable built-in command.
+    // We have to explicitly list this for the client to enable built-in
+    // command.
     CodeActionKind.SourceOrganizeImports,
     fixAll,
     sortMembers,

@@ -1,0 +1,159 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/augmentations/extension_type_declarations.dart:6:8: Error: Extension types can't declare abstract members.
+// Try providing an implementation for the member.
+//   void instanceMethod1();
+//        ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/augmentations/extension_type_declarations.dart:9:11: Error: Extension types can't declare abstract members.
+// Try providing an implementation for the member.
+//   int get instanceGetter1;
+//           ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/augmentations/extension_type_declarations.dart:12:12: Error: Extension types can't declare abstract members.
+// Try providing an implementation for the member.
+//   void set instanceSetter1(int value);
+//            ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/augmentations/extension_type_declarations.dart:15:8: Error: Extension types can't declare abstract members.
+// Try providing an implementation for the member.
+//   void instanceMethod2();
+//        ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/augmentations/extension_type_declarations.dart:17:11: Error: Extension types can't declare abstract members.
+// Try providing an implementation for the member.
+//   int get instanceGetter2;
+//           ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/augmentations/extension_type_declarations.dart:19:12: Error: Extension types can't declare abstract members.
+// Try providing an implementation for the member.
+//   void set instanceSetter2(int value);
+//            ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/augmentations/extension_type_declarations.dart:21:15: Error: Extension types can't declare abstract members.
+// Try providing an implementation for the member.
+//   static void staticMethod1();
+//               ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/augmentations/extension_type_declarations.dart:24:18: Error: Extension types can't declare abstract members.
+// Try providing an implementation for the member.
+//   static int get staticGetter1;
+//                  ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/augmentations/extension_type_declarations.dart:27:19: Error: Extension types can't declare abstract members.
+// Try providing an implementation for the member.
+//   static void set staticSetter1(int value);
+//                   ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/augmentations/extension_type_declarations.dart:30:15: Error: Extension types can't declare abstract members.
+// Try providing an implementation for the member.
+//   static void staticMethod2();
+//               ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/augmentations/extension_type_declarations.dart:32:18: Error: Extension types can't declare abstract members.
+// Try providing an implementation for the member.
+//   static int get staticGetter2;
+//                  ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/augmentations/extension_type_declarations.dart:34:19: Error: Extension types can't declare abstract members.
+// Try providing an implementation for the member.
+//   static void set staticSetter2(int value);
+//                   ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/augmentations/extension_type_declarations.dart:44:8: Error: Extension types can't declare abstract members.
+// Try providing an implementation for the member.
+//   void instanceMethod3();
+//        ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/augmentations/extension_type_declarations.dart:47:11: Error: Extension types can't declare abstract members.
+// Try providing an implementation for the member.
+//   int get instanceGetter3;
+//           ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/augmentations/extension_type_declarations.dart:50:12: Error: Extension types can't declare abstract members.
+// Try providing an implementation for the member.
+//   void set instanceSetter3(int value);
+//            ^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/augmentations/extension_type_declarations.dart:59:15: Error: Extension types can't declare abstract members.
+// Try providing an implementation for the member.
+//   static void staticMethod3();
+//               ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/augmentations/extension_type_declarations.dart:62:18: Error: Extension types can't declare abstract members.
+// Try providing an implementation for the member.
+//   static int get staticGetter3;
+//                  ^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/augmentations/extension_type_declarations.dart:65:19: Error: Extension types can't declare abstract members.
+// Try providing an implementation for the member.
+//   static void set staticSetter3(int value);
+//                   ^^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+extension type ExtensionType(core::int it) {
+  abstract extension-type-member representation-field get it() → core::int;
+  method instanceMethod1 = self::ExtensionType|instanceMethod1;
+  method tearoff instanceMethod1 = self::ExtensionType|get#instanceMethod1;
+  get instanceGetter1 = self::ExtensionType|get#instanceGetter1;
+  set instanceSetter1 = self::ExtensionType|set#instanceSetter1;
+  method instanceMethod2 = self::ExtensionType|instanceMethod2;
+  method tearoff instanceMethod2 = self::ExtensionType|get#instanceMethod2;
+  get instanceGetter2 = self::ExtensionType|get#instanceGetter2;
+  set instanceSetter2 = self::ExtensionType|set#instanceSetter2;
+  static method staticMethod1 = self::ExtensionType|staticMethod1;
+  static get staticGetter1 = get self::ExtensionType|staticGetter1;
+  static set staticSetter1 = set self::ExtensionType|staticSetter1;
+  static method staticMethod2 = self::ExtensionType|staticMethod2;
+  static get staticGetter2 = get self::ExtensionType|staticGetter2;
+  static set staticSetter2 = set self::ExtensionType|staticSetter2;
+  method instanceMethod3 = self::ExtensionType|instanceMethod3;
+  method tearoff instanceMethod3 = self::ExtensionType|get#instanceMethod3;
+  get instanceGetter3 = self::ExtensionType|get#instanceGetter3;
+  set instanceSetter3 = self::ExtensionType|set#instanceSetter3;
+  static method staticMethod3 = self::ExtensionType|staticMethod3;
+  static get staticGetter3 = get self::ExtensionType|staticGetter3;
+  static set staticSetter3 = set self::ExtensionType|staticSetter3;
+  constructor • = self::ExtensionType|constructor#;
+  constructor tearoff • = self::ExtensionType|constructor#_#new#tearOff;
+}
+static extension-type-member method ExtensionType|constructor#(initializing-formal core::int it) → self::ExtensionType% /* erasure=core::int, declared=! */ {
+  lowered final self::ExtensionType% /* erasure=core::int, declared=! */ #this = it;
+  return #this;
+}
+static extension-type-member synthetic method ExtensionType|constructor#_#new#tearOff(core::int it) → self::ExtensionType% /* erasure=core::int, declared=! */
+  return self::ExtensionType|constructor#(it);
+static extension-type-member method ExtensionType|instanceMethod1(lowered final self::ExtensionType% /* erasure=core::int, declared=! */ #this) → void {}
+static extension-type-member method ExtensionType|get#instanceMethod1(lowered final self::ExtensionType% /* erasure=core::int, declared=! */ #this) → () → void
+  return () → void => self::ExtensionType|instanceMethod1(#this);
+static extension-type-member method ExtensionType|get#instanceGetter1(lowered final self::ExtensionType% /* erasure=core::int, declared=! */ #this) → core::int
+  return 0;
+static extension-type-member method ExtensionType|set#instanceSetter1(lowered final self::ExtensionType% /* erasure=core::int, declared=! */ #this, core::int value) → void {}
+static extension-type-member method ExtensionType|staticMethod1() → void {}
+static extension-type-member get ExtensionType|staticGetter1() → core::int
+  return 0;
+static extension-type-member set ExtensionType|staticSetter1(core::int value) → void {}
+static extension-type-member method ExtensionType|instanceMethod2(lowered final self::ExtensionType% /* erasure=core::int, declared=! */ #this) → void {}
+static extension-type-member method ExtensionType|get#instanceMethod2(lowered final self::ExtensionType% /* erasure=core::int, declared=! */ #this) → () → void
+  return () → void => self::ExtensionType|instanceMethod2(#this);
+static extension-type-member method ExtensionType|get#instanceGetter2(lowered final self::ExtensionType% /* erasure=core::int, declared=! */ #this) → core::int
+  return 0;
+static extension-type-member method ExtensionType|set#instanceSetter2(lowered final self::ExtensionType% /* erasure=core::int, declared=! */ #this, core::int value) → void {}
+static extension-type-member method ExtensionType|instanceMethod3(lowered final self::ExtensionType% /* erasure=core::int, declared=! */ #this) → void {}
+static extension-type-member method ExtensionType|get#instanceMethod3(lowered final self::ExtensionType% /* erasure=core::int, declared=! */ #this) → () → void
+  return () → void => self::ExtensionType|instanceMethod3(#this);
+static extension-type-member method ExtensionType|get#instanceGetter3(lowered final self::ExtensionType% /* erasure=core::int, declared=! */ #this) → core::int
+  return 0;
+static extension-type-member method ExtensionType|set#instanceSetter3(lowered final self::ExtensionType% /* erasure=core::int, declared=! */ #this, core::int value) → void {}
+static extension-type-member method ExtensionType|staticMethod2() → void {}
+static extension-type-member get ExtensionType|staticGetter2() → core::int
+  return 0;
+static extension-type-member set ExtensionType|staticSetter2(core::int value) → void {}
+static extension-type-member method ExtensionType|staticMethod3() → void {}
+static extension-type-member get ExtensionType|staticGetter3() → core::int
+  return 0;
+static extension-type-member set ExtensionType|staticSetter3(core::int value) → void {}

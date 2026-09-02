@@ -48,8 +48,8 @@ class AssignedVariables<Node extends Object, Variable extends Object> {
   /// Keeps track of whether [finish] has been called.
   bool _isFinished = false;
 
-  /// The [PromotionKeyStore], which tracks the unique integer assigned to
-  /// everything in the control flow that might be promotable.
+  /// The [PromotionKeyStore], which assigns keys to everything in the control
+  /// flow that might be promotable.
   final PromotionKeyStore<Variable> promotionKeyStore =
       new PromotionKeyStore<Variable>();
 
@@ -85,7 +85,7 @@ class AssignedVariables<Node extends Object, Variable extends Object> {
   /// [ignoreDuplicates].
   void declare(Variable variable, {bool ignoreDuplicates = false}) {
     assert(!_isFinished);
-    int variableKey = promotionKeyStore.keyForVariable(variable);
+    PromotionKey variableKey = promotionKeyStore.keyForVariable(variable);
     bool newlyDeclared = _stack.last.declared.add(variableKey);
     assert(ignoreDuplicates || newlyDeclared);
     newlyDeclared = anywhere.declared.add(variableKey);
@@ -183,16 +183,18 @@ class AssignedVariables<Node extends Object, Variable extends Object> {
         "Deferred infos not stored: $_deferredInfos",
       );
       assert(_stack.length == 1, "Unexpected stack: $_stack");
-      Set<Variable?> vars(Set<int> keys) => {
-        for (int key in keys) promotionKeyStore.variableForKey(key),
+      Set<Variable?> vars(Set<PromotionKey> keys) => {
+        for (PromotionKey key in keys) promotionKeyStore.variableForKey(key),
       };
       AssignedVariablesNodeInfo last = _stack.last;
-      Set<int> undeclaredReads = last.read.difference(last.declared);
+      Set<PromotionKey> undeclaredReads = last.read.difference(last.declared);
       assert(
         undeclaredReads.isEmpty,
         'Variables read from but not declared: ${vars(undeclaredReads)}',
       );
-      Set<int> undeclaredWrites = last.written.difference(last.declared);
+      Set<PromotionKey> undeclaredWrites = last.written.difference(
+        last.declared,
+      );
       assert(
         undeclaredWrites.isEmpty,
         'Variables written to but not declared: ${vars(undeclaredWrites)}',
@@ -236,25 +238,9 @@ class AssignedVariables<Node extends Object, Variable extends Object> {
 
   void read(Variable variable) {
     assert(!_isFinished);
-    int variableKey = promotionKeyStore.keyForVariable(variable);
+    PromotionKey variableKey = promotionKeyStore.keyForVariable(variable);
     _stack.last.read.add(variableKey);
     anywhere.read.add(variableKey);
-  }
-
-  /// Call this method to register that the node [from] for which information
-  /// has been stored is replaced by the node [to].
-  // TODO(johnniwinther): Remove this when unified collections are encoded as
-  // general elements in the front-end.
-  void reassignInfo(Node from, Node to) {
-    assert(!_info.containsKey(to), "Node $to already has info: ${_info[to]}");
-    AssignedVariablesNodeInfo? info = _info.remove(from);
-    assert(
-      info != null,
-      'No information for $from (${from.hashCode}) in '
-      '{${_info.keys.map((k) => '$k (${k.hashCode})').join(',')}}',
-    );
-
-    _info[to] = info!;
   }
 
   /// This method may be called at any time between a call to [deferNode] and
@@ -279,7 +265,7 @@ class AssignedVariables<Node extends Object, Variable extends Object> {
   /// variable.
   void write(Variable variable) {
     assert(!_isFinished);
-    int variableKey = promotionKeyStore.keyForVariable(variable);
+    PromotionKey variableKey = promotionKeyStore.keyForVariable(variable);
     _stack.last.written.add(variableKey);
     anywhere.written.add(variableKey);
   }
@@ -296,28 +282,29 @@ class AssignedVariables<Node extends Object, Variable extends Object> {
 /// Not intended to be used by clients of flow analysis.
 class AssignedVariablesForTesting<Node extends Object, Variable extends Object>
     extends AssignedVariables<Node, Variable> {
-  Set<int> get capturedAnywhere => anywhere.captured;
+  Set<PromotionKey> get capturedAnywhere => anywhere.captured;
 
-  Set<int> get declaredAtTopLevel => _stack.first.declared;
+  Set<PromotionKey> get declaredAtTopLevel => _stack.first.declared;
 
-  Set<int> get readAnywhere => anywhere.read;
+  Set<PromotionKey> get readAnywhere => anywhere.read;
 
-  Set<int> get readCapturedAnywhere => anywhere.readCaptured;
+  Set<PromotionKey> get readCapturedAnywhere => anywhere.readCaptured;
 
-  Set<int> get writtenAnywhere => anywhere.written;
+  Set<PromotionKey> get writtenAnywhere => anywhere.written;
 
-  Set<int> capturedInNode(Node node) => getInfoForNode(node).captured;
+  Set<PromotionKey> capturedInNode(Node node) => getInfoForNode(node).captured;
 
-  Set<int> declaredInNode(Node node) => getInfoForNode(node).declared;
+  Set<PromotionKey> declaredInNode(Node node) => getInfoForNode(node).declared;
 
   bool isTracked(Node node) => _info.containsKey(node);
 
-  int keyForVariable(Variable variable) =>
+  PromotionKey keyForVariable(Variable variable) =>
       promotionKeyStore.keyForVariable(variable);
 
-  Set<int> readCapturedInNode(Node node) => getInfoForNode(node).readCaptured;
+  Set<PromotionKey> readCapturedInNode(Node node) =>
+      getInfoForNode(node).readCaptured;
 
-  Set<int> readInNode(Node node) => getInfoForNode(node).read;
+  Set<PromotionKey> readInNode(Node node) => getInfoForNode(node).read;
 
   @override
   String toString() {
@@ -328,29 +315,30 @@ class AssignedVariablesForTesting<Node extends Object, Variable extends Object>
     return sb.toString();
   }
 
-  Variable variableForKey(int key) => promotionKeyStore.variableForKey(key)!;
+  Variable variableForKey(PromotionKey key) =>
+      promotionKeyStore.variableForKey(key)!;
 
-  Set<int> writtenInNode(Node node) => getInfoForNode(node).written;
+  Set<PromotionKey> writtenInNode(Node node) => getInfoForNode(node).written;
 }
 
 /// Information tracked by [AssignedVariables] for a single node.
 class AssignedVariablesNodeInfo {
   /// The set of local variables that are potentially read in the node.
-  final Set<int> read = {};
+  final Set<PromotionKey> read = {};
 
   /// The set of local variables that are potentially written in the node.
-  final Set<int> written = {};
+  final Set<PromotionKey> written = {};
 
   /// The set of local variables for which a potential read is captured by a
   /// local function or closure inside the node.
-  final Set<int> readCaptured = {};
+  final Set<PromotionKey> readCaptured = {};
 
   /// The set of local variables for which a potential write is captured by a
   /// local function or closure inside the node.
-  final Set<int> captured = {};
+  final Set<PromotionKey> captured = {};
 
   /// The set of local variables that are declared in the node.
-  final Set<int> declared = {};
+  final Set<PromotionKey> declared = {};
 
   @override
   String toString() =>

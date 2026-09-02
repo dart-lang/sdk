@@ -57,8 +57,8 @@ static method test(dynamic o) → dynamic {
       }
     }
     {
-      hoisted core::int? s1;
-      if(#0#0 is self::Class && (let final dynamic #t5 = s1 = #0#2#isSet ?{core::int?} #0#2 : let final dynamic #t6 = #0#2#isSet = true in #0#2 = #0#0{self::Class}.{self::Class::field1}{core::int?} in true) || #0#0 is self::Class && (let final dynamic #t7 = #0#2#isSet ?{core::int?} #0#2 : let final dynamic #t8 = #0#2#isSet = true in #0#2 = #0#0{self::Class}.{self::Class::field1}{core::int?} in true)) {
+      hoisted core::int? s1##1;
+      if(#0#0 is self::Class && (let final dynamic #t5 = s1##1 = #0#2#isSet ?{core::int?} #0#2 : let final dynamic #t6 = #0#2#isSet = true in #0#2 = #0#0{self::Class}.{self::Class::field1}{core::int?} in true) || #0#0 is self::Class && (let final dynamic #t7 = #0#2#isSet ?{core::int?} #0#2 : let final dynamic #t8 = #0#2#isSet = true in #0#2 = #0#0{self::Class}.{self::Class::field1}{core::int?} in true)) {
         {
           break #L1;
         }

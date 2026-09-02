@@ -195,9 +195,9 @@ class EnumElementDeclaration
   }
 
   @override
-  List<Initializer> buildInitializer(
+  List<InternalInitializer> buildInitializer(
     int fileOffset,
-    Expression value, {
+    InternalExpression value, {
     required bool isSynthetic,
   }) {
     throw new UnsupportedError("${runtimeType}.buildInitializer");
@@ -345,17 +345,19 @@ class EnumElementDeclaration
         "Initializer has already been computed for $this: "
         "${_field!.initializer}.",
       );
-      _field!.initializer = LookupResult.createDuplicateExpression(
-        result,
-        context: libraryBuilder.loader.target.context,
-        name: fullConstructorNameForErrors,
-        fileUri: fileUri,
-        fileOffset: nameOffset,
-        length: noLength,
+      _field!.initializer = extern.createInvalidExpressionFromErrorText(
+        LookupResult.createDuplicateErrorText(
+          result,
+          context: libraryBuilder.loader.target.context,
+          name: fullConstructorNameForErrors,
+          fileUri: fileUri,
+          fileOffset: nameOffset,
+          length: noLength,
+        ),
       )..parent = _field;
     } else if (libraryBuilder.libraryFeatures.enhancedEnums.isEnabled) {
-      List<Expression> enumSyntheticArguments = <Expression>[
-        intern.createIntLiteral(fileOffset, elementIndex),
+      List<InternalExpression> enumSyntheticArguments = [
+        intern.createIntLiteral(fileOffset: fileOffset, value: elementIndex),
         intern.createStringLiteral(fileOffset, constant),
       ];
       var (Expression initializer, DartType? fieldType) = libraryBuilder.loader
@@ -459,8 +461,8 @@ class EnumElementDeclaration
   @override
   // Coverage-ignore(suite): Not run.
   void buildBody(
-    CoreTypes coreTypes,
-    Expression? initializer, {
+    CoreTypes coreTypes, {
+    required Expression? initializer,
     required ScopeProviderInfo? scopeProviderInfo,
   }) {
     // Initializer has already been created through [_buildElement].
@@ -468,7 +470,10 @@ class EnumElementDeclaration
 
   @override
   // Coverage-ignore(suite): Not run.
-  void cacheFieldInitializer(Expression? initializer) {
+  void cacheFieldInitializer(
+    Expression? initializer,
+    ScopeProviderInfo? scopeProviderInfo,
+  ) {
     // Initializer is created through [_buildElement].
   }
 }

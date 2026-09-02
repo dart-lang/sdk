@@ -44,6 +44,34 @@ class DeclarationHelper {
   /// shadowed by local declarations.
   final VisibilityTracker visibilityTracker = VisibilityTracker();
 
+  /// The names of members declared directly by the innermost enclosing
+  /// instance element (class, enum, mixin, extension, or extension type)
+  /// whose declaration contains the completion location.
+  ///
+  /// A name in this set is claimed by that declaration: an inherited member
+  /// with the same name, found further out, isn't suggested with a shadow
+  /// prefix (`this.` or a type-qualified prefix), because typing that
+  /// qualified access would actually resolve to the enclosing declaration's
+  /// own member, not to the shadowed one.
+  ///
+  /// The members of the type extended by an enclosing extension are the
+  /// exception. Inside an extension body `this.name` resolves to the extended
+  /// type's member rather than to the extension's own member of that name (or
+  /// `this?.name` does, when the extended type is nullable), so those names
+  /// are removed from this set by [_addInheritedMembers] before the extended
+  /// type's members are suggested.
+  final Set<String> _namesOwnedByEnclosingInstance = {};
+
+  /// The prefix with which a member that is shadowed at the completion location
+  /// can still be suggested, or [ThisPrefix.none] if it can't be.
+  ///
+  /// This is a property of the position being completed rather than of any
+  /// individual member, so it's held here instead of being passed down through
+  /// every method that adds members. It's only ever non-[ThisPrefix.none] while
+  /// members that are in scope unqualified are being added, and every method
+  /// that sets it is responsible for restoring it afterwards.
+  ThisPrefix _thisPrefixAllowed = .none;
+
   /// Whether suggestions should be limited to only include those to which a
   /// value can be assigned: either a setter or a local variable.
   final bool mustBeAssignable;
@@ -146,9 +174,8 @@ class DeclarationHelper {
   bool get _addTypeName => suggestingDotShorthand && !_isDotShorthandEnabled;
 
   /// Return the suggestion kind that should be used for executable elements.
-  CompletionSuggestionKind get _executableSuggestionKind => preferNonInvocation
-      ? CompletionSuggestionKind.IDENTIFIER
-      : CompletionSuggestionKind.INVOCATION;
+  CompletionSuggestionKind get _executableSuggestionKind =>
+      preferNonInvocation ? .IDENTIFIER : .INVOCATION;
 
   bool get _isDotShorthandEnabled =>
       request.featureSet.isEnabled(.dot_shorthands);
@@ -224,7 +251,7 @@ class DeclarationHelper {
           if (matcherScore != -1) {
             collector.addSuggestion(
               LoadLibraryFunctionSuggestion(
-                kind: CompletionSuggestionKind.INVOCATION,
+                kind: .INVOCATION,
                 element: importedLibrary.loadLibraryFunction,
                 matcherScore: matcherScore,
               ),
@@ -239,18 +266,16 @@ class DeclarationHelper {
   /// given [constructor]. If a [fieldToInclude] is provided, then it should not
   /// be skipped because the cursor is inside that field's name.
   void addFieldsForInitializers(
-    ConstructorDeclaration constructor,
+    ConstructorElement constructorElement,
+    NodeList<ConstructorInitializer> list,
+    FormalParameterList parameters,
     FieldElement? fieldToInclude,
   ) {
-    var constructorElement = constructor.declaredFragment?.element;
-    var containingElement = constructorElement?.enclosingElement;
-    if (containingElement == null) {
-      return;
-    }
+    var containingElement = constructorElement.enclosingElement;
 
     var fieldsToSkip = <FieldElement>{};
     // Skip fields that are already initialized in the initializer list.
-    for (var initializer in constructor.initializers) {
+    for (var initializer in list) {
       if (initializer is ConstructorFieldInitializer) {
         var fieldElement = initializer.fieldName.element;
         if (fieldElement is FieldElement) {
@@ -259,7 +284,7 @@ class DeclarationHelper {
       }
     }
     // Skip fields that are already initialized in the parameter list.
-    for (var parameter in constructor.parameters.parameters) {
+    for (var parameter in parameters.parameters) {
       if (parameter is FieldFormalParameter) {
         var parameterElement = parameter.declaredFragment?.element;
         if (parameterElement is FieldFormalParameterElement) {
@@ -303,6 +328,9 @@ class DeclarationHelper {
     required bool isTypeNeeded,
   }) {
     if (type is InterfaceType) {
+      // Called for object patterns or record patterns, where the suggestion is
+      // the name of a pattern field rather than an expression, so a `this.`
+      // prefix is never valid.
       _addInstanceMembers(
         type: type,
         excludedGetters: excludedGetters,
@@ -425,7 +453,7 @@ class DeclarationHelper {
       parent = parent.parent;
     }
     switch (parent) {
-      case BlockClassBody():
+      case BlockClassBody() when containingMember is! PrimaryConstructorBody:
       case BlockEnumBody():
         parent = parent?.parent;
     }
@@ -463,7 +491,8 @@ class DeclarationHelper {
       }
     }
     if (topLevelMember != null && !mustBeStatic && !mustBeType) {
-      _addInheritedMembers(topLevelMember);
+      var thisType = node.thisTypeAt(offset);
+      _addInheritedMembers(topLevelMember, thisType);
     }
   }
 
@@ -533,13 +562,19 @@ class DeclarationHelper {
 
   /// Add members from all the applicable extensions that are visible in the
   /// not yet imported [library] that are applicable for the given [type].
+  ///
+  /// This runs in a later pass than the rest of the suggestions for the
+  /// completion location, so [thisPrefixAllowed] carries the value that
+  /// [_thisPrefixAllowed] had when the operation was recorded.
   void addNotImportedExtensionMethods({
     required LibraryElement library,
     required DartType type,
     required Set<String> excludedGetters,
     required bool includeMethods,
     required bool includeSetters,
+    ThisPrefix thisPrefixAllowed = .none,
   }) {
+    _thisPrefixAllowed = thisPrefixAllowed;
     var libraryElement = library;
     var applicableExtensions = library.exportNamespace.definedNames2.values
         .whereType<ExtensionElement>()
@@ -567,6 +602,7 @@ class DeclarationHelper {
         );
       }
     }
+    _thisPrefixAllowed = .none;
   }
 
   /// Adds suggestions for any top-level declarations that are visible within
@@ -592,12 +628,17 @@ class DeclarationHelper {
       return;
     }
 
-    var constructor = node.thisOrAncestorOfType<ConstructorDeclaration>();
-    if (constructor == null) {
-      return;
+    NodeList<ConstructorInitializer>? initializers;
+    ConstructorElement? constructorElement;
+    if (node.thisOrAncestorOfType<ConstructorDeclaration>()
+        case var constructor?) {
+      initializers = constructor.initializers;
+      constructorElement = constructor.declaredFragment?.element;
+    } else if (node.thisOrAncestorOfType<PrimaryConstructorDeclaration>()
+        case var constructor?) {
+      initializers = constructor.body?.initializers;
+      constructorElement = constructor.declaredFragment?.element;
     }
-
-    var constructorElement = constructor.declaredFragment?.element;
     if (constructorElement is! ConstructorElementImpl) {
       return;
     }
@@ -608,8 +649,8 @@ class DeclarationHelper {
     }
 
     if (node.isNamed) {
-      var superConstructorInvocation = constructor.initializers
-          .whereType<SuperConstructorInvocation>()
+      var superConstructorInvocation = initializers
+          ?.whereType<SuperConstructorInvocation>()
           .singleOrNull;
       var specified = <String>{
         ...constructorElement.formalParameters.map((e) => e.name).nonNulls,
@@ -1076,7 +1117,13 @@ class DeclarationHelper {
 
   /// Adds suggestions for any instance members inherited by the
   /// [containingMember].
-  void _addInheritedMembers(CompilationUnitMember containingMember) {
+  ///
+  /// If `this` has been promoted, then type promoted type should be passed in
+  /// as [thisType].
+  void _addInheritedMembers(
+    CompilationUnitMember containingMember,
+    DartType? thisType,
+  ) {
     var fragment = switch (containingMember) {
       ClassDeclaration() => containingMember.declaredFragment,
       EnumDeclaration() => containingMember.declaredFragment,
@@ -1087,24 +1134,47 @@ class DeclarationHelper {
       GenericTypeAlias() => containingMember.declaredFragment,
       _ => null,
     };
-    var element = fragment?.element;
-    if (!mustBeStatic && element is ExtensionElement) {
-      var thisType = element.thisType;
+    var enclosingElement = fragment?.element;
+    if (!mustBeStatic && enclosingElement is ExtensionElement) {
+      thisType ??= enclosingElement.thisType;
       if (thisType is InterfaceType) {
+        // These members own the `this.` form of their names inside the
+        // extension body, so the extension's own declarations of those names
+        // must not shadow them here. `_addMembersOfEnclosingInstance` has
+        // already kept the extension's own members from claiming that form.
+        _namesOwnedByEnclosingInstance.removeAll(
+          _namesOfExtendedTypeMembers(enclosingElement),
+        );
+        // Unqualified position, so a shadowed member of the extended type can
+        // be reached via `this.`, or via `this?.` when the extended type is
+        // nullable.
+        _thisPrefixAllowed = _thisPrefixFor(thisType);
         _addInstanceMembers(
           type: thisType,
           excludedGetters: {},
           includeMethods: true,
           includeSetters: true,
         );
+        _thisPrefixAllowed = .none;
       }
       return;
     }
-    if (element is! InterfaceElement) {
+    if (enclosingElement is! InterfaceElement) {
       return;
     }
-    var referencingInterface = _referencingInterfaceFor(element);
-    var members = element.inheritedMembers;
+    var thisTypeElement = thisType?.element;
+    if (thisTypeElement is! InterfaceElement) {
+      thisTypeElement = enclosingElement;
+    }
+    var referencingInterface = _referencingInterfaceFor(thisTypeElement);
+    // We include the members of the `enclosingElement`, even though we've
+    // already examined them as part of following the local scope. This should
+    // be safe because we'll treat them as being shadowed. The reason is so that
+    // we can include the members of the `thisTypeElement` when those two
+    // elements are different.
+    var members = thisTypeElement.interfaceMembers;
+    // Unqualified position, so a shadowed member can be reached via `this.`.
+    _thisPrefixAllowed = .regular;
     for (var member in members.values) {
       if (!member.isVisibleIn(request.libraryElement)) {
         continue;
@@ -1125,6 +1195,7 @@ class DeclarationHelper {
           );
       }
     }
+    _thisPrefixAllowed = .none;
   }
 
   /// Adds completion suggestions for instance members of the given [type].
@@ -1229,6 +1300,7 @@ class DeclarationHelper {
         excludedGetters: excludedGetters,
         includeMethods: includeMethods,
         includeSetters: includeSetters,
+        thisPrefixAllowed: _thisPrefixAllowed,
       ),
     );
   }
@@ -1257,12 +1329,24 @@ class DeclarationHelper {
           _visitCatchClause(currentNode);
         case CommentReference():
           return _visitCommentReference(currentNode);
-        case ConstructorDeclaration():
-          _visitParameterList(currentNode.parameters);
+        case ConstructorDeclaration(:var parameters) ||
+            PrimaryConstructorBody(
+              declaration: PrimaryConstructorDeclaration(
+                formalParameters: var parameters,
+              ),
+            ):
+          _visitParameterList(parameters);
           return currentNode;
         case DeclaredVariablePattern():
           _visitDeclaredVariablePattern(currentNode);
-        case FieldDeclaration():
+        case FieldDeclaration(:var parent):
+          if (parent case BlockClassBody(
+            parent: ClassDeclaration(
+              namePart: PrimaryConstructorDeclaration(:var formalParameters),
+            ),
+          )) {
+            _visitParameterList(formalParameters);
+          }
           return currentNode;
         case ForElement(forLoopParts: var parts):
           if (parts != previousNode) {
@@ -1373,26 +1457,53 @@ class DeclarationHelper {
   /// Completion is inside the declaration of the [element].
   void _addMembersOfEnclosingInstance(InstanceElement element) {
     var referencingInterface = _referencingInterfaceFor(element);
+    // Unqualified position, so a shadowed member can be reached via `this.`.
+    // Static members are an exception: they can't be accessed through `this`.
+    //
+    // Inside an extension body the two forms resolve to different members: an
+    // unqualified name resolves to the extension's own member, while
+    // `this.name` resolves to the member of the extended type. So the
+    // extension's own members own the unqualified form, but must not claim the
+    // `this.` form of a name that the extended type also declares; that form
+    // belongs to the extended type's member, which is suggested later by
+    // [_addInheritedMembers].
+    //
+    // That priority doesn't apply when the extended type is nullable, because
+    // the member of the extended type can't then be accessed unconditionally.
+    // There `this.name` resolves to the extension's own member, and the member
+    // of the extended type is reached with `this?.name` instead.
+    var namesOwnedByExtendedType =
+        element is ExtensionElement &&
+            element.thisType.nullabilitySuffix == .none
+        ? _namesOfExtendedTypeMembers(element)
+        : const <String>{};
+
+    ThisPrefix thisPrefixAllowedFor(String name) =>
+        namesOwnedByExtendedType.contains(name) ? .none : .regular;
 
     for (var accessor in element.getters) {
       if ((accessor.isOriginDeclaration || accessor.isEnumValues) &&
           (!mustBeStatic || accessor.isStatic)) {
+        _thisPrefixAllowed = thisPrefixAllowedFor(accessor.displayName);
         _suggestProperty(
           accessor: accessor,
           referencingInterface: referencingInterface,
           isInDeclaration: true,
         );
+        _namesOwnedByEnclosingInstance.add(accessor.displayName);
       }
     }
 
     for (var accessor in element.setters) {
       if (accessor.isOriginDeclaration &&
           (!mustBeStatic || accessor.isStatic)) {
+        _thisPrefixAllowed = thisPrefixAllowedFor(accessor.displayName);
         _suggestProperty(
           accessor: accessor,
           referencingInterface: referencingInterface,
           isInDeclaration: true,
         );
+        _namesOwnedByEnclosingInstance.add(accessor.displayName);
       }
     }
 
@@ -1400,39 +1511,57 @@ class DeclarationHelper {
       if ((field.isOriginDeclaration ||
               field.isOriginDeclaringFormalParameter) &&
           (!mustBeStatic || field.isStatic)) {
+        _thisPrefixAllowed = thisPrefixAllowedFor(field.displayName);
         _suggestField(
           field: field,
           referencingInterface: referencingInterface,
           isInDeclaration: true,
         );
+        _namesOwnedByEnclosingInstance.add(field.displayName);
       }
     }
 
     for (var method in element.methods) {
       if (!mustBeStatic || method.isStatic) {
+        _thisPrefixAllowed = thisPrefixAllowedFor(method.displayName);
         _suggestMethod(
           method: method,
           referencingInterface: referencingInterface,
         );
+        _namesOwnedByEnclosingInstance.add(method.displayName);
       }
     }
     var thisType = element.thisType;
+    _thisPrefixAllowed = _thisPrefixFor(thisType);
     _addExtensionMembers(
       type: thisType,
       excludedGetters: {},
       includeMethods: true,
       includeSetters: true,
     );
-    if (thisType is RecordType) {
-      _addFieldsOfRecordType(
-        type: thisType,
-        excludedFields: {},
-        isKeywordNeeded: false,
-        isTypeNeeded: false,
-      );
-    } else if (thisType is FunctionType) {
-      _suggestFunctionCall(thisType);
+    if (thisType is RecordType || thisType is FunctionType) {
+      // Only an extension can have a record or function type as the type of
+      // `this`, and the members of that type own the `this.` form of their
+      // names, so the extension's own declarations of those names must not
+      // shadow them here. This mirrors what [_addInheritedMembers] does when
+      // the extended type is an interface type.
+      if (element is ExtensionElement) {
+        _namesOwnedByEnclosingInstance.removeAll(
+          _namesOfExtendedTypeMembers(element),
+        );
+      }
+      if (thisType is RecordType) {
+        _addFieldsOfRecordType(
+          type: thisType,
+          excludedFields: {},
+          isKeywordNeeded: false,
+          isTypeNeeded: false,
+        );
+      } else if (thisType is FunctionType) {
+        _suggestFunctionCall(thisType);
+      }
     }
+    _thisPrefixAllowed = .none;
   }
 
   /// Completion is inside [declaration].
@@ -1473,7 +1602,9 @@ class DeclarationHelper {
           if (!mustBeType) {
             _addMembersOfEnclosingInstance(element);
             var fieldElement = element.representation;
+            _thisPrefixAllowed = .regular;
             _suggestField(field: fieldElement);
+            _thisPrefixAllowed = .none;
           }
           _suggestTypeParameters(element.typeParameters);
         }
@@ -1776,6 +1907,112 @@ class DeclarationHelper {
         (request.contextType?.isDartCoreFunction ?? false);
   }
 
+  /// Returns the names of the members of the type extended by [extension].
+  ///
+  /// Inside the body of [extension], when the extended type isn't nullable,
+  /// these are exactly the names for which `this.name` resolves to the extended
+  /// type's member rather than to the extension's own member of the same name,
+  /// because instance members take priority over extension members.
+  Set<String> _namesOfExtendedTypeMembers(ExtensionElement extension) {
+    var thisType = extension.thisType;
+    if (thisType.isDartCoreFunction || thisType is FunctionType) {
+      return {'call'};
+    }
+    if (thisType case RecordType(:var positionalFields, :var namedFields)) {
+      return {
+        for (int i = 0; i < positionalFields.length; i++) '\$${i + 1}',
+        for (var field in namedFields) field.name,
+      };
+    }
+    if (thisType is! InterfaceType) {
+      return const {};
+    }
+    return {
+      for (var member in thisType.interfaceMembers.values) member.displayName,
+    };
+  }
+
+  /// Returns the suggestion produced by exactly one of [withTypeName],
+  /// [withDeclarationInfo], or [withQualifier], chosen using the same
+  /// shadow/qualifier priority used throughout this class: a dot-shorthand
+  /// context (or an explicit override via [addTypeName]) takes precedence,
+  /// then an empty [qualifier] (a bare declaration), then a qualified
+  /// reference.
+  T _qualifiedSuggestion<T>({
+    required String qualifier,
+    required T Function() withTypeName,
+    required T Function() withDeclarationInfo,
+    required T Function() withQualifier,
+    bool? addTypeName,
+  }) {
+    if (addTypeName ?? _addTypeName) return withTypeName();
+    if (qualifier.isEmpty) return withDeclarationInfo();
+    return withQualifier();
+  }
+
+  /// Returns the prefix, including the trailing `.`, with which [element]
+  /// should be suggested — the empty string when it's visible under its own
+  /// name — or `null` if it must not be suggested at all because its name is
+  /// already taken at the completion location.
+  ///
+  /// A shadowed element is suggested with a `this.` prefix, or, when it is a
+  /// static member (since `this.` cannot be used to access one), qualified
+  /// with [ownerName], the name of the enclosing class or extension.
+  ///
+  /// Returns `null` when [_thisPrefixAllowed] is [ThisPrefix.none], or when the
+  /// name of the element is already claimed by the innermost enclosing instance
+  /// element's own declaration (see [_namesOwnedByEnclosingInstance]), since a
+  /// `this.` or type-qualified suggestion would then actually resolve to that
+  /// closer declaration rather than to the shadowed element being considered
+  /// here.
+  String? _qualifierFor(
+    Element element, {
+    required ImportData? importData,
+    required bool isStatic,
+    required String? ownerName,
+    bool ignoreVisibility = false,
+  }) => _qualifierForName(
+    element.displayName,
+    importData: importData,
+    isStatic: isStatic,
+    ownerName: ownerName,
+    ignoreVisibility: ignoreVisibility,
+  );
+
+  /// Returns the prefix, including the trailing `.`, with which the member
+  /// named [name] should be suggested, or `null` if it must not be suggested at
+  /// all.
+  ///
+  /// This is the same as [_qualifierFor], but for suggestions that aren't based
+  /// on an element, such as the fields of a record type or the `call` method of
+  /// a function type.
+  String? _qualifierForName(
+    String name, {
+    required ImportData? importData,
+    required bool isStatic,
+    required String? ownerName,
+    bool ignoreVisibility = false,
+  }) {
+    if (ignoreVisibility ||
+        visibilityTracker.isNameVisible(name: name, importData: importData)) {
+      return '';
+    }
+    if (_thisPrefixAllowed == .none ||
+        _namesOwnedByEnclosingInstance.contains(name)) {
+      return null;
+    }
+    var prefix = isStatic ? ownerName : _thisPrefixAllowed.text;
+    if (prefix == null ||
+        !visibilityTracker.isNameVisible(
+          name: name,
+          importData: importData,
+          shadowPrefix: prefix,
+        )) {
+      return null;
+    }
+    return '$prefix.';
+  }
+
   /// Record that the given [operation] should be performed in the second pass.
   void _recordOperation(NotImportedOperation operation) {
     notImportedOperations.add(operation);
@@ -1988,9 +2225,7 @@ class DeclarationHelper {
           importData: importData,
           element: element,
           matcherScore: matcherScore,
-          kind: preferNonInvocation
-              ? CompletionSuggestionKind.IDENTIFIER
-              : CompletionSuggestionKind.INVOCATION,
+          kind: preferNonInvocation ? .IDENTIFIER : .INVOCATION,
         );
         collector.addSuggestion(suggestion);
       }
@@ -2038,23 +2273,41 @@ class DeclarationHelper {
     bool isKeywordNeeded = false,
     bool isTypeNeeded = false,
   }) {
-    if (visibilityTracker.isVisible(element: field, importData: null)) {
-      if ((mustBeAssignable && field.setter == null) ||
-          (mustBeConstant && !field.isConst)) {
-        return;
-      }
-      var matcherScore = state.matcher.score(field.displayName);
-      if (matcherScore != -1) {
-        var suggestion = FieldSuggestion(
-          element: field,
-          replacementRange: state.request.replacementRange,
-          matcherScore: matcherScore,
-          referencingInterface: referencingInterface,
-          isInDeclaration: isInDeclaration,
-          addTypeName: _addTypeName,
-        );
-        collector.addSuggestion(suggestion);
-      }
+    var qualifier = _qualifierFor(
+      field,
+      importData: null,
+      isStatic: field.isStatic,
+      ownerName: field.enclosingElement.displayName,
+    );
+    if (qualifier == null) return;
+    if ((mustBeAssignable && field.setter == null) ||
+        (mustBeConstant && !field.isConst)) {
+      return;
+    }
+    var matcherScore = state.matcher.score(field.displayName);
+    if (matcherScore != -1) {
+      // Outside of an enum's own declaration, one of its constants is always
+      // suggested by inserting the enum's name (importing it if necessary),
+      // regardless of whether the name happens to be shadowed; from within
+      // the enum's own declaration, [qualifier] already reflects whether the
+      // name is shadowed there.
+      var suggestion =
+          _addTypeName || (field.isEnumConstant && !isInDeclaration)
+          ? FieldSuggestion.withTypeName(
+              element: field,
+              replacementRange: state.request.replacementRange,
+              matcherScore: matcherScore,
+              referencingInterface: referencingInterface,
+              addTypeName: true,
+            )
+          : FieldSuggestion.withQualifier(
+              element: field,
+              replacementRange: state.request.replacementRange,
+              matcherScore: matcherScore,
+              referencingInterface: referencingInterface,
+              qualifier: qualifier,
+            );
+      collector.addSuggestion(suggestion);
     }
   }
 
@@ -2065,19 +2318,36 @@ class DeclarationHelper {
     Keyword? keyword,
     bool addTypeAnnotation = false,
   }) {
+    var qualifier = _qualifierForName(
+      'call',
+      importData: null,
+      isStatic: false,
+      ownerName: null,
+    );
+    if (qualifier == null) return;
     var matcherScore = state.matcher.score('call');
     if (matcherScore != -1) {
       collector.addSuggestion(
-        FunctionCall(
-          matcherScore: matcherScore,
-          type: type,
-          replacementRange: state.request.replacementRange,
-          importData: null,
-          kind: _executableSuggestionKind,
-          element: element,
-          addTypeAnnotation: addTypeAnnotation,
-          keyword: keyword,
-        ),
+        qualifier.isEmpty
+            ? FunctionCall.withDeclarationInfo(
+                matcherScore: matcherScore,
+                type: type,
+                replacementRange: state.request.replacementRange,
+                importData: null,
+                kind: _executableSuggestionKind,
+                element: element,
+                addTypeAnnotation: addTypeAnnotation,
+                keyword: keyword,
+              )
+            : FunctionCall.withQualifier(
+                matcherScore: matcherScore,
+                type: type,
+                replacementRange: state.request.replacementRange,
+                importData: null,
+                kind: _executableSuggestionKind,
+                element: element,
+                qualifier: qualifier,
+              ),
       );
     }
   }
@@ -2097,7 +2367,7 @@ class DeclarationHelper {
       if (matcherScore != -1) {
         if (_matchesContextType(element) && !preferNonInvocation) {
           var suggestion = LocalFunctionSuggestion(
-            kind: CompletionSuggestionKind.IDENTIFIER,
+            kind: .IDENTIFIER,
             element: element,
             matcherScore: matcherScore,
           );
@@ -2131,8 +2401,14 @@ class DeclarationHelper {
     bool isKeywordNeeded = false,
     bool isTypeNeeded = false,
   }) {
-    if (ignoreVisibility ||
-        visibilityTracker.isVisible(element: method, importData: importData)) {
+    var qualifier = _qualifierFor(
+      method,
+      ignoreVisibility: ignoreVisibility,
+      importData: importData,
+      isStatic: method.isStatic,
+      ownerName: method.enclosingElement?.displayName,
+    );
+    if (qualifier != null) {
       if (mustBeAssignable ||
           mustBeConstant && !method.isStatic ||
           (mustBeNonVoid && method.returnType is VoidType)) {
@@ -2155,7 +2431,7 @@ class DeclarationHelper {
             enclosingElement.isExactState) {
           if (_matchesContextType(method) && !preferNonInvocation) {
             var suggestion = SetStateMethodSuggestion(
-              kind: CompletionSuggestionKind.IDENTIFIER,
+              kind: .IDENTIFIER,
               element: method,
               replacementRange: state.request.replacementRange,
               importData: importData,
@@ -2182,35 +2458,45 @@ class DeclarationHelper {
           collector.addSuggestion(suggestion);
           return;
         }
+        MethodSuggestion methodSuggestion(CompletionSuggestionKind kind) =>
+            _qualifiedSuggestion<MethodSuggestion>(
+              qualifier: qualifier,
+              withTypeName: () => .withTypeName(
+                kind: kind,
+                replacementRange: state.request.replacementRange,
+                element: method,
+                importData: importData,
+                matcherScore: matcherScore,
+                referencingInterface: referencingInterface,
+                addTypeName: true,
+              ),
+              withDeclarationInfo: () => .withDeclarationInfo(
+                kind: kind,
+                replacementRange: state.request.replacementRange,
+                element: method,
+                importData: importData,
+                matcherScore: matcherScore,
+                referencingInterface: referencingInterface,
+                addTypeAnnotation: addTypeAnnotation,
+                keyword: keyword,
+              ),
+              withQualifier: () => .withQualifier(
+                kind: kind,
+                replacementRange: state.request.replacementRange,
+                element: method,
+                importData: importData,
+                matcherScore: matcherScore,
+                referencingInterface: referencingInterface,
+                qualifier: qualifier,
+              ),
+            );
         if (_matchesContextType(method) && !preferNonInvocation) {
-          var suggestion = MethodSuggestion(
-            kind: CompletionSuggestionKind.IDENTIFIER,
-            replacementRange: state.request.replacementRange,
-            element: method,
-            importData: importData,
-            matcherScore: matcherScore,
-            referencingInterface: referencingInterface,
-            addTypeName: _addTypeName,
-            addTypeAnnotation: addTypeAnnotation,
-            keyword: keyword,
-          );
-          collector.addSuggestion(suggestion);
+          collector.addSuggestion(methodSuggestion(.IDENTIFIER));
         }
         if (mustBeConstant && (method.isStatic || !preferNonInvocation)) {
           return;
         }
-        var suggestion = MethodSuggestion(
-          kind: _executableSuggestionKind,
-          replacementRange: state.request.replacementRange,
-          element: method,
-          importData: importData,
-          matcherScore: matcherScore,
-          referencingInterface: referencingInterface,
-          addTypeName: _addTypeName,
-          addTypeAnnotation: addTypeAnnotation,
-          keyword: keyword,
-        );
-        collector.addSuggestion(suggestion);
+        collector.addSuggestion(methodSuggestion(_executableSuggestionKind));
       }
     }
   }
@@ -2277,72 +2563,115 @@ class DeclarationHelper {
     bool isKeywordNeeded = false,
     bool isTypeNeeded = false,
   }) {
-    if (ignoreVisibility ||
-        visibilityTracker.isVisible(
-          element: accessor,
-          importData: importData,
-        )) {
-      if ((mustBeAssignable &&
-              accessor is GetterElement &&
-              accessor.correspondingSetter == null) ||
-          mustBeConstant ||
-          (mustBeNonVoid && accessor.returnType is VoidType)) {
-        return;
-      }
-      var matcherScore = state.matcher.score(accessor.displayName);
-      if (matcherScore != -1) {
-        var addTypeAnnotation =
-            isTypeNeeded && state.includeTypes && !isInDeclaration;
-        Keyword? keyword;
-        if (isKeywordNeeded) {
-          if (state.codeStyleOptions.makeLocalsFinal) {
-            keyword = Keyword.FINAL;
-          } else if (!state.includeTypes) {
-            keyword = Keyword.VAR;
-          }
+    var qualifier = _qualifierFor(
+      accessor,
+      ignoreVisibility: ignoreVisibility,
+      importData: importData,
+      isStatic: accessor.isStatic,
+      ownerName: accessor.enclosingElement.displayName,
+    );
+    if (qualifier == null) return;
+    if ((mustBeAssignable &&
+            accessor is GetterElement &&
+            accessor.correspondingSetter == null) ||
+        mustBeConstant ||
+        (mustBeNonVoid && accessor.returnType is VoidType)) {
+      return;
+    }
+    var matcherScore = state.matcher.score(accessor.displayName);
+    if (matcherScore != -1) {
+      var addTypeAnnotation =
+          isTypeNeeded && state.includeTypes && !isInDeclaration;
+      Keyword? keyword;
+      if (isKeywordNeeded) {
+        if (state.codeStyleOptions.makeLocalsFinal) {
+          keyword = Keyword.FINAL;
+        } else if (!state.includeTypes) {
+          keyword = Keyword.VAR;
         }
-        if (accessor.isOriginVariable) {
-          // Avoid visiting a field twice. All fields induce a getter, but only
-          // non-final fields induce a setter, so we don't add a suggestion for a
-          // synthetic setter.
-          if (accessor is GetterElement) {
-            var variable = accessor.variable;
-            if (variable is FieldElement) {
-              var suggestion = FieldSuggestion(
+      }
+      if (accessor.isOriginVariable) {
+        // Avoid visiting a field twice. All fields induce a getter, but only
+        // non-final fields induce a setter, so we don't add a suggestion for a
+        // synthetic setter.
+        if (accessor is GetterElement) {
+          var variable = accessor.variable;
+          if (variable is FieldElement) {
+            // An enum constant is suggested by its bare name from within the
+            // enum's own declaration, and by inserting the enum's name
+            // (importing it if necessary) everywhere else, regardless of
+            // whether the name happens to be shadowed.
+            var needsTypeName =
+                _addTypeName || (variable.isEnumConstant && !isInDeclaration);
+            var suggestion = _qualifiedSuggestion<FieldSuggestion>(
+              qualifier: qualifier,
+              addTypeName: needsTypeName,
+              withTypeName: () => .withTypeName(
                 element: variable,
                 matcherScore: matcherScore,
                 referencingInterface: referencingInterface,
-                isInDeclaration: isInDeclaration,
-                addTypeName: _addTypeName,
+                addTypeName: true,
+                replacementRange: state.request.replacementRange,
+              ),
+              withDeclarationInfo: () => .withDeclarationInfo(
+                element: variable,
+                matcherScore: matcherScore,
+                referencingInterface: referencingInterface,
                 replacementRange: state.request.replacementRange,
                 addTypeAnnotation: addTypeAnnotation,
                 keyword: keyword,
-              );
-              collector.addSuggestion(suggestion);
-            }
+              ),
+              withQualifier: () => .withQualifier(
+                element: variable,
+                matcherScore: matcherScore,
+                referencingInterface: referencingInterface,
+                replacementRange: state.request.replacementRange,
+                qualifier: qualifier,
+              ),
+            );
+            collector.addSuggestion(suggestion);
           }
-        } else {
-          if (accessor is GetterElement) {
-            var suggestion = GetterSuggestion(
+        }
+      } else {
+        if (accessor is GetterElement) {
+          var suggestion = _qualifiedSuggestion<GetterSuggestion>(
+            qualifier: qualifier,
+            withTypeName: () => .new(
               element: accessor,
               replacementRange: state.request.replacementRange,
               importData: importData,
               matcherScore: matcherScore,
               referencingInterface: referencingInterface,
-              addTypeName: _addTypeName,
-              addTypeAnnotation: addTypeAnnotation,
-              keyword: keyword,
-            );
-            collector.addSuggestion(suggestion);
-          } else {
-            var suggestion = SetterSuggestion(
-              element: accessor as SetterElement,
+              addTypeName: true,
+            ),
+            withDeclarationInfo: () => .withDeclarationInfo(
+              element: accessor,
+              replacementRange: state.request.replacementRange,
               importData: importData,
               matcherScore: matcherScore,
               referencingInterface: referencingInterface,
-            );
-            collector.addSuggestion(suggestion);
-          }
+              addTypeAnnotation: addTypeAnnotation,
+              keyword: keyword,
+            ),
+            withQualifier: () => GetterSuggestion.withQualifier(
+              element: accessor,
+              replacementRange: state.request.replacementRange,
+              importData: importData,
+              matcherScore: matcherScore,
+              referencingInterface: referencingInterface,
+              qualifier: qualifier,
+            ),
+          );
+          collector.addSuggestion(suggestion);
+        } else {
+          var suggestion = SetterSuggestion.withQualifier(
+            element: accessor as SetterElement,
+            importData: importData,
+            matcherScore: matcherScore,
+            referencingInterface: referencingInterface,
+            qualifier: qualifier,
+          );
+          collector.addSuggestion(suggestion);
         }
       }
     }
@@ -2355,6 +2684,13 @@ class DeclarationHelper {
     required bool isKeywordNeeded,
     required bool isTypeNeeded,
   }) {
+    var qualifier = _qualifierForName(
+      name,
+      importData: null,
+      isStatic: false,
+      ownerName: null,
+    );
+    if (qualifier == null) return;
     var matcherScore = state.matcher.score(name);
     if (matcherScore != -1) {
       Keyword? keyword;
@@ -2366,14 +2702,22 @@ class DeclarationHelper {
         }
       }
       collector.addSuggestion(
-        RecordFieldSuggestion(
-          field: field,
-          name: name,
-          addTypeAnnotation: isTypeNeeded && state.includeTypes,
-          replacementRange: state.request.replacementRange,
-          keyword: keyword,
-          matcherScore: matcherScore,
-        ),
+        qualifier.isEmpty
+            ? RecordFieldSuggestion.withDeclarationInfo(
+                field: field,
+                name: name,
+                addTypeAnnotation: isTypeNeeded && state.includeTypes,
+                replacementRange: state.request.replacementRange,
+                keyword: keyword,
+                matcherScore: matcherScore,
+              )
+            : RecordFieldSuggestion.withQualifier(
+                field: field,
+                name: name,
+                replacementRange: state.request.replacementRange,
+                matcherScore: matcherScore,
+                qualifier: qualifier,
+              ),
       );
     }
   }
@@ -2415,23 +2759,21 @@ class DeclarationHelper {
               if (getter.isOriginVariable) {
                 var variable = getter.variable;
                 if (variable is FieldElement) {
-                  var suggestion = FieldSuggestion(
+                  var suggestion = FieldSuggestion.withTypeName(
                     element: variable,
                     matcherScore: matcherScore,
                     referencingInterface: null,
-                    isInDeclaration: false,
                     addTypeName: _addTypeName,
                     replacementRange: state.request.replacementRange,
                   );
                   collector.addSuggestion(suggestion);
                 }
               } else {
-                var suggestion = GetterSuggestion(
+                var suggestion = GetterSuggestion.withEnclosingName(
                   element: getter,
                   importData: importData,
                   referencingInterface: null,
                   matcherScore: matcherScore,
-                  withEnclosingName: true,
                   addTypeName: _addTypeName,
                   replacementRange: state.request.replacementRange,
                 );
@@ -2485,7 +2827,7 @@ class DeclarationHelper {
       if (matcherScore != -1) {
         if (_matchesContextType(element) && !preferNonInvocation) {
           var suggestion = TopLevelFunctionSuggestion(
-            kind: CompletionSuggestionKind.IDENTIFIER,
+            kind: .IDENTIFIER,
             importData: importData,
             element: element,
             matcherScore: matcherScore,
@@ -2617,6 +2959,16 @@ class DeclarationHelper {
     }
   }
 
+  /// Returns the prefix that can be used to reach a member of [thisType]
+  /// through `this` when the member is shadowed at the completion location.
+  ///
+  /// The type of `this` can be nullable inside an extension whose extended
+  /// type is nullable, in which case the member can only be reached with a
+  /// null-aware access.
+  ThisPrefix _thisPrefixFor(DartType thisType) {
+    return thisType.nullabilitySuffix == .none ? .regular : .nullAware;
+  }
+
   void _visitCatchClause(CatchClause node) {
     var exceptionElement = node.exceptionParameter?.declaredFragment?.element;
     if (exceptionElement != null) {
@@ -2702,7 +3054,11 @@ class DeclarationHelper {
       for (var param in parameterList.parameters) {
         var declaredElement = param.declaredFragment?.element;
         if (declaredElement != null) {
-          _suggestParameter(declaredElement);
+          if (declaredElement case FieldFormalParameterElement(:var field?)) {
+            _suggestField(field: field);
+          } else {
+            _suggestParameter(declaredElement);
+          }
         }
       }
     }
@@ -2865,6 +3221,47 @@ class DeclarationHelper {
         }
       }
     }
+  }
+}
+
+/// The way in which `this` can be used to reach a member that is shadowed at
+/// the completion location.
+enum ThisPrefix {
+  /// The member can't be reached through `this`, so it isn't suggested with a
+  /// prefix.
+  none(null),
+
+  /// The member can be reached with a `this.` prefix.
+  regular('this'),
+
+  /// The member can be reached with a `this?.` prefix, because the static type
+  /// of `this` is nullable, as it can be inside an extension whose extended
+  /// type is nullable.
+  nullAware('this?');
+
+  /// The text of the prefix, without the trailing `.`, or `null` if the member
+  /// can't be reached through `this`.
+  final String? text;
+
+  new(this.text);
+}
+
+extension on AstNode {
+  /// Returns the type of `this` at the given [offset].
+  ///
+  /// Assumes that the receiver is inside the same function body as the
+  /// [offset].
+  DartType? thisTypeAt(int offset) {
+    FunctionBody? outermostFunctionBody;
+    AstNode? currentNode = this;
+    while (currentNode != null) {
+      if (currentNode is FunctionBody) {
+        outermostFunctionBody = currentNode;
+      }
+      currentNode = currentNode.parent;
+    }
+    // ignore: experimental_member_use
+    return outermostFunctionBody?.lookupPromotedThisType(offset: offset);
   }
 }
 

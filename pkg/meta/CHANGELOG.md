@@ -1,3 +1,8 @@
+## 1.19.0
+
+- The `@RecordUse()` and `@mustBeConst` annotations are no longer considered
+  experimental.
+
 ## 1.18.3
 
 - One new TargetKind is introduced: `TargetKind.importDirective`, which

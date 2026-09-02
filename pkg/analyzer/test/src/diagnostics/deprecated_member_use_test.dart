@@ -287,6 +287,23 @@ void f() {
 ''');
   }
 
+  test_assignmentExpression_simple_deprecatedGetter_noSetter() async {
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
+@deprecated
+int get x => 0;
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
+void f() {
+  x = 0;
+//^
+// [diag.assignmentToFinal] 'x' can't be used as a setter because it's final.
+}
+''');
+  }
+
   test_assignmentExpression_simple_deprecatedGetterSetter() async {
     newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated
@@ -2640,13 +2657,13 @@ void f(int a) {
 ''');
   }
 
-  test_topLevelVariable_switchCase_language219() async {
+  test_topLevelVariable_switchCase_beforePatterns() async {
     newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated
 const int x = 1;
 ''');
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
+// %before-language-feature: patterns
 import 'package:aaa/a.dart';
 void f(int a) {
   switch (a) {
@@ -2676,13 +2693,13 @@ void f() {
 ''');
   }
 
-  test_topLevelVariable_switchStatement_language219() async {
+  test_topLevelVariable_switchStatement_beforePatterns() async {
     newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated
 int x = 1;
 ''');
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
+// %before-language-feature: patterns
 import 'package:aaa/a.dart';
 void f() {
   switch (x) {}

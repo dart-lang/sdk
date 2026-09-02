@@ -2889,9 +2889,9 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     List<HInstruction> arguments = [pop()];
     ClassEntity cls = _commonElements.streamIterator;
     DartType typeArg = _elementMap.getDartType(node.variable.type);
-    final instanceType =
-        localsHandler.substInContext(dartTypes.interfaceType(cls, [typeArg]))
-            as InterfaceType;
+    final instanceType = localsHandler.substInContext(
+      dartTypes.interfaceType(cls, [typeArg]),
+    ) as InterfaceType;
     _addImplicitInstantiation(instanceType);
     final sourceInformation = _sourceInformationBuilder.buildForInIterator(
       node,
@@ -4107,13 +4107,9 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       final sourceInformation = _sourceInformationBuilder.buildListLiteral(
         node,
       );
-      final type =
-          localsHandler.substInContext(
-                _commonElements.listType(
-                  _elementMap.getDartType(node.typeArgument),
-                ),
-              )
-              as InterfaceType;
+      final type = localsHandler.substInContext(
+        _commonElements.listType(_elementMap.getDartType(node.typeArgument)),
+      ) as InterfaceType;
       listInstruction = _setListRuntimeTypeInfoIfNeeded(
         listInstruction,
         type,
@@ -4163,13 +4159,9 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       constructor is ConstructorEntity && constructor.isFactoryConstructor,
     );
 
-    final type =
-        localsHandler.substInContext(
-              _commonElements.setType(
-                _elementMap.getDartType(node.typeArgument),
-              ),
-            )
-            as InterfaceType;
+    final type = localsHandler.substInContext(
+      _commonElements.setType(_elementMap.getDartType(node.typeArgument)),
+    ) as InterfaceType;
     final cls = constructor.enclosingClass!;
 
     if (_rtiNeed.classNeedsTypeArguments(cls)) {
@@ -4251,14 +4243,12 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       constructor is ConstructorEntity && constructor.isFactoryConstructor,
     );
 
-    final type =
-        localsHandler.substInContext(
-              _commonElements.mapType(
-                _elementMap.getDartType(node.keyType),
-                _elementMap.getDartType(node.valueType),
-              ),
-            )
-            as InterfaceType;
+    final type = localsHandler.substInContext(
+      _commonElements.mapType(
+        _elementMap.getDartType(node.keyType),
+        _elementMap.getDartType(node.valueType),
+      ),
+    ) as InterfaceType;
     final cls = constructor.enclosingClass!;
 
     if (_rtiNeed.classNeedsTypeArguments(cls)) {
@@ -8179,7 +8169,6 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     // have been included if necessary, see [makeStaticArgumentList].
     if (!isInstanceMember ||
         currentNode == null || // In erroneous code, currentNode can be null.
-        _providedArgumentsKnownToBeComplete(currentNode) ||
         function is ConstructorBodyEntity ||
         selector!.isGetter) {
       // For these cases, the provided argument list is known to be complete.
@@ -8475,17 +8464,6 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     _returnType = state.oldReturnType;
     assert(stack.isEmpty);
     stack = state.oldStack;
-  }
-
-  bool _providedArgumentsKnownToBeComplete(ir.Node currentNode) {
-    /* When inlining the iterator methods generated for a for-in loop, the
-     * [currentNode] is the [ForIn] tree. The compiler-generated iterator
-     * invocations are known to have fully specified argument lists, no default
-     * arguments are used. See invocations of [pushInvokeDynamic] in
-     * [visitForIn].
-     */
-    // TODO(redemption): Is this valid here?
-    return currentNode is ir.ForInStatement;
   }
 
   void _emitReturn(HInstruction? value, SourceInformation? sourceInformation) {
@@ -8963,7 +8941,7 @@ class _ErroneousInitializerVisitor extends ir.VisitorDefault<bool>
 
   @override
   bool visitLocalInitializer(ir.LocalInitializer node) {
-    return node.variable.initializer?.accept(this) ?? false;
+    return node.value.accept(this);
   }
 
   // Expressions: Does the expression always throw?

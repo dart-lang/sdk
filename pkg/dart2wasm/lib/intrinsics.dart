@@ -16,8 +16,10 @@ import 'util.dart';
 
 typedef CodeGenCallback = void Function(AstCodeGenerator);
 
-typedef InlineCodeGenCallback =
-    void Function(AstCodeGenerator, Expression receiver);
+typedef InlineCodeGenCallback = void Function(
+  AstCodeGenerator,
+  Expression receiver,
+);
 
 enum MemberIntrinsic {
   objectEquals('dart:core', 'Object', '=='),
@@ -167,9 +169,13 @@ enum StaticIntrinsic {
   wasmI32Int16FromInt('dart:_wasm', 'WasmI32', 'int16FromInt'),
   wasmI32Uint16FromInt('dart:_wasm', 'WasmI32', 'uint16FromInt'),
   wasmI32FromBool('dart:_wasm', 'WasmI32', 'fromBool'),
+  wasmI32AsWasmF32('dart:_wasm', null, 'WasmI32Extension|get#asWasmF32'),
   wasmI64FromInt('dart:_wasm', 'WasmI64', 'fromInt'),
+  wasmI64AsWasmF64('dart:_wasm', null, 'WasmI64Extension|get#asWasmF64'),
   wasmF32FromDouble('dart:_wasm', 'WasmF32', 'fromDouble'),
+  wasmF32AsWasmI32('dart:_wasm', null, 'WasmF32Extension|get#asWasmI32'),
   wasmF64FromDouble('dart:_wasm', 'WasmF64', 'fromDouble'),
+  wasmF64AsWasmI64('dart:_wasm', null, 'WasmF64Extension|get#asWasmI64'),
   wasmI8x16Splat('dart:_wasm', null, 'WasmI8x16|constructor#splat'),
   wasmI8x16ExtractLaneS('dart:_wasm', null, 'WasmI8x16|extractLaneSigned'),
   wasmI8x16ExtractLaneU('dart:_wasm', null, 'WasmI8x16|extractLaneUnsigned'),
@@ -263,7 +269,11 @@ enum StaticIntrinsic {
   wasmV128AndNot('dart:_wasm', null, 'WasmV128Extension|andNot'),
   wasmV128BitSelect('dart:_wasm', null, 'WasmV128Extension|bitSelect'),
   wasmV128AnyTrue('dart:_wasm', null, 'WasmV128Extension|get#anyTrue'),
+  wasmI8x16Bitmask('dart:_wasm', null, 'WasmI8x16|get#bitmask'),
+  wasmI16x8Bitmask('dart:_wasm', null, 'WasmI16x8|get#bitmask'),
+  wasmI32x4Bitmask('dart:_wasm', null, 'WasmI32x4|get#bitmask'),
   wasmI64x2AllTrue('dart:_wasm', null, 'WasmI64x2|get#allTrue'),
+  wasmI64x2Bitmask('dart:_wasm', null, 'WasmI64x2|get#bitmask'),
   wasmF64x2PMin('dart:_wasm', null, 'WasmF64x2|pmin'),
   wasmF64x2PMax('dart:_wasm', null, 'WasmF64x2|pmax'),
   wasmF64x2Shuffle('dart:_wasm', null, 'WasmF64x2|shuffle'),
@@ -285,10 +295,6 @@ enum StaticIntrinsic {
   setIdentityHashField('dart:_object_helper', null, 'setIdentityHashField'),
   unsafeCast('dart:_internal', null, 'unsafeCast'),
   unsafeCastOpaque('dart:_internal', null, 'unsafeCastOpaque'),
-  floatToIntBits('dart:_internal', null, 'floatToIntBits'),
-  intBitsToFloat('dart:_internal', null, 'intBitsToFloat'),
-  doubleToIntBits('dart:_internal', null, 'doubleToIntBits'),
-  intBitsToDouble('dart:_internal', null, 'intBitsToDouble'),
   exportWasmFunction('dart:_internal', null, 'exportWasmFunction'),
   getID('dart:_internal', 'ClassID', 'getID'),
   loadInt8('dart:ffi', null, '_loadInt8'),
@@ -1047,7 +1053,71 @@ class Intrinsifier {
       return w.NumType.i32;
     }
 
+    // Compare `<obj1>.runtimeType == <obj2>.runtimeType`
+    final leftReceiver = _getRuntimeTypeReceiver(node.left);
+    final rightReceiver = _getRuntimeTypeReceiver(node.right);
+    if (leftReceiver != null && rightReceiver != null) {
+      final leftDartType = dartTypeOf(leftReceiver);
+      final rightDartType = dartTypeOf(rightReceiver);
+
+      if (_hierarchyHasRuntimeTypeDeterminedByClassId(leftDartType) ||
+          _hierarchyHasRuntimeTypeDeterminedByClassId(rightDartType)) {
+        _pushClassIdOrZero(leftReceiver, leftDartType.isPotentiallyNullable);
+        _pushClassIdOrZero(rightReceiver, rightDartType.isPotentiallyNullable);
+        b.i32_eq();
+        return w.NumType.i32;
+      }
+    }
+
     return null;
+  }
+
+  void _pushClassIdOrZero(Expression expr, bool isPotentiallyNullable) {
+    final expressionType = isPotentiallyNullable
+        ? translator.topType
+        : translator.topTypeNonNullable;
+
+    codeGen.translateExpression(expr, expressionType);
+    b.loadClassIdNullable(translator, expressionType);
+  }
+
+  Expression? _getRuntimeTypeReceiver(Expression exp) {
+    if (exp case InstanceGet(:final receiver) || DynamicGet(:final receiver)) {
+      if (translator.singleTarget(exp) == translator.objectRuntimeType) {
+        return receiver;
+      }
+    }
+    return null;
+  }
+
+  bool _hierarchyHasRuntimeTypeDeterminedByClassId(DartType dartType) {
+    if (dartType is! InterfaceType) return false;
+    final functionType = translator.coreTypes.functionNonNullableRawType;
+    if (translator.typeEnvironment.isSubtypeOf(functionType, dartType) ||
+        translator.typeEnvironment.isSubtypeOf(dartType, functionType)) {
+      return false;
+    }
+    final recordType = translator.coreTypes.recordNonNullableRawType;
+    if (translator.typeEnvironment.isSubtypeOf(recordType, dartType) ||
+        translator.typeEnvironment.isSubtypeOf(dartType, recordType)) {
+      return false;
+    }
+    final cls = dartType.classNode;
+    final ranges = translator.classIdNumbering.getConcreteClassIdRange(cls);
+    if (ranges.isEmpty) return false;
+    if (ranges[0].start <
+        translator.classIdNumbering.firstNonMasqueradedInterfaceClassCid) {
+      return false;
+    }
+    for (final range in ranges) {
+      for (int cid = range.start; cid <= range.end; cid++) {
+        final classInfo = translator.classes[cid];
+        if (classInfo.cls != null && classInfo.cls!.typeParameters.isNotEmpty) {
+          return false;
+        }
+      }
+    }
+    return true;
   }
 
   /// Generate inline code for a [StaticGet] if the member is an inlined
@@ -1516,38 +1586,6 @@ class Intrinsifier {
         // Just evaluate the operand and let the context convert it to the
         // expected type.
         return codeGen.translateExpression(operand, typeOfExp(operand));
-      case StaticIntrinsic.floatToIntBits:
-        codeGen.translateExpression(
-          node.arguments.positional.single,
-          w.NumType.f64,
-        );
-        b.f32_demote_f64();
-        b.i32_reinterpret_f32();
-        b.i64_extend_i32_u();
-        return w.NumType.i64;
-      case StaticIntrinsic.intBitsToFloat:
-        codeGen.translateExpression(
-          node.arguments.positional.single,
-          w.NumType.i64,
-        );
-        b.i32_wrap_i64();
-        b.f32_reinterpret_i32();
-        b.f64_promote_f32();
-        return w.NumType.f64;
-      case StaticIntrinsic.doubleToIntBits:
-        codeGen.translateExpression(
-          node.arguments.positional.single,
-          w.NumType.f64,
-        );
-        b.i64_reinterpret_f64();
-        return w.NumType.i64;
-      case StaticIntrinsic.intBitsToDouble:
-        codeGen.translateExpression(
-          node.arguments.positional.single,
-          w.NumType.i64,
-        );
-        b.f64_reinterpret_i64();
-        return w.NumType.f64;
       case StaticIntrinsic.exportWasmFunction:
         const error =
             'The `dart:_internal:exportWasmFunction` expects its argument '
@@ -1751,6 +1789,34 @@ class Intrinsifier {
         );
         b.i64x2_all_true();
         return w.NumType.i32;
+      case StaticIntrinsic.wasmI8x16Bitmask:
+        codeGen.translateExpression(
+          node.arguments.positional[0],
+          w.NumType.v128,
+        );
+        b.i8x16_bitmask();
+        return w.NumType.i32;
+      case StaticIntrinsic.wasmI16x8Bitmask:
+        codeGen.translateExpression(
+          node.arguments.positional[0],
+          w.NumType.v128,
+        );
+        b.i16x8_bitmask();
+        return w.NumType.i32;
+      case StaticIntrinsic.wasmI32x4Bitmask:
+        codeGen.translateExpression(
+          node.arguments.positional[0],
+          w.NumType.v128,
+        );
+        b.i32x4_bitmask();
+        return w.NumType.i32;
+      case StaticIntrinsic.wasmI64x2Bitmask:
+        codeGen.translateExpression(
+          node.arguments.positional[0],
+          w.NumType.v128,
+        );
+        b.i64x2_bitmask();
+        return w.NumType.i32;
       case StaticIntrinsic.wasmF64x2PMin:
         codeGen.translateExpression(
           node.arguments.positional[0],
@@ -1814,42 +1880,48 @@ class Intrinsifier {
       case StaticIntrinsic.wasmI32x4ConstructorFromInts:
         codeGen.translateExpression(
           node.arguments.positional[0],
-          w.NumType.i32,
+          w.NumType.i64,
         );
+        b.i32_wrap_i64();
         b.i32x4_splat();
         for (int i = 1; i < 4; i++) {
           codeGen.translateExpression(
             node.arguments.positional[i],
-            w.NumType.i32,
+            w.NumType.i64,
           );
+          b.i32_wrap_i64();
           b.i32x4_replace_lane(i);
         }
         return w.NumType.v128;
       case StaticIntrinsic.wasmI16x8ConstructorFromInts:
         codeGen.translateExpression(
           node.arguments.positional[0],
-          w.NumType.i32,
+          w.NumType.i64,
         );
+        b.i32_wrap_i64();
         b.i16x8_splat();
         for (int i = 1; i < 8; i++) {
           codeGen.translateExpression(
             node.arguments.positional[i],
-            w.NumType.i32,
+            w.NumType.i64,
           );
+          b.i32_wrap_i64();
           b.i16x8_replace_lane(i);
         }
         return w.NumType.v128;
       case StaticIntrinsic.wasmI8x16ConstructorFromInts:
         codeGen.translateExpression(
           node.arguments.positional[0],
-          w.NumType.i32,
+          w.NumType.i64,
         );
+        b.i32_wrap_i64();
         b.i8x16_splat();
         for (int i = 1; i < 16; i++) {
           codeGen.translateExpression(
             node.arguments.positional[i],
-            w.NumType.i32,
+            w.NumType.i64,
           );
+          b.i32_wrap_i64();
           b.i8x16_replace_lane(i);
         }
         return w.NumType.v128;
@@ -2026,19 +2098,39 @@ class Intrinsifier {
         Expression value = node.arguments.positional[0];
         codeGen.translateExpression(value, w.NumType.i32);
         return w.NumType.i32;
+      case StaticIntrinsic.wasmI32AsWasmF32:
+        Expression value = node.arguments.positional[0];
+        codeGen.translateExpression(value, w.NumType.i32);
+        b.f32_reinterpret_i32();
+        return w.NumType.f32;
       case StaticIntrinsic.wasmI64FromInt:
         Expression value = node.arguments.positional[0];
         codeGen.translateExpression(value, w.NumType.i64);
         return w.NumType.i64;
+      case StaticIntrinsic.wasmI64AsWasmF64:
+        Expression value = node.arguments.positional[0];
+        codeGen.translateExpression(value, w.NumType.i64);
+        b.f64_reinterpret_i64();
+        return w.NumType.f64;
       case StaticIntrinsic.wasmF32FromDouble:
         Expression value = node.arguments.positional[0];
         codeGen.translateExpression(value, w.NumType.f64);
         b.f32_demote_f64();
         return w.NumType.f32;
+      case StaticIntrinsic.wasmF32AsWasmI32:
+        Expression value = node.arguments.positional[0];
+        codeGen.translateExpression(value, w.NumType.f32);
+        b.i32_reinterpret_f32();
+        return w.NumType.i32;
       case StaticIntrinsic.wasmF64FromDouble:
         Expression value = node.arguments.positional[0];
         codeGen.translateExpression(value, w.NumType.f64);
         return w.NumType.f64;
+      case StaticIntrinsic.wasmF64AsWasmI64:
+        Expression value = node.arguments.positional[0];
+        codeGen.translateExpression(value, w.NumType.f64);
+        b.i64_reinterpret_f64();
+        return w.NumType.i64;
       case StaticIntrinsic.wasmI8x16Splat:
         Expression value = node.arguments.positional[0];
         codeGen.translateExpression(value, w.NumType.i32);

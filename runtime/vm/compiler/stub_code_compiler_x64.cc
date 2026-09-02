@@ -332,6 +332,7 @@ void StubCodeCompiler::GenerateEnterSafepointStub() {
   __ EnterFrame(0);
   __ ReserveAlignedFrameSpace(0);
   __ movq(RAX, Address(THR, kEnterSafepointRuntimeEntry.OffsetFromThread()));
+  __ Comment("Leaf runtime call: %s", kEnterSafepointRuntimeEntry.name());
   __ CallCFunction(RAX);
   __ LeaveFrame();
 
@@ -350,6 +351,7 @@ void StubCodeCompiler::GenerateExitSafepointStub() {
   __ VerifyNotInGenerated(RAX);
 
   __ movq(RAX, Address(THR, kExitSafepointRuntimeEntry.OffsetFromThread()));
+  __ Comment("Leaf runtime call: %s", kExitSafepointRuntimeEntry.name());
   __ CallCFunction(RAX);
   __ LeaveFrame();
 
@@ -495,6 +497,13 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   COMPILE_ASSERT(!IsCalleeSavedRegister(RAX) && !IsArgumentRegister(RAX));
 
   Label body;
+  // Padding for ubsan target function pointer validation
+  while (__ CodeSize() <
+         FfiCallbackMetadata::kUbsanTargetValidationPaddingSize) {
+    __ Breakpoint();
+  }
+  ASSERT_EQUAL(FfiCallbackMetadata::kUbsanTargetValidationPaddingSize,
+               __ CodeSize());
   for (intptr_t i = 0; i < FfiCallbackMetadata::NumCallbackTrampolinesPerPage();
        ++i) {
     // The FfiCallbackMetadata table is keyed by the trampoline entry point. So
@@ -510,19 +519,22 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   }
 
   ASSERT_EQUAL(__ CodeSize(),
-               FfiCallbackMetadata::kNativeCallbackTrampolineSize *
-                   FfiCallbackMetadata::NumCallbackTrampolinesPerPage());
+               FfiCallbackMetadata::kUbsanTargetValidationPaddingSize +
+                   FfiCallbackMetadata::kNativeCallbackTrampolineSize *
+                       FfiCallbackMetadata::NumCallbackTrampolinesPerPage());
 
   __ Bind(&body);
 
   const intptr_t shared_stub_start = __ CodeSize();
 
-  // Save THR which is callee-saved.
+  // Save THR, R12, R13 which are callee-saved. Push R10 to keep stack aligned.
   __ EnterFrame(0);
   __ pushq(THR);
   __ pushq(R12);
-  // 4 = return address, FP, THR, R12
-  COMPILE_ASSERT(4 == FfiCallbackMetadata::kNativeCallbackTrampolineStackDelta);
+  __ pushq(R13);
+  __ pushq(R10);
+  // 6 = return address, FP, THR, R12, R13, R10
+  COMPILE_ASSERT(6 == FfiCallbackMetadata::kNativeCallbackTrampolineStackDelta);
 
   // Load the thread, verify the callback ID and exit the safepoint.
   //
@@ -530,7 +542,7 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   // code size of this shared stub.
   {
     // Save all registers which might hold arguments.
-    __ PushRegistersAligned(kArgumentRegisterSet, 3 * target::kWordSize);
+    __ PushRegistersAligned(kArgumentRegisterSet, 5 * target::kWordSize);
     COMPILE_ASSERT(RAX != CallingConventions::kArg1Reg);
     __ movq(CallingConventions::kArg1Reg, RAX);
     __ movq(CallingConventions::kArg2Reg, RSP);
@@ -543,9 +555,14 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
     __ movq(RAX, Address(RSP, 0 * target::kWordSize));  // entry_point
     __ movq(TMP, Address(RSP, 1 * target::kWordSize));  // is_tail
     __ movq(R12, Address(RSP, 2 * target::kWordSize));  // epilogue
+    __ movq(R13, Address(RSP, 3 * target::kWordSize));  // isolate
+    __ movq(R10, Address(RSP, 4 * target::kWordSize));  // isolate_group
 
     // Restore the arguments.
-    __ PopRegistersAligned(kArgumentRegisterSet, 3 * target::kWordSize);
+    __ PopRegistersAligned(kArgumentRegisterSet, 5 * target::kWordSize);
+
+    __ pushq(R10);  // save isolate_group
+    __ pushq(R13);  // save isolate
   }
 
   Label tail;
@@ -560,13 +577,19 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 
   {
     __ call(RAX);  // entry_point
+    __ popq(R13);  // restore isolate
+    __ popq(R10);  // restore isolate_group
     __ PushRegistersAligned(return_registers, 0);
     __ movq(CallingConventions::kArg1Reg, THR);
+    __ movq(CallingConventions::kArg2Reg, R13);
+    __ movq(CallingConventions::kArg3Reg, R10);
     __ CallCFunction(R12, /*restore_rsp=*/true);  // DLRT_ExitSyncCallback, etc
     if (FLAG_target_memory_sanitizer) {
       __ CallCFunction(RAX, /*restore_rsp=*/true);  // dart_msan_unpoison_retval
     }
     __ PopRegistersAligned(return_registers, 0);
+    __ popq(R10);
+    __ popq(R13);
     __ popq(R12);
     __ popq(THR);
     __ LeaveFrame();
@@ -575,9 +598,13 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 
   {
     __ Bind(&tail);
-    __ call(RAX);  // entry_point
+    __ call(RAX);                           // entry_point
+    __ popq(CallingConventions::kArg2Reg);  // restore isolate
+    __ popq(CallingConventions::kArg3Reg);  // restore isolate_group
     __ movq(CallingConventions::kArg1Reg, THR);
     __ movq(RAX, R12);
+    __ popq(R10);
+    __ popq(R13);
     __ popq(R12);
     __ popq(THR);
     __ LeaveFrame();
@@ -1270,7 +1297,7 @@ static void InvokeAllocationProbePoint(Assembler* assembler) {
 // Clobbered:
 //   RCX, RDI, R12
 void StubCodeCompiler::GenerateAllocateArrayStub() {
-  if (!FLAG_use_slow_path && FLAG_inline_alloc) {
+  if (UseInlineAllocation()) {
     Label slow_case;
     // Compute the size to be allocated, it is based on the array length
     // and is computed as:
@@ -1411,8 +1438,7 @@ void StubCodeCompiler::GenerateAllocateArrayStub() {
 }
 
 void StubCodeCompiler::GenerateAllocateMintSharedWithFPURegsStub() {
-  // For test purpose call allocation stub without inline allocation attempt.
-  if (!FLAG_use_slow_path && FLAG_inline_alloc) {
+  if (UseInlineAllocation()) {
     Label slow_case;
     __ TryAllocate(compiler::MintClass(), &slow_case, Assembler::kNearJump,
                    AllocateMintABI::kResultReg, AllocateMintABI::kTempReg);
@@ -1430,8 +1456,7 @@ void StubCodeCompiler::GenerateAllocateMintSharedWithFPURegsStub() {
 }
 
 void StubCodeCompiler::GenerateAllocateMintSharedWithoutFPURegsStub() {
-  // For test purpose call allocation stub without inline allocation attempt.
-  if (!FLAG_use_slow_path && FLAG_inline_alloc) {
+  if (UseInlineAllocation()) {
     Label slow_case;
     __ TryAllocate(compiler::MintClass(), &slow_case, Assembler::kNearJump,
                    AllocateMintABI::kResultReg, AllocateMintABI::kTempReg);
@@ -1461,6 +1486,7 @@ static const RegisterSet kCalleeSavedRegisterSet(
 //   RDX : arguments array.
 //   RCX : current thread.
 void StubCodeCompiler::GenerateInvokeDartCodeStub() {
+  if (FLAG_support_cfi) __ endbr64();
   __ EnterFrame(0);
 
   const Register kTargetReg = CallingConventions::kArg1Reg;
@@ -1615,6 +1641,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub() {
 //   RCX : current thread.
 void StubCodeCompiler::GenerateInvokeDartCodeFromBytecodeStub() {
 #if defined(DART_DYNAMIC_MODULES)
+  if (FLAG_support_cfi) __ endbr64();
   __ EnterFrame(0);
 
   const Register kTargetReg = CallingConventions::kArg1Reg;
@@ -1848,7 +1875,7 @@ static void GenerateAllocateContextSpaceStub(Assembler* assembler,
 //   R9, R13
 void StubCodeCompiler::GenerateAllocateContextStub() {
   __ LoadObject(R9, NullObject());
-  if (!FLAG_use_slow_path && FLAG_inline_alloc) {
+  if (UseInlineAllocation()) {
     Label slow_case;
 
     GenerateAllocateContextSpaceStub(assembler, &slow_case);
@@ -1916,7 +1943,7 @@ void StubCodeCompiler::GenerateAllocateContextStub() {
 // Clobbered:
 //   R10, R13
 void StubCodeCompiler::GenerateCloneContextStub() {
-  if (!FLAG_use_slow_path && FLAG_inline_alloc) {
+  if (UseInlineAllocation()) {
     Label slow_case;
 
     // Load num. variable (int32_t) in the existing context.
@@ -2345,8 +2372,7 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
   __ movq(kTagsReg, Immediate(tags));
 
   // Load the appropriate generic alloc. stub.
-  if (!FLAG_use_slow_path && FLAG_inline_alloc &&
-      !target::Class::TraceAllocation(cls) &&
+  if (UseInlineAllocation() && !target::Class::TraceAllocation(cls) &&
       target::SizeFitsInSizeTag(instance_size)) {
     RELEASE_ASSERT(AllocateObjectInstr::WillAllocateNewOrRemembered(cls));
     RELEASE_ASSERT(target::Heap::IsAllocatableInNewSpace(instance_size));
@@ -3078,7 +3104,7 @@ void StubCodeCompiler::GenerateInterpretCallStub() {
   __ movq(CallingConventions::kArg3Reg, R11);  // Negative argc.
   __ movq(CallingConventions::kArg4Reg, R12);  // Argv.
 
-#if defined(TARGET_OS_WINDOWS)
+#if defined(DART_TARGET_OS_WINDOWS)
   __ movq(Address(RSP, 0 * target::kWordSize), THR);  // Thread.
 #else
   __ movq(CallingConventions::kArg5Reg, THR);  // Thread.
@@ -3314,6 +3340,8 @@ void StubCodeCompiler::GenerateJumpToFrameStub() {
                         target::kWordSize));
     __ jmp(&again);
     __ Bind(&done);
+  } else if (FLAG_support_cfi) {
+    // TODO(63457): How to unwind to appease SHSTK?
   }
   __ movq(RBP, CallingConventions::kArg3Reg);
   __ movq(RSP, CallingConventions::kArg2Reg);
@@ -3757,7 +3785,7 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(intptr_t cid) {
   COMPILE_ASSERT(AllocateTypedDataArrayABI::kLengthReg == RAX);
   COMPILE_ASSERT(AllocateTypedDataArrayABI::kResultReg == RAX);
 
-  if (!FLAG_use_slow_path && FLAG_inline_alloc) {
+  if (UseInlineAllocation()) {
     // Save length argument for possible runtime call, as
     // RAX is clobbered.
     Label call_runtime;

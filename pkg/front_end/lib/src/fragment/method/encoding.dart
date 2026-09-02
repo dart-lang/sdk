@@ -36,6 +36,7 @@ import '../../source/source_type_parameter_builder.dart';
 import '../../source/stack_listener_impl.dart' show AsyncModifier;
 import '../../source/type_parameter_factory.dart';
 import '../fragment.dart';
+import '../../type_inference/context_allocation_strategy.dart';
 
 sealed class MethodEncoding implements InferredTypeListener {
   List<SourceNominalParameterBuilder>? get clonedAndDeclaredTypeParameters;
@@ -98,10 +99,9 @@ sealed class MethodEncoding implements InferredTypeListener {
 
   void registerFunctionBody({
     required Statement? body,
-    required Scope? scope,
     required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
-    required ThisVariable? thisVariable,
+    required ScopeProviderInfo? scopeProviderInfo,
   });
 }
 
@@ -392,10 +392,9 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
   @override
   void registerFunctionBody({
     required Statement? body,
-    required Scope? scope,
     required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
-    required ThisVariable? thisVariable,
+    required ScopeProviderInfo? scopeProviderInfo,
   }) {
     if (body != null) {
       function.registerFunctionBody(
@@ -404,8 +403,7 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
         emittedValueType: emittedValueType,
       );
     }
-    function.scope = scope;
-    function.thisVariable = thisVariable?..parent = function;
+    function.registerScopeProviderInfo(scopeProviderInfo);
   }
 }
 
@@ -588,7 +586,8 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
       isAbstractOrExternal ? null : extern.createEmptyStatement(),
       typeParameters: typeParameters,
       positionalParameters: [
-        _thisFormal.build(libraryBuilder).astVariable as PositionalParameter,
+        _thisFormal.build(libraryBuilder).functionParameter
+            as PositionalParameter,
       ],
       asyncMarker: _fragment.asyncModifier.kind,
       fileOffset: _fragment.formalsOffset,
@@ -784,7 +783,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
     return _extensionTearOffParameterMap?[_fragment
         .declaredFormals![index]
         .variable
-        .astVariable];
+        .functionParameter];
   }
 
   @override
@@ -795,10 +794,9 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
   @override
   void registerFunctionBody({
     required Statement? body,
-    required Scope? scope,
     required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
-    required ThisVariable? thisVariable,
+    required ScopeProviderInfo? scopeProviderInfo,
   }) {
     if (body != null) {
       function.registerFunctionBody(
@@ -807,10 +805,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
         emittedValueType: emittedValueType,
       );
     }
-    function.scope = scope;
-    function.thisVariable =
-        // Coverage-ignore(suite): Not run.
-        thisVariable?..parent = function;
+    function.registerScopeProviderInfo(scopeProviderInfo);
   }
 
   /// Creates a top level function that creates a tear off of an extension
@@ -886,7 +881,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
       DartType type,
     ) {
       PositionalParameter newParameter = new PositionalParameter(
-        cosmeticName: parameter.cosmeticName,
+        parameterName: parameter.parameterName,
         type: type,
         isFinal: parameter.isFinal,
         isLowered: parameter.isLowered,

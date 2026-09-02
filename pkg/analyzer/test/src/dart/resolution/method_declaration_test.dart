@@ -108,10 +108,9 @@ MethodDeclaration
 ''');
   }
 
-  test_wildCardMethod_preWildCards() async {
+  test_wildCardMethod_beforeWildcardVariables() async {
     var result = await resolveTestCodeWithDiagnostics('''
-// @dart = 3.4
-// (pre wildcard-variables)
+// %before-language-feature: wildcard-variables
 
 class C {
   _() {}
@@ -131,7 +130,7 @@ MethodDeclaration
     block: Block
       leftBracket: {
       rightBracket: }
-  declaredFragment: <testLibraryFragment> _@56
+  declaredFragment: <testLibraryFragment> _@28
     element: <testLibrary>::@class::C::@method::_
       type: dynamic Function()
 ''');
@@ -152,7 +151,7 @@ class C {
 VariableDeclaration
   name: _
   equals: =
-  initializer: SimpleIdentifier
+  initializer2: SimpleIdentifier
     token: _
     element: <testLibrary>::@class::C::@getter::_
     staticType: int

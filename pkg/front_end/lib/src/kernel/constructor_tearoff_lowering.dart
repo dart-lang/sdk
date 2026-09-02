@@ -370,7 +370,7 @@ DelayedDefaultValueCloner _createParameters(
       constructorParameter.type,
     );
     return extern.createPositionalParameter(
-      cosmeticName: constructorParameter.cosmeticName,
+      parameterName: constructorParameter.parameterName,
       type: tearOffParameterType,
       fileOffset: constructorParameter.fileOffset,
     );
@@ -444,7 +444,7 @@ Arguments _createArguments(
   for (NamedParameter tearOffParameter in tearOff.function.namedParameters) {
     namedArguments.add(
       extern.createNamedExpression(
-        tearOffParameter.cosmeticName!,
+        tearOffParameter.parameterName,
         extern.createVariableGet(tearOffParameter, fileOffset: fileOffset),
       ),
     );
@@ -483,6 +483,9 @@ void _createTearOffBody(Procedure tearOff, Member target, Arguments arguments) {
   tearOff.function.registerFunctionBody(
     extern.createReturnStatement(constructorInvocation),
   );
+  // TODO(cstefantsova): Verify that null should be passed for scopeProviderInfo
+  //  in the call below.
+  tearOff.function.registerScopeProviderInfo(null);
 }
 
 /// Reverse engineered typedef tear off information.

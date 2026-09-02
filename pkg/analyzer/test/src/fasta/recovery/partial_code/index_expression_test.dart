@@ -25,7 +25,7 @@ f() { intList[] = 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -37,7 +37,18 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression: AssignmentExpression
+                expression2: DirectAssignment
+                  target: ReceiverIndexAssignmentTarget
+                    receiver: SimpleIdentifier
+                      token: intList
+                    leftBracket: [
+                    index: SimpleIdentifier
+                      token: <empty> <synthetic>
+                    rightBracket: ]
+                  operator: =
+                  value: IntegerLiteral
+                    literal: 0
+                expression(v1): AssignmentExpression
                   leftHandSide: IndexExpression
                     target: SimpleIdentifier
                       token: intList
@@ -62,7 +73,7 @@ f() { intList[ ] = 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -74,7 +85,18 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression: AssignmentExpression
+                expression2: DirectAssignment
+                  target: ReceiverIndexAssignmentTarget
+                    receiver: SimpleIdentifier
+                      token: intList
+                    leftBracket: [
+                    index: SimpleIdentifier
+                      token: <empty> <synthetic>
+                    rightBracket: ]
+                  operator: =
+                  value: IntegerLiteral
+                    literal: 0
+                expression(v1): AssignmentExpression
                   leftHandSide: IndexExpression
                     target: SimpleIdentifier
                       token: intList
@@ -99,7 +121,7 @@ f() { intList[x,y] = 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -111,7 +133,18 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression: AssignmentExpression
+                expression2: DirectAssignment
+                  target: ReceiverIndexAssignmentTarget
+                    receiver: SimpleIdentifier
+                      token: intList
+                    leftBracket: [
+                    index: SimpleIdentifier
+                      token: x
+                    rightBracket: ]
+                  operator: =
+                  value: IntegerLiteral
+                    literal: 0
+                expression(v1): AssignmentExpression
                   leftHandSide: IndexExpression
                     target: SimpleIdentifier
                       token: intList
@@ -136,7 +169,7 @@ f() { intList[x,] = 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -148,7 +181,18 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression: AssignmentExpression
+                expression2: DirectAssignment
+                  target: ReceiverIndexAssignmentTarget
+                    receiver: SimpleIdentifier
+                      token: intList
+                    leftBracket: [
+                    index: SimpleIdentifier
+                      token: x
+                    rightBracket: ]
+                  operator: =
+                  value: IntegerLiteral
+                    literal: 0
+                expression(v1): AssignmentExpression
                   leftHandSide: IndexExpression
                     target: SimpleIdentifier
                       token: intList
@@ -173,7 +217,7 @@ f() { intList[x y] = 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -185,7 +229,18 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression: AssignmentExpression
+                expression2: DirectAssignment
+                  target: ReceiverIndexAssignmentTarget
+                    receiver: SimpleIdentifier
+                      token: intList
+                    leftBracket: [
+                    index: SimpleIdentifier
+                      token: x
+                    rightBracket: ]
+                  operator: =
+                  value: IntegerLiteral
+                    literal: 0
+                expression(v1): AssignmentExpression
                   leftHandSide: IndexExpression
                     target: SimpleIdentifier
                       token: intList
@@ -214,7 +269,7 @@ f() { intList[x assert (true); }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -226,7 +281,14 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression: IndexExpression
+                expression2: ReceiverIndexExpression
+                  receiver: SimpleIdentifier
+                    token: intList
+                  leftBracket: [
+                  index: SimpleIdentifier
+                    token: x
+                  rightBracket: ] <synthetic>
+                expression(v1): IndexExpression
                   target: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -237,7 +299,7 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition: BooleanLiteral
+                condition2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -256,7 +318,7 @@ f() { intList[x {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -268,7 +330,14 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression: IndexExpression
+                expression2: ReceiverIndexExpression
+                  receiver: SimpleIdentifier
+                    token: intList
+                  leftBracket: [
+                  index: SimpleIdentifier
+                    token: x
+                  rightBracket: ] <synthetic>
+                expression(v1): IndexExpression
                   target: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -297,7 +366,7 @@ f() { intList[x break; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -309,7 +378,14 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression: IndexExpression
+                expression2: ReceiverIndexExpression
+                  receiver: SimpleIdentifier
+                    token: intList
+                  leftBracket: [
+                  index: SimpleIdentifier
+                    token: x
+                  rightBracket: ] <synthetic>
+                expression(v1): IndexExpression
                   target: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -338,7 +414,7 @@ f() { intList[x continue; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -350,7 +426,14 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression: IndexExpression
+                expression2: ReceiverIndexExpression
+                  receiver: SimpleIdentifier
+                    token: intList
+                  leftBracket: [
+                  index: SimpleIdentifier
+                    token: x
+                  rightBracket: ] <synthetic>
+                expression(v1): IndexExpression
                   target: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -378,7 +461,7 @@ f() { intList[x do {} while (true); }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -390,7 +473,14 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression: IndexExpression
+                expression2: ReceiverIndexExpression
+                  receiver: SimpleIdentifier
+                    token: intList
+                  leftBracket: [
+                  index: SimpleIdentifier
+                    token: x
+                  rightBracket: ] <synthetic>
+                expression(v1): IndexExpression
                   target: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -405,7 +495,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition: BooleanLiteral
+                condition2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -424,7 +514,7 @@ f() { intList[x }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -436,7 +526,14 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression: IndexExpression
+                expression2: ReceiverIndexExpression
+                  receiver: SimpleIdentifier
+                    token: intList
+                  leftBracket: [
+                  index: SimpleIdentifier
+                    token: x
+                  rightBracket: ] <synthetic>
+                expression(v1): IndexExpression
                   target: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -461,7 +558,7 @@ f() { intList[x for (var x in y) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -473,7 +570,14 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression: IndexExpression
+                expression2: ReceiverIndexExpression
+                  receiver: SimpleIdentifier
+                    token: intList
+                  leftBracket: [
+                  index: SimpleIdentifier
+                    token: x
+                  rightBracket: ] <synthetic>
+                expression(v1): IndexExpression
                   target: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -489,7 +593,7 @@ CompilationUnit
                     keyword: var
                     name: x
                   inKeyword: in
-                  iterable: SimpleIdentifier
+                  iterable2: SimpleIdentifier
                     token: y
                 rightParenthesis: )
                 body: Block
@@ -512,7 +616,7 @@ f() { intList[x if (true) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -524,7 +628,14 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression: IndexExpression
+                expression2: ReceiverIndexExpression
+                  receiver: SimpleIdentifier
+                    token: intList
+                  leftBracket: [
+                  index: SimpleIdentifier
+                    token: x
+                  rightBracket: ] <synthetic>
+                expression(v1): IndexExpression
                   target: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -535,7 +646,7 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression: BooleanLiteral
+                expression2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 thenStatement: Block
@@ -556,7 +667,7 @@ f() { intList[x l: {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -568,7 +679,14 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression: IndexExpression
+                expression2: ReceiverIndexExpression
+                  receiver: SimpleIdentifier
+                    token: intList
+                  leftBracket: [
+                  index: SimpleIdentifier
+                    token: x
+                  rightBracket: ] <synthetic>
+                expression(v1): IndexExpression
                   target: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -601,7 +719,7 @@ f() { intList[x int f() {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -613,7 +731,14 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression: IndexExpression
+                expression2: ReceiverIndexExpression
+                  receiver: SimpleIdentifier
+                    token: intList
+                  leftBracket: [
+                  index: SimpleIdentifier
+                    token: x
+                  rightBracket: ] <synthetic>
+                expression(v1): IndexExpression
                   target: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -651,7 +776,7 @@ f() { intList[x void f() {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -663,7 +788,14 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression: IndexExpression
+                expression2: ReceiverIndexExpression
+                  receiver: SimpleIdentifier
+                    token: intList
+                  leftBracket: [
+                  index: SimpleIdentifier
+                    token: x
+                  rightBracket: ] <synthetic>
+                expression(v1): IndexExpression
                   target: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -701,7 +833,7 @@ f() { intList[x var x; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -713,7 +845,14 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression: IndexExpression
+                expression2: ReceiverIndexExpression
+                  receiver: SimpleIdentifier
+                    token: intList
+                  leftBracket: [
+                  index: SimpleIdentifier
+                    token: x
+                  rightBracket: ] <synthetic>
+                expression(v1): IndexExpression
                   target: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -745,7 +884,7 @@ f() { intList[x return; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -757,7 +896,14 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression: IndexExpression
+                expression2: ReceiverIndexExpression
+                  receiver: SimpleIdentifier
+                    token: intList
+                  leftBracket: [
+                  index: SimpleIdentifier
+                    token: x
+                  rightBracket: ] <synthetic>
+                expression(v1): IndexExpression
                   target: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -785,7 +931,7 @@ f() { intList[x switch (x) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -797,7 +943,14 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression: IndexExpression
+                expression2: ReceiverIndexExpression
+                  receiver: SimpleIdentifier
+                    token: intList
+                  leftBracket: [
+                  index: SimpleIdentifier
+                    token: x
+                  rightBracket: ] <synthetic>
+                expression(v1): IndexExpression
                   target: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -808,7 +961,7 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: x
                 rightParenthesis: )
                 leftBracket: {
@@ -830,7 +983,7 @@ f() { intList[x try {} finally {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -842,7 +995,14 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression: IndexExpression
+                expression2: ReceiverIndexExpression
+                  receiver: SimpleIdentifier
+                    token: intList
+                  leftBracket: [
+                  index: SimpleIdentifier
+                    token: x
+                  rightBracket: ] <synthetic>
+                expression(v1): IndexExpression
                   target: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -876,7 +1036,7 @@ f() { intList[x while (true) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -888,7 +1048,14 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression: IndexExpression
+                expression2: ReceiverIndexExpression
+                  receiver: SimpleIdentifier
+                    token: intList
+                  leftBracket: [
+                  index: SimpleIdentifier
+                    token: x
+                  rightBracket: ] <synthetic>
+                expression(v1): IndexExpression
                   target: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -899,7 +1066,7 @@ CompilationUnit
               WhileStatement
                 whileKeyword: while
                 leftParenthesis: (
-                condition: BooleanLiteral
+                condition2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 body: Block
@@ -918,7 +1085,7 @@ f() { intList[ assert (true); }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -930,7 +1097,21 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression: IndexExpression
+                expression2: ReceiverIndexExpression
+                  receiver: SimpleIdentifier
+                    token: intList
+                  leftBracket: [
+                  index: CallInvocation
+                    receiver: SimpleIdentifier
+                      token: assert
+                    argumentList: ArgumentList
+                      leftParenthesis: (
+                      arguments2
+                        BooleanLiteral
+                          literal: true
+                      rightParenthesis: )
+                  rightBracket: ] <synthetic>
+                expression(v1): IndexExpression
                   target: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -960,7 +1141,7 @@ f() { intList[ {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -972,7 +1153,16 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression: IndexExpression
+                expression2: ReceiverIndexExpression
+                  receiver: SimpleIdentifier
+                    token: intList
+                  leftBracket: [
+                  index: SetOrMapLiteral
+                    leftBracket: {
+                    rightBracket: }
+                    isMap: false
+                  rightBracket: ] <synthetic>
+                expression(v1): IndexExpression
                   target: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -1001,7 +1191,7 @@ f() { intList[ break; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1013,7 +1203,14 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression: IndexExpression
+                expression2: ReceiverIndexExpression
+                  receiver: SimpleIdentifier
+                    token: intList
+                  leftBracket: [
+                  index: SimpleIdentifier
+                    token: <empty> <synthetic>
+                  rightBracket: ] <synthetic>
+                expression(v1): IndexExpression
                   target: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -1043,7 +1240,7 @@ f() { intList[ continue; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1055,7 +1252,14 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression: IndexExpression
+                expression2: ReceiverIndexExpression
+                  receiver: SimpleIdentifier
+                    token: intList
+                  leftBracket: [
+                  index: SimpleIdentifier
+                    token: <empty> <synthetic>
+                  rightBracket: ] <synthetic>
+                expression(v1): IndexExpression
                   target: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -1084,7 +1288,7 @@ f() { intList[ do {} while (true); }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1096,7 +1300,14 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression: IndexExpression
+                expression2: ReceiverIndexExpression
+                  receiver: SimpleIdentifier
+                    token: intList
+                  leftBracket: [
+                  index: SimpleIdentifier
+                    token: <empty> <synthetic>
+                  rightBracket: ] <synthetic>
+                expression(v1): IndexExpression
                   target: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -1111,7 +1322,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition: BooleanLiteral
+                condition2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -1131,7 +1342,7 @@ f() { intList[ }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1143,7 +1354,14 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression: IndexExpression
+                expression2: ReceiverIndexExpression
+                  receiver: SimpleIdentifier
+                    token: intList
+                  leftBracket: [
+                  index: SimpleIdentifier
+                    token: <empty> <synthetic>
+                  rightBracket: ] <synthetic>
+                expression(v1): IndexExpression
                   target: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -1169,7 +1387,7 @@ f() { intList[ for (var x in y) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1181,7 +1399,14 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression: IndexExpression
+                expression2: ReceiverIndexExpression
+                  receiver: SimpleIdentifier
+                    token: intList
+                  leftBracket: [
+                  index: SimpleIdentifier
+                    token: <empty> <synthetic>
+                  rightBracket: ] <synthetic>
+                expression(v1): IndexExpression
                   target: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -1197,7 +1422,7 @@ CompilationUnit
                     keyword: var
                     name: x
                   inKeyword: in
-                  iterable: SimpleIdentifier
+                  iterable2: SimpleIdentifier
                     token: y
                 rightParenthesis: )
                 body: Block
@@ -1221,7 +1446,7 @@ f() { intList[ if (true) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1233,7 +1458,14 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression: IndexExpression
+                expression2: ReceiverIndexExpression
+                  receiver: SimpleIdentifier
+                    token: intList
+                  leftBracket: [
+                  index: SimpleIdentifier
+                    token: <empty> <synthetic>
+                  rightBracket: ] <synthetic>
+                expression(v1): IndexExpression
                   target: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -1244,7 +1476,7 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression: BooleanLiteral
+                expression2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 thenStatement: Block
@@ -1267,7 +1499,7 @@ f() { intList[ l: {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1279,7 +1511,14 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression: IndexExpression
+                expression2: ReceiverIndexExpression
+                  receiver: SimpleIdentifier
+                    token: intList
+                  leftBracket: [
+                  index: SimpleIdentifier
+                    token: l
+                  rightBracket: ] <synthetic>
+                expression(v1): IndexExpression
                   target: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -1288,7 +1527,7 @@ CompilationUnit
                   rightBracket: ] <synthetic>
                 semicolon: ; <synthetic>
               ExpressionStatement
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ; <synthetic>
               Block
@@ -1311,7 +1550,7 @@ f() { intList[ int f() {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1323,7 +1562,20 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression: IndexExpression
+                expression2: ReceiverIndexExpression
+                  receiver: SimpleIdentifier
+                    token: intList
+                  leftBracket: [
+                  index: FunctionExpression
+                    parameters: FormalParameterList
+                      leftParenthesis: (
+                      rightParenthesis: )
+                    body: BlockFunctionBody
+                      block: Block
+                        leftBracket: {
+                        rightBracket: }
+                  rightBracket: ] <synthetic>
+                expression(v1): IndexExpression
                   target: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -1354,7 +1606,7 @@ f() { intList[ void f() {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1366,7 +1618,20 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression: IndexExpression
+                expression2: ReceiverIndexExpression
+                  receiver: SimpleIdentifier
+                    token: intList
+                  leftBracket: [
+                  index: FunctionExpression
+                    parameters: FormalParameterList
+                      leftParenthesis: (
+                      rightParenthesis: )
+                    body: BlockFunctionBody
+                      block: Block
+                        leftBracket: {
+                        rightBracket: }
+                  rightBracket: ] <synthetic>
+                expression(v1): IndexExpression
                   target: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -1398,7 +1663,7 @@ f() { intList[ var x; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1410,7 +1675,14 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression: IndexExpression
+                expression2: ReceiverIndexExpression
+                  receiver: SimpleIdentifier
+                    token: intList
+                  leftBracket: [
+                  index: SimpleIdentifier
+                    token: <empty> <synthetic>
+                  rightBracket: ] <synthetic>
+                expression(v1): IndexExpression
                   target: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -1441,7 +1713,7 @@ f() { intList[ return; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1453,7 +1725,14 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression: IndexExpression
+                expression2: ReceiverIndexExpression
+                  receiver: SimpleIdentifier
+                    token: intList
+                  leftBracket: [
+                  index: SimpleIdentifier
+                    token: <empty> <synthetic>
+                  rightBracket: ] <synthetic>
+                expression(v1): IndexExpression
                   target: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -1476,7 +1755,7 @@ f() { intList[ switch (x) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1488,7 +1767,20 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression: IndexExpression
+                expression2: ReceiverIndexExpression
+                  receiver: SimpleIdentifier
+                    token: intList
+                  leftBracket: [
+                  index: SwitchExpression
+                    switchKeyword: switch
+                    leftParenthesis: (
+                    expression2: SimpleIdentifier
+                      token: x
+                    rightParenthesis: )
+                    leftBracket: {
+                    rightBracket: }
+                  rightBracket: ] <synthetic>
+                expression(v1): IndexExpression
                   target: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -1520,7 +1812,7 @@ f() { intList[ try {} finally {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1532,7 +1824,14 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression: IndexExpression
+                expression2: ReceiverIndexExpression
+                  receiver: SimpleIdentifier
+                    token: intList
+                  leftBracket: [
+                  index: SimpleIdentifier
+                    token: <empty> <synthetic>
+                  rightBracket: ] <synthetic>
+                expression(v1): IndexExpression
                   target: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -1567,7 +1866,7 @@ f() { intList[ while (true) {} }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1579,7 +1878,14 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression: IndexExpression
+                expression2: ReceiverIndexExpression
+                  receiver: SimpleIdentifier
+                    token: intList
+                  leftBracket: [
+                  index: SimpleIdentifier
+                    token: <empty> <synthetic>
+                  rightBracket: ] <synthetic>
+                expression(v1): IndexExpression
                   target: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -1590,7 +1896,7 @@ CompilationUnit
               WhileStatement
                 whileKeyword: while
                 leftParenthesis: (
-                condition: BooleanLiteral
+                condition2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 body: Block

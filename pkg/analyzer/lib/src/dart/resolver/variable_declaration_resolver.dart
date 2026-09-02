@@ -26,9 +26,9 @@ class VariableDeclarationResolver {
        _strictInference = strictInference;
 
   void resolve(VariableDeclarationImpl node) {
-    var parent = node.parent as VariableDeclarationList;
+    var parent = node.parent2 as VariableDeclarationList;
 
-    var initializer = node.initializer;
+    var initializer = node.initializer2;
 
     if (initializer == null) {
       if (_strictInference && parent.type == null) {
@@ -55,18 +55,24 @@ class VariableDeclarationResolver {
           ?.formalParameters;
     }
 
+    var beforeInitializerOffset = node.equals!.offset;
     if (isTopLevel) {
       _resolver.flowAnalysis.bodyOrInitializer_enter(
         node,
         inScopePrimaryConstructorParameters,
+        offset: beforeInitializerOffset,
       );
       if (inScopePrimaryConstructorParameters != null) {
         _resolver.flowAnalysis.declarePrimaryConstructorParameters(
           inScopePrimaryConstructorParameters,
+          offset: beforeInitializerOffset,
         );
       }
     } else if (element.isLate) {
-      _resolver.flowAnalysis.flow?.lateInitializer_begin(node);
+      _resolver.flowAnalysis.flow?.lateInitializer_begin(
+        node,
+        offset: beforeInitializerOffset,
+      );
     }
 
     var contextType =
@@ -77,7 +83,7 @@ class VariableDeclarationResolver {
     _resolver.analyzeExpression(initializer, SharedTypeSchemaView(contextType));
     initializer = _resolver.popRewrite()!;
     var whyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(
-      _resolver.flowAnalysis.flow?.getExpressionInfo(initializer),
+      _resolver.flowAnalysis.getExpressionInfo(initializer),
     );
 
     var initializerType = initializer.typeOrThrow;
@@ -91,14 +97,14 @@ class VariableDeclarationResolver {
       _resolver.flowAnalysis.bodyOrInitializer_exit();
       _resolver.nullSafetyDeadCodeVerifier.flowEnd(node);
     } else if (element.isLate) {
-      _resolver.flowAnalysis.flow?.lateInitializer_end();
+      _resolver.flowAnalysis.flow?.lateInitializer_end(offset: node.end);
     }
 
     // Initializers of top-level variables and fields are already included
     // into elements during linking.
     if (element is LocalVariableElementImpl && element.isConst) {
       var fragment = element.firstFragment;
-      fragment.constantInitializer = initializer;
+      fragment.constantInitializer2 = initializer;
     }
 
     _resolver.checkForAssignableExpressionAtType(

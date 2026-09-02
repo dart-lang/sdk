@@ -23,8 +23,8 @@ import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:collection/collection.dart';
 
-/// An [AstVisitor] that fills [UsedLocalElements].
-class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
+/// An [AstVisitor2] that fills [UsedLocalElements].
+class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
   final UsedLocalElements usedElements = UsedLocalElements();
 
   final LibraryElement _enclosingLibrary;
@@ -56,10 +56,36 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitBinaryExpression(BinaryExpression node) {
+  void visitBinaryOperatorInvocation(BinaryOperatorInvocation node) {
     var element = node.element;
     usedElements.addMember(element);
-    super.visitBinaryExpression(node);
+    super.visitBinaryOperatorInvocation(node);
+  }
+
+  @override
+  void visitCallInvocation(CallInvocation node) {
+    if (node.resolution case ExecutableInvocationResolution(:var element)) {
+      usedElements.addElement(element);
+    }
+    super.visitCallInvocation(node);
+  }
+
+  @override
+  void visitCascadeIndexExpression(CascadeIndexExpression node) {
+    _useIndexReadResolution(node.resolution);
+    super.visitCascadeIndexExpression(node);
+  }
+
+  @override
+  void visitCascadeMethodInvocation(CascadeMethodInvocation node) {
+    _recordNamedFunctionInvocation(node);
+    super.visitCascadeMethodInvocation(node);
+  }
+
+  @override
+  void visitCascadePropertyExtraction(CascadePropertyExtraction node) {
+    _useNamedReadResolution(node.resolution, readCountsAsUse: true);
+    super.visitCascadePropertyExtraction(node);
   }
 
   @override
@@ -99,11 +125,27 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitCompoundAssignment(CompoundAssignment node) {
+    usedElements.addMember(node.element);
+    _useReadWriteAssignmentTarget(
+      node.target,
+      readCountsAsUse: node.parent2 is! ExpressionStatement,
+    );
+    super.visitCompoundAssignment(node);
+  }
+
+  @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     var element = node.declaredFragment!.element;
-    var redirectedConstructor = node.redirectedConstructor;
-    if (redirectedConstructor != null) {
-      var redirectedElement = redirectedConstructor.element;
+    if (node.typeName2 case var typeName?) {
+      if (typeName.lexeme == element.enclosingElement.name) {
+        _useIdentifierElement(element.enclosingElement);
+      }
+    }
+
+    var factoryRedirectionTarget = node.factoryRedirectionTarget;
+    if (factoryRedirectionTarget != null) {
+      var redirectedElement = factoryRedirectionTarget.element;
       if (redirectedElement != null) {
         // TODO(scheglov): Only if not _isPubliclyAccessible
         _matchParameters(
@@ -116,6 +158,66 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
       }
     }
     super.visitConstructorDeclaration(node);
+  }
+
+  @override
+  void visitConstructorInvocation(ConstructorInvocation node) {
+    _addParametersForArguments(node.argumentList);
+    super.visitConstructorInvocation(node);
+  }
+
+  @override
+  void visitConstructorReference2(ConstructorReference2 node) {
+    _useIdentifierElement(node.typeReference.element);
+    _useIdentifierElement(node.element);
+    super.visitConstructorReference2(node);
+  }
+
+  @override
+  void visitConstructorTearOff(ConstructorTearOff node) {
+    _useIdentifierElement(node.typeReference.element);
+    var element = node.element;
+    _useIdentifierElement(element);
+    if (element != null) {
+      for (var parameter in element.baseElement.formalParameters) {
+        usedElements.addElement(parameter);
+      }
+    }
+    super.visitConstructorTearOff(node);
+  }
+
+  @override
+  void visitDirectAssignment(DirectAssignment node) {
+    var target = node.target;
+    if (target case IndexAssignmentTarget(
+      write: MethodIndexWriteResolution(:var element),
+    )) {
+      _useAssignmentTargetElement(element);
+      super.visitDirectAssignment(node);
+      return;
+    }
+    var write = switch (target) {
+      PropertyAssignmentTarget(:var write) => write,
+      UnqualifiedNameAssignmentTarget(:var write) => write,
+      _ => null,
+    };
+    if (write case InvalidNamedWriteResolution(:var candidates)) {
+      for (var candidate in candidates) {
+        if (candidate is SubstitutedExecutableElementImpl) {
+          candidate = candidate.baseElement;
+        }
+        _useIdentifierElement(candidate);
+      }
+      super.visitDirectAssignment(node);
+      return;
+    }
+    if (write is! NamedWriteResolutionWithElement) {
+      super.visitDirectAssignment(node);
+      return;
+    }
+    _useAssignmentTargetElement(write.element);
+
+    super.visitDirectAssignment(node);
   }
 
   @override
@@ -132,6 +234,21 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
     usedElements.addElement(node.memberName.element?.enclosingElement);
     _addParametersForArguments(node.argumentList);
     super.visitDotShorthandInvocation(node);
+  }
+
+  @override
+  void visitDotShorthandMethodInvocation(DotShorthandMethodInvocation node) {
+    _recordNamedFunctionInvocation(node);
+    super.visitDotShorthandMethodInvocation(node);
+  }
+
+  @override
+  void visitDotShorthandNameExpression(DotShorthandNameExpression node) {
+    if (node.resolution case NamedReadResolutionWithElement(:var element)) {
+      usedElements.addElement(element.enclosingElement);
+    }
+    _useNamedReadResolution(node.resolution, readCountsAsUse: true);
+    super.visitDotShorthandNameExpression(node);
   }
 
   @override
@@ -165,16 +282,10 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitFunctionExpression(FunctionExpression node) {
-    if (node.parent is! FunctionDeclaration) {
+    if (node.parent2 is! FunctionDeclaration) {
       usedElements.addElement(node.declaredFragment?.element);
     }
     super.visitFunctionExpression(node);
-  }
-
-  @override
-  void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    usedElements.addElement(node.element);
-    super.visitFunctionExpressionInvocation(node);
   }
 
   @override
@@ -193,25 +304,33 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitIfNullAssignment(IfNullAssignment node) {
+    _useReadWriteAssignmentTarget(node.target, readCountsAsUse: true);
+    super.visitIfNullAssignment(node);
+  }
+
+  @override
+  void visitImportPrefixedFunctionInvocation(
+    ImportPrefixedFunctionInvocation node,
+  ) {
+    _recordNamedFunctionInvocation(node);
+    super.visitImportPrefixedFunctionInvocation(node);
+  }
+
+  @override
   void visitIndexExpression(IndexExpression node) {
-    var element = node.writeOrReadElement;
+    var element = node.writeOrReadElement2;
     usedElements.addMember(element);
     super.visitIndexExpression(node);
   }
 
   @override
-  void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    _addParametersForArguments(node.argumentList);
-    super.visitInstanceCreationExpression(node);
-  }
-
-  @override
   void visitIsExpression(IsExpression node) {
     var insideIsExpressionOld = _insideIsExpression;
-    node.expression.accept(this);
+    node.expression2.accept2(this);
     try {
       _insideIsExpression = true;
-      node.type.accept(this);
+      node.type.accept2(this);
     } finally {
       _insideIsExpression = insideIsExpressionOld;
     }
@@ -253,17 +372,63 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitPostfixExpression(PostfixExpression node) {
-    var element = node.element;
-    usedElements.addMember(element);
-    super.visitPostfixExpression(node);
+  void visitPostfixDecrement(PostfixDecrement node) {
+    _visitIncrementOrDecrementExpression(node);
+    super.visitPostfixDecrement(node);
   }
 
   @override
-  void visitPrefixExpression(PrefixExpression node) {
+  void visitPostfixIncrement(PostfixIncrement node) {
+    _visitIncrementOrDecrementExpression(node);
+    super.visitPostfixIncrement(node);
+  }
+
+  @override
+  void visitPrefixDecrement(PrefixDecrement node) {
+    _visitIncrementOrDecrementExpression(node);
+    super.visitPrefixDecrement(node);
+  }
+
+  @override
+  void visitPrefixIncrement(PrefixIncrement node) {
+    _visitIncrementOrDecrementExpression(node);
+    super.visitPrefixIncrement(node);
+  }
+
+  @override
+  void visitReceiverIndexExpression(ReceiverIndexExpression node) {
+    _useIndexReadResolution(node.resolution);
+    super.visitReceiverIndexExpression(node);
+  }
+
+  @override
+  void visitReceiverMethodInvocation(ReceiverMethodInvocation node) {
+    _recordNamedFunctionInvocation(node);
+    super.visitReceiverMethodInvocation(node);
+  }
+
+  @override
+  void visitReceiverPropertyExtraction(ReceiverPropertyExtraction node) {
+    _useNamedReadResolution(node.resolution, readCountsAsUse: true);
+    super.visitReceiverPropertyExtraction(node);
+  }
+
+  @override
+  void visitRedirectingConstructorInvocation(
+    RedirectingConstructorInvocation node,
+  ) {
     var element = node.element;
-    usedElements.addMember(element);
-    super.visitPrefixExpression(node);
+    usedElements.addElement(element);
+    _addParametersForArguments(node.argumentList);
+
+    // TODO(scheglov): Remove this compatibility behavior and report optional
+    // parameters that are omitted by every invocation.
+    if (element != null && node.constructorSelector != null) {
+      for (var parameter in element.baseElement.formalParameters) {
+        usedElements.addElement(parameter);
+      }
+    }
+    super.visitRedirectingConstructorInvocation(node);
   }
 
   @override
@@ -278,10 +443,10 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
     if (node.inDeclarationContext()) {
       return;
     }
-    if (node.inCommentReference) {
+    if (node.inCommentReference2) {
       return;
     }
-    var element = node.writeOrReadElement;
+    var element = node.writeOrReadElement2;
     // Store un-parameterized members.
     if (element is SubstitutedExecutableElementImpl) {
       element = element.baseElement;
@@ -302,22 +467,13 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
         usedElements.addElement(element);
       }
     } else {
-      var parent = node.parent!;
-      _useIdentifierElement(node.readElement);
-      _useIdentifierElement(node.writeElement);
+      var parent = node.parent2!;
+      _useIdentifierElement(node.readElement2);
+      _useIdentifierElement(node.writeElement2);
       _useIdentifierElement(node.element);
-      var grandparent = parent.parent;
       // If [node] is a tear-off, assume all parameters are used.
       var functionReferenceIsCall =
-          (element is ExecutableElement && parent is MethodInvocation) ||
-          // named constructor
-          (element is ConstructorElement &&
-              parent is ConstructorName &&
-              grandparent is InstanceCreationExpression) ||
-          // unnamed constructor
-          (element is InterfaceElement &&
-              grandparent is ConstructorName &&
-              grandparent.parent is InstanceCreationExpression);
+          element is ExecutableElement && parent is MethodInvocation;
       if (element is ExecutableElement &&
           isIdentifierRead &&
           !functionReferenceIsCall) {
@@ -351,7 +507,17 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
+    var element = node.element;
+    usedElements.addElement(element);
     _addParametersForArguments(node.argumentList);
+
+    // TODO(scheglov): Remove this compatibility behavior and report optional
+    // parameters that are omitted by every invocation.
+    if (element != null && node.constructorSelector != null) {
+      for (var parameter in element.baseElement.formalParameters) {
+        usedElements.addElement(parameter);
+      }
+    }
     super.visitSuperConstructorInvocation(node);
   }
 
@@ -368,16 +534,39 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitTopLevelGetterDeclaration(TopLevelGetterDeclaration node) {
+    var enclosingExecOld = _enclosingExec;
+    try {
+      _enclosingExec = node.declaredFragment?.element;
+      super.visitTopLevelGetterDeclaration(node);
+    } finally {
+      _enclosingExec = enclosingExecOld;
+    }
+  }
+
+  @override
+  void visitUnaryOperatorInvocation(UnaryOperatorInvocation node) {
+    usedElements.addMember(node.element);
+    super.visitUnaryOperatorInvocation(node);
+  }
+
+  @override
+  void visitUnqualifiedFunctionInvocation(UnqualifiedFunctionInvocation node) {
+    _recordNamedFunctionInvocation(node);
+    super.visitUnqualifiedFunctionInvocation(node);
+  }
+
+  @override
   void visitVariableDeclarationList(VariableDeclarationList node) {
-    node.metadata.accept(this);
+    node.metadata.accept2(this);
     var enclosingVariableDeclarationOld = _enclosingVariableDeclaration;
     try {
       _enclosingVariableDeclaration = node;
-      node.type?.accept(this);
+      node.type?.accept2(this);
     } finally {
       _enclosingVariableDeclaration = enclosingVariableDeclarationOld;
     }
-    node.variables.accept(this);
+    node.variables.accept2(this);
   }
 
   /// Add [element] as a used member and, if [element] is a setter, add its
@@ -392,9 +581,35 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
   }
 
   void _addParametersForArguments(ArgumentList argumentList) {
-    for (var argument in argumentList.arguments) {
+    for (var argument in argumentList.arguments2) {
       var parameter = argument.correspondingParameter;
       usedElements.addElement(parameter);
+    }
+  }
+
+  void _recordNamedFunctionInvocation(NamedFunctionInvocation node) {
+    if (node.resolution case ExecutableInvocationResolution(:var element)) {
+      _useIdentifierElement(element);
+      _addParametersForArguments(node.argumentList);
+    }
+  }
+
+  void _useAssignmentTargetElement(Element element) {
+    if (element is SubstitutedExecutableElementImpl) {
+      element = element.baseElement;
+    }
+
+    // A write alone does not make a local variable's value used.
+    if (element is LocalVariableElement) {
+      return;
+    }
+
+    _useIdentifierElement(element);
+    var enclosingElement = element.enclosingElement;
+    if ((enclosingElement is InterfaceElement ||
+            enclosingElement is ExtensionElement) &&
+        !identical(element, _enclosingExec)) {
+      usedElements.members.add(element);
     }
   }
 
@@ -422,6 +637,117 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
     usedElements.addElement(element);
   }
 
+  void _useIndexReadResolution(IndexReadResolution? resolution) {
+    var element = switch (resolution) {
+      MethodIndexReadResolution(:var element) => element,
+      InvalidIndexReadResolution(
+        recovery: MethodIndexReadResolution(:var element),
+      ) =>
+        element,
+      _ => null,
+    };
+    usedElements.addMember(element);
+  }
+
+  void _useNamedReadResolution(
+    NamedReadResolution? read, {
+    required bool readCountsAsUse,
+  }) {
+    if (read case NamedReadResolutionWithElement(:var element)) {
+      if (element is SubstitutedExecutableElementImpl) {
+        element = element.baseElement;
+      }
+      var variable = element.tryCast<PropertyAccessorElement>()?.variable;
+      if (element is PropertyAccessorElement &&
+          variable is TopLevelVariableElement) {
+        if (element.isOriginVariable) {
+          if (readCountsAsUse) {
+            usedElements.addElement(variable);
+          }
+        } else {
+          usedElements.members.add(element);
+          _addMemberAndCorrespondingGetter(element);
+        }
+      } else if (element is LocalVariableElement) {
+        if (readCountsAsUse) {
+          usedElements.addElement(element);
+        }
+      } else if (readCountsAsUse ||
+          element is! PropertyAccessorElement ||
+          !element.isOriginVariable) {
+        _useIdentifierElement(element);
+        if (element is ExecutableElement) {
+          for (var parameter in element.formalParameters) {
+            usedElements.addElement(parameter);
+          }
+        }
+        var enclosingElement = element.enclosingElement;
+        if ((enclosingElement is InterfaceElement ||
+                enclosingElement is ExtensionElement) &&
+            !identical(element, _enclosingExec)) {
+          usedElements.members.add(element);
+          _addMemberAndCorrespondingGetter(element);
+        }
+      }
+    }
+  }
+
+  void _useReadWriteAssignmentTarget(
+    AssignmentTarget target, {
+    required bool readCountsAsUse,
+  }) {
+    var indexResolutions = switch (target) {
+      IndexAssignmentTarget(:var read, :var write) => (read, write),
+      _ => null,
+    };
+    if (indexResolutions case (var read, var write)) {
+      if (read case MethodIndexReadResolution(:var element)) {
+        _useAssignmentTargetElement(element);
+      }
+      if (write case MethodIndexWriteResolution(:var element)) {
+        _useAssignmentTargetElement(element);
+      }
+      return;
+    }
+    var read = switch (target) {
+      PropertyAssignmentTarget(:var read) => read,
+      UnqualifiedNameAssignmentTarget(:var read) => read,
+      _ => null,
+    };
+    var write = switch (target) {
+      PropertyAssignmentTarget(:var write) => write,
+      UnqualifiedNameAssignmentTarget(:var write) => write,
+      _ => null,
+    };
+
+    _useNamedReadResolution(read, readCountsAsUse: readCountsAsUse);
+
+    if (write case NamedWriteResolutionWithElement(:var element)) {
+      if (element is SubstitutedExecutableElementImpl) {
+        element = element.baseElement;
+      }
+      if (element is! LocalVariableElement) {
+        _useIdentifierElement(element);
+        var enclosingElement = element.enclosingElement;
+        if ((enclosingElement is InterfaceElement ||
+                enclosingElement is ExtensionElement) &&
+            !identical(element, _enclosingExec)) {
+          usedElements.members.add(element);
+        }
+      }
+    }
+  }
+
+  void _visitIncrementOrDecrementExpression(
+    IncrementOrDecrementExpression node,
+  ) {
+    usedElements.addMember(node.element);
+    _useReadWriteAssignmentTarget(
+      node.target,
+      readCountsAsUse: node.parent2 is! ExpressionStatement,
+    );
+  }
+
   /// Returns whether the value of [node] is _only_ being read at this position.
   ///
   /// Returns `false` if [node] is not a read access, or if [node] is a combined
@@ -432,15 +758,18 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
       return false;
     }
     // Check if useless reading.
-    AstNode parent = node.parent!;
+    AstNode parent = node.parent2!;
 
-    if (parent.parent is ExpressionStatement) {
-      if (parent is PrefixExpression || parent is PostfixExpression) {
+    if (parent.parent2 is ExpressionStatement) {
+      if (parent is NullAssertionExpression ||
+          parent is LogicalNot ||
+          parent is IncrementOrDecrementExpression ||
+          parent is UnaryOperatorInvocation) {
         // v++;
         // ++v;
         return false;
       }
-      if (parent is AssignmentExpression && parent.leftHandSide == node) {
+      if (parent is AssignmentExpression && parent.leftHandSide2 == node) {
         // v ??= doSomething();
         //   vs.
         // v += 2;
@@ -505,7 +834,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
 /// looking for cases of [diag.unusedElement],
 /// [diag.unusedField],
 /// [diag.unusedLocalVariable], etc.
-class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
+class UnusedLocalElementsVerifier extends RecursiveAstVisitor2<void> {
   final DiagnosticReporter _diagnosticReporter;
 
   /// The elements know to be used.
@@ -721,10 +1050,10 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   void visitPrimaryConstructorDeclaration(
     covariant PrimaryConstructorDeclarationImpl node,
   ) {
-    switch (node.parent) {
+    switch (node.parent2) {
       case ClassDeclarationImpl():
       case EnumDeclarationImpl():
-        for (var parameter in node.formalParameters.parameters) {
+        for (var parameter in node.formalParameters.allFormalParameters) {
           var element = parameter.declaredFragment!.element;
           if (element is FieldFormalParameterElementImpl &&
               element.isDeclaring) {
@@ -748,7 +1077,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
         // renaming it to be public is not an improvement.
         break;
       default:
-        throw UnimplementedError('${node.parent.runtimeType}');
+        throw UnimplementedError('${node.parent2.runtimeType}');
     }
 
     super.visitPrimaryConstructorDeclaration(node);
@@ -778,6 +1107,16 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
         _visitTypeAliasElement(element);
       }
     }
+  }
+
+  @override
+  void visitTopLevelGetterDeclaration(TopLevelGetterDeclaration node) {
+    var declaredElement = node.declaredFragment?.element;
+    if (declaredElement != null) {
+      _visitPropertyAccessorElement(declaredElement);
+    }
+
+    super.visitTopLevelGetterDeclaration(node);
   }
 
   @override
@@ -926,8 +1265,8 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
       }
       if (enclosingElement is ConstructorElement &&
           enclosingElement.enclosingElement.typeParameters.isNotEmpty) {
-        // There is an issue matching arguments of instance creation
-        // expressions for generic classes with parameters, so for now,
+        // There is an issue matching arguments of constructor invocations for
+        // generic classes with parameters, so for now,
         // consider every parameter of a constructor of a generic class
         // "used". See https://github.com/dart-lang/sdk/issues/47839.
         return true;

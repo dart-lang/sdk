@@ -2,10 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@Retry(0)
-@Timeout(Duration(minutes: 2))
-library;
-
 import 'dart:async';
 import 'dart:io';
 

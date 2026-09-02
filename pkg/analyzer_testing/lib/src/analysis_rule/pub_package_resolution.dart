@@ -5,6 +5,7 @@
 import 'dart:convert' show json;
 
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
@@ -12,10 +13,10 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart'; // ignore: implementation_imports
 import 'package:analyzer/src/dart/analysis/byte_store.dart'; // ignore: implementation_imports
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart'; // ignore: implementation_imports
-import 'package:analyzer/src/dart/analysis/experiments.dart'; // ignore: implementation_imports
 import 'package:analyzer/src/diagnostic/diagnostic.dart' // ignore: implementation_imports
     as diag;
 import 'package:analyzer/src/test_utilities/mock_sdk.dart'; // ignore: implementation_imports
+import 'package:analyzer_testing/configuration_files_mixin.dart';
 import 'package:analyzer_testing/experiments/experiments.dart';
 import 'package:analyzer_testing/mock_packages/mock_packages.dart';
 import 'package:analyzer_testing/package_config_file_builder.dart';
@@ -222,7 +223,8 @@ class PackageBuilder {
   }
 }
 
-class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
+class PubPackageResolutionTest
+    with MockPackagesMixin, ResourceProviderMixin, ConfigurationFilesMixin {
   /// The byte store that is reused between tests.
   ///
   /// This allows reusing all unlinked and linked summaries for SDK, so that
@@ -244,27 +246,6 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
   /// [PackageConfigFileBuilder].
   final Set<String> _packagesToAdd = {};
 
-  /// Adds the 'fixnum' package as a dependency to the package-under-test.
-  ///
-  /// This allows `package:fixnum/fixnum.dart` imports to resolve.
-  bool get addFixnumPackageDep => false;
-
-  /// Adds the 'flutter' package as a dependency to the package-under-test.
-  ///
-  /// This allows various `package:flutter/` imports to resolve.
-  bool get addFlutterPackageDep => false;
-
-  /// Adds the 'meta' package as a dependency to the package-under-test.
-  ///
-  /// This allows various `package:meta/` imports to resolve.
-  bool get addMetaPackageDep => false;
-
-  /// Adds the 'test_reflective_loader' package as a dependency to the
-  /// package-under-test.
-  ///
-  /// This allows various `package:test_reflective_loader/` imports to resolve.
-  bool get addTestReflectiveLoaderPackageDep => false;
-
   AnalysisContextCollection get contextCollection {
     _createAnalysisContexts();
     return _analysisContextCollection!;
@@ -273,8 +254,8 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
   /// Whether to print out the syntax tree being tested, on a test failure.
   bool get dumpAstOnFailures => true;
 
-  /// The list of language experiments to be enabled for these tests.
-  List<String> get experiments => experimentsForTests;
+  /// The list of experimental language features to be enabled for these tests.
+  List<Feature> get experimentalFeatures => experimentalFeaturesForTests;
 
   /// Error codes that by default should be ignored in test expectations.
   List<DiagnosticCode> get ignoredDiagnosticCodes => [
@@ -296,12 +277,14 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
   ///
   /// Used for writing out a package config file. A `null` value means no
   /// 'languageVersion' is written to the package config file.
+  @override
   String? get testPackageLanguageVersion => null;
 
   String get testPackageLibPath => '$testPackageRootPath/lib';
 
   String get testPackagePubspecPath => '$testPackageRootPath/pubspec.yaml';
 
+  @override
   String get testPackageRootPath => '$workspaceRootPath/test';
 
   String get workspaceRootPath => '/home';
@@ -576,18 +559,18 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
   void setUp() {
     createMockSdk(resourceProvider: resourceProvider, root: sdkRoot);
 
-    // Check for any needlessly enabled experiments.
-    for (var experiment in experiments) {
-      var feature = ExperimentStatus.knownFeatures[experiment];
-      if (feature?.isEnabledByDefault ?? false) {
+    // Check for any needlessly enabled experimental features.
+    for (var feature in experimentalFeatures) {
+      if (feature.status
+          case FeatureStatus.provisional || FeatureStatus.current) {
         fail(
-          "The '$experiment' experiment is enabled by default, "
-          'try removing it from `experiments`.',
+          "The '$feature' feature is enabled by default, "
+          'try removing it from `experimentalFeatures`.',
         );
       }
     }
 
-    writeTestPackageConfig(PackageConfigFileBuilder());
+    writeTestPackageConfig2();
     _writeTestPackagePubspecYamlFile(pubspecYamlContent(name: 'test'));
   }
 
@@ -648,12 +631,14 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
     return buffer.toString();
   }
 
+  @Deprecated('Use writePackageConfig2 instead')
   void writePackageConfig(String path, PackageConfigFileBuilder config) {
     newFile(path, config.toContent());
   }
 
   /// Writes a `package_config.json` file from [config], and for packages that
   /// have been added via [newPackage].
+  @Deprecated('Use writeTestPackageConfig2 instead')
   void writeTestPackageConfig(PackageConfigFileBuilder config) {
     var configCopy = config.copy();
 
@@ -696,6 +681,25 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
 
     var path = '$testPackageRootPath/.dart_tool/package_config.json';
     writePackageConfig(path, configCopy);
+  }
+
+  /// Writes a `package_config.json` file from [config], and for packages that
+  /// have been added via [newPackage].
+  @override
+  void writeTestPackageConfig2({
+    PackageConfigFileBuilder? config,
+    String? languageVersion,
+  }) {
+    config = (config ?? PackageConfigFileBuilder()).copy();
+    for (var packageName in _packagesToAdd) {
+      var packagePath = convertPath('/package/$packageName');
+      config.add(name: packageName, rootFolder: getFolder(packagePath));
+    }
+
+    super.writeTestPackageConfig2(
+      config: config,
+      languageVersion: languageVersion,
+    );
   }
 
   void _addTestFile(String content) {

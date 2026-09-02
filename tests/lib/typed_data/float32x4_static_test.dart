@@ -9,8 +9,8 @@ import 'dart:typed_data';
 
 main() {
   var str = "foo";
-  new Float32x4(str, 2.0, 3.0, 4.0);
-  //            ^^^
+  Float32x4(str, 2.0, 3.0, 4.0);
+  //        ^^^
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] The argument type 'String' can't be assigned to the parameter type 'double'.
 }

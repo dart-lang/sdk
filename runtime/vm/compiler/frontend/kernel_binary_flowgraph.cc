@@ -1006,21 +1006,6 @@ void StreamingFlowGraphBuilder::ParseKernelASTFunction() {
     SetOffset(kernel_offset);
   }
 
-  // Mark forwarding stubs.
-  switch (function.kind()) {
-    case UntaggedFunction::kRegularFunction:
-    case UntaggedFunction::kImplicitClosureFunction:
-    case UntaggedFunction::kGetterFunction:
-    case UntaggedFunction::kSetterFunction:
-    case UntaggedFunction::kClosureFunction:
-    case UntaggedFunction::kConstructor:
-    case UntaggedFunction::kDynamicInvocationForwarder:
-      ReadForwardingStubTarget(function);
-      break;
-    default:
-      break;
-  }
-
   set_scopes(parsed_function()->EnsureKernelScopes());
 
   switch (function.kind()) {
@@ -1052,27 +1037,6 @@ void StreamingFlowGraphBuilder::ParseKernelASTFunction() {
     case UntaggedFunction::kIrregexpFunction:
       UNREACHABLE();
       break;
-  }
-}
-
-void StreamingFlowGraphBuilder::ReadForwardingStubTarget(
-    const Function& function) {
-  if (PeekTag() == kProcedure) {
-    AlternativeReadingScope alt(&reader_);
-    ProcedureHelper procedure_helper(this);
-    procedure_helper.ReadUntilExcluding(ProcedureHelper::kFunction);
-    if (procedure_helper.IsForwardingStub() && !procedure_helper.IsAbstract()) {
-      const NameIndex target_name =
-          procedure_helper.concrete_forwarding_stub_target_;
-      ASSERT(target_name != NameIndex::kInvalidName);
-      const String& name = function.IsSetterFunction()
-                               ? H.DartSetterName(target_name)
-                               : H.DartProcedureName(target_name);
-      const Function* forwarding_target =
-          &Function::ZoneHandle(Z, H.LookupMethodByMember(target_name, name));
-      ASSERT(!forwarding_target->IsNull());
-      parsed_function()->MarkForwardingStub(forwarding_target);
-    }
   }
 }
 
@@ -2969,6 +2933,7 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p,
 
   if (!is_dynamic) {
     SkipDartType();  // read function_type.
+    SkipDartType();  // read result_type.
   }
 
   const Function* interface_target = &Function::null_function();

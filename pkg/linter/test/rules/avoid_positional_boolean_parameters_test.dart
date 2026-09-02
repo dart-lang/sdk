@@ -62,7 +62,7 @@ augment void f(bool b);
 part 'test.dart';
 
 class A {
-  void f(bool b) { }
+  void f(bool p1, bool p2) { }
 }
 ''');
 
@@ -70,7 +70,7 @@ class A {
 part of 'a.dart';
 
 augment class A {
-  augment void f(bool b);
+  augment void f(bool p1, bool p2);
 }
 ''');
   }
@@ -87,8 +87,8 @@ class C {
   test_constructor_fieldFormalParameter_positional() async {
     await assertDiagnosticsFromMarkup(r'''
 class C {
-  bool p;
-  C.named([!this.p!]);
+  bool p2;
+  C.named(bool p1, [!this.p2!]);
 }
 ''');
   }
@@ -105,7 +105,16 @@ class C {
   test_constructor_positional() async {
     await assertDiagnosticsFromMarkup(r'''
 class C {
-  C.named([!bool a!]) {
+  C.named(bool p1, [!bool p2!]) {
+  }
+}
+''');
+  }
+
+  test_constructor_positional_multiple() async {
+    await assertDiagnosticsFromMarkup(r'''
+class C {
+  C.named(bool p1, [!bool p2!], bool p3) {
   }
 }
 ''');
@@ -113,7 +122,7 @@ class C {
 
   test_constructor_primary_declaringParameter() async {
     await assertDiagnosticsFromMarkup(r'''
-class C([!final bool p!]);
+class C(bool p1, [!final bool p2!]);
 ''');
   }
 
@@ -121,7 +130,7 @@ class C([!final bool p!]);
     await assertNoDiagnostics(r'''
 class C {
   // ignore: unused_element_parameter
-  C._named([bool p = false]);
+  C._named(bool p1, [bool p2 = false]);
 }
 ''');
   }
@@ -129,7 +138,7 @@ class C {
   test_extensionMethod() async {
     await assertDiagnosticsFromMarkup(r'''
 extension Ext on int {
-  void f([[!bool p = false!]]) {}
+  void f(bool p1, [[!bool p2 = false!]]) {}
 }
 ''');
   }
@@ -138,7 +147,7 @@ extension Ext on int {
     await assertDiagnosticsFromMarkup(r'''
 extension on int {
   // ignore: unused_element, unused_element_parameter
-  void f([[!bool p = false!]]) {}
+  void f(bool p1, [[!bool p2 = false!]]) {}
 }
 ''');
   }
@@ -157,11 +166,11 @@ class C {
     // TODO(srawlins): Test where the parameter is renamed.
     await assertDiagnosticsFromMarkup(r'''
 class C {
-  void m([[!bool p = false!]]) {}
+  void m(bool p1, [[!bool p2 = false!]]) {}
 }
 class D extends C {
   @override
-  void m([bool p = false]) {}
+  void m(bool p1, [bool p2 = false]) {}
 }
 ''');
   }
@@ -169,11 +178,11 @@ class D extends C {
   test_instanceMethod_overrideImplements_positionalOptional() async {
     await assertDiagnosticsFromMarkup(r'''
 class C {
-  void m([[!bool p = false!]]) {}
+  void m(bool p1, [[!bool p2 = false!]]) {}
 }
 abstract class D implements C {
   @override
-  void m([bool p = false]) {}
+  void m(bool p1, [bool p2 = false]) {}
 }
 ''');
   }
@@ -181,7 +190,15 @@ abstract class D implements C {
   test_instanceMethod_positional() async {
     await assertDiagnosticsFromMarkup(r'''
 class A {
-  void m([!bool p!]) {}
+  void m(bool p1, [!bool p2!]) {}
+}
+''');
+  }
+
+  test_instanceMethod_positional_multiple() async {
+    await assertDiagnosticsFromMarkup(r'''
+class A {
+  void m(bool p1, [!bool p2!], bool p3) {}
 }
 ''');
   }
@@ -189,7 +206,7 @@ class A {
   test_instanceMethod_positionalOptional() async {
     await assertDiagnosticsFromMarkup(r'''
 class C {
-  void m([[!bool p = false!]]) {}
+  void m(bool p1, [[!bool p2 = false!]]) {}
 }
 ''');
   }
@@ -238,7 +255,7 @@ class B {
   test_staticMethod_positional() async {
     await assertDiagnosticsFromMarkup(r'''
 class B {
-  static void m([!bool p!]) {}
+  static void m(bool p1, [!bool p2!]) {}
 }
 ''');
   }
@@ -257,7 +274,7 @@ void f({bool p = false}) {}
 
   test_topLevel_positionalParameter() async {
     await assertDiagnosticsFromMarkup(r'''
-void f([!bool p!]) {}
+void f(bool p1, [!bool p2!]) {}
 ''');
   }
 
@@ -276,7 +293,7 @@ typedef T = Function({bool p});
 
   test_typedef_positional() async {
     await assertDiagnosticsFromMarkup(r'''
-typedef T = Function([!bool p!]);
+typedef T = Function(bool p1, [!bool p2!]);
 ''');
   }
 }

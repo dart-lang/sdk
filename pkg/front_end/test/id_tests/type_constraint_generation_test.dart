@@ -4,9 +4,10 @@
 
 import 'dart:io' show Directory, Platform;
 
-import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
+import 'package:_fe_analyzer_shared/src/testing/id.dart' show Id, ActualDataMap;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart'
     show DataInterpreter, runTests;
+import 'package:front_end/src/source/source_loader.dart';
 import 'package:front_end/src/source/source_member_builder.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
 import 'package:front_end/src/testing/id_testing_utils.dart';
@@ -50,7 +51,7 @@ class InferredTypeArgumentDataComputer
   void computeMemberData(
     CfeTestResultData testResultData,
     Member member,
-    Map<Id, ActualData<List<GeneratedTypeConstraint>>> actualMap, {
+    ActualDataMap<List<GeneratedTypeConstraint>> actualMap, {
     bool? verbose,
   }) {
     SourceMemberBuilder memberBuilder = lookupMemberBuilder(
@@ -60,7 +61,11 @@ class InferredTypeArgumentDataComputer
     member.accept(
       new TypeConstraintGenerationDataExtractor(
         testResultData.compilerResult,
-        memberBuilder.dataForTesting!.inferenceData.externalToInternalNodeMap,
+        testResultData
+            .compilerResult
+            .kernelTargetForTesting!
+            .loader
+            .dataForTesting!,
         memberBuilder.dataForTesting!.inferenceData.typeInferenceResult,
         actualMap,
       ),
@@ -70,15 +75,15 @@ class InferredTypeArgumentDataComputer
 
 class TypeConstraintGenerationDataExtractor
     extends CfeDataExtractor<List<GeneratedTypeConstraint>> {
-  final Map<Node, Node> externalToInternalNodeMap;
+  final SourceLoaderDataForTesting sourceLoaderDataForTesting;
   final TypeInferenceResultForTesting typeInferenceResult;
 
   new(
-    InternalCompilerResult compilerResult,
-    this.externalToInternalNodeMap,
+    super.compilerResult,
+    this.sourceLoaderDataForTesting,
     this.typeInferenceResult,
-    Map<Id, ActualData<List<GeneratedTypeConstraint>>> actualMap,
-  ) : super(compilerResult, actualMap);
+    super.actualMap,
+  );
 
   @override
   List<GeneratedTypeConstraint>? computeNodeValue(Id id, TreeNode node) {
@@ -87,7 +92,9 @@ class TypeConstraintGenerationDataExtractor
         node is SetLiteral ||
         node is MapLiteral) {
       return typeInferenceResult
-          .generatedTypeConstraints[externalToInternalNodeMap[node] ?? node];
+          .generatedTypeConstraints[sourceLoaderDataForTesting.toInternalNode(
+        node,
+      )];
     }
     return null;
   }

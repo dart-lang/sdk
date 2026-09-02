@@ -17,6 +17,7 @@ import 'custom/interactive_forms.dart';
 import 'custom/interactive_refactors.dart';
 import 'custom/outlines.dart';
 import 'custom/widget_preview.dart';
+import 'custom/workspace_fixes.dart';
 import 'meta_model.dart';
 import 'utils.dart';
 
@@ -190,11 +191,11 @@ List<LspEntity> getCustomClasses() {
       baseType: ArrayType(TypeReference('TextDocumentFilterScheme')),
       renameReferences: true,
     ),
-    interface('Message', [
+    interface('Message', sealed: true, [
       field('jsonrpc', type: 'string'),
       field('clientRequestTime', type: 'int', canBeUndefined: true),
     ]),
-    interface('IncomingMessage', [
+    interface('IncomingMessage', sealed: true, [
       field('method', type: 'Method'),
       field('params', type: 'LSPAny', canBeUndefined: true),
     ], baseType: 'Message'),
@@ -340,6 +341,9 @@ List<LspEntity> getCustomClasses() {
 
     // Support for `dart/workspace/migrate`.
     ...dartMigrateClasses,
+
+    // Support for `dart/workspace/fixes/*`.
+    ...dartWorkspaceFixesClasses,
 
     // Support for the original (Dart-specific) interactive-refactors.
     ...interactiveRefactorsClasses,

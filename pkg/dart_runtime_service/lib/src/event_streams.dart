@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
@@ -19,6 +21,9 @@ abstract base class StreamEventBase {
   const StreamEventBase({required this.streamId});
 
   final String streamId;
+
+  /// Sends this event to [client].
+  void sendToClient(Client client);
 
   void send({
     required EventStreamMethods eventStreamMethods,
@@ -45,13 +50,52 @@ abstract base class StreamEvent extends StreamEventBase {
 
   @mustCallSuper
   Map<String, Object?> toJson();
+
+  @override
+  void sendToClient(Client client) {
+    client.sendNotification(
+      method: EventStreamManager.kStreamNotify,
+      parameters: toJson(),
+    );
+  }
 }
 
 /// A class for sending non-JSON-RPC compliant binary events on [streamId].
 final class BinaryStreamEvent extends StreamEventBase {
-  const BinaryStreamEvent({required super.streamId, required this.data});
+  const BinaryStreamEvent({required this.data, required super.streamId});
+
+  /// Creates a [BinaryStreamEvent] by parsing the stream ID from the binary
+  /// event's leading JSON metadata.
+  factory BinaryStreamEvent.fromData(Uint8List data) {
+    final bytesView = ByteData.view(
+      data.buffer,
+      data.offsetInBytes,
+      data.lengthInBytes,
+    );
+    const metadataOffset = 4;
+    final dataOffset = bytesView.getUint32(0, Endian.little);
+    final metadataLength = dataOffset - metadataOffset;
+    final metadata = utf8.decode(
+      Uint8List.view(
+        bytesView.buffer,
+        bytesView.offsetInBytes + metadataOffset,
+        metadataLength,
+      ),
+    );
+    if (json.decode(metadata) case {
+      'params': {'streamId': final String streamId},
+    }) {
+      return BinaryStreamEvent(data: data, streamId: streamId);
+    }
+    throw const FormatException('Invalid BinaryStreamEvent metadata format');
+  }
 
   final Uint8List data;
+
+  @override
+  void sendToClient(Client client) {
+    client.sendBinaryData(data: data);
+  }
 }
 
 /// Base class for service registration events which are sent on the Service
@@ -129,17 +173,20 @@ abstract interface class EventStreamMethods {
   /// [params] is the unaltered set of parameters included when `streamListen`
   /// is invoked. Backends may use these additional parameters for special
   /// behavior (e.g., changing the verbosity of responses).
-  void streamListen({
+  Future<void> streamListen({
     required Client client,
     required String streamId,
     required Map<String, Object?> params,
   });
 
   /// Unsubscribes `client` from a stream.
-  void streamCancel({required Client client, required String streamId});
+  Future<void> streamCancel({required Client client, required String streamId});
+
+  /// Returns true if there are any clients currently subscribed to [streamId].
+  bool hasListeners(String streamId);
 
   /// Cleanup stream subscriptions for `client` when it has disconnected.
-  void onClientDisconnect(Client client);
+  Future<void> onClientDisconnect(Client client);
 }
 
 /// Used for keeping track of stream subscription state and sending events to
@@ -152,6 +199,11 @@ class EventStreamManager implements EventStreamMethods {
   final UnmodifiableClientNamedLookup Function() _clientsGetter;
   final DartRuntimeServiceBackend _backend;
   late final clients = _clientsGetter();
+
+  @override
+  bool hasListeners(String streamId) {
+    return streamListeners[streamId]?.isNotEmpty ?? false;
+  }
 
   @visibleForTesting
   final streamListeners = <String, List<Client>>{};
@@ -183,14 +235,11 @@ class EventStreamManager implements EventStreamMethods {
         EventStreams.kHeapSnapshot,
         EventStreams.kLogging,
       }.contains(streamId)) {
-        String eventString;
-        if (data is Uint8List) {
-          eventString = '<binary data>';
-        } else if (data is StreamEvent) {
-          eventString = data.toJson().toString();
-        } else {
-          eventString = '<unknown>';
-        }
+        final eventString = switch (data) {
+          Uint8List _ => '<binary data>',
+          final StreamEvent event => event.toJson().toString(),
+          _ => '<unknown>',
+        };
         streamLogger.info(
           'Sending event to ${listeners.length} clients: $eventString.',
         );
@@ -200,16 +249,10 @@ class EventStreamManager implements EventStreamMethods {
         if (listener == excludedClient) {
           continue;
         }
-        switch (data) {
-          case BinaryStreamEvent(data: final binaryData):
-            listener.sendBinaryData(data: binaryData);
-          case StreamEvent():
-            listener.sendNotification(
-              method: kStreamNotify,
-              parameters: data.toJson(),
-            );
-          default:
-            throw StateError('Unrecognized data type: ${data.runtimeType}');
+        if (data case final StreamEventBase event) {
+          event.sendToClient(listener);
+        } else {
+          throw StateError('Unrecognized data type: ${data.runtimeType}');
         }
       }
     }
@@ -253,11 +296,11 @@ class EventStreamManager implements EventStreamMethods {
 
   /// Subscribes `client` to a stream.
   @override
-  void streamListen({
+  Future<void> streamListen({
     required Client client,
     required String streamId,
     required Map<String, Object?> params,
-  }) {
+  }) async {
     assert(streamId.isNotEmpty);
     final listeners = streamListeners.putIfAbsent(streamId, () => []);
     if (listeners.contains(client)) {
@@ -268,7 +311,11 @@ class EventStreamManager implements EventStreamMethods {
     // Tell the backend to start sending events for this stream if this is the
     // first listener.
     if (listeners.length == 1) {
-      if (!_backend.onStreamListen(streamId: streamId, params: params)) {
+      final success = await _backend.onStreamListen(
+        streamId: streamId,
+        params: params,
+      );
+      if (!success) {
         client.logger.warning(
           'Attempted to subscribe to an invalid stream ID: $streamId.',
         );
@@ -278,6 +325,7 @@ class EventStreamManager implements EventStreamMethods {
         );
       }
     }
+    _backend.onClientSubscribe(client, streamId);
     if (streamId == EventStreams.kService) {
       // Send all previously registered service extensions when a client
       // subscribes to the Service stream.
@@ -294,7 +342,7 @@ class EventStreamManager implements EventStreamMethods {
             service: service,
             namespace: namespace,
             alias: alias,
-          ).send(eventStreamMethods: this, excludedClient: client);
+          ).sendToClient(client);
         }
       }
     }
@@ -302,7 +350,10 @@ class EventStreamManager implements EventStreamMethods {
 
   /// Unsubscribes `client` from a stream.
   @override
-  void streamCancel({required Client client, required String streamId}) {
+  Future<void> streamCancel({
+    required Client client,
+    required String streamId,
+  }) async {
     assert(streamId.isNotEmpty);
     final listeners = streamListeners[streamId];
     if (listeners == null || !listeners.contains(client)) {
@@ -310,26 +361,32 @@ class EventStreamManager implements EventStreamMethods {
     }
 
     listeners.remove(client);
+    _backend.onClientUnsubscribe(client, streamId);
     // Tell the backend to stop sending events for this stream if there's no
     // more listeners.
     if (listeners.isEmpty) {
-      _backend.onStreamCancel(streamId: streamId);
+      await _backend.onStreamCancel(streamId: streamId);
     }
   }
 
   /// Cleanup stream subscriptions for `client` when it has disconnected.
   @override
-  void onClientDisconnect(Client client) {
+  Future<void> onClientDisconnect(Client client) async {
+    final cancelFutures = <Future<void>>[];
     for (final streamId in streamListeners.keys.toList()) {
-      try {
-        streamCancel(client: client, streamId: streamId);
-      } on json_rpc.RpcException {
-        // Ignore 'stream not subscribed' errors when service is shutting down.
-        // ignore: avoid_catching_errors
-      } on StateError {
-        // Ignore state errors when service is shutting down.
-      }
+      cancelFutures.add(() async {
+        try {
+          await streamCancel(client: client, streamId: streamId);
+        } on json_rpc.RpcException {
+          // Ignore 'stream not subscribed' errors when service is shutting
+          // down.
+          // ignore: avoid_catching_errors
+        } on StateError {
+          // Ignore state errors when service is shutting down.
+        }
+      }());
     }
+    await Future.wait(cancelFutures);
 
     // Notify other service clients of service extensions that are being
     // unregistered.

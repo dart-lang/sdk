@@ -15,9 +15,13 @@ import '../test_helpers.dart';
 void main() {
   final component = readVmPlatformKernelFile();
   final coreTypes = CoreTypes(component);
+  final coreLibraries = coreTypes.index;
   final classHierarchy = ClassHierarchy(component, coreTypes);
   final typeEnvironment = TypeEnvironment(coreTypes, classHierarchy);
-  final globalContext = GlobalContext(typeEnvironment: typeEnvironment);
+  final globalContext = GlobalContext(
+    typeEnvironment: typeEnvironment,
+    coreLibraries: coreLibraries,
+  );
 
   setUp(() {
     GlobalContext.setCurrentContext(globalContext);
@@ -34,15 +38,20 @@ void main() {
 
     expect(IntType().kind, equals(TypeKind.intType));
     expect(IntType().dartType, equals(intDartType));
+    expect(IntType().canBeNull, isFalse);
     expect(IntType().isNullable, isFalse);
     expect(IntType().toNonNullableType, equals(IntType()));
     expect(IntType().hashCode, equals(IntType(intDartType).hashCode));
     expect(IntType().canBeInt, isTrue);
+    expect(IntType().canBeDouble, isFalse);
+    expect(IntType().canBeNum, isTrue);
     expect(IntType().canBeFuture, isFalse);
 
     expect(IntType(intDartType).kind, equals(TypeKind.intType));
     expect(IntType(intDartType).dartType, equals(intDartType));
     expect(IntType(intDartType).canBeInt, isTrue);
+    expect(IntType(intDartType).canBeDouble, isFalse);
+    expect(IntType(intDartType).canBeNum, isTrue);
     expect(IntType(intDartType).canBeFuture, isFalse);
 
     final smiClass = coreTypes.index.getClass('dart:core', '_Smi');
@@ -54,6 +63,8 @@ void main() {
     expect(IntType(smiDartType).kind, equals(TypeKind.intType));
     expect(IntType(smiDartType).dartType, equals(smiDartType));
     expect(IntType(smiDartType).canBeInt, isTrue);
+    expect(IntType(smiDartType).canBeDouble, isFalse);
+    expect(IntType(smiDartType).canBeNum, isTrue);
     expect(IntType(smiDartType).canBeFuture, isFalse);
 
     expect(IntType(smiDartType).isSubtypeOf(const IntType()), isTrue);
@@ -79,9 +90,12 @@ void main() {
     expect(DoubleType().kind, equals(TypeKind.doubleType));
     expect(DoubleType().dartType, equals(doubleDartType));
     expect(DoubleType().hashCode, equals(DoubleType(doubleDartType).hashCode));
+    expect(DoubleType().canBeNull, isFalse);
     expect(DoubleType().isNullable, isFalse);
     expect(DoubleType().toNonNullableType, equals(DoubleType()));
     expect(DoubleType().canBeInt, isFalse);
+    expect(DoubleType().canBeDouble, isTrue);
+    expect(DoubleType().canBeNum, isTrue);
     expect(DoubleType().canBeFuture, isFalse);
 
     expect(DoubleType(doubleDartType).kind, equals(TypeKind.doubleType));
@@ -109,9 +123,12 @@ void main() {
     expect(BoolType().kind, equals(TypeKind.boolType));
     expect(BoolType().dartType, equals(boolDartType));
     expect(BoolType().hashCode, equals(BoolType(boolDartType).hashCode));
+    expect(BoolType().canBeNull, isFalse);
     expect(BoolType().isNullable, isFalse);
     expect(BoolType().toNonNullableType, equals(BoolType()));
     expect(BoolType().canBeInt, isFalse);
+    expect(BoolType().canBeDouble, isFalse);
+    expect(BoolType().canBeNum, isFalse);
     expect(BoolType().canBeFuture, isFalse);
 
     expect(BoolType(boolDartType).kind, equals(TypeKind.boolType));
@@ -139,9 +156,12 @@ void main() {
     expect(StringType().kind, equals(TypeKind.stringType));
     expect(StringType().dartType, equals(stringDartType));
     expect(StringType().hashCode, equals(StringType(stringDartType).hashCode));
+    expect(StringType().canBeNull, isFalse);
     expect(StringType().isNullable, isFalse);
     expect(StringType().toNonNullableType, equals(StringType()));
     expect(StringType().canBeInt, isFalse);
+    expect(StringType().canBeDouble, isFalse);
+    expect(StringType().canBeNum, isFalse);
     expect(StringType().canBeFuture, isFalse);
 
     expect(StringType(stringDartType).kind, equals(TypeKind.stringType));
@@ -178,9 +198,12 @@ void main() {
     expect(recordType1.kind, equals(TypeKind.recordType));
     expect(recordType1.dartType, equals(dartType1));
     expect(recordType1.hashCode, equals(RecordType(dartType1).hashCode));
+    expect(recordType1.canBeNull, isFalse);
     expect(recordType1.isNullable, isFalse);
     expect(recordType1.toNonNullableType, equals(recordType1));
     expect(recordType1.canBeInt, isFalse);
+    expect(recordType1.canBeDouble, isFalse);
+    expect(recordType1.canBeNum, isFalse);
     expect(recordType1.canBeFuture, isFalse);
 
     final dartType2 = ast.RecordType(
@@ -192,9 +215,12 @@ void main() {
     expect(recordType2.kind, equals(TypeKind.recordType));
     expect(recordType2.dartType, equals(dartType2));
     expect(recordType2.hashCode, equals(RecordType(dartType2).hashCode));
+    expect(recordType2.canBeNull, isFalse);
     expect(recordType2.isNullable, isFalse);
     expect(recordType2.toNonNullableType, equals(recordType2));
     expect(recordType2.canBeInt, isFalse);
+    expect(recordType2.canBeDouble, isFalse);
+    expect(recordType2.canBeNum, isFalse);
     expect(recordType2.canBeFuture, isFalse);
 
     expect(recordType1.isSubtypeOf(IntType()), isFalse);
@@ -229,9 +255,12 @@ void main() {
     expect(ObjectType().kind, equals(TypeKind.objectType));
     expect(ObjectType().dartType, equals(objectDartType));
     expect(ObjectType().hashCode, equals(ObjectType(objectDartType).hashCode));
+    expect(ObjectType().canBeNull, isFalse);
     expect(ObjectType().isNullable, isFalse);
     expect(ObjectType().toNonNullableType, equals(ObjectType()));
     expect(ObjectType().canBeInt, isTrue);
+    expect(ObjectType().canBeDouble, isTrue);
+    expect(ObjectType().canBeNum, isTrue);
     expect(ObjectType().canBeFuture, isTrue);
 
     expect(ObjectType(objectDartType).kind, equals(TypeKind.objectType));
@@ -258,9 +287,12 @@ void main() {
 
     expect(NullType().kind, equals(TypeKind.nullType));
     expect(NullType().dartType, equals(nullDartType));
+    expect(NullType().canBeNull, isTrue);
     expect(NullType().isNullable, isTrue);
     expect(NullType().toNonNullableType, equals(NeverType()));
     expect(NullType().canBeInt, isFalse);
+    expect(NullType().canBeDouble, isFalse);
+    expect(NullType().canBeNum, isFalse);
     expect(NullType().canBeFuture, isFalse);
 
     expect(NullType().isSubtypeOf(IntType()), isFalse);
@@ -287,9 +319,12 @@ void main() {
 
     expect(NeverType().kind, equals(TypeKind.neverType));
     expect(NeverType().dartType, equals(neverDartType));
+    expect(NeverType().canBeNull, isFalse);
     expect(NeverType().isNullable, isFalse);
     expect(NeverType().toNonNullableType, equals(NeverType()));
     expect(NeverType().canBeInt, isFalse);
+    expect(NeverType().canBeDouble, isFalse);
+    expect(NeverType().canBeNum, isFalse);
     expect(NeverType().canBeFuture, isFalse);
 
     expect(NeverType().isSubtypeOf(IntType()), isTrue);
@@ -316,18 +351,23 @@ void main() {
     expect(TopType().kind, equals(TypeKind.top));
     expect(TopType().dartType, equals(dynamicDartType));
     expect(TopType().hashCode, equals(TopType(dynamicDartType).hashCode));
+    expect(TopType().canBeNull, isTrue);
     expect(TopType().isNullable, isTrue);
     expect(TopType().toNonNullableType, equals(ObjectType()));
     expect(TopType().canBeInt, isTrue);
+    expect(TopType().canBeDouble, isTrue);
+    expect(TopType().canBeNum, isTrue);
     expect(TopType().canBeFuture, isTrue);
 
     expect(TopType(voidDartType).kind, equals(TypeKind.top));
     expect(TopType(voidDartType).dartType, equals(voidDartType));
+    expect(TopType(voidDartType).canBeNull, isTrue);
     expect(TopType(voidDartType).isNullable, isTrue);
     expect(TopType(voidDartType).toNonNullableType, equals(ObjectType()));
 
     expect(TopType(nullableObjDartType).kind, equals(TypeKind.top));
     expect(TopType(nullableObjDartType).dartType, equals(nullableObjDartType));
+    expect(TopType(nullableObjDartType).canBeNull, isTrue);
     expect(TopType(nullableObjDartType).isNullable, isTrue);
     expect(
       TopType(nullableObjDartType).toNonNullableType,
@@ -355,9 +395,12 @@ void main() {
 
     expect(listType.kind, equals(TypeKind.otherDartType));
     expect(listType.dartType, equals(listDartType));
+    expect(listType.canBeNull, isFalse);
     expect(listType.isNullable, isFalse);
     expect(listType.toNonNullableType, equals(listType));
     expect(listType.canBeInt, isFalse);
+    expect(listType.canBeDouble, isFalse);
+    expect(listType.canBeNum, isFalse);
     expect(listType.canBeFuture, isTrue);
 
     expect(listType.isSubtypeOf(IntType()), isFalse);
@@ -381,32 +424,55 @@ void main() {
       isTrue,
     );
 
+    expect(StaticType(coreTypes.listNullableRawType).canBeNull, isTrue);
     expect(StaticType(coreTypes.listNullableRawType).isNullable, isTrue);
     expect(
       StaticType(coreTypes.listNullableRawType).toNonNullableType,
       equals(listType),
     );
 
-    expect(
-      StaticType(
-        ast.TypeParameterType(
-          coreTypes.listClass.typeParameters[0],
-          .undetermined,
-        ),
-      ).canBeInt,
-      isTrue,
+    final undeterminedTypeParameter = ast.TypeParameterType(
+      coreTypes.listClass.typeParameters[0],
+      .undetermined,
     );
-    expect(
-      StaticType(
-        ast.TypeParameterType(coreTypes.listClass.typeParameters[0], .nullable),
-      ).canBeFuture,
-      isTrue,
+    expect(StaticType(undeterminedTypeParameter).canBeNull, isTrue);
+    expect(StaticType(undeterminedTypeParameter).isNullable, isFalse);
+    expect(StaticType(undeterminedTypeParameter).canBeInt, isTrue);
+    expect(StaticType(undeterminedTypeParameter).canBeDouble, isTrue);
+    expect(StaticType(undeterminedTypeParameter).canBeNum, isTrue);
+    expect(StaticType(undeterminedTypeParameter).canBeFuture, isTrue);
+
+    final nullableTypeParameter = ast.TypeParameterType(
+      coreTypes.listClass.typeParameters[0],
+      .nullable,
     );
+    expect(StaticType(nullableTypeParameter).canBeNull, isTrue);
+    expect(StaticType(nullableTypeParameter).isNullable, isTrue);
+    expect(StaticType(nullableTypeParameter).canBeInt, isTrue);
+    expect(StaticType(nullableTypeParameter).canBeDouble, isTrue);
+    expect(StaticType(nullableTypeParameter).canBeNum, isTrue);
+    expect(StaticType(nullableTypeParameter).canBeFuture, isTrue);
+
+    final expandoClass = coreTypes.index.getClass('dart:core', 'Expando');
+    final nonNullableTypeParameter =
+        ast.TypeParameterType.withDefaultNullability(
+          expandoClass.typeParameters[0],
+        );
+    expect(StaticType(nonNullableTypeParameter).canBeNull, isFalse);
+    expect(StaticType(nonNullableTypeParameter).isNullable, isFalse);
+    expect(StaticType(nonNullableTypeParameter).canBeInt, isTrue);
+    expect(StaticType(nonNullableTypeParameter).canBeDouble, isTrue);
+    expect(StaticType(nonNullableTypeParameter).canBeNum, isTrue);
+    expect(StaticType(nonNullableTypeParameter).canBeFuture, isTrue);
   });
 
   test('nothing', () {
     expect(NothingType().kind, equals(TypeKind.nothing));
+    expect(NothingType().canBeNull, isFalse);
+    expect(NothingType().isNullable, isFalse);
     expect(NothingType().canBeInt, isFalse);
+    expect(NothingType().canBeDouble, isFalse);
+    expect(NothingType().canBeNum, isFalse);
     expect(NothingType().canBeFuture, isFalse);
 
     expect(NothingType().isSubtypeOf(IntType()), isFalse);
@@ -428,7 +494,11 @@ void main() {
 
   test('late value type', () {
     expect(LateValueType().kind, equals(TypeKind.lateValue));
+    expect(LateValueType().canBeNull, isFalse);
+    expect(LateValueType().isNullable, isFalse);
     expect(LateValueType().canBeInt, isFalse);
+    expect(LateValueType().canBeDouble, isFalse);
+    expect(LateValueType().canBeNum, isFalse);
     expect(LateValueType().canBeFuture, isFalse);
 
     expect(LateValueType().isSubtypeOf(IntType()), isFalse);
@@ -450,7 +520,11 @@ void main() {
 
   test('type parameters', () {
     expect(TypeParametersType().kind, equals(TypeKind.typeParameters));
+    expect(TypeParametersType().canBeNull, isFalse);
+    expect(TypeParametersType().isNullable, isFalse);
     expect(TypeParametersType().canBeInt, isFalse);
+    expect(TypeParametersType().canBeDouble, isFalse);
+    expect(TypeParametersType().canBeNum, isFalse);
     expect(TypeParametersType().canBeFuture, isFalse);
 
     expect(TypeParametersType().isSubtypeOf(IntType()), isFalse);
@@ -474,7 +548,11 @@ void main() {
 
   test('type arguments', () {
     expect(TypeArgumentsType().kind, equals(TypeKind.typeArguments));
+    expect(TypeArgumentsType().canBeNull, isFalse);
+    expect(TypeArgumentsType().isNullable, isFalse);
     expect(TypeArgumentsType().canBeInt, isFalse);
+    expect(TypeArgumentsType().canBeDouble, isFalse);
+    expect(TypeArgumentsType().canBeNum, isFalse);
     expect(TypeArgumentsType().canBeFuture, isFalse);
 
     expect(TypeArgumentsType().isSubtypeOf(IntType()), isFalse);
@@ -498,7 +576,11 @@ void main() {
 
   test('context type', () {
     expect(ContextType().kind, equals(TypeKind.context));
+    expect(ContextType().canBeNull, isFalse);
+    expect(ContextType().isNullable, isFalse);
     expect(ContextType().canBeInt, isFalse);
+    expect(ContextType().canBeDouble, isFalse);
+    expect(ContextType().canBeNum, isFalse);
     expect(ContextType().canBeFuture, isFalse);
 
     expect(ContextType().isSubtypeOf(IntType()), isFalse);

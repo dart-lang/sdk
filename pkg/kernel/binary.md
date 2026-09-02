@@ -147,7 +147,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 136;
+  UInt32 formatVersion = 141;
   Byte[10] shortSdkHash;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
@@ -283,6 +283,7 @@ type LibraryDependency {
 type LibraryPart {
   List<Expression> annotations;
   StringReference partUri;
+  UriReference fileUri;
 }
 
 type Typedef {
@@ -318,7 +319,7 @@ type Class extends Node {
   FileOffset fileOffset; // Offset of the name of the class.
   FileOffset fileEndOffset;
   UInt flags (isAbstract, isEnum, isAnonymousMixin, isEliminatedMixin,
-              isMixinDeclaration, hasConstConstructor, isMacro, isSealed,
+              isMixinDeclaration, hasConstConstructor, isSealed,
               isMixinClass, isBase, isInterface, isFinal);
   StringReference name;
   List<Expression> annotations;
@@ -798,6 +799,7 @@ type InstanceInvocation extends Expression {
   Name name;
   Arguments arguments;
   DartType functionType;
+  DartType resultType;
   MemberReference interfaceTarget;
   MemberReference interfaceTargetOrigin; // May be NullReference.
 }
@@ -1556,6 +1558,16 @@ type LateVariable extends Variable {
   VariableInternal variable;
 }
 
+type LocalFunctionVariable extends Variable {
+  Byte tag = 162;
+  VariableInternal variable;
+}
+
+type ConstVariable extends Variable {
+  Byte tag = 163;
+  VariableInternal variable;
+}
+
 type SyntheticVariable extends Variable {
   Byte tag = 157;
   VariableInternal variable;
@@ -1778,10 +1790,11 @@ type AndPattern extends Pattern {
 type AssignedVariablePattern extends Pattern {
   Byte tag = 129;
   FileOffset fileOffset;
-  VariableReference variable;
-  Option<VariableReference> setter;
-  Option<DartType> matchedType;
-  Byte needsCast;
+  StringReference variableName
+  DartType variableType;
+  VariableReference writeVariable;
+  DartType matchedType;
+  Byte flags { needsCast, hasObservableEffect };
 }
 
 type CastPattern extends Pattern {
@@ -1796,8 +1809,8 @@ type ConstantPattern extends Pattern {
   FileOffset fileOffset;
   Expression expression;
   DartType expressionType;
-  Option<MemberReference> equalsTargetReference;
-  Option<DartType> equalsType;
+  MemberReference equalsTargetReference;
+  DartType equalsType;
 }
 
 type InvalidPattern extends Pattern {
@@ -1812,20 +1825,20 @@ type ListPattern extends Pattern {
   FileOffset fileOffset;
   Option<DartType> typeArgument;
   List<Pattern> patterns;
-  Option<DartType> requiredType;
-  Option<DartType> matchedValueType;
+  DartType requiredType;
+  DartType matchedValueType;
   Byte flags { needsCheck, hasRestPattern, isNeverPattern };
-  Option<DartType> lookupType;
-  Option<MemberReference> lengthTargetReference;
-  Option<DartType> lengthType;
-  Option<MemberReference> lengthCheckTargetReference;
-  Option<DartType> lengthCheckType;
-  Option<MemberReference> sublistTargetReference;
-  Option<DartType> sublistType;
-  Option<MemberReference> minusTargetReference;
-  Option<DartType> minusType;
-  Option<MemberReference> indexGetTargetReference;
-  Option<DartType> indexGetType;
+  DartType lookupType;
+  MemberReference lengthTargetReference;
+  DartType lengthType;
+  MemberReference lengthCheckTargetReference;
+  DartType lengthCheckType;
+  MemberReference sublistTargetReference;
+  DartType sublistType;
+  MemberReference minusTargetReference;
+  DartType minusType;
+  MemberReference indexGetTargetReference;
+  DartType indexGetType;
 }
 
 type MapPattern extends Pattern {
@@ -1834,14 +1847,14 @@ type MapPattern extends Pattern {
   Option<DartType> keyType;
   Option<DartType> valueType;
   List<MapPatternEntry> entries;
-  Option<DartType> requiredType;
-  Option<DartType> matchedValueType;
+  DartType requiredType;
+  DartType matchedValueType;
   Byte flags { needsCheck, isNeverPattern };
-  Option<DartType> lookupType;
-  Option<MemberReference> containsKeyTargetReference;
-  Option<DartType> containsKeyType;
-  Option<MemberReference> indexGetTargetReference;
-  Option<DartType> indexGetType;
+  DartType lookupType;
+  MemberReference containsKeyTargetReference;
+  DartType containsKeyType;
+  MemberReference indexGetTargetReference;
+  DartType indexGetType;
 }
 
 type MapPatternEntry extends TreeNode {
@@ -1883,7 +1896,6 @@ type NamedPattern extends Pattern {
   Option<DartType> resultType;
   Option<DartType> recordType;
   UInt30 recordFieldIndex;
-  Option<DartType> functionType;
   Option<List<DartType>> typeArguments;
 }
 
@@ -1904,9 +1916,9 @@ type ObjectPattern extends Pattern {
   FileOffset fileOffset;
   DartType type;
   List<NamedPattern> fields;
-  Option<DartType> matchedType;
+  DartType matchedType;
   Byte needsCheck;
-  Option<DartType> objectType;
+  DartType objectType;
 }
 
 type OrPattern extends Pattern {
@@ -1921,10 +1933,10 @@ type RecordPattern extends Pattern {
   Byte tag = 140;
   FileOffset fileOffset;
   List<Pattern> patterns;
-  Option<DartType> type;
-  Option<DartType> matchedType;
+  DartType type;
+  DartType matchedType;
   Byte needsCheck;
-  Option<DartType> recordType;
+  DartType recordType;
 }
 
 /*
@@ -1951,8 +1963,8 @@ type RelationalPattern extends Pattern {
   FileOffset fileOffset;
   Byte kind; // Index into the RelationalPatternKind enum above.
   Expression expression;
-  Option<DartType> expressionType;
-  Option<DartType> matchedType;
+  DartType expressionType;
+  DartType matchedType;
   Byte accessKind;  // Index into the RelationalAccessKind enum above.
   Name name;
   Option<MemberReference> targetReference;
@@ -1971,7 +1983,7 @@ type VariablePattern extends Pattern {
   FileOffset fileOffset;
   Option<DartType> type;
   Variable variable;
-  Option<DartType> matchedType;
+  DartType matchedType;
 }
 
 type WildcardPattern extends Pattern {
@@ -2008,7 +2020,7 @@ type IfCaseStatement extends Statement {
   PatternGuard patternGuard;
   Statement then;
   Option<Statement> otherwise;
-  Option<DartType> matchedValueType;
+  DartType matchedValueType;
 }
 
 type PatternAssignment extends Expression {
@@ -2016,7 +2028,7 @@ type PatternAssignment extends Expression {
   FileOffset fileOffset;
   Pattern pattern;
   Expression expression;
-  Option<DartType> matchedValueType;
+  DartType matchedValueType;
 }
 
 type PatternVariableDeclaration extends Statement {
@@ -2025,7 +2037,7 @@ type PatternVariableDeclaration extends Statement {
   Pattern pattern;
   Expression initializer;
   Byte isFinal;
-  Option<DartType> matchedValueType;
+  DartType matchedValueType;
 }
 
 type PatternSwitchStatement extends Statement {
@@ -2034,6 +2046,7 @@ type PatternSwitchStatement extends Statement {
   Expression expression;
   Option<DartType> expressionType;
   List<PatternSwitchCase> cases;
+  Byte lastCaseTerminates;
 }
 
 type PatternSwitchCase extends TreeNode {

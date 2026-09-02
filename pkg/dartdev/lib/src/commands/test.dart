@@ -54,6 +54,7 @@ Run "${runner!.executableName} help" to see global options.''');
     final args = argResults!;
 
     String? nativeAssets;
+    DartNativeAssetsBuilder? builder;
     final packageConfigUri = await DartNativeAssetsBuilder.ensurePackageConfig(
       Directory.current.uri,
     );
@@ -64,14 +65,17 @@ Run "${runner!.executableName} help" to see global options.''');
       if (packageConfig == null) {
         return DartdevCommand.errorExitCode;
       }
-      final runPackageName = await DartNativeAssetsBuilder.findRootPackageName(
-        Directory.current.uri,
-      );
+      final runPackageName = packageConfig
+          .packageOf(
+            // TODO(https://dartbug.com/63713): Don't use cwd.
+            Directory.current.uri.resolve('pubspec.yaml'),
+          )
+          ?.name;
       if (runPackageName != null) {
         final pubspecUri = await DartNativeAssetsBuilder.findWorkspacePubspec(
           packageConfigUri,
         );
-        final builder = DartNativeAssetsBuilder(
+        builder = DartNativeAssetsBuilder(
           pubspecUri: pubspecUri,
           packageConfigUri: packageConfigUri,
           packageConfig: packageConfig,
@@ -95,7 +99,9 @@ Run "${runner!.executableName} help" to see global options.''');
           }
           // TODO(https://github.com/dart-lang/sdk/issues/60489): Add a way to
           // package:test to explicitly provide the native_assets.yaml path
-          // instead of copying to the workspace .dart_tool.
+          // instead of copying to the workspace .dart_tool. (Or even better,
+          // let `package:test` only use Dart cli commands that support build
+          // hooks.)
           final expectedPackageTestLocation = packageConfigUri.resolve(
             'native_assets.yaml',
           );
@@ -135,6 +141,7 @@ Run "${runner!.executableName} help" to see global options.''');
         //
         // See https://github.com/dart-lang/sdk/issues/53576
         markMainIsolateAsSystemIsolate: true,
+        deleteTempDirOnShutdown: builder?.tempDirUri?.toFilePath(),
       );
       return 0;
     } on CommandResolutionFailedException catch (e) {

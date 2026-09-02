@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:collection';
 import 'dart:io';
 import 'dart:isolate';
 
@@ -10,6 +11,16 @@ import 'dart:isolate';
 ///
 /// Messages are received in runtime/bin/dartdev_isolate.cc.
 abstract class VmInteropHandler {
+  static final Map<String, String> _environmentOverrides = {};
+
+  /// Environment variables that have been modified via [setEnvironmentVariable].
+  ///
+  /// This map can be passed to [Process.start] or [Process.run] to ensure
+  /// child processes inherit modifications made to the environment during the
+  /// execution of DartDev.
+  static Map<String, String> get environmentOverrides =>
+      UnmodifiableMapView(_environmentOverrides);
+
   /// Initializes [VmInteropHandler] to utilize [port] to communicate with the
   /// VM.
   static void initialize(SendPort? port) => _port = port;
@@ -39,7 +50,14 @@ abstract class VmInteropHandler {
     /// another file. Used for launching from a dill file while behaving as if
     /// launched directly from a dart file.
     String? scriptUriOverride,
+
+    /// Directory path that will be recursively deleted on VM shutdown.
+    String? deleteTempDirOnShutdown,
   }) {
+    assert(
+      useExecProcess || deleteTempDirOnShutdown == null,
+      'deleteTempDirOnShutdown is only supported with useExecProcess',
+    );
     List<String> argsList;
     if (useExecProcess && Platform.isWindows) {
       // On Windows if a new process is used to execute the script we
@@ -72,6 +90,7 @@ abstract class VmInteropHandler {
       packageConfigOverride,
       markMainIsolateAsSystemIsolate,
       argsList,
+      if (useExecProcess) deleteTempDirOnShutdown,
     ];
     port.send(message);
   }
@@ -89,6 +108,11 @@ abstract class VmInteropHandler {
   ///
   /// If [value] is null, the environment variable is removed.
   static Future<void> setEnvironmentVariable(String name, String? value) async {
+    if (value != null) {
+      _environmentOverrides[name] = value;
+    } else {
+      _environmentOverrides.remove(name);
+    }
     final port = _port;
     if (port == null) return;
     final replyPort = RawReceivePort();

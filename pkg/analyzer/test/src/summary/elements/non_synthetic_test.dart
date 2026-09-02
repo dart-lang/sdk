@@ -179,7 +179,7 @@ library
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F3
       setters
-        isOriginDeclaration foo
+        hasImplicitReturnType isOriginDeclaration foo
           reference: <testLibrary>::@class::C::@setter::foo
           firstFragment: #F4
           formalParameters
@@ -209,9 +209,9 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic a (nameOffset:9) (firstTokenOffset:9) (offset:9)
               element: <testLibrary>::@enum::E::@field::a
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -224,9 +224,9 @@ library
             #F4 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic b (nameOffset:12) (firstTokenOffset:12) (offset:12)
               element: <testLibrary>::@enum::E::@field::b
               initializer: expression_1
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -241,7 +241,7 @@ library
               initializer: expression_2
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: a @-1
                       element: <testLibrary>::@enum::E::@getter::a
@@ -466,7 +466,7 @@ library
           type: int
           setter: <testLibrary>::@mixin::M::@setter::foo
       setters
-        isOriginDeclaration foo
+        hasImplicitReturnType isOriginDeclaration foo
           reference: <testLibrary>::@mixin::M::@setter::foo
           firstFragment: #F3
           formalParameters
@@ -548,7 +548,7 @@ library
       returnType: int
       variable: <testLibrary>::@topLevelVariable::foo
   setters
-    isOriginDeclaration isStatic foo
+    hasImplicitReturnType isOriginDeclaration isStatic foo
       reference: <testLibrary>::@setter::foo
       firstFragment: #F3
       formalParameters
@@ -587,7 +587,7 @@ library
       type: int
       setter: <testLibrary>::@setter::foo
   setters
-    isOriginDeclaration isStatic foo
+    hasImplicitReturnType isOriginDeclaration isStatic foo
       reference: <testLibrary>::@setter::foo
       firstFragment: #F2
       formalParameters

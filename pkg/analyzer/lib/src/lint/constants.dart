@@ -70,7 +70,7 @@ extension AstNodeExtension on AstNode {
   /// Whether [ConstantVerifier] reports an error when computing the value of
   /// `this` as a constant.
   bool get hasConstantVerifierError {
-    var unitNode = thisOrAncestorOfType<CompilationUnitImpl>();
+    var unitNode = thisOrAncestorOfType2<CompilationUnitImpl>();
     var unitFragment = unitNode?.declaredFragment;
     if (unitFragment == null) return false;
 
@@ -78,7 +78,7 @@ extension AstNodeExtension on AstNode {
     var declaredVariables = libraryElement.session.declaredVariables;
 
     var dependenciesFinder = ConstantExpressionsDependenciesFinder();
-    accept(dependenciesFinder);
+    accept2(dependenciesFinder);
     computeConstants(
       declaredVariables: declaredVariables,
       constants: dependenciesFinder.dependencies.toList(),
@@ -89,7 +89,7 @@ extension AstNodeExtension on AstNode {
     var listener = _ConstantDiagnosticListener();
     var errorReporter = DiagnosticReporter(listener, unitFragment.source);
 
-    accept(ConstantVerifier(errorReporter, libraryElement, declaredVariables));
+    accept2(ConstantVerifier(errorReporter, libraryElement, declaredVariables));
     return listener.hasConstError;
   }
 }

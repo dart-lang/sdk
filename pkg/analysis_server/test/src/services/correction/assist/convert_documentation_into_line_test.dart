@@ -140,6 +140,26 @@ class A {
 ''');
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/39317')
+  Future<void> test_noLeadingAsterisk() async {
+    await resolveTestCode('''
+class A {
+  /**
+    ^AAAAAA BBBBBB CCCCCC
+    DDDDDD EEEEEE FFFFFF
+   **/
+  mmm() {}
+}
+''');
+    await assertHasAssist('''
+class A {
+  /// AAAAAA BBBBBB CCCCCC
+  /// DDDDDD EEEEEE FFFFFF
+  mmm() {}
+}
+''');
+  }
+
   Future<void> test_notDocumentation() async {
     await resolveTestCode('''
 /* ^AAAA */

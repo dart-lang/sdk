@@ -25,9 +25,34 @@ f() {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('foo(');
+    var node = result.findNode.unqualifiedFunctionInvocation('foo(');
     assertResolvedNodeText(node, r'''
-MethodInvocation
+UnqualifiedFunctionInvocation
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 1
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: <testLibrary>::@function::foo::@formalParameter::x
+          substitution: {T: int}
+        staticType: int
+      IntegerLiteral
+        literal: 2
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: <testLibrary>::@function::foo::@formalParameter::y
+          substitution: {T: int}
+        staticType: int
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@function::foo
+    invokeType: void Function(int, int)
+    type: void
+  staticType: void
+  typeArgumentTypes
+    int
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     element: <testLibrary>::@function::foo
@@ -66,9 +91,31 @@ f() {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('foo(');
+    var node = result.findNode.unqualifiedFunctionInvocation('foo(');
     assertResolvedNodeText(node, r'''
-MethodInvocation
+UnqualifiedFunctionInvocation
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      NamedArgument
+        name: x
+        colon: :
+        argumentExpression2: IntegerLiteral
+          literal: 1
+          staticType: int
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: <testLibrary>::@function::foo::@formalParameter::x
+          substitution: {T: int}
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@function::foo
+    invokeType: void Function({required int x, required int y})
+    type: void
+  staticType: void
+  typeArgumentTypes
+    int
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     element: <testLibrary>::@function::foo
@@ -104,9 +151,28 @@ f() {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('foo(');
+    var node = result.findNode.unqualifiedFunctionInvocation('foo(');
     assertResolvedNodeText(node, r'''
-MethodInvocation
+UnqualifiedFunctionInvocation
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 1
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: <testLibrary>::@function::foo::@formalParameter::x
+          substitution: {T: int}
+        staticType: int
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@function::foo
+    invokeType: void Function(int, int)
+    type: void
+  staticType: void
+  typeArgumentTypes
+    int
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     element: <testLibrary>::@function::foo
@@ -139,9 +205,38 @@ f() {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('foo(');
+    var node = result.findNode.unqualifiedFunctionInvocation('foo(');
     assertResolvedNodeText(node, r'''
-MethodInvocation
+UnqualifiedFunctionInvocation
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 1
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: <testLibrary>::@function::foo::@formalParameter::x
+          substitution: {T: int}
+        staticType: int
+      IntegerLiteral
+        literal: 2
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: <testLibrary>::@function::foo::@formalParameter::y
+          substitution: {T: int}
+        staticType: int
+      IntegerLiteral
+        literal: 3
+        correspondingParameter: <null>
+        staticType: int
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@function::foo
+    invokeType: void Function(int, int)
+    type: void
+  staticType: void
+  typeArgumentTypes
+    int
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     element: <testLibrary>::@function::foo
@@ -184,9 +279,41 @@ f() {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('foo(');
+    var node = result.findNode.unqualifiedFunctionInvocation('foo(');
     assertResolvedNodeText(node, r'''
-MethodInvocation
+UnqualifiedFunctionInvocation
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 1
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: <testLibrary>::@function::foo::@formalParameter::x
+          substitution: {T: int}
+        staticType: int
+      IntegerLiteral
+        literal: 2
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: <testLibrary>::@function::foo::@formalParameter::y
+          substitution: {T: int}
+        staticType: int
+      NamedArgument
+        name: z
+        colon: :
+        argumentExpression2: IntegerLiteral
+          literal: 3
+          staticType: int
+        correspondingParameter: <null>
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@function::foo
+    invokeType: void Function(int, int)
+    type: void
+  staticType: void
+  typeArgumentTypes
+    int
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     element: <testLibrary>::@function::foo

@@ -1412,8 +1412,6 @@ void AsmIntrinsifier::StringBaseCharAt(Assembler* assembler,
   __ CompareImmediate(R1, target::Symbols::kNumberOfOneCharCodeSymbols);
   __ b(normal_ir_body, GE);
   __ ldr(R0, Address(THR, target::Thread::predefined_symbols_address_offset()));
-  __ AddImmediate(
-      R0, target::Symbols::kNullCharCodeSymbolOffset * target::kWordSize);
   __ ldr(R0, Address(R0, R1, LSL, 2));
   __ Ret();
 
@@ -1426,8 +1424,6 @@ void AsmIntrinsifier::StringBaseCharAt(Assembler* assembler,
   __ CompareImmediate(R1, target::Symbols::kNumberOfOneCharCodeSymbols);
   __ b(normal_ir_body, GE);
   __ ldr(R0, Address(THR, target::Thread::predefined_symbols_address_offset()));
-  __ AddImmediate(
-      R0, target::Symbols::kNullCharCodeSymbolOffset * target::kWordSize);
   __ ldr(R0, Address(R0, R1, LSL, 2));
   __ Ret();
 
@@ -1492,6 +1488,12 @@ static void TryAllocateString(Assembler* assembler,
                               Label* ok,
                               Label* failure) {
   ASSERT(cid == kOneByteStringCid || cid == kTwoByteStringCid);
+
+  if (!UseInlineAllocation()) {
+    __ b(failure);
+    return;
+  }
+
   const Register length_reg = R2;
   // _Mint length: call to runtime to produce error.
   __ BranchIfNotSmi(length_reg, failure);

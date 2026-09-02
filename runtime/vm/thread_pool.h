@@ -9,7 +9,7 @@
 #include <memory>
 #include <utility>
 
-#include "vm/allocation.h"
+#include "platform/allocation.h"
 #include "vm/globals.h"
 #include "vm/intrusive_dlist.h"
 #include "vm/lockers.h"
@@ -22,7 +22,7 @@ class MutexLocker;
 class ThreadPool {
  public:
   // Subclasses of Task are able to run on a ThreadPool.
-  class Task : public IntrusiveDListEntry<Task> {
+  class Task : public IntrusiveDListEntry<Task>, public MallocAllocated {
    protected:
     Task() {}
 

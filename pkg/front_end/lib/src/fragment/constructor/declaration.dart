@@ -38,6 +38,7 @@ import '../../source/source_loader.dart';
 import '../../source/source_member_builder.dart';
 import '../../source/source_type_parameter_builder.dart';
 import '../../source/type_parameter_factory.dart';
+import '../../type_inference/context_allocation_strategy.dart';
 import '../fragment.dart';
 import 'encoding.dart';
 
@@ -272,7 +273,7 @@ mixin _ConstructorDeclarationMixin
     List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
   ) {
     if (_hasSuperInitializingFormals) {
-      List<Initializer>? initializers;
+      List<InternalInitializer>? initializers;
       if (_buildInitializersForOutline) {
         Resolver resolver = libraryBuilder.loader.createResolver();
         initializers = resolver.buildInitializersUnfinished(
@@ -300,7 +301,7 @@ mixin _ConstructorDeclarationMixin
     DeclarationBuilder declarationBuilder,
     ClassHierarchyBase hierarchy,
     List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
-    List<Initializer>? initializers,
+    List<InternalInitializer>? initializers,
   ) {
     if (formals == null) return;
     if (!_hasSuperInitializingFormals) return;
@@ -316,17 +317,33 @@ mixin _ConstructorDeclarationMixin
       }
     }
 
+    Member? superTarget = null;
+    bool isInvalid = false;
+    if (initializers != null) {
+      InternalInitializer? lastInitializer = initializers.isNotEmpty
+          ? initializers.last
+          : null;
+      if (lastInitializer is InternalSuperInitializer) {
+        superTarget = lastInitializer.target;
+      } else if (lastInitializer is InternalInvalidInitializer &&
+          // Coverage-ignore(suite): Not run.
+          lastInitializer.isSuperInitializer) {
+        // Erroneous super initializer.
+        isInvalid = true;
+      }
+    }
+
     ConstructorBuilder? superTargetBuilder = _computeSuperTargetBuilder(
       libraryBuilder,
       declarationBuilder,
-      initializers,
+      superTarget: superTarget,
+      isInvalid: isInvalid,
     );
 
     if (superTargetBuilder is SourceConstructorBuilder) {
       superTargetBuilder.inferFormalTypes(hierarchy);
     }
 
-    Member superTarget;
     FunctionSignature? superConstructorSignature;
     if (superTargetBuilder != null) {
       superTarget = superTargetBuilder.invokeTarget;
@@ -423,7 +440,8 @@ mixin _ConstructorDeclarationMixin
           }
           formal.type.registerInferredType(type ?? const DynamicType());
         }
-        formal.variable.hasDeclaredInitializer = formal.hasDeclaredDefaultValue;
+        formal.variable.hasDeclaredDefaultValue =
+            formal.hasDeclaredDefaultValue;
       }
     }
 
@@ -448,15 +466,15 @@ mixin _ConstructorDeclarationMixin
 
   ConstructorBuilder? _computeSuperTargetBuilder(
     SourceLibraryBuilder libraryBuilder,
-    DeclarationBuilder declarationBuilder,
-    List<Initializer>? initializers,
-  ) {
+    DeclarationBuilder declarationBuilder, {
+    required Member? superTarget,
+    required bool isInvalid,
+  }) {
     if (declarationBuilder is! SourceClassBuilder) {
       return null;
     }
     SourceClassBuilder classBuilder = declarationBuilder;
 
-    Member superTarget;
     ClassBuilder superclassBuilder;
 
     TypeBuilder? supertype = classBuilder.supertypeBuilder;
@@ -475,24 +493,9 @@ mixin _ConstructorDeclarationMixin
       return null;
     }
 
-    Initializer? lastInitializer =
-        initializers != null && initializers.isNotEmpty
-        ? initializers.last
-        : null;
-    // TODO(johnniwinther): This method is currently called with initializers
-    // in an uninferred state for non-const constructors with super parameters
-    // and in an inferred state for const constructors with super parameters.
-    // Avoid this inconsistency by calling this before inference.
-    if (lastInitializer is SuperInitializer) {
-      superTarget = lastInitializer.target;
-    } else if (lastInitializer is InternalSuperInitializer) {
-      superTarget = lastInitializer.target;
-    } else if (lastInitializer is InvalidInitializer &&
-        // Coverage-ignore(suite): Not run.
-        lastInitializer.isSuperInitializer) {
-      // Erroneous super initializer.
+    if (isInvalid) {
       return null;
-    } else {
+    } else if (superTarget == null) {
       MemberLookupResult? result = superclassBuilder.findConstructorOrFactory(
         "",
         libraryBuilder,
@@ -556,11 +559,26 @@ mixin _ConstructorDeclarationMixin
           break;
         }
       }
+      Member? superTarget;
+      bool isInvalid = false;
+      Initializer? lastInitializer = initializers.isNotEmpty
+          ? initializers.last
+          : null;
+      if (lastInitializer is SuperInitializer) {
+        superTarget = lastInitializer.target;
+      }
+      // Coverage-ignore(suite): Not run.
+      else if (lastInitializer is InvalidInitializer &&
+          lastInitializer.isSuperInitializer) {
+        // Erroneous super initializer.
+        isInvalid = true;
+      }
       if (!allInitializersAreSynthetic) {
         ConstructorBuilder? superTargetBuilder = _computeSuperTargetBuilder(
           libraryBuilder,
           declarationBuilder,
-          initializers,
+          superTarget: superTarget,
+          isInvalid: isInvalid,
         );
         if (superTargetBuilder is SourceConstructorBuilder) {
           superTargetBuilder.addSuperParameterDefaultValueCloners(
@@ -773,20 +791,20 @@ mixin _ConstructorEncodingMixin
 
   @override
   void registerFunctionBody(
-    Statement? body,
-    Scope? scope, {
-    required ThisVariable? thisVariable,
+    Statement? body, {
+    required ScopeProviderInfo? scopeProviderInfo,
   }) {
     _encoding.registerFunctionBody(
       body: body,
-      scope: scope,
-      thisVariable: thisVariable,
+      scopeProviderInfo: scopeProviderInfo,
     );
   }
 
   @override
-  void registerNoBodyConstructor({required ThisVariable? thisVariable}) {
-    _encoding.registerNoBodyConstructor(thisVariable: thisVariable);
+  void registerNoBodyConstructor({
+    required ScopeProviderInfo? scopeProviderInfo,
+  }) {
+    _encoding.registerNoBodyConstructor(scopeProviderInfo: scopeProviderInfo);
   }
 
   @override
@@ -1500,12 +1518,13 @@ abstract class ConstructorFragmentDeclaration {
   );
 
   void registerFunctionBody(
-    Statement? body,
-    Scope? scope, {
-    required ThisVariable? thisVariable,
+    Statement? body, {
+    required ScopeProviderInfo? scopeProviderInfo,
   });
 
-  void registerNoBodyConstructor({required ThisVariable? thisVariable});
+  void registerNoBodyConstructor({
+    required ScopeProviderInfo? scopeProviderInfo,
+  });
 
   InternalVariable? get thisVariable;
 

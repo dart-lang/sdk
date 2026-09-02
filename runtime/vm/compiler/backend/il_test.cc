@@ -987,6 +987,7 @@ ISOLATE_UNIT_TEST_CASE(IRTest_FfiCallInstrLeafDoesntSpill) {
       BuildInstructions([](compiler::Assembler* assembler) {
         // Clobber all volatile registers to make sure caller doesn't rely on
         // any non-callee-save register.
+        // clang-format off
         for (intptr_t reg = 0; reg < kNumberOfFpuRegisters; reg++) {
           if ((kAbiVolatileFpuRegs & (1 << reg)) != 0) {
 #if defined(TARGET_ARCH_ARM)
@@ -997,6 +998,7 @@ ISOLATE_UNIT_TEST_CASE(IRTest_FfiCallInstrLeafDoesntSpill) {
 #endif
           }
         }
+        // clang-format on
         for (intptr_t reg = 0; reg < kNumberOfCpuRegisters; reg++) {
           if ((kDartVolatileCpuRegs & (1 << reg)) != 0) {
             assembler->LoadImmediate(static_cast<Register>(reg), 0xDEADBEEF);

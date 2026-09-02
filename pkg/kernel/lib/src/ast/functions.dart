@@ -121,6 +121,7 @@ class FunctionNode extends TreeNode implements ScopeProvider, ContextConsumer {
     setParents(this.typeParameters, this);
     setParents(this.positionalParameters, this);
     setParents(this.namedParameters, this);
+    thisVariable?.parent = this;
     _body?.parent = this;
   }
 
@@ -259,7 +260,8 @@ class FunctionNode extends TreeNode implements ScopeProvider, ContextConsumer {
     visitList(positionalParameters, v);
     visitList(namedParameters, v);
     returnType.accept(v);
-    thisVariable?.accept(v);
+    // TODO(cstefantsova): Uncomment the following.
+    // thisVariable?.accept(v);
     emittedValueType?.accept(v);
     redirectingFactoryTarget?.target?.acceptReference(v);
     if (redirectingFactoryTarget?.typeArguments != null) {
@@ -274,9 +276,10 @@ class FunctionNode extends TreeNode implements ScopeProvider, ContextConsumer {
     v.transformList(positionalParameters, this);
     v.transformList(namedParameters, this);
     returnType = v.visitDartType(returnType);
-    if (thisVariable != null) {
-      thisVariable = v.transform(thisVariable!)..parent = this;
-    }
+    // TODO(cstefantsova): Uncomment the following.
+    // if (thisVariable != null) {
+    //   thisVariable = v.transform(thisVariable!)..parent = this;
+    // }
     if (emittedValueType != null) {
       emittedValueType = v.visitDartType(emittedValueType!);
     }

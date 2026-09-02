@@ -20,6 +20,7 @@ final class VmClient extends Client<DartRuntimeServiceVMBackend> {
     required super.eventStreamMethods,
     required super.backend,
     required super.artificial,
+    required super.clientManager,
     super.name,
   });
 
@@ -75,6 +76,7 @@ final class VmClientManager extends ClientManager<DartRuntimeServiceVMBackend> {
       clients: clients,
       eventStreamMethods: eventStreamMethods,
       backend: backend,
+      clientManager: this,
       name: name,
       artificial: artificial,
     );

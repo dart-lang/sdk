@@ -18,6 +18,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -32,6 +33,26 @@ class ConflictValidatorVisitor extends RecursiveAstVisitor<void> {
   new(this.result, this.newName, this.target, this.visibleRangeMap);
 
   @override
+  void visitDeclaredIdentifier(DeclaredIdentifier node) {
+    _checkDeclaration(
+      declaredElement: node.declaredFragment?.element,
+      nameToken: node.name,
+    );
+
+    super.visitDeclaredIdentifier(node);
+  }
+
+  @override
+  void visitDeclaredVariablePattern(DeclaredVariablePattern node) {
+    _checkDeclaration(
+      declaredElement: node.declaredFragment?.element,
+      nameToken: node.name,
+    );
+
+    super.visitDeclaredVariablePattern(node);
+  }
+
+  @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     _checkDeclaration(
       declaredElement: node.declaredFragment!.element,
@@ -43,7 +64,10 @@ class ConflictValidatorVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    var nodeElement = node.element;
+    // Use `writeOrReadElement` so that assignment targets are handled. For the
+    // left-hand side of a plain assignment there is no read, so `element` is
+    // `null` and the resolved setter is stored on the assignment instead.
+    var nodeElement = node.writeOrReadElement;
     if (nodeElement != null && nodeElement.name == newName) {
       if (conflictingLocals.contains(nodeElement)) {
         return;

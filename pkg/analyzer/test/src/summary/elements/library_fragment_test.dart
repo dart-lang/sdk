@@ -1456,7 +1456,7 @@ package:test/a.dart
     );
   }
 
-  test_scope_wildcardName_importPrefix_preWildcardVariables() async {
+  test_scope_wildcardName_importPrefix_beforeWildcardVariables() async {
     newFile('$testPackageLibPath/x.dart', r'''
 extension X on int {}
 ''');
@@ -1466,7 +1466,7 @@ part of 'test.dart';
 ''');
 
     var library = await buildLibrary(r'''
-// @dart=3.5
+// %before-language-feature: wildcard-variables
 import 'x.dart' as _;
 part 'a.dart';
 ''');

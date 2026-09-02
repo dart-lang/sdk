@@ -9,6 +9,7 @@ import 'package:kernel/core_types.dart';
 import 'package:vm/metadata/direct_call.dart' show DirectCallMetadataRepository;
 import 'package:vm/metadata/inferred_type.dart'
     show
+        InferredType,
         InferredTypeMetadataRepository,
         InferredReturnTypeMetadataRepository,
         InferredArgTypeMetadataRepository;
@@ -248,12 +249,19 @@ String intToMinJsSafeString(int i) {
 }
 
 Component createEmptyComponent() {
+  final canonicalInferredTypes = <InferredType, InferredType>{};
   return Component()
     ..addMetadataRepository(UnreachableNodeMetadataRepository())
     ..addMetadataRepository(ProcedureAttributesMetadataRepository())
     ..addMetadataRepository(TableSelectorMetadataRepository())
     ..addMetadataRepository(DirectCallMetadataRepository())
-    ..addMetadataRepository(InferredTypeMetadataRepository())
-    ..addMetadataRepository(InferredReturnTypeMetadataRepository())
-    ..addMetadataRepository(InferredArgTypeMetadataRepository());
+    ..addMetadataRepository(
+      InferredTypeMetadataRepository(canonicalInferredTypes),
+    )
+    ..addMetadataRepository(
+      InferredReturnTypeMetadataRepository(canonicalInferredTypes),
+    )
+    ..addMetadataRepository(
+      InferredArgTypeMetadataRepository(canonicalInferredTypes),
+    );
 }

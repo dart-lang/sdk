@@ -138,11 +138,11 @@ abstract class _MyMap&Object&MapMixin<K extends core::Object? = dynamic, V exten
       }
     }
     {
-      synthesized core::Iterator<self::_MyMap&Object&MapMixin::K%> :sync-for-iterator = keysToRemove.{core::Iterable::iterator}{core::Iterator<self::_MyMap&Object&MapMixin::K%>};
-      for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
-        self::_MyMap&Object&MapMixin::K% key = :sync-for-iterator.{core::Iterator::current}{self::_MyMap&Object&MapMixin::K%};
+      synthesized core::Iterator<self::_MyMap&Object&MapMixin::K%> :sync-for-iterator##1 = keysToRemove.{core::Iterable::iterator}{core::Iterator<self::_MyMap&Object&MapMixin::K%>};
+      for (; :sync-for-iterator##1.{core::Iterator::moveNext}(){() → core::bool}; ) {
+        self::_MyMap&Object&MapMixin::K% key##1 = :sync-for-iterator##1.{core::Iterator::current}{self::_MyMap&Object&MapMixin::K%};
         {
-          this.{col::MapBase::remove}(key){(core::Object?) → self::_MyMap&Object&MapMixin::V?};
+          this.{col::MapBase::remove}(key##1){(core::Object?) → self::_MyMap&Object&MapMixin::V?};
         }
       }
     }
@@ -161,7 +161,6 @@ abstract class _MyMap&Object&MapMixin<K extends core::Object? = dynamic, V exten
 static get hasUnsoundNullSafety() → core::bool
   return #C2 is core::List<core::Object>;
 static method method(core::Map<core::int, core::String?> m) → core::int {
-  #L1:
   {
     final synthesized core::Map<core::int, core::String?> #0#0 = m;
     synthesized core::String? #0#3;

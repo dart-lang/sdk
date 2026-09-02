@@ -12,10 +12,20 @@ import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
 
 /// Checks for missing arguments for required named parameters.
-class RequiredParametersVerifier extends SimpleAstVisitor<void> {
+class RequiredParametersVerifier extends SimpleAstVisitor2<void> {
   final DiagnosticReporter _errorReporter;
 
   RequiredParametersVerifier(this._errorReporter);
+
+  void verifyNamedFunctionInvocation(NamedFunctionInvocation node) {
+    if (node.resolution case StaticInvocationResolution(:var invokeType)) {
+      _check(
+        parameters: invokeType.formalParameters,
+        arguments: node.argumentList.arguments2,
+        errorEntity: node.name,
+      );
+    }
+  }
 
   @override
   void visitAnnotation(Annotation node) {
@@ -26,11 +36,36 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
       if (errorNode != null) {
         _check(
           parameters: element.formalParameters,
-          arguments: argumentList.arguments,
+          arguments: argumentList.arguments2,
           errorEntity: errorNode,
         );
       }
     }
+  }
+
+  @override
+  void visitCallInvocation(CallInvocation node) {
+    if (node.resolution case StaticInvocationResolution(:var invokeType)) {
+      _check(
+        parameters: invokeType.formalParameters,
+        arguments: node.argumentList.arguments2,
+        errorEntity: node,
+      );
+    }
+  }
+
+  @override
+  void visitCascadeMethodInvocation(CascadeMethodInvocation node) {
+    verifyNamedFunctionInvocation(node);
+  }
+
+  @override
+  void visitConstructorInvocation(ConstructorInvocation node) {
+    _check(
+      parameters: node.constructorReference.element?.formalParameters,
+      arguments: node.argumentList.arguments2,
+      errorEntity: node.constructorReference,
+    );
   }
 
   @override
@@ -41,7 +76,7 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
     if (constructorElement is ConstructorElement) {
       _check(
         parameters: constructorElement.formalParameters,
-        arguments: node.argumentList.arguments,
+        arguments: node.argumentList.arguments2,
         errorEntity: node.constructorName,
       );
     }
@@ -51,49 +86,40 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
   void visitDotShorthandInvocation(DotShorthandInvocation node) {
     _check(
       parameters: _executableElement(node.memberName.element)?.formalParameters,
-      arguments: node.argumentList.arguments,
+      arguments: node.argumentList.arguments2,
       errorEntity: node.memberName,
     );
+  }
+
+  @override
+  void visitDotShorthandMethodInvocation(DotShorthandMethodInvocation node) {
+    verifyNamedFunctionInvocation(node);
   }
 
   @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
     _check(
       parameters: node.constructorElement?.formalParameters,
-      arguments: node.arguments?.argumentList.arguments ?? <Argument>[],
+      arguments: node.arguments?.argumentList.arguments2 ?? <Argument>[],
       errorEntity: node.name,
     );
   }
 
   @override
-  void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    var type = node.staticInvokeType;
-    if (type is FunctionType) {
-      _check(
-        parameters: type.formalParameters,
-        arguments: node.argumentList.arguments,
-        errorEntity: node,
-      );
-    }
-  }
-
-  @override
-  void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    _check(
-      parameters: node.constructorName.element?.formalParameters,
-      arguments: node.argumentList.arguments,
-      errorEntity: node.constructorName,
-    );
+  void visitImportPrefixedFunctionInvocation(
+    ImportPrefixedFunctionInvocation node,
+  ) {
+    verifyNamedFunctionInvocation(node);
   }
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
     if (node.methodName.name == MethodElement.CALL_METHOD_NAME) {
-      var targetType = node.realTarget?.staticType;
+      var targetType = node.realTarget2?.staticType;
       if (targetType is FunctionType) {
         _check(
           parameters: targetType.formalParameters,
-          arguments: node.argumentList.arguments,
+          arguments: node.argumentList.arguments2,
           errorEntity: node.argumentList,
         );
         return;
@@ -102,9 +128,14 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
 
     _check(
       parameters: _executableElement(node.methodName.element)?.formalParameters,
-      arguments: node.argumentList.arguments,
+      arguments: node.argumentList.arguments2,
       errorEntity: node.methodName,
     );
+  }
+
+  @override
+  void visitReceiverMethodInvocation(ReceiverMethodInvocation node) {
+    verifyNamedFunctionInvocation(node);
   }
 
   @override
@@ -113,7 +144,7 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
   ) {
     _check(
       parameters: _executableElement(node.element)?.formalParameters,
-      arguments: node.argumentList.arguments,
+      arguments: node.argumentList.arguments2,
       errorEntity: node,
     );
   }
@@ -126,9 +157,14 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
     _check(
       parameters: _executableElement(node.element)?.formalParameters,
       enclosingConstructor: enclosingConstructor,
-      arguments: node.argumentList.arguments,
+      arguments: node.argumentList.arguments2,
       errorEntity: node,
     );
+  }
+
+  @override
+  void visitUnqualifiedFunctionInvocation(UnqualifiedFunctionInvocation node) {
+    verifyNamedFunctionInvocation(node);
   }
 
   void _check({

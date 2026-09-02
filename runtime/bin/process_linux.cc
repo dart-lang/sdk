@@ -133,23 +133,22 @@ class ExitCodeHandler {
   static void Init();
   static void Cleanup();
 
-  // Notify the ExitCodeHandler that another process exists.
-  static void ProcessStarted() {
-    // Multiple isolates could be starting processes at the same
-    // time. Make sure that only one ExitCodeHandler thread exists.
+  static void EnsureStarted() {
     MonitorLocker locker(monitor_);
-    process_count_++;
-
-    monitor_->Notify();
-
     if (running_) {
       return;
     }
-
     // Start thread that handles process exits when wait returns.
     Thread::Start("dart:io Process.start", ExitCodeHandlerEntry, 0);
-
     running_ = true;
+  }
+
+  // Notify the ExitCodeHandler that another process exists.
+  static void ProcessStarted() {
+    MonitorLocker locker(monitor_);
+    ASSERT(running_);
+    process_count_++;
+    monitor_->Notify();
   }
 
   static void TerminateExitCodeThread() {
@@ -335,14 +334,16 @@ class ProcessStarter {
         id_(id),
         exit_event_(exit_event),
         os_error_message_(os_error_message) {
-    read_in_[0] = -1;
-    read_in_[1] = -1;
-    read_err_[0] = -1;
-    read_err_[1] = -1;
-    write_out_[0] = -1;
-    write_out_[1] = -1;
+    stdout_pipe_[0] = -1;
+    stdout_pipe_[1] = -1;
+    stderr_pipe_[0] = -1;
+    stderr_pipe_[1] = -1;
+    stdin_pipe_[0] = -1;
+    stdin_pipe_[1] = -1;
     exec_control_[0] = -1;
     exec_control_[1] = -1;
+    exit_pipe_[0] = -1;
+    exit_pipe_[1] = -1;
 
     program_arguments_ = reinterpret_cast<const char**>(Dart_ScopeAllocate(
         (arguments_length + 2) * sizeof(*program_arguments_)));
@@ -370,6 +371,10 @@ class ProcessStarter {
       return err;
     }
 
+    if (Process::ModeIsAttached(mode_)) {
+      ExitCodeHandler::EnsureStarted();
+    }
+
     // Fork to create the new process.
     pid_t pid = TEMP_FAILURE_RETRY(fork());
     if (pid < 0) {
@@ -386,33 +391,28 @@ class ProcessStarter {
     // listen for exit-codes, now that we have a non detached child process
     // and also Register this child process.
     if (Process::ModeIsAttached(mode_)) {
+      RegisterProcess(pid);
       ExitCodeHandler::ProcessStarted();
-      err = RegisterProcess(pid);
-      if (err != 0) {
-        return err;
+
+      // Notify child process to start. This is done to delay the call to exec
+      // until the process is registered above, and we are ready to receive the
+      // exit code.
+      char msg = '1';
+      int bytes_written =
+          FDUtils::WriteToBlocking(stdin_pipe_[1], &msg, sizeof(msg));
+      if (bytes_written != sizeof(msg)) {
+        return CleanupAndReturnError();
       }
     }
 
-    // Notify child process to start. This is done to delay the call to exec
-    // until the process is registered above, and we are ready to receive the
-    // exit code.
-    char msg = '1';
-    int bytes_written =
-        FDUtils::WriteToBlocking(read_in_[1], &msg, sizeof(msg));
-    if (bytes_written != sizeof(msg)) {
-      return CleanupAndReturnError();
-    }
-
     // Read the result of executing the child process.
-    close(exec_control_[1]);
-    exec_control_[1] = -1;
+    CloseWriteEndOfPipe(exec_control_);
     if (Process::ModeIsAttached(mode_)) {
       err = ReadExecResult();
     } else {
       err = ReadDetachedExecResult(&pid);
     }
-    close(exec_control_[0]);
-    exec_control_[0] = -1;
+    CloseReadEndOfPipe(exec_control_);
 
     // Return error code if any failures.
     if (err != 0) {
@@ -431,26 +431,30 @@ class ProcessStarter {
 
     if (Process::ModeHasStdio(mode_)) {
       // Connect stdio, stdout and stderr.
-      FDUtils::SetNonBlocking(read_in_[0]);
-      *in_ = read_in_[0];
-      close(read_in_[1]);
-      FDUtils::SetNonBlocking(write_out_[1]);
-      *out_ = write_out_[1];
-      close(write_out_[0]);
-      FDUtils::SetNonBlocking(read_err_[0]);
-      *err_ = read_err_[0];
-      close(read_err_[1]);
+      FDUtils::SetNonBlocking(stdout_pipe_[0]);
+      *in_ = stdout_pipe_[0];
+      stdout_pipe_[0] = -1;
+      CloseWriteEndOfPipe(stdout_pipe_);
+      FDUtils::SetNonBlocking(stdin_pipe_[1]);
+      *out_ = stdin_pipe_[1];
+      stdin_pipe_[1] = -1;
+      CloseReadEndOfPipe(stdin_pipe_);
+      FDUtils::SetNonBlocking(stderr_pipe_[0]);
+      *err_ = stderr_pipe_[0];
+      stderr_pipe_[0] = -1;
+      CloseWriteEndOfPipe(stderr_pipe_);
     } else {
       // Close all fds.
-      close(read_in_[0]);
-      close(read_in_[1]);
-      ASSERT(write_out_[0] == -1);
-      ASSERT(write_out_[1] == -1);
-      ASSERT(read_err_[0] == -1);
-      ASSERT(read_err_[1] == -1);
+      ClosePipe(stdin_pipe_);
+      ASSERT(stdout_pipe_[0] == -1);
+      ASSERT(stdout_pipe_[1] == -1);
+      ASSERT(stderr_pipe_[0] == -1);
+      ASSERT(stderr_pipe_[1] == -1);
     }
     ASSERT(exec_control_[0] == -1);
     ASSERT(exec_control_[1] == -1);
+    ASSERT(exit_pipe_[0] == -1);
+    ASSERT(exit_pipe_[1] == -1);
 
     *id_ = pid;
     return 0;
@@ -466,21 +470,31 @@ class ProcessStarter {
       return CleanupAndReturnError();
     }
 
-    // For a detached process the pipe to connect stdout is still used for
-    // signaling when to do the first fork.
-    result = TEMP_FAILURE_RETRY(pipe2(read_in_, O_CLOEXEC));
-    if (result < 0) {
-      return CleanupAndReturnError();
-    }
-
-    // For detached processes the pipe to connect stderr and stdin are not used.
     if (Process::ModeHasStdio(mode_)) {
-      result = TEMP_FAILURE_RETRY(pipe2(read_err_, O_CLOEXEC));
+      result = TEMP_FAILURE_RETRY(pipe2(stdout_pipe_, O_CLOEXEC));
       if (result < 0) {
         return CleanupAndReturnError();
       }
 
-      result = TEMP_FAILURE_RETRY(pipe2(write_out_, O_CLOEXEC));
+      result = TEMP_FAILURE_RETRY(pipe2(stderr_pipe_, O_CLOEXEC));
+      if (result < 0) {
+        return CleanupAndReturnError();
+      }
+    }
+
+    // The stdin_pipe_ pipe is used for connecting stdin when ModeHasStdio is
+    // true (kNormal, kDetachedWithStdio), and also for the 1-byte
+    // synchronization message when ModeIsAttached is true (kNormal,
+    // kInheritStdio). Only in kDetached mode is stdin_pipe_ not needed at all.
+    if (Process::ModeHasStdio(mode_) || Process::ModeIsAttached(mode_)) {
+      result = TEMP_FAILURE_RETRY(pipe2(stdin_pipe_, O_CLOEXEC));
+      if (result < 0) {
+        return CleanupAndReturnError();
+      }
+    }
+
+    if (Process::ModeIsAttached(mode_)) {
+      result = TEMP_FAILURE_RETRY(pipe2(exit_pipe_, O_CLOEXEC));
       if (result < 0) {
         return CleanupAndReturnError();
       }
@@ -490,18 +504,31 @@ class ProcessStarter {
   }
 
   void NewProcess() {
-    // Wait for parent process before setting up the child process.
-    char msg;
-    int bytes_read = FDUtils::ReadFromBlocking(read_in_[0], &msg, sizeof(msg));
-    if (bytes_read != sizeof(msg)) {
-      perror("Failed receiving notification message");
-      _exit(1);
-    }
+    CloseUnusedPipeEndsInChild();
     if (Process::ModeIsAttached(mode_)) {
+      // Wait for parent process before setting up the child process.
+      char msg;
+      int bytes_read =
+          FDUtils::ReadFromBlocking(stdin_pipe_[0], &msg, sizeof(msg));
+      if (bytes_read != sizeof(msg)) {
+        perror("Failed receiving notification message");
+        _exit(1);
+      }
+      if (!Process::ModeHasStdio(mode_)) {
+        CloseReadEndOfPipe(stdin_pipe_);
+      }
       ExecProcess();
     } else {
       ExecDetachedProcess();
     }
+  }
+
+  void CloseUnusedPipeEndsInChild() {
+    ClosePipe(exit_pipe_);
+    CloseReadEndOfPipe(exec_control_);
+    CloseReadEndOfPipe(stderr_pipe_);
+    CloseReadEndOfPipe(stdout_pipe_);
+    CloseWriteEndOfPipe(stdin_pipe_);
   }
 
   // Tries to find path_ relative to the current namespace unless it should be
@@ -515,23 +542,20 @@ class ProcessStarter {
 
   void ExecProcess() {
     if (mode_ == kNormal) {
-      if (TEMP_FAILURE_RETRY(dup2(write_out_[0], STDIN_FILENO)) == -1) {
+      if (TEMP_FAILURE_RETRY(dup2(stdin_pipe_[0], STDIN_FILENO)) == -1) {
         ReportChildError();
       }
-      close(write_out_[0]);
-      close(write_out_[1]);
+      ClosePipe(stdin_pipe_);
 
-      if (TEMP_FAILURE_RETRY(dup2(read_in_[1], STDOUT_FILENO)) == -1) {
+      if (TEMP_FAILURE_RETRY(dup2(stdout_pipe_[1], STDOUT_FILENO)) == -1) {
         ReportChildError();
       }
-      close(read_in_[0]);
-      close(read_in_[1]);
+      ClosePipe(stdout_pipe_);
 
-      if (TEMP_FAILURE_RETRY(dup2(read_err_[1], STDERR_FILENO)) == -1) {
+      if (TEMP_FAILURE_RETRY(dup2(stderr_pipe_[1], STDERR_FILENO)) == -1) {
         ReportChildError();
       }
-      close(read_err_[0]);
-      close(read_err_[1]);
+      ClosePipe(stderr_pipe_);
     } else {
       ASSERT(mode_ == kInheritStdio);
     }
@@ -556,16 +580,12 @@ class ProcessStarter {
 
   void ExecDetachedProcess() {
     if (mode_ == kDetached) {
-      ASSERT(write_out_[0] == -1);
-      ASSERT(write_out_[1] == -1);
-      ASSERT(read_err_[0] == -1);
-      ASSERT(read_err_[1] == -1);
-      // For a detached process the pipe to connect stdout is only used for
-      // signaling when to do the first fork.
-      close(read_in_[0]);
-      read_in_[0] = -1;
-      close(read_in_[1]);
-      read_in_[1] = -1;
+      ASSERT(stdin_pipe_[0] == -1);
+      ASSERT(stdin_pipe_[1] == -1);
+      ASSERT(stderr_pipe_[0] == -1);
+      ASSERT(stderr_pipe_[1] == -1);
+      ASSERT(stdout_pipe_[0] == -1);
+      ASSERT(stdout_pipe_[1] == -1);
     } else {
       // Don't close any fds if keeping stdio open to the detached process.
       ASSERT(mode_ == kDetachedWithStdio);
@@ -622,18 +642,14 @@ class ProcessStarter {
     }
   }
 
-  int RegisterProcess(pid_t pid) {
-    int result;
-    int event_fds[2];
-    result = TEMP_FAILURE_RETRY(pipe2(event_fds, O_CLOEXEC));
-    if (result < 0) {
-      return CleanupAndReturnError();
-    }
-
-    ProcessInfoList::AddProcess(pid, event_fds[1]);
-    *exit_event_ = event_fds[0];
-    FDUtils::SetNonBlocking(event_fds[0]);
-    return 0;
+  void RegisterProcess(pid_t pid) {
+    ASSERT(exit_pipe_[0] != -1);
+    ASSERT(exit_pipe_[1] != -1);
+    ProcessInfoList::AddProcess(pid, exit_pipe_[1]);
+    exit_pipe_[1] = -1;
+    *exit_event_ = exit_pipe_[0];
+    FDUtils::SetNonBlocking(exit_pipe_[0]);
+    exit_pipe_[0] = -1;
   }
 
   int ReadExecResult() {
@@ -694,13 +710,13 @@ class ProcessStarter {
   }
 
   void SetupDetachedWithStdio() {
-    if (TEMP_FAILURE_RETRY(dup2(write_out_[0], STDIN_FILENO)) == -1) {
+    if (TEMP_FAILURE_RETRY(dup2(stdin_pipe_[0], STDIN_FILENO)) == -1) {
       ReportChildError();
     }
-    if (TEMP_FAILURE_RETRY(dup2(read_in_[1], STDOUT_FILENO)) == -1) {
+    if (TEMP_FAILURE_RETRY(dup2(stdout_pipe_[1], STDOUT_FILENO)) == -1) {
       ReportChildError();
     }
-    if (TEMP_FAILURE_RETRY(dup2(read_err_[1], STDERR_FILENO)) == -1) {
+    if (TEMP_FAILURE_RETRY(dup2(stderr_pipe_[1], STDERR_FILENO)) == -1) {
       ReportChildError();
     }
 
@@ -767,26 +783,38 @@ class ProcessStarter {
     }
   }
 
-  void ClosePipe(int* fds) {
-    for (int i = 0; i < 2; i++) {
-      if (fds[i] != -1) {
-        close(fds[i]);
-        fds[i] = -1;
-      }
+  void CloseReadEndOfPipe(int* fds) {
+    if (fds[0] != -1) {
+      close(fds[0]);
+      fds[0] = -1;
     }
+  }
+
+  void CloseWriteEndOfPipe(int* fds) {
+    if (fds[1] != -1) {
+      close(fds[1]);
+      fds[1] = -1;
+    }
+  }
+
+  void ClosePipe(int* fds) {
+    CloseReadEndOfPipe(fds);
+    CloseWriteEndOfPipe(fds);
   }
 
   void CloseAllPipes() {
     ClosePipe(exec_control_);
-    ClosePipe(read_in_);
-    ClosePipe(read_err_);
-    ClosePipe(write_out_);
+    ClosePipe(stdout_pipe_);
+    ClosePipe(stderr_pipe_);
+    ClosePipe(stdin_pipe_);
+    ClosePipe(exit_pipe_);
   }
 
-  int read_in_[2];       // Pipe for stdout to child process.
-  int read_err_[2];      // Pipe for stderr to child process.
-  int write_out_[2];     // Pipe for stdin to child process.
+  int stdout_pipe_[2];   // Pipe for stdout to child process.
+  int stderr_pipe_[2];   // Pipe for stderr to child process.
+  int stdin_pipe_[2];    // Pipe for stdin to child process.
   int exec_control_[2];  // Pipe to get the result from exec.
+  int exit_pipe_[2];     // Pipe for exit event.
 
   const char** program_arguments_;
   char** program_environment_;

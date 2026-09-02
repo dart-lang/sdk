@@ -4,7 +4,7 @@
 
 import 'dart:io';
 
-import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
+import 'package:_fe_analyzer_shared/src/testing/id.dart' show Id, ActualDataMap;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -61,7 +61,7 @@ class _DefiniteAssignmentDataComputer extends DataComputer<String> {
   void computeUnitData(
     TestingData testingData,
     CompilationUnit unit,
-    Map<Id, ActualData<String>> actualMap,
+    ActualDataMap<String> actualMap,
   ) {
     var unitUri = unit.declaredFragment!.source.uri;
     var flowResult = testingData.uriToFlowAnalysisData[unitUri]!;
@@ -80,14 +80,24 @@ class _DefiniteAssignmentDataExtractor extends AstDataExtractor<String> {
 
   @override
   String? computeNodeValue(Id id, AstNode node) {
+    Element? element;
+    var flowNode = node;
     if (node is SimpleIdentifier && node.inGetterContext()) {
-      var element = node.element;
-      if (element is LocalVariableElement ||
-          element is FormalParameterElement) {
-        if (_flowResult.notDefinitelyAssigned.contains(node)) {
-          return 'unassigned';
+      element = node.element;
+    } else if (node is IfNullAssignment || node is CompoundAssignment) {
+      var target = (node as AssignmentExpression2).target;
+      if (target is UnqualifiedNameAssignmentTarget) {
+        var readResolution = target.read;
+        if (readResolution is VariableReadResolution) {
+          element = readResolution.element;
+          flowNode = target;
         }
       }
+    }
+    if ((element is LocalVariableElement ||
+            element is FormalParameterElement) &&
+        _flowResult.notDefinitelyAssigned.contains(flowNode)) {
+      return 'unassigned';
     }
     return null;
   }

@@ -279,6 +279,18 @@ bool _isJSExportedDartFunction<T extends Function>(Object? any) {
 bool _isNullableJSExportedDartFunction<T extends Function>(Object? any) =>
     any == null || _isJSExportedDartFunction<T>(any);
 
+bool _isJSArray(Object? any) {
+  return _isJSAny(any) &&
+      js_helper
+          .JS<WasmI32>(
+            '(o) => Array.isArray(o) || o instanceof Array',
+            unsafeCast<JSAny>(any).toExternRef,
+          )
+          .toBool();
+}
+
+bool _isNullableJSArray(Object? any) => any == null || _isJSArray(any);
+
 // `TypedArray` doesn't exist as a property in JS, but rather as a superclass of
 // all typed arrays. In order to do the most sensible thing here, we can use the
 // prototype of some typed array type, and check that the receiver is an
@@ -727,6 +739,112 @@ extension StringToJSString on String {
       JSStringType(JSValue(jsStringFromDartString(t).toExternRef)),
     );
   }
+}
+
+// -----------------------------------------------------------------------------
+// JSArray<JSNumber> <-> List<num>
+@patch
+extension JSArrayOfJSNumberToList on JSArray<JSNumber> {
+  @patch
+  List<double> get toDartDoubleList => [
+    for (var i = 0; i < this.length; i++) this[i].toDartDouble,
+  ];
+
+  @patch
+  List<int> get toDartIntList => [
+    for (var i = 0; i < this.length; i++) this[i].toDartInt,
+  ];
+}
+
+@patch
+extension ListOfNumberToJSArray on List<num> {
+  @patch
+  JSArray<JSNumber> get toJS => [for (var value in this) value.toJS].toJS;
+}
+
+// -----------------------------------------------------------------------------
+// JSArray<JSNumber?> <-> List<num?>
+@patch
+extension JSArrayOfNullableJSNumberToList on JSArray<JSNumber?> {
+  @patch
+  List<double?> get toDartDoubleList => [
+    for (var i = 0; i < this.length; i++) this[i]?.toDartDouble,
+  ];
+
+  @patch
+  List<int?> get toDartIntList => [
+    for (var i = 0; i < this.length; i++) this[i]?.toDartInt,
+  ];
+}
+
+@patch
+extension ListOfNullableNumberToJSArray on List<num?> {
+  @patch
+  JSArray<JSNumber?> get toJS => [for (var value in this) value?.toJS].toJS;
+}
+
+// -----------------------------------------------------------------------------
+// JSArray<JSString> <-> List<String>
+@patch
+extension JSArrayOfJSStringToList on JSArray<JSString> {
+  @patch
+  List<String> get toDartStringList => [
+    for (var i = 0; i < this.length; i++) this[i].toDart,
+  ];
+}
+
+@patch
+extension ListOfStringToJSArray on List<String> {
+  @patch
+  JSArray<JSString> get toJS => [for (var value in this) value.toJS].toJS;
+}
+
+// -----------------------------------------------------------------------------
+// JSArray<JSString?> <-> List<String?>
+@patch
+extension JSArrayOfNullableJSStringToList on JSArray<JSString?> {
+  @patch
+  List<String?> get toDartStringList => [
+    for (var i = 0; i < this.length; i++) this[i]?.toDart,
+  ];
+}
+
+@patch
+extension ListOfNullableStringToJSArray on List<String?> {
+  @patch
+  JSArray<JSString?> get toJS => [for (var value in this) value?.toJS].toJS;
+}
+
+// -----------------------------------------------------------------------------
+// JSArray<JSBoolean> <-> List<bool>
+@patch
+extension JSArrayOfJSBooleanToList on JSArray<JSBoolean> {
+  @patch
+  List<bool> get toDartBoolList => [
+    for (var i = 0; i < this.length; i++) this[i].toDart,
+  ];
+}
+
+@patch
+extension ListOfBoolToJSArray on List<bool> {
+  @patch
+  JSArray<JSBoolean> get toJS => [for (var value in this) value.toJS].toJS;
+}
+
+// -----------------------------------------------------------------------------
+// JSArray<JSBoolean?> <-> List<bool?>
+@patch
+extension JSArrayOfNullableJSBooleanToList on JSArray<JSBoolean?> {
+  @patch
+  List<bool?> get toDartBoolList => [
+    for (var i = 0; i < this.length; i++) this[i]?.toDart,
+  ];
+}
+
+@patch
+extension ListOfNullableBoolToJSArray on List<bool?> {
+  @patch
+  JSArray<JSBoolean?> get toJS => [for (var value in this) value?.toJS].toJS;
 }
 
 @patch

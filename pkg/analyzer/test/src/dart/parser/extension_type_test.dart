@@ -58,6 +58,14 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+          name: it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: int
@@ -82,6 +90,14 @@ ExtensionTypeDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+          name: it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -110,12 +126,12 @@ ConstructorDeclaration
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression: MethodInvocation
+    expression2: MethodInvocation
       methodName: SimpleIdentifier
         token: A
       argumentList: ArgumentList
         leftParenthesis: (
-        arguments
+        arguments2
           IntegerLiteral
             literal: 0
         rightParenthesis: )
@@ -140,11 +156,14 @@ ConstructorDeclaration
     leftParenthesis: (
     rightParenthesis: )
   separator: =
-  redirectedConstructor: ConstructorName
-    type: NamedType
+  factoryRedirectionTarget: ConstructorReference2
+    typeReference: ConstructorTypeReference
       name: B
   body: EmptyFunctionBody
     semicolon: ;
+  redirectedConstructor: ConstructorName
+    type: NamedType
+      name: B
 ''');
   }
 
@@ -164,12 +183,12 @@ ConstructorDeclaration
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression: MethodInvocation
+    expression2: MethodInvocation
       methodName: SimpleIdentifier
         token: A
       argumentList: ArgumentList
         leftParenthesis: (
-        arguments
+        arguments2
           IntegerLiteral
             literal: 0
         rightParenthesis: )
@@ -193,11 +212,14 @@ ConstructorDeclaration
     leftParenthesis: (
     rightParenthesis: )
   separator: =
-  redirectedConstructor: ConstructorName
-    type: NamedType
+  factoryRedirectionTarget: ConstructorReference2
+    typeReference: ConstructorTypeReference
       name: B
   body: EmptyFunctionBody
     semicolon: ;
+  redirectedConstructor: ConstructorName
+    type: NamedType
+      name: B
 ''');
   }
 
@@ -221,10 +243,11 @@ ConstructorDeclaration
     ConstructorFieldInitializer
       thisKeyword: this
       period: .
-      fieldName: SimpleIdentifier
+      fieldName2: it
+      fieldName(v1): SimpleIdentifier
         token: it
       equals: =
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 0
   body: EmptyFunctionBody
     semicolon: ;
@@ -252,10 +275,11 @@ ConstructorDeclaration
     ConstructorFieldInitializer
       thisKeyword: this
       period: .
-      fieldName: SimpleIdentifier
+      fieldName2: it
+      fieldName(v1): SimpleIdentifier
         token: it
       equals: =
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 0
   body: EmptyFunctionBody
     semicolon: ;
@@ -281,10 +305,11 @@ ConstructorDeclaration
     ConstructorFieldInitializer
       thisKeyword: this
       period: .
-      fieldName: SimpleIdentifier
+      fieldName2: it
+      fieldName(v1): SimpleIdentifier
         token: it
       equals: =
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 0
   body: EmptyFunctionBody
     semicolon: ;
@@ -311,10 +336,11 @@ ConstructorDeclaration
     ConstructorFieldInitializer
       thisKeyword: this
       period: .
-      fieldName: SimpleIdentifier
+      fieldName2: it
+      fieldName(v1): SimpleIdentifier
         token: it
       equals: =
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 0
   body: EmptyFunctionBody
     semicolon: ;
@@ -332,7 +358,8 @@ extension type A(int it) {
     assertParsedNodeText(node, r'''
 ConstructorDeclaration
   factoryKeyword: factory
-  typeName: SimpleIdentifier
+  typeName2: A
+  typeName(v1): SimpleIdentifier
     token: A
   period: .
   name: named
@@ -341,12 +368,12 @@ ConstructorDeclaration
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression: MethodInvocation
+    expression2: MethodInvocation
       methodName: SimpleIdentifier
         token: A
       argumentList: ArgumentList
         leftParenthesis: (
-        arguments
+        arguments2
           IntegerLiteral
             literal: 0
         rightParenthesis: )
@@ -365,19 +392,20 @@ extension type A(int it) {
     assertParsedNodeText(node, r'''
 ConstructorDeclaration
   factoryKeyword: factory
-  typeName: SimpleIdentifier
+  typeName2: A
+  typeName(v1): SimpleIdentifier
     token: A
   parameters: FormalParameterList
     leftParenthesis: (
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression: MethodInvocation
+    expression2: MethodInvocation
       methodName: SimpleIdentifier
         token: A
       argumentList: ArgumentList
         leftParenthesis: (
-        arguments
+        arguments2
           IntegerLiteral
             literal: 0
         rightParenthesis: )
@@ -395,7 +423,8 @@ extension type A(int it) {
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
 ConstructorDeclaration
-  typeName: SimpleIdentifier
+  typeName2: A
+  typeName(v1): SimpleIdentifier
     token: A
   period: .
   name: named
@@ -407,10 +436,11 @@ ConstructorDeclaration
     ConstructorFieldInitializer
       thisKeyword: this
       period: .
-      fieldName: SimpleIdentifier
+      fieldName2: it
+      fieldName(v1): SimpleIdentifier
         token: it
       equals: =
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 0
   body: EmptyFunctionBody
     semicolon: ;
@@ -427,7 +457,8 @@ extension type A(int it) {
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
 ConstructorDeclaration
-  typeName: SimpleIdentifier
+  typeName2: A
+  typeName(v1): SimpleIdentifier
     token: A
   parameters: FormalParameterList
     leftParenthesis: (
@@ -437,10 +468,11 @@ ConstructorDeclaration
     ConstructorFieldInitializer
       thisKeyword: this
       period: .
-      fieldName: SimpleIdentifier
+      fieldName2: it
+      fieldName(v1): SimpleIdentifier
         token: it
       equals: =
-      expression: IntegerLiteral
+      expression2: IntegerLiteral
         literal: 0
   body: EmptyFunctionBody
     semicolon: ;
@@ -465,6 +497,14 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+          name: it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: int
@@ -478,6 +518,15 @@ ExtensionTypeDeclaration
           name: void
         name: foo
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              covariantKeyword: covariant
+              type: NamedType
+                name: int
+              name: a
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             covariantKeyword: covariant
@@ -511,6 +560,14 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+          name: it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: int
@@ -525,6 +582,15 @@ ExtensionTypeDeclaration
           name: void
         name: foo
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              covariantKeyword: covariant
+              type: NamedType
+                name: int
+              name: a
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             covariantKeyword: covariant
@@ -542,7 +608,7 @@ ExtensionTypeDeclaration
 
   test_featureNotEnabled() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart = 3.1
+// %before-language-feature: inline-class
 class A {}
 extension type B(int it) {}
 //        ^^^^
@@ -553,7 +619,7 @@ class C {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -587,6 +653,14 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+          name: it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: int
@@ -596,11 +670,20 @@ ExtensionTypeDeclaration
     leftBracket: {
     members
       ConstructorDeclaration
-        typeName: SimpleIdentifier
+        typeName2: A
+        typeName(v1): SimpleIdentifier
           token: A
         period: .
         name: named
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            FieldFormalParameter
+              thisKeyword: this
+              period: .
+              name: it
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: FieldFormalParameter
             thisKeyword: this
@@ -633,7 +716,8 @@ ExtensionTypeDeclaration
     members
       ConstructorDeclaration
         augmentKeyword: augment
-        typeName: SimpleIdentifier
+        typeName2: E
+        typeName(v1): SimpleIdentifier
           token: E
         period: .
         name: named
@@ -659,19 +743,20 @@ augment extension type E {
 ConstructorDeclaration
   augmentKeyword: augment
   factoryKeyword: factory
-  typeName: SimpleIdentifier
+  typeName2: E
+  typeName(v1): SimpleIdentifier
     token: E
   parameters: FormalParameterList
     leftParenthesis: (
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression: MethodInvocation
+    expression2: MethodInvocation
       methodName: SimpleIdentifier
         token: E
       argumentList: ArgumentList
         leftParenthesis: (
-        arguments
+        arguments2
           IntegerLiteral
             literal: 0
         rightParenthesis: )
@@ -706,7 +791,7 @@ ExtensionTypeDeclaration
             VariableDeclaration
               name: foo
               equals: =
-              initializer: IntegerLiteral
+              initializer2: IntegerLiteral
                 literal: 0
         semicolon: ;
     rightBracket: }
@@ -742,7 +827,7 @@ ExtensionTypeDeclaration
             VariableDeclaration
               name: foo
               equals: =
-              initializer: IntegerLiteral
+              initializer2: IntegerLiteral
                 literal: 0
         semicolon: ;
     rightBracket: }
@@ -766,6 +851,14 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+          name: it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: int
@@ -783,7 +876,7 @@ ExtensionTypeDeclaration
             VariableDeclaration
               name: foo
               equals: =
-              initializer: IntegerLiteral
+              initializer2: IntegerLiteral
                 literal: 0
         semicolon: ;
     rightBracket: }
@@ -806,6 +899,14 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+          name: it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: int
@@ -823,7 +924,7 @@ ExtensionTypeDeclaration
             VariableDeclaration
               name: foo
               equals: =
-              initializer: IntegerLiteral
+              initializer2: IntegerLiteral
                 literal: 0
         semicolon: ;
     rightBracket: }
@@ -846,6 +947,14 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+          name: it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: int
@@ -861,7 +970,7 @@ ExtensionTypeDeclaration
         name: foo
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: IntegerLiteral
+          expression2: IntegerLiteral
             literal: 0
           semicolon: ;
     rightBracket: }
@@ -894,7 +1003,7 @@ ExtensionTypeDeclaration
         name: foo
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: IntegerLiteral
+          expression2: IntegerLiteral
             literal: 0
           semicolon: ;
     rightBracket: }
@@ -929,7 +1038,7 @@ ExtensionTypeDeclaration
         name: foo
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: IntegerLiteral
+          expression2: IntegerLiteral
             literal: 0
           semicolon: ;
     rightBracket: }
@@ -952,6 +1061,14 @@ ExtensionTypeDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+          name: it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -1073,6 +1190,14 @@ ExtensionTypeDeclaration
         name: +
         parameters: FormalParameterList
           leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              type: NamedType
+                name: int
+              name: other
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
+          leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
               name: int
@@ -1080,7 +1205,7 @@ ExtensionTypeDeclaration
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: IntegerLiteral
+          expression2: IntegerLiteral
             literal: 0
           semicolon: ;
     rightBracket: }
@@ -1104,6 +1229,14 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+          name: it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: int
@@ -1116,6 +1249,14 @@ ExtensionTypeDeclaration
         propertyKeyword: set
         name: foo
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              type: NamedType
+                name: int
+              name: _
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
@@ -1153,6 +1294,14 @@ ExtensionTypeDeclaration
         propertyKeyword: set
         name: foo
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              type: NamedType
+                name: int
+              name: x
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
@@ -1193,6 +1342,14 @@ ExtensionTypeDeclaration
         name: foo
         parameters: FormalParameterList
           leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              type: NamedType
+                name: int
+              name: x
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
+          leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
               name: int
@@ -1226,6 +1383,14 @@ ExtensionTypeDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+          name: it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -1264,6 +1429,14 @@ ExtensionTypeDeclaration
       name: named
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+          name: it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: int
@@ -1298,6 +1471,14 @@ ExtensionTypeDeclaration
       rightBracket: >
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+          name: it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: int
@@ -1327,6 +1508,14 @@ ExtensionTypeDeclaration
       name: named
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+          name: it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: int
@@ -1352,6 +1541,14 @@ ExtensionTypeDeclaration
     constKeyword: const
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+          name: it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -1401,6 +1598,21 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: {
+        formalParameters
+          RegularFormalParameter
+            type: NamedType
+              name: int
+            name: a
+            defaultClause: FormalParameterDefaultClause
+              separator: =
+              value2: IntegerLiteral
+                literal: 0
+        rightDelimiter: }
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       leftDelimiter: {
       parameter: RegularFormalParameter
         type: NamedType
@@ -1431,6 +1643,21 @@ ExtensionTypeDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: [
+        formalParameters
+          RegularFormalParameter
+            type: NamedType
+              name: int
+            name: a
+            defaultClause: FormalParameterDefaultClause
+              separator: =
+              value2: IntegerLiteral
+                literal: 0
+        rightDelimiter: ]
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       leftDelimiter: [
       parameter: RegularFormalParameter
@@ -1465,6 +1692,34 @@ ExtensionTypeDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          documentationComment: Comment
+            tokens
+              /// aaa
+          constFinalOrVarKeyword: final
+          type: NamedType
+            name: int
+          name: a
+          functionTypedSuffix: FunctionTypedFormalParameterSuffix
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: String
+                  name: x
+              rightParenthesis: )
+            formalParameters(v1): FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                type: NamedType
+                  name: String
+                name: x
+              rightParenthesis: )
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         documentationComment: Comment
@@ -1506,6 +1761,26 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: {
+        formalParameters
+          RegularFormalParameter
+            documentationComment: Comment
+              tokens
+                /// aaa
+            requiredKeyword: required
+            constFinalOrVarKeyword: final
+            type: NamedType
+              name: int
+            name: a
+            defaultClause: FormalParameterDefaultClause
+              separator: =
+              value2: IntegerLiteral
+                literal: 0
+        rightDelimiter: }
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       leftDelimiter: {
       parameter: RegularFormalParameter
         documentationComment: Comment
@@ -1545,6 +1820,18 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          documentationComment: Comment
+            tokens
+              /// aaa
+          constFinalOrVarKeyword: final
+          type: NamedType
+            name: int
+          name: a
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         documentationComment: Comment
           tokens
@@ -1574,6 +1861,14 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        FieldFormalParameter
+          thisKeyword: this
+          period: .
+          name: it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: FieldFormalParameter
         thisKeyword: this
         period: .
@@ -1598,6 +1893,18 @@ ExtensionTypeDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+          name: it
+          functionTypedSuffix: FunctionTypedFormalParameterSuffix
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -1630,6 +1937,15 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          constFinalOrVarKeyword: const
+          type: NamedType
+            name: int
+          name: it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         constFinalOrVarKeyword: const
         type: NamedType
@@ -1657,6 +1973,53 @@ ExtensionTypeDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          covariantKeyword: covariant
+          type: NamedType
+            name: int
+          name: it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
+      parameter: RegularFormalParameter
+        covariantKeyword: covariant
+        type: NamedType
+          name: int
+        name: it
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_formalParameters_keyword_covariant_beforePrimaryConstructors() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+// %before-language-feature: primary-constructors
+extension type A(covariant int it) {}
+//               ^^^^^^^^^
+// [diag.extraneousModifierInPrimaryConstructor] Can't have modifier 'covariant' in a primary constructor.
+''');
+
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          covariantKeyword: covariant
+          type: NamedType
+            name: int
+          name: it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         covariantKeyword: covariant
@@ -1686,38 +2049,19 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
-      parameter: RegularFormalParameter
-        covariantKeyword: covariant
-        constFinalOrVarKeyword: final
-        type: NamedType
-          name: int
-        name: it
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          covariantKeyword: covariant
+          constFinalOrVarKeyword: final
+          type: NamedType
+            name: int
+          name: it
       rightParenthesis: )
-  body: BlockClassBody
-    leftBracket: {
-    rightBracket: }
-''');
-  }
-
-  test_primaryConstructor_formalParameters_keyword_covariant_language310() {
-    var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart = 3.10
-extension type A(covariant int it) {}
-//               ^^^^^^^^^
-// [diag.extraneousModifierInPrimaryConstructor] Can't have modifier 'covariant' in a primary constructor.
-''');
-
-    var node = parseResult.findNode.singleExtensionTypeDeclaration;
-    assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
-  extensionKeyword: extension
-  typeKeyword: type
-  namePart: PrimaryConstructorDeclaration
-    typeName: A
-    formalParameters: FormalParameterList
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         covariantKeyword: covariant
+        constFinalOrVarKeyword: final
         type: NamedType
           name: int
         name: it
@@ -1741,6 +2085,16 @@ ExtensionTypeDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          covariantKeyword: covariant
+          constFinalOrVarKeyword: var
+          type: NamedType
+            name: int
+          name: it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         covariantKeyword: covariant
@@ -1769,6 +2123,15 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          constFinalOrVarKeyword: final
+          type: NamedType
+            name: int
+          name: it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         constFinalOrVarKeyword: final
         type: NamedType
@@ -1781,9 +2144,9 @@ ExtensionTypeDeclaration
 ''');
   }
 
-  test_primaryConstructor_formalParameters_keyword_final_hasType_language310() {
+  test_primaryConstructor_formalParameters_keyword_final_hasType_beforePrimaryConstructors() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A(final int it) {}
 ''');
 
@@ -1795,6 +2158,15 @@ ExtensionTypeDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          constFinalOrVarKeyword: final
+          type: NamedType
+            name: int
+          name: it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         constFinalOrVarKeyword: final
@@ -1822,6 +2194,13 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          constFinalOrVarKeyword: final
+          name: it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         constFinalOrVarKeyword: final
         name: it
@@ -1832,9 +2211,9 @@ ExtensionTypeDeclaration
 ''');
   }
 
-  test_primaryConstructor_formalParameters_keyword_final_noType_language310() {
+  test_primaryConstructor_formalParameters_keyword_final_noType_beforePrimaryConstructors() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A(final it) {}
 ''');
 
@@ -1846,6 +2225,13 @@ ExtensionTypeDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          constFinalOrVarKeyword: final
+          name: it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         constFinalOrVarKeyword: final
@@ -1872,6 +2258,15 @@ ExtensionTypeDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          requiredKeyword: required
+          type: NamedType
+            name: int
+          name: it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         requiredKeyword: required
@@ -1901,6 +2296,14 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+          name: it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: int
@@ -1926,6 +2329,13 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          constFinalOrVarKeyword: var
+          name: it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         constFinalOrVarKeyword: var
         name: it
@@ -1936,9 +2346,9 @@ ExtensionTypeDeclaration
 ''');
   }
 
-  test_primaryConstructor_formalParameters_keyword_var_language310() {
+  test_primaryConstructor_formalParameters_keyword_var_beforePrimaryConstructors() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A(var it) {}
 ''');
 
@@ -1950,6 +2360,13 @@ ExtensionTypeDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          constFinalOrVarKeyword: var
+          name: it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         constFinalOrVarKeyword: var
@@ -1975,6 +2392,21 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: {
+        formalParameters
+          RegularFormalParameter
+            type: NamedType
+              name: int
+            name: it
+            defaultClause: FormalParameterDefaultClause
+              separator: =
+              value2: IntegerLiteral
+                literal: 0
+        rightDelimiter: }
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       leftDelimiter: {
       parameter: RegularFormalParameter
         type: NamedType
@@ -1992,9 +2424,9 @@ ExtensionTypeDeclaration
 ''');
   }
 
-  test_primaryConstructor_formalParameters_kind_optionalNamed_language310() {
+  test_primaryConstructor_formalParameters_kind_optionalNamed_beforePrimaryConstructors() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A({int it = 0}) {}
 ''');
 
@@ -2006,6 +2438,21 @@ ExtensionTypeDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: {
+        formalParameters
+          RegularFormalParameter
+            type: NamedType
+              name: int
+            name: it
+            defaultClause: FormalParameterDefaultClause
+              separator: =
+              value2: IntegerLiteral
+                literal: 0
+        rightDelimiter: }
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
       parameter: RegularFormalParameter
@@ -2038,6 +2485,23 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: {
+        formalParameters
+          RegularFormalParameter
+            type: NamedType
+              name: int
+              question: ?
+            name: a
+          RegularFormalParameter
+            type: NamedType
+              name: int
+              question: ?
+            name: b
+        rightDelimiter: }
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       leftDelimiter: {
       parameter: RegularFormalParameter
         type: NamedType
@@ -2057,9 +2521,9 @@ ExtensionTypeDeclaration
 ''');
   }
 
-  test_primaryConstructor_formalParameters_kind_optionalNamed_optionalNamed_language310() {
+  test_primaryConstructor_formalParameters_kind_optionalNamed_optionalNamed_beforePrimaryConstructors() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A({int? a, int? b}) {}
 ''');
 
@@ -2071,6 +2535,23 @@ ExtensionTypeDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: {
+        formalParameters
+          RegularFormalParameter
+            type: NamedType
+              name: int
+              question: ?
+            name: a
+          RegularFormalParameter
+            type: NamedType
+              name: int
+              question: ?
+            name: b
+        rightDelimiter: }
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
       parameter: RegularFormalParameter
@@ -2105,6 +2586,23 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: {
+        formalParameters
+          RegularFormalParameter
+            type: NamedType
+              name: int
+              question: ?
+            name: a
+          RegularFormalParameter
+            requiredKeyword: required
+            type: NamedType
+              name: int
+            name: b
+        rightDelimiter: }
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       leftDelimiter: {
       parameter: RegularFormalParameter
         type: NamedType
@@ -2138,6 +2636,21 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: [
+        formalParameters
+          RegularFormalParameter
+            type: NamedType
+              name: int
+            name: it
+            defaultClause: FormalParameterDefaultClause
+              separator: =
+              value2: IntegerLiteral
+                literal: 0
+        rightDelimiter: ]
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       leftDelimiter: [
       parameter: RegularFormalParameter
         type: NamedType
@@ -2155,9 +2668,9 @@ ExtensionTypeDeclaration
 ''');
   }
 
-  test_primaryConstructor_formalParameters_kind_optionalPositional_language310() {
+  test_primaryConstructor_formalParameters_kind_optionalPositional_beforePrimaryConstructors() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A([int it = 0]) {}
 ''');
 
@@ -2169,6 +2682,21 @@ ExtensionTypeDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: [
+        formalParameters
+          RegularFormalParameter
+            type: NamedType
+              name: int
+            name: it
+            defaultClause: FormalParameterDefaultClause
+              separator: =
+              value2: IntegerLiteral
+                literal: 0
+        rightDelimiter: ]
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       leftDelimiter: [
       parameter: RegularFormalParameter
@@ -2201,6 +2729,23 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: [
+        formalParameters
+          RegularFormalParameter
+            type: NamedType
+              name: int
+              question: ?
+            name: a
+          RegularFormalParameter
+            type: NamedType
+              name: int
+              question: ?
+            name: b
+        rightDelimiter: ]
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       leftDelimiter: [
       parameter: RegularFormalParameter
         type: NamedType
@@ -2220,9 +2765,9 @@ ExtensionTypeDeclaration
 ''');
   }
 
-  test_primaryConstructor_formalParameters_kind_optionalPositional_optionalPositional_language310() {
+  test_primaryConstructor_formalParameters_kind_optionalPositional_optionalPositional_beforePrimaryConstructors() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A([int? a, int? b]) {}
 ''');
 
@@ -2234,6 +2779,23 @@ ExtensionTypeDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: [
+        formalParameters
+          RegularFormalParameter
+            type: NamedType
+              name: int
+              question: ?
+            name: a
+          RegularFormalParameter
+            type: NamedType
+              name: int
+              question: ?
+            name: b
+        rightDelimiter: ]
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       leftDelimiter: [
       parameter: RegularFormalParameter
@@ -2268,6 +2830,18 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: {
+        formalParameters
+          RegularFormalParameter
+            requiredKeyword: required
+            type: NamedType
+              name: int
+            name: it
+        rightDelimiter: }
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       leftDelimiter: {
       parameter: RegularFormalParameter
         requiredKeyword: required
@@ -2282,9 +2856,9 @@ ExtensionTypeDeclaration
 ''');
   }
 
-  test_primaryConstructor_formalParameters_kind_requiredNamed_language310() {
+  test_primaryConstructor_formalParameters_kind_requiredNamed_beforePrimaryConstructors() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A({required int it}) {}
 ''');
 
@@ -2296,6 +2870,18 @@ ExtensionTypeDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: {
+        formalParameters
+          RegularFormalParameter
+            requiredKeyword: required
+            type: NamedType
+              name: int
+            name: it
+        rightDelimiter: }
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
       parameter: RegularFormalParameter
@@ -2324,6 +2910,23 @@ ExtensionTypeDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: {
+        formalParameters
+          RegularFormalParameter
+            requiredKeyword: required
+            type: NamedType
+              name: int
+            name: a
+          RegularFormalParameter
+            type: NamedType
+              name: int
+              question: ?
+            name: b
+        rightDelimiter: }
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
       parameter: RegularFormalParameter
@@ -2358,6 +2961,23 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: {
+        formalParameters
+          RegularFormalParameter
+            requiredKeyword: required
+            type: NamedType
+              name: int
+            name: a
+          RegularFormalParameter
+            requiredKeyword: required
+            type: NamedType
+              name: int
+            name: b
+        rightDelimiter: }
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       leftDelimiter: {
       parameter: RegularFormalParameter
         requiredKeyword: required
@@ -2391,6 +3011,14 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+          name: it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: int
@@ -2402,9 +3030,9 @@ ExtensionTypeDeclaration
 ''');
   }
 
-  test_primaryConstructor_formalParameters_kind_requiredPositional_language310() {
+  test_primaryConstructor_formalParameters_kind_requiredPositional_beforePrimaryConstructors() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A(int it) {}
 ''');
 
@@ -2416,6 +3044,14 @@ ExtensionTypeDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+          name: it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -2442,6 +3078,23 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+          name: a
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: {
+        formalParameters
+          RegularFormalParameter
+            type: NamedType
+              name: int
+              question: ?
+            name: b
+        rightDelimiter: }
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: int
@@ -2460,9 +3113,9 @@ ExtensionTypeDeclaration
 ''');
   }
 
-  test_primaryConstructor_formalParameters_kind_requiredPositional_optionalNamed_language310() {
+  test_primaryConstructor_formalParameters_kind_requiredPositional_optionalNamed_beforePrimaryConstructors() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A(int a, {int? b}) {}
 ''');
 
@@ -2474,6 +3127,23 @@ ExtensionTypeDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+          name: a
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: {
+        formalParameters
+          RegularFormalParameter
+            type: NamedType
+              name: int
+              question: ?
+            name: b
+        rightDelimiter: }
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -2507,6 +3177,23 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+          name: a
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: [
+        formalParameters
+          RegularFormalParameter
+            type: NamedType
+              name: int
+              question: ?
+            name: b
+        rightDelimiter: ]
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: int
@@ -2525,9 +3212,9 @@ ExtensionTypeDeclaration
 ''');
   }
 
-  test_primaryConstructor_formalParameters_kind_requiredPositional_optionalPositional_language310() {
+  test_primaryConstructor_formalParameters_kind_requiredPositional_optionalPositional_beforePrimaryConstructors() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A(int a, [int? b]) {}
 ''');
 
@@ -2539,6 +3226,23 @@ ExtensionTypeDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+          name: a
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: [
+        formalParameters
+          RegularFormalParameter
+            type: NamedType
+              name: int
+              question: ?
+            name: b
+        rightDelimiter: ]
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -2572,6 +3276,18 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+          name: a
+        RegularFormalParameter
+          type: NamedType
+            name: int
+          name: b
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: int
@@ -2587,9 +3303,9 @@ ExtensionTypeDeclaration
 ''');
   }
 
-  test_primaryConstructor_formalParameters_kind_requiredPositional_requiredPositional_language310() {
+  test_primaryConstructor_formalParameters_kind_requiredPositional_requiredPositional_beforePrimaryConstructors() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A(int a, int b) {}
 ''');
 
@@ -2601,6 +3317,18 @@ ExtensionTypeDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+          name: a
+        RegularFormalParameter
+          type: NamedType
+            name: int
+          name: b
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -2631,6 +3359,14 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+          name: A
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: int
@@ -2655,6 +3391,19 @@ ExtensionTypeDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          metadata
+            Annotation
+              atSign: @
+              name: SimpleIdentifier
+                token: foo
+          type: NamedType
+            name: int
+          name: it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         metadata
@@ -2693,9 +3442,9 @@ ExtensionTypeDeclaration
 ''');
   }
 
-  test_primaryConstructor_formalParameters_noFormalParameters_language310() {
+  test_primaryConstructor_formalParameters_noFormalParameters_beforePrimaryConstructors() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A() {}
 ''');
 
@@ -2729,6 +3478,12 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          name: it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         name: it
       rightParenthesis: )
@@ -2738,9 +3493,9 @@ ExtensionTypeDeclaration
 ''');
   }
 
-  test_primaryConstructor_formalParameters_noTypeAnnotation_language310() {
+  test_primaryConstructor_formalParameters_noTypeAnnotation_beforePrimaryConstructors() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A(it) {}
 ''');
 
@@ -2752,6 +3507,12 @@ ExtensionTypeDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          name: it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         name: it
@@ -2775,6 +3536,17 @@ ExtensionTypeDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          metadata
+            Annotation
+              atSign: @
+              name: SimpleIdentifier
+                token: foo
+          name: it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         metadata
@@ -2804,6 +3576,14 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        SuperFormalParameter
+          superKeyword: super
+          period: .
+          name: it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: SuperFormalParameter
         superKeyword: super
         period: .
@@ -2829,6 +3609,14 @@ ExtensionTypeDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+          name: it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: int
@@ -2840,9 +3628,9 @@ ExtensionTypeDeclaration
 ''');
   }
 
-  test_primaryConstructor_formalParameters_trailingComma_language310() {
+  test_primaryConstructor_formalParameters_trailingComma_beforePrimaryConstructors() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 extension type A(int it,) {}
 ''');
 
@@ -2854,6 +3642,14 @@ ExtensionTypeDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+          name: it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -2914,6 +3710,14 @@ ExtensionTypeDeclaration
       name: named
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+          name: it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: int
@@ -2947,6 +3751,14 @@ ExtensionTypeDeclaration
       rightBracket: >
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+          name: it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: int
@@ -2975,6 +3787,14 @@ ExtensionTypeDeclaration
       name: named
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+          name: it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: int
@@ -2999,6 +3819,14 @@ ExtensionTypeDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+          name: it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -3026,6 +3854,14 @@ ExtensionTypeDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+          name: it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -3056,6 +3892,14 @@ ExtensionTypeDeclaration
   namePart: PrimaryConstructorDeclaration
     typeName: A
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+          name: it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -3094,6 +3938,14 @@ ExtensionTypeDeclaration
           name: T
       rightBracket: >
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+          name: it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType

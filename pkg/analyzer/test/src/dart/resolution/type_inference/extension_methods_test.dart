@@ -66,7 +66,7 @@ void f(A<int> a) {
     var node = result.findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
-  target: SimpleIdentifier
+  target2: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A<int>
@@ -79,7 +79,7 @@ MethodInvocation
     staticType: Map<int, U> Function<U>(U)
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       DoubleLiteral
         literal: 1.0
         correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -105,7 +105,7 @@ extension E<T> on List<T> {
     var node = result.findNode.methodInvocation('other.foo()');
     assertResolvedNodeText(node, r'''
 MethodInvocation
-  target: SimpleIdentifier
+  target2: SimpleIdentifier
     token: other
     element: <testLibrary>::@extension::E::@method::bar::@formalParameter::other
     staticType: List<T>
@@ -138,7 +138,7 @@ void f(String a) {
     var node = result.findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
-  target: SimpleIdentifier
+  target2: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: String
@@ -151,7 +151,7 @@ MethodInvocation
     staticType: Map<String, U> Function<U>(U)
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 0
         correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -215,7 +215,7 @@ void f(A<int> a) {
     var node = result.findNode.assignment('foo =');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide: PrefixedIdentifier
+  leftHandSide2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::f::@formalParameter::a
@@ -228,7 +228,7 @@ AssignmentExpression
     element: <null>
     staticType: null
   operator: =
-  rightHandSide: IntegerLiteral
+  rightHandSide2: IntegerLiteral
     literal: 0
     correspondingParameter: SubstitutedFormalParameterElementImpl
       baseElement: <testLibrary>::@extension::E::@setter::foo::@formalParameter::value
@@ -259,7 +259,7 @@ void f<S extends num>(S x) {
     var node = result.findNode.methodInvocation('test();');
     assertResolvedNodeText(node, r'''
 MethodInvocation
-  target: SimpleIdentifier
+  target2: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: S
@@ -289,9 +289,27 @@ void f<S extends num>(S x) {
 }
 ''');
 
-    var node = result.findNode.singlePropertyAccess;
+    var node = result.findNode.singleReceiverPropertyExtraction;
     assertResolvedNodeText(node, r'''
-PropertyAccess
+ReceiverPropertyExtraction
+  receiver: ParenthesizedExpression
+    leftParenthesis: (
+    expression2: SimpleIdentifier
+      token: x
+      element: <testLibrary>::@function::f::@formalParameter::x
+      staticType: S
+    rightParenthesis: )
+    staticType: S
+  operator: .
+  propertyName: test
+  resolution: GetterInvocationResolution
+    element: SubstitutedGetterElementImpl
+      baseElement: <testLibrary>::@extension::Test::@getter::test
+      substitution: {T: S}
+    invokeType: S Function(S) Function()
+    type: S Function(S)
+  staticType: S Function(S)
+V1: PropertyAccess
   target: ParenthesizedExpression
     leftParenthesis: (
     expression: SimpleIdentifier
@@ -429,7 +447,7 @@ void f(A<int> a) {
     var node = result.findNode.propertyAccess('.foo');
     assertResolvedNodeText(node, r'''
 PropertyAccess
-  target: ExtensionOverride
+  target2: ExtensionOverride
     name: E
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -441,7 +459,7 @@ PropertyAccess
       rightBracket: >
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments
+      arguments2
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
@@ -480,7 +498,7 @@ void f(A<int> a) {
     var node = result.findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
-  target: ExtensionOverride
+  target2: ExtensionOverride
     name: E
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -492,7 +510,7 @@ MethodInvocation
       rightBracket: >
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments
+      arguments2
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
@@ -513,7 +531,7 @@ MethodInvocation
     staticType: Map<num, U> Function<U>(U)
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       DoubleLiteral
         literal: 1.0
         correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -544,7 +562,7 @@ void f(A<int> a) {
     var node = result.findNode.propertyAccess('foo;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
-  target: ExtensionOverride
+  target2: ExtensionOverride
     name: E
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -556,7 +574,7 @@ PropertyAccess
       rightBracket: >
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments
+      arguments2
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
@@ -595,8 +613,8 @@ void f(A<int> a) {
     var node = result.findNode.assignment('foo =');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide: PropertyAccess
-    target: ExtensionOverride
+  leftHandSide2: PropertyAccess
+    target2: ExtensionOverride
       name: E
       typeArguments: TypeArgumentList
         leftBracket: <
@@ -608,7 +626,7 @@ AssignmentExpression
         rightBracket: >
       argumentList: ArgumentList
         leftParenthesis: (
-        arguments
+        arguments2
           SimpleIdentifier
             token: a
             correspondingParameter: <null>
@@ -627,7 +645,7 @@ AssignmentExpression
       staticType: null
     staticType: null
   operator: =
-  rightHandSide: DoubleLiteral
+  rightHandSide2: DoubleLiteral
     literal: 1.2
     correspondingParameter: SubstitutedFormalParameterElementImpl
       baseElement: <testLibrary>::@extension::E::@setter::foo::@formalParameter::value
@@ -677,11 +695,11 @@ void f(A<int> a) {
     var node = result.findNode.propertyAccess('.foo');
     assertResolvedNodeText(node, r'''
 PropertyAccess
-  target: ExtensionOverride
+  target2: ExtensionOverride
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments
+      arguments2
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
@@ -720,11 +738,11 @@ void f(A<int> a) {
     var node = result.findNode.singleMethodInvocation;
     assertResolvedNodeText(node, r'''
 MethodInvocation
-  target: ExtensionOverride
+  target2: ExtensionOverride
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments
+      arguments2
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
@@ -745,7 +763,7 @@ MethodInvocation
     staticType: Map<int, U> Function<U>(U)
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       DoubleLiteral
         literal: 1.0
         correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -776,11 +794,11 @@ void f(A<int> a) {
     var node = result.findNode.propertyAccess('foo;');
     assertResolvedNodeText(node, r'''
 PropertyAccess
-  target: ExtensionOverride
+  target2: ExtensionOverride
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments
+      arguments2
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
@@ -819,12 +837,12 @@ void f(A<int> a) {
     var node = result.findNode.assignment('foo =');
     assertResolvedNodeText(node, r'''
 AssignmentExpression
-  leftHandSide: PropertyAccess
-    target: ExtensionOverride
+  leftHandSide2: PropertyAccess
+    target2: ExtensionOverride
       name: E
       argumentList: ArgumentList
         leftParenthesis: (
-        arguments
+        arguments2
           SimpleIdentifier
             token: a
             correspondingParameter: <null>
@@ -843,7 +861,7 @@ AssignmentExpression
       staticType: null
     staticType: null
   operator: =
-  rightHandSide: IntegerLiteral
+  rightHandSide2: IntegerLiteral
     literal: 0
     correspondingParameter: SubstitutedFormalParameterElementImpl
       baseElement: <testLibrary>::@extension::E::@setter::foo::@formalParameter::value

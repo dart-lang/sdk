@@ -54,7 +54,20 @@ Map<String, int> a = {f()};
     assertResolvedNodeText(node, r'''
 SetOrMapLiteral
   leftBracket: {
-  elements
+  elements2
+    UnqualifiedFunctionInvocation
+      name: f
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      resolution: ExecutableInvocationResolution
+        element: <testLibrary>::@function::f
+        invokeType: String Function()
+        type: String
+      staticType: String
+      typeArgumentTypes
+        String
+  elements(v1)
     MethodInvocation
       methodName: SimpleIdentifier
         token: f
@@ -86,7 +99,17 @@ Map<E, String> a = {.one};
     assertResolvedNodeText(node, r'''
 SetOrMapLiteral
   leftBracket: {
-  elements
+  elements2
+    DotShorthandNameExpression
+      period: .
+      name: one
+      isDotShorthand: true
+      resolution: GetterInvocationResolution
+        element: <testLibrary>::@enum::E::@getter::one
+        invokeType: E Function()
+        type: E
+      staticType: E
+  elements(v1)
     DotShorthandPropertyAccess
       period: .
       propertyName: SimpleIdentifier
@@ -117,7 +140,17 @@ Map<E, String> a = {.};
     assertResolvedNodeText(node, r'''
 SetOrMapLiteral
   leftBracket: {
-  elements
+  elements2
+    DotShorthandNameExpression
+      period: .
+      name: <empty> <synthetic>
+      isDotShorthand: true
+      resolution: InvalidNamedReadResolution
+        type: InvalidType
+        candidates
+        recovery: <null>
+      staticType: InvalidType
+  elements(v1)
     DotShorthandPropertyAccess
       period: .
       propertyName: SimpleIdentifier
@@ -145,15 +178,27 @@ Map<String, int> a = {if (true) f()};
     assertResolvedNodeText(node, r'''
 SetOrMapLiteral
   leftBracket: {
-  elements
+  elements2
     IfElement
       ifKeyword: if
       leftParenthesis: (
-      expression: BooleanLiteral
+      expression2: BooleanLiteral
         literal: true
         staticType: bool
       rightParenthesis: )
-      thenElement: MethodInvocation
+      thenElement2: UnqualifiedFunctionInvocation
+        name: f
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        resolution: ExecutableInvocationResolution
+          element: <testLibrary>::@function::f
+          invokeType: String Function()
+          type: String
+        staticType: String
+        typeArgumentTypes
+          String
+      thenElement(v1): MethodInvocation
         methodName: SimpleIdentifier
           token: f
           element: <testLibrary>::@function::f
@@ -245,9 +290,28 @@ main() {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('f(null)');
+    var node = result.findNode.unqualifiedFunctionInvocation('f(null)');
     assertResolvedNodeText(node, r'''
-MethodInvocation
+UnqualifiedFunctionInvocation
+  name: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      NullLiteral
+        literal: null
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: <testLibrary>::@function::f::@formalParameter::t
+          substitution: {T: Map<int, double>?}
+        staticType: Null
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@function::f
+    invokeType: Map<int, double>? Function(Map<int, double>?)
+    type: Map<int, double>?
+  staticType: Map<int, double>?
+  typeArgumentTypes
+    Map<int, double>?
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: f
     element: <testLibrary>::@function::f
@@ -663,7 +727,7 @@ var a = <int, String>{1};
     assertType(result.findNode.setOrMapLiteral('{'), 'Map<int, String>');
   }
 
-  @SkippedTest() // TODO(scheglov): fix it
+  @FailingTest() // TODO(scheglov): fix it
   test_noContext_typeArgs_expressions_conflictingTypeArgs() async {
     var result = await resolveTestCodeWithDiagnostics('''
 var a = <int>{1 : 2, 3 : 4};

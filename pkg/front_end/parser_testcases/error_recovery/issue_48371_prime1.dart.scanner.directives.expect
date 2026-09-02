@@ -1,0 +1,7 @@
+library enum;
+
+
+
+library[KeywordToken] enum[KeywordToken];[SimpleToken]
+
+[SimpleToken]

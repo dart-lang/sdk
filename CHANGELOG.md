@@ -1,3 +1,88 @@
+## 3.14.0
+
+**Released on:** Unreleased
+
+### Libraries
+
+#### `dart:ffi`
+- Added `NativeFinalizer.callback`, which returns the finalization callback the
+  finalizer was created with.
+  For more details, see SDK issue [#63811][]
+
+[#63811]: https://github.com/dart-lang/sdk/issues/63811
+
+#### `dart:typed_data`
+
+- Added the bit-wise negation operator `~` to `Int32x4`, which inverts every bit
+  of every lane.
+- Added `Int32x4.splat`, which creates an `Int32x4` with the same 32-bit integer
+  value in all four lanes, matching `Float32x4.splat` and `Float64x2.splat`.
+- Added `Int32x4.equal`, a lane-wise equality comparison that returns `-1` in
+  each lane where the operands are equal and `0` elsewhere, and the
+  `Int32x4.anyTrue` getter, which is `true` when any lane is non-zero.
+
+#### `dart:js_interop`
+
+- The `isA<JSArray>` check now uses both `Array.isArray` and `instanceof` to
+  verify if a value is an array; it is considered an array if either condition
+  returns true.
+  For more details, see SDK issue [#62699][]
+
+- Converting a `Future` to a `JSPromise` using `FutureOfJSAnyToJSPromise.toJS`
+  or `FutureOfVoidToJSPromise.toJS` now passes JavaScript error
+  values (`JSAny`) through directly to the rejected promise without
+  wrapping them. Only Dart errors are wrapped in a JS `Error`.
+  For more details, see SDK issue [#61353][].
+
+- Added extension methods `JSArray<JSNumber>.toDartDoubleList` and
+  `JSArray<JSNumber>.toDartIntList` (`JSArrayOfJSNumberToList`);
+  `List<num>.toJS` (`ListOfNumberToJSArray`);
+  `JSArray<JSString>.toDartStringList` (`JSArrayOfJSStringToList`);
+  `List<String>.toJS` (`ListOfStringToJSArray`);
+  `JSArray<JSBoolean>.toDartBoolList` (`JSArrayOfJSBooleanToList`);
+  `List<bool>.toJS` (`ListOfBoolToJSArray`);
+  `JSArray<JSNumber?>.toDartDoubleList` and `JSArray<JSNumber?>.toDartIntList`
+  (`JSArrayOfNullableJSNumberToList`); `List<num?>.toJS`
+  (`ListOfNullableNumberToJSArray`); `JSArray<JSString?>.toDartStringList`
+  (`JSArrayOfNullableJSStringToList`); `List<String?>.toJS`
+  (`ListOfNullableStringToJSArray`); `JSArray<JSBoolean?>.toDartBoolList`
+  (`JSArrayOfNullableJSBooleanToList`); and `List<bool?>.toJS`
+  (`ListOfNullableBoolToJSArray`). These make it easier and more efficient to
+  convert between JS and Dart arrays of primitives.
+
+- Added `JSFunction.length` and `.name` getters.
+
+- Added the `JSArray.fromAsync` static method to create an array from an
+  asynchronous generator or a synchronous list of asynchronous values.
+
+- Added `JSPromise.resolve` and `JSPromise.reject` static methods.
+
+- Added extension methods `FutureOr<JSAny>.toJSPromiseOrValue`
+  (`FutureOrToJSAny`), `FutureOr<JSAny?>.toJSPromiseOrValue`
+  (`FutureOrToNullableJSAny`), `JSAny.toDartFutureOr` (`JSAnyToFutureOr`), and
+  `JSAny?.toDartFutureOr` (`NullableJSAnyToFutureOr`). These make it easier and
+  more efficient to convert between possibly-synchronous values at the Dart/JS
+  boundary.
+
+[#61353]: https://github.com/dart-lang/sdk/issues/61353
+[#62699]: https://github.com/dart-lang/sdk/issues/62699
+
+### Tools
+
+#### Formatter
+
+The following bug fixes are *not* language versioned and apply also when
+formatting Dart 3.13 code:
+
+- Don't crash when formatting an enum with a primary constructor when trailing
+  commas are preserved ([#1885][dart_style #1885]).
+
+- Fix missing trailing comma on enum values when an enum has a primary
+  constructor ([#1888][dart_style #1888]).
+
+[dart_style #1885]: https://github.com/dart-lang/dart_style/issues/1885
+[dart_style #1888]: https://github.com/dart-lang/dart_style/issues/1888
+
 ## 3.13.0
 
 **Released on:** Unreleased
@@ -65,14 +150,22 @@ class Point {
 To learn more about the feature, check out the
 [feature specification][primary-constructor-spec].
 
-[primary-constructor-spec]: https://github.com/dart-lang/language/blob/main/accepted/future-releases/primary-constructors/feature-specification.md
+[primary-constructor-spec]: https://github.com/dart-lang/language/blob/main/accepted/3.13/primary-constructors/feature-specification.md
 
 #### Other changes
 
+- **Breaking change**: You can no longer use `final` or `var` on non-declaring
+  parameters. Dart now reserves both for
+  [declaring parameters in primary constructors][declaring-parameters].
+  Remove `final` or `var` from affected parameter declarations. If you still
+  want to prevent parameter reassignment, you can use the
+  [`parameter_assignments`][] lint rule.
 - **Breaking change**: A minor change has been made to type promotion to avoid
   unsound behavior. See SDK issue [#62889][] for details.
 
 [#62889]: https://github.com/dart-lang/sdk/issues/62889
+[declaring-parameters]: https://dart.dev/language/primary-constructors#field-declarations-in-parameters
+[`parameter_assignments`]: https://dart.dev/tools/linter-rules/parameter_assignments
 
 ### Libraries
 
@@ -99,6 +192,12 @@ To learn more about the feature, check out the
   cookie dates _should_ have, but the RFC specifies a very
   permissive algorithm for what should be accepted.
 
+- **Behavioral change**: File access and modification timestamps
+  (`File.lastModified`, `FileStat`, `lastAccessed`, `lastModified`,
+  `setLastAccessed`, `setLastModified`) now preserve microsecond precision
+  instead of truncating or rounding to millisecond accuracy. See SDK issue
+  [#42444][].
+
 - **Breaking change**:
   Added `InterfaceAddress`, a subtype of `InternetAddress` that exposes a
   `prefixLength` field and a `broadcast` getter for network interface addresses.
@@ -106,8 +205,18 @@ To learn more about the feature, check out the
   instead of `List<InternetAddress>`. Code that implements `NetworkInterface`
   and overrides `addresses` will need to update the return type.
   For more details, see SDK issue [#63216][].
+- The `InternetAddress.lookup` function no longer accepts invalid
+  IPv4 addresses that are traditionally accepted by `inet_aton`.
 
+[#42444]: https://github.com/dart-lang/sdk/issues/42444
 [#63216]: https://github.com/dart-lang/sdk/issues/63216
+
+#### `dart:isolate`
+
+- Added synchronous execution and event loop control APIs to `Isolate`:
+  `Isolate.runSync`, `Isolate.create`, `Isolate.shutdownSync`,
+  `Isolate.pinToCurrentThread`, `Isolate.isPinnedToCurrentThread`,
+  `Isolate.runEventLoopSync`, `Isolate.onEvent`, and `Isolate.handleEvent`.
 
 #### `dart:js_interop`
 
@@ -126,6 +235,14 @@ To learn more about the feature, check out the
 
 #### Analyzer
 
+- Added LSP support for Inline Values (`textDocument/inlineValue`), allowing
+  IDEs and debuggers to render inline variable evaluations during active
+  debugging sessions.
+- Introduced custom LSP methods (`dart/textDocument/getFlutterWidgetPreviews`
+  and `dart/workspace/getFlutterWidgetPreviews`) to serve Flutter Widget
+  Preview metadata to editor clients.
+- Introduced custom LSP method `dart/connectToDtd` enabling language server
+  clients to pair the Analysis Server with the Dart Tooling Daemon (DTD).
 - A `no_raw_types` lint rule is introduced, which replaces the
   `strict-raw-types` analysis option, offering a more consistent approach.
 - A `no_dynamic_casts` lint rule is introduced, which replaces the
@@ -137,8 +254,31 @@ To learn more about the feature, check out the
 
 [analyzer plugins]: https://dart.dev/tools/analyzer-plugins
 
+#### Linter
+
+- Added new lint rules:
+  - `async_return_with_no_await`: Warns on `async` functions returning a
+    non-Future value without using `await`.
+  - `empty_container_bodies`: Highlights empty bodies in classes, enums,
+    mixins, or extensions.
+  - `initialize_in_field_declaration`: Recommends initializing fields at their
+    declaration site where applicable.
+  - `unnecessary_const_in_enum_constructor`: Flags redundant `const` keywords
+    in enum constructors.
+  - `unnecessary_primary_constructor_body`: Flags unnecessary or empty bodies
+    on primary constructors.
+  - `unnecessary_type_name_in_constructor`: Flags redundant explicit type
+    names in constructor declarations.
+  - `use_declaring_parameters`: Encourages declaring parameters in primary
+    constructors.
+- Added experimental lint rule `use_primary_constructors` to encourage
+  adopting primary constructor syntax when Dart 3.13 primary constructor
+  feature is enabled.
+
 #### Formatter
 
+- Show the supported language versions when running
+  `dart format --version --verbose`.
 - Don't crash if an `analysis_options.yaml` file has an `include` that points to
   a non-existent or unreadable file ([dart_style #1840][]).
 
@@ -160,6 +300,9 @@ formatted code:
 
 The following changes only apply when formatting code at language version 3.13
 or higher:
+
+- Write a trailing comma in split extension type representation clauses when
+  formatting code at language version 3.13 or higher ([dart_style #1845][]).
 
 - Fix a bug in an eager splitting optimization that would led the formatter to
   prefer less desirable solutions ([dart_style #1847][]).
@@ -183,25 +326,85 @@ or higher:
 - Force blank lines around a mixin or extension type declaration if it doesn't
   have a `;` body.
 
-[dart_style #1840]: https://github.com/dart-lang/dart_style/issues/1840
-[dart_style #1809]: https://github.com/dart-lang/dart_style/issues/1809
-[dart_style #1644]: https://github.com/dart-lang/dart_style/issues/1644
-[dart_style #1847]: https://github.com/dart-lang/dart_style/issues/1847
-[dart_style #1732]: https://github.com/dart-lang/dart_style/issues/1732
-[dart_style #1693]: https://github.com/dart-lang/dart_style/issues/1693
-[dart_style #1542]: https://github.com/dart-lang/dart_style/issues/1542
 [dart_style #1120]: https://github.com/dart-lang/dart_style/issues/1120
+[dart_style #1542]: https://github.com/dart-lang/dart_style/issues/1542
 [dart_style #1596]: https://github.com/dart-lang/dart_style/issues/1596
+[dart_style #1644]: https://github.com/dart-lang/dart_style/issues/1644
+[dart_style #1693]: https://github.com/dart-lang/dart_style/issues/1693
+[dart_style #1732]: https://github.com/dart-lang/dart_style/issues/1732
 [dart_style #1802]: https://github.com/dart-lang/dart_style/issues/1802
 [dart_style #1803]: https://github.com/dart-lang/dart_style/issues/1803
+[dart_style #1809]: https://github.com/dart-lang/dart_style/issues/1809
 [dart_style #1837]: https://github.com/dart-lang/dart_style/issues/1837
+[dart_style #1840]: https://github.com/dart-lang/dart_style/issues/1840
+[dart_style #1845]: https://github.com/dart-lang/dart_style/issues/1845
+[dart_style #1847]: https://github.com/dart-lang/dart_style/issues/1847
+
+#### Pub
+
+- Added `dart pub workspace list` command to list all packages in the
+  workspace along with their directory paths, with support for JSON output via
+  `--json`.
+- Added `dart pub check-resolution-up-to-date` internal command for fast
+  timestamp-based package resolution validation without contacting remote
+  servers.
+- Added `dart pub cache preload` command for installing packages into
+  `PUB_CACHE` directly from `.tar.gz` archives.
+
+#### Dart CLI
+
+- Added support for cross-compilation to the `dart build cli` command via the
+  `--target-os` and `--target-arch` flags.
+- Both `dart build` and `dart compile` now support using locally-built target
+  binaries from a local SDK build directory (identifiable by the presence of a
+  `build.ninja` file), avoiding the need to download them from Google Cloud
+  Storage.
 
 ### Dart Runtime
 
 - Built-in fallback root certificates used if the system certificates cannot be
-found are no longer included. The existing `--root-certs-file` and
-`--root-certs-cache` options to the standalone VM may be used to provide
-certificates if the system certificates cannot be found.
+  found are no longer included. The existing `--root-certs-file` and
+  `--root-certs-cache` options to the standalone VM may be used to provide
+  certificates if the system certificates cannot be found.
+
+#### C Embedder API
+
+- **Breaking change**: Updated `Dart_FileModifiedCallback` in
+  `runtime/include/dart_tools_api.h` to pass `int64_t since` in microseconds
+  since epoch (matching `FileStat` microsecond precision), updated from
+  milliseconds.
+- Added `Dart_SetCurrentThreadOwnsIsolate` and
+  `Dart_GetCurrentThreadOwnsIsolate` functions in `runtime/include/dart_api.h`
+  (and `dart_api_dl.h`), allowing custom embedders to bind and query isolate
+  thread ownership.
+
+## 3.12.2
+
+**Released on:** 2026-06-09
+
+This is a patch release that:
+
+- Fixes a crash bug in `dart format` if an `analysis_options.yaml` file has an
+  include that points to a non-existent file (issue [#1840][dart_style #1840]).
+
+[dart_style #1840]: https://github.com/dart-lang/dart_style/issues/1840
+
+## 3.12.1
+
+**Released on:** 2026-05-26
+
+This is a patch release that:
+
+- Fixes a bug `ThreadLocal` which manifests as some static fields in `dart:*`
+  libraries being reset across suspension points, e.g. `print()` bypasses
+  an override specified by the current `Zone` after suspension.
+  (issue [#63408])
+- Fixes sporadic `dart analyze` crash on Windows ARM64, where analysis server
+  crashes on shutdown trying to delete perf_witness control socket.
+  (issue [#63343])
+
+[#63408]: https://github.com/dart-lang/sdk/issues/63408
+[#63343]: https://github.com/dart-lang/sdk/issues/63343
 
 ## 3.12.0
 
@@ -334,6 +537,15 @@ void main() {
 - `dart pub add` and `dart pub unpack` now accept `@` as an alternative to `:`
   for separating a package name from its version constraint.
 - Git dependencies now support Git Large File Storage (LFS).
+
+#### Dart CLI
+
+- Added support for running remote package executables directly using the
+  `dart run <package>@<descriptor>` syntax ([#62123][]). This enables dynamic
+  execution of remote tools (similar to `npx` in Node) without requiring explicit
+  installation or activation via `dart pub global activate`.
+
+[#62123]: https://github.com/dart-lang/sdk/issues/62123
 
 #### dart2wasm
 
@@ -800,6 +1012,12 @@ For more details see the [hooks documentation](https://dart.dev/tools/hooks).
   The Dart CLI is not generated for ia32 as we are not shipping a
   Dart SDK for ia32 anymore (support to execute the `dartvm` for ia32
   architecture is retained).
+
+- Added the `dart install` command suite (including `dart installed` and
+  `dart uninstall`) as the modern way to globally install and run Dart CLI
+  tools. It compiles tools to self-contained, native AOT binaries using
+  `dart build cli`. For details, see the
+  [`dart install` documentation](https://dart.dev/tools/dart-install).
 
 ### Libraries
 

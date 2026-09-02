@@ -20,6 +20,7 @@ import 'package:sse/server/sse_handler.dart';
 
 import '../constants.dart';
 import '../dds_impl.dart';
+import '../utils/validation.dart' as validation;
 import 'client.dart';
 import 'utils.dart';
 
@@ -41,12 +42,14 @@ import 'utils.dart';
 /// If [dtd.uri] is non-null, but [dtd.secret] is null, then DTD was started by a
 /// client that is not the DevTools server (e.g. an IDE).
 FutureOr<Handler> defaultHandler({
-  DartDevelopmentServiceImpl? dds,
+  required ExtensionsManager devtoolsExtensionsManager,
   String? buildDir,
   ClientManager? clientManager,
-  Handler? notFoundHandler,
+  DartDevelopmentServiceImpl? dds,
+  bool disableServiceOriginCheck = false,
   DtdInfo? dtd,
-  required ExtensionsManager devtoolsExtensionsManager,
+  Handler? notFoundHandler,
+  Uri? serverUri,
 }) {
   // When served through DDS, the app root is /devtools.
   // This variable is used in base href and must start and end with `/`
@@ -142,21 +145,62 @@ FutureOr<Handler> defaultHandler({
     ),
   );
 
+  bool isAllowedOrigin(String origin) {
+    return validation.isAllowedOrigin(
+      origin,
+      allowedUris: [
+        if (dds?.uri case final uri?) uri,
+        if (serverUri case final uri?) uri,
+      ],
+    );
+  }
+
+  bool isAllowedHost(String hostHeader) {
+    return validation.isAllowedHost(
+      hostHeader,
+      allowedUris: [
+        if (dds?.uri case final uri?) uri,
+        if (serverUri case final uri?) uri,
+      ],
+    );
+  }
+
   FutureOr<Response> devtoolsHandler(Request request) {
+    final originCheckEnabled = !(dds != null
+        ? dds.disableServiceOriginCheck
+        : disableServiceOriginCheck);
     // If the request isn't of the form api/<method> assume it's a request for
     // DevTools assets.
     final pathSegments = request.url.pathSegments;
     if (pathSegments.length < 2 || pathSegments.first != 'api') {
       return devtoolsAssetHandler(request);
     }
+
+    // Host header check for all api/* requests to prevent DNS rebinding.
+    if (originCheckEnabled) {
+      final hostHeader = request.headers[HttpHeaders.hostHeader];
+      if (hostHeader == null || !isAllowedHost(hostHeader)) {
+        return Response.forbidden('forbidden host');
+      }
+    }
+
     final method = request.url.pathSegments[1];
+
+    // Origin check specifically for api/sse to prevent CSRF.
+    if (method == 'sse') {
+      if (originCheckEnabled) {
+        final origin = request.headers['Origin'];
+        if (origin != null && !isAllowedOrigin(origin)) {
+          return Response.forbidden('forbidden origin');
+        }
+      }
+      return devToolsApiHandler.handler(request);
+    }
+
     if (method == 'ping') {
       // Note: we have an 'OK' body response, otherwise the response has an
       // incorrect status code (204 instead of 200).
       return Response.ok('OK');
-    }
-    if (method == 'sse') {
-      return devToolsApiHandler.handler(request);
     }
     if (!ServerApi.canHandle(request)) {
       return Response.notFound('$method is not a valid API');

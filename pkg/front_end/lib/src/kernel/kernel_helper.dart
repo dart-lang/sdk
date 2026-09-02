@@ -8,8 +8,10 @@ import 'package:kernel/clone.dart' show CloneVisitorNotMembers;
 import 'package:kernel/type_algebra.dart' show Substitution;
 import 'package:kernel/type_environment.dart';
 
+import '../type_inference/context_allocation_strategy.dart';
 import '../builder/library_builder.dart';
 import '../source/stack_listener_impl.dart' show AsyncModifier;
+import 'external_ast_helper.dart' as extern;
 
 /// Data for clone default values for synthesized function nodes once the
 /// original default values have been computed.
@@ -211,8 +213,9 @@ class DelayedDefaultValueCloner {
             if (i < _original.requiredParameterCount) {
               // Coverage-ignore-block(suite): Not run.
               // Error case: use `null` as initializer.
-              synthesizedParameter.defaultValue = new NullLiteral()
-                ..parent = synthesizedParameter;
+              synthesizedParameter.defaultValue = extern.createNullLiteral(
+                fileOffset: TreeNode.noOffset,
+              )..parent = synthesizedParameter;
               if (synthesizedParameter.type.nullability !=
                   Nullability.nullable) {
                 synthesizedParameter.hasErroneousDefaultValue = true;
@@ -227,8 +230,9 @@ class DelayedDefaultValueCloner {
         } else {
           if (i >= _synthesized.requiredParameterCount) {
             // Error case: use `null` as initializer.
-            synthesizedParameter.defaultValue = new NullLiteral()
-              ..parent = synthesizedParameter;
+            synthesizedParameter.defaultValue = extern.createNullLiteral(
+              fileOffset: TreeNode.noOffset,
+            )..parent = synthesizedParameter;
             if (synthesizedParameter.type.nullability != Nullability.nullable) {
               // Coverage-ignore-block(suite): Not run.
               synthesizedParameter.hasErroneousDefaultValue = true;
@@ -254,8 +258,9 @@ class DelayedDefaultValueCloner {
           } else {
             if (!synthesizedParameter.isRequired) {
               // Error case: use `null` as initializer.
-              synthesizedParameter.defaultValue = new NullLiteral()
-                ..parent = synthesizedParameter;
+              synthesizedParameter.defaultValue = extern.createNullLiteral(
+                fileOffset: TreeNode.noOffset,
+              )..parent = synthesizedParameter;
               if (synthesizedParameter.type.nullability !=
                   Nullability.nullable) {
                 synthesizedParameter.hasErroneousDefaultValue = true;
@@ -299,18 +304,19 @@ class DelayedDefaultValueCloner {
         )) {
       _cloneDefaultValue(originalParameter, synthesizedParameter);
     } else if (originalParameterDefaultValue == null && isOptional) {
-      synthesizedParameter.defaultValue = new NullLiteral()
-        ..parent = synthesizedParameter;
+      synthesizedParameter.defaultValue = extern.createNullLiteral(
+        fileOffset: TreeNode.noOffset,
+      )..parent = synthesizedParameter;
     } else {
       synthesizedParameter.hasDeclaredDefaultValue = false;
       if (synthesizedParameterType.isPotentiallyNonNullable) {
         _libraryBuilder.addProblem(
           diag.optionalSuperParameterWithoutInitializer.withArguments(
             superParameterType: synthesizedParameter.type,
-            superParameterName: synthesizedParameter.cosmeticName!,
+            superParameterName: synthesizedParameter.parameterName,
           ),
           synthesizedParameter.fileOffset,
-          synthesizedParameter.cosmeticName?.length ?? 1,
+          synthesizedParameter.parameterName.length,
           synthesized.fileUri,
         );
         synthesizedParameter.hasErroneousDefaultValue = true;
@@ -408,5 +414,12 @@ extension FunctionNodeExtension on FunctionNode {
     this.asyncMarker = asyncModifier.kind;
     this.dartAsyncMarker = asyncModifier.kind;
     this.emittedValueType = emittedValueType;
+  }
+
+  void registerScopeProviderInfo(ScopeProviderInfo? scopeProviderInfo) {
+    if (scopeProviderInfo != null) {
+      this.thisVariable = scopeProviderInfo.thisVariable?..parent = this;
+      this.scope = scopeProviderInfo.scope;
+    }
   }
 }

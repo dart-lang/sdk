@@ -9,9 +9,31 @@ import 'test_support.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(TestDefinitionNotTestTest);
     defineReflectiveTests(TestDefinitionTest);
     defineReflectiveTests(TestWithFlutterDefinitionTest);
   });
+}
+
+@reflectiveTest
+class TestDefinitionNotTestTest extends DartSnippetProducerTest {
+  @override
+  final generator = TestDefinition.new;
+
+  @override
+  String get label => TestDefinition.label;
+
+  @override
+  String get prefix => TestDefinition.prefix;
+
+  Future<void> test_notTestFile() async {
+    var code = r'''
+void f() {
+  test^
+}
+''';
+    await expectNotValidSnippet(code);
+  }
 }
 
 @reflectiveTest
@@ -25,8 +47,10 @@ class TestDefinitionTest extends DartSnippetProducerTest {
   @override
   String get prefix => TestDefinition.prefix;
 
+  @override
+  String get testFilePath => convertPath('$testPackageTestPath/foo_test.dart');
+
   Future<void> test_import_dart() async {
-    testFilePath = convertPath('$testPackageTestPath/foo_test.dart');
     var code = r'''
 void f() {
   test^
@@ -45,7 +69,6 @@ void f() {
   }
 
   Future<void> test_import_dart_existing() async {
-    testFilePath = convertPath('$testPackageTestPath/foo_test.dart');
     var code = r'''
 import 'package:test/test.dart';
 
@@ -66,7 +89,6 @@ void f() {
   }
 
   Future<void> test_inTestFile() async {
-    testFilePath = convertPath('$testPackageTestPath/foo_test.dart');
     var code = r'''
 void f() {
   test^
@@ -82,15 +104,6 @@ void f() {
 }
 ''';
     await assertSnippetResult(code, expectedCode);
-  }
-
-  Future<void> test_notTestFile() async {
-    var code = r'''
-void f() {
-  test^
-}
-''';
-    await expectNotValidSnippet(code);
   }
 }
 
@@ -108,8 +121,10 @@ class TestWithFlutterDefinitionTest extends DartSnippetProducerTest {
   @override
   String get prefix => TestDefinition.prefix;
 
+  @override
+  String get testFilePath => convertPath('$testPackageTestPath/foo_test.dart');
+
   Future<void> test_import_flutter() async {
-    testFilePath = convertPath('$testPackageTestPath/foo_test.dart');
     var code = r'''
 void f() {
   test^
@@ -128,7 +143,6 @@ void f() {
   }
 
   Future<void> test_import_flutter_existing() async {
-    testFilePath = convertPath('$testPackageTestPath/foo_test.dart');
     var code = r'''
 import 'package:flutter_test/flutter_test.dart';
 
@@ -151,7 +165,6 @@ void f() {
   /// Ensure we don't import package:flutter_test if package:test is already
   /// imported.
   Future<void> test_import_flutter_existingDart() async {
-    testFilePath = convertPath('$testPackageTestPath/foo_test.dart');
     var code = r'''
 import 'package:test/test.dart';
 

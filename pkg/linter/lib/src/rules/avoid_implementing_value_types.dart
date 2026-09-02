@@ -33,12 +33,8 @@ class AvoidImplementingValueTypes extends AnalysisRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
+class _Visitor(final AnalysisRule rule) extends SimpleAstVisitor<void> {
   static var equalsName = Name(null, '==');
-
-  final AnalysisRule rule;
-
-  new(this.rule);
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {

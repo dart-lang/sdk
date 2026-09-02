@@ -6,7 +6,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
@@ -14,10 +13,16 @@ import 'package:analyzer/src/utilities/extensions/ast.dart';
 
 /// Checks if the arguments for a parameter annotated with `@mustBeConst` are
 /// actually constant.
-class ConstArgumentsVerifier extends SimpleAstVisitor<void> {
+class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
   final DiagnosticReporter _diagnosticReporter;
 
   ConstArgumentsVerifier(this._diagnosticReporter);
+
+  void verifyNamedFunctionInvocation(NamedFunctionInvocation node) {
+    if (node.resolution is StaticInvocationResolution) {
+      _check(arguments: node.argumentList.arguments2, errorNode: node);
+    }
+  }
 
   @override
   void visitAnonymousMethodInvocation(AnonymousMethodInvocation node) {
@@ -33,7 +38,7 @@ class ConstArgumentsVerifier extends SimpleAstVisitor<void> {
     }
 
     if (element.metadata.hasMustBeConst) {
-      var target = node.realTarget;
+      var target = node.realTarget2;
       if (!_isConst(target)) {
         _diagnosticReporter.report(
           diag.nonConstArgumentForConstParameter
@@ -46,43 +51,84 @@ class ConstArgumentsVerifier extends SimpleAstVisitor<void> {
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
-    _check(arguments: [node.rightHandSide], errorNode: node.operator);
+    _check(arguments: [node.rightHandSide2], errorNode: node.operator);
   }
 
   @override
-  void visitBinaryExpression(BinaryExpression node) {
+  void visitBinaryOperatorInvocation(BinaryOperatorInvocation node) {
     _check(arguments: [node.rightOperand], errorNode: node.operator);
   }
 
   @override
-  void visitConstructorReference(ConstructorReference node) {
-    _checkTearoff(node, node.constructorName.element);
-  }
-
-  @override
-  void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    if (node.staticInvokeType is FunctionType) {
-      _check(arguments: node.argumentList.arguments, errorNode: node);
+  void visitCallInvocation(CallInvocation node) {
+    if (node.resolution is StaticInvocationResolution) {
+      _check(arguments: node.argumentList.arguments2, errorNode: node);
     }
   }
 
   @override
-  void visitIndexExpression(IndexExpression node) {
-    _check(arguments: [node.index], errorNode: node.leftBracket);
+  void visitCascadeMethodInvocation(CascadeMethodInvocation node) {
+    verifyNamedFunctionInvocation(node);
   }
 
   @override
-  void visitInstanceCreationExpression(InstanceCreationExpression node) {
+  void visitCompoundAssignment(CompoundAssignment node) {
+    _check(arguments: [node.value], errorNode: node.operator);
+  }
+
+  @override
+  void visitConstructorInvocation(ConstructorInvocation node) {
     if (node.inConstantContext) return;
     _check(
-      arguments: node.argumentList.arguments,
-      errorNode: node.constructorName,
+      arguments: node.argumentList.arguments2,
+      errorNode: node.constructorReference,
     );
   }
 
   @override
+  void visitConstructorTearOff(ConstructorTearOff node) {
+    _checkTearoff(node, node.element);
+  }
+
+  @override
+  void visitDirectAssignment(DirectAssignment node) {
+    _check(arguments: [node.value], errorNode: node.operator);
+  }
+
+  @override
+  void visitDotShorthandMethodInvocation(DotShorthandMethodInvocation node) {
+    verifyNamedFunctionInvocation(node);
+  }
+
+  @override
+  void visitDotShorthandNameExpression(DotShorthandNameExpression node) {
+    var element = switch (node.resolution) {
+      NamedReadResolutionWithElement(:var element) => element,
+      _ => null,
+    };
+    _checkTearoff(node, element);
+  }
+
+  @override
+  void visitIfNullAssignment(IfNullAssignment node) {
+    _check(arguments: [node.value], errorNode: node.operator);
+  }
+
+  @override
+  void visitImportPrefixedFunctionInvocation(
+    ImportPrefixedFunctionInvocation node,
+  ) {
+    verifyNamedFunctionInvocation(node);
+  }
+
+  @override
+  void visitIndexExpression(IndexExpression node) {
+    _check(arguments: [node.index2], errorNode: node.leftBracket);
+  }
+
+  @override
   void visitMethodInvocation(MethodInvocation node) {
-    _check(arguments: node.argumentList.arguments, errorNode: node.methodName);
+    _check(arguments: node.argumentList.arguments2, errorNode: node.methodName);
   }
 
   @override
@@ -96,18 +142,37 @@ class ConstArgumentsVerifier extends SimpleAstVisitor<void> {
   }
 
   @override
+  void visitReceiverIndexExpression(ReceiverIndexExpression node) {
+    _check(arguments: [node.index], errorNode: node.leftBracket);
+  }
+
+  @override
+  void visitReceiverMethodInvocation(ReceiverMethodInvocation node) {
+    verifyNamedFunctionInvocation(node);
+  }
+
+  @override
+  void visitReceiverPropertyExtraction(ReceiverPropertyExtraction node) {
+    var element = switch (node.resolution) {
+      NamedReadResolutionWithElement(:var element) => element,
+      _ => null,
+    };
+    _checkTearoff(node, element);
+  }
+
+  @override
   void visitRedirectingConstructorInvocation(
     RedirectingConstructorInvocation node,
   ) {
     _check(
-      arguments: node.argumentList.arguments,
-      errorNode: node.constructorName ?? node.thisKeyword,
+      arguments: node.argumentList.arguments2,
+      errorNode: node.constructorSelector?.name2 ?? node.thisKeyword,
     );
   }
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    var parent = node.parent;
+    var parent = node.parent2;
     if (parent is PropertyAccess && parent.propertyName == node) return;
     if (parent is PrefixedIdentifier && parent.identifier == node) return;
     if (parent is DotShorthandPropertyAccess && parent.propertyName == node) {
@@ -121,9 +186,14 @@ class ConstArgumentsVerifier extends SimpleAstVisitor<void> {
   @override
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     _check(
-      arguments: node.argumentList.arguments,
-      errorNode: node.constructorName ?? node.superKeyword,
+      arguments: node.argumentList.arguments2,
+      errorNode: node.constructorSelector?.name2 ?? node.superKeyword,
     );
+  }
+
+  @override
+  void visitUnqualifiedFunctionInvocation(UnqualifiedFunctionInvocation node) {
+    verifyNamedFunctionInvocation(node);
   }
 
   void _check({
@@ -142,7 +212,7 @@ class ConstArgumentsVerifier extends SimpleAstVisitor<void> {
       }
 
       if (parameter.metadata.hasMustBeConst) {
-        var resolvedArgument = argument.argumentExpression;
+        var resolvedArgument = argument.argumentExpression2;
         if (!_isConst(resolvedArgument)) {
           _diagnosticReporter.report(
             diag.nonConstArgumentForConstParameter
@@ -172,7 +242,7 @@ class ConstArgumentsVerifier extends SimpleAstVisitor<void> {
   bool _isConst(Expression expression) {
     if (expression.inConstantContext) {
       return true;
-    } else if (expression is InstanceCreationExpression && expression.isConst) {
+    } else if (expression is ConstructorInvocation && expression.isConst) {
       return true;
     } else if (expression is Literal) {
       return switch (expression) {
@@ -201,17 +271,15 @@ class ConstArgumentsVerifier extends SimpleAstVisitor<void> {
   }
 
   bool _isTearOff(Expression node) {
-    if (node is ConstructorReference) return true;
+    if (node is ConstructorTearOff) return true;
     if (node is FunctionReference) return true;
+    if (node is DotShorthandNameExpression) return true;
     if (node is DotShorthandPropertyAccess) return true;
-    if (node.inCommentReference) return false;
+    if (node.inCommentReference2) return false;
     if (node is SimpleIdentifier) {
-      var parent = node.parent;
-      if (parent is ConstructorName) {
-        parent = parent.parent;
-      }
+      var parent = node.parent2;
       while (parent is ParenthesizedExpression) {
-        parent = parent.parent;
+        parent = parent.parent2;
       }
       if (parent is InvocationExpression) return false;
       if (node.element is TopLevelFunctionElement) return true;

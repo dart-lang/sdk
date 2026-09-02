@@ -20,6 +20,7 @@
 #endif
 
 #if defined(DART_HOST_OS_MACOS)
+#include <mach/mach_error.h>
 #include <mach/mach_init.h>
 #include <mach/vm_map.h>
 #endif
@@ -301,7 +302,13 @@ class ScopedExcBadAccessHandler {
     auto arm_new_state =
         reinterpret_cast<arm_unified_thread_state_t*>(new_state);
     arm_new_state->ts_64.__x[0] = kExceptionalReturnValue;
+#if defined(HOST_ARCH_ARM64E)
+    __darwin_arm_thread_state64_set_pc_fptr(
+        arm_new_state->ts_64,
+        __darwin_arm_thread_state64_get_lr_fptr(arm_new_state->ts_64));
+#else
     arm_new_state->ts_64.__pc = arm_new_state->ts_64.__lr;
+#endif
     return KERN_SUCCESS;
   }
 
@@ -324,9 +331,15 @@ class ScopedExcBadAccessHandler {
   // inside, so we split it into two chunks each ending with a corresponding
   // variadic array.
 #define TRAILING_ARRAY(Type, name, count, max_count)                           \
-  Type* name() { return reinterpret_cast<Type*>(this + 1); }                   \
-  bool IsValid() const { return count <= max_count; }                          \
-  mach_msg_size_t Size() const { return sizeof(*this) + sizeof(Type) * count; }
+  Type* name() {                                                               \
+    return reinterpret_cast<Type*>(this + 1);                                  \
+  }                                                                            \
+  bool IsValid() const {                                                       \
+    return count <= max_count;                                                 \
+  }                                                                            \
+  mach_msg_size_t Size() const {                                               \
+    return sizeof(*this) + sizeof(Type) * count;                               \
+  }
 
   // A helper method for parsing a message which contains variadic arrays
   // inside. Such message is split into separate chunks each ending with
@@ -618,12 +631,11 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
 #endif
 
   int map_flags = MAP_PRIVATE | MAP_ANONYMOUS;
-#if (defined(DART_HOST_OS_MACOS) && !defined(DART_HOST_OS_IOS))
-  if (is_executable && IsAtLeastMacOSX10_14() &&
-      !ShouldDualMapExecutablePages()) {
+#if defined(DART_HOST_OS_MACOS) && !defined(DART_HOST_OS_IOS)
+  if (is_executable && !ShouldDualMapExecutablePages()) {
     map_flags |= MAP_JIT;
   }
-#endif  // defined(DART_HOST_OS_MACOS)
+#endif  // defined(DART_HOST_OS_MACOS) && !defined(DART_HOST_OS_IOS)
 
   void* hint = nullptr;
   // Some 64-bit microarchitectures store only the low 32-bits of targets as
@@ -824,7 +836,6 @@ void VirtualMemory::DontNeed(void* address, intptr_t size) {
 }
 
 #if defined(DART_HOST_OS_MACOS)
-// TODO(52579): Reenable on Fuchsia.
 bool VirtualMemory::DuplicateRX(VirtualMemory* target) {
   const intptr_t aligned_size = Utils::RoundUp(size(), PageSize());
   ASSERT_LESS_OR_EQUAL(aligned_size, target->size());
@@ -848,6 +859,7 @@ bool VirtualMemory::DuplicateRX(VirtualMemory* target) {
       /*copy=*/true, &current_protection, &max_protection,
       /*inheritance=*/VM_INHERIT_NONE);
   if (status != KERN_SUCCESS) {
+    OS::PrintErr("DuplicateRX failed: %s\n", mach_error_string(status));
     return false;
   }
   ASSERT(reinterpret_cast<void*>(target_address) == target->address());

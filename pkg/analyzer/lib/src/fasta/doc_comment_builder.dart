@@ -294,6 +294,11 @@ final class DocCommentBuilder {
         isPreviousLineEmpty = false;
       } else if (_parseNodoc(index: whitespaceEndIndex, content: content)) {
         isPreviousLineEmpty = false;
+      } else if (_startToken.type == TokenType.MULTI_LINE_COMMENT &&
+          content == '/**') {
+        // Consider the start line of a multiline doc comment as empty
+        // so we can detect indented codeblocks that start on the next line.
+        isPreviousLineEmpty = true;
       } else {
         _parseReferences(offset, content);
         isPreviousLineEmpty = content.isEmpty;
@@ -381,6 +386,9 @@ final class DocCommentBuilder {
         return true;
       case 'endtemplate':
         _endBlockDocDirectiveTag(parser, DocDirectiveType.endTemplate);
+        return true;
+      case 'example':
+        _pushDocDirective(parser.simpleDirective(DocDirectiveType.example));
         return true;
       case 'inject-html':
         _parseBlockDocDirectiveTag(parser, DocDirectiveType.injectHtml);
@@ -747,13 +755,13 @@ final class DocCommentBuilder {
         identifier: SimpleIdentifierImpl(token: secondToken!),
       );
       var expression = PropertyAccessImpl(
-        target: target,
+        target2: target,
         operator: secondPeriod!,
         propertyName: identifier,
       );
       return CommentReferenceImpl(
         newKeyword: newKeyword,
-        expression: expression,
+        expression2: expression,
         isSynthetic: isSynthetic,
       );
     } else if (secondToken != null) {
@@ -764,13 +772,13 @@ final class DocCommentBuilder {
       );
       return CommentReferenceImpl(
         newKeyword: newKeyword,
-        expression: expression,
+        expression2: expression,
         isSynthetic: isSynthetic,
       );
     } else {
       return CommentReferenceImpl(
         newKeyword: newKeyword,
-        expression: identifier,
+        expression2: identifier,
         isSynthetic: isSynthetic,
       );
     }

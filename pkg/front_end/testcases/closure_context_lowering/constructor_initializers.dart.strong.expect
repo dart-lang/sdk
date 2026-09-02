@@ -4,14 +4,18 @@ import "dart:core" as core;
 
 class A extends core::Object {
   final field core::int x;
-  constructor •(positional-parameter y) → self::A
+  constructor •(core::int y) → self::A
     : self::A::x = (() /* #ctx1 */ → core::int => y)(){() → core::int}, super core::Object::•()/* scope=[
-    #ctx2: not-captured VariableContext([
-      this-variable final;
-    ]),
-    #ctx1: direct-captured VariableContext([
-      positional-parameter y;
-    ]),
+    #ctx2: not-captured [this],
+    #ctx1: direct-captured [y],
   ] */
     ;
+}
+class B extends self::A {
+  constructor •(core::int z) → self::B
+    : super self::A::•(z)/* scope=[
+    #ctx3: not-captured [this,z],
+  ] */ {
+    z = 0;
+  }
 }

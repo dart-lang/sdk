@@ -21,6 +21,8 @@ main() {
 mixin GetElementDeclarationMixin implements PubPackageResolutionTest {
   Future<FragmentDeclarationResult?> getFragmentDeclaration(Fragment fragment);
 
+  Future<FragmentDeclarationResult?> getFragmentDeclaration2(Fragment fragment);
+
   test_class() async {
     var unitResult = await resolveTestCode(r'''
 class A {}
@@ -337,6 +339,37 @@ int get x => 0;
     expect(node.isGetter, isTrue);
   }
 
+  test_getter_top_v2() async {
+    var unitResult = await resolveTestCode(r'''
+int get x => 0;
+''');
+    var fragment = unitResult.findElement.topGet('x').firstFragment;
+    var result = await getFragmentDeclaration2(fragment);
+    assertParsedNodeText(result!.node, r'''
+TopLevelGetterDeclaration
+  returnType: NamedType
+    name: int
+  getKeyword: get
+  name: x
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression2: IntegerLiteral
+      literal: 0
+    semicolon: ;
+FunctionDeclaration
+  returnType: NamedType
+    name: int
+  propertyKeyword: get
+  name: x
+  functionExpression: FunctionExpression
+    body: ExpressionFunctionBody
+      functionDefinition: =>
+      expression: IntegerLiteral
+        literal: 0
+      semicolon: ;
+''');
+  }
+
   test_libraryFragment() async {
     var unitResult = await resolveTestCode('');
     var fragment = unitResult.libraryFragment;
@@ -436,6 +469,17 @@ class GetElementDeclarationParsedTest extends PubPackageResolutionTest
     return parsedLibrary.getFragmentDeclaration(fragment);
   }
 
+  @override
+  Future<FragmentDeclarationResult?> getFragmentDeclaration2(
+    Fragment fragment,
+  ) async {
+    var library = fragment.element.library!;
+    var path = library.firstFragment.source.fullName;
+    var file = getFile(path);
+    var parsedLibrary = await _getParsedLibrary(file);
+    return parsedLibrary.getFragmentDeclaration2(fragment);
+  }
+
   Future<ParsedLibraryResult> _getParsedLibrary(File file) async {
     var session = contextFor(file).currentSession;
     return session.getParsedLibrary(file.path) as ParsedLibraryResult;
@@ -454,6 +498,17 @@ class GetElementDeclarationResolvedTest extends PubPackageResolutionTest
     var file = getFile(path);
     var resolvedLibrary = await _getResolvedLibrary(file);
     return resolvedLibrary.getFragmentDeclaration(fragment);
+  }
+
+  @override
+  Future<FragmentDeclarationResult?> getFragmentDeclaration2(
+    Fragment fragment,
+  ) async {
+    var library = fragment.element.library!;
+    var path = library.firstFragment.source.fullName;
+    var file = getFile(path);
+    var resolvedLibrary = await _getResolvedLibrary(file);
+    return resolvedLibrary.getFragmentDeclaration2(fragment);
   }
 
   Future<ResolvedLibraryResult> _getResolvedLibrary(File file) async {

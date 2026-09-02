@@ -387,14 +387,41 @@ void* Utils::ResolveSymbolInDynamicLibrary(void* library_handle,
 }
 
 void Utils::UnloadDynamicLibrary(void* library_handle, char** error) {
+  const char* const cannot_close_process_or_executable =
+      "DynamicLibrary.process() and DynamicLibrary.executable() can't be "
+      "closed.";
+  if (library_handle == nullptr) {
+    if (error != nullptr) {
+      *error = Utils::StrDup(cannot_close_process_or_executable);
+    }
+    return;
+  }
+
   bool ok = false;
 
 #if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_MACOS) ||              \
     defined(DART_HOST_OS_ANDROID) || defined(DART_HOST_OS_FUCHSIA)
+  void* const executable_handle = dlopen(nullptr, RTLD_LAZY);
+  const bool is_executable = library_handle == executable_handle;
+  if (executable_handle != nullptr) {
+    dlclose(executable_handle);
+  }
+  if (is_executable) {
+    if (error != nullptr) {
+      *error = Utils::StrDup(cannot_close_process_or_executable);
+    }
+    return;
+  }
   ok = dlclose(library_handle) == 0;
 #elif defined(DART_HOST_OS_WINDOWS)
   SetLastError(0);  // Clear any errors.
 
+  if (library_handle == GetModuleHandle(nullptr)) {
+    if (error != nullptr) {
+      *error = Utils::StrDup(cannot_close_process_or_executable);
+    }
+    return;
+  }
   ok = FreeLibrary(reinterpret_cast<HMODULE>(library_handle));
 #endif
 

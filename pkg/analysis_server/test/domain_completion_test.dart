@@ -109,7 +109,7 @@ dependencies:
 class Test {}
 ''');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()..add(name: 'aaa', rootFolder: aaaRoot),
     );
 
@@ -786,7 +786,7 @@ class A01 {}
 class A02 {}
 ''');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'aaa', rootFolder: aaaRoot)
         ..add(name: 'bbb', rootFolder: bbbRoot),
@@ -826,21 +826,28 @@ dev_dependencies:
 
     var aaaRoot = getFolder('$workspaceRootPath/packages/aaa');
     newFile('${aaaRoot.path}/lib/f.dart', '''
+part 'src/part.dart';
+
 class A01 {}
 ''');
-    newFile('${aaaRoot.path}/lib/src/f.dart', '''
+    newFile('${aaaRoot.path}/lib/src/part.dart', '''
+part of '../f.dart';
+
 class A02 {}
+''');
+    newFile('${aaaRoot.path}/lib/src/f.dart', '''
+class A03 {}
 ''');
 
     var bbbRoot = getFolder('$workspaceRootPath/packages/bbb');
     newFile('${bbbRoot.path}/lib/f.dart', '''
-class A03 {}
-''');
-    newFile('${bbbRoot.path}/lib/src/f.dart', '''
 class A04 {}
 ''');
+    newFile('${bbbRoot.path}/lib/src/f.dart', '''
+class A05 {}
+''');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'aaa', rootFolder: aaaRoot)
         ..add(name: 'bbb', rootFolder: bbbRoot),
@@ -859,6 +866,10 @@ replacement
   left: 2
 suggestions
   A01
+    kind: class
+    isNotImported: true
+    libraryUri: package:aaa/f.dart
+  A02
     kind: class
     isNotImported: true
     libraryUri: package:aaa/f.dart
@@ -890,7 +901,7 @@ class A03 {}
 class A04 {}
 ''');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'aaa', rootFolder: aaaRoot)
         ..add(name: 'bbb', rootFolder: bbbRoot),
@@ -942,7 +953,7 @@ class A01 {}
 class A02 {}
 ''');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'aaa', rootFolder: aaaRoot)
         ..add(name: 'bbb', rootFolder: bbbRoot),

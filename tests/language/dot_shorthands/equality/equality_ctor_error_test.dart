@@ -55,166 +55,182 @@ void notSymmetrical(ConstructorClass ctor, ConstructorExt ctorExt) {
   const bool symEqRegular = .constRegular(1) == constCtor;
   //                        ^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
-  //                         ^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+  //                         ^
   // [cfe] No type was provided to find the dot shorthand 'constRegular'.
 
   const bool symEqNamed = .constNamed(x: 1) == constCtor;
   //                      ^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
-  //                       ^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+  //                       ^
   // [cfe] No type was provided to find the dot shorthand 'constNamed'.
 
   const bool symEqOptional = .constOptional(1) == constCtor;
   //                         ^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
-  //                          ^^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+  //                          ^
   // [cfe] No type was provided to find the dot shorthand 'constOptional'.
 
   const bool symNeqRegular = .constRegular(1) != constCtor;
   //                         ^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
-  //                          ^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+  //                          ^
   // [cfe] No type was provided to find the dot shorthand 'constRegular'.
 
   const bool symNeqNamed = .constNamed(x: 1) != constCtor;
   //                       ^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
-  //                        ^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+  //                        ^
   // [cfe] No type was provided to find the dot shorthand 'constNamed'.
 
   const bool symNeqOptional = .constOptional(1) != constCtor;
   //                          ^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
-  //                           ^^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+  //                           ^
   // [cfe] No type was provided to find the dot shorthand 'constOptional'.
 
   const ConstructorExt constCtorExt = .constRegular(1);
   const bool symExtEqRegular = .constRegular(1) == constCtorExt;
   //                           ^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
-  //                            ^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+  //                            ^
   // [cfe] No type was provided to find the dot shorthand 'constRegular'.
 
   const bool symExtEqNamed = .constNamed(x: 1) == constCtorExt;
   //                         ^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
-  //                          ^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+  //                          ^
   // [cfe] No type was provided to find the dot shorthand 'constNamed'.
 
   const bool symExtEqOptional = .constOptional(1) == constCtorExt;
   //                            ^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
-  //                             ^^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+  //                             ^
   // [cfe] No type was provided to find the dot shorthand 'constOptional'.
 
   const bool symExtNeqRegular = .constRegular(1) != constCtorExt;
   //                            ^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
-  //                             ^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+  //                             ^
   // [cfe] No type was provided to find the dot shorthand 'constRegular'.
 
   const bool symExtNeqNamed = .constNamed(x: 1) != constCtorExt;
   //                          ^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
-  //                           ^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+  //                           ^
   // [cfe] No type was provided to find the dot shorthand 'constNamed'.
 
   const bool symExtNeqOptional = .constOptional(1) != constCtorExt;
   //                             ^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
-  //                              ^^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+  //                              ^
   // [cfe] No type was provided to find the dot shorthand 'constOptional'.
 
   if (.new(1) == ctor) print('not ok');
-  //   ^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  //  ^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+  //   ^
   // [cfe] No type was provided to find the dot shorthand 'new'.
 
   if (.regular(1) == ctor) print('not ok');
-  //   ^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  //  ^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+  //   ^
   // [cfe] No type was provided to find the dot shorthand 'regular'.
 
   if (.named(x: 1) == ctor) print('not ok');
-  //   ^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  //  ^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+  //   ^
   // [cfe] No type was provided to find the dot shorthand 'named'.
 
   if (.optional(1) == ctor) print('not ok');
-  //   ^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  //  ^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+  //   ^
   // [cfe] No type was provided to find the dot shorthand 'optional'.
 
   if (.new(1) != ctor) print('not ok');
-  //   ^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  //  ^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+  //   ^
   // [cfe] No type was provided to find the dot shorthand 'new'.
 
   if (.regular(1) != ctor) print('not ok');
-  //   ^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  //  ^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+  //   ^
   // [cfe] No type was provided to find the dot shorthand 'regular'.
 
   if (.named(x: 1) != ctor) print('not ok');
-  //   ^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  //  ^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+  //   ^
   // [cfe] No type was provided to find the dot shorthand 'named'.
 
   if (.optional(1) != ctor) print('not ok');
-  //   ^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  //  ^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+  //   ^
   // [cfe] No type was provided to find the dot shorthand 'optional'.
 
   if (.new(1) == ctorExt) print('not ok');
-  //   ^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  //  ^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+  //   ^
   // [cfe] No type was provided to find the dot shorthand 'new'.
 
   if (.regular(1) == ctorExt) print('not ok');
-  //   ^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  //  ^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+  //   ^
   // [cfe] No type was provided to find the dot shorthand 'regular'.
 
   if (.named(x: 1) == ctorExt) print('not ok');
-  //   ^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  //  ^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+  //   ^
   // [cfe] No type was provided to find the dot shorthand 'named'.
 
   if (.optional(1) == ctorExt) print('not ok');
-  //   ^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  //  ^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+  //   ^
   // [cfe] No type was provided to find the dot shorthand 'optional'.
 
   if (.new(1) != ctorExt) print('not ok');
-  //   ^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  //  ^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+  //   ^
   // [cfe] No type was provided to find the dot shorthand 'new'.
 
   if (.regular(1) != ctorExt) print('not ok');
-  //   ^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  //  ^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+  //   ^
   // [cfe] No type was provided to find the dot shorthand 'regular'.
 
   if (.named(x: 1) != ctorExt) print('not ok');
-  //   ^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  //  ^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+  //   ^
   // [cfe] No type was provided to find the dot shorthand 'named'.
 
   if (.optional(1) != ctorExt) print('not ok');
-  //   ^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  //  ^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+  //   ^
   // [cfe] No type was provided to find the dot shorthand 'optional'.
 }
 
@@ -232,8 +248,8 @@ void rhsNeedsToBeShorthand(
       (constCondition ? .constRegular(1) : ConstructorClass.constNamed(x: 1));
   //                    ^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
-  //                     ^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+  //                     ^
   // [cfe] No type was provided to find the dot shorthand 'constRegular'.
 
   const bool rhsCtorNeq =
@@ -241,40 +257,46 @@ void rhsNeedsToBeShorthand(
       (constCondition ? ConstructorClass.constOptional(1) : .constRegular(1));
   //                                                        ^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
-  //                                                         ^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+  //                                                         ^
   // [cfe] No type was provided to find the dot shorthand 'constRegular'.
 
   if (ctor == (.new(1))) {
-    //          ^^^
-    // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+    //         ^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+    //          ^
     // [cfe] No type was provided to find the dot shorthand 'new'.
     print('not ok');
   }
 
   if (ctor != (.new(1))) {
-    //          ^^^
-    // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+    //         ^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+    //          ^
     // [cfe] No type was provided to find the dot shorthand 'new'.
     print('not ok');
   }
 
   if (ctor == (condition ? .new(1) : .regular(1))) {
-    //                      ^^^
-    // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+    //                     ^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+    //                      ^
     // [cfe] No type was provided to find the dot shorthand 'new'.
-    //                                ^^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+    //                               ^^^^^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+    //                                ^
     // [cfe] No type was provided to find the dot shorthand 'regular'.
     print('not ok');
   }
 
   if (ctor != (condition ? .optional(1) : .named(x: 1))) {
-    //                      ^^^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+    //                     ^^^^^^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+    //                      ^
     // [cfe] No type was provided to find the dot shorthand 'optional'.
-    //                                     ^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+    //                                    ^^^^^^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+    //                                     ^
     // [cfe] No type was provided to find the dot shorthand 'named'.
     print('not ok');
   }
@@ -315,8 +337,8 @@ void rhsNeedsToBeShorthand(
       (constCondition ? .constRegular(1) : ConstructorExt.constNamed(x: 1));
   //                    ^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
-  //                     ^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+  //                     ^
   // [cfe] No type was provided to find the dot shorthand 'constRegular'.
 
   const bool rhsCtorExtNeq =
@@ -324,26 +346,30 @@ void rhsNeedsToBeShorthand(
       (constCondition ? ConstructorExt.constOptional(1) : .constRegular(1));
   //                                                      ^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
-  //                                                       ^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+  //                                                       ^
   // [cfe] No type was provided to find the dot shorthand 'constRegular'.
 
   if (ctorExt == (condition ? .new(1) : .regular(1))) {
-    //                         ^^^
-    // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+    //                        ^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+    //                         ^
     // [cfe] No type was provided to find the dot shorthand 'new'.
-    //                                   ^^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+    //                                  ^^^^^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+    //                                   ^
     // [cfe] No type was provided to find the dot shorthand 'regular'.
     print('not ok');
   }
 
   if (ctorExt != (condition ? .named(x: 1) : .optional(1))) {
-    //                         ^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+    //                        ^^^^^^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+    //                         ^
     // [cfe] No type was provided to find the dot shorthand 'named'.
-    //                                        ^^^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+    //                                       ^^^^^^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
+    //                                        ^
     // [cfe] No type was provided to find the dot shorthand 'optional'.
     print('not ok');
   }

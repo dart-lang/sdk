@@ -236,3 +236,46 @@ class Version extends Object {
     return "Version(major=$major, minor=$minor)";
   }
 }
+
+/// Helper class for creating [Let] and [LocalInitializer] objects.
+class CachedExpression({
+  required final SyntheticVariable variable,
+  required final Expression value,
+}) {
+  new fromValue({
+    required Expression value,
+    required DartType type,
+    int? fileOffset,
+    String? cosmeticName,
+    // TODO(johnniwinther): This should always be final.
+    bool isFinal = false,
+  }) : this(
+         variable: new SyntheticVariable(
+           type: type,
+           cosmeticName: cosmeticName,
+           isFinal: isFinal,
+         )..fileOffset = fileOffset ?? value.fileOffset,
+         value: value,
+       );
+
+  DartType get type => variable.type;
+
+  int get fileOffset => variable.fileOffset;
+
+  /// Creates a [VariableGet] that reads the cached [variable]
+  VariableGet createRead({DartType? promotedType, int? fileOffset}) =>
+      new VariableGet(variable, promotedType)
+        ..fileOffset = fileOffset ?? this.fileOffset;
+
+  Let createLet({required Expression body, int? fileOffset}) {
+    return new Let(variable: variable, value: value, body: body)
+      ..fileOffset = fileOffset ?? variable.fileOffset;
+  }
+
+  LocalInitializer createLocalInitializer() {
+    return new LocalInitializer(variable, value)..fileOffset = fileOffset;
+  }
+
+  @override
+  String toString() => '$runtimeType(variable=$variable,value=$value)';
+}

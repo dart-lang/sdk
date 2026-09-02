@@ -48,11 +48,14 @@ class StackFrame;
 
 namespace module_snapshot {
 class CatchEntryMovesDeserializationCluster;
+class ClosureDataDeserializationCluster;
 class CodeDeserializationCluster;
 class CodeSourceMapDeserializationCluster;
+class CompressedStackMapsDeserializationCluster;
 class Deserializer;
 class DoubleDeserializationCluster;
 class ExceptionHandlersDeserializationCluster;
+class FunctionDeserializationCluster;
 class FunctionTypeDeserializationCluster;
 class ICDataDeserializationCluster;
 class IntDeserializationCluster;
@@ -175,7 +178,7 @@ enum TypedDataElementType {
   friend class object##MessageDeserializationCluster;                          \
   friend class Serializer;                                                     \
   friend class Deserializer;                                                   \
-  template <typename Base>                                                     \
+  template <typename Base, bool>                                               \
   friend class ObjectCopy;                                                     \
   friend class Pass2Visitor;
 
@@ -1436,6 +1439,12 @@ class UntaggedFunction : public UntaggedObject {
   };
   static constexpr int kKindBitSize = Utils::BitLength(kRecordFieldGetter);
 
+  static constexpr const char* kKindNames[] = {
+#define NAME_DEF(name) #name,
+      FOR_EACH_RAW_FUNCTION_KIND(NAME_DEF)
+#undef NAME_DEF
+  };
+
   static const char* KindToCString(Kind k) {
     switch (k) {
 #define KIND_CASE(Name)                                                        \
@@ -1540,11 +1549,6 @@ class UntaggedFunction : public UntaggedObject {
   };
 
  private:
-  friend class Class;
-  friend class Interpreter;
-  friend class InterpreterHelpers;
-  friend class UnitDeserializationRoots;
-
   RAW_HEAP_OBJECT_IMPLEMENTATION(Function);
 
   uword entry_point_;            // Accessed from generated code.
@@ -1615,6 +1619,12 @@ class UntaggedFunction : public UntaggedObject {
 
   std::atomic<bool> is_optimizable_;
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
+  friend class Class;
+  friend class Interpreter;
+  friend class InterpreterHelpers;
+  friend class UnitDeserializationRoots;
+  friend class module_snapshot::FunctionDeserializationCluster;
 };
 
 enum class InstantiationMode : uint8_t {
@@ -1667,6 +1677,7 @@ class UntaggedClosureData : public UntaggedObject {
                                             PackedAwaiterLinkIndex::kNextBit>;
   friend class Function;
   friend class UnitDeserializationRoots;
+  friend class module_snapshot::ClosureDataDeserializationCluster;
 };
 
 class UntaggedFfiTrampolineData : public UntaggedObject {
@@ -2086,11 +2097,11 @@ class UntaggedCode : public UntaggedObject {
   // offsets.
   // Alive: If true, the embedded object pointers will be visited during GC.
   int32_t state_bits_;
+  // Stores the instructions length when not using RawInstructions objects.
+  uint32_t instructions_length_;
   // Caches the unchecked entry point offset for instructions_, in case we need
   // to reset the active_instructions_ to instructions_.
   NOT_IN_PRECOMPILED(uint32_t unchecked_offset_);
-  // Stores the instructions length when not using RawInstructions objects.
-  ONLY_IN_PRECOMPILED(uint32_t instructions_length_);
 
   // Variable length data follows here.
   int32_t* data() { OPEN_ARRAY_START(int32_t, int32_t); }
@@ -2474,6 +2485,7 @@ class UntaggedCompressedStackMaps : public UntaggedObject {
   friend class Object;
   friend class ImageWriter;
   friend class StackMapEntry;
+  friend class module_snapshot::CompressedStackMapsDeserializationCluster;
 };
 
 class UntaggedInstructionsTable : public UntaggedObject {
@@ -3704,8 +3716,9 @@ class UntaggedDynamicLibrary : public UntaggedInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(DynamicLibrary);
   VISIT_NOTHING();
   void* handle_;
-  bool isClosed_;
-  bool canBeClosed_;
+  Dart_NativeAssetsDlsymCallback dlsym_;
+  Dart_NativeAssetsDlcloseCallback dlclose_;
+  bool is_closed_;
 
   friend class DynamicLibrary;
 };

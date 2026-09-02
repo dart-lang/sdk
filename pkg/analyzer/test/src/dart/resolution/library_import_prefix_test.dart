@@ -16,6 +16,72 @@ main() {
 
 @reflectiveTest
 class ImportPrefixResolutionTest extends PubPackageResolutionTest {
+  test_asExpression_constructorInvocation_argument() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+import 'dart:async' as p;
+
+class C<T> {
+  C(a);
+}
+
+main() {
+  var x = new C(p);
+//    ^
+// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
+//              ^
+// [diag.prefixIdentifierNotFollowedByDot] The name 'p' refers to an import prefix, so it must be followed by '.'.
+}
+''');
+
+    var node = result.findNode.singleConstructorInvocation;
+    assertResolvedNodeText(node, r'''
+ConstructorInvocation
+  keyword: new
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
+      name: C
+      element: <testLibrary>::@class::C
+      type: C<dynamic>
+    element: SubstitutedConstructorElementImpl
+      baseElement: <testLibrary>::@class::C::@constructor::new
+      substitution: {T: dynamic}
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      SimpleIdentifier
+        token: p
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: <testLibrary>::@class::C::@constructor::new::@formalParameter::a
+          substitution: {T: dynamic}
+        element: <testLibraryFragment>::@prefix::p
+        staticType: InvalidType
+    rightParenthesis: )
+  staticType: C<dynamic>
+V1: InstanceCreationExpression
+  keyword: new
+  constructorName: ConstructorName
+    type: NamedType
+      name: C
+      element: <testLibrary>::@class::C
+      type: C<dynamic>
+    element: SubstitutedConstructorElementImpl
+      baseElement: <testLibrary>::@class::C::@constructor::new
+      substitution: {T: dynamic}
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: p
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: <testLibrary>::@class::C::@constructor::new::@formalParameter::a
+          substitution: {T: dynamic}
+        element: <testLibraryFragment>::@prefix::p
+        staticType: InvalidType
+    rightParenthesis: )
+  staticType: C<dynamic>
+''');
+  }
+
   test_asExpression_expressionStatement() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 import 'dart:async' as p;
@@ -62,7 +128,7 @@ ForStatement
         element: hasImplicitType isPublic
           type: InvalidType
     inKeyword: in
-    iterable: SimpleIdentifier
+    iterable2: SimpleIdentifier
       token: p
       element: <testLibraryFragment>::@prefix::p
       staticType: InvalidType
@@ -70,50 +136,6 @@ ForStatement
   body: Block
     leftBracket: {
     rightBracket: }
-''');
-  }
-
-  test_asExpression_instanceCreation_argument() async {
-    var result = await resolveTestCodeWithDiagnostics(r'''
-import 'dart:async' as p;
-
-class C<T> {
-  C(a);
-}
-
-main() {
-  var x = new C(p);
-//    ^
-// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
-//              ^
-// [diag.prefixIdentifierNotFollowedByDot] The name 'p' refers to an import prefix, so it must be followed by '.'.
-}
-''');
-
-    var node = result.findNode.singleInstanceCreationExpression;
-    assertResolvedNodeText(node, r'''
-InstanceCreationExpression
-  keyword: new
-  constructorName: ConstructorName
-    type: NamedType
-      name: C
-      element: <testLibrary>::@class::C
-      type: C<dynamic>
-    element: SubstitutedConstructorElementImpl
-      baseElement: <testLibrary>::@class::C::@constructor::new
-      substitution: {T: dynamic}
-  argumentList: ArgumentList
-    leftParenthesis: (
-    arguments
-      SimpleIdentifier
-        token: p
-        correspondingParameter: SubstitutedFormalParameterElementImpl
-          baseElement: <testLibrary>::@class::C::@constructor::new::@formalParameter::a
-          substitution: {T: dynamic}
-        element: <testLibraryFragment>::@prefix::p
-        staticType: InvalidType
-    rightParenthesis: )
-  staticType: C<dynamic>
 ''');
   }
 
@@ -126,12 +148,37 @@ main() {
 }
 ''');
 
-    var node = result.findNode.simple('p.max');
+    var node = result.findNode.importPrefixReference('p.max');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
-  token: p
+ImportPrefixReference
+  name: p
+  period: .
   element: <testLibraryFragment>::@prefix::p
-  staticType: null
+''');
+  }
+
+  test_declaration() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+// ignore: unused_import
+import 'dart:async' as p;
+''');
+
+    var node = result.findNode.singleImportDirective;
+    assertResolvedNodeText(node, r'''
+ImportDirective
+  importKeyword: import
+  uri: SimpleStringLiteral
+    literal: 'dart:async'
+  asKeyword: as
+  prefixName: p
+  semicolon: ;
+  prefix: SimpleIdentifier
+    token: p
+    element: <testLibraryFragment>::@prefix::p
+    staticType: null
+  libraryImport: LibraryImport
+    uri: DirectiveUriWithLibrary
+      uri: dart:async
 ''');
   }
 
@@ -166,7 +213,7 @@ f() {
 ''');
   }
 
-  test_wildcardResolution_preWildcards() async {
+  test_wildcardResolution_beforeWildcardVariables() async {
     newFile('$testPackageLibPath/a.dart', r'''
 extension ExtendedString on String {
   bool get stringExt => true;
@@ -182,8 +229,7 @@ extension ExtendedString on String {
 ''');
 
     var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.4
-// (pre wildcard-variables)
+// %before-language-feature: wildcard-variables
 
 import 'a.dart' as _;
 import 'b.dart' as _;

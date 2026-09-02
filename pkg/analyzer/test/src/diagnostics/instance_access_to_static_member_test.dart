@@ -30,7 +30,7 @@ f(C c) {
     var node = result.findNode.methodInvocation('a();');
     assertResolvedNodeText(node, r'''
 MethodInvocation
-  target: SimpleIdentifier
+  target2: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::f::@formalParameter::c
     staticType: C
@@ -146,7 +146,7 @@ f(A a) {
     var node = result.findNode.methodInvocation('a();');
     assertResolvedNodeText(node, r'''
 MethodInvocation
-  target: SimpleIdentifier
+  target2: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A

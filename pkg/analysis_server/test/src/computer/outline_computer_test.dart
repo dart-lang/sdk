@@ -46,10 +46,7 @@ class AbstractOutlineComputerTest extends AbstractContextTest {
 @reflectiveTest
 class FlutterOutlineComputerTest extends AbstractOutlineComputerTest {
   @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(flutter: true);
-  }
+  bool get addFlutterPackageDep => true;
 
   Future<void> test_columnWithChildren() async {
     var unitOutline = await _computeOutline('''
@@ -149,6 +146,9 @@ MyWidget
 
 @reflectiveTest
 class OutlineComputerTest extends AbstractOutlineComputerTest {
+  @override
+  bool get addMetaPackageDep => true;
+
   void assertJson(Object object, Map<String, dynamic> expected) {
     var expectedJson = JsonEncoder.withIndent('  ').convert(expected);
     var actual = JsonEncoder.withIndent('  ').convert(object);
@@ -1095,7 +1095,6 @@ void f(p()) {
   }
 
   Future<void> test_isTest_isTestGroup() async {
-    writeTestPackageConfig(meta: true);
     var outline = await _computeOutline('''
 import 'package:meta/meta.dart';
 

@@ -25,7 +25,7 @@ extension E on String class A {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ExtensionDeclaration
       extensionKeyword: extension
       name: E
@@ -55,7 +55,7 @@ extension E on String const a = 0;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ExtensionDeclaration
       extensionKeyword: extension
       name: E
@@ -73,7 +73,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer: IntegerLiteral
+            initializer2: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -88,7 +88,7 @@ extension E on String enum E { v }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ExtensionDeclaration
       extensionKeyword: extension
       name: E
@@ -121,7 +121,7 @@ extension E on String
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ExtensionDeclaration
       extensionKeyword: extension
       name: E
@@ -144,7 +144,7 @@ extension E on String final a = 0;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ExtensionDeclaration
       extensionKeyword: extension
       name: E
@@ -162,7 +162,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer: IntegerLiteral
+            initializer2: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -177,7 +177,7 @@ extension E on String int f() {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ExtensionDeclaration
       extensionKeyword: extension
       name: E
@@ -212,7 +212,7 @@ extension E on String void f() {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ExtensionDeclaration
       extensionKeyword: extension
       name: E
@@ -247,7 +247,28 @@ extension E on String int get a => 0;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
+    ExtensionDeclaration
+      extensionKeyword: extension
+      name: E
+      onClause: ExtensionOnClause
+        onKeyword: on
+        extendedType: NamedType
+          name: String
+      body: BlockClassBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
+    TopLevelGetterDeclaration
+      returnType: NamedType
+        name: int
+      getKeyword: get
+      name: a
+      body: ExpressionFunctionBody
+        functionDefinition: =>
+        expression2: IntegerLiteral
+          literal: 0
+        semicolon: ;
+  declarations(v1)
     ExtensionDeclaration
       extensionKeyword: extension
       name: E
@@ -281,7 +302,7 @@ extension E on String mixin M {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ExtensionDeclaration
       extensionKeyword: extension
       name: E
@@ -310,7 +331,7 @@ extension E on String set a(b) {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ExtensionDeclaration
       extensionKeyword: extension
       name: E
@@ -326,6 +347,12 @@ CompilationUnit
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              name: b
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -346,7 +373,7 @@ extension E on String typedef A = B Function(C, D);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ExtensionDeclaration
       extensionKeyword: extension
       name: E
@@ -366,6 +393,16 @@ CompilationUnit
           name: B
         functionKeyword: Function
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              type: NamedType
+                name: C
+            RegularFormalParameter
+              type: NamedType
+                name: D
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
@@ -387,7 +424,7 @@ extension E on String var a;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ExtensionDeclaration
       extensionKeyword: extension
       name: E
@@ -419,7 +456,7 @@ extension class A {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ExtensionDeclaration
       extensionKeyword: extension
       onClause: ExtensionOnClause
@@ -458,7 +495,7 @@ extension const a = 0;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ExtensionDeclaration
       extensionKeyword: extension
       name: a
@@ -483,7 +520,7 @@ extension enum E { v }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ExtensionDeclaration
       extensionKeyword: extension
       onClause: ExtensionOnClause
@@ -517,7 +554,7 @@ extension
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ExtensionDeclaration
       extensionKeyword: extension
       onClause: ExtensionOnClause
@@ -541,7 +578,7 @@ extension final a = 0;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ExtensionDeclaration
       extensionKeyword: extension
       onClause: ExtensionOnClause
@@ -558,7 +595,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer: IntegerLiteral
+            initializer2: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -581,7 +618,7 @@ extension int f() {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ExtensionDeclaration
       extensionKeyword: extension
       name: int
@@ -605,7 +642,7 @@ extension void f() {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ExtensionDeclaration
       extensionKeyword: extension
       onClause: ExtensionOnClause
@@ -640,7 +677,26 @@ extension int get a => 0;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
+    ExtensionDeclaration
+      extensionKeyword: extension
+      name: int
+      onClause: ExtensionOnClause
+        onKeyword: on <synthetic>
+        extendedType: NamedType
+          name: <empty> <synthetic>
+      body: BlockClassBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
+    TopLevelGetterDeclaration
+      getKeyword: get
+      name: a
+      body: ExpressionFunctionBody
+        functionDefinition: =>
+        expression2: IntegerLiteral
+          literal: 0
+        semicolon: ;
+  declarations(v1)
     ExtensionDeclaration
       extensionKeyword: extension
       name: int
@@ -672,7 +728,7 @@ extension mixin M {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ExtensionDeclaration
       extensionKeyword: extension
       name: mixin
@@ -706,7 +762,7 @@ extension set a(b) {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ExtensionDeclaration
       extensionKeyword: extension
       name: set
@@ -739,7 +795,7 @@ extension typedef A = B Function(C, D);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ExtensionDeclaration
       extensionKeyword: extension
       name: typedef
@@ -756,6 +812,14 @@ CompilationUnit
       name: Function
       functionExpression: FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              name: C
+            RegularFormalParameter
+              name: D
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: C
@@ -778,7 +842,7 @@ extension var a;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ExtensionDeclaration
       extensionKeyword: extension
       onClause: ExtensionOnClause
@@ -810,7 +874,7 @@ extension E class A {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ExtensionDeclaration
       extensionKeyword: extension
       name: E
@@ -843,7 +907,7 @@ extension E const a = 0;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ExtensionDeclaration
       extensionKeyword: extension
       name: E
@@ -861,7 +925,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer: IntegerLiteral
+            initializer2: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -879,7 +943,7 @@ extension E enum E { v }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ExtensionDeclaration
       extensionKeyword: extension
       name: E
@@ -915,7 +979,7 @@ extension E
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ExtensionDeclaration
       extensionKeyword: extension
       name: E
@@ -941,7 +1005,7 @@ extension E final a = 0;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ExtensionDeclaration
       extensionKeyword: extension
       name: E
@@ -959,7 +1023,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer: IntegerLiteral
+            initializer2: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -976,7 +1040,7 @@ extension E int f() {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ExtensionDeclaration
       extensionKeyword: extension
       name: E
@@ -1011,7 +1075,7 @@ extension E void f() {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ExtensionDeclaration
       extensionKeyword: extension
       name: E
@@ -1046,7 +1110,26 @@ extension E int get a => 0;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
+    ExtensionDeclaration
+      extensionKeyword: extension
+      name: E
+      onClause: ExtensionOnClause
+        onKeyword: on <synthetic>
+        extendedType: NamedType
+          name: int
+      body: BlockClassBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
+    TopLevelGetterDeclaration
+      getKeyword: get
+      name: a
+      body: ExpressionFunctionBody
+        functionDefinition: =>
+        expression2: IntegerLiteral
+          literal: 0
+        semicolon: ;
+  declarations(v1)
     ExtensionDeclaration
       extensionKeyword: extension
       name: E
@@ -1083,7 +1166,7 @@ extension E mixin M {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ExtensionDeclaration
       extensionKeyword: extension
       name: E
@@ -1119,7 +1202,7 @@ extension E set a(b) {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ExtensionDeclaration
       extensionKeyword: extension
       name: E
@@ -1135,6 +1218,12 @@ CompilationUnit
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              name: b
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -1158,7 +1247,7 @@ extension E typedef A = B Function(C, D);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ExtensionDeclaration
       extensionKeyword: extension
       name: E
@@ -1178,6 +1267,16 @@ CompilationUnit
           name: B
         functionKeyword: Function
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              type: NamedType
+                name: C
+            RegularFormalParameter
+              type: NamedType
+                name: D
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
@@ -1202,7 +1301,7 @@ extension E var a;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ExtensionDeclaration
       extensionKeyword: extension
       name: E
@@ -1233,7 +1332,7 @@ extension E on class A {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ExtensionDeclaration
       extensionKeyword: extension
       name: E
@@ -1264,7 +1363,7 @@ extension E on const a = 0;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ExtensionDeclaration
       extensionKeyword: extension
       name: E
@@ -1282,7 +1381,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer: IntegerLiteral
+            initializer2: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -1298,7 +1397,7 @@ extension E on enum E { v }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ExtensionDeclaration
       extensionKeyword: extension
       name: E
@@ -1332,7 +1431,7 @@ extension E on
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ExtensionDeclaration
       extensionKeyword: extension
       name: E
@@ -1356,7 +1455,7 @@ extension E on final a = 0;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ExtensionDeclaration
       extensionKeyword: extension
       name: E
@@ -1374,7 +1473,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer: IntegerLiteral
+            initializer2: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -1389,7 +1488,7 @@ extension E on int f() {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ExtensionDeclaration
       extensionKeyword: extension
       name: E
@@ -1422,7 +1521,7 @@ extension E on void f() {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ExtensionDeclaration
       extensionKeyword: extension
       name: E
@@ -1455,7 +1554,26 @@ extension E on int get a => 0;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
+    ExtensionDeclaration
+      extensionKeyword: extension
+      name: E
+      onClause: ExtensionOnClause
+        onKeyword: on
+        extendedType: NamedType
+          name: int
+      body: BlockClassBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
+    TopLevelGetterDeclaration
+      getKeyword: get
+      name: a
+      body: ExpressionFunctionBody
+        functionDefinition: =>
+        expression2: IntegerLiteral
+          literal: 0
+        semicolon: ;
+  declarations(v1)
     ExtensionDeclaration
       extensionKeyword: extension
       name: E
@@ -1490,7 +1608,7 @@ extension E on mixin M {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ExtensionDeclaration
       extensionKeyword: extension
       name: E
@@ -1524,7 +1642,7 @@ extension E on set a(b) {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ExtensionDeclaration
       extensionKeyword: extension
       name: E
@@ -1540,6 +1658,12 @@ CompilationUnit
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              name: b
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -1561,7 +1685,7 @@ extension E on typedef A = B Function(C, D);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ExtensionDeclaration
       extensionKeyword: extension
       name: E
@@ -1581,6 +1705,16 @@ CompilationUnit
           name: B
         functionKeyword: Function
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              type: NamedType
+                name: C
+            RegularFormalParameter
+              type: NamedType
+                name: D
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
@@ -1603,7 +1737,7 @@ extension E on var a;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ExtensionDeclaration
       extensionKeyword: extension
       name: E
@@ -1634,7 +1768,7 @@ extension E on String { class A {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ExtensionDeclaration
       extensionKeyword: extension
       name: E
@@ -1656,7 +1790,7 @@ extension E on String { const a = 0;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ExtensionDeclaration
       extensionKeyword: extension
       name: E
@@ -1674,7 +1808,7 @@ CompilationUnit
                 VariableDeclaration
                   name: a
                   equals: =
-                  initializer: IntegerLiteral
+                  initializer2: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: } <synthetic>
@@ -1691,7 +1825,7 @@ extension E on String { enum E { v }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ExtensionDeclaration
       extensionKeyword: extension
       name: E
@@ -1713,7 +1847,7 @@ extension E on String {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ExtensionDeclaration
       extensionKeyword: extension
       name: E
@@ -1735,7 +1869,7 @@ extension E on String { final a = 0;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ExtensionDeclaration
       extensionKeyword: extension
       name: E
@@ -1753,7 +1887,7 @@ CompilationUnit
                 VariableDeclaration
                   name: a
                   equals: =
-                  initializer: IntegerLiteral
+                  initializer2: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: } <synthetic>
@@ -1768,7 +1902,7 @@ extension E on String { int f() {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ExtensionDeclaration
       extensionKeyword: extension
       name: E
@@ -1802,7 +1936,7 @@ extension E on String { void f() {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ExtensionDeclaration
       extensionKeyword: extension
       name: E
@@ -1836,7 +1970,7 @@ extension E on String { int get a => 0;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ExtensionDeclaration
       extensionKeyword: extension
       name: E
@@ -1854,7 +1988,7 @@ CompilationUnit
             name: a
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: } <synthetic>
@@ -1874,7 +2008,7 @@ extension E on String { mixin M {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ExtensionDeclaration
       extensionKeyword: extension
       name: E
@@ -1912,7 +2046,7 @@ extension E on String { set a(b) {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ExtensionDeclaration
       extensionKeyword: extension
       name: E
@@ -1927,6 +2061,12 @@ CompilationUnit
             propertyKeyword: set
             name: a
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -1953,7 +2093,7 @@ extension E on String { typedef A = B Function(C, D);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ExtensionDeclaration
       extensionKeyword: extension
       name: E
@@ -1970,12 +2110,20 @@ CompilationUnit
                 VariableDeclaration
                   name: A
                   equals: =
-                  initializer: SimpleIdentifier
+                  initializer2: SimpleIdentifier
                     token: B
             semicolon: ; <synthetic>
           MethodDeclaration
             name: Function
             parameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: C
+                RegularFormalParameter
+                  name: D
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: C
@@ -1996,7 +2144,7 @@ extension E on String { var a;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ExtensionDeclaration
       extensionKeyword: extension
       name: E

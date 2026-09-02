@@ -10,26 +10,26 @@ class C {
   void equality() {
     if (this == null) {
       // Comparison of non-nullable with null doesn't promote (remains C).
-      this.expectStaticType<Exactly<C>>();
+      this.expectStaticType<Exactly<C>>;
     } else {
-      this.expectStaticType<Exactly<C>>();
+      this.expectStaticType<Exactly<C>>;
     }
   }
 
   void isSameType() {
     if (this is C) {
-      this.expectStaticType<Exactly<C>>();
+      this.expectStaticType<Exactly<C>>;
     } else {
       // Trivially satisfied `is` test doesn't promote (remains C).
-      this.expectStaticType<Exactly<C>>();
+      this.expectStaticType<Exactly<C>>;
     }
   }
 
   void isSubtype() {
     if (this is D) {
-      this.expectStaticType<Exactly<C>>();
+      this.expectStaticType<Exactly<C>>;
     } else {
-      this.expectStaticType<Exactly<C>>();
+      this.expectStaticType<Exactly<C>>;
     }
   }
 }
@@ -43,25 +43,25 @@ class F extends E {}
 extension on E {
   void equality() {
     if (this == null) {
-      this.expectStaticType<Exactly<E>>();
+      this.expectStaticType<Exactly<E>>;
     } else {
-      this.expectStaticType<Exactly<E>>();
+      this.expectStaticType<Exactly<E>>;
     }
   }
 
   void isSameType() {
     if (this is E) {
-      this.expectStaticType<Exactly<E>>();
+      this.expectStaticType<Exactly<E>>;
     } else {
-      this.expectStaticType<Exactly<E>>();
+      this.expectStaticType<Exactly<E>>;
     }
   }
 
   void isSubtype() {
     if (this is F) {
-      this.expectStaticType<Exactly<E>>();
+      this.expectStaticType<Exactly<E>>;
     } else {
-      this.expectStaticType<Exactly<E>>();
+      this.expectStaticType<Exactly<E>>;
     }
   }
 }
@@ -72,29 +72,59 @@ extension on G? {
   void equality() {
     if (this == null) {
       // Comparison of nullable with null doesn't promote on true branch (remains G?).
-      this.expectStaticType<Exactly<G?>>();
+      this.expectStaticType<Exactly<G?>>;
     } else {
-      this.expectStaticType<Exactly<G?>>();
+      this.expectStaticType<Exactly<G?>>;
     }
   }
 
   void isSameType() {
     if (this is G?) {
-      this.expectStaticType<Exactly<G?>>();
+      this.expectStaticType<Exactly<G?>>;
     } else {
-      this.expectStaticType<Exactly<G?>>();
+      this.expectStaticType<Exactly<G?>>;
     }
   }
 
   void isSubtype() {
     if (this is G) {
-      this.expectStaticType<Exactly<G?>>();
+      this.expectStaticType<Exactly<G?>>;
     } else {
       // With promotion disabled, G? that is not G remains G?.
-      this.expectStaticType<Exactly<G?>>();
+      this.expectStaticType<Exactly<G?>>;
     }
   }
 }
+
+extension type H(C r) {
+  void equality() {
+    if (this == null) {
+      // Comparison of non-nullable with null doesn't promote (remains H).
+      this.expectStaticType<Exactly<H>>;
+    } else {
+      this.expectStaticType<Exactly<H>>;
+    }
+  }
+
+  void isSameType() {
+    if (this is H) {
+      this.expectStaticType<Exactly<H>>;
+    } else {
+      // Trivially satisfied `is` test doesn't promote (remains H).
+      this.expectStaticType<Exactly<H>>;
+    }
+  }
+
+  void isSubtype() {
+    if (this is I) {
+      this.expectStaticType<Exactly<H>>;
+    } else {
+      this.expectStaticType<Exactly<H>>;
+    }
+  }
+}
+
+extension type I(D r) implements H {}
 
 main() {
   C().equality();
@@ -115,4 +145,13 @@ main() {
   (null as G?).equality();
   (null as G?).isSameType();
   (null as G?).isSubtype();
+  H(C()).equality();
+  H(C()).isSameType();
+  H(C()).isSubtype();
+  H(D()).equality();
+  H(D()).isSameType();
+  H(D()).isSubtype();
+  I(D()).equality();
+  I(D()).isSameType();
+  I(D()).isSubtype();
 }

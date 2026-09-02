@@ -561,6 +561,32 @@ class B.nam^ed() extends A {}
     );
   }
 
+  Future<void>
+  test_primaryConstructor_declaration_inDeclaringParam_name() async {
+    await verifyGoToSuper(
+      TestCode.parse('''
+class A(final Object [!value!]);
+
+class B(
+  @override final Object val^ue,
+) implements A;
+'''),
+    );
+  }
+
+  Future<void>
+  test_primaryConstructor_declaration_inDeclaringParam_type() async {
+    await verifyGoToSuper(
+      TestCode.parse('''
+class A(final Object [!value!]);
+
+class B(
+  @override final Obj^ect value,
+) implements A;
+'''),
+    );
+  }
+
   Future<void> test_primaryConstructor_declaration_inParam_name() async {
     await verifyGoToSuper(
       TestCode.parse('''

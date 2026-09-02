@@ -82,22 +82,20 @@ class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
   }
 
   Future<void> buildChange({required ChangeBuilder builder}) async {
-    var elements = switch (element) {
-      PropertyInducingElement element when element.isOriginGetterSetter => [
-        ?element.getter,
-        ?element.setter,
-      ],
-      _ => [element],
-    };
-
-    // Rename each element and references to it.
     var processor = RenameProcessor2(
       workspace,
       sessionHelper,
       builder,
       newName,
     );
-    for (var element in elements) {
+
+    var element = this.element;
+    if (element is PropertyInducingElement && element.isOriginGetterSetter) {
+      await processor.addDeclarationEdit(element.getter);
+      await processor.addDeclarationEdit(element.setter);
+      var references = await workspace.searchEngine.searchReferences(element);
+      await processor.addReferenceEdits(references);
+    } else {
       await processor.renameElement(element);
     }
 

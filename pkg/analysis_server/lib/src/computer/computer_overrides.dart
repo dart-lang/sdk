@@ -27,14 +27,18 @@ class DartUnitOverridesComputer {
   /// Returns the computed occurrences, not `null`.
   List<proto.Override> compute() {
     for (var unitMember in _unit.declarations) {
-      if (unitMember is ClassDeclaration) {
-        _classMembers(unitMember.body.members);
-      } else if (unitMember is EnumDeclaration) {
-        _classMembers(unitMember.body.members);
-      } else if (unitMember is ExtensionTypeDeclaration) {
-        _classMembers(unitMember.body.members);
-      } else if (unitMember is MixinDeclaration) {
-        _classMembers(unitMember.body.members);
+      switch (unitMember) {
+        case ClassDeclaration(:var namePart, body: var body):
+          _primaryConstructor(namePart);
+          _classMembers(body.members);
+        case EnumDeclaration(:var namePart, body: var body):
+          _primaryConstructor(namePart);
+          _classMembers(body.members);
+        case ExtensionTypeDeclaration(:var namePart, body: var body):
+          _primaryConstructor(namePart);
+          _classMembers(body.members);
+        case MixinDeclaration(body: var body):
+          _classMembers(body.members);
       }
     }
     return _overrides;
@@ -87,6 +91,23 @@ class DartUnitOverridesComputer {
         for (var field in fields) {
           _addOverride(field.name, field.declaredFragment?.element);
         }
+      }
+    }
+  }
+
+  void _primaryConstructor(ClassNamePart namePart) {
+    if (namePart is! PrimaryConstructorDeclaration) return;
+
+    for (var parameter in namePart.formalParameters.parameters) {
+      var name = parameter.name;
+      if (name == null) continue;
+
+      var parameterElement = parameter.declaredFragment?.element;
+      if (parameterElement case FieldFormalParameterElement(
+        isDeclaring: true,
+        :var field?,
+      )) {
+        _addOverride(name, field);
       }
     }
   }

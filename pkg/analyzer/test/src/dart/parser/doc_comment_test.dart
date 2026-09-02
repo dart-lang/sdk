@@ -117,7 +117,7 @@ class A {}
 Comment
   references
     CommentReference
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: b
   tokens
     /// `a[i]` and [b].
@@ -136,7 +136,7 @@ class A {}
 Comment
   references
     CommentReference
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: b
   tokens
     /** [:xxx [a] yyy:] [b] zzz */
@@ -154,10 +154,10 @@ class A {}
 Comment
   references
     CommentReference
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: i
     CommentReference
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: b
   tokens
     /** `a[i] and [b] */
@@ -175,7 +175,7 @@ ClassDeclaration
   documentationComment: Comment
     references
       CommentReference
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: String @5
     tokens
       /** [String] */ @0
@@ -203,13 +203,13 @@ ClassDeclaration
   documentationComment: Comment
     references
       CommentReference
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: int @9
       CommentReference
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: String @19
       CommentReference
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: Object @36
     tokens
       /// See [int] and [String] @0
@@ -240,7 +240,7 @@ class A {}
 Comment
   references
     CommentReference
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: a
   tokens
     /** [a]. */
@@ -267,16 +267,16 @@ ClassDeclaration
   documentationComment: Comment
     references
       CommentReference
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: included @86
       CommentReference
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: int @143
       CommentReference
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: String @153
       CommentReference
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: Object @240
     tokens
       /// This dartdoc comment is [included]. @57
@@ -325,7 +325,7 @@ class A {}
 Comment
   references
     CommentReference
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: <empty> <synthetic>
   tokens
     /// [].
@@ -343,7 +343,7 @@ class A {}
 Comment
   references
     CommentReference
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: a
   tokens
     /// Regarding [a]: it's an A.
@@ -361,10 +361,10 @@ class A {}
 Comment
   references
     CommentReference
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: a
     CommentReference
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: b
   tokens
     /// [a] and [b].
@@ -382,10 +382,10 @@ class A {}
 Comment
   references
     CommentReference
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: a
     CommentReference
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: b
   tokens
     /** [a] and [b]. */
@@ -404,7 +404,7 @@ Comment
   references
     CommentReference
       newKeyword: new
-      expression: PrefixedIdentifier
+      expression2: PrefixedIdentifier
         prefix: SimpleIdentifier
           token: a
         period: .
@@ -427,7 +427,7 @@ Comment
   references
     CommentReference
       newKeyword: new
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: A
   tokens
     /// [new A].
@@ -445,7 +445,7 @@ class A {}
 Comment
   references
     CommentReference
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: ==
   tokens
     /// [operator ==].
@@ -463,7 +463,7 @@ class A {}
 Comment
   references
     CommentReference
-      expression: PrefixedIdentifier
+      expression2: PrefixedIdentifier
         prefix: SimpleIdentifier
           token: Object
         period: .
@@ -485,7 +485,7 @@ class A {}
 Comment
   references
     CommentReference
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: ==
   tokens
     /// [==].
@@ -503,7 +503,7 @@ class A {}
 Comment
   references
     CommentReference
-      expression: PrefixedIdentifier
+      expression2: PrefixedIdentifier
         prefix: SimpleIdentifier
           token: Object
         period: .
@@ -525,7 +525,7 @@ class A {}
 Comment
   references
     CommentReference
-      expression: PrefixedIdentifier
+      expression2: PrefixedIdentifier
         prefix: SimpleIdentifier
           token: a
         period: .
@@ -547,7 +547,7 @@ class A {}
 Comment
   references
     CommentReference
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: a
   tokens
     /// [a].
@@ -696,9 +696,10 @@ Comment
         uri: SimpleStringLiteral
           literal: 'dart:html'
         asKeyword: as
+        prefixName: html
+        semicolon: ;
         prefix: SimpleIdentifier
           token: html
-        semicolon: ;
 ''');
   }
 
@@ -723,6 +724,11 @@ Comment
         combinators
           ShowCombinator
             keyword: show
+            names
+              CombinatorName
+                name: Element
+              CombinatorName
+                name: HtmlElement
             shownNames
               SimpleIdentifier
                 token: Element
@@ -845,6 +851,91 @@ Comment
 ''');
   }
 
+  test_exampleDirective() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+int x = 0;
+
+/// Text.
+/// {@example /path/to/file.dart#region}
+class A {}
+''');
+
+    var node = parseResult.findNode.comment('example');
+    assertParsedNodeText(node, r'''
+Comment
+  tokens
+    /// Text.
+    /// {@example /path/to/file.dart#region}
+  docDirectives
+    SimpleDocDirective
+      tag
+        offset: [26, 63]
+        type: [DocDirectiveType.example]
+        positionalArguments
+          /path/to/file.dart#region
+''');
+  }
+
+  test_exampleDirective_args() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+int x = 0;
+
+/// Text.
+/// {@example /path/to/file.dart#region lang=dart indent=keep}
+class A {}
+''');
+
+    var node = parseResult.findNode.comment('example');
+    assertParsedNodeText(node, r'''
+Comment
+  tokens
+    /// Text.
+    /// {@example /path/to/file.dart#region lang=dart indent=keep}
+  docDirectives
+    SimpleDocDirective
+      tag
+        offset: [26, 85]
+        type: [DocDirectiveType.example]
+        positionalArguments
+          /path/to/file.dart#region
+        namedArguments
+          lang=dart
+          indent=keep
+''');
+  }
+
+  test_fencedCodeBlock_atStart() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+/// ```
+/// Two.
+/// ```
+class A {}
+''');
+
+    var node = parseResult.findNode.comment('Two.');
+    assertParsedNodeText(node, r'''
+Comment
+  tokens
+    /// ```
+    /// Two.
+    /// ```
+  codeBlocks
+    MdCodeBlock
+      infoString: <empty>
+      type: CodeBlockType.fenced
+      lines
+        MdCodeBlockLine
+          offset: 3
+          length: 4
+        MdCodeBlockLine
+          offset: 11
+          length: 5
+        MdCodeBlockLine
+          offset: 20
+          length: 4
+''');
+  }
+
   test_fencedCodeBlock_blockComment() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 /**
@@ -902,6 +993,42 @@ Comment
           length: 5
         MdCodeBlockLine
           offset: 73
+          length: 3
+''');
+  }
+
+  test_fencedCodeBlock_blockComment_atStart() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+/**
+ * ```
+ * a[i] = b[i];
+ * ```
+ */
+class A {}
+''');
+
+    var node = parseResult.findNode.comment('a[i]');
+    assertParsedNodeText(node, r'''
+Comment
+  tokens
+    /**
+ * ```
+ * a[i] = b[i];
+ * ```
+ */
+  codeBlocks
+    MdCodeBlock
+      infoString: <empty>
+      type: CodeBlockType.fenced
+      lines
+        MdCodeBlockLine
+          offset: 7
+          length: 3
+        MdCodeBlockLine
+          offset: 14
+          length: 12
+        MdCodeBlockLine
+          offset: 30
           length: 3
 ''');
   }
@@ -1272,14 +1399,62 @@ class A {}
 Comment
   references
     CommentReference
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: i
     CommentReference
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: i
   tokens
     /// Text.
     ///    a[i] = b[i];
+''');
+  }
+
+  test_indentedCodeBlock_atStart() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+///     Two.
+class A {}
+''');
+
+    var node = parseResult.findNode.comment('Two.');
+    assertParsedNodeText(node, r'''
+Comment
+  tokens
+    ///     Two.
+  codeBlocks
+    MdCodeBlock
+      infoString: <empty>
+      type: CodeBlockType.indented
+      lines
+        MdCodeBlockLine
+          offset: 3
+          length: 9
+''');
+  }
+
+  test_indentedCodeBlock_blockComment_atStart() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+/**
+ *     a[i] = b[i];
+ */
+class A {}
+''');
+
+    var node = parseResult.findNode.comment('a[i]');
+    assertParsedNodeText(node, r'''
+Comment
+  tokens
+    /**
+ *     a[i] = b[i];
+ */
+  codeBlocks
+    MdCodeBlock
+      infoString: <empty>
+      type: CodeBlockType.indented
+      lines
+        MdCodeBlockLine
+          offset: 7
+          length: 16
 ''');
   }
 
@@ -1320,7 +1495,7 @@ class A {}
 Comment
   references
     CommentReference
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: c
   tokens
     /**
@@ -1386,7 +1561,7 @@ class A {}
 Comment
   references
     CommentReference
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: b
   tokens
     /// [a](http://www.google.com) [b].
@@ -1406,7 +1581,7 @@ class A {}
 Comment
   references
     CommentReference
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: b
   tokens
     /// [a]: http://www.google.com Google [b]
@@ -1494,7 +1669,7 @@ class A {}
 Comment
   references
     CommentReference
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: b
   tokens
     /// [a link][c] [b].
@@ -1513,10 +1688,10 @@ class A {}
 Comment
   references
     CommentReference
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: a
     CommentReference
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: b
   tokens
     /// [a link split across multiple

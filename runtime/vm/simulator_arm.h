@@ -47,7 +47,7 @@ class Simulator {
   ~Simulator();
 
   // The currently executing Simulator instance, which is associated to the
-  // current isolate
+  // current thread.
   static Simulator* Current();
 
   // Accessors for register state. Reading the pc value adheres to the ARM

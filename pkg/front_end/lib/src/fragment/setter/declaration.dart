@@ -33,6 +33,7 @@ import '../../source/source_property_builder.dart';
 import '../../source/stack_listener_impl.dart' show AsyncModifier;
 import '../../source/type_parameter_factory.dart';
 import '../../type_inference/type_schema.dart';
+import '../../type_inference/context_allocation_strategy.dart';
 import '../fragment.dart';
 import 'body_builder_context.dart';
 import 'encoding.dart';
@@ -309,44 +310,27 @@ class RegularSetterDeclaration
     required CompilerContext compilerContext,
     required ProblemReporting problemReporting,
     required Statement? body,
-    required Scope? scope,
     required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
-    required ThisVariable? thisVariable,
+    required ScopeProviderInfo? scopeProviderInfo,
   }) {
     List<FormalParameterBuilder>? declaredFormals = _fragment.declaredFormals;
     if (declaredFormals == null ||
         declaredFormals.length != 1 ||
         declaredFormals.single.isOptionalPositional) {
       int fileOffset = _fragment.formalsOffset;
-      if (body == null) {
-        body = extern.createEmptyStatement(fileOffset: fileOffset);
-      }
-      if (declaredFormals != null) {
-        // Illegal parameters were removed by the function builder.
-        // Add them as local variable to put them in scope of the body.
-        List<Statement> statements = <Statement>[];
-        for (FormalParameterBuilder parameter in declaredFormals) {
-          statements.add(
-            extern.createVariableStatement(
-              extern.createVariableDeclaration(parameter.variable.astVariable),
-            ),
-          );
-        }
-        statements.add(body);
-        body = extern.createBlock(statements, fileOffset: fileOffset);
-      }
       body = extern.createBlock([
         extern.createExpressionStatement(
-          problemReporting.buildProblem(
-            compilerContext: compilerContext,
-            message: diag.setterWithWrongNumberOfFormals,
-            fileUri: _fragment.fileUri,
-            fileOffset: fileOffset,
-            length: noLength,
+          extern.createInvalidExpressionFromErrorText(
+            problemReporting.buildProblem(
+              compilerContext: compilerContext,
+              message: diag.setterWithWrongNumberOfFormals,
+              fileUri: _fragment.fileUri,
+              fileOffset: fileOffset,
+              length: noLength,
+            ),
           ),
         ),
-        body,
       ], fileOffset: fileOffset);
     }
     assert(
@@ -358,10 +342,9 @@ class RegularSetterDeclaration
       body: body,
       // TODO(cstefantsova): Update scope to handle the insertion of parameters
       // as locals above.
-      scope: scope,
       asyncModifier: asyncModifier,
       emittedValueType: emittedValueType,
-      thisVariable: thisVariable,
+      scopeProviderInfo: scopeProviderInfo,
     );
   }
 
@@ -409,10 +392,9 @@ abstract class SetterFragmentDeclaration {
     required CompilerContext compilerContext,
     required ProblemReporting problemReporting,
     required Statement? body,
-    required Scope? scope,
     required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
-    required ThisVariable? thisVariable,
+    required ScopeProviderInfo? scopeProviderInfo,
   });
 
   DartType get returnTypeContext;

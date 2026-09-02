@@ -30,6 +30,7 @@ import 'src/commands/info.dart';
 import 'src/commands/install.dart';
 import 'src/commands/installed.dart';
 import 'src/commands/language_server.dart';
+import 'src/commands/migrate.dart';
 import 'src/commands/run.dart';
 import 'src/commands/test.dart';
 import 'src/commands/tooling_daemon.dart';
@@ -140,6 +141,7 @@ class DartdevRunner extends CommandRunner<int> {
     addCommand(InfoCommand(verbose: verbose));
     addCommand(LanguageServerCommand(verbose: verbose));
     addCommand(DartMCPServerCommand(verbose: verbose));
+    addCommand(MigrateCommand(verbose: verbose));
     addCommand(
       pubCommand(
         isVerbose: () => verbose,
@@ -284,6 +286,24 @@ class DartdevRunner extends CommandRunner<int> {
       return 0;
     }
 
+    if (topLevelResults.flag('diagnostics')) {
+      log = Logger.verbose(ansi: ansi);
+    }
+
+    late final List<String> experimentErrors = validateExperiments(
+      vmEnabledExperiments,
+    );
+    if (experimentErrors.isNotEmpty) {
+      experimentErrors.forEach(io.stderr.writeln);
+      return 254;
+    }
+
+    if (topLevelResults.command == null &&
+        topLevelResults.wasParsed(evalOption)) {
+      final runCmd = commands[RunCommand.cmdName] as RunCommand;
+      return await runCmd.runEval(topLevelResults);
+    }
+
     if (topLevelResults.command == null &&
         topLevelResults.arguments.isNotEmpty) {
       final firstArg = topLevelResults.arguments.first;
@@ -295,18 +315,6 @@ class DartdevRunner extends CommandRunner<int> {
         // This is the exit code used by the frontend.
         return 254;
       }
-    }
-
-    if (topLevelResults.flag('diagnostics')) {
-      log = Logger.verbose(ansi: ansi);
-    }
-
-    late final List<String> experimentErrors = validateExperiments(
-      vmEnabledExperiments,
-    );
-    if (experimentErrors.isNotEmpty) {
-      experimentErrors.forEach(io.stderr.writeln);
-      return 254;
     }
 
     var command = topLevelResults.command;

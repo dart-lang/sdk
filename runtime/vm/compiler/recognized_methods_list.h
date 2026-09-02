@@ -13,7 +13,7 @@ namespace dart {
 // debug mode to get the correct fingerprint from the mismatch error.
 #define OTHER_RECOGNIZED_LIST(V)                                               \
   V(AsyncLibrary, _FutureListener, handleValue, FutureListenerHandleValue,     \
-    0xaa83f593)                                                                \
+    0x4212057a)                                                                \
   V(AsyncLibrary, _SuspendState, get:_functionData,                            \
     SuspendState_getFunctionData, 0x79c36e2e)                                  \
   V(AsyncLibrary, _SuspendState, set:_functionData,                            \
@@ -77,9 +77,9 @@ namespace dart {
     0xc70c51ba)                                                                \
   V(CoreLibrary, _Smi, get:hashCode, Smi_hashCode, 0x75c3b512)                 \
   V(CoreLibrary, _IntegerImplementation, get:trailingZeroBitCount,             \
-    Integer_trailingZeroBitCount, 0xea8b2826)                                  \
+    Integer_trailingZeroBitCount, 0xea8b2be7)                                  \
   V(CoreLibrary, _IntegerImplementation, get:oneBitCount,                      \
-    Integer_oneBitCount, 0x60c41821)                                           \
+    Integer_oneBitCount, 0x60c41be2)                                           \
   V(CoreLibrary, _Mint, get:hashCode, Mint_hashCode, 0x75c3b512)               \
   V(CoreLibrary, _Double, get:hashCode, Double_hashCode, 0x75c3b8d3)           \
   V(CompactHashLibrary, _LinkedHashBase, get:_index, LinkedHashBase_getIndex,  \
@@ -523,6 +523,8 @@ namespace dart {
     0x89c00421)                                                                \
   V(TypedDataLibrary, Int32x4, Int32x4.fromFloat32x4Bits, Float32x4ToInt32x4,  \
     0x45555da1)                                                                \
+  V(TypedDataLibrary, _Int32x4, ~, Int32x4Not, 0xa87e0b04)                     \
+  V(TypedDataLibrary, _Int32x4, equal, Int32x4Equal, 0xdd016cce)               \
   V(TypedDataLibrary, _Int32x4, get:x, Int32x4GetX, 0x55b951d5)                \
   V(TypedDataLibrary, _Int32x4, get:y, Int32x4GetY, 0x434aacf8)                \
   V(TypedDataLibrary, _Int32x4, get:z, Int32x4GetZ, 0x7916188e)                \
@@ -532,6 +534,7 @@ namespace dart {
   V(TypedDataLibrary, _Int32x4, get:flagZ, Int32x4GetFlagZ, 0xeb9bbe4b)        \
   V(TypedDataLibrary, _Int32x4, get:flagW, Int32x4GetFlagW, 0xf4bbd08c)        \
   V(TypedDataLibrary, _Int32x4, get:signMask, Int32x4GetSignMask, 0x7c4dfa2a)  \
+  V(TypedDataLibrary, _Int32x4, get:anyTrue, Int32x4AnyTrue, 0xd7e59064)       \
   V(TypedDataLibrary, _Int32x4, shuffle, Int32x4Shuffle, 0x4044fa13)           \
   V(TypedDataLibrary, _Int32x4, shuffleMix, Int32x4ShuffleMix, 0x4fcb1cdc)     \
   V(TypedDataLibrary, _Int32x4, select, Int32x4Select, 0x68ad87e0)             \
@@ -548,8 +551,8 @@ namespace dart {
   V(CoreLibrary, _BigIntImpl, _rsh, Bigint_rsh, 0xddf6be5f)                    \
   V(CoreLibrary, _BigIntImpl, _absAdd, Bigint_absAdd, 0x2aa56271)              \
   V(CoreLibrary, _BigIntImpl, _absSub, Bigint_absSub, 0x70f0b1eb)              \
-  V(CoreLibrary, _BigIntImpl, _mulAdd, Bigint_mulAdd, 0x853e7d70)              \
-  V(CoreLibrary, _BigIntImpl, _sqrAdd, Bigint_sqrAdd, 0xd9d62ddd)              \
+  V(CoreLibrary, _BigIntImpl, _mulAdd, Bigint_mulAdd, 0xaf7df2f0)              \
+  V(CoreLibrary, _BigIntImpl, _sqrAdd, Bigint_sqrAdd, 0x557838dd)              \
   V(CoreLibrary, _BigIntImpl, _estimateQuotientDigit,                          \
     Bigint_estimateQuotientDigit, 0x16b87188)                                  \
   V(CoreLibrary, _BigIntMontgomeryReduction, _mulMod, Montgomery_mulMod,       \
@@ -623,7 +626,7 @@ namespace dart {
   V(CoreLibrary, _GrowableList, _setLength, GrowableArraySetLength,            \
     0xcbfee1f6)                                                                \
   V(CoreLibrary, _GrowableList, _setIndexed, GrowableArraySetIndexedUnchecked, \
-    0x512deb6f)                                                                \
+    0x31281683)                                                                \
   V(CoreLibrary, _StringBase, get:length, StringBaseLength, 0x5833d8ab)        \
   V(CoreLibrary, _Smi, ~, Smi_bitNegate, 0x8237e11c)                           \
   V(CoreLibrary, _IntegerImplementation, +, Integer_add, 0x6ef842cb)           \

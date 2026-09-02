@@ -2,11 +2,24 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: non_constant_identifier_names
+
 import 'package:cfg/ir/field.dart';
 import 'package:cfg/ir/global_context.dart';
 import 'package:cfg/utils/misc.dart';
 import 'package:kernel/ast.dart' as ast;
+import 'package:kernel/core_types.dart' show CoreTypes;
+import 'package:kernel/library_index.dart' show LibraryIndex;
 import 'package:native_compiler/runtime/vm_defs.dart';
+
+/// Memory access order for fields accessed concurrently.
+enum MemoryOrder {
+  /// No ordering constraints.
+  relaxed,
+
+  /// Load performs acquire and store performs release.
+  acquireRelease,
+}
 
 /// Computes layout of Dart objects (field offsets and instance size).
 class ObjectLayout {
@@ -25,6 +38,12 @@ class ObjectLayout {
 
   /// Field offsets.
   final Map<CField, int> _fieldOffset = {};
+
+  /// Fields stored as unboxed values.
+  final Set<CField> _unboxedFields = {};
+
+  /// Field memory order (if not relaxed).
+  final Map<CField, MemoryOrder> _fieldMemoryOrder = {};
 
   ObjectLayout(
     this.vmOffsets, {
@@ -61,8 +80,12 @@ class ObjectLayout {
   }
 
   bool isUnboxedField(CField field) {
-    // TODO: support unboxed fields.
-    return false;
+    // TODO: support unboxed Dart fields.
+    return _unboxedFields.contains(field);
+  }
+
+  MemoryOrder getFieldMemoryOrder(CField field) {
+    return _fieldMemoryOrder[field] ?? MemoryOrder.relaxed;
   }
 
   CField? getTypeArgumentsField(ast.Class cls) {
@@ -127,6 +150,226 @@ class ObjectLayout {
     return field;
   }
 
+  CField _createBuiltInField(
+    ast.Class cls,
+    String name,
+    ast.DartType type,
+    int? offset, {
+    bool isFinal = false,
+    bool isUnboxed = false,
+    MemoryOrder memoryOrder = .relaxed,
+  }) {
+    final fieldNode = isFinal
+        ? ast.Field.immutable(ast.Name(name), type: type, fileUri: ast.dummyUri)
+        : ast.Field.mutable(ast.Name(name), type: type, fileUri: ast.dummyUri);
+    fieldNode.parent = cls;
+    final field = CField(fieldNode);
+    if (offset != null) {
+      _fieldOffset[field] = offset;
+    }
+    if (isUnboxed) {
+      _unboxedFields.add(field);
+    }
+    if (memoryOrder != .relaxed) {
+      _fieldMemoryOrder[field] = memoryOrder;
+    }
+    return field;
+  }
+
+  late final CoreTypes _coreTypes = GlobalContext.instance.coreTypes;
+  late final LibraryIndex _libraryIndex = GlobalContext.instance.coreLibraries;
+
+  late final ast.Class _stringBaseClass = _libraryIndex.getClass(
+    'dart:core',
+    '_StringBase',
+  );
+  late final ast.Class _arrayClass = _libraryIndex.getClass(
+    'dart:core',
+    '_Array',
+  );
+  late final ast.Class _growableListClass = _libraryIndex.getClass(
+    'dart:core',
+    '_GrowableList',
+  );
+  late final ast.Class _linkedHashBaseClass = _libraryIndex.getClass(
+    'dart:_compact_hash',
+    '_LinkedHashBase',
+  );
+  late final ast.Class _linkedHashImmutableBaseClass = _libraryIndex.getClass(
+    'dart:_compact_hash',
+    '_LinkedHashImmutableBase',
+  );
+  late final ast.Class _suspendStateClass = _libraryIndex.getClass(
+    'dart:async',
+    '_SuspendState',
+  );
+  late final ast.Class _rawReceivePortClass = _libraryIndex.getClass(
+    'dart:isolate',
+    '_RawReceivePort',
+  );
+  late final ast.Class _sendPortClass = _libraryIndex.getClass(
+    'dart:isolate',
+    'SendPort',
+  );
+  late final ast.Class _typedListBaseClass = _libraryIndex.getClass(
+    'dart:typed_data',
+    '_TypedListBase',
+  );
+  late final ast.Class _uint32ListClass = _libraryIndex.getClass(
+    'dart:typed_data',
+    'Uint32List',
+  );
+
+  // dart:core
+  late final CField Object_classId = _createBuiltInField(
+    _coreTypes.objectClass,
+    '#classId',
+    _coreTypes.intNonNullableRawType,
+    null, // Bit field of tags field, implemented in code generator.
+    isFinal: true,
+    isUnboxed: true,
+  );
+  late final CField StringBase_length = _createBuiltInField(
+    _stringBaseClass,
+    'length',
+    _coreTypes.intNonNullableRawType,
+    vmOffsets.String_length_offset,
+    isFinal: true,
+  );
+  late final CField Array_length = _createBuiltInField(
+    _arrayClass,
+    'length',
+    _coreTypes.intNonNullableRawType,
+    vmOffsets.Array_length_offset,
+    isFinal: true,
+  );
+  late final CField GrowableList_length = _createBuiltInField(
+    _growableListClass,
+    'length',
+    _coreTypes.intNonNullableRawType,
+    vmOffsets.GrowableObjectArray_length_offset,
+  );
+  late final CField GrowableList_data = _createBuiltInField(
+    _growableListClass,
+    'data',
+    _coreTypes.nonNullableRawType(_arrayClass),
+    vmOffsets.GrowableObjectArray_data_offset,
+  );
+
+  // dart:_compact_hash
+  late final CField LinkedHashBase_index = _createBuiltInField(
+    _linkedHashBaseClass,
+    'index',
+    _coreTypes.nonNullableRawType(_uint32ListClass),
+    vmOffsets.LinkedHashBase_index_offset,
+  );
+  late final CField LinkedHashBase_hashMask = _createBuiltInField(
+    _linkedHashBaseClass,
+    'hashMask',
+    _coreTypes.intNonNullableRawType,
+    vmOffsets.LinkedHashBase_hash_mask_offset,
+  );
+  late final CField LinkedHashBase_data = _createBuiltInField(
+    _linkedHashBaseClass,
+    'data',
+    _coreTypes.listNonNullableRawType,
+    vmOffsets.LinkedHashBase_data_offset,
+  );
+  late final CField LinkedHashBase_usedData = _createBuiltInField(
+    _linkedHashBaseClass,
+    'usedData',
+    _coreTypes.intNonNullableRawType,
+    vmOffsets.LinkedHashBase_used_data_offset,
+  );
+  late final CField LinkedHashBase_deletedKeys = _createBuiltInField(
+    _linkedHashBaseClass,
+    'deletedKeys',
+    _coreTypes.intNonNullableRawType,
+    vmOffsets.LinkedHashBase_deleted_keys_offset,
+  );
+  late final CField LinkedHashImmutableBase_index = _createBuiltInField(
+    _linkedHashImmutableBaseClass,
+    'index',
+    _coreTypes.nullableRawType(_uint32ListClass),
+    vmOffsets.LinkedHashBase_index_offset,
+    memoryOrder: .acquireRelease,
+  );
+
+  // dart:async
+  late final CField SuspendState_functionData = _createBuiltInField(
+    _suspendStateClass,
+    'functionData',
+    _coreTypes.objectNonNullableRawType,
+    vmOffsets.SuspendState_function_data_offset,
+  );
+  late final CField SuspendState_thenCallback = _createBuiltInField(
+    _suspendStateClass,
+    'thenCallback',
+    ast.FunctionType(
+      [const ast.DynamicType()],
+      const ast.VoidType(),
+      .nullable,
+    ),
+    vmOffsets.SuspendState_then_callback_offset,
+  );
+  late final CField SuspendState_errorCallback = _createBuiltInField(
+    _suspendStateClass,
+    'errorCallback',
+    ast.FunctionType(
+      [
+        _coreTypes.objectNonNullableRawType,
+        _coreTypes.stackTraceNonNullableRawType,
+      ],
+      const ast.DynamicType(),
+      .nullable,
+    ),
+    vmOffsets.SuspendState_error_callback_offset,
+  );
+
+  // dart:isolate
+  late final CField RawReceivePort_handler = _createBuiltInField(
+    _rawReceivePortClass,
+    'handler',
+    _coreTypes.functionNullableRawType,
+    vmOffsets.ReceivePort_handler_offset,
+  );
+  late final CField RawReceivePort_sendPort = _createBuiltInField(
+    _rawReceivePortClass,
+    'sendPort',
+    _coreTypes.nonNullableRawType(_sendPortClass),
+    vmOffsets.ReceivePort_send_port_offset,
+    isFinal: true,
+  );
+
+  // dart:typed_data
+  late final CField TypedListBase_length = _createBuiltInField(
+    _typedListBaseClass,
+    'length',
+    _coreTypes.intNonNullableRawType,
+    vmOffsets.TypedDataBase_length_offset,
+    isFinal: true,
+  );
+
+  // External non-Dart fields.
+  late final ast.Class _threadClass = ast.Class(
+    name: '#Thread',
+    supertype: ast.Supertype(_coreTypes.objectClass, const []),
+    fileUri: ast.dummyUri,
+  )..parent = _vmLibrary;
+  late final CField Thread_threadLocals = _createBuiltInField(
+    _threadClass,
+    'threadLocals',
+    _coreTypes.listNonNullableRawType,
+    vmOffsets.Thread_thread_locals_offset,
+  );
+  late final CField Thread_predefined_symbols_address = _createBuiltInField(
+    _threadClass,
+    'predefinedSymbolsAddress',
+    _coreTypes.intNonNullableRawType, // Address.
+    vmOffsets.Thread_predefined_symbols_address_offset,
+    isUnboxed: true,
+  );
+
   // Layout of built-in instances is specified either as
   // 'int size' or '(int size, int typeArgsOffset)' if class is generic.
 
@@ -159,16 +402,29 @@ class ObjectLayout {
     ),
   };
 
-  late final ast.Library _typedDataLibrary = GlobalContext
-      .instance
-      .coreTypes
-      .index
-      .getLibrary('dart:typed_data');
-  late final ast.Library _compactHashLibrary = GlobalContext
-      .instance
-      .coreTypes
-      .index
-      .getLibrary('dart:_compact_hash');
+  late final Map<String, Object> _dartNativewrappersInstanceLayout = {
+    'NativeFieldWrapperClass1':
+        vmOffsets.Instance_InstanceSize + compressedWordSize,
+    'NativeFieldWrapperClass2':
+        vmOffsets.Instance_InstanceSize + compressedWordSize,
+    'NativeFieldWrapperClass3':
+        vmOffsets.Instance_InstanceSize + compressedWordSize,
+    'NativeFieldWrapperClass4':
+        vmOffsets.Instance_InstanceSize + compressedWordSize,
+  };
+
+  late final Map<String, Object> _dartVmInstanceLayout = {'#Thread': 0};
+
+  late final ast.Library _typedDataLibrary = _libraryIndex.getLibrary(
+    'dart:typed_data',
+  );
+  late final ast.Library _compactHashLibrary = _libraryIndex.getLibrary(
+    'dart:_compact_hash',
+  );
+  late final ast.Library _nativewrappersLibrary = _libraryIndex.getLibrary(
+    'dart:nativewrappers',
+  );
+  late final ast.Library _vmLibrary = _libraryIndex.getLibrary('dart:_vm');
 
   bool _computeLayoutOfBuiltInClass(ast.Class cls) {
     final library = cls.enclosingLibrary;
@@ -182,6 +438,10 @@ class ObjectLayout {
       layout = _dartTypedDataInstanceLayout[cls.name];
     } else if (library == _compactHashLibrary) {
       layout = _dartCompactHashInstanceLayout[cls.name];
+    } else if (library == _nativewrappersLibrary) {
+      layout = _dartNativewrappersInstanceLayout[cls.name];
+    } else if (library == _vmLibrary) {
+      layout = _dartVmInstanceLayout[cls.name];
     }
     // TODO: add built-in classes from dart:ffi
     if (layout != null) {

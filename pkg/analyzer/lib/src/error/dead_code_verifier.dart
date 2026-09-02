@@ -12,7 +12,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
-import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/listener.dart';
@@ -20,17 +19,17 @@ import 'package:analyzer/src/error/listener.dart';
 /// State information captured by [NullSafetyDeadCodeVerifier.for_conditionEnd]
 /// for later use by [NullSafetyDeadCodeVerifier.for_updaterBegin].
 class DeadCodeForPartsState {
-  /// The value of [NullSafetyDeadCodeVerifier._firstDeadNode] at the time of
-  /// the call to [NullSafetyDeadCodeVerifier.for_conditionEnd]
-  final AstNode? _firstDeadNodeAsOfConditionEnd;
+  /// Whether a dead interval had started at the time of the call to
+  /// [NullSafetyDeadCodeVerifier.for_conditionEnd].
+  final bool _hadFirstDeadNode;
 
-  DeadCodeForPartsState._({required AstNode? firstDeadNodeAsOfConditionEnd})
-    : _firstDeadNodeAsOfConditionEnd = firstDeadNodeAsOfConditionEnd;
+  DeadCodeForPartsState._({required bool hadFirstDeadNode})
+    : _hadFirstDeadNode = hadFirstDeadNode;
 }
 
 /// A visitor that finds dead code, other than unreachable code that is
 /// handled in [NullSafetyDeadCodeVerifier].
-class DeadCodeVerifier extends RecursiveAstVisitor<void> {
+class DeadCodeVerifier extends RecursiveAstVisitor2<void> {
   /// The diagnostic reporter by which diagnostics will be reported.
   final DiagnosticReporter _diagnosticReporter;
 
@@ -118,7 +117,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
-    var initializer = node.initializer;
+    var initializer = node.initializer2;
     if (initializer != null && node.isLate) {
       var element = node.declaredFragment!.element;
       // TODO(pq): ask the LocalVariableElement once implemented
@@ -137,8 +136,6 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
   /// Resolve the names in the given [combinator] in the scope of the given
   /// [library].
   void _checkCombinator(LibraryElementImpl library, Combinator combinator) {
-    Namespace namespace = library.exportNamespace;
-    NodeList<SimpleIdentifier> names;
     DiagnosticWithArguments<
       LocatableDiagnostic Function({
         required String library,
@@ -147,17 +144,13 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
     >
     warningCode;
     if (combinator is HideCombinator) {
-      names = combinator.hiddenNames;
       warningCode = diag.undefinedHiddenName;
     } else {
-      names = (combinator as ShowCombinator).shownNames;
       warningCode = diag.undefinedShownName;
     }
-    for (SimpleIdentifier name in names) {
-      String nameStr = name.name;
-      Element? element = namespace.get2(nameStr);
-      element ??= namespace.get2("$nameStr=");
-      if (element == null) {
+    for (var name in combinator.names) {
+      if (name.element == null && name.setterElement == null) {
+        var nameStr = name.name.lexeme;
         _diagnosticReporter.report(
           warningCode
               .withArguments(library: '${library.uri}', name: nameStr)
@@ -188,8 +181,8 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
 /// [CatchClause]s are checked separately, as we visit AST we may make some
 /// of them as dead, and record [_deadCatchClauseRanges].
 ///
-/// When an unreachable node is found, and [_firstDeadNode] is `null`, we
-/// set [_firstDeadNode], so start a new dead nodes interval. The dead code
+/// When an unreachable node is found, and [_firstDead] is `null`, we set
+/// [_firstDead], so start a new dead nodes interval. The dead code
 /// interval ends when [flowEnd] is invoked with a node that is the start
 /// node, or contains it. So, we end the end of the covering control flow.
 class NullSafetyDeadCodeVerifier {
@@ -204,12 +197,13 @@ class NullSafetyDeadCodeVerifier {
   /// report additional dead code inside of already dead code.
   final List<SourceRange> _deadCatchClauseRanges = [];
 
-  /// When this field is `null`, we are in reachable code.
-  /// Once we find the first unreachable node, we store it here.
+  /// When this field is `null`, we are in reachable code. Once we find the
+  /// first unreachable node, we store its structural anchor and first token
+  /// here.
   ///
   /// When this field is not `null`, and we see an unreachable node, this new
   /// node is ignored, because it continues the same dead code range.
-  AstNode? _firstDeadNode;
+  _DeadCodeStart? _firstDead;
 
   NullSafetyDeadCodeVerifier(
     this._typeSystem,
@@ -217,7 +211,7 @@ class NullSafetyDeadCodeVerifier {
     this._flowAnalysis,
   );
 
-  /// The [node] ends a basic block in the control flow. If [_firstDeadNode] is
+  /// The [node] ends a basic block in the control flow. If [_firstDead] is
   /// not `null`, and is covered by the [node], then we reached the end of
   /// the current dead code interval.
   void flowEnd(AstNode node) {
@@ -225,10 +219,11 @@ class NullSafetyDeadCodeVerifier {
     // in the syntax tree. It's not safe to query whether it is _equal_ to, for
     // example, another node's child.
     // TODO(srawlins): Change this code to avoid this issue.
-    var firstDeadNode = _firstDeadNode;
-    if (firstDeadNode == null) {
+    var firstDead = _firstDead;
+    if (firstDead == null) {
       return;
     }
+    var firstDeadNode = firstDead.node;
 
     if (!_containsFirstDeadNode(node)) {
       return;
@@ -236,12 +231,12 @@ class NullSafetyDeadCodeVerifier {
 
     if (node is SwitchMember && node == firstDeadNode) {
       _diagnosticReporter.report(diag.deadCode.at(node.keyword));
-      _firstDeadNode = null;
+      _firstDead = null;
       return;
     }
 
-    var parent = firstDeadNode.parent;
-    if (parent is Assertion && identical(firstDeadNode, parent.message)) {
+    var parent = firstDeadNode.parent2;
+    if (parent is Assertion && identical(firstDeadNode, parent.message2)) {
       // Don't report "dead code" for the message part of an assert statement,
       // because this causes nuisance warnings for redundant `!= null`
       // asserts.
@@ -255,13 +250,16 @@ class NullSafetyDeadCodeVerifier {
       // Don't report "dead code" for an unreachable, but empty block body that
       // follows one or more constructor initializers.
     } else {
-      var offset = firstDeadNode.offset;
+      var offset = firstDead.firstToken.offset;
       // We know that [node] is the first dead node, or contains it.
       // So, technically the code interval ends at the end of [node].
       // But we trim it to the last statement for presentation purposes.
       if (node != firstDeadNode) {
         if (node is FunctionDeclaration) {
           node = node.functionExpression.body;
+        }
+        if (node is TopLevelGetterDeclaration) {
+          node = node.body;
         }
         if (node is FunctionExpression) {
           node = node.body;
@@ -278,7 +276,9 @@ class NullSafetyDeadCodeVerifier {
         if (node is SwitchMember && node.statements.isNotEmpty) {
           node = node.statements.last;
         }
-      } else if (parent is BinaryExpression) {
+      } else if (parent is BinaryOperatorInvocation) {
+        offset = parent.operator.offset;
+      } else if (parent is IfNull) {
         offset = parent.operator.offset;
       }
       if (parent is ConstructorInitializer) {
@@ -307,8 +307,17 @@ class NullSafetyDeadCodeVerifier {
           offset = node.end;
         }
       } else if (parent is ForParts) {
-        if (parent.updaters.lastOrNull case var last?) node = last;
-      } else if (parent is BinaryExpression) {
+        if (parent.updaters2.lastOrNull case var last?) node = last;
+      } else if (parent is BinaryOperatorInvocation) {
+        offset = parent.operator.offset;
+        node = parent.rightOperand;
+      } else if (parent is IfNull) {
+        offset = parent.operator.offset;
+        node = parent.rightOperand;
+      } else if (parent is LogicalAnd) {
+        offset = parent.operator.offset;
+        node = parent.rightOperand;
+      } else if (parent is LogicalOr) {
         offset = parent.operator.offset;
         node = parent.rightOperand;
       } else if (parent is LogicalOrPattern &&
@@ -326,7 +335,7 @@ class NullSafetyDeadCodeVerifier {
       }
     }
 
-    _firstDeadNode = null;
+    _firstDead = null;
   }
 
   /// Performs the necessary dead code analysis when reaching the end of the
@@ -338,9 +347,7 @@ class NullSafetyDeadCodeVerifier {
     // Capture the state of this class so that `for_updaterBegin` can use it to
     // decide whether it's necessary to create an extra dead code report for the
     // updaters.
-    return DeadCodeForPartsState._(
-      firstDeadNodeAsOfConditionEnd: _firstDeadNode,
-    );
+    return DeadCodeForPartsState._(hadFirstDeadNode: _firstDead != null);
   }
 
   /// Performs the necessary dead code analysis when reaching the beginning of
@@ -352,7 +359,7 @@ class NullSafetyDeadCodeVerifier {
     DeadCodeForPartsState state,
   ) {
     var isReachable = _flowAnalysis?.flow?.isReachable ?? true;
-    if (!isReachable && state._firstDeadNodeAsOfConditionEnd == null) {
+    if (!isReachable && !state._hadFirstDeadNode) {
       // A dead code range started either at the beginning of the loop body or
       // somewhere inside it, and so the updaters are dead. Since the updaters
       // appear textually before the loop body, they need their own dead code
@@ -370,11 +377,11 @@ class NullSafetyDeadCodeVerifier {
     }
   }
 
-  /// Rewites [_firstDeadNode] if it is equal to [oldNode], as [oldNode] is
+  /// Rewites the first dead node if it is equal to [oldNode], as [oldNode] is
   /// being rewritten into [newNode] in the syntax tree.
   void maybeRewriteFirstDeadNode(AstNode oldNode, AstNode newNode) {
-    if (_firstDeadNode == oldNode) {
-      _firstDeadNode = newNode;
+    if (_firstDead case var firstDead? when firstDead.node == oldNode) {
+      firstDead.node = newNode;
     }
   }
 
@@ -399,13 +406,14 @@ class NullSafetyDeadCodeVerifier {
   }
 
   void verifyCascadeExpression(CascadeExpression node) {
-    var first = node.cascadeSections.firstOrNull;
-    if (first is PropertyAccess) {
-      _verifyUnassignedSimpleIdentifier(node, node.target, first.operator);
-    } else if (first is MethodInvocation) {
-      _verifyUnassignedSimpleIdentifier(node, node.target, first.operator);
-    } else if (first is IndexExpression) {
-      _verifyUnassignedSimpleIdentifier(node, node.target, first.period);
+    var first = node.sections.firstOrNull;
+    var body = first?.body;
+    if (body is CascadePropertyExtraction ||
+        body is PropertyAccess ||
+        body is MethodInvocation ||
+        body is CascadeMethodInvocation ||
+        body is CascadeIndexExpression) {
+      _verifyUnassignedSimpleIdentifier(node, node.target2, first!.operator);
     }
   }
 
@@ -417,48 +425,45 @@ class NullSafetyDeadCodeVerifier {
   }
 
   void verifyIndexExpression(IndexExpression node) {
-    _verifyUnassignedSimpleIdentifier(node, node.target, node.question);
+    _verifyUnassignedSimpleIdentifier(node, node.target2, node.question);
   }
 
   void verifyMethodInvocation(MethodInvocation node) {
-    _verifyUnassignedSimpleIdentifier(node, node.target, node.operator);
+    _verifyUnassignedSimpleIdentifier(node, node.target2, node.operator);
+  }
+
+  void verifyNullAwareAccess(
+    AstNode node,
+    Expression receiver,
+    Token operator,
+  ) {
+    _verifyUnassignedSimpleIdentifier(node, receiver, operator);
   }
 
   void verifyPropertyAccess(PropertyAccess node) {
-    _verifyUnassignedSimpleIdentifier(node, node.target, node.operator);
+    _verifyUnassignedSimpleIdentifier(node, node.target2, node.operator);
+  }
+
+  void verifyReceiverIndexExpression(ReceiverIndexExpression node) {
+    _verifyUnassignedSimpleIdentifier(node, node.receiver, node.question);
   }
 
   void visitNode(AstNode node) {
-    // Comments are visited after bodies of functions.
-    // So, they look unreachable, but this does not make sense.
-    if (node is Comment) return;
+    _visitNode(node, node.beginToken);
+  }
 
-    var flowAnalysis = _flowAnalysis;
-    if (flowAnalysis == null) return;
-    flowAnalysis.checkUnreachableNode(node);
-
-    // If the first dead node is not `null`, even if this new node is
-    // unreachable, we can ignore it as it is part of the same dead code
-    // range anyway.
-    if (_firstDeadNode != null) return;
-
-    var flow = flowAnalysis.flow;
-    if (flow == null) return;
-
-    if (flow.isReachable) return;
-
-    // If in a dead `CatchClause`, no need to report dead code.
-    for (var range in _deadCatchClauseRanges) {
-      if (range.contains(node.offset)) {
-        return;
-      }
-    }
-
-    _firstDeadNode = node;
+  /// Records a dead interval structurally anchored at [node] and beginning at
+  /// [firstToken].
+  ///
+  /// Canonical property nodes store the selected name as a token, so unlike
+  /// their V1 projections they have no name child at which dead-code
+  /// traversal can begin.
+  void visitNullAwareAccess(AstNode node, Token firstToken) {
+    _visitNode(node, firstToken);
   }
 
   bool _containsFirstDeadNode(AstNode parent) {
-    for (var node = _firstDeadNode; node != null; node = node.parent) {
+    for (var node = _firstDead?.node; node != null; node = node.parent2) {
       if (node == parent) return true;
     }
     return false;
@@ -483,17 +488,19 @@ class NullSafetyDeadCodeVerifier {
       return;
     }
 
-    target = target?.unParenthesized;
+    target = target?.unParenthesized2;
     if (target is SimpleIdentifier) {
       var element = target.element;
       if (element is PromotableElementImpl &&
           flowAnalysis.isDefinitelyUnassigned(target, element)) {
-        var parent = node.parent;
+        var parent = node.parent2;
         while (parent is MethodInvocation ||
             parent is PropertyAccess ||
+            parent is PropertyExtraction ||
+            parent is IndexExpression2 ||
             parent is IndexExpression) {
           node = parent!;
-          parent = node.parent;
+          parent = node.parent2;
         }
         _diagnosticReporter.report(
           diag.deadCode.atOffset(
@@ -504,10 +511,39 @@ class NullSafetyDeadCodeVerifier {
       }
     }
   }
+
+  void _visitNode(AstNode node, Token firstToken) {
+    // Comments are visited after bodies of functions.
+    // So, they look unreachable, but this does not make sense.
+    if (node is Comment) return;
+
+    var flowAnalysis = _flowAnalysis;
+    if (flowAnalysis == null) return;
+    flowAnalysis.checkUnreachableNode(node);
+
+    // If the first dead node is not `null`, even if this new node is
+    // unreachable, we can ignore it as it is part of the same dead code
+    // range anyway.
+    if (_firstDead != null) return;
+
+    var flow = flowAnalysis.flow;
+    if (flow == null) return;
+
+    if (flow.isReachable) return;
+
+    // If in a dead `CatchClause`, no need to report dead code.
+    for (var range in _deadCatchClauseRanges) {
+      if (range.contains(node.offset)) {
+        return;
+      }
+    }
+
+    _firstDead = _DeadCodeStart(node: node, firstToken: firstToken);
+  }
 }
 
 /// A visitor that finds a [BreakStatement] for a specified [DoStatement].
-class _BreakDoStatementVisitor extends RecursiveAstVisitor<void> {
+class _BreakDoStatementVisitor extends RecursiveAstVisitor2<void> {
   bool hasBreakStatement = false;
   final DoStatement doStatement;
 
@@ -579,6 +615,14 @@ class _CatchClausesVerifier {
   }
 }
 
+/// The structural and syntactic start of a dead-code interval.
+final class _DeadCodeStart {
+  AstNode node;
+  final Token firstToken;
+
+  _DeadCodeStart({required this.node, required this.firstToken});
+}
+
 /// An object used to track the usage of labels within a single label scope.
 class _LabelTracker {
   /// The tracker for the outer label scope.
@@ -627,7 +671,7 @@ class _LabelTracker {
 extension DoStatementExtension on DoStatement {
   bool get hasBreakStatement {
     var visitor = _BreakDoStatementVisitor(this);
-    body.visitChildren(visitor);
+    body.visitChildren2(visitor);
     return visitor.hasBreakStatement;
   }
 }

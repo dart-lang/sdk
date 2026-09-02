@@ -11,9 +11,79 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(CreateGetterEnumTest);
     defineReflectiveTests(CreateGetterMixinTest);
     defineReflectiveTests(CreateGetterTest);
   });
+}
+
+@reflectiveTest
+class CreateGetterEnumTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.createGetter;
+
+  Future<void> test_multiLine_noTrailingComma() async {
+    await resolveTestCode('''
+enum E {
+  one,
+  two
+}
+
+int f(E e) => e.a;
+''');
+    await assertHasFix('''
+enum E {
+  one,
+  two;
+
+  int get a => null;
+}
+
+int f(E e) => e.a;
+''');
+  }
+
+  Future<void> test_multiLine_trailingComma() async {
+    await resolveTestCode('''
+enum E {
+  one,
+  two,
+}
+
+int f(E e) => e.a;
+''');
+    await assertHasFix('''
+enum E {
+  one,
+  two;
+
+  int get a => null;
+}
+
+int f(E e) => e.a;
+''');
+  }
+
+  Future<void> test_undefinedEnumConstant() async {
+    await resolveTestCode('''
+enum E { a }
+
+void f(E e) {
+  f(E.b);
+}
+''');
+    await assertHasFix('''
+enum E {
+  a;
+
+  static E get b => null;
+}
+
+void f(E e) {
+  f(E.b);
+}
+''');
+  }
 }
 
 @reflectiveTest
@@ -778,7 +848,6 @@ class C {
 ''');
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/62093')
   Future<void> test_iterable_recordDestructuring() async {
     await resolveTestCode('''
 class C {
@@ -887,6 +956,29 @@ void f(C c) {
   print(v);
 }
 ''');
+  }
+
+  Future<void> test_objectPattern() async {
+    await resolveTestCode('''
+class A {
+  void foo() {
+    var Object(:hashCode) = getter;
+  }
+}
+''');
+    await assertHasFix(
+      '''
+class A {
+  Object get getter => null;
+
+  void foo() {
+    var Object(:hashCode) = getter;
+  }
+}
+''',
+      filter: (diagnostic) =>
+          diagnostic.diagnosticCode == diag.undefinedIdentifier,
+    );
   }
 
   Future<void> test_objectPattern_explicitName_variablePattern_typed() async {
@@ -1287,6 +1379,289 @@ class A {
   ({int v,}) get record => (v: v,);
 
   int get v => null;
+}
+''');
+  }
+
+  Future<void> test_recordPattern_andPattern() async {
+    await resolveTestCode('''
+class A {
+  void foo() {
+    if (getter case (value: int _) && (value: num _)) {}
+  }
+}
+''');
+    await assertHasFix('''
+class A {
+  ({int value}) get getter => null;
+
+  void foo() {
+    if (getter case (value: int _) && (value: num _)) {}
+  }
+}
+''');
+  }
+
+  Future<void> test_recordPattern_cast() async {
+    await resolveTestCode('''
+class A {
+  void foo() {
+    var (i as int) = getter;
+  }
+}
+''');
+    await assertHasFix(
+      '''
+class A {
+  (int,) get getter => null;
+
+  void foo() {
+    var (i as int) = getter;
+  }
+}
+''',
+      filter: (diagnostic) =>
+          diagnostic.diagnosticCode == diag.undefinedIdentifier,
+    );
+  }
+
+  Future<void> test_recordPattern_mapPattern() async {
+    await resolveTestCode('''
+class A {
+  void foo() {
+    if (getter case {'': var value,}) {}
+  }
+}
+''');
+    await assertHasFix(
+      '''
+class A {
+  Map<String, Object?> get getter => null;
+
+  void foo() {
+    if (getter case {'': var value,}) {}
+  }
+}
+''',
+      filter: (diagnostic) =>
+          diagnostic.diagnosticCode == diag.undefinedIdentifier,
+    );
+  }
+
+  Future<void> test_recordPattern_named() async {
+    await resolveTestCode('''
+class A {
+  void foo() {
+    var (:String name) = getter;
+  }
+}
+''');
+    await assertHasFix(
+      '''
+class A {
+  ({String name}) get getter => null;
+
+  void foo() {
+    var (:String name) = getter;
+  }
+}
+''',
+      filter: (diagnostic) =>
+          diagnostic.diagnosticCode == diag.undefinedIdentifier,
+    );
+  }
+
+  Future<void> test_recordPattern_named_variable() async {
+    await resolveTestCode('''
+class A {
+  void foo() {
+    var (variable: String name) = getter;
+  }
+}
+''');
+    await assertHasFix(
+      '''
+class A {
+  ({String variable}) get getter => null;
+
+  void foo() {
+    var (variable: String name) = getter;
+  }
+}
+''',
+      filter: (diagnostic) =>
+          diagnostic.diagnosticCode == diag.undefinedIdentifier,
+    );
+  }
+
+  Future<void> test_recordPattern_namedConstant() async {
+    await resolveTestCode('''
+class A {
+  void foo() {
+    if (getter case (name: '')) {}
+  }
+}
+''');
+    await assertHasFix('''
+class A {
+  ({String name}) get getter => null;
+
+  void foo() {
+    if (getter case (name: '')) {}
+  }
+}
+''');
+  }
+
+  Future<void> test_recordPattern_nullAssertAndNullCheck() async {
+    await resolveTestCode('''
+class A {
+  void foo() {
+    if (getter case (:String name?, :var value!)) {}
+  }
+}
+''');
+    await assertHasFix(
+      '''
+class A {
+  ({String? name, Object? value}) get getter => null;
+
+  void foo() {
+    if (getter case (:String name?, :var value!)) {}
+  }
+}
+''',
+      filter: (diagnostic) =>
+          diagnostic.diagnosticCode == diag.undefinedIdentifier,
+    );
+  }
+
+  Future<void> test_recordPattern_orPattern() async {
+    await resolveTestCode('''
+class A {
+  void foo() {
+    if (getter case (value: int _) || (value: double _)) {}
+  }
+}
+''');
+    await assertHasFix(
+      '''
+class A {
+  ({num value}) get getter => null;
+
+  void foo() {
+    if (getter case (value: int _) || (value: double _)) {}
+  }
+}
+''',
+      filter: (diagnostic) =>
+          diagnostic.diagnosticCode == diag.undefinedIdentifier,
+    );
+  }
+
+  Future<void> test_recordPattern_positional() async {
+    await resolveTestCode('''
+class A {
+  void foo() {
+    var (String name) = getter;
+  }
+}
+''');
+    await assertHasFix(
+      '''
+class A {
+  (String,) get getter => null;
+
+  void foo() {
+    var (String name) = getter;
+  }
+}
+''',
+      filter: (diagnostic) =>
+          diagnostic.diagnosticCode == diag.undefinedIdentifier,
+    );
+  }
+
+  Future<void> test_recordPattern_positional_two() async {
+    await resolveTestCode('''
+class A {
+  void foo() {
+    var (String name, int v) = getter;
+  }
+}
+''');
+    await assertHasFix(
+      '''
+class A {
+  (String, int) get getter => null;
+
+  void foo() {
+    var (String name, int v) = getter;
+  }
+}
+''',
+      filter: (diagnostic) =>
+          diagnostic.diagnosticCode == diag.undefinedIdentifier,
+    );
+  }
+
+  Future<void> test_recordPattern_positionalAndNamed() async {
+    await resolveTestCode('''
+class A {
+  void foo() {
+    var (int v, :String name) = getter;
+  }
+}
+''');
+    await assertHasFix(
+      '''
+class A {
+  (int, {String name}) get getter => null;
+
+  void foo() {
+    var (int v, :String name) = getter;
+  }
+}
+''',
+      filter: (diagnostic) =>
+          diagnostic.diagnosticCode == diag.undefinedIdentifier,
+    );
+  }
+
+  Future<void> test_recordPattern_relational() async {
+    await resolveTestCode('''
+class A {
+  void foo() {
+    if (getter case (value: > 0)) {}
+  }
+}
+''');
+    await assertHasFix('''
+class A {
+  ({int value}) get getter => null;
+
+  void foo() {
+    if (getter case (value: > 0)) {}
+  }
+}
+''');
+  }
+
+  Future<void> test_recordPattern_wildcard() async {
+    await resolveTestCode('''
+class A {
+  void foo() {
+    if (getter case (value: int _)) {}
+  }
+}
+''');
+    await assertHasFix('''
+class A {
+  ({int value}) get getter => null;
+
+  void foo() {
+    if (getter case (value: int _)) {}
+  }
 }
 ''');
   }

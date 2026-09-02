@@ -203,6 +203,14 @@ AnalysisOptionsWarningCode:
       If no replacement is available, remove the deprecated option.
     comment: |-
       An error code indicating that the given option is deprecated.
+  analysisOptionsDeprecatedPlugins:
+    type: staticWarning
+    parameters: none
+    problemMessage: Support for legacy plugins is deprecated, and will be removed in an upcoming version of Dart.
+    correctionMessage: See https://dart.dev/tools/analyzer-plugins for documentation regarding the new analyzer plugin system.
+    hasPublishedDocs: false
+    comment: |-
+      A warning code indicating that legacy plugins are deprecated.
   analysisOptionDeprecatedWithReplacement:
     type: staticWarning
     parameters:
@@ -311,6 +319,15 @@ AnalysisOptionsWarningCode:
       ```
     comment: |-
       Duplicate rules.
+  excludeInvalidGlob:
+    type: staticWarning
+    parameters:
+      String pattern: the glob pattern
+    problemMessage: "The exclude glob pattern '#pattern' shouldn't start with a forward slash."
+    correctionMessage: "Remove the leading forward slash."
+    hasPublishedDocs: false
+    comment: |-
+      A warning code indicating that an exclude glob pattern is invalid.
   includedFileWarning:
     type: staticWarning
     parameters:
@@ -459,7 +476,17 @@ AnalysisOptionsWarningCode:
     hasPublishedDocs: true
     comment: |-
       An error code indicating an incompatible rule.
-
+  incompatiblePluginSource:
+    type: staticWarning
+    parameters:
+      String pluginName: the name of the plugin
+      String otherOptionsPath: the path to the other analysis options file
+    problemMessage: "The plugin '#pluginName' is specified with a different source in '#otherOptionsPath'."
+    correctionMessage: "Ensure that all specifications of the same plugin use an identical source."
+    hasPublishedDocs: false
+    comment: |-
+      An error code indicating that a plugin has been specified with different
+      sources in different analysis options files.
   invalidOption:
     type: staticWarning
     parameters:
@@ -560,6 +587,7 @@ AnalysisOptionsWarningCode:
     type: staticWarning
     parameters:
       String contextRoot: the root of the analysis context
+    removedIn: "3.14"
     problemMessage: "Plugins can only be specified in the root of a pub workspace or the root of a package that isn't in a workspace."
     correctionMessage: "Try specifying plugins in an analysis options file at '#contextRoot'."
     hasPublishedDocs: true
@@ -988,6 +1016,7 @@ CompileTimeErrorCode:
       }
 
       class B extends A {
+        @override
         int get a => super.[!a!];
       }
       ```
@@ -996,8 +1025,6 @@ CompileTimeErrorCode:
 
       Remove the invocation of the abstract member, possibly replacing it with an
       invocation of a concrete member.
-      TODO(brianwilkerson): This either needs to be generalized (use 'member'
-       rather than '{0}') or split into multiple codes.
   ambiguousExport:
     type: compileTimeError
     parameters:
@@ -1205,6 +1232,9 @@ CompileTimeErrorCode:
     problemMessage: "The literal can't be either a map or a set because it contains at least one literal map entry or a spread operator spreading a 'Map', and at least one element which is neither of these."
     correctionMessage: Try removing or changing some of the elements so that all of the elements are consistent.
     hasPublishedDocs: true
+    # In the documentation, the `strict_top_level_inference` diagnostic is being
+    # ignored because if there is a return type then the type of the literal is
+    # inferred and the ambiguity doesn't exist.
     documentation: |-
       #### Description
 
@@ -1227,6 +1257,7 @@ CompileTimeErrorCode:
       The following code produces this diagnostic:
 
       ```dart
+      %ignore=strict_top_level_inference
       union(Map<String, String> a, List<String> b, Map<String, String> c) => [!{
         ...a,
         ...b,
@@ -1245,6 +1276,7 @@ CompileTimeErrorCode:
       what to do about the now unused parameter:
 
       ```dart
+      %ignore=strict_top_level_inference
       union(Map<String, String> a, List<String> b, Map<String, String> c) => {
         ...a,
         ...c,
@@ -1256,6 +1288,7 @@ CompileTimeErrorCode:
       of the list as keys that map to themselves:
 
       ```dart
+      %ignore=strict_top_level_inference
       union(Map<String, String> a, List<String> b, Map<String, String> c) => {
         ...a,
         for (String s in b) s: s,
@@ -1268,6 +1301,11 @@ CompileTimeErrorCode:
     problemMessage: "This literal must be either a map or a set, but the elements don't have enough information for type inference to work."
     correctionMessage: Try adding type arguments to the literal (one for sets, two for maps).
     hasPublishedDocs: true
+    # In the documentation, the `strict_top_level_inference` diagnostic is being
+    # ignored because (a) in the example we need to not have types on the
+    # parameters in order to generate this diagnostic, and (b) several of the
+    # fixes are about adding type information and adding type information
+    # everywhere would obscure the point of the fix.
     documentation: |-
       #### Description
 
@@ -1288,6 +1326,7 @@ CompileTimeErrorCode:
       The following code produces this diagnostic:
 
       ```dart
+      %ignore=strict_top_level_inference
       union(a, b) => [!{...a, ...b}!];
       ```
 
@@ -1301,6 +1340,7 @@ CompileTimeErrorCode:
       map literal, you might write something like this:
 
       ```dart
+      %ignore=strict_top_level_inference
       union(a, b) => <String, String>{...a, ...b};
       ```
 
@@ -1309,6 +1349,7 @@ CompileTimeErrorCode:
       or, in this case, add types to the declarations of the two parameters:
 
       ```dart
+      %ignore=strict_top_level_inference
       union(List<int> a, List<int> b) => {...a, ...b};
       ```
 
@@ -1316,6 +1357,7 @@ CompileTimeErrorCode:
       adding a return type to the function:
 
       ```dart
+      %ignore=strict_top_level_inference
       Set<String> union(a, b) => {...a, ...b};
       ```
 
@@ -1323,6 +1365,7 @@ CompileTimeErrorCode:
       original code looks like this:
 
       ```dart
+      %ignore=strict_top_level_inference
       union(a, b) {
         var x = [!{...a, ...b}!];
         return x;
@@ -1332,6 +1375,7 @@ CompileTimeErrorCode:
       You might add a type annotation on `x`, like this:
 
       ```dart
+      %ignore=strict_top_level_inference
       union(a, b) {
         Map<String, String> x = {...a, ...b};
         return x;
@@ -1425,7 +1469,7 @@ CompileTimeErrorCode:
       ```dart
       class C {
         C(int x) : [!assert(x > 0)!], this.name();
-        C.name() {}
+        C.name();
       }
       ```
 
@@ -1436,7 +1480,7 @@ CompileTimeErrorCode:
       ```dart
       class C {
         C(int x) : this.name();
-        C.name() {}
+        C.name();
       }
       ```
 
@@ -1449,7 +1493,7 @@ CompileTimeErrorCode:
           assert(x > 0);
           return C.name();
         }
-        C.name() {}
+        C.name();
       }
       ```
   assignmentToConst:
@@ -1527,7 +1571,7 @@ CompileTimeErrorCode:
         final v = 0;
       }
 
-      f(C c) {
+      void f(C c) {
         c.[!v!] = 1;
       }
       ```
@@ -1542,7 +1586,7 @@ CompileTimeErrorCode:
         int v = 0;
       }
 
-      f(C c) {
+      void f(C c) {
         c.v = 1;
       }
       ```
@@ -1649,6 +1693,9 @@ CompileTimeErrorCode:
     parameters: none
     problemMessage: "Functions can't be assigned a value."
     hasPublishedDocs: true
+    # In the documentation, the `prefer_function_declarations_over_variables`
+    # diagnostic is ignored because fixing it would require adding code that
+    # isn't relevant to the point of the fix.
     documentation: |-
       #### Description
 
@@ -1674,6 +1721,7 @@ CompileTimeErrorCode:
       local variable, then change the left-hand side:
 
       ```dart
+      %ignore=prefer_function_declarations_over_variables
       void f() {}
 
       void g() {
@@ -1741,7 +1789,7 @@ CompileTimeErrorCode:
       class C {}
 
       void f() {
-        [!C!] = null;
+        [!C!] = 0;
       }
       ```
 
@@ -1754,7 +1802,7 @@ CompileTimeErrorCode:
       void f() {}
 
       void g() {
-        var c = null;
+        var c = 0;
         print(c);
       }
       ```
@@ -1778,7 +1826,7 @@ CompileTimeErrorCode:
       for-in loop:
 
       ```dart
-      void f(list) {
+      void f(Stream<int> list) {
         [!await!] for (var e in list) {
           print(e);
         }
@@ -1790,7 +1838,7 @@ CompileTimeErrorCode:
       If the function should return a `Future`, then mark the body with `async`:
 
       ```dart
-      Future<void> f(list) async {
+      Future<void> f(Stream<int> list) async {
         await for (var e in list) {
           print(e);
         }
@@ -1801,7 +1849,7 @@ CompileTimeErrorCode:
       `async*`:
 
       ```dart
-      Stream<void> f(list) async* {
+      Stream<void> f(Stream<int> list) async* {
         await for (var e in list) {
           print(e);
         }
@@ -1812,7 +1860,7 @@ CompileTimeErrorCode:
       loop:
 
       ```dart
-      void f(list) {
+      void f(List<int> list) {
         for (var e in list) {
           print(e);
         }
@@ -1929,6 +1977,15 @@ CompileTimeErrorCode:
     experiment: augmentations
     problemMessage: The augmentation type parameter must have the same name as the corresponding type parameter of the declaration.
     correctionMessage: Try changing the augmentation to match the declaration type parameters.
+    hasPublishedDocs: false
+  augmentationVariableDifferentGetterSetterTypes:
+    type: compileTimeError
+    parameters:
+      Type getterType: the return type of the getter being augmented
+      Type setterType: the parameter type of the setter being augmented
+    experiment: augmentations
+    problemMessage: "The getter and setter augmented by this variable have different types: '#getterType' and '#setterType'."
+    correctionMessage: Try changing the getter and setter to have the same type.
     hasPublishedDocs: false
   augmentationWithoutDeclaration:
     type: compileTimeError
@@ -2053,8 +2110,8 @@ CompileTimeErrorCode:
       is used in the initializer for `v`, a local variable that is marked `late`:
 
       ```dart
-      Future<int> f() async {
-        late var v = [!await!] 42;
+      Future<int> f(Future<int> future) async {
+        late var v = [!await!] future;
         return v;
       }
       ```
@@ -2064,8 +2121,8 @@ CompileTimeErrorCode:
       If the initializer can be rewritten to not use `await`, then rewrite it:
 
       ```dart
-      Future<int> f() async {
-        late var v = 42;
+      Future<int> f(Future<int> future) async {
+        late var v = future;
         return v;
       }
       ```
@@ -2073,8 +2130,8 @@ CompileTimeErrorCode:
       If the initializer can't be rewritten, then remove the `late` modifier:
 
       ```dart
-      Future<int> f() async {
-        var v = await 42;
+      Future<int> f(Future<int> future) async {
+        var v = await future;
         return v;
       }
       ```
@@ -2357,7 +2414,6 @@ CompileTimeErrorCode:
       as a type because it's a built-in identifier:
 
       ```dart
-      %ignore=undefined_class
       [!import!]<int> x = [];
       ```
 
@@ -2376,6 +2432,9 @@ CompileTimeErrorCode:
     problemMessage: "The built-in identifier '#name' can't be used as an extension name."
     correctionMessage: Try choosing a different name for the extension.
     hasPublishedDocs: true
+    # In the documentation, the `camel_case_extensions` diagnostic is being
+    # ignored because the lint shouldn't be reported when there's already an
+    # error being reported.
     documentation: |-
       #### Description
 
@@ -2390,6 +2449,7 @@ CompileTimeErrorCode:
       identifier:
 
       ```dart
+      %ignore=camel_case_extensions
       extension [!mixin!] on int {}
       ```
 
@@ -2489,6 +2549,9 @@ CompileTimeErrorCode:
       Type type: the type of the switch case expression
     problemMessage: "The switch case expression type '#type' can't override the '==' operator."
     hasPublishedDocs: true
+    # In the documentation, the `hash_and_equals` diagnostic is ignored because
+    # defining a `hashCode` getter would only complicate the example
+    # unnecessarily.
     documentation: |-
       #### Description
 
@@ -2504,11 +2567,13 @@ CompileTimeErrorCode:
 
       ```dart
       %language=2.18
+      %ignore=hash_and_equals
       class C {
         final int value;
 
         const C(this.value);
 
+        @override
         bool operator ==(Object other) {
           return false;
         }
@@ -2528,11 +2593,13 @@ CompileTimeErrorCode:
       an if-else structure:
 
       ```dart
+      %ignore=hash_and_equals
       class C {
         final int value;
 
         const C(this.value);
 
+        @override
         bool operator ==(Object other) {
           return false;
         }
@@ -2569,11 +2636,13 @@ CompileTimeErrorCode:
       the switch:
 
       ```dart
+      %ignore=hash_and_equals
       class C {
         final int value;
 
         const C(this.value);
 
+        @override
         bool operator ==(Object other) {
           return false;
         }
@@ -3286,6 +3355,11 @@ CompileTimeErrorCode:
     problemMessage: "'#typeParameterName' can't be used to name both a type parameter and the class in which the type parameter is defined."
     correctionMessage: Try renaming either the type parameter or the class.
     hasPublishedDocs: true
+    # In the documentation, the `avoid_types_as_parameter_names` diagnostic is
+    # being ignored because the lint shouldn't be reported when there's already
+    # an error being reported.
+    #
+    # See https://github.com/dart-lang/sdk/issues/63722.
     documentation: |-
       #### Description
 
@@ -3299,6 +3373,7 @@ CompileTimeErrorCode:
       has the same name as the class `C` of which it's a part:
 
       ```dart
+      %ignore=avoid_types_as_parameter_names
       class C<[!C!]> {}
       ```
 
@@ -3999,6 +4074,9 @@ CompileTimeErrorCode:
     problemMessage: "The type of a key in a constant map can't override the '==' operator, or 'hashCode', but the class '#keyType' does."
     correctionMessage: "Try using a different value for the key, or removing the keyword 'const' from the map."
     hasPublishedDocs: true
+    # In the documentation, the `hash_and_equals` diagnostic is ignored because
+    # defining a `hashCode` getter would only complicate the example
+    # unnecessarily.
     documentation: |-
       #### Description
 
@@ -4016,9 +4094,11 @@ CompileTimeErrorCode:
       implementation of `==`:
 
       ```dart
+      %ignore=hash_and_equals
       class C {
         const C();
 
+        @override
         bool operator ==(Object other) => true;
       }
 
@@ -4030,9 +4110,11 @@ CompileTimeErrorCode:
       implementation of `hashCode`:
 
       ```dart
+      %ignore=hash_and_equals
       class C {
         const C();
 
+        @override
         int get hashCode => 3;
       }
 
@@ -4056,9 +4138,11 @@ CompileTimeErrorCode:
       class, then make the map non-constant:
 
       ```dart
+      %ignore=hash_and_equals
       class C {
         const C();
 
+        @override
         bool operator ==(Object other) => true;
       }
 
@@ -4082,7 +4166,7 @@ CompileTimeErrorCode:
       The following code produces this diagnostic because `c` isn't initialized:
 
       ```dart
-      const [!c!];
+      const String [!c!];
       ```
 
       #### Common fixes
@@ -4090,7 +4174,7 @@ CompileTimeErrorCode:
       Add an initializer:
 
       ```dart
-      const c = 'c';
+      const String c = 'c';
       ```
   constSetElementNotPrimitiveEquality:
     type: compileTimeError
@@ -4100,6 +4184,9 @@ CompileTimeErrorCode:
     correctionMessage: "Try using a different value for the element, or removing the keyword 'const' from the set."
     previousName: CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS
     hasPublishedDocs: true
+    # In the documentation, the `hash_and_equals` diagnostic is ignored because
+    # defining a `hashCode` getter would only complicate the example
+    # unnecessarily.
     documentation: |-
       #### Description
 
@@ -4117,9 +4204,11 @@ CompileTimeErrorCode:
       implementation of `==`:
 
       ```dart
+      %ignore=hash_and_equals
       class C {
         const C();
 
+        @override
         bool operator ==(Object other) => true;
       }
 
@@ -4131,9 +4220,11 @@ CompileTimeErrorCode:
       implementation of `hashCode`:
 
       ```dart
+      %ignore=hash_and_equals
       class C {
         const C();
 
+        @override
         int get hashCode => 3;
       }
 
@@ -4157,9 +4248,11 @@ CompileTimeErrorCode:
       class, then make the set non-constant:
 
       ```dart
+      %ignore=hash_and_equals
       class C {
         const C();
 
+        @override
         bool operator ==(Object other) => true;
       }
 
@@ -4506,6 +4599,8 @@ CompileTimeErrorCode:
     correctionMessage: Try correcting the name to match an existing class.
     isUnresolvedIdentifier: true
     hasPublishedDocs: true
+    # In the documentation, the `unnecessary_new` diagnostic is ignored because
+    # the diagnostic being documented requires using `new`.
     documentation: |-
       #### Description
 
@@ -4518,6 +4613,7 @@ CompileTimeErrorCode:
       rather than a class:
 
       ```dart
+      %ignore=unnecessary_new
       int f() => 0;
 
       void g() {
@@ -4531,6 +4627,7 @@ CompileTimeErrorCode:
       of a valid class:
 
       ```dart
+      %ignore=unnecessary_new
       int f() => 0;
 
       void g() {
@@ -4629,11 +4726,11 @@ CompileTimeErrorCode:
 
       ```dart
       class A {
-        factory A([int [!x!] = 0]) = B;
+        factory A([int x [!=!] 0]) = B;
       }
 
       class B implements A {
-        B([int x = 1]) {}
+        B([int x = 1]);
       }
       ```
 
@@ -4647,7 +4744,7 @@ CompileTimeErrorCode:
       }
 
       class B implements A {
-        B([int x = 1]) {}
+        B([int x = 1]);
       }
       ```
 
@@ -4661,7 +4758,7 @@ CompileTimeErrorCode:
       }
 
       class B implements A {
-        B([int x = 1]) {}
+        B([int x = 1]);
       }
       ```
   defaultValueOnRequiredParameter:
@@ -4817,6 +4914,15 @@ CompileTimeErrorCode:
         print(x);
       }
       ```
+  differentInheritedGetterAndSetterTypes:
+    type: compileTimeError
+    parameters:
+      String fieldName: the name of the field whose type can't be inferred
+      String getterType: the return type of the combined getter signature
+      String setterType: the parameter type of the combined setter signature
+    problemMessage: "Can't infer a type for '#fieldName' because the combined member signature of the getter has return type '#getterType', which is not the same as the parameter type '#setterType' of the combined member signature of the setter."
+    correctionMessage: Try adding an explicit type.
+    hasPublishedDocs: false
   disallowedTypeInstantiationExpression:
     type: compileTimeError
     parameters: none
@@ -5151,7 +5257,7 @@ CompileTimeErrorCode:
       class C {
         int f;
 
-        C(this.f, this.[!f!]) {}
+        C(this.f, this.[!f!]);
       }
       ```
 
@@ -5163,7 +5269,7 @@ CompileTimeErrorCode:
       class C {
         int f;
 
-        C(this.f) {}
+        C(this.f);
       }
       ```
   functionAlreadyComplete:
@@ -5738,6 +5844,9 @@ CompileTimeErrorCode:
     problemMessage: The name 'values' is not a valid name for an enum.
     correctionMessage: Try using a different name.
     hasPublishedDocs: true
+    # In the documentation, the `camel_case_extensions` diagnostic is being
+    # ignored because the lint shouldn't be reported when there's already
+    # an error being reported.
     documentation: |-
       #### Description
 
@@ -5751,6 +5860,7 @@ CompileTimeErrorCode:
       declaration that has the name `values`:
 
       ```dart
+      %ignore=camel_case_types
       enum [!values!] { c }
       ```
 
@@ -6042,6 +6152,9 @@ CompileTimeErrorCode:
       String uri: the URI pointing to a library
     problemMessage: "The library '#uri' is internal and can't be exported."
     hasPublishedDocs: true
+    # In the documentation, the `uri_does_not_exist` diagnostic is being ignored
+    # because it shouldn't be produced here. The library exists, and reporting
+    # that it doesn't is inaccurate.
     documentation: |-
       #### Description
 
@@ -6050,12 +6163,12 @@ CompileTimeErrorCode:
 
       #### Example
 
-      The following code produces this diagnostic because `_interceptors` is an
+      The following code produces this diagnostic because `_internal` is an
       internal library:
 
       ```dart
       %ignore=uri_does_not_exist
-      [!export 'dart:_interceptors';!]
+      [!export 'dart:_internal';!]
       ```
 
       #### Common fixes
@@ -6141,8 +6254,6 @@ CompileTimeErrorCode:
       a part, and only libraries can be exported:
 
       ```dart
-      library lib;
-
       export [!'part.dart'!];
       ```
 
@@ -6540,6 +6651,10 @@ CompileTimeErrorCode:
     problemMessage: "Extension overrides have no value so they can't be used as the receiver of a cascade expression."
     correctionMessage: "Try using '.' instead of '..'."
     hasPublishedDocs: true
+    # In the documentation, the `avoid_single_cascade_in_expression_statements`
+    # diagnostic is being ignored because it shouldn't be produced here. They
+    # are both signalling the same problem, but the diagnostic being documented
+    # provides the better message.
     documentation: |-
       #### Description
 
@@ -6554,11 +6669,12 @@ CompileTimeErrorCode:
       expression:
 
       ```dart
+      %ignore=avoid_single_cascade_in_expression_statements
       extension E on int {
         void m() {}
       }
 
-      f() {
+      void f() {
         [!E!](3)..m();
       }
       ```
@@ -6572,7 +6688,7 @@ CompileTimeErrorCode:
         void m() {}
       }
 
-      f() {
+      void f() {
         E(3).m();
       }
       ```
@@ -7688,6 +7804,9 @@ CompileTimeErrorCode:
     problemMessage: "The final variable '#name' must be initialized."
     correctionMessage: Try initializing the variable.
     hasPublishedDocs: true
+    # In the documentation, the `prefer_typing_uninitialized_variables`
+    # diagnostic is being ignored because the lint shouldn't be reported when
+    # there's already an error being reported.
     documentation: |-
       #### Description
 
@@ -7700,7 +7819,7 @@ CompileTimeErrorCode:
       initializer:
 
       ```dart
-      final [!x!];
+      final int [!x!];
       ```
 
       #### Common fixes
@@ -7708,7 +7827,7 @@ CompileTimeErrorCode:
       For variables and static fields, you can add an initializer:
 
       ```dart
-      final x = 0;
+      final int x = 0;
       ```
 
       For instance fields, you can add an initializer as shown in the previous
@@ -7718,6 +7837,7 @@ CompileTimeErrorCode:
       ```dart
       class C {
         final int x;
+
         C(this.x);
       }
       ```
@@ -7728,6 +7848,7 @@ CompileTimeErrorCode:
       ```dart
       class C {
         final int x;
+
         C(int y) : x = y * 2;
       }
       ```
@@ -8061,8 +8182,11 @@ CompileTimeErrorCode:
       isn't a subtype of the type of the parameter of a setter with the same
       name.
 
-      The subtype relationship is a requirement whether the getter and setter are
-      in the same class or whether one of them is in a superclass of the other.
+      The subtype relationship is a requirement whether the getter and setter
+      are in the same class or whether one of them is in a superclass of the
+      other.
+
+      Note: This is no longer an error starting in Dart 3.9.
 
       #### Example
 
@@ -8252,6 +8376,8 @@ CompileTimeErrorCode:
     problemMessage: A concrete instance member named '#name' can't be declared in a class that implements 'Enum'.
     correctionMessage: Try using a different name.
     hasPublishedDocs: true
+    # In the documentation, the `hash_and_equals` diagnostic is ignored because
+    # defining an `==` operator would only complicate the example unnecessarily.
     documentation: |-
       #### Description
 
@@ -8269,6 +8395,7 @@ CompileTimeErrorCode:
       enum E {
         v;
 
+        @override
         int get [!index!] => 0;
       }
       ```
@@ -8277,7 +8404,9 @@ CompileTimeErrorCode:
       implements `Enum`, declares an instance field named `hashCode`:
 
       ```dart
+      %ignore=hash_and_equals
       abstract class C implements Enum {
+        @override
         int [!hashCode!] = 0;
       }
       ```
@@ -8287,9 +8416,11 @@ CompileTimeErrorCode:
       getter named `hashCode`:
 
       ```dart
+      %ignore=hash_and_equals
       abstract class A implements Enum {}
 
       abstract class C implements A {
+        @override
         int get [!hashCode!] => 0;
       }
       ```
@@ -8299,6 +8430,7 @@ CompileTimeErrorCode:
 
       ```dart
       mixin M on Enum {
+        @override
         bool operator [!==!](Object other) => false;
       }
       ```
@@ -8380,7 +8512,7 @@ CompileTimeErrorCode:
       rather than a class or mixin:
 
       ```dart
-      var x;
+      var x = 0;
 
       class C implements [!x!] {}
       ```
@@ -8638,6 +8770,9 @@ CompileTimeErrorCode:
       String uri: the URI pointing to a library
     problemMessage: "The library '#uri' is internal and can't be imported."
     hasPublishedDocs: true
+    # In the documentation, the `uri_does_not_exist` diagnostic is being ignored
+    # because it shouldn't be produced here. The library exists, and reporting
+    # that it doesn't is inaccurate.
     documentation: |-
       #### Description
 
@@ -8646,12 +8781,12 @@ CompileTimeErrorCode:
 
       #### Example
 
-      The following code produces this diagnostic because `_interceptors` is an
+      The following code produces this diagnostic because `_internal` is an
       internal library:
 
       ```dart
       %ignore=uri_does_not_exist
-      import [!'dart:_interceptors'!];
+      import [!'dart:_internal'!];
       ```
 
       #### Common fixes
@@ -8683,8 +8818,6 @@ CompileTimeErrorCode:
       have a part-of directive:
 
       ```dart
-      library lib;
-
       import [!'part.dart'!];
       ```
 
@@ -9250,7 +9383,7 @@ CompileTimeErrorCode:
       ```dart
       abstract class C {}
 
-      var c = new [!C!]();
+      var c = [!C!]();
       ```
 
       #### Common fixes
@@ -9583,7 +9716,7 @@ CompileTimeErrorCode:
       annotation with a different constant:
 
       ```dart
-      @deprecated
+      @Deprecated('...')
       void f() {}
       ```
   invalidAssignment:
@@ -9797,7 +9930,7 @@ CompileTimeErrorCode:
       constructor (`A`) isn't the same as the surrounding class (`C`):
 
       ```dart
-      // @dart = 3.10
+      // @dart = 3.12
       class A {}
 
       class C {
@@ -9975,6 +10108,7 @@ CompileTimeErrorCode:
       class A {
         int add(int a) => a;
       }
+
       class [!B!] extends A {
         int add(num a);
       }
@@ -10003,7 +10137,8 @@ CompileTimeErrorCode:
       class A {
         int add(int a) => a;
       }
-      class B	extends A {
+
+      class B extends A {
         int add(int a);
       }
       ```
@@ -10016,7 +10151,8 @@ CompileTimeErrorCode:
       class A {
         int add(num a) => a.floor();
       }
-      class B	extends A {
+
+      class B extends A {
         int add(num a);
       }
       ```
@@ -10029,7 +10165,8 @@ CompileTimeErrorCode:
       class A {
         int add(int a) => a;
       }
-      class B	extends A {
+
+      class B extends A {
         int add(num a) => a.floor();
       }
       ```
@@ -10053,6 +10190,10 @@ CompileTimeErrorCode:
     problemMessage: "Inline function types can't be used for parameters in a generic function type."
     correctionMessage: "Try using a generic function type (returnType 'Function(' parameters ')')."
     hasPublishedDocs: true
+    # In the documentation, the `use_function_type_syntax_for_parameters`
+    # diagnostic is being ignored because it shouldn't be produced here. Because
+    # it's an error to use a function typed parameter in a generic function
+    # type, there's no value in reporting both diagnostics.
     documentation: |-
       #### Description
 
@@ -10067,6 +10208,7 @@ CompileTimeErrorCode:
       type syntax:
 
       ```dart
+      %ignore=use_function_type_syntax_for_parameters
       typedef F = int Function(int f[!(!]String s));
       ```
 
@@ -10084,6 +10226,9 @@ CompileTimeErrorCode:
     problemMessage: "The modifier '#modifier' can't be applied to the body of a constructor."
     correctionMessage: Try removing the modifier.
     hasPublishedDocs: true
+    # In the documentation, the `empty_constructor_bodies` diagnostic is being
+    # ignored because it shouldn't be produced here. The constructor body can't
+    # be replaced by a semicolon because of the `async` keyword.
     documentation: |-
       #### Description
 
@@ -10097,6 +10242,7 @@ CompileTimeErrorCode:
       constructor for `C` is marked as being `async`:
 
       ```dart
+      %ignore=empty_constructor_bodies
       class C {
         C() [!async!] {}
       }
@@ -10197,11 +10343,12 @@ CompileTimeErrorCode:
 
       ```dart
       class A {
-        void m(int i) {}
+        void m(int p) {}
       }
 
       class B extends A {
-        void [!m!](String s) {}
+        @override
+        void [!m!](String p) {}
       }
       ```
 
@@ -10212,11 +10359,12 @@ CompileTimeErrorCode:
 
       ```dart
       class A {
-        void m(int i) {}
+        void m(int p) {}
       }
 
       class B extends A {
-        void m(int i) {}
+        @override
+        void m(int p) {}
       }
       ```
 
@@ -10225,11 +10373,11 @@ CompileTimeErrorCode:
 
       ```dart
       class A {
-        void m(int i) {}
+        void m(int p) {}
       }
 
       class B extends A {
-        void m2(String s) {}
+        void m2(String p) {}
       }
       ```
   invalidOverrideSetter:
@@ -11738,6 +11886,7 @@ CompileTimeErrorCode:
       }
 
       class C implements A {
+        @override
         void m() {}
       }
 
@@ -11977,25 +12126,25 @@ CompileTimeErrorCode:
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when a mixin class declares a non-trivial
-      generative constructor. Trivial constructors are allowed, but non-trivial ones
-      (those with parameters, bodies, or initializers) aren't.
+      The analyzer produces this diagnostic when a mixin class declares a
+      non-trivial generative constructor. Trivial constructors are allowed, but
+      non-trivial ones (those with parameters, bodies, or initializers) aren't.
 
       #### Example
 
       The following code produces this diagnostic because the `mixin class` `A`
-      defines a generative constructor with a body:
+      defines a generative constructor with an initializer:
 
       ```dart
       mixin class A {
-        [!A!]() {}
+        [!A!]() : assert(true);
       }
       ```
 
       #### Common fixes
 
-      If you can remove the body or parameters of the constructor to make it trivial,
-      then do so:
+      If you can remove the initialize, body, or parameters of the constructor
+      to make it trivial, then do so:
 
       ```dart
       mixin class A {
@@ -12003,12 +12152,13 @@ CompileTimeErrorCode:
       }
       ```
 
-      If the constructor can't be made trivial, then convert the `mixin class` to a
-      regular `class` and extend or implement it, or separate the mixin capability:
+      If the constructor can't be made trivial, then convert the `mixin class`
+      to a regular `class` and extend or implement it, or separate the mixin
+      capability:
 
       ```dart
       class A {
-        A() {}
+        A() : assert(true);
       }
 
       // A separate mixin for mixing in behavior
@@ -12482,6 +12632,7 @@ CompileTimeErrorCode:
       }
 
       class B extends A {
+        @override
         void m() {}
       }
       ```
@@ -13580,7 +13731,6 @@ CompileTimeErrorCode:
       constructor is marked with `async`:
 
       ```dart
-      %ignore=invalid_modifier_on_constructor
       class C {
         factory C() [!async!] {
           return C._();
@@ -13728,6 +13878,10 @@ CompileTimeErrorCode:
     problemMessage: "The return type of the setter must be 'void' or absent."
     correctionMessage: Try removing the return type, or define a method rather than a setter.
     hasPublishedDocs: true
+    # In the documentation, the `avoid_return_types_on_setters` diagnostic is
+    # ignored because it shouldn't be reported here. If the return type is
+    # anything other than `void`, then both will be reported. The lint should
+    # only report for a return type of `void`.
     documentation: |-
       #### Description
 
@@ -13740,6 +13894,7 @@ CompileTimeErrorCode:
       return type of `int`:
 
       ```dart
+      %ignore=avoid_return_types_on_setters
       class C {
         [!int!] set p(int i) => 0;
       }
@@ -13889,8 +14044,8 @@ CompileTimeErrorCode:
       The following code produces this diagnostic because `f` is a function:
 
       ```dart
-      f() {}
-      g([!f!] v) {}
+      void f() {}
+      void g([!f!] v) {}
       ```
 
       #### Common fixes
@@ -14229,7 +14384,7 @@ CompileTimeErrorCode:
       }
 
       [!@C!]
-      var x;
+      var x = 0;
       ```
 
       #### Common fixes
@@ -14242,7 +14397,7 @@ CompileTimeErrorCode:
       }
 
       @C()
-      var x;
+      var x = 0;
       ```
   noCombinedSuperSignature:
     type: compileTimeError
@@ -14715,6 +14870,9 @@ CompileTimeErrorCode:
     problemMessage: "The included part '#uriStr' must have a part-of directive."
     correctionMessage: "Try adding a part-of directive to '#uriStr'."
     hasPublishedDocs: true
+    # In the documentation, the `unused_import` diagnostic is being ignored
+    # because the only way to supress it would involve adding code that is
+    # extraneous to the diagnostic being documented.
     documentation: |-
       #### Description
 
@@ -14928,7 +15086,7 @@ CompileTimeErrorCode:
 
       ```dart
       void f(int x) {
-        var b;
+        var b = 0;
         if (x case var a when (b = 1) > 0) {
           print(a + b);
         }
@@ -15156,6 +15314,9 @@ CompileTimeErrorCode:
     problemMessage: Positional super parameters can't be used when the super constructor invocation has a positional argument.
     correctionMessage: Try making all the positional parameters passed to the super constructor be either all super parameters or all normal parameters.
     hasPublishedDocs: true
+    # In the documentation, the `use_super_parameters` diagnostic is ignored
+    # because the only way to resolve the diagnostic would also resolve the
+    # diagnostic being documented.
     documentation: |-
       #### Description
 
@@ -15179,6 +15340,7 @@ CompileTimeErrorCode:
       other in the super constructor invocation:
 
       ```dart
+      %ignore=use_super_parameters
       class A {
         A(int x, int y);
       }
@@ -15212,7 +15374,7 @@ CompileTimeErrorCode:
       }
 
       class B extends A {
-        B(int x, int y) : super(x, y);
+        B(int x, int y) : super(x + 1, y);
       }
       ```
   prefixCollidesWithTopLevelMember:
@@ -15222,6 +15384,9 @@ CompileTimeErrorCode:
     problemMessage: "The name '#name' is already used as an import prefix and can't be used to name a top-level element."
     correctionMessage: Try renaming either the top-level element or the prefix.
     hasPublishedDocs: true
+    # In the documentation, the `undefined_method` and `unused_import`
+    # diagnostics are being ignored because the invalid code is necesary in
+    # order to motivate the fixes.
     documentation: |-
       #### Description
 
@@ -15480,7 +15645,7 @@ CompileTimeErrorCode:
 
       ```dart
       class C {
-        int? _x;
+        final int? _x;
         C({int? x, this.[!_x!]});
         int? get x => _x;
       }
@@ -15494,6 +15659,9 @@ CompileTimeErrorCode:
     parameters: none
     problemMessage: "A private named parameter must be a public identifier after removing the leading underscore."
     hasPublishedDocs: true
+    # In the documentation, the `non_constant_identifier_names` diagnostic is
+    # being ignored because the lint shouldn't be reported when there's already
+    # an error being reported.
     documentation: |-
       #### Description
 
@@ -15508,6 +15676,7 @@ CompileTimeErrorCode:
       identifier:
 
       ```dart
+      %ignore=non_constant_identifier_names
       class C {
         final int? _2legit;
         C({this.[!_2legit!] = 0});
@@ -15683,6 +15852,7 @@ CompileTimeErrorCode:
       abstract class A {
         factory A() = [!B!];
       }
+
       class B implements A {
         factory B() = [!A!];
         B.named();
@@ -15710,6 +15880,7 @@ CompileTimeErrorCode:
       abstract class A {
         factory A() = B;
       }
+
       class B implements A {
         factory B() = B.named;
         B.named();
@@ -15722,6 +15893,7 @@ CompileTimeErrorCode:
       abstract class A {
         factory A() = B;
       }
+
       class B implements A {
         factory B() {
           return B.named();
@@ -15737,6 +15909,7 @@ CompileTimeErrorCode:
       abstract class A {
         factory A() = B;
       }
+
       class B implements A {
         B();
         B.named();
@@ -15770,6 +15943,7 @@ CompileTimeErrorCode:
 
       ```dart
       class [!A!] extends B {}
+
       class B implements A {}
       ```
 
@@ -16247,6 +16421,12 @@ CompileTimeErrorCode:
     problemMessage: "Local variable '#name' can't be referenced before it is declared."
     correctionMessage: "Try moving the declaration to before the first use, or renaming the local variable so that it doesn't hide a name from an enclosing scope."
     hasPublishedDocs: true
+    # In the documentation, the
+    # `not_assigned_potentially_non_nullable_local_variable` diagnostics is
+    # being ignored because it shouldn't be reported here. If a variable is
+    # referenced before it is declared, then it's a given that it hasn't been
+    # assigned a value, and reporting that doesn't help the user solve the real
+    # problem.
     documentation: |-
       #### Description
 
@@ -16613,7 +16793,7 @@ CompileTimeErrorCode:
           return _instance;
         }
 
-        static C _instance = C._();
+        static final C _instance = C._();
 
         C._();
       }
@@ -17453,7 +17633,7 @@ CompileTimeErrorCode:
       }
 
       class B extends A {
-        B(int x) : [!super!](x), assert(x >= 0);
+        B(int x) : [!super!](x + 1), assert(x >= 0);
       }
       ```
 
@@ -17468,7 +17648,7 @@ CompileTimeErrorCode:
       }
 
       class B extends A {
-        B(int x) : assert(x >= 0), super(x);
+        B(int x) : assert(x >= 0), super(x + 1);
       }
       ```
   superInEnumConstructor:
@@ -18291,7 +18471,7 @@ CompileTimeErrorCode:
       If the name is wrong, replace the name with the name of a valid constant:
 
       ```dart
-      @deprecated
+      @Deprecated('...')
       void f() {}
       ```
 
@@ -19039,6 +19219,13 @@ CompileTimeErrorCode:
     problemMessage: "Undefined name 'await' in function body not marked with 'async'."
     correctionMessage: "Try correcting the name to one that is defined, defining the name, or adding 'async' to the enclosing function body."
     hasPublishedDocs: true
+    # In the documentation, the `unused_local_variable` diagnostics is being
+    # ignored because the only way to supress it would involve adding code that
+    # is extraneous to the diagnostic being documented.
+    #
+    # Arguably, we shouldn't produce the diagnostic at all because the variable
+    # is used by virtue of being awaited, but we might not be able to detect
+    # that given that `await` is being parsed as a variable reference.
     documentation: |-
       #### Description
 
@@ -19055,7 +19242,7 @@ CompileTimeErrorCode:
 
       ```dart
       %ignore=unused_local_variable
-      void f(p) {
+      void f(Future<void> p) {
         [!await!] p;
       }
       ```
@@ -19065,7 +19252,7 @@ CompileTimeErrorCode:
       Add the keyword `async` to the function body:
 
       ```dart
-      void f(p) async {
+      void f(Future<void> p) async {
         await p;
       }
       ```
@@ -19132,7 +19319,7 @@ CompileTimeErrorCode:
 
       ```dart
       class C {
-        m({int? b}) {}
+        void m({int? b}) {}
       }
 
       void f(C c) {
@@ -19147,7 +19334,7 @@ CompileTimeErrorCode:
 
       ```dart
       class C {
-        m({int? b}) {}
+        void m({int? b}) {}
       }
 
       void f(C c) {
@@ -19160,11 +19347,12 @@ CompileTimeErrorCode:
 
       ```dart
       class C {
-        m({int? b}) {}
+        void m({int? b}) {}
       }
 
       class D extends C {
-        m({int? a, int? b}) {}
+        @override
+        void m({int? a, int? b}) {}
       }
 
       void f(C c) {
@@ -19176,7 +19364,7 @@ CompileTimeErrorCode:
 
       ```dart
       class C {
-        m({int? a, int? b}) {}
+        void m({int? a, int? b}) {}
       }
 
       void f(C c) {
@@ -19293,7 +19481,7 @@ CompileTimeErrorCode:
       class C {
         int x = 0;
         void m(int y) {
-          this.x = y;
+          x = y;
         }
       }
       ```
@@ -19780,7 +19968,7 @@ CompileTimeErrorCode:
 
       ```dart
       class C {
-        int operator [!+!](a, b) => 0;
+        int operator [!+!](int a, int b) => 0;
       }
       ```
 
@@ -19790,7 +19978,7 @@ CompileTimeErrorCode:
 
       ```dart
       class C {
-        int operator +(a) => 0;
+        int operator +(int a) => 0;
       }
       ```
       TODO(brianwilkerson): It would be good to add a link to the spec or some
@@ -20113,6 +20301,13 @@ CompileTimeErrorCode:
     problemMessage: "Yield-each statements must be in a generator function (one marked with either 'async*' or 'sync*')."
     correctionMessage: "Try adding 'async*' or 'sync*' to the enclosing function."
     hasPublishedDocs: true
+    # In the documentation, formatting is being ignored because adding the space
+    # between `yield` and `*` would obscure the intent of the code.
+    #
+    # The `illegal_async_return_type` diagnostic is being ignored because there
+    # isn't any way to produce only the diagnostic being documented when the
+    # modifier is wrong without also generating another diagnostic. Having two
+    # diagnostics isn't helpful, but it isn't clear which should be suppressed.
     documentation: |-
       #### Description
 
@@ -20126,6 +20321,7 @@ CompileTimeErrorCode:
       in a function whose body doesn't have a modifier:
 
       ```dart
+      %ignore=formatting
       Iterable<int> get digits {
         yield* [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
       }
@@ -21028,6 +21224,7 @@ FfiCode:
 
       ```dart
       import 'dart:ffi';
+
       import 'package:ffi/ffi.dart';
 
       final class C extends Struct {
@@ -21461,7 +21658,6 @@ FfiCode:
       constructor with an initializer for the field `f`:
 
       ```dart
-      // @dart = 2.9
       import 'dart:ffi';
 
       final class C extends Struct {
@@ -21477,7 +21673,6 @@ FfiCode:
       Remove the field initializer:
 
       ```dart
-      // @dart = 2.9
       import 'dart:ffi';
 
       final class C extends Struct {
@@ -21508,7 +21703,6 @@ FfiCode:
       initializer:
 
       ```dart
-      // @dart = 2.9
       import 'dart:ffi';
 
       final class C extends Struct {
@@ -21521,7 +21715,6 @@ FfiCode:
       Remove the initializer:
 
       ```dart
-      // @dart = 2.9
       import 'dart:ffi';
 
       final class C extends Struct {
@@ -21696,6 +21889,7 @@ FfiCode:
 
       ```dart
       import 'dart:ffi';
+
       import 'package:ffi/ffi.dart';
 
       final class C extends Struct {
@@ -21963,6 +22157,11 @@ FfiCode:
     problemMessage: "Fields in struct classes must have an explicitly declared type of 'int', 'double' or 'Pointer'."
     correctionMessage: "Try using 'int', 'double' or 'Pointer'."
     hasPublishedDocs: true
+    # In the documentation, the `prefer_typing_uninitialized_variables`
+    # diagnostic is being ignored because the lint shouldn't be reported when
+    # there's already an error being reported. The `strict_top_level_inference`
+    # diagnostic is being ignored because it's redundant, and shouldn't be
+    # produced when there's already an error.
     documentation: |-
       #### Description
 
@@ -21979,6 +22178,7 @@ FfiCode:
       doesn't have a type annotation:
 
       ```dart
+      %ignore=prefer_typing_uninitialized_variables,strict_top_level_inference
       import 'dart:ffi';
 
       final class C extends Struct {
@@ -21995,6 +22195,7 @@ FfiCode:
 
       ```dart
       import 'dart:ffi';
+
       import 'package:ffi/ffi.dart';
 
       final class C extends Struct {
@@ -22841,7 +23042,7 @@ HintCode:
       before the default value of the optional parameter `i`:
 
       ```dart
-      void f({int i [!:!] 0}) {}
+      void f({int i[!:!] 0}) {}
       ```
 
       #### Common fixes
@@ -23014,8 +23215,6 @@ HintCode:
 
       ```dart
       %uri="lib/a.dart"
-      // @dart = 2.9
-
       class A {}
       ```
 
@@ -24866,6 +25065,10 @@ StaticWarningCode:
     problemMessage: "The left operand can't be null, so the right operand is never executed."
     correctionMessage: Try removing the operator and the right operand.
     hasPublishedDocs: true
+    # In the documentation, the `dead_code` diagnostics is being ignored because
+    # it's redundant. Both diagnostics report the same problem, so we should
+    # only produce one. This one is more specific, so it's probably the better
+    # choice.
     documentation: |-
       #### Description
 
@@ -25648,6 +25851,7 @@ WarningCode:
         try {
           // ...
         } catch (e) {
+          // Not reached.
         } [!on String {
           // ...
         }!]
@@ -25896,6 +26100,9 @@ WarningCode:
     problemMessage: Methods named 'factory' will become constructors when the primary_constructors feature is enabled.
     correctionMessage: Try adding a return type or modifier before the method's name, or change the name of the method.
     hasPublishedDocs: true
+    # In the documentation, the `strict_top_level_inference` diagnostics is
+    # being ignored because if a return type were provided then the method
+    # wouldn't be interpreted as a constructor.
     documentation: |-
       #### Description
 
@@ -25914,6 +26121,7 @@ WarningCode:
       named `factory` has no return type or modifiers:
 
       ```dart
+      %ignore=strict_top_level_inference
       // @dart=3.10
       class C {
         [!factory!]() => C();
@@ -25927,7 +26135,7 @@ WarningCode:
       ```dart
       // @dart=3.10
       class C {
-        make() => C();
+        C make() => C();
       }
       ```
 
@@ -26912,7 +27120,7 @@ WarningCode:
       String function: the name of the type
     problemMessage: "The type argument(s) of the generic function type '#function' can't be inferred."
     correctionMessage: "Use explicit type argument(s) for '#function'."
-    hasPublishedDocs: true
+    hasPublishedDocs: false
     comment: |-
       When "strict-inference" is enabled, types in function invocations must be
       inferred via the context type, or have type arguments.
@@ -26922,7 +27130,7 @@ WarningCode:
       String function: the name of the constructor
     problemMessage: "The type argument(s) of the constructor '#function' can't be inferred."
     correctionMessage: "Use explicit type argument(s) for '#function'."
-    hasPublishedDocs: true
+    hasPublishedDocs: false
     comment: |-
       When "strict-inference" is enabled, types in instance creation
       (constructor calls) must be inferred via the context type, or have type
@@ -27463,6 +27671,8 @@ WarningCode:
     parameters: none
     problemMessage: "Only public elements in a package's private API can be annotated as being internal."
     hasPublishedDocs: true
+    # In the documentation, the `unused_element` diagnostic is being ignored
+    # because adding a use of `_C` unnecessarily complicates the example.
     documentation: |-
       #### Description
 
@@ -27488,12 +27698,11 @@ WarningCode:
       applied to declarations with private names:
 
       ```dart
+      %ignore=unused_element
       import 'package:meta/meta.dart';
 
       @[!internal!]
       class _C {}
-
-      void f(_C c) {}
       ```
 
       #### Common fixes
@@ -27501,9 +27710,8 @@ WarningCode:
       If the declaration has a private name, then remove the annotation:
 
       ```dart
+      %ignore=unused_element
       class _C {}
-
-      void f(_C c) {}
       ```
 
       If the declaration has a public name and is intended to be internal to the
@@ -27652,7 +27860,7 @@ WarningCode:
       annotation:
 
       ```dart
-      var x;
+      var x = 0;
       ```
   invalidNonVirtualAnnotation:
     type: staticWarning
@@ -27826,6 +28034,9 @@ WarningCode:
       String name: the name of the member
     problemMessage: "The member '#name' can only be used within its package."
     hasPublishedDocs: true
+    # In the documentation, the `implementation_imports` diagnostic is being
+    # ignored because it's a necessary pre-condition to referencing an internal
+    # member.
     documentation: |-
       #### Description
 
@@ -27850,6 +28061,7 @@ WarningCode:
       class `C`, which isn't intended to be used outside the package `p`:
 
       ```dart
+      %ignore=implementation_imports
       import 'package:p/src/p.dart';
 
       void f([!C!] c) {}
@@ -28455,10 +28667,10 @@ WarningCode:
       class PublicWidget extends StatelessWidget {
         // Invalid application to a private constructor.
         @[!Preview!]()
-        PublicWidget._();
+        const PublicWidget._();
 
         @override
-        Widget build(BuildContext) => Text('Foo');
+        Widget build(BuildContext context) => Text('Foo');
       }
       ```
 
@@ -28470,6 +28682,8 @@ WarningCode:
       import 'package:flutter/widget_previews.dart';
 
       class PublicWidget extends StatelessWidget {
+        const new();
+
         // Invalid application to a instance member.
         @[!Preview!]()
         Widget instancePreview() => PublicWidget();
@@ -28490,7 +28704,7 @@ WarningCode:
       class _PrivateWidget extends StatelessWidget {
         // Invalid application to a constructor of a private class.
         @[!Preview!]()
-        _PrivateWidget();
+        const _PrivateWidget();
 
         @override
         Widget build(BuildContext context) => Text('Foo');
@@ -28506,6 +28720,8 @@ WarningCode:
 
       // ignore: unused_element
       class _PrivateWidget extends StatelessWidget {
+        const new();
+
         // Invalid application to a static method of a private class.
         @[!Preview!]()
         Widget privateStatic() => _PrivateWidget();
@@ -28847,7 +29063,7 @@ WarningCode:
       class C {
         final int x;
 
-        C(this.x);
+        const C(this.x);
       }
       ```
 
@@ -28868,6 +29084,9 @@ WarningCode:
       String className: the name of the class declaring the overridden method
     problemMessage: "This method overrides a method annotated as '@mustCallSuper' in '#className', but doesn't invoke the overridden method."
     hasPublishedDocs: true
+    # In the documentation, the `unnecessary_overrides` diagnostic is being
+    # ignored because adding more code to the overriding member would confuse
+    # the nature of the fix.
     documentation: |-
       #### Description
 
@@ -28885,12 +29104,12 @@ WarningCode:
 
       class A {
         @mustCallSuper
-        m() {}
+        void m() {}
       }
 
       class B extends A {
         @override
-        [!m!]() {}
+        void [!m!]() {}
       }
       ```
 
@@ -28899,16 +29118,17 @@ WarningCode:
       Add an invocation of the overridden method in the overriding method:
 
       ```dart
+      %ignore=unnecessary_overrides
       import 'package:meta/meta.dart';
 
       class A {
         @mustCallSuper
-        m() {}
+        void m() {}
       }
 
       class B extends A {
         @override
-        m() {
+        void m() {
           super.m();
         }
       }
@@ -28920,6 +29140,9 @@ WarningCode:
     problemMessage: "Argument '#name' must be a constant."
     correctionMessage: Try replacing the argument with a constant.
     hasPublishedDocs: true
+    # In the documentation, the `experimental_member_use` diagnostics is being
+    # ignored because the fact that the annotation is experimental isn't
+    # relevant to the example.
     documentation: |-
       #### Description
 
@@ -29029,6 +29252,9 @@ WarningCode:
     problemMessage: "The parameter type of '==' operators should be non-nullable."
     correctionMessage: Try using a non-nullable type.
     hasPublishedDocs: true
+    # In the documentation, the `hash_and_equals` diagnostic is ignored because
+    # defining a `hashCode` getter would only complicate the example
+    # unnecessarily.
     documentation: |-
       #### Description
 
@@ -29043,6 +29269,7 @@ WarningCode:
       the operator `==` in `C` :
 
       ```dart
+      %ignore=hash_and_equals
       class C {
         @override
         bool operator [!==!](Object? other) => false;
@@ -29054,6 +29281,7 @@ WarningCode:
       Make the parameter type be non-nullable:
 
       ```dart
+      %ignore=hash_and_equals
       class C {
         @override
         bool operator ==(Object other) => false;
@@ -30561,7 +30789,7 @@ WarningCode:
       parameter has the keyword `final`:
 
       ```dart
-      // @dart = 3.10
+      // @dart = 3.11
       class A {
         int value;
 
@@ -30573,7 +30801,7 @@ WarningCode:
       `B` has the keyword `final`:
 
       ```dart
-      // @dart = 3.10
+      // @dart = 3.11
       class A {
         A(int value);
       }
@@ -30588,6 +30816,7 @@ WarningCode:
       Remove the unnecessary `final` keyword:
 
       ```dart
+      // @dart = 3.11
       class A {
         A(int value);
       }
@@ -30670,13 +30899,13 @@ WarningCode:
       ```dart
       class A {
         @override
-        dynamic noSuchMethod(x) => super.noSuchMethod(x);
+        dynamic noSuchMethod(invocation) => super.noSuchMethod(invocation);
       }
 
       class B extends A {
         @override
-        dynamic [!noSuchMethod!](y) {
-          return super.noSuchMethod(y);
+        dynamic [!noSuchMethod!](invocation) {
+          return super.noSuchMethod(invocation);
         }
       }
       ```
@@ -30688,7 +30917,7 @@ WarningCode:
       ```dart
       class A {
         @override
-        dynamic noSuchMethod(x) => super.noSuchMethod(x);
+        dynamic noSuchMethod(invocation) => super.noSuchMethod(invocation);
       }
 
       class B extends A {}
@@ -30714,6 +30943,8 @@ WarningCode:
     problemMessage: "The operand can't be 'null', so the condition is always 'false'."
     correctionMessage: Try removing the condition, an enclosing condition, or the whole conditional statement.
     hasPublishedDocs: true
+    # In the documentation, the `dead_code` diagnostics is being ignored because
+    # it isn't relevant to the example, but can't (easily) be suppressed.
     documentation: |-
       #### Description
 
@@ -31243,17 +31474,18 @@ WarningCode:
       #### Common fixes
 
       If the parameter is still necessary, but the associated field is not, then
-      remove the `final` or `var` keyword:
+      remove the `final` or `var` keyword and use a wildcard in place of the
+      parameter:
 
       ```dart
-      class C(int _i);
+      class C(int _);
       ```
 
       If the parameter is also unnecessary, then remove it (which also removes
       the associated field).
 
       ```dart
-      class C {}
+      class C();
       ```
 
       If the field was intended to be used, then add the missing code.

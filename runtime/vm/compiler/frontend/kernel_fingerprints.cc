@@ -494,6 +494,7 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
       BuildHash(ReadNameAsMethodName().Hash());  // read name.
       CalculateArgumentsFingerprint();           // read arguments.
       SkipDartType();                            // read function_type.
+      SkipDartType();                            // read result_type.
       CalculateMethodNameFingerprint();  // read interface_target_reference.
       return;
     case kDynamicInvocation:

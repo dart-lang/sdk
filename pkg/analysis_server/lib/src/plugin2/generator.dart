@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io' show Platform;
+
 import 'package:analyzer/src/analysis_options/analysis_options.dart';
 
 /// This class can generate various files to make up the shared plugin package.
@@ -28,7 +30,9 @@ class PluginPackageGenerator {
         "'package:${configuration.name}/main.dart' as ${configuration.name}",
     ];
 
-    var buffer = StringBuffer("import 'dart:isolate';\n");
+    var buffer = StringBuffer();
+    buffer.writeln('// Compiled with Dart version ${Platform.version}');
+    buffer.writeln("import 'dart:isolate';");
     for (var import in imports..sort()) {
       buffer.writeln('import $import;');
     }
@@ -68,8 +72,9 @@ environment:
   sdk: ^3.6.0
 dependencies:
   # The version of the analysis_server_plugin package that matches the protocol
-  # used by the active analysis_server.
-  analysis_server_plugin: ^0.3.8
+  # used by the active analysis_server. This might be a local dev version that
+  # has not yet been published to Pub.
+  analysis_server_plugin: ^0.3.21-dev
 ''');
 
     for (var configuration in _configurations) {

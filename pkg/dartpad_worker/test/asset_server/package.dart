@@ -46,7 +46,8 @@ final class Package {
   /// Create a [Package] from a .tar.gz archive.
   static Future<Package> fromArchive(Uint8List archive) async {
     Map<String, Object?>? ps;
-    await TarReader.forEach(Stream.value(gzip.decode(archive)), (e) async {
+    final stream = Stream<List<int>>.value(archive).transform(gzip.decoder);
+    await TarReader.forEach(stream, (e) async {
       if (e.name == 'pubspec.yaml') {
         ps = _yamlToJson(await utf8.decodeStream(e.contents));
       }

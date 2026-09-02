@@ -128,24 +128,6 @@ enum E {
 ''');
   }
 
-  test_fieldDeclaration_instance_external() async {
-    await resolveTestCodeWithDiagnostics(r'''
-enum E {
-  v;
-  external int foo;
-}
-''');
-  }
-
-  test_fieldDeclaration_instance_external_final() async {
-    await resolveTestCodeWithDiagnostics(r'''
-enum E {
-  v;
-  external final int foo;
-}
-''');
-  }
-
   test_fieldDeclaration_instance_final() async {
     await resolveTestCodeWithDiagnostics(r'''
 enum E {

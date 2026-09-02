@@ -22,7 +22,10 @@ class InferenceFailureOnUntypedParameterTest extends PubPackageResolutionTest {
   void setUp() {
     super.setUp();
     writeTestPackageAnalysisOptionsFile(
-      analysisOptionsContent(experiments: experiments, strictInference: true),
+      analysisOptionsContent(
+        experimentalFeatures: experimentalFeatures,
+        strictInference: true,
+      ),
     );
   }
 
@@ -31,6 +34,22 @@ class InferenceFailureOnUntypedParameterTest extends PubPackageResolutionTest {
 class C(final a);
 //            ^
 // [diag.inferenceFailureOnUntypedParameter] The type of 'a' can't be inferred; a type must be explicitly provided.
+''');
+  }
+
+  test_declaringParameter_typeFromDefaultValue() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class C({final a = 0});
+''');
+  }
+
+  test_declaringParameter_typeFromOverride() async {
+    await resolveTestCodeWithDiagnostics(r'''
+abstract class A {
+  int get a;
+}
+
+class C({required final a}) implements A {}
 ''');
   }
 

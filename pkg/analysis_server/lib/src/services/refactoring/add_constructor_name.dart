@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/services/interactive_forms/interactive_forms.dart';
+import 'package:analysis_server/src/services/refactoring/client_side_validators.dart';
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_producer.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/naming_conventions.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
@@ -52,12 +53,15 @@ class AddConstructorName extends ParameterizedRefactoringProducer {
       );
     }
 
+    var validators = ClientSideValidators(
+      refactoringContext.clientCapabilities,
+    );
     var nameField = ValidatableFormField(
       id: 'name',
       description: 'Constructor Name',
       required: true,
       defaultValue: _computeName(element),
-      type: FormFieldTypeString(),
+      type: FormFieldTypeString(validators: validators.constructorName),
       validate: wrapRefactorValidationFunction(validateConstructorName),
     );
 

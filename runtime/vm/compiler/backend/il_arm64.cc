@@ -1438,7 +1438,7 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       ASSERT(branch == R9);
     }
 #endif
-    __ blr(branch);
+    __ CallCFunction(branch);
 
     // Restore the Dart stack pointer.
     __ mov(SP, CSP);
@@ -1756,7 +1756,6 @@ void OneByteStringFromCharCodeInstr::EmitNativeCode(
 
   __ ldr(result,
          compiler::Address(THR, Thread::predefined_symbols_address_offset()));
-  __ AddImmediate(result, Symbols::kNullCharCodeSymbolOffset * kWordSize);
   __ SmiUntag(TMP, char_code);  // Untag to use scaled address mode.
   __ ldr(result,
          compiler::Address(result, TMP, UXTX, compiler::Address::Scaled));
@@ -2731,7 +2730,7 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 
   compiler::Label slow_path, done;
-  if (!FLAG_use_slow_path && FLAG_inline_alloc) {
+  if (UseInlineAllocation()) {
     if (compiler->is_optimizing() && !FLAG_precompiled_mode &&
         num_elements()->BindsToConstant() &&
         num_elements()->BoundConstant().IsSmi()) {
@@ -2807,7 +2806,7 @@ void AllocateUninitializedContextInstr::EmitNativeCode(
   compiler->AddSlowPathCode(slow_path);
   intptr_t instance_size = Context::InstanceSize(num_context_variables());
 
-  if (!FLAG_use_slow_path && FLAG_inline_alloc) {
+  if (UseInlineAllocation()) {
     __ TryAllocateArray(kContextCid, instance_size, slow_path->entry_label(),
                         result,  // instance
                         temp0, temp1, temp2);
@@ -3970,6 +3969,7 @@ Condition DoubleTestOpInstr::EmitConditionCode(FlowGraphCompiler* compiler,
   V(Int32x4BitAnd, vand)                                                       \
   V(Int32x4BitOr, vorr)                                                        \
   V(Int32x4BitXor, veor)                                                       \
+  V(Int32x4Equal, vceqw)                                                       \
   V(Float32x4Equal, vceqs)                                                     \
   V(Float32x4GreaterThan, vcgts)                                               \
   V(Float32x4GreaterThanOrEqual, vcges)
@@ -4024,6 +4024,7 @@ DEFINE_EMIT(SimdBinaryOp, (VRegister result, VRegister left, VRegister right)) {
   SIMD_OP_FLOAT_ARITH(V, Sqrt, vsqrt)                                          \
   SIMD_OP_FLOAT_ARITH(V, Negate, vneg)                                         \
   SIMD_OP_FLOAT_ARITH(V, Abs, vabs)                                            \
+  V(Int32x4Not, vnot)                                                          \
   V(Float32x4Reciprocal, VRecps)                                               \
   V(Float32x4ReciprocalSqrt, VRSqrts)
 
@@ -4288,6 +4289,15 @@ DEFINE_EMIT(Int32x4GetFlag, (Register result, VRegister value)) {
   __ csel(result, TMP, result, EQ);
 }
 
+DEFINE_EMIT(Int32x4AnyTrue, (Register out, VRegister value)) {
+  __ vumaxp_4s(VTMP, value, value);
+  __ vmovrd(out, VTMP, 0);
+  __ tst(out, compiler::Operand(out));
+  __ LoadObject(out, Bool::True());
+  __ LoadObject(TMP, Bool::False());
+  __ csel(out, TMP, out, EQ);
+}
+
 DEFINE_EMIT(Int32x4Select,
             (VRegister out,
              VRegister mask,
@@ -4399,6 +4409,8 @@ DEFINE_EMIT(Int32x4WithFlag,
   CASE(Int32x4GetFlagZ)                                                        \
   CASE(Int32x4GetFlagW)                                                        \
   ____(Int32x4GetFlag)                                                         \
+  CASE(Int32x4AnyTrue)                                                         \
+  ____(Int32x4AnyTrue)                                                         \
   CASE(Int32x4Select)                                                          \
   ____(Int32x4Select)                                                          \
   CASE(Int32x4WithFlagX)                                                       \
@@ -4735,13 +4747,13 @@ void FloatToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ fcvtds(result, value);
 }
 
-LocationSummary* FloatCompareInstr::MakeLocationSummary(Zone* zone,
-                                                        bool opt) const {
+LocationSummary* CompareAsMaskInstr::MakeLocationSummary(Zone* zone,
+                                                         bool opt) const {
   UNREACHABLE();
   return NULL;
 }
 
-void FloatCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void CompareAsMaskInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNREACHABLE();
 }
 
@@ -5851,7 +5863,7 @@ void UnaryInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case Token::kPOPCNT: {
       __ fmovdr(VTMP, left);
       __ vcnt(VTMP, VTMP);
-      __ vuaddlv(VTMP, VTMP);
+      __ vuaddlv_8b(VTMP, VTMP);
       __ fmovrs(out, VTMP);
       break;
     }
@@ -5952,6 +5964,25 @@ LocationSummary* UnaryUint32OpInstr::MakeLocationSummary(Zone* zone,
 }
 
 void UnaryUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register left = locs()->in(0).reg();
+  Register out = locs()->out(0).reg();
+
+  ASSERT(op_kind() == Token::kBIT_NOT);
+  __ mvnw(out, left);
+}
+
+LocationSummary* UnaryInt32OpInstr::MakeLocationSummary(Zone* zone,
+                                                        bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresRegister());
+  summary->set_out(0, Location::RequiresRegister());
+  return summary;
+}
+
+void UnaryInt32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register left = locs()->in(0).reg();
   Register out = locs()->out(0).reg();
 

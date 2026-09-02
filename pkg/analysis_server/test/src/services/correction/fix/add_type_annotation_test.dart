@@ -225,7 +225,7 @@ f() {
 
   Future<void> test_primaryConstructor_final() async {
     createAnalysisOptionsFile(
-      experiments: experiments,
+      experimentalFeatures: experimentalFeatures,
       lints: [LintNames.always_specify_types],
     );
     await resolveTestCode(r'''
@@ -238,7 +238,7 @@ class A([final int b = 1]);
 
   Future<void> test_primaryConstructor_var() async {
     createAnalysisOptionsFile(
-      experiments: experiments,
+      experimentalFeatures: experimentalFeatures,
       lints: [LintNames.always_specify_types],
     );
     await resolveTestCode(r'''
@@ -449,6 +449,152 @@ void f() {
   int l;
   l = 0;
   print(l);
+}
+''');
+  }
+
+  Future<void> test_local_assignedInDoWhileLoopBody() async {
+    // The body of a `do`-`while` loop always runs at least once, so the
+    // assignment is unconditional.
+    await resolveTestCode('''
+int f() {
+  var result;
+  do {
+    result = 0;
+  } while (false);
+  return result;
+}
+''');
+    await assertHasFix('''
+int f() {
+  int result;
+  do {
+    result = 0;
+  } while (false);
+  return result;
+}
+''');
+  }
+
+  Future<void> test_local_assignedInForEachLoopBody() async {
+    // The loop might run zero times, so `result` might still be `null`.
+    await resolveTestCode('''
+int? f() {
+  var result;
+  for (var i in [1, 2, 3]) {
+    result = i;
+  }
+  return result;
+}
+''');
+    await assertHasFix('''
+int? f() {
+  int? result;
+  for (var i in [1, 2, 3]) {
+    result = i;
+  }
+  return result;
+}
+''');
+  }
+
+  Future<void> test_local_assignedInIfWithElse() async {
+    // Both branches assign, so the assignment is unconditional.
+    await resolveTestCode('''
+int f() {
+  var result;
+  if (1 == 1) {
+    result = 0;
+  } else {
+    result = 1;
+  }
+  return result;
+}
+''');
+    await assertHasFix('''
+int f() {
+  int result;
+  if (1 == 1) {
+    result = 0;
+  } else {
+    result = 1;
+  }
+  return result;
+}
+''');
+  }
+
+  Future<void> test_local_assignedInIfWithoutElse() async {
+    // There's no `else` branch, so `result` might still be `null`.
+    await resolveTestCode('''
+int? f() {
+  var result;
+  if (1 == 1) {
+    result = 0;
+  }
+  return result;
+}
+''');
+    await assertHasFix('''
+int? f() {
+  int? result;
+  if (1 == 1) {
+    result = 0;
+  }
+  return result;
+}
+''');
+  }
+
+  Future<void> test_local_assignedInTryCatch() async {
+    // The `try` body might complete without throwing, so the `catch` block
+    // might never run, and `result` might still be `null`.
+    await resolveTestCode('''
+Object? f() {
+  var result;
+  try {
+    throw '';
+  } catch (e) {
+    result = e;
+  }
+  return result;
+}
+''');
+    await assertHasFix('''
+Object? f() {
+  Object? result;
+  try {
+    throw '';
+  } catch (e) {
+    result = e;
+  }
+  return result;
+}
+''');
+  }
+
+  Future<void> test_local_assignedInTryFinally() async {
+    // A `finally` block always runs, so the assignment is unconditional.
+    await resolveTestCode('''
+int f() {
+  var result;
+  try {
+    // Nothing.
+  } finally {
+    result = 0;
+  }
+  return result;
+}
+''');
+    await assertHasFix('''
+int f() {
+  int result;
+  try {
+    // Nothing.
+  } finally {
+    result = 0;
+  }
+  return result;
 }
 ''');
   }

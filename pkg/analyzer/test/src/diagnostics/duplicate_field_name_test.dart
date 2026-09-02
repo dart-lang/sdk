@@ -83,10 +83,9 @@ void f((int _, int _) r) {}
 ''');
   }
 
-  void test_duplicated_wildcard_positional_preWildcards() async {
+  void test_duplicated_wildcard_positional_beforeWildcardVariables() async {
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.4
-// (pre wildcard-variables)
+// %before-language-feature: wildcard-variables
 
 void f((int _, int _) r) {}
 //          ^

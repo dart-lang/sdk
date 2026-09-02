@@ -6,11 +6,12 @@ import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
+// ignore: implementation_imports
+import 'package:analyzer/src/dart/ast/ast.dart';
 // ignore: implementation_imports
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:collection/collection.dart';
@@ -45,17 +46,11 @@ class StrictTopLevelInference extends MultiAnalysisRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final bool _wildCardVariablesEnabled;
-
-  final MultiAnalysisRule rule;
-
-  final RuleContext context;
-
-  new(this.rule, this.context)
-    : _wildCardVariablesEnabled = context.isFeatureEnabled(
-        Feature.wildcard_variables,
-      );
+class _Visitor(final MultiAnalysisRule rule, final RuleContext context)
+    extends SimpleAstVisitor<void> {
+  final bool _wildCardVariablesEnabled = context.isFeatureEnabled(
+    Feature.wildcard_variables,
+  );
 
   bool isWildcardIdentifier(String lexeme) =>
       _wildCardVariablesEnabled && lexeme == '_';
@@ -149,7 +144,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (parameterName == null) continue;
       if (isWildcardIdentifier(parameterName.lexeme)) continue;
 
-      if (parameter is! RegularFormalParameter ||
+      if (parameter is! RegularFormalParameterImpl ||
           parameter.functionTypedSuffix != null) {
         // Every type of parameter other than simple formal parameters get a type
         // one way or another:
@@ -163,6 +158,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       }
 
       if (parameter.type != null) return;
+      if (parameter.isDeclaringFieldTypeInferred) continue;
       if (overriddenMember == null) {
         _report(parameterName, keyword: parameter.constFinalOrVarKeyword);
       } else {

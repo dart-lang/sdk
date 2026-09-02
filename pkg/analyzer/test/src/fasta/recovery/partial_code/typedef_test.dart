@@ -27,7 +27,7 @@ typedef T = class A {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     GenericTypeAlias
       typedefKeyword: typedef
       name: T
@@ -56,7 +56,7 @@ typedef T = const a = 0;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     GenericTypeAlias
       typedefKeyword: typedef
       name: T
@@ -71,7 +71,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer: IntegerLiteral
+            initializer2: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -88,7 +88,7 @@ typedef T = enum E { v }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     GenericTypeAlias
       typedefKeyword: typedef
       name: T
@@ -120,7 +120,7 @@ typedef T =
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     GenericTypeAlias
       typedefKeyword: typedef
       name: T
@@ -142,7 +142,7 @@ typedef T = final a = 0;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     GenericTypeAlias
       typedefKeyword: typedef
       name: T
@@ -157,7 +157,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer: IntegerLiteral
+            initializer2: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -172,7 +172,7 @@ typedef T = int f() {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     GenericTypeAlias
       typedefKeyword: typedef
       name: T
@@ -202,7 +202,7 @@ typedef T = void f() {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     GenericTypeAlias
       typedefKeyword: typedef
       name: T
@@ -232,7 +232,23 @@ typedef T = int get a => 0;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
+    GenericTypeAlias
+      typedefKeyword: typedef
+      name: T
+      equals: =
+      type: NamedType
+        name: int
+      semicolon: ; <synthetic>
+    TopLevelGetterDeclaration
+      getKeyword: get
+      name: a
+      body: ExpressionFunctionBody
+        functionDefinition: =>
+        expression2: IntegerLiteral
+          literal: 0
+        semicolon: ;
+  declarations(v1)
     GenericTypeAlias
       typedefKeyword: typedef
       name: T
@@ -264,7 +280,7 @@ typedef T = mixin M {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     GenericTypeAlias
       typedefKeyword: typedef
       name: T
@@ -296,7 +312,7 @@ typedef T = set a(b) {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     GenericTypeAlias
       typedefKeyword: typedef
       name: T
@@ -309,6 +325,12 @@ CompilationUnit
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              name: b
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -331,7 +353,7 @@ typedef T = typedef A = B Function(C, D);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     GenericTypeAlias
       typedefKeyword: typedef
       name: T
@@ -348,6 +370,16 @@ CompilationUnit
           name: B
         functionKeyword: Function
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              type: NamedType
+                name: C
+            RegularFormalParameter
+              type: NamedType
+                name: D
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
@@ -371,7 +403,7 @@ typedef T = var a;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     GenericTypeAlias
       typedefKeyword: typedef
       name: T
@@ -400,7 +432,7 @@ typedef class A {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionTypeAlias
       typedefKeyword: typedef
       name: <empty> <synthetic>
@@ -429,7 +461,7 @@ typedef const a = 0;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionTypeAlias
       typedefKeyword: typedef
       name: <empty> <synthetic>
@@ -444,7 +476,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer: IntegerLiteral
+            initializer2: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -461,7 +493,7 @@ typedef enum E { v }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionTypeAlias
       typedefKeyword: typedef
       name: <empty> <synthetic>
@@ -493,7 +525,7 @@ typedef
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionTypeAlias
       typedefKeyword: typedef
       name: <empty> <synthetic>
@@ -515,7 +547,7 @@ typedef final a = 0;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionTypeAlias
       typedefKeyword: typedef
       name: <empty> <synthetic>
@@ -530,7 +562,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer: IntegerLiteral
+            initializer2: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -547,7 +579,7 @@ typedef int f() {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionTypeAlias
       typedefKeyword: typedef
       returnType: NamedType
@@ -571,7 +603,7 @@ typedef void f() {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionTypeAlias
       typedefKeyword: typedef
       returnType: NamedType
@@ -596,7 +628,25 @@ typedef int get a => 0;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
+    FunctionTypeAlias
+      typedefKeyword: typedef
+      returnType: NamedType
+        name: int
+      name: <empty> <synthetic>
+      parameters: FormalParameterList
+        leftParenthesis: ( <synthetic>
+        rightParenthesis: ) <synthetic>
+      semicolon: ; <synthetic>
+    TopLevelGetterDeclaration
+      getKeyword: get
+      name: a
+      body: ExpressionFunctionBody
+        functionDefinition: =>
+        expression2: IntegerLiteral
+          literal: 0
+        semicolon: ;
+  declarations(v1)
     FunctionTypeAlias
       typedefKeyword: typedef
       returnType: NamedType
@@ -629,7 +679,7 @@ typedef mixin M {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionTypeAlias
       typedefKeyword: typedef
       name: <empty> <synthetic>
@@ -657,7 +707,7 @@ typedef set a(b) {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionTypeAlias
       typedefKeyword: typedef
       name: <empty> <synthetic>
@@ -670,6 +720,12 @@ CompilationUnit
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              name: b
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -692,7 +748,7 @@ typedef typedef A = B Function(C, D);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionTypeAlias
       typedefKeyword: typedef
       name: <empty> <synthetic>
@@ -709,6 +765,16 @@ CompilationUnit
           name: B
         functionKeyword: Function
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              type: NamedType
+                name: C
+            RegularFormalParameter
+              type: NamedType
+                name: D
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
@@ -732,7 +798,7 @@ typedef var a;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionTypeAlias
       typedefKeyword: typedef
       name: <empty> <synthetic>
@@ -762,7 +828,7 @@ typedef = class A {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     GenericTypeAlias
       typedefKeyword: typedef
       name: <empty> <synthetic>
@@ -792,7 +858,7 @@ typedef = const a = 0;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     GenericTypeAlias
       typedefKeyword: typedef
       name: <empty> <synthetic>
@@ -807,7 +873,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer: IntegerLiteral
+            initializer2: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -825,7 +891,7 @@ typedef = enum E { v }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     GenericTypeAlias
       typedefKeyword: typedef
       name: <empty> <synthetic>
@@ -858,7 +924,7 @@ typedef =
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     GenericTypeAlias
       typedefKeyword: typedef
       name: <empty> <synthetic>
@@ -881,7 +947,7 @@ typedef = final a = 0;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     GenericTypeAlias
       typedefKeyword: typedef
       name: <empty> <synthetic>
@@ -896,7 +962,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer: IntegerLiteral
+            initializer2: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -913,7 +979,7 @@ typedef = int f() {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     GenericTypeAlias
       typedefKeyword: typedef
       name: <empty> <synthetic>
@@ -945,7 +1011,7 @@ typedef = void f() {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     GenericTypeAlias
       typedefKeyword: typedef
       name: <empty> <synthetic>
@@ -977,7 +1043,23 @@ typedef = int get a => 0;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
+    GenericTypeAlias
+      typedefKeyword: typedef
+      name: <empty> <synthetic>
+      equals: =
+      type: NamedType
+        name: int
+      semicolon: ; <synthetic>
+    TopLevelGetterDeclaration
+      getKeyword: get
+      name: a
+      body: ExpressionFunctionBody
+        functionDefinition: =>
+        expression2: IntegerLiteral
+          literal: 0
+        semicolon: ;
+  declarations(v1)
     GenericTypeAlias
       typedefKeyword: typedef
       name: <empty> <synthetic>
@@ -1011,7 +1093,7 @@ typedef = mixin M {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     GenericTypeAlias
       typedefKeyword: typedef
       name: <empty> <synthetic>
@@ -1044,7 +1126,7 @@ typedef = set a(b) {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     GenericTypeAlias
       typedefKeyword: typedef
       name: <empty> <synthetic>
@@ -1057,6 +1139,12 @@ CompilationUnit
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              name: b
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -1080,7 +1168,7 @@ typedef = typedef A = B Function(C, D);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     GenericTypeAlias
       typedefKeyword: typedef
       name: <empty> <synthetic>
@@ -1097,6 +1185,16 @@ CompilationUnit
           name: B
         functionKeyword: Function
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              type: NamedType
+                name: C
+            RegularFormalParameter
+              type: NamedType
+                name: D
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
@@ -1121,7 +1219,7 @@ typedef = var a;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     GenericTypeAlias
       typedefKeyword: typedef
       name: <empty> <synthetic>
@@ -1150,7 +1248,7 @@ typedef T class A {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionTypeAlias
       typedefKeyword: typedef
       name: T
@@ -1179,7 +1277,7 @@ typedef T const a = 0;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionTypeAlias
       typedefKeyword: typedef
       name: T
@@ -1194,7 +1292,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer: IntegerLiteral
+            initializer2: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -1211,7 +1309,7 @@ typedef T enum E { v }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionTypeAlias
       typedefKeyword: typedef
       name: T
@@ -1243,7 +1341,7 @@ typedef T
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionTypeAlias
       typedefKeyword: typedef
       name: T
@@ -1265,7 +1363,7 @@ typedef T final a = 0;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionTypeAlias
       typedefKeyword: typedef
       name: T
@@ -1280,7 +1378,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer: IntegerLiteral
+            initializer2: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -1297,7 +1395,7 @@ typedef T int f() {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionTypeAlias
       typedefKeyword: typedef
       returnType: NamedType
@@ -1331,7 +1429,7 @@ typedef T void f() {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionTypeAlias
       typedefKeyword: typedef
       name: T
@@ -1365,7 +1463,25 @@ typedef T int get a => 0;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
+    FunctionTypeAlias
+      typedefKeyword: typedef
+      returnType: NamedType
+        name: T
+      name: int
+      parameters: FormalParameterList
+        leftParenthesis: ( <synthetic>
+        rightParenthesis: ) <synthetic>
+      semicolon: ; <synthetic>
+    TopLevelGetterDeclaration
+      getKeyword: get
+      name: a
+      body: ExpressionFunctionBody
+        functionDefinition: =>
+        expression2: IntegerLiteral
+          literal: 0
+        semicolon: ;
+  declarations(v1)
     FunctionTypeAlias
       typedefKeyword: typedef
       returnType: NamedType
@@ -1399,7 +1515,7 @@ typedef T mixin M {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionTypeAlias
       typedefKeyword: typedef
       returnType: NamedType
@@ -1430,7 +1546,7 @@ typedef T set a(b) {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionTypeAlias
       typedefKeyword: typedef
       returnType: NamedType
@@ -1445,6 +1561,12 @@ CompilationUnit
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              name: b
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -1467,7 +1589,7 @@ typedef T typedef A = B Function(C, D);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionTypeAlias
       typedefKeyword: typedef
       name: T
@@ -1484,6 +1606,16 @@ CompilationUnit
           name: B
         functionKeyword: Function
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              type: NamedType
+                name: C
+            RegularFormalParameter
+              type: NamedType
+                name: D
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
@@ -1507,7 +1639,7 @@ typedef T var a;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionTypeAlias
       typedefKeyword: typedef
       name: T

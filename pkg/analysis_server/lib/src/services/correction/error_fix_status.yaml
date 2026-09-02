@@ -44,7 +44,7 @@
 #   issue created for it.
 #
 # Stats:
-# -  85 "needsEvaluation"
+# -  87 "needsEvaluation"
 # - 302 "needsFix"
 # - 525 "hasFix"
 # - 487 "noFix"
@@ -62,6 +62,12 @@ analysis_option_deprecated:
   status: needsFix
   notes: |-
     The fix is to remove the deprecated option.
+analysis_options_deprecated_plugins:
+  status: needsFix
+  notes: |-
+    The fix is to remove the section. But I think there is something maybe also
+    we could do to remove the plugin package from the pubspec file. But that
+    might be conditional...
 analysis_option_deprecated_with_replacement:
   status: hasFix
 deprecated_lint:
@@ -72,6 +78,10 @@ deprecated_lint_with_replacement:
     We should be able to replace the deprecated lint rule with its replacement.
 duplicate_rule:
   status: hasFix
+exclude_invalid_glob:
+  status: needsFix
+  notes: |-
+    Remove the leading forward slash.
 include_file_not_found:
   status: noFix
   notes: |-
@@ -100,6 +110,12 @@ incompatible_lint_included:
   notes: |-
     Allowing the user to select which rule they would prefer to use so we can
     disable the incompatible ones.
+incompatible_plugin_source:
+  status: needsFix
+  notes: |-
+    The fix is pretty simple; change this plugin source to be the same as the
+    other. We could even offer two fixes; the second would be to change the
+    other plugin source to match this one.
 invalid_option:
   status: needsFix
   notes: |-
@@ -115,10 +131,6 @@ multiple_plugins:
   notes: |-
     The fix is to remove the plugin name. Might not be worth the cost if we
     can address the question of if/how we're supporting plugins.
-plugins_in_inner_options:
-  status: needsFix
-  notes: |-
-    The fix is to delete the 'plugins' section.
 recursive_include_file:
   status: noFix
   notes: |-
@@ -275,6 +287,8 @@ augmentation_type_parameter_name:
   status: needsFix
   notes: |-
     We could rename the type parameter, this is purely local operation.
+augmentation_variable_different_getter_setter_types:
+  status: needsEvaluation
 augmentation_without_declaration:
   status: noFix
 augmentation_without_getter_declaration:
@@ -596,6 +610,8 @@ deferred_import_of_extension:
     Remove the `deferred` keyword from the import.
 definitely_unassigned_late_local_variable:
   status: noFix
+different_inherited_getter_and_setter_types:
+  status: needsEvaluation
 disallowed_type_instantiation_expression:
   status: needsFix
   since: 2.15
@@ -971,6 +987,8 @@ initializer_for_static_field:
   status: needsFix
   notes: |-
     Suggest a different field whose name is similar.
+initializing_declaring_parameter:
+  status: needsEvaluation
 initializing_formal_for_non_existent_field:
   status: hasFix
 instance_access_to_static_member:
@@ -1384,7 +1402,7 @@ not_initialized_non_nullable_instance_field:
 not_initialized_non_nullable_instance_field_constructor:
   status: noFix
 not_initialized_non_nullable_variable:
-  status: noFix
+  status: hasFix
 not_instantiated_bound:
   status: noFix
 not_iterable_spread:
@@ -1606,6 +1624,8 @@ super_initializer_in_object:
   status: noFix
   notes: |-
     Object is only declared in SDK code; those developers do OK without fixes.
+super_initializing_declaring_parameter:
+  status: needsEvaluation
 super_invocation_not_last:
   status: hasFix
 switch_case_completes_normally:
@@ -2173,6 +2193,8 @@ directives_ordering_exports:
   status: hasFix
 directives_ordering_package_before_relative:
   status: hasFix
+discarded_future_or:
+  status: hasFix
 discarded_futures:
   status: hasFix
 do_not_use_environment:
@@ -2190,7 +2212,9 @@ empty_container_bodies:
   status: hasFix
 empty_statements:
   status: hasFix
-eol_at_end_of_file:
+eol_at_end_of_file_missing:
+  status: hasFix
+eol_at_end_of_file_too_many:
   status: hasFix
 erase_dart_type_extension_types:
   status: needsEvaluation
@@ -2201,6 +2225,8 @@ file_names:
   notes: |-
     The fix is to rename the file, but that's a refactoring.
 flutter_style_todos:
+  status: hasFix
+future_sync_value:
   status: hasFix
 hash_and_equals:
   status: hasFix
@@ -2270,6 +2296,8 @@ matching_super_parameters:
        parameter name.
     2. Transpose two super parameters if doing so would match up their
        super-constructor parameters.
+migrate_design_widgets:
+  status: hasFix
 missing_code_block_language_in_doc_comment:
   status: needsEvaluation
 missing_whitespace_between_adjacent_strings:
@@ -2293,8 +2321,14 @@ no_dynamic_casts:
   notes: The easy fix is to wrap the expression in a cast.
 no_leading_underscores_for_library_prefixes:
   status: hasFix
+no_leading_underscores_for_library_prefixes_shadowed:
+  status: noFix
+  notes: The real fix should be manual rename.
 no_leading_underscores_for_local_identifiers:
   status: hasFix
+no_leading_underscores_for_local_identifiers_shadowed:
+  status: noFix
+  notes: The real fix should be manual rename.
 no_literal_bool_comparisons:
   status: hasFix
 no_logic_in_create_state:
@@ -2492,7 +2526,7 @@ sort_child_properties_last:
 sort_constructors_first:
   status: hasFix
 sort_pub_dependencies:
-  status: needsFix
+  status: hasFix
 sort_unnamed_constructors_first:
   status: hasFix
 specify_nonobvious_local_variable_types:
@@ -2528,6 +2562,8 @@ type_annotate_public_apis:
 type_init_formals:
   status: hasFix
 type_literal_in_constant_pattern:
+  status: hasFix
+unawaited_future_or:
   status: hasFix
 unawaited_futures:
   status: hasFix
@@ -2601,6 +2637,8 @@ unnecessary_string_interpolations:
   status: hasFix
 unnecessary_this:
   status: hasFix
+unnecessary_this_alias:
+  status: needsEvaluation
 unnecessary_to_list_in_spreads:
   status: hasFix
 unnecessary_type_name_in_constructor:
@@ -2922,6 +2960,8 @@ export_directive_after_part_directive:
     Move the directive to a valid place.
 extension_augmentation_has_on_clause:
   status: hasFix
+extension_augmentation_without_name:
+  status: needsEvaluation
 extension_declares_abstract_member:
   status: needsFix
   notes: |-
@@ -3213,6 +3253,8 @@ missing_variable_in_for_each:
   status: noFix
 mixed_parameter_groups:
   status: noFix
+mixin_augmentation_has_on_clause:
+  status: needsEvaluation
 mixin_declares_constructor:
   status: hasFix
 mixin_with_clause:
@@ -3708,12 +3750,7 @@ invalid_deprecated_subclass_annotation:
   status: needsFix
   notes: The fix is to remove the annotation.
 invalid_export_of_internal_element:
-  status: needsFix
-  notes: |-
-    Low priority, because this is likely not encountered often.
-
-    The fix is to update the export directive so that the name is no longer
-    exported.
+  status: hasFix
 invalid_export_of_internal_element_indirectly:
   status: needsFix
   notes: |-

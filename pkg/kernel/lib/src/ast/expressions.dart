@@ -568,6 +568,14 @@ class InstanceGet extends Expression {
   ///      a.t; // The result type is `String`.
   ///    }
   ///
+  /// Note that [resultType] can be overwritten with a more general type in case
+  /// the type parameters of either the class or the generic method occur in the
+  /// return type contravariantly, so that [resultType] is always a supertype of
+  /// the runtime type of the invocation value. In that case an as-check is
+  /// generated to make sure the runtime type of the value is the subtype of the
+  /// return type of the method.  If that happens, [resultType] and
+  /// [getStaticType] yield the type that might be different from the static
+  /// type of the expression as defined by the language specification.
   DartType resultType;
 
   Reference interfaceTargetReference;
@@ -598,14 +606,14 @@ class InstanceGet extends Expression {
     receiver.parent = this;
   }
 
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) => resultType;
+
   Member get interfaceTarget => interfaceTargetReference.asMember;
 
   void set interfaceTarget(Member member) {
     interfaceTargetReference = getNonNullableMemberReferenceGetter(member);
   }
-
-  @override
-  DartType getStaticTypeInternal(StaticTypeContext context) => resultType;
 
   @override
   R accept<R>(ExpressionVisitor<R> v) => v.visitInstanceGet(this);
@@ -726,6 +734,14 @@ class InstanceTearOff extends Expression {
   ///      a.method; // The result type is `String Function<U>(int, U)`.
   ///    }
   ///
+  /// Note that [resultType] can be overwritten with a more general type in case
+  /// the type parameters of either the class or the generic method occur in the
+  /// return type contravariantly, so that [resultType] is always a supertype of
+  /// the runtime type of the invocation value. In that case an as-check is
+  /// generated to make sure the runtime type of the value is the subtype of the
+  /// return type of the method.  If that happens, [resultType] and
+  /// [getStaticType] yield the type that might be different from the static
+  /// type of the expression as defined by the language specification.
   DartType resultType;
 
   Reference interfaceTargetReference;
@@ -756,14 +772,14 @@ class InstanceTearOff extends Expression {
     receiver.parent = this;
   }
 
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) => resultType;
+
   Procedure get interfaceTarget => interfaceTargetReference.asProcedure;
 
   void set interfaceTarget(Procedure procedure) {
     interfaceTargetReference = getNonNullableMemberReferenceGetter(procedure);
   }
-
-  @override
-  DartType getStaticTypeInternal(StaticTypeContext context) => resultType;
 
   @override
   R accept<R>(ExpressionVisitor<R> v) => v.visitInstanceTearOff(this);
@@ -1860,6 +1876,30 @@ class InstanceInvocation extends InstanceInvocationExpression {
   ///
   FunctionType functionType;
 
+  /// The static type of the result of the invocation.
+  ///
+  /// This includes substituted type parameters from the static type of the
+  /// receiver and the generic type arguments.
+  ///
+  /// For instance
+  ///
+  ///    class A<T> {
+  ///      Map<T, S> map<S>(S s) { ... }
+  ///    }
+  ///    m(A<String> a) {
+  ///      a.map(0); // The result type is `Map<String, int>`.
+  ///    }
+  ///
+  /// Note that [resultType] can be overwritten with a more general type in case
+  /// the type parameters of either the class or the generic method occur in the
+  /// return type contravariantly, so that [resultType] is always a supertype of
+  /// the runtime type of the invocation value. In that case an as-check is
+  /// generated to make sure the runtime type of the value is the subtype of the
+  /// return type of the method.  If that happens, [resultType] and
+  /// [getStaticType] yield the type that might be different from the static
+  /// type of the expression as defined by the language specification.
+  DartType resultType;
+
   Reference interfaceTargetReference;
 
   new(
@@ -1869,6 +1909,7 @@ class InstanceInvocation extends InstanceInvocationExpression {
     Arguments arguments, {
     required Procedure interfaceTarget,
     required FunctionType functionType,
+    DartType? resultType,
   }) : this.byReference(
          kind,
          receiver,
@@ -1878,6 +1919,7 @@ class InstanceInvocation extends InstanceInvocationExpression {
            interfaceTarget,
          ),
          functionType: functionType,
+         resultType: resultType,
        );
 
   new byReference(
@@ -1887,10 +1929,15 @@ class InstanceInvocation extends InstanceInvocationExpression {
     this.arguments, {
     required this.interfaceTargetReference,
     required this.functionType,
-  }) : assert(functionType.typeParameters.isEmpty) {
+    DartType? resultType,
+  }) : resultType = resultType ?? functionType.returnType,
+       assert(functionType.typeParameters.isEmpty) {
     receiver.parent = this;
     arguments.parent = this;
   }
+
+  @override
+  DartType getStaticTypeInternal(StaticTypeContext context) => resultType;
 
   Procedure get interfaceTarget => interfaceTargetReference.asProcedure;
 
@@ -1932,10 +1979,6 @@ class InstanceInvocation extends InstanceInvocationExpression {
   void set isBoundsSafe(bool value) {
     flags = value ? (flags | FlagBoundsSafe) : (flags & ~FlagBoundsSafe);
   }
-
-  @override
-  DartType getStaticTypeInternal(StaticTypeContext context) =>
-      functionType.returnType;
 
   @override
   R accept<R>(ExpressionVisitor<R> v) => v.visitInstanceInvocation(this);
@@ -2308,7 +2351,7 @@ class FunctionInvocation extends InstanceInvocationExpression {
 /// An invocation of a local function declaration.
 class LocalFunctionInvocation extends InvocationExpression {
   /// The variable declaration for the function declaration.
-  Variable variable;
+  LocalFunctionVariable variable;
 
   @override
   Arguments arguments;
@@ -4819,7 +4862,7 @@ class RecordLiteral extends Expression {
 
   @override
   String toString() {
-    return "RecordType(${toStringInternal()})";
+    return "RecordLiteral(${toStringInternal()})";
   }
 
   @override
@@ -5100,9 +5143,19 @@ class Let extends Expression {
   SyntheticVariable variable; // Must have an initializer.
   Expression body;
 
-  new(this.variable, this.body) {
+  new({required this.variable, required Expression value, required this.body}) {
     variable.parent = this;
     body.parent = this;
+    // ignore: deprecated_member_use_from_same_package
+    variable.initializer = value..parent = variable;
+  }
+
+  // ignore: deprecated_member_use_from_same_package
+  Expression get value => variable.initializer!;
+
+  void set value(Expression value) {
+    // ignore: deprecated_member_use_from_same_package
+    variable.initializer = value;
   }
 
   @override

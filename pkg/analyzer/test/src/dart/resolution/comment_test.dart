@@ -35,7 +35,7 @@ void f() {}
     var node = result.findNode.commentReference('A.named]');
     assertResolvedNodeText(node, r'''
 CommentReference
-  expression: PrefixedIdentifier
+  expression2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
       element: <testLibrary>::@class::A
@@ -63,7 +63,7 @@ void f() {}
     var node = result.findNode.commentReference('A.new]');
     assertResolvedNodeText(node, r'''
 CommentReference
-  expression: PrefixedIdentifier
+  expression2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
       element: <testLibrary>::@class::A
@@ -91,7 +91,7 @@ void f() {}
     var node = result.findNode.commentReference('A.foo]');
     assertResolvedNodeText(node, r'''
 CommentReference
-  expression: PrefixedIdentifier
+  expression2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
       element: <testLibrary>::@class::A
@@ -120,7 +120,7 @@ void f() {}
     var node = result.findNode.commentReference('B.foo]');
     assertResolvedNodeText(node, r'''
 CommentReference
-  expression: PrefixedIdentifier
+  expression2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: B
       element: <testLibrary>::@typeAlias::B
@@ -148,7 +148,7 @@ void f() {}
     var node = result.findNode.commentReference('A.foo]');
     assertResolvedNodeText(node, r'''
 CommentReference
-  expression: PrefixedIdentifier
+  expression2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
       element: <testLibrary>::@class::A
@@ -176,7 +176,7 @@ void f() {}
     var node = result.findNode.commentReference('A.foo]');
     assertResolvedNodeText(node, r'''
 CommentReference
-  expression: PrefixedIdentifier
+  expression2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
       element: <testLibrary>::@class::A
@@ -208,7 +208,7 @@ extension E2 on A {
     var node = result.findNode.commentReference('foo]');
     assertResolvedNodeText(node, r'''
 CommentReference
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: foo
     element: <null>
     staticType: null
@@ -224,7 +224,7 @@ class A {}
     var node = result.findNode.commentReference('foo]');
     assertResolvedNodeText(node, r'''
 CommentReference
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: foo
     element: <null>
     staticType: null
@@ -244,7 +244,7 @@ void f() {}
     var node = result.findNode.commentReference('A.foo]');
     assertResolvedNodeText(node, r'''
 CommentReference
-  expression: PrefixedIdentifier
+  expression2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
       element: <testLibrary>::@class::A
@@ -274,7 +274,7 @@ void f() {}
     var node = result.findNode.commentReference('B.foo]');
     assertResolvedNodeText(node, r'''
 CommentReference
-  expression: PrefixedIdentifier
+  expression2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: B
       element: <testLibrary>::@typeAlias::B
@@ -302,7 +302,7 @@ void f() {}
     var node = result.findNode.commentReference('A.foo]');
     assertResolvedNodeText(node, r'''
 CommentReference
-  expression: PrefixedIdentifier
+  expression2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
       element: <testLibrary>::@class::A
@@ -330,7 +330,7 @@ void f() {}
     var node = result.findNode.commentReference('A.foo]');
     assertResolvedNodeText(node, r'''
 CommentReference
-  expression: PrefixedIdentifier
+  expression2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
       element: <testLibrary>::@class::A
@@ -362,7 +362,7 @@ void f() {}
     var node = result.findNode.commentReference('A.named]');
     assertResolvedNodeText(node, r'''
 CommentReference
-  expression: PrefixedIdentifier
+  expression2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
       element: package:test/foo.dart::@class::A
@@ -394,7 +394,7 @@ void f() {}
     var node = result.findNode.commentReference('A.new]');
     assertResolvedNodeText(node, r'''
 CommentReference
-  expression: PrefixedIdentifier
+  expression2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
       element: package:test/foo.dart::@class::A
@@ -426,7 +426,7 @@ void f() {}
     var node = result.findNode.commentReference('A.foo]');
     assertResolvedNodeText(node, r'''
 CommentReference
-  expression: PrefixedIdentifier
+  expression2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
       element: package:test/foo.dart::@class::A
@@ -458,7 +458,7 @@ void f() {}
     var node = result.findNode.commentReference('A.foo]');
     assertResolvedNodeText(node, r'''
 CommentReference
-  expression: PrefixedIdentifier
+  expression2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
       element: package:test/foo.dart::@class::A
@@ -490,7 +490,7 @@ void f() {}
     var node = result.findNode.commentReference('A.foo]');
     assertResolvedNodeText(node, r'''
 CommentReference
-  expression: PrefixedIdentifier
+  expression2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
       element: package:test/foo.dart::@class::A
@@ -522,7 +522,7 @@ void f() {}
     var node = result.findNode.commentReference('A.foo]');
     assertResolvedNodeText(node, r'''
 CommentReference
-  expression: PrefixedIdentifier
+  expression2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
       element: package:test/foo.dart::@class::A
@@ -554,7 +554,7 @@ void f() {}
     var node = result.findNode.commentReference('A.foo]');
     assertResolvedNodeText(node, r'''
 CommentReference
-  expression: PrefixedIdentifier
+  expression2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
       element: package:test/foo.dart::@class::A
@@ -586,7 +586,7 @@ void f() {}
     var node = result.findNode.commentReference('E.foo]');
     assertResolvedNodeText(node, r'''
 CommentReference
-  expression: PrefixedIdentifier
+  expression2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: E
       element: package:test/foo.dart::@extension::E
@@ -618,7 +618,7 @@ void f() {}
     var node = result.findNode.commentReference('E.foo]');
     assertResolvedNodeText(node, r'''
 CommentReference
-  expression: PrefixedIdentifier
+  expression2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: E
       element: package:test/foo.dart::@extension::E
@@ -650,7 +650,7 @@ void f() {}
     var node = result.findNode.commentReference('E.foo]');
     assertResolvedNodeText(node, r'''
 CommentReference
-  expression: PrefixedIdentifier
+  expression2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: E
       element: package:test/foo.dart::@extension::E
@@ -682,7 +682,7 @@ void f() {}
     var node = result.findNode.commentReference('E.foo]');
     assertResolvedNodeText(node, r'''
 CommentReference
-  expression: PrefixedIdentifier
+  expression2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: E
       element: package:test/foo.dart::@extension::E
@@ -714,7 +714,7 @@ void f() {}
     var node = result.findNode.commentReference('E.foo]');
     assertResolvedNodeText(node, r'''
 CommentReference
-  expression: PrefixedIdentifier
+  expression2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: E
       element: package:test/foo.dart::@extension::E
@@ -746,7 +746,7 @@ void f() {}
     var node = result.findNode.commentReference('E.foo]');
     assertResolvedNodeText(node, r'''
 CommentReference
-  expression: PrefixedIdentifier
+  expression2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: E
       element: package:test/foo.dart::@extension::E
@@ -774,7 +774,7 @@ void f() {}
     var node = result.findNode.commentReference('E.foo]');
     assertResolvedNodeText(node, r'''
 CommentReference
-  expression: PrefixedIdentifier
+  expression2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: E
       element: <testLibrary>::@extension::E
@@ -802,7 +802,7 @@ void f() {}
     var node = result.findNode.commentReference('E.foo]');
     assertResolvedNodeText(node, r'''
 CommentReference
-  expression: PrefixedIdentifier
+  expression2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: E
       element: <testLibrary>::@extension::E
@@ -830,7 +830,7 @@ void f() {}
     var node = result.findNode.commentReference('E.foo]');
     assertResolvedNodeText(node, r'''
 CommentReference
-  expression: PrefixedIdentifier
+  expression2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: E
       element: <testLibrary>::@extension::E
@@ -858,7 +858,7 @@ void f() {}
     var node = result.findNode.commentReference('E.foo]');
     assertResolvedNodeText(node, r'''
 CommentReference
-  expression: PrefixedIdentifier
+  expression2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: E
       element: <testLibrary>::@extension::E
@@ -886,7 +886,7 @@ void f() {}
     var node = result.findNode.commentReference('E.foo]');
     assertResolvedNodeText(node, r'''
 CommentReference
-  expression: PrefixedIdentifier
+  expression2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: E
       element: <testLibrary>::@extension::E
@@ -914,7 +914,7 @@ void f() {}
     var node = result.findNode.commentReference('E.foo]');
     assertResolvedNodeText(node, r'''
 CommentReference
-  expression: PrefixedIdentifier
+  expression2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: E
       element: <testLibrary>::@extension::E
@@ -947,8 +947,8 @@ void f() {}
     var node = result.findNode.commentReference('A.named]');
     assertResolvedNodeText(node, r'''
 CommentReference
-  expression: PropertyAccess
-    target: PrefixedIdentifier
+  expression2: PropertyAccess
+    target2: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: self
         element: <testLibraryFragment>::@prefix::self
@@ -983,8 +983,8 @@ void f() {}
     var node = result.findNode.commentReference('A.new]');
     assertResolvedNodeText(node, r'''
 CommentReference
-  expression: PropertyAccess
-    target: PrefixedIdentifier
+  expression2: PropertyAccess
+    target2: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: self
         element: <testLibraryFragment>::@prefix::self
@@ -1019,8 +1019,8 @@ void f() {}
     var node = result.findNode.commentReference('A.foo]');
     assertResolvedNodeText(node, r'''
 CommentReference
-  expression: PropertyAccess
-    target: PrefixedIdentifier
+  expression2: PropertyAccess
+    target2: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: self
         element: <testLibraryFragment>::@prefix::self
@@ -1056,8 +1056,8 @@ void f() {}
     var node = result.findNode.commentReference('B.foo]');
     assertResolvedNodeText(node, r'''
 CommentReference
-  expression: PropertyAccess
-    target: PrefixedIdentifier
+  expression2: PropertyAccess
+    target2: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: self
         element: <testLibraryFragment>::@prefix::self
@@ -1092,8 +1092,8 @@ void f() {}
     var node = result.findNode.commentReference('A.foo]');
     assertResolvedNodeText(node, r'''
 CommentReference
-  expression: PropertyAccess
-    target: PrefixedIdentifier
+  expression2: PropertyAccess
+    target2: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: self
         element: <testLibraryFragment>::@prefix::self
@@ -1128,8 +1128,8 @@ void f() {}
     var node = result.findNode.commentReference('A.foo]');
     assertResolvedNodeText(node, r'''
 CommentReference
-  expression: PropertyAccess
-    target: PrefixedIdentifier
+  expression2: PropertyAccess
+    target2: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: self
         element: <testLibraryFragment>::@prefix::self
@@ -1164,8 +1164,8 @@ void f() {}
     var node = result.findNode.commentReference('A.foo]');
     assertResolvedNodeText(node, r'''
 CommentReference
-  expression: PropertyAccess
-    target: PrefixedIdentifier
+  expression2: PropertyAccess
+    target2: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: self
         element: <testLibraryFragment>::@prefix::self
@@ -1201,8 +1201,8 @@ void f() {}
     var node = result.findNode.commentReference('B.foo]');
     assertResolvedNodeText(node, r'''
 CommentReference
-  expression: PropertyAccess
-    target: PrefixedIdentifier
+  expression2: PropertyAccess
+    target2: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: self
         element: <testLibraryFragment>::@prefix::self
@@ -1237,8 +1237,8 @@ void f() {}
     var node = result.findNode.commentReference('A.foo]');
     assertResolvedNodeText(node, r'''
 CommentReference
-  expression: PropertyAccess
-    target: PrefixedIdentifier
+  expression2: PropertyAccess
+    target2: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: self
         element: <testLibraryFragment>::@prefix::self
@@ -1273,8 +1273,8 @@ void f() {}
     var node = result.findNode.commentReference('A.foo]');
     assertResolvedNodeText(node, r'''
 CommentReference
-  expression: PropertyAccess
-    target: PrefixedIdentifier
+  expression2: PropertyAccess
+    target2: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: self
         element: <testLibraryFragment>::@prefix::self
@@ -1309,8 +1309,8 @@ void f() {}
     var node = result.findNode.commentReference('foo]');
     assertResolvedNodeText(node, r'''
 CommentReference
-  expression: PropertyAccess
-    target: PrefixedIdentifier
+  expression2: PropertyAccess
+    target2: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: self
         element: <testLibraryFragment>::@prefix::self
@@ -1345,8 +1345,8 @@ void f() {}
     var node = result.findNode.commentReference('E.foo]');
     assertResolvedNodeText(node, r'''
 CommentReference
-  expression: PropertyAccess
-    target: PrefixedIdentifier
+  expression2: PropertyAccess
+    target2: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: self
         element: <testLibraryFragment>::@prefix::self
@@ -1381,8 +1381,8 @@ void f() {}
     var node = result.findNode.commentReference('E.foo]');
     assertResolvedNodeText(node, r'''
 CommentReference
-  expression: PropertyAccess
-    target: PrefixedIdentifier
+  expression2: PropertyAccess
+    target2: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: self
         element: <testLibraryFragment>::@prefix::self
@@ -1417,8 +1417,8 @@ void f() {}
     var node = result.findNode.commentReference('E.foo]');
     assertResolvedNodeText(node, r'''
 CommentReference
-  expression: PropertyAccess
-    target: PrefixedIdentifier
+  expression2: PropertyAccess
+    target2: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: self
         element: <testLibraryFragment>::@prefix::self
@@ -1453,8 +1453,8 @@ void f() {}
     var node = result.findNode.commentReference('E.foo]');
     assertResolvedNodeText(node, r'''
 CommentReference
-  expression: PropertyAccess
-    target: PrefixedIdentifier
+  expression2: PropertyAccess
+    target2: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: self
         element: <testLibraryFragment>::@prefix::self
@@ -1489,8 +1489,8 @@ void f() {}
     var node = result.findNode.commentReference('E.foo]');
     assertResolvedNodeText(node, r'''
 CommentReference
-  expression: PropertyAccess
-    target: PrefixedIdentifier
+  expression2: PropertyAccess
+    target2: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: self
         element: <testLibraryFragment>::@prefix::self
@@ -1527,7 +1527,7 @@ void f() {}
     var node = result.findNode.commentReference('foo]');
     assertResolvedNodeText(node, r'''
 CommentReference
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: foo
     element: <testLibrary>::@getter::foo
     staticType: null
@@ -1549,7 +1549,7 @@ extension E2 on int {
     var node = result.findNode.commentReference('foo]');
     assertResolvedNodeText(node, r'''
 CommentReference
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: foo
     element: <testLibrary>::@extension::E2::@setter::foo
     staticType: null
@@ -1567,7 +1567,7 @@ class A {
     var node = result.findNode.commentReference('foo]');
     assertResolvedNodeText(node, r'''
 CommentReference
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: foo
     element: <testLibrary>::@class::A::@method::foo
     staticType: null
@@ -1587,7 +1587,7 @@ class A {
     var node = result.findNode.commentReference('p]');
     assertResolvedNodeText(node, r'''
 CommentReference
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: p
     element: <testLibrary>::@class::A::@constructor::new::@formalParameter::p
     staticType: null
@@ -1604,7 +1604,7 @@ class A {
     var node = result.findNode.commentReference('p]');
     assertResolvedNodeText(node, r'''
 CommentReference
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: p
     element: <testLibrary>::@class::A::@constructor::new::@formalParameter::p
     staticType: null
@@ -1626,7 +1626,7 @@ class B extends A {
     var node = result.findNode.commentReference('p]');
     assertResolvedNodeText(node, r'''
 CommentReference
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: p
     element: <testLibrary>::@class::B::@constructor::new::@formalParameter::p
     staticType: null
@@ -1646,7 +1646,7 @@ enum Samurai {
     var node1 = result.findNode.commentReference('Samurai]');
     assertResolvedNodeText(node1, r'''
 CommentReference
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: Samurai
     element: <testLibrary>::@enum::Samurai
     staticType: null
@@ -1655,7 +1655,7 @@ CommentReference
     var node2 = result.findNode.commentReference('int]');
     assertResolvedNodeText(node2, r'''
 CommentReference
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: int
     element: dart:core::@class::int
     staticType: null
@@ -1664,7 +1664,7 @@ CommentReference
     var node3 = result.findNode.commentReference('WITH_SWORD]');
     assertResolvedNodeText(node3, r'''
 CommentReference
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: WITH_SWORD
     element: <testLibrary>::@enum::Samurai::@getter::WITH_SWORD
     staticType: null
@@ -1695,7 +1695,7 @@ foo(int p) => null;
     var node = result.findNode.commentReference('p]');
     assertResolvedNodeText(node, r'''
 CommentReference
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: p
     element: <testLibrary>::@function::foo::@formalParameter::p
     staticType: null
@@ -1711,7 +1711,7 @@ typedef Foo(int p);
     var node = result.findNode.commentReference('p]');
     assertResolvedNodeText(node, r'''
 CommentReference
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: p
     element: p@24
     staticType: null
@@ -1727,7 +1727,7 @@ typedef Foo<T> = Function<S>(int p);
     var node1 = result.findNode.commentReference('T]');
     assertResolvedNodeText(node1, r'''
 CommentReference
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: T
     element: #E0 T
     staticType: null
@@ -1736,7 +1736,7 @@ CommentReference
     var node2 = result.findNode.commentReference('S]');
     assertResolvedNodeText(node2, r'''
 CommentReference
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: S
     element: #E0 S
     staticType: null
@@ -1745,7 +1745,7 @@ CommentReference
     var node3 = result.findNode.commentReference('p]');
     assertResolvedNodeText(node3, r'''
 CommentReference
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: p
     element: p@68
     staticType: null
@@ -1787,7 +1787,7 @@ abstract class A {
     var node1 = result.findNode.commentReference('p1]');
     assertResolvedNodeText(node1, r'''
 CommentReference
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: p1
     element: <testLibrary>::@class::A::@method::ma::@formalParameter::p1
     staticType: null
@@ -1796,7 +1796,7 @@ CommentReference
     var node2 = result.findNode.commentReference('p2]');
     assertResolvedNodeText(node2, r'''
 CommentReference
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: p2
     element: <testLibrary>::@class::A::@method::mb::@formalParameter::p2
     staticType: null
@@ -1805,7 +1805,7 @@ CommentReference
     var node3 = result.findNode.commentReference('p3]');
     assertResolvedNodeText(node3, r'''
 CommentReference
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: p3
     element: <testLibrary>::@class::A::@method::mc::@formalParameter::p3
     staticType: null
@@ -1814,7 +1814,7 @@ CommentReference
     var node4 = result.findNode.commentReference('p4]');
     assertResolvedNodeText(node4, r'''
 CommentReference
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: p4
     element: <testLibrary>::@class::A::@method::mc::@formalParameter::p4
     staticType: null
@@ -1823,7 +1823,7 @@ CommentReference
     var node5 = result.findNode.commentReference('p5]');
     assertResolvedNodeText(node5, r'''
 CommentReference
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: p5
     element: <testLibrary>::@class::A::@method::md::@formalParameter::p5
     staticType: null
@@ -1832,7 +1832,7 @@ CommentReference
     var node6 = result.findNode.commentReference('p6]');
     assertResolvedNodeText(node6, r'''
 CommentReference
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: p6
     element: <testLibrary>::@class::A::@method::md::@formalParameter::p6
     staticType: null
@@ -1856,7 +1856,7 @@ void f() {}
     var node = result.findNode.commentReference('foo]');
     assertResolvedNodeText(node, r'''
 CommentReference
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: foo
     element: package:test/foo.dart::@getter::foo
     staticType: null
@@ -1882,7 +1882,7 @@ extension E2 on int {
     var node = result.findNode.commentReference('foo]');
     assertResolvedNodeText(node, r'''
 CommentReference
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: foo
     element: <testLibrary>::@extension::E2::@setter::foo
     staticType: null
@@ -1907,7 +1907,7 @@ void f() {}
     var node = result.findNode.commentReference('C]');
     assertResolvedNodeText(node, r'''
 CommentReference
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: C
     element: package:test/one.dart::@class::C
     staticType: null
@@ -1937,7 +1937,7 @@ main() {}
     assertResolvedNodeText(node1, r'''
 CommentReference
   newKeyword: new
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: A
     element: package:test/foo.dart::@class::A::@constructor::new
     staticType: null
@@ -1947,7 +1947,7 @@ CommentReference
     assertResolvedNodeText(node2, r'''
 CommentReference
   newKeyword: new
-  expression: PrefixedIdentifier
+  expression2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
       element: package:test/foo.dart::@class::A
@@ -1980,7 +1980,7 @@ enum E {
     var node = result.findNode.commentReference('foo]');
     assertResolvedNodeText(node, r'''
 CommentReference
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: foo
     element: package:test/foo.dart::@function::foo
     staticType: null
@@ -2002,7 +2002,7 @@ extension type ET(int it) {}
     var node = result.findNode.commentReference('foo]');
     assertResolvedNodeText(node, r'''
 CommentReference
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: foo
     element: package:test/foo.dart::@function::foo
     staticType: null
@@ -2025,7 +2025,7 @@ class C {
     var node = result.findNode.commentReference('A]');
     assertResolvedNodeText(node, r'''
 CommentReference
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: A
     element: package:test/foo.dart::@class::A
     staticType: null
@@ -2046,7 +2046,7 @@ library;
     var node = result.findNode.commentReference('A]');
     assertResolvedNodeText(node, r'''
 CommentReference
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: A
     element: package:test/foo.dart::@class::A
     staticType: null
@@ -2068,7 +2068,7 @@ void f() {}
     var node = result.findNode.commentReference('foo]');
     assertResolvedNodeText(node, r'''
 CommentReference
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: foo
     element: package:test/foo.dart::@function::foo
     staticType: null
@@ -2089,7 +2089,7 @@ int x = 1;
     var node = result.findNode.commentReference('A]');
     assertResolvedNodeText(node, r'''
 CommentReference
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: A
     element: package:test/foo.dart::@class::A
     staticType: null
@@ -2111,7 +2111,7 @@ typedef T = int;
     var node = result.findNode.commentReference('foo]');
     assertResolvedNodeText(node, r'''
 CommentReference
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: foo
     element: package:test/foo.dart::@function::foo
     staticType: null
@@ -2137,7 +2137,7 @@ main() {}
     assertResolvedNodeText(node1, r'''
 CommentReference
   newKeyword: new
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: A
     element: <testLibrary>::@class::A::@constructor::new
     staticType: null
@@ -2147,7 +2147,7 @@ CommentReference
     assertResolvedNodeText(node2, r'''
 CommentReference
   newKeyword: new
-  expression: PrefixedIdentifier
+  expression2: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
       element: <testLibrary>::@class::A
@@ -2177,7 +2177,7 @@ class A {
     var node = result.findNode.commentReference('int]');
     assertResolvedNodeText(node, r'''
 CommentReference
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: int
     element: dart:core::@class::int
     staticType: null
@@ -2195,7 +2195,7 @@ void f(
     var node = result.findNode.commentReference('int]');
     assertResolvedNodeText(node, r'''
 CommentReference
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: int
     element: dart:core::@class::int
     staticType: null
@@ -2212,7 +2212,7 @@ void f(int bar()) {}
     var node = result.findNode.commentReference('bar]');
     assertResolvedNodeText(node, r'''
 CommentReference
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: bar
     element: <testLibrary>::@function::f::@formalParameter::bar
     staticType: null
@@ -2230,7 +2230,7 @@ void f(
     var node = result.findNode.commentReference('int]');
     assertResolvedNodeText(node, r'''
 CommentReference
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: int
     element: dart:core::@class::int
     staticType: null
@@ -2255,7 +2255,7 @@ class B extends A {
     var node = result.findNode.commentReference('int]');
     assertResolvedNodeText(node, r'''
 CommentReference
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: int
     element: dart:core::@class::int
     staticType: null
@@ -2279,7 +2279,7 @@ class B extends A {
     var node1 = result.findNode.commentReference('x] in A');
     assertResolvedNodeText(node1, r'''
 CommentReference
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: x
     element: <testLibrary>::@class::A::@setter::x
     staticType: null
@@ -2288,7 +2288,7 @@ CommentReference
     var node2 = result.findNode.commentReference('x] in B');
     assertResolvedNodeText(node2, r'''
 CommentReference
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: x
     element: <testLibrary>::@class::A::@setter::x
     staticType: null
@@ -2308,7 +2308,7 @@ class B extends A {}
     var node = result.findNode.commentReference('foo]');
     assertResolvedNodeText(node, r'''
 CommentReference
-  expression: SimpleIdentifier
+  expression2: SimpleIdentifier
     token: foo
     element: <testLibrary>::@class::A::@method::foo
     staticType: null

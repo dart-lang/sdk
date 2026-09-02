@@ -28,7 +28,6 @@ import 'package:analyzer/src/summary2/export.dart';
 import 'package:analyzer/src/summary2/informative_data.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/reference.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/uri_cache.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -304,6 +303,7 @@ class LibraryReader {
         create: (name) {
           var fragment = ClassFragmentImpl(name: name);
           fragment.readFlags(_reader);
+          fragment.withClauseMixinStartIndex = _reader.readUint30();
           fragment.typeParameters = _readTypeParameterFragments();
 
           _lazyRead((membersOffset) {
@@ -497,6 +497,7 @@ class LibraryReader {
         create: (name) {
           var fragment = EnumFragmentImpl(name: name);
           fragment.readFlags(_reader);
+          fragment.withClauseMixinStartIndex = _reader.readUint30();
           fragment.typeParameters = _readTypeParameterFragments();
 
           _lazyRead((offset) {
@@ -723,7 +724,7 @@ class LibraryReader {
 
           fragment.metadata = reader._readMetadata();
           if (reader.readOptionalExpression() case var initializer?) {
-            fragment.constantInitializer = initializer;
+            fragment.constantInitializer2 = initializer;
             ConstantContextForExpressionImpl(fragment, initializer);
           }
         },
@@ -761,8 +762,8 @@ class LibraryReader {
       var isFieldFormalParameter = _reader.readBool();
       var isSuperParameter = _reader.readBool();
 
-      var kindIndex = _reader.readByte();
-      var kind = ResolutionReader._formalParameterKind(kindIndex);
+      var kindTag = _reader.readEnum(FormalParameterKindTag.values);
+      var kind = ResolutionReader._formalParameterKind(kindTag);
 
       FormalParameterFragmentImpl fragment;
       if (isFieldFormalParameter) {
@@ -802,7 +803,7 @@ class LibraryReader {
   ) {
     for (var fragment in fragments) {
       fragment.metadata = reader._readMetadata();
-      fragment.constantInitializer = reader.readOptionalExpression();
+      fragment.constantInitializer2 = reader.readOptionalExpression();
     }
   }
 
@@ -1134,17 +1135,16 @@ class LibraryReader {
   }
 
   NamespaceCombinator _readNamespaceCombinator() {
-    var tag = _reader.readByte();
-    if (tag == Tag.HideCombinator) {
-      var combinator = HideElementCombinatorImpl();
-      combinator.hiddenNames = _reader.readStringReferenceList();
-      return combinator;
-    } else if (tag == Tag.ShowCombinator) {
-      var combinator = ShowElementCombinatorImpl();
-      combinator.shownNames = _reader.readStringReferenceList();
-      return combinator;
-    } else {
-      throw UnimplementedError('tag: $tag');
+    var tag = _reader.readEnum(NamespaceCombinatorTag.values);
+    switch (tag) {
+      case NamespaceCombinatorTag.hide:
+        var combinator = HideElementCombinatorImpl();
+        combinator.hiddenNames = _reader.readStringReferenceList();
+        return combinator;
+      case NamespaceCombinatorTag.show:
+        var combinator = ShowElementCombinatorImpl();
+        combinator.shownNames = _reader.readStringReferenceList();
+        return combinator;
     }
   }
 
@@ -1338,7 +1338,7 @@ class LibraryReader {
           reader.currentLibraryFragment = fragment.libraryFragment;
           fragment.metadata = reader._readMetadata();
           if (reader.readOptionalExpression() case var initializer?) {
-            fragment.constantInitializer = initializer;
+            fragment.constantInitializer2 = initializer;
             ConstantContextForExpressionImpl(fragment, initializer);
           }
         },
@@ -1739,7 +1739,9 @@ class ResolutionReader {
       var fragment = FormalParameterFragmentImpl(
         name: _readFragmentName(),
         nameOffset: null,
-        parameterKind: _formalParameterKind(_reader.readByte()),
+        parameterKind: _formalParameterKind(
+          _reader.readEnum(FormalParameterKindTag.values),
+        ),
       );
       fragment.initElement();
       fragment.element.type = readRequiredType();
@@ -1763,8 +1765,8 @@ class ResolutionReader {
     _localElements.length -= typeParameters.length;
 
     return FunctionTypeImpl(
-      typeParameters: typeParameters.map((f) => f.asElement2).toList(),
-      formalParameters: formalParameters.map((f) => f.asElement2).toList(),
+      typeParameters: typeParameters.map((f) => f.element).toList(),
+      formalParameters: formalParameters.map((f) => f.element).toList(),
       returnType: returnType,
       nullabilitySuffix: nullability,
     );
@@ -1857,17 +1859,16 @@ class ResolutionReader {
     return typeParameters;
   }
 
-  static ParameterKind _formalParameterKind(int encoding) {
-    if (encoding == Tag.ParameterKindRequiredPositional) {
-      return ParameterKind.REQUIRED;
-    } else if (encoding == Tag.ParameterKindOptionalPositional) {
-      return ParameterKind.POSITIONAL;
-    } else if (encoding == Tag.ParameterKindRequiredNamed) {
-      return ParameterKind.NAMED_REQUIRED;
-    } else if (encoding == Tag.ParameterKindOptionalNamed) {
-      return ParameterKind.NAMED;
-    } else {
-      throw StateError('Unexpected parameter kind encoding: $encoding');
+  static ParameterKind _formalParameterKind(FormalParameterKindTag tag) {
+    switch (tag) {
+      case FormalParameterKindTag.requiredPositional:
+        return ParameterKind.REQUIRED;
+      case FormalParameterKindTag.optionalPositional:
+        return ParameterKind.POSITIONAL;
+      case FormalParameterKindTag.requiredNamed:
+        return ParameterKind.NAMED_REQUIRED;
+      case FormalParameterKindTag.optionalNamed:
+        return ParameterKind.NAMED;
     }
   }
 }

@@ -284,7 +284,7 @@ static const char* ImageName(uword vm_instructions,
                              uword isolate_instructions,
                              uword pc,
                              intptr_t* offset) {
-  const Image isolate_image(isolate_instructions);
+  const TextImage isolate_image(isolate_instructions);
   if (isolate_image.contains(pc)) {
     *offset = pc - isolate_instructions;
     return kSnapshotTextAsmSymbol;
@@ -824,10 +824,6 @@ Simulator::Simulator() : memory_(FLAG_sim_buffer_memory) {
 
 Simulator::~Simulator() {
   delete[] stack_;
-  Isolate* isolate = Isolate::Current();
-  if (isolate != nullptr) {
-    isolate->set_simulator(nullptr);
-  }
 }
 
 // When the generated code calls an external reference we need to catch that in
@@ -927,14 +923,14 @@ uword Simulator::FunctionForRedirect(uword redirect) {
   return Redirection::FunctionForRedirect(redirect);
 }
 
-// Get the active Simulator for the current isolate.
+// Get the active Simulator for the current thread.
 Simulator* Simulator::Current() {
-  Isolate* isolate = Isolate::Current();
-  Simulator* simulator = isolate->simulator();
+  Thread* thread = Thread::Current();
+  Simulator* simulator = thread->simulator();
   if (simulator == nullptr) {
     NoSafepointScope no_safepoint;
     simulator = new Simulator();
-    isolate->set_simulator(simulator);
+    thread->set_simulator(simulator);
   }
   return simulator;
 }
@@ -1673,7 +1669,7 @@ void Simulator::DoRedirectedCall(Instr* instr) {
   // We can't instrument the runtime.
   memory_.FlushAll();
 
-  ASSERT(Utils::IsAligned(get_register(SPREG), OS::ActivationFrameAlignment()));
+  ASSERT(Utils::IsAligned(get_register(R31), OS::ActivationFrameAlignment()));
 
   SimulatorSetjmpBuffer buffer(this);
   if (!DART_SETJMP(buffer.buffer_)) {
@@ -1836,10 +1832,10 @@ extern "C" void DoRedirectedFfiCallback(CallbackContext* ctxt,
   COMPILE_ASSERT(FfiCallbackMetadata::NumCallbackTrampolinesPerPage() == 483);
 #elif defined(DART_TARGET_OS_MACOS)
   COMPILE_ASSERT(FfiCallbackMetadata::kPageSize == 16 * KB);
-  COMPILE_ASSERT(FfiCallbackMetadata::NumCallbackTrampolinesPerPage() == 2019);
+  COMPILE_ASSERT(FfiCallbackMetadata::NumCallbackTrampolinesPerPage() == 2013);
 #else
   COMPILE_ASSERT(FfiCallbackMetadata::kPageSize == 64 * KB);
-  COMPILE_ASSERT(FfiCallbackMetadata::NumCallbackTrampolinesPerPage() == 8163);
+  COMPILE_ASSERT(FfiCallbackMetadata::NumCallbackTrampolinesPerPage() == 8157);
 #endif
 
   CallbackMetadata out;
@@ -1877,9 +1873,11 @@ void Simulator::DoRedirectedFfiCallback(Thread* thread,
     *--sp = get_register(LR);
     *--sp = get_register(R20);
     *--sp = get_register(R21);
+    *--sp = get_register(R22);
+    *--sp = get_register(R23);
     set_register(nullptr, R31, reinterpret_cast<uword>(sp));
     COMPILE_ASSERT(FfiCallbackMetadata::kNativeCallbackTrampolineStackDelta ==
-                   4);
+                   6);
   }
 
   set_register(nullptr, R0, ctxt->integer_arguments[0]);
@@ -1916,6 +1914,8 @@ void Simulator::DoRedirectedFfiCallback(Thread* thread,
     // ldp lr, thr, [sp], 16!
     // <drop arguments>
     uword* sp = reinterpret_cast<uword*>(get_register(R31, R31IsSP));
+    set_register(nullptr, R23, *sp++);
+    set_register(nullptr, R22, *sp++);
     set_register(nullptr, R21, *sp++);
     set_register(nullptr, R20, *sp++);
     set_register(nullptr, LR, *sp++);
@@ -1923,7 +1923,7 @@ void Simulator::DoRedirectedFfiCallback(Thread* thread,
     sp += kStackSlotsCopied;
     set_register(nullptr, R31, reinterpret_cast<uword>(sp));
     COMPILE_ASSERT(FfiCallbackMetadata::kNativeCallbackTrampolineStackDelta ==
-                   4);
+                   6);
   }
 
   auto epilogue = reinterpret_cast<void* (*)(Thread*)>(out->epilogue);
@@ -2008,9 +2008,11 @@ void Simulator::DecodeSystem(Instr* instr) {
     return;
   }
 
-  if ((instr->Bits(0, 8) == 0x1f) && (instr->Bits(12, 4) == 2) &&
-      (instr->Bits(16, 3) == 3) && (instr->Bits(19, 2) == 0) &&
-      (instr->Bit(21) == 0)) {
+  if (instr->Bits(12, 20) == 0xD5032 && instr->Bits(0, 5) == 0x1f) {
+    // Format(instr, "hint");
+  } else if ((instr->Bits(0, 8) == 0x1f) && (instr->Bits(12, 4) == 2) &&
+             (instr->Bits(16, 3) == 3) && (instr->Bits(19, 2) == 0) &&
+             (instr->Bit(21) == 0)) {
     if (instr->Bits(8, 4) == 0) {
       // Format(instr, "nop");
     } else {
@@ -3338,6 +3340,9 @@ void Simulator::DecodeSIMDThreeSame(Instr* instr) {
       } else if ((U == 1) && (opcode == 0x3)) {
         // Format(instr, "veor 'vd, 'vn, 'vm");
         res = vn_val ^ vm_val;
+      } else if ((U == 1) && (opcode == 0x11)) {
+        // Format(instr, "vceq'vsz 'vd, 'vn, 'vm");
+        res = (vn_val == vm_val) ? 0xffffffff : 0;
       } else if ((U == 0) && (opcode == 0x10)) {
         // Format(instr, "vadd'vsz 'vd, 'vn, 'vm");
         res = vn_val + vm_val;
@@ -3691,7 +3696,49 @@ void Simulator::DecodeDPSimd1(Instr* instr) {
       set_vregisterd(vd, 1, 0);
       return;
     }
+    if ((sz == 2) && (Q == 1)) {
+      // Format(instr, "vuaddlv 'dd, 'vn.4S");
+      uint64_t sum = 0;
+      for (int i = 0; i < 4; i++) {
+        sum += static_cast<uint32_t>(get_vregisters(vn, i));
+      }
+      set_vregisterd(vd, 0, static_cast<int64_t>(sum));
+      set_vregisterd(vd, 1, 0);
+      return;
+    }
     UnimplementedInstruction(instr);
+    return;
+  }
+
+  // UMAXP Vd.4S, Vn.4S, Vm.4S — unsigned pairwise maximum of the word lanes.
+  if ((instr->InstructionBits() & 0xFFE0FC00) == 0x6EA0A400) {
+    const VRegister vd = instr->VdField();
+    const VRegister vn = instr->VnField();
+    const VRegister vm = instr->VmField();
+    uint32_t n[4], m[4];
+    for (int i = 0; i < 4; i++) {
+      n[i] = static_cast<uint32_t>(get_vregisters(vn, i));
+      m[i] = static_cast<uint32_t>(get_vregisters(vm, i));
+    }
+    const uint32_t res[4] = {
+        Utils::Maximum(n[0], n[1]), Utils::Maximum(n[2], n[3]),
+        Utils::Maximum(m[0], m[1]), Utils::Maximum(m[2], m[3])};
+    for (int i = 0; i < 4; i++) {
+      set_vregisters(vd, i, static_cast<int32_t>(res[i]));
+    }
+    return;
+  }
+
+  // UMINV Sd, Vn.4S — unsigned minimum across the four word lanes.
+  if ((instr->InstructionBits() & 0xFFFFFC00) == 0x6EB1A800) {
+    const VRegister vd = instr->VdField();
+    const VRegister vn = instr->VnField();
+    uint32_t mn = static_cast<uint32_t>(get_vregisters(vn, 0));
+    for (int i = 1; i < 4; i++) {
+      mn = Utils::Minimum(mn, static_cast<uint32_t>(get_vregisters(vn, i)));
+    }
+    set_vregisterd(vd, 0, static_cast<int64_t>(mn));
+    set_vregisterd(vd, 1, 0);
     return;
   }
 

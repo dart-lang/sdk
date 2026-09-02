@@ -984,7 +984,6 @@ augment enum A {;
   augment abstract int foo;
 //                     ^^^
 // [diag.augmentationWithoutDeclaration] The declaration being augmented doesn't exist.
-// [diag.nonFinalFieldInEnum] Enums can only declare final fields.
 }
 ''');
   }
@@ -1122,6 +1121,15 @@ augment extension A {
 //^^^^^^^
 // [diag.augmentationWithoutDeclaration] The declaration being augmented doesn't exist.
 }
+''');
+  }
+
+  test_extension_unnamed() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension on int {}
+
+augment extension {}
+// [diag.extensionAugmentationWithoutName][column 1][length 7] An extension augmentation must have a name.
 ''');
   }
 

@@ -33,7 +33,7 @@ class A implements B extends C {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -63,7 +63,7 @@ class A extends B implements C with D {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -100,7 +100,7 @@ class A implements B with C extends D {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -135,7 +135,7 @@ class A extends B extends C {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -160,7 +160,7 @@ class A implements B implements C, D {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -190,7 +190,7 @@ class A extends B with C, D with E {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -228,7 +228,7 @@ class UnrelatedClass extends Bar {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -267,7 +267,7 @@ class UnrelatedClass extends Bar {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -303,7 +303,7 @@ class A with B extends C {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -344,7 +344,7 @@ CompilationUnit
       uri: SimpleStringLiteral
         literal: 'bar.dart'
       semicolon: ;
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -371,7 +371,7 @@ CompilationUnit
       uri: SimpleStringLiteral
         literal: 'bar.dart'
       semicolon: ;
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -398,7 +398,7 @@ CompilationUnit
       uri: SimpleStringLiteral
         literal: 'bar.dart'
       semicolon: ;
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -429,7 +429,7 @@ CompilationUnit
         tokens
           foo
       semicolon: ;
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -533,20 +533,27 @@ CompilationUnit
       uri: SimpleStringLiteral
         literal: 'bar.dart'
       asKeyword: as
-      prefix: SimpleIdentifier
-        token: p
+      prefixName: p
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: A
           shownNames
             SimpleIdentifier
               token: A
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: B
           shownNames
             SimpleIdentifier
               token: B
       semicolon: ;
+      prefix: SimpleIdentifier
+        token: p
 ''');
   }
 
@@ -566,15 +573,19 @@ CompilationUnit
       uri: SimpleStringLiteral
         literal: 'bar.dart'
       asKeyword: as
-      prefix: SimpleIdentifier
-        token: p
+      prefixName: p
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: A
           shownNames
             SimpleIdentifier
               token: A
       semicolon: ;
+      prefix: SimpleIdentifier
+        token: p
 ''');
   }
 
@@ -595,15 +606,19 @@ CompilationUnit
         literal: 'bar.dart'
       deferredKeyword: deferred
       asKeyword: as
-      prefix: SimpleIdentifier
-        token: p
+      prefixName: p
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: A
           shownNames
             SimpleIdentifier
               token: A
       semicolon: ;
+      prefix: SimpleIdentifier
+        token: p
 ''');
   }
 
@@ -624,9 +639,10 @@ CompilationUnit
         literal: 'bar.dart'
       deferredKeyword: deferred
       asKeyword: as
+      prefixName: p
+      semicolon: ;
       prefix: SimpleIdentifier
         token: p
-      semicolon: ;
 ''');
   }
 
@@ -646,9 +662,10 @@ CompilationUnit
       uri: SimpleStringLiteral
         literal: 'bar.dart'
       asKeyword: as
+      prefixName: p
+      semicolon: ;
       prefix: SimpleIdentifier
         token: p
-      semicolon: ;
 ''');
   }
 
@@ -668,9 +685,10 @@ CompilationUnit
       uri: SimpleStringLiteral
         literal: 'bar.dart'
       asKeyword: as
+      prefixName: p
+      semicolon: ;
       prefix: SimpleIdentifier
         token: p
-      semicolon: ;
 ''');
   }
 
@@ -690,9 +708,10 @@ CompilationUnit
       uri: SimpleStringLiteral
         literal: 'bar.dart'
       asKeyword: as
+      prefixName: p
+      semicolon: ;
       prefix: SimpleIdentifier
         token: p
-      semicolon: ;
 ''');
   }
 
@@ -717,15 +736,19 @@ CompilationUnit
       uri: SimpleStringLiteral
         literal: 'bar.dart'
       asKeyword: as
-      prefix: SimpleIdentifier
-        token: p
+      prefixName: p
       combinators
         ShowCombinator
           keyword: show
+          names
+            CombinatorName
+              name: A
           shownNames
             SimpleIdentifier
               token: A
       semicolon: ; <synthetic>
+      prefix: SimpleIdentifier
+        token: p
     ImportDirective
       importKeyword: import
       uri: SimpleStringLiteral
@@ -751,9 +774,10 @@ CompilationUnit
         literal: 'bar.dart'
       deferredKeyword: deferred
       asKeyword: as
+      prefixName: p
+      semicolon: ;
       prefix: SimpleIdentifier
         token: p
-      semicolon: ;
 ''');
   }
 }
@@ -782,7 +806,7 @@ class B {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -792,9 +816,19 @@ CompilationUnit
         members
           ConstructorDeclaration
             constKeyword: const
-            typeName: SimpleIdentifier
+            typeName2: A
+            typeName(v1): SimpleIdentifier
               token: A
             parameters: FormalParameterList
+              leftParenthesis: (
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: [
+                formalParameters
+                  RegularFormalParameter
+                    name: x
+                rightDelimiter: ]
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
               leftParenthesis: (
               leftDelimiter: [
               parameter: RegularFormalParameter
@@ -825,7 +859,16 @@ CompilationUnit
                   token: A
                 arguments: ArgumentList
                   leftParenthesis: (
-                  arguments
+                  arguments2
+                    ConstructorInvocation
+                      keyword: const
+                      constructorReference: ConstructorReference2
+                        typeReference: ConstructorTypeReference
+                          name: A
+                      argumentList: ArgumentList
+                        leftParenthesis: (
+                        rightParenthesis: )
+                  arguments(v1)
                     InstanceCreationExpression
                       keyword: const
                       constructorName: ConstructorName
@@ -859,7 +902,7 @@ mixin A implements B on C {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     MixinDeclaration
       mixinKeyword: mixin
       name: A
@@ -889,7 +932,7 @@ mixin A implements B implements C, D {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     MixinDeclaration
       mixinKeyword: mixin
       name: A
@@ -918,7 +961,7 @@ mixin A on B on C {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     MixinDeclaration
       mixinKeyword: mixin
       name: A
@@ -949,7 +992,7 @@ mixin UnrelatedMixin on Bar {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     MixinDeclaration
       mixinKeyword: mixin
       name: Foo
@@ -989,7 +1032,7 @@ mixin UnrelatedMixin on Bar {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     MixinDeclaration
       mixinKeyword: mixin
       name: Foo
@@ -1037,7 +1080,7 @@ f() {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1058,12 +1101,12 @@ CompilationUnit
                   leftBracket: {
                   rightBracket: }
               ExpressionStatement
-                expression: MethodInvocation
+                expression2: MethodInvocation
                   methodName: SimpleIdentifier
                     token: catch
                   argumentList: ArgumentList
                     leftParenthesis: (
-                    arguments
+                    arguments2
                       SimpleIdentifier
                         token: e
                     rightParenthesis: )
@@ -1090,7 +1133,7 @@ f() {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression

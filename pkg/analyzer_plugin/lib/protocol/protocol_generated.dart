@@ -1399,6 +1399,198 @@ class AnalysisSetAnalysisRootsResult implements ResponseResult {
   int get hashCode => 866004753;
 }
 
+/// analysis.setConfigurations params
+///
+///     {
+///       "configurations": Map<FilePath, Map<String, PluginConfiguration>>
+///     }
+///
+/// Clients may not extend, implement or mix-in this class.
+class AnalysisSetConfigurationsParams implements RequestParams {
+  /// A table mapping the path of the directory to a map of plugin names to
+  /// their configurations.
+  Map<String, Map<String, PluginConfiguration>> configurations;
+
+  AnalysisSetConfigurationsParams(this.configurations);
+
+  factory AnalysisSetConfigurationsParams.fromJson(
+    JsonDecoder jsonDecoder,
+    String jsonPath,
+    Object? json, {
+    ClientUriConverter? clientUriConverter,
+  }) {
+    json ??= {};
+    if (json is! Map) {
+      throw jsonDecoder.mismatch(
+        jsonPath,
+        "'analysis.setConfigurations params'",
+        json,
+      );
+    }
+    Map<String, Map<String, PluginConfiguration>> configurations;
+    if (json case {'configurations': var encodedConfigurations}) {
+      configurations = jsonDecoder.decodeMap(
+        '$jsonPath.configurations',
+        encodedConfigurations,
+        keyDecoder: (String jsonPath, Object? json) =>
+            clientUriConverter?.fromClientFilePath(
+              jsonDecoder.decodeString(jsonPath, json),
+            ) ??
+            jsonDecoder.decodeString(jsonPath, json),
+        valueDecoder: (String jsonPath, Object? json) => jsonDecoder.decodeMap(
+          jsonPath,
+          json,
+          valueDecoder: (String jsonPath, Object? json) =>
+              PluginConfiguration.fromJson(
+                jsonDecoder,
+                jsonPath,
+                json,
+                clientUriConverter: clientUriConverter,
+              ),
+        ),
+      );
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "'configurations'", json);
+    }
+    return AnalysisSetConfigurationsParams(configurations);
+  }
+
+  factory AnalysisSetConfigurationsParams.fromRequest(
+    Request request, {
+    ClientUriConverter? clientUriConverter,
+  }) {
+    return AnalysisSetConfigurationsParams.fromJson(
+      RequestDecoder(request),
+      'params',
+      request.params,
+      clientUriConverter: clientUriConverter,
+    );
+  }
+
+  @override
+  Map<String, Object> toJson({ClientUriConverter? clientUriConverter}) {
+    var result = <String, Object>{};
+    result['configurations'] = mapMap(
+      configurations,
+      keyCallback: (String value) =>
+          clientUriConverter?.toClientFilePath(value) ?? value,
+      valueCallback: (Map<String, PluginConfiguration> value) => mapMap(
+        value,
+        valueCallback: (PluginConfiguration value) =>
+            value.toJson(clientUriConverter: clientUriConverter),
+      ),
+    );
+    return result;
+  }
+
+  @override
+  Request toRequest(String id, {ClientUriConverter? clientUriConverter}) {
+    return Request(
+      id,
+      'analysis.setConfigurations',
+      toJson(clientUriConverter: clientUriConverter),
+    );
+  }
+
+  @override
+  String toString() => json.encode(toJson(clientUriConverter: null));
+
+  @override
+  bool operator ==(other) {
+    if (other is AnalysisSetConfigurationsParams) {
+      return mapEqual(
+        configurations,
+        other.configurations,
+        (
+          Map<String, PluginConfiguration> a,
+          Map<String, PluginConfiguration> b,
+        ) => mapEqual(
+          a,
+          b,
+          (PluginConfiguration a, PluginConfiguration b) => a == b,
+        ),
+      );
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode =>
+      Object.hashAll([...configurations.keys, ...configurations.values]);
+}
+
+/// analysis.setConfigurations result
+///
+///     {
+///     }
+///
+/// Clients may not extend, implement or mix-in this class.
+class AnalysisSetConfigurationsResult implements ResponseResult {
+  AnalysisSetConfigurationsResult();
+
+  factory AnalysisSetConfigurationsResult.fromJson(
+    JsonDecoder jsonDecoder,
+    String jsonPath,
+    Object? json, {
+    ClientUriConverter? clientUriConverter,
+  }) {
+    json ??= {};
+    if (json is! Map) {
+      throw jsonDecoder.mismatch(
+        jsonPath,
+        "'analysis.setConfigurations result'",
+        json,
+      );
+    }
+    return AnalysisSetConfigurationsResult();
+  }
+
+  factory AnalysisSetConfigurationsResult.fromResponse(
+    Response response, {
+    ClientUriConverter? clientUriConverter,
+  }) {
+    return AnalysisSetConfigurationsResult.fromJson(
+      ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+      'result',
+      response.result,
+      clientUriConverter: clientUriConverter,
+    );
+  }
+
+  @override
+  Map<String, Object> toJson({ClientUriConverter? clientUriConverter}) {
+    var result = <String, Object>{};
+    return result;
+  }
+
+  @override
+  Response toResponse(
+    String id,
+    int requestTime, {
+    ClientUriConverter? clientUriConverter,
+  }) {
+    return Response(
+      id,
+      requestTime,
+      result: toJson(clientUriConverter: clientUriConverter),
+    );
+  }
+
+  @override
+  String toString() => json.encode(toJson(clientUriConverter: null));
+
+  @override
+  bool operator ==(other) {
+    if (other is AnalysisSetConfigurationsResult) {
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => 0;
+}
+
 /// analysis.setContextRoots params
 ///
 ///     {
@@ -4382,6 +4574,86 @@ class MoveFileOptions extends RefactoringOptions {
 
   @override
   int get hashCode => newFile.hashCode;
+}
+
+/// PluginConfiguration
+///
+///     {
+///       "enabled": bool
+///       "diagnosticSeverities": Map<String, String>
+///     }
+///
+/// Clients may not extend, implement or mix-in this class.
+class PluginConfiguration implements HasToJson {
+  /// True if the plugin is enabled for this directory.
+  bool enabled;
+
+  /// A map from diagnostic codes to their configured severities.
+  Map<String, String> diagnosticSeverities;
+
+  PluginConfiguration(this.enabled, this.diagnosticSeverities);
+
+  factory PluginConfiguration.fromJson(
+    JsonDecoder jsonDecoder,
+    String jsonPath,
+    Object? json, {
+    ClientUriConverter? clientUriConverter,
+  }) {
+    json ??= {};
+    if (json is! Map) {
+      throw jsonDecoder.mismatch(jsonPath, "'PluginConfiguration'", json);
+    }
+    bool enabled;
+    if (json case {'enabled': var encodedEnabled}) {
+      enabled = jsonDecoder.decodeBool('$jsonPath.enabled', encodedEnabled);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "'enabled'", json);
+    }
+    Map<String, String> diagnosticSeverities;
+    if (json case {'diagnosticSeverities': var encodedDiagnosticSeverities}) {
+      diagnosticSeverities = jsonDecoder.decodeMap(
+        '$jsonPath.diagnosticSeverities',
+        encodedDiagnosticSeverities,
+        valueDecoder: jsonDecoder.decodeString,
+      );
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "'diagnosticSeverities'", json);
+    }
+    return PluginConfiguration(enabled, diagnosticSeverities);
+  }
+
+  @override
+  Map<String, Object> toJson({ClientUriConverter? clientUriConverter}) {
+    var result = <String, Object>{};
+    result['enabled'] = enabled;
+    result['diagnosticSeverities'] = diagnosticSeverities;
+    return result;
+  }
+
+  @override
+  String toString() => json.encode(toJson(clientUriConverter: null));
+
+  @override
+  bool operator ==(other) {
+    if (other is PluginConfiguration) {
+      return enabled == other.enabled &&
+          mapEqual(
+            diagnosticSeverities,
+            other.diagnosticSeverities,
+            (String a, String b) => a == b,
+          );
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    enabled,
+    Object.hashAll([
+      ...diagnosticSeverities.keys,
+      ...diagnosticSeverities.values,
+    ]),
+  );
 }
 
 /// plugin.details params

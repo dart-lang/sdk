@@ -7,7 +7,9 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:math' as math;
 
+import 'package:analyzer/source/line_info.dart';
 import 'package:args/args.dart';
+import 'package:language_server_protocol/protocol_generated.dart' as lsp;
 import 'package:path/path.dart' as p;
 
 import 'core.dart';
@@ -71,10 +73,43 @@ Future<int> runFromSnapshot({
 /// `dart --disable-analytics` as there is special handling.  Any flags
 /// added here should also be tested by hand with a compiled SDK as unit tests
 /// running `dartdev.dart` directly do not hit that code path.
+///
+/// The option name for inline code evaluation.
+const String evalOption = 'eval';
+
+/// The option name for specifying package dependencies for inline evaluation.
+const String packageConstraintOption = 'package-constraint';
+
+/// The option name for offline pub resolution.
+const String offlineOption = 'offline';
+
+/// The MIME type for in-memory Dart evaluation data URIs.
+const String dartMimeType = 'application/dart';
+
 ArgParser globalDartdevOptionsParser({bool verbose = false}) {
   var argParser = ArgParser(
     usageLineLength: dartdevUsageLineLength,
     allowTrailingOptions: false,
+  );
+  argParser.addOption(
+    evalOption,
+    abbr: 'e',
+    help: 'Evaluate a Dart code snippet.',
+    valueHelp: 'code',
+  );
+  argParser.addMultiOption(
+    packageConstraintOption,
+    abbr: 'P',
+    help:
+        'Specific constraints for resolution of a single package '
+        '(e.g. "http", "path:^1.8.0").\n'
+        'See https://dart.dev/to/package-descriptors for more details.',
+    valueHelp: 'package-spec',
+  );
+  argParser.addFlag(
+    offlineOption,
+    negatable: false,
+    help: 'Run offline without querying network services.',
   );
   argParser.addFlag(
     'verbose',
@@ -160,38 +195,90 @@ extension FileSystemEntityExtension on FileSystemEntity {
   bool get isDartFile => this is File && p.extension(path) == '.dart';
 }
 
+extension LineInfoPositionExtension on LineInfo {
+  /// Converts a 0-indexed LSP [position] into a flat character offset using
+  /// this [LineInfo].
+  int offsetOfPosition(lsp.Position position) {
+    if (position.line < 0) return 0;
+    if (position.line >= lineCount) {
+      return lineStarts.isNotEmpty ? lineStarts.last : 0;
+    }
+    return getOffsetOfLine(position.line) + position.character;
+  }
+}
+
+/// Extension methods for working with package URIs.
+extension PackageUriExtension on Uri {
+  /// The package name if this is a valid `package:` URI with a non-empty
+  /// package name, or `null`.
+  String? get packageName {
+    if (!isScheme('package')) return null;
+    final first = pathSegments.firstOrNull;
+    return (first != null && first.isNotEmpty) ? first : null;
+  }
+
+  /// Whether this is a valid `package:` URI with a non-empty package name.
+  bool get isPackage => packageName != null;
+}
+
 /// Wraps [text] to the given [width], if provided.
 String wrapText(String text, {int? width}) {
   if (width == null) {
     return text;
   }
 
-  var buffer = StringBuffer();
+  final isAnsi = List<bool>.filled(text.length, false);
+  final matches = _ansiEscapeRegExp.allMatches(text);
+  for (final match in matches) {
+    for (var i = match.start; i < match.end; i++) {
+      isAnsi[i] = true;
+    }
+  }
+
+  final visualBuffer = StringBuffer();
+  for (var i = 0; i < text.length; i++) {
+    if (!isAnsi[i]) {
+      visualBuffer.write(text[i]);
+    }
+  }
+  final visualString = visualBuffer.toString();
+
+  final visualSplits = <int>{};
   var lineMaxEndIndex = width;
   var lineStartIndex = 0;
 
   while (true) {
-    if (lineMaxEndIndex >= text.length) {
-      buffer.write(text.substring(lineStartIndex, text.length));
+    if (lineMaxEndIndex >= visualString.length) {
       break;
     } else {
-      var lastSpaceIndex = text.lastIndexOf(' ', lineMaxEndIndex);
+      var lastSpaceIndex = visualString.lastIndexOf(' ', lineMaxEndIndex);
       if (lastSpaceIndex == -1 || lastSpaceIndex <= lineStartIndex) {
         // No space between [lineStartIndex] and [lineMaxEndIndex]. Get the
         // _next_ space.
-        lastSpaceIndex = text.indexOf(' ', lineMaxEndIndex);
+        lastSpaceIndex = visualString.indexOf(' ', lineMaxEndIndex);
         if (lastSpaceIndex == -1) {
-          // No space at all after [lineStartIndex].
-          lastSpaceIndex = text.length;
-          buffer.write(text.substring(lineStartIndex, lastSpaceIndex));
           break;
         }
       }
-      buffer.write(text.substring(lineStartIndex, lastSpaceIndex));
-      buffer.writeln();
+      visualSplits.add(lastSpaceIndex);
       lineStartIndex = lastSpaceIndex + 1;
     }
     lineMaxEndIndex = lineStartIndex + width;
+  }
+
+  final buffer = StringBuffer();
+  var v = 0;
+  for (var i = 0; i < text.length; i++) {
+    if (isAnsi[i]) {
+      buffer.write(text[i]);
+    } else {
+      if (visualSplits.contains(v)) {
+        buffer.writeln();
+      } else {
+        buffer.write(text[i]);
+      }
+      v++;
+    }
   }
   return buffer.toString();
 }
@@ -200,6 +287,8 @@ String wrapText(String text, {int? width}) {
 // capital letters.
 // https://dart.dev/language#important-concepts
 final RegExp _identifierRegExp = RegExp(r'^[a-z_][a-z\d_]*$');
+
+final RegExp _ansiEscapeRegExp = RegExp(r'\x1B\[[0-9;]*[a-zA-Z]');
 
 // non-contextual dart keywords.
 // https://dart.dev/language/keywords

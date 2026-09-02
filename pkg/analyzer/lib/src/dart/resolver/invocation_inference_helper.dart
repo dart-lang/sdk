@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -79,7 +80,7 @@ class InvocationInferenceHelper {
   /// return the element and type parameters to infer. Otherwise return `null`.
   ConstructorElementToInfer? constructorElementToInfer({
     required Element? typeElement,
-    required SimpleIdentifierImpl? constructorName,
+    required Token? constructorName,
     required LibraryElementImpl definingLibrary,
   }) {
     List<TypeParameterElementImpl> typeParameters;
@@ -90,7 +91,7 @@ class InvocationInferenceHelper {
       if (constructorName == null) {
         rawElement = typeElement.unnamedConstructor;
       } else {
-        var name = constructorName.name;
+        var name = constructorName.lexeme;
         rawElement = typeElement.getNamedConstructor(name);
         if (rawElement != null && !rawElement.isAccessibleIn(definingLibrary)) {
           rawElement = null;
@@ -101,7 +102,7 @@ class InvocationInferenceHelper {
       var aliasedType = typeElement.aliasedType;
       if (aliasedType is InterfaceTypeImpl) {
         rawElement = aliasedType.lookUpConstructor(
-          constructorName?.name,
+          constructorName?.lexeme,
           definingLibrary,
         );
       }
@@ -124,6 +125,22 @@ class InvocationInferenceHelper {
     DartType tearOffType, {
     required DartType contextType,
   }) {
+    return inferTearOff2(
+      expression,
+      tearOffType,
+      contextType: contextType,
+      recordTypeArguments: (typeArguments) {
+        identifier.tearOffTypeArgumentTypes = typeArguments;
+      },
+    );
+  }
+
+  DartType inferTearOff2(
+    ExpressionImpl expression,
+    DartType tearOffType, {
+    required DartType contextType,
+    required void Function(List<TypeImpl>) recordTypeArguments,
+  }) {
     if (contextType is FunctionTypeImpl && tearOffType is FunctionTypeImpl) {
       var typeArguments = _typeSystem.inferFunctionTypeInstantiation(
         contextType,
@@ -138,7 +155,7 @@ class InvocationInferenceHelper {
         dataForTesting: dataForTesting,
         nodeForTesting: expression,
       );
-      identifier.tearOffTypeArgumentTypes = typeArguments;
+      recordTypeArguments(typeArguments);
       if (typeArguments.isNotEmpty) {
         return tearOffType.instantiate(typeArguments);
       }
@@ -186,5 +203,17 @@ class InvocationInferenceHelper {
       target: target,
     ).resolveInvocation();
     node.recordStaticType(returnType, resolver: _resolver);
+  }
+
+  /// Moves inference instrumentation when resolution replaces an AST node.
+  void transferTestData(AstNodeImpl from, AstNodeImpl to) {
+    var dataForTesting = this.dataForTesting;
+    if (dataForTesting == null) {
+      return;
+    }
+    var constraints = dataForTesting.generatedTypeConstraints.remove(from);
+    if (constraints != null) {
+      dataForTesting.generatedTypeConstraints[to] = constraints;
+    }
   }
 }

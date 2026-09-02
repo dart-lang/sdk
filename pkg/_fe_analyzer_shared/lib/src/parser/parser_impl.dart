@@ -459,9 +459,6 @@ class Parser {
     return token;
   }
 
-  /// This method exists for analyzer compatibility only
-  /// and will be removed once analyzer/cfe integration is complete.
-  ///
   /// Similar to [parseUnit], this method parses a compilation unit,
   /// but stops when it reaches the first declaration or EOF.
   ///
@@ -469,7 +466,13 @@ class Parser {
   /// method takes the next token to be consumed rather than the last consumed
   /// token and returns the token after the last consumed token rather than the
   /// last consumed token.
+  ///
+  /// Any initial error tokens will be skipped and those errors will not be
+  /// reported.
   Token parseDirectives(Token token) {
+    // Skip over error tokens so the directives would be the same as when
+    // scanning normally.
+    token = skipErrorTokens(token);
     listener.beginCompilationUnit(token);
     int count = 0;
     DirectiveContext directiveState = new DirectiveContext(
@@ -487,9 +490,11 @@ class Parser {
         break;
       }
 
+      bool reportTopLevelDeclarationEnd = true;
       if (identical(token.next!.type, TokenType.SCRIPT_TAG)) {
         directiveState.checkScriptTag(this, token.next!);
         token = parseScript(token);
+        reportTopLevelDeclarationEnd = false;
       } else {
         token = parseMetadataStar(token);
         Token keyword = token.next!;
@@ -508,12 +513,16 @@ class Parser {
         } else if (identical(value, ';')) {
           token = start;
           listener.handleDirectivesOnly();
+          reportTopLevelDeclarationEnd = false;
         } else {
           listener.handleDirectivesOnly();
+          reportTopLevelDeclarationEnd = false;
           break;
         }
       }
-      listener.endTopLevelDeclaration(token);
+      if (reportTopLevelDeclarationEnd) {
+        listener.endTopLevelDeclaration(token);
+      }
     }
     token = token.next!;
     listener.endCompilationUnit(count, token);
@@ -2189,6 +2198,21 @@ class Parser {
         nameContext = IdentifierContext.fieldInitializer;
       }
     }
+    if (memberKind == MemberKind.PrimaryConstructor) {
+      if (varFinalOrConst != null && !varFinalOrConst.isA(Keyword.CONST)) {
+        if (thisKeyword != null) {
+          reportRecoverableError(
+            thisKeyword,
+            diag.initializingDeclaringParameter,
+          );
+        } else if (superKeyword != null) {
+          reportRecoverableError(
+            superKeyword,
+            diag.superInitializingDeclaringParameter,
+          );
+        }
+      }
+    }
 
     if (next.isIdentifier) {
       token = next;
@@ -3068,12 +3092,12 @@ class Parser {
     Token? constToken,
     String className,
   ) {
-    Token start = token;
     token = parsePrimaryConstructorOpt(
       DeclarationKind.Class,
       token,
       constToken,
     );
+    Token headerStart = token;
     token = parseClassHeaderOpt(token, beginToken, classKeyword);
     if (token.next!.isA(TokenType.SEMICOLON)) {
       Token semicolonToken = token = token.next!;
@@ -3088,7 +3112,7 @@ class Parser {
     } else {
       if (!token.next!.isA(TokenType.OPEN_CURLY_BRACKET)) {
         // Recovery
-        token = parseClassHeaderRecovery(start, beginToken, classKeyword);
+        token = parseClassHeaderRecovery(headerStart, beginToken, classKeyword);
         ensureBlock(token, BlockKind.classDeclaration);
       }
       token = parseClassOrMixinOrExtensionBody(
@@ -3384,7 +3408,12 @@ class Parser {
       mixinKeyword,
       name,
     );
-    token = parseMixinHeaderOpt(headerStart, constKeyword, mixinKeyword);
+    token = parseMixinHeaderOpt(
+      headerStart,
+      constKeyword,
+      mixinKeyword,
+      /* isAugmentation */ augmentToken != null,
+    );
     if (token.next!.isA(TokenType.SEMICOLON)) {
       Token semicolonToken = token = token.next!;
       if (!isPrimaryConstructorsFeatureEnabled) {
@@ -3398,7 +3427,12 @@ class Parser {
     } else {
       if (!token.next!.isA(TokenType.OPEN_CURLY_BRACKET)) {
         // Recovery
-        token = parseMixinHeaderRecovery(token, mixinKeyword, headerStart);
+        token = parseMixinHeaderRecovery(
+          token,
+          mixinKeyword,
+          headerStart,
+          /* isAugmentation */ augmentToken != null,
+        );
         ensureBlock(token, BlockKind.mixinDeclaration);
       }
       token = parseClassOrMixinOrExtensionBody(
@@ -3415,13 +3449,14 @@ class Parser {
     Token token,
     Token? constKeyword,
     Token mixinKeyword,
+    bool isAugmentation,
   ) {
     token = parsePrimaryConstructorOpt(
       DeclarationKind.Mixin,
       token,
       constKeyword,
     );
-    token = parseMixinOnOpt(token);
+    token = parseMixinOnOpt(token, isAugmentation);
     token = parseClassOrMixinOrEnumImplementsOpt(token);
     listener.handleMixinHeader(mixinKeyword);
     return token;
@@ -3431,6 +3466,7 @@ class Parser {
     Token token,
     Token mixinKeyword,
     Token headerStart,
+    bool isAugmentation,
   ) {
     final Listener primaryListener = listener;
     final MixinHeaderRecoveryListener recoveryListener =
@@ -3443,6 +3479,7 @@ class Parser {
       headerStart,
       /* constKeyword */ null,
       mixinKeyword,
+      /* isAugmentation */ false,
     );
     bool hasOn = recoveryListener.onKeyword != null;
     bool hasImplements = recoveryListener.implementsKeyword != null;
@@ -3475,7 +3512,7 @@ class Parser {
         );
         token = parseMixinOn(token);
       } else {
-        token = parseMixinOnOpt(token);
+        token = parseMixinOnOpt(token, isAugmentation);
       }
 
       if (recoveryListener.onKeyword != null) {
@@ -3529,10 +3566,14 @@ class Parser {
   ///   'on' typeName (',' typeName)*
   /// ;
   /// ```
-  Token parseMixinOnOpt(Token token) {
-    if (!token.next!.isA(Keyword.ON)) {
+  Token parseMixinOnOpt(Token token, bool isAugmentation) {
+    Token onKeyword = token.next!;
+    if (!onKeyword.isA(Keyword.ON)) {
       listener.handleMixinOn(/* onKeyword = */ null, /* typeCount = */ 0);
       return token;
+    }
+    if (isAugmentation) {
+      reportRecoverableError(onKeyword, diag.mixinAugmentationHasOnClause);
     }
     return parseMixinOn(token);
   }
@@ -3622,6 +3663,12 @@ class Parser {
         );
       }
     } else {
+      if (augmentToken != null) {
+        reportRecoverableError(
+          augmentToken,
+          diag.extensionAugmentationWithoutName,
+        );
+      }
       name = null;
     }
     token = computeTypeParamOrArg(
@@ -3851,9 +3898,9 @@ class Parser {
     return token;
   }
 
-  Token parsePrimaryConstructorBody(Token token) {
+  Token parsePrimaryConstructorBody(Token token, Token? augmentToken) {
     Token beginToken = token;
-    listener.beginPrimaryConstructorBody(token);
+    listener.beginPrimaryConstructorBody(token, augmentToken);
 
     Token? beforeInitializers = token;
     token = parseInitializersOpt(beforeInitializers);
@@ -5539,7 +5586,7 @@ class Parser {
           if (lateToken != null) {
             reportRecoverableErrorWithToken(lateToken, diag.extraneousModifier);
           }
-          token = parsePrimaryConstructorBody(next);
+          token = parsePrimaryConstructorBody(next, augmentToken);
           listener.endMember();
           return token;
         }
@@ -6093,6 +6140,8 @@ class Parser {
           break;
         case DeclarationKind.Extension:
           if (bodyStart.isA(TokenType.SEMICOLON) && externalToken == null) {
+            // TODO(johnniwinther): Stop reporting this in the parser. It is not
+            // valid when the member is augmented.
             reportRecoverableError(
               isOperator ? name.next! : name,
               diag.extensionDeclaresAbstractMember,
@@ -6101,6 +6150,8 @@ class Parser {
           break;
         case DeclarationKind.ExtensionType:
           if (bodyStart.isA(TokenType.SEMICOLON) && externalToken == null) {
+            // TODO(johnniwinther): Stop reporting this in the parser. It is not
+            // valid when the member is augmented.
             reportRecoverableError(
               isOperator ? name.next! : name,
               diag.extensionTypeDeclaresAbstractMember,
@@ -9370,8 +9421,6 @@ class Parser {
 
     if (typeArg != noTypeParamOrArg) {
       token = typeArg.parseArguments(token, this);
-    } else {
-      listener.handleNoTypeArguments(token.next!);
     }
     if (constantPatternContext == ConstantPatternContext.explicit &&
         !(token.next!.isA(TokenType.PERIOD) ||
@@ -9383,6 +9432,15 @@ class Parser {
       reportRecoverableError(token, diag.invalidConstantPatternConstPrefix);
       // Avoid subsequent errors.
       constantPatternContext = ConstantPatternContext.none;
+    }
+    if (typeArg == noTypeParamOrArg && !token.next!.isA(TokenType.OPEN_PAREN)) {
+      listener.handleSendWithoutArguments(beginToken, token, token.next!);
+      return token;
+    }
+    if (typeArg == noTypeParamOrArg) {
+      token = parseArgumentsOpt(token);
+      listener.handleInvocationWithoutTypeArguments(beginToken, token);
+      return token;
     }
     token = parseArgumentsOpt(token);
     listener.handleSend(beginToken, token);
@@ -9503,9 +9561,7 @@ class Parser {
             // Shortcut common cases:
             // "IDENTIFIER COMMA" and "IDENTIFIER CLOSE_PAREN"
             listener.handleIdentifier(next1, IdentifierContext.expression);
-            listener.handleNoTypeArguments(next2);
-            listener.handleNoArguments(next2);
-            listener.handleSend(next1, next1);
+            listener.handleSendWithoutArguments(next1, next1, next2);
             token = next1;
             expressionHandled = true;
           } else if (next2.isA(TokenType.PERIOD)) {
@@ -9518,16 +9574,12 @@ class Parser {
                 // "IDENTIFIER DOT IDENTIFIER COMMA" and
                 // "IDENTIFIER DOT IDENTIFIER CLOSE_PAREN"
                 listener.handleIdentifier(next1, IdentifierContext.expression);
-                listener.handleNoTypeArguments(next2);
-                listener.handleNoArguments(next2);
-                listener.handleSend(next1, next1);
+                listener.handleSendWithoutArguments(next1, next1, next2);
                 listener.handleIdentifier(
                   next3,
                   IdentifierContext.expressionContinuation,
                 );
-                listener.handleNoTypeArguments(next4);
-                listener.handleNoArguments(next4);
-                listener.handleSend(next3, next3);
+                listener.handleSendWithoutArguments(next3, next3, next4);
                 listener.handleDotAccess(
                   next2,
                   next3,

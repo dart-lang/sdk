@@ -3058,6 +3058,8 @@ class CodeDeserializationCluster : public DeserializationCluster {
                                      : Array::null();
       code->untag()->compile_timestamp_ = 0;
 #endif
+
+      code->untag()->instructions_length_ = 0;
     }
   }
 
@@ -10349,7 +10351,7 @@ void FullSnapshotReader::InitializeBSS() {
 #if defined(DART_PRECOMPILED_RUNTIME)
   // Initialize entries in the isolate portion of the BSS segment.
   ASSERT(Snapshot::IncludesCode(kind_));
-  Image image(instructions_image_);
+  TextImage image(instructions_image_);
   if (auto const bss = image.bss()) {
     BSS::Initialize(thread_, bss);
   }

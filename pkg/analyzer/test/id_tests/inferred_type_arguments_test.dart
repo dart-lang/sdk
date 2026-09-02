@@ -4,11 +4,12 @@
 
 import 'dart:io';
 
-import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
+import 'package:_fe_analyzer_shared/src/testing/id.dart' show Id, ActualDataMap;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
+import 'package:analyzer/src/dart/ast/ast.dart' show FunctionInvocationImpl;
 import 'package:analyzer/src/util/ast_data_extractor.dart';
 
 import '../util/id_testing_helper.dart';
@@ -45,7 +46,7 @@ class _InferredTypeArgumentsDataComputer extends DataComputer<List<DartType>> {
   void computeUnitData(
     TestingData testingData,
     CompilationUnit unit,
-    Map<Id, ActualData<List<DartType>>> actualMap,
+    ActualDataMap<List<DartType>> actualMap,
   ) {
     var unitUri = unit.declaredFragment!.source.uri;
     _InferredTypeArgumentsDataExtractor(unitUri, actualMap).run(unit);
@@ -60,10 +61,12 @@ class _InferredTypeArgumentsDataExtractor
   List<DartType>? computeNodeValue(Id id, AstNode node) {
     TypeArgumentList? typeArguments;
     List<DartType> typeArgumentTypes;
-    if (node is InstanceCreationExpression) {
-      typeArguments = node.constructorName.type.typeArguments;
-      typeArgumentTypes =
-          (node.constructorName.type.type as InterfaceType).typeArguments;
+    if (node is ConstructorInvocation) {
+      typeArguments = node.constructorReference.typeReference.typeArguments;
+      typeArgumentTypes = (node.staticType as InterfaceType).typeArguments;
+    } else if (node is FunctionInvocation) {
+      typeArguments = node.typeArguments;
+      typeArgumentTypes = (node as FunctionInvocationImpl).typeArgumentTypes!;
     } else if (node is InvocationExpression) {
       typeArguments = node.typeArguments;
       typeArgumentTypes = node.typeArgumentTypes!;

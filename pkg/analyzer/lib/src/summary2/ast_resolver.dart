@@ -46,6 +46,7 @@ class AstResolver {
       strictCasts: analysisOptions.strictCasts,
     ),
     typeAnalyzerOptions: _typeAnalyzerOptions,
+    enableLog: false,
   );
   late final _resolverVisitor = ResolverVisitor(
     _linker.inheritance,
@@ -71,13 +72,16 @@ class AstResolver {
   }) : _featureSet = _libraryFragment.library.featureSet;
 
   void resolveAnnotation(AnnotationImpl node) {
-    ElementBindingVisitor.forPartialResolution(
-      fragment: _libraryFragment,
-    ).bindSubtree(_libraryFragment, node);
-    node.accept(_resolutionVisitor);
+    ElementBindingVisitor(_libraryFragment).bindSubtree(_libraryFragment, node);
+    node.accept2(_resolutionVisitor);
     _prepareEnclosingDeclarations();
-    _flowAnalysis.bodyOrInitializer_enter(node, null);
-    node.accept(_resolverVisitor);
+    _flowAnalysis.bodyOrInitializer_enter(
+      node,
+      null,
+      // Offsets are ignored when doing summary linking.
+      offset: 0,
+    );
+    node.accept2(_resolverVisitor);
     _resolverVisitor.checkIdle();
     _flowAnalysis.bodyOrInitializer_exit();
   }
@@ -88,9 +92,9 @@ class AstResolver {
     // We don't want to visit the whole node because that will try to create an
     // element for it; we just want to process its children so that we can
     // resolve initializers and/or a redirection.
-    void accept(AstVisitor<Object?> visitor) {
-      node.initializers.accept(visitor);
-      node.redirectedConstructor?.accept(visitor);
+    void accept(AstVisitor2<Object?> visitor) {
+      node.initializers.accept2(visitor);
+      node.factoryRedirectionTarget?.accept2(visitor);
     }
 
     _prepareEnclosingDeclarations();
@@ -100,6 +104,8 @@ class AstResolver {
       node,
       element.formalParameters,
       visit: accept,
+      // Offsets are ignored when doing summary linking.
+      offset: 0,
     );
     accept(_resolverVisitor);
     _resolverVisitor.checkIdle();
@@ -114,16 +120,16 @@ class AstResolver {
     List<FormalParameterElementImpl>? inScopePrimaryConstructorParameters,
   }) {
     ExpressionImpl node = getNode();
-    ElementBindingVisitor.forPartialResolution(
-      fragment: _libraryFragment,
-    ).bindSubtree(_libraryFragment, node);
-    node.accept(_resolutionVisitor);
+    ElementBindingVisitor(_libraryFragment).bindSubtree(_libraryFragment, node);
+    node.accept2(_resolutionVisitor);
     // Node may have been rewritten so get it again.
     node = getNode();
     _prepareEnclosingDeclarations();
     _flowAnalysis.bodyOrInitializer_enter(
-      node.parent as AstNodeImpl,
+      node.parent2 as AstNodeImpl,
       inScopePrimaryConstructorParameters,
+      // Offsets are ignored when doing summary linking.
+      offset: 0,
     );
     _resolverVisitor.analyzeExpression(node, SharedTypeSchemaView(contextType));
     _resolverVisitor.popRewrite();
@@ -137,13 +143,11 @@ class AstResolver {
   ) {
     var element = node.declaredFragment!.element;
 
-    void accept(AstVisitor<Object?> visitor) {
-      body.initializers.accept(visitor);
+    void accept(AstVisitor2<Object?> visitor) {
+      body.initializers.accept2(visitor);
     }
 
-    var bindingVisitor = ElementBindingVisitor.forPartialResolution(
-      fragment: _libraryFragment,
-    );
+    var bindingVisitor = ElementBindingVisitor(_libraryFragment);
     for (var initializer in body.initializers) {
       bindingVisitor.bindSubtree(node.declaredFragment!, initializer);
     }
@@ -155,6 +159,8 @@ class AstResolver {
       node,
       element.formalParameters,
       visit: accept,
+      // Offsets are ignored when doing summary linking.
+      offset: 0,
     );
     accept(_resolverVisitor);
     _resolverVisitor.checkIdle();
@@ -167,7 +173,7 @@ class AstResolver {
     );
 
     _resolverVisitor.prepareEnclosingDeclarations(
-      enclosingClassElement: enclosingClassElement,
+      enclosingInstanceElement: enclosingClassElement,
       enclosingExecutableElement: enclosingExecutableElement,
     );
   }

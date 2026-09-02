@@ -62,7 +62,19 @@ FunctionExpression
       statements
         ReturnStatement
           returnKeyword: return
-          expression: MethodInvocation
+          expression2: UnqualifiedFunctionInvocation
+            name: foo
+            argumentList: ArgumentList
+              leftParenthesis: (
+              rightParenthesis: )
+            resolution: ExecutableInvocationResolution
+              element: <testLibrary>::@function::foo
+              invokeType: FutureOr<Object?> Function()
+              type: FutureOr<Object?>
+            staticType: FutureOr<Object?>
+            typeArgumentTypes
+              FutureOr<Object?>
+          expression(v1): MethodInvocation
             methodName: SimpleIdentifier
               token: foo
               element: <testLibrary>::@function::foo
@@ -117,7 +129,19 @@ FunctionExpression
   body: ExpressionFunctionBody
     keyword: async
     functionDefinition: =>
-    expression: MethodInvocation
+    expression2: UnqualifiedFunctionInvocation
+      name: foo
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      resolution: ExecutableInvocationResolution
+        element: <testLibrary>::@function::foo
+        invokeType: FutureOr<int> Function()
+        type: FutureOr<int>
+      staticType: FutureOr<int>
+      typeArgumentTypes
+        FutureOr<int>
+    expression(v1): MethodInvocation
       methodName: SimpleIdentifier
         token: foo
         element: <testLibrary>::@function::foo
@@ -159,7 +183,19 @@ FunctionExpression
   body: ExpressionFunctionBody
     keyword: async
     functionDefinition: =>
-    expression: MethodInvocation
+    expression2: UnqualifiedFunctionInvocation
+      name: foo
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      resolution: ExecutableInvocationResolution
+        element: <testLibrary>::@function::foo
+        invokeType: FutureOr<Object?> Function()
+        type: FutureOr<Object?>
+      staticType: FutureOr<Object?>
+      typeArgumentTypes
+        FutureOr<Object?>
+    expression(v1): MethodInvocation
       methodName: SimpleIdentifier
         token: foo
         element: <testLibrary>::@function::foo
@@ -194,7 +230,19 @@ FunctionExpression
   body: ExpressionFunctionBody
     keyword: async
     functionDefinition: =>
-    expression: MethodInvocation
+    expression2: UnqualifiedFunctionInvocation
+      name: foo
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      resolution: ExecutableInvocationResolution
+        element: <testLibrary>::@function::foo
+        invokeType: FutureOr<Object?> Function()
+        type: FutureOr<Object?>
+      staticType: FutureOr<Object?>
+      typeArgumentTypes
+        FutureOr<Object?>
+    expression(v1): MethodInvocation
       methodName: SimpleIdentifier
         token: foo
         element: <testLibrary>::@function::foo
@@ -245,7 +293,19 @@ FunctionExpression
       statements
         YieldStatement
           yieldKeyword: yield
-          expression: MethodInvocation
+          expression2: UnqualifiedFunctionInvocation
+            name: foo
+            argumentList: ArgumentList
+              leftParenthesis: (
+              rightParenthesis: )
+            resolution: ExecutableInvocationResolution
+              element: <testLibrary>::@function::foo
+              invokeType: int Function()
+              type: int
+            staticType: int
+            typeArgumentTypes
+              int
+          expression(v1): MethodInvocation
             methodName: SimpleIdentifier
               token: foo
               element: <testLibrary>::@function::foo
@@ -296,7 +356,19 @@ FunctionExpression
       statements
         ReturnStatement
           returnKeyword: return
-          expression: MethodInvocation
+          expression2: UnqualifiedFunctionInvocation
+            name: foo
+            argumentList: ArgumentList
+              leftParenthesis: (
+              rightParenthesis: )
+            resolution: ExecutableInvocationResolution
+              element: <testLibrary>::@function::foo
+              invokeType: int Function()
+              type: int
+            staticType: int
+            typeArgumentTypes
+              int
+          expression(v1): MethodInvocation
             methodName: SimpleIdentifier
               token: foo
               element: <testLibrary>::@function::foo
@@ -350,7 +422,19 @@ FunctionExpression
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression: MethodInvocation
+    expression2: UnqualifiedFunctionInvocation
+      name: foo
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      resolution: ExecutableInvocationResolution
+        element: <testLibrary>::@function::foo
+        invokeType: int Function()
+        type: int
+      staticType: int
+      typeArgumentTypes
+        int
+    expression(v1): MethodInvocation
       methodName: SimpleIdentifier
         token: foo
         element: <testLibrary>::@function::foo
@@ -401,7 +485,19 @@ FunctionExpression
       statements
         YieldStatement
           yieldKeyword: yield
-          expression: MethodInvocation
+          expression2: UnqualifiedFunctionInvocation
+            name: foo
+            argumentList: ArgumentList
+              leftParenthesis: (
+              rightParenthesis: )
+            resolution: ExecutableInvocationResolution
+              element: <testLibrary>::@function::foo
+              invokeType: int Function()
+              type: int
+            staticType: int
+            typeArgumentTypes
+              int
+          expression(v1): MethodInvocation
             methodName: SimpleIdentifier
               token: foo
               element: <testLibrary>::@function::foo
@@ -436,6 +532,15 @@ void f(List<int> items) {
 FunctionExpression
   parameters: FormalParameterList
     leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        name: item
+        declaredFragment: <testLibraryFragment> item@43
+          element: hasImplicitType isPublic
+            type: int
+    rightParenthesis: )
+  parameters(v1): FormalParameterList
+    leftParenthesis: (
     parameter: RegularFormalParameter
       name: item
       declaredFragment: <testLibraryFragment> item@43
@@ -447,7 +552,7 @@ FunctionExpression
       leftBracket: {
       statements
         ExpressionStatement
-          expression: SimpleIdentifier
+          expression2: SimpleIdentifier
             token: item
             element: item@43
             staticType: int
@@ -474,6 +579,15 @@ main() {
     assertResolvedNodeText(node, r'''
 FunctionExpression
   parameters: FormalParameterList
+    leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        name: x
+        declaredFragment: <testLibraryFragment> x@53
+          element: hasImplicitType isPublic
+            type: Object?
+    rightParenthesis: )
+  parameters(v1): FormalParameterList
     leftParenthesis: (
     parameter: RegularFormalParameter
       name: x
@@ -506,6 +620,15 @@ main() {
     assertResolvedNodeText(node, r'''
 FunctionExpression
   parameters: FormalParameterList
+    leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        name: x
+        declaredFragment: <testLibraryFragment> x@52
+          element: hasImplicitType isPublic
+            type: Object?
+    rightParenthesis: )
+  parameters(v1): FormalParameterList
     leftParenthesis: (
     parameter: RegularFormalParameter
       name: x
@@ -547,6 +670,19 @@ FunctionExpression
     rightBracket: >
   parameters: FormalParameterList
     leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: T
+          element: #E0 T
+          type: T
+        name: a
+        declaredFragment: <testLibraryFragment> a@29
+          element: isPublic
+            type: T
+    rightParenthesis: )
+  parameters(v1): FormalParameterList
+    leftParenthesis: (
     parameter: RegularFormalParameter
       type: NamedType
         name: T
@@ -559,7 +695,7 @@ FunctionExpression
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression: ListLiteral
+    expression2: ListLiteral
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
@@ -569,7 +705,7 @@ FunctionExpression
             type: T
         rightBracket: >
       leftBracket: [
-      elements
+      elements2
         SimpleIdentifier
           token: a
           element: a@29
@@ -598,7 +734,7 @@ FunctionExpression
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression: IntegerLiteral
+    expression2: IntegerLiteral
       literal: 42
       staticType: int
   declaredFragment: <testLibraryFragment> null@null
@@ -621,7 +757,7 @@ FunctionExpression
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression: IntegerLiteral
+    expression2: IntegerLiteral
       literal: 42
       staticType: int
   declaredFragment: <testLibraryFragment> null@null
@@ -760,6 +896,25 @@ main() {
     _assertReturnType(result, '(E e) {', 'int');
   }
 
+  test_noContext_returnType_sync_blockBody_notNullable_switch_onEnum_beforePatterns() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+// %before-language-feature: patterns
+enum E { a, b }
+
+main() {
+  (E e) {
+    switch (e) {
+      case E.a:
+        return 0;
+      case E.b:
+        return 1;
+    }
+  };
+}
+''');
+    _assertReturnType(result, '(E e) {', 'int');
+  }
+
   test_noContext_returnType_sync_blockBody_notNullable_switch_onEnum_imported() async {
     newFile('$testPackageLibPath/a.dart', r'''
 enum E { a, b }
@@ -782,14 +937,14 @@ main() {
     _assertReturnType(result, '(p.E e) {', 'int');
   }
 
-  test_noContext_returnType_sync_blockBody_notNullable_switch_onEnum_imported_language219() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-// @dart = 2.19
+  test_noContext_returnType_sync_blockBody_notNullable_switch_onEnum_imported_beforePatterns() async {
+    var results = await resolveFilesWithDiagnostics({
+      getFile('$testPackageLibPath/a.dart'): r'''
+// %before-language-feature: patterns
 enum E { a, b }
-''');
-
-    var result = await resolveTestCodeWithDiagnostics('''
-// @dart = 2.19
+''',
+      testFile: '''
+// %before-language-feature: patterns
 import 'a.dart' as p;
 
 main() {
@@ -802,27 +957,9 @@ main() {
     }
   };
 }
-''');
-    _assertReturnType(result, '(p.E e) {', 'int');
-  }
-
-  test_noContext_returnType_sync_blockBody_notNullable_switch_onEnum_language219() async {
-    var result = await resolveTestCodeWithDiagnostics('''
-// @dart = 2.19
-enum E { a, b }
-
-main() {
-  (E e) {
-    switch (e) {
-      case E.a:
-        return 0;
-      case E.b:
-        return 1;
-    }
-  };
-}
-''');
-    _assertReturnType(result, '(E e) {', 'int');
+''',
+    });
+    _assertReturnType(results[testFile]!, '(p.E e) {', 'int');
   }
 
   test_noContext_returnType_sync_blockBody_null_hasReturn() async {
@@ -864,9 +1001,9 @@ main() {
     _assertReturnType(result, '(int a) {', 'int?');
   }
 
-  test_noContext_returnType_sync_blockBody_nullable_switch_language219() async {
+  test_noContext_returnType_sync_blockBody_nullable_switch_beforePatterns() async {
     var result = await resolveTestCodeWithDiagnostics('''
-// @dart = 2.19
+// %before-language-feature: patterns
 main() {
   (int a) {
     switch (a) {
@@ -977,8 +1114,31 @@ int test<T extends int Function(int)>(T Function() createT) {
 }
 ''');
 
-    var node = result.findNode.functionExpressionInvocation("('')");
-    assertResolvedNodeText(node, r'''FunctionExpressionInvocation
+    var node = result.findNode.callInvocation("('')");
+    assertResolvedNodeText(node, r'''CallInvocation
+  receiver: CallInvocation
+    receiver: SimpleIdentifier
+      token: createT
+      element: <testLibrary>::@function::test::@formalParameter::createT
+      staticType: T Function()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    resolution: FunctionTypeInvocationResolution
+      invokeType: T Function()
+      type: T
+    staticType: T
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      SimpleStringLiteral
+        literal: ''
+    rightParenthesis: )
+  resolution: FunctionTypeInvocationResolution
+    invokeType: int Function(int)
+    type: int
+  staticType: int
+V1: FunctionExpressionInvocation
   function: FunctionExpressionInvocation
     function: SimpleIdentifier
       token: createT
@@ -1009,8 +1169,33 @@ int test<T extends int Function(int)>(T Function() createT) {
 }
 ''');
 
-    var node = result.findNode.functionExpressionInvocation('(0)');
-    assertResolvedNodeText(node, r'''FunctionExpressionInvocation
+    var node = result.findNode.callInvocation('(0)');
+    assertResolvedNodeText(node, r'''CallInvocation
+  receiver: CallInvocation
+    receiver: SimpleIdentifier
+      token: createT
+      element: <testLibrary>::@function::test::@formalParameter::createT
+      staticType: T Function()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    resolution: FunctionTypeInvocationResolution
+      invokeType: T Function()
+      type: T
+    staticType: T
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <null-name>@null
+        staticType: int
+    rightParenthesis: )
+  resolution: FunctionTypeInvocationResolution
+    invokeType: int Function(int)
+    type: int
+  staticType: int
+V1: FunctionExpressionInvocation
   function: FunctionExpressionInvocation
     function: SimpleIdentifier
       token: createT

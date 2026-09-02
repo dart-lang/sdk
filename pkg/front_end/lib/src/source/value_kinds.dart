@@ -44,9 +44,9 @@ import 'stack_listener_impl.dart' as type;
 
 class ValueKinds {
   static const ValueKind AnnotationList =
-      const SingleValueKind<List<type.Expression>>();
+      const SingleValueKind<List<type.InternalExpression>>();
   static const ValueKind AnnotationListOrNull =
-      const SingleValueKind<List<type.Expression>>(NullValues.Metadata);
+      const SingleValueKind<List<type.InternalExpression>>(NullValues.Metadata);
   static const ValueKind AnonymousMethodParameters =
       const SingleValueKind<type.AnonymousMethodParameters>();
   static const ValueKind AnonymousMethodParameterBuilder =
@@ -69,7 +69,7 @@ class ValueKinds {
   static const ValueKind AwaitTokenOrNull = const SingleValueKind<type.Token>(
     NullValues.AwaitToken,
   );
-  static const ValueKind Block = const SingleValueKind<type.Block>();
+  static const ValueKind Block = const SingleValueKind<type.InternalBlock>();
   static const ValueKind BreakTarget = const SingleValueKind<type.JumpTarget>(
     NullValues.BreakTarget,
   );
@@ -94,23 +94,28 @@ class ValueKinds {
   static const ValueKind ContinueTarget =
       const SingleValueKind<type.JumpTarget>(NullValues.ContinueTarget);
   static const ValueKind DartType = const SingleValueKind<type.DartType>();
+  static const ValueKind Element =
+      const SingleValueKind<type.InternalElement>();
   static const ValueKind EnumConstantInfo =
       const SingleValueKind<type.EnumConstantInfo>();
   static const ValueKind EnumConstantInfoOrNull =
       const SingleValueKind<type.EnumConstantInfo>(NullValues.EnumConstantInfo);
   static const ValueKind EnumConstantInfoOrParserRecovery =
       const UnionValueKind([EnumConstantInfo, ParserRecovery]);
-  static const ValueKind Expression = const SingleValueKind<type.Expression>();
+  static const ValueKind Expression =
+      const SingleValueKind<type.InternalExpression>();
   static const ValueKind ExpressionOrPatternGuardCase =
       const SingleValueKind<type.ExpressionOrPatternGuardCase>();
   static const ValueKind ExpressionOrPatternGuardCaseList =
       const SingleValueKind<List<type.ExpressionOrPatternGuardCase>>();
   static const ValueKind ExpressionOrNull =
-      const SingleValueKind<type.Expression>(NullValues.Expression);
+      const SingleValueKind<type.InternalExpression>(NullValues.Expression);
   static const ValueKind FieldInitializerTokenOrNull =
       const SingleValueKind<type.Token>(NullValues.FieldInitializer);
   static const ValueKind FieldInitializerOrNull =
-      const SingleValueKind<type.Expression>(NullValues.FieldInitializer);
+      const SingleValueKind<type.InternalExpression>(
+        NullValues.FieldInitializer,
+      );
   static const ValueKind FormalParameters =
       const SingleValueKind<type.FormalParameters>();
   static const ValueKind FormalListOrNull =
@@ -123,6 +128,10 @@ class ValueKinds {
       const SingleValueKind<type.FunctionTypeParameterBuilder>();
   static const ValueKind FunctionTypeParameterBuilderList =
       const SingleValueKind<List<type.FunctionTypeParameterBuilder>>();
+  static const ValueKind FunctionTypeParameterBuilderListOrNull =
+      const SingleValueKind<List<type.FunctionTypeParameterBuilder>>(
+        NullValues.FormalParameters,
+      );
   static const ValueKind Generator = const SingleValueKind<type.Generator>();
   static const ValueKind Identifier = const SingleValueKind<type.Identifier>();
   static const ValueKind IdentifierOrNull =
@@ -136,13 +145,11 @@ class ValueKinds {
   static const ValueKind IdentifierOrOperatorOrParserRecovery =
       const UnionValueKind([Identifier, Operator, ParserRecovery]);
   static const ValueKind Initializer =
-      const SingleValueKind<type.Initializer>();
+      const SingleValueKind<type.InternalInitializer>();
   static const ValueKind Integer = const SingleValueKind<int>();
   static const ValueKind Label = const SingleValueKind<type.Label>();
   static const ValueKind LabelListOrNull =
       const SingleValueKind<List<type.Label>>(NullValues.Labels);
-  static const ValueKind MapLiteralEntry =
-      const SingleValueKind<type.MapLiteralEntry>();
   static const ValueKind MapPatternEntry =
       const SingleValueKind<type.InternalMapPatternEntry>();
   static const ValueKind ParameterList =
@@ -170,7 +177,7 @@ class ValueKinds {
   static const ValueKind Modifiers = const SingleValueKind<type.Modifiers>();
   static const ValueKind Name = const SingleValueKind<type.String>();
   static const ValueKind NamedExpression =
-      const SingleValueKind<type.NamedExpression>();
+      const SingleValueKind<type.InternalNamedExpression>();
   static const ValueKind NameList = const SingleValueKind<List<type.String>>();
   static const ValueKind NameListOrNull =
       const SingleValueKind<List<type.String>>(NullValues.IdentifierList);
@@ -218,11 +225,12 @@ class ValueKinds {
       const SingleValueKind<type.InternalSwitchExpressionCase>();
   static const ValueKind SwitchExpressionCaseList =
       const SingleValueKind<List<type.InternalSwitchExpressionCase>>();
-  static const ValueKind Statement = const SingleValueKind<type.Statement>();
+  static const ValueKind Statement =
+      const SingleValueKind<type.InternalStatement>();
   static const ValueKind StatementOrNull =
-      const SingleValueKind<type.Statement>(NullValues.Block);
+      const SingleValueKind<type.InternalStatement>(NullValues.Block);
   static const ValueKind StatementListOrNullList =
-      const SingleValueKind<List<List<type.Statement>?>>();
+      const SingleValueKind<List<List<type.InternalStatement>?>>();
   static const ValueKind String = const SingleValueKind<type.String>();
   static const ValueKind Token = const SingleValueKind<type.Token>();
   static const ValueKind TokenOrNull = const SingleValueKind<type.Token>(
@@ -255,8 +263,8 @@ class ValueKinds {
       const SingleValueKind<List<type.NominalParameterBuilder>>(
         NullValues.NominalParameters,
       );
-  static const ValueKind InternalVariableListOrNull =
-      const SingleValueKind<List<type.InternalVariable>>(
+  static const ValueKind JointVariableListOrNull =
+      const SingleValueKind<List<type.JointVariable>>(
         NullValues.VariableDeclarationList,
       );
 }

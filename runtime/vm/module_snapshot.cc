@@ -72,6 +72,8 @@ class ModuleSnapshot : public AllStatic {
     kRecordTypes,
     kTypeParameterTypes,
     kTypeArguments,
+    kClosureDatas,
+    kFunctions,
     kCodes,
     kICDatas,
     kSubtypeTestCaches,
@@ -79,23 +81,9 @@ class ModuleSnapshot : public AllStatic {
     kExceptionHandlers,
     kPcDescriptors,
     kCatchEntryMoves,
+    kCompressedStackMaps,
     kCodeSourceMap,
     kInstances,
-  };
-
-  // Function kinds in the module snapshot.
-  // Should match FunctionKind enum
-  // declared in pkg/native_compiler/lib/snapshot/snapshot.dart.
-  enum FunctionKind {
-    kRegular,
-    kGetter,
-    kSetter,
-    kGenerativeConstructor,
-    kFactoryConstructor,
-    kImplicitGetter,
-    kImplicitSetter,
-    kFieldInitializer,
-    kMethodExtractor,
   };
 
   // Object pool entry kinds in the module snapshots.
@@ -109,6 +97,7 @@ class ModuleSnapshot : public AllStatic {
     kDynamicCall,
     kUnboxedInt,
     kUnboxedDouble,
+    kNativeFunction,
   };
 };
 
@@ -482,26 +471,26 @@ class FunctionRefDeserializationCluster : public DeserializationCluster {
   void PreLoad(Deserializer* d) override {
     const intptr_t count = d->ReadUnsigned();
     for (intptr_t i = 0; i < count; i++) {
-      const auto kind =
-          static_cast<ModuleSnapshot::FunctionKind>(d->ReadUnsigned());
+      const auto kind = static_cast<UntaggedFunction::Kind>(d->ReadUnsigned());
       owner_ = d->ReadRef();
       if (owner_.IsLibrary()) {
         owner_ = Library::Cast(owner_).toplevel_class();
       }
       function_name_ = static_cast<StringPtr>(d->ReadRef());
       switch (kind) {
-        case ModuleSnapshot::kRegular:
-        case ModuleSnapshot::kMethodExtractor:
+        case UntaggedFunction::kRegularFunction:
+        case UntaggedFunction::kMethodExtractor:
           break;
-        case ModuleSnapshot::kGetter:
-        case ModuleSnapshot::kImplicitGetter:
+        case UntaggedFunction::kGetterFunction:
+        case UntaggedFunction::kImplicitGetter:
+        case UntaggedFunction::kImplicitStaticGetter:
           function_name_ = Field::GetterName(function_name_);
           break;
-        case ModuleSnapshot::kSetter:
-        case ModuleSnapshot::kImplicitSetter:
+        case UntaggedFunction::kSetterFunction:
+        case UntaggedFunction::kImplicitSetter:
           function_name_ = Field::SetterName(function_name_);
           break;
-        case ModuleSnapshot::kFieldInitializer:
+        case UntaggedFunction::kFieldInitializer:
           field_ = Class::Cast(owner_).LookupField(function_name_);
           if (field_.IsNull()) {
             FATAL("Unable to find field %s in %s", function_name_.ToCString(),
@@ -510,8 +499,7 @@ class FunctionRefDeserializationCluster : public DeserializationCluster {
           function_ = field_.EnsureInitializerFunction();
           ASSERT(!function_.IsNull());
           break;
-        case ModuleSnapshot::kGenerativeConstructor:
-        case ModuleSnapshot::kFactoryConstructor: {
+        case UntaggedFunction::kConstructor: {
           class_name_ = Class::Cast(owner_).Name();
           GrowableHandlePtrArray<const String> pieces(zone_, 3);
           pieces.Add(class_name_);
@@ -519,15 +507,28 @@ class FunctionRefDeserializationCluster : public DeserializationCluster {
           pieces.Add(function_name_);
           function_name_ = Symbols::FromConcatAll(d->thread(), pieces);
         } break;
+        default:
+          FATAL("Unexpected function kind %s", Function::KindToCString(kind));
       }
-      if (kind != ModuleSnapshot::kFieldInitializer) {
+      if (kind != UntaggedFunction::kFieldInitializer) {
+        ErrorPtr finalize_err =
+            (kind == UntaggedFunction::kConstructor)
+                ? Class::Cast(owner_).EnsureIsAllocateFinalized(d->thread())
+                : Class::Cast(owner_).EnsureIsFinalized(d->thread());
+        if (finalize_err != Error::null()) {
+          FATAL(
+              "Unable to finalize class %s%s: %s",
+              Class::Cast(owner_).ToCString(),
+              (kind == UntaggedFunction::kConstructor) ? " for allocation" : "",
+              Error::Handle(zone_, finalize_err).ToErrorCString());
+        }
         function_ = Resolver::ResolveFunction(zone_, Class::Cast(owner_),
                                               function_name_);
         if (function_.IsNull()) {
           FATAL("Unable to find function %s in %s", function_name_.ToCString(),
                 owner_.ToCString());
         }
-        if (kind == ModuleSnapshot::kMethodExtractor) {
+        if (kind == UntaggedFunction::kMethodExtractor) {
           function_name_ = Field::GetterName(function_name_);
           function_ = function_.GetMethodExtractor(function_name_);
         }
@@ -670,6 +671,99 @@ class RecordShapeRefDeserializationCluster : public DeserializationCluster {
   Array& named_;
   Smi& shape_;
 };
+
+class ClosureDataDeserializationCluster : public DeserializationCluster {
+ public:
+  ClosureDataDeserializationCluster() : DeserializationCluster("ClosureData") {}
+  ~ClosureDataDeserializationCluster() {}
+
+  void ReadAlloc(Deserializer* d) override {
+    ReadAllocFixedSize(d, ClosureData::InstanceSize());
+  }
+
+  void ReadFill(Deserializer* d_) override {
+    Deserializer::Local d(d_);
+
+    for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
+      ClosureDataPtr data = static_cast<ClosureDataPtr>(d.Ref(id));
+      Deserializer::InitializeHeader(data, kClosureDataCid,
+                                     ClosureData::InstanceSize());
+      data->untag()->context_scope_ = static_cast<ContextScopePtr>(d.null());
+      data->untag()->parent_function_ = static_cast<FunctionPtr>(d.ReadRef());
+      data->untag()->closure_ = static_cast<ClosurePtr>(d.null());
+      data->untag()->packed_fields_ = 0;
+    }
+  }
+};
+
+class FunctionDeserializationCluster : public DeserializationCluster {
+ public:
+  FunctionDeserializationCluster() : DeserializationCluster("Function") {}
+  ~FunctionDeserializationCluster() {}
+
+  void ReadAlloc(Deserializer* d) override {
+    ReadAllocFixedSize(d, Function::InstanceSize());
+  }
+
+  void ReadFill(Deserializer* d_) override {
+    Deserializer::Local d(d_);
+
+    for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
+      FunctionPtr func = static_cast<FunctionPtr>(d.Ref(id));
+      Deserializer::InitializeHeader(func, kFunctionCid,
+                                     Function::InstanceSize());
+
+      func->untag()->entry_point_ = 0;
+      func->untag()->unchecked_entry_point_ = 0;
+      func->untag()->name_ = static_cast<StringPtr>(d.ReadRef());
+      func->untag()->owner_ = d.ReadRef();
+      func->untag()->signature_ = static_cast<FunctionTypePtr>(d.ReadRef());
+      func->untag()->data_ = d.ReadRef();
+      func->untag()->positional_parameter_names_ =
+          static_cast<ArrayPtr>(d.ReadRef());
+      func->untag()->unboxed_parameters_info_.Reset();
+      func->untag()->token_pos_ =
+          TokenPosition::Deserialize(d.ReadUnsigned() - 1);
+      func->untag()->end_token_pos_ =
+          TokenPosition::Deserialize(d.ReadUnsigned() - 1);
+      func->untag()->kind_tag_ = d.ReadUnsigned();
+      const intptr_t local_function_id = d.ReadUnsigned();
+      // Temporarily save local_function_id to kernel_offset until PostLoad.
+      func->untag()->kernel_offset_ = local_function_id;
+      func->untag()->usage_counter_ = 0;
+      func->untag()->optimized_instruction_count_ = 0;
+      func->untag()->optimized_call_site_count_ = 0;
+      func->untag()->deoptimization_counter_ = 0;
+      func->untag()->state_bits_ = 0;
+      func->untag()->inlining_depth_ = 0;
+      func->untag()->is_optimizable_ = false;
+    }
+  }
+
+  void PostLoad(Deserializer* d, const Array& refs) override {
+    Function& func = Function::Handle(d->zone());
+    FunctionType& signature = FunctionType::Handle(d->zone());
+    TypeArguments& type_args = TypeArguments::Handle(d->zone());
+    for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
+      func ^= refs.At(id);
+      signature = func.signature();
+      signature ^= ClassFinalizer::FinalizeType(signature);
+      func.SetSignature(signature);
+      if (func.IsClosureFunction()) {
+        const intptr_t local_function_id = func.kernel_offset();
+        func.set_kernel_offset(0);
+        ClosureFunctionsCache::AddClosureFunctionLocked(func,
+                                                        local_function_id);
+        if (func.IsGeneric()) {
+          type_args = func.DefaultTypeArguments(d->zone());
+          auto mode = type_args.GetInstantiationMode(d->zone(), &func);
+          func.set_default_type_arguments_instantiation_mode(mode);
+        }
+      }
+    }
+  }
+};
+
 class IntDeserializationCluster : public DeserializationCluster {
  public:
   IntDeserializationCluster()
@@ -1203,9 +1297,6 @@ class TypeParameterTypeDeserializationCluster : public DeserializationCluster {
       if (owner->IsClass()) {
         owner = Smi::New(static_cast<ClassPtr>(owner)->untag()->id());
       } else {
-        if (owner->IsFunction()) {
-          owner = Function::RawCast(owner)->untag()->signature();
-        }
         flags =
             UntaggedTypeParameter::IsFunctionTypeParameter::update(true, flags);
       }
@@ -1260,7 +1351,8 @@ class CodeDeserializationCluster : public DeserializationCluster {
       code->untag()->pc_descriptors_ =
           static_cast<PcDescriptorsPtr>(d->ReadRef());
       code->untag()->catch_entry_ = static_cast<TypedDataPtr>(d->ReadRef());
-      code->untag()->compressed_stackmaps_ = CompressedStackMaps::null();
+      code->untag()->compressed_stackmaps_ =
+          static_cast<CompressedStackMapsPtr>(d->ReadRef());
       code->untag()->inlined_id_to_function_ = Array::null();
       code->untag()->code_source_map_ =
           static_cast<CodeSourceMapPtr>(d->ReadRef());
@@ -1275,10 +1367,11 @@ class CodeDeserializationCluster : public DeserializationCluster {
       code->untag()->compile_timestamp_ = 0;
 #endif
 
+      const uword instr_size = d->ReadUnsigned();
       code->untag()->state_bits_ = Code::OptimizedBit::update(true, 0);
+      code->untag()->instructions_length_ = instr_size;
       code->untag()->unchecked_offset_ = 0;
 
-      const uword instr_size = d->ReadUnsigned();
       instructions += instr_size;
     }
   }
@@ -1373,7 +1466,8 @@ class SubtypeTestCacheDeserializationCluster : public DeserializationCluster {
 
 class ObjectPoolDeserializationCluster : public DeserializationCluster {
  public:
-  ObjectPoolDeserializationCluster() : DeserializationCluster("ObjectPool") {}
+  explicit ObjectPoolDeserializationCluster(Zone* zone)
+      : DeserializationCluster("ObjectPool"), class_(Class::Handle(zone)) {}
   ~ObjectPoolDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d) override {
@@ -1415,13 +1509,11 @@ class ObjectPoolDeserializationCluster : public DeserializationCluster {
             break;
           }
           case ModuleSnapshot::kNewObjectTags: {
-            ClassPtr cls = static_cast<ClassPtr>(d.ReadRef());
+            class_ = static_cast<ClassPtr>(d.ReadRef());
             pool->untag()->entry_bits()[j] = immediate_entry_bits;
             UntaggedObjectPool::Entry& entry = pool->untag()->data()[j];
             entry.raw_value_ = compiler::target::MakeTagWordForNewSpaceObject(
-                cls->untag()->id_,
-                Object::RoundedAllocationSize(Class::host_instance_size(cls) *
-                                              kCompressedWordSize));
+                class_.id(), compiler::target::Class::GetInstanceSize(class_));
             break;
           }
           case ModuleSnapshot::kStaticFieldOffset: {
@@ -1456,6 +1548,12 @@ class ObjectPoolDeserializationCluster : public DeserializationCluster {
             entry.raw_value_ = bit_cast<int64_t>(d.Read<double>());
             break;
           }
+          case ModuleSnapshot::kNativeFunction: {
+            pool->untag()->entry_bits()[j] = immediate_entry_bits;
+            UntaggedObjectPool::Entry& entry = pool->untag()->data()[j];
+            entry.raw_value_ = NativeEntry::LinkNativeCallEntry();
+            break;
+          }
         }
       }
     }
@@ -1473,13 +1571,18 @@ class ObjectPoolDeserializationCluster : public DeserializationCluster {
           continue;
         }
         obj = pool.ObjectAt(i);
-        if (obj.IsInstance() && !obj.IsSmi()) {
+        if (obj.IsInstance() && !obj.IsSmi() &&
+            (obj.ptr() != Object::uninitialized_index().ptr()) &&
+            (obj.ptr() != Object::uninitialized_data().ptr())) {
           obj = Instance::Cast(obj).Canonicalize(d->thread());
           pool.SetObjectAt(i, obj);
         }
       }
     }
   }
+
+ private:
+  Class& class_;
 };
 
 class ExceptionHandlersDeserializationCluster : public DeserializationCluster {
@@ -1584,6 +1687,41 @@ class CatchEntryMovesDeserializationCluster : public DeserializationCluster {
       data->untag()->length_ = Smi::New(length);
       data->untag()->RecomputeDataField();
       uint8_t* cdata = reinterpret_cast<uint8_t*>(data->untag()->data());
+      d.ReadBytes(cdata, length);
+    }
+  }
+};
+
+class CompressedStackMapsDeserializationCluster
+    : public DeserializationCluster {
+ public:
+  CompressedStackMapsDeserializationCluster()
+      : DeserializationCluster("CompressedStackMaps") {}
+  ~CompressedStackMapsDeserializationCluster() {}
+
+  void ReadAlloc(Deserializer* d) override {
+    start_index_ = d->next_index();
+    const intptr_t count = d->ReadUnsigned();
+    for (intptr_t i = 0; i < count; i++) {
+      const intptr_t length = d->ReadUnsigned();
+      d->AssignRef(d->Allocate(CompressedStackMaps::InstanceSize(length)));
+    }
+    stop_index_ = d->next_index();
+  }
+
+  void ReadFill(Deserializer* d_) override {
+    Deserializer::Local d(d_);
+
+    for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
+      const intptr_t length = d.ReadUnsigned();
+      CompressedStackMapsPtr map =
+          static_cast<CompressedStackMapsPtr>(d.Ref(id));
+      Deserializer::InitializeHeader(map, kCompressedStackMapsCid,
+                                     CompressedStackMaps::InstanceSize(length));
+      map->untag()->payload()->set_flags_and_size(
+          UntaggedCompressedStackMaps::SizeField::encode(length));
+      uint8_t* cdata =
+          reinterpret_cast<uint8_t*>(map->untag()->payload()->data());
       d.ReadBytes(cdata, length);
     }
   }
@@ -1694,6 +1832,10 @@ DeserializationCluster* Deserializer::ReadCluster() {
       return new (Z) ArgumentsDescriptorRefDeserializationCluster(Z);
     case ModuleSnapshot::kRecordShapeRefs:
       return new (Z) RecordShapeRefDeserializationCluster(Z);
+    case ModuleSnapshot::kClosureDatas:
+      return new (Z) ClosureDataDeserializationCluster();
+    case ModuleSnapshot::kFunctions:
+      return new (Z) FunctionDeserializationCluster();
     case ModuleSnapshot::kInts:
       return new (Z) IntDeserializationCluster();
     case ModuleSnapshot::kDoubles:
@@ -1729,13 +1871,15 @@ DeserializationCluster* Deserializer::ReadCluster() {
     case ModuleSnapshot::kSubtypeTestCaches:
       return new (Z) SubtypeTestCacheDeserializationCluster();
     case ModuleSnapshot::kObjectPools:
-      return new (Z) ObjectPoolDeserializationCluster();
+      return new (Z) ObjectPoolDeserializationCluster(Z);
     case ModuleSnapshot::kExceptionHandlers:
       return new (Z) ExceptionHandlersDeserializationCluster();
     case ModuleSnapshot::kPcDescriptors:
       return new (Z) PcDescriptorsDeserializationCluster();
     case ModuleSnapshot::kCatchEntryMoves:
       return new (Z) CatchEntryMovesDeserializationCluster();
+    case ModuleSnapshot::kCompressedStackMaps:
+      return new (Z) CompressedStackMapsDeserializationCluster();
     case ModuleSnapshot::kCodeSourceMap:
       return new (Z) CodeSourceMapDeserializationCluster();
     case ModuleSnapshot::kInstances: {
@@ -1796,6 +1940,9 @@ void Deserializer::Deserialize() {
   AddBaseObject(Object::empty_exception_handlers());
   AddBaseObject(Object::empty_async_exception_handlers());
   AddBaseObject(Object::empty_descriptors());
+  AddBaseObject(Object::uninitialized_index());
+  AddBaseObject(Object::uninitialized_data());
+  AddBaseObject(Object::mutable_empty_array());
   AddBaseObject(StubCode::Subtype1TestCache());
   AddBaseObject(StubCode::Subtype2TestCache());
   AddBaseObject(StubCode::Subtype3TestCache());
@@ -1813,6 +1960,8 @@ void Deserializer::Deserialize() {
   AddBaseObject(StubCode::ReturnAsync());
   AddBaseObject(StubCode::ReturnAsyncNotFuture());
   AddBaseObject(StubCode::ReturnAsyncStar());
+  AddBaseObject(StubCode::CloneSuspendState());
+  AddBaseObject(StubCode::CallBootstrapNative());
 
   if (num_base_objects_ != (next_ref_index_ - kFirstReference)) {
     FATAL("Snapshot expects %" Pd
@@ -1898,6 +2047,7 @@ char* ReadModuleSnapshot(Thread* thread,
     return error;
   }
 
+  SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
   deserializer.Deserialize();
 
   return nullptr;

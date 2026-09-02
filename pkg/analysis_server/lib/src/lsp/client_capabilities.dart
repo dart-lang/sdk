@@ -74,12 +74,17 @@ class LspClientCapabilities {
 
   final ClientCapabilities raw;
   final bool documentChanges;
+
+  /// Whether the clients regex engine is 'ECMAScript'.
+  final bool ecmaScriptRegex;
+
   final bool changeAnnotations;
   final bool configuration;
   final bool createResourceOperations;
   final bool renameResourceOperations;
   final bool completionDeprecatedFlag;
   final bool applyEdit;
+  final bool publishDiagnostics;
   final bool workDoneProgress;
   final bool completionSnippets;
   final bool renameValidation;
@@ -108,15 +113,43 @@ class LspClientCapabilities {
   final bool snippetTextEdit;
   final bool signatureHelpNullActiveParameter;
   final Set<String> supportedInteractiveFormInputTypes;
+
+  /// Whether the client has advertised support for `showMessageRequest`.
+  ///
+  /// At the time of writing (2023-02-01) there is no official capability for
+  /// supporting 'showMessageRequest' because LSP assumed all clients
+  /// supported it.
+  ///
+  /// This turned out to not be the case, so to avoid sending prompts that
+  /// might not be seen, we will only use this functionality if we _know_ the
+  /// client supports it via a custom flag in 'experimental' that is passed by
+  /// the Dart-Code VS Code extension since version v3.58.0 (2023-01-25).
   final bool supportsShowMessageRequest;
 
   /// A set of commands that exist on the client that the server may call.
   final Set<String> supportedCommands;
 
+  /// Whether to include additional data in the [Diagnostic] `data` field in
+  /// `publishDiagnostic` notifications (but not in other places where
+  /// Diagnostics are produced).
+  ///
+  /// When this field is set the following fields will be included in the
+  /// Diagnostic's data field but clients should handle missing fields
+  /// gracefully if they are not tied to an exact version of the server.
+  ///
+  /// - `offset`/`length` - the offset/length for the diagnostic
+  /// - `type` - the string code of the diagnostic type
+  /// - `correctionMessage` - the correctMessage from the diagnostic
+  ///
+  /// Additionally, when `correctionMessage` is present, the diagnostics
+  /// standard message field will no longer also contain the correction message.
+  final bool includeAdditionalDiagnosticData;
+
   /// User-friendly error messages from parsing the experimental capabilities.
   final List<String> experimentalCapabilitiesErrors;
 
   factory(ClientCapabilities raw) {
+    var general = raw.general;
     var workspace = raw.workspace;
     var workspaceEdit = workspace?.workspaceEdit;
     var resourceOperations = workspaceEdit?.resourceOperations;
@@ -136,6 +169,7 @@ class LspClientCapabilities {
     var typeDefinition = textDocument?.typeDefinition;
     var workspaceSymbol = workspace?.symbol;
 
+    var ecmaScriptRegex = general?.regularExpressions?.engine == 'ECMAScript';
     var applyEdit = workspace?.applyEdit ?? false;
     var codeActionKinds = _listToSet(
       codeActionLiteral?.codeActionKind.valueSet,
@@ -199,12 +233,14 @@ class LspClientCapabilities {
     return LspClientCapabilities._(
       raw,
       documentChanges: documentChanges,
+      ecmaScriptRegex: ecmaScriptRegex,
       changeAnnotations: changeAnnotations,
       configuration: configuration,
       createResourceOperations: createResourceOperations,
       renameResourceOperations: renameResourceOperations,
       completionDeprecatedFlag: completionDeprecatedFlag,
       applyEdit: applyEdit,
+      publishDiagnostics: publishDiagnostics != null,
       workDoneProgress: workDoneProgress,
       completionSnippets: completionSnippets,
       renameValidation: renameValidation,
@@ -236,6 +272,8 @@ class LspClientCapabilities {
           experimental.interactiveFormInputTypes,
       supportsShowMessageRequest: experimental.showMessageRequest,
       supportedCommands: experimental.commands,
+      includeAdditionalDiagnosticData:
+          experimental.includeAdditionalDiagnosticData,
       experimentalCapabilitiesErrors: experimental.errors,
     );
   }
@@ -243,12 +281,14 @@ class LspClientCapabilities {
   new _(
     this.raw, {
     required this.documentChanges,
+    required this.ecmaScriptRegex,
     required this.changeAnnotations,
     required this.configuration,
     required this.createResourceOperations,
     required this.renameResourceOperations,
     required this.completionDeprecatedFlag,
     required this.applyEdit,
+    required this.publishDiagnostics,
     required this.workDoneProgress,
     required this.completionSnippets,
     required this.renameValidation,
@@ -279,6 +319,7 @@ class LspClientCapabilities {
     required this.supportedInteractiveFormInputTypes,
     required this.supportsShowMessageRequest,
     required this.supportedCommands,
+    required this.includeAdditionalDiagnosticData,
     required this.experimentalCapabilitiesErrors,
   });
 
@@ -308,12 +349,14 @@ class _ExperimentalClientCapabilities {
   final Set<String> interactiveFormInputTypes;
   final Set<String> commands;
   final bool showMessageRequest;
+  final bool includeAdditionalDiagnosticData;
 
   new({
     required this.legacySnippetTextEdit,
     required this.interactiveFormInputTypes,
     required this.commands,
     required this.showMessageRequest,
+    required this.includeAdditionalDiagnosticData,
     required this.errors,
   });
 
@@ -380,17 +423,16 @@ class _ExperimentalClientCapabilities {
       experimental['commands'],
     );
 
-    /// At the time of writing (2023-02-01) there is no official capability for
-    /// supporting 'showMessageRequest' because LSP assumed all clients
-    /// supported it.
-    ///
-    /// This turned out to not be the case, so to avoid sending prompts that
-    /// might not be seen, we will only use this functionality if we _know_ the
-    /// client supports it via a custom flag in 'experimental' that is passed by
-    /// the Dart-Code VS Code extension since version v3.58.0 (2023-01-25).
+    // Documented in LspClientCapabilities.supportsShowMessageRequest.
     var showMessageRequest = expectBool(
       '.supportsWindowShowMessageRequest',
       experimental['supportsWindowShowMessageRequest'],
+    );
+
+    // Documented in LspClientCapabilities.includeAdditionalDiagnosticData.
+    var includeAdditionalDiagnosticData = expectBool(
+      '.includeAdditionalDiagnosticData',
+      experimental['includeAdditionalDiagnosticData'],
     );
 
     return _ExperimentalClientCapabilities(
@@ -398,6 +440,7 @@ class _ExperimentalClientCapabilities {
       interactiveFormInputTypes: interactiveFormInputTypes ?? {},
       commands: commands ?? {},
       showMessageRequest: showMessageRequest ?? false,
+      includeAdditionalDiagnosticData: includeAdditionalDiagnosticData ?? false,
       errors: errors,
     );
   }

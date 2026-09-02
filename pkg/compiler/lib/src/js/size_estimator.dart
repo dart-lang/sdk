@@ -46,11 +46,6 @@ class SizeEstimator implements NodeVisitor<void> {
         node is VariableDeclaration ||
         node is VariableUse) {
       return nameSizeEstimate;
-    } else if (node is LiteralString) {
-      assert(!node.isFinalized);
-      // We assume all non-final literal strings are minified names, and thus
-      // use the nameSizeEstimate.
-      return nameSizeEstimate;
     } else if (node is BoundMetadataEntry) {
       // Value is an int.
       return '####';
@@ -75,11 +70,13 @@ class SizeEstimator implements NodeVisitor<void> {
   }
 
   String literalStringToString(LiteralString node) {
-    if (node.isFinalized) {
-      return node.value;
-    } else {
-      return sizeEstimate(node);
+    if (node is LiteralStringFromName) {
+      // The name may be finalized to a compound name with unfinalized parts.
+      // See https://dartbug.com/64150.
+      return nameSizeEstimate;
     }
+    assert(node.isFinalized); // Must be a plain LiteralString.
+    return node.value;
   }
 
   /// Always emit a newline, even under `enableMinification`.

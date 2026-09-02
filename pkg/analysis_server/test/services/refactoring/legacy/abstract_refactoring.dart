@@ -7,9 +7,13 @@ import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/source_range.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/utilities/extensions/file_system.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show RefactoringProblemSeverity, SourceChange, SourceEdit;
+import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 
 import '../../../abstract_single_unit.dart';
@@ -32,12 +36,14 @@ int findIdentifierLength(String search) {
 /// The base class for all [Refactoring] tests.
 abstract class RefactoringTest extends AbstractSingleUnitTest
     with SelectionMixin {
-  late RefactoringWorkspace refactoringWorkspace;
-  late SearchEngine searchEngine;
-
   late SourceChange refactoringChange;
 
   Refactoring get refactoring;
+
+  RefactoringWorkspace get refactoringWorkspace =>
+      RefactoringWorkspace([driverFor(testFile)], searchEngine);
+
+  SearchEngine get searchEngine => SearchEngineImpl([driverFor(testFile)]);
 
   /// Asserts that [refactoringChange] contains a [FileEdit] for the file
   /// with the given [path], and it results the [expectedCode].
@@ -117,6 +123,12 @@ abstract class RefactoringTest extends AbstractSingleUnitTest
     assertRefactoringStatus(status, null);
   }
 
+  void assertSourceChange(SourceChange sourceChange, String expected) {
+    var buffer = StringBuffer();
+    _writeSourceChangeToBuffer(buffer: buffer, sourceChange: sourceChange);
+    _assertTextExpectation(buffer.toString(), expected);
+  }
+
   /// Checks that all conditions of [refactoring] are OK and the result of
   /// applying the [SourceChange] to [testUnit] is [expectedCode].
   Future<void> assertSuccessfulRefactoring(String expectedCode) async {
@@ -153,6 +165,13 @@ abstract class RefactoringTest extends AbstractSingleUnitTest
     expect(actualCode, expectedCode);
   }
 
+  /// Returns the existing analysis driver that should be used to analyze the
+  /// given [file], or throw [StateError] if the [file] is not analyzed in any
+  /// of the created analysis contexts.
+  AnalysisDriver driverFor(File file) {
+    return contextFor(file).driver;
+  }
+
   Future<void> indexTestUnit(
     String code, {
     List<DiagnosticCode>? ignore,
@@ -160,7 +179,7 @@ abstract class RefactoringTest extends AbstractSingleUnitTest
     // Make it priority, so the resolved unit stays in memory.
     // So, when we get a local element, and search for it, we use this unit.
     // This is important when local elements equality is identity.
-    makeFilePriority(testFile);
+    driverFor(testFile).priorityFiles2 = [testFile];
 
     await resolveTestCode(code, ignore: ignore);
   }
@@ -170,10 +189,30 @@ abstract class RefactoringTest extends AbstractSingleUnitTest
   }
 
   @override
-  void verifyCreatedCollection() {
-    super.verifyCreatedCollection();
-    var drivers = [driverFor(testFile)];
-    searchEngine = SearchEngineImpl(drivers);
-    refactoringWorkspace = RefactoringWorkspace(drivers, searchEngine);
+  void setUp() {
+    registerLintRules();
+    super.setUp();
+  }
+
+  void _assertTextExpectation(String actual, String expected) {
+    if (actual != expected) {
+      print('-' * 64);
+      print(actual.trimRight());
+      print('-' * 64);
+    }
+    expect(actual, expected);
+  }
+
+  void _writeSourceChangeToBuffer({
+    required StringBuffer buffer,
+    required SourceChange sourceChange,
+  }) {
+    for (var fileEdit in sourceChange.edits) {
+      var file = getFile(fileEdit.file);
+      buffer.write('>>>>>>>>>> ${file.posixPath}$eol');
+      var current = file.readAsStringSync();
+      var updated = SourceEdit.applySequence(current, fileEdit.edits);
+      buffer.write(updated);
+    }
   }
 }

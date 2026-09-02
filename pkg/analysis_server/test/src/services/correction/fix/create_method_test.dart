@@ -468,6 +468,8 @@ void test(E e) {
     await assertHasFix(
       '''
 enum E {
+  ;
+
   int bar() {}
 }
 
@@ -526,6 +528,8 @@ void test() {
     await assertHasFix(
       '''
 enum E {
+  ;
+
   static int bar() {}
 }
 
@@ -1788,6 +1792,29 @@ enum E {
 void test() {
   E e = .bar();
   print(e);
+}
+''');
+  }
+
+  Future<void> test_enum_invocation_static_dotShorthand_argument() async {
+    await resolveTestCode('''
+enum E {
+  a;
+}
+void f(E e) {}
+void g() {
+  f(.b());
+}
+''');
+    await assertHasFix('''
+enum E {
+  a;
+
+  static E b() {}
+}
+void f(E e) {}
+void g() {
+  f(.b());
 }
 ''');
   }

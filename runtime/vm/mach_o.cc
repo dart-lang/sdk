@@ -12,8 +12,8 @@
 #include "platform/mach_o.h"
 #include "platform/unwinding_records.h"
 #include "vm/compiler/runtime_api.h"
+#include "vm/debug_info_stream.h"
 #include "vm/dwarf.h"
-#include "vm/dwarf_so_writer.h"
 #include "vm/flags.h"
 #include "vm/hash_map.h"
 #include "vm/image_snapshot.h"
@@ -57,6 +57,18 @@ DEFINE_FLAG(charp,
             macho_min_os_version,
             nullptr,
             "The minimum OS version required for MacOS/iOS Mach-O snapshots");
+
+#if defined(DART_TARGET_OS_MACOS_IOS)
+DEFINE_FLAG(bool,
+            macho_platform_simulated,
+            false,
+            "Mark Mach-O snapshots as targeting a simulated platform");
+#endif
+
+DEFINE_FLAG(charp,
+            macho_sdk_version,
+            nullptr,
+            "The SDK version used to build MacOS/iOS Mach-O snapshots");
 
 DEFINE_FLAG(charp,
             macho_rpath,
@@ -115,7 +127,24 @@ static constexpr intptr_t kLinearInitValue = -1;
   V(MachOUuid)                                                                 \
   V(MachOIdDylib)                                                              \
   V(MachOCodeSignature)                                                        \
-  V(MachOEncryptionInfo)
+  V(MachOEncryptionInfo)                                                       \
+  V(MachOExportsTrie)
+
+// Match LLVM's order. Non-LLVM strip seems to depend on this.
+enum LoadCommandOrder : uint32_t {
+  kNoOrder = 0,
+
+  kIdDylibOrder,
+  kExportsTrieOrder,
+  kSymbolTableOrder,
+  kDynamicSymbolTableOrder,
+  kEncryptionInfoOrder,
+  kRunPathOrder,
+  kUuidOrder,
+  kBuildVersionOrder,
+  kLoadDylibOrder,
+  kCodeSignatureOrder,
+};
 
 #define DECLARE_CONTENTS_TYPE_CLASS(Type) class Type;
 FOR_EACH_CHECKABLE_MACHO_CONTENTS_TYPE(DECLARE_CONTENTS_TYPE_CLASS)
@@ -262,8 +291,11 @@ class NonHashingMachOWriteStream
   void WriteBytes(const void* bytes, intptr_t len) override {
     SharedObjectWriter::DelegatingWriteStream::WriteBytes(bytes, len);
   }
-  intptr_t Align(intptr_t alignment, intptr_t offset = 0) override {
-    return SharedObjectWriter::DelegatingWriteStream::Align(alignment, offset);
+  intptr_t Align(intptr_t alignment,
+                 intptr_t offset = 0,
+                 uint8_t fill_byte = 0) override {
+    return SharedObjectWriter::DelegatingWriteStream::Align(alignment, offset,
+                                                            fill_byte);
   }
   bool HasValueForLabel(intptr_t label, intptr_t* value) const override {
     return MachOWriteStream::HasValueForLabel(label, value);
@@ -318,10 +350,12 @@ class HashingMachOWriteStream : public BaseWriteStream,
   void WriteBytes(const void* bytes, intptr_t len) override {
     BaseWriteStream::WriteBytes(bytes, len);
   }
-  intptr_t Align(intptr_t alignment, intptr_t offset = 0) override {
+  intptr_t Align(intptr_t alignment,
+                 intptr_t offset = 0,
+                 uint8_t fill_byte = 0) override {
     ASSERT(Utils::IsPowerOfTwo(alignment));
     ASSERT(alignment <= macho_.page_size());
-    return BaseWriteStream::Align(alignment, offset);
+    return BaseWriteStream::Align(alignment, offset, fill_byte);
   }
 
   bool HasHashes() const override { return true; }
@@ -514,7 +548,9 @@ class MachOContents : public ZoneObject {
   const Type* As##Type() const {                                               \
     return const_cast<Type*>(const_cast<MachOContents*>(this)->As##Type());    \
   }                                                                            \
-  virtual bool Is##Type() const { return false; }
+  virtual bool Is##Type() const {                                              \
+    return false;                                                              \
+  }
 
   FOR_EACH_CHECKABLE_MACHO_CONTENTS_TYPE(DEFINE_BASE_TYPE_CHECKS)
 #undef DEFINE_BASE_TYPE_CHECKS
@@ -580,12 +616,11 @@ class MachOContents : public ZoneObject {
 // with the appropriate mach_o::LC_* constant.
 class MachOCommand : public MachOContents {
  public:
-  explicit MachOCommand(intptr_t cmd,
+  explicit MachOCommand(uint32_t cmd,
+                        LoadCommandOrder order,
                         bool needs_offset = true,
                         bool in_segment = true)
-      : MachOContents(needs_offset, in_segment), cmd_(cmd) {
-    ASSERT(Utils::IsUint(32, cmd));
-  }
+      : MachOContents(needs_offset, in_segment), cmd_(cmd), order_(order) {}
 
   DEFINE_TYPE_CHECK_FOR(MachOCommand)
 
@@ -594,6 +629,8 @@ class MachOCommand : public MachOContents {
   // The value identifying the type of section the load command represents.
   // Should be one of the LC_* constants in platform/mach_o.h.
   uint32_t cmd() const { return cmd_; }
+
+  LoadCommandOrder order() const { return order_; }
 
   // The alignment expected for load commands.
   static constexpr intptr_t kLoadCommandAlignment = compiler::target::kWordSize;
@@ -626,6 +663,7 @@ class MachOCommand : public MachOContents {
 
  private:
   uint32_t cmd_;
+  LoadCommandOrder order_;
 
   DISALLOW_COPY_AND_ASSIGN(MachOCommand);
 };
@@ -870,7 +908,7 @@ class MachOSegment : public MachOCommand {
       // We don't know if a segment has a file offset until we
       // know what it contains, so set it to 0 in ComputeOffsets()
       // if there are no contents.
-      : MachOCommand(kCommandCode),
+      : MachOCommand(kCommandCode, kNoOrder),
         type_(type),
         name_(name),
         initial_vm_protection_(initial_vm_protection),
@@ -1080,6 +1118,7 @@ class MachOUuid : public MachOCommand {
 
   explicit MachOUuid(const void* bytes, intptr_t len)
       : MachOCommand(kCommandCode,
+                     kUuidOrder,
                      /*needs_offset=*/false,
                      /*in_segment=*/false),
         bytes_() {
@@ -1128,12 +1167,14 @@ class MachODylib : public MachOCommand {
  protected:
   // This is really an abstract class, with concrete subclasses providing
   // the command code.
-  MachODylib(intptr_t cmd,
+  MachODylib(uint32_t cmd,
+             LoadCommandOrder order,
              const char* name,
              intptr_t timestamp,
              intptr_t current_version = kNoVersion,
              intptr_t compatibility_version = kNoVersion)
       : MachOCommand(cmd,
+                     order,
                      /*needs_offset=*/false,
                      /*in_segment=*/false),
         name_(ASSERT_NOTNULL(name)),
@@ -1164,6 +1205,7 @@ class MachOIdDylib : public MachODylib {
                         intptr_t current_version = kNoVersion,
                         intptr_t compatibility_version = kNoVersion)
       : MachODylib(kCommandCode,
+                   kIdDylibOrder,
                    name,
                    0,  // Snapshots aren't copied into user.
                    current_version,
@@ -1194,6 +1236,7 @@ class MachOLoadDylib : public MachODylib {
                  intptr_t current_version,
                  intptr_t compatibility_version)
       : MachODylib(kCommandCode,
+                   kLoadDylibOrder,
                    name,
                    timestamp,
                    current_version,
@@ -1298,11 +1341,16 @@ class MachOBuildVersion : public MachOCommand {
 
   MachOBuildVersion()
       : MachOCommand(kCommandCode,
+                     kBuildVersionOrder,
                      /*needs_offset=*/false,
                      /*in_segment=*/false),
         min_os_(FLAG_macho_min_os_version != nullptr
                     ? Version::FromString(FLAG_macho_min_os_version)
-                    : kDefaultMinOSVersion) {}
+                    : kDefaultMinOSVersion),
+        sdk_(FLAG_macho_sdk_version != nullptr
+                 ? Version::FromString(FLAG_macho_sdk_version)
+                 // Just use the same version as the min OS if unspsecified.
+                 : min_os_) {}
 
   uint32_t cmdsize() const override {
     return sizeof(mach_o::build_version_command);
@@ -1310,18 +1358,15 @@ class MachOBuildVersion : public MachOCommand {
 
   uint32_t platform() const {
 #if defined(DART_TARGET_OS_MACOS_IOS)
-    return mach_o::PLATFORM_IOS;
+    return FLAG_macho_platform_simulated ? mach_o::PLATFORM_IOSSIMULATOR
+                                         : mach_o::PLATFORM_IOS;
 #else
     return mach_o::PLATFORM_MACOS;
 #endif
   }
 
   const Version& minos() const { return min_os_; }
-
-  const Version& sdk() const {
-    // Just use the minimum version as the targeted version.
-    return minos();
-  }
+  const Version& sdk() const { return sdk_; }
 
   void WriteLoadCommand(MachOWriteStream* stream) const override {
     MachOCommand::WriteLoadCommand(stream);
@@ -1337,6 +1382,7 @@ class MachOBuildVersion : public MachOCommand {
 
  private:
   const Version min_os_;
+  const Version sdk_;
 
   DISALLOW_COPY_AND_ASSIGN(MachOBuildVersion);
 };
@@ -1347,6 +1393,7 @@ class MachORunPath : public MachOCommand {
 
   MachORunPath(const char* path, intptr_t length)
       : MachOCommand(kCommandCode,
+                     kRunPathOrder,
                      /*needs_offset=*/false,
                      /*in_segment=*/false),
         path_(path),
@@ -1384,7 +1431,10 @@ class MachOSymbolTable : public MachOCommand {
   static constexpr uint32_t kCommandCode = mach_o::LC_SYMTAB;
 
   MachOSymbolTable(Zone* zone, bool in_segment)
-      : MachOCommand(kCommandCode, /*needs_offset=*/true, in_segment),
+      : MachOCommand(kCommandCode,
+                     kSymbolTableOrder,
+                     /*needs_offset=*/true,
+                     in_segment),
         zone_(zone),
         strings_(zone),
         symbols_(zone, 0),
@@ -1435,12 +1485,14 @@ class MachOSymbolTable : public MachOCommand {
            intptr_t n_type,
            const MachOSection* section,
            intptr_t n_desc,
-           uword section_offset_or_value)
+           uword section_offset_or_value,
+           const char* name)
         : name_index(n_idx),
           type(n_type),
           section(section),
           description(n_desc),
-          section_offset_or_value(section_offset_or_value) {
+          section_offset_or_value(section_offset_or_value),
+          name(name) {
       ASSERT(Utils::IsUint(32, n_idx));
       ASSERT(Utils::IsUint(8, n_type));
       ASSERT(Utils::IsUint(16, n_desc));
@@ -1468,6 +1520,12 @@ class MachOSymbolTable : public MachOCommand {
       return base + section_offset_or_value;
     }
 
+    static int Compare(const Symbol* a, const Symbol* b) {
+      ASSERT(a != nullptr && a->name != nullptr);
+      ASSERT(b != nullptr && b->name != nullptr);
+      return strcmp(a->name, b->name);
+    }
+
     // The index of the name in the symbol table's string table.
     uint32_t name_index;
     // See the mach_o::N_* constants for the encoding of this field.
@@ -1480,6 +1538,9 @@ class MachOSymbolTable : public MachOCommand {
     // Otherwise, it is used to calculate the final value, which can be
     // computed once the section's memory address has been set.
     intptr_t section_offset_or_value;
+    // A pointer to the null-terminated string for the name stored
+    // in the symbol table's string table. Used only for sorting.
+    const char* name;
 
     DISALLOW_ALLOCATION();
   };
@@ -1505,8 +1566,8 @@ class MachOSymbolTable : public MachOCommand {
     auto const name_index = strings_.Add(name);
     ASSERT(*name == '\0' || name_index != 0);
     const intptr_t new_index = num_symbols();
-    symbols_.Add(
-        {name_index, type, section, description, section_offset_or_value});
+    symbols_.Add({name_index, type, section, description,
+                  section_offset_or_value, strings_.At(name_index)});
     if (label > 0) {
       DEBUG_ONLY(max_label_ = max_label_ > label ? max_label_ : label);
       // Store an 1-based index since 0 is kNoValue for IntMap.
@@ -1595,7 +1656,10 @@ class MachODynamicSymbolTable : public MachOCommand {
   static constexpr uint32_t kCommandCode = mach_o::LC_DYSYMTAB;
 
   MachODynamicSymbolTable(const MachOSymbolTable& table, bool in_segment)
-      : MachOCommand(kCommandCode, /*needs_offset=*/true, in_segment),
+      : MachOCommand(kCommandCode,
+                     kDynamicSymbolTableOrder,
+                     /*needs_offset=*/true,
+                     in_segment),
         table_(table) {}
 
   uint32_t cmdsize() const override { return sizeof(mach_o::dysymtab_command); }
@@ -1651,6 +1715,7 @@ class MachOEncryptionInfo : public MachOCommand {
 
   MachOEncryptionInfo()
       : MachOCommand(kCommandCode,
+                     kEncryptionInfoOrder,
                      /*needs_offset=*/false,
                      /*in_segment=*/false) {}
 
@@ -1691,8 +1756,8 @@ class MachOLinkEditData : public MachOCommand {
  protected:
   // This is really an abstract class, with concrete subclasses providing
   // the command code.
-  explicit MachOLinkEditData(intptr_t cmd)
-      : MachOCommand(cmd, /*needs_offset=*/true, /*in_segment=*/true) {}
+  explicit MachOLinkEditData(uint32_t cmd, LoadCommandOrder order)
+      : MachOCommand(cmd, order, /*needs_offset=*/true, /*in_segment=*/true) {}
 
  private:
   DISALLOW_COPY_AND_ASSIGN(MachOLinkEditData);
@@ -1703,7 +1768,8 @@ class MachOCodeSignature : public MachOLinkEditData {
   static constexpr uint32_t kCommandCode = mach_o::LC_CODE_SIGNATURE;
 
   explicit MachOCodeSignature(const char* identifier)
-      : MachOLinkEditData(kCommandCode), identifier_(identifier) {}
+      : MachOLinkEditData(kCommandCode, kCodeSignatureOrder),
+        identifier_(identifier) {}
 
   static constexpr intptr_t kHeaderAlignment = 8;
   static constexpr intptr_t kHashAlignment = 16;
@@ -1814,6 +1880,91 @@ class MachOCodeSignature : public MachOLinkEditData {
   const char* const identifier_;
 
   DISALLOW_COPY_AND_ASSIGN(MachOCodeSignature);
+};
+
+// dyld on macOS 26 for arm64e only applies function pointer authentication for
+// symbols found via the export trie, not the nlist.
+// Since we only export 2 symbols, this implemention doesn't bother to actually
+// calculate trie nodes or do the fixed point calculation for proper leb128
+// offsets, instead producing a flat tree with degenerate fixed-width leb128
+// encodings.
+class MachOExportsTrie : public MachOLinkEditData {
+ public:
+  static constexpr uint32_t kCommandCode = mach_o::LC_DYLD_EXPORTS_TRIE;
+
+  MachOExportsTrie()
+      : MachOLinkEditData(kCommandCode, kExportsTrieOrder), symbols_() {}
+
+  intptr_t Alignment() const override { return compiler::target::kWordSize; }
+
+  void Initialize(MachOSymbolTable* table) {
+    // `table` has local symbols followed by external symbols.
+    for (intptr_t i = table->num_local_symbols(); i < table->num_symbols();
+         i++) {
+      auto& symbol = table->symbols()[i];
+      SymbolInfo info;
+      info.name = table->strings().At(symbol.name_index);
+      info.symbol = &symbol;  // symbol->value() isn't known yet.
+      symbols_.Add(info);
+    }
+
+    intptr_t offset = 0;
+    offset += 1;  // leaf data size
+    offset += 1;  // child count
+    for (auto& symbol : symbols_) {
+      offset += strlen(symbol.name) + 1;
+      offset += 5;  // child offset
+    }
+    for (auto& symbol : symbols_) {
+      symbol.trie_node_offset = offset;
+      offset += 1;  // leaf data size
+      offset += 1;  // flags
+      offset += 5;  // address
+      offset += 1;  // child count
+    }
+    offset = Utils::RoundUp(offset, Alignment());
+    size_ = offset;
+  }
+
+  void WriteSelf(MachOWriteStream* stream) const override {
+    intptr_t start = stream->Position();
+    stream->WriteLEB128(0);  // leaf data size
+    ASSERT(symbols_.length() < 256);
+    stream->WriteByte(symbols_.length());  // child count
+    for (auto& symbol : symbols_) {
+      stream->WriteBytes(symbol.name, strlen(symbol.name) + 1);
+      stream->WriteFixed5LEB128(symbol.trie_node_offset);
+    }
+    for (auto& symbol : symbols_) {
+      ASSERT_EQUAL(stream->Position() - start, symbol.trie_node_offset);
+      stream->WriteLEB128(6);  // leaf data size
+      {
+        stream->WriteLEB128(0);  // flags
+        stream->WriteFixed5LEB128(symbol.symbol->value());
+      }
+      stream->WriteByte(0);  // child count
+    }
+    stream->Align(Alignment());
+    ASSERT_EQUAL(stream->Position() - start, size_);
+  }
+
+  intptr_t SelfMemorySize() const override { return size_; }
+  intptr_t SelfFileSize() const override { return size_; }
+
+  void Accept(Visitor* visitor) override {
+    visitor->VisitMachOExportsTrie(this);
+  }
+
+ private:
+  struct SymbolInfo {
+    const char* name;
+    intptr_t trie_node_offset;
+    const MachOSymbolTable::Symbol* symbol;
+  };
+
+  GrowableArray<SymbolInfo> symbols_;
+  intptr_t size_ = -1;
+  DISALLOW_COPY_AND_ASSIGN(MachOExportsTrie);
 };
 
 // A representation of the header of the Mach-O file. This contains
@@ -1958,6 +2109,8 @@ class MachOHeader : public MachOContents {
   mach_o::cpu_subtype_t cpu_subtype() const {
 #if defined(TARGET_ARCH_X64)
     return mach_o::CPU_SUBTYPE_X86_64_ALL;
+#elif defined(TARGET_ARCH_ARM64E)
+    return mach_o::CPU_SUBTYPE_ARM64E_V0;
 #elif defined(TARGET_ARCH_ARM64)
     return mach_o::CPU_SUBTYPE_ARM64_ALL;
 #elif defined(TARGET_ARCH_IA32)
@@ -2127,7 +2280,7 @@ class MachOHeader : public MachOContents {
 
 #if defined(DART_TARGET_OS_MACOS) && defined(TARGET_ARCH_ARM64)
   void GenerateCompactUnwindingInformation(
-      DwarfSharedObjectStream& stream,
+      DebugInfoStream& stream,
       const GrowableArray<Dwarf::FrameDescriptionEntry>& fdes);
 #endif
 
@@ -2545,7 +2698,7 @@ void MachOHeader::CreateBSS() {
 
 #if defined(DART_TARGET_OS_MACOS) && defined(TARGET_ARCH_ARM64)
 void MachOHeader::GenerateCompactUnwindingInformation(
-    DwarfSharedObjectStream& stream,
+    DebugInfoStream& stream,
     const GrowableArray<Dwarf::FrameDescriptionEntry>& fdes) {
   // Each instructions image starts with the Image header and the
   // InstructionsSection header.
@@ -2743,8 +2896,8 @@ void MachOHeader::GenerateUnwindingInformation() {
 
     // Even if the unwinding information is not written to the output, it is
     // generated so a zerofill section of the appropriate size can be created.
-    ZoneWriteStream stream(zone(), DwarfSharedObjectStream::kInitialBufferSize);
-    DwarfSharedObjectStream dwarf_stream(zone(), &stream);
+    ZoneWriteStream stream(zone(), DebugInfoStream::kInitialBufferSize);
+    DebugInfoStream dwarf_stream(zone(), &stream);
 
     SharedObjectWriter::SymbolDataArray* symbols = nullptr;
 #if defined(DART_TARGET_OS_MACOS) && defined(TARGET_ARCH_ARM64)
@@ -2882,6 +3035,11 @@ void MachOHeader::InitializeSymbolTables() {
     auto* const dynamic_symtab = new (zone()) MachODynamicSymbolTable(
         *table, /*in_segment=*/type_ != SnapshotType::Object);
     commands_.Add(dynamic_symtab);
+    if (type_ != SnapshotType::Object) {
+      auto* const export_trie = new (zone()) MachOExportsTrie();
+      export_trie->Initialize(table);
+      commands_.Add(export_trie);
+    }
   }
 }
 
@@ -2920,8 +3078,7 @@ void MachOHeader::FinalizeDwarfSections() {
   }
 
   const intptr_t alignment = 1;  // No extra padding.
-  auto add_debug = [&](const char* name,
-                       const DwarfSharedObjectStream& stream) {
+  auto add_debug = [&](const char* name, const DebugInfoStream& stream) {
     ASSERT(!dwarf_segment->FindSection(name, mach_o::SEG_DWARF));
     auto* const section =
         new (zone()) MachOSection(zone(), name, mach_o::SEG_DWARF, alignment,
@@ -2932,24 +3089,36 @@ void MachOHeader::FinalizeDwarfSections() {
   };
 
   {
-    ZoneWriteStream stream(zone(), DwarfSharedObjectStream::kInitialBufferSize);
-    DwarfSharedObjectStream dwarf_stream(zone_, &stream);
+    ZoneWriteStream stream(zone(), DebugInfoStream::kInitialBufferSize);
+    DebugInfoStream dwarf_stream(zone_, &stream);
     dwarf_->WriteAbbreviations(&dwarf_stream);
     add_debug(mach_o::SECT_DEBUG_ABBREV, dwarf_stream);
   }
 
   {
-    ZoneWriteStream stream(zone(), DwarfSharedObjectStream::kInitialBufferSize);
-    DwarfSharedObjectStream dwarf_stream(zone_, &stream);
+    ZoneWriteStream stream(zone(), DebugInfoStream::kInitialBufferSize);
+    DebugInfoStream dwarf_stream(zone_, &stream);
     dwarf_->WriteDebugInfo(&dwarf_stream);
     add_debug(mach_o::SECT_DEBUG_INFO, dwarf_stream);
   }
 
   {
-    ZoneWriteStream stream(zone(), DwarfSharedObjectStream::kInitialBufferSize);
-    DwarfSharedObjectStream dwarf_stream(zone_, &stream);
+    ZoneWriteStream stream(zone(), DebugInfoStream::kInitialBufferSize);
+    DebugInfoStream dwarf_stream(zone_, &stream);
     dwarf_->WriteLineNumberProgram(&dwarf_stream);
     add_debug(mach_o::SECT_DEBUG_LINE, dwarf_stream);
+  }
+}
+
+static int SortCommand(MachOCommand* const* a, MachOCommand* const* b) {
+  ASSERT((*a)->order() != kNoOrder);
+  ASSERT((*b)->order() != kNoOrder);
+  if ((*a)->order() < (*b)->order()) {
+    return -1;
+  } else if ((*a)->order() > (*b)->order()) {
+    return 1;
+  } else {
+    return 0;
   }
 }
 
@@ -3025,6 +3194,8 @@ void MachOHeader::FinalizeCommands() {
     linkedit_segment =
         new (zone_) MachOSegment(zone_, type_, mach_o::SEG_LINKEDIT);
     num_commands += 1;
+
+    linkedit_commands.Sort(SortCommand);
     for (auto* const c : linkedit_commands) {
       linkedit_segment->AddContents(c);
     }
@@ -3056,7 +3227,6 @@ void MachOHeader::FinalizeCommands() {
   }
 
   // Now populate reordered_commands.
-  reordered_commands.AddArray(header_only_commands);
 
   // While adding segments, also re-index sections.
   intptr_t current_section_index = 1;  // 1-based.
@@ -3069,7 +3239,14 @@ void MachOHeader::FinalizeCommands() {
       }
     }
   }
-  reordered_commands.AddArray(linkedit_commands);
+
+  {
+    GrowableArray<MachOCommand*> non_segment_commands(zone_, 0);
+    non_segment_commands.AddArray(header_only_commands);
+    non_segment_commands.AddArray(linkedit_commands);
+    non_segment_commands.Sort(SortCommand);
+    reordered_commands.AddArray(non_segment_commands);
+  }
 
   // All sections should have been accounted for in the loops above as well as
   // the new linkedit segment (and, if applicable, the code signature).
@@ -3643,6 +3820,11 @@ void MachOSymbolTable::Initialize(SharedObjectWriter::Type type,
     }
   }
   set_num_external_symbols(num_symbols() - num_local_symbols());
+  // External symbols must be sorted by name in MH_OBJECT files, but grouped
+  // by module in MH_DYLIB files.
+  if (type == SnapshotType::Object) {
+    symbols_.SortFromTo(num_local_symbols(), num_symbols(), Symbol::Compare);
+  }
 }
 
 }  // namespace dart

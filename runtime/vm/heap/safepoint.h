@@ -5,6 +5,7 @@
 #ifndef RUNTIME_VM_HEAP_SAFEPOINT_H_
 #define RUNTIME_VM_HEAP_SAFEPOINT_H_
 
+#include "platform/allocation.h"
 #include "vm/globals.h"
 #include "vm/isolate.h"
 #include "vm/lockers.h"
@@ -91,7 +92,7 @@ class SafepointTask : public ThreadPool::Task,
 
 // Implements handling of safepoint operations for all threads in an
 // IsolateGroup.
-class SafepointHandler {
+class SafepointHandler : public MallocAllocated {
  public:
   explicit SafepointHandler(IsolateGroup* I);
   ~SafepointHandler();
@@ -130,7 +131,7 @@ class SafepointHandler {
   void RunTasks(IntrusiveDList<SafepointTask>* tasks);
 
  private:
-  class LevelHandler {
+  class LevelHandler : public MallocAllocated {
    public:
     LevelHandler(IsolateGroup* isolate_group, SafepointLevel level)
         : isolate_group_(isolate_group), level_(level) {}

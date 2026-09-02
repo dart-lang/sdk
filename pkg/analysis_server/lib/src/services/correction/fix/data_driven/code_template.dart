@@ -87,7 +87,7 @@ class TemplateContext {
       return node.parent;
     } else if (node.parent is ArgumentList) {
       return node.parent?.parent;
-    } else if (node is ImportDirective) {
+    } else if (node is NamespaceDirective) {
       return node;
     } else if (node is InstanceCreationExpression ||
         node is InvocationExpression) {
@@ -102,7 +102,7 @@ class TemplateContext {
       }
     } else if (node is SimpleStringLiteral) {
       var parent = node.parent;
-      if (parent is ImportDirective) {
+      if (parent is NamespaceDirective) {
         return parent;
       }
     } else if (node is SimpleIdentifier) {

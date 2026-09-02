@@ -18,12 +18,14 @@ void main() {
 @reflectiveTest
 class ReplaceContainerWithColoredBoxMultiTest extends BulkFixProcessorTest {
   @override
+  bool get addFlutterPackageDep => true;
+
+  @override
   String get lintCode => LintNames.use_colored_box;
 
   @override
   void setUp() {
     super.setUp();
-    writeTestPackageConfig(flutter: true);
     createAnalysisOptionsFile(lints: [LintNames.use_colored_box]);
   }
 
@@ -60,6 +62,9 @@ Widget buildRow() {
 @reflectiveTest
 class ReplaceContainerWithColoredBoxTest extends FixProcessorLintTest {
   @override
+  bool get addFlutterPackageDep => true;
+
+  @override
   FixKind get kind => DartFixKind.replaceContainerWithColoredBox;
 
   @override
@@ -68,7 +73,6 @@ class ReplaceContainerWithColoredBoxTest extends FixProcessorLintTest {
   @override
   void setUp() {
     super.setUp();
-    writeTestPackageConfig(flutter: true);
     createAnalysisOptionsFile(lints: [LintNames.use_colored_box]);
   }
 

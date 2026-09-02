@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:native_compiler/back_end/locations.dart';
+import 'package:native_compiler/back_end/safepoint.dart';
 import 'package:cfg/ir/instructions.dart';
 import 'package:cfg/ir/types.dart';
 import 'package:cfg/ir/visitor.dart';
@@ -47,6 +48,7 @@ class const InstructionConstraints(
   final Constraint? result,
   final List<Constraint?> inputs, [
   final List<Constraint> temps = const [],
+  final Safepoint? safepoint,
 ]);
 
 const anyCpuRegister = AnyCpuRegister();
@@ -68,6 +70,9 @@ Constraint anyLocation(Definition def) => switch (registerClass(def)) {
   RegisterClass.cpu => anyCpuLocation,
   RegisterClass.fpu => anyFpuLocation,
 };
+
+Constraint? registerOrImmediate(Register reg, Definition def) =>
+    def is Constant ? null : reg;
 
 Constraint? anyRegisterOrImmediate(Definition def) =>
     def is Constant ? null : anyRegister(def);
@@ -101,7 +106,14 @@ abstract base class const Constraints()
   InstructionConstraints? visitTargetBlock(TargetBlock instr) => null;
 
   @override
-  InstructionConstraints? visitCatchBlock(CatchBlock instr) => null;
+  InstructionConstraints? visitCatchBlock(CatchBlock instr) =>
+      InstructionConstraints(
+        null,
+        const [],
+        const [],
+        // VM requires a safepoint at every exception handler.
+        Safepoint(),
+      );
 
   @override
   InstructionConstraints? visitGoto(Goto instr) => null;

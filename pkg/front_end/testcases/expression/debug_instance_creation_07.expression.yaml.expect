@@ -2,5 +2,5 @@ Errors: {
 }
 method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr(dart.core::_OneByteString s1, dart.core::_OneByteString s2) → dynamic
   return (() → dart.core::String {
-    return "${this{dynamic}.s1} ${this{dynamic}.s2}";
+    return "${s1} ${s2}";
   })(){() → dart.core::String};

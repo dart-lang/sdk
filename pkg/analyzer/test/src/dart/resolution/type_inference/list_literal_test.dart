@@ -79,9 +79,28 @@ main() {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('f(null)');
+    var node = result.findNode.unqualifiedFunctionInvocation('f(null)');
     assertResolvedNodeText(node, r'''
-MethodInvocation
+UnqualifiedFunctionInvocation
+  name: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      NullLiteral
+        literal: null
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: <testLibrary>::@function::f::@formalParameter::t
+          substitution: {T: Iterable<int>?}
+        staticType: Null
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@function::f
+    invokeType: Iterable<int>? Function(Iterable<int>?)
+    type: Iterable<int>?
+  staticType: Iterable<int>?
+  typeArgumentTypes
+    Iterable<int>?
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: f
     element: <testLibrary>::@function::f
@@ -121,7 +140,7 @@ List<String> a = <String>[0];
     assertType(result.findNode.listLiteral('<String>['), 'List<String>');
   }
 
-  @SkippedTest() // TODO(scheglov): fix it
+  @FailingTest() // TODO(scheglov): fix it
   test_context_typeArgs_expression_conflictingTypeArgs() async {
     // Context type and element types both suggest `String`, so this should
     // override the explicit type argument.
@@ -474,7 +493,7 @@ var a = <int>[1];
     assertType(result.findNode.listLiteral('['), 'List<int>');
   }
 
-  @SkippedTest() // TODO(scheglov): fix it
+  @FailingTest() // TODO(scheglov): fix it
   test_noContext_typeArgs_expressions_conflict() async {
     var result = await resolveTestCodeWithDiagnostics('''
 var a = <int, String>[1, 2];

@@ -96,9 +96,7 @@ MappedMemory* File::Map(MapType type,
       hint = reinterpret_cast<void*>(&Dart_Initialize);
       prot = PROT_READ | PROT_EXEC;
 #if !defined(DART_HOST_OS_IOS)
-      if (IsAtLeastMacOSX10_14()) {
-        map_flags |= (MAP_JIT | MAP_ANONYMOUS);
-      }
+      map_flags |= (MAP_JIT | MAP_ANONYMOUS);
 #endif
       break;
     case kReadWrite:
@@ -114,7 +112,7 @@ MappedMemory* File::Map(MapType type,
   // Due to codesigning restrictions, we cannot map the file as executable
   // directly. We must first copy it into an anonymous mapping and then mark
   // the mapping as executable.
-  const bool should_copy = (type == kReadExecute) && IsAtLeastMacOSX10_14();
+  const bool should_copy = type == kReadExecute;
 #else
   const bool should_copy = false;
 #endif
@@ -391,6 +389,8 @@ bool File::CreatePipe(Namespace* namespc, File** readPipe, File** writePipe) {
   if (status != 0) {
     return false;
   }
+  FDUtils::SetCloseOnExec(pipe_fds[0]);
+  FDUtils::SetCloseOnExec(pipe_fds[1]);
   *readPipe = OpenFD(pipe_fds[0]);
   *writePipe = OpenFD(pipe_fds[1]);
   return true;
@@ -622,7 +622,7 @@ const char* File::LinkTarget(Namespace* namespc,
   // target. The link might have changed before the readlink call.
   const int kBufferSize = 1024;
   char target[kBufferSize];
-  size_t target_size =
+  const ssize_t target_size =
       TEMP_FAILURE_RETRY(readlink(pathname, target, kBufferSize));
   if (target_size <= 0) {
     return nullptr;
@@ -631,7 +631,7 @@ const char* File::LinkTarget(Namespace* namespc,
     dest = DartUtils::ScopedCString(target_size + 1);
   } else {
     ASSERT(dest_size > 0);
-    if (static_cast<size_t>(dest_size) <= target_size) {
+    if (dest_size <= target_size) {
       return nullptr;
     }
   }

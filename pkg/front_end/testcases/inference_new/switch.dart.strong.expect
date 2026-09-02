@@ -21,7 +21,7 @@ static method test(self::C<core::int> x) → void {
     #L3:
     default:
       {
-        core::int y = 0;
+        core::int y##1 = 0;
         break #L1;
       }
   }

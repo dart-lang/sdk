@@ -1266,6 +1266,7 @@ class BinaryPrinter
     }
     writeAnnotationList(node.annotations);
     writeStringReference(node.partUri);
+    writeUriReference(node.fileUri);
   }
 
   @override
@@ -1369,9 +1370,13 @@ class BinaryPrinter
     writeFunctionNode(node.function);
     // Parameters are in scope in the initializers.
     _variableIndexer ??= _newVariableIndexer();
+
+    // Account for `ThisVariable`.
+    int thisVariableCount = node.function.thisVariable == null ? 0 : 1;
     _variableIndexer!.restoreScope(
       node.function.positionalParameters.length +
-          node.function.namedParameters.length,
+          node.function.namedParameters.length +
+          thisVariableCount,
     );
     _variableContextIndexer.restoreScope(node.function.scope);
     writeNodeList(node.initializers);
@@ -1896,6 +1901,7 @@ class BinaryPrinter
     writeName(node.name);
     writeArgumentsNode(node.arguments);
     writeDartType(node.functionType);
+    writeDartType(node.resultType);
     writeNonNullInstanceMemberReference(node.interfaceTargetReference);
   }
 
@@ -2554,6 +2560,16 @@ class BinaryPrinter
   }
 
   @override
+  void visitLocalFunctionVariable(LocalFunctionVariable node) {
+    writeVariable(node);
+  }
+
+  @override
+  void visitConstVariable(ConstVariable node) {
+    writeVariable(node);
+  }
+
+  @override
   void visitNamedParameter(NamedParameter node) {
     writeVariable(node);
   }
@@ -2600,8 +2616,12 @@ class BinaryPrinter
     switch (node) {
       case LocalVariable():
         writeByte(Tag.LocalVariable);
+      case LocalFunctionVariable():
+        writeByte(Tag.LocalFunctionVariable);
       case LateVariable():
         writeByte(Tag.LateVariable);
+      case ConstVariable():
+        writeByte(Tag.ConstVariable);
       case CatchVariable():
         writeByte(Tag.CatchVariable);
       case ThisVariable():
@@ -2617,7 +2637,26 @@ class BinaryPrinter
     writeOffset(node.fileEqualsOffset);
     writeAnnotationList(node.annotations);
     writeUInt30(node.flags);
-    writeStringReference(node.cosmeticName ?? '');
+    switch (node) {
+      case LocalVariable():
+        writeStringReference(node.name);
+      case LocalFunctionVariable():
+        writeStringReference(node.name);
+      case LateVariable():
+        writeStringReference(node.name);
+      case ConstVariable():
+        writeStringReference(node.name);
+      case CatchVariable():
+        writeStringReference(node.catchVariableName);
+      case ThisVariable():
+        writeStringReference('');
+      case SyntheticVariable():
+        writeStringReference(node.cosmeticName ?? '');
+      case PositionalParameter():
+        writeStringReference(node.parameterName);
+      case NamedParameter():
+        writeStringReference(node.parameterName);
+    }
     writeNode(node.type);
 
     writeOptionalNode(node is ThisVariable ? null : node.initializer);
@@ -2948,15 +2987,6 @@ class BinaryPrinter
     writeNode(node.receiver);
   }
 
-  void _writeVariableReferenceOption(Variable? variable) {
-    if (variable == null) {
-      writeByte(Tag.Nothing);
-    } else {
-      writeByte(Tag.Something);
-      _writeVariableReference(variable);
-    }
-  }
-
   void _writeVariableReference(Variable variable) {
     int index = _getVariableIndex(variable);
     writeUInt30(variable.binaryOffsetNoTag);
@@ -2975,10 +3005,16 @@ class BinaryPrinter
   void visitAssignedVariablePattern(AssignedVariablePattern node) {
     writeByte(Tag.AssignedVariablePattern);
     writeOffset(node.fileOffset);
-    _writeVariableReference(node.variable);
-    _writeVariableReferenceOption(node.setter);
+    writeStringReference(node.variableName);
+    writeDartType(node.variableType);
+    _writeVariableReference(node.writeVariable);
     writeOptionalNode(node.matchedValueType);
-    writeByte(node.needsCast ? 1 : 0);
+    writeByte(
+      (node.needsCast ? AssignedVariablePattern.FlagNeedsCast : 0) |
+          (node.hasObservableEffect
+              ? AssignedVariablePattern.FlagHasObservableEffect
+              : 0),
+    );
   }
 
   @override
@@ -3013,20 +3049,20 @@ class BinaryPrinter
     writeOffset(node.fileOffset);
     writeOptionalNode(node.typeArgument);
     writeNodeList(node.patterns);
-    writeOptionalNode(node.requiredType);
-    writeOptionalNode(node.matchedValueType);
+    writeDartType(node.requiredType);
+    writeDartType(node.matchedValueType);
     writeByte(node.flags);
-    writeOptionalNode(node.lookupType);
-    writeNullAllowedReference(node.lengthTargetReference);
-    writeOptionalNode(node.lengthType);
-    writeNullAllowedReference(node.lengthCheckTargetReference);
-    writeOptionalNode(node.lengthCheckType);
-    writeNullAllowedReference(node.sublistTargetReference);
-    writeOptionalNode(node.sublistType);
-    writeNullAllowedReference(node.minusTargetReference);
-    writeOptionalNode(node.minusType);
-    writeNullAllowedReference(node.indexGetTargetReference);
-    writeOptionalNode(node.indexGetType);
+    writeDartType(node.lookupType);
+    writeNonNullReference(node.lengthTargetReference);
+    writeDartType(node.lengthType);
+    writeNonNullReference(node.lengthCheckTargetReference);
+    writeDartType(node.lengthCheckType);
+    writeNonNullReference(node.sublistTargetReference);
+    writeDartType(node.sublistType);
+    writeNonNullReference(node.minusTargetReference);
+    writeDartType(node.minusType);
+    writeNonNullReference(node.indexGetTargetReference);
+    writeDartType(node.indexGetType);
   }
 
   @override
@@ -3036,14 +3072,14 @@ class BinaryPrinter
     writeOptionalNode(node.keyType);
     writeOptionalNode(node.valueType);
     writeNodeList(node.entries);
-    writeOptionalNode(node.requiredType);
-    writeOptionalNode(node.matchedValueType);
+    writeDartType(node.requiredType);
+    writeDartType(node.matchedValueType);
     writeByte(node.flags);
-    writeOptionalNode(node.lookupType);
-    writeNullAllowedReference(node.containsKeyTargetReference);
-    writeOptionalNode(node.containsKeyType);
-    writeNullAllowedReference(node.indexGetTargetReference);
-    writeOptionalNode(node.indexGetType);
+    writeDartType(node.lookupType);
+    writeNonNullReference(node.containsKeyTargetReference);
+    writeDartType(node.containsKeyType);
+    writeNonNullReference(node.indexGetTargetReference);
+    writeDartType(node.indexGetType);
   }
 
   @override
@@ -3073,7 +3109,6 @@ class BinaryPrinter
     writeOptionalNode(node.resultType);
     writeOptionalNode(node.recordType);
     writeUInt30(node.recordFieldIndex);
-    writeOptionalNode(node.functionType);
     if (node.typeArguments == null) {
       writeByte(Tag.Nothing);
     } else {
@@ -3102,9 +3137,8 @@ class BinaryPrinter
     writeOffset(node.fileOffset);
     writeDartType(node.requiredType);
     writeNodeList(node.fields);
-    writeOptionalNode(node.matchedValueType);
+    writeDartType(node.matchedValueType);
     writeByte(node.needsCheck ? 1 : 0);
-    writeOptionalNode(node.lookupType);
   }
 
   @override
@@ -3125,7 +3159,7 @@ class BinaryPrinter
 
   @override
   void visitPatternSwitchCase(PatternSwitchCase node) {
-    writeVariableList(node.jointVariables);
+    writeVariableDeclarationList(node.jointVariableDeclarations);
     int length = node.patternGuards.length;
     writeUInt30(length);
     for (int i = 0; i < length; ++i) {
@@ -3154,10 +3188,10 @@ class BinaryPrinter
     writeByte(Tag.RecordPattern);
     writeOffset(node.fileOffset);
     writeNodeList(node.patterns);
-    writeOptionalNode(node.requiredType);
-    writeOptionalNode(node.matchedValueType);
+    writeDartType(node.requiredType);
+    writeDartType(node.matchedValueType);
     writeByte(node.needsCheck ? 1 : 0);
-    writeOptionalNode(node.lookupType);
+    writeDartType(node.lookupType);
   }
 
   @override
@@ -3210,7 +3244,7 @@ class BinaryPrinter
     writeOffset(node.fileOffset);
     writeOptionalNode(node.type);
     writeVariable(node.variable);
-    writeOptionalNode(node.matchedValueType);
+    writeDartType(node.matchedValueType);
   }
 
   @override

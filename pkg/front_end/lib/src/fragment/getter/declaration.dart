@@ -29,6 +29,7 @@ import '../../source/source_member_builder.dart';
 import '../../source/source_property_builder.dart';
 import '../../source/stack_listener_impl.dart' show AsyncModifier;
 import '../../source/type_parameter_factory.dart';
+import '../../type_inference/context_allocation_strategy.dart';
 import '../../type_inference/type_schema.dart';
 import '../fragment.dart';
 import 'body_builder_context.dart';
@@ -308,10 +309,9 @@ class RegularGetterDeclaration
   @override
   void registerFunctionBody({
     required Statement? body,
-    required Scope? scope,
     required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
-    required ThisVariable? thisVariable,
+    required ScopeProviderInfo? scopeProviderInfo,
   }) {
     assert(
       asyncModifier.kind == this.asyncModifier.kind,
@@ -320,10 +320,9 @@ class RegularGetterDeclaration
     );
     _encoding.registerFunctionBody(
       body: body,
-      scope: scope,
       asyncModifier: asyncModifier,
       emittedValueType: emittedValueType,
-      thisVariable: thisVariable,
+      scopeProviderInfo: scopeProviderInfo,
     );
   }
 
@@ -368,10 +367,9 @@ abstract class GetterFragmentDeclaration {
 
   void registerFunctionBody({
     required Statement? body,
-    required Scope? scope,
     required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
-    required ThisVariable? thisVariable,
+    required ScopeProviderInfo? scopeProviderInfo,
   });
 
   DartType get returnTypeContext;

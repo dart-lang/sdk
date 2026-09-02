@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:collection';
 
 import 'package:dart_runtime_service/dart_runtime_service.dart';
@@ -63,10 +64,16 @@ base class FakeDartRuntimeServiceBackend extends Fake
   }
 
   @override
-  void onStreamCancel({required String streamId}) {}
+  FutureOr<void> onStreamCancel({required String streamId}) {}
 
   @override
-  bool onStreamListen({
+  void onClientSubscribe(Client client, String streamId) {}
+
+  @override
+  void onClientUnsubscribe(Client client, String streamId) {}
+
+  @override
+  FutureOr<bool> onStreamListen({
     required String streamId,
     required Map<String, Object?> params,
   }) {

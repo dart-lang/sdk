@@ -51,7 +51,7 @@ var    a = (1, 2);
 
   Future<void> test_format_version_packageConfig() async {
     // 2.19 will not parse/format records.
-    writeTestPackageConfig(languageVersion: '2.19');
+    writeTestPackageConfig2(languageVersion: '2.19');
     const content = '''
 var    a = (1, 2);
 ''';
@@ -61,7 +61,7 @@ var    a = (1, 2);
 
   Future<void> test_format_version_versionToken_overridesPackageConfig() async {
     // 2.19 will not parse/format records.
-    writeTestPackageConfig(languageVersion: '3.0');
+    writeTestPackageConfig2(languageVersion: '3.0');
     const content = '''
 // @dart = 2.19
 var    a = (1, 2);
@@ -539,6 +539,44 @@ Delete 4:4-4:5
     await _assertMinimalEdits(startContent, endContent, expectedEdits);
   }
 
+  Future<void> test_minimalEdits_trailingComment_trailingWhitespace() async {
+    // The `/**/` markers are parsed out by TestCode and here only to preserve
+    // trailing whitespace.
+    const startContent = '''
+const x = 42;      //    Watermelon  /**/
+const y = 42;
+''';
+    const endContent = '''
+const x = 42; //    Watermelon
+const y = 42;
+''';
+    const expectedEdits = r'''
+Replace 1:15-1:38 with "//    Watermelon"
+''';
+
+    await _assertMinimalEdits(startContent, endContent, expectedEdits);
+  }
+
+  Future<void>
+  test_minimalEdits_trailingComment_trailingWhitespace_atEof() async {
+    // The `/**/` markers are parsed out by TestCode and here only to preserve
+    // trailing whitespace.
+    const startContent = '''
+const x = 42;      //    Watermelon  /**/
+const y = 42;      //    Cantaloupe  /**/
+''';
+    const endContent = '''
+const x = 42; //    Watermelon
+const y = 42; //    Cantaloupe
+''';
+    const expectedEdits = r'''
+Replace 1:15-1:38 with "//    Watermelon"
+Replace 2:15-2:38 with "//    Cantaloupe"
+''';
+
+    await _assertMinimalEdits(startContent, endContent, expectedEdits);
+  }
+
   Future<void> test_minimalEdits_whitespace() async {
     const startContent = '''
 void   f(){}
@@ -671,7 +709,10 @@ void g() {
     await parseTestCode(start);
     var edits = generateMinimalEdits(testParsedResult, end, range: range);
     expect(edits.toText().trim(), expected);
-    expect(applyTextEdits(start, edits.result), expectedFormatResult ?? end);
+    expect(
+      applyTextEdits(parsedTestCode.code, edits.result),
+      expectedFormatResult ?? end,
+    );
   }
 
   /// Assert that formatting [content] produces no edits.

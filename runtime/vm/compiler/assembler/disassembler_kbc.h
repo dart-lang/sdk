@@ -28,7 +28,7 @@ class KernelBytecodeDisassembler : public AllStatic {
                           uword end,
                           uword base,
                           DisassemblyFormatter* formatter) {
-    Disassemble(start, end, base, formatter, Bytecode::Handle());
+    Disassemble(start, end, base, formatter, Object::null_bytecode());
   }
 
   static void Disassemble(uword start,

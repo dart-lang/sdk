@@ -22,11 +22,11 @@ void f() async {
   return [1, await for (var x in list) 2];
 }
 ''');
-    var node = parseResult.findNode.singleReturnStatement.expression!;
+    var node = parseResult.findNode.singleReturnStatement.expression2!;
     assertParsedNodeText(node, r'''
 ListLiteral
   leftBracket: [
-  elements
+  elements2
     IntegerLiteral
       literal: 1
     ForElement
@@ -38,10 +38,10 @@ ListLiteral
           keyword: var
           name: x
         inKeyword: in
-        iterable: SimpleIdentifier
+        iterable2: SimpleIdentifier
           token: list
       rightParenthesis: )
-      body: IntegerLiteral
+      body2: IntegerLiteral
         literal: 2
   rightBracket: ]
 ''');
@@ -57,11 +57,11 @@ void f() async {
   ];
 }
 ''');
-    var node = parseResult.findNode.singleReturnStatement.expression!;
+    var node = parseResult.findNode.singleReturnStatement.expression2!;
     assertParsedNodeText(node, r'''
 ListLiteral
   leftBracket: [
-  elements
+  elements2
     IntegerLiteral
       literal: 1
     ForElement
@@ -73,16 +73,16 @@ ListLiteral
           keyword: var
           name: x
         inKeyword: in
-        iterable: SimpleIdentifier
+        iterable2: SimpleIdentifier
           token: list
       rightParenthesis: )
-      body: IfElement
+      body2: IfElement
         ifKeyword: if
         leftParenthesis: (
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: c
         rightParenthesis: )
-        thenElement: IntegerLiteral
+        thenElement2: IntegerLiteral
           literal: 2
   rightBracket: ]
 ''');
@@ -97,11 +97,11 @@ void f() {
   ];
 }
 ''');
-    var node = parseResult.findNode.singleReturnStatement.expression!;
+    var node = parseResult.findNode.singleReturnStatement.expression2!;
     assertParsedNodeText(node, r'''
 ListLiteral
   leftBracket: [
-  elements
+  elements2
     IntegerLiteral
       literal: 1
     ForElement
@@ -115,27 +115,39 @@ ListLiteral
             VariableDeclaration
               name: x
               equals: =
-              initializer: IntegerLiteral
+              initializer2: IntegerLiteral
                 literal: 0
         leftSeparator: ;
-        condition: BinaryExpression
+        condition2: BinaryOperatorInvocation
+          leftOperand: SimpleIdentifier
+            token: x
+          operator: <
+          rightOperand: IntegerLiteral
+            literal: 10
+          binaryOperator: lessThan
+        condition(v1): BinaryExpression
           leftOperand: SimpleIdentifier
             token: x
           operator: <
           rightOperand: IntegerLiteral
             literal: 10
         rightSeparator: ;
-        updaters
+        updaters2
+          PrefixIncrement
+            operator: ++
+            target: UnqualifiedNameAssignmentTarget
+              name: x
+        updaters(v1)
           PrefixExpression
             operator: ++
             operand: SimpleIdentifier
               token: x
       rightParenthesis: )
-      body: SpreadElement
+      body2: SpreadElement
         spreadOperator: ...
-        expression: ListLiteral
+        expression2: ListLiteral
           leftBracket: [
-          elements
+          elements2
             IntegerLiteral
               literal: 2
           rightBracket: ]
@@ -149,20 +161,20 @@ void f() {
   return [1, if (true) 2];
 }
 ''');
-    var node = parseResult.findNode.singleReturnStatement.expression!;
+    var node = parseResult.findNode.singleReturnStatement.expression2!;
     assertParsedNodeText(node, r'''
 ListLiteral
   leftBracket: [
-  elements
+  elements2
     IntegerLiteral
       literal: 1
     IfElement
       ifKeyword: if
       leftParenthesis: (
-      expression: BooleanLiteral
+      expression2: BooleanLiteral
         literal: true
       rightParenthesis: )
-      thenElement: IntegerLiteral
+      thenElement2: IntegerLiteral
         literal: 2
   rightBracket: ]
 ''');
@@ -174,23 +186,23 @@ void f() {
   return [1, if (true) 2 else 5];
 }
 ''');
-    var node = parseResult.findNode.singleReturnStatement.expression!;
+    var node = parseResult.findNode.singleReturnStatement.expression2!;
     assertParsedNodeText(node, r'''
 ListLiteral
   leftBracket: [
-  elements
+  elements2
     IntegerLiteral
       literal: 1
     IfElement
       ifKeyword: if
       leftParenthesis: (
-      expression: BooleanLiteral
+      expression2: BooleanLiteral
         literal: true
       rightParenthesis: )
-      thenElement: IntegerLiteral
+      thenElement2: IntegerLiteral
         literal: 2
       elseKeyword: else
-      elseElement: IntegerLiteral
+      elseElement2: IntegerLiteral
         literal: 5
   rightBracket: ]
 ''');
@@ -202,33 +214,34 @@ void f() {
   return [1, if (true) 2 else for (a in b) 5];
 }
 ''');
-    var node = parseResult.findNode.singleReturnStatement.expression!;
+    var node = parseResult.findNode.singleReturnStatement.expression2!;
     assertParsedNodeText(node, r'''
 ListLiteral
   leftBracket: [
-  elements
+  elements2
     IntegerLiteral
       literal: 1
     IfElement
       ifKeyword: if
       leftParenthesis: (
-      expression: BooleanLiteral
+      expression2: BooleanLiteral
         literal: true
       rightParenthesis: )
-      thenElement: IntegerLiteral
+      thenElement2: IntegerLiteral
         literal: 2
       elseKeyword: else
-      elseElement: ForElement
+      elseElement2: ForElement
         forKeyword: for
         leftParenthesis: (
         forLoopParts: ForEachPartsWithIdentifier
-          identifier: SimpleIdentifier
+          identifier2: a
+          identifier(v1): SimpleIdentifier
             token: a
           inKeyword: in
-          iterable: SimpleIdentifier
+          iterable2: SimpleIdentifier
             token: b
         rightParenthesis: )
-        body: IntegerLiteral
+        body2: IntegerLiteral
           literal: 5
   rightBracket: ]
 ''');
@@ -243,33 +256,33 @@ void f() {
   ];
 }
 ''');
-    var node = parseResult.findNode.singleReturnStatement.expression!;
+    var node = parseResult.findNode.singleReturnStatement.expression2!;
     assertParsedNodeText(node, r'''
 ListLiteral
   leftBracket: [
-  elements
+  elements2
     IntegerLiteral
       literal: 1
     IfElement
       ifKeyword: if
       leftParenthesis: (
-      expression: BooleanLiteral
+      expression2: BooleanLiteral
         literal: true
       rightParenthesis: )
-      thenElement: SpreadElement
+      thenElement2: SpreadElement
         spreadOperator: ...
-        expression: ListLiteral
+        expression2: ListLiteral
           leftBracket: [
-          elements
+          elements2
             IntegerLiteral
               literal: 2
           rightBracket: ]
       elseKeyword: else
-      elseElement: SpreadElement
+      elseElement2: SpreadElement
         spreadOperator: ...?
-        expression: ListLiteral
+        expression2: ListLiteral
           leftBracket: [
-          elements
+          elements2
             IntegerLiteral
               literal: 5
           rightBracket: ]
@@ -287,30 +300,31 @@ void f() {
   ];
 }
 ''');
-    var node = parseResult.findNode.singleReturnStatement.expression!;
+    var node = parseResult.findNode.singleReturnStatement.expression2!;
     assertParsedNodeText(node, r'''
 ListLiteral
   leftBracket: [
-  elements
+  elements2
     IntegerLiteral
       literal: 1
     IfElement
       ifKeyword: if
       leftParenthesis: (
-      expression: BooleanLiteral
+      expression2: BooleanLiteral
         literal: true
       rightParenthesis: )
-      thenElement: ForElement
+      thenElement2: ForElement
         forKeyword: for
         leftParenthesis: (
         forLoopParts: ForEachPartsWithIdentifier
-          identifier: SimpleIdentifier
+          identifier2: a
+          identifier(v1): SimpleIdentifier
             token: a
           inKeyword: in
-          iterable: SimpleIdentifier
+          iterable2: SimpleIdentifier
             token: b
         rightParenthesis: )
-        body: IntegerLiteral
+        body2: IntegerLiteral
           literal: 2
   rightBracket: ]
 ''');
@@ -325,24 +339,24 @@ void f() {
   ];
 }
 ''');
-    var node = parseResult.findNode.singleReturnStatement.expression!;
+    var node = parseResult.findNode.singleReturnStatement.expression2!;
     assertParsedNodeText(node, r'''
 ListLiteral
   leftBracket: [
-  elements
+  elements2
     IntegerLiteral
       literal: 1
     IfElement
       ifKeyword: if
       leftParenthesis: (
-      expression: BooleanLiteral
+      expression2: BooleanLiteral
         literal: true
       rightParenthesis: )
-      thenElement: SpreadElement
+      thenElement2: SpreadElement
         spreadOperator: ...
-        expression: ListLiteral
+        expression2: ListLiteral
           leftBracket: [
-          elements
+          elements2
             IntegerLiteral
               literal: 2
           rightBracket: ]
@@ -359,18 +373,18 @@ void f() {
   ];
 }
 ''');
-    var node = parseResult.findNode.singleReturnStatement.expression!;
+    var node = parseResult.findNode.singleReturnStatement.expression2!;
     assertParsedNodeText(node, r'''
 ListLiteral
   leftBracket: [
-  elements
+  elements2
     IntegerLiteral
       literal: 1
     SpreadElement
       spreadOperator: ...
-      expression: ListLiteral
+      expression2: ListLiteral
         leftBracket: [
-        elements
+        elements2
           IntegerLiteral
             literal: 2
         rightBracket: ]
@@ -387,18 +401,18 @@ void f() {
   ];
 }
 ''');
-    var node = parseResult.findNode.singleReturnStatement.expression!;
+    var node = parseResult.findNode.singleReturnStatement.expression2!;
     assertParsedNodeText(node, r'''
 ListLiteral
   leftBracket: [
-  elements
+  elements2
     IntegerLiteral
       literal: 1
     SpreadElement
       spreadOperator: ...?
-      expression: ListLiteral
+      expression2: ListLiteral
         leftBracket: [
-        elements
+        elements2
           IntegerLiteral
             literal: 2
         rightBracket: ]
@@ -412,33 +426,34 @@ void f() async {
   return {1: 7, await for (y in list) 2: 3};
 }
 ''');
-    var node = parseResult.findNode.singleReturnStatement.expression!;
+    var node = parseResult.findNode.singleReturnStatement.expression2!;
     assertParsedNodeText(node, r'''
 SetOrMapLiteral
   leftBracket: {
-  elements
+  elements2
     MapLiteralEntry
-      key: IntegerLiteral
+      key2: IntegerLiteral
         literal: 1
       separator: :
-      value: IntegerLiteral
+      value2: IntegerLiteral
         literal: 7
     ForElement
       awaitKeyword: await
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForEachPartsWithIdentifier
-        identifier: SimpleIdentifier
+        identifier2: y
+        identifier(v1): SimpleIdentifier
           token: y
         inKeyword: in
-        iterable: SimpleIdentifier
+        iterable2: SimpleIdentifier
           token: list
       rightParenthesis: )
-      body: MapLiteralEntry
-        key: IntegerLiteral
+      body2: MapLiteralEntry
+        key2: IntegerLiteral
           literal: 2
         separator: :
-        value: IntegerLiteral
+        value2: IntegerLiteral
           literal: 3
   rightBracket: }
   isMap: false
@@ -455,39 +470,40 @@ void f() async {
   };
 }
 ''');
-    var node = parseResult.findNode.singleReturnStatement.expression!;
+    var node = parseResult.findNode.singleReturnStatement.expression2!;
     assertParsedNodeText(node, r'''
 SetOrMapLiteral
   leftBracket: {
-  elements
+  elements2
     MapLiteralEntry
-      key: IntegerLiteral
+      key2: IntegerLiteral
         literal: 1
       separator: :
-      value: IntegerLiteral
+      value2: IntegerLiteral
         literal: 7
     ForElement
       awaitKeyword: await
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForEachPartsWithIdentifier
-        identifier: SimpleIdentifier
+        identifier2: y
+        identifier(v1): SimpleIdentifier
           token: y
         inKeyword: in
-        iterable: SimpleIdentifier
+        iterable2: SimpleIdentifier
           token: list
       rightParenthesis: )
-      body: IfElement
+      body2: IfElement
         ifKeyword: if
         leftParenthesis: (
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: c
         rightParenthesis: )
-        thenElement: MapLiteralEntry
-          key: IntegerLiteral
+        thenElement2: MapLiteralEntry
+          key2: IntegerLiteral
             literal: 2
           separator: :
-          value: IntegerLiteral
+          value2: IntegerLiteral
             literal: 3
   rightBracket: }
   isMap: false
@@ -503,51 +519,69 @@ void f() {
   };
 }
 ''');
-    var node = parseResult.findNode.singleReturnStatement.expression!;
+    var node = parseResult.findNode.singleReturnStatement.expression2!;
     assertParsedNodeText(node, r'''
 SetOrMapLiteral
   leftBracket: {
-  elements
+  elements2
     MapLiteralEntry
-      key: IntegerLiteral
+      key2: IntegerLiteral
         literal: 1
       separator: :
-      value: IntegerLiteral
+      value2: IntegerLiteral
         literal: 7
     ForElement
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForPartsWithExpression
-        initialization: AssignmentExpression
+        initialization2: DirectAssignment
+          target: UnqualifiedNameAssignmentTarget
+            name: x
+          operator: =
+          value: IntegerLiteral
+            literal: 0
+        initialization(v1): AssignmentExpression
           leftHandSide: SimpleIdentifier
             token: x
           operator: =
           rightHandSide: IntegerLiteral
             literal: 0
         leftSeparator: ;
-        condition: BinaryExpression
+        condition2: BinaryOperatorInvocation
+          leftOperand: SimpleIdentifier
+            token: x
+          operator: <
+          rightOperand: IntegerLiteral
+            literal: 10
+          binaryOperator: lessThan
+        condition(v1): BinaryExpression
           leftOperand: SimpleIdentifier
             token: x
           operator: <
           rightOperand: IntegerLiteral
             literal: 10
         rightSeparator: ;
-        updaters
+        updaters2
+          PrefixIncrement
+            operator: ++
+            target: UnqualifiedNameAssignmentTarget
+              name: x
+        updaters(v1)
           PrefixExpression
             operator: ++
             operand: SimpleIdentifier
               token: x
       rightParenthesis: )
-      body: SpreadElement
+      body2: SpreadElement
         spreadOperator: ...
-        expression: SetOrMapLiteral
+        expression2: SetOrMapLiteral
           leftBracket: {
-          elements
+          elements2
             MapLiteralEntry
-              key: IntegerLiteral
+              key2: IntegerLiteral
                 literal: 2
               separator: :
-              value: IntegerLiteral
+              value2: IntegerLiteral
                 literal: 3
           rightBracket: }
           isMap: false
@@ -562,28 +596,28 @@ void f() {
   return {1: 1, if (true) 2: 4};
 }
 ''');
-    var node = parseResult.findNode.singleReturnStatement.expression!;
+    var node = parseResult.findNode.singleReturnStatement.expression2!;
     assertParsedNodeText(node, r'''
 SetOrMapLiteral
   leftBracket: {
-  elements
+  elements2
     MapLiteralEntry
-      key: IntegerLiteral
+      key2: IntegerLiteral
         literal: 1
       separator: :
-      value: IntegerLiteral
+      value2: IntegerLiteral
         literal: 1
     IfElement
       ifKeyword: if
       leftParenthesis: (
-      expression: BooleanLiteral
+      expression2: BooleanLiteral
         literal: true
       rightParenthesis: )
-      thenElement: MapLiteralEntry
-        key: IntegerLiteral
+      thenElement2: MapLiteralEntry
+        key2: IntegerLiteral
           literal: 2
         separator: :
-        value: IntegerLiteral
+        value2: IntegerLiteral
           literal: 4
   rightBracket: }
   isMap: false
@@ -596,35 +630,35 @@ void f() {
   return {1: 1, if (true) 2: 4 else 5: 6};
 }
 ''');
-    var node = parseResult.findNode.singleReturnStatement.expression!;
+    var node = parseResult.findNode.singleReturnStatement.expression2!;
     assertParsedNodeText(node, r'''
 SetOrMapLiteral
   leftBracket: {
-  elements
+  elements2
     MapLiteralEntry
-      key: IntegerLiteral
+      key2: IntegerLiteral
         literal: 1
       separator: :
-      value: IntegerLiteral
+      value2: IntegerLiteral
         literal: 1
     IfElement
       ifKeyword: if
       leftParenthesis: (
-      expression: BooleanLiteral
+      expression2: BooleanLiteral
         literal: true
       rightParenthesis: )
-      thenElement: MapLiteralEntry
-        key: IntegerLiteral
+      thenElement2: MapLiteralEntry
+        key2: IntegerLiteral
           literal: 2
         separator: :
-        value: IntegerLiteral
+        value2: IntegerLiteral
           literal: 4
       elseKeyword: else
-      elseElement: MapLiteralEntry
-        key: IntegerLiteral
+      elseElement2: MapLiteralEntry
+        key2: IntegerLiteral
           literal: 5
         separator: :
-        value: IntegerLiteral
+        value2: IntegerLiteral
           literal: 6
   rightBracket: }
   isMap: false
@@ -637,45 +671,46 @@ void f() {
   return {1: 1, if (true) 2: 4 else for (c in d) 5: 6};
 }
 ''');
-    var node = parseResult.findNode.singleReturnStatement.expression!;
+    var node = parseResult.findNode.singleReturnStatement.expression2!;
     assertParsedNodeText(node, r'''
 SetOrMapLiteral
   leftBracket: {
-  elements
+  elements2
     MapLiteralEntry
-      key: IntegerLiteral
+      key2: IntegerLiteral
         literal: 1
       separator: :
-      value: IntegerLiteral
+      value2: IntegerLiteral
         literal: 1
     IfElement
       ifKeyword: if
       leftParenthesis: (
-      expression: BooleanLiteral
+      expression2: BooleanLiteral
         literal: true
       rightParenthesis: )
-      thenElement: MapLiteralEntry
-        key: IntegerLiteral
+      thenElement2: MapLiteralEntry
+        key2: IntegerLiteral
           literal: 2
         separator: :
-        value: IntegerLiteral
+        value2: IntegerLiteral
           literal: 4
       elseKeyword: else
-      elseElement: ForElement
+      elseElement2: ForElement
         forKeyword: for
         leftParenthesis: (
         forLoopParts: ForEachPartsWithIdentifier
-          identifier: SimpleIdentifier
+          identifier2: c
+          identifier(v1): SimpleIdentifier
             token: c
           inKeyword: in
-          iterable: SimpleIdentifier
+          iterable2: SimpleIdentifier
             token: d
         rightParenthesis: )
-        body: MapLiteralEntry
-          key: IntegerLiteral
+        body2: MapLiteralEntry
+          key2: IntegerLiteral
             literal: 5
           separator: :
-          value: IntegerLiteral
+          value2: IntegerLiteral
             literal: 6
   rightBracket: }
   isMap: false
@@ -691,47 +726,47 @@ void f() {
   };
 }
 ''');
-    var node = parseResult.findNode.singleReturnStatement.expression!;
+    var node = parseResult.findNode.singleReturnStatement.expression2!;
     assertParsedNodeText(node, r'''
 SetOrMapLiteral
   leftBracket: {
-  elements
+  elements2
     MapLiteralEntry
-      key: IntegerLiteral
+      key2: IntegerLiteral
         literal: 1
       separator: :
-      value: IntegerLiteral
+      value2: IntegerLiteral
         literal: 7
     IfElement
       ifKeyword: if
       leftParenthesis: (
-      expression: BooleanLiteral
+      expression2: BooleanLiteral
         literal: true
       rightParenthesis: )
-      thenElement: SpreadElement
+      thenElement2: SpreadElement
         spreadOperator: ...
-        expression: SetOrMapLiteral
+        expression2: SetOrMapLiteral
           leftBracket: {
-          elements
+          elements2
             MapLiteralEntry
-              key: IntegerLiteral
+              key2: IntegerLiteral
                 literal: 2
               separator: :
-              value: IntegerLiteral
+              value2: IntegerLiteral
                 literal: 4
           rightBracket: }
           isMap: false
       elseKeyword: else
-      elseElement: SpreadElement
+      elseElement2: SpreadElement
         spreadOperator: ...?
-        expression: SetOrMapLiteral
+        expression2: SetOrMapLiteral
           leftBracket: {
-          elements
+          elements2
             MapLiteralEntry
-              key: IntegerLiteral
+              key2: IntegerLiteral
                 literal: 5
               separator: :
-              value: IntegerLiteral
+              value2: IntegerLiteral
                 literal: 6
           rightBracket: }
           isMap: false
@@ -750,38 +785,39 @@ void f() {
   };
 }
 ''');
-    var node = parseResult.findNode.singleReturnStatement.expression!;
+    var node = parseResult.findNode.singleReturnStatement.expression2!;
     assertParsedNodeText(node, r'''
 SetOrMapLiteral
   leftBracket: {
-  elements
+  elements2
     MapLiteralEntry
-      key: IntegerLiteral
+      key2: IntegerLiteral
         literal: 1
       separator: :
-      value: IntegerLiteral
+      value2: IntegerLiteral
         literal: 1
     IfElement
       ifKeyword: if
       leftParenthesis: (
-      expression: BooleanLiteral
+      expression2: BooleanLiteral
         literal: true
       rightParenthesis: )
-      thenElement: ForElement
+      thenElement2: ForElement
         forKeyword: for
         leftParenthesis: (
         forLoopParts: ForEachPartsWithIdentifier
-          identifier: SimpleIdentifier
+          identifier2: a
+          identifier(v1): SimpleIdentifier
             token: a
           inKeyword: in
-          iterable: SimpleIdentifier
+          iterable2: SimpleIdentifier
             token: b
         rightParenthesis: )
-        body: MapLiteralEntry
-          key: IntegerLiteral
+        body2: MapLiteralEntry
+          key2: IntegerLiteral
             literal: 2
           separator: :
-          value: IntegerLiteral
+          value2: IntegerLiteral
             literal: 4
   rightBracket: }
   isMap: false
@@ -797,33 +833,33 @@ void f() {
   };
 }
 ''');
-    var node = parseResult.findNode.singleReturnStatement.expression!;
+    var node = parseResult.findNode.singleReturnStatement.expression2!;
     assertParsedNodeText(node, r'''
 SetOrMapLiteral
   leftBracket: {
-  elements
+  elements2
     MapLiteralEntry
-      key: IntegerLiteral
+      key2: IntegerLiteral
         literal: 1
       separator: :
-      value: IntegerLiteral
+      value2: IntegerLiteral
         literal: 1
     IfElement
       ifKeyword: if
       leftParenthesis: (
-      expression: BooleanLiteral
+      expression2: BooleanLiteral
         literal: true
       rightParenthesis: )
-      thenElement: SpreadElement
+      thenElement2: SpreadElement
         spreadOperator: ...
-        expression: SetOrMapLiteral
+        expression2: SetOrMapLiteral
           leftBracket: {
-          elements
+          elements2
             MapLiteralEntry
-              key: IntegerLiteral
+              key2: IntegerLiteral
                 literal: 2
               separator: :
-              value: IntegerLiteral
+              value2: IntegerLiteral
                 literal: 4
           rightBracket: }
           isMap: false
@@ -841,27 +877,27 @@ void f() {
   };
 }
 ''');
-    var node = parseResult.findNode.singleReturnStatement.expression!;
+    var node = parseResult.findNode.singleReturnStatement.expression2!;
     assertParsedNodeText(node, r'''
 SetOrMapLiteral
   leftBracket: {
-  elements
+  elements2
     MapLiteralEntry
-      key: IntegerLiteral
+      key2: IntegerLiteral
         literal: 1
       separator: :
-      value: IntegerLiteral
+      value2: IntegerLiteral
         literal: 2
     SpreadElement
       spreadOperator: ...
-      expression: SetOrMapLiteral
+      expression2: SetOrMapLiteral
         leftBracket: {
-        elements
+        elements2
           MapLiteralEntry
-            key: IntegerLiteral
+            key2: IntegerLiteral
               literal: 3
             separator: :
-            value: IntegerLiteral
+            value2: IntegerLiteral
               literal: 4
         rightBracket: }
         isMap: false
@@ -879,7 +915,7 @@ void f() {
   };
 }
 ''');
-    var node = parseResult.findNode.singleReturnStatement.expression!;
+    var node = parseResult.findNode.singleReturnStatement.expression2!;
     assertParsedNodeText(node, r'''
 SetOrMapLiteral
   typeArguments: TypeArgumentList
@@ -891,23 +927,23 @@ SetOrMapLiteral
         name: int
     rightBracket: >
   leftBracket: {
-  elements
+  elements2
     MapLiteralEntry
-      key: IntegerLiteral
+      key2: IntegerLiteral
         literal: 1
       separator: :
-      value: IntegerLiteral
+      value2: IntegerLiteral
         literal: 2
     SpreadElement
       spreadOperator: ...
-      expression: SetOrMapLiteral
+      expression2: SetOrMapLiteral
         leftBracket: {
-        elements
+        elements2
           MapLiteralEntry
-            key: IntegerLiteral
+            key2: IntegerLiteral
               literal: 3
             separator: :
-            value: IntegerLiteral
+            value2: IntegerLiteral
               literal: 4
         rightBracket: }
         isMap: false
@@ -924,7 +960,7 @@ void f() {
   };
 }
 ''');
-    var node = parseResult.findNode.singleReturnStatement.expression!;
+    var node = parseResult.findNode.singleReturnStatement.expression2!;
     assertParsedNodeText(node, r'''
 SetOrMapLiteral
   typeArguments: TypeArgumentList
@@ -936,17 +972,17 @@ SetOrMapLiteral
         name: int
     rightBracket: >
   leftBracket: {
-  elements
+  elements2
     SpreadElement
       spreadOperator: ...
-      expression: SetOrMapLiteral
+      expression2: SetOrMapLiteral
         leftBracket: {
-        elements
+        elements2
           MapLiteralEntry
-            key: IntegerLiteral
+            key2: IntegerLiteral
               literal: 3
             separator: :
-            value: IntegerLiteral
+            value2: IntegerLiteral
               literal: 4
         rightBracket: }
         isMap: false
@@ -964,27 +1000,27 @@ void f() {
   };
 }
 ''');
-    var node = parseResult.findNode.singleReturnStatement.expression!;
+    var node = parseResult.findNode.singleReturnStatement.expression2!;
     assertParsedNodeText(node, r'''
 SetOrMapLiteral
   leftBracket: {
-  elements
+  elements2
     MapLiteralEntry
-      key: IntegerLiteral
+      key2: IntegerLiteral
         literal: 1
       separator: :
-      value: IntegerLiteral
+      value2: IntegerLiteral
         literal: 2
     SpreadElement
       spreadOperator: ...?
-      expression: SetOrMapLiteral
+      expression2: SetOrMapLiteral
         leftBracket: {
-        elements
+        elements2
           MapLiteralEntry
-            key: IntegerLiteral
+            key2: IntegerLiteral
               literal: 3
             separator: :
-            value: IntegerLiteral
+            value2: IntegerLiteral
               literal: 4
         rightBracket: }
         isMap: false
@@ -1002,7 +1038,7 @@ void f() {
   };
 }
 ''');
-    var node = parseResult.findNode.singleReturnStatement.expression!;
+    var node = parseResult.findNode.singleReturnStatement.expression2!;
     assertParsedNodeText(node, r'''
 SetOrMapLiteral
   typeArguments: TypeArgumentList
@@ -1014,23 +1050,23 @@ SetOrMapLiteral
         name: int
     rightBracket: >
   leftBracket: {
-  elements
+  elements2
     MapLiteralEntry
-      key: IntegerLiteral
+      key2: IntegerLiteral
         literal: 1
       separator: :
-      value: IntegerLiteral
+      value2: IntegerLiteral
         literal: 2
     SpreadElement
       spreadOperator: ...?
-      expression: SetOrMapLiteral
+      expression2: SetOrMapLiteral
         leftBracket: {
-        elements
+        elements2
           MapLiteralEntry
-            key: IntegerLiteral
+            key2: IntegerLiteral
               literal: 3
             separator: :
-            value: IntegerLiteral
+            value2: IntegerLiteral
               literal: 4
         rightBracket: }
         isMap: false
@@ -1047,7 +1083,7 @@ void f() {
   };
 }
 ''');
-    var node = parseResult.findNode.singleReturnStatement.expression!;
+    var node = parseResult.findNode.singleReturnStatement.expression2!;
     assertParsedNodeText(node, r'''
 SetOrMapLiteral
   typeArguments: TypeArgumentList
@@ -1059,17 +1095,17 @@ SetOrMapLiteral
         name: int
     rightBracket: >
   leftBracket: {
-  elements
+  elements2
     SpreadElement
       spreadOperator: ...?
-      expression: SetOrMapLiteral
+      expression2: SetOrMapLiteral
         leftBracket: {
-        elements
+        elements2
           MapLiteralEntry
-            key: IntegerLiteral
+            key2: IntegerLiteral
               literal: 3
             separator: :
-            value: IntegerLiteral
+            value2: IntegerLiteral
               literal: 4
         rightBracket: }
         isMap: false
@@ -1084,20 +1120,20 @@ void f() {
   return {1, if (true) 2};
 }
 ''');
-    var node = parseResult.findNode.singleReturnStatement.expression!;
+    var node = parseResult.findNode.singleReturnStatement.expression2!;
     assertParsedNodeText(node, r'''
 SetOrMapLiteral
   leftBracket: {
-  elements
+  elements2
     IntegerLiteral
       literal: 1
     IfElement
       ifKeyword: if
       leftParenthesis: (
-      expression: BooleanLiteral
+      expression2: BooleanLiteral
         literal: true
       rightParenthesis: )
-      thenElement: IntegerLiteral
+      thenElement2: IntegerLiteral
         literal: 2
   rightBracket: }
   isMap: false
@@ -1110,23 +1146,23 @@ void f() {
   return {1, if (true) 2 else 5};
 }
 ''');
-    var node = parseResult.findNode.singleReturnStatement.expression!;
+    var node = parseResult.findNode.singleReturnStatement.expression2!;
     assertParsedNodeText(node, r'''
 SetOrMapLiteral
   leftBracket: {
-  elements
+  elements2
     IntegerLiteral
       literal: 1
     IfElement
       ifKeyword: if
       leftParenthesis: (
-      expression: BooleanLiteral
+      expression2: BooleanLiteral
         literal: true
       rightParenthesis: )
-      thenElement: IntegerLiteral
+      thenElement2: IntegerLiteral
         literal: 2
       elseKeyword: else
-      elseElement: IntegerLiteral
+      elseElement2: IntegerLiteral
         literal: 5
   rightBracket: }
   isMap: false
@@ -1142,34 +1178,34 @@ void f() {
   };
 }
 ''');
-    var node = parseResult.findNode.singleReturnStatement.expression!;
+    var node = parseResult.findNode.singleReturnStatement.expression2!;
     assertParsedNodeText(node, r'''
 SetOrMapLiteral
   leftBracket: {
-  elements
+  elements2
     IntegerLiteral
       literal: 1
     IfElement
       ifKeyword: if
       leftParenthesis: (
-      expression: BooleanLiteral
+      expression2: BooleanLiteral
         literal: true
       rightParenthesis: )
-      thenElement: SpreadElement
+      thenElement2: SpreadElement
         spreadOperator: ...
-        expression: SetOrMapLiteral
+        expression2: SetOrMapLiteral
           leftBracket: {
-          elements
+          elements2
             IntegerLiteral
               literal: 2
           rightBracket: }
           isMap: false
       elseKeyword: else
-      elseElement: SpreadElement
+      elseElement2: SpreadElement
         spreadOperator: ...?
-        expression: ListLiteral
+        expression2: ListLiteral
           leftBracket: [
-          elements
+          elements2
             IntegerLiteral
               literal: 5
           rightBracket: ]
@@ -1187,24 +1223,24 @@ void f() {
   };
 }
 ''');
-    var node = parseResult.findNode.singleReturnStatement.expression!;
+    var node = parseResult.findNode.singleReturnStatement.expression2!;
     assertParsedNodeText(node, r'''
 SetOrMapLiteral
   leftBracket: {
-  elements
+  elements2
     IntegerLiteral
       literal: 1
     IfElement
       ifKeyword: if
       leftParenthesis: (
-      expression: BooleanLiteral
+      expression2: BooleanLiteral
         literal: true
       rightParenthesis: )
-      thenElement: SpreadElement
+      thenElement2: SpreadElement
         spreadOperator: ...
-        expression: ListLiteral
+        expression2: ListLiteral
           leftBracket: [
-          elements
+          elements2
             IntegerLiteral
               literal: 2
           rightBracket: ]
@@ -1222,18 +1258,18 @@ void f() {
   };
 }
 ''');
-    var node = parseResult.findNode.singleReturnStatement.expression!;
+    var node = parseResult.findNode.singleReturnStatement.expression2!;
     assertParsedNodeText(node, r'''
 SetOrMapLiteral
   leftBracket: {
-  elements
+  elements2
     IntegerLiteral
       literal: 3
     SpreadElement
       spreadOperator: ...
-      expression: ListLiteral
+      expression2: ListLiteral
         leftBracket: [
-        elements
+        elements2
           IntegerLiteral
             literal: 4
         rightBracket: ]
@@ -1251,18 +1287,18 @@ void f() {
   };
 }
 ''');
-    var node = parseResult.findNode.singleReturnStatement.expression!;
+    var node = parseResult.findNode.singleReturnStatement.expression2!;
     assertParsedNodeText(node, r'''
 SetOrMapLiteral
   leftBracket: {
-  elements
+  elements2
     IntegerLiteral
       literal: 3
     SpreadElement
       spreadOperator: ...?
-      expression: ListLiteral
+      expression2: ListLiteral
         leftBracket: [
-        elements
+        elements2
           IntegerLiteral
             literal: 4
         rightBracket: ]
@@ -1279,7 +1315,7 @@ void f() {
   };
 }
 ''');
-    var node = parseResult.findNode.singleReturnStatement.expression!;
+    var node = parseResult.findNode.singleReturnStatement.expression2!;
     assertParsedNodeText(node, r'''
 SetOrMapLiteral
   typeArguments: TypeArgumentList
@@ -1289,12 +1325,12 @@ SetOrMapLiteral
         name: int
     rightBracket: >
   leftBracket: {
-  elements
+  elements2
     SpreadElement
       spreadOperator: ...
-      expression: ListLiteral
+      expression2: ListLiteral
         leftBracket: [
-        elements
+        elements2
           IntegerLiteral
             literal: 3
         rightBracket: ]
@@ -1311,7 +1347,7 @@ void f() {
   };
 }
 ''');
-    var node = parseResult.findNode.singleReturnStatement.expression!;
+    var node = parseResult.findNode.singleReturnStatement.expression2!;
     assertParsedNodeText(node, r'''
 SetOrMapLiteral
   typeArguments: TypeArgumentList
@@ -1321,12 +1357,12 @@ SetOrMapLiteral
         name: int
     rightBracket: >
   leftBracket: {
-  elements
+  elements2
     SpreadElement
       spreadOperator: ...?
-      expression: ListLiteral
+      expression2: ListLiteral
         leftBracket: [
-        elements
+        elements2
           IntegerLiteral
             literal: 3
         rightBracket: ]
@@ -1343,21 +1379,21 @@ void f() {
   };
 }
 ''');
-    var node = parseResult.findNode.singleReturnStatement.expression!;
+    var node = parseResult.findNode.singleReturnStatement.expression2!;
     assertParsedNodeText(node, r'''
 SetOrMapLiteral
   leftBracket: {
-  elements
+  elements2
     SpreadElement
       spreadOperator: ...
-      expression: SetOrMapLiteral
+      expression2: SetOrMapLiteral
         leftBracket: {
-        elements
+        elements2
           MapLiteralEntry
-            key: IntegerLiteral
+            key2: IntegerLiteral
               literal: 3
             separator: :
-            value: IntegerLiteral
+            value2: IntegerLiteral
               literal: 4
         rightBracket: }
         isMap: false
@@ -1374,21 +1410,21 @@ void f() {
   };
 }
 ''');
-    var node = parseResult.findNode.singleReturnStatement.expression!;
+    var node = parseResult.findNode.singleReturnStatement.expression2!;
     assertParsedNodeText(node, r'''
 SetOrMapLiteral
   leftBracket: {
-  elements
+  elements2
     SpreadElement
       spreadOperator: ...?
-      expression: SetOrMapLiteral
+      expression2: SetOrMapLiteral
         leftBracket: {
-        elements
+        elements2
           MapLiteralEntry
-            key: IntegerLiteral
+            key2: IntegerLiteral
               literal: 3
             separator: :
-            value: IntegerLiteral
+            value2: IntegerLiteral
               literal: 4
         rightBracket: }
         isMap: false

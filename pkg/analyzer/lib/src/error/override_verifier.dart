@@ -12,7 +12,7 @@ import 'package:analyzer/src/error/listener.dart';
 /// Instances of the class `OverrideVerifier` visit all of the declarations in a
 /// compilation unit to verify that if they have an override annotation it is
 /// being used correctly.
-class OverrideVerifier extends RecursiveAstVisitor<void> {
+class OverrideVerifier extends RecursiveAstVisitor2<void> {
   /// The error reporter used to report errors.
   final DiagnosticReporter _errorReporter;
 
@@ -105,6 +105,15 @@ class OverrideVerifier extends RecursiveAstVisitor<void> {
       if (fieldElement == null) continue;
       _checkField(fieldElement, parameter.name!);
     }
+  }
+
+  @override
+  void visitTopLevelGetterDeclaration(TopLevelGetterDeclaration node) {
+    var element = node.declaredFragment!.element;
+    if (element.metadata.hasOverride) {
+      _errorReporter.report(diag.overrideOnNonOverridingGetter.at(node.name));
+    }
+    super.visitTopLevelGetterDeclaration(node);
   }
 
   void _checkField(FieldElement fieldElement, Token errorNode) {

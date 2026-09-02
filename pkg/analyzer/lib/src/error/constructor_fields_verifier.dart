@@ -53,13 +53,13 @@ class ConstructorFieldsVerifier {
     required _Interface interfaceFields,
     required ConstructorDeclarationImpl node,
   }) {
+    var fragment = node.declaredFragment!;
     if (node.factoryKeyword != null ||
-        node.redirectedConstructor != null ||
-        node.externalKeyword != null) {
+        node.factoryRedirectionTarget != null ||
+        fragment.element.isExternal) {
       return;
     }
 
-    var fragment = node.declaredFragment!;
     var constructorState = interfaceFields.forConstructor(
       diagnosticReporter: diagnosticReporter,
       element: fragment.element,
@@ -69,7 +69,9 @@ class ConstructorFieldsVerifier {
     constructorState.secondaryConstructors.add(node);
 
     if (!fragment.isAugmentation) {
-      constructorState.updateWithParameters(node.parameters.parameters);
+      constructorState.updateWithParameters(
+        node.parameters.allFormalParameters,
+      );
     }
 
     constructorState.updateWithInitializers(
@@ -93,7 +95,7 @@ class ConstructorFieldsVerifier {
     constructorState.primaryConstructors.add(primaryConstructor);
 
     constructorState.updateWithParameters(
-      primaryConstructor.formalParameters.parameters,
+      primaryConstructor.formalParameters.allFormalParameters,
     );
 
     var body = primaryConstructor.body;
@@ -259,8 +261,8 @@ class _Constructor {
         hasRedirectingConstructorInvocation = true;
       }
       if (initializer is ConstructorFieldInitializer) {
-        var fieldName = initializer.fieldName;
-        var fieldElement = fieldName.element;
+        var fieldName = initializer.fieldName2;
+        var fieldElement = initializer.fieldElement;
         if (fieldElement is FieldElement) {
           var state = fields[fieldElement];
           if (state == _InitState.notInit) {
@@ -293,7 +295,7 @@ class _Constructor {
     }
   }
 
-  void updateWithParameters(NodeList<FormalParameter> formalParameters) {
+  void updateWithParameters(List<FormalParameter> formalParameters) {
     for (var formalParameter in formalParameters) {
       var parameterFragment = formalParameter.declaredFragment!;
       var parameterElement = parameterFragment.element;

@@ -33,10 +33,8 @@ class CancelSubscriptions extends AnalysisRule {
   }
 }
 
-class _Visitor extends LeakDetectorProcessors {
+class _Visitor(super.rule) extends LeakDetectorProcessors {
   static final _predicates = {_isSubscription: 'cancel'};
-
-  new(super.rule);
 
   @override
   Map<DartTypePredicate, String> get predicates => _predicates;

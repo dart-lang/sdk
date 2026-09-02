@@ -366,7 +366,7 @@ abstract class Listener implements UnescapeErrorListener {
     Token? constKeyword,
   ) {}
 
-  void beginPrimaryConstructorBody(Token token) {}
+  void beginPrimaryConstructorBody(Token token, Token? augmentToken) {}
 
   // Handles the `this` body block for a primary constructor. Substructures:
   /// - metadata
@@ -389,9 +389,6 @@ abstract class Listener implements UnescapeErrorListener {
 
   void beginCompilationUnit(Token token) {}
 
-  /// This method exists for analyzer compatibility only
-  /// and will be removed once analyzer/cfe integration is complete.
-  ///
   /// This is called when [Parser.parseDirectives] has parsed all directives
   /// and is skipping the remainder of the file.  Substructures:
   /// - metadata
@@ -1352,6 +1349,27 @@ abstract class Listener implements UnescapeErrorListener {
 
   void handleSend(Token beginToken, Token endToken) {
     logEvent("Send");
+  }
+
+  /// Handle a send for which neither type arguments nor an argument list were
+  /// parsed.
+  ///
+  /// The parser does not emit [handleNoTypeArguments] or [handleNoArguments]
+  /// for this send.
+  void handleSendWithoutArguments(
+    Token beginToken,
+    Token endToken,
+    Token nextToken,
+  ) {
+    logEvent("SendWithoutArguments");
+  }
+
+  /// Handle an invocation with an argument list but without type arguments.
+  ///
+  /// The parser emits the argument-list events, but does not emit
+  /// [handleNoTypeArguments].
+  void handleInvocationWithoutTypeArguments(Token beginToken, Token endToken) {
+    logEvent("InvocationWithoutTypeArguments");
   }
 
   void beginShow(Token showKeyword) {}

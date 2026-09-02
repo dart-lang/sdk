@@ -35,12 +35,10 @@ void main() {
       addConstantWithDependencies,
     );
     for (String stringValue in ["cA", "cB", "cC"]) {
-      final constant =
-          allConstants.firstWhere((dynamic constant) {
-                return constant is StringConstantValue &&
-                    constant.stringValue == stringValue;
-              })
-              as StringConstantValue;
+      final constant = allConstants.firstWhere((dynamic constant) {
+        return constant is StringConstantValue &&
+            constant.stringValue == stringValue;
+      }) as StringConstantValue;
       Expect.notEquals(
         null,
         outputUnitForConstant(constant),

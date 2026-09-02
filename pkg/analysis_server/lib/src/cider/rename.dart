@@ -15,7 +15,6 @@ import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
 import 'package:analyzer/src/dart/micro/utils.dart';
 import 'package:analyzer/src/generated/java_core.dart';
-import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/extensions/flutter.dart';
 
@@ -124,22 +123,9 @@ class CheckNameResponse {
   String get oldName => canRename.refactoringElement.element.displayName;
 
   Future<RenameResponse?> computeRenameRanges2() async {
-    var elements = <Element>[];
     var element = canRename.refactoringElement.element;
-    if (element is PropertyInducingElement && element.isOriginGetterSetter) {
-      var property = element;
-      var getter = property.getter;
-      var setter = property.setter;
-      elements.addIfNotNull(getter);
-      elements.addIfNotNull(setter);
-    } else {
-      elements.add(element);
-    }
     var fileResolver = canRename._fileResolver;
-    var matches = <CiderSearchMatch>[];
-    for (var element in elements) {
-      matches.addAll(await fileResolver.findReferences(element));
-    }
+    var matches = await fileResolver.findReferences(element);
     FlutterWidgetRename? flutterRename;
     if (canRename._flutterWidgetState != null) {
       flutterRename = await _computeFlutterStateName();
@@ -443,7 +429,7 @@ class CiderRenameComputer {
     var offset = lineInfo.getOffsetOfLine(line) + column;
 
     var node = resolvedUnit.unit.nodeCovering(offset: offset);
-    var element = getElementOfNode2(node);
+    var element = getElementOfNodeV1(node);
 
     if (node == null || element == null) {
       return null;

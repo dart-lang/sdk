@@ -6,6 +6,7 @@ import 'dart:collection';
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';
+import 'package:analysis_server/src/utilities/extensions/element.dart';
 import 'package:analysis_server/src/utilities/extensions/iterable.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analysis_server_plugin/edit/fix/dart_fix_context.dart';
@@ -296,7 +297,15 @@ class ImportLibrary extends MultiCorrectionProducer {
       // Compute the fix kind.
       FixKind fixKind;
       FixKind fixKindShow;
-      if (libraryElement.isInSdk) {
+      if (declaration.hasOrInheritsDeprecated ||
+          libraryElement.hasOrInheritsDeprecated) {
+        fixKind = prefix.isEmptyOrNull
+            ? DartFixKind.importLibraryProject4
+            : DartFixKind.importLibraryProject4Prefixed;
+        fixKindShow = prefix.isEmptyOrNull
+            ? DartFixKind.importLibraryProject4Show
+            : DartFixKind.importLibraryProject4PrefixedShow;
+      } else if (libraryElement.isInSdk) {
         fixKind = prefix.isEmptyOrNull
             ? DartFixKind.importLibrarySdk
             : DartFixKind.importLibrarySdkPrefixed;

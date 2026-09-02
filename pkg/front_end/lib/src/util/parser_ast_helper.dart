@@ -567,10 +567,11 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void beginPrimaryConstructorBody(Token token) {
+  void beginPrimaryConstructorBody(Token token, Token? augmentToken) {
     PrimaryConstructorBodyBegin data = new PrimaryConstructorBodyBegin(
       ParserAstType.BEGIN,
       token: token,
+      augmentToken: augmentToken,
     );
     seen(data);
   }
@@ -2201,6 +2202,32 @@ abstract class AbstractParserAstListener implements Listener {
       beginToken: beginToken,
       endToken: endToken,
     );
+    seen(data);
+  }
+
+  @override
+  void handleSendWithoutArguments(
+    Token beginToken,
+    Token endToken,
+    Token nextToken,
+  ) {
+    SendWithoutArgumentsHandle data = new SendWithoutArgumentsHandle(
+      ParserAstType.HANDLE,
+      beginToken: beginToken,
+      endToken: endToken,
+      nextToken: nextToken,
+    );
+    seen(data);
+  }
+
+  @override
+  void handleInvocationWithoutTypeArguments(Token beginToken, Token endToken) {
+    InvocationWithoutTypeArgumentsHandle data =
+        new InvocationWithoutTypeArgumentsHandle(
+          ParserAstType.HANDLE,
+          beginToken: beginToken,
+          endToken: endToken,
+        );
     seen(data);
   }
 
@@ -4898,12 +4925,16 @@ class NoPrimaryConstructorHandle extends ParserAstNode {
 
 class PrimaryConstructorBodyBegin extends ParserAstNode {
   final Token token;
+  final Token? augmentToken;
 
-  new(ParserAstType type, {required this.token})
+  new(ParserAstType type, {required this.token, this.augmentToken})
     : super("PrimaryConstructorBody", type);
 
   @override
-  Map<String, Object?> get deprecatedArguments => {"token": token};
+  Map<String, Object?> get deprecatedArguments => {
+    "token": token,
+    "augmentToken": augmentToken,
+  };
 
   @override
   R accept<R>(ParserAstVisitor<R> v) =>
@@ -7552,6 +7583,53 @@ class SendHandle extends ParserAstNode
 
   @override
   R accept<R>(ParserAstVisitor<R> v) => v.visitSendHandle(this);
+}
+
+class SendWithoutArgumentsHandle extends ParserAstNode
+    implements BeginAndEndTokenParserAstNode {
+  @override
+  final Token beginToken;
+  @override
+  final Token endToken;
+  final Token nextToken;
+
+  new(
+    ParserAstType type, {
+    required this.beginToken,
+    required this.endToken,
+    required this.nextToken,
+  }) : super("SendWithoutArguments", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+    "beginToken": beginToken,
+    "endToken": endToken,
+    "nextToken": nextToken,
+  };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitSendWithoutArgumentsHandle(this);
+}
+
+class InvocationWithoutTypeArgumentsHandle extends ParserAstNode
+    implements BeginAndEndTokenParserAstNode {
+  @override
+  final Token beginToken;
+  @override
+  final Token endToken;
+
+  new(ParserAstType type, {required this.beginToken, required this.endToken})
+    : super("InvocationWithoutTypeArguments", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+    "beginToken": beginToken,
+    "endToken": endToken,
+  };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) =>
+      v.visitInvocationWithoutTypeArgumentsHandle(this);
 }
 
 class ShowBegin extends ParserAstNode {
@@ -10747,6 +10825,10 @@ abstract class ParserAstVisitor<R> {
   R visitExpressionFunctionBodyHandle(ExpressionFunctionBodyHandle node);
   R visitReturnStatementEnd(ReturnStatementEnd node);
   R visitSendHandle(SendHandle node);
+  R visitSendWithoutArgumentsHandle(SendWithoutArgumentsHandle node);
+  R visitInvocationWithoutTypeArgumentsHandle(
+    InvocationWithoutTypeArgumentsHandle node,
+  );
   R visitShowBegin(ShowBegin node);
   R visitShowEnd(ShowEnd node);
   R visitSwitchStatementBegin(SwitchStatementBegin node);
@@ -11684,6 +11766,15 @@ class RecursiveParserAstVisitor implements ParserAstVisitor<void> {
 
   @override
   void visitSendHandle(SendHandle node) => node.visitChildren(this);
+
+  @override
+  void visitSendWithoutArgumentsHandle(SendWithoutArgumentsHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitInvocationWithoutTypeArgumentsHandle(
+    InvocationWithoutTypeArgumentsHandle node,
+  ) => node.visitChildren(this);
 
   @override
   void visitShowBegin(ShowBegin node) => node.visitChildren(this);
@@ -13157,6 +13248,16 @@ class RecursiveParserAstVisitorWithDefaultNodeAsync
 
   @override
   Future<void> visitSendHandle(SendHandle node) => defaultNode(node);
+
+  @override
+  Future<void> visitSendWithoutArgumentsHandle(
+    SendWithoutArgumentsHandle node,
+  ) => defaultNode(node);
+
+  @override
+  Future<void> visitInvocationWithoutTypeArgumentsHandle(
+    InvocationWithoutTypeArgumentsHandle node,
+  ) => defaultNode(node);
 
   @override
   Future<void> visitShowBegin(ShowBegin node) => defaultNode(node);

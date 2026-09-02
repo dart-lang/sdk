@@ -33,6 +33,7 @@ import 'package:native_compiler/back_end/arm64/stack_frame.dart';
 import 'package:native_compiler/back_end/back_end_state.dart';
 import 'package:native_compiler/back_end/regalloc_checker.dart';
 import 'package:native_compiler/back_end/register_allocator.dart';
+import 'package:native_compiler/front_end/recognized_methods.dart';
 import 'package:native_compiler/passes/lowering.dart';
 import 'package:native_compiler/passes/reorder_blocks.dart';
 import 'package:native_compiler/passes/unboxing.dart';
@@ -53,11 +54,15 @@ Future<void> runTestCase(Uri source) async {
     target: target,
   );
   final coreTypes = CoreTypes(component);
+  final coreLibraries = coreTypes.index;
   final hierarchy = ClassHierarchy(component, coreTypes);
   final typeEnvironment = TypeEnvironment(coreTypes, hierarchy);
 
   String actual = GlobalContext.withContext(
-    GlobalContext(typeEnvironment: typeEnvironment),
+    GlobalContext(
+      typeEnvironment: typeEnvironment,
+      coreLibraries: coreLibraries,
+    ),
     () {
       final compileAndDump = CompileAndDumpIr();
 
@@ -104,9 +109,18 @@ Future<Component> compileTestCaseToKernelProgram(
 }
 
 class CompileAndDumpIr extends RecursiveVisitor {
-  final FunctionRegistry functionRegistry = FunctionRegistry();
-  final RecognizedMethods recognizedMethods = CommonRecognizedMethods();
   final buffer = StringBuffer();
+  final FunctionRegistry functionRegistry = FunctionRegistry();
+  final VMOffsets vmOffsets = Arm64VMOffsets();
+  late final ObjectLayout objectLayout = ObjectLayout(
+    vmOffsets,
+    wordSize: 8,
+    compressedWordSize: 8,
+  );
+  late final RecognizedMethods recognizedMethods = VmRecognizedMethods(
+    functionRegistry,
+    objectLayout,
+  );
 
   @override
   void visitProcedure(Procedure node) {
@@ -161,15 +175,10 @@ class CompileAndDumpIr extends RecursiveVisitor {
       scopes: ComputedScopes(function.member, enableAsserts: true),
     ).buildFlowGraph();
     final backEndState = BackEndState();
-    final constraints = Arm64Constraints();
-    final vmOffsets = Arm64VMOffsets();
-    final objectLayout = ObjectLayout(
-      vmOffsets,
-      wordSize: 8,
-      compressedWordSize: 8,
-    );
-    backEndState.stackFrame = Arm64StackFrame(function);
-    backEndState.unboxing = Unboxing();
+    final stackFrame = Arm64StackFrame(function);
+    final constraints = Arm64Constraints(stackFrame);
+    backEndState.stackFrame = stackFrame;
+    backEndState.unboxing = Unboxing(objectLayout);
     final pipeline = Pipeline([
       SSAComputation(),
       ValueNumbering(simplification: Simplification()),

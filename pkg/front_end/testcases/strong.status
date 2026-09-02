@@ -15,6 +15,7 @@ const_functions/const_functions_switch_statements: SemiFuzzFailure # https://git
 
 # POSSIBLY BAD ONES
 dart2js/issue51823: SemiFuzzFailure # Inequivalent nodes on recompile - https://github.com/dart-lang/sdk/issues/53119.
+general/error_export_from_dill/main: SemiFuzzFailure # https://github.com/dart-lang/sdk/issues/63754
 
 # EXPECTED FAILURES DUE TO PRIVACY ETC:
 dart2js/native: semiFuzzFailureOnForceRebuildBodies # errors in the input means it can't force split.
@@ -120,6 +121,10 @@ nnbd/injected_late_field_checks/main: SemiFuzzFailure
 nnbd/platform_definite_assignment/main: SemiFuzzFailure
 nnbd/platform_nonnullable_fields/main: SemiFuzzFailure
 nnbd/platform_optional_parameters/main: SemiFuzzFailure
+# Augmentations cannot be applied before the introductory declaration.
+augmentations/class_declarations: SemiFuzzFailure
+augmentations/mixin_declarations: SemiFuzzFailure
+augmentations/top_level_declarations: SemiFuzzFailure
 
 # Unclear exactly what is going on here - but target none isn't super important.
 none/issue_63440: SemiFuzzFailure

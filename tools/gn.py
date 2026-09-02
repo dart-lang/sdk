@@ -77,6 +77,8 @@ def HostCpuForArch(arch):
         candidates = ['arm', 'x86', 'riscv32', 'arm64', 'x64', 'riscv64']
     elif arch in ['arm64', 'arm64c', 'simarm64', 'simarm64c']:
         candidates = ['arm64', 'x64', 'riscv64']
+    elif arch in ['arm64e']:
+        candidates = ['arm64e', 'arm64', 'x64']
     elif arch in ['riscv32', 'simriscv32']:
         candidates = ['riscv32', 'arm', 'x86', 'riscv64', 'arm64', 'x64']
     elif arch in ['riscv64', 'simriscv64']:
@@ -101,6 +103,8 @@ def TargetCpuForArch(arch):
         return 'x86'
     elif arch.startswith('x64'):
         return 'x64'
+    elif arch.startswith('arm64e'):
+        return 'arm64e'
     elif arch.startswith('arm64'):
         return 'arm64'
     elif arch.startswith('arm'):
@@ -266,20 +270,9 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash,
     gn_args['is_hwasan'] = sanitizer == 'hwasan'
     gn_args['is_qemu'] = args.use_qemu
 
-    if args.include_experimental_vm_service:
+    if args.include_experimental_vm_service is not None:
         gn_args[
             'include_experimental_vm_service'] = args.include_experimental_vm_service
-
-    # We don't support stripping on Windows
-    if host_os != 'win':
-        gn_args['dart_stripped_binary'] = 'exe.stripped/dart'
-        gn_args['dartvm_stripped_binary'] = 'exe.stripped/dartvm'
-        gn_args['dart_aotruntime_stripped_binary'] = (
-            'exe.stripped/dartaotruntime_product')
-        gn_args['gen_snapshot_stripped_binary'] = (
-            'exe.stripped/gen_snapshot_product')
-        gn_args['analyze_snapshot_binary'] = ('exe.stripped/analyze_snapshot')
-        gn_args['wasm_opt_stripped_binary'] = 'exe.stripped/wasm-opt'
 
     # Setup the user-defined sysroot.
     if UseSysroot(args, gn_args):
@@ -414,13 +407,6 @@ def ProcessOptions(args):
        (socket.getfqdn().endswith('.corp.google.com') or
         socket.getfqdn().endswith('.c.googlers.com')):
         print('You can speed up your build by following: go/dart-rbe')
-    old_rbe_cfg = 'win-intel.cfg' if HOST_OS == 'win32' else 'linux-intel.cfg'
-    new_rbe_cfg = 'windows.cfg' if HOST_OS == 'win32' else 'unix.cfg'
-    if os.environ.get('RBE_cfg') == os.path.join(os.getcwd(), 'build', 'rbe',
-                                                 old_rbe_cfg):
-        print(f'warning: {old_rbe_cfg} is deprecated, please update your '
-              f'RBE_cfg variable to {new_rbe_cfg} use RBE=1 instead per '
-              'go/dart-rbe')
     return True
 
 
@@ -545,8 +531,15 @@ def AddCommonGnOptionArgs(parser):
     parser.add_argument(
         '--include-experimental-vm-service',
         help='Use the Dart Runtime Service based VM service implementation.',
-        default=False,
+        dest='include_experimental_vm_service',
         action='store_true')
+    parser.add_argument(
+        '--no-include-experimental-vm-service',
+        help=
+        'Do not use the Dart Runtime Service based VM service implementation.',
+        dest='include_experimental_vm_service',
+        action='store_false')
+    parser.set_defaults(include_experimental_vm_service=None)
 
 
 def AddCommonConfigurationArgs(parser):

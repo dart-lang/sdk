@@ -93,46 +93,42 @@ Future<void> main() async {
 final currentExpectations = [
   """
 #0    _registerUnaryCallback (%test%)
-#1    _CustomZone.registerUnaryCallback (zone.dart)
+#1    Zone.registerUnaryCallback (zone.dart)
 #2    foo (%test%)
 #3    bar (%test%)
-#4    _rootRun (zone_root.dart)
-#5    _CustomZone.run (zone.dart)
-#6    runTest (%test%)
-#7    main (%test%)
-#8    _delayEntrypointInvocation.<anonymous closure> (isolate_patch.dart)
-#9    _RawReceivePort._handleMessage (isolate_patch.dart)""",
+#4    Zone.run (zone.dart)
+#5    runTest (%test%)
+#6    main (%test%)
+#7    _delayEntrypointInvocation.<anonymous closure> (isolate_patch.dart)
+#8    _RawReceivePort._handleMessage (isolate_patch.dart)""",
   """
 #0    _registerBinaryCallback (%test%)
-#1    _CustomZone.registerBinaryCallback (zone.dart)
+#1    Zone.registerBinaryCallback (zone.dart)
 #2    foo (%test%)
 #3    bar (%test%)
-#4    _rootRun (zone_root.dart)
-#5    _CustomZone.run (zone.dart)
-#6    runTest (%test%)
-#7    main (%test%)
-#8    _delayEntrypointInvocation.<anonymous closure> (isolate_patch.dart)
-#9    _RawReceivePort._handleMessage (isolate_patch.dart)""",
+#4    Zone.run (zone.dart)
+#5    runTest (%test%)
+#6    main (%test%)
+#7    _delayEntrypointInvocation.<anonymous closure> (isolate_patch.dart)
+#8    _RawReceivePort._handleMessage (isolate_patch.dart)""",
   """
 #0    _registerUnaryCallback (%test%)
-#1    _CustomZone.registerUnaryCallback (zone.dart)
+#1    Zone.registerUnaryCallback (zone.dart)
 #2    bar (%test%)
-#3    _rootRun (zone_root.dart)
-#4    _CustomZone.run (zone.dart)
-#5    runTest (%test%)
-#6    main (%test%)
-#7    _delayEntrypointInvocation.<anonymous closure> (isolate_patch.dart)
-#8    _RawReceivePort._handleMessage (isolate_patch.dart)""",
+#3    Zone.run (zone.dart)
+#4    runTest (%test%)
+#5    main (%test%)
+#6    _delayEntrypointInvocation.<anonymous closure> (isolate_patch.dart)
+#7    _RawReceivePort._handleMessage (isolate_patch.dart)""",
   """
 #0    _registerBinaryCallback (%test%)
-#1    _CustomZone.registerBinaryCallback (zone.dart)
+#1    Zone.registerBinaryCallback (zone.dart)
 #2    bar (%test%)
-#3    _rootRun (zone_root.dart)
-#4    _CustomZone.run (zone.dart)
-#5    runTest (%test%)
-#6    main (%test%)
-#7    _delayEntrypointInvocation.<anonymous closure> (isolate_patch.dart)
-#8    _RawReceivePort._handleMessage (isolate_patch.dart)""",
+#3    Zone.run (zone.dart)
+#4    runTest (%test%)
+#5    main (%test%)
+#6    _delayEntrypointInvocation.<anonymous closure> (isolate_patch.dart)
+#7    _RawReceivePort._handleMessage (isolate_patch.dart)""",
   """
 #0    foo (%test%)
 <asynchronous suspension>
@@ -147,7 +143,7 @@ final currentExpectations = [
 <asynchronous suspension>""",
   """
 #0    _registerUnaryCallback (%test%)
-#1    _CustomZone.registerUnaryCallback (zone.dart)
+#1    Zone.registerUnaryCallback (zone.dart)
 #2    Future.then (future_impl.dart)
 #3    Future.timeout (future_impl.dart)
 #4    bar (%test%)
@@ -156,7 +152,7 @@ final currentExpectations = [
 <asynchronous suspension>""",
   """
 #0    _registerBinaryCallback (%test%)
-#1    _CustomZone.registerBinaryCallback (zone.dart)
+#1    Zone.registerBinaryCallback (zone.dart)
 #2    _registerErrorHandler (future_impl.dart)
 #3    Future.then (future_impl.dart)
 #4    Future.timeout (future_impl.dart)
@@ -166,13 +162,12 @@ final currentExpectations = [
 <asynchronous suspension>""",
   """
 #0    bar.<anonymous closure> (%test%)
-#1    _rootRun (zone_root.dart)
-#2    _CustomZone.run (zone.dart)
-#3    Future.timeout.<anonymous closure> (future_impl.dart)
+#1    Zone.run (zone.dart)
+#2    Future.timeout.<anonymous closure> (future_impl.dart)
 <asynchronous suspension>
-#4    bar (%test%)
+#3    bar (%test%)
 <asynchronous suspension>
-#5    main (%test%)
+#4    main (%test%)
 <asynchronous suspension>""",
 ];
 // CURRENT EXPECTATIONS END

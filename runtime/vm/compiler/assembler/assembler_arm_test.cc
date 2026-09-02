@@ -71,7 +71,7 @@ TEST_CASE(ReciprocalOps) {
 #define EXPECT_DISASSEMBLY(expected)
 #else
 #define EXPECT_DISASSEMBLY(expected)                                           \
-  EXPECT_STREQ(expected, test->RelativeDisassembly())
+  EXPECT_STREQ_NO_PREFIX_SUFFIX(expected, test->RelativeDisassembly())
 #endif
 
 ASSEMBLER_TEST_GENERATE(Simple, assembler) {
@@ -3053,6 +3053,83 @@ ASSEMBLER_TEST_RUN(VcntVpaddlu8B, test) {
   if (TargetCPUFeatures::neon_supported()) {
     typedef int (*Tst)() DART_UNUSED;
     EXPECT_EQ(16, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
+  }
+}
+
+ASSEMBLER_TEST_GENERATE(Vpmaxu8, assembler) {
+  if (TargetCPUFeatures::neon_supported()) {
+    __ LoadImmediate(R0, 0x04030201);
+    __ vmovsr(S0, R0);
+    __ LoadImmediate(R0, 0x08070605);
+    __ vmovsr(S1, R0);
+    __ LoadImmediate(R0, 0x0a0a0a0a);
+    __ vmovsr(S2, R0);
+    __ vmovsr(S3, R0);
+
+    __ vpmaxu(kByte, D0, D0, D1);
+
+    __ vmovrs(R0, S0);
+  }
+  __ Ret();
+}
+
+ASSEMBLER_TEST_RUN(Vpmaxu8, test) {
+  EXPECT(test != nullptr);
+  if (TargetCPUFeatures::neon_supported()) {
+    typedef int (*Tst)() DART_UNUSED;
+    EXPECT_EQ(0x08060402, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
+  }
+}
+
+ASSEMBLER_TEST_GENERATE(Vpmaxu16, assembler) {
+  if (TargetCPUFeatures::neon_supported()) {
+    __ LoadImmediate(R0, 0x00020001);
+    __ vmovsr(S0, R0);
+    __ LoadImmediate(R0, 0x00040003);
+    __ vmovsr(S1, R0);
+    __ LoadImmediate(R0, 0x000a000a);
+    __ vmovsr(S2, R0);
+    __ vmovsr(S3, R0);
+
+    __ vpmaxu(kTwoBytes, D0, D0, D1);
+
+    __ vmovrs(R0, S0);
+  }
+  __ Ret();
+}
+
+ASSEMBLER_TEST_RUN(Vpmaxu16, test) {
+  EXPECT(test != nullptr);
+  if (TargetCPUFeatures::neon_supported()) {
+    typedef int (*Tst)() DART_UNUSED;
+    EXPECT_EQ(0x00040002, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
+  }
+}
+
+ASSEMBLER_TEST_GENERATE(Vpmaxu32, assembler) {
+  if (TargetCPUFeatures::neon_supported()) {
+    __ mov(R0, Operand(7));
+    __ vmovsr(S0, R0);
+    __ mov(R0, Operand(3));
+    __ vmovsr(S1, R0);
+    __ mov(R0, Operand(42));
+    __ vmovsr(S2, R0);
+    __ mov(R0, Operand(11));
+    __ vmovsr(S3, R0);
+
+    __ vpmaxu(kFourBytes, D0, D0, D1);
+    __ vpmaxu(kFourBytes, D0, D0, D0);
+
+    __ vmovrs(R0, S0);
+  }
+  __ Ret();
+}
+
+ASSEMBLER_TEST_RUN(Vpmaxu32, test) {
+  EXPECT(test != nullptr);
+  if (TargetCPUFeatures::neon_supported()) {
+    typedef int (*Tst)() DART_UNUSED;
+    EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
   }
 }
 

@@ -151,7 +151,25 @@ Annotation
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
+      ConstructorInvocation
+        constructorReference: ConstructorReference2
+          typeReference: ConstructorTypeReference
+            name: A
+            element: <testLibrary>::@class::A
+            type: A
+          element: <testLibrary>::@class::A::@constructor::new
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments2
+            IntegerLiteral
+              literal: 0
+              correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::f
+              staticType: int
+          rightParenthesis: )
+        correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::f
+        staticType: A
+    arguments(v1)
       InstanceCreationExpression
         constructorName: ConstructorName
           type: NamedType
@@ -277,7 +295,7 @@ Annotation
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 3
         correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
@@ -386,7 +404,7 @@ Annotation
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 0
         correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::f
@@ -423,7 +441,7 @@ Annotation
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 0
         correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::f
@@ -492,7 +510,7 @@ Annotation
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 42
         correspondingParameter: <testLibrary>::@class::A::@constructor::named::@formalParameter::f
@@ -539,7 +557,7 @@ Annotation
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 42
         correspondingParameter: <testLibrary>::@class::A::@constructor::named::@formalParameter::f
@@ -592,7 +610,7 @@ Annotation
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 42
         correspondingParameter: <null>
@@ -657,7 +675,7 @@ Annotation
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 42
         correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::f
@@ -701,7 +719,21 @@ Annotation
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
+      ConstructorInvocation
+        keyword: const
+        constructorReference: ConstructorReference2
+          typeReference: ConstructorTypeReference
+            name: C
+            element: <testLibrary>::@class::C
+            type: C
+          element: <testLibrary>::@class::C::@constructor::new
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        correspondingParameter: <testLibrary>::@class::D::@constructor::new::@formalParameter::c
+        staticType: C
+    arguments(v1)
       InstanceCreationExpression
         keyword: const
         constructorName: ConstructorName
@@ -759,7 +791,7 @@ Annotation
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 42
         correspondingParameter: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::it
@@ -792,7 +824,7 @@ Annotation
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 42
         correspondingParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -840,7 +872,7 @@ Annotation
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       ListLiteral
         leftBracket: [
         rightBracket: ]
@@ -886,7 +918,7 @@ Annotation
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       ListLiteral
         leftBracket: [
         rightBracket: ]
@@ -944,7 +976,7 @@ Annotation
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 42
         correspondingParameter: SubstitutedFieldFormalParameterElementImpl
@@ -989,7 +1021,7 @@ Annotation
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 42
         correspondingParameter: SubstitutedFieldFormalParameterElementImpl
@@ -1079,7 +1111,7 @@ Annotation
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 42
         correspondingParameter: SubstitutedFieldFormalParameterElementImpl
@@ -1175,7 +1207,7 @@ Annotation
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 42
         correspondingParameter: SubstitutedFieldFormalParameterElementImpl
@@ -1228,7 +1260,7 @@ Annotation
     rightBracket: >
   arguments: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 42
         correspondingParameter: SubstitutedFieldFormalParameterElementImpl
@@ -1274,7 +1306,7 @@ Annotation
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 42
         correspondingParameter: SubstitutedFieldFormalParameterElementImpl
@@ -1323,7 +1355,7 @@ Annotation
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 42
         correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -1382,7 +1414,7 @@ Annotation
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 42
         correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -1438,7 +1470,7 @@ Annotation
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 42
         correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -1493,7 +1525,7 @@ Annotation
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 42
         correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -1549,7 +1581,7 @@ Annotation
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 42
         correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -1607,7 +1639,7 @@ Annotation
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 42
         correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -1671,7 +1703,7 @@ Annotation
     rightBracket: >
   arguments: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 42
         correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -1850,7 +1882,7 @@ Annotation
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 42
         correspondingParameter: package:test/a.dart::@class::A::@constructor::named::@formalParameter::f
@@ -1945,7 +1977,7 @@ Annotation
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 42
         correspondingParameter: package:test/a.dart::@class::A::@constructor::new::@formalParameter::f
@@ -2086,7 +2118,7 @@ Annotation
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 42
         correspondingParameter: SubstitutedFieldFormalParameterElementImpl
@@ -2144,7 +2176,7 @@ Annotation
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 42
         correspondingParameter: SubstitutedFieldFormalParameterElementImpl
@@ -2217,7 +2249,7 @@ Annotation
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 42
         correspondingParameter: SubstitutedFieldFormalParameterElementImpl
@@ -2283,7 +2315,7 @@ Annotation
     rightBracket: >
   arguments: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 42
         correspondingParameter: SubstitutedFieldFormalParameterElementImpl
@@ -2393,7 +2425,7 @@ Annotation
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 42
         correspondingParameter: SubstitutedFieldFormalParameterElementImpl
@@ -2457,7 +2489,7 @@ Annotation
     rightBracket: >
   arguments: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 42
         correspondingParameter: SubstitutedFieldFormalParameterElementImpl
@@ -2524,7 +2556,7 @@ Annotation
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 42
         correspondingParameter: SubstitutedFieldFormalParameterElementImpl
@@ -2571,7 +2603,7 @@ Annotation
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 42
         correspondingParameter: SubstitutedFieldFormalParameterElementImpl
@@ -2633,7 +2665,7 @@ Annotation
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 42
         correspondingParameter: SubstitutedFieldFormalParameterElementImpl
@@ -2688,7 +2720,7 @@ Annotation
     rightBracket: >
   arguments: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 42
         correspondingParameter: SubstitutedFieldFormalParameterElementImpl
@@ -2747,7 +2779,7 @@ Annotation
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 42
         correspondingParameter: SubstitutedFieldFormalParameterElementImpl
@@ -2794,7 +2826,7 @@ Annotation
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 42
         correspondingParameter: SubstitutedFieldFormalParameterElementImpl
@@ -2849,7 +2881,7 @@ Annotation
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 42
         correspondingParameter: <testLibrary>::@class::A::@constructor::named::@formalParameter::f
@@ -2890,7 +2922,7 @@ Annotation
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 42
         correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::f

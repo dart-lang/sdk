@@ -362,6 +362,8 @@ static bool GetAndValidateCurrentThreadStackBounds(uintptr_t fp,
   if ((fp < *stack_lower) || (fp >= *stack_upper)) {
     return false;  // Bad FP.
   }
+  // On Windows, touching more than one page beyond sp will fault.
+  *stack_lower = sp;
   return true;
 }
 
@@ -1049,6 +1051,10 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
         StubCode::InInvocationStub(thread_, Stack(sp, 0),
                                    is_interpreted_frame) ||
         StubCode::InInvocationStub(thread_, Stack(sp, 1), is_interpreted_frame);
+#elif defined(TARGET_ARCH_ARM) && defined(DART_INCLUDE_SIMULATOR)
+        StubCode::InInvocationStub(thread_, reinterpret_cast<uword>(pc_),
+                                   is_interpreted_frame) ||
+        StubCode::InInvocationStub(thread_, lr, is_interpreted_frame);
 #else
         StubCode::InInvocationStub(thread_, lr, is_interpreted_frame);
 #endif
@@ -1329,16 +1335,20 @@ void Profiler::SampleThread(Thread* thread,
 #endif
 
   if (FLAG_profile_vm) {
+    uintptr_t sp = state.csp;
     uintptr_t fp = state.fp;
     uintptr_t pc = state.pc;
     uword stack_lower = os_thread->stack_limit();
     uword stack_upper = os_thread->stack_base();
-    if ((fp < stack_lower) || (fp >= stack_upper)) {
+    if ((fp < stack_lower) || (fp >= stack_upper) || (sp < stack_lower) ||
+        (sp >= stack_upper)) {
       counters_.single_frame_sample_get_and_validate_stack_bounds.fetch_add(1);
       SampleThreadSingleFrame(thread, sample, pc);
       ReleaseToCurrentBlock(isolate);
       return;
     }
+    // On Windows, touching more than one page beyond sp will fault.
+    stack_lower = sp;
 
     counters_.stack_walker_native.fetch_add(1);
     ProfilerNativeStackWalker native_stack_walker(
@@ -1357,7 +1367,7 @@ void Profiler::SampleThread(Thread* thread,
     uintptr_t lr = state.lr;
 #if defined(DART_INCLUDE_SIMULATOR)
     if (FLAG_use_simulator) {
-      Simulator* simulator = isolate->simulator();
+      Simulator* simulator = thread->simulator();
       sp = simulator->get_register(SPREG);
       fp = simulator->get_register(FPREG);
       pc = simulator->get_pc();
@@ -1615,7 +1625,7 @@ class PerfettoPerfSampleWriter : public ValueObject {
       const auto group_source = group->source();
       const auto isolate_group_instructions =
           reinterpret_cast<uword>(group_source->snapshot_text);
-      const Image isolate_group_image(isolate_group_instructions);
+      const TextImage isolate_group_image(isolate_group_instructions);
       group->heap()->old_space()->ForEachImagePage([&](Page* page) {
         if (page->is_executable()) {
           mappings_.Add(new SnapshotMapping{

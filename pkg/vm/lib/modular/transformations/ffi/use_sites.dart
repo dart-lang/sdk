@@ -873,27 +873,30 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     final positionalParameters = [
       for (int i = 0; i < dartSignature.positionalParameters.length; ++i)
         PositionalParameter(
-          cosmeticName: 'arg${i + 1}',
+          parameterName: 'arg${i + 1}',
           type: dartSignature.positionalParameters[i],
         ),
     ];
 
     final closure = FunctionDeclaration(
-      SyntheticVariable(cosmeticName: closureName, type: dartSignature)
-        ..addAnnotation(
-          ConstantExpression(
-            InstanceConstant(coreTypes.pragmaClass.reference, [], {
-              coreTypes.pragmaName.fieldReference: StringConstant(
-                'vm:ffi:call-closure',
-              ),
-              coreTypes.pragmaOptions.fieldReference: InstanceConstant(
-                ffiCallClass.reference,
-                [nativeSignature],
-                {ffiCallIsLeafField.fieldReference: BoolConstant(isLeaf)},
-              ),
-            }),
-          ),
+      LocalFunctionVariable(
+        name: closureName,
+        type: dartSignature,
+        isSynthesized: true,
+      )..addAnnotation(
+        ConstantExpression(
+          InstanceConstant(coreTypes.pragmaClass.reference, [], {
+            coreTypes.pragmaName.fieldReference: StringConstant(
+              'vm:ffi:call-closure',
+            ),
+            coreTypes.pragmaOptions.fieldReference: InstanceConstant(
+              ffiCallClass.reference,
+              [nativeSignature],
+              {ffiCallIsLeafField.fieldReference: BoolConstant(isLeaf)},
+            ),
+          }),
         ),
+      ),
       FunctionNode(
         Block([
           for (final param in positionalParameters)
@@ -1131,7 +1134,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
 
     // void _handler(List args) => target(args[0], args[1], ...)
     final args = PositionalParameter(
-      cosmeticName: 'args',
+      parameterName: 'args',
       type: listType,
       isFinal: true,
     )..fileOffset = node.fileOffset;
@@ -1699,12 +1702,12 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         NativeTypeCfe(this, typeArg) as AbiSpecificNativeTypeCfe;
 
     final arrayLoadVar = PositionalParameter(
-      cosmeticName: "#array",
+      parameterName: "#array",
       type: InterfaceType(arrayClass, Nullability.nonNullable, [typeArg]),
       isSynthesized: true,
     )..fileOffset = node.fileOffset;
     final indexLoadVar = PositionalParameter(
-      cosmeticName: "#index",
+      parameterName: "#index",
       type: coreTypes.intNonNullableRawType,
       isSynthesized: true,
     )..fileOffset = node.fileOffset;
@@ -1731,17 +1734,17 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     );
 
     final arrayStoreVar = PositionalParameter(
-      cosmeticName: "#array",
+      parameterName: "#array",
       type: InterfaceType(arrayClass, Nullability.nonNullable, [typeArg]),
       isSynthesized: true,
     )..fileOffset = node.fileOffset;
     final indexStoreVar = PositionalParameter(
-      cosmeticName: "#index",
+      parameterName: "#index",
       type: coreTypes.intNonNullableRawType,
       isSynthesized: true,
     )..fileOffset = node.fileOffset;
     final valueStoreVar = PositionalParameter(
-      cosmeticName: "#value",
+      parameterName: "#value",
       type: coreTypes.intNullableRawType,
       isSynthesized: true,
     )..fileOffset = node.fileOffset;
@@ -2156,7 +2159,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       }
       newParameters.add(
         PositionalParameter(
-          cosmeticName: parameter.cosmeticName,
+          parameterName: parameter.parameterName,
           type: newType,
         ),
       );

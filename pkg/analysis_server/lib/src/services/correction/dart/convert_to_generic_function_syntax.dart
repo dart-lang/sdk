@@ -109,6 +109,11 @@ class ConvertToGenericFunctionSyntax extends ParsedCorrectionProducer {
     if (functionName == null) {
       return;
     }
+    var namePrefix = switch (node) {
+      FieldFormalParameter() => 'this.',
+      SuperFormalParameter() => 'super.',
+      _ => '',
+    };
     var typeParametersNode = functionTypedSuffix.typeParameters;
     var typeParameters = typeParametersNode != null
         ? utils.getNodeText(typeParametersNode)
@@ -118,7 +123,7 @@ class ConvertToGenericFunctionSyntax extends ParsedCorrectionProducer {
     var question = functionTypedSuffix.question != null ? '?' : '';
     var replacement =
         '$required$covariant${returnType}Function'
-        '$typeParameters$parameters$question $functionName';
+        '$typeParameters$parameters$question $namePrefix$functionName';
 
     await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleReplacement(range.node(node), replacement);

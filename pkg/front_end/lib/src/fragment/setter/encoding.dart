@@ -32,6 +32,7 @@ import '../../source/source_property_builder.dart';
 import '../../source/source_type_parameter_builder.dart';
 import '../../source/stack_listener_impl.dart' show AsyncModifier;
 import '../../source/type_parameter_factory.dart';
+import '../../type_inference/context_allocation_strategy.dart';
 import '../fragment.dart';
 
 class ExtensionInstanceSetterEncoding extends SetterEncoding
@@ -189,10 +190,9 @@ sealed class SetterEncoding {
 
   void registerFunctionBody({
     required Statement? body,
-    required Scope? scope,
     required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
-    required ThisVariable? thisVariable,
+    required ScopeProviderInfo? scopeProviderInfo,
   });
 }
 
@@ -326,7 +326,7 @@ mixin _DirectSetterEncodingMixin implements SetterEncoding {
       // Do this after building the parameters, since the diet listener
       // assumes that parameters are built, even if illegal in number.
       PositionalParameter parameter = extern.createPositionalParameter(
-        cosmeticName: "#synthetic",
+        parameterName: "#synthetic",
         type: const DynamicType(),
         fileOffset: TreeNode.noOffset,
       );
@@ -474,10 +474,9 @@ mixin _DirectSetterEncodingMixin implements SetterEncoding {
   @override
   void registerFunctionBody({
     required Statement? body,
-    required Scope? scope,
     required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
-    required ThisVariable? thisVariable,
+    required ScopeProviderInfo? scopeProviderInfo,
   }) {
     if (body != null) {
       function.registerFunctionBody(
@@ -486,10 +485,7 @@ mixin _DirectSetterEncodingMixin implements SetterEncoding {
         emittedValueType: emittedValueType,
       );
     }
-    function.scope = scope;
-    function.thisVariable =
-        // Coverage-ignore(suite): Not run.
-        thisVariable?..parent = function;
+    function.registerScopeProviderInfo(scopeProviderInfo);
   }
 }
 
@@ -631,7 +627,8 @@ mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
       isAbstractOrExternal ? null : extern.createEmptyStatement(),
       typeParameters: typeParameters,
       positionalParameters: [
-        _thisFormal.build(libraryBuilder).astVariable as PositionalParameter,
+        _thisFormal.build(libraryBuilder).functionParameter
+            as PositionalParameter,
       ],
       asyncMarker: _fragment.asyncModifier.kind,
       fileOffset: _fragment.formalsOffset,
@@ -658,7 +655,7 @@ mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
       // assumes that parameters are built, even if illegal in number.
       PositionalParameter thisParameter = function.positionalParameters[0];
       PositionalParameter parameter = extern.createPositionalParameter(
-        cosmeticName: "#synthetic",
+        parameterName: "#synthetic",
         type: const DynamicType(),
         fileOffset: TreeNode.noOffset,
       );
@@ -851,10 +848,9 @@ mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
   @override
   void registerFunctionBody({
     required Statement? body,
-    required Scope? scope,
     required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
-    required ThisVariable? thisVariable,
+    required ScopeProviderInfo? scopeProviderInfo,
   }) {
     if (body != null) {
       function.registerFunctionBody(
@@ -863,9 +859,6 @@ mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
         emittedValueType: emittedValueType,
       );
     }
-    function.scope = scope;
-    function.thisVariable =
-        // Coverage-ignore(suite): Not run.
-        thisVariable?..parent = function;
+    function.registerScopeProviderInfo(scopeProviderInfo);
   }
 }

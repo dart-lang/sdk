@@ -32,6 +32,16 @@ class NodeTextExpectationsCollector {
     ),
     _AssertMethod(
       className: 'AnalysisContextCollectionTest',
+      methodName: '_assertCollectionText',
+      argument: _ArgumentIndex(1),
+    ),
+    _AssertMethod(
+      className: 'AnalysisContextCollectionTest',
+      methodName: '_assertContextRootsText',
+      argument: _ArgumentNamed('expected'),
+    ),
+    _AssertMethod(
+      className: 'AnalysisContextCollectionTest',
       methodName: '_assertWorkspaceCollectionText',
       argument: _ArgumentIndex(1),
     ),
@@ -56,7 +66,7 @@ class NodeTextExpectationsCollector {
       argument: _ArgumentIndex(1),
     ),
     _AssertMethod(
-      className: 'ElementLocatorTest2',
+      className: 'ElementLocatorV1Test',
       methodName: '_assertElement',
       argument: _ArgumentIndex(1),
     ),
@@ -133,12 +143,17 @@ class NodeTextExpectationsCollector {
     ),
     _AssertMethod(
       className: 'IndexTest',
-      methodName: 'assertLibraryFragmentIndexText',
+      methodName: 'assertElementsIndexText',
       argument: _ArgumentIndex(2),
     ),
     _AssertMethod(
       className: 'IndexTest',
-      methodName: 'assertNameIndexText',
+      methodName: 'assertNamesIndexText',
+      argument: _ArgumentIndex(2),
+    ),
+    _AssertMethod(
+      className: 'IndexTest',
+      methodName: 'assertLibraryFragmentIndexText',
       argument: _ArgumentIndex(2),
     ),
     _AssertMethod(
@@ -252,6 +267,11 @@ class NodeTextExpectationsCollector {
       argument: _ArgumentIndex(1),
     ),
     _AssertMethod(
+      className: 'LookupPromotedThisTypeTest',
+      methodName: 'assertPromotedThisTypes',
+      argument: _ArgumentIndex(0),
+    ),
+    _AssertMethod(
       className: 'ResolutionTest',
       methodName: 'resolveTestCodeWithDiagnostics',
       argument: _ArgumentIndex(0),
@@ -264,6 +284,11 @@ class NodeTextExpectationsCollector {
     _AssertMethod(
       className: 'SearchTest',
       methodName: 'assertElementReferencesText',
+      argument: _ArgumentIndex(1),
+    ),
+    _AssertMethod(
+      className: 'SearchTest',
+      methodName: 'assertElementsReferencesText',
       argument: _ArgumentIndex(1),
     ),
     _AssertMethod(
@@ -406,10 +431,10 @@ final class _ArgumentIndex extends _Argument {
 
   @override
   Expression get(ArgumentList argumentList, {String? intraInvocationId}) {
-    return argumentList.arguments
+    return argumentList.arguments2
         .whereNotType<NamedArgument>()
         .elementAt(index)
-        .argumentExpression;
+        .argumentExpression2;
   }
 }
 
@@ -434,7 +459,7 @@ final class _ArgumentMapEntryValue extends _Argument {
       fail('Not a map literal: ${mapExpression.runtimeType}');
     }
 
-    var elements = mapExpression.elements;
+    var elements = mapExpression.elements2;
     if (elements.any((element) => element is! MapLiteralEntry)) {
       fail('Only plain map literal entries are supported.');
     }
@@ -443,7 +468,7 @@ final class _ArgumentMapEntryValue extends _Argument {
       fail('Map entry index $index is out of range: ${elements.length}');
     }
 
-    return (elements[index] as MapLiteralEntry).value;
+    return (elements[index] as MapLiteralEntry).value2;
   }
 }
 
@@ -455,11 +480,11 @@ final class _ArgumentNamed extends _Argument {
 
   @override
   Expression get(ArgumentList argumentList, {String? intraInvocationId}) {
-    return argumentList.arguments
+    return argumentList.arguments2
         .whereType<NamedArgument>()
         .where((argument) => argument.name.lexeme == name)
         .single
-        .argumentExpression;
+        .argumentExpression2;
   }
 }
 
@@ -559,12 +584,12 @@ class _File {
       lineInfo: lineInfo,
       requestedLine: invocationLine,
     );
-    unit.accept(visitor);
+    unit.accept2(visitor);
     return visitor.result;
   }
 }
 
-class _InvocationVisitor extends RecursiveAstVisitor<void> {
+class _InvocationVisitor extends RecursiveAstVisitor2<void> {
   final LineInfo lineInfo;
   final int requestedLine;
   MethodInvocation? result;

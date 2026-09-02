@@ -17,6 +17,9 @@ void main() {
 
 @reflectiveTest
 class FlutterWidgetPreviewsTest extends LspOverLegacyTest {
+  @override
+  bool get addFlutterPackageDep => true;
+
   Future<FlutterWidgetPreviews?> getFlutterWidgetPreviews(Uri uri) {
     var request = makeRequest(
       CustomMethods.getFlutterWidgetPreviews,
@@ -33,14 +36,6 @@ class FlutterWidgetPreviewsTest extends LspOverLegacyTest {
     return expectSuccessfulResponseTo(request, FlutterWidgetPreviews.fromJson);
   }
 
-  @override
-  Future<void> setUp() async {
-    await super.setUp();
-    writeTestPackageConfig(flutter: true);
-    addFlutter();
-    addSkyEngine(sdkPath: sdkRoot.path);
-  }
-
   Future<void> test_getFlutterWidgetPreviews() async {
     var filePath = join(projectFolderPath, 'lib', 'previews.dart');
     var fileUri = Uri.file(filePath);
@@ -52,7 +47,7 @@ import 'package:flutter/widget_previews.dart';
 Widget preview1() => Text('1');
 ''');
 
-    await waitForTasksFinished();
+    await initializeServer();
     var result = await getFlutterWidgetPreviews(fileUri);
     expect(result!.previews, hasLength(1));
     expect(result.previews.first.functionName, 'preview1');
@@ -72,7 +67,7 @@ import 'package:flutter/widget_previews.dart';
 Widget b() => Text('B');
 ''');
 
-    await waitForTasksFinished();
+    await initializeServer();
     var result = await getWorkspaceFlutterWidgetPreviews();
     expect(result!.previews, hasLength(2));
     expect(result.previews.any((p) => p.functionName == 'a'), isTrue);

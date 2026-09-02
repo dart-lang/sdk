@@ -174,6 +174,7 @@ class FunctionCollector {
       if (exportName != null) {
         // Add weak exports to the module as we now know they're used. Strong
         // exports have already been added.
+        function.isJSCalled = true;
         module.exports.export(exportName, function);
       }
 
@@ -378,7 +379,7 @@ class FunctionCollector {
     final member = lambda.enclosingMember;
     final lambdaNode = lambda.functionNode.parent;
     if (lambdaNode is FunctionDeclaration) {
-      final functionNodeName = lambdaNode.variable.cosmeticName;
+      final functionNodeName = lambdaNode.variable.name;
       return "$member closure $functionNodeName at $location";
     }
     assert(lambdaNode is FunctionExpression);
@@ -612,6 +613,7 @@ class _FunctionTypeGenerator extends MemberVisitor1<w.FunctionType, Reference> {
         const [],
         constructorInfo.bodyParameters,
         translator.translateType,
+        isBodyParameter: true,
       ),
     );
     for (final initializer in node.initializers) {
@@ -668,6 +670,7 @@ class _FunctionTypeGenerator extends MemberVisitor1<w.FunctionType, Reference> {
         const [],
         constructorInfo.bodyParameters,
         translator.translateType,
+        isBodyParameter: true,
       ),
     );
 
@@ -696,8 +699,9 @@ List<w.ValueType> _getConstructorInputTypes(
   Constructor member,
   List<TypeParameter> typeParameters,
   List<FunctionParameter> parameters,
-  w.ValueType Function(DartType) translateType,
-) {
+  w.ValueType Function(DartType) translateType, {
+  bool isBodyParameter = false,
+}) {
   final List<w.ValueType> inputs = [];
 
   final List<w.ValueType> wasmTypeParameters = List.filled(
@@ -706,7 +710,10 @@ List<w.ValueType> _getConstructorInputTypes(
   );
   inputs.addAll(wasmTypeParameters);
 
-  final List<DartType> params = parameters.map((p) {
+  final List<w.ValueType> params = parameters.map((p) {
+    if (isBodyParameter && !p.isFinal) {
+      return translator.translateTypeOfLocalVariable(p);
+    }
     final function = p.parent as FunctionNode;
     final positionalIndex = p is PositionalParameter
         ? function.positionalParameters.indexOf(p)
@@ -714,9 +721,9 @@ List<w.ValueType> _getConstructorInputTypes(
     final isRequired = positionalIndex != -1
         ? positionalIndex < function.requiredParameterCount
         : p.isRequired;
-    return translator.typeOfParameterVariable(p, isRequired);
+    return translateType(translator.typeOfParameterVariable(p, isRequired));
   }).toList();
-  inputs.addAll(params.map(translateType));
+  inputs.addAll(params);
 
   return inputs;
 }
@@ -740,15 +747,24 @@ List<w.ValueType> _getInputTypes(
     List<String> names = [
       for (var p in function.namedParameters) p.parameterName,
     ]..sort();
-    final typeForParam = translator.typeOfParameterVariable;
+    final isNoSuchMethodForwarder =
+        member is Procedure && member.isNoSuchMethodForwarder;
     Map<String, DartType> nameTypes = {
       for (var p in function.namedParameters)
-        p.parameterName: typeForParam(p, p.isRequired),
+        p.parameterName: translator.typeOfParameterVariable(
+          p,
+          p.isRequired,
+          isNoSuchMethodForwarder: isNoSuchMethodForwarder,
+        ),
     };
     final positionals = function.positionalParameters;
     params = [
       for (int i = 0; i < positionals.length; ++i)
-        typeForParam(positionals[i], i < function.requiredParameterCount),
+        translator.typeOfParameterVariable(
+          positionals[i],
+          i < function.requiredParameterCount,
+          isNoSuchMethodForwarder: isNoSuchMethodForwarder,
+        ),
       for (String name in names) nameTypes[name]!,
     ];
   }

@@ -119,7 +119,7 @@ abstract class DillCompilationUnit implements CompilationUnit {}
 
 abstract class SourceCompilationUnit
     implements CompilationUnit, LibraryFragment {
-  void buildOutline(Token tokens);
+  void buildOutline(Token tokens, {bool onlyDirectives = false});
 
   /// Creates a [SourceLibraryBuilder] for with this [SourceCompilationUnit] as
   /// the main compilation unit.

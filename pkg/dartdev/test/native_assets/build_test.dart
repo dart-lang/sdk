@@ -8,6 +8,7 @@ import 'dart:io';
 
 import 'package:code_assets/code_assets.dart';
 import 'package:test/test.dart';
+import 'package:yaml_edit/yaml_edit.dart';
 
 import '../utils.dart';
 import 'helpers.dart';
@@ -16,10 +17,6 @@ String usingTargetOSMessageForPlatform(String targetOS) =>
     'Specializing Platform getters for target OS $targetOS.';
 final String usingTargetOSMessage =
     usingTargetOSMessageForPlatform(Platform.operatingSystem);
-String crossOSNotAllowedError(String format) =>
-    "'dart build -f $format' does not support cross-OS compilation.";
-final String hostOSMessage = 'Host OS: ${Platform.operatingSystem}';
-String targetOSMessage(String targetOS) => 'Target OS: $targetOS';
 
 void main([List<String> args = const []]) async {
   if (!nativeAssetsExperimentAvailableOnCurrentChannel) {
@@ -65,6 +62,17 @@ void main([List<String> args = const []]) async {
             .resolve(OS.current.executableFileName('dart_app'));
         final absoluteExeUri = dartAppUri.resolveUri(relativeExeUri);
         expect(await File.fromUri(absoluteExeUri).exists(), true);
+        if (Platform.isLinux) {
+          final relativeSnapshotUri = relativeBundleUri
+              .resolve('lib/')
+              .resolve(_linuxAotSnapshotFileName('dart_app'));
+          expect(
+            await File.fromUri(
+              dartAppUri.resolveUri(relativeSnapshotUri),
+            ).exists(),
+            true,
+          );
+        }
         await _withTempDir((tempUri) async {
           // The link needs to have the same extension as the executable on
           // Windows to be able to be executable.
@@ -433,7 +441,7 @@ void main(List<String> args) {
         );
         final Directory binDir = File(Platform.resolvedExecutable).parent;
         final sanitizedRuntime =
-            File.fromUri(binDir.uri.resolve('dartaotruntime_$sanitizer'));
+            File.fromUri(binDir.uri.resolve('dartcliruntime_$sanitizer'));
         if (sanitizedRuntime.existsSync()) {
           expect(result.exitCode, 0);
           final relativeExeUri = relativeBundleUri
@@ -441,8 +449,17 @@ void main(List<String> args) {
               .resolve(OS.current.executableFileName('dart_app'));
           final absoluteExeUri = dartAppUri.resolveUri(relativeExeUri);
           expect(await File.fromUri(absoluteExeUri).exists(), true);
+          final relativeSnapshotUri = relativeBundleUri
+              .resolve('lib/')
+              .resolve(_linuxAotSnapshotFileName('dart_app'));
+          expect(
+            await File.fromUri(
+              dartAppUri.resolveUri(relativeSnapshotUri),
+            ).exists(),
+            true,
+          );
         } else {
-          expect(result.stderr, contains('dartaotruntime_$sanitizer'));
+          expect(result.stderr, contains('dartcliruntime_$sanitizer'));
           expect(result.exitCode, 255);
         }
       });
@@ -464,6 +481,40 @@ void main(List<String> args) {
       );
       expect(result.stderr, contains('Unexpected arguments'));
       expect(result.exitCode, isNot(0));
+    });
+  });
+
+  test('dart build cli --enable-asserts', timeout: longTimeout, () async {
+    await nativeAssetsTest('dart_app', (dartAppUri) async {
+      final binFile = File.fromUri(dartAppUri.resolve('bin/dart_app.dart'));
+      await binFile.writeAsString('''
+void main() {
+  assert(false, 'assertion failed');
+  print('Hello world');
+}
+''');
+      await runDart(
+        arguments: [
+          'build',
+          'cli',
+          '--enable-asserts',
+        ],
+        workingDirectory: dartAppUri,
+        logger: logger,
+      );
+
+      final relativeExeUri = relativeBundleUri
+          .resolve('bin/')
+          .resolve(OS.current.executableFileName('dart_app'));
+      final absoluteExeUri = dartAppUri.resolveUri(relativeExeUri);
+      expect(await File.fromUri(absoluteExeUri).exists(), true);
+
+      final processResult = await runProcess(
+        executable: absoluteExeUri,
+        logger: logger,
+        expectedExitCode: 255,
+      );
+      expect(processResult.stderr, contains('assertion failed'));
     });
   });
 
@@ -618,6 +669,93 @@ void main() {
       });
     });
   });
+
+  test(
+    'dart build cli cross compilation to linux (no build)',
+    timeout: longTimeout,
+    () async {
+      await _runDownloadHookAppTest((dartAppUri) async {
+        final result = await runDart(
+          arguments: [
+            'build',
+            'cli',
+            '--target-os',
+            'linux',
+            '--target-arch',
+            'x64',
+          ],
+          workingDirectory: dartAppUri,
+          logger: logger,
+        );
+
+        expect(result.stdout, contains('Running build hooks'));
+        final bundleDirectory = Directory.fromUri(
+          dartAppUri.resolve('build/cli/linux_x64/bundle/'),
+        );
+        expect(bundleDirectory.existsSync(), isTrue);
+
+        final libDirectory = Directory.fromUri(
+          bundleDirectory.uri.resolve('lib/'),
+        );
+        expect(libDirectory.existsSync(), isTrue);
+
+        final dylib = File.fromUri(
+          libDirectory.uri.resolve('libdart_app_download_hook.so'),
+        );
+        expect(dylib.existsSync(), isTrue);
+        expect(
+          await dylib.readAsString(),
+          'simulated downloaded asset for dart_app_download_hook',
+        );
+      });
+    },
+  );
+}
+
+Future<void> _runDownloadHookAppTest(
+  Future<void> Function(Uri appUri) fun,
+) async {
+  await inTempDir((tempUri) async {
+    final sourceAppUri = sdkRootUri.resolve(
+      'pkg/dartdev/test/data/dart_app_download_hook/',
+    );
+    final targetAppUri = tempUri.resolve('dart_app_download_hook/');
+    final targetAppDir = Directory.fromUri(targetAppUri);
+    await copyDirectory(Directory.fromUri(sourceAppUri), targetAppDir);
+
+    final pubspecFile = File.fromUri(targetAppUri.resolve('pubspec.yaml'));
+    final pubspecString = await pubspecFile.readAsString();
+    final pubspec = YamlEditor(pubspecString);
+    pubspec.update([
+      'dependency_overrides'
+    ], {
+      'code_assets': {
+        'path': sdkRootUri
+            .resolve('third_party/pkg/native/pkgs/code_assets/')
+            .toFilePath(),
+      },
+      'hooks': {
+        'path': sdkRootUri
+            .resolve('third_party/pkg/native/pkgs/hooks/')
+            .toFilePath(),
+      },
+      // Include package:record_use in dependency_overrides alongside hooks so
+      // unreleased record_use versions required by package:hooks are resolved
+      // directly from the local SDK checkout rather than pub.dev.
+      'record_use': {
+        'path': sdkRootUri
+            .resolve('third_party/pkg/native/pkgs/record_use/')
+            .toFilePath(),
+      },
+    });
+    await pubspecFile.writeAsString(pubspec.toString());
+
+    await fun(targetAppUri);
+  });
+
+  // TODO(https://github.com/dart-lang/native/pull/3427): Add a test for C cross
+  // compilation. You may want to create a new test application and
+  // generalize `_runDownloadHookAppTest` to work with it.
 }
 
 Future<void> _withTempDir(Future<void> Function(Uri tempUri) fun) async {
@@ -641,3 +779,6 @@ Uri removeDotExe(Uri withExe) {
   final fileName = exeName.replaceAll('.exe', '');
   return withExe.resolve(fileName);
 }
+
+String _linuxAotSnapshotFileName(String executableName) =>
+    'libdartaot$executableName.so';

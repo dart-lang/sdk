@@ -4,11 +4,12 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
+import 'package:analysis_server/src/utilities/extensions/element.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/precedence.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -172,15 +173,16 @@ class AddExplicitCast extends ResolvedCorrectionProducer {
     }
     if (target is MethodInvocation &&
         (target.isToListMethodInvocation || target.isToSetMethodInvocation)) {
-      var targetTarget = target.target;
-      if (targetTarget != null) {
-        var targetTargetType = targetTarget.typeOrThrow;
-        if (targetTargetType.isDartCoreIterable ||
-            targetTargetType.isDartCoreList ||
-            targetTargetType.isDartCoreMap ||
-            targetTargetType.isDartCoreSet) {
-          target = targetTarget;
-          fromType = targetTargetType;
+      if (target.target case Expression(:var staticType?) && var targetTarget) {
+        if (staticType.isDartCoreIterable ||
+            staticType.isDartCoreList ||
+            staticType.isDartCoreMap ||
+            staticType.isDartCoreSet) {
+          if (toType is InterfaceType &&
+              (toType.isDartCoreList || toType.isDartCoreSet)) {
+            target = targetTarget;
+            fromType = staticType;
+          }
         }
       }
     }
@@ -201,4 +203,28 @@ class AddExplicitCast extends ResolvedCorrectionProducer {
       builder.writeType(toType.typeArguments[index]);
     });
   }
+}
+
+extension on MethodInvocation {
+  /// Returns whether this expression is an invocation of the method `toList`
+  /// from `Iterable`.
+  bool get isToListMethodInvocation => switch (methodName.element) {
+    MethodElement(
+      name: 'toList',
+      enclosingElement: ClassElement(isDartCoreIterable: true),
+    ) =>
+      true,
+    _ => false,
+  };
+
+  /// Returns whether this expression is an invocation of the method `toSet`
+  /// from `Iterable`.
+  bool get isToSetMethodInvocation => switch (methodName.element) {
+    MethodElement(
+      name: 'toSet',
+      enclosingElement: ClassElement(isDartCoreIterable: true),
+    ) =>
+      true,
+    _ => false,
+  };
 }

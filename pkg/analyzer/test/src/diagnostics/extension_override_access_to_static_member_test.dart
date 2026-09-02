@@ -28,9 +28,31 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.functionExpressionInvocation('();');
+    var node = result.findNode.callInvocation('();');
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
+CallInvocation
+  receiver: ExtensionOverride
+    name: E
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        IntegerLiteral
+          literal: 0
+          correspondingParameter: <null>
+          staticType: int
+      rightParenthesis: )
+    element: <testLibrary>::@extension::E
+    extendedType: int
+    staticType: null
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@extension::E::@method::call
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: FunctionExpressionInvocation
   function: ExtensionOverride
     name: E
     argumentList: ArgumentList
@@ -95,11 +117,11 @@ void f() {
     var node = result.findNode.methodInvocation('empty();');
     assertResolvedNodeText(node, r'''
 MethodInvocation
-  target: ExtensionOverride
+  target2: ExtensionOverride
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments
+      arguments2
         SimpleStringLiteral
           literal: 'a'
       rightParenthesis: )

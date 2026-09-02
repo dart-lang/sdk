@@ -126,29 +126,29 @@ class Float64List {
 @patch
 class Int32x4List {
   @patch
-  factory Int32x4List(int length) = NaiveInt32x4List;
+  factory Int32x4List(int length) = I32x4List;
 
   @patch
-  factory Int32x4List.fromList(List<Int32x4> elements) =
-      NaiveInt32x4List.fromList;
+  factory Int32x4List.fromList(List<Int32x4> elements) =>
+      I32x4List(elements.length)..setRange(0, elements.length, elements);
 }
 
 @patch
 class Float32x4List {
   @patch
-  factory Float32x4List(int length) = NaiveFloat32x4List;
+  factory Float32x4List(int length) = F32x4List;
 
   @patch
-  factory Float32x4List.fromList(List<Float32x4> elements) =
-      NaiveFloat32x4List.fromList;
+  factory Float32x4List.fromList(List<Float32x4> elements) =>
+      F32x4List(elements.length)..setRange(0, elements.length, elements);
 }
 
 @patch
 class Float64x2List {
   @patch
-  factory Float64x2List(int length) = NaiveFloat64x2List;
+  factory Float64x2List(int length) = F64x2List;
 
   @patch
-  factory Float64x2List.fromList(List<Float64x2> elements) =
-      NaiveFloat64x2List.fromList;
+  factory Float64x2List.fromList(List<Float64x2> elements) =>
+      F64x2List(elements.length)..setRange(0, elements.length, elements);
 }

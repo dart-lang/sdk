@@ -198,8 +198,7 @@ void runSharedTests(
         await driver.checkRuntimeInFrame(
           breakpointId: 'OnScheduleMain',
           // Query a user definition to test if it's initialized.
-          expression:
-              'dart.getClassMetadata("package:eval_test/test.dart", "DerivedClass")',
+          expression: 'dart.getClassMetadata("package:eval_test/test.dart", "DerivedClass")',
           expectedResult: {
             'className': 'DerivedClass',
             'superClassName': 'BaseClass',
@@ -282,8 +281,7 @@ void runSharedTests(
     test('getClassMetadata (base class)', () async {
       await driver.checkRuntimeInFrame(
         breakpointId: 'BP',
-        expression:
-            'dart.getClassMetadata("package:eval_test/test.dart", "BaseClass", base)',
+        expression: 'dart.getClassMetadata("package:eval_test/test.dart", "BaseClass", base)',
         expectedResult: {
           'className': 'BaseClass',
           'superClassName': 'Object',
@@ -343,8 +341,7 @@ void runSharedTests(
     test('getClassMetadata (derived class)', () async {
       await driver.checkRuntimeInFrame(
         breakpointId: 'BP',
-        expression:
-            'dart.getClassMetadata("package:eval_test/test.dart", "DerivedClass")',
+        expression: 'dart.getClassMetadata("package:eval_test/test.dart", "DerivedClass")',
         expectedResult: {
           'className': 'DerivedClass',
           'superClassName': 'BaseClass',
@@ -888,8 +885,7 @@ void runSharedTests(
     test('callLibraryMethod', () async {
       await driver.checkRuntimeInFrame(
         breakpointId: 'BP',
-        expression:
-            "dart.getObjectMetadata(dart.callLibraryMethod('package:eval_test/test.dart', 'globalFunction', [1, 3]))",
+        expression: "dart.getObjectMetadata(dart.callLibraryMethod('package:eval_test/test.dart', 'globalFunction', [1, 3]))",
         expectedResult: {
           'className': 'DerivedClass',
           'libraryId': 'package:eval_test/test.dart',
@@ -902,8 +898,7 @@ void runSharedTests(
     test('callInstanceMethod', () async {
       await driver.checkRuntimeInFrame(
         breakpointId: 'BP',
-        expression:
-            "dart.callInstanceMethod(dart.callLibraryMethod('package:eval_test/test.dart', 'globalFunction', [1, 3]), 'stringLength', ['hello'])",
+        expression: "dart.callInstanceMethod(dart.callLibraryMethod('package:eval_test/test.dart', 'globalFunction', [1, 3]), 'stringLength', ['hello'])",
         expectedResult: 5,
       );
     }, skip: !setup.emitLibraryBundle);

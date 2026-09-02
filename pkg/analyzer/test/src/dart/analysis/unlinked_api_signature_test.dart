@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/dart/analysis/unlinked_api_signature.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -2020,6 +2021,44 @@ mixin M {
     );
   }
 
+  test_mixin_superInvokedNames_indexRead_compoundAssignment() {
+    _assertNotSameSignature(
+      r'''
+mixin M {
+  void foo() {
+    super[0] = 0;
+  }
+}
+''',
+      r'''
+mixin M {
+  void foo() {
+    super[0] += 0;
+  }
+}
+''',
+    );
+  }
+
+  test_mixin_superInvokedNames_indexRead_ifNullAssignment() {
+    _assertNotSameSignature(
+      r'''
+mixin M {
+  void foo() {
+    super[0] = 0;
+  }
+}
+''',
+      r'''
+mixin M {
+  void foo() {
+    super[0] ??= 0;
+  }
+}
+''',
+    );
+  }
+
   test_mixin_superInvokedNames_indexWrite_add() {
     _assertNotSameSignature(
       r'''
@@ -2348,11 +2387,11 @@ typedef F = void Function(double);
 
   void _assertSignature(String oldCode, String newCode, {required bool same}) {
     var oldResult = parseTestCodeWithDiagnostics(oldCode);
-    var oldUnit = oldResult.unit;
+    var oldUnit = oldResult.unit as CompilationUnitImpl;
     var oldSignature = computeUnlinkedApiSignature(oldUnit);
 
     var newResult = parseTestCodeWithDiagnostics(newCode);
-    var newUnit = newResult.unit;
+    var newUnit = newResult.unit as CompilationUnitImpl;
     var newSignature = computeUnlinkedApiSignature(newUnit);
 
     if (same) {

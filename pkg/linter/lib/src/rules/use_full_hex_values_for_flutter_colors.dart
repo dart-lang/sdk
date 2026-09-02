@@ -37,12 +37,8 @@ class UseFullHexValuesForFlutterColors extends AnalysisRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
+class _Visitor(final AnalysisRule rule) extends SimpleAstVisitor<void> {
   static final _underscoresPattern = RegExp('_+');
-
-  final AnalysisRule rule;
-
-  new(this.rule);
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {

@@ -27,7 +27,7 @@ import 'package:vm/metadata/table_selector.dart';
 import 'package:vm/metadata/unboxing_info.dart';
 import 'package:vm/metadata/unreachable.dart';
 import 'package:vm/transformations/devirtualization.dart' show Devirtualization;
-import 'package:vm/transformations/pragma.dart';
+import 'package:vm/modular/transformations/pragma.dart';
 
 import 'analysis.dart';
 import 'calls.dart';
@@ -266,7 +266,7 @@ class MoveFieldInitializers {
           }
         }
         final Initializer newInit = initializedFields.contains(f)
-            ? LocalInitializer(SyntheticVariable(initializer: initExpr))
+            ? LocalInitializer(SyntheticVariable(), initExpr)
             : FieldInitializer(f, initExpr);
         newInit.parent = c;
         newInitializers.add(newInit);
@@ -391,9 +391,12 @@ class TFADevirtualization extends Devirtualization {
             callSite.isNullableReceiver,
           );
         } else if (!isArtificialNode(singleTarget)) {
+          final bool checkReceiverForNull =
+              callSite.isNullableReceiver &&
+              singleTarget.enclosingClass != coreTypes.objectClass;
           return DirectCallMetadata.targetMember(
             singleTarget,
-            callSite.isNullableReceiver,
+            checkReceiverForNull,
           );
         }
       }
@@ -423,7 +426,7 @@ class AnnotateKernel extends RecursiveVisitor {
   final TFClass _intTFClass;
   late final Constant _nullConstant = NullConstant();
 
-  AnnotateKernel(
+  AnnotateKernel._(
     Component component,
     this._typeFlowAnalysis,
     this.hierarchy,
@@ -432,12 +435,19 @@ class AnnotateKernel extends RecursiveVisitor {
     this._tableSelectorAssigner,
     this._unboxingInfo,
     this._closureIdMetadata,
+    Map<InferredType, InferredType> canonicalInferredTypes,
   ) : _directCallMetadataRepository =
           component.metadata[DirectCallMetadataRepository.repositoryTag]
               as DirectCallMetadataRepository,
-      _inferredTypeMetadata = InferredTypeMetadataRepository(),
-      _inferredArgTypeMetadata = InferredArgTypeMetadataRepository(),
-      _inferredReturnTypeMetadata = InferredReturnTypeMetadataRepository(),
+      _inferredTypeMetadata = InferredTypeMetadataRepository(
+        canonicalInferredTypes,
+      ),
+      _inferredArgTypeMetadata = InferredArgTypeMetadataRepository(
+        canonicalInferredTypes,
+      ),
+      _inferredReturnTypeMetadata = InferredReturnTypeMetadataRepository(
+        canonicalInferredTypes,
+      ),
       _unreachableNodeMetadata = UnreachableNodeMetadataRepository(),
       _procedureAttributesMetadata = ProcedureAttributesMetadataRepository(),
       _tableSelectorMetadata = TableSelectorMetadataRepository(),
@@ -454,6 +464,29 @@ class AnnotateKernel extends RecursiveVisitor {
     component.addMetadataRepository(_tableSelectorMetadata);
     component.addMetadataRepository(_closureIdMetadata);
     component.addMetadataRepository(_unboxingInfoMetadata);
+  }
+
+  factory AnnotateKernel(
+    Component component,
+    TypeFlowAnalysis typeFlowAnalysis,
+    ClassHierarchy hierarchy,
+    FieldMorpher fieldMorpher,
+    Constant Function(Constant) treeShakeConstant,
+    TableSelectorAssigner tableSelectorAssigner,
+    UnboxingInfoManager unboxingInfo,
+    ClosureIdMetadataRepository closureIdMetadata,
+  ) {
+    return AnnotateKernel._(
+      component,
+      typeFlowAnalysis,
+      hierarchy,
+      fieldMorpher,
+      treeShakeConstant,
+      tableSelectorAssigner,
+      unboxingInfo,
+      closureIdMetadata,
+      <InferredType, InferredType>{},
+    );
   }
 
   // Query whether a call site was marked as a direct call by the analysis.
@@ -545,16 +578,18 @@ class AnnotateKernel extends RecursiveVisitor {
       if (constantValue != null) {
         constantValue = treeShakeConstant(constantValue);
       }
-      return new InferredType(
-        exactType,
-        concreteClass,
-        nullable,
-        isInt,
-        constantValue,
-        closureMember,
-        closureId,
-        skipCheck: skipCheck,
-        receiverNotInt: receiverNotInt,
+      return _inferredTypeMetadata.canonicalize(
+        InferredType(
+          exactType,
+          concreteClass,
+          nullable,
+          isInt,
+          constantValue,
+          closureMember,
+          closureId,
+          skipCheck: skipCheck,
+          receiverNotInt: receiverNotInt,
+        ),
       );
     }
 
@@ -1070,26 +1105,12 @@ class TreeShaker {
         m.type.accept(typeVisitor);
       } else if (m is Procedure) {
         func = m.function;
-        if (m.concreteForwardingStubTarget != null) {
+        if (m.stubTarget != null) {
           m.stubTarget = fieldMorpher.adjustInstanceCallTarget(
-            m.concreteForwardingStubTarget,
+            m.stubTarget,
             isSetter: m.isSetter,
           );
-          addUsedMember(m.concreteForwardingStubTarget!);
-        }
-        if (m.abstractForwardingStubTarget != null) {
-          m.stubTarget = fieldMorpher.adjustInstanceCallTarget(
-            m.abstractForwardingStubTarget,
-            isSetter: m.isSetter,
-          );
-          addUsedMember(m.abstractForwardingStubTarget!);
-        }
-        if (m.memberSignatureOrigin != null) {
-          m.stubTarget = fieldMorpher.adjustInstanceCallTarget(
-            m.memberSignatureOrigin,
-            isSetter: m.isSetter,
-          );
-          addUsedMember(m.memberSignatureOrigin!);
+          addUsedMember(m.stubTarget!);
         }
       } else if (m is Constructor) {
         func = m.function;
@@ -1202,7 +1223,7 @@ class FieldMorpher {
       final isAbstract = !shaker.isFieldSetterReachable(field);
       final parameter =
           new PositionalParameter(
-              cosmeticName: 'value',
+              parameterName: 'value',
               type: field.type,
               isSynthesized: true,
             )
@@ -1430,7 +1451,8 @@ class _TreeShakerPass1 extends RemovingTransformer {
 
   TreeNode _makeUnreachableInitializer(List<Expression> args) {
     return new LocalInitializer(
-      new SyntheticVariable(initializer: _makeUnreachableCall(args)),
+      new SyntheticVariable(),
+      _makeUnreachableCall(args),
     );
   }
 
@@ -1907,9 +1929,9 @@ class _TreeShakerPass1 extends RemovingTransformer {
         if (mayHaveSideEffects(node.value)) {
           return LocalInitializer(
             SyntheticVariable(
-              initializer: node.value,
               type: visitDartType(field.type, cannotRemoveSentinel),
             ),
+            node.value,
           );
         } else {
           return removalSentinel!;

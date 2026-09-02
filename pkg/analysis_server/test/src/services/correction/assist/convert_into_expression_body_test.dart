@@ -97,7 +97,13 @@ void f() {
   });
 }
 ''');
-    await assertNoAssist();
+    await assertHasAssist('''
+setup(x) {}
+void f() {
+  setup(() => // Comment.
+    42);
+}
+''');
   }
 
   Future<void> test_closure_hasBlockComment_multiple() async {
@@ -112,7 +118,15 @@ void f() {
   });
 }
 ''');
-    await assertNoAssist();
+    await assertHasAssist('''
+setup(x) {}
+void f() {
+  setup(() => // Comment.
+
+    // Comment 2.
+    42);
+}
+''');
   }
 
   Future<void> test_closure_hasInlineComment_beforeBodyKeyword() async {
@@ -124,7 +138,12 @@ void f() {
   });
 }
 ''');
-    await assertNoAssist();
+    await assertHasAssist('''
+setup(x) {}
+void f() {
+  setup(() /* Comment. */ async => 42);
+}
+''');
   }
 
   Future<void> test_closure_hasInlineComment_beforeOpenBrace() async {
@@ -136,7 +155,29 @@ void f() {
   });
 }
 ''');
-    await assertNoAssist();
+    await assertHasAssist('''
+setup(x) {}
+void f() {
+  setup(() /* Comment. */ => 42);
+}
+''');
+  }
+
+  Future<void> test_closure_hasInlineComment_beforeOpenBrace_async() async {
+    await resolveTestCode('''
+setup(x) {}
+void f() {
+  setup(() async /* Comment. */ {
+    ^return 42;
+  });
+}
+''');
+    await assertHasAssist('''
+setup(x) {}
+void f() {
+  setup(() async /* Comment. */ => 42);
+}
+''');
   }
 
   Future<void> test_closure_hasInlineComment_beforeReturn() async {
@@ -149,7 +190,13 @@ void f() {
   });
 }
 ''');
-    await assertNoAssist();
+    await assertHasAssist('''
+setup(x) {}
+void f() {
+  setup(() => /* Comment. */
+    42);
+}
+''');
   }
 
   Future<void> test_closure_hasInlineComment_beforeReturnSemicolon() async {
@@ -161,7 +208,30 @@ void f() {
   });
 }
 ''');
-    await assertNoAssist();
+    await assertHasAssist('''
+setup(x) {}
+void f() {
+  setup(() => 42 /* Comment. */);
+}
+''');
+  }
+
+  Future<void>
+  test_closure_hasInlineComment_betweenReturnAndExpression() async {
+    await resolveTestCode('''
+setup(x) {}
+void f() {
+  setup(() {
+    ^return /* Keep this comment. */ 42;
+  });
+}
+''');
+    await assertHasAssist('''
+setup(x) {}
+void f() {
+  setup(() => /* Keep this comment. */ 42);
+}
+''');
   }
 
   Future<void> test_closure_voidExpression() async {
@@ -177,6 +247,41 @@ void f() {
 setup(x) {}
 void f() {
   setup((_) => print('test'));
+}
+''');
+  }
+
+  Future<void> test_closure_voidExpression_hasInlineComment() async {
+    await resolveTestCode('''
+setup(x) {}
+void f() {
+  setup((_) ^{
+    /* Keep this comment. */ print('test');
+  });
+}
+''');
+    await assertHasAssist('''
+setup(x) {}
+void f() {
+  setup((_) => /* Keep this comment. */ print('test'));
+}
+''');
+  }
+
+  Future<void>
+  test_closure_voidExpression_hasInlineComment_beforeSemicolon() async {
+    await resolveTestCode('''
+setup(x) {}
+void f() {
+  setup((_) ^{
+    print('test') /* Keep this comment. */;
+  });
+}
+''');
+    await assertHasAssist('''
+setup(x) {}
+void f() {
+  setup((_) => print('test') /* Keep this comment. */);
 }
 ''');
   }
@@ -294,19 +399,23 @@ var ^V = 42;
     await assertNoAssist();
   }
 
-  Future<void> test_primaryConstructorBody_brace() async {
+  Future<void> test_primaryConstructorBody_onBrace() async {
     await resolveTestCode('''
 class A() {
-  this ^{}
+  this ^{
+    print('');
+  }
 }
 ''');
     await assertNoAssist();
   }
 
-  Future<void> test_primaryConstructorBody_keyword() async {
+  Future<void> test_primaryConstructorBody_onKeyword() async {
     await resolveTestCode('''
 class A() {
-  ^this {}
+  ^this {
+    print('');
+  }
 }
 ''');
     await assertNoAssist();

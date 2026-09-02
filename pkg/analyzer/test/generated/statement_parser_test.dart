@@ -29,7 +29,26 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression: FunctionExpressionInvocation
+      expression2: CallInvocation
+        receiver: CallInvocation
+          receiver: ParenthesizedExpression
+            leftParenthesis: (
+            expression2: SimpleIdentifier
+              token: f
+            rightParenthesis: )
+          argumentList: ArgumentList
+            leftParenthesis: (
+            rightParenthesis: )
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: int
+          rightBracket: >
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+      expression(v1): FunctionExpressionInvocation
         function: FunctionExpressionInvocation
           function: ParenthesizedExpression
             leftParenthesis: (
@@ -66,7 +85,7 @@ foo Future<List<int>> bar() {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       returnType: NamedType
         name: foo
@@ -107,7 +126,7 @@ main() { C<@Foo T> v; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: main
       functionExpression: FunctionExpression
@@ -145,7 +164,7 @@ main() { C<@Foo.bar(1) T> v; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: main
       functionExpression: FunctionExpression
@@ -190,7 +209,7 @@ main() {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: main
       functionExpression: FunctionExpression
@@ -222,6 +241,24 @@ CompilationUnit
                             rightBracket: >
                           parameters: FormalParameterList
                             leftParenthesis: (
+                            requiredPositionalFormalParameters
+                              RegularFormalParameter
+                                type: NamedType
+                                  name: int
+                              RegularFormalParameter
+                                type: NamedType
+                                  name: String
+                            delimitedFormalParameters: DelimitedFormalParameters
+                              leftDelimiter: {
+                              formalParameters
+                                RegularFormalParameter
+                                  type: NamedType
+                                    name: Bar
+                                  name: b
+                              rightDelimiter: }
+                            rightParenthesis: )
+                          parameters(v1): FormalParameterList
+                            leftParenthesis: (
                             parameter: RegularFormalParameter
                               type: NamedType
                                 name: int
@@ -246,6 +283,25 @@ CompilationUnit
                                 name: H
                             rightBracket: >
                           parameters: FormalParameterList
+                            leftParenthesis: (
+                            requiredPositionalFormalParameters
+                              RegularFormalParameter
+                                type: NamedType
+                                  name: int
+                                name: i
+                            delimitedFormalParameters: DelimitedFormalParameters
+                              leftDelimiter: [
+                              formalParameters
+                                RegularFormalParameter
+                                  type: NamedType
+                                    name: String
+                                  name: j
+                                RegularFormalParameter
+                                  type: NamedType
+                                    name: K
+                              rightDelimiter: ]
+                            rightParenthesis: )
+                          parameters(v1): FormalParameterList
                             leftParenthesis: (
                             parameter: RegularFormalParameter
                               type: NamedType
@@ -318,7 +374,7 @@ Block
     AssertStatement
       assertKeyword: assert
       leftParenthesis: (
-      condition: SimpleIdentifier
+      condition2: SimpleIdentifier
         token: x
       rightParenthesis: )
       semicolon: ;
@@ -340,12 +396,12 @@ Block
     AssertStatement
       assertKeyword: assert
       leftParenthesis: (
-      condition: SimpleIdentifier
+      condition2: SimpleIdentifier
         token: x
       comma: ,
-      message: ThrowExpression
+      message2: ThrowExpression
         throwKeyword: throw
-        expression: SimpleStringLiteral
+        expression2: SimpleStringLiteral
           literal: "foo"
       rightParenthesis: )
       semicolon: ;
@@ -367,10 +423,10 @@ Block
     AssertStatement
       assertKeyword: assert
       leftParenthesis: (
-      condition: SimpleIdentifier
+      condition2: SimpleIdentifier
         token: x
       comma: ,
-      message: SimpleStringLiteral
+      message2: SimpleStringLiteral
         literal: "foo"
       rightParenthesis: )
       semicolon: ;
@@ -392,10 +448,10 @@ Block
     AssertStatement
       assertKeyword: assert
       leftParenthesis: (
-      condition: SimpleIdentifier
+      condition2: SimpleIdentifier
         token: x
       comma: ,
-      message: SimpleStringLiteral
+      message2: SimpleStringLiteral
         literal: "m"
       rightParenthesis: )
       semicolon: ;
@@ -417,7 +473,7 @@ Block
     AssertStatement
       assertKeyword: assert
       leftParenthesis: (
-      condition: SimpleIdentifier
+      condition2: SimpleIdentifier
         token: x
       rightParenthesis: )
       semicolon: ;
@@ -488,7 +544,7 @@ Block
       statement: WhileStatement
         whileKeyword: while
         leftParenthesis: (
-        condition: BooleanLiteral
+        condition2: BooleanLiteral
           literal: true
         rightParenthesis: )
         body: Block
@@ -520,7 +576,7 @@ Block
     WhileStatement
       whileKeyword: while
       leftParenthesis: (
-      condition: BooleanLiteral
+      condition2: BooleanLiteral
         literal: true
       rightParenthesis: )
       body: Block
@@ -556,7 +612,7 @@ Block
       statement: WhileStatement
         whileKeyword: while
         leftParenthesis: (
-        condition: BooleanLiteral
+        condition2: BooleanLiteral
           literal: true
         rightParenthesis: )
         body: Block
@@ -588,7 +644,7 @@ Block
     WhileStatement
       whileKeyword: while
       leftParenthesis: (
-      condition: BooleanLiteral
+      condition2: BooleanLiteral
         literal: true
       rightParenthesis: )
       body: Block
@@ -620,7 +676,7 @@ Block
         rightBracket: }
       whileKeyword: while
       leftParenthesis: (
-      condition: SimpleIdentifier
+      condition2: SimpleIdentifier
         token: x
       rightParenthesis: )
       semicolon: ;
@@ -640,7 +696,7 @@ main() { else return 0; }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: main
       functionExpression: FunctionExpression
@@ -652,12 +708,12 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ; <synthetic>
               ReturnStatement
                 returnKeyword: return
-                expression: IntegerLiteral
+                expression2: IntegerLiteral
                   literal: 0
                 semicolon: ;
             rightBracket: }
@@ -695,7 +751,7 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: $code
       semicolon: ; <synthetic>
   rightBracket: }
@@ -718,10 +774,11 @@ Block
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForEachPartsWithIdentifier
-        identifier: SimpleIdentifier
+        identifier2: element
+        identifier(v1): SimpleIdentifier
           token: element
         inKeyword: in
-        iterable: SimpleIdentifier
+        iterable2: SimpleIdentifier
           token: list
       rightParenthesis: )
       body: Block
@@ -750,7 +807,7 @@ Block
           keyword: final
           name: external
         inKeyword: in
-        iterable: SimpleIdentifier
+        iterable2: SimpleIdentifier
           token: list
       rightParenthesis: )
       body: Block
@@ -779,7 +836,7 @@ Block
           keyword: final
           name: required
         inKeyword: in
-        iterable: SimpleIdentifier
+        iterable2: SimpleIdentifier
           token: list
       rightParenthesis: )
       body: Block
@@ -817,13 +874,20 @@ Block
               rightBracket: >
             parameters: FormalParameterList
               leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: T
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: T
               rightParenthesis: )
           name: element
         inKeyword: in
-        iterable: SimpleIdentifier
+        iterable2: SimpleIdentifier
           token: list
       rightParenthesis: )
       body: Block
@@ -861,13 +925,20 @@ Block
               rightBracket: >
             parameters: FormalParameterList
               leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: T
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: T
               rightParenthesis: )
           name: element
         inKeyword: in
-        iterable: SimpleIdentifier
+        iterable2: SimpleIdentifier
           token: list
       rightParenthesis: )
       body: Block
@@ -892,10 +963,11 @@ Block
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForEachPartsWithIdentifier
-        identifier: SimpleIdentifier
+        identifier2: element
+        identifier(v1): SimpleIdentifier
           token: element
         inKeyword: in
-        iterable: SimpleIdentifier
+        iterable2: SimpleIdentifier
           token: list
       rightParenthesis: )
       body: Block
@@ -920,10 +992,11 @@ Block
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForEachPartsWithIdentifier
-        identifier: SimpleIdentifier
+        identifier2: element
+        identifier(v1): SimpleIdentifier
           token: element
         inKeyword: in
-        iterable: SimpleIdentifier
+        iterable2: SimpleIdentifier
           token: list
       rightParenthesis: )
       body: Block
@@ -957,7 +1030,7 @@ Block
           keyword: var
           name: element
         inKeyword: in
-        iterable: SimpleIdentifier
+        iterable2: SimpleIdentifier
           token: list
       rightParenthesis: )
       body: Block
@@ -991,7 +1064,7 @@ Block
           keyword: var
           name: element
         inKeyword: in
-        iterable: SimpleIdentifier
+        iterable2: SimpleIdentifier
           token: list
       rightParenthesis: )
       body: Block
@@ -1021,7 +1094,7 @@ Block
             name: A
           name: element
         inKeyword: in
-        iterable: SimpleIdentifier
+        iterable2: SimpleIdentifier
           token: list
       rightParenthesis: )
       body: Block
@@ -1051,7 +1124,7 @@ Block
             name: A
           name: element
         inKeyword: in
-        iterable: SimpleIdentifier
+        iterable2: SimpleIdentifier
           token: list
       rightParenthesis: )
       body: Block
@@ -1080,7 +1153,7 @@ Block
           keyword: var
           name: element
         inKeyword: in
-        iterable: SimpleIdentifier
+        iterable2: SimpleIdentifier
           token: list
       rightParenthesis: )
       body: Block
@@ -1109,7 +1182,7 @@ Block
           keyword: var
           name: element
         inKeyword: in
-        iterable: SimpleIdentifier
+        iterable2: SimpleIdentifier
           token: list
       rightParenthesis: )
       body: Block
@@ -1135,7 +1208,14 @@ Block
       leftParenthesis: (
       forLoopParts: ForPartsWithExpression
         leftSeparator: ;
-        condition: BinaryExpression
+        condition2: BinaryOperatorInvocation
+          leftOperand: SimpleIdentifier
+            token: i
+          operator: <
+          rightOperand: SimpleIdentifier
+            token: count
+          binaryOperator: lessThan
+        condition(v1): BinaryExpression
           leftOperand: SimpleIdentifier
             token: i
           operator: <
@@ -1166,7 +1246,14 @@ Block
       leftParenthesis: (
       forLoopParts: ForPartsWithExpression
         leftSeparator: ;
-        condition: BinaryExpression
+        condition2: BinaryOperatorInvocation
+          leftOperand: SimpleIdentifier
+            token: i
+          operator: <
+          rightOperand: SimpleIdentifier
+            token: count
+          binaryOperator: lessThan
+        condition(v1): BinaryExpression
           leftOperand: SimpleIdentifier
             token: i
           operator: <
@@ -1197,14 +1284,26 @@ Block
       leftParenthesis: (
       forLoopParts: ForPartsWithExpression
         leftSeparator: ;
-        condition: BinaryExpression
+        condition2: BinaryOperatorInvocation
+          leftOperand: SimpleIdentifier
+            token: i
+          operator: <
+          rightOperand: SimpleIdentifier
+            token: count
+          binaryOperator: lessThan
+        condition(v1): BinaryExpression
           leftOperand: SimpleIdentifier
             token: i
           operator: <
           rightOperand: SimpleIdentifier
             token: count
         rightSeparator: ;
-        updaters
+        updaters2
+          PostfixIncrement
+            target: UnqualifiedNameAssignmentTarget
+              name: i
+            operator: ++
+        updaters(v1)
           PostfixExpression
             operand: SimpleIdentifier
               token: i
@@ -1233,14 +1332,26 @@ Block
       leftParenthesis: (
       forLoopParts: ForPartsWithExpression
         leftSeparator: ;
-        condition: BinaryExpression
+        condition2: BinaryOperatorInvocation
+          leftOperand: SimpleIdentifier
+            token: i
+          operator: <
+          rightOperand: SimpleIdentifier
+            token: count
+          binaryOperator: lessThan
+        condition(v1): BinaryExpression
           leftOperand: SimpleIdentifier
             token: i
           operator: <
           rightOperand: SimpleIdentifier
             token: count
         rightSeparator: ;
-        updaters
+        updaters2
+          PostfixIncrement
+            target: UnqualifiedNameAssignmentTarget
+              name: i
+            operator: ++
+        updaters(v1)
           PostfixExpression
             operand: SimpleIdentifier
               token: i
@@ -1268,19 +1379,35 @@ Block
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForPartsWithExpression
-        initialization: PostfixExpression
+        initialization2: PostfixDecrement
+          target: UnqualifiedNameAssignmentTarget
+            name: i
+          operator: --
+        initialization(v1): PostfixExpression
           operand: SimpleIdentifier
             token: i
           operator: --
         leftSeparator: ;
-        condition: BinaryExpression
+        condition2: BinaryOperatorInvocation
+          leftOperand: SimpleIdentifier
+            token: i
+          operator: <
+          rightOperand: SimpleIdentifier
+            token: count
+          binaryOperator: lessThan
+        condition(v1): BinaryExpression
           leftOperand: SimpleIdentifier
             token: i
           operator: <
           rightOperand: SimpleIdentifier
             token: count
         rightSeparator: ;
-        updaters
+        updaters2
+          PostfixIncrement
+            target: UnqualifiedNameAssignmentTarget
+              name: i
+            operator: ++
+        updaters(v1)
           PostfixExpression
             operand: SimpleIdentifier
               token: i
@@ -1308,19 +1435,35 @@ Block
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForPartsWithExpression
-        initialization: PostfixExpression
+        initialization2: PostfixDecrement
+          target: UnqualifiedNameAssignmentTarget
+            name: i
+          operator: --
+        initialization(v1): PostfixExpression
           operand: SimpleIdentifier
             token: i
           operator: --
         leftSeparator: ;
-        condition: BinaryExpression
+        condition2: BinaryOperatorInvocation
+          leftOperand: SimpleIdentifier
+            token: i
+          operator: <
+          rightOperand: SimpleIdentifier
+            token: count
+          binaryOperator: lessThan
+        condition(v1): BinaryExpression
           leftOperand: SimpleIdentifier
             token: i
           operator: <
           rightOperand: SimpleIdentifier
             token: count
         rightSeparator: ;
-        updaters
+        updaters2
+          PostfixIncrement
+            target: UnqualifiedNameAssignmentTarget
+              name: i
+            operator: ++
+        updaters(v1)
           PostfixExpression
             operand: SimpleIdentifier
               token: i
@@ -1354,7 +1497,7 @@ Block
             VariableDeclaration
               name: i
               equals: =
-              initializer: IntegerLiteral
+              initializer2: IntegerLiteral
                 literal: 0
         leftSeparator: ;
         rightSeparator: ;
@@ -1387,7 +1530,7 @@ Block
             VariableDeclaration
               name: i
               equals: =
-              initializer: IntegerLiteral
+              initializer2: IntegerLiteral
                 literal: 0
         leftSeparator: ;
         rightSeparator: ;
@@ -1425,7 +1568,7 @@ Block
             VariableDeclaration
               name: i
               equals: =
-              initializer: IntegerLiteral
+              initializer2: IntegerLiteral
                 literal: 0
         leftSeparator: ;
         rightSeparator: ;
@@ -1463,7 +1606,7 @@ Block
             VariableDeclaration
               name: i
               equals: =
-              initializer: IntegerLiteral
+              initializer2: IntegerLiteral
                 literal: 0
         leftSeparator: ;
         rightSeparator: ;
@@ -1496,10 +1639,17 @@ Block
             VariableDeclaration
               name: i
               equals: =
-              initializer: IntegerLiteral
+              initializer2: IntegerLiteral
                 literal: 0
         leftSeparator: ;
-        condition: BinaryExpression
+        condition2: BinaryOperatorInvocation
+          leftOperand: SimpleIdentifier
+            token: i
+          operator: <
+          rightOperand: SimpleIdentifier
+            token: count
+          binaryOperator: lessThan
+        condition(v1): BinaryExpression
           leftOperand: SimpleIdentifier
             token: i
           operator: <
@@ -1535,10 +1685,17 @@ Block
             VariableDeclaration
               name: i
               equals: =
-              initializer: IntegerLiteral
+              initializer2: IntegerLiteral
                 literal: 0
         leftSeparator: ;
-        condition: BinaryExpression
+        condition2: BinaryOperatorInvocation
+          leftOperand: SimpleIdentifier
+            token: i
+          operator: <
+          rightOperand: SimpleIdentifier
+            token: count
+          binaryOperator: lessThan
+        condition(v1): BinaryExpression
           leftOperand: SimpleIdentifier
             token: i
           operator: <
@@ -1574,17 +1731,29 @@ Block
             VariableDeclaration
               name: i
               equals: =
-              initializer: IntegerLiteral
+              initializer2: IntegerLiteral
                 literal: 0
         leftSeparator: ;
-        condition: BinaryExpression
+        condition2: BinaryOperatorInvocation
+          leftOperand: SimpleIdentifier
+            token: i
+          operator: <
+          rightOperand: SimpleIdentifier
+            token: count
+          binaryOperator: lessThan
+        condition(v1): BinaryExpression
           leftOperand: SimpleIdentifier
             token: i
           operator: <
           rightOperand: SimpleIdentifier
             token: count
         rightSeparator: ;
-        updaters
+        updaters2
+          PostfixIncrement
+            target: UnqualifiedNameAssignmentTarget
+              name: i
+            operator: ++
+        updaters(v1)
           PostfixExpression
             operand: SimpleIdentifier
               token: i
@@ -1618,17 +1787,29 @@ Block
             VariableDeclaration
               name: i
               equals: =
-              initializer: IntegerLiteral
+              initializer2: IntegerLiteral
                 literal: 0
         leftSeparator: ;
-        condition: BinaryExpression
+        condition2: BinaryOperatorInvocation
+          leftOperand: SimpleIdentifier
+            token: i
+          operator: <
+          rightOperand: SimpleIdentifier
+            token: count
+          binaryOperator: lessThan
+        condition(v1): BinaryExpression
           leftOperand: SimpleIdentifier
             token: i
           operator: <
           rightOperand: SimpleIdentifier
             token: count
         rightSeparator: ;
-        updaters
+        updaters2
+          PostfixIncrement
+            target: UnqualifiedNameAssignmentTarget
+              name: i
+            operator: ++
+        updaters(v1)
           PostfixExpression
             operand: SimpleIdentifier
               token: i
@@ -1663,22 +1844,38 @@ Block
             VariableDeclaration
               name: i
               equals: =
-              initializer: IntegerLiteral
+              initializer2: IntegerLiteral
                 literal: 0
             VariableDeclaration
               name: j
               equals: =
-              initializer: SimpleIdentifier
+              initializer2: SimpleIdentifier
                 token: count
         leftSeparator: ;
-        condition: BinaryExpression
+        condition2: BinaryOperatorInvocation
+          leftOperand: SimpleIdentifier
+            token: i
+          operator: <
+          rightOperand: SimpleIdentifier
+            token: j
+          binaryOperator: lessThan
+        condition(v1): BinaryExpression
           leftOperand: SimpleIdentifier
             token: i
           operator: <
           rightOperand: SimpleIdentifier
             token: j
         rightSeparator: ;
-        updaters
+        updaters2
+          PostfixIncrement
+            target: UnqualifiedNameAssignmentTarget
+              name: i
+            operator: ++
+          PostfixDecrement
+            target: UnqualifiedNameAssignmentTarget
+              name: j
+            operator: --
+        updaters(v1)
           PostfixExpression
             operand: SimpleIdentifier
               token: i
@@ -1717,22 +1914,38 @@ Block
             VariableDeclaration
               name: i
               equals: =
-              initializer: IntegerLiteral
+              initializer2: IntegerLiteral
                 literal: 0
             VariableDeclaration
               name: j
               equals: =
-              initializer: SimpleIdentifier
+              initializer2: SimpleIdentifier
                 token: count
         leftSeparator: ;
-        condition: BinaryExpression
+        condition2: BinaryOperatorInvocation
+          leftOperand: SimpleIdentifier
+            token: i
+          operator: <
+          rightOperand: SimpleIdentifier
+            token: j
+          binaryOperator: lessThan
+        condition(v1): BinaryExpression
           leftOperand: SimpleIdentifier
             token: i
           operator: <
           rightOperand: SimpleIdentifier
             token: j
         rightSeparator: ;
-        updaters
+        updaters2
+          PostfixIncrement
+            target: UnqualifiedNameAssignmentTarget
+              name: i
+            operator: ++
+          PostfixDecrement
+            target: UnqualifiedNameAssignmentTarget
+              name: j
+            operator: --
+        updaters(v1)
           PostfixExpression
             operand: SimpleIdentifier
               token: i
@@ -1770,11 +1983,16 @@ Block
             VariableDeclaration
               name: i
               equals: =
-              initializer: IntegerLiteral
+              initializer2: IntegerLiteral
                 literal: 0
         leftSeparator: ;
         rightSeparator: ;
-        updaters
+        updaters2
+          PostfixIncrement
+            target: UnqualifiedNameAssignmentTarget
+              name: i
+            operator: ++
+        updaters(v1)
           PostfixExpression
             operand: SimpleIdentifier
               token: i
@@ -1808,11 +2026,16 @@ Block
             VariableDeclaration
               name: i
               equals: =
-              initializer: IntegerLiteral
+              initializer2: IntegerLiteral
                 literal: 0
         leftSeparator: ;
         rightSeparator: ;
-        updaters
+        updaters2
+          PostfixIncrement
+            target: UnqualifiedNameAssignmentTarget
+              name: i
+            operator: ++
+        updaters(v1)
           PostfixExpression
             operand: SimpleIdentifier
               token: i
@@ -1842,7 +2065,12 @@ Block
       forLoopParts: ForPartsWithExpression
         leftSeparator: ;
         rightSeparator: ;
-        updaters
+        updaters2
+          PostfixIncrement
+            target: UnqualifiedNameAssignmentTarget
+              name: i
+            operator: ++
+        updaters(v1)
           PostfixExpression
             operand: SimpleIdentifier
               token: i
@@ -1872,7 +2100,12 @@ Block
       forLoopParts: ForPartsWithExpression
         leftSeparator: ;
         rightSeparator: ;
-        updaters
+        updaters2
+          PostfixIncrement
+            target: UnqualifiedNameAssignmentTarget
+              name: i
+            operator: ++
+        updaters(v1)
           PostfixExpression
             operand: SimpleIdentifier
               token: i
@@ -1904,6 +2137,14 @@ Block
         functionExpression: FunctionExpression
           parameters: FormalParameterList
             leftParenthesis: (
+            requiredPositionalFormalParameters
+              RegularFormalParameter
+                type: NamedType
+                  name: int
+                name: p
+            rightParenthesis: )
+          parameters(v1): FormalParameterList
+            leftParenthesis: (
             parameter: RegularFormalParameter
               type: NamedType
                 name: int
@@ -1911,7 +2152,14 @@ Block
             rightParenthesis: )
           body: ExpressionFunctionBody
             functionDefinition: =>
-            expression: BinaryExpression
+            expression2: BinaryOperatorInvocation
+              leftOperand: SimpleIdentifier
+                token: p
+              operator: *
+              rightOperand: IntegerLiteral
+                literal: 2
+              binaryOperator: multiply
+            expression(v1): BinaryExpression
               leftOperand: SimpleIdentifier
                 token: p
               operator: *
@@ -1947,6 +2195,14 @@ Block
             rightBracket: >
           parameters: FormalParameterList
             leftParenthesis: (
+            requiredPositionalFormalParameters
+              RegularFormalParameter
+                type: NamedType
+                  name: E
+                name: p
+            rightParenthesis: )
+          parameters(v1): FormalParameterList
+            leftParenthesis: (
             parameter: RegularFormalParameter
               type: NamedType
                 name: E
@@ -1954,7 +2210,14 @@ Block
             rightParenthesis: )
           body: ExpressionFunctionBody
             functionDefinition: =>
-            expression: BinaryExpression
+            expression2: BinaryOperatorInvocation
+              leftOperand: SimpleIdentifier
+                token: p
+              operator: *
+              rightOperand: IntegerLiteral
+                literal: 2
+              binaryOperator: multiply
+            expression(v1): BinaryExpression
               leftOperand: SimpleIdentifier
                 token: p
               operator: *
@@ -1988,6 +2251,14 @@ Block
             rightBracket: >
           parameters: FormalParameterList
             leftParenthesis: (
+            requiredPositionalFormalParameters
+              RegularFormalParameter
+                type: NamedType
+                  name: E
+                name: p
+            rightParenthesis: )
+          parameters(v1): FormalParameterList
+            leftParenthesis: (
             parameter: RegularFormalParameter
               type: NamedType
                 name: E
@@ -1995,7 +2266,14 @@ Block
             rightParenthesis: )
           body: ExpressionFunctionBody
             functionDefinition: =>
-            expression: BinaryExpression
+            expression2: BinaryOperatorInvocation
+              leftOperand: SimpleIdentifier
+                token: p
+              operator: *
+              rightOperand: IntegerLiteral
+                literal: 2
+              binaryOperator: multiply
+            expression(v1): BinaryExpression
               leftOperand: SimpleIdentifier
                 token: p
               operator: *
@@ -2021,7 +2299,7 @@ Block
     IfStatement
       ifKeyword: if
       leftParenthesis: (
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: x
       rightParenthesis: )
       thenStatement: Block
@@ -2052,7 +2330,7 @@ Block
     IfStatement
       ifKeyword: if
       leftParenthesis: (
-      expression: BooleanLiteral
+      expression2: BooleanLiteral
         literal: true
       rightParenthesis: )
       thenStatement: EmptyStatement
@@ -2081,28 +2359,28 @@ Block
     IfStatement
       ifKeyword: if
       leftParenthesis: (
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: x
       rightParenthesis: )
       thenStatement: ExpressionStatement
-        expression: MethodInvocation
+        expression2: MethodInvocation
           methodName: SimpleIdentifier
             token: f
           argumentList: ArgumentList
             leftParenthesis: (
-            arguments
+            arguments2
               SimpleIdentifier
                 token: x
             rightParenthesis: )
         semicolon: ;
       elseKeyword: else
       elseStatement: ExpressionStatement
-        expression: MethodInvocation
+        expression2: MethodInvocation
           methodName: SimpleIdentifier
             token: f
           argumentList: ArgumentList
             leftParenthesis: (
-            arguments
+            arguments2
               SimpleIdentifier
                 token: y
             rightParenthesis: )
@@ -2125,7 +2403,7 @@ Block
     IfStatement
       ifKeyword: if
       leftParenthesis: (
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: x
       rightParenthesis: )
       thenStatement: Block
@@ -2149,16 +2427,16 @@ Block
     IfStatement
       ifKeyword: if
       leftParenthesis: (
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: x
       rightParenthesis: )
       thenStatement: ExpressionStatement
-        expression: MethodInvocation
+        expression2: MethodInvocation
           methodName: SimpleIdentifier
             token: f
           argumentList: ArgumentList
             leftParenthesis: (
-            arguments
+            arguments2
               SimpleIdentifier
                 token: x
             rightParenthesis: )
@@ -2204,7 +2482,7 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression: ListLiteral
+      expression2: ListLiteral
         constKeyword: const
         leftBracket: [
         rightBracket: ]
@@ -2225,10 +2503,10 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression: ListLiteral
+      expression2: ListLiteral
         constKeyword: const
         leftBracket: [
-        elements
+        elements2
           IntegerLiteral
             literal: 1
           IntegerLiteral
@@ -2251,7 +2529,7 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression: SetOrMapLiteral
+      expression2: SetOrMapLiteral
         constKeyword: const
         leftBracket: {
         rightBracket: }
@@ -2273,15 +2551,15 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression: SetOrMapLiteral
+      expression2: SetOrMapLiteral
         constKeyword: const
         leftBracket: {
-        elements
+        elements2
           MapLiteralEntry
-            key: SimpleStringLiteral
+            key2: SimpleStringLiteral
               literal: 'a'
             separator: :
-            value: IntegerLiteral
+            value2: IntegerLiteral
               literal: 1
         rightBracket: }
         isMap: false
@@ -2302,7 +2580,15 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression: InstanceCreationExpression
+      expression2: ConstructorInvocation
+        keyword: const
+        constructorReference: ConstructorReference2
+          typeReference: ConstructorTypeReference
+            name: A
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+      expression(v1): InstanceCreationExpression
         keyword: const
         constructorName: ConstructorName
           type: NamedType
@@ -2327,7 +2613,24 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression: InstanceCreationExpression
+      expression2: ConstructorInvocation
+        keyword: const
+        constructorReference: ConstructorReference2
+          typeReference: ConstructorTypeReference
+            name: A
+            typeArguments: TypeArgumentList
+              leftBracket: <
+              arguments
+                NamedType
+                  name: B
+              rightBracket: >
+          selector: ConstructorSelector
+            period: .
+            name2: c
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+      expression(v1): InstanceCreationExpression
         keyword: const
         constructorName: ConstructorName
           type: NamedType
@@ -2363,7 +2666,30 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression: InstanceCreationExpression
+      expression2: ConstructorInvocation
+        keyword: const
+        constructorReference: ConstructorReference2
+          typeReference: ConstructorTypeReference
+            name: A
+            typeArguments: TypeArgumentList
+              leftBracket: <
+              arguments
+                NamedType
+                  name: B
+              rightBracket: >
+          selector: ConstructorSelector
+            period: .
+            name2: c
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: C
+          rightBracket: >
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+      expression(v1): InstanceCreationExpression
         keyword: const
         constructorName: ConstructorName
           type: NamedType
@@ -2403,8 +2729,16 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression: MethodInvocation
-        target: InstanceCreationExpression
+      expression2: MethodInvocation
+        target2: ConstructorInvocation
+          keyword: new
+          constructorReference: ConstructorReference2
+            typeReference: ConstructorTypeReference
+              name: C
+          argumentList: ArgumentList
+            leftParenthesis: (
+            rightParenthesis: )
+        target(v1): InstanceCreationExpression
           keyword: new
           constructorName: ConstructorName
             type: NamedType
@@ -2435,7 +2769,7 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression: BooleanLiteral
+      expression2: BooleanLiteral
         literal: false
       semicolon: ;
   rightBracket: }
@@ -2485,6 +2819,18 @@ Block
         functionExpression: FunctionExpression
           parameters: FormalParameterList
             leftParenthesis: (
+            requiredPositionalFormalParameters
+              RegularFormalParameter
+                type: NamedType
+                  name: void
+                name: g
+                functionTypedSuffix: FunctionTypedFormalParameterSuffix
+                  formalParameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+            rightParenthesis: )
+          parameters(v1): FormalParameterList
+            leftParenthesis: (
             parameter: RegularFormalParameter
               type: NamedType
                 name: void
@@ -2514,7 +2860,24 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression: AssignmentExpression
+      expression2: DirectAssignment
+        target: ReceiverIndexAssignmentTarget
+          receiver: FunctionExpression
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+          leftBracket: [
+          index: IntegerLiteral
+            literal: 0
+          rightBracket: ]
+        operator: =
+        value: NullLiteral
+          literal: null
+      expression(v1): AssignmentExpression
         leftHandSide: IndexExpression
           target: FunctionExpression
             parameters: FormalParameterList
@@ -2548,7 +2911,7 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression: MethodInvocation
+      expression2: MethodInvocation
         methodName: SimpleIdentifier
           token: f
         argumentList: ArgumentList
@@ -2573,7 +2936,47 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression: FunctionExpressionInvocation
+      expression2: CallInvocation
+        receiver: FunctionExpression
+          parameters: FormalParameterList
+            leftParenthesis: (
+            requiredPositionalFormalParameters
+              RegularFormalParameter
+                name: a
+            rightParenthesis: )
+          parameters(v1): FormalParameterList
+            leftParenthesis: (
+            parameter: RegularFormalParameter
+              name: a
+            rightParenthesis: )
+          body: BlockFunctionBody
+            block: Block
+              leftBracket: {
+              statements
+                ReturnStatement
+                  returnKeyword: return
+                  expression2: BinaryOperatorInvocation
+                    leftOperand: SimpleIdentifier
+                      token: a
+                    operator: +
+                    rightOperand: SimpleIdentifier
+                      token: a
+                    binaryOperator: add
+                  expression(v1): BinaryExpression
+                    leftOperand: SimpleIdentifier
+                      token: a
+                    operator: +
+                    rightOperand: SimpleIdentifier
+                      token: a
+                  semicolon: ;
+              rightBracket: }
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments2
+            IntegerLiteral
+              literal: 3
+          rightParenthesis: )
+      expression(v1): FunctionExpressionInvocation
         function: FunctionExpression
           parameters: FormalParameterList
             leftParenthesis: (
@@ -2624,6 +3027,13 @@ Block
           functionKeyword: Function
           parameters: FormalParameterList
             leftParenthesis: (
+            requiredPositionalFormalParameters
+              RegularFormalParameter
+                type: NamedType
+                  name: int
+            rightParenthesis: )
+          parameters(v1): FormalParameterList
+            leftParenthesis: (
             parameter: RegularFormalParameter
               type: NamedType
                 name: int
@@ -2632,6 +3042,14 @@ Block
         functionExpression: FunctionExpression
           parameters: FormalParameterList
             leftParenthesis: (
+            requiredPositionalFormalParameters
+              RegularFormalParameter
+                type: NamedType
+                  name: String
+                name: s
+            rightParenthesis: )
+          parameters(v1): FormalParameterList
+            leftParenthesis: (
             parameter: RegularFormalParameter
               type: NamedType
                 name: String
@@ -2639,7 +3057,7 @@ Block
             rightParenthesis: )
           body: ExpressionFunctionBody
             functionDefinition: =>
-            expression: NullLiteral
+            expression2: NullLiteral
               literal: null
             semicolon: ;
   rightBracket: }
@@ -2658,7 +3076,7 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression: NullLiteral
+      expression2: NullLiteral
         literal: null
       semicolon: ;
   rightBracket: }
@@ -2677,8 +3095,8 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression: MethodInvocation
-        target: SimpleIdentifier
+      expression2: MethodInvocation
+        target2: SimpleIdentifier
           token: library
         operator: .
         methodName: SimpleIdentifier
@@ -2703,7 +3121,7 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression: BooleanLiteral
+      expression2: BooleanLiteral
         literal: true
       semicolon: ;
   rightBracket: }
@@ -2722,8 +3140,8 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression: AsExpression
-        expression: PrefixedIdentifier
+      expression2: AsExpression
+        expression2: PrefixedIdentifier
           prefix: SimpleIdentifier
             token: double
           period: .
@@ -2757,7 +3175,7 @@ Block
           VariableDeclaration
             name: Function
             equals: =
-            initializer: IntegerLiteral
+            initializer2: IntegerLiteral
               literal: 0
       semicolon: ;
   rightBracket: }
@@ -2782,6 +3200,13 @@ Block
             name: int
           functionKeyword: Function
           parameters: FormalParameterList
+            leftParenthesis: (
+            requiredPositionalFormalParameters
+              RegularFormalParameter
+                type: NamedType
+                  name: int
+            rightParenthesis: )
+          parameters(v1): FormalParameterList
             leftParenthesis: (
             parameter: RegularFormalParameter
               type: NamedType
@@ -2816,6 +3241,22 @@ Block
             functionKeyword: Function
             parameters: FormalParameterList
               leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: int
+                  name: x1
+              delimitedFormalParameters: DelimitedFormalParameters
+                leftDelimiter: {
+                formalParameters
+                  RegularFormalParameter
+                    type: NamedType
+                      name: Function
+                    name: x
+                rightDelimiter: }
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: int
@@ -2841,6 +3282,14 @@ Block
                   name: int
             rightBracket: >
           parameters: FormalParameterList
+            leftParenthesis: (
+            requiredPositionalFormalParameters
+              RegularFormalParameter
+                type: NamedType
+                  name: int
+                name: x
+            rightParenthesis: )
+          parameters(v1): FormalParameterList
             leftParenthesis: (
             parameter: RegularFormalParameter
               type: NamedType
@@ -2874,12 +3323,26 @@ Block
             functionKeyword: Function
             parameters: FormalParameterList
               leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: int
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: int
               rightParenthesis: )
           functionKeyword: Function
           parameters: FormalParameterList
+            leftParenthesis: (
+            requiredPositionalFormalParameters
+              RegularFormalParameter
+                type: NamedType
+                  name: int
+            rightParenthesis: )
+          parameters(v1): FormalParameterList
             leftParenthesis: (
             parameter: RegularFormalParameter
               type: NamedType
@@ -2914,12 +3377,26 @@ Block
             functionKeyword: Function
             parameters: FormalParameterList
               leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: int
+              rightParenthesis: )
+            parameters(v1): FormalParameterList
+              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: int
               rightParenthesis: )
           functionKeyword: Function
           parameters: FormalParameterList
+            leftParenthesis: (
+            requiredPositionalFormalParameters
+              RegularFormalParameter
+                type: NamedType
+                  name: int
+            rightParenthesis: )
+          parameters(v1): FormalParameterList
             leftParenthesis: (
             parameter: RegularFormalParameter
               type: NamedType
@@ -2950,6 +3427,13 @@ Block
         type: GenericFunctionType
           functionKeyword: Function
           parameters: FormalParameterList
+            leftParenthesis: (
+            requiredPositionalFormalParameters
+              RegularFormalParameter
+                type: NamedType
+                  name: int
+            rightParenthesis: )
+          parameters(v1): FormalParameterList
             leftParenthesis: (
             parameter: RegularFormalParameter
               type: NamedType
@@ -3108,6 +3592,14 @@ Block
                 functionKeyword: Function
                 parameters: FormalParameterList
                   leftParenthesis: (
+                  requiredPositionalFormalParameters
+                    RegularFormalParameter
+                      type: NamedType
+                        name: String
+                      name: s
+                  rightParenthesis: )
+                parameters(v1): FormalParameterList
+                  leftParenthesis: (
                   parameter: RegularFormalParameter
                     type: NamedType
                       name: String
@@ -3178,6 +3670,26 @@ Block
             rightBracket: >
           parameters: FormalParameterList
             leftParenthesis: (
+            requiredPositionalFormalParameters
+              RegularFormalParameter
+                type: NamedType
+                  importPrefix: ImportPrefixReference
+                    name: core
+                    period: .
+                  name: List
+                  typeArguments: TypeArgumentList
+                    leftBracket: <
+                    arguments
+                      NamedType
+                        importPrefix: ImportPrefixReference
+                          name: core
+                          period: .
+                        name: int
+                    rightBracket: >
+                name: x
+            rightParenthesis: )
+          parameters(v1): FormalParameterList
+            leftParenthesis: (
             parameter: RegularFormalParameter
               type: NamedType
                 importPrefix: ImportPrefixReference
@@ -3202,7 +3714,7 @@ Block
             rightParenthesis: )
           body: ExpressionFunctionBody
             functionDefinition: =>
-            expression: NullLiteral
+            expression2: NullLiteral
               literal: null
             semicolon: ;
   rightBracket: }
@@ -3221,7 +3733,7 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression: BooleanLiteral
+      expression2: BooleanLiteral
         literal: true
       semicolon: ;
   rightBracket: }
@@ -3250,6 +3762,14 @@ Block
                 name: E
             rightBracket: >
           parameters: FormalParameterList
+            leftParenthesis: (
+            requiredPositionalFormalParameters
+              RegularFormalParameter
+                name: a
+              RegularFormalParameter
+                name: b
+            rightParenthesis: )
+          parameters(v1): FormalParameterList
             leftParenthesis: (
             parameter: RegularFormalParameter
               name: a
@@ -3282,6 +3802,14 @@ Block
         name: f
         functionExpression: FunctionExpression
           parameters: FormalParameterList
+            leftParenthesis: (
+            requiredPositionalFormalParameters
+              RegularFormalParameter
+                name: a
+              RegularFormalParameter
+                name: b
+            rightParenthesis: )
+          parameters(v1): FormalParameterList
             leftParenthesis: (
             parameter: RegularFormalParameter
               name: a
@@ -3321,6 +3849,14 @@ Block
             rightBracket: >
           parameters: FormalParameterList
             leftParenthesis: (
+            requiredPositionalFormalParameters
+              RegularFormalParameter
+                name: a
+              RegularFormalParameter
+                name: b
+            rightParenthesis: )
+          parameters(v1): FormalParameterList
+            leftParenthesis: (
             parameter: RegularFormalParameter
               name: a
             parameter: RegularFormalParameter
@@ -3357,7 +3893,7 @@ Block
           colon: :
       statement: ReturnStatement
         returnKeyword: return
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: x
         semicolon: ;
   rightBracket: }
@@ -3377,7 +3913,7 @@ Block
   statements
     ReturnStatement
       returnKeyword: return
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: x
       semicolon: ;
   rightBracket: }
@@ -3403,7 +3939,7 @@ Block
           colon: :
       statement: ReturnStatement
         returnKeyword: return
-        expression: SimpleIdentifier
+        expression2: SimpleIdentifier
           token: x
         semicolon: ;
   rightBracket: }
@@ -3427,7 +3963,7 @@ Block
     SwitchStatement
       switchKeyword: switch
       leftParenthesis: (
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: a
       rightParenthesis: )
       leftBracket: {
@@ -3436,13 +3972,13 @@ Block
           keyword: case
           guardedPattern: GuardedPattern
             pattern: ConstantPattern
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 1
           colon: :
           statements
             ReturnStatement
               returnKeyword: return
-              expression: SimpleStringLiteral
+              expression2: SimpleStringLiteral
                 literal: "I"
               semicolon: ;
       rightBracket: }
@@ -3464,7 +4000,7 @@ Block
     SwitchStatement
       switchKeyword: switch
       leftParenthesis: (
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: a
       rightParenthesis: )
       leftBracket: {
@@ -3492,7 +4028,7 @@ Block
     SwitchStatement
       switchKeyword: switch
       leftParenthesis: (
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: a
       rightParenthesis: )
       leftBracket: {
@@ -3513,7 +4049,7 @@ Block
             pattern: ParenthesizedPattern
               leftParenthesis: (
               pattern: ConstantPattern
-                expression: IntegerLiteral
+                expression2: IntegerLiteral
                   literal: 1
               rightParenthesis: )
           colon: :
@@ -3542,7 +4078,7 @@ Block
     SwitchStatement
       switchKeyword: switch
       leftParenthesis: (
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: a
       rightParenthesis: )
       leftBracket: {
@@ -3555,7 +4091,7 @@ Block
           keyword: case
           guardedPattern: GuardedPattern
             pattern: ConstantPattern
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
           colon: :
         SwitchPatternCase
@@ -3566,7 +4102,7 @@ Block
           keyword: case
           guardedPattern: GuardedPattern
             pattern: ConstantPattern
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 1
           colon: :
           statements
@@ -3597,7 +4133,7 @@ Block
     SwitchStatement
       switchKeyword: switch
       leftParenthesis: (
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: a
       rightParenthesis: )
       leftBracket: {
@@ -3640,7 +4176,7 @@ Block
     SwitchStatement
       switchKeyword: switch
       leftParenthesis: (
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: a
       rightParenthesis: )
       leftBracket: {
@@ -3653,7 +4189,7 @@ Block
           keyword: case
           guardedPattern: GuardedPattern
             pattern: ConstantPattern
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
           colon: :
         SwitchDefault
@@ -3692,7 +4228,7 @@ Block
     SwitchStatement
       switchKeyword: switch
       leftParenthesis: (
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: a
       rightParenthesis: )
       leftBracket: {
@@ -3701,12 +4237,12 @@ Block
           keyword: case
           guardedPattern: GuardedPattern
             pattern: ConstantPattern
-              expression: IntegerLiteral
+              expression2: IntegerLiteral
                 literal: 0
           colon: :
           statements
             ExpressionStatement
-              expression: MethodInvocation
+              expression2: MethodInvocation
                 methodName: SimpleIdentifier
                   token: f
                 argumentList: ArgumentList
@@ -3719,7 +4255,7 @@ Block
                   name: l1
                   colon: :
               statement: ExpressionStatement
-                expression: MethodInvocation
+                expression2: MethodInvocation
                   methodName: SimpleIdentifier
                     token: g
                   argumentList: ArgumentList
@@ -3773,7 +4309,7 @@ main() { try {} catch (int e) { } }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       name: main
       functionExpression: FunctionExpression
@@ -4142,7 +4678,7 @@ Block
           VariableDeclaration
             name: set
             equals: =
-            initializer: IntegerLiteral
+            initializer2: IntegerLiteral
               literal: 0
       semicolon: ;
   rightBracket: }
@@ -4165,7 +4701,7 @@ VariableDeclarationList
     VariableDeclaration
       name: a
       equals: =
-      initializer: IntegerLiteral
+      initializer2: IntegerLiteral
         literal: 0
 ''');
   }
@@ -4372,7 +4908,7 @@ Block
     WhileStatement
       whileKeyword: while
       leftParenthesis: (
-      condition: SimpleIdentifier
+      condition2: SimpleIdentifier
         token: x
       rightParenthesis: )
       body: Block
@@ -4396,7 +4932,7 @@ Block
     YieldStatement
       yieldKeyword: yield
       star: *
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: x
       semicolon: ;
   rightBracket: }
@@ -4416,7 +4952,7 @@ Block
   statements
     YieldStatement
       yieldKeyword: yield
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: x
       semicolon: ;
   rightBracket: }
@@ -4436,7 +4972,7 @@ Block
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         type: NamedType
@@ -4466,7 +5002,7 @@ foo <bar<
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         type: NamedType

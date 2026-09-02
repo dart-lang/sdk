@@ -23,7 +23,7 @@ namespace compiler {
 #define EXPECT_DISASSEMBLY(expected)
 #else
 #define EXPECT_DISASSEMBLY(expected)                                           \
-  EXPECT_STREQ(expected, test->RelativeDisassembly())
+  EXPECT_STREQ_NO_PREFIX_SUFFIX(expected, test->RelativeDisassembly())
 #endif
 
 ASSEMBLER_TEST_GENERATE(Simple, assembler) {
@@ -2276,7 +2276,7 @@ ASSEMBLER_TEST_GENERATE(VcntUaddlv8B, assembler) {
   __ LoadImmediate(R1, 0xFFFF);
   __ fmovdr(V0, R1);
   __ vcnt(V0, V0);
-  __ vuaddlv(V0, V0);
+  __ vuaddlv_8b(V0, V0);
   __ fmovrs(R0, V0);
   __ ret();
 }
@@ -2289,6 +2289,101 @@ ASSEMBLER_TEST_RUN(VcntUaddlv8B, test) {
       "fmovdr v0, r1\n"
       "vcnt v0, v0\n"
       "vuaddlv v0, v0\n"
+      "fmovrsw r0, v0\n"
+      "ret\n");
+}
+
+ASSEMBLER_TEST_GENERATE(Uaddlv4S, assembler) {
+  // All four 32-bit lanes = 3; vuaddlv.4S -> 12 in the low 64-bit scalar.
+  __ LoadImmediate(R1, 3);
+  __ vdupw(V0, R1);
+  __ vuaddlv_4s(V0, V0);
+  __ vmovrd(R0, V0, 0);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Uaddlv4S, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(12, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r1, #0x3\n"
+      "vdups v0, r1\n"
+      "vuaddlv v0, v0\n"
+      "vmovrd r0, v0[0]\n"
+      "ret\n");
+}
+
+ASSEMBLER_TEST_GENERATE(Umaxp4S, assembler) {
+  // Vn = {3, 9, 3, 3}, Vm = {5, 5, 5, 5}. umaxp pairs adjacent lanes:
+  // V0 = {max(3,9), max(3,3), max(5,5), max(5,5)} = {9, 3, 5, 5}.
+  // Pack one lane per byte into r0 = 0x05050309 to check every lane.
+  __ LoadImmediate(R1, 3);
+  __ vdupw(V1, R1);
+  __ LoadImmediate(R2, 9);
+  __ vinsw(V1, 1, R2);
+  __ LoadImmediate(R3, 5);
+  __ vdupw(V2, R3);
+  __ vumaxp_4s(V0, V1, V2);
+  __ vmovrs(R0, V0, 0);
+  __ vmovrs(R1, V0, 1);
+  __ vmovrs(R2, V0, 2);
+  __ vmovrs(R3, V0, 3);
+  __ orr(R0, R0, Operand(R1, LSL, 8));
+  __ orr(R0, R0, Operand(R2, LSL, 16));
+  __ orr(R0, R0, Operand(R3, LSL, 24));
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Umaxp4S, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(0x05050309, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r1, #0x3\n"
+      "vdups v1, r1\n"
+      "movz r2, #0x9\n"
+      "vinss v1[1], r2\n"
+      "movz r3, #0x5\n"
+      "vdups v2, r3\n"
+      "vumaxp v0, v1, v2\n"
+      "vmovrs r0, v0[0]\n"
+      "vmovrs r1, v0[1]\n"
+      "vmovrs r2, v0[2]\n"
+      "vmovrs r3, v0[3]\n"
+      "orr r0, r0, r1 lsl #8\n"
+      "orr r0, r0, r2 lsl #16\n"
+      "orr r0, r0, r3 lsl #24\n"
+      "ret\n");
+}
+
+ASSEMBLER_TEST_GENERATE(Uminv4S, assembler) {
+  // Vn = {8, 4, 6, 2}. uminv = min across lanes = 2 (last lane, proving a full
+  // scan, and distinct from the max 8).
+  __ LoadImmediate(R1, 8);
+  __ vdupw(V0, R1);
+  __ LoadImmediate(R2, 4);
+  __ vinsw(V0, 1, R2);
+  __ LoadImmediate(R3, 6);
+  __ vinsw(V0, 2, R3);
+  __ LoadImmediate(R4, 2);
+  __ vinsw(V0, 3, R4);
+  __ vuminv_4s(V0, V0);
+  __ fmovrs(R0, V0);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Uminv4S, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXPECT_EQ(2, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r1, #0x8\n"
+      "vdups v0, r1\n"
+      "movz r2, #0x4\n"
+      "vinss v0[1], r2\n"
+      "movz r3, #0x6\n"
+      "vinss v0[2], r3\n"
+      "movz r4, #0x2\n"
+      "vinss v0[3], r4\n"
+      "vuminv v0, v0\n"
       "fmovrsw r0, v0\n"
       "ret\n");
 }
@@ -6740,6 +6835,70 @@ ASSEMBLER_TEST_RUN(Vceqd, test) {
       "ret\n");
 }
 
+ASSEMBLER_TEST_GENERATE(Vceqw, assembler) {
+  __ LoadImmediate(R0, 5);
+  __ LoadImmediate(R1, 6);
+  __ LoadImmediate(R2, 7);
+  __ LoadImmediate(R3, 8);
+  __ vinsw(V2, 0, R0);
+  __ vinsw(V2, 1, R1);
+  __ vinsw(V2, 2, R2);
+  __ vinsw(V2, 3, R3);
+
+  __ LoadImmediate(R0, 5);
+  __ LoadImmediate(R1, 0);
+  __ LoadImmediate(R2, 7);
+  __ LoadImmediate(R3, 0);
+  __ vinsw(V3, 0, R0);
+  __ vinsw(V3, 1, R1);
+  __ vinsw(V3, 2, R2);
+  __ vinsw(V3, 3, R3);
+
+  // V2 == V3 lane-wise: [5==5, 6!=0, 7==7, 8!=0] -> [-1, 0, -1, 0].
+  __ vceqw(V4, V2, V3);
+
+  __ vmovrs(R0, V4, 0);
+  __ vmovrs(R1, V4, 1);
+  __ vmovrs(R2, V4, 2);
+  __ vmovrs(R3, V4, 3);
+  __ addw(R0, R0, Operand(R1));
+  __ addw(R0, R0, Operand(R2));
+  __ addw(R0, R0, Operand(R3));
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Vceqw, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  // -1 + 0 + -1 + 0 = -2 = 0xfffffffe.
+  EXPECT_EQ(0xfffffffe, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_DISASSEMBLY(
+      "movz r0, #0x5\n"
+      "movz r1, #0x6\n"
+      "movz r2, #0x7\n"
+      "movz r3, #0x8\n"
+      "vinss v2[0], r0\n"
+      "vinss v2[1], r1\n"
+      "vinss v2[2], r2\n"
+      "vinss v2[3], r3\n"
+      "movz r0, #0x5\n"
+      "movz r1, #0x0\n"
+      "movz r2, #0x7\n"
+      "movz r3, #0x0\n"
+      "vinss v3[0], r0\n"
+      "vinss v3[1], r1\n"
+      "vinss v3[2], r2\n"
+      "vinss v3[3], r3\n"
+      "vceqw v4, v2, v3\n"
+      "vmovrs r0, v4[0]\n"
+      "vmovrs r1, v4[1]\n"
+      "vmovrs r2, v4[2]\n"
+      "vmovrs r3, v4[3]\n"
+      "addw r0, r0, r1\n"
+      "addw r0, r0, r2\n"
+      "addw r0, r0, r3\n"
+      "ret\n");
+}
+
 ASSEMBLER_TEST_GENERATE(Vcgts, assembler) {
   __ LoadDImmediate(V0, 42.0);
   __ LoadDImmediate(V1, -42.0);
@@ -7977,6 +8136,71 @@ intptr_t RegRegImmTests::Asr(intptr_t value, intptr_t shift, OperandSize sz) {
   // On ARM64, the results of non-word-sized operations are zero-extended
   // to 64 bits.
   return ZeroExtendValue(SignExtendValue(value, sz) >> shift, sz);
+}
+
+ASSEMBLER_TEST_GENERATE(BranchToRegisterWithPointerAuthentication, assembler) {
+  SPILLS_LR_TO_FRAME();  // Not executing, don't care about LR.
+  __ braa(R1, R2);
+  __ braaz(R3);
+  __ brab(R4, R5);
+  __ brabz(R6);
+}
+
+ASSEMBLER_TEST_RUN(BranchToRegisterWithPointerAuthentication, test) {
+  EXPECT_DISASSEMBLY(
+      "braa r1, r2\n"
+      "braaz r3\n"
+      "brab r4, r5\n"
+      "brabz r6\n");
+}
+
+ASSEMBLER_TEST_GENERATE(BranchAndLinkToRegisterWithPointerAuthentication,
+                        assembler) {
+  SPILLS_LR_TO_FRAME();  // Not executing, don't care about LR.
+  __ blraa(R1, R2);
+  __ blraaz(R3);
+  __ blrab(R4, R5);
+  __ blrabz(R6);
+}
+
+ASSEMBLER_TEST_RUN(BranchAndLinkToRegisterWithPointerAuthentication, test) {
+  EXPECT_DISASSEMBLY(
+      "blraa r1, r2\n"
+      "blraaz r3\n"
+      "blrab r4, r5\n"
+      "blrabz r6\n");
+}
+
+ASSEMBLER_TEST_GENERATE(ReturnWithPointerAuthentication, assembler) {
+  __ retaa();
+  // Not executing, don't care about LR.
+  __ set_lr_state(__ lr_state().SetLRContainsReturnAddress(true));
+  __ retab();
+}
+
+ASSEMBLER_TEST_RUN(ReturnWithPointerAuthentication, test) {
+  EXPECT_DISASSEMBLY(
+      "retaa\n"
+      "retab\n");
+}
+
+ASSEMBLER_TEST_GENERATE(Bti, assembler) {
+  __ bti();
+  __ bti_c();
+  __ bti_j();
+  __ bti_jc();
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Bti, test) {
+  typedef int64_t (*Int64Return)() DART_UNUSED;
+  EXECUTE_TEST_CODE_INT64(Int64Return, test->entry());
+  EXPECT_DISASSEMBLY(
+      "bti\n"
+      "bti c\n"
+      "bti j\n"
+      "bti jc\n"
+      "ret\n");
 }
 
 }  // namespace compiler

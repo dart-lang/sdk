@@ -38,11 +38,11 @@ class A {
 ''');
   }
 
-  test_class_fieldFormalParameter_functionTyped_language305() async {
+  test_class_fieldFormalParameter_functionTyped_beforeAugmentations() async {
     // TODO(srawlins): Only report one error. Theoretically change Fasta to
     // report "Field initializer in factory constructor" as a parse error.
     await resolveTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 class A {
   int Function()? x;
   factory A(int this.x());

@@ -5,17 +5,13 @@
 import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
-import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/simple_edit_handler.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
-import 'package:analysis_server/src/lsp/mapping.dart';
+import 'package:analysis_server/src/lsp/operations/fix_all_in_file.dart';
 import 'package:analysis_server/src/lsp/progress.dart';
-import 'package:analysis_server/src/lsp/temporary_overlay_operation.dart';
-import 'package:analysis_server/src/services/correction/bulk_fix_processor.dart';
-import 'package:analysis_server/src/utilities/source_change_merger.dart';
 
 class FixAllCommandHandler extends SimpleEditCommandHandler<LspAnalysisServer> {
   new(super.server);
@@ -49,14 +45,14 @@ class FixAllCommandHandler extends SimpleEditCommandHandler<LspAnalysisServer> {
     var docIdentifier = server.getVersionedDocumentIdentifier(path);
     var autoTriggered = parameters['autoTriggered'] == true;
 
-    var operation = _FixAllOperation(
+    var operation = FixAllInFileOperation(
       server: server,
       message: message,
       path: path,
       cancellationToken: cancellationToken,
       autoTriggered: autoTriggered,
     );
-    var edit = await operation.computeEdits();
+    var edit = await operation.compute();
 
     return edit.mapResult((edit) async {
       if (edit == null) {
@@ -85,75 +81,5 @@ class FixAllCommandHandler extends SimpleEditCommandHandler<LspAnalysisServer> {
       // otherwise the response will not be processed.
       return sendWorkspaceEditToClient(edit);
     });
-  }
-}
-
-/// Computes edits for iterative fix-all using temporary overlays.
-class _FixAllOperation extends TemporaryOverlayOperation
-    with HandlerHelperMixin<AnalysisServer> {
-  final MessageInfo message;
-  final CancellationToken cancellationToken;
-  final String path;
-  final bool autoTriggered;
-
-  new({
-    required AnalysisServer server,
-    required this.message,
-    required this.path,
-    required this.cancellationToken,
-    required this.autoTriggered,
-  }) : super(server);
-
-  Future<ErrorOr<WorkspaceEdit?>> computeEdits() async {
-    return await pauseSchedulerWithTemporaryOverlays(_computeEditsImpl);
-  }
-
-  Future<ErrorOr<WorkspaceEdit?>> _computeEditsImpl() async {
-    if (cancellationToken.isCancellationRequested) {
-      return cancelled(cancellationToken);
-    }
-
-    var context = server.contextManager.getContextFor(path);
-    if (context == null) {
-      return success(null);
-    }
-
-    var processor = IterativeBulkFixProcessor(
-      instrumentationService: server.instrumentationService,
-      byteStore: server.byteStore,
-      context: context,
-      applyTemporaryOverlayEdits: applyTemporaryOverlayEdits,
-      applyOverlays: applyOverlays,
-      cancellationToken: cancellationToken,
-    );
-
-    var changes = await processor.fixErrorsForFile(
-      message.performance,
-      path,
-      autoTriggered: autoTriggered,
-    );
-    if (changes.isEmpty) {
-      return success(null);
-    }
-
-    // We only need to merge if we know we did multiple passes.
-    if (processor.passesWithEdits > 1) {
-      changes = message.performance.run(
-        'SourceChangeMerger.merge',
-        (_) => SourceChangeMerger().merge(changes),
-      );
-    }
-
-    // We must revert overlays before mapping edits, because we need any
-    // LineInfos to reflect the original state while mapping to LSP.
-    await revertOverlays();
-
-    var edit = createPlainWorkspaceEdit(
-      server,
-      server.editorClientCapabilities!,
-      changes,
-    );
-
-    return success(edit);
   }
 }

@@ -115,7 +115,7 @@ static method conditionals() → dynamic async /* emittedValueType= dynamic */ {
   try {
     dynamic f = a is core::int ?{dynamic} await self::dummy() /* runtimeCheckType= asy::Future<dynamic> */ : 2;
   }
-  on core::Object catch(final core::Object e) {
+  on core::Object catch(final core::Object e##1) {
   }
 }
 static method asserts() → dynamic async /* emittedValueType= dynamic */ {
@@ -183,9 +183,9 @@ static method controlFlow() → dynamic async /* emittedValueType= dynamic */ {
           self::expect(0, await func<core::int>(0){(core::int) → FutureOr<core::int>} /* runtimeCheckType= asy::Future<core::int> */ );
         }
       }
-      on core::Object catch(final core::Object e) {
+      on core::Object catch(final core::Object e##1) {
         self::expect(0, await func<core::int>(0){(core::int) → FutureOr<core::int>} /* runtimeCheckType= asy::Future<core::int> */ );
-        self::expect("string", e);
+        self::expect("string", e##1);
       }
     finally {
       self::expect(0, await func<core::int>(0){(core::int) → FutureOr<core::int>} /* runtimeCheckType= asy::Future<core::int> */ );

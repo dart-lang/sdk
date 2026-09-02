@@ -2,22 +2,26 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/src/dart/ast/ast.dart'; // ignore: implementation_imports
 import 'package:analyzer/src/dart/element/element.dart'; // ignore: implementation_imports
 import 'package:analyzer/src/dart/element/type.dart' // ignore: implementation_imports
     show InvalidTypeImpl, TypeParameterTypeImpl;
+import 'package:analyzer/src/utilities/extensions/ast.dart'; // ignore: implementation_imports
 import 'package:collection/collection.dart';
 
-class EnumLikeClassDescription {
+import 'util/scope.dart';
+
+class EnumLikeTypeDescription {
   final Map<DartObject, Set<FieldElement>> _enumConstants;
   new(this._enumConstants);
 
-  /// Returns a fresh map of the class's enum-like constant values.
+  /// Returns a fresh map of the type's enum-like constant values.
   Map<DartObject, Set<FieldElement>> get enumConstants => {..._enumConstants};
 }
 
@@ -43,8 +47,48 @@ class InterfaceTypeDefinition {
   }
 }
 
+/// Collects every reference to [target] found in the visited subtree.
+class _ReferenceCollector extends RecursiveAstVisitor<void> {
+  final Element target;
+  final Set<AstNode> references = {};
+
+  new(this.target);
+
+  @override
+  void visitImportPrefixReference(ImportPrefixReference node) {
+    _registerIfMatch(node, node.element);
+    super.visitImportPrefixReference(node);
+  }
+
+  @override
+  void visitSimpleIdentifier(SimpleIdentifier node) {
+    _registerIfMatch(node, node.element);
+    super.visitSimpleIdentifier(node);
+  }
+
+  void _registerIfMatch(AstNode node, Element? element) {
+    if (element == target) references.add(node);
+  }
+}
+
 extension AstNodeExtension on AstNode {
   Iterable<AstNode> get childNodes => childEntities.whereType<AstNode>();
+
+  /// The nearest enclosing function, method, or constructor body (or the
+  /// compilation unit, for a top-level declaration) that `this` is declared
+  /// within — the extent within which references to it can occur.
+  AstNode get enclosingBody {
+    for (AstNode? context = this; context != null; context = context.parent) {
+      var body = switch (context) {
+        MethodDeclaration(:var body) => body,
+        ConstructorDeclaration(:var body) => body,
+        FunctionExpression(:var body) => body,
+        _ => null,
+      };
+      if (body != null) return body;
+    }
+    return thisOrAncestorOfType<CompilationUnit>() ?? this;
+  }
 
   /// Whether this is the child of a private compilation unit member.
   bool get inPrivateMember {
@@ -109,6 +153,41 @@ extension AstNodeExtension on AstNode {
 
     var metadata = parent.declaredFragment?.element.metadata;
     return metadata?.hasInternal ?? false;
+  }
+
+  /// Whether, at some reference to [element] within `this`, [newName] would
+  /// already resolve to something -- either lexically (necessarily a
+  /// different element, since [newName] differs from [element]'s own name),
+  /// or as an accessible member of the reference's enclosing class, mixin,
+  /// enum, or extension type, which -- through the implicit `this` -- takes
+  /// priority over whatever [element] would be renamed to.
+  bool isShadowedAtSomeReference(String newName, Element element) {
+    var collector = _ReferenceCollector(element);
+    accept(collector);
+    return collector.references.any(
+      (reference) => reference._isNameVisible(newName),
+    );
+  }
+
+  bool _isNameVisible(String name) {
+    var result = resolveNameInScope(name, this, shouldResolveSetter: false);
+    if (result.isRequestedName) return true;
+
+    // An import-prefix reference (as in `prefix.SomeType`) only ever names
+    // an import prefix -- the grammar for a type never falls back to
+    // instance-member resolution the way a bare expression identifier does.
+    if (this is ImportPrefixReference) return false;
+
+    // Neither lexical scoping nor nested declarations can see instance
+    // members, which are resolved through the implicit `this`.
+    var enclosingElement = enclosingInstanceElement;
+    if (enclosingElement == null) return false;
+
+    var library = enclosingElement.library;
+    return (enclosingElement.lookUpGetter(name: name, library: library) ??
+            enclosingElement.lookUpSetter(name: name, library: library) ??
+            enclosingElement.lookUpMethod(name: name, library: library)) !=
+        null;
   }
 }
 
@@ -188,71 +267,6 @@ extension ClassElementExtension on ClassElement {
     }
     return false;
   }
-
-  /// Returns an [EnumLikeClassDescription] for this if the latter is a valid
-  /// "enum-like" class.
-  ///
-  /// An enum-like class must meet the following requirements:
-  ///
-  /// * is concrete,
-  /// * has no public constructors,
-  /// * has no factory constructors,
-  /// * has two or more static const fields with the same type as the class,
-  /// * has no subclasses declared in the defining library.
-  ///
-  /// The returned [EnumLikeClassDescription]'s `enumConstantNames` contains all
-  /// of the static const fields with the same type as the class, with one
-  /// exception; any static const field which is marked `@Deprecated` and is
-  /// equal to another static const field with the same type as the class is not
-  /// included. Such a field is assumed to be deprecated in favor of the field
-  /// with equal value.
-  EnumLikeClassDescription? asEnumLikeClass() {
-    // See discussion: https://github.com/dart-lang/linter/issues/2083.
-
-    // Must be concrete.
-    if (isAbstract) {
-      return null;
-    }
-
-    // With only private non-factory constructors.
-    for (var constructor in constructors) {
-      if (!constructor.isPrivate || constructor.isFactory) {
-        return null;
-      }
-    }
-
-    var type = thisType;
-
-    // And 2 or more static const fields whose type is the enclosing class.
-    var enumConstantCount = 0;
-    var enumConstants = <DartObject, Set<FieldElement>>{};
-    for (var field in fields) {
-      // Ensure static const.
-      if (field.isOriginGetterSetter || !field.isConst || !field.isStatic) {
-        continue;
-      }
-      // Check for type equality.
-      if (field.type != type) {
-        continue;
-      }
-      var fieldValue = field.computeConstantValue();
-      if (fieldValue == null) {
-        continue;
-      }
-      enumConstantCount++;
-      enumConstants.putIfAbsent(fieldValue, () => {}).add(field);
-    }
-    if (enumConstantCount < 2) {
-      return null;
-    }
-
-    // And no subclasses in the defining library.
-    if (_hasSubclassInDefiningCompilationUnit) return null;
-
-    return EnumLikeClassDescription(enumConstants);
-  }
-
-  bool isEnumLikeClass() => asEnumLikeClass() != null;
 }
 
 extension ConstructorElementExtension on ConstructorElement {
@@ -463,6 +477,9 @@ extension ExpressionNullableExtension on Expression? {
       case AssignmentExpression():
         // Allow `x = LinkedHashMap()`.
         return ancestor.staticType;
+      case BinaryExpression(:var operator)
+          when operator.type == TokenType.QUESTION_QUESTION:
+        return ancestor.approximateContextType;
       case ConditionalExpression():
         return ancestor.staticType;
       case ConstructorFieldInitializer():
@@ -564,6 +581,72 @@ extension InstanceElementExtension on InstanceElement {
   bool get isReflectiveTest =>
       this is ClassElement &&
       metadata.annotations.any((a) => a.isReflectiveTest);
+}
+
+extension InterfaceElementExtension on InterfaceElement {
+  /// Returns an [EnumLikeTypeDescription] if this is a valid "enum-like" type.
+  ///
+  /// An enum-like type must be either a class or an extension type and meet the
+  /// following requirements:
+  ///
+  /// * if a class, is concrete,
+  /// * has no public constructors,
+  /// * has no factory constructors,
+  /// * has two or more static const fields with the same enclosing type,
+  /// * if a class, has no subclasses declared in the defining library.
+  ///
+  /// The returned [EnumLikeTypeDescription]'s `enumConstants` contains all of
+  /// the static const fields with the same enclosing type, with one
+  /// exception; any static const field which is marked `@Deprecated` and is
+  /// equal to another such field is grouped with that field. Such a field is
+  /// assumed to be deprecated in favor of the field with equal value.
+  EnumLikeTypeDescription? asEnumLikeType() {
+    // See discussion: https://github.com/dart-lang/linter/issues/2083.
+
+    switch (this) {
+      case ClassElement self:
+        // Must be concrete and have no subclasses in the defining library.
+        if (self.isAbstract || self._hasSubclassInDefiningCompilationUnit) {
+          return null;
+        }
+      case ExtensionTypeElement():
+        break;
+      default:
+        return null;
+    }
+
+    // With only private generative constructors.
+    if (!constructors.every((c) => c.isPrivate && c.isGenerative)) {
+      return null;
+    }
+
+    // And 2 or more static const fields whose type is the enclosing type.
+    var enumConstantCount = 0;
+    var enumConstants = <DartObject, Set<FieldElement>>{};
+    for (var field in fields) {
+      // Ensure static const.
+      if (field.isOriginGetterSetter || !field.isConst || !field.isStatic) {
+        continue;
+      }
+      // Check for type equality.
+      if (field.type != thisType) {
+        continue;
+      }
+      var fieldValue = field.computeConstantValue();
+      if (fieldValue == null) {
+        continue;
+      }
+      enumConstantCount++;
+      enumConstants.putIfAbsent(fieldValue, () => {}).add(field);
+    }
+    if (enumConstantCount < 2) {
+      return null;
+    }
+
+    return EnumLikeTypeDescription(enumConstants);
+  }
+
+  bool isEnumLikeType() => asEnumLikeType() != null;
 }
 
 extension InterfaceTypeExtension on InterfaceType {

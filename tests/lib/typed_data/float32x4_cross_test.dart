@@ -1,6 +1,7 @@
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 // VMOptions=--optimization-counter-threshold=10 --no-background-compilation
 
 // Library tag to be able to run in html test framework.
@@ -29,10 +30,10 @@ void testCross(Float32x4 a, Float32x4 b, Float32x4 r) {
 }
 
 main() {
-  var x = new Float32x4(1.0, 0.0, 0.0, 0.0);
-  var y = new Float32x4(0.0, 1.0, 0.0, 0.0);
-  var z = new Float32x4(0.0, 0.0, 1.0, 0.0);
-  var zero = new Float32x4.zero();
+  var x = Float32x4(1.0, 0.0, 0.0, 0.0);
+  var y = Float32x4(0.0, 1.0, 0.0, 0.0);
+  var z = Float32x4(0.0, 0.0, 1.0, 0.0);
+  var zero = Float32x4.zero();
 
   for (int i = 0; i < 20; i++) {
     testCross(x, y, z);

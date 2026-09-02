@@ -6,37 +6,108 @@ import '../flow_analysis/flow_analysis.dart';
 import '../types/shared_type.dart';
 import 'body_inference_context.dart';
 import 'null_shorting.dart';
+import 'promotion_key_store.dart';
 import 'type_analysis_result.dart';
 import 'type_analyzer_operations.dart';
 
-/// Information supplied by the client to [TypeAnalyzer.analyzeSwitchExpression]
-/// or [TypeAnalyzer.analyzeSwitchStatement] about a single case head or
-/// `default` clause.
+/// Information supplied by the client to [TypeAnalyzer.analyzeSwitchStatement]
+/// about a default clause.
 ///
 /// The client is free to `implement` or `extend` this class.
-class CaseHeadOrDefaultInfo<
+class CaseDefaultInfo<
+  Node extends Object,
+  Expression extends Node,
+  Variable extends Object
+>
+    extends CaseHeadOrDefaultInfo<Node, Expression, Variable> {
+  @override
+  final int beginAlternativeOffset;
+
+  @override
+  final int endAlternativeOffset;
+
+  CaseDefaultInfo({
+    this.beginAlternativeOffset = 0,
+    this.endAlternativeOffset = 0,
+  });
+
+  @override
+  Null get guard => null;
+
+  @override
+  Null get pattern => null;
+
+  @override
+  Map<String, Variable> get variables => const {};
+}
+
+/// Information supplied by the client to [TypeAnalyzer.analyzeSwitchExpression]
+/// or [TypeAnalyzer.analyzeSwitchStatement] about a single case head.
+///
+/// The client is free to `implement` or `extend` this class.
+class CaseHeadInfo<
+  Node extends Object,
+  Expression extends Node,
+  Variable extends Object
+>
+    extends CaseHeadOrDefaultInfo<Node, Expression, Variable> {
+  @override
+  final Node pattern;
+
+  @override
+  final Map<String, Variable> variables;
+
+  @override
+  final Expression? guard;
+
+  @override
+  final int beginAlternativeOffset;
+
+  /// The source offset that flow analysis should associate with any state
+  /// changes caused by joining repeated variables that occur in [pattern].
+  final int finishJoinedPatternVariablesOffset;
+
+  @override
+  final int endAlternativeOffset;
+
+  CaseHeadInfo({
+    required this.pattern,
+    required this.variables,
+    this.guard,
+    this.beginAlternativeOffset = 0,
+    this.finishJoinedPatternVariablesOffset = 0,
+    this.endAlternativeOffset = 0,
+  });
+}
+
+/// Common base class for [CaseHeadInfo] and [CaseDefaultInfo].
+sealed class CaseHeadOrDefaultInfo<
   Node extends Object,
   Expression extends Node,
   Variable extends Object
 > {
+  /// Last source offset that should be considered prior to the `case` or
+  /// `default` clause. The offset of `case` keyword, `default` keyword, or
+  /// label is probably the best choice.
+  int get beginAlternativeOffset;
+
+  /// Last source offset that should be considered part of the `case` or
+  /// `default` clause (but not its body). The offset of the `:` token is
+  /// probably the best choice.
+  int get endAlternativeOffset;
+
+  /// For a `case` clause that has a guard clause, the expression following
+  /// `when`.  Otherwise `null`.
+  Expression? get guard;
+
   /// For a `case` clause, the case pattern.  For a `default` clause, `null`.
-  final Node? pattern;
+  Node? get pattern;
 
   /// The pattern variables declared in [pattern]. Some of them are joins of
   /// individual pattern variable declarations. We don't know their types
   /// until we do type analysis. So, some of these variables might become
   /// not consistent.
-  final Map<String, Variable> variables;
-
-  /// For a `case` clause that has a guard clause, the expression following
-  /// `when`.  Otherwise `null`.
-  final Expression? guard;
-
-  CaseHeadOrDefaultInfo({
-    required this.pattern,
-    required this.variables,
-    this.guard,
-  });
+  Map<String, Variable> get variables;
 }
 
 /// The kind of inconsistency identified for a variable.
@@ -153,13 +224,27 @@ class SwitchExpressionMemberInfo<
   Expression extends Node,
   Variable extends Object
 > {
-  /// The [CaseHeadOrDefaultInfo] associated with this clause.
-  final CaseHeadOrDefaultInfo<Node, Expression, Variable> head;
+  /// The [CaseHeadInfo] associated with this clause.
+  final CaseHeadInfo<Node, Expression, Variable> head;
 
   /// The body of the `case` or `default` clause.
   final Expression expression;
 
-  SwitchExpressionMemberInfo({required this.head, required this.expression});
+  /// Last source offset that should be considered prior to entry to the switch
+  /// member. The start offset of the pattern is probably the best choice.
+  final int beginAlternativeOffset;
+
+  /// Last source offset that should be considered part of the switch member's
+  /// pattern, but not its body. The offset of the `=>` token is probably the
+  /// best choice.
+  final int endAlternativeOffset;
+
+  SwitchExpressionMemberInfo({
+    required this.head,
+    required this.expression,
+    this.beginAlternativeOffset = 0,
+    this.endAlternativeOffset = 0,
+  });
 }
 
 /// Information supplied by the client to [TypeAnalyzer.analyzeSwitchStatement]
@@ -195,11 +280,18 @@ class SwitchStatementMemberInfo<
   /// might become not consistent.
   final Map<String, Variable> variables;
 
+  /// Last source offset that should be considered to be part of this case
+  /// branch (including its body). The offset of the next `case` keyword,
+  /// `default` keyword, or label is probably the best choice (or the `}` token,
+  /// if there are no more branches).
+  final int endOffset;
+
   SwitchStatementMemberInfo({
     required this.heads,
     required this.body,
     required this.variables,
     required this.hasLabels,
+    this.endOffset = 0,
   });
 }
 
@@ -363,11 +455,18 @@ mixin TypeAnalyzer<
             requiredType: variableDeclaredType,
           );
     }
+    int startOffset = patternStartOffset(node);
     flow.promoteForPattern(
       matchedType: matchedValueType,
       knownType: variableDeclaredType,
+      offset: startOffset,
     );
-    flow.assignedVariablePattern(node, variable, matchedValueType);
+    flow.assignedVariablePattern(
+      node,
+      variable,
+      matchedValueType,
+      offset: startOffset,
+    );
     return new AssignedVariablePatternResult(
       duplicateAssignmentPatternVariableError:
           duplicateAssignmentPatternVariableError,
@@ -428,7 +527,7 @@ mixin TypeAnalyzer<
     );
     // Stack: (operand)
 
-    flow.suspension(node);
+    flow.suspension(node, offset: expressionEndOffset(node));
 
     // Let T_1 be the static type of m_1.
     SharedTypeView t1 = m1.type;
@@ -460,10 +559,12 @@ mixin TypeAnalyzer<
     required SharedTypeView requiredType,
   }) {
     SharedTypeView matchedValueType = flow.getMatchedValueType();
+    int startOffset = patternStartOffset(innerPattern);
     flow.promoteForPattern(
       matchedType: matchedValueType,
       knownType: requiredType,
       matchFailsIfWrongType: false,
+      offset: startOffset,
     );
     if (operations.isSubtypeOf(matchedValueType, requiredType) &&
         requiredType is! SharedInvalidType) {
@@ -479,7 +580,7 @@ mixin TypeAnalyzer<
     // type when matching the inner pattern is precisely the cast type, and (b)
     // promotions triggered by the inner pattern have no effect outside the
     // cast.
-    flow.pushSubpattern(requiredType);
+    flow.pushSubpattern(requiredType, offset: startOffset);
     dispatchPattern(context.withUnnecessaryWildcardKind(null), innerPattern);
     // Stack: (Pattern)
     flow.popSubpattern();
@@ -492,8 +593,9 @@ mixin TypeAnalyzer<
   SharedTypeSchemaView analyzeCastPatternSchema() => operations.unknownType;
 
   /// Analyzes a constant pattern.  [node] is the pattern itself, and
-  /// [expression] is the constant expression.  Depending on the client's
-  /// representation, [node] and [expression] might or might not be identical.
+  /// [expression] is the constant expression. `null` may be passed for [node]
+  /// in the event that the pattern being analyzed is part of an old-style
+  /// switch statement (and hence there is no pattern AST node).
   ///
   /// See [dispatchPattern] for the meaning of [context].
   ///
@@ -503,7 +605,7 @@ mixin TypeAnalyzer<
   /// Stack effect: pushes (Expression).
   ConstantPatternResult<Error> analyzeConstantPattern(
     MatchContext<Node, Expression, Pattern, Variable> context,
-    Node node,
+    Pattern? node,
     Expression expression,
   ) {
     SharedTypeView matchedValueType = flow.getMatchedValueType();
@@ -513,7 +615,7 @@ mixin TypeAnalyzer<
     if (irrefutableContext != null) {
       refutablePatternInIrrefutableContextError = errors
           .refutablePatternInIrrefutableContext(
-            pattern: node,
+            pattern: node ?? expression,
             context: irrefutableContext,
           );
     }
@@ -528,6 +630,9 @@ mixin TypeAnalyzer<
       expressionType,
       patternsEnabled: typeAnalyzerOptions.patternsEnabled,
       matchedValueType: matchedValueType,
+      offset: node != null
+          ? patternEndOffset(node)
+          : expressionEndOffset(expression),
     );
     // Stack: (Expression)
     Error? caseExpressionTypeMismatchError;
@@ -602,9 +707,11 @@ mixin TypeAnalyzer<
             requiredType: staticType,
           );
     }
+    int startOffset = patternStartOffset(node);
     flow.promoteForPattern(
       matchedType: matchedValueType,
       knownType: staticType,
+      offset: startOffset,
     );
     // The promotion may have made the matched type even more specific than
     // either `matchedType` or `staticType`, so fetch it again and use that
@@ -612,17 +719,23 @@ mixin TypeAnalyzer<
     SharedTypeView promotedValueType = flow.getMatchedValueType();
     bool isImplicitlyTyped = declaredType == null;
     // TODO(paulberry): are we handling _isFinal correctly?
-    int promotionKey = context.patternVariablePromotionKeys[variableName] = flow
-        .declaredVariablePattern(
-          matchedType: promotedValueType,
-          staticType: staticType,
-          isFinal: context.isFinal || operations.isVariableFinal(variable),
-          isLate: false,
-          isImplicitlyTyped: isImplicitlyTyped,
-        );
+    PromotionKey promotionKey =
+        context.patternVariablePromotionKeys[variableName] = flow
+            .declaredVariablePattern(
+              matchedType: promotedValueType,
+              staticType: staticType,
+              isFinal: context.isFinal || operations.isVariableFinal(variable),
+              isLate: false,
+              isImplicitlyTyped: isImplicitlyTyped,
+              offset: startOffset,
+            );
     setVariableType(variable, staticType);
     (context.componentVariables[variableName] ??= []).add(variable);
-    flow.assignMatchedPatternVariable(variable, promotionKey);
+    flow.assignMatchedPatternVariable(
+      variable,
+      promotionKey,
+      offset: startOffset,
+    );
     return new DeclaredVariablePatternResult(
       staticType: staticType,
       patternTypeMismatchInIrrefutableContextError:
@@ -674,12 +787,17 @@ mixin TypeAnalyzer<
   /// If [isVoidAllowed] is `false` (the default), and the static type of the
   /// expression is void, an error will be reported.
   ///
+  /// If [needsCoercion] is `true`, the expression is coerced on assignment.
+  /// This is used by the CFE which performs expression coercion in the process
+  /// of type inference of the nodes where an assignment is executed.
+  ///
   /// Stack effect: pushes (Expression).
   ExpressionTypeAnalysisResult analyzeExpression(
     Expression node,
     SharedTypeSchemaView schema, {
     bool continueNullShorting = false,
     bool isVoidAllowed = false,
+    bool needsCoercion = false,
   }) {
     int? nullShortingTargetDepth;
     if (!continueNullShorting) nullShortingTargetDepth = nullShortingDepth;
@@ -691,10 +809,11 @@ mixin TypeAnalyzer<
       node,
       schema,
       isVoidAllowed: isVoidAllowed,
+      needsCoercion: needsCoercion,
     );
     // Stack: (Expression)
     if (operations.isBottomType(result.type)) {
-      flow.handleExit();
+      flow.handleExit(offset: expressionEndOffset(node));
     }
     if (nullShortingTargetDepth != null &&
         nullShortingDepth > nullShortingTargetDepth) {
@@ -722,6 +841,27 @@ mixin TypeAnalyzer<
   /// Returns a [IfCaseStatementResult] with the static type of [expression] and
   /// information about reported errors.
   ///
+  /// [afterExpressionOffset] is the last source offset that should be
+  /// considered to be prior to entry to the pattern. The offset of any
+  /// character in the `case` keyword should work, since no expressions can
+  /// appear in this range, but the first character of the keyword is probably
+  /// the best choice.
+  ///
+  /// [thenBeginOffset] is the last source offset that should be considered to
+  /// be part of the pattern part of the if-case element. The offset of the `)`
+  /// is probably the best choice.
+  ///
+  /// [elseBeginOffset] is the last source offset that should be considered to
+  /// be part of the "then" part of the if-case element. The offset any
+  /// character in the `else` keyword should work, since no expressions can
+  /// appear in this range, but the first character of the keyword is probably
+  /// the best choice. Caller may only pass `null` if [ifFalse] is also `null`.
+  ///
+  /// [endOffset] is the last source offset that should be considered to be part
+  /// of the "else" part of the if-case element (or the "then" part, if no
+  /// "else" part is present). The end offset of the if-case element is probably
+  /// the best choice.
+  ///
   /// Stack effect: pushes (Expression scrutinee, Pattern, Expression guard,
   /// CollectionElement ifTrue, CollectionElement ifFalse).  If there is no
   /// `else` clause, the representation for `ifFalse` will be pushed by
@@ -736,9 +876,13 @@ mixin TypeAnalyzer<
     required Node ifTrue,
     required Node? ifFalse,
     required Object? context,
+    int afterExpressionOffset = 0,
+    int thenBeginOffset = 0,
+    int? elseBeginOffset = 0,
+    int endOffset = 0,
   }) {
     // Stack: ()
-    flow.ifCaseStatement_begin();
+    flow.ifCaseStatement_begin(offset: expressionStartOffset(expression));
     ExpressionTypeAnalysisResult expressionAnalysisResult = analyzeExpression(
       expression,
       operations.unknownType,
@@ -748,10 +892,11 @@ mixin TypeAnalyzer<
     flow.ifCaseStatement_afterExpression(
       expressionAnalysisResult.flowAnalysisInfo,
       expressionType,
+      offset: afterExpressionOffset,
     );
     // Stack: (Expression)
     Map<String, List<Variable>> componentVariables = {};
-    Map<String, int> patternVariablePromotionKeys = {};
+    Map<String, PromotionKey> patternVariablePromotionKeys = {};
     // TODO(paulberry): rework handling of isFinal
     dispatchPattern(
       new MatchContext<Node, Expression, Pattern, Variable>(
@@ -767,6 +912,7 @@ mixin TypeAnalyzer<
       componentVariables,
       patternVariablePromotionKeys,
       location: JoinedPatternVariableLocation.singlePattern,
+      offset: patternEndOffset(pattern),
     );
     Error? nonBooleanGuardError;
     SharedTypeView? guardType;
@@ -785,8 +931,15 @@ mixin TypeAnalyzer<
       guardInfo = flow.booleanLiteral(true);
     }
     // Stack: (Expression, Pattern, Guard)
-    flow.ifCaseStatement_thenBegin(guardInfo);
-    _analyzeIfElementCommon(node, ifTrue, ifFalse, context);
+    flow.ifCaseStatement_thenBegin(guardInfo, offset: thenBeginOffset);
+    _analyzeIfElementCommon(
+      node,
+      ifTrue,
+      ifFalse,
+      context,
+      elseBeginOffset: elseBeginOffset,
+      endOffset: endOffset,
+    );
     return new IfCaseStatementResult(
       matchedExpressionType: expressionType,
       nonBooleanGuardError: nonBooleanGuardError,
@@ -804,6 +957,22 @@ mixin TypeAnalyzer<
   /// Returns a [IfCaseStatementResult] with the static type of [expression] and
   /// information about reported errors.
   ///
+  /// [afterExpressionOffset] is the last source offset that should be
+  /// considered to be prior to entry to the pattern. The offset of any
+  /// character in the `case` keyword should work, since no expressions can
+  /// appear in this range, but the first character of the keyword is probably
+  /// the best choice.
+  ///
+  /// [thenBeginOffset] is the last source offset that should be considered to
+  /// be part of the pattern part of the if-case statement. The offset of the
+  /// `)` is probably the best choice.
+  ///
+  /// [elseBeginOffset] is the last source offset that should be considered to
+  /// be part of the "then" part of the if-case statement. The offset any
+  /// character in the `else` keyword should work, since no expressions can
+  /// appear in this range, but the first character of the keyword is probably
+  /// the best choice. Caller may only pass `null` if [ifFalse] is also `null`.
+  ///
   /// Stack effect: pushes (Expression scrutinee, Pattern, Expression guard,
   /// Statement ifTrue, Statement ifFalse).  If there is no `else` clause, the
   /// representation for `ifFalse` will be pushed by [handleNoStatement].  If
@@ -816,10 +985,13 @@ mixin TypeAnalyzer<
     Expression? guard,
     Statement ifTrue,
     Statement? ifFalse,
-    Map<String, Variable> variables,
-  ) {
+    Map<String, Variable> variables, {
+    int afterExpressionOffset = 0,
+    int thenBeginOffset = 0,
+    int? elseBeginOffset = 0,
+  }) {
     // Stack: ()
-    flow.ifCaseStatement_begin();
+    flow.ifCaseStatement_begin(offset: expressionStartOffset(expression));
     ExpressionTypeAnalysisResult expressionAnalysisResult = analyzeExpression(
       expression,
       operations.unknownType,
@@ -829,10 +1001,11 @@ mixin TypeAnalyzer<
     flow.ifCaseStatement_afterExpression(
       expressionAnalysisResult.flowAnalysisInfo,
       expressionType,
+      offset: afterExpressionOffset,
     );
     // Stack: (Expression)
     Map<String, List<Variable>> componentVariables = {};
-    Map<String, int> patternVariablePromotionKeys = {};
+    Map<String, PromotionKey> patternVariablePromotionKeys = {};
     // TODO(paulberry): rework handling of isFinal
     dispatchPattern(
       new MatchContext<Node, Expression, Pattern, Variable>(
@@ -848,6 +1021,7 @@ mixin TypeAnalyzer<
       componentVariables,
       patternVariablePromotionKeys,
       location: JoinedPatternVariableLocation.singlePattern,
+      offset: patternEndOffset(pattern),
     );
 
     handle_ifCaseStatement_afterPattern(node: node);
@@ -869,8 +1043,8 @@ mixin TypeAnalyzer<
       guardInfo = flow.booleanLiteral(true);
     }
     // Stack: (Expression, Pattern, Guard)
-    flow.ifCaseStatement_thenBegin(guardInfo);
-    _analyzeIfCommon(node, ifTrue, ifFalse);
+    flow.ifCaseStatement_thenBegin(guardInfo, offset: thenBeginOffset);
+    _analyzeIfCommon(node, ifTrue, ifFalse, elseBeginOffset: elseBeginOffset);
     return new IfCaseStatementResult(
       matchedExpressionType: expressionType,
       nonBooleanGuardError: nonBooleanGuardError,
@@ -885,6 +1059,21 @@ mixin TypeAnalyzer<
   /// the condition expression, [ifTrue] for the "then" branch, and [ifFalse]
   /// for the "else" branch (if present).
   ///
+  /// [thenBeginOffset] is the last source offset that should be considered to
+  /// be part of the condition part of the if element. The offset of the `)` is
+  /// probably the best choice.
+  ///
+  /// [elseBeginOffset] is the last source offset that should be considered to
+  /// be part of the "then" part of the if element. The offset any character in
+  /// the `else` keyword should work, since no expressions can appear in this
+  /// range, but the first character of the keyword is probably the best choice.
+  /// Caller may only pass `null` if [ifFalse] is also `null`.
+  ///
+  /// [endOffset] is the last source offset that should be considered to be part
+  /// of the "else" part of the if element (or the "then" part, if no "else"
+  /// part is present). The end offset of the if element is probably the best
+  /// choice.
+  ///
   /// Stack effect: pushes (Expression condition, CollectionElement ifTrue,
   /// CollectionElement ifFalse).  Note that if there is no `else` clause, the
   /// representation for `ifFalse` will be pushed by
@@ -895,9 +1084,12 @@ mixin TypeAnalyzer<
     required Node ifTrue,
     required Node? ifFalse,
     required Object? context,
+    int thenBeginOffset = 0,
+    int? elseBeginOffset = 0,
+    int endOffset = 0,
   }) {
     // Stack: ()
-    flow.ifStatement_conditionBegin();
+    flow.ifStatement_conditionBegin(offset: expressionStartOffset(condition));
     ExpressionTypeAnalysisResult conditionAnalysisResult = analyzeExpression(
       condition,
       operations.typeToSchema(operations.boolType),
@@ -905,8 +1097,19 @@ mixin TypeAnalyzer<
     );
     handle_ifElement_conditionEnd(node);
     // Stack: (Expression condition)
-    flow.ifStatement_thenBegin(conditionAnalysisResult.flowAnalysisInfo, node);
-    _analyzeIfElementCommon(node, ifTrue, ifFalse, context);
+    flow.ifStatement_thenBegin(
+      conditionAnalysisResult.flowAnalysisInfo,
+      node,
+      offset: thenBeginOffset,
+    );
+    _analyzeIfElementCommon(
+      node,
+      ifTrue,
+      ifFalse,
+      context,
+      elseBeginOffset: elseBeginOffset,
+      endOffset: endOffset,
+    );
   }
 
   /// Analyzes a statement of the form `if (condition) ifTrue` or
@@ -916,6 +1119,16 @@ mixin TypeAnalyzer<
   /// the condition expression, [ifTrue] for the "then" branch, and [ifFalse]
   /// for the "else" branch (if present).
   ///
+  /// [thenBeginOffset] is the last source offset that should be considered to
+  /// be part of the condition part of the if statement. The offset of the `)`
+  /// is probably the best choice.
+  ///
+  /// [elseBeginOffset] is the last source offset that should be considered to
+  /// be part of the "then" part of the if statement. The offset any character
+  /// in the `else` keyword should work, since no expressions can appear in this
+  /// range, but the first character of the keyword is probably the best choice.
+  /// Caller may only pass `null` if [ifFalse] is also `null`.
+  ///
   /// Stack effect: pushes (Expression condition, Statement ifTrue, Statement
   /// ifFalse).  Note that if there is no `else` clause, the representation for
   /// `ifFalse` will be pushed by [handleNoStatement].
@@ -923,10 +1136,12 @@ mixin TypeAnalyzer<
     Statement node,
     Expression condition,
     Statement ifTrue,
-    Statement? ifFalse,
-  ) {
+    Statement? ifFalse, {
+    int thenBeginOffset = 0,
+    int? elseBeginOffset = 0,
+  }) {
     // Stack: ()
-    flow.ifStatement_conditionBegin();
+    flow.ifStatement_conditionBegin(offset: expressionStartOffset(condition));
     ExpressionTypeAnalysisResult conditionAnalysisResult = analyzeExpression(
       condition,
       operations.typeToSchema(operations.boolType),
@@ -934,8 +1149,12 @@ mixin TypeAnalyzer<
     );
     handle_ifStatement_conditionEnd(node);
     // Stack: (Expression condition)
-    flow.ifStatement_thenBegin(conditionAnalysisResult.flowAnalysisInfo, node);
-    _analyzeIfCommon(node, ifTrue, ifFalse);
+    flow.ifStatement_thenBegin(
+      conditionAnalysisResult.flowAnalysisInfo,
+      node,
+      offset: thenBeginOffset,
+    );
+    _analyzeIfCommon(node, ifTrue, ifFalse, elseBeginOffset: elseBeginOffset);
   }
 
   /// Analyzes an integer literal, given the type schema [schema].
@@ -969,12 +1188,17 @@ mixin TypeAnalyzer<
   ///
   /// See [dispatchPattern] for the meaning of [context].
   ///
+  /// [promoteForPatternOffset] is the last source offset that should be
+  /// considered to be prior to the promotion to `List<...>` taking place. The
+  /// offset of the `[` token is probably the best choice.
+  ///
   /// Stack effect: pushes (n * Pattern) where n = elements.length.
   ListPatternResult<Error> analyzeListPattern(
     MatchContext<Node, Expression, Pattern, Variable> context,
     Pattern node, {
     SharedTypeView? elementType,
     required List<Node> elements,
+    int promoteForPatternOffset = 0,
   }) {
     SharedTypeView matchedValueType = flow.getMatchedValueType();
     SharedTypeView valueType;
@@ -1000,6 +1224,7 @@ mixin TypeAnalyzer<
       knownType: requiredType,
       matchMayFailEvenIfCorrectType:
           !(elements.length == 1 && isRestPatternElement(elements[0])),
+      offset: promoteForPatternOffset,
     );
     // Stack: ()
     Node? previousRestPattern;
@@ -1018,7 +1243,10 @@ mixin TypeAnalyzer<
         Pattern? subPattern = getRestPatternElementPattern(element);
         if (subPattern != null) {
           SharedTypeView subPatternMatchedType = requiredType;
-          flow.pushSubpattern(subPatternMatchedType);
+          flow.pushSubpattern(
+            subPatternMatchedType,
+            offset: patternStartOffset(subPattern),
+          );
           dispatchPattern(
             context.withUnnecessaryWildcardKind(null),
             subPattern,
@@ -1027,7 +1255,10 @@ mixin TypeAnalyzer<
         }
         handleListPatternRestElement(node, element);
       } else {
-        flow.pushSubpattern(valueType);
+        flow.pushSubpattern(
+          valueType,
+          offset: patternStartOffset(element as Pattern),
+        );
         dispatchPattern(context.withUnnecessaryWildcardKind(null), element);
         flow.popSubpattern();
       }
@@ -1146,13 +1377,20 @@ mixin TypeAnalyzer<
   ///
   /// See [dispatchPattern] for the meaning of [context].
   ///
+  /// [afterLhsOffset] is the last source offset that should be considered to be
+  /// part of the LHS of the logical-or pattern. The offset of either character
+  /// in the `&&` or `||` token should work, since no expressions can appear in
+  /// this range, but the first character of the token is probably the best
+  /// choice.
+  ///
   /// Stack effect: pushes (Pattern left, Pattern right)
   LogicalOrPatternResult<Error> analyzeLogicalOrPattern(
     MatchContext<Node, Expression, Pattern, Variable> context,
     Pattern node,
     Node lhs,
-    Node rhs,
-  ) {
+    Node rhs, {
+    int afterLhsOffset = 0,
+  }) {
     SharedTypeView matchedValueType = flow.getMatchedValueType();
     Node? irrefutableContext = context.irrefutableContext;
     Error? refutablePatternInIrrefutableContextError;
@@ -1167,7 +1405,7 @@ mixin TypeAnalyzer<
     }
     // Stack: ()
     flow.logicalOrPattern_begin();
-    Map<String, int> leftPromotionKeys = {};
+    Map<String, PromotionKey> leftPromotionKeys = {};
     dispatchPattern(
       context
           .withPromotionKeys(leftPromotionKeys)
@@ -1177,15 +1415,15 @@ mixin TypeAnalyzer<
     // Stack: (Pattern left)
     // We'll use the promotion keys allocated during processing of the LHS as
     // the merged keys.
-    for (MapEntry<String, int> entry in leftPromotionKeys.entries) {
+    for (MapEntry<String, PromotionKey> entry in leftPromotionKeys.entries) {
       String variableName = entry.key;
-      int promotionKey = entry.value;
+      PromotionKey promotionKey = entry.value;
       assert(!context.patternVariablePromotionKeys.containsKey(variableName));
       context.patternVariablePromotionKeys[variableName] = promotionKey;
     }
-    flow.logicalOrPattern_afterLhs();
+    flow.logicalOrPattern_afterLhs(offset: afterLhsOffset);
     handle_logicalOrPattern_afterLhs(node);
-    Map<String, int> rightPromotionKeys = {};
+    Map<String, PromotionKey> rightPromotionKeys = {};
     dispatchPattern(
       context
           .withPromotionKeys(rightPromotionKeys)
@@ -1193,10 +1431,11 @@ mixin TypeAnalyzer<
       rhs,
     );
     // Stack: (Pattern left, Pattern right)
-    for (MapEntry<String, int> entry in rightPromotionKeys.entries) {
+    int endOffset = patternEndOffset(node);
+    for (MapEntry<String, PromotionKey> entry in rightPromotionKeys.entries) {
       String variableName = entry.key;
-      int rightPromotionKey = entry.value;
-      int? mergedPromotionKey = leftPromotionKeys[variableName];
+      PromotionKey rightPromotionKey = entry.value;
+      PromotionKey? mergedPromotionKey = leftPromotionKeys[variableName];
       if (mergedPromotionKey == null) {
         // No matching variable on the LHS.  This is an error condition (which
         // has already been reported by VariableBinder).  For error recovery,
@@ -1212,13 +1451,14 @@ mixin TypeAnalyzer<
         flow.copyPromotionData(
           sourceKey: rightPromotionKey,
           destinationKey: mergedPromotionKey,
+          offset: endOffset,
         );
       }
     }
     // Since the promotion data is now all stored in the merged keys in both
     // flow control branches, the normal join process will combine promotions
     // accordingly.
-    flow.logicalOrPattern_end();
+    flow.logicalOrPattern_end(offset: endOffset);
     return new LogicalOrPatternResult(
       refutablePatternInIrrefutableContextError:
           refutablePatternInIrrefutableContextError,
@@ -1247,6 +1487,10 @@ mixin TypeAnalyzer<
   ///
   /// See [dispatchPattern] for the meaning of [context].
   ///
+  /// [promoteForPatternOffset] is the last source offset that should be
+  /// considered to be prior to the promotion to `Map<...>` taking place. The
+  /// offset of the `{` token is probably the best choice.
+  ///
   /// Stack effect: pushes (n * MapPatternElement) where n = elements.length.
   MapPatternResult<Error> analyzeMapPattern(
     MatchContext<Node, Expression, Pattern, Variable> context,
@@ -1254,6 +1498,7 @@ mixin TypeAnalyzer<
     required ({SharedTypeView keyType, SharedTypeView valueType})?
     typeArguments,
     required List<Node> elements,
+    int promoteForPatternOffset = 0,
   }) {
     SharedTypeView matchedValueType = flow.getMatchedValueType();
     SharedTypeView keyType;
@@ -1297,6 +1542,7 @@ mixin TypeAnalyzer<
       matchedType: matchedValueType,
       knownType: requiredType,
       matchMayFailEvenIfCorrectType: matchMayFailEvenIfCorrectType,
+      offset: promoteForPatternOffset,
     );
     // Stack: ()
 
@@ -1320,7 +1566,7 @@ mixin TypeAnalyzer<
           keySchema,
           isVoidAllowed: true,
         ).type;
-        flow.pushSubpattern(valueType);
+        flow.pushSubpattern(valueType, offset: patternStartOffset(entry.value));
         dispatchPattern(context.withUnnecessaryWildcardKind(null), entry.value);
         handleMapPatternEntry(node, element, keyType);
         flow.popSubpattern();
@@ -1328,7 +1574,10 @@ mixin TypeAnalyzer<
         assert(isRestPatternElement(element));
         Pattern? subPattern = getRestPatternElementPattern(element);
         if (subPattern != null) {
-          flow.pushSubpattern(operations.dynamicType);
+          flow.pushSubpattern(
+            operations.dynamicType,
+            offset: patternStartOffset(subPattern),
+          );
           dispatchPattern(
             context.withUnnecessaryWildcardKind(null),
             subPattern,
@@ -1428,6 +1677,7 @@ mixin TypeAnalyzer<
     bool matchedTypeIsStrictlyNonNullable = flow.nullCheckOrAssertPattern_begin(
       isAssert: isAssert,
       matchedValueType: matchedValueType,
+      offset: patternStartOffset(innerPattern),
     );
     if (irrefutableContext != null && !isAssert) {
       refutablePatternInIrrefutableContextError = errors
@@ -1487,11 +1737,17 @@ mixin TypeAnalyzer<
   ///
   /// See [dispatchPattern] for the meaning of [context].
   ///
+  /// [promoteForPatternOffset] is the last source offset that should be
+  /// considered to be prior to the promotion (to the type returned by
+  /// [downwardInferObjectPatternRequiredType]) taking place. The offset of the
+  /// `(` token is probably the best choice.
+  ///
   /// Stack effect: pushes (n * Pattern) where n = fields.length.
   ObjectPatternResult<Error> analyzeObjectPattern(
     MatchContext<Node, Expression, Pattern, Variable> context,
     Pattern node, {
     required List<RecordPatternField<Node, Pattern>> fields,
+    int promoteForPatternOffset = 0,
   }) {
     SharedTypeView matchedValueType = flow.getMatchedValueType();
     Map<int, Error>? duplicateRecordPatternFieldErrors =
@@ -1504,6 +1760,7 @@ mixin TypeAnalyzer<
     flow.promoteForPattern(
       matchedType: matchedValueType,
       knownType: requiredType,
+      offset: promoteForPatternOffset,
     );
 
     // If the required type is `dynamic` or `Never`, then every getter is
@@ -1541,15 +1798,17 @@ mixin TypeAnalyzer<
       // error recovery circumstances, one may be absent; when this happens, use
       // the empty string as a the property name to prevent a crash.
       String propertyName = field.name ?? '';
+      int startOffset = patternStartOffset(field.pattern);
       SharedTypeView promotedPropertyType =
           flow.pushPropertySubpattern(
             propertyName,
             propertyMember,
             unpromotedPropertyType,
+            offset: startOffset,
           ) ??
           unpromotedPropertyType;
       if (operations.isBottomType(promotedPropertyType)) {
-        flow.handleExit();
+        flow.handleExit(offset: startOffset);
       }
       dispatchPattern(context.withUnnecessaryWildcardKind(null), field.pattern);
       flow.popPropertySubpattern();
@@ -1578,27 +1837,37 @@ mixin TypeAnalyzer<
   /// [node] should be the AST node for the entire expression, [pattern] for
   /// the pattern, and [rhs] for the right hand side.
   ///
+  /// [beforeRhsOffset] is the last source offset that should be considered to
+  /// be part of the pattern. The offset of the `=` token is probably the best
+  /// choice.
+  ///
   /// Stack effect: pushes (Expression, Pattern).
   PatternAssignmentAnalysisResult analyzePatternAssignment(
     Expression node,
     Pattern pattern,
-    Expression rhs,
-  ) {
+    Expression rhs, {
+    int beforeRhsOffset = 0,
+  }) {
     // Stack: ()
     SharedTypeSchemaView patternSchema = dispatchPatternSchema(pattern);
+    flow.patternAssignment_beforeRhs(offset: beforeRhsOffset);
     ExpressionTypeAnalysisResult rhsAnalysisResult = analyzeExpression(
       rhs,
       patternSchema,
       isVoidAllowed: true,
+      // The expression is assigned to the pattern, and so the coercion needs to
+      // be performed.
+      needsCoercion: true,
     );
     SharedTypeView rhsType = rhsAnalysisResult.type;
     // Stack: (Expression)
-    flow.patternAssignment_afterRhs(
+    flow.patternAssignment_beforePattern(
       rhsAnalysisResult.flowAnalysisInfo,
       rhsType,
+      offset: patternStartOffset(pattern),
     );
     Map<String, List<Variable>> componentVariables = {};
-    Map<String, int> patternVariablePromotionKeys = {};
+    Map<String, PromotionKey> patternVariablePromotionKeys = {};
     dispatchPattern(
       new MatchContext<Node, Expression, Pattern, Variable>(
         isFinal: false,
@@ -1614,7 +1883,7 @@ mixin TypeAnalyzer<
       // so this should never happen.
       errors.assertInErrorRecovery();
     }
-    flow.patternAssignment_end();
+    flow.patternAssignment_end(offset: expressionEndOffset(node));
     // Stack: (Expression, Pattern)
     return new PatternAssignmentAnalysisResult(
       patternSchema: patternSchema,
@@ -1630,6 +1899,24 @@ mixin TypeAnalyzer<
   /// Element:
   /// `for (<keyword> <pattern> in <expression>) <body>`
   ///
+  /// [beforePatternOffset] is the last source offset that should be considered
+  /// to be prior to entry into the `for`. The offset of any character in the
+  /// `for` keyword (or `await` keyword, if present) should work, since no
+  /// expressions can appear in this range, but the first such character is
+  /// probably the best choice.
+  ///
+  /// [beforeExpressionOffset] is the last source offset that should be
+  /// considered to be part of the pattern. The offset of the `in` token is
+  /// probably the best choice.
+  ///
+  /// [bodyBeginOffset] is the last source offset that should be considered
+  /// prior to entry into the loop body. The offset of the `)` is probably the
+  /// best choice.
+  ///
+  /// [endOffset] is the last source offset that should be considered to be
+  /// inside the body of the `for`. The end offset of the body is probably the
+  /// best choice.
+  ///
   /// Stack effect: pushes (Expression, Pattern).
   ///
   /// Returns a [PatternForInResult] containing information on reported errors.
@@ -1642,12 +1929,17 @@ mixin TypeAnalyzer<
     required Pattern pattern,
     required Expression expression,
     required void Function() dispatchBody,
+    int beforePatternOffset = 0,
+    int beforeExpressionOffset = 0,
+    int bodyBeginOffset = 0,
+    int endOffset = 0,
   }) {
     // Stack: ()
     SharedTypeSchemaView patternTypeSchema = dispatchPatternSchema(pattern);
     SharedTypeSchemaView expressionTypeSchema = hasAwait
         ? operations.streamTypeSchema(patternTypeSchema)
         : operations.iterableTypeSchema(patternTypeSchema);
+    flow.patternForIn_beforeExpression(offset: beforeExpressionOffset);
     SharedTypeView expressionType = analyzeExpression(
       expression,
       expressionTypeSchema,
@@ -1674,10 +1966,10 @@ mixin TypeAnalyzer<
         elementType = operations.errorType;
       }
     }
-    flow.patternForIn_afterExpression(elementType);
+    flow.patternForIn_beforePattern(elementType, offset: beforePatternOffset);
 
     Map<String, List<Variable>> componentVariables = {};
-    Map<String, int> patternVariablePromotionKeys = {};
+    Map<String, PromotionKey> patternVariablePromotionKeys = {};
     dispatchPattern(
       new MatchContext<Node, Expression, Pattern, Variable>(
         isFinal: false,
@@ -1689,10 +1981,10 @@ mixin TypeAnalyzer<
     );
     // Stack: (Expression, Pattern)
 
-    flow.forEach_bodyBegin(node);
+    flow.forEach_bodyBegin(node, offset: bodyBeginOffset);
     dispatchBody();
-    flow.forEach_end();
-    flow.patternForIn_end();
+    flow.forEach_end(offset: endOffset);
+    flow.patternForIn_end(offset: endOffset);
 
     return new PatternForInResult(
       elementType: elementType,
@@ -1712,28 +2004,53 @@ mixin TypeAnalyzer<
   /// Returns a [PatternVariableDeclarationAnalysisResult] holding the static
   /// type of the initializer and the type schema of the [pattern].
   ///
+  /// [beforePatternOffset] is the last source offset that should be considered
+  /// to be prior to entry into the pattern. The offset of any character in the
+  /// `var` or `final` keyword should work, since no expressions can appear in
+  /// this range, but the first character of the keyword is probably the best
+  /// choice.
+  ///
+  /// [beforeInitializerOffset] is the last source offset that should be
+  /// considered to be part of the pattern. The offset of the `=` token is
+  /// probably the best choice.
+  ///
+  /// [endOffset] is the last source offset that should be considered prior to
+  /// the variables in the pattern being considered "assigned". The offset of
+  /// the `;` that ends the pattern variable declaration is probably the best
+  /// choice.
+  ///
   /// Stack effect: pushes (Expression, Pattern).
   PatternVariableDeclarationAnalysisResult analyzePatternVariableDeclaration(
     Node node,
     Pattern pattern,
     Expression initializer, {
     required bool isFinal,
+    int beforePatternOffset = 0,
+    int beforeInitializerOffset = 0,
+    int endOffset = 0,
   }) {
     // Stack: ()
     SharedTypeSchemaView patternSchema = dispatchPatternSchema(pattern);
+    flow.patternVariableDeclaration_beforeInitializer(
+      offset: beforeInitializerOffset,
+    );
     ExpressionTypeAnalysisResult initializerAnalysisResult = analyzeExpression(
       initializer,
       patternSchema,
       isVoidAllowed: true,
+      // The initializer expression is assigned to the pattern, and so the
+      // coercion needs to be performed.
+      needsCoercion: true,
     );
     SharedTypeView initializerType = initializerAnalysisResult.type;
     // Stack: (Expression)
-    flow.patternVariableDeclaration_afterInitializer(
+    flow.patternVariableDeclaration_beforePattern(
       initializerAnalysisResult.flowAnalysisInfo,
       initializerType,
+      offset: beforePatternOffset,
     );
     Map<String, List<Variable>> componentVariables = {};
-    Map<String, int> patternVariablePromotionKeys = {};
+    Map<String, PromotionKey> patternVariablePromotionKeys = {};
     dispatchPattern(
       new MatchContext<Node, Expression, Pattern, Variable>(
         isFinal: isFinal,
@@ -1748,8 +2065,9 @@ mixin TypeAnalyzer<
       componentVariables,
       patternVariablePromotionKeys,
       location: JoinedPatternVariableLocation.singlePattern,
+      offset: patternEndOffset(pattern),
     );
-    flow.patternVariableDeclaration_end();
+    flow.patternVariableDeclaration_end(offset: endOffset);
     // Stack: (Expression, Pattern)
     return new PatternVariableDeclarationAnalysisResult(
       initializerType: initializerType,
@@ -1780,7 +2098,10 @@ mixin TypeAnalyzer<
 
     void dispatchField(int i, SharedTypeView matchedType) {
       RecordPatternField<Node, Pattern> field = fields[i];
-      flow.pushSubpattern(matchedType);
+      flow.pushSubpattern(
+        matchedType,
+        offset: patternStartOffset(field.pattern),
+      );
       dispatchPattern(context.withUnnecessaryWildcardKind(null), field.pattern);
       SharedTypeView demonstratedType = flow.getMatchedValueType();
       String? name = field.name;
@@ -1822,6 +2143,7 @@ mixin TypeAnalyzer<
     flow.promoteForPattern(
       matchedType: matchedValueType,
       knownType: requiredType,
+      offset: patternStartOffset(node),
     );
 
     // Stack: ()
@@ -1868,6 +2190,7 @@ mixin TypeAnalyzer<
       matchedType: matchedValueType,
       knownType: demonstratedType,
       matchFailsIfWrongType: false,
+      offset: patternEndOffset(node),
     );
     return new RecordPatternResult(
       requiredType: requiredType,
@@ -1953,6 +2276,10 @@ mixin TypeAnalyzer<
       operand,
       operandSchema,
       isVoidAllowed: true,
+      // The constant expressions in relational patterns are considered to be
+      // passed into the corresponding operator, and so the coercion needs to be
+      // performed.
+      needsCoercion: true,
     );
     SharedTypeView operandType = operandAnalysisResult.type;
     if (isEquality) {
@@ -1961,6 +2288,7 @@ mixin TypeAnalyzer<
         operandType,
         notEqual: operator?.kind == RelationalOperatorKind.notEquals,
         matchedValueType: matchedValueType,
+        offset: patternEndOffset(node),
       );
     } else {
       flow.nonEqualityRelationalPattern_end();
@@ -2016,14 +2344,19 @@ mixin TypeAnalyzer<
   /// Returns a [SwitchExpressionResult] with the static type of the switch
   /// expression and information about reported errors.
   ///
+  /// [scrutineeEndOffset] is the last source offset that should be considered
+  /// to be part of the scrutinee expression. The offset of the `)` is probably
+  /// the best choice.
+  ///
   /// Stack effect: pushes (Expression, n * ExpressionCase), where n is the
   /// number of cases.
   SwitchExpressionResult<Error> analyzeSwitchExpression(
     Expression node,
     Expression scrutinee,
     int numCases,
-    SharedTypeSchemaView schema,
-  ) {
+    SharedTypeSchemaView schema, {
+    int scrutineeEndOffset = 0,
+  }) {
     // Stack: ()
 
     // The static type of a switch expression `E` of the form `switch (e0) { p1
@@ -2039,10 +2372,11 @@ mixin TypeAnalyzer<
     SharedTypeView expressionType = scrutineeAnalysisResult.type;
     // Stack: (Expression)
     handleSwitchScrutinee(expressionType);
-    flow.switchStatement_expressionEnd(
+    flow.switch_scrutineeEnd(
       null,
       scrutineeAnalysisResult.flowAnalysisInfo,
       expressionType,
+      offset: scrutineeEndOffset,
     );
 
     // - If the switch expression has no cases, its static type is `Never`.
@@ -2071,58 +2405,61 @@ mixin TypeAnalyzer<
         // Stack: (Expression, i * ExpressionCase)
         SwitchExpressionMemberInfo<Node, Expression, Variable> memberInfo =
             getSwitchExpressionMemberInfo(node, i);
-        flow.switchStatement_beginAlternatives();
-        flow.switchStatement_beginAlternative();
+        flow.switch_beginAlternatives();
+        flow.switch_beginAlternative(offset: memberInfo.beginAlternativeOffset);
         handleSwitchBeforeAlternative(node, caseIndex: i, subIndex: 0);
         Node? pattern = memberInfo.head.pattern;
         ExpressionInfo? guardInfo;
-        if (pattern != null) {
-          Map<String, List<Variable>> componentVariables = {};
-          Map<String, int> patternVariablePromotionKeys = {};
-          dispatchPattern(
-            new MatchContext<Node, Expression, Pattern, Variable>(
-              isFinal: false,
-              switchScrutinee: scrutinee,
-              componentVariables: componentVariables,
-              patternVariablePromotionKeys: patternVariablePromotionKeys,
-            ),
-            pattern,
+        Map<String, List<Variable>> componentVariables = {};
+        Map<String, PromotionKey> patternVariablePromotionKeys = {};
+        dispatchPattern(
+          new MatchContext<Node, Expression, Pattern, Variable>(
+            isFinal: false,
+            switchScrutinee: scrutinee,
+            componentVariables: componentVariables,
+            patternVariablePromotionKeys: patternVariablePromotionKeys,
+          ),
+          pattern,
+        );
+        _finishJoinedPatternVariables(
+          memberInfo.head.variables,
+          componentVariables,
+          patternVariablePromotionKeys,
+          location: JoinedPatternVariableLocation.singlePattern,
+          offset: memberInfo.head.finishJoinedPatternVariablesOffset,
+        );
+        // Stack: (Expression, i * ExpressionCase, Pattern)
+        Expression? guard = memberInfo.head.guard;
+        if (guard != null) {
+          ExpressionTypeAnalysisResult guardAnalysisResult = analyzeExpression(
+            guard,
+            operations.typeToSchema(operations.boolType),
+            isVoidAllowed: true,
           );
-          _finishJoinedPatternVariables(
-            memberInfo.head.variables,
-            componentVariables,
-            patternVariablePromotionKeys,
-            location: JoinedPatternVariableLocation.singlePattern,
-          );
-          // Stack: (Expression, i * ExpressionCase, Pattern)
-          Expression? guard = memberInfo.head.guard;
-          if (guard != null) {
-            ExpressionTypeAnalysisResult guardAnalysisResult =
-                analyzeExpression(
-                  guard,
-                  operations.typeToSchema(operations.boolType),
-                  isVoidAllowed: true,
-                );
-            SharedTypeView guardType = guardAnalysisResult.type;
-            Error? nonBooleanGuardError = _checkGuardType(guard, guardType);
-            (guardTypes ??= {})[i] = guardType;
-            if (nonBooleanGuardError != null) {
-              (nonBooleanGuardErrors ??= {})[i] = nonBooleanGuardError;
-            }
-            guardInfo = guardAnalysisResult.flowAnalysisInfo;
-            // Stack: (Expression, i * ExpressionCase, Pattern, Expression)
-          } else {
-            handleNoGuard(node, i);
-            guardInfo = flow.booleanLiteral(true);
-            // Stack: (Expression, i * ExpressionCase, Pattern, Expression)
+          SharedTypeView guardType = guardAnalysisResult.type;
+          Error? nonBooleanGuardError = _checkGuardType(guard, guardType);
+          (guardTypes ??= {})[i] = guardType;
+          if (nonBooleanGuardError != null) {
+            (nonBooleanGuardErrors ??= {})[i] = nonBooleanGuardError;
           }
-          handleCaseHead(node, caseIndex: i, subIndex: 0);
+          guardInfo = guardAnalysisResult.flowAnalysisInfo;
+          // Stack: (Expression, i * ExpressionCase, Pattern, Expression)
         } else {
-          handleDefault(node, caseIndex: i, subIndex: 0);
+          handleNoGuard(node, i);
           guardInfo = flow.booleanLiteral(true);
+          // Stack: (Expression, i * ExpressionCase, Pattern, Expression)
         }
-        flow.switchStatement_endAlternative(guardInfo, {});
-        flow.switchStatement_endAlternatives(null, hasLabels: false);
+        handleCaseHead(node, caseIndex: i, subIndex: 0);
+        flow.switch_endAlternative(
+          guardInfo,
+          {},
+          offset: memberInfo.endAlternativeOffset,
+        );
+        flow.switch_endAlternatives(
+          null,
+          hasLabels: false,
+          offset: memberInfo.endAlternativeOffset,
+        );
         // Stack: (Expression, i * ExpressionCase, CaseHead)
         SharedTypeView ti = analyzeExpression(
           memberInfo.expression,
@@ -2132,7 +2469,9 @@ mixin TypeAnalyzer<
         if (allCasesSatisfyContext && !operations.isSubtypeOf(ti, s)) {
           allCasesSatisfyContext = false;
         }
-        flow.switchStatement_afterCase();
+        flow.switch_afterCase(
+          offset: expressionEndOffset(memberInfo.expression),
+        );
         // Stack: (Expression, i * ExpressionCase, CaseHead, Expression)
         if (t == null) {
           t = ti;
@@ -2160,7 +2499,7 @@ mixin TypeAnalyzer<
       }
     }
     // Stack: (Expression, numCases * ExpressionCase)
-    flow.switchStatement_end(true);
+    flow.switch_end(true, offset: expressionEndOffset(node));
     return new SwitchExpressionResult(
       type: staticType,
       nonBooleanGuardErrors: nonBooleanGuardErrors,
@@ -2170,13 +2509,18 @@ mixin TypeAnalyzer<
 
   /// Analyzes a statement of the form `switch (expression) { cases }`.
   ///
+  /// [scrutineeEndOffset] is the last source offset that should be considered
+  /// to be part of the scrutinee expression. The offset of the `)` is probably
+  /// the best choice.
+  ///
   /// Stack effect: pushes (Expression, n * StatementCase), where n is the
   /// number of cases after merging together cases that share a body.
   SwitchStatementTypeAnalysisResult<Error> analyzeSwitchStatement(
     Statement node,
     Expression scrutinee,
-    int numCases,
-  ) {
+    int numCases, {
+    int scrutineeEndOffset = 0,
+  }) {
     // Stack: ()
     ExpressionTypeAnalysisResult scrutineeAnalysisResult = analyzeExpression(
       scrutinee,
@@ -2186,19 +2530,21 @@ mixin TypeAnalyzer<
     SharedTypeView scrutineeType = scrutineeAnalysisResult.type;
     // Stack: (Expression)
     handleSwitchScrutinee(scrutineeType);
-    flow.switchStatement_expressionEnd(
+    flow.switch_scrutineeEnd(
       node,
       scrutineeAnalysisResult.flowAnalysisInfo,
       scrutineeType,
+      offset: scrutineeEndOffset,
     );
     bool hasDefault = false;
     bool lastCaseTerminates = true;
     Map<int, Error>? switchCaseCompletesNormallyErrors;
     Map<int, Map<int, Error>>? nonBooleanGuardErrors;
     Map<int, Map<int, SharedTypeView>>? guardTypes;
+    int lastOffset = scrutineeEndOffset;
     for (int caseIndex = 0; caseIndex < numCases; caseIndex++) {
       // Stack: (Expression, numExecutionPaths * StatementCase)
-      flow.switchStatement_beginAlternatives();
+      flow.switch_beginAlternatives();
       // Stack: (Expression, numExecutionPaths * StatementCase,
       //         numHeads * CaseHead)
       SwitchStatementMemberInfo<Node, Statement, Expression, Variable>
@@ -2208,17 +2554,17 @@ mixin TypeAnalyzer<
       for (int headIndex = 0; headIndex < heads.length; headIndex++) {
         CaseHeadOrDefaultInfo<Node, Expression, Variable> head =
             heads[headIndex];
-        Node? pattern = head.pattern;
-        flow.switchStatement_beginAlternative();
+        flow.switch_beginAlternative(offset: head.beginAlternativeOffset);
         handleSwitchBeforeAlternative(
           node,
           caseIndex: caseIndex,
           subIndex: headIndex,
         );
         ExpressionInfo? guardInfo;
-        if (pattern != null) {
+        if (head is CaseHeadInfo<Node, Expression, Variable>) {
+          Node pattern = head.pattern;
           Map<String, List<Variable>> componentVariables = {};
-          Map<String, int> patternVariablePromotionKeys = {};
+          Map<String, PromotionKey> patternVariablePromotionKeys = {};
           dispatchPattern(
             new MatchContext<Node, Expression, Pattern, Variable>(
               isFinal: false,
@@ -2233,6 +2579,7 @@ mixin TypeAnalyzer<
             componentVariables,
             patternVariablePromotionKeys,
             location: JoinedPatternVariableLocation.singlePattern,
+            offset: head.finishJoinedPatternVariablesOffset,
           );
           // Stack: (Expression, numExecutionPaths * StatementCase,
           //         numHeads * CaseHead, Pattern),
@@ -2266,14 +2613,19 @@ mixin TypeAnalyzer<
         }
         // Stack: (Expression, numExecutionPaths * StatementCase,
         //         numHeads * CaseHead),
-        flow.switchStatement_endAlternative(guardInfo, head.variables);
+        flow.switch_endAlternative(
+          guardInfo,
+          head.variables,
+          offset: lastOffset = head.endAlternativeOffset,
+        );
       }
       // Stack: (Expression, numExecutionPaths * StatementCase,
       //         numHeads * CaseHead)
       PatternVariableInfo<Variable> patternVariableInfo = flow
-          .switchStatement_endAlternatives(
+          .switch_endAlternatives(
             node,
             hasLabels: memberInfo.hasLabels,
+            offset: lastOffset,
           );
       Map<String, Variable> variables = memberInfo.variables;
       if (memberInfo.hasLabels || heads.length > 1) {
@@ -2282,6 +2634,7 @@ mixin TypeAnalyzer<
           patternVariableInfo.componentVariables,
           patternVariableInfo.patternVariablePromotionKeys,
           location: JoinedPatternVariableLocation.sharedCaseScope,
+          offset: lastOffset,
         );
       }
       handleCase_afterCaseHeads(node, caseIndex, variables.values);
@@ -2292,7 +2645,7 @@ mixin TypeAnalyzer<
       }
       // Stack: (Expression, numExecutionPaths * StatementCase, CaseHeads,
       //         n * Statement), where n = body.length
-      lastCaseTerminates = !flow.switchStatement_afterCase();
+      lastCaseTerminates = !flow.switch_afterCase(offset: memberInfo.endOffset);
       if (caseIndex < numCases - 1 &&
           !typeAnalyzerOptions.patternsEnabled &&
           !lastCaseTerminates) {
@@ -2304,6 +2657,7 @@ mixin TypeAnalyzer<
         caseIndex: caseIndex,
         isTerminating: lastCaseTerminates,
       );
+      lastOffset = memberInfo.endOffset;
       // Stack: (Expression, (numExecutionPaths + 1) * StatementCase)
     }
     // Stack: (Expression, numExecutionPaths * StatementCase)
@@ -2319,7 +2673,7 @@ mixin TypeAnalyzer<
       isExhaustive = isLegacySwitchExhaustive(node, scrutineeType);
       requiresExhaustivenessValidation = false;
     }
-    flow.switchStatement_end(isExhaustive);
+    flow.switch_end(isExhaustive, offset: statementEndOffset(node));
     return new SwitchStatementTypeAnalysisResult(
       hasDefault: hasDefault,
       isExhaustive: isExhaustive,
@@ -2330,28 +2684,6 @@ mixin TypeAnalyzer<
       nonBooleanGuardErrors: nonBooleanGuardErrors,
       guardTypes: guardTypes,
     );
-  }
-
-  /// Analyzes a variable declaration of the form `type variable;` or
-  /// `var variable;`.
-  ///
-  /// [node] should be the AST node for the entire declaration, [variable] for
-  /// the variable, and [declaredType] for the type (if present).  [isFinal]
-  /// indicates whether this is a final declaration.
-  ///
-  /// Stack effect: none.
-  ///
-  /// Returns the inferred type of the variable.
-  SharedTypeView analyzeUninitializedVariableDeclaration(
-    Node node,
-    Variable variable,
-    SharedTypeView? declaredType, {
-    required bool isFinal,
-  }) {
-    SharedTypeView inferredType = declaredType ?? operations.dynamicType;
-    setVariableType(variable, inferredType);
-    flow.declare(variable, inferredType, initialized: false);
-    return inferredType;
   }
 
   /// Analyzes a wildcard pattern.  [node] is the pattern.
@@ -2386,6 +2718,7 @@ mixin TypeAnalyzer<
       isAlwaysMatching = flow.promoteForPattern(
         matchedType: matchedValueType,
         knownType: declaredType,
+        offset: patternEndOffset(node),
       );
     } else {
       isAlwaysMatching = true;
@@ -2423,11 +2756,16 @@ mixin TypeAnalyzer<
   /// Returns an [YieldStatementResult] containing the static type of the
   /// operand.
   ///
+  /// [suspensionOffset] is the last source offset that should be considered to
+  /// be prior to the suspension taking place. The offset of the `;` is probably
+  /// the best choice.
+  ///
   /// Stack effect: pushes the operand expression.
   YieldStatementResult analyzeYieldStatement(
     Statement node,
     Expression operand, {
     required bool isYieldStar,
+    int suspensionOffset = 0,
   }) {
     // Stack: ()
 
@@ -2457,7 +2795,7 @@ mixin TypeAnalyzer<
     );
     // Stack: (operand)
 
-    flow.suspension(node);
+    flow.suspension(node, offset: suspensionOffset);
     return new YieldStatementResult(operandType: operandResult.type);
   }
 
@@ -2480,11 +2818,16 @@ mixin TypeAnalyzer<
   /// If [isVoidAllowed] is `false` (the default), and the static type of the
   /// expression is void, an error will be reported.
   ///
+  /// If [needsCoercion] is `true`, the expression is coerced on assignment.
+  /// This is used by the CFE which performs expression coercion in the process
+  /// of type inference of the nodes where an assignment is executed.
+  ///
   /// Stack effect: pushes (Expression).
   ExpressionTypeAnalysisResult dispatchExpression(
     Expression node,
     SharedTypeSchemaView schema, {
     bool isVoidAllowed = false,
+    bool needsCoercion = false,
   });
 
   /// Calls the appropriate `analyze` method according to the form of [pattern].
@@ -2520,6 +2863,9 @@ mixin TypeAnalyzer<
     required SharedTypeView matchedType,
     required Pattern pattern,
   });
+
+  /// Gets the offset of the start of an expression.
+  int expressionStartOffset(Expression expression);
 
   /// Called after visiting an expression case.
   ///
@@ -2731,6 +3077,12 @@ mixin TypeAnalyzer<
   /// Queries whether [pattern] is a variable pattern.
   bool isVariablePattern(Node pattern);
 
+  /// Gets the offset of the end of a pattern.
+  int patternEndOffset(Pattern pattern);
+
+  /// Gets the offset of the start of a pattern.
+  int patternStartOffset(Pattern pattern);
+
   /// Pops the top of the [_dotShorthands] stack when we're finished resolving
   /// the dot shorthand head that requires the recent-most context.
   void popDotShorthandContext() {
@@ -2770,6 +3122,9 @@ mixin TypeAnalyzer<
   /// explicit or inferred.
   void setVariableType(Variable variable, SharedTypeView type);
 
+  /// Gets the offset of the end of a statement.
+  int statementEndOffset(Statement statement);
+
   /// Computes the type that should be inferred for an implicitly typed variable
   /// whose initializer expression has static type [type].
   SharedTypeView variableTypeFromInitializerType(SharedTypeView type);
@@ -2777,19 +3132,30 @@ mixin TypeAnalyzer<
   /// Common functionality shared by [analyzeIfStatement] and
   /// [analyzeIfCaseStatement].
   ///
+  /// [elseBeginOffset] is the last source offset that should be considered to
+  /// be part of the "then" part of the if statement. The offset any character
+  /// in the `else` keyword should work, since no expressions can appear in this
+  /// range, but the first character of the keyword is probably the best choice.
+  /// Caller may only pass `null` if [ifFalse] is also `null`.
+  ///
   /// Stack effect: pushes (Statement ifTrue, Statement ifFalse).
-  void _analyzeIfCommon(Statement node, Statement ifTrue, Statement? ifFalse) {
+  void _analyzeIfCommon(
+    Statement node,
+    Statement ifTrue,
+    Statement? ifFalse, {
+    required int? elseBeginOffset,
+  }) {
     // Stack: ()
     dispatchStatement(ifTrue);
     handle_ifStatement_thenEnd(node, ifTrue);
     // Stack: (Statement ifTrue)
     if (ifFalse == null) {
       handleNoStatement(node);
-      flow.ifStatement_end(false);
+      flow.ifStatement_end(false, offset: statementEndOffset(node));
     } else {
-      flow.ifStatement_elseBegin();
+      flow.ifStatement_elseBegin(offset: elseBeginOffset!);
       dispatchStatement(ifFalse);
-      flow.ifStatement_end(true);
+      flow.ifStatement_end(true, offset: statementEndOffset(node));
       handle_ifStatement_elseEnd(node, ifFalse);
     }
     // Stack: (Statement ifTrue, Statement ifFalse)
@@ -2798,25 +3164,38 @@ mixin TypeAnalyzer<
   /// Common functionality shared by [analyzeIfElement] and
   /// [analyzeIfCaseElement].
   ///
+  /// [elseBeginOffset] is the last source offset that should be considered to
+  /// be part of the "then" part of the if element. The offset any character in
+  /// the `else` keyword should work, since no expressions can appear in this
+  /// range, but the first character of the keyword is probably the best choice.
+  /// Caller may only pass `null` if [ifFalse] is also `null`.
+  ///
+  /// [endOffset] is the last source offset that should be considered to be part
+  /// of the "else" part of the if element (or the "then" part, if no "else"
+  /// part is present). The end offset of the if element is probably the best
+  /// choice.
+  ///
   /// Stack effect: pushes (CollectionElement ifTrue,
   /// CollectionElement ifFalse).
   void _analyzeIfElementCommon(
     Node node,
     Node ifTrue,
     Node? ifFalse,
-    Object? context,
-  ) {
+    Object? context, {
+    required int? elseBeginOffset,
+    required int endOffset,
+  }) {
     // Stack: ()
     dispatchCollectionElement(ifTrue, context);
     handle_ifElement_thenEnd(node, ifTrue);
     // Stack: (CollectionElement ifTrue)
     if (ifFalse == null) {
       handleNoCollectionElement(node);
-      flow.ifStatement_end(false);
+      flow.ifStatement_end(false, offset: endOffset);
     } else {
-      flow.ifStatement_elseBegin();
+      flow.ifStatement_elseBegin(offset: elseBeginOffset!);
       dispatchCollectionElement(ifFalse, context);
-      flow.ifStatement_end(true);
+      flow.ifStatement_end(true, offset: endOffset);
       handle_ifElement_elseEnd(node, ifFalse);
     }
     // Stack: (CollectionElement ifTrue, CollectionElement ifFalse)
@@ -2836,8 +3215,9 @@ mixin TypeAnalyzer<
   void _finishJoinedPatternVariables(
     Map<String, Variable> variables,
     Map<String, List<Variable>> componentVariables,
-    Map<String, int> patternVariablePromotionKeys, {
+    Map<String, PromotionKey> patternVariablePromotionKeys, {
     required JoinedPatternVariableLocation location,
+    required int offset,
   }) {
     assert(() {
       // Every entry in `variables` should match a variable we know about.
@@ -2846,9 +3226,10 @@ mixin TypeAnalyzer<
       }
       return true;
     }());
-    for (MapEntry<String, int> entry in patternVariablePromotionKeys.entries) {
+    for (MapEntry<String, PromotionKey> entry
+        in patternVariablePromotionKeys.entries) {
       String variableName = entry.key;
-      int promotionKey = entry.value;
+      PromotionKey promotionKey = entry.value;
       Variable? variable = variables[variableName];
       List<Variable> components = componentVariables[variableName] ?? [];
       bool isFirst = true;
@@ -2902,7 +3283,11 @@ mixin TypeAnalyzer<
             isFinal: isFinalIfConsistent ?? false,
             type: typeIfConsistent ?? operations.errorType,
           );
-          flow.assignMatchedPatternVariable(variable, promotionKey);
+          flow.assignMatchedPatternVariable(
+            variable,
+            promotionKey,
+            offset: offset,
+          );
         }
       }
     }

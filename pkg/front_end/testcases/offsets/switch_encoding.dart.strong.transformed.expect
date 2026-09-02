@@ -46,7 +46,7 @@ import "dart:core" as core;
 [639]    {
 [649]      [649, -1] lowered hoisted dynamic a#case#0;
 [681]      [681, -1] lowered hoisted dynamic a#case#1;
-[639]      if([622] [622] [649] [649] [-1] [-1] [644] [644] [644] [644] [644] [644] [-1] [-1] #0#0 is core::List<dynamic> && [644] [644] [644]([644] [-1] [-1] #0#2#isSet ?{core::int} [-1] [-1] #0#2 : [644] [644] let [644, -1] final dynamic #t2 = [644] [644] #0#2#isSet = [644] [644] true in [644] [644] #0#2 = [644] [644] [-1] [-1] #0#0{core::List<dynamic>}.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} [-1] [-1] #C4 && [649]([649] let [649, -1] final dynamic #t3 = [649] [649] a#case#0 = [644] [644] [-1] [-1] #0#0{core::List<dynamic>}.{core::List::[]}[644]([644] 0){(core::int) → dynamic} in [-1] [-1] true) && [659] [659] [659] [659] [657] [657] a#case#0{dynamic}.> [659]([661] 5) as{TypeError} core::bool && [622]([622] let [622, -1] final dynamic #t4 = [622] [622] #t1 = [649] [649] a#case#0 in [649] [649] true) || [681] [681] [-1] [-1] [673] [673] [673] [673] [673] [673] [-1] [-1] #0#0 is core::List<dynamic> && [673] [673] [644]([644] [-1] [-1] #0#2#isSet ?{core::int} [-1] [-1] #0#2 : [644] [644] let [644, -1] final dynamic #t5 = [644] [644] #0#2#isSet = [644] [644] true in [644] [644] #0#2 = [644] [644] [-1] [-1] #0#0{core::List<dynamic>}.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} [-1] [-1] #C7 && [681]([681] let [681, -1] final dynamic #t6 = [681] [681] a#case#1 = [673] [673] [-1] [-1] #0#0{core::List<dynamic>}.{core::List::[]}[673]([673] 1){(core::int) → dynamic} in [-1] [-1] true) && [691] [691] [691] [691] [689] [689] a#case#1{dynamic}.< [691]([693] 5) as{TypeError} core::bool && [622]([622] let [622, -1] final dynamic #t7 = [622] [622] #t1 = [681] [681] a#case#1 in [681] [681] true)) {
+[639]      if([622] [622] [649] [649] [-1] [-1] [644] [644] [644] [644] [644] [644] [-1] [-1] #0#0 is core::List<dynamic> && [644] [644] [644]([644] [-1] [-1] #0#2#isSet ?{core::int} [644] [644] #0#2 : [644] [644] let [644, -1] final dynamic #t2 = [644] [644] #0#2#isSet = [644] [644] true in [644] [644] #0#2 = [644] [644] [-1] [-1] #0#0{core::List<dynamic>}.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} [-1] [-1] #C4 && [649]([649] let [649, -1] final dynamic #t3 = [649] [649] a#case#0 = [644] [644] [-1] [-1] #0#0{core::List<dynamic>}.{core::List::[]}[644]([644] 0){(core::int) → dynamic} in [-1] [-1] true) && [659] [659] [659] [659] [657] [657] a#case#0{dynamic}.> [659]([661] 5) as{TypeError} core::bool && [622]([622] let [622, -1] final dynamic #t4 = [622] [622] #t1 = [649] [649] a#case#0 in [649] [649] true) || [681] [681] [-1] [-1] [673] [673] [673] [673] [673] [673] [-1] [-1] #0#0 is core::List<dynamic> && [673] [673] [644]([644] [-1] [-1] #0#2#isSet ?{core::int} [644] [644] #0#2 : [644] [644] let [644, -1] final dynamic #t5 = [644] [644] #0#2#isSet = [644] [644] true in [644] [644] #0#2 = [644] [644] [-1] [-1] #0#0{core::List<dynamic>}.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} [-1] [-1] #C7 && [681]([681] let [681, -1] final dynamic #t6 = [681] [681] a#case#1 = [673] [673] [-1] [-1] #0#0{core::List<dynamic>}.{core::List::[]}[673]([673] 1){(core::int) → dynamic} in [-1] [-1] true) && [691] [691] [691] [691] [689] [689] a#case#1{dynamic}.< [691]([693] 5) as{TypeError} core::bool && [622]([622] let [622, -1] final dynamic #t7 = [622] [622] #t1 = [681] [681] a#case#1 in [681] [681] true)) {
 [649]        [649, -1] dynamic a = [-1] [-1] #t1;
 [639]        {
 [702]          [702] [702] core::print [707]([708] a);
@@ -55,10 +55,10 @@ import "dart:core" as core;
       }
     }
 [716]    {
-[729]      [729, -1] hoisted dynamic a;
-[716]      if([721] [721] [723] [723] [721] [721] [-1] [-1] #0#0 is core::Map<dynamic, dynamic> && [723]([723] [723] [723]![723]([723] [723]([723] [-1] [-1] #0#13#isSet ?{dynamic} [-1] [-1] #0#13 : [723] [723] let [723, -1] final dynamic #t8 = [723] [723] #0#13#isSet = [723] [723] true in [723] [723] #0#13 = [723] [723] [-1] [-1] #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}[723]([-1] #C4){(core::Object?) → dynamic}) == null) || [723] [723] [723] [723] [723] [723] null is dynamic && [723] [723] [-1] [-1] #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}[723]([-1] #C4){(core::Object?) → core::bool}) && [729]([729] let [729, -1] final dynamic #t9 = [729] [729] a = [723] [723] [-1] [-1] #0#13#isSet ?{dynamic} [-1] [-1] #0#13 : [723] [723] let [723, -1] final dynamic #t10 = [723] [723] #0#13#isSet = [723] [723] true in [723] [723] #0#13 = [723] [723] [-1] [-1] #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}[723]([-1] #C4){(core::Object?) → dynamic} in [-1] [-1] true)) {
+[729]      [729, -1] hoisted dynamic a##1;
+[716]      if([721] [721] [723] [723] [721] [721] [-1] [-1] #0#0 is core::Map<dynamic, dynamic> && [723]([723] [723] [723]![723]([723] [723]([723] [-1] [-1] #0#13#isSet ?{dynamic} [723] [723] #0#13 : [723] [723] let [723, -1] final dynamic #t8 = [723] [723] #0#13#isSet = [723] [723] true in [723] [723] #0#13 = [723] [723] [-1] [-1] #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}[723]([-1] #C4){(core::Object?) → dynamic}) == null) || [723] [723] [723] [723] [723] [723] null is dynamic && [723] [723] [-1] [-1] #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}[723]([-1] #C4){(core::Object?) → core::bool}) && [729]([729] let [729, -1] final dynamic #t9 = [729] [729] a##1 = [723] [723] [-1] [-1] #0#13#isSet ?{dynamic} [723] [723] #0#13 : [723] [723] let [723, -1] final dynamic #t10 = [723] [723] #0#13#isSet = [723] [723] true in [723] [723] #0#13 = [723] [723] [-1] [-1] #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}[723]([-1] #C4){(core::Object?) → dynamic} in [-1] [-1] true)) {
 [716]        {
-[739]          [739] [739] core::print [744]([745] a);
+[739]          [739] [739] core::print [744]([745] a##1);
         }
       }
     }
@@ -78,7 +78,7 @@ import "dart:core" as core;
 [805]    {
 [815]      [815, -1] lowered hoisted dynamic a#case#0;
 [847]      [847, -1] lowered hoisted dynamic a#case#1;
-[805]      if([788] [788] [815] [815] [-1] [-1] [810] [810] [810] [810] [810] [810] [-1] [-1] #0#0 is core::List<dynamic> && [810] [810] [810]([810] [-1] [-1] #0#2#isSet ?{core::int} [-1] [-1] #0#2 : [810] [810] let [810, -1] final dynamic #t12 = [810] [810] #0#2#isSet = [810] [810] true in [810] [810] #0#2 = [810] [810] [-1] [-1] #0#0{core::List<dynamic>}.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} [-1] [-1] #C4 && [815]([815] let [815, -1] final dynamic #t13 = [815] [815] a#case#0 = [810] [810] [-1] [-1] #0#0{core::List<dynamic>}.{core::List::[]}[810]([810] 0){(core::int) → dynamic} in [-1] [-1] true) && [825] [825] [825] [825] [823] [823] a#case#0{dynamic}.> [825]([827] 5) as{TypeError} core::bool && [788]([788] let [788, -1] final dynamic #t14 = [788] [788] #t11 = [815] [815] a#case#0 in [815] [815] true) || [847] [847] [-1] [-1] [839] [839] [839] [839] [839] [839] [-1] [-1] #0#0 is core::List<dynamic> && [839] [839] [810]([810] [-1] [-1] #0#2#isSet ?{core::int} [-1] [-1] #0#2 : [810] [810] let [810, -1] final dynamic #t15 = [810] [810] #0#2#isSet = [810] [810] true in [810] [810] #0#2 = [810] [810] [-1] [-1] #0#0{core::List<dynamic>}.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} [-1] [-1] #C7 && [847]([847] let [847, -1] final dynamic #t16 = [847] [847] a#case#1 = [839] [839] [-1] [-1] #0#0{core::List<dynamic>}.{core::List::[]}[839]([839] 1){(core::int) → dynamic} in [-1] [-1] true) && [857] [857] [857] [857] [855] [855] a#case#1{dynamic}.< [857]([859] 5) as{TypeError} core::bool && [788]([788] let [788, -1] final dynamic #t17 = [788] [788] #t11 = [847] [847] a#case#1 in [847] [847] true)) {
+[805]      if([788] [788] [815] [815] [-1] [-1] [810] [810] [810] [810] [810] [810] [-1] [-1] #0#0 is core::List<dynamic> && [810] [810] [810]([810] [-1] [-1] #0#2#isSet ?{core::int} [810] [810] #0#2 : [810] [810] let [810, -1] final dynamic #t12 = [810] [810] #0#2#isSet = [810] [810] true in [810] [810] #0#2 = [810] [810] [-1] [-1] #0#0{core::List<dynamic>}.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} [-1] [-1] #C4 && [815]([815] let [815, -1] final dynamic #t13 = [815] [815] a#case#0 = [810] [810] [-1] [-1] #0#0{core::List<dynamic>}.{core::List::[]}[810]([810] 0){(core::int) → dynamic} in [-1] [-1] true) && [825] [825] [825] [825] [823] [823] a#case#0{dynamic}.> [825]([827] 5) as{TypeError} core::bool && [788]([788] let [788, -1] final dynamic #t14 = [788] [788] #t11 = [815] [815] a#case#0 in [815] [815] true) || [847] [847] [-1] [-1] [839] [839] [839] [839] [839] [839] [-1] [-1] #0#0 is core::List<dynamic> && [839] [839] [810]([810] [-1] [-1] #0#2#isSet ?{core::int} [810] [810] #0#2 : [810] [810] let [810, -1] final dynamic #t15 = [810] [810] #0#2#isSet = [810] [810] true in [810] [810] #0#2 = [810] [810] [-1] [-1] #0#0{core::List<dynamic>}.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} [-1] [-1] #C7 && [847]([847] let [847, -1] final dynamic #t16 = [847] [847] a#case#1 = [839] [839] [-1] [-1] #0#0{core::List<dynamic>}.{core::List::[]}[839]([839] 1){(core::int) → dynamic} in [-1] [-1] true) && [857] [857] [857] [857] [855] [855] a#case#1{dynamic}.< [857]([859] 5) as{TypeError} core::bool && [788]([788] let [788, -1] final dynamic #t17 = [788] [788] #t11 = [847] [847] a#case#1 in [847] [847] true)) {
 [815]        [815, -1] dynamic a = [-1] [-1] #t11;
 [805]        {
 [868]          [868] [868] core::print [873]([874] a);
@@ -87,10 +87,10 @@ import "dart:core" as core;
       }
     }
 [882]    {
-[895]      [895, -1] hoisted dynamic a;
-[882]      if([887] [887] [889] [889] [887] [887] [-1] [-1] #0#0 is core::Map<dynamic, dynamic> && [889]([889] [889] [889]![889]([889] [889]([889] [-1] [-1] #0#13#isSet ?{dynamic} [-1] [-1] #0#13 : [889] [889] let [889, -1] final dynamic #t18 = [889] [889] #0#13#isSet = [889] [889] true in [889] [889] #0#13 = [889] [889] [-1] [-1] #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}[889]([-1] #C4){(core::Object?) → dynamic}) == null) || [889] [889] [889] [889] [889] [889] null is dynamic && [889] [889] [-1] [-1] #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}[889]([-1] #C4){(core::Object?) → core::bool}) && [895]([895] let [895, -1] final dynamic #t19 = [895] [895] a = [889] [889] [-1] [-1] #0#13#isSet ?{dynamic} [-1] [-1] #0#13 : [889] [889] let [889, -1] final dynamic #t20 = [889] [889] #0#13#isSet = [889] [889] true in [889] [889] #0#13 = [889] [889] [-1] [-1] #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}[889]([-1] #C4){(core::Object?) → dynamic} in [-1] [-1] true)) {
+[895]      [895, -1] hoisted dynamic a##1;
+[882]      if([887] [887] [889] [889] [887] [887] [-1] [-1] #0#0 is core::Map<dynamic, dynamic> && [889]([889] [889] [889]![889]([889] [889]([889] [-1] [-1] #0#13#isSet ?{dynamic} [889] [889] #0#13 : [889] [889] let [889, -1] final dynamic #t18 = [889] [889] #0#13#isSet = [889] [889] true in [889] [889] #0#13 = [889] [889] [-1] [-1] #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}[889]([-1] #C4){(core::Object?) → dynamic}) == null) || [889] [889] [889] [889] [889] [889] null is dynamic && [889] [889] [-1] [-1] #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}[889]([-1] #C4){(core::Object?) → core::bool}) && [895]([895] let [895, -1] final dynamic #t19 = [895] [895] a##1 = [889] [889] [-1] [-1] #0#13#isSet ?{dynamic} [889] [889] #0#13 : [889] [889] let [889, -1] final dynamic #t20 = [889] [889] #0#13#isSet = [889] [889] true in [889] [889] #0#13 = [889] [889] [-1] [-1] #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}[889]([-1] #C4){(core::Object?) → dynamic} in [-1] [-1] true)) {
 [882]        {
-[905]          [905] [905] core::print [910]([911] a);
+[905]          [905] [905] core::print [910]([911] a##1);
 [-1]          break #L2;
         }
       }
@@ -122,7 +122,7 @@ import "dart:core" as core;
 [1013]      {
 [1023]        [1023, -1] lowered hoisted dynamic a#case#0;
 [1055]        [1055, -1] lowered hoisted dynamic a#case#1;
-[1013]        if([996] [996] [1023] [1023] [-1] [-1] [1018] [1018] [1018] [1018] [1018] [1018] [-1] [-1] #0#0 is core::List<dynamic> && [1018] [1018] [1018]([1018] [-1] [-1] #0#2#isSet ?{core::int} [-1] [-1] #0#2 : [1018] [1018] let [1018, -1] final dynamic #t23 = [1018] [1018] #0#2#isSet = [1018] [1018] true in [1018] [1018] #0#2 = [1018] [1018] [-1] [-1] #0#0{core::List<dynamic>}.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} [-1] [-1] #C4 && [1023]([1023] let [1023, -1] final dynamic #t24 = [1023] [1023] a#case#0 = [1018] [1018] [-1] [-1] #0#0{core::List<dynamic>}.{core::List::[]}[1018]([1018] 0){(core::int) → dynamic} in [-1] [-1] true) && [1033] [1033] [1033] [1033] [1031] [1031] a#case#0{dynamic}.> [1033]([1035] 5) as{TypeError} core::bool && [996]([996] let [996, -1] final dynamic #t25 = [996] [996] #t22 = [1023] [1023] a#case#0 in [1023] [1023] true) || [1055] [1055] [-1] [-1] [1047] [1047] [1047] [1047] [1047] [1047] [-1] [-1] #0#0 is core::List<dynamic> && [1047] [1047] [1018]([1018] [-1] [-1] #0#2#isSet ?{core::int} [-1] [-1] #0#2 : [1018] [1018] let [1018, -1] final dynamic #t26 = [1018] [1018] #0#2#isSet = [1018] [1018] true in [1018] [1018] #0#2 = [1018] [1018] [-1] [-1] #0#0{core::List<dynamic>}.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} [-1] [-1] #C7 && [1055]([1055] let [1055, -1] final dynamic #t27 = [1055] [1055] a#case#1 = [1047] [1047] [-1] [-1] #0#0{core::List<dynamic>}.{core::List::[]}[1047]([1047] 1){(core::int) → dynamic} in [-1] [-1] true) && [1065] [1065] [1065] [1065] [1063] [1063] a#case#1{dynamic}.< [1065]([1067] 5) as{TypeError} core::bool && [996]([996] let [996, -1] final dynamic #t28 = [996] [996] #t22 = [1055] [1055] a#case#1 in [1055] [1055] true)) {
+[1013]        if([996] [996] [1023] [1023] [-1] [-1] [1018] [1018] [1018] [1018] [1018] [1018] [-1] [-1] #0#0 is core::List<dynamic> && [1018] [1018] [1018]([1018] [-1] [-1] #0#2#isSet ?{core::int} [1018] [1018] #0#2 : [1018] [1018] let [1018, -1] final dynamic #t23 = [1018] [1018] #0#2#isSet = [1018] [1018] true in [1018] [1018] #0#2 = [1018] [1018] [-1] [-1] #0#0{core::List<dynamic>}.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} [-1] [-1] #C4 && [1023]([1023] let [1023, -1] final dynamic #t24 = [1023] [1023] a#case#0 = [1018] [1018] [-1] [-1] #0#0{core::List<dynamic>}.{core::List::[]}[1018]([1018] 0){(core::int) → dynamic} in [-1] [-1] true) && [1033] [1033] [1033] [1033] [1031] [1031] a#case#0{dynamic}.> [1033]([1035] 5) as{TypeError} core::bool && [996]([996] let [996, -1] final dynamic #t25 = [996] [996] #t22 = [1023] [1023] a#case#0 in [1023] [1023] true) || [1055] [1055] [-1] [-1] [1047] [1047] [1047] [1047] [1047] [1047] [-1] [-1] #0#0 is core::List<dynamic> && [1047] [1047] [1018]([1018] [-1] [-1] #0#2#isSet ?{core::int} [1018] [1018] #0#2 : [1018] [1018] let [1018, -1] final dynamic #t26 = [1018] [1018] #0#2#isSet = [1018] [1018] true in [1018] [1018] #0#2 = [1018] [1018] [-1] [-1] #0#0{core::List<dynamic>}.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} [-1] [-1] #C7 && [1055]([1055] let [1055, -1] final dynamic #t27 = [1055] [1055] a#case#1 = [1047] [1047] [-1] [-1] #0#0{core::List<dynamic>}.{core::List::[]}[1047]([1047] 1){(core::int) → dynamic} in [-1] [-1] true) && [1065] [1065] [1065] [1065] [1063] [1063] a#case#1{dynamic}.< [1065]([1067] 5) as{TypeError} core::bool && [996]([996] let [996, -1] final dynamic #t28 = [996] [996] #t22 = [1055] [1055] a#case#1 in [1055] [1055] true)) {
 [1023]          [1023, -1] dynamic a = [-1] [-1] #t22;
 [1013]          {
 [1076]            [1076] [1076] core::print [1081]([1082] a);
@@ -131,10 +131,10 @@ import "dart:core" as core;
         }
       }
 [1090]      {
-[1103]        [1103, -1] hoisted dynamic a;
-[1090]        if([1095] [1095] [1097] [1097] [1095] [1095] [-1] [-1] #0#0 is core::Map<dynamic, dynamic> && [1097]([1097] [1097] [1097]![1097]([1097] [1097]([1097] [-1] [-1] #0#13#isSet ?{dynamic} [-1] [-1] #0#13 : [1097] [1097] let [1097, -1] final dynamic #t29 = [1097] [1097] #0#13#isSet = [1097] [1097] true in [1097] [1097] #0#13 = [1097] [1097] [-1] [-1] #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}[1097]([-1] #C4){(core::Object?) → dynamic}) == null) || [1097] [1097] [1097] [1097] [1097] [1097] null is dynamic && [1097] [1097] [-1] [-1] #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}[1097]([-1] #C4){(core::Object?) → core::bool}) && [1103]([1103] let [1103, -1] final dynamic #t30 = [1103] [1103] a = [1097] [1097] [-1] [-1] #0#13#isSet ?{dynamic} [-1] [-1] #0#13 : [1097] [1097] let [1097, -1] final dynamic #t31 = [1097] [1097] #0#13#isSet = [1097] [1097] true in [1097] [1097] #0#13 = [1097] [1097] [-1] [-1] #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}[1097]([-1] #C4){(core::Object?) → dynamic} in [-1] [-1] true)) {
+[1103]        [1103, -1] hoisted dynamic a##1;
+[1090]        if([1095] [1095] [1097] [1097] [1095] [1095] [-1] [-1] #0#0 is core::Map<dynamic, dynamic> && [1097]([1097] [1097] [1097]![1097]([1097] [1097]([1097] [-1] [-1] #0#13#isSet ?{dynamic} [1097] [1097] #0#13 : [1097] [1097] let [1097, -1] final dynamic #t29 = [1097] [1097] #0#13#isSet = [1097] [1097] true in [1097] [1097] #0#13 = [1097] [1097] [-1] [-1] #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}[1097]([-1] #C4){(core::Object?) → dynamic}) == null) || [1097] [1097] [1097] [1097] [1097] [1097] null is dynamic && [1097] [1097] [-1] [-1] #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}[1097]([-1] #C4){(core::Object?) → core::bool}) && [1103]([1103] let [1103, -1] final dynamic #t30 = [1103] [1103] a##1 = [1097] [1097] [-1] [-1] #0#13#isSet ?{dynamic} [1097] [1097] #0#13 : [1097] [1097] let [1097, -1] final dynamic #t31 = [1097] [1097] #0#13#isSet = [1097] [1097] true in [1097] [1097] #0#13 = [1097] [1097] [-1] [-1] #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}[1097]([-1] #C4){(core::Object?) → dynamic} in [-1] [-1] true)) {
 [1090]          {
-[1113]            [1113] [1113] core::print [1118]([1119] a);
+[1113]            [1113] [1113] core::print [1118]([1119] a##1);
 [1129]            [1129] [1129] #t21 = [1129] [1129] 0;
 [1129]            break #L4;
           }
@@ -202,10 +202,10 @@ import "dart:core" as core;
         }
       }
 [1382]      {
-[1395]        [1395, -1] hoisted dynamic a;
-[1382]        if([1387] [1387] [1389] [1389] [1387] [1387] [-1] [-1] #2#0 is core::Map<dynamic, dynamic> && [1389]([1389] [1389] [1389]![1389]([1389] [1389]([1389] [-1] [-1] #2#9#isSet ?{dynamic} [-1] [-1] #2#9 : [1389] [1389] let [1389, -1] final dynamic #t34 = [1389] [1389] #2#9#isSet = [1389] [1389] true in [1389] [1389] #2#9 = [1389] [1389] [-1] [-1] #2#0{core::Map<dynamic, dynamic>}.{core::Map::[]}[1389]([-1] #C4){(core::Object?) → dynamic}) == null) || [1389] [1389] [1389] [1389] [1389] [1389] null is dynamic && [1389] [1389] [-1] [-1] #2#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}[1389]([-1] #C4){(core::Object?) → core::bool}) && [1395]([1395] let [1395, -1] final dynamic #t35 = [1395] [1395] a = [1389] [1389] [-1] [-1] #2#9#isSet ?{dynamic} [-1] [-1] #2#9 : [1389] [1389] let [1389, -1] final dynamic #t36 = [1389] [1389] #2#9#isSet = [1389] [1389] true in [1389] [1389] #2#9 = [1389] [1389] [-1] [-1] #2#0{core::Map<dynamic, dynamic>}.{core::Map::[]}[1389]([-1] #C4){(core::Object?) → dynamic} in [-1] [-1] true)) {
+[1395]        [1395, -1] hoisted dynamic a##1;
+[1382]        if([1387] [1387] [1389] [1389] [1387] [1387] [-1] [-1] #2#0 is core::Map<dynamic, dynamic> && [1389]([1389] [1389] [1389]![1389]([1389] [1389]([1389] [-1] [-1] #2#9#isSet ?{dynamic} [1389] [1389] #2#9 : [1389] [1389] let [1389, -1] final dynamic #t34 = [1389] [1389] #2#9#isSet = [1389] [1389] true in [1389] [1389] #2#9 = [1389] [1389] [-1] [-1] #2#0{core::Map<dynamic, dynamic>}.{core::Map::[]}[1389]([-1] #C4){(core::Object?) → dynamic}) == null) || [1389] [1389] [1389] [1389] [1389] [1389] null is dynamic && [1389] [1389] [-1] [-1] #2#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}[1389]([-1] #C4){(core::Object?) → core::bool}) && [1395]([1395] let [1395, -1] final dynamic #t35 = [1395] [1395] a##1 = [1389] [1389] [-1] [-1] #2#9#isSet ?{dynamic} [1389] [1389] #2#9 : [1389] [1389] let [1389, -1] final dynamic #t36 = [1389] [1389] #2#9#isSet = [1389] [1389] true in [1389] [1389] #2#9 = [1389] [1389] [-1] [-1] #2#0{core::Map<dynamic, dynamic>}.{core::Map::[]}[1389]([-1] #C4){(core::Object?) → dynamic} in [-1] [-1] true)) {
 [1382]          {
-[1405]            [1405] [1405] core::print [1410]([1411] a);
+[1405]            [1405] [1405] core::print [1410]([1411] a##1);
 [1421]            #L9:
 [1421]            {
 [1421]              [1421, -1] core::int #t37 = [1421] [1421] [1421] [1421] 1.{core::int::unary-}[1421](){() → core::int};
@@ -223,19 +223,19 @@ import "dart:core" as core;
 [1443]                {
 [1453]                  [1453, -1] lowered hoisted dynamic a#case#0;
 [1489]                  [1489, -1] lowered hoisted dynamic a#case#1;
-[1443]                  if([1421] [1421] [1453] [1453] [-1] [-1] [1448] [1448] [1448] [1448] [1448] [1448] [-1] [-1] #0#0 is core::List<dynamic> && [1448] [1448] [1448]([1448] [-1] [-1] #0#2#isSet ?{core::int} [-1] [-1] #0#2 : [1448] [1448] let [1448, -1] final dynamic #t39 = [1448] [1448] #0#2#isSet = [1448] [1448] true in [1448] [1448] #0#2 = [1448] [1448] [-1] [-1] #0#0{core::List<dynamic>}.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} [-1] [-1] #C4 && [1453]([1453] let [1453, -1] final dynamic #t40 = [1453] [1453] a#case#0 = [1448] [1448] [-1] [-1] #0#0{core::List<dynamic>}.{core::List::[]}[1448]([1448] 0){(core::int) → dynamic} in [-1] [-1] true) && [1463] [1463] [1463] [1463] [1461] [1461] a#case#0{dynamic}.> [1463]([1465] 5) as{TypeError} core::bool && [1421]([1421] let [1421, -1] final dynamic #t41 = [1421] [1421] #t38 = [1453] [1453] a#case#0 in [1453] [1453] true) || [1489] [1489] [-1] [-1] [1481] [1481] [1481] [1481] [1481] [1481] [-1] [-1] #0#0 is core::List<dynamic> && [1481] [1481] [1448]([1448] [-1] [-1] #0#2#isSet ?{core::int} [-1] [-1] #0#2 : [1448] [1448] let [1448, -1] final dynamic #t42 = [1448] [1448] #0#2#isSet = [1448] [1448] true in [1448] [1448] #0#2 = [1448] [1448] [-1] [-1] #0#0{core::List<dynamic>}.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} [-1] [-1] #C7 && [1489]([1489] let [1489, -1] final dynamic #t43 = [1489] [1489] a#case#1 = [1481] [1481] [-1] [-1] #0#0{core::List<dynamic>}.{core::List::[]}[1481]([1481] 1){(core::int) → dynamic} in [-1] [-1] true) && [1499] [1499] [1499] [1499] [1497] [1497] a#case#1{dynamic}.< [1499]([1501] 5) as{TypeError} core::bool && [1421]([1421] let [1421, -1] final dynamic #t44 = [1421] [1421] #t38 = [1489] [1489] a#case#1 in [1489] [1489] true)) {
-[1453]                    [1453, -1] dynamic a = [-1] [-1] #t38;
+[1443]                  if([1421] [1421] [1453] [1453] [-1] [-1] [1448] [1448] [1448] [1448] [1448] [1448] [-1] [-1] #0#0 is core::List<dynamic> && [1448] [1448] [1448]([1448] [-1] [-1] #0#2#isSet ?{core::int} [1448] [1448] #0#2 : [1448] [1448] let [1448, -1] final dynamic #t39 = [1448] [1448] #0#2#isSet = [1448] [1448] true in [1448] [1448] #0#2 = [1448] [1448] [-1] [-1] #0#0{core::List<dynamic>}.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} [-1] [-1] #C4 && [1453]([1453] let [1453, -1] final dynamic #t40 = [1453] [1453] a#case#0 = [1448] [1448] [-1] [-1] #0#0{core::List<dynamic>}.{core::List::[]}[1448]([1448] 0){(core::int) → dynamic} in [-1] [-1] true) && [1463] [1463] [1463] [1463] [1461] [1461] a#case#0{dynamic}.> [1463]([1465] 5) as{TypeError} core::bool && [1421]([1421] let [1421, -1] final dynamic #t41 = [1421] [1421] #t38 = [1453] [1453] a#case#0 in [1453] [1453] true) || [1489] [1489] [-1] [-1] [1481] [1481] [1481] [1481] [1481] [1481] [-1] [-1] #0#0 is core::List<dynamic> && [1481] [1481] [1448]([1448] [-1] [-1] #0#2#isSet ?{core::int} [1448] [1448] #0#2 : [1448] [1448] let [1448, -1] final dynamic #t42 = [1448] [1448] #0#2#isSet = [1448] [1448] true in [1448] [1448] #0#2 = [1448] [1448] [-1] [-1] #0#0{core::List<dynamic>}.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} [-1] [-1] #C7 && [1489]([1489] let [1489, -1] final dynamic #t43 = [1489] [1489] a#case#1 = [1481] [1481] [-1] [-1] #0#0{core::List<dynamic>}.{core::List::[]}[1481]([1481] 1){(core::int) → dynamic} in [-1] [-1] true) && [1499] [1499] [1499] [1499] [1497] [1497] a#case#1{dynamic}.< [1499]([1501] 5) as{TypeError} core::bool && [1421]([1421] let [1421, -1] final dynamic #t44 = [1421] [1421] #t38 = [1489] [1489] a#case#1 in [1489] [1489] true)) {
+[1453]                    [1453, -1] dynamic a##2 = [-1] [-1] #t38;
 [1443]                    {
-[1514]                      [1514] [1514] core::print [1519]([1520] a);
+[1514]                      [1514] [1514] core::print [1519]([1520] a##2);
 [-1]                      break #L9;
                     }
                   }
                 }
 [1532]                {
-[1545]                  [1545, -1] hoisted dynamic a;
-[1532]                  if([1537] [1537] [1539] [1539] [1537] [1537] [-1] [-1] #0#0 is core::Map<dynamic, dynamic> && [1539]([1539] [1539] [1539]![1539]([1539] [1539]([1539] [-1] [-1] #0#13#isSet ?{dynamic} [-1] [-1] #0#13 : [1539] [1539] let [1539, -1] final dynamic #t45 = [1539] [1539] #0#13#isSet = [1539] [1539] true in [1539] [1539] #0#13 = [1539] [1539] [-1] [-1] #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}[1539]([-1] #C4){(core::Object?) → dynamic}) == null) || [1539] [1539] [1539] [1539] [1539] [1539] null is dynamic && [1539] [1539] [-1] [-1] #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}[1539]([-1] #C4){(core::Object?) → core::bool}) && [1545]([1545] let [1545, -1] final dynamic #t46 = [1545] [1545] a = [1539] [1539] [-1] [-1] #0#13#isSet ?{dynamic} [-1] [-1] #0#13 : [1539] [1539] let [1539, -1] final dynamic #t47 = [1539] [1539] #0#13#isSet = [1539] [1539] true in [1539] [1539] #0#13 = [1539] [1539] [-1] [-1] #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}[1539]([-1] #C4){(core::Object?) → dynamic} in [-1] [-1] true)) {
+[1545]                  [1545, -1] hoisted dynamic a##3;
+[1532]                  if([1537] [1537] [1539] [1539] [1537] [1537] [-1] [-1] #0#0 is core::Map<dynamic, dynamic> && [1539]([1539] [1539] [1539]![1539]([1539] [1539]([1539] [-1] [-1] #0#13#isSet ?{dynamic} [1539] [1539] #0#13 : [1539] [1539] let [1539, -1] final dynamic #t45 = [1539] [1539] #0#13#isSet = [1539] [1539] true in [1539] [1539] #0#13 = [1539] [1539] [-1] [-1] #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}[1539]([-1] #C4){(core::Object?) → dynamic}) == null) || [1539] [1539] [1539] [1539] [1539] [1539] null is dynamic && [1539] [1539] [-1] [-1] #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}[1539]([-1] #C4){(core::Object?) → core::bool}) && [1545]([1545] let [1545, -1] final dynamic #t46 = [1545] [1545] a##3 = [1539] [1539] [-1] [-1] #0#13#isSet ?{dynamic} [1539] [1539] #0#13 : [1539] [1539] let [1539, -1] final dynamic #t47 = [1539] [1539] #0#13#isSet = [1539] [1539] true in [1539] [1539] #0#13 = [1539] [1539] [-1] [-1] #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}[1539]([-1] #C4){(core::Object?) → dynamic} in [-1] [-1] true)) {
 [1532]                    {
-[1559]                      [1559] [1559] core::print [1564]([1565] a);
+[1559]                      [1559] [1559] core::print [1564]([1565] a##3);
 [1579]                      [1579] [1579] #t32 = [1579] [1579] 1;
 [1579]                      break #L8;
                     }
@@ -337,21 +337,21 @@ import "dart:core" as core;
 [1973]              #L16:
 [1973]              {
 [1995]                {
-[2005]                  [2005, -1] lowered hoisted dynamic a#case#0;
-[2041]                  [2041, -1] lowered hoisted dynamic a#case#1;
-[1995]                  if([1973] [1973] [2005] [2005] [-1] [-1] [2000] [2000] [2000] [2000] [2000] [2000] [-1] [-1] #1#0 is core::List<dynamic> && [2000] [2000] [2000]([2000] [-1] [-1] #1#2#isSet ?{core::int} [-1] [-1] #1#2 : [2000] [2000] let [2000, -1] final dynamic #t50 = [2000] [2000] #1#2#isSet = [2000] [2000] true in [2000] [2000] #1#2 = [2000] [2000] [-1] [-1] #1#0{core::List<dynamic>}.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} [-1] [-1] #C4 && [2005]([2005] let [2005, -1] final dynamic #t51 = [2005] [2005] a#case#0 = [2000] [2000] [-1] [-1] #1#0{core::List<dynamic>}.{core::List::[]}[2000]([2000] 0){(core::int) → dynamic} in [-1] [-1] true) && [2015] [2015] [2015] [2015] [2013] [2013] a#case#0{dynamic}.> [2015]([2017] 5) as{TypeError} core::bool && [1973]([1973] let [1973, -1] final dynamic #t52 = [1973] [1973] #t49 = [2005] [2005] a#case#0 in [2005] [2005] true) || [2041] [2041] [-1] [-1] [2033] [2033] [2033] [2033] [2033] [2033] [-1] [-1] #1#0 is core::List<dynamic> && [2033] [2033] [2000]([2000] [-1] [-1] #1#2#isSet ?{core::int} [-1] [-1] #1#2 : [2000] [2000] let [2000, -1] final dynamic #t53 = [2000] [2000] #1#2#isSet = [2000] [2000] true in [2000] [2000] #1#2 = [2000] [2000] [-1] [-1] #1#0{core::List<dynamic>}.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} [-1] [-1] #C7 && [2041]([2041] let [2041, -1] final dynamic #t54 = [2041] [2041] a#case#1 = [2033] [2033] [-1] [-1] #1#0{core::List<dynamic>}.{core::List::[]}[2033]([2033] 1){(core::int) → dynamic} in [-1] [-1] true) && [2051] [2051] [2051] [2051] [2049] [2049] a#case#1{dynamic}.< [2051]([2053] 5) as{TypeError} core::bool && [1973]([1973] let [1973, -1] final dynamic #t55 = [1973] [1973] #t49 = [2041] [2041] a#case#1 in [2041] [2041] true)) {
-[2005]                    [2005, -1] dynamic a = [-1] [-1] #t49;
+[2005]                  [2005, -1] lowered hoisted dynamic a#case#0##1;
+[2041]                  [2041, -1] lowered hoisted dynamic a#case#1##1;
+[1995]                  if([1973] [1973] [2005] [2005] [-1] [-1] [2000] [2000] [2000] [2000] [2000] [2000] [-1] [-1] #1#0 is core::List<dynamic> && [2000] [2000] [2000]([2000] [-1] [-1] #1#2#isSet ?{core::int} [2000] [2000] #1#2 : [2000] [2000] let [2000, -1] final dynamic #t50 = [2000] [2000] #1#2#isSet = [2000] [2000] true in [2000] [2000] #1#2 = [2000] [2000] [-1] [-1] #1#0{core::List<dynamic>}.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} [-1] [-1] #C4 && [2005]([2005] let [2005, -1] final dynamic #t51 = [2005] [2005] a#case#0##1 = [2000] [2000] [-1] [-1] #1#0{core::List<dynamic>}.{core::List::[]}[2000]([2000] 0){(core::int) → dynamic} in [-1] [-1] true) && [2015] [2015] [2015] [2015] [2013] [2013] a#case#0##1{dynamic}.> [2015]([2017] 5) as{TypeError} core::bool && [1973]([1973] let [1973, -1] final dynamic #t52 = [1973] [1973] #t49 = [2005] [2005] a#case#0##1 in [2005] [2005] true) || [2041] [2041] [-1] [-1] [2033] [2033] [2033] [2033] [2033] [2033] [-1] [-1] #1#0 is core::List<dynamic> && [2033] [2033] [2000]([2000] [-1] [-1] #1#2#isSet ?{core::int} [2000] [2000] #1#2 : [2000] [2000] let [2000, -1] final dynamic #t53 = [2000] [2000] #1#2#isSet = [2000] [2000] true in [2000] [2000] #1#2 = [2000] [2000] [-1] [-1] #1#0{core::List<dynamic>}.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} [-1] [-1] #C7 && [2041]([2041] let [2041, -1] final dynamic #t54 = [2041] [2041] a#case#1##1 = [2033] [2033] [-1] [-1] #1#0{core::List<dynamic>}.{core::List::[]}[2033]([2033] 1){(core::int) → dynamic} in [-1] [-1] true) && [2051] [2051] [2051] [2051] [2049] [2049] a#case#1##1{dynamic}.< [2051]([2053] 5) as{TypeError} core::bool && [1973]([1973] let [1973, -1] final dynamic #t55 = [1973] [1973] #t49 = [2041] [2041] a#case#1##1 in [2041] [2041] true)) {
+[2005]                    [2005, -1] dynamic a##4 = [-1] [-1] #t49;
 [1995]                    {
-[2066]                      [2066] [2066] core::print [2071]([2072] a);
+[2066]                      [2066] [2066] core::print [2071]([2072] a##4);
 [-1]                      break #L15;
                     }
                   }
                 }
 [2084]                {
-[2097]                  [2097, -1] hoisted dynamic a;
-[2084]                  if([2089] [2089] [2091] [2091] [2089] [2089] [-1] [-1] #1#0 is core::Map<dynamic, dynamic> && [2091]([2091] [2091] [2091]![2091]([2091] [2091]([2091] [-1] [-1] #1#13#isSet ?{dynamic} [-1] [-1] #1#13 : [2091] [2091] let [2091, -1] final dynamic #t56 = [2091] [2091] #1#13#isSet = [2091] [2091] true in [2091] [2091] #1#13 = [2091] [2091] [-1] [-1] #1#0{core::Map<dynamic, dynamic>}.{core::Map::[]}[2091]([-1] #C4){(core::Object?) → dynamic}) == null) || [2091] [2091] [2091] [2091] [2091] [2091] null is dynamic && [2091] [2091] [-1] [-1] #1#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}[2091]([-1] #C4){(core::Object?) → core::bool}) && [2097]([2097] let [2097, -1] final dynamic #t57 = [2097] [2097] a = [2091] [2091] [-1] [-1] #1#13#isSet ?{dynamic} [-1] [-1] #1#13 : [2091] [2091] let [2091, -1] final dynamic #t58 = [2091] [2091] #1#13#isSet = [2091] [2091] true in [2091] [2091] #1#13 = [2091] [2091] [-1] [-1] #1#0{core::Map<dynamic, dynamic>}.{core::Map::[]}[2091]([-1] #C4){(core::Object?) → dynamic} in [-1] [-1] true)) {
+[2097]                  [2097, -1] hoisted dynamic a##5;
+[2084]                  if([2089] [2089] [2091] [2091] [2089] [2089] [-1] [-1] #1#0 is core::Map<dynamic, dynamic> && [2091]([2091] [2091] [2091]![2091]([2091] [2091]([2091] [-1] [-1] #1#13#isSet ?{dynamic} [2091] [2091] #1#13 : [2091] [2091] let [2091, -1] final dynamic #t56 = [2091] [2091] #1#13#isSet = [2091] [2091] true in [2091] [2091] #1#13 = [2091] [2091] [-1] [-1] #1#0{core::Map<dynamic, dynamic>}.{core::Map::[]}[2091]([-1] #C4){(core::Object?) → dynamic}) == null) || [2091] [2091] [2091] [2091] [2091] [2091] null is dynamic && [2091] [2091] [-1] [-1] #1#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}[2091]([-1] #C4){(core::Object?) → core::bool}) && [2097]([2097] let [2097, -1] final dynamic #t57 = [2097] [2097] a##5 = [2091] [2091] [-1] [-1] #1#13#isSet ?{dynamic} [2091] [2091] #1#13 : [2091] [2091] let [2091, -1] final dynamic #t58 = [2091] [2091] #1#13#isSet = [2091] [2091] true in [2091] [2091] #1#13 = [2091] [2091] [-1] [-1] #1#0{core::Map<dynamic, dynamic>}.{core::Map::[]}[2091]([-1] #C4){(core::Object?) → dynamic} in [-1] [-1] true)) {
 [2084]                    {
-[2111]                      [2111] [2111] core::print [2116]([2117] a);
+[2111]                      [2111] [2111] core::print [2116]([2117] a##5);
 [2131]                      continue #L14;
                     }
                   }
@@ -475,21 +475,20 @@ import "dart:core" as core;
   }
 }
 [2845]static method [2876] [3069] switchStatementEnumWithContinue([2879, -1] self::E o) → dynamic {
-[2886]  #L28:
 [2886]  switch([2894] [2894] o) /* isExplicitlyExhaustive, self::E */ {
-[2903]    #L29:
+[2903]    #L28:
     case [2910] [2910] #C3:
 [2903]      {
 [2919]        [2919] [2919] core::print [2924]([2925] "a");
-[2937]        continue #L30;
+[2937]        continue #L29;
       }
-[2958]    #L30:
+[2958]    #L29:
     case [2977] [2977] #C6:
 [2958]      {
 [2986]        [2986] [2986] core::print [2991]([2992] "b");
-[3004]        continue #L31;
+[3004]        continue #L30;
       }
-[3025]    #L31:
+[3025]    #L30:
     case [3044] [3044] #C9:
 [3025]      {
 [3053]        [3053] [3053] core::print [3058]([3059] "c");
@@ -497,15 +496,15 @@ import "dart:core" as core;
   }
 }
 [3072]static method [3102] [3233] switchStatementPrimitiveEquals([3103, -1] dynamic o) → dynamic {
-[3110]  #L32:
+[3110]  #L31:
 [3110]  switch([3118] [3118] o) /* dynamic */ {
-[3127]    #L33:
+[3127]    #L32:
     case [3138] [3138] #C11:
 [3127]      {
 [3164]        [3164] [3164] core::print [3169]([3170] "a");
-[-1]        break #L32;
+[-1]        break #L31;
       }
-[3180]    #L34:
+[3180]    #L33:
     case [3191] [3191] #C12:
 [3180]      {
 [3217]        [3217] [3217] core::print [3222]([3223] "b");
@@ -513,7 +512,7 @@ import "dart:core" as core;
   }
 }
 [3236]static method [3269] [3406] switchStatementNonPrimitiveEquals([3270, -1] dynamic o) → dynamic {
-[3277]  #L35:
+[3277]  #L34:
 [3277]  {
 [3285]    [3285, -1] final synthesized dynamic #0#0 = [3285] [3285] o;
 [3305]    [3305, -1] final const synthesized self::NonPrimitiveEquals #0#1 = [3305] [3305] #C13;
@@ -522,7 +521,7 @@ import "dart:core" as core;
 [3294]      if([3305] [3305] [-1] [-1] #C13 =={self::NonPrimitiveEquals::==}{(core::Object) → core::bool} [-1] [-1] #0#0) {
 [3294]        {
 [3334]          [3334] [3334] core::print [3339]([3340] "a");
-[-1]          break #L35;
+[-1]          break #L34;
         }
       }
     }
@@ -542,28 +541,28 @@ import "dart:core" as core;
 [3457]    [3457, -1] final const synthesized core::int #0#3 = [3457] [3457] #C4;
 [-1]    [-1, -1] synthesized dynamic #0#9;
 [-1]    [-1, -1] synthesized core::bool #0#9#isSet = [3477] [3477] false;
-[3440]    #L36:
+[3440]    #L35:
 [3440]    {
 [3465]      {
 [3462]        [3462, -1] hoisted dynamic a;
 [3465]        if([3457] [3457] [3457] [3457] [-1] [-1] #0#0 is core::List<dynamic> && [3457] [3457] [3457] [3457] [-1] [-1] #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} [-1] [-1] #C4) {
 [3462]          [3462] [3462] a = [3457] [3457] [-1] [-1] #0#0{core::List<dynamic>}.{core::List::[]}[3457]([3457] 0){(core::int) → dynamic};
 [-1]          [-1] [-1] #t59 = [3468] [3468] a;
-[3465]          break #L36;
+[3465]          break #L35;
         }
       }
 [3486]      {
-[3483]        [3483, -1] hoisted dynamic a;
-[3486]        if([3477] [3477] [3475] [3475] [-1] [-1] #0#0 is core::Map<dynamic, dynamic> && [3477]([3477] [3477] [3477]![3477]([3477] [3477]([3477] [-1] [-1] #0#9#isSet ?{dynamic} [-1] [-1] #0#9 : [3477] [3477] let [3477, -1] final dynamic #t60 = [3477] [3477] #0#9#isSet = [3477] [3477] true in [3477] [3477] #0#9 = [3477] [3477] [-1] [-1] #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}[3477]([-1] #C4){(core::Object?) → dynamic}) == null) || [3477] [3477] [3477] [3477] [3477] [3477] null is dynamic && [3477] [3477] [-1] [-1] #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}[3477]([-1] #C4){(core::Object?) → core::bool})) {
-[3483]          [3483] [3483] a = [3477] [3477] [-1] [-1] #0#9#isSet ?{dynamic} [-1] [-1] #0#9 : [3477] [3477] let [3477, -1] final dynamic #t61 = [3477] [3477] #0#9#isSet = [3477] [3477] true in [3477] [3477] #0#9 = [3477] [3477] [-1] [-1] #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}[3477]([-1] #C4){(core::Object?) → dynamic};
-[-1]          [-1] [-1] #t59 = [3489] [3489] a;
-[3486]          break #L36;
+[3483]        [3483, -1] hoisted dynamic a##1;
+[3486]        if([3477] [3477] [3475] [3475] [-1] [-1] #0#0 is core::Map<dynamic, dynamic> && [3477]([3477] [3477] [3477]![3477]([3477] [3477]([3477] [-1] [-1] #0#9#isSet ?{dynamic} [3477] [3477] #0#9 : [3477] [3477] let [3477, -1] final dynamic #t60 = [3477] [3477] #0#9#isSet = [3477] [3477] true in [3477] [3477] #0#9 = [3477] [3477] [-1] [-1] #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}[3477]([-1] #C4){(core::Object?) → dynamic}) == null) || [3477] [3477] [3477] [3477] [3477] [3477] null is dynamic && [3477] [3477] [-1] [-1] #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}[3477]([-1] #C4){(core::Object?) → core::bool})) {
+[3483]          [3483] [3483] a##1 = [3477] [3477] [-1] [-1] #0#9#isSet ?{dynamic} [3477] [3477] #0#9 : [3477] [3477] let [3477, -1] final dynamic #t61 = [3477] [3477] #0#9#isSet = [3477] [3477] true in [3477] [3477] #0#9 = [3477] [3477] [-1] [-1] #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}[3477]([-1] #C4){(core::Object?) → dynamic};
+[-1]          [-1] [-1] #t59 = [3489] [3489] a##1;
+[3486]          break #L35;
         }
       }
 [3498]      {
 [3498]        if([3496] [3496] true) {
 [-1]          [-1] [-1] #t59 = [3501] [3501] null;
-[3498]          break #L36;
+[3498]          break #L35;
         }
       }
     }
@@ -572,25 +571,25 @@ import "dart:core" as core;
 [3515]static method [3535] [3612] switchExpressionEnum([3538, -1] self::E o) → dynamic {
 [3545]  return [3552] [3552] block {
 [-1]    [-1, -1] core::int #t62;
-[3552]    #L37:
+[3552]    #L36:
 [3552]    switch([3560] [3560] o) /* isExplicitlyExhaustive, self::E */ {
-[3573]      #L38:
+[3573]      #L37:
       case [3571] [3571] #C3:
 [3573]        {
 [3576]          [3576] [3576] #t62 = [3576] [3576] 0;
-[3576]          break #L37;
+[3576]          break #L36;
         }
-[3587]      #L39:
+[3587]      #L38:
       case [3585] [3585] #C6:
 [3587]        {
 [3590]          [3590] [3590] #t62 = [3590] [3590] 1;
-[3590]          break #L37;
+[3590]          break #L36;
         }
-[3601]      #L40:
+[3601]      #L39:
       case [3599] [3599] #C9:
 [3601]        {
 [3604]          [3604] [3604] #t62 = [3604] [3604] 2;
-[3604]          break #L37;
+[3604]          break #L36;
         }
     }
   } =>[-1] [-1] #t62;
@@ -601,24 +600,24 @@ import "dart:core" as core;
 [3669]    [3669, -1] final synthesized self::E #0#0 = [3669] [3669] o;
 [3680]    [3680, -1] final const synthesized self::E #0#1 = [3680] [3680] #C3;
 [3704]    [3704, -1] final const synthesized self::E #0#3 = [3704] [3704] #C6;
-[3661]    #L41:
+[3661]    #L40:
 [3661]    {
 [3692]      {
 [3692]        if([-1] [-1] [3680] [3680] [-1] [-1] #C3 =={core::Object::==}{(core::Object) → core::bool} [-1] [-1] #0#0 && [3687] [3687] true) {
 [-1]          [-1] [-1] #t63 = [3695] [3695] 0;
-[3692]          break #L41;
+[3692]          break #L40;
         }
       }
 [3706]      {
 [3706]        if([3704] [3704] [-1] [-1] #C6 =={core::Object::==}{(core::Object) → core::bool} [-1] [-1] #0#0) {
 [-1]          [-1] [-1] #t63 = [3709] [3709] 1;
-[3706]          break #L41;
+[3706]          break #L40;
         }
       }
 [3718]      {
 [3718]        if([3716] [3716] true) {
 [-1]          [-1] [-1] #t63 = [3721] [3721] 2;
-[3718]          break #L41;
+[3718]          break #L40;
         }
       }
     }
@@ -630,24 +629,24 @@ import "dart:core" as core;
 [3786]    [3786, -1] final synthesized dynamic #0#0 = [3786] [3786] o;
 [3801]    [3801, -1] final const synthesized self::PrimitiveEquals #0#1 = [3801] [3801] #C11;
 [3836]    [3836, -1] final const synthesized self::PrimitiveEquals #0#3 = [3836] [3836] #C12;
-[3778]    #L42:
+[3778]    #L41:
 [3778]    {
 [3820]      {
 [3820]        if([3801] [3801] [-1] [-1] #C11 =={core::Object::==}{(core::Object) → core::bool} [-1] [-1] #0#0) {
 [-1]          [-1] [-1] #t64 = [3823] [3823] 0;
-[3820]          break #L42;
+[3820]          break #L41;
         }
       }
 [3855]      {
 [3855]        if([3836] [3836] [-1] [-1] #C12 =={core::Object::==}{(core::Object) → core::bool} [-1] [-1] #0#0) {
 [-1]          [-1] [-1] #t64 = [3858] [3858] 1;
-[3855]          break #L42;
+[3855]          break #L41;
         }
       }
 [3867]      {
 [3867]        if([3865] [3865] true) {
 [-1]          [-1] [-1] #t64 = [3870] [3870] 2;
-[3867]          break #L42;
+[3867]          break #L41;
         }
       }
     }
@@ -659,31 +658,30 @@ import "dart:core" as core;
 [3938]    [3938, -1] final synthesized dynamic #0#0 = [3938] [3938] o;
 [3953]    [3953, -1] final const synthesized self::NonPrimitiveEquals #0#1 = [3953] [3953] #C13;
 [3991]    [3991, -1] final const synthesized self::NonPrimitiveEquals #0#3 = [3991] [3991] #C14;
-[3930]    #L43:
+[3930]    #L42:
 [3930]    {
 [3975]      {
 [3975]        if([3953] [3953] [-1] [-1] #C13 =={self::NonPrimitiveEquals::==}{(core::Object) → core::bool} [-1] [-1] #0#0) {
 [-1]          [-1] [-1] #t65 = [3978] [3978] 0;
-[3975]          break #L43;
+[3975]          break #L42;
         }
       }
 [4013]      {
 [4013]        if([3991] [3991] [-1] [-1] #C14 =={self::NonPrimitiveEquals::==}{(core::Object) → core::bool} [-1] [-1] #0#0) {
 [-1]          [-1] [-1] #t65 = [4016] [4016] 1;
-[4013]          break #L43;
+[4013]          break #L42;
         }
       }
 [4025]      {
 [4025]        if([4023] [4023] true) {
 [-1]          [-1] [-1] #t65 = [4028] [4028] 2;
-[4025]          break #L43;
+[4025]          break #L42;
         }
       }
     }
   } =>[-1] [-1] #t65;
 }
 [4039]static method [4060] [4194] switchStatementSymbol([4068, -1] core::Symbol s) → dynamic {
-[4075]  #L44:
 [4075]  {
 [4083]    [4083, -1] final synthesized core::Symbol #0#0 = [4083] [4083] s;
 [4097]    [4097, -1] final const synthesized core::Symbol #0#1 = [4097] [4097] #C15;
@@ -717,24 +715,24 @@ import "dart:core" as core;
 [4249]    [4249, -1] final synthesized core::Symbol #0#0 = [4249] [4249] s;
 [4258]    [4258, -1] final const synthesized core::Symbol #0#1 = [4258] [4258] #C15;
 [4277]    [4277, -1] final const synthesized core::Symbol #0#3 = [4277] [4277] #C16;
-[4241]    #L45:
+[4241]    #L43:
 [4241]    {
 [4261]      {
 [4261]        if([4258] [4258] [-1] [-1] #C15 =={core::Symbol::==}{(core::Object) → core::bool} [-1] [-1] #0#0) {
 [-1]          [-1] [-1] #t66 = [4264] [4264] 0;
-[4261]          break #L45;
+[4261]          break #L43;
         }
       }
 [4289]      {
 [4289]        if([4277] [4277] [-1] [-1] #C16 =={core::Symbol::==}{(core::Object) → core::bool} [-1] [-1] #0#0) {
 [-1]          [-1] [-1] #t66 = [4292] [4292] 1;
-[4289]          break #L45;
+[4289]          break #L43;
         }
       }
 [4301]      {
 [4301]        if([4299] [4299] true) {
 [-1]          [-1] [-1] #t66 = [4304] [4304] 2;
-[4301]          break #L45;
+[4301]          break #L43;
         }
       }
     }

@@ -686,6 +686,21 @@ typedef F = void Function({int x : 0});
     assertParsedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
+  delimitedFormalParameters: DelimitedFormalParameters
+    leftDelimiter: {
+    formalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: int
+        name: x
+        defaultClause: FormalParameterDefaultClause
+          separator: :
+          value2: IntegerLiteral
+            literal: 0
+    rightDelimiter: }
+  rightParenthesis: )
+FormalParameterList(v1)
+  leftParenthesis: (
   leftDelimiter: {
   parameter: RegularFormalParameter
     type: NamedType
@@ -711,6 +726,21 @@ typedef F = void Function({int x = 0});
     assertParsedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
+  delimitedFormalParameters: DelimitedFormalParameters
+    leftDelimiter: {
+    formalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: int
+        name: x
+        defaultClause: FormalParameterDefaultClause
+          separator: =
+          value2: IntegerLiteral
+            literal: 0
+    rightDelimiter: }
+  rightParenthesis: )
+FormalParameterList(v1)
+  leftParenthesis: (
   leftDelimiter: {
   parameter: RegularFormalParameter
     type: NamedType
@@ -735,6 +765,21 @@ typedef F = void Function([int x = 0]);
     var node = parseResult.findNode.singleFormalParameterList;
     assertParsedNodeText(node, r'''
 FormalParameterList
+  leftParenthesis: (
+  delimitedFormalParameters: DelimitedFormalParameters
+    leftDelimiter: [
+    formalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: int
+        name: x
+        defaultClause: FormalParameterDefaultClause
+          separator: =
+          value2: IntegerLiteral
+            literal: 0
+    rightDelimiter: ]
+  rightParenthesis: )
+FormalParameterList(v1)
   leftParenthesis: (
   leftDelimiter: [
   parameter: RegularFormalParameter
@@ -1007,7 +1052,7 @@ var s = '$x$';
     var node = parseResult.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -1015,19 +1060,19 @@ CompilationUnit
           VariableDeclaration
             name: s
             equals: =
-            initializer: StringInterpolation
+            initializer2: StringInterpolation
               elements
                 InterpolationString
                   contents: '
                 InterpolationExpression
                   leftBracket: $
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: x
                 InterpolationString
                   contents: <empty> <synthetic>
                 InterpolationExpression
                   leftBracket: $
-                  expression: SimpleIdentifier
+                  expression2: SimpleIdentifier
                     token: <empty> <synthetic>
                 InterpolationString
                   contents: '
@@ -1084,7 +1129,7 @@ CompilationUnit
       uri: SimpleStringLiteral
         literal: ''
       semicolon: ; <synthetic>
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -1123,7 +1168,7 @@ CompilationUnit
       uri: SimpleStringLiteral
         literal: ''
       semicolon: ; <synthetic>
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -1151,7 +1196,7 @@ CompilationUnit
       uri: SimpleStringLiteral
         literal: "" <synthetic>
       semicolon: ; <synthetic>
-  declarations
+  declarations2
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -1389,7 +1434,7 @@ class C {
 ''');
   }
 
-  @skippedTest // TODO(scheglov): fix it
+  @failingTest // TODO(scheglov): fix it
   void test_factoryWithoutBody() {
     parseTestCodeWithDiagnostics(r'''
 class C {
@@ -1400,9 +1445,9 @@ class C {
 ''');
   }
 
-  void test_factoryWithoutBody_language305() {
+  void test_factoryWithoutBody_beforeAugmentations() {
     parseTestCodeWithDiagnostics(r'''
-// @dart = 3.5
+// %before-language-feature: augmentations
 class C {
   factory C();
 //           ^
@@ -1585,7 +1630,7 @@ void f() {
     var node = parseResult.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     FunctionDeclaration
       returnType: NamedType
         name: void
@@ -1599,11 +1644,11 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: get
                 semicolon: ; <synthetic>
               ExpressionStatement
-                expression: SimpleIdentifier
+                expression2: SimpleIdentifier
                   token: x
                 semicolon: ; <synthetic>
               Block
@@ -1611,7 +1656,7 @@ CompilationUnit
                 statements
                   ReturnStatement
                     returnKeyword: return
-                    expression: SimpleIdentifier
+                    expression2: SimpleIdentifier
                       token: _x
                     semicolon: ;
                 rightBracket: }
@@ -1671,7 +1716,7 @@ MethodDeclaration
   name: m
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression: IntegerLiteral
+    expression2: IntegerLiteral
       literal: 0
     semicolon: ;
 ''');
@@ -1840,7 +1885,7 @@ var s = 'begin \u{110000}';
 ''');
   }
 
-  @skippedTest // TODO(scheglov): fix it
+  @failingTest // TODO(scheglov): fix it
   void test_invalidCommentReference__new_nonIdentifier() {
     parseTestCodeWithDiagnostics(r'''
 /// [new 42]
@@ -1850,7 +1895,7 @@ void f() {}
 ''');
   }
 
-  @skippedTest // TODO(scheglov): fix it
+  @failingTest // TODO(scheglov): fix it
   void test_invalidCommentReference__new_tooMuch() {
     parseTestCodeWithDiagnostics(r'''
 /// [new a.b.c.d]
@@ -1860,7 +1905,7 @@ void f() {}
 ''');
   }
 
-  @skippedTest // TODO(scheglov): fix it
+  @failingTest // TODO(scheglov): fix it
   void test_invalidCommentReference__nonNew_nonIdentifier() {
     parseTestCodeWithDiagnostics(r'''
 /// [42]
@@ -1870,7 +1915,7 @@ void f() {}
 ''');
   }
 
-  @skippedTest // TODO(scheglov): fix it
+  @failingTest // TODO(scheglov): fix it
   void test_invalidCommentReference__nonNew_tooMuch() {
     parseTestCodeWithDiagnostics(r'''
 /// [a.b.c.d]
@@ -2261,6 +2306,12 @@ MethodDeclaration
     rightBracket: >
   parameters: FormalParameterList
     leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        name: E
+    rightParenthesis: )
+  parameters(v1): FormalParameterList
+    leftParenthesis: (
     parameter: RegularFormalParameter
       name: E
     rightParenthesis: )
@@ -2349,7 +2400,7 @@ FunctionDeclaration
       rightParenthesis: )
     body: ExpressionFunctionBody
       functionDefinition: =>
-      expression: SuperExpression
+      expression2: SuperExpression
         superKeyword: super
       semicolon: ;
 ''');
@@ -2375,7 +2426,7 @@ FunctionDeclaration
         leftBracket: {
         statements
           ExpressionStatement
-            expression: SuperExpression
+            expression2: SuperExpression
               superKeyword: super
             semicolon: ;
         rightBracket: }
@@ -2534,7 +2585,7 @@ FunctionDeclaration
         statements
           ReturnStatement
             returnKeyword: return
-            expression: SimpleIdentifier
+            expression2: SimpleIdentifier
               token: x
             semicolon: ;
         rightBracket: }
@@ -2560,7 +2611,7 @@ FunctionDeclaration
       rightParenthesis: ) <synthetic>
     body: ExpressionFunctionBody
       functionDefinition: =>
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: x
       semicolon: ;
 ''');
@@ -2720,6 +2771,21 @@ typedef F = void Function({int : 0});
     assertParsedNodeText(parameter, r'''
 FormalParameterList
   leftParenthesis: (
+  delimitedFormalParameters: DelimitedFormalParameters
+    leftDelimiter: {
+    formalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: int
+        name: <empty> <synthetic>
+        defaultClause: FormalParameterDefaultClause
+          separator: :
+          value2: IntegerLiteral
+            literal: 0
+    rightDelimiter: }
+  rightParenthesis: )
+FormalParameterList(v1)
+  leftParenthesis: (
   leftDelimiter: {
   parameter: RegularFormalParameter
     type: NamedType
@@ -2746,6 +2812,21 @@ typedef F = void Function({int = 0});
     assertParsedNodeText(parameter, r'''
 FormalParameterList
   leftParenthesis: (
+  delimitedFormalParameters: DelimitedFormalParameters
+    leftDelimiter: {
+    formalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: int
+        name: <empty> <synthetic>
+        defaultClause: FormalParameterDefaultClause
+          separator: =
+          value2: IntegerLiteral
+            literal: 0
+    rightDelimiter: }
+  rightParenthesis: )
+FormalParameterList(v1)
+  leftParenthesis: (
   leftDelimiter: {
   parameter: RegularFormalParameter
     type: NamedType
@@ -2770,6 +2851,17 @@ typedef F = void Function({int});
     var parameter = result.findNode.singleFormalParameterList;
     assertParsedNodeText(parameter, r'''
 FormalParameterList
+  leftParenthesis: (
+  delimitedFormalParameters: DelimitedFormalParameters
+    leftDelimiter: {
+    formalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: int
+        name: <empty> <synthetic>
+    rightDelimiter: }
+  rightParenthesis: )
+FormalParameterList(v1)
   leftParenthesis: (
   leftDelimiter: {
   parameter: RegularFormalParameter
@@ -2982,7 +3074,7 @@ var x = (f() {});
     assertParsedNodeText(node, r'''
 ParenthesizedExpression
   leftParenthesis: (
-  expression: FunctionExpression
+  expression2: FunctionExpression
     parameters: FormalParameterList
       leftParenthesis: (
       rightParenthesis: )
@@ -3004,6 +3096,18 @@ void f(a, b : 0) {}
     var list = result.findNode.singleFormalParameterList;
     assertParsedNodeText(list, r'''
 FormalParameterList
+  leftParenthesis: (
+  requiredPositionalFormalParameters
+    RegularFormalParameter
+      name: a
+    RegularFormalParameter
+      name: b
+      defaultClause: FormalParameterDefaultClause
+        separator: :
+        value2: IntegerLiteral
+          literal: 0
+  rightParenthesis: )
+FormalParameterList(v1)
   leftParenthesis: (
   parameter: RegularFormalParameter
     name: a
@@ -3160,6 +3264,18 @@ void f(a, b = 0) {}
     var list = result.findNode.singleFormalParameterList;
     assertParsedNodeText(list, r'''
 FormalParameterList
+  leftParenthesis: (
+  requiredPositionalFormalParameters
+    RegularFormalParameter
+      name: a
+    RegularFormalParameter
+      name: b
+      defaultClause: FormalParameterDefaultClause
+        separator: =
+        value2: IntegerLiteral
+          literal: 0
+  rightParenthesis: )
+FormalParameterList(v1)
   leftParenthesis: (
   parameter: RegularFormalParameter
     name: a
@@ -3414,8 +3530,16 @@ void f() {
     var result = parseTestCodeWithDiagnostics(r'''
 get x => 7;
 ''');
-    var node = result.findNode.singleFunctionDeclaration;
+    var node = result.findNode.singleTopLevelGetterDeclaration;
     assertParsedNodeText(node, r'''
+TopLevelGetterDeclaration
+  getKeyword: get
+  name: x
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression2: IntegerLiteral
+      literal: 7
+    semicolon: ;
 FunctionDeclaration
   propertyKeyword: get
   name: x
@@ -3693,9 +3817,16 @@ void main() {
     var result = parseTestCodeWithDiagnostics(r'''var v = +x;
 //      ^
 // [diag.missingIdentifier] Expected an identifier.''');
-    var binaryExpression = result.findNode.singleBinaryExpression;
+    var binaryExpression = result.findNode.singleBinaryOperatorInvocation;
     assertParsedNodeText(binaryExpression, r'''
-BinaryExpression
+BinaryOperatorInvocation
+  leftOperand: SimpleIdentifier
+    token: <empty> <synthetic>
+  operator: +
+  rightOperand: SimpleIdentifier
+    token: x
+  binaryOperator: add
+V1: BinaryExpression
   leftOperand: SimpleIdentifier
     token: <empty> <synthetic>
   operator: +

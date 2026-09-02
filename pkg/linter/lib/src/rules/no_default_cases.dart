@@ -39,11 +39,7 @@ class NoDefaultCases extends AnalysisRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  final AnalysisRule rule;
-
-  new(this.rule);
-
+class _Visitor(final AnalysisRule rule) extends SimpleAstVisitor<void> {
   @override
   void visitSwitchStatement(SwitchStatement statement) {
     var expressionType = statement.expression.staticType;
@@ -51,9 +47,11 @@ class _Visitor extends SimpleAstVisitor<void> {
       for (var member in statement.members) {
         if (member is SwitchDefault) {
           var interfaceElement = expressionType.element;
+          // Enum-like extension types can contain values other than their
+          // declared constants, so a default clause can be necessary.
           if (interfaceElement is EnumElement ||
               interfaceElement is ClassElement &&
-                  interfaceElement.isEnumLikeClass()) {
+                  interfaceElement.isEnumLikeType()) {
             rule.reportAtNode(member);
           }
           return;

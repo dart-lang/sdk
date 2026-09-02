@@ -632,6 +632,11 @@ class BytecodeAssembler {
   }
 
   @pragma('vm:prefer-inline')
+  void emitResolveNativeFunction(int rd) {
+    _emitInstructionD(Opcode.kResolveNativeFunction, rd);
+  }
+
+  @pragma('vm:prefer-inline')
   void emitLoadStatic(int rd) {
     _emitInstructionD(Opcode.kLoadStatic, rd);
   }

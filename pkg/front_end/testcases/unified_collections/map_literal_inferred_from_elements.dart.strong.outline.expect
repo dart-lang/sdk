@@ -1,0 +1,18 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static field core::Map<core::int, core::String>? nullableIntMap1;
+static field core::Map<core::int, core::String>? nullableIntMap2;
+static field core::List<core::int> intList;
+static field core::Map<core::int, core::String> intMap;
+static field core::Map<core::num, core::String> numMap;
+static field core::List<(core::int, core::int)> intIntList;
+static field core::num? nullableNum1;
+static field core::num? nullableNum2;
+static field core::String? nullableString1;
+static field core::String? nullableString2;
+static method id<T extends core::Object? = dynamic>(self::id::T% t) → self::id::T%
+  ;
+static method main() → dynamic
+  ;

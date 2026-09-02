@@ -32,11 +32,11 @@ static extension-member method E|foo(lowered final core::int #this) → void {
     }
   }
   let core::int #t3 = 1 in #t3 == null ?{Null} null : block {
-    final synthesized core::int anonymous#this = #t3 as core::int;
+    final synthesized core::int anonymous#this##1 = #t3 as core::int;
     Null #t4;
     #L3:
     {
-      anonymous#this;
+      anonymous#this##1;
       {
         #t4 = null;
         break #L3;
@@ -44,7 +44,7 @@ static extension-member method E|foo(lowered final core::int #this) → void {
     }
   } =>#t4;
   let core::int #t5 = 1 in #t5 == null ?{Null} null : block {
-    core::int p = #t5 as core::int;
+    core::int p##1 = #t5 as core::int;
     Null #t6;
     #L4:
     {
@@ -57,11 +57,11 @@ static extension-member method E|foo(lowered final core::int #this) → void {
   } =>#t6;
   let final core::int #t7 = 1 in block {
     {
-      final synthesized core::int anonymous#this = #t7;
+      final synthesized core::int anonymous#this##2 = #t7;
       Null #t8;
       #L5:
       {
-        anonymous#this;
+        anonymous#this##2;
         {
           #t8 = null;
           break #L5;
@@ -71,7 +71,7 @@ static extension-member method E|foo(lowered final core::int #this) → void {
   } =>#t7;
   let final core::int #t9 = 1 in block {
     {
-      core::int p = #t9;
+      core::int p##2 = #t9;
       Null #t10;
       #L6:
       {
@@ -85,11 +85,11 @@ static extension-member method E|foo(lowered final core::int #this) → void {
   } =>#t9;
   let final core::int #t11 = 1 in #t11 == null ?{core::int} #t11 : block {
     {
-      final synthesized core::int anonymous#this = #t11 as core::int;
+      final synthesized core::int anonymous#this##3 = #t11 as core::int;
       Null #t12;
       #L7:
       {
-        anonymous#this;
+        anonymous#this##3;
         {
           #t12 = null;
           break #L7;
@@ -99,7 +99,7 @@ static extension-member method E|foo(lowered final core::int #this) → void {
   } =>#t11;
   let final core::int #t13 = 1 in #t13 == null ?{core::int} #t13 : block {
     {
-      core::int p = #t13 as core::int;
+      core::int p##3 = #t13 as core::int;
       Null #t14;
       #L8:
       {
@@ -112,18 +112,18 @@ static extension-member method E|foo(lowered final core::int #this) → void {
     }
   } =>#t13;
   {
-    final synthesized core::int anonymous#this = 1;
+    final synthesized core::int anonymous#this##4 = 1;
     core::int #t15;
     #L9:
     {
       {
-        #t15 = anonymous#this;
+        #t15 = anonymous#this##4;
         break #L9;
       }
     }
   }
   {
-    core::int p = 1;
+    core::int p##4 = 1;
     core::int #t16;
     #L10:
     {
@@ -134,18 +134,18 @@ static extension-member method E|foo(lowered final core::int #this) → void {
     }
   }
   let core::int #t17 = 1 in #t17 == null ?{core::int?} null : block {
-    final synthesized core::int anonymous#this = #t17 as core::int;
+    final synthesized core::int anonymous#this##5 = #t17 as core::int;
     core::int #t18;
     #L11:
     {
       {
-        #t18 = anonymous#this;
+        #t18 = anonymous#this##5;
         break #L11;
       }
     }
   } =>#t18;
   let core::int #t19 = 1 in #t19 == null ?{core::int?} null : block {
-    core::int p = #t19 as core::int;
+    core::int p##5 = #t19 as core::int;
     core::int #t20;
     #L12:
     {
@@ -157,12 +157,12 @@ static extension-member method E|foo(lowered final core::int #this) → void {
   } =>#t20;
   let final core::int #t21 = 1 in block {
     {
-      final synthesized core::int anonymous#this = #t21;
+      final synthesized core::int anonymous#this##6 = #t21;
       core::int #t22;
       #L13:
       {
         {
-          #t22 = anonymous#this;
+          #t22 = anonymous#this##6;
           break #L13;
         }
       }
@@ -170,7 +170,7 @@ static extension-member method E|foo(lowered final core::int #this) → void {
   } =>#t21;
   let final core::int #t23 = 1 in block {
     {
-      core::int p = #t23;
+      core::int p##6 = #t23;
       core::int #t24;
       #L14:
       {
@@ -183,12 +183,12 @@ static extension-member method E|foo(lowered final core::int #this) → void {
   } =>#t23;
   let final core::int #t25 = 1 in #t25 == null ?{core::int} #t25 : block {
     {
-      final synthesized core::int anonymous#this = #t25 as core::int;
+      final synthesized core::int anonymous#this##7 = #t25 as core::int;
       core::int #t26;
       #L15:
       {
         {
-          #t26 = anonymous#this;
+          #t26 = anonymous#this##7;
           break #L15;
         }
       }
@@ -196,7 +196,7 @@ static extension-member method E|foo(lowered final core::int #this) → void {
   } =>#t25;
   let final core::int #t27 = 1 in #t27 == null ?{core::int} #t27 : block {
     {
-      core::int p = #t27 as core::int;
+      core::int p##7 = #t27 as core::int;
       core::int #t28;
       #L16:
       {

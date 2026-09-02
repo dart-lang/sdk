@@ -18,6 +18,7 @@
 #include "vm/app_snapshot.h"
 #include "vm/bytecode_reader.h"
 #include "vm/class_finalizer.h"
+#include "vm/coff.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/dart.h"
 #include "vm/dart_api_impl.h"
@@ -6668,6 +6669,11 @@ static void CreateAppAOTSnapshotHelper(
     // TODO(https://github.com/dart-lang/sdk/issues/60812): Support PDB.
     generate_debug = false;  // PDB unimplemented, no DWARF in PE.
   }
+  if (format == Dart_AotBinaryFormat_PECoff_Obj) {
+    // COFF debug info is emitted as CodeView records in the .obj itself. The
+    // linker materializes those records into app.pdb via /DEBUG.
+    generate_debug = false;
+  }
 #endif
 
   auto* const deobfuscation_trie =
@@ -6733,6 +6739,9 @@ static void CreateAppAOTSnapshotHelper(
     so = new (Z)
         MachOWriter(Z, &output_stream, SharedObjectWriter::Type::Snapshot,
                     identifier, path, dwarf, object_writer);
+  } else if (format == Dart_AotBinaryFormat_PECoff_Obj) {
+    so = new (Z) CoffWriter(Z, &output_stream,
+                            SharedObjectWriter::Type::Snapshot, dwarf);
   }
 
   if (format == Dart_AotBinaryFormat_Assembly) {
@@ -6951,7 +6960,7 @@ Dart_CreateAppAOTSnapshotAsElfs(Dart_CreateLoadingUnitCallback next_callback,
 }
 
 DART_EXPORT Dart_Handle
-Dart_CreateAppAOTSnapshotAsBinary(Dart_AotBinaryFormat format,
+Dart_CreateAppAOTSnapshotAsBinary(Dart_AotBinaryFormat snapshot_format,
                                   Dart_StreamingWriteCallback callback,
                                   void* callback_data,
                                   bool strip,
@@ -6964,6 +6973,12 @@ Dart_CreateAppAOTSnapshotAsBinary(Dart_AotBinaryFormat format,
   return Api::NewError(
       "This VM was built without support for AOT compilation.");
 #else
+#if !(defined(DART_TARGET_OS_WINDOWS) && defined(TARGET_ARCH_X64))
+  if (snapshot_format == Dart_AotBinaryFormat_PECoff_Obj) {
+    return Api::NewError(
+        "PE/COFF AOT snapshot output is only supported on Windows x64.");
+  }
+#endif
   DARTSCOPE(Thread::Current());
   API_TIMELINE_DURATION(T);
   CHECK_NULL(callback);
@@ -6971,7 +6986,7 @@ Dart_CreateAppAOTSnapshotAsBinary(Dart_AotBinaryFormat format,
   // Mark as not split.
   T->isolate_group()->object_store()->set_loading_units(Object::null_array());
 
-  CreateAppAOTProgramSnapshot(callback, callback_data, strip, format,
+  CreateAppAOTProgramSnapshot(callback, callback_data, strip, snapshot_format,
                               debug_callback_data, identifier, path);
 
   return Api::Success();

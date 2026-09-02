@@ -223,6 +223,17 @@ var a = l.indexOf;
 ''');
   }
 
+  Future<void> test_method_preservesComment() async {
+    await resolveTestCode('''
+final l = <int>[];
+var a = (int x) => l /* keep */ .indexOf(x);
+''');
+    await assertHasFix('''
+final l = <int>[];
+var a = l /* keep */ .indexOf;
+''');
+  }
+
   Future<void> test_method_zeroParameter() async {
     await resolveTestCode('''
 final Object a = '';

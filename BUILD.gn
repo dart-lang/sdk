@@ -51,6 +51,12 @@ group("runtime") {
       "utils/dtd:dtd_aot",
       "utils/kernel-service:frontend_server_aot_product",
     ]
+    if (is_linux) {
+      deps += [
+        "runtime/bin:dartcliruntime",
+        "runtime/bin:dartcliruntime_product",
+      ]
+    }
   } else {
     deps += [
       "utils/dart_runtime_service_vm",
@@ -111,13 +117,20 @@ group("runtime_precompiled") {
     "runtime/bin:process_test",
     "runtime/vm:kernel_platform_files($host_toolchain)",
   ]
+  if (is_linux) {
+    deps += [ "runtime/bin:dartcliruntime" ]
+  }
   if (is_linux || is_android) {
     deps += [ "runtime/bin:abstract_socket_test" ]
   }
   if (dart_dynamic_modules) {
     deps += [ "utils/dart2bytecode:dart2bytecode_snapshot" ]
-    deps += [ "utils/modular_aot_compiler:modular_aot_compiler_snapshot" ]
     deps += [ "utils/dynamic_module_runner:dynamic_module_runner_snapshot" ]
+  }
+  if (include_experimental_vm_service && dart_target_arch != "ia32" &&
+      dart_target_arch != "x86") {
+    deps +=
+        [ "utils/dart_runtime_service_vm:dart_runtime_service_vm_aot_snapshot" ]
   }
 }
 
@@ -165,6 +178,13 @@ group("dart2wasm_benchmark") {
   deps = [
     ":dart2wasm_platform",
     "third_party/binaryen:wasm-opt",
+  ]
+}
+
+group("modular_aot_compiler") {
+  deps = [
+    ":runtime_precompiled",
+    "utils/modular_aot_compiler",
   ]
 }
 
@@ -312,6 +332,7 @@ if (is_fuchsia) {
     "tests/ffi/static_checks/regress_60250_test.dart",
     "tests/ffi/static_checks/regress_62693_test.dart",
     "tests/ffi/static_checks/regress_62716_test.dart",
+    "tests/ffi/static_checks/regress_63388_test.dart",
     "tests/ffi/static_checks/regress_flutter_188175_test.dart",
     "tests/ffi/static_checks/vmspecific_function_callbacks_negative_test.dart",
     "tests/ffi/static_checks/vmspecific_regress_38993_test.dart",
@@ -323,6 +344,7 @@ if (is_fuchsia) {
     "tests/ffi/static_checks/vmspecific_static_checks_varargs_test.dart",
     "tests/ffi/static_checks/vmspecific_variance_function_checks_test.dart",
     "tests/ffi/threading_pinning_test.dart",
+    "tests/ffi/threading_reentrant_test.dart",
     "tests/ffi/threading_runeventloop_test.dart",
     "tests/ffi/threading_test.dart",
   ]

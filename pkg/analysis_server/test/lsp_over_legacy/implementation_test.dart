@@ -30,6 +30,7 @@ class Impl extends Base {
 ''';
     var code = TestCode.parse(content);
     newFile(testFilePath, code.code);
+    await initializeServer();
     var results = await getImplementations(testFileUri, code.position.position);
     var result = results.single;
 

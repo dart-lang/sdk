@@ -9,9 +9,11 @@ import 'package:cfg/front_end/recognized_methods.dart';
 import 'package:cfg/ir/flow_graph.dart';
 import 'package:cfg/ir/functions.dart';
 import 'package:kernel/ast.dart' as ast;
+import 'package:native_compiler/back_end/asm_intrinsics.dart';
 import 'package:native_compiler/back_end/code.dart';
 import 'package:native_compiler/back_end/stub_code_generator.dart';
 import 'package:native_compiler/configuration.dart';
+import 'package:native_compiler/front_end/recognized_methods.dart';
 import 'package:native_compiler/runtime/type_utils.dart';
 import 'package:native_compiler/snapshot/image_writer.dart';
 import 'package:native_compiler/snapshot/snapshot.dart';
@@ -21,11 +23,15 @@ class CompilationSet {
   final List<ast.Library> libraries;
   final Configuration config;
   final FunctionRegistry functionRegistry = FunctionRegistry();
-  final RecognizedMethods recognizedMethods = CommonRecognizedMethods();
   final List<CFunction> _pendingFunctions = [];
   final ImageWriter _imageWriter;
+  late final RecognizedMethods recognizedMethods = VmRecognizedMethods(
+    functionRegistry,
+    config.objectLayout,
+  );
   late final SnapshotSerializer _snapshot;
   late final StubFactory _stubFactory;
+  late final AsmIntrinsics _asmIntrinsics;
 
   CompilationSet(this.libraries, this.config)
     : _imageWriter = config.createImageWriter() {
@@ -33,8 +39,10 @@ class CompilationSet {
       config.targetCPU,
       functionRegistry,
       config.objectLayout,
+      compilePlatform: config.compilePlatform,
     );
     _stubFactory = config.createStubFactory(_consumeGeneratedCode);
+    _asmIntrinsics = config.createAsmIntrinsics(functionRegistry);
   }
 
   /// Add [function] to be compiled.
@@ -140,6 +148,7 @@ class CompilationSet {
           function,
           functionRegistry,
           _stubFactory,
+          _asmIntrinsics,
           _consumeGeneratedCode,
         )
         .run(graph);

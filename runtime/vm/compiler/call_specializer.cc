@@ -2364,6 +2364,27 @@ class SimdLowering : public ValueObject {
   bool TryInline(MethodRecognizer::Kind kind) {
     switch (kind) {
       // ==== Int32x4 ====
+      case MethodRecognizer::kInt32x4Not:
+        Int32x4Unary(Token::kBIT_NOT);
+        return true;
+      case MethodRecognizer::kInt32x4Add:
+        Int32x4Binary(Token::kADD);
+        return true;
+      case MethodRecognizer::kInt32x4Sub:
+        Int32x4Binary(Token::kSUB);
+        return true;
+      case MethodRecognizer::kInt32x4BitAnd:
+        Int32x4Binary(Token::kBIT_AND);
+        return true;
+      case MethodRecognizer::kInt32x4BitOr:
+        Int32x4Binary(Token::kBIT_OR);
+        return true;
+      case MethodRecognizer::kInt32x4BitXor:
+        Int32x4Binary(Token::kBIT_XOR);
+        return true;
+      case MethodRecognizer::kInt32x4Equal:
+        Int32x4Compare(Token::kEQ);
+        return true;
       case MethodRecognizer::kInt32x4FromInts:
         UnboxScalar(0, kUnboxedInt32, 4);
         UnboxScalar(1, kUnboxedInt32, 4);
@@ -2492,6 +2513,9 @@ class SimdLowering : public ValueObject {
       case MethodRecognizer::kFloat32x4Equal:
         Float32x4Compare(Token::kEQ);
         return true;
+      case MethodRecognizer::kFloat32x4NotEqual:
+        Float32x4Compare(Token::kNE);
+        return true;
       case MethodRecognizer::kFloat32x4GreaterThan:
         Float32x4Compare(Token::kGT);
         return true;
@@ -2521,6 +2545,9 @@ class SimdLowering : public ValueObject {
         return true;
       case MethodRecognizer::kFloat32x4Max:
         Float32x4Binary(Token::kMAX);
+        return true;
+      case MethodRecognizer::kFloat32x4Clamp:
+        DoubleClamp(kUnboxedFloat, 4);
         return true;
       case MethodRecognizer::kFloat32x4Scale:
         UnboxVector(0, kUnboxedFloat, kDoubleCid, 4);
@@ -2639,6 +2666,12 @@ class SimdLowering : public ValueObject {
       case MethodRecognizer::kFloat64x2Max:
         Float64x2Binary(Token::kMAX);
         return true;
+      case MethodRecognizer::kFloat64x2Clamp:
+        DoubleClamp(kUnboxedDouble, 2);
+        return true;
+      case MethodRecognizer::kFloat64x2GetSignMask:
+        // TODO(riscv)
+        return false;
       case MethodRecognizer::kFloat64x2Scale:
         UnboxVector(0, kUnboxedDouble, kDoubleCid, 2);
         UnboxScalar(1, kUnboxedDouble, 2);
@@ -2704,12 +2737,33 @@ class SimdLowering : public ValueObject {
         Float32x4ToInt32x4();
         BoxVector(kUnboxedInt32, 4);
         return true;
+      case MethodRecognizer::kInt32x4AnyTrue:
+        // TODO(riscv)
+        return false;
       default:
+        UNREACHABLE();
         return false;
     }
   }
 
  private:
+  void Int32x4Unary(Token::Kind op) {
+    UnboxVector(0, kUnboxedInt32, kMintCid, 4);
+    UnaryInt32Op(op, 4);
+    BoxVector(kUnboxedInt32, 4);
+  }
+  void Int32x4Binary(Token::Kind op) {
+    UnboxVector(0, kUnboxedInt32, kMintCid, 4);
+    UnboxVector(1, kUnboxedInt32, kMintCid, 4);
+    BinaryInt32Op(op, 4);
+    BoxVector(kUnboxedInt32, 4);
+  }
+  void Int32x4Compare(Token::Kind op) {
+    UnboxVector(0, kUnboxedInt32, kMintCid, 4);
+    UnboxVector(1, kUnboxedInt32, kMintCid, 4);
+    CompareAsMask(kUnboxedInt32, op, 4);
+    BoxVector(kUnboxedInt32, 4);
+  }
   void Float32x4Unary(Token::Kind op) {
     UnboxVector(0, kUnboxedFloat, kDoubleCid, 4);
     UnaryDoubleOp(op, kUnboxedFloat, 4);
@@ -2724,7 +2778,7 @@ class SimdLowering : public ValueObject {
   void Float32x4Compare(Token::Kind op) {
     UnboxVector(0, kUnboxedFloat, kDoubleCid, 4);
     UnboxVector(1, kUnboxedFloat, kDoubleCid, 4);
-    FloatCompare(op);
+    CompareAsMask(kUnboxedFloat, op, 4);
     BoxVector(kUnboxedInt32, 4);
   }
   void Float64x2Unary(Token::Kind op) {
@@ -2791,6 +2845,23 @@ class SimdLowering : public ValueObject {
     }
   }
 
+  void UnaryInt32Op(Token::Kind op, intptr_t n) {
+    for (intptr_t lane = 0; lane < n; lane++) {
+      op_[lane] = AddDefinition(new (zone()) UnaryInt32OpInstr(
+          op, new (zone()) Value(in_[0][lane]), call_->deopt_id()));
+    }
+  }
+
+  void BinaryInt32Op(Token::Kind op, intptr_t n) {
+    for (intptr_t lane = 0; lane < n; lane++) {
+      auto* binary = new (zone()) BinaryInt32OpInstr(
+          op, new (zone()) Value(in_[0][lane]),
+          new (zone()) Value(in_[1][lane]), call_->deopt_id());
+      binary->mark_truncating();
+      op_[lane] = AddDefinition(binary);
+    }
+  }
+
   void UnaryDoubleOp(Token::Kind op, Representation rep, intptr_t n) {
     for (intptr_t lane = 0; lane < n; lane++) {
       op_[lane] = AddDefinition(new (zone()) UnaryDoubleOpInstr(
@@ -2807,11 +2878,30 @@ class SimdLowering : public ValueObject {
     }
   }
 
-  void FloatCompare(Token::Kind op) {
-    for (intptr_t lane = 0; lane < 4; lane++) {
-      op_[lane] = AddDefinition(
-          new (zone()) FloatCompareInstr(op, new (zone()) Value(in_[0][lane]),
-                                         new (zone()) Value(in_[1][lane])));
+  void DoubleClamp(Representation rep, intptr_t n) {
+    UnboxVector(0, rep, kDoubleCid, n);
+    UnboxVector(1, rep, kDoubleCid, n);
+    UnboxVector(2, rep, kDoubleCid, n);
+
+    for (intptr_t lane = 0; lane < n; lane++) {
+      auto* mid = AddDefinition(new (zone()) BinaryDoubleOpInstr(
+          Token::kMIN, new (zone()) Value(in_[0][lane]),
+          new (zone()) Value(in_[2][lane]), call_->deopt_id(), call_->source(),
+          rep));
+      op_[lane] = AddDefinition(new (zone()) BinaryDoubleOpInstr(
+          Token::kMAX, new (zone()) Value(mid),
+          new (zone()) Value(in_[1][lane]), call_->deopt_id(), call_->source(),
+          rep));
+    }
+
+    BoxVector(rep, n);
+  }
+
+  void CompareAsMask(Representation rep, Token::Kind op, intptr_t n) {
+    for (intptr_t lane = 0; lane < n; lane++) {
+      op_[lane] = AddDefinition(new (zone()) CompareAsMaskInstr(
+          rep, op, new (zone()) Value(in_[0][lane]),
+          new (zone()) Value(in_[1][lane])));
     }
   }
 
@@ -3227,6 +3317,7 @@ bool CallSpecializer::TryInlineRecognizedMethod(
     case MethodRecognizer::kFloat64ArrayGetIndexed:
       return InlineGetIndexed(flow_graph, can_speculate, is_dynamic_call, kind,
                               call, receiver, graph_entry, entry, last, result);
+    case MethodRecognizer::kInt32x4ArrayGetIndexed:
     case MethodRecognizer::kFloat32x4ArrayGetIndexed:
     case MethodRecognizer::kFloat64x2ArrayGetIndexed:
       if (!ShouldInlineSimd()) {
@@ -3287,13 +3378,8 @@ bool CallSpecializer::TryInlineRecognizedMethod(
       return InlineSetIndexed(flow_graph, kind, target, call, receiver, source,
                               exactness, graph_entry, entry, last, result);
     }
-    case MethodRecognizer::kFloat32x4ArraySetIndexed: {
-      if (!ShouldInlineSimd()) {
-        return false;
-      }
-      return InlineSetIndexed(flow_graph, kind, target, call, receiver, source,
-                              exactness, graph_entry, entry, last, result);
-    }
+    case MethodRecognizer::kInt32x4ArraySetIndexed:
+    case MethodRecognizer::kFloat32x4ArraySetIndexed:
     case MethodRecognizer::kFloat64x2ArraySetIndexed: {
       if (!ShouldInlineSimd()) {
         return false;
@@ -3417,8 +3503,25 @@ bool CallSpecializer::TryInlineRecognizedMethod(
     case MethodRecognizer::kInt32x4BitAnd:
     case MethodRecognizer::kInt32x4BitOr:
     case MethodRecognizer::kInt32x4BitXor:
+    case MethodRecognizer::kInt32x4Not:
+#if !defined(TARGET_ARCH_IA32)
+    case MethodRecognizer::kInt32x4Equal:
+#endif
       return InlineSimdOp(flow_graph, is_dynamic_call, call, receiver, kind,
                           graph_entry, entry, last, result);
+
+#if !defined(TARGET_ARCH_IA32)
+    case MethodRecognizer::kInt32x4AnyTrue:
+#if defined(TARGET_ARCH_X64)
+      // The inline emit uses PTEST, so fall back to the native when SSE4.1 is
+      // unavailable.
+      if (!TargetCPUFeatures::sse4_1_supported()) {
+        return false;
+      }
+#endif
+      return InlineSimdOp(flow_graph, is_dynamic_call, call, receiver, kind,
+                          graph_entry, entry, last, result);
+#endif
 
     case MethodRecognizer::kMathIntPow:
       return InlineMathIntPow(flow_graph, call, graph_entry, entry, last,

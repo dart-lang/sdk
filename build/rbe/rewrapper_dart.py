@@ -285,10 +285,13 @@ trace to find the place to insert the appropriate support.
             elif self.get_option([
                     '--packages', '-D', '--snapshot-kind',
                     '--depfile_output_filename', '--coverage',
-                    '--ignore-unrecognized-flags'
+                    '--ignore-unrecognized-flags', '--enable-asserts'
             ]):
                 pass
-            elif arg in ['--deterministic', '--sound-null-safety']:
+            elif arg in [
+                    '--deterministic', '--sound-null-safety',
+                    '--disable-experimental-vm-service'
+            ]:
                 pass
             elif arg == 'compile':
                 self.extra_paths.add(
@@ -331,6 +334,9 @@ trace to find the place to insert the appropriate support.
             elif arg == '../../pkg/vm/bin/gen_kernel.dart':
                 self.entry_points.add(self.rebase(arg))
                 return self.parse_gen_kernel()
+            elif arg == '../../pkg/native_compiler/bin/modular_aot_compiler.dart':
+                self.entry_points.add(self.rebase(arg))
+                return self.parse_modular_aot_compiler()
             elif arg == 'obj/utils/kernel-service/frontend_server.jit.dill':
                 self.extra_paths.add(self.rebase(arg))
                 return self.parse_frontend_server()
@@ -392,6 +398,9 @@ trace to find the place to insert the appropriate support.
                     '/dart2wasm.snapshot'):
                 self.extra_paths.add(self.rebase(arg))
                 return self.parse_dart2wasm()
+            elif arg.endswith('/modular_aot_compiler.dart.snapshot'):
+                self.extra_paths.add(self.rebase(arg))
+                return self.parse_modular_aot_compiler()
             else:
                 self.unsupported('dartaotruntime', arg)
 
@@ -669,6 +678,27 @@ trace to find the place to insert the appropriate support.
                 self.entry_points.add(self.rebase(arg))
             else:
                 self.unsupported('gen_kernel', arg)
+
+    def parse_modular_aot_compiler(self):
+        while self.has_next_arg:
+            arg = self.next_arg()
+            if self.get_option(['-o', '--output']):
+                self.outputs.append(self.rebase(self.optarg))
+            elif self.get_option(['--platform']):
+                self.extra_paths.add(self.rebase(self.optarg))
+            elif self.get_option([
+                    '--packages', '-D', '--filesystem-root',
+                    '--filesystem-scheme'
+            ]):
+                pass
+            elif arg in ['--compile-platform', '--enable-asserts']:
+                pass
+            elif self.get_option(['--depfile']):
+                self.depfiles = [self.rebase(self.optarg)]
+            elif not arg.startswith('-'):
+                self.entry_points.add(self.rebase(arg))
+            else:
+                self.unsupported('modular_aot_compiler', arg)
 
     def parse_kernel_service_snapshot(self):
         while self.has_next_arg:

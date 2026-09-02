@@ -406,7 +406,7 @@ void f() {
  }
 ''');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'p', rootFolder: getFolder('$workspaceRootPath/p')),
     );
@@ -437,6 +437,51 @@ void f(IconButton button) {
 ''');
   }
 
+  Future<void>
+  test_flutter_to_material_package_IconButton_deprecated_export() async {
+    newFile('$workspaceRootPath/p/lib/flutter.dart', '''
+class Widget {
+}
+''');
+    newFile('$workspaceRootPath/p/lib/material.dart', '''
+@deprecated
+library;
+class IconButton {
+  const IconButton();
+}
+''');
+
+    newFile('$workspaceRootPath/p2/lib/material.dart', '''
+class IconButton {
+  const IconButton();
+}
+''');
+
+    writeTestPackageConfig2(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'p', rootFolder: getFolder('$workspaceRootPath/p')),
+    );
+
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Replace by material from package p2'
+    date: 2023-11-09
+    library: 'package:p/material.dart'
+    changes:
+    - kind: 'replacedBy'
+      newLibrary: 'package:p2/material.dart'
+''');
+
+    await resolveTestCode('''
+export 'package:p/material.dart';
+''');
+
+    await assertHasFix('''
+export 'package:p2/material.dart';
+''');
+  }
+
   Future<void> test_flutter_to_material_package_IconButton_removed() async {
     newFile('$workspaceRootPath/p/lib/flutter.dart', '''
   class Widget {
@@ -449,7 +494,7 @@ void f(IconButton button) {
  }
 ''');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'p', rootFolder: getFolder('$workspaceRootPath/p')),
     );
@@ -2846,7 +2891,7 @@ void f() {
  }
 ''');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'p', rootFolder: getFolder('$workspaceRootPath/p')),
     );
@@ -2909,7 +2954,7 @@ void f(CupertinoPageTransitionsBuilder builder) {
  }
 ''');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'p', rootFolder: getFolder('$workspaceRootPath/p'))
         ..add(name: 'p2', rootFolder: getFolder('$workspaceRootPath/p2')),
@@ -2960,7 +3005,7 @@ void f(CupertinoPageTransitionsBuilder builder) {
  }
 ''');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'p', rootFolder: getFolder('$workspaceRootPath/p')),
     );
@@ -3016,7 +3061,7 @@ class MyApp extends StatelessWidget {
  }
 ''');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'p', rootFolder: getFolder('$workspaceRootPath/p'))
         ..add(name: 'p2', rootFolder: getFolder('$workspaceRootPath/p2'))

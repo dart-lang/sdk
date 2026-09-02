@@ -13,5 +13,5 @@ main() {
   // In dart2js ByteData should have an interceptor so that it doesn't end up
   // as an unknown JS object.
   // This test is just to make sure that dart2js doesn't crash.
-  use(new ByteData(1).toString());
+  use(ByteData(1).toString());
 }

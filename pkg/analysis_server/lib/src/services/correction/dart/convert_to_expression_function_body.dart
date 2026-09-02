@@ -34,15 +34,16 @@ class ConvertToExpressionFunctionBody extends ResolvedCorrectionProducer {
     if (body is! BlockFunctionBody || body.isGenerator) {
       return;
     }
-    if (body.keyword?.precedingComments != null ||
-        body.block.leftBracket.precedingComments != null ||
-        body.block.rightBracket.precedingComments != null) {
+    if (body.block.rightBracket.precedingComments != null) {
       // TODO(srawlins): Include comments in fixed output.
       // https://github.com/dart-lang/sdk/issues/29313
       return;
     }
     var parent = body.parent;
     if (parent is ConstructorDeclaration && parent.factoryKeyword == null) {
+      return;
+    }
+    if (parent is PrimaryConstructorBody) {
       return;
     }
     // prepare return statement
@@ -55,33 +56,8 @@ class ConvertToExpressionFunctionBody extends ResolvedCorrectionProducer {
     Expression returnExpression;
     if (onlyStatement case ReturnStatement(:var expression?)) {
       returnExpression = expression;
-      if (onlyStatement.returnKeyword.precedingComments != null) {
-        // TODO(srawlins): Include comments in fixed output.
-        // https://github.com/dart-lang/sdk/issues/29313
-        return;
-      }
-      // TODO(srawlins): If there are comments after `return` keyword, before
-      // the expression, either return without offering a fix, or include the
-      // comments in the fixed output.
-      // https://github.com/dart-lang/sdk/issues/29313
-
-      if (onlyStatement.semicolon.precedingComments != null) {
-        // TODO(srawlins): Include comments in fixed output.
-        // https://github.com/dart-lang/sdk/issues/29313
-        return;
-      }
     } else if (onlyStatement is ExpressionStatement) {
       returnExpression = onlyStatement.expression;
-      // TODO(srawlins): If there are comments before the expression,
-      // either return without offering a fix, or include the comments in the
-      // fixed output.
-      // https://github.com/dart-lang/sdk/issues/29313
-
-      if (onlyStatement.semicolon?.precedingComments != null) {
-        // TODO(srawlins): Include comments in fixed output.
-        // https://github.com/dart-lang/sdk/issues/29313
-        return;
-      }
     } else {
       return;
     }
@@ -92,13 +68,50 @@ class ConvertToExpressionFunctionBody extends ResolvedCorrectionProducer {
       return;
     }
 
+    var expressionRange = range.node(returnExpression);
+    if (returnExpression.beginToken.precedingComments case var comment?) {
+      expressionRange = range.startEnd(comment, returnExpression);
+    }
+
+    // Preserve comments before `return`; the keyword itself is removed.
+    var leadingCommentText = '';
+    if (onlyStatement case ReturnStatement(:var returnKeyword)) {
+      if (returnKeyword.precedingComments case var comment?) {
+        leadingCommentText = utils.getRangeText(
+          range.startStart(comment, returnKeyword),
+        );
+      }
+    }
+
+    // Preserve comments between the expression and the removed semicolon.
+    var trailingCommentText = '';
+    var semicolon = onlyStatement.endToken;
+    if (semicolon.precedingComments != null) {
+      trailingCommentText = utils.getRangeText(
+        range.endStart(returnExpression, semicolon),
+      );
+    }
+
+    // Preserve comments between `async` and the replaced `{`.
+    var asyncCommentText = '';
+    if (body.isAsynchronous) {
+      if (body.block.leftBracket.precedingComments case var comment?) {
+        asyncCommentText = utils.getRangeText(
+          range.startStart(comment, body.block.leftBracket),
+        );
+      }
+    }
+
     await builder.addDartFileEdit(file, (builder) {
       builder.addReplacement(range.node(body), (builder) {
         if (body.isAsynchronous) {
           builder.write('async ');
+          builder.write(asyncCommentText);
         }
         builder.write('=> ');
-        builder.write(utils.getNodeText(returnExpression));
+        builder.write(leadingCommentText);
+        builder.write(utils.getRangeText(expressionRange));
+        builder.write(trailingCommentText);
         var parent = body.parent;
         if (parent is! FunctionExpression ||
             parent.parent is FunctionDeclaration) {

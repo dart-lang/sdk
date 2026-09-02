@@ -18,13 +18,17 @@ class CloneVisitorNotMembers
         ExpressionVisitorExperimentExclusionMixin<TreeNode>,
         StatementVisitorExperimentExclusionMixin<TreeNode>
     implements TreeVisitor<TreeNode> {
-  final Map<Variable, Variable> _variables = <Variable, Variable>{};
+  final Map<VariableBase, VariableBase> _variables =
+      <VariableBase, VariableBase>{};
+  final Map<VariableContext, VariableContext> _variableContexts =
+      <VariableContext, VariableContext>{};
   final Map<LabeledStatement, LabeledStatement> labels =
       <LabeledStatement, LabeledStatement>{};
   final Map<SwitchCase, SwitchCase> switchCases = <SwitchCase, SwitchCase>{};
   final Map<TypeParameter, DartType> typeSubstitution;
   final Map<TypeParameter, TypeParameter> typeParams;
   bool cloneAnnotations;
+  bool inScope = false;
 
   /// Creates an instance of the cloning visitor for Kernel ASTs.
   ///
@@ -52,13 +56,13 @@ class CloneVisitorNotMembers
   /// Returns the clone of [variable] or `null` if no clone has been created
   /// for variable.
   Variable? getVariableClone(Variable variable) {
-    return _variables[variable];
+    return _variables[variable] as Variable?;
   }
 
   /// Registers [clone] as the clone for [variable].
   ///
   /// Returns the [clone].
-  Variable setVariableClone(Variable variable, Variable clone) {
+  V setVariableClone<V extends VariableBase>(V variable, V clone) {
     return _variables[variable] = clone;
   }
 
@@ -521,12 +525,21 @@ class CloneVisitorNotMembers
   @override
   TreeNode visitLet(Let node) {
     SyntheticVariable newVariable = clone(node.variable);
-    return new Let(newVariable, clone(node.body));
+    return new Let(
+      variable: newVariable,
+      // ignore: deprecated_member_use_from_same_package
+      value: newVariable.initializer!,
+      body: clone(node.body),
+    );
   }
 
   @override
   TreeNode visitBlockExpression(BlockExpression node) {
-    return new BlockExpression(clone(node.body), clone(node.value));
+    // The scope should be cloned before the rest of the node, since the
+    // variables declared in the scope can appear in the node.
+    Scope? clonedScope = _cloneScope(node.scope);
+    return new BlockExpression(clone(node.body), clone(node.value))
+      ..scope = clonedScope;
   }
 
   @override
@@ -552,9 +565,56 @@ class CloneVisitorNotMembers
     return new ExpressionStatement(clone(node.expression));
   }
 
+  Scope? _cloneScope(Scope? scope) {
+    bool savedInScope = inScope;
+    inScope = true;
+
+    Scope? result;
+    if (scope != null) {
+      List<VariableContext> clonedContexts = [];
+      for (VariableContext context in scope.contexts) {
+        VariableContext clonedContext = new VariableContext(
+          captureKind: context.captureKind,
+          variables: [],
+        );
+        for (VariableBase variable in context.variables) {
+          // TODO(cstefantsova): Support [TypeVariable]s.
+          variable as Variable;
+          // If a variable appears in a context, it must be the point of
+          // declaration of that variable, and it shouldn't be previously
+          // cloned.
+          assert(getVariableClone(variable) == null);
+          Variable clonedVariable = clone(variable);
+          clonedContext.addVariable(clonedVariable);
+        }
+        clonedContexts.add(clonedContext);
+        _variableContexts[context] = clonedContext;
+      }
+      result = new Scope(contexts: clonedContexts);
+    }
+
+    inScope = savedInScope;
+    return result;
+  }
+
+  List<VariableContext>? _cloneCapturedContexts(
+    List<VariableContext>? capturedContexts,
+  ) {
+    return capturedContexts == null
+        ? null
+        : [
+            for (VariableContext context in capturedContexts)
+              _variableContexts[context]!,
+          ];
+  }
+
   @override
   TreeNode visitBlock(Block node) {
+    // The scope should be cloned before the rest of the node, since the
+    // variables declared in the scope can appear in the node.
+    Scope? clonedScope = _cloneScope(node.scope);
     return new Block(node.statements.map(clone).toList())
+      ..scope = clonedScope
       ..fileEndOffset = _cloneFileOffset(node.fileEndOffset);
   }
 
@@ -593,7 +653,11 @@ class CloneVisitorNotMembers
 
   @override
   TreeNode visitWhileStatement(WhileStatement node) {
-    return new WhileStatement(clone(node.condition), clone(node.body));
+    // The scope should be cloned before the rest of the node, since the
+    // variables declared in the scope can appear in the node.
+    Scope? clonedScope = _cloneScope(node.scope);
+    return new WhileStatement(clone(node.condition), clone(node.body))
+      ..scope = clonedScope;
   }
 
   @override
@@ -603,24 +667,32 @@ class CloneVisitorNotMembers
 
   @override
   TreeNode visitForStatement(ForStatement node) {
+    // The scope should be cloned before the rest of the node, since the
+    // variables declared in the scope can appear in the node.
+    Scope? clonedScope = _cloneScope(node.scope);
     List<VariableDeclaration> variables = node.variables.map(clone).toList();
     return new ForStatement(
       variables,
       cloneOptional(node.condition),
       node.updates.map(clone).toList(),
       clone(node.body),
-    );
+    )..scope = clonedScope;
   }
 
   @override
   TreeNode visitForInStatement(ForInStatement node) {
-    Variable newVariable = clone(node.variable);
+    // The scope should be cloned before the rest of the node, since the
+    // variables declared in the scope can appear in the node.
+    Scope? clonedScope = _cloneScope(node.scope);
+    DeclaredVariable newVariable = clone(node.variable);
     return new ForInStatement(
-      newVariable,
-      clone(node.iterable),
-      clone(node.body),
-      isAsync: node.isAsync,
-    )..bodyOffset = node.bodyOffset;
+        newVariable,
+        clone(node.iterable),
+        clone(node.body),
+        isAsync: node.isAsync,
+      )
+      ..scope = clonedScope
+      ..bodyOffset = node.bodyOffset;
   }
 
   @override
@@ -677,6 +749,9 @@ class CloneVisitorNotMembers
 
   @override
   TreeNode visitCatch(Catch node) {
+    // The scope should be cloned before the rest of the node, since the
+    // variables declared in the scope can appear in the node.
+    Scope? clonedScope = _cloneScope(node.scope);
     CatchVariable? newException = cloneOptional(node.exception);
     CatchVariable? newStackTrace = cloneOptional(node.stackTrace);
     return new Catch(
@@ -684,7 +759,7 @@ class CloneVisitorNotMembers
       clone(node.body),
       stackTrace: newStackTrace,
       guard: visitType(node.guard),
-    );
+    )..scope = clonedScope;
   }
 
   @override
@@ -706,102 +781,178 @@ class CloneVisitorNotMembers
 
   @override
   TreeNode visitPositionalParameter(PositionalParameter node) {
-    return setVariableClone(
-      node,
-      new PositionalParameter(
-          cosmeticName: node.cosmeticName,
-          type: visitType(node.type),
-          defaultValue: cloneOptional(node.defaultValue),
-        )
-        ..flags = node.flags
-        ..annotations = _cloneAnnotations(node)
-        ..fileEqualsOffset = _cloneFileOffset(node.fileEqualsOffset),
-    );
+    return _variables[node] ??
+        setVariableClone(
+          node,
+          new PositionalParameter(
+              parameterName: node.parameterName,
+              type: visitType(node.type),
+              defaultValue: cloneOptional(node.defaultValue),
+            )
+            ..flags = node.flags
+            ..annotations = _cloneAnnotations(node)
+            ..fileEqualsOffset = _cloneFileOffset(node.fileEqualsOffset),
+        );
   }
 
   @override
   TreeNode visitNamedParameter(NamedParameter node) {
-    return setVariableClone(
-      node,
-      new NamedParameter(
-          parameterName: node.parameterName,
-          type: visitType(node.type),
-          defaultValue: cloneOptional(node.defaultValue),
-        )
-        ..flags = node.flags
-        ..annotations = _cloneAnnotations(node)
-        ..fileEqualsOffset = _cloneFileOffset(node.fileEqualsOffset),
-    );
+    return _variables[node] ??
+        setVariableClone(
+          node,
+          new NamedParameter(
+              parameterName: node.parameterName,
+              type: visitType(node.type),
+              defaultValue: cloneOptional(node.defaultValue),
+            )
+            ..flags = node.flags
+            ..annotations = _cloneAnnotations(node)
+            ..fileEqualsOffset = _cloneFileOffset(node.fileEqualsOffset),
+        );
   }
 
   @override
   TreeNode visitCatchVariable(CatchVariable node) {
-    return setVariableClone(
-      node,
-      new CatchVariable(
-          name: node.catchVariableName,
-          type: visitOptionalType(node.type),
-        )
-        ..flags = node.flags
-        ..annotations = _cloneAnnotations(node)
-        ..fileEqualsOffset = _cloneFileOffset(node.fileEqualsOffset),
-    );
+    return _variables[node] ??
+        setVariableClone(
+          node,
+          new CatchVariable(
+              name: node.catchVariableName,
+              type: visitOptionalType(node.type),
+            )
+            ..flags = node.flags
+            ..annotations = _cloneAnnotations(node)
+            ..fileEqualsOffset = _cloneFileOffset(node.fileEqualsOffset),
+        );
+  }
+
+  TreeNode _cloneVariable<V extends Variable>(
+    V node,
+    TreeNode Function(V, {Expression? initializer}) clone,
+  ) {
+    V? clonedVariable = _variables[node] as V?;
+    if (clonedVariable == null) {
+      return clone(
+        node,
+        // Don't clone initializers of variables during scope cloning. The
+        // variables in the scope may refer to each other through their
+        // initializers, and the current layout of variable contexts within
+        // scopes doesn't allow for easy following of the variable
+        // declaration order. Therefore, cloning of initializers is
+        // postponed until the points of variable declarations further in
+        // the code.
+        initializer: inScope ? null : cloneOptional(node.initializer),
+      );
+    } else {
+      // The variables cloned in [_cloneScope] don't have initializers until
+      // the point of the variable declaration, where this visit method is
+      // called the second time. At that point, the initializer should be
+      // cloned.
+      assert(!inScope && clonedVariable.initializer == null);
+      clonedVariable.initializer = cloneOptional(node.initializer)
+        ?..parent = clonedVariable;
+      return clonedVariable;
+    }
   }
 
   @override
   TreeNode visitLocalVariable(LocalVariable node) {
-    return setVariableClone(
-      node,
-      new LocalVariable(
-          name: node.cosmeticName!,
-          type: visitOptionalType(node.type),
-          initializer: cloneOptional(node.initializer),
-        )
-        ..flags = node.flags
-        ..annotations = _cloneAnnotations(node)
-        ..fileEqualsOffset = _cloneFileOffset(node.fileEqualsOffset),
-    );
+    return _cloneVariable(node, (
+      LocalVariable node, {
+      Expression? initializer,
+    }) {
+      return setVariableClone(
+        node,
+        new LocalVariable(
+            name: node.name,
+            type: visitOptionalType(node.type),
+            initializer: initializer,
+          )
+          ..flags = node.flags
+          ..annotations = _cloneAnnotations(node)
+          ..fileEqualsOffset = _cloneFileOffset(node.fileEqualsOffset),
+      );
+    });
+  }
+
+  @override
+  TreeNode visitLocalFunctionVariable(LocalFunctionVariable node) {
+    return _variables[node] ??
+        setVariableClone(
+          node,
+          new LocalFunctionVariable(
+              name: node.name,
+              type: visitOptionalType(node.type),
+            )
+            ..flags = node.flags
+            ..annotations = _cloneAnnotations(node)
+            ..fileEqualsOffset = _cloneFileOffset(node.fileEqualsOffset),
+        );
+  }
+
+  @override
+  TreeNode visitConstVariable(ConstVariable node) {
+    return _variables[node] ??
+        setVariableClone(
+          node,
+          new ConstVariable(
+              name: node.name,
+              type: visitOptionalType(node.type),
+              value: cloneOptional(node.value),
+            )
+            ..flags = node.flags
+            ..annotations = _cloneAnnotations(node)
+            ..fileEqualsOffset = _cloneFileOffset(node.fileEqualsOffset),
+        );
   }
 
   @override
   TreeNode visitLateVariable(LateVariable node) {
-    return setVariableClone(
-      node,
-      new LateVariable(
-          name: node.cosmeticName!,
-          type: visitOptionalType(node.type),
-          initializer: cloneOptional(node.initializer),
-        )
-        ..flags = node.flags
-        ..annotations = _cloneAnnotations(node)
-        ..fileEqualsOffset = _cloneFileOffset(node.fileEqualsOffset),
-    );
+    return _cloneVariable(node, (LateVariable node, {Expression? initializer}) {
+      return setVariableClone(
+        node,
+        new LateVariable(
+            name: node.name,
+            type: visitOptionalType(node.type),
+            initialValue: initializer,
+          )
+          ..flags = node.flags
+          ..annotations = _cloneAnnotations(node)
+          ..fileEqualsOffset = _cloneFileOffset(node.fileEqualsOffset),
+      );
+    });
   }
 
   @override
   TreeNode visitSyntheticVariable(SyntheticVariable node) {
-    return setVariableClone(
-      node,
-      SyntheticVariable(
-          cosmeticName: node.cosmeticName,
-          type: visitType(node.type),
-          initializer: cloneOptional(node.initializer),
-        )
-        ..flags = node.flags
-        ..annotations = _cloneAnnotations(node)
-        ..fileEqualsOffset = _cloneFileOffset(node.fileEqualsOffset),
-    );
+    return _cloneVariable(node, (
+      SyntheticVariable node, {
+      Expression? initializer,
+    }) {
+      return setVariableClone(
+        node,
+        SyntheticVariable(
+            cosmeticName: node.cosmeticName,
+            type: visitType(node.type),
+            initializer: initializer,
+          )
+          ..flags = node.flags
+          ..annotations = _cloneAnnotations(node)
+          ..fileEqualsOffset = _cloneFileOffset(node.fileEqualsOffset),
+      );
+    });
   }
 
   @override
   TreeNode visitThisVariable(ThisVariable node) {
-    return setVariableClone(
-      node,
-      new ThisVariable(type: visitType(node.type))
-        ..flags = node.flags
-        ..annotations = _cloneAnnotations(node)
-        ..fileEqualsOffset = _cloneFileOffset(node.fileEqualsOffset),
-    );
+    return _variables[node] ??
+        setVariableClone(
+          node,
+          new ThisVariable(type: visitType(node.type))
+            ..flags = node.flags
+            ..annotations = _cloneAnnotations(node)
+            ..fileEqualsOffset = _cloneFileOffset(node.fileEqualsOffset),
+        );
   }
 
   @override
@@ -813,6 +964,7 @@ class CloneVisitorNotMembers
   @override
   TreeNode visitVariableDeclaration(VariableDeclaration node) {
     return new VariableDeclaration(clone(node.variable))
+      ..capturedContexts = _cloneCapturedContexts(node.capturedContexts)
       ..fileOffset = _cloneFileOffset(node.fileOffset);
   }
 
@@ -824,7 +976,7 @@ class CloneVisitorNotMembers
 
   @override
   TreeNode visitFunctionDeclaration(FunctionDeclaration node) {
-    Variable newVariable = clone(node.variable);
+    LocalFunctionVariable newVariable = clone(node.variable);
     // Create the declaration before cloning the body to support recursive
     // [LocalFunctionInvocation] nodes.
     FunctionDeclaration declaration = new FunctionDeclaration(
@@ -876,6 +1028,9 @@ class CloneVisitorNotMembers
   @override
   TreeNode visitFunctionNode(FunctionNode node) {
     prepareTypeParameters(node.typeParameters);
+    // The scope should be cloned before the rest of the node, since the
+    // variables declared in the scope can appear in the node.
+    Scope? clonedScope = _cloneScope(node.scope);
     List<TypeParameter> typeParameters = node.typeParameters
         .map(clone)
         .toList();
@@ -888,17 +1043,20 @@ class CloneVisitorNotMembers
         ? visitType(node.emittedValueType!)
         : null;
     return new FunctionNode(
-      cloneFunctionNodeBody(node),
-      typeParameters: typeParameters,
-      positionalParameters: positional,
-      namedParameters: named,
-      thisVariable: thisVariable,
-      requiredParameterCount: node.requiredParameterCount,
-      returnType: visitType(node.returnType),
-      asyncMarker: node.asyncMarker,
-      dartAsyncMarker: node.dartAsyncMarker,
-      emittedValueType: futureValueType,
-    )..fileEndOffset = _cloneFileOffset(node.fileEndOffset);
+        cloneFunctionNodeBody(node),
+        typeParameters: typeParameters,
+        positionalParameters: positional,
+        namedParameters: named,
+        thisVariable: thisVariable,
+        requiredParameterCount: node.requiredParameterCount,
+        returnType: visitType(node.returnType),
+        asyncMarker: node.asyncMarker,
+        dartAsyncMarker: node.dartAsyncMarker,
+        emittedValueType: futureValueType,
+      )
+      ..scope = clonedScope
+      ..capturedContexts = _cloneCapturedContexts(node.capturedContexts)
+      ..fileEndOffset = _cloneFileOffset(node.fileEndOffset);
   }
 
   @override
@@ -973,7 +1131,9 @@ class CloneVisitorNotMembers
 
   @override
   TreeNode visitLocalInitializer(LocalInitializer node) {
-    return new LocalInitializer(clone(node.variable));
+    SyntheticVariable variable = clone(node.variable);
+    // ignore: deprecated_member_use_from_same_package
+    return new LocalInitializer(variable, variable.initializer!);
   }
 
   @override
@@ -1112,7 +1272,7 @@ class CloneVisitorNotMembers
   @override
   TreeNode visitLocalFunctionInvocation(LocalFunctionInvocation node) {
     return new LocalFunctionInvocation(
-      getVariableClone(node.variable)!,
+      getVariableClone(node.variable) as LocalFunctionVariable,
       clone(node.arguments),
       functionType: visitType(node.functionType) as FunctionType,
     );
@@ -1154,9 +1314,14 @@ class CloneVisitorNotMembers
 
   @override
   TreeNode visitAssignedVariablePattern(AssignedVariablePattern node) {
-    return new AssignedVariablePattern(getVariableClone(node.variable)!)
-      ..matchedValueType = visitOptionalType(node.matchedValueType)
-      ..needsCast = node.needsCast;
+    return new AssignedVariablePattern(
+      variableName: node.variableName,
+      variableType: visitType(node.variableType),
+      writeVariable: getVariableClone(node.writeVariable)!,
+      matchedValueType: visitType(node.matchedValueType),
+      needsCast: node.needsCast,
+      hasObservableEffect: node.hasObservableEffect,
+    );
   }
 
   @override
@@ -1166,7 +1331,12 @@ class CloneVisitorNotMembers
 
   @override
   TreeNode visitConstantPattern(ConstantPattern node) {
-    return new ConstantPattern(clone(node.expression));
+    return new ConstantPattern.byReference(
+      expression: clone(node.expression),
+      expressionType: visitType(node.expressionType),
+      equalsTargetReference: node.equalsTargetReference,
+      equalsType: visitType(node.equalsType) as FunctionType,
+    );
   }
 
   @override
@@ -1174,25 +1344,47 @@ class CloneVisitorNotMembers
     return new InvalidPattern(
       clone(node.invalidExpression),
       declaredVariables: node.declaredVariables
-          .map((e) => getVariableClone(e)!)
+          .map((e) => getVariableClone(e) as DeclaredVariable)
           .toList(),
     );
   }
 
   @override
   TreeNode visitListPattern(ListPattern node) {
-    return new ListPattern(
-      visitOptionalType(node.typeArgument),
-      node.patterns.map(clone).toList(),
+    return new ListPattern.byReference(
+      typeArgument: visitOptionalType(node.typeArgument),
+      patterns: node.patterns.map(clone).toList(),
+      requiredType: visitType(node.requiredType),
+      matchedValueType: visitType(node.matchedValueType),
+      lookupType: visitType(node.lookupType),
+      lengthTargetReference: node.lengthTargetReference,
+      lengthType: visitType(node.lengthType),
+      lengthCheckTargetReference: node.lengthCheckTargetReference,
+      lengthCheckType: visitType(node.lengthCheckType) as FunctionType,
+      sublistTargetReference: node.sublistTargetReference,
+      sublistType: visitType(node.sublistType) as FunctionType,
+      minusTargetReference: node.minusTargetReference,
+      minusType: visitType(node.minusType) as FunctionType,
+      indexGetTargetReference: node.indexGetTargetReference,
+      indexGetType: visitType(node.indexGetType) as FunctionType,
+      flags: node.flags,
     );
   }
 
   @override
   TreeNode visitMapPattern(MapPattern node) {
-    return new MapPattern(
-      visitOptionalType(node.keyType),
-      visitOptionalType(node.valueType),
-      node.entries.map(clone).toList(),
+    return new MapPattern.byReference(
+      keyType: visitOptionalType(node.keyType),
+      valueType: visitOptionalType(node.valueType),
+      entries: node.entries.map(clone).toList(),
+      requiredType: visitType(node.requiredType),
+      matchedValueType: visitType(node.matchedValueType),
+      lookupType: visitType(node.lookupType),
+      containsKeyTargetReference: node.containsKeyTargetReference,
+      containsKeyType: visitType(node.containsKeyType) as FunctionType,
+      indexGetTargetReference: node.indexGetTargetReference,
+      indexGetType: visitType(node.indexGetType) as FunctionType,
+      flags: node.flags,
     );
   }
 
@@ -1224,8 +1416,10 @@ class CloneVisitorNotMembers
   @override
   TreeNode visitObjectPattern(ObjectPattern node) {
     return new ObjectPattern(
-      visitType(node.requiredType),
-      node.fields.map(clone).toList(),
+      requiredType: visitType(node.requiredType),
+      fields: node.fields.map(clone).toList(),
+      matchedValueType: visitType(node.matchedValueType),
+      needsCheck: node.needsCheck,
     );
   }
 
@@ -1235,20 +1429,35 @@ class CloneVisitorNotMembers
       clone(node.left),
       clone(node.right),
       orPatternJointVariables: node.orPatternJointVariables
-          .map((e) => getVariableClone(e)!)
+          .map((e) => getVariableClone(e) as DeclaredVariable)
           .toList(),
     );
   }
 
   @override
   TreeNode visitRecordPattern(RecordPattern node) {
-    return new RecordPattern(node.patterns.map(clone).toList());
+    return new RecordPattern(
+      patterns: node.patterns.map(clone).toList(),
+      requiredType: visitType(node.requiredType) as RecordType,
+      matchedValueType: visitType(node.matchedValueType),
+      needsCheck: node.needsCheck,
+      lookupType: visitType(node.lookupType) as RecordType,
+    );
   }
 
   @override
   TreeNode visitRelationalPattern(RelationalPattern node) {
-    return new RelationalPattern(node.kind, clone(node.expression))
-      ..expressionType = visitOptionalType(node.expressionType);
+    return new RelationalPattern(
+      kind: node.kind,
+      expression: clone(node.expression),
+      expressionType: visitType(node.expressionType),
+      matchedValueType: visitType(node.matchedValueType),
+      accessKind: node.accessKind,
+      name: node.name,
+      target: node.target,
+      typeArguments: node.typeArguments?.map(visitType).toList(),
+      functionType: visitOptionalType(node.functionType) as FunctionType?,
+    );
   }
 
   @override
@@ -1259,8 +1468,9 @@ class CloneVisitorNotMembers
   @override
   TreeNode visitVariablePattern(VariablePattern node) {
     return new VariablePattern(
-      visitOptionalType(node.type),
-      clone(node.variable),
+      type: visitOptionalType(node.type),
+      variable: clone(node.variable),
+      matchedValueType: visitType(node.matchedValueType),
     );
   }
 
@@ -1282,8 +1492,8 @@ class CloneVisitorNotMembers
       clone(node.body),
       isDefault: node.isDefault,
       hasLabel: node.hasLabel,
-      jointVariables: node.jointVariables
-          .map((e) => getVariableClone(e)!)
+      jointVariableDeclarations: node.jointVariableDeclarations
+          .map(clone)
           .toList(),
       jointVariableFirstUseOffsets: node.jointVariableFirstUseOffsets == null
           ? null
@@ -1323,21 +1533,27 @@ class CloneVisitorNotMembers
       clone(node.pattern),
       clone(node.initializer),
       isFinal: node.isFinal,
+      matchedValueType: visitType(node.matchedValueType),
     );
   }
 
   @override
   TreeNode visitPatternAssignment(PatternAssignment node) {
-    return new PatternAssignment(clone(node.pattern), clone(node.expression));
+    return new PatternAssignment(
+      pattern: clone(node.pattern),
+      expression: clone(node.expression),
+      matchedValueType: visitType(node.matchedValueType),
+    );
   }
 
   @override
   TreeNode visitIfCaseStatement(IfCaseStatement node) {
     return new IfCaseStatement(
-      clone(node.expression),
-      clone(node.patternGuard),
-      clone(node.then),
-      cloneOptional(node.otherwise),
+      expression: clone(node.expression),
+      patternGuard: clone(node.patternGuard),
+      then: clone(node.then),
+      otherwise: cloneOptional(node.otherwise),
+      matchedValueType: visitType(node.matchedValueType),
     );
   }
 
@@ -1461,6 +1677,8 @@ class CloneVisitorWithMembers extends CloneVisitorNotMembers {
 
     Field result;
     if (node.hasSetter) {
+      ThisVariable? clonedThisVariable =
+          node.thisVariable?.accept<TreeNode>(this) as ThisVariable?;
       result = new Field.mutable(
         node.name,
         type: visitType(node.type),
@@ -1470,13 +1688,16 @@ class CloneVisitorWithMembers extends CloneVisitorNotMembers {
         fieldReference: fieldReference,
         getterReference: getterReference,
         setterReference: setterReference,
-      );
+      )..thisVariable = clonedThisVariable;
+      clonedThisVariable?.parent = result;
     } else {
       assert(
         setterReference == null,
         "Cannot use setter reference $setterReference "
         "for clone of an immutable field.",
       );
+      ThisVariable? clonedThisVariable =
+          node.thisVariable?.accept<TreeNode>(this) as ThisVariable?;
       result = new Field.immutable(
         node.name,
         type: visitType(node.type),
@@ -1485,7 +1706,8 @@ class CloneVisitorWithMembers extends CloneVisitorNotMembers {
         fileUri: node.fileUri,
         fieldReference: fieldReference,
         getterReference: getterReference,
-      );
+      )..thisVariable = clonedThisVariable;
+      clonedThisVariable?.parent = result;
     }
     result
       ..annotations = cloneAnnotations && !node.annotations.isEmpty

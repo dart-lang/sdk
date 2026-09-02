@@ -24,7 +24,6 @@
 import optparse
 import os
 import re
-import utils
 import subprocess
 import struct
 
@@ -77,6 +76,11 @@ for line in nm_lines:
 
 if len(symbols) == 0:
     raise Exception(binary + " has no symbols")
+
+# Mach-O symbol tables don't have a size field. Extend symbols up to the next symbol.
+for i in range(len(symbols) - 1):
+    if symbols[i].size == 0:
+        symbols[i].size = symbols[i + 1].offset - symbols[i].offset
 
 stream = open(output, "wb")
 stream.write(struct.pack("I", len(symbols)))

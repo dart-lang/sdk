@@ -42,8 +42,26 @@ class TypeArgumentsVerifier {
   TypeSystemImpl get _typeSystem =>
       _libraryElement.typeSystem as TypeSystemImpl;
 
-  void checkConstructorReference(ConstructorReferenceImpl node) {
-    var classElement = node.constructorName.type.element;
+  void checkCallInvocation(CallInvocation node) {
+    var functionType = switch (node.resolution) {
+      ExecutableInvocationResolution(:var element) => element.type,
+      _ => switch (node.receiver) {
+        Expression(:var staticType) => staticType,
+        _ => null,
+      },
+    };
+    _checkInvocationTypeArguments(
+      node.typeArguments?.arguments,
+      functionType,
+      switch (node.resolution) {
+        StaticInvocationResolution(:var invokeType) => invokeType,
+        _ => null,
+      },
+    );
+  }
+
+  void checkConstructorTearOff(ConstructorTearOffImpl node) {
+    var classElement = node.typeReference.element;
     List<TypeParameterElementImpl> typeParameters;
     if (classElement is TypeAliasElementImpl) {
       typeParameters = classElement.typeParameters;
@@ -63,13 +81,13 @@ class TypeArgumentsVerifier {
       }
     }
 
-    var typeArgumentList = node.constructorName.type.typeArguments;
+    var typeArgumentList = node.typeReference.typeArguments;
     if (typeArgumentList == null) {
       return;
     }
     var constructorType = node.staticType;
     if (constructorType is DynamicType) {
-      // An erroneous constructor reference.
+      // An erroneous constructor tear-off.
       return;
     }
     if (constructorType is! FunctionType) {
@@ -110,6 +128,15 @@ class TypeArgumentsVerifier {
         );
       }
     }
+  }
+
+  void checkConstructorTypeReference(ConstructorTypeReferenceImpl node) {
+    _checkForTypeArgumentNotMatchingBounds(
+      node: node,
+      type: node.type,
+      explicitTypeArguments: node.typeArguments,
+      allowSuperBoundedTypes: false,
+    );
   }
 
   void checkEnumConstantDeclaration(EnumConstantDeclarationImpl node) {
@@ -175,24 +202,34 @@ class TypeArgumentsVerifier {
     }
   }
 
-  void checkFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    // For some function expressions, like an implicit 'call' invocation, the
-    // function type is on `node`'s `element`. For anonymous function
-    // expressions, the function is on `node`'s `function`.
-    // TODO(srawlins): It seems that `node.function`, the Expression, should
-    // always have the static type of the `call` method.
-    var functionType = node.element?.type ?? node.function.staticType;
+  void checkFunctionInvocation(FunctionInvocation node) {
+    var functionType = switch (node.resolution) {
+      ExecutableInvocationResolution(:var element) => element.type,
+      InvalidInvocationResolution(
+        recovery: ExecutableInvocationResolution(:var element),
+      ) =>
+        element.type,
+      _ => null,
+    };
+    var invokeType = switch (node.resolution) {
+      StaticInvocationResolution(:var invokeType) => invokeType,
+      InvalidInvocationResolution(
+        recovery: StaticInvocationResolution(:var invokeType),
+      ) =>
+        invokeType,
+      _ => null,
+    };
     _checkInvocationTypeArguments(
       node.typeArguments?.arguments,
       functionType,
-      node.staticInvokeType,
+      invokeType,
     );
   }
 
   void checkFunctionReference(FunctionReference node) {
     _checkInvocationTypeArguments(
       node.typeArguments?.arguments,
-      node.function.staticType,
+      node.function2.staticType,
       node.staticType,
     );
   }
@@ -241,12 +278,13 @@ class TypeArgumentsVerifier {
   }
 
   void checkNamedType(NamedTypeImpl node) {
-    _checkForTypeArgumentNotMatchingBounds(node);
-    var parent = node.parent;
-    if (parent is! ConstructorNameImpl ||
-        parent.parent is! InstanceCreationExpressionImpl) {
-      _checkForRawTypeName(node);
-    }
+    _checkForTypeArgumentNotMatchingBounds(
+      node: node,
+      type: node.type,
+      explicitTypeArguments: node.typeArguments,
+      allowSuperBoundedTypes: _shouldAllowSuperBoundedTypes(node),
+    );
+    _checkForRawTypeName(node);
   }
 
   void checkSetLiteral(SetOrMapLiteral node) {
@@ -273,9 +311,9 @@ class TypeArgumentsVerifier {
   /// [diag.strictRawType].
   void _checkForRawTypeName(NamedType node) {
     AstNode parentEscapingTypeArguments(NamedType node) {
-      var parent = node.parent!;
+      var parent = node.parent2!;
       while (parent is TypeArgumentList || parent is NamedType) {
-        var grandparent = parent.parent;
+        var grandparent = parent.parent2;
         if (grandparent == null) {
           return parent;
         }
@@ -307,10 +345,14 @@ class TypeArgumentsVerifier {
     }
   }
 
-  /// Verify that the type arguments in the given [namedType] are all within
+  /// Verify that the type arguments in the type reference are all within
   /// their bounds.
-  void _checkForTypeArgumentNotMatchingBounds(NamedTypeImpl namedType) {
-    var type = namedType.type;
+  void _checkForTypeArgumentNotMatchingBounds({
+    required AstNode node,
+    required TypeImpl? type,
+    required TypeArgumentList? explicitTypeArguments,
+    required bool allowSuperBoundedTypes,
+  }) {
     if (type == null) {
       return;
     }
@@ -356,7 +398,7 @@ class TypeArgumentsVerifier {
         if (!_libraryElement.featureSet.isEnabled(Feature.generic_metadata)) {
           _diagnosticReporter.report(
             diag.genericFunctionTypeCannotBeTypeArgument.at(
-              _typeArgumentErrorNode(namedType, i),
+              _typeArgumentErrorNode(node, explicitTypeArguments, i),
             ),
           );
           continue;
@@ -398,9 +440,9 @@ class TypeArgumentsVerifier {
         messages.add(
           DiagnosticMessageImpl(
             filePath: _diagnosticReporter.source.fullName,
-            length: namedType.length,
+            length: node.length,
             message: message,
-            offset: namedType.offset,
+            offset: node.offset,
             url: null,
           ),
         );
@@ -410,7 +452,7 @@ class TypeArgumentsVerifier {
         return typeArguments.map((e) => e.getDisplayString()).join(', ');
       }
 
-      if (namedType.typeArguments == null) {
+      if (explicitTypeArguments == null) {
         var typeStr = '$elementName<${typeArgumentsToString(typeArguments)}>';
         addMessage(
           "The raw type was instantiated as '$typeStr', "
@@ -431,7 +473,7 @@ class TypeArgumentsVerifier {
     }
 
     // If not allowed to be super-bounded, report issues.
-    if (!_shouldAllowSuperBoundedTypes(namedType)) {
+    if (!allowSuperBoundedTypes) {
       for (var issue in issues) {
         _diagnosticReporter.report(
           diag.typeArgumentNotMatchingBounds
@@ -441,7 +483,13 @@ class TypeArgumentsVerifier {
                 bound: issue.parameterBound,
               )
               .withContextMessages(buildContextMessages())
-              .at(_typeArgumentErrorNode(namedType, issue.index)),
+              .at(
+                _typeArgumentErrorNode(
+                  node,
+                  explicitTypeArguments,
+                  issue.index,
+                ),
+              ),
         );
       }
       return;
@@ -493,7 +541,7 @@ class TypeArgumentsVerifier {
                   invertedTypeArguments: invertedTypeArguments,
                 ),
               )
-              .at(_typeArgumentErrorNode(namedType, i)),
+              .at(_typeArgumentErrorNode(node, explicitTypeArguments, i)),
         );
       }
     }
@@ -697,9 +745,8 @@ class TypeArgumentsVerifier {
   /// Determines if the given [namedType] occurs in a context where
   /// super-bounded types are allowed.
   bool _shouldAllowSuperBoundedTypes(NamedType namedType) {
-    switch (namedType.parent) {
+    switch (namedType.parent2) {
       case ClassTypeAlias _:
-      case ConstructorName _:
       case ExtendsClause _:
       case GenericTypeAlias _:
       case ImplementsClause _:
@@ -716,8 +763,12 @@ class TypeArgumentsVerifier {
   }
 
   /// Return the type arguments at [index] from [node], or the [node] itself.
-  static TypeAnnotation _typeArgumentErrorNode(NamedType node, int index) {
-    var typeArguments = node.typeArguments?.arguments;
+  static AstNode _typeArgumentErrorNode(
+    AstNode node,
+    TypeArgumentList? typeArgumentList,
+    int index,
+  ) {
+    var typeArguments = typeArgumentList?.arguments;
     if (typeArguments != null && index < typeArguments.length) {
       return typeArguments[index];
     }

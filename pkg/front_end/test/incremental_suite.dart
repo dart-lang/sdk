@@ -1153,9 +1153,8 @@ class NewWorldTest {
     IncrementalCompilerResult compilerResult,
     TestData data,
     int worldNum,
-    Context context, {
-    bool checkExpectFile = false,
-  }) {
+    Context context,
+  ) {
     if (!world.skipClassHierarchyTest) {
       ClassHierarchy? classHierarchy = compilerResult.classHierarchy;
       if (classHierarchy is! ClosedWorldClassHierarchy) {
@@ -1331,33 +1330,6 @@ class NewWorldTest {
             for (Member member in info.lazyInterfaceSetters!) {
               sb.writeln("      - ${member.name.text}");
             }
-          }
-        }
-      }
-      if (checkExpectFile) {
-        String actualClassHierarchy = sb.toString();
-        Uri uri = data.loadedFrom.resolve(
-          data.loadedFrom.pathSegments.last +
-              ".world.$worldNum.class_hierarchy.expect",
-        );
-        String? expected;
-        File file = new File.fromUri(uri);
-        if (file.existsSync()) {
-          expected = file.readAsStringSync();
-        }
-        if (expected != actualClassHierarchy) {
-          if (context.updateExpectations) {
-            file.writeAsStringSync(actualClassHierarchy);
-          } else {
-            String extra = "";
-            if (expected == null) extra = "Expect file did not exist.\n";
-            return new Result<TestData>(
-              data,
-              ClassHierarchyError,
-              "${extra}Unexpected serialized representation. "
-              "Fix or update $uri to contain the below:\n\n"
-              "$actualClassHierarchy",
-            );
           }
         }
       }
@@ -2104,12 +2076,14 @@ class NewWorldTest {
         newWorldTestData.newestWholeComponentData!,
         thisWholeComponent,
       );
-      _checkErrorsAndWarnings(
-        prevFormattedErrors,
-        worldTestData.formattedErrors,
-        prevFormattedWarnings,
-        worldTestData.formattedWarnings,
-      );
+      if (!world.noErrorWarningCheckOnExtraCompiles) {
+        _checkErrorsAndWarnings(
+          prevFormattedErrors,
+          worldTestData.formattedErrors,
+          prevFormattedWarnings,
+          worldTestData.formattedWarnings,
+        );
+      }
       newestWholeComponent = componentLocal;
 
       Result<List<int>?> serializationResult = _checkIncrementalSerialization(
@@ -3181,6 +3155,7 @@ class World {
   final List<String>? modules;
   final bool updateWorldType;
   final bool noFullComponent;
+  final bool noErrorWarningCheckOnExtraCompiles;
   final bool? expectInitializeFromDill;
   final Map<String, String?> sources;
   final bool useBadSdk;
@@ -3235,6 +3210,7 @@ class World {
     required this.modules,
     required this.updateWorldType,
     required this.noFullComponent,
+    required this.noErrorWarningCheckOnExtraCompiles,
     required this.expectInitializeFromDill,
     required this.sources,
     required this.useBadSdk,
@@ -3285,6 +3261,9 @@ class World {
     bool updateWorldType = worldType == WorldProperties.worldType_updated;
 
     bool noFullComponent = WorldProperties.noFullComponent.read(world, keys);
+    bool noErrorWarningCheckOnExtraCompiles = WorldProperties
+        .noErrorWarningCheckOnExtraCompiles
+        .read(world, keys);
 
     bool? expectInitializeFromDill = WorldProperties.expectInitializeFromDill
         .read(world, keys);
@@ -3435,6 +3414,7 @@ class World {
       modules: modules,
       updateWorldType: updateWorldType,
       noFullComponent: noFullComponent,
+      noErrorWarningCheckOnExtraCompiles: noErrorWarningCheckOnExtraCompiles,
       expectInitializeFromDill: expectInitializeFromDill,
       sources: sources,
       useBadSdk: useBadSdk,
@@ -3499,6 +3479,13 @@ class WorldProperties {
     BoolValue(),
     defaultValue: false,
   );
+
+  static const Property<bool> noErrorWarningCheckOnExtraCompiles =
+      Property.optional(
+        'noErrorWarningCheckOnExtraCompiles',
+        BoolValue(),
+        defaultValue: false,
+      );
 
   static const Property<bool?> expectInitializeFromDill = Property.optional(
     'expectInitializeFromDill',

@@ -1,0 +1,13 @@
+fa0 float
+fa1 float
+fa2 float
+fa3 float
+fa4 float
+fa5 float
+fa6 float
+fa7 float
+a0 int32[float]
+M(a1 uint64) Struct(size: 8)
+a2 int64[int32]
+=>
+fa0 float

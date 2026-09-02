@@ -16,6 +16,18 @@ main() {
 
 @reflectiveTest
 class AugmentationReturnTypeMismatchTest extends PubPackageResolutionTest {
+  test_class_instanceField_abstractVar_dynamicInitializer() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  abstract var foo;
+}
+
+augment class A {
+  augment dynamic foo = 0;
+}
+''');
+  }
+
   test_class_instanceField_int_int() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {
@@ -57,6 +69,21 @@ augment class A {
 ''');
   }
 
+  test_class_instanceGetter_inferred_int_String() async {
+    await resolveTestCodeWithDiagnostics(r'''
+abstract class A {
+  int get foo;
+}
+
+abstract class B implements A {
+  get foo;
+  augment String get foo;
+//        ^^^^^^
+// [diag.augmentationReturnTypeMismatch] The augmentation's return type 'String' must be the same as the introductory declaration's return type 'int'.
+}
+''');
+  }
+
   test_class_instanceGetter_instanceField_int_String() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {
@@ -79,6 +106,21 @@ class A {
 
 augment class A {
   augment String get foo;
+//        ^^^^^^
+// [diag.augmentationReturnTypeMismatch] The augmentation's return type 'String' must be the same as the introductory declaration's return type 'int'.
+}
+''');
+  }
+
+  test_class_instanceMethod_inferred_int_String() async {
+    await resolveTestCodeWithDiagnostics(r'''
+abstract class A {
+  int foo();
+}
+
+abstract class B implements A {
+  foo();
+  augment String foo();
 //        ^^^^^^
 // [diag.augmentationReturnTypeMismatch] The augmentation's return type 'String' must be the same as the introductory declaration's return type 'int'.
 }
@@ -328,6 +370,20 @@ int? get foo => 0;
 augment abstract final String? foo;
 //                             ^^^
 // [diag.augmentationInducedGetterReturnTypeMismatch] The getter induced by this augmentation has return type 'String?', but the getter being augmented has return type 'int?'.
+''');
+  }
+
+  test_topLevelVariable_abstractVar_dynamicInitializer() async {
+    await resolveTestCodeWithDiagnostics(r'''
+abstract var foo;
+augment dynamic foo = 0;
+''');
+  }
+
+  test_topLevelVariable_abstractVar_varInitializer() async {
+    await resolveTestCodeWithDiagnostics(r'''
+abstract var foo;
+augment var foo = 0;
 ''');
   }
 

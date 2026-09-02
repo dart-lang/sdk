@@ -43,7 +43,7 @@ class ThreadInfo {
   final ptr_data = calloc<Int32>(1024);
   final ptr_retval = calloc<IntPtr>(1024);
 
-  void join() {
+  void joinAndDestroy() {
     Expect.equals(0, pthreadJoin(ptr_tid.value, ptr_retval.cast<Void>()));
     calloc.free(ptr_retval);
 

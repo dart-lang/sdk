@@ -271,12 +271,9 @@ class ArgumentAllocator : public ValueObject {
           payload_type.NumberOfWordSizeChunksNotOnlyFloat();
       intptr_t required_xmm_regs =
           payload_type.NumberOfWordSizeChunksOnlyFloat();
-      const bool regs_available =
-          cpu_regs_used + required_regs <= CallingConventions::kNumArgRegs;
+      const bool regs_available = HasAvailableCpuRegisters(required_regs);
       const bool fpu_regs_available =
-          FirstFreeFpuRegisterIndex(kQuadFpuReg) != kNoFpuRegister &&
-          FirstFreeFpuRegisterIndex(kQuadFpuReg) + required_xmm_regs <=
-              CallingConventions::kNumFpuArgRegs;
+          HasAvailableFpuRegisters(required_xmm_regs);
       if (regs_available && fpu_regs_available) {
         // Transfer in registers.
         NativeLocations& multiple_locations = *new (zone_) NativeLocations(
@@ -679,9 +676,11 @@ class ArgumentAllocator : public ValueObject {
   }
 
   bool HasAvailableCpuRegisters(intptr_t count) const {
+    if (count == 0) return true;
     return cpu_regs_used + count <= CallingConventions::kNumArgRegs;
   }
   bool HasAvailableFpuRegisters(intptr_t count) const {
+    if (count == 0) return true;
     return FirstFreeFpuRegisterIndex(kQuadFpuReg, count) != kNoFpuRegister;
   }
 

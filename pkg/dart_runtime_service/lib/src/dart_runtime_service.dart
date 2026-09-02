@@ -160,7 +160,11 @@ class DartRuntimeService {
     if (silenceServiceOutput) {
       return;
     }
-    stdout.writeln(message);
+    // print() must be used instead of stdout.writeln() so that embedded
+    // environments (such as Flutter on Android) can capture VM service
+    // listening announcements through the embedder's print handler and
+    // system logcat, as stdout is discarded by default on Android.
+    print(message);
   }
 
   /// Initializes the service's state without starting the web server.
@@ -197,12 +201,12 @@ class DartRuntimeService {
     if (!_initializedCompleter.isCompleted) {
       await _initializedCompleter.future;
     }
+    await clientManager.shutdown();
     await backend.clearState();
     await backend.shutdown();
     try {
       await _shutdownServer();
     } on DartRuntimeServiceServerNotRunning catch (_) {}
-    await clientManager.shutdown();
     Logger.root.clearListeners();
     _logger.info('Dart Runtime Service shutdown complete.');
   }
@@ -276,31 +280,42 @@ class DartRuntimeService {
     final host = parsedHost;
 
     _logger.info('Starting the Dart Runtime Service.');
-    late String errorMessage;
-    final server = await runZonedGuarded(
-      () async {
-        try {
-          final handlers = _handlers();
-          _logger.info('Attempting to bind to ${host.address}:${config.port}');
-          return await io.serve(handlers, host, config.port);
-        } on SocketException catch (e) {
-          errorMessage = e.message;
-          if (e.osError != null) {
-            errorMessage += ' (${e.osError!.message})';
-          }
-          errorMessage += ': ${e.address?.host}:${e.port}';
-          return null;
+    String? errorMessage;
+    var port = config.port;
+    Future<HttpServer?> start() async {
+      try {
+        _logger.info('Attempting to bind to ${host.address}:$port');
+        final handlers = _handlers();
+        return await io.serve(handlers, host, port);
+      } on SocketException catch (e) {
+        if (config.enableServicePortFallback && port != 0) {
+          _logger.info(
+            'Port $port is already in use. Retrying with a random port.',
+          );
+          port = 0;
+          return await start();
         }
-      },
-      (e, st) {
-        _logger.warning('Asynchronous error: $e\n$st');
-      },
-    );
+        var msg = e.message;
+        if (e.osError != null) {
+          msg += ' (${e.osError!.message})';
+        }
+        msg += ': ${e.address?.host}:${e.port}';
+        errorMessage = msg;
+        return null;
+      }
+    }
+
+    final server = await runZonedGuarded(start, (e, st) {
+      _logger.warning('Asynchronous error: $e\n$st');
+    });
 
     if (server == null) {
-      final message = 'Failed to start server: $errorMessage';
+      final message =
+          'Failed to start server: ${errorMessage ?? 'Unknown error'}';
       _logger.warning(message);
-      throw DartRuntimeServiceFailedToStartException(message: errorMessage);
+      throw DartRuntimeServiceFailedToStartException(
+        message: errorMessage ?? 'Unknown error',
+      );
     }
 
     _server = server;
@@ -359,7 +374,8 @@ class DartRuntimeService {
     }
 
     if (!config.disableOriginCheck) {
-      _logger.info('Origin checks are enabled. Adding CORS check handler.');
+      _logger.info('Origin and Host checks are enabled.');
+      pipeline = pipeline.addMiddleware(hostCheckMiddleware(frontend: this));
       pipeline = pipeline.addMiddleware(originCheckMiddleware(frontend: this));
     }
 

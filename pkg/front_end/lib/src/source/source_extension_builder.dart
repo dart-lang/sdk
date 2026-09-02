@@ -12,9 +12,8 @@ import '../base/scope.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
-import '../builder/metadata_builder.dart';
 import '../builder/type_builder.dart';
-import '../fragment/fragment.dart';
+import '../fragment/extension/declaration.dart';
 import '../kernel/body_builder_context.dart';
 import '../kernel/kernel_helper.dart';
 import 'name_scheme.dart';
@@ -56,9 +55,9 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
 
   /// The `extension` declaration that introduces this extension. Subsequent
   /// extensions of the same name must be augmentations.
-  final ExtensionFragment _introductory;
+  final ExtensionDeclaration _introductory;
 
-  final List<ExtensionFragment> _augmentations;
+  final List<ExtensionDeclaration> _augmentations;
 
   new({
     required SourceLibraryBuilder enclosingLibraryBuilder,
@@ -66,27 +65,21 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
     required int startOffset,
     required int nameOffset,
     required int endOffset,
+    required Modifiers modifiers,
+    required this.extensionName,
+    required this.typeParameters,
     required DeclarationNameSpaceBuilder nameSpaceBuilder,
-    required ExtensionFragment introductory,
-    required List<ExtensionFragment> augmentations,
+    required ExtensionDeclaration introductory,
+    required List<ExtensionDeclaration> augmentations,
     required Reference? reference,
+    required this.onType,
   }) : _introductory = introductory,
        _augmentations = augmentations,
        _reference = reference ?? new Reference(),
        _nameOffset = nameOffset,
        libraryBuilder = enclosingLibraryBuilder,
-       _modifiers = introductory.modifiers,
-       extensionName = introductory.extensionName,
-       typeParameters = introductory.typeParameters?.builders,
-       onType = introductory.onType,
+       _modifiers = modifiers,
        _nameSpaceBuilder = nameSpaceBuilder {
-    _introductory.builder = this;
-    _introductory.bodyScope.declarationBuilder = this;
-    for (ExtensionFragment augmentation in _augmentations) {
-      augmentation.builder = this;
-      augmentation.bodyScope.declarationBuilder = this;
-    }
-
     // TODO(johnniwinther): Move this to the [build] once augmentations are
     // handled through fragments.
     _extension =
@@ -195,38 +188,23 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
     return _extension;
   }
 
-  void _buildOutlineExpressionsForFragment(
-    ExtensionFragment fragment,
-    ClassHierarchy classHierarchy,
-    BodyBuilderContext bodyBuilderContext,
-  ) {
-    MetadataBuilder.buildAnnotations(
-      annotatable: extension,
-      annotatableFileUri: extension.fileUri,
-      metadata: fragment.metadata,
-      annotationsFileUri: fragment.fileUri,
-      bodyBuilderContext: bodyBuilderContext,
-      libraryBuilder: libraryBuilder,
-      extensionScope: fragment.enclosingCompilationUnit.extensionScope,
-      scope: fragment.enclosingScope,
-    );
-  }
-
   void buildOutlineExpressions(
     ClassHierarchy classHierarchy,
     List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
   ) {
     BodyBuilderContext bodyBuilderContext = _createBodyBuilderContext();
-    _buildOutlineExpressionsForFragment(
-      _introductory,
-      classHierarchy,
-      bodyBuilderContext,
+    _introductory.buildOutlineExpressions(
+      libraryBuilder: libraryBuilder,
+      extension: extension,
+      classHierarchy: classHierarchy,
+      bodyBuilderContext: bodyBuilderContext,
     );
-    for (ExtensionFragment augmentation in _augmentations) {
-      _buildOutlineExpressionsForFragment(
-        augmentation,
-        classHierarchy,
-        bodyBuilderContext,
+    for (ExtensionDeclaration augmentation in _augmentations) {
+      augmentation.buildOutlineExpressions(
+        libraryBuilder: libraryBuilder,
+        extension: extension,
+        classHierarchy: classHierarchy,
+        bodyBuilderContext: bodyBuilderContext,
       );
     }
 

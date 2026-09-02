@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/args.dart';
@@ -15,11 +16,13 @@ import 'package:front_end/src/api_prototype/compiler_options.dart'
     show Verbosity;
 import 'package:frontend_server/resident_frontend_server_utils.dart'
     show invokeReplaceCachedDill;
+import 'package:package_config/package_config.dart';
 import 'package:path/path.dart';
 import 'package:pub/pub.dart';
 import 'package:yaml/yaml.dart';
 
 import '../core.dart';
+import '../eval_packages.dart';
 import '../experiments.dart';
 import '../generate_kernel.dart';
 import '../native_assets.dart';
@@ -94,6 +97,26 @@ Running a remote package executable:
 
 See https://dart.dev/to/package-descriptors for more details.''', verbose) {
     argParser
+      ..addOption(
+        evalOption,
+        abbr: 'e',
+        help: 'Evaluate a Dart code snippet.',
+        valueHelp: 'code',
+      )
+      ..addMultiOption(
+        packageConstraintOption,
+        abbr: 'P',
+        help:
+            'Specific constraints for resolution of a single package '
+            '(e.g. "http", "path:^1.8.0").\n'
+            'See https://dart.dev/to/package-descriptors for more details.',
+        valueHelp: 'package-spec',
+      )
+      ..addFlag(
+        offlineOption,
+        negatable: false,
+        help: 'Run offline without querying network services.',
+      )
       ..addFlag(
         residentOption,
         abbr: 'r',
@@ -443,6 +466,9 @@ See https://dart.dev/to/package-descriptors for more details.''', verbose) {
   @override
   FutureOr<int> run() async {
     final args = argResults!;
+    if (args.wasParsed(evalOption)) {
+      return runEval(args);
+    }
     var mainCommand = '';
     var runArgs = <String>[];
     if (args.rest.isNotEmpty) {
@@ -456,6 +482,50 @@ See https://dart.dev/to/package-descriptors for more details.''', verbose) {
       return _runRemote(args, mainCommand, runArgs);
     }
     return _runLocal(args, mainCommand, runArgs);
+  }
+
+  /// Evaluates the Dart code snippet provided via the [--eval] option.
+  Future<int> runEval(ArgResults args) async {
+    final code = args.option(evalOption);
+    if (code == null || code.isEmpty) {
+      log.stderr('Error: Expected a code snippet for --$evalOption.');
+      return errorExitCode;
+    }
+    final runArgs = args.rest;
+    final scriptUri = Uri.dataFromString(
+      code,
+      mimeType: dartMimeType,
+      encoding: utf8,
+    );
+
+    final packageSpecs = <String>[
+      if (args.wasParsed(packageConstraintOption))
+        ...args.multiOption(packageConstraintOption),
+    ];
+    final offline = args.flag(offlineOption);
+
+    final String? packageConfigOverride;
+    if (args.wasParsed(packageString)) {
+      packageConfigOverride = args.option(packageString);
+    } else {
+      final configAndFile = await findPackageConfigAndFile(Directory.current);
+      packageConfigOverride = configAndFile?.file.path;
+    }
+
+    final finalConfigPath = await EvalPackageResolver.resolvePackageConfig(
+      code,
+      packageConstraints: packageSpecs.isNotEmpty ? packageSpecs : null,
+      localPackageConfig: packageConfigOverride,
+      offline: offline,
+    );
+
+    VmInteropHandler.run(
+      scriptUri.toString(),
+      runArgs,
+      packageConfigOverride: finalConfigPath,
+      useExecProcess: true,
+    );
+    return 0;
   }
 
   FutureOr<int> _runLocal(
@@ -483,8 +553,16 @@ See https://dart.dev/to/package-descriptors for more details.''', verbose) {
     }
 
     String? nativeAssets;
+    DartNativeAssetsBuilder? builder;
+    Uri baseUri = Directory.current.uri;
+    if (mainCommand.isNotEmpty) {
+      final file = File(mainCommand);
+      if (file.existsSync()) {
+        baseUri = file.absolute.uri.resolve('.');
+      }
+    }
     final packageConfigUri = await DartNativeAssetsBuilder.ensurePackageConfig(
-      Directory.current.uri,
+      baseUri,
     );
     if (packageConfigUri != null) {
       final packageConfig = await DartNativeAssetsBuilder.loadPackageConfig(
@@ -495,14 +573,13 @@ See https://dart.dev/to/package-descriptors for more details.''', verbose) {
       }
       final runPackageName =
           getPackageForCommand(mainCommand) ??
-          await DartNativeAssetsBuilder.findRootPackageName(
-            Directory.current.uri,
-          );
+          // TODO(https://dartbug.com/63713): Don't use cwd for test.
+          packageConfig.packageOf(baseUri)?.name;
       if (runPackageName != null) {
         final pubspecUri = await DartNativeAssetsBuilder.findWorkspacePubspec(
           packageConfigUri,
         );
-        final builder = DartNativeAssetsBuilder(
+        builder = DartNativeAssetsBuilder(
           pubspecUri: pubspecUri,
           packageConfigUri: packageConfigUri,
           packageConfig: packageConfig,
@@ -620,6 +697,7 @@ See https://dart.dev/to/package-descriptors for more details.''', verbose) {
       scriptUriOverride: identical(executable, executableOriginal)
           ? null
           : executableOriginal.executable,
+      deleteTempDirOnShutdown: builder?.tempDirUri?.toFilePath(),
     );
     return 0;
   }
@@ -742,18 +820,17 @@ See https://dart.dev/to/package-descriptors for more details.''', verbose) {
           );
         }
 
-        final executableUri = appBundleDirectory.directory.uri.resolve(
-          'bundle/bin/$executable',
-        );
+        final executableFile = appBundleDirectory.executable(executable).file;
         final arguments = args.rest.skip(1).toList();
 
         // The app-bundle contains executables (not AOT snapshots) to make it
         // self-contained. So, spawn a process instead of loading a snapshot in
         // the VM.
         final process = await Process.start(
-          executableUri.toFilePath(),
+          executableFile.path,
           arguments,
           mode: ProcessStartMode.inheritStdio, // Enable using stdin etc.
+          environment: VmInteropHandler.environmentOverrides,
         );
         return await process.exitCode;
       } on InstallException catch (e) {
@@ -766,7 +843,7 @@ See https://dart.dev/to/package-descriptors for more details.''', verbose) {
 
 /// Keep in sync with [getExecutableForCommand].
 ///
-/// Returns `null` if root package should be used.
+/// Returns `null` if the root package should be used.
 // TODO(https://github.com/dart-lang/pub/issues/4067): Don't duplicate logic.
 String? getPackageForCommand(String descriptor) {
   final root = current;
@@ -774,34 +851,32 @@ String? getPackageForCommand(String descriptor) {
   try {
     asPath = Uri.parse(descriptor).toFilePath();
   } catch (_) {
-    /// Here to get the same logic as[getExecutableForCommand].
+    // Follow the same fallback logic as [getExecutableForCommand].
   }
   final asDirectFile = join(root, asPath);
   if (File(asDirectFile).existsSync()) {
-    return null; // root package.
+    return null; // Root package.
   }
   if (!File(join(root, 'pubspec.yaml')).existsSync()) {
     return null;
   }
-  String package;
+  final descriptorUri = Uri.tryParse(descriptor);
+  if (descriptorUri != null && descriptorUri.isPackage) {
+    return descriptorUri.packageName;
+  }
+  final String package;
   if (descriptor.contains(':')) {
     final parts = descriptor.split(':');
     if (parts.length > 2) {
       return null;
     }
     package = parts[0];
-    if (package.isEmpty) {
-      return null; // root package.
-    }
   } else {
     package = descriptor;
-    if (package.isEmpty) {
-      return null; // root package.
-    }
   }
-  if (package == 'test') {
-    // `dart run test` is expected to behave as `dart test`.
-    return null; // root package.
+  if (package.isEmpty || package == 'test') {
+    // Empty package or `dart run test` is expected to behave as `dart test`.
+    return null; // Root package.
   }
   return package;
 }

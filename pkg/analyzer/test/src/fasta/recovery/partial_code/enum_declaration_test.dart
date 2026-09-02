@@ -29,7 +29,7 @@ enum E {, class A {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -65,7 +65,7 @@ enum E {, const a = 0;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -85,7 +85,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer: IntegerLiteral
+            initializer2: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -104,7 +104,7 @@ enum E {, enum E { v }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -140,7 +140,7 @@ enum E {,
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -167,7 +167,7 @@ enum E {, final a = 0;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -187,7 +187,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer: IntegerLiteral
+            initializer2: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -204,7 +204,7 @@ enum E {, int f() {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -243,7 +243,7 @@ enum E {, void f() {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -282,7 +282,28 @@ enum E {, int get a => 0;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
+    EnumDeclaration
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration
+            name: <empty> <synthetic>
+          EnumConstantDeclaration
+            name: int
+        rightBracket: } <synthetic>
+    TopLevelGetterDeclaration
+      getKeyword: get
+      name: a
+      body: ExpressionFunctionBody
+        functionDefinition: =>
+        expression2: IntegerLiteral
+          literal: 0
+        semicolon: ;
+  declarations(v1)
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -319,7 +340,7 @@ enum E {, mixin M {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -356,7 +377,7 @@ enum E {, set a(b) {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -373,6 +394,12 @@ CompilationUnit
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              name: b
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -398,7 +425,7 @@ enum E {, typedef A = B Function(C, D);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -417,13 +444,21 @@ CompilationUnit
           VariableDeclaration
             name: A
             equals: =
-            initializer: SimpleIdentifier
+            initializer2: SimpleIdentifier
               token: B
       semicolon: ; <synthetic>
     FunctionDeclaration
       name: Function
       functionExpression: FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              name: C
+            RegularFormalParameter
+              name: D
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: C
@@ -448,7 +483,7 @@ enum E {, var a;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -480,7 +515,7 @@ enum E {,} class A {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -510,7 +545,7 @@ enum E {,} const a = 0;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -528,7 +563,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer: IntegerLiteral
+            initializer2: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -543,7 +578,7 @@ enum E {,} enum E { v }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -576,7 +611,7 @@ enum E {,}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -599,7 +634,7 @@ enum E {,} final a = 0;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -617,7 +652,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer: IntegerLiteral
+            initializer2: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -632,7 +667,7 @@ enum E {,} int f() {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -667,7 +702,7 @@ enum E {,} void f() {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -702,7 +737,28 @@ enum E {,} int get a => 0;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
+    EnumDeclaration
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration
+            name: <empty> <synthetic>
+        rightBracket: }
+    TopLevelGetterDeclaration
+      returnType: NamedType
+        name: int
+      getKeyword: get
+      name: a
+      body: ExpressionFunctionBody
+        functionDefinition: =>
+        expression2: IntegerLiteral
+          literal: 0
+        semicolon: ;
+  declarations(v1)
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -736,7 +792,7 @@ enum E {,} mixin M {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -765,7 +821,7 @@ enum E {,} set a(b) {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -781,6 +837,12 @@ CompilationUnit
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              name: b
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -801,7 +863,7 @@ enum E {,} typedef A = B Function(C, D);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -821,6 +883,16 @@ CompilationUnit
           name: B
         functionKeyword: Function
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              type: NamedType
+                name: C
+            RegularFormalParameter
+              type: NamedType
+                name: D
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
@@ -842,7 +914,7 @@ enum E {,} var a;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -874,7 +946,7 @@ enum E {,a class A {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -908,7 +980,7 @@ enum E {,a const a = 0;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -928,7 +1000,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer: IntegerLiteral
+            initializer2: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -945,7 +1017,7 @@ enum E {,a enum E { v }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -981,7 +1053,7 @@ enum E {,a
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -1008,7 +1080,7 @@ enum E {,a final a = 0;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -1028,7 +1100,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer: IntegerLiteral
+            initializer2: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -1045,7 +1117,7 @@ enum E {,a int f() {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -1084,7 +1156,7 @@ enum E {,a void f() {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -1123,7 +1195,30 @@ enum E {,a int get a => 0;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
+    EnumDeclaration
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration
+            name: <empty> <synthetic>
+          EnumConstantDeclaration
+            name: a
+        rightBracket: } <synthetic>
+    TopLevelGetterDeclaration
+      returnType: NamedType
+        name: int
+      getKeyword: get
+      name: a
+      body: ExpressionFunctionBody
+        functionDefinition: =>
+        expression2: IntegerLiteral
+          literal: 0
+        semicolon: ;
+  declarations(v1)
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -1161,7 +1256,7 @@ enum E {,a mixin M {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -1194,7 +1289,7 @@ enum E {,a set a(b) {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -1212,6 +1307,12 @@ CompilationUnit
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              name: b
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -1234,7 +1335,7 @@ enum E {,a typedef A = B Function(C, D);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -1256,6 +1357,16 @@ CompilationUnit
           name: B
         functionKeyword: Function
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              type: NamedType
+                name: C
+            RegularFormalParameter
+              type: NamedType
+                name: D
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
@@ -1279,7 +1390,7 @@ enum E {,a var a;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -1311,7 +1422,7 @@ enum E {, a} class A {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -1343,7 +1454,7 @@ enum E {, a} const a = 0;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -1363,7 +1474,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer: IntegerLiteral
+            initializer2: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -1378,7 +1489,7 @@ enum E {, a} enum E { v }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -1413,7 +1524,7 @@ enum E {, a}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -1438,7 +1549,7 @@ enum E {, a} final a = 0;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -1458,7 +1569,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer: IntegerLiteral
+            initializer2: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -1473,7 +1584,7 @@ enum E {, a} int f() {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -1510,7 +1621,7 @@ enum E {, a} void f() {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -1547,7 +1658,30 @@ enum E {, a} int get a => 0;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
+    EnumDeclaration
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration
+            name: <empty> <synthetic>
+          EnumConstantDeclaration
+            name: a
+        rightBracket: }
+    TopLevelGetterDeclaration
+      returnType: NamedType
+        name: int
+      getKeyword: get
+      name: a
+      body: ExpressionFunctionBody
+        functionDefinition: =>
+        expression2: IntegerLiteral
+          literal: 0
+        semicolon: ;
+  declarations(v1)
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -1583,7 +1717,7 @@ enum E {, a} mixin M {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -1614,7 +1748,7 @@ enum E {, a} set a(b) {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -1632,6 +1766,12 @@ CompilationUnit
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              name: b
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -1652,7 +1792,7 @@ enum E {, a} typedef A = B Function(C, D);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -1675,6 +1815,16 @@ CompilationUnit
         functionKeyword: Function
         parameters: FormalParameterList
           leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              type: NamedType
+                name: C
+            RegularFormalParameter
+              type: NamedType
+                name: D
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
+          leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
               name: C
@@ -1695,7 +1845,7 @@ enum E {, a} var a;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -1728,7 +1878,7 @@ enum class A {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -1762,7 +1912,7 @@ enum const a = 0;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -1783,7 +1933,7 @@ enum enum E { v }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -1814,7 +1964,7 @@ enum
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -1835,7 +1985,7 @@ enum final a = 0;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -1850,7 +2000,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer: IntegerLiteral
+            initializer2: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -1865,7 +2015,7 @@ enum int f() {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -1886,7 +2036,7 @@ enum void f() {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -1918,7 +2068,23 @@ enum int get a => 0;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
+    EnumDeclaration
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: int
+      body: BlockEnumBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
+    TopLevelGetterDeclaration
+      getKeyword: get
+      name: a
+      body: ExpressionFunctionBody
+        functionDefinition: =>
+        expression2: IntegerLiteral
+          literal: 0
+        semicolon: ;
+  declarations(v1)
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -1948,7 +2114,7 @@ enum mixin M {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -1975,7 +2141,7 @@ enum set a(b) {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -1988,6 +2154,12 @@ CompilationUnit
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              name: b
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -2009,7 +2181,7 @@ enum typedef A = B Function(C, D);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -2026,6 +2198,16 @@ CompilationUnit
           name: B
         functionKeyword: Function
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              type: NamedType
+                name: C
+            RegularFormalParameter
+              type: NamedType
+                name: D
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
@@ -2048,7 +2230,7 @@ enum var a;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -2077,7 +2259,7 @@ enum E { class A {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -2109,7 +2291,7 @@ enum E { const a = 0;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -2127,7 +2309,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer: IntegerLiteral
+            initializer2: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -2144,7 +2326,7 @@ enum E { enum E { v }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -2176,7 +2358,7 @@ enum E {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -2198,7 +2380,7 @@ enum E { final a = 0;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -2216,7 +2398,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer: IntegerLiteral
+            initializer2: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -2231,7 +2413,7 @@ enum E { int f() {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -2266,7 +2448,7 @@ enum E { void f() {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -2301,7 +2483,26 @@ enum E { int get a => 0;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
+    EnumDeclaration
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration
+            name: int
+        rightBracket: } <synthetic>
+    TopLevelGetterDeclaration
+      getKeyword: get
+      name: a
+      body: ExpressionFunctionBody
+        functionDefinition: =>
+        expression2: IntegerLiteral
+          literal: 0
+        semicolon: ;
+  declarations(v1)
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -2334,7 +2535,7 @@ enum E { mixin M {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -2367,7 +2568,7 @@ enum E { set a(b) {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -2382,6 +2583,12 @@ CompilationUnit
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              name: b
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -2405,7 +2612,7 @@ enum E { typedef A = B Function(C, D);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -2422,13 +2629,21 @@ CompilationUnit
           VariableDeclaration
             name: A
             equals: =
-            initializer: SimpleIdentifier
+            initializer2: SimpleIdentifier
               token: B
       semicolon: ; <synthetic>
     FunctionDeclaration
       name: Function
       functionExpression: FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              name: C
+            RegularFormalParameter
+              name: D
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: C
@@ -2451,7 +2666,7 @@ enum E { var a;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -2481,7 +2696,7 @@ enum {} class A {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -2508,7 +2723,7 @@ enum {} const a = 0;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -2523,7 +2738,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer: IntegerLiteral
+            initializer2: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -2538,7 +2753,7 @@ enum {} enum E { v }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -2568,7 +2783,7 @@ enum {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -2588,7 +2803,7 @@ enum {} final a = 0;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -2603,7 +2818,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer: IntegerLiteral
+            initializer2: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -2618,7 +2833,7 @@ enum {} int f() {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -2650,7 +2865,7 @@ enum {} void f() {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -2682,7 +2897,25 @@ enum {} int get a => 0;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
+    EnumDeclaration
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: <empty> <synthetic>
+      body: BlockEnumBody
+        leftBracket: {
+        rightBracket: }
+    TopLevelGetterDeclaration
+      returnType: NamedType
+        name: int
+      getKeyword: get
+      name: a
+      body: ExpressionFunctionBody
+        functionDefinition: =>
+        expression2: IntegerLiteral
+          literal: 0
+        semicolon: ;
+  declarations(v1)
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -2713,7 +2946,7 @@ enum {} mixin M {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -2739,7 +2972,7 @@ enum {} set a(b) {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -2752,6 +2985,12 @@ CompilationUnit
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              name: b
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -2772,7 +3011,7 @@ enum {} typedef A = B Function(C, D);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -2789,6 +3028,16 @@ CompilationUnit
           name: B
         functionKeyword: Function
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              type: NamedType
+                name: C
+            RegularFormalParameter
+              type: NamedType
+                name: D
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
@@ -2810,7 +3059,7 @@ enum {} var a;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -2837,7 +3086,7 @@ enum E class A {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -2864,7 +3113,7 @@ enum E const a = 0;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -2879,7 +3128,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer: IntegerLiteral
+            initializer2: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -2894,7 +3143,7 @@ enum E enum E { v }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -2924,7 +3173,7 @@ enum E
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -2944,7 +3193,7 @@ enum E final a = 0;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -2959,7 +3208,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer: IntegerLiteral
+            initializer2: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -2974,7 +3223,7 @@ enum E int f() {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -3006,7 +3255,7 @@ enum E void f() {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -3038,7 +3287,25 @@ enum E int get a => 0;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
+    EnumDeclaration
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
+    TopLevelGetterDeclaration
+      returnType: NamedType
+        name: int
+      getKeyword: get
+      name: a
+      body: ExpressionFunctionBody
+        functionDefinition: =>
+        expression2: IntegerLiteral
+          literal: 0
+        semicolon: ;
+  declarations(v1)
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -3069,7 +3336,7 @@ enum E mixin M {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -3095,7 +3362,7 @@ enum E set a(b) {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -3108,6 +3375,12 @@ CompilationUnit
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              name: b
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -3128,7 +3401,7 @@ enum E typedef A = B Function(C, D);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -3145,6 +3418,16 @@ CompilationUnit
           name: B
         functionKeyword: Function
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              type: NamedType
+                name: C
+            RegularFormalParameter
+              type: NamedType
+                name: D
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
@@ -3166,7 +3449,7 @@ enum E var a;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -3193,7 +3476,7 @@ enum E {a class A {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -3223,7 +3506,7 @@ enum E {a const a = 0;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -3241,7 +3524,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer: IntegerLiteral
+            initializer2: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -3256,7 +3539,7 @@ enum E {a enum E { v }
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -3288,7 +3571,7 @@ enum E {a
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -3311,7 +3594,7 @@ enum E {a final a = 0;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -3329,7 +3612,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer: IntegerLiteral
+            initializer2: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -3344,7 +3627,7 @@ enum E {a int f() {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -3379,7 +3662,7 @@ enum E {a void f() {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -3414,7 +3697,28 @@ enum E {a int get a => 0;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
+    EnumDeclaration
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration
+            name: a
+        rightBracket: } <synthetic>
+    TopLevelGetterDeclaration
+      returnType: NamedType
+        name: int
+      getKeyword: get
+      name: a
+      body: ExpressionFunctionBody
+        functionDefinition: =>
+        expression2: IntegerLiteral
+          literal: 0
+        semicolon: ;
+  declarations(v1)
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -3448,7 +3752,7 @@ enum E {a mixin M {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -3477,7 +3781,7 @@ enum E {a set a(b) {}
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -3493,6 +3797,12 @@ CompilationUnit
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              name: b
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -3513,7 +3823,7 @@ enum E {a typedef A = B Function(C, D);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -3533,6 +3843,16 @@ CompilationUnit
           name: B
         functionKeyword: Function
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              type: NamedType
+                name: C
+            RegularFormalParameter
+              type: NamedType
+                name: D
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
@@ -3554,7 +3874,7 @@ enum E {a var a;
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -3585,7 +3905,7 @@ enum E {,
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -3607,7 +3927,7 @@ enum E {
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
-  declarations
+  declarations2
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters

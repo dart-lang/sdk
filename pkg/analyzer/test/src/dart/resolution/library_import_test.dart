@@ -16,6 +16,86 @@ void main() {
 
 @reflectiveTest
 class ImportDirectiveResolutionTest extends PubPackageResolutionTest {
+  test_inLibrary_combinators_elements() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+int get readOnly => 0;
+int get readWrite => 0;
+set readWrite(int value) {}
+set writeOnly(int value) {}
+int variable = 0;
+class A {}
+''');
+
+    var result = await resolveTestCode(r'''
+import 'a.dart' show readOnly, readWrite, writeOnly, variable, A;
+
+void f() {
+  print(readOnly);
+  readWrite = readWrite;
+  writeOnly = 0;
+  variable++;
+  print(A);
+}
+''');
+
+    var directive = result.findNode.singleImportDirective;
+    assertResolvedNodeText(directive, r'''
+ImportDirective
+  importKeyword: import
+  uri: SimpleStringLiteral
+    literal: 'a.dart'
+  combinators
+    ShowCombinator
+      keyword: show
+      names
+        CombinatorName
+          name: readOnly
+          element: package:test/a.dart::@getter::readOnly
+          setterElement: <null>
+        CombinatorName
+          name: readWrite
+          element: package:test/a.dart::@getter::readWrite
+          setterElement: package:test/a.dart::@setter::readWrite
+        CombinatorName
+          name: writeOnly
+          element: <null>
+          setterElement: package:test/a.dart::@setter::writeOnly
+        CombinatorName
+          name: variable
+          element: package:test/a.dart::@getter::variable
+          setterElement: package:test/a.dart::@setter::variable
+        CombinatorName
+          name: A
+          element: package:test/a.dart::@class::A
+          setterElement: <null>
+      shownNames
+        SimpleIdentifier
+          token: readOnly
+          element: package:test/a.dart::@topLevelVariable::readOnly
+          staticType: null
+        SimpleIdentifier
+          token: readWrite
+          element: package:test/a.dart::@topLevelVariable::readWrite
+          staticType: null
+        SimpleIdentifier
+          token: writeOnly
+          element: package:test/a.dart::@topLevelVariable::writeOnly
+          staticType: null
+        SimpleIdentifier
+          token: variable
+          element: package:test/a.dart::@topLevelVariable::variable
+          staticType: null
+        SimpleIdentifier
+          token: A
+          element: package:test/a.dart::@class::A
+          staticType: null
+  semicolon: ;
+  libraryImport: LibraryImport
+    uri: DirectiveUriWithLibrary
+      uri: package:test/a.dart
+''');
+  }
+
   test_inLibrary_combinators_hide() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 import 'dart:math' hide Random;
@@ -32,6 +112,11 @@ ImportDirective
   combinators
     HideCombinator
       keyword: hide
+      names
+        CombinatorName
+          name: Random
+          element: dart:math::@class::Random
+          setterElement: <null>
       hiddenNames
         SimpleIdentifier
           token: Random
@@ -62,6 +147,11 @@ ImportDirective
   combinators
     HideCombinator
       keyword: hide
+      names
+        CombinatorName
+          name: Unresolved
+          element: <null>
+          setterElement: <null>
       hiddenNames
         SimpleIdentifier
           token: Unresolved
@@ -90,6 +180,11 @@ ImportDirective
   combinators
     ShowCombinator
       keyword: show
+      names
+        CombinatorName
+          name: Random
+          element: dart:math::@class::Random
+          setterElement: <null>
       shownNames
         SimpleIdentifier
           token: Random
@@ -120,6 +215,11 @@ ImportDirective
   combinators
     ShowCombinator
       keyword: show
+      names
+        CombinatorName
+          name: Unresolved
+          element: <null>
+          setterElement: <null>
       shownNames
         SimpleIdentifier
           token: Unresolved
@@ -193,7 +293,7 @@ CompilationUnit
       libraryImport: LibraryImport
         uri: DirectiveUriWithLibrary
           uri: package:test/a.dart
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -201,7 +301,18 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer: InstanceCreationExpression
+            initializer2: ConstructorInvocation
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
+                  name: A
+                  element: package:test/a.dart::@class::A
+                  type: A
+                element: package:test/a.dart::@class::A::@constructor::new
+              argumentList: ArgumentList
+                leftParenthesis: (
+                rightParenthesis: )
+              staticType: A
+            initializer(v1): InstanceCreationExpression
               constructorName: ConstructorName
                 type: NamedType
                   name: A
@@ -279,7 +390,7 @@ CompilationUnit
       libraryImport: LibraryImport
         uri: DirectiveUriWithLibrary
           uri: package:test/a_html.dart
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -287,7 +398,18 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer: InstanceCreationExpression
+            initializer2: ConstructorInvocation
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
+                  name: A
+                  element: package:test/a_html.dart::@class::A
+                  type: A
+                element: package:test/a_html.dart::@class::A::@constructor::new
+              argumentList: ArgumentList
+                leftParenthesis: (
+                rightParenthesis: )
+              staticType: A
+            initializer(v1): InstanceCreationExpression
               constructorName: ConstructorName
                 type: NamedType
                   name: A
@@ -353,7 +475,7 @@ Configuration
         contents: '
       InterpolationExpression
         leftBracket: ${
-        expression: SimpleStringLiteral
+        expression2: SimpleStringLiteral
           literal: 'foo'
         rightBracket: }
       InterpolationString
@@ -475,7 +597,7 @@ CompilationUnit
       libraryImport: LibraryImport
         uri: DirectiveUriWithLibrary
           uri: package:test/a_io.dart
-  declarations
+  declarations2
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -483,7 +605,18 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer: InstanceCreationExpression
+            initializer2: ConstructorInvocation
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
+                  name: A
+                  element: package:test/a_io.dart::@class::A
+                  type: A
+                element: package:test/a_io.dart::@class::A::@constructor::new
+              argumentList: ArgumentList
+                leftParenthesis: (
+                rightParenthesis: )
+              staticType: A
+            initializer(v1): InstanceCreationExpression
               constructorName: ConstructorName
                 type: NamedType
                   name: A
@@ -603,7 +736,7 @@ ImportDirective
         contents: '
       InterpolationExpression
         leftBracket: ${
-        expression: SimpleStringLiteral
+        expression2: SimpleStringLiteral
           literal: 'foo'
         rightBracket: }
       InterpolationString
@@ -830,7 +963,7 @@ ImportDirective
         contents: '
       InterpolationExpression
         leftBracket: ${
-        expression: SimpleStringLiteral
+        expression2: SimpleStringLiteral
           literal: 'foo'
         rightBracket: }
       InterpolationString

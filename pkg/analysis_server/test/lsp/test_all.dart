@@ -38,6 +38,7 @@ import 'file_modification_test.dart' as file_modification;
 import 'flutter_outline_test.dart' as flutter_outline;
 import 'folding_test.dart' as folding;
 import 'format_test.dart' as format;
+import 'get_fixes_test.dart' as get_fixes;
 import 'hover_test.dart' as hover;
 import 'implementation_test.dart' as implementation;
 import 'import_test.dart' as import_test;
@@ -46,6 +47,7 @@ import 'inlay_hint_test.dart' as inlay_hint;
 import 'inline_value_test.dart' as inline_value;
 import 'mapping_test.dart' as mapping;
 import 'migrate_test.dart' as migrate;
+import 'migration_registry_test.dart' as migration_registry;
 import 'open_uri_test.dart' as open_uri;
 import 'outline_test.dart' as outline;
 import 'priority_files_test.dart' as priority_files;
@@ -67,6 +69,7 @@ import 'type_hierarchy_test.dart' as type_hierarchy;
 import 'update_diagnostic_information_test.dart'
     as update_diagnostic_information;
 import 'will_rename_files_test.dart' as will_rename_files;
+import 'workspace_analysis_complete_test.dart' as workspace_analysis_complete;
 import 'workspace_apply_edit_test.dart' as workspace_apply_edit;
 import 'workspace_symbols_test.dart' as workspace_symbols;
 
@@ -104,6 +107,7 @@ void main() {
     flutter_outline.main();
     folding.main();
     format.main();
+    get_fixes.main();
     summary.main();
     get_super.main();
     hover.main();
@@ -115,6 +119,7 @@ void main() {
     lsp_packet_transformer.main();
     mapping.main();
     migrate.main();
+    migration_registry.main();
     open_uri.main();
     outline.main();
     priority_files.main();
@@ -133,6 +138,7 @@ void main() {
     type_hierarchy.main();
     update_diagnostic_information.main();
     will_rename_files.main();
+    workspace_analysis_complete.main();
     workspace_apply_edit.main();
     workspace_symbols.main();
   }, name: 'lsp');

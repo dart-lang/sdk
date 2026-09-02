@@ -109,17 +109,23 @@ class AddConst extends ResolvedCorrectionProducer {
               :var parent,
               constKeyword: var keyword,
             )) {
-      var constDeclarations = getCodeStyleOptions(unitResult.file)
+      var preferConstDeclarations = getCodeStyleOptions(unitResult.file)
           .preferConstDeclarations;
 
-      if (parent is VariableDeclaration && constDeclarations) {
+      if (parent is VariableDeclaration && preferConstDeclarations) {
         if (parent.parent
-            case VariableDeclarationList(:var finalKeyword?, :var variables)
+            case VariableDeclarationList(
+              :var finalKeyword?,
+              :var variables,
+              parent: var declaration,
+            )
             when _declarationListIsFullyConst(variables)) {
-          await builder.addDartFileEdit(file, (builder) {
-            builder.addSimpleReplacement(range.token(finalKeyword), 'const');
-          });
-          return;
+          if (declaration is! FieldDeclaration || declaration.isStatic) {
+            await builder.addDartFileEdit(file, (builder) {
+              builder.addSimpleReplacement(range.token(finalKeyword), 'const');
+            });
+            return;
+          }
         }
       }
       if (keyword == null && targetNode is Expression) {
@@ -200,11 +206,7 @@ class AddConst extends ResolvedCorrectionProducer {
       ),
     ];
     var ranges = diagnostics.map(range.diagnostic);
-    var variablesRanges = variables.map((v) {
-      var initializer = v.initializer;
-      if (initializer == null) return range.node(v);
-      return range.node(initializer);
-    });
+    var variablesRanges = variables.map((v) => range.node(v.initializer ?? v));
     // If each of the variable ranges is contained in the list of error ranges.
     return variablesRanges.every(ranges.contains);
   }

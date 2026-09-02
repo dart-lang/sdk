@@ -299,12 +299,20 @@ class ExperimentalFlag {
     experimentReleasedVersion: const Version(3, 12),
   );
 
-  static const ExperimentalFlag recordUse = const ExperimentalFlag(
-    name: 'record-use',
+  static const ExperimentalFlag receiverTypeInference = const ExperimentalFlag(
+    name: 'receiver-type-inference',
     isEnabledByDefault: false,
     isExpired: false,
     experimentEnabledVersion: defaultLanguageVersion,
     experimentReleasedVersion: defaultLanguageVersion,
+  );
+
+  static const ExperimentalFlag recordUse = const ExperimentalFlag(
+    name: 'record-use',
+    isEnabledByDefault: true,
+    isExpired: false,
+    experimentEnabledVersion: const Version(3, 13),
+    experimentReleasedVersion: const Version(3, 13),
   );
 
   static const ExperimentalFlag records = const ExperimentalFlag(
@@ -609,6 +617,10 @@ class GlobalFeatures {
   GlobalFeature? _privateNamedParameters;
   GlobalFeature get privateNamedParameters => _privateNamedParameters ??=
       _computeGlobalFeature(ExperimentalFlag.privateNamedParameters);
+
+  GlobalFeature? _receiverTypeInference;
+  GlobalFeature get receiverTypeInference => _receiverTypeInference ??=
+      _computeGlobalFeature(ExperimentalFlag.receiverTypeInference);
 
   GlobalFeature? _recordUse;
   GlobalFeature get recordUse =>
@@ -930,6 +942,14 @@ class LibraryFeatures {
         libraryVersion,
       );
 
+  LibraryFeature? _receiverTypeInference;
+  LibraryFeature get receiverTypeInference =>
+      _receiverTypeInference ??= globalFeatures._computeLibraryFeature(
+        ExperimentalFlag.receiverTypeInference,
+        canonicalUri,
+        libraryVersion,
+      );
+
   LibraryFeature? _recordUse;
   LibraryFeature get recordUse =>
       _recordUse ??= globalFeatures._computeLibraryFeature(
@@ -1115,6 +1135,8 @@ class LibraryFeatures {
         return primaryConstructors;
       case shared.ExperimentalFlag.privateNamedParameters:
         return privateNamedParameters;
+      case shared.ExperimentalFlag.receiverTypeInference:
+        return receiverTypeInference;
       case shared.ExperimentalFlag.recordUse:
         return recordUse;
       case shared.ExperimentalFlag.records:
@@ -1213,6 +1235,8 @@ ExperimentalFlag? parseExperimentalFlag(String flag) {
       return ExperimentalFlag.primaryConstructors;
     case "private-named-parameters":
       return ExperimentalFlag.privateNamedParameters;
+    case "receiver-type-inference":
+      return ExperimentalFlag.receiverTypeInference;
     case "record-use":
       return ExperimentalFlag.recordUse;
     case "records":
@@ -1305,6 +1329,8 @@ final Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
       ExperimentalFlag.primaryConstructors.isEnabledByDefault,
   ExperimentalFlag.privateNamedParameters:
       ExperimentalFlag.privateNamedParameters.isEnabledByDefault,
+  ExperimentalFlag.receiverTypeInference:
+      ExperimentalFlag.receiverTypeInference.isEnabledByDefault,
   ExperimentalFlag.recordUse: ExperimentalFlag.recordUse.isEnabledByDefault,
   ExperimentalFlag.records: ExperimentalFlag.records.isEnabledByDefault,
   ExperimentalFlag.sealedClass: ExperimentalFlag.sealedClass.isEnabledByDefault,
@@ -1381,6 +1407,8 @@ ExperimentalFlag fromSharedExperimentalFlag(
     ExperimentalFlag.primaryConstructors,
   shared.ExperimentalFlag.privateNamedParameters =>
     ExperimentalFlag.privateNamedParameters,
+  shared.ExperimentalFlag.receiverTypeInference =>
+    ExperimentalFlag.receiverTypeInference,
   shared.ExperimentalFlag.recordUse => ExperimentalFlag.recordUse,
   shared.ExperimentalFlag.records => ExperimentalFlag.records,
   shared.ExperimentalFlag.sealedClass => ExperimentalFlag.sealedClass,

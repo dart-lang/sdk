@@ -33,12 +33,30 @@ extension AstNodeExtension on AstNode {
   FunctionExpression? get enclosingClosure {
     for (var node in withAncestors) {
       switch (node) {
-        case FunctionExpression(:var parent)
+        case FunctionExpression(parent: var parent)
             when parent is! FunctionDeclaration:
           return node;
         case FunctionDeclaration() ||
             ConstructorDeclaration() ||
             MethodDeclaration():
+          break;
+      }
+    }
+    return null;
+  }
+
+  /// The [FunctionExpression] that encloses this node directly or `null` if
+  /// there is another enclosing executable element.
+  FunctionExpression? get enclosingClosure2 {
+    for (var node in withAncestors2) {
+      switch (node) {
+        case FunctionExpression(parent2: var parent)
+            when parent is! FunctionDeclaration:
+          return node;
+        case FunctionDeclaration() ||
+            ConstructorDeclaration() ||
+            MethodDeclaration() ||
+            TopLevelGetterDeclaration():
           break;
       }
     }
@@ -61,20 +79,47 @@ extension AstNodeExtension on AstNode {
     return null;
   }
 
+  /// The [ExecutableElement] of the enclosing executable [AstNode].
+  ExecutableElement? get enclosingExecutableElement2 {
+    for (var node in withAncestors2) {
+      if (node is FunctionDeclaration) {
+        return node.declaredFragment?.element;
+      }
+      if (node is ConstructorDeclaration) {
+        return node.declaredFragment?.element;
+      }
+      if (node is MethodDeclaration) {
+        return node.declaredFragment?.element;
+      }
+      if (node is TopLevelGetterDeclaration) {
+        return node.declaredFragment?.element;
+      }
+    }
+    return null;
+  }
+
   /// The [InstanceElement] of the enclosing executable [AstNode].
   InstanceElement? get enclosingInstanceElement {
     for (var node in withAncestors) {
-      var element = switch (node) {
-        ClassDeclaration(:var declaredFragment?) => declaredFragment.element,
-        EnumDeclaration(:var declaredFragment?) => declaredFragment.element,
-        ExtensionDeclaration(:var declaredFragment?) =>
-          declaredFragment.element,
-        ExtensionTypeDeclaration(:var declaredFragment?) =>
-          declaredFragment.element,
-        MixinDeclaration(:var declaredFragment?) => declaredFragment.element,
-        _ => null,
-      };
-      if (element != null) {
+      var element = node
+          .tryCast<FragmentDeclaringNode>()
+          ?.declaredFragment
+          ?.element;
+      if (element is InstanceElement) {
+        return element;
+      }
+    }
+    return null;
+  }
+
+  /// The [InstanceElement] of the enclosing executable [AstNode].
+  InstanceElement? get enclosingInstanceElement2 {
+    for (var node in withAncestors2) {
+      var element = node
+          .tryCast<FragmentDeclaringNode>()
+          ?.declaredFragment
+          ?.element;
+      if (element is InstanceElement) {
         return element;
       }
     }
@@ -84,9 +129,21 @@ extension AstNodeExtension on AstNode {
   InterfaceElement? get enclosingInterfaceElement =>
       enclosingInstanceElement.tryCast();
 
+  InterfaceElement? get enclosingInterfaceElement2 =>
+      enclosingInstanceElement2.tryCast();
+
   AstNode? get enclosingUnitChild {
     for (var node in withAncestors) {
       if (node.parent is CompilationUnit) {
+        return node;
+      }
+    }
+    return null;
+  }
+
+  AstNode? get enclosingUnitChild2 {
+    for (var node in withAncestors2) {
+      if (node.parent2 is CompilationUnit) {
         return node;
       }
     }
@@ -99,6 +156,15 @@ extension AstNodeExtension on AstNode {
     while (current != null) {
       yield current;
       current = current.parent;
+    }
+  }
+
+  /// This node and all of its ancestors.
+  Iterable<AstNode> get withAncestors2 sync* {
+    AstNode? current = this;
+    while (current != null) {
+      yield current;
+      current = current.parent2;
     }
   }
 
@@ -141,6 +207,12 @@ extension ExpressionExtension on Expression {
       parent is CommentReference ||
       parent?.parent is CommentReference ||
       parent?.parent?.parent is CommentReference;
+
+  /// Whether this expression is found in a [CommentReference].
+  bool get inCommentReference2 =>
+      parent2 is CommentReference ||
+      parent2?.parent2 is CommentReference ||
+      parent2?.parent2?.parent2 is CommentReference;
 }
 
 extension ExtensionElementExtension on ExtensionElement {

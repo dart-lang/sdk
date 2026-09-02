@@ -51,9 +51,20 @@ f() {
 }
 ''');
 
-    var node = result.findNode.propertyAccess('0.a');
+    var node = result.findNode.receiverPropertyExtraction('0.a');
     assertResolvedNodeText(node, r'''
-PropertyAccess
+ReceiverPropertyExtraction
+  receiver: IntegerLiteral
+    literal: 0
+    staticType: int
+  operator: .
+  propertyName: a
+  resolution: InvalidNamedReadResolution
+    type: InvalidType
+    candidates
+    recovery: <null>
+  staticType: InvalidType
+V1: PropertyAccess
   target: IntegerLiteral
     literal: 0
     staticType: int
@@ -81,9 +92,20 @@ f() {
 }
 ''');
 
-    var node = result.findNode.propertyAccess('0.a');
+    var node = result.findNode.receiverPropertyExtraction('0.a');
     assertResolvedNodeText(node, r'''
-PropertyAccess
+ReceiverPropertyExtraction
+  receiver: IntegerLiteral
+    literal: 0
+    staticType: int
+  operator: .
+  propertyName: a
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@extension::E1::@getter::a
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: PropertyAccess
   target: IntegerLiteral
     literal: 0
     staticType: int
@@ -113,9 +135,20 @@ f() {
 }
 ''');
 
-    var node = result.findNode.propertyAccess('0.a');
+    var node = result.findNode.receiverPropertyExtraction('0.a');
     assertResolvedNodeText(node, r'''
-PropertyAccess
+ReceiverPropertyExtraction
+  receiver: IntegerLiteral
+    literal: 0
+    staticType: int
+  operator: .
+  propertyName: a
+  resolution: InvalidNamedReadResolution
+    type: InvalidType
+    candidates
+    recovery: <null>
+  staticType: InvalidType
+V1: PropertyAccess
   target: IntegerLiteral
     literal: 0
     staticType: int
@@ -145,9 +178,20 @@ f() {
 }
 ''');
 
-    var node = result.findNode.propertyAccess('0.a');
+    var node = result.findNode.receiverPropertyExtraction('0.a');
     assertResolvedNodeText(node, r'''
-PropertyAccess
+ReceiverPropertyExtraction
+  receiver: IntegerLiteral
+    literal: 0
+    staticType: int
+  operator: .
+  propertyName: a
+  resolution: InvalidNamedReadResolution
+    type: InvalidType
+    candidates
+    recovery: <null>
+  staticType: InvalidType
+V1: PropertyAccess
   target: IntegerLiteral
     literal: 0
     staticType: int
@@ -272,9 +316,22 @@ f() {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('0.a()');
+    var node = result.findNode.receiverMethodInvocation('0.a()');
     assertResolvedNodeText(node, r'''
-MethodInvocation
+ReceiverMethodInvocation
+  receiver: IntegerLiteral
+    literal: 0
+    staticType: int
+  operator: .
+  name: a
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: MethodInvocation
   target: IntegerLiteral
     literal: 0
     staticType: int

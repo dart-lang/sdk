@@ -52,6 +52,18 @@ class Sdk {
 
   String get dartAotRuntime => dartAotRuntimeFor();
 
+  String dartCliRuntimeFor({
+    String? sanitizer,
+  }) {
+    final name = sanitizer != null && sanitizer != 'none'
+        ? 'dartcliruntime_$sanitizer'
+        : 'dartcliruntime';
+    return _executablePathFor(
+      name,
+      forceProductInBuildRoot: true,
+    );
+  }
+
   String get genSnapshot => _executablePathFor(
     'gen_snapshot',
     forceProductInBuildRoot: true,
@@ -104,6 +116,10 @@ class Sdk {
 
   String get dtdAotSnapshot => _snapshotPathFor(
     'dart_tooling_daemon_aot.dart.snapshot',
+  );
+
+  String get mcpServerSnapshot => _snapshotPathFor(
+    'mcp_server.dart.snapshot',
   );
 
   String get devToolsBinaries => path.absolute(

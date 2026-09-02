@@ -43,24 +43,24 @@ Try removing the extra positional arguments.
   for (var v in takesNoArg(0)) {}
                           ^") {
   }
-  for (dynamic v in invalid-expression "pkg/front_end/testcases/general/invalid_for_in_iterable2.dart:13:17: Error: This expression has type 'void' and can't be used.
+  for (dynamic v##1 in invalid-expression "pkg/front_end/testcases/general/invalid_for_in_iterable2.dart:13:17: Error: This expression has type 'void' and can't be used.
   for (var v in returnVoid()) {}
                 ^" in self::returnVoid()) {
   }
-  for (dynamic v in invalid-expression "pkg/front_end/testcases/general/invalid_for_in_iterable2.dart:14:17: Error: The type 'int' used in the 'for' loop must implement 'Iterable<dynamic>'.
+  for (dynamic v##2 in invalid-expression "pkg/front_end/testcases/general/invalid_for_in_iterable2.dart:14:17: Error: The type 'int' used in the 'for' loop must implement 'Iterable<dynamic>'.
  - 'Iterable' is from 'dart:core'.
   for (var v in returnInt()) {}
                 ^" in self::returnInt() as{TypeError} core::Iterable<dynamic>) {
   }
-  for (dynamic v in self::returnDynamic() as{TypeError,ForDynamic} core::Iterable<dynamic>) {
+  for (dynamic v##3 in self::returnDynamic() as{TypeError,ForDynamic} core::Iterable<dynamic>) {
   }
-  for (dynamic v in invalid-expression "pkg/front_end/testcases/general/invalid_for_in_iterable2.dart:16:17: Error: The type 'Object' used in the 'for' loop must implement 'Iterable<dynamic>'.
+  for (dynamic v##4 in invalid-expression "pkg/front_end/testcases/general/invalid_for_in_iterable2.dart:16:17: Error: The type 'Object' used in the 'for' loop must implement 'Iterable<dynamic>'.
  - 'Object' is from 'dart:core'.
  - 'Iterable' is from 'dart:core'.
   for (var v in returnObject()) {}
                 ^" in self::returnObject() as{TypeError} core::Iterable<dynamic>) {
   }
-  for (dynamic v in throw "") {
+  for (dynamic v##5 in throw "") {
   }
 }
 static method main() → dynamic {}

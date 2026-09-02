@@ -68,6 +68,7 @@ float64x
 flutter_runner
 function(object
 function.tojs
+future<t
 futureor
 github.com
 guarded
@@ -91,7 +92,6 @@ lane
 libraries.json
 list.filled
 loadlibrary
-macro
 member(s)
 memorytype
 migrate

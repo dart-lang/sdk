@@ -16,6 +16,127 @@ main() {
 
 @reflectiveTest
 class RecordLiteralResolutionTest extends PubPackageResolutionTest {
+  test_beforeRecords_singleField_noComma() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: records
+final x = (0);
+''');
+
+    var node = result.findNode.singleVariableDeclaration;
+    assertResolvedNodeText(node, r'''
+VariableDeclaration
+  name: x
+  equals: =
+  initializer2: ParenthesizedExpression
+    leftParenthesis: (
+    expression2: IntegerLiteral
+      literal: 0
+      staticType: int
+    rightParenthesis: )
+    staticType: int
+  declaredFragment: <testLibraryFragment> x@22
+''');
+  }
+
+  test_beforeRecords_singleField_noComma_const() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: records
+final x = const (0);
+//              ^
+// [diag.experimentNotEnabled] This requires the 'records' language feature to be enabled.
+//                ^
+// [diag.recordLiteralOnePositionalNoTrailingComma] A record literal with exactly one positional field requires a trailing comma.
+''');
+
+    var node = result.findNode.singleVariableDeclaration;
+    assertResolvedNodeText(node, r'''
+VariableDeclaration
+  name: x
+  equals: =
+  initializer2: ParenthesizedExpression
+    leftParenthesis: (
+    expression2: IntegerLiteral
+      literal: 0
+      staticType: int
+    rightParenthesis: )
+    staticType: int
+  declaredFragment: <testLibraryFragment> x@22
+''');
+  }
+
+  test_beforeRecords_singleField_withComma() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: records
+final x = (0,);
+//        ^
+// [diag.experimentNotEnabled] This requires the 'records' language feature to be enabled.
+''');
+
+    var node = result.findNode.singleVariableDeclaration;
+    assertResolvedNodeText(node, r'''
+VariableDeclaration
+  name: x
+  equals: =
+  initializer2: ParenthesizedExpression
+    leftParenthesis: (
+    expression2: IntegerLiteral
+      literal: 0
+      staticType: int
+    rightParenthesis: )
+    staticType: int
+  declaredFragment: <testLibraryFragment> x@22
+''');
+  }
+
+  test_beforeRecords_twoFields() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: records
+final x = (0, 1);
+//        ^
+// [diag.experimentNotEnabled] This requires the 'records' language feature to be enabled.
+''');
+
+    var node = result.findNode.singleVariableDeclaration;
+    assertResolvedNodeText(node, r'''
+VariableDeclaration
+  name: x
+  equals: =
+  initializer2: ParenthesizedExpression
+    leftParenthesis: (
+    expression2: IntegerLiteral
+      literal: 0
+      staticType: int
+    rightParenthesis: )
+    staticType: int
+  declaredFragment: <testLibraryFragment> x@22
+''');
+  }
+
+  test_beforeRecords_zeroFields() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: records
+final x = ();
+//        ^
+// [diag.experimentNotEnabled] This requires the 'records' language feature to be enabled.
+''');
+
+    var node = result.findNode.singleVariableDeclaration;
+    assertResolvedNodeText(node, r'''
+VariableDeclaration
+  name: x
+  equals: =
+  initializer2: ParenthesizedExpression
+    leftParenthesis: (
+    expression2: SimpleIdentifier
+      token: <empty> <synthetic>
+      element: <null>
+      staticType: InvalidType
+    rightParenthesis: )
+    staticType: InvalidType
+  declaredFragment: <testLibraryFragment> x@22
+''');
+  }
+
   test_field_rewrite_named() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 void f((int, String) r) {
@@ -27,12 +148,12 @@ void f((int, String) r) {
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
-  fields
+  fields2
     RecordLiteralNamedField
       name: f1
       colon: :
-      fieldExpression: PropertyAccess
-        target: SimpleIdentifier
+      fieldExpression2: PropertyAccess
+        target2: SimpleIdentifier
           token: r
           element: <testLibrary>::@function::f::@formalParameter::r
           staticType: (int, String)
@@ -58,9 +179,9 @@ void f((int, String) r) {
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
-  fields
+  fields2
     PropertyAccess
-      target: SimpleIdentifier
+      target2: SimpleIdentifier
         token: r
         element: <testLibrary>::@function::f::@formalParameter::r
         staticType: (int, String)
@@ -85,12 +206,12 @@ final ({void Function() f1}) x = (f1: f);
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
-  fields
+  fields2
     RecordLiteralNamedField
       name: f1
       colon: :
-      fieldExpression: FunctionReference
-        function: SimpleIdentifier
+      fieldExpression2: FunctionReference
+        function2: SimpleIdentifier
           token: f
           element: <testLibrary>::@function::f
           staticType: void Function<T>()
@@ -112,9 +233,9 @@ final (void Function(), ) x = (f, );
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
-  fields
+  fields2
     FunctionReference
-      function: SimpleIdentifier
+      function2: SimpleIdentifier
         token: f
         element: <testLibrary>::@function::f
         staticType: void Function<T>()
@@ -137,7 +258,7 @@ test(dynamic d) => f((d, d));
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
-  fields
+  fields2
     SimpleIdentifier
       token: d
       element: <testLibrary>::@function::test::@formalParameter::d
@@ -165,12 +286,12 @@ final ({void Function() f1}) x = (f1: a);
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
-  fields
+  fields2
     RecordLiteralNamedField
       name: f1
       colon: :
-      fieldExpression: ImplicitCallReference
-        expression: SimpleIdentifier
+      fieldExpression2: ImplicitCallReference
+        expression2: SimpleIdentifier
           token: a
           element: <testLibrary>::@getter::a
           staticType: A
@@ -195,9 +316,9 @@ final (void Function(), ) x = (a, );
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
-  fields
+  fields2
     ImplicitCallReference
-      expression: SimpleIdentifier
+      expression2: SimpleIdentifier
         token: a
         element: <testLibrary>::@getter::a
         staticType: A
@@ -218,11 +339,11 @@ final ({int f1}) x = (f1: a);
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
-  fields
+  fields2
     RecordLiteralNamedField
       name: f1
       colon: :
-      fieldExpression: SimpleIdentifier
+      fieldExpression2: SimpleIdentifier
         token: a
         element: <testLibrary>::@getter::a
         staticType: dynamic
@@ -241,7 +362,7 @@ final (int, ) x = (a, );
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
-  fields
+  fields2
     SimpleIdentifier
       token: a
       element: <testLibrary>::@getter::a
@@ -264,7 +385,7 @@ f(Object o) {
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
-  fields
+  fields2
     SimpleStringLiteral
       literal: ''
   rightParenthesis: )
@@ -289,7 +410,98 @@ T g<T>() => throw 0;
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
-  fields
+  fields2
+    UnqualifiedFunctionInvocation
+      name: g
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      resolution: ExecutableInvocationResolution
+        element: <testLibrary>::@function::g
+        invokeType: A1 Function()
+        type: A1
+      staticType: A1
+      typeArgumentTypes
+        A1
+    RecordLiteralNamedField
+      name: f1
+      colon: :
+      fieldExpression2: UnqualifiedFunctionInvocation
+        name: g
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        resolution: ExecutableInvocationResolution
+          element: <testLibrary>::@function::g
+          invokeType: A4 Function()
+          type: A4
+        staticType: A4
+        typeArgumentTypes
+          A4
+      fieldExpression(v1): MethodInvocation
+        methodName: SimpleIdentifier
+          token: g
+          element: <testLibrary>::@function::g
+          staticType: T Function<T>()
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        staticInvokeType: A4 Function()
+        staticType: A4
+        typeArgumentTypes
+          A4
+    UnqualifiedFunctionInvocation
+      name: g
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      resolution: ExecutableInvocationResolution
+        element: <testLibrary>::@function::g
+        invokeType: A2 Function()
+        type: A2
+      staticType: A2
+      typeArgumentTypes
+        A2
+    RecordLiteralNamedField
+      name: f2
+      colon: :
+      fieldExpression2: UnqualifiedFunctionInvocation
+        name: g
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        resolution: ExecutableInvocationResolution
+          element: <testLibrary>::@function::g
+          invokeType: A5 Function()
+          type: A5
+        staticType: A5
+        typeArgumentTypes
+          A5
+      fieldExpression(v1): MethodInvocation
+        methodName: SimpleIdentifier
+          token: g
+          element: <testLibrary>::@function::g
+          staticType: T Function<T>()
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        staticInvokeType: A5 Function()
+        staticType: A5
+        typeArgumentTypes
+          A5
+    UnqualifiedFunctionInvocation
+      name: g
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      resolution: ExecutableInvocationResolution
+        element: <testLibrary>::@function::g
+        invokeType: A3 Function()
+        type: A3
+      staticType: A3
+      typeArgumentTypes
+        A3
+  fields(v1)
     MethodInvocation
       methodName: SimpleIdentifier
         token: g
@@ -376,11 +588,23 @@ T g<T>() => throw 0;
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
-  fields
+  fields2
     RecordLiteralNamedField
       name: f1
       colon: :
-      fieldExpression: MethodInvocation
+      fieldExpression2: UnqualifiedFunctionInvocation
+        name: g
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        resolution: ExecutableInvocationResolution
+          element: <testLibrary>::@function::g
+          invokeType: dynamic Function()
+          type: dynamic
+        staticType: dynamic
+        typeArgumentTypes
+          dynamic
+      fieldExpression(v1): MethodInvocation
         methodName: SimpleIdentifier
           token: g
           element: <testLibrary>::@function::g
@@ -412,7 +636,47 @@ T g<T>() => throw 0;
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
-  fields
+  fields2
+    UnqualifiedFunctionInvocation
+      name: g
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      resolution: ExecutableInvocationResolution
+        element: <testLibrary>::@function::g
+        invokeType: dynamic Function()
+        type: dynamic
+      staticType: dynamic
+      typeArgumentTypes
+        dynamic
+    RecordLiteralNamedField
+      name: f2
+      colon: :
+      fieldExpression2: UnqualifiedFunctionInvocation
+        name: g
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        resolution: ExecutableInvocationResolution
+          element: <testLibrary>::@function::g
+          invokeType: dynamic Function()
+          type: dynamic
+        staticType: dynamic
+        typeArgumentTypes
+          dynamic
+      fieldExpression(v1): MethodInvocation
+        methodName: SimpleIdentifier
+          token: g
+          element: <testLibrary>::@function::g
+          staticType: T Function<T>()
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        staticInvokeType: dynamic Function()
+        staticType: dynamic
+        typeArgumentTypes
+          dynamic
+  fields(v1)
     MethodInvocation
       methodName: SimpleIdentifier
         token: g
@@ -460,7 +724,20 @@ T g<T>() => throw 0;
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
-  fields
+  fields2
+    UnqualifiedFunctionInvocation
+      name: g
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      resolution: ExecutableInvocationResolution
+        element: <testLibrary>::@function::g
+        invokeType: dynamic Function()
+        type: dynamic
+      staticType: dynamic
+      typeArgumentTypes
+        dynamic
+  fields(v1)
     MethodInvocation
       methodName: SimpleIdentifier
         token: g
@@ -489,11 +766,23 @@ T g<T>() => throw 0;
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
-  fields
+  fields2
     RecordLiteralNamedField
       name: f1
       colon: :
-      fieldExpression: MethodInvocation
+      fieldExpression2: UnqualifiedFunctionInvocation
+        name: g
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        resolution: ExecutableInvocationResolution
+          element: <testLibrary>::@function::g
+          invokeType: int Function()
+          type: int
+        staticType: int
+        typeArgumentTypes
+          int
+      fieldExpression(v1): MethodInvocation
         methodName: SimpleIdentifier
           token: g
           element: <testLibrary>::@function::g
@@ -508,7 +797,19 @@ RecordLiteral
     RecordLiteralNamedField
       name: f2
       colon: :
-      fieldExpression: MethodInvocation
+      fieldExpression2: UnqualifiedFunctionInvocation
+        name: g
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        resolution: ExecutableInvocationResolution
+          element: <testLibrary>::@function::g
+          invokeType: String Function()
+          type: String
+        staticType: String
+        typeArgumentTypes
+          String
+      fieldExpression(v1): MethodInvocation
         methodName: SimpleIdentifier
           token: g
           element: <testLibrary>::@function::g
@@ -536,11 +837,23 @@ T g<T>() => throw 0;
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
-  fields
+  fields2
     RecordLiteralNamedField
       name: f2
       colon: :
-      fieldExpression: MethodInvocation
+      fieldExpression2: UnqualifiedFunctionInvocation
+        name: g
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        resolution: ExecutableInvocationResolution
+          element: <testLibrary>::@function::g
+          invokeType: String Function()
+          type: String
+        staticType: String
+        typeArgumentTypes
+          String
+      fieldExpression(v1): MethodInvocation
         methodName: SimpleIdentifier
           token: g
           element: <testLibrary>::@function::g
@@ -555,7 +868,19 @@ RecordLiteral
     RecordLiteralNamedField
       name: f1
       colon: :
-      fieldExpression: MethodInvocation
+      fieldExpression2: UnqualifiedFunctionInvocation
+        name: g
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        resolution: ExecutableInvocationResolution
+          element: <testLibrary>::@function::g
+          invokeType: int Function()
+          type: int
+        staticType: int
+        typeArgumentTypes
+          int
+      fieldExpression(v1): MethodInvocation
         methodName: SimpleIdentifier
           token: g
           element: <testLibrary>::@function::g
@@ -587,11 +912,23 @@ T g<T>() => throw 0;
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
-  fields
+  fields2
     RecordLiteralNamedField
       name: f1
       colon: :
-      fieldExpression: MethodInvocation
+      fieldExpression2: UnqualifiedFunctionInvocation
+        name: g
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        resolution: ExecutableInvocationResolution
+          element: <testLibrary>::@function::g
+          invokeType: dynamic Function()
+          type: dynamic
+        staticType: dynamic
+        typeArgumentTypes
+          dynamic
+      fieldExpression(v1): MethodInvocation
         methodName: SimpleIdentifier
           token: g
           element: <testLibrary>::@function::g
@@ -623,11 +960,23 @@ T g<T>() => throw 0;
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
-  fields
+  fields2
     RecordLiteralNamedField
       name: f1
       colon: :
-      fieldExpression: MethodInvocation
+      fieldExpression2: UnqualifiedFunctionInvocation
+        name: g
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        resolution: ExecutableInvocationResolution
+          element: <testLibrary>::@function::g
+          invokeType: dynamic Function()
+          type: dynamic
+        staticType: dynamic
+        typeArgumentTypes
+          dynamic
+      fieldExpression(v1): MethodInvocation
         methodName: SimpleIdentifier
           token: g
           element: <testLibrary>::@function::g
@@ -642,7 +991,19 @@ RecordLiteral
     RecordLiteralNamedField
       name: f2
       colon: :
-      fieldExpression: MethodInvocation
+      fieldExpression2: UnqualifiedFunctionInvocation
+        name: g
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        resolution: ExecutableInvocationResolution
+          element: <testLibrary>::@function::g
+          invokeType: dynamic Function()
+          type: dynamic
+        staticType: dynamic
+        typeArgumentTypes
+          dynamic
+      fieldExpression(v1): MethodInvocation
         methodName: SimpleIdentifier
           token: g
           element: <testLibrary>::@function::g
@@ -669,11 +1030,11 @@ final ({Object? f1}) x = (f1: a);
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
-  fields
+  fields2
     RecordLiteralNamedField
       name: f1
       colon: :
-      fieldExpression: SimpleIdentifier
+      fieldExpression2: SimpleIdentifier
         token: a
         element: <testLibrary>::@getter::a
         staticType: dynamic
@@ -692,7 +1053,7 @@ final (Object?, ) x = (a, );
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
-  fields
+  fields2
     SimpleIdentifier
       token: a
       element: <testLibrary>::@getter::a
@@ -713,7 +1074,32 @@ T g<T>() => throw 0;
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
-  fields
+  fields2
+    UnqualifiedFunctionInvocation
+      name: g
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      resolution: ExecutableInvocationResolution
+        element: <testLibrary>::@function::g
+        invokeType: dynamic Function()
+        type: dynamic
+      staticType: dynamic
+      typeArgumentTypes
+        dynamic
+    UnqualifiedFunctionInvocation
+      name: g
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      resolution: ExecutableInvocationResolution
+        element: <testLibrary>::@function::g
+        invokeType: dynamic Function()
+        type: dynamic
+      staticType: dynamic
+      typeArgumentTypes
+        dynamic
+  fields(v1)
     MethodInvocation
       methodName: SimpleIdentifier
         token: g
@@ -754,7 +1140,32 @@ T g<T>() => throw 0;
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
-  fields
+  fields2
+    UnqualifiedFunctionInvocation
+      name: g
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      resolution: ExecutableInvocationResolution
+        element: <testLibrary>::@function::g
+        invokeType: int Function()
+        type: int
+      staticType: int
+      typeArgumentTypes
+        int
+    UnqualifiedFunctionInvocation
+      name: g
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      resolution: ExecutableInvocationResolution
+        element: <testLibrary>::@function::g
+        invokeType: String Function()
+        type: String
+      staticType: String
+      typeArgumentTypes
+        String
+  fields(v1)
     MethodInvocation
       methodName: SimpleIdentifier
         token: g
@@ -799,7 +1210,20 @@ T g<T>() => throw 0;
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
-  fields
+  fields2
+    UnqualifiedFunctionInvocation
+      name: g
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      resolution: ExecutableInvocationResolution
+        element: <testLibrary>::@function::g
+        invokeType: dynamic Function()
+        type: dynamic
+      staticType: dynamic
+      typeArgumentTypes
+        dynamic
+  fields(v1)
     MethodInvocation
       methodName: SimpleIdentifier
         token: g
@@ -832,7 +1256,32 @@ T g<T>() => throw 0;
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
-  fields
+  fields2
+    UnqualifiedFunctionInvocation
+      name: g
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      resolution: ExecutableInvocationResolution
+        element: <testLibrary>::@function::g
+        invokeType: dynamic Function()
+        type: dynamic
+      staticType: dynamic
+      typeArgumentTypes
+        dynamic
+    UnqualifiedFunctionInvocation
+      name: g
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      resolution: ExecutableInvocationResolution
+        element: <testLibrary>::@function::g
+        invokeType: dynamic Function()
+        type: dynamic
+      staticType: dynamic
+      typeArgumentTypes
+        dynamic
+  fields(v1)
     MethodInvocation
       methodName: SimpleIdentifier
         token: g
@@ -873,7 +1322,7 @@ test(dynamic d) => f((d, d));
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
-  fields
+  fields2
     SimpleIdentifier
       token: d
       element: <testLibrary>::@function::test::@formalParameter::d
@@ -884,127 +1333,6 @@ RecordLiteral
       staticType: dynamic
   rightParenthesis: )
   staticType: (dynamic, dynamic)
-''');
-  }
-
-  test_language219_singleField_noComma() async {
-    var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
-final x = (0);
-''');
-
-    var node = result.findNode.singleVariableDeclaration;
-    assertResolvedNodeText(node, r'''
-VariableDeclaration
-  name: x
-  equals: =
-  initializer: ParenthesizedExpression
-    leftParenthesis: (
-    expression: IntegerLiteral
-      literal: 0
-      staticType: int
-    rightParenthesis: )
-    staticType: int
-  declaredFragment: <testLibraryFragment> x@22
-''');
-  }
-
-  test_language219_singleField_noComma_const() async {
-    var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
-final x = const (0);
-//              ^
-// [diag.experimentNotEnabled] This requires the 'records' language feature to be enabled.
-//                ^
-// [diag.recordLiteralOnePositionalNoTrailingComma] A record literal with exactly one positional field requires a trailing comma.
-''');
-
-    var node = result.findNode.singleVariableDeclaration;
-    assertResolvedNodeText(node, r'''
-VariableDeclaration
-  name: x
-  equals: =
-  initializer: ParenthesizedExpression
-    leftParenthesis: (
-    expression: IntegerLiteral
-      literal: 0
-      staticType: int
-    rightParenthesis: )
-    staticType: int
-  declaredFragment: <testLibraryFragment> x@22
-''');
-  }
-
-  test_language219_singleField_withComma() async {
-    var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
-final x = (0,);
-//        ^
-// [diag.experimentNotEnabled] This requires the 'records' language feature to be enabled.
-''');
-
-    var node = result.findNode.singleVariableDeclaration;
-    assertResolvedNodeText(node, r'''
-VariableDeclaration
-  name: x
-  equals: =
-  initializer: ParenthesizedExpression
-    leftParenthesis: (
-    expression: IntegerLiteral
-      literal: 0
-      staticType: int
-    rightParenthesis: )
-    staticType: int
-  declaredFragment: <testLibraryFragment> x@22
-''');
-  }
-
-  test_language219_twoFields() async {
-    var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
-final x = (0, 1);
-//        ^
-// [diag.experimentNotEnabled] This requires the 'records' language feature to be enabled.
-''');
-
-    var node = result.findNode.singleVariableDeclaration;
-    assertResolvedNodeText(node, r'''
-VariableDeclaration
-  name: x
-  equals: =
-  initializer: ParenthesizedExpression
-    leftParenthesis: (
-    expression: IntegerLiteral
-      literal: 0
-      staticType: int
-    rightParenthesis: )
-    staticType: int
-  declaredFragment: <testLibraryFragment> x@22
-''');
-  }
-
-  test_language219_zeroFields() async {
-    var result = await resolveTestCodeWithDiagnostics(r'''
-// @dart = 2.19
-final x = ();
-//        ^
-// [diag.experimentNotEnabled] This requires the 'records' language feature to be enabled.
-''');
-
-    var node = result.findNode.singleVariableDeclaration;
-    assertResolvedNodeText(node, r'''
-VariableDeclaration
-  name: x
-  equals: =
-  initializer: ParenthesizedExpression
-    leftParenthesis: (
-    expression: SimpleIdentifier
-      token: <empty> <synthetic>
-      element: <null>
-      staticType: InvalidType
-    rightParenthesis: )
-    staticType: InvalidType
-  declaredFragment: <testLibraryFragment> x@22
 ''');
   }
 
@@ -1031,14 +1359,14 @@ final x = (0, f1: 1, 2, f2: 3, 4);
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
-  fields
+  fields2
     IntegerLiteral
       literal: 0
       staticType: int
     RecordLiteralNamedField
       name: f1
       colon: :
-      fieldExpression: IntegerLiteral
+      fieldExpression2: IntegerLiteral
         literal: 1
         staticType: int
     IntegerLiteral
@@ -1047,7 +1375,7 @@ RecordLiteral
     RecordLiteralNamedField
       name: f2
       colon: :
-      fieldExpression: IntegerLiteral
+      fieldExpression2: IntegerLiteral
         literal: 3
         staticType: int
     IntegerLiteral
@@ -1067,17 +1395,17 @@ final x = (f1: 0, f2: true);
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
-  fields
+  fields2
     RecordLiteralNamedField
       name: f1
       colon: :
-      fieldExpression: IntegerLiteral
+      fieldExpression2: IntegerLiteral
         literal: 0
         staticType: int
     RecordLiteralNamedField
       name: f2
       colon: :
-      fieldExpression: BooleanLiteral
+      fieldExpression2: BooleanLiteral
         literal: true
         staticType: bool
   rightParenthesis: )
@@ -1094,7 +1422,7 @@ final x = (0, true);
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
-  fields
+  fields2
     IntegerLiteral
       literal: 0
       staticType: int
@@ -1119,7 +1447,18 @@ g() => (f(),);
     assertResolvedNodeText(node, r'''
 RecordLiteral
   leftParenthesis: (
-  fields
+  fields2
+    UnqualifiedFunctionInvocation
+      name: f
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      resolution: ExecutableInvocationResolution
+        element: <testLibrary>::@function::f
+        invokeType: void Function()
+        type: void
+      staticType: void
+  fields(v1)
     MethodInvocation
       methodName: SimpleIdentifier
         token: f

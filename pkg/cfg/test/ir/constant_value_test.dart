@@ -17,9 +17,13 @@ import '../test_helpers.dart';
 void main() {
   final component = readVmPlatformKernelFile();
   final coreTypes = CoreTypes(component);
+  final coreLibraries = coreTypes.index;
   final classHierarchy = ClassHierarchy(component, coreTypes);
   final typeEnvironment = TypeEnvironment(coreTypes, classHierarchy);
-  final globalContext = GlobalContext(typeEnvironment: typeEnvironment);
+  final globalContext = GlobalContext(
+    typeEnvironment: typeEnvironment,
+    coreLibraries: coreLibraries,
+  );
 
   group('constant values', () {
     setUp(() {
@@ -410,6 +414,7 @@ void main() {
       testOp(UnaryIntOpcode.toDouble, (int v) => v.toDouble());
       testOp(UnaryIntOpcode.abs, (int v) => v.abs());
       testOp(UnaryIntOpcode.sign, (int v) => v.sign);
+      testOp(UnaryIntOpcode.bitLength, (int v) => v.bitLength);
     });
 
     test('binary double op', () {

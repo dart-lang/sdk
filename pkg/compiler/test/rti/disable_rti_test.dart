@@ -11,7 +11,9 @@ import 'package:compiler/src/js_emitter/model.dart';
 import 'package:compiler/src/js_model/js_world.dart' show JClosedWorld;
 import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
+
 import '../helpers/program_lookup.dart';
+
 import 'package:compiler/src/util/memory_compiler.dart';
 
 const String code = '''

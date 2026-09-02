@@ -70,7 +70,7 @@ class _FieldClassMember implements ClassMember {
         fullName: '${declarationBuilder.name}.${_builder.memberName.text}',
       );
     } else if (_builder.isExtensionTypeMember) {
-      ExtensionTypeDeclaration extensionTypeDeclaration =
+      ast.ExtensionTypeDeclaration extensionTypeDeclaration =
           (declarationBuilder as ExtensionTypeDeclarationBuilder)
               .extensionTypeDeclaration;
       Member member = getTearOff(membersBuilder) ?? getMember(membersBuilder);

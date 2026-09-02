@@ -22,14 +22,16 @@ class DocumentColorPresentationTest extends AbstractLspAnalysisServerTest {
   late TestCode code;
   late String testFilePath;
   final uiImportUri = 'dart:ui';
+  @override
+  bool get addFlutterPackageDep => true;
   Range get colorRange => code.range.range;
   set content(String content) => code = TestCode.parse(content);
+
   Uri get testFileUri => pathContext.toUri(testFilePath);
 
   @override
   void setUp() {
     super.setUp();
-    writeTestPackageConfig(flutter: true);
 
     content = '';
     testFilePath = mainFilePath;
@@ -503,13 +505,12 @@ const white = [!Color(0xFFFFFFFF)!];
   }
 }
 
+/// More tests for detection of colours are in
+/// test/src/computer/color_computer_test.dart.
 @reflectiveTest
 class DocumentColorTest extends AbstractLspAnalysisServerTest {
   @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(flutter: true);
-  }
+  bool get addFlutterPackageDep => true;
 
   Future<void> test_nonDartFile() async {
     newFile(pubspecFilePath, simplePubspecContent);

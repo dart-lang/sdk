@@ -158,6 +158,91 @@ library
 ''');
   }
 
+  test_expr_methodInvocation_staticAccessToInstanceMember_generic() async {
+    var library = await buildLibrary(r'''
+class A<T> {
+  T foo() => throw 0;
+}
+
+var x = A.foo();
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          typeParameters
+            #F2 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
+              element: #E0 T
+          constructors
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+          methods
+            #F4 isComplete isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:15) (offset:17)
+              element: <testLibrary>::@class::A::@method::foo
+      topLevelVariables
+        #F5 hasImplicitType hasInitializer isOriginDeclaration isStatic x (nameOffset:42) (firstTokenOffset:42) (offset:42)
+          element: <testLibrary>::@topLevelVariable::x
+          inducedGetter: #F6
+          inducedSetter: #F7
+      getters
+        #F6 isComplete isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
+          element: <testLibrary>::@getter::x
+          inducingVariable: #F5
+      setters
+        #F7 isComplete isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
+          element: <testLibrary>::@setter::x
+          inducingVariable: #F5
+          formalParameters
+            #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
+              element: <testLibrary>::@setter::x::@formalParameter::value
+  classes
+    isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      typeParameters
+        #E0 T
+          firstFragment: #F2
+      constructors
+        hasEnclosingTypeParameterReference isOriginImplicitDefault new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
+      methods
+        hasEnclosingTypeParameterReference isOriginDeclaration foo
+          reference: <testLibrary>::@class::A::@method::foo
+          firstFragment: #F4
+          returnType: T
+  topLevelVariables
+    hasImplicitType hasInitializer isOriginDeclaration isStatic isTypeInferredFromInitializer x
+      reference: <testLibrary>::@topLevelVariable::x
+      firstFragment: #F5
+      type: InvalidType
+      getter: <testLibrary>::@getter::x
+      setter: <testLibrary>::@setter::x
+  getters
+    isOriginVariable isStatic x
+      reference: <testLibrary>::@getter::x
+      firstFragment: #F6
+      returnType: InvalidType
+      variable: <testLibrary>::@topLevelVariable::x
+  setters
+    isOriginVariable isStatic x
+      reference: <testLibrary>::@setter::x
+      firstFragment: #F7
+      formalParameters
+        #E1 requiredPositional value
+          firstFragment: #F8
+          type: InvalidType
+      returnType: void
+      variable: <testLibrary>::@topLevelVariable::x
+''');
+  }
+
   test_infer_generic_typedef_complex() async {
     var library = await buildLibrary(r'''
 typedef F<T> = D<T, U> Function<U>();
@@ -212,10 +297,10 @@ library
         #F11 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic x (nameOffset:124) (firstTokenOffset:124) (offset:124)
           element: <testLibrary>::@topLevelVariable::x
           initializer: expression_0
-            InstanceCreationExpression
+            ConstructorInvocation
               keyword: const @128
-              constructorName: ConstructorName
-                type: NamedType
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
                   name: C @134
                   element: <testLibrary>::@class::C
                   type: C<int>
@@ -224,7 +309,7 @@ library
                   substitution: {V: int}
               argumentList: ArgumentList
                 leftParenthesis: ( @135
-                arguments
+                arguments2
                   SimpleIdentifier
                     token: f @136
                     element: <testLibrary>::@function::f
@@ -352,17 +437,17 @@ library
         #F8 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic x (nameOffset:104) (firstTokenOffset:104) (offset:104)
           element: <testLibrary>::@topLevelVariable::x
           initializer: expression_0
-            InstanceCreationExpression
+            ConstructorInvocation
               keyword: const @108
-              constructorName: ConstructorName
-                type: NamedType
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
                   name: C @114
                   element: <testLibrary>::@class::C
                   type: C
                 element: <testLibrary>::@class::C::@constructor::new
               argumentList: ArgumentList
                 leftParenthesis: ( @115
-                arguments
+                arguments2
                   SimpleIdentifier
                     token: f @116
                     element: <testLibrary>::@function::f
@@ -1069,7 +1154,7 @@ library
             #F3 V (nameOffset:5) (firstTokenOffset:5) (offset:5)
               element: #E1 V
   functions
-    isOriginDeclaration isStatic f
+    hasImplicitReturnType isOriginDeclaration isStatic f
       reference: <testLibrary>::@function::f
       firstFragment: #F1
       typeParameters
@@ -1201,7 +1286,7 @@ library
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F5
       getters
-        isOriginDeclaration x
+        hasImplicitReturnType isOriginDeclaration x
           reference: <testLibrary>::@class::C::@getter::x
           firstFragment: #F6
           returnType: dynamic
@@ -1259,7 +1344,7 @@ library
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F3
       methods
-        isOriginDeclaration f
+        hasImplicitReturnType isOriginDeclaration f
           reference: <testLibrary>::@class::C::@method::f
           firstFragment: #F4
           typeParameters
@@ -1367,7 +1452,7 @@ library
             #F2 T (nameOffset:2) (firstTokenOffset:2) (offset:2)
               element: #E0 T
   functions
-    isOriginDeclaration isStatic f
+    hasImplicitReturnType isOriginDeclaration isStatic f
       reference: <testLibrary>::@function::f
       firstFragment: #F1
       typeParameters
@@ -1401,7 +1486,7 @@ library
             #F2 T (nameOffset:2) (firstTokenOffset:2) (offset:2)
               element: #E0 T
   functions
-    isOriginDeclaration isStatic f
+    hasImplicitReturnType isOriginDeclaration isStatic f
       reference: <testLibrary>::@function::f
       firstFragment: #F1
       typeParameters
@@ -2058,7 +2143,7 @@ library
       firstFragment: #F1
       supertype: D
       fields
-        hasImplicitType isOriginDeclaration v
+        hasImplicitType isOriginDeclaration isTypeInferredFromOverride v
           reference: <testLibrary>::@class::C::@field::v
           firstFragment: #F2
           type: int Function(String)
@@ -2421,7 +2506,7 @@ library
           firstFragment: #F2
       supertype: D<int, T>
       fields
-        hasEnclosingTypeParameterReference hasImplicitType isOriginDeclaration v
+        hasEnclosingTypeParameterReference hasImplicitType isOriginDeclaration isTypeInferredFromOverride v
           reference: <testLibrary>::@class::C::@field::v
           firstFragment: #F3
           type: Map<T, int>
@@ -2543,7 +2628,7 @@ library
       returnType: void
       variable: <testLibrary>::@topLevelVariable::v
   functions
-    isOriginDeclaration isStatic h
+    hasImplicitReturnType isOriginDeclaration isStatic h
       reference: <testLibrary>::@function::h
       firstFragment: #F6
       formalParameters
@@ -2877,7 +2962,7 @@ library
       returnType: void
       variable: <testLibrary>::@topLevelVariable::v
   functions
-    isOriginDeclaration isStatic f
+    hasImplicitReturnType isOriginDeclaration isStatic f
       reference: <testLibrary>::@function::f
       firstFragment: #F5
       formalParameters
@@ -2945,7 +3030,7 @@ library
       returnType: void
       variable: <testLibrary>::@topLevelVariable::v
   functions
-    isOriginDeclaration isStatic f
+    hasImplicitReturnType isOriginDeclaration isStatic f
       reference: <testLibrary>::@function::f
       firstFragment: #F5
       formalParameters
@@ -3009,7 +3094,7 @@ library
       firstFragment: #F1
       supertype: D
       fields
-        isOriginGetterSetter f
+        isOriginGetterSetter isTypeInferredFromOverride f
           reference: <testLibrary>::@class::C::@field::f
           firstFragment: #F2
           type: int Function(String)
@@ -3101,7 +3186,7 @@ library
           firstFragment: #F2
           superConstructor: package:test/a.dart::@class::A::@constructor::new
       methods
-        isOriginDeclaration m
+        hasImplicitReturnType isOriginDeclaration m
           reference: <testLibrary>::@class::B::@method::m
           firstFragment: #F3
           formalParameters
@@ -4461,7 +4546,7 @@ library
               superKeyword: super @0
               argumentList: ArgumentList
                 leftParenthesis: ( @0
-                arguments
+                arguments2
                   SimpleIdentifier
                     token: value @-1
                     element: <testLibrary>::@class::B::@constructor::new::@formalParameter::value
@@ -5698,7 +5783,7 @@ library
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F3
       methods
-        isOriginDeclaration m
+        hasImplicitReturnType isOriginDeclaration m
           reference: <testLibrary>::@class::C::@method::m
           firstFragment: #F4
           formalParameters
@@ -5994,9 +6079,9 @@ library
             #F4 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:21) (firstTokenOffset:21) (offset:21)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -6011,7 +6096,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -6286,9 +6371,9 @@ library
             #F17 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:33) (firstTokenOffset:33) (offset:33)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -6303,7 +6388,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -6490,9 +6575,9 @@ library
             #F5 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:49) (firstTokenOffset:49) (offset:49)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -6507,7 +6592,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -6752,9 +6837,9 @@ library
             #F6 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:33) (firstTokenOffset:33) (offset:33)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -6769,7 +6854,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -7005,9 +7090,9 @@ library
             #F5 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:33) (firstTokenOffset:33) (offset:33)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -7022,7 +7107,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v
@@ -7452,9 +7537,9 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:9) (firstTokenOffset:9) (offset:9)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
-                InstanceCreationExpression
-                  constructorName: ConstructorName
-                    type: NamedType
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
                       name: E @-1
                       element: <testLibrary>::@enum::E
                       type: E
@@ -7469,7 +7554,7 @@ library
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
-                  elements
+                  elements2
                     SimpleIdentifier
                       token: v @-1
                       element: <testLibrary>::@enum::E::@getter::v

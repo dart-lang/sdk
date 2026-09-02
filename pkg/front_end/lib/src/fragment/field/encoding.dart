@@ -44,9 +44,9 @@ sealed class FieldEncoding {
   /// field value.
   ///
   /// This is only used for instance fields.
-  List<Initializer> createInitializer(
+  List<InternalInitializer> createInitializer(
     int fileOffset,
-    Expression value, {
+    InternalExpression value, {
     required bool isSynthetic,
   });
 
@@ -208,16 +208,17 @@ mixin RegularFieldEncodingMixin implements FieldEncoding {
     }
     _field!.scope = scopeProviderInfo?.scope;
     _field!.thisVariable = scopeProviderInfo?.thisVariable;
+    _field!.thisVariable?.parent = _field;
   }
 
   @override
-  List<Initializer> createInitializer(
+  List<InternalInitializer> createInitializer(
     int fileOffset,
-    Expression value, {
+    InternalExpression value, {
     required bool isSynthetic,
   }) {
-    return <Initializer>[
-      extern.createFieldInitializer(
+    return [
+      intern.createFieldInitializer(
         _field!,
         value,
         fileOffset: fileOffset,
@@ -511,6 +512,7 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
     _lateGetter!.function.registerFunctionBody(
       _createGetterBody(coreTypes, _fragment.name, initializer),
     );
+    _lateGetter!.function.registerScopeProviderInfo(scopeProviderInfo);
     // The initializer is copied from [_field] to [_lateGetter] so we copy the
     // property to reflect whether the getter contains super calls.
     _lateGetter!.containsSuperCalls = _field!.containsSuperCalls;
@@ -523,31 +525,29 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
           _lateSetter!.function.positionalParameters.first,
         ),
       );
+      _lateSetter!.function.registerScopeProviderInfo(scopeProviderInfo);
     }
-    _field?.scope =
-        // Coverage-ignore(suite): Not run.
-        scopeProviderInfo?.scope;
   }
 
   @override
-  List<Initializer> createInitializer(
+  List<InternalInitializer> createInitializer(
     int fileOffset,
-    Expression value, {
+    InternalExpression value, {
     required bool isSynthetic,
   }) {
-    List<Initializer> initializers = <Initializer>[];
+    List<InternalInitializer> initializers = [];
     if (_lateIsSetField != null) {
       initializers.add(
-        extern.createFieldInitializer(
+        intern.createFieldInitializer(
           _lateIsSetField!,
-          extern.createBoolLiteral(true, fileOffset: fileOffset),
+          intern.createBoolLiteral(true, fileOffset: fileOffset),
           fileOffset: fileOffset,
           isSynthetic: isSynthetic,
         ),
       );
     }
     initializers.add(
-      extern.createFieldInitializer(
+      intern.createFieldInitializer(
         _field!,
         value,
         fileOffset: fileOffset,
@@ -576,13 +576,13 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
       "Type has not been computed for field ${_fragment.name}.",
     );
     if (needsPromotion) {
-      SyntheticVariable variable = extern.createVariableCache(
-        _createFieldGet(_field!),
-        _type!.withDeclaredNullability(Nullability.nullable),
+      CachedExpression cache = extern.createCachedExpression(
+        expression: _createFieldGet(_field!),
+        type: _type!.withDeclaredNullability(Nullability.nullable),
       );
       return extern.createLet(
-        variable,
-        extern.createVariableGet(variable, promotedType: _type),
+        cache: cache,
+        body: extern.createVariableGet(cache.variable, promotedType: _type),
       );
     } else {
       return _createFieldGet(_field!);
@@ -640,7 +640,7 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
     required bool isCovariantByDeclaration,
   }) {
     PositionalParameter parameter = extern.createPositionalParameter(
-      cosmeticName: "${_fragment.name}#param",
+      parameterName: "${_fragment.name}#param",
       isCovariantByDeclaration: isCovariantByDeclaration,
       type: const DynamicType(),
       fileOffset: _fragment.nameOffset,
@@ -1234,9 +1234,9 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
   }
 
   @override
-  List<Initializer> createInitializer(
+  List<InternalInitializer> createInitializer(
     int fileOffset,
-    Expression value, {
+    InternalExpression value, {
     required bool isSynthetic,
   }) {
     throw new UnsupportedError('ExternalFieldEncoding.createInitializer');
@@ -1258,7 +1258,7 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
           null,
           positionalParameters: [
             extern.createPositionalParameter(
-              cosmeticName: syntheticThisName,
+              parameterName: syntheticThisName,
               type: const DynamicType(),
               fileOffset: _fragment.nameOffset,
               isLowered: true,
@@ -1278,7 +1278,7 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
           .attachMember(_getter!);
       if (_fragment.hasSetter) {
         PositionalParameter parameter = extern.createPositionalParameter(
-          cosmeticName: "#externalFieldValue",
+          parameterName: "#externalFieldValue",
           type: const DynamicType(),
           isSynthesized: true,
           isCovariantByDeclaration: _fragment.modifiers.isCovariant,
@@ -1291,7 +1291,7 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
             null,
             positionalParameters: [
               extern.createPositionalParameter(
-                cosmeticName: syntheticThisName,
+                parameterName: syntheticThisName,
                 type: const DynamicType(),
                 fileOffset: _fragment.nameOffset,
                 isLowered: true,
@@ -1334,7 +1334,7 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
           .attachMember(_getter!);
       if (!_fragment.modifiers.isFinal) {
         PositionalParameter parameter = extern.createPositionalParameter(
-          cosmeticName: "#externalFieldValue",
+          parameterName: "#externalFieldValue",
           type: const DynamicType(),
           isSynthesized: true,
           isCovariantByDeclaration: _fragment.modifiers.isCovariant,
@@ -1555,12 +1555,12 @@ class RepresentationFieldEncoding implements FieldEncoding {
   }
 
   @override
-  List<Initializer> createInitializer(
+  List<InternalInitializer> createInitializer(
     int fileOffset,
-    Expression value, {
+    InternalExpression value, {
     required bool isSynthetic,
   }) {
-    return <Initializer>[
+    return [
       new ExtensionTypeRepresentationFieldInitializer(
         _getter,
         value,
@@ -1673,7 +1673,7 @@ class RepresentationFieldEncoding implements FieldEncoding {
 
   @override
   Initializer buildImplicitInitializer() {
-    return new ExtensionTypeRepresentationFieldInitializer(
+    return new ExternalExtensionTypeRepresentationFieldInitializer(
       _getter,
       extern.createNullLiteral(fileOffset: _fragment.nameOffset),
       fileOffset: _fragment.nameOffset,
@@ -1801,9 +1801,9 @@ class ExtensionInstanceFieldEncoding implements FieldEncoding {
   }
 
   @override
-  List<Initializer> createInitializer(
+  List<InternalInitializer> createInitializer(
     int fileOffset,
-    Expression value, {
+    InternalExpression value, {
     required bool isSynthetic,
   }) {
     throw new UnsupportedError('ExternalFieldEncoding.createInitializer');
@@ -1824,7 +1824,7 @@ class ExtensionInstanceFieldEncoding implements FieldEncoding {
         null,
         positionalParameters: [
           extern.createPositionalParameter(
-            cosmeticName: syntheticThisName,
+            parameterName: syntheticThisName,
             type: const DynamicType(),
             fileOffset: _fragment.nameOffset,
             isLowered: true,
@@ -1843,7 +1843,7 @@ class ExtensionInstanceFieldEncoding implements FieldEncoding {
         .attachMember(_getter!);
     if (_fragment.hasSetter) {
       PositionalParameter parameter = extern.createPositionalParameter(
-        cosmeticName: "#externalFieldValue",
+        parameterName: "#externalFieldValue",
         type: const DynamicType(),
         isSynthesized: true,
         isCovariantByDeclaration: _fragment.modifiers.isCovariant,
@@ -1856,7 +1856,7 @@ class ExtensionInstanceFieldEncoding implements FieldEncoding {
           null,
           positionalParameters: [
             extern.createPositionalParameter(
-              cosmeticName: syntheticThisName,
+              parameterName: syntheticThisName,
               type: const DynamicType(),
               fileOffset: _fragment.nameOffset,
               isLowered: true,

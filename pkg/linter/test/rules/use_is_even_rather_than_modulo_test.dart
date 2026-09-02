@@ -71,6 +71,12 @@ var a = 1 % 2 == 3 - 3;
 ''');
   }
 
+  test_moduloTwoEqualEqualTwo_literalInt() async {
+    await assertNoDiagnostics(r'''
+var a = 1 % 2 == 2;
+''');
+  }
+
   test_moduloTwoEqualEqualZero_literalInt() async {
     await assertDiagnosticsFromMarkup(r'''
 var a = [!1 % 2 == 0!];

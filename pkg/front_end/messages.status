@@ -57,6 +57,7 @@ front_end/ExtensionTypeShouldBeListedAsCanBeUsedAsTypeInDynamicInterface/example
 front_end/FastaCLIArgumentRequired/example: missingExample # Used in the compile tool
 front_end/FastaUsageLong/example: missingExample # Help for the compile tool
 front_end/FastaUsageShort/example: missingExample # Help for the compile tool
+front_end/FutureTypeMustBeSubtypeOfJSAnyForConversionToJSPromise/example: missingExample # Async not supported in messages suite.
 _fe_analyzer_shared/IllegalAssignmentToNonAssignable/part_wrapped_script1: hasOnlyUnrelatedMessages # Possibly not reachable in the CFE
 _fe_analyzer_shared/IllegalAssignmentToNonAssignable/script1: hasOnlyUnrelatedMessages # Possibly not reachable in the CFE
 front_end/IncrementalCompilerIllegalParameter/example: missingExample # Expression compilation.
@@ -75,6 +76,7 @@ front_end/JsInteropExportInvalidInteropTypeArgument/example: missingExample # We
 front_end/JsInteropExportInvalidTypeArgument/example: missingExample # Web compiler specific
 front_end/JsInteropExportMemberCollision/example: missingExample # Web compiler specific
 front_end/JsInteropExportNoExportableMembers/example: missingExample # Web compiler specific
+front_end/JsInteropExtensionConstructorJsAnnotationHasNoEffect/example: Fail # Web compiler specific
 front_end/JsInteropExtensionTypeMemberNotInterop/example: missingExample # Web compiler specific
 front_end/JsInteropExtensionTypeNotInterop/example: missingExample # Web compiler specific
 front_end/JsInteropExtensionTypeUsedWithWrongJsAnnotation/example: missingExample # Web compiler specific
@@ -82,6 +84,7 @@ front_end/JsInteropExternalExtensionMemberOnTypeInvalid/example: missingExample 
 front_end/JsInteropExternalExtensionMemberWithStaticDisallowed/example: missingExample # Web compiler specific
 front_end/JsInteropExternalMemberNotJSAnnotated/example: missingExample # Web compiler specific
 front_end/JsInteropFunctionToJSNamedParameters/example: missingExample # Web compiler specific
+front_end/JsInteropFunctionToJSReturnFutureOptionalParameters/example: missingExample # Web compiler specific
 front_end/JsInteropFunctionToJSRequiresStaticType/example: missingExample # Web compiler specific
 front_end/JsInteropFunctionToJSTypeParameters/example: missingExample # Web compiler specific
 front_end/JsInteropFunctionToJSTypeViolation/example: missingExample

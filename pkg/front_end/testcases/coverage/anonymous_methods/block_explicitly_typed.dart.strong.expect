@@ -16,11 +16,11 @@ static method main() → void {
     }
   }
   let core::int #t2 = 1 in #t2 == null ?{Null} null : block {
-    core::int p = #t2 as core::int;
+    core::int p##1 = #t2 as core::int;
     Null #t3;
     #L2:
     {
-      p;
+      p##1;
       {
         #t3 = null;
         break #L2;
@@ -29,11 +29,11 @@ static method main() → void {
   } =>#t3;
   let final core::int #t4 = 1 in block {
     {
-      core::int p = #t4;
+      core::int p##2 = #t4;
       Null #t5;
       #L3:
       {
-        p;
+        p##2;
         {
           #t5 = null;
           break #L3;
@@ -43,11 +43,11 @@ static method main() → void {
   } =>#t4;
   let final core::int #t6 = 1 in #t6 == null ?{core::int} #t6 : block {
     {
-      core::int p = #t6 as core::int;
+      core::int p##3 = #t6 as core::int;
       Null #t7;
       #L4:
       {
-        p;
+        p##3;
         {
           #t7 = null;
           break #L4;
@@ -56,35 +56,35 @@ static method main() → void {
     }
   } =>#t6;
   {
-    core::int p = 1;
+    core::int p##4 = 1;
     core::int #t8;
     #L5:
     {
       {
-        #t8 = p;
+        #t8 = p##4;
         break #L5;
       }
     }
   }
   let core::int #t9 = 1 in #t9 == null ?{core::int?} null : block {
-    core::int p = #t9 as core::int;
+    core::int p##5 = #t9 as core::int;
     core::int #t10;
     #L6:
     {
       {
-        #t10 = p;
+        #t10 = p##5;
         break #L6;
       }
     }
   } =>#t10;
   let final core::int #t11 = 1 in block {
     {
-      core::int p = #t11;
+      core::int p##6 = #t11;
       core::int #t12;
       #L7:
       {
         {
-          #t12 = p;
+          #t12 = p##6;
           break #L7;
         }
       }
@@ -92,12 +92,12 @@ static method main() → void {
   } =>#t11;
   let final core::int #t13 = 1 in #t13 == null ?{core::int} #t13 : block {
     {
-      core::int p = #t13 as core::int;
+      core::int p##7 = #t13 as core::int;
       core::int #t14;
       #L8:
       {
         {
-          #t14 = p;
+          #t14 = p##7;
           break #L8;
         }
       }

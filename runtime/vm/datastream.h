@@ -340,7 +340,9 @@ struct AbstractWriteStream : public ValueObject {
   virtual ~AbstractWriteStream() {}
 
   virtual intptr_t Position() const = 0;
-  virtual intptr_t Align(intptr_t alignment, intptr_t offset = 0) = 0;
+  virtual intptr_t Align(intptr_t alignment,
+                         intptr_t offset = 0,
+                         uint8_t fill_byte = 0) = 0;
   virtual void WriteBytes(const void* addr, intptr_t len) = 0;
   virtual void WriteByte(uint8_t value) = 0;
 
@@ -371,6 +373,21 @@ struct AbstractWriteStream : public ValueObject {
     // be using SLEB128 instead.
     ASSERT(value >= 0);
     return WriteLEB128(bit_cast<typename std::make_unsigned<T>::type>(value));
+  }
+
+  void WriteFixed5LEB128(intptr_t value) {
+    ASSERT(value >= 0);
+    WriteByte((value & C::kDataByteMask) | C::kMoreDataMask);
+    value >>= C::kDataBitsPerByte;
+    WriteByte((value & C::kDataByteMask) | C::kMoreDataMask);
+    value >>= C::kDataBitsPerByte;
+    WriteByte((value & C::kDataByteMask) | C::kMoreDataMask);
+    value >>= C::kDataBitsPerByte;
+    WriteByte((value & C::kDataByteMask) | C::kMoreDataMask);
+    value >>= C::kDataBitsPerByte;
+    WriteByte((value & C::kDataByteMask));
+    value >>= C::kDataBitsPerByte;
+    ASSERT(value == 0);
   }
 
   template <typename T>
@@ -435,14 +452,16 @@ class BaseWriteStream : public AbstractWriteStream {
   virtual intptr_t Position() const { return current_ - buffer_; }
   intptr_t initial_size() const { return initial_size_; }
 
-  virtual intptr_t Align(intptr_t alignment, intptr_t offset = 0) {
+  virtual intptr_t Align(intptr_t alignment,
+                         intptr_t offset = 0,
+                         uint8_t fill_byte = 0) {
     const intptr_t position_before = Position();
     const intptr_t position_after =
         Utils::RoundUp(position_before, alignment, offset);
     const intptr_t length = position_after - position_before;
     if (length != 0) {
       EnsureSpace(length);
-      memset(current_, 0, length);
+      memset(current_, fill_byte, length);
       SetPosition(position_after);
     }
     return length;

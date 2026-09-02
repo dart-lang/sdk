@@ -403,6 +403,30 @@ void main() {
       asm.breakpoint();
       expectDisassembly('brk #0x0\n');
     });
+    test('smiTag / smiUntag', () {
+      asm.smiTag(R0, R1);
+      asm.smiTag(R2);
+      asm.smiUntag(R3, R4);
+      asm.smiUntag(R5);
+      expectDisassembly(
+        'lsl r0, r1, #${smiShift}\n'
+        'lsl r2, r2, #${smiShift}\n'
+        'asr r3, r4, #${smiShift}\n'
+        'asr r5, r5, #${smiShift}\n',
+      );
+    });
+    test('branchIfSmi / branchIfNotSmi', () {
+      final label1 = Label();
+      final label2 = Label();
+      asm.branchIfSmi(R0, label1);
+      asm.branchIfNotSmi(R1, label2);
+      asm.bind(label1);
+      asm.bind(label2);
+      expectDisassembly(
+        'tbzw r0, #${smiBit}, +8\n'
+        'tbnzw r1, #${smiBit}, +4\n',
+      );
+    });
     test('inlineAllocation - object size 16', () {
       final slowPath = Label();
       asm.inlineAllocation(
@@ -511,6 +535,61 @@ void main() {
         'ubfm r0, r0, #$lowBit, #$highBit\n'
         'ldr r1, [r5, #${vmOffsets.Object_tags_offset - heapObjectTag}]\n'
         'ubfm r1, r1, #$lowBit, #$highBit\n',
+      );
+    });
+    test('loadClassIdMayBeSmi', () {
+      asm.loadClassIdMayBeSmi(R1, R0);
+      final lowBit = vmOffsets.UntaggedObject_kClassIdTagPos;
+      final highBit =
+          vmOffsets.UntaggedObject_kClassIdTagPos +
+          vmOffsets.UntaggedObject_kClassIdTagSize -
+          1;
+      expectDisassembly(
+        'movz r1, #0x${ClassId.SmiCid.index.toRadixString(16)}\n'
+        'tbzw r0, #${smiBit}, +12\n'
+        'ldr r1, [r0, #${vmOffsets.Object_tags_offset - heapObjectTag}]\n'
+        'ubfm r1, r1, #$lowBit, #$highBit\n',
+      );
+    });
+    test('loadIsolateGroup', () {
+      asm.loadIsolateGroup(R2);
+      expectDisassembly(
+        'ldr r2, [thr, #${vmOffsets.Thread_isolate_group_offset}]\n',
+      );
+    });
+    test('loadClassById', () {
+      asm.loadClassById(R2, R1);
+      expectDisassembly(
+        'ldr r2, [thr, #${vmOffsets.Thread_isolate_group_offset}]\n'
+        'ldr r2, [r2, #${vmOffsets.IsolateGroup_cached_class_table_table_offset}]\n'
+        'ldr r2, [r2, r1 uxtx scaled]\n',
+      );
+    });
+    test('combineHashes', () {
+      asm.combineHashes(R0, R7);
+      expectDisassembly(
+        'addw r0, r0, r7\n'
+        'addw r0, r0, r0 lsl #10\n'
+        'eorw r0, r0, r0 lsr #6\n',
+      );
+    });
+    test('finalizeHash', () {
+      asm.finalizeHash(30, R0);
+      expectDisassembly(
+        'addw r0, r0, r0 lsl #3\n'
+        'eorw r0, r0, r0 lsr #11\n'
+        'addw r0, r0, r0 lsl #15\n'
+        'andws r0, r0, 0x3fffffff\n'
+        'cinc r0, r0, eq\n',
+      );
+    });
+    test('finalizeHash - 32 bits', () {
+      asm.finalizeHash(32, R0);
+      expectDisassembly(
+        'addw r0, r0, r0 lsl #3\n'
+        'eorw r0, r0, r0 lsr #11\n'
+        'addws r0, r0, r0 lsl #15\n'
+        'cinc r0, r0, eq\n',
       );
     });
   });
@@ -711,6 +790,45 @@ void main() {
       });
     });
 
+    test('msub', () {
+      asm.msub(R0, R1, R2, R3);
+      asm.msub(R0, R0, R0, R0, .s32);
+      expectDisassembly(
+        'msub r0, r1, r2, r3\n'
+        'msubw r0, r0, r0, r0\n',
+      );
+      expectThrows(() {
+        asm.msub(SP, R1, R2, R3);
+      });
+      expectThrows(() {
+        asm.msub(R0, SP, R2, R3);
+      });
+      expectThrows(() {
+        asm.msub(R0, R1, SP, R3);
+      });
+      expectThrows(() {
+        asm.msub(R0, R1, R2, SP);
+      });
+    });
+
+    test('umulh', () {
+      asm.umulh(R1, R2, R3);
+      asm.umulh(R0, R0, R0);
+      expectDisassembly(
+        'umulh r1, r2, r3\n'
+        'umulh r0, r0, r0\n',
+      );
+      expectThrows(() {
+        asm.umulh(SP, R2, R3);
+      });
+      expectThrows(() {
+        asm.umulh(R1, SP, R3);
+      });
+      expectThrows(() {
+        asm.umulh(R1, R2, SP);
+      });
+    });
+
     test('csel', () {
       asm.csel(R0, R1, R2, .greater);
       asm.csel(R1, ZR, R0, .unsignedLessOrEqual);
@@ -751,6 +869,46 @@ void main() {
       });
     });
 
+    test('cinc', () {
+      asm.cinc(R0, R1, .equal);
+      asm.cinc(R2, R3, .less);
+      asm.cinc(R4, R4, .notEqual, .s32);
+      expectDisassembly(
+        'cinc r0, r1, eq\n'
+        'cinc r2, r3, lt\n'
+        'cincw r4, r4, ne\n',
+      );
+      expectThrows(() {
+        asm.cinc(SP, R1, .equal);
+      });
+      expectThrows(() {
+        asm.cinc(R0, SP, .equal);
+      });
+      expectThrows(() {
+        asm.cinc(R0, R1, .unconditional);
+      });
+    });
+
+    test('cset', () {
+      asm.cset(R0, .greater);
+      asm.cset(R1, .unsignedLessOrEqual);
+      asm.cset(R2, .equal, .s32);
+      expectDisassembly(
+        'cset r0, gt\n'
+        'cset r1, ls\n'
+        'csetw r2, eq\n',
+      );
+      expectThrows(() {
+        asm.cset(SP, .greater);
+      });
+      expectThrows(() {
+        asm.cset(R0, .greater, .u8);
+      });
+      expectThrows(() {
+        asm.cset(R0, .unconditional);
+      });
+    });
+
     test('csinv', () {
       asm.csinv(R5, R6, R7, .negative);
       asm.csinv(R1, ZR, R0, .equal);
@@ -771,6 +929,26 @@ void main() {
       });
     });
 
+    test('csetm', () {
+      asm.csetm(R0, .greater);
+      asm.csetm(R1, .unsignedLessOrEqual);
+      asm.csetm(R2, .noOverflow, .s32);
+      expectDisassembly(
+        'csetm r0, gt\n'
+        'csetm r1, ls\n'
+        'csetmw r2, vc\n',
+      );
+      expectThrows(() {
+        asm.csetm(SP, .greater);
+      });
+      expectThrows(() {
+        asm.csetm(R0, .greater, .u8);
+      });
+      expectThrows(() {
+        asm.csetm(R0, .unconditional);
+      });
+    });
+
     test('csneg', () {
       asm.csneg(R5, R6, R7, .greaterOrEqual);
       asm.csneg(R1, ZR, R0, .unsignedLess);
@@ -788,6 +966,24 @@ void main() {
       });
       expectThrows(() {
         asm.csneg(R0, R1, SP, .negative);
+      });
+    });
+
+    test('cneg', () {
+      asm.cneg(R5, R6, .less);
+      asm.cneg(R0, R0, .unsignedGreater, .s32);
+      expectDisassembly(
+        'cneg r5, r6, lt\n'
+        'cnegw r0, r0, hi\n',
+      );
+      expectThrows(() {
+        asm.cneg(SP, R0, .less);
+      });
+      expectThrows(() {
+        asm.cneg(R0, SP, .less);
+      });
+      expectThrows(() {
+        asm.cneg(R0, R0, .unconditional);
       });
     });
 
@@ -1024,6 +1220,42 @@ void main() {
       });
     });
 
+    test('sdiv', () {
+      asm.sdiv(R0, R1, R2);
+      asm.sdiv(R3, R4, R5, .s32);
+      expectDisassembly(
+        'sdiv r0, r1, r2\n'
+        'sdivw r3, r4, r5\n',
+      );
+      expectThrows(() {
+        asm.sdiv(SP, R1, R2);
+      });
+      expectThrows(() {
+        asm.sdiv(R0, SP, R2);
+      });
+      expectThrows(() {
+        asm.sdiv(R0, R1, SP);
+      });
+    });
+
+    test('clz', () {
+      asm.clz(R0, R0);
+      asm.clz(R1, R2, .s32);
+      expectDisassembly(
+        'clz r0, r0\n'
+        'clzw r1, r2\n',
+      );
+      expectThrows(() {
+        asm.clz(SP, R0);
+      });
+      expectThrows(() {
+        asm.clz(R0, SP);
+      });
+      expectThrows(() {
+        asm.clz(R0, R0, .s8);
+      });
+    });
+
     test('and', () {
       asm.and(R0, R1, R2);
       asm.and(R0, R0, Immediate(-512));
@@ -1197,6 +1429,10 @@ void main() {
       asm.ldr(R0, RegOffsetAddress(SP, 4096));
       asm.ldr(R0, WritebackRegOffsetAddress(R1, 16, isPostIndexed: true));
       asm.ldr(R0, WritebackRegOffsetAddress(R1, -8, isPostIndexed: false));
+      asm.ldr(R0, RegExtRegAddress(R0, R1, .UXTX, scaled: true));
+      asm.ldr(R0, RegExtRegAddress(SP, R1, .SXTW, scaled: true), .s32);
+      asm.ldr(R0, RegExtRegAddress(R2, R3, .UXTW, scaled: false), .u16);
+      asm.ldr(R1, RegExtRegAddress(R5, R4, .SXTX, scaled: false), .s8);
       expectDisassembly(
         'ldr r0, [r1, #7]\n'
         'ldrw r0, [r1, #7]\n'
@@ -1207,7 +1443,11 @@ void main() {
         'ldrsb r0, [r1, #7]\n'
         'ldr r0, [csp, #4096]\n'
         'ldr r0, [r1], #16 !\n'
-        'ldr r0, [r1, #-8]!\n',
+        'ldr r0, [r1, #-8]!\n'
+        'ldr r0, [r0, r1 uxtx scaled]\n'
+        'ldrsw r0, [csp, r1 sxtw scaled]\n'
+        'ldrh r0, [r2, r3 uxtw]\n'
+        'ldrsb r1, [r5, r4 sxtx]\n',
       );
       expectThrows(() {
         asm.ldr(R0, RegOffsetAddress(R1, 32768));
@@ -1235,6 +1475,15 @@ void main() {
       });
       expectThrows(() {
         asm.ldr(R0, RegOffsetAddress(R1, 0), .simd128);
+      });
+      expectThrows(() {
+        asm.ldr(SP, RegExtRegAddress(R0, R1, .UXTX, scaled: true));
+      });
+      expectThrows(() {
+        asm.ldr(R0, RegExtRegAddress(R0, SP, .UXTX, scaled: true));
+      });
+      expectThrows(() {
+        asm.ldr(R0, RegExtRegAddress(R0, R1, .UXTB, scaled: true));
       });
     });
 
@@ -1285,6 +1534,115 @@ void main() {
       expectThrows(() {
         asm.str(R0, RegOffsetAddress(R1, 0), .simd128);
       });
+    });
+
+    test('ldar', () {
+      asm.ldar(R0, R1);
+      asm.ldar(R2, SP);
+      asm.ldar(R3, R4, .u32);
+      asm.ldar(R4, SP, .u16);
+      asm.ldar(R5, R0, .u8);
+      expectDisassembly(
+        'ldar r0, [r1]\n'
+        'ldar r2, [csp]\n'
+        'ldarw r3, [r4]\n'
+        'ldarh r4, [csp]\n'
+        'ldarb r5, [r0]\n',
+      );
+      expectThrows(() {
+        asm.ldar(R0, ZR);
+      });
+      expectThrows(() {
+        asm.ldar(R0, R1, .simd128);
+      });
+    });
+
+    test('stlr', () {
+      asm.stlr(R0, R1);
+      asm.stlr(R2, SP);
+      asm.stlr(R3, R4, .s32);
+      asm.stlr(R4, SP, .u16);
+      asm.stlr(R5, R0, .u8);
+      expectDisassembly(
+        'stlr r0, [r1]\n'
+        'stlr r2, [csp]\n'
+        'stlrw r3, [r4]\n'
+        'stlrh r4, [csp]\n'
+        'stlrb r5, [r0]\n',
+      );
+      expectThrows(() {
+        asm.stlr(R0, ZR);
+      });
+      expectThrows(() {
+        asm.stlr(R0, R1, .simd128);
+      });
+    });
+
+    test('ldxr', () {
+      asm.ldxr(R0, R1);
+      asm.ldxr(R2, SP);
+      asm.ldxr(R3, R4, .u32);
+      asm.ldxr(R0, R1, .u16);
+      asm.ldxr(R2, R3, .u8);
+      expectDisassembly(
+        'ldxr r0, [r1]\n'
+        'ldxr r2, [csp]\n'
+        'ldxrw r3, [r4]\n'
+        'ldxrh r0, [r1]\n'
+        'ldxrb r2, [r3]\n',
+      );
+      expectThrows(() {
+        asm.ldxr(SP, R1);
+      });
+      expectThrows(() {
+        asm.ldxr(R0, ZR);
+      });
+      expectThrows(() {
+        asm.ldxr(R0, R1, .s32);
+      });
+      expectThrows(() {
+        asm.ldxr(R0, R1, .s16);
+      });
+      expectThrows(() {
+        asm.ldxr(R0, R1, .s8);
+      });
+    });
+
+    test('stxr', () {
+      asm.stxr(R0, R1, R2);
+      asm.stxr(R3, R4, SP);
+      asm.stxr(ZR, R4, SP);
+      asm.stxr(R0, R1, R2, .u32);
+      asm.stxr(R0, R1, R2, .s16);
+      asm.stxr(R0, R1, R2, .u8);
+      expectDisassembly(
+        'stxr r0, r1, [r2]\n'
+        'stxr r3, r4, [csp]\n'
+        'stxr zr, r4, [csp]\n'
+        'stxrw r0, r1, [r2]\n'
+        'stxrh r0, r1, [r2]\n'
+        'stxrb r0, r1, [r2]\n',
+      );
+      expectThrows(() {
+        asm.stxr(SP, R1, R2);
+      });
+      expectThrows(() {
+        asm.stxr(R0, SP, R2);
+      });
+      expectThrows(() {
+        asm.stxr(R0, R1, ZR);
+      });
+      expectThrows(() {
+        asm.stxr(R0, R0, R2);
+      });
+      expectThrows(() {
+        asm.stxr(R0, R1, R0);
+      });
+    });
+
+    test('clrex', () {
+      asm.clrex();
+      expectDisassembly('clrex\n');
     });
 
     test('fldr', () {

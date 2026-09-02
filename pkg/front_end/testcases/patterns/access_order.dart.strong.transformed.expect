@@ -378,8 +378,8 @@ abstract class _MyList&Object&ListMixin<E extends core::Object? = dynamic> exten
       }
     }
     else {
-      for (core::int i = 0; i.{core::num::<}(length){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int}) {
-        this.{core::List::[]=}(start.{core::num::+}(i){(core::num) → core::int}, otherList.{core::List::[]}(otherStart.{core::num::+}(i){(core::num) → core::int}){(core::int) → self::_MyList&Object&ListMixin::E%}){(core::int, self::_MyList&Object&ListMixin::E%) → void};
+      for (core::int i##1 = 0; i##1.{core::num::<}(length){(core::num) → core::bool}; i##1 = i##1.{core::num::+}(1){(core::num) → core::int}) {
+        this.{core::List::[]=}(start.{core::num::+}(i##1){(core::num) → core::int}, otherList.{core::List::[]}(otherStart.{core::num::+}(i##1){(core::num) → core::int}){(core::int) → self::_MyList&Object&ListMixin::E%}){(core::int, self::_MyList&Object&ListMixin::E%) → void};
       }
     }
   }
@@ -423,14 +423,14 @@ abstract class _MyList&Object&ListMixin<E extends core::Object? = dynamic> exten
       else {
         core::int delta = insertLength.{core::num::-}(removeLength){(core::num) → core::int};
         core::int oldLength = this.{core::List::length}{core::int};
-        core::int insertEnd = start.{core::num::+}(insertLength){(core::num) → core::int};
-        for (core::int i = oldLength.{core::num::-}(delta){(core::num) → core::int}; i.{core::num::<}(oldLength){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int}) {
-          this.{col::ListBase::add}(this.{core::List::[]}(i.{core::num::>}(0){(core::num) → core::bool} ?{core::int} i : 0){(core::int) → self::_MyList&Object&ListMixin::E%}){(self::_MyList&Object&ListMixin::E%) → void};
+        core::int insertEnd##1 = start.{core::num::+}(insertLength){(core::num) → core::int};
+        for (core::int i##1 = oldLength.{core::num::-}(delta){(core::num) → core::int}; i##1.{core::num::<}(oldLength){(core::num) → core::bool}; i##1 = i##1.{core::num::+}(1){(core::num) → core::int}) {
+          this.{col::ListBase::add}(this.{core::List::[]}(i##1.{core::num::>}(0){(core::num) → core::bool} ?{core::int} i##1 : 0){(core::int) → self::_MyList&Object&ListMixin::E%}){(self::_MyList&Object&ListMixin::E%) → void};
         }
-        if(insertEnd.{core::num::<}(oldLength){(core::num) → core::bool}) {
-          this.{col::ListBase::setRange}(insertEnd, oldLength, this, end){(core::int, core::int, core::Iterable<self::_MyList&Object&ListMixin::E%>, [core::int]) → void};
+        if(insertEnd##1.{core::num::<}(oldLength){(core::num) → core::bool}) {
+          this.{col::ListBase::setRange}(insertEnd##1, oldLength, this, end){(core::int, core::int, core::Iterable<self::_MyList&Object&ListMixin::E%>, [core::int]) → void};
         }
-        this.{col::ListBase::setRange}(start, insertEnd, newContents){(core::int, core::int, core::Iterable<self::_MyList&Object&ListMixin::E%>, [core::int]) → void};
+        this.{col::ListBase::setRange}(start, insertEnd##1, newContents){(core::int, core::int, core::Iterable<self::_MyList&Object&ListMixin::E%>, [core::int]) → void};
       }
   }
   method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ indexOf(covariant-by-class core::Object? element, [core::int start = #C7]) → core::int {
@@ -605,10 +605,10 @@ static method test3(core::Object o) → core::String
         }
       }
       {
-        hoisted core::Object x;
+        hoisted core::Object x##1;
         if(#0#0 is core::List<core::Object?> && (#0#4#isSet ?{core::bool} #0#4 : let final dynamic #t20 = #0#4#isSet = true in #0#4 = #0#0{core::List<core::Object?>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C9) && #C10 =={core::num::==}{(core::Object) → core::bool} (#0#6#isSet ?{core::Object?} #0#6 : let final dynamic #t21 = #0#6#isSet = true in #0#6 = #0#0{core::List<core::Object?>}.{core::List::[]}(0){(core::int) → core::Object?})) {
           (#0#8#isSet ?{core::Object?} #0#8 : let final dynamic #t22 = #0#8#isSet = true in #0#8 = #0#0{core::List<core::Object?>}.{core::List::[]}(1){(core::int) → core::Object?})!;
-          x = (#0#8#isSet ?{core::Object?} #0#8 : let final dynamic #t23 = #0#8#isSet = true in #0#8 = #0#0{core::List<core::Object?>}.{core::List::[]}(1){(core::int) → core::Object?})!;
+          x##1 = (#0#8#isSet ?{core::Object?} #0#8 : let final dynamic #t23 = #0#8#isSet = true in #0#8 = #0#0{core::List<core::Object?>}.{core::List::[]}(1){(core::int) → core::Object?})!;
           #t13 = "match-2";
           break #L3;
         }

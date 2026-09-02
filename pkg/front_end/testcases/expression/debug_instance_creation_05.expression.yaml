@@ -26,7 +26,10 @@ type_defaults: []
 method: "C"
 position: "#C"
 static: false
-offset: 119 # On ";" after the parameters. Here they are _not_ found.
+# On ";" after the parameters.
+# Here they are not found, but as they will shadow nothing it's best to allow
+# them to be used.
+offset: 119
 scriptUri: main.dart
 expression: |
   () { return "$s1 $s2"; }()

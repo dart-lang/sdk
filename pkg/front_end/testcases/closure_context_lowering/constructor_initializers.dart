@@ -6,3 +6,9 @@ class A {
   final int x;
   A(int y) : x = (() => y)();
 }
+
+class B extends A {
+  B(int z): super(z) {
+    z = 0;
+  }
+}

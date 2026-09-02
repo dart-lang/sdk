@@ -4,6 +4,7 @@
 
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/to_source_visitor.dart';
+import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -130,6 +131,30 @@ class ToSourceVisitorTest extends ParserDiagnosticsTest {
     _assertSource(code, node);
   }
 
+  void test_toSource_ConstructorName_v1Projection() {
+    var code = 'prefix.A.foo';
+    var parseResult = parseTestCodeWithDiagnostics('''
+final x = new $code();
+''');
+    var node = FindNode(
+      parseResult.content,
+      parseResult.unit,
+    ).singleConstructorName;
+    expect(node.toSource(), code);
+  }
+
+  void test_toSource_InstanceCreationExpression_v1Projection() {
+    var code = 'new prefix.A.foo()';
+    var parseResult = parseTestCodeWithDiagnostics('''
+final x = $code;
+''');
+    var node = FindNode(
+      parseResult.content,
+      parseResult.unit,
+    ).singleInstanceCreationExpression;
+    expect(node.toSource(), code);
+  }
+
   void test_visitAdjacentStrings() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = 'a' 'b';
@@ -222,7 +247,7 @@ void f() {
   $code;
 }
 ''');
-    var node = parseResult.findNode.singleAssignmentExpression;
+    var node = parseResult.findNode.singleDirectAssignment;
     _assertSource(code, node);
   }
 
@@ -238,7 +263,7 @@ void f() async => await e;
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = a + b;
 ''');
-    var node = parseResult.findNode.singleBinaryExpression;
+    var node = parseResult.findNode.singleBinaryOperatorInvocation;
     _assertSource('a + b', node);
   }
 
@@ -246,7 +271,7 @@ var v = a + b;
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = a * (b + c);
 ''');
-    var node = parseResult.findNode.binary('a *');
+    var node = parseResult.findNode.binaryOperatorInvocation('a *');
     _assertSource('a * (b + c)', node);
   }
 
@@ -860,6 +885,17 @@ var a;
     _assertSource('#!/bin/dartvm library my; var a;', node);
   }
 
+  void test_visitCompoundAssignment() {
+    var code = 'a += b';
+    var parseResult = parseTestCodeWithDiagnostics('''
+void f() {
+  $code;
+}
+''');
+    var node = parseResult.findNode.singleCompoundAssignment;
+    _assertSource(code, node);
+  }
+
   void test_visitConditionalExpression() {
     var code = 'a ? b : c';
     var parseResult = parseTestCodeWithDiagnostics('''
@@ -1082,12 +1118,40 @@ class C {
     _assertSource(code, node);
   }
 
+  void test_visitConstructorInvocation_const() {
+    var code = 'const A()';
+    var parseResult = parseTestCodeWithDiagnostics('''
+final x = $code;
+''');
+    var node = parseResult.findNode.singleConstructorInvocation;
+    _assertSource(code, node);
+  }
+
+  void test_visitConstructorInvocation_named() {
+    var code = 'new A.foo()';
+    var parseResult = parseTestCodeWithDiagnostics('''
+final x = $code;
+''');
+    var node = parseResult.findNode.singleConstructorInvocation;
+    _assertSource(code, node);
+  }
+
+  void test_visitConstructorInvocation_unnamed() {
+    var code = 'new A()';
+    var parseResult = parseTestCodeWithDiagnostics('''
+final x = $code;
+''');
+    var node = parseResult.findNode.singleConstructorInvocation;
+    _assertSource(code, node);
+  }
+
   void test_visitConstructorName_named_prefix() {
     var code = 'prefix.A.foo';
     var parseResult = parseTestCodeWithDiagnostics('''
 final x = new $code();
 ''');
-    var node = parseResult.findNode.singleConstructorName;
+    var node =
+        parseResult.findNode.singleConstructorInvocation.constructorReference;
     _assertSource(code, node);
   }
 
@@ -1096,7 +1160,8 @@ final x = new $code();
     var parseResult = parseTestCodeWithDiagnostics('''
 final x = new $code();
 ''');
-    var node = parseResult.findNode.singleConstructorName;
+    var node =
+        parseResult.findNode.singleConstructorInvocation.constructorReference;
     _assertSource(code, node);
   }
 
@@ -1105,7 +1170,8 @@ final x = new $code();
     var parseResult = parseTestCodeWithDiagnostics('''
 final x = new $code();
 ''');
-    var node = parseResult.findNode.singleConstructorName;
+    var node =
+        parseResult.findNode.singleConstructorInvocation.constructorReference;
     _assertSource(code, node);
   }
 
@@ -1702,7 +1768,7 @@ class A {
   void test_visitFieldFormalParameter_keyword() {
     var code = 'var this.a';
     var parseResult = parseTestCodeWithDiagnostics('''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 class A {
   A($code);
 }
@@ -1714,7 +1780,7 @@ class A {
   void test_visitFieldFormalParameter_keywordAndType() {
     var code = 'final A this.a';
     var parseResult = parseTestCodeWithDiagnostics('''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 class A {
   A($code);
 }
@@ -2132,13 +2198,6 @@ void f () {
     _assertSource(code, node);
   }
 
-  void test_visitFunctionDeclaration_getter() {
-    var code = 'get foo {}';
-    var parseResult = parseTestCodeWithDiagnostics(code);
-    var node = parseResult.findNode.singleFunctionDeclaration;
-    _assertSource(code, node);
-  }
-
   void test_visitFunctionDeclaration_local_blockBody() {
     var code = 'void foo() {}';
     var parseResult = parseTestCodeWithDiagnostics('''
@@ -2225,7 +2284,7 @@ void f() {
   $code;
 }
 ''');
-    var node = parseResult.findNode.singleFunctionExpressionInvocation;
+    var node = parseResult.findNode.singleCallInvocation;
     _assertSource(code, node);
   }
 
@@ -2236,7 +2295,7 @@ void f() {
   $code;
 }
 ''');
-    var node = parseResult.findNode.singleFunctionExpressionInvocation;
+    var node = parseResult.findNode.singleCallInvocation;
     _assertSource(code, node);
   }
 
@@ -2377,6 +2436,25 @@ final v = [ $code ];
 final v = [ $code ];
 ''');
     var node = parseResult.findNode.singleIfElement;
+    _assertSource(code, node);
+  }
+
+  void test_visitIfNull() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+final x = a ?? (b ?? c);
+''');
+    var node = parseResult.findNode.ifNull('a ??');
+    _assertSource('a ?? (b ?? c)', node);
+  }
+
+  void test_visitIfNullAssignment() {
+    var code = 'a ??= b';
+    var parseResult = parseTestCodeWithDiagnostics('''
+void f() {
+  $code;
+}
+''');
+    var node = parseResult.findNode.singleIfNullAssignment;
     _assertSource(code, node);
   }
 
@@ -2541,34 +2619,16 @@ import 'a.dart' $code;
     var parseResult = parseTestCodeWithDiagnostics('''
 final x = $code;
 ''');
-    var node = parseResult.findNode.singleIndexExpression;
+    var node = parseResult.findNode.singleReceiverIndexExpression;
     _assertSource(code, node);
   }
 
-  void test_visitInstanceCreationExpression_const() {
-    var code = 'const A()';
+  void test_visitIndexExpression_nullAware() {
+    var code = 'a?[0]';
     var parseResult = parseTestCodeWithDiagnostics('''
 final x = $code;
 ''');
-    var node = parseResult.findNode.singleInstanceCreationExpression;
-    _assertSource(code, node);
-  }
-
-  void test_visitInstanceCreationExpression_named() {
-    var code = 'new A.foo()';
-    var parseResult = parseTestCodeWithDiagnostics('''
-final x = $code;
-''');
-    var node = parseResult.findNode.singleInstanceCreationExpression;
-    _assertSource(code, node);
-  }
-
-  void test_visitInstanceCreationExpression_unnamed() {
-    var code = 'new A()';
-    var parseResult = parseTestCodeWithDiagnostics('''
-final x = $code;
-''');
-    var node = parseResult.findNode.singleInstanceCreationExpression;
+    var node = parseResult.findNode.singleReceiverIndexExpression;
     _assertSource(code, node);
   }
 
@@ -2786,6 +2846,14 @@ void f(x) {
     _assertSource('<int>[]', node);
   }
 
+  void test_visitLogicalAnd() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+final x = a && (b || c);
+''');
+    var node = parseResult.findNode.singleLogicalAnd;
+    _assertSource('a && (b || c)', node);
+  }
+
   void test_visitLogicalAndPattern() {
     var parseResult = parseTestCodeWithDiagnostics('''
 void f(x) {
@@ -2797,6 +2865,14 @@ void f(x) {
 ''');
     var node = parseResult.findNode.logicalAndPattern('Object?');
     _assertSource('int? _ && double? _ && Object? _', node);
+  }
+
+  void test_visitLogicalOr() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+final x = a || b && c;
+''');
+    var node = parseResult.findNode.singleLogicalOr;
+    _assertSource('a || b && c', node);
   }
 
   void test_visitLogicalOrPattern() {
@@ -3432,14 +3508,14 @@ void f([$code]) {}
     _assertSource(code, node);
   }
 
-  void test_visitPostfixExpression() {
+  void test_visitPostfixIncrement() {
     var code = 'a++';
     var parseResult = parseTestCodeWithDiagnostics('''
 int f() {
   $code;
 }
 ''');
-    var node = parseResult.findNode.singlePostfixExpression;
+    var node = parseResult.findNode.singlePostfixIncrement;
     _assertSource(code, node);
   }
 
@@ -3467,22 +3543,11 @@ int f() {
     _assertSource(code, node);
   }
 
-  void test_visitPrefixExpression() {
-    var code = '-foo';
-    var parseResult = parseTestCodeWithDiagnostics('''
-int f() {
-  $code;
-}
-''');
-    var node = parseResult.findNode.singlePrefixExpression;
-    _assertSource(code, node);
-  }
-
   void test_visitPrefixExpression_precedence() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = !(a == b);
 ''');
-    var node = parseResult.findNode.singlePrefixExpression;
+    var node = parseResult.findNode.singleLogicalNot;
     _assertSource('!(a == b)', node);
   }
 
@@ -3532,8 +3597,8 @@ class A() {
     _assertSource(code, node);
   }
 
-  void test_visitPropertyAccess() {
-    var code = '(foo).bar';
+  void test_visitPropertyAccess_conditional() {
+    var code = 'foo?.bar';
     var parseResult = parseTestCodeWithDiagnostics('''
 final x = $code;
 ''');
@@ -3541,12 +3606,12 @@ final x = $code;
     _assertSource(code, node);
   }
 
-  void test_visitPropertyAccess_conditional() {
-    var code = 'foo?.bar';
+  void test_visitPropertyExtraction() {
+    var code = '(foo).bar';
     var parseResult = parseTestCodeWithDiagnostics('''
 final x = $code;
 ''');
-    var node = parseResult.findNode.singlePropertyAccess;
+    var node = parseResult.findNode.singleReceiverPropertyExtraction;
     _assertSource(code, node);
   }
 
@@ -3810,7 +3875,7 @@ void f($code) {}
   void test_visitSimpleFormalParameter_keyword() {
     var code = 'var a';
     var parseResult = parseTestCodeWithDiagnostics('''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 void f($code) {}
 ''');
     var node = parseResult.findNode.singleRegularFormalParameter;
@@ -3820,7 +3885,7 @@ void f($code) {}
   void test_visitSimpleFormalParameter_keyword_type() {
     var code = 'final int a';
     var parseResult = parseTestCodeWithDiagnostics('''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 void f($code) {}
 ''');
     var node = parseResult.findNode.singleRegularFormalParameter;
@@ -3962,7 +4027,7 @@ class A {
   void test_visitSuperFormalParameter_keyword() {
     var code = 'final super.foo';
     var parseResult = parseTestCodeWithDiagnostics('''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 class A {
   A($code);
 }
@@ -3974,7 +4039,7 @@ class A {
   void test_visitSuperFormalParameter_keywordAndType() {
     var code = 'final int super.a';
     var parseResult = parseTestCodeWithDiagnostics('''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 class A {
   A($code);
 }
@@ -4008,7 +4073,7 @@ class A {
   void test_visitSwitchCase_multipleLabels() {
     var code = 'l1: l2: case a: {}';
     var parseResult = parseTestCodeWithDiagnostics('''
-// @dart = 2.19
+// %before-language-feature: patterns
 void f() {
   switch (x) {
     $code
@@ -4022,7 +4087,7 @@ void f() {
   void test_visitSwitchCase_multipleStatements() {
     var code = 'case a: foo(); bar();';
     var parseResult = parseTestCodeWithDiagnostics('''
-// @dart = 2.19
+// %before-language-feature: patterns
 void f() {
   switch (x) {
     $code
@@ -4036,7 +4101,7 @@ void f() {
   void test_visitSwitchCase_noLabels() {
     var code = 'case a: {}';
     var parseResult = parseTestCodeWithDiagnostics('''
-// @dart = 2.19
+// %before-language-feature: patterns
 void f() {
   switch (x) {
     $code
@@ -4050,7 +4115,7 @@ void f() {
   void test_visitSwitchCase_singleLabel() {
     var code = 'l1: case a: {}';
     var parseResult = parseTestCodeWithDiagnostics('''
-// @dart = 2.19
+// %before-language-feature: patterns
 void f() {
   switch (x) {
     $code
@@ -4236,6 +4301,13 @@ void f() {
 }
 ''');
     var node = parseResult.findNode.singleThrowExpression;
+    _assertSource(code, node);
+  }
+
+  void test_visitTopLevelGetterDeclaration() {
+    var code = 'get foo {}';
+    var parseResult = parseTestCodeWithDiagnostics(code);
+    var node = parseResult.findNode.singleTopLevelGetterDeclaration;
     _assertSource(code, node);
   }
 
@@ -4437,6 +4509,17 @@ class A$code {}
     _assertSource(code, node);
   }
 
+  void test_visitUnaryOperatorInvocation() {
+    var code = '-foo';
+    var parseResult = parseTestCodeWithDiagnostics('''
+int f() {
+  $code;
+}
+''');
+    var node = parseResult.findNode.singleUnaryOperatorInvocation;
+    _assertSource(code, node);
+  }
+
   void test_visitVariableDeclaration_initialized() {
     var code = 'foo = bar';
     var parseResult = parseTestCodeWithDiagnostics('''
@@ -4568,7 +4651,7 @@ void f() sync* {
   /// visiting the given [node].
   void _assertSource(String expectedSource, AstNode node) {
     StringBuffer buffer = StringBuffer();
-    node.accept(ToSourceVisitor(buffer));
+    node.accept2(ToSourceVisitor(buffer));
     expect(buffer.toString(), expectedSource);
   }
 }

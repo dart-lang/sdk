@@ -6,7 +6,7 @@ import 'package:kernel/kernel.dart'
     show Library, LibraryDependency, LibraryPart;
 import 'package:kernel/util/graph.dart' show Graph;
 
-import 'uris.dart' show getPartUri;
+import 'uris.dart' show getPartImportUri;
 
 class LibraryGraph(final Map<Uri, Library> libraries) implements Graph<Uri> {
   @override
@@ -38,12 +38,13 @@ class LibraryGraph(final Map<Uri, Library> libraries) implements Graph<Uri> {
     // Normally there won't be libraries for these, but if, for instance,
     // the part didn't exist there will be a synthetic library.
     for (LibraryPart part in library.parts) {
-      Uri partUri = getPartUri(library.importUri, part);
-      Uri fileUri = getPartUri(library.fileUri, part);
-      if (libraries.containsKey(partUri)) {
-        yield partUri;
-      } else if (fileUri != partUri && libraries.containsKey(fileUri)) {
-        yield fileUri;
+      Uri partImportUri = getPartImportUri(library.importUri, part);
+      Uri partFileUri = part.fileUri;
+      if (libraries.containsKey(partImportUri)) {
+        yield partImportUri;
+      } else if (partFileUri != partImportUri &&
+          libraries.containsKey(partFileUri)) {
+        yield partFileUri;
       }
     }
   }

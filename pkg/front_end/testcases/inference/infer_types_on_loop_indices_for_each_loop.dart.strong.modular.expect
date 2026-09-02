@@ -70,43 +70,43 @@ static method test() → dynamic {
     String y = /*error:INVALID_ASSIGNMENT*/ x;
                                             ^" in x as{TypeError} core::String;
   }
-  for (dynamic x in list) {
-    core::String y = x as{TypeError,ForDynamic} core::String;
+  for (dynamic x##1 in list) {
+    core::String y##1 = x##1 as{TypeError,ForDynamic} core::String;
   }
   for (final self::Foo #t1 in list) {
-    core::String x = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart:38:15: Error: A value of type 'Foo' can't be assigned to a variable of type 'String'.
+    core::String x##2 = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart:38:15: Error: A value of type 'Foo' can't be assigned to a variable of type 'String'.
  - 'Foo' is from 'pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart'.
 Try changing the type of the variable.
   for (String x in /*error:FOR_IN_OF_INVALID_ELEMENT_TYPE*/ list) {
               ^" in #t1 as{TypeError} core::String;
-    core::String y = x;
+    core::String y##2 = x##2;
   }
   dynamic z;
   for (final self::Foo #t2 in list) {
     z = #t2;
-    core::String y = z as{TypeError,ForDynamic} core::String;
+    core::String y##3 = z as{TypeError,ForDynamic} core::String;
   }
   core::Iterable<dynamic> iter = list;
   for (final dynamic #t3 in iter) {
-    self::Foo x = #t3 as{TypeError,ForDynamic} self::Foo;
-    self::Foo y = x;
+    self::Foo x##3 = #t3 as{TypeError,ForDynamic} self::Foo;
+    self::Foo y##4 = x##3;
   }
   dynamic iter2 = list;
   for (final dynamic #t4 in iter2 as{TypeError,ForDynamic} core::Iterable<dynamic>) {
-    self::Foo x = #t4 as{TypeError,ForDynamic} self::Foo;
-    self::Foo y = x;
+    self::Foo x##4 = #t4 as{TypeError,ForDynamic} self::Foo;
+    self::Foo y##5 = x##4;
   }
   core::Map<core::String, self::Foo> map = <core::String, self::Foo>{};
-  for (dynamic x in invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart:59:50: Error: The type 'Map<String, Foo>' used in the 'for' loop must implement 'Iterable<dynamic>'.
+  for (dynamic x##5 in invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart:59:50: Error: The type 'Map<String, Foo>' used in the 'for' loop must implement 'Iterable<dynamic>'.
  - 'Map' is from 'dart:core'.
  - 'Foo' is from 'pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart'.
  - 'Iterable' is from 'dart:core'.
   for (var x in /*error:FOR_IN_OF_INVALID_TYPE*/ map) {
                                                  ^" in map as{TypeError} core::Iterable<dynamic>) {
-    core::String y = x as{TypeError,ForDynamic} core::String;
+    core::String y##6 = x##5 as{TypeError,ForDynamic} core::String;
   }
-  for (core::String x in map.{core::Map::keys}{core::Iterable<core::String>}) {
-    core::String y = x;
+  for (core::String x##6 in map.{core::Map::keys}{core::Iterable<core::String>}) {
+    core::String y##7 = x##6;
   }
 }
 static method main() → dynamic {}

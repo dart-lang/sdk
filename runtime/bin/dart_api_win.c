@@ -2659,16 +2659,16 @@ Dart_Handle Dart_CreateAppAOTSnapshotAsElfs(
 }
 
 Dart_Handle Dart_CreateAppAOTSnapshotAsBinary(
-    Dart_AotBinaryFormat format,
+    Dart_AotBinaryFormat snapshot_format,
     Dart_StreamingWriteCallback callback,
     void* callback_data,
     bool stripped,
     void* debug_callback_data,
     const char* identifier,
     const char* path) {
-  return Dart_CreateAppAOTSnapshotAsBinaryFn(format, callback, callback_data,
-                                             stripped, debug_callback_data,
-                                             identifier, path);
+  return Dart_CreateAppAOTSnapshotAsBinaryFn(
+      snapshot_format, callback, callback_data, stripped, debug_callback_data,
+      identifier, path);
 }
 
 Dart_Handle Dart_CreateAppAOTSnapshotAndRelocatableObject(

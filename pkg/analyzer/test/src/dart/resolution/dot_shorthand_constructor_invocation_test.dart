@@ -95,7 +95,7 @@ DotShorthandConstructorInvocation
     staticType: null
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       SimpleIdentifier
         token: iter
         correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -220,7 +220,7 @@ void main() {
     var node = result.findNode.methodInvocation('method();');
     assertResolvedNodeText(node, r'''
 MethodInvocation
-  target: DotShorthandConstructorInvocation
+  target2: DotShorthandConstructorInvocation
     period: .
     constructorName: SimpleIdentifier
       token: new
@@ -228,7 +228,7 @@ MethodInvocation
       staticType: null
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments
+      arguments2
         IntegerLiteral
           literal: 1
           correspondingParameter: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
@@ -266,7 +266,7 @@ void main() {
     var node = result.findNode.methodInvocation('method();');
     assertResolvedNodeText(node, r'''
 MethodInvocation
-  target: DotShorthandConstructorInvocation
+  target2: DotShorthandConstructorInvocation
     constKeyword: const
     period: .
     constructorName: SimpleIdentifier
@@ -275,7 +275,7 @@ MethodInvocation
       staticType: null
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments
+      arguments2
         IntegerLiteral
           literal: 1
           correspondingParameter: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
@@ -313,7 +313,7 @@ void main() {
     var node = result.findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
-  target: DotShorthandConstructorInvocation
+  target2: DotShorthandConstructorInvocation
     period: .
     constructorName: SimpleIdentifier
       token: new
@@ -321,7 +321,7 @@ PropertyAccess
       staticType: null
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments
+      arguments2
         IntegerLiteral
           literal: 1
           correspondingParameter: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
@@ -355,7 +355,7 @@ void main() {
     var node = result.findNode.singlePropertyAccess;
     assertResolvedNodeText(node, r'''
 PropertyAccess
-  target: DotShorthandConstructorInvocation
+  target2: DotShorthandConstructorInvocation
     constKeyword: const
     period: .
     constructorName: SimpleIdentifier
@@ -364,7 +364,7 @@ PropertyAccess
       staticType: null
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments
+      arguments2
         IntegerLiteral
           literal: 1
           correspondingParameter: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
@@ -403,7 +403,7 @@ DotShorthandConstructorInvocation
     staticType: null
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 1
         correspondingParameter: <testLibrary>::@class::A::@constructor::value::@formalParameter::value
@@ -437,7 +437,7 @@ DotShorthandConstructorInvocation
     staticType: null
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 1
         correspondingParameter: <testLibrary>::@class::A::@constructor::value::@formalParameter::val
@@ -505,7 +505,7 @@ DotShorthandConstructorInvocation
     staticType: null
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 1
         correspondingParameter: <testLibrary>::@class::A::@constructor::value::@formalParameter::val
@@ -540,7 +540,7 @@ DotShorthandConstructorInvocation
     staticType: null
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 1
         correspondingParameter: <testLibrary>::@class::C::@constructor::named::@formalParameter::x
@@ -575,7 +575,7 @@ DotShorthandConstructorInvocation
     staticType: null
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 1
         correspondingParameter: <testLibrary>::@class::C::@constructor::named::@formalParameter::x
@@ -610,7 +610,7 @@ DotShorthandConstructorInvocation
     staticType: null
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 1
         correspondingParameter: <testLibrary>::@class::C::@constructor::named::@formalParameter::x
@@ -677,7 +677,7 @@ DotShorthandConstructorInvocation
     staticType: null
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 1
         correspondingParameter: <testLibrary>::@class::C::@constructor::named::@formalParameter::x
@@ -715,7 +715,7 @@ DotShorthandConstructorInvocation
     staticType: null
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 2
         correspondingParameter: SubstitutedFieldFormalParameterElementImpl
@@ -769,7 +769,7 @@ DotShorthandConstructorInvocation
     staticType: null
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 1
         correspondingParameter: <testLibrary>::@class::C::@constructor::named::@formalParameter::x
@@ -778,6 +778,34 @@ DotShorthandConstructorInvocation
   isDotShorthand: true
   correspondingParameter: dart:core::@class::Object::@method::==::@formalParameter::other
   staticType: C
+''');
+  }
+
+  test_equality_extensionOverride() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {}
+
+void f() {
+  E(0) == .named();
+//     ^^
+// [diag.undefinedExtensionOperator] The operator '==' isn't defined for the extension 'E'.
+//        ^^^^^^^^
+// [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
+}
+''');
+  }
+
+  test_equality_extensionOverride_neq() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {}
+
+void f() {
+  E(0) != .named();
+//     ^^
+// [diag.undefinedExtensionOperator] The operator '==' isn't defined for the extension 'E'.
+//        ^^^^^^^^
+// [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
+}
 ''');
   }
 
@@ -801,7 +829,7 @@ DotShorthandConstructorInvocation
     staticType: null
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 2
         correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -841,7 +869,7 @@ DotShorthandConstructorInvocation
     staticType: null
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 2
         correspondingParameter: <testLibrary>::@class::C::@constructor::named::@formalParameter::x
@@ -849,6 +877,36 @@ DotShorthandConstructorInvocation
     rightParenthesis: )
   isDotShorthand: true
   staticType: C
+''');
+  }
+
+  test_equality_super() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  const A();
+}
+
+class B extends A {
+  const B.named();
+  bool test() => super == .named();
+//                        ^^^^^^^^
+// [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
+}
+''');
+  }
+
+  test_equality_super_neq() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  const A();
+}
+
+class B extends A {
+  const B.named();
+  bool test() => super != .named();
+//                        ^^^^^^^^
+// [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
+}
 ''');
   }
 
@@ -978,9 +1036,29 @@ void main() {
 }
 ''');
 
-    var node = result.findNode.singleFunctionExpressionInvocation;
+    var node = result.findNode.singleCallInvocation;
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
+CallInvocation
+  receiver: DotShorthandConstructorInvocation
+    period: .
+    constructorName: SimpleIdentifier
+      token: new
+      element: <testLibrary>::@class::C::@constructor::new
+      staticType: null
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    isDotShorthand: false
+    staticType: C
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@class::C::@method::call
+    invokeType: C Function()
+    type: C
+  staticType: C
+V1: FunctionExpressionInvocation
   function: DotShorthandConstructorInvocation
     period: .
     constructorName: SimpleIdentifier
@@ -1012,9 +1090,34 @@ void main() {
 }
 ''');
 
-    var node = result.findNode.singleFunctionExpressionInvocation;
+    var node = result.findNode.singleCallInvocation;
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
+CallInvocation
+  receiver: DotShorthandConstructorInvocation
+    period: .
+    constructorName: SimpleIdentifier
+      token: new
+      element: <testLibrary>::@class::C::@constructor::new
+      staticType: null
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    isDotShorthand: false
+    staticType: C
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <testLibrary>::@class::C::@method::call::@formalParameter::x
+        staticType: int
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@class::C::@method::call
+    invokeType: C Function(int)
+    type: C
+  staticType: C
+V1: FunctionExpressionInvocation
   function: DotShorthandConstructorInvocation
     period: .
     constructorName: SimpleIdentifier
@@ -1053,9 +1156,29 @@ void main() {
 }
 ''');
 
-    var node = result.findNode.singleFunctionExpressionInvocation;
+    var node = result.findNode.singleCallInvocation;
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
+CallInvocation
+  receiver: DotShorthandConstructorInvocation
+    period: .
+    constructorName: SimpleIdentifier
+      token: new
+      element: <testLibrary>::@class::C::@constructor::new
+      staticType: null
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    isDotShorthand: false
+    staticType: C
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@extension::CallC::@method::call
+    invokeType: C Function()
+    type: C
+  staticType: C
+V1: FunctionExpressionInvocation
   function: DotShorthandConstructorInvocation
     period: .
     constructorName: SimpleIdentifier
@@ -1087,9 +1210,46 @@ void main() {
 }
 ''');
 
-    var node = result.findNode.singleFunctionExpressionInvocation;
+    var node = result.findNode.singleCallInvocation;
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
+CallInvocation
+  receiver: DotShorthandConstructorInvocation
+    period: .
+    constructorName: SimpleIdentifier
+      token: new
+      element: <testLibrary>::@class::C::@constructor::new
+      staticType: null
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    isDotShorthand: false
+    staticType: C
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: <testLibrary>::@class::C::@method::call::@formalParameter::t
+          substitution: {T: int}
+        staticType: int
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@class::C::@method::call
+    invokeType: C Function(int)
+    type: C
+  staticType: C
+  typeArgumentTypes
+    int
+V1: FunctionExpressionInvocation
   function: DotShorthandConstructorInvocation
     period: .
     constructorName: SimpleIdentifier
@@ -1139,9 +1299,29 @@ void main() {
 }
 ''');
 
-    var node = result.findNode.singleFunctionExpressionInvocation;
+    var node = result.findNode.singleCallInvocation;
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
+CallInvocation
+  receiver: DotShorthandConstructorInvocation
+    period: .
+    constructorName: SimpleIdentifier
+      token: named
+      element: <testLibrary>::@class::C::@constructor::named
+      staticType: null
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    isDotShorthand: false
+    staticType: C
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@class::C::@method::call
+    invokeType: C Function()
+    type: C
+  staticType: C
+V1: FunctionExpressionInvocation
   function: DotShorthandConstructorInvocation
     period: .
     constructorName: SimpleIdentifier
@@ -1175,9 +1355,42 @@ void main() {
 }
 ''');
 
-    var node = result.findNode.singleFunctionExpressionInvocation;
+    var node = result.findNode.singleCallInvocation;
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
+CallInvocation
+  receiver: DotShorthandConstructorInvocation
+    period: .
+    constructorName: SimpleIdentifier
+      token: new
+      element: <testLibrary>::@class::C::@constructor::new
+      staticType: null
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        DotShorthandConstructorInvocation
+          period: .
+          constructorName: SimpleIdentifier
+            token: a
+            element: <testLibrary>::@class::C::@constructor::a
+            staticType: null
+          argumentList: ArgumentList
+            leftParenthesis: (
+            rightParenthesis: )
+          isDotShorthand: true
+          correspondingParameter: <testLibrary>::@class::C::@constructor::new::@formalParameter::c
+          staticType: C
+      rightParenthesis: )
+    isDotShorthand: false
+    staticType: C
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@class::C::@method::call
+    invokeType: C Function()
+    type: C
+  staticType: C
+V1: FunctionExpressionInvocation
   function: DotShorthandConstructorInvocation
     period: .
     constructorName: SimpleIdentifier
@@ -1252,7 +1465,23 @@ DotShorthandConstructorInvocation
     staticType: null
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
+      DotShorthandMethodInvocation
+        period: .
+        name: member
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        isDotShorthand: true
+        resolution: ExecutableInvocationResolution
+          element: <testLibrary>::@class::C::@method::member
+          invokeType: C<dynamic> Function()
+          type: C<dynamic>
+        correspondingParameter: SubstitutedFieldFormalParameterElementImpl
+          baseElement: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
+          substitution: {T: C<dynamic>}
+        staticType: C<dynamic>
+    arguments(v1)
       DotShorthandInvocation
         period: .
         memberName: SimpleIdentifier
@@ -1300,7 +1529,20 @@ DotShorthandConstructorInvocation
     staticType: null
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
+      DotShorthandNameExpression
+        period: .
+        name: member
+        isDotShorthand: true
+        resolution: GetterInvocationResolution
+          element: <testLibrary>::@class::C::@getter::member
+          invokeType: C<dynamic> Function()
+          type: C<dynamic>
+        correspondingParameter: SubstitutedFieldFormalParameterElementImpl
+          baseElement: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
+          substitution: {T: C<dynamic>}
+        staticType: C<dynamic>
+    arguments(v1)
       DotShorthandPropertyAccess
         period: .
         propertyName: SimpleIdentifier
@@ -1341,7 +1583,7 @@ DotShorthandConstructorInvocation
     staticType: null
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
+    arguments2
       IntegerLiteral
         literal: 1
         correspondingParameter: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
@@ -1358,8 +1600,8 @@ class C {}
 
 void main() {
   C c = .new()++;
-//       ^^^
-// [diag.dotShorthandUndefinedInvocation] The static method or constructor 'new' isn't defined for the context type '_'.
+//      ^^^^^^
+// [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
 //            ^^
 // [diag.illegalAssignmentToNonAssignable] Illegal assignment to non-assignable expression.
   print(c);
@@ -1373,8 +1615,8 @@ class C {}
 
 void main() {
   C c = ++.new();
-//         ^^^
-// [diag.dotShorthandUndefinedInvocation] The static method or constructor 'new' isn't defined for the context type '_'.
+//        ^^^^^^
+// [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
 //             ^
 // [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
   print(c);

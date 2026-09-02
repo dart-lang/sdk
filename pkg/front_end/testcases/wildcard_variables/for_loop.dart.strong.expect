@@ -14,6 +14,18 @@ library;
 //     print(_);
 //           ^
 //
+// pkg/front_end/testcases/wildcard_variables/for_loop.dart:21:42: Error: Undefined name '_'.
+//   var list2 = [for (int _ = 0, _ = 2; ;) _];
+//                                          ^
+//
+// pkg/front_end/testcases/wildcard_variables/for_loop.dart:22:43: Error: Undefined name '_'.
+//   var map = {for (int _ = 0, _ = 2; ;) _: _};
+//                                           ^
+//
+// pkg/front_end/testcases/wildcard_variables/for_loop.dart:22:40: Error: Undefined name '_'.
+//   var map = {for (int _ = 0, _ = 2; ;) _: _};
+//                                        ^
+//
 import self as self;
 import "dart:core" as core;
 import "dart:async" as asy;
@@ -36,4 +48,20 @@ static method test() → dynamic async /* emittedValueType= dynamic */ {
     print(_);
           ^");
   }
+  core::List<dynamic> list2 = block {
+    final core::List<dynamic> #t1 = <dynamic>[];
+    for (wildcard core::int _#wc4#var = 0, wildcard core::int _#wc5#var = 2; ; )
+      #t1.{core::List::add}{Invariant}(invalid-expression "pkg/front_end/testcases/wildcard_variables/for_loop.dart:21:42: Error: Undefined name '_'.
+  var list2 = [for (int _ = 0, _ = 2; ;) _];
+                                         ^"){(dynamic) → void};
+  } =>#t1;
+  core::Map<dynamic, dynamic> map = block {
+    final core::Map<dynamic, dynamic> #t2 = <dynamic, dynamic>{};
+    for (wildcard core::int _#wc6#var = 0, wildcard core::int _#wc7#var = 2; ; )
+      #t2.{core::Map::[]=}{Invariant}(invalid-expression "pkg/front_end/testcases/wildcard_variables/for_loop.dart:22:40: Error: Undefined name '_'.
+  var map = {for (int _ = 0, _ = 2; ;) _: _};
+                                       ^", invalid-expression "pkg/front_end/testcases/wildcard_variables/for_loop.dart:22:43: Error: Undefined name '_'.
+  var map = {for (int _ = 0, _ = 2; ;) _: _};
+                                          ^"){(dynamic, dynamic) → void};
+  } =>#t2;
 }

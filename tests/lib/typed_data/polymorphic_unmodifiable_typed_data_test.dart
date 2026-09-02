@@ -28,7 +28,7 @@ writeUint8(Uint8List list) {
 }
 
 testUint8() {
-  var internal = new Uint8List(kListSize);
+  var internal = Uint8List(kListSize);
   for (var i = 0; i < kLoopSize; i++) {
     readUint8(internal);
   }
@@ -36,7 +36,7 @@ testUint8() {
     writeUint8(internal);
   }
 
-  var view = new Uint8List.view(new Uint8List(kListSize).buffer, 0, kListSize);
+  var view = Uint8List.view(Uint8List(kListSize).buffer, 0, kListSize);
   for (var i = 0; i < kLoopSize; i++) {
     readUint8(view);
   }
@@ -44,7 +44,7 @@ testUint8() {
     writeUint8(view);
   }
 
-  var unmodifiable = new Uint8List(kListSize).asUnmodifiableView();
+  var unmodifiable = Uint8List(kListSize).asUnmodifiableView();
   for (var i = 0; i < kLoopSize; i++) {
     readUint8(unmodifiable);
   }
@@ -68,7 +68,7 @@ writeInt8(Int8List list) {
 }
 
 testInt8() {
-  var internal = new Int8List(kListSize);
+  var internal = Int8List(kListSize);
   for (var i = 0; i < kLoopSize; i++) {
     readInt8(internal);
   }
@@ -76,7 +76,7 @@ testInt8() {
     writeInt8(internal);
   }
 
-  var view = new Int8List.view(new Int8List(kListSize).buffer, 0, kListSize);
+  var view = Int8List.view(Int8List(kListSize).buffer, 0, kListSize);
   for (var i = 0; i < kLoopSize; i++) {
     readInt8(view);
   }
@@ -84,7 +84,7 @@ testInt8() {
     writeInt8(view);
   }
 
-  var unmodifiable = new Int8List(kListSize).asUnmodifiableView();
+  var unmodifiable = Int8List(kListSize).asUnmodifiableView();
   for (var i = 0; i < kLoopSize; i++) {
     readInt8(unmodifiable);
   }
@@ -108,7 +108,7 @@ writeUint16(Uint16List list) {
 }
 
 testUint16() {
-  var internal = new Uint16List(kListSize);
+  var internal = Uint16List(kListSize);
   for (var i = 0; i < kLoopSize; i++) {
     readUint16(internal);
   }
@@ -116,11 +116,7 @@ testUint16() {
     writeUint16(internal);
   }
 
-  var view = new Uint16List.view(
-    new Uint16List(kListSize).buffer,
-    0,
-    kListSize,
-  );
+  var view = Uint16List.view(Uint16List(kListSize).buffer, 0, kListSize);
   for (var i = 0; i < kLoopSize; i++) {
     readUint16(view);
   }
@@ -128,7 +124,7 @@ testUint16() {
     writeUint16(view);
   }
 
-  var unmodifiable = new Uint16List(kListSize).asUnmodifiableView();
+  var unmodifiable = Uint16List(kListSize).asUnmodifiableView();
   for (var i = 0; i < kLoopSize; i++) {
     readUint16(unmodifiable);
   }
@@ -152,7 +148,7 @@ writeInt16(Int16List list) {
 }
 
 testInt16() {
-  var internal = new Int16List(kListSize);
+  var internal = Int16List(kListSize);
   for (var i = 0; i < kLoopSize; i++) {
     readInt16(internal);
   }
@@ -160,7 +156,7 @@ testInt16() {
     writeInt16(internal);
   }
 
-  var view = new Int16List.view(new Int16List(kListSize).buffer, 0, kListSize);
+  var view = Int16List.view(Int16List(kListSize).buffer, 0, kListSize);
   for (var i = 0; i < kLoopSize; i++) {
     readInt16(view);
   }
@@ -168,7 +164,7 @@ testInt16() {
     writeInt16(view);
   }
 
-  var unmodifiable = new Int16List(kListSize).asUnmodifiableView();
+  var unmodifiable = Int16List(kListSize).asUnmodifiableView();
   for (var i = 0; i < kLoopSize; i++) {
     readInt16(unmodifiable);
   }
@@ -192,7 +188,7 @@ writeUint32(Uint32List list) {
 }
 
 testUint32() {
-  var internal = new Uint32List(kListSize);
+  var internal = Uint32List(kListSize);
   for (var i = 0; i < kLoopSize; i++) {
     readUint32(internal);
   }
@@ -200,11 +196,7 @@ testUint32() {
     writeUint32(internal);
   }
 
-  var view = new Uint32List.view(
-    new Uint32List(kListSize).buffer,
-    0,
-    kListSize,
-  );
+  var view = Uint32List.view(Uint32List(kListSize).buffer, 0, kListSize);
   for (var i = 0; i < kLoopSize; i++) {
     readUint32(view);
   }
@@ -212,7 +204,7 @@ testUint32() {
     writeUint32(view);
   }
 
-  var unmodifiable = new Uint32List(kListSize).asUnmodifiableView();
+  var unmodifiable = Uint32List(kListSize).asUnmodifiableView();
   for (var i = 0; i < kLoopSize; i++) {
     readUint32(unmodifiable);
   }
@@ -236,7 +228,7 @@ writeInt32(Int32List list) {
 }
 
 testInt32() {
-  var internal = new Int32List(kListSize);
+  var internal = Int32List(kListSize);
   for (var i = 0; i < kLoopSize; i++) {
     readInt32(internal);
   }
@@ -244,7 +236,7 @@ testInt32() {
     writeInt32(internal);
   }
 
-  var view = new Int32List.view(new Int32List(kListSize).buffer, 0, kListSize);
+  var view = Int32List.view(Int32List(kListSize).buffer, 0, kListSize);
   for (var i = 0; i < kLoopSize; i++) {
     readInt32(view);
   }
@@ -252,7 +244,7 @@ testInt32() {
     writeInt32(view);
   }
 
-  var unmodifiable = new Int32List(kListSize).asUnmodifiableView();
+  var unmodifiable = Int32List(kListSize).asUnmodifiableView();
   for (var i = 0; i < kLoopSize; i++) {
     readInt32(unmodifiable);
   }
@@ -276,7 +268,7 @@ writeUint64(Uint64List list) {
 }
 
 testUint64() {
-  var internal = new Uint64List(kListSize);
+  var internal = Uint64List(kListSize);
   for (var i = 0; i < kLoopSize; i++) {
     readUint64(internal);
   }
@@ -284,11 +276,7 @@ testUint64() {
     writeUint64(internal);
   }
 
-  var view = new Uint64List.view(
-    new Uint64List(kListSize).buffer,
-    0,
-    kListSize,
-  );
+  var view = Uint64List.view(Uint64List(kListSize).buffer, 0, kListSize);
   for (var i = 0; i < kLoopSize; i++) {
     readUint64(view);
   }
@@ -296,7 +284,7 @@ testUint64() {
     writeUint64(view);
   }
 
-  var unmodifiable = new Uint64List(kListSize).asUnmodifiableView();
+  var unmodifiable = Uint64List(kListSize).asUnmodifiableView();
   for (var i = 0; i < kLoopSize; i++) {
     readUint64(unmodifiable);
   }
@@ -320,7 +308,7 @@ writeInt64(Int64List list) {
 }
 
 testInt64() {
-  var internal = new Int64List(kListSize);
+  var internal = Int64List(kListSize);
   for (var i = 0; i < kLoopSize; i++) {
     readInt64(internal);
   }
@@ -328,7 +316,7 @@ testInt64() {
     writeInt64(internal);
   }
 
-  var view = new Int64List.view(new Int64List(kListSize).buffer, 0, kListSize);
+  var view = Int64List.view(Int64List(kListSize).buffer, 0, kListSize);
   for (var i = 0; i < kLoopSize; i++) {
     readInt64(view);
   }
@@ -336,7 +324,7 @@ testInt64() {
     writeInt64(view);
   }
 
-  var unmodifiable = new Int64List(kListSize).asUnmodifiableView();
+  var unmodifiable = Int64List(kListSize).asUnmodifiableView();
   for (var i = 0; i < kLoopSize; i++) {
     readInt64(unmodifiable);
   }
@@ -360,7 +348,7 @@ writeFloat32(Float32List list) {
 }
 
 testFloat32() {
-  var internal = new Float32List(kListSize);
+  var internal = Float32List(kListSize);
   for (var i = 0; i < kLoopSize; i++) {
     readFloat32(internal);
   }
@@ -368,11 +356,7 @@ testFloat32() {
     writeFloat32(internal);
   }
 
-  var view = new Float32List.view(
-    new Float32List(kListSize).buffer,
-    0,
-    kListSize,
-  );
+  var view = Float32List.view(Float32List(kListSize).buffer, 0, kListSize);
   for (var i = 0; i < kLoopSize; i++) {
     readFloat32(view);
   }
@@ -380,7 +364,7 @@ testFloat32() {
     writeFloat32(view);
   }
 
-  var unmodifiable = new Float32List(kListSize).asUnmodifiableView();
+  var unmodifiable = Float32List(kListSize).asUnmodifiableView();
   for (var i = 0; i < kLoopSize; i++) {
     readFloat32(unmodifiable);
   }
@@ -404,7 +388,7 @@ writeFloat64(Float64List list) {
 }
 
 testFloat64() {
-  var internal = new Float64List(kListSize);
+  var internal = Float64List(kListSize);
   for (var i = 0; i < kLoopSize; i++) {
     readFloat64(internal);
   }
@@ -412,11 +396,7 @@ testFloat64() {
     writeFloat64(internal);
   }
 
-  var view = new Float64List.view(
-    new Float64List(kListSize).buffer,
-    0,
-    kListSize,
-  );
+  var view = Float64List.view(Float64List(kListSize).buffer, 0, kListSize);
   for (var i = 0; i < kLoopSize; i++) {
     readFloat64(view);
   }
@@ -424,7 +404,7 @@ testFloat64() {
     writeFloat64(view);
   }
 
-  var unmodifiable = new Float64List(kListSize).asUnmodifiableView();
+  var unmodifiable = Float64List(kListSize).asUnmodifiableView();
   for (var i = 0; i < kLoopSize; i++) {
     readFloat64(unmodifiable);
   }
@@ -451,7 +431,7 @@ writeInt32x4(Int32x4List list) {
 }
 
 testInt32x4() {
-  var internal = new Int32x4List(kListSize);
+  var internal = Int32x4List(kListSize);
   for (var i = 0; i < kLoopSize; i++) {
     readInt32x4(internal);
   }
@@ -459,11 +439,7 @@ testInt32x4() {
     writeInt32x4(internal);
   }
 
-  var view = new Int32x4List.view(
-    new Int32x4List(kListSize).buffer,
-    0,
-    kListSize,
-  );
+  var view = Int32x4List.view(Int32x4List(kListSize).buffer, 0, kListSize);
   for (var i = 0; i < kLoopSize; i++) {
     readInt32x4(view);
   }
@@ -471,7 +447,7 @@ testInt32x4() {
     writeInt32x4(view);
   }
 
-  var unmodifiable = new Int32x4List(kListSize).asUnmodifiableView();
+  var unmodifiable = Int32x4List(kListSize).asUnmodifiableView();
   for (var i = 0; i < kLoopSize; i++) {
     readInt32x4(unmodifiable);
   }
@@ -498,7 +474,7 @@ writeFloat32x4(Float32x4List list) {
 }
 
 testFloat32x4() {
-  var internal = new Float32x4List(kListSize);
+  var internal = Float32x4List(kListSize);
   for (var i = 0; i < kLoopSize; i++) {
     readFloat32x4(internal);
   }
@@ -506,11 +482,7 @@ testFloat32x4() {
     writeFloat32x4(internal);
   }
 
-  var view = new Float32x4List.view(
-    new Float32x4List(kListSize).buffer,
-    0,
-    kListSize,
-  );
+  var view = Float32x4List.view(Float32x4List(kListSize).buffer, 0, kListSize);
   for (var i = 0; i < kLoopSize; i++) {
     readFloat32x4(view);
   }
@@ -518,7 +490,7 @@ testFloat32x4() {
     writeFloat32x4(view);
   }
 
-  var unmodifiable = new Float32x4List(kListSize).asUnmodifiableView();
+  var unmodifiable = Float32x4List(kListSize).asUnmodifiableView();
   for (var i = 0; i < kLoopSize; i++) {
     readFloat32x4(unmodifiable);
   }
@@ -543,7 +515,7 @@ writeFloat64x2(Float64x2List list) {
 }
 
 testFloat64x2() {
-  var internal = new Float64x2List(kListSize);
+  var internal = Float64x2List(kListSize);
   for (var i = 0; i < kLoopSize; i++) {
     readFloat64x2(internal);
   }
@@ -551,11 +523,7 @@ testFloat64x2() {
     writeFloat64x2(internal);
   }
 
-  var view = new Float64x2List.view(
-    new Float64x2List(kListSize).buffer,
-    0,
-    kListSize,
-  );
+  var view = Float64x2List.view(Float64x2List(kListSize).buffer, 0, kListSize);
   for (var i = 0; i < kLoopSize; i++) {
     readFloat64x2(view);
   }
@@ -563,7 +531,7 @@ testFloat64x2() {
     writeFloat64x2(view);
   }
 
-  var unmodifiable = new Float64x2List(kListSize).asUnmodifiableView();
+  var unmodifiable = Float64x2List(kListSize).asUnmodifiableView();
   for (var i = 0; i < kLoopSize; i++) {
     readFloat64x2(unmodifiable);
   }
@@ -587,7 +555,7 @@ writeByteData(ByteData data) {
 }
 
 testByteData() {
-  var internal = new ByteData(kListSize);
+  var internal = ByteData(kListSize);
   for (var i = 0; i < kLoopSize; i++) {
     readByteData(internal);
   }
@@ -595,7 +563,7 @@ testByteData() {
     writeByteData(internal);
   }
 
-  var view = new ByteData.view(new ByteData(kListSize).buffer, 0, kListSize);
+  var view = ByteData.view(ByteData(kListSize).buffer, 0, kListSize);
   for (var i = 0; i < kLoopSize; i++) {
     readByteData(view);
   }
@@ -603,7 +571,7 @@ testByteData() {
     writeByteData(view);
   }
 
-  var unmodifiable = new ByteData(kListSize).asUnmodifiableView();
+  var unmodifiable = ByteData(kListSize).asUnmodifiableView();
   for (var i = 0; i < kLoopSize; i++) {
     readByteData(unmodifiable);
   }

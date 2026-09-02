@@ -1,6 +1,7 @@
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 // VMOptions=--max_deoptimization_counter_threshold=1000 --optimization-counter-threshold=10 --no-background-compilation
 
 // Library tag to be able to run in html test framework.
@@ -16,9 +17,9 @@ testListStore(array, index, value) {
 
 void testListStoreDeopt() {
   var list;
-  var value = new Float32x4(1.0, 2.0, 3.0, 4.0);
+  var value = Float32x4(1.0, 2.0, 3.0, 4.0);
   var smi = 12;
-  list = new Float32x4List(8);
+  list = Float32x4List(8);
   for (int i = 0; i < 20; i++) {
     testListStore(list, 0, value);
   }
@@ -39,8 +40,8 @@ testAdd(a, b) {
 }
 
 void testAddDeopt() {
-  var a = new Float32x4(1.0, 2.0, 3.0, 4.0);
-  var b = new Float32x4(2.0, 3.0, 4.0, 5.0);
+  var a = Float32x4(1.0, 2.0, 3.0, 4.0);
+  var b = Float32x4(2.0, 3.0, 4.0, 5.0);
   var smi = 12;
   for (int i = 0; i < 20; i++) {
     testAdd(a, b);
@@ -57,7 +58,7 @@ testGet(a) {
 }
 
 void testGetDeopt() {
-  var a = new Float32x4(1.0, 2.0, 3.0, 4.0);
+  var a = Float32x4(1.0, 2.0, 3.0, 4.0);
   var smi = 12;
   for (int i = 0; i < 20; i++) {
     testGet(a);
@@ -81,8 +82,8 @@ void testComparison(a, b) {
 }
 
 void testComparisonDeopt() {
-  var a = new Float32x4(1.0, 2.0, 3.0, 4.0);
-  var b = new Float32x4(1.0, 2.1, 3.1, 4.0);
+  var a = Float32x4(1.0, 2.0, 3.0, 4.0);
+  var b = Float32x4(1.0, 2.1, 3.1, 4.0);
   var smi = 12;
 
   for (int i = 0; i < 20; i++) {

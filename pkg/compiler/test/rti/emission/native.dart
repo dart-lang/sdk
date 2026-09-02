@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:compiler/src/util/testing.dart";
+
 // ignore: import_internal_library
 import 'dart:_js_helper' show Native;
 // ignore: import_internal_library

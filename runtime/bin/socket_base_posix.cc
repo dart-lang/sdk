@@ -323,6 +323,9 @@ bool SocketBase::ParseAddress(int type, const char* address, RawAddr* addr) {
   int result;
   if (type == SocketAddress::TYPE_IPV4) {
     result = NO_RETRY_EXPECTED(inet_pton(AF_INET, address, &addr->in.sin_addr));
+#ifdef INET_PTON_FLAWED
+    if (result > 0) result = IsIPv4WithoutLeadingZeros(address) ? 1 : 0;
+#endif
   } else {
     ASSERT(type == SocketAddress::TYPE_IPV6);
     result =

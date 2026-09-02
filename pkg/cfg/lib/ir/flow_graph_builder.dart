@@ -295,17 +295,40 @@ class FlowGraphBuilder {
     return instr;
   }
 
+  /// Append [ExternalCall] to the graph.
+  ExternalCall addExternalCall(
+    CFunction target,
+    int inputCount,
+    ArgumentsShape argumentsShape,
+    CType type,
+  ) {
+    final instr = ExternalCall(
+      graph,
+      currentSourcePosition,
+      target,
+      type,
+      inputCount: inputCount,
+      argumentsShape: argumentsShape,
+    );
+    popInputs(instr, 0, inputCount);
+    push(instr);
+    appendInstruction(instr);
+    return instr;
+  }
+
   /// Add [LocalVariable] to the graph.
   LocalVariable declareLocalVariable(
     String name,
     ast.Variable? declaration,
-    CType type,
-  ) {
+    CType type, {
+    bool isCovariant = false,
+  }) {
     final v = LocalVariable(
       name,
       declaration,
       graph.localVariables.length,
       type,
+      isCovariant,
     );
     graph.localVariables.add(v);
     return v;
@@ -403,6 +426,98 @@ class FlowGraphBuilder {
     return instr;
   }
 
+  /// Append [LoadExternalField] to the graph.
+  LoadExternalField addLoadExternalField(
+    CField field, {
+    required bool hasObject,
+  }) {
+    final object = hasObject ? pop() : null;
+    final instr = LoadExternalField(
+      graph,
+      currentSourcePosition,
+      field,
+      object: object,
+    );
+    push(instr);
+    appendInstruction(instr);
+    return instr;
+  }
+
+  /// Append [LoadArrayElement] to the graph.
+  LoadArrayElement addLoadArrayElement(ArrayKind kind, CType type) {
+    final index = pop();
+    final array = pop();
+    final instr = LoadArrayElement(
+      graph,
+      currentSourcePosition,
+      kind,
+      type,
+      array,
+      index,
+    );
+    push(instr);
+    appendInstruction(instr);
+    return instr;
+  }
+
+  /// Append [StoreArrayElement] to the graph.
+  StoreArrayElement addStoreArrayElement(ArrayKind kind) {
+    final value = pop();
+    final index = pop();
+    final array = pop();
+    final instr = StoreArrayElement(
+      graph,
+      currentSourcePosition,
+      kind,
+      array,
+      index,
+      value,
+    );
+    appendInstruction(instr);
+    return instr;
+  }
+
+  /// Append [LoadExternalArrayElement] to the graph.
+  LoadExternalArrayElement addLoadExternalArrayElement(CType type) {
+    final index = pop();
+    final array = pop();
+    final instr = LoadExternalArrayElement(
+      graph,
+      currentSourcePosition,
+      type,
+      array,
+      index,
+    );
+    push(instr);
+    appendInstruction(instr);
+    return instr;
+  }
+
+  /// Append [CopyArrayElements] to the graph.
+  CopyArrayElements addCopyArrayElements(
+    ArrayKind kind, {
+    required bool canOverlap,
+  }) {
+    final length = pop();
+    final dstStart = pop();
+    final dstArray = pop();
+    final srcStart = pop();
+    final srcArray = pop();
+    final instr = CopyArrayElements(
+      graph,
+      currentSourcePosition,
+      kind,
+      srcArray,
+      srcStart,
+      dstArray,
+      dstStart,
+      length,
+      canOverlap: canOverlap,
+    );
+    appendInstruction(instr);
+    return instr;
+  }
+
   /// Append [Throw] to the graph.
   /// Ends current block.
   void addThrow(ThrowKind kind, int inputCount) {
@@ -422,6 +537,38 @@ class FlowGraphBuilder {
     final object = pop();
     final instr = NullCheck(graph, currentSourcePosition, object);
     push(instr);
+    appendInstruction(instr);
+    return instr;
+  }
+
+  /// Append [IndexCheck] to the graph.
+  IndexCheck addIndexCheck() {
+    final length = pop();
+    final index = pop();
+    final instr = IndexCheck(graph, currentSourcePosition, index, length);
+    push(instr);
+    appendInstruction(instr);
+    return instr;
+  }
+
+  /// Append [SubtypeCheck] to the graph.
+  SubtypeCheck addSubtypeCheck(
+    CType type,
+    CType bound,
+    String name,
+    List<Definition> typeParameters,
+  ) {
+    final instr = SubtypeCheck(
+      graph,
+      currentSourcePosition,
+      type,
+      bound,
+      name,
+      inputCount: typeParameters.length,
+    );
+    for (var i = 0, n = typeParameters.length; i < n; ++i) {
+      instr.setInputAt(i, typeParameters[i]);
+    }
     appendInstruction(instr);
     return instr;
   }
@@ -550,6 +697,27 @@ class FlowGraphBuilder {
       currentSourcePosition,
       type,
       typeArguments,
+    );
+    push(instr);
+    appendInstruction(instr);
+    return instr;
+  }
+
+  /// Append [AllocateArray] to the graph.
+  AllocateArray addAllocateArray(
+    ArrayKind kind,
+    CType type, {
+    bool hasTypeArguments = false,
+  }) {
+    final length = pop();
+    final typeArguments = hasTypeArguments ? pop() : null;
+    final instr = AllocateArray(
+      graph,
+      currentSourcePosition,
+      kind,
+      type,
+      typeArguments,
+      length,
     );
     push(instr);
     appendInstruction(instr);

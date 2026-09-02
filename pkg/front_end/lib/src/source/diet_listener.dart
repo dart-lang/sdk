@@ -14,7 +14,6 @@ import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart'
     show FixedNullableList, NullValues, ParserRecovery;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 import 'package:_fe_analyzer_shared/src/util/value_kind.dart';
-import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 
 import '../api_prototype/experimental_flags.dart';
@@ -29,6 +28,7 @@ import '../base/identifiers.dart'
 import '../base/ignored_parser_errors.dart' show isIgnoredParserError;
 import '../base/scope.dart';
 import '../codes/cfe_codes.dart' show Code, LocatedMessage, Message;
+import '../codes/diagnostic.dart' as diag;
 import '../fragment/fragment.dart';
 import '../kernel/benchmarker.dart' show BenchmarkSubdivides, Benchmarker;
 import '../kernel/body_builder_context.dart';
@@ -148,6 +148,22 @@ class DietListener extends StackListenerImpl {
   @override
   void handleNoTypeArguments(Token token) {
     debugEvent("NoTypeArguments");
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void handleSendWithoutArguments(
+    Token beginToken,
+    Token endToken,
+    Token nextToken,
+  ) {
+    debugEvent("SendWithoutArguments");
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void handleInvocationWithoutTypeArguments(Token beginToken, Token endToken) {
+    debugEvent("InvocationWithoutTypeArguments");
   }
 
   @override
@@ -1124,7 +1140,7 @@ class DietListener extends StackListenerImpl {
           ? new SimpleIdentifier(nameToken)
           : NullValues.Identifier,
     );
-    push(extensionKeyword);
+    push(augmentToken ?? extensionKeyword);
   }
 
   @override
@@ -1217,7 +1233,7 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
-  void beginPrimaryConstructorBody(Token token) {}
+  void beginPrimaryConstructorBody(Token token, Token? augmentToken) {}
 
   @override
   void endPrimaryConstructorBody(
@@ -1391,7 +1407,7 @@ class DietListener extends StackListenerImpl {
   List<Expression>? parseMetadata(
     BodyBuilderContext bodyBuilderContext,
     Token? metadata,
-    Annotatable parent,
+    Annotatable annotatable,
   ) {
     if (metadata != null) {
       return libraryBuilder.loader.createResolver().buildMetadata(
@@ -1401,7 +1417,7 @@ class DietListener extends StackListenerImpl {
         extensionScope: extensionScope,
         scope: _memberScope,
         metadata: metadata,
-        annotatable: parent,
+        annotatable: annotatable,
       );
     }
     return null;

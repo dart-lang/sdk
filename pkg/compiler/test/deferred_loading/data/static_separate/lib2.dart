@@ -5,6 +5,7 @@
 library lib2;
 
 import "package:expect/expect.dart";
+
 import "lib1.dart";
 
 /*member: foo:

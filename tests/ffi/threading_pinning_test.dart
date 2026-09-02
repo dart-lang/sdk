@@ -96,7 +96,7 @@ main(List<String> args, SendPort? message) async {
     threadInfo.ptr_data.cast<Void>(),
   );
 
-  threadInfo.join();
+  threadInfo.joinAndDestroy();
 
   asyncEnd();
 }

@@ -15,8 +15,10 @@ import 'package:compiler/src/js_model/js_world.dart';
 import 'package:compiler/src/js_emitter/startup_emitter/fragment_merger.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:expect/expect.dart';
+
 import '../equivalence/id_equivalence.dart';
 import '../equivalence/id_equivalence_helper.dart';
+
 import 'package:compiler/src/constants/values.dart';
 
 import 'package:kernel/ast.dart' as ir;
@@ -105,7 +107,7 @@ class OutputUnitDataComputer extends DataComputer<Features> {
   void computeMemberData(
     Compiler compiler,
     MemberEntity member,
-    Map<Id, ActualData<Features>> actualMap, {
+    ActualDataMap<Features> actualMap, {
     bool verbose = false,
   }) {
     JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
@@ -124,7 +126,7 @@ class OutputUnitDataComputer extends DataComputer<Features> {
   void computeClassData(
     Compiler compiler,
     ClassEntity cls,
-    Map<Id, ActualData<Features>> actualMap, {
+    ActualDataMap<Features> actualMap, {
     bool verbose = false,
   }) {
     JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
@@ -143,7 +145,7 @@ class OutputUnitDataComputer extends DataComputer<Features> {
   void computeLibraryData(
     Compiler compiler,
     LibraryEntity library,
-    Map<Id, ActualData<Features>> actualMap, {
+    ActualDataMap<Features> actualMap, {
     required bool verbose,
   }) {
     KernelFrontendStrategy frontendStrategy = compiler.frontendStrategy;
@@ -177,12 +179,12 @@ class PreFragmentsIrComputer extends IrDataExtractor<Features> {
   final Set<OutputUnit> _omittedOutputUnits;
 
   PreFragmentsIrComputer(
-    DiagnosticReporter reporter,
-    Map<Id, ActualData<Features>> actualMap,
+    super.reporter,
+    super.actualMap,
     this._preDeferredFragments,
     this._fragmentsToLoad,
     this._omittedOutputUnits,
-  ) : super(reporter, actualMap);
+  );
 
   @override
   Features computeLibraryValue(Id id, ir.Library library) {
@@ -284,12 +286,12 @@ class OutputUnitIrComputer extends IrDataExtractor<Features> {
   Set<String> _constants = {};
 
   OutputUnitIrComputer(
-    DiagnosticReporter reporter,
-    Map<Id, ActualData<Features>> actualMap,
+    super.reporter,
+    super.actualMap,
     this._elementMap,
     this._data,
     this._closureDataLookup,
-  ) : super(reporter, actualMap);
+  );
 
   Features getMemberValue(
     String tag,
@@ -393,7 +395,7 @@ void _registerValue<T>(
   T value,
   Object object,
   SourceSpan sourceSpan,
-  Map<Id, ActualData<T>> actualMap,
+  ActualDataMap<T> actualMap,
   DiagnosticReporter reporter,
 ) {
   if (actualMap.containsKey(id)) {

@@ -2,15 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Formatting can break multitests, so don't format them.
-// dart format off
-
 import 'dart:convert';
 import "dart:typed_data";
+
+import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
 import "package:expect/variations.dart" show jsNumbers;
 
-void main() {
+void main() async {
+  asyncStart();
   for (var list in [
     <int>[],
     [0x00],
@@ -20,7 +20,7 @@ void main() {
     Iterable<int>.generate(13).toList(),
     Iterable<int>.generate(254).toList(),
     Iterable<int>.generate(255).toList(),
-    Iterable<int>.generate(256).toList()
+    Iterable<int>.generate(256).toList(),
   ]) {
     testRoundtrip(list, "List#${list.length}");
     testRoundtrip(Uint8List.fromList(list), "Uint8List#${list.length}");
@@ -31,6 +31,9 @@ void main() {
   // Decoder is lenient with mixed styles.
   Expect.listEquals([0xfb, 0xff, 0xbf, 0x00], base64.decode("-_+/AA%3D="));
   Expect.listEquals([0xfb, 0xff, 0xbf, 0x00], base64.decode("-_+/AA=%3D"));
+
+  await testIssue64006();
+  asyncEnd();
 }
 
 void testRoundtrip(List<int> list, String name) {
@@ -38,8 +41,9 @@ void testRoundtrip(List<int> list, String name) {
   String encodedNormal = base64.encode(list);
   String encodedPercent = encodedNormal.replaceAll("=", "%3D");
   String uriEncoded = base64Url.encode(list);
-  String expectedUriEncoded =
-      encodedNormal.replaceAll("+", "-").replaceAll("/", "_");
+  String expectedUriEncoded = encodedNormal
+      .replaceAll("+", "-")
+      .replaceAll("/", "_");
   Expect.equals(expectedUriEncoded, uriEncoded);
 
   List result = base64.decode(encodedNormal);
@@ -271,7 +275,9 @@ void testErrors() {
   void badEncode(int invalid) {
     Expect.throwsArgumentError(() => base64.encode([invalid]), "$invalid");
     Expect.throwsArgumentError(
-        () => base64.encode([0, invalid, 0]), "$invalid");
+      () => base64.encode([0, invalid, 0]),
+      "$invalid",
+    );
     badChunkEncode([invalid]);
     badChunkEncode([0, invalid]);
     badChunkEncode([0, 0, invalid]);
@@ -293,10 +299,30 @@ void testErrors() {
 
 void testIssue25577() {
   // Regression test for http://dartbug.com/25577.
-  StringConversionSink decodeSink =
-      base64.decoder.startChunkedConversion(TestSink<List<int>>());
-  ByteConversionSink encodeSink =
-      base64.encoder.startChunkedConversion(TestSink<String>());
+  StringConversionSink decodeSink = base64.decoder.startChunkedConversion(
+    TestSink<List<int>>(),
+  );
+  ByteConversionSink encodeSink = base64.encoder.startChunkedConversion(
+    TestSink<String>(),
+  );
+}
+
+Future<void> testIssue64006() async {
+  asyncStart();
+  // Regression test for http://dartbug.com/64006.
+  // A fused base64 encoder does not send done event when no padding is needed.
+
+  const input = <int>[1, 2, 3];
+  var encoder = base64.encoder.fuse(utf8.encoder);
+  var bytes = <int>[];
+  await Stream.value(input).transform(encoder).forEach((output) {
+    print("Data");
+    bytes.addAll(output);
+  });
+  print("Finished");
+  Expect.listEquals([65, 81, 73, 68], bytes);
+  Expect.equals("AQID", String.fromCharCodes(bytes));
+  asyncEnd();
 }
 
 // Implementation of Sink<T> to test type constraints.

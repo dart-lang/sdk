@@ -372,9 +372,8 @@ Future<CompilerResult> _compile(
   if (reloadDeltaKernel != null) {
     if (reloadLastAcceptedKernel != null) {
       final lastAcceptedComponent = Component();
-      kernel.BinaryBuilder(
-        (await File(reloadLastAcceptedKernel).readAsBytes()),
-      ).readComponent(lastAcceptedComponent);
+      kernel.BinaryBuilder((await File(reloadLastAcceptedKernel).readAsBytes()))
+          .readComponent(lastAcceptedComponent);
       final deltaInspector = HotReloadDeltaInspector(
         nonHotReloadablePackages: options.nonHotReloadablePackages,
       );
@@ -466,9 +465,8 @@ Future<CompilerResult> _compile(
     kernel.Printer(sb).writeComponentFile(component);
     outFiles.add(File('${outPaths.first}.txt').writeAsString(sb.toString()));
     outFiles.add(
-      File(
-        '${outPaths.first.split('.')[0]}.ast.xml',
-      ).writeAsString(DebugPrinter.prettyPrint(compiledLibraries)),
+      File('${outPaths.first.split('.')[0]}.ast.xml')
+          .writeAsString(DebugPrinter.prettyPrint(compiledLibraries)),
     );
   }
 
@@ -560,17 +558,15 @@ Future<CompilerResult> _compile(
     }
     if (jsCode.metadata != null) {
       outFiles.add(
-        File(
-          '$output.metadata',
-        ).writeAsString('${json.encode(jsCode.metadata)}\n'),
+        File('$output.metadata')
+            .writeAsString('${json.encode(jsCode.metadata)}\n'),
       );
     }
 
     if (jsCode.symbols != null) {
       outFiles.add(
-        File(
-          '$output.symbols',
-        ).writeAsString('${json.encode(jsCode.symbols)}\n'),
+        File('$output.symbols')
+            .writeAsString('${json.encode(jsCode.symbols)}\n'),
       );
     }
   }

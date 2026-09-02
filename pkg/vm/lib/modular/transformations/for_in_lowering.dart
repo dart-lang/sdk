@@ -121,10 +121,11 @@ class ForInLowering {
         )..fileOffset = stmt.fileOffset;
 
         // let _ = asyncStarMoveNextCall in (condition)
-        whileCondition = new Let(
-          SyntheticVariable(initializer: asyncStarMoveNextCall),
-          condition,
-        );
+        whileCondition = CachedExpression.fromValue(
+          value: asyncStarMoveNextCall,
+          type: const DynamicType(),
+          fileOffset: TreeNode.noOffset,
+        ).createLet(body: condition);
       }
 
       // T <variable> = :for-iterator.current;
@@ -329,7 +330,7 @@ class ForInLowering {
   }
 
   Statement _ensureSyncForLoopVariableInitialization({
-    required Variable variable,
+    required DeclaredVariable variable,
     required Expression initializer,
   }) {
     initializer.parent = variable;

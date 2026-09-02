@@ -43,6 +43,9 @@ DART_NORETURN static void SimulatorUnsupported() {
 DEFINE_NATIVE_ENTRY(Ffi_dl_open, 0, 1) {
   SimulatorUnsupported();
 }
+DEFINE_NATIVE_ENTRY(Ffi_dl_codeAsset, 0, 1) {
+  SimulatorUnsupported();
+}
 DEFINE_NATIVE_ENTRY(Ffi_dl_processLibrary, 0, 0) {
   SimulatorUnsupported();
 }
@@ -143,17 +146,51 @@ static void* ResolveSymbol(void* handle, const char* symbol, char** error) {
   return Utils::ResolveSymbolInDynamicLibrary(handle, symbol, error);
 }
 
-static bool SymbolExists(void* handle, const char* symbol) {
-  char* error = nullptr;
-#if !defined(DART_HOST_OS_WINDOWS)
-  Utils::ResolveSymbolInDynamicLibrary(handle, symbol, &error);
-#else
-  if (handle == nullptr) {
-    LookupSymbolInProcess(symbol, &error);
-  } else {
-    Utils::ResolveSymbolInDynamicLibrary(handle, symbol, &error);
+static void* DlsymDynamicLibrary(void* handle,
+                                 const char* symbol,
+                                 char** error) {
+  void* const result = ResolveSymbol(handle, symbol, error);
+  if (*error != nullptr) {
+    char* inner_error = *error;
+    *error =
+        OS::SCreate(/*use malloc*/ nullptr, "Failed to lookup symbol '%s': %s",
+                    symbol, inner_error);
+    free(inner_error);
   }
-#endif
+  return result;
+}
+
+static void* ResolveNativeAssetsSymbol(NativeAssetsApi* native_assets_api,
+                                       void* handle,
+                                       const char* symbol,
+                                       char** error) {
+  if (native_assets_api->dlsym == nullptr) {
+    *error =
+        OS::SCreate(/*use malloc*/ nullptr, "NativeAssetsApi::dlsym not set.");
+    return nullptr;
+  }
+  NoActiveIsolateScope no_active_isolate_scope;
+  return native_assets_api->dlsym(handle, symbol, error);
+}
+
+static void* ResolveDynamicLibrarySymbol(const DynamicLibrary& dlib,
+                                         const char* symbol,
+                                         char** error) {
+  const auto dlsym = dlib.Dlsym();
+  if (dlsym == nullptr) {
+    *error =
+        OS::SCreate(/*use malloc*/ nullptr, "NativeAssetsApi::dlsym not set.");
+    return nullptr;
+  }
+  void* const handle = dlib.GetHandle();
+  NoActiveIsolateScope no_active_isolate_scope;
+  return dlsym(handle, symbol, error);
+}
+
+static bool DynamicLibrarySymbolExists(const DynamicLibrary& dlib,
+                                       const char* symbol) {
+  char* error = nullptr;
+  ResolveDynamicLibrarySymbol(dlib, symbol, &error);
   if (error != nullptr) {
     free(error);
     return false;
@@ -171,35 +208,42 @@ DEFINE_NATIVE_ENTRY(Ffi_dl_open, 0, 1) {
     free(error);
     Exceptions::ThrowArgumentError(msg);
   }
-  return DynamicLibrary::New(handle, true);
+  return DynamicLibrary::New(handle, &DlsymDynamicLibrary,
+                             &Utils::UnloadDynamicLibrary);
 }
 
 DEFINE_NATIVE_ENTRY(Ffi_dl_processLibrary, 0, 0) {
 #if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_MACOS) ||              \
     defined(DART_HOST_OS_ANDROID) || defined(DART_HOST_OS_FUCHSIA)
-  return DynamicLibrary::New(RTLD_DEFAULT, false);
+  return DynamicLibrary::New(RTLD_DEFAULT, &DlsymDynamicLibrary,
+                             &Utils::UnloadDynamicLibrary);
 #else
-  return DynamicLibrary::New(kWindowsDynamicLibraryProcessPtr, false);
+  return DynamicLibrary::New(kWindowsDynamicLibraryProcessPtr,
+                             &DlsymDynamicLibrary,
+                             &Utils::UnloadDynamicLibrary);
 #endif
 }
 
 DEFINE_NATIVE_ENTRY(Ffi_dl_executableLibrary, 0, 0) {
-  return DynamicLibrary::New(LoadDynamicLibrary(nullptr), false);
+  return DynamicLibrary::New(LoadDynamicLibrary(nullptr), &DlsymDynamicLibrary,
+                             &Utils::UnloadDynamicLibrary);
 }
 
 DEFINE_NATIVE_ENTRY(Ffi_dl_close, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(DynamicLibrary, dlib, arguments->NativeArgAt(0));
   if (dlib.IsClosed()) {
     // Already closed, nothing to do
-  } else if (!dlib.CanBeClosed()) {
-    const String& msg = String::Handle(
-        String::New("DynamicLibrary.process() and DynamicLibrary.executable() "
-                    "can't be closed."));
-    Exceptions::ThrowStateError(msg);
   } else {
     void* handle = dlib.GetHandle();
     char* error = nullptr;
-    Utils::UnloadDynamicLibrary(handle, &error);
+    const auto dlclose = dlib.Dlclose();
+    if (dlclose == nullptr) {
+      error = OS::SCreate(/*use malloc*/ nullptr,
+                          "NativeAssetsApi::dlclose not set.");
+    } else {
+      NoActiveIsolateScope no_active_isolate_scope;
+      dlclose(handle, &error);
+    }
 
     if (error == nullptr) {
       dlib.SetClosed(true);
@@ -224,14 +268,12 @@ DEFINE_NATIVE_ENTRY(Ffi_dl_lookup, 1, 2) {
     Exceptions::ThrowStateError(msg);
   }
 
-  void* handle = dlib.GetHandle();
-
   char* error = nullptr;
-  const uword pointer = reinterpret_cast<uword>(
-      ResolveSymbol(handle, argSymbolName.ToCString(), &error));
+  void* const symbol =
+      ResolveDynamicLibrarySymbol(dlib, argSymbolName.ToCString(), &error);
+  const uword pointer = reinterpret_cast<uword>(symbol);
   if (error != nullptr) {
-    const String& msg = String::Handle(String::NewFormatted(
-        "Failed to lookup symbol '%s': %s", argSymbolName.ToCString(), error));
+    const String& msg = String::Handle(String::New(error));
     free(error);
     Exceptions::ThrowArgumentError(msg);
   }
@@ -250,8 +292,8 @@ DEFINE_NATIVE_ENTRY(Ffi_dl_providesSymbol, 0, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(String, argSymbolName,
                                arguments->NativeArgAt(1));
 
-  void* handle = dlib.GetHandle();
-  return Bool::Get(SymbolExists(handle, argSymbolName.ToCString())).ptr();
+  return Bool::Get(DynamicLibrarySymbolExists(dlib, argSymbolName.ToCString()))
+      .ptr();
 }
 
 // nullptr if no native resolver is installed.
@@ -317,9 +359,9 @@ static char* AvailableAssetsToCString(Thread* const thread) {
     auto& asset_id = String::Handle(zone);
     while (it.MoveNext()) {
       if (!first) {
-        buffer.Printf(" ,");
-        first = false;
+        buffer.Printf(", ");
       }
+      first = false;
       auto entry = it.Current();
       asset_id ^= map.GetKey(entry);
       buffer.Printf("%s", asset_id.ToCString());
@@ -330,101 +372,218 @@ static char* AvailableAssetsToCString(Thread* const thread) {
   return buffer.buffer();
 }
 
+struct AssetLibraryLoadResult {
+  void* handle = nullptr;
+  Dart_NativeAssetsDlsymCallback dlsym = nullptr;
+  Dart_NativeAssetsDlcloseCallback dlclose = nullptr;
+};
+
 // If an error occurs populates |error| with an error message
 // (caller must free this message when it is no longer needed).
+static AssetLibraryLoadResult LoadAssetLibraryFromKernelMapping(
+    Thread* const thread,
+    const String& asset,
+    char** error) {
+  AssetLibraryLoadResult result;
+  NativeAssetsApi* native_assets_api =
+      thread->isolate_group()->native_assets_api();
+
+  // Fall back on VM reading ffi:native-assets from special library in kernel.
+  Zone* const zone = thread->zone();
+  const auto& asset_location =
+      Array::Handle(zone, GetAssetLocation(thread, asset));
+  ASSERT(!asset_location.IsNull());
+  result.dlsym = native_assets_api->dlsym;
+  result.dlclose = native_assets_api->dlclose;
+
+  const auto& asset_type =
+      String::Cast(Object::Handle(zone, asset_location.At(0)));
+  String& path = String::Handle(zone);
+  const char* path_cstr = nullptr;
+  if (asset_type.Equals(Symbols::absolute()) ||
+      asset_type.Equals(Symbols::relative()) ||
+      asset_type.Equals(Symbols::system())) {
+    path = String::RawCast(asset_location.At(1));
+    path_cstr = path.ToCString();
+  }
+
+  if (asset_type.Equals(Symbols::absolute())) {
+    if (native_assets_api->dlopen_absolute == nullptr) {
+      *error = OS::SCreate(/*use malloc*/ nullptr,
+                           "NativeAssetsApi::dlopen_absolute not set.");
+      return result;
+    }
+    NoActiveIsolateScope no_active_isolate_scope;
+    result.handle = native_assets_api->dlopen_absolute(path_cstr, error);
+  } else if (asset_type.Equals(Symbols::relative())) {
+    if (native_assets_api->dlopen_relative == nullptr) {
+      *error = OS::SCreate(/*use malloc*/ nullptr,
+                           "NativeAssetsApi::dlopen_relative not set.");
+      return result;
+    }
+    NoActiveIsolateScope no_active_isolate_scope;
+    result.handle = native_assets_api->dlopen_relative(path_cstr, error);
+  } else if (asset_type.Equals(Symbols::system())) {
+    if (native_assets_api->dlopen_system == nullptr) {
+      *error = OS::SCreate(/*use malloc*/ nullptr,
+                           "NativeAssetsApi::dlopen_system not set.");
+      return result;
+    }
+    NoActiveIsolateScope no_active_isolate_scope;
+    result.handle = native_assets_api->dlopen_system(path_cstr, error);
+  } else if (asset_type.Equals(Symbols::executable())) {
+    if (native_assets_api->dlopen_executable == nullptr) {
+      *error = OS::SCreate(/*use malloc*/ nullptr,
+                           "NativeAssetsApi::dlopen_executable not set.");
+      return result;
+    }
+    NoActiveIsolateScope no_active_isolate_scope;
+    result.handle = native_assets_api->dlopen_executable(error);
+  } else {
+    RELEASE_ASSERT(asset_type.Equals(Symbols::process()));
+    if (native_assets_api->dlopen_process == nullptr) {
+      *error = OS::SCreate(/*use malloc*/ nullptr,
+                           "NativeAssetsApi::dlopen_process not set.");
+      return result;
+    }
+    NoActiveIsolateScope no_active_isolate_scope;
+    result.handle = native_assets_api->dlopen_process(error);
+  }
+  return result;
+}
+
+// Returns whether |asset| is registered with either the embedder or the
+// native-assets mapping in the kernel.
 //
-// The |asset_location| is formatted as follows:
-// ['<path_type>', '<path (optional)>']
-// The |asset_location| is conform to: pkg/vm/lib/native_assets/validator.dart
+// If an error occurs populates |error| with an error message (caller must free
+// this message when it is no longer needed).
+static bool ContainsAsset(Thread* const thread,
+                          const String& asset,
+                          char** error) {
+  NativeAssetsApi* native_assets_api =
+      thread->isolate_group()->native_assets_api();
+  const bool has_contains_asset = native_assets_api->contains_asset != nullptr;
+  const bool has_dlopen_asset = native_assets_api->dlopen_asset != nullptr;
+  if (has_contains_asset != has_dlopen_asset) {
+    *error = OS::SCreate(
+        /*use malloc*/ nullptr,
+        "NativeAssetsApi::contains_asset and NativeAssetsApi::dlopen_asset "
+        "must be provided together.");
+    return false;
+  }
+  if (has_dlopen_asset) {
+    NoActiveIsolateScope no_active_isolate_scope;
+    return native_assets_api->contains_asset(asset.ToCString());
+  }
+
+  Zone* const zone = thread->zone();
+  const auto& asset_location =
+      Array::Handle(zone, GetAssetLocation(thread, asset));
+  return !asset_location.IsNull();
+}
+
+// Loads |asset|, which must have been found by ContainsAsset.
+//
+// If an error occurs populates |error| with an error message (caller must free
+// this message when it is no longer needed).
+//
+// A successful process or executable lookup can return a nullptr handle.
+static AssetLibraryLoadResult LoadAssetLibrary(Thread* const thread,
+                                               const String& asset,
+                                               char** error) {
+  AssetLibraryLoadResult result;
+  NativeAssetsApi* native_assets_api =
+      thread->isolate_group()->native_assets_api();
+  if (native_assets_api->dlopen_asset != nullptr) {
+    // Let embedder resolve the asset id to asset path.
+    NoActiveIsolateScope no_active_isolate_scope;
+    result.handle = native_assets_api->dlopen_asset(asset.ToCString(), error);
+    result.dlsym = native_assets_api->dlsym;
+    result.dlclose = native_assets_api->dlclose;
+    return result;
+  }
+  return LoadAssetLibraryFromKernelMapping(thread, asset, error);
+}
+
 static void* FfiResolveAsset(Thread* const thread,
                              const String& asset,
                              const String& symbol,
                              char** error) {
-  void* handle = nullptr;
   NativeAssetsApi* native_assets_api =
       thread->isolate_group()->native_assets_api();
-  if (native_assets_api->dlopen != nullptr) {
-    // Let embedder resolve the asset id to asset path.
-    NoActiveIsolateScope no_active_isolate_scope;
-    handle = native_assets_api->dlopen(asset.ToCString(), error);
-  }
-  if (*error == nullptr && handle == nullptr) {
-    // Fall back on VM reading ffi:native-assets from special library in kernel.
-    // Allow for both embedder and VM resolution so flutter/engine and
-    // flutter/flutter PRs can land without manual roll.
-    Zone* const zone = thread->zone();
-    const auto& asset_location =
-        Array::Handle(zone, GetAssetLocation(thread, asset));
-    if (asset_location.IsNull()) {
+
+  if (native_assets_api->dlopen_asset == nullptr &&
+      native_assets_api->dlopen != nullptr) {
+    // Legacy embedder resolution cannot distinguish a missing asset from a
+    // successful process lookup. Keep it only for @Native compatibility.
+    void* handle = nullptr;
+    {
+      NoActiveIsolateScope no_active_isolate_scope;
+      handle = native_assets_api->dlopen(asset.ToCString(), error);
+    }
+    if (*error != nullptr) {
       return nullptr;
     }
-
-    const auto& asset_type =
-        String::Cast(Object::Handle(zone, asset_location.At(0)));
-    String& path = String::Handle(zone);
-    const char* path_cstr = nullptr;
-    if (asset_type.Equals(Symbols::absolute()) ||
-        asset_type.Equals(Symbols::relative()) ||
-        asset_type.Equals(Symbols::system())) {
-      path = String::RawCast(asset_location.At(1));
-      path_cstr = path.ToCString();
-    }
-
-    if (asset_type.Equals(Symbols::absolute())) {
-      if (native_assets_api->dlopen_absolute == nullptr) {
-        *error = OS::SCreate(/*use malloc*/ nullptr,
-                             "NativeAssetsApi::dlopen_absolute not set.");
-        return nullptr;
-      }
-      NoActiveIsolateScope no_active_isolate_scope;
-      handle = native_assets_api->dlopen_absolute(path_cstr, error);
-    } else if (asset_type.Equals(Symbols::relative())) {
-      if (native_assets_api->dlopen_relative == nullptr) {
-        *error = OS::SCreate(/*use malloc*/ nullptr,
-                             "NativeAssetsApi::dlopen_relative not set.");
-        return nullptr;
-      }
-      NoActiveIsolateScope no_active_isolate_scope;
-      handle = native_assets_api->dlopen_relative(path_cstr, error);
-    } else if (asset_type.Equals(Symbols::system())) {
-      if (native_assets_api->dlopen_system == nullptr) {
-        *error = OS::SCreate(/*use malloc*/ nullptr,
-                             "NativeAssetsApi::dlopen_system not set.");
-        return nullptr;
-      }
-      NoActiveIsolateScope no_active_isolate_scope;
-      handle = native_assets_api->dlopen_system(path_cstr, error);
-    } else if (asset_type.Equals(Symbols::executable())) {
-      if (native_assets_api->dlopen_executable == nullptr) {
-        *error = OS::SCreate(/*use malloc*/ nullptr,
-                             "NativeAssetsApi::dlopen_executable not set.");
-        return nullptr;
-      }
-      NoActiveIsolateScope no_active_isolate_scope;
-      handle = native_assets_api->dlopen_executable(error);
-    } else {
-      RELEASE_ASSERT(asset_type.Equals(Symbols::process()));
-      if (native_assets_api->dlopen_process == nullptr) {
-        *error = OS::SCreate(/*use malloc*/ nullptr,
-                             "NativeAssetsApi::dlopen_process not set.");
-        return nullptr;
-      }
-      NoActiveIsolateScope no_active_isolate_scope;
-      handle = native_assets_api->dlopen_process(error);
+    if (handle != nullptr) {
+      return ResolveNativeAssetsSymbol(native_assets_api, handle,
+                                       symbol.ToCString(), error);
     }
   }
 
+  if (!ContainsAsset(thread, asset, error)) {
+    return nullptr;
+  }
+
+  auto library = LoadAssetLibrary(thread, asset, error);
   if (*error != nullptr) {
     return nullptr;
   }
-  if (native_assets_api->dlsym == nullptr) {
-    *error =
-        OS::SCreate(/*use malloc*/ nullptr, "NativeAssetsApi::dlsym not set.");
-    return nullptr;
+  return ResolveNativeAssetsSymbol(native_assets_api, library.handle,
+                                   symbol.ToCString(), error);
+}
+
+DEFINE_NATIVE_ENTRY(Ffi_dl_codeAsset, 0, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(String, asset_id, arguments->NativeArgAt(0));
+  NativeAssetsApi* native_assets_api =
+      thread->isolate_group()->native_assets_api();
+  char* error = nullptr;
+  if (native_assets_api->dlopen_asset == nullptr &&
+      native_assets_api->dlopen != nullptr) {
+    const char* const message =
+        "DynamicLibrary.codeAsset is not supported by this embedder. "
+        "NativeAssetsApi::dlopen_asset and NativeAssetsApi::contains_asset "
+        "must be provided.";
+    Exceptions::ThrowUnsupportedError(message);
   }
-  void* const result =
-      native_assets_api->dlsym(handle, symbol.ToCString(), error);
-  return result;
+
+  const bool asset_found = ContainsAsset(thread, asset_id, &error);
+  if (error != nullptr) {
+    const String& msg = String::Handle(String::New(error));
+    free(error);
+    Exceptions::ThrowArgumentError(msg);
+  }
+  if (!asset_found) {
+    const char* const format = "No asset with id '%s' found. %s";
+    String& msg = String::Handle();
+    if (native_assets_api->available_assets != nullptr) {
+      char* available_assets = native_assets_api->available_assets();
+      msg =
+          String::NewFormatted(format, asset_id.ToCString(), available_assets);
+      free(available_assets);
+    } else {
+      msg = String::NewFormatted(format, asset_id.ToCString(),
+                                 AvailableAssetsToCString(thread));
+    }
+    Exceptions::ThrowArgumentError(msg);
+  }
+
+  auto result = LoadAssetLibrary(thread, asset_id, &error);
+  if (error != nullptr) {
+    const String& msg = String::Handle(String::New(error));
+    free(error);
+    Exceptions::ThrowArgumentError(msg);
+  }
+  return DynamicLibrary::New(result.handle, result.dlsym, result.dlclose);
 }
 
 // Frees |error|.

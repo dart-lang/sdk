@@ -27,9 +27,21 @@ main() {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('f();');
+    var node = result.findNode.unqualifiedFunctionInvocation('f();');
     assertResolvedNodeText(node, r'''
-MethodInvocation
+UnqualifiedFunctionInvocation
+  name: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@function::f
+    invokeType: bool Function()
+    type: bool
+  staticType: bool
+  typeArgumentTypes
+    bool
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: f
     element: <testLibrary>::@function::f
@@ -51,9 +63,16 @@ void f(bool x) {
 }
 ''');
 
-    var node = result.findNode.prefix('!x');
+    var node = result.findNode.logicalNot('!x');
     assertResolvedNodeText(node, r'''
-PrefixExpression
+LogicalNot
+  operator: !
+  operand: SimpleIdentifier
+    token: x
+    element: <testLibrary>::@function::f::@formalParameter::x
+    staticType: bool
+  staticType: bool
+V1: PrefixExpression
   operator: !
   operand: SimpleIdentifier
     token: x
@@ -73,9 +92,16 @@ void f(int x) {
 }
 ''');
 
-    var node = result.findNode.prefix('!x');
+    var node = result.findNode.logicalNot('!x');
     assertResolvedNodeText(node, r'''
-PrefixExpression
+LogicalNot
+  operator: !
+  operand: SimpleIdentifier
+    token: x
+    element: <testLibrary>::@function::f::@formalParameter::x
+    staticType: int
+  staticType: bool
+V1: PrefixExpression
   operator: !
   operand: SimpleIdentifier
     token: x
@@ -99,9 +125,23 @@ void f(A? a) {
 }
 ''');
 
-    var node = result.findNode.prefix('!a');
+    var node = result.findNode.logicalNot('!a');
     assertResolvedNodeText(node, r'''
-PrefixExpression
+LogicalNot
+  operator: !
+  operand: PropertyAccess
+    target2: SimpleIdentifier
+      token: a
+      element: <testLibrary>::@function::f::@formalParameter::a
+      staticType: A?
+    operator: ?.
+    propertyName: SimpleIdentifier
+      token: foo
+      element: <testLibrary>::@class::A::@getter::foo
+      staticType: bool
+    staticType: bool?
+  staticType: bool
+V1: PrefixExpression
   operator: !
   operand: PropertyAccess
     target: SimpleIdentifier
@@ -131,9 +171,15 @@ class A {
 }
 ''');
 
-    var node = result.findNode.singlePrefixExpression;
+    var node = result.findNode.singleLogicalNot;
     assertResolvedNodeText(node, r'''
-PrefixExpression
+LogicalNot
+  operator: !
+  operand: SuperExpression
+    superKeyword: super
+    staticType: A
+  staticType: bool
+V1: PrefixExpression
   operator: !
   operand: SuperExpression
     superKeyword: super
@@ -152,9 +198,28 @@ void f(int x) {
 }
 ''');
 
-    var node = result.findNode.prefix('++ ++ x');
+    var node = result.findNode.prefixIncrement('++ ++ x');
     assertResolvedNodeText(node, r'''
-PrefixExpression
+PrefixIncrement
+  operator: ++
+  target: InvalidExpressionAssignmentTarget
+    expression: PrefixIncrement
+      operator: ++
+      target: UnqualifiedNameAssignmentTarget
+        name: x
+        read: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::x
+          type: int
+        write: VariableWriteResolution
+          element: <testLibrary>::@function::f::@formalParameter::x
+          acceptedType: int
+      element: dart:core::@class::num::@method::+
+      operatorResultType: int
+      staticType: int
+  element: <null>
+  operatorResultType: InvalidType
+  staticType: InvalidType
+V1: PrefixExpression
   operator: ++
   operand: PrefixExpression
     operator: ++
@@ -188,9 +253,22 @@ void f(A a) {
 }
 ''');
 
-    var node = result.findNode.prefix('++a');
+    var node = result.findNode.prefixIncrement('++a');
     assertResolvedNodeText(node, r'''
-PrefixExpression
+PrefixIncrement
+  operator: ++
+  target: UnqualifiedNameAssignmentTarget
+    name: a
+    read: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: A
+    write: VariableWriteResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      acceptedType: A
+  element: <null>
+  operatorResultType: InvalidType
+  staticType: InvalidType
+V1: PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: a
@@ -217,9 +295,33 @@ void f(A a) {
 }
 ''');
 
-    var node = result.findNode.prefix('++');
+    var node = result.findNode.prefixIncrement('++');
     assertResolvedNodeText(node, r'''
-PrefixExpression
+PrefixIncrement
+  operator: ++
+  target: ReceiverIndexAssignmentTarget
+    receiver: SimpleIdentifier
+      token: a
+      element: <testLibrary>::@function::f::@formalParameter::a
+      staticType: A
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
+      staticType: int
+    rightBracket: ]
+    read: MethodIndexReadResolution
+      element: <testLibrary>::@class::A::@method::[]
+      invokeType: int Function(int)
+      type: int
+    write: MethodIndexWriteResolution
+      element: <testLibrary>::@class::A::@method::[]=
+      invokeType: void Function(int, num)
+      acceptedType: num
+  element: dart:core::@class::num::@method::+
+  operatorResultType: int
+  staticType: int
+V1: PrefixExpression
   operator: ++
   operand: IndexExpression
     target: SimpleIdentifier
@@ -243,6 +345,70 @@ PrefixExpression
 ''');
   }
 
+  test_inc_indexExpression_instance_nullAware() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  int operator[](int index) => 0;
+  operator[]=(int index, num _) {}
+}
+
+void f(A? a) {
+  ++a?[0];
+}
+''');
+
+    var node = result.findNode.prefixIncrement('++a?[0]');
+    assertResolvedNodeText(node, r'''
+PrefixIncrement
+  operator: ++
+  target: ReceiverIndexAssignmentTarget
+    receiver: SimpleIdentifier
+      token: a
+      element: <testLibrary>::@function::f::@formalParameter::a
+      staticType: A?
+    question: ?
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
+      staticType: int
+    rightBracket: ]
+    read: MethodIndexReadResolution
+      element: <testLibrary>::@class::A::@method::[]
+      invokeType: int Function(int)
+      type: int
+    write: MethodIndexWriteResolution
+      element: <testLibrary>::@class::A::@method::[]=
+      invokeType: void Function(int, num)
+      acceptedType: num
+  element: dart:core::@class::num::@method::+
+  operatorResultType: int
+  staticType: int?
+V1: PrefixExpression
+  operator: ++
+  operand: IndexExpression
+    target: SimpleIdentifier
+      token: a
+      element: <testLibrary>::@function::f::@formalParameter::a
+      staticType: A?
+    question: ?
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
+      staticType: int
+    rightBracket: ]
+    element: <null>
+    staticType: null
+  readElement: <testLibrary>::@class::A::@method::[]
+  readType: int
+  writeElement: <testLibrary>::@class::A::@method::[]=
+  writeType: num
+  element: dart:core::@class::num::@method::+
+  staticType: int?
+''');
+  }
+
   test_inc_indexExpression_super() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
@@ -257,9 +423,32 @@ class B extends A {
 }
 ''');
 
-    var node = result.findNode.prefix('++');
+    var node = result.findNode.prefixIncrement('++');
     assertResolvedNodeText(node, r'''
-PrefixExpression
+PrefixIncrement
+  operator: ++
+  target: ReceiverIndexAssignmentTarget
+    receiver: SuperExpression
+      superKeyword: super
+      staticType: B
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
+      staticType: int
+    rightBracket: ]
+    read: MethodIndexReadResolution
+      element: <testLibrary>::@class::A::@method::[]
+      invokeType: int Function(int)
+      type: int
+    write: MethodIndexWriteResolution
+      element: <testLibrary>::@class::A::@method::[]=
+      invokeType: void Function(int, num)
+      acceptedType: num
+  element: dart:core::@class::num::@method::+
+  operatorResultType: int
+  staticType: int
+V1: PrefixExpression
   operator: ++
   operand: IndexExpression
     target: SuperExpression
@@ -294,9 +483,32 @@ class A {
 }
 ''');
 
-    var node = result.findNode.prefix('++');
+    var node = result.findNode.prefixIncrement('++');
     assertResolvedNodeText(node, r'''
-PrefixExpression
+PrefixIncrement
+  operator: ++
+  target: ReceiverIndexAssignmentTarget
+    receiver: ThisExpression
+      thisKeyword: this
+      staticType: A
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
+      staticType: int
+    rightBracket: ]
+    read: MethodIndexReadResolution
+      element: <testLibrary>::@class::A::@method::[]
+      invokeType: int Function(int)
+      type: int
+    write: MethodIndexWriteResolution
+      element: <testLibrary>::@class::A::@method::[]=
+      invokeType: void Function(int, num)
+      acceptedType: num
+  element: dart:core::@class::num::@method::+
+  operatorResultType: int
+  staticType: int
+V1: PrefixExpression
   operator: ++
   operand: IndexExpression
     target: ThisExpression
@@ -328,9 +540,24 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.prefix('++x');
+    var node = result.findNode.prefixIncrement('++x');
     assertResolvedNodeText(node, r'''
-PrefixExpression
+PrefixIncrement
+  operator: ++
+  target: UnqualifiedNameAssignmentTarget
+    name: x
+    read: InvalidNamedReadResolution
+      type: InvalidType
+      candidates
+      recovery: <null>
+    write: InvalidNamedWriteResolution
+      acceptedType: InvalidType
+      candidates
+      recovery: <null>
+  element: <null>
+  operatorResultType: InvalidType
+  staticType: InvalidType
+V1: PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: x
@@ -352,9 +579,18 @@ void f(dynamic a) {
 }
 ''');
 
-    var node = result.findNode.singlePrefixExpression;
+    var node = result.findNode.singleUnaryOperatorInvocation;
     assertResolvedNodeText(node, r'''
-PrefixExpression
+UnaryOperatorInvocation
+  operator: -
+  operand: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: dynamic
+  unaryOperator: negate
+  element: <null>
+  staticType: dynamic
+V1: PrefixExpression
   operator: -
   operand: SimpleIdentifier
     token: a
@@ -378,9 +614,25 @@ void f(A? a) {
 }
 ''');
 
-    var node = result.findNode.prefix('-a');
+    var node = result.findNode.unaryOperatorInvocation('-a');
     assertResolvedNodeText(node, r'''
-PrefixExpression
+UnaryOperatorInvocation
+  operator: -
+  operand: PropertyAccess
+    target2: SimpleIdentifier
+      token: a
+      element: <testLibrary>::@function::f::@formalParameter::a
+      staticType: A?
+    operator: ?.
+    propertyName: SimpleIdentifier
+      token: foo
+      element: <testLibrary>::@class::A::@getter::foo
+      staticType: int
+    staticType: int?
+  unaryOperator: negate
+  element: dart:core::@class::int::@method::unary-
+  staticType: int
+V1: PrefixExpression
   operator: -
   operand: PropertyAccess
     target: SimpleIdentifier
@@ -405,9 +657,18 @@ void f(int x) {
 }
 ''');
 
-    var node = result.findNode.prefix('-x');
+    var node = result.findNode.unaryOperatorInvocation('-x');
     assertResolvedNodeText(node, r'''
-PrefixExpression
+UnaryOperatorInvocation
+  operator: -
+  operand: SimpleIdentifier
+    token: x
+    element: <testLibrary>::@function::f::@formalParameter::x
+    staticType: int
+  unaryOperator: negate
+  element: dart:core::@class::int::@method::unary-
+  staticType: int
+V1: PrefixExpression
   operator: -
   operand: SimpleIdentifier
     token: x
@@ -431,9 +692,22 @@ void f(Object x) {
 }
 ''');
 
-    var node = result.findNode.prefix('++x');
+    var node = result.findNode.prefixIncrement('++x');
     assertResolvedNodeText(node, r'''
-PrefixExpression
+PrefixIncrement
+  operator: ++
+  target: UnqualifiedNameAssignmentTarget
+    name: x
+    read: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: A
+    write: VariableWriteResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      acceptedType: Object
+  element: <testLibrary>::@class::A::@method::+
+  operatorResultType: Object
+  staticType: Object
+V1: PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: x
@@ -465,9 +739,29 @@ void f(C c) {
 }
 ''');
 
-    var node = result.findNode.prefix('++Ext');
+    var node = result.findNode.prefixIncrement('++Ext');
     assertResolvedNodeText(node, r'''
-PrefixExpression
+PrefixIncrement
+  operator: ++
+  target: InvalidExpressionAssignmentTarget
+    expression: ExtensionOverride
+      name: Ext
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments2
+          SimpleIdentifier
+            token: c
+            correspondingParameter: <null>
+            element: <testLibrary>::@function::f::@formalParameter::c
+            staticType: C
+        rightParenthesis: )
+      element: <testLibrary>::@extension::Ext
+      extendedType: C
+      staticType: null
+  element: <null>
+  operatorResultType: InvalidType
+  staticType: InvalidType
+V1: PrefixExpression
   operator: ++
   operand: ExtensionOverride
     name: Ext
@@ -487,7 +781,7 @@ PrefixExpression
   readType: InvalidType
   writeElement: <null>
   writeType: InvalidType
-  element: <testLibrary>::@extension::Ext::@method::+
+  element: <null>
   staticType: InvalidType
 ''');
   }
@@ -501,9 +795,26 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.prefix('++int');
+    var node = result.findNode.prefixIncrement('++int');
     assertResolvedNodeText(node, r'''
-PrefixExpression
+PrefixIncrement
+  operator: ++
+  target: UnqualifiedNameAssignmentTarget
+    name: int
+    read: InvalidNamedReadResolution
+      type: InvalidType
+      candidates
+        candidate: dart:core::@class::int
+      recovery: <null>
+    write: InvalidNamedWriteResolution
+      acceptedType: InvalidType
+      candidates
+        candidate: dart:core::@class::int
+      recovery: <null>
+  element: <null>
+  operatorResultType: InvalidType
+  staticType: InvalidType
+V1: PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: int
@@ -529,9 +840,28 @@ void f(A? a) {
 }
 ''');
 
-    var node = result.findNode.prefix('++a');
+    var node = result.findNode.prefixIncrement('++a');
     assertResolvedNodeText(node, r'''
-PrefixExpression
+PrefixIncrement
+  operator: ++
+  target: ReceiverPropertyAssignmentTarget
+    receiver: SimpleIdentifier
+      token: a
+      element: <testLibrary>::@function::f::@formalParameter::a
+      staticType: A?
+    operator: ?.
+    propertyName: foo
+    read: GetterInvocationResolution
+      element: <testLibrary>::@class::A::@getter::foo
+      invokeType: int Function()
+      type: int
+    write: SetterInvocationResolution
+      element: <testLibrary>::@class::A::@setter::foo
+      acceptedType: int
+  element: dart:core::@class::num::@method::+
+  operatorResultType: int
+  staticType: int?
+V1: PrefixExpression
   operator: ++
   operand: PropertyAccess
     target: SimpleIdentifier
@@ -565,21 +895,39 @@ void f(A a) {
 }
 ''');
 
-    var node = result.findNode.singlePrefixExpression;
+    var node = result.findNode.singlePrefixIncrement;
     assertResolvedNodeText(node, r'''
-PrefixExpression
+PrefixIncrement
   operator: ++
-  operand: PrefixedIdentifier
-    prefix: SimpleIdentifier
+  target: ReceiverPropertyAssignmentTarget
+    receiver: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::f::@formalParameter::a
       staticType: A
-    period: .
-    identifier: SimpleIdentifier
+    operator: .
+    propertyName: foo
+    read: GetterInvocationResolution
+      element: <testLibrary>::@extensionType::A::@getter::foo
+      invokeType: int Function()
+      type: int
+    write: SetterInvocationResolution
+      element: <testLibrary>::@extensionType::A::@setter::foo
+      acceptedType: int
+  element: dart:core::@class::num::@method::+
+  operatorResultType: int
+  staticType: int
+V1: PrefixExpression
+  operator: ++
+  operand: PropertyAccess
+    target: SimpleIdentifier
+      token: a
+      element: <testLibrary>::@function::f::@formalParameter::a
+      staticType: A
+    operator: .
+    propertyName: SimpleIdentifier
       token: foo
       element: <null>
       staticType: null
-    element: <null>
     staticType: null
   readElement: <testLibrary>::@extensionType::A::@getter::foo
   readType: int
@@ -601,21 +949,39 @@ void f(A a) {
 }
 ''');
 
-    var node = result.findNode.prefix('++');
+    var node = result.findNode.prefixIncrement('++');
     assertResolvedNodeText(node, r'''
-PrefixExpression
+PrefixIncrement
   operator: ++
-  operand: PrefixedIdentifier
-    prefix: SimpleIdentifier
+  target: ReceiverPropertyAssignmentTarget
+    receiver: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::f::@formalParameter::a
       staticType: A
-    period: .
-    identifier: SimpleIdentifier
+    operator: .
+    propertyName: x
+    read: GetterInvocationResolution
+      element: <testLibrary>::@class::A::@getter::x
+      invokeType: int Function()
+      type: int
+    write: SetterInvocationResolution
+      element: <testLibrary>::@class::A::@setter::x
+      acceptedType: int
+  element: dart:core::@class::num::@method::+
+  operatorResultType: int
+  staticType: int
+V1: PrefixExpression
+  operator: ++
+  operand: PropertyAccess
+    target: SimpleIdentifier
+      token: a
+      element: <testLibrary>::@function::f::@formalParameter::a
+      staticType: A
+    operator: .
+    propertyName: SimpleIdentifier
       token: x
       element: <null>
       staticType: null
-    element: <null>
     staticType: null
   readElement: <testLibrary>::@class::A::@getter::x
   readType: int
@@ -638,21 +1004,39 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.prefix('++');
+    var node = result.findNode.prefixIncrement('++');
     assertResolvedNodeText(node, r'''
-PrefixExpression
+PrefixIncrement
   operator: ++
-  operand: PrefixedIdentifier
-    prefix: SimpleIdentifier
+  target: ReceiverPropertyAssignmentTarget
+    receiver: SimpleIdentifier
       token: p
       element: <testLibraryFragment>::@prefix::p
       staticType: null
-    period: .
-    identifier: SimpleIdentifier
+    operator: .
+    propertyName: x
+    read: GetterInvocationResolution
+      element: package:test/a.dart::@getter::x
+      invokeType: int Function()
+      type: int
+    write: SetterInvocationResolution
+      element: package:test/a.dart::@setter::x
+      acceptedType: int
+  element: dart:core::@class::num::@method::+
+  operatorResultType: int
+  staticType: int
+V1: PrefixExpression
+  operator: ++
+  operand: PropertyAccess
+    target: SimpleIdentifier
+      token: p
+      element: <testLibraryFragment>::@prefix::p
+      staticType: null
+    operator: .
+    propertyName: SimpleIdentifier
       token: x
       element: <null>
       staticType: null
-    element: <null>
     staticType: null
   readElement: package:test/a.dart::@getter::x
   readType: int
@@ -674,9 +1058,35 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.prefix('++');
+    var node = result.findNode.prefixIncrement('++');
     assertResolvedNodeText(node, r'''
-PrefixExpression
+PrefixIncrement
+  operator: ++
+  target: ReceiverPropertyAssignmentTarget
+    receiver: ConstructorInvocation
+      constructorReference: ConstructorReference2
+        typeReference: ConstructorTypeReference
+          name: A
+          element: <testLibrary>::@class::A
+          type: A
+        element: <testLibrary>::@class::A::@constructor::new
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      staticType: A
+    operator: .
+    propertyName: x
+    read: GetterInvocationResolution
+      element: <testLibrary>::@class::A::@getter::x
+      invokeType: int Function()
+      type: int
+    write: SetterInvocationResolution
+      element: <testLibrary>::@class::A::@setter::x
+      acceptedType: int
+  element: dart:core::@class::num::@method::+
+  operatorResultType: int
+  staticType: int
+V1: PrefixExpression
   operator: ++
   operand: PropertyAccess
     target: InstanceCreationExpression
@@ -722,9 +1132,27 @@ class B extends A {
 }
 ''');
 
-    var node = result.findNode.prefix('++');
+    var node = result.findNode.prefixIncrement('++');
     assertResolvedNodeText(node, r'''
-PrefixExpression
+PrefixIncrement
+  operator: ++
+  target: ReceiverPropertyAssignmentTarget
+    receiver: SuperExpression
+      superKeyword: super
+      staticType: B
+    operator: .
+    propertyName: x
+    read: GetterInvocationResolution
+      element: <testLibrary>::@class::A::@getter::x
+      invokeType: int Function()
+      type: int
+    write: SetterInvocationResolution
+      element: <testLibrary>::@class::A::@setter::x
+      acceptedType: num
+  element: dart:core::@class::num::@method::+
+  operatorResultType: int
+  staticType: int
+V1: PrefixExpression
   operator: ++
   operand: PropertyAccess
     target: SuperExpression
@@ -757,9 +1185,27 @@ class A {
 }
 ''');
 
-    var node = result.findNode.prefix('++');
+    var node = result.findNode.prefixIncrement('++');
     assertResolvedNodeText(node, r'''
-PrefixExpression
+PrefixIncrement
+  operator: ++
+  target: ReceiverPropertyAssignmentTarget
+    receiver: ThisExpression
+      thisKeyword: this
+      staticType: A
+    operator: .
+    propertyName: x
+    read: GetterInvocationResolution
+      element: <testLibrary>::@class::A::@getter::x
+      invokeType: int Function()
+      type: int
+    write: SetterInvocationResolution
+      element: <testLibrary>::@class::A::@setter::x
+      acceptedType: num
+  element: dart:core::@class::num::@method::+
+  operatorResultType: int
+  staticType: int
+V1: PrefixExpression
   operator: ++
   operand: PropertyAccess
     target: ThisExpression
@@ -787,9 +1233,22 @@ void f(double x) {
 }
 ''');
 
-    var node = result.findNode.prefix('++x');
+    var node = result.findNode.prefixIncrement('++x');
     assertResolvedNodeText(node, r'''
-PrefixExpression
+PrefixIncrement
+  operator: ++
+  target: UnqualifiedNameAssignmentTarget
+    name: x
+    read: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: double
+    write: VariableWriteResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      acceptedType: double
+  element: dart:core::@class::double::@method::+
+  operatorResultType: double
+  staticType: double
+V1: PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: x
@@ -811,9 +1270,22 @@ void f(int x) {
 }
 ''');
 
-    var node = result.findNode.prefix('++x');
+    var node = result.findNode.prefixIncrement('++x');
     assertResolvedNodeText(node, r'''
-PrefixExpression
+PrefixIncrement
+  operator: ++
+  target: UnqualifiedNameAssignmentTarget
+    name: x
+    read: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: int
+    write: VariableWriteResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      acceptedType: int
+  element: dart:core::@class::num::@method::+
+  operatorResultType: int
+  staticType: int
+V1: PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: x
@@ -835,9 +1307,22 @@ void f(num x) {
 }
 ''');
 
-    var node = result.findNode.prefix('++x');
+    var node = result.findNode.prefixIncrement('++x');
     assertResolvedNodeText(node, r'''
-PrefixExpression
+PrefixIncrement
+  operator: ++
+  target: UnqualifiedNameAssignmentTarget
+    name: x
+    read: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: num
+    write: VariableWriteResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      acceptedType: num
+  element: dart:core::@class::num::@method::+
+  operatorResultType: num
+  staticType: num
+V1: PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: x
@@ -861,9 +1346,22 @@ void f<T extends num>(T x) {
 }
 ''');
 
-    var node = result.findNode.prefix('++x');
+    var node = result.findNode.prefixIncrement('++x');
     assertResolvedNodeText(node, r'''
-PrefixExpression
+PrefixIncrement
+  operator: ++
+  target: UnqualifiedNameAssignmentTarget
+    name: x
+    read: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: T
+    write: VariableWriteResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      acceptedType: T
+  element: dart:core::@class::num::@method::+
+  operatorResultType: num
+  staticType: num
+V1: PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: x
@@ -892,9 +1390,23 @@ class B extends A {
 }
 ''');
 
-    var node = result.findNode.prefix('++x');
+    var node = result.findNode.prefixIncrement('++x');
     assertResolvedNodeText(node, r'''
-PrefixExpression
+PrefixIncrement
+  operator: ++
+  target: UnqualifiedNameAssignmentTarget
+    name: x
+    read: GetterInvocationResolution
+      element: <testLibrary>::@class::B::@getter::x
+      invokeType: int Function()
+      type: int
+    write: SetterInvocationResolution
+      element: <testLibrary>::@class::A::@setter::x
+      acceptedType: num
+  element: dart:core::@class::num::@method::+
+  operatorResultType: int
+  staticType: int
+V1: PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: x
@@ -920,9 +1432,23 @@ class A {
 }
 ''');
 
-    var node = result.findNode.prefix('++x');
+    var node = result.findNode.prefixIncrement('++x');
     assertResolvedNodeText(node, r'''
-PrefixExpression
+PrefixIncrement
+  operator: ++
+  target: UnqualifiedNameAssignmentTarget
+    name: x
+    read: GetterInvocationResolution
+      element: <testLibrary>::@class::A::@getter::x
+      invokeType: int Function()
+      type: int
+    write: SetterInvocationResolution
+      element: <testLibrary>::@class::A::@setter::x
+      acceptedType: num
+  element: dart:core::@class::num::@method::+
+  operatorResultType: int
+  staticType: int
+V1: PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: x
@@ -948,9 +1474,23 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.prefix('++x');
+    var node = result.findNode.prefixIncrement('++x');
     assertResolvedNodeText(node, r'''
-PrefixExpression
+PrefixIncrement
+  operator: ++
+  target: UnqualifiedNameAssignmentTarget
+    name: x
+    read: GetterInvocationResolution
+      element: <testLibrary>::@getter::x
+      invokeType: int Function()
+      type: int
+    write: SetterInvocationResolution
+      element: <testLibrary>::@setter::x
+      acceptedType: num
+  element: dart:core::@class::num::@method::+
+  operatorResultType: int
+  staticType: int
+V1: PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: x
@@ -978,9 +1518,23 @@ class A {
 }
 ''');
 
-    var node = result.findNode.prefix('++x');
+    var node = result.findNode.prefixIncrement('++x');
     assertResolvedNodeText(node, r'''
-PrefixExpression
+PrefixIncrement
+  operator: ++
+  target: UnqualifiedNameAssignmentTarget
+    name: x
+    read: GetterInvocationResolution
+      element: <testLibrary>::@getter::x
+      invokeType: int Function()
+      type: int
+    write: SetterInvocationResolution
+      element: <testLibrary>::@setter::x
+      acceptedType: num
+  element: dart:core::@class::num::@method::+
+  operatorResultType: int
+  staticType: int
+V1: PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: x
@@ -1006,9 +1560,18 @@ class A {
 }
 ''');
 
-    var node = result.findNode.singlePrefixExpression;
+    var node = result.findNode.singlePrefixIncrement;
     assertResolvedNodeText(node, r'''
-PrefixExpression
+PrefixIncrement
+  operator: ++
+  target: InvalidExpressionAssignmentTarget
+    expression: SuperExpression
+      superKeyword: super
+      staticType: A
+  element: <null>
+  operatorResultType: InvalidType
+  staticType: InvalidType
+V1: PrefixExpression
   operator: ++
   operand: SuperExpression
     superKeyword: super
@@ -1033,9 +1596,36 @@ void f(Object? x) {
 }
 ''');
 
-    var node = result.findNode.prefix('++switch');
+    var node = result.findNode.prefixIncrement('++switch');
     assertResolvedNodeText(node, r'''
-PrefixExpression
+PrefixIncrement
+  operator: ++
+  target: InvalidExpressionAssignmentTarget
+    expression: SwitchExpression
+      switchKeyword: switch
+      leftParenthesis: (
+      expression2: SimpleIdentifier
+        token: x
+        element: <testLibrary>::@function::f::@formalParameter::x
+        staticType: Object?
+      rightParenthesis: )
+      leftBracket: {
+      cases
+        SwitchExpressionCase
+          guardedPattern: GuardedPattern
+            pattern: WildcardPattern
+              name: _
+              matchedValueType: Object?
+          arrow: =>
+          expression2: IntegerLiteral
+            literal: 0
+            staticType: int
+      rightBracket: }
+      staticType: int
+  element: <null>
+  operatorResultType: InvalidType
+  staticType: InvalidType
+V1: PrefixExpression
   operator: ++
   operand: SwitchExpression
     switchKeyword: switch
@@ -1078,9 +1668,23 @@ class A {
 }
 ''');
 
-    var node = result.findNode.prefix('++x');
+    var node = result.findNode.prefixIncrement('++x');
     assertResolvedNodeText(node, r'''
-PrefixExpression
+PrefixIncrement
+  operator: ++
+  target: UnqualifiedNameAssignmentTarget
+    name: x
+    read: GetterInvocationResolution
+      element: <testLibrary>::@getter::x
+      invokeType: int Function()
+      type: int
+    write: SetterInvocationResolution
+      element: <testLibrary>::@setter::x
+      acceptedType: int
+  element: dart:core::@class::num::@method::+
+  operatorResultType: int
+  staticType: int
+V1: PrefixExpression
   operator: ++
   operand: SimpleIdentifier
     token: x
@@ -1108,9 +1712,25 @@ void f(A? a) {
 }
 ''');
 
-    var node = result.findNode.prefix('~a');
+    var node = result.findNode.unaryOperatorInvocation('~a');
     assertResolvedNodeText(node, r'''
-PrefixExpression
+UnaryOperatorInvocation
+  operator: ~
+  operand: PropertyAccess
+    target2: SimpleIdentifier
+      token: a
+      element: <testLibrary>::@function::f::@formalParameter::a
+      staticType: A?
+    operator: ?.
+    propertyName: SimpleIdentifier
+      token: foo
+      element: <testLibrary>::@class::A::@getter::foo
+      staticType: int
+    staticType: int?
+  unaryOperator: bitwiseComplement
+  element: dart:core::@class::int::@method::~
+  staticType: int
+V1: PrefixExpression
   operator: ~
   operand: PropertyAccess
     target: SimpleIdentifier
@@ -1135,9 +1755,18 @@ void f(int x) {
 }
 ''');
 
-    var node = result.findNode.prefix('~x');
+    var node = result.findNode.unaryOperatorInvocation('~x');
     assertResolvedNodeText(node, r'''
-PrefixExpression
+UnaryOperatorInvocation
+  operator: ~
+  operand: SimpleIdentifier
+    token: x
+    element: <testLibrary>::@function::f::@formalParameter::x
+    staticType: int
+  unaryOperator: bitwiseComplement
+  element: dart:core::@class::int::@method::~
+  staticType: int
+V1: PrefixExpression
   operator: ~
   operand: SimpleIdentifier
     token: x

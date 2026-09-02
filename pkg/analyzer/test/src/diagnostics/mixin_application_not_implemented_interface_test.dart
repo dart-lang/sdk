@@ -26,6 +26,8 @@ abstract class X with Unresolved, M, CycleWithX {}
 // [diag.recursiveInterfaceInheritance] 'X' can't be a superinterface of itself: CycleWithX, X.
 //                    ^^^^^^^^^^
 // [diag.mixinOfNonClass] Classes can only mix in mixins and classes.
+//                                ^
+// [diag.mixinApplicationNotImplementedInterface] 'M' can't be mixed onto 'Object' because 'Object' doesn't implement 'A'.
 mixin M on A {}
 mixin CycleWithX on X {}
 //    ^^^^^^^^^^
@@ -52,6 +54,49 @@ class C extends Object with M1, M2 {}
 ''');
   }
 
+  test_class_matchingInterface_inPreviousMixin_fromAugmentation() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M1 {}
+mixin M2 on M1 {}
+
+class A with M1 {}
+augment class A with M2 {}
+''');
+  }
+
+  test_class_matchingInterface_inPreviousMixin_fromAugmentation_generic() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class B<T> {}
+
+mixin M1<T> implements B<T> {}
+mixin M2<T> on B<T> {}
+
+class A<T> with M1<T> {}
+augment class A<T> with M2 {}
+''');
+  }
+
+  test_class_matchingInterface_inPreviousMixin_fromAugmentation_part() async {
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+
+    await resolveFilesWithDiagnostics({
+      a: r'''
+part 'b.dart';
+
+mixin M1 {}
+mixin M2 on M1 {}
+
+class A with M1 {}
+''',
+      b: r'''
+part of 'a.dart';
+
+augment class A with M2 {}
+''',
+    });
+  }
+
   test_class_noMatchingInterface() async {
     await resolveTestCodeWithDiagnostics('''
 abstract class A<T> {}
@@ -71,6 +116,8 @@ class B with M {}
 mixin M {}
 class A {}
 augment mixin M on A {}
+//              ^^
+// [diag.mixinAugmentationHasOnClause] Mixin augmentations can't have 'on' clauses.
 ''');
   }
 
@@ -92,6 +139,8 @@ class A {}
 part of 'a.dart';
 
 augment mixin M on A {}
+//              ^^
+// [diag.mixinAugmentationHasOnClause] Mixin augmentations can't have 'on' clauses.
 ''',
     });
   }
@@ -276,6 +325,18 @@ mixin M2 on A {}
 enum E with M1, M2 {
   v
 }
+''');
+  }
+
+  test_enum_matchingInterface_inPreviousMixin_fromAugmentation() async {
+    await resolveTestCodeWithDiagnostics(r'''
+mixin M1 {}
+mixin M2 on M1 {}
+
+enum E with M1 {
+  v
+}
+augment enum E with M2 {}
 ''');
   }
 

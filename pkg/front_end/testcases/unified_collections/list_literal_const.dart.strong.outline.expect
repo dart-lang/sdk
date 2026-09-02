@@ -1,0 +1,21 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static const field core::List<core::int>? nullableIntList1 = const <core::int>[0, 1, 2];
+static const field core::List<core::int>? nullableIntList2 = null;
+static const field core::List<core::int> intList = const <core::int>[0, 1, 2];
+static const field core::List<core::num> numList = const <core::num>[0, 1, 2];
+static const field core::List<(core::int, core::int)> intIntList = const <(core::int, core::int)>[const (0, 1), const (2, 3)];
+static const field core::num? nullableNum1 = 0;
+static const field core::num? nullableNum2 = null;
+static method main() → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: ListLiteral @ org-dartlang-testcase:///list_literal_const.dart:5:42 -> ListConstant(const <int>[0, 1, 2])
+Evaluated: ListLiteral @ org-dartlang-testcase:///list_literal_const.dart:7:32 -> ListConstant(const <int>[0, 1, 2])
+Evaluated: ListLiteral @ org-dartlang-testcase:///list_literal_const.dart:8:32 -> ListConstant(const <num>[0, 1, 2])
+Evaluated: ListLiteral @ org-dartlang-testcase:///list_literal_const.dart:9:49 -> ListConstant(const <(int, int)>[const (0, 1), const (2, 3)])
+Extra constant evaluation: evaluated: 4, effectively constant: 4

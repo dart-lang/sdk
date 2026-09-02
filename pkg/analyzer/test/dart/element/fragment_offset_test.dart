@@ -533,7 +533,7 @@ class C {
     var result = await resolveTestCodeWithDiagnostics(r'''
 int get foo => 0;
 ''');
-    var getterDeclaration = result.findNode.functionDeclaration('foo');
+    var getterDeclaration = result.findNode.topLevelGetterDeclaration('foo');
     checkOffset<GetterFragment>(
       getterDeclaration,
       getterDeclaration.declaredFragment!,
@@ -794,7 +794,7 @@ import 'dart:async' as a;
     checkOffset<PrefixFragment>(
       importDirective,
       importDirective.libraryImport!.prefix!,
-      importDirective.prefix!.offset,
+      importDirective.prefixName!.offset,
     );
   }
 
@@ -809,7 +809,7 @@ import 'dart:math' as a; // second
     checkOffset<PrefixFragment>(
       firstImportDirective,
       firstImportDirective.libraryImport!.prefix!,
-      firstImportDirective.prefix!.offset,
+      firstImportDirective.prefixName!.offset,
     );
   }
 

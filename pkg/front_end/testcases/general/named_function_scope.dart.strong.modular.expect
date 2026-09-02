@@ -113,27 +113,27 @@ static method test() → dynamic {
     function T() → Null {}
   }
   {
-    dynamic v;
+    dynamic v##1;
   }
   {
-    self::T t;
+    self::T t##1;
     invalid-type x = block {
-      function T() → Null {}
+      function T##1() → Null {}
     } =>invalid-expression "pkg/front_end/testcases/general/named_function_scope.dart:26:13: Error: A function expression can't have a name.
     var x = T() {};
             ^";
   }
   {
-    self::V v;
+    self::V v##2;
     dynamic V;
   }
   {
-    self::V v;
-    has-declared-initializer dynamic V = null;
+    self::V v##3;
+    has-declared-initializer dynamic V##1 = null;
   }
   {
-    invalid-type x = block {
-      function T() → self::T {
+    invalid-type x##1 = block {
+      function T##2() → self::T {
         return invalid-expression "pkg/front_end/testcases/general/named_function_scope.dart:41:13: Error: A non-null value must be returned since the return type 'T' doesn't allow null.
  - 'T' is from 'pkg/front_end/testcases/general/named_function_scope.dart'.
     var x = T T() {};
@@ -144,35 +144,35 @@ static method test() → dynamic {
             ^";
   }
   {
-    self::V V;
+    self::V V##2;
   }
   {
-    invalid-type x = block {
-      function T<T extends core::Object? = dynamic>() → Null {}
+    invalid-type x##2 = block {
+      function T##3<T extends core::Object? = dynamic>() → Null {}
     } =>invalid-expression "pkg/front_end/testcases/general/named_function_scope.dart:52:13: Error: A function expression can't have a name.
     var x = T<T>() {};
             ^";
   }
   {
-    self::T t;
-    function T() → self::T
+    self::T t##2;
+    function T##4() → self::T
       return throw "";
   }
   {
-    function T() → self::T
+    function T##5() → self::T
       return throw "";
   }
   {
-    self::T t;
-    function T(self::T t) → self::T
-      return t;
+    self::T t##3;
+    function T##6(self::T t##4) → self::T
+      return t##4;
   }
   {
-    function T(self::T t) → self::T
-      return t;
+    function T##7(self::T t##5) → self::T
+      return t##5;
   }
   {
-    function T(invalid-type t) → void {}
+    function T##8(invalid-type t##6) → void {}
   }
 }
 static method main() → void {}

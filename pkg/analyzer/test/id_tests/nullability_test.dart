@@ -4,7 +4,7 @@
 
 import 'dart:io';
 
-import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
+import 'package:_fe_analyzer_shared/src/testing/id.dart' show Id, ActualDataMap;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -44,7 +44,7 @@ class _NullabilityDataComputer extends DataComputer<String> {
   void computeUnitData(
     TestingData testingData,
     CompilationUnit unit,
-    Map<Id, ActualData<String>> actualMap,
+    ActualDataMap<String> actualMap,
   ) {
     var unitElement = unit.declaredFragment!;
     _NullabilityDataExtractor(
@@ -62,28 +62,43 @@ class _NullabilityDataExtractor extends AstDataExtractor<String> {
 
   @override
   String? computeNodeValue(Id id, AstNode node) {
+    Element? element;
+    DartType? promotedType;
     if (node is SimpleIdentifier &&
         node.inGetterContext() &&
         !node.inDeclarationContext()) {
-      var element = node.element;
+      element = node.element;
       if (element is LocalVariableElement ||
           element is FormalParameterElement) {
-        var promotedType = _readType(node);
-        var declaredType = (element as VariableElement).type;
-        var isPromoted = promotedType != declaredType;
-        if (isPromoted &&
-            _typeSystem.isPotentiallyNullable(declaredType) &&
-            !_typeSystem.isPotentiallyNullable(promotedType)) {
-          return 'nonNullable';
+        promotedType = _readType(node);
+      }
+    } else if (node is IfNullAssignment || node is CompoundAssignment) {
+      var target = (node as AssignmentExpression2).target;
+      if (target is UnqualifiedNameAssignmentTarget) {
+        var readResolution = target.read;
+        if (readResolution is VariableReadResolution) {
+          element = readResolution.element;
+          promotedType = readResolution.type;
         }
+      }
+    }
+    if ((element is LocalVariableElement ||
+            element is FormalParameterElement) &&
+        promotedType != null) {
+      var declaredType = (element as VariableElement).type;
+      var isPromoted = promotedType != declaredType;
+      if (isPromoted &&
+          _typeSystem.isPotentiallyNullable(declaredType) &&
+          !_typeSystem.isPotentiallyNullable(promotedType)) {
+        return 'nonNullable';
       }
     }
     return null;
   }
 
   static DartType _readType(SimpleIdentifier node) {
-    var parent = node.parent;
-    if (parent is AssignmentExpression && parent.leftHandSide == node) {
+    var parent = node.parent2;
+    if (parent is AssignmentExpression && parent.leftHandSide2 == node) {
       return parent.readType!;
     } else if (parent is PostfixExpression) {
       return parent.readType ?? node.typeOrThrow;

@@ -18,6 +18,9 @@ import 'package:analysis_server/src/lsp/handlers/handler_execute_command.dart'
     as lsp;
 import 'package:analysis_server/src/lsp/handlers/handler_states.dart' as lsp;
 import 'package:analysis_server/src/lsp/handlers/handlers.dart' as lsp;
+import 'package:analysis_server/src/lsp/lsp_analysis_server.dart'
+    as lsp
+    show LspInitializationOptions;
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_isolate.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
@@ -262,7 +265,8 @@ abstract class AnalysisServer {
 
   /// A completer that tracks in-progress analysis context rebuilds.
   ///
-  /// Starts completed and will be replaced each time a context rebuild starts.
+  /// Starts completed and will be replaced with a new completer each time an
+  /// analysis context rebuild starts.
   Completer<void> analysisContextRebuildCompleter = Completer()..complete();
 
   /// The workspace for rename refactorings.
@@ -284,6 +288,12 @@ abstract class AnalysisServer {
 
   /// A [TimingByteStore] that records timings for reads from the byte store.
   TimingByteStore? _timingByteStore;
+
+  /// The file byte store created by [createByteStore], if any.
+  EvictingFileByteStore? _fileByteStore;
+
+  /// The memory caching byte store created by [createByteStore], if any.
+  MemoryCachingByteStore? _memoryCachingByteStore;
 
   /// Whether notifications caused by analysis should be suppressed.
   ///
@@ -427,6 +437,45 @@ abstract class AnalysisServer {
   Future<void> get analysisContextsRebuilt =>
       analysisContextRebuildCompleter.future;
 
+  /// Statistics for the byte stores created by [createByteStore], or `null`
+  /// if the byte store was not created by this server.
+  AnalysisServerByteStoreStats? get byteStoreStats {
+    var memoryByteStore = _memoryCachingByteStore;
+    if (memoryByteStore == null) {
+      return null;
+    }
+
+    var fileByteStore = _fileByteStore;
+    return AnalysisServerByteStoreStats(
+      cacheHitCount: memoryByteStore.cacheHitCount,
+      cacheMissCount: memoryByteStore.cacheMissCount,
+      currentSizeBytes: memoryByteStore.currentSizeBytes,
+      entryCount: memoryByteStore.entryCount,
+      evictedBytes: memoryByteStore.evictedBytes,
+      evictedEntryCount: memoryByteStore.evictedEntryCount,
+      evictionCount: memoryByteStore.evictionCount,
+      maxSizeBytes: memoryByteStore.maxSizeBytes,
+      putCount: memoryByteStore.putCount,
+      storeHitCount: memoryByteStore.storeHitCount,
+      storeMissCount: memoryByteStore.storeMissCount,
+      cleanUpCount: fileByteStore?.cleanUpCount,
+      deletedBytes: fileByteStore?.deletedBytes,
+      deletedFileCount: fileByteStore?.deletedFileCount,
+      failedReadCount: fileByteStore?.failedReadCount,
+      failedWriteCount: fileByteStore?.failedWriteCount,
+      fileCacheSizeBytes: fileByteStore?.maxSizeBytes,
+      fileStorePath: fileByteStore?.cachePath,
+      fileStoreSizeBytes: fileByteStore?.lastKnownSizeBytes,
+      lastCleanUpTimeMilliseconds: fileByteStore?.lastCleanUpTimeMilliseconds,
+      lastScannedFileCount: fileByteStore?.lastScannedFileCount,
+      pendingWriteCount: fileByteStore?.pendingWriteCount,
+      readCount: fileByteStore?.readCount,
+      readMissCount: fileByteStore?.readMissCount,
+      writeBytes: fileByteStore?.writeBytes,
+      writeCount: fileByteStore?.writeCount,
+    );
+  }
+
   /// A list of timings for the byte store, or `null` if timing is not being
   /// tracked.
   List<ByteStoreTimings>? get byteStoreTimings => _timingByteStore?.timings;
@@ -462,6 +511,9 @@ abstract class AnalysisServer {
   /// configured by the client, but matches what legacy protocol editors expect
   /// when using LSP-over-Legacy.
   lsp.LspClientCapabilities? get editorClientCapabilities;
+
+  /// The initialization options provided by the client for LSP initialization.
+  lsp.LspInitializationOptions? get initializationOptions;
 
   /// The configuration (user/workspace settings) from the LSP client.
   ///
@@ -617,11 +669,17 @@ abstract class AnalysisServer {
     const memoryCacheSize = 256 * M;
 
     if (providedByteStore case var providedByteStore?) {
+      if (providedByteStore is MemoryCachingByteStore) {
+        _memoryCachingByteStore = providedByteStore;
+      }
       return providedByteStore;
     }
 
     if (options.disableFileByteStore ?? false) {
-      return MemoryCachingByteStore(NullByteStore(), memoryCacheSize);
+      return _memoryCachingByteStore = MemoryCachingByteStore(
+        NullByteStore(),
+        memoryCacheSize,
+      );
     }
 
     if (resourceProvider is OverlayResourceProvider) {
@@ -630,14 +688,22 @@ abstract class AnalysisServer {
     if (resourceProvider is PhysicalResourceProvider) {
       var stateLocation = resourceProvider.getStateLocation('.analysis-driver');
       if (stateLocation != null) {
-        var timingByteStore = _timingByteStore = TimingByteStore(
-          EvictingFileByteStore(stateLocation.path, fileCacheSize),
+        var fileByteStore = _fileByteStore = EvictingFileByteStore(
+          stateLocation.path,
+          fileCacheSize,
         );
-        return MemoryCachingByteStore(timingByteStore, memoryCacheSize);
+        var timingByteStore = _timingByteStore = TimingByteStore(fileByteStore);
+        return _memoryCachingByteStore = MemoryCachingByteStore(
+          timingByteStore,
+          memoryCacheSize,
+        );
       }
     }
 
-    return MemoryCachingByteStore(NullByteStore(), memoryCacheSize);
+    return _memoryCachingByteStore = MemoryCachingByteStore(
+      NullByteStore(),
+      memoryCacheSize,
+    );
   }
 
   void enableSurveys() {
@@ -1166,6 +1232,7 @@ abstract class AnalysisServer {
     pubPackageService.shutdown();
     surveyManager?.shutdown();
     await contextManager.dispose();
+    await _fileByteStore?.flush();
     await analyticsManager.shutdown();
     await shutdownPerfWitness();
     await sessionLogger.shutdown();
@@ -1198,6 +1265,71 @@ abstract class AnalysisServer {
     }
     return null;
   }
+}
+
+/// A snapshot of the sizes and counters of the byte stores used by the
+/// server, for display on the diagnostics pages.
+///
+/// The file byte store fields are `null` when the server uses only an
+/// in-memory byte store.
+class AnalysisServerByteStoreStats {
+  final int cacheHitCount;
+  final int cacheMissCount;
+  final int? cleanUpCount;
+  final int currentSizeBytes;
+  final int? deletedBytes;
+  final int? deletedFileCount;
+  final int entryCount;
+  final int evictedBytes;
+  final int evictedEntryCount;
+  final int evictionCount;
+  final int? failedReadCount;
+  final int? failedWriteCount;
+  final int? fileCacheSizeBytes;
+  final String? fileStorePath;
+  final int? fileStoreSizeBytes;
+  final int? lastCleanUpTimeMilliseconds;
+  final int? lastScannedFileCount;
+  final int maxSizeBytes;
+  final int? pendingWriteCount;
+  final int putCount;
+  final int? readCount;
+  final int? readMissCount;
+  final int storeHitCount;
+  final int storeMissCount;
+  final int? writeBytes;
+  final int? writeCount;
+
+  const new({
+    required this.cacheHitCount,
+    required this.cacheMissCount,
+    required this.currentSizeBytes,
+    required this.entryCount,
+    required this.evictedBytes,
+    required this.evictedEntryCount,
+    required this.evictionCount,
+    required this.maxSizeBytes,
+    required this.putCount,
+    required this.storeHitCount,
+    required this.storeMissCount,
+    this.cleanUpCount,
+    this.deletedBytes,
+    this.deletedFileCount,
+    this.failedReadCount,
+    this.failedWriteCount,
+    this.fileCacheSizeBytes,
+    this.fileStorePath,
+    this.fileStoreSizeBytes,
+    this.lastCleanUpTimeMilliseconds,
+    this.lastScannedFileCount,
+    this.pendingWriteCount,
+    this.readCount,
+    this.readMissCount,
+    this.writeBytes,
+    this.writeCount,
+  });
+
+  bool get usesFileByteStore => fileStorePath != null;
 }
 
 /// ContextManager callbacks that operate on the base server regardless

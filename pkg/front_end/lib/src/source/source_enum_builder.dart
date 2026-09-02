@@ -7,7 +7,6 @@ import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart';
 import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
-import 'package:kernel/reference_from_index.dart' show IndexedClass;
 import 'package:kernel/src/bounds_checks.dart';
 import 'package:kernel/type_environment.dart';
 
@@ -15,7 +14,6 @@ import '../api_prototype/experimental_flags.dart';
 import '../base/lookup_result.dart';
 import '../base/messages.dart';
 import '../base/modifiers.dart' show Modifiers;
-import '../base/scope.dart';
 import '../base/uri_offset.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_builder.dart';
@@ -40,6 +38,7 @@ import '../fragment/method/encoding.dart';
 import '../kernel/body_builder_context.dart';
 import '../kernel/hierarchy/class_member.dart';
 import '../kernel/hierarchy/members_builder.dart';
+import '../kernel/internal_ast.dart';
 import '../kernel/kernel_helper.dart';
 import '../kernel/member_covariance.dart';
 import '../kernel/type_algorithms.dart';
@@ -47,14 +46,12 @@ import '../kernel/utils.dart';
 import '../util/helpers.dart';
 import 'builder_factory.dart';
 import 'name_scheme.dart';
-import 'name_space_builder.dart';
 import 'source_class_builder.dart' show SourceClassBuilder;
 import 'source_constructor_builder.dart';
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 import 'source_member_builder.dart';
 import 'source_method_builder.dart';
 import 'source_property_builder.dart';
-import 'source_type_parameter_builder.dart';
 import 'type_parameter_factory.dart';
 
 class SourceEnumBuilder extends SourceClassBuilder {
@@ -78,35 +75,24 @@ class SourceEnumBuilder extends SourceClassBuilder {
   late final _EnumValuesFieldDeclaration _enumValuesFieldDeclaration;
 
   new({
-    required String name,
-    required List<SourceNominalParameterBuilder>? typeParameters,
+    required super.name,
+    required super.typeParameters,
     required TypeBuilder underscoreEnumTypeBuilder,
-    required LookupScope typeParameterScope,
-    required DeclarationNameSpaceBuilder nameSpaceBuilder,
+    required super.typeParameterScope,
+    required super.nameSpaceBuilder,
     required List<EnumElementFragment> enumElements,
-    required SourceLibraryBuilder libraryBuilder,
-    required Uri fileUri,
+    required super.libraryBuilder,
+    required super.fileUri,
     required this.startOffset,
-    required int nameOffset,
+    required super.nameOffset,
     required this.endOffset,
-    required IndexedClass? indexedClass,
-    required ClassDeclaration classDeclaration,
-    required Modifiers modifiers,
+    required super.indexedClass,
+    required super.introductory,
+    super.augmentations = const [],
+    required super.modifiers,
   }) : _underscoreEnumTypeBuilder = underscoreEnumTypeBuilder,
-       _introductory = classDeclaration,
-       _enumElements = enumElements,
-       super(
-         modifiers: modifiers,
-         name: name,
-         typeParameters: typeParameters,
-         typeParameterScope: typeParameterScope,
-         nameSpaceBuilder: nameSpaceBuilder,
-         libraryBuilder: libraryBuilder,
-         fileUri: fileUri,
-         nameOffset: nameOffset,
-         indexedClass: indexedClass,
-         introductory: classDeclaration,
-       );
+       _introductory = introductory,
+       _enumElements = enumElements;
 
   @override
   void buildScopes(LibraryBuilder coreLibrary) {
@@ -517,6 +503,9 @@ class _EnumToStringMethodDeclaration implements MethodDeclaration {
           ),
         ),
       );
+      // TODO(cstefantsova): Verify that null should be passed for
+      //  scopeProviderInfo in the call below.
+      _procedure.function.registerScopeProviderInfo(null);
     } else {
       ClassBuilder enumClass =
           _underscoreEnumTypeBuilder.declaration as ClassBuilder;
@@ -540,6 +529,9 @@ class _EnumToStringMethodDeclaration implements MethodDeclaration {
           ]),
         ),
       );
+      // TODO(cstefantsova): Verify that null should be passed for
+      //  scopeProviderInfo in the call below.
+      _procedure.function.registerScopeProviderInfo(null);
     }
   }
 
@@ -674,9 +666,9 @@ class _EnumValuesFieldDeclaration
   }
 
   @override
-  List<Initializer> buildInitializer(
+  List<InternalInitializer> buildInitializer(
     int fileOffset,
-    Expression value, {
+    InternalExpression value, {
     required bool isSynthetic,
   }) {
     throw new UnsupportedError('${runtimeType}.buildInitializer');

@@ -644,7 +644,7 @@ class TypeCheckingVisitor
 
   @override
   DartType visitLet(Let node) {
-    DartType value = visitExpression(node.variable.initializer!);
+    DartType value = visitExpression(node.value);
     checkAssignable(node, value, node.variable.type);
     return visitExpression(node.body);
   }

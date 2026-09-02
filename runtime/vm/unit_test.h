@@ -503,7 +503,15 @@ class AssemblerTest {
 
   uword payload_start() const { return code_.PayloadStart(); }
   uword payload_size() const { return assembler_->CodeSize(); }
-  uword entry() const { return code_.EntryPoint(); }
+  uword entry() const {
+    uword result = code_.EntryPoint();
+#if defined(HOST_ARCH_ARM64E)
+    result = reinterpret_cast<uword>(ptrauth_sign_unauthenticated(
+        reinterpret_cast<void*>(result), ptrauth_key_function_pointer, 0));
+#endif
+    return result;
+  }
+  uword entry_unsigned() const { return code_.EntryPoint(); }
 
 // Invoke/InvokeWithCodeAndThread is used to call assembler test functions
 // using the ABI calling convention.

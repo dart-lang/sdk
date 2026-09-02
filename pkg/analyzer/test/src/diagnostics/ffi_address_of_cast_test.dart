@@ -14,6 +14,29 @@ main() {
 
 @reflectiveTest
 class FfiAddressOfCast extends PubPackageResolutionTest {
+  test_array_element_no_error() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'dart:ffi';
+
+@Native<Void Function(Pointer<Void>)>(isLeaf: true)
+external void myNative(Pointer<Void> buffer);
+
+main() {
+  final myStruct = Struct.create<MyStruct>();
+  myNative(myStruct.arr[0].address.cast());
+}
+
+final class MyStruct extends Struct {
+  @Array(2)
+  external Array<Int8> arr;
+}
+
+extension on Array<Int8> {
+  int operator [](int index) => 0;
+}
+''');
+  }
+
   test_struct_error_1() async {
     await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';
@@ -78,6 +101,25 @@ final class MyStruct extends Struct {
   external int value;
   @Array(2)
   external Array<Int8> arr;
+}
+''');
+  }
+
+  test_typed_data_element_no_error() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'dart:ffi';
+import 'dart:typed_data';
+
+@Native<Void Function(Pointer<Void>)>(isLeaf: true)
+external void myNative(Pointer<Void> buffer);
+
+main() {
+  final buffer = Int8List(2);
+  myNative(buffer[0].address.cast());
+}
+
+extension on Int8List {
+  int operator [](int index) => 0;
 }
 ''');
   }

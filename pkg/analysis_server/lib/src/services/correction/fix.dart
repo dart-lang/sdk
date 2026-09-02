@@ -117,11 +117,6 @@ abstract final class DartFixKind {
     DartFixKindPriority.inFile,
     'Add debug property references in file',
   );
-  static const addEnumConstant = FixKind(
-    'dart.fix.add.enumConstant',
-    DartFixKindPriority.standard,
-    "Add enum constant '{0}'",
-  );
   static const addEolAtEndOfFile = FixKind(
     'dart.fix.add.eolAtEndOfFile',
     DartFixKindPriority.standard,
@@ -818,6 +813,11 @@ abstract final class DartFixKind {
     DartFixKindPriority.standard,
     'Create constructor to call {0}',
   );
+  static const createEnumConstant = FixKind(
+    'dart.fix.create.enumConstant',
+    DartFixKindPriority.standard,
+    "Create enum constant '{0}'",
+  );
   static const createExtensionGetter = FixKind(
     'dart.fix.create.extension.getter',
     DartFixKindPriority.standard - 3, // Lower than createExtensionMethod
@@ -1054,6 +1054,36 @@ abstract final class DartFixKind {
     'dart.fix.import.libraryProject3Show',
     DartFixKindPriority.standard + 3,
     "Import library '{0}' with 'show'",
+  );
+
+  /// {@template dart.fix.import.libraryProject4}
+  /// Import a deprecated library or declaration.
+  /// {@endtemplate}
+  static const importLibraryProject4 = FixKind(
+    'dart.fix.import.libraryProject4',
+    DartFixKindPriority.standard + 2,
+    "Import deprecated library '{0}'",
+  );
+
+  /// {@macro dart.fix.import.libraryProject4}
+  static const importLibraryProject4Prefixed = FixKind(
+    'dart.fix.import.libraryProject4Prefixed',
+    DartFixKindPriority.standard + 2,
+    "Import deprecated library '{0}' with prefix '{1}'",
+  );
+
+  /// {@macro dart.fix.import.libraryProject4}
+  static const importLibraryProject4PrefixedShow = FixKind(
+    'dart.fix.import.libraryProject4PrefixedShow',
+    DartFixKindPriority.standard + 2,
+    "Import deprecated library '{0}' with prefix '{1}' and 'show'",
+  );
+
+  /// {@macro dart.fix.import.libraryProject4}
+  static const importLibraryProject4Show = FixKind(
+    'dart.fix.import.libraryProject4Show',
+    DartFixKindPriority.standard + 2,
+    "Import deprecated library '{0}' with 'show'",
   );
   static const importLibraryRemoveShow = FixKind(
     'dart.fix.import.libraryRemoveShow',
@@ -2252,6 +2282,16 @@ abstract final class DartFixKind {
     'dart.fix.replace.withPartOfUri',
     DartFixKindPriority.standard,
     "Replace with 'part of {0}'",
+  );
+  static const replaceWithSyncValue = FixKind(
+    'dart.fix.replace.withSyncValue',
+    DartFixKindPriority.standard,
+    "Replace with 'syncValue'",
+  );
+  static const replaceWithSyncValueMulti = FixKind(
+    'dart.fix.replace.withSyncValueMulti',
+    DartFixKindPriority.inFile,
+    "Replace with 'syncValue' in file.",
   );
   static const replaceWithTearOff = FixKind(
     'dart.fix.replace.withTearOff',

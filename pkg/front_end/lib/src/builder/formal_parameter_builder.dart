@@ -276,8 +276,6 @@ class CatchParameterBuilder extends NamedBuilderImpl
 class FormalParameterBuilder extends NamedBuilderImpl
     with LookupResultMixin
     implements ParameterVariableBuilder, InferredTypeListener {
-  static const String noNameSentinel = 'no name sentinel';
-
   @override
   final int fileOffset;
 
@@ -425,7 +423,6 @@ class FormalParameterBuilder extends NamedBuilderImpl
       DartType? builtType = type.build(library, TypeUse.parameterType);
 
       String? variableName = switch (name) {
-        noNameSentinel => null,
         // If the parameter is a private named parameter, use the public name
         // for the corresponding variable.
         _ when publicName != null => publicName,
@@ -439,7 +436,7 @@ class FormalParameterBuilder extends NamedBuilderImpl
         case FormalParameterKind.requiredPositional:
         case FormalParameterKind.optionalPositional:
           _variable = intern.createPositionalParameter(
-            cosmeticName: variableName,
+            parameterName: variableName ?? '',
             type: isTypeOmitted ? const DynamicType() : builtType,
             defaultValue: null,
             isCovariantByDeclaration: isCovariantByDeclaration,
@@ -448,7 +445,6 @@ class FormalParameterBuilder extends NamedBuilderImpl
             isFinal: modifiers.isFinal,
             hasDeclaredDefaultValue: hasDeclaredDefaultValue,
             isLowered: isExtensionThis,
-            isSynthesized: name == noNameSentinel,
             isWildcard: isWildcard,
             fileOffset: fileOffset,
             isImplicitlyTyped: isTypeOmitted,
@@ -465,7 +461,6 @@ class FormalParameterBuilder extends NamedBuilderImpl
             isSuperInitializingFormal: isSuperInitializingFormal,
             isFinal: modifiers.isFinal,
             hasDeclaredDefaultValue: hasDeclaredDefaultValue,
-            isSynthesized: name == noNameSentinel,
             isWildcard: isWildcard,
             isRenamedPrivateNamedParameter: publicName != null,
             isImplicitlyTyped: isTypeOmitted,
@@ -512,18 +507,17 @@ class FormalParameterBuilder extends NamedBuilderImpl
           declaredType: variable.type,
           hasDeclaredDefaultValue: hasDeclaredDefaultValue,
         );
-        variable.astVariable.defaultValue = defaultValue
-          ..parent = variable.astVariable;
+        variable.setInferredDefaultValue(defaultValue);
         if (defaultValue is InvalidExpression) {
           variable.hasErroneousDefaultValue = true;
         }
-        defaultValueWasInferred = true;
       } else if (kind.isOptional) {
         // As done by BodyBuilder.endFormalParameter.
-        variable.astVariable.defaultValue = extern.createNullLiteral(
-          fileOffset: fileOffset,
-        )..parent = variable.astVariable;
+        variable.setInferredDefaultValue(
+          extern.createNullLiteral(fileOffset: fileOffset),
+        );
       }
+      defaultValueWasInferred = true;
     }
   }
 
@@ -645,7 +639,37 @@ class FunctionTypeParameterBuilder implements ParameterBuilder {
   @override
   final String? name;
 
-  new(this.kind, this.type, this.name);
+  @override
+  final int fileOffset;
+
+  @override
+  final bool isWildcard;
+
+  new({
+    required this.kind,
+    required this.type,
+    required this.name,
+    required this.fileOffset,
+    required this.isWildcard,
+  });
+
+  @override
+  InternalVariable build(SourceLibraryBuilder library) {
+    throw new UnsupportedError("${this.runtimeType}.build");
+  }
+}
+
+class ComputedParameterBuilder implements ParameterBuilder {
+  @override
+  final FormalParameterKind kind;
+
+  @override
+  final TypeBuilder type;
+
+  @override
+  final String? name;
+
+  new({required this.kind, required this.type, required this.name});
 
   @override
   int get fileOffset {

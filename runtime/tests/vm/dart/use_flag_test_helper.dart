@@ -129,6 +129,8 @@ Future<void> assembleSnapshot(
     shared = '-dynamiclib';
     if (buildDir.endsWith('ARM64')) {
       ccFlags.add('--target=arm64-apple-darwin');
+    } else if (buildDir.endsWith('ARM64E')) {
+      ccFlags.add('--target=arm64e-apple-darwin');
     } else {
       ccFlags.add('--target=x86_64-apple-darwin');
     }

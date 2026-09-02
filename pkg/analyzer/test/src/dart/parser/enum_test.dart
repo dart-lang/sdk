@@ -104,7 +104,8 @@ EnumDeclaration
         arguments: EnumConstantArguments
           constructorSelector: ConstructorSelector
             period: .
-            name: SimpleIdentifier
+            name2: foo
+            name(v1): SimpleIdentifier
               token: foo
           argumentList: ArgumentList
             leftParenthesis: (
@@ -282,7 +283,8 @@ EnumConstantDeclaration
   arguments: EnumConstantArguments
     constructorSelector: ConstructorSelector
       period: .
-      name: SimpleIdentifier
+      name2: <empty> <synthetic>
+      name(v1): SimpleIdentifier
         token: <empty> <synthetic>
     argumentList: ArgumentList
       leftParenthesis: ( <synthetic>
@@ -306,7 +308,8 @@ EnumConstantDeclaration
   arguments: EnumConstantArguments
     constructorSelector: ConstructorSelector
       period: .
-      name: SimpleIdentifier
+      name2: named
+      name(v1): SimpleIdentifier
         token: named
     argumentList: ArgumentList
       leftParenthesis: ( <synthetic>
@@ -331,7 +334,8 @@ EnumConstantDeclaration
   arguments: EnumConstantArguments
     constructorSelector: ConstructorSelector
       period: .
-      name: SimpleIdentifier
+      name2: <empty> <synthetic>
+      name(v1): SimpleIdentifier
         token: <empty> <synthetic>
     argumentList: ArgumentList
       leftParenthesis: ( <synthetic>
@@ -361,7 +365,8 @@ EnumConstantDeclaration
       rightBracket: >
     constructorSelector: ConstructorSelector
       period: .
-      name: SimpleIdentifier
+      name2: <empty> <synthetic>
+      name(v1): SimpleIdentifier
         token: <empty> <synthetic>
     argumentList: ArgumentList
       leftParenthesis: ( <synthetic>
@@ -392,7 +397,8 @@ EnumConstantDeclaration
       rightBracket: >
     constructorSelector: ConstructorSelector
       period: .
-      name: SimpleIdentifier
+      name2: <empty> <synthetic>
+      name(v1): SimpleIdentifier
         token: <empty> <synthetic>
     argumentList: ArgumentList
       leftParenthesis: ( <synthetic>
@@ -512,11 +518,14 @@ ConstructorDeclaration
     leftParenthesis: (
     rightParenthesis: )
   separator: =
-  redirectedConstructor: ConstructorName
-    type: NamedType
+  factoryRedirectionTarget: ConstructorReference2
+    typeReference: ConstructorTypeReference
       name: B
   body: EmptyFunctionBody
     semicolon: ;
+  redirectedConstructor: ConstructorName
+    type: NamedType
+      name: B
 ''');
   }
 
@@ -559,11 +568,14 @@ ConstructorDeclaration
     leftParenthesis: (
     rightParenthesis: )
   separator: =
-  redirectedConstructor: ConstructorName
-    type: NamedType
+  factoryRedirectionTarget: ConstructorReference2
+    typeReference: ConstructorTypeReference
       name: B
   body: EmptyFunctionBody
     semicolon: ;
+  redirectedConstructor: ConstructorName
+    type: NamedType
+      name: B
 ''');
   }
 
@@ -664,7 +676,8 @@ augment enum E {
 ConstructorDeclaration
   augmentKeyword: augment
   factoryKeyword: factory
-  typeName: SimpleIdentifier
+  typeName2: E
+  typeName(v1): SimpleIdentifier
     token: E
   parameters: FormalParameterList
     leftParenthesis: (
@@ -688,7 +701,8 @@ enum E {
     assertParsedNodeText(node, r'''
 ConstructorDeclaration
   factoryKeyword: factory
-  typeName: SimpleIdentifier
+  typeName2: E
+  typeName(v1): SimpleIdentifier
     token: E
   period: .
   name: named
@@ -714,7 +728,8 @@ enum E {
     assertParsedNodeText(node, r'''
 ConstructorDeclaration
   factoryKeyword: factory
-  typeName: SimpleIdentifier
+  typeName2: E
+  typeName(v1): SimpleIdentifier
     token: E
   parameters: FormalParameterList
     leftParenthesis: (
@@ -737,7 +752,8 @@ enum E {
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
 ConstructorDeclaration
-  typeName: SimpleIdentifier
+  typeName2: E
+  typeName(v1): SimpleIdentifier
     token: E
   period: .
   name: named
@@ -760,7 +776,8 @@ enum E {
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
 ConstructorDeclaration
-  typeName: SimpleIdentifier
+  typeName2: E
+  typeName(v1): SimpleIdentifier
     token: E
   parameters: FormalParameterList
     leftParenthesis: (
@@ -836,9 +853,9 @@ EnumDeclaration
 ''');
   }
 
-  test_emptyBody_language310() {
+  test_emptyBody_beforePrimaryConstructors() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart = 3.10
+// %before-language-feature: primary-constructors
 enum E;
 //    ^
 // [diag.experimentNotEnabled] This requires the 'primary-constructors' language feature to be enabled.
@@ -880,7 +897,7 @@ EnumDeclaration
             VariableDeclaration
               name: x
               equals: =
-              initializer: IntegerLiteral
+              initializer2: IntegerLiteral
                 literal: 0
         semicolon: ;
     rightBracket: }
@@ -913,7 +930,7 @@ EnumDeclaration
             VariableDeclaration
               name: x
               equals: =
-              initializer: IntegerLiteral
+              initializer2: IntegerLiteral
                 literal: 0
         semicolon: ;
     rightBracket: }
@@ -947,7 +964,7 @@ EnumDeclaration
             VariableDeclaration
               name: x
               equals: =
-              initializer: IntegerLiteral
+              initializer2: IntegerLiteral
                 literal: 0
         semicolon: ;
     rightBracket: }
@@ -978,7 +995,7 @@ EnumDeclaration
         name: foo
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: IntegerLiteral
+          expression2: IntegerLiteral
             literal: 0
           semicolon: ;
     rightBracket: }
@@ -1010,7 +1027,7 @@ EnumDeclaration
         name: foo
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: IntegerLiteral
+          expression2: IntegerLiteral
             literal: 0
           semicolon: ;
     rightBracket: }
@@ -1260,6 +1277,14 @@ EnumDeclaration
         name: +
         parameters: FormalParameterList
           leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              type: NamedType
+                name: int
+              name: other
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
+          leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
               name: int
@@ -1267,7 +1292,7 @@ EnumDeclaration
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression: IntegerLiteral
+          expression2: IntegerLiteral
             literal: 0
           semicolon: ;
     rightBracket: }
@@ -1414,9 +1439,9 @@ EnumDeclaration
 ''');
   }
 
-  test_primaryConstructor_const_typeName_noFormalParameters_language310() {
+  test_primaryConstructor_const_typeName_noFormalParameters_beforePrimaryConstructors() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-// @dart=3.10
+// %before-language-feature: primary-constructors
 enum const E {v}
 //   ^^^^^
 // [diag.unexpectedToken] Unexpected text 'const'.
@@ -1480,6 +1505,23 @@ EnumDeclaration
     typeName: E
     formalParameters: FormalParameterList
       leftParenthesis: (
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: {
+        formalParameters
+          RegularFormalParameter
+            requiredKeyword: required
+            constFinalOrVarKeyword: final
+            type: NamedType
+              name: int
+            name: a
+            defaultClause: FormalParameterDefaultClause
+              separator: =
+              value2: IntegerLiteral
+                literal: 0
+        rightDelimiter: }
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       leftDelimiter: {
       parameter: RegularFormalParameter
         requiredKeyword: required
@@ -1518,6 +1560,26 @@ EnumDeclaration
     constKeyword: const
     typeName: E
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      delimitedFormalParameters: DelimitedFormalParameters
+        leftDelimiter: {
+        formalParameters
+          RegularFormalParameter
+            documentationComment: Comment
+              tokens
+                /// aaa
+            requiredKeyword: required
+            constFinalOrVarKeyword: final
+            type: NamedType
+              name: int
+            name: a
+            defaultClause: FormalParameterDefaultClause
+              separator: =
+              value2: IntegerLiteral
+                literal: 0
+        rightDelimiter: }
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
       parameter: RegularFormalParameter
@@ -1561,6 +1623,34 @@ EnumDeclaration
     typeName: E
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          documentationComment: Comment
+            tokens
+              /// aaa
+          constFinalOrVarKeyword: final
+          type: NamedType
+            name: int
+          name: a
+          functionTypedSuffix: FunctionTypedFormalParameterSuffix
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  type: NamedType
+                    name: String
+                  name: x
+              rightParenthesis: )
+            formalParameters(v1): FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                type: NamedType
+                  name: String
+                name: x
+              rightParenthesis: )
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         documentationComment: Comment
           tokens
@@ -1601,6 +1691,15 @@ EnumDeclaration
     typeName: E
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          constFinalOrVarKeyword: final
+          type: NamedType
+            name: int
+          name: a
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         constFinalOrVarKeyword: final
         type: NamedType
@@ -1632,6 +1731,18 @@ EnumDeclaration
     constKeyword: const
     typeName: E
     formalParameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          documentationComment: Comment
+            tokens
+              /// aaa
+          constFinalOrVarKeyword: final
+          type: NamedType
+            name: int
+          name: a
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         documentationComment: Comment
@@ -1666,6 +1777,15 @@ EnumDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          covariantKeyword: covariant
+          type: NamedType
+            name: int
+          name: it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         covariantKeyword: covariant
         type: NamedType
@@ -1680,7 +1800,7 @@ EnumDeclaration
         arguments: EnumConstantArguments
           argumentList: ArgumentList
             leftParenthesis: (
-            arguments
+            arguments2
               IntegerLiteral
                 literal: 0
             rightParenthesis: )
@@ -1703,6 +1823,16 @@ EnumDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          covariantKeyword: covariant
+          constFinalOrVarKeyword: final
+          type: NamedType
+            name: int
+          name: it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         covariantKeyword: covariant
         constFinalOrVarKeyword: final
@@ -1718,7 +1848,7 @@ EnumDeclaration
         arguments: EnumConstantArguments
           argumentList: ArgumentList
             leftParenthesis: (
-            arguments
+            arguments2
               IntegerLiteral
                 literal: 0
             rightParenthesis: )
@@ -1739,6 +1869,16 @@ EnumDeclaration
     typeName: A
     formalParameters: FormalParameterList
       leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          covariantKeyword: covariant
+          constFinalOrVarKeyword: var
+          type: NamedType
+            name: int
+          name: it
+      rightParenthesis: )
+    formalParameters(v1): FormalParameterList
+      leftParenthesis: (
       parameter: RegularFormalParameter
         covariantKeyword: covariant
         constFinalOrVarKeyword: var
@@ -1754,7 +1894,7 @@ EnumDeclaration
         arguments: EnumConstantArguments
           argumentList: ArgumentList
             leftParenthesis: (
-            arguments
+            arguments2
               IntegerLiteral
                 literal: 0
             rightParenthesis: )
@@ -1943,6 +2083,14 @@ EnumDeclaration
         name: foo
         parameters: FormalParameterList
           leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              type: NamedType
+                name: int
+              name: x
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
+          leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
               name: int
@@ -1978,6 +2126,14 @@ EnumDeclaration
         propertyKeyword: set
         name: foo
         parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              type: NamedType
+                name: int
+              name: x
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType

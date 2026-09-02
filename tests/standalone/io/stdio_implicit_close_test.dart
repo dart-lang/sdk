@@ -9,7 +9,7 @@ import "package:expect/expect.dart";
 
 import "dart:io";
 
-void test({required bool closeStdout, required bool closeStderr}) {
+test({required bool closeStdout, required bool closeStderr}) async {
   var scriptFile = "stdio_implicit_close_script.dart";
   var script = Platform.script.resolve(scriptFile).toFilePath();
 
@@ -19,24 +19,20 @@ void test({required bool closeStdout, required bool closeStderr}) {
   if (closeStdout) arguments.add("stdout");
   if (closeStderr) arguments.add("stderr");
 
-  asyncStart();
-  Process.run(Platform.executable, arguments).then((result) {
-    print(result.stdout);
-    print(result.stderr);
-    Expect.equals(0, result.exitCode);
+  var result = await Process.run(Platform.executable, arguments);
+  print(result.stdout);
+  print(result.stderr);
+  Expect.equals(0, result.exitCode);
 
-    Expect.isTrue(result.stdout.contains("APPLE"));
-    Expect.isTrue(result.stderr.contains("BANANA"));
-
-    asyncEnd();
-  });
+  Expect.isTrue(result.stdout.contains("APPLE"));
+  Expect.isTrue(result.stderr.contains("BANANA"));
 }
 
-void main() {
+main() async {
   asyncStart();
-  test(closeStdout: false, closeStderr: false);
-  test(closeStdout: false, closeStderr: true);
-  test(closeStdout: true, closeStderr: false);
-  test(closeStdout: true, closeStderr: true);
+  await test(closeStdout: false, closeStderr: false);
+  await test(closeStdout: false, closeStderr: true);
+  await test(closeStdout: true, closeStderr: false);
+  await test(closeStdout: true, closeStderr: true);
   asyncEnd();
 }

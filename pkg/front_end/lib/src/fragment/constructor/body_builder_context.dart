@@ -138,14 +138,17 @@ class ConstructorBodyBuilderContext extends BodyBuilderContext {
     // Constructors can only be sync.
     _declaration.registerFunctionBody(
       body,
-      scopeProviderInfo?.scope,
-      thisVariable: scopeProviderInfo?.thisVariable,
+      scopeProviderInfo: scopeProviderInfo,
     );
   }
 
   @override
-  void registerNoBodyConstructor({required ThisVariable? thisVariable}) {
-    _declaration.registerNoBodyConstructor(thisVariable: thisVariable);
+  void registerNoBodyConstructor({
+    required ScopeProviderInfo? scopeProviderInfo,
+  }) {
+    _declaration.registerNoBodyConstructor(
+      scopeProviderInfo: scopeProviderInfo,
+    );
   }
 
   @override
