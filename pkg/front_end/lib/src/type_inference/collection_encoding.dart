@@ -54,7 +54,7 @@ abstract class MapLiteralBuilder._(
     required DartType keyType,
     required DartType valueType,
     required bool isConst,
-    required ContextAllocationStrategy? contextAllocationStrategy,
+    required ContextAllocationStrategy contextAllocationStrategy,
   }) => isConst
       ? new _ConstMapLiteralBuilder(
           engine,
@@ -1120,7 +1120,7 @@ abstract class _NonConstListOrSetLiteralBuilder(
       patternGuard: element.patternGuard,
       then: thenBody,
       otherwise: elseBody,
-    );
+    )..scope = element.scope;
     _libraryBuilder.loader.dataForTesting
     // Coverage-ignore(suite): Not run.
     ?.registerExternalNode(element.nodeForTesting, ifCaseStatement);
@@ -1355,7 +1355,7 @@ class _NonConstMapLiteralBuilder(
   super.libraryBuilder, {
   required super.keyType,
   required super.valueType,
-  required final ContextAllocationStrategy? contextAllocationStrategy,
+  required final ContextAllocationStrategy contextAllocationStrategy,
 }) extends MapLiteralBuilder {
   final InterfaceType _receiverType;
 
@@ -1388,9 +1388,7 @@ class _NonConstMapLiteralBuilder(
     }
 
     ScopeProviderInfo? scopeProviderInfo = contextAllocationStrategy
-        ?.enterScopeProvider(
-          scopeProviderInfoKind: ScopeProviderInfoKind.Block,
-        );
+        .enterScopeProvider(scopeProviderInfoKind: ScopeProviderInfoKind.Block);
 
     // Build a block expression and create an empty map.
     DeclaredVariable? result;
@@ -1418,9 +1416,7 @@ class _NonConstMapLiteralBuilder(
           )..fileOffset = fileOffset,
           _receiverType,
         );
-        contextAllocationStrategy
-        // Coverage-ignore(suite): Not run.
-        ?.handleDeclarationOfVariable(
+        contextAllocationStrategy.handleDeclarationOfVariable(
           result,
           captureKind: CaptureKind.notCaptured,
         );
@@ -1433,7 +1429,7 @@ class _NonConstMapLiteralBuilder(
         _createMapLiteral(fileOffset: fileOffset, entries: [], isConst: false),
         _receiverType,
       );
-      contextAllocationStrategy?.handleDeclarationOfVariable(
+      contextAllocationStrategy.handleDeclarationOfVariable(
         result,
         captureKind: CaptureKind.notCaptured,
       );
@@ -1457,15 +1453,13 @@ class _NonConstMapLiteralBuilder(
       _translateMapEntry(entries[index], result, body);
     }
 
-    if (scopeProviderInfo != null) {
-      contextAllocationStrategy?.exitScopeProvider(scopeProviderInfo);
-    }
+    contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
 
     return _createBlockExpression(
       fileOffset,
       _createBlock(body),
       _createVariableGet(result),
-    )..scope = scopeProviderInfo?.scope;
+    )..scope = scopeProviderInfo.scope;
   }
 
   void _addNormalEntry(
@@ -1999,7 +1993,7 @@ class _NonConstMapLiteralBuilder(
       }
 
       ScopeProviderInfo? forLoopScopeProviderInfo = contextAllocationStrategy
-          ?.enterScopeProvider(
+          .enterScopeProvider(
             scopeProviderInfoKind: ScopeProviderInfoKind.Loop,
           );
       final InterfaceType variableType = new InterfaceType(
@@ -2011,13 +2005,13 @@ class _NonConstMapLiteralBuilder(
         entry.fileOffset,
         variableType,
       );
-      contextAllocationStrategy?.handleDeclarationOfVariable(
+      contextAllocationStrategy.handleDeclarationOfVariable(
         variable,
         captureKind: CaptureKind.notCaptured,
       );
 
-      ScopeProviderInfo? loopBodyScopeProviderInfo = contextAllocationStrategy
-          ?.enterScopeProvider(
+      ScopeProviderInfo loopBodyScopeProviderInfo = contextAllocationStrategy
+          .enterScopeProvider(
             scopeProviderInfoKind: ScopeProviderInfoKind.Block,
           );
       DeclaredVariable keyVar = _createVariable(
@@ -2032,7 +2026,7 @@ class _NonConstMapLiteralBuilder(
         ),
         _keyType,
       );
-      contextAllocationStrategy?.handleDeclarationOfVariable(
+      contextAllocationStrategy.handleDeclarationOfVariable(
         keyVar,
         captureKind: CaptureKind.notCaptured,
       );
@@ -2048,7 +2042,7 @@ class _NonConstMapLiteralBuilder(
         ),
         _valueType,
       );
-      contextAllocationStrategy?.handleDeclarationOfVariable(
+      contextAllocationStrategy.handleDeclarationOfVariable(
         valueVar,
         captureKind: CaptureKind.notCaptured,
       );
@@ -2068,20 +2062,16 @@ class _NonConstMapLiteralBuilder(
             _createVariableGet(valueVar),
           ),
         ),
-      ])..scope = loopBodyScopeProviderInfo?.scope;
-      if (loopBodyScopeProviderInfo != null) {
-        contextAllocationStrategy?.exitScopeProvider(loopBodyScopeProviderInfo);
-      }
+      ])..scope = loopBodyScopeProviderInfo.scope;
+      contextAllocationStrategy.exitScopeProvider(loopBodyScopeProviderInfo);
 
       Statement statement = _createForInStatement(
         entry.fileOffset,
         variable,
         _createGetEntries(entry.fileOffset, value, _receiverType),
         loopBody,
-      )..scope = forLoopScopeProviderInfo?.scope;
-      if (forLoopScopeProviderInfo != null) {
-        contextAllocationStrategy?.exitScopeProvider(forLoopScopeProviderInfo);
-      }
+      )..scope = forLoopScopeProviderInfo.scope;
+      contextAllocationStrategy.exitScopeProvider(forLoopScopeProviderInfo);
 
       if (entry.isNullAware) {
         statement = _createIf(

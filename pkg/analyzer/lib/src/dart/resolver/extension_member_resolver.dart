@@ -526,8 +526,8 @@ class ExtensionMemberResolver {
     }
     return parent is BinaryOperatorInvocation && parent.leftOperand == node ||
         parent is FunctionExpressionInvocation && parent.function2 == node ||
-        parent is IndexAssignmentTarget && parent.receiver == node ||
-        parent is IndexExpression2 && parent.receiver == node ||
+        parent is ReceiverIndexAssignmentTarget && parent.receiver == node ||
+        parent is ReceiverIndexExpression && parent.receiver == node ||
         parent is IndexExpression && parent.target2 == node ||
         parent is IncrementOrDecrementExpression ||
         parent is MethodInvocation && parent.target2 == node ||

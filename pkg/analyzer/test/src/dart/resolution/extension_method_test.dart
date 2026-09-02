@@ -1972,9 +1972,9 @@ f(C c) {
   c[2];
 }
 ''');
-    var node = result.findNode.indexExpression2('c[2]');
+    var node = result.findNode.receiverIndexExpression('c[2]');
     assertResolvedNodeText(node, r'''
-IndexExpression2
+ReceiverIndexExpression
   receiver: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::f::@formalParameter::c
@@ -2015,9 +2015,9 @@ g(int Function(int) f) {
   f[2];
 }
 ''');
-    var node = result.findNode.indexExpression2('f[2]');
+    var node = result.findNode.receiverIndexExpression('f[2]');
     assertResolvedNodeText(node, r'''
-IndexExpression2
+ReceiverIndexExpression
   receiver: SimpleIdentifier
     token: f
     element: <testLibrary>::@function::g::@formalParameter::f
@@ -2059,9 +2059,9 @@ f(C c) {
   c[2];
 }
 ''');
-    var node = result.findNode.indexExpression2('c[2]');
+    var node = result.findNode.receiverIndexExpression('c[2]');
     assertResolvedNodeText(node, r'''
-IndexExpression2
+ReceiverIndexExpression
   receiver: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::f::@formalParameter::c
@@ -2103,9 +2103,9 @@ f(int? a) {
   a[0];
 }
 ''');
-    var node = result.findNode.indexExpression2('a[0]');
+    var node = result.findNode.receiverIndexExpression('a[0]');
     assertResolvedNodeText(node, r'''
-IndexExpression2
+ReceiverIndexExpression
   receiver: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
@@ -2147,9 +2147,9 @@ f(int? a) {
   a?[0];
 }
 ''');
-    var node = result.findNode.indexExpression2('a?[0]');
+    var node = result.findNode.receiverIndexExpression('a?[0]');
     assertResolvedNodeText(node, r'''
-IndexExpression2
+ReceiverIndexExpression
   receiver: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
@@ -2198,7 +2198,7 @@ f(C c) {
     var node = result.findNode.directAssignment('[2] =');
     assertResolvedNodeText(node, r'''
 DirectAssignment
-  target: IndexAssignmentTarget
+  target: ReceiverIndexAssignmentTarget
     receiver: SimpleIdentifier
       token: c
       element: <testLibrary>::@function::f::@formalParameter::c
@@ -2260,7 +2260,7 @@ g(int Function(int) f) {
     var node = result.findNode.directAssignment('f[2]');
     assertResolvedNodeText(node, r'''
 DirectAssignment
-  target: IndexAssignmentTarget
+  target: ReceiverIndexAssignmentTarget
     receiver: SimpleIdentifier
       token: f
       element: <testLibrary>::@function::g::@formalParameter::f
@@ -2323,7 +2323,7 @@ f(C c) {
     var node = result.findNode.directAssignment('c[2]');
     assertResolvedNodeText(node, r'''
 DirectAssignment
-  target: IndexAssignmentTarget
+  target: ReceiverIndexAssignmentTarget
     receiver: SimpleIdentifier
       token: c
       element: <testLibrary>::@function::f::@formalParameter::c
@@ -4749,9 +4749,9 @@ extension E on C {
   void b() { this[2]; }
 }
 ''');
-    var node = result.findNode.indexExpression2('this[2]');
+    var node = result.findNode.receiverIndexExpression('this[2]');
     assertResolvedNodeText(node, r'''
-IndexExpression2
+ReceiverIndexExpression
   receiver: ThisExpression
     thisKeyword: this
     staticType: C
@@ -4789,9 +4789,9 @@ extension E on C {
   void b() { this[2]; }
 }
 ''');
-    var node = result.findNode.indexExpression2('this[2]');
+    var node = result.findNode.receiverIndexExpression('this[2]');
     assertResolvedNodeText(node, r'''
-IndexExpression2
+ReceiverIndexExpression
   receiver: ThisExpression
     thisKeyword: this
     staticType: C
@@ -4834,7 +4834,7 @@ extension E on C {
     var node = result.findNode.directAssignment('this[2]');
     assertResolvedNodeText(node, r'''
 DirectAssignment
-  target: IndexAssignmentTarget
+  target: ReceiverIndexAssignmentTarget
     receiver: ThisExpression
       thisKeyword: this
       staticType: C
@@ -4893,7 +4893,7 @@ extension E on C {
     var node = result.findNode.directAssignment('this[2]');
     assertResolvedNodeText(node, r'''
 DirectAssignment
-  target: IndexAssignmentTarget
+  target: ReceiverIndexAssignmentTarget
     receiver: ThisExpression
       thisKeyword: this
       staticType: C

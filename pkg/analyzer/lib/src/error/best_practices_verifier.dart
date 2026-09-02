@@ -207,7 +207,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
 
   @override
   void visitCascadeIndexExpression(CascadeIndexExpression node) {
-    _elementUsageFrontierDetector.cascadeIndexExpression(node);
+    _elementUsageFrontierDetector.indexExpression2(node);
     super.visitCascadeIndexExpression(node);
   }
 
@@ -661,12 +661,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitIndexExpression2(IndexExpression2 node) {
-    _elementUsageFrontierDetector.indexExpression2(node);
-    super.visitIndexExpression2(node);
-  }
-
-  @override
   void visitIsExpression(covariant IsExpressionImpl node) {
     _checkAllTypeChecks(node);
     super.visitIsExpression(node);
@@ -877,6 +871,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
     _deprecatedFunctionalityVerifier.primaryConstructorDeclaration(node);
     super.visitPrimaryConstructorDeclaration(node);
     _inPrimaryConstructorDeclaration = false;
+  }
+
+  @override
+  void visitReceiverIndexExpression(ReceiverIndexExpression node) {
+    _elementUsageFrontierDetector.indexExpression2(node);
+    super.visitReceiverIndexExpression(node);
   }
 
   @override

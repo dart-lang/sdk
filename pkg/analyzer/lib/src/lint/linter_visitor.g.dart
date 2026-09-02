@@ -1860,23 +1860,9 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
     node.visitChildren2(this);
   }
 
-  @experimental
-  @override
-  void visitIndexAssignmentTarget(IndexAssignmentTarget node) {
-    _runSubscriptions(node, _registry._forIndexAssignmentTarget);
-    node.visitChildren2(this);
-  }
-
   @override
   void visitIndexExpression(IndexExpression node) {
     _runSubscriptions(node, _registry._forIndexExpression);
-    node.visitChildren2(this);
-  }
-
-  @experimental
-  @override
-  void visitIndexExpression2(IndexExpression2 node) {
-    _runSubscriptions(node, _registry._forIndexExpression2);
     node.visitChildren2(this);
   }
 
@@ -2216,6 +2202,20 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
   @override
   void visitPropertyAccess(PropertyAccess node) {
     _runSubscriptions(node, _registry._forPropertyAccess);
+    node.visitChildren2(this);
+  }
+
+  @experimental
+  @override
+  void visitReceiverIndexAssignmentTarget(ReceiverIndexAssignmentTarget node) {
+    _runSubscriptions(node, _registry._forReceiverIndexAssignmentTarget);
+    node.visitChildren2(this);
+  }
+
+  @experimental
+  @override
+  void visitReceiverIndexExpression(ReceiverIndexExpression node) {
+    _runSubscriptions(node, _registry._forReceiverIndexExpression);
     node.visitChildren2(this);
   }
 
@@ -4601,11 +4601,6 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   final List<_Subscription2<ImportPrefixReference>> _forImportPrefixReference =
       [];
 
-  final List<_Subscription2<IndexAssignmentTarget>> _forIndexAssignmentTarget =
-      [];
-
-  final List<_Subscription2<IndexExpression2>> _forIndexExpression2 = [];
-
   final List<_Subscription2<IndexExpression>> _forIndexExpression = [];
 
   final List<_Subscription2<IntegerLiteral>> _forIntegerLiteral = [];
@@ -4726,6 +4721,12 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   _forPrimaryConstructorName = [];
 
   final List<_Subscription2<PropertyAccess>> _forPropertyAccess = [];
+
+  final List<_Subscription2<ReceiverIndexAssignmentTarget>>
+  _forReceiverIndexAssignmentTarget = [];
+
+  final List<_Subscription2<ReceiverIndexExpression>>
+  _forReceiverIndexExpression = [];
 
   final List<_Subscription2<ReceiverPropertyAssignmentTarget>>
   _forReceiverPropertyAssignmentTarget = [];
@@ -5657,26 +5658,9 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   }
 
   @override
-  void addIndexAssignmentTarget(
-    AbstractAnalysisRule rule,
-    AstVisitor2 visitor,
-  ) {
-    _hasNodeProcessors = true;
-    _forIndexAssignmentTarget.add(
-      _Subscription2(rule, visitor, _getTimer(rule)),
-    );
-  }
-
-  @override
   void addIndexExpression(AbstractAnalysisRule rule, AstVisitor2 visitor) {
     _hasNodeProcessors = true;
     _forIndexExpression.add(_Subscription2(rule, visitor, _getTimer(rule)));
-  }
-
-  @override
-  void addIndexExpression2(AbstractAnalysisRule rule, AstVisitor2 visitor) {
-    _hasNodeProcessors = true;
-    _forIndexExpression2.add(_Subscription2(rule, visitor, _getTimer(rule)));
   }
 
   @override
@@ -6053,6 +6037,28 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   void addPropertyAccess(AbstractAnalysisRule rule, AstVisitor2 visitor) {
     _hasNodeProcessors = true;
     _forPropertyAccess.add(_Subscription2(rule, visitor, _getTimer(rule)));
+  }
+
+  @override
+  void addReceiverIndexAssignmentTarget(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
+    _hasNodeProcessors = true;
+    _forReceiverIndexAssignmentTarget.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
+  }
+
+  @override
+  void addReceiverIndexExpression(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
+    _hasNodeProcessors = true;
+    _forReceiverIndexExpression.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
   }
 
   @override

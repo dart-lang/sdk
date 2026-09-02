@@ -8115,7 +8115,60 @@ void useOperator(A a) {
 ''');
   }
 
-  test_searchReferences_MethodElement_operator_ofClass_indexAssignmentTarget() async {
+  test_searchReferences_MethodElement_operator_ofClass_indexExpression() async {
+    var result = await resolveTestCode('''
+/// [operator []] and [A.operator []]
+class A {
+  num operator [](int i) => 0;
+}
+void useOperator(A a, A? b) {
+  a[0];
+  b?[1];
+}
+''');
+    var element = result.findElement.method('[]');
+
+    await assertElementReferencesText(element, r'''
+/// [operator []] and [A.operator []]
+class A {
+  num operator [](int i) => 0;
+}
+void useOperator(A a, A? b) {
+  a[0];
+   ^ INVOCATION qualified
+  b?[1];
+    ^ INVOCATION qualified
+}
+''');
+  }
+
+  test_searchReferences_MethodElement_operator_ofClass_prefix() async {
+    var result = await resolveTestCode('''
+/// [operator ~] and [A.operator ~]
+class A {
+  A operator ~() => this;
+}
+void useOperator(A a) {
+  ~a;
+}
+''');
+    var element = result.findElement.method('~');
+
+    await assertElementReferencesText(element, r'''
+/// [operator ~] and [A.operator ~]
+              ^ REFERENCE
+                                 ^ REFERENCE qualified
+class A {
+  A operator ~() => this;
+}
+void useOperator(A a) {
+  ~a;
+  ^ INVOCATION qualified
+}
+''');
+  }
+
+  test_searchReferences_MethodElement_operator_ofClass_receiverIndexAssignmentTarget() async {
     var result = await resolveTestCode('''
 class A {
   num operator [](int i) => 0;
@@ -8173,59 +8226,6 @@ void useOperator(A a, A? nullableA, B b, B? nullableB) {
 }
 ''',
     );
-  }
-
-  test_searchReferences_MethodElement_operator_ofClass_indexExpression() async {
-    var result = await resolveTestCode('''
-/// [operator []] and [A.operator []]
-class A {
-  num operator [](int i) => 0;
-}
-void useOperator(A a, A? b) {
-  a[0];
-  b?[1];
-}
-''');
-    var element = result.findElement.method('[]');
-
-    await assertElementReferencesText(element, r'''
-/// [operator []] and [A.operator []]
-class A {
-  num operator [](int i) => 0;
-}
-void useOperator(A a, A? b) {
-  a[0];
-   ^ INVOCATION qualified
-  b?[1];
-    ^ INVOCATION qualified
-}
-''');
-  }
-
-  test_searchReferences_MethodElement_operator_ofClass_prefix() async {
-    var result = await resolveTestCode('''
-/// [operator ~] and [A.operator ~]
-class A {
-  A operator ~() => this;
-}
-void useOperator(A a) {
-  ~a;
-}
-''');
-    var element = result.findElement.method('~');
-
-    await assertElementReferencesText(element, r'''
-/// [operator ~] and [A.operator ~]
-              ^ REFERENCE
-                                 ^ REFERENCE qualified
-class A {
-  A operator ~() => this;
-}
-void useOperator(A a) {
-  ~a;
-  ^ INVOCATION qualified
-}
-''');
   }
 
   test_searchReferences_MethodElement_operator_ofEnum_binary() async {

@@ -96,11 +96,6 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
   }
 
   @override
-  void visitIndexExpression2(IndexExpression2 node) {
-    _check(arguments: [node.index], errorNode: node.leftBracket);
-  }
-
-  @override
   void visitMethodInvocation(MethodInvocation node) {
     _check(arguments: node.argumentList.arguments2, errorNode: node.methodName);
   }
@@ -113,6 +108,11 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
   @override
   void visitPropertyAccess(PropertyAccess node) {
     _checkTearoff(node.propertyName, node.propertyName.element);
+  }
+
+  @override
+  void visitReceiverIndexExpression(ReceiverIndexExpression node) {
+    _check(arguments: [node.index], errorNode: node.leftBracket);
   }
 
   @override

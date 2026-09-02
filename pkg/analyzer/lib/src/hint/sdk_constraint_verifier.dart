@@ -88,15 +88,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
 
   @override
   void visitCascadeIndexExpression(CascadeIndexExpression node) {
-    var element = switch (node.resolution) {
-      MethodIndexReadResolution(:var element) => element,
-      InvalidIndexReadResolution(
-        recovery: MethodIndexReadResolution(:var element),
-      ) =>
-        element,
-      _ => null,
-    };
-    _checkSinceSdkVersion(element, node);
+    _checkIndexRead(node);
     super.visitCascadeIndexExpression(node);
   }
 
@@ -113,22 +105,14 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
   @override
   void visitCompoundAssignment(CompoundAssignment node) {
     var target = node.target;
-    if (target
-        case IndexAssignmentTarget(
-              read: MethodIndexReadResolution(:var element),
-            ) ||
-            CascadeIndexAssignmentTarget(
-              read: MethodIndexReadResolution(:var element),
-            )) {
+    if (target case IndexAssignmentTarget(
+      read: MethodIndexReadResolution(:var element),
+    )) {
       _checkSinceSdkVersion(element, target);
     }
-    if (target
-        case IndexAssignmentTarget(
-              write: MethodIndexWriteResolution(:var element),
-            ) ||
-            CascadeIndexAssignmentTarget(
-              write: MethodIndexWriteResolution(:var element),
-            )) {
+    if (target case IndexAssignmentTarget(
+      write: MethodIndexWriteResolution(:var element),
+    )) {
       _checkSinceSdkVersion(element, target);
     }
     var read = switch (target) {
@@ -187,13 +171,9 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
   @override
   void visitDirectAssignment(DirectAssignment node) {
     var target = node.target;
-    if (target
-        case IndexAssignmentTarget(
-              write: MethodIndexWriteResolution(:var element),
-            ) ||
-            CascadeIndexAssignmentTarget(
-              write: MethodIndexWriteResolution(:var element),
-            )) {
+    if (target case IndexAssignmentTarget(
+      write: MethodIndexWriteResolution(:var element),
+    )) {
       _checkSinceSdkVersion(element, target);
     }
     var write = switch (target) {
@@ -229,22 +209,14 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
   @override
   void visitIfNullAssignment(IfNullAssignment node) {
     var target = node.target;
-    if (target
-        case IndexAssignmentTarget(
-              read: MethodIndexReadResolution(:var element),
-            ) ||
-            CascadeIndexAssignmentTarget(
-              read: MethodIndexReadResolution(:var element),
-            )) {
+    if (target case IndexAssignmentTarget(
+      read: MethodIndexReadResolution(:var element),
+    )) {
       _checkSinceSdkVersion(element, target);
     }
-    if (target
-        case IndexAssignmentTarget(
-              write: MethodIndexWriteResolution(:var element),
-            ) ||
-            CascadeIndexAssignmentTarget(
-              write: MethodIndexWriteResolution(:var element),
-            )) {
+    if (target case IndexAssignmentTarget(
+      write: MethodIndexWriteResolution(:var element),
+    )) {
       _checkSinceSdkVersion(element, target);
     }
     if (target is UnqualifiedNameAssignmentTarget) {
@@ -262,20 +234,6 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
   void visitIndexExpression(IndexExpression node) {
     _checkSinceSdkVersion(node.element, node);
     super.visitIndexExpression(node);
-  }
-
-  @override
-  void visitIndexExpression2(IndexExpression2 node) {
-    var element = switch (node.resolution) {
-      MethodIndexReadResolution(:var element) => element,
-      InvalidIndexReadResolution(
-        recovery: MethodIndexReadResolution(:var element),
-      ) =>
-        element,
-      _ => null,
-    };
-    _checkSinceSdkVersion(element, node);
-    super.visitIndexExpression2(node);
   }
 
   @override
@@ -321,6 +279,12 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitReceiverIndexExpression(ReceiverIndexExpression node) {
+    _checkIndexRead(node);
+    super.visitReceiverIndexExpression(node);
+  }
+
+  @override
   void visitReceiverPropertyExtraction(ReceiverPropertyExtraction node) {
     var element = switch (node.resolution) {
       NamedReadResolutionWithElement(:var element) => element,
@@ -341,6 +305,18 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
       return;
     }
     _checkSinceSdkVersion(node.element, node);
+  }
+
+  void _checkIndexRead(IndexExpression2 node) {
+    var element = switch (node.resolution) {
+      MethodIndexReadResolution(:var element) => element,
+      InvalidIndexReadResolution(
+        recovery: MethodIndexReadResolution(:var element),
+      ) =>
+        element,
+      _ => null,
+    };
+    _checkSinceSdkVersion(element, node);
   }
 
   void _checkSinceSdkVersion(

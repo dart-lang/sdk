@@ -141,10 +141,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
   new(this._inferrer, this.fileUri, this.expressionEvaluationHelper);
 
-  static ContextAllocationStrategy createContextAllocationStrategy() {
-    return new TrivialContextAllocationStrategy();
-  }
-
   ThisVariable get internalThisVariable;
 
   // TODO(cstefantsova): Replace this flag by implementing the default

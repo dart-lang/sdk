@@ -776,6 +776,10 @@ config("chromium_code") {
       # disabled, so only do that for Release build.
       defines += [ "_FORTIFY_SOURCE=2" ]
     }
+    if (current_cpu == "ia32" || current_cpu == "arm" ||
+        current_cpu == "riscv32") {
+      defines += [ "_TIME_BITS=64" ]
+    }
   }
   cflags += default_warning_flags
   cflags_cc = default_warning_flags_cc

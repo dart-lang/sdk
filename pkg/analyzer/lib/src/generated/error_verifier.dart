@@ -694,7 +694,6 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   @override
   void visitCompoundAssignment(covariant CompoundAssignmentImpl node) {
     switch (node.target) {
-      case CascadeIndexAssignmentTargetImpl():
       case PropertyAssignmentTargetImpl():
       case IndexAssignmentTargetImpl():
       case InvalidExpressionAssignmentTargetImpl():
@@ -1564,10 +1563,6 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       return;
     }
     switch (target) {
-      case CascadeIndexAssignmentTargetImpl(:var read):
-        if (read case IndexReadResolutionImpl(:var type)) {
-          _checkForDeadNullCoalesce(type, node.value);
-        }
       case PropertyAssignmentTargetImpl(:var read):
         if (read case NamedReadResolutionImpl(:var type)) {
           _checkForDeadNullCoalesce(type, node.value);
@@ -1646,20 +1641,6 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   @override
-  void visitIndexAssignmentTarget(IndexAssignmentTarget node) {
-    var question = node.question;
-    if (question != null) {
-      _checkForUnnecessaryNullAware(
-        node.receiver,
-        question,
-        kind: _NullAwareKind.indexExpression,
-      );
-    }
-
-    super.visitIndexAssignmentTarget(node);
-  }
-
-  @override
   void visitIndexExpression(IndexExpression node) {
     // Note: `node.isNullAware` produces the wrong behavior because it considers
     // all sections of a null-aware cascade to be null-aware, so it's necessary
@@ -1678,20 +1659,6 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     }
 
     super.visitIndexExpression(node);
-  }
-
-  @override
-  void visitIndexExpression2(IndexExpression2 node) {
-    var question = node.question;
-    if (question != null) {
-      _checkForUnnecessaryNullAware(
-        node.receiver,
-        question,
-        kind: _NullAwareKind.indexExpression,
-      );
-    }
-
-    super.visitIndexExpression2(node);
   }
 
   @override
@@ -2132,6 +2099,34 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     }
     _checkUseVerifier.checkPropertyAccess(node);
     super.visitPropertyAccess(node);
+  }
+
+  @override
+  void visitReceiverIndexAssignmentTarget(ReceiverIndexAssignmentTarget node) {
+    var question = node.question;
+    if (question != null) {
+      _checkForUnnecessaryNullAware(
+        node.receiver,
+        question,
+        kind: _NullAwareKind.indexExpression,
+      );
+    }
+
+    super.visitReceiverIndexAssignmentTarget(node);
+  }
+
+  @override
+  void visitReceiverIndexExpression(ReceiverIndexExpression node) {
+    var question = node.question;
+    if (question != null) {
+      _checkForUnnecessaryNullAware(
+        node.receiver,
+        question,
+        kind: _NullAwareKind.indexExpression,
+      );
+    }
+
+    super.visitReceiverIndexExpression(node);
   }
 
   @override
@@ -7909,7 +7904,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
           var realTarget = target.realTarget2;
           return previousShortCircuitingOperator(realTarget) ?? target.question;
         }
-      } else if (target is IndexExpression2) {
+      } else if (target is ReceiverIndexExpression) {
         if (target.question != null) {
           return previousShortCircuitingOperator(target.receiver) ??
               target.question;

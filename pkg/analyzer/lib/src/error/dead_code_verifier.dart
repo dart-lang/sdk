@@ -427,10 +427,6 @@ class NullSafetyDeadCodeVerifier {
     _verifyUnassignedSimpleIdentifier(node, node.target2, node.question);
   }
 
-  void verifyIndexExpression2(IndexExpression2 node) {
-    _verifyUnassignedSimpleIdentifier(node, node.receiver, node.question);
-  }
-
   void verifyMethodInvocation(MethodInvocation node) {
     _verifyUnassignedSimpleIdentifier(node, node.target2, node.operator);
   }
@@ -445,6 +441,10 @@ class NullSafetyDeadCodeVerifier {
 
   void verifyPropertyAccess(PropertyAccess node) {
     _verifyUnassignedSimpleIdentifier(node, node.target2, node.operator);
+  }
+
+  void verifyReceiverIndexExpression(ReceiverIndexExpression node) {
+    _verifyUnassignedSimpleIdentifier(node, node.receiver, node.question);
   }
 
   void visitNode(AstNode node) {

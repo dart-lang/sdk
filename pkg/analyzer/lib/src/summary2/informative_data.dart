@@ -2080,25 +2080,10 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitIndexAssignmentTarget(IndexAssignmentTarget node) {
-    _tokenOrNull(node.leftBracket);
-    _tokenOrNull(node.rightBracket);
-    super.visitIndexAssignmentTarget(node);
-  }
-
-  @override
   void visitIndexExpression(IndexExpression node) {
     _tokenOrNull(node.leftBracket);
     _tokenOrNull(node.rightBracket);
     super.visitIndexExpression(node);
-  }
-
-  @override
-  void visitIndexExpression2(IndexExpression2 node) {
-    _tokenOrNull(node.question);
-    _tokenOrNull(node.leftBracket);
-    _tokenOrNull(node.rightBracket);
-    super.visitIndexExpression2(node);
   }
 
   @override
@@ -2240,6 +2225,21 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
     node.target2?.accept2(this);
     _tokenOrNull(node.operator);
     node.propertyName.accept2(this);
+  }
+
+  @override
+  void visitReceiverIndexAssignmentTarget(ReceiverIndexAssignmentTarget node) {
+    _tokenOrNull(node.leftBracket);
+    _tokenOrNull(node.rightBracket);
+    super.visitReceiverIndexAssignmentTarget(node);
+  }
+
+  @override
+  void visitReceiverIndexExpression(ReceiverIndexExpression node) {
+    _tokenOrNull(node.question);
+    _tokenOrNull(node.leftBracket);
+    _tokenOrNull(node.rightBracket);
+    super.visitReceiverIndexExpression(node);
   }
 
   @override

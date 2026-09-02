@@ -312,26 +312,12 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
   Element? visitCascadeIndexAssignmentTarget(
     CascadeIndexAssignmentTarget node,
   ) {
-    return switch (node.write) {
-      MethodIndexWriteResolution(:var element) => element,
-      InvalidIndexWriteResolution(
-        recovery: MethodIndexWriteResolution(:var element),
-      ) =>
-        element,
-      _ => null,
-    };
+    return _visitIndexAssignmentTarget(node);
   }
 
   @override
   Element? visitCascadeIndexExpression(CascadeIndexExpression node) {
-    return switch (node.resolution) {
-      MethodIndexReadResolution(:var element) => element,
-      InvalidIndexReadResolution(
-        recovery: MethodIndexReadResolution(:var element),
-      ) =>
-        element,
-      _ => null,
-    };
+    return _visitIndexExpression2(node);
   }
 
   @override
@@ -460,32 +446,8 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
   }
 
   @override
-  Element? visitIndexAssignmentTarget(IndexAssignmentTarget node) {
-    return switch (node.write) {
-      MethodIndexWriteResolution(:var element) => element,
-      InvalidIndexWriteResolution(
-        recovery: MethodIndexWriteResolution(:var element),
-      ) =>
-        element,
-      _ => null,
-    };
-  }
-
-  @override
   Element? visitIndexExpression(IndexExpression node) {
     return node.element;
-  }
-
-  @override
-  Element? visitIndexExpression2(IndexExpression2 node) {
-    return switch (node.resolution) {
-      MethodIndexReadResolution(:var element) => element,
-      InvalidIndexReadResolution(
-        recovery: MethodIndexReadResolution(:var element),
-      ) =>
-        element,
-      _ => null,
-    };
   }
 
   @override
@@ -582,6 +544,18 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
   }
 
   @override
+  Element? visitReceiverIndexAssignmentTarget(
+    ReceiverIndexAssignmentTarget node,
+  ) {
+    return _visitIndexAssignmentTarget(node);
+  }
+
+  @override
+  Element? visitReceiverIndexExpression(ReceiverIndexExpression node) {
+    return _visitIndexExpression2(node);
+  }
+
+  @override
   Element? visitReceiverPropertyAssignmentTarget(
     ReceiverPropertyAssignmentTarget node,
   ) {
@@ -658,6 +632,28 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
       return parent.prefix.element;
     }
     return node.writeOrReadElement2;
+  }
+
+  Element? _visitIndexAssignmentTarget(IndexAssignmentTarget node) {
+    return switch (node.write) {
+      MethodIndexWriteResolution(:var element) => element,
+      InvalidIndexWriteResolution(
+        recovery: MethodIndexWriteResolution(:var element),
+      ) =>
+        element,
+      _ => null,
+    };
+  }
+
+  Element? _visitIndexExpression2(IndexExpression2 node) {
+    return switch (node.resolution) {
+      MethodIndexReadResolution(:var element) => element,
+      InvalidIndexReadResolution(
+        recovery: MethodIndexReadResolution(:var element),
+      ) =>
+        element,
+      _ => null,
+    };
   }
 
   Element? _visitStringLiteral(StringLiteral node) {

@@ -287,7 +287,7 @@ void f(A a) {
     assertResolvedNodeText(node, r'''
 PrefixIncrement
   operator: ++
-  target: IndexAssignmentTarget
+  target: ReceiverIndexAssignmentTarget
     receiver: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::f::@formalParameter::a
@@ -349,7 +349,7 @@ void f(A? a) {
     assertResolvedNodeText(node, r'''
 PrefixIncrement
   operator: ++
-  target: IndexAssignmentTarget
+  target: ReceiverIndexAssignmentTarget
     receiver: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::f::@formalParameter::a
@@ -415,7 +415,7 @@ class B extends A {
     assertResolvedNodeText(node, r'''
 PrefixIncrement
   operator: ++
-  target: IndexAssignmentTarget
+  target: ReceiverIndexAssignmentTarget
     receiver: SuperExpression
       superKeyword: super
       staticType: B
@@ -475,7 +475,7 @@ class A {
     assertResolvedNodeText(node, r'''
 PrefixIncrement
   operator: ++
-  target: IndexAssignmentTarget
+  target: ReceiverIndexAssignmentTarget
     receiver: ThisExpression
       thisKeyword: this
       staticType: A

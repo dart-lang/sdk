@@ -223,6 +223,8 @@ class IfCaseElement({
 
   required super.fileOffset,
 }) extends InternalElement {
+  ScopeProviderInfo? scopeProviderInfo;
+
   @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {

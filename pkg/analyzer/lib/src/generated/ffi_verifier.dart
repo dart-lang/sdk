@@ -399,30 +399,6 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitIndexExpression2(covariant IndexExpression2Impl node) {
-    var element = switch (node.resolution) {
-      MethodIndexReadResolutionImpl(:var element) => element,
-      InvalidIndexReadResolutionImpl(
-        recovery: MethodIndexReadResolutionImpl(:var element),
-      ) =>
-        element,
-      _ => null,
-    };
-    if (element != null) {
-      var enclosingElement = element.enclosingElement;
-      if (enclosingElement.isNativeStructPointerExtension ||
-          enclosingElement.isNativeStructArrayExtension ||
-          enclosingElement.isNativeUnionPointerExtension ||
-          enclosingElement.isNativeUnionArrayExtension) {
-        if (element.name == '[]') {
-          _validateRefIndexed(node, node.receiver);
-        }
-      }
-    }
-    super.visitIndexExpression2(node);
-  }
-
-  @override
   void visitLibraryDirective(LibraryDirective node) {
     // Ensure there is at most one @DefaultAsset annotation per library
     var hasDefaultAsset = false;
@@ -537,6 +513,32 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
       }
     }
     super.visitPropertyAccess(node);
+  }
+
+  @override
+  void visitReceiverIndexExpression(
+    covariant ReceiverIndexExpressionImpl node,
+  ) {
+    var element = switch (node.resolution) {
+      MethodIndexReadResolutionImpl(:var element) => element,
+      InvalidIndexReadResolutionImpl(
+        recovery: MethodIndexReadResolutionImpl(:var element),
+      ) =>
+        element,
+      _ => null,
+    };
+    if (element != null) {
+      var enclosingElement = element.enclosingElement;
+      if (enclosingElement.isNativeStructPointerExtension ||
+          enclosingElement.isNativeStructArrayExtension ||
+          enclosingElement.isNativeUnionPointerExtension ||
+          enclosingElement.isNativeUnionArrayExtension) {
+        if (element.name == '[]') {
+          _validateRefIndexed(node, node.receiver);
+        }
+      }
+    }
+    super.visitReceiverIndexExpression(node);
   }
 
   @override
@@ -1344,7 +1346,7 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
       return;
     }
     switch (receiver) {
-      case IndexExpression2(receiver: var indexedReceiver):
+      case ReceiverIndexExpression(receiver: var indexedReceiver):
         // Array or TypedData element.
         var type = indexedReceiver.staticType;
         if (type?.isArray ?? false) {

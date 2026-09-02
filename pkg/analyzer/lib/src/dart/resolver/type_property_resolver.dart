@@ -139,8 +139,6 @@ class TypePropertyResolver {
         } else if (parentNode is MethodInvocation ||
             parentNode is MethodReferenceExpression ||
             parentNode is CompoundAssignment ||
-            parentNode is CascadeIndexAssignmentTarget ||
-            parentNode is CascadeIndexExpression ||
             parentNode is IndexAssignmentTarget ||
             parentNode is IndexExpression2 ||
             parentNode is IncrementOrDecrementExpression ||

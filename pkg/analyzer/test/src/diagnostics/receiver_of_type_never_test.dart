@@ -498,9 +498,9 @@ void f(Never x) {
 }
 ''');
 
-    var node = result.findNode.indexExpression2('x[0]');
+    var node = result.findNode.receiverIndexExpression('x[0]');
     assertResolvedNodeText(node, r'''
-IndexExpression2
+ReceiverIndexExpression
   receiver: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
@@ -542,9 +542,9 @@ void f(Never x) {
 }
 ''');
 
-    var node = result.findNode.indexExpression2('x?[0]');
+    var node = result.findNode.receiverIndexExpression('x?[0]');
     assertResolvedNodeText(node, r'''
-IndexExpression2
+ReceiverIndexExpression
   receiver: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
@@ -589,7 +589,7 @@ void f(Never x) {
     var node = result.findNode.compoundAssignment('[0] +=');
     assertResolvedNodeText(node, r'''
 CompoundAssignment
-  target: IndexAssignmentTarget
+  target: ReceiverIndexAssignmentTarget
     receiver: SimpleIdentifier
       token: x
       element: <testLibrary>::@function::f::@formalParameter::x
@@ -670,7 +670,7 @@ void f(Never x) {
     var node = result.findNode.directAssignment('x[0]');
     assertResolvedNodeText(node, r'''
 DirectAssignment
-  target: IndexAssignmentTarget
+  target: ReceiverIndexAssignmentTarget
     receiver: SimpleIdentifier
       token: x
       element: <testLibrary>::@function::f::@formalParameter::x
@@ -750,7 +750,7 @@ void f(N x) {
     var node = result.findNode.ifNullAssignment('[0] ??= 1');
     assertResolvedNodeText(node, r'''
 IfNullAssignment
-  target: IndexAssignmentTarget
+  target: ReceiverIndexAssignmentTarget
     receiver: SimpleIdentifier
       token: x
       element: <testLibrary>::@function::f::@formalParameter::x
@@ -816,7 +816,7 @@ void f(N x) {
     var node = result.findNode.compoundAssignment('[0] += 1');
     assertResolvedNodeText(node, r'''
 CompoundAssignment
-  target: IndexAssignmentTarget
+  target: ReceiverIndexAssignmentTarget
     receiver: SimpleIdentifier
       token: x
       element: <testLibrary>::@function::f::@formalParameter::x
@@ -878,9 +878,9 @@ void f(Never? x) {
 }
 ''');
 
-    var node = result.findNode.indexExpression2('x[0]');
+    var node = result.findNode.receiverIndexExpression('x[0]');
     assertResolvedNodeText(node, r'''
-IndexExpression2
+ReceiverIndexExpression
   receiver: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
@@ -923,7 +923,7 @@ void f(Never? x) {
     var node = result.findNode.compoundAssignment('[0] +=');
     assertResolvedNodeText(node, r'''
 CompoundAssignment
-  target: IndexAssignmentTarget
+  target: ReceiverIndexAssignmentTarget
     receiver: SimpleIdentifier
       token: x
       element: <testLibrary>::@function::f::@formalParameter::x
@@ -1006,7 +1006,7 @@ void f(Never? x) {
     var node = result.findNode.directAssignment('x[0]');
     assertResolvedNodeText(node, r'''
 DirectAssignment
-  target: IndexAssignmentTarget
+  target: ReceiverIndexAssignmentTarget
     receiver: SimpleIdentifier
       token: x
       element: <testLibrary>::@function::f::@formalParameter::x

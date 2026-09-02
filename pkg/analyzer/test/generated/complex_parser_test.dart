@@ -368,7 +368,7 @@ void f() {
     var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
 DirectAssignment
-  target: IndexAssignmentTarget
+  target: ReceiverIndexAssignmentTarget
     receiver: SimpleIdentifier
       token: x
     leftBracket: [

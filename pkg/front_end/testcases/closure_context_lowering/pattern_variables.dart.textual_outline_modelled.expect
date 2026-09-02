@@ -1,3 +1,7 @@
+joinedVariableIfCaseElement(dynamic x) {}
+
+joinedVariableIfCaseStatement(dynamic x) {}
+
 joinedVariableMixed(dynamic x) {}
 
 joinedVariableMultipleHeads(dynamic x) {}

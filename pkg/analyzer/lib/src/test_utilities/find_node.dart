@@ -386,8 +386,6 @@ abstract class _FindNodeBase {
 
   IndexExpression get singleIndexExpression => _single();
 
-  IndexExpression2 get singleIndexExpression2 => _single();
-
   IntegerLiteral get singleIntegerLiteral => _single();
 
   InterpolationExpression get singleInterpolationExpression => _single();
@@ -471,6 +469,8 @@ abstract class _FindNodeBase {
       _single();
 
   PropertyAccess get singlePropertyAccess => _single();
+
+  ReceiverIndexExpression get singleReceiverIndexExpression => _single();
 
   ReceiverPropertyExtraction get singleReceiverPropertyExtraction => _single();
 
@@ -923,10 +923,6 @@ abstract class _FindNodeBase {
     return _node(search, (n) => n is IndexExpression);
   }
 
-  IndexExpression2 indexExpression2(String search) {
-    return _node(search, (n) => n is IndexExpression2);
-  }
-
   IntegerLiteral integerLiteral(String search) {
     return _node(search, (n) => n is IntegerLiteral);
   }
@@ -1100,6 +1096,10 @@ abstract class _FindNodeBase {
 
   PropertyAccess propertyAccess(String search) {
     return _node(search, (n) => n is PropertyAccess);
+  }
+
+  ReceiverIndexExpression receiverIndexExpression(String search) {
+    return _node(search, (n) => n is ReceiverIndexExpression);
   }
 
   ReceiverPropertyExtraction receiverPropertyExtraction(String search) {

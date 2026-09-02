@@ -901,15 +901,6 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
-  void visitIndexAssignmentTarget(IndexAssignmentTarget node) {
-    _visitNode(node.receiver);
-    _visitToken(node.question);
-    _visitToken(node.leftBracket);
-    _visitNode(node.index);
-    _visitToken(node.rightBracket);
-  }
-
-  @override
   void visitIndexExpression(IndexExpression node) {
     if (node.isCascaded) {
       _visitToken(node.period);
@@ -919,15 +910,6 @@ class ToSourceVisitor implements AstVisitor2<void> {
     _visitToken(node.question);
     _visitToken(node.leftBracket);
     _visitNode(node.index2);
-    _visitToken(node.rightBracket);
-  }
-
-  @override
-  void visitIndexExpression2(IndexExpression2 node) {
-    _visitNode(node.receiver);
-    _visitToken(node.question);
-    _visitToken(node.leftBracket);
-    _visitNode(node.index);
     _visitToken(node.rightBracket);
   }
 
@@ -1354,6 +1336,24 @@ class ToSourceVisitor implements AstVisitor2<void> {
       sink.write(node.operator.lexeme);
     }
     _visitNode(node.propertyName);
+  }
+
+  @override
+  void visitReceiverIndexAssignmentTarget(ReceiverIndexAssignmentTarget node) {
+    _visitNode(node.receiver);
+    _visitToken(node.question);
+    _visitToken(node.leftBracket);
+    _visitNode(node.index);
+    _visitToken(node.rightBracket);
+  }
+
+  @override
+  void visitReceiverIndexExpression(ReceiverIndexExpression node) {
+    _visitNode(node.receiver);
+    _visitToken(node.question);
+    _visitToken(node.leftBracket);
+    _visitNode(node.index);
+    _visitToken(node.rightBracket);
   }
 
   @override

@@ -2842,7 +2842,7 @@ Block
   statements
     ExpressionStatement
       expression2: DirectAssignment
-        target: IndexAssignmentTarget
+        target: ReceiverIndexAssignmentTarget
           receiver: FunctionExpression
             parameters: FormalParameterList
               leftParenthesis: (

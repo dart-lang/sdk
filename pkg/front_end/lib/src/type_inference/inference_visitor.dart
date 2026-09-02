@@ -473,13 +473,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     InternalBlockExpression node,
     DartType typeContext,
   ) {
-    ScopeProviderInfo? scopeProviderInfo;
-    if (isClosureContextLoweringEnabled) {
-      // Coverage-ignore-block(suite): Not run.
-      scopeProviderInfo = _contextAllocationStrategy.enterScopeProvider(
-        scopeProviderInfoKind: ScopeProviderInfoKind.BlockExpression,
-      );
-    }
+    ScopeProviderInfo scopeProviderInfo = _contextAllocationStrategy
+        .enterScopeProvider(
+          scopeProviderInfoKind: ScopeProviderInfoKind.BlockExpression,
+        );
     // This is only used for error cases. The spec doesn't use this and
     // therefore doesn't specify the type context for the subterms.
     StatementInferenceResult bodyResult = inferStatement(node.body);
@@ -491,18 +488,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       isVoidAllowed: true,
     );
     Expression value = valueResult.expression;
-    Scope? scope;
-    if (scopeProviderInfo != null) {
-      // Coverage-ignore-block(suite): Not run.
-      _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
-      scope = scopeProviderInfo.scope;
-    }
+    _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
     return new ExpressionInferenceResult(
       valueResult.inferredType,
       extern.createBlockExpression(
         body,
         value,
-        scope: scope,
+        scope: scopeProviderInfo.scope,
         fileOffset: node.fileOffset,
       ),
     );
@@ -1032,12 +1024,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   StatementInferenceResult visitBlock(InternalBlock node) {
-    ScopeProviderInfo? scopeProviderInfo;
-    if (isClosureContextLoweringEnabled) {
-      scopeProviderInfo = _contextAllocationStrategy.enterScopeProvider(
-        scopeProviderInfoKind: ScopeProviderInfoKind.Block,
-      );
-    }
+    ScopeProviderInfo scopeProviderInfo = _contextAllocationStrategy
+        .enterScopeProvider(scopeProviderInfoKind: ScopeProviderInfoKind.Block);
     registerIfUnreachableForTesting(node);
     List<Statement> result = _visitStatements(node.statements);
     Block replacement = extern.createBlock(
@@ -1050,10 +1038,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // Coverage-ignore(suite): Not run.
     ?.registerExternalNode(node, replacement);
 
-    if (scopeProviderInfo != null) {
-      _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
-      replacement.scope = scopeProviderInfo.scope;
-    }
+    _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
+    replacement.scope = scopeProviderInfo.scope;
     return new StatementInferenceResult.single(replacement);
   }
 
@@ -3358,12 +3344,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   StatementInferenceResult visitForInStatement(InternalForInStatement node) {
-    ScopeProviderInfo? scopeProviderInfo;
-    if (isClosureContextLoweringEnabled) {
-      scopeProviderInfo = _contextAllocationStrategy.enterScopeProvider(
-        scopeProviderInfoKind: ScopeProviderInfoKind.Loop,
-      );
-    }
+    ScopeProviderInfo scopeProviderInfo = _contextAllocationStrategy
+        .enterScopeProvider(scopeProviderInfoKind: ScopeProviderInfoKind.Loop);
 
     ForInHeaderResult headerResult = node.element.inferForInHeader(
       this,
@@ -3385,21 +3367,18 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         initialized: true,
       );
 
-      if (isClosureContextLoweringEnabled) {
-        _contextAllocationStrategy.handleDeclarationOfVariable(
-          declaredVariable.astVariable,
-          captureKind: captureKindForVariable(declaredVariable),
-        );
-      }
+      _contextAllocationStrategy.handleDeclarationOfVariable(
+        declaredVariable.astVariable,
+        captureKind: captureKindForVariable(declaredVariable),
+      );
     }
-    if (isClosureContextLoweringEnabled) {
-      if (declaredVariable?.astVariable != variable) {
-        // [variable] is synthesized.
-        _contextAllocationStrategy.handleDeclarationOfVariable(
-          variable,
-          captureKind: CaptureKind.notCaptured,
-        );
-      }
+
+    if (declaredVariable?.astVariable != variable) {
+      // [variable] is synthesized.
+      _contextAllocationStrategy.handleDeclarationOfVariable(
+        variable,
+        captureKind: CaptureKind.notCaptured,
+      );
     }
 
     ForInEncoding encoding = headerResult.computeEncoding();
@@ -3422,10 +3401,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         new ForInStatement(variable, iterable, body, isAsync: node.isAsync)
           ..fileOffset = node.fileOffset
           ..bodyOffset = node.bodyOffset;
-    if (scopeProviderInfo != null) {
-      _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
-      forInStatement.scope = scopeProviderInfo.scope;
-    }
+    _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
+    forInStatement.scope = scopeProviderInfo.scope;
     Statement result = forInStatement;
 
     result = _handleBreaks(node, result);
@@ -3561,12 +3538,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   StatementInferenceResult visitForStatement(InternalForStatement node) {
-    ScopeProviderInfo? scopeProviderInfo;
-    if (isClosureContextLoweringEnabled) {
-      scopeProviderInfo = _contextAllocationStrategy.enterScopeProvider(
-        scopeProviderInfoKind: ScopeProviderInfoKind.Loop,
-      );
-    }
+    ScopeProviderInfo scopeProviderInfo = _contextAllocationStrategy
+        .enterScopeProvider(scopeProviderInfoKind: ScopeProviderInfoKind.Loop);
+
     List<VariableDeclaration> variables = _inferForVariables(
       variables: node.variables,
     );
@@ -3586,18 +3560,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       updates: node.updates,
     );
 
-    Scope? scope;
-    if (scopeProviderInfo != null) {
-      _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
-      scope = scopeProviderInfo.scope;
-    }
+    _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
 
     Statement replacement = extern.createForStatement(
       variables: variables,
       condition: condition,
       updates: updates,
       body: body,
-      scope: scope,
+      scope: scopeProviderInfo.scope,
       fileOffset: node.fileOffset,
     );
 
@@ -3613,13 +3583,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   StatementInferenceResult visitPatternForStatement(
     InternalPatternForStatement node,
   ) {
-    ScopeProviderInfo? scopeProviderInfo;
-    if (isClosureContextLoweringEnabled) {
-      // Coverage-ignore-block(suite): Not run.
-      scopeProviderInfo = _contextAllocationStrategy.enterScopeProvider(
-        scopeProviderInfoKind: ScopeProviderInfoKind.Loop,
-      );
-    }
+    ScopeProviderInfo scopeProviderInfo = _contextAllocationStrategy
+        .enterScopeProvider(scopeProviderInfoKind: ScopeProviderInfoKind.Loop);
 
     PatternForVariablesResult variablesResult = _inferPatternForVariables(
       node: node,
@@ -3642,19 +3607,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       updates: node.updates,
     );
 
-    Scope? scope;
-    if (scopeProviderInfo != null) {
-      // Coverage-ignore-block(suite): Not run.
-      _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
-      scope = scopeProviderInfo.scope;
-    }
+    _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
 
     Statement replacement = extern.createForStatement(
       variables: variablesResult.variables,
       condition: condition,
       updates: updates,
       body: body,
-      scope: scope,
+      scope: scopeProviderInfo.scope,
       fileOffset: node.fileOffset,
     );
 
@@ -3698,35 +3658,28 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     InternalFunctionDeclaration node,
   ) {
     InternalFunctionNode function = node.function;
-    ScopeProviderInfo? scopeProviderInfo;
-    List<VariableContext>? capturedContexts;
-    if (isClosureContextLoweringEnabled) {
-      _contextAllocationStrategy.handleDeclarationOfVariable(
-        node.variable.astVariable,
-        captureKind: captureKindForVariable(node.variable),
-      );
-      capturedContexts = _contextAllocationStrategy
-          .computeCapturedVariableContexts(_capturedVariablesForNode(node));
-      scopeProviderInfo = _contextAllocationStrategy.enterScopeProvider(
-        scopeProviderInfoKind: ScopeProviderInfoKind.Loop,
-      );
-      _contextAllocationStrategy.handleDeclarationsOfParameters([
-        for (InternalPositionalParameter positionalParameter
-            in node.function.positionalParameters)
-          // Coverage-ignore(suite): Not run.
-          new VariableWithCaptureKind(
-            positionalParameter.functionParameter,
-            captureKindForVariable(positionalParameter),
-          ),
-        for (InternalNamedParameter namedParameter
-            in node.function.namedParameters)
-          // Coverage-ignore(suite): Not run.
-          new VariableWithCaptureKind(
-            namedParameter.functionParameter,
-            captureKindForVariable(namedParameter),
-          ),
-      ]);
-    }
+    _contextAllocationStrategy.handleDeclarationOfVariable(
+      node.variable.astVariable,
+      captureKind: captureKindForVariable(node.variable),
+    );
+    List<VariableContext> capturedContexts = _contextAllocationStrategy
+        .computeCapturedVariableContexts(_capturedVariablesForNode(node));
+    ScopeProviderInfo scopeProviderInfo = _contextAllocationStrategy
+        .enterScopeProvider(scopeProviderInfoKind: ScopeProviderInfoKind.Loop);
+    _contextAllocationStrategy.handleDeclarationsOfParameters([
+      for (InternalPositionalParameter positionalParameter
+          in node.function.positionalParameters)
+        new VariableWithCaptureKind(
+          positionalParameter.functionParameter,
+          captureKindForVariable(positionalParameter),
+        ),
+      for (InternalNamedParameter namedParameter
+          in node.function.namedParameters)
+        new VariableWithCaptureKind(
+          namedParameter.functionParameter,
+          captureKindForVariable(namedParameter),
+        ),
+    ]);
 
     bool oldInTryOrLocalFunction = _inTryOrLocalFunction;
     _inTryOrLocalFunction = true;
@@ -3758,16 +3711,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     flowAnalysis.functionExpression_end();
     _returnContexts.pop();
     _inTryOrLocalFunction = oldInTryOrLocalFunction;
-    Scope? scope;
-    if (scopeProviderInfo != null) {
-      _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
-      scope = scopeProviderInfo.scope;
-    }
+    _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
     FunctionDeclaration replacement = extern.createFunctionDeclaration(
       variable: variable.astVariable,
       function: localFunctionResult.computeFunctionNode(
         function: function,
-        scope: scope,
+        scope: scopeProviderInfo.scope,
         capturedContexts: capturedContexts,
       ),
       fileOffset: node.fileOffset,
@@ -3786,28 +3735,25 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType typeContext,
   ) {
     InternalFunctionNode function = node.function;
-    ScopeProviderInfo? scopeProviderInfo;
-    List<VariableContext>? capturedContexts;
-    if (isClosureContextLoweringEnabled) {
-      capturedContexts = _contextAllocationStrategy
-          .computeCapturedVariableContexts(_capturedVariablesForNode(node));
-      scopeProviderInfo = _contextAllocationStrategy.enterScopeProvider(
-        scopeProviderInfoKind: ScopeProviderInfoKind.FunctionNode,
-      );
-      _contextAllocationStrategy.handleDeclarationsOfParameters([
-        for (InternalPositionalParameter positionalParameter
-            in function.positionalParameters)
-          new VariableWithCaptureKind(
-            positionalParameter.functionParameter,
-            captureKindForVariable(positionalParameter),
-          ),
-        for (InternalNamedParameter namedParameter in function.namedParameters)
-          new VariableWithCaptureKind(
-            namedParameter.functionParameter,
-            captureKindForVariable(namedParameter),
-          ),
-      ]);
-    }
+    List<VariableContext> capturedContexts = _contextAllocationStrategy
+        .computeCapturedVariableContexts(_capturedVariablesForNode(node));
+    ScopeProviderInfo scopeProviderInfo = _contextAllocationStrategy
+        .enterScopeProvider(
+          scopeProviderInfoKind: ScopeProviderInfoKind.FunctionNode,
+        );
+    _contextAllocationStrategy.handleDeclarationsOfParameters([
+      for (InternalPositionalParameter positionalParameter
+          in function.positionalParameters)
+        new VariableWithCaptureKind(
+          positionalParameter.functionParameter,
+          captureKindForVariable(positionalParameter),
+        ),
+      for (InternalNamedParameter namedParameter in function.namedParameters)
+        new VariableWithCaptureKind(
+          namedParameter.functionParameter,
+          captureKindForVariable(namedParameter),
+        ),
+    ]);
 
     bool oldInTryOrLocalFunction = _inTryOrLocalFunction;
     _inTryOrLocalFunction = true;
@@ -3830,16 +3776,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     flowAnalysis.functionExpression_end();
     _returnContexts.pop();
     _inTryOrLocalFunction = oldInTryOrLocalFunction;
-    Scope? scope;
-    if (scopeProviderInfo != null) {
-      _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
-      scope = scopeProviderInfo.scope;
-    }
+    _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
 
     Expression replacement = extern.createFunctionExpression(
       localFunctionResult.computeFunctionNode(
         function: function,
-        scope: scope,
+        scope: scopeProviderInfo.scope,
         capturedContexts: capturedContexts,
       ),
       fileOffset: node.fileOffset,
@@ -3991,6 +3933,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
+    _contextAllocationStrategy.handleSwitchCaseBeginning();
+    node.scopeProviderInfo = _contextAllocationStrategy.enterScopeProvider(
+      scopeProviderInfoKind: ScopeProviderInfoKind.Block,
+    );
+    _contextAllocationStrategy.handleSwitchBeforeAlternative(
+      caseIndex: 0,
+      subIndex: 0,
+    );
+
     IfCaseStatementResult<InvalidExpression> analysisResult =
         analyzeIfCaseStatement(
           node,
@@ -4052,7 +4003,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         otherwise: otherwise,
         matchedValueType: matchedValueType,
         fileOffset: node.fileOffset,
-      ),
+      )..scope = node.scopeProviderInfo?.scope,
     );
   }
 
@@ -4913,6 +4864,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
+    _contextAllocationStrategy.handleSwitchCaseBeginning();
+    node.scopeProviderInfo = _contextAllocationStrategy.enterScopeProvider(
+      scopeProviderInfoKind: ScopeProviderInfoKind.Block,
+    );
+    _contextAllocationStrategy.handleSwitchBeforeAlternative(
+      caseIndex: 0,
+      subIndex: 0,
+    );
+
     IfCaseStatementResult<InvalidExpression> analysisResult =
         analyzeIfCaseElement(
           node: node,
@@ -4979,7 +4939,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       matchedValueType: matchedValueType,
       nodeForTesting: node,
       fileOffset: node.fileOffset,
-    );
+    )..scope = node.scopeProviderInfo?.scope;
     return new ElementInferenceResult(
       inferredType: otherwiseType == null
           ? thenType
@@ -5156,16 +5116,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     ForInElement node,
     ElementInferenceContext context,
   ) {
-    ScopeProviderInfo? scopeProviderInfo;
-    if (isClosureContextLoweringEnabled) {
-      // [ForInElement] will be desugared later into a [ForStatement], which
-      // will be responsible for the scope. Therefore, the supplied
-      // [ScopeProviderInfoKind] to [enterScopeProvider] is
-      // [ScopeProviderInfoKind.ForInStatement].
-      scopeProviderInfo = _contextAllocationStrategy.enterScopeProvider(
-        scopeProviderInfoKind: ScopeProviderInfoKind.Loop,
-      );
-    }
+    // [ForInElement] will be desugared later into a [ForStatement], which
+    // will be responsible for the scope. Therefore, the supplied
+    // [ScopeProviderInfoKind] to [enterScopeProvider] is
+    // [ScopeProviderInfoKind.Loop].
+    ScopeProviderInfo scopeProviderInfo = _contextAllocationStrategy
+        .enterScopeProvider(scopeProviderInfoKind: ScopeProviderInfoKind.Loop);
     ForInHeaderResult result = node.element.inferForInHeader(
       this,
       node: node,
@@ -5186,22 +5142,18 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         new SharedTypeView(declaredVariable.type),
         initialized: true,
       );
-      if (isClosureContextLoweringEnabled) {
-        _contextAllocationStrategy.handleDeclarationOfVariable(
-          declaredVariable.astVariable,
-          captureKind: captureKindForVariable(declaredVariable),
-        );
-      }
+      _contextAllocationStrategy.handleDeclarationOfVariable(
+        declaredVariable.astVariable,
+        captureKind: captureKindForVariable(declaredVariable),
+      );
     }
-    if (isClosureContextLoweringEnabled) {
-      if (declaredVariable?.astVariable != variable) {
-        // Coverage-ignore-block(suite): Not run.
-        // [variable] is synthesized.
-        _contextAllocationStrategy.handleDeclarationOfVariable(
-          variable,
-          captureKind: CaptureKind.notCaptured,
-        );
-      }
+
+    if (declaredVariable?.astVariable != variable) {
+      // [variable] is synthesized.
+      _contextAllocationStrategy.handleDeclarationOfVariable(
+        variable,
+        captureKind: CaptureKind.notCaptured,
+      );
     }
 
     ForInEncoding encoding = result.computeEncoding();
@@ -5212,13 +5164,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // This is matched by the call to [forEach_bodyBegin] in
     // [handleForInWithoutVariable] or [handleForInDeclaringVariable].
     flowAnalysis.forEach_end();
-    Scope? scope;
-    if (scopeProviderInfo != null) {
-      _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
-      // The scope will later be passed to the [ForInStatement] the [element]
-      // is desugared into.
-      scope = scopeProviderInfo.scope;
-    }
+    _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
     return new ElementInferenceResult(
       inferredType: bodyResult.inferredType,
       element: new InferredForInElement(
@@ -5227,7 +5173,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         iterable: iterable,
         body: body,
         isAsync: node.isAsync,
-        scope: scope,
+        scope: scopeProviderInfo.scope,
         nodeForTesting: node,
         fileOffset: node.fileOffset,
       ),
@@ -5423,9 +5369,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         keyType: keyType,
         valueType: valueType,
         isConst: node.isConst,
-        contextAllocationStrategy: isClosureContextLoweringEnabled
-            ? _contextAllocationStrategy
-            : null,
+        contextAllocationStrategy: _contextAllocationStrategy,
       ).translate(entries: elements, fileOffset: node.fileOffset);
     } else {
       DartType typeArgument = inferredElementType.expressionType;
@@ -5641,14 +5585,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
   }
 
-  Expression _createThisExpression(InternalThisExpression node) {
+  Expression _createThisExpression(int fileOffset) {
     if (isClosureContextLoweringEnabled) {
       return extern.createVariableGet(
         _contextAllocationStrategy.thisVariable,
-        fileOffset: node.fileOffset,
+        fileOffset: fileOffset,
       );
     } else {
-      return extern.createThisExpression(fileOffset: node.fileOffset);
+      return extern.createThisExpression(fileOffset: fileOffset);
     }
   }
 
@@ -5657,7 +5601,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType typeContext,
   ) {
     ExpressionInferenceResult readResult = inferSuperPropertyGet(
-      receiver: _createThisExpression(node.receiver),
+      receiver: _createThisExpression(node.receiver.fileOffset),
       name: node.name,
       typeContext: const UnknownType(),
       member: node.getter,
@@ -5693,7 +5637,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType binaryType = binaryResult.inferredType;
 
     ExpressionInferenceResult writeResult = inferSuperPropertySet(
-      receiver: _createThisExpression(node.receiver),
+      receiver: _createThisExpression(node.receiver.fileOffset),
       name: node.name,
       member: node.setter,
       rhsResult: binaryResult,
@@ -10177,7 +10121,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType typeContext,
   ) {
     return inferSuperPropertyGet(
-      receiver: _createThisExpression(node.receiver),
+      receiver: _createThisExpression(node.receiver.fileOffset),
       name: node.name,
       typeContext: typeContext,
       member: node.interfaceTarget,
@@ -10199,17 +10143,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       isVoidAllowed: true,
     );
 
-    Expression receiver;
-    if (isClosureContextLoweringEnabled) {
-      receiver = extern.createVariableGet(
-        internalThisVariable,
-        fileOffset: node.receiver.fileOffset,
-      );
-    } else {
-      receiver = extern.createThisExpression(
-        fileOffset: node.receiver.fileOffset,
-      );
-    }
+    Expression receiver = _createThisExpression(node.receiver.fileOffset);
     return inferSuperPropertySet(
       receiver: receiver,
       name: node.name,
@@ -10621,43 +10555,31 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   Catch visitCatch(InternalCatch node) {
-    ScopeProviderInfo? scopeProviderInfo;
     InternalCatchVariable? exception = node.exception;
     InternalCatchVariable? stackTrace = node.stackTrace;
-    if (isClosureContextLoweringEnabled) {
-      scopeProviderInfo = _contextAllocationStrategy.enterScopeProvider(
-        scopeProviderInfoKind: ScopeProviderInfoKind.Catch,
+    ScopeProviderInfo scopeProviderInfo = _contextAllocationStrategy
+        .enterScopeProvider(scopeProviderInfoKind: ScopeProviderInfoKind.Catch);
+    if (exception != null) {
+      _contextAllocationStrategy.handleDeclarationOfVariable(
+        exception.astVariable,
+        captureKind: captureKindForVariable(exception),
       );
-      if (exception != null) {
-        // TODO(62401): Remove the casts when the flow analysis uses
-        // [InternalExpressionVariable]s.
-        _contextAllocationStrategy.handleDeclarationOfVariable(
-          exception.astVariable,
-          captureKind: captureKindForVariable(exception),
-        );
-      }
-      if (stackTrace != null) {
-        // TODO(62401): Remove the casts when the flow analysis uses
-        // [InternalExpressionVariable]s.
-        _contextAllocationStrategy.handleDeclarationOfVariable(
-          stackTrace.astVariable,
-          captureKind: captureKindForVariable(stackTrace),
-        );
-      }
+    }
+    if (stackTrace != null) {
+      _contextAllocationStrategy.handleDeclarationOfVariable(
+        stackTrace.astVariable,
+        captureKind: captureKindForVariable(stackTrace),
+      );
     }
     StatementInferenceResult bodyResult = inferStatement(node.body);
     Statement body = bodyResult.statement;
-    Scope? scope;
-    if (scopeProviderInfo != null) {
-      _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
-      scope = scopeProviderInfo.scope;
-    }
+    _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
     return extern.createCatch(
       guard: node.guard,
       exception: exception?.astVariable,
       stackTrace: stackTrace?.astVariable,
       body: body,
-      scope: scope,
+      scope: scopeProviderInfo.scope,
       fileOffset: node.fileOffset,
     );
   }
@@ -10780,12 +10702,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           node,
           forLoopVariable: forLoopVariable,
         );
-    if (isClosureContextLoweringEnabled) {
-      _contextAllocationStrategy.handleDeclarationOfVariable(
-        node.variable.astVariable,
-        captureKind: captureKindForVariable(node.variable),
-      );
-    }
+    _contextAllocationStrategy.handleDeclarationOfVariable(
+      node.variable.astVariable,
+      captureKind: captureKindForVariable(node.variable),
+    );
     return variableDeclarationInferenceResult;
   }
 
@@ -10870,12 +10790,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   StatementInferenceResult visitWhileStatement(InternalWhileStatement node) {
-    ScopeProviderInfo? scopeProviderInfo;
-    if (isClosureContextLoweringEnabled) {
-      scopeProviderInfo = _contextAllocationStrategy.enterScopeProvider(
-        scopeProviderInfoKind: ScopeProviderInfoKind.Loop,
-      );
-    }
+    ScopeProviderInfo scopeProviderInfo = _contextAllocationStrategy
+        .enterScopeProvider(scopeProviderInfoKind: ScopeProviderInfoKind.Loop);
     flowAnalysis.whileStatement_conditionBegin(node);
     InterfaceType expectedType = coreTypes.boolRawType(Nullability.nonNullable);
     ExpressionInferenceResult conditionResult = inferExpression(
@@ -10895,15 +10811,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     body = _handleContinues(node, body);
 
     flowAnalysis.whileStatement_end();
-    Scope? scope;
-    if (scopeProviderInfo != null) {
-      _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
-      scope = scopeProviderInfo.scope;
-    }
+    _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
     Statement replacement = extern.createWhileStatement(
       condition,
       body,
-      scope: scope,
+      scope: scopeProviderInfo.scope,
       fileOffset: node.fileOffset,
     );
     libraryBuilder.loader.dataForTesting
@@ -11560,11 +11472,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
 
     InternalSwitchExpressionCase case_ = node.cases[caseIndex];
-    if (isClosureContextLoweringEnabled) {
-      _contextAllocationStrategy.exitScopeProvider(
-        case_.switchCaseScopeProviderInfo!,
-      );
-    }
+    _contextAllocationStrategy.exitScopeProvider(
+      case_.switchCaseScopeProviderInfo!,
+    );
 
     Expression expression = popRewrite() as Expression;
     PatternGuard patternGuard = popRewrite() as PatternGuard;
@@ -11679,15 +11589,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       case InternalPatternSwitchStatement():
         InternalPatternSwitchCase case_ = node.cases[caseIndex];
 
-        if (isClosureContextLoweringEnabled) {
-          _contextAllocationStrategy.exitScopeProvider(
-            case_.switchCaseBodyScopeProviderInfo!,
-          );
-
-          _contextAllocationStrategy.exitScopeProvider(
-            case_.switchCaseScopeProviderInfo!,
-          );
-        }
+        _contextAllocationStrategy.exitScopeProvider(
+          case_.switchCaseBodyScopeProviderInfo!,
+        );
+        _contextAllocationStrategy.exitScopeProvider(
+          case_.switchCaseScopeProviderInfo!,
+        );
 
         int? stackBase;
         assert(
@@ -11788,13 +11695,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   getSwitchExpressionMemberInfo(InternalExpression node, int index) {
     InternalSwitchExpressionCase switchExpressionCase =
         (node as InternalSwitchExpression).cases[index];
-    if (isClosureContextLoweringEnabled) {
-      _contextAllocationStrategy.handleSwitchCaseBeginning();
-      switchExpressionCase.switchCaseScopeProviderInfo =
-          _contextAllocationStrategy.enterScopeProvider(
-            scopeProviderInfoKind: ScopeProviderInfoKind.Block,
-          );
-    }
+    _contextAllocationStrategy.handleSwitchCaseBeginning();
+    switchExpressionCase.switchCaseScopeProviderInfo =
+        _contextAllocationStrategy.enterScopeProvider(
+          scopeProviderInfoKind: ScopeProviderInfoKind.Block,
+        );
+
     InternalPattern pattern = switchExpressionCase.patternGuard.pattern;
     Map<String, InternalVariable> variables = {
       for (InternalPatternVariable patternVariable in pattern.patternVariables)
@@ -11836,13 +11742,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         );
       case InternalPatternSwitchStatement():
         InternalPatternSwitchCase case_ = node.cases[caseIndex];
-        if (isClosureContextLoweringEnabled) {
-          _contextAllocationStrategy.handleSwitchCaseBeginning();
-          case_.switchCaseScopeProviderInfo = _contextAllocationStrategy
-              .enterScopeProvider(
-                scopeProviderInfoKind: ScopeProviderInfoKind.Block,
-              );
-        }
+        _contextAllocationStrategy.handleSwitchCaseBeginning();
+        case_.switchCaseScopeProviderInfo = _contextAllocationStrategy
+            .enterScopeProvider(
+              scopeProviderInfoKind: ScopeProviderInfoKind.Block,
+            );
         return new SwitchStatementMemberInfo(
           heads: [
             for (InternalPatternGuard patternGuard in case_.patternGuards)
@@ -11976,9 +11880,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           ),
         );
 
-        if (isClosureContextLoweringEnabled) {
-          _contextAllocationStrategy.handleAfterCaseHeads([]);
-        }
+        _contextAllocationStrategy.handleAfterCaseHeads([]);
     }
   }
 
@@ -11989,20 +11891,41 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Iterable<InternalVariable> variables,
   ) {
     if (node is InternalPatternSwitchStatement) {
-      if (isClosureContextLoweringEnabled) {
-        InternalPatternSwitchCase case_ = node.cases[caseIndex];
-        case_.switchCaseBodyScopeProviderInfo = _contextAllocationStrategy
-            .enterScopeProvider(
-              scopeProviderInfoKind: ScopeProviderInfoKind.Block,
-            );
-        _contextAllocationStrategy.handleAfterCaseHeads([
-          for (InternalVariable variable in variables)
-            new VariableWithCaptureKind(
-              variable.astVariable,
-              captureKindForVariable(variable),
-            ),
-        ]);
-      }
+      InternalPatternSwitchCase case_ = node.cases[caseIndex];
+      case_.switchCaseBodyScopeProviderInfo = _contextAllocationStrategy
+          .enterScopeProvider(
+            scopeProviderInfoKind: ScopeProviderInfoKind.Block,
+          );
+      _contextAllocationStrategy.handleAfterCaseHeads([
+        for (InternalVariable variable in variables)
+          new VariableWithCaptureKind(
+            variable.astVariable,
+            captureKindForVariable(variable),
+          ),
+      ]);
+    }
+  }
+
+  @override
+  void handle_ifCaseStatement_afterPattern({required InternalStatement node}) {
+    if (node is InternalIfCaseStatement) {
+      _contextAllocationStrategy.handleAfterCaseHeads([]);
+    }
+  }
+
+  @override
+  void handle_ifStatement_thenEnd(InternalNode node, InternalNode ifTrue) {
+    if (node case InternalIfCaseStatement(
+      scopeProviderInfo: var scopeProviderInfo?,
+    )) {
+      _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
+    }
+  }
+
+  @override
+  void handle_ifElement_thenEnd(InternalNode node, InternalNode ifTrue) {
+    if (node case IfCaseElement(scopeProviderInfo: var scopeProviderInfo?)) {
+      _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
     }
   }
 
@@ -12049,12 +11972,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }) {
     if (node is InternalPatternSwitchStatement ||
         node is InternalSwitchExpression) {
-      if (isClosureContextLoweringEnabled) {
-        _contextAllocationStrategy.handleSwitchBeforeAlternative(
-          caseIndex: caseIndex,
-          subIndex: subIndex,
-        );
-      }
+      _contextAllocationStrategy.handleSwitchBeforeAlternative(
+        caseIndex: caseIndex,
+        subIndex: subIndex,
+      );
     }
   }
 
@@ -12158,14 +12079,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             fileOffset: node.fileOffset,
           ),
     );
-    if (isClosureContextLoweringEnabled) {
-      _contextAllocationStrategy.handleInternalVariablePattern(
-        new VariableWithCaptureKind(
-          node.variable.astVariable,
-          captureKindForVariable(node.variable),
-        ),
-      );
-    }
+    _contextAllocationStrategy.handleInternalVariablePattern(
+      new VariableWithCaptureKind(
+        node.variable.astVariable,
+        captureKindForVariable(node.variable),
+      ),
+    );
 
     assert(checkStack(node, stackBase, [/* pattern = */ ValueKinds.Pattern]));
     return analysisResult;
@@ -13660,6 +13579,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   @override
   void dispatchCollectionElement(InternalNode element, Object? context) {
+    _contextAllocationStrategy.handleAfterCaseHeads([]);
     context as ElementInferenceContext;
     element as InternalElement;
     pushRewrite(inferElement(element, context));
@@ -13701,15 +13621,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     required SharedTypeView type,
   }) {
     variable..type = type.unwrapTypeView();
-    if (isClosureContextLoweringEnabled) {
-      _contextAllocationStrategy.handleJoinedPatternVariable(
-        new VariableWithCaptureKind(
-          variable.astVariable,
-          captureKindForVariable(variable),
-        ),
-        location,
-      );
-    }
+    _contextAllocationStrategy.handleJoinedPatternVariable(
+      new VariableWithCaptureKind(
+        variable.astVariable,
+        captureKindForVariable(variable),
+      ),
+      location,
+    );
   }
 
   @override
@@ -14409,14 +14327,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     List<VariableContext>? capturedContexts;
     if (variableDeclaration.initializer != null) {
       if (internalVariable.isLate && internalVariable.hasDeclaredInitializer) {
-        // TODO(62401): Remove the cast when the flow analysis uses
-        // [InternalExpressionVariable]s.
-        if (isClosureContextLoweringEnabled) {
-          capturedContexts = _contextAllocationStrategy
-              .computeCapturedVariableContexts(
-                _capturedVariablesForNode(internalVariable),
-              );
-        }
+        capturedContexts = _contextAllocationStrategy
+            .computeCapturedVariableContexts(
+              _capturedVariablesForNode(internalVariable),
+            );
         flowAnalysis.lateInitializer_begin(internalVariable);
       }
       initializerResult = inferExpression(

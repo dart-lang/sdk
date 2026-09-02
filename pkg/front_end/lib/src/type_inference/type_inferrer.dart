@@ -234,7 +234,9 @@ class TypeInferrerImpl implements TypeInferrer {
     InferenceVisitorBase visitor = _createInferenceVisitor(
       fileUri: fileUri,
       contextAllocationStrategy:
-          InferenceVisitorBase.createContextAllocationStrategy(),
+          ContextAllocationStrategy.createContextAllocationStrategy(
+            isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
+          ),
     );
     ScopeProviderInfo? scopeProviderInfo;
     if (isClosureContextLoweringEnabled) {
@@ -333,7 +335,9 @@ class TypeInferrerImpl implements TypeInferrer {
     required FunctionType targetType,
   }) {
     ContextAllocationStrategy contextAllocationStrategy =
-        InferenceVisitorBase.createContextAllocationStrategy();
+        ContextAllocationStrategy.createContextAllocationStrategy(
+          isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
+        );
     InferenceVisitorBase visitor = _createInferenceVisitor(
       fileUri: fileUri,
       contextAllocationStrategy: contextAllocationStrategy,
@@ -472,7 +476,9 @@ class TypeInferrerImpl implements TypeInferrer {
     InferenceVisitorBase visitor = _createInferenceVisitor(
       fileUri: fileUri,
       contextAllocationStrategy:
-          InferenceVisitorBase.createContextAllocationStrategy(),
+          ContextAllocationStrategy.createContextAllocationStrategy(
+            isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
+          ),
     );
     List<Expression> result = visitor.inferMetadata(visitor, annotations);
     visitor.checkCleanState();
@@ -489,7 +495,9 @@ class TypeInferrerImpl implements TypeInferrer {
     InferenceVisitorBase visitor = _createInferenceVisitor(
       fileUri: fileUri,
       contextAllocationStrategy:
-          InferenceVisitorBase.createContextAllocationStrategy(),
+          ContextAllocationStrategy.createContextAllocationStrategy(
+            isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
+          ),
     );
     ExpressionInferenceResult result = visitor.inferExpression(
       defaultValue,
@@ -513,15 +521,21 @@ class TypeInferrerImpl implements TypeInferrer {
 
   @override
   CaptureKind captureKindForVariable(InternalVariable variable) {
-    PromotionKey variableKey = assignedVariables.promotionKeyStore
-        .keyForVariable(variable);
+    if (isClosureContextLoweringEnabled) {
+      PromotionKey variableKey = assignedVariables.promotionKeyStore
+          .keyForVariable(variable);
 
-    if (assignedVariables.outsideAsserts.captured.contains(variableKey) ||
-        assignedVariables.outsideAsserts.readCaptured.contains(variableKey)) {
-      return CaptureKind.directCaptured;
-    } else if (assignedVariables.insideAsserts.captured.contains(variableKey) ||
-        assignedVariables.insideAsserts.readCaptured.contains(variableKey)) {
-      return CaptureKind.assertCaptured;
+      if (assignedVariables.outsideAsserts.captured.contains(variableKey) ||
+          assignedVariables.outsideAsserts.readCaptured.contains(variableKey)) {
+        return CaptureKind.directCaptured;
+      } else if (assignedVariables.insideAsserts.captured.contains(
+            variableKey,
+          ) ||
+          assignedVariables.insideAsserts.readCaptured.contains(variableKey)) {
+        return CaptureKind.assertCaptured;
+      } else {
+        return CaptureKind.notCaptured;
+      }
     } else {
       return CaptureKind.notCaptured;
     }

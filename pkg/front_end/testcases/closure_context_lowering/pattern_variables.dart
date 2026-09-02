@@ -42,3 +42,15 @@ joinedVariableSwitchExpression(dynamic x) {
     _ => () => 0,
   };
 }
+
+joinedVariableIfCaseStatement(dynamic x) {
+  if (x case int y || String(length: int y)) {
+    return () => y;
+  } else {
+    return () => 0;
+  }
+}
+
+joinedVariableIfCaseElement(dynamic x) {
+  return [if (x case int y || String(length: int y)) () => y else () => 0];
+}

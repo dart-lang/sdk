@@ -64,15 +64,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
 
   @override
   void visitCascadeIndexExpression(CascadeIndexExpression node) {
-    var element = switch (node.resolution) {
-      MethodIndexReadResolution(:var element) => element,
-      InvalidIndexReadResolution(
-        recovery: MethodIndexReadResolution(:var element),
-      ) =>
-        element,
-      _ => null,
-    };
-    usedElements.addMember(element);
+    _useIndexReadResolution(node.resolution);
     super.visitCascadeIndexExpression(node);
   }
 
@@ -302,20 +294,6 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitIndexExpression2(IndexExpression2 node) {
-    var element = switch (node.resolution) {
-      MethodIndexReadResolution(:var element) => element,
-      InvalidIndexReadResolution(
-        recovery: MethodIndexReadResolution(:var element),
-      ) =>
-        element,
-      _ => null,
-    };
-    usedElements.addMember(element);
-    super.visitIndexExpression2(node);
-  }
-
-  @override
   void visitIsExpression(IsExpression node) {
     var insideIsExpressionOld = _insideIsExpression;
     node.expression2.accept2(this);
@@ -384,6 +362,12 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
   void visitPrefixIncrement(PrefixIncrement node) {
     _visitIncrementOrDecrementExpression(node);
     super.visitPrefixIncrement(node);
+  }
+
+  @override
+  void visitReceiverIndexExpression(ReceiverIndexExpression node) {
+    _useIndexReadResolution(node.resolution);
+    super.visitReceiverIndexExpression(node);
   }
 
   @override
@@ -603,6 +587,18 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
     usedElements.addElement(element);
   }
 
+  void _useIndexReadResolution(IndexReadResolution? resolution) {
+    var element = switch (resolution) {
+      MethodIndexReadResolution(:var element) => element,
+      InvalidIndexReadResolution(
+        recovery: MethodIndexReadResolution(:var element),
+      ) =>
+        element,
+      _ => null,
+    };
+    usedElements.addMember(element);
+  }
+
   void _useNamedReadResolution(
     NamedReadResolution? read, {
     required bool readCountsAsUse,
@@ -651,7 +647,6 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
     required bool readCountsAsUse,
   }) {
     var indexResolutions = switch (target) {
-      CascadeIndexAssignmentTarget(:var read, :var write) => (read, write),
       IndexAssignmentTarget(:var read, :var write) => (read, write),
       _ => null,
     };

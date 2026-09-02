@@ -2619,7 +2619,7 @@ import 'a.dart' $code;
     var parseResult = parseTestCodeWithDiagnostics('''
 final x = $code;
 ''');
-    var node = parseResult.findNode.singleIndexExpression2;
+    var node = parseResult.findNode.singleReceiverIndexExpression;
     _assertSource(code, node);
   }
 
@@ -2628,7 +2628,7 @@ final x = $code;
     var parseResult = parseTestCodeWithDiagnostics('''
 final x = $code;
 ''');
-    var node = parseResult.findNode.singleIndexExpression2;
+    var node = parseResult.findNode.singleReceiverIndexExpression;
     _assertSource(code, node);
   }
 
