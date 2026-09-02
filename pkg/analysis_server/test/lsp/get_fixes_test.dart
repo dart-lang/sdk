@@ -4,7 +4,10 @@
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:linter/src/diagnostic.dart' as diag;
 import 'package:linter/src/rules.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'server_abstract.dart';
@@ -47,7 +50,10 @@ bool c = ''.length == 0;
     await initialize();
 
     var params = DartGetWorkspaceFixesParams(
-      diagnosticCodes: ['always_specify_types', 'prefer_is_empty'],
+      diagnosticCodes: [
+        diag.alwaysSpecifyTypesReplaceKeyword.lowerCaseName,
+        diag.preferIsEmptyUseIsEmpty.lowerCaseName,
+      ],
     );
     var result = await getWorkspaceFixes(params);
 
@@ -60,35 +66,6 @@ bool c = ''.length == 0;
 String a = '';
 String b = "";
 bool c = ''.isEmpty;
-''');
-  }
-
-  Future<void> test_includesPubspec() async {
-    failTestOnErrorDiagnostic = false;
-
-    newPubspecYamlFile(projectFolderPath, '''
-name: x
-''');
-
-    newFile(mainFilePath, '''
-import 'package:path/path.dart' as path;
-
-void f() {
-  path.join();
-}
-''');
-
-    await initialize();
-
-    var result = await getWorkspaceFixes();
-
-    // Expect fixes for all three diagnostics.
-    verifyEdit(result.edit!, '''
->>>>>>>>>> pubspec.yaml
->>>>>>>>>>   Update pubspec with the missing dependencies: line 2
-name: x
-dependencies:
-  path: any
 ''');
   }
 
@@ -111,13 +88,109 @@ void f() {
 
     var result = await getWorkspaceFixes();
 
-    // Expect fixes for all three diagnostics.
+    // Expect two fixes from two different passes, merged together.
     verifyEdit(result.edit!, '''
 >>>>>>>>>> lib/main.dart
 >>>>>>>>>>   Make final, Replace 'final' with 'const': line 2
 void f() {
   const a = 'test';
 }
+''');
+  }
+
+  Future<void> test_iterativeDartAndPubspec_ifNoCodes() async {
+    failTestOnErrorDiagnostic = false;
+
+    newFile(analysisOptionsPath, '''
+linter:
+  rules:
+    - prefer_final_locals
+    - prefer_const_declarations
+    ''');
+
+    newPubspecYamlFile(projectFolderPath, '''
+name: x
+''');
+
+    newFile(mainFilePath, '''
+import 'package:path/path.dart' as path;
+
+void f() {
+  var a = 'test';
+  path.join();
+}
+''');
+
+    await initialize();
+
+    var result = await getWorkspaceFixes();
+
+    verifyEdit(result.edit!, '''
+>>>>>>>>>> lib/main.dart
+>>>>>>>>>>   Make final, Replace 'final' with 'const': line 4
+import 'package:path/path.dart' as path;
+
+void f() {
+  const a = 'test';
+  path.join();
+}
+>>>>>>>>>> pubspec.yaml
+>>>>>>>>>>   Update pubspec with the missing dependencies: line 2
+name: x
+dependencies:
+  path: any
+''');
+  }
+
+  Future<void> test_iterativeDartAndPubspec_ifSpecificCodes() async {
+    failTestOnErrorDiagnostic = false;
+
+    newFile(analysisOptionsPath, '''
+linter:
+  rules:
+    - prefer_final_locals
+    - prefer_const_declarations
+    ''');
+
+    newPubspecYamlFile(projectFolderPath, '''
+name: x
+''');
+
+    newFile(mainFilePath, '''
+import 'package:path/path.dart' as path;
+
+void f() {
+  var a = 'test';
+  path.join();
+}
+''');
+
+    await initialize();
+
+    var result = await getWorkspaceFixes(
+      DartGetWorkspaceFixesParams(
+        diagnosticCodes: [
+          diag.preferFinalLocals.lowerCaseName,
+          diag.preferConstDeclarations.lowerCaseName,
+          diag.missingDependency.lowerCaseName,
+        ],
+      ),
+    );
+
+    verifyEdit(result.edit!, '''
+>>>>>>>>>> lib/main.dart
+>>>>>>>>>>   Make final, Replace 'final' with 'const': line 4
+import 'package:path/path.dart' as path;
+
+void f() {
+  const a = 'test';
+  path.join();
+}
+>>>>>>>>>> pubspec.yaml
+>>>>>>>>>>   Update pubspec with the missing dependencies: line 2
+name: x
+dependencies:
+  path: any
 ''');
   }
 
@@ -149,6 +222,122 @@ bool c = ''.length == 0;
 String a = '';
 String b = '';
 bool c = ''.isEmpty;
+''');
+  }
+
+  Future<void> test_pubspec_excluded_ifNonPubspecCodes() async {
+    failTestOnErrorDiagnostic = false;
+
+    newPubspecYamlFile(projectFolderPath, '''
+name: x
+''');
+
+    newFile(mainFilePath, '''
+import 'package:path/path.dart' as path;
+
+void f() {
+  path.join();
+}
+''');
+
+    await initialize();
+
+    var params = DartGetWorkspaceFixesParams(
+      // Filtered to another code means we shouldn't get the pubspec fix.
+      diagnosticCodes: [diag.preferSingleQuotes.lowerCaseName],
+    );
+    var result = await getWorkspaceFixes(params);
+
+    expect(result.edit, isNull);
+  }
+
+  Future<void> test_pubspec_included_ifCode_migrateDesignWidgets() async {
+    failTestOnErrorDiagnostic = false;
+
+    newPubspecYamlFile(projectFolderPath, '''
+name: x
+''');
+
+    newFile(mainFilePath, '''
+import 'package:path/path.dart' as path;
+
+void f() {
+  path.join();
+}
+''');
+
+    await initialize();
+
+    var params = DartGetWorkspaceFixesParams(
+      diagnosticCodes: [diag.migrateDesignWidgets.lowerCaseName],
+    );
+    var result = await getWorkspaceFixes(params);
+
+    verifyEdit(result.edit!, '''
+>>>>>>>>>> pubspec.yaml
+>>>>>>>>>>   Update pubspec with the missing dependencies: line 2
+name: x
+dependencies:
+  path: any
+''');
+  }
+
+  Future<void> test_pubspec_included_ifCode_missingDependency() async {
+    failTestOnErrorDiagnostic = false;
+
+    newPubspecYamlFile(projectFolderPath, '''
+name: x
+''');
+
+    newFile(mainFilePath, '''
+import 'package:path/path.dart' as path;
+
+void f() {
+  path.join();
+}
+''');
+
+    await initialize();
+
+    var params = DartGetWorkspaceFixesParams(
+      diagnosticCodes: [diag.missingDependency.lowerCaseName],
+    );
+    var result = await getWorkspaceFixes(params);
+
+    verifyEdit(result.edit!, '''
+>>>>>>>>>> pubspec.yaml
+>>>>>>>>>>   Update pubspec with the missing dependencies: line 2
+name: x
+dependencies:
+  path: any
+''');
+  }
+
+  Future<void> test_pubspec_included_ifNoCodes() async {
+    failTestOnErrorDiagnostic = false;
+
+    newPubspecYamlFile(projectFolderPath, '''
+name: x
+''');
+
+    newFile(mainFilePath, '''
+import 'package:path/path.dart' as path;
+
+void f() {
+  path.join();
+}
+''');
+
+    await initialize();
+
+    var result = await getWorkspaceFixes();
+
+    verifyEdit(result.edit!, '''
+>>>>>>>>>> pubspec.yaml
+>>>>>>>>>>   Update pubspec with the missing dependencies: line 2
+name: x
+dependencies:
+  path: any
 ''');
   }
 }
