@@ -259,6 +259,7 @@ enum StaticIntrinsic {
   wasmI8x16Eq('dart:_wasm', null, 'WasmI8x16|eq'),
   wasmI16x8Eq('dart:_wasm', null, 'WasmI16x8|eq'),
   wasmI32x4Eq('dart:_wasm', null, 'WasmI32x4|eq'),
+  wasmI32x4Ne('dart:_wasm', null, 'WasmI32x4|ne'),
   wasmI64x2Eq('dart:_wasm', null, 'WasmI64x2|eq'),
   wasmF32x4Eq('dart:_wasm', null, 'WasmF32x4|eq'),
   wasmF64x2Eq('dart:_wasm', null, 'WasmF64x2|eq'),
@@ -2214,6 +2215,13 @@ class Intrinsifier {
         codeGen.translateExpression(left, w.NumType.v128);
         codeGen.translateExpression(right, w.NumType.v128);
         b.i32x4_eq();
+        return w.NumType.v128;
+      case StaticIntrinsic.wasmI32x4Ne:
+        Expression left = node.arguments.positional[0];
+        Expression right = node.arguments.positional[1];
+        codeGen.translateExpression(left, w.NumType.v128);
+        codeGen.translateExpression(right, w.NumType.v128);
+        b.i32x4_ne();
         return w.NumType.v128;
       case StaticIntrinsic.wasmI64x2Eq:
         Expression left = node.arguments.positional[0];
