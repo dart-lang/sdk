@@ -920,6 +920,11 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
   }
 
   @override
+  Constant visitDotShorthandMethodInvocation(
+    DotShorthandMethodInvocation node,
+  ) => _visitNamedFunctionInvocation(node);
+
+  @override
   Constant visitDotShorthandPropertyAccess(
     covariant DotShorthandPropertyAccessImpl node,
   ) {

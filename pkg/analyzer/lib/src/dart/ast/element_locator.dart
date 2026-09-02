@@ -407,6 +407,18 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
   }
 
   @override
+  Element? visitDotShorthandMethodInvocation(
+    DotShorthandMethodInvocation node,
+  ) => switch (node.resolution) {
+    ExecutableInvocationResolution(:var element) => element,
+    InvalidInvocationResolution(
+      recovery: ExecutableInvocationResolution(:var element),
+    ) =>
+      element,
+    _ => null,
+  };
+
+  @override
   Element? visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
     return node.propertyName.element;
   }

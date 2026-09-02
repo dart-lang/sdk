@@ -800,6 +800,23 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
     _invocationArguments(node.memberName.element, node.argumentList);
   }
 
+  void dotShorthandMethodInvocation(DotShorthandMethodInvocation node) {
+    var element = switch (node.resolution) {
+      ExecutableInvocationResolution(:var element) => element,
+      InvalidInvocationResolution(
+        recovery: ExecutableInvocationResolution(:var element),
+      ) =>
+        element,
+      _ => null,
+    };
+    if (element?.enclosingElement case var interfaceElement?) {
+      // A dot-shorthand method invocation contains an implicit reference to
+      // the interface on which the static method was declared.
+      checkUsage(interfaceElement, node);
+    }
+    namedFunctionInvocation(node);
+  }
+
   void dotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
     if (node.propertyName.element?.enclosingElement
         case var interfaceElement?) {

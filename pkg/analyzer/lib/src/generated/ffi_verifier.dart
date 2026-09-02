@@ -405,6 +405,14 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitDotShorthandMethodInvocation(
+    covariant DotShorthandMethodInvocationImpl node,
+  ) {
+    _visitDirectNamedFunctionInvocation(node);
+    super.visitDotShorthandMethodInvocation(node);
+  }
+
+  @override
   void visitFieldDeclaration(FieldDeclaration node) {
     if (inCompound) {
       _validateFieldsInCompound(node);

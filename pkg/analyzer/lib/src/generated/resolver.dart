@@ -3106,16 +3106,23 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       contextType: contextType,
     );
 
+    ExpressionImpl resolvedExpression = node;
+    if (rewrittenExpression == null) {
+      resolvedExpression = _rewriteDotShorthandMethodInvocation(node);
+    }
+
     // TODO(paulberry): why don't we do this for
     // DotShorthandConstructorInvocationImpl?
     if (rewrittenExpression is CallInvocationImpl ||
         rewrittenExpression == null) {
       var replacement = insertGenericFunctionInstantiation(
-        node,
+        resolvedExpression,
         contextType: contextType,
       );
       checkForArgumentTypesNotAssignableInList(
-        node.argumentList,
+        resolvedExpression is FunctionInvocationImpl
+            ? resolvedExpression.argumentList
+            : node.argumentList,
         whyNotPromotedArguments,
       );
       _insertImplicitCallReference(replacement, contextType: contextType);
@@ -3126,6 +3133,14 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     }
 
     inferenceLogWriter?.exitExpression(node);
+  }
+
+  @override
+  void visitDotShorthandMethodInvocation(
+    covariant DotShorthandMethodInvocationImpl node, {
+    TypeImpl contextType = UnknownInferredType.instance,
+  }) {
+    _resolveDirectNamedFunctionInvocation(node, contextType: contextType);
   }
 
   @override
@@ -5715,6 +5730,69 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       ..setPseudoExpressionStaticType(resultType);
     replaceExpression(node, invocation);
     flowAnalysis.transferTestData(node, invocation);
+    return invocation;
+  }
+
+  DotShorthandMethodInvocationImpl _rewriteDotShorthandMethodInvocation(
+    DotShorthandInvocationImpl node,
+  ) {
+    var resultType = node.typeOrThrow;
+    var invokeType = node.staticInvokeType;
+    var element = node.memberName.element;
+    var candidateElement = node.memberName.writeOrReadElement2;
+
+    ValidInvocationResolutionImpl? recovery;
+    if (invokeType is FunctionTypeImpl) {
+      recovery = switch (element) {
+        InternalExecutableElement() => ExecutableInvocationResolutionImpl(
+          element: element,
+          invokeType: invokeType,
+          type: resultType,
+        ),
+        _ => FunctionCallInvocationResolutionImpl(
+          invokeType: invokeType,
+          type: resultType,
+        ),
+      };
+    }
+
+    InvocationResolutionImpl resolution;
+    if (candidateElement is MultiplyDefinedElement) {
+      resolution = InvalidInvocationResolutionImpl(
+        candidates: [candidateElement],
+        recovery: recovery,
+        type: resultType,
+      );
+    } else if (resultType is InvalidTypeImpl || invokeType is InvalidTypeImpl) {
+      resolution = InvalidInvocationResolutionImpl(
+        candidates: [?candidateElement],
+        recovery: recovery,
+        type: resultType,
+      );
+    } else if (recovery != null) {
+      resolution = recovery;
+    } else if (invokeType != null && invokeType.isDartCoreFunction) {
+      resolution = FunctionInterfaceInvocationResolutionImpl(type: resultType);
+    } else {
+      resolution = DynamicInvocationResolutionImpl(type: resultType);
+    }
+
+    var invocation = DotShorthandMethodInvocationImpl(
+      period: node.period,
+      name: node.memberName.token,
+      typeArguments: node.typeArguments,
+      argumentList: node.argumentList,
+    );
+    invocation
+      ..isDotShorthand = node.isDotShorthand
+      ..resolution = resolution
+      ..staticInvokeType = invokeType
+      ..typeArgumentTypes = node.typeArgumentTypes
+      ..setPseudoExpressionStaticType(resultType);
+    replaceExpression(node, invocation);
+    flowAnalysis.transferExpressionInfo(node, invocation);
+    flowAnalysis.transferTestData(node, invocation);
+    inferenceHelper.transferTestData(node, invocation);
     return invocation;
   }
 

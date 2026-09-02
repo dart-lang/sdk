@@ -2285,6 +2285,13 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
     return null;
   }
 
+  @experimental
+  @override
+  R? visitDotShorthandMethodInvocation(DotShorthandMethodInvocation node) {
+    node.visitChildren2(this);
+    return null;
+  }
+
   @override
   R? visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
     node.visitChildren2(this);
@@ -4080,6 +4087,11 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitDotShorthandInvocation(DotShorthandInvocation node) => null;
 
+  @experimental
+  @override
+  R? visitDotShorthandMethodInvocation(DotShorthandMethodInvocation node) =>
+      null;
+
   @override
   R? visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) => null;
 
@@ -5425,6 +5437,11 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitDotShorthandInvocation(DotShorthandInvocation node) => _throw(node);
+
+  @experimental
+  @override
+  R? visitDotShorthandMethodInvocation(DotShorthandMethodInvocation node) =>
+      _throw(node);
 
   @override
   R? visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) =>
@@ -7962,6 +7979,15 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
     return result;
   }
 
+  @experimental
+  @override
+  T? visitDotShorthandMethodInvocation(DotShorthandMethodInvocation node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitDotShorthandMethodInvocation(node);
+    stopwatch.stop();
+    return result;
+  }
+
   @override
   T? visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
     stopwatch.start();
@@ -10133,6 +10159,11 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitDotShorthandInvocation(DotShorthandInvocation node) =>
+      visitNode(node);
+
+  @experimental
+  @override
+  R? visitDotShorthandMethodInvocation(DotShorthandMethodInvocation node) =>
       visitNode(node);
 
   @override

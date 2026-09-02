@@ -1127,17 +1127,17 @@ library
         #F4 hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:49) (firstTokenOffset:49) (offset:49)
           element: <testLibrary>::@topLevelVariable::a
           initializer: expression_0
-            DotShorthandInvocation
+            DotShorthandMethodInvocation
               period: . @53
-              memberName: SimpleIdentifier
-                token: method @54
-                element: <testLibrary>::@class::A::@method::method
-                staticType: A Function()
+              name: method @54
               argumentList: ArgumentList
                 leftParenthesis: ( @60
                 rightParenthesis: ) @61
               isDotShorthand: true
-              staticInvokeType: A Function()
+              resolution: ExecutableInvocationResolution
+                element: <testLibrary>::@class::A::@method::method
+                invokeType: A Function()
+                type: A
               staticType: A
           inducedGetter: #F5
       getters

@@ -1569,6 +1569,13 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
     node.visitChildren2(this);
   }
 
+  @experimental
+  @override
+  void visitDotShorthandMethodInvocation(DotShorthandMethodInvocation node) {
+    _runSubscriptions(node, _registry._forDotShorthandMethodInvocation);
+    node.visitChildren2(this);
+  }
+
   @override
   void visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
     _runSubscriptions(node, _registry._forDotShorthandPropertyAccess);
@@ -4519,6 +4526,9 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   final List<_Subscription2<DotShorthandInvocation>>
   _forDotShorthandInvocation = [];
 
+  final List<_Subscription2<DotShorthandMethodInvocation>>
+  _forDotShorthandMethodInvocation = [];
+
   final List<_Subscription2<DotShorthandPropertyAccess>>
   _forDotShorthandPropertyAccess = [];
 
@@ -5328,6 +5338,17 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   ) {
     _hasNodeProcessors = true;
     _forDotShorthandInvocation.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
+  }
+
+  @override
+  void addDotShorthandMethodInvocation(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
+    _hasNodeProcessors = true;
+    _forDotShorthandMethodInvocation.add(
       _Subscription2(rule, visitor, _getTimer(rule)),
     );
   }

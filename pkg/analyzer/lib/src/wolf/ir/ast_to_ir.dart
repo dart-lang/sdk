@@ -14,6 +14,7 @@ import 'package:analyzer/src/dart/ast/ast.dart'
         AssignmentTargetImpl,
         CascadeIndexAssignmentTargetImpl,
         CascadePropertyAssignmentTargetImpl,
+        DotShorthandMethodInvocationImpl,
         GetterInvocationResolutionImpl,
         ImportPrefixedFunctionInvocationImpl,
         NamedFunctionInvocationImpl,
@@ -599,6 +600,12 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
     ir.end();
     // Stack: (empty)
   }
+
+  @override
+  Null visitDotShorthandMethodInvocation(DotShorthandMethodInvocation node) =>
+      _visitDirectNamedFunctionInvocation(
+        node as DotShorthandMethodInvocationImpl,
+      );
 
   @override
   Null visitDoubleLiteral(DoubleLiteral node) {

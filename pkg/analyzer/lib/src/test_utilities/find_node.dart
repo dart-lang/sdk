@@ -80,6 +80,9 @@ class FindNode2 extends _FindNodeBase {
 
   DirectAssignment get singleDirectAssignment => _single();
 
+  DotShorthandMethodInvocation get singleDotShorthandMethodInvocation =>
+      _single();
+
   IfNull get singleIfNull => _single();
 
   IfNullAssignment get singleIfNullAssignment => _single();
@@ -135,6 +138,10 @@ class FindNode2 extends _FindNodeBase {
 
   DirectAssignment directAssignment(String search) {
     return _node(search, (node) => node is DirectAssignment);
+  }
+
+  DotShorthandMethodInvocation dotShorthandMethodInvocation(String search) {
+    return _node(search, (node) => node is DotShorthandMethodInvocation);
   }
 
   IfNull ifNull(String search) {

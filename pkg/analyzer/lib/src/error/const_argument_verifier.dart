@@ -96,6 +96,11 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
   }
 
   @override
+  void visitDotShorthandMethodInvocation(DotShorthandMethodInvocation node) {
+    verifyNamedFunctionInvocation(node);
+  }
+
+  @override
   void visitIfNullAssignment(IfNullAssignment node) {
     _check(arguments: [node.value], errorNode: node.operator);
   }
