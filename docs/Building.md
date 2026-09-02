@@ -132,11 +132,12 @@ A notification is a small transient non-modal window, for now, only supported on
 
 ### Running from the build directory
 
-On Linux and macOS, if you wish to use the `dart` tool uninstalled after building the Dart SDK, the subdirectory `sdk/bin/` contains a `dart` launcher script which will generate correct paths to the `dart` executable when invoking it. This directory should be added to your `PATH`, rather than the build output directory. If `dart` is run from the output directory, some tools (such as `dart run`) will generate incorrect paths when executing other tools. To set the correct `PATH` for running uninstalled, after building Dart SDK:
+On Linux and macOS, if you wish to use the `dart` tool uninstalled after building the Dart SDK, you should add the directory `dart-sdk/bin` inside the output directory to your `$PATH`. While there is a `dart` binary at the top level of the output directory, some tools (such as `dart run`) will generate incorrect paths when executing other tools if run from that location. For example, if building `--release` on Linux x64, building the SDK and setting the correct `PATH` for running uninstalled would look like:
 ```bash
 
 # From within the "dart-sdk/sdk" directory.
-export PATH="$PATH:$(pwd)/sdk/bin"
+./tools/build.py --release create_sdk
+export PATH="$PATH:$(pwd)/out/ReleaseX64/dart-sdk/bin"
 dart --version
 ```
 
