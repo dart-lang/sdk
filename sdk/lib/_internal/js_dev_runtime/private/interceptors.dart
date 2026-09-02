@@ -331,7 +331,7 @@ JavaScriptFunction dartFunctionToJSCaptureThisVarArgs<S, T>(
 ) {
   final result = JS('JavaScriptFunction', '''
         function(...args) {
-          return f(this, args);
+          return #(this, args);
         }
       ''', f) as JavaScriptFunction;
   JS('', '#.# = #', result, functionToJSProperty, f);

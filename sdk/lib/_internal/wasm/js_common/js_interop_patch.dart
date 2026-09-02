@@ -234,11 +234,17 @@ extension FunctionToJSExportedDartFunctionVarArgs<
     on R Function(JSArray<E>) {
   @patch
   JSExportedDartFunction<R Function(JSArray<E>)> get toJSVarArgs =>
-      js_helper.JS<JSFunction>('''(f) => {
-          const result = (...args) => f(args);
-          finalizeWrapper(f.dartFunction, result);
-          return result;
-        }''', this.toJS) as JSExportedDartFunction<R Function(JSArray<E>)>;
+      JSExportedDartFunction<R Function(JSArray<E>)>._(
+        JSExportedDartFunctionType(
+          JSValue(
+            js_helper.JS<WasmExternRef>('''(f) => {
+              const result = (...args) => f(args);
+              finalizeWrapper(f.dartFunction, result);
+              return result;
+            }''', this.toJS.toExternRef),
+          ),
+        ),
+      );
 }
 
 @patch
@@ -250,13 +256,20 @@ extension FunctionToJSExportedDartFunctionCaptureThisVarArgs<
     on R Function(T, JSArray<E>) {
   @patch
   JSExportedDartFunction<R Function(T, JSArray<E>)>
-  get toJSCaptureThisVarArgs => js_helper.JS<JSFunction>('''(f) => {
-          const result = function(...args) {
-            return f(this, args);
-            finalizeWrapper(f.dartFunction, result);
-            return result;
-          };
-        }''', this.toJS) as JSExportedDartFunction<R Function(T, JSArray<E>)>;
+  get toJSCaptureThisVarArgs =>
+      JSExportedDartFunction<R Function(T, JSArray<E>)>._(
+        JSExportedDartFunctionType(
+          JSValue(
+            js_helper.JS<WasmExternRef>('''(f) => {
+              const result = function(...args) {
+                return f(this, args);
+              };
+              finalizeWrapper(f.dartFunction, result);
+              return result;
+            }''', this.toJS.toExternRef),
+          ),
+        ),
+      );
 }
 
 // Embedded global property for wrapped Dart objects passed via JS interop.
