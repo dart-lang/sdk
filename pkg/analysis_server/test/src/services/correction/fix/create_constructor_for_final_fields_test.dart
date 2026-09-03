@@ -185,6 +185,30 @@ class Test {
     );
   }
 
+  Future<void>
+  test_class_nonFinal_hasPrivate_unsupportedPrivateNamedParameters() async {
+    await resolveTestCode('''
+// @dart=3.11
+class Test {
+  int _a;
+}
+''');
+    await assertHasFix(
+      '''
+// @dart=3.11
+class Test {
+  int _a;
+
+  Test({required int a}) : _a = a;
+}
+''',
+      filter: (error) {
+        return error.diagnosticCode ==
+            diag.notInitializedNonNullableInstanceField;
+      },
+    );
+  }
+
   Future<void> test_class_nonFinal_nullableNotTouched() async {
     await resolveTestCode('''
 class Test {
