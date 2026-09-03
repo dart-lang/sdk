@@ -1099,7 +1099,7 @@ class BuilderFactory {
           }) => new SourceClassBuilder(
             modifiers: modifiers,
             name: name,
-            typeParameters: fragment.typeParameters?.builders,
+            typeParameters: fragment.typeParameterBuilders,
             typeParameterScope: fragment.typeParameterScope,
             nameSpaceBuilder: nameSpaceBuilder,
             libraryBuilder: _enclosingLibraryBuilder,
@@ -1137,20 +1137,20 @@ class BuilderFactory {
     );
     fragment.nominalParameterNameSpace.addTypeParameters(
       _problemReporting,
-      fragment.typeParameters?.builders,
+      fragment.typeParameterBuilders,
       ownerName: name,
       allowNameConflict: false,
     );
     LookupScope typeParameterScope = TypeParameterScope.fromList(
       fragment.enclosingScope,
-      fragment.typeParameters?.builders,
+      fragment.typeParameterBuilders,
     );
     DeclarationNameSpaceBuilder nameSpaceBuilder =
         new DeclarationNameSpaceBuilder.empty();
     SourceClassBuilder classBuilder = new SourceClassBuilder(
       modifiers: fragment.modifiers | Modifiers.NamedMixinApplication,
       name: name,
-      typeParameters: fragment.typeParameters?.builders,
+      typeParameters: fragment.typeParameterBuilders,
       typeParameterScope: typeParameterScope,
       nameSpaceBuilder: nameSpaceBuilder,
       libraryBuilder: _enclosingLibraryBuilder,
