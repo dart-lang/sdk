@@ -402,6 +402,13 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
   }
 
   @override
+  Element? visitDotShorthandConstructorInvocation2(
+    DotShorthandConstructorInvocation2 node,
+  ) {
+    return node.element;
+  }
+
+  @override
   Element? visitDotShorthandInvocation(DotShorthandInvocation node) {
     return node.memberName.element;
   }
@@ -420,14 +427,7 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
 
   @override
   Element? visitDotShorthandNameExpression(DotShorthandNameExpression node) =>
-      switch (node.resolution) {
-        NamedReadResolutionWithElement(:var element) => element,
-        InvalidNamedReadResolution(
-          recovery: NamedReadResolutionWithElement(:var element),
-        ) =>
-          element,
-        _ => null,
-      };
+      node.resolution.elementOrRecovery;
 
   @override
   Element? visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {

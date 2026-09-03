@@ -1102,6 +1102,21 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   }
 
   @override
+  void visitDotShorthandConstructorInvocation2(
+    DotShorthandConstructorInvocation2 node,
+  ) {
+    var element = _getActualConstructorElement(node.element?.baseElement);
+    recordRelation(
+      element,
+      IndexRelationKind.IS_INVOKED_BY_DOT_SHORTHANDS_CONSTRUCTOR,
+      node.name,
+      true,
+    );
+    node.typeArguments?.accept2(this);
+    node.argumentList.accept2(this);
+  }
+
+  @override
   void visitDotShorthandInvocation(DotShorthandInvocation node) {
     var name = node.memberName;
     var element = name.element;

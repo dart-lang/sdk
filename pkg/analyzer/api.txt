@@ -369,6 +369,7 @@ package:analyzer/analysis_rule/rule_visitor_registry.dart:
     addDirectAssignment (method: void Function(AbstractAnalysisRule, AstVisitor2<dynamic>), experimental)
     addDoStatement (method: void Function(AbstractAnalysisRule, AstVisitor2<dynamic>))
     addDotShorthandConstructorInvocation (method: void Function(AbstractAnalysisRule, AstVisitor2<dynamic>))
+    addDotShorthandConstructorInvocation2 (method: void Function(AbstractAnalysisRule, AstVisitor2<dynamic>), experimental)
     addDotShorthandInvocation (method: void Function(AbstractAnalysisRule, AstVisitor2<dynamic>))
     addDotShorthandMethodInvocation (method: void Function(AbstractAnalysisRule, AstVisitor2<dynamic>), experimental)
     addDotShorthandNameExpression (method: void Function(AbstractAnalysisRule, AstVisitor2<dynamic>), experimental)
@@ -1143,6 +1144,7 @@ package:analyzer/dart/ast/ast.dart:
     visitDirectAssignment (method: R? Function(DirectAssignment), experimental)
     visitDoStatement (method: R? Function(DoStatement))
     visitDotShorthandConstructorInvocation (method: R? Function(DotShorthandConstructorInvocation))
+    visitDotShorthandConstructorInvocation2 (method: R? Function(DotShorthandConstructorInvocation2), experimental)
     visitDotShorthandInvocation (method: R? Function(DotShorthandInvocation))
     visitDotShorthandMethodInvocation (method: R? Function(DotShorthandMethodInvocation), experimental)
     visitDotShorthandNameExpression (method: R? Function(DotShorthandNameExpression), experimental)
@@ -1604,14 +1606,22 @@ package:analyzer/dart/ast/ast.dart:
     constructorName (getter: SimpleIdentifier)
     isConst (getter: bool)
     period (getter: Token)
+  DotShorthandConstructorInvocation2 (class extends Object implements DotShorthandExpression, abstract, final, experimental):
+    argumentList (getter: ArgumentList)
+    constKeyword (getter: Token?)
+    element (getter: ConstructorElement?)
+    isConst (getter: bool)
+    typeArguments (getter: TypeArgumentList?)
+  DotShorthandContextResolution (class extends Object, abstract, final, experimental)
+  DotShorthandExpression (class extends Object implements Expression, abstract, final, experimental):
+    name (getter: Token)
+    period (getter: Token)
+    shorthandContext (getter: DotShorthandContextResolution?)
   DotShorthandInvocation (class extends InvocationExpression, abstract, final):
     memberName (getter: SimpleIdentifier)
     period (getter: Token)
-  DotShorthandMethodInvocation (class extends Object implements NamedFunctionInvocation, abstract, final, experimental):
-    period (getter: Token)
-  DotShorthandNameExpression (class extends Object implements Expression, abstract, final, experimental):
-    name (getter: Token)
-    period (getter: Token)
+  DotShorthandMethodInvocation (class extends Object implements NamedFunctionInvocation, DotShorthandExpression, abstract, final, experimental)
+  DotShorthandNameExpression (class extends Object implements DotShorthandExpression, abstract, final, experimental):
     resolution (getter: NamedReadResolution?)
   DotShorthandPropertyAccess (class extends Expression, abstract, final):
     period (getter: Token)
@@ -2030,6 +2040,8 @@ package:analyzer/dart/ast/ast.dart:
     contentsOffset (getter: int)
     value (getter: String)
   InvalidAssignmentTarget (class extends Object implements AssignmentTarget, sealed (immediate subtypes: InvalidExpressionAssignmentTarget), experimental)
+  InvalidDotShorthandContextResolution (class extends Object implements DotShorthandContextResolution, abstract, final, experimental):
+    contextType (getter: DartType?)
   InvalidExpressionAssignmentTarget (class extends Object implements InvalidAssignmentTarget, abstract, final, experimental):
     expression (getter: Expression)
   InvalidIndexReadResolution (class extends Object implements IndexReadResolution, abstract, final, experimental):
@@ -2602,6 +2614,9 @@ package:analyzer/dart/ast/ast.dart:
     write (getter: NamedWriteResolution?)
   UriBasedDirective (class extends Object implements Directive, sealed (immediate subtypes: NamespaceDirective, PartDirective, UriBasedDirectiveImpl)):
     uri (getter: StringLiteral)
+  ValidDotShorthandContextResolution (class extends Object implements DotShorthandContextResolution, abstract, final, experimental):
+    contextType (getter: DartType)
+    lookupType (getter: InterfaceType)
   ValidIndexReadResolution (class extends Object implements IndexReadResolution, abstract, final, experimental)
   ValidIndexWriteResolution (class extends Object implements IndexWriteResolution, abstract, final, experimental)
   ValidInvocationResolution (class extends Object implements InvocationResolution, abstract, final, experimental)
@@ -3517,6 +3532,7 @@ package:analyzer/dart/ast/visitor.dart:
     visitDirectAssignment (method: R? Function(DirectAssignment), experimental)
     visitDoStatement (method: R? Function(DoStatement))
     visitDotShorthandConstructorInvocation (method: R? Function(DotShorthandConstructorInvocation))
+    visitDotShorthandConstructorInvocation2 (method: R? Function(DotShorthandConstructorInvocation2), experimental)
     visitDotShorthandInvocation (method: R? Function(DotShorthandInvocation))
     visitDotShorthandMethodInvocation (method: R? Function(DotShorthandMethodInvocation), experimental)
     visitDotShorthandNameExpression (method: R? Function(DotShorthandNameExpression), experimental)
@@ -3920,6 +3936,7 @@ package:analyzer/dart/ast/visitor.dart:
     visitDirectAssignment (method: R? Function(DirectAssignment), experimental)
     visitDoStatement (method: R? Function(DoStatement))
     visitDotShorthandConstructorInvocation (method: R? Function(DotShorthandConstructorInvocation))
+    visitDotShorthandConstructorInvocation2 (method: R? Function(DotShorthandConstructorInvocation2), experimental)
     visitDotShorthandInvocation (method: R? Function(DotShorthandInvocation))
     visitDotShorthandMethodInvocation (method: R? Function(DotShorthandMethodInvocation), experimental)
     visitDotShorthandNameExpression (method: R? Function(DotShorthandNameExpression), experimental)
@@ -4323,6 +4340,7 @@ package:analyzer/dart/ast/visitor.dart:
     visitDirectAssignment (method: R? Function(DirectAssignment), experimental)
     visitDoStatement (method: R? Function(DoStatement))
     visitDotShorthandConstructorInvocation (method: R? Function(DotShorthandConstructorInvocation))
+    visitDotShorthandConstructorInvocation2 (method: R? Function(DotShorthandConstructorInvocation2), experimental)
     visitDotShorthandInvocation (method: R? Function(DotShorthandInvocation))
     visitDotShorthandMethodInvocation (method: R? Function(DotShorthandMethodInvocation), experimental)
     visitDotShorthandNameExpression (method: R? Function(DotShorthandNameExpression), experimental)
@@ -4728,6 +4746,7 @@ package:analyzer/dart/ast/visitor.dart:
     visitDirectAssignment (method: T? Function(DirectAssignment), experimental)
     visitDoStatement (method: T? Function(DoStatement))
     visitDotShorthandConstructorInvocation (method: T? Function(DotShorthandConstructorInvocation))
+    visitDotShorthandConstructorInvocation2 (method: T? Function(DotShorthandConstructorInvocation2), experimental)
     visitDotShorthandInvocation (method: T? Function(DotShorthandInvocation))
     visitDotShorthandMethodInvocation (method: T? Function(DotShorthandMethodInvocation), experimental)
     visitDotShorthandNameExpression (method: T? Function(DotShorthandNameExpression), experimental)
@@ -5132,6 +5151,7 @@ package:analyzer/dart/ast/visitor.dart:
     visitDirectAssignment (method: R? Function(DirectAssignment), experimental)
     visitDoStatement (method: R? Function(DoStatement))
     visitDotShorthandConstructorInvocation (method: R? Function(DotShorthandConstructorInvocation))
+    visitDotShorthandConstructorInvocation2 (method: R? Function(DotShorthandConstructorInvocation2), experimental)
     visitDotShorthandInvocation (method: R? Function(DotShorthandInvocation))
     visitDotShorthandMethodInvocation (method: R? Function(DotShorthandMethodInvocation), experimental)
     visitDotShorthandNameExpression (method: R? Function(DotShorthandNameExpression), experimental)

@@ -3066,14 +3066,58 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   }) {
     inferenceLogWriter?.enterExpression(node, contextType);
 
-    // If [isDotShorthand] is set, cache the context type for resolution.
+    var hasDotShorthandContext = isDotShorthand(node);
+    if (hasDotShorthandContext) {
+      pushDotShorthandContext(node, SharedTypeSchemaView(contextType));
+    }
+
+    var shorthandContext = _resolveDotShorthandContext();
+
+    var replacement =
+        DotShorthandConstructorInvocation2Impl(
+            constKeyword: node.constKeyword,
+            period: node.period,
+            name: node.constructorName.token,
+            typeArguments: node.typeArguments,
+            argumentList: node.argumentList,
+          )
+          ..isDotShorthand = node.isDotShorthand
+          ..shorthandContext = shorthandContext;
+    replaceExpression(node, replacement);
+    flowAnalysis.transferExpressionInfo(node, replacement);
+    flowAnalysis.transferTestData(node, replacement);
+    inferenceHelper.transferTestData(node, replacement);
+    constructorInvocationResolver.resolveDotShorthand(
+      replacement,
+      contextType: contextType,
+      shorthandContext: shorthandContext,
+    );
+
+    if (hasDotShorthandContext) {
+      popDotShorthandContext();
+    }
+
+    inferenceLogWriter?.exitExpression(node);
+  }
+
+  @override
+  void visitDotShorthandConstructorInvocation2(
+    covariant DotShorthandConstructorInvocation2Impl node, {
+    TypeImpl contextType = UnknownInferredType.instance,
+  }) {
+    inferenceLogWriter?.enterExpression(node, contextType);
+
     if (isDotShorthand(node)) {
       pushDotShorthandContext(node, SharedTypeSchemaView(contextType));
     }
 
+    var shorthandContext = _resolveDotShorthandContext();
+    node.shorthandContext = shorthandContext;
+
     constructorInvocationResolver.resolveDotShorthand(
       node,
       contextType: contextType,
+      shorthandContext: shorthandContext,
     );
 
     if (isDotShorthand(node)) {
@@ -3095,6 +3139,8 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       pushDotShorthandContext(node, SharedTypeSchemaView(contextType));
     }
 
+    var shorthandContext = _resolveDotShorthandContext();
+
     checkUnreachableNode(node);
     var whyNotPromotedArguments =
         <Map<SharedTypeView, NonPromotionReason> Function()>[];
@@ -3104,11 +3150,15 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       node,
       whyNotPromotedArguments: whyNotPromotedArguments,
       contextType: contextType,
+      shorthandContext: shorthandContext,
     );
 
     ExpressionImpl resolvedExpression = node;
     if (rewrittenExpression == null) {
-      resolvedExpression = _rewriteDotShorthandMethodInvocation(node);
+      resolvedExpression = _rewriteDotShorthandMethodInvocation(
+        node,
+        shorthandContext,
+      );
     }
 
     // TODO(paulberry): why don't we do this for
@@ -5602,6 +5652,26 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     inferenceLogWriter?.exitExpression(node);
   }
 
+  /// Resolves the context shared by every canonical dot-shorthand head.
+  ///
+  /// The surrounding context is preserved separately from the normalized
+  /// interface type used for static namespace lookup. Operation-specific
+  /// resolvers consume this result instead of repeating context normalization.
+  DotShorthandContextResolutionImpl _resolveDotShorthandContext() {
+    var contextType = getDotShorthandContext().unwrapTypeSchemaView<TypeImpl>();
+    var lookupType = typeSystem.futureOrBase(contextType);
+    if (lookupType is InterfaceTypeImpl &&
+        lookupType.element.isAccessibleIn(definingLibrary)) {
+      return ValidDotShorthandContextResolutionImpl(
+        contextType: contextType,
+        lookupType: lookupType,
+      );
+    }
+    return InvalidDotShorthandContextResolutionImpl(
+      contextType: contextType is UnknownInferredType ? null : contextType,
+    );
+  }
+
   void _resolveDotShorthandNameExpression(
     DotShorthandNameExpressionImpl node,
     TypeImpl contextType, {
@@ -5614,9 +5684,12 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     }
 
     checkUnreachableNode(node);
+    var shorthandContext = _resolveDotShorthandContext();
+    node.shorthandContext = shorthandContext;
     var resolution = _propertyElementResolver.resolveDotShorthand(
       node,
       contextType: contextType,
+      shorthandContext: shorthandContext,
     );
     node.resolution = resolution;
     node.recordStaticType(resolution.type, resolver: this);
@@ -5771,6 +5844,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
 
   DotShorthandMethodInvocationImpl _rewriteDotShorthandMethodInvocation(
     DotShorthandInvocationImpl node,
+    DotShorthandContextResolutionImpl shorthandContext,
   ) {
     var resultType = node.typeOrThrow;
     var invokeType = node.staticInvokeType;
@@ -5821,6 +5895,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     );
     invocation
       ..isDotShorthand = node.isDotShorthand
+      ..shorthandContext = shorthandContext
       ..resolution = resolution
       ..staticInvokeType = invokeType
       ..typeArgumentTypes = node.typeArgumentTypes

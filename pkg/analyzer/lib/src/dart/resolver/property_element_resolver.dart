@@ -286,25 +286,11 @@ class PropertyElementResolver with ScopeHelpers {
   NamedReadResolutionImpl resolveDotShorthand(
     DotShorthandNameExpressionImpl node, {
     required TypeImpl contextType,
+    required DotShorthandContextResolutionImpl shorthandContext,
   }) {
-    if (_resolver.isDotShorthandContextEmpty) {
-      assert(
-        false,
-        'DotShorthandNameExpressionImpl is not enclosed in an expression for '
-        'which DotShorthandMixin.isDotShorthand is true',
-      );
-    }
-
-    TypeImpl context = _resolver
-        .getDotShorthandContext()
-        .unwrapTypeSchemaView();
-
-    // The static namespace denoted by `S` is also the namespace denoted by
-    // `FutureOr<S>`.
-    context = _resolver.typeSystem.futureOrBase(context);
-
-    if (context is InterfaceTypeImpl &&
-        context.element.isAccessibleIn(_definingLibrary)) {
+    if (shorthandContext case ValidDotShorthandContextResolutionImpl(
+      lookupType: var context,
+    )) {
       var identifier = SimpleIdentifierImpl(token: node.name);
       // Find constructor tearoffs.
       var element = context.lookUpConstructor(

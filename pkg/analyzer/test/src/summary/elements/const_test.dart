@@ -988,17 +988,18 @@ library
         #F3 hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:34) (firstTokenOffset:34) (offset:34)
           element: <testLibrary>::@topLevelVariable::a
           initializer: expression_0
-            DotShorthandConstructorInvocation
+            DotShorthandConstructorInvocation2
               constKeyword: const @38
               period: . @44
-              constructorName: SimpleIdentifier
-                token: new @45
-                element: <testLibrary>::@class::A::@constructor::new
-                staticType: null
+              name: new @45
               argumentList: ArgumentList
                 leftParenthesis: ( @48
                 rightParenthesis: ) @49
               isDotShorthand: true
+              shorthandContext: ValidDotShorthandContextResolution
+                contextType: A
+                lookupType: A
+              element: <testLibrary>::@class::A::@constructor::new
               staticType: A
           inducedGetter: #F4
       getters
@@ -1057,16 +1058,17 @@ library
         #F3 hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:34) (firstTokenOffset:34) (offset:34)
           element: <testLibrary>::@topLevelVariable::a
           initializer: expression_0
-            DotShorthandConstructorInvocation
+            DotShorthandConstructorInvocation2
               period: . @38
-              constructorName: SimpleIdentifier
-                token: new @39
-                element: <testLibrary>::@class::A::@constructor::new
-                staticType: null
+              name: new @39
               argumentList: ArgumentList
                 leftParenthesis: ( @42
                 rightParenthesis: ) @43
               isDotShorthand: true
+              shorthandContext: ValidDotShorthandContextResolution
+                contextType: A
+                lookupType: A
+              element: <testLibrary>::@class::A::@constructor::new
               staticType: A
           inducedGetter: #F4
       getters
@@ -1134,6 +1136,9 @@ library
                 leftParenthesis: ( @60
                 rightParenthesis: ) @61
               isDotShorthand: true
+              shorthandContext: ValidDotShorthandContextResolution
+                contextType: A
+                lookupType: A
               resolution: ExecutableInvocationResolution
                 element: <testLibrary>::@class::A::@method::method
                 invokeType: A Function()
@@ -1226,6 +1231,9 @@ library
               period: . @64
               name: a @65
               isDotShorthand: true
+              shorthandContext: ValidDotShorthandContextResolution
+                contextType: A
+                lookupType: A
               resolution: GetterInvocationResolution
                 element: <testLibrary>::@class::A::@getter::a
                 invokeType: A Function()

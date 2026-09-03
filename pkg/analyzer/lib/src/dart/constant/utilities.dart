@@ -47,6 +47,17 @@ class ConstantExpressionsDependenciesFinder extends RecursiveAstVisitor2 {
   }
 
   @override
+  void visitDotShorthandConstructorInvocation2(
+    DotShorthandConstructorInvocation2 node,
+  ) {
+    if (node.isConst) {
+      _find(node);
+    } else {
+      super.visitDotShorthandConstructorInvocation2(node);
+    }
+  }
+
+  @override
   void visitListLiteral(ListLiteral node) {
     if (node.isConst) {
       _find(node);
@@ -270,6 +281,19 @@ class ReferenceFinder extends RecursiveAstVisitor2<void> {
       }
     }
     super.visitDotShorthandConstructorInvocation(node);
+  }
+
+  @override
+  void visitDotShorthandConstructorInvocation2(
+    covariant DotShorthandConstructorInvocation2Impl node,
+  ) {
+    if (node.isConst) {
+      var constructor = node.element?.baseElement;
+      if (constructor != null && constructor.isConst) {
+        _callback(constructor);
+      }
+    }
+    super.visitDotShorthandConstructorInvocation2(node);
   }
 
   @override

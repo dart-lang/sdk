@@ -655,6 +655,26 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitDotShorthandConstructorInvocation2(
+    covariant DotShorthandConstructorInvocation2Impl node,
+  ) {
+    _sink.writeln('DotShorthandConstructorInvocation2');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _sink.writelnWithIndent('isDotShorthand: ${node.isDotShorthand}');
+      if (_withResolution) {
+        _writeDotShorthandContextResolution(
+          'shorthandContext',
+          node.shorthandContext,
+        );
+      }
+      _writeElement('element', node.element);
+      _writeParameterElement(node);
+      _writeType('staticType', node.staticType);
+    });
+  }
+
+  @override
   void visitDotShorthandInvocation(covariant DotShorthandInvocationImpl node) {
     _sink.writeln('DotShorthandInvocation');
     _sink.withIndent(() {
@@ -676,6 +696,10 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
       _writeNamedChildEntities(node);
       _sink.writelnWithIndent('isDotShorthand: ${node.isDotShorthand}');
       if (_withResolution) {
+        _writeDotShorthandContextResolution(
+          'shorthandContext',
+          node.shorthandContext,
+        );
         _writeInvocationResolution('resolution', node.resolution);
       }
       _writeParameterElement(node);
@@ -693,6 +717,10 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
       _writeNamedChildEntities(node);
       _sink.writelnWithIndent('isDotShorthand: ${node.isDotShorthand}');
       if (_withResolution) {
+        _writeDotShorthandContextResolution(
+          'shorthandContext',
+          node.shorthandContext,
+        );
         _writeNamedReadResolution('resolution', node.resolution);
       }
       _writeParameterElement(node);
@@ -2473,6 +2501,27 @@ Expected parent: (${parent.runtimeType}) $parent
       _sink.writelnWithIndent('offset: ${docImport.offset}');
       _writeNode('import', docImport.import);
     });
+  }
+
+  void _writeDotShorthandContextResolution(
+    String name,
+    DotShorthandContextResolutionImpl? resolution,
+  ) {
+    switch (resolution) {
+      case null:
+        _sink.writelnWithIndent('$name: <null>');
+      case ValidDotShorthandContextResolutionImpl():
+        _sink.writelnWithIndent('$name: ValidDotShorthandContextResolution');
+        _sink.withIndent(() {
+          _writeType('contextType', resolution.contextType);
+          _writeType('lookupType', resolution.lookupType);
+        });
+      case InvalidDotShorthandContextResolutionImpl():
+        _sink.writelnWithIndent('$name: InvalidDotShorthandContextResolution');
+        _sink.withIndent(() {
+          _writeType('contextType', resolution.contextType);
+        });
+    }
   }
 
   void _writeElement(String name, Element? element) {

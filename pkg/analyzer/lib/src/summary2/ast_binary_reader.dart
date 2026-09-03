@@ -457,6 +457,41 @@ class AstBinaryReader {
     return node;
   }
 
+  DotShorthandConstructorInvocation2 _readDotShorthandConstructorInvocation2() {
+    var flags = _readByte();
+    var name = _readStringReference();
+    var typeArguments = _readOptionalNode() as TypeArgumentListImpl?;
+    var argumentList = _readNode() as ArgumentListImpl;
+    var node = DotShorthandConstructorInvocation2Impl(
+      constKeyword: AstBinaryFlags.isConst(flags) ? Tokens.const_() : null,
+      period: Tokens.period(),
+      name: StringToken(TokenType.STRING, name, -1),
+      typeArguments: typeArguments,
+      argumentList: argumentList,
+    )..isDotShorthand = AstBinaryFlags.isDotShorthand(flags);
+    node.shorthandContext = _reader.readOptionalObject(
+      _readDotShorthandContextResolution,
+    );
+    node.element = _reader.readElement() as InternalConstructorElement?;
+    _readExpressionResolution(node);
+    _resolveArguments(node.element, node.argumentList);
+    return node;
+  }
+
+  DotShorthandContextResolutionImpl _readDotShorthandContextResolution() {
+    switch (_reader.readEnum(DotShorthandContextResolutionTag.values)) {
+      case DotShorthandContextResolutionTag.valid:
+        return ValidDotShorthandContextResolutionImpl(
+          contextType: _reader.readType() as TypeImpl,
+          lookupType: _reader.readType() as InterfaceTypeImpl,
+        );
+      case DotShorthandContextResolutionTag.invalid:
+        return InvalidDotShorthandContextResolutionImpl(
+          contextType: _reader.readType(),
+        );
+    }
+  }
+
   DotShorthandInvocation _readDotShorthandInvocation() {
     var flags = _readByte();
     var memberName = _readNode() as SimpleIdentifierImpl;
@@ -483,6 +518,9 @@ class AstBinaryReader {
       typeArguments: typeArguments,
       argumentList: arguments,
     );
+    node.shorthandContext = _reader.readOptionalObject(
+      _readDotShorthandContextResolution,
+    );
     node.staticInvokeType = _reader.readType();
     node.typeArgumentTypes = _reader.readOptionalTypeList();
     node.resolution = _reader.readOptionalObject(_readInvocationResolution);
@@ -497,6 +535,9 @@ class AstBinaryReader {
     var node = DotShorthandNameExpressionImpl(
       period: Tokens.period(),
       name: StringToken(TokenType.STRING, name, -1),
+    );
+    node.shorthandContext = _reader.readOptionalObject(
+      _readDotShorthandContextResolution,
     );
     node.resolution = _reader.readOptionalObject(_readNamedReadResolution);
     node.isDotShorthand = AstBinaryFlags.isDotShorthand(flags);
@@ -1347,6 +1388,8 @@ class AstBinaryReader {
         return _readDotShorthandMethodInvocation();
       case AstNodeTag.DotShorthandNameExpression:
         return _readDotShorthandNameExpression();
+      case AstNodeTag.DotShorthandConstructorInvocation2:
+        return _readDotShorthandConstructorInvocation2();
       case AstNodeTag.IntegerLiteralNegative1:
         return _readIntegerLiteralNegative1();
       case AstNodeTag.IntegerLiteralNull:

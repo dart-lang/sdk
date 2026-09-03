@@ -326,7 +326,7 @@ abstract class _FindNodeBase {
 
   DoStatement get singleDoStatement => _single();
 
-  DotShorthandConstructorInvocation
+  DotShorthandConstructorInvocation2
   get singleDotShorthandConstructorInvocation => _single();
 
   DotShorthandInvocation get singleDotShorthandInvocation => _single();
@@ -751,10 +751,10 @@ abstract class _FindNodeBase {
     return _node(search, (n) => n is DoStatement);
   }
 
-  DotShorthandConstructorInvocation dotShorthandConstructorInvocation(
+  DotShorthandConstructorInvocation2 dotShorthandConstructorInvocation(
     String search,
   ) {
-    return _node(search, (n) => n is DotShorthandConstructorInvocation);
+    return _node(search, (n) => n is DotShorthandConstructorInvocation2);
   }
 
   DotShorthandInvocation dotShorthandInvocation(String search) {

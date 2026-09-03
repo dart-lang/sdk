@@ -104,6 +104,9 @@ SetOrMapLiteral
       period: .
       name: one
       isDotShorthand: true
+      shorthandContext: ValidDotShorthandContextResolution
+        contextType: E
+        lookupType: E
       resolution: GetterInvocationResolution
         element: <testLibrary>::@enum::E::@getter::one
         invokeType: E Function()
@@ -145,6 +148,9 @@ SetOrMapLiteral
       period: .
       name: <empty> <synthetic>
       isDotShorthand: true
+      shorthandContext: ValidDotShorthandContextResolution
+        contextType: E
+        lookupType: E
       resolution: InvalidNamedReadResolution
         type: InvalidType
         candidates

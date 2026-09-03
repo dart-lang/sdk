@@ -1000,6 +1000,22 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   @override
+  void visitDotShorthandConstructorInvocation2(
+    DotShorthandConstructorInvocation2 node,
+  ) {
+    var constructorElement = node.element;
+    if (node.isConst) {
+      _checkForConstWithNonConst(constructorElement, node, node.constKeyword);
+    }
+    _checkForInvalidGenerativeConstructorReference(
+      node.name,
+      constructorElement,
+    );
+    _requiredParametersVerifier.visitDotShorthandConstructorInvocation2(node);
+    super.visitDotShorthandConstructorInvocation2(node);
+  }
+
+  @override
   void visitDotShorthandInvocation(DotShorthandInvocation node) {
     _requiredParametersVerifier.visitDotShorthandInvocation(node);
     _checkUseVerifier.checkDotShorthandInvocation(node);
@@ -6245,7 +6261,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   /// Verify that [constructorElement] is not used at [node] unless it creates an
   /// enum constant or is the target of constructor redirection.
   void _checkForInvalidGenerativeConstructorReference(
-    AstNode node,
+    SyntacticEntity node,
     ConstructorElement? constructorElement,
   ) {
     if (constructorElement != null &&

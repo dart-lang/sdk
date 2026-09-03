@@ -424,6 +424,16 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitDotShorthandConstructorInvocation2(
+    covariant DotShorthandConstructorInvocation2Impl node,
+  ) {
+    _deprecatedFunctionalityVerifier.dotShorthandConstructorInvocation2(node);
+    _elementUsageFrontierDetector.dotShorthandConstructorInvocation2(node);
+    _checkForLiteralConstructorUseInDotShorthand2(node);
+    super.visitDotShorthandConstructorInvocation2(node);
+  }
+
+  @override
   void visitDotShorthandInvocation(DotShorthandInvocation node) {
     _deprecatedFunctionalityVerifier.dotShorthandInvocation(node);
     _elementUsageFrontierDetector.dotShorthandInvocation(node);
@@ -1402,6 +1412,20 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
     }
   }
 
+  void _checkForLiteralConstructorUseInDotShorthand2(
+    DotShorthandConstructorInvocation2Impl node,
+  ) {
+    var constructor = node.element;
+    if (constructor == null) return;
+    if (!node.isConst && constructor.metadata.hasLiteral && node.canBeConst) {
+      _diagnosticReporter.report(
+        diag.nonConstCallToLiteralConstructor
+            .withArguments(constructorName: constructor.displayName)
+            .at(node),
+      );
+    }
+  }
+
   /// Checks that the imported library does not define a `loadLibrary` function.
   ///
   /// Only call this for a deferred [importElement].
@@ -1943,12 +1967,7 @@ class _InvalidAccessVerifier {
   }
 
   void verifyDotShorthandNameExpression(DotShorthandNameExpression node) {
-    var element = switch (node.resolution) {
-      InvalidNamedReadResolution(:var candidates) when candidates.isNotEmpty =>
-        candidates.first,
-      NamedReadResolutionWithElement(:var element) => element,
-      _ => null,
-    };
+    var element = node.resolution.elementOrRecovery;
     _verify(node: node, nameToken: node.name, element: element);
   }
 
@@ -2046,12 +2065,7 @@ class _InvalidAccessVerifier {
   }
 
   void verifyPropertyAssignmentTarget(PropertyAssignmentTarget node) {
-    var readElement = switch (node.read) {
-      InvalidNamedReadResolution(:var candidates) when candidates.isNotEmpty =>
-        candidates.first,
-      NamedReadResolutionWithElement(:var element) => element,
-      _ => null,
-    };
+    var readElement = node.read.elementOrRecovery;
     var writeElement = switch (node.write) {
       InvalidNamedWriteResolution(:var candidates) when candidates.isNotEmpty =>
         candidates.first,
@@ -2064,12 +2078,7 @@ class _InvalidAccessVerifier {
   }
 
   void verifyPropertyExtraction(PropertyExtraction node) {
-    var element = switch (node.resolution) {
-      InvalidNamedReadResolution(:var candidates) when candidates.isNotEmpty =>
-        candidates.first,
-      NamedReadResolutionWithElement(:var element) => element,
-      _ => null,
-    };
+    var element = node.resolution.elementOrRecovery;
     _verify(node: node, nameToken: node.propertyName, element: element);
   }
 
@@ -2104,12 +2113,7 @@ class _InvalidAccessVerifier {
   void verifyUnqualifiedNameAssignmentTarget(
     UnqualifiedNameAssignmentTarget node,
   ) {
-    var readElement = switch (node.read) {
-      InvalidNamedReadResolution(:var candidates) when candidates.isNotEmpty =>
-        candidates.first,
-      NamedReadResolutionWithElement(:var element) => element,
-      _ => null,
-    };
+    var readElement = node.read.elementOrRecovery;
     var writeElement = switch (node.write) {
       InvalidNamedWriteResolution(:var candidates) when candidates.isNotEmpty =>
         candidates.first,

@@ -249,6 +249,13 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
   }
 
   @override
+  void visitCascadePropertyAssignmentTarget(
+    CascadePropertyAssignmentTarget node,
+  ) {
+    names.add(node.propertyName.lexeme);
+  }
+
+  @override
   void visitCascadePropertyExtraction(CascadePropertyExtraction node) {
     names.add(node.propertyName.lexeme);
   }
@@ -273,6 +280,11 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
     } finally {
       localScope = outerScope;
     }
+  }
+
+  @override
+  void visitCombinatorName(CombinatorName node) {
+    names.add(node.name.lexeme);
   }
 
   @override
