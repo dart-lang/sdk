@@ -70,6 +70,11 @@ class GetterFragment implements Fragment, FunctionFragment {
     name.length,
   );
 
+  late final List<SourceNominalParameterBuilder>?
+  declaredTypeParameterBuilders = declaredTypeParameters
+      // Coverage-ignore(suite): Not run.
+      ?.computeBuilderList;
+
   new({
     required this.name,
     required this.fileUri,

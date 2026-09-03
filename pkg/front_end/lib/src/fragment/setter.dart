@@ -67,6 +67,11 @@ class SetterFragment implements Fragment, FunctionFragment {
     name.length,
   );
 
+  late final List<SourceNominalParameterBuilder>?
+  declaredTypeParameterBuilders = declaredTypeParameters
+      // Coverage-ignore(suite): Not run.
+      ?.computeBuilderList;
+
   new({
     required this.name,
     required this.fileUri,
@@ -132,6 +137,16 @@ class _SetterFunctionBodyBuildingContext
   new(this._fragment);
 
   @override
+  ExtensionScope get extensionScope {
+    return _fragment.enclosingCompilationUnit.extensionScope;
+  }
+
+  @override
+  LocalScope get formalParameterScope {
+    return _fragment.declaration.createFormalParameterScope(typeParameterScope);
+  }
+
+  @override
   InferenceDataForTesting? get inferenceDataForTesting => _fragment
       .builder
       .dataForTesting
@@ -157,18 +172,8 @@ class _SetterFunctionBodyBuildingContext
   InternalVariable? get thisVariable => _fragment.declaration.thisVariable;
 
   @override
-  ExtensionScope get extensionScope {
-    return _fragment.enclosingCompilationUnit.extensionScope;
-  }
-
-  @override
   LookupScope get typeParameterScope {
     return _fragment.typeParameterScope;
-  }
-
-  @override
-  LocalScope get formalParameterScope {
-    return _fragment.declaration.createFormalParameterScope(typeParameterScope);
   }
 
   @override

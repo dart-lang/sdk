@@ -66,6 +66,9 @@ class MethodFragment implements Fragment, FunctionFragment {
     name.length,
   );
 
+  late final List<SourceNominalParameterBuilder>?
+  declaredTypeParameterBuilders = declaredTypeParameters?.computeBuilderList;
+
   new({
     required this.name,
     required this.fileUri,
