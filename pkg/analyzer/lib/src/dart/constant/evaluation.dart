@@ -952,15 +952,7 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
   Constant visitDotShorthandNameExpression(
     covariant DotShorthandNameExpressionImpl node,
   ) {
-    var element = switch (node.resolution) {
-      NamedReadResolutionWithElementImpl(:var element) => element,
-      InvalidNamedReadResolutionImpl(
-        recovery: NamedReadResolutionWithElementImpl(:var element),
-      ) =>
-        element,
-      InvalidNamedReadResolutionImpl(:var candidates) => candidates.firstOrNull,
-      _ => null,
-    };
+    var element = node.resolution.elementOrRecovery;
     return _getConstantValue(
       errorNode: node,
       expression: node,

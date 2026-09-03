@@ -303,14 +303,7 @@ class ImportElementReferencesVisitor extends RecursiveAstVisitor2<void> {
 
   @override
   void visitDotShorthandNameExpression(DotShorthandNameExpression node) {
-    var element = switch (node.resolution) {
-      NamedReadResolutionWithElement(:var element) => element.baseElement,
-      InvalidNamedReadResolution(
-        recovery: NamedReadResolutionWithElement(:var element),
-      ) =>
-        element.baseElement,
-      _ => null,
-    };
+    var element = node.resolution.elementOrRecovery?.baseElement;
     if (import.prefix == null && importedElements.contains(element)) {
       _addResult(node.name.offset, 0);
     }

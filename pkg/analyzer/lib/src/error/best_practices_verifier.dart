@@ -1967,12 +1967,7 @@ class _InvalidAccessVerifier {
   }
 
   void verifyDotShorthandNameExpression(DotShorthandNameExpression node) {
-    var element = switch (node.resolution) {
-      InvalidNamedReadResolution(:var candidates) when candidates.isNotEmpty =>
-        candidates.first,
-      NamedReadResolutionWithElement(:var element) => element,
-      _ => null,
-    };
+    var element = node.resolution.elementOrRecovery;
     _verify(node: node, nameToken: node.name, element: element);
   }
 
@@ -2070,12 +2065,7 @@ class _InvalidAccessVerifier {
   }
 
   void verifyPropertyAssignmentTarget(PropertyAssignmentTarget node) {
-    var readElement = switch (node.read) {
-      InvalidNamedReadResolution(:var candidates) when candidates.isNotEmpty =>
-        candidates.first,
-      NamedReadResolutionWithElement(:var element) => element,
-      _ => null,
-    };
+    var readElement = node.read.elementOrRecovery;
     var writeElement = switch (node.write) {
       InvalidNamedWriteResolution(:var candidates) when candidates.isNotEmpty =>
         candidates.first,
@@ -2088,12 +2078,7 @@ class _InvalidAccessVerifier {
   }
 
   void verifyPropertyExtraction(PropertyExtraction node) {
-    var element = switch (node.resolution) {
-      InvalidNamedReadResolution(:var candidates) when candidates.isNotEmpty =>
-        candidates.first,
-      NamedReadResolutionWithElement(:var element) => element,
-      _ => null,
-    };
+    var element = node.resolution.elementOrRecovery;
     _verify(node: node, nameToken: node.propertyName, element: element);
   }
 
@@ -2128,12 +2113,7 @@ class _InvalidAccessVerifier {
   void verifyUnqualifiedNameAssignmentTarget(
     UnqualifiedNameAssignmentTarget node,
   ) {
-    var readElement = switch (node.read) {
-      InvalidNamedReadResolution(:var candidates) when candidates.isNotEmpty =>
-        candidates.first,
-      NamedReadResolutionWithElement(:var element) => element,
-      _ => null,
-    };
+    var readElement = node.read.elementOrRecovery;
     var writeElement = switch (node.write) {
       InvalidNamedWriteResolution(:var candidates) when candidates.isNotEmpty =>
         candidates.first,
