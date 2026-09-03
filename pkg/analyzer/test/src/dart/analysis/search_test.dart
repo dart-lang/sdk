@@ -2377,6 +2377,22 @@ main(A p) {
 ''');
   }
 
+  test_searchReferences_ClassElement_reference_importCombinator_otherFile() async {
+    newFile('$testPackageLibPath/other.dart', r'''
+import 'test.dart' show A;
+''');
+    var result = await resolveTestCode('''
+class A {}
+''');
+    var element = result.findElement.class_('A');
+    await assertElementReferencesText(element, r'''
+package:test/other.dart
+-----------------------
+import 'test.dart' show A;
+                        ^ REFERENCE qualified
+''');
+  }
+
   test_searchReferences_ClassElement_reference_instanceCreation() async {
     var result = await resolveTestCode(r'''
 import 'test.dart' as p;
@@ -4705,6 +4721,36 @@ void use(A a, A? nullableA, B b, B? nullableB) {
 }
 ''',
     );
+  }
+
+  test_searchReferences_FieldElement_ofClass_instance_propertyAssignmentTarget_cascade_otherFile() async {
+    newFile('$testPackageLibPath/other.dart', r'''
+import 'test.dart';
+
+void use(A a) {
+  A()..x = 1;
+  a..x = 2;
+}
+''');
+    var result = await resolveTestCode('''
+class A {
+  num x = 0;
+}
+''');
+
+    var field = result.findElement.field('x', of: 'A');
+    await assertElementReferencesText(field, r'''
+package:test/other.dart
+-----------------------
+import 'test.dart';
+
+void use(A a) {
+  A()..x = 1;
+       ^ WRITE qualified
+  a..x = 2;
+     ^ WRITE qualified
+}
+''');
   }
 
   test_searchReferences_FieldElement_ofClass_instance_propertyExtraction() async {
