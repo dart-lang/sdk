@@ -2638,7 +2638,7 @@ unnecessary_string_interpolations:
 unnecessary_this:
   status: hasFix
 unnecessary_this_alias:
-  status: needsEvaluation
+  status: hasFix
 unnecessary_to_list_in_spreads:
   status: hasFix
 unnecessary_type_name_in_constructor:
