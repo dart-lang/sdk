@@ -14,7 +14,7 @@ import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/member.dart'
-    show SubstitutedExecutableElementImpl;
+    show SubstitutedElementImpl;
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/codes.dart';
@@ -203,7 +203,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
     };
     if (write case InvalidNamedWriteResolution(:var candidates)) {
       for (var candidate in candidates) {
-        if (candidate is SubstitutedExecutableElementImpl) {
+        if (candidate is SubstitutedElementImpl) {
           candidate = candidate.baseElement;
         }
         _useIdentifierElement(candidate);
@@ -446,7 +446,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
     }
     var element = node.writeOrReadElement2;
     // Store un-parameterized members.
-    if (element is SubstitutedExecutableElementImpl) {
+    if (element is SubstitutedElementImpl) {
       element = element.baseElement;
     }
     var variable = element.tryCast<PropertyAccessorElement>()?.variable;
@@ -593,7 +593,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
   }
 
   void _useAssignmentTargetElement(Element element) {
-    if (element is SubstitutedExecutableElementImpl) {
+    if (element is SubstitutedElementImpl) {
       element = element.baseElement;
     }
 
@@ -652,7 +652,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
     required bool readCountsAsUse,
   }) {
     if (read case NamedReadResolutionWithElement(:var element)) {
-      if (element is SubstitutedExecutableElementImpl) {
+      if (element is SubstitutedElementImpl) {
         element = element.baseElement;
       }
       var variable = element.tryCast<PropertyAccessorElement>()?.variable;
@@ -721,7 +721,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
     _useNamedReadResolution(read, readCountsAsUse: readCountsAsUse);
 
     if (write case NamedWriteResolutionWithElement(:var element)) {
-      if (element is SubstitutedExecutableElementImpl) {
+      if (element is SubstitutedElementImpl) {
         element = element.baseElement;
       }
       if (element is! LocalVariableElement) {
@@ -1251,14 +1251,6 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor2<void> {
       if (!element.isOptional) {
         return true;
       }
-      if (enclosingElement is ConstructorElement &&
-          enclosingElement.enclosingElement.typeParameters.isNotEmpty) {
-        // There is an issue matching arguments of constructor invocations for
-        // generic classes with parameters, so for now,
-        // consider every parameter of a constructor of a generic class
-        // "used". See https://github.com/dart-lang/sdk/issues/47839.
-        return true;
-      }
       if (enclosingElement is ConstructorElement) {
         var superConstructor = enclosingElement.superConstructor;
         if (superConstructor != null) {
@@ -1276,13 +1268,6 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor2<void> {
         }
       }
       if (enclosingElement is ExecutableElement) {
-        if (enclosingElement.typeParameters.isNotEmpty) {
-          // There is an issue matching arguments of generic function
-          // invocations with parameters, so for now, consider every parameter
-          // of a generic function "used". See
-          // https://github.com/dart-lang/sdk/issues/47839.
-          return true;
-        }
         if (_isPubliclyAccessible(enclosingElement)) {
           return true;
         }
@@ -1332,9 +1317,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor2<void> {
           return const [];
         }
 
-        return overridden.map(
-          (e) => (e is SubstitutedExecutableElementImpl) ? e.baseElement : e,
-        );
+        return overridden.map((e) => e.baseElement);
       }
     }
     return [];
@@ -1564,7 +1547,7 @@ class UsedLocalElements {
   void addElement(Element? element) {
     if (element is JoinPatternVariableElementImpl) {
       elements.addAll(element.transitiveVariables);
-    } else if (element is SubstitutedExecutableElementImpl) {
+    } else if (element is SubstitutedElementImpl) {
       elements.add(element.baseElement);
     } else if (element != null) {
       elements.add(element);
@@ -1579,7 +1562,7 @@ class UsedLocalElements {
 
   void addMember(Element? element) {
     // Store un-parameterized members.
-    if (element is SubstitutedExecutableElementImpl) {
+    if (element is SubstitutedElementImpl) {
       element = element.baseElement;
     }
 
@@ -1590,7 +1573,7 @@ class UsedLocalElements {
 
   void addReadMember(Element? element) {
     // Store un-parameterized members.
-    if (element is SubstitutedExecutableElementImpl) {
+    if (element is SubstitutedElementImpl) {
       element = element.baseElement;
     }
 
