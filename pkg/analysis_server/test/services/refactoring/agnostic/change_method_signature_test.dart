@@ -15,6 +15,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/source_range.dart';
+import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/test_utilities/platform.dart';
@@ -98,7 +99,11 @@ class AbstractChangeMethodSignatureTest extends AbstractContextTest {
     var unitResult = resolvedLibraryResult.unitWithPath(file.path)!;
 
     refactoringContext = AbstractRefactoringContext(
-      searchEngine: SearchEngineImpl(allDrivers),
+      searchEngine: SearchEngineImpl(
+        contextCollection.contexts.map(
+          (c) => (c as DriverBasedAnalysisContext).driver,
+        ),
+      ),
       startSessions: [resolvedLibraryResult.session],
       resolvedLibraryResult: resolvedLibraryResult,
       resolvedUnitResult: unitResult,

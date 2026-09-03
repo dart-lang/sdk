@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
@@ -41,20 +41,16 @@ class AbstractContextTest
   final Map<String, String> _declaredVariables = {};
   AnalysisContextCollectionImpl? _analysisContextCollection;
 
-  /// A list of all [AnalysisDriver] instances across all created analysis
-  /// contexts.
-  ///
-  /// This is primarily used by intermediate classes or server-wide services
-  /// (such as search engine tests) rather than individual test cases.
-  List<AnalysisDriver> get allDrivers {
-    _createAnalysisContexts();
-    return _analysisContextCollection!.contexts.map((e) => e.driver).toList();
-  }
-
   /// The file system specific path for `analysis_options.yaml` in
   /// [testPackageRootPath].
   String get analysisOptionsPath =>
       convertPath('$testPackageRootPath/analysis_options.yaml');
+
+  /// The [AnalysisContextCollection] managing the analysis contexts.
+  AnalysisContextCollection get contextCollection {
+    _createAnalysisContexts();
+    return _analysisContextCollection!;
+  }
 
   /// The file system path to the mock SDK root directory.
   @override
