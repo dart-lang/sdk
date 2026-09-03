@@ -77,6 +77,7 @@ io/process_detached_test: Slow, Pass
 io/https_client_certificate_test: Slow, Pass
 
 [ $system == fuchsia ]
+io/client_socket_add_close_no_error_test: Skip # Flaky - #64157
 io/dart_std_io_pipe_test: Skip # Test harness doesn't support multitest with Fuchsia
 io/http_request_pipelining_test: Skip # Meta-flaky - #63797
 io/platform_resolved_executable_test: Skip # Test harness doesn't support multitest with Fuchsia
