@@ -107,6 +107,9 @@ abstract class Feature {
   /// Feature information for sound flow analysis.
   static final sound_flow_analysis = ExperimentalFeatures.sound_flow_analysis;
 
+  /// Feature information for single combinators.
+  static final single_combinators = ExperimentalFeatures.single_combinators;
+
   /// Feature information for static extensions.
   static final static_extensions = ExperimentalFeatures.static_extensions;
 

@@ -1933,15 +1933,6 @@ abstract class IntegrationTest {
   ///   analysis.setAnalysisRoots), an error of type `FILE_NOT_ANALYZED` will
   ///   be generated.
   ///
-  /// * `inTestMode: bool (optional)`
-  ///
-  ///   A flag indicating whether the bulk fixes are being run in test mode.
-  ///   The only difference is that in test mode the fix processor will look
-  ///   for a configuration file that can modify the content of the data file
-  ///   used to compute the fixes when data-driven fixes are being considered.
-  ///
-  ///   If this field is omitted the flag defaults to `false`.
-  ///
   /// * `updatePubspec: bool (optional)`
   ///
   ///   A flag indicating whether to validate that the dependencies used by the
@@ -1972,13 +1963,11 @@ abstract class IntegrationTest {
   ///   changes.
   Future<EditBulkFixesResult> sendEditBulkFixes(
     List<String> included, {
-    bool? inTestMode,
     bool? updatePubspec,
     List<String>? codes,
   }) async {
     var params = EditBulkFixesParams(
       included,
-      inTestMode: inTestMode,
       updatePubspec: updatePubspec,
       codes: codes,
     ).toJson(clientUriConverter: uriConverter);
