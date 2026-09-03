@@ -469,10 +469,27 @@ class AstBinaryReader {
       typeArguments: typeArguments,
       argumentList: argumentList,
     )..isDotShorthand = AstBinaryFlags.isDotShorthand(flags);
+    node.shorthandContext = _reader.readOptionalObject(
+      _readDotShorthandContextResolution,
+    );
     node.element = _reader.readElement() as InternalConstructorElement?;
     _readExpressionResolution(node);
     _resolveArguments(node.element, node.argumentList);
     return node;
+  }
+
+  DotShorthandContextResolutionImpl _readDotShorthandContextResolution() {
+    switch (_reader.readEnum(DotShorthandContextResolutionTag.values)) {
+      case DotShorthandContextResolutionTag.valid:
+        return ValidDotShorthandContextResolutionImpl(
+          contextType: _reader.readType() as TypeImpl,
+          lookupType: _reader.readType() as InterfaceTypeImpl,
+        );
+      case DotShorthandContextResolutionTag.invalid:
+        return InvalidDotShorthandContextResolutionImpl(
+          contextType: _reader.readType(),
+        );
+    }
   }
 
   DotShorthandInvocation _readDotShorthandInvocation() {
@@ -501,6 +518,9 @@ class AstBinaryReader {
       typeArguments: typeArguments,
       argumentList: arguments,
     );
+    node.shorthandContext = _reader.readOptionalObject(
+      _readDotShorthandContextResolution,
+    );
     node.staticInvokeType = _reader.readType();
     node.typeArgumentTypes = _reader.readOptionalTypeList();
     node.resolution = _reader.readOptionalObject(_readInvocationResolution);
@@ -515,6 +535,9 @@ class AstBinaryReader {
     var node = DotShorthandNameExpressionImpl(
       period: Tokens.period(),
       name: StringToken(TokenType.STRING, name, -1),
+    );
+    node.shorthandContext = _reader.readOptionalObject(
+      _readDotShorthandContextResolution,
     );
     node.resolution = _reader.readOptionalObject(_readNamedReadResolution);
     node.isDotShorthand = AstBinaryFlags.isDotShorthand(flags);

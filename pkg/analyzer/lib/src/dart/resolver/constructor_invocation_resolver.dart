@@ -62,20 +62,16 @@ class ConstructorInvocationResolver {
   void resolveDotShorthand(
     DotShorthandConstructorInvocation2Impl node, {
     required TypeImpl contextType,
+    required DotShorthandContextResolutionImpl shorthandContext,
   }) {
-    TypeImpl dotShorthandContextType = _resolver
-        .getDotShorthandContext()
-        .unwrapTypeSchemaView();
+    var dotShorthandContextType = switch (shorthandContext) {
+      ValidDotShorthandContextResolutionImpl(:var lookupType) => lookupType,
+      InvalidDotShorthandContextResolutionImpl() => InvalidTypeImpl.instance,
+    };
 
-    // The static namespace denoted by `S` is also the namespace denoted by
-    // `FutureOr<S>`.
-    dotShorthandContextType = _resolver.typeSystem.futureOrBase(
-      dotShorthandContextType,
-    );
-
-    if (dotShorthandContextType case InterfaceTypeImpl(
-      element: var contextElement,
-    ) when contextElement.isAccessibleIn(_resolver.definingLibrary)) {
+    if (shorthandContext case ValidDotShorthandContextResolutionImpl(
+      lookupType: InterfaceTypeImpl(element: var contextElement),
+    )) {
       // This branch will be true if we're resolving an explicitly marked
       // const constructor invocation. It's completely unresolved, unlike a
       // rewritten [DotShorthandConstructorInvocation2] that resulted from
@@ -110,7 +106,7 @@ class ConstructorInvocationResolver {
         _resolver.diagnosticReporter.report(
           diag.wrongNumberOfTypeArgumentsDotShorthandConstructor
               .withArguments(
-                className: dotShorthandContextType.element.displayName,
+                className: contextElement.displayName,
                 constructorName: node.name.lexeme,
               )
               .at(typeArguments),
@@ -120,10 +116,6 @@ class ConstructorInvocationResolver {
       _resolver.diagnosticReporter.report(
         diag.dotShorthandMissingContext.at(node),
       );
-      // Prevents `constructorElementToInfer` (called by
-      // `_resolveDotShorthandConstructorInvocation`) from considering the
-      // context type to be valid.
-      dotShorthandContextType = InvalidTypeImpl.instance;
     }
 
     _resolveDotShorthandConstructorInvocation(

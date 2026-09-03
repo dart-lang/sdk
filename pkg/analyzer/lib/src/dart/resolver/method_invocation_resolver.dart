@@ -13,7 +13,6 @@ import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
@@ -262,22 +261,13 @@ class MethodInvocationResolver with ScopeHelpers {
     DotShorthandInvocationImpl node,
     List<WhyNotPromotedGetter> whyNotPromotedArguments, {
     required TypeImpl contextType,
+    required DotShorthandContextResolutionImpl shorthandContext,
   }) {
     _invocation = node;
 
-    TypeImpl dotShorthandContextType = _resolver
-        .getDotShorthandContext()
-        .unwrapTypeSchemaView();
-
-    // The static namespace denoted by `S` is also the namespace denoted by
-    // `FutureOr<S>`.
-    dotShorthandContextType = _resolver.typeSystem.futureOrBase(
-      dotShorthandContextType,
-    );
-
-    if (dotShorthandContextType case InterfaceTypeImpl(
-      :var element,
-    ) when element.isAccessibleIn(_resolver.definingLibrary)) {
+    if (shorthandContext case ValidDotShorthandContextResolutionImpl(
+      lookupType: InterfaceTypeImpl(element: var element),
+    )) {
       return _resolveReceiverTypeLiteralForDotShorthand(
         node,
         element,
@@ -285,9 +275,12 @@ class MethodInvocationResolver with ScopeHelpers {
         node.memberName.name,
         whyNotPromotedArguments,
         contextType: contextType,
+        shorthandContext: shorthandContext,
       );
     }
-    if (dotShorthandContextType is UnknownInferredType) {
+    if (shorthandContext case InvalidDotShorthandContextResolutionImpl(
+      contextType: null,
+    )) {
       _resolver.diagnosticReporter.report(
         diag.dotShorthandMissingContext.at(node),
       );
@@ -1297,6 +1290,7 @@ class MethodInvocationResolver with ScopeHelpers {
     String name,
     List<WhyNotPromotedGetter> whyNotPromotedArguments, {
     required TypeImpl contextType,
+    required ValidDotShorthandContextResolutionImpl shorthandContext,
   }) {
     var element = _resolveElement(receiver, node.memberName);
     if (element is InternalExecutableElement && element.isStatic) {
@@ -1313,6 +1307,7 @@ class MethodInvocationResolver with ScopeHelpers {
           isCascaded: false,
           whyNotPromotedArguments: whyNotPromotedArguments,
           contextType: contextType,
+          dotShorthandContext: shorthandContext,
         );
       }
       _setResolutionForDotShorthand(
@@ -1337,12 +1332,14 @@ class MethodInvocationResolver with ScopeHelpers {
               argumentList: node.argumentList,
             )
             ..element = element
-            ..isDotShorthand = node.isDotShorthand;
+            ..isDotShorthand = node.isDotShorthand
+            ..shorthandContext = shorthandContext;
       _resolver.replaceExpression(node, replacement);
       _resolver.flowAnalysis.transferTestData(node, replacement);
       _resolver.constructorInvocationResolver.resolveDotShorthand(
         replacement,
         contextType: contextType,
+        shorthandContext: shorthandContext,
       );
       return replacement;
     }
@@ -1380,6 +1377,7 @@ class MethodInvocationResolver with ScopeHelpers {
     bool isSuperAccess = false,
     required List<WhyNotPromotedGetter> whyNotPromotedArguments,
     required TypeImpl contextType,
+    DotShorthandContextResolutionImpl? dotShorthandContext,
   }) {
     var targetType = getterReturnType;
 
@@ -1409,7 +1407,7 @@ class MethodInvocationResolver with ScopeHelpers {
         functionExpression = DotShorthandNameExpressionImpl(
           period: node.period,
           name: node.memberName.token,
-        );
+        )..shorthandContext = dotShorthandContext;
       } else {
         functionExpression = methodName;
       }

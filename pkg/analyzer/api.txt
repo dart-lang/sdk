@@ -1606,22 +1606,22 @@ package:analyzer/dart/ast/ast.dart:
     constructorName (getter: SimpleIdentifier)
     isConst (getter: bool)
     period (getter: Token)
-  DotShorthandConstructorInvocation2 (class extends Object implements Expression, abstract, final, experimental):
+  DotShorthandConstructorInvocation2 (class extends Object implements DotShorthandExpression, abstract, final, experimental):
     argumentList (getter: ArgumentList)
     constKeyword (getter: Token?)
     element (getter: ConstructorElement?)
     isConst (getter: bool)
+    typeArguments (getter: TypeArgumentList?)
+  DotShorthandContextResolution (class extends Object, abstract, final, experimental)
+  DotShorthandExpression (class extends Object implements Expression, abstract, final, experimental):
     name (getter: Token)
     period (getter: Token)
-    typeArguments (getter: TypeArgumentList?)
+    shorthandContext (getter: DotShorthandContextResolution?)
   DotShorthandInvocation (class extends InvocationExpression, abstract, final):
     memberName (getter: SimpleIdentifier)
     period (getter: Token)
-  DotShorthandMethodInvocation (class extends Object implements NamedFunctionInvocation, abstract, final, experimental):
-    period (getter: Token)
-  DotShorthandNameExpression (class extends Object implements Expression, abstract, final, experimental):
-    name (getter: Token)
-    period (getter: Token)
+  DotShorthandMethodInvocation (class extends Object implements NamedFunctionInvocation, DotShorthandExpression, abstract, final, experimental)
+  DotShorthandNameExpression (class extends Object implements DotShorthandExpression, abstract, final, experimental):
     resolution (getter: NamedReadResolution?)
   DotShorthandPropertyAccess (class extends Expression, abstract, final):
     period (getter: Token)
@@ -2040,6 +2040,8 @@ package:analyzer/dart/ast/ast.dart:
     contentsOffset (getter: int)
     value (getter: String)
   InvalidAssignmentTarget (class extends Object implements AssignmentTarget, sealed (immediate subtypes: InvalidExpressionAssignmentTarget), experimental)
+  InvalidDotShorthandContextResolution (class extends Object implements DotShorthandContextResolution, abstract, final, experimental):
+    contextType (getter: DartType?)
   InvalidExpressionAssignmentTarget (class extends Object implements InvalidAssignmentTarget, abstract, final, experimental):
     expression (getter: Expression)
   InvalidIndexReadResolution (class extends Object implements IndexReadResolution, abstract, final, experimental):
@@ -2612,6 +2614,9 @@ package:analyzer/dart/ast/ast.dart:
     write (getter: NamedWriteResolution?)
   UriBasedDirective (class extends Object implements Directive, sealed (immediate subtypes: NamespaceDirective, PartDirective, UriBasedDirectiveImpl)):
     uri (getter: StringLiteral)
+  ValidDotShorthandContextResolution (class extends Object implements DotShorthandContextResolution, abstract, final, experimental):
+    contextType (getter: DartType)
+    lookupType (getter: InterfaceType)
   ValidIndexReadResolution (class extends Object implements IndexReadResolution, abstract, final, experimental)
   ValidIndexWriteResolution (class extends Object implements IndexWriteResolution, abstract, final, experimental)
   ValidInvocationResolution (class extends Object implements InvocationResolution, abstract, final, experimental)

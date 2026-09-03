@@ -38,6 +38,9 @@ DotShorthandNameExpression
   period: .
   name: member
   isDotShorthand: false
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C
+    lookupType: C
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::member
     invokeType: C Function()
@@ -75,6 +78,9 @@ DotShorthandNameExpression
   period: .
   name: member
   isDotShorthand: false
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C
+    lookupType: C
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::member
     invokeType: C Function()
@@ -111,6 +117,9 @@ DotShorthandNameExpression
   period: .
   name: member
   isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C
+    lookupType: C
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::member
     invokeType: C Function()
@@ -147,6 +156,9 @@ DotShorthandNameExpression
   period: .
   name: one
   isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: Integer
+    lookupType: Integer
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::Integer::@getter::one
     invokeType: Integer Function()
@@ -180,6 +192,9 @@ DotShorthandNameExpression
   period: .
   name: blue
   isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: Color
+    lookupType: Color
   resolution: GetterInvocationResolution
     element: <testLibrary>::@enum::Color::@getter::blue
     invokeType: Color Function()
@@ -219,6 +234,9 @@ DotShorthandNameExpression
   period: .
   name: member
   isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C
+    lookupType: C
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::member
     invokeType: C Function()
@@ -251,6 +269,9 @@ DotShorthandNameExpression
   period: .
   name: blue
   isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: Color
+    lookupType: Color
   resolution: GetterInvocationResolution
     element: <testLibrary>::@enum::Color::@getter::blue
     invokeType: Color Function()
@@ -286,6 +307,9 @@ DotShorthandNameExpression
   period: .
   name: member
   isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C
+    lookupType: C
   resolution: GetterInvocationResolution
     element: <testLibrary>::@extensionType::C::@getter::member
     invokeType: C Function()
@@ -318,6 +342,9 @@ DotShorthandNameExpression
   period: .
   name: red
   isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C
+    lookupType: C
   resolution: GetterInvocationResolution
     element: <testLibrary>::@enum::C::@getter::red
     invokeType: C Function()
@@ -355,6 +382,9 @@ DotShorthandNameExpression
   period: .
   name: member
   isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C
+    lookupType: C
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::member
     invokeType: C Function()
@@ -420,6 +450,9 @@ DotShorthandNameExpression
   period: .
   name: instances
   isDotShorthand: false
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C
+    lookupType: C
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::instances
     invokeType: List<C> Function()
@@ -455,6 +488,9 @@ DotShorthandNameExpression
   period: .
   name: nullable
   isDotShorthand: false
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C
+    lookupType: C
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::nullable
     invokeType: C? Function()
@@ -491,6 +527,9 @@ DotShorthandNameExpression
   period: .
   name: nullable
   isDotShorthand: false
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C
+    lookupType: C
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::nullable
     invokeType: C? Function()
@@ -523,6 +562,9 @@ DotShorthandNameExpression
   period: .
   name: blue
   isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: Color
+    lookupType: Color
   resolution: GetterInvocationResolution
     element: <testLibrary>::@enum::Color::@getter::blue
     invokeType: Color Function()
@@ -572,7 +614,7 @@ class B extends A {
   }
 
   test_error_context_invalid() async {
-    await resolveTestCodeWithDiagnostics('''
+    var result = await resolveTestCodeWithDiagnostics('''
 class C { }
 
 void main() {
@@ -581,6 +623,29 @@ void main() {
 // [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
   print(c);
 }
+''');
+
+    var node = result.findNode.singleDotShorthandNameExpression;
+    assertResolvedNodeText(node, r'''
+DotShorthandNameExpression
+  period: .
+  name: member
+  isDotShorthand: true
+  shorthandContext: InvalidDotShorthandContextResolution
+    contextType: C Function()
+  resolution: InvalidNamedReadResolution
+    type: InvalidType
+    candidates
+    recovery: <null>
+  staticType: InvalidType
+V1: DotShorthandPropertyAccess
+  period: .
+  propertyName: SimpleIdentifier
+    token: member
+    element: <null>
+    staticType: InvalidType
+  isDotShorthand: true
+  staticType: InvalidType
 ''');
   }
 
@@ -643,6 +708,9 @@ DotShorthandNameExpression
   period: .
   name: value
   isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C
+    lookupType: C
   resolution: InvalidNamedReadResolution
     type: InvalidType
     candidates
@@ -677,6 +745,9 @@ DotShorthandNameExpression
   period: .
   name: one
   isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C
+    lookupType: C
   resolution: GetterInvocationResolution
     element: <testLibrary>::@extensionType::C::@getter::one
     invokeType: C Function()
@@ -712,6 +783,9 @@ CallInvocation
     period: .
     name: field
     isDotShorthand: false
+    shorthandContext: ValidDotShorthandContextResolution
+      contextType: C
+      lookupType: C
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::field
       invokeType: C Function()
@@ -775,6 +849,9 @@ CallInvocation
     period: .
     name: field
     isDotShorthand: false
+    shorthandContext: ValidDotShorthandContextResolution
+      contextType: C
+      lookupType: C
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::field
       invokeType: C Function()
@@ -828,6 +905,9 @@ CallInvocation
     period: .
     name: getter
     isDotShorthand: false
+    shorthandContext: ValidDotShorthandContextResolution
+      contextType: C
+      lookupType: C
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::getter
       invokeType: C Function()
@@ -878,6 +958,9 @@ CallInvocation
     period: .
     name: field
     isDotShorthand: false
+    shorthandContext: ValidDotShorthandContextResolution
+      contextType: C
+      lookupType: C
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::field
       invokeType: C Function()
@@ -928,6 +1011,9 @@ CallInvocation
     period: .
     name: field
     isDotShorthand: false
+    shorthandContext: ValidDotShorthandContextResolution
+      contextType: C
+      lookupType: C
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::field
       invokeType: C Function()
@@ -1012,6 +1098,9 @@ CallInvocation
     period: .
     name: getter
     isDotShorthand: false
+    shorthandContext: ValidDotShorthandContextResolution
+      contextType: C
+      lookupType: C
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::getter
       invokeType: C Function()
@@ -1097,6 +1186,9 @@ DotShorthandNameExpression
   period: .
   name: foo
   isDotShorthand: false
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C<dynamic>
+    lookupType: C<dynamic>
   resolution: ExecutableTearOffResolution
     element: <testLibrary>::@class::C::@method::foo
     type: String Function<X>()
@@ -1130,6 +1222,9 @@ DotShorthandNameExpression
   period: .
   name: red
   isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: FutureOr<C>
+    lookupType: C
   resolution: GetterInvocationResolution
     element: <testLibrary>::@enum::C::@getter::red
     invokeType: C Function()
@@ -1164,6 +1259,9 @@ DotShorthandNameExpression
   period: .
   name: red
   isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: FutureOr<FutureOr<C>>
+    lookupType: C
   resolution: GetterInvocationResolution
     element: <testLibrary>::@enum::C::@getter::red
     invokeType: C Function()
@@ -1208,6 +1306,9 @@ DotShorthandNameExpression
   period: .
   name: mixinOne
   isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: CMixin
+    lookupType: CMixin
   resolution: GetterInvocationResolution
     element: <testLibrary>::@mixin::CMixin::@getter::mixinOne
     invokeType: CMixin Function()
@@ -1248,6 +1349,8 @@ IncrementOrDecrementExpression
         period: .
         name: values
         isDotShorthand: false
+        shorthandContext: InvalidDotShorthandContextResolution
+          contextType: null
         resolution: InvalidNamedReadResolution
           type: InvalidType
           candidates
@@ -1343,6 +1446,8 @@ IncrementOrDecrementExpression
         period: .
         name: values
         isDotShorthand: false
+        shorthandContext: InvalidDotShorthandContextResolution
+          contextType: null
         resolution: InvalidNamedReadResolution
           type: InvalidType
           candidates
@@ -1456,6 +1561,11 @@ DotShorthandNameExpression
   period: .
   name: getter
   isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: _Private
+      alias: <testLibrary>::@typeAlias::Public
+    lookupType: _Private
+      alias: <testLibrary>::@typeAlias::Public
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::_Private::@getter::getter
     invokeType: _Private Function()
@@ -1514,6 +1624,11 @@ DotShorthandNameExpression
   period: .
   name: two
   isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: _Private
+      alias: <testLibrary>::@typeAlias::Public
+    lookupType: _Private
+      alias: <testLibrary>::@typeAlias::Public
   resolution: GetterInvocationResolution
     element: <testLibrary>::@enum::_Private::@getter::two
     invokeType: _Private Function()
@@ -1576,6 +1691,11 @@ DotShorthandNameExpression
   period: .
   name: getter
   isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: _Private
+      alias: <testLibrary>::@typeAlias::Public
+    lookupType: _Private
+      alias: <testLibrary>::@typeAlias::Public
   resolution: GetterInvocationResolution
     element: <testLibrary>::@extensionType::_Private::@getter::getter
     invokeType: _Private Function()
@@ -1640,6 +1760,11 @@ DotShorthandNameExpression
   period: .
   name: getter
   isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: _Private
+      alias: <testLibrary>::@typeAlias::Public
+    lookupType: _Private
+      alias: <testLibrary>::@typeAlias::Public
   resolution: GetterInvocationResolution
     element: <testLibrary>::@mixin::_Private::@getter::getter
     invokeType: _Private Function()
@@ -1679,6 +1804,9 @@ DotShorthandNameExpression
   period: .
   name: id
   isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C1
+    lookupType: C1
   resolution: ExecutableTearOffResolution
     element: <testLibrary>::@class::C1::@constructor::id
     type: C1 Function()
@@ -1731,6 +1859,9 @@ DotShorthandNameExpression
   period: .
   name: new
   isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C<int>
+    lookupType: C<int>
   resolution: ExecutableTearOffResolution
     element: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::C::@constructor::new
@@ -1764,6 +1895,9 @@ DotShorthandNameExpression
   period: .
   name: new
   isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: Object
+    lookupType: Object
   resolution: ExecutableTearOffResolution
     element: dart:core::@class::Object::@constructor::new
     type: Object Function()

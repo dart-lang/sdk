@@ -14532,7 +14532,8 @@ abstract final class DotShorthandConstructorInvocation
 ///        '.' name [TypeArgumentList]? [ArgumentList]
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-abstract final class DotShorthandConstructorInvocation2 implements Expression {
+abstract final class DotShorthandConstructorInvocation2
+    implements DotShorthandExpression {
   /// The list of arguments to the constructor.
   ArgumentList get argumentList;
 
@@ -14552,13 +14553,6 @@ abstract final class DotShorthandConstructorInvocation2 implements Expression {
 
   /// Whether this invocation is evaluated at compile time.
   bool get isConst;
-
-  /// The written constructor name, including `new` for an unnamed
-  /// constructor.
-  Token get name;
-
-  /// The period before [name].
-  Token get period;
 
   /// The explicitly written type arguments, or `null` if none were written.
   TypeArgumentList? get typeArguments;
@@ -14594,6 +14588,9 @@ final class DotShorthandConstructorInvocation2Impl extends ExpressionImpl
 
   @generated
   ArgumentListImpl _argumentList;
+
+  @override
+  DotShorthandContextResolutionImpl? shorthandContext;
 
   @override
   InternalConstructorElement? element;
@@ -15223,6 +15220,36 @@ final class DotShorthandConstructorInvocationImpl
   }
 }
 
+/// The result of selecting the static namespace for a dot shorthand.
+///
+/// A valid result identifies both the contextual input and the normalized
+/// interface type used for lookup. An invalid result means that no usable
+/// static namespace was available.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class DotShorthandContextResolution {}
+
+sealed class DotShorthandContextResolutionImpl
+    implements DotShorthandContextResolution {}
+
+/// A value-producing dot-shorthand head.
+///
+/// The leading period and name omit the declaration whose static namespace is
+/// supplied by the surrounding context.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class DotShorthandExpression implements Expression {
+  /// The written name, including `new` for an unnamed constructor.
+  Token get name;
+
+  /// The period before [name].
+  Token get period;
+
+  /// The result of selecting the static namespace, or `null` if this
+  /// expression has not been resolved.
+  DotShorthandContextResolution? get shorthandContext;
+}
+
 /// A V1 node that represents a dot shorthand static method or constructor
 /// invocation.
 ///
@@ -15616,10 +15643,7 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class DotShorthandMethodInvocation
-    implements NamedFunctionInvocation {
-  /// The period before [name].
-  Token get period;
-}
+    implements NamedFunctionInvocation, DotShorthandExpression {}
 
 @GenerateNodeImpl(
   api: AstNodeApi.v2,
@@ -15636,6 +15660,9 @@ final class DotShorthandMethodInvocationImpl extends NamedFunctionInvocationImpl
   @generated
   @override
   final Token period;
+
+  @override
+  DotShorthandContextResolutionImpl? shorthandContext;
 
   DotShorthandInvocationImpl? _dotShorthandInvocation;
 
@@ -15821,13 +15848,8 @@ base mixin DotShorthandMixin on ExpressionImpl {
 /// corresponding invocation node.
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-abstract final class DotShorthandNameExpression implements Expression {
-  /// The written name.
-  Token get name;
-
-  /// The period before [name].
-  Token get period;
-
+abstract final class DotShorthandNameExpression
+    implements DotShorthandExpression {
   /// The resolution of the read, or `null` if this expression has not been
   /// resolved.
   NamedReadResolution? get resolution;
@@ -15850,6 +15872,9 @@ final class DotShorthandNameExpressionImpl extends ExpressionImpl
   @generated
   @override
   final Token name;
+
+  @override
+  DotShorthandContextResolutionImpl? shorthandContext;
 
   @DoNotGenerate(reason: 'Stores the canonical typed read resolution')
   @override
@@ -31286,6 +31311,24 @@ final class InterpolationStringImpl extends InterpolationElementImpl
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 sealed class InvalidAssignmentTarget implements AssignmentTarget {}
+
+/// An unusable or absent dot-shorthand context.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class InvalidDotShorthandContextResolution
+    implements DotShorthandContextResolution {
+  /// The unusable contextual type, or `null` if no context type was available.
+  DartType? get contextType;
+}
+
+final class InvalidDotShorthandContextResolutionImpl
+    extends DotShorthandContextResolutionImpl
+    implements InvalidDotShorthandContextResolution {
+  @override
+  final TypeImpl? contextType;
+
+  InvalidDotShorthandContextResolutionImpl({required this.contextType});
+}
 
 /// An invalid assignment target whose source is an ordinary value expression.
 ///
@@ -54355,6 +54398,35 @@ enum V1Projection {
     }
     return node;
   }
+}
+
+/// A usable dot-shorthand context.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class ValidDotShorthandContextResolution
+    implements DotShorthandContextResolution {
+  /// The contextual type supplied to the maximal dot-shorthand expression.
+  DartType get contextType;
+
+  /// The normalized interface type whose static namespace is searched.
+  ///
+  /// The declaration that owns the namespace is [InterfaceType.element].
+  InterfaceType get lookupType;
+}
+
+final class ValidDotShorthandContextResolutionImpl
+    extends DotShorthandContextResolutionImpl
+    implements ValidDotShorthandContextResolution {
+  @override
+  final TypeImpl contextType;
+
+  @override
+  final InterfaceTypeImpl lookupType;
+
+  ValidDotShorthandContextResolutionImpl({
+    required this.contextType,
+    required this.lookupType,
+  });
 }
 
 /// A successful index read resolution.

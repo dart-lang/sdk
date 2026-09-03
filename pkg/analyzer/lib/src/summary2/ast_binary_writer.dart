@@ -346,6 +346,10 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
     _writeStringReference(node.name.lexeme);
     _writeOptionalNode(node.typeArguments);
     _writeNode(node.argumentList);
+    _sink.writeOptionalObject(
+      node.shorthandContext,
+      _writeDotShorthandContextResolution,
+    );
     _sink.writeElement(node.element);
     _storeExpression(node);
   }
@@ -367,6 +371,10 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
     _writeStringReference(node.name.lexeme);
     _writeOptionalNode(node.typeArguments);
     _writeNode(node.argumentList);
+    _sink.writeOptionalObject(
+      node.shorthandContext,
+      _writeDotShorthandContextResolution,
+    );
     _sink.writeType(node.staticInvokeType);
     _sink.writeOptionalTypeList(node.typeArgumentTypes);
     _sink.writeOptionalObject(node.resolution, _writeInvocationResolution);
@@ -380,6 +388,10 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
     _sink.writeEnum(AstNodeTag.DotShorthandNameExpression);
     _writeByte(AstBinaryFlags.encode(isDotShorthand: node.isDotShorthand));
     _writeStringReference(node.name.lexeme);
+    _sink.writeOptionalObject(
+      node.shorthandContext,
+      _writeDotShorthandContextResolution,
+    );
     _sink.writeOptionalObject(node.resolution, _writeNamedReadResolution);
     _storeExpression(node);
   }
@@ -1247,6 +1259,20 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
 
   void _writeDeclarationName(Token token) {
     _writeStringReference(token.lexeme);
+  }
+
+  void _writeDotShorthandContextResolution(
+    DotShorthandContextResolutionImpl resolution,
+  ) {
+    switch (resolution) {
+      case ValidDotShorthandContextResolutionImpl():
+        _sink.writeEnum(DotShorthandContextResolutionTag.valid);
+        _sink.writeType(resolution.contextType);
+        _sink.writeType(resolution.lookupType);
+      case InvalidDotShorthandContextResolutionImpl():
+        _sink.writeEnum(DotShorthandContextResolutionTag.invalid);
+        _sink.writeType(resolution.contextType);
+    }
   }
 
   void _writeDouble(double value) {

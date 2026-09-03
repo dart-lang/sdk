@@ -996,6 +996,9 @@ library
                 leftParenthesis: ( @48
                 rightParenthesis: ) @49
               isDotShorthand: true
+              shorthandContext: ValidDotShorthandContextResolution
+                contextType: A
+                lookupType: A
               element: <testLibrary>::@class::A::@constructor::new
               staticType: A
           inducedGetter: #F4
@@ -1062,6 +1065,9 @@ library
                 leftParenthesis: ( @42
                 rightParenthesis: ) @43
               isDotShorthand: true
+              shorthandContext: ValidDotShorthandContextResolution
+                contextType: A
+                lookupType: A
               element: <testLibrary>::@class::A::@constructor::new
               staticType: A
           inducedGetter: #F4
@@ -1130,6 +1136,9 @@ library
                 leftParenthesis: ( @60
                 rightParenthesis: ) @61
               isDotShorthand: true
+              shorthandContext: ValidDotShorthandContextResolution
+                contextType: A
+                lookupType: A
               resolution: ExecutableInvocationResolution
                 element: <testLibrary>::@class::A::@method::method
                 invokeType: A Function()
@@ -1222,6 +1231,9 @@ library
               period: . @64
               name: a @65
               isDotShorthand: true
+              shorthandContext: ValidDotShorthandContextResolution
+                contextType: A
+                lookupType: A
               resolution: GetterInvocationResolution
                 element: <testLibrary>::@class::A::@getter::a
                 invokeType: A Function()

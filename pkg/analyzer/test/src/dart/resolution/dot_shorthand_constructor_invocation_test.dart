@@ -100,6 +100,9 @@ DotShorthandConstructorInvocation2
         staticType: List<int>
     rightParenthesis: )
   isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: Stream<_>
+    lookupType: Stream<_>
   element: SubstitutedConstructorElementImpl
     baseElement: dart:async::@class::Stream::@constructor::fromIterable
     substitution: {T: int}
@@ -153,6 +156,9 @@ DotShorthandConstructorInvocation2
     leftParenthesis: (
     rightParenthesis: )
   isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: Foo<T>
+    lookupType: Foo<T>
   element: SubstitutedConstructorElementImpl
     baseElement: <testLibrary>::@class::Foo::@constructor::a
     substitution: {T: Never}
@@ -263,6 +269,9 @@ MethodInvocation
           staticType: int
       rightParenthesis: )
     isDotShorthand: false
+    shorthandContext: ValidDotShorthandContextResolution
+      contextType: C
+      lookupType: C
     element: <testLibrary>::@class::C::@constructor::new
     staticType: C
   target(v1): DotShorthandConstructorInvocation
@@ -324,6 +333,9 @@ MethodInvocation
           staticType: int
       rightParenthesis: )
     isDotShorthand: false
+    shorthandContext: ValidDotShorthandContextResolution
+      contextType: C
+      lookupType: C
     element: <testLibrary>::@class::C::@constructor::new
     staticType: C
   target(v1): DotShorthandConstructorInvocation
@@ -385,6 +397,9 @@ PropertyAccess
           staticType: int
       rightParenthesis: )
     isDotShorthand: false
+    shorthandContext: ValidDotShorthandContextResolution
+      contextType: C
+      lookupType: C
     element: <testLibrary>::@class::C::@constructor::new
     staticType: C
   target(v1): DotShorthandConstructorInvocation
@@ -442,6 +457,9 @@ PropertyAccess
           staticType: int
       rightParenthesis: )
     isDotShorthand: false
+    shorthandContext: ValidDotShorthandContextResolution
+      contextType: C
+      lookupType: C
     element: <testLibrary>::@class::C::@constructor::new
     staticType: C
   target(v1): DotShorthandConstructorInvocation
@@ -496,6 +514,9 @@ DotShorthandConstructorInvocation2
         staticType: int
     rightParenthesis: )
   isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: A
+    lookupType: A
   element: <testLibrary>::@class::A::@constructor::value
   staticType: A
 V1: DotShorthandConstructorInvocation
@@ -544,6 +565,9 @@ DotShorthandConstructorInvocation2
         staticType: int
     rightParenthesis: )
   isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: A
+    lookupType: A
   element: <testLibrary>::@class::A::@constructor::value
   staticType: A
 V1: DotShorthandConstructorInvocation
@@ -588,6 +612,9 @@ DotShorthandConstructorInvocation2
     leftParenthesis: (
     rightParenthesis: )
   isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: A
+    lookupType: A
   element: <testLibrary>::@class::A::@constructor::foo
   staticType: A
 V1: DotShorthandConstructorInvocation
@@ -635,6 +662,9 @@ DotShorthandConstructorInvocation2
         staticType: int
     rightParenthesis: )
   isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: A
+    lookupType: A
   element: <testLibrary>::@class::A::@constructor::value
   staticType: A
 V1: DotShorthandConstructorInvocation
@@ -684,6 +714,9 @@ DotShorthandConstructorInvocation2
         staticType: int
     rightParenthesis: )
   isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C
+    lookupType: C
   element: <testLibrary>::@class::C::@constructor::named
   correspondingParameter: dart:core::@class::Object::@method::==::@formalParameter::other
   staticType: C
@@ -735,6 +768,9 @@ DotShorthandConstructorInvocation2
         staticType: int
     rightParenthesis: )
   isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C
+    lookupType: C
   element: <testLibrary>::@class::C::@constructor::named
   staticType: C
 V1: DotShorthandConstructorInvocation
@@ -784,6 +820,9 @@ DotShorthandConstructorInvocation2
         staticType: int
     rightParenthesis: )
   isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C
+    lookupType: C
   element: <testLibrary>::@class::C::@constructor::named
   staticType: C
 V1: DotShorthandConstructorInvocation
@@ -845,6 +884,9 @@ DotShorthandConstructorInvocation2
         staticType: D
     rightParenthesis: )
   isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C
+    lookupType: C
   element: <testLibrary>::@class::C::@constructor::named
   staticType: C
 V1: DotShorthandConstructorInvocation
@@ -935,6 +977,9 @@ DotShorthandConstructorInvocation2
         staticType: int
     rightParenthesis: )
   isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C
+    lookupType: C
   element: <testLibrary>::@class::C::@constructor::named
   staticType: C
 V1: DotShorthandConstructorInvocation
@@ -987,6 +1032,9 @@ DotShorthandConstructorInvocation2
         staticType: int
     rightParenthesis: )
   isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: FutureOr<C<dynamic>?>?
+    lookupType: C<dynamic>?
   element: SubstitutedConstructorElementImpl
     baseElement: <testLibrary>::@class::C::@constructor::id
     substitution: {T: dynamic}
@@ -1059,6 +1107,9 @@ DotShorthandConstructorInvocation2
         staticType: int
     rightParenthesis: )
   isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C
+    lookupType: C
   element: <testLibrary>::@class::C::@constructor::named
   correspondingParameter: dart:core::@class::Object::@method::==::@formalParameter::other
   staticType: C
@@ -1136,6 +1187,9 @@ DotShorthandConstructorInvocation2
         literal: '2'
     rightParenthesis: )
   isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: List<int>
+    lookupType: List<int>
   element: SubstitutedConstructorElementImpl
     baseElement: dart:core::@class::List::@constructor::filled
     substitution: {E: String}
@@ -1195,6 +1249,9 @@ DotShorthandConstructorInvocation2
         staticType: int
     rightParenthesis: )
   isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C
+    lookupType: C
   element: <testLibrary>::@class::C::@constructor::named
   staticType: C
 V1: DotShorthandConstructorInvocation
@@ -1271,6 +1328,9 @@ DotShorthandConstructorInvocation2
     leftParenthesis: (
     rightParenthesis: )
   isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: Foo<T>
+    lookupType: Foo<T>
   element: SubstitutedConstructorElementImpl
     baseElement: <testLibrary>::@class::Foo::@constructor::a
     substitution: {T: T}
@@ -1316,6 +1376,9 @@ DotShorthandConstructorInvocation2
     leftParenthesis: (
     rightParenthesis: )
   isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: Foo<T>
+    lookupType: Foo<T>
   element: SubstitutedConstructorElementImpl
     baseElement: <testLibrary>::@class::Foo::@constructor::a
     substitution: {T: Never}
@@ -1406,6 +1469,9 @@ CallInvocation
       leftParenthesis: (
       rightParenthesis: )
     isDotShorthand: false
+    shorthandContext: ValidDotShorthandContextResolution
+      contextType: C
+      lookupType: C
     element: <testLibrary>::@class::C::@constructor::new
     staticType: C
   argumentList: ArgumentList
@@ -1458,6 +1524,9 @@ CallInvocation
       leftParenthesis: (
       rightParenthesis: )
     isDotShorthand: false
+    shorthandContext: ValidDotShorthandContextResolution
+      contextType: C
+      lookupType: C
     element: <testLibrary>::@class::C::@constructor::new
     staticType: C
   argumentList: ArgumentList
@@ -1522,6 +1591,9 @@ CallInvocation
       leftParenthesis: (
       rightParenthesis: )
     isDotShorthand: false
+    shorthandContext: ValidDotShorthandContextResolution
+      contextType: C
+      lookupType: C
     element: <testLibrary>::@class::C::@constructor::new
     staticType: C
   argumentList: ArgumentList
@@ -1574,6 +1646,9 @@ CallInvocation
       leftParenthesis: (
       rightParenthesis: )
     isDotShorthand: false
+    shorthandContext: ValidDotShorthandContextResolution
+      contextType: C
+      lookupType: C
     element: <testLibrary>::@class::C::@constructor::new
     staticType: C
   typeArguments: TypeArgumentList
@@ -1661,6 +1736,9 @@ CallInvocation
       leftParenthesis: (
       rightParenthesis: )
     isDotShorthand: false
+    shorthandContext: ValidDotShorthandContextResolution
+      contextType: C
+      lookupType: C
     element: <testLibrary>::@class::C::@constructor::named
     staticType: C
   argumentList: ArgumentList
@@ -1721,11 +1799,17 @@ CallInvocation
             leftParenthesis: (
             rightParenthesis: )
           isDotShorthand: true
+          shorthandContext: ValidDotShorthandContextResolution
+            contextType: C
+            lookupType: C
           element: <testLibrary>::@class::C::@constructor::a
           correspondingParameter: <testLibrary>::@class::C::@constructor::new::@formalParameter::c
           staticType: C
       rightParenthesis: )
     isDotShorthand: false
+    shorthandContext: ValidDotShorthandContextResolution
+      contextType: C
+      lookupType: C
     element: <testLibrary>::@class::C::@constructor::new
     staticType: C
   argumentList: ArgumentList
@@ -1814,6 +1898,9 @@ DotShorthandConstructorInvocation2
           leftParenthesis: (
           rightParenthesis: )
         isDotShorthand: true
+        shorthandContext: ValidDotShorthandContextResolution
+          contextType: C<dynamic>
+          lookupType: C<dynamic>
         resolution: ExecutableInvocationResolution
           element: <testLibrary>::@class::C::@method::member
           invokeType: C<dynamic> Function()
@@ -1824,6 +1911,9 @@ DotShorthandConstructorInvocation2
         staticType: C<dynamic>
     rightParenthesis: )
   isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C<C<dynamic>>
+    lookupType: C<C<dynamic>>
   element: SubstitutedConstructorElementImpl
     baseElement: <testLibrary>::@class::C::@constructor::new
     substitution: {T: C<dynamic>}
@@ -1886,6 +1976,9 @@ DotShorthandConstructorInvocation2
         period: .
         name: member
         isDotShorthand: true
+        shorthandContext: ValidDotShorthandContextResolution
+          contextType: C<dynamic>
+          lookupType: C<dynamic>
         resolution: GetterInvocationResolution
           element: <testLibrary>::@class::C::@getter::member
           invokeType: C<dynamic> Function()
@@ -1896,6 +1989,9 @@ DotShorthandConstructorInvocation2
         staticType: C<dynamic>
     rightParenthesis: )
   isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C<C<dynamic>>
+    lookupType: C<C<dynamic>>
   element: SubstitutedConstructorElementImpl
     baseElement: <testLibrary>::@class::C::@constructor::new
     substitution: {T: C<dynamic>}
@@ -1955,6 +2051,9 @@ DotShorthandConstructorInvocation2
         staticType: int
     rightParenthesis: )
   isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C
+    lookupType: C
   element: <testLibrary>::@class::C::@constructor::new
   staticType: C
 V1: DotShorthandConstructorInvocation
@@ -2078,6 +2177,11 @@ DotShorthandConstructorInvocation2
     leftParenthesis: (
     rightParenthesis: )
   isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: _Private
+      alias: <testLibrary>::@typeAlias::Public
+    lookupType: _Private
+      alias: <testLibrary>::@typeAlias::Public
   element: <testLibrary>::@class::_Private::@constructor::named
   correspondingParameter: <null>
   staticType: _Private

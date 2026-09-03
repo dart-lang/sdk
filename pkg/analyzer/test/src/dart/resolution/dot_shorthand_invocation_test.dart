@@ -55,6 +55,9 @@ DotShorthandMethodInvocation
     leftParenthesis: (
     rightParenthesis: )
   isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C
+    lookupType: C
   resolution: ExecutableInvocationResolution
     element: <testLibrary>::@class::C::@method::member
     invokeType: C Function()
@@ -113,6 +116,9 @@ DotShorthandMethodInvocation
         staticType: int
     rightParenthesis: )
   isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C<dynamic>
+    lookupType: C<dynamic>
   resolution: ExecutableInvocationResolution
     element: <testLibrary>::@class::C::@method::member
     invokeType: C<dynamic> Function(int)
@@ -180,6 +186,9 @@ DotShorthandMethodInvocation
         staticType: int
     rightParenthesis: )
   isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C
+    lookupType: C
   resolution: ExecutableInvocationResolution
     element: <testLibrary>::@class::C::@method::member
     invokeType: C Function(int)
@@ -229,6 +238,9 @@ DotShorthandMethodInvocation
     leftParenthesis: (
     rightParenthesis: )
   isDotShorthand: false
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C
+    lookupType: C
   resolution: ExecutableInvocationResolution
     element: <testLibrary>::@class::C::@method::member
     invokeType: C Function()
@@ -273,6 +285,9 @@ DotShorthandMethodInvocation
     leftParenthesis: (
     rightParenthesis: )
   isDotShorthand: false
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C
+    lookupType: C
   resolution: ExecutableInvocationResolution
     element: <testLibrary>::@class::C::@method::member
     invokeType: C Function()
@@ -322,6 +337,9 @@ DotShorthandMethodInvocation
         staticType: int
     rightParenthesis: )
   isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C
+    lookupType: C
   resolution: ExecutableInvocationResolution
     element: <testLibrary>::@class::C::@method::member
     invokeType: C Function(int)
@@ -399,6 +417,9 @@ DotShorthandMethodInvocation
     leftParenthesis: (
     rightParenthesis: )
   isDotShorthand: false
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C
+    lookupType: C
   resolution: ExecutableInvocationResolution
     element: <testLibrary>::@class::C::@method::instances
     invokeType: List<C> Function()
@@ -539,6 +560,9 @@ DotShorthandMethodInvocation
     leftParenthesis: (
     rightParenthesis: )
   isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C
+    lookupType: C
   resolution: ExecutableInvocationResolution
     element: <testLibrary>::@extensionType::C::@method::one
     invokeType: C Function()
@@ -595,6 +619,9 @@ CallInvocation
       leftParenthesis: (
       rightParenthesis: )
     isDotShorthand: false
+    shorthandContext: ValidDotShorthandContextResolution
+      contextType: C
+      lookupType: C
     resolution: ExecutableInvocationResolution
       element: <testLibrary>::@class::C::@method::member
       invokeType: C Function()
@@ -652,6 +679,9 @@ CallInvocation
       leftParenthesis: (
       rightParenthesis: )
     isDotShorthand: false
+    shorthandContext: ValidDotShorthandContextResolution
+      contextType: C
+      lookupType: C
     resolution: ExecutableInvocationResolution
       element: <testLibrary>::@class::C::@method::member
       invokeType: C Function()
@@ -722,6 +752,9 @@ CallInvocation
       leftParenthesis: (
       rightParenthesis: )
     isDotShorthand: false
+    shorthandContext: ValidDotShorthandContextResolution
+      contextType: C
+      lookupType: C
     resolution: ExecutableInvocationResolution
       element: <testLibrary>::@class::C::@method::member
       invokeType: C Function()
@@ -779,6 +812,9 @@ CallInvocation
       leftParenthesis: (
       rightParenthesis: )
     isDotShorthand: false
+    shorthandContext: ValidDotShorthandContextResolution
+      contextType: C
+      lookupType: C
     resolution: ExecutableInvocationResolution
       element: <testLibrary>::@class::C::@method::member
       invokeType: C Function()
@@ -877,6 +913,9 @@ CallInvocation
             leftParenthesis: (
             rightParenthesis: )
           isDotShorthand: true
+          shorthandContext: ValidDotShorthandContextResolution
+            contextType: C
+            lookupType: C
           resolution: ExecutableInvocationResolution
             element: <testLibrary>::@class::C::@method::one
             invokeType: C Function()
@@ -885,6 +924,9 @@ CallInvocation
           staticType: C
       rightParenthesis: )
     isDotShorthand: false
+    shorthandContext: ValidDotShorthandContextResolution
+      contextType: C
+      lookupType: C
     resolution: ExecutableInvocationResolution
       element: <testLibrary>::@class::C::@method::member
       invokeType: C Function(C)
@@ -974,6 +1016,9 @@ DotShorthandMethodInvocation
     leftParenthesis: (
     rightParenthesis: )
   isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: FutureOr<C>
+    lookupType: C
   resolution: ExecutableInvocationResolution
     element: <testLibrary>::@class::C::@method::member
     invokeType: C Function()
@@ -1019,6 +1064,9 @@ DotShorthandMethodInvocation
     leftParenthesis: (
     rightParenthesis: )
   isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: FutureOr<FutureOr<C>>
+    lookupType: C
   resolution: ExecutableInvocationResolution
     element: <testLibrary>::@class::C::@method::member
     invokeType: C Function()
@@ -1071,6 +1119,9 @@ DotShorthandMethodInvocation
     leftParenthesis: (
     rightParenthesis: )
   isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: CMixin
+    lookupType: CMixin
   resolution: ExecutableInvocationResolution
     element: <testLibrary>::@mixin::CMixin::@method::mixinOne
     invokeType: CMixin Function()
@@ -1127,6 +1178,9 @@ DotShorthandMethodInvocation
                 leftParenthesis: (
                 rightParenthesis: )
               isDotShorthand: true
+              shorthandContext: ValidDotShorthandContextResolution
+                contextType: C<dynamic>
+                lookupType: C<dynamic>
               resolution: ExecutableInvocationResolution
                 element: <testLibrary>::@class::C::@method::member
                 invokeType: C<int> Function()
@@ -1137,6 +1191,9 @@ DotShorthandMethodInvocation
               staticType: C<int>
           rightParenthesis: )
         isDotShorthand: true
+        shorthandContext: ValidDotShorthandContextResolution
+          contextType: C<C<dynamic>>
+          lookupType: C<C<dynamic>>
         element: SubstitutedConstructorElementImpl
           baseElement: <testLibrary>::@class::C::@constructor::new
           substitution: {T: C<dynamic>}
@@ -1146,6 +1203,9 @@ DotShorthandMethodInvocation
         staticType: C<C<dynamic>>
     rightParenthesis: )
   isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C<C<C<dynamic>>>
+    lookupType: C<C<C<dynamic>>>
   resolution: ExecutableInvocationResolution
     element: <testLibrary>::@class::C::@method::memberType
     invokeType: C<C<C<dynamic>>> Function(C<C<dynamic>>)
@@ -1316,6 +1376,11 @@ DotShorthandConstructorInvocation2
     leftParenthesis: (
     rightParenthesis: )
   isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: _Private
+      alias: <testLibrary>::@typeAlias::Public
+    lookupType: _Private
+      alias: <testLibrary>::@typeAlias::Public
   element: <testLibrary>::@class::_Private::@constructor::new
   correspondingParameter: <null>
   staticType: _Private
@@ -1359,6 +1424,11 @@ DotShorthandMethodInvocation
     leftParenthesis: (
     rightParenthesis: )
   isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: _Private
+      alias: <testLibrary>::@typeAlias::Public
+    lookupType: _Private
+      alias: <testLibrary>::@typeAlias::Public
   resolution: ExecutableInvocationResolution
     element: <testLibrary>::@class::_Private::@method::instance
     invokeType: _Private Function()
@@ -1453,6 +1523,11 @@ DotShorthandConstructorInvocation2
     leftParenthesis: (
     rightParenthesis: )
   isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: _Private
+      alias: <testLibrary>::@typeAlias::Public
+    lookupType: _Private
+      alias: <testLibrary>::@typeAlias::Public
   element: <testLibrary>::@enum::_Private::@constructor::a
   correspondingParameter: <null>
   staticType: _Private
@@ -1497,6 +1572,11 @@ DotShorthandMethodInvocation
     leftParenthesis: (
     rightParenthesis: )
   isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: _Private
+      alias: <testLibrary>::@typeAlias::Public
+    lookupType: _Private
+      alias: <testLibrary>::@typeAlias::Public
   resolution: ExecutableInvocationResolution
     element: <testLibrary>::@enum::_Private::@method::instance
     invokeType: _Private Function()
@@ -1594,6 +1674,11 @@ DotShorthandConstructorInvocation2
         staticType: int
     rightParenthesis: )
   isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: _Private
+      alias: <testLibrary>::@typeAlias::Public
+    lookupType: _Private
+      alias: <testLibrary>::@typeAlias::Public
   element: <testLibrary>::@extensionType::_Private::@constructor::new
   correspondingParameter: <null>
   staticType: _Private
@@ -1642,6 +1727,11 @@ DotShorthandMethodInvocation
     leftParenthesis: (
     rightParenthesis: )
   isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: _Private
+      alias: <testLibrary>::@typeAlias::Public
+    lookupType: _Private
+      alias: <testLibrary>::@typeAlias::Public
   resolution: ExecutableInvocationResolution
     element: <testLibrary>::@extensionType::_Private::@method::instance
     invokeType: _Private Function()
@@ -1713,6 +1803,11 @@ DotShorthandMethodInvocation
     leftParenthesis: (
     rightParenthesis: )
   isDotShorthand: true
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: _Private
+      alias: <testLibrary>::@typeAlias::Public
+    lookupType: _Private
+      alias: <testLibrary>::@typeAlias::Public
   resolution: ExecutableInvocationResolution
     element: <testLibrary>::@mixin::_Private::@method::instance
     invokeType: _Private Function()
@@ -1776,6 +1871,9 @@ DotShorthandMethodInvocation
         literal: "String"
     rightParenthesis: )
   isDotShorthand: false
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C<bool>
+    lookupType: C<bool>
   resolution: ExecutableInvocationResolution
     element: <testLibrary>::@class::C::@method::foo
     invokeType: C<String> Function(String)

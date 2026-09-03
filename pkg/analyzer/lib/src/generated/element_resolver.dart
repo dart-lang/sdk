@@ -184,12 +184,14 @@ class ElementResolver {
     covariant DotShorthandInvocationImpl node, {
     List<WhyNotPromotedGetter>? whyNotPromotedArguments,
     required TypeImpl contextType,
+    required DotShorthandContextResolutionImpl shorthandContext,
   }) {
     whyNotPromotedArguments ??= [];
     return _methodInvocationResolver.resolveDotShorthand(
       node,
       whyNotPromotedArguments,
       contextType: contextType,
+      shorthandContext: shorthandContext,
     );
   }
 
