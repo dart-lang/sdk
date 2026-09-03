@@ -1070,6 +1070,13 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
   ) => _visitNamedFunctionInvocation(node);
 
   @override
+  Constant visitIncrementOrDecrementExpression(
+    IncrementOrDecrementExpression node,
+  ) {
+    return InvalidConstant.genericError(node: node);
+  }
+
+  @override
   Constant visitIntegerLiteral(IntegerLiteral node) {
     return _evaluateIntegerLiteral(node, negated: false);
   }
@@ -1232,21 +1239,6 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
       evaluateConstant(node.expression2);
 
   @override
-  Constant visitPostfixDecrement(PostfixDecrement node) {
-    return InvalidConstant.genericError(node: node);
-  }
-
-  @override
-  Constant visitPostfixIncrement(PostfixIncrement node) {
-    return InvalidConstant.genericError(node: node);
-  }
-
-  @override
-  Constant visitPrefixDecrement(PrefixDecrement node) {
-    return InvalidConstant.genericError(node: node);
-  }
-
-  @override
   Constant visitPrefixedIdentifier(covariant PrefixedIdentifierImpl node) {
     var prefixNode = node.prefix;
     var prefixElement = prefixNode.element;
@@ -1284,11 +1276,6 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
       identifier: node.identifier,
       element: node.identifier.element,
     );
-  }
-
-  @override
-  Constant visitPrefixIncrement(PrefixIncrement node) {
-    return InvalidConstant.genericError(node: node);
   }
 
   @override

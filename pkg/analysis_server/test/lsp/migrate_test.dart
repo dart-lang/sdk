@@ -149,8 +149,10 @@ environment:
       steps: [MigrationStep.Bump],
       apply: true,
       expectedSummary: '''
-Bumped SDK constraints in 1 package(s):
-  - test: ^3.12.0 -> ^3.13.0''',
+test:
+  3.12.0 -> 3.13.0:
+    SDK constraint:
+      Bumped ^3.12.0 -> ^3.13.0''',
       expectedEdit: '''
 >>>>>>>>>> pubspec.yaml
 name: test
@@ -188,11 +190,10 @@ environment:
       steps: [MigrationStep.Bump],
       apply: true,
       expectedSummary: '''
-- test_project: Skipped
-  Incompatible dependencies:
-    - dep_package
-
-No SDK constraints were bumped.''',
+test_project:
+  3.12.0 -> 3.13.0: Skipped
+    Incompatible dependencies:
+      - dep_package''',
     );
   }
 
@@ -260,12 +261,11 @@ environment:
       steps: [MigrationStep.Bump],
       apply: true,
       expectedSummary: '''
-- test_project: Skipped
-  Incompatible dependencies:
-    - dep_package1
-    - dep_package2
-
-No SDK constraints were bumped.''',
+test_project:
+  3.12.0 -> 3.13.0: Skipped
+    Incompatible dependencies:
+      - dep_package1
+      - dep_package2''',
     );
   }
 
@@ -311,11 +311,10 @@ environment:
       steps: [MigrationStep.Bump],
       apply: true,
       expectedSummary: '''
-- test_project: Skipped
-  Incompatible dependencies:
-    - transitive_dep
-
-No SDK constraints were bumped.''',
+test_project:
+  3.12.0 -> 3.13.0: Skipped
+    Incompatible dependencies:
+      - transitive_dep''',
     );
   }
 }
@@ -341,13 +340,8 @@ class C {
       targetSdk: '3.13.0',
       apply: true,
       expectedSummary: '''
-Preparatory changes for a version bump:
-  0 changes made in 0 files.
-
-No SDK constraints were bumped.
-
-Cleanup changes after a version bump:
-  0 changes made in 0 files.''',
+test_project:
+  Skipped (Already at target SDK version 3.13.0.)''',
     );
   }
 
@@ -385,21 +379,23 @@ class A {
       targetSdk: '3.13.0',
       apply: true,
       expectedSummary: '''
-- test_project: Skipped
-  Incompatible dependencies:
-    - dep_package
+test_project:
+  3.11.0 -> 3.12.0:
+    Preparatory changes:
+      0 changes made in 0 files.
 
-Preparatory changes for a version bump:
-  0 changes made in 0 files.
+    SDK constraint:
+      Bumped ^3.11.0 -> ^3.12.0
 
-Bumped SDK constraints in 1 package(s):
-  - test_project: ^3.11.0 -> ^3.12.0
+    Cleanup changes:
+      1 change made in 1 file.
 
-Cleanup changes after a version bump:
-  1 change made in 1 file.
+      my_project/lib/main.dart
+        prefer_initializing_formals • 1 change
 
-  my_project/lib/main.dart
-    prefer_initializing_formals • 1 change''',
+  3.12.0 -> 3.13.0: Skipped
+    Incompatible dependencies:
+      - dep_package''',
       expectedEdit: '''
 >>>>>>>>>> lib/main.dart
 class A {
@@ -433,13 +429,8 @@ class C {
       targetSdk: '3.13.0',
       apply: true,
       expectedSummary: '''
-Preparatory changes for a version bump:
-  0 changes made in 0 files.
-
-No SDK constraints were bumped.
-
-Cleanup changes after a version bump:
-  0 changes made in 0 files.''',
+test_project:
+  Skipped (Already at target SDK version 3.13.0.)''',
     );
   }
 
@@ -481,25 +472,49 @@ class D {
       targetSdk: '3.13.0',
       apply: true,
       expectedSummary: '''
-Preparatory changes for a version bump:
-  1 change made in 1 file.
+test_project:
+  3.11.0 -> 3.12.0:
+    Preparatory changes:
+      0 changes made in 0 files.
 
-  other_package/lib/other.dart
-    avoid_final_parameters • 1 change
+    SDK constraint:
+      Bumped ^3.11.0 -> ^3.12.0
 
-Bumped SDK constraints in 2 package(s):
-  - test_project: ^3.11.0 -> ^3.13.0
-  - other_package: ^3.12.0 -> ^3.13.0
+    Cleanup changes:
+      1 change made in 1 file.
 
-Cleanup changes after a version bump:
-  3 changes made in 2 files.
+      my_project/lib/main.dart
+        prefer_initializing_formals • 1 change
 
-  my_project/lib/main.dart
-    prefer_initializing_formals • 1 change
-    unnecessary_type_name_in_constructor • 1 change
+  3.12.0 -> 3.13.0:
+    Preparatory changes:
+      0 changes made in 0 files.
 
-  other_package/lib/other.dart
-    unnecessary_type_name_in_constructor • 1 change''',
+    SDK constraint:
+      Bumped ^3.12.0 -> ^3.13.0
+
+    Cleanup changes:
+      1 change made in 1 file.
+
+      my_project/lib/main.dart
+        unnecessary_type_name_in_constructor • 1 change
+
+other_package:
+  3.12.0 -> 3.13.0:
+    Preparatory changes:
+      1 change made in 1 file.
+
+      other_package/lib/other.dart
+        avoid_final_parameters • 1 change
+
+    SDK constraint:
+      Bumped ^3.12.0 -> ^3.13.0
+
+    Cleanup changes:
+      1 change made in 1 file.
+
+      other_package/lib/other.dart
+        unnecessary_type_name_in_constructor • 1 change''',
       expectedEdit: '''
 >>>>>>>>>> ../other_package/lib/other.dart
 class D {
@@ -560,18 +575,35 @@ class D {
       targetSdk: '3.13.0',
       apply: true,
       expectedSummary: '''
-Preparatory changes for a version bump:
-  0 changes made in 0 files.
+test_project:
+  3.11.0 -> 3.12.0:
+    Preparatory changes:
+      0 changes made in 0 files.
 
-Bumped SDK constraints in 1 package(s):
-  - test_project: ^3.11.0 -> ^3.13.0
+    SDK constraint:
+      Bumped ^3.11.0 -> ^3.12.0
 
-Cleanup changes after a version bump:
-  2 changes made in 1 file.
+    Cleanup changes:
+      1 change made in 1 file.
 
-  my_project/lib/main.dart
-    prefer_initializing_formals • 1 change
-    unnecessary_type_name_in_constructor • 1 change''',
+      my_project/lib/main.dart
+        prefer_initializing_formals • 1 change
+
+  3.12.0 -> 3.13.0:
+    Preparatory changes:
+      0 changes made in 0 files.
+
+    SDK constraint:
+      Bumped ^3.12.0 -> ^3.13.0
+
+    Cleanup changes:
+      1 change made in 1 file.
+
+      my_project/lib/main.dart
+        unnecessary_type_name_in_constructor • 1 change
+
+other_package:
+  Skipped (Already at target SDK version 3.13.0.)''',
       expectedEdit: '''
 >>>>>>>>>> lib/main.dart
 class A {
@@ -611,21 +643,35 @@ class C {
       targetSdk: '3.13.0',
       apply: true,
       expectedSummary: '''
-Preparatory changes for a version bump:
-  2 changes made in 1 file.
+test_project:
+  3.11.0 -> 3.12.0:
+    Preparatory changes:
+      0 changes made in 0 files.
 
-  my_project/lib/main.dart
-    avoid_final_parameters • 2 changes
+    SDK constraint:
+      Bumped ^3.11.0 -> ^3.12.0
 
-Bumped SDK constraints in 1 package(s):
-  - test_project: ^3.11.0 -> ^3.13.0
+    Cleanup changes:
+      1 change made in 1 file.
 
-Cleanup changes after a version bump:
-  4 changes made in 1 file.
+      my_project/lib/main.dart
+        prefer_initializing_formals • 1 change
 
-  my_project/lib/main.dart
-    prefer_initializing_formals • 1 change
-    unnecessary_type_name_in_constructor • 3 changes''',
+  3.12.0 -> 3.13.0:
+    Preparatory changes:
+      2 changes made in 1 file.
+
+      my_project/lib/main.dart
+        avoid_final_parameters • 2 changes
+
+    SDK constraint:
+      Bumped ^3.12.0 -> ^3.13.0
+
+    Cleanup changes:
+      3 changes made in 1 file.
+
+      my_project/lib/main.dart
+        unnecessary_type_name_in_constructor • 3 changes''',
       expectedEdit: '''
 >>>>>>>>>> lib/main.dart
 class A {
@@ -645,6 +691,62 @@ environment:
     );
   }
 
+  Future<void> test_singlePackage_dryRun() async {
+    writePubspecFile(pubspecFilePath, '''
+name: test_project
+environment:
+  sdk: '^3.11.0'
+''');
+    newFile(mainFilePath, '''
+class A {
+  int x;
+  A(int x) : this.x = x;
+}
+
+class C {
+  C(final int x);
+  C.name(final String s);
+}
+''');
+
+    await initialize();
+
+    await _assertMigrationResult(
+      steps: [MigrationStep.All],
+      targetSdk: '3.13.0',
+      expectedSummary: '''
+test_project:
+  3.11.0 -> 3.12.0:
+    Preparatory changes:
+      0 changes would be made in 0 files.
+
+    SDK constraint:
+      Would bump ^3.11.0 -> ^3.12.0
+
+    Cleanup changes:
+      1 change would be made in 1 file.
+
+      my_project/lib/main.dart
+        prefer_initializing_formals • 1 change
+
+  3.12.0 -> 3.13.0:
+    Preparatory changes:
+      2 changes would be made in 1 file.
+
+      my_project/lib/main.dart
+        avoid_final_parameters • 2 changes
+
+    SDK constraint:
+      Would bump ^3.12.0 -> ^3.13.0
+
+    Cleanup changes:
+      3 changes would be made in 1 file.
+
+      my_project/lib/main.dart
+        unnecessary_type_name_in_constructor • 3 changes''',
+    );
+  }
+
   Future<void> test_unsupportedPackageSdkVersion() async {
     writePubspecFile(pubspecFilePath, '''
 name: test_project
@@ -657,17 +759,9 @@ environment:
       steps: [MigrationStep.All],
       targetSdk: '3.13.0',
       apply: true,
-      expectedSummary:
-          '''
-- test_project: Skipped (The package SDK version "2.19.0" is not supported for migration. It must be between ${knownSdkVersions.first} and ${knownSdkVersions.last}.)
-
-Preparatory changes for a version bump:
-  0 changes made in 0 files.
-
-No SDK constraints were bumped.
-
-Cleanup changes after a version bump:
-  0 changes made in 0 files.''',
+      expectedSummary: '''
+test_project:
+  Skipped (The package SDK version "2.19.0" is not supported for migration. It must be between ${knownSdkVersions.first} and ${knownSdkVersions.last}.)''',
     );
   }
 }
@@ -793,11 +887,9 @@ environment:
     await _assertMigrationResult(
       steps: [MigrationStep.Bump],
       apply: true,
-      expectedSummary:
-          '''
-- test_project: Skipped (The package is already at the latest supported SDK version (${knownSdkVersions.last}).)
-
-No SDK constraints were bumped.''',
+      expectedSummary: '''
+test_project:
+  Skipped (The package is already at the latest supported SDK version (${knownSdkVersions.last}).)''',
     );
   }
 
@@ -812,11 +904,9 @@ environment:
     await _assertMigrationResult(
       steps: [MigrationStep.Bump],
       apply: true,
-      expectedSummary:
-          '''
-- test_project: Skipped (The package SDK version "2.19.0" is not supported for migration. It must be between ${knownSdkVersions.first} and ${knownSdkVersions.last}.)
-
-No SDK constraints were bumped.''',
+      expectedSummary: '''
+test_project:
+  Skipped (The package SDK version "2.19.0" is not supported for migration. It must be between ${knownSdkVersions.first} and ${knownSdkVersions.last}.)''',
     );
   }
 
@@ -847,10 +937,13 @@ environment:
       apply: true,
       expectedSummary:
           '''
-- test_project: Skipped (The package SDK version "2.19.0" is not supported for migration. It must be between ${knownSdkVersions.first} and ${knownSdkVersions.last}.)
+test_project:
+  Skipped (The package SDK version "2.19.0" is not supported for migration. It must be between ${knownSdkVersions.first} and ${knownSdkVersions.last}.)
 
-Bumped SDK constraints in 1 package(s):
-  - other_package: ^3.12.0 -> ^3.13.0''',
+other_package:
+  3.12.0 -> 3.13.0:
+    SDK constraint:
+      Bumped ^3.12.0 -> ^3.13.0''',
       expectedEdit: '''
 >>>>>>>>>> ../other_package/pubspec.yaml
 name: other_package
@@ -1077,7 +1170,7 @@ environment:
     expect(
       summaryBuilder.generate(),
       contains(
-        '- test_project: Skipped (Internal error: Unable to calculate next SDK version.)',
+        'Skipped (Internal error: Unable to calculate next SDK version.)',
       ),
     );
   }
@@ -1094,8 +1187,10 @@ environment:
       steps: [MigrationStep.Bump],
       apply: true,
       expectedSummary: '''
-Bumped SDK constraints in 1 package(s):
-  - test_project: ^3.12.0 -> ^3.13.0''',
+test_project:
+  3.12.0 -> 3.13.0:
+    SDK constraint:
+      Bumped ^3.12.0 -> ^3.13.0''',
       expectedEdit: '''
 >>>>>>>>>> pubspec.yaml
 name: test_project
@@ -1127,20 +1222,22 @@ class C {
       steps: [MigrationStep.All],
       apply: true,
       expectedSummary: '''
-Preparatory changes for a version bump:
-  2 changes made in 1 file.
+test_project:
+  3.12.0 -> 3.13.0:
+    Preparatory changes:
+      2 changes made in 1 file.
 
-  my_project/lib/main.dart
-    avoid_final_parameters • 2 changes
+      my_project/lib/main.dart
+        avoid_final_parameters • 2 changes
 
-Bumped SDK constraints in 1 package(s):
-  - test_project: ^3.12.0 -> ^3.13.0
+    SDK constraint:
+      Bumped ^3.12.0 -> ^3.13.0
 
-Cleanup changes after a version bump:
-  2 changes made in 1 file.
+    Cleanup changes:
+      2 changes made in 1 file.
 
-  my_project/lib/main.dart
-    unnecessary_type_name_in_constructor • 2 changes''',
+      my_project/lib/main.dart
+        unnecessary_type_name_in_constructor • 2 changes''',
       expectedEdit: '''
 >>>>>>>>>> lib/main.dart
 class C {
@@ -1191,27 +1288,39 @@ class D {
       uris: [projectFolderUri, toUri(otherPackagePath)],
       apply: true,
       expectedSummary: '''
-Preparatory changes for a version bump:
-  2 changes made in 2 files.
+test_project:
+  3.12.0 -> 3.13.0:
+    Preparatory changes:
+      1 change made in 1 file.
 
-  my_project/lib/main.dart
-    var_with_no_type_annotation • 1 change
+      my_project/lib/main.dart
+        var_with_no_type_annotation • 1 change
 
-  other_package/lib/other.dart
-    avoid_final_parameters • 1 change
+    SDK constraint:
+      Bumped ^3.12.0 -> ^3.13.0
 
-Bumped SDK constraints in 2 package(s):
-  - test_project: ^3.12.0 -> ^3.13.0
-  - other_package: ^3.12.0 -> ^3.13.0
+    Cleanup changes:
+      1 change made in 1 file.
 
-Cleanup changes after a version bump:
-  2 changes made in 2 files.
+      my_project/lib/main.dart
+        unnecessary_type_name_in_constructor • 1 change
 
-  my_project/lib/main.dart
-    unnecessary_type_name_in_constructor • 1 change
+other_package:
+  3.12.0 -> 3.13.0:
+    Preparatory changes:
+      1 change made in 1 file.
 
-  other_package/lib/other.dart
-    unnecessary_type_name_in_constructor • 1 change''',
+      other_package/lib/other.dart
+        avoid_final_parameters • 1 change
+
+    SDK constraint:
+      Bumped ^3.12.0 -> ^3.13.0
+
+    Cleanup changes:
+      1 change made in 1 file.
+
+      other_package/lib/other.dart
+        unnecessary_type_name_in_constructor • 1 change''',
       expectedEdit: '''
 >>>>>>>>>> ../other_package/lib/other.dart
 class D {
@@ -1247,8 +1356,10 @@ environment:
       steps: [MigrationStep.Bump],
       apply: true,
       expectedSummary: '''
-Bumped SDK constraints in 1 package(s):
-  - test_project: ^3.12.0 -> ^3.13.0''',
+test_project:
+  3.12.0 -> 3.13.0:
+    SDK constraint:
+      Bumped ^3.12.0 -> ^3.13.0''',
       expectedEdit: '''
 >>>>>>>>>> pubspec.yaml
 name: test_project
@@ -1258,12 +1369,32 @@ environment:
     );
   }
 
+  Future<void> test_bump_dryRun() async {
+    writePubspecFile(pubspecFilePath, '''
+name: test_project
+environment:
+  sdk: '^3.12.0'
+''');
+    newFile(mainFilePath, 'void m(int x) {}\n');
+
+    await initialize();
+
+    await _assertMigrationResult(
+      steps: [MigrationStep.Bump],
+      expectedSummary: '''
+test_project:
+  3.12.0 -> 3.13.0:
+    SDK constraint:
+      Would bump ^3.12.0 -> ^3.13.0''',
+    );
+  }
+
   Future<void> test_bump_emptyPubspec() async {
     await _setupProject(pubspecContent: '');
     await _assertMigrationResult(
       apply: true,
       steps: [MigrationStep.Bump],
-      expectedSummary: 'No SDK constraints were bumped.',
+      expectedSummary: '',
     );
   }
 
@@ -1280,16 +1411,10 @@ environment:
     await _assertMigrationResult(
       steps: [MigrationStep.Bump],
       apply: true,
-      expectedSummary: allOf(
-        contains(
-          '- test_project:\n'
-          '    Failed version bump with error: Failed to update '
-          '.dart_tool/package_config.json for "test_project". Try running '
-          '"dart pub get" to update the package configuration, then re-run the '
-          'migration.',
-        ),
-        contains('No SDK constraints were bumped.'),
-      ),
+      expectedSummary: '''
+test_project:
+  3.12.0 -> 3.13.0: Failed
+    Failed to update .dart_tool/package_config.json for "test_project". Try running "dart pub get" to update the package configuration, then re-run the migration.''',
     );
   }
 
@@ -1306,14 +1431,10 @@ environment:
     await _assertMigrationResult(
       steps: [MigrationStep.Bump],
       apply: true,
-      expectedSummary: allOf(
-        contains(
-          '- test_project:\n'
-          '    Failed version bump with error: Package "test_project" requires '
-          'pre-bump fixes before the SDK constraint can be bumped.',
-        ),
-        contains('No SDK constraints were bumped.'),
-      ),
+      expectedSummary: '''
+test_project:
+  3.12.0 -> 3.13.0: Failed
+    Package "test_project" requires pre-bump fixes before the SDK constraint can be bumped.''',
     );
   }
 
@@ -1344,17 +1465,15 @@ environment:
       uris: [projectFolderUri, toUri(otherPackagePath)],
       steps: [MigrationStep.Bump],
       apply: true,
-      expectedSummary: allOf(
-        contains(
-          'Bumped SDK constraints in 1 package(s):\n'
-          '  - other_package: ^3.12.0 -> ^3.13.0',
-        ),
-        contains(
-          '- test_project:\n'
-          '    Failed version bump with error: Package "test_project" requires '
-          'pre-bump fixes before the SDK constraint can be bumped.',
-        ),
-      ),
+      expectedSummary: '''
+test_project:
+  3.12.0 -> 3.13.0: Failed
+    Package "test_project" requires pre-bump fixes before the SDK constraint can be bumped.
+
+other_package:
+  3.12.0 -> 3.13.0:
+    SDK constraint:
+      Bumped ^3.12.0 -> ^3.13.0''',
       expectedEdit: '''
 >>>>>>>>>> ../other_package/pubspec.yaml
 name: other_package
@@ -1387,9 +1506,15 @@ environment:
       steps: [MigrationStep.Bump],
       apply: true,
       expectedSummary: '''
-Bumped SDK constraints in 2 package(s):
-  - project1: ^3.0.0 -> ^3.1.0
-  - project2: ^3.2.0 -> ^3.3.0''',
+project1:
+  3.0.0 -> 3.1.0:
+    SDK constraint:
+      Bumped ^3.0.0 -> ^3.1.0
+
+project2:
+  3.2.0 -> 3.3.0:
+    SDK constraint:
+      Bumped ^3.2.0 -> ^3.3.0''',
       expectedEdit: '''
 >>>>>>>>>> project1/pubspec.yaml
 name: project1
@@ -1413,9 +1538,8 @@ name: test_project
       steps: [MigrationStep.Bump],
       apply: true,
       expectedSummary: '''
-- test_project: Skipped (Unknown SDK version.)
-
-No SDK constraints were bumped.''',
+test_project:
+  Skipped (Unknown SDK version.)''',
     );
   }
 
@@ -1430,7 +1554,7 @@ environment:
     await _assertMigrationResult(
       steps: [MigrationStep.Bump],
       apply: true,
-      expectedSummary: contains('>=3.0.0 <4.0.0 -> >=3.1.0'),
+      expectedSummary: contains('>=3.0.0 <4.0.0 -> >=3.1.0 <4.0.0'),
       expectedEdit: '''
 >>>>>>>>>> pubspec.yaml
 name: test_project
@@ -1457,9 +1581,9 @@ environment:
       uris: [Uri.file(otherDirPath)],
       apply: true,
       expectedSummary: '''
-- other_project: Skipped (The package is not being analyzed. Add its directory to your workspace.)
-
-No SDK constraints were bumped.''',
+other_project:
+  3.12.0 -> 3.13.0: Skipped
+    The package is not being analyzed. Add its directory to your workspace.''',
     );
   }
 
@@ -1482,14 +1606,16 @@ class C {
       steps: [MigrationStep.Bump, MigrationStep.Cleanup],
       apply: true,
       expectedSummary: '''
-Bumped SDK constraints in 1 package(s):
-  - test_project: ^3.12.0 -> ^3.13.0
+test_project:
+  3.12.0 -> 3.13.0:
+    SDK constraint:
+      Bumped ^3.12.0 -> ^3.13.0
 
-Cleanup changes after a version bump:
-  2 changes made in 1 file.
+    Cleanup changes:
+      2 changes made in 1 file.
 
-  my_project/lib/main.dart
-    unnecessary_type_name_in_constructor • 2 changes''',
+      my_project/lib/main.dart
+        unnecessary_type_name_in_constructor • 2 changes''',
       expectedEdit: '''
 >>>>>>>>>> lib/main.dart
 class C {
@@ -1538,17 +1664,20 @@ class C {
       steps: [MigrationStep.Bump, MigrationStep.Cleanup],
       apply: true,
       expectedSummary: '''
-- test_project:
-    Failed version bump with error: Package "test_project" requires pre-bump fixes before the SDK constraint can be bumped.
+test_project:
+  3.12.0 -> 3.13.0: Failed
+    Package "test_project" requires pre-bump fixes before the SDK constraint can be bumped.
 
-Bumped SDK constraints in 1 package(s):
-  - other_package: ^3.12.0 -> ^3.13.0
+other_package:
+  3.12.0 -> 3.13.0:
+    SDK constraint:
+      Bumped ^3.12.0 -> ^3.13.0
 
-Cleanup changes after a version bump:
-  2 changes made in 1 file.
+    Cleanup changes:
+      2 changes made in 1 file.
 
-  other_package/lib/other.dart
-    unnecessary_type_name_in_constructor • 2 changes''',
+      other_package/lib/other.dart
+        unnecessary_type_name_in_constructor • 2 changes''',
       expectedEdit: '''
 >>>>>>>>>> ../other_package/lib/other.dart
 class C {
@@ -1582,11 +1711,13 @@ class C {
       steps: [MigrationStep.Cleanup],
       apply: true,
       expectedSummary: '''
-Cleanup changes after a version bump:
-  2 changes made in 1 file.
+test_project:
+  3.13.0:
+    Cleanup changes:
+      2 changes made in 1 file.
 
-  my_project/lib/main.dart
-    unnecessary_type_name_in_constructor • 2 changes''',
+      my_project/lib/main.dart
+        unnecessary_type_name_in_constructor • 2 changes''',
       expectedEdit: '''
 >>>>>>>>>> lib/main.dart
 class C {
@@ -1597,16 +1728,42 @@ class C {
     );
   }
 
+  Future<void> test_cleanup_dryRun() async {
+    writePubspecFile(pubspecFilePath, '''
+name: test_project
+environment:
+  sdk: '^3.13.0'
+''');
+    newFile(mainFilePath, '''
+class C {
+  C();
+  C.name();
+}
+''');
+
+    await initialize();
+
+    await _assertMigrationResult(
+      steps: [MigrationStep.Cleanup],
+      expectedSummary: '''
+test_project:
+  3.13.0:
+    Cleanup changes:
+      2 changes would be made in 1 file.
+
+      my_project/lib/main.dart
+        unnecessary_type_name_in_constructor • 2 changes''',
+    );
+  }
+
   Future<void> test_cleanup_error_missingSdkConstraint() async {
     await _setupProject(pubspecContent: 'name: test_project');
     await _assertMigrationResult(
       steps: [MigrationStep.Cleanup],
       apply: true,
       expectedSummary: '''
-- test_project: Skipped (Unknown SDK version.)
-
-Cleanup changes after a version bump:
-  0 changes made in 0 files.''',
+test_project:
+  Skipped (Unknown SDK version.)''',
     );
   }
 
@@ -1643,11 +1800,18 @@ environment:
       steps: [MigrationStep.Cleanup],
       apply: true,
       expectedSummary: '''
-Cleanup changes after a version bump:
-  2 changes made in 1 file.
+test_project:
+  3.13.0:
+    Cleanup changes:
+      2 changes made in 1 file.
 
-  my_project/lib/main.dart
-    unnecessary_type_name_in_constructor • 2 changes''',
+      my_project/lib/main.dart
+        unnecessary_type_name_in_constructor • 2 changes
+
+other_package:
+  3.12.0:
+    Cleanup changes:
+      0 changes made in 0 files.''',
       expectedEdit: '''
 >>>>>>>>>> lib/main.dart
 class C {
@@ -1672,8 +1836,10 @@ environment:
       steps: [MigrationStep.Cleanup],
       apply: true,
       expectedSummary: '''
-Cleanup changes after a version bump:
-  0 changes made in 0 files.''',
+test_project:
+  3.10.0:
+    Cleanup changes:
+      0 changes made in 0 files.''',
     );
   }
 
@@ -1694,21 +1860,23 @@ class C {
 
     await _assertMigrationResult(
       expectedSummary: '''
-Preparatory changes for a version bump:
-  2 changes would be made in 1 file.
+test_project:
+  3.12.0 -> 3.13.0:
+    Preparatory changes:
+      2 changes would be made in 1 file.
 
-  my_project/lib/main.dart
-    avoid_final_parameters • 1 change
-    var_with_no_type_annotation • 1 change
+      my_project/lib/main.dart
+        avoid_final_parameters • 1 change
+        var_with_no_type_annotation • 1 change
 
-Would bump SDK constraints in 1 package(s):
-  - test_project: ^3.12.0 -> ^3.13.0
+    SDK constraint:
+      Would bump ^3.12.0 -> ^3.13.0
 
-Cleanup changes after a version bump:
-  2 changes would be made in 1 file.
+    Cleanup changes:
+      2 changes would be made in 1 file.
 
-  my_project/lib/main.dart
-    unnecessary_type_name_in_constructor • 2 changes''',
+      my_project/lib/main.dart
+        unnecessary_type_name_in_constructor • 2 changes''',
     );
   }
 
@@ -1724,7 +1892,13 @@ void m(final int x) {}
 
     await initialize();
 
-    await _assertMigrationResult(steps: [], apply: true, expectedSummary: '');
+    await _assertMigrationResult(
+      steps: [],
+      apply: true,
+      expectedSummary: '''
+test_project:
+  No changes.''',
+    );
   }
 
   Future<void> test_prepare() async {
@@ -1748,11 +1922,13 @@ class C {
       steps: [MigrationStep.Prepare],
       apply: true,
       expectedSummary: '''
-Preparatory changes for a version bump:
-  1 change made in 1 file.
+test_project:
+  3.12.0 -> 3.13.0:
+    Preparatory changes:
+      1 change made in 1 file.
 
-  my_project/lib/main.dart
-    avoid_final_parameters • 1 change''',
+      my_project/lib/main.dart
+        avoid_final_parameters • 1 change''',
       expectedEdit: '''
 >>>>>>>>>> lib/main.dart
 void m(int x) {}
@@ -1762,6 +1938,54 @@ class C {
   C.name();
 }
 ''',
+    );
+  }
+
+  Future<void> test_prepare_dryRun() async {
+    writePubspecFile(pubspecFilePath, '''
+name: test_project
+environment:
+  sdk: '^3.12.0'
+''');
+    newFile(mainFilePath, '''
+void m(final int x) {}
+''');
+
+    await initialize();
+
+    await _assertMigrationResult(
+      steps: [MigrationStep.Prepare],
+      expectedSummary: '''
+test_project:
+  3.12.0 -> 3.13.0:
+    Preparatory changes:
+      1 change would be made in 1 file.
+
+      my_project/lib/main.dart
+        avoid_final_parameters • 1 change''',
+    );
+  }
+
+  Future<void> test_prepare_zeroChanges() async {
+    writePubspecFile(pubspecFilePath, '''
+name: test_project
+environment:
+  sdk: '^3.12.0'
+''');
+    newFile(mainFilePath, '''
+void m(int x) {}
+''');
+
+    await initialize();
+
+    await _assertMigrationResult(
+      steps: [MigrationStep.Prepare],
+      apply: true,
+      expectedSummary: '''
+test_project:
+  3.12.0 -> 3.13.0:
+    Preparatory changes:
+      0 changes made in 0 files.''',
     );
   }
 
@@ -1786,14 +2010,16 @@ class C {
       steps: [MigrationStep.Prepare, MigrationStep.Bump],
       apply: true,
       expectedSummary: '''
-Preparatory changes for a version bump:
-  1 change made in 1 file.
+test_project:
+  3.12.0 -> 3.13.0:
+    Preparatory changes:
+      1 change made in 1 file.
 
-  my_project/lib/main.dart
-    avoid_final_parameters • 1 change
+      my_project/lib/main.dart
+        avoid_final_parameters • 1 change
 
-Bumped SDK constraints in 1 package(s):
-  - test_project: ^3.12.0 -> ^3.13.0''',
+    SDK constraint:
+      Bumped ^3.12.0 -> ^3.13.0''',
       expectedEdit: '''
 >>>>>>>>>> lib/main.dart
 void m(int x) {}
@@ -1826,17 +2052,19 @@ environment:
       steps: [MigrationStep.Prepare, MigrationStep.Bump],
       apply: true,
       expectedSummary: '''
-Preparatory changes for a version bump:
-  2 changes made in 2 files.
+test_project:
+  3.12.0 -> 3.13.0:
+    Preparatory changes:
+      2 changes made in 2 files.
 
-  my_project/lib/main.dart
-    avoid_final_parameters • 1 change
+      my_project/lib/main.dart
+        avoid_final_parameters • 1 change
 
-  my_project/lib/other.dart
-    var_with_no_type_annotation • 1 change
+      my_project/lib/other.dart
+        var_with_no_type_annotation • 1 change
 
-Bumped SDK constraints in 1 package(s):
-  - test_project: ^3.12.0 -> ^3.13.0''',
+    SDK constraint:
+      Bumped ^3.12.0 -> ^3.13.0''',
       expectedEdit: '''
 >>>>>>>>>> lib/main.dart
 void m(int x) {}
@@ -1864,15 +2092,17 @@ environment:
       steps: [MigrationStep.Prepare, MigrationStep.Bump],
       apply: true,
       expectedSummary: '''
-Preparatory changes for a version bump:
-  2 changes made in 1 file.
+test_project:
+  3.12.0 -> 3.13.0:
+    Preparatory changes:
+      2 changes made in 1 file.
 
-  my_project/lib/main.dart
-    avoid_final_parameters • 1 change
-    var_with_no_type_annotation • 1 change
+      my_project/lib/main.dart
+        avoid_final_parameters • 1 change
+        var_with_no_type_annotation • 1 change
 
-Bumped SDK constraints in 1 package(s):
-  - test_project: ^3.12.0 -> ^3.13.0''',
+    SDK constraint:
+      Bumped ^3.12.0 -> ^3.13.0''',
       expectedEdit: '''
 >>>>>>>>>> lib/main.dart
 void m(int x, y) {}
@@ -1912,18 +2142,27 @@ environment:
       uris: [projectFolderUri, toUri(otherPackagePath)],
       apply: true,
       expectedSummary: '''
-Preparatory changes for a version bump:
-  2 changes made in 2 files.
+test_project:
+  3.12.0 -> 3.13.0:
+    Preparatory changes:
+      1 change made in 1 file.
 
-  my_project/lib/main.dart
-    avoid_final_parameters • 1 change
+      my_project/lib/main.dart
+        avoid_final_parameters • 1 change
 
-  other_package/lib/other.dart
-    var_with_no_type_annotation • 1 change
+    SDK constraint:
+      Bumped ^3.12.0 -> ^3.13.0
 
-Bumped SDK constraints in 2 package(s):
-  - test_project: ^3.12.0 -> ^3.13.0
-  - other_package: ^3.12.0 -> ^3.13.0''',
+other_package:
+  3.12.0 -> 3.13.0:
+    Preparatory changes:
+      1 change made in 1 file.
+
+      other_package/lib/other.dart
+        var_with_no_type_annotation • 1 change
+
+    SDK constraint:
+      Bumped ^3.12.0 -> ^3.13.0''',
       expectedEdit: '''
 >>>>>>>>>> ../other_package/lib/other.dart
 void f(y) {}
@@ -1970,17 +2209,19 @@ environment:
       steps: [MigrationStep.Prepare, MigrationStep.Bump],
       apply: true,
       expectedSummary: '''
-Preparatory changes for a version bump:
-  2 changes made in 2 files.
+test_project:
+  3.12.0 -> 3.13.0:
+    Preparatory changes:
+      2 changes made in 2 files.
 
-  my_project/lib/a.dart
-    avoid_final_parameters • 1 change
+      my_project/lib/a.dart
+        avoid_final_parameters • 1 change
 
-  my_project/lib/src/b.dart
-    avoid_final_parameters • 1 change
+      my_project/lib/src/b.dart
+        avoid_final_parameters • 1 change
 
-Bumped SDK constraints in 1 package(s):
-  - test_project: ^3.12.0 -> ^3.13.0''',
+    SDK constraint:
+      Bumped ^3.12.0 -> ^3.13.0''',
       expectedEdit: '''
 >>>>>>>>>> lib/a.dart
 void m(int x) {}
@@ -2021,14 +2262,16 @@ environment:
       steps: [MigrationStep.Prepare, MigrationStep.Bump],
       apply: true,
       expectedSummary: '''
-Preparatory changes for a version bump:
-  1 change made in 1 file.
+test_project:
+  3.12.0 -> 3.13.0:
+    Preparatory changes:
+      1 change made in 1 file.
 
-  my_project/lib/main.dart
-    avoid_final_parameters • 1 change
+      my_project/lib/main.dart
+        avoid_final_parameters • 1 change
 
-Bumped SDK constraints in 1 package(s):
-  - test_project: ^3.12.0 -> ^3.13.0''',
+    SDK constraint:
+      Bumped ^3.12.0 -> ^3.13.0''',
       expectedEdit: '''
 >>>>>>>>>> lib/main.dart
 void m(int x) {}
@@ -2054,8 +2297,10 @@ environment:
       steps: [MigrationStep.Bump],
       apply: true,
       expectedSummary: '''
-Bumped SDK constraints in 1 package(s):
-  - test_project: ^3.12.0 -> ^3.13.0''',
+test_project:
+  3.12.0 -> 3.13.0:
+    SDK constraint:
+      Bumped ^3.12.0 -> ^3.13.0''',
       expectedEdit: '''
 >>>>>>>>>> pubspec.yaml
 name: test_project
@@ -2118,20 +2363,22 @@ class C {
       steps: [MigrationStep.Prepare, MigrationStep.Bump, MigrationStep.Cleanup],
       apply: true,
       expectedSummary: '''
-Preparatory changes for a version bump:
-  2 changes made in 1 file.
+test_project:
+  3.12.0 -> 3.13.0:
+    Preparatory changes:
+      2 changes made in 1 file.
 
-  my_project/lib/main.dart
-    avoid_final_parameters • 2 changes
+      my_project/lib/main.dart
+        avoid_final_parameters • 2 changes
 
-Bumped SDK constraints in 1 package(s):
-  - test_project: ^3.12.0 -> ^3.13.0
+    SDK constraint:
+      Bumped ^3.12.0 -> ^3.13.0
 
-Cleanup changes after a version bump:
-  2 changes made in 1 file.
+    Cleanup changes:
+      2 changes made in 1 file.
 
-  my_project/lib/main.dart
-    unnecessary_type_name_in_constructor • 2 changes''',
+      my_project/lib/main.dart
+        unnecessary_type_name_in_constructor • 2 changes''',
       expectedEdit: '''
 >>>>>>>>>> lib/main.dart
 class C {

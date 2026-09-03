@@ -3794,6 +3794,33 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitIncrementOrDecrementExpression(
+    covariant IncrementOrDecrementExpressionImpl node, {
+    TypeImpl contextType = UnknownInferredType.instance,
+  }) {
+    inferenceLogWriter?.enterExpression(node, contextType);
+
+    // If [isDotShorthand] is set, cache the context type for resolution.
+    var hasDotShorthandContext = isDotShorthand(node);
+    if (hasDotShorthandContext) {
+      pushDotShorthandContext(node, SharedTypeSchemaView(contextType));
+    }
+
+    checkUnreachableNode(node);
+    _incrementOrDecrementResolver.resolve(node);
+    _insertImplicitCallReference(
+      insertGenericFunctionInstantiation(node, contextType: contextType),
+      contextType: contextType,
+    );
+
+    if (hasDotShorthandContext) {
+      popDotShorthandContext();
+    }
+
+    inferenceLogWriter?.exitExpression(node);
+  }
+
+  @override
   void visitIndexExpression(
     covariant IndexExpressionImpl node, {
     TypeImpl contextType = UnknownInferredType.instance,
@@ -4412,30 +4439,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   }
 
   @override
-  void visitPostfixDecrement(
-    covariant PostfixDecrementImpl node, {
-    TypeImpl contextType = UnknownInferredType.instance,
-  }) {
-    _visitIncrementOrDecrement(node, contextType: contextType);
-  }
-
-  @override
-  void visitPostfixIncrement(
-    covariant PostfixIncrementImpl node, {
-    TypeImpl contextType = UnknownInferredType.instance,
-  }) {
-    _visitIncrementOrDecrement(node, contextType: contextType);
-  }
-
-  @override
-  void visitPrefixDecrement(
-    covariant PrefixDecrementImpl node, {
-    TypeImpl contextType = UnknownInferredType.instance,
-  }) {
-    _visitIncrementOrDecrement(node, contextType: contextType);
-  }
-
-  @override
   void visitPrefixedIdentifier(
     covariant PrefixedIdentifierImpl node, {
     TypeImpl contextType = UnknownInferredType.instance,
@@ -4470,14 +4473,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       contextType: contextType,
     );
     inferenceLogWriter?.exitExpression(node);
-  }
-
-  @override
-  void visitPrefixIncrement(
-    covariant PrefixIncrementImpl node, {
-    TypeImpl contextType = UnknownInferredType.instance,
-  }) {
-    _visitIncrementOrDecrement(node, contextType: contextType);
   }
 
   @override
@@ -6062,32 +6057,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
         fragment.constantInitializer2 = defaultValue;
       }
     }
-  }
-
-  void _visitIncrementOrDecrement(
-    IncrementOrDecrementExpressionImpl node, {
-    TypeImpl contextType = UnknownInferredType.instance,
-  }) {
-    inferenceLogWriter?.enterExpression(node, contextType);
-
-    // If [isDotShorthand] is set, cache the context type for resolution.
-    var hasDotShorthandContext = isDotShorthand(node);
-    if (hasDotShorthandContext) {
-      pushDotShorthandContext(node, SharedTypeSchemaView(contextType));
-    }
-
-    checkUnreachableNode(node);
-    _incrementOrDecrementResolver.resolve(node);
-    _insertImplicitCallReference(
-      insertGenericFunctionInstantiation(node, contextType: contextType),
-      contextType: contextType,
-    );
-
-    if (hasDotShorthandContext) {
-      popDotShorthandContext();
-    }
-
-    inferenceLogWriter?.exitExpression(node);
   }
 
   void _withEnclosingExecutableElement(

@@ -403,11 +403,11 @@ class PubPackageResolutionTest
   /// Note: Be sure to `await` any use of this API, to avoid stale analysis
   /// results (See [DisposedAnalysisContextResult]).
   Future<void> assertDiagnosticsInUnits(
-    List<(String path, List<ExpectedDiagnostic> expectedDiagnostics)>
+    List<(String unitPath, List<ExpectedDiagnostic> expectedDiagnostics)>
     unitsAndDiagnostics,
   ) async {
-    for (var (path, expectedDiagnostics) in unitsAndDiagnostics) {
-      result = await resolveFile(convertPath(path));
+    for (var (unitPath, expectedDiagnostics) in unitsAndDiagnostics) {
+      result = await resolveFile(convertPath(unitPath));
       assertDiagnosticsIn(result.diagnostics, expectedDiagnostics);
     }
   }
@@ -426,10 +426,18 @@ class PubPackageResolutionTest
   Future<void> assertNoDiagnosticsInFile(String path) async =>
       assertDiagnosticsInFile(path, const []);
 
+  @Deprecated('Use "contextFor2"')
   DriverBasedAnalysisContext contextFor(String path) {
     _createAnalysisContexts();
 
     var convertedPath = convertPath(path);
+    return _analysisContextCollection!.contextFor(convertedPath);
+  }
+
+  DriverBasedAnalysisContext contextFor2(File file) {
+    _createAnalysisContexts();
+
+    var convertedPath = convertPath(file.path);
     return _analysisContextCollection!.contextFor(convertedPath);
   }
 
@@ -546,13 +554,14 @@ class PubPackageResolutionTest
     return PackageBuilder._(packagePath, this);
   }
 
-  /// Resolves a Dart source file at [path].
+  /// Resolves a Dart source file at [filePath].
   ///
-  /// [path] must be converted for this file system.
-  Future<ResolvedUnitResult> resolveFile(String path) async {
-    var analysisContext = contextFor(path);
+  /// [filePath] must be converted for this file system.
+  Future<ResolvedUnitResult> resolveFile(String filePath) async {
+    var file = resourceProvider.getFile(filePath);
+    var analysisContext = contextFor2(file);
     var session = analysisContext.currentSession;
-    return await session.getResolvedUnit(path) as ResolvedUnitResult;
+    return await session.getResolvedUnit(filePath) as ResolvedUnitResult;
   }
 
   @mustCallSuper
@@ -723,11 +732,9 @@ class PubPackageResolutionTest
     );
   }
 
-  /// Resolves the file with the [path] into [result].
-  Future<void> _resolveFile(String path) async {
-    var convertedPath = convertPath(path);
-
-    result = await resolveFile(convertedPath);
+  /// Resolves the file with the [filePath] into [result].
+  Future<void> _resolveFile(String filePath) async {
+    result = await resolveFile(convertPath(filePath));
   }
 
   Future<void> _resolveTestFile() => _resolveFile(_testFilePath);

@@ -5945,20 +5945,13 @@ class AstBuilder extends StackListener {
         operator,
       );
     }
-    push(switch (operator.type) {
-      TokenType.PLUS_PLUS => PostfixIncrementImpl(
-        target: _toIncrementOrDecrementTarget(expression),
+    push(
+      IncrementOrDecrementExpressionImpl(
+        position: IncrementOrDecrementPosition.postfix,
         operator: operator,
-      ),
-      TokenType.MINUS_MINUS => PostfixDecrementImpl(
         target: _toIncrementOrDecrementTarget(expression),
-        operator: operator,
       ),
-      _ => throw StateError(
-        'Unexpected postfix increment or decrement operator '
-        '${operator.type.lexeme}',
-      ),
-    });
+    );
   }
 
   @override
@@ -5975,20 +5968,13 @@ class AstBuilder extends StackListener {
         expression.endToken,
       );
     }
-    push(switch (operator.type) {
-      TokenType.PLUS_PLUS => PrefixIncrementImpl(
+    push(
+      IncrementOrDecrementExpressionImpl(
+        position: IncrementOrDecrementPosition.prefix,
         operator: operator,
         target: _toIncrementOrDecrementTarget(expression),
       ),
-      TokenType.MINUS_MINUS => PrefixDecrementImpl(
-        operator: operator,
-        target: _toIncrementOrDecrementTarget(expression),
-      ),
-      _ => throw StateError(
-        'Unexpected prefix increment or decrement operator '
-        '${operator.type.lexeme}',
-      ),
-    });
+    );
   }
 
   @override

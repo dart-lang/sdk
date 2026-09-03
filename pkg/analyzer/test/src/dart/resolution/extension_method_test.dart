@@ -2591,9 +2591,9 @@ f(C c) {
   c++;
 }
 ''');
-    var node = result.findNode.postfixIncrement('++');
+    var node = result.findNode.incrementOrDecrement('++');
     assertResolvedNodeText(node, r'''
-PostfixIncrement
+IncrementOrDecrementExpression
   target: UnqualifiedNameAssignmentTarget
     name: c
     read: VariableReadResolution
@@ -2603,6 +2603,8 @@ PostfixIncrement
       element: <testLibrary>::@function::f::@formalParameter::c
       acceptedType: C
   operator: ++
+  operation: increment
+  position: postfix
   element: <testLibrary>::@class::C::@method::+
   operatorResultType: C
   staticType: C
@@ -2630,9 +2632,9 @@ g(int Function(int) f) {
   f++;
 }
 ''');
-    var node = result.findNode.postfixIncrement('++');
+    var node = result.findNode.incrementOrDecrement('++');
     assertResolvedNodeText(node, r'''
-PostfixIncrement
+IncrementOrDecrementExpression
   target: UnqualifiedNameAssignmentTarget
     name: f
     read: VariableReadResolution
@@ -2642,6 +2644,8 @@ PostfixIncrement
       element: <testLibrary>::@function::g::@formalParameter::f
       acceptedType: int Function(int)
   operator: ++
+  operation: increment
+  position: postfix
   element: <testLibrary>::@extension::E::@method::+
   operatorResultType: int Function(int)
   staticType: int Function(int)
@@ -2670,9 +2674,9 @@ f(C c) {
   c++;
 }
 ''');
-    var node = result.findNode.postfixIncrement('++');
+    var node = result.findNode.incrementOrDecrement('++');
     assertResolvedNodeText(node, r'''
-PostfixIncrement
+IncrementOrDecrementExpression
   target: UnqualifiedNameAssignmentTarget
     name: c
     read: VariableReadResolution
@@ -2682,6 +2686,8 @@ PostfixIncrement
       element: <testLibrary>::@function::f::@formalParameter::c
       acceptedType: C
   operator: ++
+  operation: increment
+  position: postfix
   element: <testLibrary>::@extension::E::@method::+
   operatorResultType: C
   staticType: C
@@ -2712,9 +2718,9 @@ f(A? a) {
   a++;
 }
 ''');
-    var node = result.findNode.postfixIncrement('a++');
+    var node = result.findNode.incrementOrDecrement('a++');
     assertResolvedNodeText(node, r'''
-PostfixIncrement
+IncrementOrDecrementExpression
   target: UnqualifiedNameAssignmentTarget
     name: a
     read: VariableReadResolution
@@ -2724,6 +2730,8 @@ PostfixIncrement
       element: <testLibrary>::@function::f::@formalParameter::a
       acceptedType: A?
   operator: ++
+  operation: increment
+  position: postfix
   element: <testLibrary>::@extension::E::@method::+
   operatorResultType: A?
   staticType: A?
@@ -2754,9 +2762,9 @@ f(C c) {
   ++c;
 }
 ''');
-    var node = result.findNode.prefixIncrement('++');
+    var node = result.findNode.incrementOrDecrement('++');
     assertResolvedNodeText(node, r'''
-PrefixIncrement
+IncrementOrDecrementExpression
   operator: ++
   target: UnqualifiedNameAssignmentTarget
     name: c
@@ -2766,6 +2774,8 @@ PrefixIncrement
     write: VariableWriteResolution
       element: <testLibrary>::@function::f::@formalParameter::c
       acceptedType: C
+  operation: increment
+  position: prefix
   element: <testLibrary>::@class::C::@method::+
   operatorResultType: C
   staticType: C
@@ -2793,9 +2803,9 @@ g(int Function(int) f) {
   ++f;
 }
 ''');
-    var node = result.findNode.prefixIncrement('++');
+    var node = result.findNode.incrementOrDecrement('++');
     assertResolvedNodeText(node, r'''
-PrefixIncrement
+IncrementOrDecrementExpression
   operator: ++
   target: UnqualifiedNameAssignmentTarget
     name: f
@@ -2805,6 +2815,8 @@ PrefixIncrement
     write: VariableWriteResolution
       element: <testLibrary>::@function::g::@formalParameter::f
       acceptedType: int Function(int)
+  operation: increment
+  position: prefix
   element: <testLibrary>::@extension::E::@method::+
   operatorResultType: int Function(int)
   staticType: int Function(int)
@@ -2833,9 +2845,9 @@ f(C c) {
   ++c;
 }
 ''');
-    var node = result.findNode.prefixIncrement('++');
+    var node = result.findNode.incrementOrDecrement('++');
     assertResolvedNodeText(node, r'''
-PrefixIncrement
+IncrementOrDecrementExpression
   operator: ++
   target: UnqualifiedNameAssignmentTarget
     name: c
@@ -2845,6 +2857,8 @@ PrefixIncrement
     write: VariableWriteResolution
       element: <testLibrary>::@function::f::@formalParameter::c
       acceptedType: C
+  operation: increment
+  position: prefix
   element: <testLibrary>::@extension::E::@method::+
   operatorResultType: C
   staticType: C
@@ -2875,9 +2889,9 @@ f(A? a) {
   ++a;
 }
 ''');
-    var node = result.findNode.prefixIncrement('++a');
+    var node = result.findNode.incrementOrDecrement('++a');
     assertResolvedNodeText(node, r'''
-PrefixIncrement
+IncrementOrDecrementExpression
   operator: ++
   target: UnqualifiedNameAssignmentTarget
     name: a
@@ -2887,6 +2901,8 @@ PrefixIncrement
     write: VariableWriteResolution
       element: <testLibrary>::@function::f::@formalParameter::a
       acceptedType: A?
+  operation: increment
+  position: prefix
   element: <testLibrary>::@extension::E::@method::+
   operatorResultType: A?
   staticType: A?

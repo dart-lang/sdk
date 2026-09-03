@@ -179,18 +179,6 @@ BinaryOperatorInvocation
       binaryOperator: add
       element: dart:core::@class::num::@method::+
       staticType: int
-    expression(v1): BinaryExpression
-      leftOperand: IntegerLiteral
-        literal: 1
-        staticType: int
-      operator: +
-      rightOperand: IntegerLiteral
-        literal: 2
-        correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
-        staticType: int
-      element: dart:core::@class::num::@method::+
-      staticInvokeType: num Function(num)
-      staticType: int
     rightParenthesis: )
     correspondingParameter: <null>
     staticType: int
@@ -313,18 +301,6 @@ BinaryOperatorInvocation
       binaryOperator: add
       element: dart:core::@class::num::@method::+
       staticType: int
-    expression(v1): BinaryExpression
-      leftOperand: IntegerLiteral
-        literal: 1
-        staticType: int
-      operator: +
-      rightOperand: IntegerLiteral
-        literal: 2
-        correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
-        staticType: int
-      element: dart:core::@class::num::@method::+
-      staticInvokeType: num Function(num)
-      staticType: int
     rightParenthesis: )
     correspondingParameter: <null>
     staticType: int
@@ -397,18 +373,6 @@ BinaryOperatorInvocation
         staticType: int
       binaryOperator: add
       element: dart:core::@class::num::@method::+
-      staticType: int
-    expression(v1): BinaryExpression
-      leftOperand: IntegerLiteral
-        literal: 1
-        staticType: int
-      operator: +
-      rightOperand: IntegerLiteral
-        literal: 2
-        correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
-        staticType: int
-      element: dart:core::@class::num::@method::+
-      staticInvokeType: num Function(num)
       staticType: int
     rightParenthesis: )
     correspondingParameter: <null>
@@ -1324,9 +1288,9 @@ void f(Never x) {
 }
 ''');
 
-    var node = result.findNode.postfixIncrement('x++');
+    var node = result.findNode.incrementOrDecrement('x++');
     assertResolvedNodeText(node, r'''
-PostfixIncrement
+IncrementOrDecrementExpression
   target: UnqualifiedNameAssignmentTarget
     name: x
     read: VariableReadResolution
@@ -1336,6 +1300,8 @@ PostfixIncrement
       element: <testLibrary>::@function::f::@formalParameter::x
       acceptedType: Never
   operator: ++
+  operation: increment
+  position: postfix
   element: <null>
   operatorResultType: Never
   staticType: Never
@@ -1363,9 +1329,9 @@ void f(Never? x) {
 }
 ''');
 
-    var node = result.findNode.postfixIncrement('x++');
+    var node = result.findNode.incrementOrDecrement('x++');
     assertResolvedNodeText(node, r'''
-PostfixIncrement
+IncrementOrDecrementExpression
   target: UnqualifiedNameAssignmentTarget
     name: x
     read: VariableReadResolution
@@ -1375,6 +1341,8 @@ PostfixIncrement
       element: <testLibrary>::@function::f::@formalParameter::x
       acceptedType: Never?
   operator: ++
+  operation: increment
+  position: postfix
   element: <null>
   operatorResultType: dynamic
   staticType: Never?
@@ -1403,9 +1371,9 @@ void f(Never x) {
 }
 ''');
 
-    var node = result.findNode.prefixIncrement('++x');
+    var node = result.findNode.incrementOrDecrement('++x');
     assertResolvedNodeText(node, r'''
-PrefixIncrement
+IncrementOrDecrementExpression
   operator: ++
   target: UnqualifiedNameAssignmentTarget
     name: x
@@ -1415,6 +1383,8 @@ PrefixIncrement
     write: VariableWriteResolution
       element: <testLibrary>::@function::f::@formalParameter::x
       acceptedType: Never
+  operation: increment
+  position: prefix
   element: <null>
   operatorResultType: Never
   staticType: Never
@@ -1442,9 +1412,9 @@ void f(Never? x) {
 }
 ''');
 
-    var node = result.findNode.prefixIncrement('++x');
+    var node = result.findNode.incrementOrDecrement('++x');
     assertResolvedNodeText(node, r'''
-PrefixIncrement
+IncrementOrDecrementExpression
   operator: ++
   target: UnqualifiedNameAssignmentTarget
     name: x
@@ -1454,6 +1424,8 @@ PrefixIncrement
     write: VariableWriteResolution
       element: <testLibrary>::@function::f::@formalParameter::x
       acceptedType: Never?
+  operation: increment
+  position: prefix
   element: <null>
   operatorResultType: InvalidType
   staticType: InvalidType

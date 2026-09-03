@@ -932,6 +932,20 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
+  void visitIncrementOrDecrementExpression(
+    IncrementOrDecrementExpression node,
+  ) {
+    switch (node.position) {
+      case IncrementOrDecrementPosition.prefix:
+        sink.write(node.operator.lexeme);
+        _visitNode(node.target);
+      case IncrementOrDecrementPosition.postfix:
+        _visitNode(node.target);
+        sink.write(node.operator.lexeme);
+    }
+  }
+
+  @override
   void visitIndexExpression(IndexExpression node) {
     if (node.isCascaded) {
       _visitToken(node.period);
@@ -1302,34 +1316,10 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
-  void visitPostfixDecrement(PostfixDecrement node) {
-    _visitNode(node.target);
-    sink.write(node.operator.lexeme);
-  }
-
-  @override
-  void visitPostfixIncrement(PostfixIncrement node) {
-    _visitNode(node.target);
-    sink.write(node.operator.lexeme);
-  }
-
-  @override
-  void visitPrefixDecrement(PrefixDecrement node) {
-    sink.write(node.operator.lexeme);
-    _visitNode(node.target);
-  }
-
-  @override
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
     _visitNode(node.prefix);
     sink.write('.');
     _visitNode(node.identifier);
-  }
-
-  @override
-  void visitPrefixIncrement(PrefixIncrement node) {
-    sink.write(node.operator.lexeme);
-    _visitNode(node.target);
   }
 
   @override

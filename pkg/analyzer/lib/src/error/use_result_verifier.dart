@@ -230,8 +230,8 @@ class UseResultVerifier {
         parent is IfElement ||
         parent is LogicalNot ||
         parent is ParenthesizedExpression ||
-        parent is PrefixIncrement ||
-        parent is PrefixDecrement ||
+        (parent is IncrementOrDecrementExpression &&
+            parent.position == IncrementOrDecrementPosition.prefix) ||
         parent is SpreadElement ||
         parent is UnaryOperatorInvocation) {
       return _isUsed(parent);

@@ -164,6 +164,10 @@ class FindNode2 extends _FindNodeBase {
     return _node(search, (node) => node is ImportPrefixedFunctionInvocation);
   }
 
+  IncrementOrDecrementExpression incrementOrDecrement(String search) {
+    return _node(search, (node) => node is IncrementOrDecrementExpression);
+  }
+
   LogicalAnd logicalAnd(String search) {
     return _node(search, (node) => node is LogicalAnd);
   }
@@ -178,22 +182,6 @@ class FindNode2 extends _FindNodeBase {
 
   NullAssertionExpression nullAssertion(String search) {
     return _node(search, (node) => node is NullAssertionExpression);
-  }
-
-  PostfixDecrement postfixDecrement(String search) {
-    return _node(search, (node) => node is PostfixDecrement);
-  }
-
-  PostfixIncrement postfixIncrement(String search) {
-    return _node(search, (node) => node is PostfixIncrement);
-  }
-
-  PrefixDecrement prefixDecrement(String search) {
-    return _node(search, (node) => node is PrefixDecrement);
-  }
-
-  PrefixIncrement prefixIncrement(String search) {
-    return _node(search, (node) => node is PrefixIncrement);
   }
 
   ReceiverMethodInvocation receiverMethodInvocation(String search) {
@@ -425,6 +413,8 @@ abstract class _FindNodeBase {
 
   ImportDirective get singleImportDirective => _single();
 
+  IncrementOrDecrementExpression get singleIncrementOrDecrement => _single();
+
   IndexExpression get singleIndexExpression => _single();
 
   IntegerLiteral get singleIntegerLiteral => _single();
@@ -494,15 +484,7 @@ abstract class _FindNodeBase {
   PatternVariableDeclarationStatement
   get singlePatternVariableDeclarationStatement => _single();
 
-  PostfixDecrement get singlePostfixDecrement => _single();
-
-  PostfixIncrement get singlePostfixIncrement => _single();
-
-  PrefixDecrement get singlePrefixDecrement => _single();
-
   PrefixedIdentifier get singlePrefixedIdentifier => _single();
-
-  PrefixIncrement get singlePrefixIncrement => _single();
 
   PrimaryConstructorBody get singlePrimaryConstructorBody => _single();
 

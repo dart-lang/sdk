@@ -1774,7 +1774,7 @@ var x = o?^.m();
     var node = await coveringNode('''
 var x = y+^+;
 ''');
-    node as PostfixIncrement;
+    node as IncrementOrDecrementExpression;
   }
 
   Future<void> test_libraryKeyword() async {

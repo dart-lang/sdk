@@ -530,6 +530,19 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   }
 
   @override
+  void visitIncrementOrDecrementExpression(
+    IncrementOrDecrementExpression node,
+  ) {
+    _sink.writeEnum(AstNodeTag.IncrementOrDecrementExpression);
+    _sink.writeEnum(node.operation);
+    _sink.writeEnum(node.position);
+    _writeNode(node.target);
+    _sink.writeElement(node.element);
+    _sink.writeType(node.operatorResultType);
+    _storeExpression(node);
+  }
+
+  @override
   void visitIndexExpression(IndexExpression node) {
     _sink.writeEnum(AstNodeTag.IndexExpression);
     _writeByte(
@@ -750,27 +763,6 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitPostfixDecrement(PostfixDecrement node) {
-    _sink.writeEnum(AstNodeTag.PostfixDecrement);
-    _writeNode(node.target);
-    _writeIncrementOrDecrementResolution(node);
-  }
-
-  @override
-  void visitPostfixIncrement(PostfixIncrement node) {
-    _sink.writeEnum(AstNodeTag.PostfixIncrement);
-    _writeNode(node.target);
-    _writeIncrementOrDecrementResolution(node);
-  }
-
-  @override
-  void visitPrefixDecrement(PrefixDecrement node) {
-    _sink.writeEnum(AstNodeTag.PrefixDecrement);
-    _writeNode(node.target);
-    _writeIncrementOrDecrementResolution(node);
-  }
-
-  @override
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
     _sink.writeEnum(AstNodeTag.PrefixedIdentifier);
     _writeNode(node.prefix);
@@ -778,13 +770,6 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
 
     // TODO(scheglov): In actual prefixed identifier, the type of the identifier.
     _storeExpression(node);
-  }
-
-  @override
-  void visitPrefixIncrement(PrefixIncrement node) {
-    _sink.writeEnum(AstNodeTag.PrefixIncrement);
-    _writeNode(node.target);
-    _writeIncrementOrDecrementResolution(node);
   }
 
   @override
@@ -1248,14 +1233,6 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
 
   void _writeDouble(double value) {
     _sink.writeDouble(value);
-  }
-
-  void _writeIncrementOrDecrementResolution(
-    IncrementOrDecrementExpression node,
-  ) {
-    _sink.writeElement(node.element);
-    _sink.writeType(node.operatorResultType);
-    _storeExpression(node);
   }
 
   void _writeIndexReadResolution(IndexReadResolutionImpl resolution) {

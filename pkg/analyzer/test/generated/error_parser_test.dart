@@ -3540,7 +3540,7 @@ TopLevelGetterDeclaration
     expression2: IntegerLiteral
       literal: 7
     semicolon: ;
-FunctionDeclaration
+V1: FunctionDeclaration
   propertyKeyword: get
   name: x
   functionExpression: FunctionExpression

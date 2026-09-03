@@ -1239,9 +1239,9 @@ void f(Object o) {
 }
 ''');
 
-    var node = result.findNode.postfixDecrement('[0]--');
+    var node = result.findNode.incrementOrDecrement('[0]--');
     assertResolvedNodeText(node, r'''
-PostfixDecrement
+IncrementOrDecrementExpression
   target: InvalidExpressionAssignmentTarget
     expression: ReceiverIndexExpression
       receiver: DotShorthandNameExpression
@@ -1264,6 +1264,8 @@ PostfixDecrement
         recovery: <null>
       staticType: InvalidType
   operator: --
+  operation: decrement
+  position: postfix
   correspondingParameter: <null>
   element: <null>
   operatorResultType: InvalidType
@@ -1331,9 +1333,9 @@ void f(Object o) {
 }
 ''');
 
-    var node = result.findNode.prefixDecrement('--.');
+    var node = result.findNode.incrementOrDecrement('--.');
     assertResolvedNodeText(node, r'''
-PrefixDecrement
+IncrementOrDecrementExpression
   operator: --
   target: InvalidExpressionAssignmentTarget
     expression: ReceiverIndexExpression
@@ -1356,6 +1358,8 @@ PrefixDecrement
         type: InvalidType
         recovery: <null>
       staticType: InvalidType
+  operation: decrement
+  position: prefix
   correspondingParameter: <null>
   element: <null>
   operatorResultType: InvalidType

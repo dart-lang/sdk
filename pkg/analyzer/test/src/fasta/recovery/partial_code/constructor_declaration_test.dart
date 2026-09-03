@@ -1530,10 +1530,12 @@ CompilationUnit
                 fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression2: PostfixIncrement
+                expression2: IncrementOrDecrementExpression
                   target: UnqualifiedNameAssignmentTarget
                     name: f
                   operator: ++
+                  operation: increment
+                  position: postfix
                 expression(v1): PostfixExpression
                   operand: SimpleIdentifier
                     token: f
@@ -1591,10 +1593,12 @@ CompilationUnit
                 fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression2: PostfixIncrement
+                expression2: IncrementOrDecrementExpression
                   target: UnqualifiedNameAssignmentTarget
                     name: f
                   operator: ++
+                  operation: increment
+                  position: postfix
                 expression(v1): PostfixExpression
                   operand: SimpleIdentifier
                     token: f
@@ -1640,10 +1644,12 @@ CompilationUnit
                 fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression2: PostfixIncrement
+                expression2: IncrementOrDecrementExpression
                   target: UnqualifiedNameAssignmentTarget
                     name: f
                   operator: ++
+                  operation: increment
+                  position: postfix
                 expression(v1): PostfixExpression
                   operand: SimpleIdentifier
                     token: f
@@ -1696,10 +1702,12 @@ CompilationUnit
                 fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression2: PostfixIncrement
+                expression2: IncrementOrDecrementExpression
                   target: UnqualifiedNameAssignmentTarget
                     name: f
                   operator: ++
+                  operation: increment
+                  position: postfix
                 expression(v1): PostfixExpression
                   operand: SimpleIdentifier
                     token: f
@@ -1755,10 +1763,12 @@ CompilationUnit
                 fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression2: PostfixIncrement
+                expression2: IncrementOrDecrementExpression
                   target: UnqualifiedNameAssignmentTarget
                     name: f
                   operator: ++
+                  operation: increment
+                  position: postfix
                 expression(v1): PostfixExpression
                   operand: SimpleIdentifier
                     token: f
@@ -1814,10 +1824,12 @@ CompilationUnit
                 fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression2: PostfixIncrement
+                expression2: IncrementOrDecrementExpression
                   target: UnqualifiedNameAssignmentTarget
                     name: f
                   operator: ++
+                  operation: increment
+                  position: postfix
                 expression(v1): PostfixExpression
                   operand: SimpleIdentifier
                     token: f
@@ -1873,10 +1885,12 @@ CompilationUnit
                 fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression2: PostfixIncrement
+                expression2: IncrementOrDecrementExpression
                   target: UnqualifiedNameAssignmentTarget
                     name: f
                   operator: ++
+                  operation: increment
+                  position: postfix
                 expression(v1): PostfixExpression
                   operand: SimpleIdentifier
                     token: f
@@ -1942,10 +1956,12 @@ CompilationUnit
                 fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression2: PostfixIncrement
+                expression2: IncrementOrDecrementExpression
                   target: UnqualifiedNameAssignmentTarget
                     name: f
                   operator: ++
+                  operation: increment
+                  position: postfix
                 expression(v1): PostfixExpression
                   operand: SimpleIdentifier
                     token: f
@@ -2010,10 +2026,12 @@ CompilationUnit
                 fieldName(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 equals: = <synthetic>
-                expression2: PostfixIncrement
+                expression2: IncrementOrDecrementExpression
                   target: UnqualifiedNameAssignmentTarget
                     name: f
                   operator: ++
+                  operation: increment
+                  position: postfix
                 expression(v1): PostfixExpression
                   operand: SimpleIdentifier
                     token: f

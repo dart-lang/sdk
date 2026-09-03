@@ -118,8 +118,7 @@ class PubspecEdit {
   /// The length of the text to be replaced.
   final int length;
 
-  /// The full new SDK constraint text after the edit is applied and the text to
-  /// be inserted at [offset], replacing [length] characters.
+  /// The text to be inserted at [offset], replacing [length] characters.
   final String replacement;
 
   /// The full original SDK constraint text before the edit is applied.
@@ -135,6 +134,10 @@ class PubspecEdit {
     required this.originalConstraint,
     required this.targetVersion,
   });
+
+  /// The full new SDK constraint text after the edit is applied.
+  String get newConstraint =>
+      originalConstraint.replaceRange(0, length, replacement);
 }
 
 /// A target package's `pubspec.yaml` file and its derived display name.

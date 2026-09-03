@@ -825,6 +825,41 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
   );
 
   @override
+  Null visitIncrementOrDecrementExpression(
+    IncrementOrDecrementExpression node,
+  ) {
+    switch (node.position) {
+      case IncrementOrDecrementPosition.prefix:
+        var lValueTemplates = dispatchAssignmentTarget(node.target);
+        // Stack: lValue
+        lValueTemplates.readForCompoundAssignment(this);
+        // Stack: lValue oldValue
+        ir.literal(one);
+        // Stack: lValue oldValue 1
+        instanceCall(node.element, node.operator.lexeme[0], [], twoArguments);
+        // Stack: lValue newValue
+        eventListener.onEnterNode(node.target);
+        lValueTemplates.write(this);
+        // Stack: newValue
+        eventListener.onExitNode();
+      case IncrementOrDecrementPosition.postfix:
+        var lValueTemplates = dispatchAssignmentTarget(node.target);
+        // Stack: lValue
+        eventListener.onEnterNode(node.target);
+        lValueTemplates.readForPostfixIncDec(this);
+        // Stack: oldValue lValue oldValue
+        eventListener.onExitNode();
+        ir.literal(one);
+        // Stack: oldValue lValue oldValue 1
+        instanceCall(node.element, node.operator.lexeme[0], [], twoArguments);
+        // Stack: oldValue lValue newValue
+        lValueTemplates.write(this);
+        // Stack: oldValue newValue
+        ir.drop(); // Stack: oldValue
+    }
+  }
+
+  @override
   Null visitIntegerLiteral(IntegerLiteral node) {
     // TODO(paulberry): do we need to handle out of range integers?
     ir.literal(ir.encodeLiteral(node.value!));
@@ -1003,21 +1038,6 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
   }
 
   @override
-  Null visitPostfixDecrement(PostfixDecrement node) {
-    _visitPostfixIncrementOrDecrement(node);
-  }
-
-  @override
-  Null visitPostfixIncrement(PostfixIncrement node) {
-    _visitPostfixIncrementOrDecrement(node);
-  }
-
-  @override
-  Null visitPrefixDecrement(PrefixDecrement node) {
-    _visitPrefixIncrementOrDecrement(node);
-  }
-
-  @override
   _LValueTemplates? visitPrefixedIdentifier(PrefixedIdentifier node) {
     var prefix = node.prefix;
     var prefixElement = prefix.element;
@@ -1032,11 +1052,6 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
           'TODO(paulberry): $runtimeType: $prefixElement',
         );
     }
-  }
-
-  @override
-  Null visitPrefixIncrement(PrefixIncrement node) {
-    _visitPrefixIncrementOrDecrement(node);
   }
 
   @override
@@ -1392,38 +1407,6 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
       case dynamic(:var runtimeType):
         throw UnimplementedError('TODO(paulberry): $runtimeType: $element');
     }
-  }
-
-  Null _visitPostfixIncrementOrDecrement(IncrementOrDecrementExpression node) {
-    var lValueTemplates = dispatchAssignmentTarget(node.target);
-    // Stack: lValue
-    eventListener.onEnterNode(node.target);
-    lValueTemplates.readForPostfixIncDec(this);
-    // Stack: oldValue lValue oldValue
-    eventListener.onExitNode();
-    ir.literal(one);
-    // Stack: oldValue lValue oldValue 1
-    instanceCall(node.element, node.operator.lexeme[0], [], twoArguments);
-    // Stack: oldValue lValue newValue
-    lValueTemplates.write(this);
-    // Stack: oldValue newValue
-    ir.drop();
-    // Stack: oldValue
-  }
-
-  Null _visitPrefixIncrementOrDecrement(IncrementOrDecrementExpression node) {
-    var lValueTemplates = dispatchAssignmentTarget(node.target);
-    // Stack: lValue
-    lValueTemplates.readForCompoundAssignment(this);
-    // Stack: lValue oldValue
-    ir.literal(one);
-    // Stack: lValue oldValue 1
-    instanceCall(node.element, node.operator.lexeme[0], [], twoArguments);
-    // Stack: lValue newValue
-    eventListener.onEnterNode(node.target);
-    lValueTemplates.write(this);
-    // Stack: newValue
-    eventListener.onExitNode();
   }
 }
 

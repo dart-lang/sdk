@@ -357,6 +357,17 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
   }
 
   @override
+  void visitIncrementOrDecrementExpression(
+    IncrementOrDecrementExpression node,
+  ) {
+    names.add(switch (node.operation) {
+      IncrementOrDecrementOperation.increment => '+',
+      IncrementOrDecrementOperation.decrement => '-',
+    });
+    node.visitChildren2(this);
+  }
+
+  @override
   void visitMethodDeclaration(MethodDeclaration node) {
     _LocalNameScope outerScope = localScope;
     try {
@@ -392,30 +403,6 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
     }
 
     super.visitPatternField(node);
-  }
-
-  @override
-  void visitPostfixDecrement(PostfixDecrement node) {
-    names.add('-');
-    node.visitChildren2(this);
-  }
-
-  @override
-  void visitPostfixIncrement(PostfixIncrement node) {
-    names.add('+');
-    node.visitChildren2(this);
-  }
-
-  @override
-  void visitPrefixDecrement(PrefixDecrement node) {
-    names.add('-');
-    node.visitChildren2(this);
-  }
-
-  @override
-  void visitPrefixIncrement(PrefixIncrement node) {
-    names.add('+');
-    node.visitChildren2(this);
   }
 
   @override
