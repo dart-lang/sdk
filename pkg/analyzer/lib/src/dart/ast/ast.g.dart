@@ -547,6 +547,11 @@ abstract class AstVisitor2<R> {
     DotShorthandConstructorInvocation node,
   );
 
+  @experimental
+  R? visitDotShorthandConstructorInvocation2(
+    DotShorthandConstructorInvocation2 node,
+  );
+
   R? visitDotShorthandInvocation(DotShorthandInvocation node);
 
   @experimental

@@ -3066,7 +3066,41 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   }) {
     inferenceLogWriter?.enterExpression(node, contextType);
 
-    // If [isDotShorthand] is set, cache the context type for resolution.
+    var hasDotShorthandContext = isDotShorthand(node);
+    if (hasDotShorthandContext) {
+      pushDotShorthandContext(node, SharedTypeSchemaView(contextType));
+    }
+
+    var replacement = DotShorthandConstructorInvocation2Impl(
+      constKeyword: node.constKeyword,
+      period: node.period,
+      name: node.constructorName.token,
+      typeArguments: node.typeArguments,
+      argumentList: node.argumentList,
+    )..isDotShorthand = node.isDotShorthand;
+    replaceExpression(node, replacement);
+    flowAnalysis.transferExpressionInfo(node, replacement);
+    flowAnalysis.transferTestData(node, replacement);
+    inferenceHelper.transferTestData(node, replacement);
+    constructorInvocationResolver.resolveDotShorthand(
+      replacement,
+      contextType: contextType,
+    );
+
+    if (hasDotShorthandContext) {
+      popDotShorthandContext();
+    }
+
+    inferenceLogWriter?.exitExpression(node);
+  }
+
+  @override
+  void visitDotShorthandConstructorInvocation2(
+    covariant DotShorthandConstructorInvocation2Impl node, {
+    TypeImpl contextType = UnknownInferredType.instance,
+  }) {
+    inferenceLogWriter?.enterExpression(node, contextType);
+
     if (isDotShorthand(node)) {
       pushDotShorthandContext(node, SharedTypeSchemaView(contextType));
     }

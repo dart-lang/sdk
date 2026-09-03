@@ -256,9 +256,9 @@ class MethodInvocationResolver with ScopeHelpers {
   /// Resolves the dot shorthand invocation, [node].
   ///
   /// If [node] is rewritten to be a [CallInvocation] or a
-  /// [DotShorthandConstructorInvocation] in the process, then returns that new
-  /// node. Otherwise, returns `null`.
-  RewrittenMethodInvocationImpl? resolveDotShorthand(
+  /// [DotShorthandConstructorInvocation2] in the process, then returns that
+  /// new node. Otherwise, returns `null`.
+  ExpressionImpl? resolveDotShorthand(
     DotShorthandInvocationImpl node,
     List<WhyNotPromotedGetter> whyNotPromotedArguments, {
     required TypeImpl contextType,
@@ -1288,9 +1288,9 @@ class MethodInvocationResolver with ScopeHelpers {
   /// with a type literal target.
   ///
   /// If [node] is rewritten to be a [CallInvocation] or a
-  /// [DotShorthandConstructorInvocation] in the process, then returns that new
-  /// node. Otherwise, returns `null`.
-  RewrittenMethodInvocationImpl? _resolveReceiverTypeLiteralForDotShorthand(
+  /// [DotShorthandConstructorInvocation2] in the process, then returns that
+  /// new node. Otherwise, returns `null`.
+  ExpressionImpl? _resolveReceiverTypeLiteralForDotShorthand(
     DotShorthandInvocationImpl node,
     InterfaceElement receiver,
     SimpleIdentifierImpl nameNode,
@@ -1327,12 +1327,12 @@ class MethodInvocationResolver with ScopeHelpers {
         case ConstructorElementImpl element?
         when element.isAccessibleIn(_resolver.definingLibrary)) {
       // The dot shorthand is a constructor invocation so we rewrite to a
-      // [DotShorthandConstructorInvocation].
+      // [DotShorthandConstructorInvocation2].
       var replacement =
-          DotShorthandConstructorInvocationImpl(
+          DotShorthandConstructorInvocation2Impl(
               constKeyword: null,
               period: node.period,
-              constructorName: nameNode,
+              name: nameNode.token,
               typeArguments: node.typeArguments,
               argumentList: node.argumentList,
             )

@@ -12,7 +12,7 @@ import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
 /// A resolver for [ConstructorInvocation] and
-/// [DotShorthandConstructorInvocation] nodes.
+/// [DotShorthandConstructorInvocation2] nodes.
 ///
 /// This resolver is responsible for rewriting a given
 /// [ConstructorInvocation] as a [MethodInvocation] if the parsed
@@ -58,9 +58,9 @@ class ConstructorInvocationResolver {
     _resolveConstructorInvocation(node, contextType: contextType);
   }
 
-  /// Resolves a [DotShorthandConstructorInvocation] node.
+  /// Resolves a [DotShorthandConstructorInvocation2] node.
   void resolveDotShorthand(
-    DotShorthandConstructorInvocationImpl node, {
+    DotShorthandConstructorInvocation2Impl node, {
     required TypeImpl contextType,
   }) {
     TypeImpl dotShorthandContextType = _resolver
@@ -78,10 +78,10 @@ class ConstructorInvocationResolver {
     ) when contextElement.isAccessibleIn(_resolver.definingLibrary)) {
       // This branch will be true if we're resolving an explicitly marked
       // const constructor invocation. It's completely unresolved, unlike a
-      // rewritten [DotShorthandConstructorInvocation] that resulted from
+      // rewritten [DotShorthandConstructorInvocation2] that resulted from
       // resolving a [DotShorthandInvocation].
       if (node.element == null) {
-        if (contextElement.getNamedConstructor(node.constructorName.name)
+        if (contextElement.getNamedConstructor(node.name.lexeme)
             case ConstructorElementImpl element?
             when element.isAccessibleIn(_resolver.definingLibrary)) {
           node.element = element;
@@ -90,9 +90,9 @@ class ConstructorInvocationResolver {
             diag.constWithUndefinedConstructor
                 .withArguments(
                   className: contextElement.displayName,
-                  constructorName: node.constructorName.name,
+                  constructorName: node.name.lexeme,
                 )
-                .at(node.constructorName),
+                .at(node.name),
           );
         }
       }
@@ -111,7 +111,7 @@ class ConstructorInvocationResolver {
           diag.wrongNumberOfTypeArgumentsDotShorthandConstructor
               .withArguments(
                 className: dotShorthandContextType.element.displayName,
-                constructorName: node.constructorName.name,
+                constructorName: node.name.lexeme,
               )
               .at(typeArguments),
         );
@@ -173,15 +173,15 @@ class ConstructorInvocationResolver {
   }
 
   void _resolveDotShorthandConstructorInvocation(
-    DotShorthandConstructorInvocationImpl node, {
+    DotShorthandConstructorInvocation2Impl node, {
     required TypeImpl contextType,
     required TypeImpl dotShorthandContextType,
   }) {
     var whyNotPromotedArguments = <WhyNotPromotedGetter>[];
-    _resolver.elementResolver.visitDotShorthandConstructorInvocation(node);
+    _resolver.elementResolver.visitDotShorthandConstructorInvocation2(node);
     var elementToInfer = _resolver.inferenceHelper.constructorElementToInfer(
       typeElement: dotShorthandContextType.element,
-      constructorName: node.constructorName.token,
+      constructorName: node.name,
       definingLibrary: _resolver.definingLibrary,
     );
     var target = elementToInfer == null

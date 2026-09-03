@@ -915,6 +915,30 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
   }
 
   @override
+  Constant visitDotShorthandConstructorInvocation2(
+    covariant DotShorthandConstructorInvocation2Impl node,
+  ) {
+    if (!node.isConst) {
+      return InvalidConstant.genericError(node: node);
+    }
+    var constructor = node.element;
+    if (constructor != null) {
+      return _evaluationEngine.evaluateAndFormatErrorsInConstructorCall(
+        _library,
+        node,
+        constructor.returnType.typeArguments,
+        node.argumentList.arguments2,
+        constructor,
+        this,
+      );
+    }
+    return InvalidConstant.forEntity(
+      entity: node,
+      locatableDiagnostic: diag.invalidConstant,
+    );
+  }
+
+  @override
   Constant visitDotShorthandInvocation(DotShorthandInvocation node) {
     return _invalidConstantForMethodInvocation(node);
   }
@@ -3674,6 +3698,8 @@ class _ConstructorInvocationEvaluator {
       if (node is ConstructorInvocation) {
         keyword = node.keyword;
       } else if (node is DotShorthandConstructorInvocation) {
+        keyword = node.constKeyword;
+      } else if (node is DotShorthandConstructorInvocation2) {
         keyword = node.constKeyword;
       }
       return InvalidConstant.forEntity(

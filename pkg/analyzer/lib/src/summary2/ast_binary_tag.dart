@@ -116,6 +116,7 @@ enum AstNodeTag {
   ReceiverMethodInvocation,
   DotShorthandMethodInvocation,
   DotShorthandNameExpression,
+  DotShorthandConstructorInvocation2,
 }
 
 enum DirectiveUriKind {

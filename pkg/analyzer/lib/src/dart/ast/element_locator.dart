@@ -402,6 +402,13 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
   }
 
   @override
+  Element? visitDotShorthandConstructorInvocation2(
+    DotShorthandConstructorInvocation2 node,
+  ) {
+    return node.element;
+  }
+
+  @override
   Element? visitDotShorthandInvocation(DotShorthandInvocation node) {
     return node.memberName.element;
   }

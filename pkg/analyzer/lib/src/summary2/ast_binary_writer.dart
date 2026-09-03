@@ -333,6 +333,24 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   }
 
   @override
+  void visitDotShorthandConstructorInvocation2(
+    covariant DotShorthandConstructorInvocation2Impl node,
+  ) {
+    _sink.writeEnum(AstNodeTag.DotShorthandConstructorInvocation2);
+    _writeByte(
+      AstBinaryFlags.encode(
+        isConst: node.constKeyword?.type == Keyword.CONST,
+        isDotShorthand: node.isDotShorthand,
+      ),
+    );
+    _writeStringReference(node.name.lexeme);
+    _writeOptionalNode(node.typeArguments);
+    _writeNode(node.argumentList);
+    _sink.writeElement(node.element);
+    _storeExpression(node);
+  }
+
+  @override
   void visitDotShorthandInvocation(covariant DotShorthandInvocationImpl node) {
     _sink.writeEnum(AstNodeTag.DotShorthandInvocation);
     _writeByte(AstBinaryFlags.encode(isDotShorthand: node.isDotShorthand));

@@ -119,6 +119,7 @@ export 'package:analyzer/src/dart/ast/ast.dart'
         DoStatement,
         DotShorthandInvocation,
         DotShorthandConstructorInvocation,
+        DotShorthandConstructorInvocation2,
         DotShorthandMethodInvocation,
         DotShorthandNameExpression,
         DotShorthandPropertyAccess,

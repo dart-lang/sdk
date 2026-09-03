@@ -163,12 +163,24 @@ class ElementResolver {
     }
   }
 
+  void visitDotShorthandConstructorInvocation2(
+    covariant DotShorthandConstructorInvocation2Impl node,
+  ) {
+    var parameters = _resolveArgumentsToFunction(
+      node.argumentList,
+      node.element,
+    );
+    if (parameters != null) {
+      node.argumentList.correspondingStaticParameters = parameters;
+    }
+  }
+
   /// Resolves the dot shorthand invocation, [node].
   ///
   /// If [node] is rewritten to be a [CallInvocation] or a
-  /// [DotShorthandConstructorInvocation] in the process, then returns that new
+  /// [DotShorthandConstructorInvocation2] in the process, then returns that new
   /// node. Otherwise, returns `null`.
-  RewrittenMethodInvocationImpl? visitDotShorthandInvocation(
+  ExpressionImpl? visitDotShorthandInvocation(
     covariant DotShorthandInvocationImpl node, {
     List<WhyNotPromotedGetter>? whyNotPromotedArguments,
     required TypeImpl contextType,

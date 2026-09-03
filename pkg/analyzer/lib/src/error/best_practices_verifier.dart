@@ -424,6 +424,16 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitDotShorthandConstructorInvocation2(
+    covariant DotShorthandConstructorInvocation2Impl node,
+  ) {
+    _deprecatedFunctionalityVerifier.dotShorthandConstructorInvocation2(node);
+    _elementUsageFrontierDetector.dotShorthandConstructorInvocation2(node);
+    _checkForLiteralConstructorUseInDotShorthand2(node);
+    super.visitDotShorthandConstructorInvocation2(node);
+  }
+
+  @override
   void visitDotShorthandInvocation(DotShorthandInvocation node) {
     _deprecatedFunctionalityVerifier.dotShorthandInvocation(node);
     _elementUsageFrontierDetector.dotShorthandInvocation(node);
@@ -1393,6 +1403,20 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
   ) {
     var constructor = node.constructorName.element;
     if (constructor is! ConstructorElement) return;
+    if (!node.isConst && constructor.metadata.hasLiteral && node.canBeConst) {
+      _diagnosticReporter.report(
+        diag.nonConstCallToLiteralConstructor
+            .withArguments(constructorName: constructor.displayName)
+            .at(node),
+      );
+    }
+  }
+
+  void _checkForLiteralConstructorUseInDotShorthand2(
+    DotShorthandConstructorInvocation2Impl node,
+  ) {
+    var constructor = node.element;
+    if (constructor == null) return;
     if (!node.isConst && constructor.metadata.hasLiteral && node.canBeConst) {
       _diagnosticReporter.report(
         diag.nonConstCallToLiteralConstructor

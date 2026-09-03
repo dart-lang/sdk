@@ -665,6 +665,12 @@ abstract class RuleVisitorRegistry2 {
     AstVisitor2 visitor,
   );
 
+  @experimental
+  void addDotShorthandConstructorInvocation2(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
+
   void addDotShorthandInvocation(
     AbstractAnalysisRule rule,
     AstVisitor2 visitor,

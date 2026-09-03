@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:test/test.dart';
@@ -160,7 +161,9 @@ void main() {
 // [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
 }
 ''');
-    var node = result.findNode.singleDotShorthandConstructorInvocation;
+    var node = V1Projection.toV1Expression(
+      result.findNode.singleDotShorthandConstructorInvocation as ExpressionImpl,
+    );
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A::@constructor::new

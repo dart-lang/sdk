@@ -138,6 +138,9 @@ class ElementUsageDetector<TagInfo extends Object> {
       errorEntity = node.name;
     } else if (node is ConstructorTypeReference) {
       errorEntity = node.name;
+    } else if (node is DotShorthandConstructorInvocation2 &&
+        element is ConstructorElement) {
+      errorEntity = node.name;
     } else if (node is NamedFunctionInvocation) {
       errorEntity = node.name;
     } else if (node is NamedArgument) {
@@ -224,6 +227,17 @@ class ElementUsageDetector<TagInfo extends Object> {
       checkUsage(interfaceElement, node);
     }
     _invocationArguments(node.constructorName.element, node.argumentList);
+  }
+
+  void dotShorthandConstructorInvocation2(
+    DotShorthandConstructorInvocation2 node,
+  ) {
+    var element = node.element;
+    if (element?.enclosingElement case var interfaceElement?) {
+      checkUsage(interfaceElement, node);
+    }
+    checkUsage(element, node);
+    _invocationArguments(element, node.argumentList);
   }
 
   void dotShorthandInvocation(DotShorthandInvocation node) {
@@ -638,6 +652,9 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
       errorEntity = node.name;
     } else if (node is ConstructorTypeReference) {
       errorEntity = node.name;
+    } else if (node is DotShorthandConstructorInvocation2 &&
+        element is ConstructorElement) {
+      errorEntity = node.name;
     } else if (node is DotShorthandNameExpression) {
       errorEntity = node.name;
     } else if (node is NamedFunctionInvocation) {
@@ -791,6 +808,17 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
       checkUsage(interfaceElement, node);
     }
     _invocationArguments(node.constructorName.element, node.argumentList);
+  }
+
+  void dotShorthandConstructorInvocation2(
+    DotShorthandConstructorInvocation2 node,
+  ) {
+    var element = node.element;
+    if (element?.enclosingElement case var interfaceElement?) {
+      checkUsage(interfaceElement, node);
+    }
+    checkUsage(element, node);
+    _invocationArguments(element, node.argumentList);
   }
 
   void dotShorthandInvocation(DotShorthandInvocation node) {

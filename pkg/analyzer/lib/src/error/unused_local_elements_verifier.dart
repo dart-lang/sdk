@@ -230,6 +230,16 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitDotShorthandConstructorInvocation2(
+    DotShorthandConstructorInvocation2 node,
+  ) {
+    _useIdentifierElement(node.element);
+    usedElements.addElement(node.element?.enclosingElement);
+    _addParametersForArguments(node.argumentList);
+    super.visitDotShorthandConstructorInvocation2(node);
+  }
+
+  @override
   void visitDotShorthandInvocation(DotShorthandInvocation node) {
     usedElements.addElement(node.memberName.element?.enclosingElement);
     _addParametersForArguments(node.argumentList);
