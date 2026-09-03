@@ -297,11 +297,9 @@ class Translator with KernelNodes {
   late final w.RefType stringTypeNullable = stringType.withNullability(true);
 
   // The wasm type used to hold values of `Invocation`
-  late final w.RefType invocationType =
-      translateType(
-            InterfaceType(coreTypes.invocationClass, Nullability.nonNullable),
-          )
-          as w.RefType;
+  late final w.RefType invocationType = translateType(
+    InterfaceType(coreTypes.invocationClass, Nullability.nonNullable),
+  ) as w.RefType;
 
   final Map<w.ModuleBuilder, PartialInstantiator> _partialInstantiators = {};
   PartialInstantiator getPartialInstantiatorForModule(w.ModuleBuilder module) {
@@ -596,9 +594,9 @@ class Translator with KernelNodes {
       // This function will be null if we didn't pass `--use-load-ids` but we
       // ended up not having any actual deferred code (e.g. `await
       // foo.loadLibrary()` is never called anywhere).
-      final function =
-          (functions.getExistingFunction(loadingMapGetter.reference)
-              as w.FunctionBuilder?);
+      final function = (functions.getExistingFunction(
+        loadingMapGetter.reference,
+      ) as w.FunctionBuilder?);
       if (function != null) {
         _patchLoadingMapGetter(function);
       }
@@ -610,9 +608,9 @@ class Translator with KernelNodes {
       // If the actual emitted code accesses the names (i.e. --no-minify and
       // code emits a deferred library load)
       assert(!options.minify);
-      final function =
-          (functions.getExistingFunction(loadingMapNamesGetter.reference)
-              as w.FunctionBuilder?);
+      final function = (functions.getExistingFunction(
+        loadingMapNamesGetter.reference,
+      ) as w.FunctionBuilder?);
       if (function != null) {
         _patchLoadingMapNamesGetter(function);
       }
@@ -701,11 +699,9 @@ class Translator with KernelNodes {
     final prefix = WasmCompilerOptions.deferredModuleFilenamePrefix(
       mainModuleOutput.moduleName,
     );
-    final prefixGetter =
-        functions.getExistingFunction(
-              dartInternalModuleNamePrefixGetter!.reference,
-            )
-            as w.FunctionBuilder;
+    final prefixGetter = functions.getExistingFunction(
+      dartInternalModuleNamePrefixGetter!.reference,
+    ) as w.FunctionBuilder;
     _replaceBody(prefixGetter)
       ..global_get(getInternalizedStringGlobal(mainModule, prefix))
       ..end();
@@ -1511,9 +1507,8 @@ class Translator with KernelNodes {
       );
       w.BaseFunction function = canBeCalledWith(posArgCount, argNames)
           ? makeTrampoline(signature, posArgCount, argNames)
-          : getDummyValuesCollectorForModule(
-              ib.moduleBuilder,
-            ).getDummyFunction(signature);
+          : getDummyValuesCollectorForModule(ib.moduleBuilder)
+                .getDummyFunction(signature);
       functions.add(function);
       ib.ref_func(function);
     }
@@ -2317,15 +2312,15 @@ class Translator with KernelNodes {
         // The body will have to call the super body with evaluated arguments
         // supplied as to the body function.
         if (init is SuperInitializer) {
-          nodeCounter.count += getConstructorInfo(
-            init.target,
-          ).bodyParameters.length;
+          nodeCounter.count += getConstructorInfo(init.target)
+              .bodyParameters
+              .length;
           break;
         }
         if (init is RedirectingInitializer) {
-          nodeCounter.count += getConstructorInfo(
-            init.target,
-          ).bodyParameters.length;
+          nodeCounter.count += getConstructorInfo(init.target)
+              .bodyParameters
+              .length;
           break;
         }
       }
@@ -2669,9 +2664,8 @@ class Translator with KernelNodes {
         return;
       } else if (type is w.FunctionType) {
         b.ref_func(
-          getDummyValuesCollectorForModule(
-            b.moduleBuilder,
-          ).getDummyFunction(type),
+          getDummyValuesCollectorForModule(b.moduleBuilder)
+              .getDummyFunction(type),
         );
         return;
       }
@@ -3627,18 +3621,18 @@ class InliningDecision {
 ///
 /// and 3 call sites
 ///
-///    foo<int>(args)
-///    foo<int>(args)
-///    foo<double>(args)
+///     foo<int>(args)
+///     foo<int>(args)
+///     foo<double>(args)
 ///
 /// the callsites can instead call a forwarder
 ///
-///    fooInt(args)
-///    fooInt(args)
-///    fooDouble(args)
+///     fooInt(args)
+///     fooInt(args)
+///     fooDouble(args)
 ///
-///    fooInt(args) => foo<int>(args)
-///    fooDouble(args) => foo<double>(args)
+///     fooInt(args) => foo<int>(args)
+///     fooDouble(args) => foo<double>(args)
 ///
 /// This saves code size on the call site.
 class PartialInstantiator {
