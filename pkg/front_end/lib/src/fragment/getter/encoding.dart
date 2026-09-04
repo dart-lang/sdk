@@ -256,9 +256,7 @@ mixin _DirectGetterEncodingMixin implements GetterEncoding {
       metadata: _fragment.metadata,
       annotationsFileUri: _fragment.fileUri,
     );
-    _fragment.declaredTypeParameterBuilders
-    // Coverage-ignore(suite): Not run.
-    .buildOutlineExpressions(
+    _fragment.declaredTypeParameterBuilders.buildOutlineExpressions(
       classHierarchy: classHierarchy,
       libraryBuilder: libraryBuilder,
       bodyBuilderContext: bodyBuilderContext,

@@ -1498,6 +1498,7 @@ class CloneVisitorNotMembers
       jointVariableFirstUseOffsets: node.jointVariableFirstUseOffsets == null
           ? null
           : new List<int>.of(node.jointVariableFirstUseOffsets!),
+      jointVariableScope: _cloneScope(node.scope),
     );
   }
 

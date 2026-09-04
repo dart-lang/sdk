@@ -1319,17 +1319,15 @@ class ConstantsTransformer extends RemovingTransformer {
 
           replacementCases.add(replacementCase);
         } else {
-          Scope? bodyScope;
-          if (body is Block) {
-            bodyScope = body.scope;
-            body.scope = null;
-          }
-          caseBlock = extern.createBlock([
-            for (VariableDeclaration jointVariableDeclaration
-                in switchCase.jointVariableDeclarations)
-              extern.createVariableStatement(jointVariableDeclaration),
-            if (body is! Block || body.statements.isNotEmpty) body,
-          ], fileOffset: switchCase.fileOffset)..scope = bodyScope;
+          caseBlock = extern.createBlock(
+            [
+              for (VariableDeclaration jointVariableDeclaration
+                  in switchCase.jointVariableDeclarations)
+                extern.createVariableStatement(jointVariableDeclaration),
+              if (body is! Block || body.statements.isNotEmpty) body,
+            ],
+            fileOffset: switchCase.fileOffset,
+          )..scope = switchCase.jointVariableScope;
         }
 
         if (caseCondition != null) {
