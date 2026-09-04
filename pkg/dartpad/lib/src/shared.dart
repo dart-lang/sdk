@@ -12,5 +12,6 @@ export 'exceptions.dart' hide rethrowAsDartPadException;
 typedef CompileResult = ({
   String? code,
   List<String> compiledLibraryUris,
+  String entrypointLibraryUri,
   String log,
 });

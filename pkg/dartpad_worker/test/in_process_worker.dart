@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:async/async.dart';
+import 'package:dartpad/src/message_port/message_port.dart';
 import 'package:dartpad/src/worker_client.dart';
 import 'package:dartpad_worker/src/worker.dart';
 import 'package:http/http.dart' as http;
@@ -30,29 +30,54 @@ Future<WorkerClient> createInprocessWorker(
     Stream.value(sdkTar),
     pubHostedUrl: server.baseUrl.toString(),
   );
-  final channelController = StreamChannelController<String>();
+  final channelController = StreamChannelController<Object?>();
 
   worker.session(
-    channelController.foreign.transform(_jsonStreamChannelTransform),
+    channelController.foreign.transform(_asyncStreamChannelTransform),
   );
   return WorkerClient(
-    channelController.local.transform(_jsonStreamChannelTransform),
+    channelController.local.transform(_asyncStreamChannelTransform),
   );
 }
 
-final _jsonStreamChannelTransform = StreamChannelTransformer(
-  StreamTransformer.fromBind((Stream<String> messages) async* {
+final _asyncStreamChannelTransform = StreamChannelTransformer(
+  StreamTransformer.fromBind((Stream<Object?> messages) async* {
     await for (final m in messages) {
       await Future<void>.delayed(Duration.zero);
-      yield jsonDecode(m);
+      yield _jsonify(m);
     }
   }),
   StreamSinkTransformer.fromStreamTransformer(
     StreamTransformer.fromBind((Stream<Object?> messages) async* {
       await for (final m in messages) {
         await Future<void>.delayed(Duration.zero);
-        yield jsonEncode(m);
+        yield _jsonify(m);
       }
     }),
   ),
 );
+
+Object? _jsonify(Object? obj) {
+  if (obj is MessagePort ||
+      obj == null ||
+      obj is String ||
+      obj is num ||
+      obj is bool) {
+    return obj;
+  }
+  if (obj is Map) {
+    return <String, Object?>{
+      for (final e in obj.entries) e.key as String: _jsonify(e.value),
+    };
+  }
+  if (obj is List) {
+    return <Object?>[for (final e in obj) _jsonify(e)];
+  }
+  try {
+    return _jsonify((obj as dynamic).toJson());
+    // ignore: avoid_catching_errors
+  } on NoSuchMethodError {
+    // Ignore if toJson doesn't exist
+  }
+  throw AssertionError('Cannot jsonify $obj (${obj.runtimeType})');
+}

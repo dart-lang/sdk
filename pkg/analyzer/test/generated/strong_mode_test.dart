@@ -1107,7 +1107,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     _TestInvocation invoke = await _testFutureOr(r'''
     dynamic test(FutureOr<int> x) => x.abs();
 //                                     ^^^
-// [diag.undefinedMethod] The method 'abs' isn't defined for the type 'FutureOr'.
+// [diag.undefinedMethod] The method 'abs' isn't defined for the type 'FutureOr<int>'.
     ''');
     _isInvalidType(invoke.typeOrThrow);
   }
@@ -1117,7 +1117,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     _TestInvocation invoke = await _testFutureOr(r'''
     dynamic test(FutureOr<int> x) => x.then((x) => x);
 //                                     ^^^^
-// [diag.undefinedMethod] The method 'then' isn't defined for the type 'FutureOr'.
+// [diag.undefinedMethod] The method 'then' isn't defined for the type 'FutureOr<int>'.
     ''');
     _isInvalidType(invoke.typeOrThrow);
   }

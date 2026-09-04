@@ -2516,7 +2516,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       flowAnalysis.getExpressionInfo(node.target2),
       SharedTypeView(targetType),
       isNullAware: node.isNullAware,
-      offset: node.cascadeSections2.first.offset,
+      offset: node.sections.first.body.offset,
     );
 
     var previousCascade = _activeCascadeExpression;

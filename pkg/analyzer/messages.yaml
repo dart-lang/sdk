@@ -19260,8 +19260,8 @@ CompileTimeErrorCode:
     type: compileTimeError
     parameters:
       String methodName: the name of the method that is undefined
-      String typeName: the resolved type name that the method lookup is happening on
-    problemMessage: "The method '#methodName' isn't defined for the type '#typeName'."
+      Type type: the type where the method is being looked for
+    problemMessage: "The method '#methodName' isn't defined for the type '#type'."
     correctionMessage: "Try correcting the name to the name of an existing method, or defining a method named '#methodName'."
     hasPublishedDocs: true
     documentation: |-
@@ -19289,6 +19289,15 @@ CompileTimeErrorCode:
       ```dart
       int f(List<int> l) => l.removeLast();
       ```
+  undefinedMethodOnTypeLiteral:
+    type: compileTimeError
+    parameters:
+      String methodName: the name of the method that is undefined
+      String typeName: the name of the type literal where the method is being looked for
+    sharedName: undefinedMethod
+    problemMessage: "The method '#methodName' isn't defined for the type '#typeName'."
+    correctionMessage: "Try correcting the name to the name of an existing method, or defining a method named '#methodName'."
+    hasPublishedDocs: true
   undefinedMethodOnFunctionType:
     type: compileTimeError
     parameters:

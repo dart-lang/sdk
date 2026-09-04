@@ -1722,6 +1722,8 @@ undefined_method:
 undefined_method_on_function_type:
   status: needsFix
   since: 2.15
+undefined_method_on_type_literal:
+  status: hasFix
 undefined_named_parameter:
   status: hasFix
 undefined_operator:

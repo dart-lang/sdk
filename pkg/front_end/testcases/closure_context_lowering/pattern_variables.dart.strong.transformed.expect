@@ -211,3 +211,37 @@ static method staleSwitchCaseBuilderTest(dynamic x, (core::String, core::int) r)
   }
   return () /* #ctx19 */ → core::String => s;
 }
+static method mergingJoinedVariableScopeAndLocalCaseScopeTest(dynamic x) → dynamic/* scope=[
+  #ctx22: not-captured [x],
+] */ {
+  {
+    final synthesized dynamic #0#0 = x;
+    synthesized core::int #0#2;
+    synthesized core::bool #0#2#isSet = false;
+    dynamic #t37;
+    /* scope=[
+      #ctx23: not-captured [y#case#0,y#case#1],
+    ] */{
+      lowered hoisted core::int y#case#0;
+      lowered hoisted core::int y#case#1;
+      if(#0#0 is core::int && (let final dynamic #t38 = y#case#0 = #0#0{core::int} in true) && (let final dynamic #t39 = #t37 = y#case#0 in true) || #0#0 is core::String && ((#0#2#isSet ?{core::int} #0#2 : let final dynamic #t40 = #0#2#isSet = true in #0#2 = #0#0{core::String}.{core::String::length}{core::int}) is core::int && (let final dynamic #t41 = y#case#1 = #0#2#isSet ?{core::int} #0#2 : let final dynamic #t42 = #0#2#isSet = true in #0#2 = #0#0{core::String}.{core::String::length}{core::int} in true)) && (let final dynamic #t43 = #t37 = y#case#1 in true))/* scope=[
+        #ctx24: direct-captured [y],
+      ] */ {
+        core::int y = #t37{core::int};
+        /* scope=[
+          #ctx25: direct-captured [a],
+        ] */{
+          core::int a = 0;
+          return () /* #ctx24 #ctx25 */ → core::List<core::int> => core::_GrowableList::_literal2<core::int>(a, y);
+        }
+      }
+    }
+    {
+      {
+        {
+          return null;
+        }
+      }
+    }
+  }
+}

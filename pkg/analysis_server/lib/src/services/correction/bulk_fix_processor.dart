@@ -126,6 +126,7 @@ class BulkFixProcessor {
     diag.undefinedGetter: [DataDriven.new],
     diag.undefinedIdentifier: [DataDriven.new],
     diag.undefinedMethod: [DataDriven.new],
+    diag.undefinedMethodOnTypeLiteral: [DataDriven.new],
     diag.undefinedNamedParameter: [DataDriven.new],
     diag.undefinedSetter: [DataDriven.new],
     diag.wrongNumberOfTypeArguments: [DataDriven.new],

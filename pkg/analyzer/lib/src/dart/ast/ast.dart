@@ -5690,12 +5690,8 @@ final class CallInvocationImpl extends FunctionInvocationImpl
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class CascadeExpression implements Expression {
   /// The cascade sections sharing the common target.
-  @ToBeDeprecated('Use cascadeSections2 instead.')
+  @ToBeDeprecated('Use sections instead.')
   NodeList<Expression> get cascadeSections;
-
-  // TODO(scheglov): Remove after all users migrate to [sections].
-  @experimental
-  NodeList<Expression> get cascadeSections2;
 
   /// Whether this cascade is null aware (as opposed to non-null).
   bool get isNullAware;
@@ -5732,16 +5728,7 @@ final class CascadeExpressionImpl extends ExpressionImpl
   @override
   final NodeListImpl<CascadeSectionImpl> sections = NodeListImpl._();
 
-  @experimental
-  @override
-  late final NodeListImpl<ExpressionImpl> cascadeSections2 =
-      _V1ProjectedNodeListImpl(
-        sections,
-        (section) => section.body,
-        supportsV2: true,
-      );
-
-  @ToBeDeprecated('Use cascadeSections2 instead.')
+  @ToBeDeprecated('Use sections instead.')
   @override
   late final NodeListImpl<ExpressionImpl> cascadeSections =
       _V1ProjectedNodeListImpl(
@@ -5749,9 +5736,7 @@ final class CascadeExpressionImpl extends ExpressionImpl
         (section) => V1Projection.toV1Expression(section.body),
       );
 
-  @DoNotGenerate(
-    reason: 'Projects section bodies into the transitional V2 and V1 views',
-  )
+  @DoNotGenerate(reason: 'Projects section bodies into the V1 view')
   CascadeExpressionImpl({
     required ExpressionImpl target2,
     required List<CascadeSectionImpl> sections,

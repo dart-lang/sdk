@@ -3779,6 +3779,7 @@ class BinaryBuilder {
           hasLabel: false,
           jointVariableDeclarations: [],
           jointVariableFirstUseOffsets: null,
+          jointVariableScope: null,
         ),
         growable: useGrowableLists,
       );

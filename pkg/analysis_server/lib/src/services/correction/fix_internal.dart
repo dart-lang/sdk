@@ -883,6 +883,12 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
     CreateFunction.new,
     CreateMethod.method,
   ],
+  diag.undefinedMethodOnTypeLiteral: [
+    ChangeTo.method,
+    CreateExtensionMethod.new,
+    CreateFunction.new,
+    CreateMethod.method,
+  ],
   diag.undefinedNamedParameter: [
     AddMissingParameterNamed.new,
     ConvertFlutterChild.new,
@@ -1233,6 +1239,13 @@ final _builtInNonLintMultiGenerators = {
     CreateMixin.new,
   ],
   diag.undefinedMethod: [
+    CreateClass.new,
+    DataDriven.new,
+    ImportLibrary.forExtensionMember,
+    ImportLibrary.forFunction,
+    ImportLibrary.forType,
+  ],
+  diag.undefinedMethodOnTypeLiteral: [
     CreateClass.new,
     DataDriven.new,
     ImportLibrary.forExtensionMember,

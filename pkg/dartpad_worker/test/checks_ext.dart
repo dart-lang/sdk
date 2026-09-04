@@ -72,3 +72,9 @@ extension RpcServerChecks on Subject<rpc.Server> {
         return Extracted.value(StreamQueue(c.stream));
       });
 }
+
+extension ExtensionEventChecks
+    on Subject<({String kind, Map<String, Object?> data})> {
+  Subject<String> get kind => has((s) => s.kind, 'kind');
+  Subject<Map<String, Object?>> get data => has((s) => s.data, 'data');
+}

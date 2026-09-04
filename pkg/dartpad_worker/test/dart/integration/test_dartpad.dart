@@ -25,13 +25,11 @@ void main() => testDartIntegration('dartpad', (ctx) async {
     }
   ''');
 
-  printOnFailure('# Compiling main.dart');
-  final result = await ctx.ws.compile(Uri.parse('main.dart'));
-  check(result).successEmptyLog();
-
   printOnFailure('# Running code in sandbox');
-  await ctx.sandbox.loadModule(code: result.code!);
-  await ctx.sandbox.runMain(ctx.ws.workspaceFolder.resolve('main.dart'));
+  final result = await ctx.sandbox.runMain(
+    ctx.ws.workspaceFolder.resolve('main.dart').toString(),
+  );
+  check(result.log).isNotNull();
 
   await ctx.checkConsole((m) => m.contains('Hello from DartPad!'));
 });

@@ -2394,6 +2394,7 @@ class NodeCreator {
             hasLabel: false,
             jointVariableDeclarations: [],
             jointVariableFirstUseOffsets: null,
+            jointVariableScope: null,
           ),
           () => new PatternSwitchCase(
             [0],
@@ -2403,6 +2404,7 @@ class NodeCreator {
             hasLabel: true,
             jointVariableDeclarations: [],
             jointVariableFirstUseOffsets: null,
+            jointVariableScope: null,
           ),
         ]);
       case NodeKind.SwitchExpressionCase:

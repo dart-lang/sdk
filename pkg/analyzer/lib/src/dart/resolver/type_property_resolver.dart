@@ -130,7 +130,7 @@ class TypePropertyResolver {
         locatableDiagnostic = diag.uncheckedInvocationOfNullableValue;
       } else {
         if (parentNode is CascadeExpression) {
-          parentNode = parentNode.cascadeSections2.first;
+          parentNode = parentNode.sections.first.body;
         }
         if (parentNode is BinaryOperatorInvocation ||
             parentNode is RelationalPattern) {

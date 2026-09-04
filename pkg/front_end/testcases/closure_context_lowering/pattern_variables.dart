@@ -68,3 +68,14 @@ staleSwitchCaseBuilderTest(dynamic x, (String, int) r) {
   var (s, n) = r;
   return () => s;
 }
+
+mergingJoinedVariableScopeAndLocalCaseScopeTest(dynamic x) {
+  switch (x) {
+    case int y:
+    case String(length: int y):
+      int a = 0;
+      return () => [a, y];
+    default:
+      return null;
+  }
+}

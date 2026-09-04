@@ -1274,6 +1274,7 @@ PatternSwitchCase createPatternSwitchCase({
   required bool hasLabel,
   required List<VariableDeclaration> jointVariableDeclarations,
   required List<int>? jointVariableFirstUseOffsets,
+  required Scope? jointVariableScope,
   required int fileOffset,
 }) {
   return new PatternSwitchCase(
@@ -1284,6 +1285,7 @@ PatternSwitchCase createPatternSwitchCase({
     hasLabel: hasLabel,
     jointVariableDeclarations: jointVariableDeclarations,
     jointVariableFirstUseOffsets: jointVariableFirstUseOffsets,
+    jointVariableScope: jointVariableScope,
   )..fileOffset = fileOffset;
 }
 

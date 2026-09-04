@@ -3275,7 +3275,7 @@ class C {}
 main() {
   C.foo(0);
 //  ^^^
-// [diag.undefinedMethod] The method 'foo' isn't defined for the type 'C'.
+// [diag.undefinedMethodOnTypeLiteral] The method 'foo' isn't defined for the type 'C'.
 }
 ''');
 
@@ -3312,7 +3312,7 @@ int x = 0;
 main() {
   C.foo(x);
 //  ^^^
-// [diag.undefinedMethod] The method 'foo' isn't defined for the type 'C'.
+// [diag.undefinedMethodOnTypeLiteral] The method 'foo' isn't defined for the type 'C'.
 }
 ''');
 
@@ -3353,7 +3353,7 @@ class C extends S {}
 main() {
   C.foo(0);
 //  ^^^
-// [diag.undefinedMethod] The method 'foo' isn't defined for the type 'C'.
+// [diag.undefinedMethodOnTypeLiteral] The method 'foo' isn't defined for the type 'C'.
 }
 ''');
 
@@ -3389,7 +3389,7 @@ class C {}
 main() {
   C.foo<int>();
 //  ^^^
-// [diag.undefinedMethod] The method 'foo' isn't defined for the type 'C'.
+// [diag.undefinedMethodOnTypeLiteral] The method 'foo' isn't defined for the type 'C'.
 }
 ''');
 
@@ -3428,7 +3428,7 @@ MethodInvocation
 class C<T> {
   static main() => C.T();
 //                   ^
-// [diag.undefinedMethod] The method 'T' isn't defined for the type 'C'.
+// [diag.undefinedMethodOnTypeLiteral] The method 'T' isn't defined for the type 'C'.
 }
 ''');
 
@@ -3509,7 +3509,7 @@ main() {
   var v = () {};
   v.foo(0);
 //  ^^^
-// [diag.undefinedMethod] The method 'foo' isn't defined for the type 'Function'.
+// [diag.undefinedMethod] The method 'foo' isn't defined for the type 'Null Function()'.
 }
 ''');
 
@@ -3753,7 +3753,7 @@ main() {
 // ^^
 // [diag.invalidNullAwareOperator] The receiver can't be null, so the null-aware operator '?.' is unnecessary.
 //   ^^^^^^^^
-// [diag.undefinedMethod] The method 'toString' isn't defined for the type 'A'.
+// [diag.undefinedMethodOnTypeLiteral] The method 'toString' isn't defined for the type 'A'.
 }
 ''');
   }

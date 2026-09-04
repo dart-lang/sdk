@@ -255,9 +255,7 @@ mixin _DirectSetterEncodingMixin implements SetterEncoding {
       annotationsFileUri: _fragment.fileUri,
     );
 
-    _fragment.declaredTypeParameterBuilders
-    // Coverage-ignore(suite): Not run.
-    .buildOutlineExpressions(
+    _fragment.declaredTypeParameterBuilders.buildOutlineExpressions(
       classHierarchy: classHierarchy,
       libraryBuilder: libraryBuilder,
       bodyBuilderContext: bodyBuilderContext,
@@ -543,9 +541,7 @@ mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
       annotationsFileUri: _fragment.fileUri,
     );
 
-    _fragment.declaredTypeParameterBuilders
-    // Coverage-ignore(suite): Not run.
-    .buildOutlineExpressions(
+    _fragment.declaredTypeParameterBuilders.buildOutlineExpressions(
       classHierarchy: classHierarchy,
       libraryBuilder: libraryBuilder,
       bodyBuilderContext: bodyBuilderContext,

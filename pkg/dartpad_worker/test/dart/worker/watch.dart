@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:async/async.dart';
-import 'package:dartpad/src/worker_client.dart';
 
 import '../../worker_harness.dart';
 

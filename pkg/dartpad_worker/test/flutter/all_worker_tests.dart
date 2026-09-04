@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'worker/compile.dart' as flutter_compile;
-import 'worker/hot_reload_compiler.dart' as flutter_hotreloadcompiler;
+import 'worker/hot_reload.dart' as flutter_hotreload;
 import 'worker/language_server.dart' as flutter_languageserver;
 import 'worker/pub.dart' as flutter_pub;
 
@@ -11,7 +11,7 @@ import 'worker/pub.dart' as flutter_pub;
 /// one test suite.
 final testFiles = [
   ('flutter/worker/compile.dart', flutter_compile.main),
-  ('flutter/worker/hot_reload_compiler.dart', flutter_hotreloadcompiler.main),
+  ('flutter/worker/hot_reload.dart', flutter_hotreload.main),
   ('flutter/worker/language_server.dart', flutter_languageserver.main),
   ('flutter/worker/pub.dart', flutter_pub.main),
 ];

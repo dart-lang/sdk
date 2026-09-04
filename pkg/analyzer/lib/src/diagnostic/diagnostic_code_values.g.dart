@@ -1065,6 +1065,7 @@ const List<DiagnosticCode> diagnosticCodeValues = [
   diag.undefinedLint,
   diag.undefinedMethod,
   diag.undefinedMethodOnFunctionType,
+  diag.undefinedMethodOnTypeLiteral,
   diag.undefinedNamedParameter,
   diag.undefinedOperator,
   diag.undefinedPrefixedName,

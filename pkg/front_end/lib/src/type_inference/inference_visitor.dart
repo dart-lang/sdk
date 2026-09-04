@@ -11652,11 +11652,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         }
 
         assert(checkStack(node, stackBase, [/*empty*/]));
-
-        if (body is Block) {
-          body.scope = case_.switchCaseBodyScopeProviderInfo?.scope;
-        }
-
         PatternSwitchCase replacement = extern.createPatternSwitchCase(
           caseOffsets: case_.caseOffsets,
           patternGuards: patternGuards,
@@ -11668,6 +11663,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
               variable.createDeclaration(),
           ],
           jointVariableFirstUseOffsets: case_.jointVariableFirstUseOffsets,
+          jointVariableScope: case_.switchCaseBodyScopeProviderInfo?.scope,
           fileOffset: case_.fileOffset,
         )..scope = case_.switchCaseScopeProviderInfo?.scope;
         case_.registerSwitchCase(replacement);

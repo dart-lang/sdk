@@ -16876,12 +16876,11 @@ undefinedLint = DiagnosticWithArguments(
 
 /// Parameters:
 /// String methodName: the name of the method that is undefined
-/// String typeName: the resolved type name that the method lookup is
-///                  happening on
+/// Type type: the type where the method is being looked for
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
     required String methodName,
-    required String typeName,
+    required DartType type,
   })
 >
 undefinedMethod = DiagnosticWithArguments(
@@ -16894,7 +16893,7 @@ undefinedMethod = DiagnosticWithArguments(
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'undefined_method',
   withArguments: _withArgumentsUndefinedMethod,
-  expectedTypes: [ExpectedType.string, ExpectedType.string],
+  expectedTypes: [ExpectedType.string, ExpectedType.type],
 );
 
 /// Parameters:
@@ -16916,6 +16915,29 @@ undefinedMethodOnFunctionType = DiagnosticWithArguments(
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'undefined_method_on_function_type',
   withArguments: _withArgumentsUndefinedMethodOnFunctionType,
+  expectedTypes: [ExpectedType.string, ExpectedType.string],
+);
+
+/// Parameters:
+/// String methodName: the name of the method that is undefined
+/// String typeName: the name of the type literal where the method is being
+///                  looked for
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({
+    required String methodName,
+    required String typeName,
+  })
+>
+undefinedMethodOnTypeLiteral = DiagnosticWithArguments(
+  name: 'undefined_method',
+  problemMessage: "The method '{0}' isn't defined for the type '{1}'.",
+  correctionMessage:
+      "Try correcting the name to the name of an existing method, or "
+      "defining a method named '{0}'.",
+  hasPublishedDocs: true,
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_method_on_type_literal',
+  withArguments: _withArgumentsUndefinedMethodOnTypeLiteral,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
 
@@ -22349,9 +22371,9 @@ LocatableDiagnostic _withArgumentsUndefinedLint({required String ruleName}) {
 
 LocatableDiagnostic _withArgumentsUndefinedMethod({
   required String methodName,
-  required String typeName,
+  required DartType type,
 }) {
-  return LocatableDiagnosticImpl(diag.undefinedMethod, [methodName, typeName]);
+  return LocatableDiagnosticImpl(diag.undefinedMethod, [methodName, type]);
 }
 
 LocatableDiagnostic _withArgumentsUndefinedMethodOnFunctionType({
@@ -22361,6 +22383,16 @@ LocatableDiagnostic _withArgumentsUndefinedMethodOnFunctionType({
   return LocatableDiagnosticImpl(diag.undefinedMethodOnFunctionType, [
     methodName,
     functionTypeAliasName,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedMethodOnTypeLiteral({
+  required String methodName,
+  required String typeName,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedMethodOnTypeLiteral, [
+    methodName,
+    typeName,
   ]);
 }
 
