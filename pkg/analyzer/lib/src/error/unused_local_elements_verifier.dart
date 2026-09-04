@@ -1237,6 +1237,14 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor2<void> {
       if (!element.isOptional) {
         return true;
       }
+      if (enclosingElement is ConstructorElement &&
+          enclosingElement.enclosingElement.typeParameters.isNotEmpty) {
+        // There is an issue matching arguments of constructor invocations for
+        // generic classes with parameters, so for now,
+        // consider every parameter of a constructor of a generic class
+        // "used". See https://github.com/dart-lang/sdk/issues/47839.
+        return true;
+      }
       if (enclosingElement is ConstructorElement) {
         var superConstructor = enclosingElement.superConstructor;
         if (superConstructor != null) {
@@ -1254,6 +1262,13 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor2<void> {
         }
       }
       if (enclosingElement is ExecutableElement) {
+        if (enclosingElement.typeParameters.isNotEmpty) {
+          // There is an issue matching arguments of generic function
+          // invocations with parameters, so for now, consider every parameter
+          // of a generic function "used". See
+          // https://github.com/dart-lang/sdk/issues/47839.
+          return true;
+        }
         if (_isPubliclyAccessible(enclosingElement)) {
           return true;
         }

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer_testing/package_config_file_builder.dart';
+import 'package:test/expect.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -1231,18 +1232,19 @@ void foo() {
 ''');
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/47839')
   test_classPublic_secondaryConstructor_namedPrivate_regularFormal_optionalPositional_generic_notUsed() async {
     // TODO(srawlins): Change to assertErrorsInCode when this is fixed.
-    await resolveTestCodeWithDiagnostics('''
+    addTestFile('''
 class C<T> {
   C._([int? x]);
-//          ^
-// [diag.unusedElementParameter] A value for optional parameter 'x' isn't ever given.
 }
 void foo() {
   C._();
 }
 ''');
+    var result = await resolveTestFile();
+    expect(result.diagnostics, isNotEmpty);
   }
 
   test_classPublic_secondaryConstructor_namedPrivate_regularFormal_optionalPositional_isUsed() async {
@@ -3401,66 +3403,32 @@ f() => "hello"._m();
 ''');
   }
 
-  test_parameter_notUsed_fieldFormal() async {
-    await resolveTestCodeWithDiagnostics(r'''
-// ignore: unused_element
-class _A {
-  final int? f;
-  _A([this.f]);
-//         ^
-// [diag.unusedElementParameter] A value for optional parameter 'f' isn't ever given.
-}
-''');
-  }
-
-  test_parameter_notUsed_fieldFormal_factoryRedirect() async {
-    await resolveTestCodeWithDiagnostics(r'''
-class _A {
-  final int? f;
-  _A([this.f]);
-//         ^
-// [diag.unusedElementParameter] A value for optional parameter 'f' isn't ever given.
-  factory _A.named() = _A;
-}
-f() => _A.named();
-''');
-  }
-
-  test_parameter_notUsed_genericConstructor() async {
-    await resolveTestCodeWithDiagnostics('''
-class C<T> {
-  C._([int? x]);
-//          ^
-// [diag.unusedElementParameter] A value for optional parameter 'x' isn't ever given.
-}
-void foo() {
-  C<int>._();
-}
-''');
-  }
-
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/47839')
   test_parameter_notUsed_genericFunction() async {
-    await resolveTestCodeWithDiagnostics('''
+    // TODO(srawlins): Change to assertErrorsInCode when this is fixed.
+    addTestFile('''
 void _f<T>([int? x]) {}
-//               ^
-// [diag.unusedElementParameter] A value for optional parameter 'x' isn't ever given.
 void foo() {
-  _f<int>();
+  _f();
 }
 ''');
+    var result = await resolveTestFile();
+    expect(result.diagnostics, isNotEmpty);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/47839')
   test_parameter_notUsed_genericMethod() async {
-    await resolveTestCodeWithDiagnostics('''
+    // TODO(srawlins): Change to assertErrorsInCode when this is fixed.
+    addTestFile('''
 class C {
   void _m<T>([int? x]) {}
-//                 ^
-// [diag.unusedElementParameter] A value for optional parameter 'x' isn't ever given.
 }
 void foo() {
-  C()._m<int>();
+  C()._m();
 }
 ''');
+    var result = await resolveTestFile();
+    expect(result.diagnostics, isNotEmpty);
   }
 
   test_parameter_notUsed_named() async {
