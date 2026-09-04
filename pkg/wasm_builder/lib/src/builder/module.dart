@@ -51,7 +51,7 @@ class ModuleBuilder with Builder<ir.Module> {
     ModuleBuilder? parent,
     this.watchPoints = const [],
   }) {
-    types = TypesBuilder(this, parent: parent?.types);
+    types = TypesBuilder(parent: parent?.types);
   }
 
   void addCustomSection(String name, Uint8List data) {
@@ -92,6 +92,14 @@ class ModuleBuilder with Builder<ir.Module> {
     final finalMemories = memories.build();
     final finalGlobals = globals.build();
     final finalTags = tags.build();
+    final finalExports = exports.build();
+    final finalTypes = types.build(
+      finalFunctions,
+      finalTables,
+      finalGlobals,
+      finalTags,
+    );
+    final finalDataSegments = dataSegments.build();
     final imports = ir.Imports(
       finalFunctions.imported,
       finalTags.imported,
@@ -107,10 +115,10 @@ class ModuleBuilder with Builder<ir.Module> {
       finalElements,
       finalTags,
       finalMemories,
-      exports.build(),
+      finalExports,
       finalGlobals,
-      types.build(),
-      dataSegments.build(),
+      finalTypes,
+      finalDataSegments,
       imports,
       watchPoints,
       sourceMapUrl,

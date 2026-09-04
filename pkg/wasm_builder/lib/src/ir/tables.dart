@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'ir.dart';
-import 'table.dart';
 
 class Tables {
   /// Imported tables.
@@ -19,4 +18,13 @@ class Tables {
       : defined[index - imported.length];
 
   int get length => imported.length + defined.length;
+
+  void collectUsedTypes(Set<DefType> usedTypes) {
+    for (final table in defined) {
+      table.collectUsedTypes(usedTypes);
+    }
+    for (final table in imported) {
+      table.collectUsedTypes(usedTypes);
+    }
+  }
 }

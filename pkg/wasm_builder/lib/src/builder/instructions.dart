@@ -255,23 +255,6 @@ class InstructionsBuilder with Builder<ir.Instructions> {
 
   bool get isEmpty => _instructions.isEmpty;
 
-  void collectUsedTypes(Set<ir.DefType> usedTypes) {
-    for (final local in locals) {
-      final localDefType = local.type.containedDefType;
-      if (localDefType != null) usedTypes.add(localDefType);
-    }
-    for (final instruction in _instructions) {
-      usedTypes.addAll(instruction.usedDefTypes);
-      for (final valueType in instruction.usedValueTypes) {
-        final type = valueType.containedDefType;
-        if (type != null) usedTypes.add(type);
-      }
-    }
-    for (final patch in _patchPoints) {
-      patch.patchBuilder.collectUsedTypes(usedTypes);
-    }
-  }
-
   @override
   ir.Instructions forceBuild() {
     if (_patchPoints.isEmpty) {

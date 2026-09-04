@@ -43,6 +43,21 @@ class Instructions implements Serializable {
     this._sourceMappings,
   );
 
+  void collectUsedTypes(Set<DefType> usedTypes) {
+    for (final local in locals) {
+      final localDefType = local.type.containedDefType;
+      if (localDefType != null) usedTypes.add(localDefType);
+    }
+    for (final instruction in instructions) {
+      usedTypes.addAll(instruction.usedDefTypes);
+      for (final valueType in instruction.usedValueTypes) {
+        final type = valueType.containedDefType;
+        if (type != null) usedTypes.add(type);
+      }
+    }
+  }
+
+  /// Serializes the instructions into [s].
   @override
   void serialize(Serializer s) {
     final sourceMappings = _sourceMappings;

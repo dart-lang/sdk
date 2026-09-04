@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:collection/collection.dart';
+
 import '../ir/ir.dart' as ir;
-import 'builder.dart';
 
 /// The available field values that can be used in brand type StructTypes.
 const List<ir.StorageType> _brandTypeFieldValues = [
@@ -310,13 +310,11 @@ class _RecGroupBuilder {
   }
 }
 
-class TypesBuilder with Builder<ir.Types> {
-  final ModuleBuilder _module;
-
+class TypesBuilder {
   final Map<_FunctionTypeKey, ir.FunctionType> _functionTypeMap = {};
   final _RecGroupBuilder _recGroupBuilder;
 
-  TypesBuilder(this._module, {TypesBuilder? parent})
+  TypesBuilder({TypesBuilder? parent})
     : _recGroupBuilder = parent?._recGroupBuilder ?? _RecGroupBuilder();
 
   /// Add a new function type to the module.
@@ -379,18 +377,17 @@ class TypesBuilder with Builder<ir.Types> {
     return type;
   }
 
-  Set<ir.DefType> _collectUsedTypes() {
+  ir.Types build(
+    ir.Functions functions,
+    ir.Tables tables,
+    ir.Globals globals,
+    ir.Tags tags,
+  ) {
     final usedTypes = <ir.DefType>{};
-    _module.tables.collectUsedTypes(usedTypes);
-    _module.functions.collectUsedTypes(usedTypes);
-    _module.globals.collectUsedTypes(usedTypes);
-    _module.tags.collectUsedTypes(usedTypes);
-    return usedTypes;
-  }
-
-  @override
-  ir.Types forceBuild() {
-    final usedTypes = _collectUsedTypes();
+    tables.collectUsedTypes(usedTypes);
+    functions.collectUsedTypes(usedTypes);
+    globals.collectUsedTypes(usedTypes);
+    tags.collectUsedTypes(usedTypes);
     final types = _recGroupBuilder.createGroupsForModule(usedTypes);
     return ir.Types(types);
   }
