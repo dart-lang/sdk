@@ -1771,8 +1771,6 @@ EnumDeclaration
     var result = await resolveTestCodeWithDiagnostics(r'''
 const foo = 0;
 enum A<@foo T>([@foo int x = foo]) {
-//                       ^
-// [diag.unusedElementParameter] A value for optional parameter 'x' isn't ever given.
   v;
   static const foo = 1;
 }

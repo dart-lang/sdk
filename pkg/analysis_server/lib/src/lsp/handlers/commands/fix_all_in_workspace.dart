@@ -69,7 +69,8 @@ abstract class AbstractFixAllInWorkspaceCommandHandler
     progress.begin('Computing fixes…');
     try {
       var result = await operation.compute();
-      return await result.mapResult((edit) async {
+      return await result.mapResult((result) async {
+        var (edit, _) = result;
         if (edit == null) {
           return success(null);
         }

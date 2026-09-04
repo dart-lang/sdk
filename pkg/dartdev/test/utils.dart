@@ -146,7 +146,7 @@ class TestProject {
   void file(String name, String contents) {
     var file = File(path.join(dir.path, name));
     file.parent.createSync(recursive: true);
-    file.writeAsStringSync(contents);
+    file.writeAsStringSync(contents, flush: true);
   }
 
   void deleteFile(String name) {

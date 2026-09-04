@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
@@ -42,7 +43,7 @@ abstract class AbstractFixAllOperation extends TemporaryOverlayOperation
   /// immediately.
   ChangeAnnotations get changeAnnotations;
 
-  Future<ErrorOr<WorkspaceEdit?>> compute() async {
+  Future<ErrorOr<(WorkspaceEdit?, List<LspBulkFix>)>> compute() async {
     return await pauseSchedulerWithTemporaryOverlays(_computeImpl);
   }
 
@@ -52,7 +53,7 @@ abstract class AbstractFixAllOperation extends TemporaryOverlayOperation
     OperationPerformanceImpl performance,
   );
 
-  Future<ErrorOr<WorkspaceEdit?>> _computeImpl() async {
+  Future<ErrorOr<(WorkspaceEdit?, List<LspBulkFix>)>> _computeImpl() async {
     if (cancellationToken.isCancellationRequested) {
       return cancelled(cancellationToken);
     }
@@ -68,7 +69,7 @@ abstract class AbstractFixAllOperation extends TemporaryOverlayOperation
 
     var result = await getFixEdits(processor, message.performance);
     if (result == null) {
-      return success(null);
+      return success((null, []));
     }
     var errorMessage = result.errorMessage;
     if (errorMessage != null) {
@@ -78,7 +79,7 @@ abstract class AbstractFixAllOperation extends TemporaryOverlayOperation
     }
     var changes = result.edits;
     if (changes.isEmpty) {
-      return success(null);
+      return success((null, []));
     }
 
     // We only need to merge if we know we did multiple passes.
@@ -100,6 +101,32 @@ abstract class AbstractFixAllOperation extends TemporaryOverlayOperation
       annotateChanges: changeAnnotations,
     );
 
-    return success(edit);
+    var details = _mergeDetails(result.details);
+
+    return success((edit, details));
+  }
+
+  /// Merge the fix details from multiple rounds and return them as
+  /// [LspBulkFix]es.
+  List<LspBulkFix> _mergeDetails(List<BulkFix> details) {
+    var countByCodeByFile = <String, Map<String, int>>{};
+    for (var detail in details) {
+      var detailsForFile = countByCodeByFile.putIfAbsent(detail.path, () => {});
+      for (var fix in detail.fixes) {
+        var occurrences = (detailsForFile[fix.code] ?? 0) + fix.occurrences;
+        detailsForFile[fix.code] = occurrences;
+      }
+    }
+
+    return countByCodeByFile.entries.map((entry) {
+      var MapEntry(key: filePath, value: detail) = entry;
+      return LspBulkFix(
+        uri: pathContext.toUri(filePath),
+        fixes: detail.entries.map((entry) {
+          var MapEntry(key: code, value: occurrences) = entry;
+          return LspBulkFixDetail(code: code, occurrences: occurrences);
+        }).toList(),
+      );
+    }).toList();
   }
 }

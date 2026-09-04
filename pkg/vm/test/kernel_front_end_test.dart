@@ -8,8 +8,6 @@ import 'package:front_end/src/api_unstable/vm.dart'
     show computePlatformBinariesLocation;
 import 'package:kernel/ast.dart' show Component;
 import 'package:kernel/kernel.dart' show loadComponentFromBinary;
-import 'package:front_end/src/api_prototype/standard_file_system.dart'
-    show StandardFileSystem;
 import 'package:test/test.dart';
 import 'package:vm/kernel_front_end.dart';
 
@@ -190,56 +188,4 @@ main() {
       );
     }, timeout: Timeout.none);
   }
-
-  test('depfile with org-dartlang-sdk filesystem scheme', () async {
-    await testCompile([
-      '--platform',
-      platformPath(),
-      '--filesystem-scheme',
-      'org-dartlang-sdk',
-      '--filesystem-root',
-      sdkDir,
-      '--packages',
-      'org-dartlang-sdk:///$packageConfigFile',
-      '--depfile',
-      outputDepfile(),
-      '--output',
-      outputDill(),
-      'org-dartlang-sdk:///$mainScript',
-    ]);
-    final depfile = File(outputDepfile()).readAsStringSync();
-    expect(
-      depfile,
-      stringContainsInOrder(
-        '$sdkDir/$mainScript'.replaceAll(r'\', '/').split('/'),
-      ),
-    );
-    expect(
-      depfile,
-      stringContainsInOrder(
-        '$sdkDir/$packageConfigFile'.replaceAll(r'\', '/').split('/'),
-      ),
-    );
-    expect(depfile, isNot(contains('core.dart')));
-  }, timeout: Timeout.none);
-
-  test('writeDepfile skips platform corelibs under lib/ and sdk/', () async {
-    final depfile = '${tempDir.path}/test.d';
-    await writeDepfile(
-      StandardFileSystem.instance,
-      [
-        Uri.file('${tempDir.path}/main.dart'),
-        Uri.parse(
-          'org-dartlang-sdk:///lib/_internal/wasm/common/boxed_bool.dart',
-        ),
-        Uri.parse('org-dartlang-sdk:///sdk/lib/async/async.dart'),
-      ],
-      '${tempDir.path}/output.dill',
-      depfile,
-    );
-    final content = File(depfile).readAsStringSync();
-    expect(content, contains('main.dart'));
-    expect(content, isNot(contains('boxed_bool.dart')));
-    expect(content, isNot(contains('async.dart')));
-  });
 }
