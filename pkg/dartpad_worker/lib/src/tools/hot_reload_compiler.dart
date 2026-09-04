@@ -63,7 +63,7 @@ final class HotReloadCompiler {
   /// previously returned module. If this validation fails, [compile] will
   /// throw [HotReloadRejectedException].
   ///
-  /// Throws [CompilationException], if compilation fails.
+  /// Throws [CompilationFailedException], if compilation fails.
   Future<CompileResult> compile() async {
     try {
       return await _compile();
@@ -193,9 +193,19 @@ final class HotReloadCompiler {
         .map((l) => l.importUri.toString())
         .toList();
 
+    final entrypointLibrary = compiledLibraries.libraries.firstWhere(
+      (l) => l.fileUri == entrypoint,
+      orElse: () => throw CompilationFailedException(
+        'Entrypoint library not found in compiled output',
+        data: {'entrypoint': entrypoint.toString()},
+      ),
+    );
+    final entrypointLibraryUri = entrypointLibrary.importUri.toString();
+
     return (
       code: jsCode.code,
       compiledLibraryUris: compiledLibraryUris,
+      entrypointLibraryUri: entrypointLibraryUri,
       log: log,
     );
   }

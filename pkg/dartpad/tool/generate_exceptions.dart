@@ -50,8 +50,13 @@ void main() async {
 
   // package:dartpad/src/ resolves to lib/src/, so doc/ is at lib/../doc/
   final docUri = yamlUri.resolve('../../doc/worker-protocol.md');
+  final sandboxJsUri = yamlUri.resolve(
+    '../../../dartpad_worker/lib/src/asset/sandbox.js',
+  );
+
   final docFile = File.fromUri(docUri);
   final dartFile = File.fromUri(dartUri);
+  final sandboxJsFile = File.fromUri(sandboxJsUri);
 
   // Parse YAML
   final yamlString = File.fromUri(yamlUri).readAsStringSync();
@@ -95,13 +100,17 @@ void main() async {
 
   // 3. Generate Dart File
   _generateDartFile(dartFile, groups);
+  print(' - updated exceptions.dart');
 
   // 4. Update Markdown File
   _updateMarkdownFile(docFile, groups);
+  print(' - updated worker-protocol.md');
 
-  print(
-    'Successfully generated exceptions.dart and updated worker-protocol.md',
-  );
+  // 5. Update sandbox.js
+  _updateSandboxJs(sandboxJsFile, groups);
+  print(' - updated sandbox.js');
+
+  print('Successfully generated');
 }
 
 final class ExceptionCodeGroup {
@@ -225,8 +234,8 @@ final class DartPadException extends RpcException {
 
 void _updateMarkdownFile(File docFile, List<ExceptionCodeGroup> groups) {
   if (!docFile.existsSync()) {
-    print('Warning: Markdown file not found at ${docFile.path}');
-    return;
+    print('Error: Markdown file not found at ${docFile.path}');
+    exit(1);
   }
   final allCodes = groups.expand((g) => g.codes).toList();
 
@@ -241,9 +250,9 @@ void _updateMarkdownFile(File docFile, List<ExceptionCodeGroup> groups) {
 
   if (!regex.hasMatch(content)) {
     print(
-      'Warning: Could not find generated table markers in worker-protocol.md',
+      'Error: Could not find generated table markers in worker-protocol.md',
     );
-    return;
+    exit(1);
   }
 
   final tableBuffer = StringBuffer();
@@ -298,4 +307,77 @@ String wrapDescription(String text, {int width = 80, String prefix = '/// '}) {
   }
 
   return resultBuffer.toString();
+}
+
+void _updateSandboxJs(File jsFile, List<ExceptionCodeGroup> groups) {
+  if (!jsFile.existsSync()) {
+    print('Error: JS file not found at ${jsFile.path}');
+    exit(1);
+  }
+
+  final sandboxGroup = groups
+      .where((g) => g.className.toLowerCase().contains('sandbox'))
+      .firstOrNull;
+
+  if (sandboxGroup == null) {
+    print('Error: Sandbox group not found in exceptions.yaml');
+    exit(1);
+  }
+
+  final lines = jsFile.readAsLinesSync();
+
+  final beginMarker = '/* BEGIN GENERATED ERROR CODE TABLE */'
+      .replaceAll(' ', r'\s+')
+      .replaceAll('/*', r'/[\*\s]+')
+      .replaceAll('*/', r'[\*\s]+/');
+
+  final beginRegex = RegExp('^(\\s*)$beginMarker\$');
+
+  final endMarker = '/* END GENERATED ERROR CODE TABLE */'
+      .replaceAll(' ', r'\s+')
+      .replaceAll('/*', r'/[\*\s]+')
+      .replaceAll('*/', r'[\*\s]+/');
+  final endRegex = RegExp('^\\s*$endMarker\$');
+
+  final newLines = <String>[];
+  var insideTable = false;
+  var foundTable = false;
+
+  for (final line in lines) {
+    if (!insideTable) {
+      newLines.add(line);
+      final match = beginRegex.firstMatch(line);
+      if (match != null) {
+        insideTable = true;
+        foundTable = true;
+
+        final indent = match.group(1)!;
+        for (final c in sandboxGroup.codes) {
+          final constantName = _toConstantName(c.enumName);
+          newLines.add('$indent$constantName: ${c.code},');
+        }
+      }
+    } else if (endRegex.hasMatch(line)) {
+      insideTable = false;
+      newLines.add(line);
+    }
+  }
+
+  if (!foundTable) {
+    print('Error: Could not find generated table markers in sandbox.js');
+    exit(1);
+  }
+
+  if (insideTable) {
+    print('Error: Could not find end table marker in sandbox.js');
+    exit(1);
+  }
+
+  jsFile.writeAsStringSync('${newLines.join('\n')}\n');
+}
+
+String _toConstantName(String enumName) {
+  return enumName.replaceAllMapped(RegExp(r'[A-Z]'), (match) {
+    return '_${match.group(0)!}';
+  }).toUpperCase();
 }
