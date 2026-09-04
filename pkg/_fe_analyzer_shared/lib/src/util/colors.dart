@@ -87,7 +87,7 @@ bool get enableColors => _enableColors ??= _computeEnableColors();
 
 /// Allows the client to override the decision of whether to disable ANSI
 /// colors.
-void set enableColors(bool value) {
+void set enableColors(bool? value) {
   _enableColors = value;
 }
 

@@ -54,6 +54,7 @@ Future<void> compileEntryPoint(List<String> arguments) async {
     print("Notice: Locating perf for profiling using intel_pt events.");
     linuxAndIntelSpecificPerf(onlyInitialize: true);
   }
+  bool useIncrementalCompiler = Platform.environment["incremental"] == "true";
   installAdditionalTargets();
 
   // Timing results for each iteration
@@ -70,7 +71,11 @@ Future<void> compileEntryPoint(List<String> arguments) async {
       benchmarker = new Benchmarker();
       benchmarkers.add(benchmarker);
     }
-    await compile(arguments, benchmarker: benchmarker);
+    await compile(
+      arguments,
+      benchmarker: benchmarker,
+      useIncrementalCompiler: useIncrementalCompiler,
+    );
     benchmarker?.stop();
     stopwatch.stop();
 
@@ -383,7 +388,11 @@ Future<void> outline(List<String> arguments, {Benchmarker? benchmarker}) async {
   });
 }
 
-Future<Uri> compile(List<String> arguments, {Benchmarker? benchmarker}) async {
+Future<Uri> compile(
+  List<String> arguments, {
+  Benchmarker? benchmarker,
+  bool useIncrementalCompiler = false,
+}) async {
   return await runProtectedFromAbort<Uri>(() async {
     return await withGlobalOptions("compile", arguments, true, (
       CompilerContext c,
@@ -392,11 +401,19 @@ Future<Uri> compile(List<String> arguments, {Benchmarker? benchmarker}) async {
       if (c.options.verbose) {
         print("Compiling directly to Kernel: ${arguments.join(' ')}");
       }
-      CompilerResult compilerResult = await generateKernelInternal(
-        c,
-        benchmarker: benchmarker,
-      );
-      Component component = compilerResult.component!;
+      Component component;
+      if (useIncrementalCompiler) {
+        IncrementalCompiler incrementalCompiler = new IncrementalCompiler(c);
+        IncrementalCompilerResult compilerResult = await incrementalCompiler
+            .computeDelta();
+        component = compilerResult.component;
+      } else {
+        CompilerResult compilerResult = await generateKernelInternal(
+          c,
+          benchmarker: benchmarker,
+        );
+        component = compilerResult.component!;
+      }
       Uri uri = await _emitComponent(
         c.options,
         component,

@@ -303,7 +303,7 @@ class IncrementalSerializer {
 
   /// Serialize the specified libraries using other needed data from the
   /// component.
-  Uint8List serialize(Component component, List<Library> libraries) {
+  static Uint8List serialize(Component component, List<Library> libraries) {
     Component singlePackageLibraries = new Component(
       libraries: libraries,
       uriToSource: component.uriToSource,

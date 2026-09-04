@@ -1025,6 +1025,7 @@ class DocTestIncrementalCompiler extends IncrementalCompiler {
 
   @override
   IncrementalKernelTarget createIncrementalKernelTarget(
+    CompilerContext context,
     FileSystem fileSystem,
     bool includeComments,
     DillTarget dillTarget,
