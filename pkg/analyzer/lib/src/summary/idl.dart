@@ -149,11 +149,6 @@ abstract class AnalysisDriverUnitIndex extends base.SummaryClass {
   factory AnalysisDriverUnitIndex.fromBuffer(List<int> buffer) =>
       generated.readAnalysisDriverUnitIndex(buffer);
 
-  /// Each item of this list corresponds to a unique referenced element. It is
-  /// a list of the prefixes associated with references to the element.
-  @Id(20)
-  List<String> get elementImportPrefixes;
-
   /// Each item of this list corresponds to a unique referenced element.  It is
   /// the kind of the synthetic element.
   @Id(4)
@@ -191,19 +186,19 @@ abstract class AnalysisDriverUnitIndex extends base.SummaryClass {
   ///
   /// This is the index into [unitLibraryPaths] and [unitUnitPaths].
   /// This is the library fragment referenced by the directive.
-  @Id(21)
+  @Id(20)
   List<int> get libFragmentRefTargets;
 
   /// Support for indexing `part` and `part of` directives.
   ///
   /// The offset of the URI in the directive.
-  @Id(23)
+  @Id(22)
   List<int> get libFragmentRefUriLengths;
 
   /// Support for indexing `part` and `part of` directives.
   ///
   /// The offset of the URI in the directive.
-  @Id(22)
+  @Id(21)
   List<int> get libFragmentRefUriOffsets;
 
   /// Identifier of the null string in [strings].

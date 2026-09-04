@@ -917,7 +917,6 @@ mixin _AnalysisDriverUnitErrorMixin implements idl.AnalysisDriverUnitError {
 class AnalysisDriverUnitIndexBuilder extends Object
     with _AnalysisDriverUnitIndexMixin
     implements idl.AnalysisDriverUnitIndex {
-  List<String>? _elementImportPrefixes;
   List<idl.IndexSyntheticElementKind>? _elementKinds;
   List<int>? _elementNameClassMemberIds;
   List<int>? _elementNameParameterIds;
@@ -941,16 +940,6 @@ class AnalysisDriverUnitIndexBuilder extends Object
   List<idl.IndexRelationKind>? _usedNameKinds;
   List<int>? _usedNameOffsets;
   List<int>? _usedNames;
-
-  @override
-  List<String> get elementImportPrefixes =>
-      _elementImportPrefixes ??= <String>[];
-
-  /// Each item of this list corresponds to a unique referenced element. It is
-  /// a list of the prefixes associated with references to the element.
-  set elementImportPrefixes(List<String> value) {
-    this._elementImportPrefixes = value;
-  }
 
   @override
   List<idl.IndexSyntheticElementKind> get elementKinds =>
@@ -1201,7 +1190,6 @@ class AnalysisDriverUnitIndexBuilder extends Object
   }
 
   AnalysisDriverUnitIndexBuilder({
-    List<String>? elementImportPrefixes,
     List<idl.IndexSyntheticElementKind>? elementKinds,
     List<int>? elementNameClassMemberIds,
     List<int>? elementNameParameterIds,
@@ -1225,8 +1213,7 @@ class AnalysisDriverUnitIndexBuilder extends Object
     List<idl.IndexRelationKind>? usedNameKinds,
     List<int>? usedNameOffsets,
     List<int>? usedNames,
-  }) : _elementImportPrefixes = elementImportPrefixes,
-       _elementKinds = elementKinds,
+  }) : _elementKinds = elementKinds,
        _elementNameClassMemberIds = elementNameClassMemberIds,
        _elementNameParameterIds = elementNameParameterIds,
        _elementNameUnitMemberIds = elementNameUnitMemberIds,
@@ -1429,15 +1416,6 @@ class AnalysisDriverUnitIndexBuilder extends Object
         x.collectApiSignature(signatureSink);
       }
     }
-    var elementImportPrefixes = this._elementImportPrefixes;
-    if (elementImportPrefixes == null) {
-      signatureSink.addInt(0);
-    } else {
-      signatureSink.addInt(elementImportPrefixes.length);
-      for (var x in elementImportPrefixes) {
-        signatureSink.addString(x);
-      }
-    }
     var libFragmentRefTargets = this._libFragmentRefTargets;
     if (libFragmentRefTargets == null) {
       signatureSink.addInt(0);
@@ -1473,7 +1451,6 @@ class AnalysisDriverUnitIndexBuilder extends Object
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
-    fb.Offset? offset_elementImportPrefixes;
     fb.Offset? offset_elementKinds;
     fb.Offset? offset_elementNameClassMemberIds;
     fb.Offset? offset_elementNameParameterIds;
@@ -1496,12 +1473,6 @@ class AnalysisDriverUnitIndexBuilder extends Object
     fb.Offset? offset_usedNameKinds;
     fb.Offset? offset_usedNameOffsets;
     fb.Offset? offset_usedNames;
-    var elementImportPrefixes = _elementImportPrefixes;
-    if (!(elementImportPrefixes == null || elementImportPrefixes.isEmpty)) {
-      offset_elementImportPrefixes = fbBuilder.writeList(
-        elementImportPrefixes.map((b) => fbBuilder.writeString(b)).toList(),
-      );
-    }
     var elementKinds = _elementKinds;
     if (!(elementKinds == null || elementKinds.isEmpty)) {
       offset_elementKinds = fbBuilder.writeListUint8(
@@ -1623,9 +1594,6 @@ class AnalysisDriverUnitIndexBuilder extends Object
       offset_usedNames = fbBuilder.writeListUint32(usedNames);
     }
     fbBuilder.startTable();
-    if (offset_elementImportPrefixes != null) {
-      fbBuilder.addOffset(20, offset_elementImportPrefixes);
-    }
     if (offset_elementKinds != null) {
       fbBuilder.addOffset(4, offset_elementKinds);
     }
@@ -1642,13 +1610,13 @@ class AnalysisDriverUnitIndexBuilder extends Object
       fbBuilder.addOffset(5, offset_elementUnits);
     }
     if (offset_libFragmentRefTargets != null) {
-      fbBuilder.addOffset(21, offset_libFragmentRefTargets);
+      fbBuilder.addOffset(20, offset_libFragmentRefTargets);
     }
     if (offset_libFragmentRefUriLengths != null) {
-      fbBuilder.addOffset(23, offset_libFragmentRefUriLengths);
+      fbBuilder.addOffset(22, offset_libFragmentRefUriLengths);
     }
     if (offset_libFragmentRefUriOffsets != null) {
-      fbBuilder.addOffset(22, offset_libFragmentRefUriOffsets);
+      fbBuilder.addOffset(21, offset_libFragmentRefUriOffsets);
     }
     fbBuilder.addUint32(1, _nullStringId, 0);
     if (offset_strings != null) {
@@ -1719,7 +1687,6 @@ class _AnalysisDriverUnitIndexImpl extends Object
 
   _AnalysisDriverUnitIndexImpl(this._bc, this._bcOffset);
 
-  List<String>? _elementImportPrefixes;
   List<idl.IndexSyntheticElementKind>? _elementKinds;
   List<int>? _elementNameClassMemberIds;
   List<int>? _elementNameParameterIds;
@@ -1743,13 +1710,6 @@ class _AnalysisDriverUnitIndexImpl extends Object
   List<idl.IndexRelationKind>? _usedNameKinds;
   List<int>? _usedNameOffsets;
   List<int>? _usedNames;
-
-  @override
-  List<String> get elementImportPrefixes {
-    return _elementImportPrefixes ??= const fb.ListReader<String>(
-      fb.StringReader(),
-    ).vTableGet(_bc, _bcOffset, 20, const <String>[]);
-  }
 
   @override
   List<idl.IndexSyntheticElementKind> get elementKinds {
@@ -1803,7 +1763,7 @@ class _AnalysisDriverUnitIndexImpl extends Object
     return _libFragmentRefTargets ??= const fb.Uint32ListReader().vTableGet(
       _bc,
       _bcOffset,
-      21,
+      20,
       const <int>[],
     );
   }
@@ -1813,7 +1773,7 @@ class _AnalysisDriverUnitIndexImpl extends Object
     return _libFragmentRefUriLengths ??= const fb.Uint32ListReader().vTableGet(
       _bc,
       _bcOffset,
-      23,
+      22,
       const <int>[],
     );
   }
@@ -1823,7 +1783,7 @@ class _AnalysisDriverUnitIndexImpl extends Object
     return _libFragmentRefUriOffsets ??= const fb.Uint32ListReader().vTableGet(
       _bc,
       _bcOffset,
-      22,
+      21,
       const <int>[],
     );
   }
@@ -1971,10 +1931,6 @@ mixin _AnalysisDriverUnitIndexMixin implements idl.AnalysisDriverUnitIndex {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> result = <String, Object>{};
-    var local_elementImportPrefixes = elementImportPrefixes;
-    if (local_elementImportPrefixes.isNotEmpty) {
-      result["elementImportPrefixes"] = local_elementImportPrefixes;
-    }
     var local_elementKinds = elementKinds;
     if (local_elementKinds.isNotEmpty) {
       result["elementKinds"] = local_elementKinds
@@ -2080,7 +2036,6 @@ mixin _AnalysisDriverUnitIndexMixin implements idl.AnalysisDriverUnitIndex {
 
   @override
   Map<String, Object?> toMap() => {
-    "elementImportPrefixes": elementImportPrefixes,
     "elementKinds": elementKinds,
     "elementNameClassMemberIds": elementNameClassMemberIds,
     "elementNameParameterIds": elementNameParameterIds,

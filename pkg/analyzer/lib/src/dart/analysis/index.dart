@@ -210,9 +210,6 @@ class _ElementInfo {
   /// The kind of the element.
   final IndexSyntheticElementKind kind;
 
-  /// The prefixes used to reference the element.
-  final Set<String> importPrefixes = {};
-
   /// The unique id of the element.  It is set after indexing of the whole
   /// package is done and we are assembling the full package index.
   late int id;
@@ -335,24 +332,6 @@ class _IndexAssembler {
     nameRelations.add(_NameRelationInfo(nameId, kind, offset, isQualified));
   }
 
-  /// Adds a prefix (or empty string for unprefixed) for an element.
-  void addPrefixForElement(Element element, {PrefixElement? prefix}) {
-    if (element is MultiplyDefinedElementImpl ||
-        // TODO(brianwilkerson): The last two conditions are here because the
-        //  elements for `dynamic` and `Never` are singletons and hence don't have
-        //  a parent element for which we can find an `_ElementInfo`. This means
-        //  that any reference to either type via a prefix can't be stored in the
-        //  index. The solution is to make those elements be normal (not unique)
-        //  elements.
-        element is DynamicElementImpl ||
-        element is NeverElementImpl) {
-      return;
-    }
-
-    _ElementInfo elementInfo = _getElementInfo(element);
-    elementInfo.importPrefixes.add(prefix?.name ?? '');
-  }
-
   void addSubtype(String name, List<String> members, List<String> supertypes) {
     for (var supertype in supertypes) {
       subtypes.add(
@@ -421,9 +400,6 @@ class _IndexAssembler {
           .map((s) => s.id)
           .toList(growable: false),
       unitUnitPaths: unitUnitPaths.map((s) => s.id).toList(growable: false),
-      elementImportPrefixes: elementInfoList
-          .map((e) => e.importPrefixes.toList(growable: false).join(','))
-          .toList(growable: false),
       elementKinds: elementInfoList.map((e) => e.kind).toList(growable: false),
       elementUnits: elementInfoList
           .map((e) => e.unitId)
@@ -773,9 +749,6 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   ) {
     switch (node.resolution) {
       case GetterInvocationResolutionImpl(:var element):
-        if (element.firstFragment.enclosingFragment is LibraryFragmentImpl) {
-          assembler.addPrefixForElement(element);
-        }
         recordRelation(
           element,
           IndexRelationKind.IS_INVOKED_BY,
@@ -783,9 +756,6 @@ class _IndexContributor extends UnifyingAstVisitor2 {
           true,
         );
       case ExecutableTearOffResolutionImpl(:var element):
-        if (element.firstFragment.enclosingFragment is LibraryFragmentImpl) {
-          assembler.addPrefixForElement(element);
-        }
         recordRelation(
           element,
           IndexRelationKind.IS_REFERENCED_BY,
@@ -1019,10 +989,6 @@ class _IndexContributor extends UnifyingAstVisitor2 {
       case PropertyAssignmentTargetImpl target:
         switch (target.write) {
           case SetterInvocationResolutionImpl(element: var element):
-            if (element.firstFragment.enclosingFragment
-                is LibraryFragmentImpl) {
-              assembler.addPrefixForElement(element);
-            }
             recordRelation(
               element,
               IndexRelationKind.IS_INVOKED_BY,
@@ -1051,10 +1017,6 @@ class _IndexContributor extends UnifyingAstVisitor2 {
               false,
             );
           case SetterInvocationResolutionImpl(element: var element):
-            if (element.firstFragment.enclosingFragment
-                is LibraryFragmentImpl) {
-              assembler.addPrefixForElement(element);
-            }
             recordRelation(
               element,
               IndexRelationKind.IS_INVOKED_BY,
@@ -1064,10 +1026,6 @@ class _IndexContributor extends UnifyingAstVisitor2 {
           case InvalidNamedWriteResolutionImpl(:var candidates)
               when candidates.isNotEmpty:
             for (var element in candidates) {
-              if (element.firstFragment.enclosingFragment
-                  is LibraryFragmentImpl) {
-                assembler.addPrefixForElement(element);
-              }
               recordRelation(
                 element,
                 IndexRelationKind.IS_REFERENCED_BY,
@@ -1290,9 +1248,6 @@ class _IndexContributor extends UnifyingAstVisitor2 {
           false,
         );
       case SetterInvocationResolutionImpl(element: var element):
-        if (element.firstFragment.enclosingFragment is LibraryFragmentImpl) {
-          assembler.addPrefixForElement(element);
-        }
         recordRelation(
           element,
           IndexRelationKind.IS_INVOKED_BY,
@@ -1494,16 +1449,6 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   }
 
   @override
-  void visitPrefixedIdentifier(PrefixedIdentifier node) {
-    var element = node.element;
-    var prefixElement = node.prefix.element;
-    if (element != null && prefixElement is PrefixElement) {
-      assembler.addPrefixForElement(element, prefix: prefixElement);
-    }
-    super.visitPrefixedIdentifier(node);
-  }
-
-  @override
   void visitReceiverIndexExpression(ReceiverIndexExpression node) {
     _visitIndexExpression2(node);
   }
@@ -1514,9 +1459,6 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   ) {
     switch (node.resolution) {
       case GetterInvocationResolutionImpl(:var element):
-        if (element.firstFragment.enclosingFragment is LibraryFragmentImpl) {
-          assembler.addPrefixForElement(element);
-        }
         recordRelation(
           element,
           IndexRelationKind.IS_INVOKED_BY,
@@ -1524,9 +1466,6 @@ class _IndexContributor extends UnifyingAstVisitor2 {
           true,
         );
       case ExecutableTearOffResolutionImpl(:var element):
-        if (element.firstFragment.enclosingFragment is LibraryFragmentImpl) {
-          assembler.addPrefixForElement(element);
-        }
         recordRelation(
           element,
           IndexRelationKind.IS_REFERENCED_BY,
@@ -1580,15 +1519,6 @@ class _IndexContributor extends UnifyingAstVisitor2 {
     }
 
     var element = node.writeOrReadElement2;
-
-    var parent = node.parent2;
-    if (element != null &&
-        element.firstFragment.enclosingFragment is LibraryFragmentImpl &&
-        // We're only unprefixed when part of a PrefixedIdentifier if we're
-        // the left side.
-        (parent is! PrefixedIdentifier || parent.prefix == node)) {
-      assembler.addPrefixForElement(element);
-    }
 
     // record unresolved name reference
     bool isQualified = _isQualified(node);
@@ -1883,10 +1813,7 @@ class _IndexContributor extends UnifyingAstVisitor2 {
           importPrefix.name,
           isQualified: false,
         );
-        assembler.addPrefixForElement(element, prefix: prefixElement);
       }
-    } else {
-      assembler.addPrefixForElement(element);
     }
 
     recordRelationToken(
@@ -1925,9 +1852,6 @@ class _IndexContributor extends UnifyingAstVisitor2 {
     var hasRelation = false;
     switch (read) {
       case GetterInvocationResolutionImpl(:var element):
-        if (element.firstFragment.enclosingFragment is LibraryFragmentImpl) {
-          assembler.addPrefixForElement(element);
-        }
         recordRelation(
           element,
           IndexRelationKind.IS_INVOKED_BY,
@@ -1936,9 +1860,6 @@ class _IndexContributor extends UnifyingAstVisitor2 {
         );
         hasRelation = true;
       case ExecutableTearOffResolutionImpl(:var element):
-        if (element.firstFragment.enclosingFragment is LibraryFragmentImpl) {
-          assembler.addPrefixForElement(element);
-        }
         recordRelation(
           element,
           IndexRelationKind.IS_REFERENCED_BY,
@@ -1949,9 +1870,6 @@ class _IndexContributor extends UnifyingAstVisitor2 {
       default:
     }
     if (write case SetterInvocationResolutionImpl(:var element)) {
-      if (element.firstFragment.enclosingFragment is LibraryFragmentImpl) {
-        assembler.addPrefixForElement(element);
-      }
       recordRelation(
         element,
         IndexRelationKind.IS_INVOKED_BY,
@@ -1999,15 +1917,9 @@ class _IndexContributor extends UnifyingAstVisitor2 {
     var hasRelation = false;
     switch (target.read) {
       case GetterInvocationResolutionImpl(:var element):
-        if (element.firstFragment.enclosingFragment is LibraryFragmentImpl) {
-          assembler.addPrefixForElement(element);
-        }
         recordRelation(element, IndexRelationKind.IS_INVOKED_BY, target, false);
         hasRelation = true;
       case ExecutableTearOffResolutionImpl(:var element):
-        if (element.firstFragment.enclosingFragment is LibraryFragmentImpl) {
-          assembler.addPrefixForElement(element);
-        }
         recordRelation(
           element,
           IndexRelationKind.IS_REFERENCED_BY,
@@ -2018,9 +1930,6 @@ class _IndexContributor extends UnifyingAstVisitor2 {
       default:
     }
     if (target.write case SetterInvocationResolutionImpl(:var element)) {
-      if (element.firstFragment.enclosingFragment is LibraryFragmentImpl) {
-        assembler.addPrefixForElement(element);
-      }
       recordRelation(element, IndexRelationKind.IS_INVOKED_BY, target, false);
       hasRelation = true;
     }
