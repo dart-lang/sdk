@@ -32,6 +32,11 @@ abstract class Global with Indexable, Exportable {
     return GlobalExport(name, this);
   }
 
+  void collectUsedTypes(Set<DefType> usedTypes) {
+    final defType = type.type.containedDefType;
+    if (defType != null) usedTypes.add(defType);
+  }
+
   void printTo(IrPrinter p, {bool includeInitializer = true}) =>
       throw 'not implemented';
 }
@@ -47,6 +52,12 @@ class DefinedGlobal extends Global implements Serializable {
     super.type, [
     super.globalName,
   ]);
+
+  @override
+  void collectUsedTypes(Set<DefType> usedTypes) {
+    super.collectUsedTypes(usedTypes);
+    initializer.collectUsedTypes(usedTypes);
+  }
 
   @override
   void serialize(Serializer s) {

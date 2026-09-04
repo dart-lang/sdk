@@ -71,6 +71,10 @@ abstract class BaseFunction with Indexable, Exportable {
   Export buildExport(String name) {
     return FunctionExport(name, this);
   }
+
+  void collectUsedTypes(Set<DefType> usedTypes) {
+    usedTypes.add(type);
+  }
 }
 
 /// A function defined in a module.
@@ -96,6 +100,12 @@ class DefinedFunction extends BaseFunction implements Serializable {
     super.type, [
     super.functionName,
   ]);
+
+  @override
+  void collectUsedTypes(Set<DefType> usedTypes) {
+    super.collectUsedTypes(usedTypes);
+    body.collectUsedTypes(usedTypes);
+  }
 
   @override
   void serialize(Serializer s) {

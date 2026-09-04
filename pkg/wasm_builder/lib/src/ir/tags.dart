@@ -38,6 +38,10 @@ abstract class Tag with Indexable, Exportable {
     return TagExport(name, this);
   }
 
+  void collectUsedTypes(Set<DefType> usedTypes) {
+    usedTypes.add(type);
+  }
+
   void printTo(IrPrinter p);
 }
 
@@ -112,4 +116,13 @@ class Tags {
   Tag operator [](int index) => index < imported.length
       ? imported[index]
       : defined[index - imported.length];
+
+  void collectUsedTypes(Set<DefType> usedTypes) {
+    for (final tag in defined) {
+      tag.collectUsedTypes(usedTypes);
+    }
+    for (final tag in imported) {
+      tag.collectUsedTypes(usedTypes);
+    }
+  }
 }

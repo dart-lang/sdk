@@ -14,16 +14,6 @@ class FunctionsBuilder with Builder<ir.Functions> {
 
   FunctionsBuilder(this._moduleBuilder);
 
-  void collectUsedTypes(Set<ir.DefType> usedTypes) {
-    for (final f in _functionBuilders) {
-      usedTypes.add(f.type);
-      f.body.collectUsedTypes(usedTypes);
-    }
-    for (final f in _importedFunctions) {
-      usedTypes.add(f.type);
-    }
-  }
-
   /// Defines a new function in this module with the given function type.
   ///
   /// The [ir.DefinedFunction.body] must be completed (including the terminating

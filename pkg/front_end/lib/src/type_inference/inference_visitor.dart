@@ -11914,6 +11914,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
+  void handle_ifCaseElement_afterPattern(InternalNode node) {
+    if (node is IfCaseElement) {
+      _contextAllocationStrategy.handleAfterCaseHeads([]);
+    }
+  }
+
+  @override
   void handle_ifStatement_thenEnd(InternalNode node, InternalNode ifTrue) {
     if (node case InternalIfCaseStatement(
       scopeProviderInfo: var scopeProviderInfo?,
@@ -13579,7 +13586,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   @override
   void dispatchCollectionElement(InternalNode element, Object? context) {
-    _contextAllocationStrategy.handleAfterCaseHeads([]);
     context as ElementInferenceContext;
     element as InternalElement;
     pushRewrite(inferElement(element, context));

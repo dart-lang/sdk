@@ -16,3 +16,5 @@ static method joinedVariableIfCaseStatement(dynamic x) → dynamic
   ;
 static method joinedVariableIfCaseElement(dynamic x) → dynamic
   ;
+static method staleSwitchCaseBuilderTest(dynamic x, (core::String, core::int) r) → dynamic
+  ;
