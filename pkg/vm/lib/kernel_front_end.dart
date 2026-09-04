@@ -1213,10 +1213,18 @@ Future<void> writeDepfile(
   file.write(_escapePath(output));
   file.write(':');
 
-  // TODO(https://dartbug.com/55246): track macro deps when available.
   for (Uri dep in compiledSources) {
-    // Skip corelib dependencies.
-    if (dep.scheme == 'org-dartlang-sdk') continue;
+    // Skip corelib dependencies under sdk/ or lib/. They are already tracked
+    // via the platform dill dependency in build rules. Non-corelib sources
+    // (e.g. under pkg/) may also carry the org-dartlang-sdk scheme when
+    // compiled with --filesystem-scheme=org-dartlang-sdk.
+    if (dep.isScheme('org-dartlang-sdk') &&
+        (dep.path.startsWith('/sdk/') ||
+            dep.path.startsWith('sdk/') ||
+            dep.path.startsWith('/lib/') ||
+            dep.path.startsWith('lib/'))) {
+      continue;
+    }
     Uri uri = await asFileUri(fileSystem, dep);
     file.write(' ');
     file.write(_escapePath(uri.toFilePath()));
