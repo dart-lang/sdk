@@ -10,6 +10,7 @@ import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../tool/lsp_spec/matchers.dart';
 import 'server_abstract.dart';
 
 void main() {
@@ -32,13 +33,78 @@ class GetFixesTest extends AbstractLspAnalysisServerTest {
     setChangeAnnotationSupport();
   }
 
-  Future<void> test_filter_diagnosticCodes() async {
+  Future<void> test_diagnosticCodes_enabled() async {
     newFile(analysisOptionsPath, '''
 linter:
   rules:
     - always_specify_types # fix
     - prefer_single_quotes # don't fix
     - prefer_is_empty      # fix
+    ''');
+
+    newFile(mainFilePath, '''
+var a = '';
+String b = "";
+bool c = ''.length == 0;
+''');
+
+    await initialize();
+
+    var params = DartGetWorkspaceFixesParams(
+      diagnosticCodes: [
+        diag.alwaysSpecifyTypesReplaceKeyword.lowerCaseName,
+        diag.preferIsEmptyUseIsEmpty.lowerCaseName,
+      ],
+    );
+    var result = await getWorkspaceFixes(params);
+
+    // Expect fixes for always_specify_types and prefer_is_empty
+    // but not for prefer_single_quotes.
+    verifyResult(
+      result,
+      '''
+>>>>>>>>>> lib/main.dart
+>>>>>>>>>>   Add type annotation: line 1
+>>>>>>>>>>   Replace with 'isEmpty': line 3
+String a = '';
+String b = "";
+bool c = ''.isEmpty;
+''',
+      '''
+lib/main.dart:
+    always_specify_types: 1
+    prefer_is_empty: 1
+''',
+    );
+  }
+
+  Future<void> test_diagnosticCodes_invalid() async {
+    newFile(mainFilePath, '''
+var a = '';
+''');
+
+    await initialize();
+
+    var params = DartGetWorkspaceFixesParams(
+      diagnosticCodes: ['not_a_valid_code'],
+    );
+    await expectLater(
+      getWorkspaceFixes(params),
+      throwsA(
+        isResponseError(
+          .RequestFailed,
+          message: "The diagnostic 'not_a_valid_code' is not defined by the analyzer.",
+        ),
+      ),
+    );
+  }
+
+  Future<void> test_diagnosticCodes_notEnabled() async {
+    newFile(analysisOptionsPath, '''
+linter:
+  rules:
+    # The two lints we will fix are not enabled
+    - prefer_single_quotes # don't fix
     ''');
 
     newFile(mainFilePath, '''

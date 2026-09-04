@@ -436,12 +436,12 @@ class MigrationRunner({
       var workspace = DartChangeWorkspace([context.driver.currentSession]);
       // TODO(kallentu): Use an IterativeBulkFixProcessor to loop until code
       // stabilizes.
-      var processor = BulkFixProcessor(
+      var processor = BulkFixProcessor.withAdditionalLints(
         server.instrumentationService,
         workspace,
         byteStore: server.byteStore,
         builder: builder,
-        additionalEnabledCodes: lintCodes,
+        additionalLintCodes: lintCodes,
       );
 
       // TODO(kallentu): Check for and report unfixed preparatory step

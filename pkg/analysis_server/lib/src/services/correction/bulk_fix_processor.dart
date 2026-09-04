@@ -142,11 +142,11 @@ class BulkFixProcessor {
   /// Cached results of [_canBulkFix].
   static final Map<DiagnosticCode, bool> _bulkFixableCodes = {};
 
-  static final Set<String> _diagnosticCodes = diagnosticCodeValues
+  static final Set<String> _allDiagnosticCodes = diagnosticCodeValues
       .map((code) => code.lowerCaseName)
       .toSet();
 
-  static final Set<String> _lintCodes = Registry.ruleRegistry.rules
+  static final Set<String> _allLintCodes = Registry.ruleRegistry.rules
       .map((rule) => rule.name)
       .toSet();
 
@@ -157,12 +157,21 @@ class BulkFixProcessor {
   /// will be produced.
   final DartChangeWorkspace _workspace;
 
-  /// A list of diagnostic codes to fix.
+  /// The set of diagnostic codes to fix.
   ///
-  /// If `null`, fixes are computed for all codes.
-  final List<String>? _codes;
+  /// Lint codes listed here do not need to be enabled in the project as they
+  /// will be included automatically.
+  ///
+  /// If `null`, fixes are computed for all codes/enabled lints.
+  final Set<String>? _codesToFix;
 
-  final List<AbstractAnalysisRule>? _additionalLintRules;
+  /// Additional lint rules to fix.
+  ///
+  /// Unlike [_codesToFix], these lints are added in addition (whereas
+  /// [_codesToFix] replaces the set of enabled lints).
+  ///
+  /// Only one of [_codesToFix] or [_additionalLintRulesToFix] can be used.
+  final List<AbstractAnalysisRule>? _additionalLintRulesToFix;
 
   final ByteStore _byteStore;
 
@@ -190,18 +199,35 @@ class BulkFixProcessor {
 
   /// Initialize a newly created processor to create fixes for diagnostics in
   /// libraries in the [_workspace].
+  ///
+  /// If [codes] is non-null, only diagnostics with those codes will be
+  /// fixed. If [codes] include lint codes, they will be enabled for fixing even
+  /// if they are not enabled in the analysis options.
   new(
     this._instrumentationService,
     this._workspace, {
     required this._byteStore,
     ChangeBuilder? builder,
     List<String>? codes,
-    List<String>? additionalEnabledCodes,
     this._cancellationToken,
   }) : builder = builder ?? ChangeBuilder(workspace: _workspace),
-       _codes = codes?.map((e) => e.toLowerCase()).toList(),
-       _additionalLintRules = additionalEnabledCodes
-           ?.map((e) => Registry.ruleRegistry.getRule(e.toLowerCase()))
+       _codesToFix = codes?.map((e) => e.toLowerCase()).toSet(),
+       _additionalLintRulesToFix = null;
+
+  /// Initialize a newly created processor to create fixes for both existing
+  /// diagnostics and additionally for [additionalLintCodes] in libraries in
+  /// the [_workspace].
+  new withAdditionalLints(
+    this._instrumentationService,
+    this._workspace, {
+    required this._byteStore,
+    ChangeBuilder? builder,
+    List<String>? additionalLintCodes,
+    this._cancellationToken,
+  }) : builder = builder ?? ChangeBuilder(workspace: _workspace),
+       _codesToFix = null,
+       _additionalLintRulesToFix = additionalLintCodes
+           ?.map(_getLint)
            .nonNulls
            .toList();
 
@@ -410,7 +436,8 @@ class BulkFixProcessor {
     // fixed even if they did not produce the specific code requested. This is a
     // consequence of how these fixes are currently applied (that is, they are
     // not driven by the diagnostics).
-    if (_codes != null && !_codes.any(_pubspecFixDiagnosticCodes.contains)) {
+    if (_codesToFix != null &&
+        !_codesToFix.any(_pubspecFixDiagnosticCodes.contains)) {
       return (edits: <SourceFileEdit>[], details: <BulkFix>[]);
     }
 
@@ -511,10 +538,11 @@ class BulkFixProcessor {
     bool stopAfterFirst = false,
   }) async {
     // Ensure specified codes are defined.
-    if (_codes != null) {
+    if (_codesToFix != null) {
       var undefinedCodes = <String>[];
-      for (var code in _codes) {
-        if (!_diagnosticCodes.contains(code) && !_lintCodes.contains(code)) {
+      for (var code in _codesToFix) {
+        if (!_allDiagnosticCodes.contains(code) &&
+            !_allLintCodes.contains(code)) {
           undefinedCodes.add(code);
         }
       }
@@ -575,9 +603,7 @@ class BulkFixProcessor {
     // TODO(srawlins): We are passing `currentUnit` in as `definingUnit`. Seems
     // wrong.
     var context = RuleContextWithParsedResults(allUnits, currentUnit);
-    var lintRules = _syntacticLintCodes
-        .map((name) => Registry.ruleRegistry.getRule(name))
-        .nonNulls;
+    var lintRules = _syntacticLintCodes.map(_getLint).nonNulls;
     for (var lintRule in lintRules) {
       lintRule.reporter = currentUnit.diagnosticReporter;
       lintRule.registerNodeProcessors(nodeRegistry, context);
@@ -589,9 +615,9 @@ class BulkFixProcessor {
   }
 
   /// Builds a temporary [AnalysisContext] that has the lint rules in
-  /// [_additionalLintRules] enabled in its analysis options.
+  /// [_codesToFix]/[_additionalLintRulesToFix] enabled in its analysis options.
   AnalysisContext _contextWithAdditionalCodes(AnalysisContext originalContext) {
-    if (_additionalLintRules == null || _additionalLintRules.isEmpty) {
+    if (_codesToFix == null && (_additionalLintRulesToFix?.isEmpty ?? true)) {
       return originalContext;
     }
 
@@ -603,17 +629,22 @@ class BulkFixProcessor {
       configureAnalysisOptionsBuilder:
           ({required AnalysisOptionsBuilder analysisOptionsBuilder}) {
             analysisOptionsBuilder.lint = true;
-            analysisOptionsBuilder.lintRules = [
-              ...analysisOptionsBuilder.lintRules,
-              ..._additionalLintRules,
-            ];
+            // Combine the set of lints that are enabled and the additional
+            // rules provided.
+            analysisOptionsBuilder.lintRules = {
+              if (_codesToFix != null)
+                ..._codesToFix.map(_getLint).nonNulls
+              else
+                ...analysisOptionsBuilder.lintRules,
+              ...?_additionalLintRulesToFix,
+            }.toList();
           },
     );
 
     return collection.contextFor(originalContext.contextRoot.root.path);
   }
 
-  /// Filters errors to only those that are in [_codes] and are not filtered out
+  /// Filters errors to only those that are in [_codesToFix] and are not filtered out
   /// in analysis_options.
   Iterable<Diagnostic> _filterDiagnostics(
     AnalysisOptions analysisOptions,
@@ -622,8 +653,8 @@ class BulkFixProcessor {
     var diagnostics = originalDiagnostics.toList();
     diagnostics.sort(_fixOrder);
     for (var diagnostic in diagnostics) {
-      if (_codes != null &&
-          !_codes.contains(diagnostic.diagnosticCode.lowerCaseName)) {
+      if (_codesToFix != null &&
+          !_codesToFix.contains(diagnostic.diagnosticCode.lowerCaseName)) {
         continue;
       }
       var processor = ErrorProcessor.getProcessor(analysisOptions, diagnostic);
@@ -1085,6 +1116,9 @@ class BulkFixProcessor {
           BulkFixProcessor.nonLintMultiProducerMap.containsKey(diagnosticCode);
     });
   }
+
+  static AbstractAnalysisRule? _getLint(String name) =>
+      Registry.ruleRegistry.getRule(name);
 }
 
 class BulkFixRequestResult {
