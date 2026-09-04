@@ -26,7 +26,7 @@ main() {
 //   ^^^^^
 // [diag.experimentNotEnabled] This requires the 'constructor-tearoffs' language feature to be enabled.
 //             ^^^
-// [diag.undefinedMethod] The method 'baz' isn't defined for the type 'Function'.
+// [diag.undefinedMethod] The method 'baz' isn't defined for the type 'Foo<int> Function()'.
 }
 ''');
   }

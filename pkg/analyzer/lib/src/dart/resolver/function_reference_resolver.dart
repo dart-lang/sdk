@@ -723,10 +723,7 @@ class FunctionReferenceResolver {
       } else {
         _resolver.diagnosticReporter.report(
           diag.undefinedMethod
-              .withArguments(
-                methodName: function.name,
-                typeName: receiverType.getDisplayString(),
-              )
+              .withArguments(methodName: function.name, type: receiverType)
               .at(function),
         );
         function.setPseudoExpressionStaticType(InvalidTypeImpl.instance);

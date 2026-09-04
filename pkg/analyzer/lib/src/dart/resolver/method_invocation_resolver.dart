@@ -432,7 +432,7 @@ class MethodInvocationResolver with ScopeHelpers {
       }
     } else {
       _resolver.diagnosticReporter.report(
-        diag.undefinedMethod
+        diag.undefinedMethodOnTypeLiteral
             .withArguments(
               methodName: methodName.name,
               typeName: receiver.displayName,
@@ -873,14 +873,9 @@ class MethodInvocationResolver with ScopeHelpers {
           whyNotPromotedArguments: whyNotPromotedArguments,
           contextType: contextType,
         );
-        var receiverTypeName = switch (receiverType) {
-          InterfaceTypeImpl() => receiverType.element.name!,
-          FunctionType() => 'Function',
-          _ => '<unknown>',
-        };
         _resolver.diagnosticReporter.report(
           diag.undefinedMethod
-              .withArguments(methodName: name, typeName: receiverTypeName)
+              .withArguments(methodName: name, type: receiverType)
               .at(nameNode),
         );
         return;
@@ -1190,21 +1185,15 @@ class MethodInvocationResolver with ScopeHelpers {
       return;
     }
 
-    String receiverClassName = '<unknown>';
-    if (receiverType is InterfaceTypeImpl) {
-      if (receiverType.element.name case var name?) {
-        receiverClassName = name;
-      } else {
-        return;
-      }
-    } else if (receiverType is FunctionType) {
-      receiverClassName = 'Function';
+    if (receiverType is InterfaceTypeImpl &&
+        receiverType.element.name == null) {
+      return;
     }
 
     if (!nameNode.isSynthetic) {
       _resolver.diagnosticReporter.report(
         diag.undefinedMethod
-            .withArguments(methodName: name, typeName: receiverClassName)
+            .withArguments(methodName: name, type: receiverType)
             .at(nameNode),
       );
     }
