@@ -23,5 +23,36 @@ final dartWorkspaceFixesClasses = <LspEntity>[
       canBeNull: true,
       comment: 'The edits to be applied to the workspace or `null` if there are none.',
     ),
+    field(
+      'details',
+      type: 'LspBulkFix',
+      array: true,
+      comment: 'Additional details about the fixes we have returned edits for.',
+    ),
+  ]),
+  interface('LspBulkFix', [
+    field(
+      'uri',
+      type: 'Uri',
+      comment: 'The URI of the library these fixes were applied to.',
+    ),
+    field(
+      'fixes',
+      type: 'LspBulkFixDetail',
+      array: true,
+      comment: 'A list of bulk fix details.',
+    ),
+  ]),
+  interface('LspBulkFixDetail', [
+    field(
+      'code',
+      type: 'String',
+      comment: 'The code of the diagnostic associated with the fix.',
+    ),
+    field(
+      'occurrences',
+      type: 'int',
+      comment: 'The number times the associated diagnostic was fixed in the associated source edit.',
+    ),
   ]),
 ];

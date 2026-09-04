@@ -485,6 +485,9 @@ class BulkFixProcessor {
           }
           details.add(
             BulkFix(pubspecFile.path, [
+              // TODO(dantup): We always show 1 here and this diagnostic code
+              //  even if there are multiple packages added and if the
+              //  diagnostic is something like depend_on_referenced_packages.
               BulkFixDetail(diag.missingDependency.lowerCaseName, 1),
             ]),
           );
@@ -1216,6 +1219,7 @@ class IterativeBulkFixProcessor {
     fixPubspecOperation,
   ) async {
     var edits = <SourceFileEdit>[];
+    var details = <BulkFix>[];
     _passesWithEdits = 0;
 
     for (var pass = 0; pass < _maxPassCount; pass++) {
@@ -1228,7 +1232,7 @@ class IterativeBulkFixProcessor {
       var builder = result.builder;
 
       if (_isCancelled) {
-        return IterativeBulkFixRequestResult([]);
+        return IterativeBulkFixRequestResult([], []);
       }
       if (builder == null) {
         return IterativeBulkFixRequestResult.error(result.errorMessage!);
@@ -1242,6 +1246,7 @@ class IterativeBulkFixProcessor {
 
       // Record these changes in the results.
       edits.addAll(change.edits);
+      details.addAll(processor.fixDetails);
       _passesWithEdits++;
 
       // Also apply them to the overlay provider so the next iteration can use
@@ -1254,7 +1259,7 @@ class IterativeBulkFixProcessor {
       });
 
       if (_isCancelled) {
-        return IterativeBulkFixRequestResult([]);
+        return IterativeBulkFixRequestResult([], []);
       }
     }
 
@@ -1269,19 +1274,21 @@ class IterativeBulkFixProcessor {
     if (pubspecResult.edits.isNotEmpty) {
       _passesWithEdits++;
       edits.addAll(pubspecResult.edits);
+      details.addAll(pubspecResult.details);
     }
 
-    return IterativeBulkFixRequestResult(edits);
+    return IterativeBulkFixRequestResult(edits, details);
   }
 }
 
 class IterativeBulkFixRequestResult {
   final List<SourceFileEdit> edits;
+  final List<BulkFix> details;
   final String? errorMessage;
 
-  new(this.edits) : errorMessage = null;
+  new(this.edits, this.details) : errorMessage = null;
 
-  new error(this.errorMessage) : edits = [];
+  new error(this.errorMessage) : edits = [], details = [];
 }
 
 class _PubspecDeps {
