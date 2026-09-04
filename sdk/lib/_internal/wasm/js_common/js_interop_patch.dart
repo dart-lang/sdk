@@ -232,6 +232,8 @@ extension FunctionToJSExportedDartFunctionVarArgs<
   E extends JSAny?
 >
     on R Function(JSArray<E>) {
+  // TODO(https://github.com/dart-lang/sdk/issues/64214) - avoid
+  // double-wrapping.
   @patch
   JSExportedDartFunction<R Function(JSArray<E>)> get toJSVarArgs =>
       JSExportedDartFunction<R Function(JSArray<E>)>._(
@@ -254,6 +256,8 @@ extension FunctionToJSExportedDartFunctionCaptureThisVarArgs<
   E extends JSAny?
 >
     on R Function(T, JSArray<E>) {
+  // TODO(https://github.com/dart-lang/sdk/issues/64214) - avoid
+  // double-wrapping.
   @patch
   JSExportedDartFunction<R Function(T, JSArray<E>)>
   get toJSCaptureThisVarArgs =>
