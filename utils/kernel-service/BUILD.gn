@@ -114,7 +114,7 @@ template("kernel_service_dill") {
     outputs = [ output ]
     depfile = "$root_gen_dir/kernel_service" + invoker.target_name + "_dill.d"
 
-    scheme = "org-dartlang-sdk"
+    scheme = "org-dartlang-kernel-service"
 
     script = "$_dart_root/build/gn_run_binary.py"
     args = [ rebase_path(get_label_info(gen_kernel_tool, "root_out_dir") +
@@ -127,16 +127,15 @@ template("kernel_service_dill") {
       # Ensure the compiled kernel-service will use this SDK hash when
       # consuming/producing kernel.
       "-Dsdk_hash=$sdk_hash",
-      "--packages=" + scheme + ":///" +
-          rebase_path("../../.dart_tool/package_config.json", "//"),
+      "--packages=" + scheme + ":///.dart_tool/package_config.json",
       "--platform=" +
           rebase_path("$root_out_dir/vm_platform.dill", root_build_dir),
-      "--filesystem-root=" + rebase_path("//", root_build_dir),
+      "--filesystem-root=" + rebase_path("../../", root_build_dir),
       "--filesystem-scheme=" + scheme,
       "--no-aot",
       "--no-embed-sources",
       "--output=" + rebase_path(output, root_build_dir),
-      scheme + ":///" + rebase_path(kernel_service_script, "//"),
+      scheme + ":///$_kernel_service_script",
     ]
   }
 }
