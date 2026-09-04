@@ -18,8 +18,8 @@ namespace dart {
 namespace bin {
 
 // This list must be kept in sync with the list in sdk/lib/io/io_service.dart
-// In this modified version, though, the request 43 for SSLFilter::ProcessFilter
-// is removed, for use in contexts in which secure sockets are not enabled.
+// Secure sockets use a synchronous custom BIO and do not dispatch filter work
+// through the IO service.
 #define IO_SERVICE_REQUEST_LIST(V)                                             \
   V(File, Exists, 0)                                                           \
   V(File, Create, 1)                                                           \

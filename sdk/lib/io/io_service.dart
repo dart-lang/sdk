@@ -49,7 +49,5 @@ class _IOService {
   static const int directoryListNext = 40;
   static const int directoryListStop = 41;
   static const int directoryRename = 42;
-  static const int sslProcessFilter = 43;
-
   external static Future<Object?> _dispatch(int request, List data);
 }
