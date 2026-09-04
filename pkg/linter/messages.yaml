@@ -5522,6 +5522,45 @@ LinterLintCode:
       stable: "2.14"
     categories: [style]
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a non-empty Dart file
+      doesn't end with a single newline.
+      This occurs when a file has no trailing newline or
+      when it has multiple trailing newlines.
+
+      Trailing newlines aren't visible in rendered code blocks.
+      To make them clear, the examples below use comments to
+      show where each file ends.
+
+      #### Examples
+
+      The following code produces this diagnostic because
+      the file doesn't end with a newline:
+
+      ```dart
+      class C {} // The file ends here, without a newline.
+      ```
+
+      The following code produces this diagnostic because
+      the file ends with multiple newlines:
+
+      ```dart
+      class C {}
+
+      // The file ends here, after two newlines.
+      ```
+
+      #### Common fixes
+
+      Add or remove newlines at the end of the file
+      until it ends with exactly one newline:
+
+      ```dart
+      class C {}
+      // The file ends here, after a single newline.
+      ```
     deprecatedDetails: |-
       **DO** put a single newline at the end of non-empty files.
 
