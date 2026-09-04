@@ -1836,7 +1836,7 @@ FunctionReference
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = f()..m<a, b>;
 ''');
-    var node = parseResult.findNode.singleCascadeExpression.cascadeSections2[0];
+    var node = parseResult.findNode.singleCascadeExpression.sections[0].body;
     assertParsedNodeText(node, r'''
 FunctionReference
   function2: CascadePropertyExtraction

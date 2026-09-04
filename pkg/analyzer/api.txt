@@ -1368,7 +1368,6 @@ package:analyzer/dart/ast/ast.dart:
     receiver (getter: InstanceReceiver)
   CascadeExpression (class extends Object implements Expression, abstract, final):
     cascadeSections (getter: NodeList<Expression>)
-    cascadeSections2 (getter: NodeList<Expression>, experimental)
     isNullAware (getter: bool)
     sections (getter: NodeList<CascadeSection>, experimental)
     target (getter: Expression)
