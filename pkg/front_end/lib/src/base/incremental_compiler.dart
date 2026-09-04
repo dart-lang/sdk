@@ -14,7 +14,7 @@ import 'package:_fe_analyzer_shared/src/scanner/token.dart'
     show LanguageVersionToken;
 import 'package:front_end/src/api_prototype/terminal_color_support.dart'
     as colors
-    show enableColors;
+    show enableColors, enableColorsRaw;
 
 import 'package:kernel/binary/ast_from_binary.dart'
     show
@@ -234,6 +234,20 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
          _initializeFromDillUri,
        ),
        this.outlineOnly = outlineOnly ?? false,
+       this._initializedForExpressionCompilationOnly = false {
+    _enableExperimentsBasedOnEnvironment();
+  }
+
+  // Coverage-ignore(suite): Not run.
+  new experimentalCacheForTesting(
+    this.context, {
+    this._incrementalSerializer,
+    required this.incrementalCompilerCache,
+  }) : _ticker = context.options.ticker,
+       _resetTicker = true,
+       _previousPackagesUri = context.options.packagesUriRaw,
+       _initializationStrategy = new _InitializationFromExperimentalCache(),
+       this.outlineOnly = false,
        this._initializedForExpressionCompilationOnly = false {
     _enableExperimentsBasedOnEnvironment();
   }
@@ -670,8 +684,12 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     IncrementalCompilerCache? incrementalCompilerCache =
         this.incrementalCompilerCache;
     if (incrementalCompilerCache == null) return;
-
     // Coverage-ignore-block(suite): Not run.
+    // Component.problemsAsJson aren't (currently?) serialized (it wouldn't be
+    // right to serialize it on every library so it would have to be serialized
+    // on only some of them and then loading should deduplicate etc).
+    if ((fromComponent.problemsAsJson?.length ?? 0) > 0) return;
+
     // Make sure we can serialize individual libraries.
     fromComponent.computeCanonicalNames();
 
@@ -679,6 +697,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       List<String> usedPackagesPaths = [];
       if (!collectLibraryPaths(
         library,
+        _currentPackagesMap,
         uriTranslator,
         usedPackagesPaths,
         null,
@@ -3619,7 +3638,7 @@ class _InitializationFromExperimentalCache
     List<Uri> entryPoints,
   ) async {
     Component? dataComponent = data.component;
-    if (dataComponent == null) return;
+    if (dataComponent == null || dataComponent.libraries.isEmpty) return;
     DillTarget dillLoadedData = new DillTarget(
       context,
       // Create new ticker to avoid the extra prints when verbose if on - we add
@@ -3631,9 +3650,14 @@ class _InitializationFromExperimentalCache
 
     dillLoadedData.loader.appendLibraries(dataComponent);
     List<Component>? loadedModules = data.loadedModules;
+    Set<Library>? loadedModulesLibraries;
     if (loadedModules != null) {
+      loadedModulesLibraries = {};
       for (Component module in loadedModules) {
         dillLoadedData.loader.appendLibraries(module);
+        for (Library library in module.libraries) {
+          loadedModulesLibraries.add(library);
+        }
       }
     }
     dillLoadedData.buildOutlines(suppressFinalizationErrors: true);
@@ -3650,12 +3674,13 @@ class _InitializationFromExperimentalCache
         );
     kernelTarget.setEntryPoints(entryPoints);
     context.options.temporarilySkipReporting = true;
+    bool? enableColorsRaw = colors.enableColorsRaw;
     colors.enableColors = false;
     await kernelTarget.computeNeededPrecompilations(onlyDirectives: true);
     BuildResult buildResult = await kernelTarget.buildOutlines(
       nameRoot: dataComponent.root,
     );
-    colors.enableColors = null;
+    colors.enableColors = enableColorsRaw;
     context.options.temporarilySkipReporting = false;
     Component? buildComponent = buildResult.component;
     if (buildComponent == null) {
@@ -3681,6 +3706,7 @@ class _InitializationFromExperimentalCache
     for (int i = 0; i < libraries.length; i++) {
       Library library = libraries[i];
       if (library.importUri.isScheme("dart")) continue;
+      if (loadedModulesLibraries?.contains(library) ?? false) continue;
       dataComponent.libraries.add(library);
 
       // TODO(jensj): Depending on how we invalidate things here we should
@@ -3695,6 +3721,7 @@ class _InitializationFromExperimentalCache
       Set<Uri> compareTheseFiles = {};
       if (!collectLibraryPaths(
         library,
+        incrementalCompiler._currentPackagesMap,
         uriTranslator,
         usedPackagesPaths,
         compareTheseFiles,
@@ -4050,7 +4077,7 @@ extension on Uri {
   void addPackagePathToSet(
     Set<String> packages,
     List<String> packagesPaths,
-    UriTranslator uriTranslator,
+    Map<String, Package>? currentPackagesMap,
   ) {
     if (!isScheme("package")) return;
     String path = this.path;
@@ -4059,10 +4086,9 @@ extension on Uri {
     String packageName = path.substring(0, firstSlash);
     if (!packages.add(packageName)) return;
 
-    Uri packageUri = new Uri(scheme: "package", path: "$packageName/");
-    Uri? fileUri = uriTranslator.translate(packageUri, false);
-    if (fileUri != null) {
-      packagesPaths.add(fileUri.toString());
+    Package? package = currentPackagesMap?[packageName];
+    if (package != null) {
+      packagesPaths.add("${package.packageUriRoot}=${package.languageVersion}");
     } else {
       packagesPaths.add("$packageName=null");
     }
@@ -4075,17 +4101,24 @@ extension on Uri {
 /// Return true on success and false on error.
 bool collectLibraryPaths(
   Library library,
+  Map<String, Package>? currentPackagesMap,
   UriTranslator uriTranslator,
   List<String> usedPackagesPaths,
   Set<Uri>? libraryFiles,
 ) {
   libraryFiles?.add(library.fileUri);
   Set<String> usedPackages = {};
+
+  library.importUri.addPackagePathToSet(
+    usedPackages,
+    usedPackagesPaths,
+    currentPackagesMap,
+  );
   for (LibraryPart part in library.parts) {
     getPartImportUri(
       library.importUri,
       part,
-    ).addPackagePathToSet(usedPackages, usedPackagesPaths, uriTranslator);
+    ).addPackagePathToSet(usedPackages, usedPackagesPaths, currentPackagesMap);
     libraryFiles?.add(part.fileUri);
   }
 
@@ -4093,7 +4126,7 @@ bool collectLibraryPaths(
     dependency.targetLibrary.importUri.addPackagePathToSet(
       usedPackages,
       usedPackagesPaths,
-      uriTranslator,
+      currentPackagesMap,
     );
   }
 

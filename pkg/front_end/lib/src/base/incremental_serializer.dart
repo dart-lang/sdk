@@ -303,6 +303,9 @@ class IncrementalSerializer {
 
   /// Serialize the specified libraries using other needed data from the
   /// component.
+  ///
+  /// This does _not_ serialize [Component.problemsAsJson] (i.e. the serialized
+  /// bytes will represent an empty one).
   static Uint8List serialize(Component component, List<Library> libraries) {
     Component singlePackageLibraries = new Component(
       libraries: libraries,

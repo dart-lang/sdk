@@ -11,21 +11,18 @@ import 'incremental_compiler.dart' show IncrementalCompilerCache;
 import 'incremental_serializer.dart';
 
 // Coverage-ignore(suite): Not run.
-class IncrementalCompilerCacheImpl implements IncrementalCompilerCache {
-  final Directory directory;
-  new(String directoryPath) : directory = new Directory(directoryPath);
-
-  @override
-  bool get mainDirectoryExists => directory.existsSync();
+abstract class AbstractIncrementalCompilerCache
+    implements IncrementalCompilerCache {
+  Uint8List? readFromId(String id);
+  void writeToId(String id, Uint8List data);
 
   @override
   Uint8List? getCachedDillBytes(
     Uri libraryFileUri,
     List<String> usedPackagesPaths,
   ) {
-    File file = _getFile(libraryFileUri, usedPackagesPaths);
-    if (!file.existsSync()) return null;
-    return file.readAsBytesSync();
+    String id = _getId(libraryFileUri, usedPackagesPaths);
+    return readFromId(id);
   }
 
   @override
@@ -36,19 +33,39 @@ class IncrementalCompilerCacheImpl implements IncrementalCompilerCache {
   ) {
     // TODO(jensj): Possibly save under a different name and move the file once
     // finished writing like done in the analyzer.
-    File file = _getFile(library.fileUri, usedPackagesPaths);
-    file.createSync(recursive: true);
-    file.writeAsBytesSync(
-      IncrementalSerializer.serialize(fromComponent, [library]),
-    );
+    String id = _getId(library.fileUri, usedPackagesPaths);
+    writeToId(id, IncrementalSerializer.serialize(fromComponent, [library]));
   }
 
-  File _getFile(Uri libraryFileUri, List<String> usedPackagesPaths) {
+  String _getId(Uri libraryFileUri, List<String> usedPackagesPaths) {
     usedPackagesPaths.sort();
     String indexOn = _MD5Ish.hash(
       "$libraryFileUri\n${usedPackagesPaths.join("\n")}",
     );
-    return new File.fromUri(directory.uri.resolve(indexOn));
+    return indexOn;
+  }
+}
+
+// Coverage-ignore(suite): Not run.
+class IncrementalCompilerCacheImpl extends AbstractIncrementalCompilerCache {
+  final Directory directory;
+  new(String directoryPath) : directory = new Directory(directoryPath);
+
+  @override
+  bool get mainDirectoryExists => directory.existsSync();
+
+  @override
+  Uint8List? readFromId(String id) {
+    File file = new File.fromUri(directory.uri.resolve(id));
+    if (!file.existsSync()) return null;
+    return file.readAsBytesSync();
+  }
+
+  @override
+  void writeToId(String id, Uint8List data) {
+    File file = new File.fromUri(directory.uri.resolve(id));
+    file.createSync(recursive: true);
+    file.writeAsBytesSync(data);
   }
 }
 

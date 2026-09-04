@@ -91,6 +91,8 @@ void set enableColors(bool? value) {
   _enableColors = value;
 }
 
+bool? get enableColorsRaw => _enableColors;
+
 String wrap(String string, String color) {
   return enableColors ? "${color}$string${DEFAULT_COLOR}" : string;
 }

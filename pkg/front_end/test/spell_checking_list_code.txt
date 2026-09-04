@@ -454,6 +454,7 @@ decoupled
 decreases
 decreasing
 dedupe
+deduplicate
 deduplication
 deemed
 deepest

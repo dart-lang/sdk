@@ -27,5 +27,7 @@ worlds:
         main() {
           print("hello $Bar");
         }
+      lib.dart: |
+        typedef Foo = R Function<R>(R Function() f);
     expectedLibraryCount: 2
     advancedInvalidation: bodiesOnly
