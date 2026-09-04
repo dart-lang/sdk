@@ -174,6 +174,18 @@ const String EXPECTATIONS = '''
     "group": "Fail"
   },
   {
+    "name": "CacheLoadCountMismatch",
+    "group": "Fail"
+  },
+  {
+    "name": "CacheLoadTryCountMismatch",
+    "group": "Fail"
+  },
+  {
+    "name": "CacheSaveCountMismatch",
+    "group": "Fail"
+  },
+  {
     "name": "InitializedFromDillMismatch",
     "group": "Fail"
   },
@@ -201,6 +213,12 @@ final Expectation InitializedFromDillMismatch =
     staticExpectationSet["InitializedFromDillMismatch"];
 final Expectation LibraryCountMismatch =
     staticExpectationSet["LibraryCountMismatch"];
+final Expectation CacheLoadCountMismatch =
+    staticExpectationSet["CacheLoadCountMismatch"];
+final Expectation CacheLoadTryCountMismatch =
+    staticExpectationSet["CacheLoadTryCountMismatch"];
+final Expectation CacheSaveCountMismatch =
+    staticExpectationSet["CacheSaveCountMismatch"];
 final Expectation MissingErrors = staticExpectationSet["MissingErrors"];
 final Expectation MissingInitializationError =
     staticExpectationSet["MissingInitializationError"];
@@ -2510,13 +2528,18 @@ class NewWorldTest {
     NewWorldTestData newWorldTestData,
     Set<String> prevFormattedErrors,
     Set<String> prevFormattedWarnings,
-    IncrementalCompilerCache incrementalCompilerCache,
+    TestIncrementalCompilerCache incrementalCompilerCache,
   ) async {
     if (world.outlineOnly) return null;
     if (incrementalSerialization) return null;
     // Generally it wants the platform, but this recompile doesn't...
     // Compiling "from scratch" like this can't do that.
     if (!omitPlatform && world.noFullComponent) return null;
+
+    incrementalCompilerCache.countLoads = 0;
+    incrementalCompilerCache.countLoadTries = 0;
+    incrementalCompilerCache.countSaves = 0;
+
     // Do compile from scratch and compare.
     worldTestData.clearPrevErrorsEtc();
     CompilerOptions options = _createOptionsForWorld(
@@ -2569,6 +2592,39 @@ class NewWorldTest {
     util.throwOnEmptyMixinBodies(componentLocal);
     await util.throwOnInsufficientUriToSource(componentLocal);
     print("Compile took ${stopwatch.elapsedMilliseconds} ms");
+
+    print("Loaded ${incrementalCompilerCache.countLoads} dills");
+
+    if (world.expectedCacheLoads != null &&
+        world.expectedCacheLoads != incrementalCompilerCache.countLoads) {
+      return new Result<TestData>(
+        data,
+        CacheLoadCountMismatch,
+        "Expected ${world.expectedCacheLoads} cache loads, "
+        "but got ${incrementalCompilerCache.countLoads}",
+      );
+    }
+
+    if (world.expectedCacheLoadTries != null &&
+        world.expectedCacheLoadTries !=
+            incrementalCompilerCache.countLoadTries) {
+      return new Result<TestData>(
+        data,
+        CacheLoadTryCountMismatch,
+        "Expected ${world.expectedCacheLoadTries} cache load tries, "
+        "but got ${incrementalCompilerCache.countLoadTries}",
+      );
+    }
+
+    if (world.expectedCacheSaves != null &&
+        world.expectedCacheSaves != incrementalCompilerCache.countSaves) {
+      return new Result<TestData>(
+        data,
+        CacheSaveCountMismatch,
+        "Expected ${world.expectedCacheSaves} cache saves, "
+        "but got ${incrementalCompilerCache.countSaves}",
+      );
+    }
 
     List<int> thisWholeComponent = util.postProcess(componentLocal);
     String componentString = _componentToStringSdkFiltered(
@@ -3319,6 +3375,9 @@ class World {
   final bool expectsPlatform;
   final int? expectedLibraryCount;
   final int? expectedSyntheticLibraryCount;
+  final int? expectedCacheLoads;
+  final int? expectedCacheLoadTries;
+  final int? expectedCacheSaves;
   final bool warnings;
   final bool errors;
   final List<String>? neededDillLibraries;
@@ -3374,6 +3433,9 @@ class World {
     required this.expectsPlatform,
     required this.expectedLibraryCount,
     required this.expectedSyntheticLibraryCount,
+    required this.expectedCacheLoads,
+    required this.expectedCacheLoadTries,
+    required this.expectedCacheSaves,
     required this.advancedInvalidation,
     required this.checkEntries,
     required this.checkInvalidatedFiles,
@@ -3477,6 +3539,20 @@ class World {
         .expectedSyntheticLibraryCount
         .read(world, keys);
 
+    int? expectedCacheLoads = WorldProperties.expectedCacheLoads.read(
+      world,
+      keys,
+    );
+    int? expectedCacheLoadTries = WorldProperties.expectedCacheLoadTries.read(
+      world,
+      keys,
+    );
+
+    int? expectedCacheSaves = WorldProperties.expectedCacheSaves.read(
+      world,
+      keys,
+    );
+
     AdvancedInvalidationResult advancedInvalidation = WorldProperties
         .advancedInvalidation
         .read(world, keys);
@@ -3578,6 +3654,9 @@ class World {
       expectsPlatform: expectsPlatform,
       expectedLibraryCount: expectedLibraryCount,
       expectedSyntheticLibraryCount: expectedSyntheticLibraryCount,
+      expectedCacheLoads: expectedCacheLoads,
+      expectedCacheLoadTries: expectedCacheLoadTries,
+      expectedCacheSaves: expectedCacheSaves,
       advancedInvalidation: advancedInvalidation,
       checkEntries: checkEntries,
       checkInvalidatedFiles: checkInvalidatedFiles,
@@ -3736,6 +3815,20 @@ class WorldProperties {
     IntValue(),
   );
 
+  static const Property<int?> expectedCacheLoads = const Property.optional(
+    "expectedCacheLoads",
+    IntValue(),
+  );
+  static const Property<int?> expectedCacheLoadTries = const Property.optional(
+    "expectedCacheLoadTries",
+    IntValue(),
+  );
+
+  static const Property<int?> expectedCacheSaves = const Property.optional(
+    "expectedCacheSaves",
+    IntValue(),
+  );
+
   /// The expected result of the advanced invalidation.
   ///
   /// If omitted, this defaults to `noDirectlyInvalidated` which corresponds
@@ -3891,17 +3984,26 @@ class WorldSpecificTestData {
 
 class TestIncrementalCompilerCache extends AbstractIncrementalCompilerCache {
   Map<String, Uint8List> _cache = {};
+  int countLoads = 0;
+  int countLoadTries = 0;
+  int countSaves = 0;
 
   @override
   bool get mainDirectoryExists => true;
 
   @override
   Uint8List? readFromId(String id) {
-    return _cache[id];
+    countLoadTries++;
+    Uint8List? result = _cache[id];
+    if (result != null) {
+      countLoads++;
+    }
+    return result;
   }
 
   @override
   void writeToId(String id, Uint8List data) {
+    countSaves++;
     _cache[id] = data;
   }
 }

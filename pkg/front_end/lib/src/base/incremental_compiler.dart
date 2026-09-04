@@ -67,6 +67,7 @@ import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/target/changed_structure_notifier.dart'
     show ChangedStructureNotifier;
 import 'package:kernel/type_algebra.dart' show Substitution;
+import 'package:kernel/util/graph.dart' as kernelGraph;
 import 'package:package_config/package_config.dart'
     show Package, PackageConfig, LanguageVersion;
 
@@ -142,6 +143,7 @@ import 'combinator.dart' show CombinatorBuilder;
 import 'compiler_context.dart' show CompilerContext;
 import 'hybrid_file_system.dart' show HybridFileSystem;
 import 'incremental_compiler_cache_impl.dart' show IncrementalCompilerCacheImpl;
+import 'incremental_compiler_utils.dart' show MD5Ish;
 import 'incremental_serializer.dart' show IncrementalSerializer;
 import 'library_graph.dart' show LibraryGraph;
 import 'loader.dart' show Loader;
@@ -693,28 +695,53 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     // Make sure we can serialize individual libraries.
     fromComponent.computeCanonicalNames();
 
-    for (Library library in compiledLibraries) {
-      List<String> usedPackagesPaths = [];
-      if (!collectLibraryPaths(
-        library,
-        _currentPackagesMap,
-        uriTranslator,
-        usedPackagesPaths,
-        null,
-      )) {
+    TransitiveDependenciesCalculator transitiveDependenciesCalculator =
+        new TransitiveDependenciesCalculator(
+          _currentPackagesMap,
+          fromComponent.uriToSource,
+          compiledLibraries,
+        );
+    List<String?>? transitiveDependencies =
+        transitiveDependenciesCalculator.transitiveDependencies;
+    if (transitiveDependencies == null) {
+      return;
+    }
+    List<List<Library>> strongComponents =
+        transitiveDependenciesCalculator.strongComponents;
+
+    Set<Library> compiledLibrariesSet = compiledLibraries.toSet();
+
+    for (
+      int strongComponentIndex = 0;
+      strongComponentIndex < strongComponents.length;
+      strongComponentIndex++
+    ) {
+      List<Library> component = strongComponents[strongComponentIndex];
+
+      // Only save new ones.
+      int countInCompiledLibraries = 0;
+      for (Library library in component) {
+        if (compiledLibrariesSet.contains(library)) countInCompiledLibraries++;
+      }
+      if (countInCompiledLibraries == 0) continue;
+      if (countInCompiledLibraries != component.length) {
+        return;
+      }
+
+      String? transitiveDepsHash = transitiveDependencies[strongComponentIndex];
+      if (transitiveDepsHash == null) {
         continue;
       }
 
-      incrementalCompilerCache.cacheLibrary(
-        library,
-        usedPackagesPaths,
+      incrementalCompilerCache.cacheLibraries(
+        component,
+        transitiveDepsHash,
         fromComponent,
       );
     }
 
     // Make the component good again.
     fromComponent.adoptChildren();
-
     _ticker.logMs("Cached dills");
   }
 
@@ -3702,12 +3729,68 @@ class _InitializationFromExperimentalCache
     // we could possibly also just encode it into the folder the cache is saved
     // in just like we should with other settings.
 
+    TransitiveDependenciesCalculator transitiveDependenciesCalculator =
+        new TransitiveDependenciesCalculator(
+          incrementalCompiler._currentPackagesMap,
+          buildComponent.uriToSource,
+          libraries,
+        );
+    List<String?>? transitiveDependencies =
+        transitiveDependenciesCalculator.transitiveDependencies;
+    if (transitiveDependencies == null) {
+      ticker.logMs("Error on source calculating transitive dependencies.");
+      return;
+    }
+    List<List<Library>> strongComponents =
+        transitiveDependenciesCalculator.strongComponents;
+
     bool loadedEverything = true;
-    for (int i = 0; i < libraries.length; i++) {
-      Library library = libraries[i];
-      if (library.importUri.isScheme("dart")) continue;
-      if (loadedModulesLibraries?.contains(library) ?? false) continue;
-      dataComponent.libraries.add(library);
+    for (
+      int strongComponentIndex = 0;
+      strongComponentIndex < strongComponents.length;
+      strongComponentIndex++
+    ) {
+      List<Library> component = strongComponents[strongComponentIndex];
+      Set<Uri> compareTheseFiles = {};
+      for (Library library in component) {
+        compareTheseFiles.add(library.fileUri);
+        for (LibraryPart part in library.parts) {
+          compareTheseFiles.add(part.fileUri);
+        }
+      }
+
+      if (loadedModulesLibraries != null) {
+        // Either all should be in a loaded module or none should be.
+        int countInLoadedModules = 0;
+        for (Library library in component) {
+          if (loadedModulesLibraries.contains(library)) countInLoadedModules++;
+        }
+        if (countInLoadedModules == component.length) continue;
+        if (countInLoadedModules != 0) {
+          incrementalCompiler._invalidateSet(compareTheseFiles);
+          loadedEverything = false;
+          continue;
+        }
+      }
+      {
+        int countInPlatform = 0;
+        for (Library library in component) {
+          if (library.importUri.isScheme("dart")) countInPlatform++;
+        }
+        if (countInPlatform == component.length) continue;
+        if (countInPlatform != 0) {
+          incrementalCompiler._invalidateSet(compareTheseFiles);
+          loadedEverything = false;
+          continue;
+        }
+      }
+      String? transitiveDepsHash = transitiveDependencies[strongComponentIndex];
+      if (transitiveDepsHash == null) {
+        incrementalCompiler._invalidateSet(compareTheseFiles);
+        loadedEverything = false;
+        continue;
+      }
+      dataComponent.libraries.addAll(component);
 
       // TODO(jensj): Depending on how we invalidate things here we should
       // probably also disable advanced invalidation - at least for now.
@@ -3717,39 +3800,19 @@ class _InitializationFromExperimentalCache
       // have the same outline - and if that's the only way we invalidate
       // advanced invalidation should be enabled.
 
-      List<String> usedPackagesPaths = [];
-      Set<Uri> compareTheseFiles = {};
-      if (!collectLibraryPaths(
-        library,
-        incrementalCompiler._currentPackagesMap,
-        uriTranslator,
-        usedPackagesPaths,
-        compareTheseFiles,
-      )) {
-        incrementalCompiler._invalidateSet(compareTheseFiles);
-        loadedEverything = false;
-        continue;
-      }
-
-      Uint8List? cachedData = cache.getCachedDillBytes(
-        library.fileUri,
-        usedPackagesPaths,
-      );
+      Uint8List? cachedData = cache.getCachedDillBytes(transitiveDepsHash);
       if (cachedData == null) {
         incrementalCompiler._invalidateSet(compareTheseFiles);
         loadedEverything = false;
         continue;
       }
 
-      // Compare all the files.
-      // TODO(jensj): If they're not the same compare the outline too.
-      if (!areSourcesUnchanged(compareTheseFiles, buildComponent, cachedData)) {
-        incrementalCompiler._invalidateSet(compareTheseFiles);
-        loadedEverything = false;
-        continue;
-      }
+      // No need to compare the files - the hash matched.
+      assert(
+        areSourcesUnchanged(compareTheseFiles, buildComponent, cachedData),
+      );
 
-      // All files are the same: Try to load the dill.
+      // Try to load the dill.
       try {
         new BinaryBuilderWithMetadata(
           cachedData,
@@ -4061,74 +4124,122 @@ class RecorderForTesting {
 
 abstract interface class IncrementalCompilerCache {
   bool get mainDirectoryExists;
-  Uint8List? getCachedDillBytes(
-    Uri libraryFileUri,
-    List<String> usedPackagesPaths,
-  );
-  void cacheLibrary(
-    Library library,
-    List<String> usedPackagesPaths,
+  Uint8List? getCachedDillBytes(String transitiveDepsHash);
+  void cacheLibraries(
+    List<Library> libraries,
+    String transitiveDepsHash,
     Component fromComponent,
   );
 }
 
 // Coverage-ignore(suite): Not run.
-extension on Uri {
-  void addPackagePathToSet(
-    Set<String> packages,
-    List<String> packagesPaths,
-    Map<String, Package>? currentPackagesMap,
-  ) {
-    if (!isScheme("package")) return;
-    String path = this.path;
-    int firstSlash = path.indexOf('/');
-    if (firstSlash == -1) return;
-    String packageName = path.substring(0, firstSlash);
-    if (!packages.add(packageName)) return;
+class TransitiveDependenciesCalculator {
+  late final List<List<Library>> strongComponents;
+  final Map<String, Package>? currentPackagesMap;
+  final Map<Uri, Source> uriToSource;
+  late final List<String?> _transitiveDependencies;
+  bool _error = false;
 
+  new(this.currentPackagesMap, this.uriToSource, Iterable<Library> libraries) {
+    kernelGraph.LibraryGraph graph = new kernelGraph.LibraryGraph(libraries);
+    strongComponents = kernelGraph.computeStrongComponents(graph);
+    _transitiveDependencies = new List.filled(strongComponents.length, null);
+    _calculateTransitiveHashes();
+  }
+
+  List<String?>? get transitiveDependencies =>
+      _error ? null : _transitiveDependencies;
+
+  LanguageVersion? _getPackageLanguageVersion(Uri importUri) {
+    if (!importUri.isScheme("package")) return null;
+    String path = importUri.path;
+    int firstSlash = path.indexOf('/');
+    if (firstSlash == -1) return null;
+    String packageName = path.substring(0, firstSlash);
     Package? package = currentPackagesMap?[packageName];
-    if (package != null) {
-      packagesPaths.add("${package.packageUriRoot}=${package.languageVersion}");
-    } else {
-      packagesPaths.add("$packageName=null");
+    return package?.languageVersion;
+  }
+
+  void _calculateTransitiveHashes() {
+    Map<Library, int> libraryToStrongComponentIndex = {};
+    for (
+      int componentNumber = 0;
+      componentNumber < strongComponents.length;
+      componentNumber++
+    ) {
+      List<Library> component = strongComponents[componentNumber];
+      for (Library library in component) {
+        if (library.importUri.isScheme("dart")) continue;
+        libraryToStrongComponentIndex[library] = componentNumber;
+      }
+    }
+
+    List<Set<int>> directDependencies = new List.generate(
+      strongComponents.length,
+      (_) => {},
+      growable: false,
+    );
+
+    for (List<Library> component in strongComponents) {
+      for (Library library in component) {
+        int? thisLibraryComponent = libraryToStrongComponentIndex[library];
+        if (thisLibraryComponent == null) continue;
+        Set<int> componentDeps = directDependencies[thisLibraryComponent];
+        for (LibraryDependency dependency in library.dependencies) {
+          int? componentNumber =
+              libraryToStrongComponentIndex[dependency.targetLibrary];
+          if (componentNumber == null ||
+              componentNumber == thisLibraryComponent) {
+            continue;
+          }
+          componentDeps.add(componentNumber);
+        }
+      }
+    }
+
+    for (int i = 0; i < strongComponents.length; i++) {
+      _fillTransitiveDeps(i, directDependencies);
     }
   }
-}
 
-// Coverage-ignore(suite): Not run.
-/// Collects the file uris used in the [library] into [libraryFiles] and the
-/// "paths" for the used packages in this library into [usedPackagesPaths].
-/// Return true on success and false on error.
-bool collectLibraryPaths(
-  Library library,
-  Map<String, Package>? currentPackagesMap,
-  UriTranslator uriTranslator,
-  List<String> usedPackagesPaths,
-  Set<Uri>? libraryFiles,
-) {
-  libraryFiles?.add(library.fileUri);
-  Set<String> usedPackages = {};
+  void _fillTransitiveDeps(
+    int componentNumber,
+    List<Set<int>> directDependencies,
+  ) {
+    if (_transitiveDependencies[componentNumber] != null) return;
+    List<String> hashMe = [];
+    List<Library> component = strongComponents[componentNumber];
+    for (Library lib in component) {
+      if (lib.importUri.isScheme("dart")) continue;
+      LanguageVersion? version = _getPackageLanguageVersion(lib.importUri);
+      hashMe.add("${lib.fileUri}=v$version");
+      Source? source = uriToSource[lib.fileUri];
+      if (source == null) {
+        _error = true;
+        return;
+      }
+      // TODO(jensj): To support advanced invalidation this should be the
+      // textual outline instead.
+      hashMe.add("${lib.fileUri}=${MD5Ish.hashBytes(source.source)}");
+      for (LibraryPart part in lib.parts) {
+        source = uriToSource[part.fileUri];
+        if (source == null) {
+          _error = true;
+          return;
+        }
+        hashMe.add("${part.fileUri}=${MD5Ish.hashBytes(source.source)}");
+      }
+    }
 
-  library.importUri.addPackagePathToSet(
-    usedPackages,
-    usedPackagesPaths,
-    currentPackagesMap,
-  );
-  for (LibraryPart part in library.parts) {
-    getPartImportUri(
-      library.importUri,
-      part,
-    ).addPackagePathToSet(usedPackages, usedPackagesPaths, currentPackagesMap);
-    libraryFiles?.add(part.fileUri);
+    Set<int> directDeps = directDependencies[componentNumber];
+    for (int dep in directDeps) {
+      _fillTransitiveDeps(dep, directDependencies);
+      String directTransitiveHash = _transitiveDependencies[dep]!;
+      hashMe.add(directTransitiveHash);
+    }
+    hashMe.sort();
+    String hashMeString = hashMe.join("\n");
+    String hash = MD5Ish.hashString(hashMeString);
+    _transitiveDependencies[componentNumber] = hash;
   }
-
-  for (LibraryDependency dependency in library.dependencies) {
-    dependency.targetLibrary.importUri.addPackagePathToSet(
-      usedPackages,
-      usedPackagesPaths,
-      currentPackagesMap,
-    );
-  }
-
-  return true;
 }
