@@ -798,7 +798,8 @@ class PatternScopeListener<Info extends ScopeProviderInfo> {
     Info info,
     List<VariableWithCaptureKind<VariableBase>> variables,
   ) {
-    return patternSwitchCaseScopeBuilder!.handleAfterCaseHeads(info, variables);
+    patternSwitchCaseScopeBuilder!.handleAfterCaseHeads(info, variables);
+    patternSwitchCaseScopeBuilder = null;
   }
 
   /// The event of an [InternalVariablePattern] occurring.

@@ -54,3 +54,17 @@ joinedVariableIfCaseStatement(dynamic x) {
 joinedVariableIfCaseElement(dynamic x) {
   return [if (x case int y || String(length: int y)) () => y else () => 0];
 }
+
+// In the following test a variable pattern goes immediately after the pattern
+// switch statement, testing that the stale pattern switch builder objects were
+// released before the variable pattern was analyzed.
+staleSwitchCaseBuilderTest(dynamic x, (String, int) r) {
+  switch (x) {
+    case int y:
+      return () => y;
+    default:
+      return null;
+  }
+  var (s, n) = r;
+  return () => s;
+}

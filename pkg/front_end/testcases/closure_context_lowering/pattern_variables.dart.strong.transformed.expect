@@ -176,3 +176,38 @@ static method joinedVariableIfCaseElement(dynamic x) → dynamic/* scope=[
     }
   } =>#t31;
 }
+static method staleSwitchCaseBuilderTest(dynamic x, (core::String, core::int) r) → dynamic/* scope=[
+  #ctx18: not-captured [x,r],
+] */ /* scope=[
+  #ctx19: direct-captured [s],
+  #ctx20: not-captured [n],
+] */ {
+  {
+    final synthesized dynamic #0#0 = x;
+    /* scope=[
+      #ctx21: direct-captured [y],
+    ] */{
+      hoisted core::int y;
+      if(#0#0 is core::int && (let final dynamic #t36 = y = #0#0{core::int} in true)) {
+        {
+          return () /* #ctx21 */ → core::int => y;
+        }
+      }
+    }
+    {
+      {
+        {
+          return null;
+        }
+      }
+    }
+  }
+  hoisted has-declared-initializer core::String s;
+  hoisted has-declared-initializer core::int n;
+  {
+    final synthesized(core::String, core::int) #1#0 = r;
+    s = #1#0.$1{core::String};
+    n = #1#0.$2{core::int};
+  }
+  return () /* #ctx19 */ → core::String => s;
+}
