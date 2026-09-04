@@ -197,6 +197,52 @@ test_project:
     );
   }
 
+  Future<void> test_dependencyWithHigherMinSdk() async {
+    writePubspecFile(pubspecFilePath, '''
+name: test
+environment:
+  sdk: '^3.7.0'
+dependencies:
+  dep_package: 1.0.0
+''');
+
+    var depPath = convertPath('/dep_package');
+    writePubspecFile(join(depPath, 'pubspec.yaml'), '''
+name: dep_package
+version: 1.0.0
+environment:
+  sdk: '^3.10.0'
+''');
+    newFile(join(depPath, 'lib', 'dep.dart'), '');
+
+    var builder = PackageConfigFileBuilder();
+    builder.add(
+      name: 'dep_package',
+      rootFolder: resourceProvider.getFolder(depPath),
+    );
+    writeTestPackageConfig2(config: builder, languageVersion: '3.7');
+
+    await initialize();
+
+    await _assertMigrationResult(
+      steps: [MigrationStep.Bump],
+      apply: true,
+      expectedSummary: '''
+test:
+  3.7.0 -> 3.8.0:
+    SDK constraint:
+      Bumped ^3.7.0 -> ^3.8.0''',
+      expectedEdit: '''
+>>>>>>>>>> pubspec.yaml
+name: test
+environment:
+  sdk: '^3.8.0'
+dependencies:
+  dep_package: 1.0.0
+''',
+    );
+  }
+
   Future<void> test_multiple() async {
     writePubspecFile(pubspecFilePath, '''
 name: test_project

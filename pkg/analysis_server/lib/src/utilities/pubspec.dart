@@ -48,8 +48,10 @@ List<String> checkDependencyCompatibility({
       }
     }
 
-    // Check if the dependency's SDK constraint allows the target version.
-    if (!constraint.allows(targetVersion)) {
+    // A dependency is incompatible only if its upper bound forbids all versions
+    // at or above [targetVersion]. Dependencies that require an even higher
+    // minimum SDK version remain compatible with this bump.
+    if (!constraint.allowsAny(VersionRange(min: targetVersion))) {
       incompatible.add(package.name);
     }
   }
