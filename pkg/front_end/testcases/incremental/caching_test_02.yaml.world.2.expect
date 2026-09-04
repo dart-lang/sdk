@@ -1,0 +1,14 @@
+main = a::main;
+library from "package:foo/foo.dart" as foo {
+
+  static field dart.core::String foo = "42";
+}
+library from "org-dartlang-test:///nopkg/a.dart" as a {
+
+  import "package:foo/foo.dart";
+
+  static method main() → void {
+    dart.core::String x = foo::foo;
+    dart.core::print(x);
+  }
+}

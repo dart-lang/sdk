@@ -1,0 +1,36 @@
+main = <No Member>;
+library from "package:foo/nomatter.dart" as nom {
+
+}
+library from "org-dartlang-test:///nopkg/a.dart" as a {
+
+  import "org-dartlang-test:///nopkg/b.dart";
+  import "package:foo/nomatter.dart";
+
+  static method foo() → void {
+    b::Bclass b = new b::Bclass::•();
+    dart.core::int x = b.{b::Bclass::foo}(){() → c::Cclass}.{c::Cclass::test}{dart.core::int};
+    dart.core::print(x);
+  }
+}
+library from "org-dartlang-test:///nopkg/b.dart" as b {
+
+  import "org-dartlang-test:///nopkg/c.dart";
+
+  class Bclass extends dart.core::Object {
+    synthetic constructor •() → b::Bclass
+      : super dart.core::Object::•()
+      ;
+    method foo() → c::Cclass
+      return new c::Cclass::•();
+  }
+}
+library from "org-dartlang-test:///nopkg/c.dart" as c {
+
+  class Cclass extends dart.core::Object {
+    field dart.core::int test = 42;
+    synthetic constructor •() → c::Cclass
+      : super dart.core::Object::•()
+      ;
+  }
+}

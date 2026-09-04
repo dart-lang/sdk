@@ -28,5 +28,7 @@ worlds:
         main() {
           print("Hello");
         }
+      lib.dart: |
+        typedef F<T> = Function();
     expectedLibraryCount: 2
     advancedInvalidation: outlineChange

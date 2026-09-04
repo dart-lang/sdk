@@ -61,6 +61,17 @@ worlds:
             }
           ]
         }
-      # The other sources are never read anyway.
+      # When testing the caching these files are read again.
+      foo/lib/a.dart: |
+        import "package:bar/a.dart";
+        void main() {
+          A();
+        }
+      bar/lib/a.dart: |
+        class A {
+          new() {
+            print("A");
+          }
+        }
     expectedLibraryCount: 2
     advancedInvalidation: noDirectlyInvalidated

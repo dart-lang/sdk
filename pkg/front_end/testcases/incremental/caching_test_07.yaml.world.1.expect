@@ -1,0 +1,11 @@
+main = a::main;
+library from "org-dartlang-test:///a.dart" as a {
+
+  part a_part.dart;
+  static method main() → void {
+    a::fromPart();
+  }
+  static method /* from org-dartlang-test:///a_part.dart */ fromPart() → void {
+    dart.core::print("1");
+  }
+}

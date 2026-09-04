@@ -1,0 +1,103 @@
+# Copyright (c) 2026, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Test for changed transitive import but unchanged direct import.
+# Currently (before the fix for it) this happens:
+#   First compile:
+#     * a: hash(a.dart, foo=path/to/foo=3.12) - new and saved.
+#     * b: hash(b.dart) - new and saved
+#     * c: hash(c.dart) - new and saved
+#     (technically "package:foo/nomatter.dart" is saved too but that's not
+#     important here)
+#   Second compile:
+#     * a: hash(a.dart) - new and saved
+#     * b: hash(b.dart) - loaded from cache but invalidated because of c, saved
+#     * c: hash(c.dart) - loaded but changed (so "new") and saved
+#   Third compile:
+#     * a: hash(a.dart, foo=path/to/foo=3.12) - loaded from cache
+#     * b: hash(b.dart) - loaded from cache
+#     * c: hash(c.dart) - loaded from cache
+#   At the third compile stuff no longer fits together though.
+
+type: newworld
+worlds:
+  - entry: nopkg/a.dart
+    sources:
+      .dart_tool/package_config.json: |
+        {
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "foo",
+              "rootUri": "../foo",
+              "packageUri": "lib",
+              "languageVersion": "3.12"
+            }
+          ]
+        }
+      foo/lib/nomatter.dart: ""
+      nopkg/a.dart: |
+        // a.dart v1
+        import "b.dart";
+        import "package:foo/nomatter.dart";
+        void foo() {
+          Bclass b = new Bclass();
+          var x = b.foo().test;
+          print(x);
+        }
+      nopkg/b.dart: |
+        // b.dart v1
+        import "c.dart";
+        class Bclass {
+          Cclass foo() => new Cclass();
+        }
+      nopkg/c.dart: |
+        // c.dart v1
+        class Cclass {
+          int test = 42;
+        }
+    expectedLibraryCount: 4
+
+  - entry: nopkg/a.dart
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - nopkg/a.dart
+      - nopkg/c.dart
+    sources:
+      nopkg/a.dart: |
+        // a.dart v2
+        import "b.dart";
+        void foo() {
+          Bclass b = new Bclass();
+          var x = b.foo().test;
+          print(x);
+        }
+      # b unchanged
+      nopkg/c.dart: |
+        // c.dart v2
+        class Cclass {
+          String test = "42";
+        }
+    expectedLibraryCount: 3
+    advancedInvalidation: outlineChange
+
+  - entry: nopkg/a.dart
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - nopkg/a.dart
+    sources:
+      nopkg/a.dart: |
+        // a.dart v1
+        import "b.dart";
+        import "package:foo/nomatter.dart";
+        void foo() {
+          Bclass b = new Bclass();
+          var x = b.foo().test;
+          print(x);
+        }
+      # b and c unchanged
+    expectedLibraryCount: 4
+    advancedInvalidation: outlineChange
