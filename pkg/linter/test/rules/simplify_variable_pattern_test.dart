@@ -58,6 +58,58 @@ void f(Object o) {
 ''');
   }
 
+  Future<void> test_patternField_inheritedGetter() async {
+    await assertDiagnosticsFromMarkup('''
+class A {
+  int get x => 0;
+}
+class B extends A {}
+
+void f(Object o) {
+  if (o case B([!x!]:var x)) {}
+}
+''');
+  }
+
+  Future<void> test_patternField_inheritedGetter_interface() async {
+    await assertDiagnosticsFromMarkup('''
+abstract class I {
+  int get x;
+}
+abstract class C implements I {}
+
+void f(Object o) {
+  if (o case C([!x!]:var x)) {}
+}
+''');
+  }
+
+  Future<void> test_patternField_inheritedGetter_mixin() async {
+    await assertDiagnosticsFromMarkup('''
+mixin M {
+  int get x => 0;
+}
+class C with M {}
+
+void f(Object o) {
+  if (o case C([!x!]:var x)) {}
+}
+''');
+  }
+
+  Future<void> test_patternField_inheritedMethod() async {
+    await assertDiagnosticsFromMarkup('''
+class A {
+  void m() {}
+}
+class B extends A {}
+
+void f(Object o) {
+  if (o case B([!m!]:var m)) {}
+}
+''');
+  }
+
   Future<void> test_patternField_otherName() async {
     await assertNoDiagnostics('''
 void f(Object o) {
