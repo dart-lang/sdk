@@ -3161,6 +3161,10 @@ class UntaggedClosure : public UntaggedInstance {
                uint8_t,
                HasDelayedTypeArgumentsBit::shift(),
                HasDelayedTypeArgumentsBit::bitsize()>;
+  static constexpr intptr_t kInstantiatorTypeArgumentsIndexBitsPos =
+      InstantiatorTypeArgumentsIndexBits::shift();
+  static constexpr intptr_t kInstantiatorTypeArgumentsIndexBitsSize =
+      InstantiatorTypeArgumentsIndexBits::bitsize();
 
   using FunctionTypeArgumentsIndexBits =
       BitField<intptr_t, uint8_t, HasFunctionTypeArgumentsBit::kNextBit, 2>;

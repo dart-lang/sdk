@@ -854,7 +854,7 @@ static void PrintSubtypeCheck(const AbstractType& subtype,
   }
 }
 
-// Instantiate type.
+// Assert supertype-subtype relationship.
 // Arg0: instantiator type arguments
 // Arg1: function type arguments
 // Arg2: type to be a subtype of the other

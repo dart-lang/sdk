@@ -71,6 +71,7 @@ static constexpr dart::compiler::target::word Array_kMaxElements = 0xfffffff;
 static constexpr dart::compiler::target::word Array_kMaxNewSpaceElements =
     0xfffd;
 static constexpr dart::compiler::target::word Context_kMaxElements = 0xfffffff;
+static constexpr dart::compiler::target::word Class_kNoTypeArguments = -1;
 static constexpr dart::compiler::target::word Function_kKindBitsPos = 0x0;
 static constexpr dart::compiler::target::word Function_kKindBitsSize = 0x5;
 static constexpr dart::compiler::target::word Function_kRecognizedBitsPos = 0x5;
@@ -154,10 +155,20 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kTestEntryLength = 0x8;
 static constexpr dart::compiler::target::word SubtypeTestCache_kMaxInputs = 0x7;
+static constexpr dart::compiler::target::word
+    SubtypeTestCache_kMaxLinearCacheSize = 0xf8;
 static constexpr dart::compiler::target::word SubtypeTestCache_kTestResult =
     0x7;
+static constexpr dart::compiler::target::word TypeArguments_kAllDynamicHash =
+    0x1;
 static constexpr dart::compiler::target::word TypeArguments_kMaxElements =
     0xfffffff;
+static constexpr dart::compiler::target::word
+    UntaggedClosure_kDelayedTypeArgumentsIndex = 0x0;
+static constexpr dart::compiler::target::word
+    UntaggedClosure_kInstantiatorTypeArgumentsIndexBitsPos = 0x0;
+static constexpr dart::compiler::target::word
+    UntaggedClosure_kInstantiatorTypeArgumentsIndexBitsSize = 0x1;
 static constexpr dart::compiler::target::word
     UntaggedClosure_kHasDelayedTypeArgumentsBit = 0x0;
 static constexpr dart::compiler::target::word
@@ -889,6 +900,7 @@ static constexpr dart::compiler::target::word Array_kMaxNewSpaceElements =
     0x7ffd;
 static constexpr dart::compiler::target::word Context_kMaxElements =
     0x7ffffffffffffff;
+static constexpr dart::compiler::target::word Class_kNoTypeArguments = -1;
 static constexpr dart::compiler::target::word Function_kKindBitsPos = 0x0;
 static constexpr dart::compiler::target::word Function_kKindBitsSize = 0x5;
 static constexpr dart::compiler::target::word Function_kRecognizedBitsPos = 0x5;
@@ -973,10 +985,20 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kTestEntryLength = 0x8;
 static constexpr dart::compiler::target::word SubtypeTestCache_kMaxInputs = 0x7;
+static constexpr dart::compiler::target::word
+    SubtypeTestCache_kMaxLinearCacheSize = 0xf8;
 static constexpr dart::compiler::target::word SubtypeTestCache_kTestResult =
     0x7;
+static constexpr dart::compiler::target::word TypeArguments_kAllDynamicHash =
+    0x1;
 static constexpr dart::compiler::target::word TypeArguments_kMaxElements =
     0x7ffffffffffffff;
+static constexpr dart::compiler::target::word
+    UntaggedClosure_kDelayedTypeArgumentsIndex = 0x0;
+static constexpr dart::compiler::target::word
+    UntaggedClosure_kInstantiatorTypeArgumentsIndexBitsPos = 0x0;
+static constexpr dart::compiler::target::word
+    UntaggedClosure_kInstantiatorTypeArgumentsIndexBitsSize = 0x1;
 static constexpr dart::compiler::target::word
     UntaggedClosure_kHasDelayedTypeArgumentsBit = 0x0;
 static constexpr dart::compiler::target::word
@@ -1713,6 +1735,7 @@ static constexpr dart::compiler::target::word Array_kMaxElements = 0xfffffff;
 static constexpr dart::compiler::target::word Array_kMaxNewSpaceElements =
     0xfffd;
 static constexpr dart::compiler::target::word Context_kMaxElements = 0xfffffff;
+static constexpr dart::compiler::target::word Class_kNoTypeArguments = -1;
 static constexpr dart::compiler::target::word Function_kKindBitsPos = 0x0;
 static constexpr dart::compiler::target::word Function_kKindBitsSize = 0x5;
 static constexpr dart::compiler::target::word Function_kRecognizedBitsPos = 0x5;
@@ -1796,10 +1819,20 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kTestEntryLength = 0x8;
 static constexpr dart::compiler::target::word SubtypeTestCache_kMaxInputs = 0x7;
+static constexpr dart::compiler::target::word
+    SubtypeTestCache_kMaxLinearCacheSize = 0x328;
 static constexpr dart::compiler::target::word SubtypeTestCache_kTestResult =
     0x7;
+static constexpr dart::compiler::target::word TypeArguments_kAllDynamicHash =
+    0x1;
 static constexpr dart::compiler::target::word TypeArguments_kMaxElements =
     0xfffffff;
+static constexpr dart::compiler::target::word
+    UntaggedClosure_kDelayedTypeArgumentsIndex = 0x0;
+static constexpr dart::compiler::target::word
+    UntaggedClosure_kInstantiatorTypeArgumentsIndexBitsPos = 0x0;
+static constexpr dart::compiler::target::word
+    UntaggedClosure_kInstantiatorTypeArgumentsIndexBitsSize = 0x1;
 static constexpr dart::compiler::target::word
     UntaggedClosure_kHasDelayedTypeArgumentsBit = 0x0;
 static constexpr dart::compiler::target::word
@@ -2530,6 +2563,7 @@ static constexpr dart::compiler::target::word Array_kMaxNewSpaceElements =
     0x7ffd;
 static constexpr dart::compiler::target::word Context_kMaxElements =
     0x7ffffffffffffff;
+static constexpr dart::compiler::target::word Class_kNoTypeArguments = -1;
 static constexpr dart::compiler::target::word Function_kKindBitsPos = 0x0;
 static constexpr dart::compiler::target::word Function_kKindBitsSize = 0x5;
 static constexpr dart::compiler::target::word Function_kRecognizedBitsPos = 0x5;
@@ -2614,10 +2648,20 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kTestEntryLength = 0x8;
 static constexpr dart::compiler::target::word SubtypeTestCache_kMaxInputs = 0x7;
+static constexpr dart::compiler::target::word
+    SubtypeTestCache_kMaxLinearCacheSize = 0xf8;
 static constexpr dart::compiler::target::word SubtypeTestCache_kTestResult =
     0x7;
+static constexpr dart::compiler::target::word TypeArguments_kAllDynamicHash =
+    0x1;
 static constexpr dart::compiler::target::word TypeArguments_kMaxElements =
     0x7ffffffffffffff;
+static constexpr dart::compiler::target::word
+    UntaggedClosure_kDelayedTypeArgumentsIndex = 0x0;
+static constexpr dart::compiler::target::word
+    UntaggedClosure_kInstantiatorTypeArgumentsIndexBitsPos = 0x0;
+static constexpr dart::compiler::target::word
+    UntaggedClosure_kInstantiatorTypeArgumentsIndexBitsSize = 0x1;
 static constexpr dart::compiler::target::word
     UntaggedClosure_kHasDelayedTypeArgumentsBit = 0x0;
 static constexpr dart::compiler::target::word
@@ -3357,6 +3401,7 @@ static constexpr dart::compiler::target::word Array_kMaxElements = 0xfffffff;
 static constexpr dart::compiler::target::word Array_kMaxNewSpaceElements =
     0xfffc;
 static constexpr dart::compiler::target::word Context_kMaxElements = 0xfffffff;
+static constexpr dart::compiler::target::word Class_kNoTypeArguments = -1;
 static constexpr dart::compiler::target::word Function_kKindBitsPos = 0x0;
 static constexpr dart::compiler::target::word Function_kKindBitsSize = 0x5;
 static constexpr dart::compiler::target::word Function_kRecognizedBitsPos = 0x5;
@@ -3440,10 +3485,20 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kTestEntryLength = 0x8;
 static constexpr dart::compiler::target::word SubtypeTestCache_kMaxInputs = 0x7;
+static constexpr dart::compiler::target::word
+    SubtypeTestCache_kMaxLinearCacheSize = 0xf8;
 static constexpr dart::compiler::target::word SubtypeTestCache_kTestResult =
     0x7;
+static constexpr dart::compiler::target::word TypeArguments_kAllDynamicHash =
+    0x1;
 static constexpr dart::compiler::target::word TypeArguments_kMaxElements =
     0xfffffff;
+static constexpr dart::compiler::target::word
+    UntaggedClosure_kDelayedTypeArgumentsIndex = 0x0;
+static constexpr dart::compiler::target::word
+    UntaggedClosure_kInstantiatorTypeArgumentsIndexBitsPos = 0x0;
+static constexpr dart::compiler::target::word
+    UntaggedClosure_kInstantiatorTypeArgumentsIndexBitsSize = 0x1;
 static constexpr dart::compiler::target::word
     UntaggedClosure_kHasDelayedTypeArgumentsBit = 0x0;
 static constexpr dart::compiler::target::word
@@ -4180,6 +4235,7 @@ static constexpr dart::compiler::target::word Array_kMaxElements = 0xfffffff;
 static constexpr dart::compiler::target::word Array_kMaxNewSpaceElements =
     0xfffc;
 static constexpr dart::compiler::target::word Context_kMaxElements = 0xfffffff;
+static constexpr dart::compiler::target::word Class_kNoTypeArguments = -1;
 static constexpr dart::compiler::target::word Function_kKindBitsPos = 0x0;
 static constexpr dart::compiler::target::word Function_kKindBitsSize = 0x5;
 static constexpr dart::compiler::target::word Function_kRecognizedBitsPos = 0x5;
@@ -4263,10 +4319,20 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kTestEntryLength = 0x8;
 static constexpr dart::compiler::target::word SubtypeTestCache_kMaxInputs = 0x7;
+static constexpr dart::compiler::target::word
+    SubtypeTestCache_kMaxLinearCacheSize = 0xf8;
 static constexpr dart::compiler::target::word SubtypeTestCache_kTestResult =
     0x7;
+static constexpr dart::compiler::target::word TypeArguments_kAllDynamicHash =
+    0x1;
 static constexpr dart::compiler::target::word TypeArguments_kMaxElements =
     0xfffffff;
+static constexpr dart::compiler::target::word
+    UntaggedClosure_kDelayedTypeArgumentsIndex = 0x0;
+static constexpr dart::compiler::target::word
+    UntaggedClosure_kInstantiatorTypeArgumentsIndexBitsPos = 0x0;
+static constexpr dart::compiler::target::word
+    UntaggedClosure_kInstantiatorTypeArgumentsIndexBitsSize = 0x1;
 static constexpr dart::compiler::target::word
     UntaggedClosure_kHasDelayedTypeArgumentsBit = 0x0;
 static constexpr dart::compiler::target::word
@@ -5004,6 +5070,7 @@ static constexpr dart::compiler::target::word Array_kMaxElements = 0xfffffff;
 static constexpr dart::compiler::target::word Array_kMaxNewSpaceElements =
     0xfffd;
 static constexpr dart::compiler::target::word Context_kMaxElements = 0xfffffff;
+static constexpr dart::compiler::target::word Class_kNoTypeArguments = -1;
 static constexpr dart::compiler::target::word Function_kKindBitsPos = 0x0;
 static constexpr dart::compiler::target::word Function_kKindBitsSize = 0x5;
 static constexpr dart::compiler::target::word Function_kRecognizedBitsPos = 0x5;
@@ -5087,10 +5154,20 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kTestEntryLength = 0x8;
 static constexpr dart::compiler::target::word SubtypeTestCache_kMaxInputs = 0x7;
+static constexpr dart::compiler::target::word
+    SubtypeTestCache_kMaxLinearCacheSize = 0xf8;
 static constexpr dart::compiler::target::word SubtypeTestCache_kTestResult =
     0x7;
+static constexpr dart::compiler::target::word TypeArguments_kAllDynamicHash =
+    0x1;
 static constexpr dart::compiler::target::word TypeArguments_kMaxElements =
     0xfffffff;
+static constexpr dart::compiler::target::word
+    UntaggedClosure_kDelayedTypeArgumentsIndex = 0x0;
+static constexpr dart::compiler::target::word
+    UntaggedClosure_kInstantiatorTypeArgumentsIndexBitsPos = 0x0;
+static constexpr dart::compiler::target::word
+    UntaggedClosure_kInstantiatorTypeArgumentsIndexBitsSize = 0x1;
 static constexpr dart::compiler::target::word
     UntaggedClosure_kHasDelayedTypeArgumentsBit = 0x0;
 static constexpr dart::compiler::target::word
@@ -5823,6 +5900,7 @@ static constexpr dart::compiler::target::word Array_kMaxNewSpaceElements =
     0x7ffd;
 static constexpr dart::compiler::target::word Context_kMaxElements =
     0x7ffffffffffffff;
+static constexpr dart::compiler::target::word Class_kNoTypeArguments = -1;
 static constexpr dart::compiler::target::word Function_kKindBitsPos = 0x0;
 static constexpr dart::compiler::target::word Function_kKindBitsSize = 0x5;
 static constexpr dart::compiler::target::word Function_kRecognizedBitsPos = 0x5;
@@ -5907,10 +5985,20 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kTestEntryLength = 0x8;
 static constexpr dart::compiler::target::word SubtypeTestCache_kMaxInputs = 0x7;
+static constexpr dart::compiler::target::word
+    SubtypeTestCache_kMaxLinearCacheSize = 0xf8;
 static constexpr dart::compiler::target::word SubtypeTestCache_kTestResult =
     0x7;
+static constexpr dart::compiler::target::word TypeArguments_kAllDynamicHash =
+    0x1;
 static constexpr dart::compiler::target::word TypeArguments_kMaxElements =
     0x7ffffffffffffff;
+static constexpr dart::compiler::target::word
+    UntaggedClosure_kDelayedTypeArgumentsIndex = 0x0;
+static constexpr dart::compiler::target::word
+    UntaggedClosure_kInstantiatorTypeArgumentsIndexBitsPos = 0x0;
+static constexpr dart::compiler::target::word
+    UntaggedClosure_kInstantiatorTypeArgumentsIndexBitsSize = 0x1;
 static constexpr dart::compiler::target::word
     UntaggedClosure_kHasDelayedTypeArgumentsBit = 0x0;
 static constexpr dart::compiler::target::word
@@ -6645,6 +6733,7 @@ static constexpr dart::compiler::target::word Array_kMaxElements = 0xfffffff;
 static constexpr dart::compiler::target::word Array_kMaxNewSpaceElements =
     0xfffd;
 static constexpr dart::compiler::target::word Context_kMaxElements = 0xfffffff;
+static constexpr dart::compiler::target::word Class_kNoTypeArguments = -1;
 static constexpr dart::compiler::target::word Function_kKindBitsPos = 0x0;
 static constexpr dart::compiler::target::word Function_kKindBitsSize = 0x5;
 static constexpr dart::compiler::target::word Function_kRecognizedBitsPos = 0x5;
@@ -6728,10 +6817,20 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kTestEntryLength = 0x8;
 static constexpr dart::compiler::target::word SubtypeTestCache_kMaxInputs = 0x7;
+static constexpr dart::compiler::target::word
+    SubtypeTestCache_kMaxLinearCacheSize = 0xf8;
 static constexpr dart::compiler::target::word SubtypeTestCache_kTestResult =
     0x7;
+static constexpr dart::compiler::target::word TypeArguments_kAllDynamicHash =
+    0x1;
 static constexpr dart::compiler::target::word TypeArguments_kMaxElements =
     0xfffffff;
+static constexpr dart::compiler::target::word
+    UntaggedClosure_kDelayedTypeArgumentsIndex = 0x0;
+static constexpr dart::compiler::target::word
+    UntaggedClosure_kInstantiatorTypeArgumentsIndexBitsPos = 0x0;
+static constexpr dart::compiler::target::word
+    UntaggedClosure_kInstantiatorTypeArgumentsIndexBitsSize = 0x1;
 static constexpr dart::compiler::target::word
     UntaggedClosure_kHasDelayedTypeArgumentsBit = 0x0;
 static constexpr dart::compiler::target::word
@@ -7455,6 +7554,7 @@ static constexpr dart::compiler::target::word Array_kMaxNewSpaceElements =
     0x7ffd;
 static constexpr dart::compiler::target::word Context_kMaxElements =
     0x7ffffffffffffff;
+static constexpr dart::compiler::target::word Class_kNoTypeArguments = -1;
 static constexpr dart::compiler::target::word Function_kKindBitsPos = 0x0;
 static constexpr dart::compiler::target::word Function_kKindBitsSize = 0x5;
 static constexpr dart::compiler::target::word Function_kRecognizedBitsPos = 0x5;
@@ -7539,10 +7639,20 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kTestEntryLength = 0x8;
 static constexpr dart::compiler::target::word SubtypeTestCache_kMaxInputs = 0x7;
+static constexpr dart::compiler::target::word
+    SubtypeTestCache_kMaxLinearCacheSize = 0xf8;
 static constexpr dart::compiler::target::word SubtypeTestCache_kTestResult =
     0x7;
+static constexpr dart::compiler::target::word TypeArguments_kAllDynamicHash =
+    0x1;
 static constexpr dart::compiler::target::word TypeArguments_kMaxElements =
     0x7ffffffffffffff;
+static constexpr dart::compiler::target::word
+    UntaggedClosure_kDelayedTypeArgumentsIndex = 0x0;
+static constexpr dart::compiler::target::word
+    UntaggedClosure_kInstantiatorTypeArgumentsIndexBitsPos = 0x0;
+static constexpr dart::compiler::target::word
+    UntaggedClosure_kInstantiatorTypeArgumentsIndexBitsSize = 0x1;
 static constexpr dart::compiler::target::word
     UntaggedClosure_kHasDelayedTypeArgumentsBit = 0x0;
 static constexpr dart::compiler::target::word
@@ -8271,6 +8381,7 @@ static constexpr dart::compiler::target::word Array_kMaxElements = 0xfffffff;
 static constexpr dart::compiler::target::word Array_kMaxNewSpaceElements =
     0xfffd;
 static constexpr dart::compiler::target::word Context_kMaxElements = 0xfffffff;
+static constexpr dart::compiler::target::word Class_kNoTypeArguments = -1;
 static constexpr dart::compiler::target::word Function_kKindBitsPos = 0x0;
 static constexpr dart::compiler::target::word Function_kKindBitsSize = 0x5;
 static constexpr dart::compiler::target::word Function_kRecognizedBitsPos = 0x5;
@@ -8354,10 +8465,20 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kTestEntryLength = 0x8;
 static constexpr dart::compiler::target::word SubtypeTestCache_kMaxInputs = 0x7;
+static constexpr dart::compiler::target::word
+    SubtypeTestCache_kMaxLinearCacheSize = 0x328;
 static constexpr dart::compiler::target::word SubtypeTestCache_kTestResult =
     0x7;
+static constexpr dart::compiler::target::word TypeArguments_kAllDynamicHash =
+    0x1;
 static constexpr dart::compiler::target::word TypeArguments_kMaxElements =
     0xfffffff;
+static constexpr dart::compiler::target::word
+    UntaggedClosure_kDelayedTypeArgumentsIndex = 0x0;
+static constexpr dart::compiler::target::word
+    UntaggedClosure_kInstantiatorTypeArgumentsIndexBitsPos = 0x0;
+static constexpr dart::compiler::target::word
+    UntaggedClosure_kInstantiatorTypeArgumentsIndexBitsSize = 0x1;
 static constexpr dart::compiler::target::word
     UntaggedClosure_kHasDelayedTypeArgumentsBit = 0x0;
 static constexpr dart::compiler::target::word
@@ -9080,6 +9201,7 @@ static constexpr dart::compiler::target::word Array_kMaxNewSpaceElements =
     0x7ffd;
 static constexpr dart::compiler::target::word Context_kMaxElements =
     0x7ffffffffffffff;
+static constexpr dart::compiler::target::word Class_kNoTypeArguments = -1;
 static constexpr dart::compiler::target::word Function_kKindBitsPos = 0x0;
 static constexpr dart::compiler::target::word Function_kKindBitsSize = 0x5;
 static constexpr dart::compiler::target::word Function_kRecognizedBitsPos = 0x5;
@@ -9164,10 +9286,20 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kTestEntryLength = 0x8;
 static constexpr dart::compiler::target::word SubtypeTestCache_kMaxInputs = 0x7;
+static constexpr dart::compiler::target::word
+    SubtypeTestCache_kMaxLinearCacheSize = 0xf8;
 static constexpr dart::compiler::target::word SubtypeTestCache_kTestResult =
     0x7;
+static constexpr dart::compiler::target::word TypeArguments_kAllDynamicHash =
+    0x1;
 static constexpr dart::compiler::target::word TypeArguments_kMaxElements =
     0x7ffffffffffffff;
+static constexpr dart::compiler::target::word
+    UntaggedClosure_kDelayedTypeArgumentsIndex = 0x0;
+static constexpr dart::compiler::target::word
+    UntaggedClosure_kInstantiatorTypeArgumentsIndexBitsPos = 0x0;
+static constexpr dart::compiler::target::word
+    UntaggedClosure_kInstantiatorTypeArgumentsIndexBitsSize = 0x1;
 static constexpr dart::compiler::target::word
     UntaggedClosure_kHasDelayedTypeArgumentsBit = 0x0;
 static constexpr dart::compiler::target::word
@@ -9899,6 +10031,7 @@ static constexpr dart::compiler::target::word Array_kMaxElements = 0xfffffff;
 static constexpr dart::compiler::target::word Array_kMaxNewSpaceElements =
     0xfffc;
 static constexpr dart::compiler::target::word Context_kMaxElements = 0xfffffff;
+static constexpr dart::compiler::target::word Class_kNoTypeArguments = -1;
 static constexpr dart::compiler::target::word Function_kKindBitsPos = 0x0;
 static constexpr dart::compiler::target::word Function_kKindBitsSize = 0x5;
 static constexpr dart::compiler::target::word Function_kRecognizedBitsPos = 0x5;
@@ -9982,10 +10115,20 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kTestEntryLength = 0x8;
 static constexpr dart::compiler::target::word SubtypeTestCache_kMaxInputs = 0x7;
+static constexpr dart::compiler::target::word
+    SubtypeTestCache_kMaxLinearCacheSize = 0xf8;
 static constexpr dart::compiler::target::word SubtypeTestCache_kTestResult =
     0x7;
+static constexpr dart::compiler::target::word TypeArguments_kAllDynamicHash =
+    0x1;
 static constexpr dart::compiler::target::word TypeArguments_kMaxElements =
     0xfffffff;
+static constexpr dart::compiler::target::word
+    UntaggedClosure_kDelayedTypeArgumentsIndex = 0x0;
+static constexpr dart::compiler::target::word
+    UntaggedClosure_kInstantiatorTypeArgumentsIndexBitsPos = 0x0;
+static constexpr dart::compiler::target::word
+    UntaggedClosure_kInstantiatorTypeArgumentsIndexBitsSize = 0x1;
 static constexpr dart::compiler::target::word
     UntaggedClosure_kHasDelayedTypeArgumentsBit = 0x0;
 static constexpr dart::compiler::target::word
@@ -10714,6 +10857,7 @@ static constexpr dart::compiler::target::word Array_kMaxElements = 0xfffffff;
 static constexpr dart::compiler::target::word Array_kMaxNewSpaceElements =
     0xfffc;
 static constexpr dart::compiler::target::word Context_kMaxElements = 0xfffffff;
+static constexpr dart::compiler::target::word Class_kNoTypeArguments = -1;
 static constexpr dart::compiler::target::word Function_kKindBitsPos = 0x0;
 static constexpr dart::compiler::target::word Function_kKindBitsSize = 0x5;
 static constexpr dart::compiler::target::word Function_kRecognizedBitsPos = 0x5;
@@ -10797,10 +10941,20 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kTestEntryLength = 0x8;
 static constexpr dart::compiler::target::word SubtypeTestCache_kMaxInputs = 0x7;
+static constexpr dart::compiler::target::word
+    SubtypeTestCache_kMaxLinearCacheSize = 0xf8;
 static constexpr dart::compiler::target::word SubtypeTestCache_kTestResult =
     0x7;
+static constexpr dart::compiler::target::word TypeArguments_kAllDynamicHash =
+    0x1;
 static constexpr dart::compiler::target::word TypeArguments_kMaxElements =
     0xfffffff;
+static constexpr dart::compiler::target::word
+    UntaggedClosure_kDelayedTypeArgumentsIndex = 0x0;
+static constexpr dart::compiler::target::word
+    UntaggedClosure_kInstantiatorTypeArgumentsIndexBitsPos = 0x0;
+static constexpr dart::compiler::target::word
+    UntaggedClosure_kInstantiatorTypeArgumentsIndexBitsSize = 0x1;
 static constexpr dart::compiler::target::word
     UntaggedClosure_kHasDelayedTypeArgumentsBit = 0x0;
 static constexpr dart::compiler::target::word
@@ -11530,6 +11684,7 @@ static constexpr dart::compiler::target::word Array_kMaxElements = 0xfffffff;
 static constexpr dart::compiler::target::word Array_kMaxNewSpaceElements =
     0xfffd;
 static constexpr dart::compiler::target::word Context_kMaxElements = 0xfffffff;
+static constexpr dart::compiler::target::word Class_kNoTypeArguments = -1;
 static constexpr dart::compiler::target::word Function_kKindBitsPos = 0x0;
 static constexpr dart::compiler::target::word Function_kKindBitsSize = 0x5;
 static constexpr dart::compiler::target::word Function_kRecognizedBitsPos = 0x5;
@@ -11613,10 +11768,20 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kTestEntryLength = 0x8;
 static constexpr dart::compiler::target::word SubtypeTestCache_kMaxInputs = 0x7;
+static constexpr dart::compiler::target::word
+    SubtypeTestCache_kMaxLinearCacheSize = 0xf8;
 static constexpr dart::compiler::target::word SubtypeTestCache_kTestResult =
     0x7;
+static constexpr dart::compiler::target::word TypeArguments_kAllDynamicHash =
+    0x1;
 static constexpr dart::compiler::target::word TypeArguments_kMaxElements =
     0xfffffff;
+static constexpr dart::compiler::target::word
+    UntaggedClosure_kDelayedTypeArgumentsIndex = 0x0;
+static constexpr dart::compiler::target::word
+    UntaggedClosure_kInstantiatorTypeArgumentsIndexBitsPos = 0x0;
+static constexpr dart::compiler::target::word
+    UntaggedClosure_kInstantiatorTypeArgumentsIndexBitsSize = 0x1;
 static constexpr dart::compiler::target::word
     UntaggedClosure_kHasDelayedTypeArgumentsBit = 0x0;
 static constexpr dart::compiler::target::word
@@ -12341,6 +12506,7 @@ static constexpr dart::compiler::target::word Array_kMaxNewSpaceElements =
     0x7ffd;
 static constexpr dart::compiler::target::word Context_kMaxElements =
     0x7ffffffffffffff;
+static constexpr dart::compiler::target::word Class_kNoTypeArguments = -1;
 static constexpr dart::compiler::target::word Function_kKindBitsPos = 0x0;
 static constexpr dart::compiler::target::word Function_kKindBitsSize = 0x5;
 static constexpr dart::compiler::target::word Function_kRecognizedBitsPos = 0x5;
@@ -12425,10 +12591,20 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kTestEntryLength = 0x8;
 static constexpr dart::compiler::target::word SubtypeTestCache_kMaxInputs = 0x7;
+static constexpr dart::compiler::target::word
+    SubtypeTestCache_kMaxLinearCacheSize = 0xf8;
 static constexpr dart::compiler::target::word SubtypeTestCache_kTestResult =
     0x7;
+static constexpr dart::compiler::target::word TypeArguments_kAllDynamicHash =
+    0x1;
 static constexpr dart::compiler::target::word TypeArguments_kMaxElements =
     0x7ffffffffffffff;
+static constexpr dart::compiler::target::word
+    UntaggedClosure_kDelayedTypeArgumentsIndex = 0x0;
+static constexpr dart::compiler::target::word
+    UntaggedClosure_kInstantiatorTypeArgumentsIndexBitsPos = 0x0;
+static constexpr dart::compiler::target::word
+    UntaggedClosure_kInstantiatorTypeArgumentsIndexBitsSize = 0x1;
 static constexpr dart::compiler::target::word
     UntaggedClosure_kHasDelayedTypeArgumentsBit = 0x0;
 static constexpr dart::compiler::target::word
@@ -13163,6 +13339,7 @@ static constexpr dart::compiler::target::word AOT_Array_kMaxNewSpaceElements =
     0xfffd;
 static constexpr dart::compiler::target::word AOT_Context_kMaxElements =
     0xfffffff;
+static constexpr dart::compiler::target::word AOT_Class_kNoTypeArguments = -1;
 static constexpr dart::compiler::target::word AOT_Function_kKindBitsPos = 0x0;
 static constexpr dart::compiler::target::word AOT_Function_kKindBitsSize = 0x5;
 static constexpr dart::compiler::target::word AOT_Function_kRecognizedBitsPos =
@@ -13256,10 +13433,20 @@ static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kTestEntryLength = 0x8;
 static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kMaxInputs =
     0x7;
+static constexpr dart::compiler::target::word
+    AOT_SubtypeTestCache_kMaxLinearCacheSize = 0xf8;
 static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kTestResult =
     0x7;
+static constexpr dart::compiler::target::word
+    AOT_TypeArguments_kAllDynamicHash = 0x1;
 static constexpr dart::compiler::target::word AOT_TypeArguments_kMaxElements =
     0xfffffff;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedClosure_kDelayedTypeArgumentsIndex = 0x0;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedClosure_kInstantiatorTypeArgumentsIndexBitsPos = 0x0;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedClosure_kInstantiatorTypeArgumentsIndexBitsSize = 0x1;
 static constexpr dart::compiler::target::word
     AOT_UntaggedClosure_kHasDelayedTypeArgumentsBit = 0x0;
 static constexpr dart::compiler::target::word
@@ -14071,6 +14258,7 @@ static constexpr dart::compiler::target::word AOT_Array_kMaxNewSpaceElements =
     0x7ffd;
 static constexpr dart::compiler::target::word AOT_Context_kMaxElements =
     0x7ffffffffffffff;
+static constexpr dart::compiler::target::word AOT_Class_kNoTypeArguments = -1;
 static constexpr dart::compiler::target::word AOT_Function_kKindBitsPos = 0x0;
 static constexpr dart::compiler::target::word AOT_Function_kKindBitsSize = 0x5;
 static constexpr dart::compiler::target::word AOT_Function_kRecognizedBitsPos =
@@ -14164,10 +14352,20 @@ static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kTestEntryLength = 0x8;
 static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kMaxInputs =
     0x7;
+static constexpr dart::compiler::target::word
+    AOT_SubtypeTestCache_kMaxLinearCacheSize = 0xf8;
 static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kTestResult =
     0x7;
+static constexpr dart::compiler::target::word
+    AOT_TypeArguments_kAllDynamicHash = 0x1;
 static constexpr dart::compiler::target::word AOT_TypeArguments_kMaxElements =
     0x7ffffffffffffff;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedClosure_kDelayedTypeArgumentsIndex = 0x0;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedClosure_kInstantiatorTypeArgumentsIndexBitsPos = 0x0;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedClosure_kInstantiatorTypeArgumentsIndexBitsSize = 0x1;
 static constexpr dart::compiler::target::word
     AOT_UntaggedClosure_kHasDelayedTypeArgumentsBit = 0x0;
 static constexpr dart::compiler::target::word
@@ -14990,6 +15188,7 @@ static constexpr dart::compiler::target::word AOT_Array_kMaxNewSpaceElements =
     0x7ffd;
 static constexpr dart::compiler::target::word AOT_Context_kMaxElements =
     0x7ffffffffffffff;
+static constexpr dart::compiler::target::word AOT_Class_kNoTypeArguments = -1;
 static constexpr dart::compiler::target::word AOT_Function_kKindBitsPos = 0x0;
 static constexpr dart::compiler::target::word AOT_Function_kKindBitsSize = 0x5;
 static constexpr dart::compiler::target::word AOT_Function_kRecognizedBitsPos =
@@ -15083,10 +15282,20 @@ static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kTestEntryLength = 0x8;
 static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kMaxInputs =
     0x7;
+static constexpr dart::compiler::target::word
+    AOT_SubtypeTestCache_kMaxLinearCacheSize = 0xf8;
 static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kTestResult =
     0x7;
+static constexpr dart::compiler::target::word
+    AOT_TypeArguments_kAllDynamicHash = 0x1;
 static constexpr dart::compiler::target::word AOT_TypeArguments_kMaxElements =
     0x7ffffffffffffff;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedClosure_kDelayedTypeArgumentsIndex = 0x0;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedClosure_kInstantiatorTypeArgumentsIndexBitsPos = 0x0;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedClosure_kInstantiatorTypeArgumentsIndexBitsSize = 0x1;
 static constexpr dart::compiler::target::word
     AOT_UntaggedClosure_kHasDelayedTypeArgumentsBit = 0x0;
 static constexpr dart::compiler::target::word
@@ -15905,6 +16114,7 @@ static constexpr dart::compiler::target::word AOT_Array_kMaxNewSpaceElements =
     0xfffc;
 static constexpr dart::compiler::target::word AOT_Context_kMaxElements =
     0xfffffff;
+static constexpr dart::compiler::target::word AOT_Class_kNoTypeArguments = -1;
 static constexpr dart::compiler::target::word AOT_Function_kKindBitsPos = 0x0;
 static constexpr dart::compiler::target::word AOT_Function_kKindBitsSize = 0x5;
 static constexpr dart::compiler::target::word AOT_Function_kRecognizedBitsPos =
@@ -15998,10 +16208,20 @@ static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kTestEntryLength = 0x8;
 static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kMaxInputs =
     0x7;
+static constexpr dart::compiler::target::word
+    AOT_SubtypeTestCache_kMaxLinearCacheSize = 0xf8;
 static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kTestResult =
     0x7;
+static constexpr dart::compiler::target::word
+    AOT_TypeArguments_kAllDynamicHash = 0x1;
 static constexpr dart::compiler::target::word AOT_TypeArguments_kMaxElements =
     0xfffffff;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedClosure_kDelayedTypeArgumentsIndex = 0x0;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedClosure_kInstantiatorTypeArgumentsIndexBitsPos = 0x0;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedClosure_kInstantiatorTypeArgumentsIndexBitsSize = 0x1;
 static constexpr dart::compiler::target::word
     AOT_UntaggedClosure_kHasDelayedTypeArgumentsBit = 0x0;
 static constexpr dart::compiler::target::word
@@ -16820,6 +17040,7 @@ static constexpr dart::compiler::target::word AOT_Array_kMaxNewSpaceElements =
     0xfffc;
 static constexpr dart::compiler::target::word AOT_Context_kMaxElements =
     0xfffffff;
+static constexpr dart::compiler::target::word AOT_Class_kNoTypeArguments = -1;
 static constexpr dart::compiler::target::word AOT_Function_kKindBitsPos = 0x0;
 static constexpr dart::compiler::target::word AOT_Function_kKindBitsSize = 0x5;
 static constexpr dart::compiler::target::word AOT_Function_kRecognizedBitsPos =
@@ -16913,10 +17134,20 @@ static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kTestEntryLength = 0x8;
 static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kMaxInputs =
     0x7;
+static constexpr dart::compiler::target::word
+    AOT_SubtypeTestCache_kMaxLinearCacheSize = 0xf8;
 static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kTestResult =
     0x7;
+static constexpr dart::compiler::target::word
+    AOT_TypeArguments_kAllDynamicHash = 0x1;
 static constexpr dart::compiler::target::word AOT_TypeArguments_kMaxElements =
     0xfffffff;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedClosure_kDelayedTypeArgumentsIndex = 0x0;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedClosure_kInstantiatorTypeArgumentsIndexBitsPos = 0x0;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedClosure_kInstantiatorTypeArgumentsIndexBitsSize = 0x1;
 static constexpr dart::compiler::target::word
     AOT_UntaggedClosure_kHasDelayedTypeArgumentsBit = 0x0;
 static constexpr dart::compiler::target::word
@@ -17737,6 +17968,7 @@ static constexpr dart::compiler::target::word AOT_Array_kMaxNewSpaceElements =
     0xfffd;
 static constexpr dart::compiler::target::word AOT_Context_kMaxElements =
     0xfffffff;
+static constexpr dart::compiler::target::word AOT_Class_kNoTypeArguments = -1;
 static constexpr dart::compiler::target::word AOT_Function_kKindBitsPos = 0x0;
 static constexpr dart::compiler::target::word AOT_Function_kKindBitsSize = 0x5;
 static constexpr dart::compiler::target::word AOT_Function_kRecognizedBitsPos =
@@ -17830,10 +18062,20 @@ static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kTestEntryLength = 0x8;
 static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kMaxInputs =
     0x7;
+static constexpr dart::compiler::target::word
+    AOT_SubtypeTestCache_kMaxLinearCacheSize = 0xf8;
 static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kTestResult =
     0x7;
+static constexpr dart::compiler::target::word
+    AOT_TypeArguments_kAllDynamicHash = 0x1;
 static constexpr dart::compiler::target::word AOT_TypeArguments_kMaxElements =
     0xfffffff;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedClosure_kDelayedTypeArgumentsIndex = 0x0;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedClosure_kInstantiatorTypeArgumentsIndexBitsPos = 0x0;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedClosure_kInstantiatorTypeArgumentsIndexBitsSize = 0x1;
 static constexpr dart::compiler::target::word
     AOT_UntaggedClosure_kHasDelayedTypeArgumentsBit = 0x0;
 static constexpr dart::compiler::target::word
@@ -18646,6 +18888,7 @@ static constexpr dart::compiler::target::word AOT_Array_kMaxNewSpaceElements =
     0x7ffd;
 static constexpr dart::compiler::target::word AOT_Context_kMaxElements =
     0x7ffffffffffffff;
+static constexpr dart::compiler::target::word AOT_Class_kNoTypeArguments = -1;
 static constexpr dart::compiler::target::word AOT_Function_kKindBitsPos = 0x0;
 static constexpr dart::compiler::target::word AOT_Function_kKindBitsSize = 0x5;
 static constexpr dart::compiler::target::word AOT_Function_kRecognizedBitsPos =
@@ -18739,10 +18982,20 @@ static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kTestEntryLength = 0x8;
 static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kMaxInputs =
     0x7;
+static constexpr dart::compiler::target::word
+    AOT_SubtypeTestCache_kMaxLinearCacheSize = 0xf8;
 static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kTestResult =
     0x7;
+static constexpr dart::compiler::target::word
+    AOT_TypeArguments_kAllDynamicHash = 0x1;
 static constexpr dart::compiler::target::word AOT_TypeArguments_kMaxElements =
     0x7ffffffffffffff;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedClosure_kDelayedTypeArgumentsIndex = 0x0;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedClosure_kInstantiatorTypeArgumentsIndexBitsPos = 0x0;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedClosure_kInstantiatorTypeArgumentsIndexBitsSize = 0x1;
 static constexpr dart::compiler::target::word
     AOT_UntaggedClosure_kHasDelayedTypeArgumentsBit = 0x0;
 static constexpr dart::compiler::target::word
@@ -19557,6 +19810,7 @@ static constexpr dart::compiler::target::word AOT_Array_kMaxNewSpaceElements =
     0xfffd;
 static constexpr dart::compiler::target::word AOT_Context_kMaxElements =
     0xfffffff;
+static constexpr dart::compiler::target::word AOT_Class_kNoTypeArguments = -1;
 static constexpr dart::compiler::target::word AOT_Function_kKindBitsPos = 0x0;
 static constexpr dart::compiler::target::word AOT_Function_kKindBitsSize = 0x5;
 static constexpr dart::compiler::target::word AOT_Function_kRecognizedBitsPos =
@@ -19650,10 +19904,20 @@ static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kTestEntryLength = 0x8;
 static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kMaxInputs =
     0x7;
+static constexpr dart::compiler::target::word
+    AOT_SubtypeTestCache_kMaxLinearCacheSize = 0xf8;
 static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kTestResult =
     0x7;
+static constexpr dart::compiler::target::word
+    AOT_TypeArguments_kAllDynamicHash = 0x1;
 static constexpr dart::compiler::target::word AOT_TypeArguments_kMaxElements =
     0xfffffff;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedClosure_kDelayedTypeArgumentsIndex = 0x0;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedClosure_kInstantiatorTypeArgumentsIndexBitsPos = 0x0;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedClosure_kInstantiatorTypeArgumentsIndexBitsSize = 0x1;
 static constexpr dart::compiler::target::word
     AOT_UntaggedClosure_kHasDelayedTypeArgumentsBit = 0x0;
 static constexpr dart::compiler::target::word
@@ -20456,6 +20720,7 @@ static constexpr dart::compiler::target::word AOT_Array_kMaxNewSpaceElements =
     0x7ffd;
 static constexpr dart::compiler::target::word AOT_Context_kMaxElements =
     0x7ffffffffffffff;
+static constexpr dart::compiler::target::word AOT_Class_kNoTypeArguments = -1;
 static constexpr dart::compiler::target::word AOT_Function_kKindBitsPos = 0x0;
 static constexpr dart::compiler::target::word AOT_Function_kKindBitsSize = 0x5;
 static constexpr dart::compiler::target::word AOT_Function_kRecognizedBitsPos =
@@ -20549,10 +20814,20 @@ static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kTestEntryLength = 0x8;
 static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kMaxInputs =
     0x7;
+static constexpr dart::compiler::target::word
+    AOT_SubtypeTestCache_kMaxLinearCacheSize = 0xf8;
 static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kTestResult =
     0x7;
+static constexpr dart::compiler::target::word
+    AOT_TypeArguments_kAllDynamicHash = 0x1;
 static constexpr dart::compiler::target::word AOT_TypeArguments_kMaxElements =
     0x7ffffffffffffff;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedClosure_kDelayedTypeArgumentsIndex = 0x0;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedClosure_kInstantiatorTypeArgumentsIndexBitsPos = 0x0;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedClosure_kInstantiatorTypeArgumentsIndexBitsSize = 0x1;
 static constexpr dart::compiler::target::word
     AOT_UntaggedClosure_kHasDelayedTypeArgumentsBit = 0x0;
 static constexpr dart::compiler::target::word
@@ -21366,6 +21641,7 @@ static constexpr dart::compiler::target::word AOT_Array_kMaxNewSpaceElements =
     0x7ffd;
 static constexpr dart::compiler::target::word AOT_Context_kMaxElements =
     0x7ffffffffffffff;
+static constexpr dart::compiler::target::word AOT_Class_kNoTypeArguments = -1;
 static constexpr dart::compiler::target::word AOT_Function_kKindBitsPos = 0x0;
 static constexpr dart::compiler::target::word AOT_Function_kKindBitsSize = 0x5;
 static constexpr dart::compiler::target::word AOT_Function_kRecognizedBitsPos =
@@ -21459,10 +21735,20 @@ static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kTestEntryLength = 0x8;
 static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kMaxInputs =
     0x7;
+static constexpr dart::compiler::target::word
+    AOT_SubtypeTestCache_kMaxLinearCacheSize = 0xf8;
 static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kTestResult =
     0x7;
+static constexpr dart::compiler::target::word
+    AOT_TypeArguments_kAllDynamicHash = 0x1;
 static constexpr dart::compiler::target::word AOT_TypeArguments_kMaxElements =
     0x7ffffffffffffff;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedClosure_kDelayedTypeArgumentsIndex = 0x0;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedClosure_kInstantiatorTypeArgumentsIndexBitsPos = 0x0;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedClosure_kInstantiatorTypeArgumentsIndexBitsSize = 0x1;
 static constexpr dart::compiler::target::word
     AOT_UntaggedClosure_kHasDelayedTypeArgumentsBit = 0x0;
 static constexpr dart::compiler::target::word
@@ -22272,6 +22558,7 @@ static constexpr dart::compiler::target::word AOT_Array_kMaxNewSpaceElements =
     0xfffc;
 static constexpr dart::compiler::target::word AOT_Context_kMaxElements =
     0xfffffff;
+static constexpr dart::compiler::target::word AOT_Class_kNoTypeArguments = -1;
 static constexpr dart::compiler::target::word AOT_Function_kKindBitsPos = 0x0;
 static constexpr dart::compiler::target::word AOT_Function_kKindBitsSize = 0x5;
 static constexpr dart::compiler::target::word AOT_Function_kRecognizedBitsPos =
@@ -22365,10 +22652,20 @@ static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kTestEntryLength = 0x8;
 static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kMaxInputs =
     0x7;
+static constexpr dart::compiler::target::word
+    AOT_SubtypeTestCache_kMaxLinearCacheSize = 0xf8;
 static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kTestResult =
     0x7;
+static constexpr dart::compiler::target::word
+    AOT_TypeArguments_kAllDynamicHash = 0x1;
 static constexpr dart::compiler::target::word AOT_TypeArguments_kMaxElements =
     0xfffffff;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedClosure_kDelayedTypeArgumentsIndex = 0x0;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedClosure_kInstantiatorTypeArgumentsIndexBitsPos = 0x0;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedClosure_kInstantiatorTypeArgumentsIndexBitsSize = 0x1;
 static constexpr dart::compiler::target::word
     AOT_UntaggedClosure_kHasDelayedTypeArgumentsBit = 0x0;
 static constexpr dart::compiler::target::word
@@ -23178,6 +23475,7 @@ static constexpr dart::compiler::target::word AOT_Array_kMaxNewSpaceElements =
     0xfffc;
 static constexpr dart::compiler::target::word AOT_Context_kMaxElements =
     0xfffffff;
+static constexpr dart::compiler::target::word AOT_Class_kNoTypeArguments = -1;
 static constexpr dart::compiler::target::word AOT_Function_kKindBitsPos = 0x0;
 static constexpr dart::compiler::target::word AOT_Function_kKindBitsSize = 0x5;
 static constexpr dart::compiler::target::word AOT_Function_kRecognizedBitsPos =
@@ -23271,10 +23569,20 @@ static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kTestEntryLength = 0x8;
 static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kMaxInputs =
     0x7;
+static constexpr dart::compiler::target::word
+    AOT_SubtypeTestCache_kMaxLinearCacheSize = 0xf8;
 static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kTestResult =
     0x7;
+static constexpr dart::compiler::target::word
+    AOT_TypeArguments_kAllDynamicHash = 0x1;
 static constexpr dart::compiler::target::word AOT_TypeArguments_kMaxElements =
     0xfffffff;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedClosure_kDelayedTypeArgumentsIndex = 0x0;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedClosure_kInstantiatorTypeArgumentsIndexBitsPos = 0x0;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedClosure_kInstantiatorTypeArgumentsIndexBitsSize = 0x1;
 static constexpr dart::compiler::target::word
     AOT_UntaggedClosure_kHasDelayedTypeArgumentsBit = 0x0;
 static constexpr dart::compiler::target::word
@@ -24086,6 +24394,7 @@ static constexpr dart::compiler::target::word AOT_Array_kMaxNewSpaceElements =
     0xfffd;
 static constexpr dart::compiler::target::word AOT_Context_kMaxElements =
     0xfffffff;
+static constexpr dart::compiler::target::word AOT_Class_kNoTypeArguments = -1;
 static constexpr dart::compiler::target::word AOT_Function_kKindBitsPos = 0x0;
 static constexpr dart::compiler::target::word AOT_Function_kKindBitsSize = 0x5;
 static constexpr dart::compiler::target::word AOT_Function_kRecognizedBitsPos =
@@ -24179,10 +24488,20 @@ static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kTestEntryLength = 0x8;
 static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kMaxInputs =
     0x7;
+static constexpr dart::compiler::target::word
+    AOT_SubtypeTestCache_kMaxLinearCacheSize = 0xf8;
 static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kTestResult =
     0x7;
+static constexpr dart::compiler::target::word
+    AOT_TypeArguments_kAllDynamicHash = 0x1;
 static constexpr dart::compiler::target::word AOT_TypeArguments_kMaxElements =
     0xfffffff;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedClosure_kDelayedTypeArgumentsIndex = 0x0;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedClosure_kInstantiatorTypeArgumentsIndexBitsPos = 0x0;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedClosure_kInstantiatorTypeArgumentsIndexBitsSize = 0x1;
 static constexpr dart::compiler::target::word
     AOT_UntaggedClosure_kHasDelayedTypeArgumentsBit = 0x0;
 static constexpr dart::compiler::target::word
@@ -24986,6 +25305,7 @@ static constexpr dart::compiler::target::word AOT_Array_kMaxNewSpaceElements =
     0x7ffd;
 static constexpr dart::compiler::target::word AOT_Context_kMaxElements =
     0x7ffffffffffffff;
+static constexpr dart::compiler::target::word AOT_Class_kNoTypeArguments = -1;
 static constexpr dart::compiler::target::word AOT_Function_kKindBitsPos = 0x0;
 static constexpr dart::compiler::target::word AOT_Function_kKindBitsSize = 0x5;
 static constexpr dart::compiler::target::word AOT_Function_kRecognizedBitsPos =
@@ -25079,10 +25399,20 @@ static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kTestEntryLength = 0x8;
 static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kMaxInputs =
     0x7;
+static constexpr dart::compiler::target::word
+    AOT_SubtypeTestCache_kMaxLinearCacheSize = 0xf8;
 static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kTestResult =
     0x7;
+static constexpr dart::compiler::target::word
+    AOT_TypeArguments_kAllDynamicHash = 0x1;
 static constexpr dart::compiler::target::word AOT_TypeArguments_kMaxElements =
     0x7ffffffffffffff;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedClosure_kDelayedTypeArgumentsIndex = 0x0;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedClosure_kInstantiatorTypeArgumentsIndexBitsPos = 0x0;
+static constexpr dart::compiler::target::word
+    AOT_UntaggedClosure_kInstantiatorTypeArgumentsIndexBitsSize = 0x1;
 static constexpr dart::compiler::target::word
     AOT_UntaggedClosure_kHasDelayedTypeArgumentsBit = 0x0;
 static constexpr dart::compiler::target::word

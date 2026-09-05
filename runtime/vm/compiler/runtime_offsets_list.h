@@ -88,6 +88,7 @@
   CONSTANT(Array, kMaxElements)                                                \
   CONSTANT(Array, kMaxNewSpaceElements)                                        \
   CONSTANT(Context, kMaxElements)                                              \
+  CONSTANT(Class, kNoTypeArguments)                                            \
   CONSTANT(Function, kKindBitsPos)                                             \
   CONSTANT(Function, kKindBitsSize)                                            \
   CONSTANT(Function, kRecognizedBitsPos)                                       \
@@ -139,8 +140,13 @@
   CONSTANT(SubtypeTestCache, kInstantiatorTypeArguments)                       \
   CONSTANT(SubtypeTestCache, kTestEntryLength)                                 \
   CONSTANT(SubtypeTestCache, kMaxInputs)                                       \
+  CONSTANT(SubtypeTestCache, kMaxLinearCacheSize)                              \
   CONSTANT(SubtypeTestCache, kTestResult)                                      \
+  CONSTANT(TypeArguments, kAllDynamicHash)                                     \
   CONSTANT(TypeArguments, kMaxElements)                                        \
+  CONSTANT(UntaggedClosure, kDelayedTypeArgumentsIndex)                        \
+  CONSTANT(UntaggedClosure, kInstantiatorTypeArgumentsIndexBitsPos)            \
+  CONSTANT(UntaggedClosure, kInstantiatorTypeArgumentsIndexBitsSize)           \
   CONSTANT(UntaggedClosure, kHasDelayedTypeArgumentsBit)                       \
   CONSTANT(UntaggedClosure, kHasInstantiatorTypeArgumentsBit)                  \
   CONSTANT(UntaggedClosure, kHasFunctionTypeArgumentsBit)                      \

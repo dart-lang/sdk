@@ -397,8 +397,6 @@ bool IsTypedDataClassId(intptr_t cid) {
   return dart::IsTypedDataClassId(cid);
 }
 
-const word Class::kNoTypeArguments = dart::Class::kNoTypeArguments;
-
 classid_t Class::GetId(const dart::Class& handle) {
   return handle.id();
 }

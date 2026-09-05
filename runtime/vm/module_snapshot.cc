@@ -1943,11 +1943,6 @@ void Deserializer::Deserialize() {
   AddBaseObject(Object::uninitialized_index());
   AddBaseObject(Object::uninitialized_data());
   AddBaseObject(Object::mutable_empty_array());
-  AddBaseObject(StubCode::Subtype1TestCache());
-  AddBaseObject(StubCode::Subtype2TestCache());
-  AddBaseObject(StubCode::Subtype3TestCache());
-  AddBaseObject(StubCode::Subtype4TestCache());
-  AddBaseObject(StubCode::Subtype6TestCache());
   AddBaseObject(StubCode::InstantiateTypeArguments());
   AddBaseObject(StubCode::InitAsync());
   AddBaseObject(StubCode::InitAsyncStar());

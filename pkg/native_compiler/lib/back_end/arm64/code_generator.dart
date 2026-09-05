@@ -1744,35 +1744,25 @@ final class Arm64CodeGenerator extends CodeGenerator {
             hasFunctionTypeArgs: hasFunctionTypeArgs,
           ),
         );
-        final stub = switch (stc.numInputs) {
-          1 => StubCode.Subtype1TestCache,
-          2 => StubCode.Subtype2TestCache,
-          3 => StubCode.Subtype3TestCache,
-          4 => StubCode.Subtype4TestCache,
-          6 => StubCode.Subtype6TestCache,
-          _ =>
-            throw 'Unexpected number of SubtypeTestCache inputs ${stc.numInputs} (type $type)',
-        };
-
         final Label slowPath = addSlowPath(() {
           assert(stackFrame.maxArgumentsStackSlots >= 6);
           _asm.loadFromPool(tempReg, type.dartType);
           _asm.stp(
-            TypeTestingStub.subtypeTestCacheReg,
+            SubtypeTestCacheStub.subtypeTestCacheReg,
             hasFunctionTypeArgs
-                ? TypeTestingStub.functionTypeArgumentsReg
+                ? SubtypeTestCacheStub.functionTypeArgumentsReg
                 : nullReg,
             RegOffsetAddress(stackPointerReg, 0),
           );
           _asm.stp(
             hasInstantiatorTypeArgs
-                ? TypeTestingStub.instantiatorTypeArgumentsReg
+                ? SubtypeTestCacheStub.instantiatorTypeArgumentsReg
                 : nullReg,
             tempReg,
             RegOffsetAddress(stackPointerReg, 2 * wordSize),
           );
           _asm.stp(
-            TypeTestingStub.instanceReg,
+            SubtypeTestCacheStub.instanceReg,
             nullReg, // Space for result
             RegOffsetAddress(stackPointerReg, 4 * wordSize),
           );
@@ -1781,11 +1771,15 @@ final class Arm64CodeGenerator extends CodeGenerator {
           _asm.b(done);
         });
 
-        _asm.loadFromPool(TypeTestingStub.subtypeTestCacheReg, stc);
-        _asm.callVmStub(stub);
-        _asm.cmp(TypeTestingStub.subtypeTestCacheResultReg, nullReg);
+        _asm.loadFromPool(SubtypeTestCacheStub.subtypeTestCacheReg, stc);
+        final stub = backEndState.stubFactory.getSubtypeTestCacheStub(
+          stc.numInputs,
+        );
+        _asm.callStub(stub);
+
+        _asm.cmp(SubtypeTestCacheStub.subtypeTestCacheResultReg, nullReg);
         _asm.b(slowPath, .equal);
-        _asm.mov(resultReg, TypeTestingStub.subtypeTestCacheResultReg);
+        _asm.mov(resultReg, SubtypeTestCacheStub.subtypeTestCacheResultReg);
         _asm.b(done);
     }
 

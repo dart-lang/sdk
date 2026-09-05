@@ -173,11 +173,6 @@ class SnapshotSerializer {
     addBaseObject(RuntimeConstantObject(.uninitializedData));
     addBaseObject(RuntimeConstantObject(.mutableEmptyList));
     // TODO: generate these stubs instead of referencing them from the VM.
-    addBaseObject(StubCode.Subtype1TestCache);
-    addBaseObject(StubCode.Subtype2TestCache);
-    addBaseObject(StubCode.Subtype3TestCache);
-    addBaseObject(StubCode.Subtype4TestCache);
-    addBaseObject(StubCode.Subtype6TestCache);
     addBaseObject(StubCode.InstantiateTypeArguments);
     addBaseObject(StubCode.InitAsync);
     addBaseObject(StubCode.InitAsyncStar);
