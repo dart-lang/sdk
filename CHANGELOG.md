@@ -67,6 +67,10 @@
   more efficient to convert between possibly-synchronous values at the Dart/JS
   boundary.
 
+- Added extension methods `R Function(JSArray<E>).toJSVarArgs` and `R
+  Function(T, JSArray<E>).toJSCaptureThisVarArgs` which capture JS function
+  arguments as an array rather than as separate arguments to the Dart function.
+
 [#61353]: https://github.com/dart-lang/sdk/issues/61353
 [#62699]: https://github.com/dart-lang/sdk/issues/62699
 

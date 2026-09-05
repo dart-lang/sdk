@@ -8,7 +8,9 @@ import 'dart:_interceptors'
         Interceptor,
         JavaScriptFunction,
         JavaScriptObject,
-        isJSExportedDartFunction;
+        isJSExportedDartFunction,
+        dartFunctionToJSVarArgs,
+        dartFunctionToJSCaptureThisVarArgs;
 import 'dart:_internal' show patch;
 import 'dart:_js_helper' show createObjectLiteral, staticInteropGlobalContext;
 import 'dart:_js_types';
@@ -93,6 +95,32 @@ extension FunctionToJSExportedDartFunction<T extends Function> on T {
     "'toJSCaptureThis' should have been transformed by the interop "
     'transformer.',
   );
+}
+
+@patch
+extension FunctionToJSExportedDartFunctionVarArgs<
+  R extends JSAny?,
+  E extends JSAny?
+>
+    on R Function(JSArray<E>) {
+  @patch
+  JSExportedDartFunction<R Function(JSArray<E>)> get toJSVarArgs =>
+      dartFunctionToJSVarArgs<JSArray<E>>(this)
+          as JSExportedDartFunction<R Function(JSArray<E>)>;
+}
+
+@patch
+extension FunctionToJSExportedDartFunctionCaptureThisVarArgs<
+  R extends JSAny?,
+  T extends JSObject,
+  E extends JSAny?
+>
+    on R Function(T, JSArray<E>) {
+  @patch
+  JSExportedDartFunction<R Function(T, JSArray<E>)>
+  get toJSCaptureThisVarArgs =>
+      dartFunctionToJSCaptureThisVarArgs<T, JSArray<E>>(this)
+          as JSExportedDartFunction<R Function(T, JSArray<E>)>;
 }
 
 // Embedded global property for wrapped Dart objects passed via JS interop.
