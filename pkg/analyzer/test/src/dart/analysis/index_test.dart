@@ -5,18 +5,15 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/index.dart';
-import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:analyzer_testing/package_config_file_builder.dart';
-import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:collection/collection.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../util/diff.dart';
-import '../../../util/element_printer.dart';
 import '../resolution/context_collection_resolution.dart';
 import '../resolution/node_text_expectations.dart';
 
@@ -162,7 +159,6 @@ class B extends A {}
 class B_q extends p.A {}
                     ^ IS_EXTENDED_BY qualified
                     ^ IS_REFERENCED_BY qualified
-Prefixes: (unprefixed),p
 ''');
   }
 
@@ -202,7 +198,6 @@ class B implements A {}
 class B_q implements p.A {}
                        ^ IS_IMPLEMENTED_BY qualified
                        ^ IS_REFERENCED_BY qualified
-Prefixes: (unprefixed),p
 ''');
   }
 
@@ -231,7 +226,6 @@ class D extends Object with A {}
 class D_q extends Object with p.A {}
                                 ^ IS_MIXED_IN_BY qualified
                                 ^ IS_REFERENCED_BY qualified
-Prefixes: (unprefixed),p
 ''');
   }
 
@@ -260,7 +254,6 @@ class D2 = Object with A;
 class D2_q = Object with p.A;
                            ^ IS_MIXED_IN_BY qualified
                            ^ IS_REFERENCED_BY qualified
-Prefixes: (unprefixed),p
 ''');
   }
 
@@ -285,7 +278,6 @@ enum E implements A { v }
 enum E_q implements p.A { v }
                       ^ IS_IMPLEMENTED_BY qualified
                       ^ IS_REFERENCED_BY qualified
-Prefixes: (unprefixed),p
 ''');
   }
 
@@ -312,7 +304,6 @@ extension type E_q(A it) implements p.A {}
                    ^ IS_REFERENCED_BY
                                       ^ IS_IMPLEMENTED_BY qualified
                                       ^ IS_REFERENCED_BY qualified
-Prefixes: (unprefixed),p
 ''');
   }
 
@@ -337,7 +328,6 @@ mixin M implements A {}
 mixin M_q implements p.A {}
                        ^ IS_IMPLEMENTED_BY qualified
                        ^ IS_REFERENCED_BY qualified
-Prefixes: (unprefixed),p
 ''');
   }
 
@@ -362,7 +352,6 @@ mixin M2 on A {}
 mixin M2_q on p.A {}
                 ^ CONSTRAINS qualified
                 ^ IS_REFERENCED_BY qualified
-Prefixes: (unprefixed),p
 ''');
   }
 
@@ -411,7 +400,6 @@ class A {
 @p.A.myConstant
    ^ IS_REFERENCED_BY qualified
 void f() {}
-Prefixes: (unprefixed),p
 ''');
   }
 
@@ -519,7 +507,6 @@ class A {}
      ^ IS_REFERENCED_BY
                ^ IS_REFERENCED_BY qualified
 void f() {}
-Prefixes: (unprefixed),p
 ''');
   }
 
@@ -617,7 +604,6 @@ void f() {
   p.A();
     ^ IS_REFERENCED_BY qualified
 }
-Prefixes: (unprefixed),p
 ''');
   }
 
@@ -650,7 +636,6 @@ void f() {
   p.A.foo();
     ^ IS_REFERENCED_BY qualified
 }
-Prefixes: (unprefixed),p
 ''');
   }
 
@@ -693,7 +678,6 @@ void f() {
   List<p.A> v4;
          ^ IS_REFERENCED_BY qualified
 }
-Prefixes: (unprefixed),p
 ''');
   }
 
@@ -752,7 +736,6 @@ var v = A;
         ^ IS_REFERENCED_BY
 var v_p = p.A;
             ^ IS_REFERENCED_BY qualified
-Prefixes: (unprefixed),p
 ''');
   }
 
@@ -2338,7 +2321,6 @@ enum E {
 @p.E.myConstant
    ^ IS_REFERENCED_BY qualified
 void f() {}
-Prefixes: (unprefixed),p
 ''');
   }
 
@@ -2363,7 +2345,6 @@ enum E { v }
      ^ IS_REFERENCED_BY
                ^ IS_REFERENCED_BY qualified
 void f() {}
-Prefixes: (unprefixed),p
 ''');
   }
 
@@ -2403,7 +2384,6 @@ void f() {
   const p.E();
           ^ IS_REFERENCED_BY qualified
 }
-Prefixes: (unprefixed),p
 ''');
   }
 
@@ -2438,7 +2418,6 @@ void f() {
   p.E.foo();
     ^ IS_REFERENCED_BY qualified
 }
-Prefixes: (unprefixed),p
 ''');
   }
 
@@ -2471,7 +2450,6 @@ void f() {
   p.E v2;
     ^ IS_REFERENCED_BY qualified
 }
-Prefixes: (unprefixed),p
 ''');
   }
 
@@ -2508,7 +2486,6 @@ void f() {
   p.E.foo();
     ^ IS_REFERENCED_BY qualified
 }
-Prefixes: (unprefixed),p
 ''');
   }
 
@@ -2540,7 +2517,6 @@ void f() {
   p.E(0).foo();
     ^ IS_REFERENCED_BY qualified
 }
-Prefixes: (unprefixed),p
 ''');
   }
 
@@ -2565,7 +2541,6 @@ extension type B(int it) implements A {}
 extension type B_q(int it) implements p.A {}
                                         ^ IS_IMPLEMENTED_BY qualified
                                         ^ IS_REFERENCED_BY qualified
-Prefixes: (unprefixed),p
 ''');
   }
 
@@ -2592,7 +2567,6 @@ extension type const A(int it) {}
 @p.A(0)
    ^ IS_REFERENCED_BY qualified
 void f() {}
-Prefixes: (unprefixed),p
 ''');
   }
 
@@ -2617,7 +2591,6 @@ extension type A(int it) {}
      ^ IS_REFERENCED_BY
                ^ IS_REFERENCED_BY qualified
 void f() {}
-Prefixes: (unprefixed),p
 ''');
   }
 
@@ -2646,7 +2619,6 @@ void f() {
   p.A(0);
     ^ IS_REFERENCED_BY qualified
 }
-Prefixes: (unprefixed),p
 ''');
   }
 
@@ -2679,7 +2651,6 @@ void f() {
   p.A.foo();
     ^ IS_REFERENCED_BY qualified
 }
-Prefixes: (unprefixed),p
 ''');
   }
 
@@ -2712,7 +2683,6 @@ void f() {
   p.A v2;
     ^ IS_REFERENCED_BY qualified
 }
-Prefixes: (unprefixed),p
 ''');
   }
 
@@ -6794,7 +6764,6 @@ mixin A {
 @p.A.myConstant
    ^ IS_REFERENCED_BY qualified
 void f() {}
-Prefixes: (unprefixed),p
 ''');
   }
 
@@ -6819,7 +6788,6 @@ mixin A {}
      ^ IS_REFERENCED_BY
                ^ IS_REFERENCED_BY qualified
 void f() {}
-Prefixes: (unprefixed),p
 ''');
   }
 
@@ -6852,7 +6820,6 @@ void f() {
   p.A.foo();
     ^ IS_REFERENCED_BY qualified
 }
-Prefixes: (unprefixed),p
 ''');
   }
 
@@ -6875,7 +6842,6 @@ mixin A {}
 void f(A v1, p.A v2) {}
        ^ IS_REFERENCED_BY
                ^ IS_REFERENCED_BY qualified
-Prefixes: (unprefixed),p
 ''');
   }
 
@@ -7373,7 +7339,6 @@ void f() {
   p.foo;
     ^^^ IS_REFERENCED_BY qualified
 }
-Prefixes: (unprefixed),p
 ''');
   }
 
@@ -7480,8 +7445,6 @@ void f() {
   p.foo;
     ^^^ getter IS_INVOKED_BY qualified
 }
-Prefixes:
-  getter: (unprefixed),p
 ''',
     );
   }
@@ -7598,8 +7561,6 @@ void f() {
       ^^^ getter IS_INVOKED_BY qualified
       ^^^ setter IS_INVOKED_BY qualified
 }
-Prefixes:
-  getter: (unprefixed),p
 ''',
     );
   }
@@ -7784,8 +7745,6 @@ void f() {
       ^^^ getter IS_INVOKED_BY qualified
       ^^^ setter IS_INVOKED_BY qualified
 }
-Prefixes:
-  getter: (unprefixed),p
 ''',
     );
   }
@@ -7954,7 +7913,6 @@ typedef B = A<int>;
      ^ IS_REFERENCED_BY
                ^ IS_REFERENCED_BY qualified
 void f() {}
-Prefixes: (unprefixed),p
 ''');
   }
 
@@ -8173,14 +8131,6 @@ final class _IndexAnnotation {
   });
 }
 
-final class _IndexElementToPrint {
-  final Element element;
-  final String? label;
-  final int? order;
-
-  _IndexElementToPrint({required this.element, this.label, this.order});
-}
-
 final class _IndexResult {
   final TestResolvedUnitResult resolvedUnit;
   final AnalysisDriverUnitIndex index;
@@ -8193,8 +8143,6 @@ final class _IndexResult {
 final class _IndexTextBuilder {
   final _IndexResult result;
 
-  final Map<int, Element> _elementById = {};
-
   _IndexTextBuilder(this.result);
 
   String indexText({
@@ -8203,7 +8151,6 @@ final class _IndexTextBuilder {
   }) {
     var index = result.index;
     var annotations = <_IndexAnnotation>[];
-    var elementsWithPrefixes = <int, _IndexElementToPrint>{};
 
     var elementLabels = <int, ({String text, int order})>{};
     var nextLabelOrder = 0;
@@ -8220,15 +8167,12 @@ final class _IndexTextBuilder {
     expect(index.usedElements.length, index.usedElementOffsets.length);
     expect(index.usedElements.length, index.usedElementLengths.length);
     expect(index.usedElements.length, index.usedElementIsQualifiedFlags.length);
-    expect(index.elementUnits.length, index.elementImportPrefixes.length);
-
     for (var i = 0; i < index.usedElements.length; i++) {
       var elementId = index.usedElements[i];
       var labelInfo = elementLabels[elementId];
       if (labelInfo == null) {
         continue;
       }
-      var element = _elementForId(elementId);
       var labelText = labelInfo.text;
       var labelOrder = labelInfo.order;
       var kind = index.usedElementKinds[i];
@@ -8245,13 +8189,6 @@ final class _IndexTextBuilder {
           ].join(' '),
         ),
       );
-      if (index.elementImportPrefixes[elementId].isNotEmpty) {
-        elementsWithPrefixes[elementId] = _IndexElementToPrint(
-          element: element,
-          label: labelText,
-          order: labelOrder,
-        );
-      }
     }
 
     expect(index.usedNames.length, index.usedNameKinds.length);
@@ -8330,39 +8267,6 @@ final class _IndexTextBuilder {
       }
     }
 
-    if (elementsWithPrefixes.isNotEmpty) {
-      var entries = elementsWithPrefixes.entries.sorted((first, second) {
-        var firstOrder = first.value.order;
-        var secondOrder = second.value.order;
-        if (firstOrder != null && secondOrder != null) {
-          return firstOrder.compareTo(secondOrder);
-        }
-        return _elementText(
-          first.value.element,
-        ).compareTo(_elementText(second.value.element));
-      });
-
-      String prefixesFor(int elementId) {
-        return index.elementImportPrefixes[elementId]
-            .split(',')
-            .map((prefix) => prefix.isEmpty ? '(unprefixed)' : prefix)
-            .join(',');
-      }
-
-      if (entries case [var entry] when entry.value.label == '') {
-        buffer.writeln('Prefixes: ${prefixesFor(entry.key)}');
-        return buffer.toString();
-      }
-
-      buffer.writeln('Prefixes:');
-      for (var entry in entries) {
-        var prefixes = prefixesFor(entry.key);
-        var element = entry.value;
-        var target = element.label ?? _elementText(element.element);
-        buffer.writeln('  $target: $prefixes');
-      }
-    }
-
     return buffer.toString();
   }
 
@@ -8409,71 +8313,6 @@ final class _IndexTextBuilder {
       }
     }
     return buffer.toString();
-  }
-
-  Element _computeElementForId(int elementId) {
-    var index = result.index;
-    var unitId = index.elementUnits[elementId];
-    var libraryPath = index.strings[index.unitLibraryPaths[unitId]];
-    var unitPath = index.strings[index.unitUnitPaths[unitId]];
-
-    var session = result.resolvedUnit.session as AnalysisSessionImpl;
-    var libraryUri = session.uriConverter.pathToUri(libraryPath);
-    if (libraryUri == null) {
-      fail('No URI for library path $libraryPath');
-    }
-
-    var elementFactory = session.elementFactory;
-    var libraryReference = elementFactory.rootReference.libraryIfExists(
-      libraryUri,
-    );
-    if (libraryReference == null) {
-      fail('No library reference for $libraryUri');
-    }
-
-    var library = elementFactory.elementOfReference3(libraryReference);
-    library as LibraryElementImpl;
-
-    var loadLibraryFunction = library.loadLibraryFunction;
-    if (_findElementId(loadLibraryFunction) == elementId) {
-      return loadLibraryFunction;
-    }
-
-    var unit = library.fragments.singleWhere(
-      (fragment) => fragment.source.fullName == unitPath,
-    );
-
-    Element? found;
-    void visit(Fragment fragment) {
-      var element = fragment.element;
-      if (_findElementId(element) == elementId) {
-        if (found != null && !identical(found, element)) {
-          fail('Multiple elements for index id $elementId: $found, $element');
-        }
-        found = element;
-      }
-      for (var child in fragment.children) {
-        visit(child);
-      }
-    }
-
-    visit(unit);
-    return found ?? (throw StateError('No element for index id $elementId'));
-  }
-
-  Element _elementForId(int elementId) {
-    return _elementById[elementId] ??= _computeElementForId(elementId);
-  }
-
-  String _elementText(Element element) {
-    var buffer = StringBuffer();
-    var sink = TreeStringSink(sink: buffer, indent: '');
-    var elementPrinter = ElementPrinter(
-      sink: sink,
-      configuration: ElementPrinterConfiguration(),
-    );
-    elementPrinter.writeElement2(element);
-    return buffer.toString().trimRight();
   }
 
   /// Return the [element] identifier in the result index, or `null`.

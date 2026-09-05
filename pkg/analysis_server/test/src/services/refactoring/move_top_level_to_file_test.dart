@@ -981,6 +981,46 @@ class A {}
     );
   }
 
+  Future<void> test_imports_referenceInThirdFile_topLevelFunction() async {
+    var originalSource = '''
+class A {}
+
+void f^() {}
+''';
+    var declarationName = 'f';
+    var otherFilePath = '$projectFolderPath/lib/c.dart';
+    var otherFileContent = '''
+import 'package:test/main.dart' as p;
+
+void g() {
+  p.f();
+  var tearOff = p.f;
+}
+''';
+
+    var expected = '''
+>>>>>>>>>> lib/c.dart
+import 'package:test/f.dart' as p;
+import 'package:test/main.dart' as p;
+
+void g() {
+  p.f();
+  var tearOff = p.f;
+}
+>>>>>>>>>> lib/f.dart created
+void f() {}
+>>>>>>>>>> lib/main.dart
+class A {}
+''';
+    await _singleDeclaration(
+      originalSource: originalSource,
+      expected: expected,
+      declarationName: declarationName,
+      otherFilePath: otherFilePath,
+      otherFileContent: otherFileContent,
+    );
+  }
+
   Future<void> test_imports_referenceInThirdFile_withMultiplePrefixes() async {
     var originalSource = '''
 class A {}
@@ -1043,6 +1083,43 @@ import 'package:test/b.dart' as p;
 import 'package:test/main.dart' as p;
 
 p.B? b;
+>>>>>>>>>> lib/main.dart
+class A {}
+''';
+    await _singleDeclaration(
+      originalSource: originalSource,
+      expected: expected,
+      declarationName: declarationName,
+      otherFilePath: otherFilePath,
+      otherFileContent: otherFileContent,
+    );
+  }
+
+  Future<void>
+  test_imports_referenceInThirdFile_withUnusedPrefixForDeclaration() async {
+    var originalSource = '''
+class A {}
+
+class B^ {}
+''';
+    var declarationName = 'B';
+    var otherFilePath = '$projectFolderPath/lib/c.dart';
+    var otherFileContent = '''
+import 'package:test/main.dart' as p;
+import 'package:test/main.dart' as q;
+
+void f(p.B b, q.A a) {}
+''';
+
+    var expected = '''
+>>>>>>>>>> lib/b.dart created
+class B {}
+>>>>>>>>>> lib/c.dart
+import 'package:test/b.dart' as p;
+import 'package:test/main.dart' as p;
+import 'package:test/main.dart' as q;
+
+void f(p.B b, q.A a) {}
 >>>>>>>>>> lib/main.dart
 class A {}
 ''';

@@ -2,6 +2,7 @@
 
 - new lint: `future_sync_value`
 - new _(experimental)_ lint: `unnecessary_this_alias`
+- update `simplify_variable_pattern` to support inherited getters and methods.
 - update `use_key_in_widget_constructors` to no longer report classes whose
   superclass constructor has no `Key` parameter to forward.
 

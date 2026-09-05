@@ -10,6 +10,20 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:collection/collection.dart';
 
+/// Returns the declaration whose import makes [element] available.
+Element _importReferenceOwner(Element element) {
+  if (element is PropertyAccessorElement && element.isOriginVariable) {
+    return element.variable;
+  }
+  if (element case ExecutableElement(
+    isStatic: false,
+    enclosingElement: ExtensionElement extension,
+  )) {
+    return extension;
+  }
+  return element;
+}
+
 /// A utility class used to analyze a library from which some set of
 /// declarations are being moved in order to compute the set of changes needed
 /// in order for the imports to be correct in both the library from which the
@@ -40,20 +54,13 @@ class ImportAnalyzer {
   /// The declarations being moved are in the file at the given [path] in the
   /// given [ranges].
   new(this.result, String path, List<SourceRange> ranges) {
-    for (var unit in result.units) {
-      var finder = _ReferenceFinder(
-        unit,
-        _ElementRecorder(this, path == unit.path ? ranges : []),
-      );
-      unit.unit.accept(finder);
-    }
-    // Remove references that will be within the same file.
-    for (var element in movingDeclarations) {
-      movingReferences.remove(element);
-    }
-    for (var element in stayingDeclarations) {
-      stayingReferences.remove(element);
-    }
+    _analyze(path, ranges);
+  }
+
+  /// Analyzes all references in [result], without classifying any code as
+  /// being moved.
+  new referencesIn(this.result) {
+    _analyze(null, const []);
   }
 
   /// Return `true` if there are any references in the code that's being moved
@@ -80,6 +87,43 @@ class ImportAnalyzer {
       }
     }
     return false;
+  }
+
+  /// Returns the imports used for references to [element].
+  ///
+  /// Elements from a different analysis session are matched by their declaring
+  /// library, kind, and name. This is necessary when a reference is found by a
+  /// search engine backed by multiple analysis drivers.
+  Set<LibraryImport> importsUsedToReference(Element element) {
+    var owner = _importReferenceOwner(element);
+    var result = <LibraryImport>{};
+    for (var entry in stayingReferences.entries) {
+      var entryOwner = _importReferenceOwner(entry.key);
+      if (identical(entryOwner, owner) ||
+          entryOwner.kind == owner.kind &&
+              entryOwner.name == owner.name &&
+              entryOwner.library?.uri == owner.library?.uri) {
+        result.addAll(entry.value);
+      }
+    }
+    return result;
+  }
+
+  void _analyze(String? path, List<SourceRange> ranges) {
+    for (var unit in result.units) {
+      var finder = _ReferenceFinder(
+        unit,
+        _ElementRecorder(this, path == unit.path ? ranges : []),
+      );
+      unit.unit.accept(finder);
+    }
+    // Remove references that will be within the same file.
+    for (var element in movingDeclarations) {
+      movingReferences.remove(element);
+    }
+    for (var element in stayingDeclarations) {
+      stayingReferences.remove(element);
+    }
   }
 }
 
@@ -123,11 +167,7 @@ class _ElementRecorder {
     int referenceOffset,
     LibraryImport? import,
   ) {
-    if (referencedElement is PropertyAccessorElement) {
-      if (referencedElement.isOriginVariable) {
-        referencedElement = referencedElement.variable;
-      }
-    }
+    referencedElement = _importReferenceOwner(referencedElement);
 
     if (_isBeingMoved(referenceOffset)) {
       var imports = analyzer.movingReferences.putIfAbsent(
