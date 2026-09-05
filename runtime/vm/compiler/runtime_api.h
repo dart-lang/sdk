@@ -431,7 +431,10 @@ class UntaggedObject : public AllStatic {
 };
 
 class UntaggedClosure : public AllStatic {
+  static const word kInstantiatorTypeArgumentsIndexBitsPos;
+  static const word kInstantiatorTypeArgumentsIndexBitsSize;
   static const word kHasDelayedTypeArgumentsBit;
+  static const word kDelayedTypeArgumentsIndex;
   static const word kHasInstantiatorTypeArgumentsBit;
   static const word kHasFunctionTypeArgumentsBit;
   static const word kFunctionTypeArgumentsIndexBitsPos;
@@ -1490,6 +1493,7 @@ class SubtypeTestCache : public AllStatic {
   static word num_inputs_offset();
 
   static const word kMaxInputs;
+  static const word kMaxLinearCacheSize;
   static const word kTestEntryLength;
   static const word kInstanceCidOrSignature;
   static const word kDestinationType;
@@ -1636,6 +1640,7 @@ class TypeArguments : public AllStatic {
   static word InstanceSize();
   FINAL_CLASS();
 
+  static const word kAllDynamicHash;
   static const word kMaxElements;
 };
 

@@ -16,6 +16,7 @@ base class VMOffsets {
   int get Array_kMaxElements => throw 'Unknown';
   int get Array_kMaxNewSpaceElements => throw 'Unknown';
   int get Context_kMaxElements => throw 'Unknown';
+  int get Class_kNoTypeArguments => throw 'Unknown';
   int get Function_kKindBitsPos => throw 'Unknown';
   int get Function_kKindBitsSize => throw 'Unknown';
   int get Function_kRecognizedBitsPos => throw 'Unknown';
@@ -69,8 +70,15 @@ base class VMOffsets {
   int get SubtypeTestCache_kInstantiatorTypeArguments => throw 'Unknown';
   int get SubtypeTestCache_kTestEntryLength => throw 'Unknown';
   int get SubtypeTestCache_kMaxInputs => throw 'Unknown';
+  int get SubtypeTestCache_kMaxLinearCacheSize => throw 'Unknown';
   int get SubtypeTestCache_kTestResult => throw 'Unknown';
+  int get TypeArguments_kAllDynamicHash => throw 'Unknown';
   int get TypeArguments_kMaxElements => throw 'Unknown';
+  int get UntaggedClosure_kDelayedTypeArgumentsIndex => throw 'Unknown';
+  int get UntaggedClosure_kInstantiatorTypeArgumentsIndexBitsPos =>
+      throw 'Unknown';
+  int get UntaggedClosure_kInstantiatorTypeArgumentsIndexBitsSize =>
+      throw 'Unknown';
   int get UntaggedClosure_kHasDelayedTypeArgumentsBit => throw 'Unknown';
   int get UntaggedClosure_kHasInstantiatorTypeArgumentsBit => throw 'Unknown';
   int get UntaggedClosure_kHasFunctionTypeArgumentsBit => throw 'Unknown';
@@ -648,6 +656,8 @@ final class Arm64VMOffsets extends VMOffsets {
   @override
   int get Context_kMaxElements => 0x7ffffffffffffff;
   @override
+  int get Class_kNoTypeArguments => -1;
+  @override
   int get Function_kKindBitsPos => 0x0;
   @override
   int get Function_kKindBitsSize => 0x5;
@@ -750,9 +760,19 @@ final class Arm64VMOffsets extends VMOffsets {
   @override
   int get SubtypeTestCache_kMaxInputs => 0x7;
   @override
+  int get SubtypeTestCache_kMaxLinearCacheSize => 0xf8;
+  @override
   int get SubtypeTestCache_kTestResult => 0x7;
   @override
+  int get TypeArguments_kAllDynamicHash => 0x1;
+  @override
   int get TypeArguments_kMaxElements => 0x7ffffffffffffff;
+  @override
+  int get UntaggedClosure_kDelayedTypeArgumentsIndex => 0x0;
+  @override
+  int get UntaggedClosure_kInstantiatorTypeArgumentsIndexBitsPos => 0x0;
+  @override
+  int get UntaggedClosure_kInstantiatorTypeArgumentsIndexBitsSize => 0x1;
   @override
   int get UntaggedClosure_kHasDelayedTypeArgumentsBit => 0x0;
   @override
@@ -1679,6 +1699,8 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   @override
   int get Context_kMaxElements => 0x7ffffffffffffff;
   @override
+  int get Class_kNoTypeArguments => -1;
+  @override
   int get Function_kKindBitsPos => 0x0;
   @override
   int get Function_kKindBitsSize => 0x5;
@@ -1781,9 +1803,19 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   @override
   int get SubtypeTestCache_kMaxInputs => 0x7;
   @override
+  int get SubtypeTestCache_kMaxLinearCacheSize => 0xf8;
+  @override
   int get SubtypeTestCache_kTestResult => 0x7;
   @override
+  int get TypeArguments_kAllDynamicHash => 0x1;
+  @override
   int get TypeArguments_kMaxElements => 0x7ffffffffffffff;
+  @override
+  int get UntaggedClosure_kDelayedTypeArgumentsIndex => 0x0;
+  @override
+  int get UntaggedClosure_kInstantiatorTypeArgumentsIndexBitsPos => 0x0;
+  @override
+  int get UntaggedClosure_kInstantiatorTypeArgumentsIndexBitsSize => 0x1;
   @override
   int get UntaggedClosure_kHasDelayedTypeArgumentsBit => 0x0;
   @override

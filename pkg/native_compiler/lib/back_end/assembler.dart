@@ -219,6 +219,13 @@ abstract base class Assembler {
   void loadClassIdMayBeSmi(Register result, Register object);
   void loadIsolateGroup(Register rd);
   void loadClassById(Register result, Register classId);
+  void loadIndexed(
+    Register result,
+    Register base,
+    Register index,
+    int offset, [
+    OperandSize elemSize = .s64,
+  ]);
 
   void combineHashes(Register hash, Register other);
   void finalizeHash(int bitSize, Register hash);

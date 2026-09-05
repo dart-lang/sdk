@@ -394,17 +394,20 @@ final class Arm64Constraints extends Constraints {
     };
     if (callsSubtypeTestCacheStub) {
       final inputs = [
-        TypeTestingStub.instanceReg,
+        SubtypeTestCacheStub.instanceReg,
         if (instr.inputCount > 1) ...const [
-          TypeTestingStub.instantiatorTypeArgumentsReg,
-          TypeTestingStub.functionTypeArgumentsReg,
+          SubtypeTestCacheStub.instantiatorTypeArgumentsReg,
+          SubtypeTestCacheStub.functionTypeArgumentsReg,
         ],
       ];
       return InstructionConstraints(
-        TypeTestingStub.subtypeTestCacheResultReg,
+        SubtypeTestCacheStub.subtypeTestCacheResultReg,
         inputs,
         // TODO: save registers on slow path
-        allRegistersExcept(TypeTestingStub.subtypeTestCacheResultReg, inputs),
+        allRegistersExcept(
+          SubtypeTestCacheStub.subtypeTestCacheResultReg,
+          inputs,
+        ),
         Safepoint(),
       );
     }
