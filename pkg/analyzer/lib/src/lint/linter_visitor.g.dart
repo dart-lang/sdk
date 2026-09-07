@@ -1879,6 +1879,13 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
     node.visitChildren2(this);
   }
 
+  @experimental
+  @override
+  void visitImplicitFunctionInstantiation(ImplicitFunctionInstantiation node) {
+    _runSubscriptions(node, _registry._forImplicitFunctionInstantiation);
+    node.visitChildren2(this);
+  }
+
   @override
   void visitImportDirective(ImportDirective node) {
     _runSubscriptions(node, _registry._forImportDirective);
@@ -4656,6 +4663,9 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   final List<_Subscription2<ImplicitCallReference>> _forImplicitCallReference =
       [];
 
+  final List<_Subscription2<ImplicitFunctionInstantiation>>
+  _forImplicitFunctionInstantiation = [];
+
   final List<_Subscription2<ImportDirective>> _forImportDirective = [];
 
   final List<_Subscription2<ImportPrefixedFunctionInvocation>>
@@ -5745,6 +5755,17 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   ) {
     _hasNodeProcessors = true;
     _forImplicitCallReference.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
+  }
+
+  @override
+  void addImplicitFunctionInstantiation(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
+    _hasNodeProcessors = true;
+    _forImplicitFunctionInstantiation.add(
       _Subscription2(rule, visitor, _getTimer(rule)),
     );
   }

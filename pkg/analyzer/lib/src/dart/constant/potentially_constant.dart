@@ -279,6 +279,11 @@ class _Collector {
       return;
     }
 
+    if (node is ImplicitFunctionInstantiation) {
+      collect(node.operand);
+      return;
+    }
+
     if (node is TypeLiteral) {
       var type = node.type;
       var element = type.element;

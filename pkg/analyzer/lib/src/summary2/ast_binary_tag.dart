@@ -119,6 +119,7 @@ enum AstNodeTag {
   DotShorthandConstructorInvocation2,
   UnqualifiedNameExpression,
   ImportPrefixedNameExpression,
+  ImplicitFunctionInstantiation,
 }
 
 enum DirectiveUriKind {

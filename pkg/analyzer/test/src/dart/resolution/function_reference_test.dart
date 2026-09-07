@@ -3773,11 +3773,26 @@ void f(({T Function<T>(T) f1, String f2}) r) {
 }
 ''');
 
-    var node = result.findNode.functionReference(r'.f1;');
+    var node = result.findNode.implicitFunctionInstantiation(r'.f1;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: PropertyAccess
+ImplicitFunctionInstantiation
+  operand: PropertyAccess
     target2: SimpleIdentifier
+      token: r
+      element: <testLibrary>::@function::f::@formalParameter::r
+      staticType: ({T Function<T>(T) f1, String f2})
+    operator: .
+    propertyName: SimpleIdentifier
+      token: f1
+      element: <null>
+      staticType: T Function<T>(T)
+    staticType: T Function<T>(T)
+  staticType: int Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: PropertyAccess
+    target: SimpleIdentifier
       token: r
       element: <testLibrary>::@function::f::@formalParameter::r
       staticType: ({T Function<T>(T) f1, String f2})
@@ -3802,11 +3817,26 @@ void f((T Function<T>(T), String) r) {
 }
 ''');
 
-    var node = result.findNode.functionReference(r'.$1;');
+    var node = result.findNode.implicitFunctionInstantiation(r'.$1;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: PropertyAccess
+ImplicitFunctionInstantiation
+  operand: PropertyAccess
     target2: SimpleIdentifier
+      token: r
+      element: <testLibrary>::@function::f::@formalParameter::r
+      staticType: (T Function<T>(T), String)
+    operator: .
+    propertyName: SimpleIdentifier
+      token: $1
+      element: <null>
+      staticType: T Function<T>(T)
+    staticType: T Function<T>(T)
+  staticType: int Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: PropertyAccess
+    target: SimpleIdentifier
       token: r
       element: <testLibrary>::@function::f::@formalParameter::r
       staticType: (T Function<T>(T), String)
@@ -4739,14 +4769,18 @@ class D<S> {
 }
 ''');
 
-    var node = result.findNode.unqualifiedNameExpression('id);');
+    var node = result.findNode.implicitFunctionInstantiation('id);');
     assertResolvedNodeText(node, r'''
-UnqualifiedNameExpression
-  name: id
-  resolution: ExecutableTearOffResolution
-    element: <testLibrary>::@class::D::@method::id
-    type: A<T> Function<T>(A<T>)
+ImplicitFunctionInstantiation
+  operand: UnqualifiedNameExpression
+    name: id
+    resolution: ExecutableTearOffResolution
+      element: <testLibrary>::@class::D::@method::id
+      type: A<T> Function<T>(A<T>)
+    staticType: A<T> Function<T>(A<T>)
   staticType: A<S> Function(A<S>)
+  typeArgumentTypes
+    S
 V1: SimpleIdentifier
   token: id
   element: <testLibrary>::@class::D::@method::id
@@ -4767,10 +4801,12 @@ void Function(int) foo(void Function<T>(T) f) {
 }
 ''');
 
-    var node = result.findNode.functionReference('as void Function<T>(T);');
+    var node = result.findNode.implicitFunctionInstantiation(
+      'as void Function<T>(T);',
+    );
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: AsExpression
+ImplicitFunctionInstantiation
+  operand: AsExpression
     expression2: ParenthesizedExpression
       leftParenthesis: (
       expression2: AsExpression
@@ -4779,10 +4815,6 @@ FunctionReference
           resolution: VariableReadResolution
             element: <testLibrary>::@function::foo::@formalParameter::f
             type: void Function<T>(T)
-          staticType: void Function<T>(T)
-        expression(v1): SimpleIdentifier
-          token: f
-          element: <testLibrary>::@function::foo::@formalParameter::f
           staticType: void Function<T>(T)
         asOperator: as
         type: NamedType
@@ -4819,7 +4851,52 @@ FunctionReference
               element: isPrivate
                 type: T
         rightParenthesis: )
-      parameters(v1): FormalParameterList
+      declaredFragment: GenericFunctionTypeElement
+        parameters
+          <empty>
+            kind: required positional
+            element:
+              type: T
+        returnType: void
+        type: void Function<T>(T)
+      type: void Function<T>(T)
+    staticType: void Function<T>(T)
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: AsExpression
+    expression: ParenthesizedExpression
+      leftParenthesis: (
+      expression: AsExpression
+        expression: SimpleIdentifier
+          token: f
+          element: <testLibrary>::@function::foo::@formalParameter::f
+          staticType: void Function<T>(T)
+        asOperator: as
+        type: NamedType
+          name: dynamic
+          element: dynamic
+          type: dynamic
+        staticType: dynamic
+      rightParenthesis: )
+      staticType: dynamic
+    asOperator: as
+    type: GenericFunctionType
+      returnType: NamedType
+        name: void
+        element: <null>
+        type: void
+      functionKeyword: Function
+      typeParameters: TypeParameterList
+        leftBracket: <
+        typeParameters
+          TypeParameter
+            name: T
+            declaredFragment: <testLibraryFragment> T@89
+              defaultType: null
+        rightBracket: >
+      parameters: FormalParameterList
         leftParenthesis: (
         parameter: RegularFormalParameter
           type: NamedType
@@ -4854,10 +4931,10 @@ void Function(int) foo(void Function<T>(T) f) {
 }
 ''');
 
-    var node = result.findNode.functionReference('g = f;');
+    var node = result.findNode.implicitFunctionInstantiation('g = f;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: DirectAssignment
+ImplicitFunctionInstantiation
+  operand: DirectAssignment
     target: UnqualifiedNameAssignmentTarget
       name: g
       read: <null>
@@ -4873,7 +4950,11 @@ FunctionReference
       correspondingParameter: <testLibrary>::@setter::g::@formalParameter::value
       staticType: void Function<T>(T)
     staticType: void Function<T>(T)
-  function(v1): AssignmentExpression
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: AssignmentExpression
     leftHandSide: SimpleIdentifier
       token: g
       element: <null>
@@ -4909,10 +4990,10 @@ void Function(int) foo(void Function<T>(T) f) {
 }
 ''');
 
-    var node = result.findNode.functionReference('f += 1');
+    var node = result.findNode.implicitFunctionInstantiation('f += 1');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: CompoundAssignment
+ImplicitFunctionInstantiation
+  operand: CompoundAssignment
     target: UnqualifiedNameAssignmentTarget
       name: f
       read: VariableReadResolution
@@ -4930,7 +5011,11 @@ FunctionReference
     element: <testLibrary>::@extension::#0::@method::+
     operatorResultType: void Function<T>(T)
     staticType: void Function<T>(T)
-  function(v1): AssignmentExpression
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: AssignmentExpression
     leftHandSide: SimpleIdentifier
       token: f
       element: <testLibrary>::@function::foo::@formalParameter::f
@@ -4959,10 +5044,10 @@ Future<void Function(int)> foo(Future<void Function<T>(T)> f) async {
 }
 ''');
 
-    var node = result.findNode.functionReference('await f');
+    var node = result.findNode.implicitFunctionInstantiation('await f');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: AwaitExpression
+ImplicitFunctionInstantiation
+  operand: AwaitExpression
     awaitKeyword: await
     expression2: UnqualifiedNameExpression
       name: f
@@ -4970,7 +5055,14 @@ FunctionReference
         element: <testLibrary>::@function::foo::@formalParameter::f
         type: Future<void Function<T>(T)>
       staticType: Future<void Function<T>(T)>
-    expression(v1): SimpleIdentifier
+    staticType: void Function<T>(T)
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: AwaitExpression
+    awaitKeyword: await
+    expression: SimpleIdentifier
       token: f
       element: <testLibrary>::@function::foo::@formalParameter::f
       staticType: Future<void Function<T>(T)>
@@ -4994,10 +5086,10 @@ void Function(int) foo(C c) {
 }
 ''');
 
-    var node = result.findNode.functionReference('c + 1');
+    var node = result.findNode.implicitFunctionInstantiation('c + 1');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: BinaryOperatorInvocation
+ImplicitFunctionInstantiation
+  operand: BinaryOperatorInvocation
     leftOperand: UnqualifiedNameExpression
       name: c
       resolution: VariableReadResolution
@@ -5012,7 +5104,11 @@ FunctionReference
     binaryOperator: add
     element: <testLibrary>::@class::C::@method::+
     staticType: void Function<T>(T)
-  function(v1): BinaryExpression
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: BinaryExpression
     leftOperand: SimpleIdentifier
       token: c
       element: <testLibrary>::@function::foo::@formalParameter::c
@@ -5038,16 +5134,20 @@ void Function(int) foo(void Function<T>(T) f) {
 }
 ''');
 
-    var node = result.findNode.functionReference('f..toString()');
+    var node = result.findNode.implicitFunctionInstantiation('f..toString()');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: UnqualifiedNameExpression
+ImplicitFunctionInstantiation
+  operand: UnqualifiedNameExpression
     name: f
     resolution: VariableReadResolution
       element: <testLibrary>::@function::foo::@formalParameter::f
       type: void Function<T>(T)
     staticType: void Function<T>(T)
-  function(v1): SimpleIdentifier
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: SimpleIdentifier
     token: f
     element: <testLibrary>::@function::foo::@formalParameter::f
     staticType: void Function<T>(T)
@@ -5067,22 +5167,24 @@ C<int> Function(int) foo() {
 }
 ''');
 
-    // TODO(srawlins): Leave the constructor tear-off uninstantiated, then
-    // perform generic function instantiation as a wrapping node.
-    var node = result.findNode.constructorTearOff('C.new');
+    var node = result.findNode.implicitFunctionInstantiation('C.new');
     assertResolvedNodeText(node, r'''
-ConstructorTearOff
-  typeReference: ConstructorTypeReference
-    name: C
-    element: <testLibrary>::@class::C
-    type: C<dynamic>
-  selector: ConstructorSelector
-    period: .
-    name2: new
-  element: SubstitutedConstructorElementImpl
-    baseElement: <testLibrary>::@class::C::@constructor::new
-    substitution: {T: int}
+ImplicitFunctionInstantiation
+  operand: ConstructorTearOff
+    typeReference: ConstructorTypeReference
+      name: C
+      element: <testLibrary>::@class::C
+      type: C<dynamic>
+    selector: ConstructorSelector
+      period: .
+      name2: new
+    element: SubstitutedConstructorElementImpl
+      baseElement: <testLibrary>::@class::C::@constructor::new
+      substitution: {T: T}
+    staticType: C<T> Function<T>(T)
   staticType: C<int> Function(int)
+  typeArgumentTypes
+    int
 V1: ConstructorReference
   constructorName: ConstructorName
     type: NamedType
@@ -5112,10 +5214,10 @@ Null Function(int) foo() {
 }
 ''');
 
-    var node = result.findNode.functionReference('<T>(T a) {};');
+    var node = result.findNode.implicitFunctionInstantiation('<T>(T a) {};');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: FunctionExpression
+ImplicitFunctionInstantiation
+  operand: FunctionExpression
     typeParameters: TypeParameterList
       leftBracket: <
       typeParameters
@@ -5137,7 +5239,28 @@ FunctionReference
             element: isPublic
               type: T
       rightParenthesis: )
-    parameters(v1): FormalParameterList
+    body: BlockFunctionBody
+      block: Block
+        leftBracket: {
+        rightBracket: }
+    declaredFragment: <testLibraryFragment> null@null
+      element: null@null
+        type: Null Function<T>(T)
+    staticType: Null Function<T>(T)
+  staticType: Null Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: FunctionExpression
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+          declaredFragment: <testLibraryFragment> T@37
+            defaultType: dynamic
+      rightBracket: >
+    parameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -5170,10 +5293,10 @@ void Function(int) foo(void Function<T>(T) Function() f) {
 }
 ''');
 
-    var node = result.findNode.functionReference('(f)()');
+    var node = result.findNode.implicitFunctionInstantiation('(f)()');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: CallInvocation
+ImplicitFunctionInstantiation
+  operand: CallInvocation
     receiver: ParenthesizedExpression
       leftParenthesis: (
       expression2: UnqualifiedNameExpression
@@ -5181,10 +5304,6 @@ FunctionReference
         resolution: VariableReadResolution
           element: <testLibrary>::@function::foo::@formalParameter::f
           type: void Function<T>(T) Function()
-        staticType: void Function<T>(T) Function()
-      expression(v1): SimpleIdentifier
-        token: f
-        element: <testLibrary>::@function::foo::@formalParameter::f
         staticType: void Function<T>(T) Function()
       rightParenthesis: )
       staticType: void Function<T>(T) Function()
@@ -5195,7 +5314,11 @@ FunctionReference
       invokeType: void Function<T>(T) Function()
       type: void Function<T>(T)
     staticType: void Function<T>(T)
-  function(v1): FunctionExpressionInvocation
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: FunctionExpressionInvocation
     function: ParenthesizedExpression
       leftParenthesis: (
       expression: SimpleIdentifier
@@ -5225,10 +5348,10 @@ void Function(int) foo(Fn f) {
 }
 ''');
 
-    var node = result.findNode.functionReference('f;');
+    var node = result.findNode.implicitFunctionInstantiation('f;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: UnqualifiedNameExpression
+ImplicitFunctionInstantiation
+  operand: UnqualifiedNameExpression
     name: f
     resolution: VariableReadResolution
       element: <testLibrary>::@function::foo::@formalParameter::f
@@ -5236,7 +5359,11 @@ FunctionReference
         alias: <testLibrary>::@typeAlias::Fn
     staticType: void Function<U>(U)
       alias: <testLibrary>::@typeAlias::Fn
-  function(v1): SimpleIdentifier
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: SimpleIdentifier
     token: f
     element: <testLibrary>::@function::foo::@formalParameter::f
     staticType: void Function<U>(U)
@@ -5267,7 +5394,10 @@ ImplicitCallReference
       element: <testLibrary>::@function::foo::@formalParameter::c
       type: C
     staticType: C
-  expression(v1): SimpleIdentifier
+  element: <testLibrary>::@class::C::@method::call
+  staticType: void Function<T>(T)
+V1: ImplicitCallReference
+  expression: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::foo::@formalParameter::c
     staticType: C
@@ -5285,10 +5415,10 @@ void Function(int) foo(List<void Function<T>(T)> f) {
 }
 ''');
 
-    var node = result.findNode.functionReference('f[0];');
+    var node = result.findNode.implicitFunctionInstantiation('f[0];');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: ReceiverIndexExpression
+ImplicitFunctionInstantiation
+  operand: ReceiverIndexExpression
     receiver: UnqualifiedNameExpression
       name: f
       resolution: VariableReadResolution
@@ -5310,7 +5440,11 @@ FunctionReference
       invokeType: void Function<T>(T) Function(int)
       type: void Function<T>(T)
     staticType: void Function<T>(T)
-  function(v1): IndexExpression
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: IndexExpression
     target: SimpleIdentifier
       token: f
       element: <testLibrary>::@function::foo::@formalParameter::f
@@ -5345,11 +5479,30 @@ void Function(int) foo(C c) {
 }
 ''');
 
-    var node = result.findNode.functionReference('c.m();');
+    var node = result.findNode.implicitFunctionInstantiation('c.m();');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: MethodInvocation
+ImplicitFunctionInstantiation
+  operand: MethodInvocation
     target2: SimpleIdentifier
+      token: c
+      element: <testLibrary>::@function::foo::@formalParameter::c
+      staticType: C
+    operator: .
+    methodName: SimpleIdentifier
+      token: m
+      element: <testLibrary>::@class::C::@method::m
+      staticType: void Function<T>(T) Function()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticInvokeType: void Function<T>(T) Function()
+    staticType: void Function<T>(T)
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: MethodInvocation
+    target: SimpleIdentifier
       token: c
       element: <testLibrary>::@function::foo::@formalParameter::c
       staticType: C
@@ -5382,10 +5535,10 @@ void Function(int) foo(void Function<T>(T) f) {
 }
 ''');
 
-    var node = result.findNode.functionReference('f++');
+    var node = result.findNode.implicitFunctionInstantiation('f++');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: IncrementOrDecrementExpression
+ImplicitFunctionInstantiation
+  operand: IncrementOrDecrementExpression
     target: UnqualifiedNameAssignmentTarget
       name: f
       read: VariableReadResolution
@@ -5400,7 +5553,11 @@ FunctionReference
     element: <testLibrary>::@extension::#0::@method::+
     operatorResultType: void Function<T>(T)
     staticType: void Function<T>(T)
-  function(v1): PostfixExpression
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: PostfixExpression
     operand: SimpleIdentifier
       token: f
       element: <testLibrary>::@function::foo::@formalParameter::f
@@ -5429,10 +5586,26 @@ void Function(int) foo(C c) {
 }
 ''');
 
-    var node = result.findNode.functionReference('c.f;');
+    var node = result.findNode.implicitFunctionInstantiation('c.f;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: PrefixedIdentifier
+ImplicitFunctionInstantiation
+  operand: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: c
+      element: <testLibrary>::@function::foo::@formalParameter::c
+      staticType: C
+    period: .
+    identifier: SimpleIdentifier
+      token: f
+      element: <testLibrary>::@class::C::@getter::f
+      staticType: void Function<T>(T)
+    element: <testLibrary>::@class::C::@getter::f
+    staticType: void Function<T>(T)
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: c
       element: <testLibrary>::@function::foo::@formalParameter::c
@@ -5463,10 +5636,10 @@ void Function(int) foo(void Function<T>(T) f) {
 }
 ''');
 
-    var node = result.findNode.functionReference('++f');
+    var node = result.findNode.implicitFunctionInstantiation('++f');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: IncrementOrDecrementExpression
+ImplicitFunctionInstantiation
+  operand: IncrementOrDecrementExpression
     operator: ++
     target: UnqualifiedNameAssignmentTarget
       name: f
@@ -5481,7 +5654,11 @@ FunctionReference
     element: <testLibrary>::@extension::#0::@method::+
     operatorResultType: void Function<T>(T)
     staticType: void Function<T>(T)
-  function(v1): PrefixExpression
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: PrefixExpression
     operator: ++
     operand: SimpleIdentifier
       token: f
@@ -5510,10 +5687,10 @@ void Function(int) foo(C c) {
 }
 ''');
 
-    var node = result.findNode.functionReference('(c).f;');
+    var node = result.findNode.implicitFunctionInstantiation('(c).f;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: ReceiverPropertyExtraction
+ImplicitFunctionInstantiation
+  operand: ReceiverPropertyExtraction
     receiver: ParenthesizedExpression
       leftParenthesis: (
       expression2: UnqualifiedNameExpression
@@ -5521,10 +5698,6 @@ FunctionReference
         resolution: VariableReadResolution
           element: <testLibrary>::@function::foo::@formalParameter::c
           type: C
-        staticType: C
-      expression(v1): SimpleIdentifier
-        token: c
-        element: <testLibrary>::@function::foo::@formalParameter::c
         staticType: C
       rightParenthesis: )
       staticType: C
@@ -5535,7 +5708,11 @@ FunctionReference
       invokeType: void Function<T>(T) Function()
       type: void Function<T>(T)
     staticType: void Function<T>(T)
-  function(v1): PropertyAccess
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: PropertyAccess
     target: ParenthesizedExpression
       leftParenthesis: (
       expression: SimpleIdentifier
@@ -5563,16 +5740,20 @@ void Function(int) foo(void Function<T>(T) f) {
 }
 ''');
 
-    var node = result.findNode.functionReference('f;');
+    var node = result.findNode.implicitFunctionInstantiation('f;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: UnqualifiedNameExpression
+ImplicitFunctionInstantiation
+  operand: UnqualifiedNameExpression
     name: f
     resolution: VariableReadResolution
       element: <testLibrary>::@function::foo::@formalParameter::f
       type: void Function<T>(T)
     staticType: void Function<T>(T)
-  function(v1): SimpleIdentifier
+  staticType: void Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: SimpleIdentifier
     token: f
     element: <testLibrary>::@function::foo::@formalParameter::f
     staticType: void Function<T>(T)
@@ -5601,16 +5782,20 @@ class D<S> {
 }
 ''');
 
-    var node = result.findNode.functionReference('id);');
+    var node = result.findNode.implicitFunctionInstantiation('id);');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: UnqualifiedNameExpression
+ImplicitFunctionInstantiation
+  operand: UnqualifiedNameExpression
     name: id
     resolution: ExecutableTearOffResolution
       element: <testLibrary>::@class::D::@method::id
       type: A<T> Function<T>(A<T>)
     staticType: A<T> Function<T>(A<T>)
-  function(v1): SimpleIdentifier
+  staticType: A<S> Function(A<S>)
+  typeArgumentTypes
+    S
+V1: FunctionReference
+  function: SimpleIdentifier
     token: id
     element: <testLibrary>::@class::D::@method::id
     staticType: A<T> Function<T>(A<T>)
@@ -5646,16 +5831,21 @@ class D<S> {
 }
 ''');
 
-    var node = result.findNode.functionReference('id);');
+    var node = result.findNode.implicitFunctionInstantiation('id);');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: UnqualifiedNameExpression
+ImplicitFunctionInstantiation
+  operand: UnqualifiedNameExpression
     name: id
     resolution: ExecutableTearOffResolution
       element: <testLibrary>::@class::D::@method::id
       type: A<T> Function<T, R>(A<T>)
     staticType: A<T> Function<T, R>(A<T>)
-  function(v1): SimpleIdentifier
+  staticType: A<S> Function(A<S>)
+  typeArgumentTypes
+    S
+    dynamic
+V1: FunctionReference
+  function: SimpleIdentifier
     token: id
     element: <testLibrary>::@class::D::@method::id
     staticType: A<T> Function<T, R>(A<T>)

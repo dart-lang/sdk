@@ -538,6 +538,17 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   }
 
   @override
+  void visitImplicitFunctionInstantiation(
+    covariant ImplicitFunctionInstantiationImpl node,
+  ) {
+    _sink.writeEnum(AstNodeTag.ImplicitFunctionInstantiation);
+    _writeNode(node.operand);
+    _sink.writeOptionalTypeList(node.typeArgumentTypes);
+    _sink.writeByte(node.useLegacyV1Projection ? 1 : 0);
+    _storeExpression(node);
+  }
+
+  @override
   void visitImportPrefixedFunctionInvocation(
     covariant ImportPrefixedFunctionInvocationImpl node,
   ) {

@@ -1498,9 +1498,9 @@ abstract class B {
 int Function(int)? f(B? b) => b?.a[0];
 ''');
 
-    var node = result.findNode.functionReference('b?.a[0]');
-    assertResolvedNodeText(node, r'''FunctionReference
-  function2: ReceiverIndexExpression
+    var node = result.findNode.implicitFunctionInstantiation('b?.a[0]');
+    assertResolvedNodeText(node, r'''ImplicitFunctionInstantiation
+  operand: ReceiverIndexExpression
     receiver: PropertyAccess
       target2: SimpleIdentifier
         token: b
@@ -1523,7 +1523,11 @@ int Function(int)? f(B? b) => b?.a[0];
       invokeType: T Function<T>(T) Function(int)
       type: T Function<T>(T)
     staticType: T Function<T>(T)
-  function(v1): IndexExpression
+  staticType: int Function(int)?
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: IndexExpression
     target: PropertyAccess
       target: SimpleIdentifier
         token: b

@@ -1441,16 +1441,12 @@ library
         #F1 hasInitializer isConst isOriginDeclaration isStatic v (nameOffset:44) (firstTokenOffset:44) (offset:44)
           element: <testLibrary>::@topLevelVariable::v
           initializer: expression_0
-            FunctionReference
-              function2: UnqualifiedNameExpression
+            ImplicitFunctionInstantiation
+              operand: UnqualifiedNameExpression
                 name: f @48
                 resolution: ExecutableTearOffResolution
                   element: <testLibrary>::@function::f
                   type: void Function<T>(T)
-                staticType: void Function<T>(T)
-              function(v1): SimpleIdentifier
-                token: f @48
-                element: <testLibrary>::@function::f
                 staticType: void Function<T>(T)
               staticType: void Function(int)
               typeArgumentTypes
@@ -1673,6 +1669,84 @@ library
           type: T
       returnType: void
 ''');
+  }
+
+  test_const_implicitFunctionInstantiation_constructor() async {
+    var library = await buildLibrary(r'''
+class C<T> {
+  C(T value);
+}
+const C<int> Function(int) f = C.new;
+''');
+    assertResolvedNodeText(
+      library.getTopLevelVariable('f')!.constantInitializer2!,
+      r'''
+ImplicitFunctionInstantiation
+  operand: ConstructorTearOff
+    typeReference: ConstructorTypeReference
+      name: C
+      element: <testLibrary>::@class::C
+      type: C<dynamic>
+    selector: ConstructorSelector
+      period: .
+      name2: new
+    element: SubstitutedConstructorElementImpl
+      baseElement: <testLibrary>::@class::C::@constructor::new
+      substitution: {T: T}
+    staticType: C<T> Function<T>(T)
+  staticType: C<int> Function(int)
+  typeArgumentTypes
+    int
+V1: ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: C
+      element: <testLibrary>::@class::C
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: new
+      element: SubstitutedConstructorElementImpl
+        baseElement: <testLibrary>::@class::C::@constructor::new
+        substitution: {T: int}
+      staticType: null
+      tearOffTypeArgumentTypes
+        int
+    element: SubstitutedConstructorElementImpl
+      baseElement: <testLibrary>::@class::C::@constructor::new
+      substitution: {T: int}
+  staticType: C<int> Function(int)
+''',
+    );
+  }
+
+  test_const_implicitFunctionInstantiation_legacy() async {
+    var library = await buildLibrary(r'''
+// %before-language-feature: constructor-tearoffs
+T id<T>(T value) => value;
+const int Function(int) f = id;
+''');
+    assertResolvedNodeText(
+      library.getTopLevelVariable('f')!.constantInitializer2!,
+      r'''
+ImplicitFunctionInstantiation
+  operand: UnqualifiedNameExpression
+    name: id
+    resolution: ExecutableTearOffResolution
+      element: <testLibrary>::@function::id
+      type: T Function<T>(T)
+    staticType: T Function<T>(T)
+  staticType: int Function(int)
+  typeArgumentTypes
+    int
+V1: SimpleIdentifier
+  token: id
+  element: <testLibrary>::@function::id
+  staticType: int Function(int)
+  tearOffTypeArgumentTypes
+    int
+''',
+    );
   }
 
   test_const_indexExpression() async {

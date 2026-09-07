@@ -26,18 +26,22 @@ import 'a.dart' as p;
 int Function(int) f() => p.id;
 ''');
     assertResolvedNodeText(
-      result.findNode.importPrefixedNameExpression('p.id'),
+      result.findNode.implicitFunctionInstantiation('p.id'),
       r'''
-ImportPrefixedNameExpression
-  importPrefix: ImportPrefixReference
-    name: p
-    period: .
-    element: <testLibraryFragment>::@prefix::p
-  name: id
-  resolution: ExecutableTearOffResolution
-    element: package:test/a.dart::@function::id
-    type: T Function<T>(T)
+ImplicitFunctionInstantiation
+  operand: ImportPrefixedNameExpression
+    importPrefix: ImportPrefixReference
+      name: p
+      period: .
+      element: <testLibraryFragment>::@prefix::p
+    name: id
+    resolution: ExecutableTearOffResolution
+      element: package:test/a.dart::@function::id
+      type: T Function<T>(T)
+    staticType: T Function<T>(T)
   staticType: int Function(int)
+  typeArgumentTypes
+    int
 V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: p
@@ -275,9 +279,11 @@ V1: PrefixedIdentifier
 import 'a.dart' as p;
 int Function(int) f() => p.id;
 ''');
-    assertResolvedNodeText(result.findNode.functionReference('p.id'), r'''
-FunctionReference
-  function2: ImportPrefixedNameExpression
+    assertResolvedNodeText(
+      result.findNode.implicitFunctionInstantiation('p.id'),
+      r'''
+ImplicitFunctionInstantiation
+  operand: ImportPrefixedNameExpression
     importPrefix: ImportPrefixReference
       name: p
       period: .
@@ -287,7 +293,11 @@ FunctionReference
       element: package:test/a.dart::@function::id
       type: T Function<T>(T)
     staticType: T Function<T>(T)
-  function(v1): PrefixedIdentifier
+  staticType: int Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: p
       element: <testLibraryFragment>::@prefix::p
@@ -302,7 +312,8 @@ FunctionReference
   staticType: int Function(int)
   typeArgumentTypes
     int
-''');
+''',
+    );
   }
 
   test_functionInstantiation_explicit() async {

@@ -1238,20 +1238,21 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   }
 
   /// If generic function instantiation should be performed on `expression`,
-  /// inserts a [FunctionReference] node which wraps [expression].
+  /// inserts an [ImplicitFunctionInstantiation] node wrapping [expression].
   ///
-  /// If an [FunctionReference] is inserted, returns it; otherwise, returns
+  /// If an instantiation is inserted, returns it; otherwise, returns
   /// [expression].
   ExpressionImpl insertGenericFunctionInstantiation(
     Expression expression, {
     required TypeImpl contextType,
   }) {
     expression as ExpressionImpl;
-    if (!isConstructorTearoffsEnabled) {
-      // Temporarily, only create [ImplicitCallReference] nodes under the
-      // 'constructor-tearoffs' feature.
-      // TODO(srawlins): When we are ready to make a breaking change release to
-      // the analyzer package, remove this exception.
+    var isLegacy = !isConstructorTearoffsEnabled;
+    if (isLegacy &&
+        expression is! NameExpressionImpl &&
+        expression is! SimpleIdentifierImpl &&
+        expression is! PrefixedIdentifierImpl &&
+        expression is! PropertyAccessImpl) {
       return expression;
     }
 
@@ -1265,7 +1266,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       return expression;
     }
 
-    var context = typeSystem.flatten(contextType);
+    var context = isLegacy ? contextType : typeSystem.flatten(contextType);
     if (context is! FunctionTypeImpl || context.typeParameters.isNotEmpty) {
       return expression;
     }
@@ -1275,9 +1276,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       staticType,
       diagnosticReporter: diagnosticReporter,
       errorNode: expression,
-      // If the constructor-tearoffs feature is enabled, then so is
-      // generic-metadata.
-      genericMetadataIsEnabled: true,
+      genericMetadataIsEnabled: genericMetadataIsEnabled,
       inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
       strictInference: analysisOptions.strictInference,
       strictCasts: analysisOptions.strictCasts,
@@ -1285,21 +1284,11 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       dataForTesting: inferenceHelper.dataForTesting,
       nodeForTesting: expression,
     );
-    if (typeArgumentTypes.isNotEmpty) {
-      staticType = staticType.instantiate(typeArgumentTypes);
+    if (typeArgumentTypes.isEmpty) {
+      return expression;
     }
 
-    var parent = expression.parent2;
-    var genericFunctionInstantiation = FunctionReferenceImpl(
-      function2: expression,
-      typeArguments: null,
-    );
-    replaceExpression(expression, genericFunctionInstantiation, parent: parent);
-
-    genericFunctionInstantiation.typeArgumentTypes = typeArgumentTypes;
-    genericFunctionInstantiation.setPseudoExpressionStaticType(staticType);
-
-    return genericFunctionInstantiation;
+    return wrapFunctionInstantiation(expression, typeArgumentTypes);
   }
 
   @override
@@ -3838,6 +3827,19 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitImplicitFunctionInstantiation(
+    covariant ImplicitFunctionInstantiationImpl node, {
+    TypeImpl contextType = UnknownInferredType.instance,
+  }) {
+    checkUnreachableNode(node);
+    analyzeExpression(
+      node.operand,
+      SharedTypeSchemaView(UnknownInferredType.instance),
+    );
+    popRewrite();
+  }
+
+  @override
   void visitImportDirective(ImportDirective node) {
     checkUnreachableNode(node);
     node.visitChildren2(this);
@@ -3862,16 +3864,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     var resolution = _propertyElementResolver
         .resolveImportPrefixedNameExpression(node);
     node.resolution = resolution;
-    node.implicitFunctionInstantiationTypeArguments = null;
-    var staticType = _inferLegacyNameTearOff(
-      expression: node,
-      staticType: resolution.type,
-      contextType: contextType,
-      recordTypeArguments: (typeArguments) {
-        node.implicitFunctionInstantiationTypeArguments = typeArguments;
-      },
-    );
-    node.recordStaticType(staticType, resolver: this);
+    node.recordStaticType(resolution.type, resolver: this);
     var replacement = insertGenericFunctionInstantiation(
       node,
       contextType: contextType,
@@ -5284,34 +5277,11 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       node,
     );
     var resolution = result.resolution;
-    node.implicitFunctionInstantiationTypeArguments = null;
-    if (resolution is FunctionCallTearOffResolutionImpl) {
-      var inferredType = inferenceHelper.inferTearOff2(
-        node,
-        resolution.type,
-        contextType: contextType,
-        recordTypeArguments: (typeArguments) {
-          node.implicitFunctionInstantiationTypeArguments = typeArguments;
-        },
-      );
-      resolution = FunctionCallTearOffResolutionImpl(
-        type: inferredType as TypeImpl,
-        associatedFunctionType: resolution.associatedFunctionType,
-      );
-    }
     node.resolution = resolution;
     if (result.expressionInfo case var expressionInfo?) {
       flowAnalysis.storeExpressionInfo(node, expressionInfo);
     }
-    var staticType = _inferLegacyNameTearOff(
-      expression: node,
-      staticType: resolution.type,
-      contextType: contextType,
-      recordTypeArguments: (typeArguments) {
-        node.implicitFunctionInstantiationTypeArguments = typeArguments;
-      },
-    );
-    node.recordStaticType(staticType, resolver: this);
+    node.recordStaticType(resolution.type, resolver: this);
     var replacement = insertGenericFunctionInstantiation(
       node,
       contextType: contextType,
@@ -5408,6 +5378,22 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     checkUnreachableNode(node);
     _yieldStatementResolver.resolve(node);
     inferenceLogWriter?.exitStatement(node);
+  }
+
+  /// Wraps a generic function value after inference has selected type arguments.
+  ImplicitFunctionInstantiationImpl wrapFunctionInstantiation(
+    ExpressionImpl operand,
+    List<TypeImpl> typeArgumentTypes,
+  ) {
+    var parent = operand.parent2;
+    var type = operand.typeOrThrow as FunctionTypeImpl;
+    var result = ImplicitFunctionInstantiationImpl(
+      operand: operand,
+      typeArgumentTypes: typeArgumentTypes,
+      useLegacyV1Projection: !isConstructorTearoffsEnabled,
+    )..setPseudoExpressionStaticType(type.instantiate(typeArgumentTypes));
+    replaceExpression(operand, result, parent: parent);
+    return result;
   }
 
   /// Check whether [errorNode] is an `onError` callback in a
@@ -5543,28 +5529,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     );
   }
 
-  /// Performs the pre-constructor-tear-offs form of contextual generic
-  /// function instantiation without adding a wrapping AST node.
-  TypeImpl _inferLegacyNameTearOff({
-    required ExpressionImpl expression,
-    required TypeImpl staticType,
-    required TypeImpl contextType,
-    required void Function(List<TypeImpl>) recordTypeArguments,
-  }) {
-    if (isConstructorTearoffsEnabled ||
-        staticType is! FunctionTypeImpl ||
-        staticType.typeParameters.isEmpty) {
-      return staticType;
-    }
-    return inferenceHelper.inferTearOff2(
-          expression,
-          staticType,
-          contextType: contextType,
-          recordTypeArguments: recordTypeArguments,
-        )
-        as TypeImpl;
-  }
-
   /// Infers type arguments corresponding to [typeParameters] used it the
   /// [declaredType], so that thr resulting type is a subtype of [contextType].
   List<TypeImpl> _inferTypeArguments({
@@ -5634,7 +5598,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     // `expression` is to be treated as `expression.call`.
     context = typeSystem.flatten(context);
     var callMethodType = callMethod.type;
-    List<DartType> typeArgumentTypes;
+    List<TypeImpl> typeArgumentTypes;
     if (isConstructorTearoffsEnabled &&
         callMethodType.typeParameters.isNotEmpty &&
         context is FunctionTypeImpl) {
@@ -5653,9 +5617,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
         dataForTesting: inferenceHelper.dataForTesting,
         nodeForTesting: expression,
       );
-      if (typeArgumentTypes.isNotEmpty) {
-        callMethodType = callMethodType.instantiate(typeArgumentTypes);
-      }
     } else {
       typeArgumentTypes = [];
     }
@@ -5664,11 +5625,14 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       expression2: expression,
       element: callMethod,
       typeArguments: null,
-      typeArgumentTypes: typeArgumentTypes,
+      typeArgumentTypes: const [],
     );
     replaceExpression(expression, callReference, parent: parent);
 
     callReference.setPseudoExpressionStaticType(callMethodType);
+    if (typeArgumentTypes.isNotEmpty) {
+      wrapFunctionInstantiation(callReference, typeArgumentTypes);
+    }
   }
 
   /// Whether [receiver] is in the receiver-method migration slice.
@@ -5863,21 +5827,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       type = DynamicTypeImpl.instance;
     } else {
       type = InvalidTypeImpl.instance;
-    }
-
-    if (!isConstructorTearoffsEnabled) {
-      // Only perform a generic function instantiation on a [PrefixedIdentifier]
-      // in pre-constructor-tearoffs code. In constructor-tearoffs-enabled code,
-      // generic function instantiation is performed at assignability check
-      // sites.
-      // TODO(srawlins): Switch all resolution to use the latter method, in a
-      // breaking change release.
-      type = inferenceHelper.inferTearOff(
-        node,
-        propertyName,
-        type,
-        contextType: contextType,
-      );
     }
 
     propertyName.setPseudoExpressionStaticType(type);

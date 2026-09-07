@@ -424,6 +424,9 @@ abstract class _FindNodeBase {
 
   ImplicitCallReference get singleImplicitCallReference => _single();
 
+  ImplicitFunctionInstantiation get singleImplicitFunctionInstantiation =>
+      _single();
+
   ImportDirective get singleImportDirective => _single();
 
   IncrementOrDecrementExpression get singleIncrementOrDecrement => _single();
@@ -949,6 +952,10 @@ abstract class _FindNodeBase {
 
   ImplicitCallReference implicitCallReference(String search) {
     return _node(search, (n) => n is ImplicitCallReference);
+  }
+
+  ImplicitFunctionInstantiation implicitFunctionInstantiation(String search) {
+    return _node(search, (n) => n is ImplicitFunctionInstantiation);
   }
 
   ImportDirective import(String search) {

@@ -268,6 +268,7 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
   bool _isTearOff(Expression node) {
     if (node is ConstructorTearOff) return true;
     if (node is FunctionReference) return true;
+    if (node is ImplicitFunctionInstantiation) return true;
     if (node is DotShorthandNameExpression) return true;
     if (node is DotShorthandPropertyAccess) return true;
     if (node.inCommentReference2) return false;

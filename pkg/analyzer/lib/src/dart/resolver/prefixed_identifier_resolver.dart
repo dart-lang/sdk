@@ -8,7 +8,6 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
-import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/dart/resolver/property_element_resolver.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
@@ -19,8 +18,6 @@ class PrefixedIdentifierResolver {
   final ResolverVisitor _resolver;
 
   PrefixedIdentifierResolver(this._resolver);
-
-  InvocationInferenceHelper get _inferenceHelper => _resolver.inferenceHelper;
 
   TypeProviderImpl get _typeProvider => _resolver.typeProvider;
 
@@ -117,20 +114,6 @@ class PrefixedIdentifierResolver {
       type = DynamicTypeImpl.instance;
     }
 
-    if (!_resolver.isConstructorTearoffsEnabled) {
-      // Only perform a generic function instantiation on a [PrefixedIdentifier]
-      // in pre-constructor-tearoffs code. In constructor-tearoffs-enabled code,
-      // generic function instantiation is performed at assignability check
-      // sites.
-      // TODO(srawlins): Switch all resolution to use the latter method, in a
-      // breaking change release.
-      type = _inferenceHelper.inferTearOff(
-        node,
-        identifier,
-        type,
-        contextType: contextType,
-      );
-    }
     identifier.setPseudoExpressionStaticType(type);
     node.recordStaticType(type, resolver: _resolver);
     return null;

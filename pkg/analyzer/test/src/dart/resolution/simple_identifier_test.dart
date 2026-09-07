@@ -272,19 +272,25 @@ extension E on int Function<T>(T) {
 }
 ''');
 
-    var node = result.findNode.unqualifiedNameExpression('call;');
+    var node = result.findNode.implicitFunctionInstantiation('call;');
     assertResolvedNodeText(node, r'''
-UnqualifiedNameExpression
-  name: call
-  resolution: FunctionCallTearOffResolution
-    type: int Function(double)
-    associatedFunctionType: int Function<T>(T)
+ImplicitFunctionInstantiation
+  operand: UnqualifiedNameExpression
+    name: call
+    resolution: FunctionCallTearOffResolution
+      type: int Function<T>(T)
+      associatedFunctionType: int Function<T>(T)
+    staticType: int Function<T>(T)
   staticType: int Function(double)
-V1: SimpleIdentifier
-  token: call
-  element: <null>
+  typeArgumentTypes
+    double
+V1: FunctionReference
+  function: SimpleIdentifier
+    token: call
+    element: <null>
+    staticType: int Function<T>(T)
   staticType: int Function(double)
-  tearOffTypeArgumentTypes
+  typeArgumentTypes
     double
 ''');
   }

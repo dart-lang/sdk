@@ -859,6 +859,19 @@ class AstBinaryReader {
     return node;
   }
 
+  ImplicitFunctionInstantiation _readImplicitFunctionInstantiation() {
+    var operand = _readNode() as ExpressionImpl;
+    var typeArgumentTypes = _reader.readOptionalTypeList()!;
+    var useLegacyV1Projection = _readByte() != 0;
+    var node = ImplicitFunctionInstantiationImpl(
+      operand: operand,
+      typeArgumentTypes: typeArgumentTypes,
+      useLegacyV1Projection: useLegacyV1Projection,
+    );
+    _readExpressionResolution(node);
+    return node;
+  }
+
   ImportPrefixedFunctionInvocation _readImportPrefixedFunctionInvocation() {
     var importPrefix = _readNode() as ImportPrefixReferenceImpl;
     var name = _readStringReference();
@@ -1384,6 +1397,8 @@ class AstBinaryReader {
         return _readIfElement();
       case AstNodeTag.ImplicitCallReference:
         return _readImplicitCallReference();
+      case AstNodeTag.ImplicitFunctionInstantiation:
+        return _readImplicitFunctionInstantiation();
       case AstNodeTag.ImportPrefixReference:
         return _readImportPrefixReference();
       case AstNodeTag.ImportPrefixedFunctionInvocation:

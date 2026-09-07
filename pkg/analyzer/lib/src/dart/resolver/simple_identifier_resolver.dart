@@ -153,13 +153,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
 
     var callFunctionType = result.functionTypeCallType;
     if (callFunctionType != null) {
-      var staticType = _resolver.inferenceHelper.inferTearOff(
-        node,
-        node,
-        callFunctionType,
-        contextType: contextType,
-      );
-      node.recordStaticType(staticType, resolver: _resolver);
+      node.recordStaticType(callFunctionType, resolver: _resolver);
       _currentAlreadyResolved = true;
       return null;
     }
@@ -260,20 +254,6 @@ class SimpleIdentifierResolver with ScopeHelpers {
       staticType = InvalidTypeImpl.instance;
     }
 
-    if (!_resolver.isConstructorTearoffsEnabled) {
-      // Only perform a generic function instantiation on a [PrefixedIdentifier]
-      // in pre-constructor-tearoffs code. In constructor-tearoffs-enabled code,
-      // generic function instantiation is performed at assignability check
-      // sites.
-      // TODO(srawlins): Switch all resolution to use the latter method, in a
-      // breaking change release.
-      staticType = _resolver.inferenceHelper.inferTearOff(
-        node,
-        node,
-        staticType,
-        contextType: contextType,
-      );
-    }
     node.recordStaticType(staticType, resolver: _resolver);
   }
 

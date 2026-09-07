@@ -1167,6 +1167,17 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitImplicitFunctionInstantiation(ImplicitFunctionInstantiation node) {
+    _sink.writeln('ImplicitFunctionInstantiation');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeParameterElement(node);
+      _writeType('staticType', node.staticType);
+      _writeTypeList('typeArgumentTypes', node.typeArgumentTypes);
+    });
+  }
+
+  @override
   void visitImportDirective(ImportDirective node) {
     _sink.writeln('ImportDirective');
     _sink.withIndent(() {
