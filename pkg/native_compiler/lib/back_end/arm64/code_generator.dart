@@ -2119,7 +2119,12 @@ final class Arm64CodeGenerator extends CodeGenerator {
             .int32List ||
             .uint32List ||
             .int64List ||
-            .uint64List:
+            .uint64List ||
+            .float32List ||
+            .float64List ||
+            .float32x4List ||
+            .float64x2List ||
+            .int32x4List:
           assert(stackFrame.maxArgumentsStackSlots >= 3);
           _asm.loadImmediate(scratch1Reg, classId.index << smiShift);
           _asm.stp(
@@ -2824,6 +2829,9 @@ extension on ArrayKind {
     .uint32List => .u32,
     .int64List => .s64,
     .uint64List => .u64,
+    .float32List => .u32,
+    .float64List => .u64,
+    .float32x4List || .float64x2List || .int32x4List => .simd128,
   };
 
   int dataOffset(VMOffsets vmOffsets) => switch (this) {
@@ -2838,7 +2846,12 @@ extension on ArrayKind {
     .int32List ||
     .uint32List ||
     .int64List ||
-    .uint64List => vmOffsets.TypedData_payload_offset,
+    .uint64List ||
+    .float32List ||
+    .float64List ||
+    .float32x4List ||
+    .float64x2List ||
+    .int32x4List => vmOffsets.TypedData_payload_offset,
   };
 
   int lengthFieldOffset(VMOffsets vmOffsets) => switch (this) {
@@ -2852,7 +2865,12 @@ extension on ArrayKind {
     .int32List ||
     .uint32List ||
     .int64List ||
-    .uint64List => vmOffsets.TypedDataBase_length_offset,
+    .uint64List ||
+    .float32List ||
+    .float64List ||
+    .float32x4List ||
+    .float64x2List ||
+    .int32x4List => vmOffsets.TypedDataBase_length_offset,
   };
 
   int? dataFieldOffset(VMOffsets vmOffsets) => switch (this) {
@@ -2867,7 +2885,12 @@ extension on ArrayKind {
     .int32List ||
     .uint32List ||
     .int64List ||
-    .uint64List => vmOffsets.PointerBase_data_offset,
+    .uint64List ||
+    .float32List ||
+    .float64List ||
+    .float32x4List ||
+    .float64x2List ||
+    .int32x4List => vmOffsets.PointerBase_data_offset,
   };
 
   int maxNewSpaceElements(ObjectLayout objectLayout) {
@@ -2890,5 +2913,10 @@ extension on ArrayKind {
     .uint32List => ClassId.TypedDataUint32ArrayCid,
     .int64List => ClassId.TypedDataInt64ArrayCid,
     .uint64List => ClassId.TypedDataUint64ArrayCid,
+    .float32List => ClassId.TypedDataFloat32ArrayCid,
+    .float64List => ClassId.TypedDataFloat64ArrayCid,
+    .float32x4List => ClassId.TypedDataFloat32x4ArrayCid,
+    .float64x2List => ClassId.TypedDataFloat64x2ArrayCid,
+    .int32x4List => ClassId.TypedDataInt32x4ArrayCid,
   };
 }
