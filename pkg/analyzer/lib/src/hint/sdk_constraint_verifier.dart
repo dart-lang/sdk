@@ -113,7 +113,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
       NamedReadResolutionWithElement(:var element) => element,
       _ => null,
     };
-    _checkSinceSdkVersion(element, node, errorEntity: node.propertyName);
+    _checkSinceSdkVersion(element, node, errorEntity: node.name);
     super.visitCascadePropertyExtraction(node);
   }
 
@@ -410,7 +410,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
           } else if (target is PropertyAccess) {
             errorEntity = target.propertyName;
           } else if (target is PropertyExtraction) {
-            errorEntity = target.propertyName;
+            errorEntity = target.name;
           } else if (target is SimpleIdentifier) {
             errorEntity = target;
           } else {

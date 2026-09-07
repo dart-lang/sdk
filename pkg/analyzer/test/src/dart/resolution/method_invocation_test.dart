@@ -143,7 +143,7 @@ void f() {
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target2: CascadePropertyExtraction
-    propertyName: call
+    name: call
     resolution: FunctionCallTearOffResolution
       type: void Function<X extends int?>() Function()
         alias: <testLibrary>::@typeAlias::F
@@ -5544,7 +5544,7 @@ var v = C()..foo(0) = 0;
     assertResolvedNodeText(node, r'''
 CallInvocation
   receiver: CascadePropertyExtraction
-    propertyName: foo
+    name: foo
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::foo
       invokeType: double Function(int) Function()
@@ -9355,7 +9355,7 @@ CascadeExpression
     CascadeSection
       operator: ?..
       body: CascadePropertyExtraction
-        propertyName: foo
+        name: foo
         resolution: GetterInvocationResolution
           element: <testLibrary>::@class::A::@getter::foo
           invokeType: int Function()
@@ -10342,7 +10342,7 @@ CallInvocation
         rightParenthesis: )
         staticType: B?
       operator: ?.
-      propertyName: a
+      name: a
       resolution: GetterInvocationResolution
         element: <testLibrary>::@class::B::@getter::a
         invokeType: A Function()

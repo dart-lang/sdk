@@ -276,7 +276,7 @@ library
                 CascadeSection
                   operator: .. @14
                   body: CascadePropertyExtraction
-                    propertyName: isEven @16
+                    name: isEven @16
                     resolution: GetterInvocationResolution
                       element: dart:core::@class::int::@getter::isEven
                       invokeType: bool Function()
@@ -1382,7 +1382,7 @@ library
                 rightParenthesis: ) @38
                 staticType: int Function(String)
               operator: . @39
-              propertyName: call @40
+              name: call @40
               resolution: FunctionCallTearOffResolution
                 type: int Function(String)
                 associatedFunctionType: int Function(String)
@@ -1542,7 +1542,7 @@ library
                 rightParenthesis: ) @72
                 staticType: Function
               operator: . @73
-              propertyName: call @74
+              name: call @74
               resolution: FunctionInterfaceCallTearOffResolution
                 type: Function
               staticType: Function
@@ -4968,7 +4968,7 @@ library
               receiver: SimpleStringLiteral
                 literal: 'abc' @10
               operator: . @15
-              propertyName: length @16
+              name: length @16
               resolution: GetterInvocationResolution
                 element: dart:core::@class::String::@getter::length
                 invokeType: int Function()
@@ -10595,7 +10595,7 @@ library
                 rightParenthesis: ) @82
                 staticType: String
               operator: . @83
-              propertyName: length @84
+              name: length @84
               resolution: GetterInvocationResolution
                 element: dart:core::@class::String::@getter::length
                 invokeType: int Function()

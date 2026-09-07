@@ -2106,7 +2106,7 @@ class _InvalidAccessVerifier {
 
   void verifyPropertyExtraction(PropertyExtraction node) {
     var element = node.resolution.elementOrRecovery;
-    _verify(node: node, nameToken: node.propertyName, element: element);
+    _verify(node: node, nameToken: node.name, element: element);
   }
 
   void verifySuperConstructorInvocation(SuperConstructorInvocation node) {
@@ -2395,8 +2395,8 @@ class _InvalidAccessVerifier {
       name = node.propertyName.lexeme;
       errorEntity = node.propertyName;
     } else if (node is PropertyExtraction) {
-      name = node.propertyName.lexeme;
-      errorEntity = node.propertyName;
+      name = node.name.lexeme;
+      errorEntity = node.name;
     } else if (node is UnqualifiedNameAssignmentTarget) {
       name = node.name.lexeme;
       errorEntity = node.name;

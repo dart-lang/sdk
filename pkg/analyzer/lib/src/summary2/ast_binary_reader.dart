@@ -243,9 +243,9 @@ class AstBinaryReader {
   }
 
   CascadePropertyExtraction _readCascadePropertyExtraction() {
-    var propertyName = _readStringReference();
+    var name = _readStringReference();
     var node = CascadePropertyExtractionImpl(
-      propertyName: StringToken(TokenType.STRING, propertyName, -1),
+      name: StringToken(TokenType.STRING, name, -1),
     );
     node.resolution = _reader.readOptionalObject(_readNamedReadResolution);
     _readExpressionResolution(node);
@@ -1654,11 +1654,11 @@ class AstBinaryReader {
   ReceiverPropertyExtraction _readReceiverPropertyExtraction() {
     var receiver = _readNode() as ExpressionImpl;
     var operatorType = _reader.readEnum(UnlinkedTokenType.values);
-    var propertyName = _readStringReference();
+    var name = _readStringReference();
     var node = ReceiverPropertyExtractionImpl(
       receiver: receiver,
       operator: Tokens.fromType(operatorType),
-      propertyName: StringToken(TokenType.STRING, propertyName, -1),
+      name: StringToken(TokenType.STRING, name, -1),
     );
     node.resolution = _reader.readOptionalObject(_readNamedReadResolution);
     _readExpressionResolution(node);

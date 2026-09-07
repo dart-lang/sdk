@@ -44,7 +44,7 @@ ReceiverPropertyExtraction
     rightParenthesis: )
     staticType: C
   operator: .
-  propertyName: _foo
+  name: _foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::_foo
     invokeType: int? Function()
@@ -83,7 +83,7 @@ void f(C c) {
     assertResolvedNodeText(node, r'''
 CallInvocation
   receiver: CascadePropertyExtraction
-    propertyName: _field
+    name: _field
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::_field
       invokeType: Object? Function()
@@ -128,7 +128,7 @@ void f(C c) {
     assertResolvedNodeText(node, r'''
 MethodInvocation
   target2: CascadePropertyExtraction
-    propertyName: _field
+    name: _field
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::_field
       invokeType: Object? Function()
@@ -169,7 +169,7 @@ void f(C? c) {
     var node2 = result.findNode.cascadePropertyExtraction('_field.toString');
     assertResolvedNodeText(node2, r'''
 CascadePropertyExtraction
-  propertyName: _field
+  name: _field
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::_field
     invokeType: Object? Function()
@@ -805,7 +805,7 @@ ReceiverPropertyExtraction
     rightParenthesis: )
     staticType: C
   operator: .
-  propertyName: _foo
+  name: _foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::_foo
     invokeType: int? Function()

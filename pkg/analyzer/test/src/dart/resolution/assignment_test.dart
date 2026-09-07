@@ -5039,7 +5039,7 @@ DirectAssignment
         rightParenthesis: )
         staticType: A
       operator: .
-      propertyName: x
+      name: x
       resolution: GetterInvocationResolution
         element: <testLibrary>::@class::A::@getter::x
         invokeType: B Function()

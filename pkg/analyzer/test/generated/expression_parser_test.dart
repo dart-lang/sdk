@@ -553,7 +553,7 @@ ReceiverPropertyExtraction
       token: x
     rightParenthesis: )
   operator: .
-  propertyName: y
+  name: y
 V1: PropertyAccess
   target: ParenthesizedExpression
     leftParenthesis: (
@@ -608,7 +608,7 @@ ReceiverPropertyExtraction
       token: x
     rightParenthesis: )
   operator: ?.
-  propertyName: y
+  name: y
 V1: PropertyAccess
   target: ParenthesizedExpression
     leftParenthesis: (
@@ -1276,7 +1276,7 @@ CascadeExpression
     CascadeSection
       operator: ..
       body: CascadePropertyExtraction
-        propertyName: a
+        name: a
   cascadeSections
     PropertyAccess
       operator: ..
@@ -1434,7 +1434,7 @@ CascadeExpression
     CascadeSection
       operator: ..
       body: CascadePropertyExtraction
-        propertyName: as
+        name: as
   cascadeSections
     PropertyAccess
       operator: ..

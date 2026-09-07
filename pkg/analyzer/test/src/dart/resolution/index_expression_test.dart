@@ -687,7 +687,7 @@ ReceiverPropertyExtraction
       type: String
     staticType: String
   operator: .
-  propertyName: length
+  name: length
   resolution: GetterInvocationResolution
     element: dart:core::@class::String::@getter::length
     invokeType: int Function()

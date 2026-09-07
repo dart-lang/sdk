@@ -641,7 +641,7 @@ FunctionReference
       rightParenthesis: )
       staticType: Never?
     operator: .
-    propertyName: foo
+    name: foo
     resolution: ExecutableTearOffResolution
       element: SubstitutedMethodElementImpl
         baseElement: <testLibrary>::@extension::E::@method::foo
@@ -700,7 +700,7 @@ FunctionReference
       thisKeyword: this
       staticType: A
     operator: .
-    propertyName: foo
+    name: foo
     resolution: ExecutableTearOffResolution
       element: <testLibrary>::@extension::E::@method::foo
       type: void Function<T>(T)
@@ -811,7 +811,7 @@ bar(A a) {
     assertResolvedNodeText(node, r'''
 FunctionReference
   function2: CascadePropertyExtraction
-    propertyName: foo
+    name: foo
     resolution: ExecutableTearOffResolution
       element: <testLibrary>::@extension::E::@method::foo
       type: void Function<T>(T)
@@ -1848,7 +1848,7 @@ FunctionReference
       rightParenthesis: )
       staticType: A
     operator: .
-    propertyName: f
+    name: f
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::f
       invokeType: List<int> Function()
@@ -2083,7 +2083,7 @@ FunctionReference
       rightParenthesis: )
       staticType: A
     operator: .
-    propertyName: foo
+    name: foo
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::foo
       invokeType: int Function()
@@ -2165,7 +2165,7 @@ FunctionReference
       rightParenthesis: )
       staticType: A
     operator: .
-    propertyName: foo
+    name: foo
     resolution: ExecutableTearOffResolution
       element: <testLibrary>::@class::A::@method::foo
       type: void Function<T>(T)
@@ -2310,13 +2310,13 @@ FunctionReference
         rightBracket: ]
         staticType: List<dynamic>
       operator: .
-      propertyName: foo
+      name: foo
       resolution: ExecutableTearOffResolution
         element: <testLibrary>::@extension::#0::@method::foo
         type: void Function<T>(T)
       staticType: void Function<T>(T)
     operator: .
-    propertyName: call
+    name: call
     resolution: FunctionCallTearOffResolution
       type: void Function<T>(T)
       associatedFunctionType: void Function<T>(T)
@@ -2524,7 +2524,7 @@ FunctionReference
       thisKeyword: this
       staticType: A
     operator: .
-    propertyName: foo
+    name: foo
     resolution: ExecutableTearOffResolution
       element: <testLibrary>::@class::A::@method::foo
       type: void Function<T>(T)
@@ -2785,7 +2785,7 @@ bar(A a) {
     assertResolvedNodeText(node, r'''
 FunctionReference
   function2: CascadePropertyExtraction
-    propertyName: foo
+    name: foo
     resolution: ExecutableTearOffResolution
       element: <testLibrary>::@class::A::@method::foo
       type: void Function<T>(T)
@@ -5519,7 +5519,7 @@ FunctionReference
       rightParenthesis: )
       staticType: C
     operator: .
-    propertyName: f
+    name: f
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::f
       invokeType: void Function<T>(T) Function()

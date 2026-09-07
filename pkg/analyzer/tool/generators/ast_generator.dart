@@ -63,6 +63,11 @@ class AstNodeImplGenerator {
 
   Future<_ImplClass?> _buildImplClass(ClassDeclarationImpl nodeImpl) async {
     var classElement = nodeImpl.declaredFragment!.element;
+    // The visitor generator also reads annotations on abstract nodes to determine
+    // their AST view. Only concrete nodes need generated implementations.
+    if (classElement.isAbstract) {
+      return null;
+    }
     var generateObject = classElement.metadata.annotations
         .map((annotation) {
           var generateObject = annotation.computeConstantValue();

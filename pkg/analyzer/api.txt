@@ -1622,8 +1622,7 @@ package:analyzer/dart/ast/ast.dart:
     memberName (getter: SimpleIdentifier)
     period (getter: Token)
   DotShorthandMethodInvocation (class extends Object implements NamedFunctionInvocation, DotShorthandExpression, abstract, final, experimental)
-  DotShorthandNameExpression (class extends Object implements DotShorthandExpression, abstract, final, experimental):
-    resolution (getter: NamedReadResolution?)
+  DotShorthandNameExpression (class extends Object implements NameExpression, DotShorthandExpression, abstract, final, experimental)
   DotShorthandPropertyAccess (class extends Expression, abstract, final):
     period (getter: Token)
     propertyName (getter: SimpleIdentifier)
@@ -2201,6 +2200,9 @@ package:analyzer/dart/ast/ast.dart:
   MixinOnClause (class extends Object implements AstNode, abstract, final):
     onKeyword (getter: Token)
     superclassConstraints (getter: NodeList<NamedType>)
+  NameExpression (class extends Object implements Expression, sealed (immediate subtypes: DotShorthandNameExpression, NameExpressionImpl, PropertyExtraction, UnqualifiedNameExpression), experimental):
+    name (getter: Token)
+    resolution (getter: NamedReadResolution?)
   NameWithTypeParameters (class extends Object implements ClassNamePart, abstract, final)
   NamedArgument (class extends Object implements Argument, abstract, final):
     argumentExpression (getter: Expression)
@@ -2363,9 +2365,7 @@ package:analyzer/dart/ast/ast.dart:
     propertyName (getter: Token)
     read (getter: NamedReadResolution?)
     write (getter: NamedWriteResolution?)
-  PropertyExtraction (class extends Object implements Expression, abstract, final, experimental):
-    propertyName (getter: Token)
-    resolution (getter: NamedReadResolution?)
+  PropertyExtraction (class extends Object implements NameExpression, abstract, final, experimental)
   ReceiverIndexAssignmentTarget (class extends Object implements IndexAssignmentTarget, abstract, final, experimental):
     question (getter: Token?)
     receiver (getter: Expression)
@@ -2613,9 +2613,7 @@ package:analyzer/dart/ast/ast.dart:
     name (getter: Token)
     read (getter: NamedReadResolution?)
     write (getter: NamedWriteResolution?)
-  UnqualifiedNameExpression (class extends Object implements Expression, abstract, final, experimental):
-    name (getter: Token)
-    resolution (getter: NamedReadResolution?)
+  UnqualifiedNameExpression (class extends Object implements NameExpression, abstract, final, experimental)
   UriBasedDirective (class extends Object implements Directive, sealed (immediate subtypes: NamespaceDirective, PartDirective, UriBasedDirectiveImpl)):
     uri (getter: StringLiteral)
   ValidDotShorthandContextResolution (class extends Object implements DotShorthandContextResolution, abstract, final, experimental):
@@ -3236,7 +3234,6 @@ package:analyzer/dart/ast/visitor.dart:
     visitPrimaryConstructorName (method: R? Function(PrimaryConstructorName))
     visitPropertyAccess (method: R? Function(PropertyAccess))
     visitPropertyAssignmentTarget (method: R? Function(PropertyAssignmentTarget), experimental)
-    visitPropertyExtraction (method: R? Function(PropertyExtraction), experimental)
     visitRecordLiteral (method: R? Function(RecordLiteral))
     visitRecordLiteralNamedField (method: R? Function(RecordLiteralNamedField))
     visitRecordPattern (method: R? Function(RecordPattern))

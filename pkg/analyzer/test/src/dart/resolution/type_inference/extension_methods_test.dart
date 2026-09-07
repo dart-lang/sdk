@@ -303,7 +303,7 @@ ReceiverPropertyExtraction
     rightParenthesis: )
     staticType: S
   operator: .
-  propertyName: test
+  name: test
   resolution: GetterInvocationResolution
     element: SubstitutedGetterElementImpl
       baseElement: <testLibrary>::@extension::Test::@getter::test

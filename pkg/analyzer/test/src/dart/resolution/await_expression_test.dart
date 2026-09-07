@@ -182,14 +182,14 @@ AwaitExpression
         literal: 0
         staticType: int
       operator: .
-      propertyName: isEven
+      name: isEven
       resolution: GetterInvocationResolution
         element: dart:core::@class::int::@getter::isEven
         invokeType: bool Function()
         type: bool
       staticType: bool
     operator: .
-    propertyName: unresolved
+    name: unresolved
     resolution: InvalidNamedReadResolution
       type: InvalidType
       candidates

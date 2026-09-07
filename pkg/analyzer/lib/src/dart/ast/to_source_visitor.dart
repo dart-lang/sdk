@@ -213,7 +213,7 @@ class ToSourceVisitor implements AstVisitor2<void> {
 
   @override
   void visitCascadePropertyExtraction(CascadePropertyExtraction node) {
-    _visitToken(node.propertyName);
+    _visitToken(node.name);
   }
 
   @override
@@ -1410,7 +1410,7 @@ class ToSourceVisitor implements AstVisitor2<void> {
   void visitReceiverPropertyExtraction(ReceiverPropertyExtraction node) {
     _visitNode(node.receiver);
     sink.write(node.operator.lexeme);
-    sink.write(node.propertyName.lexeme);
+    sink.write(node.name.lexeme);
   }
 
   @override

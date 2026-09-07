@@ -26,7 +26,7 @@ Function f(Function a) {
     var node = result.findNode.cascadePropertyExtraction('call;');
     assertResolvedNodeText(node, r'''
 CascadePropertyExtraction
-  propertyName: call
+  name: call
   resolution: FunctionInterfaceCallTearOffResolution
     type: Function
   staticType: Function
@@ -50,7 +50,7 @@ T f<T extends int Function(String)>(T a) {
     var node = result.findNode.cascadePropertyExtraction('call;');
     assertResolvedNodeText(node, r'''
 CascadePropertyExtraction
-  propertyName: call
+  name: call
   resolution: FunctionCallTearOffResolution
     type: T
     associatedFunctionType: int Function(String)
@@ -281,7 +281,7 @@ test(C c) {
     var node = result.findNode.cascadePropertyExtraction('_d?.g()');
     assertResolvedNodeText(node, r'''
 CascadePropertyExtraction
-  propertyName: _d
+  name: _d
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::_d
     invokeType: D? Function()
@@ -388,7 +388,7 @@ test(C c) {
     var node = result.findNode.cascadePropertyExtraction('_d?.g()');
     assertResolvedNodeText(node, r'''
 CascadePropertyExtraction
-  propertyName: _d
+  name: _d
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::_d
     invokeType: D? Function()
@@ -460,7 +460,7 @@ test(C c) {
     var node = result.findNode.cascadePropertyExtraction('_d?.g()');
     assertResolvedNodeText(node, r'''
 CascadePropertyExtraction
-  propertyName: _d
+  name: _d
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::_d
     invokeType: D? Function()

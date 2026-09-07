@@ -131,7 +131,7 @@ class ElementUsageDetector<TagInfo extends Object> {
     } else if (node is PropertyAssignmentTarget) {
       errorEntity = node.propertyName;
     } else if (node is PropertyExtraction) {
-      errorEntity = node.propertyName;
+      errorEntity = node.name;
     } else if (node is ExtensionOverride) {
       errorEntity = node.name;
     } else if (node is NamedType) {
@@ -645,7 +645,7 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
     } else if (node is PropertyAssignmentTarget) {
       errorEntity = node.propertyName;
     } else if (node is PropertyExtraction) {
-      errorEntity = node.propertyName;
+      errorEntity = node.name;
     } else if (node is ExtensionOverride) {
       errorEntity = node.name;
     } else if (node is NamedType) {

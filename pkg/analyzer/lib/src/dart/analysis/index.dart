@@ -752,21 +752,21 @@ class _IndexContributor extends UnifyingAstVisitor2 {
         recordRelation(
           element,
           IndexRelationKind.IS_INVOKED_BY,
-          node.propertyName,
+          node.name,
           true,
         );
       case ExecutableTearOffResolutionImpl(:var element):
         recordRelation(
           element,
           IndexRelationKind.IS_REFERENCED_BY,
-          node.propertyName,
+          node.name,
           true,
         );
       default:
         assembler.addNameRelation(
-          node.propertyName.lexeme,
+          node.name.lexeme,
           IndexRelationKind.IS_READ_BY,
-          node.propertyName.offset,
+          node.name.offset,
           true,
         );
     }
@@ -1462,21 +1462,21 @@ class _IndexContributor extends UnifyingAstVisitor2 {
         recordRelation(
           element,
           IndexRelationKind.IS_INVOKED_BY,
-          node.propertyName,
+          node.name,
           true,
         );
       case ExecutableTearOffResolutionImpl(:var element):
         recordRelation(
           element,
           IndexRelationKind.IS_REFERENCED_BY,
-          node.propertyName,
+          node.name,
           true,
         );
       default:
         assembler.addNameRelation(
-          node.propertyName.lexeme,
+          node.name.lexeme,
           IndexRelationKind.IS_READ_BY,
-          node.propertyName.offset,
+          node.name.offset,
           true,
         );
     }

@@ -186,7 +186,7 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
     covariant CascadePropertyExtractionImpl node,
   ) {
     _sink.writeEnum(AstNodeTag.CascadePropertyExtraction);
-    _writeStringReference(node.propertyName.lexeme);
+    _writeStringReference(node.name.lexeme);
     _sink.writeOptionalObject(node.resolution, _writeNamedReadResolution);
     _storeExpression(node);
   }
@@ -886,7 +886,7 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
     _sink.writeEnum(AstNodeTag.ReceiverPropertyExtraction);
     _writeNode(node.receiver);
     _sink.writeEnum(TokensWriter.astToBinaryTokenType(node.operator.type));
-    _writeStringReference(node.propertyName.lexeme);
+    _writeStringReference(node.name.lexeme);
     _sink.writeOptionalObject(node.resolution, _writeNamedReadResolution);
     _storeExpression(node);
   }

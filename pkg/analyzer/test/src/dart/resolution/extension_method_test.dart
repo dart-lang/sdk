@@ -4841,7 +4841,7 @@ ReceiverPropertyExtraction
     thisKeyword: this
     staticType: C
   operator: .
-  propertyName: a
+  name: a
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::a
     invokeType: int Function()
@@ -4877,7 +4877,7 @@ ReceiverPropertyExtraction
     thisKeyword: this
     staticType: C
   operator: .
-  propertyName: a
+  name: a
   resolution: GetterInvocationResolution
     element: <testLibrary>::@extension::E::@getter::a
     invokeType: int Function()
@@ -5537,7 +5537,7 @@ ReceiverPropertyExtraction
     thisKeyword: this
     staticType: C
   operator: .
-  propertyName: a
+  name: a
   resolution: ExecutableTearOffResolution
     element: <testLibrary>::@extension::E::@method::a
     type: void Function(int)

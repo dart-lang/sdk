@@ -465,7 +465,7 @@ Block
           CascadeSection
             operator: ?..
             body: CascadePropertyExtraction
-              propertyName: x
+              name: x
         cascadeSections
           IndexExpression
             period: ..
@@ -538,7 +538,7 @@ Block
           CascadeSection
             operator: ?..
             body: CascadePropertyExtraction
-              propertyName: x27
+              name: x27
         cascadeSections
           PropertyAccess
             operator: ?..

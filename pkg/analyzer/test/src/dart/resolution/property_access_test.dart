@@ -364,7 +364,7 @@ ReceiverPropertyExtraction
     rightParenthesis: )
     staticType: Function
   operator: .
-  propertyName: call
+  name: call
   resolution: FunctionInterfaceCallTearOffResolution
     type: Function
   staticType: Function
@@ -407,7 +407,7 @@ ReceiverPropertyExtraction
     rightParenthesis: )
     staticType: T
   operator: .
-  propertyName: call
+  name: call
   resolution: FunctionInterfaceCallTearOffResolution
     type: T
   staticType: T
@@ -450,7 +450,7 @@ ReceiverPropertyExtraction
     rightParenthesis: )
     staticType: int Function(String)
   operator: .
-  propertyName: call
+  name: call
   resolution: FunctionCallTearOffResolution
     type: int Function(String)
     associatedFunctionType: int Function(String)
@@ -494,7 +494,7 @@ ReceiverPropertyExtraction
     rightParenthesis: )
     staticType: T
   operator: .
-  propertyName: call
+  name: call
   resolution: FunctionCallTearOffResolution
     type: T
     associatedFunctionType: int Function(String)
@@ -565,7 +565,7 @@ ReceiverPropertyExtraction
     thisKeyword: this
     staticType: A
   operator: .
-  propertyName: foo
+  name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::A::@getter::foo
     invokeType: int Function()
@@ -606,7 +606,7 @@ ReceiverPropertyExtraction
     thisKeyword: this
     staticType: A
   operator: .
-  propertyName: foo
+  name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::A::@getter::foo
     invokeType: int Function()
@@ -647,7 +647,7 @@ ReceiverPropertyExtraction
     thisKeyword: this
     staticType: A
   operator: .
-  propertyName: foo
+  name: foo
   resolution: ExecutableTearOffResolution
     element: <testLibrary>::@class::A::@method::foo
     type: void Function()
@@ -803,7 +803,7 @@ ReceiverPropertyExtraction
     thisKeyword: this
     staticType: A
   operator: .
-  propertyName: foo
+  name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::A::@getter::foo
     invokeType: int Function()
@@ -840,7 +840,7 @@ ReceiverPropertyExtraction
     thisKeyword: this
     staticType: A
   operator: .
-  propertyName: foo
+  name: foo
   resolution: ExecutableTearOffResolution
     element: <testLibrary>::@class::A::@method::foo
     type: void Function(int)
@@ -876,7 +876,7 @@ ReceiverPropertyExtraction
     thisKeyword: this
     staticType: A
   operator: .
-  propertyName: foo
+  name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@extensionType::A::@getter::foo
     invokeType: int Function()
@@ -917,7 +917,7 @@ ReceiverPropertyExtraction
     thisKeyword: this
     staticType: X
   operator: .
-  propertyName: foo
+  name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::A::@getter::foo
     invokeType: int Function()
@@ -1013,7 +1013,7 @@ RegularFormalParameter
         CascadeSection
           operator: ?..
           body: CascadePropertyExtraction
-            propertyName: foo
+            name: foo
             resolution: InvalidNamedReadResolution
               type: InvalidType
               candidates
@@ -1063,7 +1063,7 @@ CascadeExpression
     CascadeSection
       operator: ?..
       body: CascadePropertyExtraction
-        propertyName: foo
+        name: foo
         resolution: GetterInvocationResolution
           element: <testLibrary>::@class::A::@getter::foo
           invokeType: int Function()
@@ -1072,7 +1072,7 @@ CascadeExpression
     CascadeSection
       operator: ..
       body: CascadePropertyExtraction
-        propertyName: bar
+        name: bar
         resolution: GetterInvocationResolution
           element: <testLibrary>::@class::A::@getter::bar
           invokeType: int Function()
@@ -1139,7 +1139,7 @@ CascadeExpression
       operator: ..
       body: PropertyAccess
         target2: CascadePropertyExtraction
-          propertyName: foo
+          name: foo
           resolution: GetterInvocationResolution
             element: <testLibrary>::@class::A::@getter::foo
             invokeType: int? Function()
@@ -1222,7 +1222,7 @@ CascadeExpression
       body: PropertyAccess
         target2: PropertyAccess
           target2: CascadePropertyExtraction
-            propertyName: foo
+            name: foo
             resolution: GetterInvocationResolution
               element: <testLibrary>::@class::A::@getter::foo
               invokeType: A? Function()
@@ -1307,7 +1307,7 @@ CascadeExpression
       operator: ?..
       body: PropertyAccess
         target2: CascadePropertyExtraction
-          propertyName: baz
+          name: baz
           resolution: GetterInvocationResolution
             element: <testLibrary>::@class::A::@getter::baz
             invokeType: A? Function()
@@ -1374,7 +1374,7 @@ ReceiverPropertyExtraction
     rightParenthesis: )
     staticType: A
   operator: .
-  propertyName: foo
+  name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::A::@getter::foo
     invokeType: int Function()
@@ -1425,7 +1425,7 @@ ReceiverPropertyExtraction
     rightParenthesis: )
     staticType: A
   operator: .
-  propertyName: foo
+  name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::A::@getter::foo
     invokeType: int Function()
@@ -1476,7 +1476,7 @@ ReceiverPropertyExtraction
     rightParenthesis: )
     staticType: B
   operator: .
-  propertyName: foo
+  name: foo
   resolution: GetterInvocationResolution
     element: SubstitutedGetterElementImpl
       baseElement: <testLibrary>::@class::A::@getter::foo
@@ -1531,7 +1531,7 @@ ReceiverPropertyExtraction
     rightParenthesis: )
     staticType: B
   operator: .
-  propertyName: foo
+  name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::A::@getter::foo
     invokeType: double Function()
@@ -1576,7 +1576,7 @@ ReceiverPropertyExtraction
     rightParenthesis: )
     staticType: dynamic
   operator: .
-  propertyName: hash
+  name: hash
   resolution: DynamicPropertyReadResolution
     type: dynamic
   staticType: dynamic
@@ -1619,7 +1619,7 @@ ReceiverPropertyExtraction
     rightParenthesis: )
     staticType: dynamic
   operator: .
-  propertyName: hashCode
+  name: hashCode
   resolution: DynamicPropertyReadResolution
     type: dynamic
   staticType: dynamic
@@ -1662,7 +1662,7 @@ ReceiverPropertyExtraction
     rightParenthesis: )
     staticType: dynamic
   operator: .
-  propertyName: runtimeType
+  name: runtimeType
   resolution: DynamicPropertyReadResolution
     type: dynamic
   staticType: dynamic
@@ -1705,7 +1705,7 @@ ReceiverPropertyExtraction
     rightParenthesis: )
     staticType: dynamic
   operator: .
-  propertyName: toString
+  name: toString
   resolution: DynamicPropertyReadResolution
     type: dynamic
   staticType: dynamic
@@ -1753,7 +1753,7 @@ ReceiverPropertyExtraction
     rightParenthesis: )
     staticType: E
   operator: .
-  propertyName: foo
+  name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@enum::E::@getter::foo
     invokeType: int Function()
@@ -1806,7 +1806,7 @@ ReceiverPropertyExtraction
     rightParenthesis: )
     staticType: E
   operator: .
-  propertyName: foo
+  name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@mixin::M::@getter::foo
     invokeType: int Function()
@@ -1903,7 +1903,7 @@ ReceiverPropertyExtraction
     rightParenthesis: )
     staticType: A
   operator: .
-  propertyName: foo
+  name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@extension::E::@getter::foo
     invokeType: int Function()
@@ -2003,7 +2003,7 @@ ReceiverPropertyExtraction
     rightParenthesis: )
     staticType: A<int>
   operator: .
-  propertyName: foo
+  name: foo
   resolution: GetterInvocationResolution
     element: SubstitutedGetterElementImpl
       baseElement: <testLibrary>::@extension::E::@getter::foo
@@ -2278,7 +2278,7 @@ ReceiverPropertyExtraction
     rightParenthesis: )
     staticType: A
   operator: .
-  propertyName: foo
+  name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@extensionType::A::@getter::foo
     invokeType: int Function()
@@ -2325,7 +2325,7 @@ ReceiverPropertyExtraction
     rightParenthesis: )
     staticType: A
   operator: .
-  propertyName: hashCode
+  name: hashCode
   resolution: GetterInvocationResolution
     element: dart:core::@class::Object::@getter::hashCode
     invokeType: int Function()
@@ -2372,7 +2372,7 @@ ReceiverPropertyExtraction
     rightParenthesis: )
     staticType: A
   operator: .
-  propertyName: hashCode
+  name: hashCode
   resolution: GetterInvocationResolution
     element: dart:core::@class::Object::@getter::hashCode
     invokeType: int Function()
@@ -2421,7 +2421,7 @@ ReceiverPropertyExtraction
     rightParenthesis: )
     staticType: A
   operator: .
-  propertyName: foo
+  name: foo
   resolution: InvalidNamedReadResolution
     type: InvalidType
     candidates
@@ -2517,7 +2517,7 @@ ReceiverPropertyExtraction
     rightParenthesis: )
     staticType: A
   operator: .
-  propertyName: foo
+  name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@mixin::A::@getter::foo
     invokeType: int Function()
@@ -2568,7 +2568,7 @@ ReceiverPropertyExtraction
     rightParenthesis: )
     staticType: A
   operator: .
-  propertyName: foo
+  name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@mixin::A::@getter::foo
     invokeType: int Function()
@@ -3119,7 +3119,7 @@ ReceiverPropertyExtraction
       rightParenthesis: )
     staticType: A
   operator: .
-  propertyName: foo
+  name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::A::@getter::foo
     invokeType: int Function()
@@ -3176,7 +3176,7 @@ ReceiverPropertyExtraction
       rightParenthesis: )
     staticType: C
   operator: ?.
-  propertyName: x
+  name: x
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::x
     invokeType: int Function()
@@ -3222,14 +3222,14 @@ ReceiverPropertyExtraction
       rightParenthesis: )
       staticType: String
     operator: .
-    propertyName: length
+    name: length
     resolution: GetterInvocationResolution
       element: dart:core::@class::String::@getter::length
       invokeType: int Function()
       type: int
     staticType: int
   operator: .
-  propertyName: isEven
+  name: isEven
   resolution: GetterInvocationResolution
     element: dart:core::@class::int::@getter::isEven
     invokeType: bool Function()
@@ -3283,7 +3283,7 @@ ReceiverPropertyExtraction
     rightParenthesis: )
     staticType: A
   operator: .
-  propertyName: foo
+  name: foo
   resolution: ExecutableTearOffResolution
     element: <testLibrary>::@class::A::@method::foo
     type: void Function(int)
@@ -3332,7 +3332,7 @@ ReceiverPropertyExtraction
     rightParenthesis: )
     staticType: Never
   operator: .
-  propertyName: foo
+  name: foo
   resolution: <null>
   staticType: Never
 V1: PropertyAccess
@@ -3378,7 +3378,7 @@ ReceiverPropertyExtraction
     rightParenthesis: )
     staticType: A?
   operator: ?.
-  propertyName: foo
+  name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::A::@getter::foo
     invokeType: int Function()
@@ -3423,7 +3423,7 @@ ReceiverPropertyExtraction
     rightParenthesis: )
     staticType: Null
   operator: ?.
-  propertyName: foo
+  name: foo
   resolution: <null>
   staticType: Never?
 V1: PropertyAccess
@@ -3473,7 +3473,7 @@ ReceiverPropertyExtraction
     rightParenthesis: )
     staticType: (int, {int foo})
   operator: .
-  propertyName: foo
+  name: foo
   resolution: RecordFieldReadResolution
     type: int
   staticType: int
@@ -3518,7 +3518,7 @@ ReceiverPropertyExtraction
   receiver: SimpleStringLiteral
     literal: 'foo'
   operator: .
-  propertyName: length
+  name: length
   resolution: GetterInvocationResolution
     element: dart:core::@class::String::@getter::length
     invokeType: int Function()
@@ -3551,7 +3551,7 @@ ReceiverPropertyExtraction
   receiver: SimpleStringLiteral
     literal: 'a'
   operator: ?.
-  propertyName: length
+  name: length
   resolution: GetterInvocationResolution
     element: dart:core::@class::String::@getter::length
     invokeType: int Function()
@@ -3589,7 +3589,7 @@ ReceiverPropertyExtraction
     thisKeyword: this
     staticType: C
   operator: ?.
-  propertyName: x
+  name: x
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::x
     invokeType: int Function()
@@ -3788,7 +3788,7 @@ ReceiverPropertyExtraction
     rightParenthesis: )
     staticType: T
   operator: .
-  propertyName: foo
+  name: foo
   resolution: DynamicPropertyReadResolution
     type: dynamic
   staticType: dynamic
@@ -3835,7 +3835,7 @@ ReceiverPropertyExtraction
     rightParenthesis: )
     staticType: T
   operator: .
-  propertyName: foo
+  name: foo
   resolution: InvalidNamedReadResolution
     type: InvalidType
     candidates
@@ -3903,7 +3903,7 @@ ReceiverPropertyExtraction
     rightParenthesis: )
     staticType: InvalidType
   operator: .
-  propertyName: foo
+  name: foo
   resolution: InvalidNamedReadResolution
     type: InvalidType
     candidates

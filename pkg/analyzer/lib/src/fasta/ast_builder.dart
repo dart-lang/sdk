@@ -878,9 +878,7 @@ class AstBuilder extends StackListener {
       if (receiver == null &&
           (dot.type == TokenType.PERIOD_PERIOD ||
               dot.type == TokenType.QUESTION_PERIOD_PERIOD)) {
-        push(
-          CascadePropertyExtractionImpl(propertyName: identifierOrInvoke.token),
-        );
+        push(CascadePropertyExtractionImpl(name: identifierOrInvoke.token));
       } else if (receiver is SimpleIdentifierImpl &&
           identical('.', dot.stringValue)) {
         push(
@@ -899,7 +897,7 @@ class AstBuilder extends StackListener {
           ReceiverPropertyExtractionImpl(
             receiver: receiver,
             operator: dot,
-            propertyName: identifierOrInvoke.token,
+            name: identifierOrInvoke.token,
           ),
         );
       } else {
@@ -3775,17 +3773,13 @@ class AstBuilder extends StackListener {
     }
     reportErrorIfSuper(rhs);
     var propertyTarget = switch (lhs) {
-      CascadePropertyExtractionImpl(:var propertyName) =>
-        CascadePropertyAssignmentTargetImpl(propertyName: propertyName),
-      ReceiverPropertyExtractionImpl(
-        :var receiver,
-        :var operator,
-        :var propertyName,
-      ) =>
+      CascadePropertyExtractionImpl(:var name) =>
+        CascadePropertyAssignmentTargetImpl(propertyName: name),
+      ReceiverPropertyExtractionImpl(:var receiver, :var operator, :var name) =>
         ReceiverPropertyAssignmentTargetImpl(
           receiver: receiver,
           operator: operator,
-          propertyName: propertyName,
+          propertyName: name,
         ),
       PropertyAccessImpl(target2: var receiver?, operator: var operator)
           when operator.type == TokenType.PERIOD &&
@@ -6776,7 +6770,7 @@ class AstBuilder extends StackListener {
       return ReceiverPropertyAssignmentTargetImpl(
         receiver: expression.receiver,
         operator: expression.operator,
-        propertyName: expression.propertyName,
+        propertyName: expression.name,
       );
     }
 

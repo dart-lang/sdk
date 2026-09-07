@@ -80,7 +80,7 @@ ReceiverPropertyExtraction
     literal: 0
     staticType: int
   operator: .
-  propertyName: a
+  name: a
   resolution: InvalidNamedReadResolution
     type: InvalidType
     candidates
@@ -121,7 +121,7 @@ ReceiverPropertyExtraction
     literal: 0
     staticType: int
   operator: .
-  propertyName: a
+  name: a
   resolution: GetterInvocationResolution
     element: <testLibrary>::@extension::E1::@getter::a
     invokeType: void Function()
@@ -164,7 +164,7 @@ ReceiverPropertyExtraction
     literal: 0
     staticType: int
   operator: .
-  propertyName: a
+  name: a
   resolution: InvalidNamedReadResolution
     type: InvalidType
     candidates
@@ -207,7 +207,7 @@ ReceiverPropertyExtraction
     literal: 0
     staticType: int
   operator: .
-  propertyName: a
+  name: a
   resolution: InvalidNamedReadResolution
     type: InvalidType
     candidates

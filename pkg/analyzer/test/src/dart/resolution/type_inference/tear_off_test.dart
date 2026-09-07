@@ -102,7 +102,7 @@ FunctionReference
         rightParenthesis: )
       staticType: C
     operator: .
-    propertyName: f
+    name: f
     resolution: ExecutableTearOffResolution
       element: <testLibrary>::@class::C::@method::f
       type: T Function<T>(T)

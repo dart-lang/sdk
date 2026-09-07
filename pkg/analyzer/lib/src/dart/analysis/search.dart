@@ -1963,7 +1963,7 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor2<void> {
       _ => null,
     };
     if (result != null && _matches(result.$1)) {
-      _addResultImpl(node.propertyName, result.$2, isQualified: true);
+      _addResultImpl(node.name, result.$2, isQualified: true);
     }
   }
 
@@ -2101,7 +2101,7 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor2<void> {
       _ => null,
     };
     if (result != null && _matches(result.$1)) {
-      _addResultImpl(node.propertyName, result.$2, isQualified: true);
+      _addResultImpl(node.name, result.$2, isQualified: true);
     }
     node.receiver.accept2(this);
   }

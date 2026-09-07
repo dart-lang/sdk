@@ -627,7 +627,7 @@ ReceiverPropertyExtraction
     rightParenthesis: )
     staticType: A
   operator: .
-  propertyName: foo
+  name: foo
   resolution: ExecutableTearOffResolution
     element: dart:foo::@class::A::@method::foo
     type: void Function()
