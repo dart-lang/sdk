@@ -1016,7 +1016,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
 
   @override
   void visitDotShorthandNameExpression(DotShorthandNameExpression node) {
-    _constArgumentsVerifier.visitDotShorthandNameExpression(node);
+    _constArgumentsVerifier.checkNameExpression(node);
     super.visitDotShorthandNameExpression(node);
   }
 
@@ -2242,7 +2242,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   void visitReceiverPropertyExtraction(
     covariant ReceiverPropertyExtractionImpl node,
   ) {
-    _constArgumentsVerifier.visitReceiverPropertyExtraction(node);
+    _constArgumentsVerifier.checkNameExpression(node);
     if (node.operator.type == TokenType.QUESTION_PERIOD) {
       _checkForUnnecessaryNullAware(
         node.receiver,
@@ -2669,7 +2669,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
 
   @override
   void visitUnqualifiedNameExpression(UnqualifiedNameExpression node) {
-    _constArgumentsVerifier.visitUnqualifiedNameExpression(node);
+    _constArgumentsVerifier.checkNameExpression(node);
     var element = switch (node.resolution) {
       NamedReadResolutionWithElement(:var element) => element,
       _ => null,

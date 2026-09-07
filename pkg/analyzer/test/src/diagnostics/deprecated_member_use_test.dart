@@ -623,6 +623,47 @@ void f() {
 ''');
   }
 
+  test_dotShorthandPropertyAccess_deprecatedClass() async {
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
+@deprecated
+class A {
+  static A get x => A();
+}
+void wantA(A _) {}
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
+void f() {
+  wantA(.x);
+//       ^
+// [diag.deprecatedMemberUse] 'A' is deprecated and shouldn't be used.
+}
+''');
+  }
+
+  test_dotShorthandPropertyAccess_recovery_instanceGetter() async {
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
+class A {
+  @deprecated
+  A get x => this;
+}
+void wantA(A _) {}
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
+void f() {
+  wantA(.x);
+//       ^
+// [diag.staticAccessToInstanceMember] Instance member 'x' can't be accessed using static access.
+// [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
+}
+''');
+  }
+
   test_export() async {
     newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated

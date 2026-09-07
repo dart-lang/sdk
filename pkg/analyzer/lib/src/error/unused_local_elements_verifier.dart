@@ -22,7 +22,7 @@ import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:collection/collection.dart';
 
 /// An [AstVisitor2] that fills [UsedLocalElements].
-class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
+class GatherUsedLocalElementsVisitor extends UnifyingAstVisitor2<void> {
   final UsedLocalElements usedElements = UsedLocalElements();
 
   final LibraryElement _enclosingLibrary;
@@ -78,12 +78,6 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
   void visitCascadeMethodInvocation(CascadeMethodInvocation node) {
     _recordNamedFunctionInvocation(node);
     super.visitCascadeMethodInvocation(node);
-  }
-
-  @override
-  void visitCascadePropertyExtraction(CascadePropertyExtraction node) {
-    _useNamedReadResolution(node.resolution, readCountsAsUse: true);
-    super.visitCascadePropertyExtraction(node);
   }
 
   @override
@@ -249,15 +243,6 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitDotShorthandNameExpression(DotShorthandNameExpression node) {
-    if (node.resolution case NamedReadResolutionWithElement(:var element)) {
-      usedElements.addElement(element.enclosingElement);
-    }
-    _useNamedReadResolution(node.resolution, readCountsAsUse: true);
-    super.visitDotShorthandNameExpression(node);
-  }
-
-  @override
   void visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
     usedElements.addElement(node.propertyName.element?.enclosingElement);
     super.visitDotShorthandPropertyAccess(node);
@@ -383,6 +368,14 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitNode(AstNode node) {
+    if (node is NameExpression) {
+      _visitNameExpression(node);
+    }
+    node.visitChildren2(this);
+  }
+
+  @override
   void visitPatternField(PatternField node) {
     usedElements.addMember(node.element);
     usedElements.addReadMember(node.element);
@@ -399,12 +392,6 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
   void visitReceiverMethodInvocation(ReceiverMethodInvocation node) {
     _recordNamedFunctionInvocation(node);
     super.visitReceiverMethodInvocation(node);
-  }
-
-  @override
-  void visitReceiverPropertyExtraction(ReceiverPropertyExtraction node) {
-    _useNamedReadResolution(node.resolution, readCountsAsUse: true);
-    super.visitReceiverPropertyExtraction(node);
   }
 
   @override
@@ -541,15 +528,6 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
   void visitUnqualifiedFunctionInvocation(UnqualifiedFunctionInvocation node) {
     _recordNamedFunctionInvocation(node);
     super.visitUnqualifiedFunctionInvocation(node);
-  }
-
-  @override
-  void visitUnqualifiedNameExpression(UnqualifiedNameExpression node) {
-    _useNamedReadResolution(
-      node.resolution,
-      readCountsAsUse: _isUsefulRead(node),
-    );
-    super.visitUnqualifiedNameExpression(node);
   }
 
   @override
@@ -746,6 +724,23 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
         }
       }
     }
+  }
+
+  void _visitNameExpression(NameExpression node) {
+    // The omitted qualifier also refers to the enclosing declaration.
+    if (node case DotShorthandNameExpression(
+      resolution: NamedReadResolutionWithElement(:var element),
+    )) {
+      usedElements.addElement(element.enclosingElement);
+    }
+
+    _useNamedReadResolution(
+      node.resolution,
+      // TODO(scheglov): Revise the useful-read heuristic and remove the
+      // distinction between unqualified and qualified reads.
+      readCountsAsUse:
+          node is! UnqualifiedNameExpression || _isUsefulRead(node),
+    );
   }
 
   /// Returns whether the value of [node] is _only_ being read at this position.

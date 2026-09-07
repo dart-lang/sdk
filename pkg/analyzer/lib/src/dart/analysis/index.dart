@@ -654,7 +654,7 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   @override
   void visitAnnotation(Annotation node) {
     if (node.element case ConstructorElement element) {
-      var baseElement = _getActualConstructorElement(element.baseElement);
+      var baseElement = element.baseElement.actualConstructor;
       if (node.constructorName case var constructorName?) {
         var offset = node.period!.offset;
         recordRelationOffset(
@@ -741,35 +741,6 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   @override
   void visitCascadeIndexExpression(CascadeIndexExpression node) {
     _visitIndexExpression2(node);
-  }
-
-  @override
-  void visitCascadePropertyExtraction(
-    covariant CascadePropertyExtractionImpl node,
-  ) {
-    switch (node.resolution) {
-      case GetterInvocationResolutionImpl(:var element):
-        recordRelation(
-          element,
-          IndexRelationKind.IS_INVOKED_BY,
-          node.name,
-          true,
-        );
-      case ExecutableTearOffResolutionImpl(:var element):
-        recordRelation(
-          element,
-          IndexRelationKind.IS_REFERENCED_BY,
-          node.name,
-          true,
-        );
-      default:
-        assembler.addNameRelation(
-          node.name.lexeme,
-          IndexRelationKind.IS_READ_BY,
-          node.name.offset,
-          true,
-        );
-    }
   }
 
   @override
@@ -934,8 +905,7 @@ class _IndexContributor extends UnifyingAstVisitor2 {
 
   @override
   void visitConstructorReference2(ConstructorReference2 node) {
-    var element = node.element?.baseElement;
-    element = _getActualConstructorElement(element);
+    var element = node.element?.baseElement.actualConstructor;
 
     var kind = switch (node.parent2) {
       ConstructorInvocation() => IndexRelationKind.IS_INVOKED_BY,
@@ -959,8 +929,7 @@ class _IndexContributor extends UnifyingAstVisitor2 {
 
   @override
   void visitConstructorTearOff(ConstructorTearOff node) {
-    var element = node.element?.baseElement;
-    element = _getActualConstructorElement(element);
+    var element = node.element?.baseElement.actualConstructor;
     if (element != null) {
       recordRelationOffset(
         element,
@@ -1049,7 +1018,7 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   void visitDotShorthandConstructorInvocation(
     DotShorthandConstructorInvocation node,
   ) {
-    var element = _getActualConstructorElement(node.element?.baseElement);
+    var element = node.element?.baseElement.actualConstructor;
     recordRelation(
       element,
       IndexRelationKind.IS_INVOKED_BY_DOT_SHORTHANDS_CONSTRUCTOR,
@@ -1063,7 +1032,7 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   void visitDotShorthandConstructorInvocation2(
     DotShorthandConstructorInvocation2 node,
   ) {
-    var element = _getActualConstructorElement(node.element?.baseElement);
+    var element = node.element?.baseElement.actualConstructor;
     recordRelation(
       element,
       IndexRelationKind.IS_INVOKED_BY_DOT_SHORTHANDS_CONSTRUCTOR,
@@ -1084,50 +1053,11 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   }
 
   @override
-  void visitDotShorthandNameExpression(
-    covariant DotShorthandNameExpressionImpl node,
-  ) {
-    switch (node.resolution) {
-      case GetterInvocationResolutionImpl(:var element):
-        recordRelation(
-          element,
-          IndexRelationKind.IS_INVOKED_BY,
-          node.name,
-          true,
-        );
-      case ExecutableTearOffResolutionImpl(:var element):
-        if (element is InternalConstructorElement) {
-          recordRelation(
-            _getActualConstructorElement(element),
-            IndexRelationKind
-                .IS_REFERENCED_BY_DOT_SHORTHAND_CONSTRUCTOR_TEAR_OFF,
-            node.name,
-            true,
-          );
-        } else {
-          recordRelation(
-            element,
-            IndexRelationKind.IS_REFERENCED_BY,
-            node.name,
-            true,
-          );
-        }
-      default:
-        assembler.addNameRelation(
-          node.name.lexeme,
-          IndexRelationKind.IS_READ_BY,
-          node.name.offset,
-          true,
-        );
-    }
-  }
-
-  @override
   void visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
     IndexRelationKind kind;
     var element = node.propertyName.element;
     if (element is InternalConstructorElement) {
-      element = _getActualConstructorElement(element);
+      element = element.actualConstructor;
       kind =
           IndexRelationKind.IS_REFERENCED_BY_DOT_SHORTHAND_CONSTRUCTOR_TEAR_OFF;
     } else if (element is GetterElement || element is SetterElement) {
@@ -1401,10 +1331,13 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   @override
   void visitNode(AstNode node) {
     switch (node) {
+      case NameExpressionImpl():
+        _recordNameExpression(node);
+        node.visitChildren2(this);
       case NamedFunctionInvocation():
         _visitNamedFunctionInvocation(node);
       default:
-        super.visitNode(node);
+        node.visitChildren2(this);
     }
   }
 
@@ -1451,36 +1384,6 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   @override
   void visitReceiverIndexExpression(ReceiverIndexExpression node) {
     _visitIndexExpression2(node);
-  }
-
-  @override
-  void visitReceiverPropertyExtraction(
-    covariant ReceiverPropertyExtractionImpl node,
-  ) {
-    switch (node.resolution) {
-      case GetterInvocationResolutionImpl(:var element):
-        recordRelation(
-          element,
-          IndexRelationKind.IS_INVOKED_BY,
-          node.name,
-          true,
-        );
-      case ExecutableTearOffResolutionImpl(:var element):
-        recordRelation(
-          element,
-          IndexRelationKind.IS_REFERENCED_BY,
-          node.name,
-          true,
-        );
-      default:
-        assembler.addNameRelation(
-          node.name.lexeme,
-          IndexRelationKind.IS_READ_BY,
-          node.name.offset,
-          true,
-        );
-    }
-    node.receiver.accept2(this);
   }
 
   @override
@@ -1639,29 +1542,6 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   }
 
   @override
-  void visitUnqualifiedNameExpression(
-    covariant UnqualifiedNameExpressionImpl node,
-  ) {
-    var element = node.resolution.elementOrRecovery;
-    if (element == null) {
-      assembler.addNameRelation(
-        node.name.lexeme,
-        IndexRelationKind.IS_READ_BY,
-        node.name.offset,
-        false,
-      );
-      return;
-    }
-
-    var kind = switch (element) {
-      GetterElement() || SetterElement() => IndexRelationKind.IS_INVOKED_BY,
-      FormalParameterElement() => IndexRelationKind.IS_READ_BY,
-      _ => IndexRelationKind.IS_REFERENCED_BY,
-    };
-    recordRelationToken(element, kind, node.name, isQualified: false);
-  }
-
-  @override
   void visitWithClause(WithClause node) {
     for (NamedType namedType in node.mixinTypes) {
       recordSuperType(namedType, IndexRelationKind.IS_MIXED_IN_BY);
@@ -1780,34 +1660,6 @@ class _IndexContributor extends UnifyingAstVisitor2 {
     return null;
   }
 
-  /// If the given [constructor] is a synthetic constructor created for a
-  /// [ClassTypeAlias], return the actual constructor of a [ClassDeclaration]
-  /// which is invoked.  Return `null` if a redirection cycle is detected.
-  ConstructorElement? _getActualConstructorElement(
-    ConstructorElement? constructor,
-  ) {
-    var seenConstructors = <ConstructorElement?>{};
-    while (constructor is ConstructorElementImpl &&
-        constructor.isOriginMixinApplication) {
-      var enclosing = constructor.enclosingElement;
-      if (enclosing is ClassElementImpl && enclosing.isMixinApplication) {
-        var superInvocation = constructor.firstFragment.constantInitializers
-            .whereType<SuperConstructorInvocation>()
-            .singleOrNull;
-        if (superInvocation != null) {
-          constructor = superInvocation.element;
-        }
-      } else {
-        break;
-      }
-      // fail if a cycle is detected
-      if (!seenConstructors.add(constructor)) {
-        return null;
-      }
-    }
-    return constructor;
-  }
-
   /// Return `true` if [node] has an explicit or implicit qualifier, so that it
   /// cannot be shadowed by a local declaration.
   bool _isQualified(SimpleIdentifier node) {
@@ -1907,6 +1759,52 @@ class _IndexContributor extends UnifyingAstVisitor2 {
         IndexRelationKind.IS_READ_WRITTEN_BY,
         propertyName.offset,
         true,
+      );
+    }
+  }
+
+  void _recordNameExpression(NameExpressionImpl node) {
+    var isQualified = node is! UnqualifiedNameExpressionImpl;
+
+    Element? element;
+    IndexRelationKind kind;
+    switch (node.resolution) {
+      case VariableReadResolutionImpl resolution:
+        element = resolution.element;
+        kind = IndexRelationKind.IS_READ_BY;
+      case GetterInvocationResolutionImpl resolution:
+        element = resolution.element;
+        kind = IndexRelationKind.IS_INVOKED_BY;
+      case ExecutableTearOffResolutionImpl resolution:
+        element = resolution.element;
+        kind = IndexRelationKind.IS_REFERENCED_BY;
+        if (node is DotShorthandNameExpressionImpl &&
+            element is InternalConstructorElement) {
+          element = element.actualConstructor;
+          kind = IndexRelationKind
+              .IS_REFERENCED_BY_DOT_SHORTHAND_CONSTRUCTOR_TEAR_OFF;
+        }
+      case InvalidNamedReadResolutionImpl(recovery: var recovery?):
+        element = recovery.element;
+        kind = IndexRelationKind.IS_REFERENCED_BY;
+      case DynamicPropertyReadResolutionImpl():
+      case FunctionCallTearOffResolutionImpl():
+      case FunctionInterfaceCallTearOffResolutionImpl():
+      case InvalidNamedReadResolutionImpl():
+      case RecordFieldReadResolutionImpl():
+      case null:
+        element = null;
+        kind = IndexRelationKind.IS_READ_BY;
+    }
+
+    if (element != null) {
+      recordRelationToken(element, kind, node.name, isQualified: isQualified);
+    } else {
+      assembler.addNameRelation(
+        node.name.lexeme,
+        IndexRelationKind.IS_READ_BY,
+        node.name.offset,
+        isQualified,
       );
     }
   }
@@ -2088,6 +1986,26 @@ extension AnalysisDriverUnitIndexExtension on AnalysisDriverUnitIndex {
     }
 
     return binarySearch(strings, str);
+  }
+}
+
+extension _ConstructorElementExtension on ConstructorElement {
+  /// Returns the source constructor forwarded to by a mixin-application
+  /// constructor, or this constructor otherwise.
+  ConstructorElement get actualConstructor {
+    var constructor = this;
+    // Inheritance cycles are broken before mixin-application constructors are
+    // synthesized, so their forwarding chains are acyclic.
+    while (constructor is ConstructorElementImpl &&
+        constructor.isOriginMixinApplication) {
+      var enclosing = constructor.enclosingElement;
+      assert(enclosing is ClassElementImpl && enclosing.isMixinApplication);
+      var superInvocation = constructor.firstFragment.constantInitializers
+          .whereType<SuperConstructorInvocation>()
+          .single;
+      constructor = superInvocation.element!;
+    }
+    return constructor;
   }
 }
 

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -18,6 +17,12 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
   final DiagnosticReporter _diagnosticReporter;
 
   ConstArgumentsVerifier(this._diagnosticReporter);
+
+  void checkNameExpression(NameExpression node) {
+    if (node.resolution case NamedReadResolutionWithElement(:var element)) {
+      _checkTearoff(node, element);
+    }
+  }
 
   void verifyNamedFunctionInvocation(NamedFunctionInvocation node) {
     if (node.resolution is StaticInvocationResolution) {
@@ -102,15 +107,6 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
   }
 
   @override
-  void visitDotShorthandNameExpression(DotShorthandNameExpression node) {
-    var element = switch (node.resolution) {
-      NamedReadResolutionWithElement(:var element) => element,
-      _ => null,
-    };
-    _checkTearoff(node, element);
-  }
-
-  @override
   void visitIfNullAssignment(IfNullAssignment node) {
     _check(arguments: [node.value], errorNode: node.operator);
   }
@@ -153,15 +149,6 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
   }
 
   @override
-  void visitReceiverPropertyExtraction(ReceiverPropertyExtraction node) {
-    var element = switch (node.resolution) {
-      NamedReadResolutionWithElement(:var element) => element,
-      _ => null,
-    };
-    _checkTearoff(node, element);
-  }
-
-  @override
   void visitRedirectingConstructorInvocation(
     RedirectingConstructorInvocation node,
   ) {
@@ -195,13 +182,6 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
   @override
   void visitUnqualifiedFunctionInvocation(UnqualifiedFunctionInvocation node) {
     verifyNamedFunctionInvocation(node);
-  }
-
-  @override
-  void visitUnqualifiedNameExpression(UnqualifiedNameExpression node) {
-    if (node.resolution case NamedReadResolutionWithElement(:var element)) {
-      _checkTearoff(node, element);
-    }
   }
 
   void _check({
