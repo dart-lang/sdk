@@ -1471,6 +1471,41 @@ dart:core
 ''');
   }
 
+  test_locate_ImportPrefixedNameExpression() async {
+    newFile('$testPackageLibPath/a.dart', 'const value = 1;');
+    var result = await resolveTestCodeWithDiagnostics('''
+import 'a.dart' as p;
+
+void f() {
+  p.value;
+}
+''');
+    var node = result.findNode.importPrefixedNameExpression('p.value');
+    _assertElement(ElementLocatorV2.locate(node), r'''
+package:test/a.dart::@getter::value
+''');
+    _assertElement(ElementLocatorV2.locate(node.importPrefix), r'''
+<testLibraryFragment>::@prefix::p
+''');
+  }
+
+  test_locate_ImportPrefixedNameExpression_invalidRead() async {
+    newFile('$testPackageLibPath/a.dart', 'set value(int _) {}');
+    var result = await resolveTestCodeWithDiagnostics('''
+import 'a.dart' as p;
+
+void f() {
+  p.value;
+//  ^^^^^
+// [diag.undefinedPrefixedName] The name 'value' is being referenced through the prefix 'p', but it isn't defined in any of the libraries imported using that prefix.
+}
+''');
+    var node = result.findNode.importPrefixedNameExpression('p.value');
+    _assertElement(ElementLocatorV2.locate(node), r'''
+package:test/a.dart::@setter::value
+''');
+  }
+
   test_locate_IndexExpression() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 void main() {

@@ -89,6 +89,16 @@ class _Collector {
       return _identifier(node.propertyName);
     }
 
+    if (node is ImportPrefixedNameExpression) {
+      var prefixElement = node.importPrefix.element;
+      if (prefixElement is PrefixElement &&
+          prefixElement.fragments.any((fragment) => fragment.isDeferred)) {
+        nodes.add(node);
+        return;
+      }
+      return _nameExpression(node, node.resolution);
+    }
+
     if (node is UnqualifiedNameExpression) {
       return _nameExpression(node, node.resolution);
     }

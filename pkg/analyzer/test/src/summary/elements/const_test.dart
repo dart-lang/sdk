@@ -7645,17 +7645,15 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:29) (firstTokenOffset:29) (offset:29)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
-            PrefixedIdentifier
-              prefix: SimpleIdentifier
-                token: p @33
+            ImportPrefixedNameExpression
+              importPrefix: ImportPrefixReference
+                name: p @33
+                period: . @34
                 element: <testLibraryFragment>::@prefix::p
-                staticType: null
-              period: . @34
-              identifier: SimpleIdentifier
-                token: foo @35
+              name: foo @35
+              resolution: ExecutableTearOffResolution
                 element: package:test/a.dart::@function::foo
-                staticType: dynamic Function()
-              element: package:test/a.dart::@function::foo
+                type: dynamic Function()
               staticType: dynamic Function()
           inducedGetter: #F2
       getters
@@ -7840,17 +7838,16 @@ library
           element: <testLibrary>::@topLevelVariable::B
           initializer: expression_0
             BinaryOperatorInvocation
-              leftOperand: PrefixedIdentifier
-                prefix: SimpleIdentifier
-                  token: p @33
+              leftOperand: ImportPrefixedNameExpression
+                importPrefix: ImportPrefixReference
+                  name: p @33
+                  period: . @34
                   element: <testLibraryFragment>::@prefix::p
-                  staticType: null
-                period: . @34
-                identifier: SimpleIdentifier
-                  token: A @35
+                name: A @35
+                resolution: GetterInvocationResolution
                   element: package:test/a.dart::@getter::A
-                  staticType: int
-                element: package:test/a.dart::@getter::A
+                  invokeType: int Function()
+                  type: int
                 staticType: int
               operator: + @37
               rightOperand: IntegerLiteral

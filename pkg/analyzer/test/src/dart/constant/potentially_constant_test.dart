@@ -965,7 +965,7 @@ import 'a.dart' deferred as p;
 var x = p.a + 1;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNode.prefixed('p.a')],
+      (result) => [result.findNode.importPrefixedNameExpression('p.a')],
     );
   }
 

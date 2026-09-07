@@ -424,6 +424,25 @@ var x = a;
     expect(result.value!.toIntValue(), 42);
   }
 
+  test_hasValue_constantReference_importPrefixed() async {
+    newFile('$testPackageLibPath/a.dart', 'const a = 42;');
+    var unitResult = await resolveTestCode('''
+import 'a.dart' as p;
+const x = p.a;
+''');
+    var declaration = unitResult.findNode.topVariableDeclarationByName('x');
+    for (var expression in [
+      declaration.initializer2!,
+      declaration.initializer!,
+    ]) {
+      expect(expression.inConstantContext, isTrue);
+      var result = expression.computeConstantValue();
+      expect(result, isNotNull);
+      expect(result!.diagnostics, isEmpty);
+      expect(result.value!.toIntValue(), 42);
+    }
+  }
+
   test_hasValue_intLiteral() async {
     var unitResult = await resolveTestCode('''
 var x = 42;

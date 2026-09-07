@@ -423,6 +423,7 @@ package:analyzer/analysis_rule/rule_visitor_registry.dart:
     addImportDirective (method: void Function(AbstractAnalysisRule, AstVisitor2<dynamic>))
     addImportPrefixReference (method: void Function(AbstractAnalysisRule, AstVisitor2<dynamic>))
     addImportPrefixedFunctionInvocation (method: void Function(AbstractAnalysisRule, AstVisitor2<dynamic>), experimental)
+    addImportPrefixedNameExpression (method: void Function(AbstractAnalysisRule, AstVisitor2<dynamic>), experimental)
     addIncrementOrDecrementExpression (method: void Function(AbstractAnalysisRule, AstVisitor2<dynamic>), experimental)
     addIndexExpression (method: void Function(AbstractAnalysisRule, AstVisitor2<dynamic>))
     addIntegerLiteral (method: void Function(AbstractAnalysisRule, AstVisitor2<dynamic>))
@@ -1199,6 +1200,7 @@ package:analyzer/dart/ast/ast.dart:
     visitImportDirective (method: R? Function(ImportDirective))
     visitImportPrefixReference (method: R? Function(ImportPrefixReference))
     visitImportPrefixedFunctionInvocation (method: R? Function(ImportPrefixedFunctionInvocation), experimental)
+    visitImportPrefixedNameExpression (method: R? Function(ImportPrefixedNameExpression), experimental)
     visitIncrementOrDecrementExpression (method: R? Function(IncrementOrDecrementExpression), experimental)
     visitIndexExpression (method: R? Function(IndexExpression))
     visitIntegerLiteral (method: R? Function(IntegerLiteral))
@@ -1965,6 +1967,8 @@ package:analyzer/dart/ast/ast.dart:
     period (getter: Token)
   ImportPrefixedFunctionInvocation (class extends Object implements NamedFunctionInvocation, abstract, final, experimental):
     importPrefix (getter: ImportPrefixReference)
+  ImportPrefixedNameExpression (class extends Object implements NameExpression, abstract, final, experimental):
+    importPrefix (getter: ImportPrefixReference)
   IncrementOrDecrementExpression (class extends Object implements Expression, abstract, final, experimental):
     element (getter: MethodElement?)
     operation (getter: IncrementOrDecrementOperation)
@@ -2200,7 +2204,7 @@ package:analyzer/dart/ast/ast.dart:
   MixinOnClause (class extends Object implements AstNode, abstract, final):
     onKeyword (getter: Token)
     superclassConstraints (getter: NodeList<NamedType>)
-  NameExpression (class extends Object implements Expression, sealed (immediate subtypes: DotShorthandNameExpression, NameExpressionImpl, PropertyExtraction, UnqualifiedNameExpression), experimental):
+  NameExpression (class extends Object implements Expression, sealed (immediate subtypes: DotShorthandNameExpression, ImportPrefixedNameExpression, NameExpressionImpl, PropertyExtraction, UnqualifiedNameExpression), experimental):
     name (getter: Token)
     resolution (getter: NamedReadResolution?)
   NameWithTypeParameters (class extends Object implements ClassNamePart, abstract, final)
@@ -3587,6 +3591,7 @@ package:analyzer/dart/ast/visitor.dart:
     visitImportDirective (method: R? Function(ImportDirective))
     visitImportPrefixReference (method: R? Function(ImportPrefixReference))
     visitImportPrefixedFunctionInvocation (method: R? Function(ImportPrefixedFunctionInvocation), experimental)
+    visitImportPrefixedNameExpression (method: R? Function(ImportPrefixedNameExpression), experimental)
     visitIncrementOrDecrementExpression (method: R? Function(IncrementOrDecrementExpression), experimental)
     visitIndexExpression (method: R? Function(IndexExpression))
     visitIntegerLiteral (method: R? Function(IntegerLiteral))
@@ -3992,6 +3997,7 @@ package:analyzer/dart/ast/visitor.dart:
     visitImportDirective (method: R? Function(ImportDirective))
     visitImportPrefixReference (method: R? Function(ImportPrefixReference))
     visitImportPrefixedFunctionInvocation (method: R? Function(ImportPrefixedFunctionInvocation), experimental)
+    visitImportPrefixedNameExpression (method: R? Function(ImportPrefixedNameExpression), experimental)
     visitIncrementOrDecrementExpression (method: R? Function(IncrementOrDecrementExpression), experimental)
     visitIndexExpression (method: R? Function(IndexExpression))
     visitIntegerLiteral (method: R? Function(IntegerLiteral))
@@ -4397,6 +4403,7 @@ package:analyzer/dart/ast/visitor.dart:
     visitImportDirective (method: R? Function(ImportDirective))
     visitImportPrefixReference (method: R? Function(ImportPrefixReference))
     visitImportPrefixedFunctionInvocation (method: R? Function(ImportPrefixedFunctionInvocation), experimental)
+    visitImportPrefixedNameExpression (method: R? Function(ImportPrefixedNameExpression), experimental)
     visitIncrementOrDecrementExpression (method: R? Function(IncrementOrDecrementExpression), experimental)
     visitIndexExpression (method: R? Function(IndexExpression))
     visitIntegerLiteral (method: R? Function(IntegerLiteral))
@@ -4804,6 +4811,7 @@ package:analyzer/dart/ast/visitor.dart:
     visitImportDirective (method: T? Function(ImportDirective))
     visitImportPrefixReference (method: T? Function(ImportPrefixReference))
     visitImportPrefixedFunctionInvocation (method: T? Function(ImportPrefixedFunctionInvocation), experimental)
+    visitImportPrefixedNameExpression (method: T? Function(ImportPrefixedNameExpression), experimental)
     visitIncrementOrDecrementExpression (method: T? Function(IncrementOrDecrementExpression), experimental)
     visitIndexExpression (method: T? Function(IndexExpression))
     visitIntegerLiteral (method: T? Function(IntegerLiteral))
@@ -5210,6 +5218,7 @@ package:analyzer/dart/ast/visitor.dart:
     visitImportDirective (method: R? Function(ImportDirective))
     visitImportPrefixReference (method: R? Function(ImportPrefixReference))
     visitImportPrefixedFunctionInvocation (method: R? Function(ImportPrefixedFunctionInvocation), experimental)
+    visitImportPrefixedNameExpression (method: R? Function(ImportPrefixedNameExpression), experimental)
     visitIncrementOrDecrementExpression (method: R? Function(IncrementOrDecrementExpression), experimental)
     visitIndexExpression (method: R? Function(IndexExpression))
     visitIntegerLiteral (method: R? Function(IntegerLiteral))

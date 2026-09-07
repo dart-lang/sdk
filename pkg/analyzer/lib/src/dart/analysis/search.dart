@@ -331,6 +331,18 @@ class ImportElementReferencesVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitImportPrefixedNameExpression(ImportPrefixedNameExpression node) {
+    var element = node.resolution.elementOrRecovery?.baseElement;
+    var prefixFragment = import.prefix;
+    if (importedElements.contains(element) &&
+        prefixFragment != null &&
+        node.importPrefix.element == prefixFragment.element) {
+      var offset = node.importPrefix.offset;
+      _addResult(offset, node.importPrefix.period.end - offset);
+    }
+  }
+
+  @override
   void visitNamedType(NamedType node) {
     if (importedElements.contains(node.element)) {
       var prefixFragment = import.prefix;

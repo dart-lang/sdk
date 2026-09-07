@@ -553,6 +553,17 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   }
 
   @override
+  void visitImportPrefixedNameExpression(
+    covariant ImportPrefixedNameExpressionImpl node,
+  ) {
+    _sink.writeEnum(AstNodeTag.ImportPrefixedNameExpression);
+    _writeNode(node.importPrefix);
+    _writeStringReference(node.name.lexeme);
+    _sink.writeOptionalObject(node.resolution, _writeNamedReadResolution);
+    _storeExpression(node);
+  }
+
+  @override
   void visitImportPrefixReference(ImportPrefixReference node) {
     _sink.writeEnum(AstNodeTag.ImportPrefixReference);
     _writeStringReference(node.name.lexeme);

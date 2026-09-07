@@ -375,6 +375,12 @@ class _ElementCollector extends UnifyingAstVisitor2<void> {
   }
 
   @override
+  void visitImportPrefixedNameExpression(ImportPrefixedNameExpression node) {
+    node.importPrefix.accept2(this);
+    _addReadResolution(node.resolution);
+  }
+
+  @override
   void visitImportPrefixReference(ImportPrefixReference node) {
     _addElement(node.element);
   }

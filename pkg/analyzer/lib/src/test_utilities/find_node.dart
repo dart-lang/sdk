@@ -92,6 +92,9 @@ class FindNode2 extends _FindNodeBase {
   ImportPrefixedFunctionInvocation get singleImportPrefixedFunctionInvocation =>
       _single();
 
+  ImportPrefixedNameExpression get singleImportPrefixedNameExpression =>
+      _single();
+
   LogicalAnd get singleLogicalAnd => _single();
 
   LogicalNot get singleLogicalNot => _single();
@@ -164,6 +167,10 @@ class FindNode2 extends _FindNodeBase {
     String search,
   ) {
     return _node(search, (node) => node is ImportPrefixedFunctionInvocation);
+  }
+
+  ImportPrefixedNameExpression importPrefixedNameExpression(String search) {
+    return _node(search, (node) => node is ImportPrefixedNameExpression);
   }
 
   IncrementOrDecrementExpression incrementOrDecrement(String search) {

@@ -3853,6 +3853,34 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitImportPrefixedNameExpression(
+    covariant ImportPrefixedNameExpressionImpl node, {
+    TypeImpl contextType = UnknownInferredType.instance,
+  }) {
+    inferenceLogWriter?.enterExpression(node, contextType);
+    checkUnreachableNode(node);
+    var resolution = _propertyElementResolver
+        .resolveImportPrefixedNameExpression(node);
+    node.resolution = resolution;
+    node.implicitFunctionInstantiationTypeArguments = null;
+    var staticType = _inferLegacyNameTearOff(
+      expression: node,
+      staticType: resolution.type,
+      contextType: contextType,
+      recordTypeArguments: (typeArguments) {
+        node.implicitFunctionInstantiationTypeArguments = typeArguments;
+      },
+    );
+    node.recordStaticType(staticType, resolver: this);
+    var replacement = insertGenericFunctionInstantiation(
+      node,
+      contextType: contextType,
+    );
+    _insertImplicitCallReference(replacement, contextType: contextType);
+    inferenceLogWriter?.exitExpression(node);
+  }
+
+  @override
   void visitIncrementOrDecrementExpression(
     covariant IncrementOrDecrementExpressionImpl node, {
     TypeImpl contextType = UnknownInferredType.instance,
@@ -6581,7 +6609,7 @@ class SwitchExhaustiveness {
   static Element? _referencedElement(Expression expression) {
     if (expression is ParenthesizedExpression) {
       return _referencedElement(expression.expression2);
-    } else if (expression is UnqualifiedNameExpression) {
+    } else if (expression is NameExpression) {
       return expression.resolution.elementOrRecovery;
     } else if (expression is PrefixedIdentifier) {
       return expression.element;

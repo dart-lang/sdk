@@ -1894,6 +1894,13 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
     node.visitChildren2(this);
   }
 
+  @experimental
+  @override
+  void visitImportPrefixedNameExpression(ImportPrefixedNameExpression node) {
+    _runSubscriptions(node, _registry._forImportPrefixedNameExpression);
+    node.visitChildren2(this);
+  }
+
   @override
   void visitImportPrefixReference(ImportPrefixReference node) {
     _runSubscriptions(node, _registry._forImportPrefixReference);
@@ -4654,6 +4661,9 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   final List<_Subscription2<ImportPrefixedFunctionInvocation>>
   _forImportPrefixedFunctionInvocation = [];
 
+  final List<_Subscription2<ImportPrefixedNameExpression>>
+  _forImportPrefixedNameExpression = [];
+
   final List<_Subscription2<ImportPrefixReference>> _forImportPrefixReference =
       [];
 
@@ -5752,6 +5762,17 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   ) {
     _hasNodeProcessors = true;
     _forImportPrefixedFunctionInvocation.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
+  }
+
+  @override
+  void addImportPrefixedNameExpression(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
+    _hasNodeProcessors = true;
+    _forImportPrefixedNameExpression.add(
       _Subscription2(rule, visitor, _getTimer(rule)),
     );
   }

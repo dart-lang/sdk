@@ -254,7 +254,7 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
         case VariableElement():
           return element.isConst;
       }
-    } else if (expression is UnqualifiedNameExpression) {
+    } else if (expression is NameExpression) {
       var element = expression.resolution.elementOrRecovery;
       return switch (element) {
         GetterElement() => element.variable.isConst,
@@ -280,7 +280,7 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
       if (node.element is TopLevelFunctionElement) return true;
       if (node.element is MethodElement) return true;
     }
-    if (node is UnqualifiedNameExpression) {
+    if (node is NameExpression) {
       return node.resolution is ExecutableTearOffResolution;
     }
     return false;

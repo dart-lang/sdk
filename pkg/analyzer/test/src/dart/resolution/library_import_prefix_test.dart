@@ -262,10 +262,29 @@ f() {
 ''');
 
     // `_` is bound so `a` resolves to the int declared in `a.dart`.
-    var node = result.findNode.simple('a;');
+    var node = result.findNode.importPrefixedNameExpression('_.a;');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
-  token: a
+ImportPrefixedNameExpression
+  importPrefix: ImportPrefixReference
+    name: _
+    period: .
+    element: <testLibraryFragment>::@prefix::_
+  name: a
+  resolution: GetterInvocationResolution
+    element: package:test/a.dart::@getter::a
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: _
+    element: <testLibraryFragment>::@prefix::_
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: a
+    element: package:test/a.dart::@getter::a
+    staticType: int
   element: package:test/a.dart::@getter::a
   staticType: int
 ''');

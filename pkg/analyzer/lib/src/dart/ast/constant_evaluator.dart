@@ -575,6 +575,11 @@ class ConstantEvaluator2 extends UnifyingAstVisitor2<Object> {
   }
 
   @override
+  Object? visitImportPrefixedNameExpression(
+    ImportPrefixedNameExpression node,
+  ) => _getConstantValue(null);
+
+  @override
   Object? visitIntegerLiteral(IntegerLiteral node) => node.value;
 
   @override

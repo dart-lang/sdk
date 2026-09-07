@@ -829,6 +829,12 @@ abstract class RuleVisitorRegistry2 {
     AstVisitor2 visitor,
   );
 
+  @experimental
+  void addImportPrefixedNameExpression(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
+
   void addImportPrefixReference(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   @experimental

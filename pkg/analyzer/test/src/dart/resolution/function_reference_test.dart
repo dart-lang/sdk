@@ -3384,7 +3384,17 @@ void f() {
     var node = result.findNode.expressionStatement('prefix.loadLibrary');
     assertResolvedNodeText(node, r'''
 ExpressionStatement
-  expression2: PrefixedIdentifier
+  expression2: ImportPrefixedNameExpression
+    importPrefix: ImportPrefixReference
+      name: prefix
+      period: .
+      element: <testLibraryFragment>::@prefix::prefix
+    name: loadLibrary
+    resolution: ExecutableTearOffResolution
+      element: package:test/a.dart::@function::loadLibrary
+      type: Future<dynamic> Function()
+    staticType: Future<dynamic> Function()
+  expression(v1): PrefixedIdentifier
     prefix: SimpleIdentifier
       token: prefix
       element: <testLibraryFragment>::@prefix::prefix

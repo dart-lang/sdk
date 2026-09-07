@@ -1086,6 +1086,22 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
   ) => _visitNamedFunctionInvocation(node);
 
   @override
+  Constant visitImportPrefixedNameExpression(
+    covariant ImportPrefixedNameExpressionImpl node,
+  ) {
+    var identifier = node.prefixedIdentifier.identifier;
+    if (node.prefixedIdentifier.isDeferred) {
+      return _getDeferredLibraryError(node, identifier);
+    }
+    return _getConstantValue(
+      errorNode: node,
+      expression: node,
+      identifier: identifier,
+      element: node.resolution.elementOrRecovery,
+    );
+  }
+
+  @override
   Constant visitIncrementOrDecrementExpression(
     IncrementOrDecrementExpression node,
   ) {

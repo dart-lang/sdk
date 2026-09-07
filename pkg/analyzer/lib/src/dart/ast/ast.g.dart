@@ -666,6 +666,9 @@ abstract class AstVisitor2<R> {
     ImportPrefixedFunctionInvocation node,
   );
 
+  @experimental
+  R? visitImportPrefixedNameExpression(ImportPrefixedNameExpression node);
+
   R? visitImportPrefixReference(ImportPrefixReference node);
 
   @experimental

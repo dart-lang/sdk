@@ -199,6 +199,7 @@ export 'package:analyzer/src/dart/ast/ast.dart'
         ImplicitCallReference,
         ImportDirective,
         ImportPrefixedFunctionInvocation,
+        ImportPrefixedNameExpression,
         ImportPrefixReference,
         IncrementOrDecrementExpression,
         IncrementOrDecrementOperation,

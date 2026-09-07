@@ -375,6 +375,49 @@ class PropertyElementResolver with ScopeHelpers {
     );
   }
 
+  NamedReadResolutionImpl resolveImportPrefixedNameExpression(
+    ImportPrefixedNameExpressionImpl node,
+  ) {
+    var prefix = node.importPrefix;
+    var prefixElement = prefix.element as PrefixElement;
+
+    var result = _resolveTargetPrefixElement(
+      target: prefixElement,
+      nameToken: node.name,
+      hasRead: true,
+      hasWrite: false,
+      forAnnotation: false,
+    );
+    var element = result.readElementRequested2;
+    if (element is ExtensionElement) {
+      diagnosticReporter.report(
+        diag.extensionAsExpression
+            .withArguments(
+              name:
+                  '${node.importPrefix.name.lexeme}'
+                  '${node.importPrefix.period.lexeme}'
+                  '${node.name.lexeme}',
+            )
+            .at(node),
+      );
+    }
+    var recoveryElement = element == null
+        ? result.writeElementRequested2
+        : null;
+    return _createNamedReadResolutionWithElement(
+          element,
+          type: result.getType as TypeImpl? ?? _namedReadType(element),
+        ) ??
+        InvalidNamedReadResolutionImpl(
+          candidates: [?element, ?recoveryElement],
+          recovery: _createNamedReadResolutionWithElement(
+            recoveryElement,
+            type: _namedReadType(recoveryElement),
+          ),
+          type: InvalidTypeImpl.instance,
+        );
+  }
+
   ({
     NamedReadResolutionImpl read,
     NamedWriteResolutionImpl write,
@@ -386,7 +429,7 @@ class PropertyElementResolver with ScopeHelpers {
   ) {
     var result = _resolveTargetPrefixElement(
       target: prefix,
-      identifier: SimpleIdentifierImpl(token: node.propertyName),
+      nameToken: node.propertyName,
       hasRead: true,
       hasWrite: true,
       forAnnotation: false,
@@ -701,7 +744,7 @@ class PropertyElementResolver with ScopeHelpers {
     if (prefixElement is PrefixElement) {
       return _resolveTargetPrefixElement(
         target: prefixElement,
-        identifier: identifier,
+        nameToken: identifier.token,
         hasRead: hasRead,
         hasWrite: hasWrite,
         forAnnotation: forAnnotation,
@@ -2168,15 +2211,16 @@ class PropertyElementResolver with ScopeHelpers {
 
   PropertyElementResolverResult _resolveTargetPrefixElement({
     required PrefixElement target,
-    required SimpleIdentifier identifier,
+    required Token nameToken,
     required bool hasRead,
     required bool hasWrite,
     required bool forAnnotation,
   }) {
-    var lookupResult = target.scope.lookup(identifier.name);
+    var name = nameToken.lexeme;
+    var lookupResult = target.scope.lookup(name);
     reportDeprecatedExportUse(
       scopeLookupResult: lookupResult,
-      nameToken: identifier.token,
+      nameToken: nameToken,
       hasRead: hasRead,
       hasWrite: hasWrite,
     );
@@ -2192,15 +2236,12 @@ class PropertyElementResolver with ScopeHelpers {
       if (!forAnnotation &&
           !_resolver.libraryFragment.shouldIgnoreUndefined(
             prefix: target.name,
-            name: identifier.name,
+            name: name,
           )) {
         diagnosticReporter.report(
           diag.undefinedPrefixedName
-              .withArguments(
-                referenceName: identifier.name,
-                prefixName: target.name!,
-              )
-              .at(identifier),
+              .withArguments(referenceName: name, prefixName: target.name!)
+              .at(nameToken),
         );
       }
     }

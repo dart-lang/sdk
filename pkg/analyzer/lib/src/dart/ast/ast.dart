@@ -29179,12 +29179,249 @@ final class ImportPrefixedFunctionInvocationImpl
   }
 }
 
+/// A value-producing name selected through an import prefix.
+///
+/// The [importPrefix] owns the written `prefix.` qualifier, while [name]
+/// identifies the imported declaration whose value is read.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class ImportPrefixedNameExpression implements NameExpression {
+  /// The import prefix through which the declaration is selected.
+  ///
+  /// In a resolved AST, [ImportPrefixReference.element] is a [PrefixElement].
+  ImportPrefixReference get importPrefix;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [
+    GenerateNodeProperty('importPrefix'),
+    GenerateNodeProperty('name'),
+  ],
+)
+final class ImportPrefixedNameExpressionImpl extends NameExpressionImpl
+    implements ImportPrefixedNameExpression {
+  @generated
+  ImportPrefixReferenceImpl _importPrefix;
+
+  @generated
+  @override
+  final Token name;
+
+  @DoNotGenerate(reason: 'Stores the canonical typed read resolution')
+  NamedReadResolutionImpl? _resolution;
+
+  List<TypeImpl>? _implicitFunctionInstantiationTypeArguments;
+
+  PrefixedIdentifierImpl? _prefixedIdentifier;
+
+  @generated
+  ImportPrefixedNameExpressionImpl({
+    required ImportPrefixReferenceImpl importPrefix,
+    required this.name,
+  }) : _importPrefix = importPrefix {
+    _becomeParentOf2(importPrefix);
+  }
+
+  @generated
+  @override
+  Token get beginToken {
+    return importPrefix.beginToken;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return name;
+  }
+
+  /// The inferred type arguments for a contextual generic function
+  /// instantiation that is temporarily flattened into this expression.
+  // TODO(scheglov): Replace this compatibility payload with a canonical
+  // `ImplicitFunctionInstantiation` wrapper. Until that node exists, the V2
+  // expression owns the inferred type arguments so that its origin-backed V1
+  // projection can reproduce `SimpleIdentifier.tearOffTypeArgumentTypes`
+  // without participating in resolution.
+  set implicitFunctionInstantiationTypeArguments(List<TypeImpl>? value) {
+    _implicitFunctionInstantiationTypeArguments = value;
+    _prefixedIdentifier?.identifier.tearOffTypeArgumentTypes = value;
+  }
+
+  @generated
+  @override
+  ImportPrefixReferenceImpl get importPrefix => _importPrefix;
+
+  @generated
+  set importPrefix(ImportPrefixReferenceImpl importPrefix) {
+    _importPrefix = _becomeParentOf2(importPrefix);
+  }
+
+  @override
+  Precedence get precedence => Precedence.postfix;
+
+  /// The cached identifier used only by the V1 compatibility projection.
+  PrefixedIdentifierImpl get prefixedIdentifier {
+    var result = _prefixedIdentifier ??= PrefixedIdentifierImpl.v1Projection(
+      prefix: SimpleIdentifierImpl.v1Projection(token: importPrefix.name),
+      period: importPrefix.period,
+      identifier: SimpleIdentifierImpl.v1Projection(token: name),
+      origin: this,
+    );
+    result.prefix.element = importPrefix.element;
+    result.identifier.element = _legacyReadElement;
+    result.identifier.tearOffTypeArgumentTypes =
+        _implicitFunctionInstantiationTypeArguments;
+    result.identifier.setPseudoExpressionStaticType(staticType);
+    result.setPseudoExpressionStaticType(staticType);
+    return result;
+  }
+
+  @override
+  NamedReadResolutionImpl? get resolution => _resolution;
+
+  set resolution(NamedReadResolutionImpl? value) {
+    _resolution = value;
+    if (_prefixedIdentifier case var identifier?) {
+      identifier.identifier.element = _legacyReadElement;
+      identifier.identifier.setPseudoExpressionStaticType(value?.type);
+      identifier.setPseudoExpressionStaticType(value?.type);
+    }
+  }
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @generated
+  @override
+  ChildEntities get _childEntities {
+    throw StateError('ImportPrefixedNameExpression is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('importPrefix', importPrefix)
+    ..addToken('name', name);
+
+  Element? get _legacyReadElement => switch (resolution) {
+    InvalidNamedReadResolutionImpl(:var candidates) => candidates.firstOrNull,
+    NamedReadResolutionWithElementImpl(:var element) => element,
+    _ => null,
+  };
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('ImportPrefixedNameExpression is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitImportPrefixedNameExpression(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent2, this));
+    return false;
+  }
+
+  @override
+  void recordStaticType(DartType type, {required ResolverVisitor resolver}) {
+    super.recordStaticType(type, resolver: resolver);
+    if (_prefixedIdentifier case var identifier?) {
+      identifier.identifier.setPseudoExpressionStaticType(type);
+      identifier.setPseudoExpressionStaticType(type);
+    }
+  }
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    if (identical(importPrefix, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'importPrefix'.");
+    }
+    super.removeChild(oldNode);
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (identical(importPrefix, oldNode)) {
+      importPrefix = newNode as ImportPrefixReferenceImpl;
+      return;
+    }
+    super.replaceChild(oldNode, newNode);
+  }
+
+  @generated
+  @override
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+    resolver.visitImportPrefixedNameExpression(this, contextType: contextType);
+  }
+
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError('ImportPrefixedNameExpression is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    importPrefix.accept2(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(
+    AstVisitor2 visitor, {
+    void Function(ImportPrefixReferenceImpl)? visitImportPrefix,
+  }) {
+    if (visitImportPrefix != null) {
+      visitImportPrefix(importPrefix);
+    } else {
+      importPrefix.accept2(visitor);
+    }
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError('ImportPrefixedNameExpression is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (importPrefix._containsOffset(rangeOffset, rangeEnd)) {
+      return importPrefix;
+    }
+    return null;
+  }
+}
+
 /// Reference to an import prefix name.
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ImportPrefixReference implements AstNode {
-  /// The element to which [name] is resolved.
+  /// The element to which [name] resolves.
   ///
-  /// Usually a [PrefixElement], but can be anything in invalid code.
+  /// In valid code, this is a [PrefixElement]. It can be another kind of
+  /// element in invalid code.
+  ///
+  /// Returns `null` if the reference hasn't been resolved or [name] can't be
+  /// resolved.
   Element? get element;
 
   /// The name of the referenced import prefix.
@@ -41811,6 +42048,10 @@ final class PrefixedIdentifierImpl extends IdentifierImpl
   @generated
   SimpleIdentifierImpl _identifier;
 
+  AstNodeApi? _astNodeApiOverride;
+
+  ExpressionImpl? _v1ProjectionOrigin;
+
   @generated
   PrefixedIdentifierImpl({
     required SimpleIdentifierImpl prefix,
@@ -41822,10 +42063,31 @@ final class PrefixedIdentifierImpl extends IdentifierImpl
     _becomeParentOf12(identifier);
   }
 
+  PrefixedIdentifierImpl.v1Projection({
+    required SimpleIdentifierImpl prefix,
+    required this.period,
+    required SimpleIdentifierImpl identifier,
+    ExpressionImpl? origin,
+  }) : _prefix = prefix,
+       _identifier = identifier,
+       _astNodeApiOverride = AstNodeApi.v1,
+       _v1ProjectionOrigin = origin {
+    _becomeParentOf1(prefix);
+    _becomeParentOf1(identifier);
+  }
+
   @generated
   @override
   Token get beginToken {
     return prefix.beginToken;
+  }
+
+  @override
+  InternalFormalParameterElement? get correspondingParameter {
+    if (_v1ProjectionOrigin case var origin?) {
+      return origin.correspondingParameter;
+    }
+    return super.correspondingParameter;
   }
 
   @override
@@ -41847,6 +42109,10 @@ final class PrefixedIdentifierImpl extends IdentifierImpl
   set identifier(SimpleIdentifierImpl identifier) {
     _identifier = _becomeParentOf12(identifier);
   }
+
+  @override
+  bool get inConstantContext =>
+      _v1ProjectionOrigin?.inConstantContext ?? super.inConstantContext;
 
   @override
   bool get isDeferred {
@@ -41872,6 +42138,10 @@ final class PrefixedIdentifierImpl extends IdentifierImpl
     _prefix = _becomeParentOf12(prefix);
   }
 
+  @DoNotGenerate(reason: 'Some instances are V1 compatibility projections')
+  @override
+  AstNodeApi get _astNodeApi => _astNodeApiOverride ?? AstNodeApi.shared;
+
   @generated
   @override
   ChildEntities get _childEntities => ChildEntities()
@@ -41896,6 +42166,14 @@ final class PrefixedIdentifierImpl extends IdentifierImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitPrefixedIdentifier(this);
+
+  @override
+  AttemptedConstantEvaluationResult? computeConstantValue() {
+    if (_v1ProjectionOrigin case var origin?) {
+      return origin.computeConstantValue();
+    }
+    return super.computeConstantValue();
+  }
 
   @generated
   @override
@@ -54508,6 +54786,11 @@ enum V1Projection {
     }
     if (node is ImportPrefixedFunctionInvocationImpl) {
       return createIfAbsent ? node.methodInvocation : node._methodInvocation;
+    }
+    if (node is ImportPrefixedNameExpressionImpl) {
+      return createIfAbsent
+          ? node.prefixedIdentifier
+          : node._prefixedIdentifier;
     }
     if (node is ConstructorInvocationImpl) {
       return createIfAbsent

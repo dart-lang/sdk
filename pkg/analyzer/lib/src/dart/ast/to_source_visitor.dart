@@ -937,6 +937,12 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
+  void visitImportPrefixedNameExpression(ImportPrefixedNameExpression node) {
+    _visitNode(node.importPrefix);
+    _visitToken(node.name);
+  }
+
+  @override
   void visitImportPrefixReference(ImportPrefixReference node) {
     sink.write(node.name.lexeme);
     sink.write('.');

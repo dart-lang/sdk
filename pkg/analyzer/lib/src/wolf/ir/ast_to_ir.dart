@@ -17,14 +17,18 @@ import 'package:analyzer/src/dart/ast/ast.dart'
         DotShorthandMethodInvocationImpl,
         GetterInvocationResolutionImpl,
         ImportPrefixedFunctionInvocationImpl,
-        NamedFunctionInvocationImpl,
-        ReceiverIndexAssignmentTargetImpl,
+        ImportPrefixedNameExpressionImpl,
         InvalidExpressionAssignmentTargetImpl,
+        NamedFunctionInvocationImpl,
+        NamedReadResolutionImpl,
+        ReceiverIndexAssignmentTargetImpl,
         ReceiverMethodInvocationImpl,
         ReceiverPropertyAssignmentTargetImpl,
         ReceiverPropertyExtractionImpl,
         UnqualifiedFunctionInvocationImpl,
-        UnqualifiedNameAssignmentTargetImpl;
+        UnqualifiedNameAssignmentTargetImpl,
+        UnqualifiedNameExpressionImpl,
+        VariableReadResolutionImpl;
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/wolf/ir/call_descriptor.dart';
 import 'package:analyzer/src/wolf/ir/coded_ir.dart';
@@ -825,6 +829,11 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
   );
 
   @override
+  _LValueTemplates visitImportPrefixedNameExpression(
+    covariant ImportPrefixedNameExpressionImpl node,
+  ) => _nameExpression(node.name, node.resolution);
+
+  @override
   Null visitIncrementOrDecrementExpression(
     IncrementOrDecrementExpression node,
   ) {
@@ -1157,7 +1166,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
 
   @override
   _LValueTemplates visitUnqualifiedNameExpression(
-    UnqualifiedNameExpression node,
+    covariant UnqualifiedNameExpressionImpl node,
   ) => _nameExpression(node.name, node.resolution);
 
   @override
@@ -1248,23 +1257,29 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
 
   _LValueTemplates _nameExpression(
     Token name,
-    NamedReadResolution? resolution,
+    NamedReadResolutionImpl? resolution,
   ) {
     switch (resolution) {
-      case VariableReadResolution(:var element)
-          when element is FormalParameterElement ||
-              element is LocalVariableElement:
+      case VariableReadResolutionImpl(:var element):
+        if (element is! FormalParameterElement &&
+            element is! LocalVariableElement) {
+          throw UnimplementedError('Non-local variable reads');
+        }
         return _LocalTemplates(locals[element]!);
-      case GetterInvocationResolution(element: PropertyAccessorElement element)
-          when !element.isStatic:
+      case GetterInvocationResolutionImpl(:var element):
+        if (element.isStatic) {
+          throw UnimplementedError('Static getter invocations');
+        }
         this_();
         // Stack: this
         return _PropertyAccessTemplates.direct(
           name: name.lexeme,
           readElement: element,
         );
-      case dynamic(:var runtimeType):
-        throw UnimplementedError('TODO(paulberry): $runtimeType: $resolution');
+      case null:
+        throw StateError('Unresolved name expression');
+      default:
+        throw UnimplementedError('Unsupported named read: $resolution');
     }
   }
 
