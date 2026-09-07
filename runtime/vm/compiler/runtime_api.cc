@@ -1068,6 +1068,10 @@ void UnboxFieldIfSupported(const dart::Field& field,
     if (FlowGraphCompiler::SupportsUnboxedSimd128()) {
       cid = kFloat64x2Cid;
     }
+  } else if (type.IsInt32x4Type()) {
+    if (FlowGraphCompiler::SupportsUnboxedSimd128()) {
+      cid = kInt32x4Cid;
+    }
   }
 
   if (cid != kIllegalCid) {

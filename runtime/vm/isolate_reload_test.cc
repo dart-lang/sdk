@@ -5620,6 +5620,13 @@ static void TestReloadWithFieldChange(const char* prefix,
       if (got.equal(expected).signMask != 0xf) throw 'expected $expected got $got';
     }
 
+    void int32x4Eq(Int32x4 got, Int32x4 expected) {
+      if (got.x != expected.x || got.y != expected.y ||
+          got.z != expected.z || got.w != expected.w) {
+        throw 'expected $expected got $got';
+      }
+    }
+
     class Foo {
       %s
       %s x = %s;
@@ -5653,6 +5660,13 @@ static void TestReloadWithFieldChange(const char* prefix,
 
     void float32x4Eq(Float32x4 got, Float32x4 expected) {
       if (got.equal(expected).signMask != 0xf) throw 'expected $expected got $got';
+    }
+
+    void int32x4Eq(Int32x4 got, Int32x4 expected) {
+      if (got.x != expected.x || got.y != expected.y ||
+          got.z != expected.z || got.w != expected.w) {
+        throw 'expected $expected got $got';
+      }
     }
 
     class Foo {
@@ -5729,6 +5743,33 @@ TEST_CASE(IsolateReload_ExistingFieldUnboxedToUnboxed) {
       "4.0));",
       /*from_type=*/"double", /*from_init=*/"42.0", /*to_type=*/"Float32x4",
       /*to_init=*/"Float32x4(1.0, 2.0, 3.0, 4.0)");
+}
+
+TEST_CASE(IsolateReload_ExistingInt32x4FieldUnboxedToBoxed) {
+  TestReloadWithFieldChange(
+      /*prefix=*/"double a = 1.5;",
+      /*suffix=*/"Int32x4 b = Int32x4(1, 2, 3, 4);", /*verify=*/
+      "doubleEq(value.a, 1.5); int32x4Eq(value.b, Int32x4(1, 2, 3, 4));",
+      /*from_type=*/"double", /*from_init=*/"42.0", /*to_type=*/"String",
+      /*to_init=*/"'42'");
+}
+
+TEST_CASE(IsolateReload_ExistingInt32x4FieldBoxedToUnboxed) {
+  TestReloadWithFieldChange(
+      /*prefix=*/"double a = 1.5;",
+      /*suffix=*/"Int32x4 b = Int32x4(1, 2, 3, 4);", /*verify=*/
+      "doubleEq(value.a, 1.5); int32x4Eq(value.b, Int32x4(1, 2, 3, 4));",
+      /*from_type=*/"String", /*from_init=*/"'42.0'", /*to_type=*/"double",
+      /*to_init=*/"42.0");
+}
+
+TEST_CASE(IsolateReload_ExistingInt32x4FieldUnboxedToUnboxed) {
+  TestReloadWithFieldChange(
+      /*prefix=*/"double a = 1.5;",
+      /*suffix=*/"Int32x4 b = Int32x4(1, 2, 3, 4);", /*verify=*/
+      "doubleEq(value.a, 1.5); int32x4Eq(value.b, Int32x4(1, 2, 3, 4));",
+      /*from_type=*/"double", /*from_init=*/"42.0", /*to_type=*/"Int32x4",
+      /*to_init=*/"Int32x4(1, 2, 3, 4)");
 }
 
 TEST_CASE(IsolateReload_ExistingStaticFieldChangesType) {

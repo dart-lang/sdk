@@ -3635,6 +3635,8 @@ class UntaggedInt32x4 : public UntaggedInstance {
 
   ALIGN8 int32_t value_[4];
 
+  friend class Class;
+  friend class Interpreter;
   friend class Simd128DeserializationCluster;
   friend class Simd128MessageDeserializationCluster;
   friend class Simd128MessageSerializationCluster;
