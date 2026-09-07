@@ -35,13 +35,20 @@ class Instructions implements Serializable {
 
   /// Create a new instruction sequence.
   Instructions(
-    this.locals,
+    List<Local> locals,
     this.localNames,
-    this.instructions,
-    this._stackTraces,
-    this._traceLines,
+    List<Instruction> instructions,
+    Map<Instruction, StackTrace>? stackTraces,
+    List<String> traceLines,
     this._sourceMappings,
-  );
+  ) : locals = locals.isEmpty ? const [] : locals.toList(growable: false),
+      instructions = instructions.toList(growable: false),
+      _stackTraces = stackTraces == null
+          ? null
+          : (stackTraces.isEmpty ? const {} : stackTraces),
+      _traceLines = traceLines.isEmpty
+          ? const []
+          : traceLines.toList(growable: false);
 
   void collectUsedTypes(Set<DefType> usedTypes) {
     for (final local in locals) {
@@ -193,7 +200,7 @@ class Instructions implements Serializable {
       instructions.add(instruction);
       if (instruction is End) break;
     }
-    return Instructions([], {}, instructions, null, [], null);
+    return Instructions(const [], const {}, instructions, null, const [], null);
   }
 
   static Instructions deserialize(
@@ -222,6 +229,6 @@ class Instructions implements Serializable {
       instructions.add(instruction);
       if (instruction is End) break;
     }
-    return Instructions([], {}, instructions, null, [], null);
+    return Instructions(const [], const {}, instructions, null, const [], null);
   }
 }

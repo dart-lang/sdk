@@ -262,7 +262,7 @@ class InstructionsBuilder with Builder<ir.Instructions> {
     if (_patchPoints.isEmpty) {
       return ir.Instructions(
         locals,
-        localNames,
+        localNames.isEmpty ? const {} : localNames,
         _instructions,
         _stackTraces,
         _traceLines,
@@ -320,7 +320,7 @@ class InstructionsBuilder with Builder<ir.Instructions> {
 
     return ir.Instructions(
       locals,
-      localNames,
+      localNames.isEmpty ? const {} : localNames,
       newInstructions,
       _stackTraces,
       _traceLines,
