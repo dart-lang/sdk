@@ -929,6 +929,54 @@ dart:core::@class::num::@method::+
 ''');
   }
 
+  test_locate_CascadePropertyExtraction_getter() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  int get foo => 0;
+}
+
+void f(A a) {
+  a..foo;
+}
+''');
+    var node = result.findNode.singleCascadePropertyExtraction;
+    _assertElement(ElementLocatorV2.locate(node), r'''
+<testLibrary>::@class::A::@getter::foo
+''');
+  }
+
+  test_locate_CascadePropertyExtraction_invalidRead() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  set foo(int _) {}
+}
+
+void f(A a) {
+  a..foo;
+//   ^^^
+// [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'A'.
+}
+''');
+    var node = result.findNode.singleCascadePropertyExtraction;
+    _assertElement(ElementLocatorV2.locate(node), r'''
+<testLibrary>::@class::A::@setter::foo
+''');
+  }
+
+  test_locate_CascadePropertyExtraction_unresolved() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {}
+
+void f(A a) {
+  a..foo;
+//   ^^^
+// [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'A'.
+}
+''');
+    var node = result.findNode.singleCascadePropertyExtraction;
+    expect(ElementLocatorV2.locate(node), isNull);
+  }
+
   test_locate_CatchClauseParameter() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
@@ -1188,6 +1236,24 @@ void main() {
     var node = result.findNode.singleDotShorthandNameExpression;
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
+<testLibrary>::@class::A::@getter::foo
+''');
+  }
+
+  test_locate_DotShorthandNameExpression_recovery() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A get foo => this;
+}
+
+A f() {
+  return .foo;
+//        ^^^
+// [diag.staticAccessToInstanceMember] Instance member 'foo' can't be accessed using static access.
+}
+''');
+    var node = result.findNode.singleDotShorthandNameExpression;
+    _assertElement(ElementLocatorV2.locate(node), r'''
 <testLibrary>::@class::A::@getter::foo
 ''');
   }
@@ -1722,6 +1788,38 @@ void f(A a) {
 ''');
   }
 
+  test_locate_ReceiverPropertyExtraction_invalidRead() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  set foo(int _) {}
+}
+
+void f(A a) {
+  (a).foo;
+//    ^^^
+// [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'A'.
+}
+''');
+    var node = result.findNode.singleReceiverPropertyExtraction;
+    expect(ElementLocatorV2.locate(node), isNull);
+  }
+
+  test_locate_ReceiverPropertyExtraction_methodTearOff() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  void foo() {}
+}
+
+void f(A a) {
+  (a).foo;
+}
+''');
+    var node = result.findNode.singleReceiverPropertyExtraction;
+    _assertElement(ElementLocatorV2.locate(node), r'''
+<testLibrary>::@class::A::@method::foo
+''');
+  }
+
   test_locate_StringLiteral_exportUri() async {
     newFile("$testPackageLibPath/foo.dart", '');
     var result = await resolveTestCodeWithDiagnostics(r'''
@@ -1767,6 +1865,22 @@ int get x => 0;
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@getter::x
+''');
+  }
+
+  test_locate_UnqualifiedNameExpression_recovery() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+set foo(int _) {}
+
+void f() {
+  foo;
+//^^^
+// [diag.undefinedIdentifier] Undefined name 'foo'.
+}
+''');
+    var node = result.findNode.singleUnqualifiedNameExpression;
+    _assertElement(ElementLocatorV2.locate(node), r'''
+<testLibrary>::@setter::foo
 ''');
   }
 
