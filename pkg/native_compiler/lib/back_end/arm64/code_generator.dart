@@ -2553,13 +2553,10 @@ final class Arm64CodeGenerator extends CodeGenerator {
     switch (instr.op) {
       case .neg:
         _asm.neg(outputReg(instr), operandReg);
-        break;
       case .bitNot:
         _asm.mvn(outputReg(instr), operandReg);
-        break;
       case .toDouble:
         _asm.scvtf(outputFPReg(instr), operandReg);
-        break;
       case .hash:
         final scratch = temporaryReg(instr, 0);
         final resultReg = outputReg(instr);
@@ -2569,7 +2566,6 @@ final class Arm64CodeGenerator extends CodeGenerator {
         _asm.eor(resultReg, resultReg, tempReg);
         _asm.eor(resultReg, resultReg, ShiftedRegOperand(resultReg, .LSR, 32));
         _asm.ubfm(resultReg, resultReg, 63, 29);
-        break;
       case .bitLength:
         final resultReg = outputReg(instr);
         // XOR with sign bit to complement bits if value is negative.
@@ -2581,11 +2577,15 @@ final class Arm64CodeGenerator extends CodeGenerator {
         _asm.clz(resultReg, resultReg);
         _asm.loadImmediate(tempReg, 64);
         _asm.sub(resultReg, tempReg, resultReg);
-        break;
-      default:
-        _asm.unimplemented(
-          'Unimplemented: code generation for UnaryIntOp ${instr.op.token}',
-        );
+      case .abs:
+        _asm.cmp(operandReg, ZR);
+        _asm.cneg(outputReg(instr), operandReg, .less);
+      case .sign:
+        // tmp = x < 0 ? -1 : 0
+        _asm.asr(tempReg, operandReg, 63);
+        _asm.cmp(operandReg, ZR);
+        // result = x > 0 ? tmp + 1 : tmp
+        _asm.cinc(outputReg(instr), tempReg, .greater);
     }
   }
 
