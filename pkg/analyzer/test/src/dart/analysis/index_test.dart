@@ -6865,6 +6865,56 @@ Never f() {}
     expect(result.index.usedElementOffsets, isEmpty);
   }
 
+  test_SetterElement_ofClass_invalidRead() async {
+    var result = await _indexTestCode(r'''
+class A {
+  set item(int _) {}
+
+  void f() {
+    item;
+//  ^^^^
+// [diag.undefinedIdentifier] Undefined name 'item'.
+    this.item;
+//       ^^^^
+// [diag.undefinedGetter] The getter 'item' isn't defined for the type 'A'.
+    (this).item;
+//         ^^^^
+// [diag.undefinedGetter] The getter 'item' isn't defined for the type 'A'.
+  }
+}
+''');
+
+    assertElementIndexText(result, result.findElement.setter('item'), r'''
+class A {
+  set item(int _) {}
+
+  void f() {
+    item;
+    ^^^^ IS_REFERENCED_BY
+    this.item;
+    (this).item;
+  }
+}
+''');
+    assertNamesIndexText(
+      result,
+      {'item'},
+      r'''
+class A {
+  set item(int _) {}
+
+  void f() {
+    item;
+    this.item;
+         ^^^^ IS_READ_BY qualified
+    (this).item;
+           ^^^^ IS_READ_BY qualified
+  }
+}
+''',
+    );
+  }
+
   test_SetterElement_ofClass_static() async {
     var result = await _indexTestCode('''
 import 'test.dart' as p;

@@ -629,7 +629,7 @@ class FunctionReferenceResolver {
       _resolve(
         node: node,
         rawType: functionType,
-        name: function.propertyName.lexeme,
+        name: function.name.lexeme,
         target: target,
       );
       return;
@@ -655,7 +655,7 @@ class FunctionReferenceResolver {
     }
 
     _diagnosticReporter.report(
-      diag.disallowedTypeInstantiationExpression.at(function.propertyName),
+      diag.disallowedTypeInstantiationExpression.at(function.name),
     );
     node.recordStaticType(InvalidTypeImpl.instance, resolver: _resolver);
   }

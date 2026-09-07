@@ -2690,7 +2690,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
 
     var result = resolveCascadeProperty(
       node,
-      node.propertyName,
+      node.name,
       hasRead: true,
       hasWrite: false,
     );
@@ -4732,7 +4732,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
 
     if (node.operator.type == TokenType.QUESTION_PERIOD) {
       _startNullAwareAccess(node.receiver, offset: node.operator.offset);
-      nullSafetyDeadCodeVerifier.visitNullAwareAccess(node, node.propertyName);
+      nullSafetyDeadCodeVerifier.visitNullAwareAccess(node, node.name);
     }
 
     var (:expressionInfo, :resolution, :type) = _propertyElementResolver

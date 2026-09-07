@@ -131,7 +131,7 @@ class ElementUsageDetector<TagInfo extends Object> {
     } else if (node is PropertyAssignmentTarget) {
       errorEntity = node.propertyName;
     } else if (node is PropertyExtraction) {
-      errorEntity = node.propertyName;
+      errorEntity = node.name;
     } else if (node is ExtensionOverride) {
       errorEntity = node.name;
     } else if (node is NamedType) {
@@ -644,8 +644,8 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
       }
     } else if (node is PropertyAssignmentTarget) {
       errorEntity = node.propertyName;
-    } else if (node is PropertyExtraction) {
-      errorEntity = node.propertyName;
+    } else if (node is NameExpression) {
+      errorEntity = node.name;
     } else if (node is ExtensionOverride) {
       errorEntity = node.name;
     } else if (node is NamedType) {
@@ -654,8 +654,6 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
       errorEntity = node.name;
     } else if (node is DotShorthandConstructorInvocation2 &&
         element is ConstructorElement) {
-      errorEntity = node.name;
-    } else if (node is DotShorthandNameExpression) {
       errorEntity = node.name;
     } else if (node is NamedFunctionInvocation) {
       errorEntity = node.name;
@@ -847,17 +845,6 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
     namedFunctionInvocation(node);
   }
 
-  void dotShorthandNameExpression(DotShorthandNameExpression node) {
-    if (node.resolution case NamedReadResolutionWithElement(:var element)) {
-      if (element.enclosingElement case var interfaceElement?) {
-        // A dot-shorthand name contains an implicit reference to the
-        // declaration whose static namespace supplies the name.
-        checkUsage(interfaceElement, node);
-      }
-      checkUsage(element, node);
-    }
-  }
-
   void dotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
     if (node.propertyName.element?.enclosingElement
         case var interfaceElement?) {
@@ -1002,19 +989,19 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
     checkUsage(node.element, node);
   }
 
-  void nameExpression(AstNode node, NamedReadResolution? resolution) {
-    var element = resolution.elementOrRecovery;
+  void nameExpression(NameExpression node) {
+    var element = node.resolution.elementOrRecovery;
+
+    // The omitted qualifier also refers to the enclosing declaration.
+    if (node is DotShorthandNameExpression) {
+      checkUsage(element?.enclosingElement, node);
+    }
+
     checkUsage(element, node);
   }
 
   void patternField(PatternField node) {
     checkUsage(node.element, node);
-  }
-
-  void propertyExtraction(PropertyExtraction node) {
-    if (node.resolution case NamedReadResolutionWithElement(:var element)) {
-      checkUsage(element, node);
-    }
   }
 
   void redirectingConstructorInvocation(RedirectingConstructorInvocation node) {

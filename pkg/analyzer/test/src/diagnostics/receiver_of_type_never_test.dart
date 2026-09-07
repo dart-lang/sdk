@@ -1722,7 +1722,7 @@ ReceiverPropertyExtraction
     rightParenthesis: )
     staticType: Never
   operator: .
-  propertyName: toString
+  name: toString
   resolution: <null>
   staticType: Never
 V1: PropertyAccess
@@ -1806,7 +1806,7 @@ ReceiverPropertyExtraction
     rightParenthesis: )
     staticType: Never
   operator: .
-  propertyName: hashCode
+  name: hashCode
   resolution: <null>
   staticType: Never
 V1: PropertyAccess

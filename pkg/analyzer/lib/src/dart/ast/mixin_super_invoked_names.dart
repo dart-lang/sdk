@@ -55,7 +55,7 @@ class MixinSuperInvokedNamesCollector extends RecursiveAstVisitor2<void> {
   @override
   void visitCascadePropertyExtraction(CascadePropertyExtraction node) {
     if (_cascadeTarget(node) is SuperExpression) {
-      _names.add(node.propertyName.lexeme);
+      _names.add(node.name.lexeme);
     }
     super.visitCascadePropertyExtraction(node);
   }

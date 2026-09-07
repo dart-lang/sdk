@@ -1358,7 +1358,7 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
     return _evaluatePropertyAccess(
           targetResult,
           node,
-          propertyName: node.propertyName.lexeme,
+          propertyName: node.name.lexeme,
           propertyElement: propertyElement,
           isNullAware: false,
         ) ??

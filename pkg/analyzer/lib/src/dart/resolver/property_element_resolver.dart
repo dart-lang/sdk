@@ -939,7 +939,7 @@ class PropertyElementResolver with ScopeHelpers {
     }
 
     if (receiverType is VoidType) {
-      diagnosticReporter.report(diag.useOfVoidResult.at(node.propertyName));
+      diagnosticReporter.report(diag.useOfVoidResult.at(node.name));
       var resolution = InvalidNamedReadResolutionImpl(
         candidates: const [],
         recovery: null,
@@ -964,17 +964,17 @@ class PropertyElementResolver with ScopeHelpers {
     var result = _resolver.typePropertyResolver.resolve(
       receiver: receiver,
       receiverType: receiverType,
-      name: node.propertyName.lexeme,
+      name: node.name.lexeme,
       hasRead: true,
       hasWrite: false,
-      propertyErrorEntity: node.propertyName,
-      nameErrorEntity: node.propertyName,
+      propertyErrorEntity: node.name,
+      nameErrorEntity: node.name,
       parentNode: node.parent2,
     );
 
     var functionCallTearOffResolution = _functionCallTearOffResolution(
       receiverType: receiverType,
-      isCall: node.propertyName.lexeme == MethodElement.CALL_METHOD_NAME,
+      isCall: node.name.lexeme == MethodElement.CALL_METHOD_NAME,
       callFunctionType: result.callFunctionType,
     );
     if (functionCallTearOffResolution != null) {
@@ -988,19 +988,16 @@ class PropertyElementResolver with ScopeHelpers {
     var readElement = result.getter2;
     _checkForStaticMember2(
       target: receiver,
-      propertyName: node.propertyName.lexeme,
-      propertyNameEntity: node.propertyName,
+      propertyName: node.name.lexeme,
+      propertyNameEntity: node.name,
       element: readElement,
     );
 
     if (result.needsGetterError) {
       diagnosticReporter.report(
         diag.undefinedGetter
-            .withArguments(
-              memberName: node.propertyName.lexeme,
-              type: receiverType,
-            )
-            .at(node.propertyName),
+            .withArguments(memberName: node.name.lexeme, type: receiverType)
+            .at(node.name),
       );
     }
 
@@ -1017,7 +1014,7 @@ class PropertyElementResolver with ScopeHelpers {
           ExpressionPropertyTarget(
             _resolver.flowAnalysis.getExpressionInfo(receiver),
           ),
-          node.propertyName.lexeme,
+          node.name.lexeme,
           readElement,
           SharedTypeView(readType),
         );

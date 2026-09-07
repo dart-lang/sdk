@@ -1373,11 +1373,11 @@ class MethodInvocationResolver with ScopeHelpers {
     ExpressionImpl functionExpression;
     if (isCascaded) {
       var propertyExtraction = CascadePropertyExtractionImpl(
-        propertyName: methodName.token,
+        name: methodName.token,
       );
       var result = _resolver.resolveCascadeProperty(
         propertyExtraction,
-        propertyExtraction.propertyName,
+        propertyExtraction.name,
         hasRead: true,
         hasWrite: false,
       );

@@ -1085,7 +1085,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
       nullShortingCheck(previousNestingLevel: previousNestingLevel);
     }
     return _PropertyAccessTemplates.direct(
-      name: node.propertyName.lexeme,
+      name: node.name.lexeme,
       readElement: switch (node.resolution) {
         GetterInvocationResolutionImpl(:var element) => element,
         _ => null,

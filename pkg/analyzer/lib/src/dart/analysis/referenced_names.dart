@@ -257,7 +257,7 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
 
   @override
   void visitCascadePropertyExtraction(CascadePropertyExtraction node) {
-    names.add(node.propertyName.lexeme);
+    names.add(node.name.lexeme);
   }
 
   @override
@@ -427,7 +427,7 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
 
   @override
   void visitReceiverPropertyExtraction(ReceiverPropertyExtraction node) {
-    names.add(node.propertyName.lexeme);
+    names.add(node.name.lexeme);
     super.visitReceiverPropertyExtraction(node);
   }
 

@@ -6514,25 +6514,25 @@ abstract final class CascadePropertyExtraction implements PropertyExtraction {}
 
 @GenerateNodeImpl(
   api: AstNodeApi.v2,
-  childEntitiesOrder: [GenerateNodeProperty('propertyName', isSuper: true)],
+  childEntitiesOrder: [GenerateNodeProperty('name', isSuper: true)],
 )
 final class CascadePropertyExtractionImpl extends PropertyExtractionImpl
     implements CascadePropertyExtraction {
   PropertyAccessImpl? _propertyAccess;
 
   @generated
-  CascadePropertyExtractionImpl({required super.propertyName});
+  CascadePropertyExtractionImpl({required super.name});
 
   @generated
   @override
   Token get beginToken {
-    return propertyName;
+    return name;
   }
 
   @generated
   @override
   Token get endToken {
-    return propertyName;
+    return name;
   }
 
   /// The cached V1 compatibility projection for this expression.
@@ -6551,8 +6551,7 @@ final class CascadePropertyExtractionImpl extends PropertyExtractionImpl
 
   @generated
   @override
-  ChildEntities get _childEntities2 =>
-      ChildEntities()..addToken('propertyName', propertyName);
+  ChildEntities get _childEntities2 => ChildEntities()..addToken('name', name);
 
   @generated
   @ToBeDeprecated('Use accept2 instead.')
@@ -15834,11 +15833,7 @@ base mixin DotShorthandMixin on ExpressionImpl {
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class DotShorthandNameExpression
-    implements DotShorthandExpression {
-  /// The resolution of the read, or `null` if this expression has not been
-  /// resolved.
-  NamedReadResolution? get resolution;
-}
+    implements NameExpression, DotShorthandExpression {}
 
 @GenerateNodeImpl(
   api: AstNodeApi.v2,
@@ -15847,7 +15842,7 @@ abstract final class DotShorthandNameExpression
     GenerateNodeProperty('name'),
   ],
 )
-final class DotShorthandNameExpressionImpl extends ExpressionImpl
+final class DotShorthandNameExpressionImpl extends NameExpressionImpl
     with DotShorthandMixin
     implements DotShorthandNameExpression {
   @generated
@@ -37547,6 +37542,30 @@ sealed class NamedWriteResolutionWithElementImpl
   NamedWriteResolutionWithElementImpl();
 }
 
+/// A value-producing named access.
+///
+/// The concrete forms determine how the name is looked up and how its receiver,
+/// if any, is evaluated. The resolution describes the selected read operation.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+sealed class NameExpression implements Expression {
+  /// The written name.
+  Token get name;
+
+  /// The resolution of the read, or `null` if this expression has not been
+  /// resolved or receiver evaluation prevents the access.
+  ///
+  /// An invalid access has an [InvalidNamedReadResolution].
+  NamedReadResolution? get resolution;
+}
+
+@GenerateNodeImpl(api: AstNodeApi.v2, childEntitiesOrder: [])
+sealed class NameExpressionImpl extends ExpressionImpl
+    implements NameExpression {
+  @override
+  NamedReadResolutionImpl? get resolution;
+}
+
 /// A node that represents a directive that impacts the namespace of a library.
 ///
 ///    directive ::=
@@ -43011,9 +43030,7 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
   PropertyAccessImpl.v1ProjectionFromCascadeExtraction(
     CascadePropertyExtractionImpl origin,
   ) : _target2 = null,
-      _propertyName = SimpleIdentifierImpl.v1Projection(
-        token: origin.propertyName,
-      ),
+      _propertyName = SimpleIdentifierImpl.v1Projection(token: origin.name),
       _v1ProjectionOrigin = origin {
     _attachV1Children();
   }
@@ -43033,9 +43050,7 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
     ReceiverPropertyExtractionImpl origin,
   ) : _target2 = null,
       _operator = origin.operator,
-      _propertyName = SimpleIdentifierImpl.v1Projection(
-        token: origin.propertyName,
-      ),
+      _propertyName = SimpleIdentifierImpl.v1Projection(token: origin.name),
       _v1ProjectionOrigin = origin {
     _attachV1Children();
   }
@@ -43297,7 +43312,7 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
     CascadePropertyAssignmentTargetImpl origin =>
       '${operator.lexeme}${origin.propertyName.lexeme}',
     CascadePropertyExtractionImpl origin =>
-      '${operator.lexeme}${origin.propertyName.lexeme}',
+      '${operator.lexeme}${origin.name.lexeme}',
     var origin? => origin.toSource(),
     _ => super.toSource(),
   };
@@ -43439,25 +43454,19 @@ sealed class PropertyAssignmentTargetImpl extends AssignmentTargetImpl
 /// A property value selected from a receiver.
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-abstract final class PropertyExtraction implements Expression {
-  /// The selected property name.
-  Token get propertyName;
+abstract final class PropertyExtraction implements NameExpression {}
 
-  /// The resolution of the read, or `null` if this expression has not been
-  /// resolved or receiver evaluation prevents the access.
-  NamedReadResolution? get resolution;
-}
-
-sealed class PropertyExtractionImpl extends ExpressionImpl
+@GenerateNodeImpl(api: AstNodeApi.v2, childEntitiesOrder: [])
+sealed class PropertyExtractionImpl extends NameExpressionImpl
     implements PropertyExtraction {
   @override
-  final Token propertyName;
+  final Token name;
 
   @DoNotGenerate(reason: 'Stores the canonical typed read resolution')
   @override
   NamedReadResolutionImpl? resolution;
 
-  PropertyExtractionImpl({required this.propertyName});
+  PropertyExtractionImpl({required this.name});
 
   @override
   bool get isAssignable => true;
@@ -44323,7 +44332,7 @@ abstract final class ReceiverPropertyExtraction implements PropertyExtraction {
   childEntitiesOrder: [
     GenerateNodeProperty('receiver', isInValueExpressionSlot: true),
     GenerateNodeProperty('operator'),
-    GenerateNodeProperty('propertyName', isSuper: true),
+    GenerateNodeProperty('name', isSuper: true),
   ],
 )
 final class ReceiverPropertyExtractionImpl extends PropertyExtractionImpl
@@ -44341,7 +44350,7 @@ final class ReceiverPropertyExtractionImpl extends PropertyExtractionImpl
   ReceiverPropertyExtractionImpl({
     required ExpressionImpl receiver,
     required this.operator,
-    required super.propertyName,
+    required super.name,
   }) : _receiver = receiver {
     _becomeParentOf2(receiver);
   }
@@ -44355,7 +44364,7 @@ final class ReceiverPropertyExtractionImpl extends PropertyExtractionImpl
   @generated
   @override
   Token get endToken {
-    return propertyName;
+    return name;
   }
 
   /// The cached V1 compatibility projection for this expression.
@@ -44387,7 +44396,7 @@ final class ReceiverPropertyExtractionImpl extends PropertyExtractionImpl
   ChildEntities get _childEntities2 => ChildEntities()
     ..addNode('receiver', receiver)
     ..addToken('operator', operator)
-    ..addToken('propertyName', propertyName);
+    ..addToken('name', name);
 
   @generated
   @ToBeDeprecated('Use accept2 instead.')
@@ -54139,20 +54148,13 @@ final class UnqualifiedNameAssignmentTargetImpl extends AssignmentTargetImpl
 /// a getter, produces an executable tear-off, or represents an invalid read.
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-abstract final class UnqualifiedNameExpression implements Expression {
-  /// The written name.
-  Token get name;
-
-  /// The resolution of the read, or `null` if this expression has not been
-  /// resolved.
-  NamedReadResolution? get resolution;
-}
+abstract final class UnqualifiedNameExpression implements NameExpression {}
 
 @GenerateNodeImpl(
   api: AstNodeApi.v2,
   childEntitiesOrder: [GenerateNodeProperty('name')],
 )
-final class UnqualifiedNameExpressionImpl extends ExpressionImpl
+final class UnqualifiedNameExpressionImpl extends NameExpressionImpl
     implements UnqualifiedNameExpression {
   @generated
   @override

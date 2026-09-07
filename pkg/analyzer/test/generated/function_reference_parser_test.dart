@@ -1840,7 +1840,7 @@ var x = f()..m<a, b>;
     assertParsedNodeText(node, r'''
 FunctionReference
   function2: CascadePropertyExtraction
-    propertyName: m
+    name: m
   function(v1): PropertyAccess
     operator: ..
     propertyName: SimpleIdentifier

@@ -254,6 +254,7 @@ export 'package:analyzer/src/dart/ast/ast.dart'
         MethodReferenceExpression,
         MixinDeclaration,
         MixinOnClause,
+        NameExpression,
         NamedArgument,
         NamedReadResolution,
         NamedReadResolutionWithElement,

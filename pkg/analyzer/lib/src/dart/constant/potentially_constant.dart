@@ -459,7 +459,7 @@ class _Collector {
   }
 
   void _receiverPropertyExtraction(ReceiverPropertyExtraction node) {
-    if (node.propertyName.lexeme == 'length') {
+    if (node.name.lexeme == 'length') {
       collect(node.receiver);
       return;
     }

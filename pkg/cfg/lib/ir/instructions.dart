@@ -1111,14 +1111,12 @@ enum ArrayKind {
   uint32List,
   int64List,
   uint64List,
-  // TODO: add FP typed data lists
-  // float32List,
-  // float64List,
-  // TODO: add SIMD typed data lists
-  // float32x4List,
-  // int32x4List,
-  // float64x2List,
-  // TODO: add external typed data lists, typed data views, Strings, built-in Lists.
+  float32List,
+  float64List,
+  float32x4List,
+  float64x2List,
+  int32x4List,
+  // TODO: add external typed data lists, typed data views.
 }
 
 /// Load value from an array element.

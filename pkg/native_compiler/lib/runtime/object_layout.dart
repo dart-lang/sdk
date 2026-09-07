@@ -211,9 +211,23 @@ class ObjectLayout {
     'dart:isolate',
     'SendPort',
   );
+  // Synthetic common base class for all typed data lists and ffi Pointer.
+  late final ast.Class _pointerBaseClass = ast.Class(
+    name: '#PointerBase',
+    supertype: ast.Supertype(_coreTypes.objectClass, const []),
+    fileUri: ast.dummyUri,
+  )..parent = _coreTypes.coreLibrary;
   late final ast.Class _typedListBaseClass = _libraryIndex.getClass(
     'dart:typed_data',
     '_TypedListBase',
+  );
+  late final ast.Class _typedListClass = _libraryIndex.getClass(
+    'dart:typed_data',
+    '_TypedList',
+  );
+  late final ast.Class _typedListViewClass = _libraryIndex.getClass(
+    'dart:typed_data',
+    '_TypedListView',
   );
   late final ast.Class _uint32ListClass = _libraryIndex.getClass(
     'dart:typed_data',
@@ -342,11 +356,33 @@ class ObjectLayout {
   );
 
   // dart:typed_data
+  late final CField PointerBase_data = _createBuiltInField(
+    _pointerBaseClass,
+    'data',
+    _coreTypes.intNonNullableRawType,
+    vmOffsets.PointerBase_data_offset,
+    isFinal: true,
+    isUnboxed: true,
+  );
   late final CField TypedListBase_length = _createBuiltInField(
     _typedListBaseClass,
     'length',
     _coreTypes.intNonNullableRawType,
     vmOffsets.TypedDataBase_length_offset,
+    isFinal: true,
+  );
+  late final CField TypedListView_typedData = _createBuiltInField(
+    _typedListViewClass,
+    'typedData',
+    _coreTypes.nonNullableRawType(_typedListClass),
+    vmOffsets.TypedDataView_typed_data_offset,
+    isFinal: true,
+  );
+  late final CField TypedListView_offsetInBytes = _createBuiltInField(
+    _typedListViewClass,
+    'offsetInBytes',
+    _coreTypes.intNonNullableRawType,
+    vmOffsets.TypedDataView_offset_in_bytes_offset,
     isFinal: true,
   );
 
@@ -392,6 +428,8 @@ class ObjectLayout {
     '_Int32x4': vmOffsets.Int32x4_InstanceSize,
     '_Float32x4': vmOffsets.Float32x4_InstanceSize,
     '_Float64x2': vmOffsets.Float64x2_InstanceSize,
+    '_TypedListView': vmOffsets.TypedDataView_InstanceSize,
+    '_ByteDataView': vmOffsets.TypedDataView_InstanceSize,
     // TODO: add other built-in classes from dart:typed_data
   };
 
@@ -432,7 +470,7 @@ class ObjectLayout {
       return false;
     }
     Object? layout;
-    if (library == GlobalContext.instance.coreTypes.coreLibrary) {
+    if (library == _coreTypes.coreLibrary) {
       layout = _dartCoreInstanceLayout[cls.name];
     } else if (library == _typedDataLibrary) {
       layout = _dartTypedDataInstanceLayout[cls.name];

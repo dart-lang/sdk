@@ -70,6 +70,18 @@ mixin M on Foo {
 ''');
   }
 
+  test_isUsed_negation_receiverPropertyExtraction() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  int _field = 0;
+
+  void f() {
+    -(this)._field;
+  }
+}
+''');
+  }
+
   test_isUsed_parameterized_subclass() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A<T extends num> {

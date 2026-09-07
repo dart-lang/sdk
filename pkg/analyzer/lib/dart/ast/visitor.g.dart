@@ -591,9 +591,6 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R? visitPropertyAssignmentTarget(PropertyAssignmentTarget node) =>
       visitAssignmentTarget(node);
 
-  @experimental
-  R? visitPropertyExtraction(PropertyExtraction node) => visitExpression(node);
-
   @override
   R? visitRecordLiteral(RecordLiteral node) => visitLiteral(node);
 
