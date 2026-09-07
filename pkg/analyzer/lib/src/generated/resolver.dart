@@ -1986,10 +1986,8 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
 
   /// Returns the result of an implicit `this.` lookup for [node] in a getter
   /// context.
-  LexicalLookupResult? thisLookupGetter2(
-    UnqualifiedNameAssignmentTargetImpl node,
-  ) {
-    return ThisLookup.lookupGetter2(this, node: node, name: node.name.lexeme);
+  LexicalLookupResult? thisLookupGetter2(AstNode node, String name) {
+    return ThisLookup.lookupGetter2(this, node: node, name: name);
   }
 
   /// Returns the result of an implicit `this.` lookup for the identifier [node]
@@ -2261,18 +2259,29 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
 
     var expression = node.expression2;
     var staticType = node.staticType;
-    if (staticType != null && expression is SimpleIdentifier) {
-      var simpleIdentifier = expression as SimpleIdentifier;
-      var element = simpleIdentifier.element;
+    if (staticType != null) {
+      var (element, name, errorEntity) = switch (expression) {
+        SimpleIdentifier(:var element, :var name) => (
+          element,
+          name,
+          expression as SyntacticEntity,
+        ),
+        UnqualifiedNameExpression(
+          :var name,
+          resolution: VariableReadResolution(:var element),
+        ) =>
+          (element, name.lexeme, name as SyntacticEntity),
+        _ => (null, '', expression as SyntacticEntity),
+      };
       if (element is PromotableElementImpl &&
           !expression.typeOrThrow.isDartCoreNull &&
           typeSystem.isNullable(element.type) &&
           typeSystem.isNonNullable(staticType) &&
-          flowAnalysis.isDefinitelyUnassigned(simpleIdentifier, element)) {
+          flowAnalysis.isDefinitelyUnassigned(expression, element)) {
         diagnosticReporter.report(
           diag.castFromNullableAlwaysFails
-              .withArguments(name: simpleIdentifier.name)
-              .at(simpleIdentifier),
+              .withArguments(name: name)
+              .at(errorEntity),
         );
       }
     }
@@ -5237,6 +5246,53 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitUnqualifiedNameExpression(
+    covariant UnqualifiedNameExpressionImpl node, {
+    TypeImpl contextType = UnknownInferredType.instance,
+  }) {
+    inferenceLogWriter?.enterExpression(node, contextType);
+    checkUnreachableNode(node);
+    var result = _propertyElementResolver.resolveUnqualifiedNameExpression(
+      node,
+    );
+    var resolution = result.resolution;
+    node.implicitFunctionInstantiationTypeArguments = null;
+    if (resolution is FunctionCallTearOffResolutionImpl) {
+      var inferredType = inferenceHelper.inferTearOff2(
+        node,
+        resolution.type,
+        contextType: contextType,
+        recordTypeArguments: (typeArguments) {
+          node.implicitFunctionInstantiationTypeArguments = typeArguments;
+        },
+      );
+      resolution = FunctionCallTearOffResolutionImpl(
+        type: inferredType as TypeImpl,
+        associatedFunctionType: resolution.associatedFunctionType,
+      );
+    }
+    node.resolution = resolution;
+    if (result.expressionInfo case var expressionInfo?) {
+      flowAnalysis.storeExpressionInfo(node, expressionInfo);
+    }
+    var staticType = _inferLegacyNameTearOff(
+      expression: node,
+      staticType: resolution.type,
+      contextType: contextType,
+      recordTypeArguments: (typeArguments) {
+        node.implicitFunctionInstantiationTypeArguments = typeArguments;
+      },
+    );
+    node.recordStaticType(staticType, resolver: this);
+    var replacement = insertGenericFunctionInstantiation(
+      node,
+      contextType: contextType,
+    );
+    _insertImplicitCallReference(replacement, contextType: contextType);
+    inferenceLogWriter?.exitExpression(node);
+  }
+
+  @override
   void visitVariableDeclaration(covariant VariableDeclarationImpl node) {
     var fragment = node.declaredFragment!;
 
@@ -5457,6 +5513,28 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     return _bodyContext!.computeInferredReturnType(
       endOfBlockIsReachable: flow == null || flow.isReachable,
     );
+  }
+
+  /// Performs the pre-constructor-tear-offs form of contextual generic
+  /// function instantiation without adding a wrapping AST node.
+  TypeImpl _inferLegacyNameTearOff({
+    required ExpressionImpl expression,
+    required TypeImpl staticType,
+    required TypeImpl contextType,
+    required void Function(List<TypeImpl>) recordTypeArguments,
+  }) {
+    if (isConstructorTearoffsEnabled ||
+        staticType is! FunctionTypeImpl ||
+        staticType.typeParameters.isEmpty) {
+      return staticType;
+    }
+    return inferenceHelper.inferTearOff2(
+          expression,
+          staticType,
+          contextType: contextType,
+          recordTypeArguments: recordTypeArguments,
+        )
+        as TypeImpl;
   }
 
   /// Infers type arguments corresponding to [typeParameters] used it the
@@ -6128,9 +6206,12 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       );
       defaultValue = popRewrite()!;
 
-      if (node.isOfLocalFunction2) {
-        fragment.constantInitializer2 = defaultValue;
-      }
+      // Resolution can replace the parsed expression with a canonical V2
+      // expression. Keep the element model on that resolved expression so
+      // constant evaluation and other element consumers don't observe the
+      // detached parser node.
+      fragment.constantInitializer2 = defaultValue;
+      fragment.element.resetConstantInitializer();
     }
   }
 
@@ -6500,6 +6581,8 @@ class SwitchExhaustiveness {
   static Element? _referencedElement(Expression expression) {
     if (expression is ParenthesizedExpression) {
       return _referencedElement(expression.expression2);
+    } else if (expression is UnqualifiedNameExpression) {
+      return expression.resolution.elementOrRecovery;
     } else if (expression is PrefixedIdentifier) {
       return expression.element;
     } else if (expression is PropertyAccess) {

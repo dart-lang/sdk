@@ -335,6 +335,7 @@ class AstRewriter {
         );
       }
     }
+
     return node;
   }
 
@@ -442,7 +443,17 @@ class AstRewriter {
   }
 
   AstNode simpleIdentifier(Scope nameScope, SimpleIdentifierImpl node) {
+    if (node.isSynthetic) {
+      return node;
+    }
     var parent = node.parent2;
+    if (parent is ReceiverPropertyAssignmentTargetImpl &&
+        identical(parent.receiver, node) &&
+        nameScope.lookup(node.name).getter is PrefixElement) {
+      // Import-prefixed read/write targets currently retain their legacy
+      // prefix receiver until they have a dedicated canonical target node.
+      return node;
+    }
     if (parent is ConstantPatternImpl) {
       var element = nameScope.lookup(node.name).getter;
       switch (element) {
@@ -465,6 +476,10 @@ class AstRewriter {
         case TypeParameterElementImpl():
           return _toTypeLiteral(node);
       }
+
+      var expression = UnqualifiedNameExpressionImpl(name: node.token);
+      node.replaceWith(expression);
+      return expression;
     }
 
     return node;

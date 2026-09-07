@@ -740,6 +740,10 @@ class ConstantEvaluator2 extends UnifyingAstVisitor2<Object> {
     };
   }
 
+  @override
+  Object? visitUnqualifiedNameExpression(UnqualifiedNameExpression node) =>
+      _getConstantValue(null);
+
   /// Return the constant value of the static constant represented by the given
   /// [element].
   Object _getConstantValue(Element? element) {

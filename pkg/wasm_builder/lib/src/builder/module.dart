@@ -30,7 +30,7 @@ class ModuleBuilder with Builder<ir.Module> {
   late final TypesBuilder types;
   late final functions = FunctionsBuilder(this);
   late final elements = ElementsBuilder(this);
-  late final tables = TablesBuilder(this);
+  late final tables = TablesBuilder(module);
   late final memories = MemoriesBuilder(module);
   late final tags = TagsBuilder(module);
   final dataSegments = DataSegmentsBuilder();
@@ -76,6 +76,8 @@ class ModuleBuilder with Builder<ir.Module> {
     return true;
   }
 
+  FunctionBuilder? get startFunctionIfCreated => _startFunction;
+
   FunctionBuilder get startFunction => _startFunction ??= functions.define(
     types.defineFunction(const [], const []),
     "#init",
@@ -85,6 +87,7 @@ class ModuleBuilder with Builder<ir.Module> {
   ir.Module forceBuild() {
     if (_startFunction case final start?) {
       start.body.end();
+      start.build();
     }
     final finalFunctions = functions.build();
     final finalTables = tables.build();
@@ -110,7 +113,7 @@ class ModuleBuilder with Builder<ir.Module> {
     return module..initialize(
       moduleName,
       finalFunctions,
-      _startFunction,
+      _startFunction?.function,
       finalTables,
       finalElements,
       finalTags,

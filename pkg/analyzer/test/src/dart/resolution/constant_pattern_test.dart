@@ -282,7 +282,14 @@ void f(x) {
     var node = result.findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ConstantPattern
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: foo
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::foo
+      invokeType: int Function()
+      type: int
+    staticType: int
+  expression(v1): SimpleIdentifier
     token: foo
     element: <testLibrary>::@getter::foo
     staticType: int

@@ -35,10 +35,12 @@ CallInvocation
     argumentList: ArgumentList
       leftParenthesis: (
       arguments2
-        SimpleIdentifier
-          token: a
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: A
           correspondingParameter: <null>
-          element: <testLibrary>::@function::f::@formalParameter::a
           staticType: A
       rightParenthesis: )
     element: <testLibrary>::@extension::E
@@ -110,10 +112,12 @@ CallInvocation
     argumentList: ArgumentList
       leftParenthesis: (
       arguments2
-        SimpleIdentifier
-          token: a
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: A
           correspondingParameter: <null>
-          element: <testLibrary>::@function::f::@formalParameter::a
           staticType: A
       rightParenthesis: )
     element: <testLibrary>::@extension::E
@@ -199,10 +203,12 @@ CallInvocation
     argumentList: ArgumentList
       leftParenthesis: (
       arguments2
-        SimpleIdentifier
-          token: a
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: A
           correspondingParameter: <null>
-          element: <testLibrary>::@function::f::@formalParameter::a
           staticType: A
       rightParenthesis: )
     element: package:test/lib.dart::@extension::E
@@ -285,10 +291,12 @@ CallInvocation
     argumentList: ArgumentList
       leftParenthesis: (
       arguments2
-        SimpleIdentifier
-          token: a
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: A
           correspondingParameter: <null>
-          element: <testLibrary>::@function::f::@formalParameter::a
           staticType: A
       rightParenthesis: )
     element: package:test/lib.dart::@extension::E
@@ -371,6 +379,14 @@ PropertyAccess
     argumentList: ArgumentList
       leftParenthesis: (
       arguments2
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: A
+          correspondingParameter: <null>
+          staticType: A
+      arguments(v1)
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
@@ -411,10 +427,12 @@ CallInvocation
       argumentList: ArgumentList
         leftParenthesis: (
         arguments2
-          SimpleIdentifier
-            token: a
+          UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: <testLibrary>::@function::f::@formalParameter::a
+              type: A
             correspondingParameter: <null>
-            element: <testLibrary>::@function::f::@formalParameter::a
             staticType: A
         rightParenthesis: )
       element: <testLibrary>::@extension::E
@@ -501,6 +519,14 @@ PropertyAccess
     argumentList: ArgumentList
       leftParenthesis: (
       arguments2
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: A
+          correspondingParameter: <null>
+          staticType: A
+      arguments(v1)
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
@@ -547,6 +573,14 @@ PropertyAccess
     argumentList: ArgumentList
       leftParenthesis: (
       arguments2
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: A
+          correspondingParameter: <null>
+          staticType: A
+      arguments(v1)
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
@@ -599,6 +633,14 @@ PropertyAccess
     argumentList: ArgumentList
       leftParenthesis: (
       arguments2
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: A
+          correspondingParameter: <null>
+          staticType: A
+      arguments(v1)
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
@@ -638,10 +680,12 @@ ReceiverIndexExpression
     argumentList: ArgumentList
       leftParenthesis: (
       arguments2
-        SimpleIdentifier
-          token: a
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: int?
           correspondingParameter: <null>
-          element: <testLibrary>::@function::f::@formalParameter::a
           staticType: int?
       rightParenthesis: )
     element: <testLibrary>::@extension::E
@@ -706,10 +750,12 @@ DirectAssignment
       argumentList: ArgumentList
         leftParenthesis: (
         arguments2
-          SimpleIdentifier
-            token: a
+          UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: <testLibrary>::@function::f::@formalParameter::a
+              type: int?
             correspondingParameter: <null>
-            element: <testLibrary>::@function::f::@formalParameter::a
             staticType: int?
         rightParenthesis: )
       element: <testLibrary>::@extension::E
@@ -791,6 +837,14 @@ MethodInvocation
     argumentList: ArgumentList
       leftParenthesis: (
       arguments2
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: A
+          correspondingParameter: <null>
+          staticType: A
+      arguments(v1)
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
@@ -840,6 +894,14 @@ MethodInvocation
     argumentList: ArgumentList
       leftParenthesis: (
       arguments2
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: A
+          correspondingParameter: <null>
+          staticType: A
+      arguments(v1)
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
@@ -890,6 +952,14 @@ MethodInvocation
     argumentList: ArgumentList
       leftParenthesis: (
       arguments2
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: A
+          correspondingParameter: <null>
+          staticType: A
+      arguments(v1)
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
@@ -946,6 +1016,14 @@ MethodInvocation
     argumentList: ArgumentList
       leftParenthesis: (
       arguments2
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: A
+          correspondingParameter: <null>
+          staticType: A
+      arguments(v1)
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
@@ -989,6 +1067,14 @@ MethodInvocation
     argumentList: ArgumentList
       leftParenthesis: (
       arguments2
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: int?
+          correspondingParameter: <null>
+          staticType: int?
+      arguments(v1)
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
@@ -1030,10 +1116,12 @@ BinaryOperatorInvocation
     argumentList: ArgumentList
       leftParenthesis: (
       arguments2
-        SimpleIdentifier
-          token: a
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: A
           correspondingParameter: <null>
-          element: <testLibrary>::@function::f::@formalParameter::a
           staticType: A
       rightParenthesis: )
     element: <testLibrary>::@extension::E
@@ -1100,10 +1188,12 @@ BinaryOperatorInvocation
     argumentList: ArgumentList
       leftParenthesis: (
       arguments2
-        SimpleIdentifier
-          token: a
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: A
           correspondingParameter: <null>
-          element: <testLibrary>::@function::f::@formalParameter::a
           staticType: A
       rightParenthesis: )
     element: <testLibrary>::@extension::E
@@ -1262,10 +1352,12 @@ BinaryOperatorInvocation
     argumentList: ArgumentList
       leftParenthesis: (
       arguments2
-        SimpleIdentifier
-          token: a
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: A
           correspondingParameter: <null>
-          element: <testLibrary>::@function::f::@formalParameter::a
           staticType: A
       rightParenthesis: )
     element: package:test/lib.dart::@extension::E
@@ -1343,10 +1435,12 @@ BinaryOperatorInvocation
     argumentList: ArgumentList
       leftParenthesis: (
       arguments2
-        SimpleIdentifier
-          token: a
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: A
           correspondingParameter: <null>
-          element: <testLibrary>::@function::f::@formalParameter::a
           staticType: A
       rightParenthesis: )
     element: package:test/lib.dart::@extension::E
@@ -1416,9 +1510,16 @@ void test(C? c) {
   E(c)?.g(c); // `c` is promoted to `C` on the RHS of `?.`
 }
 ''');
-    var node = result.findNode.simple('c);');
+    var node = result.findNode.unqualifiedNameExpression('c);');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: c
+  resolution: VariableReadResolution
+    element: <testLibrary>::@function::test::@formalParameter::c
+    type: C
+  correspondingParameter: <testLibrary>::@extension::E::@method::g::@formalParameter::d
+  staticType: C
+V1: SimpleIdentifier
   token: c
   correspondingParameter: <testLibrary>::@extension::E::@method::g::@formalParameter::d
   element: <testLibrary>::@function::test::@formalParameter::c
@@ -1445,6 +1546,14 @@ PropertyAccess
     argumentList: ArgumentList
       leftParenthesis: (
       arguments2
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: int?
+          correspondingParameter: <null>
+          staticType: int?
+      arguments(v1)
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
@@ -1495,6 +1604,14 @@ AssignmentExpression
       argumentList: ArgumentList
         leftParenthesis: (
         arguments2
+          UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: <testLibrary>::@function::f::@formalParameter::a
+              type: A
+            correspondingParameter: <null>
+            staticType: A
+        arguments(v1)
           SimpleIdentifier
             token: a
             correspondingParameter: <null>
@@ -1552,6 +1669,14 @@ AssignmentExpression
       argumentList: ArgumentList
         leftParenthesis: (
         arguments2
+          UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: <testLibrary>::@function::f::@formalParameter::a
+              type: A
+            correspondingParameter: <null>
+            staticType: A
+        arguments(v1)
           SimpleIdentifier
             token: a
             correspondingParameter: <null>
@@ -1610,6 +1735,14 @@ AssignmentExpression
       argumentList: ArgumentList
         leftParenthesis: (
         arguments2
+          UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: <testLibrary>::@function::f::@formalParameter::a
+              type: A
+            correspondingParameter: <null>
+            staticType: A
+        arguments(v1)
           SimpleIdentifier
             token: a
             correspondingParameter: <null>
@@ -1674,6 +1807,14 @@ AssignmentExpression
       argumentList: ArgumentList
         leftParenthesis: (
         arguments2
+          UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: <testLibrary>::@function::f::@formalParameter::a
+              type: A
+            correspondingParameter: <null>
+            staticType: A
+        arguments(v1)
           SimpleIdentifier
             token: a
             correspondingParameter: <null>
@@ -1726,6 +1867,14 @@ AssignmentExpression
       argumentList: ArgumentList
         leftParenthesis: (
         arguments2
+          UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: <testLibrary>::@function::f::@formalParameter::a
+              type: A
+            correspondingParameter: <null>
+            staticType: A
+        arguments(v1)
           SimpleIdentifier
             token: a
             correspondingParameter: <null>
@@ -1784,6 +1933,14 @@ AssignmentExpression
       argumentList: ArgumentList
         leftParenthesis: (
         arguments2
+          UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: <testLibrary>::@function::f::@formalParameter::a
+              type: A
+            correspondingParameter: <null>
+            staticType: A
+        arguments(v1)
           SimpleIdentifier
             token: a
             correspondingParameter: <null>
@@ -1843,6 +2000,14 @@ AssignmentExpression
       argumentList: ArgumentList
         leftParenthesis: (
         arguments2
+          UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: <testLibrary>::@function::f::@formalParameter::a
+              type: A
+            correspondingParameter: <null>
+            staticType: A
+        arguments(v1)
           SimpleIdentifier
             token: a
             correspondingParameter: <null>
@@ -1908,6 +2073,14 @@ AssignmentExpression
       argumentList: ArgumentList
         leftParenthesis: (
         arguments2
+          UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: <testLibrary>::@function::f::@formalParameter::a
+              type: A
+            correspondingParameter: <null>
+            staticType: A
+        arguments(v1)
           SimpleIdentifier
             token: a
             correspondingParameter: <null>
@@ -1958,6 +2131,14 @@ PropertyAccess
     argumentList: ArgumentList
       leftParenthesis: (
       arguments2
+        UnqualifiedNameExpression
+          name: c
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::c
+            type: C
+          correspondingParameter: <null>
+          staticType: C
+      arguments(v1)
         SimpleIdentifier
           token: c
           correspondingParameter: <null>

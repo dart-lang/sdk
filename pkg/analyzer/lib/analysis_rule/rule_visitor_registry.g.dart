@@ -1133,6 +1133,12 @@ abstract class RuleVisitorRegistry2 {
     AstVisitor2 visitor,
   );
 
+  @experimental
+  void addUnqualifiedNameExpression(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
+
   void addVariableDeclaration(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addVariableDeclarationList(

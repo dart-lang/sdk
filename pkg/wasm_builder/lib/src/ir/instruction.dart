@@ -2698,7 +2698,7 @@ class ArrayNewDefault extends Instruction {
 
 class ArrayNewData extends Instruction {
   final ArrayType arrayType;
-  final BaseDataSegment data;
+  final DataSegment data;
 
   @override
   List<DefType> get usedDefTypes => [arrayType];

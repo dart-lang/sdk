@@ -3,34 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../ir/ir.dart' as ir;
-import 'builder.dart';
 
 int _finalizeIndexables(int index, Iterable<ir.Indexable> indexables) {
   for (final f in indexables) {
     f.finalizableIndex.finalize(index++);
   }
   return index;
-}
-
-List<T> _finalizeIndexablesAndBuild<T>(
-  int index,
-  Iterable<IndexableBuilder<T>> indexableBuilders,
-) {
-  final built = <T>[];
-  for (final f in indexableBuilders) {
-    f.finalizableIndex.finalize(index++);
-    built.add(f.build());
-  }
-  return built;
-}
-
-/// Finalizes imports before iterating through a list of builders and building.
-List<T> finalizeImportsAndBuilders<T>(
-  Iterable<ir.Indexable> imported,
-  Iterable<IndexableBuilder<T>> builders,
-) {
-  int index = _finalizeIndexables(0, imported);
-  return _finalizeIndexablesAndBuild<T>(index, builders);
 }
 
 /// Finalizes imports and definitions.

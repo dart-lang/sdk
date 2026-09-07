@@ -248,16 +248,28 @@ class BinaryExpressionResolver {
       );
     }
 
-    if (left is SimpleIdentifierImpl && right is NullLiteralImpl) {
-      var element = left.element;
+    PromotableElementImpl? unassignedElement(ExpressionImpl expression) {
+      var element = switch (expression) {
+        SimpleIdentifierImpl(:var element) => element,
+        UnqualifiedNameExpressionImpl(
+          resolution: VariableReadResolutionImpl(:var element),
+        ) =>
+          element,
+        _ => null,
+      };
       if (element is PromotableElementImpl &&
-          flowAnalysis.isDefinitelyUnassigned(left, element)) {
+          flowAnalysis.isDefinitelyUnassigned(expression, element)) {
+        return element;
+      }
+      return null;
+    }
+
+    if (right is NullLiteralImpl) {
+      if (unassignedElement(left) != null) {
         reportNullComparison(left, node.operator);
       }
-    } else if (right is SimpleIdentifierImpl && left is NullLiteralImpl) {
-      var element = right.element;
-      if (element is PromotableElementImpl &&
-          flowAnalysis.isDefinitelyUnassigned(right, element)) {
+    } else if (left is NullLiteralImpl) {
+      if (unassignedElement(right) != null) {
         reportNullComparison(node.operator, right);
       }
     }

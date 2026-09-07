@@ -42,7 +42,14 @@ library
           element: <testLibrary>::@topLevelVariable::b
           initializer: expression_1
             AsExpression
-              expression2: SimpleIdentifier
+              expression2: UnqualifiedNameExpression
+                name: a @27
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::a
+                  invokeType: num Function()
+                  type: num
+                staticType: num
+              expression(v1): SimpleIdentifier
                 token: a @27
                 element: <testLibrary>::@getter::a
                 staticType: num
@@ -1362,7 +1369,13 @@ library
             ReceiverPropertyExtraction
               receiver: ParenthesizedExpression
                 leftParenthesis: ( @36
-                expression2: SimpleIdentifier
+                expression2: UnqualifiedNameExpression
+                  name: f @37
+                  resolution: ExecutableTearOffResolution
+                    element: <testLibrary>::@function::f
+                    type: int Function(String)
+                  staticType: int Function(String)
+                expression(v1): SimpleIdentifier
                   token: f @37
                   element: <testLibrary>::@function::f
                   staticType: int Function(String)
@@ -1429,7 +1442,13 @@ library
           element: <testLibrary>::@topLevelVariable::v
           initializer: expression_0
             FunctionReference
-              function2: SimpleIdentifier
+              function2: UnqualifiedNameExpression
+                name: f @48
+                resolution: ExecutableTearOffResolution
+                  element: <testLibrary>::@function::f
+                  type: void Function<T>(T)
+                staticType: void Function<T>(T)
+              function(v1): SimpleIdentifier
                 token: f @48
                 element: <testLibrary>::@function::f
                 staticType: void Function<T>(T)
@@ -1496,9 +1515,11 @@ library
         #F1 hasInitializer isConst isOriginDeclaration isStatic untyped (nameOffset:41) (firstTokenOffset:41) (offset:41)
           element: <testLibrary>::@topLevelVariable::untyped
           initializer: expression_0
-            SimpleIdentifier
-              token: f @51
-              element: <testLibrary>::@function::f
+            UnqualifiedNameExpression
+              name: f @51
+              resolution: ExecutableTearOffResolution
+                element: <testLibrary>::@function::f
+                type: int Function(String)
               staticType: int Function(String)
           inducedGetter: #F2
         #F3 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic v (nameOffset:60) (firstTokenOffset:60) (offset:60)
@@ -1507,7 +1528,14 @@ library
             ReceiverPropertyExtraction
               receiver: ParenthesizedExpression
                 leftParenthesis: ( @64
-                expression2: SimpleIdentifier
+                expression2: UnqualifiedNameExpression
+                  name: untyped @65
+                  resolution: GetterInvocationResolution
+                    element: <testLibrary>::@getter::untyped
+                    invokeType: Function Function()
+                    type: Function
+                  staticType: Function
+                expression(v1): SimpleIdentifier
                   token: untyped @65
                   element: <testLibrary>::@getter::untyped
                   staticType: Function
@@ -1683,14 +1711,20 @@ library
           element: <testLibrary>::@topLevelVariable::c
           initializer: expression_2
             ReceiverIndexExpression
-              receiver: SimpleIdentifier
-                token: a @38
-                element: <testLibrary>::@getter::a
+              receiver: UnqualifiedNameExpression
+                name: a @38
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::a
+                  invokeType: List<int> Function()
+                  type: List<int>
                 staticType: List<int>
               leftBracket: [ @39
-              index: SimpleIdentifier
-                token: b @40
-                element: <testLibrary>::@getter::b
+              index: UnqualifiedNameExpression
+                name: b @40
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::b
+                  invokeType: int Function()
+                  type: int
                 staticType: int
               rightBracket: ] @41
               resolution: MethodIndexReadResolution
@@ -1791,15 +1825,21 @@ library
           element: <testLibrary>::@topLevelVariable::c
           initializer: expression_2
             ReceiverIndexExpression
-              receiver: SimpleIdentifier
-                token: a @49
-                element: <testLibrary>::@getter::a
+              receiver: UnqualifiedNameExpression
+                name: a @49
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::a
+                  invokeType: List<int>? Function()
+                  type: List<int>?
                 staticType: List<int>?
               question: ? @50
               leftBracket: [ @51
-              index: SimpleIdentifier
-                token: b @52
-                element: <testLibrary>::@getter::b
+              index: UnqualifiedNameExpression
+                name: b @52
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::b
+                  invokeType: int Function()
+                  type: int
                 staticType: int
               rightBracket: ] @53
               resolution: MethodIndexReadResolution
@@ -2314,7 +2354,14 @@ library
             AssertInitializer
               assertKeyword: assert @24
               leftParenthesis: ( @30
-              condition2: SimpleIdentifier
+              condition2: UnqualifiedNameExpression
+                name: b @31
+                resolution: InvalidNamedReadResolution
+                  type: InvalidType
+                  candidates
+                  recovery: <null>
+                staticType: InvalidType
+              condition(v1): SimpleIdentifier
                 token: b @31
                 element: <null>
                 staticType: InvalidType
@@ -2820,9 +2867,12 @@ library
           element: <testLibrary>::@topLevelVariable::b
           initializer: expression_1
             BinaryOperatorInvocation
-              leftOperand: SimpleIdentifier
-                token: a @32
-                element: <testLibrary>::@getter::a
+              leftOperand: UnqualifiedNameExpression
+                name: a @32
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::a
+                  invokeType: int Function()
+                  type: int
                 staticType: int
               operator: + @34
               rightOperand: IntegerLiteral
@@ -4603,7 +4653,14 @@ library
           element: <testLibrary>::@topLevelVariable::b
           initializer: expression_1
             IsExpression
-              expression2: SimpleIdentifier
+              expression2: UnqualifiedNameExpression
+                name: a @23
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::a
+                  invokeType: int Function()
+                  type: int
+                staticType: int
+              expression(v1): SimpleIdentifier
                 token: a @23
                 element: <testLibrary>::@getter::a
                 staticType: int
@@ -5931,9 +5988,12 @@ library
           element: <testLibrary>::@topLevelVariable::b
           initializer: expression_1
             NullAssertionExpression
-              operand: SimpleIdentifier
-                token: a @28
-                element: <testLibrary>::@getter::a
+              operand: UnqualifiedNameExpression
+                name: a @28
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::a
+                  invokeType: int? Function()
+                  type: int?
                 staticType: int?
               operator: ! @29
               staticType: int
@@ -6007,9 +6067,11 @@ library
                 #F5 optionalNamed hasImplicitType isFinal isOriginDeclaration this.x (nameOffset:37) (firstTokenOffset:32) (offset:37)
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
                   initializer: expression_0
-                    SimpleIdentifier
-                      token: foo @40
-                      element: <testLibrary>::@function::foo
+                    UnqualifiedNameExpression
+                      name: foo @40
+                      resolution: ExecutableTearOffResolution
+                        element: <testLibrary>::@function::foo
+                        type: int Function()
                       staticType: int Function()
           getters
             #F3 isComplete isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
@@ -6480,9 +6542,12 @@ library
           initializer: expression_1
             UnaryOperatorInvocation
               operator: - @23
-              operand: SimpleIdentifier
-                token: a @24
-                element: <testLibrary>::@getter::a
+              operand: UnqualifiedNameExpression
+                name: a @24
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::a
+                  invokeType: int Function()
+                  type: int
                 staticType: int
               unaryOperator: negate
               element: dart:core::@class::int::@method::unary-
@@ -6552,9 +6617,12 @@ library
           initializer: expression_0
             UnaryOperatorInvocation
               operator: - @28
-              operand: SimpleIdentifier
-                token: a @29
-                element: package:test/a.dart::@getter::a
+              operand: UnqualifiedNameExpression
+                name: a @29
+                resolution: GetterInvocationResolution
+                  element: package:test/a.dart::@getter::a
+                  invokeType: Object Function()
+                  type: Object
                 staticType: Object
               unaryOperator: negate
               element: package:test/a.dart::@extension::E::@method::unary-
@@ -6686,6 +6754,28 @@ library
             RecordLiteral
               leftParenthesis: ( @23
               fields2
+                UnqualifiedNameExpression
+                  name: a @24
+                  resolution: GetterInvocationResolution
+                    element: <testLibrary>::@getter::a
+                    invokeType: int Function()
+                    type: int
+                  staticType: int
+                RecordLiteralNamedField
+                  name: a @27
+                  colon: : @28
+                  fieldExpression2: UnqualifiedNameExpression
+                    name: a @30
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@getter::a
+                      invokeType: int Function()
+                      type: int
+                    staticType: int
+                  fieldExpression(v1): SimpleIdentifier
+                    token: a @30
+                    element: <testLibrary>::@getter::a
+                    staticType: int
+              fields(v1)
                 SimpleIdentifier
                   token: a @24
                   element: <testLibrary>::@getter::a
@@ -6693,7 +6783,7 @@ library
                 RecordLiteralNamedField
                   name: a @27
                   colon: : @28
-                  fieldExpression2: SimpleIdentifier
+                  fieldExpression: SimpleIdentifier
                     token: a @30
                     element: <testLibrary>::@getter::a
                     staticType: int
@@ -6764,6 +6854,28 @@ library
               constKeyword: const @23
               leftParenthesis: ( @29
               fields2
+                UnqualifiedNameExpression
+                  name: a @30
+                  resolution: GetterInvocationResolution
+                    element: <testLibrary>::@getter::a
+                    invokeType: int Function()
+                    type: int
+                  staticType: int
+                RecordLiteralNamedField
+                  name: a @33
+                  colon: : @34
+                  fieldExpression2: UnqualifiedNameExpression
+                    name: a @36
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@getter::a
+                      invokeType: int Function()
+                      type: int
+                    staticType: int
+                  fieldExpression(v1): SimpleIdentifier
+                    token: a @36
+                    element: <testLibrary>::@getter::a
+                    staticType: int
+              fields(v1)
                 SimpleIdentifier
                   token: a @30
                   element: <testLibrary>::@getter::a
@@ -6771,7 +6883,7 @@ library
                 RecordLiteralNamedField
                   name: a @33
                   colon: : @34
-                  fieldExpression2: SimpleIdentifier
+                  fieldExpression: SimpleIdentifier
                     token: a @36
                     element: <testLibrary>::@getter::a
                     staticType: int
@@ -7353,9 +7465,11 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:15) (firstTokenOffset:15) (offset:15)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
-            SimpleIdentifier
-              token: foo @19
-              element: <testLibrary>::@function::foo
+            UnqualifiedNameExpression
+              name: foo @19
+              resolution: ExecutableTearOffResolution
+                element: <testLibrary>::@function::foo
+                type: dynamic Function()
               staticType: dynamic Function()
           inducedGetter: #F2
       getters
@@ -7403,9 +7517,11 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:26) (firstTokenOffset:26) (offset:26)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
-            SimpleIdentifier
-              token: foo @30
-              element: <testLibrary>::@function::foo
+            UnqualifiedNameExpression
+              name: foo @30
+              resolution: ExecutableTearOffResolution
+                element: <testLibrary>::@function::foo
+                type: R Function<P, R>(P)
               staticType: R Function<P, R>(P)
           inducedGetter: #F2
       getters
@@ -7476,9 +7592,11 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:24) (firstTokenOffset:24) (offset:24)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
-            SimpleIdentifier
-              token: foo @28
-              element: package:test/a.dart::@function::foo
+            UnqualifiedNameExpression
+              name: foo @28
+              resolution: ExecutableTearOffResolution
+                element: package:test/a.dart::@function::foo
+                type: dynamic Function()
               staticType: dynamic Function()
           inducedGetter: #F2
       getters
@@ -7585,9 +7703,12 @@ library
           element: <testLibrary>::@topLevelVariable::B
           initializer: expression_1
             BinaryOperatorInvocation
-              leftOperand: SimpleIdentifier
-                token: A @23
-                element: <testLibrary>::@getter::A
+              leftOperand: UnqualifiedNameExpression
+                name: A @23
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::A
+                  invokeType: int Function()
+                  type: int
                 staticType: int
               operator: + @25
               rightOperand: IntegerLiteral
@@ -7657,9 +7778,12 @@ library
           element: <testLibrary>::@topLevelVariable::B
           initializer: expression_0
             BinaryOperatorInvocation
-              leftOperand: SimpleIdentifier
-                token: A @28
-                element: package:test/a.dart::@getter::A
+              leftOperand: UnqualifiedNameExpression
+                name: A @28
+                resolution: GetterInvocationResolution
+                  element: package:test/a.dart::@getter::A
+                  invokeType: int Function()
+                  type: int
                 staticType: int
               operator: + @30
               rightOperand: IntegerLiteral
@@ -7852,6 +7976,28 @@ library
                 ListLiteral
                   leftBracket: [ @0
                   elements2
+                    UnqualifiedNameExpression
+                      name: a @-1
+                      resolution: GetterInvocationResolution
+                        element: <testLibrary>::@enum::E::@getter::a
+                        invokeType: E Function()
+                        type: E
+                      staticType: E
+                    UnqualifiedNameExpression
+                      name: b @-1
+                      resolution: GetterInvocationResolution
+                        element: <testLibrary>::@enum::E::@getter::b
+                        invokeType: E Function()
+                        type: E
+                      staticType: E
+                    UnqualifiedNameExpression
+                      name: c @-1
+                      resolution: GetterInvocationResolution
+                        element: <testLibrary>::@enum::E::@getter::c
+                        invokeType: E Function()
+                        type: E
+                      staticType: E
+                  elements(v1)
                     SimpleIdentifier
                       token: a @-1
                       element: <testLibrary>::@enum::E::@getter::a
@@ -8523,9 +8669,12 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::V
           initializer: expression_0
-            SimpleIdentifier
-              token: foo @10
-              element: <null>
+            UnqualifiedNameExpression
+              name: foo @10
+              resolution: InvalidNamedReadResolution
+                type: InvalidType
+                candidates
+                recovery: <null>
               staticType: InvalidType
           inducedGetter: #F2
       getters
@@ -10180,7 +10329,14 @@ library
           element: <testLibrary>::@topLevelVariable::b
           initializer: expression_1
             CascadeExpression
-              target2: SimpleIdentifier
+              target2: UnqualifiedNameExpression
+                name: a @28
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::a
+                  invokeType: int? Function()
+                  type: int?
+                staticType: int?
+              target(v1): SimpleIdentifier
                 token: a @28
                 element: <testLibrary>::@getter::a
                 staticType: int?
@@ -11804,6 +11960,28 @@ library
                 ListLiteral
                   leftBracket: [ @0
                   elements2
+                    UnqualifiedNameExpression
+                      name: a @-1
+                      resolution: GetterInvocationResolution
+                        element: <testLibrary>::@enum::E::@getter::a
+                        invokeType: E Function()
+                        type: E
+                      staticType: E
+                    UnqualifiedNameExpression
+                      name: b @-1
+                      resolution: GetterInvocationResolution
+                        element: <testLibrary>::@enum::E::@getter::b
+                        invokeType: E Function()
+                        type: E
+                      staticType: E
+                    UnqualifiedNameExpression
+                      name: c @-1
+                      resolution: GetterInvocationResolution
+                        element: <testLibrary>::@enum::E::@getter::c
+                        invokeType: E Function()
+                        type: E
+                      staticType: E
+                  elements(v1)
                     SimpleIdentifier
                       token: a @-1
                       element: <testLibrary>::@enum::E::@getter::a
@@ -11992,6 +12170,14 @@ library
                 ListLiteral
                   leftBracket: [ @0
                   elements2
+                    UnqualifiedNameExpression
+                      name: a @-1
+                      resolution: GetterInvocationResolution
+                        element: <testLibrary>::@enum::E::@getter::a
+                        invokeType: E Function()
+                        type: E
+                      staticType: E
+                  elements(v1)
                     SimpleIdentifier
                       token: a @-1
                       element: <testLibrary>::@enum::E::@getter::a
@@ -12091,9 +12277,12 @@ library
             #F2 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:25) (firstTokenOffset:25) (offset:25)
               element: <testLibrary>::@class::C::@field::a
               initializer: expression_0
-                SimpleIdentifier
-                  token: b @29
-                  element: <testLibrary>::@class::C::@getter::b
+                UnqualifiedNameExpression
+                  name: b @29
+                  resolution: GetterInvocationResolution
+                    element: <testLibrary>::@class::C::@getter::b
+                    invokeType: dynamic Function()
+                    type: dynamic
                   staticType: dynamic
               inducedGetter: #F3
             #F4 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic b (nameOffset:47) (firstTokenOffset:47) (offset:47)
@@ -12173,9 +12362,11 @@ library
             #F2 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:25) (firstTokenOffset:25) (offset:25)
               element: <testLibrary>::@class::C::@field::a
               initializer: expression_0
-                SimpleIdentifier
-                  token: m @29
-                  element: <testLibrary>::@class::C::@method::m
+                UnqualifiedNameExpression
+                  name: m @29
+                  resolution: ExecutableTearOffResolution
+                    element: <testLibrary>::@class::C::@method::m
+                    type: dynamic Function()
                   staticType: dynamic Function()
               inducedGetter: #F3
           constructors

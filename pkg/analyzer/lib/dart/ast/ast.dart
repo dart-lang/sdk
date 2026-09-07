@@ -352,6 +352,7 @@ export 'package:analyzer/src/dart/ast/ast.dart'
         UnaryOperator,
         UnaryOperatorInvocation,
         UnqualifiedFunctionInvocation,
+        UnqualifiedNameExpression,
         UnqualifiedNameAssignmentTarget,
         VariableDeclaration,
         VariableDeclarationList,

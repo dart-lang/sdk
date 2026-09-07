@@ -1551,6 +1551,34 @@ Block
         argumentList: ArgumentList
           leftParenthesis: (
           arguments2
+            UnqualifiedNameExpression
+              name: list
+              resolution: VariableReadResolution
+                element: <testLibrary>::@function::_mergeSort::@formalParameter::list
+                type: T Function(T)
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::list
+                substitution: {T: T}
+              staticType: T Function(T)
+            UnqualifiedNameExpression
+              name: compare
+              resolution: VariableReadResolution
+                element: <testLibrary>::@function::_mergeSort::@formalParameter::compare
+                type: int Function(T, T)
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::compare
+                substitution: {T: T}
+              staticType: int Function(T, T)
+            UnqualifiedNameExpression
+              name: target
+              resolution: VariableReadResolution
+                element: <testLibrary>::@function::_mergeSort::@formalParameter::target
+                type: T Function(T)
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::target
+                substitution: {T: T}
+              staticType: T Function(T)
+          arguments(v1)
             SimpleIdentifier
               token: list
               correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -1621,6 +1649,34 @@ Block
         argumentList: ArgumentList
           leftParenthesis: (
           arguments2
+            UnqualifiedNameExpression
+              name: list
+              resolution: VariableReadResolution
+                element: <testLibrary>::@function::_mergeSort::@formalParameter::list
+                type: T Function(T)
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::list
+                substitution: {T: T}
+              staticType: T Function(T)
+            UnqualifiedNameExpression
+              name: compare
+              resolution: VariableReadResolution
+                element: <testLibrary>::@function::_mergeSort::@formalParameter::compare
+                type: int Function(T, T)
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::compare
+                substitution: {T: T}
+              staticType: int Function(T, T)
+            UnqualifiedNameExpression
+              name: list
+              resolution: VariableReadResolution
+                element: <testLibrary>::@function::_mergeSort::@formalParameter::list
+                type: T Function(T)
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::target
+                substitution: {T: T}
+              staticType: T Function(T)
+          arguments(v1)
             SimpleIdentifier
               token: list
               correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -1691,6 +1747,34 @@ Block
         argumentList: ArgumentList
           leftParenthesis: (
           arguments2
+            UnqualifiedNameExpression
+              name: target
+              resolution: VariableReadResolution
+                element: <testLibrary>::@function::_mergeSort::@formalParameter::target
+                type: T Function(T)
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::list
+                substitution: {T: T}
+              staticType: T Function(T)
+            UnqualifiedNameExpression
+              name: compare
+              resolution: VariableReadResolution
+                element: <testLibrary>::@function::_mergeSort::@formalParameter::compare
+                type: int Function(T, T)
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::compare
+                substitution: {T: T}
+              staticType: int Function(T, T)
+            UnqualifiedNameExpression
+              name: target
+              resolution: VariableReadResolution
+                element: <testLibrary>::@function::_mergeSort::@formalParameter::target
+                type: T Function(T)
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::target
+                substitution: {T: T}
+              staticType: T Function(T)
+          arguments(v1)
             SimpleIdentifier
               token: target
               correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -1761,6 +1845,34 @@ Block
         argumentList: ArgumentList
           leftParenthesis: (
           arguments2
+            UnqualifiedNameExpression
+              name: target
+              resolution: VariableReadResolution
+                element: <testLibrary>::@function::_mergeSort::@formalParameter::target
+                type: T Function(T)
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::list
+                substitution: {T: T}
+              staticType: T Function(T)
+            UnqualifiedNameExpression
+              name: compare
+              resolution: VariableReadResolution
+                element: <testLibrary>::@function::_mergeSort::@formalParameter::compare
+                type: int Function(T, T)
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::compare
+                substitution: {T: T}
+              staticType: int Function(T, T)
+            UnqualifiedNameExpression
+              name: list
+              resolution: VariableReadResolution
+                element: <testLibrary>::@function::_mergeSort::@formalParameter::list
+                type: T Function(T)
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::target
+                substitution: {T: T}
+              staticType: T Function(T)
+          arguments(v1)
             SimpleIdentifier
               token: target
               correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -1855,6 +1967,34 @@ Block
         argumentList: ArgumentList
           leftParenthesis: (
           arguments2
+            UnqualifiedNameExpression
+              name: list
+              resolution: VariableReadResolution
+                element: <testLibrary>::@function::_mergeSort::@formalParameter::list
+                type: List<T>
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::list
+                substitution: {T: T}
+              staticType: List<T>
+            UnqualifiedNameExpression
+              name: compare
+              resolution: VariableReadResolution
+                element: <testLibrary>::@function::_mergeSort::@formalParameter::compare
+                type: int Function(T, T)
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::compare
+                substitution: {T: T}
+              staticType: int Function(T, T)
+            UnqualifiedNameExpression
+              name: target
+              resolution: VariableReadResolution
+                element: <testLibrary>::@function::_mergeSort::@formalParameter::target
+                type: List<T>
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::target
+                substitution: {T: T}
+              staticType: List<T>
+          arguments(v1)
             SimpleIdentifier
               token: list
               correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -1925,6 +2065,34 @@ Block
         argumentList: ArgumentList
           leftParenthesis: (
           arguments2
+            UnqualifiedNameExpression
+              name: list
+              resolution: VariableReadResolution
+                element: <testLibrary>::@function::_mergeSort::@formalParameter::list
+                type: List<T>
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::list
+                substitution: {T: T}
+              staticType: List<T>
+            UnqualifiedNameExpression
+              name: compare
+              resolution: VariableReadResolution
+                element: <testLibrary>::@function::_mergeSort::@formalParameter::compare
+                type: int Function(T, T)
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::compare
+                substitution: {T: T}
+              staticType: int Function(T, T)
+            UnqualifiedNameExpression
+              name: list
+              resolution: VariableReadResolution
+                element: <testLibrary>::@function::_mergeSort::@formalParameter::list
+                type: List<T>
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::target
+                substitution: {T: T}
+              staticType: List<T>
+          arguments(v1)
             SimpleIdentifier
               token: list
               correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -1995,6 +2163,34 @@ Block
         argumentList: ArgumentList
           leftParenthesis: (
           arguments2
+            UnqualifiedNameExpression
+              name: target
+              resolution: VariableReadResolution
+                element: <testLibrary>::@function::_mergeSort::@formalParameter::target
+                type: List<T>
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::list
+                substitution: {T: T}
+              staticType: List<T>
+            UnqualifiedNameExpression
+              name: compare
+              resolution: VariableReadResolution
+                element: <testLibrary>::@function::_mergeSort::@formalParameter::compare
+                type: int Function(T, T)
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::compare
+                substitution: {T: T}
+              staticType: int Function(T, T)
+            UnqualifiedNameExpression
+              name: target
+              resolution: VariableReadResolution
+                element: <testLibrary>::@function::_mergeSort::@formalParameter::target
+                type: List<T>
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::target
+                substitution: {T: T}
+              staticType: List<T>
+          arguments(v1)
             SimpleIdentifier
               token: target
               correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -2065,6 +2261,34 @@ Block
         argumentList: ArgumentList
           leftParenthesis: (
           arguments2
+            UnqualifiedNameExpression
+              name: target
+              resolution: VariableReadResolution
+                element: <testLibrary>::@function::_mergeSort::@formalParameter::target
+                type: List<T>
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::list
+                substitution: {T: T}
+              staticType: List<T>
+            UnqualifiedNameExpression
+              name: compare
+              resolution: VariableReadResolution
+                element: <testLibrary>::@function::_mergeSort::@formalParameter::compare
+                type: int Function(T, T)
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::compare
+                substitution: {T: T}
+              staticType: int Function(T, T)
+            UnqualifiedNameExpression
+              name: list
+              resolution: VariableReadResolution
+                element: <testLibrary>::@function::_mergeSort::@formalParameter::list
+                type: List<T>
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::target
+                substitution: {T: T}
+              staticType: List<T>
+          arguments(v1)
             SimpleIdentifier
               token: target
               correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -2159,6 +2383,34 @@ Block
         argumentList: ArgumentList
           leftParenthesis: (
           arguments2
+            UnqualifiedNameExpression
+              name: list
+              resolution: VariableReadResolution
+                element: <testLibrary>::@function::_mergeSort::@formalParameter::list
+                type: T
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::list
+                substitution: {T: T}
+              staticType: T
+            UnqualifiedNameExpression
+              name: compare
+              resolution: VariableReadResolution
+                element: <testLibrary>::@function::_mergeSort::@formalParameter::compare
+                type: int Function(T, T)
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::compare
+                substitution: {T: T}
+              staticType: int Function(T, T)
+            UnqualifiedNameExpression
+              name: target
+              resolution: VariableReadResolution
+                element: <testLibrary>::@function::_mergeSort::@formalParameter::target
+                type: T
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::target
+                substitution: {T: T}
+              staticType: T
+          arguments(v1)
             SimpleIdentifier
               token: list
               correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -2229,6 +2481,34 @@ Block
         argumentList: ArgumentList
           leftParenthesis: (
           arguments2
+            UnqualifiedNameExpression
+              name: list
+              resolution: VariableReadResolution
+                element: <testLibrary>::@function::_mergeSort::@formalParameter::list
+                type: T
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::list
+                substitution: {T: T}
+              staticType: T
+            UnqualifiedNameExpression
+              name: compare
+              resolution: VariableReadResolution
+                element: <testLibrary>::@function::_mergeSort::@formalParameter::compare
+                type: int Function(T, T)
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::compare
+                substitution: {T: T}
+              staticType: int Function(T, T)
+            UnqualifiedNameExpression
+              name: list
+              resolution: VariableReadResolution
+                element: <testLibrary>::@function::_mergeSort::@formalParameter::list
+                type: T
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::target
+                substitution: {T: T}
+              staticType: T
+          arguments(v1)
             SimpleIdentifier
               token: list
               correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -2299,6 +2579,34 @@ Block
         argumentList: ArgumentList
           leftParenthesis: (
           arguments2
+            UnqualifiedNameExpression
+              name: target
+              resolution: VariableReadResolution
+                element: <testLibrary>::@function::_mergeSort::@formalParameter::target
+                type: T
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::list
+                substitution: {T: T}
+              staticType: T
+            UnqualifiedNameExpression
+              name: compare
+              resolution: VariableReadResolution
+                element: <testLibrary>::@function::_mergeSort::@formalParameter::compare
+                type: int Function(T, T)
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::compare
+                substitution: {T: T}
+              staticType: int Function(T, T)
+            UnqualifiedNameExpression
+              name: target
+              resolution: VariableReadResolution
+                element: <testLibrary>::@function::_mergeSort::@formalParameter::target
+                type: T
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::target
+                substitution: {T: T}
+              staticType: T
+          arguments(v1)
             SimpleIdentifier
               token: target
               correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -2369,6 +2677,34 @@ Block
         argumentList: ArgumentList
           leftParenthesis: (
           arguments2
+            UnqualifiedNameExpression
+              name: target
+              resolution: VariableReadResolution
+                element: <testLibrary>::@function::_mergeSort::@formalParameter::target
+                type: T
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::list
+                substitution: {T: T}
+              staticType: T
+            UnqualifiedNameExpression
+              name: compare
+              resolution: VariableReadResolution
+                element: <testLibrary>::@function::_mergeSort::@formalParameter::compare
+                type: int Function(T, T)
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::compare
+                substitution: {T: T}
+              staticType: int Function(T, T)
+            UnqualifiedNameExpression
+              name: list
+              resolution: VariableReadResolution
+                element: <testLibrary>::@function::_mergeSort::@formalParameter::list
+                type: T
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::target
+                substitution: {T: T}
+              staticType: T
+          arguments(v1)
             SimpleIdentifier
               token: target
               correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -2459,9 +2795,11 @@ UnqualifiedFunctionInvocation
     leftParenthesis: (
     arguments2
       FunctionReference
-        function2: SimpleIdentifier
-          token: g
-          element: <testLibrary>::@function::g
+        function2: UnqualifiedNameExpression
+          name: g
+          resolution: ExecutableTearOffResolution
+            element: <testLibrary>::@function::g
+            type: S Function<S>(S)
           staticType: S Function<S>(S)
         correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: <testLibrary>::@function::f::@formalParameter::x
@@ -2562,7 +2900,13 @@ MethodInvocation
           substitution: {S: num}
         staticType: num
       FunctionReference
-        function2: SimpleIdentifier
+        function2: UnqualifiedNameExpression
+          name: max
+          resolution: ExecutableTearOffResolution
+            element: <testLibrary>::@function::max
+            type: T Function<T extends num>(T, T)
+          staticType: T Function<T extends num>(T, T)
+        function(v1): SimpleIdentifier
           token: max
           element: <testLibrary>::@function::max
           staticType: T Function<T extends num>(T, T)
@@ -4828,7 +5172,13 @@ MethodInvocation
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression2: SimpleIdentifier
+          expression2: UnqualifiedNameExpression
+            name: e
+            resolution: VariableReadResolution
+              element: e@93
+              type: dynamic
+            staticType: dynamic
+          expression(v1): SimpleIdentifier
             token: e
             element: e@93
             staticType: dynamic
@@ -6446,7 +6796,9 @@ main() {
   v; // marker
 }''');
     assertTypeDynamic(result.findElement.localVar('v').type);
-    assertTypeDynamic(result.findNode.simple('v; // marker'));
+    assertTypeDynamic(
+      result.findNode.unqualifiedNameExpression('v; // marker'),
+    );
   }
 
   test_localVariableInference_constant() async {
@@ -6456,7 +6808,10 @@ main() {
   v; // marker
 }''');
     assertType(result.findElement.localVar('v').type, 'int');
-    assertType(result.findNode.simple('v; // marker'), 'int');
+    assertType(
+      result.findNode.unqualifiedNameExpression('v; // marker'),
+      'int',
+    );
   }
 
   test_localVariableInference_declaredType_disabled() async {
@@ -6466,7 +6821,9 @@ main() {
   v; // marker
 }''');
     assertTypeDynamic(result.findElement.localVar('v').type);
-    assertTypeDynamic(result.findNode.simple('v; // marker'));
+    assertTypeDynamic(
+      result.findNode.unqualifiedNameExpression('v; // marker'),
+    );
   }
 
   test_localVariableInference_noInitializer_disabled() async {
@@ -6495,7 +6852,9 @@ AssignmentExpression
   element: <null>
   staticType: int
 ''');
-    assertTypeDynamic(result.findNode.simple('v; // marker'));
+    assertTypeDynamic(
+      result.findNode.unqualifiedNameExpression('v; // marker'),
+    );
   }
 
   test_localVariableInference_transitive_field_inferred_lexical() async {
@@ -6511,7 +6870,10 @@ main() {
 }
 ''');
     assertType(result.findElement.localVar('v').type, 'int');
-    assertType(result.findNode.simple('v; // marker'), 'int');
+    assertType(
+      result.findNode.unqualifiedNameExpression('v; // marker'),
+      'int',
+    );
   }
 
   test_localVariableInference_transitive_field_inferred_reversed() async {
@@ -6527,7 +6889,10 @@ main() {
 }
 ''');
     assertType(result.findElement.localVar('v').type, 'int');
-    assertType(result.findNode.simple('v; // marker'), 'int');
+    assertType(
+      result.findNode.unqualifiedNameExpression('v; // marker'),
+      'int',
+    );
   }
 
   test_localVariableInference_transitive_field_lexical() async {
@@ -6543,7 +6908,10 @@ main() {
 }
 ''');
     assertType(result.findElement.localVar('v').type, 'int');
-    assertType(result.findNode.simple('v; // marker'), 'int');
+    assertType(
+      result.findNode.unqualifiedNameExpression('v; // marker'),
+      'int',
+    );
   }
 
   test_localVariableInference_transitive_field_reversed() async {
@@ -6559,7 +6927,10 @@ main() {
 }
 ''');
     assertType(result.findElement.localVar('v').type, 'int');
-    assertType(result.findNode.simple('v; // marker'), 'int');
+    assertType(
+      result.findNode.unqualifiedNameExpression('v; // marker'),
+      'int',
+    );
   }
 
   test_localVariableInference_transitive_list_local() async {
@@ -6570,7 +6941,10 @@ main() {
   v; // marker
 }''');
     assertType(result.findElement.localVar('v').type, 'int');
-    assertType(result.findNode.simple('v; // marker'), 'int');
+    assertType(
+      result.findNode.unqualifiedNameExpression('v; // marker'),
+      'int',
+    );
   }
 
   test_localVariableInference_transitive_local() async {
@@ -6581,7 +6955,10 @@ main() {
   v; // marker
 }''');
     assertType(result.findElement.localVar('v').type, 'int');
-    assertType(result.findNode.simple('v; // marker'), 'int');
+    assertType(
+      result.findNode.unqualifiedNameExpression('v; // marker'),
+      'int',
+    );
   }
 
   test_localVariableInference_transitive_topLevel_inferred_lexical() async {
@@ -6593,7 +6970,10 @@ main() {
 }
 ''');
     assertType(result.findElement.localVar('v').type, 'int');
-    assertType(result.findNode.simple('v; // marker'), 'int');
+    assertType(
+      result.findNode.unqualifiedNameExpression('v; // marker'),
+      'int',
+    );
   }
 
   test_localVariableInference_transitive_toplevel_inferred_reversed() async {
@@ -6605,7 +6985,10 @@ main() {
 final x = 3;
 ''');
     assertType(result.findElement.localVar('v').type, 'int');
-    assertType(result.findNode.simple('v; // marker'), 'int');
+    assertType(
+      result.findNode.unqualifiedNameExpression('v; // marker'),
+      'int',
+    );
   }
 
   test_localVariableInference_transitive_topLevel_lexical() async {
@@ -6617,7 +7000,10 @@ main() {
 }
 ''');
     assertType(result.findElement.localVar('v').type, 'int');
-    assertType(result.findNode.simple('v; // marker'), 'int');
+    assertType(
+      result.findNode.unqualifiedNameExpression('v; // marker'),
+      'int',
+    );
   }
 
   test_localVariableInference_transitive_topLevel_reversed() async {
@@ -6629,7 +7015,10 @@ main() {
 int x = 3;
 ''');
     assertType(result.findElement.localVar('v').type, 'int');
-    assertType(result.findNode.simple('v; // marker'), 'int');
+    assertType(
+      result.findNode.unqualifiedNameExpression('v; // marker'),
+      'int',
+    );
   }
 }
 

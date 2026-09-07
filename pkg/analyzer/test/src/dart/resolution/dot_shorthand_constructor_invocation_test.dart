@@ -216,12 +216,14 @@ DotShorthandConstructorInvocation2
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
-      SimpleIdentifier
-        token: iter
+      UnqualifiedNameExpression
+        name: iter
+        resolution: VariableReadResolution
+          element: iter@26
+          type: List<int>
         correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: dart:async::@class::Stream::@constructor::fromIterable::@formalParameter::elements
           substitution: {T: int}
-        element: iter@26
         staticType: List<int>
     rightParenthesis: )
   isDotShorthand: true
@@ -2949,10 +2951,13 @@ DotShorthandConstructorInvocation2
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
-      SimpleIdentifier
-        token: unknown
+      UnqualifiedNameExpression
+        name: unknown
+        resolution: InvalidNamedReadResolution
+          type: InvalidType
+          candidates
+          recovery: <null>
         correspondingParameter: <null>
-        element: <null>
         staticType: InvalidType
     rightParenthesis: )
   isDotShorthand: true

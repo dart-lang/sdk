@@ -117,7 +117,14 @@ void f() async {
     assertResolvedNodeText(node, r'''
 AwaitExpression
   awaitKeyword: await
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: unresolved
+    resolution: InvalidNamedReadResolution
+      type: InvalidType
+      candidates
+      recovery: <null>
+    staticType: InvalidType
+  expression(v1): SimpleIdentifier
     token: unresolved
     element: <null>
     staticType: InvalidType

@@ -6,6 +6,7 @@ import 'dart:collection';
 
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 
@@ -347,6 +348,21 @@ class ReferenceFinder extends RecursiveAstVisitor2<void> {
     var constructor = node.element?.baseElement;
     if (constructor != null) {
       _callback(constructor);
+    }
+  }
+
+  @override
+  void visitUnqualifiedNameExpression(UnqualifiedNameExpression node) {
+    _recordNamedReadDependency(node.resolution);
+  }
+
+  void _recordNamedReadDependency(NamedReadResolution? resolution) {
+    var element = resolution.elementOrRecovery;
+    if (element is GetterElementImpl) {
+      element = element.variable;
+    }
+    if (element is VariableElementImpl && element.isConst) {
+      _callback(element);
     }
   }
 }

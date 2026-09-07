@@ -72,6 +72,15 @@ class UseResultVerifier {
     }
   }
 
+  void checkNameExpression(Expression node, NamedReadResolution? resolution) {
+    if (node.parent2 is CallInvocation) {
+      return;
+    }
+    if (resolution case NamedReadResolutionWithElement(:var element)) {
+      _check(node, element);
+    }
+  }
+
   void checkPropertyAccess(PropertyAccess node) {
     var element = node.propertyName.element;
     if (element == null) {

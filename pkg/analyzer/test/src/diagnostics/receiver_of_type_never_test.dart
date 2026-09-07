@@ -100,9 +100,11 @@ void f(Never x) {
     var node = result.findNode.binaryOperatorInvocation('x ==');
     assertResolvedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: SimpleIdentifier
-    token: x
-    element: <testLibrary>::@function::f::@formalParameter::x
+  leftOperand: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: Never
     staticType: Never
   operator: ==
   rightOperand: BinaryOperatorInvocation
@@ -160,9 +162,11 @@ void f(Never x) {
     var node = result.findNode.binaryOperatorInvocation('x +');
     assertResolvedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: SimpleIdentifier
-    token: x
-    element: <testLibrary>::@function::f::@formalParameter::x
+  leftOperand: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: Never
     staticType: Never
   operator: +
   rightOperand: ParenthesizedExpression
@@ -224,9 +228,11 @@ void f(Never? x) {
     var node = result.findNode.binaryOperatorInvocation('x ==');
     assertResolvedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: SimpleIdentifier
-    token: x
-    element: <testLibrary>::@function::f::@formalParameter::x
+  leftOperand: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: Never?
     staticType: Never?
   operator: ==
   rightOperand: BinaryOperatorInvocation
@@ -282,9 +288,11 @@ void f(Never? x) {
     var node = result.findNode.binaryOperatorInvocation('x +');
     assertResolvedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: SimpleIdentifier
-    token: x
-    element: <testLibrary>::@function::f::@formalParameter::x
+  leftOperand: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: Never?
     staticType: Never?
   operator: +
   rightOperand: ParenthesizedExpression
@@ -468,9 +476,11 @@ void f(Never x) {
     var node = result.findNode.receiverIndexExpression('x[0]');
     assertResolvedNodeText(node, r'''
 ReceiverIndexExpression
-  receiver: SimpleIdentifier
-    token: x
-    element: <testLibrary>::@function::f::@formalParameter::x
+  receiver: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: Never
     staticType: Never
   leftBracket: [
   index: IntegerLiteral
@@ -512,9 +522,11 @@ void f(Never x) {
     var node = result.findNode.receiverIndexExpression('x?[0]');
     assertResolvedNodeText(node, r'''
 ReceiverIndexExpression
-  receiver: SimpleIdentifier
-    token: x
-    element: <testLibrary>::@function::f::@formalParameter::x
+  receiver: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: Never
     staticType: Never
   question: ?
   leftBracket: [
@@ -557,9 +569,11 @@ void f(Never x) {
     assertResolvedNodeText(node, r'''
 CompoundAssignment
   target: ReceiverIndexAssignmentTarget
-    receiver: SimpleIdentifier
-      token: x
-      element: <testLibrary>::@function::f::@formalParameter::x
+    receiver: UnqualifiedNameExpression
+      name: x
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::x
+        type: Never
       staticType: Never
     leftBracket: [
     index: IntegerLiteral
@@ -639,9 +653,11 @@ void f(Never x) {
     assertResolvedNodeText(node, r'''
 DirectAssignment
   target: ReceiverIndexAssignmentTarget
-    receiver: SimpleIdentifier
-      token: x
-      element: <testLibrary>::@function::f::@formalParameter::x
+    receiver: UnqualifiedNameExpression
+      name: x
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::x
+        type: Never
       staticType: Never
     leftBracket: [
     index: IntegerLiteral
@@ -720,9 +736,12 @@ void f(N x) {
     assertResolvedNodeText(node, r'''
 IfNullAssignment
   target: ReceiverIndexAssignmentTarget
-    receiver: SimpleIdentifier
-      token: x
-      element: <testLibrary>::@function::f::@formalParameter::x
+    receiver: UnqualifiedNameExpression
+      name: x
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::x
+        type: Never
+          alias: <testLibrary>::@typeAlias::N
       staticType: Never
         alias: <testLibrary>::@typeAlias::N
     leftBracket: [
@@ -786,9 +805,12 @@ void f(N x) {
     assertResolvedNodeText(node, r'''
 CompoundAssignment
   target: ReceiverIndexAssignmentTarget
-    receiver: SimpleIdentifier
-      token: x
-      element: <testLibrary>::@function::f::@formalParameter::x
+    receiver: UnqualifiedNameExpression
+      name: x
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::x
+        type: Never
+          alias: <testLibrary>::@typeAlias::N
       staticType: Never
         alias: <testLibrary>::@typeAlias::N
     leftBracket: [
@@ -850,9 +872,11 @@ void f(Never? x) {
     var node = result.findNode.receiverIndexExpression('x[0]');
     assertResolvedNodeText(node, r'''
 ReceiverIndexExpression
-  receiver: SimpleIdentifier
-    token: x
-    element: <testLibrary>::@function::f::@formalParameter::x
+  receiver: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: Never?
     staticType: Never?
   leftBracket: [
   index: IntegerLiteral
@@ -893,9 +917,11 @@ void f(Never? x) {
     assertResolvedNodeText(node, r'''
 CompoundAssignment
   target: ReceiverIndexAssignmentTarget
-    receiver: SimpleIdentifier
-      token: x
-      element: <testLibrary>::@function::f::@formalParameter::x
+    receiver: UnqualifiedNameExpression
+      name: x
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::x
+        type: Never?
       staticType: Never?
     leftBracket: [
     index: IntegerLiteral
@@ -977,9 +1003,11 @@ void f(Never? x) {
     assertResolvedNodeText(node, r'''
 DirectAssignment
   target: ReceiverIndexAssignmentTarget
-    receiver: SimpleIdentifier
-      token: x
-      element: <testLibrary>::@function::f::@formalParameter::x
+    receiver: UnqualifiedNameExpression
+      name: x
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::x
+        type: Never?
       staticType: Never?
     leftBracket: [
     index: IntegerLiteral

@@ -27,9 +27,16 @@ main() {
 }
 ''');
 
-    var node = result.findNode.simple('dynamic;');
+    var node = result.findNode.unqualifiedNameExpression('dynamic;');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: dynamic
+  resolution: InvalidNamedReadResolution
+    type: InvalidType
+    candidates
+    recovery: <null>
+  staticType: InvalidType
+V1: SimpleIdentifier
   token: dynamic
   element: <null>
   staticType: InvalidType
@@ -45,9 +52,16 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.simple('a;');
+    var node = result.findNode.unqualifiedNameExpression('a;');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: a
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@getter::a
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: SimpleIdentifier
   token: a
   element: <testLibrary>::@getter::a
   staticType: int
@@ -67,9 +81,16 @@ class C {
 }
 ''');
 
-    var node = result.findNode.simple('a;');
+    var node = result.findNode.unqualifiedNameExpression('a;');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: a
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@getter::a
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: SimpleIdentifier
   token: a
   element: <testLibrary>::@getter::a
   staticType: int
@@ -89,9 +110,16 @@ class C {
 }
 ''');
 
-    var node = result.findNode.simple('a;');
+    var node = result.findNode.unqualifiedNameExpression('a;');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: a
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@getter::a
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: SimpleIdentifier
   token: a
   element: <testLibrary>::@getter::a
   staticType: int
@@ -109,9 +137,17 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.simple('a);');
+    var node = result.findNode.unqualifiedNameExpression('a);');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: a
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@getter::a
+    invokeType: int Function()
+    type: int
+  correspondingParameter: <testLibrary>::@function::foo::@formalParameter::a
+  staticType: int
+V1: SimpleIdentifier
   token: a
   correspondingParameter: <testLibrary>::@function::foo::@formalParameter::a
   element: <testLibrary>::@getter::a
@@ -130,9 +166,15 @@ int Function() foo(A a) {
 }
 ''');
 
-    var node = result.findNode.simple('a;');
+    var node = result.findNode.unqualifiedNameExpression('a;');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: a
+  resolution: VariableReadResolution
+    element: <testLibrary>::@function::foo::@formalParameter::a
+    type: A
+  staticType: A
+V1: SimpleIdentifier
   token: a
   element: <testLibrary>::@function::foo::@formalParameter::a
   staticType: A
@@ -152,9 +194,15 @@ int Function() foo(A? a) {
 }
 ''');
 
-    var node = result.findNode.simple('a;');
+    var node = result.findNode.unqualifiedNameExpression('a;');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: a
+  resolution: VariableReadResolution
+    element: <testLibrary>::@function::foo::@formalParameter::a
+    type: A?
+  staticType: A?
+V1: SimpleIdentifier
   token: a
   element: <testLibrary>::@function::foo::@formalParameter::a
   staticType: A?
@@ -175,9 +223,16 @@ class B extends A {
 }
 ''');
 
-    var node = result.findNode.simple('foo;');
+    var node = result.findNode.unqualifiedNameExpression('foo;');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::A::@getter::foo
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: SimpleIdentifier
   token: foo
   element: <testLibrary>::@class::A::@getter::foo
   staticType: int
@@ -193,9 +248,15 @@ extension E on int Function(double) {
 }
 ''');
 
-    var node = result.findNode.simple('call;');
+    var node = result.findNode.unqualifiedNameExpression('call;');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: call
+  resolution: FunctionCallTearOffResolution
+    type: int Function(double)
+    associatedFunctionType: int Function(double)
+  staticType: int Function(double)
+V1: SimpleIdentifier
   token: call
   element: <null>
   staticType: int Function(double)
@@ -211,9 +272,15 @@ extension E on int Function<T>(T) {
 }
 ''');
 
-    var node = result.findNode.simple('call;');
+    var node = result.findNode.unqualifiedNameExpression('call;');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: call
+  resolution: FunctionCallTearOffResolution
+    type: int Function(double)
+    associatedFunctionType: int Function<T>(T)
+  staticType: int Function(double)
+V1: SimpleIdentifier
   token: call
   element: <null>
   staticType: int Function(double)
@@ -231,9 +298,14 @@ extension E<T extends ({int foo})> on T {
 }
 ''');
 
-    var node = result.findNode.simple('foo;');
+    var node = result.findNode.unqualifiedNameExpression('foo;');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: foo
+  resolution: RecordFieldReadResolution
+    type: int
+  staticType: int
+V1: SimpleIdentifier
   token: foo
   element: <null>
   staticType: int
@@ -249,9 +321,14 @@ extension E<T extends (int, String)> on T {
 }
 ''');
 
-    var node = result.findNode.simple(r'$1;');
+    var node = result.findNode.unqualifiedNameExpression(r'$1;');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: $1
+  resolution: RecordFieldReadResolution
+    type: int
+  staticType: int
+V1: SimpleIdentifier
   token: $1
   element: <null>
   staticType: int
@@ -267,9 +344,14 @@ extension E on ({int foo}) {
 }
 ''');
 
-    var node = result.findNode.simple('foo;');
+    var node = result.findNode.unqualifiedNameExpression('foo;');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: foo
+  resolution: RecordFieldReadResolution
+    type: int
+  staticType: int
+V1: SimpleIdentifier
   token: foo
   element: <null>
   staticType: int
@@ -287,9 +369,16 @@ extension E on ({int foo}) {
 }
 ''');
 
-    var node = result.findNode.simple('bar;');
+    var node = result.findNode.unqualifiedNameExpression('bar;');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: bar
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@extension::E::@getter::bar
+    invokeType: bool Function()
+    type: bool
+  staticType: bool
+V1: SimpleIdentifier
   token: bar
   element: <testLibrary>::@extension::E::@getter::bar
   staticType: bool
@@ -307,9 +396,16 @@ extension E on ({int foo}) {
 }
 ''');
 
-    var node = result.findNode.simple('bar;');
+    var node = result.findNode.unqualifiedNameExpression('bar;');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: bar
+  resolution: InvalidNamedReadResolution
+    type: InvalidType
+    candidates
+    recovery: <null>
+  staticType: InvalidType
+V1: SimpleIdentifier
   token: bar
   element: <null>
   staticType: InvalidType
@@ -325,9 +421,14 @@ extension E on (int, String) {
 }
 ''');
 
-    var node = result.findNode.simple(r'$1;');
+    var node = result.findNode.unqualifiedNameExpression(r'$1;');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: $1
+  resolution: RecordFieldReadResolution
+    type: int
+  staticType: int
+V1: SimpleIdentifier
   token: $1
   element: <null>
   staticType: int
@@ -343,9 +444,14 @@ extension E on (int, String) {
 }
 ''');
 
-    var node = result.findNode.simple(r'$2;');
+    var node = result.findNode.unqualifiedNameExpression(r'$2;');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: $2
+  resolution: RecordFieldReadResolution
+    type: String
+  staticType: String
+V1: SimpleIdentifier
   token: $2
   element: <null>
   staticType: String
@@ -363,9 +469,16 @@ extension E on (int, String) {
 }
 ''');
 
-    var node = result.findNode.simple(r'$3;');
+    var node = result.findNode.unqualifiedNameExpression(r'$3;');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: $3
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@extension::E::@getter::$3
+    invokeType: bool Function()
+    type: bool
+  staticType: bool
+V1: SimpleIdentifier
   token: $3
   element: <testLibrary>::@extension::E::@getter::$3
   staticType: bool
@@ -383,9 +496,16 @@ extension E on (int, String) {
 }
 ''');
 
-    var node = result.findNode.simple(r'$3;');
+    var node = result.findNode.unqualifiedNameExpression(r'$3;');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: $3
+  resolution: InvalidNamedReadResolution
+    type: InvalidType
+    candidates
+    recovery: <null>
+  staticType: InvalidType
+V1: SimpleIdentifier
   token: $3
   element: <null>
   staticType: InvalidType
@@ -403,9 +523,16 @@ extension type A(int it) {
 }
 ''');
 
-    var node = result.findNode.simple('foo;');
+    var node = result.findNode.unqualifiedNameExpression('foo;');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@extensionType::A::@getter::foo
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: SimpleIdentifier
   token: foo
   element: <testLibrary>::@extensionType::A::@getter::foo
   staticType: int
@@ -427,9 +554,16 @@ extension type X(B it) implements A {
 }
 ''');
 
-    var node = result.findNode.simple('foo;');
+    var node = result.findNode.unqualifiedNameExpression('foo;');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::A::@getter::foo
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: SimpleIdentifier
   token: foo
   element: <testLibrary>::@class::A::@getter::foo
   staticType: int
@@ -446,9 +580,15 @@ class C<T> {
 }
 ''');
 
-    var node = result.findNode.simple('f;');
+    var node = result.findNode.unqualifiedNameExpression('f;');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: f
+  resolution: ExecutableTearOffResolution
+    element: f@50
+    type: void Function<U>(S, U)
+  staticType: void Function<U>(S, U)
+V1: SimpleIdentifier
   token: f
   element: f@50
   staticType: void Function<U>(S, U)
@@ -464,9 +604,15 @@ main() {
 }
 ''');
 
-    var node = result.findNode.simple('foo;');
+    var node = result.findNode.unqualifiedNameExpression('foo;');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: foo
+  resolution: ExecutableTearOffResolution
+    element: <testLibrary>::@function::foo
+    type: void Function(int)
+  staticType: void Function(int)
+V1: SimpleIdentifier
   token: foo
   element: <testLibrary>::@function::foo
   staticType: void Function(int)
@@ -484,9 +630,15 @@ class A {
 }
 ''');
 
-    var node = result.findNode.simple('foo;');
+    var node = result.findNode.unqualifiedNameExpression('foo;');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: foo
+  resolution: ExecutableTearOffResolution
+    element: <testLibrary>::@class::A::@method::foo
+    type: void Function(int)
+  staticType: void Function(int)
+V1: SimpleIdentifier
   token: foo
   element: <testLibrary>::@class::A::@method::foo
   staticType: void Function(int)

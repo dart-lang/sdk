@@ -28,9 +28,15 @@ f() {
   }
 }
 ''');
-    var node = result.findNode.simple('x;');
+    var node = result.findNode.unqualifiedNameExpression('x;');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: x
+  resolution: VariableReadResolution
+    element: x@12
+    type: num
+  staticType: num
+V1: SimpleIdentifier
   token: x
   element: x@12
   staticType: num
@@ -51,9 +57,11 @@ void f(int? x) {
     var node = result.findNode.nullAssertion('x!');
     assertResolvedNodeText(node, r'''
 NullAssertionExpression
-  operand: SimpleIdentifier
-    token: x
-    element: <testLibrary>::@function::f::@formalParameter::x
+  operand: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: int?
     staticType: int?
   operator: !
   staticType: int
@@ -87,9 +95,11 @@ void f(Map<String, int> a) {
     var node1 = result.findNode.receiverIndexExpression('a[');
     assertResolvedNodeText(node1, r'''
 ReceiverIndexExpression
-  receiver: SimpleIdentifier
-    token: a
-    element: <testLibrary>::@function::f::@formalParameter::a
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: Map<String, int>
     staticType: Map<String, int>
   leftBracket: [
   index: SimpleStringLiteral
@@ -121,9 +131,11 @@ V1: IndexExpression
     assertResolvedNodeText(node2, r'''
 NullAssertionExpression
   operand: ReceiverIndexExpression
-    receiver: SimpleIdentifier
-      token: a
-      element: <testLibrary>::@function::f::@formalParameter::a
+    receiver: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::a
+        type: Map<String, int>
       staticType: Map<String, int>
     leftBracket: [
     index: SimpleStringLiteral
@@ -170,9 +182,13 @@ void f(A? x) {
     var node = result.findNode.nullAssertion('x!');
     assertResolvedNodeText(node, r'''
 NullAssertionExpression
-  operand: SimpleIdentifier
-    token: x
-    element: <testLibrary>::@function::f::@formalParameter::x
+  operand: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: String?
+        alias: <testLibrary>::@typeAlias::A
+          nullabilitySuffix: NullabilitySuffix.question
     staticType: String?
       alias: <testLibrary>::@typeAlias::A
         nullabilitySuffix: NullabilitySuffix.question
@@ -336,9 +352,13 @@ void f(A? x) {
     var node = result.findNode.nullAssertion('x!');
     assertResolvedNodeText(node, r'''
 NullAssertionExpression
-  operand: SimpleIdentifier
-    token: x
-    element: <testLibrary>::@function::f::@formalParameter::x
+  operand: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: (int,)?
+        alias: <testLibrary>::@typeAlias::A
+          nullabilitySuffix: NullabilitySuffix.question
     staticType: (int,)?
       alias: <testLibrary>::@typeAlias::A
         nullabilitySuffix: NullabilitySuffix.question
@@ -413,9 +433,11 @@ void f<T>(T? x) {
     var node = result.findNode.nullAssertion('x!');
     assertResolvedNodeText(node, r'''
 NullAssertionExpression
-  operand: SimpleIdentifier
-    token: x
-    element: <testLibrary>::@function::f::@formalParameter::x
+  operand: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: T?
     staticType: T?
   operator: !
   staticType: T & Object
@@ -442,9 +464,11 @@ void f<T>(T? x) {
     var node = result.findNode.nullAssertion('x!');
     assertResolvedNodeText(node, r'''
 NullAssertionExpression
-  operand: SimpleIdentifier
-    token: x
-    element: <testLibrary>::@function::f::@formalParameter::x
+  operand: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: (T & num?)?
     staticType: (T & num?)?
   operator: !
   staticType: T & num
@@ -714,9 +738,11 @@ void f(A a) {
     assertResolvedNodeText(node, r'''
 IncrementOrDecrementExpression
   target: ReceiverIndexAssignmentTarget
-    receiver: SimpleIdentifier
-      token: a
-      element: <testLibrary>::@function::f::@formalParameter::a
+    receiver: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::a
+        type: A
       staticType: A
     leftBracket: [
     index: IntegerLiteral
@@ -778,9 +804,11 @@ void f(A? a) {
     assertResolvedNodeText(node, r'''
 IncrementOrDecrementExpression
   target: ReceiverIndexAssignmentTarget
-    receiver: SimpleIdentifier
-      token: a
-      element: <testLibrary>::@function::f::@formalParameter::a
+    receiver: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::a
+        type: A?
       staticType: A?
     question: ?
     leftBracket: [
@@ -1104,9 +1132,11 @@ void f(A a) {
     assertResolvedNodeText(node, r'''
 IncrementOrDecrementExpression
   target: ReceiverPropertyAssignmentTarget
-    receiver: SimpleIdentifier
-      token: a
-      element: <testLibrary>::@function::f::@formalParameter::a
+    receiver: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::a
+        type: A
       staticType: A
     operator: .
     propertyName: foo
@@ -1160,9 +1190,11 @@ void f(A a) {
     assertResolvedNodeText(node, r'''
 IncrementOrDecrementExpression
   target: ReceiverPropertyAssignmentTarget
-    receiver: SimpleIdentifier
-      token: a
-      element: <testLibrary>::@function::f::@formalParameter::a
+    receiver: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::a
+        type: A
       staticType: A
     operator: .
     propertyName: x
@@ -1343,9 +1375,11 @@ void f(A? a) {
     assertResolvedNodeText(node, r'''
 IncrementOrDecrementExpression
   target: ReceiverPropertyAssignmentTarget
-    receiver: SimpleIdentifier
-      token: a
-      element: <testLibrary>::@function::f::@formalParameter::a
+    receiver: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::a
+        type: A?
       staticType: A?
     operator: ?.
     propertyName: foo
@@ -1544,7 +1578,10 @@ V1: PostfixExpression
   staticType: A
 ''');
 
-    assertType(result.findNode.simple('x; // ref'), 'Object');
+    assertType(
+      result.findNode.unqualifiedNameExpression('x; // ref'),
+      'Object',
+    );
   }
 
   test_inc_simpleIdentifier_parameter_double() async {
@@ -1857,9 +1894,11 @@ IncrementOrDecrementExpression
     expression: SwitchExpression
       switchKeyword: switch
       leftParenthesis: (
-      expression2: SimpleIdentifier
-        token: x
-        element: <testLibrary>::@function::f::@formalParameter::x
+      expression2: UnqualifiedNameExpression
+        name: x
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::x
+          type: Object?
         staticType: Object?
       rightParenthesis: )
       leftBracket: {

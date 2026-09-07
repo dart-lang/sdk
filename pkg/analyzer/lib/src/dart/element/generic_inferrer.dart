@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
@@ -576,6 +577,24 @@ class GenericInferrer {
         'Consider passing explicit type argument(s) to the generic.\n\n';
   }
 
+  bool _hasOptionalTypeArgs(Element element) {
+    if (element is VariableElement) {
+      // For variable elements, check the declaration of their type or its
+      // alias in addition to the variable itself.
+      var type = element.type;
+      var typeElement = type is InterfaceType ? type.element : null;
+      if (typeElement != null && typeElement.metadata.hasOptionalTypeArgs) {
+        return true;
+      }
+      var typeAliasElement = type.alias?.element;
+      if (typeAliasElement != null &&
+          typeAliasElement.metadata.hasOptionalTypeArgs) {
+        return true;
+      }
+    }
+    return element.metadata.hasOptionalTypeArgs;
+  }
+
   /// Reports an inference failure on [errorEntity] according to its type.
   void _reportInferenceFailure({
     DiagnosticReporter? diagnosticReporter,
@@ -627,30 +646,19 @@ class GenericInferrer {
         }
       }
     } else if (errorEntity is SimpleIdentifier) {
-      var element = errorEntity.element;
-      if (element != null) {
-        if (element is VariableElement) {
-          // For variable elements, we check their type and possible alias type.
-          var type = element.type;
-          var typeElement = type is InterfaceType ? type.element : null;
-          if (typeElement != null && typeElement.metadata.hasOptionalTypeArgs) {
-            return;
-          }
-          var typeAliasElement = type.alias?.element;
-          if (typeAliasElement != null &&
-              typeAliasElement.metadata.hasOptionalTypeArgs) {
-            return;
-          }
-        }
-        if (!element.metadata.hasOptionalTypeArgs) {
-          diagnosticReporter.report(
-            diag.inferenceFailureOnFunctionInvocation
-                .withArguments(function: errorEntity.name)
-                .at(errorEntity),
-          );
-          return;
-        }
-      }
+      _reportNamedInferenceFailure(
+        diagnosticReporter: diagnosticReporter,
+        errorEntity: errorEntity,
+        element: errorEntity.element,
+        name: errorEntity.name,
+      );
+    } else if (errorEntity is UnqualifiedNameExpression) {
+      _reportNamedInferenceFailure(
+        diagnosticReporter: diagnosticReporter,
+        errorEntity: errorEntity,
+        element: errorEntity.resolution.elementOrRecovery,
+        name: errorEntity.name.lexeme,
+      );
     } else if (errorEntity is Expression) {
       var type = errorEntity.staticType;
       if (type != null) {
@@ -662,6 +670,21 @@ class GenericInferrer {
         );
         return;
       }
+    }
+  }
+
+  void _reportNamedInferenceFailure({
+    required DiagnosticReporter diagnosticReporter,
+    required SyntacticEntity errorEntity,
+    required Element? element,
+    required String name,
+  }) {
+    if (element != null && !_hasOptionalTypeArgs(element)) {
+      diagnosticReporter.report(
+        diag.inferenceFailureOnFunctionInvocation
+            .withArguments(function: name)
+            .at(errorEntity),
+      );
     }
   }
 

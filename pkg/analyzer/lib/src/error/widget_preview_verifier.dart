@@ -244,16 +244,25 @@ class _InvalidWidgetPreviewArgumentDetectorVisitor
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    if (Identifier.isPrivateName(node.name)) {
+    _checkName(node.name);
+    super.visitSimpleIdentifier(node);
+  }
+
+  @override
+  void visitUnqualifiedNameExpression(UnqualifiedNameExpression node) {
+    _checkName(node.name.lexeme);
+  }
+
+  void _checkName(String name) {
+    if (Identifier.isPrivateName(name)) {
       diagnosticReporter.report(
         diag.invalidWidgetPreviewPrivateArgument
             .withArguments(
-              privateSymbolName: node.name,
-              suggestedName: node.name.replaceFirst(RegExp('_*'), ''),
+              privateSymbolName: name,
+              suggestedName: name.replaceFirst(RegExp('_*'), ''),
             )
             .at(rootArgument!),
       );
     }
-    super.visitSimpleIdentifier(node);
   }
 }

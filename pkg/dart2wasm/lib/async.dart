@@ -35,7 +35,10 @@ mixin AsyncCodeGeneratorMixin on StateMachineEntryAstCodeGenerator {
     );
 
     // AsyncResumeFun _resume
-    translator.globals.readGlobal(b, translator.makeFunctionRef(resumeFun));
+    translator.globals.readGlobal(
+      b,
+      translator.makeFunctionRef(resumeFun.function),
+    );
 
     // WasmStructRef? _context
     if (context != null) {
@@ -62,7 +65,7 @@ mixin AsyncCodeGeneratorMixin on StateMachineEntryAstCodeGenerator {
     b.ref_null(translator.topType.heapType); // await value
     b.ref_null(translator.topType.heapType); // error value
     b.ref_null(translator.stackTraceType.heapType); // stack trace
-    translator.callFunction(resumeFun, b);
+    translator.callFunction(resumeFun.function, b);
     b.drop(); // drop null
 
     // (3) Return the future.

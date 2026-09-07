@@ -6514,8 +6514,8 @@ class JoinPatternVariableElementImpl extends PatternVariableElementImpl
 
   set isFinal(bool value) => _firstFragment.isFinal = value;
 
-  /// The identifiers that reference this element.
-  List<SimpleIdentifier> get references => _firstFragment.references;
+  /// The name tokens that reference this element.
+  List<Token> get references => _firstFragment.references;
 
   /// Returns this variable, and variables that join into it.
   List<PatternVariableElementImpl> get transitiveVariables {
@@ -6550,8 +6550,8 @@ class JoinPatternVariableFragmentImpl extends PatternVariableFragmentImpl
 
   shared.JoinedPatternVariableInconsistency inconsistency;
 
-  /// The identifiers that reference this element.
-  final List<SimpleIdentifier> references = [];
+  /// The name tokens that reference this element.
+  final List<Token> references = [];
 
   JoinPatternVariableFragmentImpl({
     required super.name,

@@ -1060,6 +1060,17 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
     super.visitUnqualifiedFunctionInvocation(node);
   }
 
+  @override
+  void visitUnqualifiedNameExpression(UnqualifiedNameExpression node) {
+    _elementUsageFrontierDetector.nameExpression(node, node.resolution);
+    _invalidAccessVerifier.verifyNameExpression(
+      node: node,
+      name: node.name,
+      resolution: node.resolution,
+    );
+    super.visitUnqualifiedNameExpression(node);
+  }
+
   /// Checks for the passed [IsExpression] for the unnecessary type check
   /// warning codes as well as null checks expressed using an
   /// [IsExpression].
@@ -1747,6 +1758,15 @@ class BestPracticesVerifier extends RecursiveAstVisitor2<void> {
           element,
         _ => null,
       };
+    } else if (expression is UnqualifiedNameExpression) {
+      element = expression.resolution.elementOrRecovery;
+      // An executable name expression is a tear-off, not a value read from a
+      // declaration carrying `doNotStore`.
+      if (element is LocalFunctionElement ||
+          element is TopLevelFunctionElement ||
+          element is MethodElement) {
+        element = null;
+      }
     } else if (expression is Identifier) {
       element = expression.element;
       // Tear-off.
@@ -2033,6 +2053,15 @@ class _InvalidAccessVerifier {
     );
 
     _checkForOtherInvalidAccess(node, element);
+  }
+
+  void verifyNameExpression({
+    required AstNode node,
+    required Token name,
+    required NamedReadResolution? resolution,
+  }) {
+    var element = resolution.elementOrRecovery;
+    _verify(node: node, nameToken: name, element: element);
   }
 
   void verifyPatternField(PatternFieldImpl node) {
@@ -2379,6 +2408,9 @@ class _InvalidAccessVerifier {
     } else if (node is DotShorthandNameExpression) {
       name = node.name.lexeme;
       errorEntity = node.name;
+    } else if (node is UnqualifiedNameExpression) {
+      name = node.name.lexeme;
+      errorEntity = node.name;
     } else if (node is NamedFunctionInvocation) {
       name = node.name.lexeme;
       errorEntity = node.name;
@@ -2415,6 +2447,17 @@ class _UsedParameterVisitor extends RecursiveAstVisitor2<void> {
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     var element = node.element?.baseElement;
+    if (_parameters.contains(element)) {
+      _usedParameters.add(element as FormalParameterElement);
+    }
+  }
+
+  @override
+  void visitUnqualifiedNameExpression(UnqualifiedNameExpression node) {
+    var element = switch (node.resolution) {
+      NamedReadResolutionWithElement(:var element) => element.baseElement,
+      _ => null,
+    };
     if (_parameters.contains(element)) {
       _usedParameters.add(element as FormalParameterElement);
     }

@@ -420,7 +420,7 @@ class DispatchTable {
   /// in the dispatch table (instead of adding more slots to static call table).
   late final Map<Reference, int> _tableIndexForReference;
 
-  late final w.TableBuilder _definedWasmTable;
+  late final w.Table _definedWasmTable;
   late final WasmTableImporter _importedWasmTables = WasmTableImporter(
     translator,
     'dispatch',

@@ -514,9 +514,15 @@ class A {
         xParameter.declaredFragment!.element as FieldFormalParameterElement;
     expect(xParameterElement.field, result.findElement.field('x'));
 
-    var node1 = result.findNode.simple('x {}');
+    var node1 = result.findNode.unqualifiedNameExpression('x {}');
     assertResolvedNodeText(node1, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: x
+  resolution: VariableReadResolution
+    element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
+    type: int
+  staticType: int
+V1: SimpleIdentifier
   token: x
   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
   staticType: int
@@ -576,9 +582,16 @@ class C extends B with M1, M2 {
 
     // Verify that the getter for "x" in C.f() refers to the getter defined in
     // M2.
-    var node2 = result.findNode.simple('x;');
+    var node2 = result.findNode.unqualifiedNameExpression('x;');
     assertResolvedNodeText(node2, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: x
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@mixin::M2::@getter::x
+    invokeType: dynamic Function()
+    type: dynamic
+  staticType: dynamic
+V1: SimpleIdentifier
   token: x
   element: <testLibrary>::@mixin::M2::@getter::x
   staticType: dynamic

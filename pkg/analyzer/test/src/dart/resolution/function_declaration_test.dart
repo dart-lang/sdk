@@ -125,9 +125,16 @@ void bar([int foo = foo + 1]) {
 }
 ''');
 
-    var node = result.findNode.simple('foo + 1');
+    var node = result.findNode.unqualifiedNameExpression('foo + 1');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@getter::foo
+    invokeType: int Function()
+    type: int
+  staticType: int
+V1: SimpleIdentifier
   token: foo
   element: <testLibrary>::@getter::foo
   staticType: int
@@ -151,9 +158,15 @@ NamedType
   type: a
 ''');
 
-    var node2 = result.findNode.simple('a;');
+    var node2 = result.findNode.unqualifiedNameExpression('a;');
     assertResolvedNodeText(node2, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: a
+  resolution: VariableReadResolution
+    element: <testLibrary>::@function::bar::@formalParameter::a
+    type: a
+  staticType: a
+V1: SimpleIdentifier
   token: a
   element: <testLibrary>::@function::bar::@formalParameter::a
   staticType: a

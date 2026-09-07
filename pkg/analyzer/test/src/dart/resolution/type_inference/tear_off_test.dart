@@ -28,9 +28,16 @@ void test() {
 }
 ''');
 
-    var node = result.findNode.simple('f; // 1');
+    var node = result.findNode.unqualifiedNameExpression('f; // 1');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: f
+  resolution: ExecutableTearOffResolution
+    element: <testLibrary>::@function::f
+    type: T Function<T>(T)
+  correspondingParameter: <null>
+  staticType: T Function<T>(T)
+V1: SimpleIdentifier
   token: f
   correspondingParameter: <null>
   element: <testLibrary>::@function::f
@@ -50,9 +57,16 @@ void test() {
 }
 ''');
 
-    var node = result.findNode.simple('f; // 1');
+    var node = result.findNode.unqualifiedNameExpression('f; // 1');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: f
+  resolution: ExecutableTearOffResolution
+    element: <testLibrary>::@function::f
+    type: int Function(int)
+  correspondingParameter: <null>
+  staticType: int Function(int)
+V1: SimpleIdentifier
   token: f
   correspondingParameter: <null>
   element: <testLibrary>::@function::f
@@ -129,7 +143,13 @@ int Function(int) test() {
     var node = result.findNode.functionReference('f;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function2: SimpleIdentifier
+  function2: UnqualifiedNameExpression
+    name: f
+    resolution: ExecutableTearOffResolution
+      element: f@31
+      type: T Function<T>(T)
+    staticType: T Function<T>(T)
+  function(v1): SimpleIdentifier
     token: f
     element: f@31
     staticType: T Function<T>(T)
@@ -215,7 +235,13 @@ int Function(int) test() {
     var node = result.findNode.functionReference('f;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function2: SimpleIdentifier
+  function2: UnqualifiedNameExpression
+    name: f
+    resolution: ExecutableTearOffResolution
+      element: <testLibrary>::@function::f
+      type: T Function<T>(T)
+    staticType: T Function<T>(T)
+  function(v1): SimpleIdentifier
     token: f
     element: <testLibrary>::@function::f
     staticType: T Function<T>(T)

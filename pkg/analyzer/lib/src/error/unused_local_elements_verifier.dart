@@ -476,20 +476,17 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
         if (isIdentifierRead) {
           usedElements.unresolvedReadMembers.add(node.name);
         }
-      } else if (enclosingElement is EnumElement && element.name == 'values') {
-        // If the 'values' static accessor of the enum is accessed, then all of
-        // the enum values have been read.
-        for (var field in enclosingElement.fields) {
-          if (field.isEnumConstant) {
-            usedElements.readMembers.add(field.getter!);
-          }
+      } else {
+        if (_recordEnumValuesUse(element)) {
+          return;
         }
-      } else if ((enclosingElement is InterfaceElement ||
-              enclosingElement is ExtensionElement) &&
-          !identical(element, _enclosingExec)) {
-        usedElements.members.add(element);
-        if (isIdentifierRead) {
-          _addMemberAndCorrespondingGetter(element);
+        if ((enclosingElement is InterfaceElement ||
+                enclosingElement is ExtensionElement) &&
+            !identical(element, _enclosingExec)) {
+          usedElements.members.add(element);
+          if (isIdentifierRead) {
+            _addMemberAndCorrespondingGetter(element);
+          }
         }
       }
     }
@@ -547,6 +544,15 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitUnqualifiedNameExpression(UnqualifiedNameExpression node) {
+    _useNamedReadResolution(
+      node.resolution,
+      readCountsAsUse: _isUsefulRead(node),
+    );
+    super.visitUnqualifiedNameExpression(node);
+  }
+
+  @override
   void visitVariableDeclarationList(VariableDeclarationList node) {
     node.metadata.accept2(this);
     var enclosingVariableDeclarationOld = _enclosingVariableDeclaration;
@@ -575,6 +581,21 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
       var parameter = argument.correspondingParameter;
       usedElements.addElement(parameter);
     }
+  }
+
+  /// Records that reading an enum's synthetic `values` getter reads every
+  /// constant declared by the enum.
+  bool _recordEnumValuesUse(Element? element) {
+    var enclosingElement = element?.enclosingElement;
+    if (enclosingElement is! EnumElement || element?.name != 'values') {
+      return false;
+    }
+    for (var field in enclosingElement.fields) {
+      if (field.isEnumConstant) {
+        usedElements.readMembers.add(field.getter!);
+      }
+    }
+    return true;
   }
 
   void _recordNamedFunctionInvocation(NamedFunctionInvocation node) {
@@ -658,21 +679,26 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
         if (readCountsAsUse) {
           usedElements.addElement(element);
         }
-      } else if (readCountsAsUse ||
-          element is! PropertyAccessorElement ||
-          !element.isOriginVariable) {
-        _useIdentifierElement(element);
-        if (element is ExecutableElement) {
-          for (var parameter in element.formalParameters) {
-            usedElements.addElement(parameter);
-          }
+      } else {
+        if (_recordEnumValuesUse(element)) {
+          return;
         }
-        var enclosingElement = element.enclosingElement;
-        if ((enclosingElement is InterfaceElement ||
-                enclosingElement is ExtensionElement) &&
-            !identical(element, _enclosingExec)) {
-          usedElements.members.add(element);
-          _addMemberAndCorrespondingGetter(element);
+        if (readCountsAsUse ||
+            element is! PropertyAccessorElement ||
+            !element.isOriginVariable) {
+          _useIdentifierElement(element);
+          if (element is ExecutableElement) {
+            for (var parameter in element.formalParameters) {
+              usedElements.addElement(parameter);
+            }
+          }
+          var enclosingElement = element.enclosingElement;
+          if ((enclosingElement is InterfaceElement ||
+                  enclosingElement is ExtensionElement) &&
+              !identical(element, _enclosingExec)) {
+            usedElements.members.add(element);
+            _addMemberAndCorrespondingGetter(element);
+          }
         }
       }
     }
@@ -731,6 +757,10 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor2<void> {
     if (!node.inGetterContext()) {
       return false;
     }
+    return _isUsefulRead(node);
+  }
+
+  static bool _isUsefulRead(AstNode node) {
     // Check if useless reading.
     AstNode parent = node.parent2!;
 

@@ -98,7 +98,13 @@ class A {
     var node = result.findNode.singleConditionalExpression;
     assertResolvedNodeText(node, r'''
 ConditionalExpression
-  condition2: SimpleIdentifier
+  condition2: UnqualifiedNameExpression
+    name: c
+    resolution: VariableReadResolution
+      element: <testLibrary>::@class::A::@method::f::@formalParameter::c
+      type: bool
+    staticType: bool
+  condition(v1): SimpleIdentifier
     token: c
     element: <testLibrary>::@class::A::@method::f::@formalParameter::c
     staticType: bool
@@ -132,17 +138,35 @@ f(bool b, C1 c1, C2 c2, Object? o) {
     var node = result.findNode.conditionalExpression('b ? c1 : c2');
     assertResolvedNodeText(node, r'''
 ConditionalExpression
-  condition2: SimpleIdentifier
+  condition2: UnqualifiedNameExpression
+    name: b
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::b
+      type: bool
+    staticType: bool
+  condition(v1): SimpleIdentifier
     token: b
     element: <testLibrary>::@function::f::@formalParameter::b
     staticType: bool
   question: ?
-  thenExpression2: SimpleIdentifier
+  thenExpression2: UnqualifiedNameExpression
+    name: c1
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::c1
+      type: C1
+    staticType: C1
+  thenExpression(v1): SimpleIdentifier
     token: c1
     element: <testLibrary>::@function::f::@formalParameter::c1
     staticType: C1
   colon: :
-  elseExpression2: SimpleIdentifier
+  elseExpression2: UnqualifiedNameExpression
+    name: c2
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::c2
+      type: C2
+    staticType: C2
+  elseExpression(v1): SimpleIdentifier
     token: c2
     element: <testLibrary>::@function::f::@formalParameter::c2
     staticType: C2
@@ -168,12 +192,24 @@ T f<T>(T t, bool b) {
     var node = result.findNode.conditionalExpression('b ?');
     assertResolvedNodeText(node, r'''
 ConditionalExpression
-  condition2: SimpleIdentifier
+  condition2: UnqualifiedNameExpression
+    name: b
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::b
+      type: bool
+    staticType: bool
+  condition(v1): SimpleIdentifier
     token: b
     element: <testLibrary>::@function::f::@formalParameter::b
     staticType: bool
   question: ?
-  thenExpression2: SimpleIdentifier
+  thenExpression2: UnqualifiedNameExpression
+    name: t
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::t
+      type: T & int
+    staticType: T & int
+  thenExpression(v1): SimpleIdentifier
     token: t
     element: <testLibrary>::@function::f::@formalParameter::t
     staticType: T & int
@@ -195,17 +231,35 @@ void f(bool b, (int, String) r1, ({int a}) r2) {
     var node = result.findNode.conditionalExpression('b ?');
     assertResolvedNodeText(node, r'''
 ConditionalExpression
-  condition2: SimpleIdentifier
+  condition2: UnqualifiedNameExpression
+    name: b
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::b
+      type: bool
+    staticType: bool
+  condition(v1): SimpleIdentifier
     token: b
     element: <testLibrary>::@function::f::@formalParameter::b
     staticType: bool
   question: ?
-  thenExpression2: SimpleIdentifier
+  thenExpression2: UnqualifiedNameExpression
+    name: r1
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::r1
+      type: (int, String)
+    staticType: (int, String)
+  thenExpression(v1): SimpleIdentifier
     token: r1
     element: <testLibrary>::@function::f::@formalParameter::r1
     staticType: (int, String)
   colon: :
-  elseExpression2: SimpleIdentifier
+  elseExpression2: UnqualifiedNameExpression
+    name: r2
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::r2
+      type: ({int a})
+    staticType: ({int a})
+  elseExpression(v1): SimpleIdentifier
     token: r2
     element: <testLibrary>::@function::f::@formalParameter::r2
     staticType: ({int a})
@@ -223,17 +277,35 @@ void f(bool b, ({int a}) r1, ({double a}) r2) {
     var node = result.findNode.conditionalExpression('b ?');
     assertResolvedNodeText(node, r'''
 ConditionalExpression
-  condition2: SimpleIdentifier
+  condition2: UnqualifiedNameExpression
+    name: b
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::b
+      type: bool
+    staticType: bool
+  condition(v1): SimpleIdentifier
     token: b
     element: <testLibrary>::@function::f::@formalParameter::b
     staticType: bool
   question: ?
-  thenExpression2: SimpleIdentifier
+  thenExpression2: UnqualifiedNameExpression
+    name: r1
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::r1
+      type: ({int a})
+    staticType: ({int a})
+  thenExpression(v1): SimpleIdentifier
     token: r1
     element: <testLibrary>::@function::f::@formalParameter::r1
     staticType: ({int a})
   colon: :
-  elseExpression2: SimpleIdentifier
+  elseExpression2: UnqualifiedNameExpression
+    name: r2
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::r2
+      type: ({double a})
+    staticType: ({double a})
+  elseExpression(v1): SimpleIdentifier
     token: r2
     element: <testLibrary>::@function::f::@formalParameter::r2
     staticType: ({double a})
@@ -255,7 +327,13 @@ class A {
     var node = result.findNode.singleConditionalExpression;
     assertResolvedNodeText(node, r'''
 ConditionalExpression
-  condition2: SimpleIdentifier
+  condition2: UnqualifiedNameExpression
+    name: c
+    resolution: VariableReadResolution
+      element: <testLibrary>::@class::A::@method::f::@formalParameter::c
+      type: bool
+    staticType: bool
+  condition(v1): SimpleIdentifier
     token: c
     element: <testLibrary>::@class::A::@method::f::@formalParameter::c
     staticType: bool
@@ -281,7 +359,13 @@ void f(bool b) {
     var node = result.findNode.singleConditionalExpression;
     assertResolvedNodeText(node, r'''
 ConditionalExpression
-  condition2: SimpleIdentifier
+  condition2: UnqualifiedNameExpression
+    name: b
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::b
+      type: bool
+    staticType: bool
+  condition(v1): SimpleIdentifier
     token: b
     element: <testLibrary>::@function::f::@formalParameter::b
     staticType: bool
@@ -307,7 +391,13 @@ void f(bool b) {
     var node = result.findNode.singleConditionalExpression;
     assertResolvedNodeText(node, r'''
 ConditionalExpression
-  condition2: SimpleIdentifier
+  condition2: UnqualifiedNameExpression
+    name: b
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::b
+      type: bool
+    staticType: bool
+  condition(v1): SimpleIdentifier
     token: b
     element: <testLibrary>::@function::f::@formalParameter::b
     staticType: bool
@@ -330,7 +420,7 @@ void f(bool a, int b, int c) {
   print(d);
 }
 ''');
-    assertType(result.findNode.simple('d)'), 'int');
+    assertType(result.findNode.unqualifiedNameExpression('d)'), 'int');
   }
 }
 
@@ -351,17 +441,35 @@ f(bool b, C1<int> c1, C2<double> c2) {
 
     var node = result.findNode.conditionalExpression('b ? c1 : c2');
     assertResolvedNodeText(node, r'''ConditionalExpression
-  condition2: SimpleIdentifier
+  condition2: UnqualifiedNameExpression
+    name: b
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::b
+      type: bool
+    staticType: bool
+  condition(v1): SimpleIdentifier
     token: b
     element: <testLibrary>::@function::f::@formalParameter::b
     staticType: bool
   question: ?
-  thenExpression2: SimpleIdentifier
+  thenExpression2: UnqualifiedNameExpression
+    name: c1
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::c1
+      type: C1<int>
+    staticType: C1<int>
+  thenExpression(v1): SimpleIdentifier
     token: c1
     element: <testLibrary>::@function::f::@formalParameter::c1
     staticType: C1<int>
   colon: :
-  elseExpression2: SimpleIdentifier
+  elseExpression2: UnqualifiedNameExpression
+    name: c2
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::c2
+      type: C2<double>
+    staticType: C2<double>
+  elseExpression(v1): SimpleIdentifier
     token: c2
     element: <testLibrary>::@function::f::@formalParameter::c2
     staticType: C2<double>
@@ -388,17 +496,35 @@ f(bool b, B2 b2, C1 c1, Object? o) {
 
     var node = result.findNode.conditionalExpression('b ? b2 : c1');
     assertResolvedNodeText(node, r'''ConditionalExpression
-  condition2: SimpleIdentifier
+  condition2: UnqualifiedNameExpression
+    name: b
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::b
+      type: bool
+    staticType: bool
+  condition(v1): SimpleIdentifier
     token: b
     element: <testLibrary>::@function::f::@formalParameter::b
     staticType: bool
   question: ?
-  thenExpression2: SimpleIdentifier
+  thenExpression2: UnqualifiedNameExpression
+    name: b2
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::b2
+      type: B2
+    staticType: B2
+  thenExpression(v1): SimpleIdentifier
     token: b2
     element: <testLibrary>::@function::f::@formalParameter::b2
     staticType: B2
   colon: :
-  elseExpression2: SimpleIdentifier
+  elseExpression2: UnqualifiedNameExpression
+    name: c1
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::c1
+      type: C1
+    staticType: C1
+  elseExpression(v1): SimpleIdentifier
     token: c1
     element: <testLibrary>::@function::f::@formalParameter::c1
     staticType: C1
@@ -423,17 +549,35 @@ f(bool b, C1 c1, B2 b2, Object? o) {
 
     var node = result.findNode.conditionalExpression('b ? c1 : b2');
     assertResolvedNodeText(node, r'''ConditionalExpression
-  condition2: SimpleIdentifier
+  condition2: UnqualifiedNameExpression
+    name: b
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::b
+      type: bool
+    staticType: bool
+  condition(v1): SimpleIdentifier
     token: b
     element: <testLibrary>::@function::f::@formalParameter::b
     staticType: bool
   question: ?
-  thenExpression2: SimpleIdentifier
+  thenExpression2: UnqualifiedNameExpression
+    name: c1
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::c1
+      type: C1
+    staticType: C1
+  thenExpression(v1): SimpleIdentifier
     token: c1
     element: <testLibrary>::@function::f::@formalParameter::c1
     staticType: C1
   colon: :
-  elseExpression2: SimpleIdentifier
+  elseExpression2: UnqualifiedNameExpression
+    name: b2
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::b2
+      type: B2
+    staticType: B2
+  elseExpression(v1): SimpleIdentifier
     token: b2
     element: <testLibrary>::@function::f::@formalParameter::b2
     staticType: B2
@@ -455,17 +599,35 @@ B1 f(bool b, C1 c1, C2 c2) => b ? c1 : c2;
     var node = result.findNode.conditionalExpression('b ? c1 : c2');
     assertResolvedNodeText(node, r'''
 ConditionalExpression
-  condition2: SimpleIdentifier
+  condition2: UnqualifiedNameExpression
+    name: b
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::b
+      type: bool
+    staticType: bool
+  condition(v1): SimpleIdentifier
     token: b
     element: <testLibrary>::@function::f::@formalParameter::b
     staticType: bool
   question: ?
-  thenExpression2: SimpleIdentifier
+  thenExpression2: UnqualifiedNameExpression
+    name: c1
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::c1
+      type: C1
+    staticType: C1
+  thenExpression(v1): SimpleIdentifier
     token: c1
     element: <testLibrary>::@function::f::@formalParameter::c1
     staticType: C1
   colon: :
-  elseExpression2: SimpleIdentifier
+  elseExpression2: UnqualifiedNameExpression
+    name: c2
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::c2
+      type: C2
+    staticType: C2
+  elseExpression(v1): SimpleIdentifier
     token: c2
     element: <testLibrary>::@function::f::@formalParameter::c2
     staticType: C2

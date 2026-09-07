@@ -560,6 +560,11 @@ class _ElementCollector extends UnifyingAstVisitor2<void> {
     _visitNamedFunctionInvocation(node);
   }
 
+  @override
+  void visitUnqualifiedNameExpression(UnqualifiedNameExpression node) {
+    _addReadResolution(node.resolution);
+  }
+
   void _addElement(Element? element) {
     ManifestAstElementKind kind;
     int rawIndex;
@@ -612,6 +617,15 @@ class _ElementCollector extends UnifyingAstVisitor2<void> {
         _addElement(element.variable);
       }
     }
+  }
+
+  void _addReadResolution(NamedReadResolution? resolution) {
+    // Keep one manifest slot per syntactic name, even when resolution fails.
+    _addElement(switch (resolution) {
+      InvalidNamedReadResolution(:var candidates) => candidates.firstOrNull,
+      NamedReadResolutionWithElement(:var element) => element,
+      _ => null,
+    });
   }
 
   void _visitNamedFunctionInvocation(NamedFunctionInvocation node) {

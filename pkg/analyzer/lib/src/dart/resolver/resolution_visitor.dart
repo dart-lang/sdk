@@ -844,7 +844,7 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
       node.element = element;
 
       if (element is JoinPatternVariableElementImpl) {
-        element.references.add(node);
+        element.references.add(node.token);
       }
     }
 
@@ -966,7 +966,24 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
   ) {
     var scopeLookupResult = nameScope.lookup(node.name.lexeme);
     node.scopeLookupResult = scopeLookupResult;
+
+    if (scopeLookupResult.getter case JoinPatternVariableElementImpl element) {
+      element.references.add(node.name);
+    }
+
     _recordUnqualifiedWrite(scopeLookupResult, node);
+  }
+
+  @override
+  void visitUnqualifiedNameExpression(
+    covariant UnqualifiedNameExpressionImpl node,
+  ) {
+    var scopeLookupResult = nameScope.lookup(node.name.lexeme);
+    node.scopeLookupResult = scopeLookupResult;
+
+    if (scopeLookupResult.getter case JoinPatternVariableElementImpl element) {
+      element.references.add(node.name);
+    }
   }
 
   @override

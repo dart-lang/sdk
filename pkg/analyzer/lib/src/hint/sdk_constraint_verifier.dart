@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/utilities/extensions/version.dart';
@@ -341,6 +342,11 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
     super.visitUnqualifiedFunctionInvocation(node);
   }
 
+  @override
+  void visitUnqualifiedNameExpression(UnqualifiedNameExpression node) {
+    _checkNamedRead(node.resolution, node, errorEntity: node.name);
+  }
+
   void _checkIndexRead(IndexExpression2 node) {
     var element = switch (node.resolution) {
       MethodIndexReadResolution(:var element) => element,
@@ -359,6 +365,15 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
       _ => null,
     };
     _checkSinceSdkVersion(element, node, errorEntity: node.name);
+  }
+
+  void _checkNamedRead(
+    NamedReadResolution? resolution,
+    AstNode node, {
+    required SyntacticEntity errorEntity,
+  }) {
+    var element = resolution.elementOrRecovery;
+    _checkSinceSdkVersion(element, node, errorEntity: errorEntity);
   }
 
   void _checkSinceSdkVersion(

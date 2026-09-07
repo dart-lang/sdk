@@ -2442,6 +2442,11 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
     _tokenOrNull(node.name);
   }
 
+  @override
+  void visitUnqualifiedNameExpression(UnqualifiedNameExpression node) {
+    _tokenOrNull(node.name);
+  }
+
   void _tokenOrNull(Token? token) {
     if (token != null) {
       handleToken(token);

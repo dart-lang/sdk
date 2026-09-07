@@ -669,12 +669,14 @@ ConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
-      SimpleIdentifier
-        token: s
+      UnqualifiedNameExpression
+        name: s
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::s
+          type: S & int
         correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: <testLibrary>::@class::A::@constructor::new::@formalParameter::t
           substitution: {T: S}
-        element: <testLibrary>::@function::f::@formalParameter::s
         staticType: S & int
     rightParenthesis: )
   staticType: A<S>

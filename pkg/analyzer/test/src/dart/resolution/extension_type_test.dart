@@ -4202,7 +4202,14 @@ PrimaryConstructorDeclaration
           name: it
           defaultClause: FormalParameterDefaultClause
             separator: =
-            value2: SimpleIdentifier
+            value2: UnqualifiedNameExpression
+              name: foo
+              resolution: GetterInvocationResolution
+                element: <testLibrary>::@extensionType::E::@getter::foo
+                invokeType: int Function()
+                type: int
+              staticType: int
+            value(v1): SimpleIdentifier
               token: foo
               element: <testLibrary>::@extensionType::E::@getter::foo
               staticType: int
@@ -4387,7 +4394,13 @@ ExtensionTypeDeclaration
           AssertInitializer
             assertKeyword: assert
             leftParenthesis: (
-            condition2: SimpleIdentifier
+            condition2: UnqualifiedNameExpression
+              name: it
+              resolution: VariableReadResolution
+                element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
+                type: bool
+              staticType: bool
+            condition(v1): SimpleIdentifier
               token: it
               element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
               staticType: bool
@@ -4397,7 +4410,14 @@ ExtensionTypeDeclaration
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: SimpleIdentifier
+                expression2: UnqualifiedNameExpression
+                  name: it
+                  resolution: GetterInvocationResolution
+                    element: <testLibrary>::@extensionType::A::@getter::it
+                    invokeType: bool Function()
+                    type: bool
+                  staticType: bool
+                expression(v1): SimpleIdentifier
                   token: it
                   element: <testLibrary>::@extensionType::A::@getter::it
                   staticType: bool
@@ -4412,9 +4432,11 @@ ExtensionTypeDeclaration
             leftParenthesis: (
             condition2: LogicalNot
               operator: !
-              operand: SimpleIdentifier
-                token: it
-                element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
+              operand: UnqualifiedNameExpression
+                name: it
+                resolution: VariableReadResolution
+                  element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
+                  type: bool
                 staticType: bool
               staticType: bool
             condition(v1): PrefixExpression
@@ -4431,7 +4453,14 @@ ExtensionTypeDeclaration
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: SimpleIdentifier
+                expression2: UnqualifiedNameExpression
+                  name: it
+                  resolution: GetterInvocationResolution
+                    element: <testLibrary>::@extensionType::A::@getter::it
+                    invokeType: bool Function()
+                    type: bool
+                  staticType: bool
+                expression(v1): SimpleIdentifier
                   token: it
                   element: <testLibrary>::@extensionType::A::@getter::it
                   staticType: bool
@@ -4483,7 +4512,13 @@ PrimaryConstructorBody
     AssertInitializer
       assertKeyword: assert
       leftParenthesis: (
-      condition2: SimpleIdentifier
+      condition2: UnqualifiedNameExpression
+        name: it
+        resolution: VariableReadResolution
+          element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
+          type: bool
+        staticType: bool
+      condition(v1): SimpleIdentifier
         token: it
         element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
         staticType: bool
@@ -4509,7 +4544,13 @@ PrimaryConstructorBody
     AssertInitializer
       assertKeyword: assert
       leftParenthesis: (
-      condition2: SimpleIdentifier
+      condition2: UnqualifiedNameExpression
+        name: it
+        resolution: VariableReadResolution
+          element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
+          type: bool
+        staticType: bool
+      condition(v1): SimpleIdentifier
         token: it
         element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
         staticType: bool
@@ -4539,13 +4580,26 @@ PrimaryConstructorBody
       leftBracket: {
       statements
         ExpressionStatement
-          expression2: SimpleIdentifier
+          expression2: UnqualifiedNameExpression
+            name: it
+            resolution: GetterInvocationResolution
+              element: <testLibrary>::@extensionType::A::@getter::it
+              invokeType: int Function()
+              type: int
+            staticType: int
+          expression(v1): SimpleIdentifier
             token: it
             element: <testLibrary>::@extensionType::A::@getter::it
             staticType: int
           semicolon: ;
         ExpressionStatement
-          expression2: SimpleIdentifier
+          expression2: UnqualifiedNameExpression
+            name: foo
+            resolution: ExecutableTearOffResolution
+              element: <testLibrary>::@extensionType::A::@method::foo
+              type: void Function()
+            staticType: void Function()
+          expression(v1): SimpleIdentifier
             token: foo
             element: <testLibrary>::@extensionType::A::@method::foo
             staticType: void Function()
@@ -4732,7 +4786,13 @@ ExtensionTypeDeclaration
               element: <testLibrary>::@extensionType::A::@field::it
               staticType: null
             equals: =
-            expression2: SimpleIdentifier
+            expression2: UnqualifiedNameExpression
+              name: a
+              resolution: VariableReadResolution
+                element: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::a
+                type: int
+              staticType: int
+            expression(v1): SimpleIdentifier
               token: a
               element: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::a
               staticType: int

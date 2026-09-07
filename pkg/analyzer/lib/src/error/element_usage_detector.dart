@@ -1002,6 +1002,11 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
     checkUsage(node.element, node);
   }
 
+  void nameExpression(AstNode node, NamedReadResolution? resolution) {
+    var element = resolution.elementOrRecovery;
+    checkUsage(element, node);
+  }
+
   void patternField(PatternField node) {
     checkUsage(node.element, node);
   }

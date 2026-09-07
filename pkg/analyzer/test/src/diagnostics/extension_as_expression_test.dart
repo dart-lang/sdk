@@ -35,6 +35,20 @@ var v = E;
 //      ^
 // [diag.extensionAsExpression] Extension 'E' can't be used as an expression.
 ''');
-    assertTypeDynamic(result.findNode.simple('E;'));
+    var node = result.findNode.unqualifiedNameExpression('E;');
+    assertResolvedNodeText(node, r'''
+UnqualifiedNameExpression
+  name: E
+  resolution: InvalidNamedReadResolution
+    type: InvalidType
+    candidates
+      candidate: <testLibrary>::@extension::E
+    recovery: <null>
+  staticType: InvalidType
+V1: SimpleIdentifier
+  token: E
+  element: <testLibrary>::@extension::E
+  staticType: InvalidType
+''');
   }
 }

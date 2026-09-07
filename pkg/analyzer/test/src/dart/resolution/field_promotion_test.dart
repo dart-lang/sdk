@@ -35,9 +35,11 @@ void f(C c) {
 ReceiverPropertyExtraction
   receiver: ParenthesizedExpression
     leftParenthesis: (
-    expression2: SimpleIdentifier
-      token: c
-      element: <testLibrary>::@function::f::@formalParameter::c
+    expression2: UnqualifiedNameExpression
+      name: c
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::c
+        type: C
       staticType: C
     rightParenthesis: )
     staticType: C
@@ -371,9 +373,11 @@ CallInvocation
   receiver: PropertyAccess
     target2: ParenthesizedExpression
       leftParenthesis: (
-      expression2: SimpleIdentifier
-        token: c
-        element: <testLibrary>::@function::f::@formalParameter::c
+      expression2: UnqualifiedNameExpression
+        name: c
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::c
+          type: C
         staticType: C
       rightParenthesis: )
       staticType: C
@@ -434,9 +438,11 @@ CallInvocation
   receiver: PropertyAccess
     target2: ParenthesizedExpression
       leftParenthesis: (
-      expression2: SimpleIdentifier
-        token: c
-        element: <testLibrary>::@function::f::@formalParameter::c
+      expression2: UnqualifiedNameExpression
+        name: c
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::c
+          type: C
         staticType: C
       rightParenthesis: )
       staticType: C
@@ -790,9 +796,11 @@ void f(C c) {
 ReceiverPropertyExtraction
   receiver: ParenthesizedExpression
     leftParenthesis: (
-    expression2: SimpleIdentifier
-      token: c
-      element: <testLibrary>::@function::f::@formalParameter::c
+    expression2: UnqualifiedNameExpression
+      name: c
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::c
+        type: C
       staticType: C
     rightParenthesis: )
     staticType: C
@@ -866,9 +874,16 @@ class C {
   }
 }
 ''');
-    var node = result.findNode.simple('_foo; // read');
+    var node = result.findNode.unqualifiedNameExpression('_foo; // read');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: _foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::C::@getter::_foo
+    invokeType: int? Function()
+    type: int
+  staticType: int
+V1: SimpleIdentifier
   token: _foo
   element: <testLibrary>::@class::C::@getter::_foo
   staticType: int
@@ -1177,7 +1192,14 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression2: SimpleIdentifier
+      expression2: UnqualifiedNameExpression
+        name: _i
+        resolution: GetterInvocationResolution
+          element: <testLibrary>::@class::C::@getter::_i
+          invokeType: int? Function()
+          type: int
+        staticType: int
+      expression(v1): SimpleIdentifier
         token: _i
         element: <testLibrary>::@class::C::@getter::_i
         staticType: int
@@ -1202,7 +1224,14 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression2: SimpleIdentifier
+      expression2: UnqualifiedNameExpression
+        name: _i
+        resolution: GetterInvocationResolution
+          element: <testLibrary>::@class::C::@getter::_i
+          invokeType: int? Function()
+          type: int?
+        staticType: int?
+      expression(v1): SimpleIdentifier
         token: _i
         element: <testLibrary>::@class::C::@getter::_i
         staticType: int?
@@ -1251,7 +1280,16 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression2: SimpleIdentifier
+      expression2: UnqualifiedNameExpression
+        name: _t
+        resolution: GetterInvocationResolution
+          element: SubstitutedGetterElementImpl
+            baseElement: <testLibrary>::@class::C::@getter::_t
+            substitution: {T: T}
+          invokeType: T? Function()
+          type: T
+        staticType: T
+      expression(v1): SimpleIdentifier
         token: _t
         element: SubstitutedGetterElementImpl
           baseElement: <testLibrary>::@class::C::@getter::_t
@@ -1280,7 +1318,16 @@ Block
   leftBracket: {
   statements
     ExpressionStatement
-      expression2: SimpleIdentifier
+      expression2: UnqualifiedNameExpression
+        name: _t
+        resolution: GetterInvocationResolution
+          element: SubstitutedGetterElementImpl
+            baseElement: <testLibrary>::@class::C::@getter::_t
+            substitution: {T: T}
+          invokeType: T? Function()
+          type: T?
+        staticType: T?
+      expression(v1): SimpleIdentifier
         token: _t
         element: SubstitutedGetterElementImpl
           baseElement: <testLibrary>::@class::C::@getter::_t

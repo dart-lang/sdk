@@ -3244,6 +3244,13 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
     return null;
   }
 
+  @experimental
+  @override
+  R? visitUnqualifiedNameExpression(UnqualifiedNameExpression node) {
+    node.visitChildren2(this);
+    return null;
+  }
+
   @override
   R? visitVariableDeclaration(VariableDeclaration node) {
     node.visitChildren2(this);
@@ -4589,6 +4596,10 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
   R? visitUnqualifiedNameAssignmentTarget(
     UnqualifiedNameAssignmentTarget node,
   ) => null;
+
+  @experimental
+  @override
+  R? visitUnqualifiedNameExpression(UnqualifiedNameExpression node) => null;
 
   @override
   R? visitVariableDeclaration(VariableDeclaration node) => null;
@@ -5951,6 +5962,11 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
   R? visitUnqualifiedNameAssignmentTarget(
     UnqualifiedNameAssignmentTarget node,
   ) => _throw(node);
+
+  @experimental
+  @override
+  R? visitUnqualifiedNameExpression(UnqualifiedNameExpression node) =>
+      _throw(node);
 
   @override
   R? visitVariableDeclaration(VariableDeclaration node) => _throw(node);
@@ -9238,6 +9254,15 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
     return result;
   }
 
+  @experimental
+  @override
+  T? visitUnqualifiedNameExpression(UnqualifiedNameExpression node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitUnqualifiedNameExpression(node);
+    stopwatch.stop();
+    return result;
+  }
+
   @override
   T? visitVariableDeclaration(VariableDeclaration node) {
     stopwatch.start();
@@ -10686,6 +10711,11 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
   R? visitUnqualifiedNameAssignmentTarget(
     UnqualifiedNameAssignmentTarget node,
   ) => visitNode(node);
+
+  @experimental
+  @override
+  R? visitUnqualifiedNameExpression(UnqualifiedNameExpression node) =>
+      visitNode(node);
 
   @override
   R? visitVariableDeclaration(VariableDeclaration node) => visitNode(node);

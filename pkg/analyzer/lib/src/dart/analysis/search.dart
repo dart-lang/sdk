@@ -425,6 +425,16 @@ class ImportElementReferencesVisitor extends RecursiveAstVisitor2<void> {
     node.argumentList.accept2(this);
   }
 
+  @override
+  void visitUnqualifiedNameExpression(UnqualifiedNameExpression node) {
+    if (import.prefix == null &&
+        importedElements.contains(
+          node.resolution.elementOrRecovery?.baseElement,
+        )) {
+      _addResult(node.name.offset, 0);
+    }
+  }
+
   void _addResult(int offset, int length) {
     var enclosingFragment = _getEnclosingFragment(
       enclosingLibraryFragment,
@@ -2166,6 +2176,11 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor2<void> {
     }
   }
 
+  @override
+  void visitUnqualifiedNameExpression(UnqualifiedNameExpression node) {
+    _visitNameExpression(node.name, node.resolution);
+  }
+
   void _addResult(SyntacticEntity entity, SearchResultKind kind) {
     bool isQualified = entity is AstNode && entity.parent2 is Label;
     _addResultImpl(entity, kind, isQualified: isQualified);
@@ -2217,6 +2232,31 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor2<void> {
       );
     }
     node.visitChildren2(this);
+  }
+
+  void _visitNameExpression(Token name, NamedReadResolution? resolution) {
+    var result = switch (resolution) {
+      GetterInvocationResolution(:var element) => (
+        element as Element,
+        SearchResultKind.INVOCATION,
+      ),
+      VariableReadResolution(:var element) => (
+        element as Element,
+        SearchResultKind.READ,
+      ),
+      ExecutableTearOffResolution(:var element) => (
+        element as Element,
+        SearchResultKind.REFERENCE,
+      ),
+      InvalidNamedReadResolution(
+        recovery: NamedReadResolutionWithElement(:var element),
+      ) =>
+        (element, SearchResultKind.REFERENCE),
+      _ => null,
+    };
+    if (result != null && _matches(result.$1)) {
+      _addResultImpl(name, result.$2, isQualified: false);
+    }
   }
 }
 

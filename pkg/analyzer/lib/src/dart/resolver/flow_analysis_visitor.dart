@@ -1338,6 +1338,15 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitUnqualifiedNameExpression(
+    covariant UnqualifiedNameExpressionImpl node,
+  ) {
+    if (node.scopeLookupResult?.getter case PromotableElementImpl element) {
+      assignedVariables.read(element);
+    }
+  }
+
+  @override
   void visitVariableDeclaration(VariableDeclaration node) {
     var grandParent = node.parent2!.parent2;
     if (grandParent is TopLevelVariableDeclaration ||

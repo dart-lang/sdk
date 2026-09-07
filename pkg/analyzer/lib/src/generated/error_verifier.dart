@@ -535,20 +535,6 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   void visitCascadePropertyAssignmentTarget(
     CascadePropertyAssignmentTarget node,
   ) {
-    var ambiguousElement = switch (node.read) {
-      InvalidNamedReadResolution(:var candidates) =>
-        candidates.whereType<MultiplyDefinedElementImpl>().firstOrNull,
-      _ => null,
-    };
-    ambiguousElement ??= switch (node.write) {
-      InvalidNamedWriteResolution(:var candidates) =>
-        candidates.whereType<MultiplyDefinedElementImpl>().firstOrNull,
-      _ => null,
-    };
-    _checkForAmbiguousImport(
-      element: ambiguousElement,
-      name: node.propertyName,
-    );
     _checkCascadeSectionNullAware(node);
     super.visitCascadePropertyAssignmentTarget(node);
   }
@@ -2679,6 +2665,34 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   void visitUnqualifiedFunctionInvocation(UnqualifiedFunctionInvocation node) {
     _verifyNamedFunctionInvocation(node);
     super.visitUnqualifiedFunctionInvocation(node);
+  }
+
+  @override
+  void visitUnqualifiedNameExpression(UnqualifiedNameExpression node) {
+    _constArgumentsVerifier.visitUnqualifiedNameExpression(node);
+    var element = switch (node.resolution) {
+      NamedReadResolutionWithElement(:var element) => element,
+      _ => null,
+    };
+    var ambiguousElement = switch (node.resolution) {
+      InvalidNamedReadResolution(:var candidates) =>
+        candidates.whereType<MultiplyDefinedElementImpl>().firstOrNull,
+      _ => null,
+    };
+    _checkForAmbiguousImport(element: ambiguousElement, name: node.name);
+    _checkForReferenceBeforeDeclaration(element: element, nameToken: node.name);
+    _checkForInvalidInstanceMemberAccess2(
+      entity: node,
+      name: node.name.lexeme,
+      element: element,
+    );
+    _checkForTypeParameterReferencedByStatic(element: element, name: node.name);
+    _checkForUnqualifiedReferenceToNonLocalStaticMember2(
+      entity: node,
+      element: element,
+    );
+    _checkUseVerifier.checkNameExpression(node, node.resolution);
+    super.visitUnqualifiedNameExpression(node);
   }
 
   @override
@@ -8792,7 +8806,9 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   String? _getConstantName(Expression expression) {
     // TODO(brianwilkerson): Convert this to return the element representing the
     // constant.
-    if (expression is SimpleIdentifier) {
+    if (expression is UnqualifiedNameExpression) {
+      return expression.name.lexeme;
+    } else if (expression is SimpleIdentifier) {
       return expression.name;
     } else if (expression is PrefixedIdentifier) {
       return expression.identifier.name;
