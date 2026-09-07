@@ -11340,6 +11340,8 @@ class SimdOpInstr : public Definition {
 
   virtual CompileType ComputeType() const;
 
+  virtual void InferRange(RangeAnalysis* analysis, Range* range);
+
   virtual bool MayThrow() const { return false; }
   virtual bool ComputeCanDeoptimize() const { return false; }
 
