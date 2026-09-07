@@ -955,7 +955,7 @@ class ClosureLayouter extends RecursiveVisitor {
     }
     ib.struct_new(instantiatedRepresentation.vtableStruct);
     ib.end();
-    vtable.build();
+    final vtableGlobal = vtable.build();
 
     final instantiationFunction = module.functions.define(functionType, name);
     final b = instantiationFunction.body;
@@ -978,7 +978,7 @@ class ClosureLayouter extends RecursiveVisitor {
     }
     b.struct_new(contextStruct);
 
-    translator.globals.readGlobal(b, vtable);
+    translator.globals.readGlobal(b, vtableGlobal);
 
     // Construct the type of the instantiated closure, which is the type of the
     // original closure with the type arguments of the instantiation substituted

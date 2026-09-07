@@ -875,15 +875,15 @@ class IsCheckerCallTarget extends CallTarget {
 
   @override
   late final w.BaseFunction function = (() {
-    final function = callingModule.functions.define(
+    final builder = callingModule.functions.define(
       translator.typesBuilder.defineFunction(
         signature.inputs,
         signature.outputs,
       ),
       name,
     )..isPure = true;
-    translator.compilationQueue.add(CompilationTask(function, inliningCodeGen));
-    return function;
+    translator.compilationQueue.add(CompilationTask(builder, inliningCodeGen));
+    return builder.function;
   })();
 }
 
@@ -1045,7 +1045,7 @@ class AsCheckerCallTarget extends CallTarget {
 
   @override
   late final w.BaseFunction function = (() {
-    final function = callingModule.functions.define(
+    final builder = callingModule.functions.define(
       translator.typesBuilder.defineFunction(
         signature.inputs,
         signature.outputs,
@@ -1055,7 +1055,7 @@ class AsCheckerCallTarget extends CallTarget {
 
     translator.compilationQueue.add(
       CompilationTask(
-        function,
+        builder,
         AsCheckerCodeGenerator(
           translator,
           signature,
@@ -1067,7 +1067,7 @@ class AsCheckerCallTarget extends CallTarget {
       ),
     );
 
-    return function;
+    return builder.function;
   })();
 }
 

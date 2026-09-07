@@ -552,18 +552,12 @@ class Translator with KernelNodes {
             print("Global #${global.name}: ${info.constant}");
             if (global is w.DefinedGlobal) {
               print(global.initializer.trace);
-            } else if (global is w.GlobalBuilder) {
-              print(
-                global.isBuilt
-                    ? global.build().initializer.trace
-                    : global.initializer.trace,
-              );
             }
           }
         },
       );
     }
-    _printFunction(mainModule.startFunction, "init");
+    _printFunction(mainModule.startFunction.function, "init");
 
     final neededForLoadList = <ModuleMetadata>{
       for (
@@ -674,7 +668,7 @@ class Translator with KernelNodes {
       {
         startFunction.i32_const(dataSegment.length);
         startFunction.i32_const(moduleIdsEncoded.length);
-        startFunction.array_new_data(byteArrayType, dataSegment);
+        startFunction.array_new_data(byteArrayType, dataSegment.dataSegment);
         dataSegment.append(moduleIdsEncoded);
       }
       startFunction.array_set(arrayOfNullableByteArray);
@@ -786,11 +780,8 @@ class Translator with KernelNodes {
   void _printFunction(w.BaseFunction function, Object name) {
     if (options.printWasm) {
       print("#${function.name}: $name");
-      final f = function;
-      if (f is w.DefinedFunction) {
-        print(f.body.trace);
-      } else if (f is w.FunctionBuilder) {
-        print(f.isBuilt ? f.build().body.trace : f.body.trace);
+      if (function is w.DefinedFunction) {
+        print(function.body.trace);
       }
     }
   }
@@ -1316,17 +1307,17 @@ class Translator with KernelNodes {
           '${r.maxPositionalCount}'
           '${r.hasNamed ? '-' : ''}'
           '${r.nameCombinations.join('-')}';
-      final function = module.functions.define(
+      final builder = module.functions.define(
         dynamicCallVtableEntryFunctionType,
         "closure arguments dispatcher representation=$representationString",
       );
       compilationQueue.add(
         CompilationTask(
-          function,
-          _ClosureArgumentsToVtableEntryDispatcherGenerator(this, r, function),
+          builder,
+          _ClosureArgumentsToVtableEntryDispatcherGenerator(this, r, builder),
         ),
       );
-      return function;
+      return builder.function;
     });
   }
 
@@ -1454,28 +1445,28 @@ class Translator with KernelNodes {
           ),
         ),
       );
-      return trampoline;
+      return trampoline.function;
     }
 
     w.BaseFunction makeDynamicCallEntry() {
-      final function = closureModule.functions.define(
+      final builder = closureModule.functions.define(
         dynamicCallVtableEntryFunctionType,
         "$name dynamic call entry",
       );
       compilationQueue.add(
         CompilationTask(
-          function,
+          builder,
           _ClosureDynamicEntryGenerator(
             this,
             functionNode,
             target,
             paramInfo,
             name,
-            function,
+            builder,
           ),
         ),
       );
-      return function;
+      return builder.function;
     }
 
     void fillVtableEntry(
@@ -1544,13 +1535,13 @@ class Translator with KernelNodes {
 
     ib.struct_new(representation.vtableStruct);
     ib.end();
-    vtable.build();
+    final vtableGlobal = vtable.build();
 
     final implementation = ClosureImplementation(
       representation,
       functions,
       dynamicCallEntry,
-      vtable,
+      vtableGlobal,
       closureModule,
       paramInfo,
     );
@@ -2567,7 +2558,7 @@ class Translator with KernelNodes {
     instructions
       ..i32_const(data.length)
       ..i32_const(s.length)
-      ..array_new_data(arrayRefType, data)
+      ..array_new_data(arrayRefType, data.dataSegment)
       ..i32_const(0)
       ..i32_const(s.length)
       ..call(importedFunction);
@@ -3696,7 +3687,7 @@ class PartialInstantiator {
         translator.linkingActions.add(function.build);
       }
 
-      return function;
+      return function.function;
     });
   }
 
@@ -3742,7 +3733,7 @@ class PartialInstantiator {
         translator.linkingActions.add(function.build);
       }
 
-      return function;
+      return function.function;
     });
   }
 }
@@ -3819,9 +3810,9 @@ class PolymorphicDispatcherCallTarget extends CallTarget {
 
   @override
   late final w.BaseFunction function = (() {
-    final function = callingModule.functions.define(signature, name);
-    translator.compilationQueue.add(CompilationTask(function, inliningCodeGen));
-    return function;
+    final builder = callingModule.functions.define(signature, name);
+    translator.compilationQueue.add(CompilationTask(builder, inliningCodeGen));
+    return builder.function;
   })();
 }
 

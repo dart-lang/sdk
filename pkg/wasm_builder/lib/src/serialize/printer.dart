@@ -60,7 +60,7 @@ class ModulePrinter {
   final _declarativeElements = <ir.DeclarativeElementSegment, String>{};
   final _globals = <ir.Global, String>{};
   final _functions = <ir.BaseFunction, String>{};
-  final _dataSegments = <ir.BaseDataSegment, String>{};
+  final _dataSegments = <ir.DataSegment, String>{};
   final _memories = <ir.Memory, String>{};
   final _customSections = <ExtraCustomSection, String>{};
 
@@ -224,7 +224,7 @@ class ModulePrinter {
     }
   }
 
-  void enqueueDataSegment(ir.BaseDataSegment dataSegment) {
+  void enqueueDataSegment(ir.DataSegment dataSegment) {
     if (!_dataSegments.containsKey(dataSegment)) {
       // Since below `printTo` will call namer to name the data segment which
       // will trigger this callback again if not pre-initialized to ''.
@@ -711,7 +711,7 @@ class IrPrinter extends IndentPrinter {
     write(_tagNamer.name(tag));
   }
 
-  void writeDataReference(ir.BaseDataSegment dataSegment) {
+  void writeDataReference(ir.DataSegment dataSegment) {
     write(_dataNamer.name(dataSegment));
   }
 
@@ -881,14 +881,11 @@ class GlobalNamer extends Namer<ir.Global> {
   }
 }
 
-class DataNamer extends Namer<ir.BaseDataSegment> {
+class DataNamer extends Namer<ir.DataSegment> {
   DataNamer(super.scubUris, super.module, super.onReference);
 
   @override
-  String name(
-    ir.BaseDataSegment data, {
-    bool activateOnReferenceCallback = true,
-  }) {
+  String name(ir.DataSegment data, {bool activateOnReferenceCallback = true}) {
     return super._name(data, null, 'data', true);
   }
 }

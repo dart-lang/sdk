@@ -1827,7 +1827,7 @@ class InstructionsBuilder with Builder<ir.Instructions> {
   }
 
   /// Emit an `array.new_data` instruction.
-  void array_new_data(ir.ArrayType arrayType, ir.BaseDataSegment data) {
+  void array_new_data(ir.ArrayType arrayType, ir.DataSegment data) {
     assert(arrayType.elementType.type.isPrimitive);
     assert(
       _verifyTypes(

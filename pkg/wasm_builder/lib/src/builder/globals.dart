@@ -9,20 +9,22 @@ import 'util.dart';
 class GlobalsBuilder with Builder<ir.Globals> {
   final ModuleBuilder _moduleBuilder;
   final _importedGlobals = <ir.ImportedGlobal>[];
-  final _globalBuilders = <GlobalBuilder>[];
+  final _definedGlobals = <ir.DefinedGlobal>[];
 
   GlobalsBuilder(this._moduleBuilder);
 
+  List<ir.DefinedGlobal> get defined => _definedGlobals;
+
   /// Defines a new global variable in this module.
   GlobalBuilder define(ir.GlobalType type, [String? name]) {
-    final global = GlobalBuilder(
-      _moduleBuilder,
+    final global = ir.DefinedGlobal.withoutInitializer(
+      _moduleBuilder.module,
       ir.FinalizableIndex(),
       type,
       name,
     );
-    _globalBuilders.add(global);
-    return global;
+    _definedGlobals.add(global);
+    return GlobalBuilder(_moduleBuilder, global);
   }
 
   /// Imports a global variable into this module.
@@ -46,28 +48,21 @@ class GlobalsBuilder with Builder<ir.Globals> {
       for (final i in g.initializer.instructions) {
         if (i is ir.GlobalGet) {
           final global = i.global;
-          final definedGlobal = switch (global) {
-            ir.DefinedGlobal() => global,
-            GlobalBuilder() => global.build(),
-            _ => null,
-          };
-          if (definedGlobal != null && !order.contains(definedGlobal)) {
-            dfs(definedGlobal);
+          if (global is ir.DefinedGlobal && !order.contains(global)) {
+            dfs(global);
           }
         }
       }
       order.add(g);
     }
 
-    for (final b in _globalBuilders) {
-      final g = b.build();
+    for (final g in _definedGlobals) {
       if (!order.contains(g)) {
         dfs(g);
       }
     }
 
-    final defined = order.toList();
-    finalizeImportsAndDefinitions(_importedGlobals, defined);
-    return ir.Globals(_importedGlobals, defined);
+    finalizeImportsAndDefinitions(_importedGlobals, order);
+    return ir.Globals(_importedGlobals, order.toList());
   }
 }

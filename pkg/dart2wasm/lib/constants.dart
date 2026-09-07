@@ -131,10 +131,15 @@ class ConstantInfo {
   }
 }
 
-typedef ConstantCodeGenerator =
-    void Function(ConstantInfo, w.InstructionsBuilder, bool isLazy);
-typedef ConstantCodeGeneratorLazy =
-    bool Function(ConstantInfo, w.ModuleBuilder);
+typedef ConstantCodeGenerator = void Function(
+  ConstantInfo,
+  w.InstructionsBuilder,
+  bool isLazy,
+);
+typedef ConstantCodeGeneratorLazy = bool Function(
+  ConstantInfo,
+  w.ModuleBuilder,
+);
 
 /// Handles the creation of Dart constants.
 ///
@@ -1058,7 +1063,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
             }
             b.i32_const(segment.length);
             b.i32_const(elements.length);
-            b.array_new_data(arrayType, segment);
+            b.array_new_data(arrayType, segment.dataSegment);
             segment.append(bytes);
             return;
           }
@@ -1378,16 +1383,16 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
         final targetModule = b.moduleBuilder;
 
         w.BaseFunction makeDynamicCallEntry() {
-          final function = targetModule.functions.define(
+          final functionBuilder = targetModule.functions.define(
             translator.dynamicCallVtableEntryFunctionType,
             "dynamic call entry",
           );
 
-          final b = function.body;
+          final b = functionBuilder.body;
 
-          final typeArgsListLocal = function.locals[1]; // empty
-          final posArgsListLocal = function.locals[2];
-          final namedArgsListLocal = function.locals[3];
+          final typeArgsListLocal = functionBuilder.locals[1]; // empty
+          final posArgsListLocal = functionBuilder.locals[2];
+          final namedArgsListLocal = functionBuilder.locals[3];
 
           constants.instantiateConstant(
             b,
@@ -1403,13 +1408,13 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
           b.local_get(namedArgsListLocal);
           translator.callFunction(tearOffClosure.dynamicCallEntry!, b);
           b.end();
-          if (!function.body.hasPatchPoints) {
-            function.build();
+          if (!functionBuilder.body.hasPatchPoints) {
+            functionBuilder.build();
           } else {
-            translator.linkingActions.add(function.build);
+            translator.linkingActions.add(functionBuilder.build);
           }
 
-          return function;
+          return functionBuilder.function;
         }
 
         void declareAndAddRefFunc(w.BaseFunction function) {
@@ -1437,12 +1442,12 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
             tearOffFunction.type.inputs.length ==
                 signature.inputs.length + typeConstantInfos.length,
           );
-          final function = b.moduleBuilder.functions.define(
+          final functionBuilder = b.moduleBuilder.functions.define(
             signature,
             "instantiation constant trampoline",
           );
-          final b2 = function.body;
-          b2.local_get(function.locals[0]);
+          final b2 = functionBuilder.body;
+          b2.local_get(functionBuilder.locals[0]);
           for (final type in typeConstantInfos) {
             constants.instantiateConstant(
               b2,
@@ -1451,16 +1456,16 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
             );
           }
           for (int i = 1; i < signature.inputs.length; i++) {
-            b2.local_get(function.locals[i]);
+            b2.local_get(functionBuilder.locals[i]);
           }
           translator.callFunction(tearOffFunction, b2);
           b2.end();
-          if (!function.body.hasPatchPoints) {
-            function.build();
+          if (!functionBuilder.body.hasPatchPoints) {
+            functionBuilder.build();
           } else {
-            translator.linkingActions.add(function.build);
+            translator.linkingActions.add(functionBuilder.build);
           }
-          return function;
+          return functionBuilder.function;
         }
 
         void fillVtableEntry(int posArgCount, NameCombination nameCombination) {
@@ -1842,7 +1847,7 @@ class _ConstantAccessor {
   /// We maintain a table for lazily initialized constants that are used across
   /// modules. This avoids having many invidiual globals of the same type with
   /// null initializer.
-  final Map<w.RefType, w.TableBuilder> lazySlotTables = {};
+  final Map<w.RefType, w.Table> lazySlotTables = {};
   late final tableImporter = WasmTableImporter(translator, 'constant-table');
 
   _ConstantAccessor(this.translator);
@@ -2080,7 +2085,7 @@ class _ConstantAccessor {
     final ConstantDefinition definition;
     if (lazy) {
       if (targetModule == null) {
-        final w.TableBuilder table = lazySlotTables.putIfAbsent(info.type, () {
+        final w.Table table = lazySlotTables.putIfAbsent(info.type, () {
           return translator.mainModule.tables.define(
             info.type.withNullability(true),
             0,
@@ -2154,29 +2159,29 @@ class _ConstantAccessor {
     final initFunctionType = translator.typesBuilder.defineFunction(const [], [
       type,
     ]);
-    final initFunction = module.functions.define(
+    final initFunctionBuilder = module.functions.define(
       initFunctionType,
       '$name (lazy initializer)',
     );
-    final b = initFunction.body;
+    final b = initFunctionBuilder.body;
     info._codeGen(info, b, true);
     w.Local temp = b.addLocal(type);
     b.local_tee(temp);
     translator.globals.writeGlobal(b, definedGlobal);
     b.local_get(temp);
     b.end();
-    if (!initFunction.body.hasPatchPoints) {
-      initFunction.build();
+    if (!initFunctionBuilder.body.hasPatchPoints) {
+      initFunctionBuilder.build();
     } else {
-      translator.linkingActions.add(initFunction.build);
+      translator.linkingActions.add(initFunctionBuilder.build);
     }
 
-    return initFunction;
+    return initFunctionBuilder.function;
   }
 
   w.BaseFunction _createLazyTableInitializer(
     w.ModuleBuilder module,
-    w.TableBuilder table,
+    w.Table table,
     int tableIndex,
     String name,
     ConstantInfo info,
@@ -2185,11 +2190,11 @@ class _ConstantAccessor {
     final initFunctionType = translator.typesBuilder.defineFunction(const [], [
       type,
     ]);
-    final initFunction = module.functions.define(
+    final initFunctionBuilder = module.functions.define(
       initFunctionType,
       '$name (lazy initializer)',
     );
-    final b = initFunction.body;
+    final b = initFunctionBuilder.body;
     b.i32_const(tableIndex);
     info._codeGen(info, b, true);
     w.Local temp = b.addLocal(type);
@@ -2197,13 +2202,13 @@ class _ConstantAccessor {
     b.table_set(tableImporter.get(table, module));
     b.local_get(temp);
     b.end();
-    if (!initFunction.body.hasPatchPoints) {
-      initFunction.build();
+    if (!initFunctionBuilder.body.hasPatchPoints) {
+      initFunctionBuilder.build();
     } else {
-      translator.linkingActions.add(initFunction.build);
+      translator.linkingActions.add(initFunctionBuilder.build);
     }
 
-    return initFunction;
+    return initFunctionBuilder.function;
   }
 
   w.Global _createNonLazyConstant(

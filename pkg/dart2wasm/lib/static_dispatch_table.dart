@@ -15,8 +15,10 @@ class CrossModuleFunctionTable {
   /// Contents of wasm table.
   final Map<w.BaseFunction, int> _table = {};
 
-  late final w.TableBuilder _definedWasmTable = translator.mainModule.tables
-      .define(w.RefType(_tableHeapType, nullable: true), _table.length);
+  late final w.Table _definedWasmTable = translator.mainModule.tables.define(
+    w.RefType(_tableHeapType, nullable: true),
+    _table.length,
+  );
   final WasmTableImporter _importedWasmTables;
 
   CrossModuleFunctionTable(this.translator)
@@ -44,7 +46,7 @@ class CrossModuleFunctionTable {
     _table.forEach((fun, index) {
       final targetModule = translator.moduleToBuilder[fun.enclosingModule]!;
       if (translator.isMainModule(targetModule)) {
-        _definedWasmTable.moduleBuilder.elements
+        translator.mainModule.elements
             .activeFunctionSegmentBuilderFor(_definedWasmTable)
             .setFunctionAt(index, fun);
       } else {
