@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../dart/resolution/node_text_expectations.dart';
@@ -110,7 +111,13 @@ library
                   element: <testLibrary>::@class::X::@constructor::new::@formalParameter::f
                   initializer: expression_0
                     FunctionReference
-                      function2: SimpleIdentifier
+                      function2: UnqualifiedNameExpression
+                        name: defaultF @93
+                        resolution: ExecutableTearOffResolution
+                          element: <testLibrary>::@function::defaultF
+                          type: void Function<T>(T)
+                        staticType: void Function<T>(T)
+                      function(v1): SimpleIdentifier
                         token: defaultF @93
                         element: <testLibrary>::@function::defaultF
                         staticType: void Function<T>(T)
@@ -592,9 +599,11 @@ library
                 #F6 optionalPositional isOriginDeclaration p (nameOffset:76) (firstTokenOffset:69) (offset:76)
                   element: <testLibrary>::@extension::E::@method::g::@formalParameter::p
                   initializer: expression_0
-                    SimpleIdentifier
-                      token: f @80
-                      element: <testLibrary>::@extension::E::@method::f
+                    UnqualifiedNameExpression
+                      name: f @80
+                      resolution: ExecutableTearOffResolution
+                        element: <testLibrary>::@extension::E::@method::f
+                        type: void Function()
                       staticType: void Function()
   classes
     isSimplyBounded class A
@@ -1282,6 +1291,23 @@ library
                 expression: expression_0
           returnType: void
 ''');
+  }
+
+  test_defaultValue_topLevelConstant_declaredLater() async {
+    var library = await buildLibrary(r'''
+class A {
+  static void f([Object? value = sentinelValue]) {}
+}
+
+const Object sentinelValue = SentinelValue(0);
+
+class SentinelValue {
+  const SentinelValue(this.value);
+  final int value;
+}
+''');
+    var parameter = library.getClass('A')!.getMethod('f')!.formalParameters[0];
+    expect(parameter.computeConstantValue(), isNotNull);
   }
 }
 

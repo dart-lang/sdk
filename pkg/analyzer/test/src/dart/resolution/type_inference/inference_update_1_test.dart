@@ -467,7 +467,10 @@ test(void Function<T>(T, void Function(T)) f) {
   });
 }
 ''');
-    assertType(result.findNode.simple('x;'), _isEnabled ? 'int' : 'Object?');
+    assertType(
+      result.findNode.unqualifiedNameExpression('x;'),
+      _isEnabled ? 'int' : 'Object?',
+    );
   }
 
   test_write_capture_deferred() async {
@@ -485,12 +488,12 @@ void f(void Function() g, Object? x) {}
     // captured and retains its promoted value.  With the experiment disabled,
     // it is write captured immediately.
     assertType(
-      result.findNode.simple('i); // (1)'),
+      result.findNode.unqualifiedNameExpression('i); // (1)'),
       _isEnabled ? 'int' : 'int?',
     );
     // At (2), after the call to `f`, the write capture has taken place
     // regardless of whether the experiment is enabled.
-    assertType(result.findNode.simple('i; // (2)'), 'int?');
+    assertType(result.findNode.unqualifiedNameExpression('i; // (2)'), 'int?');
   }
 
   test_write_capture_deferred_named() async {
@@ -508,12 +511,12 @@ void f({required void Function() g, Object? x}) {}
     // captured and retains its promoted value.  With the experiment disabled,
     // it is write captured immediately.
     assertType(
-      result.findNode.simple('i); // (1)'),
+      result.findNode.unqualifiedNameExpression('i); // (1)'),
       _isEnabled ? 'int' : 'int?',
     );
     // At (2), after the call to `f`, the write capture has taken place
     // regardless of whether the experiment is enabled.
-    assertType(result.findNode.simple('i; // (2)'), 'int?');
+    assertType(result.findNode.unqualifiedNameExpression('i; // (2)'), 'int?');
   }
 
   test_write_capture_deferred_redirecting_constructor() async {
@@ -527,7 +530,10 @@ class C {
     // all the other arguments to `this.other`, so the `i` passed to `y` is not
     // yet write captured and retains its promoted value.  With the experiment
     // disabled, it is write captured immediately.
-    assertType(result.findNode.simple('i);'), _isEnabled ? 'int' : 'int?');
+    assertType(
+      result.findNode.unqualifiedNameExpression('i);'),
+      _isEnabled ? 'int' : 'int?',
+    );
   }
 
   test_write_capture_deferred_super_constructor() async {
@@ -543,7 +549,10 @@ class C extends B {
     // all the other arguments to `this.other`, so the `i` passed to `y` is not
     // yet write captured and retains its promoted value.  With the experiment
     // disabled, it is write captured immediately.
-    assertType(result.findNode.simple('i);'), _isEnabled ? 'int' : 'int?');
+    assertType(
+      result.findNode.unqualifiedNameExpression('i);'),
+      _isEnabled ? 'int' : 'int?',
+    );
   }
 
   FunctionType _invokeType(TestResolvedUnitResult result) {

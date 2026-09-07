@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/base/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 
@@ -804,6 +806,11 @@ class ReferencesCollector extends RecursiveAstVisitor2<void> {
     _visitNamedFunctionInvocation(node);
   }
 
+  @override
+  void visitUnqualifiedNameExpression(UnqualifiedNameExpression node) {
+    _recordNamedRead(node.name, node.resolution);
+  }
+
   MatchKind _constructorReferenceKind(ConstructorReference2 node) {
     return switch (node.parent2) {
       ConstructorInvocation() => MatchKind.INVOCATION,
@@ -812,6 +819,21 @@ class ReferencesCollector extends RecursiveAstVisitor2<void> {
         'Unexpected ConstructorReference2 parent: ${node.parent2.runtimeType}',
       ),
     };
+  }
+
+  void _recordNamedRead(
+    SyntacticEntity entity,
+    NamedReadResolution? resolution,
+  ) {
+    var readElement = resolution.elementOrRecovery;
+    if (readElement == element) {
+      references.add(
+        MatchInfo(entity.offset, entity.length, MatchKind.REFERENCE),
+      );
+    } else if (readElement is GetterElement &&
+        readElement.variable == element) {
+      references.add(MatchInfo(entity.offset, entity.length, MatchKind.READ));
+    }
   }
 
   void _visitNamedFunctionInvocation(NamedFunctionInvocation node) {

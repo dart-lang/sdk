@@ -1490,6 +1490,8 @@ class AstBinaryReader {
         return _readTypeParameterList();
       case AstNodeTag.UnqualifiedNameAssignmentTarget:
         return _readUnqualifiedNameAssignmentTarget();
+      case AstNodeTag.UnqualifiedNameExpression:
+        return _readUnqualifiedNameExpression();
       case AstNodeTag.UnqualifiedFunctionInvocation:
         return _readUnqualifiedFunctionInvocation();
       case AstNodeTag.UnaryOperatorInvocation:
@@ -2064,6 +2066,16 @@ class AstBinaryReader {
     );
     node.read = _reader.readOptionalObject(_readNamedReadResolution);
     node.write = _reader.readOptionalObject(_readNamedWriteResolution);
+    return node;
+  }
+
+  UnqualifiedNameExpression _readUnqualifiedNameExpression() {
+    var name = _readStringReference();
+    var node = UnqualifiedNameExpressionImpl(
+      name: StringToken(TokenType.STRING, name, -1),
+    );
+    node.resolution = _reader.readOptionalObject(_readNamedReadResolution);
+    _readExpressionResolution(node);
     return node;
   }
 

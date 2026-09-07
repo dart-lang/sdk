@@ -65,7 +65,13 @@ ConstructorFieldInitializer
     element: <testLibrary>::@class::A::@field::f
     staticType: null
   equals: =
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+      type: int
+    staticType: int
+  expression(v1): SimpleIdentifier
     token: a
     element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
     staticType: int
@@ -104,9 +110,11 @@ ConstructorFieldInitializer
               ReturnStatement
                 returnKeyword: return
                 expression2: BinaryOperatorInvocation
-                  leftOperand: SimpleIdentifier
-                    token: a
-                    element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+                  leftOperand: UnqualifiedNameExpression
+                    name: a
+                    resolution: VariableReadResolution
+                      element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+                      type: int
                     staticType: int
                   operator: +
                   rightOperand: IntegerLiteral
@@ -215,9 +223,11 @@ ConstructorFieldInitializer
         body: ExpressionFunctionBody
           functionDefinition: =>
           expression2: BinaryOperatorInvocation
-            leftOperand: SimpleIdentifier
-              token: a
-              element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+            leftOperand: UnqualifiedNameExpression
+              name: a
+              resolution: VariableReadResolution
+                element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+                type: int
               staticType: int
             operator: +
             rightOperand: IntegerLiteral
@@ -311,7 +321,14 @@ ConstructorFieldInitializer
     element: <testLibrary>::@class::A::@field::x
     staticType: null
   equals: =
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: a
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::a
+      invokeType: int Function()
+      type: int
+    staticType: int
+  expression(v1): SimpleIdentifier
     token: a
     element: <testLibrary>::@getter::a
     staticType: int
@@ -339,7 +356,14 @@ ConstructorFieldInitializer
     element: <null>
     staticType: null
   equals: =
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: a
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::a
+      invokeType: int Function()
+      type: int
+    staticType: int
+  expression(v1): SimpleIdentifier
     token: a
     element: <testLibrary>::@getter::a
     staticType: int
@@ -367,7 +391,14 @@ ConstructorFieldInitializer
     element: <testLibrary>::@class::A::@field::x
     staticType: null
   equals: =
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: a
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::a
+      invokeType: int Function()
+      type: int
+    staticType: int
+  expression(v1): SimpleIdentifier
     token: a
     element: <testLibrary>::@getter::a
     staticType: int
@@ -397,7 +428,14 @@ ConstructorFieldInitializer
     element: <null>
     staticType: null
   equals: =
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: a
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::a
+      invokeType: int Function()
+      type: int
+    staticType: int
+  expression(v1): SimpleIdentifier
     token: a
     element: <testLibrary>::@getter::a
     staticType: int
@@ -425,7 +463,14 @@ ConstructorFieldInitializer
     element: <null>
     staticType: null
   equals: =
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: a
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::a
+      invokeType: int Function()
+      type: int
+    staticType: int
+  expression(v1): SimpleIdentifier
     token: a
     element: <testLibrary>::@getter::a
     staticType: int
@@ -453,7 +498,14 @@ ConstructorFieldInitializer
     element: <testLibrary>::@class::A::@field::x
     staticType: null
   equals: =
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: a
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::a
+      invokeType: int Function()
+      type: int
+    staticType: int
+  expression(v1): SimpleIdentifier
     token: a
     element: <testLibrary>::@getter::a
     staticType: int
@@ -481,7 +533,14 @@ ConstructorFieldInitializer
     element: <null>
     staticType: null
   equals: =
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: a
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::a
+      invokeType: int Function()
+      type: int
+    staticType: int
+  expression(v1): SimpleIdentifier
     token: a
     element: <testLibrary>::@getter::a
     staticType: int
@@ -509,7 +568,14 @@ ConstructorFieldInitializer
     element: <null>
     staticType: null
   equals: =
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: a
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::a
+      invokeType: int Function()
+      type: int
+    staticType: int
+  expression(v1): SimpleIdentifier
     token: a
     element: <testLibrary>::@getter::a
     staticType: int
@@ -536,7 +602,14 @@ ConstructorFieldInitializer
     element: <null>
     staticType: null
   equals: =
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: a
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::a
+      invokeType: int Function()
+      type: int
+    staticType: int
+  expression(v1): SimpleIdentifier
     token: a
     element: <testLibrary>::@getter::a
     staticType: int
@@ -563,7 +636,14 @@ ConstructorFieldInitializer
     element: <null>
     staticType: null
   equals: =
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: a
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::a
+      invokeType: int Function()
+      type: int
+    staticType: int
+  expression(v1): SimpleIdentifier
     token: a
     element: <testLibrary>::@getter::a
     staticType: int

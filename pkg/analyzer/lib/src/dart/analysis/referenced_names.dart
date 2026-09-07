@@ -478,6 +478,15 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
     _addIfNotShadowed(node.name, hasImportPrefix: false);
   }
 
+  @override
+  void visitUnqualifiedNameExpression(UnqualifiedNameExpression node) {
+    var name = node.name.lexeme;
+    if (localScope.contains(name) || importPrefixNames.contains(name)) {
+      return;
+    }
+    names.add(name);
+  }
+
   void _addCompoundAssignmentOperator(Token operator) {
     var lexeme = operator.lexeme;
     if (lexeme != '=' && lexeme != '??=') {

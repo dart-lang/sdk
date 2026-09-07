@@ -1762,6 +1762,11 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
+  void visitUnqualifiedNameExpression(UnqualifiedNameExpression node) {
+    _visitToken(node.name);
+  }
+
+  @override
   void visitVariableDeclaration(VariableDeclaration node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
     _visitToken(node.name);

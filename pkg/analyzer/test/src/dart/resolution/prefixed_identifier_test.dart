@@ -344,9 +344,16 @@ int Function() foo() {
 }
 ''');
 
-    var node = result.findNode.simple('a;');
+    var node = result.findNode.unqualifiedNameExpression('a;');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: a
+  resolution: GetterInvocationResolution
+    element: package:test/a.dart::@getter::a
+    invokeType: A Function()
+    type: A
+  staticType: A
+V1: SimpleIdentifier
   token: a
   element: package:test/a.dart::@getter::a
   staticType: A
@@ -371,9 +378,16 @@ int Function() foo() {
 }
 ''');
 
-    var node = result.findNode.simple('a;');
+    var node = result.findNode.unqualifiedNameExpression('a;');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: a
+  resolution: GetterInvocationResolution
+    element: package:test/a.dart::@getter::a
+    invokeType: A? Function()
+    type: A?
+  staticType: A?
+V1: SimpleIdentifier
   token: a
   element: package:test/a.dart::@getter::a
   staticType: A?

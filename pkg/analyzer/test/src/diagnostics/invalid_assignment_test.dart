@@ -542,7 +542,13 @@ int Function() foo(int Function<T extends int>() f) {
     var node = result.findNode.functionReference('f;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function2: SimpleIdentifier
+  function2: UnqualifiedNameExpression
+    name: f
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::foo::@formalParameter::f
+      type: int Function<T extends int>()
+    staticType: int Function<T extends int>()
+  function(v1): SimpleIdentifier
     token: f
     element: <testLibrary>::@function::foo::@formalParameter::f
     staticType: int Function<T extends int>()

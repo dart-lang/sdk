@@ -2536,6 +2536,13 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
     node.visitChildren2(this);
   }
 
+  @experimental
+  @override
+  void visitUnqualifiedNameExpression(UnqualifiedNameExpression node) {
+    _runSubscriptions(node, _registry._forUnqualifiedNameExpression);
+    node.visitChildren2(this);
+  }
+
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
     _runSubscriptions(node, _registry._forVariableDeclaration);
@@ -4882,6 +4889,9 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   final List<_Subscription2<UnqualifiedNameAssignmentTarget>>
   _forUnqualifiedNameAssignmentTarget = [];
 
+  final List<_Subscription2<UnqualifiedNameExpression>>
+  _forUnqualifiedNameExpression = [];
+
   final List<_Subscription2<VariableDeclaration>> _forVariableDeclaration = [];
 
   final List<_Subscription2<VariableDeclarationList>>
@@ -6501,6 +6511,17 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   ) {
     _hasNodeProcessors = true;
     _forUnqualifiedNameAssignmentTarget.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
+  }
+
+  @override
+  void addUnqualifiedNameExpression(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
+    _hasNodeProcessors = true;
+    _forUnqualifiedNameExpression.add(
       _Subscription2(rule, visitor, _getTimer(rule)),
     );
   }

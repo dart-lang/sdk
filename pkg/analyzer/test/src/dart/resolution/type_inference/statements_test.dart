@@ -186,7 +186,7 @@ void f(Stream<int> s) async {
   }
 }
 ''');
-    assertType(result.findNode.simple('e;'), 'int');
+    assertType(result.findNode.unqualifiedNameExpression('e;'), 'int');
   }
 
   test_for_downward() async {
@@ -312,7 +312,7 @@ void f(List<int> s) async {
   }
 }
 ''');
-    assertType(result.findNode.simple('e;'), 'int');
+    assertType(result.findNode.unqualifiedNameExpression('e;'), 'int');
   }
 }
 

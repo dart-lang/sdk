@@ -1143,6 +1143,16 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   }
 
   @override
+  void visitUnqualifiedNameExpression(
+    covariant UnqualifiedNameExpressionImpl node,
+  ) {
+    _sink.writeEnum(AstNodeTag.UnqualifiedNameExpression);
+    _writeStringReference(node.name.lexeme);
+    _sink.writeOptionalObject(node.resolution, _writeNamedReadResolution);
+    _storeExpression(node);
+  }
+
+  @override
   void visitVariableDeclarationList(VariableDeclarationList node) {
     _sink.writeEnum(AstNodeTag.VariableDeclarationList);
     _writeByte(

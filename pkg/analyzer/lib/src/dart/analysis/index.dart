@@ -1639,6 +1639,29 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   }
 
   @override
+  void visitUnqualifiedNameExpression(
+    covariant UnqualifiedNameExpressionImpl node,
+  ) {
+    var element = node.resolution.elementOrRecovery;
+    if (element == null) {
+      assembler.addNameRelation(
+        node.name.lexeme,
+        IndexRelationKind.IS_READ_BY,
+        node.name.offset,
+        false,
+      );
+      return;
+    }
+
+    var kind = switch (element) {
+      GetterElement() || SetterElement() => IndexRelationKind.IS_INVOKED_BY,
+      FormalParameterElement() => IndexRelationKind.IS_READ_BY,
+      _ => IndexRelationKind.IS_REFERENCED_BY,
+    };
+    recordRelationToken(element, kind, node.name, isQualified: false);
+  }
+
+  @override
   void visitWithClause(WithClause node) {
     for (NamedType namedType in node.mixinTypes) {
       recordSuperType(namedType, IndexRelationKind.IS_MIXED_IN_BY);

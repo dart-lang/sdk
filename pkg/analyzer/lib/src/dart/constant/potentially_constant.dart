@@ -89,6 +89,10 @@ class _Collector {
       return _identifier(node.propertyName);
     }
 
+    if (node is UnqualifiedNameExpression) {
+      return _nameExpression(node, node.resolution);
+    }
+
     if (node is DotShorthandConstructorInvocation) {
       if (!node.isConst) {
         nodes.add(node);
@@ -375,6 +379,49 @@ class _Collector {
       }
     }
     // TODO(srawlins): collect type arguments.
+    nodes.add(node);
+  }
+
+  void _nameExpression(AstNode node, NamedReadResolution? resolution) {
+    var element = resolution.elementOrRecovery;
+
+    if (element is FormalParameterElement) {
+      var enclosing = element.enclosingElement;
+      if (enclosing is ConstructorElement &&
+          isConstConstructorElement(enclosing)) {
+        if (node.thisOrAncestorOfType2<ConstructorInitializer>() != null) {
+          return;
+        }
+        var fieldElement = node
+            .thisOrAncestorOfType2<VariableDeclaration>()
+            ?.declaredFragment
+            ?.element;
+        if (fieldElement is FieldElement &&
+            !fieldElement.isStatic &&
+            !fieldElement.isLate) {
+          return;
+        }
+      }
+      nodes.add(node);
+      return;
+    }
+
+    if (element is VariableElement) {
+      if (!element.isConst) {
+        nodes.add(node);
+      }
+      return;
+    }
+    if (element is GetterElement) {
+      if (!element.variable.isConst) {
+        nodes.add(node);
+      }
+      return;
+    }
+    if (element is TopLevelFunctionElement ||
+        element is MethodElement && element.isStatic) {
+      return;
+    }
     nodes.add(node);
   }
 

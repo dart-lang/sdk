@@ -2367,9 +2367,15 @@ void test(Object x) {
   x; // demoted
 }
 ''');
-    assertType(result.findNode.simple('x; // promoted'), 'Object Function()');
+    assertType(
+      result.findNode.unqualifiedNameExpression('x; // promoted'),
+      'Object Function()',
+    );
     assertType(result.findNode.assignment('x = B()'), 'B');
-    assertType(result.findNode.simple('x; // demoted'), 'Object');
+    assertType(
+      result.findNode.unqualifiedNameExpression('x; // demoted'),
+      'Object',
+    );
   }
 
   test_nonBoolExpression_interfaceType() async {

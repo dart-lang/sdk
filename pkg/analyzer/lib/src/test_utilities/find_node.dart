@@ -109,6 +109,8 @@ class FindNode2 extends _FindNodeBase {
   UnqualifiedFunctionInvocation get singleUnqualifiedFunctionInvocation =>
       _single();
 
+  UnqualifiedNameExpression get singleUnqualifiedNameExpression => _single();
+
   @override
   AssignmentExpression assignment(String search) {
     var node = _node<AstNode>(
@@ -204,6 +206,10 @@ class FindNode2 extends _FindNodeBase {
     String search,
   ) {
     return _node(search, (node) => node is UnqualifiedNameAssignmentTarget);
+  }
+
+  UnqualifiedNameExpression unqualifiedNameExpression(String search) {
+    return _node(search, (node) => node is UnqualifiedNameExpression);
   }
 
   @override

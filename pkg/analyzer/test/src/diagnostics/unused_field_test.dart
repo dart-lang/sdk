@@ -501,6 +501,22 @@ void f() {
 ''');
   }
 
+  test_privateEnum_values_isUsed_unqualified() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum _E {
+  v;
+
+  static _E fromIndex(int index) {
+    return values[index];
+  }
+}
+
+void f() {
+  _E.fromIndex(0);
+}
+''');
+  }
+
   test_publicEnum_privateConstant_isUsed() async {
     await resolveTestCodeWithDiagnostics(r'''
 enum E {

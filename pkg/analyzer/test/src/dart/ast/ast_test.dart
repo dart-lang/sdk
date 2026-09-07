@@ -1494,7 +1494,7 @@ void f(int i) {
 }
 void g({required int a}) {}
 ''');
-    node as SimpleIdentifier;
+    node as UnqualifiedNameExpression;
   }
 
   Future<void> test_between_colonAndIdentifier_switchCase() async {
@@ -1524,7 +1524,7 @@ void f(int a, int b) {
   f(a,^b);
 }
 ''');
-    node as SimpleIdentifier;
+    node as UnqualifiedNameExpression;
   }
 
   Future<void> test_between_commaAndIdentifier_parameters() async {
@@ -1598,7 +1598,7 @@ void f(int a, int b) {
   f(a^, b);
 }
 ''');
-    node as SimpleIdentifier;
+    node as UnqualifiedNameExpression;
   }
 
   Future<void> test_between_identifierAndComma_parameters() async {

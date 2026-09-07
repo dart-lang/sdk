@@ -896,6 +896,9 @@ abstract class AstVisitor2<R> {
   @experimental
   R? visitUnqualifiedNameAssignmentTarget(UnqualifiedNameAssignmentTarget node);
 
+  @experimental
+  R? visitUnqualifiedNameExpression(UnqualifiedNameExpression node);
+
   R? visitVariableDeclaration(VariableDeclaration node);
 
   R? visitVariableDeclarationList(VariableDeclarationList node);

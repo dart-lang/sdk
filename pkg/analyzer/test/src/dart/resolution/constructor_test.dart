@@ -69,7 +69,14 @@ ConstructorFieldInitializer
     element: <testLibrary>::@class::A::@field::v
     staticType: null
   equals: =
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: _
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@class::A::@getter::_
+      invokeType: dynamic Function()
+      type: dynamic
+    staticType: dynamic
+  expression(v1): SimpleIdentifier
     token: _
     element: <testLibrary>::@class::A::@getter::_
     staticType: dynamic
@@ -126,7 +133,13 @@ ConstructorDeclaration
       leftBracket: {
       statements
         ExpressionStatement
-          expression2: SimpleIdentifier
+          expression2: UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: <testLibrary>::@class::B::@constructor::new::@formalParameter::a
+              type: a
+            staticType: a
+          expression(v1): SimpleIdentifier
             token: a
             element: <testLibrary>::@class::B::@constructor::new::@formalParameter::a
             staticType: a
@@ -160,7 +173,13 @@ ConstructorFieldInitializer
     element: <testLibrary>::@class::C::@field::_y
     staticType: null
   equals: =
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: _x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
+      type: int?
+    staticType: int?
+  expression(v1): SimpleIdentifier
     token: _x
     element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
     staticType: int?

@@ -1555,6 +1555,26 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
     UnqualifiedFunctionInvocation node,
   ) => _visitNamedFunctionInvocation(node);
 
+  @override
+  Constant visitUnqualifiedNameExpression(
+    covariant UnqualifiedNameExpressionImpl node,
+  ) {
+    var identifier = node.simpleIdentifier;
+    var element = node.resolution.elementOrRecovery;
+    if (element case FormalParameterElement element) {
+      var value = _lexicalEnvironment?[element.baseElement];
+      if (value != null) {
+        return _instantiateFunctionTypeForSimpleIdentifier(identifier, value);
+      }
+    }
+    return _getConstantValue(
+      errorNode: node,
+      expression: node,
+      identifier: identifier,
+      element: element,
+    );
+  }
+
   /// Builds a list constant by adding the evaluated entries of [elements] to
   /// the given [list].
   ///
@@ -2047,11 +2067,11 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
 
     // TODO(srawlins): Remove this check when [FunctionReference]s are inserted
     // for generic function instantiation for pre-constructor-tear-offs code.
-    if (expression is SimpleIdentifier &&
-        (expression.tearOffTypeArgumentTypes?.any(hasTypeParameterReference) ??
+    if (identifier != null &&
+        (identifier.tearOffTypeArgumentTypes?.any(hasTypeParameterReference) ??
             false)) {
       return InvalidConstant.forEntity(
-        entity: expression,
+        entity: expression ?? errorNode,
         locatableDiagnostic: diag.constTypeParameter,
       );
     }

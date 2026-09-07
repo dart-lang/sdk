@@ -37,12 +37,14 @@ VariableDeclaration
     argumentList: ArgumentList
       leftParenthesis: (
       arguments2
-        SimpleIdentifier
-          token: g
+        UnqualifiedNameExpression
+          name: g
+          resolution: ExecutableTearOffResolution
+            element: <testLibrary>::@function::g
+            type: String Function()
           correspondingParameter: SubstitutedFormalParameterElementImpl
             baseElement: <testLibrary>::@function::f::@formalParameter::a
             substitution: {T: String}
-          element: <testLibrary>::@function::g
           staticType: String Function()
         FunctionExpression
           parameters: FormalParameterList
@@ -65,6 +67,44 @@ VariableDeclaration
           body: ExpressionFunctionBody
             functionDefinition: =>
             expression2: PrefixedIdentifier
+              prefix: SimpleIdentifier
+                token: z
+                element: z@102
+                staticType: Object?
+              period: .
+              identifier: SimpleIdentifier
+                token: length
+                element: <null>
+                staticType: InvalidType
+              element: <null>
+              staticType: InvalidType
+          declaredFragment: <testLibraryFragment> null@null
+            element: null@null
+              type: InvalidType Function(Object?)
+          correspondingParameter: SubstitutedFormalParameterElementImpl
+            baseElement: <testLibrary>::@function::f::@formalParameter::b
+            substitution: {T: String}
+          staticType: InvalidType Function(Object?)
+      arguments(v1)
+        SimpleIdentifier
+          token: g
+          correspondingParameter: SubstitutedFormalParameterElementImpl
+            baseElement: <testLibrary>::@function::f::@formalParameter::a
+            substitution: {T: String}
+          element: <testLibrary>::@function::g
+          staticType: String Function()
+        FunctionExpression
+          parameters: FormalParameterList
+            leftParenthesis: (
+            parameter: RegularFormalParameter
+              name: z
+              declaredFragment: <testLibraryFragment> z@102
+                element: hasImplicitType isPublic
+                  type: Object?
+            rightParenthesis: )
+          body: ExpressionFunctionBody
+            functionDefinition: =>
+            expression: PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: z
                 element: z@102
@@ -163,12 +203,14 @@ VariableDeclaration
     argumentList: ArgumentList
       leftParenthesis: (
       arguments2
-        SimpleIdentifier
-          token: g
+        UnqualifiedNameExpression
+          name: g
+          resolution: ExecutableTearOffResolution
+            element: <testLibrary>::@function::g
+            type: String Function()
           correspondingParameter: SubstitutedFormalParameterElementImpl
             baseElement: <testLibrary>::@function::f::@formalParameter::a
             substitution: {T: String}
-          element: <testLibrary>::@function::g
           staticType: String Function()
         FunctionExpression
           parameters: FormalParameterList
@@ -191,6 +233,44 @@ VariableDeclaration
           body: ExpressionFunctionBody
             functionDefinition: =>
             expression2: PrefixedIdentifier
+              prefix: SimpleIdentifier
+                token: z
+                element: z@110
+                staticType: String
+              period: .
+              identifier: SimpleIdentifier
+                token: length
+                element: dart:core::@class::String::@getter::length
+                staticType: int
+              element: dart:core::@class::String::@getter::length
+              staticType: int
+          declaredFragment: <testLibraryFragment> null@null
+            element: null@null
+              type: int Function(String)
+          correspondingParameter: SubstitutedFormalParameterElementImpl
+            baseElement: <testLibrary>::@function::f::@formalParameter::b
+            substitution: {T: String}
+          staticType: int Function(String)
+      arguments(v1)
+        SimpleIdentifier
+          token: g
+          correspondingParameter: SubstitutedFormalParameterElementImpl
+            baseElement: <testLibrary>::@function::f::@formalParameter::a
+            substitution: {T: String}
+          element: <testLibrary>::@function::g
+          staticType: String Function()
+        FunctionExpression
+          parameters: FormalParameterList
+            leftParenthesis: (
+            parameter: RegularFormalParameter
+              name: z
+              declaredFragment: <testLibraryFragment> z@110
+                element: hasImplicitType isPublic
+                  type: String
+            rightParenthesis: )
+          body: ExpressionFunctionBody
+            functionDefinition: =>
+            expression: PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: z
                 element: z@110

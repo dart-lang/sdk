@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
@@ -196,6 +197,13 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
     verifyNamedFunctionInvocation(node);
   }
 
+  @override
+  void visitUnqualifiedNameExpression(UnqualifiedNameExpression node) {
+    if (node.resolution case NamedReadResolutionWithElement(:var element)) {
+      _checkTearoff(node, element);
+    }
+  }
+
   void _check({
     required List<Argument> arguments,
     required SyntacticEntity errorNode,
@@ -266,6 +274,13 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
         case VariableElement():
           return element.isConst;
       }
+    } else if (expression is UnqualifiedNameExpression) {
+      var element = expression.resolution.elementOrRecovery;
+      return switch (element) {
+        GetterElement() => element.variable.isConst,
+        VariableElement() => element.isConst,
+        _ => false,
+      };
     }
     return false;
   }
@@ -284,6 +299,9 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
       if (parent is InvocationExpression) return false;
       if (node.element is TopLevelFunctionElement) return true;
       if (node.element is MethodElement) return true;
+    }
+    if (node is UnqualifiedNameExpression) {
+      return node.resolution is ExecutableTearOffResolution;
     }
     return false;
   }

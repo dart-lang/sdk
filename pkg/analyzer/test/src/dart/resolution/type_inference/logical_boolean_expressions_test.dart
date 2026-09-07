@@ -97,14 +97,18 @@ void f(bool a, bool b) {
     var node = result.findNode.singleLogicalAnd;
     assertResolvedNodeText(node, r'''
 LogicalAnd
-  leftOperand: SimpleIdentifier
-    token: a
-    element: <testLibrary>::@function::f::@formalParameter::a
+  leftOperand: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: bool
     staticType: bool
   operator: &&
-  rightOperand: SimpleIdentifier
-    token: b
-    element: <testLibrary>::@function::f::@formalParameter::b
+  rightOperand: UnqualifiedNameExpression
+    name: b
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::b
+      type: bool
     staticType: bool
   staticType: bool
 V1: BinaryExpression
@@ -207,14 +211,18 @@ void f(bool a, bool b) {
     var node = result.findNode.singleLogicalOr;
     assertResolvedNodeText(node, r'''
 LogicalOr
-  leftOperand: SimpleIdentifier
-    token: a
-    element: <testLibrary>::@function::f::@formalParameter::a
+  leftOperand: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: bool
     staticType: bool
   operator: ||
-  rightOperand: SimpleIdentifier
-    token: b
-    element: <testLibrary>::@function::f::@formalParameter::b
+  rightOperand: UnqualifiedNameExpression
+    name: b
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::b
+      type: bool
     staticType: bool
   staticType: bool
 V1: BinaryExpression

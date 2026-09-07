@@ -419,6 +419,21 @@ library
                 ListLiteral
                   leftBracket: [ @0
                   elements2
+                    UnqualifiedNameExpression
+                      name: v1 @-1
+                      resolution: GetterInvocationResolution
+                        element: dart:foo::@enum::E::@getter::v1
+                        invokeType: E Function()
+                        type: E
+                      staticType: E
+                    UnqualifiedNameExpression
+                      name: v2 @-1
+                      resolution: GetterInvocationResolution
+                        element: dart:foo::@enum::E::@getter::v2
+                        invokeType: E Function()
+                        type: E
+                      staticType: E
+                  elements(v1)
                     SimpleIdentifier
                       token: v1 @-1
                       element: dart:foo::@enum::E::@getter::v1
@@ -533,6 +548,14 @@ library
                 ListLiteral
                   leftBracket: [ @0
                   elements2
+                    UnqualifiedNameExpression
+                      name: v @-1
+                      resolution: GetterInvocationResolution
+                        element: dart:foo::@enum::E::@getter::v
+                        invokeType: E Function()
+                        type: E
+                      staticType: E
+                  elements(v1)
                     SimpleIdentifier
                       token: v @-1
                       element: dart:foo::@enum::E::@getter::v

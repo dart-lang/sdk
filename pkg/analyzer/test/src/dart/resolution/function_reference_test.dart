@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -541,6 +542,14 @@ FunctionReference
       argumentList: ArgumentList
         leftParenthesis: (
         arguments2
+          UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: <testLibrary>::@function::bar::@formalParameter::a
+              type: A
+            correspondingParameter: <null>
+            staticType: A
+        arguments(v1)
           SimpleIdentifier
             token: a
             correspondingParameter: <null>
@@ -619,7 +628,13 @@ FunctionReference
   function2: ReceiverPropertyExtraction
     receiver: ParenthesizedExpression
       leftParenthesis: (
-      expression2: SimpleIdentifier
+      expression2: UnqualifiedNameExpression
+        name: x
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::x
+          type: Never?
+        staticType: Never?
+      expression(v1): SimpleIdentifier
         token: x
         element: <testLibrary>::@function::f::@formalParameter::x
         staticType: Never?
@@ -738,6 +753,14 @@ FunctionReference
       argumentList: ArgumentList
         leftParenthesis: (
         arguments2
+          UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: <testLibrary>::@function::bar::@formalParameter::a
+              type: A
+            correspondingParameter: <null>
+            staticType: A
+        arguments(v1)
           SimpleIdentifier
             token: a
             correspondingParameter: <null>
@@ -838,6 +861,14 @@ FunctionReference
       argumentList: ArgumentList
         leftParenthesis: (
         arguments2
+          UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: <testLibrary>::@function::bar::@formalParameter::a
+              type: A
+            correspondingParameter: <null>
+            staticType: A
+        arguments(v1)
           SimpleIdentifier
             token: a
             correspondingParameter: <null>
@@ -889,6 +920,14 @@ FunctionReference
       argumentList: ArgumentList
         leftParenthesis: (
         arguments2
+          UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: <testLibrary>::@function::bar::@formalParameter::a
+              type: A
+            correspondingParameter: <null>
+            staticType: A
+        arguments(v1)
           SimpleIdentifier
             token: a
             correspondingParameter: <null>
@@ -1374,7 +1413,13 @@ void f(A a) {
     var node = result.findNode.implicitCallReference('a);');
     assertResolvedNodeText(node, r'''
 ImplicitCallReference
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: A
+    staticType: A
+  expression(v1): SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A
@@ -1790,7 +1835,13 @@ FunctionReference
   function2: ReceiverPropertyExtraction
     receiver: ParenthesizedExpression
       leftParenthesis: (
-      expression2: SimpleIdentifier
+      expression2: UnqualifiedNameExpression
+        name: a
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::foo::@formalParameter::a
+          type: A
+        staticType: A
+      expression(v1): SimpleIdentifier
         token: a
         element: <testLibrary>::@function::foo::@formalParameter::a
         staticType: A
@@ -2019,7 +2070,13 @@ FunctionReference
   function2: ReceiverPropertyExtraction
     receiver: ParenthesizedExpression
       leftParenthesis: (
-      expression2: SimpleIdentifier
+      expression2: UnqualifiedNameExpression
+        name: a
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::a
+          type: A
+        staticType: A
+      expression(v1): SimpleIdentifier
         token: a
         element: <testLibrary>::@function::f::@formalParameter::a
         staticType: A
@@ -2077,14 +2134,18 @@ FunctionReference
     receiver: ParenthesizedExpression
       leftParenthesis: (
       expression2: IfNull
-        leftOperand: SimpleIdentifier
-          token: a
-          element: <testLibrary>::@function::f::@formalParameter::a
+        leftOperand: UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: A?
           staticType: A?
         operator: ??
-        rightOperand: SimpleIdentifier
-          token: b
-          element: <testLibrary>::@function::f::@formalParameter::b
+        rightOperand: UnqualifiedNameExpression
+          name: b
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::b
+            type: A
           staticType: A
         staticType: A
       expression(v1): BinaryExpression
@@ -4648,6 +4709,42 @@ FunctionReference
     int
 ''');
   }
+
+  test_unqualifiedNameExpression_staticMethod_namedArgument() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class C<S, V> {
+  C({required F<S, V> callback});
+}
+
+class A<T> {}
+
+typedef F<S, V> = V Function(A<S>);
+
+class D<S> {
+  static A<T> id<T>(A<T> value) => value;
+
+  void g() {
+    C<S, A<S>>(callback: id);
+  }
+}
+''');
+
+    var node = result.findNode.unqualifiedNameExpression('id);');
+    assertResolvedNodeText(node, r'''
+UnqualifiedNameExpression
+  name: id
+  resolution: ExecutableTearOffResolution
+    element: <testLibrary>::@class::D::@method::id
+    type: A<T> Function<T>(A<T>)
+  staticType: A<S> Function(A<S>)
+V1: SimpleIdentifier
+  token: id
+  element: <testLibrary>::@class::D::@method::id
+  staticType: A<S> Function(A<S>)
+  tearOffTypeArgumentTypes
+    S
+''');
+  }
 }
 
 @reflectiveTest
@@ -4667,7 +4764,13 @@ FunctionReference
     expression2: ParenthesizedExpression
       leftParenthesis: (
       expression2: AsExpression
-        expression2: SimpleIdentifier
+        expression2: UnqualifiedNameExpression
+          name: f
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::foo::@formalParameter::f
+            type: void Function<T>(T)
+          staticType: void Function<T>(T)
+        expression(v1): SimpleIdentifier
           token: f
           element: <testLibrary>::@function::foo::@formalParameter::f
           staticType: void Function<T>(T)
@@ -4752,10 +4855,12 @@ FunctionReference
         element: <testLibrary>::@setter::g
         acceptedType: void Function<T>(T)
     operator: =
-    value: SimpleIdentifier
-      token: f
+    value: UnqualifiedNameExpression
+      name: f
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::foo::@formalParameter::f
+        type: void Function<T>(T)
       correspondingParameter: <testLibrary>::@setter::g::@formalParameter::value
-      element: <testLibrary>::@function::foo::@formalParameter::f
       staticType: void Function<T>(T)
     staticType: void Function<T>(T)
   function(v1): AssignmentExpression
@@ -4849,7 +4954,13 @@ Future<void Function(int)> foo(Future<void Function<T>(T)> f) async {
 FunctionReference
   function2: AwaitExpression
     awaitKeyword: await
-    expression2: SimpleIdentifier
+    expression2: UnqualifiedNameExpression
+      name: f
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::foo::@formalParameter::f
+        type: Future<void Function<T>(T)>
+      staticType: Future<void Function<T>(T)>
+    expression(v1): SimpleIdentifier
       token: f
       element: <testLibrary>::@function::foo::@formalParameter::f
       staticType: Future<void Function<T>(T)>
@@ -4877,9 +4988,11 @@ void Function(int) foo(C c) {
     assertResolvedNodeText(node, r'''
 FunctionReference
   function2: BinaryOperatorInvocation
-    leftOperand: SimpleIdentifier
-      token: c
-      element: <testLibrary>::@function::foo::@formalParameter::c
+    leftOperand: UnqualifiedNameExpression
+      name: c
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::foo::@formalParameter::c
+        type: C
       staticType: C
     operator: +
     rightOperand: IntegerLiteral
@@ -4918,7 +5031,13 @@ void Function(int) foo(void Function<T>(T) f) {
     var node = result.findNode.functionReference('f..toString()');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function2: SimpleIdentifier
+  function2: UnqualifiedNameExpression
+    name: f
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::foo::@formalParameter::f
+      type: void Function<T>(T)
+    staticType: void Function<T>(T)
+  function(v1): SimpleIdentifier
     token: f
     element: <testLibrary>::@function::foo::@formalParameter::f
     staticType: void Function<T>(T)
@@ -5047,7 +5166,13 @@ FunctionReference
   function2: CallInvocation
     receiver: ParenthesizedExpression
       leftParenthesis: (
-      expression2: SimpleIdentifier
+      expression2: UnqualifiedNameExpression
+        name: f
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::foo::@formalParameter::f
+          type: void Function<T>(T) Function()
+        staticType: void Function<T>(T) Function()
+      expression(v1): SimpleIdentifier
         token: f
         element: <testLibrary>::@function::foo::@formalParameter::f
         staticType: void Function<T>(T) Function()
@@ -5093,7 +5218,15 @@ void Function(int) foo(Fn f) {
     var node = result.findNode.functionReference('f;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function2: SimpleIdentifier
+  function2: UnqualifiedNameExpression
+    name: f
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::foo::@formalParameter::f
+      type: void Function<U>(U)
+        alias: <testLibrary>::@typeAlias::Fn
+    staticType: void Function<U>(U)
+      alias: <testLibrary>::@typeAlias::Fn
+  function(v1): SimpleIdentifier
     token: f
     element: <testLibrary>::@function::foo::@formalParameter::f
     staticType: void Function<U>(U)
@@ -5118,7 +5251,13 @@ void Function(int) foo(C c) {
     var node = result.findNode.implicitCallReference('c;');
     assertResolvedNodeText(node, r'''
 ImplicitCallReference
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: c
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::foo::@formalParameter::c
+      type: C
+    staticType: C
+  expression(v1): SimpleIdentifier
     token: c
     element: <testLibrary>::@function::foo::@formalParameter::c
     staticType: C
@@ -5140,9 +5279,11 @@ void Function(int) foo(List<void Function<T>(T)> f) {
     assertResolvedNodeText(node, r'''
 FunctionReference
   function2: ReceiverIndexExpression
-    receiver: SimpleIdentifier
-      token: f
-      element: <testLibrary>::@function::foo::@formalParameter::f
+    receiver: UnqualifiedNameExpression
+      name: f
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::foo::@formalParameter::f
+        type: List<void Function<T>(T)>
       staticType: List<void Function<T>(T)>
     leftBracket: [
     index: IntegerLiteral
@@ -5365,7 +5506,13 @@ FunctionReference
   function2: ReceiverPropertyExtraction
     receiver: ParenthesizedExpression
       leftParenthesis: (
-      expression2: SimpleIdentifier
+      expression2: UnqualifiedNameExpression
+        name: c
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::foo::@formalParameter::c
+          type: C
+        staticType: C
+      expression(v1): SimpleIdentifier
         token: c
         element: <testLibrary>::@function::foo::@formalParameter::c
         staticType: C
@@ -5409,13 +5556,103 @@ void Function(int) foo(void Function<T>(T) f) {
     var node = result.findNode.functionReference('f;');
     assertResolvedNodeText(node, r'''
 FunctionReference
-  function2: SimpleIdentifier
+  function2: UnqualifiedNameExpression
+    name: f
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::foo::@formalParameter::f
+      type: void Function<T>(T)
+    staticType: void Function<T>(T)
+  function(v1): SimpleIdentifier
     token: f
     element: <testLibrary>::@function::foo::@formalParameter::f
     staticType: void Function<T>(T)
   staticType: void Function(int)
   typeArgumentTypes
     int
+''');
+  }
+
+  test_unqualifiedNameExpression_staticMethod_namedArgument() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class C<S, V> {
+  C({required F<S, V> callback});
+}
+
+class A<T> {}
+
+typedef F<S, V> = V Function(A<S>);
+
+class D<S> {
+  static A<T> id<T>(A<T> value) => value;
+
+  void g() {
+    C<S, A<S>>(callback: id);
+  }
+}
+''');
+
+    var node = result.findNode.functionReference('id);');
+    assertResolvedNodeText(node, r'''
+FunctionReference
+  function2: UnqualifiedNameExpression
+    name: id
+    resolution: ExecutableTearOffResolution
+      element: <testLibrary>::@class::D::@method::id
+      type: A<T> Function<T>(A<T>)
+    staticType: A<T> Function<T>(A<T>)
+  function(v1): SimpleIdentifier
+    token: id
+    element: <testLibrary>::@class::D::@method::id
+    staticType: A<T> Function<T>(A<T>)
+  staticType: A<S> Function(A<S>)
+  typeArgumentTypes
+    S
+''');
+  }
+
+  test_unqualifiedNameExpression_staticMethod_namedArgument_optionalTypeArgs() async {
+    writeTestPackageAnalysisOptionsFile(
+      analysisOptionsContent(strictInference: true),
+    );
+    writeTestPackageConfigWithMeta();
+    var result = await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class C<S, V> {
+  C({required F<S, V> callback});
+}
+
+class A<T> {}
+
+typedef F<S, V> = V Function(A<S>);
+
+class D<S> {
+  @optionalTypeArgs
+  static A<T> id<T, R>(A<T> value) => value;
+
+  void g() {
+    C<S, A<S>>(callback: id);
+  }
+}
+''');
+
+    var node = result.findNode.functionReference('id);');
+    assertResolvedNodeText(node, r'''
+FunctionReference
+  function2: UnqualifiedNameExpression
+    name: id
+    resolution: ExecutableTearOffResolution
+      element: <testLibrary>::@class::D::@method::id
+      type: A<T> Function<T, R>(A<T>)
+    staticType: A<T> Function<T, R>(A<T>)
+  function(v1): SimpleIdentifier
+    token: id
+    element: <testLibrary>::@class::D::@method::id
+    staticType: A<T> Function<T, R>(A<T>)
+  staticType: A<S> Function(A<S>)
+  typeArgumentTypes
+    S
+    dynamic
 ''');
   }
 }

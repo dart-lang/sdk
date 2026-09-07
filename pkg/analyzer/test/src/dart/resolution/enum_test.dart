@@ -1217,6 +1217,14 @@ EnumDeclaration
           argumentList: ArgumentList
             leftParenthesis: (
             arguments2
+              UnqualifiedNameExpression
+                name: foo
+                resolution: ExecutableTearOffResolution
+                  element: <testLibrary>::@function::foo
+                  type: int Function(String)
+                correspondingParameter: <testLibrary>::@enum::A::@constructor::new::@formalParameter::a
+                staticType: int Function(String)
+            arguments(v1)
               SimpleIdentifier
                 token: foo
                 correspondingParameter: <testLibrary>::@enum::A::@constructor::new::@formalParameter::a
@@ -1817,7 +1825,14 @@ PrimaryConstructorDeclaration
           name: x
           defaultClause: FormalParameterDefaultClause
             separator: =
-            value2: SimpleIdentifier
+            value2: UnqualifiedNameExpression
+              name: foo
+              resolution: GetterInvocationResolution
+                element: <testLibrary>::@enum::A::@getter::foo
+                invokeType: int Function()
+                type: int
+              staticType: int
+            value(v1): SimpleIdentifier
               token: foo
               element: <testLibrary>::@enum::A::@getter::foo
               staticType: int
@@ -2040,7 +2055,13 @@ EnumDeclaration
           AssertInitializer
             assertKeyword: assert
             leftParenthesis: (
-            condition2: SimpleIdentifier
+            condition2: UnqualifiedNameExpression
+              name: x
+              resolution: VariableReadResolution
+                element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::x
+                type: bool
+              staticType: bool
+            condition(v1): SimpleIdentifier
               token: x
               element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::x
               staticType: bool
@@ -2050,7 +2071,13 @@ EnumDeclaration
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: SimpleIdentifier
+                expression2: UnqualifiedNameExpression
+                  name: y
+                  resolution: VariableReadResolution
+                    element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::y
+                    type: bool
+                  staticType: bool
+                expression(v1): SimpleIdentifier
                   token: y
                   element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::y
                   staticType: bool
@@ -2065,9 +2092,11 @@ EnumDeclaration
             leftParenthesis: (
             condition2: LogicalNot
               operator: !
-              operand: SimpleIdentifier
-                token: x
-                element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::x
+              operand: UnqualifiedNameExpression
+                name: x
+                resolution: VariableReadResolution
+                  element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::x
+                  type: bool
                 staticType: bool
               staticType: bool
             condition(v1): PrefixExpression
@@ -2086,9 +2115,11 @@ EnumDeclaration
               ExpressionStatement
                 expression2: LogicalNot
                   operator: !
-                  operand: SimpleIdentifier
-                    token: y
-                    element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::y
+                  operand: UnqualifiedNameExpression
+                    name: y
+                    resolution: VariableReadResolution
+                      element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::y
+                      type: bool
                     staticType: bool
                   staticType: bool
                 expression(v1): PrefixExpression
@@ -2185,7 +2216,14 @@ PrimaryConstructorBody
     AssertInitializer
       assertKeyword: assert
       leftParenthesis: (
-      condition2: SimpleIdentifier
+      condition2: UnqualifiedNameExpression
+        name: x
+        resolution: InvalidNamedReadResolution
+          type: InvalidType
+          candidates
+          recovery: <null>
+        staticType: InvalidType
+      condition(v1): SimpleIdentifier
         token: x
         element: <null>
         staticType: InvalidType
@@ -2195,7 +2233,14 @@ PrimaryConstructorBody
       leftBracket: {
       statements
         ExpressionStatement
-          expression2: SimpleIdentifier
+          expression2: UnqualifiedNameExpression
+            name: y
+            resolution: InvalidNamedReadResolution
+              type: InvalidType
+              candidates
+              recovery: <null>
+            staticType: InvalidType
+          expression(v1): SimpleIdentifier
             token: y
             element: <null>
             staticType: InvalidType
@@ -2221,7 +2266,13 @@ PrimaryConstructorBody
     AssertInitializer
       assertKeyword: assert
       leftParenthesis: (
-      condition2: SimpleIdentifier
+      condition2: UnqualifiedNameExpression
+        name: x
+        resolution: VariableReadResolution
+          element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::x
+          type: bool
+        staticType: bool
+      condition(v1): SimpleIdentifier
         token: x
         element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::x
         staticType: bool
@@ -2248,7 +2299,13 @@ PrimaryConstructorBody
     AssertInitializer
       assertKeyword: assert
       leftParenthesis: (
-      condition2: SimpleIdentifier
+      condition2: UnqualifiedNameExpression
+        name: a
+        resolution: VariableReadResolution
+          element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::a
+          type: bool
+        staticType: bool
+      condition(v1): SimpleIdentifier
         token: a
         element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::a
         staticType: bool
@@ -2276,7 +2333,13 @@ PrimaryConstructorBody
     AssertInitializer
       assertKeyword: assert
       leftParenthesis: (
-      condition2: SimpleIdentifier
+      condition2: UnqualifiedNameExpression
+        name: x
+        resolution: VariableReadResolution
+          element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::x
+          type: bool
+        staticType: bool
+      condition(v1): SimpleIdentifier
         token: x
         element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::x
         staticType: bool
@@ -2303,7 +2366,13 @@ FieldDeclaration
       VariableDeclaration
         name: bar
         equals: =
-        initializer2: SimpleIdentifier
+        initializer2: UnqualifiedNameExpression
+          name: foo
+          resolution: VariableReadResolution
+            element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
+            type: int
+          staticType: int
+        initializer(v1): SimpleIdentifier
           token: foo
           element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
           staticType: int
@@ -2330,7 +2399,13 @@ FieldDeclaration
       VariableDeclaration
         name: bar
         equals: =
-        initializer2: SimpleIdentifier
+        initializer2: UnqualifiedNameExpression
+          name: foo
+          resolution: VariableReadResolution
+            element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
+            type: int
+          staticType: int
+        initializer(v1): SimpleIdentifier
           token: foo
           element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
           staticType: int
@@ -2364,7 +2439,14 @@ FieldDeclaration
       VariableDeclaration
         name: bar
         equals: =
-        initializer2: SimpleIdentifier
+        initializer2: UnqualifiedNameExpression
+          name: foo
+          resolution: InvalidNamedReadResolution
+            type: InvalidType
+            candidates
+            recovery: <null>
+          staticType: InvalidType
+        initializer(v1): SimpleIdentifier
           token: foo
           element: <null>
           staticType: InvalidType
@@ -2394,7 +2476,14 @@ FieldDeclaration
       VariableDeclaration
         name: bar
         equals: =
-        initializer2: SimpleIdentifier
+        initializer2: UnqualifiedNameExpression
+          name: foo
+          resolution: InvalidNamedReadResolution
+            type: InvalidType
+            candidates
+            recovery: <null>
+          staticType: InvalidType
+        initializer(v1): SimpleIdentifier
           token: foo
           element: <null>
           staticType: InvalidType

@@ -635,6 +635,11 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
     return null;
   }
 
+  @override
+  Element? visitUnqualifiedNameExpression(UnqualifiedNameExpression node) {
+    return node.resolution.elementOrRecovery;
+  }
+
   Element? _visitIdentifier(Identifier node) {
     var parent = node.parent2;
     if (parent is Annotation) {

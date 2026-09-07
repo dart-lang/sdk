@@ -1156,6 +1156,11 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
       );
 
   @override
+  _LValueTemplates visitUnqualifiedNameExpression(
+    UnqualifiedNameExpression node,
+  ) => _nameExpression(node.name, node.resolution);
+
+  @override
   Null visitVariableDeclarationList(VariableDeclarationList variables) {
     for (var variable in variables.variables) {
       var initializer = variable.initializer2;
@@ -1238,6 +1243,28 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
         dispatchNode(argument);
         argumentNames.add(null);
       }
+    }
+  }
+
+  _LValueTemplates _nameExpression(
+    Token name,
+    NamedReadResolution? resolution,
+  ) {
+    switch (resolution) {
+      case VariableReadResolution(:var element)
+          when element is FormalParameterElement ||
+              element is LocalVariableElement:
+        return _LocalTemplates(locals[element]!);
+      case GetterInvocationResolution(element: PropertyAccessorElement element)
+          when !element.isStatic:
+        this_();
+        // Stack: this
+        return _PropertyAccessTemplates.direct(
+          name: name.lexeme,
+          readElement: element,
+        );
+      case dynamic(:var runtimeType):
+        throw UnimplementedError('TODO(paulberry): $runtimeType: $resolution');
     }
   }
 

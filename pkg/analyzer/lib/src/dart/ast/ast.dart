@@ -38334,7 +38334,7 @@ final class NodeListImpl<E extends AstNodeImpl>
     if (elements == null || elements.isEmpty) {
       _elements = const <Never>[];
     } else {
-      _elements = elements.toList(growable: false);
+      _elements = List<E>.of(elements, growable: false);
       var length = elements.length;
       for (var i = 0; i < length; i++) {
         var node = elements[i];
@@ -48092,6 +48092,8 @@ final class SimpleIdentifierImpl extends IdentifierImpl
 
   AstNodeApi? _astNodeApiOverride;
 
+  ExpressionImpl? _v1ProjectionOrigin;
+
   /// The element associated with this identifier based on static type
   /// information, or `null` if the AST structure hasn't been resolved or if
   /// this identifier couldn't be resolved.
@@ -48113,8 +48115,11 @@ final class SimpleIdentifierImpl extends IdentifierImpl
   @generated
   SimpleIdentifierImpl({required this.token});
 
-  SimpleIdentifierImpl.v1Projection({required this.token})
-    : _astNodeApiOverride = AstNodeApi.v1;
+  SimpleIdentifierImpl.v1Projection({
+    required this.token,
+    ExpressionImpl? origin,
+  }) : _astNodeApiOverride = AstNodeApi.v1,
+       _v1ProjectionOrigin = origin;
 
   /// The cascade that contains this [SimpleIdentifier].
   CascadeExpressionImpl? get ancestorCascade {
@@ -48132,11 +48137,23 @@ final class SimpleIdentifierImpl extends IdentifierImpl
     return token;
   }
 
+  @override
+  InternalFormalParameterElement? get correspondingParameter {
+    if (_v1ProjectionOrigin case var origin?) {
+      return origin.correspondingParameter;
+    }
+    return super.correspondingParameter;
+  }
+
   @generated
   @override
   Token get endToken {
     return token;
   }
+
+  @override
+  bool get inConstantContext =>
+      _v1ProjectionOrigin?.inConstantContext ?? super.inConstantContext;
 
   @override
   bool get isQualified {
@@ -48191,6 +48208,14 @@ final class SimpleIdentifierImpl extends IdentifierImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitSimpleIdentifier(this);
+
+  @override
+  AttemptedConstantEvaluationResult? computeConstantValue() {
+    if (_v1ProjectionOrigin case var origin?) {
+      return origin.computeConstantValue();
+    }
+    return super.computeConstantValue();
+  }
 
   @override
   bool inDeclarationContext() {
@@ -54108,6 +54133,174 @@ final class UnqualifiedNameAssignmentTargetImpl extends AssignmentTargetImpl
   }
 }
 
+/// A value-producing unqualified name.
+///
+/// Resolution determines whether the name directly reads a variable, invokes
+/// a getter, produces an executable tear-off, or represents an invalid read.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class UnqualifiedNameExpression implements Expression {
+  /// The written name.
+  Token get name;
+
+  /// The resolution of the read, or `null` if this expression has not been
+  /// resolved.
+  NamedReadResolution? get resolution;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [GenerateNodeProperty('name')],
+)
+final class UnqualifiedNameExpressionImpl extends ExpressionImpl
+    implements UnqualifiedNameExpression {
+  @generated
+  @override
+  final Token name;
+
+  ScopeLookupResult? scopeLookupResult;
+
+  @DoNotGenerate(reason: 'Stores the canonical typed read resolution')
+  NamedReadResolutionImpl? _resolution;
+
+  List<TypeImpl>? _implicitFunctionInstantiationTypeArguments;
+
+  SimpleIdentifierImpl? _simpleIdentifier;
+
+  @generated
+  UnqualifiedNameExpressionImpl({required this.name});
+
+  @generated
+  @override
+  Token get beginToken {
+    return name;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return name;
+  }
+
+  /// The inferred type arguments for a contextual generic function
+  /// instantiation that is temporarily flattened into this expression.
+  // TODO(scheglov): Replace this compatibility payload with a canonical
+  // `ImplicitFunctionInstantiation` wrapper. Until that node exists, the V2
+  // expression owns the inferred type arguments so that its origin-backed V1
+  // projection can reproduce `SimpleIdentifier.tearOffTypeArgumentTypes`
+  // without participating in resolution.
+  set implicitFunctionInstantiationTypeArguments(List<TypeImpl>? value) {
+    _implicitFunctionInstantiationTypeArguments = value;
+    _simpleIdentifier?.tearOffTypeArgumentTypes = value;
+  }
+
+  @override
+  Precedence get precedence => Precedence.primary;
+
+  @override
+  NamedReadResolutionImpl? get resolution => _resolution;
+
+  set resolution(NamedReadResolutionImpl? value) {
+    _resolution = value;
+    _simpleIdentifier?.element = _legacyReadElement;
+    _simpleIdentifier?.setPseudoExpressionStaticType(value?.type);
+  }
+
+  /// The cached identifier used only by the V1 compatibility projection.
+  SimpleIdentifierImpl get simpleIdentifier {
+    var result = _simpleIdentifier ??= SimpleIdentifierImpl.v1Projection(
+      token: name,
+      origin: this,
+    );
+    result.element = _legacyReadElement;
+    result.tearOffTypeArgumentTypes =
+        _implicitFunctionInstantiationTypeArguments;
+    result.setPseudoExpressionStaticType(staticType);
+    return result;
+  }
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @generated
+  @override
+  ChildEntities get _childEntities {
+    throw StateError('UnqualifiedNameExpression is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => ChildEntities()..addToken('name', name);
+
+  Element? get _legacyReadElement => switch (resolution) {
+    InvalidNamedReadResolutionImpl(:var candidates) => candidates.firstOrNull,
+    NamedReadResolutionWithElementImpl(:var element) => element,
+    _ => null,
+  };
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('UnqualifiedNameExpression is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitUnqualifiedNameExpression(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent2, this));
+    return false;
+  }
+
+  @override
+  void recordStaticType(DartType type, {required ResolverVisitor resolver}) {
+    super.recordStaticType(type, resolver: resolver);
+    _simpleIdentifier?.setPseudoExpressionStaticType(type);
+  }
+
+  @generated
+  @override
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+    resolver.visitUnqualifiedNameExpression(this, contextType: contextType);
+  }
+
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError('UnqualifiedNameExpression is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {}
+
+  /// Visits the children of this node.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(AstVisitor2 visitor) {}
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError('UnqualifiedNameExpression is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    return null;
+  }
+}
+
 /// A directive that references a URI.
 ///
 ///    uriBasedDirective ::=
@@ -54380,6 +54573,9 @@ enum V1Projection {
     }
     if (node is UnqualifiedFunctionInvocationImpl) {
       return createIfAbsent ? node.methodInvocation : node._methodInvocation;
+    }
+    if (node is UnqualifiedNameExpressionImpl) {
+      return createIfAbsent ? node.simpleIdentifier : node._simpleIdentifier;
     }
     return node;
   }

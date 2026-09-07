@@ -60,7 +60,12 @@ class _TypePromotionDataExtractor extends AstDataExtractor<DartType> {
   DartType? computeNodeValue(Id id, AstNode node) {
     Element? element;
     DartType? promotedType;
-    if (node is SimpleIdentifier && node.inGetterContext()) {
+    if (node case UnqualifiedNameExpression(
+      resolution: VariableReadResolution(element: var readElement, :var type),
+    )) {
+      element = readElement;
+      promotedType = type;
+    } else if (node is SimpleIdentifier && node.inGetterContext()) {
       element = _readElement(node);
       if (element is LocalVariableElement ||
           element is FormalParameterElement) {

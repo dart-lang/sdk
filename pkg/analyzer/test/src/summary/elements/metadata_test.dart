@@ -4474,6 +4474,28 @@ library
                 ListLiteral
                   leftBracket: [ @0
                   elements2
+                    UnqualifiedNameExpression
+                      name: e1 @-1
+                      resolution: GetterInvocationResolution
+                        element: <testLibrary>::@enum::E::@getter::e1
+                        invokeType: E Function()
+                        type: E
+                      staticType: E
+                    UnqualifiedNameExpression
+                      name: e2 @-1
+                      resolution: GetterInvocationResolution
+                        element: <testLibrary>::@enum::E::@getter::e2
+                        invokeType: E Function()
+                        type: E
+                      staticType: E
+                    UnqualifiedNameExpression
+                      name: e3 @-1
+                      resolution: GetterInvocationResolution
+                        element: <testLibrary>::@enum::E::@getter::e3
+                        invokeType: E Function()
+                        type: E
+                      staticType: E
+                  elements(v1)
                     SimpleIdentifier
                       token: e1 @-1
                       element: <testLibrary>::@enum::E::@getter::e1
@@ -7202,6 +7224,28 @@ library
                 ListLiteral
                   leftBracket: [ @0
                   elements2
+                    UnqualifiedNameExpression
+                      name: a @-1
+                      resolution: GetterInvocationResolution
+                        element: <testLibrary>::@enum::E::@getter::a
+                        invokeType: E Function()
+                        type: E
+                      staticType: E
+                    UnqualifiedNameExpression
+                      name: b @-1
+                      resolution: GetterInvocationResolution
+                        element: <testLibrary>::@enum::E::@getter::b
+                        invokeType: E Function()
+                        type: E
+                      staticType: E
+                    UnqualifiedNameExpression
+                      name: c @-1
+                      resolution: GetterInvocationResolution
+                        element: <testLibrary>::@enum::E::@getter::c
+                        invokeType: E Function()
+                        type: E
+                      staticType: E
+                  elements(v1)
                     SimpleIdentifier
                       token: a @-1
                       element: <testLibrary>::@enum::E::@getter::a

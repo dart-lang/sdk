@@ -48,12 +48,16 @@ ConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
-      SimpleIdentifier
-        token: p
+      UnqualifiedNameExpression
+        name: p
+        resolution: InvalidNamedReadResolution
+          type: InvalidType
+          candidates
+            candidate: <testLibraryFragment>::@prefix::p
+          recovery: <null>
         correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: <testLibrary>::@class::C::@constructor::new::@formalParameter::a
           substitution: {T: dynamic}
-        element: <testLibraryFragment>::@prefix::p
         staticType: InvalidType
     rightParenthesis: )
   staticType: C<dynamic>
@@ -93,9 +97,17 @@ main() {
 }
 ''');
 
-    var node = result.findNode.simple('p; // use');
+    var node = result.findNode.unqualifiedNameExpression('p; // use');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: p
+  resolution: InvalidNamedReadResolution
+    type: InvalidType
+    candidates
+      candidate: <testLibraryFragment>::@prefix::p
+    recovery: <null>
+  staticType: InvalidType
+V1: SimpleIdentifier
   token: p
   element: <testLibraryFragment>::@prefix::p
   staticType: InvalidType
@@ -128,7 +140,15 @@ ForStatement
         element: hasImplicitType isPublic
           type: InvalidType
     inKeyword: in
-    iterable2: SimpleIdentifier
+    iterable2: UnqualifiedNameExpression
+      name: p
+      resolution: InvalidNamedReadResolution
+        type: InvalidType
+        candidates
+          candidate: <testLibraryFragment>::@prefix::p
+        recovery: <null>
+      staticType: InvalidType
+    iterable(v1): SimpleIdentifier
       token: p
       element: <testLibraryFragment>::@prefix::p
       staticType: InvalidType
