@@ -5650,8 +5650,13 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
         break;
     }
 
+    final libraryUri = memberName.isPrivate ? memberName.uri : null;
     HConstant nameConstant = graph.addConstant(
-      constant_system.createSymbol(closedWorld.commonElements, name),
+      constant_system.createSymbol(
+        closedWorld.commonElements,
+        name,
+        libraryUri,
+      ),
       closedWorld,
     )..sourceInformation = sourceInformation;
 
