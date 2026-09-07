@@ -69,9 +69,6 @@ enum PredefinedClusters {
   recordShapeRefs,
   ints,
   doubles,
-  lists,
-  maps,
-  sets,
   records,
   instantiatedClosures,
   typeParameters,
@@ -82,6 +79,10 @@ enum PredefinedClusters {
   typeArguments,
   closureDatas,
   functions,
+  lists,
+  maps,
+  sets,
+  instances, // Separate cluster for every class.
   codes,
   icDatas,
   subtypeTestCaches,
@@ -91,7 +92,6 @@ enum PredefinedClusters {
   catchEntryMoves,
   compressedStackMaps,
   codeSourceMap,
-  instances, // Separate cluster for every class.
 }
 
 /// Object pool entry kinds in the module snapshots.
@@ -206,8 +206,11 @@ class SnapshotSerializer {
     );
 
     final clusters = [
-      for (final c in _clusters) ?c,
-      ..._instanceClusters.values,
+      for (final clusterId in PredefinedClusters.values)
+        if (clusterId == .instances)
+          ..._instanceClusters.values
+        else
+          ?_clusters[clusterId.index],
     ];
     out.writeUint(clusters.length);
 
