@@ -234,7 +234,9 @@ class Selector {
   bool get isUnaryOperator => isOperator && argumentCount == 0;
 
   /// The member name for invocation mirrors created from this selector.
-  String get invocationMirrorMemberName => isSetter ? '$name=' : name;
+  String get invocationMirrorMemberName =>
+      '${isSetter ? '$name=' : name}'
+      '${memberName.isPrivate ? '@${memberName.uri}' : ''}';
 
   InvocationMirrorKind get invocationMirrorKind {
     var kind = InvocationMirrorKind.method;
