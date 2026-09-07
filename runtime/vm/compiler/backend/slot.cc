@@ -438,6 +438,9 @@ const Slot& Slot::Get(const Field& field,
       case kFloat64x2Cid:
         rep = kUnboxedFloat64x2;
         break;
+      case kInt32x4Cid:
+        rep = kUnboxedInt32x4;
+        break;
       default:
         rep = kUnboxedInt64;
         break;

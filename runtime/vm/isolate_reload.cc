@@ -172,6 +172,7 @@ InstanceMorpher* InstanceMorpher::CreateFromClassDescriptors(
             case kDoubleCid:
             case kFloat32x4Cid:
             case kFloat64x2Cid:
+            case kInt32x4Cid:
               from_box_cid = field_cid;
               break;
             default:
@@ -186,6 +187,7 @@ InstanceMorpher* InstanceMorpher::CreateFromClassDescriptors(
             case kDoubleCid:
             case kFloat32x4Cid:
             case kFloat64x2Cid:
+            case kInt32x4Cid:
               to_box_cid = field_cid;
               break;
             default:
@@ -310,6 +312,12 @@ void InstanceMorpher::CreateMorphedCopies(Become* become) {
             value = Float64x2::New(unboxed_value);
             break;
           }
+          case kInt32x4Cid: {
+            const auto unboxed_value =
+                before.RawGetUnboxedFieldAtOffset<simd128_value_t>(from.offset);
+            value = Int32x4::New(unboxed_value);
+            break;
+          }
           case kIntegerCid: {
             const auto unboxed_value =
                 before.RawGetUnboxedFieldAtOffset<int64_t>(from.offset);
@@ -332,7 +340,8 @@ void InstanceMorpher::CreateMorphedCopies(Become* become) {
             break;
           }
           case kFloat32x4Cid:
-          case kFloat64x2Cid: {
+          case kFloat64x2Cid:
+          case kInt32x4Cid: {
             const auto unboxed_value =
                 before.RawGetUnboxedFieldAtOffset<simd128_value_t>(from.offset);
             after.RawSetUnboxedFieldAtOffset<simd128_value_t>(to.offset,
@@ -371,6 +380,8 @@ static const char* BoxCidToCString(intptr_t box_cid) {
       return "float32x4";
     case kFloat64x2Cid:
       return "float64x2";
+    case kInt32x4Cid:
+      return "int32x4";
     case kIntegerCid:
       return "int64";
   }

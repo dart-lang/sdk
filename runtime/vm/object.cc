@@ -3529,6 +3529,8 @@ intptr_t Class::UnboxedFieldSizeInBytesByCid(intptr_t cid) {
       return sizeof(UntaggedFloat32x4::value_);
     case kFloat64x2Cid:
       return sizeof(UntaggedFloat64x2::value_);
+    case kInt32x4Cid:
+      return sizeof(UntaggedInt32x4::value_);
     default:
       return sizeof(UntaggedMint::value_);
   }
@@ -21261,6 +21263,9 @@ ObjectPtr Instance::GetField(const Field& field) const {
       case kFloat64x2Cid:
         return Float64x2::New(LoadUnaligned(
             reinterpret_cast<simd128_value_t*>(FieldAddr(field))));
+      case kInt32x4Cid:
+        return Int32x4::New(LoadUnaligned(
+            reinterpret_cast<simd128_value_t*>(FieldAddr(field))));
       default:
         return Integer::New(
             LoadUnaligned(reinterpret_cast<int64_t*>(FieldAddr(field))));
@@ -21288,6 +21293,11 @@ void Instance::SetField(const Field& field, const Object& value) const {
             reinterpret_cast<simd128_value_t*>(FieldAddr(field)),
             Float64x2::Cast(value).value());
         break;
+      case kInt32x4Cid:
+        StoreNonPointerUnaligned(
+            reinterpret_cast<simd128_value_t*>(FieldAddr(field)),
+            Int32x4::Cast(value).value());
+        break;
       default:
         StoreNonPointerUnaligned(reinterpret_cast<int64_t*>(FieldAddr(field)),
                                  Integer::Cast(value).Value());
@@ -21314,6 +21324,10 @@ void Instance::SetFieldWithoutFieldGuard(const Field& field,
       case kFloat64x2Cid:
         StoreNonPointer(reinterpret_cast<simd128_value_t*>(FieldAddr(field)),
                         Float64x2::Cast(value).value());
+        break;
+      case kInt32x4Cid:
+        StoreNonPointer(reinterpret_cast<simd128_value_t*>(FieldAddr(field)),
+                        Int32x4::Cast(value).value());
         break;
       default:
         StoreNonPointer(reinterpret_cast<int64_t*>(FieldAddr(field)),

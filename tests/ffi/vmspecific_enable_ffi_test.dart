@@ -32,7 +32,8 @@ void main() {
 
   Expect.equals(254, result.exitCode);
   Expect.contains(
-    'import of dart:ffi is not supported in the current Dart runtime',
+    "vmspecific_enable_ffi_test_helper.dart:8:8: "
+    "Error: Dart library 'dart:ffi' is not available on this platform.",
     result.stderr,
   );
 }
