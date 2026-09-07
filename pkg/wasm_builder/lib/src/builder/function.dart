@@ -14,7 +14,7 @@ class FunctionBuilder extends ir.BaseFunction
   List<ir.Local> get locals => body.locals;
 
   /// The body of the function.
-  late InstructionsBuilder _body;
+  InstructionsBuilder? _body;
 
   FunctionBuilder(
     this.moduleBuilder,
@@ -25,24 +25,24 @@ class FunctionBuilder extends ir.BaseFunction
     _body = InstructionsBuilder(moduleBuilder, type.inputs, type.outputs);
   }
 
-  InstructionsBuilder get body => _body;
-
-  void replaceBody(InstructionsBuilder newBody) {
-    _body = newBody;
-  }
+  InstructionsBuilder get body => _body!;
 
   @override
-  ir.DefinedFunction forceBuild() =>
-      ir.DefinedFunction(
-          enclosingModule,
-          body.build(),
-          finalizableIndex,
-          type,
-          functionName,
-        )
-        ..isPure = isPure
-        ..isJSCalled = isJSCalled
-        ..inlineHint = inlineHint;
+  ir.DefinedFunction forceBuild() {
+    final function =
+        ir.DefinedFunction(
+            enclosingModule,
+            body.build(),
+            finalizableIndex,
+            type,
+            functionName,
+          )
+          ..isPure = isPure
+          ..isJSCalled = isJSCalled
+          ..inlineHint = inlineHint;
+    _body = null;
+    return function;
+  }
 
   @override
   String toString() => functionName ?? "#$finalizableIndex";

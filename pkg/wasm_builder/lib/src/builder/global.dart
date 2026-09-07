@@ -8,24 +8,30 @@ import 'builder.dart';
 /// A global variable defined in a module.
 class GlobalBuilder extends ir.Global with IndexableBuilder<ir.DefinedGlobal> {
   final ModuleBuilder moduleBuilder;
-  final InstructionsBuilder initializer;
+  InstructionsBuilder? _initializer;
 
   GlobalBuilder(
     this.moduleBuilder,
     ir.FinalizableIndex index,
     ir.GlobalType type, [
     String? globalName,
-  ]) : initializer = InstructionsBuilder(moduleBuilder, [], [
+  ]) : _initializer = InstructionsBuilder(moduleBuilder, [], [
          type.type,
        ], constantExpression: true),
        super(moduleBuilder.module, index, type, globalName);
 
+  InstructionsBuilder get initializer => _initializer!;
+
   @override
-  ir.DefinedGlobal forceBuild() => ir.DefinedGlobal(
-    enclosingModule,
-    initializer.build(),
-    finalizableIndex,
-    type,
-    globalName,
-  );
+  ir.DefinedGlobal forceBuild() {
+    final global = ir.DefinedGlobal(
+      enclosingModule,
+      initializer.build(),
+      finalizableIndex,
+      type,
+      globalName,
+    );
+    _initializer = null;
+    return global;
+  }
 }

@@ -76,6 +76,8 @@ class ModuleBuilder with Builder<ir.Module> {
     return true;
   }
 
+  FunctionBuilder? get startFunctionIfCreated => _startFunction;
+
   FunctionBuilder get startFunction => _startFunction ??= functions.define(
     types.defineFunction(const [], const []),
     "#init",

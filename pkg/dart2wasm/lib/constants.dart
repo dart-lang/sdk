@@ -641,7 +641,7 @@ class ConstantInstantiator extends ConstantVisitor<w.ValueType>
           ..i64_const(constant.value)
           ..struct_new(info.struct)
           ..end();
-        return definedGlobal;
+        return definedGlobal.build();
       });
       b.global_get(perModuleGlobal);
       return perModuleGlobal.type.type;
@@ -677,7 +677,7 @@ class ConstantInstantiator extends ConstantVisitor<w.ValueType>
           ..f64_const(constant.value)
           ..struct_new(info.struct)
           ..end();
-        return definedGlobal;
+        return definedGlobal.build();
       });
       b.global_get(perModuleGlobal);
       return perModuleGlobal.type.type;
@@ -1403,6 +1403,11 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
           b.local_get(namedArgsListLocal);
           translator.callFunction(tearOffClosure.dynamicCallEntry!, b);
           b.end();
+          if (!function.body.hasPatchPoints) {
+            function.build();
+          } else {
+            translator.linkingActions.add(function.build);
+          }
 
           return function;
         }
@@ -1418,7 +1423,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
             global.initializer
               ..ref_func(function)
               ..end();
-            b.global_get(global);
+            b.global_get(global.build());
           } else {
             b.ref_func(function);
           }
@@ -1450,6 +1455,11 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
           }
           translator.callFunction(tearOffFunction, b2);
           b2.end();
+          if (!function.body.hasPatchPoints) {
+            function.build();
+          } else {
+            translator.linkingActions.add(function.build);
+          }
           return function;
         }
 
@@ -2105,7 +2115,7 @@ class _ConstantAccessor {
     return definition;
   }
 
-  (w.GlobalBuilder, w.FunctionBuilder) _createLazyConstant(
+  (w.Global, w.BaseFunction) _createLazyConstant(
     w.ModuleBuilder targetModule,
     ConstantInfo info,
   ) {
@@ -2122,7 +2132,7 @@ class _ConstantAccessor {
     return (definedGlobal, initFunction);
   }
 
-  w.GlobalBuilder _createLazyGlobal(
+  w.Global _createLazyGlobal(
     w.ModuleBuilder module,
     String name,
     ConstantInfo info,
@@ -2131,12 +2141,12 @@ class _ConstantAccessor {
     final definedGlobal = module.globals.define(globalType, name);
     definedGlobal.initializer.ref_null(w.HeapType.none);
     definedGlobal.initializer.end();
-    return definedGlobal;
+    return definedGlobal.build();
   }
 
-  w.FunctionBuilder _createLazyGlobalInitializer(
+  w.BaseFunction _createLazyGlobalInitializer(
     w.ModuleBuilder module,
-    w.GlobalBuilder definedGlobal,
+    w.Global definedGlobal,
     String name,
     ConstantInfo info,
   ) {
@@ -2155,11 +2165,16 @@ class _ConstantAccessor {
     translator.globals.writeGlobal(b, definedGlobal);
     b.local_get(temp);
     b.end();
+    if (!initFunction.body.hasPatchPoints) {
+      initFunction.build();
+    } else {
+      translator.linkingActions.add(initFunction.build);
+    }
 
     return initFunction;
   }
 
-  w.FunctionBuilder _createLazyTableInitializer(
+  w.BaseFunction _createLazyTableInitializer(
     w.ModuleBuilder module,
     w.TableBuilder table,
     int tableIndex,
@@ -2182,11 +2197,16 @@ class _ConstantAccessor {
     b.table_set(tableImporter.get(table, module));
     b.local_get(temp);
     b.end();
+    if (!initFunction.body.hasPatchPoints) {
+      initFunction.build();
+    } else {
+      translator.linkingActions.add(initFunction.build);
+    }
 
     return initFunction;
   }
 
-  w.GlobalBuilder _createNonLazyConstant(
+  w.Global _createNonLazyConstant(
     w.ModuleBuilder targetModule,
     ConstantInfo info,
   ) {
@@ -2204,7 +2224,7 @@ class _ConstantAccessor {
     definedGlobal.initializer.end();
     constants.currentlyCreating = false;
 
-    return definedGlobal;
+    return definedGlobal.build();
   }
 
   bool constantIsAlwaysEager(Constant constant) {

@@ -32,6 +32,8 @@ export 'types.dart' show TypesBuilder;
 mixin Builder<T> {
   T? _built;
 
+  bool get isBuilt => _built != null;
+
   T build() => _built ??= forceBuild();
 
   T forceBuild();
@@ -41,6 +43,9 @@ mixin Builder<T> {
 mixin IndexableBuilder<T> implements Builder<T>, ir.Indexable {
   @override
   T? _built;
+
+  @override
+  bool get isBuilt => _built != null;
 
   @override
   T build() => _built ??= forceBuild();

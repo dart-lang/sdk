@@ -255,6 +255,8 @@ class InstructionsBuilder with Builder<ir.Instructions> {
 
   bool get isEmpty => _instructions.isEmpty;
 
+  bool get hasPatchPoints => _patchPoints.isNotEmpty;
+
   @override
   ir.Instructions forceBuild() {
     if (_patchPoints.isEmpty) {
@@ -283,6 +285,10 @@ class InstructionsBuilder with Builder<ir.Instructions> {
     int smi = _sourceMappings != null ? 0 : -1;
 
     for (final patch in _patchPoints) {
+      assert(
+        patch.patchBuilder._instructions.isNotEmpty,
+        "Patchable region at offset ${patch.start} was not patched before building.",
+      );
       // Add all instructions before the patch starts.
       while (ini < patch.start) {
         newInstructions.add(instructions[ini++]);
@@ -328,6 +334,7 @@ class InstructionsBuilder with Builder<ir.Instructions> {
     List<ir.ValueType> inputs,
     List<ir.ValueType> outputs,
   ) {
+    assert(!isBuilt);
     assert(_verifyTypes(inputs, outputs, trace: ['<patchable region>']));
     if (!_reachable) return null;
 
@@ -344,6 +351,7 @@ class InstructionsBuilder with Builder<ir.Instructions> {
   }
 
   void _add(ir.Instruction i) {
+    assert(!isBuilt);
     assert(
       !constantExpression || i.isConstant,
       "Non-constant instruction $i added to constant expression",

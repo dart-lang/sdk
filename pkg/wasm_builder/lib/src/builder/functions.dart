@@ -14,6 +14,8 @@ class FunctionsBuilder with Builder<ir.Functions> {
 
   FunctionsBuilder(this._moduleBuilder);
 
+  List<FunctionBuilder> get defined => _functionBuilders;
+
   /// Defines a new function in this module with the given function type.
   ///
   /// The [ir.DefinedFunction.body] must be completed (including the terminating

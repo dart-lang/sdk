@@ -847,7 +847,7 @@ class ClosureLayouter extends RecursiveVisitor {
     b.call_ref(genericFunctionType);
     b.end();
 
-    return trampoline;
+    return trampoline.build();
   }
 
   w.BaseFunction _createInstantiationDynamicCallEntry(
@@ -913,7 +913,7 @@ class ClosureLayouter extends RecursiveVisitor {
     b.call_ref(translator.dynamicCallVtableEntryFunctionType);
     b.end();
 
-    return function;
+    return function.build();
   }
 
   w.BaseFunction _createInstantiationFunction(
@@ -955,6 +955,7 @@ class ClosureLayouter extends RecursiveVisitor {
     }
     ib.struct_new(instantiatedRepresentation.vtableStruct);
     ib.end();
+    vtable.build();
 
     final instantiationFunction = module.functions.define(functionType, name);
     final b = instantiationFunction.body;
@@ -1004,7 +1005,7 @@ class ClosureLayouter extends RecursiveVisitor {
 
     b.end();
 
-    return instantiationFunction;
+    return instantiationFunction.build();
   }
 
   w.BaseFunction _createInstantiationTypeComparisonFunction(
@@ -1057,7 +1058,7 @@ class ClosureLayouter extends RecursiveVisitor {
 
     b.i32_const(0); // false
     b.end(); // end of function
-    return function;
+    return function.build();
   }
 
   w.BaseFunction _createInstantiationTypeHashFunction(
@@ -1095,7 +1096,7 @@ class ClosureLayouter extends RecursiveVisitor {
 
     b.end();
 
-    return function;
+    return function.build();
   }
 
   ClosureRepresentationsForParameterCount _representationsForCounts(
