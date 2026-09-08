@@ -31,7 +31,7 @@
     block $label0 (result i32)
       i32.const 0
       local.get $var0
-      struct.get $Foo $field0
+      struct.get $Foo $#classId
       i32.const 112
       i32.ne
       br_if $label0
@@ -39,7 +39,7 @@
       i32.const 0
       local.get $var0
       local.get $var0
-      struct.get $Foo $field0
+      struct.get $Foo $#classId
       i32.const 335
       i32.add
       call_indirect $M.$ (param (ref $#Top)) (result (ref $Array<_Type>))
@@ -75,7 +75,7 @@
         local.get $var0
         struct.get $Foo $field2
         local.tee $var3
-        struct.get $_Type $field0
+        struct.get $_Type $#classId
         local.tee $var2
         i32.const 9
         i32.le_u
@@ -146,7 +146,7 @@
       local.tee $var4
       local.get $var1
       local.get $var4
-      struct.get $_Type $field0
+      struct.get $_Type $#classId
       i32.const 492
       i32.add
       call_indirect $M.$ (param (ref $_Type) (ref $#Top)) (result i32)

@@ -509,6 +509,7 @@ class ClassInfoCollector {
       info._addField(
         w.FieldType(w.NumType.i32, mutable: false),
         expectedIndex: FieldIndex.classId,
+        fieldName: '#classId',
       );
       return;
     }
@@ -530,6 +531,7 @@ class ClassInfoCollector {
       info._addField(
         w.FieldType(w.NumType.i32),
         expectedIndex: FieldIndex.identityHash,
+        fieldName: '#identityHash',
       );
 
       assert(cls.typeParameters.isEmpty);

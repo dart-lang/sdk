@@ -83,7 +83,7 @@
         local.get $var1
         ref.cast $Object
         local.tee $var2
-        struct.get $Object $field0
+        struct.get $Object $#classId
         i32.const 113
         i32.eq
         if
@@ -95,7 +95,7 @@
           local.get $var2
           local.get $var5
           local.get $var2
-          struct.get $Object $field0
+          struct.get $Object $#classId
           i32.const 432
           i32.add
           call_indirect $M.dispatch0 (param (ref $Object) i64)

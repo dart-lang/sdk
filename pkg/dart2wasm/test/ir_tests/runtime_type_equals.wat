@@ -1,12 +1,12 @@
 (module $M
   (type $#Top (struct
-    (field $field0 i32)))
+    (field $#classId i32)))
   (type $Array<_Type> (array (field (mut (ref $#Top)))))
   (type $GenericClass (sub final $#Top (struct
-    (field $field0 i32)
+    (field $#classId i32)
     (field $field1 (ref $_InterfaceType)))))
   (type $_InterfaceType (sub final $#Top (struct
-    (field $field0 i32)
+    (field $#classId i32)
     (field $classId i32)
     (field $typeArguments (ref $Array<_Type>)))))
   (table $dtable0 741 funcref)
@@ -24,7 +24,7 @@
         i32.const 0
         br $label0
       end $label1
-      struct.get $#Top $field0
+      struct.get $#Top $#classId
     end $label0
     block $label2 (result i32)
       block $label3 (result (ref $#Top))
@@ -33,7 +33,7 @@
         i32.const 0
         br $label2
       end $label3
-      struct.get $#Top $field0
+      struct.get $#Top $#classId
     end $label2
     i32.eq
   )
@@ -46,7 +46,7 @@
     local.get $var1
     call $_getMasqueradedRuntimeType
     local.get $var2
-    struct.get $#Top $field0
+    struct.get $#Top $#classId
     i32.const 119
     i32.add
     call_indirect (param (ref $#Top) (ref $#Top)) (result i32)
@@ -56,9 +56,9 @@
     i32.const 1
     call $sink
     local.get $var0
-    struct.get $#Top $field0
+    struct.get $#Top $#classId
     local.get $var1
-    struct.get $#Top $field0
+    struct.get $#Top $#classId
     i32.eq
   )
   (@binaryen.inline 0)
@@ -66,9 +66,9 @@
     i32.const 0
     call $sink
     local.get $var0
-    struct.get $#Top $field0
+    struct.get $#Top $#classId
     local.get $var1
-    struct.get $#Top $field0
+    struct.get $#Top $#classId
     i32.eq
   )
   (@binaryen.inline 0)
@@ -82,18 +82,18 @@
         i32.const 0
         br $label0
       end $label1
-      struct.get $#Top $field0
+      struct.get $#Top $#classId
     end $label0
     local.get $var1
-    struct.get $#Top $field0
+    struct.get $#Top $#classId
     i32.eq
   )
   (@binaryen.inline 0)
   (func $testNonGenericNonNullable (param $var0 (ref $#Top)) (param $var1 (ref $#Top)) (result i32)
     local.get $var0
-    struct.get $#Top $field0
+    struct.get $#Top $#classId
     local.get $var1
-    struct.get $#Top $field0
+    struct.get $#Top $#classId
     i32.eq
   )
   (@binaryen.inline 0)
@@ -107,10 +107,10 @@
         i32.const 0
         br $label0
       end $label1
-      struct.get $#Top $field0
+      struct.get $#Top $#classId
     end $label0
     local.get $var0
-    struct.get $#Top $field0
+    struct.get $#Top $#classId
     i32.eq
   )
 )
