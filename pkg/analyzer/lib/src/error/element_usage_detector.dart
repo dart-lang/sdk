@@ -587,7 +587,14 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
 
   /// Reports the usage of [element] at [node] if [element] is in
   /// any of [usagesMetadataOnly] or [usagesArbitrary].
-  void checkUsage(Element? element, AstNode node) {
+  ///
+  /// [isImplicitTypeReference] indicates that [node] refers to the type
+  /// [element] without naming it.
+  void checkUsage(
+    Element? element,
+    AstNode node, {
+    bool isImplicitTypeReference = false,
+  }) {
     if (element == null) {
       return;
     }
@@ -701,6 +708,7 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
         displayName,
         // Getting it again might not be ideal...
         reportThis.elementUsageSet.getTagInfo(element, elementMetadata)!,
+        isImplicitTypeReference: isImplicitTypeReference,
         isInSamePackage: _isLibraryInWorkspacePackage(element.library),
       );
     }
@@ -803,7 +811,7 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
     if (node.element?.enclosingElement case var interfaceElement?) {
       // A dot-shorthand constructor invocation contains an implicit reference
       // to the interface on which the constructor was declared.
-      checkUsage(interfaceElement, node);
+      checkUsage(interfaceElement, node, isImplicitTypeReference: true);
     }
     _invocationArguments(node.constructorName.element, node.argumentList);
   }
@@ -813,7 +821,7 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
   ) {
     var element = node.element;
     if (element?.enclosingElement case var interfaceElement?) {
-      checkUsage(interfaceElement, node);
+      checkUsage(interfaceElement, node, isImplicitTypeReference: true);
     }
     checkUsage(element, node);
     _invocationArguments(element, node.argumentList);
@@ -823,7 +831,7 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
     if (node.memberName.element?.enclosingElement case var interfaceElement?) {
       // A dot-shorthand invocation contains an implicit reference to the
       // interface on which the constructor was declared.
-      checkUsage(interfaceElement, node);
+      checkUsage(interfaceElement, node, isImplicitTypeReference: true);
     }
     _invocationArguments(node.memberName.element, node.argumentList);
   }
@@ -840,7 +848,7 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
     if (element?.enclosingElement case var interfaceElement?) {
       // A dot-shorthand method invocation contains an implicit reference to
       // the interface on which the static method was declared.
-      checkUsage(interfaceElement, node);
+      checkUsage(interfaceElement, node, isImplicitTypeReference: true);
     }
     namedFunctionInvocation(node);
   }
@@ -850,7 +858,7 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
         case var interfaceElement?) {
       // A dot-shorthand property access contains an implicit reference to the
       // interface on which the constructor was declared.
-      checkUsage(interfaceElement, node);
+      checkUsage(interfaceElement, node, isImplicitTypeReference: true);
     }
   }
 
@@ -994,7 +1002,11 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
 
     // The omitted qualifier also refers to the enclosing declaration.
     if (node is DotShorthandNameExpression) {
-      checkUsage(element?.enclosingElement, node);
+      checkUsage(
+        element?.enclosingElement,
+        node,
+        isImplicitTypeReference: true,
+      );
     }
 
     checkUsage(element, node);
@@ -1162,6 +1174,9 @@ abstract class ElementUsageReporter<TagInfo extends Object> {
   /// [usageSite] is the source code location where the usage is located.
   /// [displayName] is the name of the element that was used. [tagInfo] is the
   /// tag information returned by [ElementUsageSet.getTagInfo].
+  /// [isImplicitTypeReference] indicates that the usage refers to a type
+  /// without explicitly naming it, such as the type supplying a dot-shorthand
+  /// member.
   /// [isInSamePackage] indicates whether the element and its usage are in
   /// the same package.
   void report(
@@ -1169,6 +1184,7 @@ abstract class ElementUsageReporter<TagInfo extends Object> {
     String displayName,
     TagInfo tagInfo, {
     required bool isInSamePackage,
+    bool isImplicitTypeReference = false,
   });
 }
 

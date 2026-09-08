@@ -249,6 +249,8 @@ const List<DiagnosticCode> diagnosticCodeValues = [
   diag.deprecatedLint,
   diag.deprecatedLintWithReplacement,
   diag.deprecatedMemberUse,
+  diag.deprecatedMemberUseImplicit,
+  diag.deprecatedMemberUseImplicitWithMessage,
   diag.deprecatedMemberUseWithMessage,
   diag.deprecatedMixin,
   diag.deprecatedMixinFunction,

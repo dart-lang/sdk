@@ -43,17 +43,24 @@ class DeprecatedElementUsageReporter implements ElementUsageReporter<String> {
     String displayName,
     String tagInfo, {
     required bool isInSamePackage,
+    bool isImplicitTypeReference = false,
   }) {
     if (isInSamePackage) return;
     if (normalizeDeprecationMessage(tagInfo) case var message?) {
       _diagnosticReporter.report(
-        diag.deprecatedMemberUseWithMessage
+        (isImplicitTypeReference
+                ? diag.deprecatedMemberUseImplicitWithMessage
+                : diag.deprecatedMemberUseWithMessage)
             .withArguments(name: displayName, details: message)
             .at(usageSite),
       );
     } else {
       _diagnosticReporter.report(
-        diag.deprecatedMemberUse.withArguments(name: displayName).at(usageSite),
+        (isImplicitTypeReference
+                ? diag.deprecatedMemberUseImplicit
+                : diag.deprecatedMemberUse)
+            .withArguments(name: displayName)
+            .at(usageSite),
       );
     }
   }
