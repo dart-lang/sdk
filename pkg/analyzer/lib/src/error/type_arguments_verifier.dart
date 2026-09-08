@@ -202,6 +202,14 @@ class TypeArgumentsVerifier {
     }
   }
 
+  void checkFunctionInstantiation(FunctionInstantiation node) {
+    _checkInvocationTypeArguments(
+      node.typeArguments.arguments,
+      node.operand.staticType,
+      node.staticType,
+    );
+  }
+
   void checkFunctionInvocation(FunctionInvocation node) {
     var functionType = switch (node.resolution) {
       ExecutableInvocationResolution(:var element) => element.type,

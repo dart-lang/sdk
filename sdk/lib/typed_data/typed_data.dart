@@ -4406,11 +4406,21 @@ abstract final class Int32x4 {
 
   /// Whether any of the four lanes has a non-zero value.
   ///
-  /// Returns `true` if at least one of the [x], [y], [z] or [w] lanes has any
+  /// Is `true` if at least one of the [x], [y], [z] or [w] lanes has any
   /// bit set, and `false` only when all four lanes are zero.
   ///
-  /// Equivalent to [flagX] || [flagY] || [flagZ] || [flagW].
+  /// Equivalent to <code>[flagX] || [flagY] || [flagZ] || [flagW]</code>.
+  @Since("3.14")
   bool get anyTrue;
+
+  /// Whether all four lanes have a non-zero value.
+  ///
+  /// Is `true` only when every one of the [x], [y], [z] and [w] lanes has
+  /// at least one bit set, and `false` if any lane is zero.
+  ///
+  /// Equivalent to <code>[flagX] && [flagY] && [flagZ] && [flagW]</code>.
+  @Since("3.14")
+  bool get allTrue;
 
   /// Mask passed to [shuffle] or [shuffleMix].
   static const int xxxx = 0x00;

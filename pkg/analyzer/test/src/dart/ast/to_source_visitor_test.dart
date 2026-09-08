@@ -10,11 +10,66 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../util/feature_sets.dart';
 import '../../diagnostics/parser_diagnostics.dart';
+import '../resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ToSourceVisitorTest);
+    defineReflectiveTests(ToSourceVisitorResolutionTest);
   });
+}
+
+@reflectiveTest
+class ToSourceVisitorResolutionTest extends PubPackageResolutionTest {
+  test_functionReference_explicitTypeArguments() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+T f<T>(T value) => value;
+const g = f<int>;
+''');
+    _assertSource('f<int>', result.findNodeV1.singleFunctionReference);
+  }
+
+  test_functionReference_implicitTypeArguments() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+T f<T>(T value) => value;
+const int Function(int) g = f;
+''');
+    _assertSource('f', result.findNodeV1.singleFunctionReference);
+  }
+
+  test_implicitCallReference_explicitTypeArguments() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {
+  T call<T>(T value) => value;
+}
+int Function(int) f(C c) => c<int>;
+''');
+    _assertSource('c<int>', result.findNodeV1.singleImplicitCallReference);
+  }
+
+  test_implicitCallReference_implicitTypeArguments() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {
+  T call<T>(T value) => value;
+}
+int Function(int) f(C c) => c;
+''');
+    _assertSource('c', result.findNodeV1.singleImplicitCallReference);
+  }
+
+  test_implicitCallReference_nonGeneric() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {
+  int call(int value) => value;
+}
+int Function(int) f(C c) => c;
+''');
+    _assertSource('c', result.findNodeV1.singleImplicitCallReference);
+  }
+
+  void _assertSource(String expected, AstNode node) {
+    expect(node.toString(), expected);
+  }
 }
 
 @reflectiveTest

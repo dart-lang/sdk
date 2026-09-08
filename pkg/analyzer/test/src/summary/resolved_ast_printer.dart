@@ -1041,6 +1041,17 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitFunctionInstantiation(FunctionInstantiation node) {
+    _sink.writeln('FunctionInstantiation');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeParameterElement(node);
+      _writeType('staticType', node.staticType);
+      _writeTypeList('typeArgumentTypes', node.typeArgumentTypes);
+    });
+  }
+
+  @override
   void visitFunctionReference(FunctionReference node) {
     _sink.writeln('FunctionReference');
     _sink.withIndent(() {

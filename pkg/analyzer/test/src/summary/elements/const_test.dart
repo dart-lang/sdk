@@ -1495,6 +1495,110 @@ library
 ''');
   }
 
+  test_const_functionInstantiation_implicitCallTearOff() async {
+    var library = await buildLibrary(r'''
+class C {
+  const C();
+  T call<T>(T value) => value;
+}
+const f = C()<int>;
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::C
+          constructors
+            #F2 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:12) (offset:18)
+              element: <testLibrary>::@class::C::@constructor::new
+              typeName: C
+              typeNameOffset: 18
+          methods
+            #F3 isComplete isOriginDeclaration call (nameOffset:27) (firstTokenOffset:25) (offset:27)
+              element: <testLibrary>::@class::C::@method::call
+              typeParameters
+                #F4 T (nameOffset:32) (firstTokenOffset:32) (offset:32)
+                  element: #E0 T
+              formalParameters
+                #F5 requiredPositional isOriginDeclaration value (nameOffset:37) (firstTokenOffset:35) (offset:37)
+                  element: <testLibrary>::@class::C::@method::call::@formalParameter::value
+      topLevelVariables
+        #F6 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic f (nameOffset:62) (firstTokenOffset:62) (offset:62)
+          element: <testLibrary>::@topLevelVariable::f
+          initializer: expression_0
+            FunctionInstantiation
+              operand: ImplicitCallTearOff
+                operand: ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
+                      name: C @66
+                      element: <testLibrary>::@class::C
+                      type: C
+                    element: <testLibrary>::@class::C::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @67
+                    rightParenthesis: ) @68
+                  staticType: C
+                element: <testLibrary>::@class::C::@method::call
+                staticType: T Function<T>(T)
+              typeArguments: TypeArgumentList
+                leftBracket: < @69
+                arguments
+                  NamedType
+                    name: int @70
+                    element: dart:core::@class::int
+                    type: int
+                rightBracket: > @73
+              staticType: int Function(int)
+              typeArgumentTypes
+                int
+          inducedGetter: #F7
+      getters
+        #F7 isComplete isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:62)
+          element: <testLibrary>::@getter::f
+          inducingVariable: #F6
+  classes
+    isSimplyBounded class C
+      reference: <testLibrary>::@class::C
+      firstFragment: #F1
+      constructors
+        isConst isOriginDeclaration new
+          reference: <testLibrary>::@class::C::@constructor::new
+          firstFragment: #F2
+      methods
+        isOriginDeclaration call
+          reference: <testLibrary>::@class::C::@method::call
+          firstFragment: #F3
+          typeParameters
+            #E0 T
+              firstFragment: #F4
+          formalParameters
+            #E1 requiredPositional value
+              firstFragment: #F5
+              type: T
+          returnType: T
+  topLevelVariables
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer f
+      reference: <testLibrary>::@topLevelVariable::f
+      firstFragment: #F6
+      type: int Function(int)
+      constantInitializer
+        fragment: #F6
+        expression: expression_0
+      getter: <testLibrary>::@getter::f
+  getters
+    isOriginVariable isStatic f
+      reference: <testLibrary>::@getter::f
+      firstFragment: #F7
+      returnType: int Function(int)
+      variable: <testLibrary>::@topLevelVariable::f
+''');
+  }
+
   test_const_functionInterfaceCallTearOff() async {
     var library = await buildLibrary(r'''
 int f(String value) => 0;
@@ -1611,10 +1715,12 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic v (nameOffset:24) (firstTokenOffset:24) (offset:24)
           element: <testLibrary>::@topLevelVariable::v
           initializer: expression_0
-            FunctionReference
-              function2: SimpleIdentifier
-                token: f @28
-                element: <testLibrary>::@function::f
+            FunctionInstantiation
+              operand: UnqualifiedNameExpression
+                name: f @28
+                resolution: ExecutableTearOffResolution
+                  element: <testLibrary>::@function::f
+                  type: void Function<T>(T)
                 staticType: void Function<T>(T)
               typeArguments: TypeArgumentList
                 leftBracket: < @29

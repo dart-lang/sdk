@@ -1123,7 +1123,10 @@ class Intrinsifier {
 
   /// Generate inline code for a [StaticGet] if the member is an inlined
   /// intrinsic.
-  w.ValueType? generateStaticGetterIntrinsic(StaticGet node) {
+  w.ValueType? generateStaticGetterIntrinsic(
+    StaticGet node,
+    w.ValueType expectedType,
+  ) {
     final Member target = node.target;
     final Class? cls = target.enclosingClass;
 
@@ -1236,7 +1239,32 @@ class Intrinsifier {
           return type;
       }
     }
+
+    if (_isIntrinsicMemoryGetter(node.target)) {
+      // External memory getters may only be invoked as a receiver to a
+      // MemoryAccessExtension call, which is intrinsified. When TFA detects
+      // that arguments to a memory access invocation throw unconditionally, the
+      // receiver is wrapped in a throwing BlockExpression we need to handle.
+      if (expectedType == translator.voidMarker) {
+        return translator.voidMarker;
+      } else {
+        throw StateError('Invalid memory getter invocation');
+      }
+    }
+
     return null;
+  }
+
+  bool _isIntrinsicMemoryGetter(Member member) {
+    if (member case Procedure(
+      kind: ProcedureKind.Getter,
+      isExternal: true,
+      function: FunctionNode(returnType: final InterfaceType type),
+    )) {
+      return type.classNode == translator.wasmMemoryClass;
+    }
+
+    return false;
   }
 
   int _getSimdLaneIndex(Expression argument, int numLanes, TreeNode node) {

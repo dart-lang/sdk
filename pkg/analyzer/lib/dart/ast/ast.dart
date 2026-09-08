@@ -180,6 +180,7 @@ export 'package:analyzer/src/dart/ast/ast.dart'
         FunctionInterfaceCallTearOffResolution,
         FunctionInterfaceInvocationResolution,
         FunctionReference,
+        FunctionInstantiation,
         FunctionTypeInvocationResolution,
         FunctionTypeAlias,
         ExecutableTearOffResolution,

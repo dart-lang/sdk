@@ -787,6 +787,12 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
+  void visitFunctionInstantiation(FunctionInstantiation node) {
+    _visitNode(node.operand);
+    _visitNode(node.typeArguments);
+  }
+
+  @override
   void visitFunctionReference(FunctionReference node) {
     _visitNode(node.function2);
     _visitNode(node.typeArguments);

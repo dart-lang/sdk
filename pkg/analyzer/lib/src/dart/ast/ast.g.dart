@@ -626,6 +626,9 @@ abstract class AstVisitor2<R> {
 
   R? visitFunctionExpression(FunctionExpression node);
 
+  @experimental
+  R? visitFunctionInstantiation(FunctionInstantiation node);
+
   R? visitFunctionReference(FunctionReference node);
 
   R? visitFunctionTypeAlias(FunctionTypeAlias node);

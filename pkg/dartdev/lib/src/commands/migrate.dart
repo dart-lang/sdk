@@ -5,18 +5,15 @@
 import 'dart:async';
 import 'dart:io' as io;
 
-import 'package:analysis_server_client/protocol.dart' show SourceEdit;
-import 'package:analyzer/source/line_info.dart';
 import 'package:cli_util/cli_logging.dart' show Progress;
+import 'package:dartdev/src/commands/utils/lsp_workspace_edits.dart';
 import 'package:language_server_protocol/protocol_custom_generated.dart';
 import 'package:language_server_protocol/protocol_generated.dart' as lsp;
-import 'package:language_server_protocol/protocol_special.dart';
 import 'package:path/path.dart' as path;
 
 import '../core.dart';
 import '../lsp_analysis_server.dart';
 import '../sdk.dart';
-import '../utils.dart';
 
 /// A command to run the package migration tool.
 class MigrateCommand extends DartdevCommand {
@@ -136,7 +133,7 @@ class MigrateCommand extends DartdevCommand {
         log.stdout(summary);
       }
 
-      if (_hasEdits(result.edit)) {
+      if (result.edit.hasEdits) {
         if (apply) {
           _applyWorkspaceEdit(result.edit!);
         } else {
@@ -162,55 +159,24 @@ class MigrateCommand extends DartdevCommand {
   /// Applies the changes defined in a [lsp.WorkspaceEdit] to the local
   /// filesystem.
   void _applyWorkspaceEdit(lsp.WorkspaceEdit workspaceEdit) {
-    void applyEdits(Uri uri, List<lsp.TextEdit> edits) {
-      final file = io.File.fromUri(uri);
+    String? readFile(String filePath) {
+      final file = io.File(filePath);
       if (!file.existsSync()) {
         log.stderr(
           "Warning: File doesn't exist for migration edit: ${file.path}",
         );
-        return;
+        return null;
       }
 
-      final content = file.readAsStringSync();
-      final lineInfo = LineInfo.fromContent(content);
-      final sourceEdits = <SourceEdit>[];
-
-      for (final edit in edits) {
-        final startOffset = lineInfo.offsetOfPosition(edit.range.start);
-        final endOffset = lineInfo.offsetOfPosition(edit.range.end);
-        if (startOffset < 0 || endOffset < startOffset) {
-          log.stderr('Warning: Invalid edit range in ${file.path}');
-          continue;
-        }
-
-        sourceEdits.add(
-          SourceEdit(startOffset, endOffset - startOffset, edit.newText),
-        );
-      }
-
-      // SourceEdit.applySequence applies edits from the back of the list to the
-      // front, so edits must be sorted in descending order by offset to avoid
-      // shifting character offsets for subsequent edits.
-      sourceEdits.sort((a, b) => b.offset.compareTo(a.offset));
-      final updatedContent = SourceEdit.applySequence(content, sourceEdits);
-      file.writeAsStringSync(updatedContent);
+      return file.readAsStringSync();
     }
 
-    // LSP WorkspaceEdits can encode changes in two ways:
-    // 1. A simple map of URIs to lists of TextEdits (`changes`).
-    // 2. A list of resource operations and versioned document edits
-    // (`documentChanges`).
-    // We check and handle both representations.
-    if (workspaceEdit.changes case final changes?) {
-      changes.forEach(applyEdits);
+    void writeFile(String filePath, String content) {
+      final file = io.File(filePath);
+      file.writeAsStringSync(content);
     }
-    if (workspaceEdit.documentChanges case final documentChanges?) {
-      for (final change in documentChanges) {
-        if (change.textDocumentEdit case final docEdit?) {
-          applyEdits(docEdit.textDocument.uri, docEdit.plainTextEdits);
-        }
-      }
-    }
+
+    applyWorkspaceEdit(workspaceEdit, readFile, writeFile);
   }
 
   /// Sends the migration request to the analysis server and returns the
@@ -283,23 +249,6 @@ class MigrateCommand extends DartdevCommand {
     return targets;
   }
 
-  /// Returns `true` if [edit] contains any proposed file or document changes.
-  bool _hasEdits(lsp.WorkspaceEdit? edit) {
-    if (edit == null) return false;
-    if (edit.changes case final changes?) {
-      if (changes.values.any((list) => list.isNotEmpty)) return true;
-    }
-    if (edit.documentChanges case final documentChanges?) {
-      return documentChanges.any((change) {
-        if (change.textDocumentEdit case final docEdit?) {
-          return docEdit.edits.isNotEmpty;
-        }
-        return true;
-      });
-    }
-    return false;
-  }
-
   /// Prints a command tip instructing the user how to apply the proposed
   /// changes.
   void _printApplyTip(
@@ -328,38 +277,5 @@ class MigrateCommand extends DartdevCommand {
     log.stdout('');
     log.stdout('To apply the proposed changes, run:');
     log.stdout('  dart migrate --apply$targetSdkArg$stepArg$targetArgs');
-  }
-}
-
-extension on lsp.TextDocumentEdit {
-  /// Converts all edits in this document edit (including snippet edits) into
-  /// a uniform list of plain [lsp.TextEdit]s.
-  List<lsp.TextEdit> get plainTextEdits {
-    return edits
-        .map(
-          (e) => e.map(
-            (a) => a,
-            (l) => l,
-            (s) => lsp.TextEdit(range: s.range, newText: s.snippet.value),
-            (t) => t,
-          ),
-        )
-        .toList();
-  }
-}
-
-extension
-    on
-        Either4<
-          lsp.CreateFile,
-          lsp.DeleteFile,
-          lsp.RenameFile,
-          lsp.TextDocumentEdit
-        > {
-  /// Extracts the [lsp.TextDocumentEdit] from this union, or returns `null` if
-  /// this is a resource operation ([lsp.CreateFile], [lsp.DeleteFile], or
-  /// [lsp.RenameFile]).
-  lsp.TextDocumentEdit? get textDocumentEdit {
-    return map((_) => null, (_) => null, (_) => null, (docEdit) => docEdit);
   }
 }

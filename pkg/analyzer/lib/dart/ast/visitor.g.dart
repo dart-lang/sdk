@@ -2499,6 +2499,13 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
     return null;
   }
 
+  @experimental
+  @override
+  R? visitFunctionInstantiation(FunctionInstantiation node) {
+    node.visitChildren2(this);
+    return null;
+  }
+
   @override
   R? visitFunctionReference(FunctionReference node) {
     node.visitChildren2(this);
@@ -4219,6 +4226,10 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitFunctionExpression(FunctionExpression node) => null;
 
+  @experimental
+  @override
+  R? visitFunctionInstantiation(FunctionInstantiation node) => null;
+
   @override
   R? visitFunctionReference(FunctionReference node) => null;
 
@@ -5592,6 +5603,10 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitFunctionExpression(FunctionExpression node) => _throw(node);
+
+  @experimental
+  @override
+  R? visitFunctionInstantiation(FunctionInstantiation node) => _throw(node);
 
   @override
   R? visitFunctionReference(FunctionReference node) => _throw(node);
@@ -8324,6 +8339,15 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
     return result;
   }
 
+  @experimental
+  @override
+  T? visitFunctionInstantiation(FunctionInstantiation node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitFunctionInstantiation(node);
+    stopwatch.stop();
+    return result;
+  }
+
   @override
   T? visitFunctionReference(FunctionReference node) {
     stopwatch.start();
@@ -10367,6 +10391,10 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitFunctionExpression(FunctionExpression node) => visitNode(node);
+
+  @experimental
+  @override
+  R? visitFunctionInstantiation(FunctionInstantiation node) => visitNode(node);
 
   @override
   R? visitFunctionReference(FunctionReference node) => visitNode(node);

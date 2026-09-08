@@ -23,6 +23,8 @@
   `Int32x4.anyTrue` getter, which is `true` when any lane is non-zero.
 - Added `Int32x4.notEqual`, a lane-wise inequality comparison that returns `-1`
   in each lane where the operands differ and `0` elsewhere.
+- Added the `Int32x4.allTrue` getter, which is `true` only when every lane is
+  non-zero.
 
 #### `dart:js_interop`
 

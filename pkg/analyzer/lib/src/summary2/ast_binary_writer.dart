@@ -478,6 +478,15 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   }
 
   @override
+  void visitFunctionInstantiation(FunctionInstantiation node) {
+    _sink.writeEnum(AstNodeTag.FunctionInstantiation);
+    _writeNode(node.operand);
+    _writeNode(node.typeArguments);
+    _sink.writeOptionalTypeList(node.typeArgumentTypes);
+    _storeExpression(node);
+  }
+
+  @override
   void visitFunctionReference(FunctionReference node) {
     _sink.writeEnum(AstNodeTag.FunctionReference);
     _writeNode(node.function2);

@@ -404,6 +404,8 @@ abstract class _FindNodeBase {
   FunctionExpressionInvocation get singleFunctionExpressionInvocation =>
       _single();
 
+  FunctionInstantiation get singleFunctionInstantiation => _single();
+
   FunctionReference get singleFunctionReference => _single();
 
   FunctionTypeAlias get singleFunctionTypeAlias => _single();
@@ -912,6 +914,10 @@ abstract class _FindNodeBase {
 
   FunctionExpressionInvocation functionExpressionInvocation(String search) {
     return _node(search, (n) => n is FunctionExpressionInvocation);
+  }
+
+  FunctionInstantiation functionInstantiation(String search) {
+    return _node(search, (n) => n is FunctionInstantiation);
   }
 
   FunctionReference functionReference(String search) {

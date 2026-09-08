@@ -1749,6 +1749,8 @@ final class NativeInt32x4 implements Int32x4 {
 
   bool get anyTrue => (x | y | z | w) != 0;
 
+  bool get allTrue => flagX && flagY && flagZ && flagW;
+
   /// Shuffle the lane values. [mask] must be one of the 256 shuffle constants.
   Int32x4 shuffle(int mask) {
     if ((mask < 0) || (mask > 255)) {
