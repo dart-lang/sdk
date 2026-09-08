@@ -822,6 +822,9 @@ abstract class RuleVisitorRegistry2 {
   void addImplicitCallReference(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   @experimental
+  void addImplicitCallTearOff(AbstractAnalysisRule rule, AstVisitor2 visitor);
+
+  @experimental
   void addImplicitFunctionInstantiation(
     AbstractAnalysisRule rule,
     AstVisitor2 visitor,

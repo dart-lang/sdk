@@ -742,12 +742,16 @@ class BuilderFactory {
   ) {
     String name = fragment.name;
     IndexedClass? indexedClass = _indexedLibrary?.lookupIndexedClass(name);
+    List<EnumElementFragment> enumElements = [];
+
     _createDeclarationBuilder(
       introductory: fragment,
       augmentations: augmentations,
       reference: indexedClass?.reference,
-      createDeclaration: (fragment) =>
-          new EnumDeclaration(fragment, _loader.target.underscoreEnumType),
+      createDeclaration: (EnumFragment fragment) {
+        enumElements.addAll(fragment.enumElements);
+        return new EnumDeclaration(fragment, _loader.target.underscoreEnumType);
+      },
       createBuilder:
           ({
             required augmentations,
@@ -759,7 +763,7 @@ class BuilderFactory {
             name: name,
             typeParameters: nominalParameters,
             underscoreEnumTypeBuilder: _loader.target.underscoreEnumType,
-            enumElements: fragment.enumElements,
+            enumElements: enumElements,
             libraryBuilder: _enclosingLibraryBuilder,
             fileUri: fragment.fileUri,
             startOffset: fragment.startOffset,
@@ -778,6 +782,13 @@ class BuilderFactory {
       typeParametersMismatchMessage: diag.patchClassTypeParametersMismatch,
       typeParametersIntroductoryMessage: diag.patchClassOrigin,
     );
+
+    if (!fragment.hasErroneousBody && enumElements.isEmpty) {
+      _problemReporting.addProblem2(
+        diag.enumDeclarationEmpty,
+        fragment.uriOffset,
+      );
+    }
   }
 
   void _createExtensionBuilderFromFragments(

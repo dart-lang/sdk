@@ -1,8 +1,8 @@
 (module $M
   (type $#Top (struct
-    (field $field0 i32)))
+    (field $#classId i32)))
   (type $BoxedInt (sub final $#Top (struct
-    (field $field0 i32)
+    (field $#classId i32)
     (field $value i64))))
   (global $1 (ref $BoxedInt)
     (i32.const 101)

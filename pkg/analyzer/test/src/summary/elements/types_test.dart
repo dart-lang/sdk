@@ -452,14 +452,18 @@ library
               argumentList: ArgumentList
                 leftParenthesis: ( @67
                 arguments2
-                  ImplicitCallReference
-                    expression2: UnqualifiedNameExpression
+                  ImplicitCallTearOff
+                    operand: UnqualifiedNameExpression
                       name: c @68
                       resolution: VariableReadResolution
                         element: <testLibrary>::@class::D::@constructor::new::@formalParameter::c
                         type: C
                       staticType: C
-                    expression(v1): SimpleIdentifier
+                    element: <testLibrary>::@class::C::@method::call
+                    staticType: void Function()
+                arguments(v1)
+                  ImplicitCallReference
+                    expression: SimpleIdentifier
                       token: c @68
                       element: <testLibrary>::@class::D::@constructor::new::@formalParameter::c
                       staticType: C

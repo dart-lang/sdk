@@ -1,8 +1,8 @@
 (module $M
   (type $#Top (struct
-    (field $field0 i32)))
+    (field $#classId i32)))
   (type $JSExternWrapper (sub $#Top (struct
-    (field $field0 i32)
+    (field $#classId i32)
     (field $_externRef externref))))
   (global $".hello world" (import "" "hello world") (ref extern))
   (global $"\"hello world\"" (ref $JSExternWrapper)

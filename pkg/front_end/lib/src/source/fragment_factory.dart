@@ -245,6 +245,7 @@ abstract class FragmentFactory {
     required List<TypeBuilder>? interfaces,
     required int startOffset,
     required int endOffset,
+    required bool hasErroneousBody,
   });
 
   void addEnumElement({

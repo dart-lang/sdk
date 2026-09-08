@@ -406,8 +406,7 @@ List<String> processItem(ParserAstNode item, List<int> data) {
       getCutContent(
         data,
         declaration.enumKeyword.offset,
-        declaration.leftBrace.endGroup!.offset +
-            declaration.leftBrace.endGroup!.length,
+        declaration.endToken.offset + declaration.endToken.length,
       ),
     ];
   } else if (item.isMixinDeclaration()) {

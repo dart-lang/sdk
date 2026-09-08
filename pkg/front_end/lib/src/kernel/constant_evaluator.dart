@@ -520,6 +520,10 @@ class ConstantsTransformer extends RemovingTransformer {
     TreeNode result = constantEvaluator.withNewEnvironment(() {
       Expression? initializer = node.initializer;
       if (node.isConst) {
+        assert(
+          initializer != null,
+          "Missing initializer on constant field $node.",
+        );
         transformAnnotations(node.annotations, node);
         initializer = node.initializer = evaluateAndTransformWithContext(
           node,

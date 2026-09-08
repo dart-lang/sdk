@@ -299,7 +299,7 @@
     local.tee $var2
     call $"fooGlobal5 implicit getter"
     local.get $var2
-    struct.get $Object $field0
+    struct.get $Object $#classId
     i32.const 432
     i32.add
     call_indirect $M.dispatch0 (param (ref $Object) (ref null $#Top))

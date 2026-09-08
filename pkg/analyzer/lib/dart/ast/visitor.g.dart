@@ -2590,6 +2590,13 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
 
   @experimental
   @override
+  R? visitImplicitCallTearOff(ImplicitCallTearOff node) {
+    node.visitChildren2(this);
+    return null;
+  }
+
+  @experimental
+  @override
   R? visitImplicitFunctionInstantiation(ImplicitFunctionInstantiation node) {
     node.visitChildren2(this);
     return null;
@@ -4261,6 +4268,10 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
 
   @experimental
   @override
+  R? visitImplicitCallTearOff(ImplicitCallTearOff node) => null;
+
+  @experimental
+  @override
   R? visitImplicitFunctionInstantiation(ImplicitFunctionInstantiation node) =>
       null;
 
@@ -5628,6 +5639,10 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitImplicitCallReference(ImplicitCallReference node) => _throw(node);
+
+  @experimental
+  @override
+  R? visitImplicitCallTearOff(ImplicitCallTearOff node) => _throw(node);
 
   @experimental
   @override
@@ -8428,6 +8443,15 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
 
   @experimental
   @override
+  T? visitImplicitCallTearOff(ImplicitCallTearOff node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitImplicitCallTearOff(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @experimental
+  @override
   T? visitImplicitFunctionInstantiation(ImplicitFunctionInstantiation node) {
     stopwatch.start();
     T? result = _baseVisitor.visitImplicitFunctionInstantiation(node);
@@ -10390,6 +10414,10 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitImplicitCallReference(ImplicitCallReference node) => visitNode(node);
+
+  @experimental
+  @override
+  R? visitImplicitCallTearOff(ImplicitCallTearOff node) => visitNode(node);
 
   @experimental
   @override

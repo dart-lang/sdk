@@ -120,6 +120,7 @@ enum AstNodeTag {
   UnqualifiedNameExpression,
   ImportPrefixedNameExpression,
   ImplicitFunctionInstantiation,
+  ImplicitCallTearOff,
 }
 
 enum DirectiveUriKind {

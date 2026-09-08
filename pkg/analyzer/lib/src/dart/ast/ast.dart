@@ -28497,7 +28497,7 @@ final class ImplicitCallReferenceImpl extends ExpressionImpl
   @override
   final List<DartType> typeArgumentTypes;
 
-  ImplicitFunctionInstantiationImpl? _v1ProjectionOrigin;
+  ExpressionImpl? _v1ProjectionOrigin;
 
   @generated
   ImplicitCallReferenceImpl({
@@ -28512,14 +28512,14 @@ final class ImplicitCallReferenceImpl extends ExpressionImpl
     _becomeParentOf12(typeArguments);
   }
 
-  ImplicitCallReferenceImpl.v1Projection(
-    ImplicitFunctionInstantiationImpl origin,
-    ImplicitCallReferenceImpl operand,
-  ) : _expression2 = operand.expression2,
-      _typeArguments = null,
-      element = operand.element,
-      typeArgumentTypes = origin.typeArgumentTypes,
-      _v1ProjectionOrigin = origin {
+  ImplicitCallReferenceImpl.v1Projection({
+    required ExpressionImpl origin,
+    required ExpressionImpl operand,
+    required this.element,
+    required this.typeArgumentTypes,
+  }) : _expression2 = operand,
+       _typeArguments = null,
+       _v1ProjectionOrigin = origin {
     _becomeParentOf1(expression);
   }
 
@@ -28744,6 +28744,196 @@ final class ImplicitCallReferenceImpl extends ExpressionImpl
   }
 }
 
+/// The implicit tear-off of a callable object's `call` method.
+///
+/// This node is inserted during resolution when a context requires a function
+/// value. Its [operand] retains the callable object's type, and this expression
+/// has the selected method's function type, before any function instantiation.
+/// It introduces no source tokens.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class ImplicitCallTearOff implements Expression {
+  /// The selected `call` method.
+  MethodElement get element;
+
+  /// The callable object from which the method is extracted.
+  Expression get operand;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [
+    GenerateNodeProperty('operand', isInValueExpressionSlot: true),
+    GenerateNodeProperty('element'),
+  ],
+)
+final class ImplicitCallTearOffImpl extends ExpressionImpl
+    implements ImplicitCallTearOff {
+  @generated
+  ExpressionImpl _operand;
+
+  @generated
+  @override
+  final MethodElement element;
+
+  ImplicitCallReferenceImpl? _v1Projection;
+
+  @generated
+  ImplicitCallTearOffImpl({
+    required ExpressionImpl operand,
+    required this.element,
+  }) : _operand = operand {
+    _becomeParentOf2(operand);
+  }
+
+  @generated
+  @override
+  Token get beginToken {
+    return operand.beginToken;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return operand.endToken;
+  }
+
+  @generated
+  @override
+  ExpressionImpl get operand => _operand;
+
+  @DoNotGenerate(reason: 'Rebuilds the V1 view when the operand changes')
+  set operand(ExpressionImpl operand) {
+    _operand = _becomeParentOf2(operand);
+    var previousProjection = _v1Projection;
+    if (previousProjection != null) {
+      _v1Projection = null;
+      v1Projection._parent = previousProjection._parent;
+      previousProjection._parent = null;
+    }
+  }
+
+  @override
+  Precedence get precedence => operand.precedence;
+
+  ImplicitCallReferenceImpl get v1Projection {
+    return _v1Projection ??= ImplicitCallReferenceImpl.v1Projection(
+      origin: this,
+      operand: operand,
+      element: element,
+      typeArgumentTypes: const [],
+    );
+  }
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @generated
+  @override
+  ChildEntities get _childEntities {
+    throw StateError('ImplicitCallTearOff is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 =>
+      ChildEntities()..addNode('operand', operand);
+
+  @generated
+  @ToBeDeprecated('Use accept2 instead.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('ImplicitCallTearOff is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitImplicitCallTearOff(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent2, this));
+    assert(identical(operand, child));
+    return true;
+  }
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    if (identical(operand, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'operand'.");
+    }
+    super.removeChild(oldNode);
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (identical(operand, oldNode)) {
+      operand = newNode as ExpressionImpl;
+      return;
+    }
+    super.replaceChild(oldNode, newNode);
+  }
+
+  @generated
+  @override
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+    resolver.visitImplicitCallTearOff(this, contextType: contextType);
+  }
+
+  @generated
+  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError('ImplicitCallTearOff is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    operand.accept2(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(
+    AstVisitor2 visitor, {
+    void Function(ExpressionImpl)? visitOperand,
+  }) {
+    if (visitOperand != null) {
+      visitOperand(operand);
+    } else {
+      operand.accept2(visitor);
+    }
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError('ImplicitCallTearOff is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (operand._containsOffset(rangeOffset, rangeEnd)) {
+      return operand;
+    }
+    return null;
+  }
+}
+
 /// The implicit instantiation of a generic function value.
 ///
 /// This node is inserted during resolution when contextual inference supplies
@@ -28948,7 +29138,20 @@ final class ImplicitFunctionInstantiationImpl extends ExpressionImpl
       return operand.constructorReference;
     }
     if (operand is ImplicitCallReferenceImpl) {
-      return ImplicitCallReferenceImpl.v1Projection(this, operand);
+      return ImplicitCallReferenceImpl.v1Projection(
+        origin: this,
+        operand: operand.expression2,
+        element: operand.element,
+        typeArgumentTypes: typeArgumentTypes,
+      );
+    }
+    if (operand is ImplicitCallTearOffImpl) {
+      return ImplicitCallReferenceImpl.v1Projection(
+        origin: this,
+        operand: operand.operand,
+        element: operand.element,
+        typeArgumentTypes: typeArgumentTypes,
+      );
     }
     if (!useLegacyV1Projection) {
       return FunctionReferenceImpl.v1Projection(this);
@@ -55126,8 +55329,13 @@ enum V1Projection {
     var parent = node._parent2;
     if (parent is ImplicitFunctionInstantiationImpl &&
         identical(parent.operand, node) &&
-        (parent.useLegacyV1Projection || node is ImplicitCallReferenceImpl)) {
+        (parent.useLegacyV1Projection ||
+            node is ImplicitCallReferenceImpl ||
+            node is ImplicitCallTearOffImpl)) {
       return createIfAbsent ? parent.v1Projection : parent._v1Projection;
+    }
+    if (node is ImplicitCallTearOffImpl) {
+      return createIfAbsent ? node.v1Projection : node._v1Projection;
     }
     if (node is ImplicitFunctionInstantiationImpl) {
       return createIfAbsent ? node.v1Projection : node._v1Projection;

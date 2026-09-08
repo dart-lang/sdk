@@ -3630,7 +3630,6 @@ class OutlineBuilder extends StackListenerImpl {
         pop() as ConstructorReferenceBuilder?;
     Object? enumConstantInfo = pop();
     if (enumConstantInfo is EnumConstantInfo) {
-      push(enumConstantInfo);
       _builderFactory.addEnumElement(
         metadata: enumConstantInfo.metadata,
         name: enumConstantInfo.name,
@@ -3640,14 +3639,12 @@ class OutlineBuilder extends StackListenerImpl {
       );
     } else {
       assert(enumConstantInfo is ParserRecovery);
-      push(NullValues.EnumConstantInfo);
     }
   }
 
   @override
   void handleEnumElements(Token elementsEndToken, int elementsCount) {
     debugEvent("handleEnumElements");
-    push(elementsCount);
   }
 
   @override
@@ -3658,19 +3655,10 @@ class OutlineBuilder extends StackListenerImpl {
     int memberCount,
     Token endToken,
   ) {
-    assert(checkState(beginToken, [/* element count */ ValueKinds.Integer]));
     debugEvent("endEnum");
-
-    int elementsCount = pop() as int;
 
     assert(
       checkState(beginToken, [
-        /* enum constants */ ...repeatedKind(
-          ValueKinds.EnumConstantInfoOrNull,
-          elementsCount,
-        ),
-
-        ///* endCharOffset */ ValueKinds.Integer,
         /* interfaces */ ValueKinds.TypeBuilderListOrNull,
         /* mixins */ unionOfKinds([
           ValueKinds.TypeBuilderListOrNull,
@@ -3682,30 +3670,6 @@ class OutlineBuilder extends StackListenerImpl {
         /* metadata */ ValueKinds.MetadataListOrNull,
       ]),
     );
-
-    List<EnumConstantInfo?>? enumConstantInfos =
-        const FixedNullableList<EnumConstantInfo>().pop(stack, elementsCount);
-
-    if (enumConstantInfos != null) {
-      List<EnumConstantInfo?>? parsedEnumConstantInfos;
-      for (int index = 0; index < enumConstantInfos.length; index++) {
-        EnumConstantInfo? info = enumConstantInfos[index];
-        if (parsedEnumConstantInfos != null && info != null) {
-          parsedEnumConstantInfos.add(info);
-        } else if (info == null && parsedEnumConstantInfos == null) {
-          // Skip this one, but copy previous (good) ones.
-          parsedEnumConstantInfos = [];
-          parsedEnumConstantInfos.addAll(enumConstantInfos.sublist(0, index));
-        }
-      }
-      if (parsedEnumConstantInfos != null) {
-        if (parsedEnumConstantInfos.isEmpty) {
-          enumConstantInfos = null;
-        } else {
-          enumConstantInfos = parsedEnumConstantInfos;
-        }
-      }
-    }
 
     List<TypeBuilder>? interfaces =
         nullIfParserRecovery(pop()) as List<TypeBuilder>?;
@@ -3720,17 +3684,6 @@ class OutlineBuilder extends StackListenerImpl {
 
     int startOffset = metadata?.first.atOffset ?? beginToken.charOffset;
     if (identifier is Identifier) {
-      if (enumConstantInfos == null) {
-        if (!leftBrace.isSynthetic) {
-          // TODO(johnniwinther): Report this later. This is not valid for
-          //  augmentations.
-          addProblem(
-            diag.enumDeclarationEmpty,
-            identifier.token.offset,
-            identifier.token.length,
-          );
-        }
-      }
       if (interfaces != null) {
         for (TypeBuilder interface in interfaces) {
           if (interface.nullabilityBuilder.build() == Nullability.nullable) {
@@ -3755,7 +3708,8 @@ class OutlineBuilder extends StackListenerImpl {
         mixins: mixins,
         interfaces: interfaces,
         startOffset: startOffset,
-        endOffset: endToken.charOffset, //endOffset,
+        endOffset: endToken.charOffset,
+        hasErroneousBody: leftBrace.isSynthetic,
       );
     } else {
       _builderFactory.endEnumDeclarationForParserRecovery(
@@ -4980,7 +4934,6 @@ class OutlineBuilder extends StackListenerImpl {
   void handleNoEnumBody(Token semicolon) {
     debugEvent("handleNoEnumBody");
     _builderFactory.beginEnumBody();
-    push(0); // number of enum constants
   }
 
   @override

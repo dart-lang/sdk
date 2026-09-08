@@ -424,6 +424,8 @@ abstract class _FindNodeBase {
 
   ImplicitCallReference get singleImplicitCallReference => _single();
 
+  ImplicitCallTearOff get singleImplicitCallTearOff => _single();
+
   ImplicitFunctionInstantiation get singleImplicitFunctionInstantiation =>
       _single();
 
@@ -952,6 +954,10 @@ abstract class _FindNodeBase {
 
   ImplicitCallReference implicitCallReference(String search) {
     return _node(search, (n) => n is ImplicitCallReference);
+  }
+
+  ImplicitCallTearOff implicitCallTearOff(String search) {
+    return _node(search, (n) => n is ImplicitCallTearOff);
   }
 
   ImplicitFunctionInstantiation implicitFunctionInstantiation(String search) {

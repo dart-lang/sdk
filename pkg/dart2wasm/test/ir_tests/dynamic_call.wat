@@ -1,43 +1,43 @@
 (module $M
   (type $#Top (struct
-    (field $field0 i32)))
+    (field $#classId i32)))
   (type $Array<Object?> (array (field (mut (ref null $#Top)))))
   (type $BoxedBool (sub final $#Top (struct
-    (field $field0 i32)
+    (field $#classId i32)
     (field $value i32))))
   (type $BoxedInt (sub final $#Top (struct
-    (field $field0 i32)
+    (field $#classId i32)
     (field $value i64))))
   (type $JSExternWrapper (sub $Object (struct
-    (field $field0 i32)
-    (field $field1 (mut i32))
+    (field $#classId i32)
+    (field $#identityHash (mut i32))
     (field $_externRef externref))))
   (type $ListBase (sub $Object (struct
-    (field $field0 i32)
-    (field $field1 (mut i32))
+    (field $#classId i32)
+    (field $#identityHash (mut i32))
     (field $field2 (ref $_Type)))))
   (type $Object (sub $#Top (struct
-    (field $field0 i32)
-    (field $field1 (mut i32)))))
+    (field $#classId i32)
+    (field $#identityHash (mut i32)))))
   (type $Symbol (sub final $Object (struct
-    (field $field0 i32)
-    (field $field1 (mut i32))
+    (field $#classId i32)
+    (field $#identityHash (mut i32))
     (field $_name (ref $JSExternWrapper)))))
   (type $WasmListBase (sub final $ListBase (struct
-    (field $field0 i32)
-    (field $field1 (mut i32))
+    (field $#classId i32)
+    (field $#identityHash (mut i32))
     (field $field2 (ref $_Type))
     (field $_length (mut i64))
     (field $_data (mut (ref $Array<Object?>))))))
   (type $_Invocation (sub final $Object (struct
-    (field $field0 i32)
-    (field $field1 (mut i32))
+    (field $#classId i32)
+    (field $#identityHash (mut i32))
     (field $memberName (ref $Symbol))
     (field $_positional (ref null $WasmListBase))
     (field $_named (ref null $Object)))))
   (type $_Type (sub $Object (struct
-    (field $field0 i32)
-    (field $field1 (mut i32))
+    (field $#classId i32)
+    (field $#identityHash (mut i32))
     (field $isDeclaredNullable i32))))
   (type $type0 (func 
     (param $var0 (ref $#Top))
@@ -69,7 +69,7 @@
       br_on_null $label0
       local.set $var2
       local.get $var2
-      struct.get $#Top $field0
+      struct.get $#Top $#classId
       local.set $var3
       block $label1
         local.get $var3
