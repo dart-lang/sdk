@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/error/element_usage_detector.dart';
 
@@ -147,6 +148,7 @@ class ElementUsageFrontierDetectorV2<TagInfo extends Object>
   void checkUsage(
     Element? element,
     AstNode node, {
+    required SourceRange usageRange,
     bool isImplicitTypeReference = false,
   }) {
     bool allTrue = true;
@@ -169,6 +171,7 @@ class ElementUsageFrontierDetectorV2<TagInfo extends Object>
     super.checkUsage(
       element,
       node,
+      usageRange: usageRange,
       isImplicitTypeReference: isImplicitTypeReference,
     );
   }
