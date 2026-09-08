@@ -9,10 +9,13 @@ import '../base/modifiers.dart';
 import '../base/name_space.dart';
 import '../base/problems.dart';
 import '../base/scope.dart';
+import '../base/uri_offset.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
+import '../builder/property_builder.dart';
 import '../builder/type_builder.dart';
+import '../codes/diagnostic.dart' as diag;
 import '../fragment/extension/declaration.dart';
 import '../kernel/body_builder_context.dart';
 import '../kernel/kernel_helper.dart';
@@ -21,6 +24,8 @@ import 'name_space_builder.dart';
 import 'source_builder_mixins.dart';
 import 'source_library_builder.dart';
 import 'source_member_builder.dart';
+import 'source_method_builder.dart';
+import 'source_property_builder.dart';
 import 'source_type_parameter_builder.dart';
 
 class SourceExtensionBuilder extends ExtensionBuilderImpl
@@ -153,6 +158,31 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
       memberBuilders: _memberBuilders,
       typeParameterFactory: libraryBuilder.typeParameterFactory,
     );
+    for (SourceMemberBuilder memberBuilder in _memberBuilders) {
+      if (memberBuilder is SourceMethodBuilder) {
+        if (memberBuilder.isAbstract) {
+          libraryBuilder.addProblem(
+            diag.extensionDeclaresAbstractMember,
+            memberBuilder.fileOffset,
+            memberBuilder.name.length,
+            memberBuilder.fileUri,
+          );
+        }
+      } else if (memberBuilder is SourcePropertyBuilder) {
+        if (memberBuilder.declaresAbstractGetter) {
+          libraryBuilder.addProblem2(
+            diag.extensionDeclaresAbstractMember,
+            memberBuilder.getterUriOffset!,
+          );
+        }
+        if (memberBuilder.declaresAbstractSetter) {
+          libraryBuilder.addProblem2(
+            diag.extensionDeclaresAbstractMember,
+            memberBuilder.setterUriOffset!,
+          );
+        }
+      }
+    }
   }
 
   @override

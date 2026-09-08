@@ -2416,16 +2416,6 @@ illegalMixinDueToConstructorsCause:
   problemMessage: "This constructor prevents using '#className' as a mixin."
   severity: CONTEXT
 
-extensionTypeDeclaresAbstractMember:
-  pseudoSharedCode: EXTENSION_TYPE_WITH_ABSTRACT_MEMBER
-  parameters: none
-  problemMessage: "Extension types can't declare abstract members."
-  correctionMessage: "Try providing an implementation for the member."
-  script: |
-    extension type ET(int id) {
-      void method();
-    }
-
 extensionDeclaresInstanceField:
   pseudoSharedCode: EXTENSION_DECLARES_INSTANCE_FIELD
   parameters: none
