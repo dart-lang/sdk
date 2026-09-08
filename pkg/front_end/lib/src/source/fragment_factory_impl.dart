@@ -1068,6 +1068,7 @@ class FragmentFactoryImpl implements FragmentFactory {
     required List<TypeBuilder>? interfaces,
     required int startOffset,
     required int endOffset,
+    required bool hasErroneousBody,
   }) {
     EnumFragment declarationFragment = endEnumDeclaration();
 
@@ -1082,6 +1083,7 @@ class FragmentFactoryImpl implements FragmentFactory {
     declarationFragment.interfaces = interfaces;
     declarationFragment.startOffset = startOffset;
     declarationFragment.endOffset = endOffset;
+    declarationFragment.hasErroneousBody = hasErroneousBody;
 
     _addFragment(declarationFragment);
 

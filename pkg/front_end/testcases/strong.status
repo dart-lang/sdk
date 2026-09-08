@@ -123,6 +123,7 @@ nnbd/platform_nonnullable_fields/main: SemiFuzzFailure
 nnbd/platform_optional_parameters/main: SemiFuzzFailure
 # Augmentations cannot be applied before the introductory declaration.
 augmentations/class_declarations: SemiFuzzFailure
+augmentations/enum_declarations: SemiFuzzFailure
 augmentations/extension_declarations: SemiFuzzFailure
 augmentations/extension_type_declarations: SemiFuzzFailure
 augmentations/mixin_declarations: SemiFuzzFailure
