@@ -22,10 +22,14 @@ This is a patch release that:
 - Fixes dart2js compiler crash when compiling code with nested constants in `record_use` (issue [#64070]).
 - Fixes a `dart format` crash and incorrect formatting with enums that use
   primary constructors ([#1885][dart_style #1885], [#1888][dart_style #1888]).
+- Fixes an issue where `dart run <pkg>@...` did not propagate analytics environment variables (`DASH__TOOL`, `DASH__SUPPRESS_ANALYTICS`) to remote executables (issue [#64017]).
+- Fixes an issue on Windows where `dart run <pkg>@...` failed to find executables without `.exe` extension (issue [#64050]).
 
 [#63809]: https://github.com/dart-lang/sdk/issues/63809
 [#62164]: https://github.com/dart-lang/sdk/issues/62164
 [#64070]: https://github.com/dart-lang/sdk/issues/64070
+[#64017]: https://github.com/dart-lang/sdk/issues/64017
+[#64050]: https://github.com/dart-lang/sdk/issues/64050
 
 [dart_style #1885]: https://github.com/dart-lang/dart_style/issues/1885
 [dart_style #1888]: https://github.com/dart-lang/dart_style/issues/1888

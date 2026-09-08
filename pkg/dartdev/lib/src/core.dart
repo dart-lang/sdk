@@ -13,6 +13,7 @@ import 'package:path/path.dart' as path;
 
 import 'experiments.dart';
 import 'utils.dart';
+import 'vm_interop_handler.dart';
 
 // Initialize a default logger. We'll replace this with a verbose logger if
 // necessary once we start parsing.
@@ -114,9 +115,10 @@ extension DartDevCommand<T> on Command<T> {
 
 Future<int> runProcess(
   List<String> command, {
-  bool logToTrace = false,
-  void Function(String str)? listener,
   String? cwd,
+  Map<String, String>? environment,
+  void Function(String str)? listener,
+  bool logToTrace = false,
 }) async {
   Future<void> forward(Stream<List<int>> output, bool isStderr) {
     return _streamLineTransform(output, (line) {
@@ -133,6 +135,7 @@ Future<int> runProcess(
     command.first,
     command.skip(1).toList(),
     workingDirectory: cwd,
+    environment: {...VmInteropHandler.environmentOverrides, ...?environment},
   );
   final (_, _, exitCode) = await (
     forward(process.stdout, false),
