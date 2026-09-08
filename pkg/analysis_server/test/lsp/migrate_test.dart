@@ -24,6 +24,7 @@ void main() {
     defineReflectiveTests(MigrateDependencyConflictTest);
     defineReflectiveTests(MigrateMultiVersionTest);
     defineReflectiveTests(MigratePackageValidationTest);
+    defineReflectiveTests(MigrateProgressTest);
     defineReflectiveTests(MigrateStepsTest);
   });
 }
@@ -76,6 +77,7 @@ abstract class AbstractMigrateTest extends AbstractLspAnalysisServerTest {
     Object? expectedSummary,
     String? expectedEdit,
     bool apply = false,
+    ProgressToken? workDoneToken,
   }) async {
     await workspaceAnalysisComplete();
     var request = makeRequest(
@@ -85,6 +87,7 @@ abstract class AbstractMigrateTest extends AbstractLspAnalysisServerTest {
         apply: apply,
         steps: steps,
         targetSdk: targetSdk,
+        workDoneToken: workDoneToken,
       ),
     );
     var response = await sendRequestToServer(request);
@@ -1244,6 +1247,71 @@ environment:
   sdk: '^3.13.0'
 ''',
     );
+  }
+}
+
+@reflectiveTest
+class MigrateProgressTest extends AbstractMigrateTest {
+  Future<void> test_progressReporting() async {
+    await _setupProject(
+      pubspecContent: '''
+name: test
+environment:
+  sdk: '>=3.11.0 <4.0.0'
+''',
+    );
+
+    newFile(mainFilePath, '''
+class Foo {
+  Foo(final int x);
+}
+''');
+
+    var token = clientProvidedTestWorkDoneToken;
+    var progressNotifications = <ProgressParams>[];
+    notificationsFromServer
+        .where((n) => n.method == Method.progress)
+        .map((n) => ProgressParams.fromJson(n.params as Map<String, Object?>))
+        .where((params) => params.token == token)
+        .listen(progressNotifications.add);
+
+    await _assertMigrationResult(
+      targetSdk: '3.13.0',
+      apply: true,
+      workDoneToken: token,
+    );
+
+    expect(progressNotifications, isNotEmpty);
+
+    // First notification should be begin.
+    var firstValue = progressNotifications.first.value as Map<String, Object?>;
+    expect(firstValue['kind'], 'begin');
+
+    // Last notification should be end.
+    var lastValue = progressNotifications.last.value as Map<String, Object?>;
+    expect(lastValue['kind'], 'end');
+
+    // Intermediate notifications should be reports with stage messages.
+    var reports = progressNotifications
+        .sublist(1, progressNotifications.length - 1)
+        .map((p) => p.value as Map<String, Object?>)
+        .toList();
+
+    expect(reports, isNotEmpty);
+    for (var report in reports) {
+      expect(report['kind'], 'report');
+      expect(report['message'], isNotEmpty);
+    }
+
+    var messages = reports.map((r) => r['message'] as String).toList();
+    expect(messages, [
+      'test: 3.11.0 -> 3.12.0 (prepare)',
+      'test: 3.11.0 -> 3.12.0 (bump)',
+      'test: 3.12.0 (cleanup)',
+      'test: 3.12.0 -> 3.13.0 (prepare)',
+      'test: 3.12.0 -> 3.13.0 (bump)',
+      'test: 3.13.0 (cleanup)',
+    ]);
   }
 }
 

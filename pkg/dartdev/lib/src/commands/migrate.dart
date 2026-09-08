@@ -85,7 +85,11 @@ class MigrateCommand extends DartdevCommand {
       targetDescription = '${targets.length} packages';
     }
     final modeText = dryRun ? ' (dry run)' : '';
-    Progress? progress = log.progress('Migrating $targetDescription$modeText');
+    final initialMessage = 'Migrating $targetDescription$modeText';
+    Progress? progress = log.progress(initialMessage);
+    final workDoneToken = lsp.ProgressToken.t2(
+      'migrate-${DateTime.now().millisecondsSinceEpoch}',
+    );
 
     final server = LspAnalysisServer(
       null,
@@ -98,6 +102,17 @@ class MigrateCommand extends DartdevCommand {
     );
 
     await server.start();
+
+    final progressSubscription = server.onProgress.listen((params) {
+      if (params.token != workDoneToken || progress == null) return;
+      if (params.value case {
+        'kind': 'report' || 'begin',
+        'message': String message,
+      } when message.isNotEmpty) {
+        progress?.cancel();
+        progress = log.progress('$initialMessage: $message');
+      }
+    });
 
     server.onExit.then((int exitCode) {
       if (progress != null && exitCode != 0) {
@@ -120,6 +135,7 @@ class MigrateCommand extends DartdevCommand {
         apply: apply,
         steps: steps,
         targetSdk: targetSdk,
+        workDoneToken: workDoneToken,
       );
       if (result == null) return 1;
 
@@ -141,16 +157,18 @@ class MigrateCommand extends DartdevCommand {
         }
       }
     } catch (e, st) {
-      if (progress != null) {
-        progress!.cancel();
-        progress = null;
-      }
+      progress?.cancel();
+      progress = null;
       log.stderr('An error occurred during migration: $e');
       log.stderr(st.toString());
       log.stdout(
         'Please report this at dartbug.com and include the stack trace above.',
       );
       return 1;
+    } finally {
+      progress?.cancel();
+      progress = null;
+      await progressSubscription.cancel();
     }
 
     return 0;
@@ -187,6 +205,7 @@ class MigrateCommand extends DartdevCommand {
     required bool apply,
     required List<String> steps,
     String? targetSdk,
+    lsp.ProgressToken? workDoneToken,
   }) async {
     final uris = [for (final target in targets) Uri.file(target.path)];
 
@@ -199,6 +218,7 @@ class MigrateCommand extends DartdevCommand {
         apply: apply,
         steps: steps.map(MigrationStep.new).toList(),
         targetSdk: targetSdk,
+        workDoneToken: workDoneToken,
       );
     } finally {
       await server.shutdown();
