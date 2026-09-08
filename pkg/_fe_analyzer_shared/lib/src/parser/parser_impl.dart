@@ -6133,34 +6133,6 @@ class Parser {
         assert(varFinalOrConst.isA(Keyword.CONST));
         reportRecoverableError(varFinalOrConst, diag.constMethod);
       }
-      switch (kind) {
-        case DeclarationKind.Class:
-        case DeclarationKind.Mixin:
-        case DeclarationKind.Enum:
-          break;
-        case DeclarationKind.Extension:
-          if (bodyStart.isA(TokenType.SEMICOLON) && externalToken == null) {
-            // TODO(johnniwinther): Stop reporting this in the parser. It is not
-            // valid when the member is augmented.
-            reportRecoverableError(
-              isOperator ? name.next! : name,
-              diag.extensionDeclaresAbstractMember,
-            );
-          }
-          break;
-        case DeclarationKind.ExtensionType:
-          if (bodyStart.isA(TokenType.SEMICOLON) && externalToken == null) {
-            // TODO(johnniwinther): Stop reporting this in the parser. It is not
-            // valid when the member is augmented.
-            reportRecoverableError(
-              isOperator ? name.next! : name,
-              diag.extensionTypeDeclaresAbstractMember,
-            );
-          }
-          break;
-        case DeclarationKind.TopLevel:
-          throw "Internal error: TopLevel method.";
-      }
       // TODO(danrubel): Remove beginInitializers token from method events
       listener.endMethod(
         kind,

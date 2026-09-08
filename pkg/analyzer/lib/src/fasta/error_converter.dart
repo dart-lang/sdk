@@ -314,9 +314,6 @@ class FastaErrorReporter {
         // Not reported but followed by a
         // CompileTimeErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD.
         return;
-      case PseudoSharedCode.extensionTypeWithAbstractMember:
-        // Reported by [ErrorVerifier._checkForExtensionTypeWithAbstractMember].
-        return;
       case PseudoSharedCode.extensionTypeDeclaresInstanceField:
         // Reported by
         // [ErrorVerifier._checkForExtensionTypeDeclaresInstanceField]

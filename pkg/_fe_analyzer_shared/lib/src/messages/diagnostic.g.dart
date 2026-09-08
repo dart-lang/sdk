@@ -1083,14 +1083,6 @@ extensionTypeAugmentationSpecifiesRepresentationField = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode extensionTypeDeclaresAbstractMember = const MessageCode(
-  "ExtensionTypeDeclaresAbstractMember",
-  pseudoSharedCode: PseudoSharedCode.extensionTypeWithAbstractMember,
-  problemMessage: """Extension types can't declare abstract members.""",
-  correctionMessage: """Try providing an implementation for the member.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode extensionTypeDeclaresInstanceField = const MessageCode(
   "ExtensionTypeDeclaresInstanceField",
   pseudoSharedCode: PseudoSharedCode.extensionTypeDeclaresInstanceField,
@@ -1118,6 +1110,38 @@ const MessageCode extensionTypeWith = const MessageCode(
   correctionMessage:
       """Try removing the 'with' clause or replacing the 'with' with 'implements'.""",
 );
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+  Message Function({
+    required String methodName,
+    required String extensionTypeName,
+  })
+>
+extensionTypeWithAbstractMember = const Template(
+  "ExtensionTypeWithAbstractMember",
+  withArguments: _withArgumentsExtensionTypeWithAbstractMember,
+  sharedCode: SharedCode.extensionTypeWithAbstractMember,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsExtensionTypeWithAbstractMember({
+  required String methodName,
+  required String extensionTypeName,
+}) {
+  var methodName_0 = conversions.validateString(methodName);
+  var extensionTypeName_0 = conversions.validateString(extensionTypeName);
+  return new Message(
+    extensionTypeWithAbstractMember,
+    problemMessage:
+        """'${methodName_0}' must have a method body because '${extensionTypeName_0}' is an extension type.""",
+    correctionMessage: """Try adding a body to '${methodName_0}'.""",
+    arguments: {
+      'methodName': methodName,
+      'extensionTypeName': extensionTypeName,
+    },
+  );
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode externalClass = const MessageCode(
@@ -3085,7 +3109,6 @@ enum PseudoSharedCode {
   expectedTypeName,
   extensionDeclaresInstanceField,
   extensionTypeDeclaresInstanceField,
-  extensionTypeWithAbstractMember,
   fastaCliArgumentRequired,
   finalNotInitialized,
   getterWithParameters,
@@ -3197,6 +3220,7 @@ enum SharedCode {
   extensionTypeAugmentationSpecifiesRepresentationField,
   extensionTypeExtends,
   extensionTypeWith,
+  extensionTypeWithAbstractMember,
   externalClass,
   externalConstructorWithFieldInitializers,
   externalConstructorWithInitializer,

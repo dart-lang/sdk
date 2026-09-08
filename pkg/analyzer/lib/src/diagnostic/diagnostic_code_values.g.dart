@@ -1240,6 +1240,7 @@ final sharedAnalyzerCodes = <DiagnosticCode>[
   diag.extensionTypeAugmentationSpecifiesRepresentationField,
   diag.extensionTypeExtends,
   diag.extensionTypeWith,
+  diag.extensionTypeWithAbstractMember,
   diag.externalClass,
   diag.externalConstructorWithFieldInitializers,
   diag.externalConstructorWithInitializer,
